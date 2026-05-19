@@ -1832,6 +1832,7 @@ class _RequestDialog extends StatefulWidget {
 class _RequestDialogState extends State<_RequestDialog> {
   bool _is4k = false;
   bool _allSeasons = true;
+  bool _submitting = false;
   final Set<int> _selectedSeasons = {};
   bool _showAdvanced = false;
 
@@ -1947,11 +1948,17 @@ class _RequestDialogState extends State<_RequestDialog> {
   }
 
   void _submit() {
+    if (_submitting) {
+      return;
+    }
+
     List<int>? seasons;
     if (widget.isTv && !_allSeasons) {
       seasons = _selectedSeasons.toList()..sort();
       if (seasons.isEmpty) return;
     }
+
+    _submitting = true;
 
     widget.vm.submitRequest(
       is4k: _is4k,

@@ -240,6 +240,10 @@ class SeerrMediaDetailViewModel extends ChangeNotifier {
     String? rootFolder,
     int? serverId,
   }) async {
+    if (_state.isRequesting) {
+      return;
+    }
+
     _state = _state.copyWith(isRequesting: true, requestError: null, requestSuccess: null);
     notifyListeners();
 
@@ -267,6 +271,10 @@ class SeerrMediaDetailViewModel extends ChangeNotifier {
   }
 
   Future<void> cancelRequests(List<int> requestIds) async {
+    if (_state.isRequesting) {
+      return;
+    }
+
     _state = _state.copyWith(isRequesting: true, requestError: null, requestSuccess: null);
     notifyListeners();
 
@@ -302,6 +310,10 @@ class SeerrMediaDetailViewModel extends ChangeNotifier {
     Future<void> Function() mutation,
     String successMessage,
   ) async {
+    if (_state.isRequesting) {
+      return;
+    }
+
     _state = _state.copyWith(isRequesting: true, requestError: null, requestSuccess: null);
     notifyListeners();
 

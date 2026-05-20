@@ -354,6 +354,9 @@ class _DetailContentState extends State<_DetailContent> {
   late ScrollController _scrollController;
   late FocusNode _contentFocusNode;
   final Map<String, FocusNode> _sectionFocusNodes = <String, FocusNode>{};
+  final Map<FocusNode, ScrollController> _sectionScrollControllers =
+      <FocusNode, ScrollController>{};
+  final Set<FocusNode> _pendingSectionFocusRetries = <FocusNode>{};
   final FocusNode _firstChapterFocusNode = FocusNode(
     debugLabel: 'detailFirstChapter',
   );
@@ -390,32 +393,118 @@ class _DetailContentState extends State<_DetailContent> {
     );
   }
 
-  KeyEventResult _requestSectionFocus(FocusNode? target) {
-    if (target == null || !target.canRequestFocus) {
-      return KeyEventResult.ignored;
+  ScrollController _trackSectionScrollController(
+    FocusNode? focusNode,
+    ScrollController controller,
+  ) {
+    if (focusNode != null) {
+      _sectionScrollControllers[focusNode] = controller;
     }
-    final targetContext = target.context;
-    if (targetContext == null) {
+    return controller;
+  }
+
+  void _resetSectionHorizontalOffset(FocusNode? sectionFocusNode) {
+    if (sectionFocusNode == null) {
+      return;
+    }
+    final controller = _sectionScrollControllers[sectionFocusNode];
+    if (controller == null || !controller.hasClients) {
+      return;
+    }
+    final minOffset = controller.position.minScrollExtent;
+    if (controller.offset != minOffset) {
+      controller.jumpTo(minOffset);
+    }
+  }
+
+  bool _isLaidOutFocusNode(FocusNode target) {
+    if (!target.canRequestFocus) {
+      return false;
+    }
+    final context = target.context;
+    if (context == null) {
+      return false;
+    }
+    final renderObject = context.findRenderObject();
+    return renderObject is RenderBox &&
+        renderObject.attached &&
+        renderObject.hasSize;
+  }
+
+  bool _tryFocusSidebar() {
+    if (prefs.get(UserPreferences.navbarPosition) != NavbarPosition.left) {
+      return false;
+    }
+    final focusNavbar = NavigationLayout.focusNavbarNotifier.value;
+    if (focusNavbar != null) {
+      focusNavbar();
+      return true;
+    }
+    return FocusScope.of(context).previousFocus();
+  }
+
+  Future<void> _ensureSectionVisible(BuildContext context) {
+    return Scrollable.ensureVisible(
+      context,
+      duration: const Duration(milliseconds: 220),
+      curve: Curves.easeOut,
+      alignment: 0.2,
+      alignmentPolicy: ScrollPositionAlignmentPolicy.explicit,
+    );
+  }
+
+  BuildContext? _sectionContainerContext(FocusNode target) {
+    final controller = _sectionScrollControllers[target];
+    if (controller == null || !controller.hasClients) {
+      return null;
+    }
+    return controller.position.context.storageContext;
+  }
+
+  void _focusSectionTarget(FocusNode target) {
+    target.requestFocus();
+    final context = target.context;
+    if (context != null) {
+      unawaited(_ensureSectionVisible(context));
+    }
+  }
+
+  void _scheduleSingleSectionFocusRetry(FocusNode target) {
+    if (!_pendingSectionFocusRetries.add(target)) {
+      return;
+    }
+
+    final sectionContext = _sectionContainerContext(target);
+    if (sectionContext != null) {
+      unawaited(_ensureSectionVisible(sectionContext));
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _pendingSectionFocusRetries.remove(target);
+      if (!mounted || !_isLaidOutFocusNode(target)) {
+        return;
+      }
+      _focusSectionTarget(target);
+    });
+  }
+
+  KeyEventResult _requestSectionFocus(FocusNode? target) {
+    if (target == null) {
       return KeyEventResult.ignored;
     }
 
-    target.requestFocus();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      final currentContext = target.context;
-      if (currentContext == null) return;
-      Scrollable.ensureVisible(
-        currentContext,
-        duration: const Duration(milliseconds: 220),
-        curve: Curves.easeOut,
-        alignment: 0.2,
-        alignmentPolicy: ScrollPositionAlignmentPolicy.explicit,
-      );
-    });
-    return KeyEventResult.handled;
+    if (_isLaidOutFocusNode(target)) {
+      _focusSectionTarget(target);
+      return KeyEventResult.handled;
+    }
+
+    _resetSectionHorizontalOffset(target);
+    _scheduleSingleSectionFocusRetry(target);
+    return KeyEventResult.ignored;
   }
 
   KeyEventResult Function(int index, KeyEvent event)? _buildVerticalRowHandler({
+    FocusNode? sourceFocusNode,
     FocusNode? upTarget,
     FocusNode? downTarget,
     int? itemCount,
@@ -432,8 +521,11 @@ class _DetailContentState extends State<_DetailContent> {
       if (hasBoundaryGuards &&
           event.logicalKey == LogicalKeyboardKey.arrowLeft &&
           index <= 0) {
-        NavigationLayout.focusNavbarNotifier.value?.call();
-        return KeyEventResult.handled;
+        if (event is KeyDownEvent) {
+          _tryFocusSidebar();
+          return KeyEventResult.handled;
+        }
+        return KeyEventResult.ignored;
       }
       if (hasBoundaryGuards &&
           event.logicalKey == LogicalKeyboardKey.arrowRight &&
@@ -441,9 +533,11 @@ class _DetailContentState extends State<_DetailContent> {
         return KeyEventResult.handled;
       }
       if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
+        _resetSectionHorizontalOffset(sourceFocusNode);
         return _requestSectionFocus(upTarget);
       }
       if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
+        _resetSectionHorizontalOffset(sourceFocusNode);
         return _requestSectionFocus(downTarget);
       }
       return KeyEventResult.ignored;
@@ -464,6 +558,8 @@ class _DetailContentState extends State<_DetailContent> {
     final oldId = oldWidget.viewModel.item?.id;
     if (newId != oldId) {
       _tvAlbumPlayFocusAppliedForItemId = null;
+      _sectionScrollControllers.clear();
+      _pendingSectionFocusRetries.clear();
     }
   }
 
@@ -502,6 +598,8 @@ class _DetailContentState extends State<_DetailContent> {
       node.dispose();
     }
     _sectionFocusNodes.clear();
+    _sectionScrollControllers.clear();
+    _pendingSectionFocusRetries.clear();
     _firstChapterFocusNode.dispose();
     _firstFeatureFocusNode.dispose();
     _albumPlayFocusNode.dispose();
@@ -645,6 +743,7 @@ class _DetailContentState extends State<_DetailContent> {
         selectedMediaSourceId: selectedMediaSourceId,
         onSelectedMediaSourceChanged: onSelectedMediaSourceChanged,
         tvPlayFocusNode: _sectionFocusNode('detailActionButtons'),
+        onRequestFocus: _requestSectionFocus,
         autoPlay: widget.autoPlay,
       ),
       if (exifEntries.isNotEmpty) ...[
@@ -842,6 +941,7 @@ class _DetailContentState extends State<_DetailContent> {
         selectedMediaSourceId: selectedMediaSourceId,
         onSelectedMediaSourceChanged: onSelectedMediaSourceChanged,
         tvPlayFocusNode: _sectionFocusNode('detailActionButtons'),
+        onRequestFocus: _requestSectionFocus,
         autoPlay: widget.autoPlay,
       ),
       const SizedBox(height: 28),
@@ -940,6 +1040,7 @@ class _DetailContentState extends State<_DetailContent> {
         selectedMediaSourceId: selectedMediaSourceId,
         onSelectedMediaSourceChanged: onSelectedMediaSourceChanged,
         tvPlayFocusNode: actionButtonsFocusNode,
+        onRequestFocus: _requestSectionFocus,
         downTarget: hasChapters
             ? _firstChapterFocusNode
             : (hasFeatures ? _firstFeatureFocusNode : chapterFeatureNextNode),
@@ -970,9 +1071,10 @@ class _DetailContentState extends State<_DetailContent> {
             people: viewModel.actors,
             imageApi: viewModel.imageApi,
             serverId: viewModel.item?.serverId,
-            scrollController: ctrl,
+            scrollController: _trackSectionScrollController(castFocusNode, ctrl),
             firstItemFocusNode: castFocusNode,
             onItemKeyEvent: _buildVerticalRowHandler(
+              sourceFocusNode: castFocusNode,
               upTarget: chapterFeatureLastNode,
               downTarget: collectionFocusNode ?? similarFocusNode,
               itemCount: viewModel.actors.length,
@@ -988,9 +1090,13 @@ class _DetailContentState extends State<_DetailContent> {
             items: viewModel.parentCollectionItems,
             imageApi: viewModel.imageApi,
             prefs: prefs,
-            scrollController: ctrl,
+            scrollController: _trackSectionScrollController(
+              collectionFocusNode,
+              ctrl,
+            ),
             firstItemFocusNode: collectionFocusNode,
             onItemKeyEvent: _buildVerticalRowHandler(
+              sourceFocusNode: collectionFocusNode,
               upTarget: collectionUpTarget,
               downTarget: similarFocusNode,
               itemCount: viewModel.parentCollectionItems.length,
@@ -1012,9 +1118,13 @@ class _DetailContentState extends State<_DetailContent> {
             items: viewModel.similar,
             imageApi: viewModel.imageApi,
             prefs: prefs,
-            scrollController: ctrl,
+            scrollController: _trackSectionScrollController(
+              similarFocusNode,
+              ctrl,
+            ),
             firstItemFocusNode: similarFocusNode,
             onItemKeyEvent: _buildVerticalRowHandler(
+              sourceFocusNode: similarFocusNode,
               upTarget:
                   collectionFocusNode ?? castFocusNode ?? chapterFeatureLastNode,
               itemCount: viewModel.similar.length,
@@ -1050,6 +1160,7 @@ class _DetailContentState extends State<_DetailContent> {
         selectedMediaSourceId: selectedMediaSourceId,
         onSelectedMediaSourceChanged: onSelectedMediaSourceChanged,
         tvPlayFocusNode: actionButtonsFocusNode,
+        onRequestFocus: _requestSectionFocus,
         downTarget:
             seriesNextUpFocusNode ??
             seasonsFocusNode ??
@@ -1084,8 +1195,11 @@ class _DetailContentState extends State<_DetailContent> {
               return KeyEventResult.ignored;
             }
             if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
-              NavigationLayout.focusNavbarNotifier.value?.call();
-              return KeyEventResult.handled;
+              if (event is KeyDownEvent) {
+                _tryFocusSidebar();
+                return KeyEventResult.handled;
+              }
+              return KeyEventResult.ignored;
             }
             if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
               return KeyEventResult.handled;
@@ -1116,9 +1230,13 @@ class _DetailContentState extends State<_DetailContent> {
             seasons: viewModel.seasons,
             imageApi: viewModel.imageApi,
             prefs: prefs,
-            scrollController: ctrl,
+            scrollController: _trackSectionScrollController(
+              seasonsFocusNode,
+              ctrl,
+            ),
             firstItemFocusNode: seasonsFocusNode,
             onItemKeyEvent: _buildVerticalRowHandler(
+              sourceFocusNode: seasonsFocusNode,
               upTarget: seriesNextUpFocusNode ?? actionButtonsFocusNode,
               downTarget: castFocusNode ?? similarFocusNode,
               itemCount: viewModel.seasons.length,
@@ -1140,9 +1258,10 @@ class _DetailContentState extends State<_DetailContent> {
             people: viewModel.actors,
             imageApi: viewModel.imageApi,
             serverId: viewModel.item?.serverId,
-            scrollController: ctrl,
+            scrollController: _trackSectionScrollController(castFocusNode, ctrl),
             firstItemFocusNode: castFocusNode,
             onItemKeyEvent: _buildVerticalRowHandler(
+              sourceFocusNode: castFocusNode,
               upTarget:
                   seasonsFocusNode ??
                   seriesNextUpFocusNode ??
@@ -1167,9 +1286,13 @@ class _DetailContentState extends State<_DetailContent> {
             items: viewModel.similar,
             imageApi: viewModel.imageApi,
             prefs: prefs,
-            scrollController: ctrl,
+            scrollController: _trackSectionScrollController(
+              similarFocusNode,
+              ctrl,
+            ),
             firstItemFocusNode: similarFocusNode,
             onItemKeyEvent: _buildVerticalRowHandler(
+              sourceFocusNode: similarFocusNode,
               upTarget:
                   castFocusNode ??
                   seasonsFocusNode ??
@@ -1192,6 +1315,7 @@ class _DetailContentState extends State<_DetailContent> {
         selectedMediaSourceId: selectedMediaSourceId,
         onSelectedMediaSourceChanged: onSelectedMediaSourceChanged,
         tvPlayFocusNode: _sectionFocusNode('detailActionButtons'),
+        onRequestFocus: _requestSectionFocus,
         autoPlay: widget.autoPlay,
       ),
       if (viewModel.episodes.isNotEmpty) ...[
@@ -1252,6 +1376,7 @@ class _DetailContentState extends State<_DetailContent> {
         selectedMediaSourceId: selectedMediaSourceId,
         onSelectedMediaSourceChanged: onSelectedMediaSourceChanged,
         tvPlayFocusNode: actionButtonsFocusNode,
+        onRequestFocus: _requestSectionFocus,
         downTarget: hasChapters
             ? _firstChapterFocusNode
             : (hasFeatures ? _firstFeatureFocusNode : chapterFeatureNextNode),
@@ -1294,8 +1419,11 @@ class _DetailContentState extends State<_DetailContent> {
                     return KeyEventResult.ignored;
                   }
                   if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
-                    NavigationLayout.focusNavbarNotifier.value?.call();
-                    return KeyEventResult.handled;
+                    if (event is KeyDownEvent) {
+                      _tryFocusSidebar();
+                      return KeyEventResult.handled;
+                    }
+                    return KeyEventResult.ignored;
                   }
                   if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
                     return KeyEventResult.handled;
@@ -1327,9 +1455,13 @@ class _DetailContentState extends State<_DetailContent> {
             episodes: viewModel.episodes,
             currentEpisodeId: item.id,
             imageApi: viewModel.imageApi,
-            scrollController: ctrl,
+            scrollController: _trackSectionScrollController(
+              episodesFocusNode,
+              ctrl,
+            ),
             firstItemFocusNode: episodesFocusNode,
             onItemKeyEvent: _buildVerticalRowHandler(
+              sourceFocusNode: episodesFocusNode,
               upTarget: nextEpisodeFocusNode ?? chapterFeatureLastNode,
               downTarget: castFocusNode ?? similarFocusNode,
               itemCount: viewModel.episodes.length,
@@ -1351,9 +1483,10 @@ class _DetailContentState extends State<_DetailContent> {
             people: viewModel.actors,
             imageApi: viewModel.imageApi,
             serverId: viewModel.item?.serverId,
-            scrollController: ctrl,
+            scrollController: _trackSectionScrollController(castFocusNode, ctrl),
             firstItemFocusNode: castFocusNode,
             onItemKeyEvent: _buildVerticalRowHandler(
+              sourceFocusNode: castFocusNode,
               upTarget:
                   episodesFocusNode ??
                   nextEpisodeFocusNode ??
@@ -1378,9 +1511,13 @@ class _DetailContentState extends State<_DetailContent> {
             items: viewModel.similar,
             imageApi: viewModel.imageApi,
             prefs: prefs,
-            scrollController: ctrl,
+            scrollController: _trackSectionScrollController(
+              similarFocusNode,
+              ctrl,
+            ),
             firstItemFocusNode: similarFocusNode,
             onItemKeyEvent: _buildVerticalRowHandler(
+              sourceFocusNode: similarFocusNode,
               upTarget:
                   castFocusNode ?? episodesFocusNode ?? chapterFeatureLastNode,
               itemCount: viewModel.similar.length,
@@ -1452,9 +1589,13 @@ class _DetailContentState extends State<_DetailContent> {
             onPlayFromChapter: (position) => unawaited(
               _playFromChapter(context, item, position, selectedMediaSourceId),
             ),
-            scrollController: ctrl,
+            scrollController: _trackSectionScrollController(
+              _firstChapterFocusNode,
+              ctrl,
+            ),
             firstItemFocusNode: _firstChapterFocusNode,
             onItemKeyEvent: _buildVerticalRowHandler(
+              sourceFocusNode: _firstChapterFocusNode,
               upTarget: prevSectionFocusNode,
               downTarget: chapterDownTarget,
               itemCount: item.chapters.length,
@@ -1470,9 +1611,13 @@ class _DetailContentState extends State<_DetailContent> {
             items: viewModel.features,
             imageApi: viewModel.imageApi,
             prefs: prefs,
-            scrollController: ctrl,
+            scrollController: _trackSectionScrollController(
+              _firstFeatureFocusNode,
+              ctrl,
+            ),
             firstItemFocusNode: _firstFeatureFocusNode,
             onItemKeyEvent: _buildVerticalRowHandler(
+              sourceFocusNode: _firstFeatureFocusNode,
               upTarget: featureUpTarget ?? prevSectionFocusNode,
               downTarget: nextSectionFocusNode,
               itemCount: viewModel.features.length,
@@ -1524,9 +1669,10 @@ class _DetailContentState extends State<_DetailContent> {
             items: movies,
             imageApi: viewModel.imageApi,
             prefs: prefs,
-            scrollController: ctrl,
+            scrollController: _trackSectionScrollController(moviesFocusNode, ctrl),
             firstFocusNode: moviesFocusNode,
             onItemKeyEvent: _buildVerticalRowHandler(
+              sourceFocusNode: moviesFocusNode,
               downTarget: seriesFocusNode,
               itemCount: movies.length,
             ),
@@ -1541,9 +1687,10 @@ class _DetailContentState extends State<_DetailContent> {
             items: series,
             imageApi: viewModel.imageApi,
             prefs: prefs,
-            scrollController: ctrl,
+            scrollController: _trackSectionScrollController(seriesFocusNode, ctrl),
             firstFocusNode: seriesFocusNode,
             onItemKeyEvent: _buildVerticalRowHandler(
+              sourceFocusNode: seriesFocusNode,
               upTarget: moviesFocusNode,
               itemCount: series.length,
             ),
@@ -1573,11 +1720,7 @@ class _DetailContentState extends State<_DetailContent> {
         tracks: viewModel.tracks,
         showAddToPlaylist: false,
         onPlayDown: () {
-          final targetFocusNode = albumsFocusNode;
-          if (targetFocusNode == null || !targetFocusNode.canRequestFocus) {
-            return;
-          }
-          targetFocusNode.requestFocus();
+          _requestSectionFocus(albumsFocusNode);
         },
       ),
       if (item.overview != null && item.overview!.isNotEmpty) ...[
@@ -1592,9 +1735,10 @@ class _DetailContentState extends State<_DetailContent> {
             albums: viewModel.albums,
             imageApi: viewModel.imageApi,
             prefs: prefs,
-            scrollController: ctrl,
+            scrollController: _trackSectionScrollController(albumsFocusNode, ctrl),
             firstItemFocusNode: albumsFocusNode,
             onItemKeyEvent: _buildVerticalRowHandler(
+              sourceFocusNode: albumsFocusNode,
               downTarget: similarFocusNode,
               itemCount: viewModel.albums.length,
             ),
@@ -1609,9 +1753,13 @@ class _DetailContentState extends State<_DetailContent> {
             items: viewModel.similar,
             imageApi: viewModel.imageApi,
             prefs: prefs,
-            scrollController: ctrl,
+            scrollController: _trackSectionScrollController(
+              similarFocusNode,
+              ctrl,
+            ),
             firstItemFocusNode: similarFocusNode,
             onItemKeyEvent: _buildVerticalRowHandler(
+              sourceFocusNode: similarFocusNode,
               upTarget: albumsFocusNode,
               itemCount: viewModel.similar.length,
             ),
@@ -1952,9 +2100,10 @@ class _DetailContentState extends State<_DetailContent> {
             items: movies,
             imageApi: viewModel.imageApi,
             prefs: prefs,
-            scrollController: ctrl,
+            scrollController: _trackSectionScrollController(moviesFocusNode, ctrl),
             firstItemFocusNode: moviesFocusNode,
             onItemKeyEvent: _buildVerticalRowHandler(
+              sourceFocusNode: moviesFocusNode,
               downTarget: seriesFocusNode ?? otherFocusNode ?? castFocusNode,
               itemCount: movies.length,
             ),
@@ -1969,9 +2118,10 @@ class _DetailContentState extends State<_DetailContent> {
             items: series,
             imageApi: viewModel.imageApi,
             prefs: prefs,
-            scrollController: ctrl,
+            scrollController: _trackSectionScrollController(seriesFocusNode, ctrl),
             firstItemFocusNode: seriesFocusNode,
             onItemKeyEvent: _buildVerticalRowHandler(
+              sourceFocusNode: seriesFocusNode,
               upTarget: moviesFocusNode,
               downTarget: otherFocusNode ?? castFocusNode,
               itemCount: series.length,
@@ -1987,9 +2137,10 @@ class _DetailContentState extends State<_DetailContent> {
             items: other,
             imageApi: viewModel.imageApi,
             prefs: prefs,
-            scrollController: ctrl,
+            scrollController: _trackSectionScrollController(otherFocusNode, ctrl),
             firstItemFocusNode: otherFocusNode,
             onItemKeyEvent: _buildVerticalRowHandler(
+              sourceFocusNode: otherFocusNode,
               upTarget: seriesFocusNode ?? moviesFocusNode,
               downTarget: castFocusNode,
               itemCount: other.length,
@@ -2011,9 +2162,10 @@ class _DetailContentState extends State<_DetailContent> {
             people: viewModel.actors,
             imageApi: viewModel.imageApi,
             serverId: viewModel.item?.serverId,
-            scrollController: ctrl,
+            scrollController: _trackSectionScrollController(castFocusNode, ctrl),
             firstItemFocusNode: castFocusNode,
             onItemKeyEvent: _buildVerticalRowHandler(
+              sourceFocusNode: castFocusNode,
               upTarget: otherFocusNode ?? seriesFocusNode ?? moviesFocusNode,
               itemCount: viewModel.actors.length,
             ),
@@ -2827,6 +2979,7 @@ class _ActionButtons extends StatefulWidget {
   final ValueChanged<String?> onSelectedMediaSourceChanged;
   final FocusNode? tvPlayFocusNode;
   final FocusNode? downTarget;
+  final KeyEventResult Function(FocusNode? target)? onRequestFocus;
   final bool autoPlay;
 
   const _ActionButtons({
@@ -2835,6 +2988,7 @@ class _ActionButtons extends StatefulWidget {
     required this.onSelectedMediaSourceChanged,
     this.tvPlayFocusNode,
     this.downTarget,
+    this.onRequestFocus,
     this.autoPlay = false,
   });
 
@@ -3644,13 +3798,35 @@ class _ActionButtonsState extends State<_ActionButtons> {
     );
   }
 
+  bool _tryFocusSidebar() {
+    if (GetIt.instance<UserPreferences>().get(UserPreferences.navbarPosition) !=
+        NavbarPosition.left) {
+      return false;
+    }
+    final focusNavbar = NavigationLayout.focusNavbarNotifier.value;
+    if (focusNavbar != null) {
+      focusNavbar();
+      return true;
+    }
+    return FocusScope.of(context).previousFocus();
+  }
+
   void _focusSidebar() {
-    NavigationLayout.focusNavbarNotifier.value?.call();
+    _tryFocusSidebar();
   }
 
   void _focusDownTarget() {
     final target = widget.downTarget;
     if (target == null) return;
+
+    final requestFocus = widget.onRequestFocus;
+    if (requestFocus != null) {
+      final result = requestFocus(target);
+      if (result != KeyEventResult.ignored) {
+        return;
+      }
+    }
+
     if (target.context != null && target.canRequestFocus) {
       target.requestFocus();
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -6304,6 +6480,19 @@ class _DetailActionButton extends StatefulWidget {
 
 class _DetailActionButtonState extends State<_DetailActionButton>
     with FocusStateMixin {
+  bool _tryFocusSidebar() {
+    if (GetIt.instance<UserPreferences>().get(UserPreferences.navbarPosition) !=
+        NavbarPosition.left) {
+      return false;
+    }
+    final focusNavbar = NavigationLayout.focusNavbarNotifier.value;
+    if (focusNavbar != null) {
+      focusNavbar();
+      return true;
+    }
+    return FocusScope.of(context).previousFocus();
+  }
+
   void _scrollToTopOnFocus() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -6319,16 +6508,16 @@ class _DetailActionButtonState extends State<_DetailActionButton>
     });
   }
 
-  void _moveHorizontalFocus({required bool forward}) {
+  bool _moveHorizontalFocus({required bool forward}) {
     final current = widget.focusNode ?? Focus.of(context);
     final moved = forward
         ? FocusScope.of(context).nextFocus()
         : FocusScope.of(context).previousFocus();
     if (!moved) {
       if (!forward) {
-        NavigationLayout.focusNavbarNotifier.value?.call();
+        _tryFocusSidebar();
       }
-      return;
+      return true;
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -6342,10 +6531,11 @@ class _DetailActionButtonState extends State<_DetailActionButton>
         if (forward) {
           current.requestFocus();
         } else {
-          NavigationLayout.focusNavbarNotifier.value?.call();
+          _tryFocusSidebar();
         }
       }
     });
+    return true;
   }
 
   @override
@@ -6397,8 +6587,9 @@ class _DetailActionButtonState extends State<_DetailActionButton>
               widget.onArrowRight!();
               return KeyEventResult.handled;
             }
-            _moveHorizontalFocus(forward: true);
-            return KeyEventResult.handled;
+            return _moveHorizontalFocus(forward: true)
+                ? KeyEventResult.handled
+                : KeyEventResult.ignored;
           }
           if (isNavigationEvent &&
               event.logicalKey == LogicalKeyboardKey.arrowLeft) {
@@ -6406,8 +6597,9 @@ class _DetailActionButtonState extends State<_DetailActionButton>
               widget.onArrowLeft!();
               return KeyEventResult.handled;
             }
-            _moveHorizontalFocus(forward: false);
-            return KeyEventResult.handled;
+            return _moveHorizontalFocus(forward: false)
+                ? KeyEventResult.handled
+                : KeyEventResult.ignored;
           }
           if (isNavigationEvent &&
               event.logicalKey == LogicalKeyboardKey.arrowUp &&

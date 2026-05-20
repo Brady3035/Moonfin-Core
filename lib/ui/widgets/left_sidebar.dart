@@ -366,16 +366,12 @@ class _LeftSidebarState extends State<LeftSidebar> {
 
   void _restoreFocusOutsideSidebar() {
     final previous = _previousFocus;
-    if (previous != null &&
-        previous.canRequestFocus &&
-        previous.context != null) {
+    if (previous != null && _isLaidOutFocusNode(previous)) {
       previous.requestFocus();
       return;
     }
     final fallback = widget.contentFocusNode;
-    if (fallback != null &&
-        fallback.canRequestFocus &&
-        fallback.context != null) {
+    if (fallback != null && _isLaidOutFocusNode(fallback)) {
       final firstContent = _firstFocusableDescendant(fallback);
       if (firstContent != null) {
         firstContent.requestFocus();
@@ -387,11 +383,23 @@ class _LeftSidebarState extends State<LeftSidebar> {
     if (mounted) FocusScope.of(context).nextFocus();
   }
 
+  static bool _isLaidOutFocusNode(FocusNode node) {
+    if (!node.canRequestFocus) {
+      return false;
+    }
+    final context = node.context;
+    if (context == null) {
+      return false;
+    }
+    final renderObject = context.findRenderObject();
+    return renderObject is RenderBox &&
+        renderObject.attached &&
+        renderObject.hasSize;
+  }
+
   static FocusNode? _firstFocusableDescendant(FocusNode node) {
     for (final child in node.children) {
-      if (!child.skipTraversal &&
-          child.canRequestFocus &&
-          child.context != null) {
+      if (!child.skipTraversal && _isLaidOutFocusNode(child)) {
         return child;
       }
       final found = _firstFocusableDescendant(child);

@@ -12,6 +12,7 @@ class LibraryRow extends StatefulWidget {
   final List<Widget> children;
   final VoidCallback? onSeeAll;
   final double? rowHeight;
+  final ScrollController? scrollController;
 
   const LibraryRow({
     super.key,
@@ -19,6 +20,7 @@ class LibraryRow extends StatefulWidget {
     required this.children,
     this.onSeeAll,
     this.rowHeight,
+    this.scrollController,
   });
 
   @override
@@ -39,6 +41,7 @@ class _LibraryRowState extends State<LibraryRow> {
     final rowHeight = (widget.rowHeight ?? 220) * desktopScale;
     return HorizontalScrollSection(
       title: widget.title,
+      scrollController: widget.scrollController,
       titleStyle: Theme.of(context).textTheme.titleLarge?.copyWith(
         color: AppColorScheme.onSurface,
         fontWeight: FontWeight.w700,

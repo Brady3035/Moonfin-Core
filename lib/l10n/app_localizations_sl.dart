@@ -750,6 +750,9 @@ class AppLocalizationsSl extends AppLocalizations {
   String get movies => 'Filmi';
 
   @override
+  String get musicVideos => 'Music Videos';
+
+  @override
   String get other => 'drugo';
 
   @override

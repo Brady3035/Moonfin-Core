@@ -745,6 +745,9 @@ class AppLocalizationsNb extends AppLocalizations {
   String get movies => 'Filmer';
 
   @override
+  String get musicVideos => 'Music Videos';
+
+  @override
   String get other => 'Annen';
 
   @override

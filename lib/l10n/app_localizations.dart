@@ -1529,6 +1529,12 @@ abstract class AppLocalizations {
   /// **'Movies'**
   String get movies;
 
+  /// Section header for music videos filmography row
+  ///
+  /// In en, this message translates to:
+  /// **'Music Videos'**
+  String get musicVideos;
+
   /// Section header for other items
   ///
   /// In en, this message translates to:

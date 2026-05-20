@@ -750,6 +750,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get movies => 'Фильмы';
 
   @override
+  String get musicVideos => 'Music Videos';
+
+  @override
   String get other => 'Другой';
 
   @override

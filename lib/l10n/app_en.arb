@@ -995,6 +995,10 @@
   "@movies": {
     "description": "Section header for movies"
   },
+  "musicVideos": "Music Videos",
+  "@musicVideos": {
+    "description": "Section header for music videos filmography row"
+  },
   "series": "Series",
   "@series": {
     "description": "Section header for TV series"

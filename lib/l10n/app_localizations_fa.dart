@@ -745,6 +745,9 @@ class AppLocalizationsFa extends AppLocalizations {
   String get movies => 'فیلم ها';
 
   @override
+  String get musicVideos => 'Music Videos';
+
+  @override
   String get other => 'دیگر';
 
   @override

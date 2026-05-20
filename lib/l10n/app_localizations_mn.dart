@@ -747,6 +747,9 @@ class AppLocalizationsMn extends AppLocalizations {
   String get movies => 'Кино';
 
   @override
+  String get musicVideos => 'Music Videos';
+
+  @override
   String get other => 'Бусад';
 
   @override

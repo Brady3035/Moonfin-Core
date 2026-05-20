@@ -187,10 +187,11 @@ class HomeSectionConfig {
         HomeSectionConfig(type: HomeSectionType.favoriteEpisodes, enabled: false, order: 13),
         HomeSectionConfig(type: HomeSectionType.favoritePeople, enabled: false, order: 14),
         HomeSectionConfig(type: HomeSectionType.favoriteArtists, enabled: false, order: 15),
-        HomeSectionConfig(type: HomeSectionType.favoriteAlbums, enabled: false, order: 16),
-        HomeSectionConfig(type: HomeSectionType.favoriteSongs, enabled: false, order: 17),
-        HomeSectionConfig(type: HomeSectionType.collections, enabled: false, order: 18),
-        HomeSectionConfig(type: HomeSectionType.genres, enabled: false, order: 19),
+        HomeSectionConfig(type: HomeSectionType.favoriteMusicVideos, enabled: false, order: 16),
+        HomeSectionConfig(type: HomeSectionType.favoriteAlbums, enabled: false, order: 17),
+        HomeSectionConfig(type: HomeSectionType.favoriteSongs, enabled: false, order: 18),
+        HomeSectionConfig(type: HomeSectionType.collections, enabled: false, order: 19),
+        HomeSectionConfig(type: HomeSectionType.genres, enabled: false, order: 20),
       ];
 
   static List<HomeSectionConfig> fromJsonString(String jsonString) {

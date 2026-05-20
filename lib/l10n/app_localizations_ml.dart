@@ -751,6 +751,9 @@ class AppLocalizationsMl extends AppLocalizations {
   String get movies => 'സിനിമകൾ';
 
   @override
+  String get musicVideos => 'Music Videos';
+
+  @override
   String get other => 'മറ്റുള്ളവ';
 
   @override

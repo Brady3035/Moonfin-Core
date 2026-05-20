@@ -720,6 +720,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get movies => '电影';
 
   @override
+  String get musicVideos => 'Music Videos';
+
+  @override
   String get other => '其他';
 
   @override

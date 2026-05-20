@@ -724,6 +724,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get movies => '영화 산업';
 
   @override
+  String get musicVideos => 'Music Videos';
+
+  @override
   String get other => '다른';
 
   @override

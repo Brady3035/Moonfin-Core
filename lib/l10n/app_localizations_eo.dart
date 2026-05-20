@@ -744,6 +744,9 @@ class AppLocalizationsEo extends AppLocalizations {
   String get movies => 'Filmoj';
 
   @override
+  String get musicVideos => 'Music Videos';
+
+  @override
   String get other => 'Aliaj';
 
   @override

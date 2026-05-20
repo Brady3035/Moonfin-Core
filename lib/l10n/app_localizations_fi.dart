@@ -749,6 +749,9 @@ class AppLocalizationsFi extends AppLocalizations {
   String get movies => 'Elokuvat';
 
   @override
+  String get musicVideos => 'Music Videos';
+
+  @override
   String get other => 'Muut';
 
   @override

@@ -750,6 +750,9 @@ class AppLocalizationsPl extends AppLocalizations {
   String get movies => 'Kino';
 
   @override
+  String get musicVideos => 'Music Videos';
+
+  @override
   String get other => 'Inny';
 
   @override

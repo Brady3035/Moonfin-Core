@@ -44,6 +44,7 @@ class HomeViewModel extends ChangeNotifier {
       HomeSectionType.favoriteEpisodes ||
       HomeSectionType.favoritePeople ||
       HomeSectionType.favoriteArtists ||
+      HomeSectionType.favoriteMusicVideos ||
       HomeSectionType.favoriteAlbums ||
       HomeSectionType.favoriteSongs => true,
       _ => false,
@@ -282,6 +283,7 @@ class HomeViewModel extends ChangeNotifier {
       case HomeSectionType.favoriteEpisodes:
       case HomeSectionType.favoritePeople:
       case HomeSectionType.favoriteArtists:
+      case HomeSectionType.favoriteMusicVideos:
       case HomeSectionType.favoriteAlbums:
       case HomeSectionType.favoriteSongs:
         return row.rowType == HomeRowType.favorites &&
@@ -400,6 +402,8 @@ class HomeViewModel extends ChangeNotifier {
         return HomeSectionType.favoritePeople;
       case 'FavoriteArtists':
         return HomeSectionType.favoriteArtists;
+      case 'FavoriteMusicVideos':
+        return HomeSectionType.favoriteMusicVideos;
       case 'FavoriteAlbums':
         return HomeSectionType.favoriteAlbums;
       case 'FavoriteSongs':
@@ -467,6 +471,8 @@ class HomeViewModel extends ChangeNotifier {
         return const {'favoritePeople'};
       case HomeSectionType.favoriteArtists:
         return const {'favoriteArtists'};
+      case HomeSectionType.favoriteMusicVideos:
+        return const {'favoriteMusicVideos'};
       case HomeSectionType.favoriteAlbums:
         return const {'favoriteAlbums'};
       case HomeSectionType.favoriteSongs:
@@ -555,6 +561,7 @@ class HomeViewModel extends ChangeNotifier {
       case HomeSectionType.favoriteEpisodes:
       case HomeSectionType.favoritePeople:
       case HomeSectionType.favoriteArtists:
+      case HomeSectionType.favoriteMusicVideos:
       case HomeSectionType.favoriteAlbums:
       case HomeSectionType.favoriteSongs:
         final favoriteFilter = _favoriteFilterForSection(section);
@@ -657,9 +664,7 @@ class HomeViewModel extends ChangeNotifier {
         .where((data) {
           final id = data['Id'] as String;
           final collectionType = data['CollectionType'] as String?;
-          if (collectionType == 'music' ||
-              collectionType == 'books' ||
-              collectionType == 'playlists' ||
+          if (collectionType == 'playlists' ||
               collectionType == 'boxsets' ||
               collectionType == 'livetv') {
             return false;
@@ -723,6 +728,7 @@ class HomeViewModel extends ChangeNotifier {
       case HomeSectionType.favoriteEpisodes:
       case HomeSectionType.favoritePeople:
       case HomeSectionType.favoriteArtists:
+      case HomeSectionType.favoriteMusicVideos:
       case HomeSectionType.favoriteAlbums:
       case HomeSectionType.favoriteSongs:
         return HomeRow(
@@ -772,6 +778,7 @@ class HomeViewModel extends ChangeNotifier {
       HomeSectionType.favoriteEpisodes => FavoriteTypeFilter.episode,
       HomeSectionType.favoritePeople => FavoriteTypeFilter.person,
       HomeSectionType.favoriteArtists => FavoriteTypeFilter.musicArtist,
+      HomeSectionType.favoriteMusicVideos => FavoriteTypeFilter.musicVideo,
       HomeSectionType.favoriteAlbums => FavoriteTypeFilter.musicAlbum,
       HomeSectionType.favoriteSongs => FavoriteTypeFilter.audio,
       _ => FavoriteTypeFilter.all,
@@ -785,6 +792,7 @@ class HomeViewModel extends ChangeNotifier {
       HomeSectionType.favoriteEpisodes => 'favorites_episodes',
       HomeSectionType.favoritePeople => 'favorites_people',
       HomeSectionType.favoriteArtists => 'favorites_artists',
+      HomeSectionType.favoriteMusicVideos => 'favorites_musicvideos',
       HomeSectionType.favoriteAlbums => 'favorites_albums',
       HomeSectionType.favoriteSongs => 'favorites_songs',
       _ => 'favorites',

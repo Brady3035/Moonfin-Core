@@ -753,6 +753,9 @@ class AppLocalizationsSw extends AppLocalizations {
   String get movies => 'Filamu';
 
   @override
+  String get musicVideos => 'Music Videos';
+
+  @override
   String get other => 'Nyingine';
 
   @override

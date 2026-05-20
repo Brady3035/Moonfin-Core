@@ -750,6 +750,9 @@ class AppLocalizationsTl extends AppLocalizations {
   String get movies => 'Mga pelikula';
 
   @override
+  String get musicVideos => 'Music Videos';
+
+  @override
   String get other => 'Iba pa';
 
   @override

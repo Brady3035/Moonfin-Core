@@ -746,6 +746,9 @@ class AppLocalizationsUk extends AppLocalizations {
   String get movies => 'фільми';
 
   @override
+  String get musicVideos => 'Music Videos';
+
+  @override
   String get other => 'інше';
 
   @override

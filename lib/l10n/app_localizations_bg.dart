@@ -745,6 +745,9 @@ class AppLocalizationsBg extends AppLocalizations {
   String get movies => 'Филми';
 
   @override
+  String get musicVideos => 'Music Videos';
+
+  @override
   String get other => 'други';
 
   @override

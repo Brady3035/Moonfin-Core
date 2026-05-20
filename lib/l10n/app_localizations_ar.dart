@@ -740,6 +740,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get movies => 'أفلام';
 
   @override
+  String get musicVideos => 'Music Videos';
+
+  @override
   String get other => 'آخر';
 
   @override

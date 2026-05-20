@@ -1642,6 +1642,7 @@ class _DetailContentState extends State<_DetailContent> {
     final l10n = AppLocalizations.of(context);
     final movies = viewModel.filmographyMovies;
     final series = viewModel.filmographySeries;
+    final musicVideos = viewModel.filmographyMusicVideos;
     final firstFocus = initialFocusNode;
     final hasBio = item.overview != null && item.overview!.isNotEmpty;
     final moviesFocusNode = movies.isNotEmpty
@@ -1653,6 +1654,11 @@ class _DetailContentState extends State<_DetailContent> {
         ? ((hasBio || movies.isNotEmpty)
               ? _sectionFocusNode('detailPersonSeries')
               : (firstFocus ?? _sectionFocusNode('detailPersonSeries')))
+        : null;
+    final musicVideosFocusNode = musicVideos.isNotEmpty
+        ? ((hasBio || movies.isNotEmpty || series.isNotEmpty)
+              ? _sectionFocusNode('detailPersonMusicVideos')
+              : (firstFocus ?? _sectionFocusNode('detailPersonMusicVideos')))
         : null;
 
     return [
@@ -1683,7 +1689,7 @@ class _DetailContentState extends State<_DetailContent> {
             firstFocusNode: moviesFocusNode,
             onItemKeyEvent: _buildVerticalRowHandler(
               sourceFocusNode: moviesFocusNode,
-              downTarget: seriesFocusNode,
+              downTarget: seriesFocusNode ?? musicVideosFocusNode,
               itemCount: movies.length,
             ),
           ),
@@ -1702,7 +1708,30 @@ class _DetailContentState extends State<_DetailContent> {
             onItemKeyEvent: _buildVerticalRowHandler(
               sourceFocusNode: seriesFocusNode,
               upTarget: moviesFocusNode,
+              downTarget: musicVideosFocusNode,
               itemCount: series.length,
+            ),
+          ),
+        ),
+      ],
+      if (musicVideos.isNotEmpty) ...[
+        const SizedBox(height: 32),
+        HorizontalScrollSection(
+          title: l10n.musicVideos,
+          builder: (_, ctrl) => _FilmographyRow(
+            items: musicVideos,
+            imageApi: viewModel.imageApi,
+            prefs: prefs,
+            scrollController: _trackSectionScrollController(
+              musicVideosFocusNode,
+              ctrl,
+            ),
+            firstFocusNode: musicVideosFocusNode,
+            onItemKeyEvent: _buildVerticalRowHandler(
+              sourceFocusNode: musicVideosFocusNode,
+              upTarget: seriesFocusNode ?? moviesFocusNode,
+              itemCount: musicVideos.length,
+              consumeDownWhenNoTarget: true,
             ),
           ),
         ),

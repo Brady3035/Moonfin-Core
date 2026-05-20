@@ -746,6 +746,9 @@ class AppLocalizationsHr extends AppLocalizations {
   String get movies => 'Filmovi';
 
   @override
+  String get musicVideos => 'Music Videos';
+
+  @override
   String get other => 'ostalo';
 
   @override

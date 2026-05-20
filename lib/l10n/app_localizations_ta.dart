@@ -749,6 +749,9 @@ class AppLocalizationsTa extends AppLocalizations {
   String get movies => 'திரைப்படங்கள்';
 
   @override
+  String get musicVideos => 'Music Videos';
+
+  @override
   String get other => 'மற்றவை';
 
   @override

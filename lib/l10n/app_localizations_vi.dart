@@ -751,6 +751,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get movies => 'Phim';
 
   @override
+  String get musicVideos => 'Music Videos';
+
+  @override
   String get other => 'Khác';
 
   @override

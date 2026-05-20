@@ -752,6 +752,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get movies => 'Films';
 
   @override
+  String get musicVideos => 'Music Videos';
+
+  @override
   String get other => 'Autres';
 
   @override

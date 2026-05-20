@@ -754,6 +754,9 @@ class AppLocalizationsEl extends AppLocalizations {
   String get movies => 'Κινηματογράφος';
 
   @override
+  String get musicVideos => 'Music Videos';
+
+  @override
   String get other => 'Αλλος';
 
   @override

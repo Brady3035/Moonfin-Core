@@ -746,6 +746,9 @@ class AppLocalizationsUg extends AppLocalizations {
   String get movies => 'كىنولار';
 
   @override
+  String get musicVideos => 'Music Videos';
+
+  @override
   String get other => 'باشقىلىرى';
 
   @override

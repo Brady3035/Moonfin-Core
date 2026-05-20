@@ -754,6 +754,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get movies => 'Filme';
 
   @override
+  String get musicVideos => 'Music Videos';
+
+  @override
   String get other => 'Sonstige';
 
   @override

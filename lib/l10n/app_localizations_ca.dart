@@ -755,6 +755,9 @@ class AppLocalizationsCa extends AppLocalizations {
   String get movies => 'Pel·lícules';
 
   @override
+  String get musicVideos => 'Music Videos';
+
+  @override
   String get other => 'Altres';
 
   @override

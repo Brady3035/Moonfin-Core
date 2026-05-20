@@ -754,6 +754,9 @@ class AppLocalizationsGl extends AppLocalizations {
   String get movies => 'Películas';
 
   @override
+  String get musicVideos => 'Music Videos';
+
+  @override
   String get other => 'Outros';
 
   @override

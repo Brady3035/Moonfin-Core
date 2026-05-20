@@ -24,6 +24,7 @@ class FavoritesViewModel extends ChangeNotifier {
     FavoriteTypeFilter.series,
     FavoriteTypeFilter.episode,
     FavoriteTypeFilter.person,
+    FavoriteTypeFilter.musicVideo,
     FavoriteTypeFilter.musicArtist,
     FavoriteTypeFilter.musicAlbum,
     FavoriteTypeFilter.audio,

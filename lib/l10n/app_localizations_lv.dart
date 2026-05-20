@@ -749,6 +749,9 @@ class AppLocalizationsLv extends AppLocalizations {
   String get movies => 'Filmas';
 
   @override
+  String get musicVideos => 'Music Videos';
+
+  @override
   String get other => 'Cits';
 
   @override

@@ -741,6 +741,9 @@ class AppLocalizationsTh extends AppLocalizations {
   String get movies => 'ภาพยนตร์';
 
   @override
+  String get musicVideos => 'Music Videos';
+
+  @override
   String get other => 'อื่น';
 
   @override

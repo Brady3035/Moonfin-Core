@@ -743,6 +743,9 @@ class AppLocalizationsSi extends AppLocalizations {
   String get movies => 'චිත්රපට';
 
   @override
+  String get musicVideos => 'Music Videos';
+
+  @override
   String get other => 'වෙනත්';
 
   @override

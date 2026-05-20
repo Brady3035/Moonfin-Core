@@ -753,6 +753,9 @@ class AppLocalizationsSq extends AppLocalizations {
   String get movies => 'Filmat';
 
   @override
+  String get musicVideos => 'Music Videos';
+
+  @override
   String get other => 'Të tjera';
 
   @override

@@ -745,6 +745,9 @@ class AppLocalizationsHi extends AppLocalizations {
   String get movies => 'चलचित्र';
 
   @override
+  String get musicVideos => 'Music Videos';
+
+  @override
   String get other => 'अन्य';
 
   @override

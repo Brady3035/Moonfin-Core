@@ -749,6 +749,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get movies => 'Filmek';
 
   @override
+  String get musicVideos => 'Music Videos';
+
+  @override
   String get other => 'Más';
 
   @override

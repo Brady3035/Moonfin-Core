@@ -743,6 +743,9 @@ class AppLocalizationsBn extends AppLocalizations {
   String get movies => 'সিনেমা';
 
   @override
+  String get musicVideos => 'Music Videos';
+
+  @override
   String get other => 'অন্যান্য';
 
   @override

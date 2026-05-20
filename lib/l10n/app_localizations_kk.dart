@@ -749,6 +749,9 @@ class AppLocalizationsKk extends AppLocalizations {
   String get movies => 'Фильмдер';
 
   @override
+  String get musicVideos => 'Music Videos';
+
+  @override
   String get other => 'Басқа';
 
   @override

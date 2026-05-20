@@ -3165,6 +3165,7 @@ class _ContentRowsState extends State<_ContentRows>
         'favorites_episodes' => HomeSectionType.favoriteEpisodes,
         'favorites_people' => HomeSectionType.favoritePeople,
         'favorites_artists' => HomeSectionType.favoriteArtists,
+        'favorites_musicvideos' => HomeSectionType.favoriteMusicVideos,
         'favorites_albums' => HomeSectionType.favoriteAlbums,
         'favorites_songs' => HomeSectionType.favoriteSongs,
         _ => HomeSectionType.latestMedia,

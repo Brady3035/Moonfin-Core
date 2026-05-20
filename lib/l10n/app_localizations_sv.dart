@@ -744,6 +744,9 @@ class AppLocalizationsSv extends AppLocalizations {
   String get movies => 'Filmer';
 
   @override
+  String get musicVideos => 'Music Videos';
+
+  @override
   String get other => 'Andra';
 
   @override

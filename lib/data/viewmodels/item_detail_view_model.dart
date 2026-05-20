@@ -146,11 +146,18 @@ class ItemDetailViewModel extends ChangeNotifier {
       futures.add(_loadLyrics());
     } else if (type == 'BoxSet') {
       futures.add(_loadCollectionItems());
-    } else if (type == 'Movie' || type == 'Trailer' || type == 'Video') {
+    } else if (
+      type == 'MusicVideo' ||
+      type == 'Movie' ||
+      type == 'Trailer' ||
+      type == 'Video'
+    ) {
       futures.add(_loadRatings());
       futures.add(_loadSimilar());
       futures.add(_loadFeatures());
-      futures.add(_loadParentCollection());
+      if (type != 'MusicVideo') {
+        futures.add(_loadParentCollection());
+      }
     } else {
       futures.add(_loadRatings());
       futures.add(_loadSimilar());
@@ -562,7 +569,7 @@ class ItemDetailViewModel extends ChangeNotifier {
     try {
       final data = await _client.itemsApi.getItems(
         personIds: [itemId],
-        includeItemTypes: ['Movie', 'Series'],
+        includeItemTypes: ['Movie', 'Series', 'MusicVideo'],
         sortBy: 'PremiereDate',
         sortOrder: 'Descending',
         recursive: true,
@@ -672,6 +679,9 @@ class ItemDetailViewModel extends ChangeNotifier {
 
   List<AggregatedItem> get filmographySeries =>
       _filmography.where((i) => i.type == 'Series').toList();
+
+  List<AggregatedItem> get filmographyMusicVideos =>
+      _filmography.where((i) => i.type == 'MusicVideo').toList();
 
   @override
   void notifyListeners() {

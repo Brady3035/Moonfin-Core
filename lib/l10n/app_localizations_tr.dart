@@ -745,6 +745,9 @@ class AppLocalizationsTr extends AppLocalizations {
   String get movies => 'Filmler';
 
   @override
+  String get musicVideos => 'Music Videos';
+
+  @override
   String get other => 'Diğer';
 
   @override

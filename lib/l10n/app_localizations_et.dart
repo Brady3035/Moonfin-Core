@@ -748,6 +748,9 @@ class AppLocalizationsEt extends AppLocalizations {
   String get movies => 'Filmid';
 
   @override
+  String get musicVideos => 'Music Videos';
+
+  @override
   String get other => 'muud';
 
   @override

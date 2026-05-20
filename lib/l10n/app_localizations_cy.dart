@@ -748,6 +748,9 @@ class AppLocalizationsCy extends AppLocalizations {
   String get movies => 'Ffilmiau';
 
   @override
+  String get musicVideos => 'Music Videos';
+
+  @override
   String get other => 'Arall';
 
   @override

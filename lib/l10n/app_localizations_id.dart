@@ -749,6 +749,9 @@ class AppLocalizationsId extends AppLocalizations {
   String get movies => 'Film';
 
   @override
+  String get musicVideos => 'Music Videos';
+
+  @override
   String get other => 'Lainnya';
 
   @override

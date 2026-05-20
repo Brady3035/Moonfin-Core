@@ -750,6 +750,9 @@ class AppLocalizationsKn extends AppLocalizations {
   String get movies => 'ಚಲನಚಿತ್ರಗಳು';
 
   @override
+  String get musicVideos => 'Music Videos';
+
+  @override
   String get other => 'ಇತರೆ';
 
   @override

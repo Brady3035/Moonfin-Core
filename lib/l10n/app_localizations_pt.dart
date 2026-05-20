@@ -748,6 +748,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get movies => 'Filmes';
 
   @override
+  String get musicVideos => 'Music Videos';
+
+  @override
   String get other => 'Outros';
 
   @override

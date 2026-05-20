@@ -66,6 +66,7 @@ class _HomeRowsImageTypeScreenState extends State<HomeRowsImageTypeScreen> {
     HomeSectionType.favoriteEpisodes => 'Favorite ${FavoriteTypeFilter.episode.displayName}',
     HomeSectionType.favoritePeople => 'Favorite ${FavoriteTypeFilter.person.displayName}',
     HomeSectionType.favoriteArtists => 'Favorite ${FavoriteTypeFilter.musicArtist.displayName}',
+    HomeSectionType.favoriteMusicVideos => 'Favorite ${FavoriteTypeFilter.musicVideo.displayName}',
     HomeSectionType.favoriteAlbums => 'Favorite ${FavoriteTypeFilter.musicAlbum.displayName}',
     HomeSectionType.favoriteSongs => 'Favorite ${FavoriteTypeFilter.audio.displayName}',
     HomeSectionType.collections => l10n.collections,

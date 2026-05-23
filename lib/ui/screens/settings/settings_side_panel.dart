@@ -2218,11 +2218,7 @@ class _AudioPreferencesScreenState extends State<_AudioPreferencesScreen> {
     if (PlatformDetection.isWeb) {
       return false;
     }
-    if (!PlatformDetection.isAndroid) {
-      return true;
-    }
-    return _prefs.get(UserPreferences.playbackEnginePreference) ==
-        PlaybackEnginePreference.mpv;
+    return true;
   }
 
   String _capabilitySubtitle(

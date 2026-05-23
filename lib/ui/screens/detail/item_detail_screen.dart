@@ -49,6 +49,7 @@ import '../../../playback/known_defects.dart';
 import '../../../syncplay/syncplay_manager.dart';
 import '../../../util/audio_labels.dart';
 import '../../../util/download_utils.dart';
+import '../../../util/episode_playability.dart';
 import '../../../util/focus/dpad_keys.dart';
 import '../../../util/platform_detection.dart';
 
@@ -650,8 +651,23 @@ class _DetailContentState extends State<_DetailContent> {
     return Focus(
       focusNode: _contentFocusNode,
       onKeyEvent: (node, event) {
-        if (event is KeyDownEvent &&
+        if ((event is KeyDownEvent || event is KeyRepeatEvent) &&
             event.logicalKey == LogicalKeyboardKey.arrowUp) {
+          final navbarPos = prefs.get(UserPreferences.navbarPosition);
+          if (navbarPos == NavbarPosition.top) {
+            if (_scrollController.hasClients) {
+              final position = _scrollController.position;
+              if (position.pixels > position.minScrollExtent) {
+                position.animateTo(
+                  position.minScrollExtent,
+                  duration: const Duration(milliseconds: 220),
+                  curve: Curves.easeOut,
+                );
+              }
+            }
+            NavigationLayout.focusNavbarNotifier.value?.call();
+            return KeyEventResult.handled;
+          }
           final isAtTop =
               !_scrollController.hasClients || _scrollController.offset <= 0;
           if (isAtTop) {
@@ -4844,7 +4860,7 @@ class _ActionButtonsState extends State<_ActionButtons> {
     }
 
     final immediateNext = queue[startIndex + 1];
-    if (immediateNext.mediaSources.isNotEmpty) {
+    if (isEligibleNextEpisodeCandidate(immediateNext)) {
       return queue;
     }
 
@@ -4963,7 +4979,18 @@ class _ActionButtonsState extends State<_ActionButtons> {
             const episodeQueueFields =
                 'Overview,MediaStreams,MediaSources,RunTimeTicks,Trickplay';
             final nextUp = viewModel.nextUp;
-            if (nextUp == null) return;
+            if (nextUp == null || !isEligibleNextEpisodeCandidate(nextUp)) {
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      AppLocalizations.of(context).noEpisodesLoaded,
+                    ),
+                  ),
+                );
+              }
+              throw PlaybackStartupRecoveryAbortedException();
+            }
             final seriesId =
                 (nextUp.seriesId?.isNotEmpty ?? false)
                     ? nextUp.seriesId!
@@ -4982,8 +5009,11 @@ class _ActionButtonsState extends State<_ActionButtons> {
                   data['Items'],
                   nextUp.serverId,
                 );
-                if (seasonEpisodes.isNotEmpty) {
-                  episodes = seasonEpisodes;
+                final playableSeasonEpisodes = seasonEpisodes
+                    .where(isEligibleNextEpisodeCandidate)
+                    .toList();
+                if (playableSeasonEpisodes.isNotEmpty) {
+                  episodes = playableSeasonEpisodes;
                 }
               } catch (_) {}
             }

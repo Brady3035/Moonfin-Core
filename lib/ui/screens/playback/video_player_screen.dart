@@ -38,6 +38,7 @@ import '../../../preference/preference_constants.dart';
 import '../../../preference/user_preferences.dart';
 import '../../../util/audio_labels.dart';
 import '../../../util/auto_hdr_switcher.dart';
+import '../../../util/episode_playability.dart';
 import '../../../util/focus/dpad_keys.dart';
 import '../../../util/platform_detection.dart';
 import '../../navigation/destinations.dart';
@@ -1966,18 +1967,12 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
     return _nextUpCandidate() != null;
   }
 
-  bool _hasPlayableMediaSourceForQueueItem(dynamic item) {
+  bool _isEligibleNextQueueItem(dynamic item) {
     if (item is AggregatedItem) {
-      if (!item.rawData.containsKey('MediaSources')) {
-        return true;
-      }
-      return item.mediaSources.isNotEmpty;
+      return isEligibleNextEpisodeCandidate(item);
     }
     if (item is Map) {
-      final mediaSources = item['MediaSources'] as List?;
-      if (mediaSources != null) {
-        return mediaSources.isNotEmpty;
-      }
+      return isEligibleNextEpisodeCandidateRaw(item.cast<String, dynamic>());
     }
     return true;
   }
@@ -1998,7 +1993,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
       return false;
     }
 
-    if (!_hasPlayableMediaSourceForQueueItem(nextItem)) {
+    if (!_isEligibleNextQueueItem(nextItem)) {
       return false;
     }
 
@@ -4214,11 +4209,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
             extent: secondaryExtent,
             focusNode: _tvSecondaryLastFocus,
             tooltip: _tooltipMessage(l10n.playbackInformation, shortcut: 'I'),
-            onRightBoundary: () {
-              if (_tvTransportFirstFocus.context != null) {
-                _tvTransportFirstFocus.requestFocus();
-              }
-            },
+            onRightBoundary: () {},
           ),
           if (PlatformDetection.useDesktopUi)
             _controlButton(
@@ -4309,11 +4300,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
               }
               if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
                 _tvSeekbarFocus.requestFocus();
-                return KeyEventResult.handled;
-              }
-              if (event.logicalKey == LogicalKeyboardKey.arrowRight &&
-                  _tvSecondaryLastFocus.hasFocus) {
-                _tvTransportFirstFocus.requestFocus();
                 return KeyEventResult.handled;
               }
               return KeyEventResult.ignored;

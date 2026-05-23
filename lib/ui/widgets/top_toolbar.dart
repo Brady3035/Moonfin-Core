@@ -750,6 +750,11 @@ class _TopToolbarState extends State<TopToolbar> {
                     baseColor: nextNavColor(),
                     focusNode: _settingsFocus,
                     onKeyEvent: (_, event) {
+                      if ((event is KeyDownEvent || event is KeyRepeatEvent) &&
+                          PlatformDetection.isTV &&
+                          event.logicalKey == LogicalKeyboardKey.arrowRight) {
+                        return KeyEventResult.handled;
+                      }
                       if (event is KeyDownEvent &&
                           event.logicalKey == LogicalKeyboardKey.arrowLeft &&
                           useAndroidTvInlineLibraries &&

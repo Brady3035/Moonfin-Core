@@ -6,6 +6,7 @@ import '../models/lyrics.dart';
 import '../repositories/item_mutation_repository.dart';
 import '../repositories/mdblist_repository.dart';
 import '../utils/playlist_utils.dart';
+import '../../util/episode_playability.dart';
 
 enum ItemDetailState { loading, ready, error }
 
@@ -191,6 +192,8 @@ class ItemDetailViewModel extends ChangeNotifier {
   }
 
   Future<void> _loadNextUp() async {
+    final previousId = _nextUp?.id;
+    AggregatedItem? nextUp;
     try {
       final data = await _client.itemsApi.getNextUp(
         seriesId: itemId,
@@ -200,14 +203,21 @@ class ItemDetailViewModel extends ChangeNotifier {
       final items = (data['Items'] as List?) ?? [];
       if (items.isNotEmpty) {
         final raw = items.first as Map<String, dynamic>;
-        _nextUp = AggregatedItem(
+        final candidate = AggregatedItem(
           id: raw['Id'] as String,
           serverId: _serverId ?? _client.baseUrl,
           rawData: raw,
         );
-        notifyListeners();
+        if (isEligibleNextEpisodeCandidate(candidate)) {
+          nextUp = candidate;
+        }
       }
     } catch (_) {}
+
+    _nextUp = nextUp;
+    if (previousId != _nextUp?.id) {
+      notifyListeners();
+    }
   }
 
   List<AggregatedItem> _mapItems(List items) {

@@ -4807,20 +4807,22 @@ class _FilterSortDialogState extends State<_FilterSortDialog> {
     final isBookBrowse = vm.isBookLibrary;
     final accent = isBookBrowse ? _bookAccent : _jellyfinBlue;
     final l10n = AppLocalizations.of(context);
+    final surfaceColor = AppColorScheme.surface.withValues(
+      alpha: isBookBrowse ? 0.96 : 0.92,
+    );
+    final onSurface = AppColorScheme.onSurface;
+    final dividerColor = onSurface.withValues(alpha: 0.12);
+    final sectionColor = onSurface.withValues(alpha: 0.72);
     final dialogWidth = (MediaQuery.sizeOf(context).width - 32).clamp(
       280.0,
       380.0,
     );
     return Dialog(
-      backgroundColor: isBookBrowse
-          ? const Color(0xEE211A14)
-          : const Color(0xE6141414),
+      backgroundColor: surfaceColor,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
         side: ThemeRegistry.active.borders.chipBorder.copyWith(
-          color: isBookBrowse
-              ? const Color(0x80D9A563)
-              : Colors.white.withAlpha(26),
+          color: onSurface.withValues(alpha: 0.18),
         ),
       ),
       child: SizedBox(
@@ -4833,15 +4835,15 @@ class _FilterSortDialogState extends State<_FilterSortDialog> {
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
               child: Text(
                 l10n.sortAndFilter,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w600,
-                  color: Colors.white,
+                  color: onSurface,
                 ),
               ),
             ),
-            Divider(color: Colors.white.withAlpha(20)),
-            _sectionHeader(l10n.sortBy),
+            Divider(color: dividerColor),
+            _sectionHeader(l10n.sortBy, sectionColor),
             for (final option in LibrarySortBy.values)
               _radioTile(
                 label: option.displayName,
@@ -4852,7 +4854,7 @@ class _FilterSortDialogState extends State<_FilterSortDialog> {
                           vm.sortDirection == SortDirection.ascending
                               ? Icons.arrow_upward
                               : Icons.arrow_downward,
-                          color: _jellyfinBlue,
+                          color: accent,
                           size: 18,
                         ),
                         onPressed: () => vm.toggleSortDirection(),
@@ -4865,16 +4867,22 @@ class _FilterSortDialogState extends State<_FilterSortDialog> {
                     vm.setSortBy(option);
                   }
                 },
+                onSurface: onSurface,
               ),
-            Divider(color: Colors.white.withAlpha(20)),
-            _sectionHeader(l10n.filters),
+            Divider(color: dividerColor),
+            _sectionHeader(l10n.filters, sectionColor),
             _checkboxTile(
               label: l10n.favorites,
               checked: vm.favoriteFilter,
               onTap: () => vm.setFavoriteFilter(!vm.favoriteFilter),
+              accent: accent,
+              onSurface: onSurface,
             ),
-            Divider(color: Colors.white.withAlpha(20)),
-            _sectionHeader(isBookBrowse ? l10n.readingStatus : l10n.playedStatus),
+            Divider(color: dividerColor),
+            _sectionHeader(
+              isBookBrowse ? l10n.readingStatus : l10n.playedStatus,
+              sectionColor,
+            ),
             for (final status in PlayedStatusFilter.values)
               _radioTile(
                 label: switch (status) {
@@ -4889,10 +4897,11 @@ class _FilterSortDialogState extends State<_FilterSortDialog> {
                 selected: vm.playedFilter == status,
                 onTap: () => vm.setPlayedFilter(status),
                 accent: accent,
+                onSurface: onSurface,
               ),
             if (vm.isSeriesLibrary) ...[
-              Divider(color: Colors.white.withAlpha(20)),
-              _sectionHeader(l10n.seriesStatus),
+              Divider(color: dividerColor),
+              _sectionHeader(l10n.seriesStatus, sectionColor),
               for (final status in SeriesStatusFilter.values)
                 _radioTile(
                   label: switch (status) {
@@ -4903,16 +4912,18 @@ class _FilterSortDialogState extends State<_FilterSortDialog> {
                   selected: vm.seriesFilter == status,
                   onTap: () => vm.setSeriesFilter(status),
                   accent: accent,
+                  onSurface: onSurface,
                 ),
             ],
             if (vm.isGenreBrowse && vm.libraries.isNotEmpty) ...[
-              Divider(color: Colors.white.withAlpha(20)),
-              _sectionHeader(l10n.library),
+              Divider(color: dividerColor),
+              _sectionHeader(l10n.library, sectionColor),
               _radioTile(
                 label: l10n.allLibraries,
                 selected: vm.libraryFilter == null,
                 onTap: () => vm.setLibraryFilter(null),
                 accent: accent,
+                onSurface: onSurface,
               ),
               for (final lib in vm.libraries)
                 _radioTile(
@@ -4920,6 +4931,7 @@ class _FilterSortDialogState extends State<_FilterSortDialog> {
                   selected: vm.libraryFilter == lib['Id'],
                   onTap: () => vm.setLibraryFilter(lib['Id'] as String),
                   accent: accent,
+                  onSurface: onSurface,
                 ),
             ],
           ],
@@ -4928,7 +4940,7 @@ class _FilterSortDialogState extends State<_FilterSortDialog> {
     );
   }
 
-  Widget _sectionHeader(String title) {
+  Widget _sectionHeader(String title, Color sectionColor) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 12, 24, 4),
       child: Text(
@@ -4936,7 +4948,7 @@ class _FilterSortDialogState extends State<_FilterSortDialog> {
         style: TextStyle(
           fontSize: 13,
           fontWeight: FontWeight.w500,
-          color: Colors.white.withAlpha(115),
+          color: sectionColor,
         ),
       ),
     );
@@ -4948,6 +4960,7 @@ class _FilterSortDialogState extends State<_FilterSortDialog> {
     required VoidCallback onTap,
     Widget? trailing,
     Color? accent,
+    required Color onSurface,
   }) {
     final effectiveAccent = accent ?? AppColorScheme.accent;
     return InkWell(
@@ -4963,7 +4976,9 @@ class _FilterSortDialogState extends State<_FilterSortDialog> {
                 shape: BoxShape.circle,
                 border: Border.fromBorderSide(
                   ThemeRegistry.active.borders.chipBorder.copyWith(
-                    color: selected ? effectiveAccent : Colors.white.withAlpha(128),
+                    color: selected
+                        ? effectiveAccent
+                        : onSurface.withValues(alpha: 0.5),
                     width: 2,
                   ),
                 ),
@@ -4974,9 +4989,9 @@ class _FilterSortDialogState extends State<_FilterSortDialog> {
                       child: Container(
                         width: 8,
                         height: 8,
-                        decoration: const BoxDecoration(
+                        decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: Colors.white,
+                          color: onSurface,
                         ),
                       ),
                     )
@@ -4988,7 +5003,9 @@ class _FilterSortDialogState extends State<_FilterSortDialog> {
                 label,
                 style: TextStyle(
                   fontSize: 15,
-                  color: selected ? Colors.white : Colors.white.withAlpha(179),
+                  color: selected
+                      ? onSurface
+                      : onSurface.withValues(alpha: 0.72),
                 ),
               ),
             ),
@@ -5003,6 +5020,8 @@ class _FilterSortDialogState extends State<_FilterSortDialog> {
     required String label,
     required bool checked,
     required VoidCallback onTap,
+    required Color accent,
+    required Color onSurface,
   }) {
     return InkWell(
       onTap: onTap,
@@ -5017,20 +5036,20 @@ class _FilterSortDialogState extends State<_FilterSortDialog> {
                 borderRadius: BorderRadius.circular(4),
                 border: Border.fromBorderSide(
                   ThemeRegistry.active.borders.chipBorder.copyWith(
-                    color: checked ? _jellyfinBlue : Colors.white.withAlpha(128),
+                    color: checked ? accent : onSurface.withValues(alpha: 0.5),
                     width: 2,
                   ),
                 ),
-                color: checked ? _jellyfinBlue : Colors.transparent,
+                color: checked ? accent : Colors.transparent,
               ),
               child: checked
-                  ? const Center(
+                  ? Center(
                       child: Text(
                         '✓',
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                          color: onSurface,
                         ),
                       ),
                     )
@@ -5041,7 +5060,9 @@ class _FilterSortDialogState extends State<_FilterSortDialog> {
               label,
               style: TextStyle(
                 fontSize: 15,
-                color: checked ? Colors.white : Colors.white.withAlpha(179),
+                color: checked
+                    ? onSurface
+                    : onSurface.withValues(alpha: 0.72),
               ),
             ),
           ],
@@ -5082,20 +5103,22 @@ class _SettingsDialogState extends State<_SettingsDialog> {
     final vm = widget.vm;
     final isBookBrowse = vm.isBookLibrary;
     final l10n = AppLocalizations.of(context);
+    final surfaceColor = AppColorScheme.surface.withValues(
+      alpha: isBookBrowse ? 0.96 : 0.92,
+    );
+    final onSurface = AppColorScheme.onSurface;
+    final dividerColor = onSurface.withValues(alpha: 0.12);
+    final sectionColor = onSurface.withValues(alpha: 0.72);
     final dialogWidth = (MediaQuery.sizeOf(context).width - 32).clamp(
       280.0,
       340.0,
     );
     return Dialog(
-      backgroundColor: isBookBrowse
-          ? const Color(0xEE211A14)
-          : const Color(0xE6141414),
+      backgroundColor: surfaceColor,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
         side: ThemeRegistry.active.borders.chipBorder.copyWith(
-          color: isBookBrowse
-              ? const Color(0x80D9A563)
-              : Colors.white.withAlpha(26),
+          color: onSurface.withValues(alpha: 0.18),
         ),
       ),
       child: SizedBox(
@@ -5108,14 +5131,14 @@ class _SettingsDialogState extends State<_SettingsDialog> {
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
               child: Text(
                 l10n.display,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w600,
-                  color: Colors.white,
+                  color: onSurface,
                 ),
               ),
             ),
-            Divider(color: Colors.white.withAlpha(20)),
+            Divider(color: dividerColor),
             if (!vm.isPlaylistBrowse) ...[
               Padding(
                 padding: const EdgeInsets.fromLTRB(24, 12, 24, 4),
@@ -5124,12 +5147,12 @@ class _SettingsDialogState extends State<_SettingsDialog> {
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
-                    color: Colors.white.withAlpha(115),
+                    color: sectionColor,
                   ),
                 ),
               ),
               for (final type in ImageType.values) _settingsRadioTile(vm, type),
-              Divider(color: Colors.white.withAlpha(20)),
+              Divider(color: dividerColor),
             ],
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 12, 24, 4),
@@ -5138,7 +5161,7 @@ class _SettingsDialogState extends State<_SettingsDialog> {
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
-                  color: Colors.white.withAlpha(115),
+                  color: sectionColor,
                 ),
               ),
             ),
@@ -5153,6 +5176,7 @@ class _SettingsDialogState extends State<_SettingsDialog> {
   Widget _settingsRadioTile(LibraryBrowseViewModel vm, ImageType type) {
     final selected = vm.imageType == type;
     final accent = vm.isBookLibrary ? _bookAccent : _jellyfinBlue;
+    final onSurface = AppColorScheme.onSurface;
     return InkWell(
       onTap: () => vm.setImageType(type),
       child: Padding(
@@ -5165,7 +5189,7 @@ class _SettingsDialogState extends State<_SettingsDialog> {
               type.name[0].toUpperCase() + type.name.substring(1),
               style: TextStyle(
                 fontSize: 15,
-                color: selected ? Colors.white : Colors.white.withAlpha(179),
+                color: selected ? onSurface : onSurface.withValues(alpha: 0.72),
               ),
             ),
           ],
@@ -5177,6 +5201,7 @@ class _SettingsDialogState extends State<_SettingsDialog> {
   Widget _posterSizeRadioTile(LibraryBrowseViewModel vm, PosterSize size) {
     final selected = vm.posterSize == size;
     final accent = vm.isBookLibrary ? _bookAccent : _jellyfinBlue;
+    final onSurface = AppColorScheme.onSurface;
     final label = switch (size) {
       PosterSize.small => AppLocalizations.of(context).small,
       PosterSize.medium => AppLocalizations.of(context).medium,
@@ -5195,7 +5220,7 @@ class _SettingsDialogState extends State<_SettingsDialog> {
               label,
               style: TextStyle(
                 fontSize: 15,
-                color: selected ? Colors.white : Colors.white.withAlpha(179),
+                color: selected ? onSurface : onSurface.withValues(alpha: 0.72),
               ),
             ),
           ],
@@ -5205,6 +5230,7 @@ class _SettingsDialogState extends State<_SettingsDialog> {
   }
 
   Widget _radioCircle(bool selected, Color accent) {
+    final onSurface = AppColorScheme.onSurface;
     return Container(
       width: 18,
       height: 18,
@@ -5212,7 +5238,7 @@ class _SettingsDialogState extends State<_SettingsDialog> {
         shape: BoxShape.circle,
         border: Border.fromBorderSide(
           ThemeRegistry.active.borders.chipBorder.copyWith(
-            color: selected ? accent : Colors.white.withAlpha(128),
+            color: selected ? accent : onSurface.withValues(alpha: 0.5),
             width: 2,
           ),
         ),
@@ -5223,9 +5249,9 @@ class _SettingsDialogState extends State<_SettingsDialog> {
               child: Container(
                 width: 8,
                 height: 8,
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.white,
+                  color: onSurface,
                 ),
               ),
             )

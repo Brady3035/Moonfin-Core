@@ -35,11 +35,16 @@ class _PosterSizeSettingsDialogState extends State<PosterSizeSettingsDialog> {
     final currentImageType = widget.imageTypePreference != null
         ? widget.prefs.get(widget.imageTypePreference!)
         : null;
+    final onSurface = AppColorScheme.onSurface;
+    final sectionColor = onSurface.withValues(alpha: 0.72);
+    final dividerColor = onSurface.withValues(alpha: 0.12);
     return Dialog(
-      backgroundColor: AppColorScheme.surface.withAlpha(0xE6),
+      backgroundColor: AppColorScheme.surface.withValues(alpha: 0.9),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
-        side: ThemeRegistry.active.borders.chipBorder,
+        side: ThemeRegistry.active.borders.chipBorder.copyWith(
+          color: onSurface.withValues(alpha: 0.18),
+        ),
       ),
       child: SizedBox(
         width: 340,
@@ -54,11 +59,11 @@ class _PosterSizeSettingsDialogState extends State<PosterSizeSettingsDialog> {
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w600,
-                  color: AppColorScheme.onSurface,
+                  color: onSurface,
                 ),
               ),
             ),
-            Divider(color: AppColorScheme.onSurface.withAlpha(20)),
+            Divider(color: dividerColor),
             if (currentImageType != null) ...[
               Padding(
                 padding: const EdgeInsets.fromLTRB(24, 12, 24, 4),
@@ -67,13 +72,13 @@ class _PosterSizeSettingsDialogState extends State<PosterSizeSettingsDialog> {
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
-                    color: AppColorScheme.onSurface.withAlpha(115),
+                    color: sectionColor,
                   ),
                 ),
               ),
               for (final type in ImageType.values)
                 _imageTypeTile(type, currentImageType == type),
-              Divider(color: AppColorScheme.onSurface.withAlpha(20)),
+              Divider(color: dividerColor),
             ],
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 12, 24, 4),
@@ -82,7 +87,7 @@ class _PosterSizeSettingsDialogState extends State<PosterSizeSettingsDialog> {
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
-                  color: AppColorScheme.onSurface.withAlpha(115),
+                  color: sectionColor,
                 ),
               ),
             ),
@@ -96,6 +101,7 @@ class _PosterSizeSettingsDialogState extends State<PosterSizeSettingsDialog> {
 
   Widget _imageTypeTile(ImageType type, bool selected) {
     final l10n = AppLocalizations.of(context);
+    final onSurface = AppColorScheme.onSurface;
     final label = switch (type) {
       ImageType.poster => l10n.imageTypePoster,
       ImageType.thumb => l10n.imageTypeThumbnail,
@@ -120,8 +126,8 @@ class _PosterSizeSettingsDialogState extends State<PosterSizeSettingsDialog> {
               style: TextStyle(
                 fontSize: 15,
                 color: selected
-                    ? AppColorScheme.onSurface
-                    : AppColorScheme.onSurface.withAlpha(179),
+                    ? onSurface
+                    : onSurface.withValues(alpha: 0.72),
               ),
             ),
           ],
@@ -131,6 +137,7 @@ class _PosterSizeSettingsDialogState extends State<PosterSizeSettingsDialog> {
   }
 
   Widget _posterSizeTile(PosterSize size, bool selected) {
+    final onSurface = AppColorScheme.onSurface;
     final posterSizePreference =
         widget.posterSizePreference ?? UserPreferences.posterSize;
     final label = switch (size) {
@@ -156,8 +163,8 @@ class _PosterSizeSettingsDialogState extends State<PosterSizeSettingsDialog> {
               style: TextStyle(
                 fontSize: 15,
                 color: selected
-                    ? AppColorScheme.onSurface
-                    : AppColorScheme.onSurface.withAlpha(179),
+                    ? onSurface
+                    : onSurface.withValues(alpha: 0.72),
               ),
             ),
           ],
@@ -167,15 +174,17 @@ class _PosterSizeSettingsDialogState extends State<PosterSizeSettingsDialog> {
   }
 
   Widget _radioCircle(bool selected) {
+    final onSurface = AppColorScheme.onSurface;
     return Container(
       width: 18,
       height: 18,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         border: Border.fromBorderSide(
-          selected
-              ? ThemeRegistry.active.borders.focusBorder
-              : ThemeRegistry.active.borders.chipBorder,
+          ThemeRegistry.active.borders.chipBorder.copyWith(
+            color: selected ? AppColorScheme.accent : onSurface.withValues(alpha: 0.5),
+            width: 2,
+          ),
         ),
         color: selected ? AppColorScheme.accent : Colors.transparent,
       ),
@@ -186,7 +195,7 @@ class _PosterSizeSettingsDialogState extends State<PosterSizeSettingsDialog> {
                 height: 8,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppColorScheme.onSurface,
+                  color: onSurface,
                 ),
               ),
             )

@@ -107,11 +107,10 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   }
 
   double _imageHeight(double aspectRatio) {
-    final tvScale = PlatformDetection.isTV ? 0.8 : 1.0;
     final base = aspectRatio >= 1
         ? _vm.posterSize.landscapeHeight.toDouble()
         : _vm.posterSize.portraitHeight.toDouble();
-    return base * tvScale;
+    return base * _desktopUiScaleFactor();
   }
 
   String? _imageUrl(AggregatedItem item) {
@@ -601,6 +600,7 @@ class _MetadataRow extends StatelessWidget {
 }
 
 Widget _sectionHeader(String title) {
+  final onSurface = AppColorScheme.onSurface;
   return Padding(
     padding: const EdgeInsets.fromLTRB(24, 12, 24, 4),
     child: Text(
@@ -608,13 +608,14 @@ Widget _sectionHeader(String title) {
       style: TextStyle(
         fontSize: 13,
         fontWeight: FontWeight.w500,
-        color: Colors.white.withAlpha(115),
+        color: onSurface.withValues(alpha: 0.72),
       ),
     ),
   );
 }
 
 Widget _radioCircle(bool selected) {
+  final onSurface = AppColorScheme.onSurface;
   return Container(
     width: 18,
     height: 18,
@@ -632,9 +633,9 @@ Widget _radioCircle(bool selected) {
             child: Container(
               width: 8,
               height: 8,
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.white,
+                color: onSurface,
               ),
             ),
           )
@@ -671,6 +672,8 @@ class _SortDialogState extends State<_SortDialog> {
   @override
   Widget build(BuildContext context) {
     final vm = widget.vm;
+    final onSurface = AppColorScheme.onSurface;
+    final dividerColor = onSurface.withValues(alpha: 0.12);
     final dialogWidth = (MediaQuery.sizeOf(context).width - 32).clamp(
       280.0,
       380.0,
@@ -694,11 +697,11 @@ class _SortDialogState extends State<_SortDialog> {
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w600,
-                  color: Colors.white,
+                  color: onSurface,
                 ),
               ),
             ),
-            Divider(color: Colors.white.withAlpha(20)),
+            Divider(color: dividerColor),
             _sectionHeader(AppLocalizations.of(context).sortBy),
             for (final option in LibrarySortBy.values)
               _radioTile(
@@ -736,6 +739,7 @@ class _SortDialogState extends State<_SortDialog> {
     required VoidCallback onTap,
     Widget? trailing,
   }) {
+    final onSurface = AppColorScheme.onSurface;
     return InkWell(
       onTap: onTap,
       child: Padding(
@@ -749,7 +753,9 @@ class _SortDialogState extends State<_SortDialog> {
                 label,
                 style: TextStyle(
                   fontSize: 15,
-                  color: selected ? Colors.white : Colors.white.withAlpha(179),
+                  color: selected
+                      ? onSurface
+                      : onSurface.withValues(alpha: 0.72),
                 ),
               ),
             ),
@@ -790,6 +796,8 @@ class _DisplaySettingsDialogState extends State<_DisplaySettingsDialog> {
   @override
   Widget build(BuildContext context) {
     final vm = widget.vm;
+    final onSurface = AppColorScheme.onSurface;
+    final dividerColor = onSurface.withValues(alpha: 0.12);
     final dialogWidth = (MediaQuery.sizeOf(context).width - 32).clamp(
       280.0,
       340.0,
@@ -810,17 +818,17 @@ class _DisplaySettingsDialogState extends State<_DisplaySettingsDialog> {
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
               child: Text(
                 AppLocalizations.of(context).display,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w600,
-                  color: Colors.white,
+                  color: onSurface,
                 ),
               ),
             ),
-            Divider(color: Colors.white.withAlpha(20)),
+            Divider(color: dividerColor),
             _sectionHeader(AppLocalizations.of(context).imageType),
             for (final type in ImageType.values) _imageTypeRadioTile(vm, type),
-            Divider(color: Colors.white.withAlpha(20)),
+            Divider(color: dividerColor),
             _sectionHeader(AppLocalizations.of(context).posterSize),
             for (final size in PosterSize.values)
               _posterSizeRadioTile(vm, size),
@@ -832,6 +840,7 @@ class _DisplaySettingsDialogState extends State<_DisplaySettingsDialog> {
 
   Widget _imageTypeRadioTile(FavoritesViewModel vm, ImageType type) {
     final selected = vm.imageType == type;
+    final onSurface = AppColorScheme.onSurface;
     return InkWell(
       onTap: () => vm.setImageType(type),
       child: Padding(
@@ -844,7 +853,9 @@ class _DisplaySettingsDialogState extends State<_DisplaySettingsDialog> {
               type.name[0].toUpperCase() + type.name.substring(1),
               style: TextStyle(
                 fontSize: 15,
-                color: selected ? Colors.white : Colors.white.withAlpha(179),
+                color: selected
+                    ? onSurface
+                    : onSurface.withValues(alpha: 0.72),
               ),
             ),
           ],
@@ -855,6 +866,7 @@ class _DisplaySettingsDialogState extends State<_DisplaySettingsDialog> {
 
   Widget _posterSizeRadioTile(FavoritesViewModel vm, PosterSize size) {
     final selected = vm.posterSize == size;
+    final onSurface = AppColorScheme.onSurface;
     final l10n = AppLocalizations.of(context);
     final label = switch (size) {
       PosterSize.small => l10n.small,
@@ -874,7 +886,9 @@ class _DisplaySettingsDialogState extends State<_DisplaySettingsDialog> {
               label,
               style: TextStyle(
                 fontSize: 15,
-                color: selected ? Colors.white : Colors.white.withAlpha(179),
+                color: selected
+                    ? onSurface
+                    : onSurface.withValues(alpha: 0.72),
               ),
             ),
           ],

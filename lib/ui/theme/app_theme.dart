@@ -88,7 +88,7 @@ class AppTheme {
           TargetPlatform.linux: _FadeScalePageTransitionsBuilder(),
           TargetPlatform.macOS: _FadeScalePageTransitionsBuilder(),
           TargetPlatform.windows: _FadeScalePageTransitionsBuilder(),
-          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.iOS: _FadeScalePageTransitionsBuilder(),
         },
       ),
       bottomNavigationBarTheme: BottomNavigationBarThemeData(

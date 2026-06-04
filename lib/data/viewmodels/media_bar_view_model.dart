@@ -2,6 +2,8 @@ import 'package:flutter/widgets.dart';
 import 'package:server_core/server_core.dart';
 
 import '../../preference/user_preferences.dart';
+import '../models/aggregated_item.dart';
+import '../models/bookshelf_detail.dart';
 import '../models/media_bar_slide_item.dart';
 import '../models/media_bar_state.dart';
 import '../repositories/mdblist_repository.dart';
@@ -18,6 +20,8 @@ class MediaBarViewModel extends ChangeNotifier {
 
   final _ratings = <String, Map<String, double>>{};
   final _tmdbIdByItemId = <String, String?>{};
+  final _bookshelfDetails = <String, BookshelfDetail>{};
+  final _bookshelfDetailInFlight = <String>{};
   bool _isLoading = false;
   int _loadGeneration = 0;
 
@@ -32,6 +36,31 @@ class MediaBarViewModel extends ChangeNotifier {
 
   Map<String, double> ratingsFor(String itemId) =>
       _ratings[itemId] ?? const {};
+
+  BookshelfDetail? bookshelfDetailFor(String itemId) =>
+      _bookshelfDetails[itemId];
+
+  Future<void> ensureBookshelfDetail(String itemId) async {
+    if (itemId.isEmpty) return;
+    if (_bookshelfDetails.containsKey(itemId)) return;
+    if (!_bookshelfDetailInFlight.add(itemId)) return;
+
+    try {
+      final raw = await _client.itemsApi.getItem(itemId);
+      if (raw.isEmpty) return;
+      final aggregated = AggregatedItem(
+        id: itemId,
+        serverId: raw['ServerId'] as String? ?? '',
+        rawData: raw,
+      );
+      _bookshelfDetails[itemId] = BookshelfDetail.fromItem(itemId, aggregated);
+      notifyListeners();
+    } catch (_) {
+      // Leave uncached so a later selection can retry.
+    } finally {
+      _bookshelfDetailInFlight.remove(itemId);
+    }
+  }
 
   MediaBarViewModel(
     this._repository,
@@ -77,6 +106,8 @@ class MediaBarViewModel extends ChangeNotifier {
     final previousReady = _state is MediaBarReady ? _state as MediaBarReady : null;
     _ratings.clear();
     _tmdbIdByItemId.clear();
+    _bookshelfDetails.clear();
+    _bookshelfDetailInFlight.clear();
     if (!preserveCurrent || previousReady == null) {
       _state = const MediaBarLoading();
       notifyListeners();

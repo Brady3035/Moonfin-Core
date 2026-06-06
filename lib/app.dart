@@ -44,22 +44,49 @@ class MoonfinApp extends StatefulWidget {
 class _MoonfinAppState extends State<MoonfinApp> {
   late final UserPreferences _prefs;
   late final AppThemeController _themeController;
+  Locale? _lastResolvedLocale;
 
   @override
   void initState() {
     super.initState();
     _prefs = GetIt.instance<UserPreferences>();
     _themeController = AppThemeController.fromPreferences(_prefs);
+    _lastResolvedLocale = _resolveLocale();
     _prefs.addListener(_syncThemeFromPrefs);
+    _prefs.addListener(_syncLocaleFromPrefs);
   }
 
   void _syncThemeFromPrefs() {
     _themeController.refreshFromPreferences(_prefs);
   }
 
+  void _syncLocaleFromPrefs() {
+    final next = _resolveLocale();
+    if (next != _lastResolvedLocale) {
+      _lastResolvedLocale = next;
+      if (mounted) {
+        setState(() {});
+      }
+    }
+  }
+
+  Locale? _resolveLocale() {
+    final override = _prefs.get(UserPreferences.languageOverride);
+    if (override == 'system') {
+      return null;
+    }
+    for (final locale in AppLocalizations.supportedLocales) {
+      if (locale.toLanguageTag() == override || locale.toString() == override) {
+        return locale;
+      }
+    }
+    return null;
+  }
+
   @override
   void dispose() {
     _prefs.removeListener(_syncThemeFromPrefs);
+    _prefs.removeListener(_syncLocaleFromPrefs);
     _themeController.dispose();
     super.dispose();
   }
@@ -79,6 +106,7 @@ class _MoonfinAppState extends State<MoonfinApp> {
               debugShowCheckedModeBanner: false,
               localizationsDelegates: AppLocalizations.localizationsDelegates,
               supportedLocales: AppLocalizations.supportedLocales,
+              locale: _lastResolvedLocale,
               localeResolutionCallback: (locale, supportedLocales) {
                 for (final supported in supportedLocales) {
                   if (supported.languageCode == locale?.languageCode) {

@@ -12,8 +12,7 @@ on:
           - app-store-connect
 
 env:
-  FLUTTER_TVOS_REF: '3.44.1-tvos.1.2.0'
-  TEAM_ID: 'CCBYLPUSVH'
+  FLUTTER_TVOS_REF: 'v3.44.1-tvos.1.2.0'
 
 jobs:
   build-tvos:
@@ -76,7 +75,7 @@ jobs:
             -authenticationKeyID "${{ secrets.APPLE_ASC_API_KEY_ID }}" \
             -authenticationKeyIssuerID "${{ secrets.APPLE_ASC_API_ISSUER_ID }}" \
             CODE_SIGN_STYLE=Automatic \
-            DEVELOPMENT_TEAM="$TEAM_ID" \
+            DEVELOPMENT_TEAM="${{ secrets.APPLE_TEAM_ID }}" \
             archive
 
       - name: Export IPA
@@ -87,7 +86,7 @@ jobs:
           <plist version="1.0"><dict>
             <key>method</key><string>${{ github.event.inputs.export_method }}</string>
             <key>signingStyle</key><string>automatic</string>
-            <key>teamID</key><string>${TEAM_ID}</string>
+            <key>teamID</key><string>${{ secrets.APPLE_TEAM_ID }}</string>
             <key>stripSwiftSymbols</key><true/>
             <key>compileBitcode</key><false/>
           </dict></plist>

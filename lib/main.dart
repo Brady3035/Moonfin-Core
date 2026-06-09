@@ -262,10 +262,7 @@ void main() async {
     await windowManager.ensureInitialized();
   }
 
-  // media_kit (libmpv) has no Tizen implementation; Tizen plays via
-  // TizenPlayerBackend (the native AVPlay-backed video_player). Initializing it
-  // there would fail to load libmpv.
-  if (!PlatformDetection.isTizen) {
+  if (!PlatformDetection.isTizen && !PlatformDetection.isAppleTV) {
     MediaKit.ensureInitialized();
   }
 

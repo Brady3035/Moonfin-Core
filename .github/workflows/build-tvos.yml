@@ -56,10 +56,12 @@ jobs:
           echo "$ASC_KEY_BASE64" | base64 -d > "$RUNNER_TEMP/asc/AuthKey.p8"
           echo "ASC_KEY_PATH=$RUNNER_TEMP/asc/AuthKey.p8" >> "$GITHUB_ENV"
 
-      - name: Build release and write dart-defines
+      - name: Prepare Flutter build settings and pods
         run: |
-          echo "CODE_SIGNING_ALLOWED=NO" >> tvos/Flutter/Release.xcconfig
-          flutter-tvos build tvos --release --dart-define=MOONFIN_TVOS=true
+          flutter-tvos build tvos --release --dart-define=MOONFIN_TVOS=true || true
+          test -f tvos/Flutter/Generated.xcconfig
+          grep -q '^FLUTTER_ROOT=' tvos/Flutter/Generated.xcconfig \
+            || echo "FLUTTER_ROOT=$HOME/flutter-tvos" >> tvos/Flutter/Generated.xcconfig
 
       - name: Archive
         run: |

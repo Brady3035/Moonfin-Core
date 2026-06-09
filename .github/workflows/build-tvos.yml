@@ -58,9 +58,8 @@ jobs:
 
       - name: Build release and write dart-defines
         run: |
-          flutter-tvos build tvos --release \
-            --dart-define=MOONFIN_TVOS=true \
-            --no-codesign
+          echo "CODE_SIGNING_ALLOWED=NO" >> tvos/Flutter/Release.xcconfig
+          flutter-tvos build tvos --release --dart-define=MOONFIN_TVOS=true
 
       - name: Archive
         run: |
@@ -74,6 +73,7 @@ jobs:
             -authenticationKeyPath "$ASC_KEY_PATH" \
             -authenticationKeyID "${{ secrets.APPLE_ASC_API_KEY_ID }}" \
             -authenticationKeyIssuerID "${{ secrets.APPLE_ASC_API_ISSUER_ID }}" \
+            CODE_SIGNING_ALLOWED=YES \
             CODE_SIGN_STYLE=Automatic \
             DEVELOPMENT_TEAM="${{ secrets.APPLE_TEAM_ID }}" \
             archive

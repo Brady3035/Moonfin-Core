@@ -24,6 +24,7 @@ import '../../../util/app_distribution.dart';
 import '../../widgets/app_update_dialog.dart';
 
 import '../../../auth/store/authentication_preferences.dart';
+import '../../../auth/repositories/session_repository.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../playback/audio_capability_profile.dart';
 import '../../../playback/external_player_service.dart';
@@ -468,10 +469,30 @@ class _AuthenticationCategoryScreen extends StatelessWidget {
             preference: UserPreferences.autoLoginUserBehavior,
             title: l10n.autoLogin,
             icon: Icons.person,
-            labelOf: (v) => switch (v) {
+            labelOf: (v) {
+              if (v == UserSelectBehavior.currentUser) {
+                final session = GetIt.instance<SessionRepository>();
+                // If I'm the auto-login user, just say "Current User"
+                // If someone else is, show their name so it's clear
+                if (session.activeUserIsAutoLoginTarget) return l10n.currentUser;
+                return session.autoLoginTargetDisplayName() ?? l10n.currentUser;
+              }
+              return switch (v) {
+                UserSelectBehavior.disabled => l10n.disabled,
+                UserSelectBehavior.lastUser => l10n.lastUser,
+                _ => l10n.currentUser,
+              };
+            },
+            dialogLabelOf: (v) => switch (v) {
               UserSelectBehavior.disabled => l10n.disabled,
               UserSelectBehavior.lastUser => l10n.lastUser,
               UserSelectBehavior.currentUser => l10n.currentUser,
+            },
+            onChanged: () {
+              final behavior = GetIt.instance<PreferenceStore>()
+                  .get(UserPreferences.autoLoginUserBehavior);
+              GetIt.instance<SessionRepository>()
+                  .applyAutoLoginForBehavior(behavior);
             },
           ),
           SwitchPreferenceTile(
@@ -2058,7 +2079,7 @@ class _VideoPlaybackScreen extends StatelessWidget {
               subtitle: l10n.hardwareDecodingSubtitle,
               icon: Icons.memory,
             ),
-          if (!PlatformDetection.isWeb)
+          if (PlatformDetection.isAndroid && PlatformDetection.isTV)
             EnumPreferenceTile<RefreshRateSwitchingBehavior>(
               preference: UserPreferences.refreshRateSwitchingBehavior,
               title: l10n.refreshRateSwitching,
@@ -2083,6 +2104,12 @@ class _VideoPlaybackScreen extends StatelessWidget {
                 AutoHdrSwitchingBehavior.always => l10n.always,
               },
             ),
+          SwitchPreferenceTile(
+            preference: UserPreferences.liveTvDirectPlayEnabled,
+            title: l10n.settingsLiveTvDirect,
+            subtitle: l10n.settingsLiveTvDirectSubtitle,
+            icon: Icons.live_tv,
+          ),
 
           _SectionHeader(l10n.transcodingLimits),
           StringPickerPreferenceTile(
@@ -2692,15 +2719,12 @@ class _AutomationQueueScreenState extends State<_AutomationQueueScreen> {
           EnumPreferenceTile<NextUpBehavior>(
             preference: UserPreferences.nextUpBehavior,
             title: l10n.nextUpDisplay,
-            description:
-                'If enabled, show a pop-up at the end of an episode to Play Next or Close. If Autoplay is off, no input will return to details page.',
+            description: l10n.settingsNextUpDisplayDescription,
             icon: Icons.skip_next,
             labelOf: (v) => switch (v) {
-              NextUpBehavior.extended =>
-                'Extended - Full card with artwork and description',
-              NextUpBehavior.minimal =>
-                'Minimal - Compact overlay without thumbnail',
-              NextUpBehavior.disabled => 'None - Hide Next Up display',
+              NextUpBehavior.extended => l10n.extended,
+              NextUpBehavior.minimal => l10n.minimal,
+              NextUpBehavior.disabled => l10n.disabled,
             },
           ),
           if (showNextUpOptions)
@@ -2852,12 +2876,6 @@ class _AdvancedOptionsScreenState extends State<_AdvancedOptionsScreen> {
                 icon: Icons.warning_amber,
               ),
             ],
-            SwitchPreferenceTile(
-              preference: UserPreferences.liveTvDirectPlayEnabled,
-              title: l10n.settingsLiveTvDirect,
-              subtitle: l10n.settingsLiveTvDirectSubtitle,
-              icon: Icons.live_tv,
-            ),
           ],
         ),
       ),

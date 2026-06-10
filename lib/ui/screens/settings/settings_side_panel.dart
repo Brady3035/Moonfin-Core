@@ -24,6 +24,7 @@ import '../../../util/app_distribution.dart';
 import '../../widgets/app_update_dialog.dart';
 
 import '../../../auth/store/authentication_preferences.dart';
+import '../../../auth/repositories/session_repository.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../playback/audio_capability_profile.dart';
 import '../../../playback/external_player_service.dart';
@@ -468,10 +469,30 @@ class _AuthenticationCategoryScreen extends StatelessWidget {
             preference: UserPreferences.autoLoginUserBehavior,
             title: l10n.autoLogin,
             icon: Icons.person,
-            labelOf: (v) => switch (v) {
+            labelOf: (v) {
+              if (v == UserSelectBehavior.currentUser) {
+                final session = GetIt.instance<SessionRepository>();
+                // If I'm the auto-login user, just say "Current User"
+                // If someone else is, show their name so it's clear
+                if (session.activeUserIsAutoLoginTarget) return l10n.currentUser;
+                return session.autoLoginTargetDisplayName() ?? l10n.currentUser;
+              }
+              return switch (v) {
+                UserSelectBehavior.disabled => l10n.disabled,
+                UserSelectBehavior.lastUser => l10n.lastUser,
+                _ => l10n.currentUser,
+              };
+            },
+            dialogLabelOf: (v) => switch (v) {
               UserSelectBehavior.disabled => l10n.disabled,
               UserSelectBehavior.lastUser => l10n.lastUser,
               UserSelectBehavior.currentUser => l10n.currentUser,
+            },
+            onChanged: () {
+              final behavior = GetIt.instance<PreferenceStore>()
+                  .get(UserPreferences.autoLoginUserBehavior);
+              GetIt.instance<SessionRepository>()
+                  .applyAutoLoginForBehavior(behavior);
             },
           ),
           SwitchPreferenceTile(

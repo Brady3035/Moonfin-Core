@@ -54,11 +54,14 @@ class AppleTvMpvBackend implements PlayerBackend {
   final _completedStream = StreamController<bool>.broadcast();
   final _errorStream = StreamController<Map<String, dynamic>>.broadcast();
   final _userExitStream = StreamController<void>.broadcast();
+  final _uiActionStream = StreamController<Map<String, dynamic>>.broadcast();
 
   @override
   Stream<Map<String, dynamic>> get errorStream => _errorStream.stream;
 
   Stream<void> get userExitStream => _userExitStream.stream;
+
+  Stream<Map<String, dynamic>> get uiActionStream => _uiActionStream.stream;
 
   Future<T?> _invoke<T>(String method, [dynamic arguments]) async {
     if (_disposed) return null;
@@ -80,6 +83,8 @@ class AppleTvMpvBackend implements PlayerBackend {
     _playerPresented = false;
     await _invoke<void>('dismiss');
   }
+
+  Future<void> dismissPlayer() => _dismissPlayer();
 
   void _handleEvent(dynamic event) {
     if (_disposed || event is! Map) return;
@@ -116,6 +121,11 @@ class AppleTvMpvBackend implements PlayerBackend {
         _bufferingStream.add(false);
       case 'userExited':
         _userExitStream.add(null);
+      case 'next':
+      case 'previous':
+      case 'selectAudio':
+      case 'selectSubtitle':
+        _uiActionStream.add(map.cast<String, dynamic>());
       case 'tracksChanged':
         _tracksKnown = true;
         _textTrackCount = _toInt(map['textTrackCount']);
@@ -230,7 +240,6 @@ class AppleTvMpvBackend implements PlayerBackend {
       _isPlaying = false;
       _playingStream.add(false);
     }
-    await _dismissPlayer();
   }
 
   @override
@@ -343,6 +352,30 @@ class AppleTvMpvBackend implements PlayerBackend {
             ),
           ),
     );
+  }
+
+  Future<void> setUiMetadata({
+    required String topTitle,
+    required String topSubtitle,
+    required List<Map<String, dynamic>> chapters,
+    required bool hasPrevious,
+    required bool hasNext,
+    required int skipForwardMs,
+    required int skipBackMs,
+    required List<Map<String, dynamic>> audioTracks,
+    required List<Map<String, dynamic>> subtitleTracks,
+  }) async {
+    await _invoke<void>('setUiMetadata', {
+      'topTitle': topTitle,
+      'topSubtitle': topSubtitle,
+      'chapters': chapters,
+      'hasPrevious': hasPrevious,
+      'hasNext': hasNext,
+      'skipForwardMs': skipForwardMs,
+      'skipBackMs': skipBackMs,
+      'audioTracks': audioTracks,
+      'subtitleTracks': subtitleTracks,
+    });
   }
 
   @override
@@ -504,5 +537,6 @@ class AppleTvMpvBackend implements PlayerBackend {
     _completedStream.close();
     _errorStream.close();
     _userExitStream.close();
+    _uiActionStream.close();
   }
 }

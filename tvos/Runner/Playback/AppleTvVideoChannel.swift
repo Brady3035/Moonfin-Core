@@ -13,6 +13,7 @@ final class AppleTvVideoChannel: NSObject, FlutterStreamHandler {
     private var stateTimer: Timer?
     private var lastTextTrackCount = -1
     private var didComplete = false
+    private var lastMetadata: [String: Any]?
     static var lastCommand = "-"
 
     init(messenger: FlutterBinaryMessenger, rootViewController: UIViewController) {
@@ -23,6 +24,10 @@ final class AppleTvVideoChannel: NSObject, FlutterStreamHandler {
         self.rootViewController = rootViewController
         super.init()
         control.setMethodCallHandler { [weak self] call, result in
+            if call.method == "getCapabilities" {
+                result(VideoCapabilityDetector.deviceProfileCapabilities())
+                return
+            }
             result(nil)
             Task { @MainActor in self?.handle(call) }
         }
@@ -55,6 +60,9 @@ final class AppleTvVideoChannel: NSObject, FlutterStreamHandler {
             dismiss()
         case "setSource":
             setSource(args)
+        case "setUiMetadata":
+            lastMetadata = args
+            playerVC?.applyUiMetadata(args)
         case "play":
             player?.resume()
         case "pause":
@@ -96,6 +104,17 @@ final class AppleTvVideoChannel: NSObject, FlutterStreamHandler {
         let vc = AppleTvPlayerViewController(player: created)
         vc.modalPresentationStyle = .overFullScreen
         vc.onExit = { [weak self] in self?.send(["event": "userExited"]) }
+        vc.onNext = { [weak self] in self?.send(["event": "next"]) }
+        vc.onPrevious = { [weak self] in self?.send(["event": "previous"]) }
+        vc.onSelectAudio = { [weak self] index in
+            self?.send(["event": "selectAudio", "index": index])
+        }
+        vc.onSelectSubtitle = { [weak self] index in
+            self?.send(["event": "selectSubtitle", "index": index])
+        }
+        if let meta = lastMetadata {
+            vc.applyUiMetadata(meta)
+        }
         playerVC = vc
         rootViewController?.present(vc, animated: false) { [weak self] in
             Task { @MainActor in

@@ -122,6 +122,39 @@ Future<void> _detectAndSetCodecCapabilities() async {
   } catch (_) {}
 }
 
+Future<void> _detectAndSetAppleTvCapabilities() async {
+  const channel = MethodChannel('moonfin/appletv_video_control');
+  Map<String, dynamic>? caps;
+  try {
+    final raw = await channel.invokeMethod<Map<dynamic, dynamic>>(
+      'getCapabilities',
+    );
+    if (raw != null) {
+      caps = raw.map((key, value) => MapEntry(key.toString(), value));
+    }
+  } catch (_) {}
+
+  PlatformDetection.setMediaCodecCapabilities(
+    caps ??
+        const {
+          'supportsAvc': true,
+          'avcMainLevel': 52,
+          'supportsAvcHigh10': true,
+          'avcHigh10Level': 52,
+          'supportsHevc': true,
+          'hevcMainLevel': 153,
+          'supportsHevcMain10': true,
+          'hevcMain10Level': 153,
+          'supportsHevcDolbyVision': true,
+          'supportsHevcHdr10': true,
+          'supportsDvP5': true,
+          'supportsDvP8': true,
+          'maxResolutionAvc': {'width': 3840, 'height': 2160},
+          'maxResolutionHevc': {'width': 3840, 'height': 2160},
+        },
+  );
+}
+
 Future<void> _detectAndApplyAudioCapabilities(UserPreferences prefs) async {
   if (!(PlatformDetection.isAndroid && PlatformDetection.isTV)) return;
   try {
@@ -294,16 +327,7 @@ void main() async {
   ]);
 
   if (PlatformDetection.isAppleTV) {
-    PlatformDetection.setMediaCodecCapabilities(const {
-      'supportsAvc': true,
-      'avcMainLevel': 52,
-      'supportsAvcHigh10': true,
-      'avcHigh10Level': 52,
-      'supportsHevc': true,
-      'hevcMainLevel': 153,
-      'supportsHevcMain10': true,
-      'hevcMain10Level': 153,
-    });
+    await _detectAndSetAppleTvCapabilities();
   }
 
   _configureImageCache();

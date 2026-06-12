@@ -30,6 +30,8 @@ class _AppleTvPlayerHostScreenState extends State<AppleTvPlayerHostScreen> {
   StreamSubscription<PlaybackBringupState>? _bringupSub;
   StreamSubscription<Map<String, dynamic>>? _actionSub;
   bool _exiting = false;
+  final Map<String, List<Map<String, dynamic>>> _castCache = {};
+  String? _castResolving;
 
   AppleTvMpvBackend? get _backend {
     try {
@@ -348,13 +350,23 @@ class _AppleTvPlayerHostScreenState extends State<AppleTvPlayerHostScreen> {
           'SDR';
       final codec = ((video['Codec'] as String?) ?? 'Unknown').toUpperCase();
       final profile = (video['Profile'] as String?) ?? '';
+      final level = video['Level'];
+      final bitDepth = video['BitDepth'];
       addSection('Video', [
         rowEntry(
           'Resolution',
           '${width ?? '?'}×${height ?? '?'}${fps != null ? ' @ ${fps.round()}fps' : ''}',
         ),
         rowEntry('HDR', range),
-        rowEntry('Codec', profile.isEmpty ? codec : '$codec ($profile)'),
+        rowEntry(
+          'Codec',
+          [
+            codec,
+            if (profile.isNotEmpty) profile,
+            if (level != null) 'L$level',
+          ].join(' '),
+        ),
+        if (bitDepth != null) rowEntry('Bit Depth', '$bitDepth-bit'),
         if (video['BitRate'] != null)
           rowEntry('Video Bitrate', _formatBitrate(video['BitRate'] as int?)),
       ]);
@@ -498,13 +510,10 @@ class _AppleTvPlayerHostScreenState extends State<AppleTvPlayerHostScreen> {
     };
   }
 
-  List<Map<String, dynamic>> _castPeople(dynamic item) {
-    final raw = _rawDataForQueueItem(item);
-    final imageApi = _clientForQueueItem(item)?.imageApi;
-    final people = (raw?['People'] as List?)?.cast<Map<String, dynamic>>();
-    if (people == null || people.isEmpty || imageApi == null) {
-      return const [];
-    }
+  List<Map<String, dynamic>> _mapPeople(
+    List<Map<String, dynamic>> people,
+    ImageApi imageApi,
+  ) {
     return people
         .map((person) {
           final name = (person['Name'] as String?)?.trim() ?? '';
@@ -532,6 +541,60 @@ class _AppleTvPlayerHostScreenState extends State<AppleTvPlayerHostScreen> {
         })
         .whereType<Map<String, dynamic>>()
         .toList(growable: false);
+  }
+
+  bool _hasCastCrew(dynamic item) {
+    if (item is! AggregatedItem) return false;
+    if (item.people.isNotEmpty) return true;
+    return item.type == 'Episode' &&
+        item.seriesId != null &&
+        item.seriesId!.isNotEmpty;
+  }
+
+  List<Map<String, dynamic>> _castPeople(dynamic item) {
+    final imageApi = _clientForQueueItem(item)?.imageApi;
+    if (imageApi == null) return const [];
+    final itemId = _itemIdForQueueItem(item);
+    if (itemId != null && _castCache.containsKey(itemId)) {
+      return _castCache[itemId]!;
+    }
+    final raw = _rawDataForQueueItem(item);
+    final people = (raw?['People'] as List?)?.cast<Map<String, dynamic>>();
+    if (people == null || people.isEmpty) return const [];
+    return _mapPeople(people, imageApi);
+  }
+
+  void _resolveCastAsync(dynamic item) {
+    if (item is! AggregatedItem) return;
+    final itemId = item.id;
+    if (_castCache.containsKey(itemId) ||
+        _castResolving == itemId ||
+        item.people.isNotEmpty) {
+      return;
+    }
+    if (item.type != 'Episode' ||
+        item.seriesId == null ||
+        item.seriesId!.isEmpty) {
+      return;
+    }
+    final client = _clientForQueueItem(item);
+    if (client == null) return;
+    _castResolving = itemId;
+    () async {
+      try {
+        final seriesData = await client.itemsApi.getItem(item.seriesId!);
+        final people = (seriesData['People'] as List?)
+            ?.cast<Map<String, dynamic>>();
+        _castCache[itemId] = (people == null || people.isEmpty)
+            ? const []
+            : _mapPeople(people, client.imageApi);
+      } catch (_) {
+        _castCache[itemId] = const [];
+      } finally {
+        _castResolving = null;
+        if (mounted) _pushMetadata();
+      }
+    }();
   }
 
   Map<String, dynamic>? _nextUpPayload(PlaybackManager manager) {
@@ -738,12 +801,15 @@ class _AppleTvPlayerHostScreenState extends State<AppleTvPlayerHostScreen> {
       logoUrl: _logoUrlForItem(item),
       streamInfoSections: _streamInfoSections(manager),
       trickplay: _trickplayPayload(item, manager),
+      hasCast: _hasCastCrew(item),
       castPeople: _castPeople(item),
       nextUp: _nextUpPayload(manager),
       nextUpThresholdMs: _nextUpThresholdMs(),
       pauseMeta: _pauseMetaPayload(item),
       selectedBitrateMbps: manager.maxBitrateOverrideMbps ?? -1,
     );
+
+    _resolveCastAsync(item);
   }
 
   int _nextUpThresholdMs() {

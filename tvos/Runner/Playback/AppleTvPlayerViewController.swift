@@ -23,6 +23,7 @@ final class AppleTvPlayerViewController: UIViewController {
     private var audioTracks: [(index: Int, label: String, subtitle: String, selected: Bool)] = []
     private var subtitleTracks: [(index: Int, label: String, subtitle: String, selected: Bool)] = []
     private var streamInfoSections: [[String: Any]] = []
+    private var hasCast = false
     private var castPeople: [(name: String, subtitle: String, imageUrl: String)] = []
     private var selectedBitrateMbps = -1
     private var logoUrlString = ""
@@ -74,6 +75,8 @@ final class AppleTvPlayerViewController: UIViewController {
     private let chapterOverlay = UIView()
     private let controlBar = UIView()
     private let controlStack = UIStackView()
+    private let tooltipView = UIView()
+    private let tooltipLabel = UILabel()
 
     private let trickplayContainer = UIView()
     private let trickplayImageView = UIImageView()
@@ -196,6 +199,14 @@ final class AppleTvPlayerViewController: UIViewController {
         controlStack.alignment = .center
         controlStack.spacing = 20
         controlBar.addSubview(controlStack)
+
+        tooltipView.backgroundColor = UIColor(white: 0, alpha: 0.78)
+        tooltipView.layer.cornerRadius = 8
+        tooltipView.isHidden = true
+        osdContainer.addSubview(tooltipView)
+        tooltipLabel.font = .systemFont(ofSize: 24, weight: .medium)
+        tooltipLabel.textColor = .white
+        tooltipView.addSubview(tooltipLabel)
 
         scrubber.translatesAutoresizingMaskIntoConstraints = false
         scrubber.progressTintColor = UIColor(red: 0.9, green: 0.1, blue: 0.55, alpha: 1)
@@ -494,7 +505,7 @@ final class AppleTvPlayerViewController: UIViewController {
         if chapters.count > 1 { ids.append(.chapters) }
         if !subtitleTracks.isEmpty { ids.append(.subtitles) }
         if audioTracks.count > 1 { ids.append(.audio) }
-        if !castPeople.isEmpty { ids.append(.cast) }
+        if hasCast { ids.append(.cast) }
         ids.append(.quality)
         ids.append(.zoom)
         if !streamInfoSections.isEmpty { ids.append(.info) }
@@ -518,6 +529,7 @@ final class AppleTvPlayerViewController: UIViewController {
         gradientLayer.frame = osdContainer.bounds
         topGradientLayer.frame = topContainer.bounds
         layoutChapters()
+        updateTooltip()
     }
 
     func applyUiMetadata(_ args: [String: Any]) {
@@ -533,6 +545,7 @@ final class AppleTvPlayerViewController: UIViewController {
         streamInfoSections = (args["streamInfoSections"] as? [[String: Any]]) ?? []
         selectedBitrateMbps = (args["selectedBitrateMbps"] as? NSNumber)?.intValue ?? -1
         nextUpThresholdMs = (args["nextUpThresholdMs"] as? NSNumber)?.intValue ?? 0
+        hasCast = (args["hasCast"] as? Bool) ?? false
 
         castPeople = ((args["castPeople"] as? [[String: Any]]) ?? []).compactMap { e in
             guard let name = e["name"] as? String, !name.isEmpty else { return nil }
@@ -833,6 +846,49 @@ final class AppleTvPlayerViewController: UIViewController {
             scrubFocused ? CGAffineTransform(scaleX: 1, y: 2.0) : .identity
         scrubber.trackTintColor =
             scrubFocused ? UIColor(white: 1, alpha: 0.45) : UIColor(white: 1, alpha: 0.25)
+        updateTooltip()
+    }
+
+    private func tooltipText(for id: ControlId) -> String {
+        switch id {
+        case .prev: return "Previous"
+        case .skipBack: return "Seek Back"
+        case .playPause: return isPaused() ? "Play" : "Pause"
+        case .skipForward: return "Seek Forward"
+        case .next: return "Next"
+        case .speed: return "Playback Speed"
+        case .chapters: return "Chapters"
+        case .subtitles: return "Subtitles"
+        case .audio: return "Audio"
+        case .cast: return "Cast & Crew"
+        case .quality: return "Playback Quality"
+        case .zoom: return "Zoom Mode"
+        case .info: return "Playback Information"
+        }
+    }
+
+    private func updateTooltip() {
+        guard focusedZone == .buttons,
+            controls.indices.contains(focusedControlIndex),
+            let control = controlViews[controls[focusedControlIndex]]
+        else {
+            tooltipView.isHidden = true
+            return
+        }
+        tooltipLabel.text = tooltipText(for: controls[focusedControlIndex])
+        tooltipLabel.sizeToFit()
+        let padH: CGFloat = 16
+        let padV: CGFloat = 8
+        let width = tooltipLabel.bounds.width + padH * 2
+        let height = tooltipLabel.bounds.height + padV * 2
+        let frame = control.convert(control.bounds, to: osdContainer)
+        tooltipLabel.frame = CGRect(
+            x: padH, y: padV, width: tooltipLabel.bounds.width,
+            height: tooltipLabel.bounds.height)
+        tooltipView.frame = CGRect(
+            x: frame.midX - width / 2, y: frame.minY - height - 12,
+            width: width, height: height)
+        tooltipView.isHidden = false
     }
 
     private func togglePlayPause() {
@@ -1054,9 +1110,63 @@ final class AppleTvPlayerViewController: UIViewController {
                 text += "\(label):  \(value)\n"
             }
         }
+        let colorSection = colorTelemetrySection()
+        if !colorSection.isEmpty {
+            if !text.isEmpty { text += "\n\n" }
+            text += "COLOR & HDR\n" + colorSection
+        }
         let panel = InfoPanelViewController(text: text)
         panel.modalPresentationStyle = .overFullScreen
         present(panel, animated: true)
+    }
+
+    private func colorTelemetrySection() -> String {
+        let telemetry = player.dynamicRangeTelemetrySnapshot()
+        func value(_ key: String) -> String? {
+            guard let v = telemetry[key], !v.isEmpty,
+                v != "unknown", v != "no_engine"
+            else { return nil }
+            return v
+        }
+        func pair(_ a: String, _ b: String) -> String? {
+            guard let first = value(a) else { return nil }
+            return "\(first) / \(value(b) ?? "?")"
+        }
+
+        var rows: [(String, String)] = []
+        if let v = value("mpv_hdr_type") { rows.append(("HDR Type", v)) }
+        if let v = value("mpv_max_cll") { rows.append(("Max CLL", v)) }
+        if let v = value("mpv_max_fall") { rows.append(("Max FALL", v)) }
+        if let v = pair("mpv_input_primaries", "mpv_input_transfer") {
+            rows.append(("Input Color", v))
+        }
+        if let v = pair("mpv_output_primaries", "mpv_output_transfer") {
+            rows.append(("Output Color", v))
+        }
+        if let v = pair("mpv_active_target_prim", "mpv_active_target_trc") {
+            rows.append(("Display Target", v))
+        }
+        if let v = value("mpv_active_tone_mapping") {
+            rows.append(("Tone Mapping", v))
+        }
+        if let v = value("mpv_intent_sink_hdr_capable") {
+            rows.append(("Display HDR Capable", v))
+        }
+        if let v = value("mpv_intent_content_range") {
+            rows.append(("Content Range", v))
+        }
+        if let v = value("mpv_active_hwdec") {
+            rows.append(("Hardware Decode", v))
+        }
+        if let v = value("mpv_display_fps") { rows.append(("Display FPS", v)) }
+        if let v = value("mpv_frame_drop_count") {
+            rows.append(("Frames Dropped", v))
+        }
+        if let v = value("mpv_decoder_frame_drop_count") {
+            rows.append(("Decoder Drops", v))
+        }
+
+        return rows.map { "\($0.0):  \($0.1)\n" }.joined()
     }
 
     private func presentCastPanel() {

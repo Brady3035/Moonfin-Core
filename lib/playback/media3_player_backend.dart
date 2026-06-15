@@ -1,8 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/services.dart';
+import 'package:get_it/get_it.dart';
 import 'package:playback_core/playback_core.dart';
 
+import '../data/services/log_service.dart';
 import '../preference/preference_constants.dart';
 import '../preference/user_preferences.dart';
 import '../util/platform_detection.dart';
@@ -59,6 +61,20 @@ class Media3PlayerBackend extends PlayerBackend {
   final List<int> _discontinuityTimestamps = <int>[];
   Timer? _audioDelayDebounce;
 
+  // Freeze diagnostics: surface decode/render stalls into the in-app report so
+  // a frozen-picture playback is visible without adb. See _checkPlaybackWatchdogs.
+  static const _watchdogStallMs = 6000;
+  Timer? _watchdogTimer;
+  String _watchdogItemLabel = 'item';
+  bool _sawFirstFrame = false;
+  bool _firstFrameWarned = false;
+  int _playStartedAtMs = 0;
+  int _lastObservedPositionMs = -1;
+  int _lastPositionAdvanceAtMs = 0;
+  bool _stallWarned = false;
+  int _loadRequestedAtMs = 0;
+  bool _neverStartedWarned = false;
+
   final _positionStream = StreamController<Duration>.broadcast();
   final _durationStream = StreamController<Duration>.broadcast();
   final _bufferStream = StreamController<Duration>.broadcast();
@@ -102,11 +118,19 @@ class Media3PlayerBackend extends PlayerBackend {
 
     switch (eventType) {
       case 'state':
+        final wasPlaying = _isPlaying;
+        final wasBuffering = _isBuffering;
         _position = Duration(milliseconds: _toInt(map['positionMs']));
         _duration = Duration(milliseconds: _toInt(map['durationMs']));
         _buffer = Duration(milliseconds: _toInt(map['bufferedMs']));
         _isPlaying = _toBool(map['isPlaying']);
         _isBuffering = _toBool(map['isBuffering']);
+        if (_isPlaying != wasPlaying || _isBuffering != wasBuffering) {
+          _diag(
+            'Media3 state: playing=$_isPlaying buffering=$_isBuffering '
+            'pos=${_position.inMilliseconds}ms',
+          );
+        }
 
         final completedNow =
             _duration > Duration.zero && _position >= _duration && !_isPlaying;
@@ -154,8 +178,16 @@ class Media3PlayerBackend extends PlayerBackend {
       case 'activityAction':
         _activityActionController.add(map.cast<String, dynamic>());
       case 'playerError':
+        _diag(
+          'Media3 player error: ${map['errorCode'] ?? ''} ${map['message'] ?? ''}',
+          level: LogLevel.error,
+        );
         _errorStream.add(map.cast<String, dynamic>());
       case 'error':
+        _diag(
+          'Media3 error: ${map['errorCode'] ?? ''} ${map['message'] ?? ''}',
+          level: LogLevel.error,
+        );
         _errorStream.add(map.cast<String, dynamic>());
         _isPlaying = false;
         _isBuffering = false;
@@ -172,6 +204,37 @@ class Media3PlayerBackend extends PlayerBackend {
         _repeatMode = _repeatModeFromWire(map['repeatMode']?.toString());
       case 'tunnelingDiscontinuity':
         _onTunnelingDiscontinuity();
+      case 'firstFrameRendered':
+        _sawFirstFrame = true;
+        _diag('Media3: first frame rendered @ ${_toInt(map['positionMs'])}ms');
+      case 'droppedFrames':
+        _diag(
+          'Media3: dropped ${_toInt(map['count'])} video frames in '
+          '${_toInt(map['elapsedMs'])}ms',
+          level: LogLevel.warning,
+        );
+      case 'audioUnderrun':
+        _diag(
+          'Media3: audio underrun (buffer ${_toInt(map['bufferSizeMs'])}ms, '
+          '${_toInt(map['elapsedMs'])}ms since last feed)',
+          level: LogLevel.warning,
+        );
+      case 'audioSinkError':
+        _diag(
+          'Media3: audio sink error: ${map['message'] ?? ''}',
+          level: LogLevel.warning,
+        );
+      case 'playerRebuilt':
+        _diag(
+          'Media3: player rebuilt for new source '
+          '(${map['viewType'] ?? ''}, sdk ${_toInt(map['sdk'])})',
+        );
+      case 'videoDecoderInit':
+        _diag('Media3: video decoder initialized (${map['decoder'] ?? ''})');
+      case 'videoSizeChanged':
+        _diag(
+          'Media3: video size ${_toInt(map['width'])}x${_toInt(map['height'])}',
+        );
     }
   }
 
@@ -192,6 +255,98 @@ class Media3PlayerBackend extends PlayerBackend {
 
     _discontinuityTimestamps.clear();
     unawaited(disableTunnelingFallback());
+  }
+
+  void _diag(String message, {LogLevel level = LogLevel.debug}) {
+    if (GetIt.instance.isRegistered<LogService>()) {
+      GetIt.instance<LogService>().media(message, level: level);
+    }
+  }
+
+  void _resetPlaybackWatchdogs(String itemLabel) {
+    _watchdogItemLabel = itemLabel;
+    _sawFirstFrame = false;
+    _firstFrameWarned = false;
+    _stallWarned = false;
+    _playStartedAtMs = 0;
+    _lastObservedPositionMs = -1;
+    _lastPositionAdvanceAtMs = 0;
+    _loadRequestedAtMs = DateTime.now().millisecondsSinceEpoch;
+    _neverStartedWarned = false;
+    _watchdogTimer ??= Timer.periodic(
+      const Duration(seconds: 2),
+      (_) => _checkPlaybackWatchdogs(),
+    );
+  }
+
+  void _checkPlaybackWatchdogs() {
+    if (_disposed) return;
+    final nowMs = DateTime.now().millisecondsSinceEpoch;
+
+    // Mark when playback actually started so first-frame timing is measured
+    // from "playing", not from the load call.
+    if (_isPlaying && _playStartedAtMs == 0) {
+      _playStartedAtMs = nowMs;
+    }
+
+    // Never-started watchdog: load was requested but the player never reached
+    // "playing" and never drew a frame (the buffering-forever hang). Timed from
+    // the load call since "playing" never arrives. _sawFirstFrame stays true
+    // after a good item, so this stays quiet in the gap between items.
+    if (_loadRequestedAtMs != 0 &&
+        !_neverStartedWarned &&
+        !_sawFirstFrame &&
+        !_isPlaying &&
+        nowMs - _loadRequestedAtMs > _watchdogStallMs) {
+      _neverStartedWarned = true;
+      _diag(
+        'Media3 watchdog: "$_watchdogItemLabel" never started after '
+        '${_watchdogStallMs ~/ 1000}s (stuck loading, buffering=$_isBuffering, '
+        'pos=${_position.inMilliseconds}ms, suspected preroll-to-feature freeze)',
+        level: LogLevel.warning,
+      );
+    }
+
+    // First-frame watchdog: the player reports playing but the picture never
+    // drew. This is the frozen-first-frame case (clock can still advance).
+    if (_isPlaying &&
+        !_sawFirstFrame &&
+        !_firstFrameWarned &&
+        _playStartedAtMs != 0 &&
+        nowMs - _playStartedAtMs > _watchdogStallMs) {
+      _firstFrameWarned = true;
+      _diag(
+        'Media3 watchdog: "$_watchdogItemLabel" playing but no first frame after '
+        '${_watchdogStallMs ~/ 1000}s (suspected freeze; buffering=$_isBuffering, '
+        'pos=${_position.inMilliseconds}ms)',
+        level: LogLevel.warning,
+      );
+    }
+
+    // Position-stall watchdog: playing and not buffering, but the position is
+    // not advancing. Catches a hard hang where the clock stops too.
+    if (_isPlaying && !_isBuffering) {
+      final posMs = _position.inMilliseconds;
+      if (posMs != _lastObservedPositionMs) {
+        _lastObservedPositionMs = posMs;
+        _lastPositionAdvanceAtMs = nowMs;
+        _stallWarned = false;
+      } else if (_lastPositionAdvanceAtMs != 0 &&
+          !_stallWarned &&
+          nowMs - _lastPositionAdvanceAtMs > _watchdogStallMs) {
+        _stallWarned = true;
+        _diag(
+          'Media3 watchdog: "$_watchdogItemLabel" position stalled at ${posMs}ms '
+          'for ${_watchdogStallMs ~/ 1000}s while playing (suspected freeze)',
+          level: LogLevel.warning,
+        );
+      }
+    } else {
+      // Paused or buffering: keep the stall baseline fresh so it does not fire
+      // a false positive when playback legitimately stops advancing.
+      _lastObservedPositionMs = _position.inMilliseconds;
+      _lastPositionAdvanceAtMs = nowMs;
+    }
   }
 
   Future<void> disableTunnelingFallback({bool persist = true}) async {
@@ -281,6 +436,11 @@ class Media3PlayerBackend extends PlayerBackend {
     _textTrackCount = 0;
     _tracksReadyCompleter = null;
     _discontinuityTimestamps.clear();
+    _resetPlaybackWatchdogs(
+      payload['itemName']?.toString() ??
+          payload['title']?.toString() ??
+          'item',
+    );
     _skipSilenceEnabled = _prefs.get(UserPreferences.media3SkipSilence);
     _volumeBoostLevel = 0;
     final preferredAudioLanguage = _normalizeTrackLanguagePref(
@@ -713,6 +873,8 @@ class Media3PlayerBackend extends PlayerBackend {
     _disposed = true;
     _audioDelayDebounce?.cancel();
     _audioDelayDebounce = null;
+    _watchdogTimer?.cancel();
+    _watchdogTimer = null;
     unawaited(_stopActivity());
     unawaited(_eventSub?.cancel());
     _positionStream.close();

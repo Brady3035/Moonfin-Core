@@ -419,7 +419,7 @@ class Media3VideoView(
 
     private val mainHandler = Handler(Looper.getMainLooper())
     private val useSurfaceView = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
-    private val videoView: View = if (useSurfaceView) {
+    private var videoView: View = if (useSurfaceView) {
         SurfaceView(context)
     } else {
         TextureView(context)
@@ -467,6 +467,12 @@ class Media3VideoView(
     private var containerFallbackAttempted = false
 
     private var player: ExoPlayer
+
+    // True once a source has been loaded into the current player. Reusing the
+    // same ExoPlayer instance + surface for a second source hangs in buffering
+    // on some Android TVs (e.g. Sony BRAVIA after a cinema-mode intro), so the
+    // player is recreated for each new source after the first.
+    private var playerHasLoadedSource = false
 
     private var ticker: Runnable? = null
     private var currentUrl: String? = null
@@ -753,6 +759,12 @@ class Media3VideoView(
         }
 
         override fun onRenderedFirstFrame() {
+            Media3Bridge.emitEvent(
+                mapOf(
+                    "event" to "firstFrameRendered",
+                    "positionMs" to player.currentPosition,
+                ),
+            )
             if (detectedFrameRate == null) {
                 resolveSelectedVideoFrameRate()?.let { frameRate ->
                     maybeApplyFrameRateSwitching(frameRate)
@@ -797,7 +809,57 @@ class Media3VideoView(
                         "event" to "tunnelingDiscontinuity",
                     ),
                 )
+            } else {
+                Media3Bridge.emitEvent(
+                    mapOf(
+                        "event" to "audioSinkError",
+                        "message" to (audioSinkError.message ?: audioSinkError.toString()),
+                    ),
+                )
             }
+        }
+
+        override fun onDroppedVideoFrames(
+            eventTime: AnalyticsListener.EventTime,
+            droppedFrames: Int,
+            elapsedMs: Long,
+        ) {
+            Media3Bridge.emitEvent(
+                mapOf(
+                    "event" to "droppedFrames",
+                    "count" to droppedFrames,
+                    "elapsedMs" to elapsedMs,
+                ),
+            )
+        }
+
+        override fun onAudioUnderrun(
+            eventTime: AnalyticsListener.EventTime,
+            bufferSize: Int,
+            bufferSizeMs: Long,
+            elapsedSinceLastFeedMs: Long,
+        ) {
+            Media3Bridge.emitEvent(
+                mapOf(
+                    "event" to "audioUnderrun",
+                    "bufferSizeMs" to bufferSizeMs,
+                    "elapsedMs" to elapsedSinceLastFeedMs,
+                ),
+            )
+        }
+
+        override fun onVideoDecoderInitialized(
+            eventTime: AnalyticsListener.EventTime,
+            decoderName: String,
+            initializedTimestampMs: Long,
+            initializationDurationMs: Long,
+        ) {
+            Media3Bridge.emitEvent(
+                mapOf(
+                    "event" to "videoDecoderInit",
+                    "decoder" to decoderName,
+                ),
+            )
         }
     }
 
@@ -935,8 +997,30 @@ class Media3VideoView(
         player.clearVideoSurface()
         Media3SessionController.releaseForPlayer(player)
         player.release()
+        recreateVideoView()
         player = createPlayer()
         httpDataSourceFactory.setDefaultRequestProperties(currentHeaders)
+        Media3Bridge.emitEvent(
+            mapOf(
+                "event" to "playerRebuilt",
+                "viewType" to if (useSurfaceView) "surfaceview" else "textureview",
+                "sdk" to Build.VERSION.SDK_INT,
+            ),
+        )
+    }
+
+    // Swaps in a fresh SurfaceView/TextureView so each new source gets a brand
+    // new Surface. Reusing the same Surface across sources hangs the decoder in
+    // buffering on some Android TVs even after the ExoPlayer is recreated.
+    private fun recreateVideoView() {
+        val params = FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.MATCH_PARENT,
+            FrameLayout.LayoutParams.MATCH_PARENT,
+            Gravity.CENTER,
+        )
+        containerView.removeView(videoView)
+        videoView = if (useSurfaceView) SurfaceView(context) else TextureView(context)
+        containerView.addView(videoView, 0, params)
     }
 
     private fun releaseActivePlayer() {
@@ -954,6 +1038,7 @@ class Media3VideoView(
         player.release()
         player = createPlayer()
         httpDataSourceFactory.setDefaultRequestProperties(currentHeaders)
+        playerHasLoadedSource = false
         firstFrameCover.visibility = View.VISIBLE
         emitState()
     }
@@ -1306,7 +1391,7 @@ class Media3VideoView(
         restorePreferredDisplayMode()
         detectedFrameRate = null
 
-        if (decoderPreferenceDirty) {
+        if (decoderPreferenceDirty || playerHasLoadedSource) {
             rebuildPlayerForDecoderPreference()
             decoderPreferenceDirty = false
         }
@@ -1377,6 +1462,7 @@ class Media3VideoView(
         emitSyncDelayState()
         emitVolumeBoostState()
         setMediaItem(startPositionMs, playWhenReady = autoPlay)
+        playerHasLoadedSource = true
     }
 
     private fun revealVideo() {

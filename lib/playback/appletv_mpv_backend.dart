@@ -234,6 +234,7 @@ class AppleTvMpvBackend implements PlayerBackend {
       ),
       'hybridAudioUrl': ?_resolveHybridAudioUrl(payload),
       'hybridAudioStreamIndex': (payload['audioStreamIndex'] as num?)?.toInt() ?? -1,
+      'audioPassthrough': _audioPassthroughEligible(payload),
       'nativeDvEnabled': _nativeDvDecodeEnabled,
       'atmosPassthrough':
           _prefs.resolveEac3JocPassthroughEnabled() ||
@@ -342,7 +343,10 @@ class AppleTvMpvBackend implements PlayerBackend {
     return 'auto-safe';
   }
 
+  static final bool _hybridAtmosPathEnabled = false;
+
   bool _hybridAtmosEligible(Map<dynamic, dynamic> payload) {
+    if (!_hybridAtmosPathEnabled) return false;
     if (!_prefs.get(UserPreferences.appleTvHybridAtmosEnabled)) return false;
     final codec = (payload['audioCodec']?.toString() ?? '').toLowerCase();
     if (codec != 'eac3') return false;
@@ -355,6 +359,14 @@ class AppleTvMpvBackend implements PlayerBackend {
     final url = payload['hybridAudioUrl']?.toString();
     if (url == null || url.isEmpty) return null;
     return url;
+  }
+
+  bool _audioPassthroughEligible(Map<dynamic, dynamic> payload) {
+    if (!_prefs.get(UserPreferences.appleTvAudioPassthroughEnabled)) return false;
+    final codec = (payload['audioCodec']?.toString() ?? '').toLowerCase();
+    if (codec != 'eac3' && codec != 'ac3') return false;
+    final channels = (payload['audioChannels'] as num?)?.toInt() ?? 0;
+    return channels > 2;
   }
 
   @override

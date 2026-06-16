@@ -143,6 +143,8 @@ class MpvPlayerWrapper: NSObject, ObservableObject {
     private var activeToneMappingMode = "auto"
     private var audioChannelsMode: String = "auto-safe"
     private var activeAudioChannelsMode: String = "auto-safe"
+    private var audioPassthroughEnabled = false
+    private var activeAudioPassthrough = false
     private var pendingHybridAudioURL: URL?
     private var pendingHybridAudioHeaders: [String: String] = [:]
     private var pendingHybridAudioStreamIndex: Int = -1
@@ -324,6 +326,10 @@ class MpvPlayerWrapper: NSObject, ObservableObject {
         audioChannelsMode = mode
     }
 
+    func configureAudioPassthrough(_ on: Bool) {
+        audioPassthroughEnabled = on
+    }
+
     func configureHybridAudio(url: URL?, headers: [String: String], audioStreamIndex: Int) {
         if let url {
             pendingHybridAudioURL = url
@@ -386,6 +392,7 @@ class MpvPlayerWrapper: NSObject, ObservableObject {
         let audioOutHrChannels = engine.getStringProperty("audio-out-params/hr-channels") ?? "unknown"
         let audioCodec = engine.getStringProperty("audio-codec-name") ?? "unknown"
         let currentAo = engine.getStringProperty("current-ao") ?? "unknown"
+        let audioSpdif = engine.getStringProperty("audio-spdif") ?? ""
 
         var result: [String: String] = [
             "mpv_audio_in_channel_count": audioInChannels,
@@ -393,6 +400,8 @@ class MpvPlayerWrapper: NSObject, ObservableObject {
             "mpv_audio_out_hr_channels": audioOutHrChannels,
             "mpv_audio_codec": audioCodec,
             "mpv_current_ao": currentAo,
+            "audio_passthrough": audioPassthroughEnabled ? "on" : "off",
+            "audio_spdif": audioSpdif.isEmpty ? "off" : audioSpdif,
             "hybrid_active": hybridAudioActive ? "yes" : "no",
             "hybrid_audio_source": hybridAudioSource,
             "hybrid_drift_ms": String(format: "%.1f", hybridDriftMsLast),
@@ -567,8 +576,16 @@ class MpvPlayerWrapper: NSObject, ObservableObject {
             rate = newRate
             return
         }
+        if audioPassthroughEnabled {
+            _ = engine?.command(["set", "audio-spdif", newRate == 1.0 ? "ac3,eac3" : ""])
+        }
         _ = engine?.setSpeed(newRate)
         rate = newRate
+    }
+
+    private func applyAudioPassthroughIfNeeded() {
+        guard audioPassthroughEnabled else { return }
+        _ = engine?.command(["set", "audio-spdif", "ac3,eac3"])
     }
 
     func setAudioTrack(_ trackIndex: Int32) {
@@ -657,11 +674,16 @@ class MpvPlayerWrapper: NSObject, ObservableObject {
         guard !audioSessionActive else { return }
         let session = AVAudioSession.sharedInstance()
         do {
-            try session.setCategory(.playback, mode: .moviePlayback, policy: .longFormAudio)
-            try session.setActive(true)
-            let maxChannels = session.maximumOutputNumberOfChannels
-            if maxChannels > 2 {
-                try? session.setPreferredOutputNumberOfChannels(maxChannels)
+            if audioPassthroughEnabled {
+                try session.setCategory(.playback, mode: .default)
+                try session.setActive(true)
+            } else {
+                try session.setCategory(.playback, mode: .moviePlayback, policy: .longFormAudio)
+                try session.setActive(true)
+                let maxChannels = session.maximumOutputNumberOfChannels
+                if maxChannels > 2 {
+                    try? session.setPreferredOutputNumberOfChannels(maxChannels)
+                }
             }
             audioSessionActive = true
         } catch {}
@@ -891,6 +913,7 @@ class MpvPlayerWrapper: NSObject, ObservableObject {
                 engine?.applySubtitleStyle(mpvSubtitleOptions)
                 updatePlaybackBackend(identifier: "mpv", fallbackReason: nil)
                 applyDynamicRangeIntent()
+                applyAudioPassthroughIfNeeded()
                 state = .opening
                 startRenderScheduler()
                 return true
@@ -910,6 +933,7 @@ class MpvPlayerWrapper: NSObject, ObservableObject {
                     engine?.applySubtitleStyle(mpvSubtitleOptions)
                     updatePlaybackBackend(identifier: "mpv", fallbackReason: reason)
                     applyDynamicRangeIntent()
+                    applyAudioPassthroughIfNeeded()
                     state = .opening
                     startRenderScheduler()
                     return true
@@ -983,7 +1007,8 @@ class MpvPlayerWrapper: NSObject, ObservableObject {
            activeOutputIntent == outputIntent,
            activeMpvQualityProfile == qualityProfile,
            activeAudioChannelsMode == audioChannelsMode,
-           activeAudioDisabled == hybridAudioActive {
+           activeAudioDisabled == hybridAudioActive,
+           activeAudioPassthrough == audioPassthroughEnabled {
             return engine.isReady
         }
 
@@ -995,6 +1020,7 @@ class MpvPlayerWrapper: NSObject, ObservableObject {
             qualityProfile: qualityProfile,
             audioChannelsMode: audioChannelsMode,
             audioDisabled: hybridAudioActive,
+            audioExclusive: audioPassthroughEnabled,
             drawableHandle: audioOnly ? nil : videoSurface.drawableHandle,
             updateHandler: { [weak self] in
                 DispatchQueue.main.async {
@@ -1015,6 +1041,7 @@ class MpvPlayerWrapper: NSObject, ObservableObject {
         activeMpvQualityProfile = qualityProfile
         activeAudioChannelsMode = audioChannelsMode
         activeAudioDisabled = hybridAudioActive
+        activeAudioPassthrough = audioPassthroughEnabled
         return true
     }
 
@@ -1976,7 +2003,7 @@ private final class MPVEngine {
     var isReady: Bool { handle != nil }
     private(set) var lastInitError: String?
 
-    init(renderProfile: MPVRenderProfile, outputIntent: MPVOutputIntent = .auto, qualityProfile: MPVPlaybackQualityProfile = .compatibility, audioChannelsMode: String = "auto-safe", audioDisabled: Bool = false, drawableHandle: UInt64?, updateHandler: @escaping () -> Void) {
+    init(renderProfile: MPVRenderProfile, outputIntent: MPVOutputIntent = .auto, qualityProfile: MPVPlaybackQualityProfile = .compatibility, audioChannelsMode: String = "auto-safe", audioDisabled: Bool = false, audioExclusive: Bool = false, drawableHandle: UInt64?, updateHandler: @escaping () -> Void) {
         guard let created = mpv_create() else { return }
 
         if let drawableHandle {
@@ -2056,6 +2083,10 @@ private final class MPVEngine {
         if audioDisabled {
             _ = setOptionString("aid", value: "no", on: created)
             initDiagnostics["aid"] = "no"
+        }
+        if audioExclusive {
+            _ = setOptionString("audio-exclusive", value: "yes", on: created)
+            initDiagnostics["audio_exclusive"] = "yes"
         }
 
         switch renderProfile {

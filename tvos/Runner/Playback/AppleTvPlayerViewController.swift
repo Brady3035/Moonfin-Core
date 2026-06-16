@@ -1814,6 +1814,10 @@ final class AppleTvPlayerViewController: UIViewController {
         if let v = value("mpv_init_audio_channels_mode") {
             rows.append(("Audio Channels Mode", v))
         }
+        if telemetry["audio_passthrough"] == "on" {
+            rows.append(("Audio Passthrough", "on"))
+            rows.append(("Audio spdif", telemetry["audio_spdif"] ?? "off"))
+        }
         if telemetry["hybrid_active"] == "yes" {
             rows.append(("Hybrid Audio", "active"))
             rows.append(("mpv Audio (aid)", telemetry["mpv_init_aid"] ?? "on"))

@@ -877,6 +877,11 @@ class UserPreferences extends ChangeNotifier {
     defaultValue: true,
   );
 
+  static final appleTvAudioPassthroughEnabled = Preference(
+    key: 'pref_appletv_audio_passthrough',
+    defaultValue: true,
+  );
+
   static final audioPrefsAutoDetected = Preference(
     key: 'pref_audio_caps_auto_detected',
     defaultValue: false,

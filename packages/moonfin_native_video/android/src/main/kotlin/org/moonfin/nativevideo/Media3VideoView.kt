@@ -445,7 +445,13 @@ class Media3VideoView(
     }
     private val isLowRamDevice = context.getSystemService<ActivityManager>()?.isLowRamDevice == true
     private val hasHardwareAv1Decoder by lazy { queryHardwareAv1DecoderAvailability() }
-    private val trackSelector = DefaultTrackSelector(context)
+    // Recreated alongside the player in createPlayer(). A TrackSelector must not
+    // be shared across ExoPlayer instances: it binds to the playback thread of
+    // the player it is built with, so reusing it after the player is released
+    // and rebuilt throws "DefaultTrackSelector is accessed on the wrong thread" 
+    // on the new player's  playback thread, killing that thread and freezing 
+    // playback.
+    private lateinit var trackSelector: DefaultTrackSelector
     private val audioPipeline = ExoPlayerAudioPipeline()
     private val audioAttributeState = AudioAttributeState()
     private var preferFfmpegDecoder = Media3Bridge.preferFfmpegDecoderEnabled()
@@ -864,9 +870,10 @@ class Media3VideoView(
     }
 
     init {
-        applyTrackSelectorForCurrentSource()
-
+        // createPlayer() constructs trackSelector, so build the player first.
         player = createPlayer()
+
+        applyTrackSelectorForCurrentSource()
 
         containerView.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
             applyVideoLayout()
@@ -899,6 +906,8 @@ class Media3VideoView(
     }
 
     private fun createPlayer(): ExoPlayer {
+        // Fresh selector for every player; see the trackSelector field comment.
+        trackSelector = DefaultTrackSelector(context)
         audioDelayProcessor.setDelayMs(audioDelayMs)
         val renderersFactory = MoonfinRenderersFactory(
             context = context,

@@ -32,7 +32,10 @@ class _MediaBarSettingsScreenState extends State<MediaBarSettingsScreen> {
   @override
   void initState() {
     super.initState();
-    _mediaBarModeBinding = PreferenceBinding(_store, UserPreferences.mediaBarMode);
+    _mediaBarModeBinding = PreferenceBinding(
+      _store,
+      UserPreferences.mediaBarMode,
+    );
     final current = _store.get(UserPreferences.mediaBarMode);
     final normalized = UserPreferences.normalizeMediaBarMode(current);
     if (current != normalized) {
@@ -85,7 +88,7 @@ class _MediaBarSettingsScreenState extends State<MediaBarSettingsScreen> {
           })
           .toList();
 
-      final availableIds = items.map((i) => i['Id'] as String).toSet();
+      final availableIds = items.map((i) => i['Id']?.toString() ?? '').toSet();
       final pruned = selected.intersection(availableIds);
       if (pruned.length != selected.length) {
         _saveCsv(UserPreferences.mediaBarLibraryIds, pruned.toList());
@@ -96,7 +99,8 @@ class _MediaBarSettingsScreenState extends State<MediaBarSettingsScreen> {
         title: l10n.sourceLibraries,
         items: {
           for (final item in items)
-            item['Id'] as String: item['Name'] as String? ?? l10n.unknown,
+            item['Id']?.toString() ?? '':
+                item['Name'] as String? ?? l10n.unknown,
         },
         selected: pruned,
       );
@@ -127,7 +131,7 @@ class _MediaBarSettingsScreenState extends State<MediaBarSettingsScreen> {
       final items = (response['Items'] as List? ?? [])
           .cast<Map<String, dynamic>>();
 
-      final availableIds = items.map((i) => i['Id'] as String).toSet();
+      final availableIds = items.map((i) => i['Id']?.toString() ?? '').toSet();
       final pruned = selected.intersection(availableIds);
       if (pruned.length != selected.length) {
         _saveCsv(UserPreferences.mediaBarCollectionIds, pruned.toList());
@@ -138,7 +142,8 @@ class _MediaBarSettingsScreenState extends State<MediaBarSettingsScreen> {
         title: l10n.sourceCollections,
         items: {
           for (final item in items)
-            item['Id'] as String: item['Name'] as String? ?? l10n.unknown,
+            item['Id']?.toString() ?? '':
+                item['Name'] as String? ?? l10n.unknown,
         },
         selected: pruned,
       );
@@ -224,87 +229,90 @@ class _MediaBarSettingsScreenState extends State<MediaBarSettingsScreen> {
           child: FocusScope(
             autofocus: true,
             child: StatefulBuilder(
-              builder: (builderContext, setDialogState) => withCleanSettingsTypography(
-                builderContext,
-                AlertDialog(
-                  title: Text(title),
-                  content: SizedBox(
-                    width: double.maxFinite,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
+              builder: (builderContext, setDialogState) =>
+                  withCleanSettingsTypography(
+                    builderContext,
+                    AlertDialog(
+                      title: Text(title),
+                      content: SizedBox(
+                        width: double.maxFinite,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            TextButton(
-                              onPressed: () {
-                                setDialogState(
-                                  () => working.addAll(items.keys),
-                                );
-                              },
-                              child: Text(l10n.selectAll),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                TextButton(
+                                  onPressed: () {
+                                    setDialogState(
+                                      () => working.addAll(items.keys),
+                                    );
+                                  },
+                                  child: Text(l10n.selectAll),
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    setDialogState(() => working.clear());
+                                  },
+                                  child: Text(l10n.clear),
+                                ),
+                              ],
                             ),
-                            TextButton(
-                              onPressed: () {
-                                setDialogState(() => working.clear());
-                              },
-                              child: Text(l10n.clear),
-                                  ),
+                            Flexible(
+                              child: ListView(
+                                shrinkWrap: true,
+                                children: orderedEntries.asMap().entries.map((
+                                  entry,
+                                ) {
+                                  final i = entry.key;
+                                  final e = entry.value;
+                                  return TvFocusHighlight(
+                                    builder: (ctx, focused) => CheckboxListTile(
+                                      autofocus: i == 0,
+                                      dense: true,
+                                      visualDensity: VisualDensity.compact,
+                                      contentPadding: EdgeInsets.zero,
+                                      controlAffinity:
+                                          ListTileControlAffinity.leading,
+                                      title: Text(e.value),
+                                      value: working.contains(e.key),
+                                      onChanged: (checked) {
+                                        setDialogState(() {
+                                          if (checked == true) {
+                                            working.add(e.key);
+                                          } else {
+                                            working.remove(e.key);
+                                          }
+                                        });
+                                      },
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                            ),
                           ],
                         ),
-                        Flexible(
-                          child: ListView(
-                            shrinkWrap: true,
-                            children: orderedEntries.asMap().entries.map((entry) {
-                              final i = entry.key;
-                              final e = entry.value;
-                              return TvFocusHighlight(
-                                builder: (ctx, focused) => CheckboxListTile(
-                                  autofocus: i == 0,
-                                  dense: true,
-                                  visualDensity: VisualDensity.compact,
-                                  contentPadding: EdgeInsets.zero,
-                                  controlAffinity:
-                                      ListTileControlAffinity.leading,
-                                  title: Text(e.value),
-                                  value: working.contains(e.key),
-                                  onChanged: (checked) {
-                                    setDialogState(() {
-                                      if (checked == true) {
-                                        working.add(e.key);
-                                      } else {
-                                        working.remove(e.key);
-                                      }
-                                    });
-                                  },
-                                ),
-                              );
-                            }).toList(),
-                          ),
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () {
+                            if (popped) return;
+                            popped = true;
+                            Navigator.pop(dialogContext);
+                          },
+                          child: Text(l10n.cancel),
+                        ),
+                        FilledButton(
+                          onPressed: () {
+                            if (popped) return;
+                            popped = true;
+                            Navigator.pop(dialogContext, working);
+                          },
+                          child: Text(l10n.save),
                         ),
                       ],
                     ),
                   ),
-                  actions: [
-                    TextButton(
-                      onPressed: () {
-                        if (popped) return;
-                        popped = true;
-                        Navigator.pop(dialogContext);
-                      },
-                      child: Text(l10n.cancel),
-                    ),
-                    FilledButton(
-                      onPressed: () {
-                        if (popped) return;
-                        popped = true;
-                        Navigator.pop(dialogContext, working);
-                      },
-                      child: Text(l10n.save),
-                    ),
-                  ],
-                ),
-              ),
             ),
           ),
         );

@@ -5,8 +5,12 @@ import '../../../l10n/current_app_localizations.dart';
 import '../../../util/platform_detection.dart';
 
 class NativeDlnaChannel {
-  static const MethodChannel _channel = MethodChannel('com.moonfin/native_dlna');
-  static const EventChannel _events = EventChannel('com.moonfin/native_dlna_events');
+  static const MethodChannel _channel = MethodChannel(
+    'com.moonfin/native_dlna',
+  );
+  static const EventChannel _events = EventChannel(
+    'com.moonfin/native_dlna_events',
+  );
   static Stream<Map<String, dynamic>>? _cachedEventStream;
 
   const NativeDlnaChannel();
@@ -18,7 +22,9 @@ class NativeDlnaChannel {
       return const [];
     }
     final l10n = currentAppLocalizations();
-    final raw = await _channel.invokeMethod<List<dynamic>>('discoverDlnaTargets');
+    final raw = await _channel.invokeMethod<List<dynamic>>(
+      'discoverDlnaTargets',
+    );
     if (raw == null) {
       return const [];
     }
@@ -28,7 +34,7 @@ class NativeDlnaChannel {
         .map((entry) => entry.cast<String, dynamic>())
         .map(
           (entry) => CastTarget(
-            id: entry['id'] as String? ?? '',
+            id: entry['id']?.toString() ?? '',
             kind: CastTargetKind.dlna,
             title: entry['title'] as String? ?? l10n.castDlna,
             subtitle: entry['subtitle'] as String? ?? '',
@@ -96,20 +102,21 @@ class NativeDlnaChannel {
     if (!_supported) {
       return;
     }
-    await _channel.invokeMethod<void>('setDlnaVolume', {
-      'volume': volume,
-    });
+    await _channel.invokeMethod<void>('setDlnaVolume', {'volume': volume});
   }
 
   Stream<Map<String, dynamic>> dlnaEventStream() {
     if (!_supported) {
       return const Stream<Map<String, dynamic>>.empty();
     }
-    return _cachedEventStream ??= _events.receiveBroadcastStream().map((event) {
-      if (event is Map) {
-        return event.cast<String, dynamic>();
-      }
-      return <String, dynamic>{};
-    }).where((event) => event.isNotEmpty);
+    return _cachedEventStream ??= _events
+        .receiveBroadcastStream()
+        .map((event) {
+          if (event is Map) {
+            return event.cast<String, dynamic>();
+          }
+          return <String, dynamic>{};
+        })
+        .where((event) => event.isNotEmpty);
   }
 }

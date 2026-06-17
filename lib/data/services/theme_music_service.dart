@@ -65,7 +65,9 @@ class ThemeMusicService {
       return;
     }
 
-    final themeItemId = (item.type == 'Episode' || item.type == 'Season') && item.seriesId != null
+    final themeItemId =
+        (item.type == 'Episode' || item.type == 'Season') &&
+            item.seriesId != null
         ? item.seriesId!
         : item.id;
 
@@ -89,11 +91,12 @@ class ThemeMusicService {
       if (generation != _playGeneration) return;
 
       final songsResult = data['ThemeSongsResult'] as Map<String, dynamic>?;
-      final songs = (songsResult?['Items'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+      final songs =
+          (songsResult?['Items'] as List?)?.cast<Map<String, dynamic>>() ?? [];
       if (songs.isEmpty) return;
 
       final song = songs[Random().nextInt(songs.length)];
-      final songId = song['Id'] as String;
+      final songId = song['Id']?.toString() ?? '';
       final url = _buildAudioUrl(songId);
 
       _targetVolume = _prefs.get(UserPreferences.themeMusicVolume) / 100.0;
@@ -120,7 +123,8 @@ class ThemeMusicService {
 
       _fadeIn(generation);
     } catch (_) {
-      if (localPlayer != null && (generation != _playGeneration || _player != localPlayer)) {
+      if (localPlayer != null &&
+          (generation != _playGeneration || _player != localPlayer)) {
         await _safeDispose(localPlayer);
       }
     }

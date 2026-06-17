@@ -68,8 +68,7 @@ class HomeRowCacheStore {
       });
       final file = await _file();
       await file.writeAsString(payload, flush: true);
-    } catch (_) {
-    }
+    } catch (_) {}
   }
 
   Map<String, dynamic> _rowToJson(HomeRow row) => {
@@ -83,7 +82,7 @@ class HomeRowCacheStore {
   };
 
   HomeRow? _rowFromJson(Map<String, dynamic> json) {
-    final id = json['id'] as String?;
+    final id = json['id']?.toString();
     final title = json['title'] as String?;
     final rowTypeName = json['rowType'] as String?;
     if (id == null || title == null || rowTypeName == null) return null;
@@ -103,8 +102,8 @@ class HomeRowCacheStore {
       for (final raw in rawItems) {
         if (raw is! Map) continue;
         final m = raw.cast<String, dynamic>();
-        final itemId = m['id'] as String?;
-        final serverId = m['serverId'] as String?;
+        final itemId = m['id']?.toString();
+        final serverId = m['serverId']?.toString();
         final rawData = m['rawData'];
         if (itemId == null || serverId == null || rawData is! Map) continue;
         items.add(

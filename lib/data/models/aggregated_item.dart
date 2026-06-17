@@ -15,7 +15,11 @@ class AggregatedItem {
 
   factory AggregatedItem.fromOffline(DownloadedItem row) {
     final rawData = jsonDecode(row.metadataJson) as Map<String, dynamic>;
-    return AggregatedItem(id: row.itemId, serverId: row.serverId, rawData: rawData);
+    return AggregatedItem(
+      id: row.itemId,
+      serverId: row.serverId,
+      rawData: rawData,
+    );
   }
 
   String get name => rawData['Name'] as String? ?? '';
@@ -25,13 +29,12 @@ class AggregatedItem {
   /// whose server MediaType is Audio). Used to decide when to show the music
   /// mini-player and when to keep the audio media session alive.
   bool get isAudioLike =>
-      type == 'Audio' ||
-      type == 'AudioBook' ||
-      rawData['MediaType'] == 'Audio';
+      type == 'Audio' || type == 'AudioBook' || rawData['MediaType'] == 'Audio';
   bool get canDelete => rawData['CanDelete'] as bool? ?? false;
   String? get seriesName => rawData['SeriesName'] as String?;
   int? get productionYear => _toInt(rawData['ProductionYear']);
-  double? get communityRating => (rawData['CommunityRating'] as num?)?.toDouble();
+  double? get communityRating =>
+      (rawData['CommunityRating'] as num?)?.toDouble();
   String? get overview => rawData['Overview'] as String?;
   String? get officialRating => rawData['OfficialRating'] as String?;
   int? get indexNumber => _toInt(rawData['IndexNumber']);
@@ -45,9 +48,8 @@ class AggregatedItem {
   }
 
   int? get runTimeTicks => _toInt(rawData['RunTimeTicks']);
-  Duration? get runtime => runTimeTicks != null
-      ? Duration(microseconds: runTimeTicks! ~/ 10)
-      : null;
+  Duration? get runtime =>
+      runTimeTicks != null ? Duration(microseconds: runTimeTicks! ~/ 10) : null;
 
   List<String> get genres =>
       (rawData['Genres'] as List?)?.cast<String>() ?? const [];
@@ -58,17 +60,15 @@ class AggregatedItem {
   String? get thumbImageTag =>
       (rawData['ImageTags'] as Map?)?['Thumb'] as String?;
 
-  String? get primaryImageTagField =>
-      rawData['PrimaryImageTag'] as String?;
+  String? get primaryImageTagField => rawData['PrimaryImageTag'] as String?;
 
-  String? get primaryImageItemId =>
-      rawData['PrimaryImageItemId'] as String?;
+  String? get primaryImageItemId => rawData['PrimaryImageItemId']?.toString();
 
   List<String> get backdropImageTags =>
       (rawData['BackdropImageTags'] as List?)?.cast<String>() ?? const [];
 
   String? get parentBackdropItemId =>
-      rawData['ParentBackdropItemId'] as String?;
+      rawData['ParentBackdropItemId']?.toString();
 
   List<String> get parentBackdropImageTags =>
       (rawData['ParentBackdropImageTags'] as List?)?.cast<String>() ?? const [];
@@ -81,14 +81,11 @@ class AggregatedItem {
   double? get playedPercentage =>
       (_userData?['PlayedPercentage'] as num?)?.toDouble();
 
-  bool get isPlayed =>
-      _userData?['Played'] as bool? ?? false;
+  bool get isPlayed => _userData?['Played'] as bool? ?? false;
 
-  bool get isFavorite =>
-      _userData?['IsFavorite'] as bool? ?? false;
+  bool get isFavorite => _userData?['IsFavorite'] as bool? ?? false;
 
-  int? get playbackPositionTicks =>
-      _toInt(_userData?['PlaybackPositionTicks']);
+  int? get playbackPositionTicks => _toInt(_userData?['PlaybackPositionTicks']);
 
   Duration? get playbackPosition => playbackPositionTicks != null
       ? Duration(microseconds: playbackPositionTicks! ~/ 10)
@@ -100,7 +97,9 @@ class AggregatedItem {
 
   String? get tagline {
     final taglines = rawData['Taglines'] as List?;
-    return taglines != null && taglines.isNotEmpty ? taglines.first as String? : null;
+    return taglines != null && taglines.isNotEmpty
+        ? taglines.first as String?
+        : null;
   }
 
   String? get subtitle {
@@ -132,20 +131,17 @@ class AggregatedItem {
     return resolution;
   }
 
-  String? get seriesId => rawData['SeriesId'] as String?;
-  String? get seasonId => rawData['SeasonId'] as String?;
+  String? get seriesId => rawData['SeriesId']?.toString();
+  String? get seasonId => rawData['SeasonId']?.toString();
   String? get seriesPrimaryImageTag =>
       rawData['SeriesPrimaryImageTag'] as String?;
-  String? get seriesThumbImageTag =>
-      rawData['SeriesThumbImageTag'] as String?;
+  String? get seriesThumbImageTag => rawData['SeriesThumbImageTag'] as String?;
   String? get parentPrimaryImageTag =>
       rawData['ParentPrimaryImageTag'] as String?;
   String? get parentPrimaryImageItemId =>
-      rawData['ParentPrimaryImageItemId'] as String?;
-  String? get parentThumbItemId =>
-      rawData['ParentThumbItemId'] as String?;
-  String? get parentThumbImageTag =>
-      rawData['ParentThumbImageTag'] as String?;
+      rawData['ParentPrimaryImageItemId']?.toString();
+  String? get parentThumbItemId => rawData['ParentThumbItemId']?.toString();
+  String? get parentThumbImageTag => rawData['ParentThumbImageTag'] as String?;
   String? get status => rawData['Status'] as String?;
   String? get seerrMediaType => rawData['SeerrMediaType'] as String?;
   int? get seerrStatus => _toInt(rawData['SeerrStatus']);
@@ -166,15 +162,16 @@ class AggregatedItem {
 
   String? get albumArtist => rawData['AlbumArtist'] as String?;
   String? get album => rawData['Album'] as String?;
-  String? get albumId => rawData['AlbumId'] as String?;
+  String? get albumId => rawData['AlbumId']?.toString();
   String? get albumPrimaryImageTag =>
       rawData['AlbumPrimaryImageTag'] as String?;
   List<String> get artists =>
       (rawData['Artists'] as List?)?.cast<String>() ?? const [];
-  String? get parentId => rawData['ParentId'] as String?;
+  String? get parentId => rawData['ParentId']?.toString();
   int? get recursiveItemCount => _toInt(rawData['RecursiveItemCount']);
   List<Map<String, dynamic>> get albumArtists =>
-      (rawData['AlbumArtists'] as List?)?.cast<Map<String, dynamic>>() ?? const [];
+      (rawData['AlbumArtists'] as List?)?.cast<Map<String, dynamic>>() ??
+      const [];
 
   Map<String, String> get providerIds {
     final ids = rawData['ProviderIds'] as Map?;
@@ -191,13 +188,16 @@ class AggregatedItem {
       (rawData['Studios'] as List?)?.cast<Map<String, dynamic>>() ?? const [];
 
   List<Map<String, dynamic>> get mediaSources =>
-      (rawData['MediaSources'] as List?)?.cast<Map<String, dynamic>>() ?? const [];
+      (rawData['MediaSources'] as List?)?.cast<Map<String, dynamic>>() ??
+      const [];
 
   List<Map<String, dynamic>> get mediaStreams =>
-      (rawData['MediaStreams'] as List?)?.cast<Map<String, dynamic>>() ?? const [];
+      (rawData['MediaStreams'] as List?)?.cast<Map<String, dynamic>>() ??
+      const [];
 
   List<Map<String, dynamic>> get remoteTrailers =>
-      (rawData['RemoteTrailers'] as List?)?.cast<Map<String, dynamic>>() ?? const [];
+      (rawData['RemoteTrailers'] as List?)?.cast<Map<String, dynamic>>() ??
+      const [];
 
   List<Map<String, dynamic>> get chapters =>
       (rawData['Chapters'] as List?)?.cast<Map<String, dynamic>>() ?? const [];
@@ -297,7 +297,10 @@ class AggregatedItem {
     final percentage = playedPercentage;
     final Duration left;
     if (percentage != null && percentage > 0) {
-      left = Duration(microseconds: (remaining.inMicroseconds * (1.0 - percentage / 100.0)).round());
+      left = Duration(
+        microseconds: (remaining.inMicroseconds * (1.0 - percentage / 100.0))
+            .round(),
+      );
     } else {
       left = remaining;
     }

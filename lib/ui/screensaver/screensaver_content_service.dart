@@ -62,7 +62,7 @@ class ScreensaverContentService {
     Map<String, dynamic> raw, {
     required bool requireRating,
   }) {
-    final id = raw['Id'] as String? ?? '';
+    final id = raw['Id']?.toString() ?? '';
     if (id.isEmpty) return null;
     if (requireRating &&
         ((raw['OfficialRating'] as String?)?.isEmpty ?? true)) {
@@ -78,7 +78,7 @@ class ScreensaverContentService {
         tag: backdropTags.first as String?,
       );
     } else {
-      final parentId = raw['ParentBackdropItemId'] as String?;
+      final parentId = raw['ParentBackdropItemId']?.toString();
       final parentTags = raw['ParentBackdropImageTags'] as List?;
       if (parentId != null && parentTags != null && parentTags.isNotEmpty) {
         backdropUrl = client.imageApi.getBackdropImageUrl(
@@ -93,7 +93,11 @@ class ScreensaverContentService {
     String? logoUrl;
     final logoTag = (raw['ImageTags'] as Map?)?['Logo'] as String?;
     if (logoTag != null && logoTag.isNotEmpty) {
-      logoUrl = client.imageApi.getLogoImageUrl(id, maxWidth: 800, tag: logoTag);
+      logoUrl = client.imageApi.getLogoImageUrl(
+        id,
+        maxWidth: 800,
+        tag: logoTag,
+      );
     }
 
     return ScreensaverItem(

@@ -38,8 +38,7 @@ class MediaBarViewModel extends ChangeNotifier {
   List<MediaBarSlideItem> get items =>
       _state is MediaBarReady ? (_state as MediaBarReady).items : const [];
 
-  Map<String, double> ratingsFor(String itemId) =>
-      _ratings[itemId] ?? const {};
+  Map<String, double> ratingsFor(String itemId) => _ratings[itemId] ?? const {};
 
   Future<void> ensureRatings(String itemId) async {
     if (itemId.isEmpty) return;
@@ -71,7 +70,7 @@ class MediaBarViewModel extends ChangeNotifier {
       if (raw.isEmpty) return;
       final aggregated = AggregatedItem(
         id: itemId,
-        serverId: raw['ServerId'] as String? ?? '',
+        serverId: raw['ServerId']?.toString() ?? '',
         rawData: raw,
       );
       _bookshelfDetails[itemId] = BookshelfDetail.fromItem(itemId, aggregated);
@@ -95,7 +94,7 @@ class MediaBarViewModel extends ChangeNotifier {
       if (raw.isEmpty) return;
       final aggregated = AggregatedItem(
         id: itemId,
-        serverId: raw['ServerId'] as String? ?? '',
+        serverId: raw['ServerId']?.toString() ?? '',
         rawData: raw,
       );
       _galleryDetails[itemId] = GalleryDetail.fromItem(itemId, aggregated);
@@ -143,11 +142,16 @@ class MediaBarViewModel extends ChangeNotifier {
     super.dispose();
   }
 
-  Future<void> load({BuildContext? context, bool preserveCurrent = true}) async {
+  Future<void> load({
+    BuildContext? context,
+    bool preserveCurrent = true,
+  }) async {
     if (_isLoading) return;
     _isLoading = true;
     final loadGeneration = ++_loadGeneration;
-    final previousReady = _state is MediaBarReady ? _state as MediaBarReady : null;
+    final previousReady = _state is MediaBarReady
+        ? _state as MediaBarReady
+        : null;
     _ratings.clear();
     _tmdbIdByItemId.clear();
     _bookshelfDetails.clear();
@@ -164,7 +168,9 @@ class MediaBarViewModel extends ChangeNotifier {
       final nextState = await _repository.loadItems();
       if (loadGeneration != _loadGeneration) return;
 
-      if (nextState is MediaBarError && previousReady != null && preserveCurrent) {
+      if (nextState is MediaBarError &&
+          previousReady != null &&
+          preserveCurrent) {
         _state = previousReady;
       } else {
         _state = nextState;
@@ -187,13 +193,15 @@ class MediaBarViewModel extends ChangeNotifier {
   Future<void> _loadRatings(List<MediaBarSlideItem> items) async {
     if (!_prefs.get(UserPreferences.enableAdditionalRatings)) return;
 
-    await Future.wait(items.map((item) async {
-      if (item.tmdbId == null) return;
-      await _loadItemRatings(item);
-      if (_ratings.containsKey(item.itemId)) {
-        notifyListeners();
-      }
-    }));
+    await Future.wait(
+      items.map((item) async {
+        if (item.tmdbId == null) return;
+        await _loadItemRatings(item);
+        if (_ratings.containsKey(item.itemId)) {
+          notifyListeners();
+        }
+      }),
+    );
   }
 
   Future<void> _loadItemRatings(MediaBarSlideItem item) async {

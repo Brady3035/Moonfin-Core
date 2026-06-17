@@ -62,11 +62,11 @@ class WebSocketMessageParser {
 
   static UserDataChangedMessage? _parseUserDataChanged(dynamic data) {
     if (data is! Map<String, dynamic>) return null;
-    final userId = data['UserId'] as String?;
+    final userId = data['UserId']?.toString();
     if (userId == null) return null;
     final itemIds =
         (data['UserDataList'] as List<dynamic>?)
-            ?.map((e) => (e as Map<String, dynamic>)['ItemId'] as String?)
+            ?.map((e) => (e as Map<String, dynamic>)['ItemId']?.toString())
             .whereType<String>()
             .toList() ??
         const [];
@@ -84,7 +84,7 @@ class WebSocketMessageParser {
       startIndex: _intValue(data['StartIndex']) ?? 0,
       audioStreamIndex: _intValue(data['AudioStreamIndex']),
       subtitleStreamIndex: _intValue(data['SubtitleStreamIndex']),
-      mediaSourceId: data['MediaSourceId'] as String?,
+      mediaSourceId: data['MediaSourceId']?.toString(),
     );
   }
 
@@ -112,14 +112,14 @@ class WebSocketMessageParser {
 
   static SessionEndedMessage? _parseSessionEnded(dynamic data) {
     if (data is! Map<String, dynamic>) return null;
-    final sessionId = data['Id'] as String? ?? data['SessionId'] as String?;
+    final sessionId = data['Id']?.toString() ?? data['SessionId']?.toString();
     if (sessionId == null) return null;
     return SessionEndedMessage(sessionId: sessionId);
   }
 
   static ScheduledTaskEndedMessage? _parseScheduledTaskEnded(dynamic data) {
     if (data is! Map<String, dynamic>) return null;
-    final taskId = data['Id'] as String?;
+    final taskId = data['Id']?.toString();
     final taskName = data['Name'] as String?;
     final status = data['Status'] as String?;
     if (taskId == null || taskName == null || status == null) return null;

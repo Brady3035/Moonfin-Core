@@ -17,11 +17,13 @@ class ServerUserRepository {
   }
 
   Future<List<PublicUser>> getPublicServerUsers(Server server) async {
-    final dio = Dio(BaseOptions(
-      baseUrl: server.address,
-      connectTimeout: const Duration(seconds: 10),
-      receiveTimeout: const Duration(seconds: 15),
-    ));
+    final dio = Dio(
+      BaseOptions(
+        baseUrl: server.address,
+        connectTimeout: const Duration(seconds: 10),
+        receiveTimeout: const Duration(seconds: 15),
+      ),
+    );
     configureServerDio(dio);
 
     try {
@@ -30,7 +32,7 @@ class ServerUserRepository {
       return list.map((json) {
         final map = json as Map<String, dynamic>;
         return PublicUser(
-          id: map['Id'] as String,
+          id: map['Id']?.toString() ?? '',
           name: map['Name'] as String? ?? '',
           serverId: server.id,
           hasPassword: map['HasPassword'] as bool? ?? true,

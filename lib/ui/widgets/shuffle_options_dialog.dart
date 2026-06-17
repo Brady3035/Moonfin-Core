@@ -112,7 +112,7 @@ Future<List<AggregatedItem>> _collectRandomItems({
 
     for (final raw in items.whereType<Map>()) {
       final cast = raw.cast<String, dynamic>();
-      final id = cast['Id'] as String?;
+      final id = cast['Id']?.toString();
       if (id == null || id.isEmpty || seenIds.contains(id)) {
         continue;
       }
@@ -156,7 +156,7 @@ Future<List<AggregatedItem>> _hydrateShuffleItemsByIds({
   final byId = <String, AggregatedItem>{};
   for (final raw in items.whereType<Map>()) {
     final cast = raw.cast<String, dynamic>();
-    final id = cast['Id'] as String?;
+    final id = cast['Id']?.toString();
     if (id == null || id.isEmpty) {
       continue;
     }

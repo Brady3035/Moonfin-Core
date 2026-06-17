@@ -264,7 +264,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
     }
     if (item is Map) {
       final serverId =
-          (item['ServerId'] as String?) ?? (item['serverId'] as String?);
+          (item['ServerId']?.toString()) ?? (item['serverId']?.toString());
       if (serverId != null && serverId.isNotEmpty) {
         return _clientFactory.getClientIfExists(serverId) ??
             GetIt.instance<MediaServerClient>();
@@ -588,7 +588,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
 
     if (!mounted || result == null || result >= results.length) return;
 
-    final subtitleId = results[result]['Id'] as String?;
+    final subtitleId = results[result]['Id']?.toString();
     if (subtitleId == null || subtitleId.isEmpty) {
       messenger.showSnackBar(
         SnackBar(
@@ -1792,7 +1792,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
           if (name.isEmpty) {
             return null;
           }
-          final personId = (person['Id'] as String?)?.trim() ?? '';
+          final personId = person['Id']?.toString().trim() ?? '';
           final imageTag = (person['PrimaryImageTag'] as String?)?.trim();
           final role = (person['Role'] as String?)?.trim();
           final type = (person['Type'] as String?)?.trim();
@@ -1825,10 +1825,10 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
   }
 
   Future<void> _openMedia3CastPerson(Map<String, dynamic> event) async {
-    final personId = (event['personId'] as String?)?.trim();
+    final personId = event['personId']?.toString().trim();
     if (personId == null || personId.isEmpty) return;
 
-    final fromEventServerId = (event['serverId'] as String?)?.trim();
+    final fromEventServerId = event['serverId']?.toString().trim();
     final fallbackServerId = _serverIdForQueueItem(_queue.currentItem);
     final serverId = (fromEventServerId != null && fromEventServerId.isNotEmpty)
         ? fromEventServerId
@@ -3601,8 +3601,10 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
           return const SizedBox.shrink();
         }
         final hasTrickplay = _trickplayInfo != null && _trickplayInfo!.isValid;
-        final recentlySought = _lastSeekTime != null &&
-            DateTime.now().difference(_lastSeekTime!) < const Duration(seconds: 3);
+        final recentlySought =
+            _lastSeekTime != null &&
+            DateTime.now().difference(_lastSeekTime!) <
+                const Duration(seconds: 3);
         if (hasTrickplay && (_isSeeking || recentlySought)) {
           return const SizedBox.shrink();
         }
@@ -3931,7 +3933,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
 
     if (type == 'Episode') {
       logoItemId =
-          (raw['ParentLogoItemId'] as String?) ?? (raw['SeriesId'] as String?);
+          (raw['ParentLogoItemId']?.toString()) ??
+          (raw['SeriesId']?.toString());
       logoTag = raw['ParentLogoImageTag'] as String?;
     } else {
       final imageTags = raw['ImageTags'];
@@ -3939,7 +3942,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
         logoTag = imageTags['Logo'] as String?;
       }
       logoTag ??= raw['LogoImageTag'] as String?;
-      logoItemId = _itemIdForQueueItem(item) ?? (raw['Id'] as String?);
+      logoItemId = _itemIdForQueueItem(item) ?? (raw['Id']?.toString());
     }
 
     final normalizedItemId = logoItemId?.trim();
@@ -3994,7 +3997,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
       );
     }
 
-    final parentThumbItemId = (raw['ParentThumbItemId'] as String?)?.trim();
+    final parentThumbItemId = raw['ParentThumbItemId']?.toString().trim();
     final parentThumbTag = (raw['ParentThumbImageTag'] as String?)?.trim();
     if (parentThumbItemId != null &&
         parentThumbItemId.isNotEmpty &&
@@ -5123,7 +5126,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
     _showControls();
   }
 
-
   void _handleDoubleTapGesture() {
     if (PlatformDetection.useDesktopUi) {
       return;
@@ -6163,7 +6165,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
       final role = person['Role'] as String?;
       final type = person['Type'] as String?;
       final subtitle = (role != null && role.isNotEmpty) ? role : (type ?? '');
-      final personId = person['Id'] as String?;
+      final personId = person['Id']?.toString();
       final tag = person['PrimaryImageTag'] as String?;
 
       String? imageUrl;

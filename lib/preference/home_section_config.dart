@@ -81,18 +81,17 @@ class HomeSectionConfig {
     bool enabled = true,
     int order = 0,
     HomeSectionPluginSource pluginSource = HomeSectionPluginSource.hss,
-  }) =>
-      HomeSectionConfig(
-        kind: HomeSectionKind.pluginDynamic,
-        type: HomeSectionType.none,
-        enabled: enabled,
-        order: order,
-        serverId: serverId,
-        pluginSection: pluginSection,
-        pluginAdditionalData: pluginAdditionalData,
-        pluginDisplayText: pluginDisplayText,
-        pluginSource: pluginSource,
-      );
+  }) => HomeSectionConfig(
+    kind: HomeSectionKind.pluginDynamic,
+    type: HomeSectionType.none,
+    enabled: enabled,
+    order: order,
+    serverId: serverId,
+    pluginSection: pluginSection,
+    pluginAdditionalData: pluginAdditionalData,
+    pluginDisplayText: pluginDisplayText,
+    pluginSource: pluginSource,
+  );
 
   factory HomeSectionConfig.fromJson(Map<String, dynamic> json) {
     final kindRaw = json['kind'] as String?;
@@ -105,12 +104,13 @@ class HomeSectionConfig {
       type: HomeSectionType.fromSerialized(typeName),
       enabled: json['enabled'] as bool? ?? true,
       order: json['order'] as int? ?? 0,
-      serverId: json['serverId'] as String?,
+      serverId: json['serverId']?.toString(),
       pluginSection: json['pluginSection'] as String?,
       pluginAdditionalData: json['pluginAdditionalData'] as String?,
       pluginDisplayText: json['pluginDisplayText'] as String?,
-      pluginSource:
-          HomeSectionPluginSource.fromSerialized(json['pluginSource'] as String?),
+      pluginSource: HomeSectionPluginSource.fromSerialized(
+        json['pluginSource'] as String?,
+      ),
     );
   }
 
@@ -145,19 +145,17 @@ class HomeSectionConfig {
     String? pluginAdditionalData,
     String? pluginDisplayText,
     HomeSectionPluginSource? pluginSource,
-  }) =>
-      HomeSectionConfig(
-        kind: kind ?? this.kind,
-        type: type ?? this.type,
-        enabled: enabled ?? this.enabled,
-        order: order ?? this.order,
-        serverId: serverId ?? this.serverId,
-        pluginSection: pluginSection ?? this.pluginSection,
-        pluginAdditionalData:
-            pluginAdditionalData ?? this.pluginAdditionalData,
-        pluginDisplayText: pluginDisplayText ?? this.pluginDisplayText,
-        pluginSource: pluginSource ?? this.pluginSource,
-      );
+  }) => HomeSectionConfig(
+    kind: kind ?? this.kind,
+    type: type ?? this.type,
+    enabled: enabled ?? this.enabled,
+    order: order ?? this.order,
+    serverId: serverId ?? this.serverId,
+    pluginSection: pluginSection ?? this.pluginSection,
+    pluginAdditionalData: pluginAdditionalData ?? this.pluginAdditionalData,
+    pluginDisplayText: pluginDisplayText ?? this.pluginDisplayText,
+    pluginSource: pluginSource ?? this.pluginSource,
+  );
 
   /// Stable identifier suitable for use as a row id / list key. Plugin
   /// entries combine the originating plugin, server, section and additional
@@ -173,39 +171,151 @@ class HomeSectionConfig {
   bool get isPluginDynamic => kind == HomeSectionKind.pluginDynamic;
 
   static List<HomeSectionConfig> defaults() => const [
-        HomeSectionConfig(type: HomeSectionType.libraryTilesSmall, enabled: true, order: 0),
-        HomeSectionConfig(type: HomeSectionType.resume, enabled: true, order: 1),
-        HomeSectionConfig(type: HomeSectionType.nextUp, enabled: true, order: 2),
-        HomeSectionConfig(type: HomeSectionType.latestMedia, enabled: true, order: 3),
-        HomeSectionConfig(type: HomeSectionType.recentlyReleased, enabled: false, order: 4),
-        HomeSectionConfig(type: HomeSectionType.liveTv, enabled: false, order: 5),
-        HomeSectionConfig(type: HomeSectionType.libraryButtons, enabled: false, order: 6),
-        HomeSectionConfig(type: HomeSectionType.resumeAudio, enabled: false, order: 7),
-        HomeSectionConfig(type: HomeSectionType.resumeBook, enabled: false, order: 8),
-        HomeSectionConfig(type: HomeSectionType.activeRecordings, enabled: false, order: 9),
-        HomeSectionConfig(type: HomeSectionType.collections, enabled: false, order: 10),
-        HomeSectionConfig(type: HomeSectionType.favoriteMovies, enabled: false, order: 11),
-        HomeSectionConfig(type: HomeSectionType.favoriteSeries, enabled: false, order: 12),
-        HomeSectionConfig(type: HomeSectionType.favoriteEpisodes, enabled: false, order: 13),
-        HomeSectionConfig(type: HomeSectionType.favoritePeople, enabled: false, order: 14),
-        HomeSectionConfig(type: HomeSectionType.favoriteArtists, enabled: false, order: 15),
-        HomeSectionConfig(type: HomeSectionType.favoriteMusicVideos, enabled: false, order: 16),
-        HomeSectionConfig(type: HomeSectionType.favoriteAlbums, enabled: false, order: 17),
-        HomeSectionConfig(type: HomeSectionType.favoriteSongs, enabled: false, order: 18),
-        HomeSectionConfig(type: HomeSectionType.genres, enabled: false, order: 19),
-        HomeSectionConfig(type: HomeSectionType.playlists, enabled: false, order: 20),
-        HomeSectionConfig(type: HomeSectionType.seerrRecentRequests, enabled: false, order: 21),
-        HomeSectionConfig(type: HomeSectionType.seerrRecentlyAdded, enabled: false, order: 22),
-        HomeSectionConfig(type: HomeSectionType.seerrPopularMovies, enabled: false, order: 23),
-        HomeSectionConfig(type: HomeSectionType.seerrUpcomingMovies, enabled: false, order: 24),
-        HomeSectionConfig(type: HomeSectionType.seerrPopularSeries, enabled: false, order: 25),
-        HomeSectionConfig(type: HomeSectionType.seerrUpcomingSeries, enabled: false, order: 26),
-        HomeSectionConfig(type: HomeSectionType.seerrTrending, enabled: false, order: 27),
-        HomeSectionConfig(type: HomeSectionType.seerrMovieGenres, enabled: false, order: 28),
-        HomeSectionConfig(type: HomeSectionType.seerrStudios, enabled: false, order: 29),
-        HomeSectionConfig(type: HomeSectionType.seerrSeriesGenres, enabled: false, order: 30),
-        HomeSectionConfig(type: HomeSectionType.seerrNetworks, enabled: false, order: 31),
-      ];
+    HomeSectionConfig(
+      type: HomeSectionType.libraryTilesSmall,
+      enabled: true,
+      order: 0,
+    ),
+    HomeSectionConfig(type: HomeSectionType.resume, enabled: true, order: 1),
+    HomeSectionConfig(type: HomeSectionType.nextUp, enabled: true, order: 2),
+    HomeSectionConfig(
+      type: HomeSectionType.latestMedia,
+      enabled: true,
+      order: 3,
+    ),
+    HomeSectionConfig(
+      type: HomeSectionType.recentlyReleased,
+      enabled: false,
+      order: 4,
+    ),
+    HomeSectionConfig(type: HomeSectionType.liveTv, enabled: false, order: 5),
+    HomeSectionConfig(
+      type: HomeSectionType.libraryButtons,
+      enabled: false,
+      order: 6,
+    ),
+    HomeSectionConfig(
+      type: HomeSectionType.resumeAudio,
+      enabled: false,
+      order: 7,
+    ),
+    HomeSectionConfig(
+      type: HomeSectionType.resumeBook,
+      enabled: false,
+      order: 8,
+    ),
+    HomeSectionConfig(
+      type: HomeSectionType.activeRecordings,
+      enabled: false,
+      order: 9,
+    ),
+    HomeSectionConfig(
+      type: HomeSectionType.collections,
+      enabled: false,
+      order: 10,
+    ),
+    HomeSectionConfig(
+      type: HomeSectionType.favoriteMovies,
+      enabled: false,
+      order: 11,
+    ),
+    HomeSectionConfig(
+      type: HomeSectionType.favoriteSeries,
+      enabled: false,
+      order: 12,
+    ),
+    HomeSectionConfig(
+      type: HomeSectionType.favoriteEpisodes,
+      enabled: false,
+      order: 13,
+    ),
+    HomeSectionConfig(
+      type: HomeSectionType.favoritePeople,
+      enabled: false,
+      order: 14,
+    ),
+    HomeSectionConfig(
+      type: HomeSectionType.favoriteArtists,
+      enabled: false,
+      order: 15,
+    ),
+    HomeSectionConfig(
+      type: HomeSectionType.favoriteMusicVideos,
+      enabled: false,
+      order: 16,
+    ),
+    HomeSectionConfig(
+      type: HomeSectionType.favoriteAlbums,
+      enabled: false,
+      order: 17,
+    ),
+    HomeSectionConfig(
+      type: HomeSectionType.favoriteSongs,
+      enabled: false,
+      order: 18,
+    ),
+    HomeSectionConfig(type: HomeSectionType.genres, enabled: false, order: 19),
+    HomeSectionConfig(
+      type: HomeSectionType.playlists,
+      enabled: false,
+      order: 20,
+    ),
+    HomeSectionConfig(
+      type: HomeSectionType.seerrRecentRequests,
+      enabled: false,
+      order: 21,
+    ),
+    HomeSectionConfig(
+      type: HomeSectionType.seerrRecentlyAdded,
+      enabled: false,
+      order: 22,
+    ),
+    HomeSectionConfig(
+      type: HomeSectionType.seerrPopularMovies,
+      enabled: false,
+      order: 23,
+    ),
+    HomeSectionConfig(
+      type: HomeSectionType.seerrUpcomingMovies,
+      enabled: false,
+      order: 24,
+    ),
+    HomeSectionConfig(
+      type: HomeSectionType.seerrPopularSeries,
+      enabled: false,
+      order: 25,
+    ),
+    HomeSectionConfig(
+      type: HomeSectionType.seerrUpcomingSeries,
+      enabled: false,
+      order: 26,
+    ),
+    HomeSectionConfig(
+      type: HomeSectionType.seerrTrending,
+      enabled: false,
+      order: 27,
+    ),
+    HomeSectionConfig(
+      type: HomeSectionType.seerrMovieGenres,
+      enabled: false,
+      order: 28,
+    ),
+    HomeSectionConfig(
+      type: HomeSectionType.seerrStudios,
+      enabled: false,
+      order: 29,
+    ),
+    HomeSectionConfig(
+      type: HomeSectionType.seerrSeriesGenres,
+      enabled: false,
+      order: 30,
+    ),
+    HomeSectionConfig(
+      type: HomeSectionType.seerrNetworks,
+      enabled: false,
+      order: 31,
+    ),
+  ];
 
   static List<HomeSectionConfig> fromJsonString(String jsonString) {
     if (jsonString.isEmpty) return defaults();

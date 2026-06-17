@@ -92,7 +92,7 @@ class _LibraryGenresScreenState extends State<LibraryGenresScreen> {
       _genres = items.map((g) {
         final data = g as Map<String, dynamic>;
         return GenreCardData(
-          id: data['Id'] as String,
+          id: data['Id']?.toString() ?? '',
           name: data['Name'] as String? ?? '',
           itemCount:
               data['ChildCount'] as int? ??
@@ -166,7 +166,7 @@ class _LibraryGenresScreenState extends State<LibraryGenresScreen> {
               (imageTags is Map && imageTags['Primary'] != null);
           if (hasPrimaryTag) {
             final primaryUrl = _client.imageApi.getPrimaryImageUrl(
-              item['Id'] as String,
+              item['Id']?.toString() ?? '',
               maxWidth: _genreCardRequestMaxWidth(),
             );
             genre.imageUrl = primaryUrl;
@@ -179,7 +179,7 @@ class _LibraryGenresScreenState extends State<LibraryGenresScreen> {
         if (items.isNotEmpty) {
           final first = items.first as Map<String, dynamic>;
           final primaryUrl = _client.imageApi.getPrimaryImageUrl(
-            first['Id'] as String,
+            first['Id']?.toString() ?? '',
             maxWidth: _genreCardRequestMaxWidth(),
           );
           genre.imageUrl = primaryUrl;
@@ -216,7 +216,7 @@ class _LibraryGenresScreenState extends State<LibraryGenresScreen> {
       return null;
     }
     return _client.imageApi.getBackdropImageUrl(
-      item['Id'] as String,
+      item['Id']?.toString() ?? '',
       maxWidth: BackgroundService.backdropMaxWidth,
       tag: tags.first as String,
     );
@@ -227,7 +227,7 @@ class _LibraryGenresScreenState extends State<LibraryGenresScreen> {
     ImageType imageType, {
     String? backdropUrl,
   }) {
-    final itemId = item['Id'] as String;
+    final itemId = item['Id']?.toString() ?? '';
     final primaryTag = item['PrimaryImageTag'] as String?;
     final thumbTag = _tagForType(item, 'Thumb');
     final bannerTag = _tagForType(item, 'Banner');
@@ -466,8 +466,8 @@ class _GenresHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final isMobile = _isCompact(context);
     final desktopScale = GetIt.instance<UserPreferences>()
-          .get(UserPreferences.desktopUiScale)
-          .scaleFactor;
+        .get(UserPreferences.desktopUiScale)
+        .scaleFactor;
     final topPadding = isMobile ? MediaQuery.of(context).padding.top : 8.0;
     final horizontalPadding = isMobile
         ? _mobileHorizontalPadding

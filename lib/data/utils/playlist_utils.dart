@@ -18,7 +18,7 @@ bool isAudioPlaylistSummary(AggregatedItem item) {
 }
 
 bool hasPlaylistEntryId(AggregatedItem item) {
-  final entryId = item.rawData['PlaylistItemId'] as String?;
+  final entryId = item.rawData['PlaylistItemId']?.toString();
   return entryId != null && entryId.isNotEmpty;
 }
 
@@ -60,8 +60,8 @@ Future<bool> playlistContainsOnlyMediaType(
 
   try {
     final response = await client.itemsApi.getPlaylistItems(item.id);
-    final rawItems =
-        ((response['Items'] as List?) ?? const []).cast<Map<String, dynamic>>();
+    final rawItems = ((response['Items'] as List?) ?? const [])
+        .cast<Map<String, dynamic>>();
     if (rawItems.isEmpty) {
       return false;
     }
@@ -95,8 +95,8 @@ Future<bool> playlistHasBrowsableItems(
 
   try {
     final response = await client.itemsApi.getPlaylistItems(item.id);
-    final rawItems =
-        ((response['Items'] as List?) ?? const []).cast<Map<String, dynamic>>();
+    final rawItems = ((response['Items'] as List?) ?? const [])
+        .cast<Map<String, dynamic>>();
     if (rawItems.isEmpty) {
       return false;
     }
@@ -121,19 +121,18 @@ Future<List<AggregatedItem>> filterBrowsablePlaylists(
         return item;
       }
 
-      final keep =
-          mediaType == null
-              ? await playlistHasBrowsableItems(
-                client,
-                item,
-                assumeNonEmptyWhenUnknown: assumeNonEmptyWhenUnknown,
-              )
-              : await playlistContainsOnlyMediaType(
-                client,
-                item,
-                mediaType,
-                assumeNonEmptyWhenUnknown: assumeNonEmptyWhenUnknown,
-              );
+      final keep = mediaType == null
+          ? await playlistHasBrowsableItems(
+              client,
+              item,
+              assumeNonEmptyWhenUnknown: assumeNonEmptyWhenUnknown,
+            )
+          : await playlistContainsOnlyMediaType(
+              client,
+              item,
+              mediaType,
+              assumeNonEmptyWhenUnknown: assumeNonEmptyWhenUnknown,
+            );
       return keep ? item : null;
     }),
   );

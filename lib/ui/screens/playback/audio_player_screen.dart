@@ -33,12 +33,7 @@ class AudioPlayerScreen extends StatefulWidget {
   State<AudioPlayerScreen> createState() => _AudioPlayerScreenState();
 }
 
-enum _TvAudioFocusArea {
-  topActions,
-  progress,
-  transport,
-  queue,
-}
+enum _TvAudioFocusArea { topActions, progress, transport, queue }
 
 class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
   static const _tvSeekStepMs = 10000;
@@ -479,8 +474,8 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
     if (currentItem is AggregatedItem) return currentItem;
     final meta = _manager.currentOfflineMetadata;
     if (meta == null) return null;
-    final id = meta['Id'] as String? ?? '';
-    final serverId = meta['ServerId'] as String? ?? '';
+    final id = meta['Id']?.toString() ?? '';
+    final serverId = meta['ServerId']?.toString() ?? '';
     return AggregatedItem(id: id, serverId: serverId, rawData: meta);
   }
 
@@ -501,7 +496,8 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
       try {
         final file = File(lyricsPath);
         if (await file.exists()) {
-          final data = jsonDecode(await file.readAsString()) as Map<String, dynamic>;
+          final data =
+              jsonDecode(await file.readAsString()) as Map<String, dynamic>;
           if (mounted && _lyricsItemId == resolved.id) {
             setState(() => _lyrics = LyricsData.fromJson(data));
           }
@@ -530,12 +526,18 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
     final albumTag = item.albumPrimaryImageTag;
     final albumId = item.albumId;
     if (item.type == 'Audio' && albumTag != null && albumId != null) {
-      return client.imageApi
-          .getPrimaryImageUrl(albumId, maxHeight: 600, tag: albumTag);
+      return client.imageApi.getPrimaryImageUrl(
+        albumId,
+        maxHeight: 600,
+        tag: albumTag,
+      );
     }
     if (item.primaryImageTag != null) {
-      return client.imageApi
-          .getPrimaryImageUrl(item.id, maxHeight: 600, tag: item.primaryImageTag);
+      return client.imageApi.getPrimaryImageUrl(
+        item.id,
+        maxHeight: 600,
+        tag: item.primaryImageTag,
+      );
     }
     return null;
   }
@@ -564,7 +566,9 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
   Widget build(BuildContext context) {
     final item = _resolveCurrentItem();
     final localPoster = _offlinePosterPath();
-    final artUrl = item != null && !_manager.isOfflinePlayback ? _getArtUrl(item) : null;
+    final artUrl = item != null && !_manager.isOfflinePlayback
+        ? _getArtUrl(item)
+        : null;
     final useSplitLyricsLayout = _shouldUseSplitLyricsLayout(context);
     final attachMedia3View =
         PlatformDetection.useNativeVideoSurface && _activeMedia3Backend != null;
@@ -616,18 +620,18 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
                 child: _showQueue
                     ? _buildQueueList()
                     : useSplitLyricsLayout
-                        ? _buildNowPlayingWithLyrics(
-                            item,
-                            artUrl,
-                            localPoster: localPoster,
-                          )
-                        : _showLyrics && _lyrics != null && _lyrics!.isNotEmpty
-                        ? LyricsView(
-                            lyrics: _lyrics!,
-                            positionStream: _state.positionStream,
-                            position: _state.position,
-                          )
-                        : _buildNowPlaying(item, artUrl, localPoster: localPoster),
+                    ? _buildNowPlayingWithLyrics(
+                        item,
+                        artUrl,
+                        localPoster: localPoster,
+                      )
+                    : _showLyrics && _lyrics != null && _lyrics!.isNotEmpty
+                    ? LyricsView(
+                        lyrics: _lyrics!,
+                        positionStream: _state.positionStream,
+                        position: _state.position,
+                      )
+                    : _buildNowPlaying(item, artUrl, localPoster: localPoster),
               ),
               if (item != null &&
                   (PlatformDetection.isTV || (!_showQueue && !_showLyrics)))
@@ -762,14 +766,22 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
     );
   }
 
-  Widget _buildNowPlaying(AggregatedItem? item, String? artUrl, {String? localPoster}) {
+  Widget _buildNowPlaying(
+    AggregatedItem? item,
+    String? artUrl, {
+    String? localPoster,
+  }) {
     return LayoutBuilder(
       builder: (context, constraints) {
         final maxArtByWidth = (constraints.maxWidth - (AppSpacing.space2xl * 2))
             .clamp(160.0, 560.0);
-        final maxArtByHeight = (constraints.maxHeight * 0.62)
-            .clamp(160.0, 560.0);
-        final artSize = maxArtByWidth < maxArtByHeight ? maxArtByWidth : maxArtByHeight;
+        final maxArtByHeight = (constraints.maxHeight * 0.62).clamp(
+          160.0,
+          560.0,
+        );
+        final artSize = maxArtByWidth < maxArtByHeight
+            ? maxArtByWidth
+            : maxArtByHeight;
 
         return SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.space2xl),
@@ -800,13 +812,13 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
                             errorBuilder: (_, _, _) => _artPlaceholder(),
                           )
                         : artUrl != null
-                            ? CachedNetworkImage(
-                                imageUrl: artUrl,
-                                fit: BoxFit.cover,
-                                placeholder: (_, _) => _artPlaceholder(),
-                                errorWidget: (_, _, _) => _artPlaceholder(),
-                              )
-                            : _artPlaceholder(),
+                        ? CachedNetworkImage(
+                            imageUrl: artUrl,
+                            fit: BoxFit.cover,
+                            placeholder: (_, _) => _artPlaceholder(),
+                            errorWidget: (_, _, _) => _artPlaceholder(),
+                          )
+                        : _artPlaceholder(),
                   ),
                 ),
                 const SizedBox(height: AppSpacing.spaceXl),
@@ -888,9 +900,9 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
     if (_manager.isOfflinePlayback) {
       if (!mounted) return;
       final l10n = AppLocalizations.of(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.castingUnavailableOffline)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.castingUnavailableOffline)));
       return;
     }
 
@@ -935,9 +947,9 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
         CastTargetKind.dlna => 'DLNA',
         CastTargetKind.jellyfinSession => l10n.remotePlayback,
       };
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(l10n.castActionFailed(label, '$e'))));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.castActionFailed(label, '$e'))),
+      );
     }
   }
 
@@ -945,7 +957,9 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
     final kind = _castService.activeKind;
     if (kind == null || !mounted) return;
     try {
-      _castService.remoteVolumeNotifier.value = await _castService.getVolume(kind);
+      _castService.remoteVolumeNotifier.value = await _castService.getVolume(
+        kind,
+      );
     } catch (_) {
       _castService.remoteVolumeNotifier.value = null;
     }
@@ -1005,7 +1019,9 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
                             '${stateVal[0].toUpperCase()}${stateVal.substring(1)}'
                             ' · ${_formatDuration(Duration(microseconds: ticks ~/ 10))}',
                             style: TextStyle(
-                              color: AppColorScheme.onSurface.withValues(alpha: 0.54),
+                              color: AppColorScheme.onSurface.withValues(
+                                alpha: 0.54,
+                              ),
                             ),
                           )
                         : null,
@@ -1013,9 +1029,13 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
                 );
               },
             ),
-            if (kind == CastTargetKind.googleCast || kind == CastTargetKind.dlna)
+            if (kind == CastTargetKind.googleCast ||
+                kind == CastTargetKind.dlna)
               ListTile(
-                leading: Icon(Icons.volume_up_rounded, color: AppColorScheme.onSurface),
+                leading: Icon(
+                  Icons.volume_up_rounded,
+                  color: AppColorScheme.onSurface,
+                ),
                 title: Text(
                   l10n.deviceVolume,
                   style: TextStyle(color: AppColorScheme.onSurface),
@@ -1026,17 +1046,20 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
                       ? Text(
                           l10n.unavailable,
                           style: TextStyle(
-                            color: AppColorScheme.onSurface.withValues(alpha: 0.54),
+                            color: AppColorScheme.onSurface.withValues(
+                              alpha: 0.54,
+                            ),
                           ),
                         )
                       : SliderTheme(
                           data: SliderTheme.of(context).copyWith(
                             activeTrackColor: AppColorScheme.accent,
-                            inactiveTrackColor:
-                                AppColorScheme.onSurface.withValues(alpha: 0.24),
+                            inactiveTrackColor: AppColorScheme.onSurface
+                                .withValues(alpha: 0.24),
                             thumbColor: AppColorScheme.onSurface,
-                            overlayColor:
-                                AppColorScheme.onSurface.withValues(alpha: 0.24),
+                            overlayColor: AppColorScheme.onSurface.withValues(
+                              alpha: 0.24,
+                            ),
                           ),
                           child: Slider(
                             value: vol.clamp(0.0, 1.0),
@@ -1053,29 +1076,46 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
                       : Text(
                           '${(vol * 100).round()}%',
                           style: TextStyle(
-                            color: AppColorScheme.onSurface.withValues(alpha: 0.7),
+                            color: AppColorScheme.onSurface.withValues(
+                              alpha: 0.7,
+                            ),
                           ),
                         ),
                 ),
               ),
             ListTile(
-              leading: Icon(Icons.play_arrow_rounded, color: AppColorScheme.onSurface),
-              title: Text(l10n.play, style: TextStyle(color: AppColorScheme.onSurface)),
+              leading: Icon(
+                Icons.play_arrow_rounded,
+                color: AppColorScheme.onSurface,
+              ),
+              title: Text(
+                l10n.play,
+                style: TextStyle(color: AppColorScheme.onSurface),
+              ),
               onTap: () {
                 Navigator.of(ctx).pop();
                 _runCastAction((k) => _castService.play(k));
               },
             ),
             ListTile(
-              leading: Icon(Icons.pause_rounded, color: AppColorScheme.onSurface),
-              title: Text(l10n.pause, style: TextStyle(color: AppColorScheme.onSurface)),
+              leading: Icon(
+                Icons.pause_rounded,
+                color: AppColorScheme.onSurface,
+              ),
+              title: Text(
+                l10n.pause,
+                style: TextStyle(color: AppColorScheme.onSurface),
+              ),
               onTap: () {
                 Navigator.of(ctx).pop();
                 _runCastAction((k) => _castService.pause(k));
               },
             ),
             ListTile(
-              leading: Icon(Icons.sync_rounded, color: AppColorScheme.onSurface),
+              leading: Icon(
+                Icons.sync_rounded,
+                color: AppColorScheme.onSurface,
+              ),
               title: Text(
                 l10n.syncPosition,
                 style: TextStyle(color: AppColorScheme.onSurface),
@@ -1083,11 +1123,16 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
               onTap: () {
                 Navigator.of(ctx).pop();
                 final positionTicks = _state.position.inMicroseconds * 10;
-                _runCastAction((k) => _castService.seek(k, positionTicks: positionTicks));
+                _runCastAction(
+                  (k) => _castService.seek(k, positionTicks: positionTicks),
+                );
               },
             ),
             ListTile(
-              leading: Icon(Icons.stop_rounded, color: AppColorScheme.onSurface),
+              leading: Icon(
+                Icons.stop_rounded,
+                color: AppColorScheme.onSurface,
+              ),
               title: Text(
                 l10n.stopCast(label),
                 style: TextStyle(color: AppColorScheme.onSurface),
@@ -1110,10 +1155,9 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
       icon: Icon(
         isFav ? Icons.favorite : Icons.favorite_border,
         size: 28,
-        color:
-            isFav
-                ? AppColorScheme.accent
-                : AppColorScheme.onSurface.withValues(alpha: 0.7),
+        color: isFav
+            ? AppColorScheme.accent
+            : AppColorScheme.onSurface.withValues(alpha: 0.7),
       ),
       onPressed: () => _toggleFavorite(item),
     );
@@ -1123,10 +1167,12 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
     }
 
     final favoriteFocused =
-        !_showQueue && _tvFocusArea == _TvAudioFocusArea.topActions &&
+        !_showQueue &&
+        _tvFocusArea == _TvAudioFocusArea.topActions &&
         _tvTopActionIndex == 0;
     final queueFocused =
-        !_showQueue && _tvFocusArea == _TvAudioFocusArea.topActions &&
+        !_showQueue &&
+        _tvFocusArea == _TvAudioFocusArea.topActions &&
         _tvTopActionIndex == 1;
 
     return Padding(
@@ -1135,10 +1181,7 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         mainAxisSize: MainAxisSize.min,
         children: [
-          _tvFocusShell(
-            focused: favoriteFocused,
-            child: favoriteButton,
-          ),
+          _tvFocusShell(focused: favoriteFocused, child: favoriteButton),
           const SizedBox(width: AppSpacing.spaceSm),
           _tvFocusShell(
             focused: queueFocused,
@@ -1233,7 +1276,9 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
       BorderRadius borderRadius = const BorderRadius.all(Radius.circular(16)),
     }) {
       final focused =
-          isTv && !_showQueue && _tvFocusArea == _TvAudioFocusArea.transport &&
+          isTv &&
+          !_showQueue &&
+          _tvFocusArea == _TvAudioFocusArea.transport &&
           _tvTransportActionIndex == index;
       return _tvFocusShell(
         focused: focused,
@@ -1335,7 +1380,9 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
       return Center(
         child: Text(
           AppLocalizations.of(context).queueIsEmpty,
-          style: TextStyle(color: AppColorScheme.onSurface.withValues(alpha: 0.54)),
+          style: TextStyle(
+            color: AppColorScheme.onSurface.withValues(alpha: 0.54),
+          ),
         ),
       );
     }
@@ -1378,7 +1425,9 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
           title: Text(
             item?.name ?? AppLocalizations.of(context).trackNumber(index + 1),
             style: TextStyle(
-              color: isCurrent ? AppColorScheme.accent : AppColorScheme.onSurface,
+              color: isCurrent
+                  ? AppColorScheme.accent
+                  : AppColorScheme.onSurface,
               fontWeight: isCurrent ? FontWeight.bold : FontWeight.normal,
             ),
             maxLines: 1,

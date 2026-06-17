@@ -27,7 +27,7 @@ class FolderBrowseViewModel extends ChangeNotifier {
   static const _imageTypeLimit = 1;
 
   FolderBrowseViewModel(this._client, {String? serverId})
-      : _serverId = serverId;
+    : _serverId = serverId;
 
   ImageApi get imageApi => _client.imageApi;
 
@@ -41,7 +41,8 @@ class FolderBrowseViewModel extends ChangeNotifier {
   bool _totalCountKnown = true;
   bool _hasMoreFromPageSize = false;
 
-  bool get hasMore => _totalCountKnown ? _items.length < _totalCount : _hasMoreFromPageSize;
+  bool get hasMore =>
+      _totalCountKnown ? _items.length < _totalCount : _hasMoreFromPageSize;
 
   bool _loadingMore = false;
 
@@ -75,8 +76,8 @@ class FolderBrowseViewModel extends ChangeNotifier {
         if (_disposed) return;
         final folderName = folderData['Name'] as String? ?? '';
         if (_breadcrumbs.isEmpty) {
-          _rootCollectionType =
-              (folderData['CollectionType'] as String?)?.toLowerCase();
+          _rootCollectionType = (folderData['CollectionType'] as String?)
+              ?.toLowerCase();
         }
         _breadcrumbs.add(BreadcrumbEntry(id: folderId, name: folderName));
       }
@@ -153,16 +154,15 @@ class FolderBrowseViewModel extends ChangeNotifier {
       _totalCount = loadedCount + (_hasMoreFromPageSize ? 1 : 0);
     }
 
-    final mapped =
-        rawItems.cast<Map<String, dynamic>>().map((raw) {
-          return AggregatedItem(
-            id: raw['Id'] as String,
-            serverId: (_serverId != null && _serverId.isNotEmpty)
-                ? _serverId
-                : _client.baseUrl,
-            rawData: raw,
-          );
-        }).toList();
+    final mapped = rawItems.cast<Map<String, dynamic>>().map((raw) {
+      return AggregatedItem(
+        id: raw['Id']?.toString() ?? '',
+        serverId: (_serverId != null && _serverId.isNotEmpty)
+            ? _serverId
+            : _client.baseUrl,
+        rawData: raw,
+      );
+    }).toList();
 
     final filtered = await _filterItemsForFolder(mapped);
 
@@ -229,7 +229,6 @@ class FolderBrowseViewModel extends ChangeNotifier {
         type == 'MusicAlbum' ||
         type == 'PhotoAlbum';
   }
-
 
   @override
   void dispose() {

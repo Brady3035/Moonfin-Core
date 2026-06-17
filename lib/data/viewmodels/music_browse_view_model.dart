@@ -30,8 +30,8 @@ class MusicBrowseViewModel extends ChangeNotifier {
     required this.libraryId,
     required RowDataSource dataSource,
     required MediaServerClient client,
-  })  : _dataSource = dataSource,
-        _client = client;
+  }) : _dataSource = dataSource,
+       _client = client;
 
   void setFocusedItem(AggregatedItem? item) {
     _focusedItem = item;
@@ -53,24 +53,39 @@ class MusicBrowseViewModel extends ChangeNotifier {
     try {
       final results = await Future.wait([
         _dataSource.loadLatestMedia(libraryId, _libraryName, _serverId),
-        _dataSource.loadLibraryLastPlayed(libraryId, _serverId,
-            includeItemTypes: ['Audio']),
-        _dataSource.loadLibraryFavorites(libraryId, _serverId,
-            includeItemTypes: ['MusicAlbum']),
+        _dataSource.loadLibraryLastPlayed(
+          libraryId,
+          _serverId,
+          includeItemTypes: ['Audio'],
+        ),
+        _dataSource.loadLibraryFavorites(
+          libraryId,
+          _serverId,
+          includeItemTypes: ['MusicAlbum'],
+        ),
         _dataSource.loadPlaylists(_serverId, mediaType: 'Audio'),
-        _dataSource.loadLibraryItemsByType(libraryId, _serverId,
+        _dataSource.loadLibraryItemsByType(
+          libraryId,
+          _serverId,
           title: l10n.albumArtists,
           includeItemTypes: ['AlbumArtist'],
-          sortBy: 'SortName'),
-        _dataSource.loadLibraryItemsByType(libraryId, _serverId,
-            title: l10n.artists,
-            includeItemTypes: ['MusicArtist'],
-            sortBy: 'SortName'),
-        _dataSource.loadLibraryItemsByType(libraryId, _serverId,
-            title: l10n.albums,
-            includeItemTypes: ['MusicAlbum'],
-            sortBy: 'DateCreated',
-            sortOrder: 'Descending'),
+          sortBy: 'SortName',
+        ),
+        _dataSource.loadLibraryItemsByType(
+          libraryId,
+          _serverId,
+          title: l10n.artists,
+          includeItemTypes: ['MusicArtist'],
+          sortBy: 'SortName',
+        ),
+        _dataSource.loadLibraryItemsByType(
+          libraryId,
+          _serverId,
+          title: l10n.albums,
+          includeItemTypes: ['MusicAlbum'],
+          sortBy: 'DateCreated',
+          sortOrder: 'Descending',
+        ),
       ]);
 
       _rows = results.where((r) => r.items.isNotEmpty).toList();
@@ -113,23 +128,32 @@ class MusicBrowseViewModel extends ChangeNotifier {
 
   String? getMusicImageUrl(AggregatedItem item) {
     final albumPrimaryTag = item.rawData['AlbumPrimaryImageTag'] as String?;
-    final albumId = item.rawData['AlbumId'] as String?;
+    final albumId = item.rawData['AlbumId']?.toString();
     if (item.type == 'Audio' && albumPrimaryTag != null && albumId != null) {
-      return imageApi.getPrimaryImageUrl(albumId,
-          maxHeight: 300, tag: albumPrimaryTag);
+      return imageApi.getPrimaryImageUrl(
+        albumId,
+        maxHeight: 300,
+        tag: albumPrimaryTag,
+      );
     }
     if (item.primaryImageTag != null) {
-      return imageApi.getPrimaryImageUrl(item.id,
-          maxHeight: 300, tag: item.primaryImageTag);
+      return imageApi.getPrimaryImageUrl(
+        item.id,
+        maxHeight: 300,
+        tag: item.primaryImageTag,
+      );
     }
     final parentPrimaryTag =
         (item.rawData['ParentPrimaryImageTag'] as String?) ??
-            (item.rawData['ImageTags'] as Map?)?['ParentPrimary'] as String?;
+        (item.rawData['ImageTags'] as Map?)?['ParentPrimary'] as String?;
     final parentPrimaryId =
-        item.rawData['ParentPrimaryImageItemId'] as String? ?? item.parentId;
+        item.rawData['ParentPrimaryImageItemId']?.toString() ?? item.parentId;
     if (parentPrimaryTag != null && parentPrimaryId != null) {
-      return imageApi.getPrimaryImageUrl(parentPrimaryId,
-          maxHeight: 300, tag: parentPrimaryTag);
+      return imageApi.getPrimaryImageUrl(
+        parentPrimaryId,
+        maxHeight: 300,
+        tag: parentPrimaryTag,
+      );
     }
     return null;
   }

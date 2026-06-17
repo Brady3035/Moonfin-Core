@@ -149,7 +149,7 @@ class _AppleTvPlayerHostScreenState extends State<AppleTvPlayerHostScreen> {
     } else if (item is Map) {
       raw = item.cast<String, dynamic>();
       itemId = (raw['Id'] ?? raw['id'])?.toString();
-      serverId = (raw['ServerId'] as String?) ?? (raw['serverId'] as String?);
+      serverId = (raw['ServerId']?.toString()) ?? (raw['serverId']?.toString());
     }
     if (raw == null) return '';
 
@@ -158,7 +158,8 @@ class _AppleTvPlayerHostScreenState extends State<AppleTvPlayerHostScreen> {
     final type = (raw['Type'] as String?)?.trim();
     if (type == 'Episode') {
       logoItemId =
-          (raw['ParentLogoItemId'] as String?) ?? (raw['SeriesId'] as String?);
+          (raw['ParentLogoItemId']?.toString()) ??
+          (raw['SeriesId']?.toString());
       logoTag = raw['ParentLogoImageTag'] as String?;
     } else {
       final imageTags = raw['ImageTags'];
@@ -229,7 +230,7 @@ class _AppleTvPlayerHostScreenState extends State<AppleTvPlayerHostScreen> {
         serverId = item.serverId;
       } else if (item is Map) {
         serverId =
-            (item['ServerId'] as String?) ?? (item['serverId'] as String?);
+            (item['ServerId']?.toString()) ?? (item['serverId']?.toString());
       }
       MediaServerClient? client;
       if (serverId != null && serverId.isNotEmpty) {
@@ -258,13 +259,21 @@ class _AppleTvPlayerHostScreenState extends State<AppleTvPlayerHostScreen> {
         ? backdropTags!.first.toString().trim()
         : null;
     if (primaryTag != null && primaryTag.isNotEmpty) {
-      return imageApi.getPrimaryImageUrl(itemId, maxHeight: 420, tag: primaryTag);
+      return imageApi.getPrimaryImageUrl(
+        itemId,
+        maxHeight: 420,
+        tag: primaryTag,
+      );
     }
     if (thumbTag != null && thumbTag.isNotEmpty) {
       return imageApi.getThumbImageUrl(itemId, maxWidth: 960, tag: thumbTag);
     }
     if (backdropTag != null && backdropTag.isNotEmpty) {
-      return imageApi.getBackdropImageUrl(itemId, maxWidth: 1280, tag: backdropTag);
+      return imageApi.getBackdropImageUrl(
+        itemId,
+        maxWidth: 1280,
+        tag: backdropTag,
+      );
     }
     return '';
   }
@@ -512,7 +521,10 @@ class _AppleTvPlayerHostScreenState extends State<AppleTvPlayerHostScreen> {
     return sections;
   }
 
-  Map<String, dynamic>? _trickplayPayload(dynamic item, PlaybackManager manager) {
+  Map<String, dynamic>? _trickplayPayload(
+    dynamic item,
+    PlaybackManager manager,
+  ) {
     try {
       if (!GetIt.instance<UserPreferences>().get(
         UserPreferences.trickPlayEnabled,
@@ -570,7 +582,7 @@ class _AppleTvPlayerHostScreenState extends State<AppleTvPlayerHostScreen> {
         .map((person) {
           final name = (person['Name'] as String?)?.trim() ?? '';
           if (name.isEmpty) return null;
-          final personId = (person['Id'] as String?)?.trim() ?? '';
+          final personId = person['Id']?.toString().trim() ?? '';
           final imageTag = (person['PrimaryImageTag'] as String?)?.trim();
           final role = (person['Role'] as String?)?.trim();
           final type = (person['Type'] as String?)?.trim();
@@ -650,9 +662,7 @@ class _AppleTvPlayerHostScreenState extends State<AppleTvPlayerHostScreen> {
         .get(UserPreferences.defaultSubtitleLanguage)
         .trim()
         .toLowerCase();
-    if (preferred.isNotEmpty &&
-        preferred != 'auto' &&
-        preferred != 'none') {
+    if (preferred.isNotEmpty && preferred != 'auto' && preferred != 'none') {
       return preferred;
     }
     for (final stream in [...subtitleStreams, ...audioStreams]) {
@@ -712,7 +722,7 @@ class _AppleTvPlayerHostScreenState extends State<AppleTvPlayerHostScreen> {
       if (!mounted) return;
       final mapped = results
           .map((s) {
-            final id = (s['Id'] as String?) ?? '';
+            final id = (s['Id']?.toString()) ?? '';
             final label =
                 (s['Name'] as String?) ??
                 (s['Author'] as String?) ??
@@ -723,7 +733,7 @@ class _AppleTvPlayerHostScreenState extends State<AppleTvPlayerHostScreen> {
               'subtitle': _remoteSubtitleOptionSubtitle(s),
             };
           })
-          .where((m) => (m['id'] as String).isNotEmpty)
+          .where((m) => (m['id']?.toString() ?? '').isNotEmpty)
           .toList();
       backend.showRemoteSubtitles(mapped);
     }();
@@ -902,7 +912,8 @@ class _AppleTvPlayerHostScreenState extends State<AppleTvPlayerHostScreen> {
         for (final segment in service.segments) {
           final action = actionMap[segment.type] ?? MediaSegmentAction.nothing;
           if (action == MediaSegmentAction.nothing) continue;
-          final spanMs = segment.end.inMilliseconds - segment.start.inMilliseconds;
+          final spanMs =
+              segment.end.inMilliseconds - segment.start.inMilliseconds;
           final minMs = action == MediaSegmentAction.skip ? 1000 : 3000;
           if (spanMs < minMs) continue;
           result.add({
@@ -1089,9 +1100,7 @@ class _AppleTvPlayerHostScreenState extends State<AppleTvPlayerHostScreen> {
         (manager.currentOfflineMetadata?['MediaStreams'] as List?)
             ?.cast<Map<String, dynamic>>() ??
         const <Map<String, dynamic>>[];
-    final audioStreams = allStreams
-        .where((s) => s['Type'] == 'Audio')
-        .toList();
+    final audioStreams = allStreams.where((s) => s['Type'] == 'Audio').toList();
     final subtitleStreams = allStreams
         .where((s) => s['Type'] == 'Subtitle')
         .toList();
@@ -1250,7 +1259,9 @@ class _AppleTvPlayerHostScreenState extends State<AppleTvPlayerHostScreen> {
         }
       case 'setBitrate':
         final mbps = (action['mbps'] as num?)?.toInt();
-        unawaited(manager.changeBitrate(mbps == null || mbps < 0 ? null : mbps));
+        unawaited(
+          manager.changeBitrate(mbps == null || mbps < 0 ? null : mbps),
+        );
       case 'toggleFavorite':
         _toggleFavorite(manager.queueService.currentItem);
       case 'stillWatchingContinue':

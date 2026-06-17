@@ -37,17 +37,17 @@ class MediaBarRepository {
         : 5;
     final libraryIds = pluginSyncEnabled
         ? _prefs
-            .get(UserPreferences.mediaBarLibraryIds)
-            .split(',')
-            .where((s) => s.isNotEmpty)
-            .toList()
+              .get(UserPreferences.mediaBarLibraryIds)
+              .split(',')
+              .where((s) => s.isNotEmpty)
+              .toList()
         : <String>[];
     final collectionIds = pluginSyncEnabled
         ? _prefs
-            .get(UserPreferences.mediaBarCollectionIds)
-            .split(',')
-            .where((s) => s.isNotEmpty)
-            .toList()
+              .get(UserPreferences.mediaBarCollectionIds)
+              .split(',')
+              .where((s) => s.isNotEmpty)
+              .toList()
         : <String>[];
     final excludedGenres = _prefs
         .get(UserPreferences.mediaBarExcludedGenres)
@@ -72,12 +72,16 @@ class MediaBarRepository {
         fetchTasks.add(_fetchItems(includeTypes, fetchLimit));
       } else {
         for (final libraryId in libraryIds) {
-          fetchTasks.add(_fetchItems(includeTypes, fetchLimit, parentId: libraryId));
+          fetchTasks.add(
+            _fetchItems(includeTypes, fetchLimit, parentId: libraryId),
+          );
         }
       }
 
       for (final collectionId in collectionIds) {
-        fetchTasks.add(_fetchItems(includeTypes, fetchLimit, parentId: collectionId));
+        fetchTasks.add(
+          _fetchItems(includeTypes, fetchLimit, parentId: collectionId),
+        );
       }
 
       final fetchedBatches = await Future.wait(fetchTasks);
@@ -91,7 +95,8 @@ class MediaBarRepository {
         excludedGenres,
       );
 
-      if (selected.isEmpty && (libraryIds.isNotEmpty || collectionIds.isNotEmpty)) {
+      if (selected.isEmpty &&
+          (libraryIds.isNotEmpty || collectionIds.isNotEmpty)) {
         final fallbackItems = <Map<String, dynamic>>[];
         fallbackItems.addAll(await _fetchItems(includeTypes, fetchLimit));
 
@@ -103,11 +108,12 @@ class MediaBarRepository {
       }
 
       if (selected.isEmpty) {
-        final firstLibraryItems = await _fetchItemsFromFirstSeriesOrMoviesLibrary(
-          includeTypes,
-          fetchLimit,
-          contentType: contentType,
-        );
+        final firstLibraryItems =
+            await _fetchItemsFromFirstSeriesOrMoviesLibrary(
+              includeTypes,
+              fetchLimit,
+              contentType: contentType,
+            );
         selected = _selectItemsWithBackdrops(
           firstLibraryItems,
           maxItems,
@@ -145,13 +151,16 @@ class MediaBarRepository {
     int maxItems,
     Set<String> excludedGenres,
   ) {
-    final withBackdrops = source
-        .where((item) =>
-            _hasBackdrop(item) &&
-            !_isBoxSet(item) &&
-            !_hasExcludedGenre(item, excludedGenres))
-        .toList()
-      ..shuffle();
+    final withBackdrops =
+        source
+            .where(
+              (item) =>
+                  _hasBackdrop(item) &&
+                  !_isBoxSet(item) &&
+                  !_hasExcludedGenre(item, excludedGenres),
+            )
+            .toList()
+          ..shuffle();
     return withBackdrops.take(maxItems).toList();
   }
 
@@ -161,10 +170,11 @@ class MediaBarRepository {
     required String contentType,
   }) async {
     try {
-      final viewsResponse =
-          await _client.userViewsApi.getUserViews().timeout(const Duration(seconds: 4));
-      final views =
-          (viewsResponse['Items'] as List? ?? []).cast<Map<String, dynamic>>();
+      final viewsResponse = await _client.userViewsApi.getUserViews().timeout(
+        const Duration(seconds: 4),
+      );
+      final views = (viewsResponse['Items'] as List? ?? [])
+          .cast<Map<String, dynamic>>();
       if (views.isEmpty) {
         return const <Map<String, dynamic>>[];
       }
@@ -179,11 +189,13 @@ class MediaBarRepository {
 
       for (final preferredType in preferredCollectionTypes) {
         for (final view in views) {
-          final collectionType = _normalizeCollectionType(view['CollectionType']);
+          final collectionType = _normalizeCollectionType(
+            view['CollectionType'],
+          );
           if (collectionType != preferredType) {
             continue;
           }
-          final id = view['Id'] as String?;
+          final id = view['Id']?.toString();
           if (id != null && id.isNotEmpty) {
             libraryId = id;
             break;
@@ -196,11 +208,13 @@ class MediaBarRepository {
 
       if (libraryId == null) {
         for (final view in views) {
-          final collectionType = _normalizeCollectionType(view['CollectionType']);
+          final collectionType = _normalizeCollectionType(
+            view['CollectionType'],
+          );
           if (collectionType != 'tvshows' && collectionType != 'movies') {
             continue;
           }
-          final id = view['Id'] as String?;
+          final id = view['Id']?.toString();
           if (id != null && id.isNotEmpty) {
             libraryId = id;
             break;
@@ -241,21 +255,27 @@ class MediaBarRepository {
     String? parentId,
   }) async {
     try {
-      final response = await _client.itemsApi.getItems(
-        includeItemTypes: itemTypes,
-        sortBy: 'Random',
-        sortOrder: 'Descending',
-        recursive: true,
-        parentId: parentId,
-        limit: limit,
-        fields: _fields,
-        enableTotalRecordCount: false,
-        enableImageTypes: 'Backdrop,Logo',
-      ).timeout(const Duration(seconds: 3));
+      final response = await _client.itemsApi
+          .getItems(
+            includeItemTypes: itemTypes,
+            sortBy: 'Random',
+            sortOrder: 'Descending',
+            recursive: true,
+            parentId: parentId,
+            limit: limit,
+            fields: _fields,
+            enableTotalRecordCount: false,
+            enableImageTypes: 'Backdrop,Logo',
+          )
+          .timeout(const Duration(seconds: 3));
       final rawItems = response['Items'] as List? ?? [];
       return rawItems.cast<Map<String, dynamic>>();
     } on TimeoutException {
-      return _fetchItemsFromFallbackSource(itemTypes, limit, parentId: parentId);
+      return _fetchItemsFromFallbackSource(
+        itemTypes,
+        limit,
+        parentId: parentId,
+      );
     } on DioException catch (e) {
       final statusCode = e.response?.statusCode ?? 0;
       if (statusCode == 401 || statusCode == 403) {
@@ -265,7 +285,11 @@ class MediaBarRepository {
         rethrow;
       }
 
-      return _fetchItemsFromFallbackSource(itemTypes, limit, parentId: parentId);
+      return _fetchItemsFromFallbackSource(
+        itemTypes,
+        limit,
+        parentId: parentId,
+      );
     }
   }
 
@@ -277,28 +301,32 @@ class MediaBarRepository {
     final reducedLimit = limit > 24 ? 24 : limit;
 
     try {
-      final latestResponse = await _client.itemsApi.getLatestItems(
-        includeItemTypes: itemTypes,
-        parentId: parentId,
-        limit: reducedLimit,
-        fields: _fields,
-      ).timeout(const Duration(seconds: 4));
+      final latestResponse = await _client.itemsApi
+          .getLatestItems(
+            includeItemTypes: itemTypes,
+            parentId: parentId,
+            limit: reducedLimit,
+            fields: _fields,
+          )
+          .timeout(const Duration(seconds: 4));
       final rawItems = latestResponse['Items'] as List? ?? [];
       return rawItems.cast<Map<String, dynamic>>();
     } catch (_) {}
 
     try {
-      final fallbackResponse = await _client.itemsApi.getItems(
-        includeItemTypes: itemTypes,
-        sortBy: 'SortName',
-        sortOrder: 'Ascending',
-        recursive: true,
-        parentId: parentId,
-        limit: reducedLimit,
-        fields: _fields,
-        enableTotalRecordCount: false,
-        enableImageTypes: 'Backdrop,Logo',
-      ).timeout(const Duration(seconds: 4));
+      final fallbackResponse = await _client.itemsApi
+          .getItems(
+            includeItemTypes: itemTypes,
+            sortBy: 'SortName',
+            sortOrder: 'Ascending',
+            recursive: true,
+            parentId: parentId,
+            limit: reducedLimit,
+            fields: _fields,
+            enableTotalRecordCount: false,
+            enableImageTypes: 'Backdrop,Logo',
+          )
+          .timeout(const Duration(seconds: 4));
       final rawItems = fallbackResponse['Items'] as List? ?? [];
       return rawItems.cast<Map<String, dynamic>>();
     } catch (_) {
@@ -322,22 +350,29 @@ class MediaBarRepository {
   }
 
   MediaBarSlideItem _toSlideItem(Map<String, dynamic> data) {
-    final itemId = data['Id'] as String;
-    final serverId = data['ServerId'] as String? ?? '';
+    final itemId = data['Id']?.toString() ?? '';
+    final serverId = data['ServerId']?.toString() ?? '';
     final providerIds = data['ProviderIds'] as Map<String, dynamic>?;
 
     final backdropTags = data['BackdropImageTags'] as List?;
     final backdropUrl = (backdropTags != null && backdropTags.isNotEmpty)
-      ? _client.imageApi.getBackdropImageUrl(itemId, tag: backdropTags[0] as String, maxWidth: 1280)
+        ? _client.imageApi.getBackdropImageUrl(
+            itemId,
+            tag: backdropTags[0] as String,
+            maxWidth: 1280,
+          )
         : null;
 
     final logoTag = (data['ImageTags'] as Map?)?['Logo'] as String?;
     final logoUrl = logoTag != null
-      ? _client.imageApi.getLogoImageUrl(itemId, tag: logoTag, maxWidth: 600)
+        ? _client.imageApi.getLogoImageUrl(itemId, tag: logoTag, maxWidth: 600)
         : null;
 
     final primaryTag = (data['ImageTags'] as Map?)?['Primary'] as String?;
-    final posterUrl = _client.imageApi.getPrimaryImageUrl(itemId, tag: primaryTag);
+    final posterUrl = _client.imageApi.getPrimaryImageUrl(
+      itemId,
+      tag: primaryTag,
+    );
 
     final runTimeTicks = data['RunTimeTicks'] as int?;
 
@@ -351,15 +386,19 @@ class MediaBarRepository {
       posterUrl: posterUrl,
       officialRating: data['OfficialRating'] as String?,
       year: data['ProductionYear'] as int?,
-      genres: (data['Genres'] as List?)?.cast<String>().take(3).toList() ?? const [],
-      runtime: runTimeTicks != null ? Duration(microseconds: runTimeTicks ~/ 10) : null,
+      genres:
+          (data['Genres'] as List?)?.cast<String>().take(3).toList() ??
+          const [],
+      runtime: runTimeTicks != null
+          ? Duration(microseconds: runTimeTicks ~/ 10)
+          : null,
       communityRating: (data['CommunityRating'] as num?)?.toDouble(),
       criticRating: (data['CriticRating'] as num?)?.toInt(),
       tmdbId: providerIds?['Tmdb'] as String?,
       imdbId: providerIds?['Imdb'] as String?,
       itemType: data['Type'] as String? ?? 'Movie',
-      remoteTrailers: (data['RemoteTrailers'] as List?)
-              ?.cast<Map<String, dynamic>>() ??
+      remoteTrailers:
+          (data['RemoteTrailers'] as List?)?.cast<Map<String, dynamic>>() ??
           const [],
     );
   }

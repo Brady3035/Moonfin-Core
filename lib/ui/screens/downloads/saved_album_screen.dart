@@ -18,11 +18,7 @@ class SavedAlbumScreen extends ConsumerWidget {
   final String albumId;
   final String? albumName;
 
-  const SavedAlbumScreen({
-    super.key,
-    required this.albumId,
-    this.albumName,
-  });
+  const SavedAlbumScreen({super.key, required this.albumId, this.albumName});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) =>
@@ -37,7 +33,10 @@ class SavedAlbumScreen extends ConsumerWidget {
         child: audio.when(
           data: (items) {
             final tracks = _tracksForAlbum(items, albumId);
-            final resolvedName = albumName ?? _resolveAlbumName(tracks) ?? AppLocalizations.of(context).album;
+            final resolvedName =
+                albumName ??
+                _resolveAlbumName(tracks) ??
+                AppLocalizations.of(context).album;
 
             if (tracks.isEmpty) {
               return _EmptyAlbumState(albumName: resolvedName);
@@ -53,7 +52,9 @@ class SavedAlbumScreen extends ConsumerWidget {
                       Text(
                         AppLocalizations.of(context).tracksCount(tracks.length),
                         style: TextStyle(
-                          color: AppColorScheme.onSurface.withValues(alpha: 0.7),
+                          color: AppColorScheme.onSurface.withValues(
+                            alpha: 0.7,
+                          ),
                         ),
                       ),
                       const Spacer(),
@@ -108,23 +109,26 @@ class SavedAlbumScreen extends ConsumerWidget {
     );
   }
 
-  static List<DownloadedItem> _tracksForAlbum(List<DownloadedItem> items, String albumId) {
-    final tracks = items.where((item) {
-      final metaAlbumId = item.parsedMetadata['AlbumId'] as String?;
-      final fallbackAlbumId = 'track:${item.itemId}';
-      return (metaAlbumId ?? fallbackAlbumId) == albumId;
-    }).toList()
-      ..sort((a, b) {
-        final aDisc = a.parentIndexNumber ?? 0;
-        final bDisc = b.parentIndexNumber ?? 0;
-        if (aDisc != bDisc) return aDisc.compareTo(bDisc);
+  static List<DownloadedItem> _tracksForAlbum(
+    List<DownloadedItem> items,
+    String albumId,
+  ) {
+    final tracks =
+        items.where((item) {
+          final metaAlbumId = item.parsedMetadata['AlbumId']?.toString();
+          final fallbackAlbumId = 'track:${item.itemId}';
+          return (metaAlbumId ?? fallbackAlbumId) == albumId;
+        }).toList()..sort((a, b) {
+          final aDisc = a.parentIndexNumber ?? 0;
+          final bDisc = b.parentIndexNumber ?? 0;
+          if (aDisc != bDisc) return aDisc.compareTo(bDisc);
 
-        final aTrack = _trackNumber(a) ?? 0;
-        final bTrack = _trackNumber(b) ?? 0;
-        if (aTrack != bTrack) return aTrack.compareTo(bTrack);
+          final aTrack = _trackNumber(a) ?? 0;
+          final bTrack = _trackNumber(b) ?? 0;
+          if (aTrack != bTrack) return aTrack.compareTo(bTrack);
 
-        return a.name.toLowerCase().compareTo(b.name.toLowerCase());
-      });
+          return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+        });
 
     return tracks;
   }
@@ -196,7 +200,9 @@ class _EmptyAlbumState extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              AppLocalizations.of(context).noDownloadedTracksForAlbum(albumName),
+              AppLocalizations.of(
+                context,
+              ).noDownloadedTracksForAlbum(albumName),
               style: TextStyle(
                 color: AppColorScheme.onSurface.withValues(alpha: 0.7),
                 fontSize: 16,
@@ -225,12 +231,14 @@ class _OfflineTrackTile extends StatefulWidget {
   State<_OfflineTrackTile> createState() => _OfflineTrackTileState();
 }
 
-class _OfflineTrackTileState extends State<_OfflineTrackTile> with FocusStateMixin {
+class _OfflineTrackTileState extends State<_OfflineTrackTile>
+    with FocusStateMixin {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final cardExpansion =
-        GetIt.instance<UserPreferences>().get(UserPreferences.cardFocusExpansion);
+    final cardExpansion = GetIt.instance<UserPreferences>().get(
+      UserPreferences.cardFocusExpansion,
+    );
 
     return MouseRegion(
       cursor: SystemMouseCursors.click,
@@ -276,7 +284,9 @@ class _OfflineTrackTileState extends State<_OfflineTrackTile> with FocusStateMix
                 overflow: TextOverflow.ellipsis,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: AppColorScheme.onSurface,
-                  fontWeight: showFocusBorder ? FontWeight.w600 : FontWeight.w500,
+                  fontWeight: showFocusBorder
+                      ? FontWeight.w600
+                      : FontWeight.w500,
                 ),
               ),
               subtitle: Text(

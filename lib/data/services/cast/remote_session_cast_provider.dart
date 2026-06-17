@@ -40,7 +40,7 @@ class RemoteSessionCastProvider implements CastProvider, CastTransportControls {
 
     final targets = <CastTarget>[];
     for (final session in sessions) {
-      final sessionId = session['Id'] as String?;
+      final sessionId = session['Id']?.toString();
       if (sessionId == null || sessionId.isEmpty) {
         continue;
       }
@@ -48,7 +48,7 @@ class RemoteSessionCastProvider implements CastProvider, CastTransportControls {
       if (supports is bool && !supports) {
         continue;
       }
-      final deviceId = session['DeviceId'] as String?;
+      final deviceId = session['DeviceId']?.toString();
       if (deviceId != null && deviceId == selfDeviceId) {
         continue;
       }
@@ -57,19 +57,17 @@ class RemoteSessionCastProvider implements CastProvider, CastTransportControls {
       final clientName = session['Client'] as String?;
       final deviceName = session['DeviceName'] as String?;
       final nowPlaying = session['NowPlayingItem'] as Map<String, dynamic>?;
-      final subtitle =
-          nowPlaying != null
-              ? (nowPlaying['Name'] as String? ?? 'Now playing')
-              : [
-                if (clientName != null && clientName.isNotEmpty) clientName,
-                if (deviceName != null && deviceName.isNotEmpty) deviceName,
-              ].join(' • ');
-      final title =
-          user != null && user.isNotEmpty
-              ? user
-              : (deviceName?.isNotEmpty ?? false)
-              ? deviceName!
-              : 'Unknown device';
+      final subtitle = nowPlaying != null
+          ? (nowPlaying['Name'] as String? ?? 'Now playing')
+          : [
+              if (clientName != null && clientName.isNotEmpty) clientName,
+              if (deviceName != null && deviceName.isNotEmpty) deviceName,
+            ].join(' • ');
+      final title = user != null && user.isNotEmpty
+          ? user
+          : (deviceName?.isNotEmpty ?? false)
+          ? deviceName!
+          : 'Unknown device';
 
       targets.add(
         CastTarget(
@@ -97,10 +95,9 @@ class RemoteSessionCastProvider implements CastProvider, CastTransportControls {
     _activeSessionId = target.id;
     _activeServerId = item.serverId;
     final client = _clientFor(item);
-    final itemIds =
-        (queueItems == null || queueItems.isEmpty)
-            ? <String>[item.id]
-            : queueItems.map((entry) => entry.id).toList(growable: false);
+    final itemIds = (queueItems == null || queueItems.isEmpty)
+        ? <String>[item.id]
+        : queueItems.map((entry) => entry.id).toList(growable: false);
     await client.sessionApi.sendPlayCommand(
       target.id,
       playCommand: 'PlayNow',

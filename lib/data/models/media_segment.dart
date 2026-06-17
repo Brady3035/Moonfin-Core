@@ -44,8 +44,8 @@ class MediaSegment {
     final startTicks = json['StartTicks'] as int? ?? 0;
     final endTicks = json['EndTicks'] as int? ?? 0;
     return MediaSegment(
-      id: json['Id'] as String? ?? '',
-      itemId: json['ItemId'] as String? ?? '',
+      id: json['Id']?.toString() ?? '',
+      itemId: json['ItemId']?.toString() ?? '',
       type: MediaSegmentType.fromServerString(json['Type'] as String?),
       start: Duration(microseconds: startTicks ~/ 10),
       end: Duration(microseconds: endTicks ~/ 10),

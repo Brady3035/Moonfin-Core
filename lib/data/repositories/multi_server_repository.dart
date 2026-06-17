@@ -102,8 +102,9 @@ class MultiServerRepository {
         String? accessToken;
 
         if (server.id == activeServerId && _sessionRepo.activeUserId != null) {
-          final activeUser =
-              users.where((u) => u.id == _sessionRepo.activeUserId).firstOrNull;
+          final activeUser = users
+              .where((u) => u.id == _sessionRepo.activeUserId)
+              .firstOrNull;
           if (activeUser != null && activeUser.accessToken.isNotEmpty) {
             userId = activeUser.id;
             accessToken = activeUser.accessToken;
@@ -160,15 +161,20 @@ class MultiServerRepository {
             final data = item as Map<String, dynamic>;
             final name = data['Name'] as String? ?? '';
             return AggregatedLibrary(
-              id: data['Id'] as String,
+              id: data['Id']?.toString() ?? '',
               name: hasMultiple
                   ? _l10n.libraryNameWithServer(name, session.server.name)
                   : name,
               collectionType: data['CollectionType'] as String? ?? '',
               serverId: session.server.id,
-              primaryImageAspectRatio: (data['PrimaryImageAspectRatio'] as num?)?.toDouble(),
-              imageTags: data['ImageTags'] != null ? Map<String, dynamic>.from(data['ImageTags'] as Map) : null,
-              backdropImageTags: (data['BackdropImageTags'] as List?)?.map((e) => e.toString()).toList(),
+              primaryImageAspectRatio: (data['PrimaryImageAspectRatio'] as num?)
+                  ?.toDouble(),
+              imageTags: data['ImageTags'] != null
+                  ? Map<String, dynamic>.from(data['ImageTags'] as Map)
+                  : null,
+              backdropImageTags: (data['BackdropImageTags'] as List?)
+                  ?.map((e) => e.toString())
+                  .toList(),
             );
           }).toList();
         }, label: 'libraries from ${session.server.name}'),
@@ -251,7 +257,10 @@ class MultiServerRepository {
             enableResumable: false,
           );
           final parsed = _parseItems(response, session.server.id);
-          return await _enrichNextUpItemsWithSeriesLastPlayed(parsed, session.client);
+          return await _enrichNextUpItemsWithSeriesLastPlayed(
+            parsed,
+            session.client,
+          );
         }, label: 'next up from ${session.server.name}'),
       ),
     );
@@ -290,7 +299,8 @@ class MultiServerRepository {
             session.client,
             _parseItems(response, session.server.id),
           );
-          _rowTotals['playlists_${session.server.id}'] = response['TotalRecordCount'] as int? ?? items.length;
+          _rowTotals['playlists_${session.server.id}'] =
+              response['TotalRecordCount'] as int? ?? items.length;
           return items;
         }, label: 'playlists from ${session.server.name}'),
       ),
@@ -385,7 +395,8 @@ class MultiServerRepository {
             response,
             includeItemTypes: browseItemTypes,
           );
-          _rowTotals['genres_${session.server.id}'] = response['TotalRecordCount'] as int? ?? items.length;
+          _rowTotals['genres_${session.server.id}'] =
+              response['TotalRecordCount'] as int? ?? items.length;
           return items;
         }, label: 'genres from ${session.server.name}'),
       ),
@@ -411,9 +422,7 @@ class MultiServerRepository {
     );
   }
 
-  Future<(List<AggregatedItem>, int)> loadMore({
-    required HomeRow row,
-  }) async {
+  Future<(List<AggregatedItem>, int)> loadMore({required HomeRow row}) async {
     if (!row.hasMore || row.items.length >= _maxItems) {
       return (row.items, row.totalCount);
     }
@@ -430,159 +439,179 @@ class MultiServerRepository {
     }
 
     final results = await Future.wait(
-      sessions.map((session) => _withTimeout(() async {
-        final serverId = session.server.id;
-        final cacheKey = '${row.id}_$serverId';
-        final existingCount = itemsByServer[serverId]?.length ?? 0;
+      sessions.map(
+        (session) => _withTimeout(() async {
+          final serverId = session.server.id;
+          final cacheKey = '${row.id}_$serverId';
+          final existingCount = itemsByServer[serverId]?.length ?? 0;
 
-        int startIndex = existingCount;
-        final trackedOffset = _rowOffsets[cacheKey];
-        if (trackedOffset != null && trackedOffset > existingCount) {
-          startIndex = trackedOffset;
-        }
+          int startIndex = existingCount;
+          final trackedOffset = _rowOffsets[cacheKey];
+          if (trackedOffset != null && trackedOffset > existingCount) {
+            startIndex = trackedOffset;
+          }
 
-        switch (row.rowType) {
-          case HomeRowType.playlists:
-            final pageCount = (startIndex / _defaultLimit).ceil();
-            final targetStartIndex = pageCount * _defaultLimit;
-            _rowOffsets[cacheKey] = targetStartIndex + _defaultLimit;
-            final sortBy = prefs?.get(UserPreferences.playlistsRowSortBy).apiValue ?? _defaultSortBy;
-
-            final response = await session.client.itemsApi.getItems(
-              includeItemTypes: const ['Playlist'],
-              sortBy: sortBy,
-              sortOrder: 'Ascending',
-              recursive: true,
-              startIndex: targetStartIndex,
-              limit: _defaultLimit,
-              fields: _fields,
-              enableImageTypes: _imageTypes,
-              imageTypeLimit: _imageTypeLimit,
-            );
-            final items = await filterBrowsablePlaylists(
-              session.client,
-              _parseItems(response, serverId),
-            );
-            _rowTotals[cacheKey] = response['TotalRecordCount'] as int? ?? items.length;
-            return items;
-          case HomeRowType.favorites:
-            final favoriteFilter = FavoriteTypeFilter.fromRowId(row.id);
-            final sortBy = prefs?.get(UserPreferences.favoritesRowSortBy).apiValue ?? _defaultSortBy;
-            _rowOffsets[cacheKey] = startIndex + _defaultLimit;
-
-            final response = await session.client.itemsApi.getItems(
-              includeItemTypes: favoriteFilter.itemTypes,
-              sortBy: sortBy,
-              sortOrder: 'Ascending',
-              recursive: true,
-              startIndex: startIndex,
-              limit: _defaultLimit,
-              isFavorite: true,
-              fields: _fields,
-              enableImageTypes: _imageTypes,
-              imageTypeLimit: _imageTypeLimit,
-            );
-            final items = _parseItems(response, serverId);
-            _rowTotals[cacheKey] = response['TotalRecordCount'] as int? ?? items.length;
-            return items;
-          case HomeRowType.collections:
-            final sortBy = prefs?.get(UserPreferences.collectionsRowSortBy).apiValue ?? _defaultSortBy;
-            _rowOffsets[cacheKey] = startIndex + _defaultLimit;
-
-            final response = await session.client.itemsApi.getItems(
-              includeItemTypes: const ['BoxSet'],
-              sortBy: sortBy,
-              sortOrder: 'Ascending',
-              recursive: true,
-              startIndex: startIndex,
-              limit: _defaultLimit,
-              fields: _fields,
-              enableImageTypes: _imageTypes,
-              imageTypeLimit: _imageTypeLimit,
-            );
-            final items = _parseItems(response, serverId);
-            _rowTotals[cacheKey] = response['TotalRecordCount'] as int? ?? items.length;
-            return items;
-          case HomeRowType.genres:
-            final sortBy = prefs?.get(UserPreferences.genresRowSortBy).apiValue ?? _defaultSortBy;
-            final includeItemTypes = prefs?.get(UserPreferences.genresRowItemFilter).includeItemTypes;
-            final browseItemTypes = normalizeBrowsableGenreItemTypes(includeItemTypes);
-            if (row.id == 'genres') {
+          switch (row.rowType) {
+            case HomeRowType.playlists:
               final pageCount = (startIndex / _defaultLimit).ceil();
               final targetStartIndex = pageCount * _defaultLimit;
               _rowOffsets[cacheKey] = targetStartIndex + _defaultLimit;
+              final sortBy =
+                  prefs?.get(UserPreferences.playlistsRowSortBy).apiValue ??
+                  _defaultSortBy;
 
-              final response = await session.client.itemsApi.getGenres(
+              final response = await session.client.itemsApi.getItems(
+                includeItemTypes: const ['Playlist'],
                 sortBy: sortBy,
                 sortOrder: 'Ascending',
                 recursive: true,
                 startIndex: targetStartIndex,
                 limit: _defaultLimit,
-                fields: 'ItemCounts',
-                includeItemTypes: browseItemTypes,
+                fields: _fields,
+                enableImageTypes: _imageTypes,
+                imageTypeLimit: _imageTypeLimit,
               );
-              final items = await _buildBrowsableGenresForSession(
-                session,
-                response,
-                includeItemTypes: browseItemTypes,
+              final items = await filterBrowsablePlaylists(
+                session.client,
+                _parseItems(response, serverId),
               );
-              _rowTotals[cacheKey] = response['TotalRecordCount'] as int? ?? items.length;
+              _rowTotals[cacheKey] =
+                  response['TotalRecordCount'] as int? ?? items.length;
               return items;
-            } else {
+            case HomeRowType.favorites:
+              final favoriteFilter = FavoriteTypeFilter.fromRowId(row.id);
+              final sortBy =
+                  prefs?.get(UserPreferences.favoritesRowSortBy).apiValue ??
+                  _defaultSortBy;
               _rowOffsets[cacheKey] = startIndex + _defaultLimit;
 
               final response = await session.client.itemsApi.getItems(
-                genreIds: [row.id],
+                includeItemTypes: favoriteFilter.itemTypes,
                 sortBy: sortBy,
                 sortOrder: 'Ascending',
                 recursive: true,
                 startIndex: startIndex,
                 limit: _defaultLimit,
-                includeItemTypes: includeItemTypes,
-                excludeItemTypes: const ['Episode'],
+                isFavorite: true,
                 fields: _fields,
                 enableImageTypes: _imageTypes,
                 imageTypeLimit: _imageTypeLimit,
               );
               final items = _parseItems(response, serverId);
-              _rowTotals[cacheKey] = response['TotalRecordCount'] as int? ?? items.length;
+              _rowTotals[cacheKey] =
+                  response['TotalRecordCount'] as int? ?? items.length;
               return items;
-            }
-          case HomeRowType.latestMedia:
-            if (row.id.startsWith('latest_')) {
-              final parts = row.id.split('_');
-              if (parts.length >= 3) {
-                final rowServerId = parts[1];
-                final parentId = parts[2];
-                if (serverId != rowServerId) return const <AggregatedItem>[];
+            case HomeRowType.collections:
+              final sortBy =
+                  prefs?.get(UserPreferences.collectionsRowSortBy).apiValue ??
+                  _defaultSortBy;
+              _rowOffsets[cacheKey] = startIndex + _defaultLimit;
 
+              final response = await session.client.itemsApi.getItems(
+                includeItemTypes: const ['BoxSet'],
+                sortBy: sortBy,
+                sortOrder: 'Ascending',
+                recursive: true,
+                startIndex: startIndex,
+                limit: _defaultLimit,
+                fields: _fields,
+                enableImageTypes: _imageTypes,
+                imageTypeLimit: _imageTypeLimit,
+              );
+              final items = _parseItems(response, serverId);
+              _rowTotals[cacheKey] =
+                  response['TotalRecordCount'] as int? ?? items.length;
+              return items;
+            case HomeRowType.genres:
+              final sortBy =
+                  prefs?.get(UserPreferences.genresRowSortBy).apiValue ??
+                  _defaultSortBy;
+              final includeItemTypes = prefs
+                  ?.get(UserPreferences.genresRowItemFilter)
+                  .includeItemTypes;
+              final browseItemTypes = normalizeBrowsableGenreItemTypes(
+                includeItemTypes,
+              );
+              if (row.id == 'genres') {
+                final pageCount = (startIndex / _defaultLimit).ceil();
+                final targetStartIndex = pageCount * _defaultLimit;
+                _rowOffsets[cacheKey] = targetStartIndex + _defaultLimit;
+
+                final response = await session.client.itemsApi.getGenres(
+                  sortBy: sortBy,
+                  sortOrder: 'Ascending',
+                  recursive: true,
+                  startIndex: targetStartIndex,
+                  limit: _defaultLimit,
+                  fields: 'ItemCounts',
+                  includeItemTypes: browseItemTypes,
+                );
+                final items = await _buildBrowsableGenresForSession(
+                  session,
+                  response,
+                  includeItemTypes: browseItemTypes,
+                );
+                _rowTotals[cacheKey] =
+                    response['TotalRecordCount'] as int? ?? items.length;
+                return items;
+              } else {
                 _rowOffsets[cacheKey] = startIndex + _defaultLimit;
-                final targetLimit = startIndex + _defaultLimit;
 
-                final response = await session.client.itemsApi.getLatestItems(
-                  parentId: parentId,
-                  limit: targetLimit,
+                final response = await session.client.itemsApi.getItems(
+                  genreIds: [row.id],
+                  sortBy: sortBy,
+                  sortOrder: 'Ascending',
+                  recursive: true,
+                  startIndex: startIndex,
+                  limit: _defaultLimit,
+                  includeItemTypes: includeItemTypes,
+                  excludeItemTypes: const ['Episode'],
                   fields: _fields,
                   enableImageTypes: _imageTypes,
                   imageTypeLimit: _imageTypeLimit,
                 );
-                final items = normalizeLatestMediaItems(
-                  _parseItems(response, serverId),
-                  limit: targetLimit,
-                );
-                if (items.length <= existingCount) {
-                  _rowTotals[cacheKey] = items.length;
-                } else {
-                  _rowTotals[cacheKey] = response['TotalRecordCount'] as int? ?? _maxItems;
-                }
+                final items = _parseItems(response, serverId);
+                _rowTotals[cacheKey] =
+                    response['TotalRecordCount'] as int? ?? items.length;
                 return items;
               }
-            }
-            return const <AggregatedItem>[];
-          default:
-            return const <AggregatedItem>[];
-        }
-      }, label: 'loadMore ${row.rowType} from ${session.server.name}')),
+            case HomeRowType.latestMedia:
+              if (row.id.startsWith('latest_')) {
+                final parts = row.id.split('_');
+                if (parts.length >= 3) {
+                  final rowServerId = parts[1];
+                  final parentId = parts[2];
+                  if (serverId != rowServerId) return const <AggregatedItem>[];
+
+                  _rowOffsets[cacheKey] = startIndex + _defaultLimit;
+                  final targetLimit = startIndex + _defaultLimit;
+
+                  final response = await session.client.itemsApi.getLatestItems(
+                    parentId: parentId,
+                    limit: targetLimit,
+                    fields: _fields,
+                    enableImageTypes: _imageTypes,
+                    imageTypeLimit: _imageTypeLimit,
+                  );
+                  final items = normalizeLatestMediaItems(
+                    _parseItems(response, serverId),
+                    limit: targetLimit,
+                  );
+                  if (items.length <= existingCount) {
+                    _rowTotals[cacheKey] = items.length;
+                  } else {
+                    _rowTotals[cacheKey] =
+                        response['TotalRecordCount'] as int? ?? _maxItems;
+                  }
+                  return items;
+                }
+              }
+              return const <AggregatedItem>[];
+            default:
+              return const <AggregatedItem>[];
+          }
+        }, label: 'loadMore ${row.rowType} from ${session.server.name}'),
+      ),
     );
 
     final newItems = results.expand((e) => e).toList();
@@ -593,28 +622,47 @@ class MultiServerRepository {
 
     // Deduplicate unique items
     final seen = <String>{};
-    final uniqueCombined = combined.where((item) => seen.add('${item.serverId}_${item.id}')).toList();
+    final uniqueCombined = combined
+        .where((item) => seen.add('${item.serverId}_${item.id}'))
+        .toList();
 
     final List<AggregatedItem> sortedCombined;
-    if (row.rowType == HomeRowType.playlists || row.rowType == HomeRowType.latestMedia) {
+    if (row.rowType == HomeRowType.playlists ||
+        row.rowType == HomeRowType.latestMedia) {
       if (row.rowType == HomeRowType.playlists) {
-        final sortBy = prefs?.get(UserPreferences.playlistsRowSortBy).apiValue ?? _defaultSortBy;
+        final sortBy =
+            prefs?.get(UserPreferences.playlistsRowSortBy).apiValue ??
+            _defaultSortBy;
         if (sortBy == 'SortName') {
           uniqueCombined.sort((a, b) => a.name.compareTo(b.name));
         } else {
-          _sortAggregatedItems(uniqueCombined, sortBy: sortBy, sortOrder: 'Ascending');
+          _sortAggregatedItems(
+            uniqueCombined,
+            sortBy: sortBy,
+            sortOrder: 'Ascending',
+          );
         }
       }
       sortedCombined = uniqueCombined;
     } else {
       final sortBy = switch (row.rowType) {
-        HomeRowType.favorites => prefs?.get(UserPreferences.favoritesRowSortBy).apiValue ?? _defaultSortBy,
-        HomeRowType.collections => prefs?.get(UserPreferences.collectionsRowSortBy).apiValue ?? _defaultSortBy,
-        HomeRowType.genres => prefs?.get(UserPreferences.genresRowSortBy).apiValue ?? _defaultSortBy,
+        HomeRowType.favorites =>
+          prefs?.get(UserPreferences.favoritesRowSortBy).apiValue ??
+              _defaultSortBy,
+        HomeRowType.collections =>
+          prefs?.get(UserPreferences.collectionsRowSortBy).apiValue ??
+              _defaultSortBy,
+        HomeRowType.genres =>
+          prefs?.get(UserPreferences.genresRowSortBy).apiValue ??
+              _defaultSortBy,
         _ => _defaultSortBy,
       };
 
-      sortedCombined = _sortAggregatedItems(uniqueCombined, sortBy: sortBy, sortOrder: 'Ascending');
+      sortedCombined = _sortAggregatedItems(
+        uniqueCombined,
+        sortBy: sortBy,
+        sortOrder: 'Ascending',
+      );
     }
 
     final totalCount = sessions.fold<int>(0, (sum, session) {
@@ -653,7 +701,8 @@ class MultiServerRepository {
             imageTypeLimit: _imageTypeLimit,
           );
           final items = _parseItems(response, session.server.id);
-          _rowTotals['${id}_${session.server.id}'] = response['TotalRecordCount'] as int? ?? items.length;
+          _rowTotals['${id}_${session.server.id}'] =
+              response['TotalRecordCount'] as int? ?? items.length;
           return items;
         }, label: '$logPrefix from ${session.server.name}'),
       ),
@@ -683,30 +732,30 @@ class MultiServerRepository {
     HomeRowType rowType = HomeRowType.libraryTiles,
   }) async {
     final libraries = await getAggregatedLibraries();
-    final items =
-        libraries
-            .map(
-              (lib) => AggregatedItem(
-                id: lib.id,
-                serverId: lib.serverId,
-                rawData: {
-                  'Id': lib.id,
-                  'Name': lib.name,
-                  'CollectionType': lib.collectionType,
-                  'Type': 'CollectionFolder',
-                  if (lib.primaryImageAspectRatio != null) 'PrimaryImageAspectRatio': lib.primaryImageAspectRatio,
-                  if (lib.imageTags != null) 'ImageTags': lib.imageTags,
-                  if (lib.backdropImageTags != null) 'BackdropImageTags': lib.backdropImageTags,
-                },
-              ),
-            )
-            .toList();
+    final items = libraries
+        .map(
+          (lib) => AggregatedItem(
+            id: lib.id,
+            serverId: lib.serverId,
+            rawData: {
+              'Id': lib.id,
+              'Name': lib.name,
+              'CollectionType': lib.collectionType,
+              'Type': 'CollectionFolder',
+              if (lib.primaryImageAspectRatio != null)
+                'PrimaryImageAspectRatio': lib.primaryImageAspectRatio,
+              if (lib.imageTags != null) 'ImageTags': lib.imageTags,
+              if (lib.backdropImageTags != null)
+                'BackdropImageTags': lib.backdropImageTags,
+            },
+          ),
+        )
+        .toList();
 
     return HomeRow(
-      id:
-          rowType == HomeRowType.libraryTilesSmall
-              ? 'libraryTilesSmall'
-              : 'libraryTiles',
+      id: rowType == HomeRowType.libraryTilesSmall
+          ? 'libraryTilesSmall'
+          : 'libraryTiles',
       title: _l10n.myMedia,
       items: items,
       rowType: rowType,
@@ -734,8 +783,9 @@ class MultiServerRepository {
 
         for (final view in views) {
           final data = view as Map<String, dynamic>;
-          final id = data['Id'] as String;
-          final collectionType = (data['CollectionType'] as String?)?.toLowerCase();
+          final id = data['Id']?.toString() ?? '';
+          final collectionType = (data['CollectionType'] as String?)
+              ?.toLowerCase();
           if (collectionType == 'music' ||
               collectionType == 'playlists' ||
               collectionType == 'boxsets' ||
@@ -745,8 +795,9 @@ class MultiServerRepository {
           if (latestExcludes.contains(id)) continue;
 
           final name = data['Name'] as String? ?? '';
-          final displayName =
-              hasMultiple ? '$name (${session.server.name})' : name;
+          final displayName = hasMultiple
+              ? '$name (${session.server.name})'
+              : name;
           final fetchLimit = latestMediaFetchLimitForCollection(
             collectionType,
             defaultLimit: _defaultLimit,
@@ -771,8 +822,11 @@ class MultiServerRepository {
               limit: _defaultLimit,
             );
             if (items.isNotEmpty) {
-              final totalCount = items.length < _defaultLimit ? items.length : _maxItems;
-              _rowTotals['latest_${session.server.id}_${id}_${session.server.id}'] = totalCount;
+              final totalCount = items.length < _defaultLimit
+                  ? items.length
+                  : _maxItems;
+              _rowTotals['latest_${session.server.id}_${id}_${session.server.id}'] =
+                  totalCount;
               rows.add(
                 HomeRow(
                   id: 'latest_${session.server.id}_$id',
@@ -850,7 +904,7 @@ class MultiServerRepository {
     Map<String, dynamic> genreData, {
     required List<String> includeItemTypes,
   }) async {
-    final genreId = genreData['Id'] as String?;
+    final genreId = genreData['Id']?.toString();
     if (genreId == null || genreId.isEmpty) {
       return null;
     }
@@ -883,9 +937,9 @@ class MultiServerRepository {
       final totalCount = rawTotalCount is num
           ? rawTotalCount.toInt()
           : browsableGenreCount(
-            genreData,
-            normalizedItemTypes: includeItemTypes,
-          );
+              genreData,
+              normalizedItemTypes: includeItemTypes,
+            );
       if (totalCount <= 0) {
         return null;
       }
@@ -896,7 +950,7 @@ class MultiServerRepository {
         itemCount: totalCount,
       );
       return AggregatedItem(
-        id: merged['Id'] as String,
+        id: merged['Id']?.toString() ?? '',
         serverId: session.server.id,
         rawData: merged,
       );
@@ -913,7 +967,7 @@ class MultiServerRepository {
     return rawItems.map((item) {
       final data = item as Map<String, dynamic>;
       return AggregatedItem(
-        id: data['Id'] as String,
+        id: data['Id']?.toString() ?? '',
         serverId: serverId,
         rawData: data,
       );
@@ -998,6 +1052,5 @@ class MultiServerRepository {
   Future<List<AggregatedItem>> _enrichNextUpItemsWithSeriesLastPlayed(
     List<AggregatedItem> items,
     MediaServerClient client,
-  ) =>
-      enrichNextUpItemsWithSeriesLastPlayed(items, client);
+  ) => enrichNextUpItemsWithSeriesLastPlayed(items, client);
 }

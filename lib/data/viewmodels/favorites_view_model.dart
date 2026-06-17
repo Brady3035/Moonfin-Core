@@ -218,7 +218,7 @@ class FavoritesViewModel extends ChangeNotifier {
           .cast<Map<String, dynamic>>()
           .map(
             (raw) => AggregatedItem(
-              id: raw['Id'] as String,
+              id: raw['Id']?.toString() ?? '',
               serverId: _client.baseUrl,
               rawData: raw,
             ),
@@ -241,7 +241,10 @@ class FavoritesViewModel extends ChangeNotifier {
     _inFlightPagingRowTypes.add(type);
     try {
       final currentOffset = items.length;
-      final (newItems, totalCount) = await _fetchRowItems(type, startIndex: currentOffset);
+      final (newItems, totalCount) = await _fetchRowItems(
+        type,
+        startIndex: currentOffset,
+      );
       _rowTotalCounts[type] = totalCount;
 
       if (newItems.isNotEmpty) {
@@ -297,14 +300,15 @@ class FavoritesViewModel extends ChangeNotifier {
     if (totalFromServer != null) {
       _gridTotalCount = totalFromServer;
     } else {
-      _gridTotalCount = startIndex + rawItems.length + (rawItems.length == pageSize ? 1 : 0);
+      _gridTotalCount =
+          startIndex + rawItems.length + (rawItems.length == pageSize ? 1 : 0);
     }
 
     final mapped = rawItems
         .cast<Map<String, dynamic>>()
         .map(
           (raw) => AggregatedItem(
-            id: raw['Id'] as String,
+            id: raw['Id']?.toString() ?? '',
             serverId: _client.baseUrl,
             rawData: raw,
           ),

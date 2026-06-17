@@ -97,18 +97,21 @@ class _AllGenresScreenState extends State<AllGenresScreen> {
         if (total != null && startIndex >= total) break;
       }
 
-      _genres = items.map((g) {
-        final data = g as Map<String, dynamic>;
-        final itemCount = browsableGenreCount(
-          data,
-          normalizedItemTypes: kBrowsableGenreItemTypes,
-        );
-        return GenreCardData(
-          id: data['Id'] as String,
-          name: data['Name'] as String? ?? '',
-          itemCount: itemCount,
-        );
-      }).where((genre) => genre.itemCount > 0).toList();
+      _genres = items
+          .map((g) {
+            final data = g as Map<String, dynamic>;
+            final itemCount = browsableGenreCount(
+              data,
+              normalizedItemTypes: kBrowsableGenreItemTypes,
+            );
+            return GenreCardData(
+              id: data['Id']?.toString() ?? '',
+              name: data['Name'] as String? ?? '',
+              itemCount: itemCount,
+            );
+          })
+          .where((genre) => genre.itemCount > 0)
+          .toList();
     } catch (_) {}
 
     _isLoading = false;
@@ -157,8 +160,9 @@ class _AllGenresScreenState extends State<AllGenresScreen> {
 
       final items = (response['Items'] as List?) ?? [];
       final rawTotalCount = response['TotalRecordCount'];
-      final totalCount =
-          rawTotalCount is num ? rawTotalCount.toInt() : items.length;
+      final totalCount = rawTotalCount is num
+          ? rawTotalCount.toInt()
+          : items.length;
       if (totalCount <= 0 || items.isEmpty) {
         if (_genres.remove(genre) && !_disposed && mounted) {
           setState(() {});
@@ -194,7 +198,7 @@ class _AllGenresScreenState extends State<AllGenresScreen> {
       return null;
     }
     return _client.imageApi.getBackdropImageUrl(
-      item['Id'] as String,
+      item['Id']?.toString() ?? '',
       maxWidth: BackgroundService.backdropMaxWidth,
       tag: tags.first as String,
     );
@@ -205,7 +209,7 @@ class _AllGenresScreenState extends State<AllGenresScreen> {
     ImageType imageType, {
     String? backdropUrl,
   }) {
-    final itemId = item['Id'] as String;
+    final itemId = item['Id']?.toString() ?? '';
     final primaryTag = item['PrimaryImageTag'] as String?;
     final thumbTag = _tagForType(item, 'Thumb');
     final bannerTag = _tagForType(item, 'Banner');

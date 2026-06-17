@@ -109,9 +109,12 @@ class EmbyConnectService {
     final data = _asJsonList(response.data, context: 'servers');
 
     return data
-      .whereType<Map>()
-      .map((entry) => EmbyConnectServer.fromJson(Map<String, dynamic>.from(entry)))
-      .toList(growable: false);
+        .whereType<Map>()
+        .map(
+          (entry) =>
+              EmbyConnectServer.fromJson(Map<String, dynamic>.from(entry)),
+        )
+        .toList(growable: false);
   }
 
   Future<EmbyConnectExchangeResult> exchange({
@@ -181,7 +184,9 @@ class EmbyConnectService {
   }
 
   Iterable<Uri> _exchangeUris(String serverAddress) sync* {
-    final normalized = serverAddress.endsWith('/') ? serverAddress : '$serverAddress/';
+    final normalized = serverAddress.endsWith('/')
+        ? serverAddress
+        : '$serverAddress/';
     final base = Uri.parse(normalized);
 
     yield base.resolve('Connect/Exchange');
@@ -221,10 +226,10 @@ class EmbyConnectAuthResult {
 
     return EmbyConnectAuthResult(
       accessToken:
-          json['AccessToken'] as String? ??
-          json['accessToken'] as String? ??
-          json['ConnectAccessToken'] as String? ??
-          json['connectAccessToken'] as String? ??
+          json['AccessToken']?.toString() ??
+          json['accessToken']?.toString() ??
+          json['ConnectAccessToken']?.toString() ??
+          json['connectAccessToken']?.toString() ??
           '',
       user: EmbyConnectUser.fromJson(userJson),
     );
@@ -240,12 +245,12 @@ class EmbyConnectUser {
   factory EmbyConnectUser.fromJson(Map<String, dynamic> json) {
     return EmbyConnectUser(
       id:
-          json['Id'] as String? ??
-          json['UserId'] as String? ??
-          json['ConnectUserId'] as String? ??
-          json['connectUserId'] as String? ??
+          json['Id']?.toString() ??
+          json['UserId']?.toString() ??
+          json['ConnectUserId']?.toString() ??
+          json['connectUserId']?.toString() ??
           '',
-      name: json['Name'] as String? ?? json['Username'] as String? ?? '',
+      name: json['Name']?.toString() ?? json['Username']?.toString() ?? '',
     );
   }
 }
@@ -283,7 +288,9 @@ class EmbyConnectServer {
   }
 
   Iterable<String> _normalizedCandidates(String value) sync* {
-    var sanitized = value.endsWith('/') ? value.substring(0, value.length - 1) : value;
+    var sanitized = value.endsWith('/')
+        ? value.substring(0, value.length - 1)
+        : value;
 
     try {
       final uri = Uri.parse(sanitized);
@@ -305,15 +312,15 @@ class EmbyConnectServer {
   factory EmbyConnectServer.fromJson(Map<String, dynamic> json) {
     return EmbyConnectServer(
       accessKey:
-          json['AccessKey'] as String? ??
-          json['ConnectAccessKey'] as String? ??
-          json['UserAccessToken'] as String? ??
+          json['AccessKey']?.toString() ??
+          json['ConnectAccessKey']?.toString() ??
+          json['UserAccessToken']?.toString() ??
           '',
-      systemId: json['SystemId'] as String? ?? '',
-      name: json['Name'] as String? ?? '',
-      url: json['Url'] as String? ?? json['Address'] as String?,
+      systemId: json['SystemId']?.toString() ?? '',
+      name: json['Name']?.toString() ?? '',
+      url: json['Url']?.toString() ?? json['Address']?.toString(),
       localAddress:
-          json['LocalAddress'] as String? ?? json['LocalAddress1'] as String?,
+          json['LocalAddress']?.toString() ?? json['LocalAddress1']?.toString(),
     );
   }
 }
@@ -335,9 +342,13 @@ class EmbyConnectExchangeResult {
   }) {
     return EmbyConnectExchangeResult(
       localUserId:
-          json['LocalUserId'] as String? ?? json['localUserId'] as String? ?? '',
+          json['LocalUserId']?.toString() ??
+          json['localUserId']?.toString() ??
+          '',
       accessToken:
-          json['AccessToken'] as String? ?? json['accessToken'] as String? ?? '',
+          json['AccessToken']?.toString() ??
+          json['accessToken']?.toString() ??
+          '',
       resolvedBaseUrl: resolvedBaseUrl,
     );
   }

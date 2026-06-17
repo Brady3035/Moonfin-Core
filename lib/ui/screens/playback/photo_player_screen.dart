@@ -54,8 +54,8 @@ class _PhotoPlayerScreenState extends State<PhotoPlayerScreen> {
     try {
       final data = await _client.itemsApi.getItem(widget.itemId);
       final item = AggregatedItem(
-        id: data['Id'] as String,
-        serverId: data['ServerId'] as String? ?? '',
+        id: data['Id']?.toString() ?? '',
+        serverId: data['ServerId']?.toString() ?? '',
         rawData: data,
       );
       final parentId = item.parentId;
@@ -70,11 +70,13 @@ class _PhotoPlayerScreenState extends State<PhotoPlayerScreen> {
         final rawItems = siblings['Items'] as List? ?? [];
         final items = rawItems
             .cast<Map<String, dynamic>>()
-            .map((d) => AggregatedItem(
-                  id: d['Id'] as String,
-                  serverId: d['ServerId'] as String? ?? '',
-                  rawData: d,
-                ))
+            .map(
+              (d) => AggregatedItem(
+                id: d['Id']?.toString() ?? '',
+                serverId: d['ServerId']?.toString() ?? '',
+                rawData: d,
+              ),
+            )
             .toList();
         final idx = items.indexWhere((i) => i.id == widget.itemId);
         setState(() {
@@ -197,7 +199,7 @@ class _PhotoPlayerScreenState extends State<PhotoPlayerScreen> {
           child: CachedNetworkImage(
             imageUrl: url,
             fit: BoxFit.contain,
-              placeholder: (_, _) => Center(
+            placeholder: (_, _) => Center(
               child: CircularProgressIndicator(color: AppColorScheme.accent),
             ),
             errorWidget: (_, _, _) => Icon(
@@ -232,19 +234,13 @@ class _PhotoPlayerScreenState extends State<PhotoPlayerScreen> {
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [
-                  AppColorScheme.scrim,
-                  Colors.transparent,
-                ],
+                colors: [AppColorScheme.scrim, Colors.transparent],
               ),
             ),
             child: Row(
               children: [
                 IconButton(
-                  icon: Icon(
-                    Icons.arrow_back,
-                    color: AppColorScheme.onSurface,
-                  ),
+                  icon: Icon(Icons.arrow_back, color: AppColorScheme.onSurface),
                   onPressed: () {
                     if (context.canPop()) {
                       context.pop();
@@ -266,7 +262,9 @@ class _PhotoPlayerScreenState extends State<PhotoPlayerScreen> {
                 ),
                 if (_items.length > 1)
                   Text(
-                    AppLocalizations.of(context).photoCountOf(_currentIndex + 1, _items.length),
+                    AppLocalizations.of(
+                      context,
+                    ).photoCountOf(_currentIndex + 1, _items.length),
                     style: TextStyle(
                       color: AppColorScheme.onSurface.withValues(alpha: 0.7),
                       fontSize: 14,
@@ -291,10 +289,7 @@ class _PhotoPlayerScreenState extends State<PhotoPlayerScreen> {
               gradient: LinearGradient(
                 begin: Alignment.bottomCenter,
                 end: Alignment.topCenter,
-                colors: [
-                  AppColorScheme.scrim,
-                  Colors.transparent,
-                ],
+                colors: [AppColorScheme.scrim, Colors.transparent],
               ),
             ),
             child: Row(

@@ -53,11 +53,7 @@ class InfoArea extends StatelessWidget {
   final AggregatedItem? item;
   final double headerLeftInset;
 
-  const InfoArea({
-    super.key,
-    this.item,
-    this.headerLeftInset = 0,
-  });
+  const InfoArea({super.key, this.item, this.headerLeftInset = 0});
 
   static double fixedHeight({
     required bool isMobile,
@@ -71,8 +67,8 @@ class InfoArea extends StatelessWidget {
     final item = this.item;
     final isMobile = PlatformDetection.useMobileUi;
     final desktopScale = GetIt.instance<UserPreferences>()
-          .get(UserPreferences.desktopUiScale)
-          .scaleFactor;
+        .get(UserPreferences.desktopUiScale)
+        .scaleFactor;
     final fixedHeight = InfoArea.fixedHeight(
       isMobile: isMobile,
       desktopScale: desktopScale,
@@ -552,7 +548,8 @@ class _InfoAreaContentState extends State<_InfoAreaContent> {
     final String? logoItemId;
     final String? logoTag;
     if (item.type == 'Episode') {
-      logoItemId = item.rawData['ParentLogoItemId'] as String? ?? item.seriesId;
+      logoItemId =
+          item.rawData['ParentLogoItemId']?.toString() ?? item.seriesId;
       logoTag = item.rawData['ParentLogoImageTag'] as String?;
     } else {
       logoItemId = item.logoImageTag != null ? item.id : null;

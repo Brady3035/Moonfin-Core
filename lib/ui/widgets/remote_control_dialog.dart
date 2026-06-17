@@ -42,7 +42,10 @@ class _RemoteControlSheetState extends State<_RemoteControlSheet> {
     super.initState();
     _sessionApi = GetIt.instance<MediaServerClient>().sessionApi;
     _load();
-    _refreshTimer = Timer.periodic(const Duration(seconds: 5), (_) => _refresh());
+    _refreshTimer = Timer.periodic(
+      const Duration(seconds: 5),
+      (_) => _refresh(),
+    );
     _socketSub = GetIt.instance<SocketHandler>().events.listen((event) {
       switch (event) {
         case SessionEndedMessage():
@@ -92,7 +95,7 @@ class _RemoteControlSheetState extends State<_RemoteControlSheet> {
       if (!mounted) return;
       final selfDeviceId = client.deviceInfo.id;
       final controllable = sessions.where((s) {
-        final deviceId = s['DeviceId'] as String?;
+        final deviceId = s['DeviceId']?.toString();
         if (deviceId != null && deviceId == selfDeviceId) {
           return false;
         }
@@ -105,10 +108,9 @@ class _RemoteControlSheetState extends State<_RemoteControlSheet> {
         _error = null;
         if (_selectedSession != null) {
           final id = _selectedSession!['Id'];
-          _selectedSession = controllable.cast<Map<String, dynamic>?>().firstWhere(
-            (s) => s?['Id'] == id,
-            orElse: () => null,
-          );
+          _selectedSession = controllable
+              .cast<Map<String, dynamic>?>()
+              .firstWhere((s) => s?['Id'] == id, orElse: () => null);
         }
       });
     } catch (e) {
@@ -127,7 +129,7 @@ class _RemoteControlSheetState extends State<_RemoteControlSheet> {
   ) {
     final byId = <String, Map<String, dynamic>>{};
     for (final session in sessions) {
-      final id = session['Id'] as String?;
+      final id = session['Id']?.toString();
       if (id == null || id.isEmpty) {
         continue;
       }
@@ -185,15 +187,23 @@ class _RemoteControlSheetState extends State<_RemoteControlSheet> {
   }
 
   Future<void> _sendPlayState(String command, {int? seekTicks}) {
-    final id = _selectedSession?['Id'] as String?;
+    final id = _selectedSession?['Id']?.toString();
     if (id == null) return Future.value();
-    return _run(() => _sessionApi.sendPlayStateCommand(id, command, seekPositionTicks: seekTicks));
+    return _run(
+      () => _sessionApi.sendPlayStateCommand(
+        id,
+        command,
+        seekPositionTicks: seekTicks,
+      ),
+    );
   }
 
   Future<void> _sendGeneral(String commandName, {Map<String, String>? args}) {
-    final id = _selectedSession?['Id'] as String?;
+    final id = _selectedSession?['Id']?.toString();
     if (id == null) return Future.value();
-    return _run(() => _sessionApi.sendGeneralCommand(id, commandName, arguments: args));
+    return _run(
+      () => _sessionApi.sendGeneralCommand(id, commandName, arguments: args),
+    );
   }
 
   @override
@@ -225,11 +235,24 @@ class _RemoteControlSheetState extends State<_RemoteControlSheet> {
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
               child: Row(
                 children: [
-                  Icon(Icons.settings_remote_rounded, color: theme.colorScheme.primary),
+                  Icon(
+                    Icons.settings_remote_rounded,
+                    color: theme.colorScheme.primary,
+                  ),
                   const SizedBox(width: 10),
-                  Text(l10n.remoteControlTitle, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+                  Text(
+                    l10n.remoteControlTitle,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                   const Spacer(),
-                  if (_busy) const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)),
+                  if (_busy)
+                    const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
                 ],
               ),
             ),
@@ -238,40 +261,55 @@ class _RemoteControlSheetState extends State<_RemoteControlSheet> {
               child: _loading
                   ? const Center(child: CircularProgressIndicator())
                   : _error != null
-                      ? Center(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(l10n.remoteFailedToLoadSessions, style: theme.textTheme.bodySmall),
-                              const SizedBox(height: 8),
-                              TextButton(onPressed: _load, child: Text(l10n.retry)),
-                            ],
+                  ? Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            l10n.remoteFailedToLoadSessions,
+                            style: theme.textTheme.bodySmall,
                           ),
-                        )
-                      : _sessions.isEmpty
-                          ? Center(
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(Icons.devices_other, size: 48, color: theme.colorScheme.outline),
-                                  const SizedBox(height: 12),
-                                  Text(l10n.remoteNoSessions, style: theme.textTheme.bodyMedium),
-                                  const SizedBox(height: 4),
-                                  Text(l10n.remoteStartPlayback, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.outline)),
-                                ],
-                              ),
-                            )
-                          : ListView(
-                              controller: scrollController,
-                              padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-                              children: [
-                                ..._sessions.map(_buildSessionTile),
-                                if (_selectedSession != null) ...[
-                                  const SizedBox(height: 16),
-                                  ..._buildControls(theme),
-                                ],
-                              ],
+                          const SizedBox(height: 8),
+                          TextButton(onPressed: _load, child: Text(l10n.retry)),
+                        ],
+                      ),
+                    )
+                  : _sessions.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.devices_other,
+                            size: 48,
+                            color: theme.colorScheme.outline,
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            l10n.remoteNoSessions,
+                            style: theme.textTheme.bodyMedium,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            l10n.remoteStartPlayback,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.outline,
                             ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : ListView(
+                      controller: scrollController,
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                      children: [
+                        ..._sessions.map(_buildSessionTile),
+                        if (_selectedSession != null) ...[
+                          const SizedBox(height: 16),
+                          ..._buildControls(theme),
+                        ],
+                      ],
+                    ),
             ),
           ],
         ),
@@ -282,7 +320,7 @@ class _RemoteControlSheetState extends State<_RemoteControlSheet> {
   Widget _buildSessionTile(Map<String, dynamic> session) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
-    final sessionId = session['Id'] as String?;
+    final sessionId = session['Id']?.toString();
     final isSelected = _selectedSession?['Id'] == sessionId;
     final userName = session['UserName'] as String? ?? l10n.unknownUser;
     final client = session['Client'] as String? ?? '';
@@ -291,7 +329,8 @@ class _RemoteControlSheetState extends State<_RemoteControlSheet> {
     final playState = session['PlayState'] as Map<String, dynamic>?;
     final isPaused = playState?['IsPaused'] as bool? ?? false;
     final runTimeTicks = (nowPlaying?['RunTimeTicks'] as num?)?.toDouble() ?? 0;
-    final positionTicks = (playState?['PositionTicks'] as num?)?.toDouble() ?? 0;
+    final positionTicks =
+        (playState?['PositionTicks'] as num?)?.toDouble() ?? 0;
     final progress = (nowPlaying != null && runTimeTicks > 0)
         ? (positionTicks / runTimeTicks).clamp(0.0, 1.0)
         : null;
@@ -305,7 +344,8 @@ class _RemoteControlSheetState extends State<_RemoteControlSheet> {
         borderRadius: BorderRadius.circular(12),
         child: InkWell(
           borderRadius: BorderRadius.circular(12),
-          onTap: () => setState(() => _selectedSession = isSelected ? null : session),
+          onTap: () =>
+              setState(() => _selectedSession = isSelected ? null : session),
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
             child: Column(
@@ -318,7 +358,9 @@ class _RemoteControlSheetState extends State<_RemoteControlSheet> {
                       backgroundColor: theme.colorScheme.primaryContainer,
                       child: Text(
                         userName.isNotEmpty ? userName[0].toUpperCase() : '?',
-                        style: theme.textTheme.labelMedium?.copyWith(color: theme.colorScheme.onPrimaryContainer),
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          color: theme.colorScheme.onPrimaryContainer,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 10),
@@ -331,7 +373,9 @@ class _RemoteControlSheetState extends State<_RemoteControlSheet> {
                               Flexible(
                                 child: Text(
                                   userName,
-                                  style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
@@ -341,7 +385,8 @@ class _RemoteControlSheetState extends State<_RemoteControlSheet> {
                           ),
                           Text(
                             nowPlaying != null
-                                ? (nowPlaying['Name'] as String? ?? l10n.unknownItem)
+                                ? (nowPlaying['Name'] as String? ??
+                                      l10n.unknownItem)
                                 : '$client · $device',
                             style: theme.textTheme.bodySmall,
                             overflow: TextOverflow.ellipsis,
@@ -352,14 +397,22 @@ class _RemoteControlSheetState extends State<_RemoteControlSheet> {
                     ),
                     if (nowPlaying != null)
                       Icon(
-                        isPaused ? Icons.pause_circle_filled : Icons.play_circle_filled,
+                        isPaused
+                            ? Icons.pause_circle_filled
+                            : Icons.play_circle_filled,
                         size: 20,
-                        color: isPaused ? theme.colorScheme.outline : theme.colorScheme.primary,
+                        color: isPaused
+                            ? theme.colorScheme.outline
+                            : theme.colorScheme.primary,
                       ),
                     if (isSelected)
                       Padding(
                         padding: const EdgeInsets.only(left: 6),
-                        child: Icon(Icons.check_circle, size: 18, color: theme.colorScheme.primary),
+                        child: Icon(
+                          Icons.check_circle,
+                          size: 18,
+                          color: theme.colorScheme.primary,
+                        ),
                       ),
                   ],
                 ),
@@ -372,7 +425,8 @@ class _RemoteControlSheetState extends State<_RemoteControlSheet> {
                       child: LinearProgressIndicator(
                         value: progress,
                         minHeight: 3,
-                        backgroundColor: theme.colorScheme.surfaceContainerHighest,
+                        backgroundColor:
+                            theme.colorScheme.surfaceContainerHighest,
                       ),
                     ),
                   ),
@@ -410,25 +464,38 @@ class _RemoteControlSheetState extends State<_RemoteControlSheet> {
           decoration: BoxDecoration(
             color: theme.colorScheme.surfaceContainerLow,
             borderRadius: BorderRadius.circular(14),
-            border: Border.fromBorderSide(ThemeRegistry.active.borders.chipBorder),
+            border: Border.fromBorderSide(
+              ThemeRegistry.active.borders.chipBorder,
+            ),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 nowPlaying['Name'] as String? ?? '',
-                style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
               ),
               if ((nowPlaying['SeriesName'] as String?) != null)
-                Text(nowPlaying['SeriesName'] as String, style: theme.textTheme.bodySmall),
-              if (positionTicks != null && runtimeTicks != null && runtimeTicks > 0) ...[
+                Text(
+                  nowPlaying['SeriesName'] as String,
+                  style: theme.textTheme.bodySmall,
+                ),
+              if (positionTicks != null &&
+                  runtimeTicks != null &&
+                  runtimeTicks > 0) ...[
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    Text(ticksToTime(positionTicks), style: theme.textTheme.labelSmall),
+                    Text(
+                      ticksToTime(positionTicks),
+                      style: theme.textTheme.labelSmall,
+                    ),
                     Expanded(
                       child: Slider(
-                        value: (_seekPosition ?? positionTicks / runtimeTicks).clamp(0.0, 1.0),
+                        value: (_seekPosition ?? positionTicks / runtimeTicks)
+                            .clamp(0.0, 1.0),
                         onChanged: (v) => setState(() => _seekPosition = v),
                         onChangeEnd: (v) {
                           final target = (v * runtimeTicks).round();
@@ -437,7 +504,10 @@ class _RemoteControlSheetState extends State<_RemoteControlSheet> {
                         },
                       ),
                     ),
-                    Text(ticksToTime(runtimeTicks), style: theme.textTheme.labelSmall),
+                    Text(
+                      ticksToTime(runtimeTicks),
+                      style: theme.textTheme.labelSmall,
+                    ),
                   ],
                 ),
               ],
@@ -448,9 +518,17 @@ class _RemoteControlSheetState extends State<_RemoteControlSheet> {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            _ControlButton(icon: Icons.skip_previous, label: l10n.sessionPrev, onTap: () => _sendPlayState('PreviousTrack')),
+            _ControlButton(
+              icon: Icons.skip_previous,
+              label: l10n.sessionPrev,
+              onTap: () => _sendPlayState('PreviousTrack'),
+            ),
             const SizedBox(width: 8),
-            _ControlButton(icon: Icons.replay_10, label: l10n.sessionRewind, onTap: () => _sendPlayState('Rewind')),
+            _ControlButton(
+              icon: Icons.replay_10,
+              label: l10n.sessionRewind,
+              onTap: () => _sendPlayState('Rewind'),
+            ),
             const SizedBox(width: 8),
             _ControlButton(
               icon: isPaused ? Icons.play_arrow : Icons.pause,
@@ -459,9 +537,17 @@ class _RemoteControlSheetState extends State<_RemoteControlSheet> {
               primary: true,
             ),
             const SizedBox(width: 8),
-            _ControlButton(icon: Icons.forward_10, label: l10n.sessionForward, onTap: () => _sendPlayState('FastForward')),
+            _ControlButton(
+              icon: Icons.forward_10,
+              label: l10n.sessionForward,
+              onTap: () => _sendPlayState('FastForward'),
+            ),
             const SizedBox(width: 8),
-            _ControlButton(icon: Icons.skip_next, label: l10n.sessionNext, onTap: () => _sendPlayState('NextTrack')),
+            _ControlButton(
+              icon: Icons.skip_next,
+              label: l10n.sessionNext,
+              onTap: () => _sendPlayState('NextTrack'),
+            ),
           ],
         ),
         const SizedBox(height: 6),
@@ -483,9 +569,17 @@ class _RemoteControlSheetState extends State<_RemoteControlSheet> {
               onTap: () => _sendGeneral(isMuted ? 'Unmute' : 'Mute'),
             ),
             const SizedBox(width: 8),
-            _ControlButton(icon: Icons.volume_down, label: l10n.sessionVolumeDown, onTap: () => _sendGeneral('VolumeDown')),
+            _ControlButton(
+              icon: Icons.volume_down,
+              label: l10n.sessionVolumeDown,
+              onTap: () => _sendGeneral('VolumeDown'),
+            ),
             const SizedBox(width: 8),
-            _ControlButton(icon: Icons.volume_up, label: l10n.sessionVolumeUp, onTap: () => _sendGeneral('VolumeUp')),
+            _ControlButton(
+              icon: Icons.volume_up,
+              label: l10n.sessionVolumeUp,
+              onTap: () => _sendGeneral('VolumeUp'),
+            ),
           ],
         ),
       ] else ...[
@@ -505,11 +599,17 @@ class _RemoteControlSheetState extends State<_RemoteControlSheet> {
   Widget _platformIcon(String client, ThemeData theme) {
     final lc = client.toLowerCase();
     final IconData icon;
-    if (lc.contains('android tv') || lc.contains('fire tv') || lc.contains('apple tv') || lc.contains('roku')) {
+    if (lc.contains('android tv') ||
+        lc.contains('fire tv') ||
+        lc.contains('apple tv') ||
+        lc.contains('roku')) {
       icon = Icons.tv;
     } else if (lc.contains('android')) {
       icon = Icons.android;
-    } else if (lc.contains('ios') || lc.contains('iphone') || lc.contains('ipad') || lc.contains('apple')) {
+    } else if (lc.contains('ios') ||
+        lc.contains('iphone') ||
+        lc.contains('ipad') ||
+        lc.contains('apple')) {
       icon = Icons.phone_iphone;
     } else if (lc.contains('web') || lc.contains('browser')) {
       icon = Icons.language;
@@ -538,7 +638,9 @@ class _ControlButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final fg = color ?? (primary ? theme.colorScheme.primary : theme.colorScheme.onSurface);
+    final fg =
+        color ??
+        (primary ? theme.colorScheme.primary : theme.colorScheme.onSurface);
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),

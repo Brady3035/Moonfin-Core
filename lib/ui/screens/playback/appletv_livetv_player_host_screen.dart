@@ -278,10 +278,12 @@ class _AppleTvLiveTvPlayerHostScreenState
       DateTime? selectedEnd;
       for (final item in items) {
         final raw = item as Map<String, dynamic>;
-        final start = DateTime.tryParse(raw['StartDate']?.toString() ?? '')
-            ?.toLocal();
-        final end = DateTime.tryParse(raw['EndDate']?.toString() ?? '')
-            ?.toLocal();
+        final start = DateTime.tryParse(
+          raw['StartDate']?.toString() ?? '',
+        )?.toLocal();
+        final end = DateTime.tryParse(
+          raw['EndDate']?.toString() ?? '',
+        )?.toLocal();
         if (start == null || end == null) continue;
         selected ??= raw;
         selectedStart ??= start;
@@ -343,10 +345,12 @@ class _AppleTvLiveTvPlayerHostScreenState
           final raw = item as Map<String, dynamic>;
           final channelId = raw['ChannelId']?.toString();
           if (channelId == null) continue;
-          final start = DateTime.tryParse(raw['StartDate']?.toString() ?? '')
-              ?.toLocal();
-          final end = DateTime.tryParse(raw['EndDate']?.toString() ?? '')
-              ?.toLocal();
+          final start = DateTime.tryParse(
+            raw['StartDate']?.toString() ?? '',
+          )?.toLocal();
+          final end = DateTime.tryParse(
+            raw['EndDate']?.toString() ?? '',
+          )?.toLocal();
           if (start == null || end == null) continue;
           if (!now.isBefore(start) && now.isBefore(end)) {
             _nowPlayingByChannel[channelId] = raw['Name']?.toString() ?? '';
@@ -376,21 +380,20 @@ class _AppleTvLiveTvPlayerHostScreenState
   }
 
   List<Map<String, dynamic>> _channelListPayload() {
-    final cache =
-        _channelListCache ??= [
-          for (final channel in widget.channels)
-            {
-              'id': channel.id,
-              'number': channel.number ?? '',
-              'name': channel.name,
-              'logoUrl': _channelLogoUrl(channel),
-              'programName': '',
-              'selected': false,
-            },
-        ];
+    final cache = _channelListCache ??= [
+      for (final channel in widget.channels)
+        {
+          'id': channel.id,
+          'number': channel.number ?? '',
+          'name': channel.name,
+          'logoUrl': _channelLogoUrl(channel),
+          'programName': '',
+          'selected': false,
+        },
+    ];
     final currentId = _currentChannel.id;
     for (final entry in cache) {
-      final id = entry['id'] as String;
+      final id = entry['id']?.toString() ?? '';
       entry['programName'] = _nowPlayingByChannel[id] ?? '';
       entry['selected'] = id == currentId;
     }
@@ -435,8 +438,9 @@ class _AppleTvLiveTvPlayerHostScreenState
         ? null
         : pickStream('Subtitle', _manager.subtitleStreamIndex);
 
-    final audioCodec =
-        ((audioStream?['Codec'] as String?) ?? '').trim().toUpperCase();
+    final audioCodec = ((audioStream?['Codec'] as String?) ?? '')
+        .trim()
+        .toUpperCase();
     final audioChannels = _formatChannels(audioStream?['Channels'] as int?);
     final audioLabel = audioStream == null
         ? 'Unknown'
@@ -450,7 +454,8 @@ class _AppleTvLiveTvPlayerHostScreenState
 
     final subtitleLabel = subtitleStream == null
         ? 'Off'
-        : ((subtitleStream['DisplayTitle'] as String?)?.trim().isNotEmpty == true
+        : ((subtitleStream['DisplayTitle'] as String?)?.trim().isNotEmpty ==
+                  true
               ? (subtitleStream['DisplayTitle'] as String).trim()
               : (subtitleStream['Language'] as String?)?.trim() ?? 'On');
 
@@ -512,8 +517,7 @@ class _AppleTvLiveTvPlayerHostScreenState
     final playMethod = resolution != null
         ? _prettyPlayMethod(resolution.playMethod.name)
         : 'Unknown';
-    final container =
-        (resolution?.container ?? '').trim().toUpperCase().isEmpty
+    final container = (resolution?.container ?? '').trim().toUpperCase().isEmpty
         ? 'Unknown'
         : (resolution?.container ?? '').trim().toUpperCase();
 
@@ -532,8 +536,8 @@ class _AppleTvLiveTvPlayerHostScreenState
       final fps = videoStream['RealFrameRate'] as num?;
       final width = videoStream['Width'];
       final height = videoStream['Height'];
-      final codec =
-          ((videoStream['Codec'] as String?) ?? 'Unknown').toUpperCase();
+      final codec = ((videoStream['Codec'] as String?) ?? 'Unknown')
+          .toUpperCase();
       addSection('Video', [
         row(
           'Resolution',

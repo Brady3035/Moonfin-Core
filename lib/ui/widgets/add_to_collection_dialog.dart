@@ -30,7 +30,8 @@ class AddToCollectionDialog extends StatefulWidget {
   }) {
     return showFocusRestoringDialog<bool>(
       context: context,
-      builder: (_) => AddToCollectionDialog(itemIds: itemIds, serverId: serverId),
+      builder: (_) =>
+          AddToCollectionDialog(itemIds: itemIds, serverId: serverId),
     );
   }
 
@@ -104,7 +105,7 @@ class _AddToCollectionDialogState extends State<AddToCollectionDialog> {
       setState(() {
         _collections = items.cast<Map<String, dynamic>>().map((raw) {
           return _CollectionEntry(
-            id: raw['Id'] as String,
+            id: raw['Id']?.toString() ?? '',
             name: raw['Name'] as String? ?? '',
           );
         }).toList();
@@ -118,12 +119,12 @@ class _AddToCollectionDialogState extends State<AddToCollectionDialog> {
 
   String? _collectionIdFromCreateResponse(Map<String, dynamic> created) {
     final candidates = <String?>[
-      created['Id'] as String?,
-      created['id'] as String?,
-      created['CollectionId'] as String?,
-      created['collectionId'] as String?,
-      created['ItemId'] as String?,
-      created['itemId'] as String?,
+      created['Id']?.toString(),
+      created['id']?.toString(),
+      created['CollectionId']?.toString(),
+      created['collectionId']?.toString(),
+      created['ItemId']?.toString(),
+      created['itemId']?.toString(),
     ];
     for (final candidate in candidates) {
       if (candidate != null && candidate.isNotEmpty) {
@@ -149,7 +150,7 @@ class _AddToCollectionDialogState extends State<AddToCollectionDialog> {
       String? firstFoundId;
       for (final raw in items.whereType<Map>()) {
         final entry = raw.cast<String, dynamic>();
-        final id = entry['Id'] as String?;
+        final id = entry['Id']?.toString();
         final entryName = (entry['Name'] as String?)?.trim().toLowerCase();
         if (id == null || id.isEmpty) {
           continue;
@@ -178,9 +179,9 @@ class _AddToCollectionDialogState extends State<AddToCollectionDialog> {
       if (mounted) Navigator.pop(context, true);
     } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_errorMessage(error))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(_errorMessage(error))));
     }
   }
 
@@ -188,9 +189,7 @@ class _AddToCollectionDialogState extends State<AddToCollectionDialog> {
     final name = _nameController.text.trim();
     if (name.isEmpty) return;
     try {
-      final created = await _mutations.createCollection(
-        name: name,
-      );
+      final created = await _mutations.createCollection(name: name);
       if (!mounted) return;
 
       final collectionId =
@@ -207,9 +206,9 @@ class _AddToCollectionDialogState extends State<AddToCollectionDialog> {
       Navigator.pop(context, true);
     } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_errorMessage(error))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(_errorMessage(error))));
     }
   }
 
@@ -234,7 +233,10 @@ class _AddToCollectionDialogState extends State<AddToCollectionDialog> {
 
         return Dialog(
           backgroundColor: Colors.transparent,
-          insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+          insetPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 24,
+          ),
           child: AnimatedPadding(
             duration: const Duration(milliseconds: 150),
             padding: EdgeInsets.only(bottom: insets.bottom),
@@ -258,7 +260,8 @@ class _AddToCollectionDialogState extends State<AddToCollectionDialog> {
                     return KeyEventResult.ignored;
                   }
 
-                  if (_createCreateFocus.hasFocus || _createCancelFocus.hasFocus) {
+                  if (_createCreateFocus.hasFocus ||
+                      _createCancelFocus.hasFocus) {
                     if (key.isUpKey) {
                       _createNameFocus.requestFocus();
                       return KeyEventResult.handled;
@@ -285,11 +288,16 @@ class _AddToCollectionDialogState extends State<AddToCollectionDialog> {
                   return KeyEventResult.ignored;
                 },
                 child: Container(
-                  constraints: const BoxConstraints(minWidth: 320, maxWidth: 440),
+                  constraints: const BoxConstraints(
+                    minWidth: 320,
+                    maxWidth: 440,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColorScheme.surface.withValues(alpha: 0.9),
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.fromBorderSide(ThemeRegistry.active.borders.chipBorder),
+                    border: Border.fromBorderSide(
+                      ThemeRegistry.active.borders.chipBorder,
+                    ),
                   ),
                   padding: const EdgeInsets.all(24),
                   child: Column(
@@ -331,10 +339,14 @@ class _AddToCollectionDialogState extends State<AddToCollectionDialog> {
                               decoration: InputDecoration(
                                 hintText: l10n.collections,
                                 hintStyle: TextStyle(
-                                  color: AppColorScheme.onSurface.withValues(alpha: 0.4),
+                                  color: AppColorScheme.onSurface.withValues(
+                                    alpha: 0.4,
+                                  ),
                                 ),
                                 filled: true,
-                                fillColor: AppColorScheme.onSurface.withValues(alpha: 0.08),
+                                fillColor: AppColorScheme.onSurface.withValues(
+                                  alpha: 0.08,
+                                ),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(8),
                                   borderSide: BorderSide.none,
@@ -355,7 +367,9 @@ class _AddToCollectionDialogState extends State<AddToCollectionDialog> {
                             child: Text(
                               l10n.cancel,
                               style: TextStyle(
-                                color: AppColorScheme.onSurface.withValues(alpha: 0.6),
+                                color: AppColorScheme.onSurface.withValues(
+                                  alpha: 0.6,
+                                ),
                               ),
                             ),
                           ),
@@ -392,7 +406,9 @@ class _AddToCollectionDialogState extends State<AddToCollectionDialog> {
         decoration: BoxDecoration(
           color: AppColorScheme.surface.withValues(alpha: 0.9),
           borderRadius: BorderRadius.circular(20),
-          border: Border.fromBorderSide(ThemeRegistry.active.borders.chipBorder),
+          border: Border.fromBorderSide(
+            ThemeRegistry.active.borders.chipBorder,
+          ),
         ),
         padding: const EdgeInsets.symmetric(vertical: 20),
         child: Column(
@@ -412,7 +428,10 @@ class _AddToCollectionDialogState extends State<AddToCollectionDialog> {
                 ),
               ),
             ),
-            Container(height: 1, color: AppColorScheme.onSurface.withValues(alpha: 0.08)),
+            Container(
+              height: 1,
+              color: AppColorScheme.onSurface.withValues(alpha: 0.08),
+            ),
             const SizedBox(height: 8),
             FocusableDialogRow(
               icon: Icons.add,
@@ -435,7 +454,9 @@ class _AddToCollectionDialogState extends State<AddToCollectionDialog> {
                 padding: const EdgeInsets.all(24),
                 child: Text(
                   l10n.noneFound,
-                  style: TextStyle(color: AppColorScheme.onSurface.withValues(alpha: 0.5)),
+                  style: TextStyle(
+                    color: AppColorScheme.onSurface.withValues(alpha: 0.5),
+                  ),
                 ),
               )
             else
@@ -455,7 +476,10 @@ class _AddToCollectionDialogState extends State<AddToCollectionDialog> {
                 ),
               ),
             const SizedBox(height: 4),
-            Container(height: 1, color: AppColorScheme.onSurface.withValues(alpha: 0.08)),
+            Container(
+              height: 1,
+              color: AppColorScheme.onSurface.withValues(alpha: 0.08),
+            ),
             const SizedBox(height: 4),
             FocusableDialogRow(
               label: l10n.cancel,

@@ -68,7 +68,16 @@ class GuideProgram {
   }
 }
 
-enum GuideFilter { all, movies, series, sports, news, kids, premiere, favorites }
+enum GuideFilter {
+  all,
+  movies,
+  series,
+  sports,
+  news,
+  kids,
+  premiere,
+  favorites,
+}
 
 enum GuideState { loading, ready, error }
 
@@ -120,7 +129,8 @@ class LiveTvGuideViewModel extends ChangeNotifier {
 
   List<GuideProgram> programsForChannel(String channelId) {
     final all = _programsByChannel[channelId] ?? [];
-    if (_filter == GuideFilter.all || _filter == GuideFilter.favorites) return all;
+    if (_filter == GuideFilter.all || _filter == GuideFilter.favorites)
+      return all;
     return all.where(_matchesFilter).toList();
   }
 
@@ -187,7 +197,7 @@ class LiveTvGuideViewModel extends ChangeNotifier {
 
   Future<void> toggleProgramRecording(GuideProgram program) async {
     if (program.hasTimer) {
-      final timerId = program.rawData['TimerId'] as String?;
+      final timerId = program.rawData['TimerId']?.toString();
       if (timerId == null || timerId.isEmpty) {
         throw StateError('TimerId missing for scheduled program ${program.id}');
       }
@@ -280,7 +290,7 @@ class LiveTvGuideViewModel extends ChangeNotifier {
     final items = (response['Items'] as List?) ?? [];
     _channels = items.cast<Map<String, dynamic>>().map((raw) {
       return GuideChannel(
-        id: raw['Id'] as String,
+        id: raw['Id']?.toString() ?? '',
         name: raw['Name'] as String? ?? '',
         number: raw['ChannelNumber'] as String?,
         imageTag: (raw['ImageTags'] as Map?)?['Primary'] as String?,
@@ -310,7 +320,7 @@ class LiveTvGuideViewModel extends ChangeNotifier {
     final map = <String, List<GuideProgram>>{};
 
     for (final raw in items.cast<Map<String, dynamic>>()) {
-      final channelId = raw['ChannelId'] as String?;
+      final channelId = raw['ChannelId']?.toString();
       if (channelId == null) continue;
 
       final startStr = raw['StartDate'] as String?;
@@ -318,7 +328,7 @@ class LiveTvGuideViewModel extends ChangeNotifier {
       if (startStr == null || endStr == null) continue;
 
       final program = GuideProgram(
-        id: raw['Id'] as String,
+        id: raw['Id']?.toString() ?? '',
         channelId: channelId,
         name: raw['Name'] as String? ?? '',
         startDate: DateTime.parse(startStr).toLocal(),

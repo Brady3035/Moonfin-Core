@@ -20,7 +20,7 @@ class SeriesTimerItem {
 
   factory SeriesTimerItem.fromJson(Map<String, dynamic> json) {
     return SeriesTimerItem(
-      id: json['Id'] as String,
+      id: json['Id']?.toString() ?? '',
       name: json['Name'] as String? ?? '',
       channelName: json['ChannelName'] as String?,
       recordAnyChannel: json['RecordAnyChannel'] as bool?,
@@ -31,8 +31,9 @@ class SeriesTimerItem {
 
   String get subtitle {
     final parts = <String>[];
-    final channelText =
-        (recordAnyChannel == true) ? 'All Channels' : channelName;
+    final channelText = (recordAnyChannel == true)
+        ? 'All Channels'
+        : channelName;
     if (channelText != null && channelText.isNotEmpty) parts.add(channelText);
     if (dayPattern != null && dayPattern!.isNotEmpty) parts.add(dayPattern!);
     return parts.join(' \u2022 ');

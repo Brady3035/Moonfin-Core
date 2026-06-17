@@ -102,7 +102,9 @@ class _ExternalPlayerHostScreenState extends State<ExternalPlayerHostScreen> {
         final resolver = GetIt.instance<MediaStreamResolver>();
         final playService = GetIt.instance<PlayerService>();
 
-        final maxBitrateOption = int.tryParse(_prefs.get(UserPreferences.maxBitrate));
+        final maxBitrateOption = int.tryParse(
+          _prefs.get(UserPreferences.maxBitrate),
+        );
         final maxResolution = _prefs.get(UserPreferences.maxVideoResolution);
         final profile = DeviceProfileBuilder.build(
           maxBitrateMbps: maxBitrateOption,
@@ -148,8 +150,9 @@ class _ExternalPlayerHostScreenState extends State<ExternalPlayerHostScreen> {
         }
 
         final maxBitrate = profile['MaxStreamingBitrate'] as int?;
-        final startTicks =
-            startPosition > Duration.zero ? startPosition.inMicroseconds * 10 : null;
+        final startTicks = startPosition > Duration.zero
+            ? startPosition.inMicroseconds * 10
+            : null;
 
         final resolution = await resolver.resolve(
           currentItem,
@@ -181,8 +184,9 @@ class _ExternalPlayerHostScreenState extends State<ExternalPlayerHostScreen> {
 
         final request = ExternalPlayerLaunchRequest(
           url: resolution.streamUrl,
-          mimeType:
-              resolution.mediaType.toLowerCase() == 'audio' ? 'audio/*' : 'video/*',
+          mimeType: resolution.mediaType.toLowerCase() == 'audio'
+              ? 'audio/*'
+              : 'video/*',
           component: component,
           title: currentItem.name,
           filename: _filenameForResolution(
@@ -220,7 +224,11 @@ class _ExternalPlayerHostScreenState extends State<ExternalPlayerHostScreen> {
             ? runtime
             : (endPosition ?? startPosition);
 
-        await playService.onPlaybackStop(currentItem, resolution, reportPosition);
+        await playService.onPlaybackStop(
+          currentItem,
+          resolution,
+          reportPosition,
+        );
 
         if (launchResult.hasError) {
           if (_shouldFallbackToInternalPlayer(launchResult.errorCode)) {
@@ -292,15 +300,14 @@ class _ExternalPlayerHostScreenState extends State<ExternalPlayerHostScreen> {
 
   void _showError(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
-  String? _filenameForResolution(
-    AggregatedItem item,
-    String mediaSourceId,
-  ) {
+  String? _filenameForResolution(AggregatedItem item, String mediaSourceId) {
     for (final source in item.mediaSources) {
-      if ((source['Id'] as String?) != mediaSourceId) continue;
+      if ((source['Id']?.toString()) != mediaSourceId) continue;
       final path = (source['Path'] as String?)?.trim();
       if (path != null && path.isNotEmpty) {
         return _basename(path);

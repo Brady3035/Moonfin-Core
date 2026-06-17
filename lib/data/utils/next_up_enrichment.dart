@@ -18,7 +18,7 @@ Future<List<AggregatedItem>> enrichNextUpItemsWithSeriesLastPlayed(
   MediaServerClient client,
 ) async {
   final seriesIds = items
-      .map((item) => item.rawData['SeriesId'] as String?)
+      .map((item) => item.rawData['SeriesId']?.toString())
       .where((id) => id != null && id.isNotEmpty)
       .cast<String>()
       .toSet()
@@ -42,7 +42,7 @@ Future<List<AggregatedItem>> enrichNextUpItemsWithSeriesLastPlayed(
     final seriesLastPlayedMap = <String, String>{};
     for (final item in recentItems) {
       if (item is Map) {
-        final sId = item['SeriesId'] as String?;
+        final sId = item['SeriesId']?.toString();
         final lastPlayed = item['UserData']?['LastPlayedDate'] as String?;
         if (sId != null && lastPlayed != null && lastPlayed.isNotEmpty) {
           seriesLastPlayedMap.putIfAbsent(sId, () => lastPlayed);
@@ -54,8 +54,9 @@ Future<List<AggregatedItem>> enrichNextUpItemsWithSeriesLastPlayed(
     //    Note: do NOT pass recursive=true when IDs are supplied — it has no
     //    effect on ID-based lookups but can cause some servers to include
     //    child items, eating into the limit.
-    final missingSeriesIds =
-        seriesIds.where((id) => !seriesLastPlayedMap.containsKey(id)).toList();
+    final missingSeriesIds = seriesIds
+        .where((id) => !seriesLastPlayedMap.containsKey(id))
+        .toList();
     if (missingSeriesIds.isNotEmpty) {
       final seriesResponse = await client.itemsApi.getItems(
         ids: missingSeriesIds,
@@ -65,7 +66,7 @@ Future<List<AggregatedItem>> enrichNextUpItemsWithSeriesLastPlayed(
       final seriesItems = seriesResponse['Items'] as List? ?? [];
       for (final s in seriesItems) {
         if (s is Map) {
-          final id = s['Id'] as String?;
+          final id = s['Id']?.toString();
           final lastPlayed = s['UserData']?['LastPlayedDate'] as String?;
           if (id != null && lastPlayed != null && lastPlayed.isNotEmpty) {
             seriesLastPlayedMap[id] = lastPlayed;
@@ -76,27 +77,31 @@ Future<List<AggregatedItem>> enrichNextUpItemsWithSeriesLastPlayed(
 
     // 3. Determine the effective date for each item
     return items.map((item) {
-      final sId = item.rawData['SeriesId'] as String?;
+      final sId = item.rawData['SeriesId']?.toString();
       final seriesLastPlayed = sId != null ? seriesLastPlayedMap[sId] : null;
       final episodeDateCreated = item.rawData['DateCreated'] as String?;
 
-      final lastPlayedDate =
-          seriesLastPlayed != null ? DateTime.tryParse(seriesLastPlayed) : null;
-      final dateCreated =
-          episodeDateCreated != null ? DateTime.tryParse(episodeDateCreated) : null;
+      final lastPlayedDate = seriesLastPlayed != null
+          ? DateTime.tryParse(seriesLastPlayed)
+          : null;
+      final dateCreated = episodeDateCreated != null
+          ? DateTime.tryParse(episodeDateCreated)
+          : null;
 
       DateTime? effectiveDate;
       if (lastPlayedDate != null && dateCreated != null) {
-        effectiveDate =
-            lastPlayedDate.isAfter(dateCreated) ? lastPlayedDate : dateCreated;
+        effectiveDate = lastPlayedDate.isAfter(dateCreated)
+            ? lastPlayedDate
+            : dateCreated;
       } else {
         effectiveDate = lastPlayedDate ?? dateCreated;
       }
 
       if (effectiveDate != null) {
         final updatedRaw = Map<String, dynamic>.from(item.rawData);
-        final userData =
-            Map<String, dynamic>.from(updatedRaw['UserData'] as Map? ?? {});
+        final userData = Map<String, dynamic>.from(
+          updatedRaw['UserData'] as Map? ?? {},
+        );
         userData['LastPlayedDate'] = effectiveDate.toIso8601String();
         updatedRaw['UserData'] = userData;
         return AggregatedItem(

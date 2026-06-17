@@ -112,12 +112,12 @@ class HomeViewModel extends ChangeNotifier {
     required MediaServerClient client,
     required MediaBarViewModel mediaBarViewModel,
     required MultiServerRepository multiServerRepo,
-  })  : _dataSource = dataSource,
-        _prefs = prefs,
-        _client = client,
-        _mediaBarViewModel = mediaBarViewModel,
-        _multiServerRepo = multiServerRepo,
-        _ownerUserId = client.userId ?? '';
+  }) : _dataSource = dataSource,
+       _prefs = prefs,
+       _client = client,
+       _mediaBarViewModel = mediaBarViewModel,
+       _multiServerRepo = multiServerRepo,
+       _ownerUserId = client.userId ?? '';
 
   Future<void> load({bool preserveExisting = false}) async {
     if (_isLoading) {
@@ -145,19 +145,33 @@ class HomeViewModel extends ChangeNotifier {
       final fallbackUsed = activeConfigs.isEmpty;
       final configs = fallbackUsed
           ? const [
-              HomeSectionConfig(type: HomeSectionType.resume, enabled: true, order: 0),
-              HomeSectionConfig(type: HomeSectionType.nextUp, enabled: true, order: 1),
-              HomeSectionConfig(type: HomeSectionType.latestMedia, enabled: true, order: 2),
+              HomeSectionConfig(
+                type: HomeSectionType.resume,
+                enabled: true,
+                order: 0,
+              ),
+              HomeSectionConfig(
+                type: HomeSectionType.nextUp,
+                enabled: true,
+                order: 1,
+              ),
+              HomeSectionConfig(
+                type: HomeSectionType.latestMedia,
+                enabled: true,
+                order: 2,
+              ),
             ]
           : activeConfigs;
-      final showFavoritesRows =
-          _prefs.get(UserPreferences.displayFavoritesRows);
-      final showCollectionsRows =
-          _prefs.get(UserPreferences.displayCollectionsRows);
-        final showGenresRows =
-          _prefs.get(UserPreferences.displayGenresRows);
-      final showPlaylistsRows =
-          _prefs.get(UserPreferences.displayPlaylistsRows);
+      final showFavoritesRows = _prefs.get(
+        UserPreferences.displayFavoritesRows,
+      );
+      final showCollectionsRows = _prefs.get(
+        UserPreferences.displayCollectionsRows,
+      );
+      final showGenresRows = _prefs.get(UserPreferences.displayGenresRows);
+      final showPlaylistsRows = _prefs.get(
+        UserPreferences.displayPlaylistsRows,
+      );
       final showSeerrRows =
           _prefs.get(UserPreferences.displaySeerrRows) &&
           GetIt.instance<PluginSyncService>().seerrAvailable;
@@ -165,23 +179,26 @@ class HomeViewModel extends ChangeNotifier {
       // Plugin-dynamic sections only make sense on the active server.
       final visibleConfigsRaw = configs
           .where(
-          (c) =>
-            (c.isBuiltin || (c.serverId != null && c.serverId == _serverId)) &&
-            (showFavoritesRows || !_isFavoriteSectionType(c.type)) &&
-            (showCollectionsRows ||
-              !((c.isBuiltin && _isCollectionsSectionType(c.type)) ||
-                (c.isPluginDynamic &&
-                  c.pluginSource ==
-                    HomeSectionPluginSource.collections))) &&
-            (showGenresRows ||
-              !((c.isBuiltin && _isGenresSectionType(c.type)) ||
-                (c.isPluginDynamic &&
-                  c.pluginSource == HomeSectionPluginSource.genres))) &&
-            (showPlaylistsRows ||
-              !((c.isBuiltin && _isPlaylistsSectionType(c.type)) ||
-                (c.isPluginDynamic &&
-                  c.pluginSource == HomeSectionPluginSource.playlists))) &&
-            (showSeerrRows || !_isSeerrSectionType(c.type)),
+            (c) =>
+                (c.isBuiltin ||
+                    (c.serverId != null && c.serverId == _serverId)) &&
+                (showFavoritesRows || !_isFavoriteSectionType(c.type)) &&
+                (showCollectionsRows ||
+                    !((c.isBuiltin && _isCollectionsSectionType(c.type)) ||
+                        (c.isPluginDynamic &&
+                            c.pluginSource ==
+                                HomeSectionPluginSource.collections))) &&
+                (showGenresRows ||
+                    !((c.isBuiltin && _isGenresSectionType(c.type)) ||
+                        (c.isPluginDynamic &&
+                            c.pluginSource ==
+                                HomeSectionPluginSource.genres))) &&
+                (showPlaylistsRows ||
+                    !((c.isBuiltin && _isPlaylistsSectionType(c.type)) ||
+                        (c.isPluginDynamic &&
+                            c.pluginSource ==
+                                HomeSectionPluginSource.playlists))) &&
+                (showSeerrRows || !_isSeerrSectionType(c.type)),
           )
           .toList(growable: false);
 
@@ -193,19 +210,22 @@ class HomeViewModel extends ChangeNotifier {
           .expand(_duplicateKeysForConfig)
           .toSet();
       final seenPluginKeys = <String>{};
-      final visibleConfigs = visibleConfigsRaw.where((c) {
-        if (!c.isPluginDynamic) return true;
-        final duplicateKeys = _duplicateKeysForConfig(c);
-        if (duplicateKeys.any(enabledBuiltinKeys.contains)) {
-          return false;
-        }
-        final duplicatesExistingPlugin =
-            duplicateKeys.any(seenPluginKeys.contains);
-        if (!duplicatesExistingPlugin) {
-          seenPluginKeys.addAll(duplicateKeys);
-        }
-        return !duplicatesExistingPlugin;
-      }).toList(growable: false);
+      final visibleConfigs = visibleConfigsRaw
+          .where((c) {
+            if (!c.isPluginDynamic) return true;
+            final duplicateKeys = _duplicateKeysForConfig(c);
+            if (duplicateKeys.any(enabledBuiltinKeys.contains)) {
+              return false;
+            }
+            final duplicatesExistingPlugin = duplicateKeys.any(
+              seenPluginKeys.contains,
+            );
+            if (!duplicatesExistingPlugin) {
+              seenPluginKeys.addAll(duplicateKeys);
+            }
+            return !duplicatesExistingPlugin;
+          })
+          .toList(growable: false);
 
       final sections = visibleConfigs
           .where((c) => c.isBuiltin)
@@ -218,13 +238,17 @@ class HomeViewModel extends ChangeNotifier {
 
       final merge = _prefs.get(UserPreferences.mergeContinueWatchingNextUp);
       final effectiveConfigs = visibleConfigs
-          .where((c) => !(c.isBuiltin && merge && c.type == HomeSectionType.nextUp))
+          .where(
+            (c) => !(c.isBuiltin && merge && c.type == HomeSectionType.nextUp),
+          )
           .toList();
 
       final nonResumeEffectiveConfigs = merge
           ? effectiveConfigs
-              .where((c) => !(c.isBuiltin && c.type == HomeSectionType.resume))
-              .toList()
+                .where(
+                  (c) => !(c.isBuiltin && c.type == HomeSectionType.resume),
+                )
+                .toList()
           : effectiveConfigs;
 
       final showMergedResume =
@@ -262,7 +286,9 @@ class HomeViewModel extends ChangeNotifier {
           }
           final loadedRows = sectionRows
               .map((r) => r.copyWith(items: _filterEmptyElements(r.items)))
-              .where((r) => r.items.isNotEmpty || r.rowType == HomeRowType.liveTv)
+              .where(
+                (r) => r.items.isNotEmpty || r.rowType == HomeRowType.liveTv,
+              )
               .toList();
           final placeholder = _placeholderForConfig(cfg);
           final loadedIds = loadedRows.map((r) => r.id).toSet();
@@ -275,7 +301,8 @@ class HomeViewModel extends ChangeNotifier {
             // sibling row that won't be removed.
             bool pastSection = false;
             for (final r in _rows) {
-              final willRemove = (placeholder != null && r.id == placeholder.id) ||
+              final willRemove =
+                  (placeholder != null && r.id == placeholder.id) ||
                   loadedIds.contains(r.id) ||
                   _rowBelongsToConfig(r, cfg);
               if (willRemove) {
@@ -286,14 +313,16 @@ class HomeViewModel extends ChangeNotifier {
               }
             }
           }
-          _rows.removeWhere((r) =>
-              (placeholder != null && r.id == placeholder.id) ||
-              loadedIds.contains(r.id) ||
-              // Also clear any stale rows that belonged to this section from a
-              // prior load but were not included in the fresh result. This
-              // prevents phantom rows when the section's row-set changes
-              // (e.g. library added/removed, latestItemsExcludes updated).
-              _rowBelongsToConfig(r, cfg));
+          _rows.removeWhere(
+            (r) =>
+                (placeholder != null && r.id == placeholder.id) ||
+                loadedIds.contains(r.id) ||
+                // Also clear any stale rows that belonged to this section from a
+                // prior load but were not included in the fresh result. This
+                // prevents phantom rows when the section's row-set changes
+                // (e.g. library added/removed, latestItemsExcludes updated).
+                _rowBelongsToConfig(r, cfg),
+          );
 
           if (loadedRows.isNotEmpty) {
             final insertIndex = anchorId != null
@@ -329,7 +358,9 @@ class HomeViewModel extends ChangeNotifier {
     }
   }
 
-  List<HomeRow> _reconcilePreservedRows(List<HomeSectionConfig> effectiveConfigs) {
+  List<HomeRow> _reconcilePreservedRows(
+    List<HomeSectionConfig> effectiveConfigs,
+  ) {
     final currentRows = _rows;
     final reconciledRows = <HomeRow>[];
 
@@ -350,7 +381,9 @@ class HomeViewModel extends ChangeNotifier {
   }
 
   List<HomeRow> _rowsForConfig(List<HomeRow> rows, HomeSectionConfig cfg) {
-    return rows.where((row) => _rowBelongsToConfig(row, cfg)).toList(growable: false);
+    return rows
+        .where((row) => _rowBelongsToConfig(row, cfg))
+        .toList(growable: false);
   }
 
   List<AggregatedItem> _filterEmptyElements(List<AggregatedItem> items) {
@@ -459,7 +492,11 @@ class HomeViewModel extends ChangeNotifier {
       if (_multiServerEnabled && !row.id.startsWith('pluginDynamic:')) {
         result = await _multiServerRepo.loadMore(row: row);
       } else {
-        result = await _dataSource.loadMore(row: row, serverId: _serverId, offset: currentOffset);
+        result = await _dataSource.loadMore(
+          row: row,
+          serverId: _serverId,
+          offset: currentOffset,
+        );
       }
       _rowOffsets[row.id] = currentOffset + 15;
 
@@ -582,7 +619,9 @@ class HomeViewModel extends ChangeNotifier {
         return const <String>{};
       case HomeSectionPluginSource.hss:
         final builtin = _builtinForPluginSection(cfg.pluginSection);
-        return builtin == null ? const <String>{} : _duplicateKeysForBuiltin(builtin);
+        return builtin == null
+            ? const <String>{}
+            : _duplicateKeysForBuiltin(builtin);
       case HomeSectionPluginSource.kefinTweaks:
         return _duplicateKeysForKefinSection(
           cfg.pluginSection,
@@ -702,43 +741,56 @@ class HomeViewModel extends ChangeNotifier {
 
   Future<List<HomeRow>> _loadSection(HomeSectionType section) async {
     final l10n = currentAppLocalizations();
-    final favoritesSortBy =
-        _prefs.get(UserPreferences.favoritesRowSortBy).apiValue;
-    final collectionsSortBy =
-        _prefs.get(UserPreferences.collectionsRowSortBy).apiValue;
+    final favoritesSortBy = _prefs
+        .get(UserPreferences.favoritesRowSortBy)
+        .apiValue;
+    final collectionsSortBy = _prefs
+        .get(UserPreferences.collectionsRowSortBy)
+        .apiValue;
     final genresSortBy = _prefs.get(UserPreferences.genresRowSortBy).apiValue;
-    final genresItemFilter = _prefs.get(UserPreferences.genresRowItemFilter).includeItemTypes;
+    final genresItemFilter = _prefs
+        .get(UserPreferences.genresRowItemFilter)
+        .includeItemTypes;
     const sortOrder = 'Ascending';
     switch (section) {
       case HomeSectionType.resume:
-        return [_multiServerEnabled
-            ? await _multiServerRepo.getAggregatedResume()
-            : await _dataSource.loadResume(_serverId)];
+        return [
+          _multiServerEnabled
+              ? await _multiServerRepo.getAggregatedResume()
+              : await _dataSource.loadResume(_serverId),
+        ];
       case HomeSectionType.resumeAudio:
-        return [_multiServerEnabled
-            ? await _multiServerRepo.getAggregatedResumeAudio()
-            : await _dataSource.loadResumeAudio(_serverId)];
+        return [
+          _multiServerEnabled
+              ? await _multiServerRepo.getAggregatedResumeAudio()
+              : await _dataSource.loadResumeAudio(_serverId),
+        ];
       case HomeSectionType.nextUp:
-        return [_multiServerEnabled
-            ? await _multiServerRepo.getAggregatedNextUp()
-            : await _dataSource.loadNextUp(_serverId)];
+        return [
+          _multiServerEnabled
+              ? await _multiServerRepo.getAggregatedNextUp()
+              : await _dataSource.loadNextUp(_serverId),
+        ];
       case HomeSectionType.latestMedia:
         return _multiServerEnabled
             ? await _multiServerRepo.getAggregatedLatestMediaRows()
             : _loadLatestMediaRows();
       case HomeSectionType.playlists:
-        final playlistsSortBy =
-            _prefs.get(UserPreferences.playlistsRowSortBy).apiValue;
-        return [_multiServerEnabled
-            ? await _multiServerRepo.getAggregatedPlaylists(
-                sortBy: playlistsSortBy,
-                sortOrder: sortOrder,
-              )
-            : await _dataSource.loadPlaylists(
-                _serverId,
-                sortBy: playlistsSortBy,
-                sortOrder: sortOrder,
-              )];
+        final playlistsSortBy = _prefs
+            .get(UserPreferences.playlistsRowSortBy)
+            .apiValue;
+        return [
+          _multiServerEnabled
+              ? await _multiServerRepo.getAggregatedPlaylists(
+                  sortBy: playlistsSortBy,
+                  sortOrder: sortOrder,
+                )
+              : await _dataSource.loadPlaylists(
+                  _serverId,
+                  sortBy: playlistsSortBy,
+                  sortOrder: sortOrder,
+                ),
+        ];
       case HomeSectionType.favoriteMovies:
       case HomeSectionType.favoriteSeries:
       case HomeSectionType.favoriteEpisodes:
@@ -769,37 +821,55 @@ class HomeViewModel extends ChangeNotifier {
                 ),
         ];
       case HomeSectionType.collections:
-        return [_multiServerEnabled
-            ? await _multiServerRepo.getAggregatedCollections(
-                sortBy: collectionsSortBy,
-                sortOrder: sortOrder,
-              )
-            : await _dataSource.loadCollections(
-                _serverId,
-                sortBy: collectionsSortBy,
-                sortOrder: sortOrder,
-              )];
+        return [
+          _multiServerEnabled
+              ? await _multiServerRepo.getAggregatedCollections(
+                  sortBy: collectionsSortBy,
+                  sortOrder: sortOrder,
+                )
+              : await _dataSource.loadCollections(
+                  _serverId,
+                  sortBy: collectionsSortBy,
+                  sortOrder: sortOrder,
+                ),
+        ];
       case HomeSectionType.genres:
-        return [_multiServerEnabled
-            ? await _multiServerRepo.getAggregatedGenres(
-                sortBy: genresSortBy,
-                sortOrder: sortOrder,
-                includeItemTypes: genresItemFilter,
-              )
-            : await _dataSource.loadGenres(
-                _serverId,
-                sortBy: genresSortBy,
-                sortOrder: sortOrder,
-                includeItemTypes: genresItemFilter,
-              )];
+        return [
+          _multiServerEnabled
+              ? await _multiServerRepo.getAggregatedGenres(
+                  sortBy: genresSortBy,
+                  sortOrder: sortOrder,
+                  includeItemTypes: genresItemFilter,
+                )
+              : await _dataSource.loadGenres(
+                  _serverId,
+                  sortBy: genresSortBy,
+                  sortOrder: sortOrder,
+                  includeItemTypes: genresItemFilter,
+                ),
+        ];
       case HomeSectionType.libraryTilesSmall:
-        return [_multiServerEnabled
-            ? await _multiServerRepo.getAggregatedLibraryTiles(rowType: HomeRowType.libraryTiles)
-            : await _dataSource.loadLibraryTiles(_serverId, HomeRowType.libraryTiles)];
+        return [
+          _multiServerEnabled
+              ? await _multiServerRepo.getAggregatedLibraryTiles(
+                  rowType: HomeRowType.libraryTiles,
+                )
+              : await _dataSource.loadLibraryTiles(
+                  _serverId,
+                  HomeRowType.libraryTiles,
+                ),
+        ];
       case HomeSectionType.libraryButtons:
-        return [_multiServerEnabled
-            ? await _multiServerRepo.getAggregatedLibraryTiles(rowType: HomeRowType.libraryTilesSmall)
-            : await _dataSource.loadLibraryTiles(_serverId, HomeRowType.libraryTilesSmall)];
+        return [
+          _multiServerEnabled
+              ? await _multiServerRepo.getAggregatedLibraryTiles(
+                  rowType: HomeRowType.libraryTilesSmall,
+                )
+              : await _dataSource.loadLibraryTiles(
+                  _serverId,
+                  HomeRowType.libraryTilesSmall,
+                ),
+        ];
       case HomeSectionType.liveTv:
         try {
           if (!await _dataSource.hasLiveTvChannels()) return [];
@@ -831,27 +901,71 @@ class HomeViewModel extends ChangeNotifier {
         _mediaBarViewModel.load();
         return [];
       case HomeSectionType.seerrRecentRequests:
-        return _loadSeerrRow(SeerrRowType.recentRequests, l10n.recentRequests, 'seerr_recent_requests');
+        return _loadSeerrRow(
+          SeerrRowType.recentRequests,
+          l10n.recentRequests,
+          'seerr_recent_requests',
+        );
       case HomeSectionType.seerrRecentlyAdded:
-        return _loadSeerrRow(SeerrRowType.recentlyAdded, l10n.recentlyAdded, 'seerr_recently_added');
+        return _loadSeerrRow(
+          SeerrRowType.recentlyAdded,
+          l10n.recentlyAdded,
+          'seerr_recently_added',
+        );
       case HomeSectionType.seerrPopularMovies:
-        return _loadSeerrRow(SeerrRowType.popularMovies, l10n.popularMovies, 'seerr_popular_movies');
+        return _loadSeerrRow(
+          SeerrRowType.popularMovies,
+          l10n.popularMovies,
+          'seerr_popular_movies',
+        );
       case HomeSectionType.seerrUpcomingMovies:
-        return _loadSeerrRow(SeerrRowType.upcomingMovies, l10n.upcomingMovies, 'seerr_upcoming_movies');
+        return _loadSeerrRow(
+          SeerrRowType.upcomingMovies,
+          l10n.upcomingMovies,
+          'seerr_upcoming_movies',
+        );
       case HomeSectionType.seerrPopularSeries:
-        return _loadSeerrRow(SeerrRowType.popularSeries, l10n.popularSeries, 'seerr_popular_series');
+        return _loadSeerrRow(
+          SeerrRowType.popularSeries,
+          l10n.popularSeries,
+          'seerr_popular_series',
+        );
       case HomeSectionType.seerrUpcomingSeries:
-        return _loadSeerrRow(SeerrRowType.upcomingSeries, l10n.upcomingSeries, 'seerr_upcoming_series');
+        return _loadSeerrRow(
+          SeerrRowType.upcomingSeries,
+          l10n.upcomingSeries,
+          'seerr_upcoming_series',
+        );
       case HomeSectionType.seerrTrending:
-        return _loadSeerrRow(SeerrRowType.trending, l10n.trending, 'seerr_trending');
+        return _loadSeerrRow(
+          SeerrRowType.trending,
+          l10n.trending,
+          'seerr_trending',
+        );
       case HomeSectionType.seerrMovieGenres:
-        return _loadSeerrRow(SeerrRowType.movieGenres, l10n.movieGenres, 'seerr_movie_genres');
+        return _loadSeerrRow(
+          SeerrRowType.movieGenres,
+          l10n.movieGenres,
+          'seerr_movie_genres',
+        );
       case HomeSectionType.seerrStudios:
-        return _loadSeerrRow(SeerrRowType.studios, l10n.studios, 'seerr_studios');
+        return _loadSeerrRow(
+          SeerrRowType.studios,
+          l10n.studios,
+          'seerr_studios',
+        );
       case HomeSectionType.seerrSeriesGenres:
-        return _loadSeerrRow(SeerrRowType.seriesGenres, l10n.seriesGenres, 'seerr_series_genres');
+        return _loadSeerrRow(
+          SeerrRowType.seriesGenres,
+          l10n.seriesGenres,
+          'seerr_series_genres',
+        );
       case HomeSectionType.seerrNetworks:
-        return _loadSeerrRow(SeerrRowType.networks, l10n.networks, 'seerr_networks');
+        return _loadSeerrRow(
+          SeerrRowType.networks,
+          l10n.networks,
+          'seerr_networks',
+        );
       case HomeSectionType.recentlyReleased:
       case HomeSectionType.resumeBook:
       case HomeSectionType.none:
@@ -870,23 +984,20 @@ class HomeViewModel extends ChangeNotifier {
     final views = viewsResponse['Items'] as List? ?? [];
     final Set<String> latestExcludes = await configFuture;
 
-    final filteredViews = views
-        .cast<Map<String, dynamic>>()
-        .where((data) {
-          final id = data['Id'] as String;
-          final collectionType = (data['CollectionType'] as String?)?.toLowerCase();
-          if (collectionType == 'music' ||
-              collectionType == 'playlists' ||
-              collectionType == 'boxsets' ||
-              collectionType == 'livetv') {
-            return false;
-          }
-          return !latestExcludes.contains(id);
-        })
-        .toList();
+    final filteredViews = views.cast<Map<String, dynamic>>().where((data) {
+      final id = data['Id']?.toString() ?? '';
+      final collectionType = (data['CollectionType'] as String?)?.toLowerCase();
+      if (collectionType == 'music' ||
+          collectionType == 'playlists' ||
+          collectionType == 'boxsets' ||
+          collectionType == 'livetv') {
+        return false;
+      }
+      return !latestExcludes.contains(id);
+    }).toList();
 
     final tasks = filteredViews.map((data) async {
-      final id = data['Id'] as String;
+      final id = data['Id']?.toString() ?? '';
       final name = data['Name'] as String? ?? '';
       final collectionType = (data['CollectionType'] as String?)?.toLowerCase();
       try {
@@ -912,28 +1023,38 @@ class HomeViewModel extends ChangeNotifier {
     switch (section) {
       case HomeSectionType.resume:
         return HomeRow(
-          id: 'resume', title: l10n.continueWatching,
-          rowType: HomeRowType.resume, isLoading: true,
+          id: 'resume',
+          title: l10n.continueWatching,
+          rowType: HomeRowType.resume,
+          isLoading: true,
         );
       case HomeSectionType.resumeAudio:
         return HomeRow(
-          id: 'resumeAudio', title: l10n.continueListening,
-          rowType: HomeRowType.resumeAudio, isLoading: true,
+          id: 'resumeAudio',
+          title: l10n.continueListening,
+          rowType: HomeRowType.resumeAudio,
+          isLoading: true,
         );
       case HomeSectionType.nextUp:
         return HomeRow(
-          id: 'nextUp', title: l10n.nextUp,
-          rowType: HomeRowType.nextUp, isLoading: true,
+          id: 'nextUp',
+          title: l10n.nextUp,
+          rowType: HomeRowType.nextUp,
+          isLoading: true,
         );
       case HomeSectionType.latestMedia:
         return HomeRow(
-          id: 'latestMedia', title: l10n.latestMedia,
-          rowType: HomeRowType.latestMedia, isLoading: true,
+          id: 'latestMedia',
+          title: l10n.latestMedia,
+          rowType: HomeRowType.latestMedia,
+          isLoading: true,
         );
       case HomeSectionType.playlists:
         return HomeRow(
-          id: 'playlists', title: l10n.playlists,
-          rowType: HomeRowType.playlists, isLoading: true,
+          id: 'playlists',
+          title: l10n.playlists,
+          rowType: HomeRowType.playlists,
+          isLoading: true,
         );
       case HomeSectionType.favoriteMovies:
       case HomeSectionType.favoriteSeries:
@@ -965,68 +1086,94 @@ class HomeViewModel extends ChangeNotifier {
         );
       case HomeSectionType.libraryTilesSmall:
         return HomeRow(
-          id: 'libraryTiles', title: l10n.myMedia,
-          rowType: HomeRowType.libraryTiles, isLoading: true,
+          id: 'libraryTiles',
+          title: l10n.myMedia,
+          rowType: HomeRowType.libraryTiles,
+          isLoading: true,
         );
       case HomeSectionType.libraryButtons:
         return HomeRow(
-          id: 'libraryTilesSmall', title: l10n.myMedia,
-          rowType: HomeRowType.libraryTilesSmall, isLoading: true,
+          id: 'libraryTilesSmall',
+          title: l10n.myMedia,
+          rowType: HomeRowType.libraryTilesSmall,
+          isLoading: true,
         );
       case HomeSectionType.seerrRecentRequests:
         return HomeRow(
-          id: 'seerr_recent_requests', title: l10n.recentRequests,
-          rowType: HomeRowType.pluginDynamic, isLoading: true,
+          id: 'seerr_recent_requests',
+          title: l10n.recentRequests,
+          rowType: HomeRowType.pluginDynamic,
+          isLoading: true,
         );
       case HomeSectionType.seerrRecentlyAdded:
         return HomeRow(
-          id: 'seerr_recently_added', title: l10n.recentlyAdded,
-          rowType: HomeRowType.pluginDynamic, isLoading: true,
+          id: 'seerr_recently_added',
+          title: l10n.recentlyAdded,
+          rowType: HomeRowType.pluginDynamic,
+          isLoading: true,
         );
       case HomeSectionType.seerrPopularMovies:
         return HomeRow(
-          id: 'seerr_popular_movies', title: l10n.popularMovies,
-          rowType: HomeRowType.pluginDynamic, isLoading: true,
+          id: 'seerr_popular_movies',
+          title: l10n.popularMovies,
+          rowType: HomeRowType.pluginDynamic,
+          isLoading: true,
         );
       case HomeSectionType.seerrUpcomingMovies:
         return HomeRow(
-          id: 'seerr_upcoming_movies', title: l10n.upcomingMovies,
-          rowType: HomeRowType.pluginDynamic, isLoading: true,
+          id: 'seerr_upcoming_movies',
+          title: l10n.upcomingMovies,
+          rowType: HomeRowType.pluginDynamic,
+          isLoading: true,
         );
       case HomeSectionType.seerrPopularSeries:
         return HomeRow(
-          id: 'seerr_popular_series', title: l10n.popularSeries,
-          rowType: HomeRowType.pluginDynamic, isLoading: true,
+          id: 'seerr_popular_series',
+          title: l10n.popularSeries,
+          rowType: HomeRowType.pluginDynamic,
+          isLoading: true,
         );
       case HomeSectionType.seerrUpcomingSeries:
         return HomeRow(
-          id: 'seerr_upcoming_series', title: l10n.upcomingSeries,
-          rowType: HomeRowType.pluginDynamic, isLoading: true,
+          id: 'seerr_upcoming_series',
+          title: l10n.upcomingSeries,
+          rowType: HomeRowType.pluginDynamic,
+          isLoading: true,
         );
       case HomeSectionType.seerrTrending:
         return HomeRow(
-          id: 'seerr_trending', title: l10n.trending,
-          rowType: HomeRowType.pluginDynamic, isLoading: true,
+          id: 'seerr_trending',
+          title: l10n.trending,
+          rowType: HomeRowType.pluginDynamic,
+          isLoading: true,
         );
       case HomeSectionType.seerrMovieGenres:
         return HomeRow(
-          id: 'seerr_movie_genres', title: l10n.movieGenres,
-          rowType: HomeRowType.pluginDynamic, isLoading: true,
+          id: 'seerr_movie_genres',
+          title: l10n.movieGenres,
+          rowType: HomeRowType.pluginDynamic,
+          isLoading: true,
         );
       case HomeSectionType.seerrStudios:
         return HomeRow(
-          id: 'seerr_studios', title: l10n.studios,
-          rowType: HomeRowType.pluginDynamic, isLoading: true,
+          id: 'seerr_studios',
+          title: l10n.studios,
+          rowType: HomeRowType.pluginDynamic,
+          isLoading: true,
         );
       case HomeSectionType.seerrSeriesGenres:
         return HomeRow(
-          id: 'seerr_series_genres', title: l10n.seriesGenres,
-          rowType: HomeRowType.pluginDynamic, isLoading: true,
+          id: 'seerr_series_genres',
+          title: l10n.seriesGenres,
+          rowType: HomeRowType.pluginDynamic,
+          isLoading: true,
         );
       case HomeSectionType.seerrNetworks:
         return HomeRow(
-          id: 'seerr_networks', title: l10n.networks,
-          rowType: HomeRowType.pluginDynamic, isLoading: true,
+          id: 'seerr_networks',
+          title: l10n.networks,
+          rowType: HomeRowType.pluginDynamic,
+          isLoading: true,
         );
       case HomeSectionType.liveTv:
       case HomeSectionType.activeRecordings:
@@ -1098,10 +1245,13 @@ class HomeViewModel extends ChangeNotifier {
             mergedItemsMap.putIfAbsent(item.id, () => item);
           }
           int byLastPlayedDate(AggregatedItem a, AggregatedItem b) {
-            final aDate = a.rawData['UserData']?['LastPlayedDate'] as String? ?? '';
-            final bDate = b.rawData['UserData']?['LastPlayedDate'] as String? ?? '';
+            final aDate =
+                a.rawData['UserData']?['LastPlayedDate'] as String? ?? '';
+            final bDate =
+                b.rawData['UserData']?['LastPlayedDate'] as String? ?? '';
             return bDate.compareTo(aDate);
           }
+
           final sorted = mergedItemsMap.values.toList()..sort(byLastPlayedDate);
           _applyMergedResumeResult(sorted);
         } else {
@@ -1117,10 +1267,13 @@ class HomeViewModel extends ChangeNotifier {
             mergedItemsMap.putIfAbsent(item.id, () => item);
           }
           int byLastPlayedDate(AggregatedItem a, AggregatedItem b) {
-            final aDate = a.rawData['UserData']?['LastPlayedDate'] as String? ?? '';
-            final bDate = b.rawData['UserData']?['LastPlayedDate'] as String? ?? '';
+            final aDate =
+                a.rawData['UserData']?['LastPlayedDate'] as String? ?? '';
+            final bDate =
+                b.rawData['UserData']?['LastPlayedDate'] as String? ?? '';
             return bDate.compareTo(aDate);
           }
+
           final sorted = mergedItemsMap.values.toList()..sort(byLastPlayedDate);
           _applyMergedResumeResult(sorted);
         }
@@ -1148,7 +1301,11 @@ class HomeViewModel extends ChangeNotifier {
 
   static const _seerrEnrichConcurrency = 5;
 
-  Future<List<HomeRow>> _loadSeerrRow(SeerrRowType type, String title, String rowId) async {
+  Future<List<HomeRow>> _loadSeerrRow(
+    SeerrRowType type,
+    String title,
+    String rowId,
+  ) async {
     try {
       final repo = await GetIt.instance.getAsync<SeerrRepository>();
       final seerrPrefs = GetIt.instance<SeerrPreferences>();
@@ -1226,28 +1383,25 @@ class HomeViewModel extends ChangeNotifier {
           requestedBy: user.canViewAllRequests ? null : user.id,
           limit: limit,
         );
-        final mapped = response.results
-            .where((r) => r.media != null)
-            .map((r) {
-              final media = r.media!;
-              return SeerrDiscoverItem(
-                id: media.tmdbId ?? media.id,
-                title: media.title ?? media.name,
-                name: media.name ?? media.title,
-                overview: media.overview,
-                releaseDate: media.releaseDate,
-                firstAirDate: media.firstAirDate,
-                mediaType: r.type,
-                posterPath: media.posterPath,
-                backdropPath: media.backdropPath,
-                mediaInfo: SeerrMediaInfo(
-                  id: media.id,
-                  tmdbId: media.tmdbId,
-                  status: media.status,
-                ),
-              );
-            })
-            .toList();
+        final mapped = response.results.where((r) => r.media != null).map((r) {
+          final media = r.media!;
+          return SeerrDiscoverItem(
+            id: media.tmdbId ?? media.id,
+            title: media.title ?? media.name,
+            name: media.name ?? media.title,
+            overview: media.overview,
+            releaseDate: media.releaseDate,
+            firstAirDate: media.firstAirDate,
+            mediaType: r.type,
+            posterPath: media.posterPath,
+            backdropPath: media.backdropPath,
+            mediaInfo: SeerrMediaInfo(
+              id: media.id,
+              tmdbId: media.tmdbId,
+              status: media.status,
+            ),
+          );
+        }).toList();
         rawItems = (await mapBounded(
           mapped,
           _seerrEnrichConcurrency,
@@ -1255,22 +1409,26 @@ class HomeViewModel extends ChangeNotifier {
         )).whereType<SeerrDiscoverItem>().toList();
       } else if (type == SeerrRowType.recentlyAdded) {
         final media = await repo.getRecentlyAdded(limit: limit);
-        final mapped = media.map((m) => SeerrDiscoverItem(
-          id: m.tmdbId ?? m.id,
-          title: m.title,
-          name: m.name,
-          overview: m.overview,
-          releaseDate: m.releaseDate,
-          firstAirDate: m.firstAirDate,
-          mediaType: m.mediaType,
-          posterPath: m.posterPath,
-          backdropPath: m.backdropPath,
-          mediaInfo: SeerrMediaInfo(
-            id: m.id,
-            tmdbId: m.tmdbId,
-            status: m.status,
-          ),
-        )).toList();
+        final mapped = media
+            .map(
+              (m) => SeerrDiscoverItem(
+                id: m.tmdbId ?? m.id,
+                title: m.title,
+                name: m.name,
+                overview: m.overview,
+                releaseDate: m.releaseDate,
+                firstAirDate: m.firstAirDate,
+                mediaType: m.mediaType,
+                posterPath: m.posterPath,
+                backdropPath: m.backdropPath,
+                mediaInfo: SeerrMediaInfo(
+                  id: m.id,
+                  tmdbId: m.tmdbId,
+                  status: m.status,
+                ),
+              ),
+            )
+            .toList();
         rawItems = (await mapBounded(
           mapped,
           _seerrEnrichConcurrency,
@@ -1284,13 +1442,16 @@ class HomeViewModel extends ChangeNotifier {
       }
 
       final filtered = rawItems.where((item) {
-        if (type != SeerrRowType.recentlyAdded && type != SeerrRowType.recentRequests) {
+        if (type != SeerrRowType.recentlyAdded &&
+            type != SeerrRowType.recentRequests) {
           if (item.isAvailable || item.isBlacklisted) return false;
         }
         if (blockNsfw) {
           if (item.adult) return false;
           final text = '${item.displayTitle} ${item.overview ?? ''}';
-          if (SeerrDiscoverViewModel.nsfwPatterns.any((p) => p.hasMatch(text))) {
+          if (SeerrDiscoverViewModel.nsfwPatterns.any(
+            (p) => p.hasMatch(text),
+          )) {
             return false;
           }
         }
@@ -1307,7 +1468,9 @@ class HomeViewModel extends ChangeNotifier {
             'Overview': item.overview ?? '',
             'PosterPath': item.posterPath ?? '',
             'BackdropPath': item.backdropPath ?? '',
-            'ProductionYear': _extractYear(item.releaseDate ?? item.firstAirDate),
+            'ProductionYear': _extractYear(
+              item.releaseDate ?? item.firstAirDate,
+            ),
             'SeerrMediaType': item.mediaType,
             'SeerrStatus': item.mediaInfo?.status,
           },
@@ -1354,7 +1517,11 @@ class HomeViewModel extends ChangeNotifier {
     );
   }
 
-  Future<SeerrDiscoverPage?> _loadSeerrPage(SeerrRepository repo, SeerrRowType type, int limit) async {
+  Future<SeerrDiscoverPage?> _loadSeerrPage(
+    SeerrRepository repo,
+    SeerrRowType type,
+    int limit,
+  ) async {
     switch (type) {
       case SeerrRowType.trending:
         return repo.getTrending(limit: limit, offset: 0);
@@ -1371,8 +1538,13 @@ class HomeViewModel extends ChangeNotifier {
     }
   }
 
-  Future<SeerrDiscoverItem> _enrichSeerrItem(SeerrRepository repo, SeerrDiscoverItem item) async {
-    if (item.backdropPath != null && item.voteAverage != null && (item.releaseDate != null || item.firstAirDate != null)) {
+  Future<SeerrDiscoverItem> _enrichSeerrItem(
+    SeerrRepository repo,
+    SeerrDiscoverItem item,
+  ) async {
+    if (item.backdropPath != null &&
+        item.voteAverage != null &&
+        (item.releaseDate != null || item.firstAirDate != null)) {
       return item;
     }
     final tmdbId = item.mediaInfo?.tmdbId ?? item.id;
@@ -1444,4 +1616,3 @@ class HomeViewModel extends ChangeNotifier {
     return null;
   }
 }
-

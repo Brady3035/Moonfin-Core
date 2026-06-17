@@ -54,7 +54,9 @@ class _SavedMediaScreenState extends ConsumerState<SavedMediaScreen> {
           children: [
             _buildHeader(storage),
             _buildFilterChips(),
-            Expanded(child: _buildContent(movies, series, audio, audioBooks, books)),
+            Expanded(
+              child: _buildContent(movies, series, audio, audioBooks, books),
+            ),
           ],
         ),
       ),
@@ -69,7 +71,9 @@ class _SavedMediaScreenState extends ConsumerState<SavedMediaScreen> {
           if (!PlatformDetection.isTV)
             IconButton(
               icon: Icon(Icons.arrow_back, color: AppColorScheme.onSurface),
-              onPressed: () => context.canPop() ? context.pop() : context.go(Destinations.home),
+              onPressed: () => context.canPop()
+                  ? context.pop()
+                  : context.go(Destinations.home),
             ),
           const SizedBox(width: 8),
           Text(
@@ -123,7 +127,9 @@ class _SavedMediaScreenState extends ConsumerState<SavedMediaScreen> {
                 selected: selected,
                 onSelected: (_) => setState(() => _filter = f),
                 selectedColor: AppColorScheme.onSurface.withValues(alpha: 0.2),
-                backgroundColor: AppColorScheme.onSurface.withValues(alpha: 0.06),
+                backgroundColor: AppColorScheme.onSurface.withValues(
+                  alpha: 0.06,
+                ),
                 labelStyle: TextStyle(
                   color: selected
                       ? AppColorScheme.onSurface
@@ -131,7 +137,9 @@ class _SavedMediaScreenState extends ConsumerState<SavedMediaScreen> {
                   fontSize: 13,
                 ),
                 side: BorderSide.none,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
               ),
             );
           }).toList(),
@@ -159,8 +167,12 @@ class _SavedMediaScreenState extends ConsumerState<SavedMediaScreen> {
     final showMusic = _filter == _Filter.all || _filter == _Filter.music;
     final showBooks = _filter == _Filter.all || _filter == _Filter.books;
 
-    final hasAnything = movieList.isNotEmpty || seriesList.isNotEmpty ||
-        audioList.isNotEmpty || audioBookList.isNotEmpty || bookList.isNotEmpty;
+    final hasAnything =
+        movieList.isNotEmpty ||
+        seriesList.isNotEmpty ||
+        audioList.isNotEmpty ||
+        audioBookList.isNotEmpty ||
+        bookList.isNotEmpty;
 
     if (!hasAnything) {
       return _buildEmptyState(hasSavedMedia: false);
@@ -186,7 +198,11 @@ class _SavedMediaScreenState extends ConsumerState<SavedMediaScreen> {
         ],
         if (showSeries && seriesList.isNotEmpty) ...[
           _sectionTitle(AppLocalizations.of(context).tvShows),
-          _buildGrid(seriesList, onTap: (item) => context.push(Destinations.downloadedSeries(item.itemId))),
+          _buildGrid(
+            seriesList,
+            onTap: (item) =>
+                context.push(Destinations.downloadedSeries(item.itemId)),
+          ),
           const SizedBox(height: 24),
         ],
         if (showMusic && musicAlbums.isNotEmpty) ...[
@@ -201,7 +217,12 @@ class _SavedMediaScreenState extends ConsumerState<SavedMediaScreen> {
         ],
         if (showBooks && bookList.isNotEmpty) ...[
           _sectionTitle(AppLocalizations.of(context).books),
-          _buildGrid(bookList, onTap: (item) => context.push(Destinations.book(item.itemId, serverId: item.serverId))),
+          _buildGrid(
+            bookList,
+            onTap: (item) => context.push(
+              Destinations.book(item.itemId, serverId: item.serverId),
+            ),
+          ),
           const SizedBox(height: 24),
         ],
       ],
@@ -221,7 +242,9 @@ class _SavedMediaScreenState extends ConsumerState<SavedMediaScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            hasSavedMedia ? AppLocalizations.of(context).noMediaInFilter : AppLocalizations.of(context).noDownloadedMediaYet,
+            hasSavedMedia
+                ? AppLocalizations.of(context).noMediaInFilter
+                : AppLocalizations.of(context).noDownloadedMediaYet,
             style: TextStyle(
               color: AppColorScheme.onSurface.withValues(alpha: 0.5),
               fontSize: 16,
@@ -232,7 +255,9 @@ class _SavedMediaScreenState extends ConsumerState<SavedMediaScreen> {
             OutlinedButton(
               onPressed: () => context.go(Destinations.home),
               style: OutlinedButton.styleFrom(
-                foregroundColor: AppColorScheme.onSurface.withValues(alpha: 0.7),
+                foregroundColor: AppColorScheme.onSurface.withValues(
+                  alpha: 0.7,
+                ),
               ),
               child: Text(AppLocalizations.of(context).browseLibrary),
             ),
@@ -256,96 +281,121 @@ class _SavedMediaScreenState extends ConsumerState<SavedMediaScreen> {
     );
   }
 
-  Widget _buildGrid(List<DownloadedItem> items, {required ValueChanged<DownloadedItem> onTap}) {
-    return LayoutBuilder(builder: (context, constraints) {
-      const cardWidth = 130.0;
-      final crossAxisCount = (constraints.maxWidth / cardWidth).floor().clamp(2, 8);
+  Widget _buildGrid(
+    List<DownloadedItem> items, {
+    required ValueChanged<DownloadedItem> onTap,
+  }) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const cardWidth = 130.0;
+        final crossAxisCount = (constraints.maxWidth / cardWidth).floor().clamp(
+          2,
+          8,
+        );
 
-      return GridView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: crossAxisCount,
-          childAspectRatio: 2 / 3.4,
-          crossAxisSpacing: 10,
-          mainAxisSpacing: 10,
-        ),
-        itemCount: items.length,
-        itemBuilder: (context, index) {
-          final item = items[index];
-          return _DownloadedCard(
-            item: item,
-            onTap: () => onTap(item),
-            onLongPress: () => _showDeleteDialog(item),
-          );
-        },
-      );
-    });
+        return GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: crossAxisCount,
+            childAspectRatio: 2 / 3.4,
+            crossAxisSpacing: 10,
+            mainAxisSpacing: 10,
+          ),
+          itemCount: items.length,
+          itemBuilder: (context, index) {
+            final item = items[index];
+            return _DownloadedCard(
+              item: item,
+              onTap: () => onTap(item),
+              onLongPress: () => _showDeleteDialog(item),
+            );
+          },
+        );
+      },
+    );
   }
 
   Widget _buildAlbumGrid(List<_MusicAlbumGroup> albums) {
-    return LayoutBuilder(builder: (context, constraints) {
-      const cardWidth = 130.0;
-      final crossAxisCount = (constraints.maxWidth / cardWidth).floor().clamp(2, 8);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const cardWidth = 130.0;
+        final crossAxisCount = (constraints.maxWidth / cardWidth).floor().clamp(
+          2,
+          8,
+        );
 
-      return GridView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: crossAxisCount,
-          childAspectRatio: 2 / 3.4,
-          crossAxisSpacing: 10,
-          mainAxisSpacing: 10,
-        ),
-        itemCount: albums.length,
-        itemBuilder: (context, index) {
-          final album = albums[index];
-          return _DownloadedCard(
-            item: album.representative,
-            title: album.albumName,
-            subtitle: AppLocalizations.of(context).tracksCount(album.trackCount),
-            onTap: () => context.push(
-              Destinations.downloadedAlbum(album.albumId, albumName: album.albumName),
-            ),
-          );
-        },
-      );
-    });
+        return GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: crossAxisCount,
+            childAspectRatio: 2 / 3.4,
+            crossAxisSpacing: 10,
+            mainAxisSpacing: 10,
+          ),
+          itemCount: albums.length,
+          itemBuilder: (context, index) {
+            final album = albums[index];
+            return _DownloadedCard(
+              item: album.representative,
+              title: album.albumName,
+              subtitle: AppLocalizations.of(
+                context,
+              ).tracksCount(album.trackCount),
+              onTap: () => context.push(
+                Destinations.downloadedAlbum(
+                  album.albumId,
+                  albumName: album.albumName,
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 
   List<_MusicAlbumGroup> _groupMusicAlbums(List<DownloadedItem> tracks) {
     final groups = <String, List<DownloadedItem>>{};
 
     for (final track in tracks) {
-      final albumId = track.parsedMetadata['AlbumId'] as String? ?? 'track:${track.itemId}';
+      final albumId =
+          track.parsedMetadata['AlbumId']?.toString() ??
+          'track:${track.itemId}';
       groups.putIfAbsent(albumId, () => []).add(track);
     }
 
-    final albums = groups.entries.map((entry) {
-      final items = entry.value;
-      items.sort((a, b) {
-        final aDisc = a.parentIndexNumber ?? 0;
-        final bDisc = b.parentIndexNumber ?? 0;
-        if (aDisc != bDisc) return aDisc.compareTo(bDisc);
+    final albums =
+        groups.entries.map((entry) {
+          final items = entry.value;
+          items.sort((a, b) {
+            final aDisc = a.parentIndexNumber ?? 0;
+            final bDisc = b.parentIndexNumber ?? 0;
+            if (aDisc != bDisc) return aDisc.compareTo(bDisc);
 
-        final aTrack = a.indexNumber ?? 0;
-        final bTrack = b.indexNumber ?? 0;
-        if (aTrack != bTrack) return aTrack.compareTo(bTrack);
+            final aTrack = a.indexNumber ?? 0;
+            final bTrack = b.indexNumber ?? 0;
+            if (aTrack != bTrack) return aTrack.compareTo(bTrack);
 
-        return a.name.toLowerCase().compareTo(b.name.toLowerCase());
-      });
+            return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+          });
 
-      final first = items.first;
-      final albumName = (first.parsedMetadata['Album'] as String?)?.trim();
+          final first = items.first;
+          final albumName = (first.parsedMetadata['Album'] as String?)?.trim();
 
-      return _MusicAlbumGroup(
-        albumId: entry.key,
-        albumName: albumName == null || albumName.isEmpty ? first.name : albumName,
-        representative: first,
-        trackCount: items.length,
-      );
-    }).toList()
-      ..sort((a, b) => a.albumName.toLowerCase().compareTo(b.albumName.toLowerCase()));
+          return _MusicAlbumGroup(
+            albumId: entry.key,
+            albumName: albumName == null || albumName.isEmpty
+                ? first.name
+                : albumName,
+            representative: first,
+            trackCount: items.length,
+          );
+        }).toList()..sort(
+          (a, b) =>
+              a.albumName.toLowerCase().compareTo(b.albumName.toLowerCase()),
+        );
 
     return albums;
   }
@@ -383,7 +433,8 @@ class _SavedMediaScreenState extends ConsumerState<SavedMediaScreen> {
 
   Future<void> _deleteItem(DownloadedItem item) async {
     final repo = GetIt.instance<OfflineRepository>();
-    final imageDir = await GetIt.instance<StoragePathService>().getImageCacheDir();
+    final imageDir = await GetIt.instance<StoragePathService>()
+        .getImageCacheDir();
 
     if (item.localFilePath != null) {
       final file = File(item.localFilePath!);
@@ -405,17 +456,18 @@ class _SavedMediaScreenState extends ConsumerState<SavedMediaScreen> {
   }
 
   String _filterLabel(_Filter f) => switch (f) {
-        _Filter.all => AppLocalizations.of(context).all,
-        _Filter.movies => AppLocalizations.of(context).movies,
-        _Filter.tvShows => AppLocalizations.of(context).tvShows,
-        _Filter.music => AppLocalizations.of(context).music,
-        _Filter.books => AppLocalizations.of(context).books,
-      };
+    _Filter.all => AppLocalizations.of(context).all,
+    _Filter.movies => AppLocalizations.of(context).movies,
+    _Filter.tvShows => AppLocalizations.of(context).tvShows,
+    _Filter.music => AppLocalizations.of(context).music,
+    _Filter.books => AppLocalizations.of(context).books,
+  };
 
   String _formatBytes(int bytes) {
     if (bytes < 1024) return '$bytes B';
     if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
-    if (bytes < 1024 * 1024 * 1024) return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+    if (bytes < 1024 * 1024 * 1024)
+      return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
     return '${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(1)} GB';
   }
 }

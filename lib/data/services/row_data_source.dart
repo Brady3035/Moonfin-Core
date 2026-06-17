@@ -115,7 +115,9 @@ class RowDataSource {
       serverId: serverId,
       rowType: HomeRowType.nextUp,
     );
-    final enrichedItems = await _enrichNextUpItemsWithSeriesLastPlayed(row.items);
+    final enrichedItems = await _enrichNextUpItemsWithSeriesLastPlayed(
+      row.items,
+    );
     return row.copyWith(items: enrichedItems);
   }
 
@@ -134,9 +136,7 @@ class RowDataSource {
   }
 
   Future<HomeRow> loadNextUpRelaxed(String serverId) async {
-    final response = await getNextUpRelaxed(
-      limit: _defaultLimit,
-    );
+    final response = await getNextUpRelaxed(limit: _defaultLimit);
     final row = _buildRow(
       id: 'nextUp',
       title: _l10n.nextUp,
@@ -144,7 +144,9 @@ class RowDataSource {
       serverId: serverId,
       rowType: HomeRowType.nextUp,
     );
-    final enrichedItems = await _enrichNextUpItemsWithSeriesLastPlayed(row.items);
+    final enrichedItems = await _enrichNextUpItemsWithSeriesLastPlayed(
+      row.items,
+    );
     return row.copyWith(items: enrichedItems);
   }
 
@@ -177,7 +179,12 @@ class RowDataSource {
     );
   }
 
-  Future<HomeRow> loadPlaylists(String serverId, {String? mediaType, String? sortBy, String? sortOrder}) async {
+  Future<HomeRow> loadPlaylists(
+    String serverId, {
+    String? mediaType,
+    String? sortBy,
+    String? sortOrder,
+  }) async {
     final response = await _getItemsWithFallback(
       includeItemTypes: const ['Playlist'],
       sortBy: sortBy ?? 'SortName',
@@ -279,7 +286,9 @@ class RowDataSource {
       serverId: serverId,
       rowType: HomeRowType.genres,
     );
-    final totalCount = row.items.length < _defaultLimit ? row.items.length : _maxItems;
+    final totalCount = row.items.length < _defaultLimit
+        ? row.items.length
+        : _maxItems;
     return row.copyWith(totalCount: totalCount);
   }
 
@@ -330,7 +339,7 @@ class RowDataSource {
     Map<String, dynamic> genreData, {
     required List<String> includeItemTypes,
   }) async {
-    final genreId = genreData['Id'] as String?;
+    final genreId = genreData['Id']?.toString();
     if (genreId == null || genreId.isEmpty) {
       return null;
     }
@@ -360,9 +369,9 @@ class RowDataSource {
       final totalCount = rawTotalCount is num
           ? rawTotalCount.toInt()
           : browsableGenreCount(
-            genreData,
-            normalizedItemTypes: includeItemTypes,
-          );
+              genreData,
+              normalizedItemTypes: includeItemTypes,
+            );
       if (totalCount <= 0) {
         return null;
       }
@@ -495,10 +504,9 @@ class RowDataSource {
   ]) async {
     final response = await _client.userViewsApi.getUserViews();
     return _buildRow(
-      id:
-          rowType == HomeRowType.libraryTilesSmall
-              ? 'libraryTilesSmall'
-              : 'libraryTiles',
+      id: rowType == HomeRowType.libraryTilesSmall
+          ? 'libraryTilesSmall'
+          : 'libraryTiles',
       title: _l10n.myMedia,
       response: response,
       serverId: serverId,
@@ -533,7 +541,9 @@ class RowDataSource {
       serverId: serverId,
       rowType: HomeRowType.nextUp,
     );
-    final enrichedItems = await _enrichNextUpItemsWithSeriesLastPlayed(row.items);
+    final enrichedItems = await _enrichNextUpItemsWithSeriesLastPlayed(
+      row.items,
+    );
     return row.copyWith(items: enrichedItems);
   }
 
@@ -614,25 +624,24 @@ class RowDataSource {
   }) async {
     final isAlbumArtistBrowse =
         includeItemTypes.length == 1 && includeItemTypes.first == 'AlbumArtist';
-    final response =
-        isAlbumArtistBrowse
-            ? await _client.itemsApi.getAlbumArtists(
-              parentId: parentId,
-              userId: _client.userId,
-              sortBy: sortBy,
-              sortOrder: sortOrder,
-              recursive: true,
-              limit: _defaultLimit,
-              fields: 'PrimaryImageAspectRatio,SortName',
-            )
-            : await _getItemsWithFallback(
-              parentId: parentId,
-              includeItemTypes: includeItemTypes,
-              sortBy: sortBy,
-              sortOrder: sortOrder,
-              recursive: true,
-              limit: _defaultLimit,
-            );
+    final response = isAlbumArtistBrowse
+        ? await _client.itemsApi.getAlbumArtists(
+            parentId: parentId,
+            userId: _client.userId,
+            sortBy: sortBy,
+            sortOrder: sortOrder,
+            recursive: true,
+            limit: _defaultLimit,
+            fields: 'PrimaryImageAspectRatio,SortName',
+          )
+        : await _getItemsWithFallback(
+            parentId: parentId,
+            includeItemTypes: includeItemTypes,
+            sortBy: sortBy,
+            sortOrder: sortOrder,
+            recursive: true,
+            limit: _defaultLimit,
+          );
     return _buildRow(
       id: '${includeItemTypes.first.toLowerCase()}_$parentId',
       title: title,
@@ -641,7 +650,6 @@ class RowDataSource {
       rowType: HomeRowType.latestMedia,
     );
   }
-
 
   _ParsedStableId? _parseStableId(String id) {
     if (!id.startsWith('pluginDynamic:')) return null;
@@ -689,7 +697,8 @@ class RowDataSource {
     switch (row.rowType) {
       case HomeRowType.playlists:
         final parsed = _parseStableId(row.id);
-        if (parsed != null && parsed.source == HomeSectionPluginSource.playlists) {
+        if (parsed != null &&
+            parsed.source == HomeSectionPluginSource.playlists) {
           final playlistId = parsed.additionalData;
           var sortBy = _defaultSortBy;
           if (prefs != null) {
@@ -716,7 +725,9 @@ class RowDataSource {
           );
         }
       case HomeRowType.favorites:
-        final sortBy = prefs?.get(UserPreferences.favoritesRowSortBy).apiValue ?? _defaultSortBy;
+        final sortBy =
+            prefs?.get(UserPreferences.favoritesRowSortBy).apiValue ??
+            _defaultSortBy;
         response = await _getItemsWithFallback(
           includeItemTypes: FavoriteTypeFilter.fromRowId(row.id).itemTypes,
           sortBy: sortBy,
@@ -727,12 +738,18 @@ class RowDataSource {
           isFavorite: true,
         );
       case HomeRowType.collections:
-        final sortBy = prefs?.get(UserPreferences.collectionsRowSortBy).apiValue ?? _defaultSortBy;
+        final sortBy =
+            prefs?.get(UserPreferences.collectionsRowSortBy).apiValue ??
+            _defaultSortBy;
         final parsed = _parseStableId(row.id);
-        final parentId = (parsed != null && parsed.source == HomeSectionPluginSource.collections)
+        final parentId =
+            (parsed != null &&
+                parsed.source == HomeSectionPluginSource.collections)
             ? parsed.additionalData
             : (row.id == 'collections' ? null : row.id);
-        final includeItemTypes = row.id == 'collections' ? const ['BoxSet'] : null;
+        final includeItemTypes = row.id == 'collections'
+            ? const ['BoxSet']
+            : null;
         response = await _getItemsWithFallback(
           parentId: parentId,
           includeItemTypes: includeItemTypes,
@@ -743,11 +760,17 @@ class RowDataSource {
           limit: _defaultLimit,
         );
       case HomeRowType.genres:
-        final sortBy = prefs?.get(UserPreferences.genresRowSortBy).apiValue ?? _defaultSortBy;
-        final includeItemTypes = prefs?.get(UserPreferences.genresRowItemFilter).includeItemTypes;
+        final sortBy =
+            prefs?.get(UserPreferences.genresRowSortBy).apiValue ??
+            _defaultSortBy;
+        final includeItemTypes = prefs
+            ?.get(UserPreferences.genresRowItemFilter)
+            .includeItemTypes;
         final parsed = _parseStableId(row.id);
         if (row.id == 'genres') {
-          final browseItemTypes = normalizeBrowsableGenreItemTypes(includeItemTypes);
+          final browseItemTypes = normalizeBrowsableGenreItemTypes(
+            includeItemTypes,
+          );
           final pageCount = (currentOffset / _defaultLimit).ceil();
           final startIndex = pageCount * _defaultLimit;
           try {
@@ -777,10 +800,14 @@ class RowDataSource {
             includeItemTypes: browseItemTypes,
           );
           final newItems = _parseItems(enrichedResponse, serverId);
-          final totalCount = enrichedResponse['TotalRecordCount'] as int? ?? (row.items.length + newItems.length);
+          final totalCount =
+              enrichedResponse['TotalRecordCount'] as int? ??
+              (row.items.length + newItems.length);
           return ([...row.items, ...newItems], totalCount);
         } else {
-          final genreId = (parsed != null && parsed.source == HomeSectionPluginSource.genres)
+          final genreId =
+              (parsed != null &&
+                  parsed.source == HomeSectionPluginSource.genres)
               ? parsed.additionalData
               : row.id;
           response = await _getItemsWithFallback(
@@ -805,7 +832,9 @@ class RowDataSource {
             _parseItems(response, serverId),
             limit: currentOffset + _defaultLimit,
           );
-          final totalCount = items.length <= row.items.length ? items.length : _maxItems;
+          final totalCount = items.length <= row.items.length
+              ? items.length
+              : _maxItems;
           return (items, totalCount);
         } else if (row.id.startsWith('favorites_')) {
           final parentId = row.id.substring('favorites_'.length);
@@ -857,7 +886,9 @@ class RowDataSource {
           if (underscoreIndex >= 0) {
             final type = row.id.substring(0, underscoreIndex);
             final parentId = row.id.substring(underscoreIndex + 1);
-            final itemType = type.isEmpty ? '' : '${type[0].toUpperCase()}${type.substring(1)}';
+            final itemType = type.isEmpty
+                ? ''
+                : '${type[0].toUpperCase()}${type.substring(1)}';
             response = await _getItemsWithFallback(
               parentId: parentId,
               includeItemTypes: [itemType],
@@ -884,19 +915,19 @@ class RowDataSource {
         return (row.items, row.totalCount);
     }
 
-    final newItems =
-        row.rowType == HomeRowType.playlists
-            ? await filterBrowsablePlaylists(
-                _client,
-                _parseItems(response, serverId),
-                mediaType:
-                    row.items.isNotEmpty &&
-                            row.items.every(isAudioPlaylistSummary)
-                        ? 'Audio'
-                        : null,
-              )
-            : _parseItems(response, serverId);
-    final totalCount = response['TotalRecordCount'] as int? ?? (row.items.length + newItems.length);
+    final newItems = row.rowType == HomeRowType.playlists
+        ? await filterBrowsablePlaylists(
+            _client,
+            _parseItems(response, serverId),
+            mediaType:
+                row.items.isNotEmpty && row.items.every(isAudioPlaylistSummary)
+                ? 'Audio'
+                : null,
+          )
+        : _parseItems(response, serverId);
+    final totalCount =
+        response['TotalRecordCount'] as int? ??
+        (row.items.length + newItems.length);
     return ([...row.items, ...newItems], totalCount);
   }
 
@@ -966,24 +997,28 @@ class RowDataSource {
     required int limit,
   }) async {
     try {
-      final response = await _client.itemsApi.getResumeItems(
-        parentId: parentId,
-        includeItemTypes: includeItemTypes,
-        limit: limit,
-        fields: _fields,
-        enableImageTypes: _imageTypes,
-        imageTypeLimit: _imageTypeLimit,
-      ).timeout(const Duration(seconds: 8));
+      final response = await _client.itemsApi
+          .getResumeItems(
+            parentId: parentId,
+            includeItemTypes: includeItemTypes,
+            limit: limit,
+            fields: _fields,
+            enableImageTypes: _imageTypes,
+            imageTypeLimit: _imageTypeLimit,
+          )
+          .timeout(const Duration(seconds: 8));
       return response;
     } on TimeoutException {
-      final response = await _client.itemsApi.getResumeItems(
-        parentId: parentId,
-        includeItemTypes: includeItemTypes,
-        limit: limit,
-        fields: _fallbackFields,
-        enableImageTypes: _imageTypes,
-        imageTypeLimit: _imageTypeLimit,
-      ).timeout(const Duration(seconds: 6));
+      final response = await _client.itemsApi
+          .getResumeItems(
+            parentId: parentId,
+            includeItemTypes: includeItemTypes,
+            limit: limit,
+            fields: _fallbackFields,
+            enableImageTypes: _imageTypes,
+            imageTypeLimit: _imageTypeLimit,
+          )
+          .timeout(const Duration(seconds: 6));
       return response;
     } on DioException catch (e) {
       final statusCode = e.response?.statusCode ?? 0;
@@ -1006,24 +1041,28 @@ class RowDataSource {
     bool? enableResumable,
   }) async {
     try {
-      final response = await _client.itemsApi.getNextUp(
-        parentId: parentId,
-        limit: limit,
-        fields: _fields,
-        enableImageTypes: _imageTypes,
-        imageTypeLimit: _imageTypeLimit,
-        enableResumable: enableResumable,
-      ).timeout(const Duration(seconds: 8));
+      final response = await _client.itemsApi
+          .getNextUp(
+            parentId: parentId,
+            limit: limit,
+            fields: _fields,
+            enableImageTypes: _imageTypes,
+            imageTypeLimit: _imageTypeLimit,
+            enableResumable: enableResumable,
+          )
+          .timeout(const Duration(seconds: 8));
       return response;
     } on TimeoutException {
-      final response = await _client.itemsApi.getNextUp(
-        parentId: parentId,
-        limit: limit,
-        fields: _fallbackFields,
-        enableImageTypes: _imageTypes,
-        imageTypeLimit: _imageTypeLimit,
-        enableResumable: enableResumable,
-      ).timeout(const Duration(seconds: 6));
+      final response = await _client.itemsApi
+          .getNextUp(
+            parentId: parentId,
+            limit: limit,
+            fields: _fallbackFields,
+            enableImageTypes: _imageTypes,
+            imageTypeLimit: _imageTypeLimit,
+            enableResumable: enableResumable,
+          )
+          .timeout(const Duration(seconds: 6));
       return response;
     } on DioException catch (e) {
       final statusCode = e.response?.statusCode ?? 0;
@@ -1046,25 +1085,29 @@ class RowDataSource {
     required int limit,
   }) async {
     try {
-      final response = await _client.itemsApi.getResumeItems(
-        parentId: parentId,
-        includeItemTypes: includeItemTypes,
-        limit: limit,
-        fields: _fields,
-        enableImageTypes: _imageTypes,
-        imageTypeLimit: _imageTypeLimit,
-      ).timeout(const Duration(seconds: 20));
+      final response = await _client.itemsApi
+          .getResumeItems(
+            parentId: parentId,
+            includeItemTypes: includeItemTypes,
+            limit: limit,
+            fields: _fields,
+            enableImageTypes: _imageTypes,
+            imageTypeLimit: _imageTypeLimit,
+          )
+          .timeout(const Duration(seconds: 20));
       return response;
     } on TimeoutException {
       try {
-        final response = await _client.itemsApi.getResumeItems(
-          parentId: parentId,
-          includeItemTypes: includeItemTypes,
-          limit: limit,
-          fields: _minimalFields,
-          enableImageTypes: _imageTypes,
-          imageTypeLimit: _imageTypeLimit,
-        ).timeout(const Duration(seconds: 12));
+        final response = await _client.itemsApi
+            .getResumeItems(
+              parentId: parentId,
+              includeItemTypes: includeItemTypes,
+              limit: limit,
+              fields: _minimalFields,
+              enableImageTypes: _imageTypes,
+              imageTypeLimit: _imageTypeLimit,
+            )
+            .timeout(const Duration(seconds: 12));
         return response;
       } catch (e) {
         return {'Items': []};
@@ -1080,25 +1123,29 @@ class RowDataSource {
     bool? enableResumable,
   }) async {
     try {
-      final response = await _client.itemsApi.getNextUp(
-        parentId: parentId,
-        limit: limit,
-        fields: _fields,
-        enableImageTypes: _imageTypes,
-        imageTypeLimit: _imageTypeLimit,
-        enableResumable: enableResumable,
-      ).timeout(const Duration(seconds: 20));
+      final response = await _client.itemsApi
+          .getNextUp(
+            parentId: parentId,
+            limit: limit,
+            fields: _fields,
+            enableImageTypes: _imageTypes,
+            imageTypeLimit: _imageTypeLimit,
+            enableResumable: enableResumable,
+          )
+          .timeout(const Duration(seconds: 20));
       return response;
     } on TimeoutException {
       try {
-        final response = await _client.itemsApi.getNextUp(
-          parentId: parentId,
-          limit: limit,
-          fields: _minimalFields,
-          enableImageTypes: _imageTypes,
-          imageTypeLimit: _imageTypeLimit,
-          enableResumable: enableResumable,
-        ).timeout(const Duration(seconds: 12));
+        final response = await _client.itemsApi
+            .getNextUp(
+              parentId: parentId,
+              limit: limit,
+              fields: _minimalFields,
+              enableImageTypes: _imageTypes,
+              imageTypeLimit: _imageTypeLimit,
+              enableResumable: enableResumable,
+            )
+            .timeout(const Duration(seconds: 12));
         return response;
       } catch (e) {
         return {'Items': []};
@@ -1201,11 +1248,7 @@ class RowDataSource {
       case HomeSectionPluginSource.genres:
         final genreId = additionalData?.trim();
         if (genreId == null || genreId.isEmpty) {
-          return HomeRow(
-            id: rowId,
-            title: title,
-            rowType: HomeRowType.genres,
-          );
+          return HomeRow(id: rowId, title: title, rowType: HomeRowType.genres);
         }
         try {
           var sortBy = _defaultSortBy;
@@ -1213,7 +1256,9 @@ class RowDataSource {
           if (GetIt.instance.isRegistered<UserPreferences>()) {
             final prefs = GetIt.instance<UserPreferences>();
             sortBy = prefs.get(UserPreferences.genresRowSortBy).apiValue;
-            includeItemTypes = prefs.get(UserPreferences.genresRowItemFilter).includeItemTypes;
+            includeItemTypes = prefs
+                .get(UserPreferences.genresRowItemFilter)
+                .includeItemTypes;
           }
           final row = await loadGenreRow(
             serverId,
@@ -1226,11 +1271,7 @@ class RowDataSource {
           );
           return row;
         } catch (_) {
-          return HomeRow(
-            id: rowId,
-            title: title,
-            rowType: HomeRowType.genres,
-          );
+          return HomeRow(id: rowId, title: title, rowType: HomeRowType.genres);
         }
       case HomeSectionPluginSource.playlists:
         final playlistId = additionalData?.trim();
@@ -1334,11 +1375,8 @@ class RowDataSource {
         if (decoded is Map<String, dynamic>) spec = decoded;
       } catch (_) {}
     }
-    HomeRow emptyRow() => HomeRow(
-          id: rowId,
-          title: title,
-          rowType: HomeRowType.pluginDynamic,
-        );
+    HomeRow emptyRow() =>
+        HomeRow(id: rowId, title: title, rowType: HomeRowType.pluginDynamic);
     if (spec == null) return emptyRow();
 
     try {
@@ -1366,8 +1404,7 @@ class RowDataSource {
           recursive: true,
           sortBy: 'PremiereDate',
           sortOrder: 'Descending',
-          minPremiereDate:
-              DateTime.now().subtract(const Duration(days: 7)),
+          minPremiereDate: DateTime.now().subtract(const Duration(days: 7)),
           limit: limit,
           fields: _fields,
           enableImageTypes: _imageTypes,
@@ -1379,8 +1416,7 @@ class RowDataSource {
           recursive: true,
           sortBy: 'PremiereDate',
           sortOrder: 'Descending',
-          minPremiereDate:
-              DateTime.now().subtract(const Duration(days: 7)),
+          minPremiereDate: DateTime.now().subtract(const Duration(days: 7)),
           limit: limit,
           fields: _fields,
           enableImageTypes: _imageTypes,
@@ -1410,7 +1446,8 @@ class RowDataSource {
     Map<String, dynamic> spec,
     int limit,
   ) async {
-    final libraryIds = (spec['libraryIds'] as List?)
+    final libraryIds =
+        (spec['libraryIds'] as List?)
             ?.map((e) => e?.toString())
             .whereType<String>()
             .toList() ??
@@ -1428,16 +1465,15 @@ class RowDataSource {
         );
         final items = response['Items'];
         if (items is List) {
-          all.addAll(items.whereType<Map>().map((m) => m.cast<String, dynamic>()));
+          all.addAll(
+            items.whereType<Map>().map((m) => m.cast<String, dynamic>()),
+          );
         }
       } catch (_) {}
     }
     if (all.isEmpty) return null;
     final trimmed = all.take(limit).toList(growable: false);
-    return {
-      'Items': trimmed,
-      'TotalRecordCount': trimmed.length,
-    };
+    return {'Items': trimmed, 'TotalRecordCount': trimmed.length};
   }
 
   Future<Map<String, dynamic>?> _runKefinCustom(
@@ -1447,7 +1483,8 @@ class RowDataSource {
     final type = (spec['type']?.toString() ?? '').toLowerCase();
     final source = spec['source']?.toString() ?? '';
     if (source.isEmpty) return null;
-    final includeItemTypes = (spec['includeItemTypes'] as List?)
+    final includeItemTypes =
+        (spec['includeItemTypes'] as List?)
             ?.map((e) => e?.toString())
             .whereType<String>()
             .toList() ??
@@ -1546,14 +1583,12 @@ class RowDataSource {
       final rawImageTags = rawItem['ImageTags'];
       final enrichedImageTags = enrichedItem['ImageTags'];
       if (rawImageTags is Map || enrichedImageTags is Map) {
-        final rawTags =
-            rawImageTags is Map
-                ? rawImageTags.cast<String, dynamic>()
-                : const <String, dynamic>{};
-        final enrichedTags =
-            enrichedImageTags is Map
-                ? enrichedImageTags.cast<String, dynamic>()
-                : const <String, dynamic>{};
+        final rawTags = rawImageTags is Map
+            ? rawImageTags.cast<String, dynamic>()
+            : const <String, dynamic>{};
+        final enrichedTags = enrichedImageTags is Map
+            ? enrichedImageTags.cast<String, dynamic>()
+            : const <String, dynamic>{};
         merged['ImageTags'] = {...rawTags, ...enrichedTags};
       }
 
@@ -1591,7 +1626,7 @@ class RowDataSource {
     final ids = <String>[];
     for (final raw in items) {
       if (raw is Map && raw['Id'] is String) {
-        ids.add(raw['Id'] as String);
+        ids.add(raw['Id']?.toString() ?? '');
       }
     }
     if (ids.isEmpty) return response;
@@ -1608,13 +1643,13 @@ class RowDataSource {
       final byId = <String, Map<String, dynamic>>{};
       for (final raw in fullItems) {
         if (raw is Map && raw['Id'] is String) {
-          byId[raw['Id'] as String] = raw.cast<String, dynamic>();
+          byId[raw['Id']?.toString() ?? ''] = raw.cast<String, dynamic>();
         }
       }
       final merged = <Map<String, dynamic>>[];
       for (final raw in items) {
         if (raw is Map && raw['Id'] is String) {
-          final id = raw['Id'] as String;
+          final id = raw['Id']?.toString() ?? '';
           final rawMap = raw.cast<String, dynamic>();
           final enrichedMap = byId[id];
           if (enrichedMap != null) {
@@ -1626,10 +1661,7 @@ class RowDataSource {
           merged.add(raw.cast<String, dynamic>());
         }
       }
-      return {
-        ...response,
-        'Items': merged,
-      };
+      return {...response, 'Items': merged};
     } catch (_) {
       return response;
     }
@@ -1644,7 +1676,7 @@ class RowDataSource {
     final items = rawItems.map((item) {
       final data = item as Map<String, dynamic>;
       return AggregatedItem(
-        id: data['Id'] as String,
+        id: data['Id']?.toString() ?? '',
         serverId: serverId,
         rawData: data,
       );
@@ -1659,8 +1691,9 @@ class RowDataSource {
 
   Set<String> _blockedParentalRatings() {
     if (!GetIt.instance.isRegistered<UserPreferences>()) return const {};
-    final csv = GetIt.instance<UserPreferences>()
-        .get(UserPreferences.blockedParentalRatings);
+    final csv = GetIt.instance<UserPreferences>().get(
+      UserPreferences.blockedParentalRatings,
+    );
     if (csv.trim().isEmpty) return const {};
     return csv
         .split(',')
@@ -1671,8 +1704,7 @@ class RowDataSource {
 
   Future<List<AggregatedItem>> _enrichNextUpItemsWithSeriesLastPlayed(
     List<AggregatedItem> items,
-  ) =>
-      enrichNextUpItemsWithSeriesLastPlayed(items, _client);
+  ) => enrichNextUpItemsWithSeriesLastPlayed(items, _client);
 }
 
 class _ParsedStableId {

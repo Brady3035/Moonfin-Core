@@ -431,9 +431,7 @@ class _MediaBarState extends State<MediaBar>
             if (item.backdropUrl != null) {
               await precacheImage(
                 ResizeImage(
-                  CachedNetworkImageProvider(
-                    item.backdropUrl!,
-                  ),
+                  CachedNetworkImageProvider(item.backdropUrl!),
                   width: backdropCacheW,
                 ),
                 context,
@@ -622,9 +620,7 @@ class _MediaBarState extends State<MediaBar>
           if (item.backdropUrl != null) {
             precacheImage(
               ResizeImage(
-                CachedNetworkImageProvider(
-                  item.backdropUrl!,
-                ),
+                CachedNetworkImageProvider(item.backdropUrl!),
                 width: backdropCacheW,
               ),
               context,
@@ -632,15 +628,12 @@ class _MediaBarState extends State<MediaBar>
           }
 
           if (item.logoUrl != null) {
-            precacheImage(
-              CachedNetworkImageProvider(item.logoUrl!),
-              context,
-          );
+            precacheImage(CachedNetworkImageProvider(item.logoUrl!), context);
+          }
         }
       }
     }
   }
-}
 
   void _setPaused(bool paused) {
     if (_isPaused == paused) return;
@@ -1382,7 +1375,7 @@ class _MediaBarState extends State<MediaBar>
 
   String? _firstItemId(List<Map<String, dynamic>> items) {
     for (final item in items) {
-      final id = item['Id'] as String?;
+      final id = item['Id']?.toString();
       if (id != null && id.isNotEmpty) {
         return id;
       }
@@ -1410,7 +1403,7 @@ class _MediaBarState extends State<MediaBar>
     final preferredIso3 = toIso3Language(preferredNormalized);
 
     for (final item in items) {
-      final id = item['Id'] as String?;
+      final id = item['Id']?.toString();
       if (id == null || id.isEmpty) {
         continue;
       }
@@ -1586,12 +1579,12 @@ class _MediaBarState extends State<MediaBar>
     final isTablet =
         isMobile && MediaQuery.of(context).size.shortestSide >= 600;
     final hasLeftSidebar =
-      !isMobile &&
+        !isMobile &&
         widget.prefs.get(UserPreferences.navbarPosition) == NavbarPosition.left;
     final logoLeftInset = 40.0 + (hasLeftSidebar ? 88.0 : 0.0);
     final infoHorizontalInset = hasLeftSidebar
-      ? 72.0
-      : (PlatformDetection.isTV ? 25.0 : 24.0);
+        ? 72.0
+        : (PlatformDetection.isTV ? 25.0 : 24.0);
     final navbarAtTop =
         isMobile &&
         (widget.prefs.get(UserPreferences.navbarPosition) ==
@@ -1762,7 +1755,8 @@ class _MediaBarState extends State<MediaBar>
                       child: Center(
                         child: _NavArrow(
                           icon: Icons.chevron_right,
-                          onTap: () => _goToPage((_currentIndex + 1) % items.length),
+                          onTap: () =>
+                              _goToPage((_currentIndex + 1) % items.length),
                         ),
                       ),
                     ),
@@ -2094,7 +2088,8 @@ class _MediaBarState extends State<MediaBar>
                       child: Center(
                         child: _NavArrow(
                           icon: Icons.chevron_right,
-                          onTap: () => _goToPage((_currentIndex + 1) % items.length),
+                          onTap: () =>
+                              _goToPage((_currentIndex + 1) % items.length),
                         ),
                       ),
                     ),
@@ -2162,10 +2157,7 @@ class _MediaBarState extends State<MediaBar>
     unawaited(widget.viewModel.ensureBookshelfDetail(items[index].itemId));
   }
 
-  void _playFromBookshelf(
-    BuildContext context,
-    List<MediaBarSlideItem> items,
-  ) {
+  void _playFromBookshelf(BuildContext context, List<MediaBarSlideItem> items) {
     if (mounted) {
       setState(() => _bookshelfLoadingOverlay = true);
     }
@@ -2283,10 +2275,7 @@ class _MediaBarState extends State<MediaBar>
     _scheduleTrailerPreview(items[index]);
   }
 
-  void _playFromGallery(
-    BuildContext context,
-    List<MediaBarSlideItem> items,
-  ) {
+  void _playFromGallery(BuildContext context, List<MediaBarSlideItem> items) {
     if (mounted) {
       setState(() => _galleryLoadingOverlay = true);
     }
@@ -2726,20 +2715,20 @@ class _SlideInfo extends StatelessWidget {
       child: compact
           ? infoCard
           : glass
-              ? GlassSurface(
-                  cornerRadius: 16,
-                  fallbackColor: Colors.transparent,
-                  child: infoCard,
-                )
-              : ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
-                  child: kIsWeb
-                      ? infoCard
-                      : BackdropFilter(
-                          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-                          child: infoCard,
-                        ),
-                ),
+          ? GlassSurface(
+              cornerRadius: 16,
+              fallbackColor: Colors.transparent,
+              child: infoCard,
+            )
+          : ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: kIsWeb
+                  ? infoCard
+                  : BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                      child: infoCard,
+                    ),
+            ),
     );
   }
 }

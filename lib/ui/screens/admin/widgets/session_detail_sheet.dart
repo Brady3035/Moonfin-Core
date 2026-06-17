@@ -27,7 +27,10 @@ class _SessionDetailSheetState extends State<SessionDetailSheet> {
     super.initState();
     _sessionApi = GetIt.instance<MediaServerClient>().sessionApi;
     _session = widget.session;
-    _refreshTimer = Timer.periodic(const Duration(seconds: 5), (_) => _refresh());
+    _refreshTimer = Timer.periodic(
+      const Duration(seconds: 5),
+      (_) => _refresh(),
+    );
   }
 
   @override
@@ -69,19 +72,23 @@ class _SessionDetailSheetState extends State<SessionDetailSheet> {
   }
 
   Future<void> _sendPlayState(String command, {int? seekTicks}) {
-    return _run(() => _sessionApi.sendPlayStateCommand(
-          _session['Id'] as String,
-          command,
-          seekPositionTicks: seekTicks,
-        ));
+    return _run(
+      () => _sessionApi.sendPlayStateCommand(
+        _session['Id']?.toString() ?? '',
+        command,
+        seekPositionTicks: seekTicks,
+      ),
+    );
   }
 
   Future<void> _sendGeneral(String commandName, {Map<String, String>? args}) {
-    return _run(() => _sessionApi.sendGeneralCommand(
-          _session['Id'] as String,
-          commandName,
-          arguments: args,
-        ));
+    return _run(
+      () => _sessionApi.sendGeneralCommand(
+        _session['Id']?.toString() ?? '',
+        commandName,
+        arguments: args,
+      ),
+    );
   }
 
   void _showSendMessageDialog() {
@@ -98,13 +105,21 @@ class _SessionDetailSheetState extends State<SessionDetailSheet> {
           decoration: InputDecoration(hintText: l10n.adminMessageTextHint),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(l10n.cancel)),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(l10n.cancel),
+          ),
           FilledButton(
             onPressed: () {
               final text = controller.text.trim();
               Navigator.pop(ctx);
               if (text.isNotEmpty) {
-                _run(() => _sessionApi.sendMessage(_session['Id'] as String, text));
+                _run(
+                  () => _sessionApi.sendMessage(
+                    _session['Id']?.toString() ?? '',
+                    text,
+                  ),
+                );
               }
             },
             child: Text(l10n.send),
@@ -132,11 +147,17 @@ class _SessionDetailSheetState extends State<SessionDetailSheet> {
             onChanged: (v) => setInner(() => volume = v),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: Text(l10n.cancel)),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(l10n.cancel),
+            ),
             FilledButton(
               onPressed: () {
                 Navigator.pop(ctx);
-                _sendGeneral('SetVolume', args: {'Volume': volume.round().toString()});
+                _sendGeneral(
+                  'SetVolume',
+                  args: {'Volume': volume.round().toString()},
+                );
               },
               child: Text(l10n.set),
             ),
@@ -150,7 +171,7 @@ class _SessionDetailSheetState extends State<SessionDetailSheet> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
-    final sessionId = _session['Id'] as String? ?? '';
+    final sessionId = _session['Id']?.toString() ?? '';
     if (sessionId.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -160,7 +181,8 @@ class _SessionDetailSheetState extends State<SessionDetailSheet> {
     final appVersion = _session['ApplicationVersion'] as String? ?? '';
     final nowPlaying = _session['NowPlayingItem'] as Map<String, dynamic>?;
     final playState = _session['PlayState'] as Map<String, dynamic>?;
-    final transcodingInfo = _session['TranscodingInfo'] as Map<String, dynamic>?;
+    final transcodingInfo =
+        _session['TranscodingInfo'] as Map<String, dynamic>?;
 
     final isPaused = playState?['IsPaused'] as bool? ?? false;
     final isMuted = playState?['IsMuted'] as bool? ?? false;
@@ -216,7 +238,12 @@ class _SessionDetailSheetState extends State<SessionDetailSheet> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(userName, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+                            Text(
+                              userName,
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
                             Text(
                               '$client · $device${appVersion.isNotEmpty ? ' ($appVersion)' : ''}',
                               style: theme.textTheme.bodySmall,
@@ -225,7 +252,12 @@ class _SessionDetailSheetState extends State<SessionDetailSheet> {
                           ],
                         ),
                       ),
-                      if (_busy) const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
+                      if (_busy)
+                        const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -238,29 +270,44 @@ class _SessionDetailSheetState extends State<SessionDetailSheet> {
                       decoration: BoxDecoration(
                         color: theme.colorScheme.surfaceContainerLow,
                         borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5)),
+                        border: Border.all(
+                          color: theme.colorScheme.outlineVariant.withValues(
+                            alpha: 0.5,
+                          ),
+                        ),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             nowPlaying['Name'] as String? ?? '',
-                            style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+                            style: theme.textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
                           if ((nowPlaying['SeriesName'] as String?) != null)
                             Text(
                               nowPlaying['SeriesName'] as String,
                               style: theme.textTheme.bodySmall,
                             ),
-                          if (positionTicks != null && runtimeTicks != null && runtimeTicks > 0) ...[
+                          if (positionTicks != null &&
+                              runtimeTicks != null &&
+                              runtimeTicks > 0) ...[
                             const SizedBox(height: 8),
                             Row(
                               children: [
-                                Text(ticksToTime(positionTicks), style: theme.textTheme.labelSmall),
+                                Text(
+                                  ticksToTime(positionTicks),
+                                  style: theme.textTheme.labelSmall,
+                                ),
                                 Expanded(
                                   child: Slider(
-                                    value: (_seekPosition ?? positionTicks / runtimeTicks).clamp(0.0, 1.0),
-                                    onChanged: (v) => setState(() => _seekPosition = v),
+                                    value:
+                                        (_seekPosition ??
+                                                positionTicks / runtimeTicks)
+                                            .clamp(0.0, 1.0),
+                                    onChanged: (v) =>
+                                        setState(() => _seekPosition = v),
                                     onChangeEnd: (v) {
                                       final target = (v * runtimeTicks).round();
                                       _seekPosition = null;
@@ -268,19 +315,28 @@ class _SessionDetailSheetState extends State<SessionDetailSheet> {
                                     },
                                   ),
                                 ),
-                                Text(ticksToTime(runtimeTicks), style: theme.textTheme.labelSmall),
+                                Text(
+                                  ticksToTime(runtimeTicks),
+                                  style: theme.textTheme.labelSmall,
+                                ),
                               ],
                             ),
                           ],
                           if (isPaused)
                             Container(
                               margin: const EdgeInsets.only(top: 4),
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 2,
+                              ),
                               decoration: BoxDecoration(
                                 color: theme.colorScheme.secondaryContainer,
                                 borderRadius: BorderRadius.circular(6),
                               ),
-                              child: Text(l10n.paused, style: theme.textTheme.labelSmall),
+                              child: Text(
+                                l10n.paused,
+                                style: theme.textTheme.labelSmall,
+                              ),
                             ),
                         ],
                       ),
@@ -343,7 +399,8 @@ class _SessionDetailSheetState extends State<SessionDetailSheet> {
                         _ControlButton(
                           icon: isMuted ? Icons.volume_off : Icons.volume_up,
                           label: isMuted ? l10n.unmute : l10n.mute,
-                          onTap: () => _sendGeneral(isMuted ? 'Unmute' : 'Mute'),
+                          onTap: () =>
+                              _sendGeneral(isMuted ? 'Unmute' : 'Mute'),
                         ),
                         const SizedBox(width: 8),
                         _ControlButton(
@@ -372,14 +429,20 @@ class _SessionDetailSheetState extends State<SessionDetailSheet> {
                     _SectionLabel(l10n.transcoding),
                     const SizedBox(height: 8),
                     _InfoGrid({
-                      l10n.videoCodec: transcodingInfo['VideoCodec'] as String? ?? '–',
-                      l10n.audioCodec: transcodingInfo['AudioCodec'] as String? ?? '–',
-                      l10n.container: transcodingInfo['Container'] as String? ?? '–',
+                      l10n.videoCodec:
+                          transcodingInfo['VideoCodec'] as String? ?? '–',
+                      l10n.audioCodec:
+                          transcodingInfo['AudioCodec'] as String? ?? '–',
+                      l10n.container:
+                          transcodingInfo['Container'] as String? ?? '–',
                       l10n.bitrate: transcodingInfo['Bitrate'] != null
                           ? '${((transcodingInfo['Bitrate'] as int) / 1000000).toStringAsFixed(1)} Mbps'
                           : '–',
-                      l10n.hwAccel: transcodingInfo['IsVideoDirect'] == true ? l10n.direct : l10n.transcoding,
-                      l10n.completion: transcodingInfo['CompletionPercentage'] != null
+                      l10n.hwAccel: transcodingInfo['IsVideoDirect'] == true
+                          ? l10n.direct
+                          : l10n.transcoding,
+                      l10n.completion:
+                          transcodingInfo['CompletionPercentage'] != null
                           ? '${(transcodingInfo['CompletionPercentage'] as num).toStringAsFixed(1)}%'
                           : '–',
                     }),
@@ -402,8 +465,15 @@ class _SessionDetailSheetState extends State<SessionDetailSheet> {
                         child: OutlinedButton.icon(
                           icon: const Icon(Icons.link_off),
                           label: Text(l10n.adminDisconnect),
-                          style: OutlinedButton.styleFrom(foregroundColor: theme.colorScheme.error),
-                          onPressed: () => _run(() => _sessionApi.sendGeneralCommand(sessionId, 'GoHome')),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: theme.colorScheme.error,
+                          ),
+                          onPressed: () => _run(
+                            () => _sessionApi.sendGeneralCommand(
+                              sessionId,
+                              'GoHome',
+                            ),
+                          ),
                         ),
                       ),
                     ],
@@ -454,7 +524,9 @@ class _ControlButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final fg = color ?? (primary ? theme.colorScheme.primary : theme.colorScheme.onSurface);
+    final fg =
+        color ??
+        (primary ? theme.colorScheme.primary : theme.colorScheme.onSurface);
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
@@ -486,20 +558,34 @@ class _InfoGrid extends StatelessWidget {
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5)),
+        border: Border.all(
+          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+        ),
       ),
       child: Wrap(
         spacing: 24,
         runSpacing: 8,
         children: entries
-            .map((e) => Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(e.key, style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.outline)),
-                    Text(e.value, style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600)),
-                  ],
-                ))
+            .map(
+              (e) => Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    e.key,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: theme.colorScheme.outline,
+                    ),
+                  ),
+                  Text(
+                    e.value,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            )
             .toList(),
       ),
     );

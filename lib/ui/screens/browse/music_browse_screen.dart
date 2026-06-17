@@ -81,7 +81,7 @@ class _MusicBrowseScreenState extends State<MusicBrowseScreen> {
       );
       final items = (response['Items'] as List?) ?? [];
       if (items.isNotEmpty && mounted) {
-        final id = items.first['Id'] as String;
+        final id = items.first['Id']?.toString() ?? '';
         context.push(Destinations.itemListOf(id));
       }
     } catch (_) {}
@@ -121,15 +121,20 @@ class _MusicBrowseScreenState extends State<MusicBrowseScreen> {
                               libraryId: widget.libraryId,
                               onRandomAlbum: _onRandomAlbum,
                             ),
-                            ..._vm.rows.map((row) => _MusicItemRow(
-                                  title: localizeHomeRowTitle(row: row, l10n: l10n),
-                                  items: row.items,
-                                  imageApi: _vm.imageApi,
-                                  getSubtitle: _vm.getMusicSubtitle,
-                                  getImageUrl: _vm.getMusicImageUrl,
-                                  onFocused: _onItemFocused,
-                                  onTap: _onItemTap,
-                                )),
+                            ..._vm.rows.map(
+                              (row) => _MusicItemRow(
+                                title: localizeHomeRowTitle(
+                                  row: row,
+                                  l10n: l10n,
+                                ),
+                                items: row.items,
+                                imageApi: _vm.imageApi,
+                                getSubtitle: _vm.getMusicSubtitle,
+                                getImageUrl: _vm.getMusicImageUrl,
+                                onFocused: _onItemFocused,
+                                onTap: _onItemTap,
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -153,7 +158,11 @@ class _MusicHeader extends StatelessWidget {
     final topPad = MediaQuery.of(context).padding.top;
     return Padding(
       padding: EdgeInsets.fromLTRB(
-          _horizontalPadding, topPad + 8, _horizontalPadding, 4),
+        _horizontalPadding,
+        topPad + 8,
+        _horizontalPadding,
+        4,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
@@ -209,10 +218,11 @@ class _MusicHeader extends StatelessWidget {
                 iconSize: 28,
                 variant: ToolbarButtonVariant.translucent,
                 scaleOnFocus:
-                    GetIt.instance<UserPreferences>()
-                            .get(UserPreferences.cardFocusExpansion)
-                        ? 1.05
-                        : 1.0,
+                    GetIt.instance<UserPreferences>().get(
+                      UserPreferences.cardFocusExpansion,
+                    )
+                    ? 1.05
+                    : 1.0,
                 onTap: () => context.go(Destinations.home),
               ),
             ],
@@ -236,7 +246,12 @@ class _MusicViewsRow extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(_horizontalPadding, 12, _horizontalPadding, 8),
+          padding: const EdgeInsets.fromLTRB(
+            _horizontalPadding,
+            12,
+            _horizontalPadding,
+            8,
+          ),
           child: Text(
             AppLocalizations.of(context).views,
             style: TextStyle(
@@ -251,30 +266,44 @@ class _MusicViewsRow extends StatelessWidget {
           child: ListView(
             scrollDirection: Axis.horizontal,
             clipBehavior: Clip.none,
-            padding: const EdgeInsets.fromLTRB(_horizontalPadding, 4, _horizontalPadding, 6),
+            padding: const EdgeInsets.fromLTRB(
+              _horizontalPadding,
+              4,
+              _horizontalPadding,
+              6,
+            ),
             children: [
               _ViewButton(
                 icon: Icons.album,
                 label: AppLocalizations.of(context).albums,
                 onTap: () => context.push(
-                    Destinations.library(libraryId,
-                        includeItemTypes: ['MusicAlbum'])),
+                  Destinations.library(
+                    libraryId,
+                    includeItemTypes: ['MusicAlbum'],
+                  ),
+                ),
               ),
               const SizedBox(width: _cardSpacing),
               _ViewButton(
                 icon: Icons.person,
                 label: AppLocalizations.of(context).albumArtists,
                 onTap: () => context.push(
-                    Destinations.library(libraryId,
-                        includeItemTypes: ['AlbumArtist'])),
+                  Destinations.library(
+                    libraryId,
+                    includeItemTypes: ['AlbumArtist'],
+                  ),
+                ),
               ),
               const SizedBox(width: _cardSpacing),
               _ViewButton(
                 icon: Icons.groups,
                 label: AppLocalizations.of(context).artists,
                 onTap: () => context.push(
-                    Destinations.library(libraryId,
-                        includeItemTypes: ['MusicArtist'])),
+                  Destinations.library(
+                    libraryId,
+                    includeItemTypes: ['MusicArtist'],
+                  ),
+                ),
               ),
               const SizedBox(width: _cardSpacing),
               _ViewButton(
@@ -307,13 +336,16 @@ class _ViewButton extends StatefulWidget {
 }
 
 class _ViewButtonState extends State<_ViewButton> with FocusStateMixin {
-
   @override
   Widget build(BuildContext context) {
-    final cardExpansion =
-        GetIt.instance<UserPreferences>().get(UserPreferences.cardFocusExpansion);
-    final focusColor =
-        Color(GetIt.instance<UserPreferences>().get(UserPreferences.focusColor).colorValue);
+    final cardExpansion = GetIt.instance<UserPreferences>().get(
+      UserPreferences.cardFocusExpansion,
+    );
+    final focusColor = Color(
+      GetIt.instance<UserPreferences>()
+          .get(UserPreferences.focusColor)
+          .colorValue,
+    );
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       onEnter: (_) => setHovered(true),
@@ -363,7 +395,9 @@ class _ViewButtonState extends State<_ViewButton> with FocusStateMixin {
                   Icon(
                     widget.icon,
                     size: 30,
-                    color: AppColorScheme.onSurface.withAlpha(focused ? 255 : 153),
+                    color: AppColorScheme.onSurface.withAlpha(
+                      focused ? 255 : 153,
+                    ),
                   ),
                   const SizedBox(height: 6),
                   Text(
@@ -373,7 +407,9 @@ class _ViewButtonState extends State<_ViewButton> with FocusStateMixin {
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: focused ? FontWeight.w600 : FontWeight.normal,
-                      color: AppColorScheme.onSurface.withAlpha(focused ? 255 : 179),
+                      color: AppColorScheme.onSurface.withAlpha(
+                        focused ? 255 : 179,
+                      ),
                     ),
                   ),
                 ],
@@ -414,7 +450,11 @@ class _MusicItemRow extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(
-              _horizontalPadding, 16, _horizontalPadding, 8),
+            _horizontalPadding,
+            16,
+            _horizontalPadding,
+            8,
+          ),
           child: Text(
             title,
             style: TextStyle(
@@ -429,8 +469,7 @@ class _MusicItemRow extends StatelessWidget {
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             clipBehavior: Clip.none,
-            padding:
-                const EdgeInsets.fromLTRB(_horizontalPadding, 6, 24, 12),
+            padding: const EdgeInsets.fromLTRB(_horizontalPadding, 6, 24, 12),
             itemCount: items.length,
             separatorBuilder: (_, _) => const SizedBox(width: _cardSpacing),
             itemBuilder: (_, i) {
@@ -469,14 +508,18 @@ class _MusicSquareCard extends StatefulWidget {
   State<_MusicSquareCard> createState() => _MusicSquareCardState();
 }
 
-class _MusicSquareCardState extends State<_MusicSquareCard> with FocusStateMixin {
-
+class _MusicSquareCardState extends State<_MusicSquareCard>
+    with FocusStateMixin {
   @override
   Widget build(BuildContext context) {
-    final cardExpansion =
-        GetIt.instance<UserPreferences>().get(UserPreferences.cardFocusExpansion);
-    final focusColor =
-        Color(GetIt.instance<UserPreferences>().get(UserPreferences.focusColor).colorValue);
+    final cardExpansion = GetIt.instance<UserPreferences>().get(
+      UserPreferences.cardFocusExpansion,
+    );
+    final focusColor = Color(
+      GetIt.instance<UserPreferences>()
+          .get(UserPreferences.focusColor)
+          .colorValue,
+    );
     return SizedBox(
       width: _cardSize,
       child: MouseRegion(
@@ -511,10 +554,8 @@ class _MusicSquareCardState extends State<_MusicSquareCard> with FocusStateMixin
                         borderRadius: BorderRadius.circular(6),
                         border: showFocusBorder
                             ? Border.fromBorderSide(
-                                ThemeRegistry.active.borders.focusBorder.copyWith(
-                                  color: focusColor,
-                                  width: 2.4,
-                                ),
+                                ThemeRegistry.active.borders.focusBorder
+                                    .copyWith(color: focusColor, width: 2.4),
                               )
                             : null,
                         boxShadow: showFocusBorder
@@ -532,15 +573,17 @@ class _MusicSquareCardState extends State<_MusicSquareCard> with FocusStateMixin
                         child: Container(
                           width: _cardSize,
                           height: _cardSize,
-                          color: AppColorScheme.onSurface.withAlpha(focused ? 36 : 15),
+                          color: AppColorScheme.onSurface.withAlpha(
+                            focused ? 36 : 15,
+                          ),
                           child: widget.imageUrl != null
                               ? CachedNetworkImage(
                                   imageUrl: widget.imageUrl!,
                                   fit: BoxFit.cover,
-                                  fadeInDuration:
-                                      const Duration(milliseconds: 200),
-                                  errorWidget: (_, _, _) =>
-                                      _albumPlaceholder(),
+                                  fadeInDuration: const Duration(
+                                    milliseconds: 200,
+                                  ),
+                                  errorWidget: (_, _, _) => _albumPlaceholder(),
                                 )
                               : _albumPlaceholder(),
                         ),
@@ -583,7 +626,7 @@ class _MusicSquareCardState extends State<_MusicSquareCard> with FocusStateMixin
       child: Icon(
         Icons.album,
         size: 48,
-          color: AppColorScheme.onSurface.withAlpha(51),
+        color: AppColorScheme.onSurface.withAlpha(51),
       ),
     );
   }

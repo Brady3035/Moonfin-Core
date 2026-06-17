@@ -5,8 +5,12 @@ import '../../../l10n/current_app_localizations.dart';
 import '../../../util/platform_detection.dart';
 
 class NativeCastChannel {
-  static const MethodChannel _channel = MethodChannel('com.moonfin/native_cast');
-  static const EventChannel _events = EventChannel('com.moonfin/native_cast_events');
+  static const MethodChannel _channel = MethodChannel(
+    'com.moonfin/native_cast',
+  );
+  static const EventChannel _events = EventChannel(
+    'com.moonfin/native_cast_events',
+  );
   static Stream<Map<String, dynamic>>? _cachedEventStream;
 
   const NativeCastChannel();
@@ -30,7 +34,7 @@ class NativeCastChannel {
         .map((entry) => entry.cast<String, dynamic>())
         .map(
           (entry) => CastTarget(
-            id: entry['id'] as String? ?? '',
+            id: entry['id']?.toString() ?? '',
             kind: CastTargetKind.googleCast,
             title: entry['title'] as String? ?? l10n.castGoogleCast,
             subtitle: entry['subtitle'] as String? ?? '',
@@ -74,7 +78,8 @@ class NativeCastChannel {
     if (!_supported) {
       return false;
     }
-    return await _channel.invokeMethod<bool>('isAirPlayRoutePickerAvailable') ?? false;
+    return await _channel.invokeMethod<bool>('isAirPlayRoutePickerAvailable') ??
+        false;
   }
 
   Future<void> pauseGoogleCast() async {
@@ -127,11 +132,14 @@ class NativeCastChannel {
     if (!_supported) {
       return const Stream<Map<String, dynamic>>.empty();
     }
-    return _cachedEventStream ??= _events.receiveBroadcastStream().map((event) {
-      if (event is Map) {
-        return event.cast<String, dynamic>();
-      }
-      return <String, dynamic>{};
-    }).where((event) => event.isNotEmpty);
+    return _cachedEventStream ??= _events
+        .receiveBroadcastStream()
+        .map((event) {
+          if (event is Map) {
+            return event.cast<String, dynamic>();
+          }
+          return <String, dynamic>{};
+        })
+        .where((event) => event.isNotEmpty);
   }
 }

@@ -8,21 +8,19 @@ List<String> normalizeBrowsableGenreItemTypes(List<String>? includeItemTypes) {
           .toList(growable: false) ??
       const [];
 
-  final normalized =
-      requested
-          .where((type) => kBrowsableGenreItemTypes.contains(type))
-          .toSet()
-          .toList(growable: true);
+  final normalized = requested
+      .where((type) => kBrowsableGenreItemTypes.contains(type))
+      .toSet()
+      .toList(growable: true);
 
   if (normalized.isEmpty) {
     return List<String>.from(kBrowsableGenreItemTypes);
   }
 
   normalized.sort(
-    (a, b) =>
-        kBrowsableGenreItemTypes.indexOf(a).compareTo(
-          kBrowsableGenreItemTypes.indexOf(b),
-        ),
+    (a, b) => kBrowsableGenreItemTypes
+        .indexOf(a)
+        .compareTo(kBrowsableGenreItemTypes.indexOf(b)),
   );
   return normalized;
 }
@@ -70,7 +68,7 @@ Map<String, dynamic> mergeGenreWithRepresentativeItem({
   final merged = Map<String, dynamic>.from(genreData);
   merged['ChildCount'] = itemCount;
 
-  final representativeId = representativeItem['Id'] as String?;
+  final representativeId = representativeItem['Id']?.toString();
   if (representativeId == null || representativeId.isEmpty) {
     return merged;
   }
@@ -99,8 +97,10 @@ Map<String, dynamic> mergeGenreWithRepresentativeItem({
 
   final rawBackdropTags = representativeItem['BackdropImageTags'];
   if (rawBackdropTags is List) {
-    final backdropTags =
-        rawBackdropTags.whereType<String>().where((tag) => tag.isNotEmpty).toList();
+    final backdropTags = rawBackdropTags
+        .whereType<String>()
+        .where((tag) => tag.isNotEmpty)
+        .toList();
     if (backdropTags.isNotEmpty) {
       merged['ParentBackdropItemId'] = representativeId;
       merged['ParentBackdropImageTags'] = backdropTags;

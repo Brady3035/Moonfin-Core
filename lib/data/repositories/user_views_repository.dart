@@ -16,13 +16,18 @@ class UserViewsRepository extends ChangeNotifier {
     return items.map((item) {
       final data = item as Map<String, dynamic>;
       return AggregatedLibrary(
-        id: data['Id'] as String,
+        id: data['Id']?.toString() ?? '',
         name: data['Name'] as String,
         collectionType: data['CollectionType'] as String? ?? '',
-        serverId: data['ServerId'] as String? ?? '',
-        primaryImageAspectRatio: (data['PrimaryImageAspectRatio'] as num?)?.toDouble(),
-        imageTags: data['ImageTags'] != null ? Map<String, dynamic>.from(data['ImageTags'] as Map) : null,
-        backdropImageTags: (data['BackdropImageTags'] as List?)?.map((e) => e.toString()).toList(),
+        serverId: data['ServerId']?.toString() ?? '',
+        primaryImageAspectRatio: (data['PrimaryImageAspectRatio'] as num?)
+            ?.toDouble(),
+        imageTags: data['ImageTags'] != null
+            ? Map<String, dynamic>.from(data['ImageTags'] as Map)
+            : null,
+        backdropImageTags: (data['BackdropImageTags'] as List?)
+            ?.map((e) => e.toString())
+            .toList(),
       );
     }).toList();
   }

@@ -18,11 +18,7 @@ class FolderBrowseScreen extends StatefulWidget {
   final String folderId;
   final String? serverId;
 
-  const FolderBrowseScreen({
-    super.key,
-    required this.folderId,
-    this.serverId,
-  });
+  const FolderBrowseScreen({super.key, required this.folderId, this.serverId});
 
   @override
   State<FolderBrowseScreen> createState() => _FolderBrowseScreenState();
@@ -78,7 +74,11 @@ class _FolderBrowseScreenState extends State<FolderBrowseScreen> {
       if (isFolder) {
         final thumbTag = imageTags['Thumb'] as String?;
         if (thumbTag != null) {
-          return api.getThumbImageUrl(item.id, maxWidth: maxWidth, tag: thumbTag);
+          return api.getThumbImageUrl(
+            item.id,
+            maxWidth: maxWidth,
+            tag: thumbTag,
+          );
         }
 
         final primaryTag = imageTags['Primary'] as String?;
@@ -110,7 +110,11 @@ class _FolderBrowseScreenState extends State<FolderBrowseScreen> {
 
         final thumbTag = imageTags['Thumb'] as String?;
         if (thumbTag != null) {
-          return api.getThumbImageUrl(item.id, maxWidth: maxWidth, tag: thumbTag);
+          return api.getThumbImageUrl(
+            item.id,
+            maxWidth: maxWidth,
+            tag: thumbTag,
+          );
         }
 
         final backdropTag = imageTags['Backdrop'] as String?;
@@ -148,7 +152,7 @@ class _FolderBrowseScreenState extends State<FolderBrowseScreen> {
       );
     }
 
-    final parentThumbItemId = item.rawData['ParentThumbItemId'] as String?;
+    final parentThumbItemId = item.rawData['ParentThumbItemId']?.toString();
     final parentThumbTag = item.rawData['ParentThumbImageTag'] as String?;
     if (parentThumbItemId != null && parentThumbTag != null) {
       return api.getThumbImageUrl(
@@ -228,30 +232,35 @@ class _FolderBrowseScreenState extends State<FolderBrowseScreen> {
                   size: 18,
                 ),
               ),
-            Builder(builder: (context) {
-              final isLast = i == _vm.breadcrumbs.length - 1;
-              return TextButton(
-              onPressed: !isLast
-                  ? () {
-                      if (_scrollController.hasClients) {
-                        _scrollController.jumpTo(0);
-                      }
-                      _vm.navigateTo(i);
-                    }
-                  : null,
-              style: TextButton.styleFrom(
-                foregroundColor: !isLast
-                    ? AppColorScheme.accent
-                    : AppColorScheme.onSurface,
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                minimumSize: Size.zero,
-              ),
-              child: Text(
-                _vm.breadcrumbs[i].name,
-                style: const TextStyle(fontSize: 14),
-              ),
-            );
-            }),
+            Builder(
+              builder: (context) {
+                final isLast = i == _vm.breadcrumbs.length - 1;
+                return TextButton(
+                  onPressed: !isLast
+                      ? () {
+                          if (_scrollController.hasClients) {
+                            _scrollController.jumpTo(0);
+                          }
+                          _vm.navigateTo(i);
+                        }
+                      : null,
+                  style: TextButton.styleFrom(
+                    foregroundColor: !isLast
+                        ? AppColorScheme.accent
+                        : AppColorScheme.onSurface,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    minimumSize: Size.zero,
+                  ),
+                  child: Text(
+                    _vm.breadcrumbs[i].name,
+                    style: const TextStyle(fontSize: 14),
+                  ),
+                );
+              },
+            ),
           ],
         ],
       ),
@@ -265,19 +274,17 @@ class _FolderBrowseScreenState extends State<FolderBrowseScreen> {
       case FolderBrowseState.error:
         return Center(
           child: Text(
-            AppLocalizations.of(context).failedToLoadFolderError(_vm.errorMessage),
-            style: TextStyle(
-              color: AppColorScheme.onSurface.withAlpha(179),
-            ),
+            AppLocalizations.of(
+              context,
+            ).failedToLoadFolderError(_vm.errorMessage),
+            style: TextStyle(color: AppColorScheme.onSurface.withAlpha(179)),
           ),
         );
       case FolderBrowseState.ready when _vm.items.isEmpty:
         return Center(
           child: Text(
             AppLocalizations.of(context).thisFolderIsEmpty,
-            style: TextStyle(
-              color: AppColorScheme.onSurface.withAlpha(179),
-            ),
+            style: TextStyle(color: AppColorScheme.onSurface.withAlpha(179)),
           ),
         );
       case FolderBrowseState.ready:
@@ -299,9 +306,10 @@ class _FolderBrowseScreenState extends State<FolderBrowseScreen> {
                 .clamp(2, 10);
 
         final cardWidth =
-            (constraints.maxWidth - horizontalPadding * 2 -
-                    (crossAxisCount - 1) * spacing) /
-                crossAxisCount;
+            (constraints.maxWidth -
+                horizontalPadding * 2 -
+                (crossAxisCount - 1) * spacing) /
+            crossAxisCount;
 
         return SingleChildScrollView(
           controller: _scrollController,
@@ -387,7 +395,9 @@ class _FolderGridCard extends StatelessWidget {
               child: DecoratedBox(
                 decoration: BoxDecoration(
                   color: AppColorScheme.onSurface.withAlpha(20),
-                  border: Border.fromBorderSide(ThemeRegistry.active.borders.chipBorder),
+                  border: Border.fromBorderSide(
+                    ThemeRegistry.active.borders.chipBorder,
+                  ),
                 ),
                 child: Stack(
                   fit: StackFit.expand,
@@ -396,20 +406,23 @@ class _FolderGridCard extends StatelessWidget {
                       CachedNetworkImage(
                         imageUrl: imageUrl!,
                         fit: BoxFit.cover,
-                        errorWidget: (_, _, _) =>
-                            Center(
-                              child: Icon(
-                                icon,
-                                color: AppColorScheme.onSurface.withValues(alpha: 0.7),
-                                size: 30,
-                              ),
+                        errorWidget: (_, _, _) => Center(
+                          child: Icon(
+                            icon,
+                            color: AppColorScheme.onSurface.withValues(
+                              alpha: 0.7,
                             ),
+                            size: 30,
+                          ),
+                        ),
                       )
                     else
                       Center(
                         child: Icon(
                           icon,
-                          color: AppColorScheme.onSurface.withValues(alpha: 0.7),
+                          color: AppColorScheme.onSurface.withValues(
+                            alpha: 0.7,
+                          ),
                           size: 30,
                         ),
                       ),
@@ -431,10 +444,7 @@ class _FolderGridCard extends StatelessWidget {
           const SizedBox(height: 6),
           Text(
             item.name,
-            style: TextStyle(
-              color: AppColorScheme.onSurface,
-              fontSize: 14,
-            ),
+            style: TextStyle(color: AppColorScheme.onSurface, fontSize: 14),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),

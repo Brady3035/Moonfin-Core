@@ -424,7 +424,7 @@ class LibraryBrowseViewModel extends ChangeNotifier {
         .whereType<Map>()
         .map((raw) => raw.cast<String, dynamic>())
         .map((raw) {
-          final id = raw['Id'] as String?;
+          final id = raw['Id']?.toString();
           if (id == null || id.isEmpty) return null;
           return AggregatedItem(
             id: id,

@@ -354,10 +354,24 @@ class _EmbyConnectScreenState extends State<EmbyConnectScreen> {
         ? _usernameTvFieldKey
         : _passwordTvFieldKey;
 
+    if (!PlatformDetection.isTV) {
+      return TextField(
+        controller: controller,
+        focusNode: focusNode,
+        enabled: !isBusy,
+        obscureText: isPassword,
+        textInputAction: isPassword
+            ? TextInputAction.done
+            : TextInputAction.next,
+        onSubmitted: isPassword ? (_) => _signIn() : null,
+        style: TextStyle(color: AppColorScheme.onSurface),
+        decoration: _inputDecoration(label),
+      );
+    }
+
     return Focus(
       focusNode: focusNode,
       onKeyEvent: (node, event) {
-        if (!PlatformDetection.isTV) return KeyEventResult.ignored;
         if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
           return KeyEventResult.ignored;
         }
@@ -385,61 +399,48 @@ class _EmbyConnectScreenState extends State<EmbyConnectScreen> {
         }
         return KeyEventResult.ignored;
       },
-      child: PlatformDetection.isTV
-          ? ListenableBuilder(
-              listenable: focusNode,
-              builder: (_, _) {
-                final focused = focusNode.hasFocus;
-                return CustomTVTextField(
-                  key: tvFieldKey,
-                  controller: controller,
-                  isFocused: focused,
-                  inputPurpose: isPassword
-                      ? InputPurpose.password
-                      : InputPurpose.username,
-                  preferSystemIme: _userPreferences.get(
-                    UserPreferences.preferSystemImeKeyboard,
-                  ),
-                  hint: label,
-                  filled: true,
-                  fillColor: focused
-                      ? AppColorScheme.buttonFocused
-                      : AppColorScheme.surfaceVariant.withValues(alpha: 0.6),
-                  borderRadius: 12,
-                  borderColor: AppColorScheme.onSurface.withValues(alpha: 0.1),
-                  focusedBorderColor: AppColorScheme.buttonFocused,
-                  hintStyle: TextStyle(
-                    color: focused
-                        ? AppColorScheme.onButtonFocused.withValues(alpha: 0.5)
-                        : AppColorScheme.onSurface.withValues(alpha: 0.5),
-                  ),
-                  textStyle: TextStyle(
-                    color: focused
-                        ? AppColorScheme.onButtonFocused
-                        : AppColorScheme.onSurface,
-                  ),
-                  textFieldType: isPassword
-                      ? TextFieldType.password
-                      : TextFieldType.other,
-                  popParentOnKeyboardClose: false,
-                  onFieldSubmitted: isPassword ? (_) => _signIn() : null,
-                  onVisibilityChanged: (visible) =>
-                      _handleTvKeyboardVisibility(visible, tvFieldKey),
-                );
-              },
-            )
-          : TextField(
-              controller: controller,
-              focusNode: focusNode,
-              enabled: !isBusy,
-              obscureText: isPassword,
-              textInputAction: isPassword
-                  ? TextInputAction.done
-                  : TextInputAction.next,
-              onSubmitted: isPassword ? (_) => _signIn() : null,
-              style: TextStyle(color: AppColorScheme.onSurface),
-              decoration: _inputDecoration(label),
+      child: ListenableBuilder(
+        listenable: focusNode,
+        builder: (_, _) {
+          final focused = focusNode.hasFocus;
+          return CustomTVTextField(
+            key: tvFieldKey,
+            controller: controller,
+            isFocused: focused,
+            inputPurpose: isPassword
+                ? InputPurpose.password
+                : InputPurpose.username,
+            preferSystemIme: _userPreferences.get(
+              UserPreferences.preferSystemImeKeyboard,
             ),
+            hint: label,
+            filled: true,
+            fillColor: focused
+                ? AppColorScheme.buttonFocused
+                : AppColorScheme.surfaceVariant.withValues(alpha: 0.6),
+            borderRadius: 12,
+            borderColor: AppColorScheme.onSurface.withValues(alpha: 0.1),
+            focusedBorderColor: AppColorScheme.buttonFocused,
+            hintStyle: TextStyle(
+              color: focused
+                  ? AppColorScheme.onButtonFocused.withValues(alpha: 0.5)
+                  : AppColorScheme.onSurface.withValues(alpha: 0.5),
+            ),
+            textStyle: TextStyle(
+              color: focused
+                  ? AppColorScheme.onButtonFocused
+                  : AppColorScheme.onSurface,
+            ),
+            textFieldType: isPassword
+                ? TextFieldType.password
+                : TextFieldType.other,
+            popParentOnKeyboardClose: false,
+            onFieldSubmitted: isPassword ? (_) => _signIn() : null,
+            onVisibilityChanged: (visible) =>
+                _handleTvKeyboardVisibility(visible, tvFieldKey),
+          );
+        },
+      ),
     );
   }
 

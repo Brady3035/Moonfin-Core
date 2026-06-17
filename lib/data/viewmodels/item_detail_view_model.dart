@@ -44,7 +44,6 @@ class ItemDetailViewModel extends ChangeNotifier {
     }
   }
 
-
   List<AggregatedItem> _similar = const [];
   List<AggregatedItem> get similar => _similar;
 
@@ -166,12 +165,10 @@ class ItemDetailViewModel extends ChangeNotifier {
       futures.add(_loadLyrics());
     } else if (type == 'BoxSet') {
       futures.add(_loadCollectionItems());
-    } else if (
-      type == 'MusicVideo' ||
-      type == 'Movie' ||
-      type == 'Trailer' ||
-      type == 'Video'
-    ) {
+    } else if (type == 'MusicVideo' ||
+        type == 'Movie' ||
+        type == 'Trailer' ||
+        type == 'Video') {
       futures.add(_loadRatings());
       futures.add(_loadSimilar());
       futures.add(_loadFeatures());
@@ -223,7 +220,7 @@ class ItemDetailViewModel extends ChangeNotifier {
       if (items.isNotEmpty) {
         final raw = items.first as Map<String, dynamic>;
         final candidate = AggregatedItem(
-          id: raw['Id'] as String,
+          id: raw['Id']?.toString() ?? '',
           serverId: _serverId ?? _client.baseUrl,
           rawData: raw,
         );
@@ -244,7 +241,7 @@ class ItemDetailViewModel extends ChangeNotifier {
         .cast<Map<String, dynamic>>()
         .map(
           (raw) => AggregatedItem(
-            id: raw['Id'] as String,
+            id: raw['Id']?.toString() ?? '',
             serverId: _serverId ?? _client.baseUrl,
             rawData: raw,
           ),
@@ -270,23 +267,22 @@ class ItemDetailViewModel extends ChangeNotifier {
 
   Future<void> _loadTracks({String? artistId}) async {
     try {
-      final data =
-          _item?.type == 'Playlist'
-              ? await _client.itemsApi.getPlaylistItems(itemId)
-              : artistId != null
-              ? await _client.itemsApi.getItems(
-                artistIds: [artistId],
-                includeItemTypes: ['Audio'],
-                sortBy: 'Album,ParentIndexNumber,IndexNumber,SortName',
-                recursive: true,
-                fields: 'PrimaryImageAspectRatio,BasicSyncInfo',
-              )
-              : await _client.itemsApi.getItems(
-                parentId: itemId,
-                includeItemTypes: ['Audio'],
-                sortBy: 'ParentIndexNumber,IndexNumber,SortName',
-                fields: 'PrimaryImageAspectRatio,BasicSyncInfo',
-              );
+      final data = _item?.type == 'Playlist'
+          ? await _client.itemsApi.getPlaylistItems(itemId)
+          : artistId != null
+          ? await _client.itemsApi.getItems(
+              artistIds: [artistId],
+              includeItemTypes: ['Audio'],
+              sortBy: 'Album,ParentIndexNumber,IndexNumber,SortName',
+              recursive: true,
+              fields: 'PrimaryImageAspectRatio,BasicSyncInfo',
+            )
+          : await _client.itemsApi.getItems(
+              parentId: itemId,
+              includeItemTypes: ['Audio'],
+              sortBy: 'ParentIndexNumber,IndexNumber,SortName',
+              fields: 'PrimaryImageAspectRatio,BasicSyncInfo',
+            );
       final items = (data['Items'] as List?) ?? [];
       _tracks = _mapItems(items);
       notifyListeners();
@@ -305,7 +301,7 @@ class ItemDetailViewModel extends ChangeNotifier {
   }
 
   String? _playlistEntryId(AggregatedItem track) =>
-      track.rawData['PlaylistItemId'] as String?;
+      track.rawData['PlaylistItemId']?.toString();
 
   Future<void> removeTrackFromPlaylist(AggregatedItem track) async {
     if (_item?.type != 'Playlist') return;
@@ -313,12 +309,11 @@ class ItemDetailViewModel extends ChangeNotifier {
     if (entryId == null) return;
 
     final previousTracks = List<AggregatedItem>.from(_tracks);
-    _tracks =
-        _tracks.where((t) {
-          final sameId = t.id == track.id;
-          final sameEntry = _playlistEntryId(t) == entryId;
-          return !(sameId && sameEntry);
-        }).toList();
+    _tracks = _tracks.where((t) {
+      final sameId = t.id == track.id;
+      final sameEntry = _playlistEntryId(t) == entryId;
+      return !(sameId && sameEntry);
+    }).toList();
     notifyListeners();
 
     try {
@@ -444,7 +439,7 @@ class ItemDetailViewModel extends ChangeNotifier {
             );
       }
 
-      final boxSetId = boxSet['Id'] as String?;
+      final boxSetId = boxSet['Id']?.toString();
       String? resolvedBoxSetId;
       if (boxSetId != null && boxSetId.isNotEmpty) {
         final isMember = await _boxSetContainsItem(boxSetId, item.id);
@@ -452,7 +447,9 @@ class ItemDetailViewModel extends ChangeNotifier {
           resolvedBoxSetId = boxSetId;
         }
       }
-      resolvedBoxSetId ??= await _findParentCollectionByScanningBoxSets(item.id);
+      resolvedBoxSetId ??= await _findParentCollectionByScanningBoxSets(
+        item.id,
+      );
       if (resolvedBoxSetId == null || resolvedBoxSetId.isEmpty) {
         return;
       }
@@ -465,14 +462,13 @@ class ItemDetailViewModel extends ChangeNotifier {
       );
 
       final items = (data['Items'] as List?) ?? [];
-        final resolvedName =
-          (boxSetId != null && boxSetId == resolvedBoxSetId)
-            ? boxSet['Name'] as String?
-            : null;
-        _parentCollectionName =
+      final resolvedName = (boxSetId != null && boxSetId == resolvedBoxSetId)
+          ? boxSet['Name'] as String?
+          : null;
+      _parentCollectionName =
           resolvedName ??
           (await _client.itemsApi.getItem(resolvedBoxSetId))['Name'] as String?;
-        _parentCollectionItems = _sortCollectionByReleaseOrder(_mapItems(items));
+      _parentCollectionItems = _sortCollectionByReleaseOrder(_mapItems(items));
       notifyListeners();
     } catch (_) {}
   }
@@ -515,7 +511,7 @@ class ItemDetailViewModel extends ChangeNotifier {
 
         for (final raw in boxSets.whereType<Map>()) {
           final boxSet = raw.cast<String, dynamic>();
-          final boxSetId = boxSet['Id'] as String?;
+          final boxSetId = boxSet['Id']?.toString();
           if (boxSetId == null || boxSetId.isEmpty) {
             continue;
           }
@@ -583,10 +579,9 @@ class ItemDetailViewModel extends ChangeNotifier {
   Future<void> _loadFeatures() async {
     try {
       final items = await _client.itemsApi.getSpecialFeatures(itemId);
-      _features =
-          _mapItems(items)
-              .where((item) => item.id != itemId)
-              .toList(growable: false);
+      _features = _mapItems(
+        items,
+      ).where((item) => item.id != itemId).toList(growable: false);
       notifyListeners();
     } catch (_) {
       _features = const [];

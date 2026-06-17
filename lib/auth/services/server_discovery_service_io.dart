@@ -72,7 +72,7 @@ class ServerDiscoveryService {
     try {
       final data = jsonDecode(response) as Map<String, dynamic>;
       final address = data['Address'] as String?;
-      final id = data['Id'] as String?;
+      final id = data['Id']?.toString();
       if (address == null || id == null) return null;
 
       final name = data['Name'] as String? ?? id;

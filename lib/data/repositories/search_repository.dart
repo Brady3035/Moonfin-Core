@@ -73,8 +73,8 @@ class SearchRepository {
     return items.map((item) {
       final data = item as Map<String, dynamic>;
       return AggregatedItem(
-        id: data['Id'] as String,
-        serverId: data['ServerId'] as String? ?? '',
+        id: data['Id']?.toString() ?? '',
+        serverId: data['ServerId']?.toString() ?? '',
         rawData: data,
       );
     }).toList();

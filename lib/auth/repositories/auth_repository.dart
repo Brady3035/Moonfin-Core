@@ -89,7 +89,7 @@ class AuthRepository {
   }) async {
     final accessToken = result['AccessToken'] as String?;
     final userJson = result['User'] as Map<String, dynamic>?;
-    final userId = userJson?['Id'] as String? ?? result['UserId'] as String?;
+    final userId = userJson?['Id']?.toString() ?? result['UserId']?.toString();
     final userName = userJson?['Name'] as String? ?? fallbackName;
     final imageTag =
         (userJson?['PrimaryImageTag'] as String?) ??
@@ -100,7 +100,7 @@ class AuthRepository {
     final canManageSubtitles =
         policyJson?['EnableSubtitleManagement'] as bool? ?? false;
     final canManageCollections =
-      policyJson?['EnableCollectionManagement'] as bool? ?? false;
+        policyJson?['EnableCollectionManagement'] as bool? ?? false;
 
     if (accessToken == null || userId == null) {
       const state = ApiClientError(error: 'Invalid auth response');

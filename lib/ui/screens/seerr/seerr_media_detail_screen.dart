@@ -33,16 +33,16 @@ class SeerrMediaDetailScreen extends StatefulWidget {
   const SeerrMediaDetailScreen({super.key, required this.itemId});
 
   @override
-  State<SeerrMediaDetailScreen> createState() =>
-      _SeerrMediaDetailScreenState();
+  State<SeerrMediaDetailScreen> createState() => _SeerrMediaDetailScreenState();
 }
 
-class _SeerrMediaDetailScreenState
-    extends State<SeerrMediaDetailScreen> {
+class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
   SeerrMediaDetailViewModel? _vm;
   bool _initializing = true;
   final _userPrefs = GetIt.instance<UserPreferences>();
-  final FocusNode _firstActionFocusNode = FocusNode(debugLabel: 'seerr-first-action');
+  final FocusNode _firstActionFocusNode = FocusNode(
+    debugLabel: 'seerr-first-action',
+  );
   final FocusNode _overviewFocusNode = FocusNode(debugLabel: 'seerr-overview');
   final FocusNode _titleFocusNode = FocusNode(debugLabel: 'seerr-title-hidden');
   final ScrollController _wideScrollController = ScrollController();
@@ -103,8 +103,10 @@ class _SeerrMediaDetailScreenState
 
     final extra = GoRouterState.of(context).extra;
     final mediaType =
-        (extra is Map<String, dynamic> ? extra['mediaType'] as String? : null) ??
-            'movie';
+        (extra is Map<String, dynamic>
+            ? extra['mediaType'] as String?
+            : null) ??
+        'movie';
 
     vm.load(tmdbId, mediaType);
   }
@@ -129,7 +131,8 @@ class _SeerrMediaDetailScreenState
 
   @override
   Widget build(BuildContext context) {
-    final ready = !_initializing &&
+    final ready =
+        !_initializing &&
         _vm != null &&
         !_vm!.state.isLoading &&
         _vm!.state.error == null;
@@ -142,10 +145,7 @@ class _SeerrMediaDetailScreenState
   Widget _buildScreenContent(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      body: NavigationLayout(
-        showBackButton: true,
-        child: _buildBody(),
-      ),
+      body: NavigationLayout(showBackButton: true, child: _buildBody()),
     );
   }
 
@@ -169,10 +169,7 @@ class _SeerrMediaDetailScreenState
           children: [
             Text(s.error!, style: const TextStyle(color: Colors.white70)),
             const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _loadDetails,
-              child: Text(l10n.retry),
-            ),
+            ElevatedButton(onPressed: _loadDetails, child: Text(l10n.retry)),
           ],
         ),
       );
@@ -185,7 +182,8 @@ class _SeerrMediaDetailScreenState
     final l10n = AppLocalizations.of(context);
     final size = MediaQuery.of(context).size;
     final isLandscape = size.width > size.height;
-    final useWideLayout = PlatformDetection.useDesktopUi ||
+    final useWideLayout =
+        PlatformDetection.useDesktopUi ||
         PlatformDetection.isTV ||
         (PlatformDetection.useMobileUi && isLandscape);
     return Stack(
@@ -232,7 +230,10 @@ class _SeerrMediaDetailScreenState
                 ),
               if (s.recommendations.isNotEmpty)
                 SliverToBoxAdapter(
-                  child: _buildRelatedRow(l10n.recommendations, s.recommendations),
+                  child: _buildRelatedRow(
+                    l10n.recommendations,
+                    s.recommendations,
+                  ),
                 ),
               const SliverToBoxAdapter(child: SizedBox(height: 80)),
             ],
@@ -248,16 +249,16 @@ class _SeerrMediaDetailScreenState
         _userPrefs.get(UserPreferences.navbarPosition) == NavbarPosition.top;
     final navbarHeight = navbarIsTop
         ? (PlatformDetection.isTV
-            ? 95.0
-            : PlatformDetection.useMobileUi
-                ? 60.0
-                : 80.0)
+              ? 95.0
+              : PlatformDetection.useMobileUi
+              ? 60.0
+              : 80.0)
         : 0.0;
     final hSidePad = PlatformDetection.isTV
         ? 56.0
         : PlatformDetection.useDesktopUi
-            ? 64.0
-            : 32.0;
+        ? 64.0
+        : 32.0;
     final heroHeight = (size.height * 0.62).clamp(360.0, 720.0);
     return CustomScrollView(
       controller: _wideScrollController,
@@ -306,7 +307,11 @@ class _SeerrMediaDetailScreenState
     );
   }
 
-  Widget _buildWideHero(SeerrMediaDetailState s, double hSidePad, double topInset) {
+  Widget _buildWideHero(
+    SeerrMediaDetailState s,
+    double hSidePad,
+    double topInset,
+  ) {
     final theme = Theme.of(context);
     final posterWidth = PlatformDetection.useDesktopUi ? 240.0 : 220.0;
     final posterHeight = posterWidth * 1.5;
@@ -358,10 +363,7 @@ class _SeerrMediaDetailScreenState
                 const SizedBox(height: 8),
                 Text(
                   _wideMetaLine(s),
-                  style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 14,
-                  ),
+                  style: const TextStyle(color: Colors.white70, fontSize: 14),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -386,7 +388,10 @@ class _SeerrMediaDetailScreenState
     );
   }
 
-  Widget _buildWideStatusPill(SeerrMediaDetailState s, {required AppLocalizations l10n}) {
+  Widget _buildWideStatusPill(
+    SeerrMediaDetailState s, {
+    required AppLocalizations l10n,
+  }) {
     final label = _localizedStatusText(s, l10n);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
@@ -406,7 +411,10 @@ class _SeerrMediaDetailScreenState
     );
   }
 
-  Widget _buildWideOverviewAndStats(SeerrMediaDetailState s, AppLocalizations l10n) {
+  Widget _buildWideOverviewAndStats(
+    SeerrMediaDetailState s,
+    AppLocalizations l10n,
+  ) {
     final mediaType = s.isTv ? 'tv' : 'movie';
     final overviewText = (s.overview != null && s.overview!.isNotEmpty)
         ? Text(
@@ -441,9 +449,11 @@ class _SeerrMediaDetailScreenState
                   child: Builder(
                     builder: (ctx) {
                       final focused = Focus.of(ctx).hasFocus;
-                      final focusColor = Color(GetIt.instance<UserPreferences>()
-                          .get(UserPreferences.focusColor)
-                          .colorValue);
+                      final focusColor = Color(
+                        GetIt.instance<UserPreferences>()
+                            .get(UserPreferences.focusColor)
+                            .colorValue,
+                      );
                       return Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
@@ -467,18 +477,20 @@ class _SeerrMediaDetailScreenState
             spacing: 8,
             runSpacing: 8,
             children: s.genres
-                .map((g) => _browseChip(
-                      label: g.name,
-                      color: Colors.white12,
-                      onTap: () => context.push(
-                        Destinations.seerrBrowseWith(
-                          filterId: g.id.toString(),
-                          filterName: g.name,
-                          mediaType: mediaType,
-                          filterType: 'genre',
-                        ),
+                .map(
+                  (g) => _browseChip(
+                    label: g.name,
+                    color: Colors.white12,
+                    onTap: () => context.push(
+                      Destinations.seerrBrowseWith(
+                        filterId: g.id.toString(),
+                        filterName: g.name,
+                        mediaType: mediaType,
+                        filterType: 'genre',
                       ),
-                    ))
+                    ),
+                  ),
+                )
                 .toList(),
           ),
         ],
@@ -488,20 +500,22 @@ class _SeerrMediaDetailScreenState
             spacing: 8,
             runSpacing: 6,
             children: s.networks
-                .map((n) => _browseChip(
-                      label: n.name,
-                      color: Colors.transparent,
-                      borderColor: Colors.white24,
-                      labelColor: Colors.white70,
-                      onTap: () => context.push(
-                        Destinations.seerrBrowseWith(
-                          filterId: n.id.toString(),
-                          filterName: n.name,
-                          mediaType: mediaType,
-                          filterType: 'network',
-                        ),
+                .map(
+                  (n) => _browseChip(
+                    label: n.name,
+                    color: Colors.transparent,
+                    borderColor: Colors.white24,
+                    labelColor: Colors.white70,
+                    onTap: () => context.push(
+                      Destinations.seerrBrowseWith(
+                        filterId: n.id.toString(),
+                        filterName: n.name,
+                        mediaType: mediaType,
+                        filterType: 'network',
                       ),
-                    ))
+                    ),
+                  ),
+                )
                 .toList(),
           ),
         ],
@@ -511,20 +525,22 @@ class _SeerrMediaDetailScreenState
             spacing: 6,
             runSpacing: 6,
             children: s.keywords
-                .map((k) => _browseChip(
-                      label: k.name,
-                      color: Colors.white.withValues(alpha: 0.05),
-                      labelColor: Colors.white60,
-                      dense: true,
-                      onTap: () => context.push(
-                        Destinations.seerrBrowseWith(
-                          filterId: k.id.toString(),
-                          filterName: k.name,
-                          mediaType: mediaType,
-                          filterType: 'keyword',
-                        ),
+                .map(
+                  (k) => _browseChip(
+                    label: k.name,
+                    color: Colors.white.withValues(alpha: 0.05),
+                    labelColor: Colors.white60,
+                    dense: true,
+                    onTap: () => context.push(
+                      Destinations.seerrBrowseWith(
+                        filterId: k.id.toString(),
+                        filterName: k.name,
+                        mediaType: mediaType,
+                        filterType: 'keyword',
                       ),
-                    ))
+                    ),
+                  ),
+                )
                 .toList(),
           ),
         ],
@@ -536,11 +552,7 @@ class _SeerrMediaDetailScreenState
         if (constraints.maxWidth < 720) {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              overviewCol,
-              const SizedBox(height: 16),
-              stats,
-            ],
+            children: [overviewCol, const SizedBox(height: 16), stats],
           );
         }
         return Row(
@@ -618,10 +630,7 @@ class _SeerrMediaDetailScreenState
                   ),
                   Text(
                     rows[i].value,
-                    style: const TextStyle(
-                      color: Colors.white70,
-                      fontSize: 14,
-                    ),
+                    style: const TextStyle(color: Colors.white70, fontSize: 14),
                   ),
                 ],
               ),
@@ -636,10 +645,13 @@ class _SeerrMediaDetailScreenState
 
   Widget _buildWideActions(SeerrMediaDetailState s, AppLocalizations l10n) {
     final vm = _vm!;
-    final canShowRequest = vm.canRequest &&
+    final canShowRequest =
+        vm.canRequest &&
         !s.isFullyAvailable &&
         (!s.hasExistingRequest || s.isPartiallyAvailable);
-    final requestLabel = s.isPartiallyAvailable ? l10n.requestMore : l10n.request;
+    final requestLabel = s.isPartiallyAvailable
+        ? l10n.requestMore
+        : l10n.request;
     final canManage = vm.canManageRequests;
     final trailer = s.bestTrailer;
     final showTrailer = trailer != null;
@@ -654,38 +666,46 @@ class _SeerrMediaDetailScreenState
     }
 
     if (showCancel) {
-      tiles.add(_ActionTile(
-        icon: Icons.close,
-        label: l10n.cancelRequest,
-        onTap: s.isRequesting ? null : () => _showCancelDialog(s),
-        primary: !(s.isFullyAvailable || s.isPartiallyAvailable),
-        focusNode: takeFirst(),
-      ));
+      tiles.add(
+        _ActionTile(
+          icon: Icons.close,
+          label: l10n.cancelRequest,
+          onTap: s.isRequesting ? null : () => _showCancelDialog(s),
+          primary: !(s.isFullyAvailable || s.isPartiallyAvailable),
+          focusNode: takeFirst(),
+        ),
+      );
     } else if (canShowRequest) {
-      tiles.add(_ActionTile(
-        icon: Icons.add,
-        label: requestLabel,
-        onTap: s.isRequesting ? null : _showRequestDialog,
-        primary: !(s.isFullyAvailable || s.isPartiallyAvailable),
-        focusNode: takeFirst(),
-      ));
+      tiles.add(
+        _ActionTile(
+          icon: Icons.add,
+          label: requestLabel,
+          onTap: s.isRequesting ? null : _showRequestDialog,
+          primary: !(s.isFullyAvailable || s.isPartiallyAvailable),
+          focusNode: takeFirst(),
+        ),
+      );
     }
     if (s.isFullyAvailable || s.isPartiallyAvailable) {
-      tiles.add(_ActionTile(
-        icon: Icons.play_arrow,
-        label: l10n.playInMoonfin,
-        onTap: () => _playInMoonfin(s),
-        primary: tiles.isEmpty,
-        focusNode: takeFirst(),
-      ));
+      tiles.add(
+        _ActionTile(
+          icon: Icons.play_arrow,
+          label: l10n.playInMoonfin,
+          onTap: () => _playInMoonfin(s),
+          primary: tiles.isEmpty,
+          focusNode: takeFirst(),
+        ),
+      );
     }
     if (showTrailer) {
-      tiles.add(_ActionTile(
-        icon: Icons.movie_outlined,
-        label: l10n.trailer,
-        onTap: () => _openTrailer(trailer),
-        focusNode: takeFirst(),
-      ));
+      tiles.add(
+        _ActionTile(
+          icon: Icons.movie_outlined,
+          label: l10n.trailer,
+          onTap: () => _openTrailer(trailer),
+          focusNode: takeFirst(),
+        ),
+      );
     }
 
     return Column(
@@ -697,16 +717,26 @@ class _SeerrMediaDetailScreenState
               padding: const EdgeInsets.only(bottom: 8),
               child: Row(
                 children: [
-                  const Icon(Icons.person_outline, size: 16, color: Colors.white54),
+                  const Icon(
+                    Icons.person_outline,
+                    size: 16,
+                    color: Colors.white54,
+                  ),
                   const SizedBox(width: 6),
                   Flexible(
                     child: Text(
-                      l10n.requestedByName(req.requestedBy?.bestName ?? l10n.unknown),
-                      style: const TextStyle(color: Colors.white54, fontSize: 13),
+                      l10n.requestedByName(
+                        req.requestedBy?.bestName ?? l10n.unknown,
+                      ),
+                      style: const TextStyle(
+                        color: Colors.white54,
+                        fontSize: 13,
+                      ),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  if (canManage && req.status == SeerrRequest.statusPending) ...[
+                  if (canManage &&
+                      req.status == SeerrRequest.statusPending) ...[
                     const SizedBox(width: 8),
                     _ApproveDeclineButtons(
                       isLoading: s.isRequesting,
@@ -732,15 +762,14 @@ class _SeerrMediaDetailScreenState
     Color? borderColor,
     Color labelColor = Colors.white,
     bool dense = false,
-  }) =>
-      _BrowseChip(
-        label: label,
-        onTap: onTap,
-        color: color,
-        borderColor: borderColor,
-        labelColor: labelColor,
-        dense: dense,
-      );
+  }) => _BrowseChip(
+    label: label,
+    onTap: onTap,
+    color: color,
+    borderColor: borderColor,
+    labelColor: labelColor,
+    dense: dense,
+  );
 
   KeyEventResult _handleNavbarUpKey(FocusNode node, KeyEvent event) {
     if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
@@ -823,8 +852,18 @@ class _SeerrMediaDetailScreenState
     try {
       final d = DateTime.parse(iso);
       const months = [
-        'January', 'February', 'March', 'April', 'May', 'June',
-        'July', 'August', 'September', 'October', 'November', 'December'
+        'January',
+        'February',
+        'March',
+        'April',
+        'May',
+        'June',
+        'July',
+        'August',
+        'September',
+        'October',
+        'November',
+        'December',
       ];
       return '${months[d.month - 1]} ${d.day}, ${d.year}';
     } catch (_) {
@@ -866,10 +905,10 @@ class _SeerrMediaDetailScreenState
         _userPrefs.get(UserPreferences.navbarPosition) == NavbarPosition.top;
     final navbarHeight = navbarIsTop
         ? (PlatformDetection.isTV
-            ? 95.0
-            : PlatformDetection.useMobileUi
-                ? 60.0
-                : 80.0)
+              ? 95.0
+              : PlatformDetection.useMobileUi
+              ? 60.0
+              : 80.0)
         : 0.0;
     return Padding(
       padding: EdgeInsets.fromLTRB(32, topPad + navbarHeight + 16, 32, 0),
@@ -962,17 +1001,19 @@ class _SeerrMediaDetailScreenState
     }
 
     if (s.voteAverage != null && s.voteAverage! > 0) {
-      chips.add(Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.star, size: 16, color: Color(0xFFFFC107)),
-          const SizedBox(width: 2),
-          Text(
-            s.voteAverage!.toStringAsFixed(1),
-            style: const TextStyle(color: Colors.white70, fontSize: 13),
-          ),
-        ],
-      ));
+      chips.add(
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.star, size: 16, color: Color(0xFFFFC107)),
+            const SizedBox(width: 2),
+            Text(
+              s.voteAverage!.toStringAsFixed(1),
+              style: const TextStyle(color: Colors.white70, fontSize: 13),
+            ),
+          ],
+        ),
+      );
     }
 
     if (s.isTv) {
@@ -1006,24 +1047,24 @@ class _SeerrMediaDetailScreenState
               spacing: 6,
               runSpacing: 4,
               children: s.genres
-                  .map((g) => ActionChip(
-                        label: Text(g.name,
-                            style: const TextStyle(fontSize: 12)),
-                        backgroundColor: Colors.white12,
-                        side: BorderSide.none,
-                        padding: EdgeInsets.zero,
-                        materialTapTargetSize:
-                            MaterialTapTargetSize.shrinkWrap,
-                        visualDensity: VisualDensity.compact,
-                        onPressed: () => context.push(
-                          Destinations.seerrBrowseWith(
-                            filterId: g.id.toString(),
-                            filterName: g.name,
-                            mediaType: mediaType,
-                            filterType: 'genre',
-                          ),
+                  .map(
+                    (g) => ActionChip(
+                      label: Text(g.name, style: const TextStyle(fontSize: 12)),
+                      backgroundColor: Colors.white12,
+                      side: BorderSide.none,
+                      padding: EdgeInsets.zero,
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      visualDensity: VisualDensity.compact,
+                      onPressed: () => context.push(
+                        Destinations.seerrBrowseWith(
+                          filterId: g.id.toString(),
+                          filterName: g.name,
+                          mediaType: mediaType,
+                          filterType: 'genre',
                         ),
-                      ))
+                      ),
+                    ),
+                  )
                   .toList(),
             ),
           ],
@@ -1033,25 +1074,30 @@ class _SeerrMediaDetailScreenState
               spacing: 6,
               runSpacing: 4,
               children: s.networks
-                  .map((n) => ActionChip(
-                        label: Text(n.name,
-                            style: const TextStyle(
-                                fontSize: 11, color: Colors.white54)),
-                        backgroundColor: Colors.transparent,
-                      side: ThemeRegistry.active.borders.chipBorder,
-                        padding: EdgeInsets.zero,
-                        materialTapTargetSize:
-                            MaterialTapTargetSize.shrinkWrap,
-                        visualDensity: VisualDensity.compact,
-                        onPressed: () => context.push(
-                          Destinations.seerrBrowseWith(
-                            filterId: n.id.toString(),
-                            filterName: n.name,
-                            mediaType: mediaType,
-                            filterType: 'network',
-                          ),
+                  .map(
+                    (n) => ActionChip(
+                      label: Text(
+                        n.name,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: Colors.white54,
                         ),
-                      ))
+                      ),
+                      backgroundColor: Colors.transparent,
+                      side: ThemeRegistry.active.borders.chipBorder,
+                      padding: EdgeInsets.zero,
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      visualDensity: VisualDensity.compact,
+                      onPressed: () => context.push(
+                        Destinations.seerrBrowseWith(
+                          filterId: n.id.toString(),
+                          filterName: n.name,
+                          mediaType: mediaType,
+                          filterType: 'network',
+                        ),
+                      ),
+                    ),
+                  )
                   .toList(),
             ),
           ],
@@ -1061,25 +1107,30 @@ class _SeerrMediaDetailScreenState
               spacing: 6,
               runSpacing: 4,
               children: s.keywords
-                  .map((k) => ActionChip(
-                        label: Text(k.name,
-                            style: const TextStyle(
-                                fontSize: 11, color: Colors.white60)),
-                        backgroundColor: Colors.white.withValues(alpha: 0.05),
-                        side: BorderSide.none,
-                        padding: EdgeInsets.zero,
-                        materialTapTargetSize:
-                            MaterialTapTargetSize.shrinkWrap,
-                        visualDensity: VisualDensity.compact,
-                        onPressed: () => context.push(
-                          Destinations.seerrBrowseWith(
-                            filterId: k.id.toString(),
-                            filterName: k.name,
-                            mediaType: mediaType,
-                            filterType: 'keyword',
-                          ),
+                  .map(
+                    (k) => ActionChip(
+                      label: Text(
+                        k.name,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: Colors.white60,
                         ),
-                      ))
+                      ),
+                      backgroundColor: Colors.white.withValues(alpha: 0.05),
+                      side: BorderSide.none,
+                      padding: EdgeInsets.zero,
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      visualDensity: VisualDensity.compact,
+                      onPressed: () => context.push(
+                        Destinations.seerrBrowseWith(
+                          filterId: k.id.toString(),
+                          filterName: k.name,
+                          mediaType: mediaType,
+                          filterType: 'keyword',
+                        ),
+                      ),
+                    ),
+                  )
                   .toList(),
             ),
           ],
@@ -1091,10 +1142,13 @@ class _SeerrMediaDetailScreenState
   Widget _buildRequestSection(SeerrMediaDetailState s) {
     final l10n = AppLocalizations.of(context);
     final vm = _vm!;
-    final canShowRequest = vm.canRequest &&
+    final canShowRequest =
+        vm.canRequest &&
         !s.isFullyAvailable &&
         (!s.hasExistingRequest || s.isPartiallyAvailable);
-    final requestLabel = s.isPartiallyAvailable ? l10n.requestMore : l10n.request;
+    final requestLabel = s.isPartiallyAvailable
+        ? l10n.requestMore
+        : l10n.request;
     final canManage = vm.canManageRequests;
 
     return Padding(
@@ -1108,16 +1162,26 @@ class _SeerrMediaDetailScreenState
                 padding: const EdgeInsets.only(bottom: 8),
                 child: Row(
                   children: [
-                    const Icon(Icons.person_outline, size: 16, color: Colors.white54),
+                    const Icon(
+                      Icons.person_outline,
+                      size: 16,
+                      color: Colors.white54,
+                    ),
                     const SizedBox(width: 6),
                     Flexible(
                       child: Text(
-                        l10n.requestedByName(req.requestedBy?.bestName ?? l10n.unknown),
-                        style: const TextStyle(color: Colors.white54, fontSize: 13),
+                        l10n.requestedByName(
+                          req.requestedBy?.bestName ?? l10n.unknown,
+                        ),
+                        style: const TextStyle(
+                          color: Colors.white54,
+                          fontSize: 13,
+                        ),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    if (canManage && req.status == SeerrRequest.statusPending) ...[
+                    if (canManage &&
+                        req.status == SeerrRequest.statusPending) ...[
                       const SizedBox(width: 8),
                       _ApproveDeclineButtons(
                         isLoading: s.isRequesting,
@@ -1162,9 +1226,7 @@ class _SeerrMediaDetailScreenState
                 ),
               if (s.activeRequests.isNotEmpty && !s.isFullyAvailable)
                 OutlinedButton.icon(
-                  onPressed: s.isRequesting
-                      ? null
-                      : () => _showCancelDialog(s),
+                  onPressed: s.isRequesting ? null : () => _showCancelDialog(s),
                   icon: const Icon(Icons.close, size: 18),
                   label: Text(l10n.cancelRequest),
                   style: OutlinedButton.styleFrom(
@@ -1187,9 +1249,9 @@ class _SeerrMediaDetailScreenState
       child: Text(
         text,
         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Colors.white.withValues(alpha: 0.85),
-              height: 1.5,
-            ),
+          color: Colors.white.withValues(alpha: 0.85),
+          height: 1.5,
+        ),
       ),
     );
   }
@@ -1199,83 +1261,77 @@ class _SeerrMediaDetailScreenState
     return LibraryRow(
       title: l10n.cast,
       rowHeight: 170,
-      children: visible
-          .asMap()
-          .entries
-          .map((entry) {
-            final index = entry.key;
-            final m = entry.value;
-            return _CastCard(
-              member: m,
-              onKeyEvent: (event) {
-                if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
-                  return KeyEventResult.ignored;
-                }
-                if (event.logicalKey == LogicalKeyboardKey.arrowLeft &&
-                    index == 0) {
-                  NavigationLayout.focusNavbarNotifier.value?.call();
-                  return KeyEventResult.handled;
-                }
-                return KeyEventResult.ignored;
-              },
-              onTap: () => context.push(
-                Destinations.seerrPerson(m.id.toString()),
-              ),
-            );
-          })
-          .toList(),
+      children: visible.asMap().entries.map((entry) {
+        final index = entry.key;
+        final m = entry.value;
+        return _CastCard(
+          member: m,
+          onKeyEvent: (event) {
+            if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
+              return KeyEventResult.ignored;
+            }
+            if (event.logicalKey == LogicalKeyboardKey.arrowLeft &&
+                index == 0) {
+              NavigationLayout.focusNavbarNotifier.value?.call();
+              return KeyEventResult.handled;
+            }
+            return KeyEventResult.ignored;
+          },
+          onTap: () => context.push(Destinations.seerrPerson(m.id.toString())),
+        );
+      }).toList(),
     );
   }
 
   Widget _buildRelatedRow(String title, List<SeerrDiscoverItem> items) {
     final isNeon = ThemeRegistry.active.id == ThemeRegistry.neonPulseId;
-    final focusColor =
-        Color(GetIt.instance<UserPreferences>().get(UserPreferences.focusColor).colorValue);
-    final cardExpansion =
-        GetIt.instance<UserPreferences>().get(UserPreferences.cardFocusExpansion);
+    final focusColor = Color(
+      GetIt.instance<UserPreferences>()
+          .get(UserPreferences.focusColor)
+          .colorValue,
+    );
+    final cardExpansion = GetIt.instance<UserPreferences>().get(
+      UserPreferences.cardFocusExpansion,
+    );
     return LibraryRow(
       title: title,
       rowHeight: 240,
-      children: items
-          .asMap()
-          .entries
-          .map((entry) {
-            final index = entry.key;
-            final item = entry.value;
-            return MediaCard(
-                title: item.displayTitle,
-                subtitle: _yearFromItem(item),
-                imageUrl: item.posterPath != null
-                    ? '$_tmdbPosterBase${item.posterPath}'
-                    : null,
-                width: 130,
-                aspectRatio: 2 / 3,
-                seerrMediaType: item.mediaType,
-                seerrStatus: item.mediaInfo?.status,
-                focusColor: focusColor,
-                cardFocusExpansion: cardExpansion,
-                suppressFocusGlow: isNeon,
-                onKeyEvent: (_, event) {
-                  if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
-                    return KeyEventResult.ignored;
-                  }
-                  if (event.logicalKey == LogicalKeyboardKey.arrowLeft &&
-                      index == 0) {
-                    NavigationLayout.focusNavbarNotifier.value?.call();
-                    return KeyEventResult.handled;
-                  }
-                  return KeyEventResult.ignored;
-                },
-                onTap: () {
-                  final mediaType = item.mediaType ?? 'movie';
-                  context.push(
-                    Destinations.seerrMedia(item.id.toString()),
-                    extra: {'mediaType': mediaType},
-                  );
-                },
-              );
-          })
-          .toList(),
+      children: items.asMap().entries.map((entry) {
+        final index = entry.key;
+        final item = entry.value;
+        return MediaCard(
+          title: item.displayTitle,
+          subtitle: _yearFromItem(item),
+          imageUrl: item.posterPath != null
+              ? '$_tmdbPosterBase${item.posterPath}'
+              : null,
+          width: 130,
+          aspectRatio: 2 / 3,
+          seerrMediaType: item.mediaType,
+          seerrStatus: item.mediaInfo?.status,
+          focusColor: focusColor,
+          cardFocusExpansion: cardExpansion,
+          suppressFocusGlow: isNeon,
+          onKeyEvent: (_, event) {
+            if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
+              return KeyEventResult.ignored;
+            }
+            if (event.logicalKey == LogicalKeyboardKey.arrowLeft &&
+                index == 0) {
+              NavigationLayout.focusNavbarNotifier.value?.call();
+              return KeyEventResult.handled;
+            }
+            return KeyEventResult.ignored;
+          },
+          onTap: () {
+            final mediaType = item.mediaType ?? 'movie';
+            context.push(
+              Destinations.seerrMedia(item.id.toString()),
+              extra: {'mediaType': mediaType},
+            );
+          },
+        );
+      }).toList(),
     );
   }
 
@@ -1310,10 +1366,11 @@ class _SeerrMediaDetailScreenState
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: const Color(0xFF1A1A2E),
-        title: Text(l10n.cancelRequest,
-            style: const TextStyle(color: Colors.white)),
-        content: Text(message,
-            style: const TextStyle(color: Colors.white70)),
+        title: Text(
+          l10n.cancelRequest,
+          style: const TextStyle(color: Colors.white),
+        ),
+        content: Text(message, style: const TextStyle(color: Colors.white70)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -1357,22 +1414,24 @@ class _SeerrMediaDetailScreenState
         fields: 'ProviderIds',
       );
 
-      final items = (response['Items'] as List?)
-              ?.cast<Map<String, dynamic>?>() ??
+      final items =
+          (response['Items'] as List?)?.cast<Map<String, dynamic>?>() ??
           <Map<String, dynamic>?>[];
 
       Map<String, dynamic>? match;
 
       if (tmdbId != null) {
         match = items.firstWhere(
-          (item) => (item!['ProviderIds'] as Map?)?['Tmdb'] == tmdbId.toString(),
+          (item) =>
+              (item!['ProviderIds'] as Map?)?['Tmdb'] == tmdbId.toString(),
           orElse: () => null,
         );
       }
 
       if (match == null && tvdbId != null) {
         match = items.firstWhere(
-          (item) => (item!['ProviderIds'] as Map?)?['Tvdb'] == tvdbId.toString(),
+          (item) =>
+              (item!['ProviderIds'] as Map?)?['Tvdb'] == tvdbId.toString(),
           orElse: () => null,
         );
       }
@@ -1385,14 +1444,15 @@ class _SeerrMediaDetailScreenState
       }
 
       match ??= items.firstWhere(
-        (item) => (item!['Name'] as String?)?.toLowerCase() == title.toLowerCase(),
+        (item) =>
+            (item!['Name'] as String?)?.toLowerCase() == title.toLowerCase(),
         orElse: () => null,
       );
 
       if (!mounted) return;
 
       if (match != null) {
-        final itemId = match['Id'] as String;
+        final itemId = match['Id']?.toString() ?? '';
         context.push(Destinations.item(itemId));
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -1425,10 +1485,8 @@ class _SeerrMediaDetailScreenState
     return date.substring(0, 4);
   }
 
-  static Widget _metaText(String text) => Text(
-        text,
-        style: const TextStyle(color: Colors.white70, fontSize: 13),
-      );
+  static Widget _metaText(String text) =>
+      Text(text, style: const TextStyle(color: Colors.white70, fontSize: 13));
 
   static Widget _tvStatusBadge(String status) {
     final lower = status.toLowerCase();
@@ -1448,11 +1506,7 @@ class _SeerrMediaDetailScreenState
       ),
       child: Text(
         status,
-        style: TextStyle(
-          color: bg,
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-        ),
+        style: TextStyle(color: bg, fontSize: 12, fontWeight: FontWeight.w600),
       ),
     );
   }
@@ -1497,7 +1551,11 @@ class _ApproveDeclineButtons extends StatelessWidget {
       children: [
         IconButton(
           onPressed: isLoading ? null : onApprove,
-          icon: const Icon(Icons.check_circle_outline, color: Colors.green, size: 20),
+          icon: const Icon(
+            Icons.check_circle_outline,
+            color: Colors.green,
+            size: 20,
+          ),
           tooltip: l10n.approve,
           visualDensity: VisualDensity.compact,
           padding: EdgeInsets.zero,
@@ -1605,12 +1663,14 @@ class _CastCard extends StatefulWidget {
 }
 
 class _CastCardState extends State<_CastCard> with FocusStateMixin {
-
   @override
   Widget build(BuildContext context) {
     final m = widget.member;
-    final focusColor =
-        Color(GetIt.instance<UserPreferences>().get(UserPreferences.focusColor).colorValue);
+    final focusColor = Color(
+      GetIt.instance<UserPreferences>()
+          .get(UserPreferences.focusColor)
+          .colorValue,
+    );
     return Focus(
       onFocusChange: (f) => setFocused(f),
       onKeyEvent: (_, event) {
@@ -1665,11 +1725,15 @@ class _CastCardState extends State<_CastCard> with FocusStateMixin {
                       backgroundColor: Colors.grey[800],
                       backgroundImage: m.profilePath != null
                           ? CachedNetworkImageProvider(
-                              '$_tmdbProfileBase${m.profilePath}')
+                              '$_tmdbProfileBase${m.profilePath}',
+                            )
                           : null,
                       child: m.profilePath == null
-                          ? const Icon(Icons.person,
-                              color: Colors.white38, size: 32)
+                          ? const Icon(
+                              Icons.person,
+                              color: Colors.white38,
+                              size: 32,
+                            )
                           : null,
                     ),
                   ),
@@ -1689,7 +1753,9 @@ class _CastCardState extends State<_CastCard> with FocusStateMixin {
                     Text(
                       m.character!,
                       style: const TextStyle(
-                          color: Colors.white54, fontSize: 11),
+                        color: Colors.white54,
+                        fontSize: 11,
+                      ),
                       maxLines: 1,
                       textAlign: TextAlign.center,
                       overflow: TextOverflow.ellipsis,
@@ -1732,9 +1798,11 @@ class _ActionTile extends StatefulWidget {
 class _ActionTileState extends State<_ActionTile> with FocusStateMixin {
   @override
   Widget build(BuildContext context) {
-    final focusColor = Color(GetIt.instance<UserPreferences>()
-        .get(UserPreferences.focusColor)
-        .colorValue);
+    final focusColor = Color(
+      GetIt.instance<UserPreferences>()
+          .get(UserPreferences.focusColor)
+          .colorValue,
+    );
     final disabled = widget.onTap == null;
     final isHighlighted = showFocusBorder;
     final bg = (widget.primary && isHighlighted)
@@ -1885,8 +1953,7 @@ class _RequestDialogState extends State<_RequestDialog> {
     final vm = widget.vm;
     final savedServer = _is4k ? vm.saved4kServerId : vm.savedServerId;
     final savedProfile = _is4k ? vm.saved4kProfileId : vm.savedProfileId;
-    final savedFolder =
-        _is4k ? vm.saved4kRootFolderId : vm.savedRootFolderId;
+    final savedFolder = _is4k ? vm.saved4kRootFolderId : vm.savedRootFolderId;
 
     if (savedServer != null && savedServer.isNotEmpty) {
       _selectedServerId = int.tryParse(savedServer);
@@ -1924,9 +1991,7 @@ class _RequestDialogState extends State<_RequestDialog> {
     }
 
     if (_selectedRootFolderId == null && dir.isNotEmpty) {
-      final match = server.rootFolders
-          .where((f) => f.path == dir)
-          .firstOrNull;
+      final match = server.rootFolders.where((f) => f.path == dir).firstOrNull;
       if (match != null) _selectedRootFolderId = match.id;
     }
   }
@@ -1968,8 +2033,7 @@ class _RequestDialogState extends State<_RequestDialog> {
     }
 
     if (dir.isNotEmpty) {
-      final match =
-          server.rootFolders.where((f) => f.path == dir).firstOrNull;
+      final match = server.rootFolders.where((f) => f.path == dir).firstOrNull;
       if (match != null) return match.path;
     }
 
@@ -2011,41 +2075,45 @@ class _RequestDialogState extends State<_RequestDialog> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-            if (widget.vm.canRequest4k)
-              SwitchListTile(
-                title:
-                    Text(l10n.uhd4k, style: const TextStyle(color: Colors.white)),
-                value: _is4k,
-                onChanged: (v) => setState(() {
-                  _is4k = v;
-                  _selectedProfileId = null;
-                  _selectedRootFolderId = null;
-                  _applySavedPreferences();
-                }),
-                contentPadding: EdgeInsets.zero,
+          if (widget.vm.canRequest4k)
+            SwitchListTile(
+              title: Text(
+                l10n.uhd4k,
+                style: const TextStyle(color: Colors.white),
               ),
-            if (widget.isTv) ...[
-              const Divider(color: Colors.white12),
-              _buildSeasonSelector(),
-            ],
-            if (widget.vm.canRequestAdvanced) ...[
-              const Divider(color: Colors.white12),
-              _buildAdvancedOptions(theme),
-            ],
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _submit,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF6366F1),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-              ),
-              child: Text(l10n.submitRequest,
-                  style: const TextStyle(fontSize: 15)),
+              value: _is4k,
+              onChanged: (v) => setState(() {
+                _is4k = v;
+                _selectedProfileId = null;
+                _selectedRootFolderId = null;
+                _applySavedPreferences();
+              }),
+              contentPadding: EdgeInsets.zero,
             ),
+          if (widget.isTv) ...[
+            const Divider(color: Colors.white12),
+            _buildSeasonSelector(),
           ],
-        ),
-      );
+          if (widget.vm.canRequestAdvanced) ...[
+            const Divider(color: Colors.white12),
+            _buildAdvancedOptions(theme),
+          ],
+          const SizedBox(height: 20),
+          ElevatedButton(
+            onPressed: _submit,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF6366F1),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+            ),
+            child: Text(
+              l10n.submitRequest,
+              style: const TextStyle(fontSize: 15),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildSeasonSelector() {
@@ -2056,8 +2124,10 @@ class _RequestDialogState extends State<_RequestDialog> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         CheckboxListTile(
-          title: Text(l10n.allSeasons,
-              style: const TextStyle(color: Colors.white)),
+          title: Text(
+            l10n.allSeasons,
+            style: const TextStyle(color: Colors.white),
+          ),
           value: _allSeasons,
           onChanged: (v) => setState(() {
             _allSeasons = v ?? true;
@@ -2075,25 +2145,27 @@ class _RequestDialogState extends State<_RequestDialog> {
               final alreadyRequested = requested.contains(num);
               final selected = _selectedSeasons.contains(num);
               return FilterChip(
-                label: Text(l10n.seasonChip(num),
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: alreadyRequested
-                          ? Colors.white38
-                          : selected
-                              ? Colors.white
-                              : Colors.white70,
-                    )),
+                label: Text(
+                  l10n.seasonChip(num),
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: alreadyRequested
+                        ? Colors.white38
+                        : selected
+                        ? Colors.white
+                        : Colors.white70,
+                  ),
+                ),
                 selected: selected,
                 onSelected: alreadyRequested
                     ? null
                     : (v) => setState(() {
-                          if (v) {
-                            _selectedSeasons.add(num);
-                          } else {
-                            _selectedSeasons.remove(num);
-                          }
-                        }),
+                        if (v) {
+                          _selectedSeasons.add(num);
+                        } else {
+                          _selectedSeasons.remove(num);
+                        }
+                      }),
                 selectedColor: const Color(0xFF6366F1),
                 checkmarkColor: Colors.white,
                 disabledColor: Colors.white.withValues(alpha: 0.05),
@@ -2109,8 +2181,10 @@ class _RequestDialogState extends State<_RequestDialog> {
   Widget _buildAdvancedOptions(ThemeData theme) {
     final l10n = AppLocalizations.of(context);
     return ExpansionTile(
-      title: Text(l10n.advancedOptions,
-          style: const TextStyle(color: Colors.white70)),
+      title: Text(
+        l10n.advancedOptions,
+        style: const TextStyle(color: Colors.white70),
+      ),
       tilePadding: EdgeInsets.zero,
       initiallyExpanded: _showAdvanced,
       onExpansionChanged: (v) => _showAdvanced = v,
@@ -2118,8 +2192,7 @@ class _RequestDialogState extends State<_RequestDialog> {
         if (_loadingServers)
           const Padding(
             padding: EdgeInsets.all(16),
-            child:
-                Center(child: CircularProgressIndicator(strokeWidth: 2)),
+            child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
           )
         else if (_servers != null && _servers!.isNotEmpty) ...[
           _buildServerDropdown(),
@@ -2154,7 +2227,10 @@ class _RequestDialogState extends State<_RequestDialog> {
       decoration: InputDecoration(
         labelText: l10n.server,
         labelStyle: const TextStyle(color: Colors.white54),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 12,
+          vertical: 16,
+        ),
         border: const OutlineInputBorder(),
         enabledBorder: OutlineInputBorder(
           borderSide: ThemeRegistry.active.borders.chipBorder,
@@ -2163,13 +2239,15 @@ class _RequestDialogState extends State<_RequestDialog> {
       dropdownColor: const Color(0xFF1A1A2E),
       initialValue: _selectedServerId ?? _servers?.firstOrNull?.server.id,
       items: _servers
-          ?.map((s) => DropdownMenuItem(
-                value: s.server.id,
-                child: Text(
-                  '${s.server.name}${s.server.is4k ? " (4K)" : ""}',
-                  style: const TextStyle(color: Colors.white),
-                ),
-              ))
+          ?.map(
+            (s) => DropdownMenuItem(
+              value: s.server.id,
+              child: Text(
+                '${s.server.name}${s.server.is4k ? " (4K)" : ""}',
+                style: const TextStyle(color: Colors.white),
+              ),
+            ),
+          )
           .toList(),
       onChanged: (v) => setState(() {
         _selectedServerId = v;
@@ -2187,7 +2265,10 @@ class _RequestDialogState extends State<_RequestDialog> {
       decoration: InputDecoration(
         labelText: l10n.qualityProfile,
         labelStyle: const TextStyle(color: Colors.white54),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 12,
+          vertical: 16,
+        ),
         border: const OutlineInputBorder(),
         enabledBorder: OutlineInputBorder(
           borderSide: ThemeRegistry.active.borders.chipBorder,
@@ -2196,11 +2277,12 @@ class _RequestDialogState extends State<_RequestDialog> {
       dropdownColor: const Color(0xFF1A1A2E),
       initialValue: _selectedProfileId ?? profiles.firstOrNull?.id,
       items: profiles
-          .map((p) => DropdownMenuItem(
-                value: p.id,
-                child: Text(p.name,
-                    style: const TextStyle(color: Colors.white)),
-              ))
+          .map(
+            (p) => DropdownMenuItem(
+              value: p.id,
+              child: Text(p.name, style: const TextStyle(color: Colors.white)),
+            ),
+          )
           .toList(),
       onChanged: (v) => setState(() => _selectedProfileId = v),
     );
@@ -2213,7 +2295,10 @@ class _RequestDialogState extends State<_RequestDialog> {
       decoration: InputDecoration(
         labelText: l10n.rootFolder,
         labelStyle: const TextStyle(color: Colors.white54),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 12,
+          vertical: 16,
+        ),
         border: const OutlineInputBorder(),
         enabledBorder: OutlineInputBorder(
           borderSide: ThemeRegistry.active.borders.chipBorder,
@@ -2222,11 +2307,12 @@ class _RequestDialogState extends State<_RequestDialog> {
       dropdownColor: const Color(0xFF1A1A2E),
       initialValue: _selectedRootFolderId ?? folders.firstOrNull?.id,
       items: folders
-          .map((f) => DropdownMenuItem(
-                value: f.id,
-                child: Text(f.path,
-                    style: const TextStyle(color: Colors.white)),
-              ))
+          .map(
+            (f) => DropdownMenuItem(
+              value: f.id,
+              child: Text(f.path, style: const TextStyle(color: Colors.white)),
+            ),
+          )
           .toList(),
       onChanged: (v) => setState(() => _selectedRootFolderId = v),
     );

@@ -34,7 +34,7 @@ class RecordingItem {
 
   factory RecordingItem.fromJson(Map<String, dynamic> json) {
     return RecordingItem(
-      id: json['Id'] as String,
+      id: json['Id']?.toString() ?? '',
       name: json['Name'] as String? ?? '',
       channelName: json['ChannelName'] as String?,
       episodeTitle: json['EpisodeTitle'] as String?,
@@ -47,9 +47,9 @@ class RecordingItem {
           : null,
       overview: json['Overview'] as String?,
       imageTags: json['ImageTags'] as Map<String, dynamic>?,
-      parentThumbItemId: json['ParentThumbItemId'] as String?,
+      parentThumbItemId: json['ParentThumbItemId']?.toString(),
       parentThumbImageTag: json['ParentThumbImageTag'] as String?,
-      seriesId: json['SeriesId'] as String?,
+      seriesId: json['SeriesId']?.toString(),
       rawData: json,
     );
   }
@@ -100,10 +100,10 @@ class TimerItem {
 
   factory TimerItem.fromJson(Map<String, dynamic> json) {
     return TimerItem(
-      id: json['Id'] as String,
+      id: json['Id']?.toString() ?? '',
       name: json['Name'] as String? ?? '',
       channelName: json['ChannelName'] as String?,
-      seriesTimerId: json['SeriesTimerId'] as String?,
+      seriesTimerId: json['SeriesTimerId']?.toString(),
       startDate: json['StartDate'] != null
           ? DateTime.tryParse(json['StartDate'] as String)
           : null,
@@ -217,19 +217,20 @@ class RecordingsViewModel extends ChangeNotifier {
           .map((json) => TimerItem.fromJson(json))
           .where((t) => t.startDate != null && t.startDate!.isBefore(next24h))
           .map((timer) {
-        final programData = timer.programInfo;
-        if (programData != null) {
-          return RecordingItem.fromJson(programData);
-        }
-        return RecordingItem(
-          id: timer.id,
-          name: timer.name,
-          channelName: timer.channelName,
-          startDate: timer.startDate,
-          endDate: timer.endDate,
-          rawData: timer.rawData,
-        );
-      }).toList();
+            final programData = timer.programInfo;
+            if (programData != null) {
+              return RecordingItem.fromJson(programData);
+            }
+            return RecordingItem(
+              id: timer.id,
+              name: timer.name,
+              channelName: timer.channelName,
+              startDate: timer.startDate,
+              endDate: timer.endDate,
+              rawData: timer.rawData,
+            );
+          })
+          .toList();
     } catch (_) {}
   }
 

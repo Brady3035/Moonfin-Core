@@ -12,11 +12,7 @@ class AddToPlaylistDialog extends StatefulWidget {
   final List<String> itemIds;
   final String? serverId;
 
-  const AddToPlaylistDialog({
-    super.key,
-    required this.itemIds,
-    this.serverId,
-  });
+  const AddToPlaylistDialog({super.key, required this.itemIds, this.serverId});
 
   static Future<bool?> show(
     BuildContext context, {
@@ -63,7 +59,7 @@ class _AddToPlaylistDialogState extends State<AddToPlaylistDialog> {
         setState(() {
           _playlists = items.cast<Map<String, dynamic>>().map((raw) {
             return _PlaylistEntry(
-              id: raw['Id'] as String,
+              id: raw['Id']?.toString() ?? '',
               name: raw['Name'] as String? ?? '',
             );
           }).toList();
@@ -81,7 +77,9 @@ class _AddToPlaylistDialogState extends State<AddToPlaylistDialog> {
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context).playlistAddFailed)),
+          SnackBar(
+            content: Text(AppLocalizations.of(context).playlistAddFailed),
+          ),
         );
       }
     }
@@ -99,7 +97,9 @@ class _AddToPlaylistDialogState extends State<AddToPlaylistDialog> {
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context).playlistCreateFailed)),
+          SnackBar(
+            content: Text(AppLocalizations.of(context).playlistCreateFailed),
+          ),
         );
       }
     }
@@ -114,7 +114,10 @@ class _AddToPlaylistDialogState extends State<AddToPlaylistDialog> {
         final insets = MediaQuery.of(ctx).viewInsets;
         return Dialog(
           backgroundColor: Colors.transparent,
-          insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+          insetPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 24,
+          ),
           child: AnimatedPadding(
             duration: const Duration(milliseconds: 150),
             padding: EdgeInsets.only(bottom: insets.bottom),
@@ -124,7 +127,9 @@ class _AddToPlaylistDialogState extends State<AddToPlaylistDialog> {
                 decoration: BoxDecoration(
                   color: AppColorScheme.surface.withValues(alpha: 0.9),
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.fromBorderSide(ThemeRegistry.active.borders.chipBorder),
+                  border: Border.fromBorderSide(
+                    ThemeRegistry.active.borders.chipBorder,
+                  ),
                 ),
                 padding: const EdgeInsets.all(24),
                 child: Column(
@@ -146,9 +151,15 @@ class _AddToPlaylistDialogState extends State<AddToPlaylistDialog> {
                       style: TextStyle(color: AppColorScheme.onSurface),
                       decoration: InputDecoration(
                         hintText: AppLocalizations.of(ctx).playlistName,
-                        hintStyle: TextStyle(color: AppColorScheme.onSurface.withValues(alpha: 0.4)),
+                        hintStyle: TextStyle(
+                          color: AppColorScheme.onSurface.withValues(
+                            alpha: 0.4,
+                          ),
+                        ),
                         filled: true,
-                        fillColor: AppColorScheme.onSurface.withValues(alpha: 0.08),
+                        fillColor: AppColorScheme.onSurface.withValues(
+                          alpha: 0.08,
+                        ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                           borderSide: BorderSide.none,
@@ -167,7 +178,11 @@ class _AddToPlaylistDialogState extends State<AddToPlaylistDialog> {
                           onPressed: () => Navigator.pop(ctx),
                           child: Text(
                             AppLocalizations.of(ctx).cancel,
-                            style: TextStyle(color: AppColorScheme.onSurface.withValues(alpha: 0.6)),
+                            style: TextStyle(
+                              color: AppColorScheme.onSurface.withValues(
+                                alpha: 0.6,
+                              ),
+                            ),
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -201,7 +216,9 @@ class _AddToPlaylistDialogState extends State<AddToPlaylistDialog> {
         decoration: BoxDecoration(
           color: AppColorScheme.surface.withValues(alpha: 0.9),
           borderRadius: BorderRadius.circular(20),
-          border: Border.fromBorderSide(ThemeRegistry.active.borders.chipBorder),
+          border: Border.fromBorderSide(
+            ThemeRegistry.active.borders.chipBorder,
+          ),
         ),
         padding: const EdgeInsets.symmetric(vertical: 20),
         child: Column(
@@ -221,7 +238,10 @@ class _AddToPlaylistDialogState extends State<AddToPlaylistDialog> {
                 ),
               ),
             ),
-            Container(height: 1, color: AppColorScheme.onSurface.withValues(alpha: 0.08)),
+            Container(
+              height: 1,
+              color: AppColorScheme.onSurface.withValues(alpha: 0.08),
+            ),
             const SizedBox(height: 8),
             FocusableDialogRow(
               icon: Icons.add,
@@ -244,7 +264,9 @@ class _AddToPlaylistDialogState extends State<AddToPlaylistDialog> {
                 padding: const EdgeInsets.all(24),
                 child: Text(
                   l10n.playlistNoneFound,
-                  style: TextStyle(color: AppColorScheme.onSurface.withValues(alpha: 0.5)),
+                  style: TextStyle(
+                    color: AppColorScheme.onSurface.withValues(alpha: 0.5),
+                  ),
                 ),
               )
             else
@@ -264,7 +286,10 @@ class _AddToPlaylistDialogState extends State<AddToPlaylistDialog> {
                 ),
               ),
             const SizedBox(height: 4),
-            Container(height: 1, color: AppColorScheme.onSurface.withValues(alpha: 0.08)),
+            Container(
+              height: 1,
+              color: AppColorScheme.onSurface.withValues(alpha: 0.08),
+            ),
             const SizedBox(height: 4),
             FocusableDialogRow(
               label: l10n.cancel,

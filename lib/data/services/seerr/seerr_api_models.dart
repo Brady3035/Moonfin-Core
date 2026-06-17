@@ -221,6 +221,7 @@ abstract final class SeerrPermission {
   static const requestView = 16384;
   static const requestMovie = 262144;
   static const requestTv = 524288;
+  static const recentView = 67108864;
 }
 
 @JsonSerializable()

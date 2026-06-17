@@ -65,6 +65,8 @@ class SeerrDiscoverViewModel extends ChangeNotifier {
   List<SeerrDiscoverRow> _rows = [];
   List<SeerrDiscoverRow> get rows => _rows;
 
+  bool _canViewRecentlyAdded = true;
+
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
@@ -140,7 +142,8 @@ class SeerrDiscoverViewModel extends ChangeNotifier {
       }
 
       final activeRows = _prefs.activeRows;
-      _rows = activeRows.map((type) => SeerrDiscoverRow(
+      await _refreshRecentlyAddedGate(activeRows);
+      _rows = _visibleRows(activeRows).map((type) => SeerrDiscoverRow(
         type: type,
         title: _titleForRowType(type),
         isLoading: true,
@@ -163,9 +166,32 @@ class SeerrDiscoverViewModel extends ChangeNotifier {
     await load();
   }
 
+  // Seerr does not enforce the "View Recently Added" (RECENT_VIEW) permission
+  // at the API layer; its own frontend hides the section. We are that frontend
+  // here, so replicate the gate and drop the Recently Added row for users who
+  // lack the permission. Owners and admins bypass via hasPermission.
+  Future<void> _refreshRecentlyAddedGate(List<SeerrRowType> requested) async {
+    if (!requested.contains(SeerrRowType.recentlyAdded)) {
+      _canViewRecentlyAdded = true;
+      return;
+    }
+    try {
+      final user = await _repo.getCurrentUser();
+      _canViewRecentlyAdded = user.hasPermission(SeerrPermission.recentView);
+    } catch (e) {
+      debugPrint('[SeerrDiscover] Recently Added permission check failed: $e');
+      _canViewRecentlyAdded = true;
+    }
+  }
+
+  List<SeerrRowType> _visibleRows(List<SeerrRowType> rows) =>
+      _canViewRecentlyAdded
+          ? rows
+          : rows.where((t) => t != SeerrRowType.recentlyAdded).toList();
+
   Future<void> applyRowConfig() async {
     if (_rows.isEmpty) return;
-    final activeTypes = _prefs.activeRows;
+    final activeTypes = _visibleRows(_prefs.activeRows);
     final rowMap = {for (final r in _rows) r.type: r};
     final newRows = <SeerrDiscoverRow>[];
     for (final type in activeTypes) {

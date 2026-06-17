@@ -302,6 +302,8 @@ final class AppleTvVideoChannel: NSObject, FlutterStreamHandler {
 
         player.configureAudioChannelsMode(audioChannelsMode)
         player.configureAudioPassthrough((args["audioPassthrough"] as? Bool) ?? false)
+        player.setForceSubtitlesDisabledOnStart(
+            (args["forceSubtitlesDisabledOnStart"] as? Bool) ?? false)
 
         if !audioOnly,
             let hybridUrlStr = args["hybridAudioUrl"] as? String,

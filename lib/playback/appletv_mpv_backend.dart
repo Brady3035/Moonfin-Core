@@ -254,6 +254,8 @@ class AppleTvMpvBackend implements PlayerBackend {
       'audioDelayMs': (_audioDelaySeconds * 1000).round(),
       'subtitleDelayMs': (_subtitleDelaySeconds * 1000).round(),
       'subtitleRendererMode': _modeToWire(_requestedSubtitleRendererMode),
+      'forceSubtitlesDisabledOnStart':
+          !audioOnly && _prefs.get(UserPreferences.subtitlesDefaultToNone),
     });
   }
 

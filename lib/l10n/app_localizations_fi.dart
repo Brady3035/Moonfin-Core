@@ -1712,7 +1712,7 @@ class AppLocalizationsFi extends AppLocalizations {
   }
 
   @override
-  String get seerr => 'Näkijä';
+  String get seerr => 'Seerr';
 
   @override
   String get seerrAccountType => 'Näkijätilin tyyppi';
@@ -6495,7 +6495,7 @@ class AppLocalizationsFi extends AppLocalizations {
   }
 
   @override
-  String get jellyseerr => 'Jellyseerr';
+  String get jellyseerr => 'Seerr';
 
   @override
   String get seeAll => 'Katso kaikki';

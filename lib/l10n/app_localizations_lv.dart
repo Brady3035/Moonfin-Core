@@ -1714,7 +1714,7 @@ class AppLocalizationsLv extends AppLocalizations {
   }
 
   @override
-  String get seerr => 'Redzējs';
+  String get seerr => 'Seerr';
 
   @override
   String get seerrAccountType => 'Serr konta veids';
@@ -6500,7 +6500,7 @@ class AppLocalizationsLv extends AppLocalizations {
   }
 
   @override
-  String get jellyseerr => 'Jellyseerr';
+  String get jellyseerr => 'Seerr';
 
   @override
   String get seeAll => 'Skatīt visu';

@@ -1693,7 +1693,7 @@ class AppLocalizationsTh extends AppLocalizations {
   }
 
   @override
-  String get seerr => 'เซียร์';
+  String get seerr => 'Seerr';
 
   @override
   String get seerrAccountType => 'ประเภทบัญชี Seerr';
@@ -6435,7 +6435,7 @@ class AppLocalizationsTh extends AppLocalizations {
   }
 
   @override
-  String get jellyseerr => 'Jellyseerr';
+  String get jellyseerr => 'Seerr';
 
   @override
   String get seeAll => 'ดูทั้งหมด';

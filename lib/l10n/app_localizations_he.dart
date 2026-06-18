@@ -1688,7 +1688,7 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get seerr => 'רואה';
+  String get seerr => 'Seerr';
 
   @override
   String get seerrAccountType => 'סוג חשבון רואה';
@@ -6389,7 +6389,7 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get jellyseerr => 'Jellyseerr';
+  String get jellyseerr => 'Seerr';
 
   @override
   String get seeAll => 'ראה הכל';

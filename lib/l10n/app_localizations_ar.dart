@@ -1695,7 +1695,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get seerr => 'سير';
+  String get seerr => 'Seerr';
 
   @override
   String get seerrAccountType => 'نوع حساب السير';
@@ -6437,7 +6437,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get jellyseerr => 'Jellyseerr';
+  String get jellyseerr => 'Seerr';
 
   @override
   String get seeAll => 'رؤية الكل';

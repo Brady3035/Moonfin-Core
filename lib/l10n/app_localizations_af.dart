@@ -1710,7 +1710,7 @@ class AppLocalizationsAf extends AppLocalizations {
   }
 
   @override
-  String get seerr => 'Siener';
+  String get seerr => 'Seerr';
 
   @override
   String get seerrAccountType => 'Seerr Rekening Tipe';
@@ -6477,7 +6477,7 @@ class AppLocalizationsAf extends AppLocalizations {
   }
 
   @override
-  String get jellyseerr => 'Jellyseerr';
+  String get jellyseerr => 'Seerr';
 
   @override
   String get seeAll => 'Sien Alles';

@@ -1710,7 +1710,7 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
-  String get seerr => 'Melihat';
+  String get seerr => 'Seerr';
 
   @override
   String get seerrAccountType => 'Jenis Akun Seerr';
@@ -6483,7 +6483,7 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
-  String get jellyseerr => 'Jellyseerr';
+  String get jellyseerr => 'Seerr';
 
   @override
   String get seeAll => 'Lihat Semua';

@@ -1719,7 +1719,7 @@ class AppLocalizationsSq extends AppLocalizations {
   }
 
   @override
-  String get seerr => 'Shikuesi';
+  String get seerr => 'Seerr';
 
   @override
   String get seerrAccountType => 'Lloji i llogarisë Seer';
@@ -6525,7 +6525,7 @@ class AppLocalizationsSq extends AppLocalizations {
   }
 
   @override
-  String get jellyseerr => 'Jellyseerr';
+  String get jellyseerr => 'Seerr';
 
   @override
   String get seeAll => 'Shih të gjitha';

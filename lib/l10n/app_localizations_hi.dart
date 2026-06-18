@@ -1702,7 +1702,7 @@ class AppLocalizationsHi extends AppLocalizations {
   }
 
   @override
-  String get seerr => 'द्रष्टा';
+  String get seerr => 'Seerr';
 
   @override
   String get seerrAccountType => 'द्रष्टा खाता प्रकार';
@@ -6455,7 +6455,7 @@ class AppLocalizationsHi extends AppLocalizations {
   }
 
   @override
-  String get jellyseerr => 'Jellyseerr';
+  String get jellyseerr => 'Seerr';
 
   @override
   String get seeAll => 'सभी देखें';

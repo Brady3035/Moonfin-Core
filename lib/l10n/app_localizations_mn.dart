@@ -1704,7 +1704,7 @@ class AppLocalizationsMn extends AppLocalizations {
   }
 
   @override
-  String get seerr => 'Үзмэрч';
+  String get seerr => 'Seerr';
 
   @override
   String get seerrAccountType => 'Үзмэрч дансны төрөл';
@@ -6493,7 +6493,7 @@ class AppLocalizationsMn extends AppLocalizations {
   }
 
   @override
-  String get jellyseerr => 'Jellyseerr';
+  String get jellyseerr => 'Seerr';
 
   @override
   String get seeAll => 'Бүгдийг харах';

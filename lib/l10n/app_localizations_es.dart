@@ -1718,7 +1718,7 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get seerr => 'Vidente';
+  String get seerr => 'Seerr';
 
   @override
   String get seerrAccountType => 'Tipo de cuenta vidente';
@@ -6530,7 +6530,7 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get jellyseerr => 'Jellyseerr';
+  String get jellyseerr => 'Seerr';
 
   @override
   String get seeAll => 'Ver todo';
@@ -10053,7 +10053,7 @@ class AppLocalizationsEs419 extends AppLocalizationsEs {
   }
 
   @override
-  String get seerr => 'Vidente';
+  String get seerr => 'Seerr';
 
   @override
   String get seerrAccountType => 'Tipo de cuenta vidente';
@@ -14779,7 +14779,7 @@ class AppLocalizationsEs419 extends AppLocalizationsEs {
   }
 
   @override
-  String get jellyseerr => 'Jellyseerr';
+  String get jellyseerr => 'Seerr';
 
   @override
   String get seeAll => 'Ver todo';
@@ -18075,7 +18075,7 @@ class AppLocalizationsEsAr extends AppLocalizationsEs {
   }
 
   @override
-  String get seerr => 'Vidente';
+  String get seerr => 'Seerr';
 
   @override
   String get seerrAccountType => 'Tipo de cuenta vidente';
@@ -22801,7 +22801,7 @@ class AppLocalizationsEsAr extends AppLocalizationsEs {
   }
 
   @override
-  String get jellyseerr => 'Jellyseerr';
+  String get jellyseerr => 'Seerr';
 
   @override
   String get seeAll => 'Ver todo';
@@ -26097,7 +26097,7 @@ class AppLocalizationsEsDo extends AppLocalizationsEs {
   }
 
   @override
-  String get seerr => 'Vidente';
+  String get seerr => 'Seerr';
 
   @override
   String get seerrAccountType => 'Tipo de cuenta vidente';
@@ -30823,7 +30823,7 @@ class AppLocalizationsEsDo extends AppLocalizationsEs {
   }
 
   @override
-  String get jellyseerr => 'Jellyseerr';
+  String get jellyseerr => 'Seerr';
 
   @override
   String get seeAll => 'Ver todo';
@@ -34119,7 +34119,7 @@ class AppLocalizationsEsMx extends AppLocalizationsEs {
   }
 
   @override
-  String get seerr => 'Vidente';
+  String get seerr => 'Seerr';
 
   @override
   String get seerrAccountType => 'Tipo de cuenta vidente';
@@ -38845,7 +38845,7 @@ class AppLocalizationsEsMx extends AppLocalizationsEs {
   }
 
   @override
-  String get jellyseerr => 'Jellyseerr';
+  String get jellyseerr => 'Seerr';
 
   @override
   String get seeAll => 'Ver todo';

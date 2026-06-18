@@ -1711,7 +1711,7 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get seerr => 'Vidente';
+  String get seerr => 'Seerr';
 
   @override
   String get seerrAccountType => 'Tipo de conta Seerr';
@@ -6515,7 +6515,7 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get jellyseerr => 'Jellyseerr';
+  String get jellyseerr => 'Seerr';
 
   @override
   String get seeAll => 'Ver Tudo';
@@ -14722,7 +14722,7 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
   }
 
   @override
-  String get jellyseerr => 'Jellyseerr';
+  String get jellyseerr => 'Seerr';
 
   @override
   String get seeAll => 'Ver tudo';
@@ -19257,7 +19257,7 @@ class AppLocalizationsPtPt extends AppLocalizationsPt {
 
   @override
   String get mergeContinueWatchingAndNextUp =>
-      'Mesclar Continuar a Ver e Próximo';
+      'Combinar «Continuar a Ver» e «Próximo»';
 
   @override
   String get combineBothRows =>
@@ -22742,7 +22742,7 @@ class AppLocalizationsPtPt extends AppLocalizationsPt {
   }
 
   @override
-  String get jellyseerr => 'Jellyseerr';
+  String get jellyseerr => 'Seerr';
 
   @override
   String get seeAll => 'Ver tudo';

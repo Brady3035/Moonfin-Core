@@ -1672,7 +1672,7 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get seerr => 'シーア';
+  String get seerr => 'Seerr';
 
   @override
   String get seerrAccountType => 'シーアアカウントの種類';
@@ -6322,7 +6322,7 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get jellyseerr => 'Jellyseerr';
+  String get jellyseerr => 'Seerr';
 
   @override
   String get seeAll => 'すべて見る';

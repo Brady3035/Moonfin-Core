@@ -1711,7 +1711,7 @@ class AppLocalizationsEt extends AppLocalizations {
   }
 
   @override
-  String get seerr => 'Nägija';
+  String get seerr => 'Seerr';
 
   @override
   String get seerrAccountType => 'Nägija konto tüüp';
@@ -6479,7 +6479,7 @@ class AppLocalizationsEt extends AppLocalizations {
   }
 
   @override
-  String get jellyseerr => 'Jellyseerr';
+  String get jellyseerr => 'Seerr';
 
   @override
   String get seeAll => 'Vaata kõiki';

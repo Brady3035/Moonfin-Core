@@ -1670,7 +1670,7 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get seerr => '시르';
+  String get seerr => 'Seerr';
 
   @override
   String get seerrAccountType => 'Seerr 계정 유형';
@@ -6314,7 +6314,7 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get jellyseerr => 'Jellyseerr';
+  String get jellyseerr => 'Seerr';
 
   @override
   String get seeAll => '모두 보기';

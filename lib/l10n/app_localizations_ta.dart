@@ -1717,7 +1717,7 @@ class AppLocalizationsTa extends AppLocalizations {
   }
 
   @override
-  String get seerr => 'சீர்';
+  String get seerr => 'Seerr';
 
   @override
   String get seerrAccountType => 'சீர் கணக்கு வகை';
@@ -6520,7 +6520,7 @@ class AppLocalizationsTa extends AppLocalizations {
   }
 
   @override
-  String get jellyseerr => 'Jellyseerr';
+  String get jellyseerr => 'Seerr';
 
   @override
   String get seeAll => 'அனைத்தையும் பார்க்கவும்';

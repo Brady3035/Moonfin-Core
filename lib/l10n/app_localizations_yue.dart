@@ -1665,7 +1665,7 @@ class AppLocalizationsYue extends AppLocalizations {
   }
 
   @override
-  String get seerr => '塞爾';
+  String get seerr => 'Seerr';
 
   @override
   String get seerrAccountType => '西爾帳戶類型';
@@ -6283,7 +6283,7 @@ class AppLocalizationsYue extends AppLocalizations {
   }
 
   @override
-  String get jellyseerr => 'Jellyseerr';
+  String get jellyseerr => 'Seerr';
 
   @override
   String get seeAll => '看全部';
@@ -9668,7 +9668,7 @@ class AppLocalizationsYueCn extends AppLocalizationsYue {
   }
 
   @override
-  String get seerr => '塞尔';
+  String get seerr => 'Seerr';
 
   @override
   String get seerrAccountType => '西尔账户类型';
@@ -14179,7 +14179,7 @@ class AppLocalizationsYueCn extends AppLocalizationsYue {
   }
 
   @override
-  String get jellyseerr => 'Jellyseerr';
+  String get jellyseerr => 'Seerr';
 
   @override
   String get seeAll => '查看全部';
@@ -17337,7 +17337,7 @@ class AppLocalizationsYueHk extends AppLocalizationsYue {
   }
 
   @override
-  String get seerr => '塞爾';
+  String get seerr => 'Seerr';
 
   @override
   String get seerrAccountType => '西爾帳戶類型';
@@ -21849,7 +21849,7 @@ class AppLocalizationsYueHk extends AppLocalizationsYue {
   }
 
   @override
-  String get jellyseerr => 'Jellyseerr';
+  String get jellyseerr => 'Seerr';
 
   @override
   String get seeAll => '看全部';

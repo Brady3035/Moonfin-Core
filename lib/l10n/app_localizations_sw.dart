@@ -1720,7 +1720,7 @@ class AppLocalizationsSw extends AppLocalizations {
   }
 
   @override
-  String get seerr => 'Mwonaji';
+  String get seerr => 'Seerr';
 
   @override
   String get seerrAccountType => 'Aina ya Akaunti ya Mtazamaji';
@@ -6515,7 +6515,7 @@ class AppLocalizationsSw extends AppLocalizations {
   }
 
   @override
-  String get jellyseerr => 'Jellyseerr';
+  String get jellyseerr => 'Seerr';
 
   @override
   String get seeAll => 'Tazama Yote';

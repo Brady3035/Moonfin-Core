@@ -1706,7 +1706,7 @@ class AppLocalizationsCs extends AppLocalizations {
   }
 
   @override
-  String get seerr => 'Serr';
+  String get seerr => 'Seerr';
 
   @override
   String get seerrAccountType => 'Typ účtu Seerr';
@@ -6476,7 +6476,7 @@ class AppLocalizationsCs extends AppLocalizations {
   }
 
   @override
-  String get jellyseerr => 'Jellyseerr';
+  String get jellyseerr => 'Seerr';
 
   @override
   String get seeAll => 'Zobrazit vše';

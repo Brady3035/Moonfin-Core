@@ -1713,7 +1713,7 @@ class AppLocalizationsRu extends AppLocalizations {
   }
 
   @override
-  String get seerr => 'Сирр';
+  String get seerr => 'Seerr';
 
   @override
   String get seerrAccountType => 'Тип учетной записи Seerr';
@@ -6512,7 +6512,7 @@ class AppLocalizationsRu extends AppLocalizations {
   }
 
   @override
-  String get jellyseerr => 'Jellyseerr';
+  String get jellyseerr => 'Seerr';
 
   @override
   String get seeAll => 'Посмотреть все';

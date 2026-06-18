@@ -1701,7 +1701,7 @@ class AppLocalizationsBn extends AppLocalizations {
   }
 
   @override
-  String get seerr => 'সেয়ার';
+  String get seerr => 'Seerr';
 
   @override
   String get seerrAccountType => 'Seerr অ্যাকাউন্টের ধরন';
@@ -6466,7 +6466,7 @@ class AppLocalizationsBn extends AppLocalizations {
   }
 
   @override
-  String get jellyseerr => 'Jellyseerr';
+  String get jellyseerr => 'Seerr';
 
   @override
   String get seeAll => 'সব দেখুন';

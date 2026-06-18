@@ -1701,7 +1701,7 @@ class AppLocalizationsSi extends AppLocalizations {
   }
 
   @override
-  String get seerr => 'සීර්';
+  String get seerr => 'Seerr';
 
   @override
   String get seerrAccountType => 'Seerr ගිණුම් වර්ගය';
@@ -6465,7 +6465,7 @@ class AppLocalizationsSi extends AppLocalizations {
   }
 
   @override
-  String get jellyseerr => 'Jellyseerr';
+  String get jellyseerr => 'Seerr';
 
   @override
   String get seeAll => 'සියල්ල බලන්න';

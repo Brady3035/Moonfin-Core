@@ -6504,7 +6504,7 @@ class AppLocalizationsPl extends AppLocalizations {
   }
 
   @override
-  String get jellyseerr => 'Jellyseerr';
+  String get jellyseerr => 'Seerr';
 
   @override
   String get seeAll => 'Zobacz wszystko';

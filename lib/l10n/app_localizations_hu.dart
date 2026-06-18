@@ -1714,7 +1714,7 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get seerr => 'Látnok';
+  String get seerr => 'Seerr';
 
   @override
   String get seerrAccountType => 'Látó fiók típusa';
@@ -6525,7 +6525,7 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get jellyseerr => 'Jellyseerr';
+  String get jellyseerr => 'Seerr';
 
   @override
   String get seeAll => 'Összes megtekintése';

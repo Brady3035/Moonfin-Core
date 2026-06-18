@@ -1710,7 +1710,7 @@ class AppLocalizationsKk extends AppLocalizations {
   }
 
   @override
-  String get seerr => 'Көріпкел';
+  String get seerr => 'Seerr';
 
   @override
   String get seerrAccountType => 'Seerr тіркелгі түрі';
@@ -6502,7 +6502,7 @@ class AppLocalizationsKk extends AppLocalizations {
   }
 
   @override
-  String get jellyseerr => 'Jellyseerr';
+  String get jellyseerr => 'Seerr';
 
   @override
   String get seeAll => 'Барлығын көру';

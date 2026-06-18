@@ -1703,7 +1703,7 @@ class AppLocalizationsLt extends AppLocalizations {
   }
 
   @override
-  String get seerr => 'Regėtojas';
+  String get seerr => 'Seerr';
 
   @override
   String get seerrAccountType => 'Serr paskyros tipas';
@@ -6488,7 +6488,7 @@ class AppLocalizationsLt extends AppLocalizations {
   }
 
   @override
-  String get jellyseerr => 'Jellyseerr';
+  String get jellyseerr => 'Seerr';
 
   @override
   String get seeAll => 'Žiūrėti viską';

@@ -6479,7 +6479,7 @@ class AppLocalizationsSv extends AppLocalizations {
   }
 
   @override
-  String get jellyseerr => 'Jellyseerr';
+  String get jellyseerr => 'Seerr';
 
   @override
   String get seeAll => 'Se alla';

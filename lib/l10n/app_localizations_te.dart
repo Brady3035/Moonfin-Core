@@ -1714,7 +1714,7 @@ class AppLocalizationsTe extends AppLocalizations {
   }
 
   @override
-  String get seerr => 'సీర్';
+  String get seerr => 'Seerr';
 
   @override
   String get seerrAccountType => 'సీర్ ఖాతా రకం';
@@ -6507,7 +6507,7 @@ class AppLocalizationsTe extends AppLocalizations {
   }
 
   @override
-  String get jellyseerr => 'Jellyseerr';
+  String get jellyseerr => 'Seerr';
 
   @override
   String get seeAll => 'అన్నీ చూడండి';

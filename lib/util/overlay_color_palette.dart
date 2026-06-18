@@ -71,7 +71,7 @@ abstract final class OverlayColorPalette {
   static Color resolveColor(String colorName) {
     return switch (normalizeKey(colorName)) {
       'black' => Colors.black,
-      'gray' => Colors.grey,
+      'gray' => const Color(0xFF6B7280),
       'dark_blue' => const Color(0xFF1A2332),
       'purple' => const Color(0xFF4A148C),
       'teal' => const Color(0xFF00695C),
@@ -84,7 +84,7 @@ abstract final class OverlayColorPalette {
       'indigo' => const Color(0xFF1E3A8A),
       'moonfinCyan' => const Color(0xFF00A4DC),
       'neonPulseMagenta' => const Color(0xFFFF2E92),
-      _ => Colors.grey,
+      _ => const Color(0xFF6B7280),
     };
   }
 

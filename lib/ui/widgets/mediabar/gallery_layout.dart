@@ -152,7 +152,8 @@ class _Panel extends StatelessWidget {
         tween: Tween<double>(begin: isActive ? 1 : 0, end: isActive ? 1 : 0),
         duration: GalleryLayout.kExpandDuration,
         curve: GalleryLayout.kExpandCurve,
-        builder: (context, t, _) {
+        child: _backdropImage(),
+        builder: (context, t, child) {
           return MouseRegion(
             onEnter: (_) {
               if (!isActive) onSelect();
@@ -203,7 +204,7 @@ class _Panel extends StatelessWidget {
                           child: Stack(
                             fit: StackFit.expand,
                             children: [
-                              _backdrop(t),
+                              _backdrop(t, child!),
                               if (trailer != null && t > 0.01) trailer!,
                               AnimatedOpacity(
                                 opacity: trailerActive ? 0.0 : 1.0,
@@ -254,8 +255,8 @@ class _Panel extends StatelessWidget {
     );
   }
 
-  Widget _backdrop(double t) {
-    final Widget image = item.backdropUrl == null
+  Widget _backdropImage() {
+    return item.backdropUrl == null
         ? ColoredBox(color: AppColorScheme.surface)
         : BoundedNetworkImage(
             imageUrl: item.backdropUrl!,
@@ -264,7 +265,9 @@ class _Panel extends StatelessWidget {
             errorBuilder: (_, _, _) =>
                 ColoredBox(color: AppColorScheme.surface),
           );
+  }
 
+  Widget _backdrop(double t, Widget image) {
     final opacity = 0.35 + 0.65 * t;
     return Opacity(opacity: opacity, child: image);
   }

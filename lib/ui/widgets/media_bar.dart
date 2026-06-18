@@ -403,10 +403,13 @@ class _MediaBarState extends State<MediaBar>
 
     final isBookshelf = _isBookshelfMode();
 
+    final windowStart = (centerIndex - 2).clamp(0, items.length);
+    final windowEnd = (centerIndex + 11).clamp(0, items.length);
+
     Future<void>(() async {
       // Allow active and adjacent images to load first without network contention
       await Future<void>.delayed(const Duration(milliseconds: 1500));
-      for (var i = 0; i < items.length; i++) {
+      for (var i = windowStart; i < windowEnd; i++) {
         if (warmIndices.contains(i)) continue;
 
         final item = items[i];

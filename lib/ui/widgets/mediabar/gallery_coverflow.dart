@@ -93,9 +93,21 @@ class _GalleryCoverflowState extends State<GalleryCoverflow> {
                 onPageChanged: widget.onSelect,
                 clipBehavior: Clip.none,
                 itemBuilder: (context, i) {
+                  final item = widget.items[i];
+                  final imageUrl = item.posterUrl ?? item.backdropUrl;
+                  final Widget cardImage = imageUrl == null
+                      ? ColoredBox(color: AppColorScheme.surface)
+                      : BoundedNetworkImage(
+                          imageUrl: imageUrl,
+                          minWidth: GalleryCoverflow.kCoverDecodeWidth,
+                          maxWidth: GalleryCoverflow.kCoverDecodeWidth,
+                          errorBuilder: (_, _, _) =>
+                              ColoredBox(color: AppColorScheme.surface),
+                        );
                   return AnimatedBuilder(
                     animation: _controller,
-                    builder: (context, _) {
+                    child: cardImage,
+                    builder: (context, child) {
                       final page =
                           _controller.hasClients &&
                               _controller.position.haveDimensions
@@ -104,7 +116,7 @@ class _GalleryCoverflowState extends State<GalleryCoverflow> {
                       final delta = i - page;
                       final isCenter = delta.abs() < 0.5;
                       return _Cover(
-                        item: widget.items[i],
+                        image: child!,
                         delta: delta,
                         accent: glow,
                         trailer: isCenter ? widget.activeTrailer : null,
@@ -132,7 +144,7 @@ class _GalleryCoverflowState extends State<GalleryCoverflow> {
 }
 
 class _Cover extends StatelessWidget {
-  final MediaBarSlideItem item;
+  final Widget image;
   final double delta;
   final Color accent;
   final Widget? trailer;
@@ -141,7 +153,7 @@ class _Cover extends StatelessWidget {
   final VoidCallback? onLongPress;
 
   const _Cover({
-    required this.item,
+    required this.image,
     required this.delta,
     required this.accent,
     required this.trailer,
@@ -156,7 +168,6 @@ class _Cover extends StatelessWidget {
     final scale = 0.82 + 0.18 * t;
     final rotation = (-delta).clamp(-1.0, 1.0) * 0.34;
     final dim = 0.45 + 0.55 * t;
-    final imageUrl = item.posterUrl ?? item.backdropUrl;
 
     return Center(
       child: Transform(
@@ -191,22 +202,8 @@ class _Cover extends StatelessWidget {
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    if (imageUrl == null)
-                      ColoredBox(color: AppColorScheme.surface)
-                    else
-                      ColorFiltered(
-                        colorFilter: ColorFilter.mode(
-                          Colors.black.withValues(alpha: 1 - dim),
-                          BlendMode.darken,
-                        ),
-                        child: BoundedNetworkImage(
-                          imageUrl: imageUrl,
-                          minWidth: GalleryCoverflow.kCoverDecodeWidth,
-                          maxWidth: GalleryCoverflow.kCoverDecodeWidth,
-                          errorBuilder: (_, _, _) =>
-                              ColoredBox(color: AppColorScheme.surface),
-                        ),
-                      ),
+                    image,
+                    ColoredBox(color: Colors.black.withValues(alpha: 1 - dim)),
                     Container(
                       decoration: BoxDecoration(
                         border: Border.all(

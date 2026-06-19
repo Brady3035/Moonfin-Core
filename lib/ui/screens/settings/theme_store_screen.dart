@@ -32,6 +32,7 @@ class _ThemeStoreScreenState extends State<ThemeStoreScreen> {
 
   bool _loading = true;
   bool _loadFailed = false;
+  bool _actionsOpen = false;
   String? _busyId;
   List<ThemeStoreCatalogEntry> _catalog = const [];
 
@@ -116,62 +117,69 @@ class _ThemeStoreScreenState extends State<ThemeStoreScreen> {
   }
 
   Future<void> _showActions(ThemeStoreCatalogEntry entry, bool saved) async {
+    // Guard against a repeated d-pad activation stacking a second dialog.
+    if (_actionsOpen) return;
+    _actionsOpen = true;
     final l10n = AppLocalizations.of(context);
     final controller = AppThemeScope.of(context);
     final isCurrent = _prefs.get(UserPreferences.customThemeId) == entry.id;
-    await showFocusRestoringDialog<void>(
-      context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          backgroundColor: AppColorScheme.surface.withValues(alpha: 0.9),
-          title: Text(entry.displayName),
-          content: entry.description != null && entry.description!.isNotEmpty
-              ? Text(entry.description!)
-              : null,
-          actions: [
-            if (!saved) ...[
-              TextButton(
-                onPressed: () {
-                  Navigator.of(dialogContext).pop();
-                  unawaited(_saveTheme(entry, apply: false));
-                },
-                child: Text(l10n.themeStoreSave),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.of(dialogContext).pop();
-                  unawaited(_saveTheme(entry, apply: true));
-                },
-                child: Text(l10n.themeStoreSaveAndApply),
-              ),
-            ] else ...[
-              if (!isCurrent)
+    try {
+      await showFocusRestoringDialog<void>(
+        context: context,
+        builder: (dialogContext) {
+          return AlertDialog(
+            backgroundColor: AppColorScheme.surface.withValues(alpha: 0.9),
+            title: Text(entry.displayName),
+            content: entry.description != null && entry.description!.isNotEmpty
+                ? Text(entry.description!)
+                : null,
+            actions: [
+              if (!saved) ...[
                 TextButton(
                   onPressed: () {
                     Navigator.of(dialogContext).pop();
-                    unawaited(controller.applyThemeById(_prefs, entry.id));
+                    unawaited(_saveTheme(entry, apply: false));
                   },
-                  child: Text(l10n.apply),
+                  child: Text(l10n.themeStoreSave),
                 ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(dialogContext).pop();
+                    unawaited(_saveTheme(entry, apply: true));
+                  },
+                  child: Text(l10n.themeStoreSaveAndApply),
+                ),
+              ] else ...[
+                if (!isCurrent)
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(dialogContext).pop();
+                      unawaited(controller.applyThemeById(_prefs, entry.id));
+                    },
+                    child: Text(l10n.apply),
+                  ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(dialogContext).pop();
+                    unawaited(_removeTheme(entry));
+                  },
+                  child: Text(
+                    l10n.delete,
+                    style: TextStyle(color: AppColorScheme.statusRequested),
+                  ),
+                ),
+              ],
               TextButton(
-                onPressed: () {
-                  Navigator.of(dialogContext).pop();
-                  unawaited(_removeTheme(entry));
-                },
-                child: Text(
-                  l10n.delete,
-                  style: TextStyle(color: AppColorScheme.statusRequested),
-                ),
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                child: Text(l10n.cancel),
               ),
             ],
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: Text(l10n.cancel),
-            ),
-          ],
-        );
-      },
-    );
+          );
+        },
+      );
+    } finally {
+      _actionsOpen = false;
+    }
   }
 
   @override
@@ -235,7 +243,12 @@ class _ThemeStoreScreenState extends State<ThemeStoreScreen> {
                         ),
                       ),
                     for (final (i, entry) in _catalog.indexed)
-                      _buildEntry(context, i, entry, savedIds.contains(entry.id)),
+                      _buildEntry(
+                        context,
+                        i,
+                        entry,
+                        savedIds.contains(entry.id),
+                      ),
                   ],
                 ),
         ),

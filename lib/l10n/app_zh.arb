@@ -4,11 +4,11 @@
     "@appTitle": {
         "description": "The application title"
     },
-    "signIn": "登入",
+    "signIn": "登录",
     "@signIn": {
         "description": "Sign in heading and button label"
     },
-    "connectingToServer": "Connecting to {serverName}",
+    "connectingToServer": "正在连接到 {serverName}",
     "@connectingToServer": {
         "description": "Subtitle showing which server the user is connecting to",
         "placeholders": {
@@ -49,7 +49,7 @@
     "@loginFailed": {
         "description": "Generic login failure message"
     },
-    "quickConnectUnavailable": "QuickConnect unavailable: {detail}",
+    "quickConnectUnavailable": "QuickConnect 不可用：{detail}",
     "@quickConnectUnavailable": {
         "description": "Quick Connect generic error message",
         "placeholders": {
@@ -58,7 +58,7 @@
             }
         }
     },
-    "quickConnectUnavailableWithStatus": "QuickConnect unavailable ({status}): {detail}",
+    "quickConnectUnavailableWithStatus": "QuickConnect 不可用（{status}）：{detail}",
     "@quickConnectUnavailableWithStatus": {
         "description": "Quick Connect error message with HTTP status info",
         "placeholders": {
@@ -82,7 +82,7 @@
     "@selectServer": {
         "description": "Button to navigate back to server selection"
     },
-    "appVersionFooter": "Moonfin version {version}",
+    "appVersionFooter": "Moonfin 版本 {version}",
     "@appVersionFooter": {
         "description": "App version shown in footer",
         "placeholders": {
@@ -119,7 +119,7 @@
     "@removeServer": {
         "description": "Dialog title for removing a saved server"
     },
-    "removeServerConfirmation": "Remove \"{serverName}\" from your servers?",
+    "removeServerConfirmation": "要从服务器列表中移除“{serverName}”吗？",
     "@removeServerConfirmation": {
         "description": "Confirmation message when removing a saved server",
         "placeholders": {
@@ -132,7 +132,7 @@
     "@cancel": {
         "description": "Generic cancel button label"
     },
-    "remove": "消除",
+    "remove": "移除",
     "@remove": {
         "description": "Remove button label in confirmation dialogs"
     },
@@ -176,7 +176,7 @@
     "@themeMoonfin": {
         "description": "Display name for the Moonfin theme"
     },
-    "themeMoonfinSubtitle": "目前的 Moonfin 外观你们都喜欢",
+    "themeMoonfinSubtitle": "你熟悉并喜爱的经典 Moonfin 外观",
     "@themeMoonfinSubtitle": {
         "description": "Preview description for the Moonfin theme"
     },
@@ -184,7 +184,7 @@
     "@themeNeonPulse": {
         "description": "Display name for the Neon Pulse theme"
     },
-    "themeNeonPulseSubtitle": "Synthwave 样式具有洋红色发光、青色文本和更强的镀铬对比度",
+    "themeNeonPulseSubtitle": "合成波风格，带品红光效、青色文字和更强的金属对比",
     "@themeNeonPulseSubtitle": {
         "description": "Preview description for the Neon Pulse theme"
     },
@@ -204,7 +204,7 @@
     "@tryAgain": {
         "description": "Button to retry a failed operation"
     },
-    "noLinkedServers": "没有服务器链接到该 Emby Connect 帐户",
+    "noLinkedServers": "此 Emby Connect 账号没有关联的服务器",
     "@noLinkedServers": {
         "description": "Error when Emby Connect account has no linked servers"
     },
@@ -216,7 +216,7 @@
     "@invalidEmbyConnectLogin": {
         "description": "Error for wrong Emby Connect credentials"
     },
-    "embyConnectExchangeNotSupported": "服务器不支持 Emby Connect 交换",
+    "embyConnectExchangeNotSupported": "服务器不支持 Emby Connect 交换登录",
     "@embyConnectExchangeNotSupported": {
         "description": "Error when server lacks Emby Connect exchange endpoint"
     },
@@ -240,7 +240,7 @@
     "@invalidServerExchangeResponse": {
         "description": "Error when server exchange returns invalid data"
     },
-    "unableToConnectTo": "Unable to connect to {target}",
+    "unableToConnectTo": "无法连接到 {target}",
     "@unableToConnectTo": {
         "description": "Error when connection to a specific server or address fails",
         "placeholders": {
@@ -277,7 +277,7 @@
     "@guide": {
         "description": "Live TV guide button label"
     },
-    "recordings": "录音",
+    "recordings": "录制内容",
     "@recordings": {
         "description": "Live TV recordings button label"
     },
@@ -289,7 +289,7 @@
     "@series": {
         "description": "Section header for TV series"
     },
-    "noItemsFound": "没有找到物品",
+    "noItemsFound": "未找到项目",
     "@noItemsFound": {
         "description": "Empty state when no items match the current view"
     },
@@ -301,7 +301,7 @@
     "@browseAll": {
         "description": "Button to browse all items in a library"
     },
-    "genres": "流派",
+    "genres": "类型",
     "@genres": {
         "description": "Genres navigation label"
     },
@@ -325,15 +325,15 @@
     "@suggestionsPlaceholder": {
         "description": "Placeholder text for suggestions screen"
     },
-    "failedToLoadLibraries": "加载库失败",
+    "failedToLoadLibraries": "加载媒体库失败",
     "@failedToLoadLibraries": {
         "description": "Error when library list cannot be loaded"
     },
-    "noLibrariesFound": "没有找到库",
+    "noLibrariesFound": "未找到媒体库",
     "@noLibrariesFound": {
         "description": "Empty state when no libraries are available"
     },
-    "library": "图书馆",
+    "library": "媒体库",
     "@library": {
         "description": "Library label used in navigation and fallback subtitle"
     },
@@ -341,15 +341,15 @@
     "@displaySettings": {
         "description": "Tooltip for display settings button"
     },
-    "allGenres": "所有流派",
+    "allGenres": "所有类型",
     "@allGenres": {
         "description": "Title for the all genres screen"
     },
-    "noGenresFound": "没有找到流派",
+    "noGenresFound": "没有找到类型",
     "@noGenresFound": {
         "description": "Empty state when no genres are available"
     },
-    "failedToLoadFolderError": "Failed to load folder: {error}",
+    "failedToLoadFolderError": "加载文件夹失败：{error}",
     "@failedToLoadFolderError": {
         "description": "Error when a folder cannot be loaded",
         "placeholders": {
@@ -362,7 +362,7 @@
     "@thisFolderIsEmpty": {
         "description": "Empty state for folder browse screen"
     },
-    "itemCountLabel": "{count} items",
+    "itemCountLabel": "{count} 项",
     "@itemCountLabel": {
         "description": "Subtitle showing number of items in a folder or collection",
         "placeholders": {
@@ -387,7 +387,7 @@
     "@favorites": {
         "description": "Favorites section heading and filter label"
     },
-    "totalCountItems": "{count} Items",
+    "totalCountItems": "共 {count} 项",
     "@totalCountItems": {
         "description": "Header showing total item count",
         "placeholders": {
@@ -444,7 +444,7 @@
     "@extraLarge": {
         "description": "Size option: extra large"
     },
-    "libraryGenresTitle": "{name} — Genres",
+    "libraryGenresTitle": "{name} — 类型",
     "@libraryGenresTitle": {
         "description": "Header title showing library name with genres suffix",
         "placeholders": {
@@ -497,7 +497,7 @@
     "@justNow": {
         "description": "Relative time for less than a minute ago"
     },
-    "minutesAgo": "{count}m ago",
+    "minutesAgo": "{count} 分钟前",
     "@minutesAgo": {
         "description": "Relative time in minutes",
         "placeholders": {
@@ -506,7 +506,7 @@
             }
         }
     },
-    "hoursAgo": "{count}h ago",
+    "hoursAgo": "{count} 小时前",
     "@hoursAgo": {
         "description": "Relative time in hours",
         "placeholders": {
@@ -515,7 +515,7 @@
             }
         }
     },
-    "daysAgo": "{count}d ago",
+    "daysAgo": "{count} 天前",
     "@daysAgo": {
         "description": "Relative time in days",
         "placeholders": {
@@ -544,11 +544,11 @@
     "@scanWithYourPhone": {
         "description": "Instruction shown above a QR code"
     },
-    "audiobookGenres": "有声读物流派",
+    "audiobookGenres": "有声读物类型",
     "@audiobookGenres": {
         "description": "Title for audiobook genre picker panel"
     },
-    "pickAudiobookGenres": "选择要在有声读物探索中显示的流派。",
+    "pickAudiobookGenres": "选择要在有声读物探索中显示的类型。",
     "@pickAudiobookGenres": {
         "description": "Instruction text in audiobook genre picker"
     },
@@ -556,11 +556,11 @@
     "@discoverAudiobooks": {
         "description": "Section title for audiobook discovery"
     },
-    "librivoxDescription": "来自 LibriVox 的热门公共领域标题。",
+    "librivoxDescription": "LibriVox 上热门的公版作品。",
     "@librivoxDescription": {
         "description": "Subtitle for audiobook discovery section"
     },
-    "titlesCount": "{count} titles",
+    "titlesCount": "{count} 部作品",
     "@titlesCount": {
         "description": "Label showing number of titles",
         "placeholders": {
@@ -629,7 +629,7 @@
     "@bookHighlightsDescription": {
         "description": "Subtitle for saved highlights section"
     },
-    "handPickedFromLibrary": "从您的图书馆中精心挑选的。",
+    "handPickedFromLibrary": "从您的媒体库中精心挑选的。",
     "@handPickedFromLibrary": {
         "description": "Subtitle for primary book rail from library"
     },
@@ -657,7 +657,7 @@
     "@searchAudiobooks": {
         "description": "Placeholder text in audiobook search bar"
     },
-    "searchYourLibrary": "搜索您的图书馆",
+    "searchYourLibrary": "搜索您的媒体库",
     "@searchYourLibrary": {
         "description": "Placeholder text in library search bar"
     },
@@ -669,7 +669,7 @@
     "@savedPlacesChapters": {
         "description": "Hero card subtitle for bookmarks section"
     },
-    "authorsCount": "{count} authors",
+    "authorsCount": "{count} 位作者",
     "@authorsCount": {
         "description": "Metric pill showing author count",
         "placeholders": {
@@ -678,7 +678,7 @@
             }
         }
     },
-    "genresCount": "{count} genres",
+    "genresCount": "{count} 个类型",
     "@genresCount": {
         "description": "Metric pill showing genre count",
         "placeholders": {
@@ -687,7 +687,7 @@
             }
         }
     },
-    "percentCompleted": "{percent}% completed",
+    "percentCompleted": "已完成 {percent}%",
     "@percentCompleted": {
         "description": "Reading progress percentage label",
         "placeholders": {
@@ -712,7 +712,7 @@
     "@bookmarksAndProgress": {
         "description": "Panel header for bookmarks section"
     },
-    "titlesArrangedForBrowsing": "{count} titles arranged for reading-first browsing.",
+    "titlesArrangedForBrowsing": "{count} 部作品，按阅读优先的方式整理。",
     "@titlesArrangedForBrowsing": {
         "description": "Panel subtitle showing total titles",
         "placeholders": {
@@ -745,7 +745,7 @@
     "@discover": {
         "description": "Section title for book discovery"
     },
-    "trendingTitlesOpenLibrary": "Open Library 中按主题划分的热门标题。",
+    "trendingTitlesOpenLibrary": "Open Library 上按主题推荐的热门作品。",
     "@trendingTitlesOpenLibrary": {
         "description": "Subtitle for book discovery section"
     },
@@ -761,7 +761,7 @@
     "@audiobooks": {
         "description": "Audiobooks navigation and tab label"
     },
-    "noLabelFound": "No {label} found",
+    "noLabelFound": "未找到{label}",
     "@noLabelFound": {
         "description": "Empty state with dynamic label like books or audiobooks",
         "placeholders": {
@@ -806,7 +806,7 @@
     "@seriesStatus": {
         "description": "Section header for series status filter"
     },
-    "allLibraries": "所有图书馆",
+    "allLibraries": "所有媒体库",
     "@allLibraries": {
         "description": "Label when all libraries are selected"
     },
@@ -830,7 +830,7 @@
     "@overview": {
         "description": "Section header for content overview/description"
     },
-    "noLibrivoxDescription": "LibriVox 尚未为此标题提供任何描述。",
+    "noLibrivoxDescription": "LibriVox 尚未提供此作品的简介。",
     "@noLibrivoxDescription": {
         "description": "Fallback when LibriVox title has no description"
     },
@@ -858,7 +858,7 @@
     "@downloadZip": {
         "description": "Button label for zip download external link"
     },
-    "sectionCountLabel": "{count} sections",
+    "sectionCountLabel": "{count} 个章节",
     "@sectionCountLabel": {
         "description": "Detail chip showing number of sections in audiobook",
         "placeholders": {
@@ -867,7 +867,7 @@
             }
         }
     },
-    "firstPublished": "First published {year}",
+    "firstPublished": "{year} 年首次发布",
     "@firstPublished": {
         "description": "Publication year for a book",
         "placeholders": {
@@ -876,7 +876,7 @@
             }
         }
     },
-    "noOpenLibraryOverview": "Open Library 尚未提供此标题的概述。",
+    "noOpenLibraryOverview": "Open Library 尚未提供此作品的概述。",
     "@noOpenLibraryOverview": {
         "description": "Fallback when Open Library has no description"
     },
@@ -888,7 +888,7 @@
     "@all": {
         "description": "Filter option for showing all items"
     },
-    "booksCount": "{count} books",
+    "booksCount": "{count} 本书",
     "@booksCount": {
         "description": "Label showing number of books in a discover row",
         "placeholders": {
@@ -905,7 +905,7 @@
     "@audiobookDetails": {
         "description": "AppBar title for LibriVox audiobook detail screen"
     },
-    "authorsCountTitle": "{count} Authors",
+    "authorsCountTitle": "{count} 位作者",
     "@authorsCountTitle": {
         "description": "AppBar title for LibriVox authors list screen",
         "placeholders": {
@@ -914,7 +914,7 @@
             }
         }
     },
-    "audiobookCountLabel": "{count, plural, =1{1 audiobook} other{{count} audiobooks}}",
+    "audiobookCountLabel": "{count, plural, =1{1 本有声书} other{{count} 本有声书}}",
     "@audiobookCountLabel": {
         "description": "Subtitle showing number of audiobooks by an author",
         "placeholders": {
@@ -1027,7 +1027,7 @@
     "@unableToLoadAuthorDetails": {
         "description": "Error message when author details fail to load"
     },
-    "published": "Published {year}",
+    "published": "{year} 年发布",
     "@published": {
         "description": "Publication year for an author book tile",
         "placeholders": {
@@ -1040,7 +1040,7 @@
     "@publicationDateUnknown": {
         "description": "Placeholder when publication date is unknown"
     },
-    "seasonCount": "{count, plural, =1{1 Season} other{{count} Seasons}}",
+    "seasonCount": "{count, plural, =1{1 季} other{{count} 季}}",
     "@seasonCount": {
         "description": "Number of seasons for a series",
         "placeholders": {
@@ -1049,7 +1049,7 @@
             }
         }
     },
-    "endsAt": "Ends at {time}",
+    "endsAt": "{time} 结束",
     "@endsAt": {
         "description": "Label showing when media will end",
         "placeholders": {
@@ -1070,7 +1070,7 @@
     "@read": {
         "description": "Action button label to start reading a book"
     },
-    "resumeFrom": "Resume from {position}",
+    "resumeFrom": "从 {position} 继续",
     "@resumeFrom": {
         "description": "Action button label showing resume position",
         "placeholders": {
@@ -1159,11 +1159,11 @@
     "@editMetadata": {
         "description": "Action button label to edit item metadata"
     },
-    "less": "较少的",
+    "less": "收起",
     "@less": {
         "description": "Action button label to collapse extra buttons"
     },
-    "more": "更多的",
+    "more": "更多",
     "@more": {
         "description": "Action button label to expand extra buttons"
     },
@@ -1203,7 +1203,7 @@
     "@deleteDownloadedAlbum": {
         "description": "Dialog title for deleting downloaded album tracks"
     },
-    "deleteDownloadedTracksMessage": "Delete downloaded tracks for \"{title}\"?",
+    "deleteDownloadedTracksMessage": "要删除“{title}”的已下载曲目吗？",
     "@deleteDownloadedTracksMessage": {
         "description": "Confirmation message for deleting downloaded album tracks",
         "placeholders": {
@@ -1224,7 +1224,7 @@
     "@noTracksLoaded": {
         "description": "Message when no tracks are available"
     },
-    "noItemsLoaded": "No {itemLabel} loaded",
+    "noItemsLoaded": "未加载{itemLabel}",
     "@noItemsLoaded": {
         "description": "Message when no items are loaded for download",
         "placeholders": {
@@ -1233,7 +1233,7 @@
             }
         }
     },
-    "downloadingTitle": "Downloading {title} ({count} items)...",
+    "downloadingTitle": "正在下载 {title}（{count} 项）...",
     "@downloadingTitle": {
         "description": "Snackbar message when downloading album tracks",
         "placeholders": {
@@ -1245,7 +1245,7 @@
             }
         }
     },
-    "deleteConfirmMessage": "Are you sure you want to delete \"{name}\" from the server? This action cannot be undone.",
+    "deleteConfirmMessage": "确定要从服务器删除“{name}”吗？此操作无法撤销。",
     "@deleteConfirmMessage": {
         "description": "Confirmation message for permanently deleting an item",
         "placeholders": {
@@ -1279,7 +1279,7 @@
     "@subtitleTrack": {
         "description": "Dialog title for subtitle track selection"
     },
-    "none": "没有任何",
+    "none": "无",
     "@none": {
         "description": "Option label for no subtitle selected"
     },
@@ -1451,7 +1451,7 @@
             }
         }
     },
-    "trackCount": "{count, plural, =1{1 track} other{{count} tracks}}",
+    "trackCount": "{count, plural, =1{1 首} other{{count} 首}}",
     "@trackCount": {
         "description": "Label showing number of tracks in an album",
         "placeholders": {
@@ -1460,7 +1460,7 @@
             }
         }
     },
-    "chapterCount": "{count, plural, =1{1 chapter} other{{count} chapters}}",
+    "chapterCount": "{count, plural, =1{1 章} other{{count} 章}}",
     "@chapterCount": {
         "description": "Label showing number of chapters in an audiobook",
         "placeholders": {
@@ -1693,7 +1693,7 @@
     "@queueIsEmpty": {
         "description": "Empty state text for playback queue"
     },
-    "trackNumber": "追踪{number}",
+    "trackNumber": "曲目 {number}",
     "@trackNumber": {
         "description": "Fallback track name in queue",
         "placeholders": {
@@ -1702,11 +1702,11 @@
             }
         }
     },
-    "remotePlayback": "远程回放",
+    "remotePlayback": "远程播放",
     "@remotePlayback": {
         "description": "Label for Jellyfin session remote playback"
     },
-    "castingToGoogleCast": "转换为 Google Cast",
+    "castingToGoogleCast": "正在投放到 Google Cast",
     "@castingToGoogleCast": {
         "description": "Cast mini bar label for Google Cast"
     },
@@ -1731,7 +1731,7 @@
     "@longPressToUnlock": {
         "description": "OSD lock overlay hint"
     },
-    "off": "离开",
+    "off": "关闭",
     "@off": {
         "description": "Label for subtitle off option"
     },
@@ -1747,7 +1747,7 @@
             }
         }
     },
-    "auto": "汽车",
+    "auto": "自动",
     "@auto": {
         "description": "Label for automatic bitrate selection"
     },
@@ -1802,11 +1802,11 @@
     "@playbackInformation": {
         "description": "Title for stream info sheet"
     },
-    "playback": "回放",
+    "playback": "播放",
     "@playback": {
         "description": "Section header in stream info"
     },
-    "playMethod": "玩法",
+    "playMethod": "播放方式",
     "@playMethod": {
         "description": "Stream info label for play method"
     },
@@ -1826,7 +1826,7 @@
     "@transcodeReasons": {
         "description": "Stream info label for transcode reasons"
     },
-    "player": "玩家",
+    "player": "播放器",
     "@player": {
         "description": "Stream info label for player engine"
     },
@@ -1858,7 +1858,7 @@
     "@videoBitrate": {
         "description": "Stream info label for video bitrate"
     },
-    "track": "追踪",
+    "track": "轨道",
     "@track": {
         "description": "Stream info label for track name"
     },
@@ -2122,7 +2122,7 @@
     "@readerNotReady": {
         "description": "Error when reader has not finished initializing"
     },
-    "seriesRecordings": "系列录音",
+    "seriesRecordings": "系列录制",
     "@seriesRecordings": {
         "description": "Live TV series recordings label"
     },
@@ -2208,7 +2208,7 @@
             }
         }
     },
-    "failedToLoadRecordings": "加载录音失败",
+    "failedToLoadRecordings": "加载录制内容失败",
     "@failedToLoadRecordings": {
         "description": "Error when recordings fail to load"
     },
@@ -2216,7 +2216,7 @@
     "@scheduledInNext24Hours": {
         "description": "Section title for upcoming scheduled recordings"
     },
-    "recentRecordings": "最近的录音",
+    "recentRecordings": "最近录制",
     "@recentRecordings": {
         "description": "Section title for recently completed recordings"
     },
@@ -2228,11 +2228,11 @@
     "@failedToLoadSchedule": {
         "description": "Error when schedule fails to load"
     },
-    "noScheduledRecordings": "没有预定的录音",
+    "noScheduledRecordings": "没有计划录制",
     "@noScheduledRecordings": {
         "description": "Empty state when no recordings are scheduled"
     },
-    "cancelRecording": "取消录音？",
+    "cancelRecording": "取消录制？",
     "@cancelRecording": {
         "description": "Dialog title for cancelling a recording"
     },
@@ -2253,19 +2253,19 @@
     "@yesCancel": {
         "description": "Confirmation button to cancel a recording"
     },
-    "failedToCancelRecording": "取消录音失败",
+    "failedToCancelRecording": "取消录制失败",
     "@failedToCancelRecording": {
         "description": "Error when cancelling a recording fails"
     },
-    "failedToLoadSeriesRecordings": "无法加载系列录音",
+    "failedToLoadSeriesRecordings": "无法加载系列录制",
     "@failedToLoadSeriesRecordings": {
         "description": "Error when series recordings fail to load"
     },
-    "noSeriesRecordings": "没有系列录音",
+    "noSeriesRecordings": "没有系列录制",
     "@noSeriesRecordings": {
         "description": "Empty state when no series recordings exist"
     },
-    "cancelSeriesRecording": "取消系列录音",
+    "cancelSeriesRecording": "取消系列录制",
     "@cancelSeriesRecording": {
         "description": "Button label to cancel a series recording"
     },
@@ -2286,7 +2286,7 @@
     "@failedToCancelSeriesRecording": {
         "description": "Error when cancelling a series recording fails"
     },
-    "searchThisLibrary": "搜索这个图书馆...",
+    "searchThisLibrary": "搜索这个媒体库...",
     "@searchThisLibrary": {
         "description": "Search hint when scoped to a specific library"
     },
@@ -2340,7 +2340,7 @@
     "@noDownloadedMediaYet": {
         "description": "Shown when no media has been downloaded"
     },
-    "browseLibrary": "浏览图书馆",
+    "browseLibrary": "浏览媒体库",
     "@browseLibrary": {
         "description": "Button to navigate to the library"
     },
@@ -2357,7 +2357,7 @@
             }
         }
     },
-    "tracksCount": "{count} 曲目",
+    "tracksCount": "{count} 首曲目",
     "@tracksCount": {
         "description": "Number of tracks in an album",
         "placeholders": {
@@ -2481,11 +2481,11 @@
     "@specials": {
         "description": "Label for special episodes"
     },
-    "deleteSeason": "删除季节",
+    "deleteSeason": "删除季",
     "@deleteSeason": {
         "description": "Dialog title for deleting a season"
     },
-    "deleteAllEpisodesInSeason": "删除{season} 中所有下载的剧集吗？",
+    "deleteAllEpisodesInSeason": "删除 {season} 中所有下载的剧集吗？",
     "@deleteAllEpisodesInSeason": {
         "description": "Confirmation to delete all episodes in a season",
         "placeholders": {
@@ -2494,7 +2494,7 @@
             }
         }
     },
-    "episodeCount": "{count, plural, =1{1 episode} other{{count} episodes}}",
+    "episodeCount": "{count, plural, =1{1 集} other{{count} 集}}",
     "@episodeCount": {
         "description": "Number of episodes with pluralization",
         "placeholders": {
@@ -2641,7 +2641,7 @@
     "@administration": {
         "description": "Administration section title"
     },
-    "serverSettingsUsersLibraries": "服务器设置、用户、库",
+    "serverSettingsUsersLibraries": "服务器设置、用户、媒体库",
     "@serverSettingsUsersLibraries": {
         "description": "Administration section description"
     },
@@ -2948,11 +2948,11 @@
     "@dutch": {
         "description": "Language: Dutch"
     },
-    "swedish": "瑞典",
+    "swedish": "瑞典语",
     "@swedish": {
         "description": "Language: Swedish"
     },
-    "norwegian": "挪威",
+    "norwegian": "挪威语",
     "@norwegian": {
         "description": "Language: Norwegian"
     },
@@ -2960,19 +2960,19 @@
     "@danish": {
         "description": "Language: Danish"
     },
-    "finnish": "芬兰",
+    "finnish": "芬兰语",
     "@finnish": {
         "description": "Language: Finnish"
     },
-    "polish": "抛光",
+    "polish": "波兰语",
     "@polish": {
         "description": "Language: Polish"
     },
-    "ac3Passthrough": "AC3直通",
+    "ac3Passthrough": "AC3 直通",
     "@ac3Passthrough": {
         "description": "Setting for AC3 passthrough"
     },
-    "dtsPassthrough": "DTS直通",
+    "dtsPassthrough": "DTS 直通",
     "@dtsPassthrough": {
         "description": "Setting for DTS passthrough"
     },
@@ -2980,7 +2980,7 @@
     "@trueHdSupport": {
         "description": "Setting for TrueHD support"
     },
-    "enableDtsPassthrough": "仅限 AVR 的比特流 DTS 音频；需要接收器支持和 DTS 源轨道",
+    "enableDtsPassthrough": "仅将 DTS 音频以比特流直通到 AVR；需要接收器支持和 DTS 源轨道",
     "@enableDtsPassthrough": {
         "description": "Description for DTS passthrough"
     },
@@ -3113,11 +3113,11 @@
     "@customMpvConfPath": {
         "description": "Setting for custom mpv.conf path"
     },
-    "notSetMpvConf": "未设置。 Moonfin 将尝试应用程序/数据文件夹中的默认 mpv.conf。",
+    "notSetMpvConf": "未设置。Moonfin 将尝试使用应用/数据文件夹中的默认 mpv.conf。",
     "@notSetMpvConf": {
         "description": "Description when no custom mpv.conf is set"
     },
-    "selectMpvConf": "选择mpv.conf",
+    "selectMpvConf": "选择 mpv.conf",
     "@selectMpvConf": {
         "description": "Dialog title for selecting mpv.conf"
     },
@@ -3125,7 +3125,7 @@
     "@pathToMpvConf": {
         "description": "Hint text for mpv.conf path input"
     },
-    "subtitleStyleDescription": "样式设置（大小、颜色、偏移）适用于基于文本的字幕（SRT、VTT、TTML）。除非关闭“ASS/SSA Direct Play”，否则 ASS/SSA 字幕将使用其自己的嵌入样式。位图字幕（PGS、DVB、VobSub）无法重新设计样式。",
+    "subtitleStyleDescription": "样式设置（大小、颜色、偏移）适用于文本字幕（SRT、VTT、TTML）。除非关闭“ASS/SSA 直接播放”，否则 ASS/SSA 字幕会使用自身内嵌样式。图像字幕（PGS、DVB、VobSub）无法重新设置样式。",
     "@subtitleStyleDescription": {
         "description": "Info text about subtitle styling"
     },
@@ -3165,7 +3165,7 @@
     "@subtitleCustomizationDescription": {
         "description": "Subtitle for the subtitle customization tile"
     },
-    "subtitlePreviewText": "敏捷的棕色狐狸跳过了懒狗",
+    "subtitlePreviewText": "字幕预览示例文本",
     "@subtitlePreviewText": {
         "description": "Sample text shown in the subtitle live preview"
     },
@@ -3173,11 +3173,11 @@
     "@verticalOffset": {
         "description": "Setting for vertical offset"
     },
-    "pgsDirectPlay": "PGS 直接比赛",
+    "pgsDirectPlay": "PGS 直接播放",
     "@pgsDirectPlay": {
         "description": "Setting for PGS direct play"
     },
-    "directPlayPgsSubtitles": "直接播放PGS字幕",
+    "directPlayPgsSubtitles": "直接播放 PGS 字幕",
     "@directPlayPgsSubtitles": {
         "description": "Description for PGS direct play"
     },
@@ -3185,23 +3185,23 @@
     "@assSsaDirectPlay": {
         "description": "Setting for ASS/SSA direct play"
     },
-    "directPlayAssSsaSubtitles": "直接播放ASS/SSA字幕",
+    "directPlayAssSsaSubtitles": "直接播放 ASS/SSA 字幕",
     "@directPlayAssSsaSubtitles": {
         "description": "Description for ASS/SSA direct play"
     },
-    "white": "白色的",
+    "white": "白色",
     "@white": {
         "description": "Color: white"
     },
-    "black": "黑色的",
+    "black": "黑色",
     "@black": {
         "description": "Color: black"
     },
-    "yellow": "黄色的",
+    "yellow": "黄色",
     "@yellow": {
         "description": "Color: yellow"
     },
-    "green": "绿色的",
+    "green": "绿色",
     "@green": {
         "description": "Color: green"
     },
@@ -3209,11 +3209,11 @@
     "@cyan": {
         "description": "Color: cyan"
     },
-    "red": "红色的",
+    "red": "红色",
     "@red": {
         "description": "Color: red"
     },
-    "transparent": "透明的",
+    "transparent": "透明",
     "@transparent": {
         "description": "Color: transparent"
     },
@@ -3221,7 +3221,7 @@
     "@semiTransparentBlack": {
         "description": "Color: semi-transparent black"
     },
-    "global": "全球的",
+    "global": "全局",
     "@global": {
         "description": "Profile: global"
     },
@@ -3408,7 +3408,7 @@
     "@showShuffleButton": {
         "description": "Setting for showing shuffle button"
     },
-    "showGenresButton": "显示流派按钮",
+    "showGenresButton": "显示类型按钮",
     "@showGenresButton": {
         "description": "Setting for showing genres button"
     },
@@ -3416,7 +3416,7 @@
     "@showFavoritesButton": {
         "description": "Setting for showing favorites button"
     },
-    "showLibrariesInToolbar": "在工具栏中显示库",
+    "showLibrariesInToolbar": "在工具栏中显示媒体库",
     "@showLibrariesInToolbar": {
         "description": "Setting for showing libraries in toolbar"
     },
@@ -3472,7 +3472,7 @@
     "@indigo": {
         "description": "Color: indigo"
     },
-    "libraryDisplay": "图书馆展示",
+    "libraryDisplay": "媒体库展示",
     "@libraryDisplay": {
         "description": "Section title for library display settings"
     },
@@ -3492,15 +3492,15 @@
     "@overridePerLibrarySettings": {
         "description": "Setting for overriding per-library settings"
     },
-    "applyImageTypeToAllLibraries": "将图像类型应用于所有库",
+    "applyImageTypeToAllLibraries": "将图像类型应用于所有媒体库",
     "@applyImageTypeToAllLibraries": {
         "description": "Description for override per-library settings"
     },
-    "multiServerLibraries": "多服务器库",
+    "multiServerLibraries": "多服务器媒体库",
     "@multiServerLibraries": {
         "description": "Setting for multi-server libraries"
     },
-    "showLibrariesFromAllServers": "显示所有连接服务器的库",
+    "showLibrariesFromAllServers": "显示所有已连接服务器的媒体库",
     "@showLibrariesFromAllServers": {
         "description": "Description for multi-server libraries"
     },
@@ -3512,7 +3512,7 @@
     "@showFolderBrowsingOption": {
         "description": "Description for folder view"
     },
-    "libraryVisibility": "图书馆可见性",
+    "libraryVisibility": "媒体库可见性",
     "@libraryVisibility": {
         "description": "Section title for library visibility"
     },
@@ -3528,7 +3528,7 @@
     "@showInLatestMedia": {
         "description": "Toggle for showing library in latest media"
     },
-    "sourceLibraries": "源库",
+    "sourceLibraries": "源媒体库",
     "@sourceLibraries": {
         "description": "Setting for source libraries"
     },
@@ -3544,7 +3544,7 @@
     "@selectAll": {
         "description": "Button to select all items"
     },
-    "itemsSelected": "{count} 已选择",
+    "itemsSelected": "已选择 {count} 项",
     "@itemsSelected": {
         "description": "Number of selected items",
         "placeholders": {
@@ -3561,7 +3561,7 @@
     "@mediaBarMode": {
         "description": "Setting for choosing media bar style"
     },
-    "mediaBarModeDescription": "在 Moonfin、MakD 之间进行选择，或关闭媒体栏",
+    "mediaBarModeDescription": "选择不同的媒体栏样式，或关闭媒体栏",
     "@mediaBarModeDescription": {
         "description": "Description for media bar style setting"
     },
@@ -3573,7 +3573,7 @@
     "@mediaBarModeMakd": {
         "description": "Media bar style option: MakD"
     },
-    "mediaBarModeOff": "离开",
+    "mediaBarModeOff": "关闭",
     "@mediaBarModeOff": {
         "description": "Media bar style option: Off"
     },
@@ -3677,7 +3677,7 @@
     "@resumeBooks": {
         "description": "Home section: resume books"
     },
-    "activeRecordings": "活动录音",
+    "activeRecordings": "正在录制",
     "@activeRecordings": {
         "description": "Home section: active recordings"
     },
@@ -3809,7 +3809,7 @@
     "@mode": {
         "description": "Setting for mode"
     },
-    "libraryArt": "图书馆艺术",
+    "libraryArt": "媒体库艺术",
     "@libraryArt": {
         "description": "Screensaver mode: library art"
     },
@@ -4043,7 +4043,7 @@
     "@popularSeries": {
         "description": "Seerr row: popular series"
     },
-    "seriesGenres": "系列流派",
+    "seriesGenres": "系列类型",
     "@seriesGenres": {
         "description": "Seerr row: series genres"
     },
@@ -4276,7 +4276,7 @@
     "@seerrRequestedStatus": {
         "description": "Seerr media status when item has been requested"
     },
-    "itemsCount": "{count} 物品",
+    "itemsCount": "{count} 项",
     "@itemsCount": {
         "description": "Status bar item count",
         "placeholders": {
@@ -4406,7 +4406,7 @@
     "@submitRequest": {
         "description": "Button to finalize a media request"
     },
-    "allSeasons": "所有季节",
+    "allSeasons": "所有季",
     "@allSeasons": {
         "description": "Checkbox label for selecting all seasons"
     },
@@ -4580,7 +4580,7 @@
     "adminDrawerSettings": "设置",
     "adminDrawerBranding": "品牌推广",
     "adminDrawerUsers": "用户",
-    "adminDrawerLibraries": "图书馆",
+    "adminDrawerLibraries": "媒体库",
     "adminDrawerTranscoding": "转码",
     "adminDrawerResume": "恢复",
     "adminDrawerStreaming": "流媒体",
@@ -4636,7 +4636,7 @@
     "analyticsVideoCodecs": "视频编解码器",
     "analyticsAudioCodecs": "音频编解码器",
     "analyticsContainers": "集装箱",
-    "analyticsTopGenres": "热门流派",
+    "analyticsTopGenres": "热门类型",
     "analyticsReleaseYears": "发布年份",
     "analyticsContentRatings": "内容评级",
     "analyticsRuntimeBuckets": "运行时桶",
@@ -4648,8 +4648,8 @@
     "adminServerActions": "服务器操作",
     "adminRestartServer": "重启服务器",
     "adminShutdownServer": "关闭服务器",
-    "adminScanLibraries": "扫描库",
-    "adminLibraryScanStarted": "图书馆扫描开始",
+    "adminScanLibraries": "扫描媒体库",
+    "adminLibraryScanStarted": "媒体库扫描开始",
     "errorGeneric": "错误：{error}",
     "@errorGeneric": {
         "placeholders": {
@@ -4727,9 +4727,9 @@
     "adminSearchDevices": "搜索设备",
     "adminThisDevice": "本设备",
     "adminEditName": "编辑姓名",
-    "adminLibrariesLoadFailed": "加载库失败",
-    "adminNoLibraries": "没有配置库",
-    "adminScanAllLibraries": "扫描所有图书馆",
+    "adminLibrariesLoadFailed": "加载媒体库失败",
+    "adminNoLibraries": "未配置媒体库",
+    "adminScanAllLibraries": "扫描所有媒体库",
     "adminAddLibrary": "添加库",
     "adminScanFailed": "启动扫描失败：{error}",
     "@adminScanFailed": {
@@ -4766,7 +4766,7 @@
             }
         }
     },
-    "adminLibraryDeleteFailed": "删除库失败：{error}",
+    "adminLibraryDeleteFailed": "删除媒体库失败：{error}",
     "@adminLibraryDeleteFailed": {
         "placeholders": {
             "error": {
@@ -4783,7 +4783,7 @@
         }
     },
     "adminRemovePath": "删除路径",
-    "adminRemovePathConfirm": "从此库中删除“{path}”吗？",
+    "adminRemovePathConfirm": "从此媒体库中删除“{path}”吗？",
     "@adminRemovePathConfirm": {
         "placeholders": {
             "path": {
@@ -4808,7 +4808,7 @@
             }
         }
     },
-    "adminLibraryLoadFailed": "加载库失败",
+    "adminLibraryLoadFailed": "加载媒体库失败",
     "adminNoMediaPaths": "未配置媒体路径",
     "adminAddPath": "添加路径",
     "adminBrowseFilesystem": "浏览服务器文件系统：",
@@ -4818,7 +4818,7 @@
     "adminMetadataCountryCode": "元数据国家代码",
     "adminMetadataCountryHint": "例如美国、德国、法国",
     "adminLibraryNameRequired": "库名称为必填项",
-    "adminLibraryCreateFailed": "创建库失败：{error}",
+    "adminLibraryCreateFailed": "创建媒体库失败：{error}",
     "@adminLibraryCreateFailed": {
         "placeholders": {
             "error": {
@@ -4826,7 +4826,7 @@
             }
         }
     },
-    "adminLibraryName": "图书馆名称",
+    "adminLibraryName": "媒体库名称",
     "adminSelectedPaths": "选定的路径：",
     "adminNoPathsAdded": "未添加路径（可以稍后添加）",
     "adminCreateLibrary": "创建库",
@@ -4946,7 +4946,7 @@
     "adminPasswordReset": "密码重置",
     "adminPasswordUpdated": "密码已更新",
     "adminUserSettings": "用户设置",
-    "adminLibraryAccess": "图书馆访问",
+    "adminLibraryAccess": "媒体库访问",
     "adminDeviceAndChannelAccess": "设备和通道访问",
     "adminEnableAllDevices": "启用对所有设备的访问",
     "adminEnableAllChannels": "允许访问所有频道",
@@ -5598,12 +5598,12 @@
             }
         }
     },
-    "adminRecordingSettings": "录音设置",
+    "adminRecordingSettings": "录制设置",
     "adminPrePadding": "预填充（分钟）",
     "adminPostPadding": "后填充（分钟）",
-    "adminRecordingPath": "录音路径",
-    "adminSeriesRecordingPath": "系列录音路径",
-    "adminRecordingSettingsSaved": "已保存录音设置",
+    "adminRecordingPath": "录制路径",
+    "adminSeriesRecordingPath": "系列录制路径",
+    "adminRecordingSettingsSaved": "已保存录制设置",
     "adminSettingsSaveFailed": "保存设置失败：{error}",
     "@adminSettingsSaveFailed": {
         "placeholders": {
@@ -5749,11 +5749,11 @@
     "adminMetadataFieldCriticRating": "评论家评级",
     "adminMetadataFieldTagline": "标语",
     "adminMetadataFieldOverview": "概述",
-    "adminMetadataGenres": "流派",
+    "adminMetadataGenres": "类型",
     "adminMetadataTags": "标签",
     "adminMetadataStudios": "工作室",
     "adminMetadataPeople": "人们",
-    "adminMetadataAddGenre": "添加流派",
+    "adminMetadataAddGenre": "添加类型",
     "adminMetadataAddTag": "添加标签",
     "adminMetadataAddStudio": "添加工作室",
     "adminMetadataAddPerson": "添加人员",
@@ -5886,7 +5886,7 @@
         }
     },
     "adminPluginDetailDetails": "细节",
-    "adminPluginDetailDeveloper": "开发商",
+    "adminPluginDetailDeveloper": "开发者",
     "adminPluginDetailRepository": "存储库",
     "adminPluginDetailBundled": "捆绑式",
     "adminPluginDetailEnablePlugin": "启用插件",
@@ -5912,7 +5912,7 @@
             }
         }
     },
-    "adminReposRemove": "消除",
+    "adminReposRemove": "移除",
     "adminReposSaveFailed": "无法保存存储库：{error}",
     "@adminReposSaveFailed": {
         "placeholders": {
@@ -5985,13 +5985,13 @@
     "adminTrickplayPriorityAboveNormal": "高于正常水平",
     "adminTrickplayPriorityNormal": "普通的",
     "adminTrickplayPriorityBelowNormal": "低于正常水平",
-    "adminTrickplayPriorityIdle": "闲置的",
+    "adminTrickplayPriorityIdle": "空闲",
     "adminTrickplayImageSettings": "图像设置",
     "adminTrickplayInterval": "间隔（毫秒）",
     "adminTrickplayIntervalSubtitle": "捕获帧的频率",
     "adminTrickplayWidthResolutionsHint": "以逗号分隔的像素宽度（例如 320）",
     "adminTrickplayQuality": "质量",
-    "adminTrickplayQScale": "质量规模",
+    "adminTrickplayQScale": "质量系数",
     "adminTrickplayQScaleSubtitle": "较低的值=更好的质量，更大的文件",
     "adminTrickplayJpegQuality": "JPEG 质量",
     "adminTrickplayProcessing": "加工",
@@ -6044,7 +6044,7 @@
     "adminTaskTriggerEvery12Hours": "每12小时一次",
     "adminTaskTriggerEvery24Hours": "每24小时一次",
     "adminTaskTriggerEvery2Days": "每2天一次",
-    "adminTaskTriggerHours": "{count, plural, one{1 hour} other{{count} hours}}",
+    "adminTaskTriggerHours": "{count, plural, one{1 小时} other{{count} 小时}}",
     "@adminTaskTriggerHours": {
         "placeholders": {
             "count": {
@@ -6178,7 +6178,7 @@
         }
     },
     "folders": "文件夹",
-    "libraries": "图书馆",
+    "libraries": "媒体库",
     "syncPlay": "SyncPlay",
     "syncPlayDisabledTitle": "SyncPlay 已禁用",
     "syncPlayDisabledMessage": "在“设置”中启用 SyncPlay 以使用同步播放。",
@@ -6186,7 +6186,7 @@
     "syncPlayServerUnsupportedMessage": "SyncPlay 需要 Jellyfin 服务器。目前的服务器不支持。",
     "syncPlayGroupFallbackName": "SyncPlay 组",
     "syncPlayGroupTooltip": "SyncPlay 组",
-    "syncPlayParticipantCount": "{count, plural, one {# participant} other {# participants}}",
+    "syncPlayParticipantCount": "{count, plural, one {# 位参与者} other {# 位参与者}}",
     "@syncPlayParticipantCount": {
         "description": "Participant count label shown in SyncPlay UI",
         "placeholders": {
@@ -6225,7 +6225,7 @@
     "syncPlayJoinGroupQuestion": "加入 SyncPlay 群组？",
     "syncPlayJoinGroupWarning": "加入 SyncPlay 群组可能会取代您当前的播放队列。继续？",
     "syncPlayJoin": "加入",
-    "syncPlayStateIdle": "闲置的",
+    "syncPlayStateIdle": "空闲",
     "syncPlayStateWaiting": "等待",
     "syncPlayStatePaused": "已暂停",
     "syncPlayStatePlaying": "演奏",
@@ -6238,7 +6238,7 @@
             }
         }
     },
-    "syncPlayUserLeftGroup": "{userName} 离开SyncPlay 组",
+    "syncPlayUserLeftGroup": "{userName} 离开了 SyncPlay 群组",
     "@syncPlayUserLeftGroup": {
         "description": "Snackbar message when a user leaves a SyncPlay group",
         "placeholders": {
@@ -6273,7 +6273,7 @@
     "integrationOpenHomeSectionsSubtitle": "启用、禁用和重新排序行",
     "integrationInstalledButDisabled": "已安装但已禁用",
     "integrationNotInstalled": "未安装",
-    "integrationSectionsCount": "{count, plural, one {# section} other {# sections}}",
+    "integrationSectionsCount": "{count, plural, one {# 个栏目} other {# 个栏目}}",
     "@integrationSectionsCount": {
         "description": "Plural label for number of sections discovered in integration status",
         "placeholders": {
@@ -6282,7 +6282,7 @@
             }
         }
     },
-    "integrationRowsDiscoveredCount": "{count, plural, one {# row discovered} other {# rows discovered}}",
+    "integrationRowsDiscoveredCount": "{count, plural, one {发现 # 行} other {发现 # 行}}",
     "@integrationRowsDiscoveredCount": {
         "description": "Plural label for number of rows discovered in integration status",
         "placeholders": {
@@ -6293,7 +6293,7 @@
     },
     "jellyseerr": "Seerr",
     "seeAll": "查看全部",
-    "noItems": "没有商品",
+    "noItems": "没有项目",
     "switchUser": "切换用户",
     "remoteControl": "遥控",
     "mediaBarLoading": "正在加载媒体栏...",
@@ -6306,7 +6306,7 @@
     "castGoogleCast": "Google Cast",
     "castAirPlay": "AirPlay",
     "castDlna": "DLNA",
-    "castRemotePlayback": "远程回放",
+    "castRemotePlayback": "远程播放",
     "castControlFailed": "投射控制失败：{error}",
     "@castControlFailed": {
         "placeholders": {
@@ -6427,10 +6427,10 @@
     "shuffleBy": "随机播放",
     "shuffleSelectLibrary": "选择库",
     "shuffleSelectGenre": "选择类型",
-    "shuffleLibrary": "图书馆",
+    "shuffleLibrary": "媒体库",
     "shuffleGenre": "类型",
-    "shuffleNoLibraries": "没有可用的兼容库。",
-    "shuffleNoGenres": "没有找到适合此随机播放模式的流派。",
+    "shuffleNoLibraries": "没有可用的兼容媒体库。",
+    "shuffleNoGenres": "没有找到适合此随机播放模式的类型。",
     "posterDisplayTitle": "展示",
     "posterImageType": "图片类型",
     "imageTypePoster": "海报",
@@ -6550,7 +6550,7 @@
     "settingsPersonalizationSubtitle": "主题、导航、主行和库可见性",
     "settingsDynamicContent": "动态内容",
     "settingsDynamicContentSubtitle": "媒体栏和视觉覆盖",
-    "settingsPlaybackSyncplay": "回放 & SyncPlay",
+    "settingsPlaybackSyncplay": "播放 & SyncPlay",
     "settingsPlaybackSyncplaySubtitle": "音频/视频设置、字幕、下载和 SyncPlay 控件",
     "settingsIntegrationsSubtitle": "插件同步、Seerr、评级等",
     "settingsAboutSubtitle": "应用程序版本、法律信息和制作人员",
@@ -6564,13 +6564,13 @@
     "settingsGeneralStyleSubtitle": "主题口音、背景、观看指示器和主题音乐",
     "settingsHomePage": "主页",
     "settingsHomePageSubtitle": "部分、图像类型、叠加和媒体预览",
-    "settingsLibrariesSubtitle": "库可见性、文件夹视图和多服务器行为",
+    "settingsLibrariesSubtitle": "媒体库可见性、文件夹视图和多服务器行为",
     "settingsTwentyFourHourClock": "24 小时制",
     "settingsTwentyFourHourClockSubtitle": "无论何时显示时钟，都使用 24 小时时间格式",
     "settingsShowShuffleButtonInNavigation": "在导航栏中显示随机播放按钮",
-    "settingsShowGenresButtonInNavigation": "在导航栏中显示流派按钮",
+    "settingsShowGenresButtonInNavigation": "在导航栏中显示类型按钮",
     "settingsShowFavoritesButtonInNavigation": "在导航栏中显示收藏夹按钮",
-    "settingsShowLibrariesButtonInNavigation": "在导航栏中显示库按钮",
+    "settingsShowLibrariesButtonInNavigation": "在导航栏中显示媒体库按钮",
     "settingsLibraryVisibilitySubtitle": "切换每个库的主页可见性。重新启动 Moonfin 以使更改生效。",
     "settingsMediaBarAndLocalPreviews": "媒体栏和本地预览",
     "settingsVisualOverlays": "视觉叠加",
@@ -6590,16 +6590,16 @@
     "settingsJoinDiscord": "加入 Discord",
     "settingsJoinDiscordSubtitle": "与社区聊天",
     "settingsJoinTheDiscord": "加入 Discord",
-    "settingsSupportMoonfin": "支持Moonfin",
-    "settingsLegal": "合法的",
+    "settingsSupportMoonfin": "支持 Moonfin",
+    "settingsLegal": "法律信息",
     "settingsLicenses": "许可证",
     "settingsOpenSourceLicenseNotices": "开源许可声明",
     "settingsPrivacyPolicy": "隐私政策",
     "settingsPrivacyPolicySubtitle": "Moonfin 如何处理您的数据",
     "settingsCheckForUpdates": "检查更新",
     "settingsCheckForUpdatesSubtitle": "检查最新的 Moonfin 版本",
-    "settingsPoweredByFlutter": "由颤动提供支持",
-    "settingsLicenseNoticesCount": "{count, plural, one {# license notice} other {# license notices}}",
+    "settingsPoweredByFlutter": "由 Flutter 提供支持",
+    "settingsLicenseNoticesCount": "{count, plural, one {# 条许可证声明} other {# 条许可证声明}}",
     "@settingsLicenseNoticesCount": {
         "description": "Plural label for number of license notices",
         "placeholders": {
@@ -6651,8 +6651,8 @@
     "settingsBitstreamAc3ToExternalDecoder": "比特流 AC3 到外部解码器",
     "settingsCinemaMode": "影院模式",
     "settingsCinemaModeSubtitle": "在主要功能之前播放预告片/预卷",
-    "settingsShort": "短的",
-    "settingsLong": "长的",
+    "settingsShort": "短",
+    "settingsLong": "长",
     "settingsVeryLong": "很长",
     "settingsVideoStartDelay": "视频开始延迟",
     "settingsMillisecondsValue": "{value} ms",
@@ -6709,7 +6709,7 @@
             }
         }
     },
-    "discNumber": "Disc {number}",
+    "discNumber": "光盘 {number}",
     "@discNumber": {
         "description": "Label for an album disc section in a multi-disc track list",
         "placeholders": {
@@ -6783,15 +6783,15 @@
     "@mediaPreviewDescription": {
         "description": "Description for media preview"
     },
-    "keyboardPreferSystemIme": "Prefer system keyboard",
+    "keyboardPreferSystemIme": "优先使用系统键盘",
     "@keyboardPreferSystemIme": {
         "description": "Settings label for preferring the native system keyboard instead of the custom TV keyboard"
     },
-    "keyboardPreferSystemImeDescription": "Use your device input method by default for text entry",
+    "keyboardPreferSystemImeDescription": "文本输入默认使用设备输入法",
     "@keyboardPreferSystemImeDescription": {
         "description": "Settings subtitle for the system keyboard preference"
     },
-    "musicVideos": "Music Videos",
+    "musicVideos": "音乐视频",
     "@musicVideos": {
         "description": "Section header for music videos filmography row"
     },
@@ -6799,7 +6799,7 @@
     "@record": {
         "description": "Button label to schedule a live TV recording"
     },
-    "cancelRecordingAction": "取消录音",
+    "cancelRecordingAction": "取消录制",
     "@cancelRecordingAction": {
         "description": "Button label to cancel a scheduled live TV recording"
     },
@@ -6807,11 +6807,11 @@
     "@programSetToRecord": {
         "description": "Snackbar confirmation after scheduling a live TV program recording"
     },
-    "recordingCancelled": "录音已取消",
+    "recordingCancelled": "录制已取消",
     "@recordingCancelled": {
         "description": "Snackbar confirmation after cancelling a live TV recording"
     },
-    "unableToCreateRecording": "无法创建录音",
+    "unableToCreateRecording": "无法创建录制",
     "@unableToCreateRecording": {
         "description": "Error when creating a live TV recording fails"
     },
@@ -6819,7 +6819,7 @@
     "@settingsAudioOutputMode": {
         "description": "Setting for audio output mode"
     },
-    "settingsAudioOutputModeAvrPassthrough": "AVR直通",
+    "settingsAudioOutputModeAvrPassthrough": "AVR 直通",
     "@settingsAudioOutputModeAvrPassthrough": {
         "description": "Audio output mode option for AVR passthrough"
     },
@@ -6867,7 +6867,7 @@
     "@settingsAudioDtsHdPassthrough": {
         "description": "Setting for DTS-HD MA passthrough"
     },
-    "settingsAudioTrueHdPassthrough": "TrueHD直通",
+    "settingsAudioTrueHdPassthrough": "TrueHD 直通",
     "@settingsAudioTrueHdPassthrough": {
         "description": "Setting for TrueHD passthrough"
     },
@@ -6875,19 +6875,19 @@
     "@settingsAudioTrueHdAtmosPassthrough": {
         "description": "Setting for TrueHD Atmos passthrough"
     },
-    "settingsAudioBitstreamEac3ToExternalDecoder": "比特流 Dolby Digital Plus (EAC3) 到外部解码器。",
+    "settingsAudioBitstreamEac3ToExternalDecoder": "将 Dolby Digital Plus (EAC3) 以比特流发送到外部解码器。",
     "@settingsAudioBitstreamEac3ToExternalDecoder": {
         "description": "Description for EAC3 passthrough"
     },
-    "settingsAudioBitstreamEac3JocToExternalDecoder": "通过 EAC3 (JOC) 的比特流杜比全景声 (Dolby Atmos) 到外部解码器。",
+    "settingsAudioBitstreamEac3JocToExternalDecoder": "将基于 EAC3 (JOC) 的 Dolby Atmos 以比特流发送到外部解码器。",
     "@settingsAudioBitstreamEac3JocToExternalDecoder": {
         "description": "Description for EAC3 JOC passthrough"
     },
-    "settingsAudioBitstreamDtsHdToExternalDecoder": "比特流 DTS-HD MA（包括 DTS 核心）到外部解码器。",
+    "settingsAudioBitstreamDtsHdToExternalDecoder": "将 DTS-HD MA（包含 DTS 核心）以比特流发送到外部解码器。",
     "@settingsAudioBitstreamDtsHdToExternalDecoder": {
         "description": "Description for DTS-HD MA passthrough"
     },
-    "settingsAudioBitstreamTrueHdAtmosToExternalDecoder": "将 Atmos 元数据传输到外部解码器的比特流 Dolby TrueHD。",
+    "settingsAudioBitstreamTrueHdAtmosToExternalDecoder": "将带 Atmos 元数据的 Dolby TrueHD 以比特流发送到外部解码器。",
     "@settingsAudioBitstreamTrueHdAtmosToExternalDecoder": {
         "description": "Description for TrueHD Atmos passthrough"
     },
@@ -6998,7 +6998,7 @@
     "@skipSilenceTitle": {
         "description": "Setting title: skip silent audio segments during playback"
     },
-    "skipSilenceSubtitle": "Automatically skip silent audio segments when supported by the stream.",
+    "skipSilenceSubtitle": "流媒体支持时，自动跳过静音音频片段。",
     "@skipSilenceSubtitle": {
         "description": "Setting subtitle for skip silence"
     },
@@ -7099,48 +7099,48 @@
     "bottomBar": "底栏",
     "homeRowsStyleClassic": "经典的",
     "homeRowsStyleModern": "现代的",
-    "homeRowsSection": "主场行",
+    "homeRowsSection": "首页行",
     "rowsType": "行类型",
-    "rowsTypeDescription": "经典保留每行图像类型和信息叠加。现代使用纵向到背景的行。",
+    "rowsTypeDescription": "经典模式保留每行的图像类型和信息叠加层。现代模式使用从竖版图到背景图的行布局。",
     "displayFavoritesRows": "显示收藏夹行",
-    "displayFavoritesRowsSubtitle": "在主页部分中显示最喜欢的电影、连续剧和其他最喜欢的行。",
+    "displayFavoritesRowsSubtitle": "在首页栏目中显示收藏的电影、剧集和其他收藏行。",
     "favoritesRowSorting": "收藏夹行排序",
     "favoritesRowSortingDescription": "按添加日期、发布日期、字母顺序等对收藏夹行进行排序。",
     "displayCollectionsRows": "显示集合行",
     "displayCollectionsRowsSubtitle": "在主页部分中显示集合行。",
     "collectionsRowSorting": "集合行排序",
     "collectionsRowSortingDescription": "按添加日期、发布日期、字母顺序等对集合行进行排序。",
-    "displayGenresRows": "显示流派行",
-    "displayGenresRowsSubtitle": "在主页部分中显示流派行。",
-    "genresRowSorting": "流派行排序",
-    "genresRowSortingDescription": "按添加日期、发布日期、字母顺序等对流派行进行排序。",
-    "genresRowItems": "流派行项目",
-    "genresRowItemsDescription": "在流派行中显示电影、连续剧或两者。",
-    "appearance": "外貌",
+    "displayGenresRows": "显示类型行",
+    "displayGenresRowsSubtitle": "在主页部分中显示类型行。",
+    "genresRowSorting": "类型行排序",
+    "genresRowSortingDescription": "按添加日期、发布日期、字母顺序等对类型行进行排序。",
+    "genresRowItems": "类型行项目",
+    "genresRowItemsDescription": "在类型行中显示电影、连续剧或两者。",
+    "appearance": "外观",
     "cardSize": "卡片尺寸",
     "externalPlayerApp": "外部播放器应用程序",
     "externalPlayerAskEachTimeSubtitle": "播放开始时显示应用程序选择器。",
     "loadingInstalledPlayers": "正在加载已安装的播放器...",
-    "connection": "联系",
+    "connection": "连接",
     "audioTranscodeTarget": "音频转码目标",
     "passthrough": "直通",
     "supportedOnThisDevice": "此设备支持",
     "notSupportedOnThisDevice": "此设备不支持",
     "settingsAudioDtsXPassthrough": "DTS:X (DTS UHD) 直通",
-    "settingsAudioBitstreamDtsXToExternalDecoder": "比特流 DTS:X (DTS UHD) 至外部解码器。",
+    "settingsAudioBitstreamDtsXToExternalDecoder": "将 DTS:X (DTS UHD) 以比特流发送到外部解码器。",
     "settingsAudioTrueHdJocPassthrough": "TrueHD 与 Atmos (JOC) 直通",
     "mediaPlayerBehavior": "媒体播放器行为",
     "playbackEnhancements": "播放增强功能",
     "alwaysOn": "始终开启。",
-    "replaceSkipOutroWithNextUpDisplay": "将跳过尾奏替换为下一个显示",
-    "replaceSkipOutroWithNextUpDisplaySubtitle": "显示“下一个”叠加层而不是“跳过尾奏”按钮。",
-    "playerRouting": "玩家路线",
-    "preferSoftwareDecoders": "更喜欢软件解码器",
-    "preferSoftwareDecodersSubtitle": "在硬件解码器之前使用 FFmpeg（音频）和 libgav1 (AV1)。如果 HDMI 音频直通中断，则禁用。",
+    "replaceSkipOutroWithNextUpDisplay": "用“即将播放”替换“跳过片尾”",
+    "replaceSkipOutroWithNextUpDisplaySubtitle": "显示“即将播放”浮层，而不是“跳过片尾”按钮。",
+    "playerRouting": "播放器路由",
+    "preferSoftwareDecoders": "优先使用软件解码器",
+    "preferSoftwareDecodersSubtitle": "优先使用 FFmpeg（音频）和 libgav1 (AV1)，再尝试硬件解码器。如果 HDMI 音频直通异常，请关闭此项。",
     "useExternalPlayer": "使用外部播放器",
     "useExternalPlayerSubtitle": "在 Android TV 上选择的外部应用程序中打开视频播放。",
     "automaticQueuing": "自动排队",
-    "preferSdhSubtitles": "更喜欢 SDH 字幕",
+    "preferSdhSubtitles": "优先使用 SDH 字幕",
     "preferSdhSubtitlesSubtitle": "自动选择时优先选择 SDH/CC 字幕轨道。",
     "webDiagnostics": "网络诊断",
     "webDiagnosticsTitle": "Moonfin 网络诊断",
@@ -7168,7 +7168,7 @@
         }
     },
     "webDiagnosticsCurrentRuntimeContext": "当前运行时上下文",
-    "webDiagnosticsOrigin": "起源",
+    "webDiagnosticsOrigin": "来源",
     "webDiagnosticsScheme": "方案",
     "webDiagnosticsPluginMode": "插件模式",
     "webDiagnosticsWebRtcScan": "WebRTC 扫描",
@@ -7181,13 +7181,13 @@
     "webDiagnosticsMixedContentFix": "修复：通过 HTTPS 为您的媒体服务器或代理端点提供服务，或仅在受信任的本地网络上通过 HTTP 加载 Moonfin。",
     "webDiagnosticsNoMixedContentDetected": "从当前运行时设置中未检测到明显的混合内容配置。",
     "webDiagnosticsCorsChecklist": "CORS 清单",
-    "webDiagnosticsCorsChecklistItem1": "• 在Access-Control-Allow-Origin 中允许浏览器来源。",
-    "webDiagnosticsCorsChecklistItem2": "• 在Access-Control-Allow-Headers 中包含授权、X-Emby-Authorization 和X-Emby-Token。",
-    "webDiagnosticsCorsChecklistItem3": "• 公开内容范围和接受范围以进行流式传输和查找行为。",
-    "webDiagnosticsCorsChecklistItem4": "• 将204 返回到OPTIONS 预检请求。",
+    "webDiagnosticsCorsChecklistItem1": "• 在 Access-Control-Allow-Origin 中允许浏览器来源。",
+    "webDiagnosticsCorsChecklistItem2": "• 在 Access-Control-Allow-Headers 中包含 Authorization、X-Emby-Authorization 和 X-Emby-Token。",
+    "webDiagnosticsCorsChecklistItem3": "• 暴露 Content-Range 和 Accept-Ranges，以支持流式传输和跳转。",
+    "webDiagnosticsCorsChecklistItem4": "• 对 OPTIONS 预检请求返回 204。",
     "webDiagnosticsHeaderSnippetTitle": "示例标头片段（nginx 样式）",
-    "note": "笔记",
-    "webDiagnosticsNonWebNote": "此诊断路线适用于 Web 构建。如果您在其他平台上看到此内容，则这些检查可能不适用。",
+    "note": "备注",
+    "webDiagnosticsNonWebNote": "此诊断页面面向 Web 构建。如果你在其他平台看到这些内容，检查结果可能不适用。",
     "backToServerSelect": "返回服务器选择",
     "signOutAllUsers": "注销所有用户",
     "voiceSearchPermissionPermanentlyDenied": "麦克风权限被永久拒绝。在系统设置中启用它。",
@@ -7203,17 +7203,17 @@
     "openIosRoutePicker": "打开 iOS 路径选择器",
     "airPlayRoutePickerUnavailable": "AirPlay 路线选择器在此设备上不可用。",
     "videos": "视频",
-    "trailers": "拖车",
+    "trailers": "预告片",
     "programs": "节目",
     "songs": "歌曲",
     "photoAlbums": "相册",
     "photos": "照片",
-    "people": "人们",
+    "people": "人物",
     "recentlyReleasedEpisodes": "最近发布的剧集",
     "watchAgain": "再看一次",
     "guestAppearances": "嘉宾亮相",
-    "appearancesSeerr": "出场（赛尔）",
-    "watchWithGroup": "跟团观看",
+    "appearancesSeerr": "出场作品（Seerr）",
+    "watchWithGroup": "与群组一起观看",
     "errors": "错误",
     "warnings": "警告",
     "disk": "磁盘",
@@ -7221,23 +7221,23 @@
     "embeddedBrowserNotAvailable": "嵌入式浏览器在此平台上不可用。",
     "adminRestartServerConfirmation": "您确定要重新启动服务器吗？",
     "adminShutdownServerConfirmation": "您确定要关闭服务器吗？您需要手动重新启动它。",
-    "internal": "内部的",
-    "idle": "闲置的",
+    "internal": "内部",
+    "idle": "空闲",
     "os": "OS",
     "adminNoUsersFound": "没有找到用户",
     "adminNoUsersMatchSearch": "没有用户符合您的搜索",
     "adminNoDevicesFound": "未找到设备",
     "adminNoDevicesMatchCurrentFilters": "没有设备与当前过滤器匹配",
-    "passwordSet": "密码设置",
-    "noPasswordConfigured": "没有配置密码",
+    "passwordSet": "已设置密码",
+    "noPasswordConfigured": "未配置密码",
     "remoteAccess": "远程访问",
     "localOnly": "仅限本地",
     "adminMediaAnalyticsLoadFailed": "无法加载媒体分析",
     "analyticsCombinedAcrossLibraries": "跨所有媒体库的综合分析。",
-    "analyticsTopArtists": "顶尖艺术家",
-    "analyticsTopAuthors": "顶尖作者",
+    "analyticsTopArtists": "热门艺术家",
+    "analyticsTopAuthors": "热门作者",
     "analyticsTopContributors": "杰出贡献者",
-    "analyticsLibrariesCount": "{count, plural, =1{1 Library} other{{count} Libraries}}",
+    "analyticsLibrariesCount": "{count, plural, =1{1 个媒体库} other{{count} 个媒体库}}",
     "@analyticsLibrariesCount": {
         "placeholders": {
             "count": {
@@ -7246,9 +7246,9 @@
         }
     },
     "analyticsNoIndexedMediaTotals": "尚无可用于此选择的索引媒体总数。",
-    "analyticsLibraryDetails": "图书馆详情",
-    "analyticsLibraryBreakdown": "库分类",
-    "analyticsNoLibrariesAvailable": "没有可用的库。",
+    "analyticsLibraryDetails": "媒体库详情",
+    "analyticsLibraryBreakdown": "媒体库细分",
+    "analyticsNoLibrariesAvailable": "没有可用的媒体库。",
     "adminServerAdministrationTitle": "服务器管理",
     "adminServerPathData": "数据",
     "adminServerPathImageCache": "图片缓存",
@@ -7256,7 +7256,7 @@
     "adminServerPathLogs": "日志",
     "adminServerPathMetadata": "元数据",
     "adminServerPathTranscode": "转码",
-    "adminServerPathWeb": "网络",
+    "adminServerPathWeb": "Web",
     "adminNoServerPathsReturned": "该服务器没有返回服务器路径。",
     "adminPercentUsed": "{percent}% 已使用",
     "@adminPercentUsed": {
@@ -7270,19 +7270,19 @@
     "systemEvents": "系统事件",
     "needsAttention": "需要注意",
     "adminDrawerSectionServer": "服务器",
-    "adminDrawerSectionPlayback": "回放",
+    "adminDrawerSectionPlayback": "播放",
     "adminDrawerSectionDevices": "设备",
-    "adminDrawerSectionAdvanced": "先进的",
+    "adminDrawerSectionAdvanced": "高级",
     "adminDrawerSectionPlugins": "插件",
     "adminDrawerSectionLiveTv": "电视直播",
     "homeVideos": "家庭视频",
     "mixedContent": "混合内容",
     "homeVideosAndPhotos": "家庭视频和照片",
-    "mixedMoviesAndShows": "混合电影和节目",
+    "mixedMoviesAndShows": "电影和剧集混合",
     "intelQuickSync": "英特尔快速同步",
-    "rockchipMpp": "瑞芯微MPP",
+    "rockchipMpp": "瑞芯微 MPP",
     "dolbyVision": "Dolby Vision",
-    "noRecordingsFound": "没有找到录音",
+    "noRecordingsFound": "未找到录制内容",
     "noImagePagesFoundInArchive": ".{extension} 存档内未找到图像页面。",
     "@noImagePagesFoundInArchive": {
         "placeholders": {
@@ -7345,14 +7345,136 @@
     "failedToExtractCbrArchive": "无法提取 .cbr 存档。",
     "cb7ExtractionUnavailable": "CB7 提取在此平台上不可用。",
     "cb7ExtractionPluginUnavailable": "CB7 提取插件在此平台上不可用。",
-    "closeGenrePanel": "关闭流派面板",
+    "closeGenrePanel": "关闭类型面板",
     "loadingShuffle": "正在加载随机播放...",
-    "libraryShuffleLabel": "LIBRARY SHUFFLE",
-    "randomShuffleLabel": "RANDOM SHUFFLE",
-    "genresShuffleLabel": "GENRES SHUFFLE",
+    "libraryShuffleLabel": "媒体库随机播放",
+    "randomShuffleLabel": "随机播放",
+    "genresShuffleLabel": "按类型随机播放",
     "autoHdrSwitching": "自动 HDR 切换",
     "autoHdrSwitchingDescription": "自动启用 HDR 进行 HDR 视频播放并在退出时恢复显示模式。",
     "whenFullscreen": "全屏时",
     "transcodingLimits": "转码限制",
-    "settingsSupportMoonfinSubtitle": "向开发商捐赠一杯咖啡"
+    "settingsSupportMoonfinSubtitle": "请开发者喝杯咖啡",
+    "accountPreferences": "账号偏好",
+    "interfaceLanguage": "界面语言",
+    "systemLanguageDefault": "系统默认",
+    "empty": "空",
+    "themeGlass": "玻璃",
+    "themeGlassSubtitle": "液态玻璃风格，带流动渐变背景、磨砂表面和 Apple 蓝强调色",
+    "endsIn": "{time} 后结束",
+    "directors": "导演",
+    "writer": "编剧",
+    "settingsScrollWheelAction": "鼠标滚轮",
+    "settingsScrollWheelActionDescription": "选择播放期间在视频上滚动鼠标滚轮时执行的操作。",
+    "scrollWheelActionOff": "关闭",
+    "scrollWheelActionSeek": "快进/快退",
+    "scrollWheelActionVolume": "音量",
+    "playerTooltipVolume": "音量",
+    "settingsAudioOutputModeDescription": "选择音频解码方式。AVR 直通会将原始 Dolby/DTS 音频流发送到接收器；自动或降混会在本地解码。",
+    "settingsAudioFallbackCodecDescription": "选择源音频无法直接播放或直通时，多声道音频转码的目标格式。",
+    "settingsAudioFallbackCodecAuto": "自动检测\n（推荐）",
+    "settingsAudioFallbackCodecAac": "AAC\n（默认）",
+    "settingsAudioFallbackCodecAc3": "AC3\n（Dolby Digital）",
+    "settingsAudioFallbackCodecEac3": "EAC3\n（Dolby Digital Plus）",
+    "settingsAudioFallbackCodecTrueHd": "TrueHD\n（无损）",
+    "settingsAudioFallbackCodecMp3": "MP3\n（仅立体声）",
+    "settingsAudioFallbackCodecOpus": "Opus\n（高效）",
+    "settingsAudioFallbackCodecFlac": "FLAC\n（无损）",
+    "settingsMaxAudioChannels": "最大音频声道数",
+    "settingsMaxAudioChannelsDescription": "配置音频设备支持的最大声道数。超过此限制的多声道音频流将被降混或转码。",
+    "settingsMaxAudioChannelsAuto": "自动检测\n（硬件默认）",
+    "settingsMaxAudioChannelsMono": "1.0 单声道",
+    "settingsMaxAudioChannelsStereo": "2.0 立体声",
+    "settingsMaxAudioChannels3_0": "3.0 / 2.1 环绕声",
+    "settingsMaxAudioChannels4_0": "4.0 / 3.1 四声道",
+    "settingsMaxAudioChannels5_0": "5.0 / 4.1 环绕声",
+    "settingsMaxAudioChannels5_1": "5.1 环绕声",
+    "settingsMaxAudioChannels6_1": "6.1 环绕声",
+    "settingsMaxAudioChannels7_1": "7.1 环绕声",
+    "showSeerrButton": "显示 Seerr 按钮",
+    "fullScreenRows": "展开首页行",
+    "fullScreenRowsDescription": "将首页行限制为每屏 1 行",
+    "currentUser": "当前用户",
+    "clockModeStatic": "固定",
+    "clockModeBouncing": "弹跳",
+    "seerrDiscoveryRows": "Seerr 发现行",
+    "settingsShowSeerrButtonInNavigation": "在导航栏中显示 Seerr 按钮",
+    "settingsMediaSegmentCountdown": "媒体片段倒计时",
+    "settingsProgressBar": "进度条",
+    "settingsTimer": "计时器",
+    "settingsNone": "无",
+    "enableTunnelingTitle": "启用隧道播放",
+    "enableTunnelingSubtitle": "高级设置。通过耦合的硬件路径传输音频和视频。默认关闭，因为某些设备可能出现音视频中断。",
+    "showMediaDetailsOnLibraryPage": "显示媒体详情",
+    "showMediaDetailsOnLibraryPageDescription": "在媒体库页面顶部显示所选项目的详情。",
+    "themeStore": "主题商店",
+    "themeStoreSubtitle": "浏览并保存社区主题",
+    "themeStoreDescription": "保存主题后即可像其他已保存主题一样使用。",
+    "themeStoreEmpty": "当前没有可用主题。",
+    "themeStoreLoadFailed": "无法加载主题商店。请检查连接后重试。",
+    "themeStoreSave": "保存",
+    "themeStoreSaveAndApply": "保存并应用",
+    "themeStoreSaved": "已保存",
+    "themeStoreInvalidMessage": "无法加载此主题。",
+    "themeStoreSavedMessage": "已保存“{themeName}”。",
+    "homeRowDisplay": "首页行显示",
+    "homeRowSections": "首页行栏目",
+    "homeRowToggles": "首页行开关",
+    "homeRowTogglesSubtitle": "启用或禁用不同的首页行类别",
+    "homeRowTogglesDescription": "启用以下开关以在首页栏目中显示对应行。",
+    "displayPlaylistsRows": "显示播放列表行",
+    "displayPlaylistsRowsSubtitle": "在首页栏目中显示播放列表行。",
+    "playlistsRowSorting": "播放列表行排序",
+    "playlistsRowSortingDescription": "按添加日期、发布日期、字母顺序等方式排序播放列表行。",
+    "displayAudioRows": "显示音频行",
+    "displayAudioRowsSubtitle": "在首页栏目中显示音频行。",
+    "audioRowsSorting": "音频行排序",
+    "audioRowsSortingDescription": "按添加日期、发布日期、字母顺序等方式排序音频行。",
+    "audioPlaylists": "音频播放列表",
+    "displaySeerrRows": "显示 Seerr 发现行",
+    "displaySeerrRowsSubtitle": "在首页栏目中显示 Seerr 发现行。",
+    "externalPlayerAppDescription": "设置外部播放器以启用长按播放选项",
+    "changeArtwork": "更换图片",
+    "missing": "缺失",
+    "clearAllArtworkButton": "清除所有图片？",
+    "clearAllArtworkWarning": "确定要清除所有已下载图片吗？",
+    "confirmClear": "确认清除",
+    "confirmClearMessage": "确定要清除此{itemType}吗？",
+    "uploadButton": "上传",
+    "resolutionLabel": "分辨率：",
+    "onlyShowInterfaceLanguage": "仅显示界面语言的图片",
+    "confirmClearAll": "确认全部清除",
+    "imageUploadSuccess": "图片上传成功！",
+    "imageUploadFailed": "图片上传失败：{error}",
+    "imageDownloadFailed": "设置图片失败：{error}",
+    "imageDeleteFailed": "删除图片失败：{error}",
+    "clearAllArtworkFailed": "清除所有图片失败：{error}",
+    "yes": "是",
+    "posterCategory": "海报",
+    "backdropsCategory": "背景图",
+    "bannerCategory": "横幅",
+    "logoCategory": "徽标",
+    "thumbnailCategory": "缩略图",
+    "artCategory": "艺术图",
+    "discArtCategory": "光盘图",
+    "screenshotCategory": "截图",
+    "boxCoverCategory": "盒装封面",
+    "boxRearCoverCategory": "盒装背面",
+    "menuArtCategory": "菜单图",
+    "confirmItemPoster": "海报",
+    "confirmItemBackdrop": "背景图",
+    "confirmItemBanner": "横幅",
+    "confirmItemLogo": "徽标",
+    "confirmItemThumbnail": "缩略图",
+    "confirmItemArt": "艺术图",
+    "confirmItemDiscArt": "光盘图",
+    "confirmItemScreenshot": "截图",
+    "confirmItemBoxCover": "盒装封面",
+    "confirmItemBoxRearCover": "盒装背面",
+    "confirmItemMenuArt": "菜单图",
+    "resolutionAll": "全部",
+    "resolutionHigh": "高（1080p+）",
+    "resolutionMedium": "中（720p）",
+    "resolutionLow": "低（低于 720p）",
+    "sources": "来源"
 }

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/gestures.dart' show kBackMouseButton, kForwardMouseButton;
+import 'package:flutter/cupertino.dart' show CupertinoTheme, CupertinoThemeData;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -35,6 +36,7 @@ import 'util/focus/dpad_keys.dart';
 import 'util/fullscreen_helper.dart';
 import 'util/global_shortcut_focus.dart';
 import 'util/focus/input_mode_tracker.dart';
+import 'util/idiom/app_ui_idiom.dart';
 import 'util/platform_detection.dart';
 import 'ui/widgets/overlay_sheet.dart';
 import 'package:moonfin_design/moonfin_design.dart';
@@ -60,8 +62,10 @@ class _MoonfinAppState extends State<MoonfinApp> {
     _prefs = GetIt.instance<UserPreferences>();
     _themeController = AppThemeController.fromPreferences(_prefs);
     _lastResolvedLocale = _resolveLocale();
+    AppUiIdiomResolver.setOverride(_prefs.get(UserPreferences.interfaceStyle));
     _prefs.addListener(_syncThemeFromPrefs);
     _prefs.addListener(_syncLocaleFromPrefs);
+    _prefs.addListener(_syncIdiomFromPrefs);
     if (PlatformDetection.isAppleTV) {
       TopShelfService().startDeepLinkListener(appRouter.go);
     }
@@ -69,6 +73,14 @@ class _MoonfinAppState extends State<MoonfinApp> {
 
   void _syncThemeFromPrefs() {
     _themeController.refreshFromPreferences(_prefs);
+  }
+
+  void _syncIdiomFromPrefs() {
+    final before = AppUiIdiomResolver.current;
+    AppUiIdiomResolver.setOverride(_prefs.get(UserPreferences.interfaceStyle));
+    if (AppUiIdiomResolver.current != before && mounted) {
+      setState(() {});
+    }
   }
 
   void _syncLocaleFromPrefs() {
@@ -98,6 +110,7 @@ class _MoonfinAppState extends State<MoonfinApp> {
   void dispose() {
     _prefs.removeListener(_syncThemeFromPrefs);
     _prefs.removeListener(_syncLocaleFromPrefs);
+    _prefs.removeListener(_syncIdiomFromPrefs);
     _themeController.dispose();
     super.dispose();
   }
@@ -186,7 +199,15 @@ class _MoonfinAppState extends State<MoonfinApp> {
                           child: _GlobalShortcutScope(
                             child: Material(
                               type: MaterialType.transparency,
-                              child: content,
+                              child: CupertinoTheme(
+                                data: CupertinoThemeData(
+                                  brightness: Brightness.dark,
+                                  primaryColor: AppColorScheme.accent,
+                                  scaffoldBackgroundColor:
+                                      AppColorScheme.background,
+                                ),
+                                child: content,
+                              ),
                             ),
                           ),
                         );

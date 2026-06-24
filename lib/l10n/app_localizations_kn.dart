@@ -141,6 +141,22 @@ class AppLocalizationsKn extends AppLocalizations {
   String get settingsAppearanceTheme => 'ಅಪ್ಲಿಕೇಶನ್ ಥೀಮ್';
 
   @override
+  String get interfaceStyle => 'Interface style';
+
+  @override
+  String get interfaceStyleSubtitle =>
+      'Automatic uses the native look on Apple devices. Choose Apple to force it, or Material for the standard look.';
+
+  @override
+  String get interfaceStyleAutomatic => 'Automatic';
+
+  @override
+  String get interfaceStyleApple => 'Apple';
+
+  @override
+  String get interfaceStyleMaterial => 'Material';
+
+  @override
   String get settingsAppearanceThemeSubtitle =>
       'ಅಪ್ಲಿಕೇಶನ್ ಅನ್ನು ಮರುಪ್ರಾರಂಭಿಸದೆಯೇ Moonfin ಮತ್ತು Neon Pulse ನಡುವೆ ಬದಲಿಸಿ';
 

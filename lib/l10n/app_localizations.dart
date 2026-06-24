@@ -460,6 +460,36 @@ abstract class AppLocalizations {
   /// **'App Theme'**
   String get settingsAppearanceTheme;
 
+  /// Label for the Automatic/Apple/Material interface style setting
+  ///
+  /// In en, this message translates to:
+  /// **'Interface style'**
+  String get interfaceStyle;
+
+  /// Explanation under the interface style setting
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic uses the native look on Apple devices. Choose Apple to force it, or Material for the standard look.'**
+  String get interfaceStyleSubtitle;
+
+  /// Interface style option: follow the platform
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic'**
+  String get interfaceStyleAutomatic;
+
+  /// Interface style option: Apple native look
+  ///
+  /// In en, this message translates to:
+  /// **'Apple'**
+  String get interfaceStyleApple;
+
+  /// Interface style option: Material look
+  ///
+  /// In en, this message translates to:
+  /// **'Material'**
+  String get interfaceStyleMaterial;
+
   /// Subtitle for the theme selection screen and theme settings entry
   ///
   /// In en, this message translates to:

@@ -188,6 +188,26 @@
   "@settingsAppearanceTheme": {
     "description": "Title for the theme selection screen and theme settings entry"
   },
+  "interfaceStyle": "Interface style",
+  "@interfaceStyle": {
+    "description": "Label for the Automatic/Apple/Material interface style setting"
+  },
+  "interfaceStyleSubtitle": "Automatic uses the native look on Apple devices. Choose Apple to force it, or Material for the standard look.",
+  "@interfaceStyleSubtitle": {
+    "description": "Explanation under the interface style setting"
+  },
+  "interfaceStyleAutomatic": "Automatic",
+  "@interfaceStyleAutomatic": {
+    "description": "Interface style option: follow the platform"
+  },
+  "interfaceStyleApple": "Apple",
+  "@interfaceStyleApple": {
+    "description": "Interface style option: Apple native look"
+  },
+  "interfaceStyleMaterial": "Material",
+  "@interfaceStyleMaterial": {
+    "description": "Interface style option: Material look"
+  },
   "settingsAppearanceThemeSubtitle": "Switch between Moonfin and Neon Pulse without restarting the app",
   "@settingsAppearanceThemeSubtitle": {
     "description": "Subtitle for the theme selection screen and theme settings entry"

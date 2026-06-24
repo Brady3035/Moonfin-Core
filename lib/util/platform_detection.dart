@@ -27,6 +27,8 @@ class PlatformDetection {
       !isAppleTV &&
       defaultTargetPlatform == TargetPlatform.iOS;
   static int get iosMajorVersion => isIOS ? osMajorVersion() : 0;
+  static int? _osMajorCache;
+  static int get osMajor => _osMajorCache ??= osMajorVersion();
   static bool get isMacOS =>
       !kIsWeb && !isTizen && defaultTargetPlatform == TargetPlatform.macOS;
   static bool get isWindows =>

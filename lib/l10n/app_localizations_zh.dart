@@ -140,6 +140,22 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsAppearanceTheme => '应用主题';
 
   @override
+  String get interfaceStyle => 'Interface style';
+
+  @override
+  String get interfaceStyleSubtitle =>
+      'Automatic uses the native look on Apple devices. Choose Apple to force it, or Material for the standard look.';
+
+  @override
+  String get interfaceStyleAutomatic => 'Automatic';
+
+  @override
+  String get interfaceStyleApple => 'Apple';
+
+  @override
+  String get interfaceStyleMaterial => 'Material';
+
+  @override
   String get settingsAppearanceThemeSubtitle =>
       '在 Moonfin 和 Neon Pulse 之间切换，无需重新启动应用程序';
 

@@ -287,7 +287,7 @@ class _SwitchPreferenceTileState extends State<SwitchPreferenceTile> {
 
         return ValueListenableBuilder<bool>(
           valueListenable: _binding,
-          builder: (context, value, _) => SwitchListTile(
+          builder: (context, value, _) => SwitchListTile.adaptive(
             focusNode: widget.focusNode,
             secondary: secondary,
             title: Text(widget.title, style: _kSettingsTitleTextStyle),

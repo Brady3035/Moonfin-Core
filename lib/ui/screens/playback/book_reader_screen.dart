@@ -29,6 +29,7 @@ import '../../../data/services/reader_settings_store.dart';
 import '../../../util/platform_detection.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../l10n/current_app_localizations.dart';
+import '../../widgets/adaptive/sf_symbol.dart';
 import '../../widgets/reader/reader_chrome_bar.dart';
 import '../../widgets/reader/reader_contents_hub.dart';
 import '../../widgets/reader/reader_settings_sheet.dart';
@@ -1807,7 +1808,7 @@ class _BookReaderScreenState extends State<BookReaderScreen>
                     children: [
                       Row(
                         children: [
-                          const Icon(Icons.menu_book),
+                          const AdaptiveIcon(Icons.menu_book),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
@@ -1850,7 +1851,7 @@ class _BookReaderScreenState extends State<BookReaderScreen>
                                       strokeWidth: 2,
                                     ),
                                   )
-                                : Icon(
+                                : AdaptiveIcon(
                                     isPlayed
                                         ? Icons.check_circle
                                         : Icons.check_circle_outline,
@@ -1875,7 +1876,7 @@ class _BookReaderScreenState extends State<BookReaderScreen>
                                       strokeWidth: 2,
                                     ),
                                   )
-                                : const Icon(Icons.refresh),
+                                : const AdaptiveIcon(Icons.refresh),
                             label: Text(l10n.reloadReader),
                           ),
                         ],
@@ -2258,7 +2259,7 @@ class _BookReaderScreenState extends State<BookReaderScreen>
               color: active ? accent : Colors.white.withValues(alpha: 0.14),
               shape: BoxShape.circle,
             ),
-            child: Icon(
+            child: AdaptiveIcon(
               icon,
               size: 18,
               color: active ? Colors.white : Colors.white70,
@@ -2444,7 +2445,7 @@ class _BookReaderScreenState extends State<BookReaderScreen>
                   hintStyle: TextStyle(
                     color: colors.foreground.withValues(alpha: 0.5),
                   ),
-                  prefixIcon: Icon(Icons.search, color: accent, size: 20),
+                  prefixIcon: AdaptiveIcon(Icons.search, color: accent, size: 20),
                   border: const OutlineInputBorder(),
                 ),
                 onChanged: _runPdfSearch,
@@ -2475,14 +2476,14 @@ class _BookReaderScreenState extends State<BookReaderScreen>
                         ),
                       ),
                       IconButton(
-                        icon: Icon(
+                        icon: AdaptiveIcon(
                           Icons.keyboard_arrow_up,
                           color: colors.foreground,
                         ),
                         onPressed: total == 0 ? null : searcher.goToPrevMatch,
                       ),
                       IconButton(
-                        icon: Icon(
+                        icon: AdaptiveIcon(
                           Icons.keyboard_arrow_down,
                           color: colors.foreground,
                         ),
@@ -2493,7 +2494,7 @@ class _BookReaderScreenState extends State<BookReaderScreen>
                 },
               ),
             IconButton(
-              icon: Icon(Icons.close, color: colors.foreground),
+              icon: AdaptiveIcon(Icons.close, color: colors.foreground),
               onPressed: _togglePdfSearch,
             ),
           ],
@@ -2628,7 +2629,7 @@ class _BookReaderScreenState extends State<BookReaderScreen>
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.desktop_windows_outlined, size: 56),
+                const AdaptiveIcon(Icons.desktop_windows_outlined, size: 56),
                 const SizedBox(height: 12),
                 Text(
                   l10n.readerFallbackModeActive,
@@ -2651,7 +2652,7 @@ class _BookReaderScreenState extends State<BookReaderScreen>
                   const SizedBox(height: 16),
                   FilledButton.icon(
                     onPressed: _openFallbackExternally,
-                    icon: const Icon(Icons.open_in_new),
+                    icon: const AdaptiveIcon(Icons.open_in_new),
                     label: Text(l10n.openExternally),
                   ),
                 ],
@@ -2895,7 +2896,7 @@ class _PdfRoundButton extends StatelessWidget {
         onTap: onPressed,
         child: Padding(
           padding: const EdgeInsets.all(10),
-          child: Icon(icon, color: Colors.white, size: 22),
+          child: AdaptiveIcon(icon, color: Colors.white, size: 22),
         ),
       ),
     );
@@ -2904,7 +2905,7 @@ class _PdfRoundButton extends StatelessWidget {
 
 Widget _comicImageError(BuildContext context, Object error, StackTrace? stack) =>
     const Center(
-      child: Icon(Icons.broken_image_outlined, color: Colors.white38, size: 64),
+      child: AdaptiveIcon(Icons.broken_image_outlined, color: Colors.white38, size: 64),
     );
 
 class _ComicPageImage extends StatelessWidget {

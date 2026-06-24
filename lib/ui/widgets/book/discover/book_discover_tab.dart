@@ -11,6 +11,7 @@ import '../../../../util/platform_detection.dart';
 import '../../../screens/book/discover/discover_book_detail_screen.dart';
 import '../../../screens/book/discover/librivox_authors_screen.dart';
 import '../../../screens/book/discover/librivox_book_detail_screen.dart';
+import '../../adaptive/sf_symbol.dart';
 import 'book_discovery_models.dart';
 
 const _bookAccent = bookDiscoverAccent;
@@ -288,7 +289,7 @@ class _BookDiscoverTabState extends State<BookDiscoverTab> {
                               ),
                               IconButton(
                                 onPressed: () => Navigator.of(context).pop(),
-                                icon: const Icon(Icons.close_rounded),
+                                icon: const AdaptiveIcon(Icons.close_rounded),
                               ),
                             ],
                           ),
@@ -596,7 +597,7 @@ class _BookDiscoverTabState extends State<BookDiscoverTab> {
                               ),
                               IconButton(
                                 onPressed: () => Navigator.of(context).pop(),
-                                icon: const Icon(Icons.close_rounded),
+                                icon: const AdaptiveIcon(Icons.close_rounded),
                               ),
                             ],
                           ),
@@ -720,7 +721,7 @@ class _BookDiscoverTabState extends State<BookDiscoverTab> {
             ),
           ),
         ),
-        child: Icon(icon, color: foregroundColor),
+        child: AdaptiveIcon(icon, color: foregroundColor),
       ),
     );
   }
@@ -868,7 +869,7 @@ class _BookDiscoverTabState extends State<BookDiscoverTab> {
                   disabledBackgroundColor: const Color(0xFFD7E3F0),
                   disabledForegroundColor: const Color(0xFF90A5BC),
                 ),
-                icon: const Icon(Icons.chevron_left_rounded),
+                icon: const AdaptiveIcon(Icons.chevron_left_rounded),
               ),
               IconButton(
                 tooltip: AppLocalizations.of(context).scrollRight,
@@ -881,7 +882,7 @@ class _BookDiscoverTabState extends State<BookDiscoverTab> {
                   disabledBackgroundColor: const Color(0xFFD7E3F0),
                   disabledForegroundColor: const Color(0xFF90A5BC),
                 ),
-                icon: const Icon(Icons.chevron_right_rounded),
+                icon: const AdaptiveIcon(Icons.chevron_right_rounded),
               ),
             ],
           ),
@@ -959,7 +960,7 @@ class _BookDiscoverTabState extends State<BookDiscoverTab> {
                       color: const Color(0xFF2C77B7),
                       alignment: Alignment.center,
                       padding: const EdgeInsets.all(10),
-                      child: const Icon(
+                      child: const AdaptiveIcon(
                         Icons.auto_stories_rounded,
                         color: Colors.white,
                         size: 30,
@@ -971,7 +972,7 @@ class _BookDiscoverTabState extends State<BookDiscoverTab> {
                       errorWidget: (_, _, _) => Container(
                         color: const Color(0xFF2C77B7),
                         alignment: Alignment.center,
-                        child: const Icon(
+                        child: const AdaptiveIcon(
                           Icons.auto_stories_rounded,
                           color: Colors.white,
                         ),
@@ -1164,7 +1165,7 @@ class _BookDiscoverTabState extends State<BookDiscoverTab> {
                   disabledBackgroundColor: const Color(0xFFD7E3F0),
                   disabledForegroundColor: const Color(0xFF90A5BC),
                 ),
-                icon: const Icon(Icons.chevron_left_rounded),
+                icon: const AdaptiveIcon(Icons.chevron_left_rounded),
               ),
               IconButton(
                 tooltip: AppLocalizations.of(context).scrollRight,
@@ -1177,7 +1178,7 @@ class _BookDiscoverTabState extends State<BookDiscoverTab> {
                   disabledBackgroundColor: const Color(0xFFD7E3F0),
                   disabledForegroundColor: const Color(0xFF90A5BC),
                 ),
-                icon: const Icon(Icons.chevron_right_rounded),
+                icon: const AdaptiveIcon(Icons.chevron_right_rounded),
               ),
             ],
           ),
@@ -1250,7 +1251,7 @@ class _BookDiscoverTabState extends State<BookDiscoverTab> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.headphones_rounded, color: Colors.white, size: 32),
+          const AdaptiveIcon(Icons.headphones_rounded, color: Colors.white, size: 32),
           if (duration.isNotEmpty) ...[
             const SizedBox(height: 6),
             Container(

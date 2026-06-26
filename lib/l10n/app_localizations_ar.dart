@@ -6445,8 +6445,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-
-  @override
   String get seeAll => 'رؤية الكل';
 
   @override

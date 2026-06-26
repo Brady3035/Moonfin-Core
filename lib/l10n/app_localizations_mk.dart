@@ -6521,8 +6521,6 @@ class AppLocalizationsMk extends AppLocalizations {
   }
 
   @override
-
-  @override
   String get seeAll => 'Види ги сите';
 
   @override

@@ -6522,8 +6522,6 @@ class AppLocalizationsKn extends AppLocalizations {
   }
 
   @override
-
-  @override
   String get seeAll => 'ಎಲ್ಲವನ್ನೂ ನೋಡಿ';
 
   @override

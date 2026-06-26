@@ -6533,8 +6533,6 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-
-  @override
   String get seeAll => 'Összes megtekintése';
 
   @override

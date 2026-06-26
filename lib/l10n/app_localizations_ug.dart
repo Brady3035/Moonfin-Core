@@ -6490,8 +6490,6 @@ class AppLocalizationsUg extends AppLocalizations {
   }
 
   @override
-
-  @override
   String get seeAll => 'ھەممىنى كۆرۈڭ';
 
   @override

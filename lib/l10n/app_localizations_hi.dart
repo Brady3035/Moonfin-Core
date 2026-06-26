@@ -6463,8 +6463,6 @@ class AppLocalizationsHi extends AppLocalizations {
   }
 
   @override
-
-  @override
   String get seeAll => 'सभी देखें';
 
   @override

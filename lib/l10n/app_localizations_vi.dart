@@ -6488,8 +6488,6 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
-
-  @override
   String get seeAll => 'Xem Tất Cả';
 
   @override

@@ -6485,8 +6485,6 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
-
-  @override
   String get seeAll => 'Lihat Semua';
 
   @override

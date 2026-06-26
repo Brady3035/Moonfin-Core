@@ -6477,8 +6477,6 @@ class AppLocalizationsNb extends AppLocalizations {
   }
 
   @override
-
-  @override
   String get seeAll => 'Se alle';
 
   @override

@@ -6528,8 +6528,6 @@ class AppLocalizationsTa extends AppLocalizations {
   }
 
   @override
-
-  @override
   String get seeAll => 'அனைத்தையும் பார்க்கவும்';
 
   @override

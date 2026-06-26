@@ -6397,8 +6397,6 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-
-  @override
   String get seeAll => 'ראה הכל';
 
   @override

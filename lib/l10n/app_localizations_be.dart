@@ -6491,8 +6491,6 @@ class AppLocalizationsBe extends AppLocalizations {
   }
 
   @override
-
-  @override
   String get seeAll => 'Глядзець усе';
 
   @override

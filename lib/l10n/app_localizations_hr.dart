@@ -6494,8 +6494,6 @@ class AppLocalizationsHr extends AppLocalizations {
   }
 
   @override
-
-  @override
   String get seeAll => 'Vidi sve';
 
   @override

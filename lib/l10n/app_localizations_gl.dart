@@ -6562,8 +6562,6 @@ class AppLocalizationsGl extends AppLocalizations {
   }
 
   @override
-
-  @override
   String get seeAll => 'Ver Todo';
 
   @override

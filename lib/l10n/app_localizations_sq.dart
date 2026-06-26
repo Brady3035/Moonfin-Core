@@ -6533,8 +6533,6 @@ class AppLocalizationsSq extends AppLocalizations {
   }
 
   @override
-
-  @override
   String get seeAll => 'Shih të gjitha';
 
   @override

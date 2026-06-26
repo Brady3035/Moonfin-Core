@@ -6497,8 +6497,6 @@ class AppLocalizationsCy extends AppLocalizations {
   }
 
   @override
-
-  @override
   String get seeAll => 'Gwel Pawb';
 
   @override

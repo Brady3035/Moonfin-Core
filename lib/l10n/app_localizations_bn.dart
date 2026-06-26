@@ -6474,8 +6474,6 @@ class AppLocalizationsBn extends AppLocalizations {
   }
 
   @override
-
-  @override
   String get seeAll => 'সব দেখুন';
 
   @override

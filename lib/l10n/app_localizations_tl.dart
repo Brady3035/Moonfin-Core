@@ -6551,8 +6551,6 @@ class AppLocalizationsTl extends AppLocalizations {
   }
 
   @override
-
-  @override
   String get seeAll => 'Tingnan Lahat';
 
   @override

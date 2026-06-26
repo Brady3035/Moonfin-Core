@@ -6523,8 +6523,6 @@ class AppLocalizationsSw extends AppLocalizations {
   }
 
   @override
-
-  @override
   String get seeAll => 'Tazama Yote';
 
   @override

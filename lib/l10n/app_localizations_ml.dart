@@ -6554,8 +6554,6 @@ class AppLocalizationsMl extends AppLocalizations {
   }
 
   @override
-
-  @override
   String get seeAll => 'എല്ലാം കാണുക';
 
   @override

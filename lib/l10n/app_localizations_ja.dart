@@ -6330,8 +6330,6 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-
-  @override
   String get seeAll => 'すべて見る';
 
   @override

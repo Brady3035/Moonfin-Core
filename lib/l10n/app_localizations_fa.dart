@@ -6446,8 +6446,6 @@ class AppLocalizationsFa extends AppLocalizations {
   }
 
   @override
-
-  @override
   String get seeAll => 'مشاهده همه';
 
   @override

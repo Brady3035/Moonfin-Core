@@ -6523,8 +6523,6 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-
-  @override
   String get seeAll => 'Ver Tudo';
 
   @override
@@ -14757,8 +14755,6 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
   }
 
   @override
-
-  @override
   String get seeAll => 'Ver tudo';
 
   @override
@@ -22763,8 +22759,6 @@ class AppLocalizationsPtPt extends AppLocalizationsPt {
     );
     return '$_temp0';
   }
-
-  @override
 
   @override
   String get seeAll => 'Ver tudo';

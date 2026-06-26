@@ -6512,8 +6512,6 @@ class AppLocalizationsPl extends AppLocalizations {
   }
 
   @override
-
-  @override
   String get seeAll => 'Zobacz wszystko';
 
   @override

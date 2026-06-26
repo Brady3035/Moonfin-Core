@@ -6487,8 +6487,6 @@ class AppLocalizationsSv extends AppLocalizations {
   }
 
   @override
-
-  @override
   String get seeAll => 'Se alla';
 
   @override

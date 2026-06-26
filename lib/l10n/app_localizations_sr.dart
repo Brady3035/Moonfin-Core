@@ -6498,8 +6498,6 @@ class AppLocalizationsSr extends AppLocalizations {
   }
 
   @override
-
-  @override
   String get seeAll => 'Види све';
 
   @override

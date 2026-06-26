@@ -6515,8 +6515,6 @@ class AppLocalizationsTe extends AppLocalizations {
   }
 
   @override
-
-  @override
   String get seeAll => 'అన్నీ చూడండి';
 
   @override

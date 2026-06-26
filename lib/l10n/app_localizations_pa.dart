@@ -6469,8 +6469,6 @@ class AppLocalizationsPa extends AppLocalizations {
   }
 
   @override
-
-  @override
   String get seeAll => 'ਸਭ ਦੇਖੋ';
 
   @override

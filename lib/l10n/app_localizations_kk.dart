@@ -6510,8 +6510,6 @@ class AppLocalizationsKk extends AppLocalizations {
   }
 
   @override
-
-  @override
   String get seeAll => 'Барлығын көру';
 
   @override

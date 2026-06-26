@@ -6465,8 +6465,6 @@ class AppLocalizationsEo extends AppLocalizations {
   }
 
   @override
-
-  @override
   String get seeAll => 'Vidu Ĉion';
 
   @override

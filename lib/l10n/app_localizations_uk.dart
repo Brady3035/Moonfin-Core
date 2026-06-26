@@ -6510,8 +6510,6 @@ class AppLocalizationsUk extends AppLocalizations {
   }
 
   @override
-
-  @override
   String get seeAll => 'Переглянути всі';
 
   @override

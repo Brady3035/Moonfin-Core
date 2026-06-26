@@ -6443,8 +6443,6 @@ class AppLocalizationsTh extends AppLocalizations {
   }
 
   @override
-
-  @override
   String get seeAll => 'ดูทั้งหมด';
 
   @override

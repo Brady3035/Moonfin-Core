@@ -6506,8 +6506,6 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-
-  @override
   String get seeAll => 'Bekijk alles';
 
   @override

@@ -6492,8 +6492,6 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-
-  @override
   String get seeAll => 'Tümünü Gör';
 
   @override

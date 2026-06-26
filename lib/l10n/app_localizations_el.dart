@@ -6572,8 +6572,6 @@ class AppLocalizationsEl extends AppLocalizations {
   }
 
   @override
-
-  @override
   String get seeAll => 'Δείτε όλα';
 
   @override

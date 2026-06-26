@@ -6503,8 +6503,6 @@ class AppLocalizationsFi extends AppLocalizations {
   }
 
   @override
-
-  @override
   String get seeAll => 'Katso kaikki';
 
   @override

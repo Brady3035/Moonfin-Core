@@ -6501,8 +6501,6 @@ class AppLocalizationsMn extends AppLocalizations {
   }
 
   @override
-
-  @override
   String get seeAll => 'Бүгдийг харах';
 
   @override

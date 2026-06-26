@@ -6564,8 +6564,6 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-
-  @override
   String get seeAll => 'Voir tout';
 
   @override

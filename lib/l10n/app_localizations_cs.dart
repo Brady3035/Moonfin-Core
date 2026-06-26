@@ -6484,8 +6484,6 @@ class AppLocalizationsCs extends AppLocalizations {
   }
 
   @override
-
-  @override
   String get seeAll => 'Zobrazit vše';
 
   @override

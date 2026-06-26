@@ -6533,8 +6533,6 @@ class AppLocalizationsBg extends AppLocalizations {
   }
 
   @override
-
-  @override
   String get seeAll => 'Вижте всички';
 
   @override

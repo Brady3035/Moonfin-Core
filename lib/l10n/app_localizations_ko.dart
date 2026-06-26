@@ -6322,8 +6322,6 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-
-  @override
   String get seeAll => '모두 보기';
 
   @override

@@ -6473,8 +6473,6 @@ class AppLocalizationsSi extends AppLocalizations {
   }
 
   @override
-
-  @override
   String get seeAll => 'සියල්ල බලන්න';
 
   @override

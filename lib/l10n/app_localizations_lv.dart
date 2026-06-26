@@ -6508,8 +6508,6 @@ class AppLocalizationsLv extends AppLocalizations {
   }
 
   @override
-
-  @override
   String get seeAll => 'Skatīt visu';
 
   @override

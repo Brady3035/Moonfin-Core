@@ -6496,8 +6496,6 @@ class AppLocalizationsLt extends AppLocalizations {
   }
 
   @override
-
-  @override
   String get seeAll => 'Žiūrėti viską';
 
   @override

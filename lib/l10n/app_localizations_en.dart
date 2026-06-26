@@ -6431,8 +6431,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-
-  @override
   String get seeAll => 'See All';
 
   @override
@@ -14676,8 +14674,6 @@ class AppLocalizationsEnGb extends AppLocalizationsEn {
     );
     return '$_temp0';
   }
-
-  @override
 
   @override
   String get seeAll => 'See All';

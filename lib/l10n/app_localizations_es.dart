@@ -6538,8 +6538,6 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-
-  @override
   String get seeAll => 'Ver todo';
 
   @override
@@ -14952,8 +14950,6 @@ class AppLocalizationsEs419 extends AppLocalizationsEs {
   }
 
   @override
-
-  @override
   String get seeAll => 'Ver todo';
 
   @override
@@ -22960,8 +22956,6 @@ class AppLocalizationsEsAr extends AppLocalizationsEs {
     );
     return '$_temp0';
   }
-
-  @override
 
   @override
   String get seeAll => 'Ver todo';
@@ -30972,8 +30966,6 @@ class AppLocalizationsEsDo extends AppLocalizationsEs {
   }
 
   @override
-
-  @override
   String get seeAll => 'Ver todo';
 
   @override
@@ -38980,8 +38972,6 @@ class AppLocalizationsEsMx extends AppLocalizationsEs {
     );
     return '$_temp0';
   }
-
-  @override
 
   @override
   String get seeAll => 'Ver todo';

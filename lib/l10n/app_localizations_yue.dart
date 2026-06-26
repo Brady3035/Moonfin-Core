@@ -6291,8 +6291,6 @@ class AppLocalizationsYue extends AppLocalizations {
   }
 
   @override
-
-  @override
   String get seeAll => '看全部';
 
   @override
@@ -14214,8 +14212,6 @@ class AppLocalizationsYueCn extends AppLocalizationsYue {
   }
 
   @override
-
-  @override
   String get seeAll => '查看全部';
 
   @override
@@ -21870,8 +21866,6 @@ class AppLocalizationsYueHk extends AppLocalizationsYue {
     );
     return '$_temp0';
   }
-
-  @override
 
   @override
   String get seeAll => '看全部';

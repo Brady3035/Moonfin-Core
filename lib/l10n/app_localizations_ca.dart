@@ -6569,8 +6569,6 @@ class AppLocalizationsCa extends AppLocalizations {
   }
 
   @override
-
-  @override
   String get seeAll => 'Veure-ho tot';
 
   @override

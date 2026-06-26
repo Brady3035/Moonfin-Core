@@ -6520,8 +6520,6 @@ class AppLocalizationsRu extends AppLocalizations {
   }
 
   @override
-
-  @override
   String get seeAll => 'Посмотреть все';
 
   @override

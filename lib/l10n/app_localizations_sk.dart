@@ -6505,8 +6505,6 @@ class AppLocalizationsSk extends AppLocalizations {
   }
 
   @override
-
-  @override
   String get seeAll => 'Zobraziť všetko';
 
   @override

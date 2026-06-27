@@ -1117,7 +1117,32 @@ class PluginSyncService extends ChangeNotifier {
         );
       }
 
-      if (resolved['homeRowOrder'] is List) {
+      // Prefer the full homeSections layout when present which unlike homeRowOrder it
+      // carries dynamic and disabled rows. home_sections_config is per-server
+      // scoped, so the payload is applied as-is.
+      final homeSectionsRaw = resolved['homeSections'];
+      var appliedHomeSections = false;
+
+      if (homeSectionsRaw is List) {
+        final parsed = <HomeSectionConfig>[
+          for (final e in homeSectionsRaw)
+            if (e is Map)
+              HomeSectionConfig.fromJson(Map<String, dynamic>.from(e)),
+        ];
+        if (parsed.isNotEmpty) {
+          parsed.sort((a, b) => a.order.compareTo(b.order));
+          final sections = <HomeSectionConfig>[];
+          var order = 0;
+          for (final c in parsed) {
+            sections.add(c.copyWith(order: order++));
+          }
+          _appendDisabledBuiltinSections(sections, order);
+          await _prefs.setHomeSectionsConfig(sections);
+          appliedHomeSections = true;
+        }
+      }
+
+      if (!appliedHomeSections && resolved['homeRowOrder'] is List) {
         final serverOrder = (resolved['homeRowOrder'] as List).cast<String>();
         // Preserve any plugin-discovered dynamic sections so they survive a
         // server-driven preference sync.
@@ -1139,15 +1164,7 @@ class PluginSyncService extends ChangeNotifier {
           if (sections.isEmpty) {
             await _applyFallbackHomeRows(preserve: pluginEntries);
           } else {
-            final enabledTypes = sections.map((s) => s.type).toSet();
-            for (final type in prefs.HomeSectionType.values) {
-              if (type == prefs.HomeSectionType.none) continue;
-              if (!enabledTypes.contains(type)) {
-                sections.add(
-                  HomeSectionConfig(type: type, enabled: false, order: order++),
-                );
-              }
-            }
+            order = _appendDisabledBuiltinSections(sections, order);
             for (final entry in pluginEntries) {
               sections.add(entry.copyWith(order: order++));
             }
@@ -1217,21 +1234,31 @@ class PluginSyncService extends ChangeNotifier {
       );
     }
 
-    for (final type in prefs.HomeSectionType.values) {
-      if (type == prefs.HomeSectionType.none ||
-          fallbackEnabled.contains(type)) {
-        continue;
-      }
-      sections.add(
-        HomeSectionConfig(type: type, enabled: false, order: order++),
-      );
-    }
+    order = _appendDisabledBuiltinSections(sections, order);
 
     for (final entry in preserve) {
       sections.add(entry.copyWith(order: order++));
     }
 
     await _prefs.setHomeSectionsConfig(sections);
+  }
+
+  /// Appends a disabled entry for every built-in HomeSectionType not already in
+  /// [sections] so the settings UI shows every toggle. Returns the next order.
+  int _appendDisabledBuiltinSections(
+    List<HomeSectionConfig> sections,
+    int order,
+  ) {
+    final present = sections.map((s) => s.type).toSet();
+    for (final type in prefs.HomeSectionType.values) {
+      if (type == prefs.HomeSectionType.none || present.contains(type)) {
+        continue;
+      }
+      sections.add(
+        HomeSectionConfig(type: type, enabled: false, order: order++),
+      );
+    }
+    return order;
   }
 
   void _applyBool(
@@ -1462,6 +1489,8 @@ class PluginSyncService extends ChangeNotifier {
           .where((c) => c.enabled)
           .map((c) => c.type.serializedName)
           .toList(),
+      'homeSections':
+          _prefs.homeSectionsConfig.map((c) => c.toJson()).toList(),
       'seerrRows': {
         'rowOrder': _seerrPrefs.activeRows
             .map((t) => t.serializedName)

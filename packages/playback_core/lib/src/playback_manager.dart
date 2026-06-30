@@ -37,6 +37,8 @@ class PlaybackManager implements AudioOwnable {
   )?
   _startupRecoveryDecider;
   void Function(PlaybackDecisionContext context)? _playbackDecisionLogger;
+  int? Function(List<Map<String, dynamic>> audioStreams, int? explicitIndex)? audioTrackSelector;
+  int? Function(List<Map<String, dynamic>> subtitleStreams, List<Map<String, dynamic>> audioStreams, int? explicitIndex)? subtitleTrackSelector;
   final QueueService queueService = QueueService();
   final PlayerState state = PlayerState();
   final Set<PlayerBackend> _retainedBackends = <PlayerBackend>{};
@@ -95,9 +97,25 @@ class PlaybackManager implements AudioOwnable {
   PlaybackBringupState _bringupState = const PlaybackBringupState.idle();
 
   PlayerBackend? get backend => _backend;
+  Duration get currentPlaybackPosition {
+    final backendPos = _backend?.position ?? Duration.zero;
+    return Duration(
+      microseconds: [
+        backendPos.inMicroseconds,
+        state.position.inMicroseconds,
+        _lastKnownPosition.inMicroseconds,
+      ].reduce((a, b) => a > b ? a : b),
+    );
+  }
   Stream<PlayerBackend> get backendChangedStream =>
       _backendChangedController.stream;
   PlaybackBringupState get bringupState => _bringupState;
+  dynamic _lastPlayedItem;
+  dynamic get lastPlayedItem => _lastPlayedItem;
+
+  void Function(String itemId, int? subtitleStreamIndex)? onSubtitleTrackChanged;
+  void Function(String itemId, int? audioStreamIndex)? onAudioTrackChanged;
+
   Stream<PlaybackBringupState> get bringupStateStream =>
       _bringupStateController.stream;
   Stream<void> get sessionEndedStream => _sessionEndedController.stream;
@@ -134,6 +152,11 @@ class PlaybackManager implements AudioOwnable {
   int? get pendingAudioStreamIndex => _pendingItemAudioStreamIndex;
   int? get pendingSubtitleStreamIndex => _pendingItemSubtitleStreamIndex;
   String? get pendingMediaSourceId => _mediaSourceId;
+  bool get audioSelectionExplicit => _audioSelectionExplicit;
+  bool get subtitleSelectionExplicit => _subtitleSelectionExplicit;
+  String? get lastExplicitAudioLanguage => _lastExplicitAudioLanguage;
+  String? get lastExplicitSubtitleLanguage => _lastExplicitSubtitleLanguage;
+  bool? get lastExplicitSubtitleEnabled => _lastExplicitSubtitleEnabled;
   bool get playbackDeferredToExternalPlayer => _deferPlaybackToExternalPlayer;
   bool consumeSkipExternalRoutingOnce() {
     final shouldSkip = _skipExternalRoutingOnce;
@@ -165,6 +188,10 @@ class PlaybackManager implements AudioOwnable {
 
   int? get maxBitrateOverrideMbps => _maxBitrateOverrideMbps;
   bool get isOfflinePlayback => _isOfflinePlayback;
+
+  /// Completes when any in-flight stop operation (including the offline
+  /// tracker's DB write) finishes.  Returns `null` when no stop is pending.
+  Future<void>? get pendingStop => _stopInFlight;
   Duration consumeDeferredStartPosition() {
     final value = _deferredStartPosition;
     _deferredStartPosition = Duration.zero;
@@ -543,13 +570,21 @@ class PlaybackManager implements AudioOwnable {
 
   void _onTrackCompleted(bool completed) {
     if (!completed) return;
+
+    final completedItem = queueService.currentItem;
+    if (completedItem != null) {
+      final itemId = MediaStreamResolver.extractItemId(completedItem);
+      onSubtitleTrackChanged?.call(itemId, null);
+      onAudioTrackChanged?.call(itemId, null);
+    }
+
     if (_waitingForMedia ||
         _isAutoNexting ||
         _isManualNexting ||
         suppressAutoNext) {
       return;
     }
-    if (!autoAdvanceEnabled) {
+    if (!autoAdvanceEnabled && !_isPreroll(queueService.currentItem)) {
       _isAutoNexting = true;
       _mediaSourceId = null;
       _stopAndReportCurrent(skipQueueChange: true).whenComplete(() {
@@ -774,6 +809,37 @@ class PlaybackManager implements AudioOwnable {
     return true;
   }
 
+  void _preFetchNextSeasonIfNeeded() async {
+    final provider = _nextSeasonItemsProvider;
+    if (provider == null) return;
+    if (_isOfflinePlayback) return;
+    if (queueService.repeatMode != RepeatMode.none) return;
+
+    final currentItem = queueService.currentItem;
+    final currentIndex = queueService.currentIndex;
+    final queueSnapshot = queueService.items;
+    if (currentItem == null || currentIndex < 0 || queueSnapshot.isEmpty) {
+      return;
+    }
+    if (currentIndex != queueSnapshot.length - 1) return;
+
+    try {
+      final nextSeasonItems = await provider(
+        currentItem,
+        queueSnapshot,
+        currentIndex,
+      );
+      if (nextSeasonItems.isNotEmpty) {
+        if (queueService.currentItem == currentItem &&
+            queueService.currentIndex == currentIndex &&
+            queueService.items.length == queueSnapshot.length) {
+          queueService.addItems(nextSeasonItems);
+        }
+      }
+    } catch (_) {}
+  }
+
+
   Future<void> playItems(
     List<dynamic> items, {
     int startIndex = 0,
@@ -911,6 +977,9 @@ class PlaybackManager implements AudioOwnable {
       _translateTrackSelectionsForNewItem(item);
     }
     _lastItemId = itemId;
+    _lastPlayedItem = item;
+    _preFetchNextSeasonIfNeeded();
+
     _setBringupState(
       PlaybackBringupState(
         phase: PlaybackBringupPhase.resolving,
@@ -1006,37 +1075,67 @@ class PlaybackManager implements AudioOwnable {
 
     bool needsReResolve = false;
 
-    if (_lastExplicitAudioLanguage != null) {
-      final matchedIdx = _matchStreamIndexByLanguage(
-        resolution.mediaStreams,
-        _lastExplicitAudioLanguage,
-        'Audio',
+    final audioStreams = resolution.mediaStreams.where((s) => s['Type'] == 'Audio').toList();
+    final subtitleStreams = resolution.mediaStreams.where((s) => s['Type'] == 'Subtitle').toList();
+
+    if (audioTrackSelector != null) {
+      final targetIdx = audioTrackSelector!(
+        audioStreams,
+        _audioSelectionExplicit ? _audioStreamIndex : null,
       );
-      if (matchedIdx != null && _audioStreamIndex != matchedIdx) {
-        _audioStreamIndex = matchedIdx;
+      if (targetIdx != null && _audioStreamIndex != targetIdx) {
+        _audioStreamIndex = targetIdx;
         if (resolution.playMethod == StreamPlayMethod.transcode) {
           needsReResolve = true;
+        }
+      }
+    } else {
+      if (_lastExplicitAudioLanguage != null) {
+        final matchedIdx = _matchStreamIndexByLanguage(
+          resolution.mediaStreams,
+          _lastExplicitAudioLanguage,
+          'Audio',
+        );
+        if (matchedIdx != null && _audioStreamIndex != matchedIdx) {
+          _audioStreamIndex = matchedIdx;
+          if (resolution.playMethod == StreamPlayMethod.transcode) {
+            needsReResolve = true;
+          }
         }
       }
     }
 
-    if (_lastExplicitSubtitleEnabled == false) {
-      if (_subtitleStreamIndex != -1) {
-        _subtitleStreamIndex = -1;
+    if (subtitleTrackSelector != null) {
+      final targetIdx = subtitleTrackSelector!(
+        subtitleStreams,
+        audioStreams,
+        _subtitleSelectionExplicit ? _subtitleStreamIndex : null,
+      );
+      if (targetIdx != null && _subtitleStreamIndex != targetIdx) {
+        _subtitleStreamIndex = targetIdx;
         if (resolution.playMethod == StreamPlayMethod.transcode) {
           needsReResolve = true;
         }
       }
-    } else if (_lastExplicitSubtitleLanguage != null) {
-      final matchedIdx = _matchStreamIndexByLanguage(
-        resolution.mediaStreams,
-        _lastExplicitSubtitleLanguage,
-        'Subtitle',
-      );
-      if (matchedIdx != null && _subtitleStreamIndex != matchedIdx) {
-        _subtitleStreamIndex = matchedIdx;
-        if (resolution.playMethod == StreamPlayMethod.transcode) {
-          needsReResolve = true;
+    } else {
+      if (_lastExplicitSubtitleEnabled == false) {
+        if (_subtitleStreamIndex != -1) {
+          _subtitleStreamIndex = -1;
+          if (resolution.playMethod == StreamPlayMethod.transcode) {
+            needsReResolve = true;
+          }
+        }
+      } else if (_lastExplicitSubtitleLanguage != null) {
+        final matchedIdx = _matchStreamIndexByLanguage(
+          resolution.mediaStreams,
+          _lastExplicitSubtitleLanguage,
+          'Subtitle',
+        );
+        if (matchedIdx != null && _subtitleStreamIndex != matchedIdx) {
+          _subtitleStreamIndex = matchedIdx;
+          if (resolution.playMethod == StreamPlayMethod.transcode) {
+            needsReResolve = true;
+          }
         }
       }
     }
@@ -1533,6 +1632,13 @@ class PlaybackManager implements AudioOwnable {
   Future<void> changeAudioTrack(int streamIndex) async {
     _audioStreamIndex = streamIndex;
     _audioSelectionExplicit = true;
+
+    final currentItem = queueService.currentItem;
+    if (currentItem != null) {
+      final itemId = MediaStreamResolver.extractItemId(currentItem);
+      onAudioTrackChanged?.call(itemId, streamIndex >= 0 ? streamIndex : null);
+    }
+
     final streams = _currentMediaStreams;
     if (streams.isNotEmpty) {
       final selectedStream = streams.firstWhere(
@@ -1621,7 +1727,7 @@ class PlaybackManager implements AudioOwnable {
     for (final sub in externals) {
       if (sub.streamIndex != streamIndex) continue;
       if (sub.deliveryUrl.isNotEmpty) {
-        return sub.deliveryUrl;
+        return _ensureSubtitleApiKey(sub.deliveryUrl);
       }
     }
 
@@ -1650,29 +1756,33 @@ class PlaybackManager implements AudioOwnable {
         return deliveryUrl;
       }
 
-      final resolved = baseUri.resolve(deliveryUrl);
-      final hasApiKey = resolved.queryParameters.keys.any(
-        (k) => k.toLowerCase() == 'api_key',
-      );
-      final baseApiKeyEntry = baseUri.queryParameters.entries.firstWhere(
-        (entry) => entry.key.toLowerCase() == 'api_key',
-        orElse: () => const MapEntry('', ''),
-      );
-
-      if (!hasApiKey &&
-          baseApiKeyEntry.key.isNotEmpty &&
-          baseApiKeyEntry.value.isNotEmpty) {
-        final mergedParams = <String, String>{
-          ...resolved.queryParameters,
-          baseApiKeyEntry.key: baseApiKeyEntry.value,
-        };
-        return resolved.replace(queryParameters: mergedParams).toString();
-      }
-
-      return resolved.toString();
+      return _ensureSubtitleApiKey(baseUri.resolve(deliveryUrl).toString());
     }
 
     return null;
+  }
+
+  String _ensureSubtitleApiKey(String url) {
+    final uri = Uri.tryParse(url);
+    if (uri == null) return url;
+    final hasApiKey = uri.queryParameters.keys.any(
+      (k) => k.toLowerCase() == 'api_key',
+    );
+    if (hasApiKey) return url;
+    final streamUrl = _currentResolution?.streamUrl;
+    if (streamUrl == null || streamUrl.isEmpty) return url;
+    final baseUri = Uri.tryParse(streamUrl);
+    if (baseUri == null) return url;
+    final tokenEntry = baseUri.queryParameters.entries.firstWhere(
+      (entry) => entry.key.toLowerCase() == 'api_key',
+      orElse: () => const MapEntry('', ''),
+    );
+    if (tokenEntry.key.isEmpty || tokenEntry.value.isEmpty) return url;
+    final mergedParams = <String, String>{
+      ...uri.queryParameters,
+      tokenEntry.key: tokenEntry.value,
+    };
+    return uri.replace(queryParameters: mergedParams).toString();
   }
 
   SubtitleRendererMode _subtitleRendererModeForStream(int streamIndex) {
@@ -1704,6 +1814,13 @@ class PlaybackManager implements AudioOwnable {
     final previousSubtitleStreamIndex = _subtitleStreamIndex;
     final isBitmap = _isSubtitleBitmap(streamIndex);
     _subtitleStreamIndex = streamIndex;
+
+    final currentItem = queueService.currentItem;
+    if (currentItem != null) {
+      final itemId = MediaStreamResolver.extractItemId(currentItem);
+      onSubtitleTrackChanged?.call(itemId, streamIndex >= 0 ? streamIndex : null);
+    }
+
     _subtitleSelectionExplicit = streamIndex >= 0;
     _lastExplicitSubtitleEnabled = streamIndex >= 0;
     if (streamIndex >= 0) {
@@ -1800,7 +1917,7 @@ class PlaybackManager implements AudioOwnable {
           idx + 1,
           subtitleCodec: selectedExternal.codec,
           isExternalSubtitle: true,
-          externalSubtitleUrl: selectedExternal.deliveryUrl,
+          externalSubtitleUrl: _ensureSubtitleApiKey(selectedExternal.deliveryUrl),
         );
       } else {
         await _reResolveAtCurrentPosition(forceTranscode: true);
@@ -1971,7 +2088,7 @@ class PlaybackManager implements AudioOwnable {
           idx + 1,
           subtitleCodec: selectedExternal.codec,
           isExternalSubtitle: true,
-          externalSubtitleUrl: selectedExternal.deliveryUrl,
+          externalSubtitleUrl: _ensureSubtitleApiKey(selectedExternal.deliveryUrl),
         );
       }
     });
@@ -1998,7 +2115,7 @@ class PlaybackManager implements AudioOwnable {
         for (final sub in resolution.externalSubtitles) {
           try {
             await backend.addExternalSubtitle(
-              sub.deliveryUrl,
+              _ensureSubtitleApiKey(sub.deliveryUrl),
               title: sub.title,
               language: sub.language,
               codec: sub.codec,
@@ -2124,6 +2241,7 @@ class PlaybackManager implements AudioOwnable {
     _onOfflineAutoNext = onAutoNext;
     _itemKnownDuration = itemDuration;
     _currentResolution = null;
+    _lastKnownPosition = startPosition;
 
     if (queueUrls.isNotEmpty) {
       queueService.setQueue(queueUrls, startIndex: startIndex);
@@ -2182,16 +2300,18 @@ class PlaybackManager implements AudioOwnable {
         return;
       }
       if (_isOfflinePlayback) {
+        if (!skipQueueChange) {
+          await _onOfflineStop?.call();
+          _onOfflineStop = null;
+          _onOfflineAutoNext = null;
+        }
         await _backend?.stop();
         _playbackStartTime = null;
         _waitingForMedia = false;
         if (!skipQueueChange) {
-          await _onOfflineStop?.call();
           _isOfflinePlayback = false;
           _forceTranscodeForQueue = false;
           _resetBackendSelectionLock();
-          _onOfflineStop = null;
-          _onOfflineAutoNext = null;
           queueService.clear();
           state.reset();
           _setBringupState(const PlaybackBringupState.idle());
@@ -2307,6 +2427,12 @@ class PlaybackManager implements AudioOwnable {
       );
     } else {
       _subtitleStreamIndex = null;
+    }
+
+    final itemId = MediaStreamResolver.extractItemId(item);
+    if (itemId.isNotEmpty) {
+      onSubtitleTrackChanged?.call(itemId, _subtitleStreamIndex != null && _subtitleStreamIndex! >= 0 ? _subtitleStreamIndex : null);
+      onAudioTrackChanged?.call(itemId, _audioStreamIndex != null && _audioStreamIndex! >= 0 ? _audioStreamIndex : null);
     }
   }
 }

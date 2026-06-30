@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,14 +7,15 @@ import 'package:go_router/go_router.dart';
 import 'package:moonfin_design/moonfin_design.dart';
 
 import '../../../data/database/offline_database.dart';
+import '../../../data/models/aggregated_item.dart';
 import '../../../data/providers/offline_providers.dart';
-import '../../../data/repositories/offline_repository.dart';
-import '../../../data/services/storage_path_service.dart';
+import '../../../data/services/download_service.dart';
 import '../../../util/platform_detection.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../playback/offline_playback_launcher.dart';
 import '../../widgets/offline_image.dart';
 import '../../widgets/overlay_sheet.dart';
+import '../../widgets/adaptive/adaptive_dialog.dart';
 import '../../widgets/focus/request_initial_focus.dart';
 
 class SavedSeasonScreen extends ConsumerWidget {
@@ -110,13 +110,14 @@ class SavedSeasonScreen extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final confirmed = await showFocusRestoringDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => AlertDialog.adaptive(
         title: Text(l10n.deleteEpisode),
         content: Text(l10n.removeName(episode.name)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l10n.cancel)),
-          TextButton(
+          adaptiveDialogAction(onPressed: () => Navigator.pop(ctx, false), child: Text(l10n.cancel)),
+          adaptiveDialogAction(
             onPressed: () => Navigator.pop(ctx, true),
+            isDestructive: true,
             child: Text(
               l10n.delete,
               style: TextStyle(color: AppColorScheme.statusRequested),
@@ -127,16 +128,9 @@ class SavedSeasonScreen extends ConsumerWidget {
     );
     if (confirmed != true) return;
 
-    final repo = GetIt.instance<OfflineRepository>();
-    if (episode.localFilePath != null) {
-      final file = File(episode.localFilePath!);
-      if (await file.exists()) await file.delete();
-    }
-    final imageDir = await GetIt.instance<StoragePathService>().getImageCacheDir();
-    final itemImageDir = Directory('${imageDir.path}/${episode.itemId}');
-    if (await itemImageDir.exists()) await itemImageDir.delete(recursive: true);
-
-    await repo.deleteItem(episode.itemId);
+    final downloadService = GetIt.instance<DownloadService>();
+    final item = AggregatedItem.fromOffline(episode);
+    await downloadService.deleteDownloadedFiles(item);
   }
 }
 

@@ -299,15 +299,15 @@ class _SeerrConfigScreenState extends State<SeerrConfigScreen> {
           context,
           Text(l10n.seerr),
           actions: showSeerrSettings
-            ? [
-                IconButton(
-                  focusNode: _refreshFocusNode,
-                  icon: const Icon(Icons.restore),
-                  tooltip: l10n.resetRowsToDefaults,
-                  onPressed: _resetRows,
-                ),
-              ]
-            : const [],
+              ? [
+                  IconButton(
+                    focusNode: _refreshFocusNode,
+                    icon: const Icon(Icons.restore),
+                    tooltip: l10n.resetRowsToDefaults,
+                    onPressed: _resetRows,
+                  ),
+                ]
+              : const [],
         ),
         body: withCleanSettingsTypography(
           context,
@@ -329,13 +329,11 @@ class _SeerrConfigScreenState extends State<SeerrConfigScreen> {
       children: [
         if (seerrAvailable)
           TvFocusHighlight(
-            builder: (context, focused) => SwitchListTile(
+            builder: (context, focused) => SwitchListTile.adaptive(
               focusNode: _enableSeerrFocusNode,
               secondary: Icon(
                 Icons.movie_filter,
-                color: focused
-                    ? AppColors.black.withValues(alpha: 0.54)
-                    : null,
+                color: focused ? AppColors.black.withValues(alpha: 0.54) : null,
               ),
               title: Text(
                 l10n.enableSeerr,
@@ -377,12 +375,10 @@ class _SeerrConfigScreenState extends State<SeerrConfigScreen> {
           ),
         if (showSeerrSettings)
           TvFocusHighlight(
-            builder: (context, focused) => SwitchListTile(
+            builder: (context, focused) => SwitchListTile.adaptive(
               secondary: Icon(
                 Icons.visibility_off,
-                color: focused
-                    ? AppColors.black.withValues(alpha: 0.54)
-                    : null,
+                color: focused ? AppColors.black.withValues(alpha: 0.54) : null,
               ),
               title: Text(
                 l10n.nsfwFilter,
@@ -415,10 +411,10 @@ class _SeerrConfigScreenState extends State<SeerrConfigScreen> {
               child: Text(
                 l10n.discoverRows.toUpperCase(),
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: Theme.of(context).colorScheme.primary,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1.2,
-                    ),
+                  color: Theme.of(context).colorScheme.primary,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.2,
+                ),
               ),
             ),
           ),
@@ -584,8 +580,14 @@ class _SeerrLoginCardState extends State<_SeerrLoginCard> {
   final _passwordFocus = FocusNode(debugLabel: 'seerr_password');
   final _localAuthFocus = FocusNode(debugLabel: 'seerr_auth_local');
   final _signInFocus = FocusNode(debugLabel: 'seerr_sign_in');
-  final _signInButtonFocus = FocusNode(canRequestFocus: false, debugLabel: 'seerr_sign_in_btn');
-  final _signOutButtonFocus = FocusNode(canRequestFocus: false, debugLabel: 'seerr_sign_out_btn');
+  final _signInButtonFocus = FocusNode(
+    canRequestFocus: false,
+    debugLabel: 'seerr_sign_in_btn',
+  );
+  final _signOutButtonFocus = FocusNode(
+    canRequestFocus: false,
+    debugLabel: 'seerr_sign_out_btn',
+  );
   final _usernameTvFieldKey = GlobalKey<CustomTVTextFieldState>();
   final _passwordTvFieldKey = GlobalKey<CustomTVTextFieldState>();
 
@@ -654,12 +656,13 @@ class _SeerrLoginCardState extends State<_SeerrLoginCard> {
         if (!mounted) return;
         final scope = FocusScope.of(context);
         final focusedChild = scope.focusedChild;
-        final hasFocusInside = focusedChild != null &&
+        final hasFocusInside =
+            focusedChild != null &&
             (focusedChild == widget.firstFocusNode ||
-             focusedChild == _usernameFocus ||
-             focusedChild == _passwordFocus ||
-             focusedChild == _localAuthFocus ||
-             focusedChild == _signInFocus);
+                focusedChild == _usernameFocus ||
+                focusedChild == _passwordFocus ||
+                focusedChild == _localAuthFocus ||
+                focusedChild == _signInFocus);
 
         if (!hasFocusInside) return;
 
@@ -1045,11 +1048,15 @@ class _SeerrLoginCardState extends State<_SeerrLoginCard> {
         builder: (_, _) {
           final selected = _authType == authType;
           final focused = focusNode.hasFocus;
-          final selectedBackground = AppColorScheme.accent.withValues(alpha: 0.22);
+          final selectedBackground = AppColorScheme.accent.withValues(
+            alpha: 0.22,
+          );
           final idleBackground = colorScheme.surfaceContainerHighest.withValues(
             alpha: 0.65,
           );
-          final focusedBackground = AppColorScheme.accent.withValues(alpha: 0.16);
+          final focusedBackground = AppColorScheme.accent.withValues(
+            alpha: 0.16,
+          );
           final selectedBorder = AppColorScheme.accent;
           final focusedBorder = AppColorScheme.accent;
 
@@ -1187,95 +1194,114 @@ class _SeerrLoginCardState extends State<_SeerrLoginCard> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(
-                  l10n.seerrAccountType,
-                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    color: colorScheme.onSurface.withValues(alpha: 0.82),
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 10),
                 Row(
                   children: [
-                    const Icon(Icons.account_circle_outlined),
-                    const SizedBox(width: 12),
                     Expanded(
-                      child: Text(
-                        l10n.loggedInAs(username),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: colorScheme.onSurface,
-                          fontWeight: FontWeight.w600,
-                        ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            l10n.seerrAccountType,
+                            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                              color: colorScheme.onSurface.withValues(alpha: 0.82),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              const Icon(Icons.account_circle_outlined),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  l10n.loggedInAs(username),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: Theme.of(context).textTheme.titleMedium
+                                      ?.copyWith(
+                                        color: colorScheme.onSurface,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    FocusTraversalOrder(
+                      order: const NumericFocusOrder(1),
+                      child: ListenableBuilder(
+                        listenable: widget.firstFocusNode,
+                        builder: (context, _) {
+                          final isFocused = widget.firstFocusNode.hasFocus;
+                          return Focus(
+                            focusNode: widget.firstFocusNode,
+                            onKeyEvent: (node, event) {
+                              if (event is! KeyDownEvent) {
+                                return KeyEventResult.ignored;
+                              }
+                              if (event.logicalKey ==
+                                  LogicalKeyboardKey.arrowUp) {
+                                widget.onMoveUp();
+                                return KeyEventResult.handled;
+                              }
+                              return PlatformDetection.isTV
+                                  ? _onSignOutKey(node, event)
+                                  : KeyEventResult.ignored;
+                            },
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 120),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(24),
+                                boxShadow: isFocused
+                                    ? [
+                                        BoxShadow(
+                                          color: AppColorScheme.onSurface
+                                              .withValues(alpha: 0.35),
+                                          blurRadius: 10,
+                                          spreadRadius: 1.5,
+                                        ),
+                                      ]
+                                    : null,
+                              ),
+                              child: FilledButton(
+                                focusNode: PlatformDetection.isTV
+                                    ? _signOutButtonFocus
+                                    : null,
+                                style: FilledButton.styleFrom(
+                                  foregroundColor: colorScheme.onPrimary,
+                                  backgroundColor: colorScheme.primary,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(24),
+                                  ),
+                                  side: isFocused
+                                      ? BorderSide(
+                                          color: AppColorScheme.onSurface
+                                              .withValues(alpha: 0.72),
+                                          width: 2.0,
+                                        )
+                                      : BorderSide.none,
+                                ),
+                                onPressed: _submitting ? null : _submitSignOut,
+                                child: _submitting
+                                    ? const SizedBox(
+                                        width: 18,
+                                        height: 18,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                        ),
+                                      )
+                                    : Text(l10n.signOut),
+                              ),
+                            ),
+                          );
+                        },
                       ),
                     ),
                   ],
-                ),
-                const SizedBox(height: 12),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: FocusTraversalOrder(
-                    order: const NumericFocusOrder(1),
-                    child: ListenableBuilder(
-                      listenable: widget.firstFocusNode,
-                      builder: (context, _) {
-                        final isFocused = widget.firstFocusNode.hasFocus;
-                        return Focus(
-                          focusNode: widget.firstFocusNode,
-                          onKeyEvent: (node, event) {
-                            if (event is! KeyDownEvent) return KeyEventResult.ignored;
-                            if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
-                              widget.onMoveUp();
-                              return KeyEventResult.handled;
-                            }
-                            return PlatformDetection.isTV ? _onSignOutKey(node, event) : KeyEventResult.ignored;
-                          },
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 120),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(24),
-                              boxShadow: isFocused
-                                  ? [
-                                      BoxShadow(
-                                        color: AppColorScheme.onSurface.withValues(alpha: 0.35),
-                                        blurRadius: 10,
-                                        spreadRadius: 1.5,
-                                      ),
-                                    ]
-                                  : null,
-                            ),
-                            child: FilledButton(
-                              focusNode: PlatformDetection.isTV ? _signOutButtonFocus : null,
-                              style: FilledButton.styleFrom(
-                                foregroundColor: colorScheme.onPrimary,
-                                backgroundColor: colorScheme.primary,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(24),
-                                ),
-                                side: isFocused
-                                    ? BorderSide(
-                                        color: AppColorScheme.onSurface.withValues(alpha: 0.72),
-                                        width: 2.0,
-                                      )
-                                    : BorderSide.none,
-                              ),
-                              onPressed: _submitting ? null : _submitSignOut,
-                              child: _submitting
-                                  ? const SizedBox(
-                                      width: 18,
-                                      height: 18,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                      ),
-                                    )
-                                  : Text(l10n.signOut),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
                 ),
                 if (_errorMessage != null) ...[
                   const SizedBox(height: 10),
@@ -1376,7 +1402,9 @@ class _SeerrLoginCardState extends State<_SeerrLoginCard> {
                         final isFocused = _signInFocus.hasFocus;
                         return Focus(
                           focusNode: _signInFocus,
-                          onKeyEvent: PlatformDetection.isTV ? _onSignInKey : null,
+                          onKeyEvent: PlatformDetection.isTV
+                              ? _onSignInKey
+                              : null,
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 120),
                             decoration: BoxDecoration(
@@ -1384,7 +1412,8 @@ class _SeerrLoginCardState extends State<_SeerrLoginCard> {
                               boxShadow: isFocused
                                   ? [
                                       BoxShadow(
-                                        color: AppColorScheme.onSurface.withValues(alpha: 0.35),
+                                        color: AppColorScheme.onSurface
+                                            .withValues(alpha: 0.35),
                                         blurRadius: 10,
                                         spreadRadius: 1.5,
                                       ),
@@ -1392,7 +1421,9 @@ class _SeerrLoginCardState extends State<_SeerrLoginCard> {
                                   : null,
                             ),
                             child: FilledButton(
-                              focusNode: PlatformDetection.isTV ? _signInButtonFocus : null,
+                              focusNode: PlatformDetection.isTV
+                                  ? _signInButtonFocus
+                                  : null,
                               onPressed: _canSignIn ? _submitSignIn : null,
                               style: FilledButton.styleFrom(
                                 shape: RoundedRectangleBorder(
@@ -1400,7 +1431,8 @@ class _SeerrLoginCardState extends State<_SeerrLoginCard> {
                                 ),
                                 side: isFocused
                                     ? BorderSide(
-                                        color: AppColorScheme.onSurface.withValues(alpha: 0.72),
+                                        color: AppColorScheme.onSurface
+                                            .withValues(alpha: 0.72),
                                         width: 2.0,
                                       )
                                     : BorderSide.none,
@@ -1509,12 +1541,50 @@ class _SeerrReorderableTileState extends State<_SeerrReorderableTile> {
     });
   }
 
+  BoxDecoration _tileDecoration(BuildContext context, {required bool focused}) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final borderTokens = ThemeRegistry.active.borders;
+    final baseBorder = borderTokens.cardBorder.color;
+    final unfocusedBorderColor = baseBorder.a == 0
+        ? AppColorScheme.onSurface.withValues(alpha: 0.16)
+        : baseBorder.withValues(alpha: 0.55);
+
+    return BoxDecoration(
+      color: focused
+          ? AppColorScheme.onSurface
+          : colorScheme.surfaceContainerLow.withValues(alpha: 0.82),
+      borderRadius: BorderRadius.circular(12),
+      border: Border.fromBorderSide(
+        (focused ? borderTokens.focusBorder : borderTokens.cardBorder).copyWith(
+          color: focused
+              ? AppColorScheme.accent.withValues(alpha: 0.72)
+              : unfocusedBorderColor,
+          width: 1.0,
+        ),
+      ),
+      boxShadow: focused
+          ? (borderTokens.focusGlow.isNotEmpty
+                ? borderTokens.focusGlow
+                : [
+                    BoxShadow(
+                      color: AppColorScheme.accent.withValues(alpha: 0.22),
+                      blurRadius: 14,
+                      spreadRadius: 0.5,
+                    ),
+                  ])
+          : null,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final bg = _focused
-        ? colorScheme.primary.withValues(alpha: 0.18)
-        : Colors.transparent;
+    final textColor = _focused
+        ? AppColors.black.withValues(alpha: 0.87)
+        : colorScheme.onSurface;
+    final iconColor = _focused
+        ? AppColors.black.withValues(alpha: 0.54)
+        : colorScheme.onSurfaceVariant;
 
     return Focus(
       focusNode: widget.focusNode,
@@ -1545,20 +1615,33 @@ class _SeerrReorderableTileState extends State<_SeerrReorderableTile> {
         }
         return KeyEventResult.ignored;
       },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 90),
-        color: bg,
-        child: ListTile(
-          onTap: () => widget.onToggle(!widget.enabled),
-          leading: Icon(
-            widget.enabled ? Icons.check_box : Icons.check_box_outline_blank,
-            color: widget.enabled ? colorScheme.primary : null,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 4, 12, 4),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 90),
+          decoration: _tileDecoration(context, focused: _focused),
+          child: ListTile(
+            onTap: () => widget.onToggle(!widget.enabled),
+            leading: Icon(
+              widget.enabled ? Icons.check_box : Icons.check_box_outline_blank,
+              color: widget.enabled
+                  ? (_focused ? AppColors.black : colorScheme.primary)
+                  : iconColor,
+            ),
+            title: Text(
+              widget.label,
+              style: TextStyle(color: textColor, fontWeight: FontWeight.w600),
+            ),
+            subtitle: Text(
+              widget.enabled ? widget.enabledLabel : widget.hiddenLabel,
+              style: TextStyle(
+                color: _focused
+                    ? AppColors.black.withValues(alpha: 0.6)
+                    : colorScheme.onSurfaceVariant,
+              ),
+            ),
+            trailing: widget.trailing,
           ),
-          title: Text(widget.label),
-          subtitle: Text(
-            widget.enabled ? widget.enabledLabel : widget.hiddenLabel,
-          ),
-          trailing: widget.trailing,
         ),
       ),
     );

@@ -29,6 +29,7 @@ abstract class ItemsApi {
     DateTime? minPremiereDate,
     String? maxOfficialRating,
     bool? hasParentalRating,
+    String? anyProviderIdEquals,
   });
 
   Future<Map<String, dynamic>> getItem(String itemId);
@@ -55,6 +56,15 @@ abstract class ItemsApi {
   });
 
   Future<Map<String, dynamic>> getLatestItems({
+    String? parentId,
+    List<String>? includeItemTypes,
+    int? limit,
+    String? fields,
+    String? enableImageTypes,
+    int? imageTypeLimit,
+  });
+
+  Future<Map<String, dynamic>> getRecentlyReleasedItems({
     String? parentId,
     List<String>? includeItemTypes,
     int? limit,

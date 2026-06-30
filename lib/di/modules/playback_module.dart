@@ -8,7 +8,7 @@ import '../../data/models/aggregated_item.dart';
 import '../../data/repositories/offline_repository.dart';
 import '../../data/services/media_server_client_factory.dart';
 import '../../data/services/offline_playback_tracker.dart';
-import '../../playback/audio_capability_profile.dart';
+
 import '../../playback/hdr_stream_capability.dart';
 import '../../playback/html_video_backend.dart';
 import '../../playback/known_defects.dart';
@@ -25,6 +25,8 @@ import '../../preference/user_preferences.dart';
 import '../../syncplay/syncplay_manager.dart';
 import '../../util/platform_detection.dart';
 import '../../util/episode_playability.dart';
+import '../../util/audio_track_logic.dart';
+import '../../util/subtitle_track_logic.dart';
 
 final _getIt = GetIt.instance;
 
@@ -379,6 +381,13 @@ void registerPlaybackModule() {
   _getIt.registerSingleton<PlayerBackend>(initialBackend);
 
   final manager = PlaybackManager();
+  manager.onSubtitleTrackChanged = (itemId, index) {
+    _getIt<UserPreferences>().setItemSubtitleStreamIndex(itemId, index);
+  };
+  manager.onAudioTrackChanged = (itemId, index) {
+    _getIt<UserPreferences>().setItemAudioStreamIndex(itemId, index);
+  };
+
   manager.setBackend(initialBackend);
   manager.setBackendSelector((resolution, currentBackend) {
     if (PlatformDetection.isTizen) {
@@ -460,11 +469,7 @@ void registerPlaybackModule() {
     return startPosition - rewind;
   });
   manager.setPlaybackDecisionLogger((context) {
-    final audioCapabilityProfile = AudioCapabilityProfile.fromMap(
-      PlatformDetection.hasAudioCapabilities
-          ? PlatformDetection.audioCapabilitiesSnapshot
-          : null,
-    );
+    final audioCapabilityProfile = prefs.detectedAudioCapabilities;
 
     final audioSpdifCodecs = context.backend is MediaKitPlayerBackend
         ? _passthroughCodecsForDiagnostics(prefs)
@@ -502,6 +507,59 @@ void registerPlaybackModule() {
   final audioArbiter = PlaybackArbiter();
   _getIt.registerSingleton<PlaybackArbiter>(audioArbiter);
   manager.setAudioArbiter(audioArbiter);
+  manager.audioTrackSelector = (audioStreams, explicitIndex) {
+    final preferredAudioLanguage = manager.lastExplicitAudioLanguage ??
+        (prefs.get(UserPreferences.defaultAudioLanguage) as String? ?? 'auto');
+
+    return computeEffectiveAudioIndex(
+      audioStreams: audioStreams,
+      preferredAudioLanguage: preferredAudioLanguage,
+      fallbackAudioLanguage: prefs.get(UserPreferences.fallbackAudioLanguage) as String? ?? '',
+      preferDefaultAudioTrack: prefs.get(UserPreferences.preferDefaultAudioTrack) as bool? ?? false,
+      preferAudioDescription: prefs.get(UserPreferences.preferAudioDescription) as bool? ?? false,
+      explicitAudioIndex: explicitIndex,
+    );
+  };
+
+  manager.subtitleTrackSelector = (subtitleStreams, audioStreams, explicitIndex) {
+    final effectiveAudioIndex = computeEffectiveAudioIndex(
+      audioStreams: audioStreams,
+      preferredAudioLanguage: manager.lastExplicitAudioLanguage ??
+          (prefs.get(UserPreferences.defaultAudioLanguage) as String? ?? 'auto'),
+      fallbackAudioLanguage: prefs.get(UserPreferences.fallbackAudioLanguage) as String? ?? '',
+      preferDefaultAudioTrack: prefs.get(UserPreferences.preferDefaultAudioTrack) as bool? ?? false,
+      preferAudioDescription: prefs.get(UserPreferences.preferAudioDescription) as bool? ?? false,
+      explicitAudioIndex: manager.audioSelectionExplicit ? manager.audioStreamIndex : null,
+    );
+
+    final activeAudioStream = audioStreams.firstWhere(
+      (s) => s['Index'] == effectiveAudioIndex,
+      orElse: () => const <String, dynamic>{},
+    );
+    final activeAudioLanguage = activeAudioStream.isNotEmpty ? activeAudioStream['Language'] as String? : null;
+
+    final subtitleMode = manager.lastExplicitSubtitleEnabled == false
+        ? SubtitleMode.none
+        : prefs.get(UserPreferences.subtitleMode);
+
+    final preferredLanguage = manager.lastExplicitSubtitleLanguage ??
+        (prefs.get(UserPreferences.defaultSubtitleLanguage) as String? ?? '');
+
+    return computeEffectiveSubtitleIndex(
+      subtitleStreams: subtitleStreams,
+      selectedSubtitleIndex: explicitIndex,
+      activePlaybackSubtitleIndex: null,
+      subtitleMode: subtitleMode,
+      preferredLanguage: preferredLanguage,
+      fallbackLanguage: prefs.get(UserPreferences.fallbackSubtitleLanguage) as String? ?? '',
+      preferSdh: prefs.get(UserPreferences.preferSdhSubtitles) as bool? ?? false,
+      pgsDirectPlay: prefs.get(UserPreferences.pgsDirectPlay) as bool? ?? false,
+      assDirectPlay: prefs.get(UserPreferences.assDirectPlay) as bool? ?? false,
+      preferredAudioLanguage: prefs.get(UserPreferences.defaultAudioLanguage) as String? ?? 'auto',
+      activeAudioLanguage: activeAudioLanguage,
+    );
+  };
+
   _getIt.registerSingleton<PlaybackManager>(manager);
 
   _getIt.registerLazySingleton<OfflineStreamResolver>(

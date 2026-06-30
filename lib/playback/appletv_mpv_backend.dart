@@ -7,6 +7,7 @@ import '../preference/preference_constants.dart';
 import '../preference/user_preferences.dart';
 import '../util/platform_detection.dart';
 import 'audio_capability_profile.dart';
+
 import 'device_profile_builder.dart';
 import 'known_defects.dart';
 
@@ -255,7 +256,7 @@ class AppleTvMpvBackend implements PlayerBackend {
       'subtitleDelayMs': (_subtitleDelaySeconds * 1000).round(),
       'subtitleRendererMode': _modeToWire(_requestedSubtitleRendererMode),
       'forceSubtitlesDisabledOnStart':
-          !audioOnly && _prefs.get(UserPreferences.subtitlesDefaultToNone),
+          !audioOnly && _prefs.get(UserPreferences.subtitleMode) == SubtitleMode.none,
     });
   }
 
@@ -328,11 +329,7 @@ class AppleTvMpvBackend implements PlayerBackend {
     if (_prefs.resolveAudioOutputMode() == AudioOutputMode.forceStereo) {
       return 'stereo';
     }
-    final profile = PlatformDetection.hasAudioCapabilities
-        ? AudioCapabilityProfile.fromMap(
-            PlatformDetection.audioCapabilitiesSnapshot,
-          )
-        : const AudioCapabilityProfile.optimistic();
+    final profile = _prefs.detectedAudioCapabilities;
     if (profile.maxPcmChannels <= 2) {
       return 'stereo';
     }
@@ -380,11 +377,7 @@ class AppleTvMpvBackend implements PlayerBackend {
   }) {
     final maxBitrate = int.tryParse(_prefs.get(UserPreferences.maxBitrate));
     final maxResolution = _prefs.get(UserPreferences.maxVideoResolution);
-    final audioCapabilityProfile = PlatformDetection.hasAudioCapabilities
-        ? AudioCapabilityProfile.fromMap(
-            PlatformDetection.audioCapabilitiesSnapshot,
-          )
-        : const AudioCapabilityProfile.optimistic();
+    final audioCapabilityProfile = _prefs.detectedAudioCapabilities;
 
     return DeviceProfileBuilder.build(
       maxBitrateMbps: maxBitrate,

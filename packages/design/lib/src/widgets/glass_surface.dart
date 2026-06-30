@@ -38,10 +38,10 @@ class GlassSurface extends StatelessWidget {
 
     Widget frost = ColoredBox(color: veil);
     if (!kIsWeb) {
-      frost = BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-        child: frost,
-      );
+      final blur = ImageFilter.blur(sigmaX: 14, sigmaY: 14);
+      frost = BackdropGroup.of(context) != null
+          ? BackdropFilter.grouped(filter: blur, child: frost)
+          : BackdropFilter(filter: blur, child: frost);
     }
 
     final surface = Stack(

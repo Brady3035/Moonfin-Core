@@ -1,3 +1,11 @@
+enum SubtitleMode {
+  flagged,
+  always,
+  foreign,
+  forced,
+  none,
+}
+
 enum AudioOutputMode {
   auto,
   forceStereo,
@@ -180,6 +188,23 @@ enum VisualThemeId {
   glass,
 }
 
+/// Selectable structural style for the media detail screen.
+///
+/// [moonfin] is the original centered-stack layout (default). [modern] is the
+/// responsive cinematic layout (landscape two-pane / portrait stack). Resolved
+/// globally (not scoped per server/user).
+enum DetailScreenStyle {
+  moonfin,
+  modern,
+}
+
+/// Default mobile (portrait phone) view for the Live TV guide: a Now/Next
+/// channel card list or the compact time grid.
+enum EpgMobileView {
+  list,
+  grid,
+}
+
 enum RatingType {
   tomatoes,
   rtAudience,
@@ -257,6 +282,27 @@ enum HomeSectionType {
   seerrStudios('seerr_studios'),
   seerrSeriesGenres('seerr_series_genres'),
   seerrNetworks('seerr_networks'),
+  tmdbPopularMovies('tmdb_popular_movies'),
+  tmdbTopRatedMovies('tmdb_top_rated_movies'),
+  tmdbNowPlayingMovies('tmdb_now_playing_movies'),
+  tmdbUpcomingMovies('tmdb_upcoming_movies'),
+  tmdbPopularTv('tmdb_popular_tv'),
+  tmdbTopRatedTv('tmdb_top_rated_tv'),
+  tmdbAiringTodayTv('tmdb_airing_today_tv'),
+  tmdbOnTheAirTv('tmdb_on_the_air_tv'),
+  tmdbTrendingMovieDaily('tmdb_trending_movie_daily'),
+  tmdbTrendingMovieWeekly('tmdb_trending_movie_weekly'),
+  tmdbTrendingTvDaily('tmdb_trending_tv_daily'),
+  tmdbTrendingTvWeekly('tmdb_trending_tv_weekly'),
+  tmdbTrendingAllWeekly('tmdb_trending_all_weekly'),
+  radarrCalendar('radarr_calendar'),
+  sonarrCalendar('sonarr_calendar'),
+  sinceYouWatched1('sinceyouwatched1'),
+  sinceYouWatched2('sinceyouwatched2'),
+  sinceYouWatched3('sinceyouwatched3'),
+  sinceYouWatched4('sinceyouwatched4'),
+  sinceYouWatched5('sinceyouwatched5'),
+  rewatch('rewatch'),
   none('none');
 
   const HomeSectionType(this.serializedName);
@@ -415,3 +461,59 @@ enum ScreensaverTimeout {
   const ScreensaverTimeout(this.minutes);
   final int minutes;
 }
+
+enum SinceYouWatchedSource {
+  local,
+  online;
+
+  String get displayName => this == local ? 'Local' : 'Online';
+}
+
+enum SinceYouWatchedSourceType {
+  movies,
+  shows,
+  both;
+
+  String get displayName {
+    switch (this) {
+      case movies: return 'Movies';
+      case shows: return 'Shows';
+      case both: return 'Both';
+    }
+  }
+}
+
+enum SinceYouWatchedSourceItem {
+  recentlyWatched,
+  favorites,
+  random;
+
+  String get displayName {
+    switch (this) {
+      case recentlyWatched: return 'Recently Watched';
+      case favorites: return 'Favorites';
+      case random: return 'Random';
+    }
+  }
+}
+
+enum SinceYouWatchedNumRows {
+  one(1),
+  two(2),
+  three(3),
+  four(4),
+  five(5);
+
+  const SinceYouWatchedNumRows(this.value);
+  final int value;
+
+  String get displayName => value.toString();
+}
+
+enum RewatchSortBy {
+  recentlyWatched,
+  random;
+
+  String get displayName => this == recentlyWatched ? 'Recently Watched' : 'Random';
+}
+

@@ -341,6 +341,7 @@ class Media3VideoView(
     companion object {
         private const val TS_SEARCH_BYTES_LOW_RAM = TsExtractor.TS_PACKET_SIZE * 1800
         private const val TS_SEARCH_BYTES_DEFAULT = TsExtractor.DEFAULT_TIMESTAMP_SEARCH_BYTES
+        private const val EXTERNAL_SUBTITLE_ID_BASE = 10000
         private const val ASS_FALLBACK_FONT_ASSET = "fonts/NotoSans-Regular.ttf"
         private const val ASS_FALLBACK_FONT_NAME = "Noto Sans"
         private val ASS_SYSTEM_CJK_FONTS = listOf(
@@ -418,12 +419,24 @@ class Media3VideoView(
     }
 
     private val mainHandler = Handler(Looper.getMainLooper())
-    private val useSurfaceView = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
-    private var videoView: View = if (useSurfaceView) {
-        SurfaceView(context)
-    } else {
-        TextureView(context)
-    }
+    // SurfaceView is required for display refresh-rate switching (applyFrameRateSwitching is gated
+    // on SurfaceView); TextureView never receives it, so 24/25fps content judders. SurfaceView works
+    // on older Android too once it is lifted above Flutter's background on the legacy hybrid-
+    // composition path (see newVideoView). Previously gated to API 30+.
+    private val useSurfaceView = true
+    private var videoView: View = newVideoView()
+
+    private fun newVideoView(): View =
+        if (useSurfaceView) {
+            SurfaceView(context).apply {
+                // Legacy hybrid composition (older devices without Impeller) otherwise composites
+                // this platform-view SurfaceView behind Flutter and the video renders black; lift it
+                // as a media overlay so it stays visible. The Flutter controls still draw on top.
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) setZOrderMediaOverlay(true)
+            }
+        } else {
+            TextureView(context)
+        }
     private val firstFrameCover = View(context).apply {
         setBackgroundColor(Color.BLACK)
     }
@@ -944,7 +957,7 @@ class Media3VideoView(
         httpDataSourceFactory = DefaultHttpDataSource.Factory()
             .setAllowCrossProtocolRedirects(true)
         val bootDataSourceFactory = DefaultDataSource.Factory(context, httpDataSourceFactory)
-        val assHandler = AssHandler(AssRenderType.OVERLAY_OPEN_GL)
+        val assHandler = AssHandler(AssRenderType.OVERLAY_CANVAS)
         registerAssFonts(assHandler)
         val assParserFactory = AssSubtitleParserFactory(assHandler)
         val bootMediaSourceFactory = DefaultMediaSourceFactory(
@@ -973,7 +986,9 @@ class Media3VideoView(
                 }
                 it.addListener(listener)
                 it.addAnalyticsListener(analyticsListener)
-                Media3SessionController.attachPlayer(context, it)
+                if (currentMediaType != "audio") {
+                    Media3SessionController.attachPlayer(context, it)
+                }
             }
     }
 
@@ -1043,7 +1058,7 @@ class Media3VideoView(
             Gravity.CENTER,
         )
         containerView.removeView(videoView)
-        videoView = if (useSurfaceView) SurfaceView(context) else TextureView(context)
+        videoView = newVideoView()
         containerView.addView(videoView, 0, params)
     }
 
@@ -2318,6 +2333,8 @@ class Media3VideoView(
 
         val subtitleBuilder = MediaItem.SubtitleConfiguration.Builder(Uri.parse(url))
             .setSelectionFlags(C.SELECTION_FLAG_DEFAULT)
+            // ass-media matches selected Media3 text tracks back to libass tracks by ID.
+            .setId((EXTERNAL_SUBTITLE_ID_BASE + externalSubtitleConfigurations.size).toString())
 
         val mimeType = codecToMimeType(codec)
         if (!mimeType.isNullOrEmpty()) {

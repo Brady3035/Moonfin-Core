@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
+import 'package:get_it/get_it.dart';
 import 'package:server_core/server_core.dart';
 
+import '../../preference/user_preferences.dart';
 import '../models/aggregated_item.dart';
 import '../models/lyrics.dart';
 import '../repositories/item_mutation_repository.dart';
@@ -31,6 +33,7 @@ class ItemDetailViewModel extends ChangeNotifier {
   set selectedAudioIndex(int? value) {
     if (_selectedAudioIndex != value) {
       _selectedAudioIndex = value;
+      GetIt.instance<UserPreferences>().setItemAudioStreamIndex(itemId, value);
       notifyListeners();
     }
   }
@@ -40,6 +43,7 @@ class ItemDetailViewModel extends ChangeNotifier {
   set selectedSubtitleIndex(int? value) {
     if (_selectedSubtitleIndex != value) {
       _selectedSubtitleIndex = value;
+      GetIt.instance<UserPreferences>().setItemSubtitleStreamIndex(itemId, value);
       notifyListeners();
     }
   }
@@ -55,6 +59,13 @@ class ItemDetailViewModel extends ChangeNotifier {
 
   List<AggregatedItem> _episodes = const [];
   List<AggregatedItem> get episodes => _episodes;
+
+  List<AggregatedItem> _seriesEpisodes = const [];
+  bool _seriesEpisodesRequested = false;
+
+  /// All episodes of a Series across every season, in the server's
+  /// season/episode order. Empty until [loadAllSeriesEpisodes] completes.
+  List<AggregatedItem> get seriesEpisodes => _seriesEpisodes;
 
   AggregatedItem? _nextUp;
   AggregatedItem? get nextUp => _nextUp;
@@ -123,6 +134,11 @@ class ItemDetailViewModel extends ChangeNotifier {
         rawData: data,
       );
       _lyrics = LyricsData.empty;
+      final prefs = GetIt.instance<UserPreferences>();
+      final savedSubIndex = prefs.getItemSubtitleStreamIndex(itemId);
+      _selectedSubtitleIndex = savedSubIndex == -2 ? null : savedSubIndex;
+      final savedAudioIndex = prefs.getItemAudioStreamIndex(itemId);
+      _selectedAudioIndex = savedAudioIndex == -2 ? null : savedAudioIndex;
       _state = ItemDetailState.ready;
       notifyListeners();
 
@@ -205,6 +221,27 @@ class ItemDetailViewModel extends ChangeNotifier {
       _episodes = _mapItems(items);
       notifyListeners();
     } catch (_) {}
+  }
+
+  /// Loads every episode of the current Series (all seasons) on demand. Used by
+  /// the Modern detail layout's Episodes tab and accurate season counts. No-op
+  /// for non-Series items or once already loaded.
+  Future<void> loadAllSeriesEpisodes() async {
+    final item = _item;
+    if (item == null || item.type != 'Series') return;
+    if (_seriesEpisodesRequested) return;
+    _seriesEpisodesRequested = true;
+    try {
+      final data = await _client.itemsApi.getEpisodes(
+        itemId,
+        fields: _episodeOverviewFields,
+      );
+      final items = (data['Items'] as List?) ?? [];
+      _seriesEpisodes = _mapItems(items);
+      notifyListeners();
+    } catch (_) {
+      _seriesEpisodesRequested = false;
+    }
   }
 
   Future<void> _loadNextUp() async {
@@ -397,9 +434,9 @@ class ItemDetailViewModel extends ChangeNotifier {
 
   Future<void> _loadCollectionItems() async {
     try {
+      // No sortBy: keep the collection's native order instead of forcing alphabetical s
       final data = await _client.itemsApi.getItems(
         parentId: itemId,
-        sortBy: 'SortName',
         fields: 'PrimaryImageAspectRatio,BasicSyncInfo',
       );
       final items = (data['Items'] as List?) ?? [];

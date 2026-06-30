@@ -26,6 +26,7 @@ import '../screens/browse/library_browse_screen.dart';
 import '../screens/browse/library_genres_screen.dart';
 import '../screens/browse/library_letters_screen.dart';
 import '../screens/browse/library_suggestions_screen.dart';
+import '../screens/browse/book_browse_screen.dart';
 import '../screens/browse/music_browse_screen.dart';
 import '../screens/detail/item_detail_screen.dart';
 import '../screens/detail/item_list_screen.dart';
@@ -262,7 +263,6 @@ final appRouter = GoRouter(
       builder: (context, state) {
         final libraryId = state.pathParameters['libraryId']!;
         final typesParam = state.uri.queryParameters['types'];
-        final bookUiParam = state.uri.queryParameters['bookUi'];
         final includeItemTypes = typesParam
             ?.split(',')
             .map(Uri.decodeComponent)
@@ -270,8 +270,6 @@ final appRouter = GoRouter(
         return LibraryBrowseScreen(
           libraryId: libraryId,
           includeItemTypes: includeItemTypes,
-          forceBookExperience:
-              bookUiParam == '1' || bookUiParam?.toLowerCase() == 'true',
         );
       },
       routes: [
@@ -333,8 +331,21 @@ final appRouter = GoRouter(
       },
     ),
     GoRoute(
+      path: Destinations.bookBrowse,
+      builder: (context, state) {
+        final libraryId = state.pathParameters['libraryId']!;
+        final collectionType = state.uri.queryParameters['collectionType'];
+        return BookBrowseScreen(
+          libraryId: libraryId,
+          collectionType: collectionType,
+        );
+      },
+    ),
+    GoRoute(
       path: Destinations.genreBrowse,
       builder: (context, state) {
+        // go_router already decodes path parameters; decoding again crashes on
+        // accented/non-ASCII or '%' genre names ("Comédie" for example).
         final genreName = state.pathParameters['genreName']!;
         final genreId = state.uri.queryParameters['genreId']!;
         final parentId = state.uri.queryParameters['parentId'];
@@ -342,7 +353,7 @@ final appRouter = GoRouter(
         return LibraryBrowseScreen(
           libraryId: parentId ?? '',
           genreId: genreId,
-          genreName: Uri.decodeComponent(genreName),
+          genreName: genreName,
           includeItemTypes: includeType != null ? [includeType] : null,
         );
       },
@@ -611,7 +622,8 @@ final appRouter = GoRouter(
         GoRoute(
           path: Destinations.adminLogsFile,
           builder: (context, state) => AdminLogViewerScreen(
-            fileName: Uri.decodeComponent(state.pathParameters['fileName']!),
+            // go_router already decodes path parameters, no need for a second decode
+            fileName: state.pathParameters['fileName']!,
           ),
         ),
         GoRoute(

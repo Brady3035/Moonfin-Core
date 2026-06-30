@@ -8,7 +8,7 @@ import '../data/services/log_service.dart';
 import '../preference/preference_constants.dart';
 import '../preference/user_preferences.dart';
 import '../util/platform_detection.dart';
-import 'audio_capability_profile.dart';
+
 import 'device_profile_builder.dart';
 import 'known_defects.dart';
 
@@ -490,7 +490,7 @@ class Media3PlayerBackend extends PlayerBackend {
       'preferredTextLanguage': preferredSubtitleLanguage,
       'selectUndeterminedTextLanguage': false,
       'forceSubtitlesDisabledOnStart':
-          _prefs.get(UserPreferences.subtitlesDefaultToNone),
+          _prefs.get(UserPreferences.subtitleMode) == SubtitleMode.none,
       'audioDelayMs': (_audioDelaySeconds * 1000).round(),
       'subtitleDelayMs': (_subtitleDelaySeconds * 1000).round(),
       'volumeBoostLevel': _volumeBoostLevel,
@@ -588,11 +588,7 @@ class Media3PlayerBackend extends PlayerBackend {
   }) {
     final maxBitrate = int.tryParse(_prefs.get(UserPreferences.maxBitrate));
     final maxResolution = _prefs.get(UserPreferences.maxVideoResolution);
-    final audioCapabilityProfile = PlatformDetection.hasAudioCapabilities
-        ? AudioCapabilityProfile.fromMap(
-            PlatformDetection.audioCapabilitiesSnapshot,
-          )
-        : const AudioCapabilityProfile.optimistic();
+    final audioCapabilityProfile = _prefs.detectedAudioCapabilities;
 
     return DeviceProfileBuilder.build(
       maxBitrateMbps: maxBitrate,

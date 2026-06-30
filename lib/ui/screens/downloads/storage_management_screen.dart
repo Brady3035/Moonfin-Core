@@ -6,6 +6,7 @@ import 'package:get_it/get_it.dart';
 import 'package:moonfin_design/moonfin_design.dart';
 
 import '../../../data/database/offline_database.dart';
+import '../../../data/models/aggregated_item.dart';
 import '../../../data/providers/offline_providers.dart';
 import '../../../data/repositories/offline_repository.dart';
 import '../../../data/services/download_service.dart';
@@ -14,6 +15,8 @@ import '../../../l10n/app_localizations.dart';
 import '../../../preference/user_preferences.dart';
 import '../../../di/providers.dart';
 import '../../../util/download_utils.dart';
+import '../../widgets/adaptive/adaptive_dialog.dart';
+import '../../widgets/adaptive/adaptive_slider.dart';
 import '../../widgets/overlay_sheet.dart';
 import '../../widgets/focus/request_initial_focus.dart';
 
@@ -284,7 +287,7 @@ class _StorageManagementScreenState extends ConsumerState<StorageManagementScree
             fontSize: 13,
           ),
         ),
-        Slider(
+        adaptiveSlider(
           value: currentLimitMb.toDouble(),
           min: 0,
           max: 102400,
@@ -320,11 +323,11 @@ class _StorageManagementScreenState extends ConsumerState<StorageManagementScree
     final l10n = AppLocalizations.of(context);
     final confirmed = await showFocusRestoringDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => AlertDialog.adaptive(
         title: Text(l10n.deleteSelected),
         content: Text(l10n.deleteSelectedCount(_selected.length)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l10n.cancel)),
+          adaptiveDialogAction(onPressed: () => Navigator.pop(ctx, false), child: Text(l10n.cancel)),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: TextButton.styleFrom(
@@ -338,19 +341,12 @@ class _StorageManagementScreenState extends ConsumerState<StorageManagementScree
     if (confirmed != true) return;
 
     final repo = GetIt.instance<OfflineRepository>();
-    final storagePath = GetIt.instance<StoragePathService>();
-    final imageDir = await storagePath.getImageCacheDir();
+    final downloadService = GetIt.instance<DownloadService>();
 
     for (final itemId in _selected) {
       final item = await repo.getItem(itemId);
       if (item == null) continue;
-      if (item.localFilePath != null) {
-        final f = File(item.localFilePath!);
-        if (await f.exists()) await f.delete();
-      }
-      final imgDir = Directory('${imageDir.path}/$itemId');
-      if (await imgDir.exists()) await imgDir.delete(recursive: true);
-      await repo.deleteItem(itemId);
+      await downloadService.deleteDownloadedFiles(AggregatedItem.fromOffline(item));
     }
 
     setState(() {
@@ -364,11 +360,11 @@ class _StorageManagementScreenState extends ConsumerState<StorageManagementScree
     final l10n = AppLocalizations.of(context);
     final confirmed = await showFocusRestoringDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => AlertDialog.adaptive(
         title: Text(l10n.deleteAllDownloads),
         content: Text(l10n.deleteAllDownloadsWarning),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l10n.cancel)),
+          adaptiveDialogAction(onPressed: () => Navigator.pop(ctx, false), child: Text(l10n.cancel)),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: TextButton.styleFrom(

@@ -460,6 +460,60 @@ abstract class AppLocalizations {
   /// **'App Theme'**
   String get settingsAppearanceTheme;
 
+  /// Label for the media detail screen layout style setting
+  ///
+  /// In en, this message translates to:
+  /// **'Detail screen style'**
+  String get detailScreenStyle;
+
+  /// Explanation under the detail screen style setting
+  ///
+  /// In en, this message translates to:
+  /// **'Moonfin is the classic layout. Modern is a responsive cinematic layout.'**
+  String get detailScreenStyleSubtitle;
+
+  /// Detail screen style option: the classic centered layout
+  ///
+  /// In en, this message translates to:
+  /// **'Moonfin'**
+  String get detailScreenStyleMoonfin;
+
+  /// Detail screen style option: the responsive cinematic layout
+  ///
+  /// In en, this message translates to:
+  /// **'Modern'**
+  String get detailScreenStyleModern;
+
+  /// Label for the Automatic/Apple/Material interface style setting
+  ///
+  /// In en, this message translates to:
+  /// **'Interface style'**
+  String get interfaceStyle;
+
+  /// Explanation under the interface style setting
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic uses the native look on Apple devices. Choose Apple to force it, or Material for the standard look.'**
+  String get interfaceStyleSubtitle;
+
+  /// Interface style option: follow the platform
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic'**
+  String get interfaceStyleAutomatic;
+
+  /// Interface style option: Apple native look
+  ///
+  /// In en, this message translates to:
+  /// **'Apple'**
+  String get interfaceStyleApple;
+
+  /// Interface style option: Material look
+  ///
+  /// In en, this message translates to:
+  /// **'Material'**
+  String get interfaceStyleMaterial;
+
   /// Subtitle for the theme selection screen and theme settings entry
   ///
   /// In en, this message translates to:
@@ -1665,6 +1719,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Ends at {time}'**
   String endsAt(String time);
+
+  /// Tab label for the items in a collection/box set
+  ///
+  /// In en, this message translates to:
+  /// **'Items'**
+  String get items;
+
+  /// Tab label for special features / extras
+  ///
+  /// In en, this message translates to:
+  /// **'Extras'**
+  String get extras;
+
+  /// Label showing remaining playback time, e.g. '42m remaining'
+  ///
+  /// In en, this message translates to:
+  /// **'{time} remaining'**
+  String timeRemaining(String time);
 
   /// Label showing remaining time for segment or timeout
   ///
@@ -2914,6 +2986,30 @@ abstract class AppLocalizations {
   /// **'LIVE'**
   String get liveBadge;
 
+  /// Guide card line for the upcoming program, e.g. 'Next: 9:00 PM  The News'
+  ///
+  /// In en, this message translates to:
+  /// **'Next: {time}  {title}'**
+  String guideNextProgram(String time, String title);
+
+  /// Remaining time of the current program, under an hour
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes}m left'**
+  String guideMinutesLeft(int minutes);
+
+  /// Remaining time of the current program, whole hours
+  ///
+  /// In en, this message translates to:
+  /// **'{hours}h left'**
+  String guideHoursLeft(int hours);
+
+  /// Remaining time of the current program, hours and minutes
+  ///
+  /// In en, this message translates to:
+  /// **'{hours}h {minutes}m left'**
+  String guideHoursMinutesLeft(int hours, int minutes);
+
   /// Movie category chip label
   ///
   /// In en, this message translates to:
@@ -3928,6 +4024,42 @@ abstract class AppLocalizations {
   /// **'Default Audio Language'**
   String get defaultAudioLanguage;
 
+  /// Setting for fallback audio language
+  ///
+  /// In en, this message translates to:
+  /// **'Fallback Audio Language'**
+  String get fallbackAudioLanguage;
+
+  /// Setting for preferring default audio track
+  ///
+  /// In en, this message translates to:
+  /// **'Prefer Default Audio Track'**
+  String get preferDefaultAudioTrack;
+
+  /// Description for preferring default audio track setting
+  ///
+  /// In en, this message translates to:
+  /// **'Prefer original audio track over localized dub.'**
+  String get preferDefaultAudioTrackDescription;
+
+  /// Setting for preferring audio description tracks
+  ///
+  /// In en, this message translates to:
+  /// **'Prefer Audio Description Tracks'**
+  String get preferAudioDescription;
+
+  /// Description for preferring audio description tracks setting
+  ///
+  /// In en, this message translates to:
+  /// **'Prefer audio description tracks over normal tracks.'**
+  String get preferAudioDescriptionDescription;
+
+  /// Label for audio-only transcode playback method
+  ///
+  /// In en, this message translates to:
+  /// **'Transcoding (Audio)'**
+  String get transcodingAudio;
+
   /// Option: auto server default
   ///
   /// In en, this message translates to:
@@ -4678,6 +4810,78 @@ abstract class AppLocalizations {
   /// **'Customize subtitle appearance'**
   String get subtitleCustomizationDescription;
 
+  /// Setting for subtitle mode
+  ///
+  /// In en, this message translates to:
+  /// **'Subtitle Mode'**
+  String get subtitleMode;
+
+  /// Subtitle mode: default/flagged
+  ///
+  /// In en, this message translates to:
+  /// **'Flagged'**
+  String get subtitleModeFlagged;
+
+  /// Subtitle mode: always play
+  ///
+  /// In en, this message translates to:
+  /// **'Always'**
+  String get subtitleModeAlways;
+
+  /// Subtitle mode: foreign/smart
+  ///
+  /// In en, this message translates to:
+  /// **'Foreign'**
+  String get subtitleModeForeign;
+
+  /// Subtitle mode: only forced
+  ///
+  /// In en, this message translates to:
+  /// **'Forced'**
+  String get subtitleModeForced;
+
+  /// Description for flagged subtitle mode
+  ///
+  /// In en, this message translates to:
+  /// **'Plays tracks internally flagged in the media file\'s metadata as \"default\" or \"forced\".'**
+  String get subtitleModeFlaggedDescription;
+
+  /// Description for always subtitle mode
+  ///
+  /// In en, this message translates to:
+  /// **'Automatically loads and displays subtitles every time a video starts.'**
+  String get subtitleModeAlwaysDescription;
+
+  /// Description for foreign subtitle mode
+  ///
+  /// In en, this message translates to:
+  /// **'Automatically turns on subtitles if the default audio track is in a foreign language.'**
+  String get subtitleModeForeignDescription;
+
+  /// Description for forced subtitle mode
+  ///
+  /// In en, this message translates to:
+  /// **'Only loads subtitles explicitly tagged with the forced metadata flag.'**
+  String get subtitleModeForcedDescription;
+
+  /// Description for none subtitle mode
+  ///
+  /// In en, this message translates to:
+  /// **'Completely disables automatic subtitle loading.'**
+  String get subtitleModeNoneDescription;
+
+  /// Setting for fallback subtitle language
+  ///
+  /// In en, this message translates to:
+  /// **'Fallback Subtitle Language'**
+  String get fallbackSubtitleLanguage;
+
+  /// Header for subtitle stream settings
+  ///
+  /// In en, this message translates to:
+  /// **'Subtitle Stream'**
+  String get subtitleStream;
+
   /// Sample text shown in the subtitle live preview
   ///
   /// In en, this message translates to:
@@ -5182,6 +5386,30 @@ abstract class AppLocalizations {
   /// **'Show folder browsing option'**
   String get showFolderBrowsingOption;
 
+  /// Setting for grouping items into collections
+  ///
+  /// In en, this message translates to:
+  /// **'Group Items into Collections'**
+  String get groupItemsIntoCollections;
+
+  /// Description for grouping items into collections
+  ///
+  /// In en, this message translates to:
+  /// **'Hide Collection associated library items when browsing libraries'**
+  String get hideCollectionAssociatedItems;
+
+  /// Title of the alert dialog explaining server settings requirement
+  ///
+  /// In en, this message translates to:
+  /// **'Library Grouping Notice'**
+  String get groupItemsIntoCollectionsDialogTitle;
+
+  /// Message of the alert dialog explaining server settings requirement
+  ///
+  /// In en, this message translates to:
+  /// **'To use this setting, please ensure the \"Group movies into collections\" and/or \"Group shows into collections\" Library settings are enabled under your library\'s Display settings on your Jellyfin or Emby server.'**
+  String get groupItemsIntoCollectionsDialogMessage;
+
   /// Section title for library visibility
   ///
   /// In en, this message translates to:
@@ -5200,10 +5428,10 @@ abstract class AppLocalizations {
   /// **'Show in navigation'**
   String get showInNavigation;
 
-  /// Toggle for showing library in latest media
+  /// Toggle for showing library in recently added/released media
   ///
   /// In en, this message translates to:
-  /// **'Show in latest media'**
+  /// **'Show in recently added/released media'**
   String get showInLatestMedia;
 
   /// Setting for source libraries
@@ -5422,10 +5650,10 @@ abstract class AppLocalizations {
   /// **'Enable audio for trailer and episode previews'**
   String get enablePreviewAudio;
 
-  /// Home section: latest media
+  /// Home section: recently added media
   ///
   /// In en, this message translates to:
-  /// **'Latest Media'**
+  /// **'Recently Added Media'**
   String get latestMedia;
 
   /// Home section: recently released
@@ -6079,19 +6307,19 @@ abstract class AppLocalizations {
   /// Section title for discover rows
   ///
   /// In en, this message translates to:
-  /// **'Discover Rows'**
+  /// **'Seerr Discovery Page'**
   String get discoverRows;
 
   /// Description for discover rows with plugin
   ///
   /// In en, this message translates to:
-  /// **'Drag to reorder. Enable or disable rows. Enabled row order syncs with the Moonfin plugin.'**
+  /// **'Enable rows to see on Seerr mainpage. Drag to reorder. Custom order syncs with Moonbase.'**
   String get discoverRowsDescriptionPlugin;
 
   /// Description for discover rows without plugin
   ///
   /// In en, this message translates to:
-  /// **'Drag to reorder. Enable or disable rows.'**
+  /// **'Enable rows to see on Seerr mainpage. Drag to reorder. Custom order syncs with Moonbase.'**
   String get discoverRowsDescription;
 
   /// Status: enabled
@@ -6133,7 +6361,7 @@ abstract class AppLocalizations {
   /// Displayed source code repository URL
   ///
   /// In en, this message translates to:
-  /// **'https://github.com/Moonfin-Client/Mobile-Desktop'**
+  /// **'https://github.com/Moonfin-Client/Moonfin-Core'**
   String get sourceCodeUrl;
 
   /// Button to check for updates
@@ -6271,7 +6499,7 @@ abstract class AppLocalizations {
   /// Home sections settings subtitle
   ///
   /// In en, this message translates to:
-  /// **'Reorder and toggle home rows'**
+  /// **'Reorder and toggle both library and external-based home rows'**
   String get reorderToggleHomeRows;
 
   /// Media bar settings subtitle
@@ -11482,59 +11710,11 @@ abstract class AppLocalizations {
   /// **'Request transcode'**
   String get requestTranscode;
 
-  /// No description provided for @homeScreenSectionsIntegrationDescription.
-  ///
-  /// In en, this message translates to:
-  /// **'Detect rows exposed by IAmParadox27\'s \"Home Screen Sections\" plugin. Rows can be enabled and reordered below.'**
-  String get homeScreenSectionsIntegrationDescription;
-
-  /// No description provided for @homeScreenSectionsIntegrationNoServers.
-  ///
-  /// In en, this message translates to:
-  /// **'No Jellyfin servers reporting the plugin yet.'**
-  String get homeScreenSectionsIntegrationNoServers;
-
-  /// No description provided for @integrationOpenHomeSections.
-  ///
-  /// In en, this message translates to:
-  /// **'Open Home Sections'**
-  String get integrationOpenHomeSections;
-
-  /// No description provided for @integrationOpenHomeSectionsSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Enable, disable, and reorder rows'**
-  String get integrationOpenHomeSectionsSubtitle;
-
-  /// No description provided for @integrationInstalledButDisabled.
-  ///
-  /// In en, this message translates to:
-  /// **'Installed but disabled'**
-  String get integrationInstalledButDisabled;
-
-  /// No description provided for @integrationNotInstalled.
-  ///
-  /// In en, this message translates to:
-  /// **'Not installed'**
-  String get integrationNotInstalled;
-
-  /// Plural label for number of sections discovered in integration status
-  ///
-  /// In en, this message translates to:
-  /// **'{count, plural, one {# section} other {# sections}}'**
-  String integrationSectionsCount(int count);
-
   /// Plural label for number of rows discovered in integration status
   ///
   /// In en, this message translates to:
   /// **'{count, plural, one {# row discovered} other {# rows discovered}}'**
   String integrationRowsDiscoveredCount(int count);
-
-  /// No description provided for @jellyseerr.
-  ///
-  /// In en, this message translates to:
-  /// **'Jellyseerr'**
-  String get jellyseerr;
 
   /// No description provided for @seeAll.
   ///
@@ -13078,11 +13258,17 @@ abstract class AppLocalizations {
   /// **'{libraryName} ({serverName})'**
   String libraryNameWithServer(String libraryName, String serverName);
 
-  /// Row title for latest media in a specific library
+  /// Row title for recently added media in a specific library
   ///
   /// In en, this message translates to:
-  /// **'Latest {libraryName}'**
+  /// **'Recently Added {libraryName}'**
   String latestLibraryName(String libraryName);
+
+  /// Row title for recently released media in a specific library
+  ///
+  /// In en, this message translates to:
+  /// **'Recently Released {libraryName}'**
+  String recentlyReleasedLibraryName(String libraryName);
 
   /// Setting title: automatically start the next episode
   ///
@@ -13324,12 +13510,6 @@ abstract class AppLocalizations {
   /// **'Manage downloaded plugin themes on this device'**
   String get savedThemesManageSubtitle;
 
-  /// No description provided for @homeScreenSectionsTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Home Screen Sections'**
-  String get homeScreenSectionsTitle;
-
   /// No description provided for @themeEditor.
   ///
   /// In en, this message translates to:
@@ -13393,7 +13573,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeRowTogglesSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Enable or disable different home row categories'**
+  /// **'Enable or disable library-based home row categories'**
   String get homeRowTogglesSubtitle;
 
   /// No description provided for @homeRowTogglesDescription.
@@ -13551,18 +13731,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Audio Playlists'**
   String get audioPlaylists;
-
-  /// No description provided for @displaySeerrRows.
-  ///
-  /// In en, this message translates to:
-  /// **'Display Seerr Discovery Rows'**
-  String get displaySeerrRows;
-
-  /// No description provided for @displaySeerrRowsSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Show Seerr discovery rows in Home Sections.'**
-  String get displaySeerrRowsSubtitle;
 
   /// No description provided for @appearance.
   ///
@@ -14055,6 +14223,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Appearances (Seerr)'**
   String get appearancesSeerr;
+
+  /// No description provided for @crewContributionsSeerr.
+  ///
+  /// In en, this message translates to:
+  /// **'Crew Contributions (Seerr)'**
+  String get crewContributionsSeerr;
 
   /// No description provided for @watchWithGroup.
   ///
@@ -14769,6 +14943,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sources'**
   String get sources;
+
+  /// Title for the subtitle preferences settings section
+  ///
+  /// In en, this message translates to:
+  /// **'Subtitle Preferences'**
+  String get subtitlePreferences;
+
+  /// Description for the subtitle preferences settings section
+  ///
+  /// In en, this message translates to:
+  /// **'Change subtitle modes, default languages, appearance, and rendering options.'**
+  String get subtitlePreferencesDescription;
+
+  /// Header for subtitle rendering settings
+  ///
+  /// In en, this message translates to:
+  /// **'Subtitle Rendering'**
+  String get subtitleRendering;
+
+  /// Title for details display options dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Display Options'**
+  String get displayOptions;
+
+  /// Sort option for crew/cast contributions in ascending release date order
+  ///
+  /// In en, this message translates to:
+  /// **'Release Date (Ascending)'**
+  String get releaseDateAscending;
+
+  /// Sort option for crew/cast contributions in descending release date order
+  ///
+  /// In en, this message translates to:
+  /// **'Release Date (Descending)'**
+  String get releaseDateDescending;
+
+  /// Section header for grouping person contributions
+  ///
+  /// In en, this message translates to:
+  /// **'Group Contributions'**
+  String get groupContributions;
+
+  /// Option to group multiple roles for a person
+  ///
+  /// In en, this message translates to:
+  /// **'Group multiple roles'**
+  String get groupMultipleRoles;
+
+  /// Title for library write access warning dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Library Write Access Warning'**
+  String get libraryWriteAccessWarningTitle;
+
+  /// Section header for write access troubleshooting
+  ///
+  /// In en, this message translates to:
+  /// **'How to fix this:'**
+  String get libraryWriteAccessHowToFix;
+
+  /// Troubleshooting steps for write access issues
+  ///
+  /// In en, this message translates to:
+  /// **'1. Grant write permissions to the Jellyfin service user (e.g., jellyfin or Docker PUID/PGID) for your media library folders on the server.\n\n2. Or, go to your Jellyfin Dashboard -> Libraries, edit this library, and disable \'Save artwork into media folders\' to store artwork in Jellyfin\'s internal database.'**
+  String get libraryWriteAccessFixSteps;
+
+  /// Dismiss button text
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss'**
+  String get dismiss;
+
+  /// Proactive warning message about server write access
+  ///
+  /// In en, this message translates to:
+  /// **'Your \'{libraryName}\' library is configured to save artwork directly into the media folders (\'Save artwork into media folders\' is enabled). However, Jellyfin has tested write access and does not have permission to write files into this directory:\n\n{failedPath}'**
+  String libraryWriteAccessProactiveBody(String libraryName, String failedPath);
+
+  /// Reactive error warning message when artwork update fails
+  ///
+  /// In en, this message translates to:
+  /// **'It looks like Jellyfin failed to update the artwork. Your library is configured to save artwork directly into the media folders (\'Save artwork into media folders\' is enabled). This error typically occurs when the Jellyfin server process does not have permission to write files into your media directories.'**
+  String get libraryWriteAccessReactiveBody;
+
+  /// No description provided for @externalLists.
+  ///
+  /// In en, this message translates to:
+  /// **'External Home Row Lists'**
+  String get externalLists;
 }
 
 class _AppLocalizationsDelegate

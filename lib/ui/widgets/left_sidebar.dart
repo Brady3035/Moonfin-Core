@@ -37,6 +37,7 @@ import 'package:playback_core/playback_core.dart';
 import '../../data/models/aggregated_item.dart';
 import '../../data/services/media_server_client_factory.dart';
 import '../navigation/app_router.dart';
+import 'adaptive/sf_symbol.dart';
 
 const _kExpandedWidthDesktop = 240.0;
 const _kExpandedWidthMobile = 260.0;
@@ -764,7 +765,7 @@ class _LeftSidebarState extends State<LeftSidebar> {
     final seerrDisplayName = seerrPrefs.moonfinDisplayName.trim();
     final seerrNavLabel = seerrDisplayName.isNotEmpty
       ? seerrDisplayName
-      : (seerrPrefs.isSeerrVariant ? l10n.seerr : l10n.jellyseerr);
+      : (seerrPrefs.isSeerrVariant ? l10n.seerr : l10n.seerr);
     final clockBehavior = _prefs.get(UserPreferences.clockBehavior);
     final showClock =
         clockBehavior == ClockBehavior.always ||
@@ -923,7 +924,7 @@ class _LeftSidebarState extends State<LeftSidebar> {
                     baseColor: nextMainSidebarColor(),
                     iconBuilder: (size, color) => seerrPrefs.isSeerrVariant
                         ? SeerrIcon(size: size, color: color)
-                        : JellyseerrIcon(size: size, color: color),
+                        : SeerrIcon(size: size, color: color),
                     label: seerrNavLabel,
                     showLabel: _showLabels,
                     onPressed: () {
@@ -987,6 +988,15 @@ class _LeftSidebarState extends State<LeftSidebar> {
                                       if (lib.collectionType == 'music') {
                                         context.navigateTopLevel(
                                           '/music/${lib.id}',
+                                        );
+                                      } else if (lib.collectionType ==
+                                              'books' ||
+                                          lib.collectionType == 'audiobooks') {
+                                        context.navigateTopLevel(
+                                          Destinations.bookLibrary(
+                                            lib.id,
+                                            collectionType: lib.collectionType,
+                                          ),
                                         );
                                       } else if (lib.collectionType ==
                                           'livetv') {
@@ -1337,7 +1347,13 @@ class _SidebarItemState extends State<_SidebarItem> {
                     width: iconSlotWidth,
                     child:
                         widget.iconBuilder?.call(iconSize, fgColor) ??
-                        Icon(widget.icon, size: iconSize, color: fgColor),
+                        (widget.icon != null
+                            ? AdaptiveIcon(
+                                widget.icon!,
+                                size: iconSize,
+                                color: fgColor,
+                              )
+                            : const SizedBox.shrink()),
                   ),
                   if (widget.showLabel) ...[
                     const SizedBox(width: 12),

@@ -1,11 +1,15 @@
+import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 import 'package:jellyfin_preference/jellyfin_preference.dart';
 import 'package:server_core/server_core.dart' hide ImageType;
 
 import '../playback/audio_capability_profile.dart';
+import '../util/idiom/app_ui_idiom.dart';
+import '../util/language_matching.dart';
 import '../util/platform_detection.dart';
 import 'home_section_config.dart';
 import 'preference_constants.dart';
+import 'seerr_row_config.dart';
 
 class UserPreferences extends ChangeNotifier {
   static const _lastServerIdPreferenceKey = 'pref_last_server_id';
@@ -31,31 +35,67 @@ class UserPreferences extends ChangeNotifier {
   UserPreferences(this._store) {
     _migrateOverlayPreferences();
     _migrateDefaultAudioLanguagePreference();
+    _migrateSeerrPreferenceKeys();
+    _migrateSeerrRowsVisibility();
     _enforceMediaQueuingAlwaysOn();
+    _seedClockFormatFromSystem();
+  }
+
+  // Carry over the pre-rename jellyseerr* preference keys to their seerr* names.
+  void _migrateSeerrPreferenceKeys() {
+    const legacyBlockNsfw = 'jellyseerrBlockNsfw';
+    if (_store.containsKey(legacyBlockNsfw)) {
+      final value = _store.get(Preference(key: legacyBlockNsfw, defaultValue: false));
+      _setIfMissing(seerrBlockNsfw, value);
+    }
+  }
+
+  // The global "Display Seerr Discovery Rows" toggle (default off) was removed.
+  // Seerr rows now show whenever any Seerr row category is enabled. Preserve the
+  // opt-out for anyone who had that toggle off by disabling their stored Seerr row
+  // configs, so the rows don't suddenly appear after upgrading. Gating on the
+  // legacy key's presence makes this run once and skips users who never had it.
+  void _migrateSeerrRowsVisibility() {
+    const legacyKey = 'pref_display_seerr_rows';
+    if (!_store.containsKey(legacyKey)) return;
+
+    final wasVisible = _store.getBool(legacyKey) ?? false;
+    if (!wasVisible) {
+      for (final key in _store.keys.toList()) {
+        if (!key.startsWith('seerr_rows_config_')) continue;
+        final disabled =
+            SeerrRowConfig.fromJsonString(_store.getString(key) ?? '')
+                .map((c) => c.copyWith(enabled: false))
+                .toList();
+        _store.setString(key, SeerrRowConfig.toJsonString(disabled));
+      }
+    }
+
+    _store.remove(legacyKey);
   }
 
   void _migrateOverlayPreferences() {
-    if (!_store.containsKey(navbarOpacity.key)) {
-      _store.set(navbarOpacity, _store.get(mediaBarOverlayOpacity));
-    }
-    if (!_store.containsKey(navbarColor.key)) {
-      _store.set(navbarColor, _store.get(mediaBarOverlayColor));
-    }
+    _setIfMissing(navbarOpacity, get(mediaBarOverlayOpacity));
+    _setIfMissing(navbarColor, get(mediaBarOverlayColor));
   }
 
   void _migrateDefaultAudioLanguagePreference() {
-    if (!_store.containsKey(defaultAudioLanguage.key)) {
-      return;
-    }
-    final current = _store.get(defaultAudioLanguage).trim();
-    if (current.isEmpty) {
-      _store.set(defaultAudioLanguage, 'auto');
-    }
+    final current = get(defaultAudioLanguage).trim();
+    _setIfMissing(defaultAudioLanguage, current.isNotEmpty ? current : 'auto');
   }
 
   void _enforceMediaQueuingAlwaysOn() {
-    if (_store.get(mediaQueuingEnabled) != true) {
-      _store.set(mediaQueuingEnabled, true);
+    if (get(mediaQueuingEnabled) != true) {
+      _setIfMissing(mediaQueuingEnabled, true);
+    }
+  }
+
+  // On first run, default the 12h/24h clock to the device's locale so users in
+  // 24h regions aren't stuck on 12h. Runs once; an explicit choice is kept.
+  void _seedClockFormatFromSystem() {
+    if (_store.containsKey(use24HourClock.key)) return;
+    if (ui.PlatformDispatcher.instance.alwaysUse24HourFormat) {
+      _store.set(use24HourClock, true);
     }
   }
 
@@ -67,21 +107,35 @@ class UserPreferences extends ChangeNotifier {
   ///   explicitly stored), replace it with the server's AudioLanguagePreference.
   /// - Subtitles: if the local pref has never been explicitly stored (empty
   ///   default), replace it with the server's SubtitleLanguagePreference.
-  ///
+  /// - SubtitleMode: if the local pref has never been explicitly stored (empty
+  ///   default), convert it to the closest Moonfin subtitle mode.
   void initLanguagePrefs(UserConfiguration config) {
+    final sysIso3 = toIso3Language(normalizeLanguage(ui.PlatformDispatcher.instance.locale.languageCode));
+
     // defaultAudioLanguage
-    if (!_store.containsKey(defaultAudioLanguage.key)) {
-      final serverAudio = config.audioLanguagePreference;
-      if (serverAudio != null && serverAudio.isNotEmpty) {
-        _store.set(defaultAudioLanguage, serverAudio.toLowerCase());
-      }
-    }
+    final serverAudio = config.audioLanguagePreference;
+    final audioToSet = (serverAudio != null && serverAudio.isNotEmpty)
+      ? serverAudio.toLowerCase()
+      : sysIso3; // fallback to system language
+    _setIfMissing(defaultAudioLanguage, audioToSet);
+
     // defaultSubtitleLanguage
-    if (!_store.containsKey(defaultSubtitleLanguage.key)) {
-      final serverSub = config.subtitleLanguagePreference;
-      if (serverSub != null && serverSub.isNotEmpty) {
-        _store.set(defaultSubtitleLanguage, serverSub.toLowerCase());
-      }
+    final serverSubtitle = config.subtitleLanguagePreference;
+    final subToSet = (serverSubtitle != null && serverSubtitle.isNotEmpty)
+      ? serverSubtitle.toLowerCase()
+      : sysIso3; // fallback to system language
+    _setIfMissing(defaultSubtitleLanguage, subToSet);
+
+    // subtitleMode
+    if (!containsPreference(subtitleMode, scopedOnly: true)) {
+      final mode = switch (config.subtitleMode) {
+        'smart' => SubtitleMode.foreign,
+        'onlyforced' => SubtitleMode.forced,
+        'always' => SubtitleMode.always,
+        'none' => SubtitleMode.none,
+        _ => SubtitleMode.flagged, // jellyfin 'default'/catch all case
+      };
+      _setIfMissing(subtitleMode, mode);
     }
   }
 
@@ -96,6 +150,7 @@ class UserPreferences extends ChangeNotifier {
   }
 
   static final Set<String> _scopedPreferenceKeys = {
+    'pref_enable_tv_queuing',
     'pref_enable_cinema_mode',
     'pref_resume_preroll',
     'media_segment_actions',
@@ -118,7 +173,12 @@ class UserPreferences extends ChangeNotifier {
     'pref_clock_behavior',
     'pref_prefer_system_ime_keyboard',
     'pref_audio_language',
+    'pref_fallback_audio_language',
+    'pref_prefer_default_audio_track',
+    'pref_prefer_audio_description',
     'pref_subtitle_language',
+    'pref_fallback_subtitle_language',
+    'pref_subtitle_mode',
     'subtitles_background_color',
     'subtitles_text_weight',
     'subtitles_text_color',
@@ -187,7 +247,7 @@ class UserPreferences extends ChangeNotifier {
     'enableEpisodeRatings',
     'tmdbApiKey',
     'seerrEnabled',
-    'jellyseerrBlockNsfw',
+    'seerrBlockNsfw',
     'enabledRatings',
     'home_sections_config',
     'pref_audio_display_latest',
@@ -198,6 +258,32 @@ class UserPreferences extends ChangeNotifier {
     'pref_audio_display_artists',
     'pref_audio_display_albums',
     'pref_audio_sort_option',
+    'pref_person_page_sort_option',
+    'pref_person_page_group_items',
+    'tmdb_popular_movies_enabled',
+    'tmdb_top_rated_movies_enabled',
+    'tmdb_now_playing_movies_enabled',
+    'tmdb_upcoming_movies_enabled',
+    'tmdb_popular_tv_enabled',
+    'tmdb_top_rated_tv_enabled',
+    'tmdb_airing_today_tv_enabled',
+    'tmdb_on_the_air_tv_enabled',
+    'tmdb_trending_movie_daily_enabled',
+    'tmdb_trending_movie_weekly_enabled',
+    'tmdb_trending_tv_daily_enabled',
+    'tmdb_trending_tv_weekly_enabled',
+    'tmdb_trending_all_weekly_enabled',
+    'enable_radarr_calendar',
+    'enable_sonarr_calendar',
+    'radarr_calendar_show_cinema',
+    'radarr_calendar_show_digital',
+    'radarr_calendar_show_physical',
+    'radarr_calendar_show_date',
+    'sonarr_calendar_show_date',
+    'sonarr_calendar_show_episode_info',
+    'last_radarr_calendar_fetch_time',
+    'last_sonarr_calendar_fetch_time',
+    'merge_radarr_sonarr_calendars',
   };
 
   bool _isScopedPreference<T>(Preference<T> pref) {
@@ -236,6 +322,18 @@ class UserPreferences extends ChangeNotifier {
   }
 
   Future<void> set<T>(Preference<T> pref, T value) async {
+    if (pref.key == subtitleMode.key) {
+      final prevMode = get(subtitleMode);
+      final newMode = value as SubtitleMode;
+      if (newMode == SubtitleMode.none) {
+        await set(defaultSubtitleLanguage, '');
+      } else if (prevMode == SubtitleMode.none && !containsPreference(defaultSubtitleLanguage, scopedOnly: true)) {
+        final sysLang = ui.PlatformDispatcher.instance.locale.languageCode;
+        final iso3 = toIso3Language(normalizeLanguage(sysLang));
+        await set(defaultSubtitleLanguage, iso3);
+      }
+    }
+
     if (_isScopedPreference(pref)) {
       final scoped = _scopedPreference(pref);
       if (scoped != null) {
@@ -249,6 +347,14 @@ class UserPreferences extends ChangeNotifier {
 
     await _store.set(pref, value);
     notifyListeners();
+  }
+
+  /// set pref if it doesn't exist, scoped to the active profile
+  void _setIfMissing<T>(Preference<T> pref, T value) {
+    final scoped = _scopedPreference(pref);
+    if (scoped != null && !_store.containsKey(scoped.key)) {
+      _store.set(scoped, value);
+    }
   }
 
   /// Clears any stored value for [pref] so subsequent reads fall back to the
@@ -269,12 +375,17 @@ class UserPreferences extends ChangeNotifier {
 
   bool containsPreferenceKey(String key) => _store.containsKey(key);
 
-  bool containsPreference<T>(Preference<T> pref) {
+  bool containsPreference<T>(Preference<T> pref, {bool scopedOnly = false}) {
     if (_isScopedPreference(pref)) {
       final scoped = _scopedPreference(pref);
-      return (scoped != null && _store.containsKey(scoped.key)) ||
-          _store.containsKey(pref.key);
+      if (scoped == null) return false;
+      final hasScoped = _store.containsKey(scoped.key);
+      if (scopedOnly) {
+        return hasScoped;
+      }
+      return hasScoped || _store.containsKey(pref.key);
     }
+    if (scopedOnly) return false;
 
     return _store.containsKey(pref.key);
   }
@@ -286,14 +397,14 @@ class UserPreferences extends ChangeNotifier {
   int resolveMaxAudioChannels() => get(maxAudioChannels);
 
   PosterSize resolveLibraryPosterSize() {
-    if (containsPreference(libraryPosterSize)) {
+    if (containsPreference(libraryPosterSize, scopedOnly: true)) {
       return get(libraryPosterSize);
     }
     return get(posterSize);
   }
 
   PosterSize resolvePlaylistPosterSize() {
-    if (containsPreference(playlistPosterSize)) {
+    if (containsPreference(playlistPosterSize, scopedOnly: true)) {
       return get(playlistPosterSize);
     }
     return get(posterSize);
@@ -306,8 +417,11 @@ class UserPreferences extends ChangeNotifier {
       PlatformDetection.hasAudioCapabilities
       ? AudioCapabilityProfile.fromMap(
           PlatformDetection.audioCapabilitiesSnapshot,
+          audioOutputMode: resolveAudioOutputMode(),
         )
-      : const AudioCapabilityProfile.optimistic();
+      : PlatformDetection.isIOS
+          ? const AudioCapabilityProfile.appleMobile()
+          : const AudioCapabilityProfile.optimistic();
 
   // Tri-state passthrough resolution: an explicitly-set toggle wins (On or
   // Off); when unset, the resolved value follows the detected hardware
@@ -577,11 +691,90 @@ class UserPreferences extends ChangeNotifier {
     defaultValue: false,
   );
 
-  static final displaySeerrRows = Preference(
-    key: 'pref_display_seerr_rows',
+  static final displaySinceYouWatchedRows = Preference(
+    key: 'pref_display_since_you_watched_rows',
     defaultValue: false,
   );
 
+  static final sinceYouWatched1Enabled = Preference(
+    key: 'since_you_watched_1_enabled',
+    defaultValue: false,
+  );
+
+  static final sinceYouWatched2Enabled = Preference(
+    key: 'since_you_watched_2_enabled',
+    defaultValue: false,
+  );
+
+  static final sinceYouWatched3Enabled = Preference(
+    key: 'since_you_watched_3_enabled',
+    defaultValue: false,
+  );
+
+  static final sinceYouWatched4Enabled = Preference(
+    key: 'since_you_watched_4_enabled',
+    defaultValue: false,
+  );
+
+  static final sinceYouWatched5Enabled = Preference(
+    key: 'since_you_watched_5_enabled',
+    defaultValue: false,
+  );
+
+  static final sinceYouWatchedSource = EnumPreference(
+    key: 'pref_since_you_watched_source',
+    defaultValue: SinceYouWatchedSource.local,
+    values: SinceYouWatchedSource.values,
+  );
+
+  static final sinceYouWatchedSourceType = EnumPreference(
+    key: 'pref_since_you_watched_source_type',
+    defaultValue: SinceYouWatchedSourceType.movies,
+    values: SinceYouWatchedSourceType.values,
+  );
+
+  static final sinceYouWatchedSourceItem = EnumPreference(
+    key: 'pref_since_you_watched_source_item',
+    defaultValue: SinceYouWatchedSourceItem.recentlyWatched,
+    values: SinceYouWatchedSourceItem.values,
+  );
+
+  static final sinceYouWatchedNumRows = EnumPreference(
+    key: 'pref_since_you_watched_num_rows',
+    defaultValue: SinceYouWatchedNumRows.one,
+    values: SinceYouWatchedNumRows.values,
+  );
+
+  static final sinceYouWatchedIncludeWatched = Preference(
+    key: 'pref_since_you_watched_include_watched',
+    defaultValue: false,
+  );
+
+  static final displayRewatchRow = Preference(
+    key: 'pref_display_rewatch_row',
+    defaultValue: false,
+  );
+
+  static final rewatchSortBy = EnumPreference(
+    key: 'pref_rewatch_sort_by',
+    defaultValue: RewatchSortBy.recentlyWatched,
+    values: RewatchSortBy.values,
+  );
+
+  static final rewatchIncludeMovies = Preference(
+    key: 'pref_rewatch_include_movies',
+    defaultValue: true,
+  );
+
+  static final rewatchIncludeShows = Preference(
+    key: 'pref_rewatch_include_shows',
+    defaultValue: true,
+  );
+
+  static final rewatchIncludeCollections = Preference(
+    key: 'pref_rewatch_include_collections',
+    defaultValue: true,
+  );
   static final favoritesRowSortBy = EnumPreference(
     key: 'pref_favorites_row_sort_by',
     defaultValue: LibrarySortBy.name,
@@ -642,8 +835,31 @@ class UserPreferences extends ChangeNotifier {
 
   static final visualTheme = EnumPreference(
     key: 'app_theme_id',
-    defaultValue: VisualThemeId.moonfin,
+    defaultValue: PlatformDetection.isApple || PlatformDetection.isAppleTV
+        ? VisualThemeId.glass
+        : VisualThemeId.moonfin,
     values: VisualThemeId.values,
+  );
+
+  static final interfaceStyle = EnumPreference(
+    key: 'pref_interface_style',
+    defaultValue: InterfaceStyle.automatic,
+    values: InterfaceStyle.values,
+  );
+
+  /// Structural style for the media detail screen. Global (not scoped per
+  /// server/user), so it is deliberately omitted from [_scopedPreferenceKeys].
+  static final detailScreenStyle = EnumPreference(
+    key: 'pref_detail_screen_style',
+    defaultValue: DetailScreenStyle.moonfin,
+    values: DetailScreenStyle.values,
+  );
+
+  /// Default mobile view for the Live TV guide (Now/Next list vs compact grid).
+  static final epgMobileView = EnumPreference(
+    key: 'pref_epg_mobile_view',
+    defaultValue: EpgMobileView.list,
+    values: EpgMobileView.values,
   );
 
   /// Optional id of a plugin-supplied custom theme. When non-empty and the id
@@ -726,6 +942,11 @@ class UserPreferences extends ChangeNotifier {
 
   static final enableFolderView = Preference(
     key: 'enable_folder_view',
+    defaultValue: false,
+  );
+
+  static final groupItemsIntoCollections = Preference(
+    key: 'pref_group_items_into_collections',
     defaultValue: false,
   );
 
@@ -1053,6 +1274,18 @@ class UserPreferences extends ChangeNotifier {
     key: 'pref_audio_language',
     defaultValue: 'auto',
   );
+  static final fallbackAudioLanguage = Preference<String>(
+    key: 'pref_fallback_audio_language',
+    defaultValue: '',
+  );
+  static final preferDefaultAudioTrack = Preference<bool>(
+    key: 'pref_prefer_default_audio_track',
+    defaultValue: false,
+  );
+  static final preferAudioDescription = Preference<bool>(
+    key: 'pref_prefer_audio_description',
+    defaultValue: false,
+  );
   static final defaultSubtitleLanguage = Preference(
     key: 'pref_subtitle_language',
     defaultValue: '',
@@ -1088,9 +1321,15 @@ class UserPreferences extends ChangeNotifier {
     defaultValue: 0.04,
   );
 
-  static final subtitlesDefaultToNone = Preference(
-    key: 'subtitles_default_to_none',
-    defaultValue: false,
+  static final subtitleMode = EnumPreference(
+    key: 'pref_subtitle_mode',
+    defaultValue: SubtitleMode.flagged,
+    values: SubtitleMode.values,
+  );
+
+  static final fallbackSubtitleLanguage = Preference(
+    key: 'pref_fallback_subtitle_language',
+    defaultValue: '',
   );
 
   /// Whether embedded subtitle styles (colours, positioning, fonts) should be
@@ -1318,6 +1557,130 @@ class UserPreferences extends ChangeNotifier {
     defaultValue: '',
   );
 
+  static final lastExternalRowsRefreshTime = Preference(
+    key: 'last_external_rows_refresh_time',
+    defaultValue: 0,
+  );
+  static final tmdbPopularMoviesEnabled = Preference(
+    key: 'tmdb_popular_movies_enabled',
+    defaultValue: false,
+  );
+
+  static final tmdbTopRatedMoviesEnabled = Preference(
+    key: 'tmdb_top_rated_movies_enabled',
+    defaultValue: false,
+  );
+
+  static final tmdbNowPlayingMoviesEnabled = Preference(
+    key: 'tmdb_now_playing_movies_enabled',
+    defaultValue: false,
+  );
+
+  static final tmdbUpcomingMoviesEnabled = Preference(
+    key: 'tmdb_upcoming_movies_enabled',
+    defaultValue: false,
+  );
+
+  static final tmdbPopularTvEnabled = Preference(
+    key: 'tmdb_popular_tv_enabled',
+    defaultValue: false,
+  );
+
+  static final tmdbTopRatedTvEnabled = Preference(
+    key: 'tmdb_top_rated_tv_enabled',
+    defaultValue: false,
+  );
+
+  static final tmdbAiringTodayTvEnabled = Preference(
+    key: 'tmdb_airing_today_tv_enabled',
+    defaultValue: false,
+  );
+
+  static final tmdbOnTheAirTvEnabled = Preference(
+    key: 'tmdb_on_the_air_tv_enabled',
+    defaultValue: false,
+  );
+
+  static final tmdbTrendingMovieDailyEnabled = Preference(
+    key: 'tmdb_trending_movie_daily_enabled',
+    defaultValue: false,
+  );
+
+  static final tmdbTrendingMovieWeeklyEnabled = Preference(
+    key: 'tmdb_trending_movie_weekly_enabled',
+    defaultValue: false,
+  );
+
+  static final tmdbTrendingTvDailyEnabled = Preference(
+    key: 'tmdb_trending_tv_daily_enabled',
+    defaultValue: false,
+  );
+
+  static final tmdbTrendingTvWeeklyEnabled = Preference(
+    key: 'tmdb_trending_tv_weekly_enabled',
+    defaultValue: false,
+  );
+
+  static final tmdbTrendingAllWeeklyEnabled = Preference(
+    key: 'tmdb_trending_all_weekly_enabled',
+    defaultValue: false,
+  );
+
+  static final enableRadarrCalendar = Preference(
+    key: 'enable_radarr_calendar',
+    defaultValue: false,
+  );
+
+  static final enableSonarrCalendar = Preference(
+    key: 'enable_sonarr_calendar',
+    defaultValue: false,
+  );
+
+  static final radarrCalendarShowCinema = Preference(
+    key: 'radarr_calendar_show_cinema',
+    defaultValue: true,
+  );
+
+  static final radarrCalendarShowDigital = Preference(
+    key: 'radarr_calendar_show_digital',
+    defaultValue: true,
+  );
+
+  static final radarrCalendarShowPhysical = Preference(
+    key: 'radarr_calendar_show_physical',
+    defaultValue: true,
+  );
+
+  static final radarrCalendarShowDate = Preference(
+    key: 'radarr_calendar_show_date',
+    defaultValue: true,
+  );
+
+  static final sonarrCalendarShowDate = Preference(
+    key: 'sonarr_calendar_show_date',
+    defaultValue: true,
+  );
+
+  static final sonarrCalendarShowEpisodeInfo = Preference(
+    key: 'sonarr_calendar_show_episode_info',
+    defaultValue: true,
+  );
+
+  static final lastRadarrCalendarFetchTime = Preference(
+    key: 'last_radarr_calendar_fetch_time',
+    defaultValue: 0,
+  );
+
+  static final lastSonarrCalendarFetchTime = Preference(
+    key: 'last_sonarr_calendar_fetch_time',
+    defaultValue: 0,
+  );
+
+  static final mergeRadarrSonarrCalendars = Preference(
+    key: 'merge_radarr_sonarr_calendars',
+    defaultValue: false,
+  );
+
   List<HomeSectionConfig> get homeSectionsConfig {
     final json = get(homeSectionsJson);
     return HomeSectionConfig.fromJsonString(json);
@@ -1353,6 +1716,13 @@ class UserPreferences extends ChangeNotifier {
   static final themeMusicVolume = Preference(
     key: 'themeMusicVolume',
     defaultValue: 30,
+  );
+
+  // Desktop player volume (0-100), independent of the OS volume. Persisted so
+  // playback resumes at the last level instead of jumping to max.
+  static final playerVolume = Preference(
+    key: 'player_volume',
+    defaultValue: 100.0,
   );
 
   static final themeMusicOnHomeRows = Preference(
@@ -1532,8 +1902,8 @@ class UserPreferences extends ChangeNotifier {
     defaultValue: false,
   );
 
-  static final jellyseerrBlockNsfw = Preference(
-    key: 'jellyseerrBlockNsfw',
+  static final seerrBlockNsfw = Preference(
+    key: 'seerrBlockNsfw',
     defaultValue: false,
   );
 
@@ -1559,6 +1929,13 @@ class UserPreferences extends ChangeNotifier {
 
   static final customDownloadPath = Preference(
     key: 'download_custom_path',
+    defaultValue: '',
+  );
+
+  // macOS only: base64 security-scoped bookmark for the custom download folder,
+  // so the sandboxed app can regain write access to it across launches.
+  static final customDownloadPathBookmark = Preference(
+    key: 'download_custom_path_bookmark',
     defaultValue: '',
   );
 
@@ -1617,4 +1994,73 @@ class UserPreferences extends ChangeNotifier {
     key: 'pref_audio_sort_option',
     defaultValue: 'name',
   );
+
+  static final personPageSortOption = Preference<String>(
+    key: 'pref_person_page_sort_option',
+    defaultValue: 'alphabetical',
+  );
+
+  static final personPageGroupItems = Preference<bool>(
+    key: 'pref_person_page_group_items',
+    defaultValue: false,
+  );
+
+  String getSeriesSubtitleLanguage(String seriesId) {
+    final pref = Preference(
+      key: 'pref_series_subtitle_lang_$seriesId',
+      defaultValue: '',
+    );
+    return _store.get(pref);
+  }
+
+  Future<void> setSeriesSubtitleLanguage(String seriesId, String language) async {
+    final pref = Preference(
+      key: 'pref_series_subtitle_lang_$seriesId',
+      defaultValue: '',
+    );
+    await _store.set(pref, language);
+    notifyListeners();
+  }
+
+  int getItemSubtitleStreamIndex(String itemId) {
+    final pref = Preference<int>(
+      key: 'pref_item_subtitle_index_$itemId',
+      defaultValue: -2,
+    );
+    return _store.get(pref);
+  }
+
+  Future<void> setItemSubtitleStreamIndex(String itemId, int? index) async {
+    final pref = Preference<int>(
+      key: 'pref_item_subtitle_index_$itemId',
+      defaultValue: -2,
+    );
+    if (index == null) {
+      await _store.delete(pref);
+    } else {
+      await _store.set(pref, index);
+    }
+    notifyListeners();
+  }
+
+  int getItemAudioStreamIndex(String itemId) {
+    final pref = Preference<int>(
+      key: 'pref_item_audio_index_$itemId',
+      defaultValue: -2,
+    );
+    return _store.get(pref);
+  }
+
+  Future<void> setItemAudioStreamIndex(String itemId, int? index) async {
+    final pref = Preference<int>(
+      key: 'pref_item_audio_index_$itemId',
+      defaultValue: -2,
+    );
+    if (index == null) {
+      await _store.delete(pref);
+    } else {
+      await _store.set(pref, index);
+    }
+    notifyListeners();
+  }
 }

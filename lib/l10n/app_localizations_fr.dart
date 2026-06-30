@@ -141,6 +141,35 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settingsAppearanceTheme => 'Thème de l\'application';
 
   @override
+  String get detailScreenStyle => 'Detail screen style';
+
+  @override
+  String get detailScreenStyleSubtitle =>
+      'Moonfin is the classic layout. Modern is a responsive cinematic layout.';
+
+  @override
+  String get detailScreenStyleMoonfin => 'Moonfin';
+
+  @override
+  String get detailScreenStyleModern => 'Modern';
+
+  @override
+  String get interfaceStyle => 'Style d\'interface';
+
+  @override
+  String get interfaceStyleSubtitle =>
+      'Automatique utilise l\'apparence native sur les appareils Apple. Choisissez Apple pour la forcer, ou Material pour l\'apparence standard.';
+
+  @override
+  String get interfaceStyleAutomatic => 'Automatique';
+
+  @override
+  String get interfaceStyleApple => 'Apple';
+
+  @override
+  String get interfaceStyleMaterial => 'Material';
+
+  @override
   String get settingsAppearanceThemeSubtitle =>
       'Basculez entre Moonfin et Neon Pulse sans redémarrer l\'application';
 
@@ -838,6 +867,17 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String endsAt(String time) {
     return 'Se termine à $time';
+  }
+
+  @override
+  String get items => 'Items';
+
+  @override
+  String get extras => 'Extras';
+
+  @override
+  String timeRemaining(String time) {
+    return '$time remaining';
   }
 
   @override
@@ -1610,6 +1650,26 @@ class AppLocalizationsFr extends AppLocalizations {
   String get liveBadge => 'EN DIRECT';
 
   @override
+  String guideNextProgram(String time, String title) {
+    return 'Next: $time  $title';
+  }
+
+  @override
+  String guideMinutesLeft(int minutes) {
+    return '${minutes}m left';
+  }
+
+  @override
+  String guideHoursLeft(int hours) {
+    return '${hours}h left';
+  }
+
+  @override
+  String guideHoursMinutesLeft(int hours, int minutes) {
+    return '${hours}h ${minutes}m left';
+  }
+
+  @override
   String get movie => 'Film';
 
   @override
@@ -2001,7 +2061,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get themeAndAppearance => 'Thème et apparence';
 
   @override
-  String get focusBorderColor => 'Couleur de bordure du focus';
+  String get focusBorderColor => 'Couleur de la bordure de sélection';
 
   @override
   String get watchedIndicators => 'Indicateurs de visionnage';
@@ -2022,7 +2082,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get focusExpansionAnimation => 'Animation d’agrandissement du focus';
 
   @override
-  String get desktopUiScale => 'Échelle de l\'interface utilisateur';
+  String get desktopUiScale => 'Taille de l\'interface utilisateur';
 
   @override
   String get scaleFocusedCards =>
@@ -2036,7 +2096,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'Afficher des images d’arrière-plan derrière le contenu';
 
   @override
-  String get seriesThumbnails => 'Afficher les vignettes des séries';
+  String get seriesThumbnails => 'Afficher le visuel de la série';
 
   @override
   String get seriesThumbnailsDescription =>
@@ -2079,14 +2139,14 @@ class AppLocalizationsFr extends AppLocalizations {
   String get fallingLeaves => 'Feuilles tombantes';
 
   @override
-  String get themeMusic => 'Musique du thème';
+  String get themeMusic => 'Thème musical';
 
   @override
   String get playThemeMusicOnDetailPages =>
-      'Lire la musique du thème sur les pages de détails';
+      'Lire le thème musical sur les pages de détail';
 
   @override
-  String get themeMusicVolume => 'Volume de la musique du thème';
+  String get themeMusicVolume => 'Volume du thème musical';
 
   @override
   String percentValue(int value) {
@@ -2094,7 +2154,7 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get themeMusicOnHomeRows => 'Musique du thème sur l’accueil';
+  String get themeMusicOnHomeRows => 'Thème musical sur les rangées d\'accueil';
 
   @override
   String get playWhenBrowsingHomeScreen =>
@@ -2118,7 +2178,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get maxResolution => 'Résolution maximale';
 
   @override
-  String get playerZoomMode => 'Mode de zoom du lecteur';
+  String get playerZoomMode => 'Zoom du lecteur';
 
   @override
   String get settingsScrollWheelAction =>
@@ -2167,14 +2227,14 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get showPreviewThumbnailsWhenSeeking =>
-      'Afficher les vignettes d’aperçu pendant la recherche';
+      'Afficher les miniatures d’aperçu pendant la recherche';
 
   @override
   String get showDescriptionOnPause => 'Afficher la description en pause';
 
   @override
   String get dimVideoShowOverview =>
-      'Assombrir la vidéo et afficher le résumé en pause';
+      'Assombrir la vidéo et afficher le résumé pendant la pause';
 
   @override
   String get osdLockButton => 'Bouton de verrouillage OSD';
@@ -2191,6 +2251,27 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get defaultAudioLanguage => 'Langue audio par défaut';
+
+  @override
+  String get fallbackAudioLanguage => 'Langue audio secondaire';
+
+  @override
+  String get preferDefaultAudioTrack => 'Préférer la piste audio par défaut';
+
+  @override
+  String get preferDefaultAudioTrackDescription =>
+      'Préférer la piste audio originale au doublage.';
+
+  @override
+  String get preferAudioDescription =>
+      'Préférer les pistes d\'audiodescription';
+
+  @override
+  String get preferAudioDescriptionDescription =>
+      'Préférer les pistes d\'audiodescription aux pistes normales.';
+
+  @override
+  String get transcodingAudio => 'Transcodage (audio)';
 
   @override
   String get autoServerDefault => 'Auto (par défaut du serveur)';
@@ -2423,7 +2504,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String settingsAudioPcmChannels(int count) {
-    return '${count}ch PCM';
+    return '$count canaux PCM';
   }
 
   @override
@@ -2495,7 +2576,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get nextUpAndQueuing => 'À suivre et file d’attente';
 
   @override
-  String get nextUpDisplay => 'Comportement d’À suivre';
+  String get nextUpDisplay => 'Affichage du prochain épisode';
 
   @override
   String get extended => 'Étendu';
@@ -2504,7 +2585,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get minimal => 'Minimal';
 
   @override
-  String get nextUpTimeout => 'Délai d’À suivre';
+  String get nextUpTimeout => 'Délai d\'affichage du prochain épisode';
 
   @override
   String secondsValue(int value) {
@@ -2519,7 +2600,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'Mettre automatiquement les épisodes suivants en file d’attente';
 
   @override
-  String get stillWatchingPrompt => 'Invite « Vous regardez toujours ? »';
+  String get stillWatchingPrompt => 'Vérification de présence';
 
   @override
   String afterEpisodesAndHours(int episodes, double hours) {
@@ -2530,10 +2611,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get resumeAndSkip => 'Reprendre et sauter';
 
   @override
-  String get resumeRewind => 'Retour arrière à la reprise de la lecture';
+  String get resumeRewind => 'Retour en arrière à la reprise';
 
   @override
-  String get unpauseRewind => 'Retour arrière après avoir mis en pause';
+  String get unpauseRewind => 'Retour en arrière après la pause';
 
   @override
   String get fiveSeconds => '5 secondes';
@@ -2598,6 +2679,47 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get subtitleCustomizationDescription =>
       'Personnaliser l\'apparence des sous-titres';
+
+  @override
+  String get subtitleMode => 'Sélection des sous-titres';
+
+  @override
+  String get subtitleModeFlagged => 'Par défaut';
+
+  @override
+  String get subtitleModeAlways => 'Toujours';
+
+  @override
+  String get subtitleModeForeign => 'Langue étrangère';
+
+  @override
+  String get subtitleModeForced => 'Forcés';
+
+  @override
+  String get subtitleModeFlaggedDescription =>
+      'Lit les pistes définies comme « par défaut » ou « forcées » dans les métadonnées du fichier.';
+
+  @override
+  String get subtitleModeAlwaysDescription =>
+      'Charge et affiche automatiquement les sous-titres à chaque démarrage d\'une vidéo.';
+
+  @override
+  String get subtitleModeForeignDescription =>
+      'Active automatiquement les sous-titres si la piste audio par défaut est dans une langue étrangère.';
+
+  @override
+  String get subtitleModeForcedDescription =>
+      'Ne charge que les sous-titres explicitement marqués comme « forcés » dans les métadonnées.';
+
+  @override
+  String get subtitleModeNoneDescription =>
+      'Désactive complètement le chargement automatique des sous-titres.';
+
+  @override
+  String get fallbackSubtitleLanguage => 'Langue de sous-titres secondaire';
+
+  @override
+  String get subtitleStream => 'Piste de sous-titres';
 
   @override
   String get subtitlePreviewText =>
@@ -2777,7 +2899,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get clearAll => 'Tout supprimer';
 
   @override
-  String get navigationStyle => 'Style de navigation';
+  String get navigationStyle => 'Emplacement de la navigation';
 
   @override
   String get topBar => 'Barre supérieure';
@@ -2875,17 +2997,33 @@ class AppLocalizationsFr extends AppLocalizations {
       'Afficher l’option de navigation par dossiers';
 
   @override
-  String get libraryVisibility => 'Visibilité de la bibliothèque';
+  String get groupItemsIntoCollections =>
+      'Regrouper les éléments en collections';
+
+  @override
+  String get hideCollectionAssociatedItems =>
+      'Masquer les éléments appartenant à une collection lors de la navigation dans les bibliothèques';
+
+  @override
+  String get groupItemsIntoCollectionsDialogTitle => 'À propos du regroupement';
+
+  @override
+  String get groupItemsIntoCollectionsDialogMessage =>
+      'Pour utiliser ce réglage, assurez-vous que les options « Regrouper les films en collections » et/ou « Regrouper les séries en collections » sont activées dans les réglages d\'affichage de votre bibliothèque, sur votre serveur Jellyfin ou Emby.';
+
+  @override
+  String get libraryVisibility => 'Visibilité des bibliothèques';
 
   @override
   String get libraryVisibilityDescription =>
-      'Basculez la visibilité de la page d\'accueil par bibliothèque. Redémarrez Moonfin pour que les modifications prennent effet.';
+      'Affichez ou masquez chaque bibliothèque sur la page d\'accueil. Redémarrez Moonfin pour appliquer les modifications.';
 
   @override
   String get showInNavigation => 'Afficher dans la navigation';
 
   @override
-  String get showInLatestMedia => 'Afficher dans Derniers médias';
+  String get showInLatestMedia =>
+      'Afficher dans les médias récemment ajoutés ou sortis';
 
   @override
   String get sourceLibraries => 'Bibliothèques sources';
@@ -2928,7 +3066,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get mediaBarModeDescription =>
-      'Choisissez parmi différents styles pour la barre média ou désactivez la barre média';
+      'Choisissez parmi différents styles de barre média, ou désactivez-la';
 
   @override
   String get mediaBarModeMoonfin => 'Moonfin';
@@ -2978,25 +3116,25 @@ class AppLocalizationsFr extends AppLocalizations {
   String get autoAdvanceInterval => 'Intervalle d’avance automatique';
 
   @override
-  String get trailerPreview => 'Aperçu de bande-annonce';
+  String get trailerPreview => 'Aperçu de la bande-annonce';
 
   @override
   String get autoPlayTrailers =>
       'Lire automatiquement les bandes-annonces dans la barre média après 3 secondes';
 
   @override
-  String get episodePreview => 'Aperçu d’épisode';
+  String get episodePreview => 'Aperçu de l\'épisode';
 
   @override
   String get mediaPreview => 'Aperçu des médias';
 
   @override
   String get episodePreviewDescription =>
-      'Lire un aperçu intégré de 30 secondes sur les cartes ciblées, survolées ou maintenues';
+      'Lire un aperçu intégré de 30 secondes lorsqu\'un visuel est sélectionné, survolé ou maintenu appuyé';
 
   @override
   String get mediaPreviewDescription =>
-      'Jouez un aperçu en ligne de 30 secondes sur des cartes ciblées, survolées ou enfoncées longuement';
+      'Lire un aperçu intégré de 30 secondes lorsqu\'un visuel est sélectionné, survolé ou maintenu appuyé';
 
   @override
   String get previewAudio => 'Aperçu de l\'audio';
@@ -3006,7 +3144,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'Activer l’audio pour les aperçus de bandes-annonces et d’épisodes';
 
   @override
-  String get latestMedia => 'Derniers médias';
+  String get latestMedia => 'Médias récemment ajoutés';
 
   @override
   String get recentlyReleased => 'Récemment sortis';
@@ -3018,7 +3156,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get myMediaSmall => 'Mes médias (petit)';
 
   @override
-  String get continueWatching => 'Continuer à regarder';
+  String get continueWatching => 'Continuer de regarder';
 
   @override
   String get resumeAudio => 'Reprendre l’audio';
@@ -3030,7 +3168,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get activeRecordings => 'Enregistrements actifs';
 
   @override
-  String get playlists => 'Listes de lecture';
+  String get playlists => 'Playlists';
 
   @override
   String get liveTV => 'TV en direct';
@@ -3053,7 +3191,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get mergeContinueWatchingAndNextUp =>
-      'Fusionner Continuer à regarder et À suivre';
+      'Fusionner Continuer de regarder et À suivre';
 
   @override
   String get combineBothRows =>
@@ -3089,11 +3227,11 @@ class AppLocalizationsFr extends AppLocalizations {
       'Exiger le mot de passe même avec un jeton enregistré';
 
   @override
-  String get confirmExit => 'Confirmer la sortie';
+  String get confirmExit => 'Confirmer la fermeture';
 
   @override
   String get showConfirmationBeforeExiting =>
-      'Afficher une confirmation avant de quitter';
+      'Afficher une confirmation avant de quitter l\'app';
 
   @override
   String get blockContentWithRatings =>
@@ -3161,7 +3299,7 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get dimmingLevel => 'Niveau d’assombrissement';
+  String get dimmingLevel => 'Intensité de l\'assombrissement';
 
   @override
   String get maxAgeRating => 'Classification d’âge maximale';
@@ -3320,7 +3458,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get upcomingMovies => 'Films à venir';
 
   @override
-  String get studios => 'Ateliers';
+  String get studios => 'Studios';
 
   @override
   String get popularSeries => 'Séries populaires';
@@ -3332,10 +3470,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get upcomingSeries => 'Séries à venir';
 
   @override
-  String get networks => 'Chaînes';
+  String get networks => 'Diffuseurs';
 
   @override
-  String get seerrDiscoveryRows => 'Rangées de découverte Seerr';
+  String get seerrDiscoveryRows => 'Découvertes Seerr';
 
   @override
   String get resetRowsToDefaults => 'Réinitialiser les rangées par défaut';
@@ -3394,8 +3532,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get sourceCode => 'Code source';
 
   @override
-  String get sourceCodeUrl =>
-      'https://github.com/Moonfin-Client/Mobile-Desktop';
+  String get sourceCodeUrl => 'https://github.com/Moonfin-Client/Moonfin-Core';
 
   @override
   String get checkForUpdatesNow => 'Vérifier les mises à jour';
@@ -3476,7 +3613,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get navbarStyleToolbarAppearance =>
-      'Style de la barre de navigation, boutons de la barre d’outils, apparence';
+      'Emplacement de la barre de navigation, boutons d\'outils et apparence';
 
   @override
   String get reorderToggleHomeRows =>
@@ -3665,7 +3802,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get revenueLabel => 'Revenu';
 
   @override
-  String get runtimeLabel => 'Durée d\'exécution';
+  String get runtimeLabel => 'Durée';
 
   @override
   String get budgetLabel => 'Budget';
@@ -5574,7 +5711,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get adminMetadataTags => 'Balises';
 
   @override
-  String get adminMetadataStudios => 'Ateliers';
+  String get adminMetadataStudios => 'Studios';
 
   @override
   String get adminMetadataPeople => 'Personnes';
@@ -5601,7 +5738,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get adminMetadataImagePrimary => 'Principale';
 
   @override
-  String get adminMetadataImageBackdrop => 'Arrière-plan';
+  String get adminMetadataImageBackdrop => 'Vignette';
 
   @override
   String get adminMetadataImageLogo => 'Logo';
@@ -5610,7 +5747,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get adminMetadataImageBanner => 'Bannière';
 
   @override
-  String get adminMetadataImageThumb => 'Vignette';
+  String get adminMetadataImageThumb => 'Miniature';
 
   @override
   String get adminMetadataRecursive => 'Récursif';
@@ -6137,8 +6274,8 @@ class AppLocalizationsFr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count hours',
-      one: '1 hour',
+      other: '$count heures',
+      one: '1 heure',
     );
     return '$_temp0';
   }
@@ -6434,7 +6571,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get syncPlayJoinGroupWarning =>
-      'Rejoindre un groupe SyncPlay peut remplacer votre file d\'attente de lecture actuelle. Continuer?';
+      'Rejoindre un groupe SyncPlay peut remplacer votre lecture en cours. Continuer ?';
 
   @override
   String get syncPlayJoin => 'Rejoindre';
@@ -6505,50 +6642,15 @@ class AppLocalizationsFr extends AppLocalizations {
   String get requestTranscode => 'Demander un transcodage';
 
   @override
-  String get homeScreenSectionsIntegrationDescription =>
-      'Détectez les rangées exposées par le plugin « Home Screen Sections » d\'IAmParadox27. Les rangées peuvent être activées et réorganisées ci-dessous.';
-
-  @override
-  String get homeScreenSectionsIntegrationNoServers =>
-      'Aucun serveur Jellyfin n\'a encore signalé le plugin.';
-
-  @override
-  String get integrationOpenHomeSections => 'Sections d\'accueil ouvertes';
-
-  @override
-  String get integrationOpenHomeSectionsSubtitle =>
-      'Activer, désactiver et réorganiser les rangées';
-
-  @override
-  String get integrationInstalledButDisabled => 'Installé mais désactivé';
-
-  @override
-  String get integrationNotInstalled => 'Non installé';
-
-  @override
-  String integrationSectionsCount(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '# sections',
-      one: '# section',
-    );
-    return '$_temp0';
-  }
-
-  @override
   String integrationRowsDiscoveredCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '# rows discovered',
-      one: '# row discovered',
+      other: '# rangées découvertes',
+      one: '# rangée découverte',
     );
     return '$_temp0';
   }
-
-  @override
-  String get jellyseerr => 'Seerr';
 
   @override
   String get seeAll => 'Voir tout';
@@ -6874,7 +6976,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get liveTv => 'TV en direct';
 
   @override
-  String get continueWatchingAndNextUp => 'Reprendre la lecture et À suivre';
+  String get continueWatchingAndNextUp => 'Continuer de regarder & À suivre';
 
   @override
   String downloadingBatchProgress(int current, int total, String fileName) {
@@ -6959,7 +7061,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsPersonalizationSubtitle =>
-      'Thème, navigation, rangées d\'accueil et visibilité de la bibliothèque';
+      'Thème, navigation, rangées d\'accueil et visibilité des bibliothèques';
 
   @override
   String get settingsDynamicContent => 'Contenu dynamique';
@@ -7006,7 +7108,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsGeneralStyleSubtitle =>
-      'Accents de thème, arrière-plans, indicateurs regardés et musique de thème';
+      'Couleurs d\'accentuation, vignettes, indicateurs de visionnage et musique de thème';
 
   @override
   String get settingsHomePage => 'Page d\'accueil';
@@ -7017,7 +7119,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsLibrariesSubtitle =>
-      'Visibilité de la bibliothèque, vue des dossiers et comportement multi-serveur';
+      'Visibilité des bibliothèques, vue des dossiers et gestion multi-serveur';
 
   @override
   String get settingsTwentyFourHourClock => 'Horloge 24 heures';
@@ -7048,7 +7150,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsLibraryVisibilitySubtitle =>
-      'Basculez la visibilité de la page d\'accueil par bibliothèque. Redémarrez Moonfin pour que les modifications prennent effet.';
+      'Affichez ou masquez chaque bibliothèque sur la page d\'accueil. Redémarrez Moonfin pour appliquer les modifications.';
 
   @override
   String get settingsMediaBarAndLocalPreviews =>
@@ -7101,7 +7203,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'Ouvrez le suivi des problèmes sur GitHub';
 
   @override
-  String get settingsJoinDiscord => 'Rejoignez Discorde';
+  String get settingsJoinDiscord => 'Rejoignez Discord';
 
   @override
   String get settingsJoinDiscordSubtitle => 'Discutez avec la communauté';
@@ -7125,7 +7227,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settingsOpenSourceLicenseNotices => 'Avis de licence open source';
 
   @override
-  String get settingsPrivacyPolicy => 'politique de confidentialité';
+  String get settingsPrivacyPolicy => 'Politique de confidentialité';
 
   @override
   String get settingsPrivacyPolicySubtitle =>
@@ -7146,8 +7248,8 @@ class AppLocalizationsFr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '# license notices',
-      one: '# license notice',
+      other: '# mentions de licence',
+      one: '# mention de licence',
     );
     return '$_temp0';
   }
@@ -7286,15 +7388,15 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsResumeRewindDescription =>
-      'Lors de la reprise de la lecture (à partir de Continuer à regarder ou d\'une page d\'élément multimédia), combien de secondes doivent être rembobinées ?';
+      'Nombre de secondes à revenir en arrière à la reprise de la lecture (depuis « Continuer à regarder » ou la fiche d\'un média).';
 
   @override
   String get settingsUnpauseRewindDescription =>
-      'Lors de la reprise de la lecture après avoir appuyé sur le bouton pause, combien de secondes doivent être rembobinées ?';
+      'Nombre de secondes à revenir en arrière après une pause.';
 
   @override
   String get settingsSkipBackLengthDescription =>
-      'Combien de secondes faut-il revenir en arrière après avoir appuyé sur le bouton de rembobinage.';
+      'Nombre de secondes à revenir en arrière à chaque appui sur le bouton.';
 
   @override
   String get settingsOneSecond => '1 seconde';
@@ -7310,7 +7412,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsSkipForwardLengthDescription =>
-      'Combien de secondes faut-il avancer après avoir appuyé sur le bouton d\'avance rapide.';
+      'Nombre de secondes à avancer à chaque appui sur le bouton.';
 
   @override
   String get settingsBitstreamAc3ToExternalDecoder =>
@@ -7325,7 +7427,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsNextUpDisplayDescription =>
-      'Extended affiche une carte complète avec le visuel et la description de l\'épisode. Minimal montre une superposition de compte à rebours compacte. Désactivé masque entièrement l\'invite.';
+      'Étendu affiche la notification détaillée, avec le visuel et la description de l\'épisode. Minimal affiche une notification compacte avec compte à rebours. Désactivé masque entièrement la notification.';
 
   @override
   String get settingsShort => 'Court';
@@ -7363,7 +7465,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsSyncplayEnabledSubtitle =>
-      'Activer les fonctionnalités de surveillance de groupe';
+      'Activer les fonctionnalités de visionnage en groupe';
 
   @override
   String get settingsSyncplayButton => 'Bouton SyncPlay';
@@ -7384,21 +7486,21 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsSyncplaySyncCorrectionSubtitle =>
-      'Ajustez automatiquement la lecture pour rester synchronisée';
+      'Ajuster automatiquement la lecture pour rester synchronisé';
 
   @override
   String get settingsSyncplaySpeedToSync => 'Vitesse de synchronisation';
 
   @override
   String get settingsSyncplaySpeedToSyncSubtitle =>
-      'Utilisez le réglage de la vitesse de lecture pour synchroniser';
+      'Utiliser le réglage de la vitesse de lecture pour synchroniser';
 
   @override
-  String get settingsSyncplaySkipToSync => 'Passer à la synchronisation';
+  String get settingsSyncplaySkipToSync => 'Saut pour synchroniser';
 
   @override
   String get settingsSyncplaySkipToSyncSubtitle =>
-      'Utiliser la recherche de synchronisation';
+      'Utiliser le saut dans la lecture pour synchroniser';
 
   @override
   String get settingsSyncplayMinimumSpeedDelay => 'Délai de vitesse minimum';
@@ -7432,6 +7534,11 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String latestLibraryName(String libraryName) {
     return '$libraryName, ajouts récents';
+  }
+
+  @override
+  String recentlyReleasedLibraryName(String libraryName) {
+    return '$libraryName, sorties récentes';
   }
 
   @override
@@ -7484,7 +7591,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get subtitlesUseEmbeddedStylesSubtitle =>
-      'Appliquez les couleurs, les polices et le positionnement intégrés à la piste de sous-titres. Désactivez-le pour utiliser vos préférences de style de légende.';
+      'Appliquer les couleurs, polices et positionnement intégrés à la piste de sous-titres. Désactiver pour utiliser plutôt vos préférences de style.';
 
   @override
   String get subtitlesUseEmbeddedFontSizes =>
@@ -7492,7 +7599,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get subtitlesUseEmbeddedFontSizesSubtitle =>
-      'Appliquez des conseils sur la taille de la police intégrés à la piste de sous-titres. Désactivez l\'utilisation de la taille des sous-titres dans vos préférences de style.';
+      'Appliquer les indications de taille de police intégrées à la piste de sous-titres. Désactiver pour utiliser la taille définie dans vos préférences de style.';
 
   @override
   String get showMediaDetailsOnLibraryPage => 'Afficher les détails du média';
@@ -7502,11 +7609,11 @@ class AppLocalizationsFr extends AppLocalizations {
       'Afficher les détails de l\'élément sélectionné en haut des pages de la bibliothèque.';
 
   @override
-  String get useDetailedSubHeadings => 'Utiliser des sous-titres détaillés';
+  String get useDetailedSubHeadings => 'Informations détaillées sous le titre';
 
   @override
   String get useDetailedSubHeadingsDescription =>
-      'Afficher la sous-rangée détaillée ou minimale sur les pages de la bibliothèque.';
+      'Afficher des informations supplémentaire sous le titre, sur les pages de la bibliothèque.';
 
   @override
   String get savedThemesDeleteDialogTitle => 'Supprimer le thème enregistré ?';
@@ -7517,37 +7624,38 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get themeStore => 'Theme Store';
+  String get themeStore => 'Boutique de thèmes';
 
   @override
-  String get themeStoreSubtitle => 'Browse and save community themes';
+  String get themeStoreSubtitle =>
+      'Parcourir et enregistrer les thèmes de la communauté';
 
   @override
   String get themeStoreDescription =>
-      'Save a theme to use it like your other saved themes.';
+      'Enregistrez un thème pour le retrouver parmi vos thèmes enregistrés.';
 
   @override
-  String get themeStoreEmpty => 'No themes are available right now.';
+  String get themeStoreEmpty => 'Aucun thème n\'est disponible pour le moment.';
 
   @override
   String get themeStoreLoadFailed =>
-      'Couldn\'t load the Theme Store. Check your connection and try again.';
+      'Impossible de charger la boutique de thèmes. Vérifiez votre connexion et réessayez.';
 
   @override
-  String get themeStoreSave => 'Save';
+  String get themeStoreSave => 'Enregistrer';
 
   @override
-  String get themeStoreSaveAndApply => 'Save & apply';
+  String get themeStoreSaveAndApply => 'Enregistrer et appliquer';
 
   @override
-  String get themeStoreSaved => 'Saved';
+  String get themeStoreSaved => 'Enregistré';
 
   @override
-  String get themeStoreInvalidMessage => 'This theme couldn\'t be loaded.';
+  String get themeStoreInvalidMessage => 'Le thème n\'a pas pu être chargé.';
 
   @override
   String themeStoreSavedMessage(String themeName) {
-    return 'Saved \"$themeName\".';
+    return '$themeName sauvegardé.';
   }
 
   @override
@@ -7584,14 +7692,11 @@ class AppLocalizationsFr extends AppLocalizations {
       'Gérer les thèmes de plugin téléchargés sur cet appareil';
 
   @override
-  String get homeScreenSectionsTitle => 'Sections de l\'écran d\'accueil';
-
-  @override
   String get themeEditor => 'Éditeur de thème';
 
   @override
   String get themeEditorSubtitle =>
-      'Ouvrez l\'éditeur de thème Moonfin dans votre navigateur.';
+      'Ouvrez l\'éditeur de thème Moonfin dans votre navigateur';
 
   @override
   String get homeScreen => 'Écran d\'accueil';
@@ -7630,7 +7735,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get rowsTypeDescription =>
-      'Classic conserve le type d\'image par rangée et la superposition d\'informations. Modern utilise des rangées passant du portrait à l\'arrière-plan.';
+      'Classique conserve la disposition classique en portrait. Moderne passe du portrait à la vignette au survol.';
 
   @override
   String get displayFavoritesRows => 'Afficher les rangées de favoris';
@@ -7647,8 +7752,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'Triez les rangées de favoris par date d\'ajout, date de sortie, par ordre alphabétique, etc.';
 
   @override
-  String get displayCollectionsRows =>
-      'Afficher les rangées de collections dans les sections d\'accueil.';
+  String get displayCollectionsRows => 'Afficher les rangées de collections';
 
   @override
   String get displayCollectionsRowsSubtitle =>
@@ -7680,7 +7784,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get genresRowItemsDescription =>
-      'Afficher des films, des séries ou les deux dans les rangées Genres.';
+      'Afficher des films, des séries ou les deux dans les rangées de genres.';
 
   @override
   String get displayPlaylistsRows => 'Afficher les rangées de playlists';
@@ -7697,33 +7801,27 @@ class AppLocalizationsFr extends AppLocalizations {
       'Triez les rangées de playlists par date d\'ajout, date de sortie, ordre alphabétique, et plus encore.';
 
   @override
-  String get displayAudioRows => 'Display Audio Rows';
+  String get displayAudioRows => 'Afficher les rangées audio';
 
   @override
-  String get displayAudioRowsSubtitle => 'Show Audio rows in Home Sections.';
+  String get displayAudioRowsSubtitle =>
+      'Afficher les rangées audio dans les sections de l\'accueil.';
 
   @override
-  String get audioRowsSorting => 'Audio Rows sorting';
+  String get audioRowsSorting => 'Tri des rangées audio';
 
   @override
   String get audioRowsSortingDescription =>
-      'Sort Audio rows by date added, release date, alphabetically, and more.';
+      'Triez les rangées audio par date d\'ajout, date de sortie, par ordre alphabétique, etc.';
 
   @override
-  String get audioPlaylists => 'Audio Playlists';
-
-  @override
-  String get displaySeerrRows => 'Afficher les rangées de découverte Seerr';
-
-  @override
-  String get displaySeerrRowsSubtitle =>
-      'Afficher les rangées de découverte Seerr dans les sections de l\'accueil.';
+  String get audioPlaylists => 'Playlists audio';
 
   @override
   String get appearance => 'Apparence';
 
   @override
-  String get cardSize => 'Taille des cartes des rangées d\'accueil';
+  String get cardSize => 'Taille des visuels des rangées d\'accueil';
 
   @override
   String get externalPlayerApp => 'Application de lecteur externe';
@@ -7766,7 +7864,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'Passthrough TrueHD avec Atmos (JOC)';
 
   @override
-  String get mediaPlayerBehavior => 'Comportement du lecteur multimédia';
+  String get mediaPlayerBehavior => 'Comportement du lecteur';
 
   @override
   String get playbackEnhancements => 'Améliorations de la lecture';
@@ -7776,14 +7874,14 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get replaceSkipOutroWithNextUpDisplay =>
-      'Remplacez Skip Outro par Next Up Display';
+      '« Prochain épisode » au lieu du générique';
 
   @override
   String get replaceSkipOutroWithNextUpDisplaySubtitle =>
-      'Afficher la superposition Next Up au lieu du bouton Ignorer Outro.';
+      'Afficher la notification du prochain épisode au lieu du bouton « Ignorer le générique ».';
 
   @override
-  String get playerRouting => 'Routage des joueurs';
+  String get playerRouting => 'Routage du lecteur';
 
   @override
   String get preferSoftwareDecoders => 'Préférer les décodeurs logiciels';
@@ -8003,6 +8101,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get appearancesSeerr => 'Apparitions (Seerr)';
 
   @override
+  String get crewContributionsSeerr => 'Contributions techniques (Seerr)';
+
+  @override
   String get watchWithGroup => 'Regarder en groupe';
 
   @override
@@ -8086,8 +8187,8 @@ class AppLocalizationsFr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count Libraries',
-      one: '1 Library',
+      other: '$count Bibliothèques',
+      one: '1 Bibliothèque',
     );
     return '$_temp0';
   }
@@ -8247,13 +8348,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get loadingShuffle => 'Chargement aléatoire...';
 
   @override
-  String get libraryShuffleLabel => 'LIBRARY SHUFFLE';
+  String get libraryShuffleLabel => 'BIBLIOTHÈQUE ALÉATOIRE';
 
   @override
-  String get randomShuffleLabel => 'RANDOM SHUFFLE';
+  String get randomShuffleLabel => 'TRI ALÉATOIRE';
 
   @override
-  String get genresShuffleLabel => 'GENRES SHUFFLE';
+  String get genresShuffleLabel => 'GENRES ALÉATOIRE';
 
   @override
   String get autoHdrSwitching => 'Commutation HDR automatique';
@@ -8332,7 +8433,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get posterCategory => 'Affiche';
 
   @override
-  String get backdropsCategory => 'Arrière-plans';
+  String get backdropsCategory => 'Vignettes';
 
   @override
   String get bannerCategory => 'Bannière';
@@ -8365,7 +8466,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get confirmItemPoster => 'affiche';
 
   @override
-  String get confirmItemBackdrop => 'arrière-plan';
+  String get confirmItemBackdrop => 'vignette';
 
   @override
   String get confirmItemBanner => 'bannière';
@@ -8408,4 +8509,58 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get sources => 'Sources';
+
+  @override
+  String get subtitlePreferences => 'Préférences de sous-titres';
+
+  @override
+  String get subtitlePreferencesDescription =>
+      'Modifier les modes de sous-titres, les langues par défaut, l\'apparence et les options de rendu.';
+
+  @override
+  String get subtitleRendering => 'Rendu des sous-titres';
+
+  @override
+  String get displayOptions => 'Options d\'affichage';
+
+  @override
+  String get releaseDateAscending => 'Date de sortie (croissant)';
+
+  @override
+  String get releaseDateDescending => 'Date de sortie (décroissant)';
+
+  @override
+  String get groupContributions => 'Regrouper les contributions';
+
+  @override
+  String get groupMultipleRoles => 'Regrouper les rôles d\'une même personne';
+
+  @override
+  String get libraryWriteAccessWarningTitle =>
+      'Avertissement d\'accès en écriture à la bibliothèque';
+
+  @override
+  String get libraryWriteAccessHowToFix => 'Comment résoudre ce problème :';
+
+  @override
+  String get libraryWriteAccessFixSteps =>
+      '1. Accordez les permissions d\'écriture à l\'utilisateur du service Jellyfin (par exemple, jellyfin ou le PUID/PGID Docker) sur les dossiers de votre bibliothèque multimédia, côté serveur.\n\n2. Ou, dans le tableau de bord Jellyfin → Bibliothèques, modifiez cette bibliothèque et désactivez « Enregistrer les illustrations dans les dossiers multimédias » pour stocker les visuels dans la base de données interne de Jellyfin.';
+
+  @override
+  String get dismiss => 'Ignorer';
+
+  @override
+  String libraryWriteAccessProactiveBody(
+    String libraryName,
+    String failedPath,
+  ) {
+    return 'Votre bibliothèque $libraryName est configurée pour enregistrer les visuels directement dans les dossiers multimédias (l\'option « Enregistrer les illustrations dans les dossiers multimédias » est activée). Cependant, Jellyfin a testé l\'accès en écriture et n\'a pas la permission d\'écrire dans ce répertoire :\n\n$failedPath';
+  }
+
+  @override
+  String get libraryWriteAccessReactiveBody =>
+      'Il semble que Jellyfin n\'ait pas réussi à mettre à jour le visuel. Votre bibliothèque est configurée pour enregistrer les visuels directement dans les dossiers multimédias (l\'option « Enregistrer les illustrations dans les dossiers multimédias » est activée). Cette erreur survient généralement lorsque le serveur Jellyfin n\'a pas la permission d\'écrire dans vos répertoires multimédias.';
+
+  @override
+  String get externalLists => 'External Home Row Lists';
 }

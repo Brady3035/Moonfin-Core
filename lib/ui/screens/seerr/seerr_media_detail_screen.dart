@@ -4,7 +4,6 @@ import 'package:flutter/services.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:moonfin_design/moonfin_design.dart';
-import 'package:server_core/server_core.dart';
 
 import '../../../data/repositories/seerr_repository.dart';
 import '../../../data/services/seerr/seerr_api_models.dart';
@@ -15,6 +14,7 @@ import '../../../preference/user_preferences.dart';
 import '../../../ui/mixins/focus_state_mixin.dart';
 import '../../../util/platform_detection.dart';
 import '../../navigation/destinations.dart';
+import '../../widgets/adaptive/adaptive_dialog.dart';
 import '../../widgets/library_row.dart';
 import '../../widgets/media_card.dart';
 import '../../widgets/navigation_layout.dart';
@@ -98,17 +98,12 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
     final vm = _vm;
     if (vm == null) return;
 
-    final tmdbId = int.tryParse(widget.itemId);
-    if (tmdbId == null) return;
-
     final extra = GoRouterState.of(context).extra;
-    final mediaType =
-        (extra is Map<String, dynamic>
-            ? extra['mediaType'] as String?
-            : null) ??
-        'movie';
+    final extraMap = extra is Map ? extra.cast<String, dynamic>() : null;
+    final mediaType = (extraMap?['mediaType'] as String?) ?? 'movie';
+    final title = extraMap?['title'] as String?;
 
-    vm.load(tmdbId, mediaType);
+    vm.load(widget.itemId, mediaType, title: title);
   }
 
   @override
@@ -1364,7 +1359,7 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
 
     showFocusRestoringDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => AlertDialog.adaptive(
         backgroundColor: const Color(0xFF1A1A2E),
         title: Text(
           l10n.cancelRequest,
@@ -1372,7 +1367,7 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
         ),
         content: Text(message, style: const TextStyle(color: Colors.white70)),
         actions: [
-          TextButton(
+          adaptiveDialogAction(
             onPressed: () => Navigator.pop(ctx),
             child: Text(l10n.keep),
           ),
@@ -1396,77 +1391,17 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
   }
 
   Future<void> _playInMoonfin(SeerrMediaDetailState s) async {
+    if (!mounted) return;
     final l10n = AppLocalizations.of(context);
-    final client = GetIt.instance<MediaServerClient>();
-    final externalIds = s.externalIds;
-    final tmdbId = externalIds?.tmdbId ?? (s.tmdbId != 0 ? s.tmdbId : null);
-    final tvdbId = externalIds?.tvdbId;
-    final imdbId = externalIds?.imdbId;
-    final title = s.displayTitle;
-    final mediaType = s.isMovie ? 'Movie' : 'Series';
 
-    try {
-      final response = await client.itemsApi.getItems(
-        searchTerm: title,
-        includeItemTypes: [mediaType],
-        recursive: true,
-        limit: 50,
-        fields: 'ProviderIds',
-      );
-
-      final items =
-          (response['Items'] as List?)?.cast<Map<String, dynamic>?>() ??
-          <Map<String, dynamic>?>[];
-
-      Map<String, dynamic>? match;
-
-      if (tmdbId != null) {
-        match = items.firstWhere(
-          (item) =>
-              (item!['ProviderIds'] as Map?)?['Tmdb'] == tmdbId.toString(),
-          orElse: () => null,
-        );
-      }
-
-      if (match == null && tvdbId != null) {
-        match = items.firstWhere(
-          (item) =>
-              (item!['ProviderIds'] as Map?)?['Tvdb'] == tvdbId.toString(),
-          orElse: () => null,
-        );
-      }
-
-      if (match == null && imdbId != null) {
-        match = items.firstWhere(
-          (item) => (item!['ProviderIds'] as Map?)?['Imdb'] == imdbId,
-          orElse: () => null,
-        );
-      }
-
-      match ??= items.firstWhere(
-        (item) =>
-            (item!['Name'] as String?)?.toLowerCase() == title.toLowerCase(),
-        orElse: () => null,
-      );
-
-      if (!mounted) return;
-
-      if (match != null) {
-        final itemId = match['Id']?.toString() ?? '';
-        context.push(Destinations.item(itemId));
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(l10n.itemNotFoundInLibrary),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
-    } catch (_) {
-      if (!mounted) return;
+    final jellyfinId =
+        s.mediaInfo?.jellyfinMediaId ?? s.mediaInfo?.jellyfinMediaId4k;
+    if (jellyfinId != null) {
+      context.push(Destinations.item(jellyfinId));
+    } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(l10n.errorSearchingLibrary),
+          content: Text(l10n.itemNotFoundInLibrary),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -2076,7 +2011,7 @@ class _RequestDialogState extends State<_RequestDialog> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           if (widget.vm.canRequest4k)
-            SwitchListTile(
+            SwitchListTile.adaptive(
               title: Text(
                 l10n.uhd4k,
                 style: const TextStyle(color: Colors.white),

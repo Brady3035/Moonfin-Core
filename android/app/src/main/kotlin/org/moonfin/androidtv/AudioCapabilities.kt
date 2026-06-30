@@ -222,23 +222,12 @@ object AudioCapabilities {
         // AVR can't handle. Users who know their receiver supports it can still
         // turn the TrueHD-Atmos passthrough toggle on explicitly (override wins).
 
-        // ARC (plain Audio Return Channel) only carries compressed audio. Force
-        // the lossless/HD caps off so we never advertise TrueHD / TrueHD-Atmos /
-        // DTS-HD / DTS:X over a plain ARC link. eARC and direct HDMI keep them.
-        // (Mirrored as a chokepoint in AudioCapabilityProfile.fromMap on the
-        // Dart side.)
-        if (routeType == ROUTE_ARC) {
-            canPassthroughTrueHd = false
-            canPassthroughTrueHdJoc = false
-            canPassthroughDtsHd = false
-            canPassthroughDtsX = false
-        }
 
         val supportsAc3 = canPassthroughAc3 || canPassthroughEac3
         val supportsDts = canPassthroughDts || canPassthroughDtsHd || canPassthroughDtsX
         val supportsTrueHd = canPassthroughTrueHd || canPassthroughTrueHdJoc
 
-        val maxPcmChannels = estimateMaxPcmChannels(routeType)
+        val maxPcmChannels = detectMaxPcmChannels(bitstreamDevices, routeType)
 
         return mapOf(
             "supportsAc3" to supportsAc3,
@@ -406,6 +395,20 @@ object AudioCapabilities {
     private fun resolveRouteType(devices: List<AudioDeviceInfo>): String {
         val types = devices.map { it.type }.toSet()
 
+        // 1. Bluetooth devices take highest priority if connected.
+        if (types.any(::isBluetoothType)) {
+            return ROUTE_BLUETOOTH
+        }
+
+        // 2. Wired or USB headsets/headphones take precedence over speakers or HDMI.
+        if (types.contains(AudioDeviceInfo.TYPE_WIRED_HEADPHONES) ||
+            types.contains(AudioDeviceInfo.TYPE_WIRED_HEADSET) ||
+            types.contains(AudioDeviceInfo.TYPE_USB_HEADSET)
+        ) {
+            return ROUTE_SPEAKER
+        }
+
+        // 3. HDMI eARC and ARC receivers connected to a TV/device.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
             types.contains(AudioDeviceInfo.TYPE_HDMI_EARC)
         ) {
@@ -414,19 +417,45 @@ object AudioCapabilities {
         if (types.contains(AudioDeviceInfo.TYPE_HDMI_ARC)) {
             return ROUTE_ARC
         }
+
+        // 4. Built-in speakers default to a safe stereo route. We prefer this
+        // over plain HDMI on purpose, so a TV panel never tries to bitstream
+        // lossless audio to speakers that cannot decode it, which is the silent
+        // playback bug. A box wired to a real AV receiver should turn on the
+        // "AV receiver" output mode, which forces the HDMI route and passthrough
+        // on the Dart side.
+        if (types.contains(AudioDeviceInfo.TYPE_BUILTIN_SPEAKER) ||
+            types.contains(AudioDeviceInfo.TYPE_BUILTIN_EARPIECE)
+        ) {
+            return ROUTE_SPEAKER
+        }
+
+        // 5. Standard HDMI for boxes with no built-in speaker.
         if (types.contains(AudioDeviceInfo.TYPE_HDMI) ||
             types.contains(AudioDeviceInfo.TYPE_LINE_DIGITAL)
         ) {
             return ROUTE_HDMI
         }
-        if (types.any(::isBluetoothType)) {
-            return ROUTE_BLUETOOTH
-        }
-        if (types.any(::isSpeakerLikeType)) {
-            return ROUTE_SPEAKER
-        }
 
         return ROUTE_OTHER
+    }
+
+    private fun detectMaxPcmChannels(devices: List<AudioDeviceInfo>, routeType: String): Int {
+        var maxVal = 0
+        for (device in devices) {
+            val counts = device.channelCounts
+            if (counts != null) {
+                for (count in counts) {
+                    if (count > maxVal) {
+                        maxVal = count
+                    }
+                }
+            }
+        }
+        if (maxVal > 0) {
+            return maxVal
+        }
+        return estimateMaxPcmChannels(routeType)
     }
 
     private fun estimateMaxPcmChannels(routeType: String): Int {

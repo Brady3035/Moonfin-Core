@@ -1,17 +1,20 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get_it/get_it.dart';
 import 'package:moonfin_design/moonfin_design.dart';
+import 'package:jellyfin_preference/jellyfin_preference.dart';
 import 'package:server_core/server_core.dart';
 
 import '../../../data/models/aggregated_item.dart';
 import '../../../data/utils/playlist_utils.dart';
-import '../../../data/services/home_screen_sections_service.dart';
 import '../../../data/services/plugin_sync_service.dart';
 import '../../../preference/home_section_config.dart';
 import '../../../preference/preference_constants.dart';
+import '../../../preference/seerr_preferences.dart';
+import '../../../preference/seerr_row_config.dart';
 import '../../../preference/user_preferences.dart';
 import '../../../util/platform_detection.dart';
 import '../../widgets/overlay_sheet.dart';
@@ -27,11 +30,18 @@ const EdgeInsets _kHomeSectionTileContentPadding = EdgeInsets.symmetric(
   horizontal: 16,
   vertical: 8,
 );
-const EdgeInsets _kHomeSectionTileOuterPadding = EdgeInsets.fromLTRB(12, 4, 12, 4);
+const EdgeInsets _kHomeSectionTileOuterPadding = EdgeInsets.fromLTRB(
+  12,
+  4,
+  12,
+  4,
+);
 
 BoxDecoration _homeSectionTileDecoration(
   BuildContext context, {
   required bool focused,
+  HomeSectionType? type,
+  bool mergeEnabled = false,
 }) {
   final colorScheme = Theme.of(context).colorScheme;
   final borderTokens = ThemeRegistry.active.borders;
@@ -39,6 +49,35 @@ BoxDecoration _homeSectionTileDecoration(
   final unfocusedBorderColor = baseBorder.a == 0
       ? AppColorScheme.onSurface.withValues(alpha: 0.16)
       : baseBorder.withValues(alpha: 0.55);
+
+  final isMergedResume = mergeEnabled && type == HomeSectionType.resume;
+  final isMergedNextUp = mergeEnabled && type == HomeSectionType.nextUp;
+
+  if (isMergedResume || isMergedNextUp) {
+    final borderColor = focused
+        ? AppColorScheme.accent.withValues(alpha: 0.72)
+        : const Color(0xFF00F0FF); // Neon cyan border for merged rows
+    final borderWidth = focused ? 2.0 : 1.5;
+
+    return BoxDecoration(
+      color: focused
+          ? AppColorScheme.onSurface
+          : colorScheme.surfaceContainerLow.withValues(alpha: 0.82),
+      borderRadius: isMergedResume
+          ? const BorderRadius.vertical(top: Radius.circular(_kHomeSectionTileRadius))
+          : const BorderRadius.vertical(bottom: Radius.circular(_kHomeSectionTileRadius)),
+      border: Border(
+        top: isMergedResume
+            ? BorderSide(color: borderColor, width: borderWidth)
+            : BorderSide.none,
+        bottom: isMergedNextUp
+            ? BorderSide(color: borderColor, width: borderWidth)
+            : BorderSide.none,
+        left: BorderSide(color: borderColor, width: borderWidth),
+        right: BorderSide(color: borderColor, width: borderWidth),
+      ),
+    );
+  }
 
   return BoxDecoration(
     color: focused
@@ -70,10 +109,7 @@ BoxDecoration _homeSectionTileDecoration(
 class HomeSectionsScreen extends StatefulWidget {
   final bool showGeneralOptions;
 
-  const HomeSectionsScreen({
-    super.key,
-    this.showGeneralOptions = true,
-  });
+  const HomeSectionsScreen({super.key, this.showGeneralOptions = true});
 
   @override
   State<HomeSectionsScreen> createState() => _HomeSectionsScreenState();
@@ -208,7 +244,9 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen> {
           case HomeSectionType.genres:
             tasks.add(() async {
               try {
-                final includeItemTypes = _prefs.get(UserPreferences.genresRowItemFilter).includeItemTypes;
+                final includeItemTypes = _prefs
+                    .get(UserPreferences.genresRowItemFilter)
+                    .includeItemTypes;
                 final response = await client.itemsApi.getGenres(
                   userId: userId,
                   recursive: true,
@@ -277,9 +315,7 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen> {
           case HomeSectionType.activeRecordings:
             tasks.add(() async {
               try {
-                final response = await client.liveTvApi.getRecordings(
-                  limit: 1,
-                );
+                final response = await client.liveTvApi.getRecordings(limit: 1);
                 final items = response['Items'] as List? ?? [];
                 setEmpty(stableId, items.isEmpty);
               } catch (_) {}
@@ -337,7 +373,9 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen> {
           if (genreId != null && genreId.isNotEmpty) {
             tasks.add(() async {
               try {
-                final includeItemTypes = _prefs.get(UserPreferences.genresRowItemFilter).includeItemTypes;
+                final includeItemTypes = _prefs
+                    .get(UserPreferences.genresRowItemFilter)
+                    .includeItemTypes;
                 final response = await client.itemsApi.getItems(
                   genreIds: [genreId],
                   limit: 1,
@@ -385,6 +423,25 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen> {
         type == HomeSectionType.audioPlaylists;
   }
 
+  bool _isSinceYouWatchedSectionType(HomeSectionType type) {
+    return type == HomeSectionType.sinceYouWatched1 ||
+        type == HomeSectionType.sinceYouWatched2 ||
+        type == HomeSectionType.sinceYouWatched3 ||
+        type == HomeSectionType.sinceYouWatched4 ||
+        type == HomeSectionType.sinceYouWatched5;
+  }
+
+  int _getSinceYouWatchedIndex(HomeSectionType type) {
+    switch (type) {
+      case HomeSectionType.sinceYouWatched1: return 1;
+      case HomeSectionType.sinceYouWatched2: return 2;
+      case HomeSectionType.sinceYouWatched3: return 3;
+      case HomeSectionType.sinceYouWatched4: return 4;
+      case HomeSectionType.sinceYouWatched5: return 5;
+      default: return 0;
+    }
+  }
+
   bool _isCollectionsSectionType(HomeSectionType type) {
     return type == HomeSectionType.collections;
   }
@@ -413,9 +470,6 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen> {
 
   int _getSectionCategory(HomeSectionConfig section) {
     if (section.isPluginDynamic) {
-      if (section.pluginSource == HomeSectionPluginSource.hss) {
-        return 7;
-      }
       if (section.pluginSource == HomeSectionPluginSource.collections) {
         return 2;
       }
@@ -462,44 +516,155 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen> {
     }
   }
 
+  bool _isAnySeerrSectionEnabled() {
+    final seerrPrefs = GetIt.instance<SeerrPreferences>();
+    return seerrPrefs.rowsConfig.any((r) => r.enabled);
+  }
+
+
+  bool _isAnyTmdbSectionEnabled() {
+    return _prefs.get(UserPreferences.tmdbPopularMoviesEnabled) ||
+        _prefs.get(UserPreferences.tmdbTopRatedMoviesEnabled) ||
+        _prefs.get(UserPreferences.tmdbNowPlayingMoviesEnabled) ||
+        _prefs.get(UserPreferences.tmdbUpcomingMoviesEnabled) ||
+        _prefs.get(UserPreferences.tmdbPopularTvEnabled) ||
+        _prefs.get(UserPreferences.tmdbTopRatedTvEnabled) ||
+        _prefs.get(UserPreferences.tmdbAiringTodayTvEnabled) ||
+        _prefs.get(UserPreferences.tmdbOnTheAirTvEnabled) ||
+        _prefs.get(UserPreferences.tmdbTrendingMovieDailyEnabled) ||
+        _prefs.get(UserPreferences.tmdbTrendingMovieWeeklyEnabled) ||
+        _prefs.get(UserPreferences.tmdbTrendingTvDailyEnabled) ||
+        _prefs.get(UserPreferences.tmdbTrendingTvWeeklyEnabled) ||
+        _prefs.get(UserPreferences.tmdbTrendingAllWeeklyEnabled);
+  }
+
+  bool _isSeerrRowEnabled(HomeSectionType type) {
+    final seerrPrefs = GetIt.instance<SeerrPreferences>();
+    final seerrType = switch (type) {
+      HomeSectionType.seerrRecentRequests => SeerrRowType.recentRequests,
+      HomeSectionType.seerrRecentlyAdded => SeerrRowType.recentlyAdded,
+      HomeSectionType.seerrTrending => SeerrRowType.trending,
+      HomeSectionType.seerrPopularMovies => SeerrRowType.popularMovies,
+      HomeSectionType.seerrMovieGenres => SeerrRowType.movieGenres,
+      HomeSectionType.seerrUpcomingMovies => SeerrRowType.upcomingMovies,
+      HomeSectionType.seerrStudios => SeerrRowType.studios,
+      HomeSectionType.seerrPopularSeries => SeerrRowType.popularSeries,
+      HomeSectionType.seerrSeriesGenres => SeerrRowType.seriesGenres,
+      HomeSectionType.seerrUpcomingSeries => SeerrRowType.upcomingSeries,
+      HomeSectionType.seerrNetworks => SeerrRowType.networks,
+      _ => null,
+    };
+    if (seerrType == null) return false;
+    return seerrPrefs.rowsConfig.firstWhere(
+      (r) => r.type == seerrType,
+      orElse: () => SeerrRowConfig(type: seerrType, enabled: false),
+    ).enabled;
+  }
+
+
+  bool _isTmdbRowEnabled(HomeSectionType type) {
+    final prefKey = switch (type) {
+      HomeSectionType.tmdbPopularMovies => UserPreferences.tmdbPopularMoviesEnabled,
+      HomeSectionType.tmdbTopRatedMovies => UserPreferences.tmdbTopRatedMoviesEnabled,
+      HomeSectionType.tmdbNowPlayingMovies => UserPreferences.tmdbNowPlayingMoviesEnabled,
+      HomeSectionType.tmdbUpcomingMovies => UserPreferences.tmdbUpcomingMoviesEnabled,
+      HomeSectionType.tmdbPopularTv => UserPreferences.tmdbPopularTvEnabled,
+      HomeSectionType.tmdbTopRatedTv => UserPreferences.tmdbTopRatedTvEnabled,
+      HomeSectionType.tmdbAiringTodayTv => UserPreferences.tmdbAiringTodayTvEnabled,
+      HomeSectionType.tmdbOnTheAirTv => UserPreferences.tmdbOnTheAirTvEnabled,
+      HomeSectionType.tmdbTrendingMovieDaily => UserPreferences.tmdbTrendingMovieDailyEnabled,
+      HomeSectionType.tmdbTrendingMovieWeekly => UserPreferences.tmdbTrendingMovieWeeklyEnabled,
+      HomeSectionType.tmdbTrendingTvDaily => UserPreferences.tmdbTrendingTvDailyEnabled,
+      HomeSectionType.tmdbTrendingTvWeekly => UserPreferences.tmdbTrendingTvWeeklyEnabled,
+      HomeSectionType.tmdbTrendingAllWeekly => UserPreferences.tmdbTrendingAllWeeklyEnabled,
+      _ => null,
+    };
+    if (prefKey == null) return false;
+    return _prefs.get(prefKey);
+  }
+
+
+  bool _isTmdbSectionType(HomeSectionType type) {
+    return type == HomeSectionType.tmdbPopularMovies ||
+        type == HomeSectionType.tmdbTopRatedMovies ||
+        type == HomeSectionType.tmdbNowPlayingMovies ||
+        type == HomeSectionType.tmdbUpcomingMovies ||
+        type == HomeSectionType.tmdbPopularTv ||
+        type == HomeSectionType.tmdbTopRatedTv ||
+        type == HomeSectionType.tmdbAiringTodayTv ||
+        type == HomeSectionType.tmdbOnTheAirTv ||
+        type == HomeSectionType.tmdbTrendingMovieDaily ||
+        type == HomeSectionType.tmdbTrendingMovieWeekly ||
+        type == HomeSectionType.tmdbTrendingTvDaily ||
+        type == HomeSectionType.tmdbTrendingTvWeekly ||
+        type == HomeSectionType.tmdbTrendingAllWeekly;
+  }
+
   bool _isHiddenByRowVisibilityGates(HomeSectionConfig section) {
     final showFavoritesRows = _prefs.get(UserPreferences.displayFavoritesRows);
-    final showCollectionsRows =
-        _prefs.get(UserPreferences.displayCollectionsRows);
+    final showCollectionsRows = _prefs.get(
+      UserPreferences.displayCollectionsRows,
+    );
     final showGenresRows = _prefs.get(UserPreferences.displayGenresRows);
     final showPlaylistsRows = _prefs.get(UserPreferences.displayPlaylistsRows);
-    final showSeerrRows = _prefs.get(UserPreferences.displaySeerrRows) &&
+    final showSeerrRows =
+        _isAnySeerrSectionEnabled() &&
         GetIt.instance<PluginSyncService>().seerrAvailable;
+    final showTmdbRows = _isAnyTmdbSectionEnabled();
 
     final hiddenByFavorites =
-      !showFavoritesRows && _isFavoriteSectionType(section.type);
-    final hiddenByCollections = !showCollectionsRows &&
-      ((section.isBuiltin && _isCollectionsSectionType(section.type)) ||
-        (section.isPluginDynamic &&
-          section.pluginSource == HomeSectionPluginSource.collections));
-    final hiddenByGenres = !showGenresRows &&
-      ((section.isBuiltin && _isGenresSectionType(section.type)) ||
-        (section.isPluginDynamic &&
-          section.pluginSource == HomeSectionPluginSource.genres));
-    final hiddenByPlaylists = !showPlaylistsRows &&
-      ((section.isBuiltin && _isPlaylistsSectionType(section.type)) ||
-        (section.isPluginDynamic &&
-          section.pluginSource == HomeSectionPluginSource.playlists));
-    final hiddenBySeerr = !showSeerrRows && _isSeerrSectionType(section.type);
+        !showFavoritesRows && _isFavoriteSectionType(section.type);
+    final hiddenByCollections =
+        !showCollectionsRows &&
+        ((section.isBuiltin && _isCollectionsSectionType(section.type)) ||
+            (section.isPluginDynamic &&
+                section.pluginSource == HomeSectionPluginSource.collections));
+    final hiddenByGenres =
+        !showGenresRows &&
+        ((section.isBuiltin && _isGenresSectionType(section.type)) ||
+            (section.isPluginDynamic &&
+                section.pluginSource == HomeSectionPluginSource.genres));
+    final hiddenByPlaylists =
+        !showPlaylistsRows &&
+        ((section.isBuiltin && _isPlaylistsSectionType(section.type)) ||
+            (section.isPluginDynamic &&
+                section.pluginSource == HomeSectionPluginSource.playlists));
+    final hiddenBySeerr = _isSeerrSectionType(section.type) &&
+        (!showSeerrRows || !_isSeerrRowEnabled(section.type));
+    final hiddenByTmdb = _isTmdbSectionType(section.type) &&
+        (!showTmdbRows || !_isTmdbRowEnabled(section.type));
+
     final showAudioRows = _prefs.get(UserPreferences.displayAudioRows);
     final hiddenByAudio = !showAudioRows && _isAudioSectionType(section.type);
+
+    final showSinceYouWatched = _prefs.get(UserPreferences.displaySinceYouWatchedRows);
+    final sinceYouWatchedNum = _prefs.get(UserPreferences.sinceYouWatchedNumRows).value;
+    final showRewatch = _prefs.get(UserPreferences.displayRewatchRow);
+
+    final hiddenBySinceYouWatched = _isSinceYouWatchedSectionType(section.type) &&
+        (!showSinceYouWatched || _getSinceYouWatchedIndex(section.type) > sinceYouWatchedNum);
+
+    final hiddenByRewatch = section.type == HomeSectionType.rewatch && !showRewatch;
+
     return hiddenByFavorites ||
         hiddenByCollections ||
         hiddenByGenres ||
         hiddenByPlaylists ||
         hiddenBySeerr ||
-        hiddenByAudio;
+        hiddenByTmdb ||
+        hiddenByAudio ||
+        hiddenBySinceYouWatched ||
+        hiddenByRewatch;
   }
 
   List<int> _visibleSectionIndices() {
     final visible = <int>[];
+    final mergeEnabled = _prefs.get(UserPreferences.mergeContinueWatchingNextUp);
     for (var i = 0; i < _sections.length; i++) {
       if (_isHiddenByRowVisibilityGates(_sections[i])) continue;
+      if (mergeEnabled && _sections[i].type == HomeSectionType.nextUp) {
+        continue;
+      }
       visible.add(i);
     }
     return visible;
@@ -509,10 +674,13 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen> {
   void initState() {
     super.initState();
     final all = _prefs.homeSectionsConfig;
-    _mediaBarConfig = all.where((s) => s.type == HomeSectionType.mediaBar).firstOrNull;
+    _mediaBarConfig = all
+        .where((s) => s.type == HomeSectionType.mediaBar)
+        .firstOrNull;
     _sections = all.where((s) => s.type != HomeSectionType.mediaBar).toList();
     final addedBuiltins = _ensureBuiltinSectionsPresent();
     _mergeDiscoveredPluginSections();
+    _enforceMergeAdjacency();
     _rebuildFocusNodes();
     if (addedBuiltins) {
       _persistSections(pushSync: false);
@@ -537,11 +705,7 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen> {
       if (existingTypes.contains(type)) continue;
 
       _addSection(
-        HomeSectionConfig(
-          type: type,
-          enabled: false,
-          order: nextOrder++,
-        ),
+        HomeSectionConfig(type: type, enabled: false, order: nextOrder++),
       );
       changed = true;
     }
@@ -557,15 +721,6 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen> {
       _showOverlay = true;
     });
     try {
-      final futures = <Future<void>>[];
-      if (GetIt.instance.isRegistered<HomeScreenSectionsService>()) {
-        futures.add(GetIt.instance<HomeScreenSectionsService>().refreshAll());
-      }
-      if (futures.isNotEmpty) {
-        try {
-          await Future.wait(futures);
-        } catch (_) {}
-      }
       final collectionsFuture = _fetchCollectionsForHomeSections();
       final genresFuture = _fetchGenresForHomeSections();
       final playlistsFuture = _fetchPlaylistsForHomeSections();
@@ -576,9 +731,13 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen> {
       var changed = false;
       setState(() {
         final mergedPluginSections = _mergeDiscoveredPluginSections();
-        final mergedCollectionSections = _mergeCollectionSections(discoveredCollections);
+        final mergedCollectionSections = _mergeCollectionSections(
+          discoveredCollections,
+        );
         final mergedGenreSections = _mergeGenreSections(discoveredGenres);
-        final mergedPlaylistSections = _mergePlaylistSections(discoveredPlaylists);
+        final mergedPlaylistSections = _mergePlaylistSections(
+          discoveredPlaylists,
+        );
         changed =
             mergedPluginSections ||
             mergedCollectionSections ||
@@ -609,16 +768,15 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen> {
     }
   }
 
-  /// Adds plugin-dynamic sections discovered by the Home Screen Sections
-  /// plugin into the in-memory list (disabled by default)
-  /// and prunes stale entries whose section is no longer reported.
   bool _mergeDiscoveredPluginSections() {
-    final hssChanged = _mergeHssSections();
-    return hssChanged;
+    return false;
   }
 
-  Future<List<_DiscoveredCollectionRow>> _fetchCollectionsForHomeSections() async {
-    final showCollectionsRows = _prefs.get(UserPreferences.displayCollectionsRows);
+  Future<List<_DiscoveredCollectionRow>>
+  _fetchCollectionsForHomeSections() async {
+    final showCollectionsRows = _prefs.get(
+      UserPreferences.displayCollectionsRows,
+    );
     if (!showCollectionsRows) return const <_DiscoveredCollectionRow>[];
 
     try {
@@ -645,9 +803,11 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen> {
         all.addAll(
           items
               .whereType<Map<String, dynamic>>()
-              .where((item) =>
-                  (item['Id']?.toString() ?? '').isNotEmpty &&
-                  (item['Name']?.toString() ?? '').isNotEmpty)
+              .where(
+                (item) =>
+                    (item['Id']?.toString() ?? '').isNotEmpty &&
+                    (item['Name']?.toString() ?? '').isNotEmpty,
+              )
               .map(
                 (item) => _DiscoveredCollectionRow(
                   id: item['Id'].toString(),
@@ -673,10 +833,12 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen> {
     var changed = false;
 
     final existing = <String, HomeSectionConfig>{
-      for (final cfg in _sections.where((c) =>
-          c.isPluginDynamic &&
-          c.pluginSource == HomeSectionPluginSource.collections &&
-          c.serverId == serverId))
+      for (final cfg in _sections.where(
+        (c) =>
+            c.isPluginDynamic &&
+            c.pluginSource == HomeSectionPluginSource.collections &&
+            c.serverId == serverId,
+      ))
         cfg.stableId: cfg,
     };
 
@@ -689,8 +851,8 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen> {
         pluginAdditionalData: collection.id,
         pluginDisplayText: collection.name,
         pluginSource: HomeSectionPluginSource.collections,
-        enabled: existing[
-                'pluginDynamic:collections:$serverId:collection:${collection.id}']
+        enabled:
+            existing['pluginDynamic:collections:$serverId:collection:${collection.id}']
                 ?.enabled ??
             false,
         order: nextOrder++,
@@ -712,11 +874,13 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen> {
     }
 
     final before = _sections.length;
-    _sections.removeWhere((s) =>
-        s.isPluginDynamic &&
-        s.pluginSource == HomeSectionPluginSource.collections &&
-        s.serverId == serverId &&
-        !freshIds.contains(s.stableId));
+    _sections.removeWhere(
+      (s) =>
+          s.isPluginDynamic &&
+          s.pluginSource == HomeSectionPluginSource.collections &&
+          s.serverId == serverId &&
+          !freshIds.contains(s.stableId),
+    );
     if (_sections.length != before) changed = true;
 
     return changed;
@@ -728,8 +892,9 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen> {
 
     try {
       final client = GetIt.instance<MediaServerClient>();
-      final includeItemTypes =
-          _prefs.get(UserPreferences.genresRowItemFilter).includeItemTypes;
+      final includeItemTypes = _prefs
+          .get(UserPreferences.genresRowItemFilter)
+          .includeItemTypes;
       const pageSize = 250;
       var startIndex = 0;
       int? total;
@@ -752,9 +917,11 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen> {
         all.addAll(
           items
               .whereType<Map<String, dynamic>>()
-              .where((item) =>
-                  (item['Id']?.toString() ?? '').isNotEmpty &&
-                  (item['Name']?.toString() ?? '').isNotEmpty)
+              .where(
+                (item) =>
+                    (item['Id']?.toString() ?? '').isNotEmpty &&
+                    (item['Name']?.toString() ?? '').isNotEmpty,
+              )
               .map(
                 (item) => _DiscoveredGenreRow(
                   id: item['Id'].toString(),
@@ -802,9 +969,11 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen> {
         all.addAll(
           items
               .whereType<Map<String, dynamic>>()
-              .where((item) =>
-                  (item['Id']?.toString() ?? '').isNotEmpty &&
-                  (item['Name']?.toString() ?? '').isNotEmpty)
+              .where(
+                (item) =>
+                    (item['Id']?.toString() ?? '').isNotEmpty &&
+                    (item['Name']?.toString() ?? '').isNotEmpty,
+              )
               .map(
                 (item) => _DiscoveredPlaylistRow(
                   id: item['Id'].toString(),
@@ -830,10 +999,12 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen> {
     var changed = false;
 
     final existing = <String, HomeSectionConfig>{
-      for (final cfg in _sections.where((c) =>
-          c.isPluginDynamic &&
-          c.pluginSource == HomeSectionPluginSource.playlists &&
-          c.serverId == serverId))
+      for (final cfg in _sections.where(
+        (c) =>
+            c.isPluginDynamic &&
+            c.pluginSource == HomeSectionPluginSource.playlists &&
+            c.serverId == serverId,
+      ))
         cfg.stableId: cfg,
     };
 
@@ -846,8 +1017,8 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen> {
         pluginAdditionalData: playlist.id,
         pluginDisplayText: playlist.name,
         pluginSource: HomeSectionPluginSource.playlists,
-        enabled: existing[
-                'pluginDynamic:playlists:$serverId:playlist:${playlist.id}']
+        enabled:
+            existing['pluginDynamic:playlists:$serverId:playlist:${playlist.id}']
                 ?.enabled ??
             false,
         order: nextOrder++,
@@ -869,11 +1040,13 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen> {
     }
 
     final before = _sections.length;
-    _sections.removeWhere((s) =>
-        s.isPluginDynamic &&
-        s.pluginSource == HomeSectionPluginSource.playlists &&
-        s.serverId == serverId &&
-        !freshIds.contains(s.stableId));
+    _sections.removeWhere(
+      (s) =>
+          s.isPluginDynamic &&
+          s.pluginSource == HomeSectionPluginSource.playlists &&
+          s.serverId == serverId &&
+          !freshIds.contains(s.stableId),
+    );
     if (_sections.length != before) changed = true;
 
     return changed;
@@ -885,10 +1058,12 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen> {
     var changed = false;
 
     final existing = <String, HomeSectionConfig>{
-      for (final cfg in _sections.where((c) =>
-          c.isPluginDynamic &&
-          c.pluginSource == HomeSectionPluginSource.genres &&
-          c.serverId == serverId))
+      for (final cfg in _sections.where(
+        (c) =>
+            c.isPluginDynamic &&
+            c.pluginSource == HomeSectionPluginSource.genres &&
+            c.serverId == serverId,
+      ))
         cfg.stableId: cfg,
     };
 
@@ -924,73 +1099,15 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen> {
     }
 
     final before = _sections.length;
-    _sections.removeWhere((s) =>
-        s.isPluginDynamic &&
-        s.pluginSource == HomeSectionPluginSource.genres &&
-        s.serverId == serverId &&
-        !freshIds.contains(s.stableId));
+    _sections.removeWhere(
+      (s) =>
+          s.isPluginDynamic &&
+          s.pluginSource == HomeSectionPluginSource.genres &&
+          s.serverId == serverId &&
+          !freshIds.contains(s.stableId),
+    );
     if (_sections.length != before) changed = true;
 
-    return changed;
-  }
-
-  bool _mergeHssSections() {
-    if (!GetIt.instance.isRegistered<HomeScreenSectionsService>()) return false;
-    final service = GetIt.instance<HomeScreenSectionsService>();
-    final discovered = service.availableServers.toList();
-    final allProbed = service.allCapabilities.toList();
-    if (allProbed.isEmpty) return false;
-    var changed = false;
-
-    final existing = <String, HomeSectionConfig>{
-      for (final cfg in _sections.where((c) =>
-          c.isPluginDynamic &&
-          c.pluginSource == HomeSectionPluginSource.hss))
-        cfg.stableId: cfg,
-    };
-
-    final freshIds = <String>{};
-    var nextOrder = _sections.length;
-    for (final cap in discovered) {
-      for (final section in cap.sections) {
-        final cfg = HomeSectionConfig.pluginDynamic(
-          serverId: cap.serverId,
-          pluginSection: section.section,
-          pluginAdditionalData: section.additionalData,
-          pluginDisplayText: section.displayText,
-          pluginSource: HomeSectionPluginSource.hss,
-          enabled: existing[
-                  'pluginDynamic:hss:${cap.serverId}:${section.section}:${section.additionalData ?? ''}']
-                  ?.enabled ??
-              false,
-          order: nextOrder++,
-        );
-        freshIds.add(cfg.stableId);
-        final idx = _sections.indexWhere((s) => s.stableId == cfg.stableId);
-        if (idx >= 0) {
-          final updated = _sections[idx].copyWith(
-            pluginDisplayText: cfg.pluginDisplayText,
-          );
-          if (_sections[idx].pluginDisplayText != updated.pluginDisplayText) {
-            _sections[idx] = updated;
-            changed = true;
-          }
-        } else {
-          _addSection(cfg);
-          changed = true;
-        }
-      }
-    }
-
-    final probedServers = allProbed.map((c) => c.serverId).toSet();
-    final before = _sections.length;
-    _sections.removeWhere((s) =>
-        s.isPluginDynamic &&
-        s.pluginSource == HomeSectionPluginSource.hss &&
-        s.serverId != null &&
-        probedServers.contains(s.serverId) &&
-        !freshIds.contains(s.stableId));
-    if (_sections.length != before) changed = true;
     return changed;
   }
 
@@ -999,7 +1116,9 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen> {
   void _rebuildFocusNodes() {
     final activeIds = _sections.map((s) => s.stableId).toSet();
 
-    final inactiveIds = _focusNodesByStableId.keys.where((id) => !activeIds.contains(id)).toList();
+    final inactiveIds = _focusNodesByStableId.keys
+        .where((id) => !activeIds.contains(id))
+        .toList();
     for (final id in inactiveIds) {
       _focusNodesByStableId[id]?.dispose();
       _focusNodesByStableId.remove(id);
@@ -1056,7 +1175,42 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen> {
     }
   }
 
+  void _syncIndividualPreferences() {
+    Preference<bool>? mapToPref(HomeSectionType type) {
+      return switch (type) {
+        HomeSectionType.tmdbPopularMovies => UserPreferences.tmdbPopularMoviesEnabled,
+        HomeSectionType.tmdbTopRatedMovies => UserPreferences.tmdbTopRatedMoviesEnabled,
+        HomeSectionType.tmdbNowPlayingMovies => UserPreferences.tmdbNowPlayingMoviesEnabled,
+        HomeSectionType.tmdbUpcomingMovies => UserPreferences.tmdbUpcomingMoviesEnabled,
+        HomeSectionType.tmdbPopularTv => UserPreferences.tmdbPopularTvEnabled,
+        HomeSectionType.tmdbTopRatedTv => UserPreferences.tmdbTopRatedTvEnabled,
+        HomeSectionType.tmdbAiringTodayTv => UserPreferences.tmdbAiringTodayTvEnabled,
+        HomeSectionType.tmdbOnTheAirTv => UserPreferences.tmdbOnTheAirTvEnabled,
+        HomeSectionType.tmdbTrendingMovieDaily => UserPreferences.tmdbTrendingMovieDailyEnabled,
+        HomeSectionType.tmdbTrendingMovieWeekly => UserPreferences.tmdbTrendingMovieWeeklyEnabled,
+        HomeSectionType.tmdbTrendingTvDaily => UserPreferences.tmdbTrendingTvDailyEnabled,
+        HomeSectionType.tmdbTrendingTvWeekly => UserPreferences.tmdbTrendingTvWeeklyEnabled,
+        HomeSectionType.tmdbTrendingAllWeekly => UserPreferences.tmdbTrendingAllWeeklyEnabled,
+        HomeSectionType.rewatch => UserPreferences.displayRewatchRow,
+        HomeSectionType.sinceYouWatched1 => UserPreferences.sinceYouWatched1Enabled,
+        HomeSectionType.sinceYouWatched2 => UserPreferences.sinceYouWatched2Enabled,
+        HomeSectionType.sinceYouWatched3 => UserPreferences.sinceYouWatched3Enabled,
+        HomeSectionType.sinceYouWatched4 => UserPreferences.sinceYouWatched4Enabled,
+        HomeSectionType.sinceYouWatched5 => UserPreferences.sinceYouWatched5Enabled,
+        _ => null,
+      };
+    }
+
+    for (final section in _sections) {
+      final prefKey = mapToPref(section.type);
+      if (prefKey != null && _prefs.get(prefKey) != section.enabled) {
+        _prefs.set(prefKey, section.enabled);
+      }
+    }
+  }
+
   void _save() {
+    _syncIndividualPreferences();
     _persistSections(pushSync: true);
   }
 
@@ -1085,20 +1239,90 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen> {
     });
   }
 
-  void _moveSectionByActualIndex(int fromIndex, int toIndex) {
-    if (fromIndex < 0 || fromIndex >= _sections.length) return;
-    if (toIndex < 0 || toIndex >= _sections.length) return;
-    if (fromIndex == toIndex) return;
+  void _enforceMergeAdjacency() {
+    final merge = _prefs.get(UserPreferences.mergeContinueWatchingNextUp);
+    if (!merge) return;
+    final resumeIdx = _sections.indexWhere((s) => s.type == HomeSectionType.resume);
+    final nextUpIdx = _sections.indexWhere((s) => s.type == HomeSectionType.nextUp);
+    if (resumeIdx < 0 || nextUpIdx < 0) return;
+    if ((resumeIdx - nextUpIdx).abs() == 1) return;
+
     setState(() {
-      final item = _sections.removeAt(fromIndex);
-      _sections.insert(toIndex, item);
-      final node = _focusNodes.removeAt(fromIndex);
-      _focusNodes.insert(toIndex, node);
+      final nextUpItem = _sections.removeAt(nextUpIdx);
+      final nextUpNode = _focusNodes.removeAt(nextUpIdx);
+
+      final newResumeIdx = _sections.indexWhere((s) => s.type == HomeSectionType.resume);
+      _sections.insert(newResumeIdx + 1, nextUpItem);
+      _focusNodes.insert(newResumeIdx + 1, nextUpNode);
     });
     _save();
+  }
+
+  void _moveSection(int fromIndex, int toIndex) {
+    if (fromIndex < 0 || fromIndex >= _sections.length) return;
+    if (toIndex < 0 || toIndex > _sections.length) return;
+    if (fromIndex == toIndex) return;
+
+    final merge = _prefs.get(UserPreferences.mergeContinueWatchingNextUp);
+    final resumeIdx = _sections.indexWhere((s) => s.type == HomeSectionType.resume);
+    final nextUpIdx = _sections.indexWhere((s) => s.type == HomeSectionType.nextUp);
+
+    final isMergeActive = merge && resumeIdx >= 0 && nextUpIdx >= 0 && (resumeIdx - nextUpIdx).abs() == 1;
+
+    setState(() {
+      if (isMergeActive && (fromIndex == resumeIdx || fromIndex == nextUpIdx)) {
+        final first = resumeIdx < nextUpIdx ? resumeIdx : nextUpIdx;
+        final item1 = _sections.removeAt(first);
+        final node1 = _focusNodes.removeAt(first);
+        final item2 = _sections.removeAt(first);
+        final node2 = _focusNodes.removeAt(first);
+
+        var targetIndex = toIndex;
+        if (targetIndex > first) {
+          if (targetIndex <= first + 2) {
+            targetIndex = first;
+          } else {
+            targetIndex -= 2;
+          }
+        }
+
+        _sections.insert(targetIndex, item1);
+        _focusNodes.insert(targetIndex, node1);
+        _sections.insert(targetIndex + 1, item2);
+        _focusNodes.insert(targetIndex + 1, node2);
+      } else {
+        var targetIndex = toIndex;
+        if (isMergeActive) {
+          final first = resumeIdx < nextUpIdx ? resumeIdx : nextUpIdx;
+          if (targetIndex == first + 1) {
+            targetIndex = first + 2;
+          }
+        }
+
+        final item = _sections.removeAt(fromIndex);
+        final node = _focusNodes.removeAt(fromIndex);
+        _sections.insert(targetIndex, item);
+        _focusNodes.insert(targetIndex, node);
+      }
+    });
+    _save();
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (toIndex < _focusNodes.length) {
-        _focusSectionAndEnsureVisible(toIndex);
+      var focusIndex = toIndex;
+      if (isMergeActive && (fromIndex == resumeIdx || fromIndex == nextUpIdx)) {
+        final first = resumeIdx < nextUpIdx ? resumeIdx : nextUpIdx;
+        var targetIndex = toIndex;
+        if (targetIndex > first) {
+          if (targetIndex <= first + 2) {
+            targetIndex = first;
+          } else {
+            targetIndex -= 2;
+          }
+        }
+        focusIndex = targetIndex;
+      }
+      if (focusIndex < _focusNodes.length) {
+        _focusSectionAndEnsureVisible(focusIndex);
       }
     });
   }
@@ -1112,52 +1336,83 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen> {
     return _labelForType(cfg.type, l10n);
   }
 
-  String _labelForType(HomeSectionType type, AppLocalizations l10n) => switch (type) {
-    HomeSectionType.mediaBar => l10n.mediaBar,
-    HomeSectionType.latestMedia => l10n.latestMedia,
-    HomeSectionType.recentlyReleased => l10n.recentlyReleased,
-    HomeSectionType.libraryTilesSmall => l10n.myMedia,
-    HomeSectionType.libraryButtons => l10n.myMediaSmall,
-    HomeSectionType.resume => l10n.continueWatching,
-    HomeSectionType.resumeAudio => l10n.resumeAudio,
-    HomeSectionType.resumeBook => l10n.resumeBooks,
-    HomeSectionType.activeRecordings => l10n.activeRecordings,
-    HomeSectionType.nextUp => l10n.nextUp,
-    HomeSectionType.playlists => l10n.playlists,
-    HomeSectionType.audioArtists => l10n.artists,
-    HomeSectionType.audioAlbums => l10n.albums,
-    HomeSectionType.audioPlaylists => l10n.audioPlaylists,
-    HomeSectionType.favoriteMovies => 'Favorite ${FavoriteTypeFilter.movie.displayName}',
-    HomeSectionType.favoriteSeries => 'Favorite ${FavoriteTypeFilter.series.displayName}',
-    HomeSectionType.favoriteEpisodes => 'Favorite ${FavoriteTypeFilter.episode.displayName}',
-    HomeSectionType.favoritePeople => 'Favorite ${FavoriteTypeFilter.person.displayName}',
-    HomeSectionType.favoriteArtists => 'Favorite ${FavoriteTypeFilter.musicArtist.displayName}',
-    HomeSectionType.favoriteMusicVideos => 'Favorite ${FavoriteTypeFilter.musicVideo.displayName}',
-    HomeSectionType.favoriteAlbums => 'Favorite ${FavoriteTypeFilter.musicAlbum.displayName}',
-    HomeSectionType.favoriteSongs => 'Favorite ${FavoriteTypeFilter.audio.displayName}',
-    HomeSectionType.collections => l10n.collections,
-    HomeSectionType.genres => l10n.genres,
-    HomeSectionType.liveTv => l10n.liveTV,
-    HomeSectionType.seerrRecentRequests => l10n.recentRequests,
-    HomeSectionType.seerrRecentlyAdded => l10n.recentlyAdded,
-    HomeSectionType.seerrPopularMovies => l10n.popularMovies,
-    HomeSectionType.seerrUpcomingMovies => l10n.upcomingMovies,
-    HomeSectionType.seerrPopularSeries => l10n.popularSeries,
-    HomeSectionType.seerrUpcomingSeries => l10n.upcomingSeries,
-    HomeSectionType.seerrTrending => l10n.trending,
-    HomeSectionType.seerrMovieGenres => l10n.movieGenres,
-    HomeSectionType.seerrStudios => l10n.studios,
-    HomeSectionType.seerrSeriesGenres => l10n.seriesGenres,
-    HomeSectionType.seerrNetworks => l10n.networks,
-    HomeSectionType.none => l10n.none,
-  };
+  String _labelForType(HomeSectionType type, AppLocalizations l10n) =>
+      switch (type) {
+        HomeSectionType.mediaBar => l10n.mediaBar,
+        HomeSectionType.latestMedia => l10n.latestMedia,
+        HomeSectionType.recentlyReleased => l10n.recentlyReleased,
+        HomeSectionType.libraryTilesSmall => l10n.myMedia,
+        HomeSectionType.libraryButtons => l10n.myMediaSmall,
+        HomeSectionType.resume => l10n.continueWatching,
+        HomeSectionType.resumeAudio => l10n.resumeAudio,
+        HomeSectionType.resumeBook => l10n.resumeBooks,
+        HomeSectionType.activeRecordings => l10n.activeRecordings,
+        HomeSectionType.nextUp => l10n.nextUp,
+        HomeSectionType.playlists => l10n.playlists,
+        HomeSectionType.audioArtists => l10n.artists,
+        HomeSectionType.audioAlbums => l10n.albums,
+        HomeSectionType.audioPlaylists => l10n.audioPlaylists,
+        HomeSectionType.favoriteMovies =>
+          'Favorite ${FavoriteTypeFilter.movie.displayName}',
+        HomeSectionType.favoriteSeries =>
+          'Favorite ${FavoriteTypeFilter.series.displayName}',
+        HomeSectionType.favoriteEpisodes =>
+          'Favorite ${FavoriteTypeFilter.episode.displayName}',
+        HomeSectionType.favoritePeople =>
+          'Favorite ${FavoriteTypeFilter.person.displayName}',
+        HomeSectionType.favoriteArtists =>
+          'Favorite ${FavoriteTypeFilter.musicArtist.displayName}',
+        HomeSectionType.favoriteMusicVideos =>
+          'Favorite ${FavoriteTypeFilter.musicVideo.displayName}',
+        HomeSectionType.favoriteAlbums =>
+          'Favorite ${FavoriteTypeFilter.musicAlbum.displayName}',
+        HomeSectionType.favoriteSongs =>
+          'Favorite ${FavoriteTypeFilter.audio.displayName}',
+        HomeSectionType.collections => l10n.collections,
+        HomeSectionType.genres => l10n.genres,
+        HomeSectionType.liveTv => l10n.liveTV,
+        HomeSectionType.seerrRecentRequests => l10n.recentRequests,
+        HomeSectionType.seerrRecentlyAdded => l10n.recentlyAdded,
+        HomeSectionType.seerrPopularMovies => l10n.popularMovies,
+        HomeSectionType.seerrUpcomingMovies => l10n.upcomingMovies,
+        HomeSectionType.seerrPopularSeries => l10n.popularSeries,
+        HomeSectionType.seerrUpcomingSeries => l10n.upcomingSeries,
+        HomeSectionType.seerrTrending => l10n.trending,
+        HomeSectionType.seerrMovieGenres => l10n.movieGenres,
+        HomeSectionType.seerrStudios => l10n.studios,
+        HomeSectionType.seerrSeriesGenres => l10n.seriesGenres,
+        HomeSectionType.seerrNetworks => l10n.networks,
+        HomeSectionType.radarrCalendar => 'Upcoming Movies (Radarr)',
+        HomeSectionType.sonarrCalendar => 'Upcoming TV Shows (Sonarr)',
+        HomeSectionType.tmdbPopularMovies => 'Popular Movies',
+        HomeSectionType.tmdbTopRatedMovies => 'Top Rated Movies',
+        HomeSectionType.tmdbNowPlayingMovies => 'Now Playing Movies',
+        HomeSectionType.tmdbUpcomingMovies => 'Upcoming Movies',
+        HomeSectionType.tmdbPopularTv => 'Popular TV',
+        HomeSectionType.tmdbTopRatedTv => 'Top Rated TV',
+        HomeSectionType.tmdbAiringTodayTv => 'Airing Today TV',
+        HomeSectionType.tmdbOnTheAirTv => 'On The Air TV',
+        HomeSectionType.tmdbTrendingMovieDaily => 'Trending Movies (Daily)',
+        HomeSectionType.tmdbTrendingMovieWeekly => 'Trending Movies (Weekly)',
+        HomeSectionType.tmdbTrendingTvDaily => 'Trending TV (Daily)',
+        HomeSectionType.tmdbTrendingTvWeekly => 'Trending TV (Weekly)',
+        HomeSectionType.tmdbTrendingAllWeekly => 'Trending All (Weekly)',
+        HomeSectionType.sinceYouWatched1 => 'Since You Watched Row 1',
+        HomeSectionType.sinceYouWatched2 => 'Since You Watched Row 2',
+        HomeSectionType.sinceYouWatched3 => 'Since You Watched Row 3',
+        HomeSectionType.sinceYouWatched4 => 'Since You Watched Row 4',
+        HomeSectionType.sinceYouWatched5 => 'Since You Watched Row 5',
+        HomeSectionType.rewatch => 'Rewatch',
+        HomeSectionType.none => l10n.none,
+      };
 
-  String _posterSizeLabel(PosterSize size, AppLocalizations l10n) => switch (size) {
-    PosterSize.small => l10n.small,
-    PosterSize.medium => l10n.medium,
-    PosterSize.large => l10n.large,
-    PosterSize.extraLarge => l10n.extraLarge,
-  };
+  String _posterSizeLabel(PosterSize size, AppLocalizations l10n) =>
+      switch (size) {
+        PosterSize.small => l10n.small,
+        PosterSize.medium => l10n.medium,
+        PosterSize.large => l10n.large,
+        PosterSize.extraLarge => l10n.extraLarge,
+      };
 
   String _rowsStyleLabel(HomeRowsStyle style) => switch (style) {
     HomeRowsStyle.v1 => 'Classic',
@@ -1194,10 +1449,7 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen> {
         child: Container(
           color: theme.colorScheme.surface,
           alignment: Alignment.center,
-          child: const PlayerLoadingOverlay(
-            logoSize: 80,
-            labelSpacing: 20,
-          ),
+          child: const PlayerLoadingOverlay(logoSize: 80, labelSpacing: 20),
         ),
       ),
     );
@@ -1239,8 +1491,7 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen> {
                 PlatformDetection.isTV
                     ? _buildTvList(l10n)
                     : _buildReorderableList(l10n),
-                if (_showOverlay)
-                  _buildLoadingOverlay(context),
+                if (_showOverlay) _buildLoadingOverlay(context),
               ],
             ),
           ),
@@ -1255,7 +1506,9 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen> {
         ListTile(
           leading: const Icon(Icons.photo_size_select_large),
           title: Text(l10n.cardSize),
-          subtitle: Text(_posterSizeLabel(_prefs.get(UserPreferences.posterSize), l10n)),
+          subtitle: Text(
+            _posterSizeLabel(_prefs.get(UserPreferences.posterSize), l10n),
+          ),
           trailing: const Icon(Icons.chevron_right),
           onTap: _showPosterSizeDialog,
         ),
@@ -1272,13 +1525,16 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen> {
           },
         ),
         const Divider(),
-        SwitchListTile(
+        SwitchListTile.adaptive(
           secondary: const Icon(Icons.merge_type),
           title: Text(l10n.mergeContinueWatchingAndNextUp),
           subtitle: Text(l10n.combineBothRows),
           value: _prefs.get(UserPreferences.mergeContinueWatchingNextUp),
           onChanged: (value) {
             _setMergeContinueWatchingNextUp(value);
+            if (value) {
+              _enforceMergeAdjacency();
+            }
             setState(() {});
           },
         ),
@@ -1299,8 +1555,9 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen> {
         if (newIndex < 0 || newIndex > visibleIndices.length) return;
 
         final fromActual = visibleIndices[oldIndex];
-        var toActual =
-            newIndex >= visibleIndices.length ? _sections.length : visibleIndices[newIndex];
+        var toActual = newIndex >= visibleIndices.length
+            ? _sections.length
+            : visibleIndices[newIndex];
 
         if (toActual > fromActual) {
           toActual--;
@@ -1308,18 +1565,140 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen> {
 
         if (toActual == fromActual) return;
 
-        setState(() {
-          final item = _sections.removeAt(fromActual);
-          _sections.insert(toActual, item);
-          final node = _focusNodes.removeAt(fromActual);
-          _focusNodes.insert(toActual, node);
-        });
-        _save();
+        _moveSection(fromActual, toActual);
       },
       itemBuilder: (context, index) {
         final sectionIndex = visibleIndices[index];
         final section = _sections[sectionIndex];
         final isEmpty = _emptySectionIds.contains(section.stableId);
+
+        final mergeEnabled = _prefs.get(UserPreferences.mergeContinueWatchingNextUp);
+        final isMergedResume = mergeEnabled && section.type == HomeSectionType.resume;
+
+        if (isMergedResume) {
+          final nextUpIndex = _sections.indexWhere((s) => s.type == HomeSectionType.nextUp);
+          if (nextUpIndex >= 0) {
+            final nextUpSection = _sections[nextUpIndex];
+            final isNextUpEmpty = _emptySectionIds.contains(nextUpSection.stableId);
+
+            return Padding(
+              key: const ValueKey('merged_resume_nextup'),
+              padding: _kHomeSectionTileOuterPadding,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surfaceContainerLow.withValues(alpha: 0.82),
+                  borderRadius: BorderRadius.circular(_kHomeSectionTileRadius),
+                  border: Border.all(
+                    color: const Color(0xFF00F0FF), // Neon cyan border
+                    width: 1.5,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // 1. Continue Watching Tile
+                          Opacity(
+                            opacity: isEmpty ? 0.45 : 1.0,
+                            child: ListTile(
+                              focusColor: Colors.transparent,
+                              hoverColor: Colors.transparent,
+                              contentPadding: const EdgeInsets.only(left: 16, right: 8, top: 4, bottom: 4),
+                              minLeadingWidth: 44,
+                              horizontalTitleGap: 14,
+                              leading: buildSettingsLeadingIconShell(
+                                context,
+                                icon: Icon(
+                                  (section.enabled && !isEmpty)
+                                      ? Icons.check_box
+                                      : Icons.check_box_outline_blank,
+                                ),
+                                focused: false,
+                                iconColor: AppColorScheme.onSurface.withValues(alpha: 0.78),
+                              ),
+                              title: Text(
+                                _labelFor(section, l10n),
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  fontFamily: kCleanSettingsFontFamily,
+                                ),
+                              ),
+                              onTap: isEmpty
+                                  ? null
+                                  : () {
+                                      setState(() {
+                                        _sections[sectionIndex] = section.copyWith(
+                                          enabled: !section.enabled,
+                                        );
+                                      });
+                                      _save();
+                                    },
+                            ),
+                          ),
+                          const Divider(height: 1, color: Color(0xFF00F0FF), indent: 16, endIndent: 16),
+                          // 2. Next Up Tile
+                          Opacity(
+                            opacity: isNextUpEmpty ? 0.45 : 1.0,
+                            child: ListTile(
+                              focusColor: Colors.transparent,
+                              hoverColor: Colors.transparent,
+                              contentPadding: const EdgeInsets.only(left: 16, right: 8, top: 4, bottom: 4),
+                              minLeadingWidth: 44,
+                              horizontalTitleGap: 14,
+                              leading: buildSettingsLeadingIconShell(
+                                context,
+                                icon: Icon(
+                                  (nextUpSection.enabled && !isNextUpEmpty)
+                                      ? Icons.check_box
+                                      : Icons.check_box_outline_blank,
+                                ),
+                                focused: false,
+                                iconColor: AppColorScheme.onSurface.withValues(alpha: 0.78),
+                              ),
+                              title: Text(
+                                _labelFor(nextUpSection, l10n),
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  fontFamily: kCleanSettingsFontFamily,
+                                ),
+                              ),
+                              onTap: isNextUpEmpty
+                                  ? null
+                                  : () {
+                                      setState(() {
+                                        _sections[nextUpIndex] = nextUpSection.copyWith(
+                                          enabled: !nextUpSection.enabled,
+                                        );
+                                      });
+                                      _save();
+                                    },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Centered unified drag handle
+                    Padding(
+                      padding: const EdgeInsets.only(right: 16),
+                      child: ReorderableDragStartListener(
+                        index: index,
+                        child: const Icon(
+                          Icons.drag_handle,
+                          color: Color(0xFF00F0FF), // Neon cyan handle
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+        }
+
         return Padding(
           key: ValueKey(section.stableId),
           padding: _kHomeSectionTileOuterPadding,
@@ -1336,7 +1715,9 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen> {
                 leading: buildSettingsLeadingIconShell(
                   context,
                   icon: Icon(
-                    (section.enabled && !isEmpty) ? Icons.check_box : Icons.check_box_outline_blank,
+                    (section.enabled && !isEmpty)
+                        ? Icons.check_box
+                        : Icons.check_box_outline_blank,
                   ),
                   focused: false,
                   iconColor: AppColorScheme.onSurface.withValues(alpha: 0.78),
@@ -1354,11 +1735,17 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen> {
                     if (isEmpty) ...[
                       const SizedBox(width: 8),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.red.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(4),
-                          border: Border.all(color: Colors.red.withValues(alpha: 0.5), width: 0.8),
+                          border: Border.all(
+                            color: Colors.red.withValues(alpha: 0.5),
+                            width: 0.8,
+                          ),
                         ),
                         child: Text(
                           l10n.empty,
@@ -1379,34 +1766,50 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen> {
                         style: TextStyle(
                           fontSize: 12,
                           fontFamily: kCleanSettingsFontFamily,
-                          color: AppColorScheme.onSurface.withValues(alpha: 0.7),
+                          color: AppColorScheme.onSurface.withValues(
+                            alpha: 0.7,
+                          ),
                         ),
                       )
                     : (_isAudioSectionType(section.type)
-                        ? Text(
-                            'Audio row',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontFamily: kCleanSettingsFontFamily,
-                              color: AppColorScheme.onSurface.withValues(alpha: 0.7),
-                            ),
-                          )
-                        : (_isSeerrSectionType(section.type)
-                            ? Text(
-                                'Seerr Discovery Rows',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontFamily: kCleanSettingsFontFamily,
-                                  color: AppColorScheme.onSurface.withValues(alpha: 0.7),
+                          ? Text(
+                              'Audio row',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontFamily: kCleanSettingsFontFamily,
+                                color: AppColorScheme.onSurface.withValues(
+                                  alpha: 0.7,
                                 ),
-                              )
-                            : null)),
+                              ),
+                            )
+                          : (_isSeerrSectionType(section.type)
+                                ? Text(
+                                    'Seerr Discovery Rows',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontFamily: kCleanSettingsFontFamily,
+                                      color: AppColorScheme.onSurface
+                                          .withValues(alpha: 0.7),
+                                    ),
+                                  )
+                                : (_isTmdbSectionType(section.type)
+                                      ? Text(
+                                          'TMDB Lists',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            fontFamily: kCleanSettingsFontFamily,
+                                            color: AppColorScheme.onSurface
+                                                .withValues(alpha: 0.7),
+                                          ),
+                                        )
+                                      : null))),
                 onTap: isEmpty
                     ? null
                     : () {
                         setState(() {
-                          _sections[sectionIndex] =
-                              section.copyWith(enabled: !section.enabled);
+                          _sections[sectionIndex] = section.copyWith(
+                            enabled: !section.enabled,
+                          );
                         });
                         _save();
                       },
@@ -1446,15 +1849,18 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen> {
         return _HomeSectionTile(
           key: ValueKey(section.stableId),
           focusNode: _focusNodes[sectionIndex],
+          type: section.type,
           autofocus: visibleIndex == 0,
           label: _labelFor(section, l10n),
           subtitle: section.isPluginDynamic
               ? _pluginSubtitle(section)
               : (_isAudioSectionType(section.type)
-                  ? 'Audio row'
-                  : (_isSeerrSectionType(section.type)
-                      ? 'Seerr Discovery Rows'
-                      : null)),
+                    ? 'Audio row'
+                    : (_isSeerrSectionType(section.type)
+                          ? 'Seerr Discovery Rows'
+                          : (_isTmdbSectionType(section.type)
+                                ? 'TMDB Lists'
+                                : null))),
           enabled: section.enabled,
           isFirst: visibleIndex == 0,
           isLast: visibleIndex == visibleIndices.length - 1,
@@ -1467,22 +1873,52 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen> {
           },
           onMoveUp: () {
             if (visibleIndex == 0) return;
-            _moveSectionByActualIndex(sectionIndex, visibleIndices[visibleIndex - 1]);
+            _moveSection(
+              sectionIndex,
+              visibleIndices[visibleIndex - 1],
+            );
           },
           onMoveDown: () {
             if (visibleIndex >= visibleIndices.length - 1) return;
-            _moveSectionByActualIndex(sectionIndex, visibleIndices[visibleIndex + 1]);
+            _moveSection(
+              sectionIndex,
+              visibleIndices[visibleIndex + 1],
+            );
           },
         );
       },
     );
   }
+
   String _pluginSubtitle(HomeSectionConfig section) {
     return switch (section.pluginSource) {
       HomeSectionPluginSource.collections => 'Collections row',
       HomeSectionPluginSource.genres => 'Genres row',
       HomeSectionPluginSource.playlists => 'Playlists row',
-      HomeSectionPluginSource.hss => 'Home Screen Sections plugin',
+      HomeSectionPluginSource.custom => (() {
+          Map<String, dynamic> rowConfig = {};
+          try {
+            rowConfig = jsonDecode(section.pluginAdditionalData ?? '{}') as Map<String, dynamic>;
+          } catch (_) {}
+          final source = rowConfig['source'] as String? ?? 'imdb';
+          final type = rowConfig['type'] as String? ?? 'user_list';
+          final sourceLabel = switch (source) {
+            'imdb' => 'IMDb',
+            'tmdb' => 'TMDB',
+            'letterboxd' => 'Letterboxd',
+            'mdblist' => 'MDBList',
+            _ => source.toUpperCase(),
+          };
+          final typeLabel = switch (type) {
+            'user_list' => 'Custom List',
+            'watchlist' => 'Watchlist',
+            'films' => 'Films',
+            'awards_events' => 'Awards/Events',
+            'movie_collection' => 'Movie Collection',
+            _ => type,
+          };
+          return '$sourceLabel $typeLabel';
+        })(),
     };
   }
 }
@@ -1491,34 +1927,26 @@ class _DiscoveredCollectionRow {
   final String id;
   final String name;
 
-  const _DiscoveredCollectionRow({
-    required this.id,
-    required this.name,
-  });
+  const _DiscoveredCollectionRow({required this.id, required this.name});
 }
 
 class _DiscoveredGenreRow {
   final String id;
   final String name;
 
-  const _DiscoveredGenreRow({
-    required this.id,
-    required this.name,
-  });
+  const _DiscoveredGenreRow({required this.id, required this.name});
 }
 
 class _DiscoveredPlaylistRow {
   final String id;
   final String name;
 
-  const _DiscoveredPlaylistRow({
-    required this.id,
-    required this.name,
-  });
+  const _DiscoveredPlaylistRow({required this.id, required this.name});
 }
 
 class _HomeSectionTile extends StatefulWidget {
   final FocusNode focusNode;
+  final HomeSectionType type;
   final String label;
   final String? subtitle;
   final bool enabled;
@@ -1533,6 +1961,7 @@ class _HomeSectionTile extends StatefulWidget {
   const _HomeSectionTile({
     super.key,
     required this.focusNode,
+    required this.type,
     required this.label,
     this.subtitle,
     required this.enabled,
@@ -1593,11 +2022,13 @@ class _HomeSectionTileState extends State<_HomeSectionTile> {
       },
       onKeyEvent: (node, event) {
         if (event is! KeyDownEvent) return KeyEventResult.ignored;
-        if (event.logicalKey == LogicalKeyboardKey.arrowLeft && !widget.isFirst) {
+        if (event.logicalKey == LogicalKeyboardKey.arrowLeft &&
+            !widget.isFirst) {
           widget.onMoveUp();
           return KeyEventResult.handled;
         }
-        if (event.logicalKey == LogicalKeyboardKey.arrowRight && !widget.isLast) {
+        if (event.logicalKey == LogicalKeyboardKey.arrowRight &&
+            !widget.isLast) {
           widget.onMoveDown();
           return KeyEventResult.handled;
         }
@@ -1617,7 +2048,14 @@ class _HomeSectionTileState extends State<_HomeSectionTile> {
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 90),
             curve: Curves.easeOut,
-            decoration: _homeSectionTileDecoration(context, focused: _focused),
+            decoration: _homeSectionTileDecoration(
+              context,
+              focused: _focused,
+              type: widget.type,
+              mergeEnabled: GetIt.instance<UserPreferences>().get(
+                UserPreferences.mergeContinueWatchingNextUp,
+              ),
+            ),
             child: ListTile(
               focusColor: Colors.transparent,
               hoverColor: Colors.transparent,
@@ -1627,7 +2065,9 @@ class _HomeSectionTileState extends State<_HomeSectionTile> {
               leading: buildSettingsLeadingIconShell(
                 context,
                 icon: Icon(
-                  (widget.enabled && !widget.isEmpty) ? Icons.check_box : Icons.check_box_outline_blank,
+                  (widget.enabled && !widget.isEmpty)
+                      ? Icons.check_box
+                      : Icons.check_box_outline_blank,
                 ),
                 focused: _focused,
                 iconColor: _focused
@@ -1650,11 +2090,17 @@ class _HomeSectionTileState extends State<_HomeSectionTile> {
                   if (widget.isEmpty) ...[
                     const SizedBox(width: 8),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.red.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(4),
-                        border: Border.all(color: Colors.red.withValues(alpha: 0.5), width: 0.8),
+                        border: Border.all(
+                          color: Colors.red.withValues(alpha: 0.5),
+                          width: 0.8,
+                        ),
                       ),
                       child: Text(
                         l10n.empty,

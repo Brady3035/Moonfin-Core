@@ -18,7 +18,7 @@ const glassThemeSpec = ThemeSpec(
   colors: ThemeColorTokens(
     background: Color(0xCC07090F),
     onBackground: Color(0xFFFFFFFF),
-    surface: Color(0x1FFFFFFF),
+    surface: Color(0xD90E1117),
     onSurface: Color(0xFFFFFFFF),
     surfaceVariant: Color(0x29FFFFFF),
     scrim: Color(0x99060810),

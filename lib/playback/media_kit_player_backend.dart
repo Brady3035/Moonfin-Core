@@ -12,6 +12,7 @@ import 'package:playback_core/playback_core.dart';
 import '../preference/preference_constants.dart';
 import '../preference/user_preferences.dart';
 import '../util/platform_detection.dart';
+import '../util/subtitle_track_logic.dart';
 import 'audio_capability_profile.dart';
 import 'device_profile_builder.dart';
 import 'known_defects.dart';
@@ -326,7 +327,6 @@ class MediaKitPlayerBackend extends PlayerBackend {
   }
 
   static bool get _useLibass =>
-      PlatformDetection.isDesktop ||
       PlatformDetection.isAndroid ||
       PlatformDetection.isIOS;
 
@@ -465,13 +465,7 @@ class MediaKitPlayerBackend extends PlayerBackend {
             allowDolbyVisionProfile7DirectPlay:
                 allowDolbyVisionProfile7DirectPlay,
           );
-    final audioCapabilityProfile = PlatformDetection.hasAudioCapabilities
-        ? AudioCapabilityProfile.fromMap(
-            PlatformDetection.audioCapabilitiesSnapshot,
-          )
-        : PlatformDetection.isIOS
-        ? const AudioCapabilityProfile.appleMobile()
-        : const AudioCapabilityProfile.optimistic();
+    final audioCapabilityProfile = _prefs.detectedAudioCapabilities;
 
     return DeviceProfileBuilder.build(
       maxBitrateMbps: maxBitrate,
@@ -1068,7 +1062,6 @@ class MediaKitPlayerBackend extends PlayerBackend {
   }
 
   Future<void> _applyAssOverrideMode() async {
-    if (!_useLibass) return;
     try {
       final native = _player.platform as NativePlayer;
       final assEnabled = _prefs.get(UserPreferences.assDirectPlay);
@@ -1289,22 +1282,20 @@ class MediaKitPlayerBackend extends PlayerBackend {
 
       var sidAfter = await _tryNativeGetProperty(native, 'sid');
 
-      if (PlatformDetection.isAndroid) {
-        SubtitleTrack? target;
-        for (final t in playableSubtitleTracks) {
-          if (t.id == sidToApply) {
-            target = t;
-            break;
-          }
+      SubtitleTrack? target;
+      for (final t in playableSubtitleTracks) {
+        if (t.id == sidToApply) {
+          target = t;
+          break;
         }
-        target ??=
-            (mpvTrackId <= playableSubtitleTracks.length && mpvTrackId > 0)
-            ? playableSubtitleTracks[mpvTrackId - 1]
-            : null;
-        if (target != null) {
-          await _player.setSubtitleTrack(target);
-          sidAfter = await _tryNativeGetProperty(native, 'sid');
-        }
+      }
+      target ??=
+          (mpvTrackId <= playableSubtitleTracks.length && mpvTrackId > 0)
+          ? playableSubtitleTracks[mpvTrackId - 1]
+          : null;
+      if (target != null) {
+        await _player.setSubtitleTrack(target);
+        sidAfter = await _tryNativeGetProperty(native, 'sid');
       }
 
       if (sidAfter != sidToApply) {
@@ -1317,10 +1308,17 @@ class MediaKitPlayerBackend extends PlayerBackend {
       }
 
       await _nativeSetProperty(native, 'secondary-sid', 'no');
-      await _nativeSetProperty(native, 'sub-visibility', 'yes');
-      if (_useLibass) {
+
+      final useNativeRendering = !_useLibass ||
+          isBitmapSubtitle ||
+          shouldRenderSubtitleNatively(subtitleCodec);
+
+      if (useNativeRendering) {
+        await _nativeSetProperty(native, 'sub-visibility', 'yes');
         await _nativeSetProperty(native, 'sub-ass', 'yes');
         await _applyAssOverrideMode();
+      } else {
+        await _nativeSetProperty(native, 'sub-visibility', 'no');
       }
     } catch (_) {}
   }

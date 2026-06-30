@@ -141,6 +141,23 @@ class LiveTvGuideViewModel extends ChangeNotifier {
     return null;
   }
 
+  /// The currently-airing program and the next upcoming one for a channel,
+  /// for the mobile Now/Next cards. Derived from the sorted program list.
+  ({GuideProgram? now, GuideProgram? next}) nowNextForChannel(String channelId) {
+    final programs = programsForChannel(channelId);
+    final t = DateTime.now();
+    GuideProgram? now;
+    GuideProgram? next;
+    for (final p in programs) {
+      if (!t.isBefore(p.startDate) && t.isBefore(p.endDate)) {
+        now = p;
+      } else if (p.startDate.isAfter(t)) {
+        next ??= p;
+      }
+    }
+    return (now: now, next: next);
+  }
+
   bool _matchesFilter(GuideProgram p) => switch (_filter) {
     GuideFilter.all => true,
     GuideFilter.movies => p.isMovie,

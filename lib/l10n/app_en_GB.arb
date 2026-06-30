@@ -3526,7 +3526,7 @@
     },
     "showInLatestMedia": "Show in latest media",
     "@showInLatestMedia": {
-        "description": "Toggle for showing library in latest media"
+        "description": "Toggle for showing library in recently added/released media"
     },
     "sourceLibraries": "Source Libraries",
     "@sourceLibraries": {
@@ -3651,7 +3651,7 @@
     },
     "latestMedia": "Latest Media",
     "@latestMedia": {
-        "description": "Home section: latest media"
+        "description": "Home section: recently added media"
     },
     "recentlyReleased": "Recently Released",
     "@recentlyReleased": {
@@ -4137,7 +4137,7 @@
     "@sourceCode": {
         "description": "Link to source code"
     },
-    "sourceCodeUrl": "https://github.com/Moonfin-Client/Mobile-Desktop",
+    "sourceCodeUrl": "https://github.com/Moonfin-Client/Moonfin-Core",
     "@sourceCodeUrl": {
         "description": "Displayed source code repository URL"
     },
@@ -6275,21 +6275,6 @@
     "rememberMyChoice": "Remember my choice",
     "playHdr10Fallback": "Play HDR10 fallback",
     "requestTranscode": "Request transcode",
-    "homeScreenSectionsIntegrationDescription": "Detect rows exposed by IAmParadox27's \"Home Screen Sections\" plugin. Rows can be enabled and reordered below.",
-    "homeScreenSectionsIntegrationNoServers": "No Jellyfin servers reporting the plugin yet.",
-    "integrationOpenHomeSections": "Open Home Sections",
-    "integrationOpenHomeSectionsSubtitle": "Enable, disable, and reorder rows",
-    "integrationInstalledButDisabled": "Installed but disabled",
-    "integrationNotInstalled": "Not installed",
-    "integrationSectionsCount": "{count, plural, one {# section} other {# sections}}",
-    "@integrationSectionsCount": {
-        "description": "Plural label for number of sections discovered in integration status",
-        "placeholders": {
-            "count": {
-                "type": "int"
-            }
-        }
-    },
     "integrationRowsDiscoveredCount": "{count, plural, one {# row discovered} other {# rows discovered}}",
     "@integrationRowsDiscoveredCount": {
         "description": "Plural label for number of rows discovered in integration status",
@@ -6299,7 +6284,6 @@
             }
         }
     },
-    "jellyseerr": "Seerr",
     "seeAll": "See All",
     "noItems": "No items",
     "switchUser": "Switch User",
@@ -6713,7 +6697,16 @@
     },
     "latestLibraryName": "Latest {libraryName}",
     "@latestLibraryName": {
-        "description": "Row title for latest media in a specific library",
+        "description": "Row title for recently added media in a specific library",
+        "placeholders": {
+            "libraryName": {
+                "type": "String"
+            }
+        }
+    },
+    "recentlyReleasedLibraryName": "Recently Released {libraryName}",
+    "@recentlyReleasedLibraryName": {
+        "description": "Row title for recently released media in a specific library",
         "placeholders": {
             "libraryName": {
                 "type": "String"
@@ -7101,7 +7094,6 @@
     },
     "savedThemesDeleteTooltip": "Delete saved theme",
     "savedThemesManageSubtitle": "Manage downloaded plugin themes on this device",
-    "homeScreenSectionsTitle": "Home Screen Sections",
     "themeEditor": "Theme Editor",
     "themeEditorSubtitle": "Open the Moonfin Theme Editor in your browser",
     "homeScreen": "Home Screen",
@@ -7525,8 +7517,6 @@
     "audioRowsSorting": "Audio Rows sorting",
     "audioRowsSortingDescription": "Sort Audio rows by date added, release date, alphabetically, and more.",
     "audioPlaylists": "Audio Playlists",
-    "displaySeerrRows": "Display Seerr Discovery Rows",
-    "displaySeerrRowsSubtitle": "Show Seerr discovery rows in Home Sections.",
     "externalPlayerAppDescription": "Set external player to enable long-press play option",
     "changeArtwork": "Change Artwork",
     "missing": "Missing",
@@ -7681,5 +7671,178 @@
     "currentUser": "Current User",
     "@currentUser": {
         "description": "Option: current user"
+    },
+    "crewContributionsSeerr": "",
+    "subtitlePreferences": "",
+    "@subtitlePreferences": {
+        "description": "Title for the subtitle preferences settings section"
+    },
+    "subtitlePreferencesDescription": "",
+    "@subtitlePreferencesDescription": {
+        "description": "Description for the subtitle preferences settings section"
+    },
+    "subtitleRendering": "",
+    "@subtitleRendering": {
+        "description": "Header for subtitle rendering settings"
+    },
+    "displayOptions": "",
+    "@displayOptions": {
+        "description": "Title for details display options dialog"
+    },
+    "releaseDateAscending": "",
+    "@releaseDateAscending": {
+        "description": "Sort option for crew/cast contributions in ascending release date order"
+    },
+    "releaseDateDescending": "",
+    "@releaseDateDescending": {
+        "description": "Sort option for crew/cast contributions in descending release date order"
+    },
+    "groupContributions": "",
+    "@groupContributions": {
+        "description": "Section header for grouping person contributions"
+    },
+    "groupMultipleRoles": "",
+    "@groupMultipleRoles": {
+        "description": "Option to group multiple roles for a person"
+    },
+    "subtitleMode": "",
+    "@subtitleMode": {
+        "description": "Setting for subtitle mode"
+    },
+    "subtitleModeFlagged": "",
+    "@subtitleModeFlagged": {
+        "description": "Subtitle mode: default/flagged"
+    },
+    "subtitleModeAlways": "",
+    "@subtitleModeAlways": {
+        "description": "Subtitle mode: always play"
+    },
+    "subtitleModeForeign": "",
+    "@subtitleModeForeign": {
+        "description": "Subtitle mode: foreign/smart"
+    },
+    "subtitleModeForced": "",
+    "@subtitleModeForced": {
+        "description": "Subtitle mode: only forced"
+    },
+    "subtitleModeFlaggedDescription": "",
+    "@subtitleModeFlaggedDescription": {
+        "description": "Description for flagged subtitle mode"
+    },
+    "subtitleModeAlwaysDescription": "",
+    "@subtitleModeAlwaysDescription": {
+        "description": "Description for always subtitle mode"
+    },
+    "subtitleModeForeignDescription": "",
+    "@subtitleModeForeignDescription": {
+        "description": "Description for foreign subtitle mode"
+    },
+    "subtitleModeForcedDescription": "",
+    "@subtitleModeForcedDescription": {
+        "description": "Description for forced subtitle mode"
+    },
+    "subtitleModeNoneDescription": "",
+    "@subtitleModeNoneDescription": {
+        "description": "Description for none subtitle mode"
+    },
+    "fallbackSubtitleLanguage": "",
+    "@fallbackSubtitleLanguage": {
+        "description": "Setting for fallback subtitle language"
+    },
+    "subtitleStream": "",
+    "@subtitleStream": {
+        "description": "Header for subtitle stream settings"
+    },
+    "interfaceStyle": "",
+    "@interfaceStyle": {
+        "description": "Label for the Automatic/Apple/Material interface style setting"
+    },
+    "interfaceStyleSubtitle": "",
+    "@interfaceStyleSubtitle": {
+        "description": "Explanation under the interface style setting"
+    },
+    "interfaceStyleAutomatic": "",
+    "@interfaceStyleAutomatic": {
+        "description": "Interface style option: follow the platform"
+    },
+    "interfaceStyleApple": "",
+    "@interfaceStyleApple": {
+        "description": "Interface style option: Apple native look"
+    },
+    "interfaceStyleMaterial": "",
+    "@interfaceStyleMaterial": {
+        "description": "Interface style option: Material look"
+    },
+    "libraryWriteAccessWarningTitle": "",
+    "@libraryWriteAccessWarningTitle": {
+        "description": "Title for library write access warning dialog"
+    },
+    "libraryWriteAccessHowToFix": "",
+    "@libraryWriteAccessHowToFix": {
+        "description": "Section header for write access troubleshooting"
+    },
+    "libraryWriteAccessFixSteps": "",
+    "@libraryWriteAccessFixSteps": {
+        "description": "Troubleshooting steps for write access issues"
+    },
+    "dismiss": "",
+    "@dismiss": {
+        "description": "Dismiss button text"
+    },
+    "libraryWriteAccessProactiveBody": "",
+    "@libraryWriteAccessProactiveBody": {
+        "description": "Proactive warning message about server write access",
+        "placeholders": {
+            "libraryName": {
+                "type": "String"
+            },
+            "failedPath": {
+                "type": "String"
+            }
+        }
+    },
+    "libraryWriteAccessReactiveBody": "",
+    "@libraryWriteAccessReactiveBody": {
+        "description": "Reactive error warning message when artwork update fails"
+    },
+    "fallbackAudioLanguage": "",
+    "@fallbackAudioLanguage": {
+        "description": "Setting for fallback audio language"
+    },
+    "preferDefaultAudioTrack": "",
+    "@preferDefaultAudioTrack": {
+        "description": "Setting for preferring default audio track"
+    },
+    "preferDefaultAudioTrackDescription": "",
+    "@preferDefaultAudioTrackDescription": {
+        "description": "Description for preferring default audio track setting"
+    },
+    "preferAudioDescription": "",
+    "@preferAudioDescription": {
+        "description": "Setting for preferring audio description tracks"
+    },
+    "preferAudioDescriptionDescription": "",
+    "@preferAudioDescriptionDescription": {
+        "description": "Description for preferring audio description tracks setting"
+    },
+    "transcodingAudio": "",
+    "@transcodingAudio": {
+        "description": "Label for audio-only transcode playback method"
+    },
+    "groupItemsIntoCollections": "",
+    "@groupItemsIntoCollections": {
+        "description": "Setting for grouping items into collections"
+    },
+    "hideCollectionAssociatedItems": "",
+    "@hideCollectionAssociatedItems": {
+        "description": "Description for grouping items into collections"
+    },
+    "groupItemsIntoCollectionsDialogTitle": "",
+    "@groupItemsIntoCollectionsDialogTitle": {
+        "description": "Title of the alert dialog explaining server settings requirement"
+    },
+    "groupItemsIntoCollectionsDialogMessage": "",
+    "@groupItemsIntoCollectionsDialogMessage": {
+        "description": "Message of the alert dialog explaining server settings requirement"
     }
 }

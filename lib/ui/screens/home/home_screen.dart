@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:ui' as ui;
 
+import 'package:collection/collection.dart';
 import 'package:flutter/gestures.dart';
 
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -8,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
+import 'package:moonfin/util/language_matching.dart';
 import 'package:moonfin_design/moonfin_design.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
@@ -19,6 +22,7 @@ import 'package:window_manager/window_manager.dart';
 import '../../../data/models/aggregated_item.dart';
 import '../../../data/models/home_row.dart';
 import '../../../data/repositories/mdblist_repository.dart';
+import '../../../data/repositories/seerr_repository.dart';
 import '../../../data/services/background_service.dart';
 import '../../widgets/rating_display.dart';
 import '../../../data/services/theme_music_service.dart';
@@ -27,6 +31,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../../playback/appletv_preview_player.dart';
 import '../../../playback/inline_preview_engine.dart';
 import '../../../playback/media3_player_backend.dart';
+import '../../../preference/home_section_config.dart';
 import '../../../preference/preference_constants.dart';
 import '../../../preference/user_preferences.dart';
 import '../../widgets/exit_confirmation_dialog.dart';
@@ -341,7 +346,11 @@ class _HomeShellState extends State<_HomeShell>
       _themeMusicService.fadeOutAndStop();
       return;
     }
-    _viewModel.refresh(preserveExisting: true);
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (mounted) {
+        _viewModel.refresh(preserveExisting: true);
+      }
+    });
     _maybeRegisterThemeMusic();
     if (_selectedItem != null) {
       _maybePlayThemeMusic(_selectedItem);
@@ -579,6 +588,8 @@ class _ContentRowsState extends State<_ContentRows>
   // Cache for non-focused row image URLs (independent of focus state). Cleared
   // with the extent cache on data/pref/scale change, and size-capped.
   final Map<String, String?> _rowImageUrlCache = {};
+  final Map<String, String> _dynamicBackdrops = {};
+  final Set<String> _fetchingBackdrops = {};
   int? _activeFocusedRowIndex;
   Timer? _previewDelayTimer;
   Timer? _previewStopTimer;
@@ -1385,6 +1396,7 @@ class _ContentRowsState extends State<_ContentRows>
     final mediaSourceId = item.mediaSources.isNotEmpty
         ? item.mediaSources.first['Id']?.toString()
         : null;
+    final audioIndex = _getPreferredAudioIndex(item);
     final startTicks = startPosition.inMicroseconds * 10;
     final params = <String, String>{
       'Static': 'false',
@@ -1401,6 +1413,7 @@ class _ContentRowsState extends State<_ContentRows>
       if (kIsWeb) 'TranscodingContainer': 'mp4',
       if (startTicks > 0) 'StartTimeTicks': '$startTicks',
       'MediaSourceId': ?mediaSourceId,
+      'AudioStreamIndex': ?audioIndex?.toString(),
       if (client.accessToken != null) 'ApiKey': client.accessToken!,
     };
 
@@ -1411,6 +1424,46 @@ class _ContentRowsState extends State<_ContentRows>
     final fullPath = '$normalizedBasePath/Videos/${item.id}/$streamPath';
 
     return baseUri.replace(path: fullPath, queryParameters: params).toString();
+  }
+
+  int? _getPreferredAudioIndex(AggregatedItem item) {
+    final allAudio = item.mediaStreams.where((s) => s['Type'] == 'Audio').toList();
+    if (allAudio.isEmpty) return null;
+
+    final preferred = widget.prefs.get(UserPreferences.defaultAudioLanguage).trim();
+    List<Map<String, dynamic>> candidates = [];
+
+    // find tracks matching the preferred language
+    if (preferred.isNotEmpty) {
+      final norm = normalizeLanguage(preferred);
+      final iso3 = toIso3Language(norm);
+      candidates = allAudio.where((s) {
+        final lang = (s['Language'] as String?)?.trim();
+        return languageMatchesPreferred(lang, norm, iso3);
+      }).toList();
+    }
+
+    // if no language matches (or no preference set), use all audio tracks
+    final finalPool = candidates.isNotEmpty ? candidates : allAudio;
+
+    // return if only one option remains
+    if (finalPool.length == 1) return finalPool.first['Index'] as int?;
+
+    // Tie breaker selection
+    // Prefer tracks not marked as Commentary or Audio Description
+    // Prefer the track marked as Default
+    // Prefer the lowest index
+    final bestMatch = finalPool.firstWhere(
+          (s) => s['IsCommentary'] != true &&
+          s['IsAudioDescription'] != true &&
+          s['IsDefault'] == true,
+      orElse: () => finalPool.firstWhere(
+            (s) => s['IsCommentary'] != true && s['IsAudioDescription'] != true,
+        orElse: () => finalPool.first,
+      ),
+    );
+
+    return bestMatch['Index'] as int?;
   }
 
   bool _isMediaBarIncluded() {
@@ -1470,6 +1523,7 @@ class _ContentRowsState extends State<_ContentRows>
       v2ImageHeight,
       useSeriesThumbs,
       requestScale,
+      isPrefetch: true,
     );
     if (url == null || url.isEmpty) return;
     if (!_v2FocusPrefetchedUrls.add(url)) return;
@@ -1932,10 +1986,21 @@ class _ContentRowsState extends State<_ContentRows>
     final desktopScale = _desktopUiScaleFactor();
     final metadataScale = desktopScale;
     final isRowsV2 = prefs.get(UserPreferences.homeRowsStyle) == HomeRowsStyle.v2 && !_isSeerrFilterRow(row);
+    final platformScale = PlatformDetection.isTV ? 0.8 * desktopScale : desktopScale;
 
     double childHeight = 0.0;
     if (row.isLoading) {
-      childHeight = 220.0 * metadataScale;
+      if (row.rowType == HomeRowType.liveTv ||
+          row.rowType == HomeRowType.libraryTilesSmall) {
+        final squarePosterSide = _squarePosterSide(posterSize);
+        childHeight = squarePosterSide + (56 * metadataScale);
+      } else if (isRowsV2) {
+        final imageHeight = posterSize.portraitHeight.toDouble() * platformScale * 2;
+        childHeight = imageHeight + (_v2MetadataHeightBudget(prefs) * metadataScale) + (10 * metadataScale);
+      } else {
+        final imageHeight = posterSize.portraitHeight.toDouble() * platformScale;
+        childHeight = imageHeight + (46 * metadataScale) + (10 * metadataScale);
+      }
     } else if (row.rowType == HomeRowType.liveTv ||
         row.rowType == HomeRowType.libraryTilesSmall) {
       final squarePosterSide = _squarePosterSide(posterSize);
@@ -1945,7 +2010,6 @@ class _ContentRowsState extends State<_ContentRows>
       final rowImageType = isSeerrRowOverride
           ? ImageType.thumb
           : (isRowsV2 ? ImageType.poster : _homeRowImageTypeForRow(row, prefs));
-      final platformScale = PlatformDetection.isTV ? 0.8 * desktopScale : desktopScale;
       var maxCardHeight = 220.0 * metadataScale;
       if (isRowsV2) {
         final imageHeight = posterSize.portraitHeight.toDouble() * platformScale * 2;
@@ -1965,8 +2029,10 @@ class _ContentRowsState extends State<_ContentRows>
       childHeight = maxCardHeight + (10 * metadataScale);
     }
 
-    final isSeerrRow = row.id.startsWith('seerr_');
-    final hasSubtitle = isSeerrRow && (row.rowType != HomeRowType.liveTv && row.rowType != HomeRowType.libraryTilesSmall);
+    final subtitle = _rowSubtitle(row, AppLocalizations.of(context)!);
+    final hasSubtitle = subtitle != null &&
+        (row.rowType != HomeRowType.liveTv &&
+            row.rowType != HomeRowType.libraryTilesSmall);
     final headerPaddingTop = isRowsV2 ? 6.0 : 16.0;
     final headerPaddingBottom = isRowsV2 ? 1.0 : 8.0;
     final titleHeight = 20.0 * metadataScale;
@@ -2928,9 +2994,52 @@ class _ContentRowsState extends State<_ContentRows>
     );
   }
 
+  String? _rowSubtitle(HomeRow row, AppLocalizations l10n) {
+    if (row.id == 'merged_calendar' || row.id == 'radarr_calendar' || row.id == 'sonarr_calendar') {
+      return 'Radarr and Sonarr Calendars';
+    }
+    if (row.id.startsWith('seerr_')) return l10n.seerrDiscoveryRows;
+    if (row.id.startsWith('tmdb_')) return 'TMDB Lists';
+
+    final config = widget.prefs.homeSectionsConfig.firstWhereOrNull((c) => c.stableId == row.id);
+    if (config != null && config.pluginSource == HomeSectionPluginSource.custom) {
+      Map<String, dynamic> rowConfig = {};
+      try {
+        rowConfig = jsonDecode(config.pluginAdditionalData ?? '{}') as Map<String, dynamic>;
+      } catch (_) {}
+      final source = rowConfig['source'] as String? ?? 'imdb';
+      final type = rowConfig['type'] as String? ?? 'user_list';
+      final sourceLabel = switch (source) {
+        'imdb' => 'IMDb',
+        'tmdb' => 'TMDB',
+        'letterboxd' => 'Letterboxd',
+        'mdblist' => 'MDBList',
+        _ => source.toUpperCase(),
+      };
+      final typeLabel = switch (type) {
+        'user_list' => source == 'tmdb'
+            ? 'List'
+            : (source == 'mdblist' ? '' : 'List from URL'),
+        'user_diary' => 'Diary',
+        'watchlist' => 'Watchlist',
+        'films' => 'Complete Films',
+        'awards_events' => 'Awards/Events',
+        'movie_collection' => 'Collection',
+        _ => type,
+      };
+      return '$sourceLabel $typeLabel'.trim();
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     final rows = widget.viewModel.rows;
+    // Guard against a stale focused-row index pointing past the end of the
+    // (potentially shorter) new row list
+    if (_activeFocusedRowIndex != null && _activeFocusedRowIndex! >= rows.length) {
+      _activeFocusedRowIndex = null;
+    }
     final prefs = widget.prefs;
     final posterSize =
         (_isHomeRowsStyleV2() &&
@@ -3538,14 +3647,15 @@ class _ContentRowsState extends State<_ContentRows>
           (46 * metadataScale);
     }
 
-    final isSeerrRow = row.id.startsWith('seerr_');
+    final subtitle = _rowSubtitle(row, l10n);
+    final hasSubtitle = subtitle != null;
     return _buildTitledRow(
       key: _rowContainerKey(rowIndex),
       title: _localizedRowTitle(row, l10n),
-      subtitle: isSeerrRow ? l10n.seerrDiscoveryRows : null,
+      subtitle: subtitle,
       rowIndex: rowIndex,
       hasItems: row.items.isNotEmpty,
-      height: maxCardHeight + (10 * metadataScale) + (isSeerrRow ? 18.0 : 0.0),
+      height: maxCardHeight + (10 * metadataScale) + (hasSubtitle ? 18.0 : 0.0),
       child: LockedFocusRow<AggregatedItem>(
         key: _rowKey(rowIndex),
         items: row.items,
@@ -3764,9 +3874,18 @@ class _ContentRowsState extends State<_ContentRows>
             }
           } else {
             cardTitle = item.name;
-            cardSubtitle = canUseExpandedV2Card
-                ? _v2MetadataLine(item)
-                : item.subtitle;
+            final showUserRatings = item.rawData['ShowUserRatings'] == true;
+            final userRating = item.rawData['UserRating'] as String? ?? '';
+            if (showUserRatings && userRating.isNotEmpty) {
+              cardSubtitle = userRating;
+            } else {
+              cardSubtitle = (canUseExpandedV2Card &&
+                      row.id != 'radarr_calendar' &&
+                      row.id != 'sonarr_calendar' &&
+                      row.id != 'merged_calendar')
+                  ? _v2MetadataLine(item)
+                  : item.subtitle;
+            }
             cardSubtitleWidget = null;
           }
 
@@ -4170,7 +4289,7 @@ class _ContentRowsState extends State<_ContentRows>
           : 'movie';
       context.push(
         Destinations.seerrMedia(item.id),
-        extra: {'mediaType': mediaType},
+        extra: {'mediaType': mediaType, 'title': item.name},
       );
     }
   }
@@ -4183,7 +4302,10 @@ class _ContentRowsState extends State<_ContentRows>
         context.push(Destinations.musicLibrary(item.id));
         return;
       case 'books':
-        context.push(Destinations.library(item.id, bookUi: true));
+      case 'audiobooks':
+        context.push(
+          Destinations.bookLibrary(item.id, collectionType: collectionType),
+        );
         return;
       case 'livetv':
         context.push(Destinations.liveTvGuide);
@@ -4261,19 +4383,70 @@ class _ContentRowsState extends State<_ContentRows>
     return _resolvePrimaryImageUrl(item, imageApi, maxWidth: maxW);
   }
 
-  static String? _resolveV2FocusedImageUrl(
+  void _fetchBackdropIfNeeded(AggregatedItem item) async {
+    if (item.serverId != 'seerr') return;
+    final backdrop = item.rawData['BackdropPath'] as String?;
+    if (backdrop != null && backdrop.startsWith('/')) return;
+    if (_dynamicBackdrops.containsKey(item.id)) return;
+    if (!_fetchingBackdrops.add(item.id)) return;
+
+    try {
+      final repo = await GetIt.instance.getAsync<SeerrRepository>();
+      await repo.ensureInitialized();
+
+      final title = item.rawData['Name'] as String?;
+      final searchPage = await repo.search(title != null && title.isNotEmpty ? title : item.id);
+      if (searchPage.results.isNotEmpty) {
+        final year = item.rawData['ProductionYear'] as int?;
+        var matchedItem = searchPage.results.first;
+        if (year != null) {
+          for (final result in searchPage.results) {
+            final resultYearStr = result.releaseDate ?? result.firstAirDate;
+            if (resultYearStr != null && resultYearStr.length >= 4) {
+              final resultYear = int.tryParse(resultYearStr.substring(0, 4));
+              if (resultYear == year) {
+                matchedItem = result;
+                break;
+              }
+            }
+          }
+        }
+        if (matchedItem.backdropPath != null && matchedItem.backdropPath!.isNotEmpty) {
+          if (mounted) {
+            setState(() {
+              _dynamicBackdrops[item.id] = matchedItem.backdropPath!;
+            });
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('[HomeScreen] Failed to fetch backdrop for ${item.id}: $e');
+    } finally {
+      _fetchingBackdrops.remove(item.id);
+    }
+  }
+
+  String? _resolveV2FocusedImageUrl(
     AggregatedItem item,
     ImageApi imageApi,
     double height,
     bool useSeriesThumbs,
-    double requestScale,
-  ) {
+    double requestScale, {
+    bool isPrefetch = false,
+  }) {
     if (item.serverId == 'seerr') {
-      return _seerrTmdbImageUrl(
-            item.rawData['BackdropPath'] as String?,
-            1280,
-          ) ??
-          _seerrTmdbImageUrl(item.rawData['PosterPath'] as String?, 300);
+      if (!isPrefetch) {
+        _fetchBackdropIfNeeded(item);
+      }
+      final dynamicBackdrop = _dynamicBackdrops[item.id];
+      if (dynamicBackdrop != null) {
+        return _seerrTmdbImageUrl(dynamicBackdrop, 1280);
+      }
+      final backdrop = item.rawData['BackdropPath'] as String?;
+      if (backdrop != null && backdrop.startsWith('/')) {
+        return _seerrTmdbImageUrl(backdrop, 1280);
+      }
+      return _seerrTmdbImageUrl(item.rawData['PosterPath'] as String?, 300);
     }
     final maxW = (height * 16 / 9 * requestScale).toInt();
     final maxH = (height * requestScale).toInt();
@@ -4362,14 +4535,19 @@ class _ContentRowsState extends State<_ContentRows>
       return prefs.get(UserPreferences.homeRowsUniversalImageType);
     }
 
-    final sectionType = _sectionTypeForRow(row);
+    final sectionType = _sectionTypeForRow(row, prefs);
     if (sectionType == null) {
       return ImageType.poster;
     }
     return prefs.get(UserPreferences.homeRowImageType(sectionType));
   }
 
-  static HomeSectionType? _sectionTypeForRow(HomeRow row) {
+  static HomeSectionType? _sectionTypeForRow(HomeRow row, UserPreferences prefs) {
+    final config = prefs.homeSectionsConfig.firstWhereOrNull((c) => c.stableId == row.id);
+    if (config != null) {
+      return config.type;
+    }
+
     return switch (row.rowType) {
       HomeRowType.resume => HomeSectionType.resume,
       HomeRowType.nextUp => HomeSectionType.nextUp,
@@ -4391,13 +4569,15 @@ class _ContentRowsState extends State<_ContentRows>
       HomeRowType.playlists => HomeSectionType.playlists,
       HomeRowType.liveTv => HomeSectionType.liveTv,
       HomeRowType.activeRecordings => HomeSectionType.activeRecordings,
+      HomeRowType.recentlyReleased => HomeSectionType.recentlyReleased,
       _ => null,
     };
   }
 
   static bool _isLatestMusicRow(HomeRow row) {
-    if (row.rowType != HomeRowType.latestMedia || row.items.isEmpty)
+    if (row.rowType != HomeRowType.latestMedia || row.items.isEmpty) {
       return false;
+    }
     return row.items.every(
       (item) =>
           item.type == 'Audio' ||

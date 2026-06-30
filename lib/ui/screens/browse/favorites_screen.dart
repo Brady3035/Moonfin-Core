@@ -366,17 +366,14 @@ class _FavoritesScreenState extends State<FavoritesScreen> with GridFocusNodeMix
             showControls: !isMobile && PlatformDetection.useDesktopUi,
             builder: (context, scrollController) => NotificationListener<ScrollNotification>(
               onNotification: (notification) {
-                // 1. Check if the scroll notification comes from the horizontal row
-                if (notification.metrics.axis == Axis.horizontal) {
-                  final maxScroll = notification.metrics.maxScrollExtent;
-                  final currentScroll = notification.metrics.pixels;
-                  
-                  // 2. Trigger a load when the user scrolls within 500 pixels of the edge
-                  if (maxScroll - currentScroll < 500) {
-                    _vm.loadMoreForType(type);
-                  }
+                // Page in more when a horizontal scroll gets within 600px of the end.
+                if (notification.metrics.axis == Axis.horizontal &&
+                    notification.metrics.maxScrollExtent -
+                            notification.metrics.pixels <
+                        600) {
+                  _vm.loadMoreForType(type);
                 }
-                return false; 
+                return false;
               },
               child: LockedFocusRow<AggregatedItem>(
                 key: _rowKeys[type],
@@ -394,6 +391,9 @@ class _FavoritesScreenState extends State<FavoritesScreen> with GridFocusNodeMix
                 ),
                 onIndexChanged: (index, item) {
                   _onItemFocused(item);
+                  if (index >= items.length - 8) {
+                    _vm.loadMoreForType(type);
+                  }
                 },
                 onVerticalNavigation: (isUp) {
                   return _onRowVerticalNavigation(visibleTypes, type, isUp);

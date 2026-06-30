@@ -1895,10 +1895,10 @@ class _ContentRowsState extends State<_ContentRows>
 
   void _onRowScrolled(int rowIndex, ScrollController controller) {
     if (!controller.hasClients) return;
-    const _loadMoreTriggerDistance = 600.0;
+    const loadMoreTriggerDistance = 600.0;
     final remaining =
         controller.position.maxScrollExtent - controller.offset;
-    if (remaining <= _loadMoreTriggerDistance) {
+    if (remaining <= loadMoreTriggerDistance) {
       widget.viewModel.loadMoreForRow(rowIndex);
     }
   }

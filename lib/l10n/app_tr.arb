@@ -9106,5 +9106,25 @@
     "trailerCaptionsDescription": "YouTube fragmanlarında medya çubuğunda altyazıları göster",
     "@trailerCaptionsDescription": {
         "description": "Description for YouTube trailer captions"
+    },
+    "shuffleAll": "Tümünü Karıştır",
+    "@shuffleAll": {
+        "description": "Action button label for shuffling all tracks of an artist"
+    },
+    "yourWatchlist": "İzleme Listen",
+    "@yourWatchlist": {
+        "description": "Seerr row: watchlist"
+    },
+    "addToWatchlist": "İzleme Listesine Ekle",
+    "@addToWatchlist": {
+        "description": "Button label to add media to the user's Seerr watchlist"
+    },
+    "removeFromWatchlist": "İzleme Listesinden Sil",
+    "@removeFromWatchlist": {
+        "description": "Button label to remove media from the user's Seerr watchlist"
+    },
+    "watchlistUpdateFailed": "İzleme listesi güncellenemedi",
+    "@watchlistUpdateFailed": {
+        "description": "Snackbar shown when adding/removing a Seerr watchlist item fails"
     }
 }

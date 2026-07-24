@@ -921,7 +921,7 @@ class MultiServerRepository {
     for (final session in sessions) {
       try {
         final views = await _withTimeout(
-          () => loadAllViewsIncludingHidden(session.client),
+          () => loadUserViews(session.client, includeHidden: true),
           label: 'views from ${session.server.name}',
         );
 

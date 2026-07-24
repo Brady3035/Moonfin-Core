@@ -10,8 +10,12 @@ class EmbyUserViewsApi implements UserViewsApi {
 
   EmbyUserViewsApi(this._dio, this._getUserId);
 
+  // Emby has no includeHidden parameter and hides My Media entries on the
+  // client, so the flag doesn't change what comes back here.
   @override
-  Future<Map<String, dynamic>> getUserViews() async {
+  Future<Map<String, dynamic>> getUserViews({
+    bool includeHidden = false,
+  }) async {
     if (_cached != null &&
         _cachedAt != null &&
         DateTime.now().difference(_cachedAt!) < _cacheDuration) {

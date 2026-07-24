@@ -17,7 +17,7 @@
             }
         }
     },
-    "quickConnect": "Quick Connect",
+    "quickConnect": "Hurtigkobling",
     "@quickConnect": {
         "description": "Quick Connect toggle button label"
     },
@@ -49,7 +49,7 @@
     "@loginFailed": {
         "description": "Generic login failure message"
     },
-    "quickConnectUnavailable": "QuickConnect er utilgjengelig: {detail}",
+    "quickConnectUnavailable": "Hurtigkobling er utilgjengelig: {detail}",
     "@quickConnectUnavailable": {
         "description": "Quick Connect generic error message",
         "placeholders": {
@@ -58,7 +58,7 @@
             }
         }
     },
-    "quickConnectUnavailableWithStatus": "QuickConnect er utilgjengelig ({status}): {detail}",
+    "quickConnectUnavailableWithStatus": "Hurtigkobling er utilgjengelig ({status}): {detail}",
     "@quickConnectUnavailableWithStatus": {
         "description": "Quick Connect error message with HTTP status info",
         "placeholders": {
@@ -168,7 +168,7 @@
     "@settingsAppearanceTheme": {
         "description": "Title for the theme selection screen and theme settings entry"
     },
-    "settingsAppearanceThemeSubtitle": "Bytt mellom Moonfin og Neon Pulse uten å starte appen på nytt",
+    "settingsAppearanceThemeSubtitle": "Bruk et fullstendig tilpasset tema, og bytt mellom et Apple- eller Material-inspirert brukergrensesnitt.",
     "@settingsAppearanceThemeSubtitle": {
         "description": "Subtitle for the theme selection screen and theme settings entry"
     },
@@ -176,7 +176,7 @@
     "@themeMoonfin": {
         "description": "Display name for the Moonfin theme"
     },
-    "themeMoonfinSubtitle": "Nåværende Moonfin-utseende du alle har blitt glad i",
+    "themeMoonfinSubtitle": "Det originale og stilrene Moonfin-standarden.",
     "@themeMoonfinSubtitle": {
         "description": "Preview description for the Moonfin theme"
     },
@@ -2722,7 +2722,7 @@
     "@seriesThumbnails": {
         "description": "Setting for series thumbnails"
     },
-    "seriesThumbnailsDescription": "Bare episoder: bruk seriegrafikk som samsvarer med hver radbildetype",
+    "seriesThumbnailsDescription": "Bare episoder: bruk seriegrafikk som samsvarer med hver radbildetype.",
     "@seriesThumbnailsDescription": {
         "description": "Description for series thumbnails setting"
     },
@@ -3520,7 +3520,7 @@
     "@showInNavigation": {
         "description": "Toggle for showing library in navigation"
     },
-    "showInLatestMedia": "Vis i siste media",
+    "showInLatestMedia": "Vis under nylig lagt til/utgitt media",
     "@showInLatestMedia": {
         "description": "Toggle for showing library in latest media"
     },
@@ -3641,11 +3641,11 @@
     "@previewAudio": {
         "description": "Setting for preview audio"
     },
-    "enablePreviewAudio": "Aktiver lyd for forhåndsvisninger av trailer og episode",
+    "enablePreviewAudio": "Aktiver lyd for medieforhåndsvisninger",
     "@enablePreviewAudio": {
         "description": "Description for preview audio"
     },
-    "latestMedia": "Siste media",
+    "latestMedia": "Nylig lagt til",
     "@latestMedia": {
         "description": "Home section: latest media"
     },
@@ -4559,7 +4559,7 @@
     "stop": "Stopp",
     "streaming": "Strømming",
     "time": "Tid",
-    "trickplay": "Trickplay",
+    "trickplay": "Miniatyrbilder ved spoling",
     "uninstall": "Avinstaller",
     "up": "Opp",
     "update": "Oppdater",
@@ -4576,7 +4576,7 @@
     "adminDrawerTranscoding": "Omkoding",
     "adminDrawerResume": "Fortsett",
     "adminDrawerStreaming": "Strømming",
-    "adminDrawerTrickplay": "Trickplay",
+    "adminDrawerTrickplay": "Miniatyrbilder ved spoling",
     "adminDrawerDevices": "Enheter",
     "adminDrawerActivity": "Aktivitet",
     "adminDrawerNetworking": "Nettverk",
@@ -6328,14 +6328,14 @@
     "pinForgot": "Glemt PIN-koden?",
     "pinClear": "Tøm",
     "pinBackspace": "Tilbake",
-    "quickConnectAuthorized": "Quick Connect-forespørselen er autorisert.",
-    "quickConnectInvalidOrExpired": "Quick Connect-koden er ugyldig eller utløpt.",
-    "quickConnectNotSupported": "Quick Connect støttes ikke på denne serveren.",
-    "quickConnectAuthorizeFailed": "Kunne ikke autorisere Quick Connect-koden.",
-    "quickConnectDisabled": "Quick Connect er deaktivert på denne serveren.",
-    "quickConnectForbidden": "Kontoen din kan ikke godkjenne denne Quick Connect-forespørselen.",
-    "quickConnectNotFound": "Quick Connect-koden ble ikke funnet. Prøv en ny kode.",
-    "quickConnectFailedWithMessage": "Quick Connect mislyktes: {message}",
+    "quickConnectAuthorized": "Hurtigkoblingsforespørselen er autorisert.",
+    "quickConnectInvalidOrExpired": "Hurtigkoblingskoden er ugyldig eller utløpt.",
+    "quickConnectNotSupported": "Hurtigkobling støttes ikke på denne serveren.",
+    "quickConnectAuthorizeFailed": "Kunne ikke autorisere hurtigkoblingskoden.",
+    "quickConnectDisabled": "Hurtigkobling er deaktivert på denne serveren.",
+    "quickConnectForbidden": "Kontoen din kan ikke autorisere denne hurtigkoblingsforespørselen.",
+    "quickConnectNotFound": "Hurtigkoblingskoden ble ikke funnet. Prøv en ny kode.",
+    "quickConnectFailedWithMessage": "Hurtigkobling mislyktes: {message}",
     "@quickConnectFailedWithMessage": {
         "placeholders": {
             "message": {
@@ -6668,7 +6668,7 @@
             }
         }
     },
-    "latestLibraryName": "Latest {libraryName}",
+    "latestLibraryName": "Nylig lagt til i {libraryName}",
     "@latestLibraryName": {
         "description": "Row title for latest media in a specific library",
         "placeholders": {
@@ -8207,7 +8207,7 @@
     "adminDrawerNfo": "NFO-innstillinger",
     "adminActivitySeverityAll": "Alle alvorlighetsgrader",
     "adminActivityDateRange": "Datoområde",
-    "adminRemoveDeviceConfirm": "Vil du fjerne enheten «{name}»? Brukeren må logge på igjen på denne enheten.",
+    "adminRemoveDeviceConfirm": "Vil du fjerne enheten '{name}'? Brukeren må logge på igjen på denne enheten.",
     "@adminRemoveDeviceConfirm": {
         "placeholders": {
             "name": {
@@ -8501,7 +8501,7 @@
     "adminPlaybackThrottleDelay": "Forsinkelse for struping (sekunder)",
     "adminPlaybackEnableSubtitleExtraction": "Tillat uttrekking av undertekster underveis",
     "adminGeneralEnableSlowResponse": "Aktiver advarsler om trege svar",
-    "adminGeneralQuickConnect": "Aktiver Quick Connect",
+    "adminGeneralQuickConnect": "Aktiver hurtigkobling",
     "adminGeneralSectionServer": "Server",
     "adminGeneralSectionMetadata": "Metadata",
     "adminGeneralSectionPaths": "Baner",
@@ -8861,7 +8861,7 @@
     "@dismiss": {
         "description": "Dismiss button text"
     },
-    "libraryWriteAccessProactiveBody": "Biblioteket «{libraryName}» er konfigurert til å lagre bildemateriell direkte i mediemappene («Save artwork into media folders» er aktivert). Jellyfin har imidlertid testet skrivetilgangen og har ikke tillatelse til å skrive filer til denne katalogen:\n\n{failedPath}",
+    "libraryWriteAccessProactiveBody": "Biblioteket '{libraryName}' er konfigurert til å lagre bildemateriell direkte i mediemappene ('Save artwork into media folders' er aktivert). Jellyfin har imidlertid testet skrivetilgangen og har ikke tillatelse til å skrive filer til denne katalogen:\n\n{failedPath}",
     "@libraryWriteAccessProactiveBody": {
         "description": "Proactive warning message about server write access",
         "placeholders": {
@@ -9005,5 +9005,72 @@
     "imdbMostPopularMovies": "IMDb mest populære filmer",
     "imdbMostPopularTvShows": "IMDb mest populære TV-serier",
     "imdbLowestRatedMovies": "IMDb lavest rangerte filmer",
-    "imdbTopEnglishMovies": "IMDb topprangerte engelske filmer"
+    "imdbTopEnglishMovies": "IMDb topprangerte engelske filmer",
+    "castMembers": "Medvirkende",
+    "@castMembers": {
+        "description": "Section title for the list of actors and performers in movie and TV metadata. Not the casting-to-a-device action"
+    },
+    "finalizingDownload": "Fullfører…",
+    "@finalizingDownload": {
+        "description": "Status label shown while a finished download is being moved to its final location and validated"
+    },
+    "failedToDeleteItemWithError": "Slettingen mislyktes med følgende feil: {error}",
+    "@failedToDeleteItemWithError": {
+        "description": "Error message when item deletion fails, including the specific error details",
+        "placeholders": {
+            "error": {
+                "type": "String",
+                "example": "Permission denied"
+            }
+        }
+    },
+    "shuffleAll": "Bland alle",
+    "@shuffleAll": {
+        "description": "Action button label for shuffling all tracks of an artist"
+    },
+    "detailsBackgroundOpacity": "Gjennomsiktighet for detaljbakgrunn",
+    "@detailsBackgroundOpacity": {
+        "description": "Setting for details background opacity on modern screens"
+    },
+    "transcodingTimeRemainingUnavailable": "Omkoding: Gjenstående tid er utilgjengelig",
+    "@transcodingTimeRemainingUnavailable": {
+        "description": "Notice shown below downloading text when downloading a transcoded stream"
+    },
+    "trailerCaptions": "Undertekster for trailere",
+    "@trailerCaptions": {
+        "description": "Setting for YouTube trailer captions"
+    },
+    "trailerCaptionsDescription": "Vis undertekster på YouTube-trailere i mediefeltet",
+    "@trailerCaptionsDescription": {
+        "description": "Description for YouTube trailer captions"
+    },
+    "homeRowsPadding": "Vertikal avstand mellom rader på startsiden",
+    "@homeRowsPadding": {
+        "description": "Title for home rows padding setting"
+    },
+    "homeRowsPaddingDescription": "Tilpass den vertikale avstanden mellom radene på startsiden",
+    "@homeRowsPaddingDescription": {
+        "description": "Description for home rows padding setting"
+    },
+    "yourWatchlist": "Din visningsliste",
+    "@yourWatchlist": {
+        "description": "Seerr row: watchlist"
+    },
+    "emulatorCoreDownloading": "Laster ned",
+    "downloadedGames": "Nedlastede spill",
+    "@downloadedGames": {
+        "description": "Settings screen title for managing game files stored on the device"
+    },
+    "addToWatchlist": "Legg til i visningslisten",
+    "@addToWatchlist": {
+        "description": "Button label to add media to the user's Seerr watchlist"
+    },
+    "removeFromWatchlist": "Fjern fra visningslisten",
+    "@removeFromWatchlist": {
+        "description": "Button label to remove media from the user's Seerr watchlist"
+    },
+    "watchlistUpdateFailed": "Kunne ikke oppdatere visningslisten",
+    "@watchlistUpdateFailed": {
+        "description": "Snackbar shown when adding/removing a Seerr watchlist item fails"
+    }
 }

@@ -3391,9 +3391,21 @@
   "@detailButtonsDescription": {
     "description": "Subtitle for the details action buttons settings tile"
   },
-  "detailButtonsSectionDescription": "Play, Restart and Play Offline are always shown. Everything below is up to you, and each kind of device keeps its own list.",
+  "detailButtonsSectionDescription": "Play is always first and the locked buttons are always shown. Everything else is up to you, and each kind of device keeps its own list.",
   "@detailButtonsSectionDescription": {
     "description": "Explains that the play buttons can't be hidden and that the list is per device kind"
+  },
+  "moveUp": "Move Up",
+  "@moveUp": {
+    "description": "Moves a button one place earlier in its row"
+  },
+  "moveDown": "Move Down",
+  "@moveDown": {
+    "description": "Moves a button one place later in its row"
+  },
+  "buttonOrderHint": "Use the arrows to change the order. On a remote, left and right move the highlighted button.",
+  "@buttonOrderHint": {
+    "description": "Explains how to reorder the buttons in a row"
   },
   "orientationLock": "Orientation Lock",
   "@orientationLock": {

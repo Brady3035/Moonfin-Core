@@ -1,8 +1,8 @@
 part of '../settings_side_panel.dart';
 
-/// Switches for the buttons that sit around the playback controls in the
-/// player. Only the buttons this kind of device can draw are listed, and the
-/// list it writes to belongs to this idiom alone.
+/// Switches and ordering for the buttons around the playback controls.
+/// Only the buttons this kind of device can draw are listed, and the
+/// arrangement it writes to is the one for this kind of device.
 class _OsdButtonsScreen extends StatelessWidget {
   const _OsdButtonsScreen();
 
@@ -10,8 +10,9 @@ class _OsdButtonsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    final preference = hiddenOsdButtons.preference;
-    final buttons = OsdButton.values.where((b) => b.isOffered).toList();
+    final hint = theme.textTheme.bodySmall?.copyWith(
+      color: theme.colorScheme.onSurfaceVariant,
+    );
 
     return RequestInitialFocus(
       child: withCleanSettingsTypography(
@@ -21,20 +22,21 @@ class _OsdButtonsScreen extends StatelessWidget {
           body: ListView(
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-                child: Text(
-                  l10n.osdButtonsSectionDescription,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+                child: Text(l10n.osdButtonsSectionDescription, style: hint),
               ),
-              adaptiveListSection(
-                children: [
-                  for (final button in buttons)
-                    CsvExclusionSwitchTile(
-                      preference: preference,
-                      value: button.id,
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                child: Text(l10n.buttonOrderHint, style: hint),
+              ),
+              ButtonLayoutList(
+                layout: osdButtonLayout,
+                entries: [
+                  for (final button in OsdButton.values.where(
+                    (button) => button.isOffered,
+                  ))
+                    ButtonLayoutEntry(
+                      id: button.id,
                       title: button.label(l10n),
                       icon: button.icon,
                     ),

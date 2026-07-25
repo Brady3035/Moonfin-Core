@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../l10n/app_localizations.dart';
-import '../../../preference/hidden_buttons.dart';
+import '../../../preference/button_layout.dart';
 import '../../../preference/user_preferences.dart';
 import '../../../util/platform_detection.dart';
 
@@ -20,6 +20,9 @@ enum OsdButton {
   audio('audio'),
   castAndCrew('castAndCrew'),
   cast('cast'),
+  // Follows the cast switch and sits beside it in the row, so it gets no
+  // switch of its own.
+  castControls('castControls'),
   volume('volume'),
   quality('quality'),
   zoom('zoom'),
@@ -35,6 +38,7 @@ enum OsdButton {
   /// Whether this device can put the button on screen at all. A button that
   /// never gets drawn here isn't worth offering a switch for.
   bool get isOffered => switch (this) {
+    OsdButton.castControls => false,
     OsdButton.cast => !PlatformDetection.isTV,
     OsdButton.volume => PlatformDetection.useDesktopUi,
     OsdButton.orientation => PlatformDetection.isMobile,
@@ -53,6 +57,7 @@ enum OsdButton {
     OsdButton.audio => Icons.audiotrack_outlined,
     OsdButton.castAndCrew => Icons.people_outline_rounded,
     OsdButton.cast => Icons.cast,
+    OsdButton.castControls => Icons.cast_connected,
     OsdButton.volume => Icons.volume_up_rounded,
     OsdButton.quality => Icons.video_settings_outlined,
     OsdButton.zoom => Icons.zoom_out_map,
@@ -71,6 +76,7 @@ enum OsdButton {
     OsdButton.audio => l10n.audio,
     OsdButton.castAndCrew => l10n.castAndCrew,
     OsdButton.cast => l10n.cast,
+    OsdButton.castControls => l10n.playerTooltipCastControls,
     OsdButton.volume => l10n.playerTooltipVolume,
     OsdButton.quality => l10n.playerTooltipPlaybackQuality,
     OsdButton.zoom => l10n.playerZoomMode,
@@ -81,8 +87,11 @@ enum OsdButton {
   };
 }
 
-final hiddenOsdButtons = HiddenButtons(
-  tv: UserPreferences.hiddenOsdButtonsTv,
-  mobile: UserPreferences.hiddenOsdButtonsMobile,
-  desktop: UserPreferences.hiddenOsdButtonsDesktop,
+final osdButtonLayout = ButtonLayout(
+  hiddenTv: UserPreferences.hiddenOsdButtonsTv,
+  hiddenMobile: UserPreferences.hiddenOsdButtonsMobile,
+  hiddenDesktop: UserPreferences.hiddenOsdButtonsDesktop,
+  orderTv: UserPreferences.osdButtonOrderTv,
+  orderMobile: UserPreferences.osdButtonOrderMobile,
+  orderDesktop: UserPreferences.osdButtonOrderDesktop,
 );

@@ -2424,7 +2424,17 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get detailButtonsSectionDescription =>
-      'Play, Restart and Play Offline are always shown. Everything below is up to you, and each kind of device keeps its own list.';
+      'Play is always first and the locked buttons are always shown. Everything else is up to you, and each kind of device keeps its own list.';
+
+  @override
+  String get moveUp => 'Move Up';
+
+  @override
+  String get moveDown => 'Move Down';
+
+  @override
+  String get buttonOrderHint =>
+      'Use the arrows to change the order. On a remote, left and right move the highlighted button.';
 
   @override
   String get orientationLock => 'Orientation Lock';

@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/cupertino.dart' show CupertinoSlider;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -7,7 +5,6 @@ import 'package:get_it/get_it.dart';
 import 'package:moonfin_design/moonfin_design.dart';
 import 'package:jellyfin_preference/jellyfin_preference.dart';
 
-import '../../../preference/user_preferences.dart';
 import '../../../util/idiom/app_ui_idiom.dart';
 import '../../../util/platform_detection.dart';
 import '../../../util/focus/dpad_keys.dart';
@@ -416,80 +413,6 @@ class _SwitchPreferenceTileState extends State<SwitchPreferenceTile> {
                     widget.onChangedValue?.call(targetValue);
                   }
                 : null,
-          ),
-        );
-      },
-    );
-  }
-}
-
-/// Switch backed by whether [value] is absent from a comma separated
-/// preference. The stored list holds what the user switched off, so a value
-/// the app starts offering later reads as on.
-class CsvExclusionSwitchTile extends StatelessWidget {
-  final Preference<String> preference;
-  final String value;
-  final String title;
-  final IconData? icon;
-
-  const CsvExclusionSwitchTile({
-    super.key,
-    required this.preference,
-    required this.value,
-    required this.title,
-    this.icon,
-  });
-
-  UserPreferences get _prefs => GetIt.instance<UserPreferences>();
-
-  // A screen shows one of these per entry over a single preference, so the
-  // list is read fresh on every build and again on every write. A copy taken
-  // when the tile was built goes stale as soon as a neighbour writes, and the
-  // next write would put the neighbour's entry back.
-  List<String> get _excluded => _prefs
-      .get(preference)
-      .split(',')
-      .where((entry) => entry.isNotEmpty)
-      .toList();
-
-  void _setIncluded(bool included) {
-    final entries = _excluded;
-    if (included) {
-      entries.remove(value);
-    } else if (!entries.contains(value)) {
-      entries.add(value);
-    }
-    unawaited(_prefs.set(preference, entries.join(',')));
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return TvFocusHighlight(
-      builder: (context, focused) {
-        final iconColor = focused && settingsTileInvertsOnFocus
-            ? AppColors.black.withValues(alpha: 0.54)
-            : (Theme.of(context).iconTheme.color ?? AppColorScheme.onSurface);
-        final secondary = icon != null
-            ? buildSettingsLeadingIconShell(
-                context,
-                icon: Icon(icon),
-                focused: focused,
-                iconColor: iconColor,
-              )
-            : null;
-
-        // Writing notifies, which is what refreshes the neighbouring rows.
-        return ListenableBuilder(
-          listenable: _prefs,
-          builder: (context, _) => SwitchListTile.adaptive(
-            secondary: secondary,
-            title: Text(title, style: _kSettingsTitleTextStyle),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 4,
-            ),
-            value: !_excluded.contains(value),
-            onChanged: _setIncluded,
           ),
         );
       },

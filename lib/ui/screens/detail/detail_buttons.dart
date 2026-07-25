@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
 
 import '../../../l10n/app_localizations.dart';
-import '../../../preference/hidden_buttons.dart';
+import '../../../preference/button_layout.dart';
 import '../../../preference/user_preferences.dart';
 import '../../../util/platform_detection.dart';
 
-/// The details screen action buttons a user can switch off. Play, Restart and
-/// Play Offline are absent on purpose, the row always keeps them, and the
-/// layout math relies on Play sitting at the start of the row.
+/// The details screen action buttons a user can arrange. Play is absent on
+/// purpose, it always leads the row because it renders as the primary button
+/// and anchors the focus the screen hands out.
 ///
 /// Ids are what gets stored, so renaming one drops whatever the user had
-/// switched off for it.
+/// arranged for it.
 enum DetailButton {
   shuffle('shuffle'),
+  restart('restart', canHide: false),
+  playOffline('playOffline', canHide: false),
   audio('audio'),
   subtitles('subtitles'),
   version('version'),
@@ -27,9 +29,12 @@ enum DetailButton {
   goToSeries('goToSeries'),
   admin('admin');
 
-  const DetailButton(this.id);
+  const DetailButton(this.id, {this.canHide = true});
 
   final String id;
+
+  /// A button the row always keeps. It still moves, it just has no switch.
+  final bool canHide;
 
   /// Whether this device can put the button on screen at all. A button that
   /// never gets drawn here isn't worth offering a switch for.
@@ -42,6 +47,8 @@ enum DetailButton {
 
   IconData get icon => switch (this) {
     DetailButton.shuffle => Icons.shuffle_rounded,
+    DetailButton.restart => Icons.restart_alt,
+    DetailButton.playOffline => Icons.offline_pin,
     DetailButton.audio => Icons.audiotrack,
     DetailButton.subtitles => Icons.subtitles,
     DetailButton.version => Icons.video_file,
@@ -59,6 +66,8 @@ enum DetailButton {
 
   String label(AppLocalizations l10n) => switch (this) {
     DetailButton.shuffle => l10n.shuffle,
+    DetailButton.restart => l10n.restart,
+    DetailButton.playOffline => l10n.playOffline,
     DetailButton.audio => l10n.audio,
     DetailButton.subtitles => l10n.subtitles,
     DetailButton.version => l10n.version,
@@ -75,8 +84,11 @@ enum DetailButton {
   };
 }
 
-final hiddenDetailButtons = HiddenButtons(
-  tv: UserPreferences.hiddenDetailButtonsTv,
-  mobile: UserPreferences.hiddenDetailButtonsMobile,
-  desktop: UserPreferences.hiddenDetailButtonsDesktop,
+final detailButtonLayout = ButtonLayout(
+  hiddenTv: UserPreferences.hiddenDetailButtonsTv,
+  hiddenMobile: UserPreferences.hiddenDetailButtonsMobile,
+  hiddenDesktop: UserPreferences.hiddenDetailButtonsDesktop,
+  orderTv: UserPreferences.detailButtonOrderTv,
+  orderMobile: UserPreferences.detailButtonOrderMobile,
+  orderDesktop: UserPreferences.detailButtonOrderDesktop,
 );

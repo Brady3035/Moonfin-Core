@@ -4639,6 +4639,43 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
     );
   }
 
+  /// The ends of the secondary row carry the TV focus nodes, so they follow
+  /// whatever order the buttons are in. Without a stop on the last one, right
+  /// walks focus out of the row and into the overlay above it.
+  List<Widget> _wireTvSecondaryEnds(List<Widget> buttons) {
+    if (!PlatformDetection.isTV) return buttons;
+    final first = buttons.indexWhere((button) => button is _TvFocusButton);
+    if (first < 0) return buttons;
+    final last = buttons.lastIndexWhere((button) => button is _TvFocusButton);
+
+    final wired = [...buttons];
+    if (first != last) {
+      wired[first] = _withTvFocusNode(
+        wired[first] as _TvFocusButton,
+        _tvSecondaryFocus,
+      );
+    }
+    wired[last] = _withTvFocusNode(
+      wired[last] as _TvFocusButton,
+      _tvSecondaryLastFocus,
+      onRightBoundary: () {},
+    );
+    return wired;
+  }
+
+  _TvFocusButton _withTvFocusNode(
+    _TvFocusButton button,
+    FocusNode focusNode, {
+    VoidCallback? onRightBoundary,
+  }) => _TvFocusButton(
+    focusNode: focusNode,
+    extent: button.extent,
+    tooltip: button.tooltip,
+    onPressed: button.onPressed,
+    onRightBoundary: onRightBoundary,
+    child: button.child,
+  );
+
   Widget _buildSecondaryControlsRow() {
     return ValueListenableBuilder<CastTargetKind?>(
       valueListenable: _castService.activeKindNotifier,
@@ -4664,25 +4701,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
             ? Icons.download_rounded
             : Icons.subtitles_outlined;
         final showAudioButton = true;
-        final hidden = hiddenOsdButtons.ids(_prefs);
+        final hidden = osdButtonLayout.hidden(_prefs);
         bool shows(OsdButton button) => !hidden.contains(button.id);
-
-        // The row has to stop at its end on TV rather than wrap focus back
-        // into the rest of the overlay, so the boundary sits on the last
-        // button the user left switched on.
-        OsdButton? tvBoundaryButton;
-        if (PlatformDetection.isTV) {
-          for (final candidate in const [
-            OsdButton.info,
-            OsdButton.zoom,
-            OsdButton.quality,
-          ]) {
-            if (shows(candidate)) {
-              tvBoundaryButton = candidate;
-              break;
-            }
-          }
-        }
 
         final isLandscape =
             MediaQuery.of(context).orientation == Orientation.landscape;
@@ -4697,7 +4717,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
           speedButton = null;
         } else if (PlatformDetection.isTV) {
           speedButton = _TvFocusButton(
-            focusNode: _tvSecondaryFocus,
             extent: secondaryExtent,
             tooltip: l10n.playerTooltipPlaybackSpeed,
             onPressed: () {
@@ -4720,14 +4739,14 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
           );
         }
 
-        final secondaryButtons = <Widget>[
+        final byButton = <OsdButton, Widget>{
           if (shows(OsdButton.syncPlay))
-            SyncPlayPlayerButton(
+            OsdButton.syncPlay: SyncPlayPlayerButton(
               size: secondaryIconSize,
               extent: secondaryExtent,
             ),
           if (canFavorite && shows(OsdButton.favorite))
-            _controlButton(
+            OsdButton.favorite: _controlButton(
               isFavorite ? Icons.favorite : Icons.favorite_border,
               onPressed: _toggleCurrentItemFavorite,
               size: secondaryIconSize,
@@ -4739,9 +4758,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
                   ? Theme.of(context).colorScheme.error
                   : Colors.white,
             ),
-          ?speedButton,
+          OsdButton.speed: ?speedButton,
           if (hasChapters && shows(OsdButton.chapters))
-            _controlButton(
+            OsdButton.chapters: _controlButton(
               Icons.bookmark_outline_rounded,
               onPressed: _showChapters,
               size: secondaryIconSize,
@@ -4749,7 +4768,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
               tooltip: l10n.chapters,
             ),
           if (showSubtitleButton && shows(OsdButton.subtitles))
-            _controlButton(
+            OsdButton.subtitles: _controlButton(
               subtitleButtonIcon,
               onPressed: () => _showTrackSelector(audio: false),
               size: secondaryIconSize,
@@ -4757,7 +4776,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
               tooltip: l10n.subtitles,
             ),
           if (showAudioButton && shows(OsdButton.audio))
-            _controlButton(
+            OsdButton.audio: _controlButton(
               Icons.audiotrack_outlined,
               onPressed: () => _showTrackSelector(audio: true),
               size: secondaryIconSize,
@@ -4765,7 +4784,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
               tooltip: l10n.audio,
             ),
           if (hasCast && shows(OsdButton.castAndCrew))
-            _controlButton(
+            OsdButton.castAndCrew: _controlButton(
               Icons.people_outline_rounded,
               onPressed: () {
                 unawaited(_showCast());
@@ -4775,7 +4794,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
               tooltip: l10n.castAndCrew,
             ),
           if (!PlatformDetection.isTV && shows(OsdButton.cast))
-            _controlButton(
+            OsdButton.cast: _controlButton(
               Icons.cast,
               onPressed: _castToDevice,
               size: secondaryIconSize,
@@ -4787,7 +4806,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
           if (!PlatformDetection.isTV &&
               _castService.activeKind != null &&
               shows(OsdButton.cast))
-            _controlButton(
+            OsdButton.castControls: _controlButton(
               switch (_castService.activeKind!) {
                 CastTargetKind.googleCast => Icons.cast_connected,
                 CastTargetKind.airPlay => Icons.airplay,
@@ -4801,37 +4820,25 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
           if (PlatformDetection.useDesktopUi &&
               _castService.activeKind == null &&
               shows(OsdButton.volume))
-            _buildVolumeButton(
+            OsdButton.volume: _buildVolumeButton(
               extent: secondaryExtent,
               iconSize: secondaryIconSize,
               tooltip: l10n.playerTooltipVolume,
             ),
           if (shows(OsdButton.quality))
-            _buildBitrateButton(
+            OsdButton.quality: _buildBitrateButton(
               extent: secondaryExtent,
               iconSize: secondaryIconSize,
               tooltip: l10n.playerTooltipPlaybackQuality,
-              focusNode: tvBoundaryButton == OsdButton.quality
-                  ? _tvSecondaryLastFocus
-                  : null,
-              onRightBoundary: tvBoundaryButton == OsdButton.quality
-                  ? () {}
-                  : null,
             ),
           if (shows(OsdButton.zoom))
-            _buildZoomButton(
+            OsdButton.zoom: _buildZoomButton(
               size: secondaryIconSize,
               extent: secondaryExtent,
               tooltip: l10n.playerZoomMode,
-              focusNode: tvBoundaryButton == OsdButton.zoom
-                  ? _tvSecondaryLastFocus
-                  : null,
-              onRightBoundary: tvBoundaryButton == OsdButton.zoom
-                  ? () {}
-                  : null,
             ),
           if (PlatformDetection.isMobile && shows(OsdButton.orientation))
-            _controlButton(
+            OsdButton.orientation: _controlButton(
               _forcedLandscape
                   ? Icons.screen_lock_landscape_outlined
                   : Icons.screen_rotation_outlined,
@@ -4843,19 +4850,15 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
                   : l10n.playerTooltipLockLandscape,
             ),
           if (shows(OsdButton.info))
-            _controlButton(
+            OsdButton.info: _controlButton(
               Icons.info_outline_rounded,
               onPressed: _showStreamInfo,
               size: secondaryIconSize,
               extent: secondaryExtent,
-              focusNode: tvBoundaryButton == OsdButton.info
-                  ? _tvSecondaryLastFocus
-                  : null,
               tooltip: _tooltipMessage(l10n.playbackInformation, shortcut: 'I'),
-              onRightBoundary: tvBoundaryButton == OsdButton.info ? () {} : null,
             ),
           if (PlatformDetection.useDesktopUi && shows(OsdButton.fullscreen))
-            _controlButton(
+            OsdButton.fullscreen: _controlButton(
               _isDesktopFullscreen
                   ? Icons.fullscreen_exit_rounded
                   : Icons.fullscreen_rounded,
@@ -4876,7 +4879,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
               !PlatformDetection.isWeb &&
               !_isDesktopFullscreen &&
               shows(OsdButton.floatOnTop))
-            _controlButton(
+            OsdButton.floatOnTop: _controlButton(
               _isAlwaysOnTop ? Icons.push_pin : Icons.push_pin_outlined,
               onPressed: _toggleAlwaysOnTop,
               size: secondaryIconSize,
@@ -4885,7 +4888,16 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
                   ? _tooltipMessage(l10n.playerTooltipExitFloatOnTop)
                   : _tooltipMessage(l10n.playerTooltipFloatOnTop),
             ),
-        ];
+        };
+
+        final secondaryButtons = _wireTvSecondaryEnds([
+          for (final button in osdButtonLayout.ordered(
+            OsdButton.values,
+            (button) => button.id,
+            _prefs,
+          ))
+            ?byButton[button],
+        ]);
 
         final orderedSecondaryButtons = PlatformDetection.isTV
             ? List<Widget>.generate(

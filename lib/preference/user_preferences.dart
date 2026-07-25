@@ -240,6 +240,9 @@ class UserPreferences extends ChangeNotifier {
     'audio_night_mode',
     'confirm_exit',
     'defaultFavoritesFilter',
+    'detailButtonOrderDesktop',
+    'detailButtonOrderMobile',
+    'detailButtonOrderTv',
     'download_default_quality',
     'download_report_as_activity',
     'download_storage_limit_mb',
@@ -257,6 +260,9 @@ class UserPreferences extends ChangeNotifier {
     'imdb_top_250_tv_shows_enabled',
     'imdb_top_english_movies_enabled',
     'live_tv_channel_sort_by',
+    'osdButtonOrderDesktop',
+    'osdButtonOrderMobile',
+    'osdButtonOrderTv',
     'osdLockEnabled',
     'pgs_enabled',
     'player_zoom_mode',
@@ -1723,6 +1729,30 @@ class UserPreferences extends ChangeNotifier {
   static final osdLockEnabled = Preference(
     key: 'osdLockEnabled',
     defaultValue: false,
+  );
+  static final detailButtonOrderTv = Preference(
+    key: 'detailButtonOrderTv',
+    defaultValue: '',
+  );
+  static final detailButtonOrderMobile = Preference(
+    key: 'detailButtonOrderMobile',
+    defaultValue: '',
+  );
+  static final detailButtonOrderDesktop = Preference(
+    key: 'detailButtonOrderDesktop',
+    defaultValue: '',
+  );
+  static final osdButtonOrderTv = Preference(
+    key: 'osdButtonOrderTv',
+    defaultValue: '',
+  );
+  static final osdButtonOrderMobile = Preference(
+    key: 'osdButtonOrderMobile',
+    defaultValue: '',
+  );
+  static final osdButtonOrderDesktop = Preference(
+    key: 'osdButtonOrderDesktop',
+    defaultValue: '',
   );
   static final hiddenDetailButtonsTv = Preference(
     key: 'hiddenDetailButtonsTv',

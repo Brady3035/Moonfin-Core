@@ -5813,8 +5813,10 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
       );
     }
 
-    final hidden = hiddenDetailButtons.ids(GetIt.instance<UserPreferences>());
-    bool shows(DetailButton button) => !hidden.contains(button.id);
+    final prefs = GetIt.instance<UserPreferences>();
+    final hidden = detailButtonLayout.hidden(prefs);
+    bool shows(DetailButton button) =>
+        !button.canHide || !hidden.contains(button.id);
 
     final isNeon = ThemeRegistry.active.id == ThemeRegistry.neonPulseId;
     final isPhoto = item.type == 'Photo';
@@ -5943,37 +5945,38 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
 
     _ensureTvPlayFocus(item.id);
 
-    var allButtons = <Widget>[
-      _DetailActionButton(
-        label: playButtonLabel,
-        isPrimary: true,
-        icon: isPhoto
-            ? Icons.photo
-            : isBook
-            ? Icons.menu_book
-            : Icons.play_arrow,
-        focusNode: _tvPlayFocusNode,
-        autofocus: autofocusPlay,
-        onPressed: () {
-          if (isSeason && viewModel.episodes.isNotEmpty) {
-            final targetEp = seasonNextUpEp ?? viewModel.episodes[0];
-            _play(context, targetEp, resume: seasonNextUpEp != null);
-          } else {
-            _play(
-              context,
-              item,
-              resume: isBoxSet
-                  ? (!boxSetAllWatched && !boxSetAllUnwatched)
-                  : (!isPhoto && hasProgress),
-            );
-          }
-        },
-        onLongPress: isVideo
-            ? () => _showAdvancedPlaybackMenu(context, item)
-            : null,
-      ),
+    final playButton = _DetailActionButton(
+      label: playButtonLabel,
+      isPrimary: true,
+      icon: isPhoto
+          ? Icons.photo
+          : isBook
+          ? Icons.menu_book
+          : Icons.play_arrow,
+      focusNode: _tvPlayFocusNode,
+      autofocus: autofocusPlay,
+      onPressed: () {
+        if (isSeason && viewModel.episodes.isNotEmpty) {
+          final targetEp = seasonNextUpEp ?? viewModel.episodes[0];
+          _play(context, targetEp, resume: seasonNextUpEp != null);
+        } else {
+          _play(
+            context,
+            item,
+            resume: isBoxSet
+                ? (!boxSetAllWatched && !boxSetAllUnwatched)
+                : (!isPhoto && hasProgress),
+          );
+        }
+      },
+      onLongPress: isVideo
+          ? () => _showAdvancedPlaybackMenu(context, item)
+          : null,
+    );
+
+    final byButton = <DetailButton, Widget>{
       if (_supportsShuffle(item) && shows(DetailButton.shuffle))
-        _DetailActionButton(
+        DetailButton.shuffle: _DetailActionButton(
           label: (item.type == 'MusicArtist' || item.type == 'AlbumArtist')
               ? l10n.shuffleAll
               : l10n.shuffle,
@@ -5984,7 +5987,7 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
           (isBoxSet
               ? !(boxSetAllWatched || boxSetAllUnwatched)
               : (hasProgress && !isPhoto)))
-        _DetailActionButton(
+        DetailButton.restart: _DetailActionButton(
           label: isBook ? l10n.startOver : l10n.restart,
           icon: Icons.restart_alt,
           onPressed: () => _play(context, item),
@@ -5999,32 +6002,33 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
       // Playback is local-first, so this plays the downloaded copy. The
       // button mostly signals that one exists.
       if (_availableOffline)
-        _DetailActionButton(
+        DetailButton.playOffline: _DetailActionButton(
           label: isBook ? l10n.readOffline : l10n.playOffline,
           icon: isBook ? Icons.menu_book : Icons.offline_pin,
           onPressed: () => _play(context, item),
           isActive: true,
           activeColor: const Color(0xFF4CAF50),
         ),
-      if (isPlayableVideo) ...[
-        if (audioStreams.length > 1 && shows(DetailButton.audio))
-          _DetailActionButton(
-            label: l10n.audio,
-            icon: Icons.audiotrack,
-            onPressed: () => _showAudioSelector(context, audioStreams),
-          ),
-        if ((subtitleStreams.isNotEmpty || _canDownloadRemoteSubtitles(item)) &&
-            shows(DetailButton.subtitles))
-          _DetailActionButton(
-            label: l10n.subtitles,
-            icon: Icons.subtitles,
-            onPressed: () => _openSubtitleSelector(context, item),
-          ),
-      ],
+      if (isPlayableVideo &&
+          audioStreams.length > 1 &&
+          shows(DetailButton.audio))
+        DetailButton.audio: _DetailActionButton(
+          label: l10n.audio,
+          icon: Icons.audiotrack,
+          onPressed: () => _showAudioSelector(context, audioStreams),
+        ),
+      if (isPlayableVideo &&
+          (subtitleStreams.isNotEmpty || _canDownloadRemoteSubtitles(item)) &&
+          shows(DetailButton.subtitles))
+        DetailButton.subtitles: _DetailActionButton(
+          label: l10n.subtitles,
+          icon: Icons.subtitles,
+          onPressed: () => _openSubtitleSelector(context, item),
+        ),
       if (isPlayableMedia &&
           item.mediaSources.length > 1 &&
           shows(DetailButton.version))
-        _DetailActionButton(
+        DetailButton.version: _DetailActionButton(
           label: l10n.version,
           icon: Icons.video_file,
           onPressed: () => _showVersionSelector(context, item.mediaSources),
@@ -6032,14 +6036,14 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
           activeColor: AppColorScheme.accent,
         ),
       if (!isBook && !PlatformDetection.isTV && shows(DetailButton.cast))
-        _DetailActionButton(
+        DetailButton.cast: _DetailActionButton(
           label: l10n.cast,
           icon: Icons.cast,
           onPressed: () => _castToDevice(context, item),
         ),
       if ((item.type == 'Series' || _hasTrailer(item)) &&
           shows(DetailButton.trailer))
-        _DetailActionButton(
+        DetailButton.trailer: _DetailActionButton(
           label: l10n.trailer,
           icon: Icons.movie_outlined,
           onPressed: () => _playTrailer(context, item),
@@ -6048,7 +6052,7 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
           !isPhoto &&
           _isInSyncPlayGroup() &&
           shows(DetailButton.watchWithGroup))
-        _DetailActionButton(
+        DetailButton.watchWithGroup: _DetailActionButton(
           label: l10n.watchWithGroup,
           icon: Icons.groups_rounded,
           onPressed: () => _watchWithGroup(context, item),
@@ -6056,7 +6060,7 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
           activeColor: AppColorScheme.accent,
         ),
       if (shows(DetailButton.watched))
-        _DetailActionButton(
+        DetailButton.watched: _DetailActionButton(
           label: isBook
               ? (item.isPlayed ? l10n.finished : l10n.unread)
               : (item.isPlayed ? l10n.watched : l10n.unwatched),
@@ -6066,7 +6070,7 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
           activeColor: AppColorScheme.accent,
         ),
       if (shows(DetailButton.favorite))
-        _DetailActionButton(
+        DetailButton.favorite: _DetailActionButton(
           label: item.isFavorite ? l10n.favorited : l10n.favorite,
           icon: Icons.favorite,
           onPressed: viewModel.toggleFavorite,
@@ -6074,7 +6078,7 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
           activeColor: const Color(0xFFFF4757),
         ),
       if (!isBook && shows(DetailButton.playlist))
-        _DetailActionButton(
+        DetailButton.playlist: _DetailActionButton(
           label: l10n.playlist,
           icon: Icons.playlist_add,
           onPressed: () => AddToPlaylistDialog.show(
@@ -6084,13 +6088,13 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
           ),
         ),
       if (canShowDownloadActions && shows(DetailButton.download))
-        _DownloadButton(item: item, viewModel: viewModel),
+        DetailButton.download: _DownloadButton(item: item, viewModel: viewModel),
       if (canShowDownloadActions && shows(DetailButton.deleteFiles))
-        _DeleteDownloadButton(item: item),
+        DetailButton.deleteFiles: _DeleteDownloadButton(item: item),
       if (item.type == 'Episode' &&
           item.seriesId != null &&
           shows(DetailButton.goToSeries))
-        _DetailActionButton(
+        DetailButton.goToSeries: _DetailActionButton(
           label: l10n.goToSeries,
           icon: Icons.tv,
           onPressed: () => context.push(
@@ -6102,13 +6106,23 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
           GetIt.instance<MediaServerClient>().serverType ==
               ServerType.jellyfin &&
           shows(DetailButton.admin))
-        _DetailActionButton(
+        DetailButton.admin: _DetailActionButton(
           label: l10n.admin,
           icon: Icons.settings,
           onPressed: () => _showAdminDialog(context, item),
           isActive: true,
           activeColor: const Color(0xFFD32F2F),
         ),
+    };
+
+    var allButtons = <Widget>[
+      playButton,
+      for (final button in detailButtonLayout.ordered(
+        DetailButton.values,
+        (button) => button.id,
+        prefs,
+      ))
+        ?byButton[button],
     ];
 
     if (isNeon) {
@@ -6164,7 +6178,14 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
     // compact (mobile) layout every type uses the full-width primary + overflow.
     final bool isTwoColumnLayout = !isModernMobile && isTvShow;
 
-    if (isTwoColumnLayout) {
+    if (isTwoColumnLayout && allButtons.length <= maxVisible) {
+      // Management buttons only move to a second row once the row is too long
+      // for them. Switch enough buttons off and what is left fits in one row,
+      // where a More button sitting next to empty space reads as a bug.
+      primaryButtons = allButtons;
+      extraButtons = const [];
+      needsOverflow = false;
+    } else if (isTwoColumnLayout) {
       final List<Widget> prim = [];
       final List<Widget> ext = [];
       for (final btn in allButtons) {

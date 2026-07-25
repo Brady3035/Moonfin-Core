@@ -51,6 +51,7 @@ import '../../widgets/adaptive/adaptive_list_section.dart';
 import '../../widgets/overlay_sheet.dart';
 import '../../widgets/settings/preference_binding.dart';
 import '../../widgets/settings/clean_settings_typography.dart';
+import '../../widgets/settings/button_layout_list.dart';
 import '../../widgets/settings/preference_tiles.dart';
 import '../../widgets/settings/settings_panel.dart';
 import '../../widgets/settings/settings_section_header.dart';

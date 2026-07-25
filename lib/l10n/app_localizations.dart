@@ -4369,8 +4369,26 @@ abstract class AppLocalizations {
   /// Explains that the play buttons can't be hidden and that the list is per device kind
   ///
   /// In en, this message translates to:
-  /// **'Play, Restart and Play Offline are always shown. Everything below is up to you, and each kind of device keeps its own list.'**
+  /// **'Play is always first and the locked buttons are always shown. Everything else is up to you, and each kind of device keeps its own list.'**
   String get detailButtonsSectionDescription;
+
+  /// Moves a button one place earlier in its row
+  ///
+  /// In en, this message translates to:
+  /// **'Move Up'**
+  String get moveUp;
+
+  /// Moves a button one place later in its row
+  ///
+  /// In en, this message translates to:
+  /// **'Move Down'**
+  String get moveDown;
+
+  /// Explains how to reorder the buttons in a row
+  ///
+  /// In en, this message translates to:
+  /// **'Use the arrows to change the order. On a remote, left and right move the highlighted button.'**
+  String get buttonOrderHint;
 
   /// Player button that locks the screen orientation
   ///

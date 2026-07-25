@@ -222,8 +222,12 @@ private final class NativeAirPlayEventStreamHandler: NSObject, FlutterStreamHand
       // Theme music + inline previews: AVFoundation channels shared with tvOS
       // (same channel names, so the Dart callers work unchanged on iOS).
       self.themeMusicChannel = AppleTvThemeMusicChannel(messenger: messenger)
-      self.previewChannel = AppleTvPreviewChannel(
-        messenger: messenger, textures: sharedEngine)
+      // FlutterEngine isn't a FlutterTextureRegistry on iOS, so the registry
+      // has to come off a plugin registrar.
+      if let previewRegistrar = sharedEngine.registrar(forPlugin: "moonfin_appletv_preview") {
+        self.previewChannel = AppleTvPreviewChannel(
+          messenger: messenger, textures: previewRegistrar.textures())
+      }
 
       // AetherEngine playback: control/event channels, the UiKitView video
       // surface factory, and PiP (which owns the org.moonfin.ios/pip channel).

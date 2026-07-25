@@ -54,10 +54,12 @@ class LiveTvMiniPlayer extends StatefulWidget {
 
 class _LiveTvMiniPlayerState extends State<LiveTvMiniPlayer> {
   final _manager = GetIt.instance<PlaybackManager>();
+  // media_kit isn't registered on platforms that run a different backend, so
+  // ask the container rather than listing them.
   final MediaKitPlayerBackend? _fallbackMediaKitBackend =
-      (PlatformDetection.isTizen || PlatformDetection.isAppleTV)
-      ? null
-      : GetIt.instance<MediaKitPlayerBackend>();
+      GetIt.instance.isRegistered<MediaKitPlayerBackend>()
+      ? GetIt.instance<MediaKitPlayerBackend>()
+      : null;
   final _prefs = GetIt.instance<UserPreferences>();
 
   late FocusNode _effectiveFocusNode;

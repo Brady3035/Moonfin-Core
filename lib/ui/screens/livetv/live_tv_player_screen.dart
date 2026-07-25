@@ -53,10 +53,12 @@ class LiveTvPlayerScreen extends StatefulWidget {
 class _LiveTvPlayerScreenState extends State<LiveTvPlayerScreen>
     with WidgetsBindingObserver {
   final _manager = GetIt.instance<PlaybackManager>();
+  // media_kit isn't registered on platforms that run a different backend, so
+  // ask the container rather than listing them.
   final MediaKitPlayerBackend? _backend =
-      (PlatformDetection.isTizen || PlatformDetection.isAppleTV)
-      ? null
-      : GetIt.instance<MediaKitPlayerBackend>();
+      GetIt.instance.isRegistered<MediaKitPlayerBackend>()
+      ? GetIt.instance<MediaKitPlayerBackend>()
+      : null;
   final _client = GetIt.instance<MediaServerClient>();
   final _prefs = GetIt.instance<UserPreferences>();
   final _screensaverController = GetIt.instance<ScreensaverController>();

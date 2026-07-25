@@ -10,13 +10,49 @@ final class SubtitleOverlay: UIView {
     private var lastUpdateTime: TimeInterval = 0
     var delaySeconds: TimeInterval = 0
 
-    private var subtitleFontSize: CGFloat = 24
+    /// The user facing size on the 24 based scale, and the 40 to 100 position.
+    /// Both stay raw and become points at layout time, as a fraction of the
+    /// view height, so a phone in landscape and a 1080pt TV canvas end up
+    /// looking the same. Deriving them late also means a style applied before
+    /// the view has bounds doesn't get baked in at the fallback size.
+    private var subtitleUserFontSize: CGFloat = 24
+    private var subtitlePositionBase = 100
     private var subtitleFontWeight: UIFont.Weight = .semibold
     private var subtitleTextColor: UIColor = .white
     private var subtitleBgColor: UIColor = .clear
     private var subtitleStrokeColor: UIColor = .black
-    private var subtitleStrokeWidth: CGFloat = 2
-    private var subtitleBottomOffset: CGFloat = 80
+    private var subtitleStrokeEnabled = true
+    /// Point size the label's text was last built at, so layoutSubviews only
+    /// rebuilds it when the height actually changed.
+    private var appliedFontSize: CGFloat = 0
+
+    /// The tuned TV mapping (user 24 gives 55pt, floor 24, ceiling 120) held
+    /// against a 1080pt canvas. Everything below scales that reference by the
+    /// real height, so a 1080pt canvas comes out exactly as it did before.
+    private static let referenceHeight: CGFloat = 1080
+
+    private var canvasHeight: CGFloat {
+        bounds.height > 0 ? bounds.height : Self.referenceHeight
+    }
+
+    private var canvasScale: CGFloat { canvasHeight / Self.referenceHeight }
+
+    private var subtitleFontSize: CGFloat {
+        let scale = canvasScale
+        let points = subtitleUserFontSize / 24.0 * 55.0 * scale
+        return min(max(points, 24 * scale), 120 * scale)
+    }
+
+    private var subtitleStrokeWidth: CGFloat {
+        subtitleStrokeEnabled ? max(2 * canvasScale, 1) : 0
+    }
+
+    /// The 40pt base margin stays absolute rather than scaling with height,
+    /// because it also positions bitmap cues that arrive without a canvas rect
+    /// and those already sit correctly on a phone.
+    private var subtitleBottomOffset: CGFloat {
+        40 + canvasHeight * 0.5 * CGFloat(100 - subtitlePositionBase) / 60.0
+    }
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -48,6 +84,11 @@ final class SubtitleOverlay: UIView {
 
     override func layoutSubviews() {
         super.layoutSubviews()
+        // The point size follows the height, so it changes on rotation and on
+        // the first real layout after a style was applied against zero bounds.
+        if subtitleFontSize != appliedFontSize, let text = activeEvent?.text {
+            textLabel.attributedText = styledText(text)
+        }
         layoutTextLabel()
         layoutBitmapView()
         assImageView.frame = bounds
@@ -120,11 +161,10 @@ final class SubtitleOverlay: UIView {
         if let backgroundColor { subtitleBgColor = Self.colorFromARGB(backgroundColor) }
         if let strokeColor {
             subtitleStrokeColor = Self.colorFromARGB(strokeColor)
-            subtitleStrokeWidth = Self.colorFromARGB(strokeColor) == .clear ? 0 : 2
+            subtitleStrokeEnabled = Self.colorFromARGB(strokeColor) != .clear
         }
         if let fontSize, fontSize > 0 {
-            // Scale the 24-based user size up to the TV canvas, clamped.
-            subtitleFontSize = CGFloat(min(max(fontSize / 24.0 * 55.0, 24), 120))
+            subtitleUserFontSize = CGFloat(fontSize)
         }
         if let fontWeight {
             subtitleFontWeight = fontWeight >= 600 ? .bold : .semibold
@@ -137,13 +177,11 @@ final class SubtitleOverlay: UIView {
         }
     }
 
-    /// Subtitle position on a 40 to 100 scale, where 100 is the bottom edge,
-    /// converted to a bottom offset in points. The OSD raise path calls this
-    /// with min(base, 70) while controls are up.
+    /// Subtitle position on a 40 to 100 scale, where 100 is the bottom edge.
+    /// It becomes a bottom offset in points at layout time. The OSD raise path
+    /// calls this with min(base, 70) while controls are up.
     func setSubtitlePosition(basePosition: Int) {
-        let pos = min(max(basePosition, 40), 100)
-        let travel = (bounds.height > 0 ? bounds.height : 1080) * 0.5
-        subtitleBottomOffset = 40 + travel * CGFloat(100 - pos) / 60.0
+        subtitlePositionBase = min(max(basePosition, 40), 100)
         setNeedsLayout()
     }
 
@@ -217,7 +255,8 @@ final class SubtitleOverlay: UIView {
     }
 
     private func styledText(_ text: String) -> NSAttributedString {
-        let font = UIFont.systemFont(ofSize: subtitleFontSize, weight: subtitleFontWeight)
+        appliedFontSize = subtitleFontSize
+        let font = UIFont.systemFont(ofSize: appliedFontSize, weight: subtitleFontWeight)
         var attrs: [NSAttributedString.Key: Any] = [
             .font: font,
             .foregroundColor: subtitleTextColor,

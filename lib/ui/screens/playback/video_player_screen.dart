@@ -87,10 +87,12 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
   static const _scrubSeekDebounceDuration = Duration(milliseconds: 250);
 
   final _manager = GetIt.instance<PlaybackManager>();
+  // media_kit isn't registered on platforms that run a different backend, so
+  // ask the container rather than listing them.
   final MediaKitPlayerBackend? _backend =
-      (PlatformDetection.isTizen || PlatformDetection.isAppleTV)
-      ? null
-      : GetIt.instance<MediaKitPlayerBackend>();
+      GetIt.instance.isRegistered<MediaKitPlayerBackend>()
+      ? GetIt.instance<MediaKitPlayerBackend>()
+      : null;
   final _prefs = GetIt.instance<UserPreferences>();
   final _autoHdrSwitcher = AutoHdrSwitcher();
   final _clientFactory = GetIt.instance<MediaServerClientFactory>();

@@ -1,5 +1,4 @@
 {
-  "originHash" : "c62dc5461e926fd270f4d28af1687b64c19afe58aa159ee4ece180d2bd11caa9",
   "pins" : [
     {
       "identity" : "abseil-cpp-binary",
@@ -8,6 +7,15 @@
       "state" : {
         "revision" : "bbe8b69694d7873315fd3a4ad41efe043e1c07c5",
         "version" : "1.2024072200.0"
+      }
+    },
+    {
+      "identity" : "aetherengine",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/superuser404notfound/AetherEngine",
+      "state" : {
+        "revision" : "4ec14be3d26591ffc33ec9494b92a94a56a40109",
+        "version" : "5.20.7"
       }
     },
     {
@@ -53,6 +61,15 @@
       "state" : {
         "branch" : "master",
         "revision" : "311c1bc7a94f1538f82773a79c84374b12a2ef3d"
+      }
+    },
+    {
+      "identity" : "ffmpegbuild",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/superuser404notfound/FFmpegBuild",
+      "state" : {
+        "revision" : "e832f22c89909297b7abe3a94c05b2816414b054",
+        "version" : "2.2.0"
       }
     },
     {
@@ -137,6 +154,24 @@
       }
     },
     {
+      "identity" : "libass-build",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/mpvkit/libass-build",
+      "state" : {
+        "revision" : "e08eb5bb3be5137e845f781dc9477d1843f23261",
+        "version" : "0.17.5"
+      }
+    },
+    {
+      "identity" : "libdovi",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/superuser404notfound/LibDovi",
+      "state" : {
+        "revision" : "bebab0af0e3633b0002fcc7106ea6fc7ceea8277",
+        "version" : "1.0.2"
+      }
+    },
+    {
       "identity" : "nanopb",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/firebase/nanopb.git",
@@ -164,6 +199,15 @@
       }
     },
     {
+      "identity" : "smbclient",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/kishikawakatsumi/SMBClient",
+      "state" : {
+        "revision" : "e636c2b2458930770932a36d311ec9d478575b90",
+        "version" : "0.3.1"
+      }
+    },
+    {
       "identity" : "swiftygif",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/kirualex/SwiftyGif.git",
@@ -182,5 +226,5 @@
       }
     }
   ],
-  "version" : 3
+  "version" : 2
 }

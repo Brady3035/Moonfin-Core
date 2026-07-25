@@ -49,7 +49,15 @@ dependencies:
   # Media Playback (Android/desktop/web, iOS and tvOS run on AetherEngine)
   media_kit: 1.2.6
   media_kit_video: 2.0.1
-  media_kit_libs_video: 1.0.7
+  # media_kit_libs_video would pull in media_kit_libs_ios_video, and
+  # media_kit_video's iOS podspec links -framework Mpv whenever it finds that
+  # package name in pubspec.lock. A path override still counts as present, so
+  # the package has to stay out of the graph entirely for the iOS build to skip
+  # libmpv. The platforms that do need it are listed individually instead.
+  media_kit_libs_android_video: 1.3.8
+  media_kit_libs_macos_video: 1.1.4
+  media_kit_libs_windows_video: 1.0.11
+  media_kit_libs_linux: 1.2.1
   # Tizen playback backend (TizenPlayerBackend) — media_kit/libmpv and Media3
   # are unavailable on Tizen, so video plays through video_player, whose Tizen
   # implementation (video_player_tizen) wraps the native AVPlay player.
@@ -185,10 +193,6 @@ dev_dependencies:
 dependency_overrides:
   media_kit_libs_android_video:
     path: packages/media_kit_libs_android_video_full
-  # iOS runs on AetherEngine. The stub keeps libmpv/FFmpeg xcframeworks out
-  # of the iOS build entirely since it has no plugin declaration and no podspec.
-  media_kit_libs_ios_video:
-    path: packages/media_kit_libs_ios_video_stub
   media_kit_libs_windows_video:
     path: packages/media_kit_libs_windows_video
   # Vendored 0.6.0 with a Windows texture_bridge.cc fix for scroll/resize and

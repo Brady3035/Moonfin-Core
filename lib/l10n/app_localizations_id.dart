@@ -2432,7 +2432,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get buttonOrderHint =>
-      'Use the arrows to change the order. On a remote, left and right move the highlighted button.';
+      'Use the arrows to change the order. On a remote, left and right move the highlighted button. Switching one off drops it below the rest.';
 
   @override
   String get orientationLock => 'Orientation Lock';

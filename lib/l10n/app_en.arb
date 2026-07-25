@@ -3403,7 +3403,7 @@
   "@moveDown": {
     "description": "Moves a button one place later in its row"
   },
-  "buttonOrderHint": "Use the arrows to change the order. On a remote, left and right move the highlighted button.",
+  "buttonOrderHint": "Use the arrows to change the order. On a remote, left and right move the highlighted button. Switching one off drops it below the rest.",
   "@buttonOrderHint": {
     "description": "Explains how to reorder the buttons in a row"
   },

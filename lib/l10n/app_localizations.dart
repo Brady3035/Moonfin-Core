@@ -4387,7 +4387,7 @@ abstract class AppLocalizations {
   /// Explains how to reorder the buttons in a row
   ///
   /// In en, this message translates to:
-  /// **'Use the arrows to change the order. On a remote, left and right move the highlighted button.'**
+  /// **'Use the arrows to change the order. On a remote, left and right move the highlighted button. Switching one off drops it below the rest.'**
   String get buttonOrderHint;
 
   /// Player button that locks the screen orientation

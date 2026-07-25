@@ -162,6 +162,30 @@ void main() {
     expect(rowTitles(tester), ['gamma', 'alpha', 'beta']);
   });
 
+  testWidgets('a button switched off drops below the ones still on', (
+    tester,
+  ) async {
+    await pumpRows(tester, ['alpha', 'beta', 'gamma']);
+
+    await tester.tap(find.text('alpha'));
+    await tester.pumpAndSettle();
+
+    expect(rowTitles(tester), ['beta', 'gamma', 'alpha']);
+  });
+
+  testWidgets('a shown button cannot move down past a hidden one', (
+    tester,
+  ) async {
+    await prefs().set(layout.hiddenPreference, 'gamma');
+    await pumpRows(tester, ['alpha', 'beta', 'gamma']);
+
+    final down = tester.widget<IconButton>(
+      find.widgetWithIcon(IconButton, Icons.keyboard_arrow_down).at(1),
+    );
+
+    expect(down.onPressed, isNull);
+  });
+
   testWidgets('switching a button off leaves the order alone', (tester) async {
     await pumpRows(tester, ['alpha', 'beta', 'gamma']);
 

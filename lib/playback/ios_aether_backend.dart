@@ -11,16 +11,21 @@ import 'device_profile_builder.dart';
 import 'known_defects.dart';
 import 'server_transcode_capabilities.dart';
 
-class AppleTvMpvBackend implements PlayerBackend {
-  AppleTvMpvBackend(this._prefs) {
+/// iOS playback backend driving the native AetherEngine wrapper over a method
+/// channel. Serves everything on iOS: video, live TV, music, audiobooks and
+/// offline playback. Unlike the tvOS sibling there is no native player UI:
+/// Flutter owns the OSD and the video arrives through the
+/// `moonfin/aether_video` platform view.
+class IosAetherBackend implements PlayerBackend {
+  IosAetherBackend(this._prefs) {
     _eventSub = _events.receiveBroadcastStream().listen(
       _handleEvent,
       onError: (_) {},
     );
   }
 
-  static const _control = MethodChannel('moonfin/appletv_video_control');
-  static const _events = EventChannel('moonfin/appletv_video_events');
+  static const _control = MethodChannel('moonfin/ios_aether_control');
+  static const _events = EventChannel('moonfin/ios_aether_events');
 
   final UserPreferences _prefs;
 
@@ -34,10 +39,7 @@ class AppleTvMpvBackend implements PlayerBackend {
   double _playbackSpeed = 1.0;
   double _volume = 100.0;
   double _audioDelaySeconds = 0.0;
-  double _subtitleDelaySeconds = 0.0;
   bool _completed = false;
-  SubtitleRendererMode _requestedSubtitleRendererMode =
-      SubtitleRendererMode.native;
 
   int _textTrackCount = 0;
   bool _tracksKnown = false;
@@ -45,7 +47,6 @@ class AppleTvMpvBackend implements PlayerBackend {
   Completer<void>? _tracksReadyCompleter;
 
   bool _disposed = false;
-  bool _playerPresented = false;
   Timer? _audioDelayDebounce;
 
   final _positionStream = StreamController<Duration>.broadcast();
@@ -55,15 +56,9 @@ class AppleTvMpvBackend implements PlayerBackend {
   final _bufferingStream = StreamController<bool>.broadcast();
   final _completedStream = StreamController<bool>.broadcast();
   final _errorStream = StreamController<Map<String, dynamic>>.broadcast();
-  final _userExitStream = StreamController<void>.broadcast();
-  final _uiActionStream = StreamController<Map<String, dynamic>>.broadcast();
 
   @override
   Stream<Map<String, dynamic>> get errorStream => _errorStream.stream;
-
-  Stream<void> get userExitStream => _userExitStream.stream;
-
-  Stream<Map<String, dynamic>> get uiActionStream => _uiActionStream.stream;
 
   Future<T?> _invoke<T>(String method, [dynamic arguments]) async {
     if (_disposed) return null;
@@ -73,20 +68,6 @@ class AppleTvMpvBackend implements PlayerBackend {
       return null;
     }
   }
-
-  Future<void> _ensurePlayerPresented({bool audioOnly = false}) async {
-    if (_disposed || _playerPresented) return;
-    _playerPresented = true;
-    await _invoke<void>('present', {'audioOnly': audioOnly});
-  }
-
-  Future<void> _dismissPlayer() async {
-    if (!_playerPresented) return;
-    _playerPresented = false;
-    await _invoke<void>('dismiss');
-  }
-
-  Future<void> dismissPlayer() => _dismissPlayer();
 
   void _handleEvent(dynamic event) {
     if (_disposed || event is! Map) return;
@@ -101,52 +82,11 @@ class AppleTvMpvBackend implements PlayerBackend {
         _isPlaying = _toBool(map['isPlaying']);
         _isBuffering = _toBool(map['isBuffering']);
 
-        final completedNow =
-            _duration > Duration.zero && _position >= _duration && !_isPlaying;
-        if (completedNow != _completed) {
-          _completed = completedNow;
-          _completedStream.add(_completed);
-        }
-
         _positionStream.add(_position);
         _durationStream.add(_duration);
         _bufferStream.add(_buffer);
         _playingStream.add(_isPlaying);
         _bufferingStream.add(_isBuffering);
-      case 'presented':
-        _playerPresented = true;
-      case 'dismissed':
-        _playerPresented = false;
-        _isPlaying = false;
-        _isBuffering = false;
-        _playingStream.add(false);
-        _bufferingStream.add(false);
-      case 'userExited':
-        _userExitStream.add(null);
-      case 'play':
-      case 'pause':
-      case 'seek':
-      case 'next':
-      case 'previous':
-      case 'selectAudio':
-      case 'selectSubtitle':
-      case 'setSpeed':
-      case 'setBitrate':
-      case 'selectChannel':
-      case 'openGuide':
-      case 'toggleFavorite':
-      case 'stillWatchingContinue':
-      case 'stillWatchingStop':
-      case 'nextUpPlay':
-      case 'nextUpCancel':
-      case 'nextUpDismiss':
-      case 'skipSegment':
-      case 'userSeeked':
-      case 'searchSubtitles':
-      case 'downloadSubtitle':
-      case 'syncplayLeave':
-      case 'syncplayIgnoreWait':
-        _uiActionStream.add(map.cast<String, dynamic>());
       case 'tracksChanged':
         _tracksKnown = true;
         _textTrackCount = _toInt(map['textTrackCount']);
@@ -157,9 +97,6 @@ class AppleTvMpvBackend implements PlayerBackend {
       case 'completed':
         _completed = _toBool(map['completed']);
         _completedStream.add(_completed);
-      case 'syncDelays':
-        _audioDelaySeconds = _toInt(map['audioDelayMs']) / 1000.0;
-        _subtitleDelaySeconds = _toInt(map['subtitleDelayMs']) / 1000.0;
       case 'playerError':
       case 'error':
         _errorStream.add(map.cast<String, dynamic>());
@@ -185,14 +122,6 @@ class AppleTvMpvBackend implements PlayerBackend {
     return false;
   }
 
-  String? _normalizeTrackLanguagePref(String? value) {
-    final normalized = (value ?? '').trim().toLowerCase();
-    if (normalized.isEmpty || normalized == 'auto' || normalized == 'none') {
-      return null;
-    }
-    return normalized;
-  }
-
   @override
   Future<void> play(
     dynamic mediaItem, {
@@ -216,52 +145,25 @@ class AppleTvMpvBackend implements PlayerBackend {
     _activeSubtitleTrackIndex = null;
     _tracksReadyCompleter = null;
 
-    final audioOnly =
-        (payload['mediaType']?.toString() ?? 'video') == 'audio';
-    await _ensurePlayerPresented(audioOnly: audioOnly);
-
     await _invoke<void>('setSource', {
       'url': url,
       'headers': headers,
       'autoPlay': true,
       'startPositionMs': startPosition.inMilliseconds,
-      'container': payload['container']?.toString(),
-      'videoRangeType': payload['videoRangeType']?.toString(),
-      'videoCodec': payload['videoCodec']?.toString(),
-      'videoDvProfile': payload['videoDvProfile'],
-      'videoFrameRate': payload['videoFrameRate'],
-      'videoWidth': payload['videoWidth'],
-      'videoHeight': payload['videoHeight'],
-      'audioCodec': payload['audioCodec']?.toString(),
-      'audioProfile': payload['audioProfile']?.toString(),
-      'audioChannels': payload['audioChannels'],
       'audioStreamIndex': (payload['audioStreamIndex'] as num?)?.toInt() ?? -1,
       'isLive': payload['isLive'] == true,
       'mediaType': payload['mediaType']?.toString() ?? 'video',
-      'normalizationGainDb': (payload['normalizationGainDb'] as num?)?.toDouble(),
-      'dolbyVisionFallbackBehavior':
-          _prefs.get(UserPreferences.dolbyVisionFallbackBehavior).name,
-      'preferredAudioLanguage': _normalizeTrackLanguagePref(
-        payload['preferredAudioLanguage']?.toString() ??
-            _prefs.get(UserPreferences.defaultAudioLanguage),
-      ),
-      'preferredTextLanguage': _normalizeTrackLanguagePref(
-        payload['preferredTextLanguage']?.toString() ??
-            _prefs.get(UserPreferences.defaultSubtitleLanguage),
-      ),
+      'normalizationGainDb':
+          (payload['normalizationGainDb'] as num?)?.toDouble(),
       'speed': _playbackSpeed,
-      'volume': _volume,
-      'audioDelayMs': (_audioDelaySeconds * 1000).round(),
-      'subtitleDelayMs': (_subtitleDelaySeconds * 1000).round(),
-      'subtitleRendererMode': _modeToWire(_requestedSubtitleRendererMode),
       'forceSubtitlesDisabledOnStart':
-          !audioOnly && _prefs.get(UserPreferences.subtitleMode) == SubtitleMode.none,
+          payload['mediaType']?.toString() != 'audio' &&
+          _prefs.get(UserPreferences.subtitleMode) == SubtitleMode.none,
     });
   }
 
   @override
   Future<void> resume() async {
-    await _ensurePlayerPresented();
     await _invoke<void>('play');
   }
 
@@ -344,8 +246,7 @@ class AppleTvMpvBackend implements PlayerBackend {
           .resolveTrueHdAtmosPassthroughEnabled(),
       // AetherEngine plays every advertised audio codec: AAC/AC3/EAC3(+JOC
       // Atmos)/FLAC/ALAC are stream-copied intact, and TrueHD/DTS/MP3/Opus/
-      // Vorbis/PCM are bridged to EAC3 or FLAC on-device, so stereo routes
-      // never need a server-side audio transcode.
+      // Vorbis/PCM are bridged to EAC3 or FLAC on-device.
       universalAudioDecode: true,
       maxResolution: maxResolution,
       pgsDirectPlay: _prefs.get(UserPreferences.pgsDirectPlay),
@@ -377,8 +278,7 @@ class AppleTvMpvBackend implements PlayerBackend {
       maxResolutionVc1Width: PlatformDetection.maxResolutionVc1Width,
       maxResolutionVc1Height: PlatformDetection.maxResolutionVc1Height,
       supportsDvProfile5: PlatformDetection.supportsDoViProfile5,
-      // AetherEngine converts P7 (dual-layer) to P8.1 per-packet via libdovi,
-      // so P7 direct play no longer depends on a native-decode preference.
+      // AetherEngine converts P7 (dual-layer) to P8.1 per-packet via libdovi.
       supportsDvProfile7: PlatformDetection.supportsDoViProfile7,
       supportsDvProfile8: PlatformDetection.supportsDoViProfile8,
       knownHevcDoviHdr10PlusBug: PlatformDetection.knownHevcDoviHdr10PlusBug,
@@ -389,135 +289,6 @@ class AppleTvMpvBackend implements PlayerBackend {
             ),
           ),
     );
-  }
-
-  Future<void> setUiMetadata({
-    required String topTitle,
-    required String topSubtitle,
-    required List<Map<String, dynamic>> chapters,
-    required bool hasPrevious,
-    required bool hasNext,
-    required int skipForwardMs,
-    required int skipBackMs,
-    required List<Map<String, dynamic>> audioTracks,
-    required List<Map<String, dynamic>> subtitleTracks,
-    String logoUrl = '',
-    List<Map<String, dynamic>> streamInfoSections = const [],
-    Map<String, dynamic>? trickplay,
-    bool hasCast = false,
-    List<Map<String, dynamic>> castPeople = const [],
-    Map<String, dynamic>? pauseMeta,
-    int selectedBitrateMbps = -1,
-    bool canFavorite = false,
-    bool isFavorite = false,
-    bool canDownloadSubtitles = false,
-    Map<String, dynamic>? syncPlay,
-    bool isLive = false,
-    Map<String, dynamic>? liveProgram,
-    String liveChannelNumber = '',
-    List<Map<String, dynamic>> channelList = const [],
-    List<Map<String, dynamic>> streamStats = const [],
-  }) async {
-    await _invoke<void>('setUiMetadata', {
-      'topTitle': topTitle,
-      'topSubtitle': topSubtitle,
-      'chapters': chapters,
-      'hasPrevious': hasPrevious,
-      'hasNext': hasNext,
-      'skipForwardMs': skipForwardMs,
-      'skipBackMs': skipBackMs,
-      'audioTracks': audioTracks,
-      'subtitleTracks': subtitleTracks,
-      'logoUrl': logoUrl,
-      'streamInfoSections': streamInfoSections,
-      'trickplay': ?trickplay,
-      'hasCast': hasCast,
-      'castPeople': castPeople,
-      'pauseMeta': ?pauseMeta,
-      'selectedBitrateMbps': selectedBitrateMbps,
-      'canFavorite': canFavorite,
-      'isFavorite': isFavorite,
-      'canDownloadSubtitles': canDownloadSubtitles,
-      'syncPlay': ?syncPlay,
-      'isLive': isLive,
-      'liveProgram': ?liveProgram,
-      'liveChannelNumber': liveChannelNumber,
-      'channelList': channelList,
-      'streamStats': streamStats,
-    });
-  }
-
-  Future<void> showNextUp({
-    required String title,
-    required String episodeInfo,
-    required String imageUrl,
-    required bool isMinimal,
-    required String countdownStyle,
-    required int timeoutMs,
-  }) async {
-    await _invoke<void>('showNextUp', {
-      'title': title,
-      'episodeInfo': episodeInfo,
-      'imageUrl': imageUrl,
-      'isMinimal': isMinimal,
-      'countdownStyle': countdownStyle,
-      'timeoutMs': timeoutMs,
-    });
-  }
-
-  Future<void> hideNextUp() async {
-    await _invoke<void>('hideNextUp');
-  }
-
-  /// Returns whether the native modal actually presented so the caller can
-  /// fail open instead of waiting on a prompt that never appeared.
-  Future<bool> showStillWatching() async {
-    final presented = await _invoke<bool>('showStillWatching');
-    return presented ?? false;
-  }
-
-  Future<void> showSkipSegment(
-    String label, {
-    required String countdownStyle,
-    required int segmentStartMs,
-    required int segmentEndMs,
-  }) async {
-    await _invoke<void>('showSkipSegment', {
-      'label': label,
-      'countdownStyle': countdownStyle,
-      'segmentStartMs': segmentStartMs,
-      'segmentEndMs': segmentEndMs,
-    });
-  }
-
-  Future<void> hideSkipSegment() async {
-    await _invoke<void>('hideSkipSegment');
-  }
-
-  Future<void> showRemoteSubtitles(List<Map<String, dynamic>> results) async {
-    await _invoke<void>('showRemoteSubtitles', {'results': results});
-  }
-
-  Future<void> setThemeConfig({
-    required bool isGlass,
-    required int accentARGB,
-    required int surfaceARGB,
-    required int onSurfaceARGB,
-    required int rangeProgressARGB,
-    required int rangeTrackARGB,
-  }) async {
-    await _invoke<void>('setThemeConfig', {
-      'isGlass': isGlass,
-      'accent': accentARGB,
-      'surface': surfaceARGB,
-      'onSurface': onSurfaceARGB,
-      'rangeProgress': rangeProgressARGB,
-      'rangeTrack': rangeTrackARGB,
-    });
-  }
-
-  Future<void> setPromptStrings(Map<String, String> strings) async {
-    await _invoke<void>('setPromptStrings', strings);
   }
 
   @override
@@ -607,7 +378,6 @@ class AppleTvMpvBackend implements PlayerBackend {
 
   @override
   Future<void> setSubtitleDelay(double seconds) async {
-    _subtitleDelaySeconds = seconds;
     await _invoke<void>('setSubtitleDelay', {
       'delayMs': (seconds * 1000).round(),
     });
@@ -649,15 +419,7 @@ class AppleTvMpvBackend implements PlayerBackend {
 
   @override
   Future<void> setSubtitleRendererMode(SubtitleRendererMode mode) async {
-    _requestedSubtitleRendererMode = mode;
-    await _invoke<void>('setSubtitleRendererMode', {'mode': _modeToWire(mode)});
-  }
-
-  String _modeToWire(SubtitleRendererMode mode) {
-    return switch (mode) {
-      SubtitleRendererMode.native => 'native',
-      SubtitleRendererMode.assOverlay => 'assOverlay',
-    };
+    // The native overlay is the only subtitle renderer on this backend.
   }
 
   @override
@@ -677,12 +439,9 @@ class AppleTvMpvBackend implements PlayerBackend {
 
   @override
   void dispose() {
-    if (_disposed) return;
     _disposed = true;
     _audioDelayDebounce?.cancel();
-    _audioDelayDebounce = null;
-    unawaited(_dismissPlayer());
-    unawaited(_eventSub?.cancel());
+    _eventSub?.cancel();
     _positionStream.close();
     _durationStream.close();
     _bufferStream.close();
@@ -690,7 +449,5 @@ class AppleTvMpvBackend implements PlayerBackend {
     _bufferingStream.close();
     _completedStream.close();
     _errorStream.close();
-    _userExitStream.close();
-    _uiActionStream.close();
   }
 }

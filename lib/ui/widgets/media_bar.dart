@@ -97,7 +97,8 @@ class _MediaBarState extends State<MediaBar>
   final _audioArbiter = GetIt.instance<PlaybackArbiter>();
   final _screensaverController = GetIt.instance<ScreensaverController>();
   final Media3PlayerBackend? _media3TrailerBackend =
-      (PlatformDetection.isTizen || PlatformDetection.isAppleTV)
+      (PlatformDetection.isTizen || PlatformDetection.isAppleTV ||
+              PlatformDetection.isIOS)
       ? null
       : GetIt.instance<Media3PlayerBackend>();
   final _sponsorBlockService = SponsorBlockService();
@@ -1029,7 +1030,7 @@ class _MediaBarState extends State<MediaBar>
           await _media3TrailerBackend.stop();
           return;
         }
-      } else if (PlatformDetection.isAppleTV) {
+      } else if (PlatformDetection.useApplePreviewPlayer) {
         _trailerUsingAppleTv = true;
         final player = _ensureAppleTvTrailerPlayer();
         await player
@@ -1037,7 +1038,6 @@ class _MediaBarState extends State<MediaBar>
               streamUrl,
               headers: localHeaders.isNotEmpty ? localHeaders : null,
               volume: 0,
-              backend: 'mpv',
             )
             .timeout(_openTimeout);
         if (resolveId != _trailerResolveId || !_trailerShouldBeActive()) {

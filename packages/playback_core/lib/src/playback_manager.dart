@@ -273,6 +273,7 @@ class PlaybackManager implements AudioOwnable {
     Map<String, String> headers = const {},
     double? normalizationGainDb,
     String? hybridAudioUrl,
+    bool isLive = false,
   }) {
     final resolvedMediaType = mediaType?.trim().toLowerCase();
 
@@ -332,6 +333,7 @@ class PlaybackManager implements AudioOwnable {
       if (headers.isNotEmpty) 'headers': headers,
       if (hybridAudioUrl != null && hybridAudioUrl.isNotEmpty)
         'hybridAudioUrl': hybridAudioUrl,
+      'isLive': isLive,
       'mediaType':
           (resolvedMediaType == 'audio' || resolvedMediaType == 'video')
           ? resolvedMediaType
@@ -798,10 +800,26 @@ class PlaybackManager implements AudioOwnable {
       }
     }
 
-    // Container/source error (e.g. brand-less MP4 that no extractor could read).
-    // Only suppress the trailing generic "error" event and recover when we can
-    // actually re-resolve; otherwise let the failure surface.
-    if (kind == 'unsupported_container') {
+    // A live source dropped or was reset upstream: re-resolve the stream at
+    // the current position rather than forcing a transcode. The server hands
+    // back a fresh session and the player rejoins at the edge.
+    if (kind == 'live_source_reset') {
+      if (resolution == null || _isOfflinePlayback || _waitingForMedia) {
+        return;
+      }
+      _suppressNextGenericBackendError = true;
+      try {
+        await _reResolveAtCurrentPosition(isErrorRecovery: true);
+      } catch (_) {}
+      return;
+    }
+
+    // Container/source error (e.g. brand-less MP4 that no extractor could
+    // read) or a video codec or profile the engine can't play (e.g. a DV
+    // profile it can't route). Only suppress the trailing generic error event
+    // and recover when we can actually re-resolve, otherwise let the failure
+    // surface.
+    if (kind == 'unsupported_container' || kind == 'unsupported_video') {
       if (!canReResolve()) {
         return;
       }
@@ -1351,6 +1369,7 @@ class PlaybackManager implements AudioOwnable {
         headers: resolution.requestHeaders,
         normalizationGainDb: resolution.normalizationGainDb,
         hybridAudioUrl: resolution.hybridAudioUrl,
+        isLive: resolution.liveStreamId != null,
       );
       await _arbiter?.acquire(AudioProducer.mainPlayback);
       if (sessionToken != _playbackSessionToken) {

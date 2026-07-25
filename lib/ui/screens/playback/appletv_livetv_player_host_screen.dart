@@ -197,7 +197,14 @@ class _AppleTvLiveTvPlayerHostScreenState
     if (_inGuide || _switching || _exiting) return;
     _inGuide = true;
 
-    final streamUrl = _manager.currentResolution?.streamUrl;
+    // The guide PiP is an AVPlayer texture, which can only ingest HLS. A raw
+    // TS/upstream direct-play URL would fail to open, so skip the PiP for
+    // those and let the guide show the channel image instead.
+    final resolvedUrl = _manager.currentResolution?.streamUrl;
+    final streamUrl =
+        (resolvedUrl != null && resolvedUrl.toLowerCase().contains('.m3u8'))
+        ? resolvedUrl
+        : null;
 
     final pip = AppleTvPreviewPlayer();
     _pipPlayer = pip;
@@ -210,7 +217,7 @@ class _AppleTvLiveTvPlayerHostScreenState
     if (streamUrl != null && streamUrl.isNotEmpty) {
       unawaited(() async {
         try {
-          await pip.open(streamUrl, backend: 'mpv', live: true, volume: 100);
+          await pip.open(streamUrl, live: true, volume: 100);
           await pip.resume();
         } catch (_) {}
       }());
@@ -531,7 +538,7 @@ class _AppleTvLiveTvPlayerHostScreenState
       row('Play Method', playMethod),
       if (resolution != null && resolution.transcodingReasons.isNotEmpty)
         row('Transcode Reasons', resolution.transcodingReasons.join(', ')),
-      row('Player', 'MPVKit (libmpv)'),
+      row('Player', 'AetherEngine'),
       row('Container', container),
     ]);
 

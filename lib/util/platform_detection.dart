@@ -326,4 +326,9 @@ class PlatformDetection {
   static bool get useMobileUi => _hasMobileFormFactor && !isTV;
 
   static bool get useNativeVideoSurface => isAndroid && isTV;
+
+  /// Apple platforms use the shared AVPlayer-based preview/theme channels
+  /// (`moonfin/appletv_preview`, `moonfin/appletv_theme_music`) instead of a
+  /// media_kit Player for inline trailers, home-row previews and theme music.
+  static bool get useApplePreviewPlayer => isAppleTV || isIOS;
 }

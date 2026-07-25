@@ -9,7 +9,7 @@ Pod::Spec.new do |s|
   s.source           = { :path => '.' }
   s.source_files     = 'libretro_host.c', 'libretro_host.h', 'libretro.h'
   s.public_header_files = 'libretro_host.h'
-  s.ios.deployment_target = '15.0'
+  s.ios.deployment_target = '16.0'
   s.osx.deployment_target = '11.0'
   # The per-frame pixel conversion is too slow at -O0, so Debug builds still
   # compile the host optimized.

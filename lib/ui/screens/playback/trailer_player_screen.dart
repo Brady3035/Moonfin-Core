@@ -94,7 +94,7 @@ class _TrailerPlayerScreenState extends State<TrailerPlayerScreen> {
   }
 
   void _startStreamPlaybackPath() {
-    if (PlatformDetection.isAppleTV) {
+    if (PlatformDetection.useApplePreviewPlayer) {
       unawaited(_openTrailerAppleTv());
       return;
     }
@@ -204,7 +204,6 @@ class _TrailerPlayerScreenState extends State<TrailerPlayerScreen> {
                 ? YouTubeStreamResolver.youtubeHeaders
                 : null,
             volume: 100,
-            backend: 'mpv',
           )
           .timeout(_openTimeout);
       if (!mounted) {
@@ -370,7 +369,7 @@ class _TrailerPlayerScreenState extends State<TrailerPlayerScreen> {
                         ),
                       ),
                     )
-                  : PlatformDetection.isAppleTV
+                  : PlatformDetection.useApplePreviewPlayer
                   ? (_appleTvPlayer?.textureId != null
                         ? FittedBox(
                             fit: BoxFit.contain,

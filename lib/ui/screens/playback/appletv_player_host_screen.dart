@@ -440,7 +440,7 @@ class _AppleTvPlayerHostScreenState extends State<AppleTvPlayerHostScreen> {
       ),
       if (res != null && res.transcodingReasons.isNotEmpty)
         rowEntry('Transcode Reasons', res.transcodingReasons.join(', ')),
-      rowEntry('Player', 'MPVKit (libmpv)'),
+      rowEntry('Player', 'AetherEngine'),
       rowEntry('Container', container),
       rowEntry('Bitrate', _formatBitrate(mediaSource?['Bitrate'] as int?)),
       rowEntry(

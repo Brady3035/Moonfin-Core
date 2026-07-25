@@ -644,7 +644,8 @@ class _ContentRowsState extends State<_ContentRows>
   final _playbackManager = GetIt.instance<PlaybackManager>();
   final _audioArbiter = GetIt.instance<PlaybackArbiter>();
   final Media3PlayerBackend? _media3PreviewBackend =
-      (PlatformDetection.isTizen || PlatformDetection.isAppleTV)
+      (PlatformDetection.isTizen || PlatformDetection.isAppleTV ||
+              PlatformDetection.isIOS)
       ? null
       : GetIt.instance<Media3PlayerBackend>();
   final _themeMusicService = GetIt.instance<ThemeMusicService>();
@@ -1552,12 +1553,12 @@ class _ContentRowsState extends State<_ContentRows>
           await _media3PreviewBackend.stop();
           return;
         }
-      } else if (PlatformDetection.isAppleTV) {
+      } else if (PlatformDetection.useApplePreviewPlayer) {
         _previewUsingMedia3 = false;
         _previewUsingAppleTv = true;
         final player = _ensureAppleTvSharedPreviewPlayer();
         await player
-            .open(previewUrl, volume: previewVolume, backend: 'mpv')
+            .open(previewUrl, volume: previewVolume)
             .timeout(_previewOpenTimeout);
         if (!_isPreviewRequestActive(requestId, previewKey)) {
           await player.stop();

@@ -19,7 +19,7 @@ struct PromptStrings {
 }
 
 final class AppleTvPlayerViewController: UIViewController {
-    private let player: MpvPlayerWrapper
+    private let player: AetherPlayerWrapper
     var onExit: (() -> Void)?
     var onNext: (() -> Void)?
     var onPrevious: (() -> Void)?
@@ -227,7 +227,7 @@ final class AppleTvPlayerViewController: UIViewController {
         return formatter
     }()
 
-    init(player: MpvPlayerWrapper) {
+    init(player: AetherPlayerWrapper) {
         self.player = player
         super.init(nibName: nil, bundle: nil)
     }
@@ -1919,7 +1919,7 @@ final class AppleTvPlayerViewController: UIViewController {
         guard raised != subtitlesRaised else { return }
         subtitlesRaised = raised
         let pos = raised ? min(baseSubtitlePos, 70) : baseSubtitlePos
-        player.setProperty("sub-pos", value: String(pos))
+        player.setSubtitlePosition(pos)
     }
 
     private func hideOsd() {
@@ -2123,8 +2123,7 @@ final class AppleTvPlayerViewController: UIViewController {
             ("OS", UIDevice.current.systemVersion),
             ("Model", VideoCapabilityDetector.deviceModelIdentifier()),
             ("Generation", VideoCapabilityDetector.currentGeneration().rawValue),
-            ("FFmpeg Available", FFmpegAvailability.isAvailable ? "yes" : "no"),
-            ("Native Start", NativePlayerWrapper.lastNativeStartDiagnostic),
+            ("Engine", "AetherEngine"),
         ]
         if let screen = view.window?.screen {
             if let mode = screen.currentMode {
@@ -2138,22 +2137,12 @@ final class AppleTvPlayerViewController: UIViewController {
                 ("EDR Current", String(format: "%.2f", screen.currentEDRHeadroom)))
         }
 
-        // HDR display-mode switch diagnostics (why the box did or didn't switch).
-        let dc = DisplayCriteriaManager.shared.lastDiagnostics
-        if let applied = dc["dc_applied"] {
-            rows.append(("HDR Switch Applied", applied))
-        }
-        if let match = dc["dc_match_enabled"] {
-            rows.append(("Match Dynamic Range", match))
-        }
-        if let win = dc["dc_window"] {
-            rows.append(("HDR Switch Window", win))
-        }
-        if let range = dc["dc_range"] {
-            rows.append(("HDR Switch Range", range))
-        }
-        if let edrBefore = dc["dc_edr_before"] {
-            rows.append(("EDR Before Switch", edrBefore))
+        // Display-criteria switching is engine-owned, with AetherEngine as
+        // the sole writer. The panel-mode outcome shows in the EDR rows.
+        if let window = view.window {
+            rows.append(
+                ("Match Dynamic Range",
+                 window.avDisplayManager.isDisplayCriteriaMatchingEnabled ? "on" : "off"))
         }
 
         let session = AVAudioSession.sharedInstance()
@@ -2162,10 +2151,6 @@ final class AppleTvPlayerViewController: UIViewController {
             $0 + ($1.channels?.count ?? 0)
         }
         rows.append(("Route Channels", "\(routeChannels)"))
-        rows.append(("Interpose Hits", "\(gMoonfinInterposeHitCount)"))
-        rows.append(("Interpose Last Ch", "\(gMoonfinInterposeLastChannels)"))
-        rows.append(
-            ("Interpose Last Tag", String(format: "0x%08X", gMoonfinInterposeLastTag)))
         return rows
     }
 
@@ -2183,69 +2168,35 @@ final class AppleTvPlayerViewController: UIViewController {
         }
 
         var rows: [(label: String, value: String)] = []
-        if let v = value("mpv_hdr_type") { rows.append(("HDR Type", v)) }
-        if let v = value("mpv_max_cll") { rows.append(("Max CLL", v)) }
-        if let v = value("mpv_max_fall") { rows.append(("Max FALL", v)) }
-        if let v = pair("mpv_input_primaries", "mpv_input_transfer") {
-            rows.append(("Input Color", v))
+        if let v = value("backend") { rows.append(("Playback Path", v)) }
+        if let v = pair("source_format", "video_format") {
+            rows.append(("Source / Output Format", v))
         }
-        if let v = pair("mpv_output_primaries", "mpv_output_transfer") {
-            rows.append(("Output Color", v))
+        if let v = value("dv_profile") { rows.append(("Dolby Vision", v)) }
+        if let v = value("source_fps") { rows.append(("Source FPS", v)) }
+        if let v = value("source_bitrate") { rows.append(("Source Bitrate", v)) }
+        if let v = value("video_decoder") { rows.append(("Video Decoder", v)) }
+        if let v = value("audio_decoder") { rows.append(("Audio Decoder", v)) }
+        if let v = value("indicated_bitrate") {
+            rows.append(("Indicated Bitrate", v))
         }
-        if let v = pair("mpv_active_target_prim", "mpv_active_target_trc") {
-            rows.append(("Display Target", v))
+        if let v = value("dropped_frames") { rows.append(("Frames Dropped", v)) }
+        if let v = value("stalls") { rows.append(("Stalls", v)) }
+        if let v = value("telemetry_observedFps") {
+            rows.append(("Observed FPS", v))
         }
-        if let v = value("mpv_active_tone_mapping") {
-            rows.append(("Tone Mapping", v))
+        if let v = value("telemetry_avSyncGapMs") {
+            rows.append(("A/V Sync Gap (ms)", v))
         }
-        if let v = value("mpv_intent_sink_hdr_capable") {
-            rows.append(("Display HDR Capable", v))
+        if let v = value("telemetry_forwardBufferSeconds") {
+            rows.append(("Forward Buffer (s)", v))
         }
-        if let v = value("mpv_intent_output_provides_hdr") {
-            rows.append(("Output HDR Active", v))
+        if let v = value("telemetry_networkThroughputMbps") {
+            rows.append(("Network (Mbps)", v))
         }
-        if let v = value("mpv_intent_content_range") {
-            rows.append(("Content Range", v))
-        }
-        if let v = value("mpv_active_hwdec") {
-            rows.append(("Hardware Decode", v))
-        }
-        if let v = value("mpv_display_fps") { rows.append(("Display FPS", v)) }
-        if let v = value("mpv_frame_drop_count") {
-            rows.append(("Frames Dropped", v))
-        }
-        if let v = value("mpv_decoder_frame_drop_count") {
-            rows.append(("Decoder Drops", v))
-        }
-        if let v = pair("mpv_audio_in_channel_count", "mpv_audio_out_channel_count") {
-            rows.append(("Audio In/Out Ch", v))
-        }
-        if let v = value("mpv_audio_out_hr_channels") {
-            rows.append(("Audio HR Channels", v))
-        }
-        if let v = value("mpv_audio_codec") { rows.append(("Audio Codec", v)) }
-        if let v = value("mpv_current_ao") { rows.append(("Audio Output (AO)", v)) }
-        if let v = value("mpv_init_audio_channels_mode") {
-            rows.append(("Audio Channels Mode", v))
-        }
-        if telemetry["audio_passthrough"] == "on" {
-            rows.append(("Audio Passthrough", "on"))
-            rows.append(("Audio spdif", telemetry["audio_spdif"] ?? "off"))
-        }
-        if telemetry["hybrid_active"] == "yes" {
-            rows.append(("Hybrid Audio", "active"))
-            rows.append(("mpv Audio (aid)", telemetry["mpv_init_aid"] ?? "on"))
-            if let v = value("hybrid_audio_source") {
-                rows.append(("Hybrid Source", v))
-            }
-            if let v = value("hybrid_avplayer_status") {
-                rows.append(("AVPlayer Status", v))
-            }
-            if let v = value("hybrid_drift_ms") { rows.append(("Hybrid Drift (ms)", v)) }
-            if let v = value("hybrid_hard_seeks") {
-                rows.append(("Hybrid Hard Seeks", v))
-            }
-        }
+        if let v = value("telemetry_rssMb") { rows.append(("Memory (MB)", v)) }
+        if let v = value("is_live") { rows.append(("Live", v)) }
+        if let v = value("last_error") { rows.append(("Last Error", v)) }
 
         return rows
     }

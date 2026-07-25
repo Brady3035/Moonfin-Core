@@ -8,7 +8,7 @@ final class AppleTvVideoChannel: NSObject, FlutterStreamHandler {
     private nonisolated(unsafe) var eventSink: FlutterEventSink?
     private weak var rootViewController: UIViewController?
 
-    private var player: MpvPlayerWrapper?
+    private var player: AetherPlayerWrapper?
     private var playerVC: AppleTvPlayerViewController?
     private var stateTimer: Timer?
     private var lastTextTrackCount = -1
@@ -157,41 +157,17 @@ final class AppleTvVideoChannel: NSObject, FlutterStreamHandler {
     }
 
     private func applySubtitleStyle(
-        _ args: [String: Any], on player: MpvPlayerWrapper,
+        _ args: [String: Any], on player: AetherPlayerWrapper,
         vc: AppleTvPlayerViewController?
     ) {
-        func argbString(_ value: Any?) -> String? {
-            guard let n = (value as? NSNumber)?.int64Value else { return nil }
-            let a = (n >> 24) & 0xFF
-            let r = (n >> 16) & 0xFF
-            let g = (n >> 8) & 0xFF
-            let b = n & 0xFF
-            return String(format: "#%02X%02X%02X%02X", a, r, g, b)
-        }
-
-        if let color = argbString(args["textColor"]) {
-            player.setProperty("sub-color", value: color)
-        }
-        if let color = argbString(args["backgroundColor"]) {
-            player.setProperty("sub-back-color", value: color)
-        }
-        if let color = argbString(args["strokeColor"]) {
-            player.setProperty("sub-border-color", value: color)
-            player.setProperty("sub-border-size", value: "3")
-        }
-        if let size = (args["fontSize"] as? NSNumber)?.doubleValue, size > 0 {
-            let mpvSize = Int((size * 55.0 / 24.0).rounded())
-            player.setProperty("sub-font-size", value: String(mpvSize))
-        }
-        if let weight = (args["fontWeight"] as? NSNumber)?.intValue {
-            player.setProperty("sub-bold", value: weight >= 600 ? "yes" : "no")
-        }
-        var subPos = 92
-        if let offset = (args["verticalOffset"] as? NSNumber)?.doubleValue {
-            subPos = min(100, max(40, 100 - Int((offset * 100).rounded())))
-        }
-        player.setProperty("sub-pos", value: String(subPos))
-        vc?.baseSubtitlePos = subPos
+        player.applySubtitleStyle(
+            textColor: (args["textColor"] as? NSNumber)?.intValue,
+            backgroundColor: (args["backgroundColor"] as? NSNumber)?.intValue,
+            strokeColor: (args["strokeColor"] as? NSNumber)?.intValue,
+            fontSize: (args["fontSize"] as? NSNumber)?.doubleValue,
+            fontWeight: (args["fontWeight"] as? NSNumber)?.intValue,
+            verticalOffset: (args["verticalOffset"] as? NSNumber)?.doubleValue)
+        vc?.baseSubtitlePos = player.baseSubtitlePos
     }
 
     private func present(audioOnly: Bool) {
@@ -199,9 +175,12 @@ final class AppleTvVideoChannel: NSObject, FlutterStreamHandler {
             send(["event": "presented"])
             return
         }
-        let created: MpvPlayerWrapper = NativePlayerWrapper()
+        let created = AetherPlayerWrapper()
         player = created
         created.onNowPlayingCommand = { [weak self] payload in
+            self?.send(payload)
+        }
+        created.onPlayerError = { [weak self] payload in
             self?.send(payload)
         }
         if audioOnly {
@@ -294,8 +273,7 @@ final class AppleTvVideoChannel: NSObject, FlutterStreamHandler {
 
     private func dismiss() {
         stopStateTimer()
-        player?.stop()
-        DisplayCriteriaManager.shared.reset()
+        player?.shutdown()
         let vc = playerVC
         playerVC = nil
         player = nil
@@ -317,101 +295,30 @@ final class AppleTvVideoChannel: NSObject, FlutterStreamHandler {
         let startMs = (args["startPositionMs"] as? NSNumber)?.doubleValue ?? 0
         let audioOnly = (args["mediaType"] as? String) == "audio"
         let autoPlay = (args["autoPlay"] as? Bool) ?? true
-        if let speed = (args["speed"] as? NSNumber)?.floatValue {
-            player.setRate(speed)
-        }
 
-        let dvProfile = (args["videoDvProfile"] as? NSNumber)?.intValue ?? -1
-        let nativeDvEnabled = (args["nativeDvEnabled"] as? Bool) ?? false
-        let atmosPassthrough = (args["atmosPassthrough"] as? Bool) ?? false
-        let audioCodec = (args["audioCodec"] as? String ?? "").lowercased()
-        let audioProfile = (args["audioProfile"] as? String ?? "").lowercased()
-        let audioChannels = (args["audioChannels"] as? NSNumber)?.intValue ?? 0
-        let audioChannelsMode = (args["audioChannelsMode"] as? String) ?? "auto-safe"
-        let rangeType = (args["videoRangeType"] as? String ?? "").uppercased()
-        let isDolbyVision =
-            rangeType.contains("DOVI") || rangeType.contains("DOLBYVISION")
-        let isAtmosFamily =
-            audioCodec == "truehd" || audioCodec == "mlp"
-            || (audioCodec == "eac3" && audioProfile.contains("joc"))
-        let preferNative =
-            !audioOnly
-            && ((isDolbyVision && nativeDvEnabled)
-                || (atmosPassthrough && isAtmosFamily && audioChannels != 2))
-        player.configurePreferredBackendForNextPlayback(
-            preferNative ? .native : .mpv, fallbackReason: nil)
-        if preferNative && isDolbyVision {
-            player.configureDolbyVisionMetadata(
-                profile: dvProfile >= 0 ? dvProfile : nil,
-                level: nil,
-                blSignalCompatibilityId: nil)
+        var headers: [String: String] = [:]
+        if let raw = args["headers"] as? [String: Any] {
+            for (key, value) in raw { headers[key] = "\(value)" }
         }
-
-        if !audioOnly {
-            lastStreamCriteria = StreamCriteria(
-                codec: args["videoCodec"] as? String,
-                width: (args["videoWidth"] as? NSNumber)?.intValue ?? 0,
-                height: (args["videoHeight"] as? NSNumber)?.intValue ?? 0,
-                frameRate: (args["videoFrameRate"] as? NSNumber)?.doubleValue ?? 0,
-                rangeType: args["videoRangeType"] as? String)
-            applyDisplayCriteria()
-        } else {
-            lastStreamCriteria = nil
-        }
-
-        if !audioOnly {
-            player.configureDynamicRangeIntent(
-                contentRange: VideoCapabilityDetector.dynamicRange(
-                    fromRangeType: args["videoRangeType"] as? String),
-                sinkIsHdrCapable: VideoCapabilityDetector.displaySupportsHdr())
-        }
-
-        player.configureAudioChannelsMode(audioChannelsMode)
-        player.configureAudioPassthrough((args["audioPassthrough"] as? Bool) ?? false)
+        player.configureSource(
+            AetherPlayerWrapper.SourceConfiguration(
+                headers: headers,
+                isLive: (args["isLive"] as? Bool) ?? false,
+                autoPlay: autoPlay,
+                audioStreamIndex: (args["audioStreamIndex"] as? NSNumber).flatMap {
+                    $0.intValue >= 0 ? Int32($0.intValue) : nil
+                }))
         player.setForceSubtitlesDisabledOnStart(
             (args["forceSubtitlesDisabledOnStart"] as? Bool) ?? false)
-
-        if !audioOnly,
-            let hybridUrlStr = args["hybridAudioUrl"] as? String,
-            !hybridUrlStr.isEmpty,
-            let hybridUrl = URL(string: hybridUrlStr) {
-            var hybridHeaders: [String: String] = [:]
-            if let raw = args["headers"] as? [String: Any] {
-                for (key, value) in raw { hybridHeaders[key] = "\(value)" }
-            }
-            let hybridIndex = (args["hybridAudioStreamIndex"] as? NSNumber)?.intValue ?? -1
-            player.configureHybridAudio(
-                url: hybridUrl, headers: hybridHeaders, audioStreamIndex: hybridIndex)
-        } else {
-            player.configureHybridAudio(url: nil, headers: [:], audioStreamIndex: -1)
-        }
+        player.setReplayGainDb((args["normalizationGainDb"] as? NSNumber)?.doubleValue)
 
         Task {
             await player.play(
                 streamUrl: url, startPosition: startMs / 1000.0, audioOnly: audioOnly)
-            if autoPlay {
-                player.resume()
+            if let speed = (args["speed"] as? NSNumber)?.floatValue, speed != 1.0 {
+                player.setRate(speed)
             }
-            applyDisplayCriteria()
         }
-    }
-
-    private struct StreamCriteria {
-        let codec: String?
-        let width: Int
-        let height: Int
-        let frameRate: Double
-        let rangeType: String?
-    }
-
-    private var lastStreamCriteria: StreamCriteria?
-
-    private func applyDisplayCriteria() {
-        guard let c = lastStreamCriteria else { return }
-        DisplayCriteriaManager.shared.applyForStream(
-            codec: c.codec, width: c.width, height: c.height,
-            frameRate: c.frameRate, rangeType: c.rangeType,
-            preferredWindow: playerVC?.view.window)
     }
 
     private func startStateTimer() {

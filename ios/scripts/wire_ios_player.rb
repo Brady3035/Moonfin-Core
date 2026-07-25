@@ -1,4 +1,10 @@
 #!/usr/bin/env ruby
+# Wires the AetherEngine playback stack into the iOS Runner project:
+# - adds ios/Runner/Playback/**/* sources to the Runner target
+# - adds the AetherEngine SPM package (AETHER_LOCAL=1 uses the sibling
+#   checkout at ../../AetherEngine for development)
+# - adds the standalone libass package for host-side ASS rendering
+# Idempotent. Run after project regeneration or when Playback/ files change.
 require 'xcodeproj'
 
 project_dir = File.expand_path(File.join(__dir__, '..'))
@@ -13,9 +19,28 @@ playback_group.set_path('Runner/Playback')
 source_exts = %w[.swift .c .m .mm]
 abs_files = Dir.glob(File.join(project_dir, 'Runner/Playback/**/*'))
   .select { |f| source_exts.include?(File.extname(f)) }.sort
+
+# The engine wrapper layer (AetherPlayerWrapper, PlayerTypes, SubtitleOverlay,
+# AssRenderer, SubtitleFontLocator, NowPlayingController) is shared with the
+# tvOS target and lives in the tvOS tree. Platform deltas are #if os(...)
+# guarded inside the files.
+shared_dir = File.expand_path(
+  File.join(project_dir, '..', 'tvos', 'Runner', 'Playback', 'Aether'))
+abs_files += Dir.glob(File.join(shared_dir, '*.swift')).sort
+
+# Theme-music and inline-preview channels are pure AVFoundation and shared
+# with tvOS verbatim (same channel names, so the Dart side needs no changes).
+tvos_runner = File.expand_path(File.join(project_dir, '..', 'tvos', 'Runner'))
+abs_files += [
+  File.join(tvos_runner, 'AppleTvThemeMusicChannel.swift'),
+  File.join(tvos_runner, 'AppleTvPreviewChannel.swift'),
+].select { |f| File.exist?(f) }
 basenames = abs_files.map { |f| File.basename(f) }
 
-project.files.select { |f| basenames.include?(File.basename(f.path.to_s)) }.each do |f|
+# Purge refs for files this script manages, plus files deleted in the
+# AetherEngine migration (the old sample-buffer PiP controller).
+stale_basenames = basenames + ['PiPController.swift']
+project.files.select { |f| stale_basenames.include?(File.basename(f.path.to_s)) }.each do |f|
   f.referrers.grep(Xcodeproj::Project::Object::PBXBuildFile).each(&:remove_from_project)
   f.remove_from_project
 end
@@ -26,32 +51,7 @@ abs_files.each do |abs|
   puts "added source: #{File.basename(abs)}"
 end
 
-# --- MPVKit removal (replaced by AetherEngine) ---
-# Clean any MPVKit package reference, product link, and module-map patch step
-# from projects generated before the AetherEngine migration.
-mpvkit_url = 'https://github.com/mpvkit/MPVKit'
-project.root_object.package_references.dup.each do |p|
-  next unless p.respond_to?(:repositoryURL) && p.repositoryURL == mpvkit_url
-  target.package_product_dependencies.dup.each do |d|
-    next unless d.product_name == 'MPVKit'
-    d.referrers.grep(Xcodeproj::Project::Object::PBXBuildFile).each(&:remove_from_project)
-    target.package_product_dependencies.delete(d)
-    d.remove_from_project
-  end
-  project.root_object.package_references.delete(p)
-  p.remove_from_project
-  puts 'removed MPVKit package reference'
-end
-target.build_phases.dup.each do |phase|
-  next unless phase.respond_to?(:name) && phase.name == 'Patch MPVKit Module Maps'
-  target.build_phases.delete(phase)
-  phase.remove_from_project
-  puts 'removed MPVKit module-map patch phase'
-end
-
 # --- AetherEngine ---
-# AETHER_LOCAL=1 wires the sibling checkout (../../AetherEngine) for
-# development, otherwise the pinned remote release is used.
 aether_remote_url = 'https://github.com/superuser404notfound/AetherEngine'
 aether_version = '5.20.7'
 aether_local_path = File.expand_path(File.join(project_dir, '..', '..', 'AetherEngine'))
@@ -61,7 +61,6 @@ if use_local_aether && !File.directory?(aether_local_path)
   abort("AETHER_LOCAL=1 but no checkout at #{aether_local_path}")
 end
 
-# Drop whichever Aether reference kind is not wanted so local/remote can be toggled.
 project.root_object.package_references.dup.each do |p|
   is_remote_aether = p.respond_to?(:repositoryURL) && p.repositoryURL == aether_remote_url
   is_local_aether = p.is_a?(Xcodeproj::Project::Object::XCLocalSwiftPackageReference) &&
@@ -109,8 +108,6 @@ unless target.package_product_dependencies.any? { |d| d.product_name == 'AetherE
 end
 
 # --- libass (standalone, for host-side ASS subtitle rendering) ---
-# Provides the same Libass clang module AssRenderer imports, keeping ASS
-# rendering working now that MPVKit no longer vendors it.
 libass_url = 'https://github.com/mpvkit/libass-build'
 libass_pkg = project.root_object.package_references.find do |p|
   p.respond_to?(:repositoryURL) && p.repositoryURL == libass_url
@@ -135,12 +132,11 @@ unless target.package_product_dependencies.any? { |d| d.product_name == 'libass'
 end
 
 target.build_configurations.each do |config|
-  config.build_settings['SWIFT_OBJC_BRIDGING_HEADER'] ||= 'Runner/Runner-Bridging-Header.h'
-  config.build_settings['TVOS_DEPLOYMENT_TARGET'] = '16.0'
+  config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '16.0'
 end
 
 project.build_configurations.each do |config|
-  config.build_settings['TVOS_DEPLOYMENT_TARGET'] = '16.0'
+  config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '16.0'
 end
 
 project.save

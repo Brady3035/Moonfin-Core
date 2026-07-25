@@ -21,7 +21,9 @@ import '../../widgets/playback/seek_icons.dart';
 import '../../widgets/playback/trickplay_tile_image.dart';
 
 import '../../../playback/html_video_backend.dart';
+import '../../../playback/ios_aether_backend.dart';
 import '../../../playback/media_kit_player_backend.dart';
+import '../../widgets/aether_video_view.dart';
 import '../../../playback/playback_lifecycle_handler.dart';
 import '../../../playback/playback_profile_diagnostics.dart';
 import '../../../playback/hdr_stream_capability.dart';
@@ -1342,6 +1344,13 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
   }
 
   Future<void> _restorePositionAfterScreenLock() async {
+    // AetherEngine handles background teardown and restore internally, so a
+    // Dart-side restore seek on top would double-seek.
+    if (_activeBackend is IosAetherBackend) {
+      _positionBeforeScreenLock = null;
+      _wasPlayingBeforeScreenLock = false;
+      return;
+    }
     final pos = _positionBeforeScreenLock;
     final shouldResume = _wasPlayingBeforeScreenLock;
     _positionBeforeScreenLock = null;
@@ -1612,6 +1621,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
       row(l10n.player, switch (_activeBackend) {
         Media3PlayerBackend _ => 'Media3 (ExoPlayer)',
         HtmlVideoBackend _ => 'HTML5 (browser)',
+        IosAetherBackend _ => 'AetherEngine',
         MediaKitPlayerBackend _ => 'media_kit (libmpv)',
         _ => l10n.unknown,
       }),
@@ -3540,6 +3550,15 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
   Widget _buildVideoSurface() {
     if (PlatformDetection.isTizen) {
       return _buildTizenVideoSurface();
+    }
+
+    if (PlatformDetection.isIOS) {
+      return Positioned.fill(
+        child: AetherVideoView(
+          key: _videoSurfaceKey,
+          zoomMode: _zoomMode.name,
+        ),
+      );
     }
 
     final prefersMedia3 =

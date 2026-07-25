@@ -23,6 +23,7 @@ import '../../playback/html_video_backend.dart';
 import '../../playback/known_defects.dart';
 import '../../playback/external_player_policy.dart';
 import '../../playback/appletv_mpv_backend.dart';
+import '../../playback/ios_aether_backend.dart';
 import '../../playback/media_kit_player_backend.dart';
 import '../../playback/media3_player_backend.dart';
 import '../../playback/tizen_player_backend.dart';
@@ -353,6 +354,7 @@ void registerPlaybackModule() {
   Media3PlayerBackend? media3Backend;
   TizenPlayerBackend? tizenBackend;
   AppleTvMpvBackend? appleTvBackend;
+  IosAetherBackend? iosBackend;
 
   if (PlatformDetection.isTizen) {
     tizenBackend = TizenPlayerBackend(prefs);
@@ -360,11 +362,13 @@ void registerPlaybackModule() {
   } else if (PlatformDetection.isAppleTV) {
     appleTvBackend = AppleTvMpvBackend(prefs);
     _getIt.registerSingleton<AppleTvMpvBackend>(appleTvBackend);
+  } else if (PlatformDetection.isIOS) {
+    // AetherEngine serves everything on iOS: video, live TV, music,
+    // audiobooks and offline. media_kit isn't constructed here at all.
+    iosBackend = IosAetherBackend(prefs);
+    _getIt.registerSingleton<IosAetherBackend>(iosBackend);
   } else {
-    backend = MediaKitPlayerBackend(
-      prefs,
-      onNativeHandleReady: pipService.initializeIos,
-    );
+    backend = MediaKitPlayerBackend(prefs);
     media3Backend = Media3PlayerBackend(prefs);
     _getIt.registerSingleton<MediaKitPlayerBackend>(backend);
     _getIt.registerSingleton<Media3PlayerBackend>(media3Backend);
@@ -385,9 +389,11 @@ void registerPlaybackModule() {
       ? tizenBackend!
       : PlatformDetection.isAppleTV
           ? appleTvBackend!
-          : PlatformDetection.isWeb
-              ? (htmlBackend ?? backend!)
-              : (useMedia3ByDefault ? media3Backend! : backend!);
+          : PlatformDetection.isIOS
+              ? iosBackend!
+              : PlatformDetection.isWeb
+                  ? (htmlBackend ?? backend!)
+                  : (useMedia3ByDefault ? media3Backend! : backend!);
   _getIt.registerSingleton<PlayerBackend>(initialBackend);
 
   final manager = PlaybackManager();
@@ -408,6 +414,11 @@ void registerPlaybackModule() {
     if (PlatformDetection.isAppleTV) {
       if (currentBackend is AppleTvMpvBackend) return currentBackend;
       return _getIt<AppleTvMpvBackend>();
+    }
+
+    if (PlatformDetection.isIOS) {
+      if (currentBackend is IosAetherBackend) return currentBackend;
+      return _getIt<IosAetherBackend>();
     }
 
     if (PlatformDetection.isWeb) {

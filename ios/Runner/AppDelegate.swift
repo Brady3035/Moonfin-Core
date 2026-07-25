@@ -74,8 +74,10 @@ private final class NativeAirPlayEventStreamHandler: NSObject, FlutterStreamHand
   fileprivate let airPlayController = AirPlayController()
   fileprivate var castEventSink: FlutterEventSink?
 
-  private var pipChannel: FlutterMethodChannel?
-  private var pipController: NSObject?
+  private var aetherVideoChannel: IosAetherVideoChannel?
+  private var pipController: IosPiPController?
+  private var themeMusicChannel: AppleTvThemeMusicChannel?
+  private var previewChannel: AppleTvPreviewChannel?
   private var sfSymbolChannel: FlutterMethodChannel?
 
   private struct PendingCastRequest {
@@ -217,111 +219,28 @@ private final class NativeAirPlayEventStreamHandler: NSObject, FlutterStreamHand
       result(FlutterStandardTypedData(bytes: data))
     }
 
-      let pipChannel = FlutterMethodChannel(
-        name: "org.moonfin.ios/pip",
-        binaryMessenger: messenger
-      )
-      self.pipChannel = pipChannel
+      // Theme music + inline previews: AVFoundation channels shared with tvOS
+      // (same channel names, so the Dart callers work unchanged on iOS).
+      self.themeMusicChannel = AppleTvThemeMusicChannel(messenger: messenger)
+      self.previewChannel = AppleTvPreviewChannel(
+        messenger: messenger, textures: sharedEngine)
 
-      if #available(iOS 15.0, *) {
-        let pip = PiPController()
-        self.pipController = pip
-        pip.onPiPStatusChanged = { [weak pipChannel] isInPiP in
-          DispatchQueue.main.async {
-            pipChannel?.invokeMethod("onPiPChanged", arguments: isInPiP)
-          }
-        }
-        pip.onPiPAction = { [weak pipChannel] action in
-          DispatchQueue.main.async {
-            pipChannel?.invokeMethod("onPiPAction", arguments: action)
-          }
-        }
-      }
-
-      pipChannel.setMethodCallHandler { [weak self] (call, result) in
-        guard let self else { result(FlutterMethodNotImplemented); return }
-
-        if #available(iOS 15.0, *), let pip = self.pipController as? PiPController {
-          switch call.method {
-          case "configureSharedContextBridge":
-            guard let args = call.arguments as? [String: Any] else {
-              result(FlutterError(code: "BAD_ARGS", message: "Missing bridge arguments", details: nil))
-              return
-            }
-            let configured = pip.configureSharedContextBridge(arguments: args)
-            if configured {
-              result(nil)
-            } else {
-              result(
-                FlutterError(
-                  code: "PIP_SHARED_BRIDGE_CONFIG_FAILED",
-                  message: pip.lastErrorMessage ?? "Failed to configure shared-context PiP bridge",
-                  details: nil
-                )
-              )
-            }
-          case "initialize":
-            guard let args = call.arguments as? [String: Any],
-                  let handle = (args["handle"] as? NSNumber)?.int64Value else {
-              result(FlutterError(code: "BAD_ARGS", message: "Missing handle", details: nil))
-              return
-            }
-            let initialized = pip.initialize(mpvHandleAddress: handle, viewController: self.flutterViewController)
-            if initialized {
-              result(nil)
-            } else {
-              result(
-                FlutterError(
-                  code: "PIP_INIT_FAILED",
-                  message: pip.lastErrorMessage ?? "Failed to initialize iOS PiP",
-                  details: nil
-                )
-              )
-            }
-          case "startPiP":
-            guard let vc = self.flutterViewController else {
-              result(FlutterError(code: "NO_VIEW_CONTROLLER", message: "Missing root view controller", details: nil))
-              return
-            }
-            let started = pip.startPiP(on: vc)
-            if started {
-              result(nil)
-            } else {
-              result(
-                FlutterError(
-                  code: "PIP_START_FAILED",
-                  message: pip.lastErrorMessage ?? "Failed to start iOS PiP",
-                  details: nil
-                )
-              )
-            }
-          case "stopPiP":
-            pip.stopPiP()
-            result(nil)
-          case "dismissPiP":
-            pip.dismissPiP()
-            result(nil)
-          case "updatePlaybackState":
-            let isPlaying = (call.arguments as? [String: Any])?["isPlaying"] as? Bool ?? true
-            pip.updatePlaybackState(isPlaying: isPlaying)
-            result(nil)
-          case "updateTimeline":
-            let args = call.arguments as? [String: Any]
-            let positionMs = (args?["positionMs"] as? NSNumber)?.doubleValue ?? 0
-            let durationMs = (args?["durationMs"] as? NSNumber)?.doubleValue ?? 0
-            let isPlaying = args?["isPlaying"] as? Bool ?? true
-            pip.updateTimeline(
-              positionSeconds: positionMs / 1000.0,
-              durationSeconds: durationMs / 1000.0,
-              isPlaying: isPlaying
-            )
-            result(nil)
-          default:
-            result(FlutterMethodNotImplemented)
-          }
-        } else {
-          result(FlutterError(code: "UNAVAILABLE", message: "PiP requires iOS 15+", details: nil))
-        }
+      // AetherEngine playback: control/event channels, the UiKitView video
+      // surface factory, and PiP (which owns the org.moonfin.ios/pip channel).
+      let aetherChannel = IosAetherVideoChannel(messenger: messenger)
+      self.aetherVideoChannel = aetherChannel
+      self.pipController = IosPiPController(
+        messenger: messenger,
+        wrapper: aetherChannel.player,
+        engine: AetherPlayerWrapper.sharedEngine())
+      if let registrar = sharedEngine.registrar(forPlugin: "moonfin_aether_video") {
+        registrar.register(
+          AetherVideoViewFactory(
+            messenger: messenger,
+            wrapperProvider: { [weak aetherChannel] in
+              aetherChannel?.player ?? AetherPlayerWrapper()
+            }),
+          withId: AetherVideoViewFactory.viewType)
       }
 
     let castChannel = FlutterMethodChannel(

@@ -46,11 +46,8 @@ dependencies:
   # lib/data/database/database_connection_impl_io.dart).
   sqlite3: ^2.7.0
 
-  # Media Playback
+  # Media Playback (Android/desktop/web, iOS and tvOS run on AetherEngine)
   media_kit: 1.2.6
-  # Pinned exactly: the iOS PiP frame bridge is monkey-patched into this package's
-  # TextureHW.swift / TextureSW.swift at pod-install (ios/Podfile). A minor bump can
-  # move the patch anchor and silently disable PiP, so upgrades must be deliberate.
   media_kit_video: 2.0.1
   media_kit_libs_video: 1.0.7
   # Tizen playback backend (TizenPlayerBackend) — media_kit/libmpv and Media3
@@ -188,6 +185,10 @@ dev_dependencies:
 dependency_overrides:
   media_kit_libs_android_video:
     path: packages/media_kit_libs_android_video_full
+  # iOS runs on AetherEngine. The stub keeps libmpv/FFmpeg xcframeworks out
+  # of the iOS build entirely since it has no plugin declaration and no podspec.
+  media_kit_libs_ios_video:
+    path: packages/media_kit_libs_ios_video_stub
   media_kit_libs_windows_video:
     path: packages/media_kit_libs_windows_video
   # Vendored 0.6.0 with a Windows texture_bridge.cc fix for scroll/resize and

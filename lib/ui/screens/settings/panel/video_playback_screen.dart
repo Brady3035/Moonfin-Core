@@ -179,7 +179,10 @@ class _VideoPlaybackScreen extends StatelessWidget {
                       l10n.settingsDisabledPreferTranscode,
                   },
                 ),
-              if (!PlatformDetection.isWeb)
+              // Hidden on Apple TV: AetherEngine always uses VideoToolbox for
+              // hardware-capable codecs and software decode otherwise, so there
+              // is no user-facing toggle to honor.
+              if (!PlatformDetection.isWeb && !PlatformDetection.isAppleTV)
                 SwitchPreferenceTile(
                   preference: UserPreferences.hardwareDecoding,
                   title: l10n.hardwareDecoding,

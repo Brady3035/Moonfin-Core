@@ -27,6 +27,7 @@ import '../../../util/subtitle_track_logic.dart';
 import '../../../util/play_method_label.dart';
 import '../../../util/platform_detection.dart';
 import '../../widgets/adaptive/sf_symbol.dart';
+import '../../widgets/aether_video_view.dart';
 import '../../widgets/playback/stream_info_dialog.dart';
 import '../../widgets/subtitle_preview.dart';
 import '../../widgets/track_selector_dialog.dart';
@@ -1465,6 +1466,10 @@ class _LiveTvPlayerScreenState extends State<LiveTvPlayerScreen>
   Widget _buildVideoChild() {
     if (PlatformDetection.isTizen) {
       return _buildTizenVideoChild();
+    }
+
+    if (PlatformDetection.isIOS) {
+      return const AetherVideoView();
     }
 
     final prefersMedia3 =

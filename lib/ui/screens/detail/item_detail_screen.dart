@@ -5477,6 +5477,27 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
     _focusTarget(widget.downTarget, alignment: 0.42);
   }
 
+  /// Scrolls the action row sideways to keep [node] on screen, for the TV
+  /// layout where the row is one line rather than a wrap.
+  void _keepRowButtonInView(FocusNode node) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final buttonContext = node.context;
+      if (buttonContext == null || !buttonContext.mounted) return;
+      final row = Scrollable.maybeOf(buttonContext, axis: Axis.horizontal);
+      final renderObject = buttonContext.findRenderObject();
+      if (row == null || renderObject == null) return;
+      unawaited(
+        row.position.ensureVisible(
+          renderObject,
+          alignment: 0.5,
+          duration: const Duration(milliseconds: 150),
+          curve: Curves.easeOut,
+        ),
+      );
+    });
+  }
+
   void _focusUpTarget() {
     final upTarget = widget.upTarget;
     if (upTarget != null &&
@@ -6230,20 +6251,27 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
 
     final Widget rowContent;
     if (!needsOverflow) {
+      // Modern buttons grow as the highlight lands on them, so in the narrow
+      // column a wrapping row reflows with every step and bounces the page
+      // under it. One line that scrolls sideways holds still, and it leaves
+      // no wrapped line for focus to fall onto, which the row cannot reach.
+      // The classic style keeps its wrap, its buttons are a fixed width and
+      // its row is centered rather than left aligned.
+      final scrollsSideways =
+          PlatformDetection.isTV && isTwoColumnLayout && widget.modernStyle;
       final normalizedButtons = allButtons.asMap().entries.map((entry) {
         final index = entry.key;
         final button = entry.value;
         final existingUp = button is _DetailActionButton
             ? button.onArrowUp
             : null;
-        final fNode = index == 0
-            ? (widget.tvPlayFocusNode ?? _primaryFocusNode(0))
-            : _primaryFocusNode(index);
+        final node = index == allButtons.length - 1
+            ? (widget.actionRowRightFocusNode ?? _primaryNodePlain(index))
+            : _primaryNodePlain(index);
         return _wireButton(
           button,
-          focusNode: index == allButtons.length - 1
-              ? (widget.actionRowRightFocusNode ?? fNode)
-              : fNode,
+          focusNode: node,
+          onFocused: scrollsSideways ? () => _keepRowButtonInView(node) : null,
           onArrowUp:
               existingUp ??
               (NavigationLayout.focusNavbarNotifier.value != null ||
@@ -6277,17 +6305,23 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
                 },
         );
       }).toList();
+      final buttonsRow = Wrap(
+        spacing: buttonSpacing,
+        runSpacing: buttonRunSpacing,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        alignment: widget.modernStyle
+            ? WrapAlignment.start
+            : WrapAlignment.center,
+        children: normalizedButtons,
+      );
       rowContent = Align(
         alignment: widget.modernStyle ? Alignment.centerLeft : Alignment.center,
-        child: Wrap(
-          spacing: buttonSpacing,
-          runSpacing: buttonRunSpacing,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          alignment: widget.modernStyle
-              ? WrapAlignment.start
-              : WrapAlignment.center,
-          children: normalizedButtons,
-        ),
+        child: scrollsSideways
+            ? SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: buttonsRow,
+              )
+            : buttonsRow,
       );
     } else {
       final normalizedPrimaryButtons = primaryButtons.asMap().entries.map((
@@ -10253,7 +10287,9 @@ class _DetailActionButtonState extends State<_DetailActionButton>
   void _scrollToTopOnFocus() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      final scrollable = Scrollable.maybeOf(context);
+      // The button can sit inside the row's own sideways scroller, so ask for
+      // the page's vertical one rather than whatever is nearest.
+      final scrollable = Scrollable.maybeOf(context, axis: Axis.vertical);
       if (scrollable == null) return;
       final position = scrollable.position;
       if (position.pixels <= position.minScrollExtent) return;

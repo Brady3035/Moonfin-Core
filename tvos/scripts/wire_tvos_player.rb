@@ -15,7 +15,21 @@ abs_files = Dir.glob(File.join(project_dir, 'Runner/Playback/**/*'))
   .select { |f| source_exts.include?(File.extname(f)) }.sort
 basenames = abs_files.map { |f| File.basename(f) }
 
-project.files.select { |f| basenames.include?(File.basename(f.path.to_s)) }.each do |f|
+# Drop references this script is about to re-add, and any left pointing at a
+# playback file that no longer exists. Without the second case a deleted source
+# stays in the Sources phase forever and the build fails on a missing input.
+playback_root = File.join(project_dir, 'Runner/Playback')
+project.files.select do |f|
+  next true if basenames.include?(File.basename(f.path.to_s))
+  begin
+    path = f.real_path.to_s
+    path.start_with?(playback_root) && !File.exist?(path)
+  rescue StandardError
+    false
+  end
+end.each do |f|
+  puts "removed missing source: #{File.basename(f.path.to_s)}" unless
+    basenames.include?(File.basename(f.path.to_s))
   f.referrers.grep(Xcodeproj::Project::Object::PBXBuildFile).each(&:remove_from_project)
   f.remove_from_project
 end

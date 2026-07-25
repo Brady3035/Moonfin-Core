@@ -2430,6 +2430,22 @@ class AppLocalizationsEl extends AppLocalizations {
       'Εμφάνιση ενός κουμπιού κλειδώματος που εμποδίζει την είσοδο αφής μέχρι να πατηθεί παρατεταμένα';
 
   @override
+  String get osdButtons => 'Player Buttons';
+
+  @override
+  String get osdButtonsDescription => 'Choose which buttons the player shows';
+
+  @override
+  String get osdButtonsSectionDescription =>
+      'Playback controls are always shown. Everything below is up to you, and each kind of device keeps its own list.';
+
+  @override
+  String get orientationLock => 'Orientation Lock';
+
+  @override
+  String get fullscreen => 'Fullscreen';
+
+  @override
   String get audioBehavior => 'Συμπεριφορά ήχου';
 
   @override

@@ -2414,6 +2414,22 @@ class AppLocalizationsTe extends AppLocalizations {
       'ఎక్కువసేపు నొక్కినంత వరకు టచ్ ఇన్‌పుట్‌ను నిరోధించే లాక్ బటన్‌ను చూపండి';
 
   @override
+  String get osdButtons => 'Player Buttons';
+
+  @override
+  String get osdButtonsDescription => 'Choose which buttons the player shows';
+
+  @override
+  String get osdButtonsSectionDescription =>
+      'Playback controls are always shown. Everything below is up to you, and each kind of device keeps its own list.';
+
+  @override
+  String get orientationLock => 'Orientation Lock';
+
+  @override
+  String get fullscreen => 'Fullscreen';
+
+  @override
   String get audioBehavior => 'ఆడియో ప్రవర్తన';
 
   @override

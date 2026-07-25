@@ -117,6 +117,13 @@ class _VideoPlaybackScreen extends StatelessWidget {
                   subtitle: l10n.osdLockButtonDescription,
                   icon: Icons.lock,
                 ),
+              _TvSettingsListTile(
+                leading: const Icon(Icons.tune),
+                title: Text(l10n.osdButtons),
+                subtitle: Text(l10n.osdButtonsDescription),
+                onTap: () =>
+                    context.pushSettingsScreen(const _OsdButtonsScreen()),
+              ),
             ],
           ),
 

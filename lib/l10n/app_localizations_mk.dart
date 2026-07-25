@@ -2416,6 +2416,22 @@ class AppLocalizationsMk extends AppLocalizations {
       'Прикажи копче за заклучување што го блокира внесувањето на допир додека не се притисне долго';
 
   @override
+  String get osdButtons => 'Player Buttons';
+
+  @override
+  String get osdButtonsDescription => 'Choose which buttons the player shows';
+
+  @override
+  String get osdButtonsSectionDescription =>
+      'Playback controls are always shown. Everything below is up to you, and each kind of device keeps its own list.';
+
+  @override
+  String get orientationLock => 'Orientation Lock';
+
+  @override
+  String get fullscreen => 'Fullscreen';
+
+  @override
   String get audioBehavior => 'Аудио однесување';
 
   @override

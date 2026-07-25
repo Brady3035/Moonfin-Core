@@ -4336,6 +4336,36 @@ abstract class AppLocalizations {
   /// **'Show a lock button that blocks touch input until long-pressed'**
   String get osdLockButtonDescription;
 
+  /// Settings screen for choosing which buttons the player shows
+  ///
+  /// In en, this message translates to:
+  /// **'Player Buttons'**
+  String get osdButtons;
+
+  /// Subtitle for the player buttons settings tile
+  ///
+  /// In en, this message translates to:
+  /// **'Choose which buttons the player shows'**
+  String get osdButtonsDescription;
+
+  /// Explains that transport controls can't be hidden and that the list is per device kind
+  ///
+  /// In en, this message translates to:
+  /// **'Playback controls are always shown. Everything below is up to you, and each kind of device keeps its own list.'**
+  String get osdButtonsSectionDescription;
+
+  /// Player button that locks the screen orientation
+  ///
+  /// In en, this message translates to:
+  /// **'Orientation Lock'**
+  String get orientationLock;
+
+  /// Player button that toggles fullscreen
+  ///
+  /// In en, this message translates to:
+  /// **'Fullscreen'**
+  String get fullscreen;
+
   /// Setting for audio behavior
   ///
   /// In en, this message translates to:

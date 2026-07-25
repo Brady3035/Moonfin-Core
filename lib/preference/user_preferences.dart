@@ -244,6 +244,9 @@ class UserPreferences extends ChangeNotifier {
     'download_report_as_activity',
     'download_storage_limit_mb',
     'download_wifi_only',
+    'hiddenOsdButtonsDesktop',
+    'hiddenOsdButtonsMobile',
+    'hiddenOsdButtonsTv',
     'imdb_lowest_rated_movies_enabled',
     'imdb_most_popular_movies_enabled',
     'imdb_most_popular_tv_shows_enabled',
@@ -1717,6 +1720,18 @@ class UserPreferences extends ChangeNotifier {
   static final osdLockEnabled = Preference(
     key: 'osdLockEnabled',
     defaultValue: false,
+  );
+  static final hiddenOsdButtonsTv = Preference(
+    key: 'hiddenOsdButtonsTv',
+    defaultValue: '',
+  );
+  static final hiddenOsdButtonsMobile = Preference(
+    key: 'hiddenOsdButtonsMobile',
+    defaultValue: '',
+  );
+  static final hiddenOsdButtonsDesktop = Preference(
+    key: 'hiddenOsdButtonsDesktop',
+    defaultValue: '',
   );
   static final mediaBarEnabled = Preference(
     key: 'mediaBarEnabled',

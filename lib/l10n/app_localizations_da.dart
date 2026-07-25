@@ -2402,6 +2402,22 @@ class AppLocalizationsDa extends AppLocalizations {
       'Vis en låseknap, der blokerer berøringsinput, indtil der trykkes længe';
 
   @override
+  String get osdButtons => 'Player Buttons';
+
+  @override
+  String get osdButtonsDescription => 'Choose which buttons the player shows';
+
+  @override
+  String get osdButtonsSectionDescription =>
+      'Playback controls are always shown. Everything below is up to you, and each kind of device keeps its own list.';
+
+  @override
+  String get orientationLock => 'Orientation Lock';
+
+  @override
+  String get fullscreen => 'Fullscreen';
+
+  @override
   String get audioBehavior => 'Lydadfærd';
 
   @override

@@ -2418,6 +2418,22 @@ class AppLocalizationsTa extends AppLocalizations {
       'நீண்ட நேரம் அழுத்தும் வரை தொடு உள்ளீட்டைத் தடுக்கும் பூட்டு பொத்தானைக் காட்டு';
 
   @override
+  String get osdButtons => 'Player Buttons';
+
+  @override
+  String get osdButtonsDescription => 'Choose which buttons the player shows';
+
+  @override
+  String get osdButtonsSectionDescription =>
+      'Playback controls are always shown. Everything below is up to you, and each kind of device keeps its own list.';
+
+  @override
+  String get orientationLock => 'Orientation Lock';
+
+  @override
+  String get fullscreen => 'Fullscreen';
+
+  @override
   String get audioBehavior => 'ஆடியோ நடத்தை';
 
   @override

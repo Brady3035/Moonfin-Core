@@ -2423,6 +2423,22 @@ class AppLocalizationsUk extends AppLocalizations {
       'Показати кнопку блокування, яка блокує сенсорне введення, поки не буде натиснуто довго';
 
   @override
+  String get osdButtons => 'Player Buttons';
+
+  @override
+  String get osdButtonsDescription => 'Choose which buttons the player shows';
+
+  @override
+  String get osdButtonsSectionDescription =>
+      'Playback controls are always shown. Everything below is up to you, and each kind of device keeps its own list.';
+
+  @override
+  String get orientationLock => 'Orientation Lock';
+
+  @override
+  String get fullscreen => 'Fullscreen';
+
+  @override
   String get audioBehavior => 'Аудіо поведінка';
 
   @override

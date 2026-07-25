@@ -79,6 +79,7 @@ import 'ratings_config_screen.dart';
 import 'seerr_config_screen.dart';
 import 'settings_app_bar.dart';
 import 'subtitle_settings_screen.dart';
+import '../playback/osd_buttons.dart';
 import '../syncplay/syncplay_screen.dart';
 
 part 'panel/settings_panel_infra.dart';
@@ -99,6 +100,7 @@ part 'panel/about_category_screen.dart';
 part 'panel/licenses_screen.dart';
 part 'panel/playback_category_screen.dart';
 part 'panel/video_playback_screen.dart';
+part 'panel/osd_buttons_screen.dart';
 part 'panel/audio_preferences_screen.dart';
 part 'panel/automation_queue_screen.dart';
 part 'panel/advanced_options_screen.dart';

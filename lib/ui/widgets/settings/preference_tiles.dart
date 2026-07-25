@@ -420,6 +420,102 @@ class _SwitchPreferenceTileState extends State<SwitchPreferenceTile> {
   }
 }
 
+/// Switch backed by whether [value] is absent from a comma separated
+/// preference. The stored list holds what the user switched off, so a value
+/// the app starts offering later reads as on.
+class CsvExclusionSwitchTile extends StatefulWidget {
+  final Preference<String> preference;
+  final String value;
+  final String title;
+  final IconData? icon;
+
+  const CsvExclusionSwitchTile({
+    super.key,
+    required this.preference,
+    required this.value,
+    required this.title,
+    this.icon,
+  });
+
+  @override
+  State<CsvExclusionSwitchTile> createState() => _CsvExclusionSwitchTileState();
+}
+
+class _CsvExclusionSwitchTileState extends State<CsvExclusionSwitchTile> {
+  late PreferenceBinding<String> _binding;
+
+  @override
+  void initState() {
+    super.initState();
+    _binding = PreferenceBinding(
+      GetIt.instance<PreferenceStore>(),
+      widget.preference,
+    );
+  }
+
+  @override
+  void didUpdateWidget(covariant CsvExclusionSwitchTile oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _binding = _rebindOnPreferenceChange(
+      _binding,
+      widget.preference,
+      oldWidget.preference,
+    );
+  }
+
+  @override
+  void dispose() {
+    _binding.dispose();
+    super.dispose();
+  }
+
+  List<String> _excluded(String stored) =>
+      stored.split(',').where((entry) => entry.isNotEmpty).toList();
+
+  void _setIncluded(bool included) {
+    final entries = _excluded(_binding.value);
+    if (included) {
+      entries.remove(widget.value);
+    } else if (!entries.contains(widget.value)) {
+      entries.add(widget.value);
+    }
+    _binding.value = entries.join(',');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return TvFocusHighlight(
+      builder: (context, focused) {
+        final iconColor = focused && settingsTileInvertsOnFocus
+            ? AppColors.black.withValues(alpha: 0.54)
+            : (Theme.of(context).iconTheme.color ?? AppColorScheme.onSurface);
+        final secondary = widget.icon != null
+            ? buildSettingsLeadingIconShell(
+                context,
+                icon: Icon(widget.icon),
+                focused: focused,
+                iconColor: iconColor,
+              )
+            : null;
+
+        return ValueListenableBuilder<String>(
+          valueListenable: _binding,
+          builder: (context, stored, _) => SwitchListTile.adaptive(
+            secondary: secondary,
+            title: Text(widget.title, style: _kSettingsTitleTextStyle),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 4,
+            ),
+            value: !_excluded(stored).contains(widget.value),
+            onChanged: _setIncluded,
+          ),
+        );
+      },
+    );
+  }
+}
+
 class EnumPreferenceTile<T extends Enum> extends StatefulWidget {
   final EnumPreference<T> preference;
   final String title;

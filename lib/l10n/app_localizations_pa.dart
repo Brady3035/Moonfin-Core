@@ -2397,6 +2397,22 @@ class AppLocalizationsPa extends AppLocalizations {
       'ਇੱਕ ਲੌਕ ਬਟਨ ਦਿਖਾਓ ਜੋ ਲੰਬੇ ਸਮੇਂ ਤੱਕ ਦਬਾਏ ਜਾਣ ਤੱਕ ਟੱਚ ਇਨਪੁਟ ਨੂੰ ਰੋਕਦਾ ਹੈ';
 
   @override
+  String get osdButtons => 'Player Buttons';
+
+  @override
+  String get osdButtonsDescription => 'Choose which buttons the player shows';
+
+  @override
+  String get osdButtonsSectionDescription =>
+      'Playback controls are always shown. Everything below is up to you, and each kind of device keeps its own list.';
+
+  @override
+  String get orientationLock => 'Orientation Lock';
+
+  @override
+  String get fullscreen => 'Fullscreen';
+
+  @override
   String get audioBehavior => 'ਆਡੀਓ ਵਿਵਹਾਰ';
 
   @override

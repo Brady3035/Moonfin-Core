@@ -2415,6 +2415,22 @@ class AppLocalizationsMl extends AppLocalizations {
       'ദീർഘനേരം അമർത്തുന്നത് വരെ ടച്ച് ഇൻപുട്ടിനെ തടയുന്ന ഒരു ലോക്ക് ബട്ടൺ കാണിക്കുക';
 
   @override
+  String get osdButtons => 'Player Buttons';
+
+  @override
+  String get osdButtonsDescription => 'Choose which buttons the player shows';
+
+  @override
+  String get osdButtonsSectionDescription =>
+      'Playback controls are always shown. Everything below is up to you, and each kind of device keeps its own list.';
+
+  @override
+  String get orientationLock => 'Orientation Lock';
+
+  @override
+  String get fullscreen => 'Fullscreen';
+
+  @override
   String get audioBehavior => 'ഓഡിയോ പെരുമാറ്റം';
 
   @override

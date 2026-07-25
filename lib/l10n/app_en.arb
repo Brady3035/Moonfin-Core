@@ -3371,6 +3371,26 @@
   "@osdLockButtonDescription": {
     "description": "Description for OSD lock button"
   },
+  "osdButtons": "Player Buttons",
+  "@osdButtons": {
+    "description": "Settings screen for choosing which buttons the player shows"
+  },
+  "osdButtonsDescription": "Choose which buttons the player shows",
+  "@osdButtonsDescription": {
+    "description": "Subtitle for the player buttons settings tile"
+  },
+  "osdButtonsSectionDescription": "Playback controls are always shown. Everything below is up to you, and each kind of device keeps its own list.",
+  "@osdButtonsSectionDescription": {
+    "description": "Explains that transport controls can't be hidden and that the list is per device kind"
+  },
+  "orientationLock": "Orientation Lock",
+  "@orientationLock": {
+    "description": "Player button that locks the screen orientation"
+  },
+  "fullscreen": "Fullscreen",
+  "@fullscreen": {
+    "description": "Player button that toggles fullscreen"
+  },
   "audioBehavior": "Audio Behavior",
   "@audioBehavior": {
     "description": "Setting for audio behavior"

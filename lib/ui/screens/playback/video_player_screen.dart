@@ -1251,10 +1251,12 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
     }
     switch (lifecycleState) {
       case AppLifecycleState.inactive:
-        if (PlatformDetection.isIOS) {
-          _tryStartIosPiPForBackground();
-          return;
-        }
+        // iOS reports inactive for system UI like the AirPlay picker or
+        // Control Center, not just for backgrounding, and starting PiP there
+        // pulls the player out from under whatever just opened. Real
+        // backgrounding still gets PiP from the paused case below and from
+        // the automatic inline start.
+        if (PlatformDetection.isIOS) return;
         if (PlatformDetection.isAndroid && !PlatformDetection.isTV) {
           return;
         }

@@ -100,10 +100,12 @@ class AirPlayProvider implements CastProvider, CastTransportControls {
 
     streamUrl = streamUrl.replaceFirst('?&', '?');
 
+    // The native side seeks once the item is ready, so the resolve above
+    // stays at zero and the whole stream remains seekable.
     await _nativeAirPlay.loadAirPlay(
       url: streamUrl,
       title: item.name,
-      positionTicks: 0,
+      positionTicks: startPositionTicks ?? 0,
     );
 
     await _native.showAirPlayRoutePicker();

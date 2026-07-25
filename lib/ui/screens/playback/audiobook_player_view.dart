@@ -1165,7 +1165,11 @@ class _AudiobookPlayerViewState extends State<AudiobookPlayerView> {
   }
 
   Future<void> _castToDevice(AggregatedItem item) async {
-    await showRemotePlayToSessionDialog(context, item: item);
+    await showRemotePlayToSessionDialog(
+      context,
+      item: item,
+      startPositionTicks: _state.position.inMicroseconds * 10,
+    );
   }
 
   Future<void> _showCastControls() async {

@@ -102,14 +102,21 @@ enum VideoCapabilityDetector {
         let generation = currentGeneration()
         let softwareAv1 = generation == .k4Gen2 || generation == .k4Gen3
 
+        // Apple TV HD is an A8 with no HEVC decoder, and not enough headroom to
+        // decode HEVC, High 10 or VC-1 in software either. Claiming them made
+        // the server direct play files the box then couldn't decode, so nothing
+        // played. Advertising H.264 only gets those transcoded instead.
+        let isHd = generation == .hd
+        let avcLevel = isHd ? 42 : 52
+
         return [
             "supportsAvc": true,
-            "avcMainLevel": 52,
-            "supportsAvcHigh10": true,
-            "avcHigh10Level": 52,
-            "supportsHevc": true,
+            "avcMainLevel": avcLevel,
+            "supportsAvcHigh10": !isHd,
+            "avcHigh10Level": avcLevel,
+            "supportsHevc": !isHd,
             "hevcMainLevel": 153,
-            "supportsHevcMain10": true,
+            "supportsHevcMain10": !isHd,
             "hevcMain10Level": 153,
             "supportsHevcDolbyVision": dolbyVision,
             // AetherEngine converts P7 dual-layer to P8.1 per-packet (libdovi),
@@ -123,7 +130,7 @@ enum VideoCapabilityDetector {
             "knownHevcDoviHdr10PlusBug": false,
             // Software decode paths (AVSampleBufferDisplayLayer): VP9, MPEG-2,
             // VC-1, interlaced H.264 all play without server transcode.
-            "supportsVc1": true,
+            "supportsVc1": !isHd,
             "supportsAv1": softwareAv1,
             "supportsAv1Main10": softwareAv1,
             "supportsAv1Hdr10": softwareAv1 && hdr10,

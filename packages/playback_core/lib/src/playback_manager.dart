@@ -1069,7 +1069,11 @@ class PlaybackManager implements AudioOwnable {
       setBackend(lockedBackend, disposePrevious: false);
     }
 
-    _lastKnownPosition = Duration.zero;
+    // Seed with where this session means to resume from, the way the offline
+    // path does. If the backend never starts, every position source stays at
+    // zero and the stop report tells the server the item was left at the very
+    // beginning, wiping the resume point the user was about to return to.
+    _lastKnownPosition = startPosition;
     final sessionToken = ++_playbackSessionToken;
     final itemId = _traceItemId(item);
     final appliedOverrides = _applyPendingItemOverridesIfNeeded(itemId);

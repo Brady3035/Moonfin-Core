@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart' show CupertinoSlider;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -5,6 +7,7 @@ import 'package:get_it/get_it.dart';
 import 'package:moonfin_design/moonfin_design.dart';
 import 'package:jellyfin_preference/jellyfin_preference.dart';
 
+import '../../../preference/user_preferences.dart';
 import '../../../util/idiom/app_ui_idiom.dart';
 import '../../../util/platform_detection.dart';
 import '../../../util/focus/dpad_keys.dart';
@@ -423,7 +426,7 @@ class _SwitchPreferenceTileState extends State<SwitchPreferenceTile> {
 /// Switch backed by whether [value] is absent from a comma separated
 /// preference. The stored list holds what the user switched off, so a value
 /// the app starts offering later reads as on.
-class CsvExclusionSwitchTile extends StatefulWidget {
+class CsvExclusionSwitchTile extends StatelessWidget {
   final Preference<String> preference;
   final String value;
   final String title;
@@ -437,49 +440,26 @@ class CsvExclusionSwitchTile extends StatefulWidget {
     this.icon,
   });
 
-  @override
-  State<CsvExclusionSwitchTile> createState() => _CsvExclusionSwitchTileState();
-}
+  UserPreferences get _prefs => GetIt.instance<UserPreferences>();
 
-class _CsvExclusionSwitchTileState extends State<CsvExclusionSwitchTile> {
-  late PreferenceBinding<String> _binding;
-
-  @override
-  void initState() {
-    super.initState();
-    _binding = PreferenceBinding(
-      GetIt.instance<PreferenceStore>(),
-      widget.preference,
-    );
-  }
-
-  @override
-  void didUpdateWidget(covariant CsvExclusionSwitchTile oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    _binding = _rebindOnPreferenceChange(
-      _binding,
-      widget.preference,
-      oldWidget.preference,
-    );
-  }
-
-  @override
-  void dispose() {
-    _binding.dispose();
-    super.dispose();
-  }
-
-  List<String> _excluded(String stored) =>
-      stored.split(',').where((entry) => entry.isNotEmpty).toList();
+  // A screen shows one of these per entry over a single preference, so the
+  // list is read fresh on every build and again on every write. A copy taken
+  // when the tile was built goes stale as soon as a neighbour writes, and the
+  // next write would put the neighbour's entry back.
+  List<String> get _excluded => _prefs
+      .get(preference)
+      .split(',')
+      .where((entry) => entry.isNotEmpty)
+      .toList();
 
   void _setIncluded(bool included) {
-    final entries = _excluded(_binding.value);
+    final entries = _excluded;
     if (included) {
-      entries.remove(widget.value);
-    } else if (!entries.contains(widget.value)) {
-      entries.add(widget.value);
+      entries.remove(value);
+    } else if (!entries.contains(value)) {
+      entries.add(value);
     }
-    _binding.value = entries.join(',');
+    unawaited(_prefs.set(preference, entries.join(',')));
   }
 
   @override
@@ -489,25 +469,26 @@ class _CsvExclusionSwitchTileState extends State<CsvExclusionSwitchTile> {
         final iconColor = focused && settingsTileInvertsOnFocus
             ? AppColors.black.withValues(alpha: 0.54)
             : (Theme.of(context).iconTheme.color ?? AppColorScheme.onSurface);
-        final secondary = widget.icon != null
+        final secondary = icon != null
             ? buildSettingsLeadingIconShell(
                 context,
-                icon: Icon(widget.icon),
+                icon: Icon(icon),
                 focused: focused,
                 iconColor: iconColor,
               )
             : null;
 
-        return ValueListenableBuilder<String>(
-          valueListenable: _binding,
-          builder: (context, stored, _) => SwitchListTile.adaptive(
+        // Writing notifies, which is what refreshes the neighbouring rows.
+        return ListenableBuilder(
+          listenable: _prefs,
+          builder: (context, _) => SwitchListTile.adaptive(
             secondary: secondary,
-            title: Text(widget.title, style: _kSettingsTitleTextStyle),
+            title: Text(title, style: _kSettingsTitleTextStyle),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,
               vertical: 4,
             ),
-            value: !_excluded(stored).contains(widget.value),
+            value: !_excluded.contains(value),
             onChanged: _setIncluded,
           ),
         );

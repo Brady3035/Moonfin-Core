@@ -451,7 +451,7 @@ create_metainfo_file() {
 <component type="desktop-application">
   <id>${APP_ID}</id>
   <metadata_license>CC0-1.0</metadata_license>
-  <project_license>GPL-3.0</project_license>
+  <project_license>GPL-3.0-only</project_license>
   <name>Moonfin</name>
   <developer_name>Moonfin Team</developer_name>
   <summary>Jellyfin &amp; Emby media client</summary>
@@ -712,7 +712,7 @@ Description: Jellyfin & Emby media client
   - Casting support
   - DLNA playback
 Homepage: https://moonfin.app/
-License: GPL-3.0
+License: GPL-3.0-only
 EOF
 
   cat > "$pkg_root/usr/share/doc/moonfin/copyright" << EOF
@@ -723,7 +723,7 @@ Source: https://github.com/jmshrv/Moonfin
 
 Files: *
 Copyright: 2024-2025 Moonfin Team
-License: GPL-3.0
+License: GPL-3.0-only
 EOF
 
   cd "$TEMP_DIR/deb"
@@ -757,7 +757,7 @@ Name:           moonfin
 Version:        ${version}
 Release:        1
 Summary:        Jellyfin & Emby media client
-License:        GPL-3.0
+License:        GPL-3.0-only
 
 %description
 Moonfin is a media client for Jellyfin and Emby servers,

@@ -148,7 +148,10 @@ Moonfin is built on the work of:
 
 ## License
 
-This project is licensed under GPL v2. See [LICENSE](LICENSE) for details.
+Moonfin is free software. You can redistribute it and modify it under the terms
+of the GNU General Public License as published by the Free Software Foundation,
+either version 2 of the License or, at your option, any later version. See
+[LICENSE](LICENSE) for the version 2 text.
 
 ---
 

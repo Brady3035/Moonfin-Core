@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:jellyfin_preference/jellyfin_preference.dart';
 
 import '../../../l10n/app_localizations.dart';
+import '../../../preference/hidden_buttons.dart';
 import '../../../preference/user_preferences.dart';
 import '../../../util/platform_detection.dart';
 
@@ -81,24 +81,8 @@ enum OsdButton {
   };
 }
 
-/// The list for this kind of device. A phone and a TV want very different
-/// rows, and these settings follow the user between devices, so each keeps its
-/// own list rather than the last one edited winning.
-///
-/// It holds the buttons switched off rather than the ones left on, so a button
-/// the app starts offering later shows up for people who already have a list.
-Preference<String> get hiddenOsdButtonsPreference {
-  if (PlatformDetection.useLeanbackUi) {
-    return UserPreferences.hiddenOsdButtonsTv;
-  }
-  if (PlatformDetection.useMobileUi) {
-    return UserPreferences.hiddenOsdButtonsMobile;
-  }
-  return UserPreferences.hiddenOsdButtonsDesktop;
-}
-
-Set<String> hiddenOsdButtons(UserPreferences prefs) => prefs
-    .get(hiddenOsdButtonsPreference)
-    .split(',')
-    .where((id) => id.isNotEmpty)
-    .toSet();
+final hiddenOsdButtons = HiddenButtons(
+  tv: UserPreferences.hiddenOsdButtonsTv,
+  mobile: UserPreferences.hiddenOsdButtonsMobile,
+  desktop: UserPreferences.hiddenOsdButtonsDesktop,
+);

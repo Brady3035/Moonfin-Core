@@ -4354,6 +4354,24 @@ abstract class AppLocalizations {
   /// **'Playback controls are always shown. Everything below is up to you, and each kind of device keeps its own list.'**
   String get osdButtonsSectionDescription;
 
+  /// Settings screen for choosing which buttons the details screen shows
+  ///
+  /// In en, this message translates to:
+  /// **'Action Buttons'**
+  String get detailButtons;
+
+  /// Subtitle for the details action buttons settings tile
+  ///
+  /// In en, this message translates to:
+  /// **'Choose which buttons the details screen shows'**
+  String get detailButtonsDescription;
+
+  /// Explains that the play buttons can't be hidden and that the list is per device kind
+  ///
+  /// In en, this message translates to:
+  /// **'Play, Restart and Play Offline are always shown. Everything below is up to you, and each kind of device keeps its own list.'**
+  String get detailButtonsSectionDescription;
+
   /// Player button that locks the screen orientation
   ///
   /// In en, this message translates to:

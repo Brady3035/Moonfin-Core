@@ -32,6 +32,7 @@ import '../../../data/services/plugin_sync_service.dart';
 import '../../navigation/route_lifecycle_observer.dart';
 import '../../navigation/home_refresh_bus.dart';
 import '../../navigation/app_router.dart';
+import 'detail_buttons.dart';
 import 'modern/modern_detail_content.dart';
 import '../../../data/repositories/seerr_repository.dart';
 import '../../../data/services/seerr/seerr_api_models.dart';
@@ -5812,6 +5813,9 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
       );
     }
 
+    final hidden = hiddenDetailButtons.ids(GetIt.instance<UserPreferences>());
+    bool shows(DetailButton button) => !hidden.contains(button.id);
+
     final isNeon = ThemeRegistry.active.id == ThemeRegistry.neonPulseId;
     final isPhoto = item.type == 'Photo';
     final isBook = _isReadableBookItem(item);
@@ -5968,7 +5972,7 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
             ? () => _showAdvancedPlaybackMenu(context, item)
             : null,
       ),
-      if (_supportsShuffle(item))
+      if (_supportsShuffle(item) && shows(DetailButton.shuffle))
         _DetailActionButton(
           label: (item.type == 'MusicArtist' || item.type == 'AlbumArtist')
               ? l10n.shuffleAll
@@ -6003,20 +6007,23 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
           activeColor: const Color(0xFF4CAF50),
         ),
       if (isPlayableVideo) ...[
-        if (audioStreams.length > 1)
+        if (audioStreams.length > 1 && shows(DetailButton.audio))
           _DetailActionButton(
             label: l10n.audio,
             icon: Icons.audiotrack,
             onPressed: () => _showAudioSelector(context, audioStreams),
           ),
-        if (subtitleStreams.isNotEmpty || _canDownloadRemoteSubtitles(item))
+        if ((subtitleStreams.isNotEmpty || _canDownloadRemoteSubtitles(item)) &&
+            shows(DetailButton.subtitles))
           _DetailActionButton(
             label: l10n.subtitles,
             icon: Icons.subtitles,
             onPressed: () => _openSubtitleSelector(context, item),
           ),
       ],
-      if (isPlayableMedia && item.mediaSources.length > 1)
+      if (isPlayableMedia &&
+          item.mediaSources.length > 1 &&
+          shows(DetailButton.version))
         _DetailActionButton(
           label: l10n.version,
           icon: Icons.video_file,
@@ -6024,19 +6031,23 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
           isActive: widget.selectedMediaSourceId != null,
           activeColor: AppColorScheme.accent,
         ),
-      if (!isBook && !PlatformDetection.isTV)
+      if (!isBook && !PlatformDetection.isTV && shows(DetailButton.cast))
         _DetailActionButton(
           label: l10n.cast,
           icon: Icons.cast,
           onPressed: () => _castToDevice(context, item),
         ),
-      if (item.type == 'Series' || _hasTrailer(item))
+      if ((item.type == 'Series' || _hasTrailer(item)) &&
+          shows(DetailButton.trailer))
         _DetailActionButton(
           label: l10n.trailer,
           icon: Icons.movie_outlined,
           onPressed: () => _playTrailer(context, item),
         ),
-      if (!isBook && !isPhoto && _isInSyncPlayGroup())
+      if (!isBook &&
+          !isPhoto &&
+          _isInSyncPlayGroup() &&
+          shows(DetailButton.watchWithGroup))
         _DetailActionButton(
           label: l10n.watchWithGroup,
           icon: Icons.groups_rounded,
@@ -6044,23 +6055,25 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
           isActive: true,
           activeColor: AppColorScheme.accent,
         ),
-      _DetailActionButton(
-        label: isBook
-            ? (item.isPlayed ? l10n.finished : l10n.unread)
-            : (item.isPlayed ? l10n.watched : l10n.unwatched),
-        icon: item.isPlayed ? Icons.check_circle : Icons.check_circle_outline,
-        onPressed: viewModel.togglePlayed,
-        isActive: item.isPlayed,
-        activeColor: AppColorScheme.accent,
-      ),
-      _DetailActionButton(
-        label: item.isFavorite ? l10n.favorited : l10n.favorite,
-        icon: Icons.favorite,
-        onPressed: viewModel.toggleFavorite,
-        isActive: item.isFavorite,
-        activeColor: const Color(0xFFFF4757),
-      ),
-      if (!isBook)
+      if (shows(DetailButton.watched))
+        _DetailActionButton(
+          label: isBook
+              ? (item.isPlayed ? l10n.finished : l10n.unread)
+              : (item.isPlayed ? l10n.watched : l10n.unwatched),
+          icon: item.isPlayed ? Icons.check_circle : Icons.check_circle_outline,
+          onPressed: viewModel.togglePlayed,
+          isActive: item.isPlayed,
+          activeColor: AppColorScheme.accent,
+        ),
+      if (shows(DetailButton.favorite))
+        _DetailActionButton(
+          label: item.isFavorite ? l10n.favorited : l10n.favorite,
+          icon: Icons.favorite,
+          onPressed: viewModel.toggleFavorite,
+          isActive: item.isFavorite,
+          activeColor: const Color(0xFFFF4757),
+        ),
+      if (!isBook && shows(DetailButton.playlist))
         _DetailActionButton(
           label: l10n.playlist,
           icon: Icons.playlist_add,
@@ -6070,10 +6083,13 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
             serverId: item.serverId,
           ),
         ),
-      if (canShowDownloadActions)
+      if (canShowDownloadActions && shows(DetailButton.download))
         _DownloadButton(item: item, viewModel: viewModel),
-      if (canShowDownloadActions) _DeleteDownloadButton(item: item),
-      if (item.type == 'Episode' && item.seriesId != null)
+      if (canShowDownloadActions && shows(DetailButton.deleteFiles))
+        _DeleteDownloadButton(item: item),
+      if (item.type == 'Episode' &&
+          item.seriesId != null &&
+          shows(DetailButton.goToSeries))
         _DetailActionButton(
           label: l10n.goToSeries,
           icon: Icons.tv,
@@ -6083,7 +6099,9 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
         ),
       if ((GetIt.instance<UserRepository>().currentUser?.isAdministrator ??
               false) &&
-          GetIt.instance<MediaServerClient>().serverType == ServerType.jellyfin)
+          GetIt.instance<MediaServerClient>().serverType ==
+              ServerType.jellyfin &&
+          shows(DetailButton.admin))
         _DetailActionButton(
           label: l10n.admin,
           icon: Icons.settings,

@@ -3383,6 +3383,18 @@
   "@osdButtonsSectionDescription": {
     "description": "Explains that transport controls can't be hidden and that the list is per device kind"
   },
+  "detailButtons": "Action Buttons",
+  "@detailButtons": {
+    "description": "Settings screen for choosing which buttons the details screen shows"
+  },
+  "detailButtonsDescription": "Choose which buttons the details screen shows",
+  "@detailButtonsDescription": {
+    "description": "Subtitle for the details action buttons settings tile"
+  },
+  "detailButtonsSectionDescription": "Play, Restart and Play Offline are always shown. Everything below is up to you, and each kind of device keeps its own list.",
+  "@detailButtonsSectionDescription": {
+    "description": "Explains that the play buttons can't be hidden and that the list is per device kind"
+  },
   "orientationLock": "Orientation Lock",
   "@orientationLock": {
     "description": "Player button that locks the screen orientation"

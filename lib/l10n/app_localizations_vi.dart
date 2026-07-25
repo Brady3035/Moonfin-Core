@@ -2416,6 +2416,17 @@ class AppLocalizationsVi extends AppLocalizations {
       'Playback controls are always shown. Everything below is up to you, and each kind of device keeps its own list.';
 
   @override
+  String get detailButtons => 'Action Buttons';
+
+  @override
+  String get detailButtonsDescription =>
+      'Choose which buttons the details screen shows';
+
+  @override
+  String get detailButtonsSectionDescription =>
+      'Play, Restart and Play Offline are always shown. Everything below is up to you, and each kind of device keeps its own list.';
+
+  @override
   String get orientationLock => 'Orientation Lock';
 
   @override

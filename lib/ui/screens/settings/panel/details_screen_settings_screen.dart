@@ -106,6 +106,14 @@ class _DetailsScreenSettingsScreenState
                       icon: Icons.family_restroom,
                       onChanged: _pushPersonalizationSync,
                     ),
+                    _TvSettingsListTile(
+                      leading: const Icon(Icons.smart_button_outlined),
+                      title: Text(l10n.detailButtons),
+                      subtitle: Text(l10n.detailButtonsDescription),
+                      onTap: () => context.pushSettingsScreen(
+                        const _DetailButtonsScreen(),
+                      ),
+                    ),
                 ],
               ),
             ],

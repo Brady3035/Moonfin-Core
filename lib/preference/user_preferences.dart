@@ -244,6 +244,9 @@ class UserPreferences extends ChangeNotifier {
     'download_report_as_activity',
     'download_storage_limit_mb',
     'download_wifi_only',
+    'hiddenDetailButtonsDesktop',
+    'hiddenDetailButtonsMobile',
+    'hiddenDetailButtonsTv',
     'hiddenOsdButtonsDesktop',
     'hiddenOsdButtonsMobile',
     'hiddenOsdButtonsTv',
@@ -1720,6 +1723,18 @@ class UserPreferences extends ChangeNotifier {
   static final osdLockEnabled = Preference(
     key: 'osdLockEnabled',
     defaultValue: false,
+  );
+  static final hiddenDetailButtonsTv = Preference(
+    key: 'hiddenDetailButtonsTv',
+    defaultValue: '',
+  );
+  static final hiddenDetailButtonsMobile = Preference(
+    key: 'hiddenDetailButtonsMobile',
+    defaultValue: '',
+  );
+  static final hiddenDetailButtonsDesktop = Preference(
+    key: 'hiddenDetailButtonsDesktop',
+    defaultValue: '',
   );
   static final hiddenOsdButtonsTv = Preference(
     key: 'hiddenOsdButtonsTv',

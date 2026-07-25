@@ -4664,7 +4664,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
             ? Icons.download_rounded
             : Icons.subtitles_outlined;
         final showAudioButton = true;
-        final hidden = hiddenOsdButtons(_prefs);
+        final hidden = hiddenOsdButtons.ids(_prefs);
         bool shows(OsdButton button) => !hidden.contains(button.id);
 
         // The row has to stop at its end on TV rather than wrap focus back

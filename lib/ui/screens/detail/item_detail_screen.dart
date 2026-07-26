@@ -4409,6 +4409,11 @@ class DetailActionButtons extends StatefulWidget {
   /// When false the pill is content-width and sits inline with the secondary
   /// circular buttons (landscape).
   final bool fullWidthPrimary;
+
+  /// How wide the column hosting the row is. The two column layout measures
+  /// its buttons against this to decide when they stop fitting on one line,
+  /// which the per device count gets wrong in a column this narrow.
+  final double? rowMaxWidth;
   final FocusNode? actionRowRightFocusNode;
   final FocusNode? extraFirstFocusNode;
   final ValueChanged<bool>? onFocusExtra;
@@ -4429,6 +4434,7 @@ class DetailActionButtons extends StatefulWidget {
     this.onArrowRightAtEnd,
     this.modernStyle = false,
     this.fullWidthPrimary = false,
+    this.rowMaxWidth,
     this.actionRowRightFocusNode,
     this.extraFirstFocusNode,
     this.onFocusExtra,
@@ -5477,25 +5483,24 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
     _focusTarget(widget.downTarget, alignment: 0.42);
   }
 
-  /// Scrolls the action row sideways to keep [node] on screen, for the TV
-  /// layout where the row is one line rather than a wrap.
-  void _keepRowButtonInView(FocusNode node) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      final buttonContext = node.context;
-      if (buttonContext == null || !buttonContext.mounted) return;
-      final row = Scrollable.maybeOf(buttonContext, axis: Axis.horizontal);
-      final renderObject = buttonContext.findRenderObject();
-      if (row == null || renderObject == null) return;
-      unawaited(
-        row.position.ensureVisible(
-          renderObject,
-          alignment: 0.5,
-          duration: const Duration(milliseconds: 150),
-          curve: Curves.easeOut,
-        ),
-      );
-    });
+  /// The widest a modern row of [buttonCount] buttons can get. Only one
+  /// button is focused at a time, so the worst case is everything at rest
+  /// except the one grown to its focused width, whichever of the two that
+  /// leaves wider. The sizes match what _buildModernChild lays out.
+  double _modernRowWorstWidth(int buttonCount, double spacing) {
+    const playResting = 54.0;
+    const playFocused = 200.0;
+    const circleResting = 52.0;
+    const circleFocused = 200.0;
+
+    final circles = buttonCount - 1;
+    if (circles <= 0) return playFocused;
+
+    final playGrown = playFocused + circles * circleResting;
+    final circleGrown =
+        playResting + circleFocused + (circles - 1) * circleResting;
+    return circles * spacing +
+        (playGrown > circleGrown ? playGrown : circleGrown);
   }
 
   void _focusUpTarget() {
@@ -6199,10 +6204,17 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
     // compact (mobile) layout every type uses the full-width primary + overflow.
     final bool isTwoColumnLayout = !isModernMobile && isTvShow;
 
-    if (isTwoColumnLayout && allButtons.length <= maxVisible) {
-      // Management buttons only move to a second row once the row is too long
-      // for them. Switch enough buttons off and what is left fits in one row,
-      // where a More button sitting next to empty space reads as a bug.
+    // The buttons only fold into More once they stop fitting on one line.
+    // Measuring the worst case, where whichever button is focused has grown
+    // to its widest, means focus can never push the end of the row past the
+    // column and behind the Next Up card. Hosts that do not report a width
+    // fall back to the count for this device.
+    final rowBudget = widget.rowMaxWidth;
+    final fitsOneLine = widget.modernStyle && rowBudget != null
+        ? _modernRowWorstWidth(allButtons.length, buttonSpacing) <= rowBudget
+        : allButtons.length <= maxVisible;
+
+    if (isTwoColumnLayout && fitsOneLine) {
       primaryButtons = allButtons;
       extraButtons = const [];
       needsOverflow = false;
@@ -6251,27 +6263,17 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
 
     final Widget rowContent;
     if (!needsOverflow) {
-      // Modern buttons grow as the highlight lands on them, so in the narrow
-      // column a wrapping row reflows with every step and bounces the page
-      // under it. One line that scrolls sideways holds still, and it leaves
-      // no wrapped line for focus to fall onto, which the row cannot reach.
-      // The classic style keeps its wrap, its buttons are a fixed width and
-      // its row is centered rather than left aligned.
-      final scrollsSideways =
-          PlatformDetection.isTV && isTwoColumnLayout && widget.modernStyle;
       final normalizedButtons = allButtons.asMap().entries.map((entry) {
         final index = entry.key;
         final button = entry.value;
         final existingUp = button is _DetailActionButton
             ? button.onArrowUp
             : null;
-        final node = index == allButtons.length - 1
-            ? (widget.actionRowRightFocusNode ?? _primaryNodePlain(index))
-            : _primaryNodePlain(index);
         return _wireButton(
           button,
-          focusNode: node,
-          onFocused: scrollsSideways ? () => _keepRowButtonInView(node) : null,
+          focusNode: index == allButtons.length - 1
+              ? (widget.actionRowRightFocusNode ?? _primaryNodePlain(index))
+              : _primaryNodePlain(index),
           onArrowUp:
               existingUp ??
               (NavigationLayout.focusNavbarNotifier.value != null ||
@@ -6305,23 +6307,17 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
                 },
         );
       }).toList();
-      final buttonsRow = Wrap(
-        spacing: buttonSpacing,
-        runSpacing: buttonRunSpacing,
-        crossAxisAlignment: WrapCrossAlignment.center,
-        alignment: widget.modernStyle
-            ? WrapAlignment.start
-            : WrapAlignment.center,
-        children: normalizedButtons,
-      );
       rowContent = Align(
         alignment: widget.modernStyle ? Alignment.centerLeft : Alignment.center,
-        child: scrollsSideways
-            ? SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: buttonsRow,
-              )
-            : buttonsRow,
+        child: Wrap(
+          spacing: buttonSpacing,
+          runSpacing: buttonRunSpacing,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          alignment: widget.modernStyle
+              ? WrapAlignment.start
+              : WrapAlignment.center,
+          children: normalizedButtons,
+        ),
       );
     } else {
       final normalizedPrimaryButtons = primaryButtons.asMap().entries.map((
@@ -10287,9 +10283,7 @@ class _DetailActionButtonState extends State<_DetailActionButton>
   void _scrollToTopOnFocus() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      // The button can sit inside the row's own sideways scroller, so ask for
-      // the page's vertical one rather than whatever is nearest.
-      final scrollable = Scrollable.maybeOf(context, axis: Axis.vertical);
+      final scrollable = Scrollable.maybeOf(context);
       if (scrollable == null) return;
       final position = scrollable.position;
       if (position.pixels <= position.minScrollExtent) return;

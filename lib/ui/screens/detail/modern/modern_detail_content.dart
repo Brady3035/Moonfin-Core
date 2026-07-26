@@ -3779,6 +3779,13 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
             modernStyle: true,
             fullWidthPrimary: !_landscape,
             maxVisibleButtonsOverride: null,
+            rowMaxWidth: _landscape
+                ? ModernLandscapeLayout.heroWidthFor(
+                    MediaQuery.sizeOf(context),
+                    hasUpNext: hasUpNext,
+                    isBoxSet: item.type == 'BoxSet',
+                  )
+                : null,
             onArrowRightAtEnd: _landscape ? _focusRightOfActions : null,
             actionRowRightFocusNode: _actionRowRightFocusNode,
             extraFirstFocusNode: _extraFirstFocusNode,

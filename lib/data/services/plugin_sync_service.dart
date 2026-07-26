@@ -1137,6 +1137,7 @@ class PluginSyncService extends ChangeNotifier {
           }
           _appendDisabledBuiltinSections(sections, order);
           await _prefs.setHomeSectionsConfig(sections);
+          _syncSeerrHomeRowsWithSections(sections);
           appliedHomeSections = true;
         }
       }
@@ -1313,6 +1314,7 @@ class PluginSyncService extends ChangeNotifier {
     }
 
     await _prefs.setHomeSectionsConfig(sections);
+    _syncSeerrHomeRowsWithSections(sections);
   }
 
   /// Appends a disabled entry for every built-in HomeSectionType not already in
@@ -1336,6 +1338,17 @@ class PluginSyncService extends ChangeNotifier {
       }
     }
     return order;
+  }
+
+  void _syncSeerrHomeRowsWithSections(List<HomeSectionConfig> sections) {
+    final currentHomeRows = _seerrPrefs.homeRowsConfig;
+    final updated = currentHomeRows.map((row) {
+      final idx = sections.indexWhere((s) => s.type == row.type.homeSectionType);
+      return idx >= 0
+          ? row.copyWith(enabled: sections[idx].enabled)
+          : row.copyWith(enabled: false);
+    }).toList();
+    _seerrPrefs.setHomeRowsConfig(updated);
   }
 
   /// Applies one table-driven field from an incoming profile.

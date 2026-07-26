@@ -365,7 +365,9 @@ final class AppleTvVideoChannel: NSObject, FlutterStreamHandler {
         // either list re-emits tracksChanged.
         let textCount = p.subtitleTracks.count
         let ccCount = p.closedCaptionTracks.count
-        if textCount != lastTextTrackCount || ccCount != lastClosedCaptionCount {
+        if mediaIsOpen(p.state),
+            textCount != lastTextTrackCount || ccCount != lastClosedCaptionCount
+        {
             lastTextTrackCount = textCount
             lastClosedCaptionCount = ccCount
             send([

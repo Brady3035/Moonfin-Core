@@ -359,8 +359,21 @@ final class AetherPlayerWrapper: NSObject, ObservableObject {
         surfaceAttachedContinuations.removeAll()
     }
 
+    /// Seconds to wait for a hosted render surface before loading anyway.
+    private static let surfaceWaitTimeout: Double = 2
+
+    /// Waits for the render view to be in a window so the first frame has
+    /// somewhere to land. Bounded, because the surface only signals again on a
+    /// fresh attach: a view briefly out of its window with no re-attach coming
+    /// would park the load forever on a black screen. Loading without it is
+    /// recoverable, since the engine binds the view whenever it turns up.
     private func waitForSurface() async {
         if videoView?.window != nil { return }
+        Task { @MainActor [weak self] in
+            try? await Task.sleep(
+                nanoseconds: UInt64(Self.surfaceWaitTimeout * 1_000_000_000))
+            self?.resumeSurfaceWaiters()
+        }
         await withCheckedContinuation { continuation in
             if videoView?.window != nil {
                 continuation.resume()
@@ -732,12 +745,13 @@ final class AetherPlayerWrapper: NSObject, ObservableObject {
             switch cue.body {
             case .text(let text):
                 return SubtitleEvent(
-                    startTime: cue.startTime, endTime: cue.endTime, text: text,
+                    startTime: cue.startTime, endTime: cue.endTime,
+                    text: plainTextFromAssMarkup(text),
                     bitmap: nil, bitmapWidth: 0, bitmapHeight: 0)
             case .richText(let runs):
                 return SubtitleEvent(
                     startTime: cue.startTime, endTime: cue.endTime,
-                    text: runs.map(\.text).joined(),
+                    text: plainTextFromAssMarkup(runs.map(\.text).joined()),
                     bitmap: nil, bitmapWidth: 0, bitmapHeight: 0)
             case .image(let image):
                 return SubtitleEvent(

@@ -9,7 +9,6 @@ import '../util/platform_detection.dart';
 
 import 'device_profile_builder.dart';
 import 'known_defects.dart';
-import 'server_transcode_capabilities.dart';
 
 /// Playback backend driving the native AetherEngine wrapper over a method
 /// channel on iOS and macOS. Serves main playback there: video, live TV,
@@ -267,7 +266,11 @@ class AetherBackend implements PlayerBackend {
       avcHigh10Level: PlatformDetection.avcHigh10Level,
       supportsHevc: PlatformDetection.supportsHevc,
       supportsHevcMain10: PlatformDetection.supportsHevcMain10,
-      transcodeHevcAllowed: serverAllowsHevcTranscode(),
+      // Direct play handles HEVC, but a transcode arrives as HEVC inside
+      // MPEG-TS, and the remux to fMP4 only carries H.264 parameter sets
+      // across that framing. The result is a black picture with working
+      // audio, so transcodes ask for H.264 and stay renderable.
+      transcodeHevcAllowed: false,
       hevcMainLevel: PlatformDetection.hevcMainLevel,
       supportsHevcDolbyVision: PlatformDetection.supportsHevcDolbyVision,
       supportsHevcDolbyVisionEl: PlatformDetection.supportsHevcDolbyVisionEl,

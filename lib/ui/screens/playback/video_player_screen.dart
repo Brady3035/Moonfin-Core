@@ -6393,6 +6393,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
       audioStreamIndex: _manager.audioStreamIndex,
       subtitleStreamIndex: _manager.subtitleStreamIndex,
     );
+    await pauseLocalPlaybackForCastHandoff();
   }
 
   void _showCastControls() {

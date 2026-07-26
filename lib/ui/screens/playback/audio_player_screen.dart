@@ -1214,6 +1214,7 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
       audioStreamIndex: _manager.audioStreamIndex,
       subtitleStreamIndex: _manager.subtitleStreamIndex,
     );
+    await pauseLocalPlaybackForCastHandoff();
   }
 
   IconData _castIcon(CastTargetKind? kind) => switch (kind) {

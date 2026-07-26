@@ -1170,6 +1170,7 @@ class _AudiobookPlayerViewState extends State<AudiobookPlayerView> {
       item: item,
       startPositionTicks: _state.position.inMicroseconds * 10,
     );
+    await pauseLocalPlaybackForCastHandoff();
   }
 
   Future<void> _showCastControls() async {

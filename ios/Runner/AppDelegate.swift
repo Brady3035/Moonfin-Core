@@ -529,7 +529,10 @@ private final class NativeAirPlayEventStreamHandler: NSObject, FlutterStreamHand
           return
         }
 
-        // The native AVPlayerViewController is already presented by loadAirPlay.
+        // loadAirPlay presented the native player. Open the device sheet on
+        // top of it so the user picks the TV without hunting for the AirPlay
+        // glyph in the transport bar.
+        self.airPlayController.presentRoutePicker()
         result(nil)
       case "isAirPlayRoutePickerAvailable":
         result(!Self.isSimulator)

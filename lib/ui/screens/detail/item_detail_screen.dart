@@ -8150,7 +8150,29 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
     );
   }
 
-  Future<void> _castToDevice(BuildContext context, AggregatedItem item) {
+  Future<void> _castToDevice(BuildContext context, AggregatedItem item) async {
+    // A series, season or box set carries no media sources of its own, and
+    // asking the server for PlaybackInfo on one fails with a 500. Cast
+    // whatever the play button would play instead.
+    if (item.mediaSources.isEmpty) {
+      final nextUp = widget.viewModel.nextUp;
+      if (nextUp == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(AppLocalizations.of(context).failedToLoad)),
+        );
+        return;
+      }
+      final resumeTicks = nextUp.playbackPosition == null
+          ? null
+          : nextUp.playbackPosition!.inMicroseconds * 10;
+      await showRemotePlayToSessionDialog(
+        context,
+        item: nextUp,
+        startPositionTicks: resumeTicks,
+      );
+      return;
+    }
+
     final mediaStreams = _mediaStreamsForCurrentSelection(item);
     final audioStreams = mediaStreams
         .where((s) => s['Type'] == 'Audio')
@@ -8167,7 +8189,7 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
     final positionTicks = item.playbackPosition == null
         ? null
         : item.playbackPosition!.inMicroseconds * 10;
-    return showRemotePlayToSessionDialog(
+    await showRemotePlayToSessionDialog(
       context,
       item: item,
       startPositionTicks: positionTicks,

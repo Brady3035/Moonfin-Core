@@ -169,7 +169,9 @@ dependencies:
   wakelock_plus_tizen: any
   sqflite_tizen: any
 
-  flutter_tvos: ^1.0.4
+  # 1.1.1 fixed a startup race where the configure call could be silently
+  # lost, leaving the engine's aggressive default remote tuning active.
+  flutter_tvos: ^1.1.2
   path_provider_tvos: any
   shared_preferences_tvos: any
   flutter_secure_storage_tvos: any

@@ -42,6 +42,7 @@ import 'ui/screensaver/screensaver_host.dart';
 import 'util/app_distribution.dart';
 import 'util/app_exit.dart';
 import 'util/focus/dpad_keys.dart';
+import 'util/focus/siri_remote_glide.dart';
 import 'util/fullscreen_helper.dart';
 import 'util/global_shortcut_focus.dart';
 import 'util/focus/input_mode_tracker.dart';
@@ -82,17 +83,19 @@ class _MoonfinAppState extends State<MoonfinApp> {
     if (PlatformDetection.isAppleTV) {
       TopShelfService().startDeepLinkListener(navigateWhenReady);
       TvRemoteController.instance.init();
-      // Continuous-swipe auto-repeat latches on a touch-and-hold and runs the
-      // focus away, so the threshold is pushed out of reach to switch it off.
-      // Discrete swipes still move focus one step per gesture, and a held
-      // directional click still repeats at the calmer interval below.
+      // Both engine swipe detectors are pushed out of reach so SiriRemoteGlide
+      // can drive focus from the raw touch stream instead. Clicks stay native,
+      // with the dead zone widened so an off-center click reads as select
+      // rather than a direction.
       TvRemoteController.instance.config = const TvRemoteConfig(
-        shortSwipeThreshold: 0.45,
-        fastSwipeThreshold: 0.7,
+        shortSwipeThreshold: 1000000,
+        fastSwipeThreshold: 1000000,
         continuousSwipeMoveThreshold: 1000000,
+        dpadDeadZone: 0.6,
         keyRepeatInitialDelay: Duration(milliseconds: 450),
         keyRepeatInterval: Duration(milliseconds: 180),
       );
+      SiriRemoteGlide.instance.attach();
     }
     if (PlatformDetection.isAndroid && PlatformDetection.isTV) {
       WatchNextService().startDeepLinkListener(navigateWhenReady);

@@ -43,37 +43,16 @@ class AudioCapabilityProfile {
       activeRouteType = AudioRouteType.other,
       routeSupportsHdAudio = false;
 
-  const AudioCapabilityProfile.appleMobile()
-    : canDecodeAc3 = true,
-      canDecodeEac3 = true,
-      canDecodeDts = true,
-      canDecodeDtsHd = true,
-      _canDecodeTrueHd = false,
-      canDecodeFlac = true,
-      canPassthroughAc3 = false,
-      canPassthroughEac3 = false,
-      canPassthroughEac3Joc = false,
-      canPassthroughDts = false,
-      canPassthroughDtsHd = false,
-      canPassthroughDtsX = false,
-      canPassthroughTrueHd = false,
-      canPassthroughTrueHdJoc = false,
-      maxPcmChannels = 8,
-      activeRouteType = AudioRouteType.other,
-      routeSupportsHdAudio = false;
-
   final bool canDecodeAc3;
   final bool canDecodeEac3;
   final bool canDecodeDts;
   final bool canDecodeDtsHd;
   final bool _canDecodeTrueHd;
-  // Android has no hardware TrueHD/MLP decoder, but the Media3 backend bundles
-  // an FFmpeg audio decoder that decodes it to PCM, so decode is genuine there.
-  // iOS has no TrueHD decoder at all, so it must always report false and let the
-  // server transcode. Otherwise direct play fails to initialize the decoder.
+  // No device decodes TrueHD/MLP in hardware, so a hardware probe answers no.
+  // Media3 bundles an FFmpeg audio decoder that reaches PCM anyway, which is
+  // why Android's probe result is overridden rather than trusted.
   bool get canDecodeTrueHd {
     if (PlatformDetection.isAndroid) return true;
-    if (PlatformDetection.isIOS) return false;
     return _canDecodeTrueHd;
   }
   final bool canDecodeFlac;

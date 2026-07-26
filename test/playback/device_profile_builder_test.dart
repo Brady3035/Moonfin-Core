@@ -855,20 +855,20 @@ void main() {
       expect(codecs, contains('eac3'));
     });
 
-    test('does not advertise TrueHD on iOS, which ships no decoder for it', () {
+    test('advertises TrueHD on iOS, where the engine bridges it', () {
       debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
       addTearDown(() => debugDefaultTargetPlatformOverride = null);
 
       final profile = DeviceProfileBuilder.build(
-        audioCapabilityProfile: const AudioCapabilityProfile.appleMobile(),
+        audioCapabilityProfile: const AudioCapabilityProfile.optimistic(),
         universalAudioDecode: true,
       );
 
       final codecs = _videoDirectPlayAudioCodecs(profile);
-      expect(codecs, isNot(contains('truehd')));
-      expect(codecs, isNot(contains('mlp')));
-      // Everything else still decodes in software.
-      expect(codecs, containsAll(<String>['ac3', 'eac3', 'dts', 'flac']));
+      expect(
+        codecs,
+        containsAll(<String>['truehd', 'mlp', 'ac3', 'eac3', 'dts', 'flac']),
+      );
     });
   });
 

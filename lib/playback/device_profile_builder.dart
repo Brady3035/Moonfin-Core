@@ -931,7 +931,7 @@ class DeviceProfileBuilder {
 
     if (universalAudioDecode) {
       if (codec == 'truehd' || codec == 'mlp') {
-        // iOS ships no TrueHD decoder, so the getter reports false there.
+        // A player without a TrueHD decoder has to let the server transcode.
         if (!capabilityProfile.canDecodeTrueHd) return false;
         if (losslessAudioRequiresPassthroughOnAvrRoutes &&
             capabilityProfile.isAvReceiverRoute) {

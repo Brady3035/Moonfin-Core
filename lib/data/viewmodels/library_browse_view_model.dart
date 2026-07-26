@@ -111,8 +111,6 @@ class LibraryBrowseViewModel extends ChangeNotifier {
   Map<String, double> _focusedRatings = const {};
   Map<String, double> get focusedRatings => _focusedRatings;
 
-  final Map<String, String?> _tmdbIdByItemId = {};
-
   ImageApi get imageApi => _client.imageApi;
 
   Future<List<AggregatedItem>> _filterLibraryItems(
@@ -137,28 +135,9 @@ class LibraryBrowseViewModel extends ChangeNotifier {
 
   Future<void> _loadFocusedRatings(AggregatedItem item) async {
     if (!_prefs.get(UserPreferences.enableAdditionalRatings)) return;
-    var tmdbId = item.tmdbId;
-    if (tmdbId == null) {
-      if (_tmdbIdByItemId.containsKey(item.id)) {
-        tmdbId = _tmdbIdByItemId[item.id];
-      } else {
-        try {
-          final details =
-              await _client.itemsApi.getItem(item.id, fields: 'ProviderIds');
-          tmdbId = (details['ProviderIds'] as Map?)?['Tmdb'] as String?;
-        } catch (_) {
-          tmdbId = null;
-        }
-        _tmdbIdByItemId[item.id] = tmdbId;
-      }
-    }
-
-    if (tmdbId == null) return;
-    final mediaType = item.type;
-    if (mediaType == null) return;
-    final ratings = await _mdbListRepository.getRatings(
-      tmdbId: tmdbId,
-      mediaType: mediaType,
+    final ratings = await _mdbListRepository.getRatingsForItem(
+      item,
+      episodeRatingsEnabled: _prefs.get(UserPreferences.enableEpisodeRatings),
     );
     if (ratings != null && ratings.isNotEmpty && _focusedItem?.id == item.id) {
       _focusedRatings = ratings;
@@ -231,7 +210,6 @@ class LibraryBrowseViewModel extends ChangeNotifier {
     _filteredOutCount = 0;
     _totalCountKnown = true;
     _hasMoreFromPageSize = false;
-    _tmdbIdByItemId.clear();
     notifyListeners();
 
     try {

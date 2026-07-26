@@ -60,6 +60,9 @@ class RatingsRow extends StatelessWidget {
     if (allRatings.isEmpty) return const SizedBox.shrink();
 
     final filtered = allRatings.entries.where((e) {
+      // TMDB episode ratings have their own toggle upstream, so they bypass
+      // the MDBList enabled-sources selection.
+      if (e.key == 'tmdb_episode') return true;
       if (!enabled.contains(e.key)) return false;
       if (!enableAdditionalRatings && !_coreRatingSources.contains(e.key)) {
         return false;

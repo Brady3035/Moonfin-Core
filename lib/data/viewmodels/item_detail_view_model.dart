@@ -1077,6 +1077,11 @@ class ItemDetailViewModel extends ChangeNotifier {
       return;
     }
 
+    if (!GetIt.instance<UserPreferences>()
+        .get(UserPreferences.enableAdditionalRatings)) {
+      return;
+    }
+
     final tmdbId = item.tmdbId;
     if (tmdbId == null) return;
     final mediaType = item.type ?? 'Movie';

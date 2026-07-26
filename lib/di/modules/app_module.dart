@@ -156,7 +156,7 @@ void _registerUserScopedSingletons() {
     () => RowDataSource(_getIt<MediaServerClient>()),
   );
   _getIt.registerLazySingleton(
-    () => MdbListRepository(_getIt<MediaServerClient>()),
+    () => MdbListRepository(_getIt<MediaServerClient>(), _getIt<TmdbRepository>()),
     dispose: (repository) => repository.dispose(),
   );
   _getIt.registerLazySingleton(

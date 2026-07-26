@@ -7,6 +7,7 @@ import 'package:server_core/server_core.dart';
 import 'package:moonfin_design/moonfin_design.dart';
 
 import '../../../data/services/plugin_sync_service.dart';
+import '../../../data/services/rating_icon_provider.dart';
 import '../../../preference/user_preferences.dart';
 import '../../../util/extensions.dart';
 import '../../../util/platform_detection.dart';
@@ -16,6 +17,8 @@ import 'settings_app_bar.dart';
 import '../../widgets/focus/request_initial_focus.dart';
 import '../../../util/focus/scroll_utils.dart';
 
+// The rating sources MDBList actually returns, plus the Jellyfin community
+// rating ('stars'). Stored selections with unknown sources are ignored.
 const _allSources = [
   'tomatoes',
   'tomatoes_audience',
@@ -26,7 +29,7 @@ const _allSources = [
   'trakt',
   'letterboxd',
   'myanimelist',
-  'anilist',
+  'rogerebert',
   'stars',
 ];
 
@@ -55,9 +58,8 @@ class _RatingsConfigScreenState extends State<RatingsConfigScreen> {
     'trakt' => l10n.trakt,
     'letterboxd' => l10n.letterboxd,
     'myanimelist' => l10n.myAnimeList,
-    'anilist' => l10n.aniList,
     'stars' => l10n.communityRating,
-    _ => key,
+    _ => RatingIconProvider.sourceDisplayName(key),
   };
 
   final _prefs = GetIt.instance<UserPreferences>();

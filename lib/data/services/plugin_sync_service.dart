@@ -1045,6 +1045,20 @@ class PluginSyncService extends ChangeNotifier {
     _clearMissingCustomThemeSelection();
   }
 
+  void _preserveLocalKeyWhenServerEmpty(
+    Map<String, dynamic> resolved,
+    String serverKey,
+    Preference<String> pref,
+  ) {
+    final serverVal = resolved[serverKey] as String?;
+    if (serverVal == null || serverVal.isEmpty || serverVal == 'null') {
+      final localVal = _store.get(_prefs.getEffectivePreference(pref));
+      if (localVal.isNotEmpty && localVal != 'null') {
+        resolved[serverKey] = localVal;
+      }
+    }
+  }
+
   Future<void> _applyServerSettings(Map<String, dynamic> resolved) {
     // Batched so the dozens of pref writes below collapse into one listener
     // notification instead of one per key. Every notification makes the nav
@@ -1061,27 +1075,17 @@ class PluginSyncService extends ChangeNotifier {
     try {
       final serverId = (_store.getString('pref_last_server_id') ?? '').trim();
       if (serverId.isNotEmpty) {
-        var tmdbVal = resolved['tmdbApiKey'] as String?;
-        if (tmdbVal == null || tmdbVal.isEmpty || tmdbVal == 'null') {
-          final localTmdbVal = _store.get(_prefs.getEffectivePreference(UserPreferences.tmdbApiKey));
-          if (localTmdbVal.isNotEmpty && localTmdbVal != 'null') {
-            resolved['tmdbApiKey'] = localTmdbVal;
-          }
-        }
+        // When the server profile carries no API key, keep the locally stored
+        // one. Both fallbacks must run before the field table is applied,
+        // otherwise _applySyncedField has already wiped the local value.
+        _preserveLocalKeyWhenServerEmpty(resolved, 'tmdbApiKey', UserPreferences.tmdbApiKey);
+        _preserveLocalKeyWhenServerEmpty(resolved, 'mdblistApiKey', UserPreferences.mdblistApiKey);
 
-      // Everything describable as a key, preference and codec comes from one table, so
-      // the send and receive directions can't drift apart. The settings that need
-      // real logic follow below.
-      for (final field in syncedFields) {
-        _applySyncedField(resolved, field);
-      }
-
-        var mdblistVal = resolved['mdblistApiKey'] as String?;
-        if (mdblistVal == null || mdblistVal.isEmpty || mdblistVal == 'null') {
-          final localMdblistVal = _store.get(_prefs.getEffectivePreference(UserPreferences.mdblistApiKey));
-          if (localMdblistVal.isNotEmpty && localMdblistVal != 'null') {
-            resolved['mdblistApiKey'] = localMdblistVal;
-          }
+        // Everything describable as a key, preference and codec comes from one table, so
+        // the send and receive directions can't drift apart. The settings that need
+        // real logic follow below.
+        for (final field in syncedFields) {
+          _applySyncedField(resolved, field);
         }
       }
 
@@ -1575,6 +1579,9 @@ class PluginSyncService extends ChangeNotifier {
   static const Map<String, String> _serverToClientRatingSource = {
     'metacriticUser': 'metacriticuser',
     'myAnimeList': 'myanimelist',
+    'rogerEbert': 'rogerebert',
+    // AniList is no longer a selectable source, but old profiles may still
+    // carry it, so keep decoding it so it round-trips harmlessly.
     'aniList': 'anilist',
   };
   static final Map<String, String> _clientToServerRatingSource = {
@@ -1617,11 +1624,17 @@ class PluginSyncService extends ChangeNotifier {
             .toList(),
       },};
 
+    // Only include keys when set. Pushing an explicit null would clear the
+    // server-side profile value that other devices rely on.
     final mdblistKey = _prefs.get(UserPreferences.mdblistApiKey);
-    payload['mdblistApiKey'] = (mdblistKey.isNotEmpty && mdblistKey != 'null') ? mdblistKey : null;
+    if (mdblistKey.isNotEmpty && mdblistKey != 'null') {
+      payload['mdblistApiKey'] = mdblistKey;
+    }
 
     final tmdbKey = _prefs.get(UserPreferences.tmdbApiKey);
-    payload['tmdbApiKey'] = (tmdbKey.isNotEmpty && tmdbKey != 'null') ? tmdbKey : null;
+    if (tmdbKey.isNotEmpty && tmdbKey != 'null') {
+      payload['tmdbApiKey'] = tmdbKey;
+    }
 
     return payload;
   }

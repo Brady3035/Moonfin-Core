@@ -127,6 +127,7 @@ class _TopToolbarState extends State<TopToolbar> with RouteAware {
   bool _toolbarHadFocus = false;
   List<AggregatedLibrary> _libraries = [];
   Timer? _clockTimer;
+  Timer? _librariesReloadDebounce;
   late final ValueNotifier<String> _currentTime;
   StreamSubscription? _userSub;
   String? _userImageUrl;
@@ -217,6 +218,7 @@ class _TopToolbarState extends State<TopToolbar> with RouteAware {
           _previousFocusAvatarCallback;
     }
     _clockTimer?.cancel();
+    _librariesReloadDebounce?.cancel();
     // Only clear the shared flag if this instance held focus, so a torn-down
     // route's toolbar can't wipe the state of the one the user is on.
     if (_toolbarHadFocus) {
@@ -264,13 +266,22 @@ class _TopToolbarState extends State<TopToolbar> with RouteAware {
   void _onPrefsChanged() {
     if (!mounted) return;
     _updateClock();
-    _loadLibraries();
+    _scheduleLibrariesReload();
     setState(() {});
   }
 
   void _onUserViewsChanged() {
     if (!mounted) return;
-    _loadLibraries();
+    _scheduleLibrariesReload();
+  }
+
+  // Collapses a burst of change notifications, like the settings sync
+  // applying a whole profile, into a single library reload.
+  void _scheduleLibrariesReload() {
+    _librariesReloadDebounce?.cancel();
+    _librariesReloadDebounce = Timer(const Duration(milliseconds: 300), () {
+      if (mounted) _loadLibraries();
+    });
   }
 
   void _onAvatarFocusChanged() {

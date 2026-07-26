@@ -1045,7 +1045,18 @@ class PluginSyncService extends ChangeNotifier {
     _clearMissingCustomThemeSelection();
   }
 
-  Future<void> _applyServerSettings(Map<String, dynamic> resolved) async {
+  Future<void> _applyServerSettings(Map<String, dynamic> resolved) {
+    // Batched so the dozens of pref writes below collapse into one listener
+    // notification instead of one per key. Every notification makes the nav
+    // chrome reload its libraries from the server.
+    return _prefs.batchNotifications(
+      () => _applyServerSettingsUnbatched(resolved),
+    );
+  }
+
+  Future<void> _applyServerSettingsUnbatched(
+    Map<String, dynamic> resolved,
+  ) async {
     _isSyncingFromServer = true;
     try {
       final serverId = (_store.getString('pref_last_server_id') ?? '').trim();

@@ -100,6 +100,7 @@ class _LeftSidebarState extends State<LeftSidebar> with RouteAware {
   Timer? _labelTimer;
   Timer? _focusExpandGateTimer;
   Timer? _focusHomeTimer;
+  Timer? _librariesReloadDebounce;
   late final ValueNotifier<String> _currentTime;
   StreamSubscription? _userSub;
   String? _userImageUrl;
@@ -214,6 +215,7 @@ class _LeftSidebarState extends State<LeftSidebar> with RouteAware {
     _labelTimer?.cancel();
     _focusExpandGateTimer?.cancel();
     _focusHomeTimer?.cancel();
+    _librariesReloadDebounce?.cancel();
     _homeFocusNode.dispose();
     _settingsFocusNode.dispose();
     _profileFocusNode.dispose();
@@ -240,13 +242,22 @@ class _LeftSidebarState extends State<LeftSidebar> with RouteAware {
   void _onPrefsChanged() {
     if (!mounted) return;
     _updateClock();
-    _loadLibraries();
+    _scheduleLibrariesReload();
     setState(() {});
   }
 
   void _onUserViewsChanged() {
     if (!mounted) return;
-    _loadLibraries();
+    _scheduleLibrariesReload();
+  }
+
+  // Collapses a burst of change notifications, like the settings sync
+  // applying a whole profile, into a single library reload.
+  void _scheduleLibrariesReload() {
+    _librariesReloadDebounce?.cancel();
+    _librariesReloadDebounce = Timer(const Duration(milliseconds: 300), () {
+      if (mounted) _loadLibraries();
+    });
   }
 
   void _updateClock() {

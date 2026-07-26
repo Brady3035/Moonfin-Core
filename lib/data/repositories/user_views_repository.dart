@@ -37,12 +37,23 @@ class UserViewsRepository extends ChangeNotifier {
   final MediaServerClient _client;
   UserConfiguration? _cachedConfig;
 
+  // Concurrent callers share one in-flight request so a burst of reloads
+  // costs a single round trip.
+  Future<List<AggregatedLibrary>>? _inFlightViews;
+  Future<List<AggregatedLibrary>>? _inFlightViewsIncludingHidden;
+
   UserViewsRepository(this._client);
 
-  Future<List<AggregatedLibrary>> getAllViews() => loadUserViews(_client);
+  Future<List<AggregatedLibrary>> getAllViews() =>
+      _inFlightViews ??= loadUserViews(
+        _client,
+      ).whenComplete(() => _inFlightViews = null);
 
   Future<List<AggregatedLibrary>> getAllViewsIncludingHidden() =>
-      loadUserViews(_client, includeHidden: true);
+      _inFlightViewsIncludingHidden ??= loadUserViews(
+        _client,
+        includeHidden: true,
+      ).whenComplete(() => _inFlightViewsIncludingHidden = null);
 
   Future<List<AggregatedLibrary>> getUserViews() async {
     final views = await getAllViews();

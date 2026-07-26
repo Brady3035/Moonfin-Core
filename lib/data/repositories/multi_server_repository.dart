@@ -149,7 +149,16 @@ class MultiServerRepository {
     return sessions;
   }
 
-  Future<List<AggregatedLibrary>> getAggregatedLibraries() async {
+  // Concurrent callers share one in-flight aggregation instead of each
+  // fanning out to every server.
+  Future<List<AggregatedLibrary>>? _inFlightLibraries;
+
+  Future<List<AggregatedLibrary>> getAggregatedLibraries() =>
+      _inFlightLibraries ??= _getAggregatedLibrariesNow().whenComplete(
+        () => _inFlightLibraries = null,
+      );
+
+  Future<List<AggregatedLibrary>> _getAggregatedLibrariesNow() async {
     final sessions = await getLoggedInServers();
     final hasMultiple = sessions.length > 1;
 

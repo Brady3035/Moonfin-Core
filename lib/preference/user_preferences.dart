@@ -769,6 +769,35 @@ class UserPreferences extends ChangeNotifier {
     notifyListeners();
   }
 
+  bool _notificationsSuppressed = false;
+  bool _notificationPending = false;
+
+  @override
+  void notifyListeners() {
+    if (_notificationsSuppressed) {
+      _notificationPending = true;
+      return;
+    }
+    super.notifyListeners();
+  }
+
+  /// Runs [action] with listener notifications held back, then emits a single
+  /// notification if any write fired during it. Lets the settings sync apply
+  /// a whole profile without notifying every listener once per key.
+  Future<T> batchNotifications<T>(Future<T> Function() action) async {
+    if (_notificationsSuppressed) return action();
+    _notificationsSuppressed = true;
+    try {
+      return await action();
+    } finally {
+      _notificationsSuppressed = false;
+      if (_notificationPending) {
+        _notificationPending = false;
+        super.notifyListeners();
+      }
+    }
+  }
+
   static String normalizeMediaBarMode(String? mode) {
     final normalized = (mode ?? '').trim().toLowerCase();
     if (mediaBarModeValues.contains(normalized)) {

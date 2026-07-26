@@ -33,7 +33,7 @@
     "@quickConnectInstruction": {
         "description": "Instruction text for Quick Connect code entry"
     },
-    "waitingForAuthorization": "Autoryzacja...",
+    "waitingForAuthorization": "Oczekiwanie na autoryzację...",
     "@waitingForAuthorization": {
         "description": "Quick Connect polling status text"
     },
@@ -236,7 +236,7 @@
     "@noReachableAddress": {
         "description": "Shown when a discovered server has no usable address"
     },
-    "invalidServerExchangeResponse": "Nieprawidłowa odpowiedź z punktu końcowego wymiany serwera",
+    "invalidServerExchangeResponse": "Nieprawidłowa odpowiedź z punktu końcowego serwera",
     "@invalidServerExchangeResponse": {
         "description": "Error when server exchange returns invalid data"
     },
@@ -6668,7 +6668,7 @@
             }
         }
     },
-    "latestLibraryName": "Latest {libraryName}",
+    "latestLibraryName": "Ostatnio dodane {libraryName}",
     "@latestLibraryName": {
         "description": "Row title for latest media in a specific library",
         "placeholders": {
@@ -7382,7 +7382,7 @@
     "@interfaceStyleSubtitle": {
         "description": "Explanation under the interface style setting"
     },
-    "interfaceStyleAutomatic": "Tryb auto",
+    "interfaceStyleAutomatic": "Automatyczny",
     "@interfaceStyleAutomatic": {
         "description": "Interface style option: follow the platform"
     },
@@ -7402,7 +7402,7 @@
     "@glassQualitySubtitle": {
         "description": "Explanation under the glass quality setting"
     },
-    "glassQualityAuto": "Auto",
+    "glassQualityAuto": "Automatycznie",
     "@glassQualityAuto": {
         "description": "Glass quality option: per-device default"
     },
@@ -9005,5 +9005,33 @@
     "imdbMostPopularMovies": "IMDb Najpopularniejsze filmy",
     "imdbMostPopularTvShows": "IMDb Najpopularniejsze seriale",
     "imdbLowestRatedMovies": "IMDb Najniżej oceniane filmy",
-    "imdbTopEnglishMovies": "IMDb Najwyżej oceniane filmy anglojęzyczne"
+    "imdbTopEnglishMovies": "IMDb Najwyżej oceniane filmy anglojęzyczne",
+    "castMembers": "Obsada",
+    "@castMembers": {
+        "description": "Section title for the list of actors and performers in movie and TV metadata. Not the casting-to-a-device action"
+    },
+    "failedToDeleteItemWithError": "Operacja usunięcia zakończyła się błędem: {error}",
+    "@failedToDeleteItemWithError": {
+        "description": "Error message when item deletion fails, including the specific error details",
+        "placeholders": {
+            "error": {
+                "type": "String",
+                "example": "Permission denied"
+            }
+        }
+    },
+    "emulatorCoreDownloading": "Pobieranie",
+    "emulatorCoreUnavailable": "Niedostępne dla tego urządzenia",
+    "downloadedGames": "Pobrane gry",
+    "@downloadedGames": {
+        "description": "Settings screen title for managing game files stored on the device"
+    },
+    "removeAllDownloadedGames": "Usuń wszystko",
+    "@removeAllDownloadedGames": {
+        "description": "Button that deletes every downloaded game from the device"
+    },
+    "shuffleAll": "Losowo wszystko",
+    "@shuffleAll": {
+        "description": "Action button label for shuffling all tracks of an artist"
+    }
 }

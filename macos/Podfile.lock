@@ -72,7 +72,7 @@ SPEC CHECKSUMS:
   flutter_inappwebview_macos: c2d68649f9f8f1831bfcd98d73fd6256366d9d1d
   FlutterMacOS: d0db08ddef1a9af05a5ec4b724367152bb0500b1
   gamepads_darwin: 643b6a69e20ca678fae83781b7f7fc8f15f5d710
-  libretro_host: ab2303cee53cfb89940048dbc3684953e91ef18d
+  libretro_host: becbc28b6e0d23dffeef32b0d432ab4990798f1a
   LzmaSDK-ObjC: 6c68c37743a658fc9a4c7b70f7d6045b587aa42b
   media_kit_libs_macos_video: 85a23e549b5f480e72cae3e5634b5514bc692f65
   media_kit_video: fa6564e3799a0a28bff39442334817088b7ca758
@@ -82,6 +82,6 @@ SPEC CHECKSUMS:
   screen_retriever_macos: 452e51764a9e1cdb74b3c541238795849f21557f
   UnrarKit: 62f535c7a34ec52d2514b9b148f33dcfa9a9dc39
 
-PODFILE CHECKSUM: 20b9a667cb4c6add4893ab860e58aec71e48907e
+PODFILE CHECKSUM: ab887b3cbc3a3642dc1aecc28b4b8fec3d909ba5
 
 COCOAPODS: 1.16.2

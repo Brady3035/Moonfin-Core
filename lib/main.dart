@@ -246,7 +246,7 @@ Future<void> _detectAndSetCodecCapabilities() async {
   } catch (_) {}
 }
 
-Future<void> _detectAndSetIosCapabilities() async {
+Future<void> _detectAndSetAetherCapabilities() async {
   const channel = MethodChannel('moonfin/ios_aether_control');
   Map<String, dynamic>? caps;
   try {
@@ -258,7 +258,8 @@ Future<void> _detectAndSetIosCapabilities() async {
     }
   } catch (_) {}
 
-  // Fallback mirrors AetherEngine's guaranteed baseline on iOS 16 hardware.
+  // Fallback mirrors AetherEngine's guaranteed baseline on the hardware the
+  // deployment floors allow (iOS 16, macOS 14).
   PlatformDetection.setMediaCodecCapabilities(
     caps ??
         const {
@@ -495,8 +496,8 @@ void main() async {
   if (PlatformDetection.isAppleTV) {
     await _detectAndSetAppleTvCapabilities();
   }
-  if (PlatformDetection.isIOS) {
-    await _detectAndSetIosCapabilities();
+  if (PlatformDetection.isIOS || PlatformDetection.isMacOS) {
+    await _detectAndSetAetherCapabilities();
   }
 
   _configureImageCache();

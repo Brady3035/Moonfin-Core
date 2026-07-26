@@ -1,7 +1,11 @@
 import AVFoundation
 import Foundation
 import MediaPlayer
+#if canImport(UIKit)
 import UIKit
+#elseif canImport(AppKit)
+import AppKit
+#endif
 
 /// Bridges the player to the system Now Playing infrastructure: it owns the
 /// Now Playing payload and remote-command handlers so Moonfin becomes the
@@ -32,43 +36,56 @@ final class NowPlayingController {
     private var registeredTargets: [(MPRemoteCommand, Any)] = []
     private var info: [String: Any] = [:]
     private var artworkURLString: String?
-    private var session: MPNowPlayingSession?
     private var attachedPlayer: AVPlayer?
     private var queueHasNext = false
     private var queueHasPrevious = false
 
-    private var commandCenter: MPRemoteCommandCenter {
-        session?.remoteCommandCenter ?? .shared()
-    }
+    // MPNowPlayingSession is an iOS and tvOS API. Only tvOS drives Now Playing
+    // natively, so on macOS this class stays inert and the default centers
+    // stand in for the session.
+    #if os(iOS) || os(tvOS)
+        private var session: MPNowPlayingSession?
 
-    private var infoCenter: MPNowPlayingInfoCenter {
-        session?.nowPlayingInfoCenter ?? .default()
-    }
+        private var commandCenter: MPRemoteCommandCenter {
+            session?.remoteCommandCenter ?? .shared()
+        }
+
+        private var infoCenter: MPNowPlayingInfoCenter {
+            session?.nowPlayingInfoCenter ?? .default()
+        }
+    #else
+        private var commandCenter: MPRemoteCommandCenter { .shared() }
+        private var infoCenter: MPNowPlayingInfoCenter { .default() }
+    #endif
 
     /// Binds Now Playing to a concrete AVPlayer via `MPNowPlayingSession`.
     /// Passing `nil` detaches and falls back to the default centers.
     /// Re-registers command handlers against the new session's command center
     /// and replays the current metadata so nothing is lost across a rebind.
     func attach(player: AVPlayer?) {
-        if player === attachedPlayer { return }
-        let wasRegistered = commandsRegistered
-        if wasRegistered { unregisterCommands() }
-        let savedInfo = info
-        if let player {
-            let newSession = MPNowPlayingSession(players: [player])
-            newSession.automaticallyPublishesNowPlayingInfo = false
-            session = newSession
+        #if os(iOS) || os(tvOS)
+            if player === attachedPlayer { return }
+            let wasRegistered = commandsRegistered
+            if wasRegistered { unregisterCommands() }
+            let savedInfo = info
+            if let player {
+                let newSession = MPNowPlayingSession(players: [player])
+                newSession.automaticallyPublishesNowPlayingInfo = false
+                session = newSession
+                attachedPlayer = player
+                newSession.becomeActiveIfPossible()
+            } else {
+                session = nil
+                attachedPlayer = nil
+            }
+            if wasRegistered { registerCommands() }
+            if !savedInfo.isEmpty {
+                info = savedInfo
+                infoCenter.nowPlayingInfo = info
+            }
+        #else
             attachedPlayer = player
-            newSession.becomeActiveIfPossible()
-        } else {
-            session = nil
-            attachedPlayer = nil
-        }
-        if wasRegistered { registerCommands() }
-        if !savedInfo.isEmpty {
-            info = savedInfo
-            infoCenter.nowPlayingInfo = info
-        }
+        #endif
     }
 
     func registerCommands() {
@@ -187,7 +204,9 @@ final class NowPlayingController {
     func teardown() {
         unregisterCommands()
         clear()
-        session = nil
+        #if os(iOS) || os(tvOS)
+            session = nil
+        #endif
         attachedPlayer = nil
     }
 
@@ -221,7 +240,11 @@ final class NowPlayingController {
     }
 
     private func applyArtworkData(_ data: Data, for urlString: String) {
-        guard artworkURLString == urlString, let image = UIImage(data: data) else { return }
+        #if canImport(UIKit)
+            guard artworkURLString == urlString, let image = UIImage(data: data) else { return }
+        #else
+            guard artworkURLString == urlString, let image = NSImage(data: data) else { return }
+        #endif
         info[MPMediaItemPropertyArtwork] = MPMediaItemArtwork(boundsSize: image.size) { _ in
             image
         }

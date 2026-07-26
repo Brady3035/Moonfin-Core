@@ -3,7 +3,11 @@ import AetherEngine
 import Combine
 import Foundation
 import MediaPlayer
+#if canImport(UIKit)
 import UIKit
+#elseif canImport(AppKit)
+import AppKit
+#endif
 
 /// Playback wrapper backed by AetherEngine. Reproduces the polled member
 /// surface the previous mpv wrapper exposed, so `AppleTvVideoChannel`
@@ -31,7 +35,7 @@ final class AetherPlayerWrapper: NSObject, ObservableObject {
     @Published var rate: Float = 1.0
     @Published internal(set) var zoomMode: ZoomMode = .fit
 
-    private(set) var videoView: UIView?
+    private(set) var videoView: PlatformView?
 
     var isPlaying: Bool { state == .playing }
 
@@ -270,20 +274,25 @@ final class AetherPlayerWrapper: NSObject, ObservableObject {
         let title = (args["topTitle"] as? String) ?? ""
         let subtitle = (args["topSubtitle"] as? String) ?? ""
         let logo = args["logoUrl"] as? String
-        if isAudioOnlySession, let engine = Self.sharedEngine() {
-            var info: [String: Any] = [
-                MPMediaItemPropertyTitle: title,
-                MPMediaItemPropertyArtist: subtitle,
-                MPMediaItemPropertyAlbumTitle: subtitle,
-                MPNowPlayingInfoPropertyMediaType:
-                    MPNowPlayingInfoMediaType.audio.rawValue,
-            ]
-            if duration > 0 {
-                info[MPMediaItemPropertyPlaybackDuration] = duration
+        // The engine's audio Now Playing bridge is an iOS/tvOS API. This whole
+        // method is a no-op off tvOS through drivesNowPlaying, but the call
+        // still has to compile out on macOS.
+        #if os(iOS) || os(tvOS)
+            if isAudioOnlySession, let engine = Self.sharedEngine() {
+                var info: [String: Any] = [
+                    MPMediaItemPropertyTitle: title,
+                    MPMediaItemPropertyArtist: subtitle,
+                    MPMediaItemPropertyAlbumTitle: subtitle,
+                    MPNowPlayingInfoPropertyMediaType:
+                        MPNowPlayingInfoMediaType.audio.rawValue,
+                ]
+                if duration > 0 {
+                    info[MPMediaItemPropertyPlaybackDuration] = duration
+                }
+                engine.setAudioNowPlayingInfo(info)
+                return
             }
-            engine.setAudioNowPlayingInfo(info)
-            return
-        }
+        #endif
         nowPlaying.updateMetadata(
             title: title,
             subtitle: subtitle,
@@ -298,14 +307,21 @@ final class AetherPlayerWrapper: NSObject, ObservableObject {
 
     // MARK: - Surface
 
-    func attachVideoView(_ view: UIView) {
+    func attachVideoView(_ view: PlatformView) {
         videoView = view
         playerView.frame = view.bounds
-        playerView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        view.insertSubview(playerView, at: 0)
         subtitleOverlay.frame = view.bounds
-        subtitleOverlay.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        view.insertSubview(subtitleOverlay, aboveSubview: playerView)
+        #if canImport(UIKit)
+            playerView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+            view.insertSubview(playerView, at: 0)
+            subtitleOverlay.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+            view.insertSubview(subtitleOverlay, aboveSubview: playerView)
+        #elseif canImport(AppKit)
+            playerView.autoresizingMask = [.width, .height]
+            view.addSubview(playerView, positioned: .below, relativeTo: nil)
+            subtitleOverlay.autoresizingMask = [.width, .height]
+            view.addSubview(subtitleOverlay, positioned: .above, relativeTo: playerView)
+        #endif
         Self.sharedEngine()?.bind(view: playerView)
         if view.window != nil {
             resumeSurfaceWaiters()
@@ -320,7 +336,7 @@ final class AetherPlayerWrapper: NSObject, ObservableObject {
     /// pop while playback may continue (background audio, PiP). Remove the
     /// render subviews but keep the engine binding, the next attach re-hosts
     /// the same playerView. No-op if another view has attached since.
-    func detachVideoView(from view: UIView) {
+    func detachVideoView(from view: PlatformView) {
         guard videoView === view else { return }
         playerView.removeFromSuperview()
         subtitleOverlay.removeFromSuperview()
@@ -329,7 +345,7 @@ final class AetherPlayerWrapper: NSObject, ObservableObject {
 
     /// The engine-bound render view. PiP introspects it for the active
     /// AVPlayerLayer.
-    var renderView: UIView { playerView }
+    var renderView: PlatformView { playerView }
 
     private func resumeSurfaceWaiters() {
         for continuation in surfaceAttachedContinuations {
@@ -720,7 +736,11 @@ final class AetherPlayerWrapper: NSObject, ObservableObject {
 
         private func renderAss(atSeconds seconds: Double) {
             guard let view = videoView else { return }
-            let scale = view.window?.screen.scale ?? 1
+            #if canImport(UIKit)
+                let scale = view.window?.screen.scale ?? 1
+            #else
+                let scale = view.window?.screen?.backingScaleFactor ?? 1
+            #endif
             assRenderer.setFrameSize(
                 width: Int32(view.bounds.width * scale),
                 height: Int32(view.bounds.height * scale))
@@ -791,20 +811,25 @@ final class AetherPlayerWrapper: NSObject, ObservableObject {
     // MARK: - Audio session
 
     private func activateAudioSession() {
-        guard !audioSessionActive else { return }
-        do {
-            try AVAudioSession.sharedInstance().setActive(true)
-            audioSessionActive = true
-        } catch {
-            // Non-fatal: the engine's AVPlayer host can still activate.
-        }
+        // macOS has no AVAudioSession, audio routing is system managed.
+        #if os(iOS) || os(tvOS)
+            guard !audioSessionActive else { return }
+            do {
+                try AVAudioSession.sharedInstance().setActive(true)
+                audioSessionActive = true
+            } catch {
+                // Non-fatal: the engine's AVPlayer host can still activate.
+            }
+        #endif
     }
 
     private func deactivateAudioSession() {
-        guard audioSessionActive else { return }
-        audioSessionActive = false
-        try? AVAudioSession.sharedInstance().setActive(
-            false, options: .notifyOthersOnDeactivation)
+        #if os(iOS) || os(tvOS)
+            guard audioSessionActive else { return }
+            audioSessionActive = false
+            try? AVAudioSession.sharedInstance().setActive(
+                false, options: .notifyOthersOnDeactivation)
+        #endif
     }
 
     // MARK: - Display criteria inputs
@@ -826,8 +851,14 @@ final class AetherPlayerWrapper: NSObject, ObservableObject {
     }
 
     private func panelIsInHDRMode() -> Bool {
-        UIScreen.main.potentialEDRHeadroom > 1.0
-            && UIScreen.main.currentEDRHeadroom > 1.0
+        #if canImport(UIKit)
+            return UIScreen.main.potentialEDRHeadroom > 1.0
+                && UIScreen.main.currentEDRHeadroom > 1.0
+        #else
+            guard let screen = NSScreen.main else { return false }
+            return screen.maximumPotentialExtendedDynamicRangeColorComponentValue > 1.0
+                && screen.maximumExtendedDynamicRangeColorComponentValue > 1.0
+        #endif
     }
 
     // MARK: - Telemetry

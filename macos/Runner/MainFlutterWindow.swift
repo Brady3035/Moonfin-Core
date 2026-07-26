@@ -6,6 +6,7 @@ class MainFlutterWindow: NSWindow {
   private var sfSymbolChannel: FlutterMethodChannel?
   private var downloadDirChannel: FlutterMethodChannel?
   private var gameChannel: NativeGameChannel?
+  private var aetherVideoChannel: AetherVideoChannel?
   // Retained so the security-scoped access stays open for the session.
   private var accessedDownloadURL: URL?
 
@@ -169,6 +170,21 @@ class MainFlutterWindow: NSWindow {
 
     let gameRegistrar = flutterViewController.registrar(forPlugin: "moonfin_game_host")
     self.gameChannel = NativeGameChannel(registrar: gameRegistrar)
+
+    // AetherEngine playback: control/event channels plus the AppKitView video
+    // surface factory. Same channel names as iOS, so the Dart backend is
+    // shared unchanged.
+    let messenger = flutterViewController.engine.binaryMessenger
+    let aetherChannel = AetherVideoChannel(messenger: messenger)
+    self.aetherVideoChannel = aetherChannel
+    let aetherRegistrar = flutterViewController.registrar(forPlugin: "moonfin_aether_video")
+    aetherRegistrar.register(
+      MacosAetherVideoViewFactory(
+        messenger: messenger,
+        wrapperProvider: { [weak aetherChannel] in
+          aetherChannel?.player ?? AetherPlayerWrapper()
+        }),
+      withId: MacosAetherVideoViewFactory.viewType)
 
     super.awakeFromNib()
   }

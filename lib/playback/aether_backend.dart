@@ -11,13 +11,13 @@ import 'device_profile_builder.dart';
 import 'known_defects.dart';
 import 'server_transcode_capabilities.dart';
 
-/// iOS playback backend driving the native AetherEngine wrapper over a method
-/// channel. Serves everything on iOS: video, live TV, music, audiobooks and
-/// offline playback. Unlike the tvOS sibling there is no native player UI:
-/// Flutter owns the OSD and the video arrives through the
-/// `moonfin/aether_video` platform view.
-class IosAetherBackend implements PlayerBackend {
-  IosAetherBackend(this._prefs) {
+/// Playback backend driving the native AetherEngine wrapper over a method
+/// channel on iOS and macOS. Serves main playback there: video, live TV,
+/// music, audiobooks and offline playback. Unlike the tvOS sibling there is
+/// no native player UI: Flutter owns the OSD and the video arrives through
+/// the `moonfin/aether_video` platform view.
+class AetherBackend implements PlayerBackend {
+  AetherBackend(this._prefs) {
     _eventSub = _events.receiveBroadcastStream().listen(
       _handleEvent,
       onError: (_) {},

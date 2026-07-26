@@ -1,15 +1,26 @@
-import AVFoundation
-import Flutter
-import UIKit
-import VideoToolbox
+// tvOS drives playback through AppleTvVideoChannel and its native player UI,
+// so this channel is only built for the two platforms where Flutter owns the
+// OSD and the video arrives through a platform view.
+#if os(iOS) || os(macOS)
 
-/// iOS playback channel driving the shared AetherPlayerWrapper. Unlike tvOS
-/// (native player UI, per-presentation wrapper), iOS keeps the Flutter OSD and
-/// holds one wrapper for the app's lifetime. Video surfaces attach and detach
-/// around it via the platform view, and background audio / PiP survive route
-/// pops because the wrapper (and engine) never die with a screen.
+import AVFoundation
+import VideoToolbox
+#if canImport(Flutter)
+import Flutter
+#elseif canImport(FlutterMacOS)
+import FlutterMacOS
+#endif
+#if canImport(UIKit)
+import UIKit
+#elseif canImport(AppKit)
+import AppKit
+#endif
+
+/// Playback channel driving the shared AetherPlayerWrapper on iOS and macOS.
+/// One wrapper lives for the app's lifetime while video surfaces attach and
+/// detach around it, so background audio and PiP survive a route pop.
 @MainActor
-final class IosAetherVideoChannel: NSObject, FlutterStreamHandler {
+final class AetherVideoChannel: NSObject, FlutterStreamHandler {
     private let control: FlutterMethodChannel
     private let events: FlutterEventChannel
     private nonisolated(unsafe) var eventSink: FlutterEventSink?
@@ -34,7 +45,7 @@ final class IosAetherVideoChannel: NSObject, FlutterStreamHandler {
         super.init()
         control.setMethodCallHandler { [weak self] call, result in
             if call.method == "getCapabilities" {
-                result(IosVideoCapabilities.deviceProfileCapabilities())
+                result(AetherVideoCapabilities.deviceProfileCapabilities())
                 return
             }
             result(nil)
@@ -208,16 +219,38 @@ final class IosAetherVideoChannel: NSObject, FlutterStreamHandler {
     }
 }
 
-/// iOS device-profile capabilities for AetherEngine. HEVC and H.264 decode
-/// in hardware on all iOS 16 devices. AV1 has hardware on A17 Pro and
-/// M-series chips with software dav1d covering the rest at lower resolutions,
-/// and VP9, MPEG-2, VC-1 and interlaced H.264 route through the engine's
-/// software path.
-enum IosVideoCapabilities {
+/// Device-profile capabilities for AetherEngine. HEVC and H.264 decode in
+/// hardware everywhere this builds. AV1 has hardware on the newest chips with
+/// software dav1d covering the rest at lower resolutions, and VP9, MPEG-2,
+/// VC-1 and interlaced H.264 route through the engine's software path.
+///
+/// Every iOS device that reaches the deployment floor has an HDR capable
+/// screen. A Mac may be driving anything, so there HDR and Dolby Vision are
+/// advertised only when the display has the headroom to show them, and an SDR
+/// monitor gets a tone mapped transcode instead.
+enum AetherVideoCapabilities {
+    private static var displaySupportsHdr: Bool {
+        #if os(macOS)
+            guard let screen = NSScreen.main else { return false }
+            return screen.maximumPotentialExtendedDynamicRangeColorComponentValue > 1.0
+        #else
+            return true
+        #endif
+    }
+
+    private static var deviceModel: String {
+        #if os(macOS)
+            return "Mac"
+        #else
+            return UIDevice.current.model
+        #endif
+    }
+
     static func deviceProfileCapabilities() -> [String: Any] {
         let hardwareAv1 = VTIsHardwareDecodeSupported(kCMVideoCodecType_AV1)
         let av1Width = hardwareAv1 ? 3840 : 1920
         let av1Height = hardwareAv1 ? 2160 : 1080
+        let hdr = displaySupportsHdr
         return [
             "supportsAvc": true,
             "avcMainLevel": 52,
@@ -227,25 +260,27 @@ enum IosVideoCapabilities {
             "hevcMainLevel": 153,
             "supportsHevcMain10": true,
             "hevcMain10Level": 153,
-            "supportsHevcDolbyVision": true,
-            "supportsHevcDolbyVisionEl": true,
-            "supportsHevcHdr10": true,
-            "supportsHevcHdr10Plus": true,
-            "supportsDvP5": true,
-            "supportsDvP7": true,
-            "supportsDvP8": true,
+            "supportsHevcDolbyVision": hdr,
+            "supportsHevcDolbyVisionEl": hdr,
+            "supportsHevcHdr10": hdr,
+            "supportsHevcHdr10Plus": hdr,
+            "supportsDvP5": hdr,
+            "supportsDvP7": hdr,
+            "supportsDvP8": hdr,
             "knownHevcDoviHdr10PlusBug": false,
             "supportsVc1": true,
             "supportsAv1": true,
             "supportsAv1Main10": true,
-            "supportsAv1Hdr10": hardwareAv1,
+            "supportsAv1Hdr10": hardwareAv1 && hdr,
             "supportsAv1Hdr10Plus": false,
             "supportsAv1DolbyVision": false,
             "maxResolutionAvc": ["width": 3840, "height": 2160],
             "maxResolutionHevc": ["width": 3840, "height": 2160],
             "maxResolutionAv1": ["width": av1Width, "height": av1Height],
             "maxResolutionVc1": ["width": 1920, "height": 1080],
-            "deviceModel": UIDevice.current.model,
+            "deviceModel": deviceModel,
         ]
     }
 }
+
+#endif

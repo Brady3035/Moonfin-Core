@@ -74,7 +74,7 @@ private final class NativeAirPlayEventStreamHandler: NSObject, FlutterStreamHand
   fileprivate let airPlayController = AirPlayController()
   fileprivate var castEventSink: FlutterEventSink?
 
-  private var aetherVideoChannel: IosAetherVideoChannel?
+  private var aetherVideoChannel: AetherVideoChannel?
   private var pipController: IosPiPController?
   private var themeMusicChannel: AppleTvThemeMusicChannel?
   private var previewChannel: AppleTvPreviewChannel?
@@ -231,7 +231,7 @@ private final class NativeAirPlayEventStreamHandler: NSObject, FlutterStreamHand
 
       // AetherEngine playback: control/event channels, the UiKitView video
       // surface factory, and PiP (which owns the org.moonfin.ios/pip channel).
-      let aetherChannel = IosAetherVideoChannel(messenger: messenger)
+      let aetherChannel = AetherVideoChannel(messenger: messenger)
       self.aetherVideoChannel = aetherChannel
       self.pipController = IosPiPController(
         messenger: messenger,

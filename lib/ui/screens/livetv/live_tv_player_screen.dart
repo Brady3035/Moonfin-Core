@@ -1470,7 +1470,7 @@ class _LiveTvPlayerScreenState extends State<LiveTvPlayerScreen>
       return _buildTizenVideoChild();
     }
 
-    if (PlatformDetection.isIOS) {
+    if (PlatformDetection.isIOS || PlatformDetection.isMacOS) {
       return const AetherVideoView();
     }
 

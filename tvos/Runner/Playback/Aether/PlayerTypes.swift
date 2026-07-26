@@ -1,9 +1,23 @@
 import Foundation
 import CoreGraphics
+#if canImport(UIKit)
+import UIKit
+#elseif canImport(AppKit)
+import AppKit
+#endif
 
 // Engine-agnostic playback types shared by the player wrapper, the platform
 // channel, and the native player UI. Nothing in this file may reference
 // AetherEngine.
+
+/// The host view type for the platform this file compiles into. The wrapper
+/// and overlay are shared across iOS, tvOS and macOS, so surface plumbing is
+/// written against this alias.
+#if canImport(UIKit)
+typealias PlatformView = UIView
+#elseif canImport(AppKit)
+typealias PlatformView = NSView
+#endif
 
 protocol StringRepresentableEnum {
     var rawValue: String { get }

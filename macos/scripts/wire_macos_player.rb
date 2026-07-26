@@ -1,9 +1,11 @@
 #!/usr/bin/env ruby
-# Wires the AetherEngine playback stack into the iOS Runner project:
-# - adds ios/Runner/Playback/**/* sources to the Runner target
+# Wires the AetherEngine playback stack into the macOS Runner project:
+# - adds macos/Runner/Playback/*.swift and the shared tvOS Aether wrapper
+#   layer to the Runner target
 # - adds the AetherEngine SPM package (AETHER_LOCAL=1 uses the sibling
 #   checkout at ../../AetherEngine for development)
 # - adds the standalone libass package for host-side ASS rendering
+# - raises the deployment target to the engine's macOS floor
 # Idempotent. Run after project regeneration or when Playback/ files change.
 require 'xcodeproj'
 
@@ -20,26 +22,15 @@ source_exts = %w[.swift .c .m .mm]
 abs_files = Dir.glob(File.join(project_dir, 'Runner/Playback/**/*'))
   .select { |f| source_exts.include?(File.extname(f)) }.sort
 
-# The engine wrapper layer (AetherPlayerWrapper, PlayerTypes, SubtitleOverlay,
-# AssRenderer, SubtitleFontLocator, NowPlayingController) is shared with the
-# tvOS target and lives in the tvOS tree. Platform deltas are #if os(...)
-# guarded inside the files.
+# The engine wrapper layer is shared with the iOS and tvOS targets and lives
+# in the tvOS tree. Platform deltas are #if guarded inside the files.
 shared_dir = File.expand_path(
   File.join(project_dir, '..', 'tvos', 'Runner', 'Playback', 'Aether'))
 abs_files += Dir.glob(File.join(shared_dir, '*.swift')).sort
-
-# Theme-music and inline-preview channels are pure AVFoundation and shared
-# with tvOS verbatim (same channel names, so the Dart side needs no changes).
-tvos_runner = File.expand_path(File.join(project_dir, '..', 'tvos', 'Runner'))
-abs_files += [
-  File.join(tvos_runner, 'AppleTvThemeMusicChannel.swift'),
-  File.join(tvos_runner, 'AppleTvPreviewChannel.swift'),
-].select { |f| File.exist?(f) }
 basenames = abs_files.map { |f| File.basename(f) }
 
 # Drop references this script is about to re-add, and any left pointing at a
-# playback file that no longer exists. Without the second case a deleted source
-# stays in the Sources phase forever and the build fails on a missing input.
+# playback file that no longer exists.
 playback_root = File.join(project_dir, 'Runner/Playback')
 project.files.select do |f|
   next true if basenames.include?(File.basename(f.path.to_s))
@@ -140,12 +131,13 @@ unless target.package_product_dependencies.any? { |d| d.product_name == 'libass'
   puts 'linked libass product'
 end
 
+# AetherEngine declares macOS 14 as its floor and SPM enforces it.
 target.build_configurations.each do |config|
-  config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '16.0'
+  config.build_settings['MACOSX_DEPLOYMENT_TARGET'] = '14.0'
 end
 
 project.build_configurations.each do |config|
-  config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '16.0'
+  config.build_settings['MACOSX_DEPLOYMENT_TARGET'] = '14.0'
 end
 
 project.save

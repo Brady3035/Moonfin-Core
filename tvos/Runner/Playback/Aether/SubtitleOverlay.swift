@@ -1,10 +1,30 @@
+#if canImport(UIKit)
 import UIKit
 
-final class SubtitleOverlay: UIView {
+private typealias PlatformColor = UIColor
+private typealias PlatformFont = UIFont
+private typealias PlatformFontWeight = UIFont.Weight
+private typealias PlatformImage = UIImage
+#elseif canImport(AppKit)
+import AppKit
 
+private typealias PlatformColor = NSColor
+private typealias PlatformFont = NSFont
+private typealias PlatformFontWeight = NSFont.Weight
+private typealias PlatformImage = NSImage
+#endif
+
+final class SubtitleOverlay: PlatformView {
+
+    #if canImport(UIKit)
     private let textLabel = UILabel()
     private let bitmapView = UIImageView()
     private let assImageView = UIImageView()
+    #else
+    private let textLabel = NSTextField(labelWithString: "")
+    private let bitmapView = NSImageView()
+    private let assImageView = NSImageView()
+    #endif
     private var eventQueue: [SubtitleEvent] = []
     private var activeEvent: SubtitleEvent?
     private var lastUpdateTime: TimeInterval = 0
@@ -17,13 +37,13 @@ final class SubtitleOverlay: UIView {
     /// the view has bounds doesn't get baked in at the fallback size.
     private var subtitleUserFontSize: CGFloat = 24
     private var subtitlePositionBase = 100
-    private var subtitleFontWeight: UIFont.Weight = .semibold
-    private var subtitleTextColor: UIColor = .white
-    private var subtitleBgColor: UIColor = .clear
-    private var subtitleStrokeColor: UIColor = .black
+    private var subtitleFontWeight: PlatformFontWeight = .semibold
+    private var subtitleTextColor: PlatformColor = .white
+    private var subtitleBgColor: PlatformColor = .clear
+    private var subtitleStrokeColor: PlatformColor = .black
     private var subtitleStrokeEnabled = true
-    /// Point size the label's text was last built at, so layoutSubviews only
-    /// rebuilds it when the height actually changed.
+    /// Point size the label's text was last built at, so layout only rebuilds
+    /// it when the height actually changed.
     private var appliedFontSize: CGFloat = 0
 
     /// The tuned TV mapping (user 24 gives 55pt, floor 24, ceiling 120) held
@@ -65,38 +85,90 @@ final class SubtitleOverlay: UIView {
     }
 
     private func setup() {
+        #if canImport(UIKit)
         isUserInteractionEnabled = false
         backgroundColor = .clear
 
         textLabel.numberOfLines = 0
         textLabel.textAlignment = .center
+        bitmapView.contentMode = .scaleToFill
+        assImageView.contentMode = .scaleToFill
+        #else
+        wantsLayer = true
+
+        textLabel.maximumNumberOfLines = 0
+        textLabel.alignment = .center
+        textLabel.isBezeled = false
+        textLabel.drawsBackground = false
+        bitmapView.imageScaling = .scaleAxesIndependently
+        assImageView.imageScaling = .scaleAxesIndependently
+        #endif
         textLabel.isHidden = true
         addSubview(textLabel)
-
-        bitmapView.contentMode = .scaleToFill
         bitmapView.isHidden = true
         addSubview(bitmapView)
-
-        assImageView.contentMode = .scaleToFill
         assImageView.isHidden = true
         addSubview(assImageView)
     }
 
+    #if canImport(UIKit)
     override func layoutSubviews() {
         super.layoutSubviews()
-        // The point size follows the height, so it changes on rotation and on
+        layoutOverlay()
+    }
+    #else
+    // Keeps the shared top-left layout math valid on AppKit.
+    override var isFlipped: Bool { true }
+
+    // The overlay sits above the video but must never eat clicks meant for
+    // the Flutter OSD underneath the platform view.
+    override func hitTest(_ point: NSPoint) -> NSView? { nil }
+
+    override func layout() {
+        super.layout()
+        layoutOverlay()
+    }
+    #endif
+
+    private func layoutOverlay() {
+        // The point size follows the height, so it changes on resize and on
         // the first real layout after a style was applied against zero bounds.
         if subtitleFontSize != appliedFontSize, let text = activeEvent?.text {
-            textLabel.attributedText = styledText(text)
+            setLabelText(styledText(text))
         }
         layoutTextLabel()
         layoutBitmapView()
         assImageView.frame = bounds
     }
 
+    private func requestLayout() {
+        #if canImport(UIKit)
+        setNeedsLayout()
+        #else
+        needsLayout = true
+        #endif
+    }
+
+    private func setLabelText(_ text: NSAttributedString?) {
+        #if canImport(UIKit)
+        textLabel.attributedText = text
+        #else
+        textLabel.attributedStringValue = text ?? NSAttributedString()
+        #endif
+    }
+
+    private static func platformImage(_ image: CGImage) -> PlatformImage {
+        #if canImport(UIKit)
+        return UIImage(cgImage: image)
+        #else
+        return NSImage(
+            cgImage: image, size: NSSize(width: image.width, height: image.height))
+        #endif
+    }
+
     func showAssImage(_ image: CGImage?) {
         if let image {
-            assImageView.image = UIImage(cgImage: image)
+            assImageView.image = Self.platformImage(image)
             assImageView.isHidden = false
         } else {
             assImageView.image = nil
@@ -182,7 +254,7 @@ final class SubtitleOverlay: UIView {
     /// calls this with min(base, 70) while controls are up.
     func setSubtitlePosition(basePosition: Int) {
         subtitlePositionBase = min(max(basePosition, 40), 100)
-        setNeedsLayout()
+        requestLayout()
     }
 
     // MARK: - Display
@@ -192,13 +264,13 @@ final class SubtitleOverlay: UIView {
         if let text = event.text {
             bitmapView.isHidden = true
             bitmapView.image = nil
-            textLabel.attributedText = styledText(text)
+            setLabelText(styledText(text))
             textLabel.isHidden = false
             layoutTextLabel()
         } else if let bitmap = event.bitmap {
             textLabel.isHidden = true
-            textLabel.attributedText = nil
-            bitmapView.image = UIImage(cgImage: bitmap)
+            setLabelText(nil)
+            bitmapView.image = Self.platformImage(bitmap)
             bitmapView.isHidden = false
             layoutBitmapView()
         }
@@ -207,7 +279,7 @@ final class SubtitleOverlay: UIView {
     private func hideAll() {
         activeEvent = nil
         textLabel.isHidden = true
-        textLabel.attributedText = nil
+        setLabelText(nil)
         bitmapView.isHidden = true
         bitmapView.image = nil
     }
@@ -256,7 +328,7 @@ final class SubtitleOverlay: UIView {
 
     private func styledText(_ text: String) -> NSAttributedString {
         appliedFontSize = subtitleFontSize
-        let font = UIFont.systemFont(ofSize: appliedFontSize, weight: subtitleFontWeight)
+        let font = PlatformFont.systemFont(ofSize: appliedFontSize, weight: subtitleFontWeight)
         var attrs: [NSAttributedString.Key: Any] = [
             .font: font,
             .foregroundColor: subtitleTextColor,
@@ -271,10 +343,10 @@ final class SubtitleOverlay: UIView {
         return NSAttributedString(string: text, attributes: attrs)
     }
 
-    private static func colorFromARGB(_ argb: Int) -> UIColor {
+    private static func colorFromARGB(_ argb: Int) -> PlatformColor {
         let alpha = (argb >> 24) & 0xFF
         if alpha == 0 { return .clear }
-        return UIColor(
+        return PlatformColor(
             red: CGFloat((argb >> 16) & 0xFF) / 255.0,
             green: CGFloat((argb >> 8) & 0xFF) / 255.0,
             blue: CGFloat(argb & 0xFF) / 255.0,

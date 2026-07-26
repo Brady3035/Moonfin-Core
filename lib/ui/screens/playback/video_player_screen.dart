@@ -21,7 +21,7 @@ import '../../widgets/playback/seek_icons.dart';
 import '../../widgets/playback/trickplay_tile_image.dart';
 
 import '../../../playback/html_video_backend.dart';
-import '../../../playback/ios_aether_backend.dart';
+import '../../../playback/aether_backend.dart';
 import '../../../playback/media_kit_player_backend.dart';
 import '../../widgets/aether_video_view.dart';
 import '../../../playback/playback_lifecycle_handler.dart';
@@ -1350,7 +1350,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
   Future<void> _restorePositionAfterScreenLock() async {
     // AetherEngine handles background teardown and restore internally, so a
     // Dart-side restore seek on top would double-seek.
-    if (_activeBackend is IosAetherBackend) {
+    if (_activeBackend is AetherBackend) {
       _positionBeforeScreenLock = null;
       _wasPlayingBeforeScreenLock = false;
       return;
@@ -1625,7 +1625,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
       row(l10n.player, switch (_activeBackend) {
         Media3PlayerBackend _ => 'Media3 (ExoPlayer)',
         HtmlVideoBackend _ => 'HTML5 (browser)',
-        IosAetherBackend _ => 'AetherEngine',
+        AetherBackend _ => 'AetherEngine',
         MediaKitPlayerBackend _ => 'media_kit (libmpv)',
         _ => l10n.unknown,
       }),
@@ -3556,7 +3556,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
       return _buildTizenVideoSurface();
     }
 
-    if (PlatformDetection.isIOS) {
+    if (PlatformDetection.isIOS || PlatformDetection.isMacOS) {
       return Positioned.fill(
         child: AetherVideoView(
           key: _videoSurfaceKey,

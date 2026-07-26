@@ -1358,7 +1358,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get shuffle => 'Karıştır';
 
   @override
-  String get shuffleAll => 'Shuffle All';
+  String get shuffleAll => 'Tümünü Karıştır';
 
   @override
   String get shuffleAllMusic => 'Tüm müzikleri karıştır';
@@ -2121,6 +2121,9 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get settings => 'Ayarlar';
+
+  @override
+  String get settingsSearchHint => 'Search settings';
 
   @override
   String get authentication => 'Kimlik doğrulama';
@@ -3721,7 +3724,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get seerrDiscoveryRows => 'Seerr Keşfet Satırları';
 
   @override
-  String get yourWatchlist => 'Your Watchlist';
+  String get yourWatchlist => 'İzleme Listen';
 
   @override
   String get resetRowsToDefaults => 'Satırları varsayılanlara sıfırla';
@@ -10198,13 +10201,13 @@ class AppLocalizationsTr extends AppLocalizations {
   String get imdbTopEnglishMovies => 'IMDB En Yüksek Puanlı İngilizce Filmler';
 
   @override
-  String get addToWatchlist => 'Add to Watchlist';
+  String get addToWatchlist => 'İzleme Listesine Ekle';
 
   @override
-  String get removeFromWatchlist => 'Remove from Watchlist';
+  String get removeFromWatchlist => 'İzleme Listesinden Sil';
 
   @override
-  String get watchlistUpdateFailed => 'Couldn\'t update watchlist';
+  String get watchlistUpdateFailed => 'İzleme listesi güncellenemedi';
 
   @override
   String get adminSearchParameters => 'Search Parameters';

@@ -2135,6 +2135,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings => 'Impostazioni';
 
   @override
+  String get settingsSearchHint => 'Search settings';
+
+  @override
   String get authentication => 'Autenticazione';
 
   @override

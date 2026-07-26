@@ -2127,6 +2127,9 @@ class AppLocalizationsPa extends AppLocalizations {
   String get settings => 'ਸੈਟਿੰਗਾਂ';
 
   @override
+  String get settingsSearchHint => 'Search settings';
+
+  @override
   String get authentication => 'ਪ੍ਰਮਾਣਿਕਤਾ';
 
   @override

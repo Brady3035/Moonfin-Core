@@ -2147,6 +2147,9 @@ class AppLocalizationsSl extends AppLocalizations {
   String get settings => 'nastavitve';
 
   @override
+  String get settingsSearchHint => 'Search settings';
+
+  @override
   String get authentication => 'Preverjanje pristnosti';
 
   @override

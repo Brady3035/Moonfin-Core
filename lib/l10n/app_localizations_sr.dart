@@ -2235,6 +2235,9 @@ class AppLocalizationsSr extends AppLocalizations {
   String get settings => 'Подешавања';
 
   @override
+  String get settingsSearchHint => 'Search settings';
+
+  @override
   String get authentication => 'Аутентификација';
 
   @override

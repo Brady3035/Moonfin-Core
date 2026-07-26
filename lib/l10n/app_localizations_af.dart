@@ -2132,6 +2132,9 @@ class AppLocalizationsAf extends AppLocalizations {
   String get settings => 'Instellings';
 
   @override
+  String get settingsSearchHint => 'Search settings';
+
+  @override
   String get authentication => 'Stawing';
 
   @override

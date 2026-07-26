@@ -2125,6 +2125,9 @@ class AppLocalizationsMn extends AppLocalizations {
   String get settings => 'Тохиргоо';
 
   @override
+  String get settingsSearchHint => 'Search settings';
+
+  @override
   String get authentication => 'Баталгаажуулалт';
 
   @override

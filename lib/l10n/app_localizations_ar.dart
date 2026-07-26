@@ -2141,6 +2141,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings => 'إعدادات';
 
   @override
+  String get settingsSearchHint => 'Search settings';
+
+  @override
   String get authentication => 'المصادقة';
 
   @override

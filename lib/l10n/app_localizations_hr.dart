@@ -2235,6 +2235,9 @@ class AppLocalizationsHr extends AppLocalizations {
   String get settings => 'postavke';
 
   @override
+  String get settingsSearchHint => 'Search settings';
+
+  @override
   String get authentication => 'Autentifikacija';
 
   @override

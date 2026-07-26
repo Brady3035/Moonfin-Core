@@ -2137,6 +2137,9 @@ class AppLocalizationsKn extends AppLocalizations {
   String get settings => 'ಸೆಟ್ಟಿಂಗ್‌ಗಳು';
 
   @override
+  String get settingsSearchHint => 'Search settings';
+
+  @override
   String get authentication => 'ದೃಢೀಕರಣ';
 
   @override

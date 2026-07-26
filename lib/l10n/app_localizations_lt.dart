@@ -2135,6 +2135,9 @@ class AppLocalizationsLt extends AppLocalizations {
   String get settings => 'Nustatymai';
 
   @override
+  String get settingsSearchHint => 'Search settings';
+
+  @override
   String get authentication => 'Autentifikavimas';
 
   @override

@@ -2132,6 +2132,9 @@ class AppLocalizationsSv extends AppLocalizations {
   String get settings => 'Installningar';
 
   @override
+  String get settingsSearchHint => 'Search settings';
+
+  @override
   String get authentication => 'Autentisering';
 
   @override

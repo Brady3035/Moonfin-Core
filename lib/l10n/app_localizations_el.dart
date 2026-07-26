@@ -2150,6 +2150,9 @@ class AppLocalizationsEl extends AppLocalizations {
   String get settings => 'Ρυθμίσεις';
 
   @override
+  String get settingsSearchHint => 'Search settings';
+
+  @override
   String get authentication => 'Πιστοποίηση';
 
   @override

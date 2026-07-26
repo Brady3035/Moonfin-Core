@@ -2087,6 +2087,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get settings => '설정';
 
   @override
+  String get settingsSearchHint => 'Search settings';
+
+  @override
   String get authentication => '입증';
 
   @override

@@ -2077,6 +2077,9 @@ class AppLocalizationsYue extends AppLocalizations {
   String get settings => '設定';
 
   @override
+  String get settingsSearchHint => 'Search settings';
+
+  @override
   String get authentication => '驗證';
 
   @override

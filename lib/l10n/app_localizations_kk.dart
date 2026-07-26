@@ -2130,6 +2130,9 @@ class AppLocalizationsKk extends AppLocalizations {
   String get settings => 'Параметрлер';
 
   @override
+  String get settingsSearchHint => 'Search settings';
+
+  @override
   String get authentication => 'Аутентификация';
 
   @override

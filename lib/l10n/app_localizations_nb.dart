@@ -32,7 +32,7 @@ class AppLocalizationsNb extends AppLocalizations {
   }
 
   @override
-  String get quickConnect => 'Quick Connect';
+  String get quickConnect => 'Hurtigkobling';
 
   @override
   String get password => 'Passord';
@@ -61,12 +61,12 @@ class AppLocalizationsNb extends AppLocalizations {
 
   @override
   String quickConnectUnavailable(String detail) {
-    return 'QuickConnect er utilgjengelig: $detail';
+    return 'Hurtigkobling er utilgjengelig: $detail';
   }
 
   @override
   String quickConnectUnavailableWithStatus(String status, String detail) {
-    return 'QuickConnect er utilgjengelig ($status): $detail';
+    return 'Hurtigkobling er utilgjengelig ($status): $detail';
   }
 
   @override
@@ -222,7 +222,7 @@ class AppLocalizationsNb extends AppLocalizations {
 
   @override
   String get settingsAppearanceThemeSubtitle =>
-      'Bytt mellom Moonfin og Neon Pulse uten å starte appen på nytt';
+      'Bruk et fullstendig tilpasset tema, og bytt mellom et Apple- eller Material-inspirert brukergrensesnitt.';
 
   @override
   String get customThemeTitle => 'Egendefinert tema';
@@ -243,7 +243,7 @@ class AppLocalizationsNb extends AppLocalizations {
 
   @override
   String get themeMoonfinSubtitle =>
-      'Nåværende Moonfin-utseende du alle har blitt glad i';
+      'Det originale og stilrene Moonfin-standarden.';
 
   @override
   String get themeNeonPulse => 'Neon Pulse';
@@ -1072,7 +1072,7 @@ class AppLocalizationsNb extends AppLocalizations {
   String get cast => 'Cast';
 
   @override
-  String get castMembers => 'Cast';
+  String get castMembers => 'Medvirkende';
 
   @override
   String get trailer => 'Trailer';
@@ -1093,7 +1093,7 @@ class AppLocalizationsNb extends AppLocalizations {
   String get downloaded => 'Lastet ned';
 
   @override
-  String get finalizingDownload => 'Finalizing…';
+  String get finalizingDownload => 'Fullfører…';
 
   @override
   String get downloadAll => 'Last ned alle';
@@ -1137,7 +1137,7 @@ class AppLocalizationsNb extends AppLocalizations {
 
   @override
   String failedToDeleteItemWithError(String error) {
-    return 'Deletion operation failed with the following error: $error';
+    return 'Slettingen mislyktes med følgende feil: $error';
   }
 
   @override
@@ -1357,7 +1357,7 @@ class AppLocalizationsNb extends AppLocalizations {
   String get shuffle => 'Tilfeldig';
 
   @override
-  String get shuffleAll => 'Shuffle All';
+  String get shuffleAll => 'Bland alle';
 
   @override
   String get shuffleAllMusic => 'Spill all musikk i tilfeldig rekkefølge';
@@ -2124,6 +2124,9 @@ class AppLocalizationsNb extends AppLocalizations {
   String get settings => 'Innstillinger';
 
   @override
+  String get settingsSearchHint => 'Search settings';
+
+  @override
   String get authentication => 'Autentisering';
 
   @override
@@ -2246,7 +2249,7 @@ class AppLocalizationsNb extends AppLocalizations {
 
   @override
   String get seriesThumbnailsDescription =>
-      'Bare episoder: bruk seriegrafikk som samsvarer med hver radbildetype';
+      'Bare episoder: bruk seriegrafikk som samsvarer med hver radbildetype.';
 
   @override
   String get homeRowInfoOverlay => 'Hjem Rad Info Overlay';
@@ -2319,7 +2322,7 @@ class AppLocalizationsNb extends AppLocalizations {
   String get detailsBackgroundBlur => 'Detaljer Bakgrunnsuskarphet';
 
   @override
-  String get detailsBackgroundOpacity => 'Details Background Opacity';
+  String get detailsBackgroundOpacity => 'Gjennomsiktighet for detaljbakgrunn';
 
   @override
   String pixelValue(int value) {
@@ -3098,7 +3101,7 @@ class AppLocalizationsNb extends AppLocalizations {
 
   @override
   String get transcodingTimeRemainingUnavailable =>
-      'Transcoding: Time Remaining Unavailable';
+      'Omkoding: Gjenstående tid er utilgjengelig';
 
   @override
   String get enable => 'Aktiver';
@@ -3235,7 +3238,7 @@ class AppLocalizationsNb extends AppLocalizations {
   String get showInNavigation => 'Vis i navigasjon';
 
   @override
-  String get showInLatestMedia => 'Vis i siste media';
+  String get showInLatestMedia => 'Vis under nylig lagt til/utgitt media';
 
   @override
   String get sourceLibraries => 'Kildebiblioteker';
@@ -3340,11 +3343,11 @@ class AppLocalizationsNb extends AppLocalizations {
   String get enableTrailerAudio => 'Aktiver lyd for trailere i Media Bar';
 
   @override
-  String get trailerCaptions => 'Trailer Captions';
+  String get trailerCaptions => 'Undertekster for trailere';
 
   @override
   String get trailerCaptionsDescription =>
-      'Show captions on YouTube trailers in the media bar';
+      'Vis undertekster på YouTube-trailere i mediefeltet';
 
   @override
   String get episodePreview => 'Forhåndsvisning av episode';
@@ -3364,11 +3367,10 @@ class AppLocalizationsNb extends AppLocalizations {
   String get previewAudio => 'Forhåndsvis lyd';
 
   @override
-  String get enablePreviewAudio =>
-      'Aktiver lyd for forhåndsvisninger av trailer og episode';
+  String get enablePreviewAudio => 'Aktiver lyd for medieforhåndsvisninger';
 
   @override
-  String get latestMedia => 'Siste media';
+  String get latestMedia => 'Nylig lagt til';
 
   @override
   String get recentlyReleased => 'Nylig utgitt';
@@ -3429,11 +3431,11 @@ class AppLocalizationsNb extends AppLocalizations {
       'Begrens hjem-rader til én rad per skjerm';
 
   @override
-  String get homeRowsPadding => 'Home Row Padding';
+  String get homeRowsPadding => 'Vertikal avstand mellom rader på startsiden';
 
   @override
   String get homeRowsPaddingDescription =>
-      'Customize padding between home rows';
+      'Tilpass den vertikale avstanden mellom radene på startsiden';
 
   @override
   String get perRowImageType => 'Bildetype per rad';
@@ -3703,7 +3705,7 @@ class AppLocalizationsNb extends AppLocalizations {
   String get seerrDiscoveryRows => 'Seerr-oppdagelsesrader';
 
   @override
-  String get yourWatchlist => 'Your Watchlist';
+  String get yourWatchlist => 'Din visningsliste';
 
   @override
   String get resetRowsToDefaults => 'Tilbakestill rader til standardverdier';
@@ -4365,7 +4367,7 @@ class AppLocalizationsNb extends AppLocalizations {
   String get time => 'Tid';
 
   @override
-  String get trickplay => 'Trickplay';
+  String get trickplay => 'Miniatyrbilder ved spoling';
 
   @override
   String get uninstall => 'Avinstaller';
@@ -4425,7 +4427,7 @@ class AppLocalizationsNb extends AppLocalizations {
   String get adminDrawerStreaming => 'Strømming';
 
   @override
-  String get adminDrawerTrickplay => 'Trickplay';
+  String get adminDrawerTrickplay => 'Miniatyrbilder ved spoling';
 
   @override
   String get adminDrawerDevices => 'Enheter';
@@ -4681,7 +4683,7 @@ class AppLocalizationsNb extends AppLocalizations {
 
   @override
   String adminRemoveDeviceConfirm(String name) {
-    return 'Vil du fjerne enheten «$name»? Brukeren må logge på igjen på denne enheten.';
+    return 'Vil du fjerne enheten \'$name\'? Brukeren må logge på igjen på denne enheten.';
   }
 
   @override
@@ -7597,7 +7599,7 @@ class AppLocalizationsNb extends AppLocalizations {
       'Aktiver advarsler om trege svar';
 
   @override
-  String get adminGeneralQuickConnect => 'Aktiver Quick Connect';
+  String get adminGeneralQuickConnect => 'Aktiver hurtigkobling';
 
   @override
   String get adminGeneralSectionServer => 'Server';
@@ -7956,35 +7958,35 @@ class AppLocalizationsNb extends AppLocalizations {
 
   @override
   String get quickConnectAuthorized =>
-      'Quick Connect-forespørselen er autorisert.';
+      'Hurtigkoblingsforespørselen er autorisert.';
 
   @override
   String get quickConnectInvalidOrExpired =>
-      'Quick Connect-koden er ugyldig eller utløpt.';
+      'Hurtigkoblingskoden er ugyldig eller utløpt.';
 
   @override
   String get quickConnectNotSupported =>
-      'Quick Connect støttes ikke på denne serveren.';
+      'Hurtigkobling støttes ikke på denne serveren.';
 
   @override
   String get quickConnectAuthorizeFailed =>
-      'Kunne ikke autorisere Quick Connect-koden.';
+      'Kunne ikke autorisere hurtigkoblingskoden.';
 
   @override
   String get quickConnectDisabled =>
-      'Quick Connect er deaktivert på denne serveren.';
+      'Hurtigkobling er deaktivert på denne serveren.';
 
   @override
   String get quickConnectForbidden =>
-      'Kontoen din kan ikke godkjenne denne Quick Connect-forespørselen.';
+      'Kontoen din kan ikke autorisere denne hurtigkoblingsforespørselen.';
 
   @override
   String get quickConnectNotFound =>
-      'Quick Connect-koden ble ikke funnet. Prøv en ny kode.';
+      'Hurtigkoblingskoden ble ikke funnet. Prøv en ny kode.';
 
   @override
   String quickConnectFailedWithMessage(String message) {
-    return 'Quick Connect mislyktes: $message';
+    return 'Hurtigkobling mislyktes: $message';
   }
 
   @override
@@ -8408,7 +8410,7 @@ class AppLocalizationsNb extends AppLocalizations {
       'Choose which systems to install. Cores are provided by the libretro project and let games run natively instead of in a browser view.';
 
   @override
-  String get emulatorCoreDownloading => 'Downloading';
+  String get emulatorCoreDownloading => 'Laster ned';
 
   @override
   String get emulatorCoreUnavailable => 'Not available for this device';
@@ -8418,7 +8420,7 @@ class AppLocalizationsNb extends AppLocalizations {
       'Could not download the core. Check your connection and try again.';
 
   @override
-  String get downloadedGames => 'Downloaded Games';
+  String get downloadedGames => 'Nedlastede spill';
 
   @override
   String get downloadedGamesSubtitle => 'Free up space used by game files';
@@ -8809,7 +8811,7 @@ class AppLocalizationsNb extends AppLocalizations {
 
   @override
   String latestLibraryName(String libraryName) {
-    return 'Latest $libraryName';
+    return 'Nylig lagt til i $libraryName';
   }
 
   @override
@@ -9982,7 +9984,7 @@ class AppLocalizationsNb extends AppLocalizations {
     String libraryName,
     String failedPath,
   ) {
-    return 'Biblioteket «$libraryName» er konfigurert til å lagre bildemateriell direkte i mediemappene («Save artwork into media folders» er aktivert). Jellyfin har imidlertid testet skrivetilgangen og har ikke tillatelse til å skrive filer til denne katalogen:\n\n$failedPath';
+    return 'Biblioteket \'$libraryName\' er konfigurert til å lagre bildemateriell direkte i mediemappene (\'Save artwork into media folders\' er aktivert). Jellyfin har imidlertid testet skrivetilgangen og har ikke tillatelse til å skrive filer til denne katalogen:\n\n$failedPath';
   }
 
   @override
@@ -10176,13 +10178,13 @@ class AppLocalizationsNb extends AppLocalizations {
   String get imdbTopEnglishMovies => 'IMDb topprangerte engelske filmer';
 
   @override
-  String get addToWatchlist => 'Add to Watchlist';
+  String get addToWatchlist => 'Legg til i visningslisten';
 
   @override
-  String get removeFromWatchlist => 'Remove from Watchlist';
+  String get removeFromWatchlist => 'Fjern fra visningslisten';
 
   @override
-  String get watchlistUpdateFailed => 'Couldn\'t update watchlist';
+  String get watchlistUpdateFailed => 'Kunne ikke oppdatere visningslisten';
 
   @override
   String get adminSearchParameters => 'Search Parameters';

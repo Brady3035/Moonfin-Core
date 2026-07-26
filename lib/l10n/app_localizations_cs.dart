@@ -2140,6 +2140,9 @@ class AppLocalizationsCs extends AppLocalizations {
   String get settings => 'Nastavení';
 
   @override
+  String get settingsSearchHint => 'Search settings';
+
+  @override
   String get authentication => 'Autentizace';
 
   @override

@@ -2139,6 +2139,9 @@ class AppLocalizationsMl extends AppLocalizations {
   String get settings => 'ക്രമീകരണങ്ങൾ';
 
   @override
+  String get settingsSearchHint => 'Search settings';
+
+  @override
   String get authentication => 'പ്രാമാണീകരണം';
 
   @override

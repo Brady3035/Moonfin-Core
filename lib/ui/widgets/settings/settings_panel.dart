@@ -1,5 +1,6 @@
 import 'dart:ui' show ImageFilter;
 
+import 'package:custom_tv_text_field/custom_tv_text_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:moonfin_design/moonfin_design.dart';
@@ -155,6 +156,9 @@ class _SettingsNavigatorState extends State<_SettingsNavigator> {
   }
 
   void _handleBackDismiss() {
+    // An open TV keyboard owns back, so close it instead of popping the panel
+    // out from underneath it.
+    if (CustomTVTextField.closeTopKeyboard()) return;
     final navigator = _navKey.currentState;
     if (navigator != null && navigator.canPop()) {
       navigator.pop();

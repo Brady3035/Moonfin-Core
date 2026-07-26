@@ -2137,6 +2137,9 @@ class AppLocalizationsTe extends AppLocalizations {
   String get settings => 'సెట్టింగ్‌లు';
 
   @override
+  String get settingsSearchHint => 'Search settings';
+
+  @override
   String get authentication => 'ప్రమాణీకరణ';
 
   @override

@@ -2126,6 +2126,9 @@ class AppLocalizationsEo extends AppLocalizations {
   String get settings => 'Agordoj';
 
   @override
+  String get settingsSearchHint => 'Search settings';
+
+  @override
   String get authentication => 'Aŭtentikigo';
 
   @override

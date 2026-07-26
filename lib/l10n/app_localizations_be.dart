@@ -2139,6 +2139,9 @@ class AppLocalizationsBe extends AppLocalizations {
   String get settings => 'Налады';
 
   @override
+  String get settingsSearchHint => 'Search settings';
+
+  @override
   String get authentication => 'Аўтэнтыфікацыя';
 
   @override

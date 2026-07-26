@@ -2146,6 +2146,9 @@ class AppLocalizationsSk extends AppLocalizations {
   String get settings => 'Nastavenia';
 
   @override
+  String get settingsSearchHint => 'Search settings';
+
+  @override
   String get authentication => 'Autentifikácia';
 
   @override

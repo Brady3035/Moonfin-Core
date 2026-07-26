@@ -79,12 +79,15 @@ import 'plugin_settings_screen.dart';
 import 'ratings_config_screen.dart';
 import 'seerr_config_screen.dart';
 import 'settings_app_bar.dart';
+import 'subtitle_customization_screen.dart';
 import 'subtitle_settings_screen.dart';
 import '../detail/detail_buttons.dart';
 import '../playback/osd_buttons.dart';
 import '../syncplay/syncplay_screen.dart';
 
 part 'panel/settings_panel_infra.dart';
+part 'panel/settings_search_field.dart';
+part 'panel/settings_search_index.dart';
 part 'panel/authentication_category_screen.dart';
 part 'panel/customization_category_screen.dart';
 part 'panel/general_style_screen.dart';
@@ -119,6 +122,10 @@ class SettingsSidePanel extends ConsumerStatefulWidget {
 
 class _SettingsSidePanelState extends ConsumerState<SettingsSidePanel> {
   final _firstFocusNode = FocusNode(debugLabel: 'TvSettingsPanelFirstItem');
+  final _searchController = TextEditingController();
+  final _searchFieldFocus = FocusNode(debugLabel: 'SettingsSearchField');
+  final _searchTvFieldKey = GlobalKey<CustomTVTextFieldState>();
+  String _query = '';
 
   bool get _showThemeEditorEntry =>
       PlatformDetection.isWeb && webRuntimeConfig.pluginMode;
@@ -186,12 +193,51 @@ class _SettingsSidePanelState extends ConsumerState<SettingsSidePanel> {
     if (!PlatformDetection.useMobileUi) {
       _requestInitialFocus();
     }
+    _searchController.addListener(_onSearchChanged);
+    if (PlatformDetection.useDesktopUi) {
+      // Attached to the node so it runs before the text field consumes the
+      // key. Down leaves the field for the list, left and right stay caret
+      // moves.
+      _searchFieldFocus.onKeyEvent = _onDesktopSearchKey;
+    }
   }
 
   @override
   void dispose() {
     _firstFocusNode.dispose();
+    _searchController.dispose();
+    _searchFieldFocus.dispose();
     super.dispose();
+  }
+
+  void _onSearchChanged() {
+    final query = _searchController.text.trim();
+    if (query == _query) return;
+    setState(() => _query = query);
+    if (PlatformDetection.useMobileUi) return;
+    // If the focused result just filtered away, fall back to the field so the
+    // d-pad is never stranded on a dead node. Skipped while the TV keyboard
+    // is up so it cannot pull key events away from the keyboard grid.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (CustomTVTextField.isKeyboardVisibleNotifier.value) return;
+      final primary = FocusManager.instance.primaryFocus;
+      if (primary == null || primary.context == null) {
+        _searchFieldFocus.requestFocus();
+      }
+    });
+  }
+
+  KeyEventResult _onDesktopSearchKey(FocusNode node, KeyEvent event) {
+    if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
+      return KeyEventResult.ignored;
+    }
+    if (event.logicalKey.isDownKey) {
+      return node.focusInDirection(TraversalDirection.down)
+          ? KeyEventResult.handled
+          : KeyEventResult.ignored;
+    }
+    return KeyEventResult.ignored;
   }
 
   @override
@@ -267,15 +313,84 @@ class _SettingsSidePanelState extends ConsumerState<SettingsSidePanel> {
         automaticallyImplyLeading: false,
         title: Text(l10n.settings),
       ),
-      body: ListView(
+      body: Column(
         children: [
-          adaptiveListSection(
-            children: [
-              for (final entry in entries) _PanelEntryTile(entry: entry),
-            ],
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+            child: _SettingsSearchField(
+              controller: _searchController,
+              focusNode: _searchFieldFocus,
+              tvFieldKey: _searchTvFieldKey,
+              hint: l10n.settingsSearchHint,
+              onClear: _searchController.clear,
+            ),
+          ),
+          Expanded(
+            child: _query.isEmpty
+                ? ListView(
+                    children: [
+                      adaptiveListSection(
+                        children: [
+                          for (final entry in entries)
+                            _PanelEntryTile(entry: entry),
+                        ],
+                      ),
+                    ],
+                  )
+                : _buildSearchResults(context, l10n, showAdmin),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildSearchResults(
+    BuildContext context,
+    AppLocalizations l10n,
+    bool showAdmin,
+  ) {
+    final index = _buildSettingsSearchIndex(
+      l10n: l10n,
+      showAdmin: showAdmin,
+      showThemeEditor: _showThemeEditorEntry,
+      push: (screen) => context.pushSettingsScreen(screen),
+      openAdmin: () {
+        _closeSettingsPanel();
+        context.navigateTopLevel(Destinations.admin);
+      },
+      openThemeEditor: () => unawaited(_openThemeEditor()),
+    );
+    final results = _filterSettingsIndex(index, _query);
+    if (results.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Text(l10n.noResultsForQuery(_query)),
+        ),
+      );
+    }
+    return ListView(
+      children: [
+        adaptiveListSection(
+          children: [
+            for (final result in results)
+              _TvSettingsListTile(
+                key: ValueKey(result.id),
+                leading: Icon(result.icon),
+                title: Text(result.title),
+                subtitle: result.subtitle.isEmpty
+                    ? null
+                    : Text(result.subtitle),
+                onTap: () {
+                  if (PlatformDetection.useMobileUi) {
+                    _searchFieldFocus.unfocus();
+                  }
+                  result.onOpen();
+                },
+              ),
+          ],
+        ),
+      ],
     );
   }
 }

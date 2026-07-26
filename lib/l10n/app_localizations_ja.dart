@@ -2088,6 +2088,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settings => '設定';
 
   @override
+  String get settingsSearchHint => 'Search settings';
+
+  @override
   String get authentication => '認証';
 
   @override

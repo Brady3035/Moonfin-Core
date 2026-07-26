@@ -2140,6 +2140,9 @@ class AppLocalizationsLv extends AppLocalizations {
   String get settings => 'Iestatījumi';
 
   @override
+  String get settingsSearchHint => 'Search settings';
+
+  @override
   String get authentication => 'Autentifikācija';
 
   @override

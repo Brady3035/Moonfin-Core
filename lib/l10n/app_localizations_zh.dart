@@ -2076,6 +2076,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings => '设置';
 
   @override
+  String get settingsSearchHint => 'Search settings';
+
+  @override
   String get authentication => '身份验证';
 
   @override

@@ -2133,6 +2133,9 @@ class AppLocalizationsEt extends AppLocalizations {
   String get settings => 'Seaded';
 
   @override
+  String get settingsSearchHint => 'Search settings';
+
+  @override
   String get authentication => 'Autentimine';
 
   @override

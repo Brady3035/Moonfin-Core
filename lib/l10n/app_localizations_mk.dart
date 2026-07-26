@@ -2137,6 +2137,9 @@ class AppLocalizationsMk extends AppLocalizations {
   String get settings => 'Поставки';
 
   @override
+  String get settingsSearchHint => 'Search settings';
+
+  @override
   String get authentication => 'Автентикација';
 
   @override

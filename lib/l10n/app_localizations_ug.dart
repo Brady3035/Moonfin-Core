@@ -2128,6 +2128,9 @@ class AppLocalizationsUg extends AppLocalizations {
   String get settings => 'تەڭشەك';
 
   @override
+  String get settingsSearchHint => 'Search settings';
+
+  @override
   String get authentication => 'دەلىللەش';
 
   @override

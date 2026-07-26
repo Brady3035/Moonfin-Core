@@ -2126,6 +2126,9 @@ class AppLocalizationsDa extends AppLocalizations {
   String get settings => 'Indstillinger';
 
   @override
+  String get settingsSearchHint => 'Search settings';
+
+  @override
   String get authentication => 'Autentificering';
 
   @override

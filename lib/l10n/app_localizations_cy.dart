@@ -2151,6 +2151,9 @@ class AppLocalizationsCy extends AppLocalizations {
   String get settings => 'Gosodiadau';
 
   @override
+  String get settingsSearchHint => 'Search settings';
+
+  @override
   String get authentication => 'Dilysu';
 
   @override

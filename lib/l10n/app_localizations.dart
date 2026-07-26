@@ -3826,6 +3826,12 @@ abstract class AppLocalizations {
   /// **'Settings'**
   String get settings;
 
+  /// Hint text in the settings search field
+  ///
+  /// In en, this message translates to:
+  /// **'Search settings'**
+  String get settingsSearchHint;
+
   /// Auth settings section title
   ///
   /// In en, this message translates to:

@@ -3016,6 +3016,10 @@
   "@settings": {
     "description": "Settings screen title"
   },
+  "settingsSearchHint": "Search settings",
+  "@settingsSearchHint": {
+    "description": "Hint text in the settings search field"
+  },
   "authentication": "Authentication",
   "@authentication": {
     "description": "Auth settings section title"

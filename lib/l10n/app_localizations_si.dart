@@ -2122,6 +2122,9 @@ class AppLocalizationsSi extends AppLocalizations {
   String get settings => 'සැකසීම්';
 
   @override
+  String get settingsSearchHint => 'Search settings';
+
+  @override
   String get authentication => 'සත්යාපනය';
 
   @override

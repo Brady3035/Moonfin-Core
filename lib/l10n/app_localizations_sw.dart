@@ -2141,6 +2141,9 @@ class AppLocalizationsSw extends AppLocalizations {
   String get settings => 'Mipangilio';
 
   @override
+  String get settingsSearchHint => 'Search settings';
+
+  @override
   String get authentication => 'Uthibitishaji';
 
   @override

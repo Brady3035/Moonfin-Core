@@ -127,12 +127,21 @@ class BoundedNetworkImage extends StatelessWidget {
           alignment: alignment,
           fadeInDuration: fadeInDuration,
           memCacheWidth: cacheW,
+          // CachedNetworkImage defaults to FilterQuality.low, below the framework
+          // default it would otherwise inherit.
+          filterQuality: FilterQuality.medium,
           imageBuilder: onLoadFinished == null
               ? null
               : (context, imageProvider) {
                   _notifyLoadFinished();
+                  // An imageBuilder replaces the widget's own image, so the
+                  // decode bound has to be reapplied here.
                   return Image(
-                    image: imageProvider,
+                    image: ResizeImage.resizeIfNeeded(
+                      cacheW,
+                      null,
+                      imageProvider,
+                    ),
                     fit: fit,
                     alignment: alignment,
                   );

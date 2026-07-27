@@ -3718,6 +3718,13 @@ class AppLocalizationsHe extends AppLocalizations {
   String get seerrNotifyIssuesSubtitle => 'תקלות חדשות, תגובות ופתרונות';
 
   @override
+  String get seerrNotifyNewMediaTitle => 'New media added';
+
+  @override
+  String get seerrNotifyNewMediaSubtitle =>
+      'Anything new added to the server library';
+
+  @override
   String loggedInAs(String username) {
     return 'מחובר בתור: $username';
   }

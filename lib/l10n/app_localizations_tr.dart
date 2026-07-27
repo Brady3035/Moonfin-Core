@@ -3771,6 +3771,13 @@ class AppLocalizationsTr extends AppLocalizations {
   String get seerrNotifyIssuesSubtitle => 'Yeni sorunlar, yanıtlar ve çözümler';
 
   @override
+  String get seerrNotifyNewMediaTitle => 'New media added';
+
+  @override
+  String get seerrNotifyNewMediaSubtitle =>
+      'Anything new added to the server library';
+
+  @override
   String loggedInAs(String username) {
     return '$username olarak oturum açıldı';
   }

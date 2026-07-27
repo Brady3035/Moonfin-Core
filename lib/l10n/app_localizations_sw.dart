@@ -3784,6 +3784,13 @@ class AppLocalizationsSw extends AppLocalizations {
       'Matatizo mapya, majibu, na masuluhisho';
 
   @override
+  String get seerrNotifyNewMediaTitle => 'New media added';
+
+  @override
+  String get seerrNotifyNewMediaSubtitle =>
+      'Anything new added to the server library';
+
+  @override
   String loggedInAs(String username) {
     return 'Umeingia kama: $username';
   }

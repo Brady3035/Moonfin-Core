@@ -3793,6 +3793,13 @@ class AppLocalizationsTl extends AppLocalizations {
       'Mga bagong issue, tugon, at resolusyon';
 
   @override
+  String get seerrNotifyNewMediaTitle => 'New media added';
+
+  @override
+  String get seerrNotifyNewMediaSubtitle =>
+      'Anything new added to the server library';
+
+  @override
   String loggedInAs(String username) {
     return 'Naka-log in bilang: $username';
   }

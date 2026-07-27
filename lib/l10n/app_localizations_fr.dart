@@ -3806,6 +3806,13 @@ class AppLocalizationsFr extends AppLocalizations {
       'Nouveaux problèmes, réponses et résolutions';
 
   @override
+  String get seerrNotifyNewMediaTitle => 'New media added';
+
+  @override
+  String get seerrNotifyNewMediaSubtitle =>
+      'Anything new added to the server library';
+
+  @override
   String loggedInAs(String username) {
     return 'Connecté en tant que : $username';
   }

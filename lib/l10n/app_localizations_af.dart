@@ -3762,6 +3762,13 @@ class AppLocalizationsAf extends AppLocalizations {
       'Nuwe kwessies, antwoorde en oplossings';
 
   @override
+  String get seerrNotifyNewMediaTitle => 'New media added';
+
+  @override
+  String get seerrNotifyNewMediaSubtitle =>
+      'Anything new added to the server library';
+
+  @override
   String loggedInAs(String username) {
     return 'Aangeteken as: $username';
   }

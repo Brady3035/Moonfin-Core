@@ -3659,6 +3659,13 @@ class AppLocalizationsKo extends AppLocalizations {
   String get seerrNotifyIssuesSubtitle => '새 문제, 댓글, 해결 알림';
 
   @override
+  String get seerrNotifyNewMediaTitle => 'New media added';
+
+  @override
+  String get seerrNotifyNewMediaSubtitle =>
+      'Anything new added to the server library';
+
+  @override
   String loggedInAs(String username) {
     return '로그인 계정: $username';
   }

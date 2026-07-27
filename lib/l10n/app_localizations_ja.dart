@@ -3667,6 +3667,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get seerrNotifyIssuesSubtitle => '新しい問題、返信、解決';
 
   @override
+  String get seerrNotifyNewMediaTitle => 'New media added';
+
+  @override
+  String get seerrNotifyNewMediaSubtitle =>
+      'Anything new added to the server library';
+
+  @override
   String loggedInAs(String username) {
     return 'ログイン中: $username';
   }

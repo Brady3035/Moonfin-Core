@@ -3787,6 +3787,13 @@ class AppLocalizationsTa extends AppLocalizations {
       'புதிய சிக்கல்கள், பதில்கள் மற்றும் தீர்வுகள்';
 
   @override
+  String get seerrNotifyNewMediaTitle => 'New media added';
+
+  @override
+  String get seerrNotifyNewMediaSubtitle =>
+      'Anything new added to the server library';
+
+  @override
   String loggedInAs(String username) {
     return 'உள்நுழைந்துள்ளவர்: $username';
   }

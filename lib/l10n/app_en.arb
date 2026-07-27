@@ -5117,6 +5117,14 @@
   "@seerrNotifyIssuesSubtitle": {
     "description": "Subtitle for the issue notifications toggle"
   },
+  "seerrNotifyNewMediaTitle": "New media added",
+  "@seerrNotifyNewMediaTitle": {
+    "description": "Title for the toggle that notifies about anything newly added to the server library, not just requested media"
+  },
+  "seerrNotifyNewMediaSubtitle": "Anything new added to the server library",
+  "@seerrNotifyNewMediaSubtitle": {
+    "description": "Subtitle for the new media notifications toggle"
+  },
   "loggedInAs": "Logged in as: {username}",
   "@loggedInAs": {
     "description": "Label showing logged in username",

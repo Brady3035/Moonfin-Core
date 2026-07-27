@@ -3754,6 +3754,13 @@ class AppLocalizationsEo extends AppLocalizations {
       'Novaj problemoj, respondoj kaj solvoj';
 
   @override
+  String get seerrNotifyNewMediaTitle => 'New media added';
+
+  @override
+  String get seerrNotifyNewMediaSubtitle =>
+      'Anything new added to the server library';
+
+  @override
   String loggedInAs(String username) {
     return 'Ensalutinta kiel: $username';
   }

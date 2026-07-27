@@ -3877,6 +3877,13 @@ class AppLocalizationsSr extends AppLocalizations {
   String get seerrNotifyIssuesSubtitle => 'Нови проблеми, одговори и решења';
 
   @override
+  String get seerrNotifyNewMediaTitle => 'New media added';
+
+  @override
+  String get seerrNotifyNewMediaSubtitle =>
+      'Anything new added to the server library';
+
+  @override
   String loggedInAs(String username) {
     return 'Пријављени сте као: $username';
   }

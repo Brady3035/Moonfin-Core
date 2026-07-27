@@ -3781,6 +3781,13 @@ class AppLocalizationsLt extends AppLocalizations {
       'Naujos problemos, atsakymai ir sprendimai';
 
   @override
+  String get seerrNotifyNewMediaTitle => 'New media added';
+
+  @override
+  String get seerrNotifyNewMediaSubtitle =>
+      'Anything new added to the server library';
+
+  @override
   String loggedInAs(String username) {
     return 'Prisijungta kaip: $username';
   }

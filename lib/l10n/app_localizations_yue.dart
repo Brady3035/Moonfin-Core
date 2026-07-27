@@ -3632,6 +3632,13 @@ class AppLocalizationsYue extends AppLocalizations {
   String get seerrNotifyIssuesSubtitle => '新問題、回覆同解決結果';
 
   @override
+  String get seerrNotifyNewMediaTitle => 'New media added';
+
+  @override
+  String get seerrNotifyNewMediaSubtitle =>
+      'Anything new added to the server library';
+
+  @override
   String loggedInAs(String username) {
     return '已登入身分：$username';
   }

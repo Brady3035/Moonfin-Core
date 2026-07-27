@@ -6838,6 +6838,18 @@ abstract class AppLocalizations {
   /// **'New issues, replies, and resolutions'**
   String get seerrNotifyIssuesSubtitle;
 
+  /// Title for the toggle that notifies about anything newly added to the server library, not just requested media
+  ///
+  /// In en, this message translates to:
+  /// **'New media added'**
+  String get seerrNotifyNewMediaTitle;
+
+  /// Subtitle for the new media notifications toggle
+  ///
+  /// In en, this message translates to:
+  /// **'Anything new added to the server library'**
+  String get seerrNotifyNewMediaSubtitle;
+
   /// Label showing logged in username
   ///
   /// In en, this message translates to:

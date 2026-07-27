@@ -3801,6 +3801,13 @@ class AppLocalizationsCa extends AppLocalizations {
       'Incidències noves, respostes i resolucions';
 
   @override
+  String get seerrNotifyNewMediaTitle => 'New media added';
+
+  @override
+  String get seerrNotifyNewMediaSubtitle =>
+      'Anything new added to the server library';
+
+  @override
   String loggedInAs(String username) {
     return 'Inicieu sessió com a: $username';
   }

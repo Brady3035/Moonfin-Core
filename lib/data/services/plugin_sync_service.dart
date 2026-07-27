@@ -672,6 +672,7 @@ class PluginSyncService extends ChangeNotifier {
           'notifyOnNewRequests': _seerrPrefs.notifyOnNewRequests,
           'notifyOnLibraryAdded': _seerrPrefs.notifyOnLibraryAdded,
           'notifyOnIssues': _seerrPrefs.notifyOnIssues,
+          'notifyOnNewMedia': _seerrPrefs.notifyOnNewMedia,
         },
         options: Options(
           headers: {...headers, 'Content-Type': 'application/json'},
@@ -680,7 +681,10 @@ class PluginSyncService extends ChangeNotifier {
     } catch (_) {}
   }
 
-  Future<void> registerPushDevice(
+  /// Returns true when the registration POST succeeded and false when it was
+  /// skipped or failed, so the caller can queue a retry instead of assuming
+  /// the device is enrolled.
+  Future<bool> registerPushDevice(
     MediaServerClient client, {
     required String token,
     required String platform,
@@ -688,14 +692,14 @@ class PluginSyncService extends ChangeNotifier {
   }) async {
     if (!_pluginAvailable) {
       debugPrint('PluginSync: skip registerPushDevice, plugin unavailable');
-      return;
+      return false;
     }
 
     try {
       final headers = _authHeaders(client);
       if (headers == null) {
         debugPrint('PluginSync: skip registerPushDevice, no auth headers');
-        return;
+        return false;
       }
 
       await _dio.post(
@@ -709,7 +713,10 @@ class PluginSyncService extends ChangeNotifier {
           headers: {...headers, 'Content-Type': 'application/json'},
         ),
       );
-    } catch (_) {}
+      return true;
+    } catch (_) {
+      return false;
+    }
   }
 
   Future<void> unregisterPushDevice(

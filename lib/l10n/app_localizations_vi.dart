@@ -3762,6 +3762,13 @@ class AppLocalizationsVi extends AppLocalizations {
   String get seerrNotifyIssuesSubtitle => 'Sự cố mới, phản hồi và cách xử lý';
 
   @override
+  String get seerrNotifyNewMediaTitle => 'New media added';
+
+  @override
+  String get seerrNotifyNewMediaSubtitle =>
+      'Anything new added to the server library';
+
+  @override
   String loggedInAs(String username) {
     return 'Đã đăng nhập với tên: $username';
   }

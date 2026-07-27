@@ -3800,6 +3800,13 @@ class AppLocalizationsEl extends AppLocalizations {
       'Νέα ζητήματα, απαντήσεις και επιλύσεις';
 
   @override
+  String get seerrNotifyNewMediaTitle => 'New media added';
+
+  @override
+  String get seerrNotifyNewMediaSubtitle =>
+      'Anything new added to the server library';
+
+  @override
   String loggedInAs(String username) {
     return 'Συνδεθήκατε ως: $username';
   }

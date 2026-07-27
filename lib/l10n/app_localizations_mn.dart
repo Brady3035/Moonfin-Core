@@ -3766,6 +3766,13 @@ class AppLocalizationsMn extends AppLocalizations {
   String get seerrNotifyIssuesSubtitle => 'Шинэ асуудал, хариу, шийдвэрлэлт';
 
   @override
+  String get seerrNotifyNewMediaTitle => 'New media added';
+
+  @override
+  String get seerrNotifyNewMediaSubtitle =>
+      'Anything new added to the server library';
+
+  @override
   String loggedInAs(String username) {
     return 'Нэвтэрсэн: $username';
   }

@@ -3782,6 +3782,13 @@ class AppLocalizationsSl extends AppLocalizations {
   String get seerrNotifyIssuesSubtitle => 'Nove težave, odgovori in rešitve';
 
   @override
+  String get seerrNotifyNewMediaTitle => 'New media added';
+
+  @override
+  String get seerrNotifyNewMediaSubtitle =>
+      'Anything new added to the server library';
+
+  @override
   String loggedInAs(String username) {
     return 'Prijavljeni kot: $username';
   }

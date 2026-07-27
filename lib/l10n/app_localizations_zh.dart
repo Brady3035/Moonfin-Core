@@ -1034,7 +1034,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get cast => '投屏';
 
   @override
-  String get castMembers => 'Cast';
+  String get castMembers => '演员表';
 
   @override
   String get trailer => '预告片';
@@ -1055,7 +1055,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get downloaded => '已下载';
 
   @override
-  String get finalizingDownload => 'Finalizing…';
+  String get finalizingDownload => '正在整理…';
 
   @override
   String get downloadAll => '全部下载';
@@ -3628,6 +3628,13 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get seerrNotifyIssuesSubtitle => '新增问题、回复及问题解决通知';
+
+  @override
+  String get seerrNotifyNewMediaTitle => 'New media added';
+
+  @override
+  String get seerrNotifyNewMediaSubtitle =>
+      'Anything new added to the server library';
 
   @override
   String loggedInAs(String username) {

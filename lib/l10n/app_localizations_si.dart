@@ -3756,6 +3756,13 @@ class AppLocalizationsSi extends AppLocalizations {
   String get seerrNotifyIssuesSubtitle => 'නව ගැටලු, පිළිතුරු සහ විසඳුම්';
 
   @override
+  String get seerrNotifyNewMediaTitle => 'New media added';
+
+  @override
+  String get seerrNotifyNewMediaSubtitle =>
+      'Anything new added to the server library';
+
+  @override
   String loggedInAs(String username) {
     return 'පුරන ලද්දේ: $username';
   }

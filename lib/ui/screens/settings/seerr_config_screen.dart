@@ -275,6 +275,13 @@ class _SeerrConfigScreenState extends State<SeerrConfigScreen> {
     await _pushNotificationPrefs();
   }
 
+  Future<void> _setNotifyOnNewMedia(bool value) async {
+    await _seerrPrefs.setNotifyOnNewMedia(value);
+    if (mounted) setState(() {});
+    if (value) await _requestNotificationPermission();
+    await _pushNotificationPrefs();
+  }
+
   Future<void> _pushNotificationPrefs() async {
     if (!_syncService.pluginAvailable) return;
     if (!GetIt.instance.isRegistered<MediaServerClient>()) return;
@@ -560,6 +567,13 @@ class _SeerrConfigScreenState extends State<SeerrConfigScreen> {
             subtitle: l10n.seerrNotifyIssuesSubtitle,
             value: _seerrPrefs.notifyOnIssues,
             onChanged: _setNotifyOnIssues,
+          ),
+          _buildNotificationToggle(
+            icon: Icons.fiber_new_outlined,
+            title: l10n.seerrNotifyNewMediaTitle,
+            subtitle: l10n.seerrNotifyNewMediaSubtitle,
+            value: _seerrPrefs.notifyOnNewMedia,
+            onChanged: _setNotifyOnNewMedia,
           ),
         ],
         if (showSeerrSettings)

@@ -3775,6 +3775,13 @@ class AppLocalizationsKk extends AppLocalizations {
       'Жаңа мәселелер, жауаптар және шешімдер';
 
   @override
+  String get seerrNotifyNewMediaTitle => 'New media added';
+
+  @override
+  String get seerrNotifyNewMediaSubtitle =>
+      'Anything new added to the server library';
+
+  @override
   String loggedInAs(String username) {
     return 'Кірген пайдаланушы: $username';
   }

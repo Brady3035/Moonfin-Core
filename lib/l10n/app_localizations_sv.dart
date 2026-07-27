@@ -3760,6 +3760,13 @@ class AppLocalizationsSv extends AppLocalizations {
   String get seerrNotifyIssuesSubtitle => 'Nya problem, svar och lösningar';
 
   @override
+  String get seerrNotifyNewMediaTitle => 'New media added';
+
+  @override
+  String get seerrNotifyNewMediaSubtitle =>
+      'Anything new added to the server library';
+
+  @override
   String loggedInAs(String username) {
     return 'Inloggad som: $username';
   }

@@ -3784,6 +3784,13 @@ class AppLocalizationsUk extends AppLocalizations {
       'Нові проблеми, відповіді та розв\'язання';
 
   @override
+  String get seerrNotifyNewMediaTitle => 'New media added';
+
+  @override
+  String get seerrNotifyNewMediaSubtitle =>
+      'Anything new added to the server library';
+
+  @override
   String loggedInAs(String username) {
     return 'Вхід виконано як: $username';
   }

@@ -3802,6 +3802,13 @@ class AppLocalizationsGl extends AppLocalizations {
       'Problemas novos, respostas e resolucións';
 
   @override
+  String get seerrNotifyNewMediaTitle => 'New media added';
+
+  @override
+  String get seerrNotifyNewMediaSubtitle =>
+      'Anything new added to the server library';
+
+  @override
   String loggedInAs(String username) {
     return 'Sesión iniciada como: $username';
   }

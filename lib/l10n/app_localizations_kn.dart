@@ -3779,6 +3779,13 @@ class AppLocalizationsKn extends AppLocalizations {
       'ಹೊಸ ಸಮಸ್ಯೆಗಳು, ಪ್ರತ್ಯುತ್ತರಗಳು ಮತ್ತು ಪರಿಹಾರಗಳು';
 
   @override
+  String get seerrNotifyNewMediaTitle => 'New media added';
+
+  @override
+  String get seerrNotifyNewMediaSubtitle =>
+      'Anything new added to the server library';
+
+  @override
   String loggedInAs(String username) {
     return 'ಇವರಾಗಿ ಲಾಗಿನ್ ಆಗಿದ್ದೀರಿ: $username';
   }

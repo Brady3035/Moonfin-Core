@@ -3782,6 +3782,13 @@ class AppLocalizationsCy extends AppLocalizations {
       'Materion newydd, atebion a datrysiadau';
 
   @override
+  String get seerrNotifyNewMediaTitle => 'New media added';
+
+  @override
+  String get seerrNotifyNewMediaSubtitle =>
+      'Anything new added to the server library';
+
+  @override
   String loggedInAs(String username) {
     return 'Wedi mewngofnodi fel: $username';
   }

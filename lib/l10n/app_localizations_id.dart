@@ -3760,6 +3760,13 @@ class AppLocalizationsId extends AppLocalizations {
       'Masalah baru, balasan, dan penyelesaian';
 
   @override
+  String get seerrNotifyNewMediaTitle => 'New media added';
+
+  @override
+  String get seerrNotifyNewMediaSubtitle =>
+      'Anything new added to the server library';
+
+  @override
   String loggedInAs(String username) {
     return 'Masuk sebagai: $username';
   }

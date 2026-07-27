@@ -3747,6 +3747,13 @@ class AppLocalizationsBn extends AppLocalizations {
   String get seerrNotifyIssuesSubtitle => 'নতুন ইস্যু, উত্তর এবং সমাধান';
 
   @override
+  String get seerrNotifyNewMediaTitle => 'New media added';
+
+  @override
+  String get seerrNotifyNewMediaSubtitle =>
+      'Anything new added to the server library';
+
+  @override
   String loggedInAs(String username) {
     return 'লগ ইন করেছেন: $username';
   }

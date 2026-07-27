@@ -3783,6 +3783,13 @@ class AppLocalizationsMl extends AppLocalizations {
       'പുതിയ പ്രശ്നങ്ങൾ, മറുപടികൾ, പരിഹാരങ്ങൾ';
 
   @override
+  String get seerrNotifyNewMediaTitle => 'New media added';
+
+  @override
+  String get seerrNotifyNewMediaSubtitle =>
+      'Anything new added to the server library';
+
+  @override
   String loggedInAs(String username) {
     return 'ഇതായി ലോഗിൻ ചെയ്‌തു: $username';
   }

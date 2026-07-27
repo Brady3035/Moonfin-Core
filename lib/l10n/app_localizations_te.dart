@@ -3778,6 +3778,13 @@ class AppLocalizationsTe extends AppLocalizations {
       'కొత్త సమస్యలు, ప్రత్యుత్తరాలు, పరిష్కారాలు';
 
   @override
+  String get seerrNotifyNewMediaTitle => 'New media added';
+
+  @override
+  String get seerrNotifyNewMediaSubtitle =>
+      'Anything new added to the server library';
+
+  @override
   String loggedInAs(String username) {
     return 'లాగిన్ అయినవారు: $username';
   }

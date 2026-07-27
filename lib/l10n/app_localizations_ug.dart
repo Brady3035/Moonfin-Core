@@ -3766,6 +3766,13 @@ class AppLocalizationsUg extends AppLocalizations {
       'يېڭى مەسىلىلەر، جاۋابلار ۋە ھەل قىلىنىشلار';
 
   @override
+  String get seerrNotifyNewMediaTitle => 'New media added';
+
+  @override
+  String get seerrNotifyNewMediaSubtitle =>
+      'Anything new added to the server library';
+
+  @override
   String loggedInAs(String username) {
     return 'كىرگەن ھېسابات: $username';
   }

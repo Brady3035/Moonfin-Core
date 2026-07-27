@@ -3727,6 +3727,13 @@ class AppLocalizationsTh extends AppLocalizations {
   String get seerrNotifyIssuesSubtitle => 'ปัญหาใหม่ การตอบกลับ และการแก้ไข';
 
   @override
+  String get seerrNotifyNewMediaTitle => 'New media added';
+
+  @override
+  String get seerrNotifyNewMediaSubtitle =>
+      'Anything new added to the server library';
+
+  @override
   String loggedInAs(String username) {
     return 'เข้าสู่ระบบด้วย: $username';
   }

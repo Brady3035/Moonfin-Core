@@ -3773,6 +3773,13 @@ class AppLocalizationsNl extends AppLocalizations {
       'Nieuwe problemen, reacties en oplossingen';
 
   @override
+  String get seerrNotifyNewMediaTitle => 'New media added';
+
+  @override
+  String get seerrNotifyNewMediaSubtitle =>
+      'Anything new added to the server library';
+
+  @override
   String loggedInAs(String username) {
     return 'Ingelogd als: $username';
   }

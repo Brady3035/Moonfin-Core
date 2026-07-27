@@ -48,7 +48,7 @@ class AppLocalizationsPl extends AppLocalizations {
       'Wpisz ten kod w panelu internetowym swojego serwera:';
 
   @override
-  String get waitingForAuthorization => 'Autoryzacja...';
+  String get waitingForAuthorization => 'Oczekiwanie na autoryzację...';
 
   @override
   String get back => 'Wstecz';
@@ -196,7 +196,7 @@ class AppLocalizationsPl extends AppLocalizations {
       'Automatyczne dopasowanie do urządzenia. Wybierz Apple lub Material aby wymusić wygląd.';
 
   @override
-  String get interfaceStyleAutomatic => 'Tryb auto';
+  String get interfaceStyleAutomatic => 'Automatyczny';
 
   @override
   String get interfaceStyleApple => 'Apple';
@@ -212,7 +212,7 @@ class AppLocalizationsPl extends AppLocalizations {
       'Automatycznie dobiera najlepszy efekt dla tego urządzenia. Pełny wymusza prawdziwe rozmycie. Zmniejszony korzysta z uproszczonego efektu, oszczędzając GPU.';
 
   @override
-  String get glassQualityAuto => 'Auto';
+  String get glassQualityAuto => 'Automatycznie';
 
   @override
   String get glassQualityFull => 'Pełny';
@@ -309,7 +309,7 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get invalidServerExchangeResponse =>
-      'Nieprawidłowa odpowiedź z punktu końcowego wymiany serwera';
+      'Nieprawidłowa odpowiedź z punktu końcowego serwera';
 
   @override
   String unableToConnectTo(String target) {
@@ -1072,7 +1072,7 @@ class AppLocalizationsPl extends AppLocalizations {
   String get cast => 'Przesyłaj';
 
   @override
-  String get castMembers => 'Cast';
+  String get castMembers => 'Obsada';
 
   @override
   String get trailer => 'Zwiastun';
@@ -1136,7 +1136,7 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String failedToDeleteItemWithError(String error) {
-    return 'Deletion operation failed with the following error: $error';
+    return 'Operacja usunięcia zakończyła się błędem: $error';
   }
 
   @override
@@ -1356,7 +1356,7 @@ class AppLocalizationsPl extends AppLocalizations {
   String get shuffle => 'Losowo';
 
   @override
-  String get shuffleAll => 'Shuffle All';
+  String get shuffleAll => 'Losowo wszystko';
 
   @override
   String get shuffleAllMusic => 'Odtwarzaj muzykę losowo';
@@ -3761,6 +3761,13 @@ class AppLocalizationsPl extends AppLocalizations {
   @override
   String get seerrNotifyIssuesSubtitle =>
       'Nowe zgłoszenia, odpowiedzi i rozwiązania';
+
+  @override
+  String get seerrNotifyNewMediaTitle => 'New media added';
+
+  @override
+  String get seerrNotifyNewMediaSubtitle =>
+      'Anything new added to the server library';
 
   @override
   String loggedInAs(String username) {
@@ -8463,17 +8470,17 @@ class AppLocalizationsPl extends AppLocalizations {
       'Choose which systems to install. Cores are provided by the libretro project and let games run natively instead of in a browser view.';
 
   @override
-  String get emulatorCoreDownloading => 'Downloading';
+  String get emulatorCoreDownloading => 'Pobieranie';
 
   @override
-  String get emulatorCoreUnavailable => 'Not available for this device';
+  String get emulatorCoreUnavailable => 'Niedostępne dla tego urządzenia';
 
   @override
   String get emulatorCoreDownloadFailed =>
       'Could not download the core. Check your connection and try again.';
 
   @override
-  String get downloadedGames => 'Downloaded Games';
+  String get downloadedGames => 'Pobrane gry';
 
   @override
   String get downloadedGamesSubtitle => 'Free up space used by game files';
@@ -8492,7 +8499,7 @@ class AppLocalizationsPl extends AppLocalizations {
   }
 
   @override
-  String get removeAllDownloadedGames => 'Remove All';
+  String get removeAllDownloadedGames => 'Usuń wszystko';
 
   @override
   String removeDownloadedGameConfirm(String title) {
@@ -8867,7 +8874,7 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String latestLibraryName(String libraryName) {
-    return 'Latest $libraryName';
+    return 'Ostatnio dodane $libraryName';
   }
 
   @override

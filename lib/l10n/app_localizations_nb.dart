@@ -3751,6 +3751,13 @@ class AppLocalizationsNb extends AppLocalizations {
   String get seerrNotifyIssuesSubtitle => 'Nye saker, svar og løsninger';
 
   @override
+  String get seerrNotifyNewMediaTitle => 'New media added';
+
+  @override
+  String get seerrNotifyNewMediaSubtitle =>
+      'Anything new added to the server library';
+
+  @override
   String loggedInAs(String username) {
     return 'Logget inn som: $username';
   }

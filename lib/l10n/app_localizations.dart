@@ -6232,6 +6232,24 @@ abstract class AppLocalizations {
   /// **'Combine both rows into a single home section'**
   String get combineBothRows;
 
+  /// Setting for how far back the Next Up row reaches
+  ///
+  /// In en, this message translates to:
+  /// **'Max days in Next Up'**
+  String get nextUpMaxDays;
+
+  /// Description for the Next Up window setting
+  ///
+  /// In en, this message translates to:
+  /// **'How long a show stays in Next Up after you last watched it'**
+  String get nextUpMaxDaysDescription;
+
+  /// A number of days
+  ///
+  /// In en, this message translates to:
+  /// **'{days} days'**
+  String daysValue(int days);
+
   /// Setting for full screen home rows
   ///
   /// In en, this message translates to:

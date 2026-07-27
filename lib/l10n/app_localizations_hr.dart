@@ -3552,6 +3552,18 @@ class AppLocalizationsHr extends AppLocalizations {
       'Kombinirajte oba reda u jedan početni odjeljak';
 
   @override
+  String get nextUpMaxDays => 'Max days in Next Up';
+
+  @override
+  String get nextUpMaxDaysDescription =>
+      'How long a show stays in Next Up after you last watched it';
+
+  @override
+  String daysValue(int days) {
+    return '$days days';
+  }
+
+  @override
   String get fullScreenRows => 'Prošireni redovi početnog zaslona';
 
   @override

@@ -167,6 +167,9 @@ class EmbyItemsApi implements ItemsApi {
     int? limit,
     String? fields,
     bool? enableResumable,
+    // Emby has no cutoff parameter on this endpoint, so it is accepted and
+    // ignored.
+    DateTime? nextUpDateCutoff,
     String? enableImageTypes,
     int? imageTypeLimit,
   }) async {

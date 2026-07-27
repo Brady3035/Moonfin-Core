@@ -3432,6 +3432,18 @@ class AppLocalizationsVi extends AppLocalizations {
       'Kết hợp cả hai hàng thành một phần nhà duy nhất';
 
   @override
+  String get nextUpMaxDays => 'Max days in Next Up';
+
+  @override
+  String get nextUpMaxDaysDescription =>
+      'How long a show stays in Next Up after you last watched it';
+
+  @override
+  String daysValue(int days) {
+    return '$days days';
+  }
+
+  @override
   String get fullScreenRows => 'Hàng trang chủ mở rộng';
 
   @override

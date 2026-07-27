@@ -56,6 +56,7 @@ abstract class ItemsApi {
     int? limit,
     String? fields,
     bool? enableResumable,
+    DateTime? nextUpDateCutoff,
     String? enableImageTypes,
     int? imageTypeLimit,
   });

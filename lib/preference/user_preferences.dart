@@ -395,6 +395,7 @@ class UserPreferences extends ChangeNotifier {
     'pref_navbar_always_expanded',
     'pref_shuffle_content_type',
     'pref_merge_continue_watching_next_up',
+    'pref_next_up_max_days',
     'enable_multi_server_libraries',
     'enable_folder_view',
     'seasonal_surprise',
@@ -1085,6 +1086,13 @@ class UserPreferences extends ChangeNotifier {
   static final mergeContinueWatchingNextUp = Preference(
     key: 'pref_merge_continue_watching_next_up',
     defaultValue: true,
+  );
+
+  // Zero means no limit. The 365 days match what the other Moonfin clients and
+  // Jellyfin's own web client already default to.
+  static final nextUpMaxDays = Preference(
+    key: 'pref_next_up_max_days',
+    defaultValue: 365,
   );
 
   static final focusColor = EnumPreference(

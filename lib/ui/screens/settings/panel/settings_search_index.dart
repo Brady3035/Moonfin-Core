@@ -694,6 +694,12 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
       keywords: ['continue watching', 'next up'],
     ),
     home.leaf(
+      'pref_next_up_max_days',
+      l10n.nextUpMaxDays,
+      subtitle: l10n.nextUpMaxDaysDescription,
+      keywords: ['next up', 'days', 'cutoff'],
+    ),
+    home.leaf(
       'pref_enable_series_thumbnails',
       l10n.seriesThumbnails,
       subtitle: l10n.seriesThumbnailsDescription,

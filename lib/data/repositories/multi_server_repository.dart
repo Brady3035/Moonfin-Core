@@ -17,6 +17,7 @@ import '../services/media_server_client_factory.dart';
 import '../utils/bounded_concurrency.dart';
 import '../utils/genre_browse_utils.dart';
 import '../utils/latest_media_row_normalizer.dart';
+import '../utils/next_up_cutoff.dart';
 import '../utils/next_up_enrichment.dart';
 import '../utils/playlist_utils.dart';
 import 'user_views_repository.dart';
@@ -279,6 +280,7 @@ class MultiServerRepository {
           enableImageTypes: _imageTypes,
           imageTypeLimit: _imageTypeLimit,
           enableResumable: false,
+          nextUpDateCutoff: nextUpDateCutoff,
         );
         final parsed = _parseItems(response, session.server.id);
         return await _enrichNextUpItemsWithSeriesLastPlayed(

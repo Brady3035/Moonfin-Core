@@ -15,6 +15,7 @@ import '../models/home_row.dart';
 import '../utils/bounded_concurrency.dart';
 import '../utils/latest_media_row_normalizer.dart';
 import '../utils/genre_browse_utils.dart';
+import '../utils/next_up_cutoff.dart';
 import '../utils/next_up_enrichment.dart';
 import '../utils/playlist_utils.dart';
 import 'package:flutter/foundation.dart';
@@ -1402,6 +1403,7 @@ class RowDataSource {
             enableImageTypes: _imageTypes,
             imageTypeLimit: _imageTypeLimit,
             enableResumable: enableResumable,
+            nextUpDateCutoff: nextUpDateCutoff,
           )
           .timeout(const Duration(seconds: 8));
       return response;
@@ -1414,6 +1416,7 @@ class RowDataSource {
             enableImageTypes: _imageTypes,
             imageTypeLimit: _imageTypeLimit,
             enableResumable: enableResumable,
+            nextUpDateCutoff: nextUpDateCutoff,
           )
           .timeout(const Duration(seconds: 6));
       return response;
@@ -1427,6 +1430,7 @@ class RowDataSource {
         enableImageTypes: _imageTypes,
         imageTypeLimit: _imageTypeLimit,
         enableResumable: enableResumable,
+        nextUpDateCutoff: nextUpDateCutoff,
       );
       return response;
     }
@@ -1484,6 +1488,7 @@ class RowDataSource {
             enableImageTypes: _imageTypes,
             imageTypeLimit: _imageTypeLimit,
             enableResumable: enableResumable,
+            nextUpDateCutoff: nextUpDateCutoff,
           )
           .timeout(const Duration(seconds: 20));
       return response;
@@ -1497,6 +1502,7 @@ class RowDataSource {
               enableImageTypes: _imageTypes,
               imageTypeLimit: _imageTypeLimit,
               enableResumable: enableResumable,
+              nextUpDateCutoff: nextUpDateCutoff,
             )
             .timeout(const Duration(seconds: 12));
         return response;

@@ -3457,6 +3457,18 @@ class AppLocalizationsTl extends AppLocalizations {
       'Pagsamahin ang parehong mga hilera sa isang solong seksyon ng tahanan';
 
   @override
+  String get nextUpMaxDays => 'Max days in Next Up';
+
+  @override
+  String get nextUpMaxDaysDescription =>
+      'How long a show stays in Next Up after you last watched it';
+
+  @override
+  String daysValue(int days) {
+    return '$days days';
+  }
+
+  @override
   String get fullScreenRows => 'Mga Naka-expand na Home Row';
 
   @override

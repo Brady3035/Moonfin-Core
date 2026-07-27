@@ -60,6 +60,24 @@ class _HomeScreenCategoryScreenState extends State<_HomeScreenCategoryScreen> {
                 icon: Icons.merge_type,
                 onChanged: _pushPersonalizationSync,
               ),
+              IntPickerPreferenceTile(
+                preference: UserPreferences.nextUpMaxDays,
+                title: l10n.nextUpMaxDays,
+                description: l10n.nextUpMaxDaysDescription,
+                icon: Icons.event_busy,
+                options: {
+                  0: l10n.noLimit,
+                  30: l10n.daysValue(30),
+                  90: l10n.daysValue(90),
+                  180: l10n.daysValue(180),
+                  365: l10n.daysValue(365),
+                  730: l10n.daysValue(730),
+                },
+                onChanged: () {
+                  _pushPersonalizationSync();
+                  _reloadHomeRows();
+                },
+              ),
               SwitchPreferenceTile(
                 preference: UserPreferences.seriesThumbnailsEnabled,
                 title: l10n.seriesThumbnails,

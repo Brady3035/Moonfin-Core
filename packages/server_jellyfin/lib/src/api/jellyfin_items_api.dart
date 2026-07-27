@@ -164,6 +164,7 @@ class JellyfinItemsApi implements ItemsApi {
     int? limit,
     String? fields,
     bool? enableResumable,
+    DateTime? nextUpDateCutoff,
     String? enableImageTypes,
     int? imageTypeLimit,
   }) async {
@@ -177,6 +178,7 @@ class JellyfinItemsApi implements ItemsApi {
         'Limit': ?limit,
         'Fields': ?fields,
         'EnableResumable': ?enableResumable,
+        'NextUpDateCutoff': ?nextUpDateCutoff?.toUtc().toIso8601String(),
         'EnableImageTypes': ?enableImageTypes,
         'ImageTypeLimit': ?imageTypeLimit,
       },

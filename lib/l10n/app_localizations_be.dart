@@ -3447,6 +3447,18 @@ class AppLocalizationsBe extends AppLocalizations {
       'Аб\'яднайце абодва шэрагу ў адну хатнюю секцыю';
 
   @override
+  String get nextUpMaxDays => 'Max days in Next Up';
+
+  @override
+  String get nextUpMaxDaysDescription =>
+      'How long a show stays in Next Up after you last watched it';
+
+  @override
+  String daysValue(int days) {
+    return '$days days';
+  }
+
+  @override
   String get fullScreenRows => 'Разгорнутыя радкі галоўнай';
 
   @override

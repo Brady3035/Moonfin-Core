@@ -485,6 +485,7 @@ class OfflineItemsApi implements ItemsApi {
     int? limit,
     String? fields,
     bool? enableResumable,
+    DateTime? nextUpDateCutoff,
     String? enableImageTypes,
     int? imageTypeLimit,
   }) async {

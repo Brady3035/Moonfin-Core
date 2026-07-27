@@ -3445,6 +3445,18 @@ class AppLocalizationsPt extends AppLocalizations {
   String get combineBothRows => 'Combinar ambas as linhas em uma única seção';
 
   @override
+  String get nextUpMaxDays => 'Max days in Next Up';
+
+  @override
+  String get nextUpMaxDaysDescription =>
+      'How long a show stays in Next Up after you last watched it';
+
+  @override
+  String daysValue(int days) {
+    return '$days days';
+  }
+
+  @override
   String get fullScreenRows => 'Linhas do Início Expandidas';
 
   @override

@@ -3455,6 +3455,18 @@ class AppLocalizationsSl extends AppLocalizations {
   String get combineBothRows => 'Združite obe vrstici v en sam domači del';
 
   @override
+  String get nextUpMaxDays => 'Max days in Next Up';
+
+  @override
+  String get nextUpMaxDaysDescription =>
+      'How long a show stays in Next Up after you last watched it';
+
+  @override
+  String daysValue(int days) {
+    return '$days days';
+  }
+
+  @override
   String get fullScreenRows => 'Razširjene vrstice na domači strani';
 
   @override

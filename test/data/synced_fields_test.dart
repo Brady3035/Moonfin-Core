@@ -126,6 +126,7 @@ void main() {
     'navbarOpacity',
     'navbarPosition',
     'nextUpBehavior',
+    'nextUpMaxDays',
     'nextUpTimeout',
     'osdButtonOrderDesktop',
     'osdButtonOrderMobile',

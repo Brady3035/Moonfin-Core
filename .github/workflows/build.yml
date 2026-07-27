@@ -340,7 +340,8 @@ jobs:
             libarchive-dev \
             rpm \
             flatpak flatpak-builder \
-            libfuse2
+            libfuse2 \
+            zsync
 
       - name: Verify webkit2gtk availability
         run: |
@@ -382,6 +383,7 @@ jobs:
           patterns=(
             "Moonfin_Linux_v*.tar.gz"
             "Moonfin_Linux_v*.AppImage"
+            "Moonfin_Linux_v*.AppImage.zsync"
             "Moonfin_Linux_v*.deb"
             "Moonfin_Linux_v*.rpm"
             "Moonfin_Linux_v*.snap"
@@ -412,6 +414,7 @@ jobs:
           path: |
             Moonfin_Linux_v*.tar.gz
             Moonfin_Linux_v*.AppImage
+            Moonfin_Linux_v*.AppImage.zsync
             Moonfin_Linux_v*.deb
             Moonfin_Linux_v*.rpm
             Moonfin_Linux_v*.snap

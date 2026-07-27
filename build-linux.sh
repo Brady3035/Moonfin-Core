@@ -261,9 +261,14 @@ ensure_mpv_compat_symlinks() {
   local base
   base="$(basename "$mpv_real")"
 
+  # A bare "[ ! -e ] && ln" would return 1 when every symlink already exists,
+  # which under set -e kills the build with no error message.
   for alt in libmpv.so.1 libmpv.so.2 libmpv.so; do
-    [ ! -e "$dest_lib/$alt" ] && ln -sf "$base" "$dest_lib/$alt"
+    if [ ! -e "$dest_lib/$alt" ]; then
+      ln -sf "$base" "$dest_lib/$alt"
+    fi
   done
+  return 0
 }
 
 collect_transitive_libs() {
@@ -430,6 +435,7 @@ inject_flatpak_libs() {
 
 create_desktop_file() {
   local dest="$1"
+  local version="${2:-}"
   cat > "$dest/${APP_ID}.desktop" << EOF
 [Desktop Entry]
 Type=Application
@@ -440,6 +446,11 @@ Categories=AudioVideo;Video;
 Comment=Jellyfin & Emby media client
 Terminal=false
 EOF
+  # AppImage launchers read the version from the embedded desktop entry rather
+  # than the filename.
+  if [ -n "$version" ]; then
+    echo "X-AppImage-Version=${version}" >> "$dest/${APP_ID}.desktop"
+  fi
 }
 
 create_metainfo_file() {
@@ -553,7 +564,14 @@ resolve_exact_lib() {
   return 1
 }
 
-missing_libs="$(ldd "$APPDIR/moonfin" 2>/dev/null | awk '/not found/ {print $1}' | sort -u || true)"
+ldd_output="$(ldd "$APPDIR/moonfin" 2>/dev/null || true)"
+
+# Only "libfoo.so => not found" lines name a missing library. Symbol version
+# lines start with the binary path, so matching bare "not found" reports the
+# binary itself as missing.
+missing_libs="$(printf '%s\n' "$ldd_output" | awk '$2 == "=>" && $3 == "not" && $4 == "found" {print $1}' | sort -u)"
+version_errors="$(printf '%s\n' "$ldd_output" | grep -F 'not found' | grep -v ' => ' || true)"
+
 if ! resolve_exact_lib libsqlite3.so; then
   missing_libs="$(printf '%s\n%s\n' "$missing_libs" "libsqlite3.so" | awk 'NF' | sort -u)"
 fi
@@ -565,21 +583,49 @@ if [ -n "$missing_libs" ]; then
   exit 127
 fi
 
+if [ -n "$version_errors" ]; then
+  echo "Moonfin cannot start. Your system libraries are older than the ones this build was made against:" >&2
+  printf '%s\n' "$version_errors" >&2
+  echo "Update your distro, or use a package built for it (deb/rpm/flatpak/snap)." >&2
+  exit 127
+fi
+
 exec "$APPDIR/moonfin" "$@"
 EOF
   chmod +x "$appimage_dir/AppRun"
 
-  create_desktop_file "$appimage_dir"
+  create_desktop_file "$appimage_dir" "$version"
   copy_icon "$appimage_dir"
   mkdir -p "$appimage_dir/usr/share/pixmaps"
   copy_icon "$appimage_dir/usr/share/pixmaps"
 
+  # Update information lets AppImage updaters fetch only the changed blocks from
+  # the .zsync published with each release. The wildcard matches whichever
+  # version the current release carries.
+  local update_info="${APPIMAGE_UPDATE_INFO:-gh-releases-zsync|Moonfin-Client|Moonfin-Core|latest|${APP_NAME}_Linux_v*.AppImage.zsync}"
+  local appimagetool_args=()
+  if command -v zsyncmake >/dev/null 2>&1; then
+    appimagetool_args+=( -u "$update_info" )
+  else
+    echo "Warning: zsyncmake not found, building AppImage without embedded update information." >&2
+    echo "  Install the zsync package to enable in-place updates." >&2
+  fi
+
   cd "$TEMP_DIR"
-  appimagetool "$appimage_dir" "$appimage_name" || true
-  
+  # VERSION stamps the build. Passing an explicit output name keeps the
+  # artifact filename unchanged.
+  if ! VERSION="$version" appimagetool "${appimagetool_args[@]}" "$appimage_dir" "$appimage_name"; then
+    echo "Error: appimagetool failed." >&2
+    return 1
+  fi
+
   if [ -f "$appimage_name" ]; then
     mv "$appimage_name" "$REPO_ROOT/"
     echo "✓ Created: $REPO_ROOT/$appimage_name"
+  fi
+  if [ -f "$appimage_name.zsync" ]; then
+    mv "$appimage_name.zsync" "$REPO_ROOT/"
+    echo "✓ Created: $REPO_ROOT/$appimage_name.zsync"
   fi
 }
 

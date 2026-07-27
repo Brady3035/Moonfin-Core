@@ -512,13 +512,16 @@ class SeerrHttpClient {
     int offset = 0,
   }) async {
     final page = (offset ~/ limit) + 1;
-    final eq = Uri.encodeComponent(query);
-    var url = '${_apiUrl('search')}?query=$eq&page=$page';
-    if (mediaType != null) {
-      url += '&type=${Uri.encodeComponent(mediaType)}';
-    }
+    // Building the query through Dio rather than by hand, because
+    // Uri.encodeComponent leaves apostrophes as-is and Seerr rejects the
+    // request when a reserved character reaches it unencoded.
     final response = await _dio.get(
-      url,
+      _apiUrl('search'),
+      queryParameters: {
+        'query': query,
+        'page': page,
+        'type': ?mediaType,
+      },
       options: _authOptions(),
     );
     _requireSuccess(response, 'search');

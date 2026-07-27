@@ -647,8 +647,7 @@ class _ShuffleOverlayState extends State<_ShuffleOverlay> {
           .getRatingsForItem(
         item,
         resolveClient: _resolveClientFor(item),
-        episodeRatingsEnabled:
-            _prefs.get(UserPreferences.enableEpisodeRatings),
+        episodeRatingsEnabled: _prefs.canFetchEpisodeRatings,
       );
 
       _ratingsCache[cacheKey] = (result != null && result.isNotEmpty)
@@ -703,8 +702,7 @@ class _ShuffleOverlayState extends State<_ShuffleOverlay> {
       result = await GetIt.instance<MdbListRepository>().getRatingsForItem(
         item,
         resolveClient: _resolveClientFor(item),
-        episodeRatingsEnabled:
-            _prefs.get(UserPreferences.enableEpisodeRatings),
+        episodeRatingsEnabled: _prefs.canFetchEpisodeRatings,
       );
     } catch (error, stackTrace) {
       _logShuffleLoadError(

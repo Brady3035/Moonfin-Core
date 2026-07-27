@@ -575,6 +575,14 @@ class UserPreferences extends ChangeNotifier {
     return _store.containsKey(pref.key);
   }
 
+  bool isRatingSourceEnabled(String source) =>
+      get(enabledRatings).split(',').map((s) => s.trim()).contains(source);
+
+  bool get canFetchEpisodeRatings =>
+      get(enableAdditionalRatings) &&
+      get(enableEpisodeRatings) &&
+      isRatingSourceEnabled('tmdb');
+
   AudioOutputMode resolveAudioOutputMode() => get(audioOutputMode);
 
   AudioFallbackCodec resolveAudioFallbackCodec() => get(audioFallbackCodec);
@@ -1918,7 +1926,7 @@ class UserPreferences extends ChangeNotifier {
 
   static final enableEpisodeRatings = Preference(
     key: 'enableEpisodeRatings',
-    defaultValue: false,
+    defaultValue: true,
   );
 
   static final tmdbApiKey = Preference(key: 'tmdbApiKey', defaultValue: '');
@@ -1935,7 +1943,7 @@ class UserPreferences extends ChangeNotifier {
 
   static final enabledRatings = Preference(
     key: 'enabledRatings',
-    defaultValue: 'tomatoes,stars',
+    defaultValue: 'stars,imdb,tmdb,tomatoes,metacritic',
   );
 
   static final blockedParentalRatings = Preference(

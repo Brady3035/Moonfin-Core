@@ -1050,8 +1050,7 @@ class ItemDetailViewModel extends ChangeNotifier {
     if (item == null) return;
 
     if (item.type == 'Episode') {
-      final enableEpisodeRatings = GetIt.instance<UserPreferences>().get(UserPreferences.enableEpisodeRatings);
-      if (!enableEpisodeRatings) return;
+      if (!GetIt.instance<UserPreferences>().canFetchEpisodeRatings) return;
 
       final seriesId = item.seriesId;
       final season = item.parentIndexNumber;
@@ -1068,7 +1067,7 @@ class ItemDetailViewModel extends ChangeNotifier {
               episode: episode,
             );
             if (rating != null && rating > 0) {
-              _ratings = {'stars': rating};
+              _ratings = {'tmdb_episode': rating};
               notifyListeners();
             }
           }

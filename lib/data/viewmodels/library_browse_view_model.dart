@@ -137,7 +137,7 @@ class LibraryBrowseViewModel extends ChangeNotifier {
     if (!_prefs.get(UserPreferences.enableAdditionalRatings)) return;
     final ratings = await _mdbListRepository.getRatingsForItem(
       item,
-      episodeRatingsEnabled: _prefs.get(UserPreferences.enableEpisodeRatings),
+      episodeRatingsEnabled: _prefs.canFetchEpisodeRatings,
     );
     if (ratings != null && ratings.isNotEmpty && _focusedItem?.id == item.id) {
       _focusedRatings = ratings;

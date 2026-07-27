@@ -153,7 +153,7 @@ class _InfoAreaContentState extends State<_InfoAreaContent> {
     final result = await GetIt.instance<MdbListRepository>().getRatingsForItem(
       widget.item,
       resolveClient: resolveClient,
-      episodeRatingsEnabled: _prefs.get(UserPreferences.enableEpisodeRatings),
+      episodeRatingsEnabled: _prefs.canFetchEpisodeRatings,
     );
     if (mounted && result != null && result.isNotEmpty) {
       setState(() => _ratings = result);

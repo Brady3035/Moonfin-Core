@@ -3187,9 +3187,9 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
     final overview = cleanOverview(item.overview?.trim());
     final hideTitleAndLogo = _landscape && _buildUpNext(context, item) != null;
     final hasUpNext = _landscape && _buildUpNext(context, item) != null;
-    final showRatings = isEpisode
-        ? false
-        : (_vm.ratings.isNotEmpty || item.communityRating != null || item.criticRating != null);
+    final showRatings = _vm.ratings.isNotEmpty ||
+        item.communityRating != null ||
+        item.criticRating != null;
 
     final desktopScale = _desktopUiScale(prefs: widget.prefs);
     final logoScaleFactor = desktopScale > 1.1 ? 0.70 : 1.0;
@@ -3829,28 +3829,6 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
       if (s != null && e != null) {
         addText('S${s}:E$e');
       }
-      final enableEpisodeRatings = widget.prefs.get(UserPreferences.enableEpisodeRatings);
-      if (enableEpisodeRatings) {
-        final ratingVal = _vm.ratings['stars'] ?? item.communityRating;
-        if (ratingVal != null && ratingVal > 0) {
-          final displayVal = ratingVal <= 10.0 ? ratingVal * 10 : ratingVal;
-          final ratingText = '${displayVal.toInt()}%';
-          pieces.add(
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Image.asset(
-                  'assets/icons/ratings/tmdb.png',
-                  height: 14,
-                  filterQuality: FilterQuality.medium,
-                ),
-                const SizedBox(width: 4),
-                Text(ratingText, style: style),
-              ],
-            ),
-          );
-        }
-      }
     }
     final status = item.status;
     if (item.type == 'Series' && status != null && status.isNotEmpty) {
@@ -4393,9 +4371,9 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
     final logoTag = item.logoImageTag ?? (isEpisode ? item.seriesLogoImageTag : null);
     final logoId = logoTag != null ? (item.logoImageTag != null ? item.id : item.seriesId) : null;
 
-    final showRatings = isEpisode
-        ? false
-        : (_vm.ratings.isNotEmpty || item.communityRating != null || item.criticRating != null);
+    final showRatings = _vm.ratings.isNotEmpty ||
+        item.communityRating != null ||
+        item.criticRating != null;
 
     final selectedSource = selectedMediaSourceForItem(item, widget.selectedMediaSourceId);
 

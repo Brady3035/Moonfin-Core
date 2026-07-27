@@ -781,6 +781,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
       unawaited(_syncAutoHdrSwitching());
     });
     _zoomMode = _prefs.get(UserPreferences.playerZoomMode);
+    _syncPlayManager?.addListener(_onSyncPlayChanged);
     _prefs.addListener(_syncMediaQueuingPreference);
     _syncMediaQueuingPreference();
     _applySubtitleStyle();
@@ -943,6 +944,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
     _screensaverPlayingSub?.cancel();
     _screensaverController.setPlaybackActive(false);
     _prefs.removeListener(_syncMediaQueuingPreference);
+    _syncPlayManager?.removeListener(_onSyncPlayChanged);
     _manager.autoAdvanceEnabled = true;
     WidgetsBinding.instance.removeObserver(this);
     if (PlatformDetection.isDesktop) {
@@ -2137,6 +2139,10 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
     _manager.autoAdvanceEnabled = _prefs.get(
       UserPreferences.autoplayNextEpisode,
     );
+  }
+
+  void _onSyncPlayChanged() {
+    if (mounted) setState(() {});
   }
 
   void _suppressSeekPrompts({
@@ -4740,7 +4746,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
         }
 
         final byButton = <OsdButton, Widget>{
-          if (shows(OsdButton.syncPlay))
+          if (shows(OsdButton.syncPlay) &&
+              _syncPlayManager?.state.enabled == true)
             OsdButton.syncPlay: SyncPlayPlayerButton(
               size: secondaryIconSize,
               extent: secondaryExtent,

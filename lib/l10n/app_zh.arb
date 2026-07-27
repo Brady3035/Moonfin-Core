@@ -8800,5 +8800,13 @@
     "imdbMostPopularMovies": "IMDb 热门电影榜单",
     "imdbMostPopularTvShows": "IMDb 热门电视剧榜单",
     "imdbLowestRatedMovies": "IMDb 低分电影榜单",
-    "imdbTopEnglishMovies": "IMDb 高分英语电影"
+    "imdbTopEnglishMovies": "IMDb 高分英语电影",
+    "castMembers": "演员表",
+    "@castMembers": {
+        "description": "Section title for the list of actors and performers in movie and TV metadata. Not the casting-to-a-device action"
+    },
+    "finalizingDownload": "正在整理…",
+    "@finalizingDownload": {
+        "description": "Status label shown while a finished download is being moved to its final location and validated"
+    }
 }

@@ -435,7 +435,6 @@ class SeerrRepository {
     int? genre,
     int? studio,
     int? keywords,
-    String language = 'en',
   }) => _withClient(
     (c) async => SeerrDiscoverPage.fromJson(
       await c.discoverMovies(
@@ -444,7 +443,6 @@ class SeerrRepository {
         genre: genre,
         studio: studio,
         keywords: keywords,
-        language: language,
       ),
     ),
   );
@@ -455,7 +453,6 @@ class SeerrRepository {
     int? genre,
     int? network,
     int? keywords,
-    String language = 'en',
   }) => _withClient(
     (c) async => SeerrDiscoverPage.fromJson(
       await c.discoverTv(
@@ -464,7 +461,6 @@ class SeerrRepository {
         genre: genre,
         network: network,
         keywords: keywords,
-        language: language,
       ),
     ),
   );

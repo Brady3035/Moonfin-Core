@@ -1512,6 +1512,7 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
       builder: (_) => _RequestDialog(
         vm: vm,
         isTv: s.isTv,
+        seasons: s.tv?.seasons ?? const [],
         numberOfSeasons: s.numberOfSeasons ?? 0,
         requestedSeasons: s.requestedSeasons,
       ),
@@ -2001,15 +2002,30 @@ class _ActionTileState extends State<_ActionTile> with FocusStateMixin {
   }
 }
 
+// A provider that splits a run differently, like TVDB for anime, reports its
+// own season numbers, so counting off from one would offer seasons that arent
+// there and request the wrong ones. The count is only a fallback for a server
+// that sends no season list.
+List<int> _seasonNumbersOf(List<SeerrSeason> seasons, int fallbackCount) {
+  final reported = seasons
+      .where((s) => s.seasonNumber > 0)
+      .map((s) => s.seasonNumber)
+      .toList();
+  if (reported.isNotEmpty) return reported;
+  return List.generate(fallbackCount, (i) => i + 1);
+}
+
 class _RequestDialog extends StatefulWidget {
   final SeerrMediaDetailViewModel vm;
   final bool isTv;
+  final List<SeerrSeason> seasons;
   final int numberOfSeasons;
   final Set<int> requestedSeasons;
 
   const _RequestDialog({
     required this.vm,
     required this.isTv,
+    required this.seasons,
     required this.numberOfSeasons,
     this.requestedSeasons = const {},
   });
@@ -2069,10 +2085,13 @@ class _RequestDialogState extends State<_RequestDialog> {
     return widget.isTv ? quota.tv : quota.movie;
   }
 
+  late final List<int> _seasonNumbers =
+      _seasonNumbersOf(widget.seasons, widget.numberOfSeasons);
+
   int get _seasonsNeeded {
     if (!widget.isTv) return 0;
     if (_allSeasons) {
-      final total = widget.numberOfSeasons;
+      final total = _seasonNumbers.length;
       return (total - widget.requestedSeasons.length).clamp(1, total);
     }
     return _selectedSeasons.length;
@@ -2202,7 +2221,7 @@ class _RequestDialogState extends State<_RequestDialog> {
 
   Widget _buildSeasonSelector({bool autofocusAll = false}) {
     final l10n = AppLocalizations.of(context);
-    final seasonCount = widget.numberOfSeasons;
+    final seasonNumbers = _seasonNumbers;
     final requested = widget.requestedSeasons;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -2217,30 +2236,29 @@ class _RequestDialogState extends State<_RequestDialog> {
             if (_allSeasons) _selectedSeasons.clear();
           }),
         ),
-        if (!_allSeasons && seasonCount > 0)
+        if (!_allSeasons && seasonNumbers.isNotEmpty)
           Padding(
             padding: const EdgeInsets.only(top: 8, left: 8),
             child: Wrap(
               spacing: 8,
               runSpacing: 8,
-              children: List.generate(seasonCount, (i) {
-                final num = i + 1;
-                final alreadyRequested = requested.contains(num);
-                final selected = _selectedSeasons.contains(num);
+              children: seasonNumbers.map((seasonNumber) {
+                final alreadyRequested = requested.contains(seasonNumber);
+                final selected = _selectedSeasons.contains(seasonNumber);
                 return SeerrChoiceChip(
-                  label: l10n.seasonChip(num),
+                  label: l10n.seasonChip(seasonNumber),
                   selected: selected,
                   onSelected: alreadyRequested
                       ? null
                       : (v) => setState(() {
                           if (v) {
-                            _selectedSeasons.add(num);
+                            _selectedSeasons.add(seasonNumber);
                           } else {
-                            _selectedSeasons.remove(num);
+                            _selectedSeasons.remove(seasonNumber);
                           }
                         }),
                 );
-              }),
+              }).toList(),
             ),
           ),
       ],
@@ -2405,14 +2423,8 @@ class _ReportIssueDialogState extends State<_ReportIssueDialog> {
   bool _submitting = false;
   final _messageController = TextEditingController();
 
-  List<int> get _seasonNumbers {
-    final fromList = widget.seasons
-        .where((s) => s.seasonNumber > 0)
-        .map((s) => s.seasonNumber)
-        .toList();
-    if (fromList.isNotEmpty) return fromList;
-    return List.generate(widget.numberOfSeasons, (i) => i + 1);
-  }
+  late final List<int> _seasonNumbers =
+      _seasonNumbersOf(widget.seasons, widget.numberOfSeasons);
 
   int? get _episodeCount {
     if (_season <= 0) return null;

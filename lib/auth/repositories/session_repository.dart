@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/widgets.dart' show AppLifecycleState, WidgetsBinding;
 import '../../ui/navigation/app_router.dart';
 import '../../ui/navigation/destinations.dart';
 import '../../ui/navigation/home_refresh_bus.dart';
@@ -12,6 +13,7 @@ import 'package:server_core/server_core.dart';
 
 import '../../data/models/aggregated_item.dart';
 import '../../data/services/carplay_service.dart';
+import '../../data/services/cast/cast_service.dart';
 import '../../data/services/download_notification_service.dart';
 import '../../data/services/tv_channels_service.dart';
 import '../../data/services/watch_next_service.dart';
@@ -28,6 +30,7 @@ import '../../playback/last_playback_session_store.dart';
 import '../../playback/media_browse_service.dart';
 import '../../preference/preference_constants.dart';
 import '../../preference/user_preferences.dart';
+import '../../syncplay/syncplay_manager.dart';
 import '../../util/platform_detection.dart';
 import '../store/authentication_preferences.dart';
 import '../store/authentication_store.dart';
@@ -70,6 +73,10 @@ class SessionRepository {
   double _lastUnmutedVolume = 100;
   bool _remoteMuted = false;
   bool _hasCheckedWriteAccess = false;
+
+  static const Duration _socketIdleGrace = Duration(seconds: 60);
+  Timer? _socketIdleTimer;
+  bool _socketSuspended = false;
 
   final _stateController = StreamController<SessionState>.broadcast();
 
@@ -196,7 +203,14 @@ class SessionRepository {
     setActiveServerClient(client);
     resetUserScopedSingletons();
     setActiveStreamResolver(client);
-    _socketHandler.connectTo(client);
+    _cancelSocketIdleTimer();
+    // A headless boot has no UI to serve, and car browse, playback, and
+    // progress reporting all go over REST, so skip the socket there and let
+    // onAppResumed connect it if the user opens the app later.
+    _socketSuspended = _isHeadlessAndroidBoot();
+    if (!_socketSuspended) {
+      _socketHandler.connectTo(client);
+    }
     _bindRemoteCommandHandling();
     _bindPluginEventHandling(client);
     _refreshCarBrowseTree(signedIn: true);
@@ -308,9 +322,81 @@ class SessionRepository {
     }
   }
 
+  /// Called when the app moves to the background. After a grace period this
+  /// drops the server websocket, taking the keepalive and reconnect timers
+  /// with it, unless something still needs the socket.
+  void onAppBackgrounded() {
+    _socketIdleTimer?.cancel();
+    _socketIdleTimer = Timer(_socketIdleGrace, _evaluateSocketIdle);
+  }
+
+  /// Called when the app returns to the foreground. Reconnects the websocket
+  /// if it was dropped while backgrounded.
+  void onAppResumed() {
+    _cancelSocketIdleTimer();
+    if (!_socketSuspended) return;
+    _socketSuspended = false;
+    final serverId = _activeServerId;
+    if (serverId == null) return;
+    final client = _clientFactory.getClientIfExists(serverId);
+    if (client != null) {
+      _socketHandler.connectTo(client);
+    }
+  }
+
+  void _evaluateSocketIdle() {
+    if (_shouldKeepSocketAlive()) {
+      // Check again later so the socket still drops once playback or casting
+      // ends while the app stays backgrounded.
+      _socketIdleTimer = Timer(_socketIdleGrace, _evaluateSocketIdle);
+      return;
+    }
+    _socketIdleTimer = null;
+    _socketHandler.disconnect();
+    _socketSuspended = true;
+  }
+
+  void _cancelSocketIdleTimer() {
+    _socketIdleTimer?.cancel();
+    _socketIdleTimer = null;
+  }
+
+  /// True when this engine was booted without a UI, which on Android happens
+  /// when Android Auto or media resumption binds the media browser service.
+  /// Such an engine never receives an activity lifecycle event, so its state
+  /// stays null or detached. Treat inactive as having a UI to avoid false
+  /// positives.
+  bool _isHeadlessAndroidBoot() {
+    if (!PlatformDetection.isAndroid) return false;
+    final lifecycle = WidgetsBinding.instance.lifecycleState;
+    return lifecycle == null || lifecycle == AppLifecycleState.detached;
+  }
+
+  /// Background audio still needs the socket for remote control and SyncPlay,
+  /// and a joined group or a live cast session needs it too.
+  bool _shouldKeepSocketAlive() {
+    final getIt = GetIt.instance;
+    if (getIt.isRegistered<PlaybackManager>() &&
+        getIt<PlaybackManager>().state.isPlaying) {
+      return true;
+    }
+    if (getIt.isRegistered<SyncPlayManager>() &&
+        getIt<SyncPlayManager>().state.groupId != null) {
+      return true;
+    }
+    if (getIt.isRegistered<CastService>() &&
+        getIt<CastService>().activeKindNotifier.value != null) {
+      return true;
+    }
+    return false;
+  }
+
   Future<void> destroyCurrentSession() async {
     final serverId = _activeServerId;
     final userId = _activeUserId;
+
+    _cancelSocketIdleTimer();
+    _socketSuspended = false;
 
     // Drop this device's push registration while the session/token is still
     // live, otherwise the plugin keeps sending closed-app pushes after logout.

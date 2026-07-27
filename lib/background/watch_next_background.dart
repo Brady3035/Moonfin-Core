@@ -17,10 +17,14 @@ Future<void> watchNextBackgroundMain() async {
   const channel = MethodChannel('org.moonfin.androidtv/watch_next');
 
   var ok = false;
+  // Tells the worker that retrying can't help, so it stops booting an engine
+  // on every backoff.
+  var permanent = false;
   try {
     await configureBackgroundDependencies();
 
     final client = await HeadlessSessionBootstrap().restoreClient();
+    permanent = client == null;
     if (client != null) {
       final factory = GetIt.instance<MediaServerClientFactory>();
       var serverId = client.baseUrl;
@@ -69,6 +73,7 @@ Future<void> watchNextBackgroundMain() async {
   } catch (_) {}
 
   try {
-    await channel.invokeMethod('backgroundComplete', {'ok': ok});
+    await channel
+        .invokeMethod('backgroundComplete', {'ok': ok, 'permanent': permanent});
   } catch (_) {}
 }

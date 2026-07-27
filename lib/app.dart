@@ -15,9 +15,11 @@ import 'package:playback_core/playback_core.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:window_manager/window_manager.dart';
 
+import 'auth/repositories/session_repository.dart';
 import 'data/models/aggregated_item.dart';
 import 'data/services/app_update_service.dart';
 import 'data/services/cast/cast_service.dart';
+import 'data/services/connectivity_service.dart';
 import 'data/services/download_service.dart';
 import 'data/services/seerr_notification_service.dart';
 import 'data/services/plugin_sync_service.dart';
@@ -945,9 +947,23 @@ class _ConnectivityListenerState extends ConsumerState<_ConnectivityListener>
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.hidden) {
       coordinator.appDidEnterBackground();
+      _backgroundAwareSession?.onAppBackgrounded();
     } else if (state == AppLifecycleState.resumed) {
       coordinator.appDidBecomeActive();
+      _backgroundAwareSession?.onAppResumed();
+      if (GetIt.instance.isRegistered<ConnectivityService>()) {
+        GetIt.instance<ConnectivityService>().onAppResumed();
+      }
     }
+  }
+
+  /// The session that drops its server websocket while backgrounded and idle.
+  /// Mobile only, because desktop and TV stay foreground-like and need to keep
+  /// answering remote control commands.
+  SessionRepository? get _backgroundAwareSession {
+    if (!PlatformDetection.isMobile) return null;
+    if (!GetIt.instance.isRegistered<SessionRepository>()) return null;
+    return GetIt.instance<SessionRepository>();
   }
 
   void _scheduleDesktopUpdateCheck() {

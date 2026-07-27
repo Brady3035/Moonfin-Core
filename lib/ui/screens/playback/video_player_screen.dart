@@ -772,6 +772,10 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
     }
     _themeMusicService.setExternalAudioActive(true);
     _segmentService = _createSegmentService();
+    _zoomMode = _prefs.get(UserPreferences.playerZoomMode);
+    // Media3 only takes the zoom mode from this call, and the backend change it
+    // listens for never fires when it was already the one playing.
+    unawaited(_syncMedia3ZoomMode());
     _bringupState = _manager.bringupState;
     _bringupSub = _manager.bringupStateStream.listen((state) {
       if (!mounted) return;
@@ -780,8 +784,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
       });
       _showBringupFailureIfAny(state);
       unawaited(_syncAutoHdrSwitching());
+      unawaited(_syncMedia3ZoomMode());
     });
-    _zoomMode = _prefs.get(UserPreferences.playerZoomMode);
     _syncPlayManager?.addListener(_onSyncPlayChanged);
     _prefs.addListener(_syncMediaQueuingPreference);
     _syncMediaQueuingPreference();

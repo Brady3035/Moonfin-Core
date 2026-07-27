@@ -45,6 +45,7 @@ import com.google.android.gms.cast.framework.media.RemoteMediaClient
 import com.google.android.gms.cast.framework.CastContext
 import com.google.android.gms.cast.framework.CastSession
 import com.google.android.gms.cast.framework.SessionManagerListener
+import com.google.android.gms.common.api.PendingResult
 import com.google.android.gms.common.images.WebImage
 import com.ryanheise.audioservice.AudioServiceActivity
 import io.flutter.embedding.engine.FlutterEngine
@@ -110,6 +111,7 @@ class MainActivity : AudioServiceActivity(), GamepadsCompatibleActivity {
     private var pendingCastListener: SessionManagerListener<CastSession>? = null
     private var castMediaListener: RemoteMediaClient.Listener? = null
     private var castProgressListener: RemoteMediaClient.ProgressListener? = null
+    private var castErrorReported = false
 
     private fun emitAudioCapabilities() {
         audioCapsSink?.success(AudioCapabilities.query(this))
@@ -990,6 +992,7 @@ class MainActivity : AudioServiceActivity(), GamepadsCompatibleActivity {
     private fun startGoogleCastSession(args: Map<*, *>, result: MethodChannel.Result) {
         val targetId = args["targetId"] as? String
         val streamUrl = args["streamUrl"] as? String
+        val contentType = args["contentType"] as? String
         val title = args["title"] as? String ?: "Moonfin"
         val subtitle = args["subtitle"] as? String
         val posterUrl = args["posterUrl"] as? String
@@ -1023,6 +1026,7 @@ class MainActivity : AudioServiceActivity(), GamepadsCompatibleActivity {
             loadOnCastSession(
                 session = currentSession,
                 streamUrl = streamUrl,
+                contentType = contentType,
                 title = title,
                 subtitle = subtitle,
                 posterUrl = posterUrl,
@@ -1041,12 +1045,12 @@ class MainActivity : AudioServiceActivity(), GamepadsCompatibleActivity {
         val listener = object : SessionManagerListener<CastSession> {
             override fun onSessionStarted(session: CastSession, sessionId: String) {
                 cleanupPendingCast(sessionManager, this)
-                loadOnCastSession(session, streamUrl, title, subtitle, posterUrl, queueItems, startTicks, result)
+                loadOnCastSession(session, streamUrl, contentType, title, subtitle, posterUrl, queueItems, startTicks, result)
             }
 
             override fun onSessionResumed(session: CastSession, wasSuspended: Boolean) {
                 cleanupPendingCast(sessionManager, this)
-                loadOnCastSession(session, streamUrl, title, subtitle, posterUrl, queueItems, startTicks, result)
+                loadOnCastSession(session, streamUrl, contentType, title, subtitle, posterUrl, queueItems, startTicks, result)
             }
 
             override fun onSessionStartFailed(session: CastSession, error: Int) {
@@ -1087,6 +1091,7 @@ class MainActivity : AudioServiceActivity(), GamepadsCompatibleActivity {
     private fun loadOnCastSession(
         session: CastSession,
         streamUrl: String,
+        contentType: String?,
         title: String,
         subtitle: String?,
         posterUrl: String?,
@@ -1100,11 +1105,13 @@ class MainActivity : AudioServiceActivity(), GamepadsCompatibleActivity {
             return
         }
 
+        castErrorReported = false
         val startMs = startTicks?.div(10000L) ?: 0L
         val effectiveQueueItems = if (queueItems.isEmpty()) {
             listOf(
                 mapOf(
                     "streamUrl" to streamUrl,
+                    "contentType" to (contentType ?: ""),
                     "title" to title,
                     "subtitle" to (subtitle ?: ""),
                     "posterUrl" to (posterUrl ?: ""),
@@ -1118,6 +1125,7 @@ class MainActivity : AudioServiceActivity(), GamepadsCompatibleActivity {
             val castQueueItems = effectiveQueueItems.mapNotNull { entry ->
                 buildQueueItem(
                     streamUrl = entry["streamUrl"] as? String,
+                    contentType = entry["contentType"] as? String,
                     title = entry["title"] as? String,
                     subtitle = entry["subtitle"] as? String,
                     posterUrl = entry["posterUrl"] as? String,
@@ -1139,11 +1147,12 @@ class MainActivity : AudioServiceActivity(), GamepadsCompatibleActivity {
                 .setCurrentTime(startMs)
                 .build()
 
-            remoteClient.load(loadRequest)
+            watchCastLoadResult(remoteClient.load(loadRequest))
         } else {
             val single = effectiveQueueItems.first()
             val mediaInfo = buildMediaInfo(
                 streamUrl = single["streamUrl"] as? String ?: streamUrl,
+                contentType = single["contentType"] as? String ?: contentType,
                 title = single["title"] as? String ?: title,
                 subtitle = single["subtitle"] as? String ?: subtitle,
                 posterUrl = single["posterUrl"] as? String ?: posterUrl,
@@ -1153,12 +1162,34 @@ class MainActivity : AudioServiceActivity(), GamepadsCompatibleActivity {
                 .setAutoplay(true)
                 .setCurrentTime(startMs)
                 .build()
-            remoteClient.load(loadRequest)
+            watchCastLoadResult(remoteClient.load(loadRequest))
         }
 
         registerCastMediaListeners(remoteClient)
         emitCurrentGoogleCastStatus(remoteClient)
         result.success(null)
+    }
+
+    // The Flutter result already reported success when the load was issued,
+    // so a rejected load can only reach the user through an error event.
+    private fun watchCastLoadResult(
+        pending: PendingResult<RemoteMediaClient.MediaChannelResult>,
+    ) {
+        pending.setResultCallback { mediaResult ->
+            if (!mediaResult.status.isSuccess) {
+                emitCastPlaybackError(
+                    "Receiver rejected the media (status ${mediaResult.status.statusCode})",
+                )
+            }
+        }
+    }
+
+    // A failed receiver keeps repeating the same status, so only the first
+    // report is worth showing until the next load.
+    private fun emitCastPlaybackError(message: String) {
+        if (castErrorReported) return
+        castErrorReported = true
+        emitGoogleCastEvent("error", message)
     }
 
     private fun parseQueueItems(raw: Any?): List<Map<String, Any>> {
@@ -1170,6 +1201,7 @@ class MainActivity : AudioServiceActivity(), GamepadsCompatibleActivity {
             buildMap<String, Any> {
                 put("streamUrl", streamUrl)
                 put("title", title)
+                (map["contentType"] as? String)?.let { put("contentType", it) }
                 (map["subtitle"] as? String)?.let { put("subtitle", it) }
                 (map["posterUrl"] as? String)?.let { put("posterUrl", it) }
             }
@@ -1178,6 +1210,7 @@ class MainActivity : AudioServiceActivity(), GamepadsCompatibleActivity {
 
     private fun buildMediaInfo(
         streamUrl: String,
+        contentType: String?,
         title: String,
         subtitle: String?,
         posterUrl: String?,
@@ -1196,13 +1229,14 @@ class MainActivity : AudioServiceActivity(), GamepadsCompatibleActivity {
 
         return MediaInfo.Builder(streamUrl)
             .setStreamType(MediaInfo.STREAM_TYPE_BUFFERED)
-            .setContentType("video/*")
+            .setContentType(contentType?.takeIf { it.isNotBlank() } ?: "video/mp4")
             .setMetadata(metadata)
             .build()
     }
 
     private fun buildQueueItem(
         streamUrl: String?,
+        contentType: String?,
         title: String?,
         subtitle: String?,
         posterUrl: String?,
@@ -1210,6 +1244,7 @@ class MainActivity : AudioServiceActivity(), GamepadsCompatibleActivity {
         val url = streamUrl ?: return null
         val mediaInfo = buildMediaInfo(
             streamUrl = url,
+            contentType = contentType,
             title = title ?: "Moonfin",
             subtitle = subtitle,
             posterUrl = posterUrl,
@@ -1359,6 +1394,13 @@ class MainActivity : AudioServiceActivity(), GamepadsCompatibleActivity {
     private fun emitCurrentGoogleCastStatus(remoteClient: RemoteMediaClient? = getCurrentCastSession()?.remoteMediaClient) {
         val client = remoteClient ?: return
         val status = client.mediaStatus ?: return
+        // Without the reason an errored idle looks like an ordinary one and the
+        // failure never reaches the app.
+        if (status.playerState == MediaStatus.PLAYER_STATE_IDLE &&
+            status.idleReason == MediaStatus.IDLE_REASON_ERROR
+        ) {
+            emitCastPlaybackError("Receiver failed to play the media")
+        }
         val state = when (status.playerState) {
             MediaStatus.PLAYER_STATE_PLAYING -> "playing"
             MediaStatus.PLAYER_STATE_PAUSED -> "paused"

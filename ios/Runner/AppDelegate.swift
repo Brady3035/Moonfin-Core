@@ -66,6 +66,7 @@ private final class NativeAirPlayEventStreamHandler: NSObject, FlutterStreamHand
   private var hasConfiguredGoogleCast = false
   private var isCastDiscoveryActive = false
   private var pendingCastRequest: PendingCastRequest?
+  private var castErrorReported = false
   private var pendingCastTimeoutWorkItem: DispatchWorkItem?
   private let castEventStreamHandler = NativeCastEventStreamHandler()
   private let dlnaEventStreamHandler = NativeDlnaEventStreamHandler()
@@ -83,6 +84,7 @@ private final class NativeAirPlayEventStreamHandler: NSObject, FlutterStreamHand
   private struct PendingCastRequest {
     let targetId: String
     let streamUrl: URL
+    let contentType: String?
     let title: String
     let subtitle: String?
     let posterUrl: URL?
@@ -490,6 +492,7 @@ private final class NativeAirPlayEventStreamHandler: NSObject, FlutterStreamHand
           return
         }
 
+        let contentType = args["contentType"] as? String
         let subtitle = args["subtitle"] as? String
         let posterUrlRaw = args["posterUrl"] as? String
         let posterUrl = posterUrlRaw.flatMap(URL.init(string:))
@@ -499,6 +502,7 @@ private final class NativeAirPlayEventStreamHandler: NSObject, FlutterStreamHand
         self.startGoogleCastSession(
           targetId: targetId,
           streamUrl: streamUrl,
+          contentType: contentType,
           title: title,
           subtitle: subtitle,
           posterUrl: posterUrl,
@@ -787,6 +791,7 @@ private final class NativeAirPlayEventStreamHandler: NSObject, FlutterStreamHand
   private func startGoogleCastSession(
     targetId: String,
     streamUrl: URL,
+    contentType: String?,
     title: String,
     subtitle: String?,
     posterUrl: URL?,
@@ -803,6 +808,7 @@ private final class NativeAirPlayEventStreamHandler: NSObject, FlutterStreamHand
         self.loadOnCastSession(
           activeSession,
           streamUrl: streamUrl,
+          contentType: contentType,
           title: title,
           subtitle: subtitle,
           posterUrl: posterUrl,
@@ -843,6 +849,7 @@ private final class NativeAirPlayEventStreamHandler: NSObject, FlutterStreamHand
       self.pendingCastRequest = PendingCastRequest(
         targetId: targetId,
         streamUrl: streamUrl,
+        contentType: contentType,
         title: title,
         subtitle: subtitle,
         posterUrl: posterUrl,
@@ -883,6 +890,7 @@ private final class NativeAirPlayEventStreamHandler: NSObject, FlutterStreamHand
   private func loadOnCastSession(
     _ session: GCKCastSession,
     streamUrl: URL,
+    contentType: String?,
     title: String,
     subtitle: String?,
     posterUrl: URL?,
@@ -901,6 +909,7 @@ private final class NativeAirPlayEventStreamHandler: NSObject, FlutterStreamHand
       return
     }
 
+    castErrorReported = false
     let startSeconds =
       (startPositionTicks != nil && startPositionTicks! > 0)
       ? Double(startPositionTicks!) / 10_000_000.0
@@ -908,6 +917,7 @@ private final class NativeAirPlayEventStreamHandler: NSObject, FlutterStreamHand
     let effectiveQueueItems = queueItems.isEmpty
       ? [[
         "streamUrl": streamUrl.absoluteString,
+        "contentType": contentType ?? "",
         "title": title,
         "subtitle": subtitle ?? "",
         "posterUrl": posterUrl?.absoluteString ?? "",
@@ -979,9 +989,12 @@ private final class NativeAirPlayEventStreamHandler: NSObject, FlutterStreamHand
       metadata.addImage(GCKImage(url: posterUrl, width: 0, height: 0))
     }
 
+    let contentType =
+      (item["contentType"] as? String).flatMap { $0.isEmpty ? nil : $0 } ?? "video/mp4"
+
     let mediaInfoBuilder = GCKMediaInformationBuilder(contentURL: streamUrl)
     mediaInfoBuilder.streamType = .buffered
-    mediaInfoBuilder.contentType = "application/octet-stream"
+    mediaInfoBuilder.contentType = contentType
     mediaInfoBuilder.metadata = metadata
     return mediaInfoBuilder.build()
   }
@@ -1091,6 +1104,7 @@ private final class NativeAirPlayEventStreamHandler: NSObject, FlutterStreamHand
     loadOnCastSession(
       castSession,
       streamUrl: request.streamUrl,
+      contentType: request.contentType,
       title: request.title,
       subtitle: request.subtitle,
       posterUrl: request.posterUrl,
@@ -1134,6 +1148,14 @@ private final class NativeAirPlayEventStreamHandler: NSObject, FlutterStreamHand
     castEventSink?(event)
   }
 
+  // A failed receiver keeps repeating the same status, so only the first
+  // report is worth showing until the next load.
+  fileprivate func emitCastPlaybackError(_ message: String) {
+    if castErrorReported { return }
+    castErrorReported = true
+    emitGoogleCastEvent(state: "error", message: message)
+  }
+
   fileprivate func emitCurrentGoogleCastStatus(from client: GCKRemoteMediaClient? = nil) {
     let remoteClient: GCKRemoteMediaClient?
     if let client {
@@ -1144,6 +1166,12 @@ private final class NativeAirPlayEventStreamHandler: NSObject, FlutterStreamHand
     guard let remoteClient,
           let status = remoteClient.mediaStatus else {
       return
+    }
+
+    // Without the reason an errored idle looks like an ordinary one and the
+    // failure never reaches the app.
+    if status.playerState == .idle, status.idleReason == .error {
+      emitCastPlaybackError("Receiver failed to play the media")
     }
 
     let state: String

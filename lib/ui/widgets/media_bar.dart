@@ -46,6 +46,7 @@ import 'mediabar/bookshelf_layout.dart';
 import 'mediabar/gallery_coverflow.dart';
 import 'mediabar/gallery_layout.dart';
 import 'mediabar/media_bar_status_focus.dart';
+import 'mediabar/media_bar_title.dart';
 import 'rating_display.dart';
 import 'web_local_trailer.dart';
 import 'web_youtube_trailer.dart';
@@ -1888,9 +1889,7 @@ class _MediaBarState extends State<MediaBar>
                         overlayOpacity: overlayOpacity,
                       ),
                     ),
-                  if (currentItem != null &&
-                      currentItem.logoUrl != null &&
-                      (!isMobile || isTablet))
+                  if (currentItem != null && (!isMobile || isTablet))
                     Positioned(
                       top: MediaQuery.of(context).padding.top + 56,
                       left: logoLeftInset,
@@ -1900,7 +1899,10 @@ class _MediaBarState extends State<MediaBar>
                           key: ValueKey('logo_${currentItem.itemId}'),
                           width: 280,
                           height: 120,
-                          child: _buildLogoWithShadow(currentItem.logoUrl!),
+                          child: _buildLogoWithShadow(
+                            currentItem.logoUrl,
+                            currentItem.title,
+                          ),
                         ),
                       ),
                     ),
@@ -1934,9 +1936,7 @@ class _MediaBarState extends State<MediaBar>
                             crossAxisAlignment: CrossAxisAlignment.start,
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              if (isMobile &&
-                                  !isTablet &&
-                                  currentItem.logoUrl != null)
+                              if (isMobile && !isTablet)
                                 Padding(
                                   padding: const EdgeInsets.only(
                                     left: 16,
@@ -1946,7 +1946,8 @@ class _MediaBarState extends State<MediaBar>
                                     width: 180,
                                     height: 70,
                                     child: _buildLogoWithShadow(
-                                      currentItem.logoUrl!,
+                                      currentItem.logoUrl,
+                                      currentItem.title,
                                     ),
                                   ),
                                 ),
@@ -2137,7 +2138,7 @@ class _MediaBarState extends State<MediaBar>
                         ),
                       ),
                     ),
-                  if (currentItem != null && currentItem.logoUrl != null)
+                  if (currentItem != null)
                     Builder(
                       builder: (context) {
                         final contentHeight = widget.height - effectiveTopInset;
@@ -2187,7 +2188,8 @@ class _MediaBarState extends State<MediaBar>
                                             width: mobileLogoWidth,
                                             height: mobileLogoHeight,
                                             child: _buildLogoWithShadow(
-                                              currentItem.logoUrl!,
+                                              currentItem.logoUrl,
+                                              currentItem.title,
                                             ),
                                           ),
                                         ),
@@ -2204,7 +2206,8 @@ class _MediaBarState extends State<MediaBar>
                                         width: logoWidth,
                                         height: logoHeight,
                                         child: _buildLogoWithShadow(
-                                          currentItem.logoUrl!,
+                                          currentItem.logoUrl,
+                                          currentItem.title,
                                         ),
                                       ),
                                     ),
@@ -2749,13 +2752,19 @@ class _MediaBarState extends State<MediaBar>
     }
   }
 
-  Widget _buildLogoWithShadow(String url) {
+  Widget _buildLogoFallback(String title) => Align(
+    alignment: Alignment.centerLeft,
+    child: MediaBarTitle(title: title, shadows: _textShadows),
+  );
+
+  Widget _buildLogoWithShadow(String? url, String title) {
+    if (url == null) return _buildLogoFallback(title);
     Widget image() => OfflineAwareImage(
       imageUrl: url,
       fit: BoxFit.contain,
       alignment: Alignment.centerLeft,
       fadeInDuration: Duration.zero,
-      errorWidget: (_, _, _) => const SizedBox.shrink(),
+      errorWidget: (_, _, _) => _buildLogoFallback(title),
     );
     return Stack(
       fit: StackFit.expand,

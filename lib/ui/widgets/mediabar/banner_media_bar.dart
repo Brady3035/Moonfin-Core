@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:moonfin_design/moonfin_design.dart';
 
 import '../../../data/models/media_bar_slide_item.dart';
+import 'media_bar_title.dart';
 import '../../../data/models/media_bar_state.dart';
 import '../../../data/viewmodels/media_bar_view_model.dart';
 import '../../../preference/preference_constants.dart';
@@ -367,12 +368,13 @@ class _BannerMediaBarState extends State<BannerMediaBar> {
                 fit: BoxFit.contain,
                 alignment: Alignment.centerLeft,
                 fadeInDuration: Duration.zero,
-                errorWidget: (_, _, _) => _title(theme, item, shadows),
+                errorWidget: (_, _, _) =>
+                    MediaBarTitle(title: item.title, shadows: shadows),
               ),
             ),
           )
         else
-          _title(theme, item, shadows),
+          MediaBarTitle(title: item.title, shadows: shadows),
         if (meta.isNotEmpty) ...[
           const SizedBox(height: 6),
           Text(
@@ -404,26 +406,6 @@ class _BannerMediaBarState extends State<BannerMediaBar> {
     );
   }
 
-  Widget _title(
-    ThemeData theme,
-    MediaBarSlideItem item,
-    List<Shadow> shadows,
-  ) {
-    final isMobile = PlatformDetection.useMobileUi;
-    return Text(
-      item.title,
-      maxLines: 2,
-      overflow: TextOverflow.ellipsis,
-      style:
-          (isMobile ? theme.textTheme.titleLarge : theme.textTheme.headlineMedium)
-              ?.copyWith(
-                color: AppColorScheme.onSurface,
-                fontWeight: FontWeight.w800,
-                height: 1.05,
-                shadows: shadows,
-              ),
-    );
-  }
 
   String _formatRuntime(Duration d) {
     final h = d.inHours;

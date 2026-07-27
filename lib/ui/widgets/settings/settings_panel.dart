@@ -61,11 +61,13 @@ class SettingsPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.sizeOf(context).width;
     final appleTv = AppUiIdiomResolver.appleTvStyle;
+    final isMobile = PlatformDetection.useMobileUi;
     final panelWidth = PlatformDetection.isAppleTV
         ? (screenWidth * 0.42).clamp(560.0, screenWidth)
-        : PlatformDetection.useMobileUi
-        ? (screenWidth - 8).clamp(320.0, screenWidth)
+        : isMobile
+        ? screenWidth
         : (screenWidth - 16).clamp(320.0, 420.0);
+    final panelCorner = isMobile ? 0.0 : 16.0;
     final glass = AppColorScheme.isGlass;
     final frostedForTv = appleTv && !glass;
     final surface = Theme.of(context).colorScheme.surface;
@@ -81,7 +83,7 @@ class SettingsPanel extends StatelessWidget {
     Widget content;
     if (glass) {
       content = GlassSurface(
-        cornerRadius: 16,
+        cornerRadius: panelCorner,
         reinforced: true,
         fallbackColor: Colors.transparent,
         child: body,
@@ -124,7 +126,9 @@ class SettingsPanel extends StatelessWidget {
       alignment: Alignment.centerRight,
       child: Material(
         color: (glass || frostedForTv) ? Colors.transparent : surface,
-        borderRadius: const BorderRadius.horizontal(left: Radius.circular(16)),
+        borderRadius: BorderRadius.horizontal(
+          left: Radius.circular(panelCorner),
+        ),
         clipBehavior: Clip.antiAlias,
         child: content,
       ),

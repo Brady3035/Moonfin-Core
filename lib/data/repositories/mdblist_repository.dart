@@ -1,9 +1,11 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
+import 'package:get_it/get_it.dart';
 import 'package:server_core/server_core.dart';
 
 import '../models/aggregated_item.dart';
+import '../services/plugin_sync_service.dart';
 import 'tmdb_repository.dart';
 
 class MdbListRepository {
@@ -127,7 +129,13 @@ class MdbListRepository {
 
       final response = await _dio.get(
         '$baseUrl/Moonfin/MdbList/Ratings',
-        queryParameters: {'type': type, 'tmdbId': tmdbId},
+        // The profile makes the plugin filter with the same profile settings sync
+        // applies here, rather than the global one.
+        queryParameters: {
+          'type': type,
+          'tmdbId': tmdbId,
+          'profile': GetIt.instance<PluginSyncService>().currentDeviceProfile,
+        },
         options: Options(
           headers: {'Authorization': 'MediaBrowser Token="$token"'},
         ),

@@ -523,6 +523,7 @@ class MediaKitPlayerBackend extends PlayerBackend {
       trueHdPassthroughEnabled: _prefs.resolveTrueHdPassthroughEnabled(),
       trueHdAtmosPassthroughEnabled: _prefs
           .resolveTrueHdAtmosPassthroughEnabled(),
+      explicitPassthroughToggles: _prefs.explicitPassthroughToggles,
       maxAudioChannels: _prefs.resolveMaxAudioChannels(),
       // mpv decodes all advertised audio codecs in software and downmixes
       // locally, so stereo routes never need a server-side audio transcode.

@@ -342,6 +342,7 @@ class AppleTvMpvBackend implements PlayerBackend {
       trueHdPassthroughEnabled: _prefs.resolveTrueHdPassthroughEnabled(),
       trueHdAtmosPassthroughEnabled: _prefs
           .resolveTrueHdAtmosPassthroughEnabled(),
+      explicitPassthroughToggles: _prefs.explicitPassthroughToggles,
       // AetherEngine plays every advertised audio codec: AAC/AC3/EAC3(+JOC
       // Atmos)/FLAC/ALAC are stream-copied intact, and TrueHD/DTS/MP3/Opus/
       // Vorbis/PCM are bridged to EAC3 or FLAC on-device, so stereo routes

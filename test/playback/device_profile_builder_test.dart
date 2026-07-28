@@ -466,6 +466,65 @@ void main() {
     });
   });
 
+  group('DeviceProfileBuilder passthrough with no detected capabilities', () {
+    // The fallback profile reports no route at all, which is the only state
+    // where the route side of the passthrough gate fails.
+    Map<String, dynamic> buildWithFailedProbe({
+      Set<AudioPassthroughToggle> explicitPassthroughToggles =
+          const <AudioPassthroughToggle>{},
+      bool eac3PassthroughEnabled = false,
+    }) {
+      return DeviceProfileBuilder.build(
+        audioCapabilityProfile: const AudioCapabilityProfile.optimistic(),
+        audioOutputMode: AudioOutputMode.avrPassthrough,
+        universalAudioDecode: true,
+        eac3PassthroughEnabled: eac3PassthroughEnabled,
+        explicitPassthroughToggles: explicitPassthroughToggles,
+      );
+    }
+
+    test('a toggle the user switched off still drops the codec', () {
+      final codecs = _videoDirectPlayAudioCodecs(
+        buildWithFailedProbe(
+          explicitPassthroughToggles: {AudioPassthroughToggle.eac3},
+        ),
+      );
+
+      expect(codecs, isNot(contains('eac3')));
+    });
+
+    test('a toggle the user switched on keeps the codec', () {
+      final codecs = _videoDirectPlayAudioCodecs(
+        buildWithFailedProbe(
+          explicitPassthroughToggles: {AudioPassthroughToggle.eac3},
+          eac3PassthroughEnabled: true,
+        ),
+      );
+
+      expect(codecs, contains('eac3'));
+    });
+
+    test('a toggle left on auto keeps advertising the codec', () {
+      final codecs = _videoDirectPlayAudioCodecs(buildWithFailedProbe());
+
+      expect(codecs, contains('eac3'));
+      expect(codecs, contains('ac3'));
+      expect(codecs, contains('truehd'));
+    });
+
+    test('one hand-set toggle leaves the others alone', () {
+      final codecs = _videoDirectPlayAudioCodecs(
+        buildWithFailedProbe(
+          explicitPassthroughToggles: {AudioPassthroughToggle.eac3},
+        ),
+      );
+
+      expect(codecs, contains('ac3'));
+      expect(codecs, contains('dts'));
+      expect(codecs, contains('truehd'));
+    });
+  });
+
   group('DeviceProfileBuilder audio codec advertisement', () {
     test('keeps surround codecs in direct-play profile by default', () {
       final profile = DeviceProfileBuilder.build();

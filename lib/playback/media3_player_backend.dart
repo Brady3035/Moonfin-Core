@@ -693,6 +693,7 @@ class Media3PlayerBackend extends PlayerBackend {
       trueHdPassthroughEnabled: _prefs.resolveTrueHdPassthroughEnabled(),
       trueHdAtmosPassthroughEnabled: _prefs
           .resolveTrueHdAtmosPassthroughEnabled(),
+      explicitPassthroughToggles: _prefs.explicitPassthroughToggles,
       maxAudioChannels: _prefs.resolveMaxAudioChannels(),
       // Media3 bundles the FFmpeg audio decoder extension: every advertised
       // codec decodes in software, so stereo routes downmix locally instead

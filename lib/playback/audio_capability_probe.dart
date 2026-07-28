@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/services.dart';
+import 'package:get_it/get_it.dart';
 
+import '../data/services/log_service.dart';
 import '../preference/preference_constants.dart';
 import '../util/platform_detection.dart';
 import 'audio_capability_profile.dart';
@@ -125,8 +127,35 @@ class AudioCapabilityProbe {
 
   /// Publishes a freshly-detected profile to [PlatformDetection]; the next
   /// `getDeviceProfile()` (computed per playback) picks it up.
+  ///
+  /// A probe that came back with nothing is a failure to read the hardware, not
+  /// a device that lost its capabilities, so it leaves whatever was detected
+  /// before in place. Clearing it would drop the app onto the optimistic
+  /// fallback, which reports no route and no passthrough, until a restart.
   static void apply(AudioCapabilityProfile? profile) {
-    PlatformDetection.setAudioCapabilities(profile?.toMap());
+    if (profile == null) {
+      _log(
+        'audio probe: no result, keeping '
+        '${PlatformDetection.hasAudioCapabilities ? 'the last detection' : 'the fallback profile'}',
+        level: LogLevel.warning,
+      );
+      return;
+    }
+    PlatformDetection.setAudioCapabilities(profile.toMap());
+    _log(
+      'audio probe: route=${profile.activeRouteType.name} '
+      'maxPcmChannels=${profile.maxPcmChannels} '
+      'passthrough ac3=${profile.canPassthroughAc3} '
+      'eac3=${profile.canPassthroughEac3} dts=${profile.canPassthroughDts} '
+      'truehd=${profile.canPassthroughTrueHd}',
+      level: LogLevel.info,
+    );
+  }
+
+  static void _log(String message, {required LogLevel level}) {
+    if (GetIt.instance.isRegistered<LogService>()) {
+      GetIt.instance<LogService>().media(message, level: level);
+    }
   }
 
   /// Subscribes to native route-change events (HDMI/ARC/eARC connect/disconnect)

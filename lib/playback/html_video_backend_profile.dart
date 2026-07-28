@@ -27,6 +27,7 @@ Map<String, dynamic> buildHtmlVideoBackendDeviceProfile(
     dtsHdPassthroughEnabled: prefs.resolveDtsHdPassthroughEnabled(),
     trueHdPassthroughEnabled: prefs.resolveTrueHdPassthroughEnabled(),
     trueHdAtmosPassthroughEnabled: prefs.resolveTrueHdAtmosPassthroughEnabled(),
+    explicitPassthroughToggles: prefs.explicitPassthroughToggles,
     maxAudioChannels: prefs.resolveMaxAudioChannels(),
     maxResolution: maxResolution,
     pgsDirectPlay: prefs.get(UserPreferences.pgsDirectPlay),

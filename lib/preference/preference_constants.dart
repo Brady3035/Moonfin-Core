@@ -38,6 +38,19 @@ enum AudioPassthroughPreset {
   advanced,
 }
 
+/// The per-codec passthrough toggles, used to say which ones the user set by
+/// hand rather than left following detection.
+enum AudioPassthroughToggle {
+  ac3,
+  eac3,
+  eac3Joc,
+  dtsCore,
+  dtsHd,
+  dtsX,
+  trueHd,
+  trueHdAtmos,
+}
+
 enum PlaybackEnginePreference {
   media3,
   mpv,

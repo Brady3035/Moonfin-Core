@@ -235,6 +235,7 @@ class TizenPlayerBackend extends PlayerBackend {
       trueHdPassthroughEnabled: _prefs.resolveTrueHdPassthroughEnabled(),
       trueHdAtmosPassthroughEnabled:
           _prefs.resolveTrueHdAtmosPassthroughEnabled(),
+      explicitPassthroughToggles: _prefs.explicitPassthroughToggles,
       maxAudioChannels: _prefs.resolveMaxAudioChannels(),
       maxResolution: maxResolution,
       pgsDirectPlay: false,

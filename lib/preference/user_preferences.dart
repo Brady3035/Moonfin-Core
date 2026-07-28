@@ -688,6 +688,30 @@ class UserPreferences extends ChangeNotifier {
     profile,
   );
 
+  /// The toggles the user set by hand, as opposed to the ones still following
+  /// detection. A hand-set toggle is a stated intent, so it still applies when
+  /// the hardware probe comes back empty and there is no detected capability
+  /// left to follow.
+  Set<AudioPassthroughToggle> get explicitPassthroughToggles =>
+      <AudioPassthroughToggle>{
+        if (containsPreference(ac3PassthroughEnabled))
+          AudioPassthroughToggle.ac3,
+        if (containsPreference(eac3PassthroughEnabled))
+          AudioPassthroughToggle.eac3,
+        if (containsPreference(eac3JocPassthroughEnabled))
+          AudioPassthroughToggle.eac3Joc,
+        if (containsPreference(dtsCorePassthroughEnabled))
+          AudioPassthroughToggle.dtsCore,
+        if (containsPreference(dtsHdPassthroughEnabled))
+          AudioPassthroughToggle.dtsHd,
+        if (containsPreference(dtsXPassthroughEnabled))
+          AudioPassthroughToggle.dtsX,
+        if (containsPreference(trueHdPassthroughEnabled))
+          AudioPassthroughToggle.trueHd,
+        if (containsPreference(trueHdAtmosPassthroughEnabled))
+          AudioPassthroughToggle.trueHdAtmos,
+      };
+
   /// The eight per-codec passthrough toggle preferences.
   static List<Preference<bool>> get passthroughTogglePreferences =>
       <Preference<bool>>[

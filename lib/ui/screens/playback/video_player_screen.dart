@@ -1275,6 +1275,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
         }
         if (_isInPiP || _isStopping || _pipService.isScreenLocked) return;
         _videoWasDisabledByLifecycle = true;
+        _capturePositionBeforeVideoDisable();
         _activeMediaKitBackend?.setVideoEnabled(false);
       case AppLifecycleState.paused:
       case AppLifecycleState.hidden:
@@ -1296,6 +1297,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
         }
         if (_isInPiP || _isStopping || _pipService.isScreenLocked) return;
         _videoWasDisabledByLifecycle = true;
+        _capturePositionBeforeVideoDisable();
         _activeMediaKitBackend?.setVideoEnabled(false);
       case AppLifecycleState.resumed:
         _didHandleBackgroundSuspend = false;
@@ -1351,6 +1353,15 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
     await backend.setVideoEnabled(false);
     if (!mounted || _isStopping) return;
     await backend.setVideoEnabled(true);
+  }
+
+  /// Notes where playback is before the video track is turned off, which is
+  /// what the restore on resume compares against. Turning the track back on
+  /// reopens the source, and a server side transcode reopens at the start of
+  /// its own stream rather than where the viewer was.
+  void _capturePositionBeforeVideoDisable() {
+    _positionBeforeScreenLock = _activeBackend?.position ?? _state.position;
+    _wasPlayingBeforeScreenLock = _state.isPlaying;
   }
 
   void _onScreenLock(bool locked) {

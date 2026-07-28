@@ -327,10 +327,41 @@ final class AetherPlayerWrapper: NSObject, ObservableObject {
             subtitleOverlay.autoresizingMask = [.width, .height]
             view.addSubview(subtitleOverlay, positioned: .above, relativeTo: playerView)
         #endif
+        subtitleOverlay.videoRectProvider = { [weak self] in
+            self?.currentVideoRect() ?? .zero
+        }
         Self.sharedEngine()?.bind(view: playerView)
         if view.window != nil {
             resumeSurfaceWaiters()
         }
+    }
+
+    /// The video rect AVPlayerLayer measures, letterbox included. Empty before
+    /// the first frame and on the software path, which has no equivalent.
+    private func currentVideoRect() -> CGRect {
+        let root: CALayer? = playerView.layer
+        guard let root, let rect = Self.firstPlayerLayer(in: root)?.videoRect,
+            !rect.isEmpty
+        else { return .zero }
+        #if canImport(UIKit)
+            return rect
+        #else
+            // The overlay measures from the top while a layer-backed NSView
+            // measures from the bottom, so the box has to be flipped to line up.
+            return CGRect(
+                x: rect.minX, y: playerView.bounds.height - rect.maxY,
+                width: rect.width, height: rect.height)
+        #endif
+    }
+
+    /// Searched for rather than read off a known sublayer, so moving where the
+    /// engine hosts it cannot quietly stop finding it.
+    private static func firstPlayerLayer(in layer: CALayer) -> AVPlayerLayer? {
+        if let playerLayer = layer as? AVPlayerLayer { return playerLayer }
+        for sublayer in layer.sublayers ?? [] {
+            if let found = firstPlayerLayer(in: sublayer) { return found }
+        }
+        return nil
     }
 
     func notifySurfaceReady() {
@@ -345,6 +376,7 @@ final class AetherPlayerWrapper: NSObject, ObservableObject {
         guard videoView === view else { return }
         playerView.removeFromSuperview()
         subtitleOverlay.removeFromSuperview()
+        subtitleOverlay.videoRectProvider = nil
         videoView = nil
     }
 

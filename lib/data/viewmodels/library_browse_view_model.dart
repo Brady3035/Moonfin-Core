@@ -49,6 +49,16 @@ class LibraryBrowseViewModel extends ChangeNotifier {
 
   int _filteredOutCount = 0;
 
+  /// Rows the server has handed back so far, which is where the next page
+  /// starts. The rendered count drifts below this whenever a row is dropped,
+  /// and paging from the rendered count would ask for a window already read.
+  int _fetchedCount = 0;
+
+  /// Ids already on screen. A random sort reshuffles server side on every
+  /// request, so consecutive pages are windows into different orderings and
+  /// the same item comes back on several of them.
+  final Set<String> _renderedItemIds = <String>{};
+
   bool _totalCountKnown = true;
   bool _hasMoreFromPageSize = false;
 
@@ -208,6 +218,8 @@ class LibraryBrowseViewModel extends ChangeNotifier {
     _items = const [];
     _totalCount = 0;
     _filteredOutCount = 0;
+    _fetchedCount = 0;
+    _renderedItemIds.clear();
     _totalCountKnown = true;
     _hasMoreFromPageSize = false;
     notifyListeners();
@@ -272,10 +284,12 @@ class LibraryBrowseViewModel extends ChangeNotifier {
     _loadingMore = true;
     notifyListeners();
 
-    final prevLength = _items.length;
+    final previouslyFetched = _fetchedCount;
     try {
-      await _fetchPage(_items.length);
-      if (_items.length <= prevLength) {
+      await _fetchPage(_fetchedCount);
+      // Stop on a page the server had nothing left for, not on one that only
+      // repeated what is already shown, which a random sort does by chance.
+      if (_fetchedCount <= previouslyFetched) {
         _totalCount = _items.length;
         _hasMoreFromPageSize = false;
       }
@@ -489,12 +503,25 @@ class LibraryBrowseViewModel extends ChangeNotifier {
       }
     }
 
-    final filtered = await _filterLibraryItems(mapped);
+    var filtered = await _filterLibraryItems(mapped);
 
     if (isPlaylistBrowse) {
       final filteredOutInBatch = mapped.length - filtered.length;
       _filteredOutCount += filteredOutInBatch;
     }
+
+    // A playlist is free to list the same item more than once, so only the
+    // library browses drop repeats. A repeat means the server reshuffled
+    // rather than the library holding fewer items, so the total stays as
+    // reported and the dropped rows turn up on a later window.
+    if (!isPlaylistBrowse) {
+      filtered = filtered
+          .where((item) => !_renderedItemIds.contains(item.id))
+          .toList();
+      _renderedItemIds.addAll(filtered.map((item) => item.id));
+    }
+
+    _fetchedCount = startIndex + rawItems.length;
 
     final totalFromServer = response['TotalRecordCount'] as int?;
     _totalCountKnown = totalFromServer != null;
@@ -503,7 +530,7 @@ class LibraryBrowseViewModel extends ChangeNotifier {
       _hasMoreFromPageSize = _items.length + filtered.length < _totalCount;
     } else {
       _hasMoreFromPageSize = rawItems.length == pageSize;
-      final loadedCount = startIndex + filtered.length;
+      final loadedCount = _items.length + filtered.length;
       _totalCount = loadedCount + (_hasMoreFromPageSize ? 1 : 0);
     }
 

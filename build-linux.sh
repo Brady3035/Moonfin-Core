@@ -300,19 +300,34 @@ collect_transitive_libs() {
 # anything not named here has to travel with the app. libselinux is the example
 # to remember: Ubuntu builds glib against it so it reaches the dependency graph
 # on the build host, while Arch does not install it, and leaving it out meant
-# the app refused to start there.
+# the app refused to start there. A machine having the library is not enough
+# either: openSUSE builds ncurses without the versioned symbols Ubuntu adds, so
+# the bundled libcaca could not resolve them and the app refused to start there
+# too.
+#
+# Entries match anywhere in the file name, so a name that is a prefix of
+# another one has to say so. Asking for libcrypt used to hand libcrypto to the
+# host as well, which left the bundle carrying libssl and expecting an OpenSSL
+# it was never built against.
 runtime_skip_pattern() {
   local skip='linux-vdso|ld-linux|libc[.]so|libm[.]so|libpthread|libdl[.]so|librt[.]so'
   skip="$skip"'|libstdc[+][+]|libgcc_s'
   skip="$skip"'|libX[a-z]|libxcb|libxkb|libxshmfence|libICE|libSM'
   skip="$skip"'|libwayland|libffi|libpcre'
-  skip="$skip"'|libGL|libEGL|libGLX|libGLdispatch|libOpenGL|libdrm|libgbm'
+  skip="$skip"'|libGL[.]so|libGLX|libGLdispatch|libGLESv|libEGL|libOpenGL'
+  skip="$skip"'|libdrm|libgbm'
   skip="$skip"'|libglib|libgobject|libgio|libgmodule|libgthread'
   skip="$skip"'|libpulse|libdbus|libasound|libsndfile|libpipewire|libspa|libjack'
   skip="$skip"'|libfontconfig|libfreetype|libharfbuzz|libcairo|libpango|libpixman'
   skip="$skip"'|libatk|libgdk|libgtk|libepoxy|libgdk_pixbuf|librsvg'
-  skip="$skip"'|libmount|libblkid|libuuid|libresolv|libnss|libcrypt'
-  skip="$skip"'|libsystemd|libncurses|libtinfo'
+  skip="$skip"'|libmount|libblkid|libuuid|libresolv|libnss3|libnssutil'
+  skip="$skip"'|libsystemd'
+  # OpenSSL finds its trust store and its provider modules through a directory
+  # fixed when it was built, so a copy carried from another distro can stop
+  # verifying certificates. Both halves stay with the host for that reason, and
+  # they stay together: a bundled libssl against a system libcrypto is the
+  # mismatch that has to be avoided.
+  skip="$skip"'|libssl[.]so|libcrypto[.]so'
   printf '%s\n' "$skip"
 }
 
@@ -668,9 +683,12 @@ if [ -n "$missing_libs" ]; then
 fi
 
 if [ -n "$version_errors" ]; then
-  echo "Moonfin cannot start. Your system libraries are older than the ones this build was made against:" >&2
+  echo "Moonfin cannot start. A library your system provides is missing symbols" >&2
+  echo "this build needs:" >&2
   printf '%s\n' "$version_errors" >&2
-  echo "Update your distro, or use a package built for it (deb/rpm/flatpak/snap)." >&2
+  echo "That library has to be bundled with the app for your distro." >&2
+  echo "Please report this output so the next build carries it." >&2
+  echo "A deb, rpm, flatpak or snap build works in the meantime." >&2
   exit 127
 fi
 

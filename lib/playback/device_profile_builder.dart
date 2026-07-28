@@ -1666,7 +1666,9 @@ class DeviceProfileBuilder {
     }
 
     for (final format in const <String>['vtt', 'webvtt']) {
-      add(format, 'Embed');
+      if (supportsEmbeddedSubtitles) {
+        add(format, 'Embed');
+      }
       add(format, 'External');
       add(format, 'Hls');
     }

@@ -438,6 +438,9 @@ class AetherBackend implements PlayerBackend {
   bool get canRenderBitmapSubtitles => true;
 
   @override
+  bool get demuxesEmbeddedSubtitles => true;
+
+  @override
   void dispose() {
     _disposed = true;
     _audioDelayDebounce?.cancel();

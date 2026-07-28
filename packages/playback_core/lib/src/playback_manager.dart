@@ -2305,12 +2305,12 @@ class PlaybackManager implements AudioOwnable {
 
     final embeddedSubCount = TrackOrdinalMapper.embeddedSubtitleCount(
       mediaStreams: _currentMediaStreams,
-      embeddedStripped: _embeddedTracksStripped,
+      embeddedStripped: _embeddedSubtitlesUnavailable,
     );
     final subsToAdd = TrackOrdinalMapper.effectiveExternalSubtitles(
       mediaStreams: _currentMediaStreams,
       externalSubtitles: resolution.externalSubtitles,
-      embeddedStripped: _embeddedTracksStripped,
+      embeddedStripped: _embeddedSubtitlesUnavailable,
     );
 
     backend.waitForEmbeddedSubtitleCount(embeddedSubCount).then((_) async {
@@ -2342,6 +2342,13 @@ class PlaybackManager implements AudioOwnable {
       _currentResolution?.playMethod == StreamPlayMethod.transcode ||
       _currentResolution?.playMethod == StreamPlayMethod.directStream;
 
+  /// Embedded subtitles the player will never see, either because the stream
+  /// dropped them or because the player can't read them out of a container in
+  /// the first place. Both cases mean the server's external copy is the only
+  /// way to get the subtitle on screen.
+  bool get _embeddedSubtitlesUnavailable =>
+      _embeddedTracksStripped || !(_backend?.demuxesEmbeddedSubtitles ?? true);
+
   /// The external subtitles that actually get sub-added, in add order.
   List<ExternalSubtitle> get _effectiveExternalSubtitles {
     final resolution = _currentResolution;
@@ -2349,7 +2356,7 @@ class PlaybackManager implements AudioOwnable {
     return TrackOrdinalMapper.effectiveExternalSubtitles(
       mediaStreams: _currentMediaStreams,
       externalSubtitles: resolution.externalSubtitles,
-      embeddedStripped: _embeddedTracksStripped,
+      embeddedStripped: _embeddedSubtitlesUnavailable,
     );
   }
 
@@ -2369,7 +2376,7 @@ class PlaybackManager implements AudioOwnable {
         type: type,
         mediaStreams: _currentMediaStreams,
         externalSubtitles: _currentResolution?.externalSubtitles,
-        embeddedStripped: _embeddedTracksStripped,
+        embeddedStripped: _embeddedSubtitlesUnavailable,
       );
 
   int? _streamIndexForMpvTrackId(int mpvTrackId, String type) =>
@@ -2378,7 +2385,7 @@ class PlaybackManager implements AudioOwnable {
         type: type,
         mediaStreams: _currentMediaStreams,
         externalSubtitles: _currentResolution?.externalSubtitles,
-        embeddedStripped: _embeddedTracksStripped,
+        embeddedStripped: _embeddedSubtitlesUnavailable,
       );
 
   Future<void> playOffline(

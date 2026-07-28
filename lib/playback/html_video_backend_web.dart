@@ -41,7 +41,7 @@ class HtmlVideoBackend extends PlayerBackend {
   final String _viewType;
 
   late final web.HTMLVideoElement _videoElement;
-  final List<web.HTMLTrackElement> _externalTracks = <web.HTMLTrackElement>[];
+  final List<({String url, web.HTMLTrackElement element})> _externalTracks = [];
   JSAny? _hlsController;
 
   WebSubtitleOverlay? _subtitleOverlay;
@@ -260,15 +260,6 @@ class HtmlVideoBackend extends PlayerBackend {
   }
 
   void _applyNativeSource(String url) {
-    // Subtitle tracks are fetched in whatever CORS mode the video element is
-    // in, so a remote server needs this. Asking for CORS on a same origin
-    // stream only gives playback another way to fail, and the element outlives
-    // the source, so it comes back off again.
-    if (_isCrossOrigin(url)) {
-      _videoElement.crossOrigin = 'anonymous';
-    } else {
-      _videoElement.removeAttribute('crossorigin');
-    }
     _videoElement.src = url;
     _videoElement.load();
   }
@@ -279,6 +270,17 @@ class HtmlVideoBackend extends PlayerBackend {
     required Duration startPosition,
   }) async {
     _clearExternalTracks();
+
+    // Subtitle tracks are fetched in whatever CORS mode the video element is
+    // in, so a remote server needs this, and hls.js never touches the src
+    // attribute, so it has to be set here rather than on the native path.
+    // Asking for CORS on a same origin stream only gives playback another way
+    // to fail, and the element outlives the source, so it comes back off again.
+    if (_isCrossOrigin(url)) {
+      _videoElement.crossOrigin = 'anonymous';
+    } else {
+      _videoElement.removeAttribute('crossorigin');
+    }
 
     final forceHls = _isLikelyHlsContainer(container);
     _detachHlsJsSource();
@@ -300,7 +302,7 @@ class HtmlVideoBackend extends PlayerBackend {
 
   void _clearExternalTracks() {
     for (final track in _externalTracks) {
-      track.remove();
+      track.element.remove();
     }
     _externalTracks.clear();
     _subtitleOverlay?.clear();
@@ -476,26 +478,33 @@ class HtmlVideoBackend extends PlayerBackend {
       return;
     }
 
+    // Track ordinals count from one over the tracks the player was handed, and
+    // the only ones a browser is ever handed are the ones added here, so the
+    // ordinal is a position in that list.
+    _showTrackAt(index - 1);
+  }
+
+  /// Shows the track at [position] in add order and hides everything else. A
+  /// position outside the list just clears the screen.
+  void _showTrackAt(int position) {
     _subtitleOverlay?.clear();
 
     try {
-      final dynamic tracks = (_videoElement as dynamic).textTracks;
-      final length = (tracks.length as num?)?.toInt() ?? 0;
-
-      dynamic targetTrackObj;
-      if (index >= 0 && index < _externalTracks.length) {
-        targetTrackObj = (_externalTracks[index] as dynamic).track;
-      } else {
-        targetTrackObj = index >= 0 && index < length ? tracks[index] : null;
+      final tracks = _videoElement.textTracks;
+      for (var i = 0; i < tracks.length; i++) {
+        tracks[i].mode = 'disabled';
       }
 
-      for (var i = 0; i < length; i++) {
-        final dynamic track = tracks[i];
-        track.mode = 'disabled';
-      }
-
-      if (targetTrackObj != null) {
-        targetTrackObj.mode = 'showing';
+      for (var i = 0; i < _externalTracks.length; i++) {
+        final element = _externalTracks[i].element;
+        // Safari only draws cues for a track that carries the default
+        // attribute when the page supplies its own controls, as this one does.
+        if (i == position) {
+          element.setAttribute('default', '');
+          element.track.mode = 'showing';
+        } else {
+          element.removeAttribute('default');
+        }
       }
     } catch (_) {}
   }
@@ -503,15 +512,7 @@ class HtmlVideoBackend extends PlayerBackend {
   @override
   Future<void> disableSubtitleTrack() async {
     if (_disposed) return;
-    _subtitleOverlay?.clear();
-    try {
-      final dynamic tracks = (_videoElement as dynamic).textTracks;
-      final length = (tracks.length as num?)?.toInt() ?? 0;
-      for (var i = 0; i < length; i++) {
-        final dynamic track = tracks[i];
-        track.mode = 'disabled';
-      }
-    } catch (_) {}
+    _showTrackAt(-1);
   }
 
   @override
@@ -558,20 +559,28 @@ class HtmlVideoBackend extends PlayerBackend {
       return;
     }
 
-    final track = web.HTMLTrackElement()
+    // Selecting a subtitle asks for it by url, so a track already on the
+    // element is the one being asked for rather than a second copy of it.
+    final existing = _externalTracks.indexWhere((track) => track.url == url);
+    if (existing >= 0) {
+      _showTrackAt(existing);
+      return;
+    }
+
+    final element = web.HTMLTrackElement()
       ..kind = 'subtitles'
       ..src = url
       ..label = title ?? language ?? 'External Subtitle'
       ..srclang = language ?? 'en';
 
     if (codec != null && codec.isNotEmpty) {
-      track.setAttribute('data-codec', codec);
+      element.setAttribute('data-codec', codec);
     }
 
-    _videoElement.appendChild(track);
-    _externalTracks.add(track);
+    _videoElement.appendChild(element);
+    _externalTracks.add((url: url, element: element));
 
-    await setSubtitleTrack(_externalTracks.length - 1);
+    _showTrackAt(_externalTracks.length - 1);
   }
 
   @override
@@ -599,6 +608,9 @@ class HtmlVideoBackend extends PlayerBackend {
 
   @override
   bool get canRenderBitmapSubtitles => true;
+
+  @override
+  bool get demuxesEmbeddedSubtitles => false;
 
   Widget buildView({BoxFit fit = BoxFit.contain}) {
     _videoElement.style.objectFit = _cssObjectFit(fit);

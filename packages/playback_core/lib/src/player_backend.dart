@@ -77,5 +77,11 @@ abstract class PlayerBackend {
 
   bool get canRenderBitmapSubtitles;
 
+  /// Whether the player reads subtitle tracks out of the stream itself. A
+  /// browser only shows what it is handed as its own file, so subtitles living
+  /// inside the container have to be added the same way an external one is,
+  /// even when nothing stripped them from the stream.
+  bool get demuxesEmbeddedSubtitles => true;
+
   void dispose();
 }

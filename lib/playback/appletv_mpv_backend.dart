@@ -676,6 +676,9 @@ class AppleTvMpvBackend implements PlayerBackend {
   bool get canRenderBitmapSubtitles => true;
 
   @override
+  bool get demuxesEmbeddedSubtitles => true;
+
+  @override
   void dispose() {
     if (_disposed) return;
     _disposed = true;

@@ -5,6 +5,18 @@ import 'package:moonfin/playback/device_profile_builder.dart';
 import 'package:moonfin/playback/known_defects.dart';
 import 'package:moonfin/preference/preference_constants.dart';
 
+List<Map<String, dynamic>> _subtitleProfiles(Map<String, dynamic> profile) {
+  final profiles = profile['SubtitleProfiles'] as List<dynamic>? ?? const [];
+  return profiles.cast<Map<String, dynamic>>();
+}
+
+Set<String> _subtitleMethodsFor(Map<String, dynamic> profile, String format) {
+  return _subtitleProfiles(profile)
+      .where((entry) => entry['Format'] == format)
+      .map((entry) => entry['Method'] as String)
+      .toSet();
+}
+
 Set<String> _codecUnsupportedRangeTypes(
   Map<String, dynamic> profile,
   String codec,
@@ -402,6 +414,37 @@ void main() {
       for (final codec in videoTargets) {
         expect(codec, 'h264');
       }
+    });
+  });
+
+  group('DeviceProfileBuilder subtitle delivery', () {
+    test("a player that can't read embedded subtitles is offered none", () {
+      final profile = DeviceProfileBuilder.build(
+        supportsEmbeddedSubtitles: false,
+        supportsExternalTextSubtitles: false,
+      );
+
+      expect(
+        _subtitleProfiles(profile).where((entry) => entry['Method'] == 'Embed'),
+        isEmpty,
+      );
+    });
+
+    test('text subtitles keep a vtt route the server can convert into', () {
+      final profile = DeviceProfileBuilder.build(
+        supportsEmbeddedSubtitles: false,
+        supportsExternalTextSubtitles: false,
+      );
+
+      expect(_subtitleMethodsFor(profile, 'vtt'), contains('External'));
+      expect(_subtitleMethodsFor(profile, 'ass'), contains('External'));
+    });
+
+    test('a player that reads embedded subtitles still gets them', () {
+      final profile = DeviceProfileBuilder.build();
+
+      expect(_subtitleMethodsFor(profile, 'vtt'), contains('Embed'));
+      expect(_subtitleMethodsFor(profile, 'srt'), contains('Embed'));
     });
   });
 

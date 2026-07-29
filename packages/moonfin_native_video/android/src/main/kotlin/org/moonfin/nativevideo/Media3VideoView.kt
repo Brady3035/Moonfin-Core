@@ -46,6 +46,7 @@ import androidx.media3.common.audio.ChannelMixingMatrix
 import androidx.media3.common.text.Cue
 import androidx.media3.common.text.CueGroup
 import androidx.media3.common.util.ExperimentalApi
+import androidx.media3.common.util.TimestampAdjuster
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.common.util.Util
 import androidx.media3.datasource.DefaultDataSource
@@ -69,6 +70,10 @@ import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.exoplayer.video.MediaCodecVideoRenderer
 import androidx.media3.exoplayer.video.VideoRendererEventListener
 import androidx.media3.extractor.DefaultExtractorsFactory
+import androidx.media3.extractor.Extractor
+import androidx.media3.extractor.ExtractorsFactory
+import androidx.media3.extractor.mp4.FragmentedMp4Extractor
+import androidx.media3.extractor.text.SubtitleParser
 import androidx.media3.extractor.ts.DefaultTsPayloadReaderFactory
 import androidx.media3.extractor.ts.TsExtractor
 import androidx.media3.ui.CaptionStyleCompat
@@ -622,6 +627,7 @@ class Media3VideoView(
     private var videoPixelRatio = 1f
     private var currentNormalizationGainDb: Float? = null
     private var currentContainer: String? = null
+    private var currentIsLive = false
     private var currentMediaType: String = "video"
     private var currentAudioSessionId = C.AUDIO_SESSION_ID_UNSET
     private var openedAudioEffectSessionId = C.AUDIO_SESSION_ID_UNSET
@@ -1169,6 +1175,72 @@ class Media3VideoView(
             .build()
     }
 
+    // A live fMP4 stream is joined part way through the broadcast, so its first
+    // fragment carries a decode time hours past zero. Media3 builds its
+    // fragmented MP4 extractor without a timestamp adjuster and reports those
+    // times unchanged, which leaves the renderers waiting on a position that
+    // never arrives. TS rebases to zero inside its own extractor, which is why
+    // live TS plays while live fMP4 sits on a spinner. A rebasing extractor
+    // goes first for a live source, and anything that isn't fMP4 fails its
+    // sniff and falls through to the extractors behind it.
+    private inner class LiveFmp4ExtractorsFactory(
+        private val delegate: ExtractorsFactory,
+        private var subtitleParserFactory: SubtitleParser.Factory,
+    ) : ExtractorsFactory by delegate {
+
+        // Media3 pushes its subtitle settings into the extractors while it
+        // builds a media source. Kotlin only delegates the methods the
+        // interface leaves abstract, so these are forwarded by hand to keep
+        // the delegate on the settings it runs with today.
+        override fun setSubtitleParserFactory(
+            subtitleParserFactory: SubtitleParser.Factory,
+        ): ExtractorsFactory {
+            this.subtitleParserFactory = subtitleParserFactory
+            delegate.setSubtitleParserFactory(subtitleParserFactory)
+            return this
+        }
+
+        @Suppress("DEPRECATION", "OVERRIDE_DEPRECATION")
+        override fun experimentalSetTextTrackTranscodingEnabled(
+            enabled: Boolean,
+        ): ExtractorsFactory {
+            delegate.experimentalSetTextTrackTranscodingEnabled(enabled)
+            return this
+        }
+
+        override fun experimentalSetCodecsToParseWithinGopSampleDependencies(
+            codecsToParseWithinGopSampleDependencies: Int,
+        ): ExtractorsFactory {
+            delegate.experimentalSetCodecsToParseWithinGopSampleDependencies(
+                codecsToParseWithinGopSampleDependencies,
+            )
+            return this
+        }
+
+        override fun createExtractors(): Array<Extractor> =
+            prependLiveFmp4(delegate.createExtractors())
+
+        override fun createExtractors(
+            uri: Uri,
+            responseHeaders: Map<String, List<String>>,
+        ): Array<Extractor> = prependLiveFmp4(delegate.createExtractors(uri, responseHeaders))
+
+        // Extractors are built when the source loads, so this reads the flag
+        // the current setSource left behind without rebuilding the player.
+        private fun prependLiveFmp4(extractors: Array<Extractor>): Array<Extractor> {
+            if (!currentIsLive) return extractors
+            val rebasing = FragmentedMp4Extractor(
+                subtitleParserFactory,
+                /* flags= */ 0,
+                TimestampAdjuster(0),
+                /* sideloadedTrack= */ null,
+                /* closedCaptionFormats= */ emptyList(),
+                /* additionalEmsgTrackOutput= */ null,
+            )
+            return arrayOf<Extractor>(rebasing) + extractors
+        }
+    }
+
     private fun createPlayer(): ExoPlayer {
         emitFfmpegDecoderDiagnosticsOnce()
         // Fresh selector for every player; see the trackSelector field comment.
@@ -1204,7 +1276,10 @@ class Media3VideoView(
         val assParserFactory = AssSubtitleParserFactory(assHandler)
         val bootMediaSourceFactory = DefaultMediaSourceFactory(
             bootDataSourceFactory,
-            extractorsFactory.withAssMkvSupport(assParserFactory, assHandler),
+            LiveFmp4ExtractorsFactory(
+                extractorsFactory.withAssMkvSupport(assParserFactory, assHandler),
+                assParserFactory,
+            ),
         ).apply {
             setSubtitleParserFactory(assParserFactory)
         }
@@ -1722,6 +1797,7 @@ class Media3VideoView(
             ?.trim()
             ?.lowercase()
             ?.takeIf { it.isNotEmpty() }
+        currentIsLive = args["isLive"] as? Boolean ?: false
         audioOffloadRetryAttemptedForCurrentSource = false
         stereoDownmixRetryAttemptedForCurrentSource = false
         tunnelingRetryAttemptedForCurrentSource = false

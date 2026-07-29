@@ -574,6 +574,7 @@ class Media3PlayerBackend extends PlayerBackend {
       'container': container,
       'videoRangeType': videoRangeType,
       'mediaType': mediaType,
+      'isLive': payload['isLive'] == true,
       'normalizationGainDb': normalizationGainDb,
       'skipSilenceEnabled': _skipSilenceEnabled,
       'preferredAudioLanguage': preferredAudioLanguage,

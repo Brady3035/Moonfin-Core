@@ -378,6 +378,19 @@ class Media3VideoView(
         private const val EXTERNAL_SUBTITLE_ID_BASE = 10000
         private const val STREAMING_MAX_BUFFER_MS = 120_000
         private const val MAX_TARGET_BUFFER_BYTES = 384L * 1024 * 1024
+        // Broadcast captions ride inside the video as CEA-608 messages rather
+        // than as their own stream, and the extractor only looks for them when
+        // the transport stream announces them in a caption service descriptor.
+        // Anything remuxed by ffmpeg, which is most live TV, carries the
+        // captions and writes no descriptor, so it has to be told to look for
+        // CC1 when a stream declares nothing. A declared descriptor still wins.
+        private val FALLBACK_CLOSED_CAPTION_FORMATS = listOf(
+            Format.Builder()
+                .setSampleMimeType(MimeTypes.APPLICATION_CEA608)
+                .setAccessibilityChannel(1)
+                .build(),
+        )
+
         private const val ASS_FALLBACK_FONT_ASSET = "fonts/NotoSans-Regular.ttf"
         private const val ASS_FALLBACK_FONT_NAME = "Noto Sans"
         private val FONT_EXTENSIONS = setOf("ttf", "otf", "ttc")
@@ -594,6 +607,8 @@ class Media3VideoView(
     private var selectedSubtitleIsBitmap = false
     private var selectedExternalSubtitleUrl: String? = null
     private var subtitleTrackEnabled = false
+
+    private var pendingClosedCaptionId: Int? = null
 
     private var pendingSubtitleIndex: Int? = null
     private var pendingSubtitleCodec: String? = null
@@ -822,6 +837,15 @@ class Media3VideoView(
                     pendingSubtitleIsExternal = null
                     pendingSubtitleIsBitmap = null
                     pendingExternalSubtitleUrl = null
+                }
+            }
+            pendingClosedCaptionId?.let { id ->
+                if (selectClosedCaptionTrack(id)) {
+                    applyClosedCaptionSelection()
+                } else if (id in 1..collectClosedCaptionTracks().size) {
+                    // The track is there and still won't select, so waiting for
+                    // another track change won't help.
+                    pendingClosedCaptionId = null
                 }
             }
             pendingAudioIndex?.let { index ->
@@ -1166,6 +1190,7 @@ class Media3VideoView(
             .setTsExtractorTimestampSearchBytes(
                 if (isLowRamDevice) TS_SEARCH_BYTES_LOW_RAM else TS_SEARCH_BYTES_DEFAULT,
             )
+            .setTsSubtitleFormats(FALLBACK_CLOSED_CAPTION_FORMATS)
             .setConstantBitrateSeekingEnabled(true)
             .setConstantBitrateSeekingAlwaysEnabled(true)
 
@@ -1452,6 +1477,11 @@ class Media3VideoView(
                     result.success(null)
                 }
 
+                "setClosedCaptionTrack" -> {
+                    handleSetClosedCaptionTrack(call.arguments as? Map<*, *>)
+                    result.success(null)
+                }
+
                 "disableSubtitleTrack" -> {
                     trackSelector.parameters = trackSelector.parameters
                         .buildUpon()
@@ -1469,6 +1499,7 @@ class Media3VideoView(
                     pendingSubtitleIsExternal = null
                     pendingSubtitleIsBitmap = null
                     pendingExternalSubtitleUrl = null
+                    pendingClosedCaptionId = null
 
                     applyTrackSelectorForCurrentSource()
                     clearAssSubtitleScript()
@@ -1607,6 +1638,10 @@ class Media3VideoView(
                     handleSetSubtitleTrack(args as? Map<*, *>)
                 }
 
+                "setClosedCaptionTrack" -> {
+                    handleSetClosedCaptionTrack(args as? Map<*, *>)
+                }
+
                 "disableSubtitleTrack" -> {
                     trackSelector.parameters = trackSelector.parameters
                         .buildUpon()
@@ -1618,6 +1653,7 @@ class Media3VideoView(
                     selectedSubtitleIsBitmap = false
                     selectedExternalSubtitleUrl = null
                     subtitleTrackEnabled = false
+                    pendingClosedCaptionId = null
                     applyTrackSelectorForCurrentSource()
                     clearAssSubtitleScript()
                     refreshSubtitleRendererMode()
@@ -1731,6 +1767,7 @@ class Media3VideoView(
         pendingSubtitleIsBitmap = null
         pendingExternalSubtitleUrl = null
         pendingAudioIndex = null
+        pendingClosedCaptionId = null
         firstFrameRendered = false
         firstFrameCover.visibility = View.VISIBLE
         cancelPendingSubtitleCue(clearView = true)
@@ -3128,6 +3165,7 @@ class Media3VideoView(
         val isBitmap = args?.get("isBitmapSubtitle") as? Boolean ?: false
         val externalUrl = args?.get("externalSubtitleUrl")?.toString()
 
+        pendingClosedCaptionId = null
         pendingSubtitleIndex = index
         pendingSubtitleCodec = codec
         pendingSubtitleIsExternal = isExternal
@@ -3150,6 +3188,43 @@ class Media3VideoView(
             pendingSubtitleIsBitmap = null
             pendingExternalSubtitleUrl = null
         }
+    }
+
+    // Live TV joins a stream part way through, so the captions are often not
+    // there yet when the viewer asks for them. The request is kept pending and
+    // retried on every track change, the same way a subtitle request is.
+    private fun handleSetClosedCaptionTrack(args: Map<*, *>?) {
+        val id = (args?.get("id") as? Number)?.toInt() ?: 0
+
+        pendingSubtitleIndex = null
+        pendingSubtitleCodec = null
+        pendingSubtitleIsExternal = null
+        pendingSubtitleIsBitmap = null
+        pendingExternalSubtitleUrl = null
+        pendingClosedCaptionId = id
+
+        if (selectClosedCaptionTrack(id)) {
+            applyClosedCaptionSelection()
+        }
+    }
+
+    private fun selectClosedCaptionTrack(id: Int): Boolean {
+        val entries = collectClosedCaptionTracks()
+        if (id <= 0 || id > entries.size) return false
+        val entry = entries[id - 1]
+        if (!entry.supported) return false
+        return applyTrackOverride(C.TRACK_TYPE_TEXT, entry)
+    }
+
+    private fun applyClosedCaptionSelection() {
+        pendingClosedCaptionId = null
+        selectedSubtitleCodec = null
+        selectedSubtitleIsExternal = false
+        selectedSubtitleIsBitmap = false
+        selectedExternalSubtitleUrl = null
+        subtitleTrackEnabled = true
+        applyTrackSelectorForCurrentSource()
+        refreshSubtitleRendererMode()
     }
 
     private fun selectTextTrack(oneBasedIndex: Int, externalUrl: String?): Boolean {
@@ -3186,13 +3261,23 @@ class Media3VideoView(
         return false
     }
 
-    private fun collectTracks(trackType: Int): List<TrackEntry> {
+    private fun collectTracks(trackType: Int): List<TrackEntry> =
+        collectTrackEntries(trackType) { !isClosedCaptionTrack(it) }
+
+    private fun collectClosedCaptionTracks(): List<TrackEntry> =
+        collectTrackEntries(C.TRACK_TYPE_TEXT) { isClosedCaptionTrack(it) }
+
+    private inline fun collectTrackEntries(
+        trackType: Int,
+        accept: (Format) -> Boolean,
+    ): List<TrackEntry> {
         val entries = mutableListOf<TrackEntry>()
 
         for (group in player.currentTracks.groups) {
             if (group.type != trackType) continue
             val mediaTrackGroup = group.mediaTrackGroup
             for (index in 0 until group.length) {
+                if (!accept(group.getTrackFormat(index))) continue
                 entries.add(
                     TrackEntry(mediaTrackGroup, index, group.isTrackSupported(index)),
                 )
@@ -3200,6 +3285,41 @@ class Media3VideoView(
         }
 
         return entries
+    }
+
+    // Captions found inside the video are the player's own discovery and have
+    // no place in the server's stream list, so they are kept out of the
+    // positions that list is matched against and offered separately.
+    private fun isClosedCaptionTrack(format: Format): Boolean {
+        return when (format.sampleMimeType) {
+            MimeTypes.APPLICATION_CEA608,
+            MimeTypes.APPLICATION_CEA708,
+            MimeTypes.APPLICATION_MP4CEA608,
+            -> true
+
+            else -> false
+        }
+    }
+
+    private fun closedCaptionTrackOptions(): List<Map<String, Any?>> {
+        return collectClosedCaptionTracks().mapIndexed { position, entry ->
+            val format = entry.group.getFormat(entry.trackIndex)
+            mapOf(
+                "id" to position + 1,
+                "label" to closedCaptionLabel(format, position + 1),
+                "language" to (format.language ?: ""),
+            )
+        }
+    }
+
+    // CC1 through CC4 and the 708 service numbers are what broadcasters print
+    // on screen, so they are used verbatim rather than translated.
+    private fun closedCaptionLabel(format: Format, fallbackId: Int): String {
+        val channel = format.accessibilityChannel
+        if (format.sampleMimeType == MimeTypes.APPLICATION_CEA708) {
+            return if (channel != Format.NO_VALUE) "Service $channel" else "Service $fallbackId"
+        }
+        return if (channel != Format.NO_VALUE) "CC$channel" else "CC$fallbackId"
     }
 
     private fun trackCount(trackType: Int): Int = collectTracks(trackType).size
@@ -3222,6 +3342,7 @@ class Media3VideoView(
 
             for (trackIndex in 0 until group.length) {
                 val format = group.getTrackFormat(trackIndex)
+                if (isClosedCaptionTrack(format)) continue
                 options.add(
                     mapOf(
                         "index" to oneBasedIndex,
@@ -3277,6 +3398,7 @@ class Media3VideoView(
                 "event" to "tracksChanged",
                 "audioTrackCount" to trackCount(C.TRACK_TYPE_AUDIO),
                 "textTrackCount" to trackCount(C.TRACK_TYPE_TEXT),
+                "closedCaptionTracks" to closedCaptionTrackOptions(),
                 "subtitleRendererMode" to activeSubtitleRendererMode.wireValue,
                 "subtitleRendererModeRequested" to requestedSubtitleRendererMode.wireValue,
             ),

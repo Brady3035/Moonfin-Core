@@ -30,6 +30,10 @@ final class AetherPlayerWrapper: NSObject, ObservableObject {
     @Published var bufferProgress: Float = 0
     @Published var audioTracks: [PlayerTrack] = []
     @Published var subtitleTracks: [PlayerTrack] = []
+    /// Broadcast captions the engine found inside the video, offered
+    /// separately from the server-declared subtitle streams. A PlayerTrack id
+    /// here is a 1-based position in this list, not a subtitle ordinal.
+    @Published var closedCaptionTracks: [PlayerTrack] = []
     @Published var currentAudioTrackIndex: Int32 = -1
     @Published var currentSubtitleTrackIndex: Int32 = -1
     @Published var rate: Float = 1.0
@@ -79,6 +83,7 @@ final class AetherPlayerWrapper: NSObject, ObservableObject {
     // externals).
     private var audioTable: [TrackInfo] = []
     private var subtitleTable: [TrackInfo] = []
+    private var closedCaptionTable: [TrackInfo] = []
     private var externalSubIDsByURL: [String: Int] = [:]
 
     // ASS rendering (only active when a libass build is linked).
@@ -585,7 +590,27 @@ final class AetherPlayerWrapper: NSObject, ObservableObject {
         }
     }
 
-    private func rebuildSubtitleTable(_ tracks: [TrackInfo]) {
+    /// True for the in-band CEA-608/708 caption tracks the engine discovers
+    /// inside the video. The engine has the same check but doesn't expose it.
+    private static func isClosedCaptionCodec(_ codec: String?) -> Bool {
+        guard let c = codec?.lowercased() else { return false }
+        return c == "eia_608" || c == "eia_708" || c == "cea708" || c == "cea_708"
+    }
+
+    private func rebuildSubtitleTable(_ allTracks: [TrackInfo]) {
+        // The engine reports broadcast captions in the same list as the
+        // demuxed subtitle streams. They have no place in the server's stream
+        // list, so they are kept out of the positions that list is matched
+        // against and offered separately through closedCaptionTracks.
+        let tracks = allTracks.filter { !Self.isClosedCaptionCodec($0.codec) }
+        closedCaptionTable = allTracks.filter { Self.isClosedCaptionCodec($0.codec) }
+        closedCaptionTracks = closedCaptionTable.enumerated().map { index, info in
+            PlayerTrack(
+                id: Int32(index + 1),
+                name: info.name.isEmpty ? "CC\(index + 1)" : info.name,
+                language: info.language,
+                codec: info.codec)
+        }
         subtitleTable = tracks
         subtitleTracks = tracks.enumerated().map { index, info in
             PlayerTrack(
@@ -650,6 +675,17 @@ final class AetherPlayerWrapper: NSObject, ObservableObject {
         let index = Int(trackIndex) - 1
         guard index >= 0, index < subtitleTable.count else { return }
         engine.selectSubtitleTrack(index: subtitleTable[index].id)
+    }
+
+    /// Turns on one of `closedCaptionTracks` by its 1-based position. Turning
+    /// captions back off goes through `disableSubtitles`, the same as any
+    /// other subtitle.
+    func setClosedCaptionTrack(_ id: Int32) {
+        guard let engine = Self.sharedEngine() else { return }
+        let index = Int(id) - 1
+        guard index >= 0, index < closedCaptionTable.count else { return }
+        resetAssState()
+        engine.selectSubtitleTrack(index: closedCaptionTable[index].id)
     }
 
     func disableSubtitles() {

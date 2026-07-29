@@ -9126,5 +9126,122 @@
     "watchlistUpdateFailed": "İzleme listesi güncellenemedi",
     "@watchlistUpdateFailed": {
         "description": "Snackbar shown when adding/removing a Seerr watchlist item fails"
+    },
+    "settingsSearchHint": "Arama ayarları",
+    "@settingsSearchHint": {
+        "description": "Hint text in the settings search field"
+    },
+    "osdButtons": "Oynatıcı butonları",
+    "@osdButtons": {
+        "description": "Settings screen for choosing which buttons the player shows"
+    },
+    "osdButtonsDescription": "Gösterilecek oynatıcı düğmelerini seç",
+    "@osdButtonsDescription": {
+        "description": "Subtitle for the player buttons settings tile"
+    },
+    "osdButtonsSectionDescription": "Oynatma kontrolleri her zaman gösterilir. Aşağıdaki her şey size kalmıştır ve her cihaz türü kendi listesini ayrı ayrı tutar.",
+    "@osdButtonsSectionDescription": {
+        "description": "Explains that transport controls can't be hidden and that the list is per device kind"
+    },
+    "detailButtons": "İşlem Düğmeleri",
+    "@detailButtons": {
+        "description": "Settings screen for choosing which buttons the details screen shows"
+    },
+    "detailButtonsDescription": "Detay ekranında gösterilecek düğmeleri seç",
+    "@detailButtonsDescription": {
+        "description": "Subtitle for the details action buttons settings tile"
+    },
+    "detailButtonsSectionDescription": "Oynat her zaman ilk sıradadır ve kilitli düğmeler her zaman gösterilir. Geri kalan her şey size kalmıştır ve her cihaz türü kendi listesini ayrı tutar.",
+    "@detailButtonsSectionDescription": {
+        "description": "Explains that the play buttons can't be hidden and that the list is per device kind"
+    },
+    "moveUp": "Yukarı Taşı",
+    "@moveUp": {
+        "description": "Moves a button one place earlier in its row"
+    },
+    "moveDown": "Aşağı Taşı",
+    "@moveDown": {
+        "description": "Moves a button one place later in its row"
+    },
+    "buttonOrderHint": "Sıralamayı değiştirmek için okları kullanın. Kumandada sol ve sağ tuşları vurgulanan düğmeyi hareket ettirir. Bir düğmeyi kapatmak, onu diğerlerinin altına düşürür.",
+    "@buttonOrderHint": {
+        "description": "Explains how to reorder the buttons in a row"
+    },
+    "orientationLock": "Döndürme Kiliti",
+    "@orientationLock": {
+        "description": "Player button that locks the screen orientation"
+    },
+    "fullscreen": "Tam Ekran",
+    "@fullscreen": {
+        "description": "Player button that toggles fullscreen"
+    },
+    "nextUpMaxDays": "Sıradaki Bölümler için maksimum gün",
+    "@nextUpMaxDays": {
+        "description": "Setting for how far back the Next Up row reaches"
+    },
+    "nextUpMaxDaysDescription": "Bir dizinin, son izlemenizden sonra Sıradaki Bölümlerde kalacağı süre",
+    "@nextUpMaxDaysDescription": {
+        "description": "Description for the Next Up window setting"
+    },
+    "daysValue": "{days} gün",
+    "@daysValue": {
+        "description": "A number of days",
+        "placeholders": {
+            "days": {
+                "type": "int"
+            }
+        }
+    },
+    "seerrNotifyNewMediaTitle": "Yeni medya eklendi",
+    "@seerrNotifyNewMediaTitle": {
+        "description": "Title for the toggle that notifies about anything newly added to the server library, not just requested media"
+    },
+    "seerrNotifyNewMediaSubtitle": "Sunucu kütüphanesine eklenen yeni içerikler",
+    "@seerrNotifyNewMediaSubtitle": {
+        "description": "Subtitle for the new media notifications toggle"
+    },
+    "adminSearchParameters": "Arama Parametreleri",
+    "@adminSearchParameters": {
+        "description": "Column header above the editable fields used to search metadata providers in the Identify dialog"
+    },
+    "adminCurrentMetadata": "Mevcut Metaveri",
+    "@adminCurrentMetadata": {
+        "description": "Column header above the read-only values currently stored on the item in the Identify dialog"
+    },
+    "adminLabelYear": "Yıl",
+    "@adminLabelYear": {
+        "description": "Label for the release year field in the Identify dialog"
+    },
+    "adminLabelImdbId": "IMDb Id",
+    "@adminLabelImdbId": {
+        "description": "Label for the IMDb identifier field in the Identify dialog. IMDb is a brand name and is normally left untranslated"
+    },
+    "adminLabelTmdbMovieId": "TheMovieDb Film ID",
+    "@adminLabelTmdbMovieId": {
+        "description": "Label for the TheMovieDb movie identifier field in the Identify dialog. TheMovieDb is a brand name and is normally left untranslated"
+    },
+    "adminLabelTmdbBoxSetId": "TheMovieDb Koleksiyon Id",
+    "@adminLabelTmdbBoxSetId": {
+        "description": "Label for the TheMovieDb collection identifier field in the Identify dialog. TheMovieDb is a brand name and is normally left untranslated"
+    },
+    "adminLabelTvdbBoxSetId": "TheTVDB Koleksiyon Id",
+    "@adminLabelTvdbBoxSetId": {
+        "description": "Label for the TheTVDB collection identifier field in the Identify dialog. TheTVDB is a brand name and is normally left untranslated"
+    },
+    "adminLabelTvdbId": "TheTVDB Sayısal ID",
+    "@adminLabelTvdbId": {
+        "description": "Label for the numeric TheTVDB identifier field in the Identify dialog. TheTVDB is a brand name and is normally left untranslated"
+    },
+    "adminLabelTvdbSlug": "TheTVDB Slug Film ID",
+    "@adminLabelTvdbSlug": {
+        "description": "Label for the TheTVDB slug identifier field in the Identify dialog. TheTVDB is a brand name and is normally left untranslated"
+    },
+    "adminReplaceImages": "Mevcut görselleri değiştir",
+    "@adminReplaceImages": {
+        "description": "Checkbox label in the confirmation dialog shown before applying an identified metadata match"
+    },
+    "adminBackToSearch": "Arama Kriterlerine Dön",
+    "@adminBackToSearch": {
+        "description": "Tooltip on the button that returns from the Identify results list to the search form"
     }
 }

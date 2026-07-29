@@ -78,7 +78,7 @@
     "@addUser": {
         "description": "Button to add a new user on the server screen"
     },
-    "selectServer": "Επιλέξτε Διακομιστής",
+    "selectServer": "Επιλογή Διακομιστή",
     "@selectServer": {
         "description": "Button to navigate back to server selection"
     },
@@ -128,7 +128,7 @@
             }
         }
     },
-    "cancel": "Ματαίωση",
+    "cancel": "Ακύρωση",
     "@cancel": {
         "description": "Generic cancel button label"
     },
@@ -168,7 +168,7 @@
     "@settingsAppearanceTheme": {
         "description": "Title for the theme selection screen and theme settings entry"
     },
-    "settingsAppearanceThemeSubtitle": "Εναλλαγή μεταξύ Moonfin και Neon Pulse χωρίς επανεκκίνηση της εφαρμογής",
+    "settingsAppearanceThemeSubtitle": "Εφαρμόστε ένα πλήρως προσαρμοσμένο θέμα και επιλέξτε ανάμεσα σε περιβάλλον χρήστη εμπνευσμένο από την Apple ή το Material.",
     "@settingsAppearanceThemeSubtitle": {
         "description": "Subtitle for the theme selection screen and theme settings entry"
     },
@@ -176,7 +176,7 @@
     "@themeMoonfin": {
         "description": "Display name for the Moonfin theme"
     },
-    "themeMoonfinSubtitle": "Η τρέχουσα εμφάνιση Moonfin που όλοι έχετε αγαπήσει",
+    "themeMoonfinSubtitle": "Η τρέχουσα εμφάνιση Moonfin που όλοι έχετε αγαπήσει.",
     "@themeMoonfinSubtitle": {
         "description": "Preview description for the Moonfin theme"
     },
@@ -416,7 +416,7 @@
     "@sortBy": {
         "description": "Section header for sort options"
     },
-    "display": "Επίδειξη",
+    "display": "Προβολή",
     "@display": {
         "description": "Dialog title for display settings"
     },
@@ -959,7 +959,7 @@
     "@episodes": {
         "description": "Section header for episodes"
     },
-    "nextUp": "Επόμενο επάνω",
+    "nextUp": "Επόμενο",
     "@nextUp": {
         "description": "Home section: next up"
     },
@@ -1045,7 +1045,7 @@
             }
         }
     },
-    "endsAt": "Λήγει στο {time}",
+    "endsAt": "Τελειώνει στις {time}",
     "@endsAt": {
         "description": "Label showing when media will end",
         "placeholders": {
@@ -1091,7 +1091,7 @@
     "@readOffline": {
         "description": "Action button label to read offline"
     },
-    "playOffline": "Παίξτε εκτός σύνδεσης",
+    "playOffline": "Αναπαραγωγή εκτός σύνδεσης",
     "@playOffline": {
         "description": "Action button label to play offline"
     },
@@ -1103,7 +1103,7 @@
     "@subtitles": {
         "description": "Action button label for subtitle selection"
     },
-    "version": "Εκδοχή",
+    "version": "Έκδοση",
     "@version": {
         "description": "Action button label for version/media source selection"
     },
@@ -1123,7 +1123,7 @@
     "@favorited": {
         "description": "Status label for a favorited item"
     },
-    "favorite": "Ευνοούμενος",
+    "favorite": "Αγαπημένα",
     "@favorite": {
         "description": "Action button label to favorite an item"
     },
@@ -1131,7 +1131,7 @@
     "@playlist": {
         "description": "Action button label for adding to a playlist"
     },
-    "downloaded": "Λήψη",
+    "downloaded": "Λήφθηκε",
     "@downloaded": {
         "description": "Status label for a downloaded item"
     },
@@ -1155,11 +1155,11 @@
     "@editMetadata": {
         "description": "Action button label to edit item metadata"
     },
-    "less": "Μείον",
+    "less": "Λιγότερα",
     "@less": {
         "description": "Action button label to collapse extra buttons"
     },
-    "more": "Περισσότερο",
+    "more": "Περισσότερα",
     "@more": {
         "description": "Action button label to expand extra buttons"
     },
@@ -2722,7 +2722,7 @@
     "@seriesThumbnails": {
         "description": "Setting for series thumbnails"
     },
-    "seriesThumbnailsDescription": "Μόνο επεισόδια: χρησιμοποιήστε έργα τέχνης σειράς που ταιριάζει με κάθε τύπο εικόνας σειράς",
+    "seriesThumbnailsDescription": "Για τις τηλεοπτικές σειρές, χρησιμοποιήστε το κύριο εικαστικό της σειράς αντί για τη μικρογραφία του επεισοδίου.",
     "@seriesThumbnailsDescription": {
         "description": "Description for series thumbnails setting"
     },
@@ -2746,7 +2746,7 @@
     "@inVideo": {
         "description": "Option: show in video"
     },
-    "seasonalEffects": "Εποχικές Επιδράσεις",
+    "seasonalEffects": "Εποχιακά Εφέ",
     "@seasonalEffects": {
         "description": "Setting for seasonal visual effects"
     },
@@ -2762,7 +2762,7 @@
     "@confetti": {
         "description": "Seasonal effect: confetti"
     },
-    "fallingLeaves": "που πέφτουν φύλλα",
+    "fallingLeaves": "Πτώση Φύλλων",
     "@fallingLeaves": {
         "description": "Seasonal effect: falling leaves"
     },
@@ -2791,7 +2791,7 @@
     "@themeMusicOnHomeRows": {
         "description": "Setting for theme music on home rows"
     },
-    "playWhenBrowsingHomeScreen": "Παίξτε κατά την περιήγηση στην αρχική οθόνη",
+    "playWhenBrowsingHomeScreen": "Αναπαραγωγή κατά την περιήγηση στην αρχική οθόνη",
     "@playWhenBrowsingHomeScreen": {
         "description": "Description for theme music on home rows"
     },
@@ -2820,7 +2820,7 @@
     "@maxResolution": {
         "description": "Setting for max resolution"
     },
-    "playerZoomMode": "Λειτουργία ζουμ παίκτη",
+    "playerZoomMode": "Λειτουργία Μεγέθυνσης Προγράμματος Αναπαραγωγής",
     "@playerZoomMode": {
         "description": "Setting for player zoom mode"
     },
@@ -2852,7 +2852,7 @@
     "@scaleOnDevice": {
         "description": "Refresh rate option: scale on device"
     },
-    "trickPlay": "Παίξτε κόλπο",
+    "trickPlay": "Trick Play",
     "@trickPlay": {
         "description": "Setting for trick play thumbnails"
     },
@@ -3332,7 +3332,7 @@
     "@defaultLabel": {
         "description": "Option: default"
     },
-    "saveToDownloadsFolder": "Αποθήκευση στο φάκελο \"Λήψεις\".",
+    "saveToDownloadsFolder": "Αποθήκευση στο φάκελο Λήψεις",
     "@saveToDownloadsFolder": {
         "description": "Setting for saving to downloads folder"
     },
@@ -3476,7 +3476,7 @@
     "@posterLabel": {
         "description": "Image type: poster"
     },
-    "thumbnailLabel": "Ονυξ του αντίχειρος",
+    "thumbnailLabel": "Μικρογραφία",
     "@thumbnailLabel": {
         "description": "Image type: thumbnail"
     },
@@ -3520,7 +3520,7 @@
     "@showInNavigation": {
         "description": "Toggle for showing library in navigation"
     },
-    "showInLatestMedia": "Εμφάνιση στα πιο πρόσφατα μέσα",
+    "showInLatestMedia": "Εμφάνιση στα πρόσφατα προστεθέντα/κυκλοφορηθέντα μέσα",
     "@showInLatestMedia": {
         "description": "Toggle for showing library in latest media"
     },
@@ -3633,7 +3633,7 @@
     "@episodePreview": {
         "description": "Setting for episode preview"
     },
-    "episodePreviewDescription": "Παίξτε μια ενσωματωμένη προεπισκόπηση 30 δευτερολέπτων σε εστιασμένα, αιωρούμενα ή πατημένα μακροχρόνια φύλλα",
+    "episodePreviewDescription": "Αναπαραγωγή ενσωματωμένης προεπισκόπησης 30 δευτερολέπτων σε κάρτες στις οποίες έχει γίνει εστίαση, στις οποίες έχει τοποθετηθεί ο δείκτης του ποντικιού ή στις οποίες έχει γίνει παρατεταμένο άγγιγμα",
     "@episodePreviewDescription": {
         "description": "Description for episode preview"
     },
@@ -3641,11 +3641,11 @@
     "@previewAudio": {
         "description": "Setting for preview audio"
     },
-    "enablePreviewAudio": "Ενεργοποίηση ήχου για προεπισκοπήσεις τρέιλερ και επεισοδίων",
+    "enablePreviewAudio": "Ενεργοποίηση ήχου για προεπισκοπήσεις πολυμέσων",
     "@enablePreviewAudio": {
         "description": "Description for preview audio"
     },
-    "latestMedia": "Τελευταία ΜΜΕ",
+    "latestMedia": "Πρόσφατα Προστεθέντα Πολυμέσα",
     "@latestMedia": {
         "description": "Home section: latest media"
     },
@@ -4100,7 +4100,7 @@
     "@hidden": {
         "description": "Status: hidden"
     },
-    "aboutTitle": "Για",
+    "aboutTitle": "Σχετικά με",
     "@aboutTitle": {
         "description": "About screen title"
     },
@@ -4223,7 +4223,7 @@
     "@navbarStyleToolbarAppearance": {
         "description": "Navigation settings subtitle"
     },
-    "reorderToggleHomeRows": "Αναδιάταξη και εναλλαγή αρχικών σειρών",
+    "reorderToggleHomeRows": "Αναδιάταξη και εναλλαγή τόσο των σειρών αρχικής οθόνης της βιβλιοθήκης όσο και των εξωτερικών σειρών",
     "@reorderToggleHomeRows": {
         "description": "Home sections settings subtitle"
     },
@@ -4293,7 +4293,7 @@
     "@cancelRequest": {
         "description": "Button/dialog title to cancel a media request"
     },
-    "playInMoonfin": "Παίξτε στο Moonfin",
+    "playInMoonfin": "Αναπαραγωγή στο Moonfin",
     "@playInMoonfin": {
         "description": "Button to play available media in Moonfin"
     },
@@ -4314,7 +4314,7 @@
     "@declineAction": {
         "description": "Tooltip/button to decline a request"
     },
-    "similar": "Παρόμοιος",
+    "similar": "Παρόμοια",
     "@similar": {
         "description": "Section title for similar media"
     },
@@ -5385,7 +5385,7 @@
     "adminResumeLoadFailed": "Η φόρτωση των ρυθμίσεων συνέχισης απέτυχε",
     "adminResumeDescription": "Διαμορφώστε πότε το περιεχόμενο θα πρέπει να επισημαίνεται ως μερική αναπαραγωγή ή πλήρη αναπαραγωγή.",
     "adminMinResumePercentage": "Ελάχιστο ποσοστό βιογραφικού",
-    "adminMinResumeSubtitle": "Το περιεχόμενο πρέπει να αναπαράγεται πέρα ​​από αυτό το ποσοστό για εξοικονόμηση προόδου",
+    "adminMinResumeSubtitle": "Για να αποθηκευτεί η πρόοδος, το περιεχόμενο πρέπει να αναπαραχθεί πέρα από αυτό το ποσοστό",
     "adminMaxResumePercentage": "Μέγιστο ποσοστό βιογραφικού",
     "adminMaxResumeSubtitle": "Μετά από αυτό το ποσοστό, το περιεχόμενο θεωρείται ότι έχει παιχτεί πλήρως",
     "adminMinResumeDuration": "Ελάχιστη διάρκεια βιογραφικού (δευτερόλεπτα)",
@@ -6118,7 +6118,7 @@
     "adminPlaybackSegmentKeep": "Διατήρηση τμήματος (δευτερόλεπτα)",
     "adminPlaybackThrottleBuffering": "Ρυθμιστικό γκάζι",
     "adminResumeMinPct": "Ελάχιστο ποσοστό βιογραφικού",
-    "adminResumeMinPctSubtitle": "Το περιεχόμενο πρέπει να αναπαράγεται πέρα ​​από αυτό το ποσοστό για εξοικονόμηση προόδου",
+    "adminResumeMinPctSubtitle": "Για να αποθηκευτεί η πρόοδος, το περιεχόμενο πρέπει να αναπαραχθεί πέρα από αυτό το ποσοστό",
     "adminResumeMaxPct": "Μέγιστο ποσοστό βιογραφικού",
     "adminResumeMaxPctSubtitle": "Μετά από αυτό το ποσοστό, το περιεχόμενο θεωρείται ότι έχει παιχτεί πλήρως",
     "adminResumeMinDuration": "Ελάχιστη διάρκεια βιογραφικού (δευτερόλεπτα)",
@@ -6199,7 +6199,7 @@
             }
         }
     },
-    "syncPlayPlayNow": "Παίξτε τώρα",
+    "syncPlayPlayNow": "Αναπαραγωγή τώρα",
     "syncPlayCreateNewGroup": "Δημιουργήστε μια νέα ομάδα",
     "syncPlayGroupName": "Όνομα ομάδας",
     "syncPlayDefaultGroupName": "Η ομάδα μου SyncPlay",
@@ -6212,7 +6212,7 @@
     "syncPlayStateIdle": "Αεργος",
     "syncPlayStateWaiting": "Αναμονή",
     "syncPlayStatePaused": "Σε παύση",
-    "syncPlayStatePlaying": "Παιχνίδι",
+    "syncPlayStatePlaying": "Αναπαράγεται",
     "syncPlayUserJoinedGroup": "Ο {userName} έγινε μέλος της ομάδας SyncPlay",
     "@syncPlayUserJoinedGroup": {
         "description": "Snackbar message when a user joins a SyncPlay group",
@@ -6249,7 +6249,7 @@
     "dolbyVisionNotSupportedTitle": "Dolby Vision Δεν υποστηρίζεται",
     "dolbyVisionNotSupportedMessage": "Αυτή η συσκευή δεν μπορεί να αποκωδικοποιήσει απευθείας το περιεχόμενο Dolby Vision. Χρησιμοποιήστε εναλλακτικό HDR10 ή ζητήστε διακωδικοποίηση διακομιστή.",
     "rememberMyChoice": "Θυμηθείτε την επιλογή μου",
-    "playHdr10Fallback": "Παίξτε εναλλακτικά HDR10",
+    "playHdr10Fallback": "Αναπαραγωγή με εναλλακτική επιλογή HDR10",
     "requestTranscode": "Ζητήστε διακωδικοποίηση",
     "integrationRowsDiscoveredCount": "{count, plural, one {Βρέθηκε # σειρά} other {Βρέθηκαν # σειρές}}",
     "@integrationRowsDiscoveredCount": {
@@ -6371,7 +6371,7 @@
     },
     "noRemoteDevices": "Δεν υπάρχουν διαθέσιμες συσκευές απομακρυσμένης αναπαραγωγής.",
     "noRemoteDevicesIos": "Δεν υπάρχουν διαθέσιμες συσκευές απομακρυσμένης αναπαραγωγής.\n\nΣε iOS, οι στόχοι AirPlay ενδέχεται να μην είναι διαθέσιμοι στον προσομοιωτή.",
-    "trackActionPlayNext": "Παίξτε Επόμενο",
+    "trackActionPlayNext": "Αναπαραγωγή επόμενου",
     "trackActionAddToQueue": "Προσθήκη στην ουρά",
     "trackActionAddToPlaylist": "Προσθήκη στη λίστα αναπαραγωγής",
     "trackActionCancelDownload": "Ακύρωση λήψης",
@@ -6399,10 +6399,10 @@
     "shuffleGenre": "Είδος",
     "shuffleNoLibraries": "Δεν υπάρχουν διαθέσιμες συμβατές βιβλιοθήκες.",
     "shuffleNoGenres": "Δεν βρέθηκαν είδη για αυτήν τη λειτουργία τυχαίας αναπαραγωγής.",
-    "posterDisplayTitle": "Επίδειξη",
+    "posterDisplayTitle": "Προβολή",
     "posterImageType": "Τύπος εικόνας",
     "imageTypePoster": "Αφίσα",
-    "imageTypeThumbnail": "Ονυξ του αντίχειρος",
+    "imageTypeThumbnail": "Μικρογραφία",
     "imageTypeBanner": "Σημαία",
     "playlistAddFailed": "Αποτυχία προσθήκης στη λίστα αναπαραγωγής",
     "playlistCreateFailed": "Η δημιουργία λίστας αναπαραγωγής απέτυχε",
@@ -6412,8 +6412,8 @@
     "playlistNoneFound": "Δεν βρέθηκαν λίστες αναπαραγωγής",
     "addToPlaylist": "Προσθήκη στη λίστα αναπαραγωγής",
     "lyricsNotAvailable": "Δεν υπάρχουν διαθέσιμοι στίχοι",
-    "upNext": "Επόμενο Επόμενο",
-    "playNext": "Παίξτε Επόμενο",
+    "upNext": "Επόμενο",
+    "playNext": "Αναπαραγωγή επόμενου",
     "stillWatchingContent": "Η αναπαραγωγή έχει διακοπεί. Παρακολουθείς ακόμα;",
     "stillWatchingStop": "Διακοπή",
     "stillWatchingContinue": "Συνεχίζω",
@@ -6529,7 +6529,7 @@
     "settingsPrivacyAndSafetySection": "ΑΠΟΡΡΗΤΟ ΚΑΙ ΑΣΦΑΛΕΙΑ",
     "settingsBlockedRatings": "Αποκλεισμένες αξιολογήσεις",
     "settingsGeneralStyle": "Γενικό Στυλ",
-    "settingsGeneralStyleSubtitle": "Προφορές θεμάτων, σκηνικά, δείκτες παρακολούθησης και μουσική θεμάτων",
+    "settingsGeneralStyleSubtitle": "Θεματικά στοιχεία, φόντα και δείκτες παρακολούθησης",
     "settingsHomePage": "Αρχική Σελίδα",
     "settingsHomePageSubtitle": "Ενότητες, τύποι εικόνων, επικαλύψεις και προεπισκοπήσεις πολυμέσων",
     "settingsLibrariesSubtitle": "Ορατότητα βιβλιοθήκης, προβολή φακέλου και συμπεριφορά πολλών διακομιστών",
@@ -6618,7 +6618,7 @@
     "settingsSkipForwardLengthDescription": "Πόσα δευτερόλεπτα να μεταπηδήσετε προς τα εμπρός αφού πατήσετε το κουμπί γρήγορης προώθησης.",
     "settingsBitstreamAc3ToExternalDecoder": "Bitstream AC3 σε εξωτερικό αποκωδικοποιητή",
     "settingsCinemaMode": "Λειτουργία κινηματογράφου",
-    "settingsCinemaModeSubtitle": "Παίξτε trailers/prerolls πριν από ένα κύριο χαρακτηριστικό",
+    "settingsCinemaModeSubtitle": "Αναπαραγωγή τρέιλερ/προ-διαφημίσεων πριν από την κύρια προβολή",
     "settingsShort": "Μικρός",
     "settingsLong": "Μακρύς",
     "settingsVeryLong": "Πολύ Μακρύ",
@@ -6668,7 +6668,7 @@
             }
         }
     },
-    "latestLibraryName": "Τελευταία {libraryName}",
+    "latestLibraryName": "Πρόσφατα προστέθηκε το {libraryName}",
     "@latestLibraryName": {
         "description": "Row title for latest media in a specific library",
         "placeholders": {
@@ -6695,7 +6695,7 @@
         "description": "Setting for next up behavior"
     },
     "settingsNextUpDisplayDescription": "Το Extended εμφανίζει μια πλήρη κάρτα με εξώφυλλο επεισοδίου και περιγραφή. Το Minimal δείχνει μια συμπαγή επικάλυψη αντίστροφης μέτρησης. Το Disabled αποκρύπτει εντελώς το μήνυμα.",
-    "playerTooltipFloatOnTop": "Επιπλέουν στην κορυφή",
+    "playerTooltipFloatOnTop": "Να εμφανίζεται στην επιφάνεια",
     "@playerTooltipFloatOnTop": {
         "description": "Tooltip label for enabling always-on-top in desktop player"
     },
@@ -6723,7 +6723,7 @@
     "@seasonalEffectsDescription": {
         "description": "Description for seasonal effects settings"
     },
-    "mediaSources": "Πηγές ΜΜΕ",
+    "mediaSources": "Πηγές Πολυμέσων",
     "@mediaSources": {
         "description": "Section heading for media source options"
     },
@@ -6747,7 +6747,7 @@
     "@mediaPreview": {
         "description": "Setting for media preview"
     },
-    "mediaPreviewDescription": "Παίξτε μια ενσωματωμένη προεπισκόπηση 30 δευτερολέπτων σε εστιασμένα, αιωρούμενα ή πατημένα μακροχρόνια φύλλα",
+    "mediaPreviewDescription": "Αναπαραγωγή ενσωματωμένης προεπισκόπησης 30 δευτερολέπτων σε κάρτες στις οποίες έχει γίνει εστίαση, στις οποίες έχει τοποθετηθεί ο δείκτης του ποντικιού ή στις οποίες έχει γίνει παρατεταμένο άγγιγμα",
     "@mediaPreviewDescription": {
         "description": "Description for media preview"
     },
@@ -6946,7 +6946,7 @@
     "@autoplayNextEpisode": {
         "description": "Setting title: automatically start the next episode"
     },
-    "autoplayNextEpisodeSubtitle": "Παίξτε αυτόματα το επόμενο επεισόδιο όταν είναι διαθέσιμο.",
+    "autoplayNextEpisodeSubtitle": "Αυτόματη αναπαραγωγή του επόμενου επεισοδίου, όταν είναι διαθέσιμο.",
     "@autoplayNextEpisodeSubtitle": {
         "description": "Setting subtitle for autoplay next episode"
     },
@@ -6978,7 +6978,7 @@
     "@mapDolbyVisionP7Title": {
         "description": "Setting title: play DV P7 as HDR10 HEVC on non-DV devices"
     },
-    "mapDolbyVisionP7Subtitle": "Παίξτε ροές προφίλ Dolby Vision 7 ως HDR10 συμβατό HEVC σε συσκευές που δεν είναι DV.",
+    "mapDolbyVisionP7Subtitle": "Αναπαραγωγή ροών Dolby Vision προφίλ 7 ως HEVC συμβατό με HDR10 σε συσκευές που δεν υποστηρίζουν Dolby Vision.",
     "@mapDolbyVisionP7Subtitle": {
         "description": "Setting subtitle for DV P7 to HEVC mapping"
     },
@@ -8207,7 +8207,7 @@
     "adminDrawerNfo": "Ρυθμίσεις NFO",
     "adminActivitySeverityAll": "Όλα τα επίπεδα σοβαρότητας",
     "adminActivityDateRange": "Εύρος ημερομηνιών",
-    "adminRemoveDeviceConfirm": "Κατάργηση της συσκευής «{name}»; Ο χρήστης θα χρειαστεί να συνδεθεί ξανά σε αυτήν τη συσκευή.",
+    "adminRemoveDeviceConfirm": "Κατάργηση της συσκευής '{name}'; Ο χρήστης θα χρειαστεί να συνδεθεί ξανά σε αυτήν τη συσκευή.",
     "@adminRemoveDeviceConfirm": {
         "placeholders": {
             "name": {
@@ -8861,7 +8861,7 @@
     "@dismiss": {
         "description": "Dismiss button text"
     },
-    "libraryWriteAccessProactiveBody": "Η βιβλιοθήκη σας «{libraryName}» έχει ρυθμιστεί να αποθηκεύει τα εξώφυλλα απευθείας στους φακέλους πολυμέσων (η επιλογή «Αποθήκευση εξωφύλλων στους φακέλους πολυμέσων» είναι ενεργοποιημένη). Ωστόσο, το Jellyfin έλεγξε τα δικαιώματα εγγραφής και δεν έχει άδεια να γράψει αρχεία σε αυτόν τον κατάλογο:\n\n{failedPath}",
+    "libraryWriteAccessProactiveBody": "Η βιβλιοθήκη σας «'{libraryName}'» έχει ρυθμιστεί να αποθηκεύει τα εξώφυλλα απευθείας στους φακέλους πολυμέσων (η επιλογή «Αποθήκευση εξωφύλλων στους φακέλους πολυμέσων» είναι ενεργοποιημένη). Ωστόσο, το Jellyfin έλεγξε τα δικαιώματα εγγραφής και δεν έχει άδεια να γράψει αρχεία σε αυτόν τον κατάλογο:\n\n{failedPath}",
     "@libraryWriteAccessProactiveBody": {
         "description": "Proactive warning message about server write access",
         "placeholders": {
@@ -9005,5 +9005,231 @@
     "imdbMostPopularMovies": "IMDb: Δημοφιλέστερες ταινίες",
     "imdbMostPopularTvShows": "IMDb: Δημοφιλέστερες τηλεοπτικές σειρές",
     "imdbLowestRatedMovies": "IMDb: Ταινίες με τη χαμηλότερη βαθμολογία",
-    "imdbTopEnglishMovies": "IMDb: Κορυφαίες αγγλόφωνες ταινίες"
+    "imdbTopEnglishMovies": "IMDb: Κορυφαίες αγγλόφωνες ταινίες",
+    "castMembers": "Διανομή ρόλων",
+    "@castMembers": {
+        "description": "Section title for the list of actors and performers in movie and TV metadata. Not the casting-to-a-device action"
+    },
+    "finalizingDownload": "Ολοκλήρωση…",
+    "@finalizingDownload": {
+        "description": "Status label shown while a finished download is being moved to its final location and validated"
+    },
+    "failedToDeleteItemWithError": "Η διαδικασία διαγραφής απέτυχε με το ακόλουθο σφάλμα: {error}",
+    "@failedToDeleteItemWithError": {
+        "description": "Error message when item deletion fails, including the specific error details",
+        "placeholders": {
+            "error": {
+                "type": "String",
+                "example": "Permission denied"
+            }
+        }
+    },
+    "shuffleAll": "Τυχαία Αναπαραγωγή",
+    "@shuffleAll": {
+        "description": "Action button label for shuffling all tracks of an artist"
+    },
+    "settingsSearchHint": "Ρυθμίσεις αναζήτησης",
+    "@settingsSearchHint": {
+        "description": "Hint text in the settings search field"
+    },
+    "detailsBackgroundOpacity": "Διαφάνεια Φόντου Λεπτομερειών",
+    "@detailsBackgroundOpacity": {
+        "description": "Setting for details background opacity on modern screens"
+    },
+    "osdButtons": "Κουμπιά Αναπαραγωγής",
+    "@osdButtons": {
+        "description": "Settings screen for choosing which buttons the player shows"
+    },
+    "osdButtonsDescription": "Επιλέξτε ποια κουμπιά θα εμφανίζει το πρόγραμμα αναπαραγωγής",
+    "@osdButtonsDescription": {
+        "description": "Subtitle for the player buttons settings tile"
+    },
+    "osdButtonsSectionDescription": "Τα στοιχεία ελέγχου αναπαραγωγής εμφανίζονται πάντα. Όλα τα υπόλοιπα εξαρτώνται από εσάς, και κάθε τύπος συσκευής διατηρεί τη δική του λίστα.",
+    "@osdButtonsSectionDescription": {
+        "description": "Explains that transport controls can't be hidden and that the list is per device kind"
+    },
+    "detailButtons": "Κουμπιά Λειτουργιών",
+    "@detailButtons": {
+        "description": "Settings screen for choosing which buttons the details screen shows"
+    },
+    "detailButtonsDescription": "Επιλέξτε ποια κουμπιά θα εμφανίζονται στην οθόνη λεπτομερειών",
+    "@detailButtonsDescription": {
+        "description": "Subtitle for the details action buttons settings tile"
+    },
+    "detailButtonsSectionDescription": "Η αναπαραγωγή είναι πάντα στην πρώτη θέση και τα κλειδωμένα κουμπιά εμφανίζονται πάντα. Όλα τα υπόλοιπα εξαρτώνται από εσάς, και κάθε τύπος συσκευής διατηρεί τη δική της λίστα.",
+    "@detailButtonsSectionDescription": {
+        "description": "Explains that the play buttons can't be hidden and that the list is per device kind"
+    },
+    "moveUp": "Μετακίνηση προς τα πάνω",
+    "@moveUp": {
+        "description": "Moves a button one place earlier in its row"
+    },
+    "moveDown": "Μετακίνηση προς τα κάτω",
+    "@moveDown": {
+        "description": "Moves a button one place later in its row"
+    },
+    "buttonOrderHint": "Χρησιμοποιήστε τα βέλη για να αλλάξετε τη σειρά. Στο τηλεχειριστήριο, τα βέλη αριστερά και δεξιά μετακινούν το επιλεγμένο κουμπί. Αν απενεργοποιήσετε ένα κουμπί, αυτό μετακινείται κάτω από τα υπόλοιπα.",
+    "@buttonOrderHint": {
+        "description": "Explains how to reorder the buttons in a row"
+    },
+    "orientationLock": "Κλείδωμα Προσανατολισμού",
+    "@orientationLock": {
+        "description": "Player button that locks the screen orientation"
+    },
+    "fullscreen": "Πλήρης Οθόνη",
+    "@fullscreen": {
+        "description": "Player button that toggles fullscreen"
+    },
+    "transcodingTimeRemainingUnavailable": "Κωδικοποίηση: Ο εναπομένων χρόνος δεν είναι διαθέσιμος",
+    "@transcodingTimeRemainingUnavailable": {
+        "description": "Notice shown below downloading text when downloading a transcoded stream"
+    },
+    "trailerCaptions": "Υπότιτλοι Τρέιλερ",
+    "@trailerCaptions": {
+        "description": "Setting for YouTube trailer captions"
+    },
+    "trailerCaptionsDescription": "Εμφάνιση υπότιτλων στα τρέιλερ του YouTube στη γραμμή πολυμέσων",
+    "@trailerCaptionsDescription": {
+        "description": "Description for YouTube trailer captions"
+    },
+    "nextUpMaxDays": "Μέγιστος αριθμός ημερών στο Next Up",
+    "@nextUpMaxDays": {
+        "description": "Setting for how far back the Next Up row reaches"
+    },
+    "nextUpMaxDaysDescription": "Πόσο καιρό παραμένει μια εκπομπή στο Next Up μετά την τελευταία φορά που την παρακολουθήσατε",
+    "@nextUpMaxDaysDescription": {
+        "description": "Description for the Next Up window setting"
+    },
+    "daysValue": "{days} ημέρες",
+    "@daysValue": {
+        "description": "A number of days",
+        "placeholders": {
+            "days": {
+                "type": "int"
+            }
+        }
+    },
+    "yourWatchlist": "Η λίστα παρακολούθησής σας",
+    "@yourWatchlist": {
+        "description": "Seerr row: watchlist"
+    },
+    "seerrNotifyNewMediaTitle": "Προστέθηκαν νέα πολυμέσα",
+    "@seerrNotifyNewMediaTitle": {
+        "description": "Title for the toggle that notifies about anything newly added to the server library, not just requested media"
+    },
+    "seerrNotifyNewMediaSubtitle": "Οτιδήποτε νέο έχει προστεθεί στη βιβλιοθήκη του διακομιστή",
+    "@seerrNotifyNewMediaSubtitle": {
+        "description": "Subtitle for the new media notifications toggle"
+    },
+    "useNativeEmulatorSubtitle": "Παίξτε παιχνίδια με εγγενείς πυρήνες αντί για το πρόγραμμα αναπαραγωγής ιστού EmulatorJS",
+    "@useNativeEmulatorSubtitle": {
+        "description": "Subtitle under the Native Emulation settings toggle. EmulatorJS is a product name and should not be translated."
+    },
+    "emulatorCores": "Πυρήνες Εξομοιωτή",
+    "emulatorCoresSubtitle": "Λήψη συστημάτων για την εκτέλεση παιχνιδιών σε εγγενή μορφή",
+    "emulatorCoresDescription": "Επιλέξτε ποια συστήματα θέλετε να εγκαταστήσετε. Οι πυρήνες παρέχονται από το project libretro και επιτρέπουν την εκτέλεση των παιχνιδιών σε εγγενή περιβάλλον αντί για το περιβάλλον ενός προγράμματος περιήγησης.",
+    "emulatorCoreDownloading": "Λήψη",
+    "emulatorCoreUnavailable": "Δεν είναι διαθέσιμο για αυτή τη συσκευή",
+    "emulatorCoreDownloadFailed": "Δεν ήταν δυνατή η λήψη του πυρήνα. Ελέγξτε τη σύνδεσή σας και δοκιμάστε ξανά.",
+    "downloadedGames": "Ληφθέντα Παιχνίδια",
+    "@downloadedGames": {
+        "description": "Settings screen title for managing game files stored on the device"
+    },
+    "downloadedGamesSubtitle": "Απελευθερώστε χώρο που καταλαμβάνουν τα αρχεία παιχνιδιών",
+    "@downloadedGamesSubtitle": {
+        "description": "Subtitle for the Downloaded Games settings entry"
+    },
+    "downloadedGamesDescription": "Τα παιχνίδια αντιγράφονται σε αυτή τη συσκευή πριν ξεκινήσει η αναπαραγωγή τους. Διαγράψτε αυτά που έχετε ολοκληρώσει για να ελευθερώσετε χώρο. Τα αποθηκευμένα δεδομένα διατηρούνται στον διακομιστή και δεν διαγράφονται.",
+    "@downloadedGamesDescription": {
+        "description": "Explanation at the top of the Downloaded Games settings screen"
+    },
+    "downloadedGamesEmpty": "Δεν έχει γίνει λήψη κανένα παιχνιδιού σε αυτή τη συσκευή μέχρι στιγμής.",
+    "@downloadedGamesEmpty": {
+        "description": "Shown on the Downloaded Games screen when nothing is cached"
+    },
+    "downloadedGamesTotal": "{count} παιχνίδια, {size}",
+    "@downloadedGamesTotal": {
+        "description": "Summary of how many games are stored and how much space they take, where size is a formatted amount such as 1.4 GB",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            },
+            "size": {
+                "type": "String"
+            }
+        }
+    },
+    "removeAllDownloadedGames": "Διαγραφή Όλων",
+    "@removeAllDownloadedGames": {
+        "description": "Button that deletes every downloaded game from the device"
+    },
+    "removeDownloadedGameConfirm": "Θέλετε να διαγράψετε το {title} από αυτή τη συσκευή; Θα γίνει εκ νέου λήψη την επόμενη φορά που θα το αναπαράγετε.",
+    "@removeDownloadedGameConfirm": {
+        "description": "Confirmation prompt before deleting a single downloaded game, where title is the game name",
+        "placeholders": {
+            "title": {
+                "type": "String"
+            }
+        }
+    },
+    "removeAllDownloadedGamesConfirm": "Θέλετε να διαγράψετε όλα τα παιχνίδια που έχετε κατεβάσει από αυτή τη συσκευή; Θα γίνουν εκ νέου λήψη την επόμενη φορά που θα τα παίξετε.",
+    "@removeAllDownloadedGamesConfirm": {
+        "description": "Confirmation prompt before deleting every downloaded game"
+    },
+    "addToWatchlist": "Προσθήκη στη λίστα παρακολούθησης",
+    "@addToWatchlist": {
+        "description": "Button label to add media to the user's Seerr watchlist"
+    },
+    "removeFromWatchlist": "Κατάργηση από τη λίστα παρακολούθησης",
+    "@removeFromWatchlist": {
+        "description": "Button label to remove media from the user's Seerr watchlist"
+    },
+    "watchlistUpdateFailed": "Δεν ήταν δυνατή η ενημέρωση της λίστας παρακολούθησης",
+    "@watchlistUpdateFailed": {
+        "description": "Snackbar shown when adding/removing a Seerr watchlist item fails"
+    },
+    "adminSearchParameters": "Παράμετροι Αναζήτησης",
+    "@adminSearchParameters": {
+        "description": "Column header above the editable fields used to search metadata providers in the Identify dialog"
+    },
+    "adminCurrentMetadata": "Τρέχοντα Μεταδεδομένα",
+    "@adminCurrentMetadata": {
+        "description": "Column header above the read-only values currently stored on the item in the Identify dialog"
+    },
+    "adminLabelYear": "Έτος",
+    "@adminLabelYear": {
+        "description": "Label for the release year field in the Identify dialog"
+    },
+    "adminLabelImdbId": "Αναγνωριστικό IMDb",
+    "@adminLabelImdbId": {
+        "description": "Label for the IMDb identifier field in the Identify dialog. IMDb is a brand name and is normally left untranslated"
+    },
+    "adminLabelTmdbMovieId": "Αναγνωριστικό Ταινίας TheMovieDb",
+    "@adminLabelTmdbMovieId": {
+        "description": "Label for the TheMovieDb movie identifier field in the Identify dialog. TheMovieDb is a brand name and is normally left untranslated"
+    },
+    "adminLabelTmdbBoxSetId": "Αναγνωριστικό Συλλογής Ταινιών TheMovieDb",
+    "@adminLabelTmdbBoxSetId": {
+        "description": "Label for the TheMovieDb collection identifier field in the Identify dialog. TheMovieDb is a brand name and is normally left untranslated"
+    },
+    "adminLabelTvdbBoxSetId": "Αναγνωριστικό Συλλογής Ταινιών TheTVDB",
+    "@adminLabelTvdbBoxSetId": {
+        "description": "Label for the TheTVDB collection identifier field in the Identify dialog. TheTVDB is a brand name and is normally left untranslated"
+    },
+    "adminLabelTvdbId": "Αριθμητικό Αναγνωριστικό TheTVDB",
+    "@adminLabelTvdbId": {
+        "description": "Label for the numeric TheTVDB identifier field in the Identify dialog. TheTVDB is a brand name and is normally left untranslated"
+    },
+    "adminLabelTvdbSlug": "TheTVDB Slug Αναγνωριστικό Ταινίας",
+    "@adminLabelTvdbSlug": {
+        "description": "Label for the TheTVDB slug identifier field in the Identify dialog. TheTVDB is a brand name and is normally left untranslated"
+    },
+    "adminReplaceImages": "Αντικατάσταση υπαρχουσών εικόνων",
+    "@adminReplaceImages": {
+        "description": "Checkbox label in the confirmation dialog shown before applying an identified metadata match"
+    },
+    "adminBackToSearch": "Επιστροφή στα Κριτήρια Αναζήτησης",
+    "@adminBackToSearch": {
+        "description": "Tooltip on the button that returns from the Identify results list to the search form"
+    }
 }

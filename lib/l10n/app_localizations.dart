@@ -7234,17 +7234,41 @@ abstract class AppLocalizations {
   /// **'Request More'**
   String get requestMore;
 
+  /// Button to request more seasons in 4K, shown next to the non-4K Request More button
+  ///
+  /// In en, this message translates to:
+  /// **'Request More in 4K'**
+  String get requestMore4k;
+
   /// Button to submit a media request
   ///
   /// In en, this message translates to:
   /// **'Request'**
   String get request;
 
+  /// Button to submit a 4K media request, shown next to the non-4K Request button
+  ///
+  /// In en, this message translates to:
+  /// **'Request 4K'**
+  String get request4k;
+
+  /// Disabled label shown when a 4K request already exists and the user cannot cancel it
+  ///
+  /// In en, this message translates to:
+  /// **'4K Requested'**
+  String get requested4k;
+
   /// Button/dialog title to cancel a media request
   ///
   /// In en, this message translates to:
   /// **'Cancel Request'**
   String get cancelRequest;
+
+  /// Button/dialog title to cancel a 4K media request
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel 4K Request'**
+  String get cancelRequest4k;
 
   /// Button to play available media in Moonfin
   ///
@@ -7335,6 +7359,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Request {type}'**
   String requestSeriesOrMovie(String type);
+
+  /// Bottom sheet title for requesting media in 4K
+  ///
+  /// In en, this message translates to:
+  /// **'Request 4K {type}'**
+  String requestSeriesOrMovie4k(String type);
 
   /// Button to finalize a media request
   ///

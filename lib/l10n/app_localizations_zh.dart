@@ -60,12 +60,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String quickConnectUnavailable(String detail) {
-    return 'QuickConnect 不可用：$detail';
+    return '快速连接不可用：$detail';
   }
 
   @override
   String quickConnectUnavailableWithStatus(String status, String detail) {
-    return 'QuickConnect 不可用（$status）：$detail';
+    return '快速连接不可用（$status）：$detail';
   }
 
   @override
@@ -3352,15 +3352,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get combineBothRows => '将两行合并为一个首页栏目';
 
   @override
-  String get nextUpMaxDays => 'Max days in Next Up';
+  String get nextUpMaxDays => '下个播放最大保留天数';
 
   @override
-  String get nextUpMaxDaysDescription =>
-      'How long a show stays in Next Up after you last watched it';
+  String get nextUpMaxDaysDescription => '上次观看后，该电视剧在下个播放保留时长';
 
   @override
   String daysValue(int days) {
-    return '$days days';
+    return '$days 天';
   }
 
   @override
@@ -3674,11 +3673,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get seerrNotifyIssuesSubtitle => '新增问题、回复及问题解决通知';
 
   @override
-  String get seerrNotifyNewMediaTitle => 'New media added';
+  String get seerrNotifyNewMediaTitle => '新增媒体';
 
   @override
-  String get seerrNotifyNewMediaSubtitle =>
-      'Anything new added to the server library';
+  String get seerrNotifyNewMediaSubtitle => '服务器媒体库新增内容提醒';
 
   @override
   String loggedInAs(String username) {
@@ -3855,10 +3853,22 @@ class AppLocalizationsZh extends AppLocalizations {
   String get requestMore => '请求更多';
 
   @override
+  String get requestMore4k => 'Request More in 4K';
+
+  @override
   String get request => '请求';
 
   @override
+  String get request4k => 'Request 4K';
+
+  @override
+  String get requested4k => '4K Requested';
+
+  @override
   String get cancelRequest => '取消请求';
+
+  @override
+  String get cancelRequest4k => 'Cancel 4K Request';
 
   @override
   String get playInMoonfin => '在 Moonfin 中播放';
@@ -3917,6 +3927,11 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String requestSeriesOrMovie(String type) {
     return '请求 $type';
+  }
+
+  @override
+  String requestSeriesOrMovie4k(String type) {
+    return 'Request 4K $type';
   }
 
   @override

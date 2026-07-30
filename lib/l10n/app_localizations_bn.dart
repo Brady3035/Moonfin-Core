@@ -3988,10 +3988,22 @@ class AppLocalizationsBn extends AppLocalizations {
   String get requestMore => 'আরো অনুরোধ';
 
   @override
+  String get requestMore4k => 'Request More in 4K';
+
+  @override
   String get request => 'অনুরোধ';
 
   @override
+  String get request4k => 'Request 4K';
+
+  @override
+  String get requested4k => '4K Requested';
+
+  @override
   String get cancelRequest => 'অনুরোধ বাতিল করুন';
+
+  @override
+  String get cancelRequest4k => 'Cancel 4K Request';
 
   @override
   String get playInMoonfin => 'Moonfin এ খেলুন';
@@ -4051,6 +4063,11 @@ class AppLocalizationsBn extends AppLocalizations {
   @override
   String requestSeriesOrMovie(String type) {
     return 'অনুরোধ $type';
+  }
+
+  @override
+  String requestSeriesOrMovie4k(String type) {
+    return 'Request 4K $type';
   }
 
   @override

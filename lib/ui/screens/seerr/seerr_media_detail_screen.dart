@@ -420,24 +420,49 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
     SeerrMediaDetailState s, {
     required AppLocalizations l10n,
   }) {
-    final label = _localizedStatusText(s, l10n);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.55),
-        borderRadius: AppRadius.circular(999),
-      ),
-      child: Text(
-        label.toUpperCase(),
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 12,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 0.6,
+    Widget pill(SeerrQualityStatus q, String? prefix) {
+      final label = _localizedStatusText(q, l10n);
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        decoration: BoxDecoration(
+          color: Colors.black.withValues(alpha: 0.55),
+          borderRadius: AppRadius.circular(999),
         ),
-      ),
+        child: Text(
+          _withQualityPrefix(label, prefix).toUpperCase(),
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.6,
+          ),
+        ),
+      );
+    }
+
+    final tracks = _statusTracks(s, l10n);
+    if (tracks.length == 1) return pill(tracks.first.$1, tracks.first.$2);
+    return Wrap(
+      spacing: 8,
+      runSpacing: 6,
+      children: [for (final (q, prefix) in tracks) pill(q, prefix)],
     );
   }
+
+  /// The quality tracks worth showing a status for, each with the label it
+  /// should carry. A lone track needs no label to disambiguate it, which is
+  /// the usual case on servers without a 4K backend.
+  List<(SeerrQualityStatus, String?)> _statusTracks(
+    SeerrMediaDetailState s,
+    AppLocalizations l10n,
+  ) {
+    final uhd = s.uhd;
+    if (!uhd.hasAnyState) return [(s.hd, null)];
+    return [(s.hd, 'HD'), (uhd, l10n.uhd4k)];
+  }
+
+  String _withQualityPrefix(String label, String? prefix) =>
+      prefix == null ? label : '$prefix · $label';
 
   Widget _buildWideOverviewAndStats(
     SeerrMediaDetailState s,
@@ -673,18 +698,13 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
 
   Widget _buildWideActions(SeerrMediaDetailState s, AppLocalizations l10n) {
     final vm = _vm!;
-    final canShowRequest =
-        vm.canRequest &&
-        !s.isFullyAvailable &&
-        (!s.hasExistingRequest || s.isPartiallyAvailable);
-    final requestLabel = s.isPartiallyAvailable
-        ? l10n.requestMore
-        : l10n.request;
+    final hd = s.hd;
+    final uhd = s.uhd;
+    final hdAction = _actionFor(hd, l10n);
+    final uhdAction = _actionFor(uhd, l10n);
     final canManage = vm.canManageRequests;
     final trailer = s.bestTrailer;
     final showTrailer = trailer != null;
-    final hasOpenRequest = s.activeRequests.isNotEmpty && !s.isFullyAvailable;
-    final showCancel = hasOpenRequest && s.cancelableRequests.isNotEmpty;
 
     final tiles = <Widget>[];
     FocusNode? nextFirstNode = _firstActionFocusNode;
@@ -694,44 +714,59 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
       return n;
     }
 
-    if (showCancel) {
-      tiles.add(
-        _ActionTile(
-          icon: Icons.close,
-          label: l10n.cancelRequest,
-          onTap: s.isRequesting ? null : () => _showCancelDialog(s),
-          primary: !(s.isFullyAvailable || s.isPartiallyAvailable),
-          focusNode: takeFirst(),
-        ),
-      );
-    } else if (hasOpenRequest) {
-      tiles.add(
-        _ActionTile(
-          icon: Icons.check,
-          label: l10n.seerrRequestedStatus,
-          onTap: null,
-          primary: false,
-          focusNode: null,
-        ),
-      );
-    } else if (canShowRequest) {
-      tiles.add(
-        _ActionTile(
-          icon: Icons.add,
-          label: requestLabel,
-          onTap: s.isRequesting ? null : _showRequestDialog,
-          primary: !(s.isFullyAvailable || s.isPartiallyAvailable),
-          focusNode: takeFirst(),
-        ),
-      );
+    void addActionTile(_RequestAction action, {required bool is4k, required bool primary}) {
+      switch (action.kind) {
+        case _RequestActionKind.none:
+          break;
+        case _RequestActionKind.cancel:
+          tiles.add(
+            _ActionTile(
+              icon: Icons.close,
+              label: action.label,
+              onTap: s.isRequesting ? null : () => _showCancelDialog(s, is4k: is4k),
+              primary: primary,
+              focusNode: takeFirst(),
+            ),
+          );
+        case _RequestActionKind.requested:
+          // No focus node on purpose. _requestFirstActionFocus gives up when
+          // the first action can't take focus, so a disabled tile must never
+          // claim that slot.
+          tiles.add(
+            _ActionTile(
+              icon: Icons.check,
+              label: action.label,
+              onTap: null,
+              primary: false,
+              focusNode: null,
+            ),
+          );
+        case _RequestActionKind.request:
+          tiles.add(
+            _ActionTile(
+              icon: Icons.add,
+              label: action.label,
+              onTap: s.isRequesting ? null : () => _showRequestDialog(is4k: is4k),
+              primary: primary,
+              focusNode: takeFirst(),
+            ),
+          );
+      }
     }
-    if (s.isFullyAvailable || s.isPartiallyAvailable) {
+
+    addActionTile(hdAction, is4k: false, primary: !hd.isAvailable);
+    // Play takes the primary styling only when HD emitted no tile. Captured
+    // before the 4K tile, which is never primary, so two tiles never compete
+    // for it.
+    final playIsPrimary = tiles.isEmpty;
+    addActionTile(uhdAction, is4k: true, primary: false);
+    if (s.isAvailableAnyQuality) {
       tiles.add(
         _ActionTile(
           icon: Icons.play_arrow,
           label: l10n.playInMoonfin,
           onTap: () => _playInMoonfin(s),
-          primary: tiles.isEmpty,
+          primary: playIsPrimary,
           focusNode: takeFirst(),
         ),
       );
@@ -763,11 +798,12 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
       focusNode: takeFirst(),
     ));
 
+    final activeRequests = s.allActiveRequests;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (s.activeRequests.isNotEmpty) ...[
-          for (final req in s.activeRequests)
+        if (activeRequests.isNotEmpty) ...[
+          for (final req in activeRequests)
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: Row(
@@ -780,9 +816,7 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
                   const SizedBox(width: 6),
                   Flexible(
                     child: Text(
-                      l10n.requestedByName(
-                        req.requestedBy?.bestName ?? l10n.unknown,
-                      ),
+                      _requestedByLabel(req, l10n),
                       style: const TextStyle(
                         color: Colors.white54,
                         fontSize: 13,
@@ -919,15 +953,54 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
     return parts.join(' \u2022 ');
   }
 
-  String _localizedStatusText(SeerrMediaDetailState s, AppLocalizations l10n) {
-    if (s.isFullyAvailable) return l10n.seerrAvailableStatus;
-    if (s.isPartiallyAvailable) return l10n.partiallyAvailable;
-    if (s.isProcessing) return l10n.seerrRequestedStatus;
-    if (s.isPending) return l10n.pendingStatus;
-    if (s.isBlacklisted) return l10n.blocklistedStatus;
-    if (s.isDeleted) return l10n.deletedStatus;
-    if (s.hasExistingRequest) return l10n.seerrRequestedStatus;
+  String _localizedStatusText(SeerrQualityStatus q, AppLocalizations l10n) {
+    if (q.isFullyAvailable) return l10n.seerrAvailableStatus;
+    if (q.isPartiallyAvailable) return l10n.partiallyAvailable;
+    if (q.isProcessing) return l10n.seerrRequestedStatus;
+    if (q.isPending) return l10n.pendingStatus;
+    if (q.isBlacklisted) return l10n.blocklistedStatus;
+    if (q.isDeleted) return l10n.deletedStatus;
+    if (q.hasExistingRequest) return l10n.seerrRequestedStatus;
     return l10n.notRequestedStatus;
+  }
+
+  String _requestedByLabel(SeerrRequest req, AppLocalizations l10n) {
+    final name = l10n.requestedByName(req.requestedBy?.bestName ?? l10n.unknown);
+    return req.is4k ? '$name · ${l10n.uhd4k}' : name;
+  }
+
+  /// Which request action a quality track offers right now. HD and 4K each
+  /// get their own slot, so one can be cancellable while the other is still
+  /// requestable. Within a track the order is cancel, then requested, then
+  /// request.
+  _RequestAction _actionFor(SeerrQualityStatus q, AppLocalizations l10n) {
+    final vm = _vm!;
+    final allowed = q.is4k ? vm.canRequest4k : vm.canRequest;
+    final canShowRequest = allowed &&
+        !q.isFullyAvailable &&
+        (!q.hasExistingRequest || q.isPartiallyAvailable);
+    final hasOpenRequest = q.activeRequests.isNotEmpty && !q.isFullyAvailable;
+    if (hasOpenRequest && q.cancelableRequests.isNotEmpty) {
+      return _RequestAction(
+        _RequestActionKind.cancel,
+        q.is4k ? l10n.cancelRequest4k : l10n.cancelRequest,
+      );
+    }
+    if (hasOpenRequest) {
+      return _RequestAction(
+        _RequestActionKind.requested,
+        q.is4k ? l10n.requested4k : l10n.seerrRequestedStatus,
+      );
+    }
+    if (canShowRequest) {
+      return _RequestAction(
+        _RequestActionKind.request,
+        q.isPartiallyAvailable
+            ? (q.is4k ? l10n.requestMore4k : l10n.requestMore)
+            : (q.is4k ? l10n.request4k : l10n.request),
+      );
+    }
+    return const _RequestAction(_RequestActionKind.none, '');
   }
 
   String? _productionStatusText(SeerrMediaDetailState s) {
@@ -1066,7 +1139,19 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
   }
 
   Widget _buildStatusBadge(SeerrMediaDetailState s) {
-    final (label, color) = _mediaStatusInfo(s);
+    final tracks = _statusTracks(s, AppLocalizations.of(context));
+    if (tracks.length == 1) {
+      return _statusBadgeFor(tracks.first.$1, tracks.first.$2);
+    }
+    return Wrap(
+      spacing: 8,
+      runSpacing: 6,
+      children: [for (final (q, prefix) in tracks) _statusBadgeFor(q, prefix)],
+    );
+  }
+
+  Widget _statusBadgeFor(SeerrQualityStatus q, String? prefixLabel) {
+    final (label, color) = _mediaStatusInfo(q);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -1078,7 +1163,7 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
         borderRadius: AppRadius.circular(6),
       ),
       child: Text(
-        label,
+        _withQualityPrefix(label, prefixLabel),
         style: TextStyle(
           color: color,
           fontWeight: FontWeight.w600,
@@ -1090,20 +1175,20 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
 
   /// Media status colors matching the seerr web UI. Labels come from
   /// [_localizedStatusText].
-  (String, Color) _mediaStatusInfo(SeerrMediaDetailState s) {
+  (String, Color) _mediaStatusInfo(SeerrQualityStatus q) {
     final l10n = AppLocalizations.of(context);
-    final label = _localizedStatusText(s, l10n);
+    final label = _localizedStatusText(q, l10n);
     // Same branch order as _localizedStatusText so label and color agree.
     final Color color;
-    if (s.isFullyAvailable || s.isPartiallyAvailable) {
+    if (q.isAvailable) {
       color = AppColorScheme.statusAvailable;
-    } else if (s.isProcessing) {
+    } else if (q.isProcessing) {
       color = AppColorScheme.statusRequested;
-    } else if (s.isPending) {
+    } else if (q.isPending) {
       color = AppColorScheme.statusPending;
-    } else if (s.isBlacklisted || s.isDeleted) {
+    } else if (q.isBlacklisted || q.isDeleted) {
       color = AppColorScheme.statusError;
-    } else if (s.hasExistingRequest) {
+    } else if (q.hasExistingRequest) {
       color = AppColorScheme.statusRequested;
     } else {
       color = AppColorScheme.onSurface.withValues(alpha: 0.54);
@@ -1264,23 +1349,20 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
   Widget _buildRequestSection(SeerrMediaDetailState s) {
     final l10n = AppLocalizations.of(context);
     final vm = _vm!;
-    final canShowRequest =
-        vm.canRequest &&
-        !s.isFullyAvailable &&
-        (!s.hasExistingRequest || s.isPartiallyAvailable);
-    final requestLabel = s.isPartiallyAvailable
-        ? l10n.requestMore
-        : l10n.request;
+    final hd = s.hd;
+    final uhd = s.uhd;
+    final hdAction = _actionFor(hd, l10n);
+    final uhdAction = _actionFor(uhd, l10n);
     final canManage = vm.canManageRequests;
-    final hasOpenRequest = s.activeRequests.isNotEmpty && !s.isFullyAvailable;
+    final activeRequests = s.allActiveRequests;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(32, 16, 32, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (s.activeRequests.isNotEmpty) ...[
-            for (final req in s.activeRequests)
+          if (activeRequests.isNotEmpty) ...[
+            for (final req in activeRequests)
               Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: Row(
@@ -1293,9 +1375,7 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
                     const SizedBox(width: 6),
                     Flexible(
                       child: Text(
-                        l10n.requestedByName(
-                          req.requestedBy?.bestName ?? l10n.unknown,
-                        ),
+                        _requestedByLabel(req, l10n),
                         style: const TextStyle(
                           color: Colors.white54,
                           fontSize: 13,
@@ -1321,7 +1401,7 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
             spacing: 12,
             runSpacing: 8,
             children: [
-              if (s.isFullyAvailable || s.isPartiallyAvailable)
+              if (s.isAvailableAnyQuality)
                 ElevatedButton.icon(
                   onPressed: () => _playInMoonfin(s),
                   icon: const Icon(Icons.play_arrow),
@@ -1331,9 +1411,10 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
                     foregroundColor: Colors.white,
                   ),
                 ),
-              if (canShowRequest)
+              if (hdAction.kind == _RequestActionKind.request)
                 ElevatedButton.icon(
-                  onPressed: s.isRequesting ? null : () => _showRequestDialog(),
+                  onPressed:
+                      s.isRequesting ? null : () => _showRequestDialog(is4k: false),
                   icon: s.isRequesting
                       ? const SizedBox(
                           width: 16,
@@ -1341,10 +1422,23 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
                       : const Icon(Icons.add),
-                  label: Text(requestLabel),
+                  label: Text(hdAction.label),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF6366F1),
                     foregroundColor: Colors.white,
+                  ),
+                ),
+              if (uhdAction.kind == _RequestActionKind.request)
+                OutlinedButton.icon(
+                  onPressed:
+                      s.isRequesting ? null : () => _showRequestDialog(is4k: true),
+                  icon: const Icon(Icons.add, size: 18),
+                  label: Text(uhdAction.label),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFF6366F1),
+                    side: ThemeRegistry.active.borders.chipBorder.copyWith(
+                      color: const Color(0xFF6366F1),
+                    ),
                   ),
                 ),
               OutlinedButton.icon(
@@ -1361,11 +1455,12 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
                   ),
                 ),
               ),
-              if (hasOpenRequest && s.cancelableRequests.isNotEmpty)
+              if (hdAction.kind == _RequestActionKind.cancel)
                 OutlinedButton.icon(
-                  onPressed: s.isRequesting ? null : () => _showCancelDialog(s),
+                  onPressed:
+                      s.isRequesting ? null : () => _showCancelDialog(s, is4k: false),
                   icon: const Icon(Icons.close, size: 18),
-                  label: Text(l10n.cancelRequest),
+                  label: Text(hdAction.label),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: Colors.red[300],
                     side: ThemeRegistry.active.borders.chipBorder.copyWith(
@@ -1373,11 +1468,36 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
                     ),
                   ),
                 )
-              else if (hasOpenRequest)
+              else if (hdAction.kind == _RequestActionKind.requested)
                 OutlinedButton.icon(
                   onPressed: null,
                   icon: const Icon(Icons.check, size: 18),
-                  label: Text(l10n.seerrRequestedStatus),
+                  label: Text(hdAction.label),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.white54,
+                    side: ThemeRegistry.active.borders.chipBorder.copyWith(
+                      color: Colors.white24,
+                    ),
+                  ),
+                ),
+              if (uhdAction.kind == _RequestActionKind.cancel)
+                OutlinedButton.icon(
+                  onPressed:
+                      s.isRequesting ? null : () => _showCancelDialog(s, is4k: true),
+                  icon: const Icon(Icons.close, size: 18),
+                  label: Text(uhdAction.label),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.red[300],
+                    side: ThemeRegistry.active.borders.chipBorder.copyWith(
+                      color: Colors.red[300]!,
+                    ),
+                  ),
+                )
+              else if (uhdAction.kind == _RequestActionKind.requested)
+                OutlinedButton.icon(
+                  onPressed: null,
+                  icon: const Icon(Icons.check, size: 18),
+                  label: Text(uhdAction.label),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: Colors.white54,
                     side: ThemeRegistry.active.borders.chipBorder.copyWith(
@@ -1502,26 +1622,30 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
     );
   }
 
-  void _showRequestDialog() {
+  void _showRequestDialog({required bool is4k}) {
     final vm = _vm!;
     final s = vm.state;
     final l10n = AppLocalizations.of(context);
+    final type = s.isTv ? l10n.series : l10n.movie;
     showStyledPlayerDialog<void>(
       context,
-      title: l10n.requestSeriesOrMovie(s.isTv ? l10n.series : l10n.movie),
+      title: is4k
+          ? l10n.requestSeriesOrMovie4k(type)
+          : l10n.requestSeriesOrMovie(type),
       builder: (_) => _RequestDialog(
         vm: vm,
         isTv: s.isTv,
+        is4k: is4k,
         seasons: s.tv?.seasons ?? const [],
         numberOfSeasons: s.numberOfSeasons ?? 0,
-        requestedSeasons: s.requestedSeasons,
+        requestedSeasons: s.quality(is4k: is4k).requestedSeasons,
       ),
     );
   }
 
-  void _showCancelDialog(SeerrMediaDetailState s) {
+  void _showCancelDialog(SeerrMediaDetailState s, {required bool is4k}) {
     final l10n = AppLocalizations.of(context);
-    final active = s.cancelableRequests;
+    final active = s.quality(is4k: is4k).cancelableRequests;
     if (active.isEmpty) return;
 
     final title = s.displayTitle;
@@ -1529,13 +1653,14 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
     final message = count == 1
         ? l10n.cancelRequestForTitle(title)
         : l10n.cancelCountRequestsForTitle(count, title);
+    final cancelLabel = is4k ? l10n.cancelRequest4k : l10n.cancelRequest;
 
     showFocusRestoringDialog(
       context: context,
       builder: (ctx) => AlertDialog.adaptive(
         backgroundColor: const Color(0xFF1A1A2E),
         title: Text(
-          l10n.cancelRequest,
+          cancelLabel,
           style: const TextStyle(color: Colors.white),
         ),
         content: Text(message, style: const TextStyle(color: Colors.white70)),
@@ -1550,7 +1675,7 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
               _cancelRequests(active);
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red[300]),
-            child: Text(l10n.cancelRequest),
+            child: Text(cancelLabel),
           ),
         ],
       ),
@@ -1568,6 +1693,12 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
     if (GetIt.instance.isRegistered<SeerrDiscoverViewModel>()) {
       GetIt.instance<SeerrDiscoverViewModel>().refresh();
     }
+
+    // The other quality track may still have an open request, so stay on the
+    // page rather than navigating away from it. cancelRequests already
+    // reloaded the details, so this state is current.
+    if (vm.state.allActiveRequests.isNotEmpty) return;
+
     if (context.canPop()) {
       context.pop();
     } else {
@@ -2015,9 +2146,19 @@ List<int> _seasonNumbersOf(List<SeerrSeason> seasons, int fallbackCount) {
   return List.generate(fallbackCount, (i) => i + 1);
 }
 
+enum _RequestActionKind { none, request, requested, cancel }
+
+class _RequestAction {
+  final _RequestActionKind kind;
+  final String label;
+
+  const _RequestAction(this.kind, this.label);
+}
+
 class _RequestDialog extends StatefulWidget {
   final SeerrMediaDetailViewModel vm;
   final bool isTv;
+  final bool is4k;
   final List<SeerrSeason> seasons;
   final int numberOfSeasons;
   final Set<int> requestedSeasons;
@@ -2025,6 +2166,7 @@ class _RequestDialog extends StatefulWidget {
   const _RequestDialog({
     required this.vm,
     required this.isTv,
+    required this.is4k,
     required this.seasons,
     required this.numberOfSeasons,
     this.requestedSeasons = const {},
@@ -2035,7 +2177,6 @@ class _RequestDialog extends StatefulWidget {
 }
 
 class _RequestDialogState extends State<_RequestDialog> {
-  bool _is4k = false;
   bool _allSeasons = true;
   bool _submitting = false;
   final Set<int> _selectedSeasons = {};
@@ -2047,9 +2188,9 @@ class _RequestDialogState extends State<_RequestDialog> {
     _advanced = SeerrAdvancedRequestController(
       isTv: widget.isTv,
       isAnime: widget.vm.state.isAnime,
-      is4k: _is4k,
+      is4k: widget.is4k,
     );
-    _applySavedPreferences(resetSelection: false);
+    _applySavedPreferences();
     if (widget.vm.canRequestAdvanced) {
       _advanced.load();
     }
@@ -2068,14 +2209,15 @@ class _RequestDialogState extends State<_RequestDialog> {
     if (mounted) setState(() {});
   }
 
-  void _applySavedPreferences({bool resetSelection = true}) {
+  void _applySavedPreferences() {
     final vm = widget.vm;
+    final is4k = widget.is4k;
     _advanced.applySavedPreferences(
-      serverId: _is4k ? vm.saved4kServerId : vm.savedServerId,
-      profileId: _is4k ? vm.saved4kProfileId : vm.savedProfileId,
-      rootFolderId: _is4k ? vm.saved4kRootFolderId : vm.savedRootFolderId,
-      resetSelection: resetSelection,
-      is4k: _is4k,
+      serverId: is4k ? vm.saved4kServerId : vm.savedServerId,
+      profileId: is4k ? vm.saved4kProfileId : vm.savedProfileId,
+      rootFolderId: is4k ? vm.saved4kRootFolderId : vm.savedRootFolderId,
+      resetSelection: false,
+      is4k: is4k,
     );
   }
 
@@ -2122,7 +2264,7 @@ class _RequestDialogState extends State<_RequestDialog> {
     _submitting = true;
 
     widget.vm.submitRequest(
-      is4k: _is4k,
+      is4k: widget.is4k,
       seasons: seasons,
       allSeasons: widget.isTv && _allSeasons,
       profileId: _advanced.effectiveProfileId,
@@ -2138,30 +2280,10 @@ class _RequestDialogState extends State<_RequestDialog> {
     final l10n = AppLocalizations.of(context);
     final quotaRow = _buildQuotaRow(l10n);
 
-    var autofocusPending = true;
-    bool takeAutofocus() {
-      if (!autofocusPending) return false;
-      autofocusPending = false;
-      return true;
-    }
-
     final children = <Widget>[];
-    if (widget.vm.canRequest4k) {
-      children.add(
-        SeerrToggleRow(
-          title: l10n.uhd4k,
-          value: _is4k,
-          autofocus: takeAutofocus(),
-          onChanged: (v) => setState(() {
-            _is4k = v;
-            _applySavedPreferences();
-          }),
-        ),
-      );
-    }
     if (widget.isTv) {
       children.add(const Divider(color: Colors.white12));
-      children.add(_buildSeasonSelector(autofocusAll: takeAutofocus()));
+      children.add(_buildSeasonSelector(autofocusAll: true));
     }
     if (widget.vm.canRequestAdvanced) {
       children.add(const Divider(color: Colors.white12));

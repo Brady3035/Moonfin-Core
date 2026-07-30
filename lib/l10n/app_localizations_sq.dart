@@ -4034,10 +4034,22 @@ class AppLocalizationsSq extends AppLocalizations {
   String get requestMore => 'Kërkoni më shumë';
 
   @override
+  String get requestMore4k => 'Request More in 4K';
+
+  @override
   String get request => 'Kërkesa';
 
   @override
+  String get request4k => 'Request 4K';
+
+  @override
+  String get requested4k => '4K Requested';
+
+  @override
   String get cancelRequest => 'Anulo Kërkesën';
+
+  @override
+  String get cancelRequest4k => 'Cancel 4K Request';
 
   @override
   String get playInMoonfin => 'Luaj në Moonfin';
@@ -4097,6 +4109,11 @@ class AppLocalizationsSq extends AppLocalizations {
   @override
   String requestSeriesOrMovie(String type) {
     return 'Kërko $type';
+  }
+
+  @override
+  String requestSeriesOrMovie4k(String type) {
+    return 'Request 4K $type';
   }
 
   @override

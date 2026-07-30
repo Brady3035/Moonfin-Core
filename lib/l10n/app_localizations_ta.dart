@@ -4032,10 +4032,22 @@ class AppLocalizationsTa extends AppLocalizations {
   String get requestMore => 'மேலும் கோரிக்கை';
 
   @override
+  String get requestMore4k => 'Request More in 4K';
+
+  @override
   String get request => 'கோரிக்கை';
 
   @override
+  String get request4k => 'Request 4K';
+
+  @override
+  String get requested4k => '4K Requested';
+
+  @override
   String get cancelRequest => 'கோரிக்கையை ரத்துசெய்';
+
+  @override
+  String get cancelRequest4k => 'Cancel 4K Request';
 
   @override
   String get playInMoonfin => 'Moonfin இல் விளையாடு';
@@ -4095,6 +4107,11 @@ class AppLocalizationsTa extends AppLocalizations {
   @override
   String requestSeriesOrMovie(String type) {
     return '$type கோரவும்';
+  }
+
+  @override
+  String requestSeriesOrMovie4k(String type) {
+    return 'Request 4K $type';
   }
 
   @override

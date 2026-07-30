@@ -4026,10 +4026,22 @@ class AppLocalizationsUk extends AppLocalizations {
   String get requestMore => 'Запит більше';
 
   @override
+  String get requestMore4k => 'Request More in 4K';
+
+  @override
   String get request => 'запит';
 
   @override
+  String get request4k => 'Request 4K';
+
+  @override
+  String get requested4k => '4K Requested';
+
+  @override
   String get cancelRequest => 'Скасувати запит';
+
+  @override
+  String get cancelRequest4k => 'Cancel 4K Request';
 
   @override
   String get playInMoonfin => 'Грайте в Moonfin';
@@ -4089,6 +4101,11 @@ class AppLocalizationsUk extends AppLocalizations {
   @override
   String requestSeriesOrMovie(String type) {
     return 'Запитати $type';
+  }
+
+  @override
+  String requestSeriesOrMovie4k(String type) {
+    return 'Request 4K $type';
   }
 
   @override

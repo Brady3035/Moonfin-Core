@@ -3889,10 +3889,22 @@ class AppLocalizationsKo extends AppLocalizations {
   String get requestMore => '더 요청하기';
 
   @override
+  String get requestMore4k => 'Request More in 4K';
+
+  @override
   String get request => '요구';
 
   @override
+  String get request4k => 'Request 4K';
+
+  @override
+  String get requested4k => '4K Requested';
+
+  @override
   String get cancelRequest => '요청 취소';
+
+  @override
+  String get cancelRequest4k => 'Cancel 4K Request';
 
   @override
   String get playInMoonfin => 'Moonfin에 플레이';
@@ -3951,6 +3963,11 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String requestSeriesOrMovie(String type) {
     return '$type 요청';
+  }
+
+  @override
+  String requestSeriesOrMovie4k(String type) {
+    return 'Request 4K $type';
   }
 
   @override

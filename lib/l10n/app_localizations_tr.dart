@@ -2123,7 +2123,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get settings => 'Ayarlar';
 
   @override
-  String get settingsSearchHint => 'Search settings';
+  String get settingsSearchHint => 'Arama ayarları';
 
   @override
   String get authentication => 'Kimlik doğrulama';
@@ -2402,41 +2402,41 @@ class AppLocalizationsTr extends AppLocalizations {
       'Uzun basılana kadar dokunma girişini engelleyen bir kilitleme düğmesi göster';
 
   @override
-  String get osdButtons => 'Player Buttons';
+  String get osdButtons => 'Oynatıcı butonları';
 
   @override
-  String get osdButtonsDescription => 'Choose which buttons the player shows';
+  String get osdButtonsDescription => 'Gösterilecek oynatıcı düğmelerini seç';
 
   @override
   String get osdButtonsSectionDescription =>
-      'Playback controls are always shown. Everything below is up to you, and each kind of device keeps its own list.';
+      'Oynatma kontrolleri her zaman gösterilir. Aşağıdaki her şey size kalmıştır ve her cihaz türü kendi listesini ayrı ayrı tutar.';
 
   @override
-  String get detailButtons => 'Action Buttons';
+  String get detailButtons => 'İşlem Düğmeleri';
 
   @override
   String get detailButtonsDescription =>
-      'Choose which buttons the details screen shows';
+      'Detay ekranında gösterilecek düğmeleri seç';
 
   @override
   String get detailButtonsSectionDescription =>
-      'Play is always first and the locked buttons are always shown. Everything else is up to you, and each kind of device keeps its own list.';
+      'Oynat her zaman ilk sıradadır ve kilitli düğmeler her zaman gösterilir. Geri kalan her şey size kalmıştır ve her cihaz türü kendi listesini ayrı tutar.';
 
   @override
-  String get moveUp => 'Move Up';
+  String get moveUp => 'Yukarı Taşı';
 
   @override
-  String get moveDown => 'Move Down';
+  String get moveDown => 'Aşağı Taşı';
 
   @override
   String get buttonOrderHint =>
-      'Use the arrows to change the order. On a remote, left and right move the highlighted button. Switching one off drops it below the rest.';
+      'Sıralamayı değiştirmek için okları kullanın. Kumandada sol ve sağ tuşları vurgulanan düğmeyi hareket ettirir. Bir düğmeyi kapatmak, onu diğerlerinin altına düşürür.';
 
   @override
-  String get orientationLock => 'Orientation Lock';
+  String get orientationLock => 'Döndürme Kiliti';
 
   @override
-  String get fullscreen => 'Fullscreen';
+  String get fullscreen => 'Tam Ekran';
 
   @override
   String get audioBehavior => 'Ses Davranışı';
@@ -3477,15 +3477,15 @@ class AppLocalizationsTr extends AppLocalizations {
       'Her iki satırı tek bir ana bölümde birleştirin';
 
   @override
-  String get nextUpMaxDays => 'Max days in Next Up';
+  String get nextUpMaxDays => 'Sıradaki Bölümler için maksimum gün';
 
   @override
   String get nextUpMaxDaysDescription =>
-      'How long a show stays in Next Up after you last watched it';
+      'Bir dizinin, son izlemenizden sonra Sıradaki Bölümlerde kalacağı süre';
 
   @override
   String daysValue(int days) {
-    return '$days days';
+    return '$days gün';
   }
 
   @override
@@ -3820,11 +3820,11 @@ class AppLocalizationsTr extends AppLocalizations {
   String get seerrNotifyIssuesSubtitle => 'Yeni sorunlar, yanıtlar ve çözümler';
 
   @override
-  String get seerrNotifyNewMediaTitle => 'New media added';
+  String get seerrNotifyNewMediaTitle => 'Yeni medya eklendi';
 
   @override
   String get seerrNotifyNewMediaSubtitle =>
-      'Anything new added to the server library';
+      'Sunucu kütüphanesine eklenen yeni içerikler';
 
   @override
   String loggedInAs(String username) {
@@ -4014,10 +4014,22 @@ class AppLocalizationsTr extends AppLocalizations {
   String get requestMore => 'Daha Fazla Talep Et';
 
   @override
+  String get requestMore4k => 'Request More in 4K';
+
+  @override
   String get request => 'İste';
 
   @override
+  String get request4k => 'Request 4K';
+
+  @override
+  String get requested4k => '4K Requested';
+
+  @override
   String get cancelRequest => 'İsteği İptal Et';
+
+  @override
+  String get cancelRequest4k => 'Cancel 4K Request';
 
   @override
   String get playInMoonfin => 'Moonfin\'da oynat';
@@ -4076,6 +4088,11 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String requestSeriesOrMovie(String type) {
     return 'İste $type';
+  }
+
+  @override
+  String requestSeriesOrMovie4k(String type) {
+    return 'Request 4K $type';
   }
 
   @override
@@ -10266,37 +10283,37 @@ class AppLocalizationsTr extends AppLocalizations {
   String get watchlistUpdateFailed => 'İzleme listesi güncellenemedi';
 
   @override
-  String get adminSearchParameters => 'Search Parameters';
+  String get adminSearchParameters => 'Arama Parametreleri';
 
   @override
-  String get adminCurrentMetadata => 'Current Metadata';
+  String get adminCurrentMetadata => 'Mevcut Metaveri';
 
   @override
-  String get adminLabelYear => 'Year';
+  String get adminLabelYear => 'Yıl';
 
   @override
   String get adminLabelImdbId => 'IMDb Id';
 
   @override
-  String get adminLabelTmdbMovieId => 'TheMovieDb Movie Id';
+  String get adminLabelTmdbMovieId => 'TheMovieDb Film ID';
 
   @override
-  String get adminLabelTmdbBoxSetId => 'TheMovieDb Box Set Id';
+  String get adminLabelTmdbBoxSetId => 'TheMovieDb Koleksiyon Id';
 
   @override
-  String get adminLabelTvdbBoxSetId => 'TheTVDB Box Set Id';
+  String get adminLabelTvdbBoxSetId => 'TheTVDB Koleksiyon Id';
 
   @override
-  String get adminLabelTvdbId => 'TheTVDB Numerical Id';
+  String get adminLabelTvdbId => 'TheTVDB Sayısal ID';
 
   @override
-  String get adminLabelTvdbSlug => 'TheTVDB Slug Movie Id';
+  String get adminLabelTvdbSlug => 'TheTVDB Slug Film ID';
 
   @override
-  String get adminReplaceImages => 'Replace existing images';
+  String get adminReplaceImages => 'Mevcut görselleri değiştir';
 
   @override
-  String get adminBackToSearch => 'Back to Search Criteria';
+  String get adminBackToSearch => 'Arama Kriterlerine Dön';
 
   @override
   String get grouping => 'Grouping';

@@ -1355,7 +1355,9 @@ class _StatusChip extends StatelessWidget {
     if (request.status == SeerrRequest.statusCompleted) {
       return (l10n.seerrAvailableStatus, AppColorScheme.statusAvailable);
     }
-    return switch (request.media?.status) {
+    final mediaStatus =
+        request.is4k ? request.media?.status4k : request.media?.status;
+    return switch (mediaStatus) {
       2 => (l10n.pendingStatus, AppColorScheme.statusPending),
       3 => (l10n.seerrRequestedStatus, AppColorScheme.statusRequested),
       4 => (l10n.partiallyAvailable, AppColorScheme.statusAvailable),

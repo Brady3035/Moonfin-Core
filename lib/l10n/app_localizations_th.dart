@@ -3965,10 +3965,22 @@ class AppLocalizationsTh extends AppLocalizations {
   String get requestMore => 'ขอเพิ่มเติม';
 
   @override
+  String get requestMore4k => 'Request More in 4K';
+
+  @override
   String get request => 'ขอ';
 
   @override
+  String get request4k => 'Request 4K';
+
+  @override
+  String get requested4k => '4K Requested';
+
+  @override
   String get cancelRequest => 'ยกเลิกคำขอ';
+
+  @override
+  String get cancelRequest4k => 'Cancel 4K Request';
 
   @override
   String get playInMoonfin => 'เล่นใน Moonfin';
@@ -4027,6 +4039,11 @@ class AppLocalizationsTh extends AppLocalizations {
   @override
   String requestSeriesOrMovie(String type) {
     return 'ร้องขอ $type';
+  }
+
+  @override
+  String requestSeriesOrMovie4k(String type) {
+    return 'Request 4K $type';
   }
 
   @override

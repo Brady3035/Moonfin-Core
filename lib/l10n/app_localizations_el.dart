@@ -76,7 +76,7 @@ class AppLocalizationsEl extends AppLocalizations {
   String get addUser => 'Προσθήκη χρήστη';
 
   @override
-  String get selectServer => 'Επιλέξτε Διακομιστής';
+  String get selectServer => 'Επιλογή Διακομιστή';
 
   @override
   String appVersionFooter(String version) {
@@ -111,7 +111,7 @@ class AppLocalizationsEl extends AppLocalizations {
   }
 
   @override
-  String get cancel => 'Ματαίωση';
+  String get cancel => 'Ακύρωση';
 
   @override
   String get remove => 'Αφαίρεση';
@@ -224,7 +224,7 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get settingsAppearanceThemeSubtitle =>
-      'Εναλλαγή μεταξύ Moonfin και Neon Pulse χωρίς επανεκκίνηση της εφαρμογής';
+      'Εφαρμόστε ένα πλήρως προσαρμοσμένο θέμα και επιλέξτε ανάμεσα σε περιβάλλον χρήστη εμπνευσμένο από την Apple ή το Material.';
 
   @override
   String get customThemeTitle => 'Προσαρμοσμένο θέμα';
@@ -245,7 +245,7 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get themeMoonfinSubtitle =>
-      'Η τρέχουσα εμφάνιση Moonfin που όλοι έχετε αγαπήσει';
+      'Η τρέχουσα εμφάνιση Moonfin που όλοι έχετε αγαπήσει.';
 
   @override
   String get themeNeonPulse => 'Neon Pulse';
@@ -476,7 +476,7 @@ class AppLocalizationsEl extends AppLocalizations {
   String get sortBy => 'Ταξινόμηση κατά';
 
   @override
-  String get display => 'Επίδειξη';
+  String get display => 'Προβολή';
 
   @override
   String get imageType => 'Τύπος εικόνας';
@@ -919,7 +919,7 @@ class AppLocalizationsEl extends AppLocalizations {
   String get episodes => 'Επεισόδια';
 
   @override
-  String get nextUp => 'Επόμενο επάνω';
+  String get nextUp => 'Επόμενο';
 
   @override
   String get seasons => 'Κύκλοι';
@@ -998,7 +998,7 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String endsAt(String time) {
-    return 'Λήγει στο $time';
+    return 'Τελειώνει στις $time';
   }
 
   @override
@@ -1065,7 +1065,7 @@ class AppLocalizationsEl extends AppLocalizations {
   String get readOffline => 'Διαβάστε εκτός σύνδεσης';
 
   @override
-  String get playOffline => 'Παίξτε εκτός σύνδεσης';
+  String get playOffline => 'Αναπαραγωγή εκτός σύνδεσης';
 
   @override
   String get audio => 'Ήχος';
@@ -1074,13 +1074,13 @@ class AppLocalizationsEl extends AppLocalizations {
   String get subtitles => 'Υπότιτλοι';
 
   @override
-  String get version => 'Εκδοχή';
+  String get version => 'Έκδοση';
 
   @override
   String get cast => 'Μετάδοση';
 
   @override
-  String get castMembers => 'Cast';
+  String get castMembers => 'Διανομή ρόλων';
 
   @override
   String get trailer => 'Τρέιλερ';
@@ -1092,16 +1092,16 @@ class AppLocalizationsEl extends AppLocalizations {
   String get favorited => 'Αγαπημένο';
 
   @override
-  String get favorite => 'Ευνοούμενος';
+  String get favorite => 'Αγαπημένα';
 
   @override
   String get playlist => 'Λίστα αναπαραγωγής';
 
   @override
-  String get downloaded => 'Λήψη';
+  String get downloaded => 'Λήφθηκε';
 
   @override
-  String get finalizingDownload => 'Finalizing…';
+  String get finalizingDownload => 'Ολοκλήρωση…';
 
   @override
   String get downloadAll => 'Λήψη όλων';
@@ -1119,10 +1119,10 @@ class AppLocalizationsEl extends AppLocalizations {
   String get editMetadata => 'Επεξεργασία Μεταδεδομένων';
 
   @override
-  String get less => 'Μείον';
+  String get less => 'Λιγότερα';
 
   @override
-  String get more => 'Περισσότερο';
+  String get more => 'Περισσότερα';
 
   @override
   String get deleteItem => 'Διαγραφή Αντικειμένου';
@@ -1147,7 +1147,7 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String failedToDeleteItemWithError(String error) {
-    return 'Deletion operation failed with the following error: $error';
+    return 'Η διαδικασία διαγραφής απέτυχε με το ακόλουθο σφάλμα: $error';
   }
 
   @override
@@ -1372,7 +1372,7 @@ class AppLocalizationsEl extends AppLocalizations {
   String get shuffle => 'Τυχαία αναπαραγωγή';
 
   @override
-  String get shuffleAll => 'Shuffle All';
+  String get shuffleAll => 'Τυχαία Αναπαραγωγή';
 
   @override
   String get shuffleAllMusic => 'Τυχαία αναπαραγωγή όλης της μουσικής';
@@ -2150,7 +2150,7 @@ class AppLocalizationsEl extends AppLocalizations {
   String get settings => 'Ρυθμίσεις';
 
   @override
-  String get settingsSearchHint => 'Search settings';
+  String get settingsSearchHint => 'Ρυθμίσεις αναζήτησης';
 
   @override
   String get authentication => 'Πιστοποίηση';
@@ -2277,7 +2277,7 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get seriesThumbnailsDescription =>
-      'Μόνο επεισόδια: χρησιμοποιήστε έργα τέχνης σειράς που ταιριάζει με κάθε τύπο εικόνας σειράς';
+      'Για τις τηλεοπτικές σειρές, χρησιμοποιήστε το κύριο εικαστικό της σειράς αντί για τη μικρογραφία του επεισοδίου.';
 
   @override
   String get homeRowInfoOverlay =>
@@ -2297,7 +2297,7 @@ class AppLocalizationsEl extends AppLocalizations {
   String get inVideo => 'Σε βίντεο';
 
   @override
-  String get seasonalEffects => 'Εποχικές Επιδράσεις';
+  String get seasonalEffects => 'Εποχιακά Εφέ';
 
   @override
   String get seasonalEffectsDescription =>
@@ -2313,7 +2313,7 @@ class AppLocalizationsEl extends AppLocalizations {
   String get confetti => 'Κομφετί';
 
   @override
-  String get fallingLeaves => 'που πέφτουν φύλλα';
+  String get fallingLeaves => 'Πτώση Φύλλων';
 
   @override
   String get themeMusic => 'Θεματική Μουσική';
@@ -2339,7 +2339,7 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get playWhenBrowsingHomeScreen =>
-      'Παίξτε κατά την περιήγηση στην αρχική οθόνη';
+      'Αναπαραγωγή κατά την περιήγηση στην αρχική οθόνη';
 
   @override
   String get loopThemeMusic => 'Επανάληψη μουσικής θέματος';
@@ -2352,7 +2352,7 @@ class AppLocalizationsEl extends AppLocalizations {
   String get detailsBackgroundBlur => 'Λεπτομέρειες Θάμπωμα φόντου';
 
   @override
-  String get detailsBackgroundOpacity => 'Details Background Opacity';
+  String get detailsBackgroundOpacity => 'Διαφάνεια Φόντου Λεπτομερειών';
 
   @override
   String pixelValue(int value) {
@@ -2369,7 +2369,8 @@ class AppLocalizationsEl extends AppLocalizations {
   String get maxResolution => 'Μέγιστη Ανάλυση';
 
   @override
-  String get playerZoomMode => 'Λειτουργία ζουμ παίκτη';
+  String get playerZoomMode =>
+      'Λειτουργία Μεγέθυνσης Προγράμματος Αναπαραγωγής';
 
   @override
   String get settingsScrollWheelAction => 'Ροδέλα ποντικιού';
@@ -2412,7 +2413,7 @@ class AppLocalizationsEl extends AppLocalizations {
   String get scaleOnDevice => 'Κλίμακα στη συσκευή';
 
   @override
-  String get trickPlay => 'Παίξτε κόλπο';
+  String get trickPlay => 'Trick Play';
 
   @override
   String get showPreviewThumbnailsWhenSeeking =>
@@ -2433,41 +2434,42 @@ class AppLocalizationsEl extends AppLocalizations {
       'Εμφάνιση ενός κουμπιού κλειδώματος που εμποδίζει την είσοδο αφής μέχρι να πατηθεί παρατεταμένα';
 
   @override
-  String get osdButtons => 'Player Buttons';
+  String get osdButtons => 'Κουμπιά Αναπαραγωγής';
 
   @override
-  String get osdButtonsDescription => 'Choose which buttons the player shows';
+  String get osdButtonsDescription =>
+      'Επιλέξτε ποια κουμπιά θα εμφανίζει το πρόγραμμα αναπαραγωγής';
 
   @override
   String get osdButtonsSectionDescription =>
-      'Playback controls are always shown. Everything below is up to you, and each kind of device keeps its own list.';
+      'Τα στοιχεία ελέγχου αναπαραγωγής εμφανίζονται πάντα. Όλα τα υπόλοιπα εξαρτώνται από εσάς, και κάθε τύπος συσκευής διατηρεί τη δική του λίστα.';
 
   @override
-  String get detailButtons => 'Action Buttons';
+  String get detailButtons => 'Κουμπιά Λειτουργιών';
 
   @override
   String get detailButtonsDescription =>
-      'Choose which buttons the details screen shows';
+      'Επιλέξτε ποια κουμπιά θα εμφανίζονται στην οθόνη λεπτομερειών';
 
   @override
   String get detailButtonsSectionDescription =>
-      'Play is always first and the locked buttons are always shown. Everything else is up to you, and each kind of device keeps its own list.';
+      'Η αναπαραγωγή είναι πάντα στην πρώτη θέση και τα κλειδωμένα κουμπιά εμφανίζονται πάντα. Όλα τα υπόλοιπα εξαρτώνται από εσάς, και κάθε τύπος συσκευής διατηρεί τη δική της λίστα.';
 
   @override
-  String get moveUp => 'Move Up';
+  String get moveUp => 'Μετακίνηση προς τα πάνω';
 
   @override
-  String get moveDown => 'Move Down';
+  String get moveDown => 'Μετακίνηση προς τα κάτω';
 
   @override
   String get buttonOrderHint =>
-      'Use the arrows to change the order. On a remote, left and right move the highlighted button. Switching one off drops it below the rest.';
+      'Χρησιμοποιήστε τα βέλη για να αλλάξετε τη σειρά. Στο τηλεχειριστήριο, τα βέλη αριστερά και δεξιά μετακινούν το επιλεγμένο κουμπί. Αν απενεργοποιήσετε ένα κουμπί, αυτό μετακινείται κάτω από τα υπόλοιπα.';
 
   @override
-  String get orientationLock => 'Orientation Lock';
+  String get orientationLock => 'Κλείδωμα Προσανατολισμού';
 
   @override
-  String get fullscreen => 'Fullscreen';
+  String get fullscreen => 'Πλήρης Οθόνη';
 
   @override
   String get audioBehavior => 'Συμπεριφορά ήχου';
@@ -3137,7 +3139,7 @@ class AppLocalizationsEl extends AppLocalizations {
   String get defaultLabel => 'Αθέτηση';
 
   @override
-  String get saveToDownloadsFolder => 'Αποθήκευση στο φάκελο \"Λήψεις\".';
+  String get saveToDownloadsFolder => 'Αποθήκευση στο φάκελο Λήψεις';
 
   @override
   String get downloadsVisibleToOtherApps =>
@@ -3176,7 +3178,7 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get transcodingTimeRemainingUnavailable =>
-      'Transcoding: Time Remaining Unavailable';
+      'Κωδικοποίηση: Ο εναπομένων χρόνος δεν είναι διαθέσιμος';
 
   @override
   String get enable => 'Καθιστώ ικανό';
@@ -3261,7 +3263,7 @@ class AppLocalizationsEl extends AppLocalizations {
   String get posterLabel => 'Αφίσα';
 
   @override
-  String get thumbnailLabel => 'Ονυξ του αντίχειρος';
+  String get thumbnailLabel => 'Μικρογραφία';
 
   @override
   String get bannerLabel => 'Σημαία';
@@ -3313,7 +3315,8 @@ class AppLocalizationsEl extends AppLocalizations {
   String get showInNavigation => 'Εμφάνιση στην πλοήγηση';
 
   @override
-  String get showInLatestMedia => 'Εμφάνιση στα πιο πρόσφατα μέσα';
+  String get showInLatestMedia =>
+      'Εμφάνιση στα πρόσφατα προστεθέντα/κυκλοφορηθέντα μέσα';
 
   @override
   String get sourceLibraries => 'Βιβλιοθήκες Πηγών';
@@ -3336,7 +3339,7 @@ class AppLocalizationsEl extends AppLocalizations {
   String get mediaBar => 'Γραμμή πολυμέσων';
 
   @override
-  String get mediaSources => 'Πηγές ΜΜΕ';
+  String get mediaSources => 'Πηγές Πολυμέσων';
 
   @override
   String get behavior => 'Συμπεριφορά';
@@ -3419,11 +3422,11 @@ class AppLocalizationsEl extends AppLocalizations {
       'Ενεργοποίηση ήχου για τα τρέιλερ στη γραμμή πολυμέσων';
 
   @override
-  String get trailerCaptions => 'Trailer Captions';
+  String get trailerCaptions => 'Υπότιτλοι Τρέιλερ';
 
   @override
   String get trailerCaptionsDescription =>
-      'Show captions on YouTube trailers in the media bar';
+      'Εμφάνιση υπότιτλων στα τρέιλερ του YouTube στη γραμμή πολυμέσων';
 
   @override
   String get episodePreview => 'Προεπισκόπηση επεισοδίου';
@@ -3433,21 +3436,21 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get episodePreviewDescription =>
-      'Παίξτε μια ενσωματωμένη προεπισκόπηση 30 δευτερολέπτων σε εστιασμένα, αιωρούμενα ή πατημένα μακροχρόνια φύλλα';
+      'Αναπαραγωγή ενσωματωμένης προεπισκόπησης 30 δευτερολέπτων σε κάρτες στις οποίες έχει γίνει εστίαση, στις οποίες έχει τοποθετηθεί ο δείκτης του ποντικιού ή στις οποίες έχει γίνει παρατεταμένο άγγιγμα';
 
   @override
   String get mediaPreviewDescription =>
-      'Παίξτε μια ενσωματωμένη προεπισκόπηση 30 δευτερολέπτων σε εστιασμένα, αιωρούμενα ή πατημένα μακροχρόνια φύλλα';
+      'Αναπαραγωγή ενσωματωμένης προεπισκόπησης 30 δευτερολέπτων σε κάρτες στις οποίες έχει γίνει εστίαση, στις οποίες έχει τοποθετηθεί ο δείκτης του ποντικιού ή στις οποίες έχει γίνει παρατεταμένο άγγιγμα';
 
   @override
   String get previewAudio => 'Προεπισκόπηση ήχου';
 
   @override
   String get enablePreviewAudio =>
-      'Ενεργοποίηση ήχου για προεπισκοπήσεις τρέιλερ και επεισοδίων';
+      'Ενεργοποίηση ήχου για προεπισκοπήσεις πολυμέσων';
 
   @override
-  String get latestMedia => 'Τελευταία ΜΜΕ';
+  String get latestMedia => 'Πρόσφατα Προστεθέντα Πολυμέσα';
 
   @override
   String get recentlyReleased => 'Πρόσφατα κυκλοφόρησε';
@@ -3501,15 +3504,15 @@ class AppLocalizationsEl extends AppLocalizations {
       'Συνδυάστε και τις δύο σειρές σε ένα ενιαίο αρχικό τμήμα';
 
   @override
-  String get nextUpMaxDays => 'Max days in Next Up';
+  String get nextUpMaxDays => 'Μέγιστος αριθμός ημερών στο Next Up';
 
   @override
   String get nextUpMaxDaysDescription =>
-      'How long a show stays in Next Up after you last watched it';
+      'Πόσο καιρό παραμένει μια εκπομπή στο Next Up μετά την τελευταία φορά που την παρακολουθήσατε';
 
   @override
   String daysValue(int days) {
-    return '$days days';
+    return '$days ημέρες';
   }
 
   @override
@@ -3801,7 +3804,7 @@ class AppLocalizationsEl extends AppLocalizations {
   String get seerrDiscoveryRows => 'Σειρές ανακάλυψης Seerr';
 
   @override
-  String get yourWatchlist => 'Your Watchlist';
+  String get yourWatchlist => 'Η λίστα παρακολούθησής σας';
 
   @override
   String get resetRowsToDefaults => 'Επαναφέρετε τις σειρές στις προεπιλογές';
@@ -3849,11 +3852,11 @@ class AppLocalizationsEl extends AppLocalizations {
       'Νέα ζητήματα, απαντήσεις και επιλύσεις';
 
   @override
-  String get seerrNotifyNewMediaTitle => 'New media added';
+  String get seerrNotifyNewMediaTitle => 'Προστέθηκαν νέα πολυμέσα';
 
   @override
   String get seerrNotifyNewMediaSubtitle =>
-      'Anything new added to the server library';
+      'Οτιδήποτε νέο έχει προστεθεί στη βιβλιοθήκη του διακομιστή';
 
   @override
   String loggedInAs(String username) {
@@ -3878,7 +3881,7 @@ class AppLocalizationsEl extends AppLocalizations {
   String get hidden => 'Κεκρυμμένος';
 
   @override
-  String get aboutTitle => 'Για';
+  String get aboutTitle => 'Σχετικά με';
 
   @override
   String versionValue(String version) {
@@ -3975,7 +3978,8 @@ class AppLocalizationsEl extends AppLocalizations {
       'Στυλ γραμμής πλοήγησης, κουμπιά γραμμής εργαλείων, εμφάνιση';
 
   @override
-  String get reorderToggleHomeRows => 'Αναδιάταξη και εναλλαγή αρχικών σειρών';
+  String get reorderToggleHomeRows =>
+      'Αναδιάταξη και εναλλαγή τόσο των σειρών αρχικής οθόνης της βιβλιοθήκης όσο και των εξωτερικών σειρών';
 
   @override
   String get featuredContentAppearance => 'Επιλεγμένο περιεχόμενο, εμφάνιση';
@@ -4041,13 +4045,25 @@ class AppLocalizationsEl extends AppLocalizations {
   String get requestMore => 'Ζητήστε περισσότερα';
 
   @override
+  String get requestMore4k => 'Request More in 4K';
+
+  @override
   String get request => 'Αίτηση';
+
+  @override
+  String get request4k => 'Request 4K';
+
+  @override
+  String get requested4k => '4K Requested';
 
   @override
   String get cancelRequest => 'Ακύρωση αιτήματος';
 
   @override
-  String get playInMoonfin => 'Παίξτε στο Moonfin';
+  String get cancelRequest4k => 'Cancel 4K Request';
+
+  @override
+  String get playInMoonfin => 'Αναπαραγωγή στο Moonfin';
 
   @override
   String requestedByName(String name) {
@@ -4061,7 +4077,7 @@ class AppLocalizationsEl extends AppLocalizations {
   String get declineAction => 'Πτώση';
 
   @override
-  String get similar => 'Παρόμοιος';
+  String get similar => 'Παρόμοια';
 
   @override
   String get recommendations => 'συστάσεις';
@@ -4104,6 +4120,11 @@ class AppLocalizationsEl extends AppLocalizations {
   @override
   String requestSeriesOrMovie(String type) {
     return 'Αίτημα $type';
+  }
+
+  @override
+  String requestSeriesOrMovie4k(String type) {
+    return 'Request 4K $type';
   }
 
   @override
@@ -4792,7 +4813,7 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String adminRemoveDeviceConfirm(String name) {
-    return 'Κατάργηση της συσκευής «$name»; Ο χρήστης θα χρειαστεί να συνδεθεί ξανά σε αυτήν τη συσκευή.';
+    return 'Κατάργηση της συσκευής \'$name\'; Ο χρήστης θα χρειαστεί να συνδεθεί ξανά σε αυτήν τη συσκευή.';
   }
 
   @override
@@ -6170,7 +6191,7 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get adminMinResumeSubtitle =>
-      'Το περιεχόμενο πρέπει να αναπαράγεται πέρα ​​από αυτό το ποσοστό για εξοικονόμηση προόδου';
+      'Για να αποθηκευτεί η πρόοδος, το περιεχόμενο πρέπει να αναπαραχθεί πέρα από αυτό το ποσοστό';
 
   @override
   String get adminMaxResumePercentage => 'Μέγιστο ποσοστό βιογραφικού';
@@ -7723,7 +7744,7 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get adminResumeMinPctSubtitle =>
-      'Το περιεχόμενο πρέπει να αναπαράγεται πέρα ​​από αυτό το ποσοστό για εξοικονόμηση προόδου';
+      'Για να αποθηκευτεί η πρόοδος, το περιεχόμενο πρέπει να αναπαραχθεί πέρα από αυτό το ποσοστό';
 
   @override
   String get adminResumeMaxPct => 'Μέγιστο ποσοστό βιογραφικού';
@@ -7905,7 +7926,7 @@ class AppLocalizationsEl extends AppLocalizations {
   }
 
   @override
-  String get syncPlayPlayNow => 'Παίξτε τώρα';
+  String get syncPlayPlayNow => 'Αναπαραγωγή τώρα';
 
   @override
   String get syncPlayCreateNewGroup => 'Δημιουργήστε μια νέα ομάδα';
@@ -7945,7 +7966,7 @@ class AppLocalizationsEl extends AppLocalizations {
   String get syncPlayStatePaused => 'Σε παύση';
 
   @override
-  String get syncPlayStatePlaying => 'Παιχνίδι';
+  String get syncPlayStatePlaying => 'Αναπαράγεται';
 
   @override
   String syncPlayUserJoinedGroup(String userName) {
@@ -7995,7 +8016,7 @@ class AppLocalizationsEl extends AppLocalizations {
   String get rememberMyChoice => 'Θυμηθείτε την επιλογή μου';
 
   @override
-  String get playHdr10Fallback => 'Παίξτε εναλλακτικά HDR10';
+  String get playHdr10Fallback => 'Αναπαραγωγή με εναλλακτική επιλογή HDR10';
 
   @override
   String get requestTranscode => 'Ζητήστε διακωδικοποίηση';
@@ -8221,7 +8242,7 @@ class AppLocalizationsEl extends AppLocalizations {
       'Δεν υπάρχουν διαθέσιμες συσκευές απομακρυσμένης αναπαραγωγής.\n\nΣε iOS, οι στόχοι AirPlay ενδέχεται να μην είναι διαθέσιμοι στον προσομοιωτή.';
 
   @override
-  String get trackActionPlayNext => 'Παίξτε Επόμενο';
+  String get trackActionPlayNext => 'Αναπαραγωγή επόμενου';
 
   @override
   String get trackActionAddToQueue => 'Προσθήκη στην ουρά';
@@ -8290,7 +8311,7 @@ class AppLocalizationsEl extends AppLocalizations {
       'Δεν βρέθηκαν είδη για αυτήν τη λειτουργία τυχαίας αναπαραγωγής.';
 
   @override
-  String get posterDisplayTitle => 'Επίδειξη';
+  String get posterDisplayTitle => 'Προβολή';
 
   @override
   String get posterImageType => 'Τύπος εικόνας';
@@ -8299,7 +8320,7 @@ class AppLocalizationsEl extends AppLocalizations {
   String get imageTypePoster => 'Αφίσα';
 
   @override
-  String get imageTypeThumbnail => 'Ονυξ του αντίχειρος';
+  String get imageTypeThumbnail => 'Μικρογραφία';
 
   @override
   String get imageTypeBanner => 'Σημαία';
@@ -8329,10 +8350,10 @@ class AppLocalizationsEl extends AppLocalizations {
   String get lyricsNotAvailable => 'Δεν υπάρχουν διαθέσιμοι στίχοι';
 
   @override
-  String get upNext => 'Επόμενο Επόμενο';
+  String get upNext => 'Επόμενο';
 
   @override
-  String get playNext => 'Παίξτε Επόμενο';
+  String get playNext => 'Αναπαραγωγή επόμενου';
 
   @override
   String get stillWatchingContent =>
@@ -8388,7 +8409,7 @@ class AppLocalizationsEl extends AppLocalizations {
   String get playerTooltipExitFullscreen => 'Έξοδος από πλήρη οθόνη';
 
   @override
-  String get playerTooltipFloatOnTop => 'Επιπλέουν στην κορυφή';
+  String get playerTooltipFloatOnTop => 'Να εμφανίζεται στην επιφάνεια';
 
   @override
   String get playerTooltipExitFloatOnTop =>
@@ -8508,7 +8529,7 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get settingsGeneralStyleSubtitle =>
-      'Προφορές θεμάτων, σκηνικά, δείκτες παρακολούθησης και μουσική θεμάτων';
+      'Θεματικά στοιχεία, φόντα και δείκτες παρακολούθησης';
 
   @override
   String get settingsDetailsScreen => 'Οθόνη λεπτομερειών';
@@ -8588,58 +8609,61 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get useNativeEmulatorSubtitle =>
-      'Play games with native cores instead of the EmulatorJS web player';
+      'Παίξτε παιχνίδια με εγγενείς πυρήνες αντί για το πρόγραμμα αναπαραγωγής ιστού EmulatorJS';
 
   @override
-  String get emulatorCores => 'Emulator Cores';
+  String get emulatorCores => 'Πυρήνες Εξομοιωτή';
 
   @override
-  String get emulatorCoresSubtitle => 'Download systems to play games natively';
+  String get emulatorCoresSubtitle =>
+      'Λήψη συστημάτων για την εκτέλεση παιχνιδιών σε εγγενή μορφή';
 
   @override
   String get emulatorCoresDescription =>
-      'Choose which systems to install. Cores are provided by the libretro project and let games run natively instead of in a browser view.';
+      'Επιλέξτε ποια συστήματα θέλετε να εγκαταστήσετε. Οι πυρήνες παρέχονται από το project libretro και επιτρέπουν την εκτέλεση των παιχνιδιών σε εγγενή περιβάλλον αντί για το περιβάλλον ενός προγράμματος περιήγησης.';
 
   @override
-  String get emulatorCoreDownloading => 'Downloading';
+  String get emulatorCoreDownloading => 'Λήψη';
 
   @override
-  String get emulatorCoreUnavailable => 'Not available for this device';
+  String get emulatorCoreUnavailable =>
+      'Δεν είναι διαθέσιμο για αυτή τη συσκευή';
 
   @override
   String get emulatorCoreDownloadFailed =>
-      'Could not download the core. Check your connection and try again.';
+      'Δεν ήταν δυνατή η λήψη του πυρήνα. Ελέγξτε τη σύνδεσή σας και δοκιμάστε ξανά.';
 
   @override
-  String get downloadedGames => 'Downloaded Games';
+  String get downloadedGames => 'Ληφθέντα Παιχνίδια';
 
   @override
-  String get downloadedGamesSubtitle => 'Free up space used by game files';
+  String get downloadedGamesSubtitle =>
+      'Απελευθερώστε χώρο που καταλαμβάνουν τα αρχεία παιχνιδιών';
 
   @override
   String get downloadedGamesDescription =>
-      'Games are copied to this device before they play. Remove the ones you have finished to free up space. Saves are kept on the server and are not deleted.';
+      'Τα παιχνίδια αντιγράφονται σε αυτή τη συσκευή πριν ξεκινήσει η αναπαραγωγή τους. Διαγράψτε αυτά που έχετε ολοκληρώσει για να ελευθερώσετε χώρο. Τα αποθηκευμένα δεδομένα διατηρούνται στον διακομιστή και δεν διαγράφονται.';
 
   @override
   String get downloadedGamesEmpty =>
-      'No games have been downloaded to this device yet.';
+      'Δεν έχει γίνει λήψη κανένα παιχνιδιού σε αυτή τη συσκευή μέχρι στιγμής.';
 
   @override
   String downloadedGamesTotal(int count, String size) {
-    return '$count games, $size';
+    return '$count παιχνίδια, $size';
   }
 
   @override
-  String get removeAllDownloadedGames => 'Remove All';
+  String get removeAllDownloadedGames => 'Διαγραφή Όλων';
 
   @override
   String removeDownloadedGameConfirm(String title) {
-    return 'Remove $title from this device? It will download again the next time you play it.';
+    return 'Θέλετε να διαγράψετε το $title από αυτή τη συσκευή; Θα γίνει εκ νέου λήψη την επόμενη φορά που θα το αναπαράγετε.';
   }
 
   @override
   String get removeAllDownloadedGamesConfirm =>
-      'Remove all downloaded games from this device? They will download again the next time you play them.';
+      'Θέλετε να διαγράψετε όλα τα παιχνίδια που έχετε κατεβάσει από αυτή τη συσκευή; Θα γίνουν εκ νέου λήψη την επόμενη φορά που θα τα παίξετε.';
 
   @override
   String get settingsHigh => 'Ψηλά';
@@ -8896,7 +8920,7 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get settingsCinemaModeSubtitle =>
-      'Παίξτε trailers/prerolls πριν από ένα κύριο χαρακτηριστικό';
+      'Αναπαραγωγή τρέιλερ/προ-διαφημίσεων πριν από την κύρια προβολή';
 
   @override
   String get settingsNextUpDisplayDescription =>
@@ -9009,7 +9033,7 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String latestLibraryName(String libraryName) {
-    return 'Τελευταία $libraryName';
+    return 'Πρόσφατα προστέθηκε το $libraryName';
   }
 
   @override
@@ -9023,7 +9047,7 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get autoplayNextEpisodeSubtitle =>
-      'Παίξτε αυτόματα το επόμενο επεισόδιο όταν είναι διαθέσιμο.';
+      'Αυτόματη αναπαραγωγή του επόμενου επεισοδίου, όταν είναι διαθέσιμο.';
 
   @override
   String get skipSilenceTitle => 'Παράλειψη σιωπής';
@@ -9060,7 +9084,7 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get mapDolbyVisionP7Subtitle =>
-      'Παίξτε ροές προφίλ Dolby Vision 7 ως HDR10 συμβατό HEVC σε συσκευές που δεν είναι DV.';
+      'Αναπαραγωγή ροών Dolby Vision προφίλ 7 ως HEVC συμβατό με HDR10 σε συσκευές που δεν υποστηρίζουν Dolby Vision.';
 
   @override
   String get subtitlesUseEmbeddedStyles =>
@@ -10201,7 +10225,7 @@ class AppLocalizationsEl extends AppLocalizations {
     String libraryName,
     String failedPath,
   ) {
-    return 'Η βιβλιοθήκη σας «$libraryName» έχει ρυθμιστεί να αποθηκεύει τα εξώφυλλα απευθείας στους φακέλους πολυμέσων (η επιλογή «Αποθήκευση εξωφύλλων στους φακέλους πολυμέσων» είναι ενεργοποιημένη). Ωστόσο, το Jellyfin έλεγξε τα δικαιώματα εγγραφής και δεν έχει άδεια να γράψει αρχεία σε αυτόν τον κατάλογο:\n\n$failedPath';
+    return 'Η βιβλιοθήκη σας «\'$libraryName\'» έχει ρυθμιστεί να αποθηκεύει τα εξώφυλλα απευθείας στους φακέλους πολυμέσων (η επιλογή «Αποθήκευση εξωφύλλων στους φακέλους πολυμέσων» είναι ενεργοποιημένη). Ωστόσο, το Jellyfin έλεγξε τα δικαιώματα εγγραφής και δεν έχει άδεια να γράψει αρχεία σε αυτόν τον κατάλογο:\n\n$failedPath';
   }
 
   @override
@@ -10404,46 +10428,48 @@ class AppLocalizationsEl extends AppLocalizations {
   String get imdbTopEnglishMovies => 'IMDb: Κορυφαίες αγγλόφωνες ταινίες';
 
   @override
-  String get addToWatchlist => 'Add to Watchlist';
+  String get addToWatchlist => 'Προσθήκη στη λίστα παρακολούθησης';
 
   @override
-  String get removeFromWatchlist => 'Remove from Watchlist';
+  String get removeFromWatchlist => 'Κατάργηση από τη λίστα παρακολούθησης';
 
   @override
-  String get watchlistUpdateFailed => 'Couldn\'t update watchlist';
+  String get watchlistUpdateFailed =>
+      'Δεν ήταν δυνατή η ενημέρωση της λίστας παρακολούθησης';
 
   @override
-  String get adminSearchParameters => 'Search Parameters';
+  String get adminSearchParameters => 'Παράμετροι Αναζήτησης';
 
   @override
-  String get adminCurrentMetadata => 'Current Metadata';
+  String get adminCurrentMetadata => 'Τρέχοντα Μεταδεδομένα';
 
   @override
-  String get adminLabelYear => 'Year';
+  String get adminLabelYear => 'Έτος';
 
   @override
-  String get adminLabelImdbId => 'IMDb Id';
+  String get adminLabelImdbId => 'Αναγνωριστικό IMDb';
 
   @override
-  String get adminLabelTmdbMovieId => 'TheMovieDb Movie Id';
+  String get adminLabelTmdbMovieId => 'Αναγνωριστικό Ταινίας TheMovieDb';
 
   @override
-  String get adminLabelTmdbBoxSetId => 'TheMovieDb Box Set Id';
+  String get adminLabelTmdbBoxSetId =>
+      'Αναγνωριστικό Συλλογής Ταινιών TheMovieDb';
 
   @override
-  String get adminLabelTvdbBoxSetId => 'TheTVDB Box Set Id';
+  String get adminLabelTvdbBoxSetId => 'Αναγνωριστικό Συλλογής Ταινιών TheTVDB';
 
   @override
-  String get adminLabelTvdbId => 'TheTVDB Numerical Id';
+  String get adminLabelTvdbId => 'Αριθμητικό Αναγνωριστικό TheTVDB';
 
   @override
-  String get adminLabelTvdbSlug => 'TheTVDB Slug Movie Id';
+  String get adminLabelTvdbSlug => 'TheTVDB Slug Αναγνωριστικό Ταινίας';
 
   @override
-  String get adminReplaceImages => 'Replace existing images';
+  String get adminReplaceImages => 'Αντικατάσταση υπαρχουσών εικόνων';
 
   @override
-  String get adminBackToSearch => 'Back to Search Criteria';
+  String get adminBackToSearch => 'Επιστροφή στα Κριτήρια Αναζήτησης';
 
   @override
   String get grouping => 'Grouping';

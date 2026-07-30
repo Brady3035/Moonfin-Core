@@ -4015,10 +4015,22 @@ class AppLocalizationsKk extends AppLocalizations {
   String get requestMore => 'Қосымша сұрау';
 
   @override
+  String get requestMore4k => 'Request More in 4K';
+
+  @override
   String get request => 'Сұраныс';
 
   @override
+  String get request4k => 'Request 4K';
+
+  @override
+  String get requested4k => '4K Requested';
+
+  @override
   String get cancelRequest => 'Сұраныстан бас тарту';
+
+  @override
+  String get cancelRequest4k => 'Cancel 4K Request';
 
   @override
   String get playInMoonfin => 'Moonfin ойынында ойнаңыз';
@@ -4078,6 +4090,11 @@ class AppLocalizationsKk extends AppLocalizations {
   @override
   String requestSeriesOrMovie(String type) {
     return '$type сұрау';
+  }
+
+  @override
+  String requestSeriesOrMovie4k(String type) {
+    return 'Request 4K $type';
   }
 
   @override

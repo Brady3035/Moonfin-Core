@@ -642,6 +642,15 @@ class SeerrHttpClient {
     return SeerrStatus.fromJson(response.data as Map<String, dynamic>);
   }
 
+  Future<Map<String, dynamic>> getPublicSettings() async {
+    final response = await _dio.get(
+      _apiUrl('settings/public'),
+      options: _authOptions(),
+    );
+    _requireSuccess(response, 'getPublicSettings');
+    return response.data as Map<String, dynamic>;
+  }
+
   Future<bool> testConnection() async {
     try {
       final response = await _dio.get(

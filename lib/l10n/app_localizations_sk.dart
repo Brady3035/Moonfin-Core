@@ -4021,10 +4021,22 @@ class AppLocalizationsSk extends AppLocalizations {
   String get requestMore => 'Vyžiadajte si viac';
 
   @override
+  String get requestMore4k => 'Request More in 4K';
+
+  @override
   String get request => 'Žiadosť';
 
   @override
+  String get request4k => 'Request 4K';
+
+  @override
+  String get requested4k => '4K Requested';
+
+  @override
   String get cancelRequest => 'Zrušiť žiadosť';
+
+  @override
+  String get cancelRequest4k => 'Cancel 4K Request';
 
   @override
   String get playInMoonfin => 'Hrajte v Moonfin';
@@ -4084,6 +4096,11 @@ class AppLocalizationsSk extends AppLocalizations {
   @override
   String requestSeriesOrMovie(String type) {
     return 'Požiadať o $type';
+  }
+
+  @override
+  String requestSeriesOrMovie4k(String type) {
+    return 'Request 4K $type';
   }
 
   @override

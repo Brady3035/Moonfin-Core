@@ -4029,10 +4029,22 @@ class AppLocalizationsHu extends AppLocalizations {
   String get requestMore => 'Továbbiak igénylése';
 
   @override
+  String get requestMore4k => 'Request More in 4K';
+
+  @override
   String get request => 'Igénylés';
 
   @override
+  String get request4k => 'Request 4K';
+
+  @override
+  String get requested4k => '4K Requested';
+
+  @override
   String get cancelRequest => 'Igénylés visszavonása';
+
+  @override
+  String get cancelRequest4k => 'Cancel 4K Request';
 
   @override
   String get playInMoonfin => 'Lejátszás a Moonfinben';
@@ -4092,6 +4104,11 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String requestSeriesOrMovie(String type) {
     return '$type igénylése';
+  }
+
+  @override
+  String requestSeriesOrMovie4k(String type) {
+    return 'Request 4K $type';
   }
 
   @override

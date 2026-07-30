@@ -8,6 +8,87 @@ import '../services/seerr/seerr_api_models.dart';
 import '../services/seerr/seerr_download_progress.dart';
 import '../services/seerr/seerr_error.dart';
 
+/// One quality track (HD or 4K) of a title: its media status, the requests
+/// for that track, and the flags the UI reads. Seerr stores the two
+/// qualities independently, as status vs status4k and SeerrRequest.is4k, so
+/// each track carries its own request slot.
+class SeerrQualityStatus {
+  final bool is4k;
+  final int status;
+  final List<SeerrRequest> requests;
+  final List<SeerrRequest> activeRequests;
+  final SeerrDownloadSummary? download;
+  final bool canManageRequests;
+
+  const SeerrQualityStatus({
+    required this.is4k,
+    required this.status,
+    required this.requests,
+    required this.activeRequests,
+    required this.download,
+    required this.canManageRequests,
+  });
+
+  factory SeerrQualityStatus.of({
+    required bool is4k,
+    required SeerrMediaInfo? mediaInfo,
+    required bool canManageRequests,
+  }) {
+    final status = (is4k ? mediaInfo?.status4k : mediaInfo?.status) ?? 0;
+    final requests = (mediaInfo?.requests ?? const <SeerrRequest>[])
+        .where((r) => r.is4k == is4k)
+        .toList();
+    return SeerrQualityStatus(
+      is4k: is4k,
+      status: status,
+      requests: requests,
+      activeRequests: requests
+          .where((r) =>
+              r.status == SeerrRequest.statusPending ||
+              r.status == SeerrRequest.statusApproved)
+          .toList(),
+      download: SeerrDownloadSummary.forMedia(
+        status: status,
+        items: is4k ? mediaInfo?.downloadStatus4k : mediaInfo?.downloadStatus,
+      ),
+      canManageRequests: canManageRequests,
+    );
+  }
+
+  bool get isFullyAvailable => status == 5;
+  bool get isPartiallyAvailable => status == 4;
+  bool get isAvailable => isFullyAvailable || isPartiallyAvailable;
+  bool get isProcessing => status == 3;
+  bool get isPending => status == 2;
+  bool get isBlacklisted => status == 6;
+  bool get isDeleted => status == 7;
+
+  /// Whether Seerr reports anything at all for this track. A server with no
+  /// 4K backend leaves status4k at unknown (1), so this stays false there.
+  bool get hasAnyState => status > 1 || requests.isNotEmpty;
+
+  bool get hasExistingRequest => activeRequests.isNotEmpty;
+
+  List<SeerrRequest> get cancelableRequests =>
+      canManageRequests ? activeRequests : const [];
+
+  Set<int> get requestedSeasons {
+    final seasons = <int>{};
+    for (final r in requests) {
+      if (r.status == SeerrRequest.statusDeclined ||
+          r.status == SeerrRequest.statusFailed) {
+        continue;
+      }
+      if (r.seasons != null) {
+        for (final s in r.seasons!) {
+          seasons.add(s.seasonNumber);
+        }
+      }
+    }
+    return seasons;
+  }
+}
+
 class SeerrMediaDetailState {
   final bool isLoading;
   final String? error;
@@ -104,32 +185,26 @@ class SeerrMediaDetailState {
     return youtubeTrailer ?? anyTrailer ?? anyYoutube ?? videos.first;
   }
 
-  int get mediaStatus => mediaInfo?.status ?? 0;
-  bool get isFullyAvailable => mediaStatus == 5;
-  bool get isPartiallyAvailable => mediaStatus == 4;
-  bool get isProcessing => mediaStatus == 3;
-  bool get isPending => mediaStatus == 2;
-  bool get isBlacklisted => mediaStatus == 6;
-  bool get isDeleted => mediaStatus == 7;
-
-  SeerrDownloadSummary? get hdDownload => SeerrDownloadSummary.forMedia(
-        status: mediaInfo?.status,
-        items: mediaInfo?.downloadStatus,
-      );
-  SeerrDownloadSummary? get download4k => SeerrDownloadSummary.forMedia(
-        status: mediaInfo?.status4k,
-        items: mediaInfo?.downloadStatus4k,
+  SeerrQualityStatus quality({required bool is4k}) => SeerrQualityStatus.of(
+        is4k: is4k,
+        mediaInfo: mediaInfo,
+        canManageRequests: canManageRequests,
       );
 
-  List<SeerrRequest> get pendingRequests {
-    final requests = mediaInfo?.requests;
-    if (requests == null) return [];
-    return requests
-        .where((r) => r.status == SeerrRequest.statusPending)
-        .toList();
-  }
+  SeerrQualityStatus get hd => quality(is4k: false);
+  SeerrQualityStatus get uhd => quality(is4k: true);
 
-  List<SeerrRequest> get activeRequests {
+  bool get isAvailableAnyQuality => hd.isAvailable || uhd.isAvailable;
+
+  SeerrDownloadSummary? get hdDownload => hd.download;
+  SeerrDownloadSummary? get download4k => uhd.download;
+
+  bool get canManageRequests =>
+      currentUser?.hasPermission(SeerrPermission.manageRequests) ?? false;
+
+  /// Pending or approved requests across both qualities, for the requester
+  /// rows and for checking whether anything is still open on the title.
+  List<SeerrRequest> get allActiveRequests {
     final requests = mediaInfo?.requests;
     if (requests == null) return [];
     return requests
@@ -137,38 +212,6 @@ class SeerrMediaDetailState {
             r.status == SeerrRequest.statusPending ||
             r.status == SeerrRequest.statusApproved)
         .toList();
-  }
-
-  bool get canManageRequests =>
-      currentUser?.hasPermission(SeerrPermission.manageRequests) ?? false;
-
-  List<SeerrRequest> get cancelableRequests =>
-      canManageRequests ? activeRequests : const [];
-
-  bool get hasExistingRequest {
-    final requests = mediaInfo?.requests;
-    if (requests == null || requests.isEmpty) return false;
-    return requests.any((r) =>
-        r.status == SeerrRequest.statusPending ||
-        r.status == SeerrRequest.statusApproved);
-  }
-
-  Set<int> get requestedSeasons {
-    final requests = mediaInfo?.requests;
-    if (requests == null) return {};
-    final seasons = <int>{};
-    for (final r in requests) {
-      if (r.status == SeerrRequest.statusDeclined ||
-          r.status == SeerrRequest.statusFailed) {
-        continue;
-      }
-      if (r.seasons != null) {
-        for (final s in r.seasons!) {
-          seasons.add(s.seasonNumber);
-        }
-      }
-    }
-    return seasons;
   }
 
   SeerrMediaDetailState copyWith({
@@ -213,6 +256,12 @@ class SeerrMediaDetailViewModel extends ChangeNotifier {
 
   SeerrMediaDetailState _state = const SeerrMediaDetailState();
   SeerrMediaDetailState get state => _state;
+
+  // Whether the server has a default 4K Radarr or Sonarr. These start true so
+  // that until the fetch lands, or if it fails, 4K stays gated on permission
+  // alone rather than disappearing.
+  bool _movie4kEnabled = true;
+  bool _series4kEnabled = true;
 
   Timer? _downloadPollTimer;
 
@@ -268,12 +317,26 @@ class SeerrMediaDetailViewModel extends ChangeNotifier {
     );
   }
 
+  /// Seerr only offers 4K requests when the server has a default 4K backend,
+  /// which it reports as movie4kEnabled and series4kEnabled.
+  Future<void> _loadPublicSettings() async {
+    try {
+      final settings = await _repo.getPublicSettings();
+      _movie4kEnabled = settings['movie4kEnabled'] == true;
+      _series4kEnabled = settings['series4kEnabled'] == true;
+      notifyListeners();
+    } catch (_) {
+      // Keep the permissive defaults.
+    }
+  }
+
   Future<void> load(String itemId, String mediaType, {String? title}) async {
     _state = const SeerrMediaDetailState(isLoading: true);
     notifyListeners();
 
     try {
       await _repo.ensureInitialized();
+      unawaited(_loadPublicSettings());
 
       SeerrUser? user;
       try {
@@ -606,7 +669,12 @@ class SeerrMediaDetailViewModel extends ChangeNotifier {
   bool get canRequest4k {
     final user = _state.currentUser;
     if (user == null) return false;
-    return user.canRequest4k;
+    // Seerr checks the permission per media type, and only exposes 4K when a
+    // default 4K backend exists for that type.
+    if (_state.isTv) {
+      return user.canRequest4kTv && _series4kEnabled;
+    }
+    return user.canRequest4kMovies && _movie4kEnabled;
   }
 
   bool get canRequestAdvanced {
@@ -620,7 +688,7 @@ class SeerrMediaDetailViewModel extends ChangeNotifier {
     if (user == null || !user.canCreateIssues) return false;
     // Issues need the seerr media id, so the media has to exist on the server.
     if (_state.mediaInfo?.id == null) return false;
-    return _state.isFullyAvailable || _state.isPartiallyAvailable;
+    return _state.isAvailableAnyQuality;
   }
 
   String? get savedProfileId {

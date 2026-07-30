@@ -4023,10 +4023,22 @@ class AppLocalizationsLt extends AppLocalizations {
   String get requestMore => 'Prašyti daugiau';
 
   @override
+  String get requestMore4k => 'Request More in 4K';
+
+  @override
   String get request => 'Prašymas';
 
   @override
+  String get request4k => 'Request 4K';
+
+  @override
+  String get requested4k => '4K Requested';
+
+  @override
   String get cancelRequest => 'Atšaukti užklausą';
+
+  @override
+  String get cancelRequest4k => 'Cancel 4K Request';
 
   @override
   String get playInMoonfin => 'Žaisk „Moonfin“.';
@@ -4086,6 +4098,11 @@ class AppLocalizationsLt extends AppLocalizations {
   @override
   String requestSeriesOrMovie(String type) {
     return 'Pateikti $type užklausą';
+  }
+
+  @override
+  String requestSeriesOrMovie4k(String type) {
+    return 'Request 4K $type';
   }
 
   @override

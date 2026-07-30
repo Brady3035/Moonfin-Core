@@ -24,6 +24,7 @@ class SeerrRepository {
   bool _isAvailable = false;
   bool _isMoonfinMode = false;
   bool _serverReportsEnabled = false;
+  Map<String, dynamic>? _cachedPublicSettings;
 
   // Blocks further silent Quick Connect attempts after the server says it
   // can't support them. Kept in memory only so an upgrade or restart retries
@@ -158,6 +159,7 @@ class SeerrRepository {
   void _initClient(MoonfinProxyConfig proxyConfig) {
     _httpClient?.close();
     _httpClient = SeerrHttpClient(proxyConfig: proxyConfig);
+    _cachedPublicSettings = null;
   }
 
   Future<T> _withClient<T>(
@@ -761,6 +763,16 @@ class SeerrRepository {
 
   Future<void> deleteIssue(int issueId) =>
       _withClient((c) => c.deleteIssue(issueId));
+
+  /// Cached for the session, since these flags only change when an admin
+  /// reconfigures Radarr or Sonarr.
+  Future<Map<String, dynamic>> getPublicSettings() async {
+    final cached = _cachedPublicSettings;
+    if (cached != null) return cached;
+    final settings = await _withClient((c) => c.getPublicSettings());
+    _cachedPublicSettings = settings;
+    return settings;
+  }
 
   Future<List<SeerrServiceServer>> getRadarrServers() => _withClient(
     (c) async => (await c.getRadarrServers())

@@ -4007,10 +4007,22 @@ class AppLocalizationsUg extends AppLocalizations {
   String get requestMore => 'تېخىمۇ كۆپ تەلەپ';
 
   @override
+  String get requestMore4k => 'Request More in 4K';
+
+  @override
   String get request => 'تەلەپ';
 
   @override
+  String get request4k => 'Request 4K';
+
+  @override
+  String get requested4k => '4K Requested';
+
+  @override
   String get cancelRequest => 'تەلەپنى بىكار قىلىش';
+
+  @override
+  String get cancelRequest4k => 'Cancel 4K Request';
 
   @override
   String get playInMoonfin => 'Moonfin دە ئويناڭ';
@@ -4069,6 +4081,11 @@ class AppLocalizationsUg extends AppLocalizations {
   @override
   String requestSeriesOrMovie(String type) {
     return '$type ئىلتىماس قىلىش';
+  }
+
+  @override
+  String requestSeriesOrMovie4k(String type) {
+    return 'Request 4K $type';
   }
 
   @override

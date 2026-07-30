@@ -4164,6 +4164,50 @@
   "@syncToProfile": {
     "description": "Button to sync to a profile"
   },
+  "resetProfile": "Reset Profile",
+  "@resetProfile": {
+    "description": "Button to reset a profile to defaults"
+  },
+  "resetProfileTitle": "Reset {profile}?",
+  "@resetProfileTitle": {
+    "description": "Title of the dialog confirming a profile reset",
+    "placeholders": {
+      "profile": {
+        "type": "String"
+      }
+    }
+  },
+  "resetProfileDescription": "This deletes the {profile} profile from the server and puts every synced setting on this device back to its default.",
+  "@resetProfileDescription": {
+    "description": "Body of the dialog confirming a device profile reset",
+    "placeholders": {
+      "profile": {
+        "type": "String"
+      }
+    }
+  },
+  "resetGlobalProfileDescription": "This deletes every saved profile from the server and puts every synced setting on this device back to its default.",
+  "@resetGlobalProfileDescription": {
+    "description": "Body of the dialog confirming a global profile reset"
+  },
+  "profileReset": "Reset {profile} profile to defaults.",
+  "@profileReset": {
+    "description": "Message after a profile was reset",
+    "placeholders": {
+      "profile": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToResetProfile": "Failed to reset {profile} profile.",
+  "@failedToResetProfile": {
+    "description": "Message when a profile reset failed",
+    "placeholders": {
+      "profile": {
+        "type": "String"
+      }
+    }
+  },
   "profileSyncHidden": "Profile Sync Hidden",
   "@profileSyncHidden": {
     "description": "Title when profile sync is hidden"

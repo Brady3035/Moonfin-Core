@@ -5470,6 +5470,42 @@ abstract class AppLocalizations {
   /// **'Sync Profile'**
   String get syncToProfile;
 
+  /// Button to reset a profile to defaults
+  ///
+  /// In en, this message translates to:
+  /// **'Reset Profile'**
+  String get resetProfile;
+
+  /// Title of the dialog confirming a profile reset
+  ///
+  /// In en, this message translates to:
+  /// **'Reset {profile}?'**
+  String resetProfileTitle(String profile);
+
+  /// Body of the dialog confirming a device profile reset
+  ///
+  /// In en, this message translates to:
+  /// **'This deletes the {profile} profile from the server and puts every synced setting on this device back to its default.'**
+  String resetProfileDescription(String profile);
+
+  /// Body of the dialog confirming a global profile reset
+  ///
+  /// In en, this message translates to:
+  /// **'This deletes every saved profile from the server and puts every synced setting on this device back to its default.'**
+  String get resetGlobalProfileDescription;
+
+  /// Message after a profile was reset
+  ///
+  /// In en, this message translates to:
+  /// **'Reset {profile} profile to defaults.'**
+  String profileReset(String profile);
+
+  /// Message when a profile reset failed
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to reset {profile} profile.'**
+  String failedToResetProfile(String profile);
+
   /// Title when profile sync is hidden
   ///
   /// In en, this message translates to:

@@ -841,6 +841,103 @@ class PluginSyncService extends ChangeNotifier {
     }
   }
 
+  /// Deletes the stored copy of [profile] on the server and puts every synced
+  /// setting on this device back to its default.
+  ///
+  /// Global takes the whole settings file with it, because the plugin has no
+  /// way to clear the base layer while device profiles still sit on top of it.
+  Future<bool> resetProfileToDefaults(
+    MediaServerClient client, {
+    required String profile,
+  }) async {
+    if (!_pluginAvailable) return false;
+    if (!_prefs.get(UserPreferences.pluginSyncEnabled)) return false;
+    if (!supportedProfiles.contains(profile)) return false;
+
+    final headers = _authHeaders(client);
+    if (headers == null) return false;
+
+    // A push queued by an earlier edit would put the old settings back moments
+    // after the delete, so drop it before anything is removed.
+    _pushDebounceTimer?.cancel();
+
+    try {
+      await _dio.delete(
+        profile == 'global'
+            ? '${client.baseUrl}/Moonfin/Settings'
+            : '${client.baseUrl}/Moonfin/Settings/Profile/$profile',
+        options: Options(headers: headers),
+      );
+    } catch (_) {
+      return false;
+    }
+
+    // Nothing this device sent still stands, so a later push must not be
+    // skipped for matching a snapshot the server no longer holds.
+    if (profile == 'global') {
+      _lastSyncedProfileJson.clear();
+    } else {
+      _lastSyncedProfileJson.remove(_snapshotKey(client, profile));
+    }
+
+    await _restoreLocalDefaults();
+
+    // Admin defaults, plus the global profile when this was a device one, are
+    // what the profile resolves to from here on.
+    await pullSettingsForProfile(client, profile: profile);
+
+    return true;
+  }
+
+  /// Drops the stored value of every setting a profile carries so each one
+  /// reads its built-in default again.
+  ///
+  /// Guarded and batched the way the apply path is, because these writes must
+  /// not read back as a local edit and push themselves straight to the server
+  /// that was just cleared.
+  Future<void> _restoreLocalDefaults() async {
+    _isSyncingFromServer = true;
+    try {
+      await _prefs.batchNotifications(_restoreLocalDefaultsUnbatched);
+    } finally {
+      _isSyncingFromServer = false;
+    }
+  }
+
+  Future<void> _restoreLocalDefaultsUnbatched() async {
+    // removePreference rather than a plain store delete, because reads fall
+    // back to the unscoped key when the scoped one is gone, and a value from
+    // before per-server scoping would resurface instead of the default.
+    for (final field in syncedFields) {
+      // The API keys come from the server rather than from anything the user
+      // typed here, so wiping them would stop ratings loading with nothing the
+      // user could do about it.
+      if (field.receiveOnly) continue;
+      await _prefs.removePreference(field.pref);
+    }
+
+    // The settings the field table can't describe, cleared by hand.
+    for (final pref in <Preference<dynamic>>[
+      UserPreferences.sinceYouWatchedNumRows,
+      UserPreferences.mediaBarMode,
+      UserPreferences.mediaBarEnabled,
+      UserPreferences.mediaBarContentType,
+      UserPreferences.enabledRatings,
+      UserPreferences.homeSectionsJson,
+    ]) {
+      await _prefs.removePreference(pref);
+    }
+
+    await _seerrPrefs.setRowsConfig(SeerrRowConfig.defaults());
+
+    // The nav chrome takes its position from this notifier rather than from
+    // the store, so it would sit in the old spot until the next launch.
+    final navbarPos = _prefs.get(UserPreferences.navbarPosition);
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      NavigationLayout.positionNotifier.value = navbarPos;
+    });
+  }
+
   Future<Map<String, dynamic>?> _ping(MediaServerClient client) async {
     final headers = _authHeaders(client);
     if (headers == null) return null;

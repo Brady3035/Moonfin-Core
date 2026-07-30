@@ -2384,7 +2384,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
     _isNextUpAdvancing = true;
     setState(() => _showNextUp = false);
     try {
-      await _checkStillWatching();
+      if (!await _checkStillWatching()) return;
       await _manager.next();
     } finally {
       _isNextUpAdvancing = false;
@@ -2424,19 +2424,27 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
     });
   }
 
-  Future<void> _checkStillWatching() async {
+  /// Returns false when the viewer chose to stop, so the caller can drop the
+  /// queue advance it was about to make.
+  Future<bool> _checkStillWatching() async {
     final behavior = _prefs.get(UserPreferences.stillWatchingBehavior);
-    if (behavior == StillWatchingBehavior.disabled) return;
-    if (_consecutiveEpisodes < behavior.episodes) return;
+    if (behavior == StillWatchingBehavior.disabled) return true;
+    if (_consecutiveEpisodes < behavior.episodes) return true;
 
     _manager.pause();
     final shouldContinue = await StillWatchingDialog.show(context);
-    if (shouldContinue == true) {
-      _consecutiveEpisodes = 0;
-      _manager.resume();
-    } else {
-      _exitPlayback();
+    if (shouldContinue != true) {
+      unawaited(_exitPlayback());
+      return false;
     }
+
+    _consecutiveEpisodes = 0;
+    // The finished episode is deliberately not resumed. Replaying it lands a
+    // late end of track callback on the manager, and once the advance below
+    // clears suppressAutoNext that callback ends the session and closes the
+    // screen, which looks like continue exiting playback. The advance starts
+    // the next episode on its own.
+    return true;
   }
 
   void _skipCurrentSegment() {

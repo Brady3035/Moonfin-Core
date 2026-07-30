@@ -8,12 +8,14 @@ SeerrRequest _request({
   required int status,
   bool is4k = false,
   List<int> seasons = const [],
+  int? requestedById,
 }) =>
     SeerrRequest(
       id: id,
       status: status,
       type: 'movie',
       is4k: is4k,
+      requestedBy: requestedById == null ? null : SeerrUser(id: requestedById),
       seasons: seasons.isEmpty
           ? null
           : [
@@ -30,11 +32,13 @@ void main() {
         is4k: false,
         mediaInfo: info,
         canManageRequests: false,
+        currentUserId: null,
       );
       final uhd = SeerrQualityStatus.of(
         is4k: true,
         mediaInfo: info,
         canManageRequests: false,
+        currentUserId: null,
       );
 
       expect(hd.isFullyAvailable, isTrue);
@@ -56,11 +60,13 @@ void main() {
         is4k: false,
         mediaInfo: info,
         canManageRequests: true,
+        currentUserId: null,
       );
       final uhd = SeerrQualityStatus.of(
         is4k: true,
         mediaInfo: info,
         canManageRequests: true,
+        currentUserId: null,
       );
 
       expect(hd.activeRequests.map((r) => r.id), [1]);
@@ -87,11 +93,13 @@ void main() {
         is4k: false,
         mediaInfo: info,
         canManageRequests: false,
+        currentUserId: null,
       );
       final uhd = SeerrQualityStatus.of(
         is4k: true,
         mediaInfo: info,
         canManageRequests: false,
+        currentUserId: null,
       );
 
       expect(hd.requestedSeasons, {1, 2});
@@ -111,6 +119,7 @@ void main() {
         is4k: false,
         mediaInfo: info,
         canManageRequests: true,
+        currentUserId: null,
       );
 
       expect(hd.activeRequests, isEmpty);
@@ -119,7 +128,79 @@ void main() {
       expect(hd.requestedSeasons, {3});
     });
 
-    test('cancelableRequests is empty without manage permission', () {
+    test('a user may cancel their own request only while it is pending', () {
+      final info = SeerrMediaInfo(
+        requests: [
+          _request(
+            id: 1,
+            status: SeerrRequest.statusPending,
+            requestedById: 7,
+          ),
+          _request(
+            id: 2,
+            status: SeerrRequest.statusApproved,
+            requestedById: 7,
+          ),
+        ],
+      );
+      final hd = SeerrQualityStatus.of(
+        is4k: false,
+        mediaInfo: info,
+        canManageRequests: false,
+        currentUserId: 7,
+      );
+
+      expect(hd.activeRequests, hasLength(2));
+      expect(hd.cancelableRequests.map((r) => r.id), [1]);
+    });
+
+    test('a user may not cancel someone else\'s pending request', () {
+      final info = SeerrMediaInfo(
+        requests: [
+          _request(
+            id: 1,
+            status: SeerrRequest.statusPending,
+            requestedById: 3,
+          ),
+        ],
+      );
+      final hd = SeerrQualityStatus.of(
+        is4k: false,
+        mediaInfo: info,
+        canManageRequests: false,
+        currentUserId: 7,
+      );
+
+      expect(hd.activeRequests, hasLength(1));
+      expect(hd.cancelableRequests, isEmpty);
+    });
+
+    test('a request manager may cancel pending and approved requests', () {
+      final info = SeerrMediaInfo(
+        requests: [
+          _request(
+            id: 1,
+            status: SeerrRequest.statusPending,
+            requestedById: 3,
+          ),
+          _request(
+            id: 2,
+            status: SeerrRequest.statusApproved,
+            requestedById: 4,
+          ),
+        ],
+      );
+      final hd = SeerrQualityStatus.of(
+        is4k: false,
+        mediaInfo: info,
+        canManageRequests: true,
+        currentUserId: 7,
+      );
+
+      expect(hd.cancelableRequests.map((r) => r.id), [1, 2]);
+    });
+
+    test('an unknown current user gets no cancel outside managing', () {
       final info = SeerrMediaInfo(
         requests: [_request(id: 1, status: SeerrRequest.statusPending)],
       );
@@ -127,9 +208,9 @@ void main() {
         is4k: false,
         mediaInfo: info,
         canManageRequests: false,
+        currentUserId: null,
       );
 
-      expect(hd.activeRequests, hasLength(1));
       expect(hd.cancelableRequests, isEmpty);
     });
 
@@ -138,6 +219,7 @@ void main() {
         is4k: true,
         mediaInfo: null,
         canManageRequests: false,
+        currentUserId: null,
       );
 
       expect(uhd.status, 0);
@@ -158,11 +240,13 @@ void main() {
         is4k: false,
         mediaInfo: info,
         canManageRequests: false,
+        currentUserId: null,
       );
       final uhd = SeerrQualityStatus.of(
         is4k: true,
         mediaInfo: info,
         canManageRequests: false,
+        currentUserId: null,
       );
 
       expect(hd.download, isNull);

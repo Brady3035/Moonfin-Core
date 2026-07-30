@@ -190,11 +190,10 @@ class SeerrUser {
 
   String get bestName => displayName ?? username ?? email ?? 'Unknown';
 
-  bool get isOwner => id == 1;
-
+  /// Mirrors Seerr's own bitmask check. There is deliberately no shortcut for
+  /// user id 1, since Seerr grants the owner nothing beyond their bits.
   bool hasPermission(int permission) {
     final perms = permissions ?? 0;
-    if (isOwner) return true;
     if (perms & SeerrPermission.admin != 0) return true;
     return perms & permission != 0;
   }

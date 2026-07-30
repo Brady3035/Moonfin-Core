@@ -19,6 +19,7 @@ class SeerrQualityStatus {
   final List<SeerrRequest> activeRequests;
   final SeerrDownloadSummary? download;
   final bool canManageRequests;
+  final int? currentUserId;
 
   const SeerrQualityStatus({
     required this.is4k,
@@ -27,12 +28,14 @@ class SeerrQualityStatus {
     required this.activeRequests,
     required this.download,
     required this.canManageRequests,
+    required this.currentUserId,
   });
 
   factory SeerrQualityStatus.of({
     required bool is4k,
     required SeerrMediaInfo? mediaInfo,
     required bool canManageRequests,
+    required int? currentUserId,
   }) {
     final status = (is4k ? mediaInfo?.status4k : mediaInfo?.status) ?? 0;
     final requests = (mediaInfo?.requests ?? const <SeerrRequest>[])
@@ -52,6 +55,7 @@ class SeerrQualityStatus {
         items: is4k ? mediaInfo?.downloadStatus4k : mediaInfo?.downloadStatus,
       ),
       canManageRequests: canManageRequests,
+      currentUserId: currentUserId,
     );
   }
 
@@ -69,8 +73,20 @@ class SeerrQualityStatus {
 
   bool get hasExistingRequest => activeRequests.isNotEmpty;
 
-  List<SeerrRequest> get cancelableRequests =>
-      canManageRequests ? activeRequests : const [];
+  /// Seerr's delete rule: a request manager may remove any open request, and
+  /// everyone else only their own while it is still pending. Offering more
+  /// than that gets a 401 back from the server instead of a cancel.
+  List<SeerrRequest> get cancelableRequests {
+    if (canManageRequests) return activeRequests;
+    final userId = currentUserId;
+    // Without a known user every request would match on a null owner id.
+    if (userId == null) return const [];
+    return activeRequests
+        .where((r) =>
+            r.status == SeerrRequest.statusPending &&
+            r.requestedBy?.id == userId)
+        .toList();
+  }
 
   Set<int> get requestedSeasons {
     final seasons = <int>{};
@@ -189,6 +205,7 @@ class SeerrMediaDetailState {
         is4k: is4k,
         mediaInfo: mediaInfo,
         canManageRequests: canManageRequests,
+        currentUserId: currentUser?.id,
       );
 
   SeerrQualityStatus get hd => quality(is4k: false);

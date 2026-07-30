@@ -530,6 +530,13 @@ class _TopToolbarState extends State<TopToolbar> with RouteAware {
 
   bool _isActive(String route) => widget.activeRoute == route;
 
+  /// Phones keep the avatar on home only, so other routes leave the back
+  /// arrow on its own.
+  bool get _showAvatar =>
+      !PlatformDetection.useMobileUi || _isActive(Destinations.home);
+
+  bool get _showBackArrow => widget.showBackButton && !PlatformDetection.isTV;
+
   @override
   void didUpdateWidget(covariant TopToolbar oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -559,8 +566,11 @@ class _TopToolbarState extends State<TopToolbar> with RouteAware {
         clockBehavior == ClockBehavior.always ||
         clockBehavior == ClockBehavior.inMenus;
     final hasEndSection = !isMobile && showClock;
-    final startReservedWidth =
-        (widget.showBackButton && !PlatformDetection.isTV) ? 96.0 : 44.0;
+    final startReservedWidth = switch ((_showAvatar, _showBackArrow)) {
+      (true, true) => 96.0,
+      (false, false) => 0.0,
+      _ => 44.0,
+    };
     final endReservedWidth = hasEndSection ? 96.0 : 0.0;
     final centerSidePadding =
         math.max(startReservedWidth, endReservedWidth) + 14.0;
@@ -733,9 +743,9 @@ class _TopToolbarState extends State<TopToolbar> with RouteAware {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _buildAvatar(),
-          if (widget.showBackButton && !PlatformDetection.isTV) ...[
-            const SizedBox(width: 8),
+          if (_showAvatar) _buildAvatar(),
+          if (_showBackArrow) ...[
+            if (_showAvatar) const SizedBox(width: 8),
             MouseRegion(
               cursor: SystemMouseCursors.click,
               child: GestureDetector(

@@ -104,6 +104,7 @@ class RowDataSource {
   Future<HomeRow> loadOnNow(String serverId) async {
     final response = await _client.liveTvApi.getRecommendedPrograms(
       limit: _defaultLimit,
+      isAiring: true,
     );
     return _buildRow(
       id: 'liveTvOnNow',

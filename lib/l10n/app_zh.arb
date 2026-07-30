@@ -49,7 +49,7 @@
     "@loginFailed": {
         "description": "Generic login failure message"
     },
-    "quickConnectUnavailable": "QuickConnect 不可用：{detail}",
+    "quickConnectUnavailable": "快速连接不可用：{detail}",
     "@quickConnectUnavailable": {
         "description": "Quick Connect generic error message",
         "placeholders": {
@@ -58,7 +58,7 @@
             }
         }
     },
-    "quickConnectUnavailableWithStatus": "QuickConnect 不可用（{status}）：{detail}",
+    "quickConnectUnavailableWithStatus": "快速连接不可用（{status}）：{detail}",
     "@quickConnectUnavailableWithStatus": {
         "description": "Quick Connect error message with HTTP status info",
         "placeholders": {
@@ -9013,5 +9013,30 @@
     "adminBackToSearch": "返回搜索条件",
     "@adminBackToSearch": {
         "description": "Tooltip on the button that returns from the Identify results list to the search form"
+    },
+    "nextUpMaxDays": "下个播放最大保留天数",
+    "@nextUpMaxDays": {
+        "description": "Setting for how far back the Next Up row reaches"
+    },
+    "nextUpMaxDaysDescription": "上次观看后，该电视剧在下个播放保留时长",
+    "@nextUpMaxDaysDescription": {
+        "description": "Description for the Next Up window setting"
+    },
+    "daysValue": "{days} 天",
+    "@daysValue": {
+        "description": "A number of days",
+        "placeholders": {
+            "days": {
+                "type": "int"
+            }
+        }
+    },
+    "seerrNotifyNewMediaTitle": "新增媒体",
+    "@seerrNotifyNewMediaTitle": {
+        "description": "Title for the toggle that notifies about anything newly added to the server library, not just requested media"
+    },
+    "seerrNotifyNewMediaSubtitle": "服务器媒体库新增内容提醒",
+    "@seerrNotifyNewMediaSubtitle": {
+        "description": "Subtitle for the new media notifications toggle"
     }
 }

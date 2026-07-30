@@ -5500,6 +5500,24 @@ abstract class AppLocalizations {
   /// **'Reset {profile} profile to defaults.'**
   String profileReset(String profile);
 
+  /// Title of the dialog confirming a ratings reset
+  ///
+  /// In en, this message translates to:
+  /// **'Reset ratings?'**
+  String get resetRatingsTitle;
+
+  /// Body of the dialog confirming a ratings reset
+  ///
+  /// In en, this message translates to:
+  /// **'This puts every ratings setting back to its default, including which sources show and the order they appear in.'**
+  String get resetRatingsDescription;
+
+  /// Message after the ratings settings were reset
+  ///
+  /// In en, this message translates to:
+  /// **'Reset ratings to defaults.'**
+  String get ratingsReset;
+
   /// Message when a profile reset failed
   ///
   /// In en, this message translates to:

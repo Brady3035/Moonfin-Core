@@ -4199,6 +4199,18 @@
       }
     }
   },
+  "resetRatingsTitle": "Reset ratings?",
+  "@resetRatingsTitle": {
+    "description": "Title of the dialog confirming a ratings reset"
+  },
+  "resetRatingsDescription": "This puts every ratings setting back to its default, including which sources show and the order they appear in.",
+  "@resetRatingsDescription": {
+    "description": "Body of the dialog confirming a ratings reset"
+  },
+  "ratingsReset": "Reset ratings to defaults.",
+  "@ratingsReset": {
+    "description": "Message after the ratings settings were reset"
+  },
   "failedToResetProfile": "Failed to reset {profile} profile.",
   "@failedToResetProfile": {
     "description": "Message when a profile reset failed",

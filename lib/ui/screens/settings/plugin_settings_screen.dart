@@ -140,12 +140,19 @@ class _PluginSettingsSectionState extends State<PluginSettingsSection> {
               : l10n.resetProfileDescription(label),
         ),
         actions: [
+          // Focused on open, so a remote lands on the harmless action rather
+          // than on the dialog scope, where the first press would go on waking
+          // focus up instead of moving between the two.
           adaptiveDialogAction(
             onPressed: () => Navigator.pop(dialogContext, false),
+            autofocus: true,
+            focusRingColor: AppColorScheme.accent,
             child: Text(l10n.cancel),
           ),
           adaptiveDialogAction(
             onPressed: () => Navigator.pop(dialogContext, true),
+            isDestructive: true,
+            focusRingColor: AppColorScheme.accent,
             child: Text(l10n.reset),
           ),
         ],

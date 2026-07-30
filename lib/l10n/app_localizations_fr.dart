@@ -3076,6 +3076,16 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get resetRatingsTitle => 'Reset ratings?';
+
+  @override
+  String get resetRatingsDescription =>
+      'This puts every ratings setting back to its default, including which sources show and the order they appear in.';
+
+  @override
+  String get ratingsReset => 'Reset ratings to defaults.';
+
+  @override
   String failedToResetProfile(String profile) {
     return 'Failed to reset $profile profile.';
   }

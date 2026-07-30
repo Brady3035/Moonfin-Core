@@ -78,33 +78,43 @@ class PluginSyncService extends ChangeNotifier {
   bool _isSyncingFromServer = false;
   Timer? _pushDebounceTimer;
 
-  PluginSyncService(this._prefs, this._store) : _dio = Dio() {
-    configureServerDio(_dio);
-    _dio.interceptors.add(redirectInterceptor(_dio));
-    _dio.interceptors.add(
-      InterceptorsWrapper(
-        onRequest: (options, handler) {
-          ServerLog.network('→ ${options.method} ${options.uri}');
-          handler.next(options);
-        },
-        onResponse: (response, handler) {
-          ServerLog.network(
-            '← ${response.statusCode} ${response.requestOptions.method} '
-            '${response.requestOptions.uri}',
-          );
-          handler.next(response);
-        },
-        onError: (error, handler) {
-          ServerLog.network(
-            '✗ ${error.requestOptions.method} ${error.requestOptions.uri} '
-            '(${error.response?.statusCode ?? error.type.name})',
-            level: ServerLogLevel.error,
-            error: error.message ?? error.toString(),
-          );
-          handler.next(error);
-        },
-      ),
-    );
+  /// Profile JSON as last pushed to, or applied from, each server and profile.
+  /// A push whose payload matches its entry is skipped, which is what stops an
+  /// applied profile from echoing back up to the server.
+  final Map<String, String> _lastSyncedProfileJson = {};
+
+  PluginSyncService(this._prefs, this._store, {@visibleForTesting Dio? dio})
+    : _dio = dio ?? Dio() {
+    // An injected Dio brings its own adapter, so only the one built here needs
+    // the server interceptors.
+    if (dio == null) {
+      configureServerDio(_dio);
+      _dio.interceptors.add(redirectInterceptor(_dio));
+      _dio.interceptors.add(
+        InterceptorsWrapper(
+          onRequest: (options, handler) {
+            ServerLog.network('→ ${options.method} ${options.uri}');
+            handler.next(options);
+          },
+          onResponse: (response, handler) {
+            ServerLog.network(
+              '← ${response.statusCode} ${response.requestOptions.method} '
+              '${response.requestOptions.uri}',
+            );
+            handler.next(response);
+          },
+          onError: (error, handler) {
+            ServerLog.network(
+              '✗ ${error.requestOptions.method} ${error.requestOptions.uri} '
+              '(${error.response?.statusCode ?? error.type.name})',
+              level: ServerLogLevel.error,
+              error: error.message ?? error.toString(),
+            );
+            handler.next(error);
+          },
+        ),
+      );
+    }
     _prefs.addListener(_onPrefsChanged);
   }
 
@@ -115,6 +125,9 @@ class PluginSyncService extends ChangeNotifier {
     final normalized = client.baseUrl.toLowerCase().trim();
     return normalized.replaceAll(RegExp(r'[^a-z0-9]+'), '_');
   }
+
+  String _snapshotKey(MediaServerClient client, String profile) =>
+      '${_serverSyncKey(client)}/$profile';
 
   Map<String, String>? _authHeaders(MediaServerClient client) {
     final token = client.accessToken;
@@ -159,6 +172,9 @@ class PluginSyncService extends ChangeNotifier {
     if (stopStream) {
       _stopSettingsStream();
     }
+    // A snapshot describes the server state of the session being torn down, so
+    // keeping it could wrongly suppress the next user's first push.
+    _lastSyncedProfileJson.clear();
     _pluginAvailable = false;
     _pluginVersion = null;
     _seerrUrl = null;
@@ -321,7 +337,7 @@ class PluginSyncService extends ChangeNotifier {
 
           final resolved = await _fetchResolvedProfile(client, _profileName);
           if (resolved != null) {
-            await _applyServerSettings(resolved);
+            await _applyServerSettings(client, _profileName, resolved);
           }
 
           await _startSettingsStream(client);
@@ -353,7 +369,7 @@ class PluginSyncService extends ChangeNotifier {
 
       await _prefs.set(UserPreferences.pluginSyncEnabled, true);
 
-      await _applyServerSettings(resolved);
+      await _applyServerSettings(client, _profileName, resolved);
       await _prefs.set(syncInitializedPref, true);
       await _startSettingsStream(client);
     } catch (_) {
@@ -492,7 +508,7 @@ class PluginSyncService extends ChangeNotifier {
       return;
     }
 
-    await _applyServerSettings(resolved);
+    await _applyServerSettings(client, _profileName, resolved);
     notifyListeners();
   }
 
@@ -625,13 +641,24 @@ class PluginSyncService extends ChangeNotifier {
     return seerrRepo.isAvailable;
   }
 
-  Future<void> pushSettings(MediaServerClient client) async {
-    await pushSettingsForProfile(client, profile: selectedCustomizationProfile);
+  Future<void> pushSettings(
+    MediaServerClient client, {
+    bool force = false,
+  }) async {
+    await pushSettingsForProfile(
+      client,
+      profile: selectedCustomizationProfile,
+      force: force,
+    );
   }
 
+  /// [force] skips the identity check, since an explicit push means overwrite
+  /// whatever the server holds. The snapshot only proves what this device sent
+  /// last, not what another device has written since.
   Future<void> pushSettingsForProfile(
     MediaServerClient client, {
     required String profile,
+    bool force = false,
   }) async {
     if (!_pluginAvailable) return;
     if (!_prefs.get(UserPreferences.pluginSyncEnabled)) return;
@@ -643,6 +670,15 @@ class PluginSyncService extends ChangeNotifier {
       final headers = _authHeaders(client);
       if (headers == null) return;
 
+      // Pushing a payload the server already has makes the plugin broadcast a
+      // settingsUpdated event straight back at this device, and the resulting
+      // apply and push echo never converges on its own.
+      final snapshotKey = _snapshotKey(client, profile);
+      final payloadJson = jsonEncode(payloadProfile);
+      if (!force && _lastSyncedProfileJson[snapshotKey] == payloadJson) {
+        return;
+      }
+
       await _dio.post(
         '${client.baseUrl}/Moonfin/Settings/Profile/$profile',
         data: {'profile': payloadProfile, 'clientId': 'moonfin-flutter'},
@@ -650,6 +686,8 @@ class PluginSyncService extends ChangeNotifier {
           headers: {...headers, 'Content-Type': 'application/json'},
         ),
       );
+      // Only after the POST lands, so a failed push retries on the next change.
+      _lastSyncedProfileJson[snapshotKey] = payloadJson;
     } catch (_) {}
   }
 
@@ -795,7 +833,7 @@ class PluginSyncService extends ChangeNotifier {
       if (resolved == null) {
         return false;
       }
-      await _applyServerSettings(resolved);
+      await _applyServerSettings(client, profile, resolved);
 
       return true;
     } catch (_) {
@@ -1066,215 +1104,234 @@ class PluginSyncService extends ChangeNotifier {
     }
   }
 
-  Future<void> _applyServerSettings(Map<String, dynamic> resolved) {
+  Future<void> _applyServerSettings(
+    MediaServerClient client,
+    String profile,
+    Map<String, dynamic> resolved,
+  ) async {
     // Batched so the dozens of pref writes below collapse into one listener
     // notification instead of one per key. Every notification makes the nav
     // chrome reload its libraries from the server.
-    return _prefs.batchNotifications(
-      () => _applyServerSettingsUnbatched(resolved),
-    );
+    //
+    // The guard has to span the whole batch call, because batchNotifications
+    // flushes its one deferred notification in its own finally. A guard
+    // cleared inside the action would already be down when that flush lands,
+    // and the sync listener would read the apply as a local edit.
+    _isSyncingFromServer = true;
+    try {
+      await _prefs.batchNotifications(
+        () => _applyServerSettingsUnbatched(resolved),
+      );
+    } finally {
+      _isSyncingFromServer = false;
+    }
+
+    // Local now matches the server for every synced field, so a later push of
+    // this same payload is the echo of this apply and gets skipped.
+    try {
+      _lastSyncedProfileJson[_snapshotKey(client, profile)] = jsonEncode(
+        _buildProfileFromLocal(),
+      );
+    } catch (_) {}
   }
 
   Future<void> _applyServerSettingsUnbatched(
     Map<String, dynamic> resolved,
   ) async {
-    _isSyncingFromServer = true;
-    try {
-      final serverId = (_store.getString('pref_last_server_id') ?? '').trim();
-      if (serverId.isNotEmpty) {
-        // When the server profile carries no API key, keep the locally stored
-        // one. Both fallbacks must run before the field table is applied,
-        // otherwise _applySyncedField has already wiped the local value.
-        _preserveLocalKeyWhenServerEmpty(resolved, 'tmdbApiKey', UserPreferences.tmdbApiKey);
-        _preserveLocalKeyWhenServerEmpty(resolved, 'mdblistApiKey', UserPreferences.mdblistApiKey);
+    final serverId = (_store.getString('pref_last_server_id') ?? '').trim();
+    if (serverId.isNotEmpty) {
+      // When the server profile carries no API key, keep the locally stored
+      // one. Both fallbacks must run before the field table is applied,
+      // otherwise _applySyncedField has already wiped the local value.
+      _preserveLocalKeyWhenServerEmpty(resolved, 'tmdbApiKey', UserPreferences.tmdbApiKey);
+      _preserveLocalKeyWhenServerEmpty(resolved, 'mdblistApiKey', UserPreferences.mdblistApiKey);
 
-        // Everything describable as a key, preference and codec comes from one table, so
-        // the send and receive directions can't drift apart. The settings that need
-        // real logic follow below.
-        for (final field in syncedFields) {
-          _applySyncedField(resolved, field);
-        }
+      // Everything describable as a key, preference and codec comes from one table, so
+      // the send and receive directions can't drift apart. The settings that need
+      // real logic follow below.
+      for (final field in syncedFields) {
+        _applySyncedField(resolved, field);
       }
+    }
 
-      _applySinceYouWatchedNumRows(resolved);
-      _applyMediaBarMode(resolved);
-      _applyMediaBarContentType(resolved);
-      if (resolved['mdblistRatingSources'] is List) {
-        final sources = (resolved['mdblistRatingSources'] as List)
-            .cast<String>()
-            .map((s) => _serverToClientRatingSource[s] ?? s)
-            .join(',');
-        _store.set(
-          _prefs.getEffectivePreference(UserPreferences.enabledRatings),
-          sources,
+    _applySinceYouWatchedNumRows(resolved);
+    _applyMediaBarMode(resolved);
+    _applyMediaBarContentType(resolved);
+    if (resolved['mdblistRatingSources'] is List) {
+      final sources = (resolved['mdblistRatingSources'] as List)
+          .cast<String>()
+          .map((s) => _serverToClientRatingSource[s] ?? s)
+          .join(',');
+      _store.set(
+        _prefs.getEffectivePreference(UserPreferences.enabledRatings),
+        sources,
+      );
+    }
+
+    // Prefer the full homeSections layout when present which unlike homeRowOrder it
+    // carries dynamic and disabled rows. home_sections_config is per-server
+    // scoped, so the payload is applied as-is.
+    final homeSectionsRaw = resolved['homeSections'];
+    var appliedHomeSections = false;
+
+    if (homeSectionsRaw is List) {
+      final parsed = <HomeSectionConfig>[
+        for (final e in homeSectionsRaw)
+          if (e is Map && HomeSectionConfig.isSupportedJson(Map<String, dynamic>.from(e)))
+            HomeSectionConfig.fromJson(Map<String, dynamic>.from(e)),
+      ];
+      if (parsed.isNotEmpty) {
+        parsed.sort((a, b) => a.order.compareTo(b.order));
+        final sections = <HomeSectionConfig>[];
+        var order = 0;
+        for (final c in parsed) {
+          sections.add(c.copyWith(order: order++));
+          // External list and calendar rows are also gated by their own toggle, so
+          // flip it to match the layout moonbase pushed or the row stays hidden.
+          // Awaited so its notification lands inside the batch rather than
+          // after the sync guard has dropped.
+          final toggle = _rowEnabledPreference(c.type);
+          if (toggle != null) {
+            await _prefs.set(toggle, c.enabled);
+          }
+        }
+        // Custom rows the profile doesn't mention haven't been pushed from here yet, so
+        // keep them instead of letting the incoming layout drop them. Matching is on
+        // pluginSection because an edit changes stableId and would leave a stale copy.
+        final incomingCustom = sections
+            .where((s) => s.isPluginDynamic && s.pluginSource == HomeSectionPluginSource.custom)
+            .map((s) => s.pluginSection)
+            .toSet();
+        final existingCustom = _prefs.homeSectionsConfig.where(
+          (c) =>
+              c.isPluginDynamic &&
+              c.pluginSource == HomeSectionPluginSource.custom &&
+              !incomingCustom.contains(c.pluginSection),
         );
-      }
-
-      // Prefer the full homeSections layout when present which unlike homeRowOrder it
-      // carries dynamic and disabled rows. home_sections_config is per-server
-      // scoped, so the payload is applied as-is.
-      final homeSectionsRaw = resolved['homeSections'];
-      var appliedHomeSections = false;
-
-      if (homeSectionsRaw is List) {
-        final parsed = <HomeSectionConfig>[
-          for (final e in homeSectionsRaw)
-            if (e is Map && HomeSectionConfig.isSupportedJson(Map<String, dynamic>.from(e)))
-              HomeSectionConfig.fromJson(Map<String, dynamic>.from(e)),
-        ];
-        if (parsed.isNotEmpty) {
-          parsed.sort((a, b) => a.order.compareTo(b.order));
-          final sections = <HomeSectionConfig>[];
-          var order = 0;
-          for (final c in parsed) {
-            sections.add(c.copyWith(order: order++));
-            // External list and calendar rows are also gated by their own toggle, so
-            // flip it to match the layout moonbase pushed or the row stays hidden.
-            final toggle = _rowEnabledPreference(c.type);
-            if (toggle != null) {
-              _prefs.set(toggle, c.enabled);
-            }
-          }
-          // Custom rows the profile doesn't mention haven't been pushed from here yet, so
-          // keep them instead of letting the incoming layout drop them. Matching is on
-          // pluginSection because an edit changes stableId and would leave a stale copy.
-          final incomingCustom = sections
-              .where((s) => s.isPluginDynamic && s.pluginSource == HomeSectionPluginSource.custom)
-              .map((s) => s.pluginSection)
-              .toSet();
-          final existingCustom = _prefs.homeSectionsConfig.where(
-            (c) =>
-                c.isPluginDynamic &&
-                c.pluginSource == HomeSectionPluginSource.custom &&
-                !incomingCustom.contains(c.pluginSection),
-          );
-          for (final custom in existingCustom) {
-            sections.add(custom.copyWith(order: order++));
-          }
-          _appendDisabledBuiltinSections(sections, order);
-          await _prefs.setHomeSectionsConfig(sections);
-          await _syncSeerrHomeRowsWithSections(sections);
-          appliedHomeSections = true;
+        for (final custom in existingCustom) {
+          sections.add(custom.copyWith(order: order++));
         }
+        _appendDisabledBuiltinSections(sections, order);
+        await _prefs.setHomeSectionsConfig(sections);
+        await _syncSeerrHomeRowsWithSections(sections);
+        appliedHomeSections = true;
       }
+    }
 
-      if (!appliedHomeSections && resolved['homeRowOrder'] is List) {
-        final serverOrder = (resolved['homeRowOrder'] as List).cast<String>();
-        // Preserve any plugin-discovered dynamic sections so they survive a
-        // server-driven preference sync.
-        final pluginEntries = _prefs.homeSectionsConfig
-            .where((c) => c.isPluginDynamic)
-            .toList(growable: false);
-        if (serverOrder.isEmpty) {
+    if (!appliedHomeSections && resolved['homeRowOrder'] is List) {
+      final serverOrder = (resolved['homeRowOrder'] as List).cast<String>();
+      // Preserve any plugin-discovered dynamic sections so they survive a
+      // server-driven preference sync.
+      final pluginEntries = _prefs.homeSectionsConfig
+          .where((c) => c.isPluginDynamic)
+          .toList(growable: false);
+      if (serverOrder.isEmpty) {
+        await _applyFallbackHomeRows(preserve: pluginEntries);
+      } else {
+        final sections = <HomeSectionConfig>[];
+        var order = 0;
+        for (final name in serverOrder) {
+          final type = prefs.HomeSectionType.fromSerialized(name);
+          if (type == prefs.HomeSectionType.none) continue;
+          sections.add(
+            HomeSectionConfig(type: type, enabled: true, order: order++),
+          );
+        }
+        if (sections.isEmpty) {
           await _applyFallbackHomeRows(preserve: pluginEntries);
         } else {
-          final sections = <HomeSectionConfig>[];
-          var order = 0;
-          for (final name in serverOrder) {
-            final type = prefs.HomeSectionType.fromSerialized(name);
+          final enabledTypes = sections.map((s) => s.type).toSet();
+          for (final type in prefs.HomeSectionType.values) {
             if (type == prefs.HomeSectionType.none) continue;
-            sections.add(
-              HomeSectionConfig(type: type, enabled: true, order: order++),
-            );
-          }
-          if (sections.isEmpty) {
-            await _applyFallbackHomeRows(preserve: pluginEntries);
-          } else {
-            final enabledTypes = sections.map((s) => s.type).toSet();
-            for (final type in prefs.HomeSectionType.values) {
-              if (type == prefs.HomeSectionType.none) continue;
-              if (_isTmdbSectionType(type)) {
-                final localEnabled = _prefs.get(_tmdbPrefForType(type));
-                final idx = sections.indexWhere((s) => s.type == type);
-                if (idx >= 0) {
-                  sections[idx] = sections[idx].copyWith(enabled: localEnabled);
-                } else {
-                  sections.add(
-                    HomeSectionConfig(type: type, enabled: localEnabled, order: order++),
-                  );
-                }
-                continue;
-              }
-              if (type == prefs.HomeSectionType.radarrCalendar) {
-                final localEnabled = _prefs.get(UserPreferences.enableRadarrCalendar);
-                final idx = sections.indexWhere((s) => s.type == type);
-                if (idx >= 0) {
-                  sections[idx] = sections[idx].copyWith(enabled: localEnabled);
-                } else {
-                  sections.add(
-                    HomeSectionConfig(type: type, enabled: localEnabled, order: order++),
-                  );
-                }
-                continue;
-              }
-              if (type == prefs.HomeSectionType.sonarrCalendar) {
-                final localEnabled = _prefs.get(UserPreferences.enableSonarrCalendar);
-                final idx = sections.indexWhere((s) => s.type == type);
-                if (idx >= 0) {
-                  sections[idx] = sections[idx].copyWith(enabled: localEnabled);
-                } else {
-                  sections.add(
-                    HomeSectionConfig(type: type, enabled: localEnabled, order: order++),
-                  );
-                }
-                continue;
-              }
-              if (!enabledTypes.contains(type)) {
+            if (_isTmdbSectionType(type)) {
+              final localEnabled = _prefs.get(_tmdbPrefForType(type));
+              final idx = sections.indexWhere((s) => s.type == type);
+              if (idx >= 0) {
+                sections[idx] = sections[idx].copyWith(enabled: localEnabled);
+              } else {
                 sections.add(
-                  HomeSectionConfig(type: type, enabled: false, order: order++),
+                  HomeSectionConfig(type: type, enabled: localEnabled, order: order++),
                 );
               }
+              continue;
             }
-            for (final entry in pluginEntries) {
-              sections.add(entry.copyWith(order: order++));
+            if (type == prefs.HomeSectionType.radarrCalendar) {
+              final localEnabled = _prefs.get(UserPreferences.enableRadarrCalendar);
+              final idx = sections.indexWhere((s) => s.type == type);
+              if (idx >= 0) {
+                sections[idx] = sections[idx].copyWith(enabled: localEnabled);
+              } else {
+                sections.add(
+                  HomeSectionConfig(type: type, enabled: localEnabled, order: order++),
+                );
+              }
+              continue;
             }
-            await _prefs.setHomeSectionsConfig(sections);
-            await _syncSeerrHomeRowsWithSections(sections);
-          }
-        }
-      }
-
-      if (resolved['seerrRows'] is Map<String, dynamic>) {
-        final rowsData = resolved['seerrRows'] as Map<String, dynamic>;
-        if (rowsData['rowOrder'] is List) {
-          final serverOrder = (rowsData['rowOrder'] as List).cast<String>();
-          if (serverOrder.isNotEmpty) {
-            final configs = <SeerrRowConfig>[];
-            var order = 0;
-            for (final name in serverOrder) {
-              final type = prefs.SeerrRowType.fromSerialized(name);
-              configs.add(
-                SeerrRowConfig(type: type, enabled: true, order: order++),
+            if (type == prefs.HomeSectionType.sonarrCalendar) {
+              final localEnabled = _prefs.get(UserPreferences.enableSonarrCalendar);
+              final idx = sections.indexWhere((s) => s.type == type);
+              if (idx >= 0) {
+                sections[idx] = sections[idx].copyWith(enabled: localEnabled);
+              } else {
+                sections.add(
+                  HomeSectionConfig(type: type, enabled: localEnabled, order: order++),
+                );
+              }
+              continue;
+            }
+            if (!enabledTypes.contains(type)) {
+              sections.add(
+                HomeSectionConfig(type: type, enabled: false, order: order++),
               );
             }
-            final enabledTypes = configs.map((c) => c.type).toSet();
-            for (final type in prefs.SeerrRowType.values) {
-              if (!enabledTypes.contains(type)) {
-                configs.add(
-                  SeerrRowConfig(type: type, enabled: false, order: order++),
-                );
-              }
-            }
-            await _seerrPrefs.setRowsConfig(configs);
           }
+          for (final entry in pluginEntries) {
+            sections.add(entry.copyWith(order: order++));
+          }
+          await _prefs.setHomeSectionsConfig(sections);
+          await _syncSeerrHomeRowsWithSections(sections);
         }
       }
-
-      _prefs.notifyPreferenceChanged();
-
-      final currentNavbarPos = _prefs.get(UserPreferences.navbarPosition);
-      final navbarPos = NavigationLayout.sanitizeNavbarPosition(
-        currentNavbarPos,
-      );
-      if (currentNavbarPos != navbarPos) {
-        await _prefs.set(UserPreferences.navbarPosition, navbarPos);
-      }
-      SchedulerBinding.instance.addPostFrameCallback((_) {
-        NavigationLayout.positionNotifier.value = navbarPos;
-      });
-    } finally {
-      _isSyncingFromServer = false;
     }
+
+    if (resolved['seerrRows'] is Map<String, dynamic>) {
+      final rowsData = resolved['seerrRows'] as Map<String, dynamic>;
+      if (rowsData['rowOrder'] is List) {
+        final serverOrder = (rowsData['rowOrder'] as List).cast<String>();
+        if (serverOrder.isNotEmpty) {
+          final configs = <SeerrRowConfig>[];
+          var order = 0;
+          for (final name in serverOrder) {
+            final type = prefs.SeerrRowType.fromSerialized(name);
+            configs.add(
+              SeerrRowConfig(type: type, enabled: true, order: order++),
+            );
+          }
+          final enabledTypes = configs.map((c) => c.type).toSet();
+          for (final type in prefs.SeerrRowType.values) {
+            if (!enabledTypes.contains(type)) {
+              configs.add(
+                SeerrRowConfig(type: type, enabled: false, order: order++),
+              );
+            }
+          }
+          await _seerrPrefs.setRowsConfig(configs);
+        }
+      }
+    }
+
+    _prefs.notifyPreferenceChanged();
+
+    final currentNavbarPos = _prefs.get(UserPreferences.navbarPosition);
+    final navbarPos = NavigationLayout.sanitizeNavbarPosition(
+      currentNavbarPos,
+    );
+    if (currentNavbarPos != navbarPos) {
+      await _prefs.set(UserPreferences.navbarPosition, navbarPos);
+    }
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      NavigationLayout.positionNotifier.value = navbarPos;
+    });
   }
 
   Future<void> _applyFallbackHomeRows({

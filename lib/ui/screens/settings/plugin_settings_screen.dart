@@ -50,7 +50,7 @@ class _PluginSettingsSectionState extends State<PluginSettingsSection> {
   void _pushSync() {
     if (_syncService.pluginAvailable) {
       final client = GetIt.instance<MediaServerClient>();
-      _syncService.pushSettings(client);
+      _syncService.pushSettings(client, force: true);
     }
   }
 
@@ -102,7 +102,11 @@ class _PluginSettingsSectionState extends State<PluginSettingsSection> {
     setState(() => _profileSyncBusy = true);
     final client = GetIt.instance<MediaServerClient>();
     final profile = _syncService.selectedCustomizationProfile;
-    await _syncService.pushSettingsForProfile(client, profile: profile);
+    await _syncService.pushSettingsForProfile(
+      client,
+      profile: profile,
+      force: true,
+    );
 
     if (!mounted) return;
     setState(() => _profileSyncBusy = false);

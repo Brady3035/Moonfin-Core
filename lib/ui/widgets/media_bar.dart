@@ -97,11 +97,12 @@ class _MediaBarState extends State<MediaBar>
   final _playbackManager = GetIt.instance<PlaybackManager>();
   final _audioArbiter = GetIt.instance<PlaybackArbiter>();
   final _screensaverController = GetIt.instance<ScreensaverController>();
+  // The playback module only registers a Media3 backend on some platforms, so
+  // ask the container instead of repeating its platform list here.
   final Media3PlayerBackend? _media3TrailerBackend =
-      (PlatformDetection.isTizen || PlatformDetection.isAppleTV ||
-              PlatformDetection.isIOS)
-      ? null
-      : GetIt.instance<Media3PlayerBackend>();
+      GetIt.instance.isRegistered<Media3PlayerBackend>()
+      ? GetIt.instance<Media3PlayerBackend>()
+      : null;
   final _sponsorBlockService = SponsorBlockService();
   final _sponsorBlockSession = SponsorBlockSkipSession();
   bool _isHomeRouteActive = true;

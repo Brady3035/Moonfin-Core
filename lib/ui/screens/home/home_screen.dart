@@ -643,11 +643,12 @@ class _ContentRowsState extends State<_ContentRows>
   final _mediaBarFocusNode = FocusNode(debugLabel: 'home_media_bar_focus');
   final _playbackManager = GetIt.instance<PlaybackManager>();
   final _audioArbiter = GetIt.instance<PlaybackArbiter>();
+  // The playback module only registers a Media3 backend on some platforms, so
+  // ask the container instead of repeating its platform list here.
   final Media3PlayerBackend? _media3PreviewBackend =
-      (PlatformDetection.isTizen || PlatformDetection.isAppleTV ||
-              PlatformDetection.isIOS)
-      ? null
-      : GetIt.instance<Media3PlayerBackend>();
+      GetIt.instance.isRegistered<Media3PlayerBackend>()
+      ? GetIt.instance<Media3PlayerBackend>()
+      : null;
   final _themeMusicService = GetIt.instance<ThemeMusicService>();
   // Row keys, scroll controllers, and their last offsets are keyed by row.id
   // so a row keeps its own state even when a refresh reorders or shrinks the

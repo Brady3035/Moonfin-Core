@@ -31,9 +31,9 @@ Moonfin is a cross-platform media client built with Flutter, designed for Jellyf
 |----------|------------------|--------|
 | **Android** | 6.0 (API 23) | Full support |
 | **Android TV / Google TV** | Android 6.0 (API 23) | Full support |
-| **iOS** | 13.0 | Full support |
-| **Apple TV (tvOS)** | 16.0 | Full support |
-| **macOS** | 10.15 (Catalina) | Full support |
+| **iOS** | 16.0 | Full support |
+| **Apple TV (tvOS)** | 17.0 | Full support |
+| **macOS** | 14.0 (Sonoma) | Full support |
 | **Windows** | 10 (x64 and ARM64) | Full support |
 | **Linux** | GTK 3+, CMake 3.13+ | Full support (Wayland only) |
 | **Web** | Modern browsers (installable PWA) | Full support |
@@ -44,7 +44,7 @@ Moonfin is a cross-platform media client built with Flutter, designed for Jellyf
 ## Features
 
 - **One codebase, every screen** spanning phones, tablets, desktop, Android TV, Apple TV, web, and Samsung TV, with navigation tuned for touch, pointer, and remote.
-- **Broad playback support** through libmpv on mobile, desktop, and web, native Media3 on Android TV, and native MPVKit on Apple TV, covering AV1, HEVC, Dolby Vision, HDR10+, and bitstream audio passthrough. See [Playback and Codecs](https://github.com/Moonfin-Client/Moonfin-Core/wiki/Playback-and-Codecs).
+- **Broad playback support** through AetherEngine on iOS, Apple TV, and macOS, native Media3 or libmpv on Android and Android TV, libmpv on Windows and Linux, and the browser's own player on web, covering AV1, HEVC, Dolby Vision, Dolby Atmos, HDR10+, and bitstream audio passthrough. See [Playback and Codecs](https://github.com/Moonfin-Client/Moonfin-Core/wiki/Playback-and-Codecs).
 - **Offline downloads** in original or server-transcoded quality, with automatic folder organization and offline subtitles. See [Downloads](https://github.com/Moonfin-Client/Moonfin-Core/wiki/Downloads).
 - **Ebooks and audiobooks** with EPUB, MOBI, AZW/AZW3, PDF, and comic archive reading, plus M4B audiobooks with chapter navigation.
 - **Retro games** browsed and played in-app from a server game library, with native libretro playback, gamepad support, and synced save states. See [Retro Games](https://github.com/Moonfin-Client/Moonfin-Core/wiki/Retro-Games).

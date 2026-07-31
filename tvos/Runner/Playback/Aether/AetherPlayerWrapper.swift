@@ -520,7 +520,7 @@ final class AetherPlayerWrapper: NSObject, ObservableObject {
     func play(url: URL, startPosition: TimeInterval = 0, audioOnly: Bool = false) async {
         guard let engine = Self.sharedEngine() else {
             emitError(
-                kind: "unsupported_container", recoverable: false,
+                kind: "engine_unavailable", recoverable: false,
                 message: "Playback engine unavailable")
             state = .error
             return

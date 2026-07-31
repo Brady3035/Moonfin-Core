@@ -1,8 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/services.dart';
+import 'package:get_it/get_it.dart';
 import 'package:playback_core/playback_core.dart';
 
+import '../data/services/log_service.dart';
 import '../preference/preference_constants.dart';
 import '../preference/user_preferences.dart';
 import '../util/platform_detection.dart';
@@ -107,6 +109,7 @@ class AetherBackend implements PlayerBackend {
         _completedStream.add(_completed);
       case 'playerError':
       case 'error':
+        _logPlaybackError(map);
         _errorStream.add(map.cast<String, dynamic>());
         _isPlaying = false;
         _isBuffering = false;
@@ -115,6 +118,19 @@ class AetherBackend implements PlayerBackend {
         _bufferingStream.add(false);
         _completedStream.add(false);
     }
+  }
+
+  /// A native failure never reaches the server, so without this the report
+  /// from a user whose playback didn't start shows only browsing.
+  void _logPlaybackError(Map<dynamic, dynamic> map) {
+    if (!GetIt.instance.isRegistered<LogService>()) return;
+    final kind = map['kind'] ?? 'unknown';
+    final recoverable = map['recoverable'];
+    GetIt.instance<LogService>().playback(
+      'Native player error kind=$kind recoverable=$recoverable',
+      level: LogLevel.error,
+      error: map['message'],
+    );
   }
 
   int _toInt(dynamic value) {

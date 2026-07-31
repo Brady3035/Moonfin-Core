@@ -99,7 +99,7 @@ class WebSubtitleOverlay {
         '$_jassubBase/jassub-worker-modern.wasm'.toJS,
       )
       ..setProperty('fonts'.toJS, _fontUrls.jsify()!)
-      ..setProperty('defaultFont'.toJS, 'Noto Sans'.toJS)
+      ..setProperty('fallbackFont'.toJS, 'Noto Sans'.toJS)
       ..setProperty('availableFonts'.toJS, _cjkAvailableFonts());
     try {
       _assRenderer = _Jassub(options);

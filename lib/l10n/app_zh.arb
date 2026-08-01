@@ -9038,5 +9038,65 @@
     "seerrNotifyNewMediaSubtitle": "服务器媒体库新增内容提醒",
     "@seerrNotifyNewMediaSubtitle": {
         "description": "Subtitle for the new media notifications toggle"
+    },
+    "grouping": "分组",
+    "@grouping": {
+        "description": "Section header in the library display dialog for grouping options"
+    },
+    "groupByType": "按类型分组",
+    "@groupByType": {
+        "description": "Checkbox label to group playlists by their media type category"
+    },
+    "playlistTypes": "播放列表类型",
+    "@playlistTypes": {
+        "description": "Section header in the library display dialog for filtering playlist categories"
+    },
+    "playlistTypeVideo": "视频",
+    "@playlistTypeVideo": {
+        "description": "Filter checkbox label for video playlists"
+    },
+    "playlistTypeAudio": "音频（音乐）",
+    "@playlistTypeAudio": {
+        "description": "Filter checkbox label for audio/music playlists"
+    },
+    "playlistTypeAudiobook": "有声书",
+    "@playlistTypeAudiobook": {
+        "description": "Filter checkbox label for audiobook playlists"
+    },
+    "playlistTypeBook": "书",
+    "@playlistTypeBook": {
+        "description": "Filter checkbox label for book playlists"
+    },
+    "playlistTypePhoto": "图片",
+    "@playlistTypePhoto": {
+        "description": "Filter checkbox label for photo playlists"
+    },
+    "playlistTypeMixed": "混合",
+    "@playlistTypeMixed": {
+        "description": "Filter checkbox label for mixed media playlists"
+    },
+    "videoPlaylistsSection": "视频播放列表",
+    "@videoPlaylistsSection": {
+        "description": "Section header above video playlists when Group by Type is enabled"
+    },
+    "audioPlaylistsSection": "音频播放列表",
+    "@audioPlaylistsSection": {
+        "description": "Section header above audio playlists when Group by Type is enabled"
+    },
+    "audiobookPlaylistsSection": "有声书播放列表",
+    "@audiobookPlaylistsSection": {
+        "description": "Section header above audiobook playlists when Group by Type is enabled"
+    },
+    "bookPlaylistsSection": "书籍播放列表",
+    "@bookPlaylistsSection": {
+        "description": "Section header above book playlists when Group by Type is enabled"
+    },
+    "photoPlaylistsSection": "图片播放列表",
+    "@photoPlaylistsSection": {
+        "description": "Section header above photo playlists when Group by Type is enabled"
+    },
+    "mixedPlaylistsSection": "混合播放列表",
+    "@mixedPlaylistsSection": {
+        "description": "Section header above mixed playlists when Group by Type is enabled"
     }
 }

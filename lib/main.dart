@@ -29,13 +29,13 @@ import 'data/services/theme_store_service.dart';
 import 'di/injection.dart';
 import 'playback/appletv_audio_now_playing_feeder.dart';
 import 'playback/appletv_mpv_backend.dart';
-import 'playback/audio_capability_profile.dart';
 import 'playback/audio_capability_probe.dart';
 import 'playback/audio_handler.dart';
 import 'playback/media_browse_service.dart';
 import 'playback/mpris_service.dart';
 import 'playback/playback_lifecycle_handler.dart';
 import 'platform/web_runtime_config.dart';
+import 'preference/preference_constants.dart';
 import 'preference/user_preferences.dart';
 import 'util/fullscreen_helper.dart';
 import 'util/http_overrides_stub.dart'
@@ -323,63 +323,19 @@ Future<void> _detectAndApplyAudioCapabilities(UserPreferences prefs) async {
     final profile = await AudioCapabilityProbe.queryWithRetry();
     AudioCapabilityProbe.apply(profile);
 
-    // Passthrough is no longer seeded into the toggle prefs: the tri-state
-    // resolvers compute it live from the detected capability, which also
-    // auto-adapts to later route changes. Existing installs whose toggles were
-    // auto-seeded by the old one-shot probe are migrated back to "Auto" once.
-    if (profile != null) {
-      await _migrateSeededPassthroughTogglesToAuto(prefs, profile);
+    // Installs migrated into manual mode carry only the toggles they had set
+    // by hand, so fill the rest from the probe and every switch has a real
+    // value.
+    if (profile != null &&
+        prefs.get(UserPreferences.audioPassthroughMode) ==
+            AudioPassthroughMode.manual) {
+      await prefs.seedAbsentPassthroughToggles();
     }
 
     // Re-probe whenever the audio route changes (e.g. the AVR is powered on
     // after launch) so detection self-heals without an app restart.
     AudioCapabilityProbe.listenForRouteChanges();
   } catch (_) {}
-}
-
-/// One-time migration for installs that ran the old startup seeding, which
-/// copied probe results into the 8 passthrough toggle prefs. A stored value
-/// that still matches what the probe would have seeded was almost certainly
-/// auto-seeded (not a deliberate choice), so it is cleared to return the toggle
-/// to tri-state "Auto". A value that differs is treated as a deliberate user
-/// override and preserved.
-Future<void> _migrateSeededPassthroughTogglesToAuto(
-  UserPreferences prefs,
-  AudioCapabilityProfile profile,
-) async {
-  if (prefs.get(UserPreferences.audioPassthroughMigratedToAuto)) return;
-
-  if (prefs.get(UserPreferences.audioPassthroughProbeSeeded)) {
-    final hasReceiverRoute =
-        profile.activeRouteType == AudioRouteType.arc ||
-        profile.activeRouteType == AudioRouteType.earc;
-    final seededValues = {
-      UserPreferences.ac3PassthroughEnabled:
-          hasReceiverRoute && profile.canPassthroughAc3,
-      UserPreferences.eac3PassthroughEnabled:
-          hasReceiverRoute && profile.canPassthroughEac3,
-      UserPreferences.eac3JocPassthroughEnabled:
-          hasReceiverRoute && profile.canPassthroughEac3Joc,
-      UserPreferences.dtsCorePassthroughEnabled:
-          hasReceiverRoute && profile.canPassthroughDts,
-      UserPreferences.dtsHdPassthroughEnabled:
-          hasReceiverRoute && profile.canPassthroughDtsHd,
-      UserPreferences.dtsXPassthroughEnabled:
-          hasReceiverRoute && profile.canPassthroughDtsX,
-      UserPreferences.trueHdPassthroughEnabled:
-          hasReceiverRoute && profile.canPassthroughTrueHd,
-      UserPreferences.trueHdAtmosPassthroughEnabled:
-          hasReceiverRoute && profile.canPassthroughTrueHdJoc,
-    };
-    for (final entry in seededValues.entries) {
-      if (prefs.containsPreference(entry.key) &&
-          prefs.get(entry.key) == entry.value) {
-        await prefs.removePreference(entry.key);
-      }
-    }
-  }
-
-  await prefs.set(UserPreferences.audioPassthroughMigratedToAuto, true);
 }
 
 void _sweepImageCache(UserPreferences prefs, {bool throttle = false}) {

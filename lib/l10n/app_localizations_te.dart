@@ -2568,20 +2568,6 @@ class AppLocalizationsTe extends AppLocalizations {
       'Bitstream DTS ఆడియో AVRకి మాత్రమే; రిసీవర్ మద్దతు మరియు DTS సోర్స్ ట్రాక్ అవసరం';
 
   @override
-  String get enableTrueHdAudio =>
-      'TrueHD ఆడియోను ప్రారంభించండి (అన్ని ప్లాట్‌ఫారమ్‌లలో పని చేయకపోవచ్చు)';
-
-  @override
-  String get settingsAudioOutputMode => 'ఆడియో అవుట్‌పుట్ మోడ్';
-
-  @override
-  String get settingsAudioOutputModeDescription =>
-      'ఆడియో ఎలా డీకోడ్ చేయబడాలో ఎంచుకోండి. AVR పాస్‌త్రూ ముడి Dolby/DTS స్ట్రీమ్‌లను మీ రిసీవర్‌కు పంపుతుంది; ఆటో లేదా డౌన్‌మిక్స్ స్థానికంగా డీకోడ్ చేస్తుంది.';
-
-  @override
-  String get settingsAudioOutputModeAvrPassthrough => 'AVR పాస్‌త్రూ';
-
-  @override
   String get settingsAudioFallbackCodec => 'ఆడియో ప్రత్యామ్నాయ కోడెక్';
 
   @override
@@ -2662,35 +2648,48 @@ class AppLocalizationsTe extends AppLocalizations {
   String get settingsAudioEac3Passthrough => 'EAC3 పాస్‌త్రూ';
 
   @override
-  String get settingsAudioEac3JocPassthrough => 'EAC3 JOC (Atmos) పాస్‌త్రూ';
-
-  @override
   String get settingsAudioDtsCorePassthrough => 'DTS Core పాస్‌త్రూ';
 
   @override
   String get settingsAudioDtsHdPassthrough => 'DTS-HD MA పాస్‌త్రూ';
 
   @override
+  String get settingsAudioPassthroughMode => 'Passthrough';
+
+  @override
+  String get settingsAudioPassthroughModeDescription =>
+      'How compressed surround sound reaches your TV or receiver.';
+
+  @override
+  String get settingsAudioPassthroughModeDisabled =>
+      'Disabled (always decode on this device)';
+
+  @override
+  String get settingsAudioPassthroughModeAuto =>
+      'Auto (match detected device support)';
+
+  @override
+  String get settingsAudioPassthroughModeManual =>
+      'Manual (choose formats below)';
+
+  @override
+  String get settingsDownmixToStereoDescription =>
+      'Mix all decoded audio down to two channels.';
+
+  @override
+  String get settingsAudioEac3IncludesAtmos =>
+      'Bitstream E-AC-3, including Dolby Atmos (JOC).';
+
+  @override
+  String get settingsAudioDtsHdIncludesDtsX =>
+      'Bitstream DTS-HD, including DTS:X.';
+
+  @override
+  String get settingsAudioTrueHdIncludesAtmos =>
+      'Bitstream TrueHD, including Dolby Atmos.';
+
+  @override
   String get settingsAudioTrueHdPassthrough => 'TrueHD పాస్‌త్రూ';
-
-  @override
-  String get settingsAudioTrueHdAtmosPassthrough => 'TrueHD Atmos పాస్‌త్రూ';
-
-  @override
-  String get settingsAudioBitstreamEac3ToExternalDecoder =>
-      'Dolby Digital Plus (EAC3)ను బాహ్య డీకోడర్‌కు బిట్‌స్ట్రీమ్ చేస్తుంది.';
-
-  @override
-  String get settingsAudioBitstreamEac3JocToExternalDecoder =>
-      'EAC3 (JOC) ద్వారా Dolby Atmosను బాహ్య డీకోడర్‌కు బిట్‌స్ట్రీమ్ చేస్తుంది.';
-
-  @override
-  String get settingsAudioBitstreamDtsHdToExternalDecoder =>
-      'DTS-HD MA (DTS core కలిపి)ను బాహ్య డీకోడర్‌కు బిట్‌స్ట్రీమ్ చేస్తుంది.';
-
-  @override
-  String get settingsAudioBitstreamTrueHdAtmosToExternalDecoder =>
-      'Atmos మెటాడేటాతో Dolby TrueHDను బాహ్య డీకోడర్‌కు బిట్‌స్ట్రీమ్ చేస్తుంది.';
 
   @override
   String get settingsDetectedAudioCapabilities =>
@@ -9295,17 +9294,6 @@ class AppLocalizationsTe extends AppLocalizations {
 
   @override
   String get notSupportedOnThisDevice => 'ఈ పరికరంలో మద్దతు లేదు';
-
-  @override
-  String get settingsAudioDtsXPassthrough => 'DTS:X (DTS UHD) పాస్‌త్రూ';
-
-  @override
-  String get settingsAudioBitstreamDtsXToExternalDecoder =>
-      'బాహ్య డీకోడర్‌కు బిట్‌స్ట్రీమ్ DTS:X (DTS UHD).';
-
-  @override
-  String get settingsAudioTrueHdJocPassthrough =>
-      'Atmos (JOC) పాస్‌త్రూతో TrueHD';
 
   @override
   String get mediaPlayerBehavior => 'మీడియా ప్లేయర్ ప్రవర్తన';

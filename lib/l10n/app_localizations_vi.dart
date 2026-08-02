@@ -2558,20 +2558,6 @@ class AppLocalizationsVi extends AppLocalizations {
       'Chỉ âm thanh DTS dòng bit đến AVR; yêu cầu hỗ trợ máy thu và theo dõi nguồn DTS';
 
   @override
-  String get enableTrueHdAudio =>
-      'Bật âm thanh TrueHD (có thể không hoạt động trên tất cả các nền tảng)';
-
-  @override
-  String get settingsAudioOutputMode => 'Chế độ đầu ra âm thanh';
-
-  @override
-  String get settingsAudioOutputModeDescription =>
-      'Chọn cách giải mã âm thanh. AVR Passthrough gửi luồng Dolby/DTS thô đến bộ thu của bạn; Tự động hoặc Trộn xuống sẽ giải mã ngay trên thiết bị.';
-
-  @override
-  String get settingsAudioOutputModeAvrPassthrough => 'Truyền qua AVR';
-
-  @override
   String get settingsAudioFallbackCodec => 'Codec dự phòng âm thanh';
 
   @override
@@ -2652,35 +2638,48 @@ class AppLocalizationsVi extends AppLocalizations {
   String get settingsAudioEac3Passthrough => 'Truyền qua EAC3';
 
   @override
-  String get settingsAudioEac3JocPassthrough => 'Truyền qua EAC3 JOC (Atmos)';
-
-  @override
   String get settingsAudioDtsCorePassthrough => 'Truyền qua lõi DTS';
 
   @override
   String get settingsAudioDtsHdPassthrough => 'Truyền qua DTS-HD MA';
 
   @override
+  String get settingsAudioPassthroughMode => 'Passthrough';
+
+  @override
+  String get settingsAudioPassthroughModeDescription =>
+      'How compressed surround sound reaches your TV or receiver.';
+
+  @override
+  String get settingsAudioPassthroughModeDisabled =>
+      'Disabled (always decode on this device)';
+
+  @override
+  String get settingsAudioPassthroughModeAuto =>
+      'Auto (match detected device support)';
+
+  @override
+  String get settingsAudioPassthroughModeManual =>
+      'Manual (choose formats below)';
+
+  @override
+  String get settingsDownmixToStereoDescription =>
+      'Mix all decoded audio down to two channels.';
+
+  @override
+  String get settingsAudioEac3IncludesAtmos =>
+      'Bitstream E-AC-3, including Dolby Atmos (JOC).';
+
+  @override
+  String get settingsAudioDtsHdIncludesDtsX =>
+      'Bitstream DTS-HD, including DTS:X.';
+
+  @override
+  String get settingsAudioTrueHdIncludesAtmos =>
+      'Bitstream TrueHD, including Dolby Atmos.';
+
+  @override
   String get settingsAudioTrueHdPassthrough => 'Truyền qua TrueHD';
-
-  @override
-  String get settingsAudioTrueHdAtmosPassthrough => 'Truyền thẳng TrueHD Atmos';
-
-  @override
-  String get settingsAudioBitstreamEac3ToExternalDecoder =>
-      'Dòng bit Dolby Digital Plus (EAC3) tới bộ giải mã bên ngoài.';
-
-  @override
-  String get settingsAudioBitstreamEac3JocToExternalDecoder =>
-      'Dòng bit Dolby Atmos qua EAC3 (JOC) tới bộ giải mã bên ngoài.';
-
-  @override
-  String get settingsAudioBitstreamDtsHdToExternalDecoder =>
-      'Dòng bit DTS-HD MA (bao gồm lõi DTS) tới bộ giải mã bên ngoài.';
-
-  @override
-  String get settingsAudioBitstreamTrueHdAtmosToExternalDecoder =>
-      'Dòng bit Dolby TrueHD với siêu dữ liệu Atmos tới bộ giải mã bên ngoài.';
 
   @override
   String get settingsDetectedAudioCapabilities =>
@@ -9221,17 +9220,6 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get notSupportedOnThisDevice => 'Không được hỗ trợ trên thiết bị này';
-
-  @override
-  String get settingsAudioDtsXPassthrough => 'Truyền qua DTS:X (DTS UHD)';
-
-  @override
-  String get settingsAudioBitstreamDtsXToExternalDecoder =>
-      'Dòng bit DTS:X (DTS UHD) tới bộ giải mã bên ngoài.';
-
-  @override
-  String get settingsAudioTrueHdJocPassthrough =>
-      'TrueHD với Truyền qua Atmos (JOC)';
 
   @override
   String get mediaPlayerBehavior => 'Hành vi của trình phát đa phương tiện';

@@ -1110,11 +1110,15 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
     ),
     if (!PlatformDetection.isWeb) ...[
       audio.leaf(
-        'pref_audio_passthrough_preset',
-        'Audio Output',
-        keywords: ['passthrough', 'bitstream', 'receiver', 'preset'],
+        'pref_audio_passthrough_mode',
+        l10n.settingsAudioPassthroughMode,
+        keywords: ['passthrough', 'bitstream', 'receiver', 'output'],
       ),
-      audio.leaf('audio_output_mode', l10n.settingsAudioOutputMode),
+      audio.leaf(
+        'pref_downmix_to_stereo',
+        l10n.downmixToStereo,
+        keywords: ['stereo', 'downmix', '2.0'],
+      ),
       audio.leaf(
         'pref_max_audio_channels',
         l10n.settingsMaxAudioChannels,
@@ -1129,12 +1133,7 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
       audio.leaf(
         'pref_passthrough_eac3',
         l10n.settingsAudioEac3Passthrough,
-        keywords: ['dolby digital plus', 'bitstream'],
-      ),
-      audio.leaf(
-        'pref_passthrough_eac3_joc',
-        l10n.settingsAudioEac3JocPassthrough,
-        keywords: ['atmos', 'bitstream'],
+        keywords: ['dolby digital plus', 'atmos', 'bitstream'],
       ),
       audio.leaf(
         'pref_passthrough_dts_core',
@@ -1144,22 +1143,12 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
       audio.leaf(
         'pref_passthrough_dts_hd',
         l10n.settingsAudioDtsHdPassthrough,
-        keywords: ['dts', 'bitstream'],
-      ),
-      audio.leaf(
-        'pref_passthrough_dts_x',
-        l10n.settingsAudioDtsXPassthrough,
-        keywords: ['dts', 'bitstream'],
+        keywords: ['dts', 'dts:x', 'bitstream'],
       ),
       audio.leaf(
         'pref_passthrough_truehd',
         l10n.settingsAudioTrueHdPassthrough,
-        keywords: ['truehd', 'bitstream'],
-      ),
-      audio.leaf(
-        'pref_passthrough_truehd_atmos',
-        l10n.settingsAudioTrueHdJocPassthrough,
-        keywords: ['atmos', 'truehd', 'bitstream'],
+        keywords: ['truehd', 'atmos', 'bitstream'],
       ),
     ],
 

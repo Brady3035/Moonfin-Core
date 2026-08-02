@@ -2570,20 +2570,6 @@ class AppLocalizationsHu extends AppLocalizations {
       'DTS hang közvetlen átvitele az erősítőnek (bitstream); erősítő-támogatást és DTS hangsávot igényel';
 
   @override
-  String get enableTrueHdAudio =>
-      'Engedélyezd a TrueHD hangot (lehet, hogy nem működik minden platformon)';
-
-  @override
-  String get settingsAudioOutputMode => 'Hangkimeneti mód';
-
-  @override
-  String get settingsAudioOutputModeDescription =>
-      'Válaszd ki a hang dekódolásának módját. Az AVR-átengedés nyers Dolby/DTS adatfolyamokat küld az erősítőnek; az Automatikus vagy a Downmix helyben dekódol.';
-
-  @override
-  String get settingsAudioOutputModeAvrPassthrough => 'AVR-átengedés';
-
-  @override
   String get settingsAudioFallbackCodec => 'Tartalék hangkodek';
 
   @override
@@ -2664,35 +2650,48 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settingsAudioEac3Passthrough => 'EAC3-átengedés';
 
   @override
-  String get settingsAudioEac3JocPassthrough => 'EAC3 JOC (Atmos)-átengedés';
-
-  @override
   String get settingsAudioDtsCorePassthrough => 'DTS Core-átengedés';
 
   @override
   String get settingsAudioDtsHdPassthrough => 'DTS-HD MA-átengedés';
 
   @override
+  String get settingsAudioPassthroughMode => 'Passthrough';
+
+  @override
+  String get settingsAudioPassthroughModeDescription =>
+      'How compressed surround sound reaches your TV or receiver.';
+
+  @override
+  String get settingsAudioPassthroughModeDisabled =>
+      'Disabled (always decode on this device)';
+
+  @override
+  String get settingsAudioPassthroughModeAuto =>
+      'Auto (match detected device support)';
+
+  @override
+  String get settingsAudioPassthroughModeManual =>
+      'Manual (choose formats below)';
+
+  @override
+  String get settingsDownmixToStereoDescription =>
+      'Mix all decoded audio down to two channels.';
+
+  @override
+  String get settingsAudioEac3IncludesAtmos =>
+      'Bitstream E-AC-3, including Dolby Atmos (JOC).';
+
+  @override
+  String get settingsAudioDtsHdIncludesDtsX =>
+      'Bitstream DTS-HD, including DTS:X.';
+
+  @override
+  String get settingsAudioTrueHdIncludesAtmos =>
+      'Bitstream TrueHD, including Dolby Atmos.';
+
+  @override
   String get settingsAudioTrueHdPassthrough => 'TrueHD-átengedés';
-
-  @override
-  String get settingsAudioTrueHdAtmosPassthrough => 'TrueHD Atmos-átengedés';
-
-  @override
-  String get settingsAudioBitstreamEac3ToExternalDecoder =>
-      'Dolby Digital Plus (EAC3) bitfolyam küldése külső dekóderre.';
-
-  @override
-  String get settingsAudioBitstreamEac3JocToExternalDecoder =>
-      'Dolby Atmos EAC3 (JOC) feletti bitfolyam küldése külső dekóderre.';
-
-  @override
-  String get settingsAudioBitstreamDtsHdToExternalDecoder =>
-      'DTS-HD MA (DTS maggal) bitfolyam küldése külső dekóderre.';
-
-  @override
-  String get settingsAudioBitstreamTrueHdAtmosToExternalDecoder =>
-      'Dolby TrueHD bitfolyam küldése Atmos metaadatokkal külső dekóderre.';
 
   @override
   String get settingsDetectedAudioCapabilities => 'Észlelt hangképességek';
@@ -9314,17 +9313,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get notSupportedOnThisDevice => 'Nem támogatott ezen az eszközön';
-
-  @override
-  String get settingsAudioDtsXPassthrough => 'DTS:X (DTS UHD) átengedés';
-
-  @override
-  String get settingsAudioBitstreamDtsXToExternalDecoder =>
-      'DTS:X (DTS UHD) bitfolyam külső dekóderre.';
-
-  @override
-  String get settingsAudioTrueHdJocPassthrough =>
-      'TrueHD Atmos (JOC) átengedés';
 
   @override
   String get mediaPlayerBehavior => 'Médialejátszó viselkedése';

@@ -2483,19 +2483,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enableDtsPassthrough => '仅将 DTS 音频以比特流直通到 AVR；需要接收器支持和 DTS 源轨道';
 
   @override
-  String get enableTrueHdAudio => '启用 TrueHD 音频（可能不适用于所有平台）';
-
-  @override
-  String get settingsAudioOutputMode => '音频输出模式';
-
-  @override
-  String get settingsAudioOutputModeDescription =>
-      '选择音频解码方式。AVR 直通会将原始 Dolby/DTS 音频流发送到接收器；自动或降混会在本地解码。';
-
-  @override
-  String get settingsAudioOutputModeAvrPassthrough => 'AVR 直通';
-
-  @override
   String get settingsAudioFallbackCodec => '音频备用编解码器';
 
   @override
@@ -2574,35 +2561,48 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsAudioEac3Passthrough => 'EAC3 直通';
 
   @override
-  String get settingsAudioEac3JocPassthrough => 'EAC3 JOC (Atmos) 直通';
-
-  @override
   String get settingsAudioDtsCorePassthrough => 'DTS 核心直通';
 
   @override
   String get settingsAudioDtsHdPassthrough => 'DTS-HD MA 直通';
 
   @override
+  String get settingsAudioPassthroughMode => 'Passthrough';
+
+  @override
+  String get settingsAudioPassthroughModeDescription =>
+      'How compressed surround sound reaches your TV or receiver.';
+
+  @override
+  String get settingsAudioPassthroughModeDisabled =>
+      'Disabled (always decode on this device)';
+
+  @override
+  String get settingsAudioPassthroughModeAuto =>
+      'Auto (match detected device support)';
+
+  @override
+  String get settingsAudioPassthroughModeManual =>
+      'Manual (choose formats below)';
+
+  @override
+  String get settingsDownmixToStereoDescription =>
+      'Mix all decoded audio down to two channels.';
+
+  @override
+  String get settingsAudioEac3IncludesAtmos =>
+      'Bitstream E-AC-3, including Dolby Atmos (JOC).';
+
+  @override
+  String get settingsAudioDtsHdIncludesDtsX =>
+      'Bitstream DTS-HD, including DTS:X.';
+
+  @override
+  String get settingsAudioTrueHdIncludesAtmos =>
+      'Bitstream TrueHD, including Dolby Atmos.';
+
+  @override
   String get settingsAudioTrueHdPassthrough => 'TrueHD 直通';
-
-  @override
-  String get settingsAudioTrueHdAtmosPassthrough => 'TrueHD Atmos 直通';
-
-  @override
-  String get settingsAudioBitstreamEac3ToExternalDecoder =>
-      '将 Dolby Digital Plus (EAC3) 以比特流发送到外部解码器。';
-
-  @override
-  String get settingsAudioBitstreamEac3JocToExternalDecoder =>
-      '将基于 EAC3 (JOC) 的 Dolby Atmos 以比特流发送到外部解码器。';
-
-  @override
-  String get settingsAudioBitstreamDtsHdToExternalDecoder =>
-      '将 DTS-HD MA（包含 DTS 核心）以比特流发送到外部解码器。';
-
-  @override
-  String get settingsAudioBitstreamTrueHdAtmosToExternalDecoder =>
-      '将带 Atmos 元数据的 Dolby TrueHD 以比特流发送到外部解码器。';
 
   @override
   String get settingsDetectedAudioCapabilities => '检测到的音频功能';
@@ -8852,16 +8852,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get notSupportedOnThisDevice => '此设备不支持';
 
   @override
-  String get settingsAudioDtsXPassthrough => 'DTS:X (DTS UHD) 直通';
-
-  @override
-  String get settingsAudioBitstreamDtsXToExternalDecoder =>
-      '将 DTS:X (DTS UHD) 以比特流发送到外部解码器。';
-
-  @override
-  String get settingsAudioTrueHdJocPassthrough => '带 Atmos (JOC) 的 TrueHD 直通';
-
-  @override
   String get mediaPlayerBehavior => '媒体播放器行为';
 
   @override
@@ -9882,49 +9872,49 @@ class AppLocalizationsZh extends AppLocalizations {
   String get adminBackToSearch => '返回搜索条件';
 
   @override
-  String get grouping => 'Grouping';
+  String get grouping => '分组';
 
   @override
-  String get groupByType => 'Group by Type';
+  String get groupByType => '按类型分组';
 
   @override
-  String get playlistTypes => 'Playlist Types';
+  String get playlistTypes => '播放列表类型';
 
   @override
-  String get playlistTypeVideo => 'Video';
+  String get playlistTypeVideo => '视频';
 
   @override
-  String get playlistTypeAudio => 'Audio (Music)';
+  String get playlistTypeAudio => '音频（音乐）';
 
   @override
-  String get playlistTypeAudiobook => 'Audiobook';
+  String get playlistTypeAudiobook => '有声书';
 
   @override
-  String get playlistTypeBook => 'Book';
+  String get playlistTypeBook => '书';
 
   @override
-  String get playlistTypePhoto => 'Photo';
+  String get playlistTypePhoto => '图片';
 
   @override
-  String get playlistTypeMixed => 'Mixed';
+  String get playlistTypeMixed => '混合';
 
   @override
-  String get videoPlaylistsSection => 'Video Playlists';
+  String get videoPlaylistsSection => '视频播放列表';
 
   @override
-  String get audioPlaylistsSection => 'Audio Playlists';
+  String get audioPlaylistsSection => '音频播放列表';
 
   @override
-  String get audiobookPlaylistsSection => 'Audiobook Playlists';
+  String get audiobookPlaylistsSection => '有声书播放列表';
 
   @override
-  String get bookPlaylistsSection => 'Book Playlists';
+  String get bookPlaylistsSection => '书籍播放列表';
 
   @override
-  String get photoPlaylistsSection => 'Photo Playlists';
+  String get photoPlaylistsSection => '图片播放列表';
 
   @override
-  String get mixedPlaylistsSection => 'Mixed Playlists';
+  String get mixedPlaylistsSection => '混合播放列表';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -12352,19 +12342,6 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get enableDtsPassthrough => '僅限 AVR 的比特流 DTS 音訊；需要接收器支援和 DTS 源軌道';
 
   @override
-  String get enableTrueHdAudio => '啟用 TrueHD 音訊（可能不適用於所有平台）';
-
-  @override
-  String get settingsAudioOutputMode => '音訊輸出模式';
-
-  @override
-  String get settingsAudioOutputModeDescription =>
-      '選擇音訊的解碼方式。「AVR 直通」會將原始的 Dolby/DTS 串流傳送至您的擴大機；「自動」或「縮混」則會在本機解碼。';
-
-  @override
-  String get settingsAudioOutputModeAvrPassthrough => 'AVR 直通';
-
-  @override
   String get settingsAudioFallbackCodec => '備用音訊編解碼器';
 
   @override
@@ -12443,9 +12420,6 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get settingsAudioEac3Passthrough => 'EAC3 直通';
 
   @override
-  String get settingsAudioEac3JocPassthrough => 'EAC3 JOC（Atmos）直通';
-
-  @override
   String get settingsAudioDtsCorePassthrough => 'DTS Core 直通';
 
   @override
@@ -12453,25 +12427,6 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get settingsAudioTrueHdPassthrough => 'TrueHD 直通';
-
-  @override
-  String get settingsAudioTrueHdAtmosPassthrough => 'TrueHD Atmos 直通';
-
-  @override
-  String get settingsAudioBitstreamEac3ToExternalDecoder =>
-      '將 Dolby Digital Plus（EAC3）位元流傳送至外部解碼器。';
-
-  @override
-  String get settingsAudioBitstreamEac3JocToExternalDecoder =>
-      '將以 EAC3（JOC）承載的 Dolby Atmos 位元流傳送至外部解碼器。';
-
-  @override
-  String get settingsAudioBitstreamDtsHdToExternalDecoder =>
-      '將 DTS-HD MA（含 DTS core）位元流傳送至外部解碼器。';
-
-  @override
-  String get settingsAudioBitstreamTrueHdAtmosToExternalDecoder =>
-      '將含 Atmos 中繼資料的 Dolby TrueHD 位元流傳送至外部解碼器。';
 
   @override
   String get settingsDetectedAudioCapabilities => '偵測到的音訊能力';
@@ -18578,16 +18533,6 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get notSupportedOnThisDevice => '此裝置不支援';
-
-  @override
-  String get settingsAudioDtsXPassthrough => 'DTS:X（DTS UHD）直通';
-
-  @override
-  String get settingsAudioBitstreamDtsXToExternalDecoder =>
-      '將 DTS:X（DTS UHD）位元流傳送至外部解碼器。';
-
-  @override
-  String get settingsAudioTrueHdJocPassthrough => '含 Atmos（JOC）的 TrueHD 直通';
 
   @override
   String get mediaPlayerBehavior => '媒體播放器行為';

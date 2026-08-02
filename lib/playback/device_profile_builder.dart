@@ -100,34 +100,27 @@ class DeviceProfileBuilder {
   static Map<String, dynamic> build({
     int? maxBitrateMbps,
     AudioCapabilityProfile? audioCapabilityProfile,
-    AudioOutputMode audioOutputMode = AudioOutputMode.auto,
     AudioFallbackCodec audioFallbackCodec = AudioFallbackCodec.auto,
     bool ac3PassthroughEnabled = false,
     bool eac3PassthroughEnabled = false,
-    bool eac3JocPassthroughEnabled = false,
     bool dtsCorePassthroughEnabled = false,
-    bool dtsHdPassthroughEnabled = false,
-    bool dtsXPassthroughEnabled = false,
     bool trueHdPassthroughEnabled = false,
-    bool trueHdAtmosPassthroughEnabled = false,
     int maxAudioChannels = 0,
+    // Deterministic local stereo downmix. Universal-decode players keep their
+    // full direct-play advertisement and downmix after decoding, so this only
+    // shapes the transcode fallback codec, not what direct plays.
+    bool downmixToStereo = false,
     // The player decodes every advertised audio codec in software (FFmpeg),
     // so the output route limits rendering, not decoding: stereo-only routes
     // still direct-play multichannel/compressed audio and downmix locally.
     bool universalAudioDecode = false,
-    // Media3 only: its MediaCodecAudioRenderer owns passthrough and outranks
-    // the FFmpeg renderer, so on an AVR route a lossless track (TrueHD/MLP)
-    // may be bitstreamed instead of locally decoded and fail silently when
-    // the route can't carry it. When set, lossless codecs are advertised on
-    // AVR routes only if passthrough is genuinely enabled and capable, and
-    // the server transcodes otherwise. Backends whose local decode is
-    // authoritative (mpv on media_kit and tvOS) must leave this false.
-    bool losslessAudioRequiresPassthroughOnAvrRoutes = false,
-    // The toggles the user set by hand. They still govern what gets advertised
-    // when the hardware probe found nothing, since the route the rest of the
-    // gate reads is unknown in that state and would otherwise drop the setting.
-    Set<AudioPassthroughToggle> explicitPassthroughToggles =
-        const <AudioPassthroughToggle>{},
+    // Media3 only. Plain ARC carries stereo PCM at most, so a local TrueHD
+    // decode collapses to 2.0 while a server EAC3 transcode keeps 5.1 through
+    // the receiver. When set, TrueHD/MLP are advertised on an ARC route only
+    // with genuine TrueHD passthrough. Every other route direct plays and
+    // decodes locally. Backends whose own output path handles this (mpv on
+    // media_kit and tvOS) leave it false.
+    bool losslessTranscodesOnArcWithoutPassthrough = false,
     MaxVideoResolution maxResolution = MaxVideoResolution.auto,
     bool pgsDirectPlay = true,
     bool assDirectPlay = true,
@@ -246,9 +239,7 @@ class DeviceProfileBuilder {
               ? capabilityProfile.maxPcmChannels
               : 8)
         : maxAudioChannels;
-    final forceStereo =
-        effectiveMaxChannels <= 2 ||
-        audioOutputMode == AudioOutputMode.forceStereo;
+    final forceStereo = effectiveMaxChannels <= 2 || downmixToStereo;
     // Server-facing channel cap: an explicit user cap always wins; otherwise a
     // universal-decode player advertises 8ch regardless of the detected sink,
     // since it downmixes locally instead of asking the server to transcode.
@@ -276,20 +267,14 @@ class DeviceProfileBuilder {
               .where(
                 (codec) => _isAudioCodecAllowed(
                   codec: codec,
-                  audioOutputMode: audioOutputMode,
                   capabilityProfile: capabilityProfile,
                   universalAudioDecode: universalAudioDecode,
-                  losslessAudioRequiresPassthroughOnAvrRoutes:
-                      losslessAudioRequiresPassthroughOnAvrRoutes,
+                  losslessTranscodesOnArcWithoutPassthrough:
+                      losslessTranscodesOnArcWithoutPassthrough,
                   ac3PassthroughEnabled: ac3PassthroughEnabled,
                   eac3PassthroughEnabled: eac3PassthroughEnabled,
-                  eac3JocPassthroughEnabled: eac3JocPassthroughEnabled,
                   dtsCorePassthroughEnabled: dtsCorePassthroughEnabled,
-                  dtsHdPassthroughEnabled: dtsHdPassthroughEnabled,
-                  dtsXPassthroughEnabled: dtsXPassthroughEnabled,
                   trueHdPassthroughEnabled: trueHdPassthroughEnabled,
-                  trueHdAtmosPassthroughEnabled: trueHdAtmosPassthroughEnabled,
-                  explicitPassthroughToggles: explicitPassthroughToggles,
                 ),
               )
               .toList(growable: false);
@@ -828,7 +813,6 @@ class DeviceProfileBuilder {
       canDecodeFlac: capabilities.canDecodeFlac,
       canPassthroughAc3: false,
       canPassthroughEac3: false,
-      canPassthroughEac3Joc: false,
       canPassthroughDts: false,
       canPassthroughDtsHd: false,
       canPassthroughTrueHd: false,
@@ -920,54 +904,29 @@ class DeviceProfileBuilder {
 
   static bool _isAudioCodecAllowed({
     required String codec,
-    required AudioOutputMode audioOutputMode,
     required AudioCapabilityProfile capabilityProfile,
     bool universalAudioDecode = false,
-    bool losslessAudioRequiresPassthroughOnAvrRoutes = false,
+    bool losslessTranscodesOnArcWithoutPassthrough = false,
     required bool ac3PassthroughEnabled,
     required bool eac3PassthroughEnabled,
-    required bool eac3JocPassthroughEnabled,
     required bool dtsCorePassthroughEnabled,
-    required bool dtsHdPassthroughEnabled,
-    required bool dtsXPassthroughEnabled,
     required bool trueHdPassthroughEnabled,
-    required bool trueHdAtmosPassthroughEnabled,
-    Set<AudioPassthroughToggle> explicitPassthroughToggles =
-        const <AudioPassthroughToggle>{},
   }) {
-    if (audioOutputMode == AudioOutputMode.avrPassthrough &&
-        _isPassthroughControlledAudioCodec(codec) &&
-        (capabilityProfile.isAvReceiverRoute ||
-            _isPassthroughSetByHand(codec, explicitPassthroughToggles))) {
-      return _isAudioCodecPassthroughEnabled(
-        codec: codec,
-        ac3PassthroughEnabled: ac3PassthroughEnabled,
-        eac3PassthroughEnabled: eac3PassthroughEnabled,
-        eac3JocPassthroughEnabled: eac3JocPassthroughEnabled,
-        dtsCorePassthroughEnabled: dtsCorePassthroughEnabled,
-        dtsHdPassthroughEnabled: dtsHdPassthroughEnabled,
-        dtsXPassthroughEnabled: dtsXPassthroughEnabled,
-        trueHdPassthroughEnabled: trueHdPassthroughEnabled,
-        trueHdAtmosPassthroughEnabled: trueHdAtmosPassthroughEnabled,
-      );
-    }
-
     if (universalAudioDecode) {
       if (codec == 'truehd' || codec == 'mlp') {
         // A player without a TrueHD decoder has to let the server transcode.
         if (!capabilityProfile.canDecodeTrueHd) return false;
-        if (losslessAudioRequiresPassthroughOnAvrRoutes &&
-            capabilityProfile.isAvReceiverRoute) {
-          // On HDMI/ARC/eARC this backend may bitstream TrueHD to the
-          // receiver instead of decoding locally. Only advertise it when
-          // the route can genuinely carry it and passthrough resolves
-          // enabled. Otherwise let the server transcode rather than risk a
-          // silent bitstream, since plain ARC can't carry TrueHD at all.
-          return trueHdPassthroughEnabled &&
-              capabilityProfile.canPassthroughTrueHd;
+        // The passthrough check is belt and braces: the capability profile
+        // already strips TrueHD passthrough on ARC, so this only survives
+        // when the probe genuinely reported an HD-capable route.
+        if (losslessTranscodesOnArcWithoutPassthrough &&
+            capabilityProfile.activeRouteType == AudioRouteType.arc &&
+            !(trueHdPassthroughEnabled &&
+                capabilityProfile.canPassthroughTrueHd)) {
+          return false;
         }
-        // Speaker, headphones, bluetooth, and other routes decode locally
-        // through FFmpeg, so direct play is safe.
+        // Every other route renders the local decode faithfully: multichannel
+        // PCM over HDMI/eARC, or the device's own downmix elsewhere.
         return true;
       }
       return true;
@@ -978,71 +937,9 @@ class DeviceProfileBuilder {
           codec: codec,
           ac3PassthroughEnabled: ac3PassthroughEnabled,
           eac3PassthroughEnabled: eac3PassthroughEnabled,
-          eac3JocPassthroughEnabled: eac3JocPassthroughEnabled,
           dtsCorePassthroughEnabled: dtsCorePassthroughEnabled,
-          dtsHdPassthroughEnabled: dtsHdPassthroughEnabled,
-          dtsXPassthroughEnabled: dtsXPassthroughEnabled,
           trueHdPassthroughEnabled: trueHdPassthroughEnabled,
-          trueHdAtmosPassthroughEnabled: trueHdAtmosPassthroughEnabled,
         );
-  }
-
-  /// Whether the user set any of the toggles this codec answers to by hand.
-  ///
-  /// A detected profile in AVR mode always reports an AV receiver route, so the
-  /// route side of the gate only ever fails when the hardware probe found
-  /// nothing. There is no detected capability left to follow in that state, and
-  /// falling through would hand the receiver a codec the user switched off, so
-  /// a hand-set toggle keeps governing. Reusing the enabled-check over which
-  /// toggles are set answers which ones the codec reads.
-  static bool _isPassthroughSetByHand(
-    String codec,
-    Set<AudioPassthroughToggle> explicitToggles,
-  ) {
-    if (explicitToggles.isEmpty) return false;
-    return _isAudioCodecPassthroughEnabled(
-      codec: codec,
-      ac3PassthroughEnabled: explicitToggles.contains(
-        AudioPassthroughToggle.ac3,
-      ),
-      eac3PassthroughEnabled: explicitToggles.contains(
-        AudioPassthroughToggle.eac3,
-      ),
-      eac3JocPassthroughEnabled: explicitToggles.contains(
-        AudioPassthroughToggle.eac3Joc,
-      ),
-      dtsCorePassthroughEnabled: explicitToggles.contains(
-        AudioPassthroughToggle.dtsCore,
-      ),
-      dtsHdPassthroughEnabled: explicitToggles.contains(
-        AudioPassthroughToggle.dtsHd,
-      ),
-      dtsXPassthroughEnabled: explicitToggles.contains(
-        AudioPassthroughToggle.dtsX,
-      ),
-      trueHdPassthroughEnabled: explicitToggles.contains(
-        AudioPassthroughToggle.trueHd,
-      ),
-      trueHdAtmosPassthroughEnabled: explicitToggles.contains(
-        AudioPassthroughToggle.trueHdAtmos,
-      ),
-    );
-  }
-
-  static bool _isPassthroughControlledAudioCodec(String codec) {
-    switch (codec) {
-      case 'ac3':
-      case 'eac3':
-      case 'dts':
-      case 'dca':
-      case 'dtsx':
-      case 'dtsuhd':
-      case 'truehd':
-      case 'mlp':
-        return true;
-      default:
-        return false;
-    }
   }
 
   static bool _isAudioCodecDecodeSupported(
@@ -1072,39 +969,22 @@ class DeviceProfileBuilder {
     required String codec,
     required bool ac3PassthroughEnabled,
     required bool eac3PassthroughEnabled,
-    required bool eac3JocPassthroughEnabled,
     required bool dtsCorePassthroughEnabled,
-    required bool dtsHdPassthroughEnabled,
-    required bool dtsXPassthroughEnabled,
     required bool trueHdPassthroughEnabled,
-    required bool trueHdAtmosPassthroughEnabled,
   }) {
-    final effectiveEac3JocPassthroughEnabled =
-        eac3PassthroughEnabled && eac3JocPassthroughEnabled;
-    final effectiveDtsHdPassthroughEnabled =
-        dtsCorePassthroughEnabled && dtsHdPassthroughEnabled;
-    final effectiveDtsXPassthroughEnabled =
-        effectiveDtsHdPassthroughEnabled && dtsXPassthroughEnabled;
-    final effectiveTrueHdAtmosPassthroughEnabled =
-        trueHdPassthroughEnabled && trueHdAtmosPassthroughEnabled;
-
     switch (codec) {
       case 'ac3':
         return ac3PassthroughEnabled;
       case 'eac3':
-        return eac3PassthroughEnabled || effectiveEac3JocPassthroughEnabled;
+        return eac3PassthroughEnabled;
+      // DTS-HD is a DTS core stream plus a profile, not its own codec, so the
+      // core toggle decides whether the server may send either.
       case 'dts':
       case 'dca':
-        return dtsCorePassthroughEnabled ||
-            effectiveDtsHdPassthroughEnabled ||
-            effectiveDtsXPassthroughEnabled;
-      case 'dtsx':
-      case 'dtsuhd':
-        return effectiveDtsXPassthroughEnabled;
+        return dtsCorePassthroughEnabled;
       case 'truehd':
       case 'mlp':
-        return trueHdPassthroughEnabled ||
-            effectiveTrueHdAtmosPassthroughEnabled;
+        return trueHdPassthroughEnabled;
       default:
         return false;
     }

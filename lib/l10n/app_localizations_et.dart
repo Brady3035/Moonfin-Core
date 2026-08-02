@@ -2560,20 +2560,6 @@ class AppLocalizationsEt extends AppLocalizations {
       'Bitivoo DTS-heli ainult AVR-ile; nõuab vastuvõtja tuge ja DTS-i allika rada';
 
   @override
-  String get enableTrueHdAudio =>
-      'Luba TrueHD heli (ei pruugi kõigil platvormidel töötada)';
-
-  @override
-  String get settingsAudioOutputMode => 'Heli väljundrežiim';
-
-  @override
-  String get settingsAudioOutputModeDescription =>
-      'Vali, kuidas heli dekodeeritakse. AVR-läbilase saadab Dolby ja DTS toorvood ressiiverisse, Automaatne ja Allamiksimine dekodeerivad heli seadmes.';
-
-  @override
-  String get settingsAudioOutputModeAvrPassthrough => 'AVR-läbilase';
-
-  @override
   String get settingsAudioFallbackCodec => 'Heli varukoodek';
 
   @override
@@ -2654,35 +2640,48 @@ class AppLocalizationsEt extends AppLocalizations {
   String get settingsAudioEac3Passthrough => 'EAC3 läbipääs';
 
   @override
-  String get settingsAudioEac3JocPassthrough => 'EAC3 JOC (Atmos) läbipääs';
-
-  @override
   String get settingsAudioDtsCorePassthrough => 'DTS Core läbilase';
 
   @override
   String get settingsAudioDtsHdPassthrough => 'DTS-HD MA läbilaskevõime';
 
   @override
+  String get settingsAudioPassthroughMode => 'Passthrough';
+
+  @override
+  String get settingsAudioPassthroughModeDescription =>
+      'How compressed surround sound reaches your TV or receiver.';
+
+  @override
+  String get settingsAudioPassthroughModeDisabled =>
+      'Disabled (always decode on this device)';
+
+  @override
+  String get settingsAudioPassthroughModeAuto =>
+      'Auto (match detected device support)';
+
+  @override
+  String get settingsAudioPassthroughModeManual =>
+      'Manual (choose formats below)';
+
+  @override
+  String get settingsDownmixToStereoDescription =>
+      'Mix all decoded audio down to two channels.';
+
+  @override
+  String get settingsAudioEac3IncludesAtmos =>
+      'Bitstream E-AC-3, including Dolby Atmos (JOC).';
+
+  @override
+  String get settingsAudioDtsHdIncludesDtsX =>
+      'Bitstream DTS-HD, including DTS:X.';
+
+  @override
+  String get settingsAudioTrueHdIncludesAtmos =>
+      'Bitstream TrueHD, including Dolby Atmos.';
+
+  @override
   String get settingsAudioTrueHdPassthrough => 'TrueHD läbilase';
-
-  @override
-  String get settingsAudioTrueHdAtmosPassthrough => 'TrueHD Atmos läbilase';
-
-  @override
-  String get settingsAudioBitstreamEac3ToExternalDecoder =>
-      'Bitivoog Dolby Digital Plus (EAC3) välisele dekoodrile.';
-
-  @override
-  String get settingsAudioBitstreamEac3JocToExternalDecoder =>
-      'Bitivoog Dolby Atmos üle EAC3 (JOC) välisele dekoodrile.';
-
-  @override
-  String get settingsAudioBitstreamDtsHdToExternalDecoder =>
-      'Bitivoog DTS-HD MA (sisaldab DTS-tuuma) välisele dekoodrile.';
-
-  @override
-  String get settingsAudioBitstreamTrueHdAtmosToExternalDecoder =>
-      'Bitstream Dolby TrueHD koos Atmose metaandmetega välisele dekoodrile.';
 
   @override
   String get settingsDetectedAudioCapabilities => 'Tuvastatud helivõimalused';
@@ -9233,17 +9232,6 @@ class AppLocalizationsEt extends AppLocalizations {
 
   @override
   String get notSupportedOnThisDevice => 'Selles seadmes ei toetata';
-
-  @override
-  String get settingsAudioDtsXPassthrough => 'DTS:X (DTS UHD) läbilaskevõime';
-
-  @override
-  String get settingsAudioBitstreamDtsXToExternalDecoder =>
-      'Bitivoog DTS:X (DTS UHD) välisele dekoodrile.';
-
-  @override
-  String get settingsAudioTrueHdJocPassthrough =>
-      'TrueHD koos Atmose (JOC) läbipääsuga';
 
   @override
   String get mediaPlayerBehavior => 'Meediumipleieri käitumine';

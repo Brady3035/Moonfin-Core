@@ -2561,20 +2561,6 @@ class AppLocalizationsKk extends AppLocalizations {
       'DTS дыбысының биттік ағыны тек AVR үшін; ресивер қолдауын және DTS бастапқы жолын қажет етеді';
 
   @override
-  String get enableTrueHdAudio =>
-      'TrueHD дыбысын қосу (барлық платформаларда жұмыс істемеуі мүмкін)';
-
-  @override
-  String get settingsAudioOutputMode => 'Аудио шығысының режимі';
-
-  @override
-  String get settingsAudioOutputModeDescription =>
-      'Аудионың қалай декодталатынын таңдаңыз. AVR Passthrough өңделмеген Dolby/DTS ағындарын ресиверіңізге жібереді, ал «Авто» мен «Араластыру» жергілікті түрде декодтайды.';
-
-  @override
-  String get settingsAudioOutputModeAvrPassthrough => 'AVR Passthrough';
-
-  @override
   String get settingsAudioFallbackCodec => 'Резервтік аудиокодек';
 
   @override
@@ -2653,35 +2639,48 @@ class AppLocalizationsKk extends AppLocalizations {
   String get settingsAudioEac3Passthrough => 'EAC3 транзиті';
 
   @override
-  String get settingsAudioEac3JocPassthrough => 'EAC3 JOC (Atmos) транзиті';
-
-  @override
   String get settingsAudioDtsCorePassthrough => 'DTS Core транзиті';
 
   @override
   String get settingsAudioDtsHdPassthrough => 'DTS-HD MA транзиті';
 
   @override
+  String get settingsAudioPassthroughMode => 'Passthrough';
+
+  @override
+  String get settingsAudioPassthroughModeDescription =>
+      'How compressed surround sound reaches your TV or receiver.';
+
+  @override
+  String get settingsAudioPassthroughModeDisabled =>
+      'Disabled (always decode on this device)';
+
+  @override
+  String get settingsAudioPassthroughModeAuto =>
+      'Auto (match detected device support)';
+
+  @override
+  String get settingsAudioPassthroughModeManual =>
+      'Manual (choose formats below)';
+
+  @override
+  String get settingsDownmixToStereoDescription =>
+      'Mix all decoded audio down to two channels.';
+
+  @override
+  String get settingsAudioEac3IncludesAtmos =>
+      'Bitstream E-AC-3, including Dolby Atmos (JOC).';
+
+  @override
+  String get settingsAudioDtsHdIncludesDtsX =>
+      'Bitstream DTS-HD, including DTS:X.';
+
+  @override
+  String get settingsAudioTrueHdIncludesAtmos =>
+      'Bitstream TrueHD, including Dolby Atmos.';
+
+  @override
   String get settingsAudioTrueHdPassthrough => 'TrueHD транзиті';
-
-  @override
-  String get settingsAudioTrueHdAtmosPassthrough => 'TrueHD Atmos транзиті';
-
-  @override
-  String get settingsAudioBitstreamEac3ToExternalDecoder =>
-      'Dolby Digital Plus (EAC3) битағынын сыртқы декодерге жіберу.';
-
-  @override
-  String get settingsAudioBitstreamEac3JocToExternalDecoder =>
-      'EAC3 (JOC) арқылы Dolby Atmos битағынын сыртқы декодерге жіберу.';
-
-  @override
-  String get settingsAudioBitstreamDtsHdToExternalDecoder =>
-      'DTS-HD MA (DTS Core қоса) битағынын сыртқы декодерге жіберу.';
-
-  @override
-  String get settingsAudioBitstreamTrueHdAtmosToExternalDecoder =>
-      'Atmos метадеректері бар Dolby TrueHD битағынын сыртқы декодерге жіберу.';
 
   @override
   String get settingsDetectedAudioCapabilities =>
@@ -9270,16 +9269,6 @@ class AppLocalizationsKk extends AppLocalizations {
 
   @override
   String get notSupportedOnThisDevice => 'Бұл құрылғыда қолдау көрсетілмейді';
-
-  @override
-  String get settingsAudioDtsXPassthrough => 'DTS:X (DTS UHD) транзиті';
-
-  @override
-  String get settingsAudioBitstreamDtsXToExternalDecoder =>
-      'DTS:X (DTS UHD) битағынын сыртқы декодерге жіберу.';
-
-  @override
-  String get settingsAudioTrueHdJocPassthrough => 'TrueHD Atmos (JOC) транзиті';
 
   @override
   String get mediaPlayerBehavior => 'Медиаойнатқыш әрекеті';

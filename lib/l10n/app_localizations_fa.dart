@@ -2539,20 +2539,6 @@ class AppLocalizationsFa extends AppLocalizations {
       'صدای بیت استریم DTS فقط به AVR. به پشتیبانی گیرنده و مسیر منبع DTS نیاز دارد';
 
   @override
-  String get enableTrueHdAudio =>
-      'صدای TrueHD را فعال کنید (ممکن است در همه پلتفرم ها کار نکند)';
-
-  @override
-  String get settingsAudioOutputMode => 'حالت خروجی صدا';
-
-  @override
-  String get settingsAudioOutputModeDescription =>
-      'انتخاب کنید صدا چگونه رمزگشایی شود. عبور مستقیم AVR جریان‌های خام Dolby/DTS را به گیرنده شما می‌فرستد؛ خودکار یا داون‌میکس به‌صورت محلی رمزگشایی می‌کند.';
-
-  @override
-  String get settingsAudioOutputModeAvrPassthrough => 'عبور مستقیم AVR';
-
-  @override
   String get settingsAudioFallbackCodec => 'کدک بازگشتی صوتی';
 
   @override
@@ -2632,35 +2618,48 @@ class AppLocalizationsFa extends AppLocalizations {
   String get settingsAudioEac3Passthrough => 'عبور مستقیم EAC3';
 
   @override
-  String get settingsAudioEac3JocPassthrough => 'عبور مستقیم EAC3 JOC (Atmos)';
-
-  @override
   String get settingsAudioDtsCorePassthrough => 'عبور مستقیم DTS Core';
 
   @override
   String get settingsAudioDtsHdPassthrough => 'عبور مستقیم DTS-HD MA';
 
   @override
+  String get settingsAudioPassthroughMode => 'Passthrough';
+
+  @override
+  String get settingsAudioPassthroughModeDescription =>
+      'How compressed surround sound reaches your TV or receiver.';
+
+  @override
+  String get settingsAudioPassthroughModeDisabled =>
+      'Disabled (always decode on this device)';
+
+  @override
+  String get settingsAudioPassthroughModeAuto =>
+      'Auto (match detected device support)';
+
+  @override
+  String get settingsAudioPassthroughModeManual =>
+      'Manual (choose formats below)';
+
+  @override
+  String get settingsDownmixToStereoDescription =>
+      'Mix all decoded audio down to two channels.';
+
+  @override
+  String get settingsAudioEac3IncludesAtmos =>
+      'Bitstream E-AC-3, including Dolby Atmos (JOC).';
+
+  @override
+  String get settingsAudioDtsHdIncludesDtsX =>
+      'Bitstream DTS-HD, including DTS:X.';
+
+  @override
+  String get settingsAudioTrueHdIncludesAtmos =>
+      'Bitstream TrueHD, including Dolby Atmos.';
+
+  @override
   String get settingsAudioTrueHdPassthrough => 'عبور مستقیم TrueHD';
-
-  @override
-  String get settingsAudioTrueHdAtmosPassthrough => 'عبور مستقیم TrueHD Atmos';
-
-  @override
-  String get settingsAudioBitstreamEac3ToExternalDecoder =>
-      'Bitstream Dolby Digital Plus (EAC3) به رسیور خارجی.';
-
-  @override
-  String get settingsAudioBitstreamEac3JocToExternalDecoder =>
-      'Bitstream Dolby Atmos از طریق EAC3 (JOC) به رمزگشای خارجی.';
-
-  @override
-  String get settingsAudioBitstreamDtsHdToExternalDecoder =>
-      'Bitstream DTS-HD MA (شامل هسته DTS) به رسیور خارجی.';
-
-  @override
-  String get settingsAudioBitstreamTrueHdAtmosToExternalDecoder =>
-      'Bitstream Dolby TrueHD با متادیتا Atmos به رمزگشای خارجی.';
 
   @override
   String get settingsDetectedAudioCapabilities => 'قابلیت های صوتی شناسایی شده';
@@ -9165,17 +9164,6 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get notSupportedOnThisDevice => 'در این دستگاه پشتیبانی نمی شود';
-
-  @override
-  String get settingsAudioDtsXPassthrough => 'عبور DTS:X (DTS UHD).';
-
-  @override
-  String get settingsAudioBitstreamDtsXToExternalDecoder =>
-      'بیت استریم DTS:X (DTS UHD) به رسیور خارجی.';
-
-  @override
-  String get settingsAudioTrueHdJocPassthrough =>
-      'TrueHD با Atmos (JOC) Passthrough';
 
   @override
   String get mediaPlayerBehavior => 'رفتار پخش کننده رسانه';

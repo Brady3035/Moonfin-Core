@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter/services.dart';
 import 'package:get_it/get_it.dart';
 import 'package:playback_core/playback_core.dart';
@@ -37,6 +38,23 @@ class Media3PlayerBackend extends PlayerBackend {
   /// first player build. Read by the playback diagnostics so silent-TrueHD
   /// reports show whether the bundled decoder registered at all.
   static Map<String, dynamic>? ffmpegDecoderDiagnostics;
+
+  /// The audio slice of the setDecoderPreferences payload. The native side
+  /// constrains its audio sink and downmix from exactly these values, so this
+  /// stays a pure function of the prefs for the wire-contract tests.
+  @visibleForTesting
+  static Map<String, dynamic> audioDecoderPreferencesPayload(
+    UserPreferences prefs,
+  ) {
+    return <String, dynamic>{
+      'passthroughMode': prefs.get(UserPreferences.audioPassthroughMode).name,
+      'passthroughCodecs': prefs
+          .resolvedPassthroughCodecs()
+          .map((codec) => codec.wireName)
+          .toList(growable: false),
+      'downmixToStereo': prefs.get(UserPreferences.downmixToStereo),
+    };
+  }
 
   final UserPreferences _prefs;
 
@@ -565,6 +583,7 @@ class Media3PlayerBackend extends PlayerBackend {
       'frameRateSwitchingBehavior': _prefs
           .get(UserPreferences.refreshRateSwitchingBehavior)
           .name,
+      ...audioDecoderPreferencesPayload(_prefs),
     });
     await _invoke<void>('setSource', {
       'url': url,
@@ -693,26 +712,20 @@ class Media3PlayerBackend extends PlayerBackend {
     return DeviceProfileBuilder.build(
       maxBitrateMbps: maxBitrate,
       audioCapabilityProfile: audioCapabilityProfile,
-      audioOutputMode: _prefs.resolveAudioOutputMode(),
       audioFallbackCodec: _prefs.resolveAudioFallbackCodec(),
       ac3PassthroughEnabled: _prefs.resolveAc3PassthroughEnabled(),
       eac3PassthroughEnabled: _prefs.resolveEac3PassthroughEnabled(),
-      eac3JocPassthroughEnabled: _prefs.resolveEac3JocPassthroughEnabled(),
       dtsCorePassthroughEnabled: _prefs.resolveDtsCorePassthroughEnabled(),
-      dtsHdPassthroughEnabled: _prefs.resolveDtsHdPassthroughEnabled(),
-      dtsXPassthroughEnabled: _prefs.resolveDtsXPassthroughEnabled(),
       trueHdPassthroughEnabled: _prefs.resolveTrueHdPassthroughEnabled(),
-      trueHdAtmosPassthroughEnabled: _prefs
-          .resolveTrueHdAtmosPassthroughEnabled(),
-      explicitPassthroughToggles: _prefs.explicitPassthroughToggles,
       maxAudioChannels: _prefs.resolveMaxAudioChannels(),
+      downmixToStereo: _prefs.get(UserPreferences.downmixToStereo),
       // Media3 bundles the FFmpeg audio decoder extension: every advertised
       // codec decodes in software, so stereo routes downmix locally instead
       // of forcing a server transcode.
       universalAudioDecode: true,
-      // Media3 can bitstream TrueHD/MLP to a receiver instead of decoding
-      // locally, so lossless on AVR routes needs real passthrough.
-      losslessAudioRequiresPassthroughOnAvrRoutes: true,
+      // On plain ARC a server EAC3 transcode keeps 5.1 where a local TrueHD
+      // decode would collapse to stereo PCM.
+      losslessTranscodesOnArcWithoutPassthrough: true,
       maxResolution: maxResolution,
       pgsDirectPlay: _prefs.get(UserPreferences.pgsDirectPlay) && canRenderBitmapSubtitles,
       assDirectPlay: _prefs.get(UserPreferences.assDirectPlay),

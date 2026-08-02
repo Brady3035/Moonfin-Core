@@ -99,12 +99,6 @@ class PlatformDetection {
       _audioCapabilityBool('canPassthroughEac3');
   static bool get supportsDtsHdAudio =>
       _audioCapabilityBool('canPassthroughDtsHd');
-  static bool get supportsDtsXAudio =>
-      _audioCapabilityBool('canPassthroughDtsX');
-  static bool get supportsEac3JocAudio =>
-      _audioCapabilityBool('canPassthroughEac3Joc');
-  static bool get supportsTrueHdJocAudio =>
-      _audioCapabilityBool('canPassthroughTrueHdJoc');
   static int get maxPcmChannelsAudio => _audioCapabilityInt('maxPcmChannels');
   static String get activeAudioRouteType =>
       _audioCapabilityString('activeRouteType') ?? 'other';

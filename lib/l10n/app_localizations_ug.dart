@@ -2558,20 +2558,6 @@ class AppLocalizationsUg extends AppLocalizations {
       'Bitstream DTS ئاۋاز پەقەت AVR غا; قوبۇللىغۇچنى قوللاش ۋە DTS مەنبە يولىنى تەلەپ قىلىدۇ';
 
   @override
-  String get enableTrueHdAudio =>
-      'TrueHD ئاۋازىنى قوزغىتىڭ (بارلىق سۇپىلاردا ئىشلىمەسلىكى مۇمكىن)';
-
-  @override
-  String get settingsAudioOutputMode => 'ئاۋاز چىقىرىش ھالىتى';
-
-  @override
-  String get settingsAudioOutputModeDescription =>
-      'ئاۋازنىڭ قانداق كودسىزلىنىدىغانلىقىنى تاللاڭ. AVR بىۋاسىتە ئۆتكۈزۈش خام Dolby/DTS ئېقىملىرىنى قوبۇللىغۇچىڭىزغا ئەۋەتىدۇ؛ ئاپتوماتىك ياكى تۆۋەنلىتىش يەرلىك كودسىزلايدۇ.';
-
-  @override
-  String get settingsAudioOutputModeAvrPassthrough => 'AVR بىۋاسىتە ئۆتكۈزۈش';
-
-  @override
   String get settingsAudioFallbackCodec => 'زاپاس ئاۋاز كودېكى';
 
   @override
@@ -2651,37 +2637,48 @@ class AppLocalizationsUg extends AppLocalizations {
   String get settingsAudioEac3Passthrough => 'EAC3 بىۋاسىتە ئۆتكۈزۈش';
 
   @override
-  String get settingsAudioEac3JocPassthrough =>
-      'EAC3 JOC (Atmos) بىۋاسىتە ئۆتكۈزۈش';
-
-  @override
   String get settingsAudioDtsCorePassthrough => 'DTS يادرو بىۋاسىتە ئۆتكۈزۈش';
 
   @override
   String get settingsAudioDtsHdPassthrough => 'DTS-HD MA بىۋاسىتە ئۆتكۈزۈش';
 
   @override
+  String get settingsAudioPassthroughMode => 'Passthrough';
+
+  @override
+  String get settingsAudioPassthroughModeDescription =>
+      'How compressed surround sound reaches your TV or receiver.';
+
+  @override
+  String get settingsAudioPassthroughModeDisabled =>
+      'Disabled (always decode on this device)';
+
+  @override
+  String get settingsAudioPassthroughModeAuto =>
+      'Auto (match detected device support)';
+
+  @override
+  String get settingsAudioPassthroughModeManual =>
+      'Manual (choose formats below)';
+
+  @override
+  String get settingsDownmixToStereoDescription =>
+      'Mix all decoded audio down to two channels.';
+
+  @override
+  String get settingsAudioEac3IncludesAtmos =>
+      'Bitstream E-AC-3, including Dolby Atmos (JOC).';
+
+  @override
+  String get settingsAudioDtsHdIncludesDtsX =>
+      'Bitstream DTS-HD, including DTS:X.';
+
+  @override
+  String get settingsAudioTrueHdIncludesAtmos =>
+      'Bitstream TrueHD, including Dolby Atmos.';
+
+  @override
   String get settingsAudioTrueHdPassthrough => 'TrueHD بىۋاسىتە ئۆتكۈزۈش';
-
-  @override
-  String get settingsAudioTrueHdAtmosPassthrough =>
-      'TrueHD Atmos بىۋاسىتە ئۆتكۈزۈش';
-
-  @override
-  String get settingsAudioBitstreamEac3ToExternalDecoder =>
-      'Dolby Digital Plus (EAC3) بىت ئېقىمىنى سىرتقى كودسىزلىغۇچقا ئەۋەتىدۇ.';
-
-  @override
-  String get settingsAudioBitstreamEac3JocToExternalDecoder =>
-      'EAC3 (JOC) ئۈستىدىكى Dolby Atmos بىت ئېقىمىنى سىرتقى كودسىزلىغۇچقا ئەۋەتىدۇ.';
-
-  @override
-  String get settingsAudioBitstreamDtsHdToExternalDecoder =>
-      'DTS-HD MA (DTS يادروسى بىلەن) بىت ئېقىمىنى سىرتقى كودسىزلىغۇچقا ئەۋەتىدۇ.';
-
-  @override
-  String get settingsAudioBitstreamTrueHdAtmosToExternalDecoder =>
-      'Atmos مېتا ئۇچۇرلۇق Dolby TrueHD بىت ئېقىمىنى سىرتقى كودسىزلىغۇچقا ئەۋەتىدۇ.';
 
   @override
   String get settingsDetectedAudioCapabilities => 'تونۇلغان ئاۋاز ئىقتىدارلىرى';
@@ -9258,18 +9255,6 @@ class AppLocalizationsUg extends AppLocalizations {
 
   @override
   String get notSupportedOnThisDevice => 'بۇ ئۈسكۈنە قوللىمايدۇ';
-
-  @override
-  String get settingsAudioDtsXPassthrough =>
-      'DTS:X (DTS UHD) بىۋاسىتە ئۆتكۈزۈش';
-
-  @override
-  String get settingsAudioBitstreamDtsXToExternalDecoder =>
-      'DTS:X (DTS UHD) بىت ئېقىمىنى سىرتقى كودسىزلىغۇچقا ئەۋەتىدۇ.';
-
-  @override
-  String get settingsAudioTrueHdJocPassthrough =>
-      'Atmos (JOC) لىق TrueHD بىۋاسىتە ئۆتكۈزۈش';
 
   @override
   String get mediaPlayerBehavior => 'مېدىيا قويغۇچ ھەرىكىتى';

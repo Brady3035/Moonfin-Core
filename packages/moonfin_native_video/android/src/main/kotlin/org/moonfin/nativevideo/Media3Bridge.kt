@@ -66,6 +66,15 @@ object Media3Bridge {
     private var frameRateSwitchingBehavior = "disabled"
 
     @Volatile
+    private var passthroughMode = "auto"
+
+    @Volatile
+    private var passthroughCodecs: Set<String> = emptySet()
+
+    @Volatile
+    private var downmixToStereo = false
+
+    @Volatile
     private var activeView: Media3VideoView? = null
 
     @Volatile
@@ -166,6 +175,12 @@ object Media3Bridge {
 
     fun frameRateSwitchingBehavior(): String = frameRateSwitchingBehavior
 
+    fun passthroughMode(): String = passthroughMode
+
+    fun passthroughCodecs(): Set<String> = passthroughCodecs
+
+    fun downmixToStereoEnabled(): Boolean = downmixToStereo
+
     fun setSessionTunnelingDisabledEnabled(value: Boolean) {
         sessionTunnelingDisabled = value
     }
@@ -208,6 +223,19 @@ object Media3Bridge {
             frameRateSwitchingBehavior =
                 args?.get("frameRateSwitchingBehavior")?.toString()?.trim()?.lowercase()
                     ?: "disabled"
+            passthroughMode =
+                (args?.get("passthroughMode")?.toString()?.trim()?.lowercase())
+                    .takeIf { it == "disabled" || it == "auto" || it == "manual" }
+                    ?: "auto"
+            passthroughCodecs =
+                (args?.get("passthroughCodecs") as? List<*>)
+                    ?.mapNotNull { it?.toString()?.trim()?.lowercase() }
+                    ?.filter { it in AudioPassthroughPolicy.KNOWN_CODECS }
+                    ?.toSet()
+                    ?: emptySet()
+            (args?.get("downmixToStereo") as? Boolean)?.let {
+                downmixToStereo = it
+            }
 
             val view = activeView
             if (view != null) {

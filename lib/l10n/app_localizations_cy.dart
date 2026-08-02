@@ -2579,20 +2579,6 @@ class AppLocalizationsCy extends AppLocalizations {
       'Sain Bitstream DTS i AVR yn unig; angen cefnogaeth derbynnydd a thrac ffynhonnell DTS';
 
   @override
-  String get enableTrueHdAudio =>
-      'Galluogi sain TrueHD (efallai na fydd yn gweithio ar bob platfform)';
-
-  @override
-  String get settingsAudioOutputMode => 'Modd Allbwn Sain';
-
-  @override
-  String get settingsAudioOutputModeDescription =>
-      'Dewiswch sut mae sain yn cael ei ddadgodio. Mae Trosglwyddo AVR yn anfon ffrydiau Dolby/DTS crai i\'ch derbynnydd; mae Awto neu Gymysgu i Lawr yn dadgodio\'n lleol.';
-
-  @override
-  String get settingsAudioOutputModeAvrPassthrough => 'Trosglwyddo AVR';
-
-  @override
   String get settingsAudioFallbackCodec => 'Codec Sain Wrth Gefn';
 
   @override
@@ -2673,35 +2659,48 @@ class AppLocalizationsCy extends AppLocalizations {
   String get settingsAudioEac3Passthrough => 'Llwybr EAC3';
 
   @override
-  String get settingsAudioEac3JocPassthrough => 'Trosglwyddo EAC3 JOC (Atmos)';
-
-  @override
   String get settingsAudioDtsCorePassthrough => 'Llwybr Craidd DTS';
 
   @override
   String get settingsAudioDtsHdPassthrough => 'Llwybr drwodd MA DTS-HD';
 
   @override
+  String get settingsAudioPassthroughMode => 'Passthrough';
+
+  @override
+  String get settingsAudioPassthroughModeDescription =>
+      'How compressed surround sound reaches your TV or receiver.';
+
+  @override
+  String get settingsAudioPassthroughModeDisabled =>
+      'Disabled (always decode on this device)';
+
+  @override
+  String get settingsAudioPassthroughModeAuto =>
+      'Auto (match detected device support)';
+
+  @override
+  String get settingsAudioPassthroughModeManual =>
+      'Manual (choose formats below)';
+
+  @override
+  String get settingsDownmixToStereoDescription =>
+      'Mix all decoded audio down to two channels.';
+
+  @override
+  String get settingsAudioEac3IncludesAtmos =>
+      'Bitstream E-AC-3, including Dolby Atmos (JOC).';
+
+  @override
+  String get settingsAudioDtsHdIncludesDtsX =>
+      'Bitstream DTS-HD, including DTS:X.';
+
+  @override
+  String get settingsAudioTrueHdIncludesAtmos =>
+      'Bitstream TrueHD, including Dolby Atmos.';
+
+  @override
   String get settingsAudioTrueHdPassthrough => 'Trosglwyddo TrueHD';
-
-  @override
-  String get settingsAudioTrueHdAtmosPassthrough => 'Passthrough Atmos TrueHD';
-
-  @override
-  String get settingsAudioBitstreamEac3ToExternalDecoder =>
-      'Bitstream Dolby Digital Plus (EAC3) i ddatgodiwr allanol.';
-
-  @override
-  String get settingsAudioBitstreamEac3JocToExternalDecoder =>
-      'Bitstream Dolby Atmos dros EAC3 (JOC) i ddatgodiwr allanol.';
-
-  @override
-  String get settingsAudioBitstreamDtsHdToExternalDecoder =>
-      'Bitstream DTS-HD MA (yn cynnwys craidd DTS) i ddatgodiwr allanol.';
-
-  @override
-  String get settingsAudioBitstreamTrueHdAtmosToExternalDecoder =>
-      'Bitstream Dolby TrueHD gyda metadata Atmos i ddatgodiwr allanol.';
 
   @override
   String get settingsDetectedAudioCapabilities =>
@@ -9277,17 +9276,6 @@ class AppLocalizationsCy extends AppLocalizations {
 
   @override
   String get notSupportedOnThisDevice => 'Heb ei gefnogi ar y ddyfais hon';
-
-  @override
-  String get settingsAudioDtsXPassthrough => 'Llwybr DTS:X (DTS UHD).';
-
-  @override
-  String get settingsAudioBitstreamDtsXToExternalDecoder =>
-      'Bitstream DTS:X (DTS UHD) i ddatgodiwr allanol.';
-
-  @override
-  String get settingsAudioTrueHdJocPassthrough =>
-      'TrueHD gyda Passthrough Atmos (JOC).';
 
   @override
   String get mediaPlayerBehavior => 'Ymddygiad Chwaraewr Cyfryngau';

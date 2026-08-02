@@ -2558,20 +2558,6 @@ class AppLocalizationsAf extends AppLocalizations {
       'Bitstream DTS klank slegs na AVR; vereis ontvangerondersteuning en DTS-bronspoor';
 
   @override
-  String get enableTrueHdAudio =>
-      'Aktiveer TrueHD-oudio (werk dalk nie op alle platforms nie)';
-
-  @override
-  String get settingsAudioOutputMode => 'Oudio-uitvoermodus';
-
-  @override
-  String get settingsAudioOutputModeDescription =>
-      'Kies hoe oudio gedekodeer word. AVR-deurgee stuur rou Dolby/DTS-strome na jou ontvanger; Outo of Afmeng dekodeer plaaslik.';
-
-  @override
-  String get settingsAudioOutputModeAvrPassthrough => 'AVR deurlaat';
-
-  @override
   String get settingsAudioFallbackCodec => 'Oudio-terugvalkodek';
 
   @override
@@ -2650,35 +2636,48 @@ class AppLocalizationsAf extends AppLocalizations {
   String get settingsAudioEac3Passthrough => 'EAC3 deurlaat';
 
   @override
-  String get settingsAudioEac3JocPassthrough => 'EAC3 JOC (Atmos) deurlaat';
-
-  @override
   String get settingsAudioDtsCorePassthrough => 'DTS Core Deurvoer';
 
   @override
   String get settingsAudioDtsHdPassthrough => 'DTS-HD MA deurlaat';
 
   @override
+  String get settingsAudioPassthroughMode => 'Passthrough';
+
+  @override
+  String get settingsAudioPassthroughModeDescription =>
+      'How compressed surround sound reaches your TV or receiver.';
+
+  @override
+  String get settingsAudioPassthroughModeDisabled =>
+      'Disabled (always decode on this device)';
+
+  @override
+  String get settingsAudioPassthroughModeAuto =>
+      'Auto (match detected device support)';
+
+  @override
+  String get settingsAudioPassthroughModeManual =>
+      'Manual (choose formats below)';
+
+  @override
+  String get settingsDownmixToStereoDescription =>
+      'Mix all decoded audio down to two channels.';
+
+  @override
+  String get settingsAudioEac3IncludesAtmos =>
+      'Bitstream E-AC-3, including Dolby Atmos (JOC).';
+
+  @override
+  String get settingsAudioDtsHdIncludesDtsX =>
+      'Bitstream DTS-HD, including DTS:X.';
+
+  @override
+  String get settingsAudioTrueHdIncludesAtmos =>
+      'Bitstream TrueHD, including Dolby Atmos.';
+
+  @override
   String get settingsAudioTrueHdPassthrough => 'TrueHD deurlaat';
-
-  @override
-  String get settingsAudioTrueHdAtmosPassthrough => 'TrueHD Atmos Deurgang';
-
-  @override
-  String get settingsAudioBitstreamEac3ToExternalDecoder =>
-      'Bitstream Dolby Digital Plus (EAC3) na eksterne dekodeerder.';
-
-  @override
-  String get settingsAudioBitstreamEac3JocToExternalDecoder =>
-      'Bitstream Dolby Atmos oor EAC3 (JOC) na eksterne dekodeerder.';
-
-  @override
-  String get settingsAudioBitstreamDtsHdToExternalDecoder =>
-      'Bitstream DTS-HD MA (sluit DTS-kern in) na eksterne dekodeerder.';
-
-  @override
-  String get settingsAudioBitstreamTrueHdAtmosToExternalDecoder =>
-      'Bitstream Dolby TrueHD met Atmos-metadata na eksterne dekodeerder.';
 
   @override
   String get settingsDetectedAudioCapabilities => 'Bespeur oudio-vermoëns';
@@ -9226,17 +9225,6 @@ class AppLocalizationsAf extends AppLocalizations {
   @override
   String get notSupportedOnThisDevice =>
       'Word nie op hierdie toestel ondersteun nie';
-
-  @override
-  String get settingsAudioDtsXPassthrough => 'DTS:X (DTS UHD) deurlaat';
-
-  @override
-  String get settingsAudioBitstreamDtsXToExternalDecoder =>
-      'Bitstream DTS:X (DTS UHD) na eksterne dekodeerder.';
-
-  @override
-  String get settingsAudioTrueHdJocPassthrough =>
-      'TrueHD met Atmos (JOC) deurlaat';
 
   @override
   String get mediaPlayerBehavior => 'Mediaspeler-gedrag';

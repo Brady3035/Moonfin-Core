@@ -2502,20 +2502,6 @@ class AppLocalizationsJa extends AppLocalizations {
       'DTS オーディオを AVR にのみビットストリームします。レシーバーのサポートと DTS ソース トラックが必要です';
 
   @override
-  String get enableTrueHdAudio =>
-      'TrueHD オーディオを有効にする (プラットフォームによっては機能しない場合があります)';
-
-  @override
-  String get settingsAudioOutputMode => 'オーディオ出力モード';
-
-  @override
-  String get settingsAudioOutputModeDescription =>
-      'オーディオのデコード方法を選択します。AVR パススルーは Dolby / DTS のストリームをそのままレシーバーに送信し、自動またはダウンミックスは本体でデコードします。';
-
-  @override
-  String get settingsAudioOutputModeAvrPassthrough => 'AVR パススルー';
-
-  @override
   String get settingsAudioFallbackCodec => '代替オーディオコーデック';
 
   @override
@@ -2594,35 +2580,48 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settingsAudioEac3Passthrough => 'EAC3 パススルー';
 
   @override
-  String get settingsAudioEac3JocPassthrough => 'EAC3 JOC (Atmos) パススルー';
-
-  @override
   String get settingsAudioDtsCorePassthrough => 'DTS コアパススルー';
 
   @override
   String get settingsAudioDtsHdPassthrough => 'DTS-HD MA パススルー';
 
   @override
+  String get settingsAudioPassthroughMode => 'Passthrough';
+
+  @override
+  String get settingsAudioPassthroughModeDescription =>
+      'How compressed surround sound reaches your TV or receiver.';
+
+  @override
+  String get settingsAudioPassthroughModeDisabled =>
+      'Disabled (always decode on this device)';
+
+  @override
+  String get settingsAudioPassthroughModeAuto =>
+      'Auto (match detected device support)';
+
+  @override
+  String get settingsAudioPassthroughModeManual =>
+      'Manual (choose formats below)';
+
+  @override
+  String get settingsDownmixToStereoDescription =>
+      'Mix all decoded audio down to two channels.';
+
+  @override
+  String get settingsAudioEac3IncludesAtmos =>
+      'Bitstream E-AC-3, including Dolby Atmos (JOC).';
+
+  @override
+  String get settingsAudioDtsHdIncludesDtsX =>
+      'Bitstream DTS-HD, including DTS:X.';
+
+  @override
+  String get settingsAudioTrueHdIncludesAtmos =>
+      'Bitstream TrueHD, including Dolby Atmos.';
+
+  @override
   String get settingsAudioTrueHdPassthrough => 'TrueHD パススルー';
-
-  @override
-  String get settingsAudioTrueHdAtmosPassthrough => 'TrueHD Atmos パススルー';
-
-  @override
-  String get settingsAudioBitstreamEac3ToExternalDecoder =>
-      'Dolby Digital Plus (EAC3) を外部デコーダーにビットストリーム出力します。';
-
-  @override
-  String get settingsAudioBitstreamEac3JocToExternalDecoder =>
-      'EAC3 (JOC) の Dolby Atmos を外部デコーダーにビットストリーム出力します。';
-
-  @override
-  String get settingsAudioBitstreamDtsHdToExternalDecoder =>
-      'DTS-HD MA (DTS コアを含む) を外部デコーダーにビットストリーム出力します。';
-
-  @override
-  String get settingsAudioBitstreamTrueHdAtmosToExternalDecoder =>
-      'Atmos メタデータ付きの Dolby TrueHD を外部デコーダーにビットストリーム出力します。';
 
   @override
   String get settingsDetectedAudioCapabilities => '検出されたオーディオ機能';
@@ -8937,17 +8936,6 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get notSupportedOnThisDevice => 'このデバイスでは対応していません';
-
-  @override
-  String get settingsAudioDtsXPassthrough => 'DTS:X (DTS UHD) パススルー';
-
-  @override
-  String get settingsAudioBitstreamDtsXToExternalDecoder =>
-      'DTS:X (DTS UHD) を外部デコーダーにビットストリーム出力します。';
-
-  @override
-  String get settingsAudioTrueHdJocPassthrough =>
-      'TrueHD with Atmos (JOC) パススルー';
 
   @override
   String get mediaPlayerBehavior => 'メディアプレイヤーの動作';

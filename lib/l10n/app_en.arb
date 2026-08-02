@@ -3567,22 +3567,6 @@
   "@enableDtsPassthrough": {
     "description": "Description for DTS passthrough"
   },
-  "enableTrueHdAudio": "Enable TrueHD audio (may not work on all platforms)",
-  "@enableTrueHdAudio": {
-    "description": "Description for TrueHD support"
-  },
-  "settingsAudioOutputMode": "Audio Output Mode",
-  "@settingsAudioOutputMode": {
-    "description": "Setting for audio output mode"
-  },
-  "settingsAudioOutputModeDescription": "Choose how audio is decoded. AVR Passthrough sends raw Dolby/DTS streams to your receiver; Auto or Downmix decodes locally.",
-  "@settingsAudioOutputModeDescription": {
-    "description": "Description for audio output mode setting"
-  },
-  "settingsAudioOutputModeAvrPassthrough": "AVR Passthrough",
-  "@settingsAudioOutputModeAvrPassthrough": {
-    "description": "Audio output mode option for AVR passthrough"
-  },
   "settingsAudioFallbackCodec": "Audio Fallback Codec",
   "@settingsAudioFallbackCodec": {
     "description": "Setting for fallback audio codec"
@@ -3683,10 +3667,6 @@
   "@settingsAudioEac3Passthrough": {
     "description": "Setting for EAC3 passthrough"
   },
-  "settingsAudioEac3JocPassthrough": "EAC3 JOC (Atmos) Passthrough",
-  "@settingsAudioEac3JocPassthrough": {
-    "description": "Setting for EAC3 JOC Atmos passthrough"
-  },
   "settingsAudioDtsCorePassthrough": "DTS Core Passthrough",
   "@settingsAudioDtsCorePassthrough": {
     "description": "Setting for DTS core passthrough"
@@ -3695,29 +3675,21 @@
   "@settingsAudioDtsHdPassthrough": {
     "description": "Setting for DTS-HD MA passthrough"
   },
+  "settingsAudioPassthroughMode": "Passthrough",
+  "@settingsAudioPassthroughMode": {
+    "description": "Title of the audio passthrough mode selector"
+  },
+  "settingsAudioPassthroughModeDescription": "How compressed surround sound reaches your TV or receiver.",
+  "settingsAudioPassthroughModeDisabled": "Disabled (always decode on this device)",
+  "settingsAudioPassthroughModeAuto": "Auto (match detected device support)",
+  "settingsAudioPassthroughModeManual": "Manual (choose formats below)",
+  "settingsDownmixToStereoDescription": "Mix all decoded audio down to two channels.",
+  "settingsAudioEac3IncludesAtmos": "Bitstream E-AC-3, including Dolby Atmos (JOC).",
+  "settingsAudioDtsHdIncludesDtsX": "Bitstream DTS-HD, including DTS:X.",
+  "settingsAudioTrueHdIncludesAtmos": "Bitstream TrueHD, including Dolby Atmos.",
   "settingsAudioTrueHdPassthrough": "TrueHD Passthrough",
   "@settingsAudioTrueHdPassthrough": {
     "description": "Setting for TrueHD passthrough"
-  },
-  "settingsAudioTrueHdAtmosPassthrough": "TrueHD Atmos Passthrough",
-  "@settingsAudioTrueHdAtmosPassthrough": {
-    "description": "Setting for TrueHD Atmos passthrough"
-  },
-  "settingsAudioBitstreamEac3ToExternalDecoder": "Bitstream Dolby Digital Plus (EAC3) to external decoder.",
-  "@settingsAudioBitstreamEac3ToExternalDecoder": {
-    "description": "Description for EAC3 passthrough"
-  },
-  "settingsAudioBitstreamEac3JocToExternalDecoder": "Bitstream Dolby Atmos over EAC3 (JOC) to external decoder.",
-  "@settingsAudioBitstreamEac3JocToExternalDecoder": {
-    "description": "Description for EAC3 JOC passthrough"
-  },
-  "settingsAudioBitstreamDtsHdToExternalDecoder": "Bitstream DTS-HD MA (includes DTS core) to external decoder.",
-  "@settingsAudioBitstreamDtsHdToExternalDecoder": {
-    "description": "Description for DTS-HD MA passthrough"
-  },
-  "settingsAudioBitstreamTrueHdAtmosToExternalDecoder": "Bitstream Dolby TrueHD with Atmos metadata to external decoder.",
-  "@settingsAudioBitstreamTrueHdAtmosToExternalDecoder": {
-    "description": "Description for TrueHD Atmos passthrough"
   },
   "settingsDetectedAudioCapabilities": "Detected Audio Capabilities",
   "@settingsDetectedAudioCapabilities": {
@@ -8529,9 +8501,6 @@
   "passthrough": "Passthrough",
   "supportedOnThisDevice": "Supported on this device",
   "notSupportedOnThisDevice": "Not Supported on this device",
-  "settingsAudioDtsXPassthrough": "DTS:X (DTS UHD) Passthrough",
-  "settingsAudioBitstreamDtsXToExternalDecoder": "Bitstream DTS:X (DTS UHD) to external decoder.",
-  "settingsAudioTrueHdJocPassthrough": "TrueHD with Atmos (JOC) Passthrough",
   "mediaPlayerBehavior": "Media Player Behavior",
   "playbackEnhancements": "Playback Enhancements",
   "alwaysOn": "Always on.",

@@ -340,18 +340,12 @@ class AppleTvMpvBackend implements PlayerBackend {
     return DeviceProfileBuilder.build(
       maxBitrateMbps: maxBitrate,
       audioCapabilityProfile: audioCapabilityProfile,
-      audioOutputMode: _prefs.resolveAudioOutputMode(),
       audioFallbackCodec: _prefs.resolveAudioFallbackCodec(),
       ac3PassthroughEnabled: _prefs.resolveAc3PassthroughEnabled(),
       eac3PassthroughEnabled: _prefs.resolveEac3PassthroughEnabled(),
-      eac3JocPassthroughEnabled: _prefs.resolveEac3JocPassthroughEnabled(),
       dtsCorePassthroughEnabled: _prefs.resolveDtsCorePassthroughEnabled(),
-      dtsHdPassthroughEnabled: _prefs.resolveDtsHdPassthroughEnabled(),
-      dtsXPassthroughEnabled: _prefs.resolveDtsXPassthroughEnabled(),
       trueHdPassthroughEnabled: _prefs.resolveTrueHdPassthroughEnabled(),
-      trueHdAtmosPassthroughEnabled: _prefs
-          .resolveTrueHdAtmosPassthroughEnabled(),
-      explicitPassthroughToggles: _prefs.explicitPassthroughToggles,
+      downmixToStereo: _prefs.get(UserPreferences.downmixToStereo),
       // AetherEngine plays every advertised audio codec: AAC/AC3/EAC3(+JOC
       // Atmos)/FLAC/ALAC are stream-copied intact, and TrueHD/DTS/MP3/Opus/
       // Vorbis/PCM are bridged to EAC3 or FLAC on-device, so stereo routes

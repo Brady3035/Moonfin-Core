@@ -2535,20 +2535,6 @@ class AppLocalizationsTh extends AppLocalizations {
       'เสียง Bitstream DTS เป็น AVR เท่านั้น ต้องการการสนับสนุนเครื่องรับและแทร็กต้นฉบับ DTS';
 
   @override
-  String get enableTrueHdAudio =>
-      'เปิดใช้งานเสียง TrueHD (อาจใช้ไม่ได้กับทุกแพลตฟอร์ม)';
-
-  @override
-  String get settingsAudioOutputMode => 'โหมดเอาต์พุตเสียง';
-
-  @override
-  String get settingsAudioOutputModeDescription =>
-      'เลือกวิธีถอดรหัสเสียง AVR Passthrough จะส่งสตรีม Dolby/DTS ดิบไปยังเครื่องรับของคุณ ส่วนอัตโนมัติหรือดาวน์มิกซ์จะถอดรหัสในเครื่อง';
-
-  @override
-  String get settingsAudioOutputModeAvrPassthrough => 'AVR พาสทรู';
-
-  @override
   String get settingsAudioFallbackCodec => 'ตัวแปลงสัญญาณสำรองเสียง';
 
   @override
@@ -2628,35 +2614,48 @@ class AppLocalizationsTh extends AppLocalizations {
   String get settingsAudioEac3Passthrough => 'EAC3 ส่งผ่าน';
 
   @override
-  String get settingsAudioEac3JocPassthrough => 'EAC3 JOC (บรรยากาศ) ส่งผ่าน';
-
-  @override
   String get settingsAudioDtsCorePassthrough => 'การส่งผ่านหลัก DTS';
 
   @override
   String get settingsAudioDtsHdPassthrough => 'ส่งผ่าน DTS-HD MA';
 
   @override
+  String get settingsAudioPassthroughMode => 'Passthrough';
+
+  @override
+  String get settingsAudioPassthroughModeDescription =>
+      'How compressed surround sound reaches your TV or receiver.';
+
+  @override
+  String get settingsAudioPassthroughModeDisabled =>
+      'Disabled (always decode on this device)';
+
+  @override
+  String get settingsAudioPassthroughModeAuto =>
+      'Auto (match detected device support)';
+
+  @override
+  String get settingsAudioPassthroughModeManual =>
+      'Manual (choose formats below)';
+
+  @override
+  String get settingsDownmixToStereoDescription =>
+      'Mix all decoded audio down to two channels.';
+
+  @override
+  String get settingsAudioEac3IncludesAtmos =>
+      'Bitstream E-AC-3, including Dolby Atmos (JOC).';
+
+  @override
+  String get settingsAudioDtsHdIncludesDtsX =>
+      'Bitstream DTS-HD, including DTS:X.';
+
+  @override
+  String get settingsAudioTrueHdIncludesAtmos =>
+      'Bitstream TrueHD, including Dolby Atmos.';
+
+  @override
   String get settingsAudioTrueHdPassthrough => 'TrueHD พาสทรู';
-
-  @override
-  String get settingsAudioTrueHdAtmosPassthrough => 'TrueHD Atmos ส่งผ่าน';
-
-  @override
-  String get settingsAudioBitstreamEac3ToExternalDecoder =>
-      'Bitstream Dolby Digital Plus (EAC3) ไปยังตัวถอดรหัสภายนอก';
-
-  @override
-  String get settingsAudioBitstreamEac3JocToExternalDecoder =>
-      'Bitstream Dolby Atmos บน EAC3 (JOC) ไปยังตัวถอดรหัสภายนอก';
-
-  @override
-  String get settingsAudioBitstreamDtsHdToExternalDecoder =>
-      'Bitstream DTS-HD MA (รวม DTS core) ไปยังตัวถอดรหัสภายนอก';
-
-  @override
-  String get settingsAudioBitstreamTrueHdAtmosToExternalDecoder =>
-      'Bitstream Dolby TrueHD พร้อมข้อมูลเมตา Atmos ไปยังตัวถอดรหัสภายนอก';
 
   @override
   String get settingsDetectedAudioCapabilities =>
@@ -9150,17 +9149,6 @@ class AppLocalizationsTh extends AppLocalizations {
 
   @override
   String get notSupportedOnThisDevice => 'ไม่รองรับอุปกรณ์นี้';
-
-  @override
-  String get settingsAudioDtsXPassthrough => 'DTS:X (DTS UHD) ส่งผ่าน';
-
-  @override
-  String get settingsAudioBitstreamDtsXToExternalDecoder =>
-      'Bitstream DTS:X (DTS UHD) ไปยังตัวถอดรหัสภายนอก';
-
-  @override
-  String get settingsAudioTrueHdJocPassthrough =>
-      'TrueHD พร้อม Atmos (JOC) ส่งผ่าน';
 
   @override
   String get mediaPlayerBehavior => 'พฤติกรรมของเครื่องเล่นมีเดีย';

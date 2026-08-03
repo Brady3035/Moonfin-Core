@@ -2689,6 +2689,13 @@ class AppLocalizationsBg extends AppLocalizations {
   String get settingsDetectedAudioCapabilities => 'Открити аудио възможности';
 
   @override
+  String get settingsShowAudioDecoderBanner => 'Show audio decoder';
+
+  @override
+  String get settingsShowAudioDecoderBannerDescription =>
+      'Briefly name the decoder handling the audio when playback starts.';
+
+  @override
   String get settingsDetectedAudioCapabilitiesUnavailable =>
       'Все още няма налична моментна снимка на възможностите за изпълнение.';
 

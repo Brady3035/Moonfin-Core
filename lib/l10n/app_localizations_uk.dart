@@ -2700,6 +2700,13 @@ class AppLocalizationsUk extends AppLocalizations {
   String get settingsDetectedAudioCapabilities => 'Виявлені аудіоможливості';
 
   @override
+  String get settingsShowAudioDecoderBanner => 'Show audio decoder';
+
+  @override
+  String get settingsShowAudioDecoderBannerDescription =>
+      'Briefly name the decoder handling the audio when playback starts.';
+
+  @override
   String get settingsDetectedAudioCapabilitiesUnavailable =>
       'Знімок можливостей середовища ще недоступний.';
 

@@ -38,6 +38,7 @@ import androidx.media3.common.Player
 import androidx.media3.common.TrackGroup
 import androidx.media3.common.TrackSelectionParameters
 import androidx.media3.common.TrackSelectionOverride
+import androidx.media3.common.Tracks
 import androidx.media3.common.VideoSize
 import androidx.media3.common.audio.AudioProcessor
 import androidx.media3.common.audio.BaseAudioProcessor
@@ -461,6 +462,26 @@ private class AdjustableAudioDelayProcessor : BaseAudioProcessor() {
     }
 }
 
+// The AudioTrack encoding as a name a bug report can be read against. PCM
+// means something decoded the stream, anything else means it was bitstreamed
+// to the receiver untouched.
+private fun encodingName(encoding: Int): String = when (encoding) {
+    C.ENCODING_PCM_8BIT -> "pcm8"
+    C.ENCODING_PCM_16BIT -> "pcm16"
+    C.ENCODING_PCM_16BIT_BIG_ENDIAN -> "pcm16be"
+    C.ENCODING_PCM_24BIT -> "pcm24"
+    C.ENCODING_PCM_32BIT -> "pcm32"
+    C.ENCODING_PCM_FLOAT -> "pcmFloat"
+    C.ENCODING_AC3 -> "ac3"
+    C.ENCODING_E_AC3 -> "eac3"
+    C.ENCODING_E_AC3_JOC -> "eac3joc"
+    C.ENCODING_AC4 -> "ac4"
+    C.ENCODING_DTS -> "dts"
+    C.ENCODING_DTS_HD -> "dtshd"
+    C.ENCODING_DOLBY_TRUEHD -> "truehd"
+    else -> "encoding $encoding"
+}
+
 // Once per process: the bundled FFmpeg audio extension runs against a media3
 // runtime forced to a different version (see android/build.gradle.kts), so a
 // broken registration would silently drop the renderer. Surfacing its state
@@ -715,6 +736,9 @@ class Media3VideoView(
         }
     // Guards the container/source-error transcode fallback against re-emitting.
     private var containerFallbackAttempted = false
+
+    // Last audio track mapping reported, so an unchanged one stays quiet.
+    private var lastAudioTrackMapping: List<Map<String, Any?>>? = null
 
     private var player: ExoPlayer
 
@@ -1181,9 +1205,13 @@ class Media3VideoView(
                 mapOf(
                     "event" to "audioTrackInitialized",
                     "encoding" to audioTrackConfig.encoding,
+                    "encodingName" to encodingName(audioTrackConfig.encoding),
                     "passthrough" to !Util.isEncodingLinearPcm(audioTrackConfig.encoding),
                     "sampleRate" to audioTrackConfig.sampleRate,
                     "channelConfig" to audioTrackConfig.channelConfig,
+                    // The CHANNEL_OUT mask is one bit per speaker, so the bit
+                    // count is the channel count the sink actually opened.
+                    "outputChannels" to Integer.bitCount(audioTrackConfig.channelConfig),
                     "tunneling" to audioTrackConfig.tunneling,
                     "offload" to audioTrackConfig.offload,
                     "bufferSize" to audioTrackConfig.bufferSize,
@@ -3556,8 +3584,7 @@ class Media3VideoView(
     ): List<TrackEntry> {
         val entries = mutableListOf<TrackEntry>()
 
-        for (group in player.currentTracks.groups) {
-            if (group.type != trackType) continue
+        for (group in groupsInSourceOrder(trackType)) {
             val mediaTrackGroup = group.mediaTrackGroup
             for (index in 0 until group.length) {
                 if (!accept(group.getTrackFormat(index))) continue
@@ -3568,6 +3595,46 @@ class Media3VideoView(
         }
 
         return entries
+    }
+
+    /**
+     * The groups of [trackType] in the order the source declared them.
+     *
+     * Tracks.groups arrives renderer by renderer, so a file whose audio tracks
+     * land on different renderers, one on a platform decoder and the other on
+     * the FFmpeg extension, hands them back shuffled. The 1-based positions
+     * built from that order are matched against the server's stream list, so a
+     * shuffle silently selects the wrong track. TrackGroup.id carries the
+     * source position, so sort by it and leave the order alone whenever any id
+     * is unreadable.
+     */
+    private fun groupsInSourceOrder(trackType: Int): List<Tracks.Group> {
+        val groups = player.currentTracks.groups.filter { it.type == trackType }
+        if (groups.size < 2) return groups
+
+        val keys = ArrayList<List<Int>>(groups.size)
+        for (group in groups) {
+            keys.add(sourceOrderKey(group.mediaTrackGroup.id) ?: return groups)
+        }
+        return groups.indices
+            .sortedWith { left, right -> compareSourceOrderKeys(keys[left], keys[right]) }
+            .map { groups[it] }
+    }
+
+    // Progressive sources number their groups "0", "1", "2", and a merged
+    // source (an external subtitle alongside the media) prefixes the child
+    // index as "0:1". Anything else is not a position and gives up.
+    private fun sourceOrderKey(id: String): List<Int>? {
+        if (id.isEmpty()) return null
+        return id.split(':').map { part -> part.toIntOrNull() ?: return null }
+    }
+
+    private fun compareSourceOrderKeys(left: List<Int>, right: List<Int>): Int {
+        for (index in 0 until maxOf(left.size, right.size)) {
+            val diff = left.getOrElse(index) { -1 }.compareTo(right.getOrElse(index) { -1 })
+            if (diff != 0) return diff
+        }
+        return 0
     }
 
     // Captions found inside the video are the player's own discovery and have
@@ -3620,9 +3687,7 @@ class Media3VideoView(
 
         // Numbering must mirror collectTracks (all tracks, including
         // unsupported ones) so a menu selection resolves to the same track.
-        for (group in player.currentTracks.groups) {
-            if (group.type != trackType) continue
-
+        for (group in groupsInSourceOrder(trackType)) {
             for (trackIndex in 0 until group.length) {
                 val format = group.getTrackFormat(trackIndex)
                 if (isClosedCaptionTrack(format)) continue
@@ -3686,6 +3751,68 @@ class Media3VideoView(
                 "subtitleRendererModeRequested" to requestedSubtitleRendererMode.wireValue,
             ),
         )
+        emitAudioTrackMapping()
+    }
+
+    /**
+     * Reports which renderer every audio track was mapped to, in the order the
+     * app numbers them. A file whose tracks span more than one renderer is the
+     * shape that used to shuffle the positions, so `splitAcrossRenderers` is
+     * the flag worth reading first in a bug report.
+     */
+    private fun emitAudioTrackMapping() {
+        val rendererNames = audioRendererNamesByGroup()
+        val tracks = mutableListOf<Map<String, Any?>>()
+        var position = 1
+
+        for (group in groupsInSourceOrder(C.TRACK_TYPE_AUDIO)) {
+            val rendererName = rendererNames[group.mediaTrackGroup] ?: "unmapped"
+            for (trackIndex in 0 until group.length) {
+                val format = group.getTrackFormat(trackIndex)
+                tracks.add(
+                    mapOf(
+                        "position" to position,
+                        "groupId" to group.mediaTrackGroup.id,
+                        "codec" to (format.sampleMimeType ?: ""),
+                        "channels" to format.channelCount,
+                        "language" to (format.language ?: ""),
+                        "renderer" to rendererName,
+                        "selected" to group.isTrackSelected(trackIndex),
+                        "supported" to group.isTrackSupported(trackIndex),
+                    ),
+                )
+                position += 1
+            }
+        }
+
+        if (tracks.isEmpty()) return
+        // Track changes fire on every selection, and the mapping only matters
+        // when it moves, so repeats of an unchanged list stay out of the log.
+        if (tracks == lastAudioTrackMapping) return
+        lastAudioTrackMapping = tracks
+
+        Media3Bridge.emitEvent(
+            mapOf(
+                "event" to "audioTrackMapping",
+                "splitAcrossRenderers" to (rendererNames.values.toSet().size > 1),
+                "tracks" to tracks,
+            ),
+        )
+    }
+
+    private fun audioRendererNamesByGroup(): Map<TrackGroup, String> {
+        val info = trackSelector.currentMappedTrackInfo ?: return emptyMap()
+        val names = mutableMapOf<TrackGroup, String>()
+        for (rendererIndex in 0 until info.rendererCount) {
+            if (info.getRendererType(rendererIndex) != C.TRACK_TYPE_AUDIO) continue
+            val name = runCatching { player.getRenderer(rendererIndex).name }
+                .getOrDefault("renderer $rendererIndex")
+            val groups = info.getTrackGroups(rendererIndex)
+            for (groupIndex in 0 until groups.length) {
+                names[groups.get(groupIndex)] = name
+            }
+        }
+        return names
     }
 
     private fun stateMap(): Map<String, Any> {

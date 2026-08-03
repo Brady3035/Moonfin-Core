@@ -1372,6 +1372,14 @@ class UserPreferences extends ChangeNotifier {
     defaultValue: false,
   );
 
+  /// Briefly names the decoder that handled the audio when playback starts.
+  /// Defaults on, since the answer is otherwise invisible without pulling a
+  /// log.
+  static final showAudioPathBanner = Preference(
+    key: 'show_audio_path_banner',
+    defaultValue: true,
+  );
+
   static final media3TunnelingDisabled = Preference(
     key: 'media3_tunneling_disabled',
     defaultValue: true,

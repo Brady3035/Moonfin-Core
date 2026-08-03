@@ -2704,6 +2704,13 @@ class AppLocalizationsCy extends AppLocalizations {
       'Galluoedd Sain Wedi\'u Canfod';
 
   @override
+  String get settingsShowAudioDecoderBanner => 'Show audio decoder';
+
+  @override
+  String get settingsShowAudioDecoderBannerDescription =>
+      'Briefly name the decoder handling the audio when playback starts.';
+
+  @override
   String get settingsDetectedAudioCapabilitiesUnavailable =>
       'Dim ciplun gallu runtime ar gael eto.';
 

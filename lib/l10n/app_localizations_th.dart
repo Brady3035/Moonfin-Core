@@ -2659,6 +2659,13 @@ class AppLocalizationsTh extends AppLocalizations {
       'ความสามารถด้านเสียงที่ตรวจพบ';
 
   @override
+  String get settingsShowAudioDecoderBanner => 'Show audio decoder';
+
+  @override
+  String get settingsShowAudioDecoderBannerDescription =>
+      'Briefly name the decoder handling the audio when playback starts.';
+
+  @override
   String get settingsDetectedAudioCapabilitiesUnavailable =>
       'ยังไม่มีสแนปช็อตความสามารถรันไทม์';
 

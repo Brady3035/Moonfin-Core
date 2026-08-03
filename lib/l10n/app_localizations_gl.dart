@@ -2708,6 +2708,13 @@ class AppLocalizationsGl extends AppLocalizations {
       'Capacidades de audio detectadas';
 
   @override
+  String get settingsShowAudioDecoderBanner => 'Show audio decoder';
+
+  @override
+  String get settingsShowAudioDecoderBannerDescription =>
+      'Briefly name the decoder handling the audio when playback starts.';
+
+  @override
   String get settingsDetectedAudioCapabilitiesUnavailable =>
       'Aínda non hai ningunha captura de capacidades en tempo de execución.';
 

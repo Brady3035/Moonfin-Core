@@ -17,6 +17,7 @@ import 'package:volume_controller/volume_controller.dart';
 import 'package:window_manager/window_manager.dart';
 
 import '../../../util/fullscreen_helper.dart';
+import '../../widgets/playback/audio_path_banner.dart';
 import '../../widgets/playback/seek_icons.dart';
 import '../../widgets/playback/trickplay_tile_image.dart';
 
@@ -3511,6 +3512,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
                         ),
                     ],
                     _buildBufferingIndicator(),
+                    _buildAudioPathBanner(),
                     _buildVolumeOverlay(),
                     if (PlatformDetection.useMobileUi)
                       _buildBrightnessOverlay(),
@@ -5608,6 +5610,25 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  // Only the Media3 backend reports a decoder, so the notifier stays null
+  // everywhere else and the banner never renders.
+  Widget _buildAudioPathBanner() {
+    if (!_prefs.get(UserPreferences.showAudioPathBanner)) {
+      return const SizedBox.shrink();
+    }
+    return Positioned(
+      left: 0,
+      right: 0,
+      bottom: 24,
+      child: SafeArea(
+        child: Align(
+          alignment: Alignment.bottomCenter,
+          child: AudioPathBanner(path: Media3PlayerBackend.audioPlaybackPath),
+        ),
       ),
     );
   }

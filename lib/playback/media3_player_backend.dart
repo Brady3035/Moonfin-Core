@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart' show visibleForTesting;
+import 'package:flutter/foundation.dart' show ValueNotifier, visibleForTesting;
 import 'package:flutter/services.dart';
 import 'package:get_it/get_it.dart';
 import 'package:playback_core/playback_core.dart';
@@ -10,6 +10,7 @@ import '../preference/preference_constants.dart';
 import '../preference/user_preferences.dart';
 import '../util/platform_detection.dart';
 
+import 'audio_playback_path.dart';
 import 'device_profile_builder.dart';
 import 'known_defects.dart';
 import 'server_transcode_capabilities.dart';
@@ -38,6 +39,11 @@ class Media3PlayerBackend extends PlayerBackend {
   /// first player build. Read by the playback diagnostics so silent-TrueHD
   /// reports show whether the bundled decoder registered at all.
   static Map<String, dynamic>? ffmpegDecoderDiagnostics;
+
+  /// How the audio of the current stream reached the output, or null before
+  /// the player has reported it.
+  static final ValueNotifier<AudioPlaybackPath?> audioPlaybackPath =
+      ValueNotifier<AudioPlaybackPath?>(null);
 
   /// The audio slice of the setDecoderPreferences payload. The native side
   /// constrains its audio sink and downmix from exactly these values, so this
@@ -296,11 +302,70 @@ class Media3PlayerBackend extends PlayerBackend {
         );
       case 'videoDecoderInit':
         _diag('Media3: video decoder initialized (${map['decoder'] ?? ''})');
+      case 'audioDecoderInit':
+        _onAudioDecoderInit(map['decoder']?.toString() ?? '');
+      case 'audioTrackInitialized':
+        _onAudioTrackInitialized(map);
+      case 'audioTrackMapping':
+        _onAudioTrackMapping(map);
       case 'videoSizeChanged':
         _diag(
           'Media3: video size ${_toInt(map['width'])}x${_toInt(map['height'])}',
         );
     }
+  }
+
+  void _onAudioDecoderInit(String decoder) {
+    _diag('Media3: audio decoder initialized ($decoder)');
+    final current = audioPlaybackPath.value ?? const AudioPlaybackPath();
+    audioPlaybackPath.value = current.withDecoder(decoder);
+  }
+
+  void _onAudioTrackInitialized(Map<String, dynamic> map) {
+    final passthrough = map['passthrough'] == true;
+    final encodingName = map['encodingName']?.toString() ?? '';
+    final channels = _toInt(map['outputChannels']);
+
+    _diag(
+      'Media3: audio track opened $encodingName ${channels}ch '
+      '@${_toInt(map['sampleRate'])}Hz '
+      '(passthrough=$passthrough tunneling=${map['tunneling'] == true} '
+      'offload=${map['offload'] == true} buffer=${_toInt(map['bufferSize'])}B)',
+    );
+
+    final current = audioPlaybackPath.value ?? const AudioPlaybackPath();
+    audioPlaybackPath.value = current.withOutput(
+      passthrough: passthrough,
+      encodingName: encodingName,
+      outputChannels: channels,
+    );
+  }
+
+  void _onAudioTrackMapping(Map<String, dynamic> map) {
+    final tracks = (map['tracks'] as List<dynamic>? ?? const [])
+        .whereType<Map<dynamic, dynamic>>()
+        .toList(growable: false);
+    if (tracks.isEmpty) return;
+
+    final rendered = tracks
+        .map(
+          (track) =>
+              '#${track['position']} ${track['codec']} '
+              '${track['channels']}ch ${track['language']} '
+              'on ${track['renderer']}'
+              '${track['selected'] == true ? ' [selected]' : ''}'
+              '${track['supported'] == false ? ' [unsupported]' : ''}',
+        )
+        .join(', ');
+
+    // Audio spanning more than one renderer is what makes the source ordering
+    // matter, so a report should say when it happened.
+    final split = map['splitAcrossRenderers'] == true;
+    _diag(
+      'Media3: audio tracks $rendered'
+      '${split ? ' (split across renderers)' : ''}',
+      level: split ? LogLevel.warning : LogLevel.info,
+    );
   }
 
   void _onTunnelingDiscontinuity() {
@@ -549,6 +614,9 @@ class Media3PlayerBackend extends PlayerBackend {
     }
     _skipSilenceEnabled = _prefs.get(UserPreferences.media3SkipSilence);
     _volumeBoostLevel = 0;
+    // The new source reports its own decoder and sink, so drop the old path
+    // rather than let the banner describe the previous item.
+    audioPlaybackPath.value = null;
     final preferredAudioLanguage = _normalizeTrackLanguagePref(
       payload['preferredAudioLanguage']?.toString() ??
           _prefs.get(UserPreferences.defaultAudioLanguage),

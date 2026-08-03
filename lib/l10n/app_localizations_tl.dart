@@ -2696,6 +2696,13 @@ class AppLocalizationsTl extends AppLocalizations {
       'Natukoy na Mga Kakayahang Audio';
 
   @override
+  String get settingsShowAudioDecoderBanner => 'Show audio decoder';
+
+  @override
+  String get settingsShowAudioDecoderBannerDescription =>
+      'Briefly name the decoder handling the audio when playback starts.';
+
+  @override
   String get settingsDetectedAudioCapabilitiesUnavailable =>
       'Wala pang available na snapshot ng kakayahan sa runtime.';
 

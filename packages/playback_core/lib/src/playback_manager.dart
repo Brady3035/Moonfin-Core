@@ -308,6 +308,22 @@ class PlaybackManager implements AudioOwnable {
     final audioStreamLang = _extractLanguage(audioStream);
     final subtitleStreamLang = _extractLanguage(subtitleStream);
 
+    // Lets the player open a chosen track straight away instead of starting on
+    // the container default and switching once the selection catches up. Only
+    // for a real selection, since without one the player's own language
+    // preference should decide, and not for the stripped streams where the
+    // server already picked.
+    final audioTrackOrdinal =
+        _embeddedTracksStripped || audioStreamIndex == null
+        ? null
+        : TrackOrdinalMapper.mpvTrackIdForStream(
+            streamIndex: audioStreamIndex,
+            type: 'Audio',
+            mediaStreams: mediaStreams,
+            externalSubtitles: null,
+            embeddedStripped: false,
+          );
+
     return <String, dynamic>{
       'url': url,
       if (container != null && container.isNotEmpty) 'container': container,
@@ -319,6 +335,7 @@ class PlaybackManager implements AudioOwnable {
         if (audioStream['Channels'] is int) 'audioChannels': audioStream['Channels'],
         if (audioStream['Index'] is int) 'audioStreamIndex': audioStream['Index'],
       },
+      if (audioTrackOrdinal != null) 'audioTrackOrdinal': audioTrackOrdinal,
       if (audioStreamLang != null) 'preferredAudioLanguage': audioStreamLang,
       if (subtitleStreamLang != null)
         'preferredTextLanguage': subtitleStreamLang,
@@ -1799,6 +1816,17 @@ class PlaybackManager implements AudioOwnable {
         await _backend?.setAudioTrack(mpvId);
       } else {
         _waitAndApplyTrackSelections(_playbackSessionToken);
+      }
+    } else if (_currentResolution?.playMethod == StreamPlayMethod.directPlay &&
+        (_backend?.supportsDirectPlayAudioSwitch ?? false)) {
+      // Every embedded track is already in a direct-played stream, so a
+      // re-resolve would tear the player down and rebuild it for a track it
+      // already has. The next progress report carries the new index anyway.
+      final ordinal = _mpvTrackIdForStream(streamIndex, 'Audio');
+      if (ordinal != null) {
+        await _backend?.setAudioTrack(ordinal);
+      } else {
+        await _reResolveAtCurrentPosition();
       }
     } else {
       await _reResolveAtCurrentPosition();

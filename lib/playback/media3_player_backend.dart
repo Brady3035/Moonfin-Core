@@ -666,6 +666,8 @@ class Media3PlayerBackend extends PlayerBackend {
       'skipSilenceEnabled': _skipSilenceEnabled,
       'preferredAudioLanguage': preferredAudioLanguage,
       'preferredTextLanguage': preferredSubtitleLanguage,
+      if (payload['audioTrackOrdinal'] is int)
+        'audioTrackOrdinal': payload['audioTrackOrdinal'],
       'selectUndeterminedTextLanguage': false,
       'forceSubtitlesDisabledOnStart':
           _prefs.get(UserPreferences.subtitleMode) == SubtitleMode.none,
@@ -1054,6 +1056,9 @@ class Media3PlayerBackend extends PlayerBackend {
 
   @override
   bool get supportsRuntimeTrackSelection => true;
+
+  @override
+  bool get supportsDirectPlayAudioSwitch => true;
 
   @override
   bool get requiresStartupMediaReadyCheck => false;

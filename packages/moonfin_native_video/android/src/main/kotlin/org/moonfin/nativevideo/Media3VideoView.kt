@@ -2041,7 +2041,12 @@ class Media3VideoView(
         pendingSubtitleIsExternal = null
         pendingSubtitleIsBitmap = null
         pendingExternalSubtitleUrl = null
-        pendingAudioIndex = null
+        // The first onTracksChanged applies this while the player is still
+        // buffering, so playback starts on the requested track rather than
+        // opening the container default and switching once it lands.
+        pendingAudioIndex = (args["audioTrackOrdinal"] as? Number)
+            ?.toInt()
+            ?.takeIf { it > 0 }
         pendingClosedCaptionId = null
         firstFrameRendered = false
         firstFrameCover.visibility = View.VISIBLE

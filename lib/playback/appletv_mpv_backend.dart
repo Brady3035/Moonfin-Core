@@ -669,6 +669,9 @@ class AppleTvMpvBackend implements PlayerBackend {
   bool get supportsRuntimeTrackSelection => true;
 
   @override
+  bool get supportsDirectPlayAudioSwitch => false;
+
+  @override
   bool get requiresStartupMediaReadyCheck => false;
 
   @override

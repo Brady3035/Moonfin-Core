@@ -2568,9 +2568,6 @@ class AppLocalizationsPa extends AppLocalizations {
   String get settingsAudioFallbackCodecEac3 => 'EAC3\n(Dolby Digital Plus)';
 
   @override
-  String get settingsAudioFallbackCodecTrueHd => 'TrueHD\n(ਨੁਕਸਾਨ-ਰਹਿਤ)';
-
-  @override
   String get settingsAudioFallbackCodecMp3 => 'MP3\n(ਸਿਰਫ ਸਟੀਰੀਓ)';
 
   @override

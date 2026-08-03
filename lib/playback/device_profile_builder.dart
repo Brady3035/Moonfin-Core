@@ -60,10 +60,16 @@ class DeviceProfileBuilder {
     'vorbis',
   ];
 
+  // What each HLS container can carry. A video transcode advertises every one
+  // of these it also direct plays, so the server copies the audio stream and
+  // only re-encodes a source codec that isn't listed. TrueHD and MLP are the
+  // only codecs left off, which is what confines a re-encode to them.
   static const List<String> _hlsMpegTsAudioCodecs = <String>[
     'aac',
     'ac3',
+    'dts',
     'eac3',
+    'mp2',
     'mp3',
   ];
 
@@ -111,16 +117,10 @@ class DeviceProfileBuilder {
     // shapes the transcode fallback codec, not what direct plays.
     bool downmixToStereo = false,
     // The player decodes every advertised audio codec in software (FFmpeg),
-    // so the output route limits rendering, not decoding: stereo-only routes
-    // still direct-play multichannel/compressed audio and downmix locally.
+    // so nothing about the output route can force a server transcode: every
+    // codec direct plays and the player decodes, bitstreams or downmixes it
+    // locally. Detection never subtracts from the advertised list.
     bool universalAudioDecode = false,
-    // Media3 only. Plain ARC carries stereo PCM at most, so a local TrueHD
-    // decode collapses to 2.0 while a server EAC3 transcode keeps 5.1 through
-    // the receiver. When set, TrueHD/MLP are advertised on an ARC route only
-    // with genuine TrueHD passthrough. Every other route direct plays and
-    // decodes locally. Backends whose own output path handles this (mpv on
-    // media_kit and tvOS) leave it false.
-    bool losslessTranscodesOnArcWithoutPassthrough = false,
     MaxVideoResolution maxResolution = MaxVideoResolution.auto,
     bool pgsDirectPlay = true,
     bool assDirectPlay = true,
@@ -269,8 +269,6 @@ class DeviceProfileBuilder {
                   codec: codec,
                   capabilityProfile: capabilityProfile,
                   universalAudioDecode: universalAudioDecode,
-                  losslessTranscodesOnArcWithoutPassthrough:
-                      losslessTranscodesOnArcWithoutPassthrough,
                   ac3PassthroughEnabled: ac3PassthroughEnabled,
                   eac3PassthroughEnabled: eac3PassthroughEnabled,
                   dtsCorePassthroughEnabled: dtsCorePassthroughEnabled,
@@ -286,9 +284,10 @@ class DeviceProfileBuilder {
             forceStereo: forceStereo,
           );
 
-    final mpegTsAudioCodecs = _mpegTsAudioCodecsForFallback(
+    final mpegTsAudioCodecs = _hlsAudioCodecsForFallback(
       effectiveAudioFallbackCodec: effectiveAudioFallbackCodec,
       allowedAudioCodecs: effectiveAllowedAudioCodecs,
+      containerAudioCodecs: _hlsMpegTsAudioCodecs,
     );
 
     // Offer HEVC as a transcode target only when the server's encoding options
@@ -358,9 +357,10 @@ class DeviceProfileBuilder {
         'Container': 'mp4',
         'Protocol': 'hls',
         'VideoCodec': hlsVideoCodecs,
-        'AudioCodec': _fmp4AudioCodecsForFallback(
+        'AudioCodec': _hlsAudioCodecsForFallback(
           effectiveAudioFallbackCodec: effectiveAudioFallbackCodec,
           allowedAudioCodecs: effectiveAllowedAudioCodecs,
+          containerAudioCodecs: _hlsFmp4AudioCodecs,
         ).join(','),
         'CopyTimestamps': false,
         'EnableSubtitlesInManifest': true,
@@ -839,98 +839,55 @@ class DeviceProfileBuilder {
     return AudioFallbackCodec.auto;
   }
 
-  static List<String> _mpegTsAudioCodecsForFallback({
+  // Where the fallback preference steers an audio re-encode. The order only
+  // decides the target the server encodes to when it has to encode at all,
+  // which under a video transcode means a TrueHD or MLP source.
+  static List<String> _fallbackTargetOrder(AudioFallbackCodec codec) =>
+      switch (codec) {
+        AudioFallbackCodec.auto => const <String>[],
+        AudioFallbackCodec.aac => const <String>['aac', 'opus', 'mp3'],
+        AudioFallbackCodec.ac3 => const <String>['ac3', 'opus', 'aac', 'mp3'],
+        AudioFallbackCodec.eac3 => const <String>[
+          'eac3',
+          'ac3',
+          'opus',
+          'aac',
+          'mp3',
+        ],
+        AudioFallbackCodec.mp3 => const <String>['mp3', 'opus', 'aac'],
+        AudioFallbackCodec.opus => const <String>['opus', 'aac', 'mp3'],
+        AudioFallbackCodec.flac => const <String>['flac', 'opus', 'aac', 'mp3'],
+      };
+
+  static List<String> _hlsAudioCodecsForFallback({
     required AudioFallbackCodec effectiveAudioFallbackCodec,
     required List<String> allowedAudioCodecs,
+    required List<String> containerAudioCodecs,
   }) {
-    final preferredTargets = switch (effectiveAudioFallbackCodec) {
-      AudioFallbackCodec.auto => _hlsMpegTsAudioCodecs,
-      AudioFallbackCodec.aac => const <String>['aac', 'opus', 'mp3'],
-      AudioFallbackCodec.ac3 => const <String>['ac3', 'opus', 'aac', 'mp3'],
-      AudioFallbackCodec.eac3 => const <String>[
-        'eac3',
-        'ac3',
-        'opus',
-        'aac',
-        'mp3',
-      ],
-      AudioFallbackCodec.truehd => const <String>[
-        'truehd',
-        'flac',
-        'eac3',
-        'ac3',
-        'opus',
-        'aac',
-        'mp3',
-      ],
-      AudioFallbackCodec.mp3 => const <String>['mp3', 'opus', 'aac'],
-      AudioFallbackCodec.opus => const <String>['opus', 'aac', 'mp3'],
-      AudioFallbackCodec.flac => const <String>['flac', 'opus', 'aac', 'mp3'],
-    };
-
-    return preferredTargets
+    final ordered = <String>[
+      ..._fallbackTargetOrder(effectiveAudioFallbackCodec),
+      ...containerAudioCodecs,
+    ];
+    final seen = <String>{};
+    return ordered
+        .where(containerAudioCodecs.contains)
         .where(allowedAudioCodecs.contains)
-        .where(_hlsMpegTsAudioCodecs.contains)
+        .where(seen.add)
         .toList(growable: false);
-  }
-
-  static List<String> _fmp4AudioCodecsForFallback({
-    required AudioFallbackCodec effectiveAudioFallbackCodec,
-    required List<String> allowedAudioCodecs,
-  }) {
-    final primaryTarget = switch (effectiveAudioFallbackCodec) {
-      AudioFallbackCodec.auto => null,
-      AudioFallbackCodec.aac => 'aac',
-      AudioFallbackCodec.ac3 => 'ac3',
-      AudioFallbackCodec.eac3 => 'eac3',
-      AudioFallbackCodec.truehd => 'truehd',
-      AudioFallbackCodec.mp3 => 'mp3',
-      AudioFallbackCodec.opus => 'opus',
-      AudioFallbackCodec.flac => 'flac',
-    };
-
-    final order = <String>[];
-    if (primaryTarget != null && _hlsFmp4AudioCodecs.contains(primaryTarget)) {
-      order.add(primaryTarget);
-    }
-    for (final c in _hlsFmp4AudioCodecs) {
-      if (!order.contains(c)) {
-        order.add(c);
-      }
-    }
-
-    return order.where(allowedAudioCodecs.contains).toList(growable: false);
   }
 
   static bool _isAudioCodecAllowed({
     required String codec,
     required AudioCapabilityProfile capabilityProfile,
     bool universalAudioDecode = false,
-    bool losslessTranscodesOnArcWithoutPassthrough = false,
     required bool ac3PassthroughEnabled,
     required bool eac3PassthroughEnabled,
     required bool dtsCorePassthroughEnabled,
     required bool trueHdPassthroughEnabled,
   }) {
-    if (universalAudioDecode) {
-      if (codec == 'truehd' || codec == 'mlp') {
-        // A player without a TrueHD decoder has to let the server transcode.
-        if (!capabilityProfile.canDecodeTrueHd) return false;
-        // The passthrough check is belt and braces: the capability profile
-        // already strips TrueHD passthrough on ARC, so this only survives
-        // when the probe genuinely reported an HD-capable route.
-        if (losslessTranscodesOnArcWithoutPassthrough &&
-            capabilityProfile.activeRouteType == AudioRouteType.arc &&
-            !(trueHdPassthroughEnabled &&
-                capabilityProfile.canPassthroughTrueHd)) {
-          return false;
-        }
-        // Every other route renders the local decode faithfully: multichannel
-        // PCM over HDMI/eARC, or the device's own downmix elsewhere.
-        return true;
-      }
-      return true;
-    }
+    // A failed capability probe means the player picks a different local
+    // route, never that the server has to re-encode.
+    if (universalAudioDecode) return true;
 
     return _isAudioCodecDecodeSupported(codec, capabilityProfile) ||
         _isAudioCodecPassthroughEnabled(

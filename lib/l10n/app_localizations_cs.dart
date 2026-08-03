@@ -2588,9 +2588,6 @@ class AppLocalizationsCs extends AppLocalizations {
   String get settingsAudioFallbackCodecEac3 => 'EAC3\n(Dolby Digital Plus)';
 
   @override
-  String get settingsAudioFallbackCodecTrueHd => 'TrueHD\n(bezztrátový)';
-
-  @override
   String get settingsAudioFallbackCodecMp3 => 'MP3\n(pouze stereo)';
 
   @override

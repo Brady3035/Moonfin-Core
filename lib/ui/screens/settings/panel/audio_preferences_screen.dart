@@ -378,8 +378,6 @@ class _AudioPreferencesScreenState extends State<_AudioPreferencesScreen> {
                       l10n.settingsAudioFallbackCodecAc3,
                     AudioFallbackCodec.eac3 =>
                       l10n.settingsAudioFallbackCodecEac3,
-                    AudioFallbackCodec.truehd =>
-                      l10n.settingsAudioFallbackCodecTrueHd,
                     AudioFallbackCodec.mp3 =>
                       l10n.settingsAudioFallbackCodecMp3,
                     AudioFallbackCodec.opus =>

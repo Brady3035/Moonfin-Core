@@ -4660,12 +4660,6 @@ abstract class AppLocalizations {
   /// **'EAC3\n(Dolby Digital Plus)'**
   String get settingsAudioFallbackCodecEac3;
 
-  /// Fallback codec option: TrueHD
-  ///
-  /// In en, this message translates to:
-  /// **'TrueHD\n(Lossless)'**
-  String get settingsAudioFallbackCodecTrueHd;
-
   /// Fallback codec option: MP3
   ///
   /// In en, this message translates to:

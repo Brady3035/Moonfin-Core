@@ -2505,9 +2505,6 @@ class AppLocalizationsYue extends AppLocalizations {
   String get settingsAudioFallbackCodecEac3 => 'EAC3\n（Dolby Digital Plus）';
 
   @override
-  String get settingsAudioFallbackCodecTrueHd => 'TrueHD\n（無損）';
-
-  @override
   String get settingsAudioFallbackCodecMp3 => 'MP3\n（淨係支援立體聲）';
 
   @override

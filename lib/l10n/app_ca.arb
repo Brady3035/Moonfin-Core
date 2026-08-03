@@ -7399,10 +7399,6 @@
     "@settingsAudioFallbackCodecAc3": {
         "description": "Fallback codec option: AC3"
     },
-    "settingsAudioFallbackCodecTrueHd": "TrueHD\n(Sense perdues)",
-    "@settingsAudioFallbackCodecTrueHd": {
-        "description": "Fallback codec option: TrueHD"
-    },
     "settingsAudioFallbackCodecFlac": "FLAC\n(Sense perdua)",
     "@settingsAudioFallbackCodecFlac": {
         "description": "Fallback codec option: FLAC"

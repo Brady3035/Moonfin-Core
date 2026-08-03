@@ -2584,9 +2584,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settingsAudioFallbackCodecEac3 => 'EAC3\n(Dolby Digital Plus)';
 
   @override
-  String get settingsAudioFallbackCodecTrueHd => 'TrueHD\n(Sem perdas)';
-
-  @override
   String get settingsAudioFallbackCodecMp3 => 'MP3\n(Apenas Estéreo)';
 
   @override
@@ -12942,9 +12939,6 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
   String get settingsAudioFallbackCodecEac3 => 'EAC3\n(Dolby Digital Plus)';
 
   @override
-  String get settingsAudioFallbackCodecTrueHd => 'TrueHD\n(Sem perdas)';
-
-  @override
   String get settingsAudioFallbackCodecMp3 => 'MP3\n(Somente estéreo)';
 
   @override
@@ -23032,9 +23026,6 @@ class AppLocalizationsPtPt extends AppLocalizationsPt {
 
   @override
   String get settingsAudioFallbackCodecEac3 => 'EAC3\n(Dolby Digital Plus)';
-
-  @override
-  String get settingsAudioFallbackCodecTrueHd => 'TrueHD\n(Sem perdas)';
 
   @override
   String get settingsAudioFallbackCodecMp3 => 'MP3\n(Apenas estéreo)';

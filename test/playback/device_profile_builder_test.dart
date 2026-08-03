@@ -176,50 +176,29 @@ Set<String> _videoDirectPlayVideoCodecs(Map<String, dynamic> profile) {
   return <String>{};
 }
 
-Set<String> _hlsMpegTsAudioCodecs(Map<String, dynamic> profile) {
+List<String> _transcodingAudioCodecList(
+  Map<String, dynamic> profile,
+  String container,
+) {
   final transcodingProfiles =
       profile['TranscodingProfiles'] as List<dynamic>? ?? const [];
 
   for (final rawProfile in transcodingProfiles) {
     final transcoding = rawProfile as Map<dynamic, dynamic>;
     if (transcoding['Type'] != 'Video' ||
-        transcoding['Container'] != 'ts' ||
+        transcoding['Container'] != container ||
         transcoding['Protocol'] != 'hls') {
       continue;
     }
 
-    final value = transcoding['AudioCodec']?.toString() ?? '';
-    return value
+    return (transcoding['AudioCodec']?.toString() ?? '')
         .split(',')
         .map((token) => token.trim())
         .where((token) => token.isNotEmpty)
-        .toSet();
+        .toList(growable: false);
   }
 
-  return <String>{};
-}
-
-Set<String> _hlsFmp4AudioCodecs(Map<String, dynamic> profile) {
-  final transcodingProfiles =
-      profile['TranscodingProfiles'] as List<dynamic>? ?? const [];
-
-  for (final rawProfile in transcodingProfiles) {
-    final transcoding = rawProfile as Map<dynamic, dynamic>;
-    if (transcoding['Type'] != 'Video' ||
-        transcoding['Container'] != 'mp4' ||
-        transcoding['Protocol'] != 'hls') {
-      continue;
-    }
-
-    final value = transcoding['AudioCodec']?.toString() ?? '';
-    return value
-        .split(',')
-        .map((token) => token.trim())
-        .where((token) => token.isNotEmpty)
-        .toSet();
-  }
-
-  return <String>{};
+  return const <String>[];
 }
 
 AudioCapabilityProfile _capabilityProfile({
@@ -521,7 +500,7 @@ void main() {
 
       expect(_videoDirectPlayAudioCodecs(profile), contains('truehd'));
 
-      final fmp4 = _hlsFmp4AudioCodecs(profile);
+      final fmp4 = _transcodingAudioCodecList(profile, 'mp4');
       expect(fmp4, isNot(contains('truehd')));
       expect(
         fmp4.any({'aac', 'ac3', 'eac3'}.contains),
@@ -639,8 +618,11 @@ void main() {
         ),
       );
 
-      final codecs = _hlsMpegTsAudioCodecs(profile);
-      expect(codecs, equals(<String>{'eac3', 'ac3', 'aac', 'mp3'}));
+      final codecs = _transcodingAudioCodecList(profile, 'ts');
+      expect(
+        codecs,
+        equals(<String>['eac3', 'ac3', 'aac', 'mp3', 'dts', 'mp2']),
+      );
     });
 
     test(
@@ -713,36 +695,47 @@ void main() {
 
     test(
       'never transcodes for audio: every supported codec is advertised across '
-      'routes and toggle states',
+      'routes, toggle states and failed capability probes',
       () {
-        const nonLossless = <String>[
+        const everyCodec = <String>[
           'ac3',
           'eac3',
           'dts',
           'dca',
+          'truehd',
+          'mlp',
           'flac',
           'opus',
           'aac',
         ];
         for (final route in AudioRouteType.values) {
           for (final togglesOn in const <bool>[false, true]) {
-            final profile = DeviceProfileBuilder.build(
-              audioCapabilityProfile: _capabilityProfile(
-                activeRouteType: route,
-              ),
-              universalAudioDecode: true,
-              losslessTranscodesOnArcWithoutPassthrough: true,
-              ac3PassthroughEnabled: togglesOn,
-              eac3PassthroughEnabled: togglesOn,
-              dtsCorePassthroughEnabled: togglesOn,
-              trueHdPassthroughEnabled: togglesOn,
-            );
+            for (final canDecode in const <bool>[false, true]) {
+              final profile = DeviceProfileBuilder.build(
+                audioCapabilityProfile: _capabilityProfile(
+                  activeRouteType: route,
+                  canDecodeAc3: canDecode,
+                  canDecodeEac3: canDecode,
+                  canDecodeDts: canDecode,
+                  canDecodeDtsHd: canDecode,
+                  canDecodeTrueHd: canDecode,
+                  canDecodeFlac: canDecode,
+                ),
+                universalAudioDecode: true,
+                ac3PassthroughEnabled: togglesOn,
+                eac3PassthroughEnabled: togglesOn,
+                dtsCorePassthroughEnabled: togglesOn,
+                trueHdPassthroughEnabled: togglesOn,
+              );
 
-            expect(
-              _videoDirectPlayAudioCodecs(profile),
-              containsAll(nonLossless),
-              reason: 'route: ${route.name}, toggles: $togglesOn',
-            );
+              expect(
+                _videoDirectPlayAudioCodecs(profile),
+                containsAll(everyCodec),
+                reason:
+                    'route: ${route.name}, toggles: $togglesOn, '
+                    'canDecode: $canDecode',
+              );
+            }
           }
         }
       },
@@ -827,129 +820,56 @@ void main() {
     });
   });
 
-  group('DeviceProfileBuilder TrueHD ARC carve-out (media3)', () {
-    test(
-      'arc route drops truehd/mlp so the server EAC3 transcode keeps 5.1',
-      () {
-        final profile = DeviceProfileBuilder.build(
-          audioCapabilityProfile: _capabilityProfile(
-            activeRouteType: AudioRouteType.arc,
-          ),
-          universalAudioDecode: true,
-          losslessTranscodesOnArcWithoutPassthrough: true,
-        );
-
-        final codecs = _videoDirectPlayAudioCodecs(profile);
-        expect(codecs, isNot(contains('truehd')));
-        expect(codecs, isNot(contains('mlp')));
-        // Non-lossless codecs are untouched by the carve-out.
-        expect(codecs, containsAll(<String>['ac3', 'eac3', 'flac']));
-      },
-    );
-
-    test('hdmi and earc keep truehd even with the passthrough toggle off '
-        '(multichannel PCM renders the local decode faithfully)', () {
-      for (final route in const <AudioRouteType>[
-        AudioRouteType.hdmi,
-        AudioRouteType.earc,
-      ]) {
+  group('DeviceProfileBuilder audio transcode targets', () {
+    test('TrueHD is never offered as a transcode target, since Jellyfin '
+        "can't repackage it and the stream lands silent", () {
+      for (final route in AudioRouteType.values) {
         final profile = DeviceProfileBuilder.build(
           audioCapabilityProfile: _capabilityProfile(activeRouteType: route),
           universalAudioDecode: true,
-          losslessTranscodesOnArcWithoutPassthrough: true,
-          trueHdPassthroughEnabled: false,
         );
 
-        expect(
-          _videoDirectPlayAudioCodecs(profile),
-          containsAll(<String>['truehd', 'mlp']),
-          reason: 'route: ${route.name}',
-        );
+        for (final container in const <String>['ts', 'mp4']) {
+          final codecs = _transcodingAudioCodecList(profile, container);
+          expect(codecs, isNot(contains('truehd')));
+          expect(codecs, isNot(contains('mlp')));
+        }
       }
     });
 
-    test(
-      'headphones and bluetooth routes keep truehd (pure local FFmpeg decode)',
-      () {
-        for (final route in <AudioRouteType>[
-          AudioRouteType.headphones,
-          AudioRouteType.bluetooth,
-        ]) {
-          final profile = DeviceProfileBuilder.build(
-            audioCapabilityProfile: _capabilityProfile(activeRouteType: route),
-            universalAudioDecode: true,
-            losslessTranscodesOnArcWithoutPassthrough: true,
-          );
+    test('every direct-played codec the container carries is also offered for '
+        'transcode, so the server copies audio instead of encoding it', () {
+      final profile = DeviceProfileBuilder.build(universalAudioDecode: true);
 
-          expect(
-            _videoDirectPlayAudioCodecs(profile),
-            containsAll(<String>['truehd', 'mlp']),
-            reason: 'route: $route',
-          );
-        }
-      },
-    );
-
-    test('arc keeps truehd only when the probe genuinely reported TrueHD '
-        'passthrough and the toggle is on', () {
-      final kept = DeviceProfileBuilder.build(
-        audioCapabilityProfile: _capabilityProfile(
-          activeRouteType: AudioRouteType.arc,
-          canPassthroughTrueHd: true,
-        ),
-        universalAudioDecode: true,
-        losslessTranscodesOnArcWithoutPassthrough: true,
-        trueHdPassthroughEnabled: true,
+      expect(
+        _transcodingAudioCodecList(profile, 'ts'),
+        containsAll(<String>['aac', 'ac3', 'eac3', 'dts', 'mp3']),
       );
       expect(
-        _videoDirectPlayAudioCodecs(kept),
-        containsAll(<String>['truehd', 'mlp']),
+        _transcodingAudioCodecList(profile, 'mp4'),
+        containsAll(<String>['aac', 'ac3', 'eac3', 'dts', 'flac', 'opus']),
       );
-
-      final dropped = DeviceProfileBuilder.build(
-        audioCapabilityProfile: _capabilityProfile(
-          activeRouteType: AudioRouteType.arc,
-          canPassthroughTrueHd: false,
-        ),
-        universalAudioDecode: true,
-        losslessTranscodesOnArcWithoutPassthrough: true,
-        trueHdPassthroughEnabled: true,
-      );
-      expect(_videoDirectPlayAudioCodecs(dropped), isNot(contains('truehd')));
     });
 
-    test(
-      'a player without a TrueHD decoder still lets the server transcode',
-      () {
-        // Android hard-overrides canDecodeTrueHd to true (FFmpeg is bundled),
-        // so this pin needs a platform where the probe value is respected.
-        debugDefaultTargetPlatformOverride = TargetPlatform.linux;
-        addTearDown(() => debugDefaultTargetPlatformOverride = null);
-
-        final profile = DeviceProfileBuilder.build(
-          audioCapabilityProfile: _capabilityProfile(canDecodeTrueHd: false),
-          universalAudioDecode: true,
-        );
-
-        final codecs = _videoDirectPlayAudioCodecs(profile);
-        expect(codecs, isNot(contains('truehd')));
-        expect(codecs, isNot(contains('mlp')));
-      },
-    );
-
-    test('arc keeps truehd when the flag is not set (Apple TV and media_kit '
-        'decode locally via mpv)', () {
+    test('the fallback preference only decides the encode target and never '
+        'drops a copyable codec', () {
       final profile = DeviceProfileBuilder.build(
-        audioCapabilityProfile: _capabilityProfile(
-          activeRouteType: AudioRouteType.arc,
-        ),
         universalAudioDecode: true,
+        audioFallbackCodec: AudioFallbackCodec.eac3,
       );
 
-      expect(
-        _videoDirectPlayAudioCodecs(profile),
-        containsAll(<String>['truehd', 'mlp']),
-      );
+      final tsCodecs = _transcodingAudioCodecList(profile, 'ts');
+      expect(tsCodecs.first, 'eac3');
+      expect(tsCodecs, containsAll(<String>['aac', 'ac3', 'dts', 'mp3']));
+    });
+
+    test('a stereo cap keeps the transcode offer stereo-safe', () {
+      final profile = DeviceProfileBuilder.build(maxAudioChannels: 2);
+
+      final tsCodecs = _transcodingAudioCodecList(profile, 'ts');
+      expect(tsCodecs, isNot(contains('ac3')));
+      expect(tsCodecs, isNot(contains('dts')));
+      expect(tsCodecs, contains('aac'));
     });
   });
 

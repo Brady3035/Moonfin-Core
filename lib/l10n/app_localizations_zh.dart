@@ -2502,9 +2502,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsAudioFallbackCodecEac3 => 'EAC3\n（Dolby Digital Plus）';
 
   @override
-  String get settingsAudioFallbackCodecTrueHd => 'TrueHD\n（无损）';
-
-  @override
   String get settingsAudioFallbackCodecMp3 => 'MP3\n（仅立体声）';
 
   @override
@@ -12359,9 +12356,6 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get settingsAudioFallbackCodecEac3 => 'EAC3\n（Dolby Digital Plus）';
-
-  @override
-  String get settingsAudioFallbackCodecTrueHd => 'TrueHD\n（無損）';
 
   @override
   String get settingsAudioFallbackCodecMp3 => 'MP3\n（僅支援立體聲）';

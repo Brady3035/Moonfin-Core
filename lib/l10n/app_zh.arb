@@ -7331,7 +7331,6 @@
     "settingsAudioFallbackCodecAac": "AAC\n（默认）",
     "settingsAudioFallbackCodecAc3": "AC3\n（Dolby Digital）",
     "settingsAudioFallbackCodecEac3": "EAC3\n（Dolby Digital Plus）",
-    "settingsAudioFallbackCodecTrueHd": "TrueHD\n（无损）",
     "settingsAudioFallbackCodecMp3": "MP3\n（仅立体声）",
     "settingsAudioFallbackCodecOpus": "Opus\n（高效）",
     "settingsAudioFallbackCodecFlac": "FLAC\n（无损）",

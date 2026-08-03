@@ -62,7 +62,10 @@ import androidx.media3.exoplayer.analytics.AnalyticsListener
 import androidx.media3.exoplayer.audio.AudioRendererEventListener
 import androidx.media3.exoplayer.audio.AudioSink
 import androidx.media3.exoplayer.audio.DefaultAudioSink
+import androidx.media3.exoplayer.audio.MediaCodecAudioRenderer
 import androidx.media3.exoplayer.Renderer
+import androidx.media3.exoplayer.RendererCapabilities
+import androidx.media3.exoplayer.mediacodec.MediaCodecAdapter
 import androidx.media3.exoplayer.mediacodec.MediaCodecInfo
 import androidx.media3.exoplayer.mediacodec.MediaCodecSelector
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
@@ -98,6 +101,7 @@ private class MoonfinRenderersFactory(
     private val channelMixingProcessor: ChannelMixingAudioProcessor,
     private val preferSoftwareAv1Renderer: Boolean,
     private val passthroughPolicy: AudioPassthroughPolicy,
+    private val stereoDownmixRequested: () -> Boolean,
 ) : DefaultRenderersFactory(context) {
     override fun buildVideoRenderers(
         context: Context,
@@ -159,16 +163,33 @@ private class MoonfinRenderersFactory(
         eventListener: AudioRendererEventListener,
         out: ArrayList<Renderer>,
     ) {
+        val selector = MoonfinAudioMediaCodecSelector(mediaCodecSelector)
         super.buildAudioRenderers(
             context,
             extensionRendererMode,
-            MoonfinAudioMediaCodecSelector(mediaCodecSelector),
+            selector,
             enableDecoderFallback,
             audioSink,
             eventHandler,
             eventListener,
             out,
         )
+        // Swapping into super's output keeps the extension renderers it loads
+        // by reflection, including the FFmpeg decoder the steering hands work
+        // to.
+        val index = out.indexOfFirst { it is MediaCodecAudioRenderer }
+        if (index >= 0) {
+            out[index] = SteeredMediaCodecAudioRenderer(
+                context = context,
+                codecAdapterFactory = codecAdapterFactory,
+                mediaCodecSelector = selector,
+                enableDecoderFallback = enableDecoderFallback,
+                eventHandler = eventHandler,
+                eventListener = eventListener,
+                sink = audioSink,
+                stereoDownmixRequested = stereoDownmixRequested,
+            )
+        }
     }
 
     override fun buildAudioSink(
@@ -185,7 +206,11 @@ private class MoonfinRenderersFactory(
                     // Downmix runs first (on decoded multichannel PCM), then the
                     // delay processor. The mixer is inactive (identity) unless a
                     // stereo downmix is requested by preference or after an
-                    // AudioTrack init failure.
+                    // AudioTrack init failure. It never collides with the two
+                    // paths that own their own channel handling: bitstreamed
+                    // audio skips the processor chain outright, and a requested
+                    // downmix steers surround to the platform decoder rather
+                    // than to FFmpeg.
                     channelMixingProcessor,
                     audioDelayProcessor,
                 ),
@@ -228,23 +253,11 @@ private class MoonfinRenderersFactory(
 }
 
 /**
- * Steers audio codecs away from unreliable platform decoders.
- *
- * FLAC: the Google software decoders (`c2.android.flac.decoder` and the older
- * `OMX.google.flac.decoder`) crash with
+ * Drops the Google software FLAC decoders (`c2.android.flac.decoder` and the
+ * older `OMX.google.flac.decoder`). They crash with
  * `DecoderInputBuffer$InsufficientCapacityException: Buffer too small (32768 < N)`
  * on many 16-bit FLAC streams because the Media3 FLAC extractor underestimates
- * the maximum frame size, so they are filtered out.
- *
- * DTS family and TrueHD: platform DTS decoders on many TV SoCs downmix
- * multichannel to stereo, and platform TrueHD decoders barely exist, so when
- * the bundled FFmpeg extension carries the format these mimes report no
- * MediaCodec decoder at all and the FfmpegAudioRenderer takes the track.
- *
- * Both exclusions are safe next to passthrough: bypass mode never consults
- * the selector, so an allowed and route-supported bitstream still engages.
- * AC3 and E-AC3 stay MediaCodec-first, since platform Dolby decoders emit
- * proper multichannel PCM. Everything else passes through untouched.
+ * the maximum frame size. Every other mime passes through untouched.
  */
 private class MoonfinAudioMediaCodecSelector(
     private val delegate: MediaCodecSelector,
@@ -254,9 +267,6 @@ private class MoonfinAudioMediaCodecSelector(
         requiresSecureDecoder: Boolean,
         requiresTunnelingDecoder: Boolean,
     ): List<MediaCodecInfo> {
-        if (isFfmpegPreferredMime(mimeType) && ffmpegDecodes(mimeType)) {
-            return emptyList()
-        }
         val infos = delegate.getDecoderInfos(
             mimeType,
             requiresSecureDecoder,
@@ -268,19 +278,96 @@ private class MoonfinAudioMediaCodecSelector(
         return infos
     }
 
-    private fun isFfmpegPreferredMime(mimeType: String): Boolean =
-        mimeType.equals(MimeTypes.AUDIO_DTS, ignoreCase = true) ||
-            mimeType.equals(MimeTypes.AUDIO_DTS_HD, ignoreCase = true) ||
-            mimeType.equals(MimeTypes.AUDIO_DTS_EXPRESS, ignoreCase = true) ||
-            mimeType.equals(MimeTypes.AUDIO_TRUEHD, ignoreCase = true)
+    private fun isBuggyFlacDecoder(name: String): Boolean =
+        name.equals("c2.android.flac.decoder", ignoreCase = true) ||
+            name.equals("OMX.google.flac.decoder", ignoreCase = true)
+}
+
+/**
+ * Chooses between the platform decoder and the bundled FFmpeg extension for the
+ * surround codecs that could also bitstream. It only ever runs after the sink
+ * has declined to bitstream the format, so it decides how a track decodes
+ * locally, never whether it decodes at all.
+ *
+ * Mono and stereo keep the platform decoder whenever one exists: it's cheaper
+ * and correct at that channel count. Surround goes to FFmpeg unless the device
+ * ships a real Dolby decoder, because the generic AC3, E-AC3 and DTS decoders
+ * on TV SoCs routinely fold multichannel down to stereo. A requested stereo
+ * downmix makes that folding the goal, so the platform decoder is fine there
+ * too. With no platform decoder at all, FFmpeg takes the track.
+ *
+ * Reporting the format unsupported is what hands it over: the FFmpeg extension
+ * renderer sits alongside this one and picks up whatever it declines.
+ */
+@UnstableApi
+private class SteeredMediaCodecAudioRenderer(
+    context: Context,
+    codecAdapterFactory: MediaCodecAdapter.Factory,
+    mediaCodecSelector: MediaCodecSelector,
+    enableDecoderFallback: Boolean,
+    eventHandler: Handler,
+    eventListener: AudioRendererEventListener,
+    private val sink: AudioSink,
+    private val stereoDownmixRequested: () -> Boolean,
+) : MediaCodecAudioRenderer(
+    context,
+    codecAdapterFactory,
+    mediaCodecSelector,
+    enableDecoderFallback,
+    eventHandler,
+    eventListener,
+    sink,
+) {
+    override fun supportsFormat(mediaCodecSelector: MediaCodecSelector, format: Format): Int {
+        if (prefersFfmpeg(mediaCodecSelector, format)) {
+            return RendererCapabilities.create(C.FORMAT_UNSUPPORTED_SUBTYPE)
+        }
+        return super.supportsFormat(mediaCodecSelector, format)
+    }
+
+    private fun prefersFfmpeg(selector: MediaCodecSelector, format: Format): Boolean {
+        val mime = format.sampleMimeType ?: return false
+        if (!isSteerableMime(mime) || !ffmpegDecodes(mime)) return false
+        if (runCatching { sink.supportsFormat(format) }.getOrDefault(false)) return false
+
+        val decoders = runCatching {
+            selector.getDecoderInfos(mime, false, false)
+        }.getOrDefault(emptyList())
+        if (decoders.isEmpty()) return true
+
+        // An unknown channel count reads as surround. These codecs are
+        // multichannel far more often than not, and FFmpeg is the branch that
+        // stays correct either way.
+        val isSurround = format.channelCount == Format.NO_VALUE || format.channelCount > 2
+        if (!isSurround) return false
+        if (decoders.any { isDolbyDecoder(it.name) }) return false
+        return !stereoDownmixRequested()
+    }
+
+    // Dolby ships its decoder under the OMX name on older devices and the
+    // Codec2 name on newer ones.
+    private fun isDolbyDecoder(name: String): Boolean =
+        name.startsWith("OMX.dolby", ignoreCase = true) ||
+            name.startsWith("c2.dolby", ignoreCase = true)
+
+    private fun isSteerableMime(mimeType: String): Boolean =
+        mimeType.lowercase() in STEERABLE_MIMES
 
     private fun ffmpegDecodes(mimeType: String): Boolean = runCatching {
         FfmpegLibrary.isAvailable() && FfmpegLibrary.supportsFormat(mimeType)
     }.getOrDefault(false)
 
-    private fun isBuggyFlacDecoder(name: String): Boolean =
-        name.equals("c2.android.flac.decoder", ignoreCase = true) ||
-            name.equals("OMX.google.flac.decoder", ignoreCase = true)
+    companion object {
+        private val STEERABLE_MIMES = setOf(
+            MimeTypes.AUDIO_AC3,
+            MimeTypes.AUDIO_E_AC3,
+            MimeTypes.AUDIO_E_AC3_JOC,
+            MimeTypes.AUDIO_DTS,
+            MimeTypes.AUDIO_DTS_HD,
+            MimeTypes.AUDIO_DTS_EXPRESS,
+            MimeTypes.AUDIO_TRUEHD,
+        )
+    }
 }
 
 @UnstableApi
@@ -1318,18 +1405,20 @@ class Media3VideoView(
         // Fresh selector for every player; see the trackSelector field comment.
         trackSelector = DefaultTrackSelector(context)
         audioDelayProcessor.setDelayMs(audioDelayMs)
+        val passthroughPolicy = AudioPassthroughPolicy.fromWire(
+            passthroughMode,
+            passthroughCodecs,
+        )
         val renderersFactory = MoonfinRenderersFactory(
             context = context,
             audioDelayProcessor = audioDelayProcessor,
             channelMixingProcessor = channelMixingProcessor,
             preferSoftwareAv1Renderer = !hasHardwareAv1Decoder,
-            passthroughPolicy = AudioPassthroughPolicy.fromWire(
-                passthroughMode,
-                passthroughCodecs,
-            ),
+            passthroughPolicy = passthroughPolicy,
+            stereoDownmixRequested = ::effectiveStereoDownmix,
         ).apply {
             setEnableDecoderFallback(true)
-            setExtensionRendererMode(extensionRendererModeForCurrentPreference())
+            setExtensionRendererMode(extensionRendererModeFor(passthroughPolicy))
         }
 
         val extractorsFactory = DefaultExtractorsFactory()
@@ -2594,9 +2683,17 @@ class Media3VideoView(
         applyTrackSelectorForCurrentSource()
     }
 
-    private fun extensionRendererModeForCurrentPreference(): Int =
-        if (preferFfmpegDecoder) DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER
-        else DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON
+    // PREFER puts the extension renderers ahead of the MediaCodec ones and the
+    // track selector breaks ties by renderer order, so it would quietly beat an
+    // enabled passthrough with an FFmpeg decode. Nothing is lost by staying on
+    // ON, since SteeredMediaCodecAudioRenderer already hands surround decoding
+    // to FFmpeg.
+    private fun extensionRendererModeFor(policy: AudioPassthroughPolicy): Int =
+        if (preferFfmpegDecoder && policy.mode == PassthroughMode.DISABLED) {
+            DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER
+        } else {
+            DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON
+        }
 
     private fun updateZoomMode(arguments: Any?) {
         val args = arguments as? Map<*, *>

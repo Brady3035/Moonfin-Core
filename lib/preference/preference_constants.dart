@@ -6,12 +6,14 @@ enum SubtitleMode {
   none,
 }
 
+/// What the server re-encodes audio to when it has no choice. TrueHD isn't an
+/// option, since Jellyfin can't repackage it into a streaming container and the
+/// track lands silent.
 enum AudioFallbackCodec {
   auto,
   aac,
   ac3,
   eac3,
-  truehd,
   mp3,
   opus,
   flac,

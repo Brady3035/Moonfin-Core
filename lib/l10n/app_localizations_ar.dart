@@ -2587,9 +2587,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settingsAudioFallbackCodecEac3 => 'EAC3\n(Dolby Digital Plus)';
 
   @override
-  String get settingsAudioFallbackCodecTrueHd => 'TrueHD\n(بلا فقدان)';
-
-  @override
   String get settingsAudioFallbackCodecMp3 => 'MP3\n(ستيريو فقط)';
 
   @override

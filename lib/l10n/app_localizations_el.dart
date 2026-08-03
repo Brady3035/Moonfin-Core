@@ -2606,9 +2606,6 @@ class AppLocalizationsEl extends AppLocalizations {
   String get settingsAudioFallbackCodecEac3 => 'EAC3\n(Dolby Digital Plus)';
 
   @override
-  String get settingsAudioFallbackCodecTrueHd => 'TrueHD\n(Χωρίς απώλειες)';
-
-  @override
   String get settingsAudioFallbackCodecMp3 => 'MP3\n(Μόνο στερεοφωνικό)';
 
   @override

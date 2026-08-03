@@ -719,13 +719,9 @@ class Media3PlayerBackend extends PlayerBackend {
       trueHdPassthroughEnabled: _prefs.resolveTrueHdPassthroughEnabled(),
       maxAudioChannels: _prefs.resolveMaxAudioChannels(),
       downmixToStereo: _prefs.get(UserPreferences.downmixToStereo),
-      // Media3 bundles the FFmpeg audio decoder extension: every advertised
-      // codec decodes in software, so stereo routes downmix locally instead
-      // of forcing a server transcode.
+      // Media3 bundles the FFmpeg audio decoder extension, so every advertised
+      // codec has a software decoder behind it.
       universalAudioDecode: true,
-      // On plain ARC a server EAC3 transcode keeps 5.1 where a local TrueHD
-      // decode would collapse to stereo PCM.
-      losslessTranscodesOnArcWithoutPassthrough: true,
       maxResolution: maxResolution,
       pgsDirectPlay: _prefs.get(UserPreferences.pgsDirectPlay) && canRenderBitmapSubtitles,
       assDirectPlay: _prefs.get(UserPreferences.assDirectPlay),

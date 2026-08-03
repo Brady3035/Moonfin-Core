@@ -344,12 +344,6 @@ Future<List<dynamic>> _nextSeasonItemsProvider(
   }
 }
 
-/// Whether the Apple platforms should play through AetherEngine. It stays opt
-/// in, so anything other than an explicit choice keeps media_kit.
-bool _prefersAetherOnApple(UserPreferences prefs) =>
-    prefs.get(UserPreferences.playbackEnginePreference) ==
-    PlaybackEnginePreference.aether;
-
 void registerPlaybackModule() {
   final pipService = PipService();
   _getIt.registerSingleton<PipService>(pipService);
@@ -369,17 +363,10 @@ void registerPlaybackModule() {
     appleTvBackend = AppleTvMpvBackend(prefs);
     _getIt.registerSingleton<AppleTvMpvBackend>(appleTvBackend);
   } else if (PlatformDetection.isIOS || PlatformDetection.isMacOS) {
-    // Both engines are built here so the playback engine setting can pick one
-    // per session. media_kit serves trailers and theme music on macOS either
-    // way, and only it can hand a render handle to the iOS PiP controller.
-    backend = MediaKitPlayerBackend(
-      prefs,
-      onNativeHandleReady: PlatformDetection.isIOS
-          ? pipService.initializeIos
-          : null,
-    );
+    // AetherEngine serves main playback on iOS and macOS: video, live TV,
+    // music, audiobooks and offline. The media_kit backend isn't constructed,
+    // though on macOS media_kit itself stays for trailers and theme music.
     iosBackend = AetherBackend(prefs);
-    _getIt.registerSingleton<MediaKitPlayerBackend>(backend);
     _getIt.registerSingleton<AetherBackend>(iosBackend);
   } else {
     backend = MediaKitPlayerBackend(prefs);
@@ -404,7 +391,7 @@ void registerPlaybackModule() {
       : PlatformDetection.isAppleTV
           ? appleTvBackend!
           : (PlatformDetection.isIOS || PlatformDetection.isMacOS)
-              ? (_prefersAetherOnApple(prefs) ? iosBackend! : backend!)
+              ? iosBackend!
               : PlatformDetection.isWeb
                   ? (htmlBackend ?? backend!)
                   : (useMedia3ByDefault ? media3Backend! : backend!);
@@ -431,12 +418,8 @@ void registerPlaybackModule() {
     }
 
     if (PlatformDetection.isIOS || PlatformDetection.isMacOS) {
-      if (_prefersAetherOnApple(prefs)) {
-        if (currentBackend is AetherBackend) return currentBackend;
-        return _getIt<AetherBackend>();
-      }
-      if (currentBackend is MediaKitPlayerBackend) return currentBackend;
-      return _getIt<MediaKitPlayerBackend>();
+      if (currentBackend is AetherBackend) return currentBackend;
+      return _getIt<AetherBackend>();
     }
 
     if (PlatformDetection.isWeb) {

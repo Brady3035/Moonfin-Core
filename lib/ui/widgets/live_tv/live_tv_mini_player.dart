@@ -276,9 +276,7 @@ class _LiveTvMiniPlayerState extends State<LiveTvMiniPlayer> {
       );
     }
 
-    if ((PlatformDetection.isIOS || PlatformDetection.isMacOS) &&
-        _prefs.get(UserPreferences.playbackEnginePreference) ==
-            PlaybackEnginePreference.aether) {
+    if (PlatformDetection.isIOS || PlatformDetection.isMacOS) {
       return const AetherVideoView();
     }
 

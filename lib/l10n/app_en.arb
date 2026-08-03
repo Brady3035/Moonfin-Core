@@ -8235,18 +8235,6 @@
   "settingsPlaybackEngineMedia3Legacy": "Media3 (legacy)",
   "settingsPlaybackEngineMpvLegacy": "mpv (legacy)",
   "settingsPlaybackEngineMpvRecommended": "mpv (recommended)",
-  "settingsPlaybackEngineApple": "Playback Engine",
-  "@settingsPlaybackEngineApple": {
-    "description": "Title of the setting that chooses which playback engine plays video on iPhone, iPad and Mac."
-  },
-  "settingsPlaybackEngineAppleDescription": "Choose the engine that plays video. Changes apply to the next playback session.",
-  "@settingsPlaybackEngineAppleDescription": {
-    "description": "Explanation under the playback engine setting on Apple devices."
-  },
-  "settingsPlaybackEngineAetherExperimental": "AetherEngine (experimental)",
-  "@settingsPlaybackEngineAetherExperimental": {
-    "description": "Name of the AetherEngine playback engine option. AetherEngine is a product name and stays untranslated."
-  },
   "settingsDolbyVisionFallback": "Dolby Vision Fallback",
   "settingsDolbyVisionFallbackDescription": "Behavior for Dolby Vision titles on devices without Dolby Vision decoding.",
   "settingsAskEachTime": "Ask each time",

@@ -3028,40 +3028,40 @@ class AppLocalizationsTr extends AppLocalizations {
   String get syncToProfile => 'Profili Senkronize Et';
 
   @override
-  String get resetProfile => 'Reset Profile';
+  String get resetProfile => 'Profili Sıfırla';
 
   @override
   String resetProfileTitle(String profile) {
-    return 'Reset $profile?';
+    return '$profile sıfırlansın mı?';
   }
 
   @override
   String resetProfileDescription(String profile) {
-    return 'This deletes the $profile profile from the server and puts every synced setting on this device back to its default.';
+    return 'Bu işlem $profile profilini sunucudan siler ve bu cihazdaki tüm eşitlenmiş ayarları varsayılan değerlerine döndürür.';
   }
 
   @override
   String get resetGlobalProfileDescription =>
-      'This deletes every saved profile from the server and puts every synced setting on this device back to its default.';
+      'Bu işlem sunucudaki tüm kayıtlı profilleri siler ve bu cihazdaki tüm eşitlenmiş ayarları varsayılan değerlerine döndürür.';
 
   @override
   String profileReset(String profile) {
-    return 'Reset $profile profile to defaults.';
+    return '$profile profilini varsayılana sıfırla.';
   }
 
   @override
-  String get resetRatingsTitle => 'Reset ratings?';
+  String get resetRatingsTitle => 'Puanları sıfırla?';
 
   @override
   String get resetRatingsDescription =>
-      'This puts every ratings setting back to its default, including which sources show and the order they appear in.';
+      'Bu işlem, hangi kaynakların görüneceği ve görünüm sıralaması dahil olmak üzere tüm puanlama ayarlarını varsayılan değerlerine döndürür.';
 
   @override
-  String get ratingsReset => 'Reset ratings to defaults.';
+  String get ratingsReset => 'Puanları varsayılana sıfırla.';
 
   @override
   String failedToResetProfile(String profile) {
-    return 'Failed to reset $profile profile.';
+    return '$profile profili sıfırlanamadı.';
   }
 
   @override
@@ -4014,22 +4014,22 @@ class AppLocalizationsTr extends AppLocalizations {
   String get requestMore => 'Daha Fazla Talep Et';
 
   @override
-  String get requestMore4k => 'Request More in 4K';
+  String get requestMore4k => '4K Olarak Daha Fazla İste';
 
   @override
   String get request => 'İste';
 
   @override
-  String get request4k => 'Request 4K';
+  String get request4k => '4K İste';
 
   @override
-  String get requested4k => '4K Requested';
+  String get requested4k => '4K İstendi';
 
   @override
   String get cancelRequest => 'İsteği İptal Et';
 
   @override
-  String get cancelRequest4k => 'Cancel 4K Request';
+  String get cancelRequest4k => '4K İsteğini İptal Et';
 
   @override
   String get playInMoonfin => 'Moonfin\'da oynat';
@@ -4092,7 +4092,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String requestSeriesOrMovie4k(String type) {
-    return 'Request 4K $type';
+    return '4K $type İste';
   }
 
   @override
@@ -8719,17 +8719,6 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get settingsPlaybackEngineMpvRecommended => 'mpv (önerilen)';
-
-  @override
-  String get settingsPlaybackEngineApple => 'Playback Engine';
-
-  @override
-  String get settingsPlaybackEngineAppleDescription =>
-      'Choose the engine that plays video. Changes apply to the next playback session.';
-
-  @override
-  String get settingsPlaybackEngineAetherExperimental =>
-      'AetherEngine (experimental)';
 
   @override
   String get settingsDolbyVisionFallback => 'Dolby Vision Yedek Modu';

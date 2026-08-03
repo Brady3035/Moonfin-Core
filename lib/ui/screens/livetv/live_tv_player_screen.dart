@@ -1546,9 +1546,7 @@ class _LiveTvPlayerScreenState extends State<LiveTvPlayerScreen>
       return _buildTizenVideoChild();
     }
 
-    if ((PlatformDetection.isIOS || PlatformDetection.isMacOS) &&
-        _prefs.get(UserPreferences.playbackEnginePreference) ==
-            PlaybackEnginePreference.aether) {
+    if (PlatformDetection.isIOS || PlatformDetection.isMacOS) {
       return const AetherVideoView();
     }
 

@@ -32,12 +32,6 @@ final class IosPiPController: NSObject {
     private var boundSoftwareSource: SoftwarePiPSource?
     private var reportedReady = false
 
-    /// Built the moment media_kit hands over an mpv render handle, which only
-    /// happens when it is the selected engine. While it exists it owns PiP and
-    /// the Aether bindings below stay dormant.
-    private var mpvController: PiPController?
-    private var usesMpvBridge: Bool { mpvController != nil }
-
     init(
         messenger: FlutterBinaryMessenger,
         wrapper: AetherPlayerWrapper,
@@ -76,49 +70,12 @@ final class IosPiPController: NSObject {
 
     private func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         switch call.method {
-        case "configureSharedContextBridge":
-            let args = call.arguments as? [String: Any] ?? [:]
-            let controller = mpvController ?? PiPController()
-            mpvController = controller
-            result(controller.configureSharedContextBridge(arguments: args))
-        case "initialize":
-            let args = call.arguments as? [String: Any] ?? [:]
-            let handle = (args["handle"] as? NSNumber)?.int64Value ?? 0
-            guard let controller = mpvController else {
-                result(
-                    FlutterError(
-                        code: "pip_unconfigured",
-                        message: "configureSharedContextBridge must run first",
-                        details: nil))
-                return
-            }
-            teardownController()
-            let ok = controller.initialize(
-                mpvHandleAddress: handle, viewController: hostViewController)
-            guard ok else {
-                mpvController = nil
-                result(
-                    FlutterError(
-                        code: "pip_init_failed",
-                        message: controller.lastErrorMessage
-                            ?? "Failed to initialize iOS PiP",
-                        details: nil))
-                return
-            }
-            bridgeMpvCallbacks(controller)
+        case "initialize", "configureSharedContextBridge":
+            // No-ops kept for channel compatibility. Readiness now arrives
+            // through onPipReady.
             result(nil)
         case "startPiP":
-            if let mpv = mpvController {
-                guard let vc = hostViewController, mpv.startPiP(on: vc) else {
-                    result(
-                        FlutterError(
-                            code: "pip_unavailable",
-                            message: mpv.lastErrorMessage ?? "No PiP source",
-                            details: nil))
-                    return
-                }
-                result(nil)
-            } else if let pip = pipController, pip.isPictureInPicturePossible {
+            if let pip = pipController, pip.isPictureInPicturePossible {
                 pip.startPictureInPicture()
                 result(nil)
             } else {
@@ -127,54 +84,19 @@ final class IosPiPController: NSObject {
                         code: "pip_unavailable", message: "No PiP source", details: nil))
             }
         case "dismissPiP":
-            if let mpv = mpvController {
-                mpv.dismissPiP()
-            } else {
-                pipController?.stopPictureInPicture()
-            }
+            pipController?.stopPictureInPicture()
             result(nil)
         case "updateTimeline", "updatePlaybackState":
-            // Only the mpv bridge needs a fed timebase. AVPlayer carries its
-            // own timeline on the Aether path.
-            if let mpv = mpvController {
-                let args = call.arguments as? [String: Any] ?? [:]
-                let isPlaying = (args["isPlaying"] as? Bool) ?? false
-                if call.method == "updatePlaybackState" {
-                    mpv.updatePlaybackState(isPlaying: isPlaying)
-                } else {
-                    mpv.updateTimeline(
-                        positionSeconds: (args["position"] as? NSNumber)?.doubleValue ?? 0,
-                        durationSeconds: (args["duration"] as? NSNumber)?.doubleValue ?? 0,
-                        isPlaying: isPlaying)
-                }
-            }
+            // AVPlayer owns the PiP timeline now.
             result(nil)
         default:
             result(nil)
         }
     }
 
-    /// The mpv bridge reports PiP state itself rather than through the Combine
-    /// bindings, so its callbacks are forwarded onto the same Dart methods.
-    private func bridgeMpvCallbacks(_ controller: PiPController) {
-        controller.onPiPStatusChanged = { [weak self] isInPiP in
-            self?.channel.invokeMethod("onPiPChanged", arguments: isInPiP)
-        }
-        controller.onPiPAction = { [weak self] action in
-            self?.channel.invokeMethod("onPiPAction", arguments: action)
-        }
-    }
-
-    private var hostViewController: UIViewController? {
-        UIApplication.shared.connectedScenes
-            .compactMap { ($0 as? UIWindowScene)?.keyWindow?.rootViewController }
-            .first
-    }
-
     // MARK: - Source binding
 
     private func rebindNative(player: AVPlayer?) {
-        guard !usesMpvBridge else { return }
         guard let player else {
             if boundPlayer != nil {
                 teardownController()
@@ -202,7 +124,6 @@ final class IosPiPController: NSObject {
     }
 
     private func rebindSoftware(source: SoftwarePiPSource?) {
-        guard !usesMpvBridge else { return }
         guard let source else {
             if boundSoftwareSource != nil {
                 teardownController()

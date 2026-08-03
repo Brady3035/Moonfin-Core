@@ -54,7 +54,6 @@ enum AudioPassthroughToggle {
 enum PlaybackEnginePreference {
   media3,
   mpv,
-  aether,
 }
 
 enum DolbyVisionFallbackBehavior {

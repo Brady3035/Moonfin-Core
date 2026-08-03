@@ -4,22 +4,9 @@ import 'package:flutter/services.dart';
 
 import '../util/platform_detection.dart';
 
-class IosSharedContextBridgeConfig {
-  final String frameEventChannel;
-
-  const IosSharedContextBridgeConfig({required this.frameEventChannel});
-
-  Map<String, dynamic> toJson() {
-    return {'frameEventChannel': frameEventChannel};
-  }
-}
-
 class PipService {
   static const _androidChannel = MethodChannel('org.moonfin.androidtv/pip');
   static const _iosChannel = MethodChannel('org.moonfin.ios/pip');
-  static const _iosSharedContextBridge = IosSharedContextBridgeConfig(
-    frameEventChannel: 'org.moonfin.ios/pip_shared_frames',
-  );
 
   MethodChannel? get _activeChannel {
     if (PlatformDetection.isAndroid) return _androidChannel;
@@ -32,7 +19,6 @@ class PipService {
 
   Object? _autoPiPOwner;
 
-  bool _didConfigureIosBackend = false;
   bool _isIosPiPInitialized = false;
 
   bool _isScreenLocked = false;
@@ -103,30 +89,6 @@ class PipService {
         await channel.invokeMethod('dismissPiP');
       }
     } catch (_) {}
-  }
-
-  /// Hands media_kit's mpv render handle to the native PiP controller. Only
-  /// the media_kit engine has a handle to give, so the Aether path never calls
-  /// this and reports readiness through onPipReady instead.
-  Future<void> initializeIos(int handle) async {
-    if (!PlatformDetection.isIOS) return;
-    try {
-      await _ensureIosBackendConfigured();
-      await _iosChannel.invokeMethod('initialize', {'handle': handle});
-      _isIosPiPInitialized = true;
-    } on PlatformException {
-      _isIosPiPInitialized = false;
-      rethrow;
-    }
-  }
-
-  Future<void> _ensureIosBackendConfigured() async {
-    if (_didConfigureIosBackend) return;
-    await _iosChannel.invokeMethod(
-      'configureSharedContextBridge',
-      _iosSharedContextBridge.toJson(),
-    );
-    _didConfigureIosBackend = true;
   }
 
   Future<bool> startIosPiP() async {

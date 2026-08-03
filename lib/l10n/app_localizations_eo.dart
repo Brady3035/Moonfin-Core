@@ -9108,6 +9108,13 @@ class AppLocalizationsEo extends AppLocalizations {
       'Ordigi la vicojn de Kolektoj laŭ dato de aldonita, eldondato, alfabete kaj pli.';
 
   @override
+  String get collectionsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get collectionsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
+
+  @override
   String get displayGenresRows => 'Montru Ĝenrojn Vicoj';
 
   @override
@@ -9141,6 +9148,13 @@ class AppLocalizationsEo extends AppLocalizations {
   @override
   String get playlistsRowSortingDescription =>
       'Ordigi vicojn de ludlistoj laŭ aldondato, eldondato, alfabete kaj pli.';
+
+  @override
+  String get playlistsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get playlistsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
 
   @override
   String get displayAudioRows => 'Montri aŭdiajn vicojn';

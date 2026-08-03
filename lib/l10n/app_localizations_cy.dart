@@ -9173,6 +9173,13 @@ class AppLocalizationsCy extends AppLocalizations {
       'Trefnu rhesi Casgliadau yn ôl dyddiad a ychwanegwyd, dyddiad rhyddhau, yn nhrefn yr wyddor, a mwy.';
 
   @override
+  String get collectionsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get collectionsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
+
+  @override
   String get displayGenresRows => 'Rhesi Genres Arddangos';
 
   @override
@@ -9206,6 +9213,13 @@ class AppLocalizationsCy extends AppLocalizations {
   @override
   String get playlistsRowSortingDescription =>
       'Trefnu rhesi\'r Rhestrau Chwarae yn ôl y dyddiad ychwanegu, y dyddiad rhyddhau, yn nhrefn yr wyddor, a mwy.';
+
+  @override
+  String get playlistsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get playlistsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
 
   @override
   String get displayAudioRows => 'Dangos Rhesi Sain';

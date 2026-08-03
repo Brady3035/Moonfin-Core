@@ -9061,6 +9061,13 @@ class AppLocalizationsFa extends AppLocalizations {
       'ردیف‌های مجموعه‌ها را بر اساس تاریخ اضافه شدن، تاریخ انتشار، بر اساس حروف الفبا و موارد دیگر مرتب کنید.';
 
   @override
+  String get collectionsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get collectionsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
+
+  @override
   String get displayGenresRows => 'نمایش ژانرهای ردیف';
 
   @override
@@ -9094,6 +9101,13 @@ class AppLocalizationsFa extends AppLocalizations {
   @override
   String get playlistsRowSortingDescription =>
       'ردیف‌های لیست پخش را بر اساس تاریخ افزودن، تاریخ انتشار، ترتیب الفبا و موارد دیگر مرتب کنید.';
+
+  @override
+  String get playlistsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get playlistsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
 
   @override
   String get displayAudioRows => 'نمایش ردیف‌های صوتی';

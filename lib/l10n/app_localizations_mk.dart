@@ -9196,6 +9196,13 @@ class AppLocalizationsMk extends AppLocalizations {
       'Подредувајте ги редовите со колекции по датум на додавање, датум на издавање, азбучно и повеќе.';
 
   @override
+  String get collectionsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get collectionsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
+
+  @override
   String get displayGenresRows => 'Прикажи редови со жанрови';
 
   @override
@@ -9229,6 +9236,13 @@ class AppLocalizationsMk extends AppLocalizations {
   @override
   String get playlistsRowSortingDescription =>
       'Подредувајте ги редовите со плејлисти по датум на додавање, датум на издавање, азбучно и повеќе.';
+
+  @override
+  String get playlistsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get playlistsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
 
   @override
   String get displayAudioRows => 'Прикажи аудио редови';

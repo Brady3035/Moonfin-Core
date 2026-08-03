@@ -9209,6 +9209,13 @@ class AppLocalizationsSq extends AppLocalizations {
       'Rendit rreshtat e Koleksioneve sipas datës së shtimit, datës së publikimit, alfabetit dhe më shumë.';
 
   @override
+  String get collectionsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get collectionsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
+
+  @override
   String get displayGenresRows => 'Shfaq rreshtat e zhanreve';
 
   @override
@@ -9243,6 +9250,13 @@ class AppLocalizationsSq extends AppLocalizations {
   @override
   String get playlistsRowSortingDescription =>
       'Rendit rreshtat e Listave të luajtjes sipas datës së shtimit, datës së publikimit, alfabetit dhe më shumë.';
+
+  @override
+  String get playlistsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get playlistsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
 
   @override
   String get displayAudioRows => 'Shfaq rreshtat audio';

@@ -9183,6 +9183,13 @@ class AppLocalizationsLt extends AppLocalizations {
       'Rūšiuoti kolekcijų eilutes pagal pridėjimo datą, išleidimo datą, abėcėlės tvarka ir kt.';
 
   @override
+  String get collectionsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get collectionsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
+
+  @override
   String get displayGenresRows => 'Rodyti žanrų eilutes';
 
   @override
@@ -9216,6 +9223,13 @@ class AppLocalizationsLt extends AppLocalizations {
   @override
   String get playlistsRowSortingDescription =>
       'Rikiuokite grojaraščių eilutes pagal pridėjimo datą, išleidimo datą, abėcėlę ir kitus kriterijus.';
+
+  @override
+  String get playlistsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get playlistsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
 
   @override
   String get displayAudioRows => 'Rodyti garso eilutes';

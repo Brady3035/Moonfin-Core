@@ -24,6 +24,7 @@ import '../repositories/user_views_repository.dart';
 import '../../preference/seerr_preferences.dart';
 import '../viewmodels/seerr_discover_view_model.dart';
 import 'custom_external_lists_service.dart';
+import 'plugin_sync_service.dart';
 
 class RowDataSource {
   final MediaServerClient _client;
@@ -573,24 +574,99 @@ class RowDataSource {
     required String rowId,
     String sortBy = _defaultSortBy,
     String sortOrder = _defaultSortOrder,
+    bool usePlaylistOrder = false,
+    bool showEpisodes = false,
     int startIndex = 0,
     int limit = _defaultLimit,
   }) async {
+    if (usePlaylistOrder) {
+      // The Moonbase custom order (saved from the Playlist drag-and-drop view)
+      // stores individual episode IDs, not series IDs. Fetching with
+      // recursive:false returns a Series item whose ID is never in the Moonbase
+      // order, so it always falls to the end. Instead, fetch recursively to get
+      // the flat list of movies + episodes that matches the Moonbase order, sort
+      // by that order, then collapse episodes back to series cards.
+      //
+      // Safety cap: 500 items covers even large curated collections without
+      // causing OOM. Episodes are transient — they're collapsed immediately for
+      // the showEpisodes=false case.
+      const recursiveLimit = 500;
+      final response = await _getItemsWithFallback(
+        parentId: collectionId,
+        recursive: true,
+        startIndex: 0,
+        limit: recursiveLimit,
+      );
+      var flatItems = _parseItems(response, serverId);
+
+      // Apply Moonbase custom order to the flat episode+movie list.
+      try {
+        final syncService = GetIt.instance<PluginSyncService>();
+        final customOrder =
+            await syncService.tryFetchCustomCollectionOrder(_client, collectionId);
+        if (customOrder != null && customOrder.isNotEmpty) {
+          final orderMap = {
+            for (var i = 0; i < customOrder.length; i++) customOrder[i]: i,
+          };
+          flatItems.sort((a, b) {
+            final ai = orderMap[a.id];
+            final bi = orderMap[b.id];
+            if (ai == null && bi == null) return 0;
+            if (ai == null) return 1;
+            if (bi == null) return -1;
+            return ai.compareTo(bi);
+          });
+        }
+      } catch (_) {}
+
+      final List<AggregatedItem> displayItems;
+      if (showEpisodes) {
+        // Episodes already in Moonbase order — apply the same OOM safety cap
+        // used by _expandSeriesItems.
+        const episodeCap = 200;
+        displayItems =
+            flatItems.length > episodeCap ? flatItems.sublist(0, episodeCap) : flatItems;
+      } else {
+        // Collapse episodes to one series card per series, placed at the
+        // position of the first episode from that series in the Moonbase order.
+        displayItems = _collapseEpisodesToSeries(flatItems, serverId);
+      }
+
+      return HomeRow(
+        id: rowId,
+        title: title,
+        items: displayItems,
+        rowType: HomeRowType.collections,
+        // Mark fully loaded so paging doesn't try to append more items on scroll.
+        totalCount: displayItems.length,
+      );
+    }
+
+    // Non-playlist-order path — fetch top-level collection items only.
+    // When expanding episodes, cap at 100 top-level items to prevent OOM on
+    // low-RAM devices (Firestick/Google TV) for large collections.
+    final fetchLimit = showEpisodes ? 100 : limit;
     final response = await _getItemsWithFallback(
       parentId: collectionId,
       sortBy: sortBy,
       sortOrder: sortOrder,
       recursive: false,
       startIndex: startIndex,
-      limit: limit,
+      limit: fetchLimit,
     );
-    return _buildRow(
+    var row = _buildRow(
       id: rowId,
       title: title,
       response: response,
       serverId: serverId,
       rowType: HomeRowType.collections,
     );
+
+    if (!showEpisodes) return row;
+    final expanded = await _expandSeriesItems(row.items, serverId);
+    // Mark totalCount as fully loaded so lazy-load paging doesn't try to
+    // fetch more — all episodes are already in the initial row.
+    return row.copyWith(items: expanded, totalCount: expanded.length);
   }
 
   Future<HomeRow> loadPlaylistRow(
@@ -600,24 +676,44 @@ class RowDataSource {
     required String rowId,
     String sortBy = _defaultSortBy,
     String sortOrder = _defaultSortOrder,
+    bool usePlaylistOrder = false,
+    bool showEpisodes = false,
     int startIndex = 0,
     int limit = _defaultLimit,
   }) async {
-    final response = await _getItemsWithFallback(
-      parentId: playlistId,
-      sortBy: sortBy,
-      sortOrder: sortOrder,
-      recursive: false,
-      startIndex: startIndex,
-      limit: limit,
-    );
-    return _buildRow(
+    // When showing individual episodes, fetch all playlist items up front.
+    final fetchLimit = showEpisodes ? 500 : limit;
+    final response = usePlaylistOrder
+        ? await _client.itemsApi.getPlaylistItems(
+            playlistId,
+            startIndex: startIndex,
+            limit: fetchLimit,
+          )
+        : await _getItemsWithFallback(
+            parentId: playlistId,
+            sortBy: sortBy,
+            sortOrder: sortOrder,
+            recursive: false,
+            startIndex: startIndex,
+            limit: fetchLimit,
+          );
+    final row = _buildRow(
       id: rowId,
       title: title,
       response: response,
       serverId: serverId,
       rowType: HomeRowType.playlists,
     );
+    if (showEpisodes) {
+      // Toggle ON: show items as-is — getPlaylistItems already returns
+      // individual episodes, no expansion needed.
+      // Mark totalCount as fully loaded so paging doesn't try to fetch more.
+      return row.copyWith(totalCount: row.items.length);
+    }
+    // Toggle OFF (default): collapse any Episode items to one Series poster
+    // per unique series, preserving the first occurrence's position.
+    final collapsed = _collapseEpisodesToSeries(row.items, serverId);
+    return row.copyWith(items: collapsed);
   }
 
   Future<HomeRow> loadGenreRow(
@@ -959,18 +1055,25 @@ class RowDataSource {
         if (parsed != null &&
             parsed.source == HomeSectionPluginSource.playlists) {
           final playlistId = parsed.additionalData;
-          var sortBy = _defaultSortBy;
-          if (prefs != null) {
-            sortBy = prefs.get(UserPreferences.playlistsRowSortBy).apiValue;
+          final sortPref = prefs?.get(UserPreferences.playlistsRowSortBy) ??
+              LibrarySortBy.playlistOrder;
+          final usePlaylistOrder = sortPref == LibrarySortBy.playlistOrder;
+          if (usePlaylistOrder) {
+            response = await _client.itemsApi.getPlaylistItems(
+              playlistId,
+              startIndex: currentOffset,
+              limit: _defaultLimit,
+            );
+          } else {
+            response = await _getItemsWithFallback(
+              parentId: playlistId,
+              sortBy: sortPref.apiValue,
+              sortOrder: 'Ascending',
+              recursive: false,
+              startIndex: currentOffset,
+              limit: _defaultLimit,
+            );
           }
-          response = await _getItemsWithFallback(
-            parentId: playlistId,
-            sortBy: sortBy,
-            sortOrder: 'Ascending',
-            recursive: false,
-            startIndex: currentOffset,
-            limit: _defaultLimit,
-          );
         } else {
           final pageCount = (currentOffset / _defaultLimit).ceil();
           final startIndex = pageCount * _defaultLimit;
@@ -1003,9 +1106,8 @@ class RowDataSource {
           isFavorite: true,
         );
       case HomeRowType.collections:
-        final sortBy =
-            prefs?.get(UserPreferences.collectionsRowSortBy).apiValue ??
-            _defaultSortBy;
+        final sortPref = prefs?.get(UserPreferences.collectionsRowSortBy) ??
+            LibrarySortBy.playlistOrder;
         final parsed = _parseStableId(row.id);
         final parentId =
             (parsed != null &&
@@ -1015,10 +1117,17 @@ class RowDataSource {
         final includeItemTypes = row.id == 'collections'
             ? const ['BoxSet']
             : null;
+        // Playlist Order for a specific pinned collection: fetch without a
+        // server sort so the Items API returns items in native linked-children
+        // order. The custom plugin order is only applied at the initial load
+        // (loadCollectionRow); lazy-load pages simply append in server order.
+        final effectiveSortBy = (sortPref == LibrarySortBy.playlistOrder && parentId != null)
+            ? null
+            : sortPref.itemsApiSortValue;
         response = await _getItemsWithFallback(
           parentId: parentId,
           includeItemTypes: includeItemTypes,
-          sortBy: sortBy,
+          sortBy: effectiveSortBy,
           sortOrder: 'Ascending',
           recursive: true,
           startIndex: currentOffset,
@@ -1597,19 +1706,23 @@ class RowDataSource {
           );
         }
         try {
-          var sortBy = _defaultSortBy;
-          if (GetIt.instance.isRegistered<UserPreferences>()) {
-            sortBy = GetIt.instance<UserPreferences>()
-                .get(UserPreferences.collectionsRowSortBy)
-                .apiValue;
-          }
+          final prefs = GetIt.instance.isRegistered<UserPreferences>()
+              ? GetIt.instance<UserPreferences>()
+              : null;
+          final sortPref = prefs?.get(UserPreferences.collectionsRowSortBy) ??
+              LibrarySortBy.playlistOrder;
+          final usePlaylistOrder = sortPref == LibrarySortBy.playlistOrder;
+          final showEpisodes =
+              prefs?.get(UserPreferences.collectionsRowShowEpisodes) ?? false;
           final row = await loadCollectionRow(
             serverId,
             collectionId: collectionId,
             title: title,
             rowId: rowId,
-            sortBy: sortBy,
+            sortBy: usePlaylistOrder ? _defaultSortBy : sortPref.apiValue,
             sortOrder: _defaultSortOrder,
+            usePlaylistOrder: usePlaylistOrder,
+            showEpisodes: showEpisodes,
           );
           return row;
         } catch (_) {
@@ -1657,19 +1770,23 @@ class RowDataSource {
           );
         }
         try {
-          var sortBy = _defaultSortBy;
-          if (GetIt.instance.isRegistered<UserPreferences>()) {
-            sortBy = GetIt.instance<UserPreferences>()
-                .get(UserPreferences.playlistsRowSortBy)
-                .apiValue;
-          }
+          final prefs = GetIt.instance.isRegistered<UserPreferences>()
+              ? GetIt.instance<UserPreferences>()
+              : null;
+          final sortPref = prefs?.get(UserPreferences.playlistsRowSortBy) ??
+              LibrarySortBy.playlistOrder;
+          final usePlaylistOrder = sortPref == LibrarySortBy.playlistOrder;
+          final showEpisodes =
+              prefs?.get(UserPreferences.playlistsRowShowEpisodes) ?? false;
           final row = await loadPlaylistRow(
             serverId,
             playlistId: playlistId,
             title: title,
             rowId: rowId,
-            sortBy: sortBy,
+            sortBy: usePlaylistOrder ? _defaultSortBy : sortPref.apiValue,
             sortOrder: _defaultSortOrder,
+            usePlaylistOrder: usePlaylistOrder,
+            showEpisodes: showEpisodes,
           );
           return row;
         } catch (_) {
@@ -1764,6 +1881,125 @@ class RowDataSource {
       if (rating == null || rating.isEmpty) return true;
       return !blocked.contains(rating);
     }).toList();
+  }
+
+  // Safety limits for episode expansion — protects low-RAM devices
+  // (Firestick, Google TV) from OOM when expanding large collections.
+  static const int _maxExpandedItems = 200;  // total items in row after expansion
+  static const int _maxEpisodesPerSeries = 100; // per-series episode cap
+
+  /// Expands any [AggregatedItem] of type 'Series' in [items] by fetching its
+  /// episodes and inserting them in season/episode order at the series'
+  /// position. Non-series items are kept as-is. Falls back to the series card
+  /// on any fetch error. Used by collection rows when showEpisodes is ON.
+  ///
+  /// Expansion stops once [_maxExpandedItems] total items are in the result;
+  /// remaining series beyond that cap are added as series posters instead.
+  Future<List<AggregatedItem>> _expandSeriesItems(
+    List<AggregatedItem> items,
+    String serverId,
+  ) async {
+    final result = <AggregatedItem>[];
+    for (final item in items) {
+      // Once the cap is reached, add all remaining items as series posters
+      // (no further API calls) to avoid OOM on low-RAM devices.
+      if (result.length >= _maxExpandedItems) {
+        result.add(item);
+        continue;
+      }
+      if (item.type != 'Series') {
+        result.add(item);
+        continue;
+      }
+      try {
+        final episodeData = await _client.itemsApi.getEpisodes(item.id);
+        final rawEpisodes = (episodeData['Items'] as List?) ?? [];
+        if (rawEpisodes.isEmpty) {
+          result.add(item);
+          continue;
+        }
+        final episodes = rawEpisodes
+            .whereType<Map<String, dynamic>>()
+            .map((data) => AggregatedItem(
+                  id: data['Id']?.toString() ?? '',
+                  serverId: serverId,
+                  rawData: data,
+                ))
+            .toList()
+          ..sort((a, b) {
+            // Season 0 = Specials — sort after all regular seasons.
+            int seasonKey(int s) => s == 0 ? 0x7FFFFFFF : s;
+            final aSeason = seasonKey(a.rawData['ParentIndexNumber'] as int? ?? 0);
+            final bSeason = seasonKey(b.rawData['ParentIndexNumber'] as int? ?? 0);
+            if (aSeason != bSeason) return aSeason.compareTo(bSeason);
+            final aEp = a.rawData['IndexNumber'] as int? ?? 0;
+            final bEp = b.rawData['IndexNumber'] as int? ?? 0;
+            return aEp.compareTo(bEp);
+          });
+        // Cap episodes per series to guard against very long-running shows.
+        final capped = episodes.length > _maxEpisodesPerSeries
+            ? episodes.sublist(0, _maxEpisodesPerSeries)
+            : episodes;
+        result.addAll(capped);
+      } catch (_) {
+        result.add(item);
+      }
+    }
+    return result;
+  }
+
+  /// Collapses Episode items in [items] to one synthetic Series-level card per
+  /// unique series, preserving the first occurrence's position. Non-episode
+  /// items are kept as-is. Used by playlist rows when showEpisodes is OFF.
+  ///
+  /// Playlist rows contain individual episode items (returned by
+  /// /Playlists/{id}/Items). With toggle OFF the home row should show the
+  /// series poster once per series rather than every episode card.
+  List<AggregatedItem> _collapseEpisodesToSeries(
+    List<AggregatedItem> items,
+    String serverId,
+  ) {
+    final result = <AggregatedItem>[];
+    final seenSeriesIds = <String>{};
+    for (final item in items) {
+      // Series items already at series level — keep, but track to prevent
+      // duplicates if the same series also has episodes in the playlist.
+      if (item.type == 'Series') {
+        if (seenSeriesIds.add(item.id)) result.add(item);
+        continue;
+      }
+      // Non-episode items (Movies, etc.) — always keep as-is.
+      if (item.type != 'Episode') {
+        result.add(item);
+        continue;
+      }
+      // Episode items — collapse to one series card per unique SeriesId.
+      final seriesId = item.seriesId;
+      if (seriesId == null || seriesId.isEmpty) {
+        result.add(item); // orphaned episode, show as-is
+        continue;
+      }
+      if (!seenSeriesIds.add(seriesId)) continue; // duplicate series — skip
+      // Synthesise a Series-level card using the episode's series metadata.
+      result.add(AggregatedItem(
+        id: seriesId,
+        serverId: serverId,
+        rawData: {
+          'Id': seriesId,
+          'Name': item.rawData['SeriesName'] ?? '',
+          'Type': 'Series',
+          'ImageTags': {
+            if (item.seriesPrimaryImageTag != null)
+              'Primary': item.seriesPrimaryImageTag,
+          },
+          'BackdropImageTags': item.rawData['BackdropImageTags'] ?? const <dynamic>[],
+          'ProductionYear': item.rawData['ProductionYear'],
+          'OfficialRating': item.rawData['OfficialRating'],
+          'UserData': item.rawData['UserData'],
+        },
+      ));
+    }
+    return result;
   }
 
   Set<String> _blockedParentalRatings() {

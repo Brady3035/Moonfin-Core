@@ -9181,6 +9181,13 @@ class AppLocalizationsBe extends AppLocalizations {
       'Сартуйце радкі калекцый па даце дадання, даце выпуску, у алфавітным парадку і іншым.';
 
   @override
+  String get collectionsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get collectionsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
+
+  @override
   String get displayGenresRows => 'Адлюстраванне радкоў жанраў';
 
   @override
@@ -9214,6 +9221,13 @@ class AppLocalizationsBe extends AppLocalizations {
   @override
   String get playlistsRowSortingDescription =>
       'Сартуйце радкі плэйлістоў па даце дадання, даце выхаду, алфавіце і іншым.';
+
+  @override
+  String get playlistsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get playlistsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
 
   @override
   String get displayAudioRows => 'Паказваць радкі аўдыё';

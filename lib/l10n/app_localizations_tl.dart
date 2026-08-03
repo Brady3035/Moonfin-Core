@@ -9229,6 +9229,13 @@ class AppLocalizationsTl extends AppLocalizations {
       'I-sort ang mga Collections row ayon sa petsang idinagdag, petsa ng paglabas, alpabetiko, at higit pa.';
 
   @override
+  String get collectionsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get collectionsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
+
+  @override
   String get displayGenresRows => 'Ipakita ang Mga Genres Row';
 
   @override
@@ -9262,6 +9269,13 @@ class AppLocalizationsTl extends AppLocalizations {
   @override
   String get playlistsRowSortingDescription =>
       'I-sort ang mga Playlist row ayon sa petsang idinagdag, petsa ng paglabas, alpabetiko, at higit pa.';
+
+  @override
+  String get playlistsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get playlistsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
 
   @override
   String get displayAudioRows => 'Ipakita ang Mga Audio Row';

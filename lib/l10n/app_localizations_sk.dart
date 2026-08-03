@@ -9182,6 +9182,13 @@ class AppLocalizationsSk extends AppLocalizations {
       'Zoraďte riadky kolekcií podľa dátumu pridania, dátumu vydania, abecedy a ďalších kritérií.';
 
   @override
+  String get collectionsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get collectionsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
+
+  @override
   String get displayGenresRows => 'Zobraziť riadky žánrov';
 
   @override
@@ -9215,6 +9222,13 @@ class AppLocalizationsSk extends AppLocalizations {
   @override
   String get playlistsRowSortingDescription =>
       'Zoraďte riadky playlistov podľa dátumu pridania, dátumu vydania, abecedy a ďalších kritérií.';
+
+  @override
+  String get playlistsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get playlistsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
 
   @override
   String get displayAudioRows => 'Zobraziť zvukové riadky';

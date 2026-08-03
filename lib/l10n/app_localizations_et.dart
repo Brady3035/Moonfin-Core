@@ -9131,6 +9131,13 @@ class AppLocalizationsEt extends AppLocalizations {
       'Sorteerige kogude ridu lisamiskuupäeva, väljalaskekuupäeva, tähestiku ja muu järgi.';
 
   @override
+  String get collectionsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get collectionsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
+
+  @override
   String get displayGenresRows => 'Kuva Žanrid read';
 
   @override
@@ -9164,6 +9171,13 @@ class AppLocalizationsEt extends AppLocalizations {
   @override
   String get playlistsRowSortingDescription =>
       'Sordi esitusloendite ridu lisamiskuupäeva, ilmumiskuupäeva, tähestiku ja muu järgi.';
+
+  @override
+  String get playlistsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get playlistsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
 
   @override
   String get displayAudioRows => 'Näita heliridu';

@@ -9199,6 +9199,13 @@ class AppLocalizationsRo extends AppLocalizations {
       'Sortați rândurile cu colecții după data adăugării, data lansării, alfabetic și după alte criterii.';
 
   @override
+  String get collectionsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get collectionsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
+
+  @override
   String get displayGenresRows => 'Afișează rândurile cu genuri';
 
   @override
@@ -9232,6 +9239,13 @@ class AppLocalizationsRo extends AppLocalizations {
   @override
   String get playlistsRowSortingDescription =>
       'Sortați rândurile cu liste de redare după data adăugării, data lansării, alfabetic și după alte criterii.';
+
+  @override
+  String get playlistsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get playlistsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
 
   @override
   String get displayAudioRows => 'Afișează rândurile audio';

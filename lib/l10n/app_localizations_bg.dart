@@ -9220,6 +9220,13 @@ class AppLocalizationsBg extends AppLocalizations {
       'Сортирайте редовете на колекциите по дата на добавяне, дата на издаване, по азбучен ред и др.';
 
   @override
+  String get collectionsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get collectionsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
+
+  @override
   String get displayGenresRows => 'Показване на редове за жанрове';
 
   @override
@@ -9253,6 +9260,13 @@ class AppLocalizationsBg extends AppLocalizations {
   @override
   String get playlistsRowSortingDescription =>
       'Подреждайте редовете с плейлисти по дата на добавяне, дата на издаване, по азбучен ред и други.';
+
+  @override
+  String get playlistsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get playlistsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
 
   @override
   String get displayAudioRows => 'Показване на аудиоредовете';

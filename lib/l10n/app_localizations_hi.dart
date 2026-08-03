@@ -9093,6 +9093,13 @@ class AppLocalizationsHi extends AppLocalizations {
       'कलेक्शन पंक्तियों को जोड़ने की तारीख़, रिलीज़ तारीख़, वर्णक्रम और अन्य आधार पर क्रमबद्ध करें।';
 
   @override
+  String get collectionsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get collectionsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
+
+  @override
   String get displayGenresRows => 'शैली पंक्तियाँ दिखाएँ';
 
   @override
@@ -9126,6 +9133,13 @@ class AppLocalizationsHi extends AppLocalizations {
   @override
   String get playlistsRowSortingDescription =>
       'प्लेलिस्ट पंक्तियों को जोड़ने की तारीख़, रिलीज़ तारीख़, वर्णक्रम और अन्य आधार पर क्रमबद्ध करें।';
+
+  @override
+  String get playlistsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get playlistsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
 
   @override
   String get displayAudioRows => 'ऑडियो पंक्तियाँ दिखाएँ';

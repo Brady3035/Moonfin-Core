@@ -9104,6 +9104,13 @@ class AppLocalizationsBn extends AppLocalizations {
       'যোগ করা তারিখ, প্রকাশের তারিখ, বর্ণানুক্রমিকভাবে এবং আরও অনেক কিছু অনুসারে সংগ্রহের সারি সাজান।';
 
   @override
+  String get collectionsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get collectionsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
+
+  @override
   String get displayGenresRows => 'জেনার সারি প্রদর্শন করুন';
 
   @override
@@ -9135,6 +9142,13 @@ class AppLocalizationsBn extends AppLocalizations {
   @override
   String get playlistsRowSortingDescription =>
       'প্লেলিস্ট রো যোগ করার তারিখ, মুক্তির তারিখ, বর্ণানুক্রম এবং আরও নানাভাবে সাজান।';
+
+  @override
+  String get playlistsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get playlistsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
 
   @override
   String get displayAudioRows => 'অডিও রো দেখান';

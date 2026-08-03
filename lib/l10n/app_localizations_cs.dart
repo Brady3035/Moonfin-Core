@@ -9154,6 +9154,13 @@ class AppLocalizationsCs extends AppLocalizations {
       'Seřadit řádky kolekcí podle data přidání, data vydání, abecedně a dalších.';
 
   @override
+  String get collectionsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get collectionsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
+
+  @override
   String get displayGenresRows => 'Zobrazit řádky žánrů';
 
   @override
@@ -9187,6 +9194,13 @@ class AppLocalizationsCs extends AppLocalizations {
   @override
   String get playlistsRowSortingDescription =>
       'Řaďte řádky playlistů podle data přidání, data vydání, abecedy a dalších kritérií.';
+
+  @override
+  String get playlistsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get playlistsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
 
   @override
   String get displayAudioRows => 'Zobrazovat řádky se zvukem';

@@ -9116,6 +9116,13 @@ class AppLocalizationsDa extends AppLocalizations {
       'Sorter samlingsrækker efter tilføjet dato, udgivelsesdato, alfabetisk og mere.';
 
   @override
+  String get collectionsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get collectionsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
+
+  @override
   String get displayGenresRows => 'Vis genrerrækker';
 
   @override
@@ -9148,6 +9155,13 @@ class AppLocalizationsDa extends AppLocalizations {
   @override
   String get playlistsRowSortingDescription =>
       'Sortér afspilningslisterækker efter tilføjelsesdato, udgivelsesdato, alfabetisk og mere.';
+
+  @override
+  String get playlistsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get playlistsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
 
   @override
   String get displayAudioRows => 'Vis lydrækker';

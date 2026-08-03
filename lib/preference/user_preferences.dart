@@ -1073,8 +1073,13 @@ class UserPreferences extends ChangeNotifier {
 
   static final collectionsRowSortBy = EnumPreference(
     key: 'pref_collections_row_sort_by',
-    defaultValue: LibrarySortBy.name,
+    defaultValue: LibrarySortBy.playlistOrder,
     values: LibrarySortBy.values,
+  );
+
+  static final collectionsRowShowEpisodes = Preference(
+    key: 'pref_collections_row_show_episodes',
+    defaultValue: false,
   );
 
   static final genresRowSortBy = EnumPreference(
@@ -1085,8 +1090,13 @@ class UserPreferences extends ChangeNotifier {
 
   static final playlistsRowSortBy = EnumPreference(
     key: 'pref_playlists_row_sort_by',
-    defaultValue: LibrarySortBy.name,
+    defaultValue: LibrarySortBy.playlistOrder,
     values: LibrarySortBy.values,
+  );
+
+  static final playlistsRowShowEpisodes = Preference(
+    key: 'pref_playlists_row_show_episodes',
+    defaultValue: false,
   );
 
   static final audioRowsSortBy = EnumPreference(

@@ -100,6 +100,11 @@ class _HomeRowTogglesScreenState extends State<HomeRowTogglesScreen> {
     _reloadHomeRows();
   }
 
+  void _onCollectionsEpisodesChanged() {
+    _pushPersonalizationSync();
+    _reloadHomeRows();
+  }
+
   void _onGenresSortChanged() {
     _pushPersonalizationSync();
     _reloadHomeRows();
@@ -123,6 +128,11 @@ class _HomeRowTogglesScreenState extends State<HomeRowTogglesScreen> {
   }
 
   void _onPlaylistsSortChanged() {
+    _pushPersonalizationSync();
+    _reloadHomeRows();
+  }
+
+  void _onPlaylistsEpisodesChanged() {
     _pushPersonalizationSync();
     _reloadHomeRows();
   }
@@ -396,6 +406,14 @@ class _HomeRowTogglesScreenState extends State<HomeRowTogglesScreen> {
                       labelOf: (v) => v.displayName,
                       onChanged: _onCollectionsSortChanged,
                     ),
+                  if (showCollectionsRows)
+                    SwitchPreferenceTile(
+                      preference: UserPreferences.collectionsRowShowEpisodes,
+                      title: l10n.collectionsRowShowEpisodes,
+                      subtitle: l10n.collectionsRowShowEpisodesSubtitle,
+                      icon: Icons.video_library_outlined,
+                      onChanged: _onCollectionsEpisodesChanged,
+                    ),
                 ],
               ),
 
@@ -470,6 +488,14 @@ class _HomeRowTogglesScreenState extends State<HomeRowTogglesScreen> {
                       icon: Icons.sort,
                       labelOf: (v) => v.displayName,
                       onChanged: _onPlaylistsSortChanged,
+                    ),
+                  if (showPlaylistsRows)
+                    SwitchPreferenceTile(
+                      preference: UserPreferences.playlistsRowShowEpisodes,
+                      title: l10n.playlistsRowShowEpisodes,
+                      subtitle: l10n.playlistsRowShowEpisodesSubtitle,
+                      icon: Icons.video_library_outlined,
+                      onChanged: _onPlaylistsEpisodesChanged,
                     ),
                 ],
               ),

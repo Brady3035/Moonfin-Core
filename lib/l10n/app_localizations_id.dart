@@ -9122,6 +9122,13 @@ class AppLocalizationsId extends AppLocalizations {
       'Urutkan baris Koleksi berdasarkan tanggal ditambahkan, tanggal rilis, alfabetis, dan lainnya.';
 
   @override
+  String get collectionsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get collectionsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
+
+  @override
   String get displayGenresRows => 'Tampilkan Baris Genre';
 
   @override
@@ -9155,6 +9162,13 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get playlistsRowSortingDescription =>
       'Urutkan baris Playlist berdasarkan tanggal ditambahkan, tanggal rilis, alfabetis, dan lainnya.';
+
+  @override
+  String get playlistsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get playlistsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
 
   @override
   String get displayAudioRows => 'Tampilkan Baris Audio';

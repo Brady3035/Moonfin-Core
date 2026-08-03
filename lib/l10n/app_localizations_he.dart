@@ -8990,6 +8990,13 @@ class AppLocalizationsHe extends AppLocalizations {
       'מיין את שורות האוספים לפי תאריך הוספה, תאריך יציאה, סדר אלפביתי ועוד.';
 
   @override
+  String get collectionsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get collectionsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
+
+  @override
   String get displayGenresRows => 'הצג שורות ז\'אנרים';
 
   @override
@@ -9022,6 +9029,13 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get playlistsRowSortingDescription =>
       'מיין את שורות רשימות ההשמעה לפי תאריך הוספה, תאריך יציאה, סדר אלפביתי ועוד.';
+
+  @override
+  String get playlistsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get playlistsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
 
   @override
   String get displayAudioRows => 'הצג שורות שמע';

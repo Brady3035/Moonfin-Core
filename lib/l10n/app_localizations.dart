@@ -16204,6 +16204,18 @@ abstract class AppLocalizations {
   /// **'Sort Collections rows by date added, release date, alphabetically, and more.'**
   String get collectionsRowSortingDescription;
 
+  /// No description provided for @collectionsRowShowEpisodes.
+  ///
+  /// In en, this message translates to:
+  /// **'Show Individual Episodes'**
+  String get collectionsRowShowEpisodes;
+
+  /// No description provided for @collectionsRowShowEpisodesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Expand TV shows to display each episode separately.'**
+  String get collectionsRowShowEpisodesSubtitle;
+
   /// No description provided for @displayGenresRows.
   ///
   /// In en, this message translates to:
@@ -16263,6 +16275,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sort Playlist rows by date added, release date, alphabetically, and more.'**
   String get playlistsRowSortingDescription;
+
+  /// No description provided for @playlistsRowShowEpisodes.
+  ///
+  /// In en, this message translates to:
+  /// **'Show Individual Episodes'**
+  String get playlistsRowShowEpisodes;
+
+  /// No description provided for @playlistsRowShowEpisodesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Expand TV shows to display each episode separately.'**
+  String get playlistsRowShowEpisodesSubtitle;
 
   /// No description provided for @displayAudioRows.
   ///

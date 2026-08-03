@@ -9262,6 +9262,13 @@ class AppLocalizationsCa extends AppLocalizations {
       'Ordena les files de les col·leccions per data afegida, data de llançament, alfabèticament i molt més.';
 
   @override
+  String get collectionsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get collectionsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
+
+  @override
   String get displayGenresRows => 'Mostra les files de gèneres';
 
   @override
@@ -9297,6 +9304,13 @@ class AppLocalizationsCa extends AppLocalizations {
   @override
   String get playlistsRowSortingDescription =>
       'Ordena les files de llistes de reproducció per data d\'addició, data d\'estrena, alfabèticament i més.';
+
+  @override
+  String get playlistsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get playlistsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
 
   @override
   String get displayAudioRows => 'Mostra les files d\'àudio';

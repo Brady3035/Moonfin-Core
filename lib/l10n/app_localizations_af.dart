@@ -9124,6 +9124,13 @@ class AppLocalizationsAf extends AppLocalizations {
       'Sorteer versamelingsrye volgens bygevoegde datum, vrystellingdatum, alfabeties, en meer.';
 
   @override
+  String get collectionsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get collectionsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
+
+  @override
   String get displayGenresRows => 'Wys Genres Rye';
 
   @override
@@ -9156,6 +9163,13 @@ class AppLocalizationsAf extends AppLocalizations {
   @override
   String get playlistsRowSortingDescription =>
       'Sorteer snitlysrye volgens datum bygevoeg, vrystellingsdatum, alfabeties en meer.';
+
+  @override
+  String get playlistsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get playlistsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
 
   @override
   String get displayAudioRows => 'Wys oudiorye';

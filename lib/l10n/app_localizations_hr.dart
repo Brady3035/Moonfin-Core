@@ -9340,6 +9340,13 @@ class AppLocalizationsHr extends AppLocalizations {
       'Sortirajte redove kolekcija prema datumu dodavanja, datumu izlaska, abecedno i više.';
 
   @override
+  String get collectionsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get collectionsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
+
+  @override
   String get displayGenresRows => 'Prikaži redove žanrova';
 
   @override
@@ -9373,6 +9380,13 @@ class AppLocalizationsHr extends AppLocalizations {
   @override
   String get playlistsRowSortingDescription =>
       'Sortirajte redove popisa za reprodukciju prema datumu dodavanja, datumu izlaska, abecedno i više.';
+
+  @override
+  String get playlistsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get playlistsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
 
   @override
   String get displayAudioRows => 'Prikaži audioredove';

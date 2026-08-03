@@ -9118,6 +9118,13 @@ class AppLocalizationsVi extends AppLocalizations {
       'Sắp xếp các hàng Bộ sưu tập theo ngày thêm, ngày phát hành, theo thứ tự bảng chữ cái, v.v.';
 
   @override
+  String get collectionsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get collectionsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
+
+  @override
   String get displayGenresRows => 'Hiển thị dòng thể loại';
 
   @override
@@ -9151,6 +9158,13 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get playlistsRowSortingDescription =>
       'Sắp xếp hàng danh sách phát theo ngày thêm, ngày phát hành, theo bảng chữ cái và nhiều tiêu chí khác.';
+
+  @override
+  String get playlistsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get playlistsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
 
   @override
   String get displayAudioRows => 'Hiển thị hàng âm thanh';

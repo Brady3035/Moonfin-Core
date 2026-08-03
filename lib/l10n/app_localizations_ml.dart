@@ -9237,6 +9237,13 @@ class AppLocalizationsMl extends AppLocalizations {
       'ചേർത്ത തീയതി, റിലീസ് തീയതി, അക്ഷരമാലാക്രമം എന്നിവയും അതിലേറെയും അനുസരിച്ച് ശേഖരങ്ങളുടെ വരികൾ അടുക്കുക.';
 
   @override
+  String get collectionsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get collectionsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
+
+  @override
   String get displayGenresRows => 'ജനറുകളുടെ വരികൾ പ്രദർശിപ്പിക്കുക';
 
   @override
@@ -9270,6 +9277,13 @@ class AppLocalizationsMl extends AppLocalizations {
   @override
   String get playlistsRowSortingDescription =>
       'പ്ലേലിസ്റ്റ് വരികൾ ചേർത്ത തീയതി, റിലീസ് തീയതി, അക്ഷരമാലാക്രമം എന്നിവയും അതിലേറെയും അനുസരിച്ച് അടുക്കുക.';
+
+  @override
+  String get playlistsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get playlistsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
 
   @override
   String get displayAudioRows => 'ഓഡിയോ വരികൾ പ്രദർശിപ്പിക്കുക';

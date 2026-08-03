@@ -9191,6 +9191,13 @@ class AppLocalizationsTe extends AppLocalizations {
       'జోడించిన తేదీ, విడుదల తేదీ, అక్షర క్రమంలో మరియు మరిన్నింటి ఆధారంగా సేకరణల వరుసలను క్రమబద్ధీకరించండి.';
 
   @override
+  String get collectionsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get collectionsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
+
+  @override
   String get displayGenresRows => 'ప్రదర్శన శైలుల వరుసలు';
 
   @override
@@ -9224,6 +9231,13 @@ class AppLocalizationsTe extends AppLocalizations {
   @override
   String get playlistsRowSortingDescription =>
       'ప్లేజాబితా వరుసలను జోడించిన తేదీ, విడుదల తేదీ, అక్షర క్రమం మరియు మరిన్నింటి ప్రకారం క్రమబద్ధీకరించండి.';
+
+  @override
+  String get playlistsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get playlistsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
 
   @override
   String get displayAudioRows => 'ఆడియో వరుసలను చూపించండి';

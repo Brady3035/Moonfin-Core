@@ -9049,6 +9049,13 @@ class AppLocalizationsTh extends AppLocalizations {
       'จัดเรียงแถวคอลเลกชันตามวันที่เพิ่ม วันที่วางจำหน่าย ตามลำดับตัวอักษร และอื่นๆ';
 
   @override
+  String get collectionsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get collectionsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
+
+  @override
   String get displayGenresRows => 'แสดงแถวประเภท';
 
   @override
@@ -9081,6 +9088,13 @@ class AppLocalizationsTh extends AppLocalizations {
   @override
   String get playlistsRowSortingDescription =>
       'เรียงแถวเพลย์ลิสต์ตามวันที่เพิ่ม วันที่ออกฉาย ตามตัวอักษร และอื่นๆ';
+
+  @override
+  String get playlistsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get playlistsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
 
   @override
   String get displayAudioRows => 'แสดงแถวเสียง';

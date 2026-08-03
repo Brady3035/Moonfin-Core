@@ -3266,6 +3266,17 @@ class AppLocalizationsTe extends AppLocalizations {
       'కనెక్ట్ చేయబడిన అన్ని సర్వర్‌ల నుండి లైబ్రరీలను చూపండి';
 
   @override
+  String get mergeRecentlyAddedLibrariesByType =>
+      'Merge Recently Added Libraries by Type';
+
+  @override
+  String get mergeRecentlyAddedLibrariesByTypeDescription =>
+      'Combine separate libraries of the same type into merged rows on the home page.';
+
+  @override
+  String get libraryView => 'Library View';
+
+  @override
   String get enableFolderView => 'ఫోల్డర్ వీక్షణను ప్రారంభించండి';
 
   @override

@@ -3238,6 +3238,17 @@ class AppLocalizationsHi extends AppLocalizations {
       'सभी कनेक्टेड सर्वर से लाइब्रेरी दिखाएं';
 
   @override
+  String get mergeRecentlyAddedLibrariesByType =>
+      'Merge Recently Added Libraries by Type';
+
+  @override
+  String get mergeRecentlyAddedLibrariesByTypeDescription =>
+      'Combine separate libraries of the same type into merged rows on the home page.';
+
+  @override
+  String get libraryView => 'Library View';
+
+  @override
   String get enableFolderView => 'फ़ोल्डर दृश्य सक्षम करें';
 
   @override

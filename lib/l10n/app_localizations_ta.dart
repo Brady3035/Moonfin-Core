@@ -3269,6 +3269,17 @@ class AppLocalizationsTa extends AppLocalizations {
       'இணைக்கப்பட்ட அனைத்து சேவையகங்களிலிருந்தும் நூலகங்களைக் காட்டு';
 
   @override
+  String get mergeRecentlyAddedLibrariesByType =>
+      'Merge Recently Added Libraries by Type';
+
+  @override
+  String get mergeRecentlyAddedLibrariesByTypeDescription =>
+      'Combine separate libraries of the same type into merged rows on the home page.';
+
+  @override
+  String get libraryView => 'Library View';
+
+  @override
   String get enableFolderView => 'கோப்புறைக் காட்சியை இயக்கு';
 
   @override

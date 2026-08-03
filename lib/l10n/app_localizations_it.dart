@@ -3266,6 +3266,17 @@ class AppLocalizationsIt extends AppLocalizations {
       'Mostra librerie da tutti i server connessi';
 
   @override
+  String get mergeRecentlyAddedLibrariesByType =>
+      'Merge Recently Added Libraries by Type';
+
+  @override
+  String get mergeRecentlyAddedLibrariesByTypeDescription =>
+      'Combine separate libraries of the same type into merged rows on the home page.';
+
+  @override
+  String get libraryView => 'Library View';
+
+  @override
   String get enableFolderView => 'Abilita Visualizzazione Cartelle';
 
   @override

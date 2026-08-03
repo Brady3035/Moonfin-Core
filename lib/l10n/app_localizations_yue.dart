@@ -3153,6 +3153,17 @@ class AppLocalizationsYue extends AppLocalizations {
   String get showLibrariesFromAllServers => '顯示所有連接伺服器的庫';
 
   @override
+  String get mergeRecentlyAddedLibrariesByType =>
+      'Merge Recently Added Libraries by Type';
+
+  @override
+  String get mergeRecentlyAddedLibrariesByTypeDescription =>
+      'Combine separate libraries of the same type into merged rows on the home page.';
+
+  @override
+  String get libraryView => 'Library View';
+
+  @override
   String get enableFolderView => '啟用資料夾視圖';
 
   @override

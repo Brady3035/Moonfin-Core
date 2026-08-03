@@ -3244,6 +3244,17 @@ class AppLocalizationsSi extends AppLocalizations {
       'සියලුම සම්බන්ධිත සර්වර් වලින් පුස්තකාල පෙන්වන්න';
 
   @override
+  String get mergeRecentlyAddedLibrariesByType =>
+      'Merge Recently Added Libraries by Type';
+
+  @override
+  String get mergeRecentlyAddedLibrariesByTypeDescription =>
+      'Combine separate libraries of the same type into merged rows on the home page.';
+
+  @override
+  String get libraryView => 'Library View';
+
+  @override
   String get enableFolderView => 'ෆෝල්ඩර දර්ශනය සබල කරන්න';
 
   @override

@@ -17,6 +17,32 @@ int latestMediaFetchLimitForCollection(
   return defaultLimit;
 }
 
+String genericDescriptorForCollectionType(String? collectionType) {
+  switch (collectionType?.toLowerCase()) {
+    case 'movies':
+      return 'Movies';
+    case 'tvshows':
+    case 'shows':
+      return 'TV Shows';
+    case 'music':
+      return 'Music';
+    case 'books':
+      return 'Books';
+    case 'audiobooks':
+      return 'Audiobooks';
+    case 'musicvideos':
+      return 'Music Videos';
+    case 'homevideos':
+    case 'photos':
+      return 'Home Videos';
+    default:
+      final type = collectionType ?? '';
+      return type.isEmpty
+          ? 'Media'
+          : type[0].toUpperCase() + type.substring(1);
+  }
+}
+
 List<AggregatedItem> normalizeLatestMediaItems(
   List<AggregatedItem> items, {
   String? collectionType,

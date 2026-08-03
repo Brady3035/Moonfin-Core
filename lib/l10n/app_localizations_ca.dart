@@ -3281,6 +3281,17 @@ class AppLocalizationsCa extends AppLocalizations {
       'Mostra les biblioteques de tots els servidors connectats';
 
   @override
+  String get mergeRecentlyAddedLibrariesByType =>
+      'Merge Recently Added Libraries by Type';
+
+  @override
+  String get mergeRecentlyAddedLibrariesByTypeDescription =>
+      'Combine separate libraries of the same type into merged rows on the home page.';
+
+  @override
+  String get libraryView => 'Library View';
+
+  @override
   String get enableFolderView => 'Activa la vista de carpetes';
 
   @override

@@ -3250,6 +3250,17 @@ class AppLocalizationsMn extends AppLocalizations {
       'Холбогдсон бүх серверийн сангуудыг харуулах';
 
   @override
+  String get mergeRecentlyAddedLibrariesByType =>
+      'Merge Recently Added Libraries by Type';
+
+  @override
+  String get mergeRecentlyAddedLibrariesByTypeDescription =>
+      'Combine separate libraries of the same type into merged rows on the home page.';
+
+  @override
+  String get libraryView => 'Library View';
+
+  @override
   String get enableFolderView => 'Фолдер харахыг идэвхжүүлэх';
 
   @override

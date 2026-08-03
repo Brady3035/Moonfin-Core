@@ -916,6 +916,86 @@ class MultiServerRepository {
     final hasMultiple = sessions.length > 1;
     final rows = <HomeRow>[];
 
+    final mergeByType = GetIt.instance<UserPreferences>().get(
+      UserPreferences.mergeRecentlyAddedLibrariesByType,
+    );
+
+    if (!mergeByType) {
+      for (final session in sessions) {
+        try {
+          final views = await _withTimeout(
+            () => loadUserViews(session.client, includeHidden: true),
+            label: 'views from ${session.server.name}',
+          );
+
+          Set<String> latestExcludes = const {};
+          try {
+            final config = await session.client.usersApi.getUserConfiguration();
+            latestExcludes = config.latestItemsExcludes.toSet();
+          } catch (_) {}
+
+          for (final view in views) {
+            final id = view.id;
+            final collectionType = view.collectionType.toLowerCase();
+            if (collectionType == 'playlists' ||
+                collectionType == 'boxsets' ||
+                collectionType == 'livetv') {
+              continue;
+            }
+            if (latestExcludes.contains(id)) continue;
+
+            final name = view.name;
+            final displayName = hasMultiple
+                ? '$name (${session.server.name})'
+                : name;
+            final fetchLimit = latestMediaFetchLimitForCollection(
+              collectionType,
+              defaultLimit: _defaultLimit,
+              maxLimit: 100,
+            );
+
+            try {
+              final latestResponse = await _withTimeout(
+                () => session.client.itemsApi.getLatestItems(
+                  parentId: id,
+                  limit: fetchLimit,
+                  fields: _fields,
+                  enableImageTypes: _imageTypes,
+                  imageTypeLimit: _imageTypeLimit,
+                ),
+                label: 'latest $name from ${session.server.name}',
+              );
+
+              final items = normalizeLatestMediaItems(
+                _parseItems(latestResponse, session.server.id),
+                collectionType: collectionType,
+                limit: _defaultLimit,
+              );
+              if (items.isNotEmpty) {
+                final totalCount = items.length < _defaultLimit
+                    ? items.length
+                    : _maxItems;
+                _rowTotals['latest_${session.server.id}_${id}_${session.server.id}'] =
+                    totalCount;
+                rows.add(
+                  HomeRow(
+                    id: 'latest_${session.server.id}_$id',
+                    title: _l10n.latestLibraryName(displayName),
+                    items: items,
+                    rowType: HomeRowType.latestMedia,
+                    totalCount: totalCount,
+                    isAudio: collectionType == 'music',
+                  ),
+                );
+              }
+            } catch (_) {}
+          }
+        } catch (_) {}
+      }
+      return rows;
+    }
+
+    final groupedItems = <String, List<AggregatedItem>>{};
     for (final session in sessions) {
       try {
         final views = await _withTimeout(
@@ -939,10 +1019,6 @@ class MultiServerRepository {
           }
           if (latestExcludes.contains(id)) continue;
 
-          final name = view.name;
-          final displayName = hasMultiple
-              ? '$name (${session.server.name})'
-              : name;
           final fetchLimit = latestMediaFetchLimitForCollection(
             collectionType,
             defaultLimit: _defaultLimit,
@@ -958,40 +1034,72 @@ class MultiServerRepository {
                 enableImageTypes: _imageTypes,
                 imageTypeLimit: _imageTypeLimit,
               ),
-              label: 'latest $name from ${session.server.name}',
+              label: 'latest ${view.name} from ${session.server.name}',
             );
 
-            final items = normalizeLatestMediaItems(
-              _parseItems(latestResponse, session.server.id),
-              collectionType: collectionType,
-              limit: _defaultLimit,
-            );
+            final items = _parseItems(latestResponse, session.server.id);
             if (items.isNotEmpty) {
-              final totalCount = items.length < _defaultLimit
-                  ? items.length
-                  : _maxItems;
-              _rowTotals['latest_${session.server.id}_${id}_${session.server.id}'] =
-                  totalCount;
-              rows.add(
-                HomeRow(
-                  id: 'latest_${session.server.id}_$id',
-                  title: _l10n.latestLibraryName(displayName),
-                  items: items,
-                  rowType: HomeRowType.latestMedia,
-                  totalCount: totalCount,
-                  isAudio: collectionType == 'music',
-                ),
-              );
+              groupedItems.putIfAbsent(collectionType, () => []).addAll(items);
             }
-          } catch (e) {
-            _logger.w('MultiServer: Failed to load latest for $name: $e');
-          }
+          } catch (_) {}
         }
-      } catch (e) {
-        _logger.w(
-          'MultiServer: Failed to load views from ${session.server.name}: $e',
-        );
+      } catch (_) {}
+    }
+
+    for (final entry in groupedItems.entries) {
+      final collectionType = entry.key;
+      final rawItems = entry.value;
+
+      final allItems = <AggregatedItem>[];
+      final seenIds = <String>{};
+      for (final item in rawItems) {
+        if (seenIds.add(item.id)) {
+          allItems.add(item);
+        }
       }
+
+      if (allItems.isEmpty) continue;
+
+      allItems.sort((a, b) {
+        final da = _parseDateCreated(a.rawData['DateCreated']);
+        final db = _parseDateCreated(b.rawData['DateCreated']);
+        if (da != null && db != null) {
+          return db.compareTo(da);
+        }
+        if (da != null) return -1;
+        if (db != null) return 1;
+        return 0;
+      });
+
+      final fetchLimit = latestMediaFetchLimitForCollection(
+        collectionType,
+        defaultLimit: _defaultLimit,
+        maxLimit: 100,
+      );
+
+      final normalizedItems = normalizeLatestMediaItems(
+        allItems,
+        collectionType: collectionType,
+        limit: fetchLimit,
+      );
+
+      if (normalizedItems.isEmpty) continue;
+
+      final genericDescriptor = genericDescriptorForCollectionType(collectionType);
+      final totalCount = normalizedItems.length < _defaultLimit
+          ? normalizedItems.length
+          : _maxItems;
+      _rowTotals['latest_merged_$collectionType'] = totalCount;
+      rows.add(
+        HomeRow(
+          id: 'latest_merged_$collectionType',
+          title: 'Latest $genericDescriptor',
+          items: normalizedItems,
+          rowType: HomeRowType.latestMedia,
+          totalCount: totalCount,
+          isAudio: collectionType == 'music',
+        ),
+      );
     }
 
     return rows;

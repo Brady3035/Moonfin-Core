@@ -3365,6 +3365,17 @@ class AppLocalizationsHr extends AppLocalizations {
       'Prikaži biblioteke sa svih povezanih poslužitelja';
 
   @override
+  String get mergeRecentlyAddedLibrariesByType =>
+      'Merge Recently Added Libraries by Type';
+
+  @override
+  String get mergeRecentlyAddedLibrariesByTypeDescription =>
+      'Combine separate libraries of the same type into merged rows on the home page.';
+
+  @override
+  String get libraryView => 'Library View';
+
+  @override
   String get enableFolderView => 'Omogući prikaz mape';
 
   @override

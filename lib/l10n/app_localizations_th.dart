@@ -3226,6 +3226,17 @@ class AppLocalizationsTh extends AppLocalizations {
       'แสดงไลบรารีจากเซิร์ฟเวอร์ที่เชื่อมต่อทั้งหมด';
 
   @override
+  String get mergeRecentlyAddedLibrariesByType =>
+      'Merge Recently Added Libraries by Type';
+
+  @override
+  String get mergeRecentlyAddedLibrariesByTypeDescription =>
+      'Combine separate libraries of the same type into merged rows on the home page.';
+
+  @override
+  String get libraryView => 'Library View';
+
+  @override
   String get enableFolderView => 'เปิดใช้งานมุมมองโฟลเดอร์';
 
   @override

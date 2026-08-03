@@ -652,6 +652,12 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
       subtitle: l10n.settingsAlwaysExpandNavbarLabels,
       keywords: ['labels'],
     ),
+    navigation.leaf(
+      'enable_folder_view',
+      l10n.enableFolderView,
+      subtitle: l10n.showFolderBrowsingOption,
+      keywords: ['directories'],
+    ),
     if (seerrAvailable)
       navigation.leaf(
         'pref_show_seerr_button',
@@ -888,15 +894,15 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
       'latest media',
     ]),
     libraries.leaf(
-      'enable_folder_view',
-      l10n.enableFolderView,
-      subtitle: l10n.showFolderBrowsingOption,
-      keywords: ['directories'],
-    ),
-    libraries.leaf(
       'enable_multi_server_libraries',
       l10n.multiServerLibraries,
       subtitle: l10n.showLibrariesFromAllServers,
+    ),
+    libraries.leaf(
+      'pref_merge_recently_added_libraries_by_type',
+      l10n.mergeRecentlyAddedLibrariesByType,
+      subtitle: l10n.mergeRecentlyAddedLibrariesByTypeDescription,
+      keywords: ['combine', 'homepage', 'rows'],
     ),
     libraries.leaf(
       'pref_group_items_into_collections',

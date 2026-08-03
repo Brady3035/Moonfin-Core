@@ -3259,6 +3259,17 @@ class AppLocalizationsAr extends AppLocalizations {
       'إظهار المكتبات من كافة الخوادم المتصلة';
 
   @override
+  String get mergeRecentlyAddedLibrariesByType =>
+      'Merge Recently Added Libraries by Type';
+
+  @override
+  String get mergeRecentlyAddedLibrariesByTypeDescription =>
+      'Combine separate libraries of the same type into merged rows on the home page.';
+
+  @override
+  String get libraryView => 'Library View';
+
+  @override
   String get enableFolderView => 'تمكين عرض المجلد';
 
   @override

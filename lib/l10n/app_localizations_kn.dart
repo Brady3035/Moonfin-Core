@@ -3265,6 +3265,17 @@ class AppLocalizationsKn extends AppLocalizations {
       'ಎಲ್ಲಾ ಸಂಪರ್ಕಿತ ಸರ್ವರ್‌ಗಳಿಂದ ಲೈಬ್ರರಿಗಳನ್ನು ತೋರಿಸಿ';
 
   @override
+  String get mergeRecentlyAddedLibrariesByType =>
+      'Merge Recently Added Libraries by Type';
+
+  @override
+  String get mergeRecentlyAddedLibrariesByTypeDescription =>
+      'Combine separate libraries of the same type into merged rows on the home page.';
+
+  @override
+  String get libraryView => 'Library View';
+
+  @override
   String get enableFolderView => 'ಫೋಲ್ಡರ್ ವೀಕ್ಷಣೆಯನ್ನು ಸಕ್ರಿಯಗೊಳಿಸಿ';
 
   @override

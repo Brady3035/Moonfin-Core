@@ -9,9 +9,11 @@ import 'package:get_it/get_it.dart';
 import 'package:server_core/server_core.dart';
 
 import '../../../data/models/aggregated_item.dart';
+import '../../../data/models/aggregated_library.dart';
 import '../../../data/models/home_row.dart';
 import '../../../data/repositories/multi_server_repository.dart';
 import '../../../data/repositories/user_views_repository.dart';
+import '../../../data/utils/latest_media_row_normalizer.dart';
 import '../../../data/services/connectivity_service.dart';
 import '../../../data/services/home_row_cache_store.dart';
 import '../../../data/services/row_data_source.dart';
@@ -1430,23 +1432,115 @@ class HomeViewModel extends ChangeNotifier {
       return !latestExcludes.contains(lib.id);
     }).toList();
 
-    final tasks = filteredViews.map((lib) async {
-      try {
-        final row = await _dataSource.loadLatestMedia(
-          lib.id,
-          lib.name,
-          _serverId,
-          lib.collectionType.toLowerCase(),
-        );
-        return row.items.isNotEmpty ? row : null;
-      } catch (_) {
-        return null;
-      }
-    }).toList();
+    final mergeByType = _prefs.get(UserPreferences.mergeRecentlyAddedLibrariesByType);
 
-    final resolved = await Future.wait(tasks);
-    final rows = resolved.whereType<HomeRow>().toList();
-    return rows;
+    if (!mergeByType) {
+      final tasks = filteredViews.map((lib) async {
+        try {
+          final row = await _dataSource.loadLatestMedia(
+            lib.id,
+            lib.name,
+            _serverId,
+            lib.collectionType.toLowerCase(),
+          );
+          return row.items.isNotEmpty ? row : null;
+        } catch (_) {
+          return null;
+        }
+      }).toList();
+
+      final resolved = await Future.wait(tasks);
+      final rows = resolved.whereType<HomeRow>().toList();
+      return rows;
+    }
+
+    final groupedViews = <String, List<AggregatedLibrary>>{};
+    for (final lib in filteredViews) {
+      final type = lib.collectionType.toLowerCase();
+      groupedViews.putIfAbsent(type, () => []).add(lib);
+    }
+
+    final mergedRows = <HomeRow>[];
+    for (final entry in groupedViews.entries) {
+      final collectionType = entry.key;
+      final libs = entry.value;
+
+      final rowTasks = libs.map((lib) async {
+        try {
+          return await _dataSource.loadLatestMedia(
+            lib.id,
+            lib.name,
+            _serverId,
+            collectionType,
+          );
+        } catch (_) {
+          return null;
+        }
+      }).toList();
+
+      final loadedRows = (await Future.wait(rowTasks))
+          .whereType<HomeRow>()
+          .toList();
+
+      final allItems = <AggregatedItem>[];
+      final seenIds = <String>{};
+      for (final r in loadedRows) {
+        for (final item in r.items) {
+          if (seenIds.add(item.id)) {
+            allItems.add(item);
+          }
+        }
+      }
+
+      if (allItems.isEmpty) continue;
+
+      allItems.sort((a, b) {
+        final da = _parseDateCreated(a.rawData['DateCreated']);
+        final db = _parseDateCreated(b.rawData['DateCreated']);
+        if (da != null && db != null) {
+          return db.compareTo(da);
+        }
+        if (da != null) return -1;
+        if (db != null) return 1;
+        return 0;
+      });
+
+      final fetchLimit = latestMediaFetchLimitForCollection(
+        collectionType,
+        defaultLimit: 20,
+        maxLimit: 100,
+      );
+
+      final normalizedItems = normalizeLatestMediaItems(
+        allItems,
+        collectionType: collectionType,
+        limit: fetchLimit,
+      );
+
+      if (normalizedItems.isEmpty) continue;
+
+      final genericDescriptor = genericDescriptorForCollectionType(collectionType);
+      mergedRows.add(
+        HomeRow(
+          id: 'latest_merged_$collectionType',
+          title: 'Latest $genericDescriptor',
+          items: normalizedItems,
+          rowType: HomeRowType.latestMedia,
+          totalCount: normalizedItems.length < 20
+              ? normalizedItems.length
+              : 100,
+          isAudio: collectionType == 'music',
+        ),
+      );
+    }
+
+    return mergedRows;
+  }
+
+  static DateTime? _parseDateCreated(dynamic value) {
+    if (value == null) return null;
+    if (value is String) return DateTime.tryParse(value);
+    return null;
   }
 
   Future<List<HomeRow>> _loadRecentlyReleasedRow() async {

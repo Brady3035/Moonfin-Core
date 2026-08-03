@@ -3265,6 +3265,17 @@ class AppLocalizationsBg extends AppLocalizations {
       'Показване на библиотеки от всички свързани сървъри';
 
   @override
+  String get mergeRecentlyAddedLibrariesByType =>
+      'Merge Recently Added Libraries by Type';
+
+  @override
+  String get mergeRecentlyAddedLibrariesByTypeDescription =>
+      'Combine separate libraries of the same type into merged rows on the home page.';
+
+  @override
+  String get libraryView => 'Library View';
+
+  @override
   String get enableFolderView => 'Активиране на изглед на папка';
 
   @override

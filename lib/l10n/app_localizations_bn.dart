@@ -3239,6 +3239,17 @@ class AppLocalizationsBn extends AppLocalizations {
       'সমস্ত সংযুক্ত সার্ভার থেকে লাইব্রেরি দেখান';
 
   @override
+  String get mergeRecentlyAddedLibrariesByType =>
+      'Merge Recently Added Libraries by Type';
+
+  @override
+  String get mergeRecentlyAddedLibrariesByTypeDescription =>
+      'Combine separate libraries of the same type into merged rows on the home page.';
+
+  @override
+  String get libraryView => 'Library View';
+
+  @override
   String get enableFolderView => 'ফোল্ডার ভিউ সক্ষম করুন';
 
   @override

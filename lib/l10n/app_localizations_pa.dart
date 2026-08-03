@@ -3239,6 +3239,17 @@ class AppLocalizationsPa extends AppLocalizations {
       'ਸਾਰੇ ਕਨੈਕਟ ਕੀਤੇ ਸਰਵਰਾਂ ਤੋਂ ਲਾਇਬ੍ਰੇਰੀਆਂ ਦਿਖਾਓ';
 
   @override
+  String get mergeRecentlyAddedLibrariesByType =>
+      'Merge Recently Added Libraries by Type';
+
+  @override
+  String get mergeRecentlyAddedLibrariesByTypeDescription =>
+      'Combine separate libraries of the same type into merged rows on the home page.';
+
+  @override
+  String get libraryView => 'Library View';
+
+  @override
   String get enableFolderView => 'ਫੋਲਡਰ ਦ੍ਰਿਸ਼ ਨੂੰ ਸਮਰੱਥ ਬਣਾਓ';
 
   @override

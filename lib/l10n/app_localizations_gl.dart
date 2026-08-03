@@ -3283,6 +3283,17 @@ class AppLocalizationsGl extends AppLocalizations {
       'Mostra as bibliotecas de todos os servidores conectados';
 
   @override
+  String get mergeRecentlyAddedLibrariesByType =>
+      'Merge Recently Added Libraries by Type';
+
+  @override
+  String get mergeRecentlyAddedLibrariesByTypeDescription =>
+      'Combine separate libraries of the same type into merged rows on the home page.';
+
+  @override
+  String get libraryView => 'Library View';
+
+  @override
   String get enableFolderView => 'Activar a vista de cartafoles';
 
   @override

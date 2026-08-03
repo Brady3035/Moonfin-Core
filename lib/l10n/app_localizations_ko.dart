@@ -3175,6 +3175,17 @@ class AppLocalizationsKo extends AppLocalizations {
   String get showLibrariesFromAllServers => '연결된 모든 서버의 라이브러리 표시';
 
   @override
+  String get mergeRecentlyAddedLibrariesByType =>
+      'Merge Recently Added Libraries by Type';
+
+  @override
+  String get mergeRecentlyAddedLibrariesByTypeDescription =>
+      'Combine separate libraries of the same type into merged rows on the home page.';
+
+  @override
+  String get libraryView => 'Library View';
+
+  @override
   String get enableFolderView => '폴더 보기 활성화';
 
   @override

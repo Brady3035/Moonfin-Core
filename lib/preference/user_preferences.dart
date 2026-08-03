@@ -1290,6 +1290,10 @@ class UserPreferences extends ChangeNotifier {
     key: 'enable_multi_server_libraries',
     defaultValue: false,
   );
+  static final mergeRecentlyAddedLibrariesByType = Preference(
+    key: 'pref_merge_recently_added_libraries_by_type',
+    defaultValue: false,
+  );
 
   static final diagnosticLoggingEnabled = Preference(
     key: 'pref_diagnostic_logging_enabled',

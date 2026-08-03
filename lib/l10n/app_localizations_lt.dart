@@ -3268,6 +3268,17 @@ class AppLocalizationsLt extends AppLocalizations {
       'Rodyti visų prijungtų serverių bibliotekas';
 
   @override
+  String get mergeRecentlyAddedLibrariesByType =>
+      'Merge Recently Added Libraries by Type';
+
+  @override
+  String get mergeRecentlyAddedLibrariesByTypeDescription =>
+      'Combine separate libraries of the same type into merged rows on the home page.';
+
+  @override
+  String get libraryView => 'Library View';
+
+  @override
   String get enableFolderView => 'Įgalinti aplanko rodinį';
 
   @override

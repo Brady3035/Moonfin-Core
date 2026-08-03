@@ -3274,6 +3274,17 @@ class AppLocalizationsSq extends AppLocalizations {
       'Shfaq bibliotekat nga të gjithë serverët e lidhur';
 
   @override
+  String get mergeRecentlyAddedLibrariesByType =>
+      'Merge Recently Added Libraries by Type';
+
+  @override
+  String get mergeRecentlyAddedLibrariesByTypeDescription =>
+      'Combine separate libraries of the same type into merged rows on the home page.';
+
+  @override
+  String get libraryView => 'Library View';
+
+  @override
   String get enableFolderView => 'Aktivizo pamjen e dosjeve';
 
   @override

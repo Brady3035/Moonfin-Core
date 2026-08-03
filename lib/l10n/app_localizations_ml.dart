@@ -3267,6 +3267,17 @@ class AppLocalizationsMl extends AppLocalizations {
       'ബന്ധിപ്പിച്ച എല്ലാ സെർവറുകളിൽ നിന്നും ലൈബ്രറികൾ കാണിക്കുക';
 
   @override
+  String get mergeRecentlyAddedLibrariesByType =>
+      'Merge Recently Added Libraries by Type';
+
+  @override
+  String get mergeRecentlyAddedLibrariesByTypeDescription =>
+      'Combine separate libraries of the same type into merged rows on the home page.';
+
+  @override
+  String get libraryView => 'Library View';
+
+  @override
   String get enableFolderView => 'ഫോൾഡർ കാഴ്ച പ്രവർത്തനക്ഷമമാക്കുക';
 
   @override

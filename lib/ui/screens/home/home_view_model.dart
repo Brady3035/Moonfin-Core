@@ -1432,7 +1432,7 @@ class HomeViewModel extends ChangeNotifier {
       return !latestExcludes.contains(lib.id);
     }).toList();
 
-    final mergeByType = _prefs.get(UserPreferences.mergeRecentlyAddedLibrariesByType);
+    final mergeByType = _prefs.get(UserPreferences.mergeRecentRowsByType);
 
     if (!mergeByType) {
       final tasks = filteredViews.map((lib) async {
@@ -1460,6 +1460,7 @@ class HomeViewModel extends ChangeNotifier {
       groupedViews.putIfAbsent(type, () => []).add(lib);
     }
 
+    final l10n = currentAppLocalizations();
     final mergedRows = <HomeRow>[];
     for (final entry in groupedViews.entries) {
       final collectionType = entry.key;
@@ -1523,7 +1524,7 @@ class HomeViewModel extends ChangeNotifier {
       mergedRows.add(
         HomeRow(
           id: 'latest_merged_$collectionType',
-          title: 'Latest $genericDescriptor',
+          title: l10n.latestLibraryName(genericDescriptor),
           items: normalizedItems,
           rowType: HomeRowType.latestMedia,
           totalCount: normalizedItems.length < 20
@@ -1540,6 +1541,23 @@ class HomeViewModel extends ChangeNotifier {
   static DateTime? _parseDateCreated(dynamic value) {
     if (value == null) return null;
     if (value is String) return DateTime.tryParse(value);
+    return null;
+  }
+
+  static DateTime? _parsePremiereDate(Map<String, dynamic> rawData) {
+    final premiere = rawData['PremiereDate'];
+    if (premiere is String) {
+      final dt = DateTime.tryParse(premiere);
+      if (dt != null) return dt;
+    }
+    final year = rawData['ProductionYear'];
+    if (year is int) {
+      return DateTime(year, 1, 1);
+    }
+    final created = rawData['DateCreated'];
+    if (created is String) {
+      return DateTime.tryParse(created);
+    }
     return null;
   }
 
@@ -1564,23 +1582,110 @@ class HomeViewModel extends ChangeNotifier {
       return !latestExcludes.contains(lib.id);
     }).toList();
 
-    final tasks = filteredViews.map((lib) async {
-      try {
-        final row = await _dataSource.loadRecentlyReleased(
-          lib.id,
-          lib.name,
-          _serverId,
-          lib.collectionType.toLowerCase(),
-        );
-        return row.items.isNotEmpty ? row : null;
-      } catch (_) {
-        return null;
-      }
-    }).toList();
+    final mergeByType = _prefs.get(UserPreferences.mergeRecentRowsByType);
 
-    final resolved = await Future.wait(tasks);
-    final rows = resolved.whereType<HomeRow>().toList();
-    return rows;
+    if (!mergeByType) {
+      final tasks = filteredViews.map((lib) async {
+        try {
+          final row = await _dataSource.loadRecentlyReleased(
+            lib.id,
+            lib.name,
+            _serverId,
+            lib.collectionType.toLowerCase(),
+          );
+          return row.items.isNotEmpty ? row : null;
+        } catch (_) {
+          return null;
+        }
+      }).toList();
+
+      final resolved = await Future.wait(tasks);
+      final rows = resolved.whereType<HomeRow>().toList();
+      return rows;
+    }
+
+    final groupedViews = <String, List<AggregatedLibrary>>{};
+    for (final lib in filteredViews) {
+      final type = lib.collectionType.toLowerCase();
+      groupedViews.putIfAbsent(type, () => []).add(lib);
+    }
+
+    final l10n = currentAppLocalizations();
+    final mergedRows = <HomeRow>[];
+    for (final entry in groupedViews.entries) {
+      final collectionType = entry.key;
+      final libs = entry.value;
+
+      final rowTasks = libs.map((lib) async {
+        try {
+          return await _dataSource.loadRecentlyReleased(
+            lib.id,
+            lib.name,
+            _serverId,
+            collectionType,
+          );
+        } catch (_) {
+          return null;
+        }
+      }).toList();
+
+      final loadedRows = (await Future.wait(rowTasks))
+          .whereType<HomeRow>()
+          .toList();
+
+      final allItems = <AggregatedItem>[];
+      final seenIds = <String>{};
+      for (final r in loadedRows) {
+        for (final item in r.items) {
+          if (seenIds.add(item.id)) {
+            allItems.add(item);
+          }
+        }
+      }
+
+      if (allItems.isEmpty) continue;
+
+      allItems.sort((a, b) {
+        final da = _parsePremiereDate(a.rawData);
+        final db = _parsePremiereDate(b.rawData);
+        if (da != null && db != null) {
+          return db.compareTo(da);
+        }
+        if (da != null) return -1;
+        if (db != null) return 1;
+        return 0;
+      });
+
+      final fetchLimit = latestMediaFetchLimitForCollection(
+        collectionType,
+        defaultLimit: 20,
+        maxLimit: 100,
+      );
+
+      final normalizedItems = normalizeLatestMediaItems(
+        allItems,
+        collectionType: collectionType,
+        limit: fetchLimit,
+      );
+
+      if (normalizedItems.isEmpty) continue;
+
+      final genericDescriptor = genericDescriptorForCollectionType(collectionType);
+      mergedRows.add(
+        HomeRow(
+          id: 'recently_released_merged_$collectionType',
+          title: l10n.recentlyReleasedLibraryName(genericDescriptor),
+          items: normalizedItems,
+          rowType: HomeRowType.recentlyReleased,
+          totalCount: normalizedItems.length < 20
+              ? normalizedItems.length
+              : 100,
+          isAudio: collectionType == 'music',
+        ),
+      );
+    }
+
+    return mergedRows;
   }
 
   HomeRow? _placeholderForSection(HomeSectionType section) {

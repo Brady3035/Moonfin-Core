@@ -899,10 +899,10 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
       subtitle: l10n.showLibrariesFromAllServers,
     ),
     libraries.leaf(
-      'pref_merge_recently_added_libraries_by_type',
-      l10n.mergeRecentlyAddedLibrariesByType,
-      subtitle: l10n.mergeRecentlyAddedLibrariesByTypeDescription,
-      keywords: ['combine', 'homepage', 'rows'],
+      'pref_merge_recent_rows_by_type',
+      l10n.mergeRecentRowsByType,
+      subtitle: l10n.mergeRecentRowsByTypeDescription,
+      keywords: ['combine', 'homepage', 'rows', 'recent', 'released'],
     ),
     libraries.leaf(
       'pref_group_items_into_collections',

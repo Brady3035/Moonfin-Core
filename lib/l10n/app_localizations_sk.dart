@@ -3270,12 +3270,11 @@ class AppLocalizationsSk extends AppLocalizations {
       'Zobraziť knižnice zo všetkých pripojených serverov';
 
   @override
-  String get mergeRecentlyAddedLibrariesByType =>
-      'Merge Recently Added Libraries by Type';
+  String get mergeRecentRowsByType => 'Merge Recent Rows by Type';
 
   @override
-  String get mergeRecentlyAddedLibrariesByTypeDescription =>
-      'Combine separate libraries of the same type into merged rows on the home page.';
+  String get mergeRecentRowsByTypeDescription =>
+      'Combine separate libraries of the same type for Recently Added and Recently Released home rows.';
 
   @override
   String get libraryView => 'Library View';

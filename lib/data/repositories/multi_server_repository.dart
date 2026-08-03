@@ -917,7 +917,7 @@ class MultiServerRepository {
     final rows = <HomeRow>[];
 
     final mergeByType = GetIt.instance<UserPreferences>().get(
-      UserPreferences.mergeRecentlyAddedLibrariesByType,
+      UserPreferences.mergeRecentRowsByType,
     );
 
     if (!mergeByType) {
@@ -1093,7 +1093,7 @@ class MultiServerRepository {
       rows.add(
         HomeRow(
           id: 'latest_merged_$collectionType',
-          title: 'Latest $genericDescriptor',
+          title: _l10n.latestLibraryName(genericDescriptor),
           items: normalizedItems,
           rowType: HomeRowType.latestMedia,
           totalCount: totalCount,

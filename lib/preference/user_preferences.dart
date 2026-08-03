@@ -1290,8 +1290,8 @@ class UserPreferences extends ChangeNotifier {
     key: 'enable_multi_server_libraries',
     defaultValue: false,
   );
-  static final mergeRecentlyAddedLibrariesByType = Preference(
-    key: 'pref_merge_recently_added_libraries_by_type',
+  static final mergeRecentRowsByType = Preference(
+    key: 'pref_merge_recent_rows_by_type',
     defaultValue: false,
   );
 

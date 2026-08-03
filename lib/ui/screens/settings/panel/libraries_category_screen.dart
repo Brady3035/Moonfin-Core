@@ -28,9 +28,9 @@ class _LibrariesCategoryScreen extends StatelessWidget {
                 onChanged: _pushPersonalizationSync,
               ),
               SwitchPreferenceTile(
-                preference: UserPreferences.mergeRecentlyAddedLibrariesByType,
-                title: l10n.mergeRecentlyAddedLibrariesByType,
-                subtitle: l10n.mergeRecentlyAddedLibrariesByTypeDescription,
+                preference: UserPreferences.mergeRecentRowsByType,
+                title: l10n.mergeRecentRowsByType,
+                subtitle: l10n.mergeRecentRowsByTypeDescription,
                 icon: Icons.library_books,
                 onChanged: _pushPersonalizationSync,
               ),

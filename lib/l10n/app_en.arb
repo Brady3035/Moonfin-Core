@@ -4466,13 +4466,13 @@
   "@showLibrariesFromAllServers": {
     "description": "Description for multi-server libraries"
   },
-  "mergeRecentlyAddedLibrariesByType": "Merge Recently Added Libraries by Type",
-  "@mergeRecentlyAddedLibrariesByType": {
-    "description": "Setting for merging recently added libraries by media type"
+  "mergeRecentRowsByType": "Merge Recent Rows by Type",
+  "@mergeRecentRowsByType": {
+    "description": "Setting for merging recently added and recently released libraries by media type"
   },
-  "mergeRecentlyAddedLibrariesByTypeDescription": "Combine separate libraries of the same type into merged rows on the home page.",
-  "@mergeRecentlyAddedLibrariesByTypeDescription": {
-    "description": "Description for merging recently added libraries by media type"
+  "mergeRecentRowsByTypeDescription": "Combine separate libraries of the same type for Recently Added and Recently Released home rows.",
+  "@mergeRecentRowsByTypeDescription": {
+    "description": "Description for merging recent home rows by media type"
   },
   "libraryView": "Library View",
   "@libraryView": {

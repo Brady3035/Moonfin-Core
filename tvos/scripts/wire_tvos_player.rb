@@ -67,7 +67,7 @@ end
 # AETHER_LOCAL=1 wires the sibling checkout (../../AetherEngine) for
 # development, otherwise the pinned remote release is used.
 aether_remote_url = 'https://github.com/superuser404notfound/AetherEngine'
-aether_version = '6.0.2'
+aether_version = '6.5.3'
 aether_local_path = File.expand_path(File.join(project_dir, '..', '..', 'AetherEngine'))
 use_local_aether = ENV['AETHER_LOCAL'] == '1'
 

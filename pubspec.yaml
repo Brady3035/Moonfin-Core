@@ -46,14 +46,18 @@ dependencies:
   # lib/data/database/database_connection_impl_io.dart).
   sqlite3: ^2.7.0
 
-  # Media Playback (Android/desktop/web, iOS and tvOS run on AetherEngine)
+  # Media Playback
   media_kit: 1.2.6
+  # Pinned exactly: the iOS PiP frame bridge is monkey-patched into this package's
+  # TextureHW.swift / TextureSW.swift at pod-install (ios/Podfile). A minor bump can
+  # move the patch anchor and silently disable PiP, so upgrades must be deliberate.
   media_kit_video: 2.0.1
-  # media_kit_libs_video would pull in media_kit_libs_ios_video, and
-  # media_kit_video's iOS podspec links -framework Mpv whenever it finds that
-  # package name in pubspec.lock. A path override still counts as present, so
-  # the package has to stay out of the graph entirely for the iOS build to skip
-  # libmpv. The platforms that do need it are listed individually instead.
+  # media_kit_video's iOS podspec builds the real plugin and links libmpv only
+  # when it finds media_kit_libs_ios_video in pubspec.lock, so this entry is what
+  # makes media_kit play on iPhone and iPad. Listed per platform rather than
+  # through media_kit_libs_video because android and windows resolve to the
+  # local forks in dependency_overrides below.
+  media_kit_libs_ios_video: 1.1.4
   media_kit_libs_android_video: 1.3.8
   media_kit_libs_macos_video: 1.1.4
   media_kit_libs_windows_video: 1.0.11

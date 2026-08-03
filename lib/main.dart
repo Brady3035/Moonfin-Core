@@ -479,11 +479,9 @@ void main() async {
     await windowManager.ensureInitialized();
   }
 
-  // iOS runs entirely on AetherEngine, so media_kit isn't initialized there
-  // and its native libs are stubbed out of the build.
-  if (!PlatformDetection.isTizen &&
-      !PlatformDetection.isAppleTV &&
-      !PlatformDetection.isIOS) {
+  // Apple TV and Tizen have no media_kit build. Every other platform can pick
+  // it as the playback engine, so it gets initialized regardless.
+  if (!PlatformDetection.isTizen && !PlatformDetection.isAppleTV) {
     MediaKit.ensureInitialized();
   }
 

@@ -3613,7 +3613,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
       return _buildTizenVideoSurface();
     }
 
-    if (PlatformDetection.isIOS || PlatformDetection.isMacOS) {
+    if ((PlatformDetection.isIOS || PlatformDetection.isMacOS) &&
+        _prefs.get(UserPreferences.playbackEnginePreference) ==
+            PlaybackEnginePreference.aether) {
       return Positioned.fill(
         child: AetherVideoView(
           key: _videoSurfaceKey,

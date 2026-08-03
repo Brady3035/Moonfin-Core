@@ -16,6 +16,8 @@ PODS:
     - Protobuf (~> 3.13)
   - libretro_host (0.1.0)
   - LzmaSDK-ObjC (2.1.1)
+  - media_kit_libs_ios_video (1.0.4):
+    - Flutter
   - media_kit_video (0.0.1):
     - Flutter
   - moonfin_game_host (0.1.0):
@@ -37,6 +39,7 @@ DEPENDENCIES:
   - gamepads_ios (from `.symlinks/plugins/gamepads_ios/ios`)
   - google-cast-sdk-no-bluetooth-xcframework (~> 4.8.0)
   - libretro_host (from `../native/libretro_host`)
+  - media_kit_libs_ios_video (from `.symlinks/plugins/media_kit_libs_ios_video/ios`)
   - media_kit_video (from `.symlinks/plugins/media_kit_video/ios`)
   - moonfin_game_host (from `game_host`)
   - rar (from `.symlinks/plugins/rar/ios`)
@@ -60,6 +63,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/gamepads_ios/ios"
   libretro_host:
     :path: "../native/libretro_host"
+  media_kit_libs_ios_video:
+    :path: ".symlinks/plugins/media_kit_libs_ios_video/ios"
   media_kit_video:
     :path: ".symlinks/plugins/media_kit_video/ios"
   moonfin_game_host:
@@ -75,13 +80,14 @@ SPEC CHECKSUMS:
   google-cast-sdk-no-bluetooth-xcframework: 1783f52a1b2dc0293ac3ae995db5435989a87da7
   libretro_host: becbc28b6e0d23dffeef32b0d432ab4990798f1a
   LzmaSDK-ObjC: 6c68c37743a658fc9a4c7b70f7d6045b587aa42b
-  media_kit_video: f3b0d035d89def15cfbbcf7dc2ae278f201e2f83
+  media_kit_libs_ios_video: 5a18affdb97d1f5d466dc79988b13eff6c5e2854
+  media_kit_video: 1746e198cb697d1ffb734b1d05ec429d1fcd1474
   moonfin_game_host: b1f6881f376ad16a22e33410409c314b89cf882c
   OrderedSet: e539b66b644ff081c73a262d24ad552a69be3a94
   Protobuf: 8d5596f7468be5400861a6bbfb2dfe9d0d1cde34
   rar: 00d3f5fc4c0fc99c36a86c59147fa0d66381adc0
   UnrarKit: 62f535c7a34ec52d2514b9b148f33dcfa9a9dc39
 
-PODFILE CHECKSUM: 35f8581775a62b0cd959f956c9b8ffbd880dadfc
+PODFILE CHECKSUM: a31dce5778ffe36ae90f4a38e41ca4580e8ef76d
 
 COCOAPODS: 1.16.2

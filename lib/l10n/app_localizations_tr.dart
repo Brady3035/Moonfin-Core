@@ -8721,6 +8721,17 @@ class AppLocalizationsTr extends AppLocalizations {
   String get settingsPlaybackEngineMpvRecommended => 'mpv (önerilen)';
 
   @override
+  String get settingsPlaybackEngineApple => 'Playback Engine';
+
+  @override
+  String get settingsPlaybackEngineAppleDescription =>
+      'Choose the engine that plays video. Changes apply to the next playback session.';
+
+  @override
+  String get settingsPlaybackEngineAetherExperimental =>
+      'AetherEngine (experimental)';
+
+  @override
   String get settingsDolbyVisionFallback => 'Dolby Vision Yedek Modu';
 
   @override
@@ -10316,47 +10327,47 @@ class AppLocalizationsTr extends AppLocalizations {
   String get adminBackToSearch => 'Arama Kriterlerine Dön';
 
   @override
-  String get grouping => 'Grouping';
+  String get grouping => 'Gruplama';
 
   @override
-  String get groupByType => 'Group by Type';
+  String get groupByType => 'Türe Göre Grupla';
 
   @override
-  String get playlistTypes => 'Playlist Types';
+  String get playlistTypes => 'Oynatma Listesi Türleri';
 
   @override
   String get playlistTypeVideo => 'Video';
 
   @override
-  String get playlistTypeAudio => 'Audio (Music)';
+  String get playlistTypeAudio => 'Ses (Müzik)';
 
   @override
-  String get playlistTypeAudiobook => 'Audiobook';
+  String get playlistTypeAudiobook => 'Sesli Kitap';
 
   @override
-  String get playlistTypeBook => 'Book';
+  String get playlistTypeBook => 'Kitap';
 
   @override
-  String get playlistTypePhoto => 'Photo';
+  String get playlistTypePhoto => 'Resim';
 
   @override
-  String get playlistTypeMixed => 'Mixed';
+  String get playlistTypeMixed => 'Karışık';
 
   @override
-  String get videoPlaylistsSection => 'Video Playlists';
+  String get videoPlaylistsSection => 'Video Oynatma Listeleri';
 
   @override
-  String get audioPlaylistsSection => 'Audio Playlists';
+  String get audioPlaylistsSection => 'Ses Oynatma Listesi';
 
   @override
-  String get audiobookPlaylistsSection => 'Audiobook Playlists';
+  String get audiobookPlaylistsSection => 'Sesli Kitap Oynatma Listesi';
 
   @override
-  String get bookPlaylistsSection => 'Book Playlists';
+  String get bookPlaylistsSection => 'Kitap Oynatma Listesi';
 
   @override
-  String get photoPlaylistsSection => 'Photo Playlists';
+  String get photoPlaylistsSection => 'Resim Oynatma Listesi';
 
   @override
-  String get mixedPlaylistsSection => 'Mixed Playlists';
+  String get mixedPlaylistsSection => 'Karışık Oynatma Listesi';
 }

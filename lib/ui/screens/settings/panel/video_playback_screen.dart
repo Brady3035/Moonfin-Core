@@ -144,6 +144,10 @@ class _VideoPlaybackScreen extends StatelessWidget {
                       : l10n.settingsPlaybackEngineAndroidTvDescription
                             .replaceAll('Android TV', 'Android'),
                   icon: Icons.video_settings,
+                  values: const [
+                    PlaybackEnginePreference.media3,
+                    PlaybackEnginePreference.mpv,
+                  ],
                   labelOf: (v) => switch (v) {
                     PlaybackEnginePreference.media3 =>
                       PlatformDetection.isTV
@@ -153,6 +157,27 @@ class _VideoPlaybackScreen extends StatelessWidget {
                       PlatformDetection.isTV
                           ? l10n.settingsPlaybackEngineMpvLegacy
                           : l10n.settingsPlaybackEngineMpvRecommended,
+                    PlaybackEnginePreference.aether =>
+                      l10n.settingsPlaybackEngineAetherExperimental,
+                  },
+                ),
+              // Apple TV is absent on purpose: MPVKit and AetherEngine both
+              // ship FFmpeg targets under the same names, so only one of them
+              // can be linked into that build.
+              if (PlatformDetection.isIOS || PlatformDetection.isMacOS)
+                EnumPreferenceTile<PlaybackEnginePreference>(
+                  preference: UserPreferences.playbackEnginePreference,
+                  title: l10n.settingsPlaybackEngineApple,
+                  description: l10n.settingsPlaybackEngineAppleDescription,
+                  icon: Icons.video_settings,
+                  values: const [
+                    PlaybackEnginePreference.mpv,
+                    PlaybackEnginePreference.aether,
+                  ],
+                  labelOf: (v) => switch (v) {
+                    PlaybackEnginePreference.aether =>
+                      l10n.settingsPlaybackEngineAetherExperimental,
+                    _ => l10n.settingsPlaybackEngineMpvRecommended,
                   },
                 ),
               if (PlatformDetection.isAndroid && PlatformDetection.isTV)

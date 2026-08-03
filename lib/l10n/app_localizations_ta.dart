@@ -8781,6 +8781,17 @@ class AppLocalizationsTa extends AppLocalizations {
       'mpv (பரிந்துரைக்கப்படுகிறது)';
 
   @override
+  String get settingsPlaybackEngineApple => 'Playback Engine';
+
+  @override
+  String get settingsPlaybackEngineAppleDescription =>
+      'Choose the engine that plays video. Changes apply to the next playback session.';
+
+  @override
+  String get settingsPlaybackEngineAetherExperimental =>
+      'AetherEngine (experimental)';
+
+  @override
   String get settingsDolbyVisionFallback => 'Dolby Vision ஃபால்பேக்';
 
   @override

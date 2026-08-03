@@ -8377,6 +8377,17 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsPlaybackEngineMpvRecommended => 'mpv（推荐）';
 
   @override
+  String get settingsPlaybackEngineApple => 'Playback Engine';
+
+  @override
+  String get settingsPlaybackEngineAppleDescription =>
+      'Choose the engine that plays video. Changes apply to the next playback session.';
+
+  @override
+  String get settingsPlaybackEngineAetherExperimental =>
+      'AetherEngine (experimental)';
+
+  @override
   String get settingsDolbyVisionFallback => 'Dolby Vision 兼容播放';
 
   @override
@@ -9882,49 +9893,49 @@ class AppLocalizationsZh extends AppLocalizations {
   String get adminBackToSearch => '返回搜索条件';
 
   @override
-  String get grouping => 'Grouping';
+  String get grouping => '分组';
 
   @override
-  String get groupByType => 'Group by Type';
+  String get groupByType => '按类型分组';
 
   @override
-  String get playlistTypes => 'Playlist Types';
+  String get playlistTypes => '播放列表类型';
 
   @override
-  String get playlistTypeVideo => 'Video';
+  String get playlistTypeVideo => '视频';
 
   @override
-  String get playlistTypeAudio => 'Audio (Music)';
+  String get playlistTypeAudio => '音频（音乐）';
 
   @override
-  String get playlistTypeAudiobook => 'Audiobook';
+  String get playlistTypeAudiobook => '有声书';
 
   @override
-  String get playlistTypeBook => 'Book';
+  String get playlistTypeBook => '书';
 
   @override
-  String get playlistTypePhoto => 'Photo';
+  String get playlistTypePhoto => '图片';
 
   @override
-  String get playlistTypeMixed => 'Mixed';
+  String get playlistTypeMixed => '混合';
 
   @override
-  String get videoPlaylistsSection => 'Video Playlists';
+  String get videoPlaylistsSection => '视频播放列表';
 
   @override
-  String get audioPlaylistsSection => 'Audio Playlists';
+  String get audioPlaylistsSection => '音频播放列表';
 
   @override
-  String get audiobookPlaylistsSection => 'Audiobook Playlists';
+  String get audiobookPlaylistsSection => '有声书播放列表';
 
   @override
-  String get bookPlaylistsSection => 'Book Playlists';
+  String get bookPlaylistsSection => '书籍播放列表';
 
   @override
-  String get photoPlaylistsSection => 'Photo Playlists';
+  String get photoPlaylistsSection => '图片播放列表';
 
   @override
-  String get mixedPlaylistsSection => 'Mixed Playlists';
+  String get mixedPlaylistsSection => '混合播放列表';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).

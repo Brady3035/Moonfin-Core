@@ -15502,6 +15502,24 @@ abstract class AppLocalizations {
   /// **'mpv (recommended)'**
   String get settingsPlaybackEngineMpvRecommended;
 
+  /// Title of the setting that chooses which playback engine plays video on iPhone, iPad and Mac.
+  ///
+  /// In en, this message translates to:
+  /// **'Playback Engine'**
+  String get settingsPlaybackEngineApple;
+
+  /// Explanation under the playback engine setting on Apple devices.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the engine that plays video. Changes apply to the next playback session.'**
+  String get settingsPlaybackEngineAppleDescription;
+
+  /// Name of the AetherEngine playback engine option. AetherEngine is a product name and stays untranslated.
+  ///
+  /// In en, this message translates to:
+  /// **'AetherEngine (experimental)'**
+  String get settingsPlaybackEngineAetherExperimental;
+
   /// No description provided for @settingsDolbyVisionFallback.
   ///
   /// In en, this message translates to:

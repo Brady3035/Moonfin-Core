@@ -9167,6 +9167,13 @@ class AppLocalizationsKk extends AppLocalizations {
       'Жинақтар жолдарын қосылған күні, шығу күні, әліпби бойынша және басқаша сұрыптаңыз.';
 
   @override
+  String get collectionsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get collectionsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
+
+  @override
   String get displayGenresRows => 'Жанрлар жолдарын көрсету';
 
   @override
@@ -9200,6 +9207,13 @@ class AppLocalizationsKk extends AppLocalizations {
   @override
   String get playlistsRowSortingDescription =>
       'Ойнату тізімі жолдарын қосылған күні, шығу күні, әліпби бойынша және басқаша сұрыптаңыз.';
+
+  @override
+  String get playlistsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get playlistsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
 
   @override
   String get displayAudioRows => 'Аудио жолдарын көрсету';

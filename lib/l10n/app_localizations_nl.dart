@@ -9172,6 +9172,13 @@ class AppLocalizationsNl extends AppLocalizations {
       'Sorteer collectierijen op datum toegevoegd, releasedatum, alfabetisch en meer.';
 
   @override
+  String get collectionsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get collectionsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
+
+  @override
   String get displayGenresRows => 'Genrerijen weergeven';
 
   @override
@@ -9204,6 +9211,13 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get playlistsRowSortingDescription =>
       'Sorteer afspeellijstrijen op datum toegevoegd, releasedatum, alfabetisch en meer.';
+
+  @override
+  String get playlistsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get playlistsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
 
   @override
   String get displayAudioRows => 'Audiorijen weergeven';

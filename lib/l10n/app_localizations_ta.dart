@@ -9198,6 +9198,13 @@ class AppLocalizationsTa extends AppLocalizations {
       'தொகுப்பு வரிசைகளைச் சேர்த்த தேதி, வெளியீட்டுத் தேதி, அகர வரிசை மற்றும் பலவற்றின்படி வரிசைப்படுத்தும்.';
 
   @override
+  String get collectionsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get collectionsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
+
+  @override
   String get displayGenresRows => 'வகை வரிசைகளைக் காட்டு';
 
   @override
@@ -9231,6 +9238,13 @@ class AppLocalizationsTa extends AppLocalizations {
   @override
   String get playlistsRowSortingDescription =>
       'பிளேலிஸ்ட் வரிசைகளைச் சேர்த்த தேதி, வெளியீட்டுத் தேதி, அகர வரிசை மற்றும் பலவற்றின்படி வரிசைப்படுத்தும்.';
+
+  @override
+  String get playlistsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get playlistsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
 
   @override
   String get displayAudioRows => 'ஆடியோ வரிசைகளைக் காட்டு';

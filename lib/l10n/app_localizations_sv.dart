@@ -9136,6 +9136,13 @@ class AppLocalizationsSv extends AppLocalizations {
       'Sortera samlingsrader efter tillagt datum, releasedatum, alfabetiskt och mer.';
 
   @override
+  String get collectionsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get collectionsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
+
+  @override
   String get displayGenresRows => 'Visa genrerader';
 
   @override
@@ -9168,6 +9175,13 @@ class AppLocalizationsSv extends AppLocalizations {
   @override
   String get playlistsRowSortingDescription =>
       'Sortera spellisterader efter tillagt datum, releasedatum, alfabetiskt och mer.';
+
+  @override
+  String get playlistsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get playlistsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
 
   @override
   String get displayAudioRows => 'Visa ljudrader';

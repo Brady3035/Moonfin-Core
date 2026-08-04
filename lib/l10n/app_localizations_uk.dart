@@ -9203,6 +9203,13 @@ class AppLocalizationsUk extends AppLocalizations {
       'Сортуйте рядки колекцій за датою додавання, датою випуску, за алфавітом тощо.';
 
   @override
+  String get collectionsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get collectionsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
+
+  @override
   String get displayGenresRows => 'Відображення рядків жанрів';
 
   @override
@@ -9236,6 +9243,13 @@ class AppLocalizationsUk extends AppLocalizations {
   @override
   String get playlistsRowSortingDescription =>
       'Сортуйте рядки списків відтворення за датою додавання, датою випуску, за алфавітом тощо.';
+
+  @override
+  String get playlistsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get playlistsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
 
   @override
   String get displayAudioRows => 'Показувати аудіорядки';

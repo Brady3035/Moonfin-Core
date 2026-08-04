@@ -8835,6 +8835,13 @@ class AppLocalizationsKo extends AppLocalizations {
       '컬렉션 행을 추가된 날짜, 공개일, 가나다순 등으로 정렬합니다.';
 
   @override
+  String get collectionsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get collectionsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
+
+  @override
   String get displayGenresRows => '장르 행 표시';
 
   @override
@@ -8865,6 +8872,13 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get playlistsRowSortingDescription =>
       '재생목록 행을 추가된 날짜, 공개일, 가나다순 등으로 정렬합니다.';
+
+  @override
+  String get playlistsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get playlistsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
 
   @override
   String get displayAudioRows => '오디오 행 표시';

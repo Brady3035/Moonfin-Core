@@ -8755,6 +8755,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get collectionsRowSortingDescription => '按添加日期、发布日期、字母顺序等方式排序合集行。';
 
   @override
+  String get collectionsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get collectionsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
+
+  @override
   String get displayGenresRows => '显示类型行';
 
   @override
@@ -8783,6 +8790,13 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get playlistsRowSortingDescription => '按添加日期、发布日期、字母顺序等方式排序播放列表行。';
+
+  @override
+  String get playlistsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get playlistsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
 
   @override
   String get displayAudioRows => '显示音频行';

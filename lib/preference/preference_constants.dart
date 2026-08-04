@@ -397,6 +397,7 @@ enum HomeSectionType {
 }
 
 enum LibrarySortBy {
+  playlistOrder('SortName', 'Playlist Order', usesDedicatedEndpoint: true),
   name('SortName', 'Name'),
   dateAdded('DateCreated', 'Date Added'),
   premiereDate('PremiereDate', 'Premiere Date'),
@@ -409,9 +410,24 @@ enum LibrarySortBy {
   album('Album,SortName', 'Album'),
   genre('Genre,SortName', 'Genre');
 
-  const LibrarySortBy(this.apiValue, this.displayName);
+  const LibrarySortBy(
+    this.apiValue,
+    this.displayName, {
+    this.usesDedicatedEndpoint = false,
+  });
+
+  /// Always a value the Items API accepts, so any caller can pass it through.
   final String apiValue;
   final String displayName;
+
+  /// Whether the row this option belongs to reads from its own endpoint rather
+  /// than sorting through the Items API. Rows that know about the endpoint act
+  /// on this, and everything else falls back to [apiValue].
+  final bool usesDedicatedEndpoint;
+
+  /// The options a row can offer when it only ever sorts through the Items API.
+  static List<LibrarySortBy> get itemsApiValues =>
+      values.where((v) => !v.usesDedicatedEndpoint).toList();
 }
 
 enum ChannelSortBy {

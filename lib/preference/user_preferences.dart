@@ -283,6 +283,7 @@ class UserPreferences extends ChangeNotifier {
     'pref_live_direct',
     'pref_max_bitrate',
     'pref_max_video_resolution',
+    'pref_playlists_row_show_episodes',
     'pref_playlists_row_sort_by',
     'pref_recommendations_apply_parental_rating_cap',
     'pref_resume_last_queue_on_play',
@@ -391,6 +392,7 @@ class UserPreferences extends ChangeNotifier {
     'pref_display_collections_rows',
     'pref_display_genres_rows',
     'pref_favorites_row_sort_by',
+    'pref_collections_row_show_episodes',
     'pref_collections_row_sort_by',
     'pref_genres_row_sort_by',
     'pref_genres_row_item_filter',
@@ -1080,8 +1082,13 @@ class UserPreferences extends ChangeNotifier {
 
   static final collectionsRowSortBy = EnumPreference(
     key: 'pref_collections_row_sort_by',
-    defaultValue: LibrarySortBy.name,
+    defaultValue: LibrarySortBy.playlistOrder,
     values: LibrarySortBy.values,
+  );
+
+  static final collectionsRowShowEpisodes = Preference(
+    key: 'pref_collections_row_show_episodes',
+    defaultValue: false,
   );
 
   static final genresRowSortBy = EnumPreference(
@@ -1092,8 +1099,13 @@ class UserPreferences extends ChangeNotifier {
 
   static final playlistsRowSortBy = EnumPreference(
     key: 'pref_playlists_row_sort_by',
-    defaultValue: LibrarySortBy.name,
+    defaultValue: LibrarySortBy.playlistOrder,
     values: LibrarySortBy.values,
+  );
+
+  static final playlistsRowShowEpisodes = Preference(
+    key: 'pref_playlists_row_show_episodes',
+    defaultValue: false,
   );
 
   static final audioRowsSortBy = EnumPreference(

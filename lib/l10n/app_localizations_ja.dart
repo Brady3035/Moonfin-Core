@@ -8843,6 +8843,13 @@ class AppLocalizationsJa extends AppLocalizations {
       'コレクションの行を追加日、公開日、名前順などで並べ替えます。';
 
   @override
+  String get collectionsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get collectionsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
+
+  @override
   String get displayGenresRows => 'ジャンルの行を表示';
 
   @override
@@ -8871,6 +8878,13 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get playlistsRowSortingDescription => 'プレイリストの行を追加日、公開日、名前順などで並べ替えます。';
+
+  @override
+  String get playlistsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get playlistsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
 
   @override
   String get displayAudioRows => 'オーディオの行を表示';

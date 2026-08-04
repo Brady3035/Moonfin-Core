@@ -9226,6 +9226,13 @@ class AppLocalizationsEs extends AppLocalizations {
       'Ordene las filas de Colecciones por fecha de adición, fecha de lanzamiento, alfabéticamente y más.';
 
   @override
+  String get collectionsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get collectionsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
+
+  @override
   String get displayGenresRows => 'Mostrar filas de géneros';
 
   @override
@@ -9260,6 +9267,13 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get playlistsRowSortingDescription =>
       'Ordena las filas de listas de reproducción por fecha de adición, fecha de estreno, alfabéticamente y más.';
+
+  @override
+  String get playlistsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get playlistsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
 
   @override
   String get displayAudioRows => 'Mostrar filas de audio';

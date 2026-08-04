@@ -9143,6 +9143,13 @@ class AppLocalizationsMn extends AppLocalizations {
       'Цуглуулгын мөрүүдийг нэмсэн огноо, гарсан огноо, цагаан толгойн үсгийн дарааллаар эрэмбэлэх.';
 
   @override
+  String get collectionsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get collectionsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
+
+  @override
   String get displayGenresRows => 'Төрөл бүрийн мөрүүдийг харуулах';
 
   @override
@@ -9176,6 +9183,13 @@ class AppLocalizationsMn extends AppLocalizations {
   @override
   String get playlistsRowSortingDescription =>
       'Тоглуулах жагсаалтын эгнээг нэмсэн огноо, гарсан огноо, цагаан толгойн дараалал болон бусад байдлаар эрэмбэлнэ.';
+
+  @override
+  String get playlistsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get playlistsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
 
   @override
   String get displayAudioRows => 'Аудио эгнээг харуулах';

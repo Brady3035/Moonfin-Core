@@ -9080,6 +9080,13 @@ class AppLocalizationsPa extends AppLocalizations {
       'ਸ਼ਾਮਲ ਕਰਨ ਦੀ ਮਿਤੀ, ਰਿਲੀਜ਼ ਮਿਤੀ, ਵਰਣਮਾਲਾ ਅਨੁਸਾਰ ਅਤੇ ਹੋਰ ਦੁਆਰਾ ਸੰਗ੍ਰਹਿ ਕਤਾਰਾਂ ਕ੍ਰਮਬੱਧ ਕਰੋ।';
 
   @override
+  String get collectionsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get collectionsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
+
+  @override
   String get displayGenresRows => 'ਸ਼ੈਲੀ ਕਤਾਰਾਂ ਦਿਖਾਓ';
 
   @override
@@ -9112,6 +9119,13 @@ class AppLocalizationsPa extends AppLocalizations {
   @override
   String get playlistsRowSortingDescription =>
       'ਸ਼ਾਮਲ ਕਰਨ ਦੀ ਮਿਤੀ, ਰਿਲੀਜ਼ ਮਿਤੀ, ਵਰਣਮਾਲਾ ਅਨੁਸਾਰ ਅਤੇ ਹੋਰ ਦੁਆਰਾ ਪਲੇਲਿਸਟ ਕਤਾਰਾਂ ਕ੍ਰਮਬੱਧ ਕਰੋ।';
+
+  @override
+  String get playlistsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get playlistsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
 
   @override
   String get displayAudioRows => 'ਆਡੀਓ ਕਤਾਰਾਂ ਦਿਖਾਓ';

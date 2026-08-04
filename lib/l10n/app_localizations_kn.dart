@@ -9187,6 +9187,13 @@ class AppLocalizationsKn extends AppLocalizations {
       'ಸಂಗ್ರಹಣೆಗಳ ಸಾಲುಗಳನ್ನು ಸೇರಿಸಿದ ದಿನಾಂಕ, ಬಿಡುಗಡೆ ದಿನಾಂಕ, ವರ್ಣಮಾಲೆಯ ಪ್ರಕಾರ ಮತ್ತು ಇನ್ನಷ್ಟು ವಿಂಗಡಿಸಿ.';
 
   @override
+  String get collectionsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get collectionsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
+
+  @override
   String get displayGenresRows => 'ಪ್ರಕಾರಗಳ ಸಾಲುಗಳನ್ನು ತೋರಿಸಿ';
 
   @override
@@ -9220,6 +9227,13 @@ class AppLocalizationsKn extends AppLocalizations {
   @override
   String get playlistsRowSortingDescription =>
       'ಪ್ಲೇಪಟ್ಟಿ ಸಾಲುಗಳನ್ನು ಸೇರಿಸಿದ ದಿನಾಂಕ, ಬಿಡುಗಡೆ ದಿನಾಂಕ, ವರ್ಣಮಾಲೆಯ ಪ್ರಕಾರ ಮತ್ತು ಇನ್ನಷ್ಟು ವಿಂಗಡಿಸಿ.';
+
+  @override
+  String get playlistsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get playlistsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
 
   @override
   String get displayAudioRows => 'ಆಡಿಯೋ ಸಾಲುಗಳನ್ನು ತೋರಿಸಿ';

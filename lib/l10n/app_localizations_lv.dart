@@ -9174,6 +9174,13 @@ class AppLocalizationsLv extends AppLocalizations {
       'Kārtot kolekciju rindas pēc pievienošanas datuma, izlaišanas datuma, alfabēta un daudz ko citu.';
 
   @override
+  String get collectionsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get collectionsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
+
+  @override
   String get displayGenresRows => 'Rādīt žanru rindas';
 
   @override
@@ -9206,6 +9213,13 @@ class AppLocalizationsLv extends AppLocalizations {
   @override
   String get playlistsRowSortingDescription =>
       'Kārtojiet atskaņošanas sarakstu rindas pēc pievienošanas datuma, izdošanas datuma, alfabēta un citiem kritērijiem.';
+
+  @override
+  String get playlistsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get playlistsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
 
   @override
   String get displayAudioRows => 'Rādīt audio rindas';

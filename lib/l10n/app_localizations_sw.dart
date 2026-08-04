@@ -9197,6 +9197,13 @@ class AppLocalizationsSw extends AppLocalizations {
       'Panga safu za Makusanyo kwa tarehe ya kuongezwa, tarehe ya kutolewa, kialfabeti, na zaidi.';
 
   @override
+  String get collectionsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get collectionsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
+
+  @override
   String get displayGenresRows => 'Onyesha Safu za Aina';
 
   @override
@@ -9230,6 +9237,13 @@ class AppLocalizationsSw extends AppLocalizations {
   @override
   String get playlistsRowSortingDescription =>
       'Panga safu za Orodha za Kucheza kwa tarehe ya kuongezwa, tarehe ya kutolewa, kialfabeti, na zaidi.';
+
+  @override
+  String get playlistsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get playlistsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
 
   @override
   String get displayAudioRows => 'Onyesha Safu za Sauti';

@@ -9211,6 +9211,13 @@ class AppLocalizationsHu extends AppLocalizations {
       'A gyűjtemények sorainak rendezése a hozzáadás dátuma, a megjelenés dátuma, ábécérend vagy egyebek szerint.';
 
   @override
+  String get collectionsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get collectionsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
+
+  @override
   String get displayGenresRows => 'Műfajok sorainak megjelenítése';
 
   @override
@@ -9244,6 +9251,13 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get playlistsRowSortingDescription =>
       'Lejátszási listák sorainak rendezése a hozzáadás dátuma, a megjelenés dátuma, ábécérend vagy egyéb szempontok szerint.';
+
+  @override
+  String get playlistsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get playlistsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
 
   @override
   String get displayAudioRows => 'Audiósorok megjelenítése';

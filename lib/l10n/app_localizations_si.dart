@@ -9112,6 +9112,13 @@ class AppLocalizationsSi extends AppLocalizations {
       'එක් කළ දිනය, නිකුත් වූ දිනය, අකාරාදී ලෙස සහ තවත් ක්‍රම අනුව එකතු පේළි වර්ග කරන්න.';
 
   @override
+  String get collectionsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get collectionsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
+
+  @override
   String get displayGenresRows => 'ප්‍රභේද පේළි පෙන්වන්න';
 
   @override
@@ -9145,6 +9152,13 @@ class AppLocalizationsSi extends AppLocalizations {
   @override
   String get playlistsRowSortingDescription =>
       'එක් කළ දිනය, නිකුත් වූ දිනය, අකාරාදී ලෙස සහ තවත් ක්‍රම අනුව ධාවන ලැයිස්තු පේළි වර්ග කරන්න.';
+
+  @override
+  String get playlistsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get playlistsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
 
   @override
   String get displayAudioRows => 'ශ්‍රව්‍ය පේළි පෙන්වන්න';

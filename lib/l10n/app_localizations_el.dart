@@ -9274,6 +9274,13 @@ class AppLocalizationsEl extends AppLocalizations {
       'Ταξινόμηση σειρών Συλλογών κατά ημερομηνία προσθήκης, ημερομηνία κυκλοφορίας, αλφαβητικά και άλλα.';
 
   @override
+  String get collectionsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get collectionsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
+
+  @override
   String get displayGenresRows => 'Εμφάνιση σειρών ειδών';
 
   @override
@@ -9307,6 +9314,13 @@ class AppLocalizationsEl extends AppLocalizations {
   @override
   String get playlistsRowSortingDescription =>
       'Ταξινομήστε τις σειρές λιστών αναπαραγωγής κατά ημερομηνία προσθήκης, ημερομηνία κυκλοφορίας, αλφαβητικά και άλλα.';
+
+  @override
+  String get playlistsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get playlistsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
 
   @override
   String get displayAudioRows => 'Εμφάνιση σειρών ήχου';

@@ -777,40 +777,18 @@ class PluginSyncService extends ChangeNotifier {
     } catch (_) {}
   }
 
+  /// Pass `requireAvailable: false` from callers that run before the plugin
+  /// ping has resolved, such as the home rows. The request is then attempted
+  /// regardless and a missing plugin simply comes back null.
   Future<List<String>?> fetchCustomCollectionOrder(
     MediaServerClient client,
-    String collectionId,
-  ) async {
-    if (!_pluginAvailable) return null;
+    String collectionId, {
+    bool requireAvailable = true,
+  }) async {
+    if (requireAvailable && !_pluginAvailable) return null;
     final headers = _authHeaders(client);
     if (headers == null) return null;
 
-    try {
-      final response = await _dio.get(
-        '${client.baseUrl}/Moonfin/Collections/$collectionId/Order',
-        options: Options(headers: headers),
-      );
-      if (response.statusCode == 200 && response.data is List) {
-        return List<String>.from(response.data as List);
-      }
-    } catch (_) {}
-    return null;
-  }
-
-  /// Like [fetchCustomCollectionOrder] but does not require [pluginAvailable]
-  /// to be confirmed first.
-  ///
-  /// Use this when loading in a background context (e.g. home screen rows)
-  /// where the plugin availability ping may not have resolved yet. The HTTP
-  /// request is attempted regardless; if the plugin is not installed or the
-  /// server returns a non-200 response the method returns null and the caller
-  /// should fall back to its default sort.
-  Future<List<String>?> tryFetchCustomCollectionOrder(
-    MediaServerClient client,
-    String collectionId,
-  ) async {
-    final headers = _authHeaders(client);
-    if (headers == null) return null;
     try {
       final response = await _dio.get(
         '${client.baseUrl}/Moonfin/Collections/$collectionId/Order',

@@ -580,30 +580,26 @@ class RowDataSource {
     int limit = _defaultLimit,
   }) async {
     if (usePlaylistOrder) {
-      // The Moonbase custom order (saved from the Playlist drag-and-drop view)
-      // stores individual episode IDs, not series IDs. Fetching with
-      // recursive:false returns a Series item whose ID is never in the Moonbase
-      // order, so it always falls to the end. Instead, fetch recursively to get
-      // the flat list of movies + episodes that matches the Moonbase order, sort
-      // by that order, then collapse episodes back to series cards.
-      //
-      // Safety cap: 500 items covers even large curated collections without
-      // causing OOM. Episodes are transient — they're collapsed immediately for
-      // the showEpisodes=false case.
-      const recursiveLimit = 500;
+      // The custom order stores episode ids rather than series ids, so a
+      // non-recursive fetch returns a series whose id is never in the order and
+      // it sinks to the end. Fetching recursively gives the flat movie and
+      // episode list the order was built against, which is then collapsed back
+      // to series cards unless the caller wants episodes.
       final response = await _getItemsWithFallback(
         parentId: collectionId,
         recursive: true,
         startIndex: 0,
-        limit: recursiveLimit,
+        limit: _fullRowFetchLimit,
       );
-      var flatItems = _parseItems(response, serverId);
+      final flatItems = _parseItems(response, serverId);
 
-      // Apply Moonbase custom order to the flat episode+movie list.
       try {
         final syncService = GetIt.instance<PluginSyncService>();
-        final customOrder =
-            await syncService.tryFetchCustomCollectionOrder(_client, collectionId);
+        final customOrder = await syncService.fetchCustomCollectionOrder(
+          _client,
+          collectionId,
+          requireAvailable: false,
+        );
         if (customOrder != null && customOrder.isNotEmpty) {
           final orderMap = {
             for (var i = 0; i < customOrder.length; i++) customOrder[i]: i,
@@ -619,33 +615,23 @@ class RowDataSource {
         }
       } catch (_) {}
 
-      final List<AggregatedItem> displayItems;
-      if (showEpisodes) {
-        // Episodes already in Moonbase order — apply the same OOM safety cap
-        // used by _expandSeriesItems.
-        const episodeCap = 200;
-        displayItems =
-            flatItems.length > episodeCap ? flatItems.sublist(0, episodeCap) : flatItems;
-      } else {
-        // Collapse episodes to one series card per series, placed at the
-        // position of the first episode from that series in the Moonbase order.
-        displayItems = _collapseEpisodesToSeries(flatItems, serverId);
-      }
+      final displayItems = showEpisodes
+          ? _capItems(flatItems)
+          : _collapseEpisodesToSeries(flatItems, serverId);
 
       return HomeRow(
         id: rowId,
         title: title,
         items: displayItems,
         rowType: HomeRowType.collections,
-        // Mark fully loaded so paging doesn't try to append more items on scroll.
+        // The row holds everything it will ever hold, so paging stays off it.
         totalCount: displayItems.length,
       );
     }
 
-    // Non-playlist-order path — fetch top-level collection items only.
-    // When expanding episodes, cap at 100 top-level items to prevent OOM on
-    // low-RAM devices (Firestick/Google TV) for large collections.
-    final fetchLimit = showEpisodes ? 100 : limit;
+    // Expansion multiplies every series into its episodes, so the top level is
+    // fetched narrower to keep the result within reach of low memory devices.
+    final fetchLimit = showEpisodes ? _expandSourceFetchLimit : limit;
     final response = await _getItemsWithFallback(
       parentId: collectionId,
       sortBy: sortBy,
@@ -664,8 +650,6 @@ class RowDataSource {
 
     if (!showEpisodes) return row;
     final expanded = await _expandSeriesItems(row.items, serverId);
-    // Mark totalCount as fully loaded so lazy-load paging doesn't try to
-    // fetch more — all episodes are already in the initial row.
     return row.copyWith(items: expanded, totalCount: expanded.length);
   }
 
@@ -678,24 +662,21 @@ class RowDataSource {
     String sortOrder = _defaultSortOrder,
     bool usePlaylistOrder = false,
     bool showEpisodes = false,
-    int startIndex = 0,
-    int limit = _defaultLimit,
   }) async {
-    // When showing individual episodes, fetch all playlist items up front.
-    final fetchLimit = showEpisodes ? 500 : limit;
+    // Collapsing dedupes across the whole playlist, so the list is pulled up
+    // front either way. Paging can't help here, since the lazy load path keeps
+    // only items of type Playlist, which a playlist's own contents never are.
     final response = usePlaylistOrder
         ? await _client.itemsApi.getPlaylistItems(
             playlistId,
-            startIndex: startIndex,
-            limit: fetchLimit,
+            limit: _fullRowFetchLimit,
           )
         : await _getItemsWithFallback(
             parentId: playlistId,
             sortBy: sortBy,
             sortOrder: sortOrder,
             recursive: false,
-            startIndex: startIndex,
-            limit: fetchLimit,
+            limit: _fullRowFetchLimit,
           );
     final row = _buildRow(
       id: rowId,
@@ -704,16 +685,10 @@ class RowDataSource {
       serverId: serverId,
       rowType: HomeRowType.playlists,
     );
-    if (showEpisodes) {
-      // Toggle ON: show items as-is — getPlaylistItems already returns
-      // individual episodes, no expansion needed.
-      // Mark totalCount as fully loaded so paging doesn't try to fetch more.
-      return row.copyWith(totalCount: row.items.length);
-    }
-    // Toggle OFF (default): collapse any Episode items to one Series poster
-    // per unique series, preserving the first occurrence's position.
-    final collapsed = _collapseEpisodesToSeries(row.items, serverId);
-    return row.copyWith(items: collapsed);
+    final items = showEpisodes
+        ? _capItems(row.items)
+        : _collapseEpisodesToSeries(row.items, serverId);
+    return row.copyWith(items: items, totalCount: items.length);
   }
 
   Future<HomeRow> loadGenreRow(
@@ -1057,7 +1032,7 @@ class RowDataSource {
           final playlistId = parsed.additionalData;
           final sortPref = prefs?.get(UserPreferences.playlistsRowSortBy) ??
               LibrarySortBy.playlistOrder;
-          final usePlaylistOrder = sortPref == LibrarySortBy.playlistOrder;
+          final usePlaylistOrder = sortPref.usesDedicatedEndpoint;
           if (usePlaylistOrder) {
             response = await _client.itemsApi.getPlaylistItems(
               playlistId,
@@ -1121,9 +1096,9 @@ class RowDataSource {
         // server sort so the Items API returns items in native linked-children
         // order. The custom plugin order is only applied at the initial load
         // (loadCollectionRow); lazy-load pages simply append in server order.
-        final effectiveSortBy = (sortPref == LibrarySortBy.playlistOrder && parentId != null)
+        final effectiveSortBy = (sortPref.usesDedicatedEndpoint && parentId != null)
             ? null
-            : sortPref.itemsApiSortValue;
+            : sortPref.apiValue;
         response = await _getItemsWithFallback(
           parentId: parentId,
           includeItemTypes: includeItemTypes,
@@ -1711,7 +1686,7 @@ class RowDataSource {
               : null;
           final sortPref = prefs?.get(UserPreferences.collectionsRowSortBy) ??
               LibrarySortBy.playlistOrder;
-          final usePlaylistOrder = sortPref == LibrarySortBy.playlistOrder;
+          final usePlaylistOrder = sortPref.usesDedicatedEndpoint;
           final showEpisodes =
               prefs?.get(UserPreferences.collectionsRowShowEpisodes) ?? false;
           final row = await loadCollectionRow(
@@ -1775,7 +1750,7 @@ class RowDataSource {
               : null;
           final sortPref = prefs?.get(UserPreferences.playlistsRowSortBy) ??
               LibrarySortBy.playlistOrder;
-          final usePlaylistOrder = sortPref == LibrarySortBy.playlistOrder;
+          final usePlaylistOrder = sortPref.usesDedicatedEndpoint;
           final showEpisodes =
               prefs?.get(UserPreferences.playlistsRowShowEpisodes) ?? false;
           final row = await loadPlaylistRow(
@@ -1883,78 +1858,87 @@ class RowDataSource {
     }).toList();
   }
 
-  // Safety limits for episode expansion — protects low-RAM devices
-  // (Firestick, Google TV) from OOM when expanding large collections.
-  static const int _maxExpandedItems = 200;  // total items in row after expansion
-  static const int _maxEpisodesPerSeries = 100; // per-series episode cap
+  // Ceilings that keep a row within reach of low memory devices like the
+  // Firestick when a collection expands into episodes.
+  static const int _maxExpandedItems = 200;
+  static const int _maxEpisodesPerSeries = 100;
+  // How many items a row pulls when it has to see the whole list at once.
+  static const int _fullRowFetchLimit = 500;
+  // Narrower, since every series here turns into a run of episodes.
+  static const int _expandSourceFetchLimit = 100;
+  // How many series are asked for their episodes at once.
+  static const int _expandBatchSize = 8;
 
-  /// Expands any [AggregatedItem] of type 'Series' in [items] by fetching its
-  /// episodes and inserting them in season/episode order at the series'
-  /// position. Non-series items are kept as-is. Falls back to the series card
-  /// on any fetch error. Used by collection rows when showEpisodes is ON.
+  static List<AggregatedItem> _capItems(List<AggregatedItem> items) =>
+      items.length > _maxExpandedItems
+      ? items.sublist(0, _maxExpandedItems)
+      : items;
+
+  /// Replaces every series in [items] with its episodes in season and episode
+  /// order, leaving anything else alone. A series whose episodes fail to load
+  /// stays as its own card.
   ///
-  /// Expansion stops once [_maxExpandedItems] total items are in the result;
-  /// remaining series beyond that cap are added as series posters instead.
+  /// The result is capped at [_maxExpandedItems], so a long collection loses
+  /// its tail rather than the device losing the row.
   Future<List<AggregatedItem>> _expandSeriesItems(
     List<AggregatedItem> items,
     String serverId,
   ) async {
+    // A batch at a time. One by one would put a round trip per series in front
+    // of the row appearing, and all at once would open a request per series.
     final result = <AggregatedItem>[];
-    for (final item in items) {
-      // Once the cap is reached, add all remaining items as series posters
-      // (no further API calls) to avoid OOM on low-RAM devices.
-      if (result.length >= _maxExpandedItems) {
-        result.add(item);
-        continue;
-      }
-      if (item.type != 'Series') {
-        result.add(item);
-        continue;
-      }
-      try {
-        final episodeData = await _client.itemsApi.getEpisodes(item.id);
-        final rawEpisodes = (episodeData['Items'] as List?) ?? [];
-        if (rawEpisodes.isEmpty) {
-          result.add(item);
-          continue;
-        }
-        final episodes = rawEpisodes
-            .whereType<Map<String, dynamic>>()
-            .map((data) => AggregatedItem(
-                  id: data['Id']?.toString() ?? '',
-                  serverId: serverId,
-                  rawData: data,
-                ))
-            .toList()
-          ..sort((a, b) {
-            // Season 0 = Specials — sort after all regular seasons.
-            int seasonKey(int s) => s == 0 ? 0x7FFFFFFF : s;
-            final aSeason = seasonKey(a.rawData['ParentIndexNumber'] as int? ?? 0);
-            final bSeason = seasonKey(b.rawData['ParentIndexNumber'] as int? ?? 0);
-            if (aSeason != bSeason) return aSeason.compareTo(bSeason);
-            final aEp = a.rawData['IndexNumber'] as int? ?? 0;
-            final bEp = b.rawData['IndexNumber'] as int? ?? 0;
-            return aEp.compareTo(bEp);
-          });
-        // Cap episodes per series to guard against very long-running shows.
-        final capped = episodes.length > _maxEpisodesPerSeries
-            ? episodes.sublist(0, _maxEpisodesPerSeries)
-            : episodes;
-        result.addAll(capped);
-      } catch (_) {
-        result.add(item);
-      }
+    for (var i = 0; i < items.length; i += _expandBatchSize) {
+      if (result.length >= _maxExpandedItems) break;
+      final end = i + _expandBatchSize;
+      final batch = items.sublist(i, end < items.length ? end : items.length);
+      final lists = await Future.wait(
+        batch.map((item) => _episodesForSeries(item, serverId)),
+      );
+      result.addAll(lists.expand((e) => e));
     }
-    return result;
+    return _capItems(result);
   }
 
-  /// Collapses Episode items in [items] to one synthetic Series-level card per
-  /// unique series, preserving the first occurrence's position. Non-episode
-  /// items are kept as-is. Used by playlist rows when showEpisodes is OFF.
-  ///
-  /// Playlist rows contain individual episode items (returned by
-  /// /Playlists/{id}/Items). With toggle OFF the home row should show the
-  /// series poster once per series rather than every episode card.
+  /// The episodes of [item] in season and episode order, or [item] on its own
+  /// when it is not a series or its episodes are out of reach.
+  Future<List<AggregatedItem>> _episodesForSeries(
+    AggregatedItem item,
+    String serverId,
+  ) async {
+    if (item.type != 'Series') return [item];
+    try {
+      final episodeData = await _client.itemsApi.getEpisodes(item.id);
+      final rawEpisodes = (episodeData['Items'] as List?) ?? const [];
+      final episodes = rawEpisodes
+          .whereType<Map<String, dynamic>>()
+          .map((data) => AggregatedItem(
+                id: data['Id']?.toString() ?? '',
+                serverId: serverId,
+                rawData: data,
+              ))
+          .toList()
+        ..sort((a, b) {
+          // Season 0 holds the specials, which belong after the rest.
+          int seasonKey(int s) => s == 0 ? 0x7FFFFFFF : s;
+          final aSeason = seasonKey(a.rawData['ParentIndexNumber'] as int? ?? 0);
+          final bSeason = seasonKey(b.rawData['ParentIndexNumber'] as int? ?? 0);
+          if (aSeason != bSeason) return aSeason.compareTo(bSeason);
+          final aEp = a.rawData['IndexNumber'] as int? ?? 0;
+          final bEp = b.rawData['IndexNumber'] as int? ?? 0;
+          return aEp.compareTo(bEp);
+        });
+      if (episodes.isEmpty) return [item];
+      return episodes.length > _maxEpisodesPerSeries
+          ? episodes.sublist(0, _maxEpisodesPerSeries)
+          : episodes;
+    } catch (_) {
+      return [item];
+    }
+  }
+
+  /// Replaces the episodes in [items] with one card for each series they came
+  /// from, sitting where that series first appeared. Anything else is left
+  /// alone, including an episode with no series to fold into.
   List<AggregatedItem> _collapseEpisodesToSeries(
     List<AggregatedItem> items,
     String serverId,
@@ -1962,25 +1946,25 @@ class RowDataSource {
     final result = <AggregatedItem>[];
     final seenSeriesIds = <String>{};
     for (final item in items) {
-      // Series items already at series level — keep, but track to prevent
-      // duplicates if the same series also has episodes in the playlist.
+      // Track series that arrive whole too, so a playlist holding both a series
+      // and one of its episodes still shows a single card.
       if (item.type == 'Series') {
         if (seenSeriesIds.add(item.id)) result.add(item);
         continue;
       }
-      // Non-episode items (Movies, etc.) — always keep as-is.
       if (item.type != 'Episode') {
         result.add(item);
         continue;
       }
-      // Episode items — collapse to one series card per unique SeriesId.
       final seriesId = item.seriesId;
       if (seriesId == null || seriesId.isEmpty) {
-        result.add(item); // orphaned episode, show as-is
+        result.add(item);
         continue;
       }
-      if (!seenSeriesIds.add(seriesId)) continue; // duplicate series — skip
-      // Synthesise a Series-level card using the episode's series metadata.
+      if (!seenSeriesIds.add(seriesId)) continue;
+      // Only the fields an episode carries about its series are safe to lift.
+      // Anything describing the episode itself, its watched state above all,
+      // would read as the whole series being part watched.
       result.add(AggregatedItem(
         id: seriesId,
         serverId: serverId,
@@ -1992,10 +1976,8 @@ class RowDataSource {
             if (item.seriesPrimaryImageTag != null)
               'Primary': item.seriesPrimaryImageTag,
           },
-          'BackdropImageTags': item.rawData['BackdropImageTags'] ?? const <dynamic>[],
-          'ProductionYear': item.rawData['ProductionYear'],
-          'OfficialRating': item.rawData['OfficialRating'],
-          'UserData': item.rawData['UserData'],
+          'BackdropImageTags':
+              item.rawData['ParentBackdropImageTags'] ?? const <dynamic>[],
         },
       ));
     }

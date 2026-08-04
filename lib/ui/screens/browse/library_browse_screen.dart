@@ -1727,7 +1727,7 @@ class _FilterSortDialogState extends State<_FilterSortDialog> {
                   LibrarySortBy.random,
                 ];
               }
-              return LibrarySortBy.values.where((o) =>
+              return LibrarySortBy.itemsApiValues.where((o) =>
                   (!vm.isMusicBrowse ||
                       (o != LibrarySortBy.rating &&
                           o != LibrarySortBy.criticRating &&

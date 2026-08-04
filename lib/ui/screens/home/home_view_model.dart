@@ -1053,7 +1053,7 @@ class HomeViewModel extends ChangeNotifier {
         .apiValue;
     final collectionsSortBy = _prefs
         .get(UserPreferences.collectionsRowSortBy)
-        .itemsApiSortValue;
+        .apiValue;
     final genresSortBy = _prefs.get(UserPreferences.genresRowSortBy).apiValue;
     final genresItemFilter = _prefs
         .get(UserPreferences.genresRowItemFilter)

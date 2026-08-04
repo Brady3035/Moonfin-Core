@@ -531,7 +531,7 @@ class MultiServerRepository {
               final targetStartIndex = pageCount * _defaultLimit;
               _rowOffsets[cacheKey] = targetStartIndex + _defaultLimit;
               final sortBy =
-                  prefs?.get(UserPreferences.playlistsRowSortBy).itemsApiSortValue ??
+                  prefs?.get(UserPreferences.playlistsRowSortBy).apiValue ??
                   _defaultSortBy;
 
               final response = await session.client.itemsApi.getItems(
@@ -646,7 +646,7 @@ class MultiServerRepository {
               return items;
             case HomeRowType.collections:
               final sortBy =
-                  prefs?.get(UserPreferences.collectionsRowSortBy).itemsApiSortValue ??
+                  prefs?.get(UserPreferences.collectionsRowSortBy).apiValue ??
                   _defaultSortBy;
               _rowOffsets[cacheKey] = startIndex + _defaultLimit;
 
@@ -777,7 +777,7 @@ class MultiServerRepository {
           row.rowType == HomeRowType.audioPlaylists) {
         final sortBy = row.rowType == HomeRowType.audioPlaylists
             ? (prefs?.get(UserPreferences.audioRowsSortBy).apiValue ?? _defaultSortBy)
-            : (prefs?.get(UserPreferences.playlistsRowSortBy).itemsApiSortValue ?? _defaultSortBy);
+            : (prefs?.get(UserPreferences.playlistsRowSortBy).apiValue ?? _defaultSortBy);
         if (sortBy == 'SortName') {
           uniqueCombined.sort((a, b) => a.name.compareTo(b.name));
         } else {
@@ -797,7 +797,7 @@ class MultiServerRepository {
       // no parentId, so playlistOrder is never active for it.
       final collectionsUsePlaylistOrder =
           row.rowType == HomeRowType.collections &&
-          collectionsSort == LibrarySortBy.playlistOrder &&
+          (collectionsSort?.usesDedicatedEndpoint ?? false) &&
           row.id != 'collections';
       if (collectionsUsePlaylistOrder) {
         sortedCombined = uniqueCombined;
@@ -807,7 +807,7 @@ class MultiServerRepository {
             prefs?.get(UserPreferences.favoritesRowSortBy).apiValue ??
                 _defaultSortBy,
           HomeRowType.collections =>
-            collectionsSort?.itemsApiSortValue ?? _defaultSortBy,
+            collectionsSort?.apiValue ?? _defaultSortBy,
           HomeRowType.genres =>
             prefs?.get(UserPreferences.genresRowSortBy).apiValue ??
                 _defaultSortBy,

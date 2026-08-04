@@ -255,11 +255,13 @@ class EmbyItemsApi implements ItemsApi {
     String? fields,
     String? enableImageTypes,
     int? imageTypeLimit,
+    bool recursive = false,
   }) async {
     final response = await _dio.get(
       '/Items',
       queryParameters: {
         if (parentId != null) 'ParentId': parentId,
+        if (recursive) 'Recursive': true,
         if (includeItemTypes != null)
           'IncludeItemTypes': includeItemTypes.join(','),
         if (limit != null) 'Limit': limit,

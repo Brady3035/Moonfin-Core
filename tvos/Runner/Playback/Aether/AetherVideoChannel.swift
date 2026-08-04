@@ -4,6 +4,7 @@
 #if os(iOS) || os(macOS)
 
 import AVFoundation
+import AetherEngine
 import VideoToolbox
 #if canImport(Flutter)
 import Flutter
@@ -121,6 +122,8 @@ final class AetherVideoChannel: NSObject, FlutterStreamHandler {
                 fontSize: (args["fontSize"] as? NSNumber)?.doubleValue,
                 fontWeight: (args["fontWeight"] as? NSNumber)?.intValue,
                 verticalOffset: (args["verticalOffset"] as? NSNumber)?.doubleValue)
+        case "setAllowUntrustedTls":
+            EngineTLS.allowUntrustedCertificates = (args["enabled"] as? Bool) == true
         case "setSubtitleRendererMode":
             // The host overlay is the only subtitle renderer on this path.
             break

@@ -1,8 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/services.dart';
+import 'package:get_it/get_it.dart';
 import 'package:playback_core/playback_core.dart';
 
+import '../data/services/log_service.dart';
 import '../preference/preference_constants.dart';
 import '../preference/user_preferences.dart';
 import '../util/platform_detection.dart';
@@ -17,6 +19,8 @@ class AppleTvMpvBackend implements PlayerBackend {
       _handleEvent,
       onError: (_) {},
     );
+    _prefs.addListener(_syncNativePreferences);
+    _syncNativePreferences();
   }
 
   static const _control = MethodChannel('moonfin/appletv_video_control');
@@ -47,6 +51,8 @@ class AppleTvMpvBackend implements PlayerBackend {
   final _tracksChangedController = StreamController<void>.broadcast();
 
   bool _disposed = false;
+  bool? _engineLogForwarding;
+  bool? _allowUntrustedTls;
   bool _playerPresented = false;
   Timer? _audioDelayDebounce;
 
@@ -71,9 +77,31 @@ class AppleTvMpvBackend implements PlayerBackend {
     if (_disposed) return null;
     try {
       return await _control.invokeMethod<T>(method, arguments);
-    } catch (_) {
+    } on PlatformException catch (error) {
+      _log(
+        'Channel call $method failed code=${error.code}',
+        level: LogLevel.error,
+        error: error.message,
+      );
+      return null;
+    } catch (error) {
+      _log('Channel call $method failed', level: LogLevel.error, error: error);
       return null;
     }
+  }
+
+  void _log(String message, {LogLevel level = LogLevel.debug, Object? error}) {
+    if (!GetIt.instance.isRegistered<LogService>()) return;
+    GetIt.instance<LogService>().playback(message, level: level, error: error);
+  }
+
+  /// The query carries the server token, so only the origin and path go in a
+  /// report a user uploads.
+  String _describeUrl(String url) {
+    final parsed = Uri.tryParse(url);
+    if (parsed == null) return 'unparsable url';
+    final port = parsed.hasPort ? ':${parsed.port}' : '';
+    return '${parsed.scheme}://${parsed.host}$port${parsed.path}';
   }
 
   Future<void> _ensurePlayerPresented({bool audioOnly = false}) async {
@@ -168,8 +196,11 @@ class AppleTvMpvBackend implements PlayerBackend {
       case 'syncDelays':
         _audioDelaySeconds = _toInt(map['audioDelayMs']) / 1000.0;
         _subtitleDelaySeconds = _toInt(map['subtitleDelayMs']) / 1000.0;
+      case 'engineLog':
+        _logEngineLine(map['line']);
       case 'playerError':
       case 'error':
+        _logPlaybackError(map);
         _errorStream.add(map.cast<String, dynamic>());
         _isPlaying = false;
         _isBuffering = false;
@@ -178,6 +209,47 @@ class AppleTvMpvBackend implements PlayerBackend {
         _bufferingStream.add(false);
         _completedStream.add(false);
     }
+  }
+
+  /// The preferences notify on every change, so each sync below guards its
+  /// own flag and only a real change reaches the channel.
+  void _syncNativePreferences() {
+    _syncEngineLogForwarding();
+    _syncAllowUntrustedTls();
+  }
+
+  void _syncEngineLogForwarding() {
+    final enabled = _prefs.get(UserPreferences.diagnosticLoggingEnabled);
+    if (enabled == _engineLogForwarding) return;
+    _engineLogForwarding = enabled;
+    _invoke<void>('setEngineLogForwarding', {'enabled': enabled});
+  }
+
+  void _logEngineLine(dynamic line) {
+    if (line is! String || line.isEmpty) return;
+    _log(line);
+  }
+
+  /// A native failure never reaches the server, so without this the report
+  /// from a user whose playback didn't start shows only browsing.
+  void _logPlaybackError(Map<dynamic, dynamic> map) {
+    _log(
+      'Native player error kind=${map['kind'] ?? 'unknown'} '
+      'recoverable=${map['recoverable']}',
+      level: LogLevel.error,
+      error: map['message'],
+    );
+  }
+
+  /// The engine streams over URLSession, which enforces system certificate
+  /// trust that the Dart client bypasses through its bad certificate
+  /// callback, so without this a self signed server browses fine and fails
+  /// every playback.
+  void _syncAllowUntrustedTls() {
+    final enabled = _prefs.get(UserPreferences.allowSelfSignedCerts);
+    if (enabled == _allowUntrustedTls) return;
+    _allowUntrustedTls = enabled;
+    _invoke<void>('setAllowUntrustedTls', {'enabled': enabled});
   }
 
   int _toInt(dynamic value) {
@@ -227,6 +299,11 @@ class AppleTvMpvBackend implements PlayerBackend {
 
     final audioOnly =
         (payload['mediaType']?.toString() ?? 'video') == 'audio';
+    _log(
+      'play ${_describeUrl(url)} live=${payload['isLive'] == true} '
+      'audioOnly=$audioOnly startMs=${startPosition.inMilliseconds} '
+      'headers=${(headers.keys.toList()..sort()).join(',')}',
+    );
     await _ensurePlayerPresented(audioOnly: audioOnly);
 
     await _invoke<void>('setSource', {
@@ -705,6 +782,7 @@ class AppleTvMpvBackend implements PlayerBackend {
   void dispose() {
     if (_disposed) return;
     _disposed = true;
+    _prefs.removeListener(_syncNativePreferences);
     _audioDelayDebounce?.cancel();
     _audioDelayDebounce = null;
     unawaited(_dismissPlayer());

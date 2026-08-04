@@ -260,11 +260,18 @@ class UserPreferences extends ChangeNotifier {
     'imdb_top_250_tv_shows_enabled',
     'imdb_top_english_movies_enabled',
     'live_tv_channel_sort_by',
+    'music_playback_time_display',
     'osdButtonOrderDesktop',
     'osdButtonOrderMobile',
     'osdButtonOrderTv',
     'osdLockEnabled',
     'pgs_enabled',
+    'playback_time_above_center',
+    'playback_time_above_left',
+    'playback_time_above_right',
+    'playback_time_below_center',
+    'playback_time_below_left',
+    'playback_time_below_right',
     'player_zoom_mode',
     'pref_audio_rows_sort_by',
     'pref_diagnostic_logging_enabled',
@@ -276,6 +283,7 @@ class UserPreferences extends ChangeNotifier {
     'pref_live_direct',
     'pref_max_bitrate',
     'pref_max_video_resolution',
+    'pref_playlists_row_show_episodes',
     'pref_playlists_row_sort_by',
     'pref_recommendations_apply_parental_rating_cap',
     'pref_resume_last_queue_on_play',
@@ -384,6 +392,7 @@ class UserPreferences extends ChangeNotifier {
     'pref_display_collections_rows',
     'pref_display_genres_rows',
     'pref_favorites_row_sort_by',
+    'pref_collections_row_show_episodes',
     'pref_collections_row_sort_by',
     'pref_genres_row_sort_by',
     'pref_genres_row_item_filter',
@@ -1074,8 +1083,13 @@ class UserPreferences extends ChangeNotifier {
 
   static final collectionsRowSortBy = EnumPreference(
     key: 'pref_collections_row_sort_by',
-    defaultValue: LibrarySortBy.name,
+    defaultValue: LibrarySortBy.playlistOrder,
     values: LibrarySortBy.values,
+  );
+
+  static final collectionsRowShowEpisodes = Preference(
+    key: 'pref_collections_row_show_episodes',
+    defaultValue: false,
   );
 
   static final genresRowSortBy = EnumPreference(
@@ -1086,8 +1100,13 @@ class UserPreferences extends ChangeNotifier {
 
   static final playlistsRowSortBy = EnumPreference(
     key: 'pref_playlists_row_sort_by',
-    defaultValue: LibrarySortBy.name,
+    defaultValue: LibrarySortBy.playlistOrder,
     values: LibrarySortBy.values,
+  );
+
+  static final playlistsRowShowEpisodes = Preference(
+    key: 'pref_playlists_row_show_episodes',
+    defaultValue: false,
   );
 
   static final audioRowsSortBy = EnumPreference(
@@ -1483,6 +1502,51 @@ class UserPreferences extends ChangeNotifier {
   static final trickPlayEnabled = Preference(
     key: 'trick_play_enabled',
     defaultValue: false,
+  );
+
+  // Defaults chosen so the overlay looks unchanged for anyone who never opens
+  // the setting.
+  static final playbackTimeAboveLeft = EnumPreference(
+    key: 'playback_time_above_left',
+    defaultValue: PlaybackTimeSlot.none,
+    values: PlaybackTimeSlot.values,
+  );
+
+  static final playbackTimeAboveCenter = EnumPreference(
+    key: 'playback_time_above_center',
+    defaultValue: PlaybackTimeSlot.none,
+    values: PlaybackTimeSlot.values,
+  );
+
+  static final playbackTimeAboveRight = EnumPreference(
+    key: 'playback_time_above_right',
+    defaultValue: PlaybackTimeSlot.endsAt,
+    values: PlaybackTimeSlot.values,
+  );
+
+  static final playbackTimeBelowLeft = EnumPreference(
+    key: 'playback_time_below_left',
+    defaultValue: PlaybackTimeSlot.elapsed,
+    values: PlaybackTimeSlot.values,
+  );
+
+  static final playbackTimeBelowCenter = EnumPreference(
+    key: 'playback_time_below_center',
+    defaultValue: PlaybackTimeSlot.none,
+    values: PlaybackTimeSlot.values,
+  );
+
+  static final playbackTimeBelowRight = EnumPreference(
+    key: 'playback_time_below_right',
+    defaultValue: PlaybackTimeSlot.totalDuration,
+    values: PlaybackTimeSlot.values,
+  );
+
+  /// The music player has one label rather than six slots, so it picks a mode.
+  static final musicPlaybackTimeDisplay = EnumPreference(
+    key: 'music_playback_time_display',
+    defaultValue: PlaybackTimeDisplay.totalDuration,
+    values: PlaybackTimeDisplay.values,
   );
 
   static final pgsDirectPlay = Preference(

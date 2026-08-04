@@ -24,6 +24,8 @@ class AetherBackend implements PlayerBackend {
       _handleEvent,
       onError: (_) {},
     );
+    _prefs.addListener(_syncAllowUntrustedTls);
+    _syncAllowUntrustedTls();
   }
 
   static const _control = MethodChannel('moonfin/ios_aether_control');
@@ -51,6 +53,7 @@ class AetherBackend implements PlayerBackend {
   final _tracksChangedController = StreamController<void>.broadcast();
 
   bool _disposed = false;
+  bool? _allowUntrustedTls;
   Timer? _audioDelayDebounce;
 
   final _positionStream = StreamController<Duration>.broadcast();
@@ -131,6 +134,18 @@ class AetherBackend implements PlayerBackend {
       level: LogLevel.error,
       error: map['message'],
     );
+  }
+
+  /// The engine streams over URLSession, which enforces system certificate
+  /// trust that the Dart client bypasses through its bad certificate
+  /// callback, so without this a self signed server browses fine and fails
+  /// every playback. The preference notifies on every change, so the guard
+  /// keeps anything but a real change off the channel.
+  void _syncAllowUntrustedTls() {
+    final enabled = _prefs.get(UserPreferences.allowSelfSignedCerts);
+    if (enabled == _allowUntrustedTls) return;
+    _allowUntrustedTls = enabled;
+    _invoke<void>('setAllowUntrustedTls', {'enabled': enabled});
   }
 
   int _toInt(dynamic value) {
@@ -482,6 +497,7 @@ class AetherBackend implements PlayerBackend {
   @override
   void dispose() {
     _disposed = true;
+    _prefs.removeListener(_syncAllowUntrustedTls);
     _audioDelayDebounce?.cancel();
     _eventSub?.cancel();
     _positionStream.close();

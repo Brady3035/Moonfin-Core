@@ -33,6 +33,14 @@ class _VideoPlaybackScreen extends StatelessWidget {
                   ZoomMode.stretch => l10n.stretch,
                 },
               ),
+              _TvSettingsListTile(
+                leading: const Icon(Icons.timer_outlined),
+                title: Text(l10n.playbackTimeDisplay),
+                subtitle: Text(l10n.settingsPlaybackTimeDisplayDescription),
+                onTap: () => context.pushSettingsScreen(
+                  const _PlaybackTimeLayoutScreen(),
+                ),
+              ),
               SwitchPreferenceTile(
                 preference: UserPreferences.trickPlayEnabled,
                 title: l10n.trickPlay,

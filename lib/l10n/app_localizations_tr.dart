@@ -9145,6 +9145,13 @@ class AppLocalizationsTr extends AppLocalizations {
       'Koleksiyonlar satırlarını ekleme tarihine, çıkış tarihine, alfabetik sıraya ve daha fazlasına göre sıralayın.';
 
   @override
+  String get collectionsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get collectionsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
+
+  @override
   String get displayGenresRows => 'Tür Satırlarını Göster';
 
   @override
@@ -9178,6 +9185,13 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get playlistsRowSortingDescription =>
       'Oynatma listesi satırlarını ekleme tarihi, yayınlanma tarihi, alfabetik ve daha fazlasına göre sıralayın.';
+
+  @override
+  String get playlistsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get playlistsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
 
   @override
   String get displayAudioRows => 'Ses Satırlarını Göster';
@@ -10369,4 +10383,55 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get mixedPlaylistsSection => 'Karışık Oynatma Listesi';
+
+  @override
+  String get playbackTimeDisplay => 'Progress Bar Time';
+
+  @override
+  String get settingsPlaybackTimeDisplayDescription =>
+      'Choose which time labels appear around the playback progress bar.';
+
+  @override
+  String get playbackTimeTotal => 'Total duration';
+
+  @override
+  String get playbackTimeRemaining => 'Time remaining';
+
+  @override
+  String get playbackTimeEndsAt => 'Ends at';
+
+  @override
+  String get playbackTimeElapsed => 'Time elapsed';
+
+  @override
+  String get playbackTimeVideoSection => 'Video Player';
+
+  @override
+  String get playbackTimeMusicSection => 'Music Player';
+
+  @override
+  String get playbackTimeSlotDescription =>
+      'Choose what is shown here, or hide it.';
+
+  @override
+  String get playbackTimeAboveBarLeft => 'Above bar, left';
+
+  @override
+  String get playbackTimeAboveBarCenter => 'Above bar, center';
+
+  @override
+  String get playbackTimeAboveBarRight => 'Above bar, right';
+
+  @override
+  String get playbackTimeBelowBarLeft => 'Below bar, left';
+
+  @override
+  String get playbackTimeBelowBarCenter => 'Below bar, center';
+
+  @override
+  String get playbackTimeBelowBarRight => 'Below bar, right';
+
+  @override
+  String get settingsMusicPlaybackTimeDescription =>
+      'Choose what is shown on the right side of the music progress bar.';
 }

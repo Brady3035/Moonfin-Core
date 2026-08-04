@@ -790,28 +790,40 @@ class MultiServerRepository {
       }
       sortedCombined = uniqueCombined;
     } else {
-      final sortBy = switch (row.rowType) {
-        HomeRowType.favorites =>
-          prefs?.get(UserPreferences.favoritesRowSortBy).apiValue ??
-              _defaultSortBy,
-        HomeRowType.collections =>
-          prefs?.get(UserPreferences.collectionsRowSortBy).apiValue ??
-              _defaultSortBy,
-        HomeRowType.genres =>
-          prefs?.get(UserPreferences.genresRowSortBy).apiValue ??
-              _defaultSortBy,
-        HomeRowType.audioArtists ||
-        HomeRowType.audioAlbums =>
-          prefs?.get(UserPreferences.audioRowsSortBy).apiValue ??
-              _defaultSortBy,
-        _ => _defaultSortBy,
-      };
+      final collectionsSort = prefs?.get(UserPreferences.collectionsRowSortBy);
+      // For a specific pinned collection row using Playlist Order, preserve the
+      // server-returned insertion order — don't re-sort on the client side.
+      // The generic 'collections' all-BoxSets row (row.id == 'collections') has
+      // no parentId, so playlistOrder is never active for it.
+      final collectionsUsePlaylistOrder =
+          row.rowType == HomeRowType.collections &&
+          (collectionsSort?.usesDedicatedEndpoint ?? false) &&
+          row.id != 'collections';
+      if (collectionsUsePlaylistOrder) {
+        sortedCombined = uniqueCombined;
+      } else {
+        final sortBy = switch (row.rowType) {
+          HomeRowType.favorites =>
+            prefs?.get(UserPreferences.favoritesRowSortBy).apiValue ??
+                _defaultSortBy,
+          HomeRowType.collections =>
+            collectionsSort?.apiValue ?? _defaultSortBy,
+          HomeRowType.genres =>
+            prefs?.get(UserPreferences.genresRowSortBy).apiValue ??
+                _defaultSortBy,
+          HomeRowType.audioArtists ||
+          HomeRowType.audioAlbums =>
+            prefs?.get(UserPreferences.audioRowsSortBy).apiValue ??
+                _defaultSortBy,
+          _ => _defaultSortBy,
+        };
 
-      sortedCombined = _sortAggregatedItems(
-        uniqueCombined,
-        sortBy: sortBy,
-        sortOrder: 'Ascending',
-      );
+        sortedCombined = _sortAggregatedItems(
+          uniqueCombined,
+          sortBy: sortBy,
+          sortOrder: 'Ascending',
+        );
+      }
     }
 
     final totalCount = sessions.fold<int>(0, (sum, session) {

@@ -168,6 +168,36 @@ enum ZoomMode {
   stretch,
 }
 
+/// What a trailing time label next to a progress bar shows.
+enum PlaybackTimeDisplay {
+  /// Total runtime of the item, e.g. `1:58:33`.
+  totalDuration,
+
+  /// Time left until the item ends, e.g. `-1:16:23`.
+  timeRemaining,
+
+  /// Wall-clock time the item will finish at, e.g. `Ends at 21:45`.
+  endsAt,
+}
+
+/// What one of the six configurable slots around the video progress bar shows.
+enum PlaybackTimeSlot {
+  /// Nothing is rendered and the slot collapses.
+  none,
+
+  /// How far into the item playback is, e.g. `42:10`.
+  elapsed,
+
+  /// Total runtime of the item, e.g. `1:58:33`.
+  totalDuration,
+
+  /// Time left until the item ends, e.g. `-1:16:23`.
+  timeRemaining,
+
+  /// Wall-clock time the item will finish at, e.g. `Ends at 21:45`.
+  endsAt,
+}
+
 enum DesktopScrollWheelAction {
   off,
   seek,
@@ -367,6 +397,7 @@ enum HomeSectionType {
 }
 
 enum LibrarySortBy {
+  playlistOrder('SortName', 'Playlist Order', usesDedicatedEndpoint: true),
   name('SortName', 'Name'),
   dateAdded('DateCreated', 'Date Added'),
   premiereDate('PremiereDate', 'Premiere Date'),
@@ -379,9 +410,24 @@ enum LibrarySortBy {
   album('Album,SortName', 'Album'),
   genre('Genre,SortName', 'Genre');
 
-  const LibrarySortBy(this.apiValue, this.displayName);
+  const LibrarySortBy(
+    this.apiValue,
+    this.displayName, {
+    this.usesDedicatedEndpoint = false,
+  });
+
+  /// Always a value the Items API accepts, so any caller can pass it through.
   final String apiValue;
   final String displayName;
+
+  /// Whether the row this option belongs to reads from its own endpoint rather
+  /// than sorting through the Items API. Rows that know about the endpoint act
+  /// on this, and everything else falls back to [apiValue].
+  final bool usesDedicatedEndpoint;
+
+  /// The options a row can offer when it only ever sorts through the Items API.
+  static List<LibrarySortBy> get itemsApiValues =>
+      values.where((v) => !v.usesDedicatedEndpoint).toList();
 }
 
 enum ChannelSortBy {

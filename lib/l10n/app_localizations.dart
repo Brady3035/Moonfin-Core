@@ -5884,6 +5884,24 @@ abstract class AppLocalizations {
   /// **'Show libraries from all connected servers'**
   String get showLibrariesFromAllServers;
 
+  /// Setting for merging recently added and recently released libraries by media type
+  ///
+  /// In en, this message translates to:
+  /// **'Merge Recent Rows by Type'**
+  String get mergeRecentRowsByType;
+
+  /// Description for merging recent home rows by media type
+  ///
+  /// In en, this message translates to:
+  /// **'Combine separate libraries of the same type for Recently Added and Recently Released home rows.'**
+  String get mergeRecentRowsByTypeDescription;
+
+  /// Section title for library view settings
+  ///
+  /// In en, this message translates to:
+  /// **'Library View'**
+  String get libraryView;
+
   /// Setting for enabling folder view
   ///
   /// In en, this message translates to:
@@ -16204,6 +16222,18 @@ abstract class AppLocalizations {
   /// **'Sort Collections rows by date added, release date, alphabetically, and more.'**
   String get collectionsRowSortingDescription;
 
+  /// No description provided for @collectionsRowShowEpisodes.
+  ///
+  /// In en, this message translates to:
+  /// **'Show Individual Episodes'**
+  String get collectionsRowShowEpisodes;
+
+  /// No description provided for @collectionsRowShowEpisodesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Expand TV shows to display each episode separately.'**
+  String get collectionsRowShowEpisodesSubtitle;
+
   /// No description provided for @displayGenresRows.
   ///
   /// In en, this message translates to:
@@ -16263,6 +16293,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sort Playlist rows by date added, release date, alphabetically, and more.'**
   String get playlistsRowSortingDescription;
+
+  /// No description provided for @playlistsRowShowEpisodes.
+  ///
+  /// In en, this message translates to:
+  /// **'Show Individual Episodes'**
+  String get playlistsRowShowEpisodes;
+
+  /// No description provided for @playlistsRowShowEpisodesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Expand TV shows to display each episode separately.'**
+  String get playlistsRowShowEpisodesSubtitle;
 
   /// No description provided for @displayAudioRows.
   ///
@@ -18345,6 +18387,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Mixed Playlists'**
   String get mixedPlaylistsSection;
+
+  /// Setting title for what is shown next to the playback progress bar
+  ///
+  /// In en, this message translates to:
+  /// **'Progress Bar Time'**
+  String get playbackTimeDisplay;
+
+  /// Setting description for the progress bar time option
+  ///
+  /// In en, this message translates to:
+  /// **'Choose which time labels appear around the playback progress bar.'**
+  String get settingsPlaybackTimeDisplayDescription;
+
+  /// Progress bar time option showing the full runtime
+  ///
+  /// In en, this message translates to:
+  /// **'Total duration'**
+  String get playbackTimeTotal;
+
+  /// Progress bar time option showing how much is left to play
+  ///
+  /// In en, this message translates to:
+  /// **'Time remaining'**
+  String get playbackTimeRemaining;
+
+  /// Progress bar time option showing the clock time playback finishes
+  ///
+  /// In en, this message translates to:
+  /// **'Ends at'**
+  String get playbackTimeEndsAt;
+
+  /// Progress bar time option showing how far into the item playback is
+  ///
+  /// In en, this message translates to:
+  /// **'Time elapsed'**
+  String get playbackTimeElapsed;
+
+  /// Section header above the video progress bar time slots
+  ///
+  /// In en, this message translates to:
+  /// **'Video Player'**
+  String get playbackTimeVideoSection;
+
+  /// Section header above the music progress bar time option
+  ///
+  /// In en, this message translates to:
+  /// **'Music Player'**
+  String get playbackTimeMusicSection;
+
+  /// Setting description for a single progress bar time slot
+  ///
+  /// In en, this message translates to:
+  /// **'Choose what is shown here, or hide it.'**
+  String get playbackTimeSlotDescription;
+
+  /// Progress bar time slot above the bar on the left
+  ///
+  /// In en, this message translates to:
+  /// **'Above bar, left'**
+  String get playbackTimeAboveBarLeft;
+
+  /// Progress bar time slot above the bar in the center
+  ///
+  /// In en, this message translates to:
+  /// **'Above bar, center'**
+  String get playbackTimeAboveBarCenter;
+
+  /// Progress bar time slot above the bar on the right
+  ///
+  /// In en, this message translates to:
+  /// **'Above bar, right'**
+  String get playbackTimeAboveBarRight;
+
+  /// Progress bar time slot below the bar on the left
+  ///
+  /// In en, this message translates to:
+  /// **'Below bar, left'**
+  String get playbackTimeBelowBarLeft;
+
+  /// Progress bar time slot below the bar in the center
+  ///
+  /// In en, this message translates to:
+  /// **'Below bar, center'**
+  String get playbackTimeBelowBarCenter;
+
+  /// Progress bar time slot below the bar on the right
+  ///
+  /// In en, this message translates to:
+  /// **'Below bar, right'**
+  String get playbackTimeBelowBarRight;
+
+  /// Setting description for the music progress bar time option
+  ///
+  /// In en, this message translates to:
+  /// **'Choose what is shown on the right side of the music progress bar.'**
+  String get settingsMusicPlaybackTimeDescription;
 }
 
 class _AppLocalizationsDelegate

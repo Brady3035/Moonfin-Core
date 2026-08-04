@@ -12,10 +12,9 @@
     {
       "identity" : "aetherengine",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/superuser404notfound/AetherEngine",
+      "location" : "https://github.com/RadicalMuffinMan/AetherEngine",
       "state" : {
-        "revision" : "b43f17df6eb8fe150f570f88386c52020384c7ed",
-        "version" : "6.4.0"
+        "revision" : "5536c14e0dc3171a87f29ad0df863cc3ba87fbab"
       }
     },
     {

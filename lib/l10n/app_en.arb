@@ -4442,6 +4442,18 @@
   "@showLibrariesFromAllServers": {
     "description": "Description for multi-server libraries"
   },
+  "mergeRecentRowsByType": "Merge Recent Rows by Type",
+  "@mergeRecentRowsByType": {
+    "description": "Setting for merging recently added and recently released libraries by media type"
+  },
+  "mergeRecentRowsByTypeDescription": "Combine separate libraries of the same type for Recently Added and Recently Released home rows.",
+  "@mergeRecentRowsByTypeDescription": {
+    "description": "Description for merging recent home rows by media type"
+  },
+  "libraryView": "Library View",
+  "@libraryView": {
+    "description": "Section title for library view settings"
+  },
   "enableFolderView": "Enable Folder View",
   "@enableFolderView": {
     "description": "Setting for enabling folder view"
@@ -8473,6 +8485,8 @@
   "displayCollectionsRowsSubtitle": "Show Collections rows in Home Sections.",
   "collectionsRowSorting": "Collections Row Sorting",
   "collectionsRowSortingDescription": "Sort Collections rows by date added, release date, alphabetically, and more.",
+  "collectionsRowShowEpisodes": "Show Individual Episodes",
+  "collectionsRowShowEpisodesSubtitle": "Expand TV shows to display each episode separately.",
   "displayGenresRows": "Display Genres Rows",
   "displayGenresRowsSubtitle": "Show Genres rows in Home Sections.",
   "genresRowSorting": "Genres Row Sorting",
@@ -8483,6 +8497,8 @@
   "displayPlaylistsRowsSubtitle": "Show Playlist rows in Home Sections.",
   "playlistsRowSorting": "Playlist Row Sorting",
   "playlistsRowSortingDescription": "Sort Playlist rows by date added, release date, alphabetically, and more.",
+  "playlistsRowShowEpisodes": "Show Individual Episodes",
+  "playlistsRowShowEpisodesSubtitle": "Expand TV shows to display each episode separately.",
   "displayAudioRows": "Display Audio Rows",
   "displayAudioRowsSubtitle": "Show Audio rows in Home Sections.",
   "audioRowsSorting": "Audio Rows sorting",
@@ -9174,5 +9190,69 @@
   "mixedPlaylistsSection": "Mixed Playlists",
   "@mixedPlaylistsSection": {
     "description": "Section header above mixed playlists when Group by Type is enabled"
+  },
+  "playbackTimeDisplay": "Progress Bar Time",
+  "@playbackTimeDisplay": {
+    "description": "Setting title for what is shown next to the playback progress bar"
+  },
+  "settingsPlaybackTimeDisplayDescription": "Choose which time labels appear around the playback progress bar.",
+  "@settingsPlaybackTimeDisplayDescription": {
+    "description": "Setting description for the progress bar time option"
+  },
+  "playbackTimeTotal": "Total duration",
+  "@playbackTimeTotal": {
+    "description": "Progress bar time option showing the full runtime"
+  },
+  "playbackTimeRemaining": "Time remaining",
+  "@playbackTimeRemaining": {
+    "description": "Progress bar time option showing how much is left to play"
+  },
+  "playbackTimeEndsAt": "Ends at",
+  "@playbackTimeEndsAt": {
+    "description": "Progress bar time option showing the clock time playback finishes"
+  },
+  "playbackTimeElapsed": "Time elapsed",
+  "@playbackTimeElapsed": {
+    "description": "Progress bar time option showing how far into the item playback is"
+  },
+  "playbackTimeVideoSection": "Video Player",
+  "@playbackTimeVideoSection": {
+    "description": "Section header above the video progress bar time slots"
+  },
+  "playbackTimeMusicSection": "Music Player",
+  "@playbackTimeMusicSection": {
+    "description": "Section header above the music progress bar time option"
+  },
+  "playbackTimeSlotDescription": "Choose what is shown here, or hide it.",
+  "@playbackTimeSlotDescription": {
+    "description": "Setting description for a single progress bar time slot"
+  },
+  "playbackTimeAboveBarLeft": "Above bar, left",
+  "@playbackTimeAboveBarLeft": {
+    "description": "Progress bar time slot above the bar on the left"
+  },
+  "playbackTimeAboveBarCenter": "Above bar, center",
+  "@playbackTimeAboveBarCenter": {
+    "description": "Progress bar time slot above the bar in the center"
+  },
+  "playbackTimeAboveBarRight": "Above bar, right",
+  "@playbackTimeAboveBarRight": {
+    "description": "Progress bar time slot above the bar on the right"
+  },
+  "playbackTimeBelowBarLeft": "Below bar, left",
+  "@playbackTimeBelowBarLeft": {
+    "description": "Progress bar time slot below the bar on the left"
+  },
+  "playbackTimeBelowBarCenter": "Below bar, center",
+  "@playbackTimeBelowBarCenter": {
+    "description": "Progress bar time slot below the bar in the center"
+  },
+  "playbackTimeBelowBarRight": "Below bar, right",
+  "@playbackTimeBelowBarRight": {
+    "description": "Progress bar time slot below the bar on the right"
+  },
+  "settingsMusicPlaybackTimeDescription": "Choose what is shown on the right side of the music progress bar.",
+  "@settingsMusicPlaybackTimeDescription": {
+    "description": "Setting description for the music progress bar time option"
   }
 }

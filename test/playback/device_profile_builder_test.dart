@@ -871,6 +871,19 @@ void main() {
       expect(tsCodecs, isNot(contains('dts')));
       expect(tsCodecs, contains('aac'));
     });
+
+    test('a player with no DTS decoder keeps DTS off both offers, since the '
+        'server copies any codec it sees listed', () {
+      final profile = DeviceProfileBuilder.build(hlsAudioExcludesDts: true);
+
+      expect(_transcodingAudioCodecList(profile, 'ts'), isNot(contains('dts')));
+      expect(
+        _transcodingAudioCodecList(profile, 'mp4'),
+        isNot(contains('dts')),
+      );
+      expect(_transcodingAudioCodecList(profile, 'ts'), contains('aac'));
+      expect(_transcodingAudioCodecList(profile, 'mp4'), contains('aac'));
+    });
   });
 
   group('KnownDefects model mapping', () {

@@ -331,6 +331,16 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
     icon: Icons.play_circle_outline,
     open: () => push(const _VideoPlaybackScreen()),
   );
+  final playbackTime = _SearchSection(
+    slug: 'playback-time',
+    path: [
+      l10n.settingsPlaybackSyncplay,
+      l10n.settingsVideoPlaybackPreferences,
+      l10n.playbackTimeDisplay,
+    ],
+    icon: Icons.timer_outlined,
+    open: () => push(const _PlaybackTimeLayoutScreen()),
+  );
   final osdButtons = _SearchSection(
     slug: 'osd-buttons',
     path: [
@@ -652,6 +662,12 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
       subtitle: l10n.settingsAlwaysExpandNavbarLabels,
       keywords: ['labels'],
     ),
+    navigation.leaf(
+      'enable_folder_view',
+      l10n.enableFolderView,
+      subtitle: l10n.showFolderBrowsingOption,
+      keywords: ['directories'],
+    ),
     if (seerrAvailable)
       navigation.leaf(
         'pref_show_seerr_button',
@@ -888,15 +904,15 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
       'latest media',
     ]),
     libraries.leaf(
-      'enable_folder_view',
-      l10n.enableFolderView,
-      subtitle: l10n.showFolderBrowsingOption,
-      keywords: ['directories'],
-    ),
-    libraries.leaf(
       'enable_multi_server_libraries',
       l10n.multiServerLibraries,
       subtitle: l10n.showLibrariesFromAllServers,
+    ),
+    libraries.leaf(
+      'pref_merge_recent_rows_by_type',
+      l10n.mergeRecentRowsByType,
+      subtitle: l10n.mergeRecentRowsByTypeDescription,
+      keywords: ['combine', 'homepage', 'rows', 'recent', 'released'],
     ),
     libraries.leaf(
       'pref_group_items_into_collections',
@@ -1000,6 +1016,49 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
       'crop',
       'stretch',
     ]),
+    playbackTime.screen(keywords: [
+      'time left',
+      'time remaining',
+      'ends at',
+      'duration',
+      'progress bar',
+    ]),
+    playbackTime.leaf(
+      'playback_time_above_left',
+      l10n.playbackTimeAboveBarLeft,
+      subtitle: l10n.playbackTimeSlotDescription,
+    ),
+    playbackTime.leaf(
+      'playback_time_above_center',
+      l10n.playbackTimeAboveBarCenter,
+      subtitle: l10n.playbackTimeSlotDescription,
+    ),
+    playbackTime.leaf(
+      'playback_time_above_right',
+      l10n.playbackTimeAboveBarRight,
+      subtitle: l10n.playbackTimeSlotDescription,
+    ),
+    playbackTime.leaf(
+      'playback_time_below_left',
+      l10n.playbackTimeBelowBarLeft,
+      subtitle: l10n.playbackTimeSlotDescription,
+    ),
+    playbackTime.leaf(
+      'playback_time_below_center',
+      l10n.playbackTimeBelowBarCenter,
+      subtitle: l10n.playbackTimeSlotDescription,
+    ),
+    playbackTime.leaf(
+      'playback_time_below_right',
+      l10n.playbackTimeBelowBarRight,
+      subtitle: l10n.playbackTimeSlotDescription,
+    ),
+    playbackTime.leaf(
+      'music_playback_time_display',
+      l10n.playbackTimeMusicSection,
+      subtitle: l10n.settingsMusicPlaybackTimeDescription,
+      keywords: ['music', 'song', 'track'],
+    ),
     video.leaf(
       'trick_play_enabled',
       l10n.trickPlay,

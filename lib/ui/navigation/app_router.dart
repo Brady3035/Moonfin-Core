@@ -23,7 +23,6 @@ import '../screens/browse/all_genres_screen.dart';
 import '../screens/browse/collection_screen.dart';
 import '../screens/browse/favorites_screen.dart';
 import '../screens/browse/folder_browse_screen.dart';
-import '../screens/browse/folder_view_screen.dart';
 import '../screens/browse/library_browse_screen.dart';
 import '../screens/browse/library_genres_screen.dart';
 import '../screens/browse/library_letters_screen.dart';
@@ -314,7 +313,7 @@ final appRouter = GoRouter(
     ),
     GoRoute(
       path: Destinations.folderView,
-      builder: (context, state) => const FolderViewScreen(),
+      builder: (context, state) => const FolderBrowseScreen(folderId: 'root'),
     ),
     GoRoute(
       path: Destinations.folderBrowse,

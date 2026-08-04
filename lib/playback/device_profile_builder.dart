@@ -142,6 +142,12 @@ class DeviceProfileBuilder {
     // picture with working audio. Servers without fMP4 HLS fall through to
     // the TS profile and encode H264, which renders.
     bool hevcRequiresFmp4Hls = false,
+    // Keeps DTS out of both HLS transcode offers. AVFoundation has no DTS
+    // decoder, and the server copies a source track straight through whenever
+    // its codec is on the offer, so leaving DTS there hands back a stream whose
+    // audio nothing on the device can open. Backends that decode the HLS output
+    // themselves must leave this false.
+    bool hlsAudioExcludesDts = false,
     int hevcMainLevel = 0,
     bool supportsHevcDolbyVision = false,
     bool supportsHevcDolbyVisionEl = false,
@@ -288,6 +294,7 @@ class DeviceProfileBuilder {
       effectiveAudioFallbackCodec: effectiveAudioFallbackCodec,
       allowedAudioCodecs: effectiveAllowedAudioCodecs,
       containerAudioCodecs: _hlsMpegTsAudioCodecs,
+      excludeDts: hlsAudioExcludesDts,
     );
 
     // Offer HEVC as a transcode target only when the server's encoding options
@@ -361,6 +368,7 @@ class DeviceProfileBuilder {
           effectiveAudioFallbackCodec: effectiveAudioFallbackCodec,
           allowedAudioCodecs: effectiveAllowedAudioCodecs,
           containerAudioCodecs: _hlsFmp4AudioCodecs,
+          excludeDts: hlsAudioExcludesDts,
         ).join(','),
         'CopyTimestamps': false,
         'EnableSubtitlesInManifest': true,
@@ -863,14 +871,18 @@ class DeviceProfileBuilder {
     required AudioFallbackCodec effectiveAudioFallbackCodec,
     required List<String> allowedAudioCodecs,
     required List<String> containerAudioCodecs,
+    required bool excludeDts,
   }) {
+    final carried = excludeDts
+        ? containerAudioCodecs.where((codec) => codec != 'dts')
+        : containerAudioCodecs;
     final ordered = <String>[
       ..._fallbackTargetOrder(effectiveAudioFallbackCodec),
-      ...containerAudioCodecs,
+      ...carried,
     ];
     final seen = <String>{};
     return ordered
-        .where(containerAudioCodecs.contains)
+        .where(carried.contains)
         .where(allowedAudioCodecs.contains)
         .where(seen.add)
         .toList(growable: false);

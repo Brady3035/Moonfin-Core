@@ -62,7 +62,7 @@ end
 
 # --- AetherEngine ---
 aether_remote_url = 'https://github.com/superuser404notfound/AetherEngine'
-aether_version = '6.0.2'
+aether_version = '6.5.6'
 aether_local_path = File.expand_path(File.join(project_dir, '..', '..', 'AetherEngine'))
 use_local_aether = ENV['AETHER_LOCAL'] == '1'
 
@@ -71,7 +71,8 @@ if use_local_aether && !File.directory?(aether_local_path)
 end
 
 project.root_object.package_references.dup.each do |p|
-  is_remote_aether = p.respond_to?(:repositoryURL) && p.repositoryURL == aether_remote_url
+  is_remote_aether = p.respond_to?(:repositoryURL) &&
+                     File.basename(p.repositoryURL.to_s.chomp('/'), '.git') == 'AetherEngine'
   is_local_aether = p.is_a?(Xcodeproj::Project::Object::XCLocalSwiftPackageReference) &&
                     File.basename(p.relative_path.to_s) == 'AetherEngine'
   next unless (is_remote_aether && use_local_aether) || (is_local_aether && !use_local_aether)
@@ -86,8 +87,12 @@ project.root_object.package_references.dup.each do |p|
   puts 'removed stale AetherEngine package reference'
 end
 
+# Match on the repository name rather than the whole url. A url that does not
+# match adds a second reference for the same product, and the project then
+# fails to resolve.
 aether_pkg = project.root_object.package_references.find do |p|
-  (p.respond_to?(:repositoryURL) && p.repositoryURL == aether_remote_url) ||
+  (p.respond_to?(:repositoryURL) &&
+   File.basename(p.repositoryURL.to_s.chomp('/'), '.git') == 'AetherEngine') ||
     (p.is_a?(Xcodeproj::Project::Object::XCLocalSwiftPackageReference) &&
      File.basename(p.relative_path.to_s) == 'AetherEngine')
 end

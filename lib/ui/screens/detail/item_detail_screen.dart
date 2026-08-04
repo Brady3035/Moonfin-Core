@@ -6928,6 +6928,13 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
       activeAudioLanguage = activeAudioStream['Language'] as String?;
     }
 
+    // Only for the item on screen. Callers naming a different episode want it
+    // resolved against that episode's own streams, where an index picked here
+    // means nothing.
+    if (item == null && _selectedSubtitleIndex != null) {
+      return _selectedSubtitleIndex;
+    }
+
     final targetItem = item ?? widget.viewModel.item;
     var preferredLanguage = prefs.get(UserPreferences.defaultSubtitleLanguage);
     var subtitleMode = prefs.get(UserPreferences.subtitleMode);
@@ -6935,14 +6942,15 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
     if (targetItem != null) {
       final seriesId = targetItem.seriesId;
       if (seriesId != null && seriesId.isNotEmpty) {
-        final seriesLanguage = prefs.getSeriesSubtitleLanguage(seriesId);
-        if (seriesLanguage == 'none') {
+        final seriesSubPref = prefs.getSeriesSubtitlePreference(seriesId);
+        if (seriesSubPref.isNone) {
           return -1;
-        } else if (seriesLanguage.isNotEmpty) {
-          preferredLanguage = seriesLanguage;
-          if (subtitleMode == SubtitleMode.none) {
-            subtitleMode = SubtitleMode.always;
-          }
+        } else if (seriesSubPref.isNotEmpty) {
+          final matchedIndex = matchSeriesTrackIndex(
+            streams: subtitleStreams,
+            pref: seriesSubPref,
+          );
+          if (matchedIndex != null) return matchedIndex;
         }
       }
     }
@@ -8856,14 +8864,11 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
       if (streamIndex != null) {
         setState(() => _selectedSubtitleIndex = streamIndex);
         if (item.type == 'Episode' && item.seriesId != null) {
-          final selectedStream = streams.firstWhere(
-            (s) => s['Index'] == streamIndex,
-            orElse: () => <String, dynamic>{},
+          final pref = createSeriesTrackPreferenceFromStream(
+            streams: streams,
+            selectedIndex: streamIndex,
           );
-          final language = selectedStream.isEmpty
-              ? 'none'
-              : (selectedStream['Language'] as String? ?? '');
-          await prefs.setSeriesSubtitleLanguage(item.seriesId!, language);
+          await prefs.setSeriesSubtitlePreference(item.seriesId!, pref);
         }
       }
     }

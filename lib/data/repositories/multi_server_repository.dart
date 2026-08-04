@@ -790,28 +790,40 @@ class MultiServerRepository {
       }
       sortedCombined = uniqueCombined;
     } else {
-      final sortBy = switch (row.rowType) {
-        HomeRowType.favorites =>
-          prefs?.get(UserPreferences.favoritesRowSortBy).apiValue ??
-              _defaultSortBy,
-        HomeRowType.collections =>
-          prefs?.get(UserPreferences.collectionsRowSortBy).apiValue ??
-              _defaultSortBy,
-        HomeRowType.genres =>
-          prefs?.get(UserPreferences.genresRowSortBy).apiValue ??
-              _defaultSortBy,
-        HomeRowType.audioArtists ||
-        HomeRowType.audioAlbums =>
-          prefs?.get(UserPreferences.audioRowsSortBy).apiValue ??
-              _defaultSortBy,
-        _ => _defaultSortBy,
-      };
+      final collectionsSort = prefs?.get(UserPreferences.collectionsRowSortBy);
+      // For a specific pinned collection row using Playlist Order, preserve the
+      // server-returned insertion order — don't re-sort on the client side.
+      // The generic 'collections' all-BoxSets row (row.id == 'collections') has
+      // no parentId, so playlistOrder is never active for it.
+      final collectionsUsePlaylistOrder =
+          row.rowType == HomeRowType.collections &&
+          (collectionsSort?.usesDedicatedEndpoint ?? false) &&
+          row.id != 'collections';
+      if (collectionsUsePlaylistOrder) {
+        sortedCombined = uniqueCombined;
+      } else {
+        final sortBy = switch (row.rowType) {
+          HomeRowType.favorites =>
+            prefs?.get(UserPreferences.favoritesRowSortBy).apiValue ??
+                _defaultSortBy,
+          HomeRowType.collections =>
+            collectionsSort?.apiValue ?? _defaultSortBy,
+          HomeRowType.genres =>
+            prefs?.get(UserPreferences.genresRowSortBy).apiValue ??
+                _defaultSortBy,
+          HomeRowType.audioArtists ||
+          HomeRowType.audioAlbums =>
+            prefs?.get(UserPreferences.audioRowsSortBy).apiValue ??
+                _defaultSortBy,
+          _ => _defaultSortBy,
+        };
 
-      sortedCombined = _sortAggregatedItems(
-        uniqueCombined,
-        sortBy: sortBy,
-        sortOrder: 'Ascending',
-      );
+        sortedCombined = _sortAggregatedItems(
+          uniqueCombined,
+          sortBy: sortBy,
+          sortOrder: 'Ascending',
+        );
+      }
     }
 
     final totalCount = sessions.fold<int>(0, (sum, session) {
@@ -916,6 +928,11 @@ class MultiServerRepository {
     final hasMultiple = sessions.length > 1;
     final rows = <HomeRow>[];
 
+    final mergeByType = GetIt.instance<UserPreferences>().get(
+      UserPreferences.mergeRecentRowsByType,
+    );
+    final groupedItems = <String, List<AggregatedItem>>{};
+
     for (final session in sessions) {
       try {
         final views = await _withTimeout(
@@ -940,13 +957,10 @@ class MultiServerRepository {
           if (latestExcludes.contains(id)) continue;
 
           final name = view.name;
-          final displayName = hasMultiple
-              ? '$name (${session.server.name})'
-              : name;
           final fetchLimit = latestMediaFetchLimitForCollection(
             collectionType,
             defaultLimit: _defaultLimit,
-            maxLimit: 100,
+            maxLimit: _maxItems,
           );
 
           try {
@@ -961,28 +975,41 @@ class MultiServerRepository {
               label: 'latest $name from ${session.server.name}',
             );
 
+            final parsed = _parseItems(latestResponse, session.server.id);
+            if (parsed.isEmpty) continue;
+
+            // Merged rows are built once every server has answered, so the
+            // items are only collected here.
+            if (mergeByType) {
+              groupedItems.putIfAbsent(collectionType, () => []).addAll(parsed);
+              continue;
+            }
+
             final items = normalizeLatestMediaItems(
-              _parseItems(latestResponse, session.server.id),
+              parsed,
               collectionType: collectionType,
               limit: _defaultLimit,
             );
-            if (items.isNotEmpty) {
-              final totalCount = items.length < _defaultLimit
-                  ? items.length
-                  : _maxItems;
-              _rowTotals['latest_${session.server.id}_${id}_${session.server.id}'] =
-                  totalCount;
-              rows.add(
-                HomeRow(
-                  id: 'latest_${session.server.id}_$id',
-                  title: _l10n.latestLibraryName(displayName),
-                  items: items,
-                  rowType: HomeRowType.latestMedia,
-                  totalCount: totalCount,
-                  isAudio: collectionType == 'music',
-                ),
-              );
-            }
+            if (items.isEmpty) continue;
+
+            final displayName = hasMultiple
+                ? '$name (${session.server.name})'
+                : name;
+            final totalCount = items.length < _defaultLimit
+                ? items.length
+                : _maxItems;
+            _rowTotals['latest_${session.server.id}_${id}_${session.server.id}'] =
+                totalCount;
+            rows.add(
+              HomeRow(
+                id: 'latest_${session.server.id}_$id',
+                title: _l10n.latestLibraryName(displayName),
+                items: items,
+                rowType: HomeRowType.latestMedia,
+                totalCount: totalCount,
+                isAudio: collectionType == 'music',
+              ),
+            );
           } catch (e) {
             _logger.w('MultiServer: Failed to load latest for $name: $e');
           }
@@ -992,6 +1019,52 @@ class MultiServerRepository {
           'MultiServer: Failed to load views from ${session.server.name}: $e',
         );
       }
+    }
+
+    if (!mergeByType) return rows;
+
+    for (final entry in groupedItems.entries) {
+      final collectionType = entry.key;
+
+      // A title in two libraries, or on two servers, is kept once.
+      final seenIds = <String>{};
+      final allItems = [
+        for (final item in entry.value)
+          if (seenIds.add(item.id)) item,
+      ];
+      if (allItems.isEmpty) continue;
+
+      allItems.sort((a, b) {
+        final da = _parseDateCreated(a.rawData['DateCreated']);
+        final db = _parseDateCreated(b.rawData['DateCreated']);
+        if (da != null && db != null) return db.compareTo(da);
+        if (da != null) return -1;
+        if (db != null) return 1;
+        return 0;
+      });
+
+      final items = normalizeLatestMediaItems(
+        allItems,
+        collectionType: collectionType,
+        limit: _defaultLimit,
+      );
+      if (items.isEmpty) continue;
+
+      final rowId = '${mergedTypeRowIdPrefix}latest_$collectionType';
+      _rowTotals[rowId] = items.length;
+      rows.add(
+        HomeRow(
+          id: rowId,
+          title: _l10n.latestLibraryName(
+            genericDescriptorForCollectionType(_l10n, collectionType),
+          ),
+          items: items,
+          rowType: HomeRowType.latestMedia,
+          // Everything the row will ever hold is already here.
+          totalCount: items.length,
+          isAudio: collectionType == 'music',
+        ),
+      );
     }
 
     return rows;

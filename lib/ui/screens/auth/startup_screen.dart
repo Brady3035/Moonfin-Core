@@ -83,7 +83,14 @@ class _StartupScreenState extends State<StartupScreen>
     final authPrefs = GetIt.instance<AuthenticationPreferences>();
 
     if (session.state != SessionState.ready) {
-      await session.stateStream.firstWhere((s) => s == SessionState.ready);
+      // Never wait here forever. A session that cannot finish restoring would
+      // otherwise hold the splash with nothing on screen to say why.
+      await session.stateStream
+          .firstWhere((s) => s == SessionState.ready)
+          .timeout(
+            const Duration(seconds: 15),
+            onTimeout: () => SessionState.ready,
+          );
     }
 
     await serverRepo.loadStoredServers();

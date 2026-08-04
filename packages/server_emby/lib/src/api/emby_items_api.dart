@@ -255,11 +255,13 @@ class EmbyItemsApi implements ItemsApi {
     String? fields,
     String? enableImageTypes,
     int? imageTypeLimit,
+    bool recursive = false,
   }) async {
     final response = await _dio.get(
       '/Items',
       queryParameters: {
         if (parentId != null) 'ParentId': parentId,
+        if (recursive) 'Recursive': true,
         if (includeItemTypes != null)
           'IncludeItemTypes': includeItemTypes.join(','),
         if (limit != null) 'Limit': limit,
@@ -398,7 +400,11 @@ class EmbyItemsApi implements ItemsApi {
   }
 
   @override
-  Future<Map<String, dynamic>> getPlaylistItems(String playlistId) async {
+  Future<Map<String, dynamic>> getPlaylistItems(
+    String playlistId, {
+    int? startIndex,
+    int? limit,
+  }) async {
     final response = await _dio.get(
       '/Playlists/$playlistId/Items',
       queryParameters: {
@@ -406,6 +412,8 @@ class EmbyItemsApi implements ItemsApi {
             'BasicSyncInfo,PrimaryImageAspectRatio,RunTimeTicks,Artists,AlbumArtist,IndexNumber,MediaType,PlaylistItemId,BackdropImageTags,ParentBackdropImageTags,ParentBackdropItemId,SeriesName,ParentIndexNumber,Genres,Chapters,Overview,UserData,MediaStreams',
         'EnableImageTypes': 'Primary,Backdrop,Logo,Thumb',
         'ImageTypeLimit': 1,
+        'StartIndex': ?startIndex,
+        'Limit': ?limit,
       },
     );
     return response.data as Map<String, dynamic>;

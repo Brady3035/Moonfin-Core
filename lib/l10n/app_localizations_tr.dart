@@ -3028,40 +3028,40 @@ class AppLocalizationsTr extends AppLocalizations {
   String get syncToProfile => 'Profili Senkronize Et';
 
   @override
-  String get resetProfile => 'Reset Profile';
+  String get resetProfile => 'Profili Sıfırla';
 
   @override
   String resetProfileTitle(String profile) {
-    return 'Reset $profile?';
+    return '$profile sıfırlansın mı?';
   }
 
   @override
   String resetProfileDescription(String profile) {
-    return 'This deletes the $profile profile from the server and puts every synced setting on this device back to its default.';
+    return 'Bu işlem $profile profilini sunucudan siler ve bu cihazdaki tüm eşitlenmiş ayarları varsayılan değerlerine döndürür.';
   }
 
   @override
   String get resetGlobalProfileDescription =>
-      'This deletes every saved profile from the server and puts every synced setting on this device back to its default.';
+      'Bu işlem sunucudaki tüm kayıtlı profilleri siler ve bu cihazdaki tüm eşitlenmiş ayarları varsayılan değerlerine döndürür.';
 
   @override
   String profileReset(String profile) {
-    return 'Reset $profile profile to defaults.';
+    return '$profile profilini varsayılana sıfırla.';
   }
 
   @override
-  String get resetRatingsTitle => 'Reset ratings?';
+  String get resetRatingsTitle => 'Puanları sıfırla?';
 
   @override
   String get resetRatingsDescription =>
-      'This puts every ratings setting back to its default, including which sources show and the order they appear in.';
+      'Bu işlem, hangi kaynakların görüneceği ve görünüm sıralaması dahil olmak üzere tüm puanlama ayarlarını varsayılan değerlerine döndürür.';
 
   @override
-  String get ratingsReset => 'Reset ratings to defaults.';
+  String get ratingsReset => 'Puanları varsayılana sıfırla.';
 
   @override
   String failedToResetProfile(String profile) {
-    return 'Failed to reset $profile profile.';
+    return '$profile profili sıfırlanamadı.';
   }
 
   @override
@@ -3256,6 +3256,16 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get showLibrariesFromAllServers =>
       'Bağlı tüm sunuculardaki kitaplıkları göster';
+
+  @override
+  String get mergeRecentRowsByType => 'Merge Recent Rows by Type';
+
+  @override
+  String get mergeRecentRowsByTypeDescription =>
+      'Combine separate libraries of the same type for Recently Added and Recently Released home rows.';
+
+  @override
+  String get libraryView => 'Library View';
 
   @override
   String get enableFolderView => 'Klasör Görünümünü Etkinleştir';
@@ -4014,22 +4024,22 @@ class AppLocalizationsTr extends AppLocalizations {
   String get requestMore => 'Daha Fazla Talep Et';
 
   @override
-  String get requestMore4k => 'Request More in 4K';
+  String get requestMore4k => '4K Olarak Daha Fazla İste';
 
   @override
   String get request => 'İste';
 
   @override
-  String get request4k => 'Request 4K';
+  String get request4k => '4K İste';
 
   @override
-  String get requested4k => '4K Requested';
+  String get requested4k => '4K İstendi';
 
   @override
   String get cancelRequest => 'İsteği İptal Et';
 
   @override
-  String get cancelRequest4k => 'Cancel 4K Request';
+  String get cancelRequest4k => '4K İsteğini İptal Et';
 
   @override
   String get playInMoonfin => 'Moonfin\'da oynat';
@@ -4092,7 +4102,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String requestSeriesOrMovie4k(String type) {
-    return 'Request 4K $type';
+    return '4K $type İste';
   }
 
   @override
@@ -9135,6 +9145,13 @@ class AppLocalizationsTr extends AppLocalizations {
       'Koleksiyonlar satırlarını ekleme tarihine, çıkış tarihine, alfabetik sıraya ve daha fazlasına göre sıralayın.';
 
   @override
+  String get collectionsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get collectionsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
+
+  @override
   String get displayGenresRows => 'Tür Satırlarını Göster';
 
   @override
@@ -9168,6 +9185,13 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get playlistsRowSortingDescription =>
       'Oynatma listesi satırlarını ekleme tarihi, yayınlanma tarihi, alfabetik ve daha fazlasına göre sıralayın.';
+
+  @override
+  String get playlistsRowShowEpisodes => 'Show Individual Episodes';
+
+  @override
+  String get playlistsRowShowEpisodesSubtitle =>
+      'Expand TV shows to display each episode separately.';
 
   @override
   String get displayAudioRows => 'Ses Satırlarını Göster';
@@ -10347,4 +10371,55 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get mixedPlaylistsSection => 'Karışık Oynatma Listesi';
+
+  @override
+  String get playbackTimeDisplay => 'Progress Bar Time';
+
+  @override
+  String get settingsPlaybackTimeDisplayDescription =>
+      'Choose which time labels appear around the playback progress bar.';
+
+  @override
+  String get playbackTimeTotal => 'Total duration';
+
+  @override
+  String get playbackTimeRemaining => 'Time remaining';
+
+  @override
+  String get playbackTimeEndsAt => 'Ends at';
+
+  @override
+  String get playbackTimeElapsed => 'Time elapsed';
+
+  @override
+  String get playbackTimeVideoSection => 'Video Player';
+
+  @override
+  String get playbackTimeMusicSection => 'Music Player';
+
+  @override
+  String get playbackTimeSlotDescription =>
+      'Choose what is shown here, or hide it.';
+
+  @override
+  String get playbackTimeAboveBarLeft => 'Above bar, left';
+
+  @override
+  String get playbackTimeAboveBarCenter => 'Above bar, center';
+
+  @override
+  String get playbackTimeAboveBarRight => 'Above bar, right';
+
+  @override
+  String get playbackTimeBelowBarLeft => 'Below bar, left';
+
+  @override
+  String get playbackTimeBelowBarCenter => 'Below bar, center';
+
+  @override
+  String get playbackTimeBelowBarRight => 'Below bar, right';
+
+  @override
+  String get settingsMusicPlaybackTimeDescription =>
+      'Choose what is shown on the right side of the music progress bar.';
 }

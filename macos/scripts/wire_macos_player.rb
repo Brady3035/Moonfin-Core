@@ -27,6 +27,13 @@ abs_files = Dir.glob(File.join(project_dir, 'Runner/Playback/**/*'))
 shared_dir = File.expand_path(
   File.join(project_dir, '..', 'tvos', 'Runner', 'Playback', 'Aether'))
 abs_files += Dir.glob(File.join(shared_dir, '*.swift')).sort
+# The preview and theme music channels live beside the tvOS runner and serve
+# every Apple platform, so macOS plays trailers and theme music through
+# AVFoundation rather than a second media stack.
+shared_channels = File.expand_path(File.join(project_dir, '..', 'tvos', 'Runner'))
+abs_files += %w[AppleTvPreviewChannel.swift AppleTvThemeMusicChannel.swift]
+  .map { |name| File.join(shared_channels, name) }
+  .select { |path| File.exist?(path) }
 basenames = abs_files.map { |f| File.basename(f) }
 
 # Drop references this script is about to re-add, and any left pointing at a

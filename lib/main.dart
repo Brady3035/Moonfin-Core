@@ -479,11 +479,12 @@ void main() async {
     await windowManager.ensureInitialized();
   }
 
-  // iOS runs entirely on AetherEngine, so media_kit isn't initialized there
-  // and its native libs are stubbed out of the build.
+  // Apple runs entirely on AetherEngine, so media_kit isn't initialized there
+  // and its native libs are out of those builds.
   if (!PlatformDetection.isTizen &&
       !PlatformDetection.isAppleTV &&
-      !PlatformDetection.isIOS) {
+      !PlatformDetection.isIOS &&
+      !PlatformDetection.isMacOS) {
     MediaKit.ensureInitialized();
   }
 

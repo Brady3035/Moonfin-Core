@@ -4,7 +4,14 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'credential_store_base.dart';
 
 class CredentialStoreImpl implements CredentialStore {
-  final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  // macOS defaults to the data protection keychain, which only accepts an app
+  // signed with a keychain access group. Without one every write is refused,
+  // so the token lives only as long as the session that signed in and the next
+  // launch comes up with nothing to reach the server with. The file based
+  // keychain carries no such requirement.
+  final FlutterSecureStorage _storage = const FlutterSecureStorage(
+    mOptions: MacOsOptions(usesDataProtectionKeychain: false),
+  );
   bool _unavailable = false;
 
   @override

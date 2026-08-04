@@ -329,6 +329,11 @@ class AetherBackend implements PlayerBackend {
             behavior: _prefs.get(
               UserPreferences.dolbyVisionProfile7DirectPlayBehavior,
             ),
+            // Auto otherwise falls through to a model list that no Apple
+            // device is on, so every P7 title transcodes on hardware that
+            // can play it.
+            hasHardwareDolbyVisionDecoder:
+                PlatformDetection.supportsDoViProfile7,
           ),
     );
   }

@@ -16,6 +16,7 @@ final class AppleTvVideoChannel: NSObject, FlutterStreamHandler {
     private var lastClosedCaptionCount = -1
     private var didComplete = false
     private var lastLoggedState: PlayerState?
+    private var didReportTerminalError = false
     private var lastMetadata: [String: Any]?
     private var lastSubtitleStyle: [String: Any]?
     private var lastThemeConfig: [String: Any]?
@@ -322,6 +323,7 @@ final class AppleTvVideoChannel: NSObject, FlutterStreamHandler {
     private func setSource(_ args: [String: Any]) {
         guard let player = player, let url = args["url"] as? String else { return }
         didComplete = false
+        didReportTerminalError = false
         lastTextTrackCount = -1
         lastClosedCaptionCount = -1
         let startMs = (args["startPositionMs"] as? NSNumber)?.doubleValue ?? 0
@@ -427,7 +429,8 @@ final class AppleTvVideoChannel: NSObject, FlutterStreamHandler {
             send(["event": "completed", "completed": true])
         }
 
-        if p.state == .error {
+        if p.state == .error, !didReportTerminalError {
+            didReportTerminalError = true
             send(["event": "error", "error": "Playback error"])
         }
     }

@@ -38,6 +38,7 @@ final class AetherVideoChannel: NSObject, FlutterStreamHandler {
     private var lastTextTrackCount = -1
     private var lastClosedCaptionCount = -1
     private var didComplete = false
+    private var didReportTerminalError = false
 
     init(messenger: FlutterBinaryMessenger) {
         control = FlutterMethodChannel(
@@ -143,6 +144,7 @@ final class AetherVideoChannel: NSObject, FlutterStreamHandler {
     private func setSource(_ args: [String: Any]) {
         guard let url = args["url"] as? String else { return }
         didComplete = false
+        didReportTerminalError = false
         lastTextTrackCount = -1
         lastClosedCaptionCount = -1
 
@@ -236,7 +238,8 @@ final class AetherVideoChannel: NSObject, FlutterStreamHandler {
             send(["event": "completed", "completed": true])
         }
 
-        if p.state == .error {
+        if p.state == .error, !didReportTerminalError {
+            didReportTerminalError = true
             send(["event": "error", "error": "Playback error"])
         }
     }

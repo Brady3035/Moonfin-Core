@@ -24,6 +24,7 @@ import '../../playback/html_video_backend.dart';
 import '../../playback/known_defects.dart';
 import '../../playback/external_player_policy.dart';
 import '../../playback/appletv_mpv_backend.dart';
+import '../../playback/auto_bitrate_service.dart';
 import '../../playback/aether_backend.dart';
 import '../../playback/media_kit_player_backend.dart';
 import '../../playback/media3_player_backend.dart';
@@ -399,6 +400,9 @@ void registerPlaybackModule() {
   _getIt.registerSingleton<PlayerBackend>(initialBackend);
 
   final manager = PlaybackManager();
+  manager.autoBitrateProvider = AutoBitrateService(
+    _getIt<MediaServerClientFactory>(),
+  ).measuredBpsForActiveServer;
 
   // The streams of one kind belonging to whatever is playing, or null when
   // that isn't an episode and so has no series to remember a choice for.

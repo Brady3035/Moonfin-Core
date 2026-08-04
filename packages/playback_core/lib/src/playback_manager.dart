@@ -69,6 +69,12 @@ class PlaybackManager implements AudioOwnable {
   Duration _lastKnownPosition = Duration.zero;
   Duration _itemKnownDuration = Duration.zero;
   int? _maxBitrateOverrideMbps;
+
+  /// Host supplied measurement of the link to the active server, in bits per
+  /// second. Consulted when nothing else caps the stream, so Auto means a
+  /// measured ceiling rather than no ceiling. Null answers keep the request
+  /// uncapped.
+  Future<int?> Function()? autoBitrateProvider;
   DateTime? _playbackStartTime;
   bool _waitingForMedia = false;
   SubtitleRendererMode _subtitleRendererMode = SubtitleRendererMode.native;
@@ -1124,7 +1130,15 @@ class PlaybackManager implements AudioOwnable {
     if (_maxBitrateOverrideMbps != null) {
       profile['MaxStreamingBitrate'] = _maxBitrateOverrideMbps! * 1000000;
     }
-    final maxBitrate = profile['MaxStreamingBitrate'] as int?;
+    var maxBitrate = profile['MaxStreamingBitrate'] as int?;
+    if (maxBitrate == null && autoBitrateProvider != null) {
+      final measured = await autoBitrateProvider!();
+      if (sessionToken != _playbackSessionToken) return;
+      if (measured != null && measured > 0) {
+        maxBitrate = measured;
+        profile['MaxStreamingBitrate'] = measured;
+      }
+    }
 
     final resolution = await _resolver!.resolve(
       item,

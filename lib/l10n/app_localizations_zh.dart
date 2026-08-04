@@ -3147,6 +3147,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get showLibrariesFromAllServers => '显示所有已连接服务器的媒体库';
 
   @override
+  String get mergeRecentRowsByType => 'Merge Recent Rows by Type';
+
+  @override
+  String get mergeRecentRowsByTypeDescription =>
+      'Combine separate libraries of the same type for Recently Added and Recently Released home rows.';
+
+  @override
+  String get libraryView => 'Library View';
+
+  @override
   String get enableFolderView => '启用文件夹视图';
 
   @override
@@ -9965,7 +9975,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get playbackTimeMusicSection => 'Music Player';
 
   @override
-  String get playbackTimeSlotDescription => 'Choose what is shown here, or hide it.';
+  String get playbackTimeSlotDescription =>
+      'Choose what is shown here, or hide it.';
 
   @override
   String get playbackTimeAboveBarLeft => 'Above bar, left';
@@ -9986,7 +9997,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get playbackTimeBelowBarRight => 'Below bar, right';
 
   @override
-  String get settingsMusicPlaybackTimeDescription => 'Choose what is shown on the right side of the music progress bar.';
+  String get settingsMusicPlaybackTimeDescription =>
+      'Choose what is shown on the right side of the music progress bar.';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -19628,53 +19640,4 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get imdbTopEnglishMovies => 'IMDb 評分最高英語電影';
-
-  @override
-  String get playbackTimeDisplay => 'Progress Bar Time';
-
-  @override
-  String get settingsPlaybackTimeDisplayDescription =>
-      'Choose which time labels appear around the playback progress bar.';
-
-  @override
-  String get playbackTimeTotal => 'Total duration';
-
-  @override
-  String get playbackTimeRemaining => 'Time remaining';
-
-  @override
-  String get playbackTimeEndsAt => 'Ends at';
-
-  @override
-  String get playbackTimeElapsed => 'Time elapsed';
-
-  @override
-  String get playbackTimeVideoSection => 'Video Player';
-
-  @override
-  String get playbackTimeMusicSection => 'Music Player';
-
-  @override
-  String get playbackTimeSlotDescription => 'Choose what is shown here, or hide it.';
-
-  @override
-  String get playbackTimeAboveBarLeft => 'Above bar, left';
-
-  @override
-  String get playbackTimeAboveBarCenter => 'Above bar, center';
-
-  @override
-  String get playbackTimeAboveBarRight => 'Above bar, right';
-
-  @override
-  String get playbackTimeBelowBarLeft => 'Below bar, left';
-
-  @override
-  String get playbackTimeBelowBarCenter => 'Below bar, center';
-
-  @override
-  String get playbackTimeBelowBarRight => 'Below bar, right';
-
-  @override
-  String get settingsMusicPlaybackTimeDescription => 'Choose what is shown on the right side of the music progress bar.';
 }

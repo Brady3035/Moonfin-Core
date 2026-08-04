@@ -4466,6 +4466,18 @@
   "@showLibrariesFromAllServers": {
     "description": "Description for multi-server libraries"
   },
+  "mergeRecentRowsByType": "Merge Recent Rows by Type",
+  "@mergeRecentRowsByType": {
+    "description": "Setting for merging recently added and recently released libraries by media type"
+  },
+  "mergeRecentRowsByTypeDescription": "Combine separate libraries of the same type for Recently Added and Recently Released home rows.",
+  "@mergeRecentRowsByTypeDescription": {
+    "description": "Description for merging recent home rows by media type"
+  },
+  "libraryView": "Library View",
+  "@libraryView": {
+    "description": "Section title for library view settings"
+  },
   "enableFolderView": "Enable Folder View",
   "@enableFolderView": {
     "description": "Setting for enabling folder view"

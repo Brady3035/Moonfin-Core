@@ -3270,6 +3270,16 @@ class AppLocalizationsSk extends AppLocalizations {
       'Zobraziť knižnice zo všetkých pripojených serverov';
 
   @override
+  String get mergeRecentRowsByType => 'Merge Recent Rows by Type';
+
+  @override
+  String get mergeRecentRowsByTypeDescription =>
+      'Combine separate libraries of the same type for Recently Added and Recently Released home rows.';
+
+  @override
+  String get libraryView => 'Library View';
+
+  @override
   String get enableFolderView => 'Povoliť zobrazenie priečinka';
 
   @override
@@ -10456,7 +10466,8 @@ class AppLocalizationsSk extends AppLocalizations {
   String get playbackTimeMusicSection => 'Music Player';
 
   @override
-  String get playbackTimeSlotDescription => 'Choose what is shown here, or hide it.';
+  String get playbackTimeSlotDescription =>
+      'Choose what is shown here, or hide it.';
 
   @override
   String get playbackTimeAboveBarLeft => 'Above bar, left';
@@ -10477,5 +10488,6 @@ class AppLocalizationsSk extends AppLocalizations {
   String get playbackTimeBelowBarRight => 'Below bar, right';
 
   @override
-  String get settingsMusicPlaybackTimeDescription => 'Choose what is shown on the right side of the music progress bar.';
+  String get settingsMusicPlaybackTimeDescription =>
+      'Choose what is shown on the right side of the music progress bar.';
 }

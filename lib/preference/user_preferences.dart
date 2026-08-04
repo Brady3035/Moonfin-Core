@@ -406,6 +406,7 @@ class UserPreferences extends ChangeNotifier {
     'pref_merge_continue_watching_next_up',
     'pref_next_up_max_days',
     'enable_multi_server_libraries',
+    'pref_merge_recent_rows_by_type',
     'enable_folder_view',
     'seasonal_surprise',
     'mediaBarEnabled',
@@ -1307,6 +1308,10 @@ class UserPreferences extends ChangeNotifier {
   );
   static final enableMultiServerLibraries = Preference(
     key: 'enable_multi_server_libraries',
+    defaultValue: false,
+  );
+  static final mergeRecentRowsByType = Preference(
+    key: 'pref_merge_recent_rows_by_type',
     defaultValue: false,
   );
 

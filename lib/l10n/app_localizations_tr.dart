@@ -3258,6 +3258,16 @@ class AppLocalizationsTr extends AppLocalizations {
       'Bağlı tüm sunuculardaki kitaplıkları göster';
 
   @override
+  String get mergeRecentRowsByType => 'Merge Recent Rows by Type';
+
+  @override
+  String get mergeRecentRowsByTypeDescription =>
+      'Combine separate libraries of the same type for Recently Added and Recently Released home rows.';
+
+  @override
+  String get libraryView => 'Library View';
+
+  @override
   String get enableFolderView => 'Klasör Görünümünü Etkinleştir';
 
   @override
@@ -10400,7 +10410,8 @@ class AppLocalizationsTr extends AppLocalizations {
   String get playbackTimeMusicSection => 'Music Player';
 
   @override
-  String get playbackTimeSlotDescription => 'Choose what is shown here, or hide it.';
+  String get playbackTimeSlotDescription =>
+      'Choose what is shown here, or hide it.';
 
   @override
   String get playbackTimeAboveBarLeft => 'Above bar, left';
@@ -10421,5 +10432,6 @@ class AppLocalizationsTr extends AppLocalizations {
   String get playbackTimeBelowBarRight => 'Below bar, right';
 
   @override
-  String get settingsMusicPlaybackTimeDescription => 'Choose what is shown on the right side of the music progress bar.';
+  String get settingsMusicPlaybackTimeDescription =>
+      'Choose what is shown on the right side of the music progress bar.';
 }

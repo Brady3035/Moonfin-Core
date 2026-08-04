@@ -1213,6 +1213,11 @@ class RowDataSource {
           );
         }
       case HomeRowType.latestMedia:
+        // Stitched from several libraries at load time, so the id names a media
+        // kind rather than a parent the server would recognise.
+        if (isMergedTypeRowId(row.id)) {
+          return (row.items, row.totalCount);
+        }
         if (row.id.startsWith('latest_')) {
           final parentId = row.id.substring('latest_'.length);
           final response = await _getLatestItemsWithFallback(

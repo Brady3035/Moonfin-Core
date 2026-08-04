@@ -3267,6 +3267,16 @@ class AppLocalizationsMl extends AppLocalizations {
       'ബന്ധിപ്പിച്ച എല്ലാ സെർവറുകളിൽ നിന്നും ലൈബ്രറികൾ കാണിക്കുക';
 
   @override
+  String get mergeRecentRowsByType => 'Merge Recent Rows by Type';
+
+  @override
+  String get mergeRecentRowsByTypeDescription =>
+      'Combine separate libraries of the same type for Recently Added and Recently Released home rows.';
+
+  @override
+  String get libraryView => 'Library View';
+
+  @override
   String get enableFolderView => 'ഫോൾഡർ കാഴ്ച പ്രവർത്തനക്ഷമമാക്കുക';
 
   @override
@@ -10508,7 +10518,8 @@ class AppLocalizationsMl extends AppLocalizations {
   String get playbackTimeMusicSection => 'Music Player';
 
   @override
-  String get playbackTimeSlotDescription => 'Choose what is shown here, or hide it.';
+  String get playbackTimeSlotDescription =>
+      'Choose what is shown here, or hide it.';
 
   @override
   String get playbackTimeAboveBarLeft => 'Above bar, left';
@@ -10529,5 +10540,6 @@ class AppLocalizationsMl extends AppLocalizations {
   String get playbackTimeBelowBarRight => 'Below bar, right';
 
   @override
-  String get settingsMusicPlaybackTimeDescription => 'Choose what is shown on the right side of the music progress bar.';
+  String get settingsMusicPlaybackTimeDescription =>
+      'Choose what is shown on the right side of the music progress bar.';
 }

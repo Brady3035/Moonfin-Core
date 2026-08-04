@@ -5884,6 +5884,24 @@ abstract class AppLocalizations {
   /// **'Show libraries from all connected servers'**
   String get showLibrariesFromAllServers;
 
+  /// Setting for merging recently added and recently released libraries by media type
+  ///
+  /// In en, this message translates to:
+  /// **'Merge Recent Rows by Type'**
+  String get mergeRecentRowsByType;
+
+  /// Description for merging recent home rows by media type
+  ///
+  /// In en, this message translates to:
+  /// **'Combine separate libraries of the same type for Recently Added and Recently Released home rows.'**
+  String get mergeRecentRowsByTypeDescription;
+
+  /// Section title for library view settings
+  ///
+  /// In en, this message translates to:
+  /// **'Library View'**
+  String get libraryView;
+
   /// Setting for enabling folder view
   ///
   /// In en, this message translates to:

@@ -122,6 +122,7 @@ void main() {
     'mediaSegmentCountdown',
     'mergeContinueWatchingNextUp',
     'mergeRadarrSonarrCalendars',
+    'mergeRecentRowsByType',
     'navbarAlwaysExpanded',
     'navbarColor',
     'navbarOpacity',

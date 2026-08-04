@@ -1272,6 +1272,25 @@ class Media3VideoView(
         startTicker()
     }
 
+    /**
+     * True while this view is mid-playback. A stop clears the media items, so
+     * a view waiting for its next source reads false and has nothing worth
+     * handing on.
+     */
+    fun hasLiveSource(): Boolean =
+        isPlayerLive() && player.currentMediaItem != null
+
+    /**
+     * The source this view was playing, wound to the position it stopped at.
+     * Read it after [forceReleasePlayer], which is what captures that position.
+     */
+    fun handoverSourceArguments(): Map<*, *>? {
+        val args = lastSourceArguments ?: return null
+        return args.toMutableMap().apply {
+            this["startPositionMs"] = lastPlaybackPositionMs
+        }
+    }
+
     // Rebuilds the player and reloads the last source at its paused position when
     // the app returns from the background or the system screensaver. Only runs
     // when the player was actually released, so a still-live view is untouched.

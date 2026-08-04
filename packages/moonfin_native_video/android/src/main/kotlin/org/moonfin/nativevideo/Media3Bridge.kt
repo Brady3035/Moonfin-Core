@@ -113,8 +113,15 @@ object Media3Bridge {
             ) {
                 return@post
             }
+            // A source that already landed on the outgoing main view moves with
+            // the slot. Flutter can mount the replacement after setSource was
+            // dispatched, and the incoming view would otherwise own the surface
+            // with nothing loaded.
+            var carriedSource: Map<*, *>? = null
             if (oldView != null && oldView !== view) {
+                val carries = oldView.role == "main" && oldView.hasLiveSource()
                 oldView.forceReleasePlayer()
+                if (carries) carriedSource = oldView.handoverSourceArguments()
             }
             activeView = view
             emitEvent(
@@ -122,7 +129,13 @@ object Media3Bridge {
                     "event" to "viewReady",
                 ),
             )
-            flushPendingCalls(view)
+            // A queued source is the newer intent, so it wins over the carried
+            // one rather than being replayed after it.
+            val flushedSource = flushPendingCalls(view)
+            if (carriedSource != null && !flushedSource) {
+                view.ensurePlayerAlive()
+                view.handleQueuedCall("setSource", carriedSource)
+            }
         }
     }
 
@@ -438,7 +451,8 @@ object Media3Bridge {
         )
     }
 
-    private fun flushPendingCalls(view: Media3VideoView) {
+    /** Returns whether the flushed calls included a source to load. */
+    private fun flushPendingCalls(view: Media3VideoView): Boolean {
         val queued = mutableListOf<Pair<String, Any?>>()
         synchronized(pendingCalls) {
             while (pendingCalls.isNotEmpty()) {
@@ -449,5 +463,6 @@ object Media3Bridge {
         for ((method, args) in queued) {
             view.handleQueuedCall(method, args)
         }
+        return queued.any { (method, _) -> method == "setSource" }
     }
 }

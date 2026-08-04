@@ -582,12 +582,19 @@ class RowDataSource {
     int startIndex = 0,
     int limit = _defaultLimit,
   }) async {
-    if (usePlaylistOrder) {
-      // The custom order stores episode ids rather than series ids, so a
-      // non-recursive fetch returns a series whose id is never in the order and
-      // it sinks to the end. Fetching recursively gives the flat movie and
-      // episode list the order was built against, which is then collapsed back
-      // to series cards unless the caller wants episodes.
+    // A stored order is the only thing the flat fetch below is for, so it is
+    // asked for first. Servers without the plugin have none, and rebuilding
+    // series cards out of episodes for a row that never needed them read is
+    // what leaves episodes in it.
+    final customOrder = usePlaylistOrder
+        ? await _customCollectionOrder(collectionId)
+        : null;
+    if (customOrder != null) {
+      // The order stores episode ids rather than series ids, so a non-recursive
+      // fetch returns a series whose id is never in the order and it sinks to
+      // the end. Fetching recursively gives the flat movie and episode list the
+      // order was built against, which is then collapsed back to series cards
+      // unless the caller wants episodes.
       final response = await _getItemsWithFallback(
         parentId: collectionId,
         recursive: true,
@@ -596,27 +603,17 @@ class RowDataSource {
       );
       final flatItems = _parseItems(response, serverId);
 
-      try {
-        final syncService = GetIt.instance<PluginSyncService>();
-        final customOrder = await syncService.fetchCustomCollectionOrder(
-          _client,
-          collectionId,
-          requireAvailable: false,
-        );
-        if (customOrder != null && customOrder.isNotEmpty) {
-          final orderMap = {
-            for (var i = 0; i < customOrder.length; i++) customOrder[i]: i,
-          };
-          flatItems.sort((a, b) {
-            final ai = orderMap[a.id];
-            final bi = orderMap[b.id];
-            if (ai == null && bi == null) return 0;
-            if (ai == null) return 1;
-            if (bi == null) return -1;
-            return ai.compareTo(bi);
-          });
-        }
-      } catch (_) {}
+      final orderMap = {
+        for (var i = 0; i < customOrder.length; i++) customOrder[i]: i,
+      };
+      flatItems.sort((a, b) {
+        final ai = orderMap[a.id];
+        final bi = orderMap[b.id];
+        if (ai == null && bi == null) return 0;
+        if (ai == null) return 1;
+        if (bi == null) return -1;
+        return ai.compareTo(bi);
+      });
 
       final displayItems = showEpisodes
           ? _capItems(flatItems)
@@ -637,7 +634,9 @@ class RowDataSource {
     final fetchLimit = showEpisodes ? _expandSourceFetchLimit : limit;
     final response = await _getItemsWithFallback(
       parentId: collectionId,
-      sortBy: sortBy,
+      // Playlist Order with nothing stored still means the collection's own
+      // order, so the server is left to it rather than told to sort by name.
+      sortBy: usePlaylistOrder ? null : sortBy,
       sortOrder: sortOrder,
       recursive: false,
       startIndex: startIndex,
@@ -654,6 +653,23 @@ class RowDataSource {
     if (!showEpisodes) return row;
     final expanded = await _expandSeriesItems(row.items, serverId);
     return row.copyWith(items: expanded, totalCount: expanded.length);
+  }
+
+  /// The stored order for a collection, or null when there is none to apply.
+  /// An empty answer counts as none, since sorting against it would leave every
+  /// item unplaced.
+  Future<List<String>?> _customCollectionOrder(String collectionId) async {
+    try {
+      final order = await GetIt.instance<PluginSyncService>()
+          .fetchCustomCollectionOrder(
+            _client,
+            collectionId,
+            requireAvailable: false,
+          );
+      return (order == null || order.isEmpty) ? null : order;
+    } catch (_) {
+      return null;
+    }
   }
 
   Future<HomeRow> loadPlaylistRow(
@@ -1087,9 +1103,10 @@ class RowDataSource {
         final sortPref = prefs?.get(UserPreferences.collectionsRowSortBy) ??
             LibrarySortBy.playlistOrder;
         final parsed = _parseStableId(row.id);
-        final parentId =
-            (parsed != null &&
-                parsed.source == HomeSectionPluginSource.collections)
+        final isPinnedCollection =
+            parsed != null &&
+            parsed.source == HomeSectionPluginSource.collections;
+        final parentId = isPinnedCollection
             ? parsed.additionalData
             : (row.id == 'collections' ? null : row.id);
         final includeItemTypes = row.id == 'collections'
@@ -1107,7 +1124,10 @@ class RowDataSource {
           includeItemTypes: includeItemTypes,
           sortBy: effectiveSortBy,
           sortOrder: 'Ascending',
-          recursive: true,
+          // A pinned collection pages through its own children, the way its
+          // first page was read. Walking it would hand back the episodes inside
+          // each series instead.
+          recursive: !isPinnedCollection,
           startIndex: currentOffset,
           limit: _defaultLimit,
         );

@@ -14,11 +14,11 @@ Future<List<AggregatedLibrary>> loadUserViews(
       await client.userViewsApi.getUserViews(includeHidden: includeHidden);
   final items = response['Items'] as List? ?? [];
 
-  return items.map((item) {
-    final data = item as Map<String, dynamic>;
+  return items.whereType<Map>().map((item) {
+    final data = item.cast<String, dynamic>();
     return AggregatedLibrary(
       id: data['Id']?.toString() ?? '',
-      name: data['Name'] as String,
+      name: data['Name']?.toString() ?? '',
       collectionType: data['CollectionType'] as String? ?? '',
       serverId: data['ServerId']?.toString() ?? '',
       primaryImageAspectRatio: (data['PrimaryImageAspectRatio'] as num?)

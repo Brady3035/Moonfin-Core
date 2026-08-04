@@ -1,8 +1,12 @@
-import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import 'credential_store_base.dart';
 
+/// Every call answers rather than throwing. A platform with no plugin
+/// registered raises MissingPluginException, which is not a PlatformException,
+/// and letting that escape takes sign in down with it even though the token
+/// the session needs is already in hand. Losing the stored copy costs a sign
+/// in on the next launch and nothing more.
 class CredentialStoreImpl implements CredentialStore {
   // macOS defaults to the data protection keychain, which only accepts an app
   // signed with a keychain access group. Without one every write is refused,
@@ -33,7 +37,7 @@ class CredentialStoreImpl implements CredentialStore {
         key: '${CredentialStore.tokenKeyPrefix}$serverId',
         value: token,
       );
-    } on PlatformException {
+    } on Exception catch (_) {
       _markUnavailable();
     }
   }
@@ -44,7 +48,7 @@ class CredentialStoreImpl implements CredentialStore {
       return await _storage.read(
         key: '${CredentialStore.tokenKeyPrefix}$serverId',
       );
-    } on PlatformException {
+    } on Exception catch (_) {
       _markUnavailable();
       return null;
     }
@@ -56,7 +60,7 @@ class CredentialStoreImpl implements CredentialStore {
       await _storage.delete(
         key: '${CredentialStore.tokenKeyPrefix}$serverId',
       );
-    } on PlatformException {
+    } on Exception catch (_) {
       _markUnavailable();
     }
   }
@@ -65,7 +69,7 @@ class CredentialStoreImpl implements CredentialStore {
   Future<void> clear() async {
     try {
       await _storage.deleteAll();
-    } on PlatformException {
+    } on Exception catch (_) {
       _markUnavailable();
     }
   }

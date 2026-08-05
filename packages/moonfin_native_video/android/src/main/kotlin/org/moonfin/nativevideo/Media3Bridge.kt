@@ -260,18 +260,25 @@ object Media3Bridge {
         }
 
         if (call.method == "setSource") {
-            val isPreviewSource =
-                (call.arguments as? Map<*, *>)?.get("preview") as? Boolean ?: false
+            val sourceArgs = call.arguments as? Map<*, *>
+            val isPreviewSource = sourceArgs?.get("preview") as? Boolean ?: false
+            val isAudioSource =
+                sourceArgs?.get("mediaType")?.toString()?.lowercase() == "audio"
             val current = activeView
             if (!isPreviewSource && current != null && current.role == "preview") {
-                // Real playback starting while a trailer owns the slot (the
-                // idle-home start window). Load the source into the next main
-                // view instead of the preview: release the preview, drop the
-                // slot, and queue so the flush lands on the fullscreen player.
-                current.forceReleasePlayer()
-                activeView = null
-                queueCall(call.method, call.arguments)
-                result.success(null)
+                // Real playback starting while a trailer owns the slot, during
+                // the idle-home start window.
+                queueSourceForNextView(call, result)
+                return
+            }
+            if (!isPreviewSource && !isAudioSource &&
+                current != null && !current.isReattachable()
+            ) {
+                // A view Flutter disposed stays active so background audio
+                // keeps playing, but its surface is gone, so video loaded into
+                // it has nowhere to render and is lost when the mounting
+                // player view takes the slot.
+                queueSourceForNextView(call, result)
                 return
             }
             if (isPreviewSource && current != null &&
@@ -324,6 +331,15 @@ object Media3Bridge {
                 result.error("NO_MEDIA3_VIEW", "Media3 view is not attached", null)
             }
         }
+    }
+
+    // Drops the slot and queues the source so the flush lands on the view that
+    // mounts next, rather than the one holding the slot now.
+    private fun queueSourceForNextView(call: MethodCall, result: MethodChannel.Result) {
+        activeView?.forceReleasePlayer()
+        activeView = null
+        queueCall(call.method, call.arguments)
+        result.success(null)
     }
 
     private fun queueCall(method: String, args: Any?) {

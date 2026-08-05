@@ -328,8 +328,12 @@ jobs:
             runner: ubuntu-24.04
             appimagetool_arch: x86_64
             artifact_prefix: Moonfin_Linux
+          # glibc and libstdc++ are deliberately not bundled, so the build host
+          # decides the oldest system the packages can run on. 24.04 puts that
+          # floor at glibc 2.38, newer than the Debian 12 base that Raspberry Pi
+          # OS and most other ARM64 boards run. 22.04 puts it at 2.35.
           - arch: arm64
-            runner: ubuntu-24.04-arm
+            runner: ubuntu-22.04-arm
             appimagetool_arch: aarch64
             artifact_prefix: Moonfin_LinuxARM64
     runs-on: ${{ matrix.runner }}

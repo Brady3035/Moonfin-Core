@@ -846,6 +846,24 @@ EOF
   echo "✓ Created: $REPO_ROOT/$tarball_name"
 }
 
+# The newest glibc anything in the installed tree asks for, which is the oldest
+# glibc that can load it, since symbol versions are forward compatible only.
+# Only undefined symbols count, because a library that defines a version lists
+# every version it ever published rather than the one it needs.
+required_glibc_version() {
+  local tree="$1" file
+
+  command -v readelf >/dev/null 2>&1 || return 0
+
+  for file in "$tree"/* "$tree"/lib/*.so*; do
+    [ -f "$file" ] || continue
+    [ -L "$file" ] && continue
+    readelf --dyn-syms -W "$file" 2>/dev/null |
+      awk '$7 == "UND"' |
+      grep -o 'GLIBC_[0-9][0-9.]*' || true
+  done | sed 's/^GLIBC_//' | sort -uV | tail -n1
+}
+
 build_deb() {
   echo "=== Building Debian Package (.deb) ==="
   if ! command -v dpkg-deb >/dev/null 2>&1; then
@@ -880,13 +898,24 @@ EOF
   mkdir -p "$pkg_root/usr/share/metainfo"
   create_metainfo_file "$pkg_root/usr/share/metainfo" "$version"
 
+  # glibc is deliberately not bundled, so the build host's version is the oldest
+  # one the package can run on. Declaring it turns a wall of loader errors at
+  # launch into a refused install that names the glibc the machine needs.
+  local depends="libgtk-3-0, libglib2.0-0, libsecret-1-0, libwebkit2gtk-4.1-0"
+  local glibc
+  glibc="$(required_glibc_version "$pkg_root/usr/lib/moonfin")"
+  if [ -n "$glibc" ]; then
+    depends="$depends, libc6 (>= $glibc)"
+  fi
+  echo "Depends: $depends"
+
   cat > "$pkg_root/DEBIAN/control" << EOF
 Package: moonfin
 Version: ${version}
 Architecture: ${deb_arch}
 Maintainer: Moonfin Team <support@moonfin.dev>
 Installed-Size: $(du -sk "$pkg_root/usr" | cut -f1)
-Depends: libgtk-3-0, libglib2.0-0, libsecret-1-0, libwebkit2gtk-4.1-0
+Depends: ${depends}
 Description: Jellyfin & Emby media client
  Moonfin is a media client for Jellyfin and Emby servers,
  available on mobile, TV, and desktop platforms.

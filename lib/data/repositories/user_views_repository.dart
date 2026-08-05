@@ -102,6 +102,12 @@ class UserViewsRepository extends ChangeNotifier {
     return _cachedConfig!;
   }
 
+  /// What the user hid from My Media, read from the cached configuration so a
+  /// caller can ask on every row without a round trip each time. Empty when
+  /// nothing is hidden or the list cant be read.
+  Future<Set<String>> getMyMediaExcludes() async =>
+      await _excludesFrom(_getUserConfig()) ?? const {};
+
   Future<UserConfiguration> getUserConfiguration() async {
     _cachedConfig = await _client.usersApi.getUserConfiguration();
     return _cachedConfig!;

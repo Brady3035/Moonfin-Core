@@ -2120,16 +2120,21 @@ class RowDataSource {
     // Fetch the list of possible base items (specifying Tags and People fields to avoid subsequent detail calls)
     List<AggregatedItem> baseItems = [];
     if (sourceItemType == SinceYouWatchedSourceItem.recentlyWatched) {
-      final res = await _getItemsWithFallback(
-        sortBy: 'DatePlayed',
-        sortOrder: 'Descending',
-        filters: const ['IsPlayed'],
-        recursive: true,
-        includeItemTypes: queryItemTypes,
-        limit: 30, // Query more items to ensure we get enough unique shows
-        fields: '$_fields,Tags,People,SeriesId',
+      final rawBaseItems = await _searchVisibleLibraryItems(
+        serverId,
+        queryItemTypes,
+        (parentId) => _getItemsWithFallback(
+          parentId: parentId,
+          sortBy: 'DatePlayed',
+          sortOrder: 'Descending',
+          filters: const ['IsPlayed'],
+          recursive: true,
+          includeItemTypes: queryItemTypes,
+          limit: 30, // Query more items to ensure we get enough unique shows
+          fields: '$_fields,Tags,People,SeriesId',
+        ),
+        merge: _byLastPlayed,
       );
-      final rawBaseItems = _parseItems(res, serverId);
       
       // Resolve Episode items to their parent Series (Show) items
       final resolvedBaseItems = <AggregatedItem>[];
@@ -2300,6 +2305,12 @@ class RowDataSource {
           .whereType<String>()
           .toList();
 
+      // A pool gathered from a narrowed set of libraries is not the pool a
+      // server wide sweep gives, so the scope belongs in the key or a toggled
+      // library would keep answering from the cache.
+      final parentIds = await _visibleLibraryIds(types);
+      final scope = parentIds?.join(',') ?? '';
+
       final candidatesMap = <String, Map<String, dynamic>>{};
       final futures = <Future<void>>[];
 
@@ -2307,7 +2318,7 @@ class RowDataSource {
       if (genres.isNotEmpty) {
         futures.add(() async {
           try {
-            final cacheKey = '$serverId:genres:${types.join(",")}:${genres.join(",")}';
+            final cacheKey = '$serverId:$scope:genres:${types.join(",")}:${genres.join(",")}';
             if (_recommendationCache.containsKey(cacheKey)) {
               final cached = _recommendationCache[cacheKey]!;
               for (final item in cached) {
@@ -2316,17 +2327,20 @@ class RowDataSource {
               }
               return;
             }
-            final res = await _client.itemsApi.getItems(
-              includeItemTypes: types,
-              genres: genres,
-              recursive: true,
-              limit: 40,
-              fields: 'Genres,Tags,People,UserData,OfficialRating,ProductionYear,CommunityRating,Studios',
+            final responses = await _searchLibraries(
+              parentIds,
+              (parentId) => _client.itemsApi.getItems(
+                parentId: parentId,
+                includeItemTypes: types,
+                genres: genres,
+                recursive: true,
+                limit: 40,
+                fields: 'Genres,Tags,People,UserData,OfficialRating,ProductionYear,CommunityRating,Studios',
+              ),
             );
-            final items = (res['Items'] as List? ?? [])
-                .map((e) => e is Map ? Map<String, dynamic>.from(e) : null)
-                .whereType<Map<String, dynamic>>()
-                .toList();
+            final items = [
+              for (final response in responses) ..._rawItems(response),
+            ];
             _cacheRecommendations(cacheKey, items);
             for (final item in items) {
               final id = item['Id']?.toString() ?? '';
@@ -2340,7 +2354,7 @@ class RowDataSource {
       if (tags.isNotEmpty) {
         futures.add(() async {
           try {
-            final cacheKey = '$serverId:tags:${types.join(",")}:${tags.join(",")}';
+            final cacheKey = '$serverId:$scope:tags:${types.join(",")}:${tags.join(",")}';
             if (_recommendationCache.containsKey(cacheKey)) {
               final cached = _recommendationCache[cacheKey]!;
               for (final item in cached) {
@@ -2349,17 +2363,20 @@ class RowDataSource {
               }
               return;
             }
-            final res = await _client.itemsApi.getItems(
-              includeItemTypes: types,
-              tags: tags,
-              recursive: true,
-              limit: 40,
-              fields: 'Genres,Tags,People,UserData,OfficialRating,ProductionYear,CommunityRating,Studios',
+            final responses = await _searchLibraries(
+              parentIds,
+              (parentId) => _client.itemsApi.getItems(
+                parentId: parentId,
+                includeItemTypes: types,
+                tags: tags,
+                recursive: true,
+                limit: 40,
+                fields: 'Genres,Tags,People,UserData,OfficialRating,ProductionYear,CommunityRating,Studios',
+              ),
             );
-            final items = (res['Items'] as List? ?? [])
-                .map((e) => e is Map ? Map<String, dynamic>.from(e) : null)
-                .whereType<Map<String, dynamic>>()
-                .toList();
+            final items = [
+              for (final response in responses) ..._rawItems(response),
+            ];
             _cacheRecommendations(cacheKey, items);
             for (final item in items) {
               final id = item['Id']?.toString() ?? '';
@@ -2378,7 +2395,7 @@ class RowDataSource {
       if (allPersonIds.isNotEmpty) {
         futures.add(() async {
           try {
-            final cacheKey = '$serverId:people:${types.join(",")}:${allPersonIds.join(",")}';
+            final cacheKey = '$serverId:$scope:people:${types.join(",")}:${allPersonIds.join(",")}';
             if (_recommendationCache.containsKey(cacheKey)) {
               final cached = _recommendationCache[cacheKey]!;
               for (final item in cached) {
@@ -2387,17 +2404,20 @@ class RowDataSource {
               }
               return;
             }
-            final res = await _client.itemsApi.getItems(
-              includeItemTypes: types,
-              personIds: allPersonIds,
-              recursive: true,
-              limit: 40,
-              fields: 'Genres,Tags,People,UserData,OfficialRating,ProductionYear,CommunityRating,Studios',
+            final responses = await _searchLibraries(
+              parentIds,
+              (parentId) => _client.itemsApi.getItems(
+                parentId: parentId,
+                includeItemTypes: types,
+                personIds: allPersonIds,
+                recursive: true,
+                limit: 40,
+                fields: 'Genres,Tags,People,UserData,OfficialRating,ProductionYear,CommunityRating,Studios',
+              ),
             );
-            final items = (res['Items'] as List? ?? [])
-                .map((e) => e is Map ? Map<String, dynamic>.from(e) : null)
-                .whereType<Map<String, dynamic>>()
-                .toList();
+            final items = [
+              for (final response in responses) ..._rawItems(response),
+            ];
             _cacheRecommendations(cacheKey, items);
             for (final item in items) {
               final id = item['Id']?.toString() ?? '';
@@ -2664,6 +2684,106 @@ class RowDataSource {
     return recommendedItems;
   }
 
+  /// Collection types that can hold each item type, so a search only visits
+  /// the libraries worth visiting. A library that declares no type holds
+  /// anything, so it is always worth a look.
+  static const _libraryTypesByItemType = <String, String>{
+    'Movie': 'movies',
+    'Series': 'tvshows',
+    'Episode': 'tvshows',
+  };
+
+  /// Runs [search] once for every library that could hold [includeItemTypes],
+  /// or once across the whole server when the user has hidden nothing, and
+  /// hands back every answer.
+  ///
+  /// Neither server leaves a hidden library out of a search, since hiding one
+  /// is a display choice rather than a permission, so a row that would sweep
+  /// everything has to narrow the search itself.
+  Future<List<Map<String, dynamic>>> _searchVisibleLibraries(
+    List<String> includeItemTypes,
+    Future<Map<String, dynamic>> Function(String? parentId) search,
+  ) async =>
+      _searchLibraries(await _visibleLibraryIds(includeItemTypes), search);
+
+  /// The same fan out against libraries already resolved, so a caller making
+  /// several searches at one scope resolves it once.
+  Future<List<Map<String, dynamic>>> _searchLibraries(
+    List<String>? parentIds,
+    Future<Map<String, dynamic>> Function(String? parentId) search,
+  ) async {
+    if (parentIds == null) return [await search(null)];
+
+    Future<Map<String, dynamic>?> attempt(String parentId) async {
+      try {
+        return await search(parentId);
+      } catch (_) {
+        return null;
+      }
+    }
+
+    final responses = await Future.wait(parentIds.map(attempt));
+    return responses.whereType<Map<String, dynamic>>().toList(growable: false);
+  }
+
+  /// The same search parsed into items, ordered by [merge] when more than one
+  /// library answered and their separate orderings have to become one.
+  Future<List<AggregatedItem>> _searchVisibleLibraryItems(
+    String serverId,
+    List<String> includeItemTypes,
+    Future<Map<String, dynamic>> Function(String? parentId) search, {
+    Comparator<AggregatedItem>? merge,
+  }) async {
+    final responses = await _searchVisibleLibraries(includeItemTypes, search);
+    final items = [
+      for (final response in responses) ..._parseItems(response, serverId),
+    ];
+    if (merge != null && responses.length > 1) items.sort(merge);
+    return items;
+  }
+
+  static String _lastPlayedOf(AggregatedItem item) =>
+      item.rawData['UserData']?['LastPlayedDate']?.toString() ?? '';
+
+  /// Newest play first, the order a DatePlayed sort gives, so libraries
+  /// answering separately still read as one list.
+  static int _byLastPlayed(AggregatedItem a, AggregatedItem b) =>
+      _lastPlayedOf(b).compareTo(_lastPlayedOf(a));
+
+  static List<Map<String, dynamic>> _rawItems(Map<String, dynamic> response) =>
+      ((response['Items'] as List?) ?? const [])
+          .whereType<Map>()
+          .map((item) => item.cast<String, dynamic>())
+          .toList(growable: false);
+
+  /// The libraries to search, or null when one sweep of the server is still
+  /// right because nothing is hidden.
+  Future<List<String>?> _visibleLibraryIds(List<String> includeItemTypes) async {
+    if (!GetIt.instance.isRegistered<UserViewsRepository>()) return null;
+    try {
+      final repo = GetIt.instance<UserViewsRepository>();
+      if ((await repo.getMyMediaExcludes()).isEmpty) return null;
+
+      final wanted = includeItemTypes
+          .map((type) => _libraryTypesByItemType[type])
+          .whereType<String>()
+          .toSet();
+      final ids = <String>[];
+      for (final view in await repo.getUserViews()) {
+        final type = view.collectionType.toLowerCase();
+        if (view.id.isEmpty) continue;
+        if (type.isEmpty || wanted.isEmpty || wanted.contains(type)) {
+          ids.add(view.id);
+        }
+      }
+      // Nothing left to search would empty the row, so let the sweep stand and
+      // show something rather than nothing.
+      return ids.isEmpty ? null : ids;
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<HomeRow> loadRewatchRow(String serverId) async {
     final prefs = GetIt.instance<UserPreferences>();
     final includeMovies = prefs.get(UserPreferences.rewatchIncludeMovies);
@@ -2677,32 +2797,44 @@ class RowDataSource {
     // 1. Movies
     if (includeMovies) {
       try {
-        final res = await _getItemsWithFallback(
-          includeItemTypes: const ['Movie'],
-          filters: const ['IsPlayed'],
-          sortBy: 'DatePlayed',
-          sortOrder: 'Descending',
-          recursive: true,
-          limit: 50,
-          fields: '$_fields,UserData',
+        watchedItems.addAll(
+          await _searchVisibleLibraryItems(
+            serverId,
+            const ['Movie'],
+            (parentId) => _getItemsWithFallback(
+              parentId: parentId,
+              includeItemTypes: const ['Movie'],
+              filters: const ['IsPlayed'],
+              sortBy: 'DatePlayed',
+              sortOrder: 'Descending',
+              recursive: true,
+              limit: 50,
+              fields: '$_fields,UserData',
+            ),
+            merge: _byLastPlayed,
+          ),
         );
-        watchedItems.addAll(_parseItems(res, serverId));
       } catch (_) {}
     }
 
     // 2. Shows
     if (includeShows) {
       try {
-        final res = await _getItemsWithFallback(
-          includeItemTypes: const ['Episode'],
-          filters: const ['IsPlayed'],
-          sortBy: 'DatePlayed',
-          sortOrder: 'Descending',
-          recursive: true,
-          limit: 100,
-          fields: 'SeriesId,UserData',
+        final episodes = await _searchVisibleLibraryItems(
+          serverId,
+          const ['Episode'],
+          (parentId) => _getItemsWithFallback(
+            parentId: parentId,
+            includeItemTypes: const ['Episode'],
+            filters: const ['IsPlayed'],
+            sortBy: 'DatePlayed',
+            sortOrder: 'Descending',
+            recursive: true,
+            limit: 100,
+            fields: 'SeriesId,UserData',
+          ),
+          merge: _byLastPlayed,
         );
-        final episodes = _parseItems(res, serverId);
         final seriesIds = <String>[];
         
         for (final ep in episodes) {
@@ -2814,14 +2946,14 @@ class RowDataSource {
     // Sort the watchedItems
     if (sortBy == RewatchSortBy.recentlyWatched) {
       watchedItems.sort((a, b) {
-        String lpA = a.rawData['UserData']?['LastPlayedDate']?.toString() ?? '';
+        String lpA = _lastPlayedOf(a);
         if (a.type == 'BoxSet' && collectionLastPlayedDates.containsKey(a.id)) {
           lpA = collectionLastPlayedDates[a.id]!;
         } else if (a.type == 'Series' && seriesLastPlayedDates.containsKey(a.id)) {
           lpA = seriesLastPlayedDates[a.id]!;
         }
         
-        String lpB = b.rawData['UserData']?['LastPlayedDate']?.toString() ?? '';
+        String lpB = _lastPlayedOf(b);
         if (b.type == 'BoxSet' && collectionLastPlayedDates.containsKey(b.id)) {
           lpB = collectionLastPlayedDates[b.id]!;
         } else if (b.type == 'Series' && seriesLastPlayedDates.containsKey(b.id)) {

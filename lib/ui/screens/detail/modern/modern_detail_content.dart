@@ -4428,6 +4428,8 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
             ),
           ),
         ] else
+          // Never reaches full opacity, so the image carries all the way down
+          // rather than stopping partway.
           DecoratedBox(
             decoration: BoxDecoration(
               gradient: LinearGradient(
@@ -4435,8 +4437,8 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
                 end: Alignment.bottomCenter,
                 colors: [
                   base.withValues(alpha: 0.15 * gradientScale),
-                  base.withValues(alpha: 0.55 * gradientScale),
-                  base,
+                  base.withValues(alpha: 0.45 * gradientScale),
+                  base.withValues(alpha: 0.85 * gradientScale),
                 ],
                 stops: const [0.0, 0.55, 1.0],
               ),

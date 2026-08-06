@@ -2693,13 +2693,6 @@ class AppLocalizationsAf extends AppLocalizations {
   String get settingsDetectedAudioCapabilities => 'Bespeur oudio-vermoëns';
 
   @override
-  String get settingsShowAudioDecoderBanner => 'Show audio decoder';
-
-  @override
-  String get settingsShowAudioDecoderBannerDescription =>
-      'Briefly name the decoder handling the audio when playback starts.';
-
-  @override
   String get settingsDetectedAudioCapabilitiesUnavailable =>
       'Nog geen momentopname van looptydvermoë beskikbaar nie.';
 

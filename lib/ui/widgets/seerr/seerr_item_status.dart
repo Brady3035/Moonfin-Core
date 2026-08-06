@@ -19,6 +19,27 @@ SeerrMediaDetailState? seerrItemStatus(ItemDetailViewModel viewModel) {
   return worthShowing ? state : null;
 }
 
+/// The Seerr state to build the Seerr tab and rows from, or null when the
+/// lookup found nothing to show. Unlike the metadata badge this ignores the
+/// request status preference, since the viewer opened the tab to see it.
+SeerrMediaDetailState? seerrItemTabState(ItemDetailViewModel viewModel) {
+  final state = viewModel.seerr?.state;
+  if (state == null || state.tmdbId == 0) return null;
+  final hasContent = state.genres.isNotEmpty ||
+      state.keywords.isNotEmpty ||
+      state.networks.isNotEmpty ||
+      state.similar.isNotEmpty ||
+      state.recommendations.isNotEmpty;
+  return hasContent ? state : null;
+}
+
+/// Season number to Seerr status for a series, empty when Seerr has nothing to
+/// say. The HD track, because that is the copy the library holds.
+Map<int, int> seerrItemSeasonStatus(ItemDetailViewModel viewModel) {
+  final state = _resolved(viewModel);
+  return state?.hd.seasonStatus ?? const {};
+}
+
 /// The Seerr state of an item with something downloading, or null.
 SeerrMediaDetailState? seerrItemDownloads(ItemDetailViewModel viewModel) {
   final state = _resolved(viewModel);

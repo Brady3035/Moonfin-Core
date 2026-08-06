@@ -34,12 +34,16 @@ class SeerrStatsCard extends StatelessWidget {
 
   const SeerrStatsCard({super.key, required this.state});
 
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final s = state;
-    final rows = <_StatRow>[];
+  /// Whether the card would draw anything, so a caller can drop the spacing
+  /// around it too.
+  static bool hasContent(SeerrMediaDetailState state, AppLocalizations l10n) =>
+      _facts(state, l10n).isNotEmpty;
 
+  static List<_StatRow> _facts(
+    SeerrMediaDetailState s,
+    AppLocalizations l10n,
+  ) {
+    final rows = <_StatRow>[];
     if (s.voteAverage != null && s.voteAverage! > 0) {
       rows.add(_StatRow(l10n.tmdbScore, '${(s.voteAverage! * 10).round()}%'));
     }
@@ -75,6 +79,12 @@ class SeerrStatsCard extends StatelessWidget {
     if (s.budget != null && s.budget! > 0) {
       rows.add(_StatRow(l10n.budgetLabel, _formatMoneyFull(s.budget!)));
     }
+    return rows;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final rows = _facts(state, AppLocalizations.of(context));
     if (rows.isEmpty) return const SizedBox.shrink();
 
     return Container(

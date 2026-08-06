@@ -53,11 +53,14 @@ import '../../widgets/add_to_playlist_dialog.dart';
 import '../../widgets/logo_view.dart';
 import '../../widgets/media_card.dart';
 import '../../widgets/seerr/seerr_cancel_request_dialog.dart';
+import '../../widgets/seerr/seerr_collection_banner.dart';
+import '../../widgets/seerr/seerr_item_chips.dart';
 import '../../widgets/seerr/seerr_item_status.dart';
 import '../../widgets/seerr/seerr_manage_requests_sheet.dart';
 import '../../widgets/seerr/seerr_report_issue_dialog.dart';
 import '../../widgets/seerr/seerr_request_action.dart';
 import '../../widgets/seerr/seerr_request_dialog.dart';
+import '../../widgets/seerr/seerr_stats_card.dart';
 import '../../widgets/seerr/seerr_status_dot.dart';
 import '../../widgets/seerr/seerr_status_pill.dart';
 import '../../widgets/change_artwork_dialog.dart';
@@ -1848,7 +1851,91 @@ class _DetailContentState extends State<_DetailContent> {
           ),
         ),
       ],
+      ..._buildSeerrSections(context),
       const SizedBox(height: 48),
+    ];
+  }
+
+  /// The Seerr side of a title, as rows under the library ones: what it is
+  /// filed under, the facts behind it, and what it leads to.
+  List<Widget> _buildSeerrSections(BuildContext context) {
+    final state = seerrItemTabState(viewModel);
+    if (state == null) return const [];
+
+    final l10n = AppLocalizations.of(context);
+    final titleStyle = Theme.of(context).textTheme.titleLarge?.copyWith(
+      color: ThemeRegistry.active.id == ThemeRegistry.neonPulseId
+          ? AppColorScheme.onSurface
+          : Colors.white,
+      fontWeight: FontWeight.w700,
+    );
+    final seerrLabel =
+        GetIt.instance<SeerrPreferences>().labelOrDefault(l10n.seerr);
+
+    final hasRecommendations = state.recommendations.isNotEmpty;
+    final hasSimilar = state.similar.isNotEmpty;
+    final recommendationsNode =
+        hasRecommendations ? _sectionFocusNode('detailSeerrRecommendations') : null;
+    final similarNode = hasSimilar ? _sectionFocusNode('detailSeerrSimilar') : null;
+
+    Widget row(
+      String title,
+      List<SeerrDiscoverItem> items,
+      FocusNode? node, {
+      FocusNode? upTarget,
+      FocusNode? downTarget,
+    }) =>
+        HorizontalScrollSection(
+          title: '$seerrLabel · $title',
+          titleStyle: titleStyle,
+          builder: (_, ctrl) => SeerrAppearancesRow(
+            items: items,
+            prefs: prefs,
+            firstFocusNode: node,
+            scrollController: ctrl,
+            onItemKeyEvent: _buildVerticalRowHandler(
+              sourceFocusNode: node,
+              upTarget: upTarget,
+              downTarget: downTarget,
+              itemCount: items.length,
+              consumeDownWhenNoTarget: downTarget == null,
+            ),
+          ),
+        );
+
+    return [
+      if (SeerrItemChips.hasContent(state)) ...[
+        const SizedBox(height: 32),
+        Text(seerrLabel, style: titleStyle),
+        const SizedBox(height: 12),
+        SeerrItemChips(state: state),
+      ],
+      if (SeerrStatsCard.hasContent(state, l10n)) ...[
+        const SizedBox(height: 24),
+        SeerrStatsCard(state: state),
+      ],
+      if (hasRecommendations) ...[
+        const SizedBox(height: 32),
+        row(
+          l10n.recommendations,
+          state.recommendations,
+          recommendationsNode,
+          downTarget: similarNode,
+        ),
+      ],
+      if (hasSimilar) ...[
+        const SizedBox(height: 32),
+        row(
+          l10n.similar,
+          state.similar,
+          similarNode,
+          upTarget: recommendationsNode,
+        ),
+      ],
+      if (state.movie?.collection != null) ...[
+        const SizedBox(height: 24),
+        SeerrCollectionBanner(collection: state.movie!.collection!),
+      ],
     ];
   }
 
@@ -1972,6 +2059,7 @@ class _DetailContentState extends State<_DetailContent> {
           ),
           builder: (_, ctrl) => DetailSeasonsRow(
             seasons: viewModel.seasons,
+            seerrSeasonStatus: seerrItemSeasonStatus(viewModel),
             imageApi: viewModel.imageApi,
             prefs: prefs,
             onItemLongPress: _showItemContextMenu,
@@ -2071,6 +2159,7 @@ class _DetailContentState extends State<_DetailContent> {
             metadataFocusNode ??
             actionButtonsFocusNode,
       ),
+      ..._buildSeerrSections(context),
       const SizedBox(height: 48),
     ];
   }

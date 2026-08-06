@@ -17,10 +17,10 @@ import '../../navigation/destinations.dart';
 import '../../widgets/library_row.dart';
 import '../../widgets/seerr/seerr_action_tile.dart';
 import '../../widgets/seerr/seerr_approve_decline_buttons.dart';
-import '../../widgets/seerr/seerr_browse_chip.dart';
 import '../../widgets/seerr/seerr_cancel_request_dialog.dart';
 import '../../widgets/seerr/seerr_cast_card.dart';
 import '../../widgets/seerr/seerr_collection_banner.dart';
+import '../../widgets/seerr/seerr_item_chips.dart';
 import '../../widgets/seerr/seerr_image_urls.dart';
 import '../../widgets/seerr/seerr_report_issue_dialog.dart';
 import '../../widgets/seerr/seerr_request_action.dart';
@@ -414,7 +414,6 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
     SeerrMediaDetailState s,
     AppLocalizations l10n,
   ) {
-    final mediaType = s.isTv ? 'tv' : 'movie';
     final overviewText = (s.overview != null && s.overview!.isNotEmpty)
         ? Text(
             s.overview!,
@@ -470,78 +469,9 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
                   ),
                 )
               : overviewText,
-        if (s.genres.isNotEmpty) ...[
+        if (SeerrItemChips.hasContent(s)) ...[
           const SizedBox(height: 16),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: s.genres
-                .map(
-                  (g) => SeerrBrowseChip(
-                    label: g.name,
-                    color: Colors.white12,
-                    onTap: () => context.push(
-                      Destinations.seerrBrowseWith(
-                        filterId: g.id.toString(),
-                        filterName: g.name,
-                        mediaType: mediaType,
-                        filterType: 'genre',
-                      ),
-                    ),
-                  ),
-                )
-                .toList(),
-          ),
-        ],
-        if (s.networks.isNotEmpty) ...[
-          const SizedBox(height: 10),
-          Wrap(
-            spacing: 8,
-            runSpacing: 6,
-            children: s.networks
-                .map(
-                  (n) => SeerrBrowseChip(
-                    label: n.name,
-                    color: Colors.transparent,
-                    borderColor: Colors.white24,
-                    labelColor: Colors.white70,
-                    onTap: () => context.push(
-                      Destinations.seerrBrowseWith(
-                        filterId: n.id.toString(),
-                        filterName: n.name,
-                        mediaType: mediaType,
-                        filterType: 'network',
-                      ),
-                    ),
-                  ),
-                )
-                .toList(),
-          ),
-        ],
-        if (s.keywords.isNotEmpty) ...[
-          const SizedBox(height: 10),
-          Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            children: s.keywords
-                .map(
-                  (k) => SeerrBrowseChip(
-                    label: k.name,
-                    color: Colors.white.withValues(alpha: 0.05),
-                    labelColor: Colors.white60,
-                    dense: true,
-                    onTap: () => context.push(
-                      Destinations.seerrBrowseWith(
-                        filterId: k.id.toString(),
-                        filterName: k.name,
-                        mediaType: mediaType,
-                        filterType: 'keyword',
-                      ),
-                    ),
-                  ),
-                )
-                .toList(),
-          ),
+          SeerrItemChips(state: s),
         ],
       ],
     );

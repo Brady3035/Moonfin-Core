@@ -4993,8 +4993,11 @@ class _ContentRowsState extends State<_ContentRows>
           ? 'tv'
           : 'movie';
       context.push(
-        Destinations.seerrMedia(item.id),
-        extra: {'mediaType': mediaType, 'title': item.name},
+        Destinations.seerrMedia(
+          item.id,
+          mediaType: mediaType,
+          title: item.name,
+        ),
       );
     }
   }

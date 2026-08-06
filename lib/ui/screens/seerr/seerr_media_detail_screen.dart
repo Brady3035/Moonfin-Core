@@ -20,6 +20,7 @@ import '../../widgets/adaptive/adaptive_dialog.dart';
 import '../../widgets/library_row.dart';
 import '../../widgets/seerr/seerr_advanced_request_options.dart';
 import '../../widgets/seerr/seerr_quota_row.dart';
+import '../../widgets/seerr/seerr_status_pill.dart';
 import '../../widgets/seerr/seerr_text_field.dart';
 import '../../widgets/seerr/seerr_tv_controls.dart';
 import '../../widgets/media_card.dart';
@@ -38,11 +39,14 @@ const _tmdbProfileBase = 'https://image.tmdb.org/t/p/w185';
 class SeerrMediaDetailScreen extends StatefulWidget {
   final String itemId;
   final String? mediaType;
+  // Only used to resolve an IMDb-keyed id by searching for it.
+  final String? title;
 
   const SeerrMediaDetailScreen({
     super.key,
     required this.itemId,
     this.mediaType,
+    this.title,
   });
 
   @override
@@ -129,14 +133,7 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
   void _loadDetails() {
     final vm = _vm;
     if (vm == null) return;
-
-    final extra = GoRouterState.of(context).extra;
-    final extraMap = extra is Map ? extra.cast<String, dynamic>() : null;
-    final mediaType =
-        (extraMap?['mediaType'] as String?) ?? widget.mediaType ?? 'movie';
-    final title = extraMap?['title'] as String?;
-
-    vm.load(widget.itemId, mediaType, title: title);
+    vm.load(widget.itemId, widget.mediaType ?? 'movie', title: widget.title);
   }
 
   @override
@@ -420,49 +417,23 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
     SeerrMediaDetailState s, {
     required AppLocalizations l10n,
   }) {
-    Widget pill(SeerrQualityStatus q, String? prefix) {
-      final label = _localizedStatusText(q, l10n);
-      return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-        decoration: BoxDecoration(
-          color: Colors.black.withValues(alpha: 0.55),
-          borderRadius: AppRadius.circular(999),
-        ),
-        child: Text(
-          _withQualityPrefix(label, prefix).toUpperCase(),
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 12,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 0.6,
-          ),
-        ),
+    final tracks = seerrStatusTracks(s, l10n);
+    if (tracks.length == 1) {
+      return SeerrStatusPill(
+        track: tracks.first.$1,
+        qualityLabel: tracks.first.$2,
+        solid: true,
       );
     }
-
-    final tracks = _statusTracks(s, l10n);
-    if (tracks.length == 1) return pill(tracks.first.$1, tracks.first.$2);
     return Wrap(
       spacing: 8,
       runSpacing: 6,
-      children: [for (final (q, prefix) in tracks) pill(q, prefix)],
+      children: [
+        for (final (q, prefix) in tracks)
+          SeerrStatusPill(track: q, qualityLabel: prefix, solid: true),
+      ],
     );
   }
-
-  /// The quality tracks worth showing a status for, each with the label it
-  /// should carry. A lone track needs no label to disambiguate it, which is
-  /// the usual case on servers without a 4K backend.
-  List<(SeerrQualityStatus, String?)> _statusTracks(
-    SeerrMediaDetailState s,
-    AppLocalizations l10n,
-  ) {
-    final uhd = s.uhd;
-    if (!uhd.hasAnyState) return [(s.hd, null)];
-    return [(s.hd, 'HD'), (uhd, l10n.uhd4k)];
-  }
-
-  String _withQualityPrefix(String label, String? prefix) =>
-      prefix == null ? label : '$prefix · $label';
 
   Widget _buildWideOverviewAndStats(
     SeerrMediaDetailState s,
@@ -953,17 +924,6 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
     return parts.join(' \u2022 ');
   }
 
-  String _localizedStatusText(SeerrQualityStatus q, AppLocalizations l10n) {
-    if (q.isFullyAvailable) return l10n.seerrAvailableStatus;
-    if (q.isPartiallyAvailable) return l10n.partiallyAvailable;
-    if (q.isProcessing) return l10n.seerrRequestedStatus;
-    if (q.isPending) return l10n.pendingStatus;
-    if (q.isBlacklisted) return l10n.blocklistedStatus;
-    if (q.isDeleted) return l10n.deletedStatus;
-    if (q.hasExistingRequest) return l10n.seerrRequestedStatus;
-    return l10n.notRequestedStatus;
-  }
-
   String _requestedByLabel(SeerrRequest req, AppLocalizations l10n) {
     final name = l10n.requestedByName(req.requestedBy?.bestName ?? l10n.unknown);
     return req.is4k ? '$name · ${l10n.uhd4k}' : name;
@@ -1139,61 +1099,21 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
   }
 
   Widget _buildStatusBadge(SeerrMediaDetailState s) {
-    final tracks = _statusTracks(s, AppLocalizations.of(context));
+    final tracks = seerrStatusTracks(s, AppLocalizations.of(context));
     if (tracks.length == 1) {
-      return _statusBadgeFor(tracks.first.$1, tracks.first.$2);
+      return SeerrStatusPill(
+        track: tracks.first.$1,
+        qualityLabel: tracks.first.$2,
+      );
     }
     return Wrap(
       spacing: 8,
       runSpacing: 6,
-      children: [for (final (q, prefix) in tracks) _statusBadgeFor(q, prefix)],
+      children: [
+        for (final (q, prefix) in tracks)
+          SeerrStatusPill(track: q, qualityLabel: prefix),
+      ],
     );
-  }
-
-  Widget _statusBadgeFor(SeerrQualityStatus q, String? prefixLabel) {
-    final (label, color) = _mediaStatusInfo(q);
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.2),
-        border: Border.fromBorderSide(
-          ThemeRegistry.active.borders.chipBorder.copyWith(color: color),
-        ),
-        borderRadius: AppRadius.circular(6),
-      ),
-      child: Text(
-        _withQualityPrefix(label, prefixLabel),
-        style: TextStyle(
-          color: color,
-          fontWeight: FontWeight.w600,
-          fontSize: 13,
-        ),
-      ),
-    );
-  }
-
-  /// Media status colors matching the seerr web UI. Labels come from
-  /// [_localizedStatusText].
-  (String, Color) _mediaStatusInfo(SeerrQualityStatus q) {
-    final l10n = AppLocalizations.of(context);
-    final label = _localizedStatusText(q, l10n);
-    // Same branch order as _localizedStatusText so label and color agree.
-    final Color color;
-    if (q.isAvailable) {
-      color = AppColorScheme.statusAvailable;
-    } else if (q.isProcessing) {
-      color = AppColorScheme.statusRequested;
-    } else if (q.isPending) {
-      color = AppColorScheme.statusPending;
-    } else if (q.isBlacklisted || q.isDeleted) {
-      color = AppColorScheme.statusError;
-    } else if (q.hasExistingRequest) {
-      color = AppColorScheme.statusRequested;
-    } else {
-      color = AppColorScheme.onSurface.withValues(alpha: 0.54);
-    }
-    return (label, color);
   }
 
   Widget _buildMetadata(SeerrMediaDetailState s) {
@@ -1613,8 +1533,10 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
           onTap: () {
             final mediaType = item.mediaType ?? 'movie';
             context.push(
-              Destinations.seerrMedia(item.id.toString()),
-              extra: {'mediaType': mediaType},
+              Destinations.seerrMedia(
+                item.id.toString(),
+                mediaType: mediaType,
+              ),
             );
           },
         );

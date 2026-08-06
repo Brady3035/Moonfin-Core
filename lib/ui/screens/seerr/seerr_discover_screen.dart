@@ -289,8 +289,7 @@ class _SeerrDiscoverScreenState extends State<SeerrDiscoverScreen> {
   void _onItemTap(SeerrDiscoverItem item) {
     final mediaType = item.mediaType ?? 'movie';
     context.push(
-      Destinations.seerrMedia(item.id.toString()),
-      extra: {'mediaType': mediaType},
+      Destinations.seerrMedia(item.id.toString(), mediaType: mediaType),
     );
   }
 

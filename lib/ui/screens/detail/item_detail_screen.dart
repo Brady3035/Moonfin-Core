@@ -51,6 +51,7 @@ import '../../widgets/settings/settings_panel.dart';
 import '../../widgets/add_to_playlist_dialog.dart';
 import '../../widgets/logo_view.dart';
 import '../../widgets/media_card.dart';
+import '../../widgets/seerr/seerr_status_dot.dart';
 import '../../widgets/change_artwork_dialog.dart';
 import '../../widgets/navigation_layout.dart';
 import '../../widgets/horizontal_scroll_section.dart';
@@ -11847,6 +11848,11 @@ class DetailSeasonsRow extends StatelessWidget {
   final KeyEventResult Function(int index, KeyEvent event)? onItemKeyEvent;
   final void Function(AggregatedItem item)? onItemLongPress;
 
+  /// Season number to Seerr media status. Drawn in the top left rather than
+  /// through MediaCard's own `seerrStatus`, which would take the top right
+  /// corner from the watched checkmark.
+  final Map<int, int>? seerrSeasonStatus;
+
   const DetailSeasonsRow({
     required this.seasons,
     required this.imageApi,
@@ -11855,6 +11861,7 @@ class DetailSeasonsRow extends StatelessWidget {
     this.firstItemFocusNode,
     this.onItemKeyEvent,
     this.onItemLongPress,
+    this.seerrSeasonStatus,
   });
 
   @override
@@ -11878,6 +11885,8 @@ class DetailSeasonsRow extends StatelessWidget {
             SizedBox(width: isMobile ? 8 : 12 * desktopScale),
         itemBuilder: (context, index) {
           final season = seasons[index];
+          final seerrStatus = seerrSeasonStatus?[season.indexNumber];
+          final hasSeerrDot = SeerrMediaStatus.hasDot(seerrStatus);
           return MediaCard(
             title: season.name,
             subtitle: _progressText(season),
@@ -11888,6 +11897,15 @@ class DetailSeasonsRow extends StatelessWidget {
             imageUrl: _seasonImageUrl(season, isMobile: isMobile),
             width: cardWidth,
             aspectRatio: 2 / 3,
+            overlayOccupiesTopLeft: hasSeerrDot,
+            imageOverlays: [
+              if (hasSeerrDot)
+                Positioned(
+                  top: 6,
+                  left: 6,
+                  child: SeerrStatusDot(status: seerrStatus, size: 18),
+                ),
+            ],
             focusColor: isNeon
                 ? AppColorScheme.accent
                 : Color(prefs.get(UserPreferences.focusColor).colorValue),
@@ -13417,8 +13435,10 @@ class SeerrAppearancesRow extends StatelessWidget {
             onTap: () {
               final mediaType = item.mediaType ?? 'movie';
               context.push(
-                Destinations.seerrMedia(item.id.toString()),
-                extra: {'mediaType': mediaType},
+                Destinations.seerrMedia(
+                  item.id.toString(),
+                  mediaType: mediaType,
+                ),
               );
             },
           );
@@ -13499,8 +13519,10 @@ class SeerrCrewCreditsRow extends StatelessWidget {
             onTap: () {
               final mediaType = item.mediaType ?? 'movie';
               context.push(
-                Destinations.seerrMedia(item.id.toString()),
-                extra: {'mediaType': mediaType},
+                Destinations.seerrMedia(
+                  item.id.toString(),
+                  mediaType: mediaType,
+                ),
               );
             },
           );

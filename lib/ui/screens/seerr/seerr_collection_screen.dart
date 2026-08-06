@@ -300,8 +300,10 @@ class _SeerrCollectionScreenState extends State<SeerrCollectionScreen> {
               cardFocusExpansion: cardExpansion,
               suppressFocusGlow: suppressFocusGlow,
               onTap: () => context.push(
-                Destinations.seerrMedia(item.id.toString()),
-                extra: {'mediaType': item.mediaType ?? 'movie'},
+                Destinations.seerrMedia(
+                  item.id.toString(),
+                  mediaType: item.mediaType ?? 'movie',
+                ),
               ),
             ),
           )

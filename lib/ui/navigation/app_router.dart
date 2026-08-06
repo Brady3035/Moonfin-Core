@@ -775,6 +775,7 @@ final appRouter = GoRouter(
         return SeerrMediaDetailScreen(
           itemId: itemId,
           mediaType: state.uri.queryParameters['mediaType'],
+          title: state.uri.queryParameters['title'],
         );
       },
     ),

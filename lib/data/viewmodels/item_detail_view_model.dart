@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:get_it/get_it.dart';
 import 'package:server_core/server_core.dart';
@@ -13,8 +15,10 @@ import '../repositories/mdblist_repository.dart';
 import '../repositories/tmdb_repository.dart';
 import '../repositories/seerr_repository.dart';
 import '../utils/playlist_utils.dart';
+import '../../preference/seerr_preferences.dart';
 import '../../util/episode_playability.dart';
 import '../services/plugin_sync_service.dart';
+import 'seerr_media_detail_view_model.dart';
 
 enum CollectionSortOption {
   alphabetical,
@@ -282,6 +286,56 @@ class ItemDetailViewModel extends ChangeNotifier {
   final String? _serverId;
   bool _isDisposed = false;
 
+  /// The Seerr side of this title, when there is one. Null until the lookup
+  /// lands, and null forever when Seerr is off or doesn't know the title.
+  SeerrMediaDetailViewModel? _seerr;
+  SeerrMediaDetailViewModel? get seerr => _seerr;
+
+  /// Resolves the Seerr side of a library item, if there is one to resolve.
+  /// A miss leaves the screen exactly as it was, so nothing here ever surfaces
+  /// an error.
+  Future<void> _loadSeerrOverlay() async {
+    final item = _item;
+    if (item == null) return;
+    if (item.type != 'Movie' && item.type != 'Series') return;
+    if (!GetIt.instance<PluginSyncService>().seerrAvailable) return;
+
+    // TMDB is the id Seerr speaks. IMDb goes through its search fallback.
+    final tmdbId = item.tmdbId;
+    final lookupId = (tmdbId != null && tmdbId.isNotEmpty)
+        ? tmdbId
+        : item.imdbId;
+    if (lookupId == null || lookupId.isEmpty) return;
+
+    try {
+      final vm = await _ensureSeerr();
+      await vm.load(
+        lookupId,
+        item.type == 'Series' ? 'tv' : 'movie',
+        title: item.name,
+      );
+    } catch (_) {}
+  }
+
+  /// One child view model for the life of this one. [load] is re-entered when
+  /// the viewer switches media source, and a second child would leak both a
+  /// view model and its download poll timer.
+  Future<SeerrMediaDetailViewModel> _ensureSeerr() async {
+    final existing = _seerr;
+    if (existing != null) return existing;
+    final repo = await GetIt.instance.getAsync<SeerrRepository>();
+    final created = SeerrMediaDetailViewModel(
+      repo,
+      GetIt.instance<SeerrPreferences>(),
+    );
+    // Disposal races the await above, so hand back a child nobody listens to
+    // rather than wiring one into a dead view model.
+    if (_isDisposed) return created;
+    created.addListener(notifyListeners);
+    _seerr = created;
+    return created;
+  }
+
   ItemDetailViewModel({
     required this.itemId,
     String? serverId,
@@ -404,6 +458,9 @@ class ItemDetailViewModel extends ChangeNotifier {
   Future<void> _loadSecondary() async {
     final type = _item?.type;
     final futures = <Future>[];
+    // Deliberately outside the Future.wait below, so a slow Seerr server never
+    // holds up library content that is already here.
+    unawaited(_loadSeerrOverlay());
     if (type == 'Person') {
       futures.add(_loadFilmography());
     } else if (type == 'Series') {
@@ -1433,6 +1490,10 @@ class ItemDetailViewModel extends ChangeNotifier {
   @override
   void dispose() {
     _isDisposed = true;
+    // The child owns a download poll timer, so this is what stops it.
+    _seerr?.removeListener(notifyListeners);
+    _seerr?.dispose();
+    _seerr = null;
     super.dispose();
   }
 }

@@ -12,21 +12,6 @@ String seerrFormatRuntime(int minutes) {
   return m > 0 ? '${h}h ${m}m' : '${h}h';
 }
 
-/// Rounded to the nearest billion, million or thousand, for a metadata line
-/// where the exact figure would crowd everything else out.
-String seerrFormatMoneyShort(int amount) {
-  if (amount >= 1000000000) {
-    return '${(amount / 1000000000).toStringAsFixed(1)}B';
-  }
-  if (amount >= 1000000) {
-    return '${(amount / 1000000).toStringAsFixed(1)}M';
-  }
-  if (amount >= 1000) {
-    return '${(amount / 1000).toStringAsFixed(0)}K';
-  }
-  return amount.toString();
-}
-
 /// The facts Seerr knows about a title that the library does not: its TMDB
 /// score, where production stands, and the money behind it.
 class SeerrStatsCard extends StatelessWidget {

@@ -15,6 +15,7 @@ void showSeerrRequestDialog({
   required BuildContext context,
   required SeerrMediaDetailViewModel vm,
   required bool is4k,
+  int? season,
 }) {
   final s = vm.state;
   final l10n = AppLocalizations.of(context);
@@ -31,6 +32,7 @@ void showSeerrRequestDialog({
       seasons: s.tv?.seasons ?? const [],
       numberOfSeasons: s.numberOfSeasons ?? 0,
       requestedSeasons: s.quality(is4k: is4k).requestedSeasons,
+      season: season,
     ),
   );
 }
@@ -45,6 +47,10 @@ class SeerrRequestDialog extends StatefulWidget {
   final int numberOfSeasons;
   final Set<int> requestedSeasons;
 
+  /// Opens with just this season ticked, for a viewer who asked for one rather
+  /// than for the whole run.
+  final int? season;
+
   const SeerrRequestDialog({
     super.key,
     required this.vm,
@@ -53,6 +59,7 @@ class SeerrRequestDialog extends StatefulWidget {
     required this.seasons,
     required this.numberOfSeasons,
     this.requestedSeasons = const {},
+    this.season,
   });
 
   @override
@@ -60,9 +67,9 @@ class SeerrRequestDialog extends StatefulWidget {
 }
 
 class _SeerrRequestDialogState extends State<SeerrRequestDialog> {
-  bool _allSeasons = true;
+  late bool _allSeasons = widget.season == null;
   bool _submitting = false;
-  final Set<int> _selectedSeasons = {};
+  late final Set<int> _selectedSeasons = {?widget.season};
   late final SeerrAdvancedRequestController _advanced;
 
   @override

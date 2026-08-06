@@ -45,6 +45,18 @@ enum DetailButton {
   /// A button the row always keeps. It still moves, it just has no switch.
   final bool canHide;
 
+  /// Whether the button means anything for a title that is not in the library.
+  /// Everything else needs something to play, mark or download.
+  bool get availableInSeerrOnly => switch (this) {
+    DetailButton.seerrRequest ||
+    DetailButton.seerrRequest4k ||
+    DetailButton.seerrWatchlist ||
+    DetailButton.seerrReportIssue ||
+    DetailButton.seerrManage ||
+    DetailButton.trailer => true,
+    _ => false,
+  };
+
   /// Whether this device can put the button on screen at all. A button that
   /// never gets drawn here isn't worth offering a switch for.
   bool get isOffered => switch (this) {

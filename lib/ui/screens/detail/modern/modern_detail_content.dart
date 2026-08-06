@@ -60,6 +60,7 @@ import '../../../../preference/seerr_preferences.dart';
 import '../../../widgets/overlay_sheet.dart';
 import '../../../widgets/seerr/seerr_collection_banner.dart';
 import '../../../widgets/seerr/seerr_item_chips.dart';
+import '../../../widgets/seerr/seerr_request_dialog.dart';
 import '../../../widgets/seerr/seerr_item_status.dart';
 import '../../../widgets/seerr/seerr_stats_card.dart';
 import '../../../widgets/seerr/seerr_status_pill.dart';
@@ -1118,6 +1119,9 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
     final nextUpSeasonId = _vm.nextUp?.seasonId ??
         _vm.seriesEpisodes.firstWhereOrNull((e) => !e.isPlayed)?.seasonId;
     final seerrSeasonStatus = seerrItemSeasonStatus(_vm);
+    // Set only for a series with no season to open, where the card offers to
+    // request that season instead.
+    final seerrOnlyVm = _vm.isSeerrOnly ? _vm.seerr : null;
     SeasonCard buildSeasonCard(
       int i, {
       double? width,
@@ -1139,9 +1143,19 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
           width: width,
           height: height,
           autoScroll: true,
-          onTap: () => context.push(
-            Destinations.item(_vm.seasons[i].id, serverId: _vm.seasons[i].serverId),
-          ),
+          onTap: () => seerrOnlyVm != null
+              ? showSeerrRequestDialog(
+                  context: context,
+                  vm: seerrOnlyVm,
+                  is4k: false,
+                  season: _vm.seasons[i].indexNumber,
+                )
+              : context.push(
+                  Destinations.item(
+                    _vm.seasons[i].id,
+                    serverId: _vm.seasons[i].serverId,
+                  ),
+                ),
         );
     final seasonLabelStyle = textTheme.labelMedium?.copyWith(
       color: Colors.white70,

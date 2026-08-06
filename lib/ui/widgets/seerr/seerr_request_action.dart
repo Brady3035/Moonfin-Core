@@ -1,6 +1,10 @@
 import '../../../data/services/seerr/seerr_api_models.dart';
 import '../../../data/viewmodels/seerr_media_detail_view_model.dart';
+import 'package:flutter/widgets.dart';
+import 'package:go_router/go_router.dart';
+
 import '../../../l10n/app_localizations.dart';
+import '../../navigation/destinations.dart';
 
 /// What the request control does for one quality track right now.
 enum SeerrRequestActionKind { none, request, requested, cancel }
@@ -85,3 +89,20 @@ List<SeerrRequest> seerrPendingRequests(SeerrMediaDetailState state) => state
     .allActiveRequests
     .where((r) => r.status == SeerrRequest.statusPending)
     .toList();
+
+/// Opens a Seerr trailer, in the built-in player for YouTube and by url for
+/// anything else.
+Future<void> openSeerrTrailer(BuildContext context, SeerrVideo video) async {
+  final key = video.key;
+  final isYouTube = (video.site ?? '').toLowerCase() == 'youtube';
+  if (isYouTube && key != null && key.isNotEmpty) {
+    await context.push(Destinations.trailer(videoId: key));
+    return;
+  }
+  var url = video.url;
+  if ((url == null || url.isEmpty) && key != null && key.isNotEmpty) {
+    url = 'https://www.youtube.com/watch?v=$key';
+  }
+  if (url == null || url.isEmpty) return;
+  await context.push(Destinations.trailer(url: url));
+}

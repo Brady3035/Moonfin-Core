@@ -54,6 +54,7 @@ import '../../widgets/logo_view.dart';
 import '../../widgets/media_card.dart';
 import '../../widgets/seerr/seerr_cancel_request_dialog.dart';
 import '../../widgets/seerr/seerr_collection_banner.dart';
+import '../../widgets/seerr/seerr_image_urls.dart';
 import '../../widgets/seerr/seerr_item_chips.dart';
 import '../../widgets/seerr/seerr_item_status.dart';
 import '../../widgets/seerr/seerr_manage_requests_sheet.dart';
@@ -213,11 +214,15 @@ class ItemDetailScreen extends StatefulWidget {
   final String? serverId;
   final bool autoPlay;
 
+  /// Only used to resolve an IMDb-keyed Seerr id by searching for it.
+  final String? seerrTitle;
+
   const ItemDetailScreen({
     super.key,
     required this.itemId,
     this.serverId,
     this.autoPlay = false,
+    this.seerrTitle,
   });
 
   @override
@@ -268,6 +273,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen>
       mdbListRepository: GetIt.instance<MdbListRepository>(),
       tmdbRepository: GetIt.instance<TmdbRepository>(),
     );
+    _viewModel.seerrOnlyTitle = widget.seerrTitle;
     _viewModel.addListener(_onChanged);
     _prefs.addListener(_onPrefsChanged);
     GetIt.instance<PluginSyncService>().addListener(_onPrefsChanged);
@@ -464,6 +470,8 @@ class _ItemDetailScreenState extends State<ItemDetailScreen>
   void _resumeThemeMusicIfEligible() {
     final item = _viewModel.item;
     if (item == null) return;
+    // There is no theme song on a server that has never heard of this title.
+    if (_viewModel.isSeerrOnly) return;
 
     _themeMusicStarted = true;
     _themeMusicService.playForItem(item);
@@ -1856,6 +1864,17 @@ class _DetailContentState extends State<_DetailContent> {
     ];
   }
 
+  void Function(int seasonNumber)? _seerrSeasonTap() {
+    final seerr = viewModel.seerr;
+    if (!viewModel.isSeerrOnly || seerr == null) return null;
+    return (seasonNumber) => showSeerrRequestDialog(
+          context: context,
+          vm: seerr,
+          is4k: false,
+          season: seasonNumber > 0 ? seasonNumber : null,
+        );
+  }
+
   /// The Seerr side of a title, as rows under the library ones: what it is
   /// filed under, the facts behind it, and what it leads to.
   List<Widget> _buildSeerrSections(BuildContext context) {
@@ -2060,6 +2079,7 @@ class _DetailContentState extends State<_DetailContent> {
           builder: (_, ctrl) => DetailSeasonsRow(
             seasons: viewModel.seasons,
             seerrSeasonStatus: seerrItemSeasonStatus(viewModel),
+            onSeasonTap: _seerrSeasonTap(),
             imageApi: viewModel.imageApi,
             prefs: prefs,
             onItemLongPress: _showItemContextMenu,
@@ -4099,7 +4119,11 @@ class DetailPosterImage extends StatelessWidget {
     final w = isMobile ? 120.0 : 165.0 * desktopScale;
     final h = isMobile ? 180.0 : 248.0 * desktopScale;
 
-    if (item.primaryImageTag == null) return SizedBox(width: w, height: h);
+    final posterPath = item.rawData['PosterPath'] as String?;
+    if (item.primaryImageTag == null &&
+        (posterPath == null || posterPath.isEmpty)) {
+      return SizedBox(width: w, height: h);
+    }
 
     return SizedBox(
       width: w,
@@ -4109,11 +4133,13 @@ class DetailPosterImage extends StatelessWidget {
           ClipRRect(
             borderRadius: AppRadius.circular(8),
             child: OfflineAwareImage(
-              imageUrl: imageApi.getPrimaryImageUrl(
-                item.id,
-                maxHeight: isMobile ? 360 : (500 * desktopScale).round(),
-                tag: item.primaryImageTag,
-              ),
+              imageUrl: item.primaryImageTag == null
+                  ? '$seerrPosterBase$posterPath'
+                  : imageApi.getPrimaryImageUrl(
+                      item.id,
+                      maxHeight: isMobile ? 360 : (500 * desktopScale).round(),
+                      tag: item.primaryImageTag,
+                    ),
               width: w,
               height: h,
               fit: BoxFit.cover,
@@ -6119,6 +6145,7 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
     final overlay = viewModel.seerr;
     final seerr = overlay != null && overlay.state.tmdbId != 0 ? overlay : null;
     final onWatchlist = seerr?.state.onUserWatchlist ?? false;
+    final seerrTrailer = seerr?.state.bestTrailer;
 
     final byButton = <DetailButton, Widget>{
       if (_supportsShuffle(item) && shows(DetailButton.shuffle))
@@ -6187,12 +6214,16 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
           icon: Icons.cast,
           onPressed: () => _castToDevice(context, item),
         ),
-      if ((item.type == 'Series' || _hasTrailer(item)) &&
-          shows(DetailButton.trailer))
+      if (viewModel.isSeerrOnly
+          ? seerrTrailer != null && shows(DetailButton.trailer)
+          : (item.type == 'Series' || _hasTrailer(item)) &&
+              shows(DetailButton.trailer))
         DetailButton.trailer: _DetailActionButton(
           label: l10n.trailer,
           icon: Icons.movie_outlined,
-          onPressed: () => _playTrailer(context, item),
+          onPressed: () => viewModel.isSeerrOnly
+              ? openSeerrTrailer(context, seerrTrailer!)
+              : _playTrailer(context, item),
         ),
       if (!isBook &&
           !isPhoto &&
@@ -6302,8 +6333,32 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
         ),
     };
 
+    // Requesting is the only thing to do with a title you don't have, so it
+    // takes the primary slot, keeping Play's focus node so everything that
+    // reaches for that anchor still finds it. The request entry then leaves the
+    // arranged row, since it is already leading it.
+    final Widget? primaryAction;
+    if (viewModel.isSeerrOnly) {
+      primaryAction = _seerrRequestButton(
+        context,
+        seerr,
+        l10n,
+        is4k: false,
+        isPrimary: true,
+        focusNode: _tvPlayFocusNode,
+        autofocus: autofocusPlay,
+      );
+      byButton.removeWhere(
+        (button, _) =>
+            !button.availableInSeerrOnly ||
+            button == DetailButton.seerrRequest,
+      );
+    } else {
+      primaryAction = playButton;
+    }
+
     var allButtons = <Widget>[
-      playButton,
+      ?primaryAction,
       for (final button in detailButtonLayout.ordered(
         DetailButton.values,
         (button) => button.id,
@@ -10778,6 +10833,7 @@ class DetailCastRow extends StatelessWidget {
           final personId = person['Id']?.toString();
           final tag = person['PrimaryImageTag'] as String?;
 
+          final profilePath = person['ProfilePath'] as String?;
           String? imageUrl;
           if (personId != null && tag != null) {
             imageUrl = imageApi.getPrimaryImageUrl(
@@ -10785,6 +10841,8 @@ class DetailCastRow extends StatelessWidget {
               maxHeight: isMobile ? 140 : (200 * desktopScale).round(),
               tag: tag,
             );
+          } else if (profilePath != null && profilePath.isNotEmpty) {
+            imageUrl = '$seerrProfileBase$profilePath';
           }
 
           return _CastPersonCard(
@@ -10799,11 +10857,15 @@ class DetailCastRow extends StatelessWidget {
             onKeyEvent: onItemKeyEvent == null
                 ? null
                 : (event) => onItemKeyEvent!(index, event),
-            onTap: personId != null
-                ? () => context.push(
-                    Destinations.item(personId, serverId: serverId),
-                  )
-                : null,
+            onTap: personId == null
+                ? null
+                : () => context.push(
+                      // A person who only exists in Seerr has a TMDB id, which
+                      // the library wouldn't know what to do with.
+                      serverId == 'seerr'
+                          ? Destinations.seerrPerson(personId)
+                          : Destinations.item(personId, serverId: serverId),
+                    ),
           );
         },
       ),
@@ -12021,6 +12083,9 @@ Widget? _seerrRequestButton(
   SeerrMediaDetailViewModel? seerr,
   AppLocalizations l10n, {
   required bool is4k,
+  bool isPrimary = false,
+  FocusNode? focusNode,
+  bool autofocus = false,
 }) {
   if (seerr == null) return null;
   final action = seerrRequestActionFor(
@@ -12028,26 +12093,26 @@ Widget? _seerrRequestButton(
     seerr,
     l10n,
   );
-  if (action.kind == SeerrRequestActionKind.request) {
-    return _DetailActionButton(
-      label: action.label,
-      icon: Icons.add,
-      onPressed: () =>
-          showSeerrRequestDialog(context: context, vm: seerr, is4k: is4k),
-    );
-  }
-  if (action.kind == SeerrRequestActionKind.cancel) {
-    return _DetailActionButton(
-      label: action.label,
-      icon: Icons.close,
-      onPressed: () => showSeerrCancelRequestDialog(
-        context: context,
-        vm: seerr,
-        is4k: is4k,
-      ),
-    );
-  }
-  return null;
+  final icon = switch (action.kind) {
+    SeerrRequestActionKind.request => Icons.add,
+    SeerrRequestActionKind.cancel => Icons.close,
+    _ => null,
+  };
+  if (icon == null) return null;
+  return _DetailActionButton(
+    label: action.label,
+    icon: icon,
+    isPrimary: isPrimary,
+    focusNode: focusNode,
+    autofocus: autofocus,
+    onPressed: () => action.kind == SeerrRequestActionKind.request
+        ? showSeerrRequestDialog(context: context, vm: seerr, is4k: is4k)
+        : showSeerrCancelRequestDialog(
+            context: context,
+            vm: seerr,
+            is4k: is4k,
+          ),
+  );
 }
 
 class DetailSeasonsRow extends StatelessWidget {
@@ -12064,6 +12129,10 @@ class DetailSeasonsRow extends StatelessWidget {
   /// corner from the watched checkmark.
   final Map<int, int>? seerrSeasonStatus;
 
+  /// Replaces opening the season, for a series with no season to open because
+  /// it is not in the library.
+  final void Function(int seasonNumber)? onSeasonTap;
+
   const DetailSeasonsRow({
     required this.seasons,
     required this.imageApi,
@@ -12073,6 +12142,7 @@ class DetailSeasonsRow extends StatelessWidget {
     this.onItemKeyEvent,
     this.onItemLongPress,
     this.seerrSeasonStatus,
+    this.onSeasonTap,
   });
 
   @override
@@ -12130,9 +12200,11 @@ class DetailSeasonsRow extends StatelessWidget {
             onKeyEvent: onItemKeyEvent == null
                 ? null
                 : (_, event) => onItemKeyEvent!(index, event),
-            onTap: () => context.push(
-              Destinations.item(season.id, serverId: season.serverId),
-            ),
+            onTap: onSeasonTap != null
+                ? () => onSeasonTap!(season.indexNumber ?? 0)
+                : () => context.push(
+                      Destinations.item(season.id, serverId: season.serverId),
+                    ),
             onLongPress: onItemLongPress != null
                 ? () => onItemLongPress!(season)
                 : null,

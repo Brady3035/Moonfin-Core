@@ -9,6 +9,7 @@ import '../../preference/preference_constants.dart';
 import '../../preference/user_preferences.dart';
 import '../models/aggregated_item.dart';
 import '../models/lyrics.dart';
+import '../models/tmdb_item_ref.dart';
 import '../services/row_data_source.dart';
 import '../repositories/item_mutation_repository.dart';
 import '../repositories/mdblist_repository.dart';
@@ -291,6 +292,15 @@ class ItemDetailViewModel extends ChangeNotifier {
   SeerrMediaDetailViewModel? _seerr;
   SeerrMediaDetailViewModel? get seerr => _seerr;
 
+  /// Whether this screen stands in for a title that is not in the library, in
+  /// which case there is nothing to play, mark watched or download.
+  bool _isSeerrOnly = false;
+  bool get isSeerrOnly => _isSeerrOnly;
+
+  /// Only used to resolve an IMDb-keyed id by searching for it.
+  String? _seerrOnlyTitle;
+  set seerrOnlyTitle(String? value) => _seerrOnlyTitle = value;
+
   /// Resolves the Seerr side of a library item, if there is one to resolve.
   /// A miss leaves the screen exactly as it was, so nothing here ever surfaces
   /// an error.
@@ -349,6 +359,96 @@ class ItemDetailViewModel extends ChangeNotifier {
        _mdbListRepository = mdbListRepository,
        _tmdbRepository = tmdbRepository;
 
+  /// Builds the screen for a title that is not in the library at all, out of
+  /// what Seerr knows about it. The shape is the same, so the layouts, the
+  /// button row and the Seerr tab all work unchanged.
+  Future<void> _loadSeerrOnly(TmdbItemRef ref) async {
+    _isSeerrOnly = true;
+    final vm = await _ensureSeerr();
+    await vm.load(ref.id, ref.seerrMediaType, title: _seerrOnlyTitle);
+
+    final state = vm.state;
+    if (state.error != null || state.tmdbId == 0) {
+      _errorMessage = state.error ?? 'Media not found on Seerr';
+      _state = ItemDetailState.error;
+      notifyListeners();
+      return;
+    }
+
+    _item = AggregatedItem(
+      id: itemId,
+      // The convention the Seerr rows already use, which the detail screens
+      // read to decide where a tap should land.
+      serverId: 'seerr',
+      rawData: _seerrRawData(state),
+    );
+    // Seerr owns the seasons here, so nothing goes looking for them on a server
+    // that has never heard of this title.
+    _seasons = _seerrSeasons(state);
+    _state = ItemDetailState.ready;
+    notifyListeners();
+  }
+
+  Map<String, dynamic> _seerrRawData(SeerrMediaDetailState s) {
+    final date = s.releaseDate ?? s.firstAirDate;
+    final year = date != null && date.length >= 4
+        ? int.tryParse(date.substring(0, 4))
+        : null;
+    final runtimeMinutes = s.runtime;
+    return {
+      'Name': s.displayTitle,
+      'Overview': s.overview,
+      'Type': s.isTv ? 'Series' : 'Movie',
+      'ProviderIds': {
+        'Tmdb': '${s.tmdbId}',
+        if (s.externalIds?.imdbId != null) 'Imdb': s.externalIds!.imdbId,
+      },
+      'PosterPath': s.posterPath,
+      'BackdropPath': s.backdropPath,
+      if (year != null) 'ProductionYear': year,
+      'PremiereDate': s.releaseDate ?? s.firstAirDate,
+      'CommunityRating': s.voteAverage,
+      'Genres': [for (final g in s.genres) g.name],
+      'Studios': [for (final n in s.networks) {'Name': n.name}],
+      'Taglines': [?s.tagline],
+      'People': [
+        for (final c in s.credits?.cast ?? const [])
+          {
+            'Id': '${c.id}',
+            'Name': c.name,
+            'Role': c.character,
+            'Type': 'Actor',
+            'ProfilePath': c.profilePath,
+          },
+      ],
+      if (runtimeMinutes != null && runtimeMinutes > 0)
+        'RunTimeTicks': runtimeMinutes * 600000000,
+      'Status': s.tvStatus,
+      'ChildCount': s.numberOfSeasons,
+      'SeerrMediaType': s.isTv ? 'tv' : 'movie',
+      'SeerrStatus': s.mediaInfo?.status,
+      'UserData': const {'Played': false, 'IsFavorite': false},
+      'MediaSources': const [],
+      'MediaStreams': const [],
+      'CanDelete': false,
+    };
+  }
+
+  List<AggregatedItem> _seerrSeasons(SeerrMediaDetailState s) => [
+        for (final season in s.tv?.seasons ?? const [])
+          if (season.seasonNumber > 0)
+            AggregatedItem(
+              id: '${itemId}:s${season.seasonNumber}',
+              serverId: 'seerr',
+              rawData: {
+                'Name': season.name ?? '',
+                'Type': 'Season',
+                'IndexNumber': season.seasonNumber,
+                'ChildCount': season.episodeCount,
+              },
+            ),
+      ];
+
   Future<void> load({String? mediaSourceId}) async {
     _state = ItemDetailState.loading;
     _collectionItems = const [];
@@ -370,8 +470,13 @@ class ItemDetailViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      if (itemId.startsWith('tmdb:')) {
-        final tmdbId = itemId.substring(5);
+      final tmdbRef = TmdbItemRef.tryParse(itemId);
+      if (tmdbRef != null && tmdbRef.kind != TmdbItemKind.person) {
+        await _loadSeerrOnly(tmdbRef);
+        return;
+      }
+      if (tmdbRef != null) {
+        final tmdbId = tmdbRef.id;
         final seerrRepo = await GetIt.instance.getAsync<SeerrRepository>();
         await seerrRepo.ensureInitialized();
         final tmdbIdInt = int.tryParse(tmdbId);
@@ -456,6 +561,10 @@ class ItemDetailViewModel extends ChangeNotifier {
   }
 
   Future<void> _loadSecondary() async {
+    // A Seerr-only title has no library id, so every one of these would be a
+    // guaranteed miss. Its content is already loaded.
+    if (_isSeerrOnly) return;
+
     final type = _item?.type;
     final futures = <Future>[];
     // Deliberately outside the Future.wait below, so a slow Seerr server never

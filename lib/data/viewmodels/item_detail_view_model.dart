@@ -387,6 +387,10 @@ class ItemDetailViewModel extends ChangeNotifier {
     _seasons = _seerrSeasons(state);
     _state = ItemDetailState.ready;
     notifyListeners();
+
+    // Everything else in _loadSecondary needs a library id, but ratings are
+    // keyed by TMDB id, which this does have.
+    unawaited(_loadRatings());
   }
 
   Map<String, dynamic> _seerrRawData(SeerrMediaDetailState s) {
@@ -561,10 +565,6 @@ class ItemDetailViewModel extends ChangeNotifier {
   }
 
   Future<void> _loadSecondary() async {
-    // A Seerr-only title has no library id, so every one of these would be a
-    // guaranteed miss. Its content is already loaded.
-    if (_isSeerrOnly) return;
-
     final type = _item?.type;
     final futures = <Future>[];
     // Deliberately outside the Future.wait below, so a slow Seerr server never

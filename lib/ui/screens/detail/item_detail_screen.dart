@@ -1703,6 +1703,7 @@ class _DetailContentState extends State<_DetailContent> {
 
   List<Widget> _buildMovieContent(BuildContext context, AggregatedItem item) {
     final l10n = AppLocalizations.of(context);
+    final seerrFirstNode = _seerrSectionChain().firstOrNull;
     final hasChapters = item.chapters.isNotEmpty;
 
     final groupedFeatures = <String, List<AggregatedItem>>{};
@@ -1853,13 +1854,17 @@ class _DetailContentState extends State<_DetailContent> {
                   collectionFocusNode ??
                   castFocusNode ??
                   chapterFeatureLastNode,
+              downTarget: seerrFirstNode,
               itemCount: viewModel.similar.length,
-              consumeDownWhenNoTarget: true,
+              consumeDownWhenNoTarget: seerrFirstNode == null,
             ),
           ),
         ),
       ],
-      ..._buildSeerrSections(context),
+      ..._buildSeerrSections(
+        context,
+        upTarget: similarFocusNode ?? castFocusNode ?? chapterFeatureLastNode,
+      ),
       const SizedBox(height: 48),
     ];
   }
@@ -1875,9 +1880,28 @@ class _DetailContentState extends State<_DetailContent> {
         );
   }
 
+  /// The focusable pieces of the Seerr block, in the order they appear, so each
+  /// can hand off to its neighbour and the section above has somewhere to land.
+  List<FocusNode> _seerrSectionChain() {
+    final state = seerrItemTabState(viewModel);
+    if (state == null) return const [];
+    return [
+      if (SeerrItemChips.hasContent(state))
+        _sectionFocusNode('detailSeerrChips'),
+      if (state.recommendations.isNotEmpty)
+        _sectionFocusNode('detailSeerrRecommendations'),
+      if (state.similar.isNotEmpty) _sectionFocusNode('detailSeerrSimilar'),
+      if (state.movie?.collection != null)
+        _sectionFocusNode('detailSeerrCollection'),
+    ];
+  }
+
   /// The Seerr side of a title, as rows under the library ones: what it is
   /// filed under, the facts behind it, and what it leads to.
-  List<Widget> _buildSeerrSections(BuildContext context) {
+  List<Widget> _buildSeerrSections(
+    BuildContext context, {
+    FocusNode? upTarget,
+  }) {
     final state = seerrItemTabState(viewModel);
     if (state == null) return const [];
 
@@ -1890,76 +1914,88 @@ class _DetailContentState extends State<_DetailContent> {
     );
     final seerrLabel =
         GetIt.instance<SeerrPreferences>().labelOrDefault(l10n.seerr);
+    final collection = state.movie?.collection;
+    final chain = _seerrSectionChain();
+    final chipsNode = _sectionFocusNode('detailSeerrChips');
+    final bannerNode = _sectionFocusNode('detailSeerrCollection');
 
-    final hasRecommendations = state.recommendations.isNotEmpty;
-    final hasSimilar = state.similar.isNotEmpty;
-    final recommendationsNode =
-        hasRecommendations ? _sectionFocusNode('detailSeerrRecommendations') : null;
-    final similarNode = hasSimilar ? _sectionFocusNode('detailSeerrSimilar') : null;
+    FocusNode? above(FocusNode node) {
+      final i = chain.indexOf(node);
+      return i > 0 ? chain[i - 1] : upTarget;
+    }
 
-    Widget row(
-      String title,
-      List<SeerrDiscoverItem> items,
-      FocusNode? node, {
-      FocusNode? upTarget,
-      FocusNode? downTarget,
-    }) =>
-        HorizontalScrollSection(
-          title: '$seerrLabel · $title',
-          titleStyle: titleStyle,
-          builder: (_, ctrl) => SeerrAppearancesRow(
-            items: items,
-            prefs: prefs,
-            firstFocusNode: node,
-            scrollController: ctrl,
-            onItemKeyEvent: _buildVerticalRowHandler(
-              sourceFocusNode: node,
-              upTarget: upTarget,
-              downTarget: downTarget,
-              itemCount: items.length,
-              consumeDownWhenNoTarget: downTarget == null,
-            ),
+    FocusNode? below(FocusNode node) {
+      final i = chain.indexOf(node);
+      return i >= 0 && i < chain.length - 1 ? chain[i + 1] : null;
+    }
+
+    Widget row(String title, List<SeerrDiscoverItem> items, FocusNode node) {
+      final down = below(node);
+      return HorizontalScrollSection(
+        title: '$seerrLabel · $title',
+        titleStyle: titleStyle,
+        builder: (_, ctrl) => SeerrAppearancesRow(
+          items: items,
+          prefs: prefs,
+          firstFocusNode: node,
+          scrollController: ctrl,
+          onItemKeyEvent: _buildVerticalRowHandler(
+            sourceFocusNode: node,
+            upTarget: above(node),
+            downTarget: down,
+            itemCount: items.length,
+            consumeDownWhenNoTarget: down == null,
           ),
-        );
+        ),
+      );
+    }
 
     return [
       if (SeerrItemChips.hasContent(state)) ...[
         const SizedBox(height: 32),
         Text(seerrLabel, style: titleStyle),
         const SizedBox(height: 12),
-        SeerrItemChips(state: state),
+        SeerrItemChips(
+          state: state,
+          firstFocusNode: chipsNode,
+          onNavigateUp: above(chipsNode)?.requestFocus,
+          onNavigateDown: below(chipsNode)?.requestFocus,
+        ),
       ],
       if (SeerrStatsCard.hasContent(state, l10n)) ...[
         const SizedBox(height: 24),
         SeerrStatsCard(state: state),
       ],
-      if (hasRecommendations) ...[
+      if (state.recommendations.isNotEmpty) ...[
         const SizedBox(height: 32),
         row(
           l10n.recommendations,
           state.recommendations,
-          recommendationsNode,
-          downTarget: similarNode,
+          _sectionFocusNode('detailSeerrRecommendations'),
         ),
       ],
-      if (hasSimilar) ...[
+      if (state.similar.isNotEmpty) ...[
         const SizedBox(height: 32),
         row(
           l10n.similar,
           state.similar,
-          similarNode,
-          upTarget: recommendationsNode,
+          _sectionFocusNode('detailSeerrSimilar'),
         ),
       ],
-      if (state.movie?.collection != null) ...[
+      if (collection != null) ...[
         const SizedBox(height: 24),
-        SeerrCollectionBanner(collection: state.movie!.collection!),
+        SeerrCollectionBanner(
+          collection: collection,
+          focusNode: bannerNode,
+          onNavigateUp: above(bannerNode)?.requestFocus,
+        ),
       ],
     ];
   }
 
   List<Widget> _buildSeriesContent(BuildContext context, AggregatedItem item) {
     final l10n = AppLocalizations.of(context);
+    final seerrFirstNode = _seerrSectionChain().firstOrNull;
     final hasSeasons = viewModel.seasons.isNotEmpty;
     final hasCast = viewModel.actors.isNotEmpty;
     final hasSimilar = viewModel.similar.isNotEmpty;
@@ -2178,8 +2214,16 @@ class _DetailContentState extends State<_DetailContent> {
             seriesNextUpFocusNode ??
             metadataFocusNode ??
             actionButtonsFocusNode,
+        nextSectionFocusNode: seerrFirstNode,
       ),
-      ..._buildSeerrSections(context),
+      ..._buildSeerrSections(
+        context,
+        upTarget: similarFocusNode ??
+            castFocusNode ??
+            seasonsFocusNode ??
+            metadataFocusNode ??
+            actionButtonsFocusNode,
+      ),
       const SizedBox(height: 48),
     ];
   }

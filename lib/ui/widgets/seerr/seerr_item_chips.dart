@@ -14,7 +14,22 @@ import 'seerr_browse_chip.dart';
 class SeerrItemChips extends StatelessWidget {
   final SeerrMediaDetailState state;
 
-  const SeerrItemChips({super.key, required this.state});
+  /// Where a d-pad lands when it enters the block from above.
+  final FocusNode? firstFocusNode;
+
+  /// Called when up from the first chip or down from the last would leave the
+  /// block. Everything in between is left to the usual traversal, which walks
+  /// the wrapped rows by position.
+  final VoidCallback? onNavigateUp;
+  final VoidCallback? onNavigateDown;
+
+  const SeerrItemChips({
+    super.key,
+    required this.state,
+    this.firstFocusNode,
+    this.onNavigateUp,
+    this.onNavigateDown,
+  });
 
   /// Whether there is anything to file this title under, so a caller can drop
   /// the heading and spacing around it too.
@@ -34,6 +49,33 @@ class SeerrItemChips extends StatelessWidget {
           ),
         );
 
+    // Numbered across the whole block, so only the first and last chip hand
+    // off out of it.
+    final total =
+        state.genres.length + state.networks.length + state.keywords.length;
+    var index = 0;
+    SeerrBrowseChip chip({
+      required String label,
+      required VoidCallback onTap,
+      Color color = Colors.white12,
+      Color? borderColor,
+      Color labelColor = Colors.white,
+      bool dense = false,
+    }) {
+      final i = index++;
+      return SeerrBrowseChip(
+        label: label,
+        onTap: onTap,
+        color: color,
+        borderColor: borderColor,
+        labelColor: labelColor,
+        dense: dense,
+        focusNode: i == 0 ? firstFocusNode : null,
+        onNavigateUp: i == 0 ? onNavigateUp : null,
+        onNavigateDown: i == total - 1 ? onNavigateDown : null,
+      );
+    }
+
     final rows = <Widget>[
       if (state.genres.isNotEmpty)
         Wrap(
@@ -41,7 +83,7 @@ class SeerrItemChips extends StatelessWidget {
           runSpacing: 8,
           children: [
             for (final g in state.genres)
-              SeerrBrowseChip(
+              chip(
                 label: g.name,
                 onTap: () => open(g.id.toString(), g.name, 'genre'),
               ),
@@ -53,7 +95,7 @@ class SeerrItemChips extends StatelessWidget {
           runSpacing: 6,
           children: [
             for (final n in state.networks)
-              SeerrBrowseChip(
+              chip(
                 label: n.name,
                 color: Colors.transparent,
                 borderColor: Colors.white24,
@@ -68,7 +110,7 @@ class SeerrItemChips extends StatelessWidget {
           runSpacing: 6,
           children: [
             for (final k in state.keywords)
-              SeerrBrowseChip(
+              chip(
                 label: k.name,
                 color: Colors.white.withValues(alpha: 0.05),
                 labelColor: Colors.white60,

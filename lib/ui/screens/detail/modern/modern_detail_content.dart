@@ -154,7 +154,14 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
   final FocusNode _personMoviesFirstFocusNode = FocusNode(debugLabel: 'personMoviesFirst');
   final FocusNode _personSeriesFirstFocusNode = FocusNode(debugLabel: 'personSeriesFirst');
   final FocusNode _personSeerrAppearancesFirstFocusNode = FocusNode(debugLabel: 'personSeerrAppearancesFirst');
-  final FocusNode _seerrTabFirstFocusNode = FocusNode(debugLabel: 'seerrTabFirst');
+  final FocusNode _seerrChipsFocusNode =
+      FocusNode(debugLabel: 'seerrChipsFirst');
+  final FocusNode _seerrRecommendationsFocusNode =
+      FocusNode(debugLabel: 'seerrRecommendationsFirst');
+  final FocusNode _seerrSimilarFocusNode =
+      FocusNode(debugLabel: 'seerrSimilarFirst');
+  final FocusNode _seerrBannerFocusNode =
+      FocusNode(debugLabel: 'seerrCollectionBanner');
   final FocusNode _personSeerrCrewCreditsFirstFocusNode = FocusNode(debugLabel: 'personSeerrCrewCreditsFirst');
   final Map<String, FocusNode> _boxSetHeadingFocusNodes = {};
   final Map<String, FocusNode> _boxSetRowFirstFocusNodes = {};
@@ -496,7 +503,10 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
     _personMoviesFirstFocusNode.onKeyEvent = leftToSidebarHandler;
     _personSeriesFirstFocusNode.onKeyEvent = leftToSidebarHandler;
     _personSeerrAppearancesFirstFocusNode.onKeyEvent = leftToSidebarHandler;
-    _seerrTabFirstFocusNode.onKeyEvent = leftToSidebarHandler;
+    _seerrChipsFocusNode.onKeyEvent = leftToSidebarHandler;
+    _seerrRecommendationsFocusNode.onKeyEvent = leftToSidebarHandler;
+    _seerrSimilarFocusNode.onKeyEvent = leftToSidebarHandler;
+    _seerrBannerFocusNode.onKeyEvent = leftToSidebarHandler;
     _personSeerrCrewCreditsFirstFocusNode.onKeyEvent = leftToSidebarHandler;
     _gridFirstFocusNode.onKeyEvent = leftToSidebarHandler;
     _moviesFirstFocusNode.onKeyEvent = leftToSidebarHandler;
@@ -640,7 +650,10 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
     _personMoviesFirstFocusNode.dispose();
     _personSeriesFirstFocusNode.dispose();
     _personSeerrAppearancesFirstFocusNode.dispose();
-    _seerrTabFirstFocusNode.dispose();
+    _seerrChipsFocusNode.dispose();
+    _seerrRecommendationsFocusNode.dispose();
+    _seerrSimilarFocusNode.dispose();
+    _seerrBannerFocusNode.dispose();
     _personSeerrCrewCreditsFirstFocusNode.dispose();
     for (final node in _boxSetHeadingFocusNodes.values) {
       node.dispose();
@@ -800,7 +813,8 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
           }
         } else if (label ==
             GetIt.instance<SeerrPreferences>().labelOrDefault(l10n.seerr)) {
-          _seerrTabFirstFocusNode.requestFocus();
+          final state = seerrItemTabState(_vm);
+          if (state != null) _seerrTabChain(state).firstOrNull?.requestFocus();
         } else if (label == l10n.appearancesSeerr) {
           _personSeerrAppearancesFirstFocusNode.requestFocus();
         } else if (label == l10n.crewContributionsSeerr) {
@@ -862,6 +876,21 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
 
   List<_ModernTab> _tabsFor(AggregatedItem item, AppLocalizations l10n) {
     final hasCast = _vm.actors.isNotEmpty;
+    final cast = _ModernTab(l10n.castMembers, _castTab);
+    final seerrState = seerrItemTabState(_vm);
+    final seerrTab = seerrState == null
+        ? null
+        : _ModernTab(
+            GetIt.instance<SeerrPreferences>().labelOrDefault(l10n.seerr),
+            (context, item) => _seerrTab(context, seerrState),
+          );
+
+    // A title that isn't in the library has no episodes to list, no chapters,
+    // no extras and no file to describe, so the rest would all be empty.
+    if (_vm.isSeerrOnly) {
+      return [if (hasCast) cast, ?seerrTab];
+    }
+
     final hasCrew = _vm.directors.isNotEmpty || _vm.writers.isNotEmpty;
     final hasStudios = item.studios.isNotEmpty;
     final hasSimilar = _vm.similar.isNotEmpty;
@@ -883,19 +912,11 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
       }
     }
 
-    final cast = _ModernTab(l10n.castMembers, _castTab);
     final crew = _ModernTab(l10n.crewSection, _crewTab);
     final studios = _ModernTab(l10n.studios, _studiosTab);
     final chapters = _ModernTab(l10n.chapters, _chaptersTab);
     final details = _ModernTab(l10n.details, _detailsTab);
     final similar = _ModernTab(l10n.similar, (_, _) => _similarTab(context, _vm.similar));
-    final seerrState = seerrItemTabState(_vm);
-    final seerrTab = seerrState == null
-        ? null
-        : _ModernTab(
-            GetIt.instance<SeerrPreferences>().labelOrDefault(l10n.seerr),
-            (context, item) => _seerrTab(context, seerrState),
-          );
 
     switch (item.type) {
       case 'Series':
@@ -2221,25 +2242,63 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
     );
   }
 
+  /// The focusable pieces of the Seerr tab, in the order they appear, so each
+  /// can hand off to its neighbour without every branch restating the order.
+  List<FocusNode> _seerrTabChain(SeerrMediaDetailState state) => [
+        if (SeerrItemChips.hasContent(state)) _seerrChipsFocusNode,
+        if (state.recommendations.isNotEmpty) _seerrRecommendationsFocusNode,
+        if (state.similar.isNotEmpty) _seerrSimilarFocusNode,
+        if (state.movie?.collection != null) _seerrBannerFocusNode,
+      ];
+
   /// The Seerr side of a title: what it is filed under, the facts behind it,
   /// and what it leads to.
   Widget _seerrTab(BuildContext context, SeerrMediaDetailState state) {
     final l10n = AppLocalizations.of(context);
+    final collection = state.movie?.collection;
+    final chain = _seerrTabChain(state);
+
+    VoidCallback above(FocusNode node) {
+      final i = chain.indexOf(node);
+      return i > 0 ? chain[i - 1].requestFocus : _focusSelectedTab;
+    }
+
+    VoidCallback? below(FocusNode node) {
+      final i = chain.indexOf(node);
+      return i >= 0 && i < chain.length - 1 ? chain[i + 1].requestFocus : null;
+    }
+
     final sections = <Widget>[
-      if (SeerrItemChips.hasContent(state)) SeerrItemChips(state: state),
+      if (SeerrItemChips.hasContent(state))
+        SeerrItemChips(
+          state: state,
+          firstFocusNode: _seerrChipsFocusNode,
+          onNavigateUp: above(_seerrChipsFocusNode),
+          onNavigateDown: below(_seerrChipsFocusNode),
+        ),
       if (SeerrStatsCard.hasContent(state, l10n)) SeerrStatsCard(state: state),
       if (state.recommendations.isNotEmpty)
-        _seerrTabRow(l10n.recommendations, state.recommendations,
-            firstFocusNode: _seerrTabFirstFocusNode),
+        _seerrTabRow(
+          l10n.recommendations,
+          state.recommendations,
+          firstFocusNode: _seerrRecommendationsFocusNode,
+          onNavigateUp: above(_seerrRecommendationsFocusNode),
+          onNavigateDown: below(_seerrRecommendationsFocusNode),
+        ),
       if (state.similar.isNotEmpty)
         _seerrTabRow(
           l10n.similar,
           state.similar,
-          firstFocusNode:
-              state.recommendations.isEmpty ? _seerrTabFirstFocusNode : null,
+          firstFocusNode: _seerrSimilarFocusNode,
+          onNavigateUp: above(_seerrSimilarFocusNode),
+          onNavigateDown: below(_seerrSimilarFocusNode),
         ),
-      if (state.movie?.collection != null)
-        SeerrCollectionBanner(collection: state.movie!.collection!),
+      if (collection != null)
+        SeerrCollectionBanner(
+          collection: collection,
+          focusNode: _seerrBannerFocusNode,
+          onNavigateUp: above(_seerrBannerFocusNode),
+        ),
     ];
 
     return Focus(
@@ -2264,6 +2323,8 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
     String title,
     List<SeerrDiscoverItem> items, {
     FocusNode? firstFocusNode,
+    VoidCallback? onNavigateUp,
+    VoidCallback? onNavigateDown,
   }) {
     final textTheme = Theme.of(context).textTheme;
     return Column(
@@ -2282,9 +2343,14 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
           prefs: widget.prefs,
           firstFocusNode: firstFocusNode,
           onItemKeyEvent: (index, event) {
-            if (event is KeyDownEvent &&
-                event.logicalKey == LogicalKeyboardKey.arrowUp) {
-              _focusSelectedTab();
+            if (event is! KeyDownEvent) return KeyEventResult.ignored;
+            if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
+              (onNavigateUp ?? _focusSelectedTab)();
+              return KeyEventResult.handled;
+            }
+            if (event.logicalKey == LogicalKeyboardKey.arrowDown &&
+                onNavigateDown != null) {
+              onNavigateDown();
               return KeyEventResult.handled;
             }
             return KeyEventResult.ignored;

@@ -15,8 +15,18 @@ import 'seerr_image_urls.dart';
 /// the collection it belongs to.
 class SeerrCollectionBanner extends StatefulWidget {
   final SeerrCollectionRef collection;
+  final FocusNode? focusNode;
 
-  const SeerrCollectionBanner({super.key, required this.collection});
+  /// Called when up would leave the banner, which is the last thing in the
+  /// block, so there is nothing below it to reach.
+  final VoidCallback? onNavigateUp;
+
+  const SeerrCollectionBanner({
+    super.key,
+    required this.collection,
+    this.focusNode,
+    this.onNavigateUp,
+  });
 
   @override
   State<SeerrCollectionBanner> createState() => _SeerrCollectionBannerState();
@@ -33,6 +43,7 @@ class _SeerrCollectionBannerState extends State<SeerrCollectionBanner>
           Destinations.seerrCollection(collection.id.toString()),
         );
     return Focus(
+      focusNode: widget.focusNode,
       onFocusChange: setFocused,
       onKeyEvent: (node, event) {
         if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
@@ -42,6 +53,11 @@ class _SeerrCollectionBannerState extends State<SeerrCollectionBanner>
             event.logicalKey == LogicalKeyboardKey.enter ||
             event.logicalKey == LogicalKeyboardKey.gameButtonA) {
           open();
+          return KeyEventResult.handled;
+        }
+        if (event.logicalKey == LogicalKeyboardKey.arrowUp &&
+            widget.onNavigateUp != null) {
+          widget.onNavigateUp!();
           return KeyEventResult.handled;
         }
         return KeyEventResult.ignored;

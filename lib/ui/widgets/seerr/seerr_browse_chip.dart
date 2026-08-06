@@ -13,6 +13,12 @@ class SeerrBrowseChip extends StatefulWidget {
   final Color? borderColor;
   final Color labelColor;
   final bool dense;
+  final FocusNode? focusNode;
+
+  /// Handed the arrow key when moving off the chip would leave the block.
+  /// Anything unhandled falls through to the usual traversal.
+  final VoidCallback? onNavigateUp;
+  final VoidCallback? onNavigateDown;
 
   const SeerrBrowseChip({
     super.key,
@@ -22,6 +28,9 @@ class SeerrBrowseChip extends StatefulWidget {
     this.borderColor,
     this.labelColor = Colors.white,
     this.dense = false,
+    this.focusNode,
+    this.onNavigateUp,
+    this.onNavigateDown,
   });
 
   @override
@@ -36,6 +45,7 @@ class _SeerrBrowseChipState extends State<SeerrBrowseChip>
     final vPad = widget.dense ? 4.0 : 6.0;
     final borderRadius = AppRadius.circular(999);
     return Focus(
+      focusNode: widget.focusNode,
       onFocusChange: setFocused,
       onKeyEvent: (node, event) {
         if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
@@ -45,6 +55,16 @@ class _SeerrBrowseChipState extends State<SeerrBrowseChip>
             event.logicalKey == LogicalKeyboardKey.enter ||
             event.logicalKey == LogicalKeyboardKey.gameButtonA) {
           widget.onTap();
+          return KeyEventResult.handled;
+        }
+        if (event.logicalKey == LogicalKeyboardKey.arrowUp &&
+            widget.onNavigateUp != null) {
+          widget.onNavigateUp!();
+          return KeyEventResult.handled;
+        }
+        if (event.logicalKey == LogicalKeyboardKey.arrowDown &&
+            widget.onNavigateDown != null) {
+          widget.onNavigateDown!();
           return KeyEventResult.handled;
         }
         return KeyEventResult.ignored;

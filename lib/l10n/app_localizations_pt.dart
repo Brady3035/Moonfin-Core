@@ -10523,6 +10523,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get groupByStudio => 'Studio';
+
+  @override
+  String get showAlphabeticalFilters => 'Show Alphabet';
 }
 
 /// The translations for Portuguese, as used in Brazil (`pt_BR`).

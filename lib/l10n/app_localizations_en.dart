@@ -10353,6 +10353,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get groupByStudio => 'Studio';
+
+  @override
+  String get showAlphabeticalFilters => 'Show Alphabet';
 }
 
 /// The translations for English, as used in the United Kingdom (`en_GB`).

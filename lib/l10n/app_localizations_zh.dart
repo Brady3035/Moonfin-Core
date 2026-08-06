@@ -10020,6 +10020,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get groupByStudio => 'Studio';
+
+  @override
+  String get showAlphabeticalFilters => 'Show Alphabet';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).

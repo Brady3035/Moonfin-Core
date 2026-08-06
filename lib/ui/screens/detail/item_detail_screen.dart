@@ -53,11 +53,13 @@ import '../../widgets/add_to_playlist_dialog.dart';
 import '../../widgets/logo_view.dart';
 import '../../widgets/media_card.dart';
 import '../../widgets/seerr/seerr_cancel_request_dialog.dart';
+import '../../widgets/seerr/seerr_item_status.dart';
 import '../../widgets/seerr/seerr_manage_requests_sheet.dart';
 import '../../widgets/seerr/seerr_report_issue_dialog.dart';
 import '../../widgets/seerr/seerr_request_action.dart';
 import '../../widgets/seerr/seerr_request_dialog.dart';
 import '../../widgets/seerr/seerr_status_dot.dart';
+import '../../widgets/seerr/seerr_status_pill.dart';
 import '../../widgets/change_artwork_dialog.dart';
 import '../../widgets/navigation_layout.dart';
 import '../../widgets/horizontal_scroll_section.dart';
@@ -3665,6 +3667,7 @@ class _HeaderSection extends StatelessWidget {
     final showLyrics =
         useDesktopLayout && isMusicItem && viewModel.lyrics.isNotEmpty;
     final isCollection = item.type == 'BoxSet';
+    final seerrStatus = seerrItemStatus(viewModel);
 
     final infoColumn = Column(
       crossAxisAlignment: isMobile
@@ -3750,7 +3753,14 @@ class _HeaderSection extends StatelessWidget {
             textAlign: isMobile ? TextAlign.center : null,
           ),
         const SizedBox(height: 8),
-        DetailMetadataRow(item: item, selectedMediaSource: selectedMediaSource),
+        DetailMetadataRow(
+          item: item,
+          selectedMediaSource: selectedMediaSource,
+          extraBadges: [
+            if (seerrStatus != null)
+              SeerrStatusPills(state: seerrStatus, onlyNoteworthy: true),
+          ],
+        ),
         if (viewModel.ratings.isNotEmpty ||
             item.communityRating != null ||
             item.criticRating != null) ...[
@@ -4183,10 +4193,14 @@ class DetailMetadataRow extends StatelessWidget {
   /// tab, where those fields already live in the hero metadata row.
   final bool technicalOnly;
 
+  /// Trailing badges from elsewhere, laid out with the technical chips.
+  final List<Widget> extraBadges;
+
   const DetailMetadataRow({
     required this.item,
     this.selectedMediaSource,
     this.technicalOnly = false,
+    this.extraBadges = const [],
   });
 
   @override
@@ -4282,14 +4296,18 @@ class DetailMetadataRow extends StatelessWidget {
           runSpacing: 4,
           children: separated,
         ),
-        if (badges.isNotEmpty)
+        if (badges.isNotEmpty || extraBadges.isNotEmpty)
           Padding(
             padding: const EdgeInsets.only(top: 6),
             child: Wrap(
               alignment: compact ? WrapAlignment.center : WrapAlignment.start,
+              crossAxisAlignment: WrapCrossAlignment.center,
               spacing: 6,
               runSpacing: 4,
-              children: badges.map((b) => _techChip(theme, b)).toList(),
+              children: [
+                ...badges.map((b) => _techChip(theme, b)),
+                ...extraBadges,
+              ],
             ),
           ),
       ],
@@ -6644,6 +6662,20 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
       }
     }
 
+    // Under the row rather than in it, so a bar never takes a focus slot. The
+    // row is left exactly as it was when nothing is downloading, since a Column
+    // around it would re-align it.
+    final downloads = seerrItemDownloads(viewModel);
+    final withDownloads = downloads == null
+        ? rowContent
+        : Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              rowContent,
+              SeerrItemDownloadBars(state: downloads),
+            ],
+          );
+
     return Focus(
       canRequestFocus: false,
       skipTraversal: true,
@@ -6664,7 +6696,7 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
           );
         });
       },
-      child: rowContent,
+      child: withDownloads,
     );
   }
 

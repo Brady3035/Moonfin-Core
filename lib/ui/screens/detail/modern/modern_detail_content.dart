@@ -56,6 +56,8 @@ import 'widgets/details_tab_bar.dart';
 import 'widgets/season_card.dart';
 import 'widgets/up_next_card.dart';
 import '../../../widgets/overlay_sheet.dart';
+import '../../../widgets/seerr/seerr_item_status.dart';
+import '../../../widgets/seerr/seerr_status_pill.dart';
 
 double _desktopUiScale({UserPreferences? prefs}) {
   final effectivePrefs = prefs ?? GetIt.instance<UserPreferences>();
@@ -3911,7 +3913,13 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
     if (item.genres.isNotEmpty) {
       addText(item.genres.take(3).join(' · '));
     }
-    if (pieces.isEmpty) return const SizedBox.shrink();
+    // A badge rather than another word in the line, so it sits outside the dot
+    // separators.
+    final seerrStatus = seerrItemStatus(_vm);
+    final seerrPills = seerrStatus == null
+        ? null
+        : SeerrStatusPills(state: seerrStatus, onlyNoteworthy: true);
+    if (pieces.isEmpty) return seerrPills ?? const SizedBox.shrink();
 
     final separated = <Widget>[];
     for (var i = 0; i < pieces.length; i++) {
@@ -3920,6 +3928,7 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
       }
       separated.add(pieces[i]);
     }
+    if (seerrPills != null) separated.add(seerrPills);
     return Wrap(
       crossAxisAlignment: WrapCrossAlignment.center,
       spacing: 8,

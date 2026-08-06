@@ -31,20 +31,44 @@ String seerrStatusLabel(SeerrQualityStatus q, AppLocalizations l10n) {
   return l10n.notRequestedStatus;
 }
 
+/// Whether a track is worth a badge beside a library item's metadata.
+///
+/// A title already on screen in your library doesn't need to be told it is
+/// available, so plain HD availability stays silent. Everything else speaks up:
+/// something pending, something downloading, seasons missing, or a request that
+/// went wrong.
+///
+/// The 4K track speaks whenever it has any state at all, because owning the HD
+/// copy says nothing about the 4K one.
+bool seerrStatusIsNoteworthy(SeerrQualityStatus q) {
+  if (q.is4k) return q.hasAnyState;
+  if (q.isFullyAvailable) return false;
+  return q.hasAnyState;
+}
+
 /// Every quality track worth showing for a title, laid out together.
 class SeerrStatusPills extends StatelessWidget {
   final SeerrMediaDetailState state;
   final bool solid;
 
+  /// Drop the tracks that say nothing a library item doesn't already show.
+  /// Renders nothing at all when that leaves none.
+  final bool onlyNoteworthy;
+
   const SeerrStatusPills({
     super.key,
     required this.state,
     this.solid = false,
+    this.onlyNoteworthy = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    final tracks = seerrStatusTracks(state, AppLocalizations.of(context));
+    var tracks = seerrStatusTracks(state, AppLocalizations.of(context));
+    if (onlyNoteworthy) {
+      tracks = tracks.where((t) => seerrStatusIsNoteworthy(t.$1)).toList();
+      if (tracks.isEmpty) return const SizedBox.shrink();
+    }
     if (tracks.length == 1) {
       return SeerrStatusPill(
         track: tracks.first.$1,

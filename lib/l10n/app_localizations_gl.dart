@@ -613,6 +613,9 @@ class AppLocalizationsGl extends AppLocalizations {
   String get scrollRight => 'Desprácese á dereita';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre =>
       'Non se puido cargar este xénero neste momento.';
 

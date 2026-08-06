@@ -612,6 +612,9 @@ class AppLocalizationsFi extends AppLocalizations {
   String get scrollRight => 'Vieritä oikealle';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre => 'Tätä genreä ei voitu ladata juuri nyt.';
 
   @override

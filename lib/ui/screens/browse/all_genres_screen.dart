@@ -16,12 +16,12 @@ import '../../../util/platform_detection.dart';
 import '../../navigation/destinations.dart';
 import '../../widgets/focus/focusable_toolbar_button.dart';
 import '../../widgets/focus/request_initial_focus.dart';
-import '../../widgets/quick_return_wrapper.dart';
 import '../../widgets/fullscreen_backdrop_switcher.dart';
 import '../../widgets/genre_grid_card.dart';
 import '../../widgets/overlay_sheet.dart';
 import '../../widgets/poster_size_settings_dialog.dart';
 import '../../widgets/focus/context_menu_sheet.dart';
+import '../../widgets/quick_return_wrapper.dart';
 import '../../../l10n/app_localizations.dart';
 
 Color get _navyBackground => AppColorScheme.background;

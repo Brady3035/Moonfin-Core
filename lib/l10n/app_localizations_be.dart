@@ -609,6 +609,9 @@ class AppLocalizationsBe extends AppLocalizations {
   String get scrollRight => 'Пракрутка ўправа';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre => 'Не атрымалася загрузіць гэты жанр.';
 
   @override

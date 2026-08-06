@@ -609,6 +609,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get scrollRight => 'Прокрутите вправо';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre =>
       'Не удалось загрузить этот жанр прямо сейчас.';
 

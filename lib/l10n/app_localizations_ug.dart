@@ -609,6 +609,9 @@ class AppLocalizationsUg extends AppLocalizations {
   String get scrollRight => 'ئوڭغا يۆتكەڭ';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre => 'ھازىر بۇ ژانىرنى يۈكلىيەلمىدى.';
 
   @override

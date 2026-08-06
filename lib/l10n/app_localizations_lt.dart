@@ -607,6 +607,9 @@ class AppLocalizationsLt extends AppLocalizations {
   String get scrollRight => 'Slinkite dešinėn';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre => 'Šiuo metu nepavyko įkelti šio žanro.';
 
   @override

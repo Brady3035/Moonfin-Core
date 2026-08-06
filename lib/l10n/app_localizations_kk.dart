@@ -610,6 +610,9 @@ class AppLocalizationsKk extends AppLocalizations {
   String get scrollRight => 'Оңға айналдырыңыз';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre => 'Дәл қазір бұл жанрды жүктеу мүмкін емес.';
 
   @override

@@ -608,6 +608,9 @@ class AppLocalizationsEo extends AppLocalizations {
   String get scrollRight => 'Rulumu dekstren';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre => 'Ne eblis ŝargi ĉi tiun ĝenron nun.';
 
   @override

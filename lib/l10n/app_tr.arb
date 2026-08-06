@@ -6795,7 +6795,7 @@
     "@settingsAudioFallbackCodec": {
         "description": "Setting for fallback audio codec"
     },
-    "settingsAudioPassthroughAdvanced": "Doğrudan Geçiş(Passthrough) (Gelişmiş)",
+    "settingsAudioPassthroughAdvanced": "Doğrudan Geçiş (Passthrough) (Gelişmiş)",
     "@settingsAudioPassthroughAdvanced": {
         "description": "Section title for advanced passthrough controls"
     },
@@ -9380,5 +9380,121 @@
                 "type": "String"
             }
         }
+    },
+    "oledMode": "OLED Modu",
+    "@oledMode": {
+        "description": "Label for the setting that deepens blacks and enriches artwork on OLED displays"
+    },
+    "oledModeSubtitle": "Siyahları derinleştirin ve görselleri zenginleştirin. OLED ekranlarda en iyisi.",
+    "@oledModeSubtitle": {
+        "description": "Explanation under the OLED Mode setting"
+    },
+    "oledModeSubtle": "Hafif",
+    "@oledModeSubtle": {
+        "description": "OLED Mode level that darkens surfaces gently and lightly enriches artwork"
+    },
+    "oledModeVivid": "Canlı",
+    "@oledModeVivid": {
+        "description": "OLED Mode level that uses pure black surfaces and the strongest artwork enrichment"
+    },
+    "settingsAudioPassthroughMode": "Doğrudan Geçiş (Passthrough)",
+    "@settingsAudioPassthroughMode": {
+        "description": "Title of the audio passthrough mode selector"
+    },
+    "settingsAudioPassthroughModeDescription": "Sıkıştırılmış surround sesinin TV'nize veya alıcınıza nasıl ulaştığı.",
+    "settingsAudioPassthroughModeDisabled": "Devre dışı (her zaman bu cihazda çözülecek)",
+    "settingsAudioPassthroughModeAuto": "Otomatik (algılanan cihaz desteğiyle eşleştir)",
+    "settingsAudioPassthroughModeManual": "Manuel (aşağıdaki formatları seçin)",
+    "settingsDownmixToStereoDescription": "Çözülen tüm sesleri iki kanala (stereo) dönüştür.",
+    "settingsAudioEac3IncludesAtmos": "Bitstream E-AC-3, Dolby Atmos (JOC) dahil.",
+    "settingsAudioDtsHdIncludesDtsX": "Bitstream DTS-HD, DTS:X dahil.",
+    "settingsAudioTrueHdIncludesAtmos": "Bitstream TrueHD, Dolby Atmos dahil.",
+    "settingsShowAudioDecoderBanner": "Ses kod çözücüyü göster",
+    "@settingsShowAudioDecoderBanner": {
+        "description": "Toggle for the in-player audio decoder banner"
+    },
+    "settingsShowAudioDecoderBannerDescription": "Oynatma başladığında sesi işleyen kod çözücünün adını kısaca belirtir.",
+    "@settingsShowAudioDecoderBannerDescription": {
+        "description": "Description for the in-player audio decoder banner toggle"
+    },
+    "mergeRecentRowsByType": "Son Satırları Türe Göre Birleştir",
+    "@mergeRecentRowsByType": {
+        "description": "Setting for merging recently added and recently released libraries by media type"
+    },
+    "mergeRecentRowsByTypeDescription": "Son Eklenenler ve Son Çıkanlar ana sayfa satırları için aynı türdeki ayrı kütüphaneleri birleştirin.",
+    "@mergeRecentRowsByTypeDescription": {
+        "description": "Description for merging recent home rows by media type"
+    },
+    "libraryView": "Kütüphane Görünümü",
+    "@libraryView": {
+        "description": "Section title for library view settings"
+    },
+    "collectionsRowShowEpisodes": "Tekil Bölümleri Göster",
+    "collectionsRowShowEpisodesSubtitle": "Her bölümü ayrı ayrı göstermek için dizileri genişlet.",
+    "playlistsRowShowEpisodes": "Tekil Bölümleri Göster",
+    "playlistsRowShowEpisodesSubtitle": "Her bölümü ayrı ayrı göstermek için dizileri genişlet.",
+    "playbackTimeDisplay": "İlerleme Çubuğu Süresi",
+    "@playbackTimeDisplay": {
+        "description": "Setting title for what is shown next to the playback progress bar"
+    },
+    "settingsPlaybackTimeDisplayDescription": "Oynatma ilerleme çubuğunun etrafında hangi zaman etiketlerinin görüneceğini seçin.",
+    "@settingsPlaybackTimeDisplayDescription": {
+        "description": "Setting description for the progress bar time option"
+    },
+    "playbackTimeTotal": "Toplam süre",
+    "@playbackTimeTotal": {
+        "description": "Progress bar time option showing the full runtime"
+    },
+    "playbackTimeRemaining": "Kalan süre",
+    "@playbackTimeRemaining": {
+        "description": "Progress bar time option showing how much is left to play"
+    },
+    "playbackTimeEndsAt": "Bitiş Saati",
+    "@playbackTimeEndsAt": {
+        "description": "Progress bar time option showing the clock time playback finishes"
+    },
+    "playbackTimeElapsed": "Geçen süre",
+    "@playbackTimeElapsed": {
+        "description": "Progress bar time option showing how far into the item playback is"
+    },
+    "playbackTimeVideoSection": "Video Oynatıcı",
+    "@playbackTimeVideoSection": {
+        "description": "Section header above the video progress bar time slots"
+    },
+    "playbackTimeMusicSection": "Müzik Oynatıcı",
+    "@playbackTimeMusicSection": {
+        "description": "Section header above the music progress bar time option"
+    },
+    "playbackTimeSlotDescription": "Burada ne gösterileceğini seçin veya gizleyin.",
+    "@playbackTimeSlotDescription": {
+        "description": "Setting description for a single progress bar time slot"
+    },
+    "playbackTimeAboveBarLeft": "Çubuğun üstünde, sol",
+    "@playbackTimeAboveBarLeft": {
+        "description": "Progress bar time slot above the bar on the left"
+    },
+    "playbackTimeAboveBarCenter": "Çubuğun üstünde, orta",
+    "@playbackTimeAboveBarCenter": {
+        "description": "Progress bar time slot above the bar in the center"
+    },
+    "playbackTimeAboveBarRight": "Çubuğun üstünde, sağ",
+    "@playbackTimeAboveBarRight": {
+        "description": "Progress bar time slot above the bar on the right"
+    },
+    "playbackTimeBelowBarLeft": "Çubuğun altında, sol",
+    "@playbackTimeBelowBarLeft": {
+        "description": "Progress bar time slot below the bar on the left"
+    },
+    "playbackTimeBelowBarCenter": "Çubuğun altında, orta",
+    "@playbackTimeBelowBarCenter": {
+        "description": "Progress bar time slot below the bar in the center"
+    },
+    "playbackTimeBelowBarRight": "Çubuğun altında, sağ",
+    "@playbackTimeBelowBarRight": {
+        "description": "Progress bar time slot below the bar on the right"
+    },
+    "settingsMusicPlaybackTimeDescription": "Müzik ilerleme çubuğunun sağ tarafında ne gösterileceğini seçin.",
+    "@settingsMusicPlaybackTimeDescription": {
+        "description": "Setting description for the music progress bar time option"
     }
 }

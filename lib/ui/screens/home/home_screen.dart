@@ -37,6 +37,7 @@ import '../../../preference/home_section_config.dart';
 import '../../../preference/preference_constants.dart';
 import '../../../preference/user_preferences.dart';
 import '../../widgets/exit_confirmation_dialog.dart';
+import '../../widgets/quick_return_wrapper.dart';
 import '../../widgets/overlay_sheet.dart';
 import '../../../util/app_exit.dart';
 import '../../../util/overview_text.dart';
@@ -433,8 +434,12 @@ class _HomeShellState extends State<_HomeShell>
         PlatformDetection.useMobileUi &&
         mediaBarMode == UserPreferences.mediaBarModeMakd;
 
-    return PopScope(
-      canPop: false,
+    final scrollCtrl = _contentRowsKey.currentState?.scrollController ?? ScrollController();
+
+    return QuickReturnWrapper(
+      scrollController: scrollCtrl,
+      isScrolledToTopNotifier: _isScrolledToTopNotifier,
+      onScrollToTop: () => _contentRowsKey.currentState?.scrollToTop(),
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) return;
         _showExitConfirmation(context);
@@ -640,6 +645,49 @@ class _ContentRowsState extends State<_ContentRows>
     milliseconds: 200,
   );
   final _scrollController = ScrollController();
+  ScrollController get scrollController => _scrollController;
+
+  void _updateIsScrolledToTop() {
+    if (!mounted) return;
+    final hasScrollOffset = _scrollController.hasClients && _scrollController.offset > 20.0;
+    final activeRow = _activeFocusedRowNotifier.value;
+    final bool hasRowFocus;
+    if (_isMediaBarIncluded()) {
+      hasRowFocus = _mediaBarFocusNode.hasFocus ? false : activeRow != null;
+    } else {
+      hasRowFocus = activeRow != null && activeRow > 0;
+    }
+    final atTop = !hasScrollOffset && !hasRowFocus;
+    if (atTop != widget.isScrolledToTopNotifier.value) {
+      widget.isScrolledToTopNotifier.value = atTop;
+      widget.onScrolledToTopChanged?.call(atTop);
+    }
+  }
+
+  void scrollToTop() {
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        0,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOutCubic,
+      );
+    }
+    _activeFocusedRowIndex = null;
+    if (_isMediaBarIncluded() && _mediaBarFocusNode.context != null) {
+      _mediaBarFocusNode.requestFocus();
+    } else {
+      final rows = widget.viewModel.rows;
+      for (var i = 0; i < rows.length; i++) {
+        if (!_rowHasFocusableItems(rows[i])) continue;
+        final rowState = _rowStateOf(i);
+        if (rowState != null) {
+          rowState.requestFocusFromMemory();
+          break;
+        }
+      }
+    }
+    _updateIsScrolledToTop();
+  }
   final _mediaBarFocusNode = FocusNode(debugLabel: 'home_media_bar_focus');
   final _playbackManager = GetIt.instance<PlaybackManager>();
   final _audioArbiter = GetIt.instance<PlaybackArbiter>();
@@ -1054,6 +1102,8 @@ class _ContentRowsState extends State<_ContentRows>
     );
     _audioArbiter.register(this);
     _activeFocusedRowNotifier.addListener(_updateOffsets);
+    _activeFocusedRowNotifier.addListener(_updateIsScrolledToTop);
+    _mediaBarFocusNode.addListener(_updateIsScrolledToTop);
     widget.viewModel.addListener(_onViewModelChanged);
     widget.mediaBarViewModel.addListener(_onMediaBarStateChanged);
     _lastMediaBarStateRuntime = widget.mediaBarViewModel.state.runtimeType;
@@ -1208,6 +1258,8 @@ class _ContentRowsState extends State<_ContentRows>
           _previousFocusContentFromNavbarCallback;
     }
     _scrollIdleTimer?.cancel();
+    _activeFocusedRowNotifier.removeListener(_updateIsScrolledToTop);
+    _mediaBarFocusNode.removeListener(_updateIsScrolledToTop);
     _mediaBarFocusNode.dispose();
     _activeFocusedRowNotifier.removeListener(_updateOffsets);
     widget.viewModel.removeListener(_onViewModelChanged);

@@ -22,6 +22,7 @@ import '../../../util/focus/grid_focus_node_mixin.dart';
 import '../../../util/platform_detection.dart';
 import '../../navigation/destinations.dart';
 import '../../widgets/fullscreen_backdrop_switcher.dart';
+import '../../widgets/quick_return_wrapper.dart';
 import '../../widgets/focus/context_menu_sheet.dart';
 import '../../widgets/focus/focusable_toolbar_button.dart';
 import '../../widgets/focus/request_initial_focus.dart';
@@ -593,7 +594,16 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen>
 
   @override
   Widget build(BuildContext context) =>
-      RequestInitialFocus(child: _buildContent(context));
+      RequestInitialFocus(
+        child: QuickReturnWrapper(
+          scrollController: _scrollController,
+          scrollDirection: _vm.scrollDirection == LibraryScrollDirection.horizontal
+              ? Axis.horizontal
+              : Axis.vertical,
+          topFocusNode: getGridItemFocusNode(0),
+          child: _buildContent(context),
+        ),
+      );
 
   Widget _buildContent(BuildContext context) {
     final isMobile = _isCompact(context);

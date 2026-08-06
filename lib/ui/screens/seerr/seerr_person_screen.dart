@@ -17,6 +17,7 @@ import '../../widgets/media_card.dart';
 import '../../widgets/navigation_layout.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../widgets/focus/request_initial_focus.dart';
+import '../../widgets/quick_return_wrapper.dart';
 import '../../widgets/focus/step_scroll.dart';
 
 const _tmdbPosterBase = 'https://image.tmdb.org/t/p/w342';
@@ -36,6 +37,7 @@ class _SeerrPersonScreenState extends State<SeerrPersonScreen> {
   bool _initializing = true;
   bool _bioExpanded = false;
   bool _bioFocused = false;
+  final _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -73,6 +75,7 @@ class _SeerrPersonScreenState extends State<SeerrPersonScreen> {
   void dispose() {
     _vm?.removeListener(_onChanged);
     _vm?.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -82,7 +85,12 @@ class _SeerrPersonScreenState extends State<SeerrPersonScreen> {
 
   @override
   Widget build(BuildContext context) =>
-      RequestInitialFocus(child: _buildScreenContent(context));
+      RequestInitialFocus(
+        child: QuickReturnWrapper(
+          scrollController: _scrollController,
+          child: _buildScreenContent(context),
+        ),
+      );
 
   Widget _buildScreenContent(BuildContext context) {
     return Scaffold(
@@ -134,6 +142,7 @@ class _SeerrPersonScreenState extends State<SeerrPersonScreen> {
     final topPad = MediaQuery.of(context).padding.top;
 
     return CustomScrollView(
+      controller: _scrollController,
       slivers: [
         SliverToBoxAdapter(
           child: Padding(

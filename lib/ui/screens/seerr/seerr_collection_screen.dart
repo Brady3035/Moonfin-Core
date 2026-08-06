@@ -21,6 +21,7 @@ import '../../widgets/seerr/seerr_tv_controls.dart';
 import '../../widgets/track_selector_dialog.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../widgets/focus/request_initial_focus.dart';
+import '../../widgets/quick_return_wrapper.dart';
 
 const _tmdbPosterBase = 'https://image.tmdb.org/t/p/w342';
 const _tmdbBackdropBase = 'https://image.tmdb.org/t/p/w1280';
@@ -37,6 +38,7 @@ class SeerrCollectionScreen extends StatefulWidget {
 class _SeerrCollectionScreenState extends State<SeerrCollectionScreen> {
   SeerrCollectionViewModel? _vm;
   bool _initializing = true;
+  final _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -67,6 +69,7 @@ class _SeerrCollectionScreenState extends State<SeerrCollectionScreen> {
   void dispose() {
     _vm?.removeListener(_onChanged);
     _vm?.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -76,7 +79,12 @@ class _SeerrCollectionScreenState extends State<SeerrCollectionScreen> {
 
   @override
   Widget build(BuildContext context) =>
-      RequestInitialFocus(child: _buildContent(context));
+      RequestInitialFocus(
+        child: QuickReturnWrapper(
+          scrollController: _scrollController,
+          child: _buildContent(context),
+        ),
+      );
 
   Widget _buildContent(BuildContext context) {
     return Scaffold(
@@ -154,6 +162,7 @@ class _SeerrCollectionScreenState extends State<SeerrCollectionScreen> {
           ),
         ),
         SingleChildScrollView(
+          controller: _scrollController,
           padding: EdgeInsets.only(
             top: MediaQuery.of(context).padding.top + 56,
             bottom: 48,

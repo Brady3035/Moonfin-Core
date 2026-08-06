@@ -23,6 +23,7 @@ import '../../widgets/navigation_layout.dart';
 import '../../widgets/fullscreen_backdrop_switcher.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../widgets/focus/request_initial_focus.dart';
+import '../../widgets/quick_return_wrapper.dart';
 import '../../widgets/focus/locked_focus_row.dart';
 import '../../widgets/horizontal_scroll_section.dart';
 
@@ -300,7 +301,11 @@ class _SeerrDiscoverScreenState extends State<SeerrDiscoverScreen> {
         // On mobile the target is never attached (no row autofocuses it), so
         // RequestInitialFocus simply finds nothing to focus and gives up.
         targetNode: _initialFocusNode,
-        child: _buildScreenContent(context),
+        child: QuickReturnWrapper(
+          scrollController: _scrollController,
+          topFocusNode: _initialFocusNode,
+          child: _buildScreenContent(context),
+        ),
       );
 
   Widget _buildScreenContent(BuildContext context) {

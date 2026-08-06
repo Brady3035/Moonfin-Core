@@ -613,6 +613,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get scrollRight => 'Cuộn sang phải';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre => 'Không thể tải thể loại này ngay bây giờ.';
 
   @override

@@ -11,9 +11,9 @@ import '../../../preference/user_preferences.dart';
 import '../../../util/focus/dpad_keys.dart';
 import '../../navigation/destinations.dart';
 import '../../widgets/focus/request_initial_focus.dart';
-import '../../widgets/quick_return_wrapper.dart';
 import '../../widgets/media_card.dart';
 import '../../widgets/navigation_layout.dart';
+import '../../widgets/quick_return_wrapper.dart';
 import '../../../l10n/app_localizations.dart';
 
 class FolderBrowseScreen extends StatefulWidget {
@@ -211,11 +211,7 @@ class _FolderBrowseScreenState extends State<FolderBrowseScreen> {
   @override
   Widget build(BuildContext context) => RequestInitialFocus(
         targetNode: _vm.items.isNotEmpty ? _getGridItemFocusNode(0) : null,
-        child: QuickReturnWrapper(
-          scrollController: _scrollController,
-          topFocusNode: _vm.items.isNotEmpty ? _getGridItemFocusNode(0) : null,
-          child: _buildContent(context),
-        ),
+        child: _buildContent(context),
       );
 
   Widget _buildContent(BuildContext context) {
@@ -223,18 +219,22 @@ class _FolderBrowseScreenState extends State<FolderBrowseScreen> {
       backgroundColor: AppColorScheme.background,
       body: NavigationLayout(
         showBackButton: true,
-        child: SafeArea(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 80),
-              if (_vm.breadcrumbs.isNotEmpty) _buildBreadcrumbs(),
-              Divider(
-                color: ThemeRegistry.active.borders.chipBorder.color,
-                height: 1,
-              ),
-              Expanded(child: _buildBody()),
-            ],
+        child: QuickReturnWrapper(
+          scrollController: _scrollController,
+          topFocusNode: _vm.items.isNotEmpty ? _getGridItemFocusNode(0) : null,
+          child: SafeArea(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 80),
+                if (_vm.breadcrumbs.isNotEmpty) _buildBreadcrumbs(),
+                Divider(
+                  color: ThemeRegistry.active.borders.chipBorder.color,
+                  height: 1,
+                ),
+                Expanded(child: _buildBody()),
+              ],
+            ),
           ),
         ),
       ),

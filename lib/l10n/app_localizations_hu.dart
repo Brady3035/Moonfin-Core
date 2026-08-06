@@ -611,6 +611,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get scrollRight => 'Görgess jobbra';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre =>
       'Jelenleg nem sikerült betölteni ezt a műfajt.';
 

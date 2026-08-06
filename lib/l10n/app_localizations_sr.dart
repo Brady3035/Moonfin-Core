@@ -629,6 +629,9 @@ class AppLocalizationsSr extends AppLocalizations {
   String get scrollRight => 'Помери десно';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre => 'Тренутно није могуће учитати овај жанр.';
 
   @override

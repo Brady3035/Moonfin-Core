@@ -602,6 +602,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get scrollRight => 'גלול ימינה';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre => 'לא ניתן לטעון את הז\'אנר הזה כרגע.';
 
   @override

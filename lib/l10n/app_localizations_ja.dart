@@ -591,6 +591,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get scrollRight => '右にスクロール';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre => '現在このジャンルを読み込めませんでした。';
 
   @override

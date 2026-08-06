@@ -611,6 +611,9 @@ class AppLocalizationsCy extends AppLocalizations {
   String get scrollRight => 'Sgroliwch i\'r dde';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre => 'Methu llwytho\'r genre hwn ar hyn o bryd.';
 
   @override

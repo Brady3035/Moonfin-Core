@@ -610,6 +610,9 @@ class AppLocalizationsSk extends AppLocalizations {
   String get scrollRight => 'Prejdite doprava';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre =>
       'Tento žáner sa momentálne nepodarilo načítať.';
 

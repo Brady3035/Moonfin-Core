@@ -612,6 +612,9 @@ class AppLocalizationsSl extends AppLocalizations {
   String get scrollRight => 'Pomaknite se desno';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre => 'Te zvrsti trenutno ni bilo mogoče naložiti.';
 
   @override

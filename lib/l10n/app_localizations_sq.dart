@@ -613,6 +613,9 @@ class AppLocalizationsSq extends AppLocalizations {
   String get scrollRight => 'Lëviz djathtas';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre =>
       'Ky zhanër nuk mund të ngarkohej për momentin.';
 

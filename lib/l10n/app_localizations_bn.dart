@@ -607,6 +607,9 @@ class AppLocalizationsBn extends AppLocalizations {
   String get scrollRight => 'ডানদিকে স্ক্রোল করুন';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre => 'এই ধারাটি এখনই লোড করা যায়নি।';
 
   @override

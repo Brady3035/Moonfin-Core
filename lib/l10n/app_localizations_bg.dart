@@ -608,6 +608,9 @@ class AppLocalizationsBg extends AppLocalizations {
   String get scrollRight => 'Превъртете надясно';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre => 'Не може да се зареди този жанр в момента.';
 
   @override

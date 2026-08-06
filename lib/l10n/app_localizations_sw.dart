@@ -614,6 +614,9 @@ class AppLocalizationsSw extends AppLocalizations {
   String get scrollRight => 'Sogeza kulia';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre => 'Haikuweza kupakia aina hii kwa sasa.';
 
   @override

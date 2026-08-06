@@ -605,6 +605,9 @@ class AppLocalizationsTh extends AppLocalizations {
   String get scrollRight => 'เลื่อนไปทางขวา';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre => 'ไม่สามารถโหลดประเภทนี้ได้ในขณะนี้';
 
   @override

@@ -609,6 +609,9 @@ class AppLocalizationsRo extends AppLocalizations {
   String get scrollRight => 'Derulați spre dreapta';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre => 'Nu s-a putut încărca acest gen acum.';
 
   @override

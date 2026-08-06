@@ -610,6 +610,9 @@ class AppLocalizationsLv extends AppLocalizations {
   String get scrollRight => 'Ritiniet pa labi';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre => 'Pašlaik nevarēja ielādēt šo žanru.';
 
   @override

@@ -605,6 +605,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get scrollRight => 'قم بالتمرير إلى اليمين';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre => 'تعذر تحميل هذا النوع الآن.';
 
   @override

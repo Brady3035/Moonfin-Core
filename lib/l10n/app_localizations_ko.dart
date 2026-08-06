@@ -593,6 +593,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get scrollRight => '오른쪽으로 스크롤';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre => '지금은 이 장르를 로드할 수 없습니다.';
 
   @override

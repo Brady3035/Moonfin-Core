@@ -608,6 +608,9 @@ class AppLocalizationsTr extends AppLocalizations {
   String get scrollRight => 'Sağa kaydır';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre => 'Bu tür şu anda yüklenemedi.';
 
   @override

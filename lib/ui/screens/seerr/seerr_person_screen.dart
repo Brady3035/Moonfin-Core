@@ -17,8 +17,8 @@ import '../../widgets/media_card.dart';
 import '../../widgets/navigation_layout.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../widgets/focus/request_initial_focus.dart';
-import '../../widgets/quick_return_wrapper.dart';
 import '../../widgets/focus/step_scroll.dart';
+import '../../widgets/quick_return_wrapper.dart';
 
 const _tmdbPosterBase = 'https://image.tmdb.org/t/p/w342';
 const _tmdbProfileLarge = 'https://image.tmdb.org/t/p/w500';
@@ -85,17 +85,18 @@ class _SeerrPersonScreenState extends State<SeerrPersonScreen> {
 
   @override
   Widget build(BuildContext context) =>
-      RequestInitialFocus(
-        child: QuickReturnWrapper(
-          scrollController: _scrollController,
-          child: _buildScreenContent(context),
-        ),
-      );
+      RequestInitialFocus(child: _buildScreenContent(context));
 
   Widget _buildScreenContent(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColorScheme.background,
-      body: NavigationLayout(showBackButton: true, child: _buildBody()),
+      body: NavigationLayout(
+        showBackButton: true,
+        child: QuickReturnWrapper(
+          scrollController: _scrollController,
+          child: _buildBody(),
+        ),
+      ),
     );
   }
 

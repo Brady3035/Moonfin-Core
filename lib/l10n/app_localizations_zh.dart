@@ -584,6 +584,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get scrollRight => '向右滚动';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre => '目前无法加载此类型。';
 
   @override

@@ -608,6 +608,9 @@ class AppLocalizationsSi extends AppLocalizations {
   String get scrollRight => 'දකුණට අනුචලනය කරන්න';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre => 'මෙම ප්‍රභේදය දැන් පූරණය කළ නොහැක.';
 
   @override

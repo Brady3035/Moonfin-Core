@@ -611,6 +611,9 @@ class AppLocalizationsEt extends AppLocalizations {
   String get scrollRight => 'Kerige paremale';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre => 'Seda žanrit ei saanud praegu laadida.';
 
   @override

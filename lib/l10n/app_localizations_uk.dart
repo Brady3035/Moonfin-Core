@@ -610,6 +610,9 @@ class AppLocalizationsUk extends AppLocalizations {
   String get scrollRight => 'Прокрутіть праворуч';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre => 'Зараз не вдалося завантажити цей жанр.';
 
   @override

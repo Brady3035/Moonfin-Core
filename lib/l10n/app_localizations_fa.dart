@@ -605,6 +605,9 @@ class AppLocalizationsFa extends AppLocalizations {
   String get scrollRight => 'به سمت راست پیمایش کنید';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre => 'در حال حاضر این ژانر بارگیری نشد.';
 
   @override

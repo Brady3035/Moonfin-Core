@@ -585,6 +585,9 @@ class AppLocalizationsYue extends AppLocalizations {
   String get scrollRight => '向右滾動';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre => '目前無法載入此類型。';
 
   @override

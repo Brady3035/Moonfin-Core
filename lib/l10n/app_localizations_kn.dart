@@ -609,6 +609,9 @@ class AppLocalizationsKn extends AppLocalizations {
   String get scrollRight => 'ಬಲಕ್ಕೆ ಸ್ಕ್ರಾಲ್ ಮಾಡಿ';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre =>
       'ಇದೀಗ ಈ ಪ್ರಕಾರವನ್ನು ಲೋಡ್ ಮಾಡಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ.';
 

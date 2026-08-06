@@ -18,6 +18,7 @@ import '../../../util/game_cores.dart';
 import '../../../util/game_storage.dart';
 import '../../../util/platform_detection.dart';
 import '../../../util/focus/gamepad/gamepad_suppressor.dart';
+import 'game_audio_owner.dart';
 
 /// Native game player: the libretro core runs in the runner and renders into a
 /// Flutter texture, so this screen stays plain Flutter. It downloads and
@@ -43,7 +44,8 @@ class NativeGamePlayerScreen extends StatefulWidget {
   State<NativeGamePlayerScreen> createState() => _NativeGamePlayerScreenState();
 }
 
-class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen> {
+class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
+    with GameAudioOwner {
   final MediaServerClient _client = GetIt.instance<MediaServerClient>();
   final NativeGamePlayer _player = NativeGamePlayer.create();
   late final CoreDownloadService _cores =
@@ -141,6 +143,7 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen> {
     // The pad belongs to the libretro core while a game is running, so UI level
     // pad navigation stays suppressed for the lifetime of this screen.
     GamepadSuppressor.push();
+    claimGameAudio();
     _events = _player.events.listen(_onEvent);
     if (_readsGamepadsInDart) {
       _gamepadEvents = Gamepads.normalizedEvents.listen(_onGamepadEvent);
@@ -149,7 +152,11 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen> {
   }
 
   @override
+  Future<void> pauseForAudioClaim() => _player.pause();
+
+  @override
   void dispose() {
+    releaseGameAudio();
     _events?.cancel();
     _gamepadEvents?.cancel();
     _startHoldTimer?.cancel();

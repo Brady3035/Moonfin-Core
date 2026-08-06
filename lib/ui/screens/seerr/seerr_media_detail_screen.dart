@@ -692,7 +692,7 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
                   const SizedBox(width: 6),
                   Flexible(
                     child: Text(
-                      _requestedByLabel(req, l10n),
+                      seerrRequestedByLabel(req, l10n),
                       style: const TextStyle(
                         color: Colors.white54,
                         fontSize: 13,
@@ -784,15 +784,6 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
     return parts.join(' \u2022 ');
   }
 
-  String _requestedByLabel(SeerrRequest req, AppLocalizations l10n) {
-    final name = l10n.requestedByName(req.requestedBy?.bestName ?? l10n.unknown);
-    return req.is4k ? '$name · ${l10n.uhd4k}' : name;
-  }
-
-  /// Which request action a quality track offers right now. HD and 4K each
-  /// get their own slot, so one can be cancellable while the other is still
-  /// requestable. Within a track the order is cancel, then requested, then
-  /// request.
   Future<void> _openTrailer(SeerrVideo video) async {
     final isYouTube = (video.site ?? '').toLowerCase() == 'youtube';
     final key = video.key;
@@ -1066,7 +1057,7 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
                     const SizedBox(width: 6),
                     Flexible(
                       child: Text(
-                        _requestedByLabel(req, l10n),
+                        seerrRequestedByLabel(req, l10n),
                         style: const TextStyle(
                           color: Colors.white54,
                           fontSize: 13,

@@ -71,3 +71,17 @@ List<int> seerrSeasonNumbersOf(
   if (reported.isNotEmpty) return reported;
   return List.generate(fallbackCount, (i) => i + 1);
 }
+
+/// "Requested by Ada", with the quality when it is the 4K track.
+String seerrRequestedByLabel(SeerrRequest request, AppLocalizations l10n) {
+  final name = l10n.requestedByName(
+    request.requestedBy?.bestName ?? l10n.unknown,
+  );
+  return request.is4k ? '$name · ${l10n.uhd4k}' : name;
+}
+
+/// The requests still waiting on someone to approve or decline them.
+List<SeerrRequest> seerrPendingRequests(SeerrMediaDetailState state) => state
+    .allActiveRequests
+    .where((r) => r.status == SeerrRequest.statusPending)
+    .toList();

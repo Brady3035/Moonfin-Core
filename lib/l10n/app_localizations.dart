@@ -7330,6 +7330,24 @@ abstract class AppLocalizations {
   /// **'Requested by {name}'**
   String requestedByName(String name);
 
+  /// Details screen button opening the pending requests to approve or decline
+  ///
+  /// In en, this message translates to:
+  /// **'Manage Requests'**
+  String get manageRequests;
+
+  /// Details screen button adding the title to the Seerr watchlist
+  ///
+  /// In en, this message translates to:
+  /// **'Watchlist'**
+  String get watchlist;
+
+  /// Details screen button label when the title is already on the Seerr watchlist
+  ///
+  /// In en, this message translates to:
+  /// **'On Watchlist'**
+  String get onWatchlist;
+
   /// Tooltip/button to approve a request
   ///
   /// In en, this message translates to:

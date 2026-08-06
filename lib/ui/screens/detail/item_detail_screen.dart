@@ -28,6 +28,7 @@ import '../../../data/services/media_server_client_factory.dart';
 import '../../../data/services/book_reader_service.dart';
 import '../../../data/services/theme_music_service.dart';
 import '../../../data/viewmodels/item_detail_view_model.dart';
+import '../../../data/viewmodels/seerr_media_detail_view_model.dart';
 import '../../../data/services/plugin_sync_service.dart';
 import '../../navigation/route_lifecycle_observer.dart';
 import '../../navigation/home_refresh_bus.dart';
@@ -51,6 +52,11 @@ import '../../widgets/settings/settings_panel.dart';
 import '../../widgets/add_to_playlist_dialog.dart';
 import '../../widgets/logo_view.dart';
 import '../../widgets/media_card.dart';
+import '../../widgets/seerr/seerr_cancel_request_dialog.dart';
+import '../../widgets/seerr/seerr_manage_requests_sheet.dart';
+import '../../widgets/seerr/seerr_report_issue_dialog.dart';
+import '../../widgets/seerr/seerr_request_action.dart';
+import '../../widgets/seerr/seerr_request_dialog.dart';
 import '../../widgets/seerr/seerr_status_dot.dart';
 import '../../widgets/change_artwork_dialog.dart';
 import '../../widgets/navigation_layout.dart';
@@ -6001,6 +6007,12 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
           : null,
     );
 
+    // Null until the lookup lands, and null when it found nothing, so a title
+    // Seerr doesn't have never grows a request button.
+    final overlay = viewModel.seerr;
+    final seerr = overlay != null && overlay.state.tmdbId != 0 ? overlay : null;
+    final onWatchlist = seerr?.state.onUserWatchlist ?? false;
+
     final byButton = <DetailButton, Widget>{
       if (_supportsShuffle(item) && shows(DetailButton.shuffle))
         DetailButton.shuffle: _DetailActionButton(
@@ -6127,6 +6139,47 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
           onPressed: () => context.push(
             Destinations.item(item.seriesId!, serverId: item.serverId),
           ),
+        ),
+      if (shows(DetailButton.seerrRequest))
+        DetailButton.seerrRequest: ?_seerrRequestButton(
+          context,
+          seerr,
+          l10n,
+          is4k: false,
+        ),
+      if (shows(DetailButton.seerrRequest4k))
+        DetailButton.seerrRequest4k: ?_seerrRequestButton(
+          context,
+          seerr,
+          l10n,
+          is4k: true,
+        ),
+      if (seerr != null && shows(DetailButton.seerrWatchlist))
+        DetailButton.seerrWatchlist: _DetailActionButton(
+          label: onWatchlist ? l10n.onWatchlist : l10n.watchlist,
+          icon: onWatchlist ? Icons.bookmark : Icons.bookmark_border,
+          onPressed: () => seerr.toggleWatchlist(),
+          isActive: onWatchlist,
+          activeColor: AppColorScheme.accent,
+        ),
+      if (seerr != null &&
+          seerr.canReportIssue &&
+          shows(DetailButton.seerrReportIssue))
+        DetailButton.seerrReportIssue: _DetailActionButton(
+          label: l10n.reportIssue,
+          icon: Icons.report_problem_outlined,
+          onPressed: () =>
+              showSeerrReportIssueDialog(context: context, vm: seerr),
+        ),
+      if (seerr != null &&
+          seerr.canManageRequests &&
+          seerrPendingRequests(seerr.state).isNotEmpty &&
+          shows(DetailButton.seerrManage))
+        DetailButton.seerrManage: _DetailActionButton(
+          label: l10n.manageRequests,
+          icon: Icons.rule,
+          onPressed: () =>
+              showSeerrManageRequestsSheet(context: context, vm: seerr),
         ),
       if ((GetIt.instance<UserRepository>().currentUser?.isAdministrator ??
               false) &&
@@ -11837,6 +11890,43 @@ class _EpisodeProgressBar extends StatelessWidget {
       ),
     );
   }
+}
+
+/// The request slot for one quality track. One button that morphs between
+/// offering a request and taking it back, and yields nothing when there is
+/// neither to offer.
+Widget? _seerrRequestButton(
+  BuildContext context,
+  SeerrMediaDetailViewModel? seerr,
+  AppLocalizations l10n, {
+  required bool is4k,
+}) {
+  if (seerr == null) return null;
+  final action = seerrRequestActionFor(
+    seerr.state.quality(is4k: is4k),
+    seerr,
+    l10n,
+  );
+  if (action.kind == SeerrRequestActionKind.request) {
+    return _DetailActionButton(
+      label: action.label,
+      icon: Icons.add,
+      onPressed: () =>
+          showSeerrRequestDialog(context: context, vm: seerr, is4k: is4k),
+    );
+  }
+  if (action.kind == SeerrRequestActionKind.cancel) {
+    return _DetailActionButton(
+      label: action.label,
+      icon: Icons.close,
+      onPressed: () => showSeerrCancelRequestDialog(
+        context: context,
+        vm: seerr,
+        is4k: is4k,
+      ),
+    );
+  }
+  return null;
 }
 
 class DetailSeasonsRow extends StatelessWidget {

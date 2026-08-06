@@ -31,6 +31,38 @@ String seerrStatusLabel(SeerrQualityStatus q, AppLocalizations l10n) {
   return l10n.notRequestedStatus;
 }
 
+/// Every quality track worth showing for a title, laid out together.
+class SeerrStatusPills extends StatelessWidget {
+  final SeerrMediaDetailState state;
+  final bool solid;
+
+  const SeerrStatusPills({
+    super.key,
+    required this.state,
+    this.solid = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final tracks = seerrStatusTracks(state, AppLocalizations.of(context));
+    if (tracks.length == 1) {
+      return SeerrStatusPill(
+        track: tracks.first.$1,
+        qualityLabel: tracks.first.$2,
+        solid: solid,
+      );
+    }
+    return Wrap(
+      spacing: 8,
+      runSpacing: 6,
+      children: [
+        for (final (q, prefix) in tracks)
+          SeerrStatusPill(track: q, qualityLabel: prefix, solid: solid),
+      ],
+    );
+  }
+}
+
 /// The Seerr status of one quality track, as a chip.
 class SeerrStatusPill extends StatelessWidget {
   final SeerrQualityStatus track;

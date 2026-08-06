@@ -9,32 +9,29 @@ import '../../../data/repositories/seerr_repository.dart';
 import '../../../data/services/seerr/seerr_api_models.dart';
 import '../../../data/services/seerr/seerr_error.dart';
 import '../../../data/viewmodels/seerr_media_detail_view_model.dart';
-import '../../../data/viewmodels/seerr_discover_view_model.dart';
 import '../../../preference/preference_constants.dart';
 import '../../../preference/seerr_preferences.dart';
 import '../../../preference/user_preferences.dart';
-import '../../../ui/mixins/focus_state_mixin.dart';
 import '../../../util/platform_detection.dart';
 import '../../navigation/destinations.dart';
-import '../../widgets/adaptive/adaptive_dialog.dart';
 import '../../widgets/library_row.dart';
-import '../../widgets/seerr/seerr_advanced_request_options.dart';
-import '../../widgets/seerr/seerr_quota_row.dart';
+import '../../widgets/seerr/seerr_action_tile.dart';
+import '../../widgets/seerr/seerr_approve_decline_buttons.dart';
+import '../../widgets/seerr/seerr_browse_chip.dart';
+import '../../widgets/seerr/seerr_cancel_request_dialog.dart';
+import '../../widgets/seerr/seerr_cast_card.dart';
+import '../../widgets/seerr/seerr_collection_banner.dart';
+import '../../widgets/seerr/seerr_image_urls.dart';
+import '../../widgets/seerr/seerr_report_issue_dialog.dart';
+import '../../widgets/seerr/seerr_request_action.dart';
+import '../../widgets/seerr/seerr_request_dialog.dart';
+import '../../widgets/seerr/seerr_stats_card.dart';
 import '../../widgets/seerr/seerr_status_pill.dart';
-import '../../widgets/seerr/seerr_text_field.dart';
-import '../../widgets/seerr/seerr_tv_controls.dart';
 import '../../widgets/media_card.dart';
 import '../../widgets/navigation_layout.dart';
-import '../../widgets/overlay_sheet.dart';
 import '../../widgets/seerr_download_progress_bar.dart';
-import '../../widgets/focus/focusable_wrapper.dart';
-import '../../widgets/track_selector_dialog.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../widgets/focus/request_initial_focus.dart';
-
-const _tmdbPosterBase = 'https://image.tmdb.org/t/p/w342';
-const _tmdbBackdropBase = 'https://image.tmdb.org/t/p/w1280';
-const _tmdbProfileBase = 'https://image.tmdb.org/t/p/w185';
 
 class SeerrMediaDetailScreen extends StatefulWidget {
   final String itemId;
@@ -217,7 +214,7 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
         if (s.backdropPath != null)
           Positioned.fill(
             child: CachedNetworkImage(
-              imageUrl: '$_tmdbBackdropBase${s.backdropPath}',
+              imageUrl: '$seerrBackdropBase${s.backdropPath}',
               fit: BoxFit.cover,
               errorWidget: (_, _, _) => const SizedBox.shrink(),
             ),
@@ -349,7 +346,7 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
             ClipRRect(
               borderRadius: AppRadius.circular(10),
               child: CachedNetworkImage(
-                imageUrl: '$_tmdbPosterBase${s.posterPath}',
+                imageUrl: '$seerrPosterBase${s.posterPath}',
                 width: posterWidth,
                 height: posterHeight,
                 fit: BoxFit.cover,
@@ -366,7 +363,7 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildWideStatusPill(s, l10n: AppLocalizations.of(context)),
+                SeerrStatusPills(state: s, solid: true),
                 const SizedBox(height: 10),
                 Focus(
                   focusNode: _titleFocusNode,
@@ -410,28 +407,6 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildWideStatusPill(
-    SeerrMediaDetailState s, {
-    required AppLocalizations l10n,
-  }) {
-    final tracks = seerrStatusTracks(s, l10n);
-    if (tracks.length == 1) {
-      return SeerrStatusPill(
-        track: tracks.first.$1,
-        qualityLabel: tracks.first.$2,
-        solid: true,
-      );
-    }
-    return Wrap(
-      spacing: 8,
-      runSpacing: 6,
-      children: [
-        for (final (q, prefix) in tracks)
-          SeerrStatusPill(track: q, qualityLabel: prefix, solid: true),
-      ],
     );
   }
 
@@ -502,7 +477,7 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
             runSpacing: 8,
             children: s.genres
                 .map(
-                  (g) => _browseChip(
+                  (g) => SeerrBrowseChip(
                     label: g.name,
                     color: Colors.white12,
                     onTap: () => context.push(
@@ -525,7 +500,7 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
             runSpacing: 6,
             children: s.networks
                 .map(
-                  (n) => _browseChip(
+                  (n) => SeerrBrowseChip(
                     label: n.name,
                     color: Colors.transparent,
                     borderColor: Colors.white24,
@@ -550,7 +525,7 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
             runSpacing: 6,
             children: s.keywords
                 .map(
-                  (k) => _browseChip(
+                  (k) => SeerrBrowseChip(
                     label: k.name,
                     color: Colors.white.withValues(alpha: 0.05),
                     labelColor: Colors.white60,
@@ -570,7 +545,7 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
         ],
       ],
     );
-    final stats = _buildStatsCard(s, l10n);
+    final stats = SeerrStatsCard(state: s);
     return LayoutBuilder(
       builder: (context, constraints) {
         if (constraints.maxWidth < 720) {
@@ -591,88 +566,12 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
     );
   }
 
-  Widget _buildStatsCard(SeerrMediaDetailState s, AppLocalizations l10n) {
-    final rows = <_StatRow>[];
-    if (s.voteAverage != null && s.voteAverage! > 0) {
-      rows.add(_StatRow(l10n.tmdbScore, '${(s.voteAverage! * 10).round()}%'));
-    }
-    final statusText = _productionStatusText(s);
-    if (statusText != null) {
-      rows.add(_StatRow(l10n.status, statusText));
-    }
-    if (s.isMovie) {
-      final dateLabel = _formatDate(s.releaseDate);
-      if (dateLabel != null) {
-        rows.add(_StatRow(l10n.releaseDateLabel, dateLabel));
-      }
-    } else {
-      final dateLabel = _formatDate(s.firstAirDate);
-      if (dateLabel != null) {
-        rows.add(_StatRow(l10n.firstAirDateLabel, dateLabel));
-      }
-    }
-    if (s.isTv) {
-      if (s.numberOfSeasons != null && s.numberOfSeasons! > 0) {
-        rows.add(_StatRow(l10n.seasonsLabel, s.numberOfSeasons.toString()));
-      }
-      if (s.numberOfEpisodes != null && s.numberOfEpisodes! > 0) {
-        rows.add(_StatRow(l10n.episodesLabel, s.numberOfEpisodes.toString()));
-      }
-    }
-    if (s.revenue != null && s.revenue! > 0) {
-      rows.add(_StatRow(l10n.revenueLabel, _formatMoneyFull(s.revenue!)));
-    }
-    if (s.runtime != null && s.runtime! > 0) {
-      rows.add(_StatRow(l10n.runtimeLabel, _formatRuntime(s.runtime!)));
-    }
-    if (s.budget != null && s.budget! > 0) {
-      rows.add(_StatRow(l10n.budgetLabel, _formatMoneyFull(s.budget!)));
-    }
-    if (rows.isEmpty) return const SizedBox.shrink();
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.06),
-        borderRadius: AppRadius.circular(10),
-        border: Border.fromBorderSide(ThemeRegistry.active.borders.cardBorder),
-      ),
-      child: Column(
-        children: [
-          for (var i = 0; i < rows.length; i++) ...[
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      rows[i].label,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                  Text(
-                    rows[i].value,
-                    style: const TextStyle(color: Colors.white70, fontSize: 14),
-                  ),
-                ],
-              ),
-            ),
-            if (i < rows.length - 1)
-              const Divider(height: 1, thickness: 1, color: Colors.white10),
-          ],
-        ],
-      ),
-    );
-  }
-
   Widget _buildWideActions(SeerrMediaDetailState s, AppLocalizations l10n) {
     final vm = _vm!;
     final hd = s.hd;
     final uhd = s.uhd;
-    final hdAction = _actionFor(hd, l10n);
-    final uhdAction = _actionFor(uhd, l10n);
+    final hdAction = seerrRequestActionFor(hd, vm, l10n);
+    final uhdAction = seerrRequestActionFor(uhd, vm, l10n);
     final canManage = vm.canManageRequests;
     final trailer = s.bestTrailer;
     final showTrailer = trailer != null;
@@ -685,26 +584,32 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
       return n;
     }
 
-    void addActionTile(_RequestAction action, {required bool is4k, required bool primary}) {
+    void addActionTile(SeerrRequestAction action, {required bool is4k, required bool primary}) {
       switch (action.kind) {
-        case _RequestActionKind.none:
+        case SeerrRequestActionKind.none:
           break;
-        case _RequestActionKind.cancel:
+        case SeerrRequestActionKind.cancel:
           tiles.add(
-            _ActionTile(
+            SeerrActionTile(
               icon: Icons.close,
               label: action.label,
-              onTap: s.isRequesting ? null : () => _showCancelDialog(s, is4k: is4k),
+              onTap: s.isRequesting
+                  ? null
+                  : () => showSeerrCancelRequestDialog(
+                      context: context,
+                      vm: vm,
+                      is4k: is4k,
+                    ),
               primary: primary,
               focusNode: takeFirst(),
             ),
           );
-        case _RequestActionKind.requested:
+        case SeerrRequestActionKind.requested:
           // No focus node on purpose. _requestFirstActionFocus gives up when
           // the first action can't take focus, so a disabled tile must never
           // claim that slot.
           tiles.add(
-            _ActionTile(
+            SeerrActionTile(
               icon: Icons.check,
               label: action.label,
               onTap: null,
@@ -712,12 +617,12 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
               focusNode: null,
             ),
           );
-        case _RequestActionKind.request:
+        case SeerrRequestActionKind.request:
           tiles.add(
-            _ActionTile(
+            SeerrActionTile(
               icon: Icons.add,
               label: action.label,
-              onTap: s.isRequesting ? null : () => _showRequestDialog(is4k: is4k),
+              onTap: s.isRequesting ? null : () => showSeerrRequestDialog(context: context, vm: vm, is4k: is4k),
               primary: primary,
               focusNode: takeFirst(),
             ),
@@ -733,7 +638,7 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
     addActionTile(uhdAction, is4k: true, primary: false);
     if (s.isAvailableAnyQuality) {
       tiles.add(
-        _ActionTile(
+        SeerrActionTile(
           icon: Icons.play_arrow,
           label: l10n.playInMoonfin,
           onTap: () => _playInMoonfin(s),
@@ -744,7 +649,7 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
     }
     if (showTrailer) {
       tiles.add(
-        _ActionTile(
+        SeerrActionTile(
           icon: Icons.movie_outlined,
           label: l10n.trailer,
           onTap: () => _openTrailer(trailer),
@@ -754,15 +659,15 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
     }
     if (vm.canReportIssue) {
       tiles.add(
-        _ActionTile(
+        SeerrActionTile(
           icon: Icons.report_problem_outlined,
           label: l10n.reportIssue,
-          onTap: s.isRequesting ? null : _showReportIssueDialog,
+          onTap: s.isRequesting ? null : () => showSeerrReportIssueDialog(context: context, vm: vm),
           focusNode: takeFirst(),
         ),
       );
     }
-    tiles.add(_ActionTile(
+    tiles.add(SeerrActionTile(
       icon: s.onUserWatchlist ? Icons.bookmark : Icons.bookmark_border,
       label: s.onUserWatchlist ? l10n.removeFromWatchlist : l10n.addToWatchlist,
       onTap: s.isTogglingWatchlist ? null : () => vm.toggleWatchlist(),
@@ -798,7 +703,7 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
                   if (canManage &&
                       req.status == SeerrRequest.statusPending) ...[
                     const SizedBox(width: 8),
-                    _ApproveDeclineButtons(
+                    SeerrApproveDeclineButtons(
                       isLoading: s.isRequesting,
                       onApprove: () => vm.approveRequest(req.id),
                       onDecline: () => vm.declineRequest(req.id),
@@ -813,56 +718,11 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
           Wrap(spacing: 16, runSpacing: 16, children: tiles),
         if (s.movie?.collection != null) ...[
           const SizedBox(height: 20),
-          _buildCollectionBanner(s.movie!.collection!),
+          SeerrCollectionBanner(collection: s.movie!.collection!),
         ],
       ],
     );
   }
-
-  Widget _buildCollectionBanner(SeerrCollectionRef collection) {
-    final l10n = AppLocalizations.of(context);
-    return _CollectionBanner(
-      collection: collection,
-      label: l10n.partOfCollectionName(collection.name ?? ''),
-      cta: l10n.viewCollection,
-      onTap: () => context.push(
-        Destinations.seerrCollection(collection.id.toString()),
-      ),
-    );
-  }
-
-  void _showReportIssueDialog() {
-    final vm = _vm;
-    if (vm == null) return;
-    final s = vm.state;
-    final l10n = AppLocalizations.of(context);
-    showStyledPlayerDialog<void>(
-      context,
-      title: l10n.reportIssue,
-      builder: (_) => _ReportIssueDialog(
-        vm: vm,
-        isTv: s.isTv,
-        seasons: s.tv?.seasons ?? const [],
-        numberOfSeasons: s.numberOfSeasons ?? 0,
-      ),
-    );
-  }
-
-  Widget _browseChip({
-    required String label,
-    required VoidCallback onTap,
-    Color color = Colors.white12,
-    Color? borderColor,
-    Color labelColor = Colors.white,
-    bool dense = false,
-  }) => _BrowseChip(
-    label: label,
-    onTap: onTap,
-    color: color,
-    borderColor: borderColor,
-    labelColor: labelColor,
-    dense: dense,
-  );
 
   KeyEventResult _handleNavbarUpKey(FocusNode node, KeyEvent event) {
     if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
@@ -933,77 +793,6 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
   /// get their own slot, so one can be cancellable while the other is still
   /// requestable. Within a track the order is cancel, then requested, then
   /// request.
-  _RequestAction _actionFor(SeerrQualityStatus q, AppLocalizations l10n) {
-    final vm = _vm!;
-    final allowed = q.is4k ? vm.canRequest4k : vm.canRequest;
-    final canShowRequest = allowed &&
-        !q.isFullyAvailable &&
-        (!q.hasExistingRequest || q.isPartiallyAvailable);
-    final hasOpenRequest = q.activeRequests.isNotEmpty && !q.isFullyAvailable;
-    if (hasOpenRequest && q.cancelableRequests.isNotEmpty) {
-      return _RequestAction(
-        _RequestActionKind.cancel,
-        q.is4k ? l10n.cancelRequest4k : l10n.cancelRequest,
-      );
-    }
-    if (hasOpenRequest) {
-      return _RequestAction(
-        _RequestActionKind.requested,
-        q.is4k ? l10n.requested4k : l10n.seerrRequestedStatus,
-      );
-    }
-    if (canShowRequest) {
-      return _RequestAction(
-        _RequestActionKind.request,
-        q.isPartiallyAvailable
-            ? (q.is4k ? l10n.requestMore4k : l10n.requestMore)
-            : (q.is4k ? l10n.request4k : l10n.request),
-      );
-    }
-    return const _RequestAction(_RequestActionKind.none, '');
-  }
-
-  String? _productionStatusText(SeerrMediaDetailState s) {
-    if (s.isMovie) return s.movie?.status;
-    return s.tv?.status;
-  }
-
-  String? _formatDate(String? iso) {
-    if (iso == null || iso.length < 10) return null;
-    try {
-      final d = DateTime.parse(iso);
-      const months = [
-        'January',
-        'February',
-        'March',
-        'April',
-        'May',
-        'June',
-        'July',
-        'August',
-        'September',
-        'October',
-        'November',
-        'December',
-      ];
-      return '${months[d.month - 1]} ${d.day}, ${d.year}';
-    } catch (_) {
-      return iso;
-    }
-  }
-
-  static String _formatMoneyFull(int amount) {
-    final s = amount.toString();
-    final buf = StringBuffer(r'$');
-    final start = s.length % 3;
-    for (var i = 0; i < s.length; i++) {
-      if (i != 0 && (i - start) % 3 == 0) buf.write(',');
-      buf.write(s[i]);
-    }
-    buf.write('.00');
-    return buf.toString();
-  }
-
   Future<void> _openTrailer(SeerrVideo video) async {
     final isYouTube = (video.site ?? '').toLowerCase() == 'youtube';
     final key = video.key;
@@ -1041,7 +830,7 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
               child: ClipRRect(
                 borderRadius: AppRadius.circular(8),
                 child: CachedNetworkImage(
-                  imageUrl: '$_tmdbPosterBase${s.posterPath}',
+                  imageUrl: '$seerrPosterBase${s.posterPath}',
                   width: 180,
                   fit: BoxFit.cover,
                   errorWidget: (_, _, _) =>
@@ -1072,7 +861,7 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
             ),
           ],
           const SizedBox(height: 12),
-          _buildStatusBadge(s),
+          SeerrStatusPills(state: s),
           if (s.hdDownload != null) ...[
             const SizedBox(height: 8),
             SizedBox(
@@ -1098,24 +887,6 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
     );
   }
 
-  Widget _buildStatusBadge(SeerrMediaDetailState s) {
-    final tracks = seerrStatusTracks(s, AppLocalizations.of(context));
-    if (tracks.length == 1) {
-      return SeerrStatusPill(
-        track: tracks.first.$1,
-        qualityLabel: tracks.first.$2,
-      );
-    }
-    return Wrap(
-      spacing: 8,
-      runSpacing: 6,
-      children: [
-        for (final (q, prefix) in tracks)
-          SeerrStatusPill(track: q, qualityLabel: prefix),
-      ],
-    );
-  }
-
   Widget _buildMetadata(SeerrMediaDetailState s) {
     final l10n = AppLocalizations.of(context);
     final chips = <Widget>[];
@@ -1124,7 +895,7 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
     if (year != null) chips.add(_metaText(year));
 
     if (s.runtime != null && s.runtime! > 0) {
-      chips.add(_metaText(_formatRuntime(s.runtime!)));
+      chips.add(_metaText(seerrFormatRuntime(s.runtime!)));
     }
 
     if (s.voteAverage != null && s.voteAverage! > 0) {
@@ -1154,10 +925,10 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
     }
 
     if (s.budget != null && s.budget! > 0) {
-      chips.add(_metaText(l10n.budgetAmount(_formatMoney(s.budget!))));
+      chips.add(_metaText(l10n.budgetAmount(seerrFormatMoneyShort(s.budget!))));
     }
     if (s.revenue != null && s.revenue! > 0) {
-      chips.add(_metaText(l10n.revenueAmount(_formatMoney(s.revenue!))));
+      chips.add(_metaText(l10n.revenueAmount(seerrFormatMoneyShort(s.revenue!))));
     }
 
     final mediaType = s.isTv ? 'tv' : 'movie';
@@ -1271,8 +1042,8 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
     final vm = _vm!;
     final hd = s.hd;
     final uhd = s.uhd;
-    final hdAction = _actionFor(hd, l10n);
-    final uhdAction = _actionFor(uhd, l10n);
+    final hdAction = seerrRequestActionFor(hd, vm, l10n);
+    final uhdAction = seerrRequestActionFor(uhd, vm, l10n);
     final canManage = vm.canManageRequests;
     final activeRequests = s.allActiveRequests;
 
@@ -1306,7 +1077,7 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
                     if (canManage &&
                         req.status == SeerrRequest.statusPending) ...[
                       const SizedBox(width: 8),
-                      _ApproveDeclineButtons(
+                      SeerrApproveDeclineButtons(
                         isLoading: s.isRequesting,
                         onApprove: () => vm.approveRequest(req.id),
                         onDecline: () => vm.declineRequest(req.id),
@@ -1331,10 +1102,10 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
                     foregroundColor: Colors.white,
                   ),
                 ),
-              if (hdAction.kind == _RequestActionKind.request)
+              if (hdAction.kind == SeerrRequestActionKind.request)
                 ElevatedButton.icon(
                   onPressed:
-                      s.isRequesting ? null : () => _showRequestDialog(is4k: false),
+                      s.isRequesting ? null : () => showSeerrRequestDialog(context: context, vm: vm, is4k: false),
                   icon: s.isRequesting
                       ? const SizedBox(
                           width: 16,
@@ -1348,10 +1119,10 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
                     foregroundColor: Colors.white,
                   ),
                 ),
-              if (uhdAction.kind == _RequestActionKind.request)
+              if (uhdAction.kind == SeerrRequestActionKind.request)
                 OutlinedButton.icon(
                   onPressed:
-                      s.isRequesting ? null : () => _showRequestDialog(is4k: true),
+                      s.isRequesting ? null : () => showSeerrRequestDialog(context: context, vm: vm, is4k: true),
                   icon: const Icon(Icons.add, size: 18),
                   label: Text(uhdAction.label),
                   style: OutlinedButton.styleFrom(
@@ -1375,10 +1146,16 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
                   ),
                 ),
               ),
-              if (hdAction.kind == _RequestActionKind.cancel)
+              if (hdAction.kind == SeerrRequestActionKind.cancel)
                 OutlinedButton.icon(
                   onPressed:
-                      s.isRequesting ? null : () => _showCancelDialog(s, is4k: false),
+                      s.isRequesting
+                      ? null
+                      : () => showSeerrCancelRequestDialog(
+                          context: context,
+                          vm: vm,
+                          is4k: false,
+                        ),
                   icon: const Icon(Icons.close, size: 18),
                   label: Text(hdAction.label),
                   style: OutlinedButton.styleFrom(
@@ -1388,7 +1165,7 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
                     ),
                   ),
                 )
-              else if (hdAction.kind == _RequestActionKind.requested)
+              else if (hdAction.kind == SeerrRequestActionKind.requested)
                 OutlinedButton.icon(
                   onPressed: null,
                   icon: const Icon(Icons.check, size: 18),
@@ -1400,10 +1177,16 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
                     ),
                   ),
                 ),
-              if (uhdAction.kind == _RequestActionKind.cancel)
+              if (uhdAction.kind == SeerrRequestActionKind.cancel)
                 OutlinedButton.icon(
                   onPressed:
-                      s.isRequesting ? null : () => _showCancelDialog(s, is4k: true),
+                      s.isRequesting
+                      ? null
+                      : () => showSeerrCancelRequestDialog(
+                          context: context,
+                          vm: vm,
+                          is4k: true,
+                        ),
                   icon: const Icon(Icons.close, size: 18),
                   label: Text(uhdAction.label),
                   style: OutlinedButton.styleFrom(
@@ -1413,7 +1196,7 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
                     ),
                   ),
                 )
-              else if (uhdAction.kind == _RequestActionKind.requested)
+              else if (uhdAction.kind == SeerrRequestActionKind.requested)
                 OutlinedButton.icon(
                   onPressed: null,
                   icon: const Icon(Icons.check, size: 18),
@@ -1429,7 +1212,7 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
                 OutlinedButton.icon(
                   onPressed: s.isRequesting
                       ? null
-                      : _showReportIssueDialog,
+                      : () => showSeerrReportIssueDialog(context: context, vm: vm),
                   icon: const Icon(Icons.report_problem_outlined, size: 18),
                   label: Text(l10n.reportIssue),
                   style: OutlinedButton.styleFrom(
@@ -1443,7 +1226,7 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
           ),
           if (s.movie?.collection != null) ...[
             const SizedBox(height: 16),
-            _buildCollectionBanner(s.movie!.collection!),
+            SeerrCollectionBanner(collection: s.movie!.collection!),
           ],
         ],
       ),
@@ -1471,7 +1254,7 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
       children: visible.asMap().entries.map((entry) {
         final index = entry.key;
         final m = entry.value;
-        return _CastCard(
+        return SeerrCastCard(
           member: m,
           onKeyEvent: (event) {
             if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
@@ -1510,7 +1293,7 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
           title: item.displayTitle,
           subtitle: _yearFromItem(item),
           imageUrl: item.posterPath != null
-              ? '$_tmdbPosterBase${item.posterPath}'
+              ? '$seerrPosterBase${item.posterPath}'
               : null,
           width: 130,
           aspectRatio: 2 / 3,
@@ -1542,90 +1325,6 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
         );
       }).toList(),
     );
-  }
-
-  void _showRequestDialog({required bool is4k}) {
-    final vm = _vm!;
-    final s = vm.state;
-    final l10n = AppLocalizations.of(context);
-    final type = s.isTv ? l10n.series : l10n.movie;
-    showStyledPlayerDialog<void>(
-      context,
-      title: is4k
-          ? l10n.requestSeriesOrMovie4k(type)
-          : l10n.requestSeriesOrMovie(type),
-      builder: (_) => _RequestDialog(
-        vm: vm,
-        isTv: s.isTv,
-        is4k: is4k,
-        seasons: s.tv?.seasons ?? const [],
-        numberOfSeasons: s.numberOfSeasons ?? 0,
-        requestedSeasons: s.quality(is4k: is4k).requestedSeasons,
-      ),
-    );
-  }
-
-  void _showCancelDialog(SeerrMediaDetailState s, {required bool is4k}) {
-    final l10n = AppLocalizations.of(context);
-    final active = s.quality(is4k: is4k).cancelableRequests;
-    if (active.isEmpty) return;
-
-    final title = s.displayTitle;
-    final count = active.length;
-    final message = count == 1
-        ? l10n.cancelRequestForTitle(title)
-        : l10n.cancelCountRequestsForTitle(count, title);
-    final cancelLabel = is4k ? l10n.cancelRequest4k : l10n.cancelRequest;
-
-    showFocusRestoringDialog(
-      context: context,
-      builder: (ctx) => AlertDialog.adaptive(
-        backgroundColor: const Color(0xFF1A1A2E),
-        title: Text(
-          cancelLabel,
-          style: const TextStyle(color: Colors.white),
-        ),
-        content: Text(message, style: const TextStyle(color: Colors.white70)),
-        actions: [
-          adaptiveDialogAction(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(l10n.keep),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              _cancelRequests(active);
-            },
-            style: TextButton.styleFrom(foregroundColor: Colors.red[300]),
-            child: Text(cancelLabel),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _cancelRequests(List<SeerrRequest> requests) async {
-    final vm = _vm;
-    if (vm == null) return;
-    await vm.cancelRequests(requests.map((r) => r.id).toList());
-    if (!mounted || vm.state.requestError != null) return;
-
-    // Discover caches the rows that still list this request, so drop them
-    // before the user lands back on it.
-    if (GetIt.instance.isRegistered<SeerrDiscoverViewModel>()) {
-      GetIt.instance<SeerrDiscoverViewModel>().refresh();
-    }
-
-    // The other quality track may still have an open request, so stay on the
-    // page rather than navigating away from it. cancelRequests already
-    // reloaded the details, so this state is current.
-    if (vm.state.allActiveRequests.isNotEmpty) return;
-
-    if (context.canPop()) {
-      context.pop();
-    } else {
-      context.go(Destinations.seerrDiscover);
-    }
   }
 
   Future<void> _playInMoonfin(SeerrMediaDetailState s) async {
@@ -1684,977 +1383,4 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
     );
   }
 
-  static String _formatRuntime(int minutes) {
-    if (minutes < 60) return '${minutes}m';
-    final h = minutes ~/ 60;
-    final m = minutes % 60;
-    return m > 0 ? '${h}h ${m}m' : '${h}h';
-  }
-
-  static String _formatMoney(int amount) {
-    if (amount >= 1000000000) {
-      return '${(amount / 1000000000).toStringAsFixed(1)}B';
-    }
-    if (amount >= 1000000) {
-      return '${(amount / 1000000).toStringAsFixed(1)}M';
-    }
-    if (amount >= 1000) {
-      return '${(amount / 1000).toStringAsFixed(0)}K';
-    }
-    return amount.toString();
-  }
-}
-
-class _ApproveDeclineButtons extends StatelessWidget {
-  final bool isLoading;
-  final VoidCallback onApprove;
-  final VoidCallback onDecline;
-
-  const _ApproveDeclineButtons({
-    required this.isLoading,
-    required this.onApprove,
-    required this.onDecline,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        IconButton(
-          onPressed: isLoading ? null : onApprove,
-          icon: const Icon(
-            Icons.check_circle_outline,
-            color: Colors.green,
-            size: 20,
-          ),
-          tooltip: l10n.approve,
-          visualDensity: VisualDensity.compact,
-          padding: EdgeInsets.zero,
-        ),
-        IconButton(
-          onPressed: isLoading ? null : onDecline,
-          icon: Icon(Icons.cancel_outlined, color: Colors.red[300], size: 20),
-          tooltip: l10n.declineAction,
-          visualDensity: VisualDensity.compact,
-          padding: EdgeInsets.zero,
-        ),
-      ],
-    );
-  }
-}
-
-class _BrowseChip extends StatefulWidget {
-  final String label;
-  final VoidCallback onTap;
-  final Color color;
-  final Color? borderColor;
-  final Color labelColor;
-  final bool dense;
-
-  const _BrowseChip({
-    required this.label,
-    required this.onTap,
-    required this.color,
-    required this.borderColor,
-    required this.labelColor,
-    required this.dense,
-  });
-
-  @override
-  State<_BrowseChip> createState() => _BrowseChipState();
-}
-
-class _BrowseChipState extends State<_BrowseChip> with FocusStateMixin {
-  @override
-  Widget build(BuildContext context) {
-    final hPad = widget.dense ? 8.0 : 10.0;
-    final vPad = widget.dense ? 4.0 : 6.0;
-    final borderRadius = AppRadius.circular(999);
-    return Focus(
-      onFocusChange: setFocused,
-      onKeyEvent: (node, event) {
-        if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
-          return KeyEventResult.ignored;
-        }
-        if (event.logicalKey == LogicalKeyboardKey.select ||
-            event.logicalKey == LogicalKeyboardKey.enter ||
-            event.logicalKey == LogicalKeyboardKey.gameButtonA) {
-          widget.onTap();
-          return KeyEventResult.handled;
-        }
-        return KeyEventResult.ignored;
-      },
-      child: MouseRegion(
-        cursor: SystemMouseCursors.click,
-        onEnter: (_) => setHovered(true),
-        onExit: (_) => setHovered(false),
-        child: GestureDetector(
-          onTap: widget.onTap,
-          child: AnimatedScale(
-            scale: showFocusBorder ? 1.05 : 1.0,
-            duration: const Duration(milliseconds: 120),
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: hPad, vertical: vPad),
-              decoration: BoxDecoration(
-                color: widget.color,
-                borderRadius: borderRadius,
-                border: Border.fromBorderSide(
-                  ThemeRegistry.active.borders.chipBorder.copyWith(
-                    color: showFocusBorder
-                        ? focusColor
-                        : (widget.borderColor ?? Colors.transparent),
-                    width: showFocusBorder ? 2 : 1,
-                  ),
-                ),
-              ),
-              child: Text(
-                widget.label,
-                style: TextStyle(
-                  fontSize: widget.dense ? 11 : 12,
-                  color: widget.labelColor,
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _CastCard extends StatefulWidget {
-  final SeerrCastMember member;
-  final KeyEventResult Function(KeyEvent event)? onKeyEvent;
-  final VoidCallback? onTap;
-
-  const _CastCard({required this.member, this.onKeyEvent, this.onTap});
-
-  @override
-  State<_CastCard> createState() => _CastCardState();
-}
-
-class _CastCardState extends State<_CastCard> with FocusStateMixin {
-  @override
-  Widget build(BuildContext context) {
-    final m = widget.member;
-    final focusColor = Color(
-      GetIt.instance<UserPreferences>()
-          .get(UserPreferences.focusColor)
-          .colorValue,
-    );
-    return Focus(
-      onFocusChange: (f) => setFocused(f),
-      onKeyEvent: (_, event) {
-        final custom = widget.onKeyEvent?.call(event);
-        if (custom != null && custom != KeyEventResult.ignored) {
-          return custom;
-        }
-        if (event is KeyDownEvent || event is KeyRepeatEvent) {
-          if (event.logicalKey == LogicalKeyboardKey.select ||
-              event.logicalKey == LogicalKeyboardKey.enter ||
-              event.logicalKey == LogicalKeyboardKey.gameButtonA) {
-            widget.onTap?.call();
-            return KeyEventResult.handled;
-          }
-        }
-        if (event is KeyDownEvent &&
-            event.logicalKey == LogicalKeyboardKey.space) {
-          widget.onTap?.call();
-          return KeyEventResult.handled;
-        }
-        return KeyEventResult.ignored;
-      },
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: MouseRegion(
-          cursor: SystemMouseCursors.click,
-          onEnter: (_) => setHovered(true),
-          onExit: (_) => setHovered(false),
-          child: AnimatedScale(
-            scale: showFocusBorder ? 1.05 : 1.0,
-            duration: const Duration(milliseconds: 150),
-            child: SizedBox(
-              width: 90,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(2),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: showFocusBorder
-                          ? Border.fromBorderSide(
-                              ThemeRegistry.active.borders.focusBorder.copyWith(
-                                color: focusColor,
-                                width: 2,
-                              ),
-                            )
-                          : null,
-                    ),
-                    child: CircleAvatar(
-                      radius: 40,
-                      backgroundColor: Colors.grey[800],
-                      backgroundImage: m.profilePath != null
-                          ? CachedNetworkImageProvider(
-                              '$_tmdbProfileBase${m.profilePath}',
-                            )
-                          : null,
-                      child: m.profilePath == null
-                          ? const Icon(
-                              Icons.person,
-                              color: Colors.white38,
-                              size: 32,
-                            )
-                          : null,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    m.name,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    maxLines: 2,
-                    textAlign: TextAlign.center,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  if (m.character != null)
-                    Text(
-                      m.character!,
-                      style: const TextStyle(
-                        color: Colors.white54,
-                        fontSize: 11,
-                      ),
-                      maxLines: 1,
-                      textAlign: TextAlign.center,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _StatRow {
-  final String label;
-  final String value;
-  const _StatRow(this.label, this.value);
-}
-
-class _ActionTile extends StatefulWidget {
-  final IconData icon;
-  final String label;
-  final VoidCallback? onTap;
-  final bool primary;
-  final FocusNode? focusNode;
-
-  const _ActionTile({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-    this.primary = false,
-    this.focusNode,
-  });
-
-  @override
-  State<_ActionTile> createState() => _ActionTileState();
-}
-
-class _ActionTileState extends State<_ActionTile> with FocusStateMixin {
-  @override
-  Widget build(BuildContext context) {
-    final focusColor = Color(
-      GetIt.instance<UserPreferences>()
-          .get(UserPreferences.focusColor)
-          .colorValue,
-    );
-    final disabled = widget.onTap == null;
-    final isHighlighted = showFocusBorder;
-    final bg = (widget.primary && isHighlighted)
-        ? Colors.white
-        : Colors.white.withValues(alpha: 0.10);
-    final fg = (widget.primary && isHighlighted) ? Colors.black : Colors.white;
-    return Focus(
-      focusNode: widget.focusNode,
-      onFocusChange: setFocused,
-      canRequestFocus: !disabled,
-      onKeyEvent: (node, event) {
-        if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
-          return KeyEventResult.ignored;
-        }
-        if (!disabled &&
-            (event.logicalKey == LogicalKeyboardKey.select ||
-                event.logicalKey == LogicalKeyboardKey.enter ||
-                event.logicalKey == LogicalKeyboardKey.gameButtonA)) {
-          widget.onTap?.call();
-          return KeyEventResult.handled;
-        }
-        return KeyEventResult.ignored;
-      },
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: MouseRegion(
-          cursor: disabled
-              ? SystemMouseCursors.basic
-              : SystemMouseCursors.click,
-          onEnter: (_) => setHovered(true),
-          onExit: (_) => setHovered(false),
-          child: Opacity(
-            opacity: disabled ? 0.5 : 1.0,
-            child: AnimatedScale(
-              scale: showFocusBorder ? 1.05 : 1.0,
-              duration: const Duration(milliseconds: 150),
-              child: SizedBox(
-                width: 96,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 88,
-                      height: 88,
-                      decoration: BoxDecoration(
-                        color: bg,
-                        borderRadius: AppRadius.circular(14),
-                        border: showFocusBorder
-                            ? Border.fromBorderSide(
-                                ThemeRegistry.active.borders.focusBorder
-                                    .copyWith(color: focusColor, width: 3),
-                              )
-                            : null,
-                      ),
-                      child: Icon(widget.icon, color: fg, size: 38),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      widget.label,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      textAlign: TextAlign.center,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// A provider that splits a run differently, like TVDB for anime, reports its
-// own season numbers, so counting off from one would offer seasons that arent
-// there and request the wrong ones. The count is only a fallback for a server
-// that sends no season list.
-List<int> _seasonNumbersOf(List<SeerrSeason> seasons, int fallbackCount) {
-  final reported = seasons
-      .where((s) => s.seasonNumber > 0)
-      .map((s) => s.seasonNumber)
-      .toList();
-  if (reported.isNotEmpty) return reported;
-  return List.generate(fallbackCount, (i) => i + 1);
-}
-
-enum _RequestActionKind { none, request, requested, cancel }
-
-class _RequestAction {
-  final _RequestActionKind kind;
-  final String label;
-
-  const _RequestAction(this.kind, this.label);
-}
-
-class _RequestDialog extends StatefulWidget {
-  final SeerrMediaDetailViewModel vm;
-  final bool isTv;
-  final bool is4k;
-  final List<SeerrSeason> seasons;
-  final int numberOfSeasons;
-  final Set<int> requestedSeasons;
-
-  const _RequestDialog({
-    required this.vm,
-    required this.isTv,
-    required this.is4k,
-    required this.seasons,
-    required this.numberOfSeasons,
-    this.requestedSeasons = const {},
-  });
-
-  @override
-  State<_RequestDialog> createState() => _RequestDialogState();
-}
-
-class _RequestDialogState extends State<_RequestDialog> {
-  bool _allSeasons = true;
-  bool _submitting = false;
-  final Set<int> _selectedSeasons = {};
-  late final SeerrAdvancedRequestController _advanced;
-
-  @override
-  void initState() {
-    super.initState();
-    _advanced = SeerrAdvancedRequestController(
-      isTv: widget.isTv,
-      isAnime: widget.vm.state.isAnime,
-      is4k: widget.is4k,
-    );
-    _applySavedPreferences();
-    if (widget.vm.canRequestAdvanced) {
-      _advanced.load();
-    }
-    widget.vm.loadQuota();
-    widget.vm.addListener(_onVmChanged);
-  }
-
-  @override
-  void dispose() {
-    widget.vm.removeListener(_onVmChanged);
-    _advanced.dispose();
-    super.dispose();
-  }
-
-  void _onVmChanged() {
-    if (mounted) setState(() {});
-  }
-
-  void _applySavedPreferences() {
-    final vm = widget.vm;
-    final is4k = widget.is4k;
-    _advanced.applySavedPreferences(
-      serverId: is4k ? vm.saved4kServerId : vm.savedServerId,
-      profileId: is4k ? vm.saved4kProfileId : vm.savedProfileId,
-      rootFolderId: is4k ? vm.saved4kRootFolderId : vm.savedRootFolderId,
-      resetSelection: false,
-      is4k: is4k,
-    );
-  }
-
-  SeerrQuotaDetail? get _quotaDetail {
-    final quota = widget.vm.state.quota;
-    if (quota == null) return null;
-    return widget.isTv ? quota.tv : quota.movie;
-  }
-
-  late final List<int> _seasonNumbers =
-      _seasonNumbersOf(widget.seasons, widget.numberOfSeasons);
-
-  int get _seasonsNeeded {
-    if (!widget.isTv) return 0;
-    if (_allSeasons) {
-      final total = _seasonNumbers.length;
-      return (total - widget.requestedSeasons.length).clamp(1, total);
-    }
-    return _selectedSeasons.length;
-  }
-
-  bool get _quotaBlocked {
-    final detail = _quotaDetail;
-    if (detail == null || detail.isUnlimited) return false;
-    if (detail.restricted) return true;
-    final remaining = detail.remaining;
-    if (remaining == null) return false;
-    // TV quota counts seasons, movie quota counts one movie per request.
-    final needed = widget.isTv ? _seasonsNeeded : 1;
-    return needed > remaining;
-  }
-
-  void _submit() {
-    if (_submitting || _quotaBlocked) {
-      return;
-    }
-
-    List<int>? seasons;
-    if (widget.isTv && !_allSeasons) {
-      seasons = _selectedSeasons.toList()..sort();
-      if (seasons.isEmpty) return;
-    }
-
-    _submitting = true;
-
-    widget.vm.submitRequest(
-      is4k: widget.is4k,
-      seasons: seasons,
-      allSeasons: widget.isTv && _allSeasons,
-      profileId: _advanced.effectiveProfileId,
-      rootFolder: _advanced.effectiveRootFolderPath,
-      serverId: _advanced.effectiveServerId,
-    );
-
-    Navigator.of(context).pop();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final quotaRow = _buildQuotaRow(l10n);
-
-    final children = <Widget>[];
-    if (widget.isTv) {
-      children.add(const Divider(color: Colors.white12));
-      children.add(_buildSeasonSelector(autofocusAll: true));
-    }
-    if (widget.vm.canRequestAdvanced) {
-      children.add(const Divider(color: Colors.white12));
-      children.add(SeerrAdvancedRequestOptions(controller: _advanced));
-    }
-    if (quotaRow != null) {
-      children.add(const SizedBox(height: 12));
-      children.add(quotaRow);
-    }
-    children.add(const SizedBox(height: 20));
-    children.add(
-      Row(
-        children: [
-          Expanded(
-            child: SeerrDialogButton(
-              label: l10n.cancel,
-              onPressed: _submitting ? null : () => Navigator.of(context).pop(),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: SeerrDialogButton(
-              label: l10n.submitRequest,
-              primary: true,
-              primaryColor: const Color(0xFF6366F1),
-              busy: _submitting,
-              onPressed: _quotaBlocked || _submitting ? null : _submit,
-            ),
-          ),
-        ],
-      ),
-    );
-
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(24, 8, 24, 20),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: children,
-      ),
-    );
-  }
-
-  Widget? _buildQuotaRow(AppLocalizations l10n) {
-    final detail = _quotaDetail;
-    if (detail == null || detail.isUnlimited) return null;
-    final limit = detail.limit ?? 0;
-    final remaining = detail.remaining ?? 0;
-    final blocked = _quotaBlocked;
-    final label = blocked
-        ? l10n.requestErrorQuota
-        : widget.isTv
-        ? l10n.seasonQuotaRemaining(remaining, limit)
-        : l10n.movieQuotaRemaining(remaining, limit);
-    return SeerrQuotaRow(label: label, blocked: blocked);
-  }
-
-  Widget _buildSeasonSelector({bool autofocusAll = false}) {
-    final l10n = AppLocalizations.of(context);
-    final seasonNumbers = _seasonNumbers;
-    final requested = widget.requestedSeasons;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SeerrToggleRow(
-          title: l10n.allSeasons,
-          value: _allSeasons,
-          checkbox: true,
-          autofocus: autofocusAll,
-          onChanged: (v) => setState(() {
-            _allSeasons = v;
-            if (_allSeasons) _selectedSeasons.clear();
-          }),
-        ),
-        if (!_allSeasons && seasonNumbers.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.only(top: 8, left: 8),
-            child: Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: seasonNumbers.map((seasonNumber) {
-                final alreadyRequested = requested.contains(seasonNumber);
-                final selected = _selectedSeasons.contains(seasonNumber);
-                return SeerrChoiceChip(
-                  label: l10n.seasonChip(seasonNumber),
-                  selected: selected,
-                  onSelected: alreadyRequested
-                      ? null
-                      : (v) => setState(() {
-                          if (v) {
-                            _selectedSeasons.add(seasonNumber);
-                          } else {
-                            _selectedSeasons.remove(seasonNumber);
-                          }
-                        }),
-                );
-              }).toList(),
-            ),
-          ),
-      ],
-    );
-  }
-
-}
-
-class _CollectionBanner extends StatefulWidget {
-  final SeerrCollectionRef collection;
-  final String label;
-  final String cta;
-  final VoidCallback onTap;
-
-  const _CollectionBanner({
-    required this.collection,
-    required this.label,
-    required this.cta,
-    required this.onTap,
-  });
-
-  @override
-  State<_CollectionBanner> createState() => _CollectionBannerState();
-}
-
-class _CollectionBannerState extends State<_CollectionBanner>
-    with FocusStateMixin {
-  @override
-  Widget build(BuildContext context) {
-    final backdrop = widget.collection.backdropPath;
-    return Focus(
-      onFocusChange: setFocused,
-      onKeyEvent: (node, event) {
-        if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
-          return KeyEventResult.ignored;
-        }
-        if (event.logicalKey == LogicalKeyboardKey.select ||
-            event.logicalKey == LogicalKeyboardKey.enter ||
-            event.logicalKey == LogicalKeyboardKey.gameButtonA) {
-          widget.onTap();
-          return KeyEventResult.handled;
-        }
-        return KeyEventResult.ignored;
-      },
-      child: MouseRegion(
-        cursor: SystemMouseCursors.click,
-        onEnter: (_) => setHovered(true),
-        onExit: (_) => setHovered(false),
-        child: GestureDetector(
-          onTap: widget.onTap,
-          child: AnimatedScale(
-            scale: showFocusBorder ? 1.02 : 1.0,
-            duration: const Duration(milliseconds: 120),
-            child: Container(
-              constraints: const BoxConstraints(maxWidth: 560),
-              clipBehavior: Clip.antiAlias,
-              decoration: BoxDecoration(
-                borderRadius: AppRadius.circular(10),
-                border: Border.fromBorderSide(
-                  ThemeRegistry.active.borders.chipBorder.copyWith(
-                    color: showFocusBorder ? focusColor : Colors.white12,
-                    width: showFocusBorder ? 2 : 1,
-                  ),
-                ),
-              ),
-              child: Stack(
-                children: [
-                  if (backdrop != null)
-                    Positioned.fill(
-                      child: CachedNetworkImage(
-                        imageUrl: '$_tmdbBackdropBase$backdrop',
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  Positioned.fill(
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.centerLeft,
-                          end: Alignment.centerRight,
-                          colors: [
-                            Colors.black.withValues(alpha: 0.85),
-                            Colors.black.withValues(alpha: 0.55),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 14,
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.collections_bookmark_outlined,
-                          color: Colors.white70,
-                          size: 20,
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            widget.label,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Text(
-                          widget.cta,
-                          style: TextStyle(
-                            color: AppColorScheme.accent,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const Icon(
-                          Icons.chevron_right,
-                          color: Colors.white54,
-                          size: 18,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ReportIssueDialog extends StatefulWidget {
-  final SeerrMediaDetailViewModel vm;
-  final bool isTv;
-  final List<SeerrSeason> seasons;
-  final int numberOfSeasons;
-
-  const _ReportIssueDialog({
-    required this.vm,
-    required this.isTv,
-    required this.seasons,
-    required this.numberOfSeasons,
-  });
-
-  @override
-  State<_ReportIssueDialog> createState() => _ReportIssueDialogState();
-}
-
-class _ReportIssueDialogState extends State<_ReportIssueDialog> {
-  int _issueType = SeerrIssue.typeVideo;
-  int _season = 0;
-  int _episode = 0;
-  bool _submitting = false;
-  final _messageController = TextEditingController();
-
-  late final List<int> _seasonNumbers =
-      _seasonNumbersOf(widget.seasons, widget.numberOfSeasons);
-
-  int? get _episodeCount {
-    if (_season <= 0) return null;
-    return widget.seasons
-        .where((s) => s.seasonNumber == _season)
-        .firstOrNull
-        ?.episodeCount;
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    if (widget.isTv && _seasonNumbers.length == 1) {
-      _season = _seasonNumbers.first;
-    }
-  }
-
-  @override
-  void dispose() {
-    _messageController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _submit() async {
-    final message = _messageController.text.trim();
-    if (message.isEmpty || _submitting) return;
-    setState(() => _submitting = true);
-
-    final ok = await widget.vm.submitIssue(
-      issueType: _issueType,
-      message: message,
-      problemSeason: widget.isTv ? _season : 0,
-      problemEpisode: widget.isTv && _season > 0 ? _episode : 0,
-    );
-
-    if (!mounted) return;
-    if (ok) {
-      Navigator.of(context).pop();
-    } else {
-      setState(() => _submitting = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final types = [
-      (SeerrIssue.typeVideo, l10n.issueTypeVideo),
-      (SeerrIssue.typeAudio, l10n.issueTypeAudio),
-      (SeerrIssue.typeSubtitles, l10n.subtitles),
-      (SeerrIssue.typeOther, l10n.other),
-    ];
-
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(24, 8, 24, 20),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          for (var i = 0; i < types.length; i++)
-            _buildTypeOption(types[i].$1, types[i].$2, autofocus: i == 0),
-          if (widget.isTv && _seasonNumbers.isNotEmpty) ...[
-            const Divider(color: Colors.white12),
-            const SizedBox(height: 4),
-            SeerrSelectorRow(
-              label: l10n.season,
-              value: _season <= 0
-                  ? l10n.allSeasons
-                  : l10n.seasonNumber(_season),
-              onTap: () => _pickSeason(l10n),
-            ),
-            if (_season > 0) ...[
-              const SizedBox(height: 12),
-              SeerrSelectorRow(
-                label: l10n.episode,
-                value: _episode <= 0
-                    ? l10n.allEpisodes
-                    : l10n.episodeNumber(_episode),
-                onTap: () => _pickEpisode(l10n),
-              ),
-            ],
-          ],
-          const SizedBox(height: 16),
-          Text(
-            l10n.whatsWrong,
-            style: const TextStyle(color: Colors.white70, fontSize: 13),
-          ),
-          const SizedBox(height: 8),
-          SeerrTextField(
-            controller: _messageController,
-            hint: l10n.whatsWrong,
-            maxLines: PlatformDetection.isTV ? 1 : 3,
-          ),
-          const SizedBox(height: 20),
-          ValueListenableBuilder(
-            valueListenable: _messageController,
-            builder: (context, value, _) {
-              final canSend = value.text.trim().isNotEmpty && !_submitting;
-              return Row(
-                children: [
-                  Expanded(
-                    child: SeerrDialogButton(
-                      label: l10n.cancel,
-                      onPressed: _submitting
-                          ? null
-                          : () => Navigator.of(context).pop(),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: SeerrDialogButton(
-                      label: l10n.submitReport,
-                      primary: true,
-                      busy: _submitting,
-                      onPressed: canSend ? _submit : null,
-                    ),
-                  ),
-                ],
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTypeOption(int value, String label, {bool autofocus = false}) {
-    final selected = _issueType == value;
-    return FocusableWrapper(
-      autofocus: autofocus,
-      onSelect: () => setState(() => _issueType = value),
-      borderRadius: 8,
-      useBackgroundFocus: true,
-      disableScale: true,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-        child: Row(
-          children: [
-            Icon(
-              selected
-                  ? Icons.radio_button_checked
-                  : Icons.radio_button_unchecked,
-              color: selected ? AppColorScheme.accent : Colors.white38,
-              size: 20,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(label, style: const TextStyle(color: Colors.white)),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<void> _pickSeason(AppLocalizations l10n) async {
-    final values = <int>[0, ..._seasonNumbers];
-    final current = values.indexOf(_season);
-    final picked = await showSeerrOptionPicker(
-      context,
-      title: l10n.season,
-      labels: [
-        l10n.allSeasons,
-        for (final num in _seasonNumbers) l10n.seasonNumber(num),
-      ],
-      selectedIndex: current < 0 ? 0 : current,
-    );
-    if (picked == null || !mounted) return;
-    setState(() {
-      _season = values[picked];
-      _episode = 0;
-    });
-  }
-
-  Future<void> _pickEpisode(AppLocalizations l10n) async {
-    final count = _episodeCount ?? 0;
-    final picked = await showSeerrOptionPicker(
-      context,
-      title: l10n.episode,
-      labels: [
-        l10n.allEpisodes,
-        for (var i = 1; i <= count; i++) l10n.episodeNumber(i),
-      ],
-      selectedIndex: _episode.clamp(0, count),
-    );
-    if (picked == null || !mounted) return;
-    setState(() => _episode = picked);
-  }
 }

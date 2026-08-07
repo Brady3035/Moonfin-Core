@@ -133,12 +133,15 @@ class LibraryBrowseViewModel extends ChangeNotifier {
   void setSearchQuery(String query) {
     if (_searchQuery == query) return;
     _searchQuery = query;
+    _searchResults = null;
+    _searchResultsSource = null;
+    _searchResultsQuery = '';
+
     notifyListeners();
     _searchDebounceTimer?.cancel();
-    if (_searchQuery.trim().isEmpty || !hasMore) return;
     _searchDebounceTimer = Timer(_searchLoadDelay, () {
       if (_disposed) return;
-      unawaited(ensureAllItemsLoaded());
+      unawaited(load());
     });
   }
 
@@ -467,15 +470,15 @@ class LibraryBrowseViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> ensureAllItemsLoaded() async {
+  Future<void> ensureAllItemsLoaded({int maxItems = 3000}) async {
     final generation = ++_pageWalkGeneration;
     bool stillWanted() =>
         !_disposed && _pageWalkGeneration == generation;
 
     if (!stillWanted()) return;
-    while (hasMore) {
+    while (hasMore && _items.length < maxItems) {
       final beforeCount = _items.length;
-      await loadMore();
+      await loadMore(pageSizeOverride: 300);
       if (!stillWanted()) return;
       if (_items.length == beforeCount) break;
     }
@@ -488,22 +491,127 @@ class LibraryBrowseViewModel extends ChangeNotifier {
     bool hasPrefix() =>
         _items.any((item) => matchesAlphabetBucket(item, letter));
 
-    while (!hasPrefix() && hasMore) {
-      final beforeCount = _items.length;
-      await loadMore();
-      if (_items.length == beforeCount) break;
+    if (hasPrefix()) return true;
+
+    // Preempt background page walks so letter jump has exclusive access to loadMore.
+    final generation = ++_pageWalkGeneration;
+    bool stillWanted() => !_disposed && _pageWalkGeneration == generation;
+
+    try {
+      // 1. Fast server-side count query for items before target letter (15ms O(1) SQL query)
+      final countBeforeLetter = await _countItemsBeforeLetter(letter);
+      if (!stillWanted()) return false;
+
+      if (countBeforeLetter != null && countBeforeLetter >= 0) {
+        if (_items.length <= countBeforeLetter && hasMore) {
+          await _fetchPage(countBeforeLetter, pageSizeOverride: 300);
+          if (hasPrefix()) return true;
+        }
+      }
+
+      // 2. Fallback page walk if direct offset lookup missed
+      while (!hasPrefix() && hasMore) {
+        if (!stillWanted()) return false;
+        while (_loadingMore) {
+          await Future.delayed(const Duration(milliseconds: 30));
+          if (!stillWanted()) return false;
+        }
+        final beforeCount = _items.length;
+        await loadMore(pageSizeOverride: 300, notify: false);
+        if (_items.length == beforeCount) break;
+      }
+    } finally {
+      notifyListeners();
     }
     return hasPrefix();
   }
 
-  Future<void> loadMore() async {
+  (List<String>?, List<String>?, bool?) _resolveTypeFilters() {
+    List<String>? includeTypes;
+    List<String>? excludeTypes;
+    bool? collapseBoxSets;
+    final groupCollections =
+        _prefs.get(UserPreferences.groupItemsIntoCollections);
+    if (includeItemTypes != null) {
+      includeTypes = List<String>.from(includeItemTypes!);
+      if (groupCollections &&
+          (includeTypes.contains('Movie') ||
+              includeTypes.contains('Series'))) {
+        collapseBoxSets = true;
+        if (!includeTypes.contains('BoxSet')) {
+          includeTypes.add('BoxSet');
+        }
+      }
+    } else {
+      switch (_collectionType) {
+        case 'movies':
+          if (groupCollections) {
+            includeTypes = ['Movie', 'BoxSet'];
+            excludeTypes = null;
+            collapseBoxSets = true;
+          } else {
+            includeTypes = ['Movie'];
+            excludeTypes = ['BoxSet'];
+            collapseBoxSets = false;
+          }
+          break;
+        case 'tvshows':
+          if (groupCollections) {
+            includeTypes = ['Series', 'BoxSet'];
+            collapseBoxSets = true;
+          } else {
+            includeTypes = ['Series'];
+            collapseBoxSets = false;
+          }
+          break;
+        case 'playlists':
+          includeTypes = ['Playlist'];
+          break;
+        case 'boxsets':
+          includeTypes = ['BoxSet'];
+          break;
+        default:
+          collapseBoxSets = false;
+          break;
+      }
+    }
+    return (includeTypes, excludeTypes, collapseBoxSets);
+  }
+
+  Future<int?> _countItemsBeforeLetter(String letter) async {
+    if (letter == '#') return 0;
+    final (includeTypes, excludeTypes, collapseBoxSets) =
+        _resolveTypeFilters();
+    try {
+      final response = await _fetchItemsWithFallback(
+        parentId: _effectiveParentId,
+        includeItemTypes: includeTypes,
+        excludeItemTypes: excludeTypes,
+        collapseBoxSetItems: collapseBoxSets,
+        sortBy: 'SortName',
+        sortOrder: _sortDirection == SortDirection.ascending
+            ? 'Ascending'
+            : 'Descending',
+        startIndex: 0,
+        limit: 0,
+        recursive: true,
+        fields: '',
+        nameLessThan: letter,
+      );
+      return response['TotalRecordCount'] as int?;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> loadMore({int? pageSizeOverride, bool notify = true}) async {
     if (_loadingMore || !hasMore) return;
     _loadingMore = true;
-    notifyListeners();
+    if (notify) notifyListeners();
 
     final previouslyFetched = _fetchedCount;
     try {
-      await _fetchPage(_fetchedCount);
+      await _fetchPage(_fetchedCount, pageSizeOverride: pageSizeOverride);
       // Stop on a page the server had nothing left for, not on one that only
       // repeated what is already shown, which a random sort does by chance.
       if (_fetchedCount <= previouslyFetched) {
@@ -513,11 +621,11 @@ class LibraryBrowseViewModel extends ChangeNotifier {
     } catch (_) {}
 
     _loadingMore = false;
-    notifyListeners();
+    if (notify) notifyListeners();
   }
 
-  Future<void> _fetchPage(int startIndex) async {
-    final pageSize = startIndex == 0 ? _firstPageSize : _pageSize;
+  Future<void> _fetchPage(int startIndex, {int? pageSizeOverride}) async {
+    final pageSize = pageSizeOverride ?? (startIndex == 0 ? _firstPageSize : _pageSize);
     final filters = <String>[];
     if (_playedFilter == PlayedStatusFilter.watched) {
       filters.add('IsPlayed');
@@ -621,6 +729,8 @@ class LibraryBrowseViewModel extends ChangeNotifier {
       sortBy = 'SortName';
     }
 
+    final searchTerm = _searchQuery.trim().isEmpty ? null : _searchQuery.trim();
+
     final Map<String, dynamic> response;
     if (isAlbumArtistBrowse) {
       response = await _client.itemsApi.getAlbumArtists(
@@ -635,6 +745,7 @@ class LibraryBrowseViewModel extends ChangeNotifier {
         recursive: recursive,
         fields: 'PrimaryImageAspectRatio,SortName',
         isFavorite: _favoriteFilter ? true : null,
+        nameStartsWith: searchTerm,
       );
     } else if (isArtistBrowse) {
       response = await _client.itemsApi.getArtists(
@@ -649,6 +760,7 @@ class LibraryBrowseViewModel extends ChangeNotifier {
         recursive: recursive,
         fields: 'PrimaryImageAspectRatio,SortName',
         isFavorite: _favoriteFilter ? true : null,
+        nameStartsWith: searchTerm,
       );
     } else {
       response = await _fetchItemsWithFallback(
@@ -669,6 +781,7 @@ class LibraryBrowseViewModel extends ChangeNotifier {
         filters: filters.isEmpty ? null : filters,
         seriesStatus: seriesStatus.isEmpty ? null : seriesStatus,
         isFavorite: _favoriteFilter ? true : null,
+        searchTerm: searchTerm,
       );
     }
 
@@ -742,6 +855,8 @@ class LibraryBrowseViewModel extends ChangeNotifier {
     List<String>? filters,
     List<String>? seriesStatus,
     bool? isFavorite,
+    String? searchTerm,
+    String? nameLessThan,
   }) async {
     try {
       return await _client.itemsApi.getItems(
@@ -762,6 +877,8 @@ class LibraryBrowseViewModel extends ChangeNotifier {
         filters: filters,
         seriesStatus: seriesStatus,
         isFavorite: isFavorite,
+        searchTerm: searchTerm,
+        nameLessThan: nameLessThan,
       );
     } on DioException catch (e) {
       final statusCode = e.response?.statusCode ?? 0;
@@ -792,6 +909,8 @@ class LibraryBrowseViewModel extends ChangeNotifier {
         filters: filters,
         seriesStatus: seriesStatus,
         isFavorite: isFavorite,
+        searchTerm: searchTerm,
+        nameLessThan: nameLessThan,
         enableTotalRecordCount: false,
       );
     }

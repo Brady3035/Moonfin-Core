@@ -8,6 +8,19 @@ import '../services/seerr/seerr_api_models.dart';
 import '../services/seerr/seerr_download_progress.dart';
 import '../services/seerr/seerr_error.dart';
 
+/// Reads one flag out of Seerr's public settings.
+///
+/// A server too old to know about a flag leaves it out of the payload rather
+/// than sending false, so absence means no opinion and [fallback] stands. That
+/// matters for the 4K flags: reading silence as switched off hid the 4K
+/// request control from everyone on those builds.
+@visibleForTesting
+bool seerrPublicFlag(
+  Map<String, dynamic> settings,
+  String key, {
+  required bool fallback,
+}) => settings.containsKey(key) ? settings[key] == true : fallback;
+
 /// One quality track (HD or 4K) of a title: its media status, the requests
 /// for that track, and the flags the UI reads. Seerr stores the two
 /// qualities independently, as status vs status4k and SeerrRequest.is4k, so
@@ -383,8 +396,16 @@ class SeerrMediaDetailViewModel extends ChangeNotifier {
   Future<void> _loadPublicSettings() async {
     try {
       final settings = await _repo.getPublicSettings();
-      _movie4kEnabled = settings['movie4kEnabled'] == true;
-      _series4kEnabled = settings['series4kEnabled'] == true;
+      _movie4kEnabled = seerrPublicFlag(
+        settings,
+        'movie4kEnabled',
+        fallback: _movie4kEnabled,
+      );
+      _series4kEnabled = seerrPublicFlag(
+        settings,
+        'series4kEnabled',
+        fallback: _series4kEnabled,
+      );
       notifyListeners();
     } catch (_) {
       // Keep the permissive defaults.

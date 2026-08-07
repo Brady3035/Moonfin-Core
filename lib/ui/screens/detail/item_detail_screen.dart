@@ -1888,6 +1888,7 @@ class _DetailContentState extends State<_DetailContent> {
           context: context,
           vm: seerr,
           is4k: false,
+          qualityToggle: true,
           season: seasonNumber > 0 ? seasonNumber : null,
         );
   }
@@ -6389,21 +6390,71 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
         ),
     };
 
+    // Taking a request back rides in the same arrangement slot as the track's
+    // request button, so moving or hiding seerrRequest carries its cancel
+    // along with it.
+    final cancelByButton = <DetailButton, Widget>{
+      if (shows(DetailButton.seerrRequest))
+        DetailButton.seerrRequest: ?_seerrCancelButton(
+          context,
+          seerr,
+          l10n,
+          is4k: false,
+        ),
+      if (shows(DetailButton.seerrRequest4k))
+        DetailButton.seerrRequest4k: ?_seerrCancelButton(
+          context,
+          seerr,
+          l10n,
+          is4k: true,
+        ),
+    };
+
     // Requesting is the only thing to do with a title you don't have, so it
     // takes the primary slot, keeping Play's focus node so everything that
     // reaches for that anchor still finds it. The request entry then leaves the
     // arranged row, since it is already leading it.
     final Widget? primaryAction;
     if (viewModel.isSeerrOnly) {
-      primaryAction = _seerrRequestButton(
+      // One slot covers both tracks, since the sheet it opens carries the
+      // quality switch. It is built off the HD track, falling back to the 4K
+      // one for a viewer who is only allowed that.
+      Widget? requestSlot(bool is4k) => _seerrRequestButton(
         context,
         seerr,
         l10n,
-        is4k: false,
+        is4k: is4k,
+        qualityToggle: true,
         isPrimary: true,
         focusNode: _tvPlayFocusNode,
         autofocus: autofocusPlay,
       );
+      // A title with nothing left to ask for leads with its cancel instead, so
+      // focus still has a primary button to land on. The row then drops that
+      // copy rather than offering the same button twice.
+      Widget? cancelSlot() {
+        for (final slot in [
+          DetailButton.seerrRequest,
+          DetailButton.seerrRequest4k,
+        ]) {
+          final cancel = _seerrCancelButton(
+            context,
+            seerr,
+            l10n,
+            is4k: slot == DetailButton.seerrRequest4k,
+            isPrimary: true,
+            focusNode: _tvPlayFocusNode,
+            autofocus: autofocusPlay,
+          );
+          if (cancel != null) {
+            cancelByButton.remove(slot);
+            return cancel;
+          }
+        }
+        return null;
+      }
+
+      primaryAction = requestSlot(false) ?? requestSlot(true) ?? cancelSlot();
       byButton.removeWhere(
         (button, _) =>
             !button.availableInSeerrOnly ||
@@ -6419,8 +6470,10 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
         DetailButton.values,
         (button) => button.id,
         prefs,
-      ))
+      )) ...[
         ?byButton[button],
+        ?cancelByButton[button],
+      ],
     ];
 
     if (isNeon) {
@@ -12198,10 +12251,44 @@ class _EpisodeProgressBar extends StatelessWidget {
   }
 }
 
-/// The request slot for one quality track. One button that morphs between
-/// offering a request and taking it back, and yields nothing when there is
-/// neither to offer.
+/// The request slot for one quality track: Request or Request More, and
+/// nothing when there is nothing left to ask for on that track.
 Widget? _seerrRequestButton(
+  BuildContext context,
+  SeerrMediaDetailViewModel? seerr,
+  AppLocalizations l10n, {
+  required bool is4k,
+  bool qualityToggle = false,
+  bool isPrimary = false,
+  FocusNode? focusNode,
+  bool autofocus = false,
+}) {
+  if (seerr == null) return null;
+  final action = seerrRequestActionFor(
+    seerr.state.quality(is4k: is4k),
+    l10n,
+    allowed: is4k ? seerr.canRequest4k : seerr.canRequest,
+  );
+  if (action.kind != SeerrRequestActionKind.request) return null;
+  return _DetailActionButton(
+    label: action.label,
+    icon: Icons.add,
+    isPrimary: isPrimary,
+    focusNode: focusNode,
+    autofocus: autofocus,
+    onPressed: () => showSeerrRequestDialog(
+      context: context,
+      vm: seerr,
+      is4k: is4k,
+      qualityToggle: qualityToggle,
+    ),
+  );
+}
+
+/// Takes this track's open request back. Rides in the same arrangement slot
+/// as the track's request button, so an open request on a partially available
+/// series shows Request More and Cancel Request side by side.
+Widget? _seerrCancelButton(
   BuildContext context,
   SeerrMediaDetailViewModel? seerr,
   AppLocalizations l10n, {
@@ -12211,30 +12298,19 @@ Widget? _seerrRequestButton(
   bool autofocus = false,
 }) {
   if (seerr == null) return null;
-  final action = seerrRequestActionFor(
-    seerr.state.quality(is4k: is4k),
-    seerr,
-    l10n,
-  );
-  final icon = switch (action.kind) {
-    SeerrRequestActionKind.request => Icons.add,
-    SeerrRequestActionKind.cancel => Icons.close,
-    _ => null,
-  };
-  if (icon == null) return null;
+  final label = seerrCancelLabelFor(seerr.state.quality(is4k: is4k), l10n);
+  if (label == null) return null;
   return _DetailActionButton(
-    label: action.label,
-    icon: icon,
+    label: label,
+    icon: Icons.close,
     isPrimary: isPrimary,
     focusNode: focusNode,
     autofocus: autofocus,
-    onPressed: () => action.kind == SeerrRequestActionKind.request
-        ? showSeerrRequestDialog(context: context, vm: seerr, is4k: is4k)
-        : showSeerrCancelRequestDialog(
-            context: context,
-            vm: seerr,
-            is4k: is4k,
-          ),
+    onPressed: () => showSeerrCancelRequestDialog(
+      context: context,
+      vm: seerr,
+      is4k: is4k,
+    ),
   );
 }
 

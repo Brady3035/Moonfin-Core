@@ -131,6 +131,7 @@ class PlatformDetection {
       _capabilityBool('supportsAv1Hdr10Plus');
 
   static bool get supportsVc1 => _capabilityBool('supportsVc1');
+  static bool get supportsMpeg4 => _capabilityBool('supportsMpeg4');
 
   static int get maxResolutionAvcWidth =>
       _resolutionInt('maxResolutionAvc', 'width');

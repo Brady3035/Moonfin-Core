@@ -611,6 +611,9 @@ class AppLocalizationsCs extends AppLocalizations {
   String get scrollRight => 'Přejděte doprava';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre => 'Tento žánr se momentálně nepodařilo načíst.';
 
   @override

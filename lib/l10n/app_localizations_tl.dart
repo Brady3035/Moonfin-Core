@@ -611,6 +611,9 @@ class AppLocalizationsTl extends AppLocalizations {
   String get scrollRight => 'Mag-scroll pakanan';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre => 'Hindi ma-load ang genre na ito sa ngayon.';
 
   @override

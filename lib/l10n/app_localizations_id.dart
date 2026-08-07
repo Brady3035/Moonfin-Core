@@ -610,6 +610,9 @@ class AppLocalizationsId extends AppLocalizations {
   String get scrollRight => 'Gulir ke kanan';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre => 'Genre ini tidak dapat dimuat saat ini.';
 
   @override

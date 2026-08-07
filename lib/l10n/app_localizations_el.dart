@@ -614,6 +614,9 @@ class AppLocalizationsEl extends AppLocalizations {
   String get scrollRight => 'Κάντε κύλιση προς τα δεξιά';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre =>
       'Δεν ήταν δυνατή η φόρτωση αυτού του είδους αυτήν τη στιγμή.';
 

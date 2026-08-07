@@ -610,6 +610,9 @@ class AppLocalizationsTe extends AppLocalizations {
   String get scrollRight => 'కుడివైపు స్క్రోల్ చేయండి';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre => 'ప్రస్తుతం ఈ శైలిని లోడ్ చేయడం సాధ్యపడలేదు.';
 
   @override

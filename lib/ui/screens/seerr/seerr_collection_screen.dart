@@ -15,13 +15,13 @@ import '../../navigation/destinations.dart';
 import '../../widgets/library_row.dart';
 import '../../widgets/media_card.dart';
 import '../../widgets/navigation_layout.dart';
+import '../../widgets/quick_return_wrapper.dart';
 import '../../widgets/seerr/seerr_advanced_request_options.dart';
 import '../../widgets/seerr/seerr_quota_row.dart';
 import '../../widgets/seerr/seerr_tv_controls.dart';
 import '../../widgets/track_selector_dialog.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../widgets/focus/request_initial_focus.dart';
-import '../../widgets/quick_return_wrapper.dart';
 
 const _tmdbPosterBase = 'https://image.tmdb.org/t/p/w342';
 const _tmdbBackdropBase = 'https://image.tmdb.org/t/p/w1280';
@@ -79,19 +79,17 @@ class _SeerrCollectionScreenState extends State<SeerrCollectionScreen> {
 
   @override
   Widget build(BuildContext context) =>
-      RequestInitialFocus(
-        child: QuickReturnWrapper(
-          scrollController: _scrollController,
-          child: _buildContent(context),
-        ),
-      );
+      RequestInitialFocus(child: _buildContent(context));
 
   Widget _buildContent(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColorScheme.background,
       body: NavigationLayout(
         showBackButton: true,
-        child: _buildBody(),
+        child: QuickReturnWrapper(
+          scrollController: _scrollController,
+          child: _buildBody(),
+        ),
       ),
     );
   }

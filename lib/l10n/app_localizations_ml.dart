@@ -612,6 +612,9 @@ class AppLocalizationsMl extends AppLocalizations {
   String get scrollRight => 'വലത്തേക്ക് സ്ക്രോൾ ചെയ്യുക';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre => 'ഈ തരം ഇപ്പോൾ ലോഡ് ചെയ്യാനായില്ല.';
 
   @override

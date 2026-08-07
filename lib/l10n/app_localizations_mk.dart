@@ -609,6 +609,9 @@ class AppLocalizationsMk extends AppLocalizations {
   String get scrollRight => 'Скролувајте десно';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre => 'Не може да се вчита овој жанр во моментов.';
 
   @override

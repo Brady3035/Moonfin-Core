@@ -610,6 +610,9 @@ class AppLocalizationsHi extends AppLocalizations {
   String get scrollRight => 'दाईं ओर स्क्रॉल करें';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre => 'अभी इस शैली को लोड नहीं किया जा सका.';
 
   @override

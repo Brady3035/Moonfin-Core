@@ -1300,6 +1300,12 @@ abstract class AppLocalizations {
   /// **'Scroll right'**
   String get scrollRight;
 
+  /// Tooltip for the button that returns a scrolled list to the top
+  ///
+  /// In en, this message translates to:
+  /// **'Scroll to top'**
+  String get scrollToTop;
+
   /// Error when a genre row fails to load
   ///
   /// In en, this message translates to:

@@ -610,6 +610,9 @@ class AppLocalizationsMn extends AppLocalizations {
   String get scrollRight => 'Баруун тийш гүйлгэх';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre => 'Энэ жанрыг яг одоо ачаалж чадсангүй.';
 
   @override

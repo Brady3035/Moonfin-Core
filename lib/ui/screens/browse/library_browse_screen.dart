@@ -303,7 +303,13 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen>
     setState(() => _isJumpingToLetter = true);
 
     try {
-      await _vm.ensureItemsLoadedForPrefix(letter);
+      await _vm.ensureItemsLoadedForPrefix(letter).timeout(
+        const Duration(seconds: 15),
+        onTimeout: () => false,
+      );
+      if (!stillCurrent()) return;
+      // The walk notifies once when it finishes, so wait for the frame that
+      // lays those items out before measuring anything against them.
       await WidgetsBinding.instance.endOfFrame;
       if (!stillCurrent() || !_scrollController.hasClients) return;
 
@@ -343,6 +349,11 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen>
       }
 
       if (PlatformDetection.isTV) {
+        // Delay the focus shift slightly so the D-Pad OK release registers on
+        // the letter button rather than firing onTap on the freshly focused
+        // tile.
+        await Future.delayed(const Duration(milliseconds: 150));
+        if (!stillCurrent()) return;
         getGridItemFocusNode(targetIndex).requestFocus();
       }
     } finally {
@@ -849,6 +860,7 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen>
                 isMovieOrSeriesLibrary: _vm.isMovieOrSeriesLibrary,
                 onSettings: () => _showSettingsDialog(context),
                 onShuffle: _isSongsBrowse ? () => _shuffleSongsLibrary() : null,
+                isSongsBrowse: _isSongsBrowse,
                 onLetterChanged: (l) => _jumpToLetter(l),
                 onPlayedFilterChanged: (status) => _vm.setPlayedFilter(status),
               ),
@@ -1031,23 +1043,41 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen>
     }
     final isMobile = _isCompact(context);
     final hPad = isMobile ? 16.0 : _horizontalPadding;
+    final items = _vm.items;
 
     return CustomScrollView(
       controller: _scrollController,
       slivers: [
         SliverPadding(
           padding: EdgeInsets.fromLTRB(hPad, 8, hPad, 32),
-          sliver: SliverToBoxAdapter(
-            child: DetailTrackList(
-              tracks: _vm.items,
-              showAlbum: true,
-              getFocusNode: (id) {
-                final index = _vm.items.indexWhere((item) => item.id == id);
-                return getGridItemFocusNode(index < 0 ? 0 : index);
-              },
-              onPlayTrack: (index) => _playSongFromIndex(index),
-              onTrackFocused: (item) => _onItemFocused(item),
-            ),
+          sliver: SliverFixedExtentList.builder(
+            itemExtent: _kSongRowHeight,
+            itemCount: items.length,
+            itemBuilder: (context, index) {
+              final track = items[index];
+              return TrackTile(
+                key: ValueKey('song-track-${track.id}'),
+                track: track,
+                focusNode: getGridItemFocusNode(index),
+                onFocused: () => _onItemFocused(track),
+                onArrowUp: index == 0
+                    ? () {
+                        if (_allLetterFocusNode.context != null) {
+                          _allLetterFocusNode.requestFocus();
+                        } else {
+                          _homeButtonFocusNode.requestFocus();
+                        }
+                      }
+                    : null,
+                index: index + 1,
+                totalCount: items.length,
+                currentIndex: index,
+                reorderable: false,
+                reorderIndex: index,
+                onTap: () => _playSongFromIndex(index),
+                showAlbum: true,
+              );
+            },
           ),
         ),
       ],
@@ -1737,6 +1767,10 @@ class _LibraryHeader extends StatelessWidget {
   final FocusNode? searchFocusNode;
   final ValueChanged<String>? onSearchChanged;
 
+  /// Songs render as one flat track list where a letter jump has nowhere
+  /// sensible to land, so the alphabet bar stays hidden there.
+  final bool isSongsBrowse;
+
   const _LibraryHeader({
     required this.libraryName,
     required this.totalCount,
@@ -1765,6 +1799,7 @@ class _LibraryHeader extends StatelessWidget {
     this.searchController,
     this.searchFocusNode,
     this.onSearchChanged,
+    this.isSongsBrowse = false,
   });
 
   @override
@@ -1777,6 +1812,7 @@ class _LibraryHeader extends StatelessWidget {
     final isCompactPortrait = isMobile && !isLandscape;
     final prefs = GetIt.instance<UserPreferences>();
     final showAlpha =
+        !isSongsBrowse &&
         prefs.get(UserPreferences.showAlphabeticalFilters) &&
         (isMusicBrowse ||
             sortBy == LibrarySortBy.name ||

@@ -14538,7 +14538,7 @@ class DetailTrackList extends StatelessWidget {
         itemBuilder: (context, index) {
           final track = tracks[index];
           final keyId = track.rawData['PlaylistItemId']?.toString() ?? track.id;
-          return _TrackTile(
+          return TrackTile(
             key: ValueKey('playlist-track-$keyId'),
             track: track,
             focusNode: getFocusNode(track.id),
@@ -14591,7 +14591,7 @@ class DetailTrackList extends StatelessWidget {
       }
 
       children.add(
-        _TrackTile(
+        TrackTile(
           track: track,
           focusNode: getFocusNode(track.id),
           onArrowUp: index == 0 ? onFirstTrackUp : null,
@@ -14621,7 +14621,7 @@ class DetailTrackList extends StatelessWidget {
   }
 }
 
-class _TrackTile extends StatefulWidget {
+class TrackTile extends StatefulWidget {
   final AggregatedItem track;
   final FocusNode? focusNode;
   final VoidCallback? onFocused;
@@ -14640,7 +14640,7 @@ class _TrackTile extends StatefulWidget {
   final ValueChanged<int>? onMoveUp;
   final ValueChanged<int>? onMoveDown;
 
-  const _TrackTile({
+  const TrackTile({
     super.key,
     required this.track,
     this.focusNode,
@@ -14662,10 +14662,10 @@ class _TrackTile extends StatefulWidget {
   });
 
   @override
-  State<_TrackTile> createState() => _TrackTileState();
+  State<TrackTile> createState() => _TrackTileState();
 }
 
-class _TrackTileState extends State<_TrackTile> with FocusStateMixin {
+class _TrackTileState extends State<TrackTile> with FocusStateMixin {
   Timer? _selectLongPressTimer;
   bool _selectLongPressTriggered = false;
 

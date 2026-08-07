@@ -54,6 +54,12 @@ class _AutomationQueueScreenState extends State<_AutomationQueueScreen> {
                 subtitle: l10n.settingsCinemaModeSubtitle,
                 icon: Icons.movie_filter,
               ),
+              SwitchPreferenceTile(
+                preference: UserPreferences.cinemaModeEpisodesEnabled,
+                title: l10n.settingsCinemaModeEpisodes,
+                subtitle: l10n.settingsCinemaModeEpisodesSubtitle,
+                icon: Icons.live_tv,
+              ),
               StringPickerPreferenceTile(
                 preference: UserPreferences.mediaSegmentActions,
                 title: l10n.settingsSkipIntrosAndOutros,

@@ -8909,6 +8909,13 @@ class AppLocalizationsSq extends AppLocalizations {
       'Luaj trailers/prorolla para një veçorie kryesore';
 
   @override
+  String get settingsCinemaModeEpisodes => 'Cinema Mode for episodes';
+
+  @override
+  String get settingsCinemaModeEpisodesSubtitle =>
+      'Also play prerolls before TV episodes';
+
+  @override
   String get settingsNextUpDisplayDescription =>
       'Extended tregon një kartë të plotë me vepra arti dhe përshkrim të episodit. Minimali tregon një mbivendosje kompakte të numërimit mbrapsht. Çaktivizuar fsheh plotësisht kërkesën.';
 

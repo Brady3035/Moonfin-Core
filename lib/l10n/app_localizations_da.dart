@@ -8821,6 +8821,13 @@ class AppLocalizationsDa extends AppLocalizations {
   String get settingsCinemaModeSubtitle => 'Spil trailere før en hovedfunktion';
 
   @override
+  String get settingsCinemaModeEpisodes => 'Cinema Mode for episodes';
+
+  @override
+  String get settingsCinemaModeEpisodesSubtitle =>
+      'Also play prerolls before TV episodes';
+
+  @override
   String get settingsNextUpDisplayDescription =>
       'Udvidet viser et fuldt kort med episodeillustrationer og beskrivelse. Minimal viser en kompakt nedtællingsoverlejring. Deaktiveret skjuler prompten helt.';
 

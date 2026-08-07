@@ -8973,6 +8973,13 @@ class AppLocalizationsCa extends AppLocalizations {
       'Reprodueix tràilers/prerolls abans d\'una funció principal';
 
   @override
+  String get settingsCinemaModeEpisodes => 'Cinema Mode for episodes';
+
+  @override
+  String get settingsCinemaModeEpisodesSubtitle =>
+      'Also play prerolls before TV episodes';
+
+  @override
   String get settingsNextUpDisplayDescription =>
       'Ampliat mostra una targeta completa amb il·lustració i descripció de l\'episodi. Minimal mostra una superposició de compte enrere compacta. Desactivat amaga completament el missatge.';
 

@@ -8810,6 +8810,13 @@ class AppLocalizationsAr extends AppLocalizations {
       'تشغيل المقطورات/الإعلانات المسبقة قبل الميزة الرئيسية';
 
   @override
+  String get settingsCinemaModeEpisodes => 'Cinema Mode for episodes';
+
+  @override
+  String get settingsCinemaModeEpisodesSubtitle =>
+      'Also play prerolls before TV episodes';
+
+  @override
   String get settingsNextUpDisplayDescription =>
       'يعرض Extended بطاقة كاملة تحتوي على العمل الفني للحلقة ووصفها. يظهر الحد الأدنى تراكب العد التنازلي المضغوط. معطل يخفي المطالبة بالكامل.';
 

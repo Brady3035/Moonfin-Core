@@ -7502,19 +7502,34 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
     }
   }
 
-  Future<List<AggregatedItem>> _moviePrerollsForStart(
+  Future<List<AggregatedItem>> _prerollsForStart(
     AggregatedItem item,
-    Duration startPosition,
-  ) async {
-    if (item.type != 'Movie') {
+    Duration startPosition, {
+    required bool useExternalPlayer,
+  }) async {
+    if (useExternalPlayer) {
+      return const [];
+    }
+    // The server decides which libraries actually get prerolls, so all we rule
+    // out here are the things that can't ever carry one.
+    if ((item.rawData['MediaType'] as String?) != 'Video') {
+      return const [];
+    }
+    if (item.type == 'TvChannel') {
+      return const [];
+    }
+    if ((item.rawData['Status'] as String?) == 'InProgress') {
       return const [];
     }
     if (startPosition > Duration.zero) {
       return const [];
     }
-    if (!GetIt.instance<UserPreferences>().get(
-      UserPreferences.cinemaModeEnabled,
-    )) {
+    final prefs = GetIt.instance<UserPreferences>();
+    if (!prefs.get(UserPreferences.cinemaModeEnabled)) {
+      return const [];
+    }
+    if (item.type == 'Episode' &&
+        !prefs.get(UserPreferences.cinemaModeEpisodesEnabled)) {
       return const [];
     }
 
@@ -7541,6 +7556,63 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
     } catch (_) {
       return const [];
     }
+  }
+
+  /// Starts [queue] with any [prerolls] playing ahead of [target].
+  ///
+  /// The prerolls go in front of the target rather than in front of the queue,
+  /// which can open on an earlier episode, so [startIndex] ends up pointing at
+  /// the first preroll. The stream picks belong to the target, so when a
+  /// preroll plays first they're held back instead of landing on the preroll.
+  Future<void> _playQueueWithPrerolls(
+    PlaybackManager manager, {
+    required List<AggregatedItem> queue,
+    required List<AggregatedItem> prerolls,
+    required AggregatedItem target,
+    required Duration startPosition,
+    required bool directAllowed,
+    int startIndex = 0,
+    int? audioStreamIndex,
+    int? subtitleStreamIndex,
+    String? mediaSourceId,
+    bool audioSelectionExplicit = false,
+    bool subtitleSelectionExplicit = false,
+  }) async {
+    final applyNow = prerolls.isEmpty;
+    final playItemsFuture = manager.playItems(
+      applyNow
+          ? queue
+          : <AggregatedItem>[
+              ...queue.take(startIndex),
+              ...prerolls,
+              ...queue.skip(startIndex),
+            ],
+      startIndex: startIndex,
+      startPosition: startPosition,
+      audioStreamIndex: applyNow ? audioStreamIndex : null,
+      subtitleStreamIndex: applyNow ? subtitleStreamIndex : null,
+      audioSelectionExplicit: applyNow && audioSelectionExplicit,
+      subtitleSelectionExplicit: applyNow && subtitleSelectionExplicit,
+      mediaSourceId: applyNow ? mediaSourceId : null,
+      enableDirectPlay: directAllowed,
+      enableDirectStream: directAllowed,
+    );
+    // playItems wipes any pending overrides as its first act, so the held back
+    // picks have to land after the call and before the await.
+    if (!applyNow &&
+        (audioStreamIndex != null ||
+            subtitleStreamIndex != null ||
+            (mediaSourceId?.isNotEmpty ?? false))) {
+      manager.setPendingItemOverrides(
+        itemId: target.id,
+        audioStreamIndex: audioStreamIndex,
+        subtitleStreamIndex: subtitleStreamIndex,
+        mediaSourceId: mediaSourceId,
+        audioSelectionExplicit: audioSelectionExplicit,
+        subtitleSelectionExplicit: subtitleSelectionExplicit,
+      );
+    }
+    await playItemsFuture;
   }
 
   Future<List<AggregatedItem>> _shuffleQueueForItem(AggregatedItem item) async {
@@ -7988,6 +8060,12 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
                 : Duration.zero;
 
             if (!context.mounted) return;
+            final prerolls = await _prerollsForStart(
+              selectedEpisode,
+              startPosition,
+              useExternalPlayer: useExternalPlayer,
+            );
+            if (!context.mounted) return;
             final dvForceTranscode = await _shouldForceTranscodeForDolbyVision(
               context,
               [selectedEpisode],
@@ -8004,16 +8082,16 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
               item: selectedEpisode,
             );
 
-            await manager.playItems(
-              seriesQueue,
+            await _playQueueWithPrerolls(
+              manager,
+              queue: seriesQueue,
+              prerolls: prerolls,
+              target: selectedEpisode,
               startIndex: idx,
               startPosition: startPosition,
               audioStreamIndex: epAudioStreamIndex,
               subtitleStreamIndex: epSubtitleStreamIndex,
-              audioSelectionExplicit: false,
-              subtitleSelectionExplicit: false,
-              enableDirectPlay: directAllowed,
-              enableDirectStream: directAllowed,
+              directAllowed: directAllowed,
             );
 
           case 'Season':
@@ -8040,6 +8118,12 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
                 ? (selectedEpisode.playbackPosition ?? Duration.zero)
                 : Duration.zero;
             if (!context.mounted) return;
+            final prerolls = await _prerollsForStart(
+              selectedEpisode,
+              startPosition,
+              useExternalPlayer: useExternalPlayer,
+            );
+            if (!context.mounted) return;
             final dvForceTranscode = await _shouldForceTranscodeForDolbyVision(
               context,
               [selectedEpisode],
@@ -8056,16 +8140,16 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
               item: selectedEpisode,
             );
 
-            await manager.playItems(
-              seasonQueue,
+            await _playQueueWithPrerolls(
+              manager,
+              queue: seasonQueue,
+              prerolls: prerolls,
+              target: selectedEpisode,
               startIndex: idx,
               startPosition: startPosition,
               audioStreamIndex: epAudioStreamIndex,
               subtitleStreamIndex: epSubtitleStreamIndex,
-              audioSelectionExplicit: false,
-              subtitleSelectionExplicit: false,
-              enableDirectPlay: directAllowed,
-              enableDirectStream: directAllowed,
+              directAllowed: directAllowed,
             );
 
           case 'Episode':
@@ -8121,23 +8205,32 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
                         Duration.zero)
                   : Duration.zero;
 
+              final prerolls = await _prerollsForStart(
+                selectedEpisode,
+                startPosition,
+                useExternalPlayer: useExternalPlayer,
+              );
+              if (!context.mounted) return;
+
               final dvForceTranscode =
                   await _shouldForceTranscodeForDolbyVision(context, [
                     selectedEpisode,
                   ], mediaSourceId: widget.selectedMediaSourceId);
               final directAllowed = !dvForceTranscode && !forceTranscode;
-              await manager.playItems(
-                episodeQueue,
+              await _playQueueWithPrerolls(
+                manager,
+                queue: episodeQueue,
+                prerolls: prerolls,
+                target: selectedEpisode,
                 startIndex: idx,
                 startPosition: startPosition,
                 audioStreamIndex: audioStreamIndex,
                 subtitleStreamIndex: subtitleStreamIndex,
+                mediaSourceId: widget.selectedMediaSourceId,
                 audioSelectionExplicit: viewModel.selectedAudioIndex != null,
                 subtitleSelectionExplicit:
                     viewModel.selectedSubtitleIndex != null,
-                mediaSourceId: widget.selectedMediaSourceId,
-                enableDirectPlay: directAllowed,
-                enableDirectStream: directAllowed,
+                directAllowed: directAllowed,
               );
               break;
             }
@@ -8394,59 +8487,33 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
             final startPosition = resume
                 ? (item.playbackPosition ?? Duration.zero)
                 : Duration.zero;
-            final prerolls = useExternalPlayer
-                ? const <AggregatedItem>[]
-                : await _moviePrerollsForStart(item, startPosition);
+            final prerolls = await _prerollsForStart(
+              item,
+              startPosition,
+              useExternalPlayer: useExternalPlayer,
+            );
             if (!context.mounted) return;
-            final applyMainItemStreamOverrides = prerolls.isEmpty;
             final selectedMediaSourceId = widget.selectedMediaSourceId;
-            final hasMainItemStreamOverrides =
-                audioStreamIndex != null ||
-                subtitleStreamIndex != null ||
-                (selectedMediaSourceId != null &&
-                    selectedMediaSourceId.isNotEmpty);
-            final queue = prerolls.isEmpty
-                ? <AggregatedItem>[item]
-                : <AggregatedItem>[...prerolls, item];
             final dvForceTranscode =
                 !isAudio &&
                 await _shouldForceTranscodeForDolbyVision(context, [
                   item,
                 ], mediaSourceId: selectedMediaSourceId);
             final directAllowed = !dvForceTranscode && !forceTranscode;
-            final playItemsFuture = manager.playItems(
-              queue,
+            await _playQueueWithPrerolls(
+              manager,
+              queue: <AggregatedItem>[item],
+              prerolls: prerolls,
+              target: item,
               startPosition: startPosition,
-              audioStreamIndex: applyMainItemStreamOverrides
-                  ? audioStreamIndex
-                  : null,
-              subtitleStreamIndex: applyMainItemStreamOverrides
-                  ? subtitleStreamIndex
-                  : null,
-              audioSelectionExplicit:
-                  applyMainItemStreamOverrides &&
-                  viewModel.selectedAudioIndex != null,
+              audioStreamIndex: audioStreamIndex,
+              subtitleStreamIndex: subtitleStreamIndex,
+              mediaSourceId: selectedMediaSourceId,
+              audioSelectionExplicit: viewModel.selectedAudioIndex != null,
               subtitleSelectionExplicit:
-                  applyMainItemStreamOverrides &&
                   viewModel.selectedSubtitleIndex != null,
-              mediaSourceId: applyMainItemStreamOverrides
-                  ? selectedMediaSourceId
-                  : null,
-              enableDirectPlay: directAllowed,
-              enableDirectStream: directAllowed,
+              directAllowed: directAllowed,
             );
-            if (!applyMainItemStreamOverrides && hasMainItemStreamOverrides) {
-              manager.setPendingItemOverrides(
-                itemId: item.id,
-                audioStreamIndex: audioStreamIndex,
-                subtitleStreamIndex: subtitleStreamIndex,
-                mediaSourceId: selectedMediaSourceId,
-                audioSelectionExplicit: viewModel.selectedAudioIndex != null,
-                subtitleSelectionExplicit:
-                    viewModel.selectedSubtitleIndex != null,
-              );
-            }
-            await playItemsFuture;
         }
       },
     );

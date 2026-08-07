@@ -8879,6 +8879,13 @@ class AppLocalizationsCy extends AppLocalizations {
       'Chwarae trelars/rhaglenni cyn prif nodwedd';
 
   @override
+  String get settingsCinemaModeEpisodes => 'Cinema Mode for episodes';
+
+  @override
+  String get settingsCinemaModeEpisodesSubtitle =>
+      'Also play prerolls before TV episodes';
+
+  @override
   String get settingsNextUpDisplayDescription =>
       'Mae Estynedig yn dangos cerdyn llawn gyda gwaith celf pennod a disgrifiad. Mae lleiafswm yn dangos troshaen cyfrif i lawr cryno. Mae\'r anabl yn cuddio\'r anogwr yn gyfan gwbl.';
 

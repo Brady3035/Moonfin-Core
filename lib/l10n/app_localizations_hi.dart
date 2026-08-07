@@ -8799,6 +8799,13 @@ class AppLocalizationsHi extends AppLocalizations {
       'मुख्य फीचर से पहले ट्रेलर/प्रीरोल चलाएं';
 
   @override
+  String get settingsCinemaModeEpisodes => 'Cinema Mode for episodes';
+
+  @override
+  String get settingsCinemaModeEpisodesSubtitle =>
+      'Also play prerolls before TV episodes';
+
+  @override
   String get settingsNextUpDisplayDescription =>
       'विस्तारित एपिसोड कलाकृति और विवरण के साथ एक पूरा कार्ड दिखाता है। मिनिमल एक कॉम्पैक्ट काउंटडाउन ओवरले दिखाता है। अक्षम प्रॉम्प्ट को पूरी तरह छुपा देता है.';
 

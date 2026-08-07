@@ -9040,6 +9040,13 @@ class AppLocalizationsSr extends AppLocalizations {
       'Пустите трејлере/преролове пре главне функције';
 
   @override
+  String get settingsCinemaModeEpisodes => 'Cinema Mode for episodes';
+
+  @override
+  String get settingsCinemaModeEpisodesSubtitle =>
+      'Also play prerolls before TV episodes';
+
+  @override
   String get settingsNextUpDisplayDescription =>
       'Проширено приказује пуну картицу са илустрацијом и описом епизоде. Минимално приказује компактно преклапање одбројавања. Онемогућено у потпуности сакрива промпт.';
 

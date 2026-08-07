@@ -8887,6 +8887,13 @@ class AppLocalizationsSk extends AppLocalizations {
       'Prehrajte si upútavky/prerolly pred hlavnou funkciou';
 
   @override
+  String get settingsCinemaModeEpisodes => 'Cinema Mode for episodes';
+
+  @override
+  String get settingsCinemaModeEpisodesSubtitle =>
+      'Also play prerolls before TV episodes';
+
+  @override
   String get settingsNextUpDisplayDescription =>
       'Rozšírené zobrazuje celú kartu s obrázkom epizódy a popisom. Minimal zobrazuje kompaktné prekrytie odpočítavania. Zakázané úplne skryje výzvu.';
 

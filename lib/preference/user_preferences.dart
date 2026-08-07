@@ -345,6 +345,7 @@ class UserPreferences extends ChangeNotifier {
     'seerr_enabled',
     'pref_enable_tv_queuing',
     'pref_enable_cinema_mode',
+    'pref_enable_cinema_mode_episodes',
     'pref_resume_preroll',
     'media_segment_actions',
     'pref_autoplay_next_episode',
@@ -1334,6 +1335,13 @@ class UserPreferences extends ChangeNotifier {
   static final cinemaModeEnabled = Preference(
     key: 'pref_enable_cinema_mode',
     defaultValue: true,
+  );
+
+  /// Off by default, because a preroll before every episode of a binge wears
+  /// thin much faster than one before a film.
+  static final cinemaModeEpisodesEnabled = Preference(
+    key: 'pref_enable_cinema_mode_episodes',
+    defaultValue: false,
   );
 
   static final stillWatchingBehavior = EnumPreference(

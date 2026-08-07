@@ -8952,6 +8952,13 @@ class AppLocalizationsGl extends AppLocalizations {
       'Reproduce tráilers/prerolls antes dunha función principal';
 
   @override
+  String get settingsCinemaModeEpisodes => 'Cinema Mode for episodes';
+
+  @override
+  String get settingsCinemaModeEpisodesSubtitle =>
+      'Also play prerolls before TV episodes';
+
+  @override
   String get settingsNextUpDisplayDescription =>
       'A extensión ampliada mostra unha tarxeta completa con ilustración e descrición do episodio. Minimal mostra unha superposición de conta atrás compacta. Desactivado oculta o aviso por completo.';
 

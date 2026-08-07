@@ -8900,6 +8900,13 @@ class AppLocalizationsRo extends AppLocalizations {
       'Redați remorci/preroll-uri înainte de o funcție principală';
 
   @override
+  String get settingsCinemaModeEpisodes => 'Cinema Mode for episodes';
+
+  @override
+  String get settingsCinemaModeEpisodesSubtitle =>
+      'Also play prerolls before TV episodes';
+
+  @override
   String get settingsNextUpDisplayDescription =>
       'Extins afișează un card complet cu ilustrația și descrierea episodului. Minimal arată o suprapunere compactă de numărătoare inversă. Dezactivat ascunde complet promptul.';
 

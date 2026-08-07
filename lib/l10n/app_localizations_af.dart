@@ -8830,6 +8830,13 @@ class AppLocalizationsAf extends AppLocalizations {
       'Speel lokprente/prerolls voor \'n hoofkenmerk';
 
   @override
+  String get settingsCinemaModeEpisodes => 'Cinema Mode for episodes';
+
+  @override
+  String get settingsCinemaModeEpisodesSubtitle =>
+      'Also play prerolls before TV episodes';
+
+  @override
   String get settingsNextUpDisplayDescription =>
       'Uitgebreid wys \'n volledige kaart met episodekunswerk en beskrywing. Minimaal toon \'n kompakte aftelling-oorleg. Gedeaktiveer versteek die boodskap heeltemal.';
 

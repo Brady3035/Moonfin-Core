@@ -8489,6 +8489,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsCinemaModeSubtitle => '正片播放前播放预告片/片前视频';
 
   @override
+  String get settingsCinemaModeEpisodes => 'Cinema Mode for episodes';
+
+  @override
+  String get settingsCinemaModeEpisodesSubtitle =>
+      'Also play prerolls before TV episodes';
+
+  @override
   String get settingsNextUpDisplayDescription =>
       '扩展模式显示包含单集艺术图和简介的完整卡片；简洁模式显示紧凑倒计时浮层；禁用则完全隐藏提示。';
 

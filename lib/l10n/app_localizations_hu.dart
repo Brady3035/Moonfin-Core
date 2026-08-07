@@ -8910,6 +8910,13 @@ class AppLocalizationsHu extends AppLocalizations {
       'Előzetesek és bevezetők lejátszása a főfilm előtt';
 
   @override
+  String get settingsCinemaModeEpisodes => 'Cinema Mode for episodes';
+
+  @override
+  String get settingsCinemaModeEpisodesSubtitle =>
+      'Also play prerolls before TV episodes';
+
+  @override
   String get settingsNextUpDisplayDescription =>
       'A „Bővített” egy teljes kártyát jelenít meg az epizód képével és leírásával. A „Minimális” egy kompakt visszaszámláló fedvényt mutat. A „Letiltva” teljesen elrejti a panelt.';
 

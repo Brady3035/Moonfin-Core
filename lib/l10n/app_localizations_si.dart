@@ -8817,6 +8817,13 @@ class AppLocalizationsSi extends AppLocalizations {
       'ප්‍රධාන විශේෂාංගයකට පෙර ට්‍රේලර්/පෙරෝල් වාදනය කරන්න';
 
   @override
+  String get settingsCinemaModeEpisodes => 'Cinema Mode for episodes';
+
+  @override
+  String get settingsCinemaModeEpisodesSubtitle =>
+      'Also play prerolls before TV episodes';
+
+  @override
   String get settingsNextUpDisplayDescription =>
       'විස්තීරණ කථාංග කලාකෘති සහ විස්තරය සහිත සම්පූර්ණ කාඩ්පතක් පෙන්වයි. අවමය සංයුක්ත ගණන් කිරීමේ උඩැතිරියක් පෙන්වයි. අබල කර ඇති ප්‍රේරකය සම්පූර්ණයෙන්ම සඟවයි.';
 

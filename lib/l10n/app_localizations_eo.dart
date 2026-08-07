@@ -8815,6 +8815,13 @@ class AppLocalizationsEo extends AppLocalizations {
       'Ludu antaŭfilmojn/antaŭrulojn antaŭ ĉefa funkcio';
 
   @override
+  String get settingsCinemaModeEpisodes => 'Cinema Mode for episodes';
+
+  @override
+  String get settingsCinemaModeEpisodesSubtitle =>
+      'Also play prerolls before TV episodes';
+
+  @override
   String get settingsNextUpDisplayDescription =>
       'Plilongigita montras plenan karton kun epizoda arto kaj priskribo. Minimumo montras kompaktan retronombradon. Malŝaltita tute kaŝas la promptilon.';
 

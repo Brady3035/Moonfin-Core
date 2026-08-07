@@ -8788,6 +8788,13 @@ class AppLocalizationsPa extends AppLocalizations {
       'ਮੁੱਖ ਵਿਸ਼ੇਸ਼ਤਾ ਤੋਂ ਪਹਿਲਾਂ ਟ੍ਰੇਲਰ/ਪ੍ਰੀਰੋਲ ਚਲਾਓ';
 
   @override
+  String get settingsCinemaModeEpisodes => 'Cinema Mode for episodes';
+
+  @override
+  String get settingsCinemaModeEpisodesSubtitle =>
+      'Also play prerolls before TV episodes';
+
+  @override
   String get settingsNextUpDisplayDescription =>
       'ਵਿਸਤ੍ਰਿਤ ਐਪੀਸੋਡ ਆਰਟਵਰਕ ਅਤੇ ਵਰਣਨ ਦੇ ਨਾਲ ਇੱਕ ਪੂਰਾ ਕਾਰਡ ਦਿਖਾਉਂਦਾ ਹੈ। ਨਿਊਨਤਮ ਇੱਕ ਸੰਖੇਪ ਕਾਊਂਟਡਾਊਨ ਓਵਰਲੇ ਦਿਖਾਉਂਦਾ ਹੈ। ਅਯੋਗ ਪ੍ਰੋਂਪਟ ਨੂੰ ਪੂਰੀ ਤਰ੍ਹਾਂ ਲੁਕਾਉਂਦਾ ਹੈ।';
 

@@ -9045,6 +9045,13 @@ class AppLocalizationsHr extends AppLocalizations {
       'Reproducirajte najave/prijave prije glavne značajke';
 
   @override
+  String get settingsCinemaModeEpisodes => 'Cinema Mode for episodes';
+
+  @override
+  String get settingsCinemaModeEpisodesSubtitle =>
+      'Also play prerolls before TV episodes';
+
+  @override
   String get settingsNextUpDisplayDescription =>
       'Prošireno prikazuje punu karticu sa slikom i opisom epizode. Minimalno prikazuje kompaktni sloj odbrojavanja. Onemogućeno u potpunosti skriva upit.';
 

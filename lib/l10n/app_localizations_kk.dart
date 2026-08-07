@@ -8870,6 +8870,13 @@ class AppLocalizationsKk extends AppLocalizations {
       'Негізгі мүмкіндіктен бұрын трейлерлерді/алдын ала роликтерді ойнату';
 
   @override
+  String get settingsCinemaModeEpisodes => 'Cinema Mode for episodes';
+
+  @override
+  String get settingsCinemaModeEpisodesSubtitle =>
+      'Also play prerolls before TV episodes';
+
+  @override
   String get settingsNextUpDisplayDescription =>
       'Кеңейтілген эпизод суреті мен сипаттамасы бар толық картаны көрсетеді. Минималды ықшам кері санақ қабатын көрсетеді. Өшірулі болса шақыруды толығымен жасырады.';
 

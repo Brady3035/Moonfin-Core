@@ -179,6 +179,7 @@ final List<SyncedField> syncedFields = <SyncedField>[
   SyncedField('audioSortOption', UserPreferences.audioSortOption, SyncCodec.text),
   SyncedField('autoplayNextEpisode', UserPreferences.autoplayNextEpisode, SyncCodec.boolean),
   SyncedField('cinemaModeEnabled', UserPreferences.cinemaModeEnabled, SyncCodec.boolean),
+  SyncedField('cinemaModeEpisodesEnabled', UserPreferences.cinemaModeEpisodesEnabled, SyncCodec.boolean),
   SyncedField('clockBehavior', UserPreferences.clockBehavior, SyncCodec.enumName, enumValues: prefs.ClockBehavior.values),
   SyncedField('confirmExit', UserPreferences.confirmExit, SyncCodec.boolean),
   SyncedField('defaultAudioLanguage', UserPreferences.defaultAudioLanguage, SyncCodec.text),

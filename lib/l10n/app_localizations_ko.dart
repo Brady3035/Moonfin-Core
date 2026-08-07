@@ -8561,6 +8561,13 @@ class AppLocalizationsKo extends AppLocalizations {
   String get settingsCinemaModeSubtitle => '주요 기능 이전에 예고편/프리롤 재생';
 
   @override
+  String get settingsCinemaModeEpisodes => 'Cinema Mode for episodes';
+
+  @override
+  String get settingsCinemaModeEpisodesSubtitle =>
+      'Also play prerolls before TV episodes';
+
+  @override
   String get settingsNextUpDisplayDescription =>
       '확장에는 에피소드 삽화와 설명이 포함된 전체 카드가 표시됩니다. Minimal은 컴팩트한 카운트다운 오버레이를 표시합니다. 비활성화되면 프롬프트가 완전히 숨겨집니다.';
 

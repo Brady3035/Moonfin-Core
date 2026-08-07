@@ -8829,6 +8829,13 @@ class AppLocalizationsId extends AppLocalizations {
       'Putar trailer/preroll sebelum fitur utama';
 
   @override
+  String get settingsCinemaModeEpisodes => 'Cinema Mode for episodes';
+
+  @override
+  String get settingsCinemaModeEpisodesSubtitle =>
+      'Also play prerolls before TV episodes';
+
+  @override
   String get settingsNextUpDisplayDescription =>
       'Extended menampilkan kartu penuh dengan artwork episode dan deskripsi. Minimal menampilkan overlay hitung mundur yang ringkas. Disabled menyembunyikan prompt sepenuhnya.';
 

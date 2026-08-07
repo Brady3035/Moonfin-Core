@@ -15712,6 +15712,18 @@ abstract class AppLocalizations {
   /// **'Play trailers/prerolls before a main feature'**
   String get settingsCinemaModeSubtitle;
 
+  /// Settings toggle label. Extends Cinema Mode, which plays pre-roll videos before playback, to TV episodes as well as films. 'Cinema Mode' is the app's feature name.
+  ///
+  /// In en, this message translates to:
+  /// **'Cinema Mode for episodes'**
+  String get settingsCinemaModeEpisodes;
+
+  /// Subtitle for the Cinema Mode for episodes toggle. A 'preroll' is a short video (trailer, bumper) played before the main video starts.
+  ///
+  /// In en, this message translates to:
+  /// **'Also play prerolls before TV episodes'**
+  String get settingsCinemaModeEpisodesSubtitle;
+
   /// No description provided for @settingsNextUpDisplayDescription.
   ///
   /// In en, this message translates to:

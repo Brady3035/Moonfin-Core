@@ -8760,6 +8760,13 @@ class AppLocalizationsTh extends AppLocalizations {
   String get settingsCinemaModeSubtitle => 'เล่นตัวอย่าง/ตอนต้นก่อนฟีเจอร์หลัก';
 
   @override
+  String get settingsCinemaModeEpisodes => 'Cinema Mode for episodes';
+
+  @override
+  String get settingsCinemaModeEpisodesSubtitle =>
+      'Also play prerolls before TV episodes';
+
+  @override
   String get settingsNextUpDisplayDescription =>
       'Extended แสดงการ์ดแบบเต็มพร้อมอาร์ตเวิร์กตอนและคำอธิบาย ขั้นต่ำแสดงการซ้อนทับการนับถอยหลังแบบกะทัดรัด ปิดการใช้งานซ่อนพรอมต์ทั้งหมด';
 

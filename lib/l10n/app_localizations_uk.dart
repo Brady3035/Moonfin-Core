@@ -8903,6 +8903,13 @@ class AppLocalizationsUk extends AppLocalizations {
       'Відтворюйте трейлери/попередні ролики перед головною функцією';
 
   @override
+  String get settingsCinemaModeEpisodes => 'Cinema Mode for episodes';
+
+  @override
+  String get settingsCinemaModeEpisodesSubtitle =>
+      'Also play prerolls before TV episodes';
+
+  @override
   String get settingsNextUpDisplayDescription =>
       'Розширено показує повну картку з обкладинкою епізоду та описом. Мінімальний показує компактне накладання зворотного відліку. Вимкнено повністю приховує підказку.';
 

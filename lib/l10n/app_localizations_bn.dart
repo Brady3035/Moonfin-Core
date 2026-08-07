@@ -8809,6 +8809,13 @@ class AppLocalizationsBn extends AppLocalizations {
       'একটি প্রধান বৈশিষ্ট্যের আগে ট্রেলার/প্রিরোল চালান';
 
   @override
+  String get settingsCinemaModeEpisodes => 'Cinema Mode for episodes';
+
+  @override
+  String get settingsCinemaModeEpisodesSubtitle =>
+      'Also play prerolls before TV episodes';
+
+  @override
   String get settingsNextUpDisplayDescription =>
       'বর্ধিত পর্বের আর্টওয়ার্ক এবং বিবরণ সহ একটি সম্পূর্ণ কার্ড দেখায়। ন্যূনতম একটি কমপ্যাক্ট কাউন্টডাউন ওভারলে দেখায়। অক্ষম সম্পূর্ণরূপে প্রম্পট লুকায়।';
 

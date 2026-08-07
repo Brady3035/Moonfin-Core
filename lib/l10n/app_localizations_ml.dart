@@ -8938,6 +8938,13 @@ class AppLocalizationsMl extends AppLocalizations {
       'ഒരു പ്രധാന ഫീച്ചറിന് മുമ്പ് ട്രെയിലറുകൾ/പ്രീറോളുകൾ പ്ലേ ചെയ്യുക';
 
   @override
+  String get settingsCinemaModeEpisodes => 'Cinema Mode for episodes';
+
+  @override
+  String get settingsCinemaModeEpisodesSubtitle =>
+      'Also play prerolls before TV episodes';
+
+  @override
   String get settingsNextUpDisplayDescription =>
       'എപ്പിസോഡ് കലാസൃഷ്‌ടിയും വിവരണവും ഉള്ള ഒരു മുഴുവൻ കാർഡ് വിപുലീകരിച്ചത് കാണിക്കുന്നു. ചുരുങ്ങിയത് ഒരു കോംപാക്റ്റ് കൗണ്ട്ഡൗൺ ഓവർലേ കാണിക്കുന്നു. പ്രവർത്തനരഹിതമാക്കിയത് നിർദ്ദേശം പൂർണ്ണമായും മറയ്ക്കുന്നു.';
 

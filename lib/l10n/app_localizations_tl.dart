@@ -8924,6 +8924,13 @@ class AppLocalizationsTl extends AppLocalizations {
       'Maglaro ng mga trailer/preroll bago ang isang pangunahing tampok';
 
   @override
+  String get settingsCinemaModeEpisodes => 'Cinema Mode for episodes';
+
+  @override
+  String get settingsCinemaModeEpisodesSubtitle =>
+      'Also play prerolls before TV episodes';
+
+  @override
   String get settingsNextUpDisplayDescription =>
       'Extended ay nagpapakita ng isang buong card na may episode artwork at paglalarawan. Minimal ay nagpapakita ng isang compact countdown overlay. Ang hindi pinagana ay ganap na nagtatago ng prompt.';
 

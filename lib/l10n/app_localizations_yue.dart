@@ -8504,6 +8504,13 @@ class AppLocalizationsYue extends AppLocalizations {
   String get settingsCinemaModeSubtitle => '在主要功能之前播放預告片/預卷';
 
   @override
+  String get settingsCinemaModeEpisodes => 'Cinema Mode for episodes';
+
+  @override
+  String get settingsCinemaModeEpisodesSubtitle =>
+      'Also play prerolls before TV episodes';
+
+  @override
   String get settingsNextUpDisplayDescription =>
       '擴展顯示包含劇集插圖和描述的完整卡片。最小顯示緊湊的倒數疊加。禁用會完全隱藏提示。';
 

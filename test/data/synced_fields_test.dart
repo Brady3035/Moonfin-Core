@@ -24,6 +24,7 @@ void main() {
     'browsingBlur',
     'cardFocusExpansion',
     'cinemaModeEnabled',
+    'cinemaModeEpisodesEnabled',
     'clockBehavior',
     'collectionsRowShowEpisodes',
     'collectionsRowSortBy',

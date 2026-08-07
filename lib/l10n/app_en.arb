@@ -8288,6 +8288,14 @@
   "settingsBitstreamAc3ToExternalDecoder": "Bitstream AC3 to external decoder",
   "settingsCinemaMode": "Cinema Mode",
   "settingsCinemaModeSubtitle": "Play trailers/prerolls before a main feature",
+  "settingsCinemaModeEpisodes": "Cinema Mode for episodes",
+  "@settingsCinemaModeEpisodes": {
+    "description": "Settings toggle label. Extends Cinema Mode, which plays pre-roll videos before playback, to TV episodes as well as films. 'Cinema Mode' is the app's feature name."
+  },
+  "settingsCinemaModeEpisodesSubtitle": "Also play prerolls before TV episodes",
+  "@settingsCinemaModeEpisodesSubtitle": {
+    "description": "Subtitle for the Cinema Mode for episodes toggle. A 'preroll' is a short video (trailer, bumper) played before the main video starts."
+  },
   "settingsNextUpDisplayDescription": "Extended shows a full card with episode artwork and description. Minimal shows a compact countdown overlay. Disabled hides the prompt entirely.",
   "settingsShort": "Short",
   "settingsLong": "Long",

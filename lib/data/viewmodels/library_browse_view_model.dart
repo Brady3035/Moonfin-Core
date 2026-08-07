@@ -133,15 +133,12 @@ class LibraryBrowseViewModel extends ChangeNotifier {
   void setSearchQuery(String query) {
     if (_searchQuery == query) return;
     _searchQuery = query;
-    _searchResults = null;
-    _searchResultsSource = null;
-    _searchResultsQuery = '';
-
     notifyListeners();
     _searchDebounceTimer?.cancel();
+    if (_searchQuery.trim().isEmpty || !hasMore) return;
     _searchDebounceTimer = Timer(_searchLoadDelay, () {
       if (_disposed) return;
-      unawaited(load());
+      unawaited(ensureAllItemsLoaded());
     });
   }
 
@@ -470,13 +467,13 @@ class LibraryBrowseViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> ensureAllItemsLoaded({int maxItems = 3000}) async {
+  Future<void> ensureAllItemsLoaded() async {
     final generation = ++_pageWalkGeneration;
     bool stillWanted() =>
         !_disposed && _pageWalkGeneration == generation;
 
     if (!stillWanted()) return;
-    while (hasMore && _items.length < maxItems) {
+    while (hasMore) {
       final beforeCount = _items.length;
       await loadMore(pageSizeOverride: 300);
       if (!stillWanted()) return;
@@ -493,25 +490,16 @@ class LibraryBrowseViewModel extends ChangeNotifier {
 
     if (hasPrefix()) return true;
 
-    // Preempt background page walks so letter jump has exclusive access to loadMore.
+    // Take over the page walk so a background ensureAllItemsLoaded stops
+    // competing for loadMore while the jump is filling in.
     final generation = ++_pageWalkGeneration;
     bool stillWanted() => !_disposed && _pageWalkGeneration == generation;
 
     try {
-      // 1. Fast server-side count query for items before target letter (15ms O(1) SQL query)
-      final countBeforeLetter = await _countItemsBeforeLetter(letter);
-      if (!stillWanted()) return false;
-
-      if (countBeforeLetter != null && countBeforeLetter >= 0) {
-        if (_items.length <= countBeforeLetter && hasMore) {
-          await _fetchPage(countBeforeLetter, pageSizeOverride: 300);
-          if (hasPrefix()) return true;
-        }
-      }
-
-      // 2. Fallback page walk if direct offset lookup missed
       while (!hasPrefix() && hasMore) {
         if (!stillWanted()) return false;
+        // A scroll triggered page may be in flight, and calling loadMore now
+        // would return without loading and end the walk early.
         while (_loadingMore) {
           await Future.delayed(const Duration(milliseconds: 30));
           if (!stillWanted()) return false;
@@ -521,87 +509,11 @@ class LibraryBrowseViewModel extends ChangeNotifier {
         if (_items.length == beforeCount) break;
       }
     } finally {
-      notifyListeners();
+      // The walk suppressed per page notifications, so send the one that
+      // shows everything it loaded.
+      if (!_disposed) notifyListeners();
     }
     return hasPrefix();
-  }
-
-  (List<String>?, List<String>?, bool?) _resolveTypeFilters() {
-    List<String>? includeTypes;
-    List<String>? excludeTypes;
-    bool? collapseBoxSets;
-    final groupCollections =
-        _prefs.get(UserPreferences.groupItemsIntoCollections);
-    if (includeItemTypes != null) {
-      includeTypes = List<String>.from(includeItemTypes!);
-      if (groupCollections &&
-          (includeTypes.contains('Movie') ||
-              includeTypes.contains('Series'))) {
-        collapseBoxSets = true;
-        if (!includeTypes.contains('BoxSet')) {
-          includeTypes.add('BoxSet');
-        }
-      }
-    } else {
-      switch (_collectionType) {
-        case 'movies':
-          if (groupCollections) {
-            includeTypes = ['Movie', 'BoxSet'];
-            excludeTypes = null;
-            collapseBoxSets = true;
-          } else {
-            includeTypes = ['Movie'];
-            excludeTypes = ['BoxSet'];
-            collapseBoxSets = false;
-          }
-          break;
-        case 'tvshows':
-          if (groupCollections) {
-            includeTypes = ['Series', 'BoxSet'];
-            collapseBoxSets = true;
-          } else {
-            includeTypes = ['Series'];
-            collapseBoxSets = false;
-          }
-          break;
-        case 'playlists':
-          includeTypes = ['Playlist'];
-          break;
-        case 'boxsets':
-          includeTypes = ['BoxSet'];
-          break;
-        default:
-          collapseBoxSets = false;
-          break;
-      }
-    }
-    return (includeTypes, excludeTypes, collapseBoxSets);
-  }
-
-  Future<int?> _countItemsBeforeLetter(String letter) async {
-    if (letter == '#') return 0;
-    final (includeTypes, excludeTypes, collapseBoxSets) =
-        _resolveTypeFilters();
-    try {
-      final response = await _fetchItemsWithFallback(
-        parentId: _effectiveParentId,
-        includeItemTypes: includeTypes,
-        excludeItemTypes: excludeTypes,
-        collapseBoxSetItems: collapseBoxSets,
-        sortBy: 'SortName',
-        sortOrder: _sortDirection == SortDirection.ascending
-            ? 'Ascending'
-            : 'Descending',
-        startIndex: 0,
-        limit: 0,
-        recursive: true,
-        fields: '',
-        nameLessThan: letter,
-      );
-      return response['TotalRecordCount'] as int?;
-    } catch (_) {
-      return null;
-    }
   }
 
   Future<void> loadMore({int? pageSizeOverride, bool notify = true}) async {
@@ -729,8 +641,6 @@ class LibraryBrowseViewModel extends ChangeNotifier {
       sortBy = 'SortName';
     }
 
-    final searchTerm = _searchQuery.trim().isEmpty ? null : _searchQuery.trim();
-
     final Map<String, dynamic> response;
     if (isAlbumArtistBrowse) {
       response = await _client.itemsApi.getAlbumArtists(
@@ -745,7 +655,6 @@ class LibraryBrowseViewModel extends ChangeNotifier {
         recursive: recursive,
         fields: 'PrimaryImageAspectRatio,SortName',
         isFavorite: _favoriteFilter ? true : null,
-        nameStartsWith: searchTerm,
       );
     } else if (isArtistBrowse) {
       response = await _client.itemsApi.getArtists(
@@ -760,7 +669,6 @@ class LibraryBrowseViewModel extends ChangeNotifier {
         recursive: recursive,
         fields: 'PrimaryImageAspectRatio,SortName',
         isFavorite: _favoriteFilter ? true : null,
-        nameStartsWith: searchTerm,
       );
     } else {
       response = await _fetchItemsWithFallback(
@@ -781,7 +689,6 @@ class LibraryBrowseViewModel extends ChangeNotifier {
         filters: filters.isEmpty ? null : filters,
         seriesStatus: seriesStatus.isEmpty ? null : seriesStatus,
         isFavorite: _favoriteFilter ? true : null,
-        searchTerm: searchTerm,
       );
     }
 
@@ -855,8 +762,6 @@ class LibraryBrowseViewModel extends ChangeNotifier {
     List<String>? filters,
     List<String>? seriesStatus,
     bool? isFavorite,
-    String? searchTerm,
-    String? nameLessThan,
   }) async {
     try {
       return await _client.itemsApi.getItems(
@@ -877,8 +782,6 @@ class LibraryBrowseViewModel extends ChangeNotifier {
         filters: filters,
         seriesStatus: seriesStatus,
         isFavorite: isFavorite,
-        searchTerm: searchTerm,
-        nameLessThan: nameLessThan,
       );
     } on DioException catch (e) {
       final statusCode = e.response?.statusCode ?? 0;
@@ -909,8 +812,6 @@ class LibraryBrowseViewModel extends ChangeNotifier {
         filters: filters,
         seriesStatus: seriesStatus,
         isFavorite: isFavorite,
-        searchTerm: searchTerm,
-        nameLessThan: nameLessThan,
         enableTotalRecordCount: false,
       );
     }

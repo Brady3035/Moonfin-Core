@@ -287,19 +287,17 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen>
   }
 
   bool _isJumpingToLetter = false;
-
-  Future<void> _waitForFrame() async {
-    final completer = Completer<void>();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!completer.isCompleted) completer.complete();
-    });
-    WidgetsBinding.instance.scheduleFrame();
-    await completer.future;
-  }
+  int _letterJumpGeneration = 0;
 
   /// Scrolls the first item whose sort name starts with [letter] to the
   /// leading edge, loading pages first if it hasn't arrived yet.
   Future<void> _jumpToLetter(String letter) async {
+    // Scrubbing along the alphabet bar starts a jump per letter, and an older
+    // one would keep re-asserting its own offset against the newest, so each
+    // jump checks in after every await and bows out once superseded.
+    final generation = ++_letterJumpGeneration;
+    bool stillCurrent() => mounted && generation == _letterJumpGeneration;
+
     _vm.setLetterFilter(letter);
     if (!mounted) return;
     setState(() => _isJumpingToLetter = true);
@@ -309,10 +307,11 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen>
         const Duration(seconds: 15),
         onTimeout: () => false,
       );
-      if (!mounted) return;
-      setState(() {});
-      await _waitForFrame();
-      if (!mounted || !_scrollController.hasClients) return;
+      if (!stillCurrent()) return;
+      // The walk notifies once when it finishes, so wait for the frame that
+      // lays those items out before measuring anything against them.
+      await WidgetsBinding.instance.endOfFrame;
+      if (!stillCurrent() || !_scrollController.hasClients) return;
 
       final targetIndex = _indexOfLetter(letter);
       if (targetIndex < 0) return;
@@ -328,17 +327,18 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen>
             line * (geometry.lineExtent + geometry.lineSpacing);
       }
 
-      // Slivers in a CustomScrollView compute maxScrollExtent lazily as children are laid out.
-      // Jumping to a line deeper than currently built children gets clamped to the current maxExtent.
-      // Loop jumps over frame boundaries until the layout expands to reach targetOffset or true scroll bottom.
-      for (int i = 0; i < 25; i++) {
-        if (!mounted || !_scrollController.hasClients) break;
+      // Slivers report maxScrollExtent lazily as children are laid out, so a
+      // jump deeper than the built children clamps short. Re-jump across
+      // frame boundaries until the layout reaches the target or the true
+      // scroll bottom.
+      for (int i = 0; i < 5; i++) {
         final currentMax = _scrollController.position.maxScrollExtent;
         final destination = targetOffset.clamp(0.0, currentMax);
         _scrollController.jumpTo(destination);
 
-        await _waitForFrame();
-        if (!mounted || !_scrollController.hasClients) break;
+        await WidgetsBinding.instance.endOfFrame;
+        if (!stillCurrent()) return;
+        if (!_scrollController.hasClients) break;
 
         final currentPixels = _scrollController.position.pixels;
         final newMax = _scrollController.position.maxScrollExtent;
@@ -349,15 +349,16 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen>
       }
 
       if (PlatformDetection.isTV) {
-        // Delay focus shift slightly so the D-Pad OK key release registers on the
-        // letter button rather than firing onTap on the newly focused track tile.
+        // Delay the focus shift slightly so the D-Pad OK release registers on
+        // the letter button rather than firing onTap on the freshly focused
+        // tile.
         await Future.delayed(const Duration(milliseconds: 150));
-        if (mounted) {
-          getGridItemFocusNode(targetIndex).requestFocus();
-        }
+        if (!stillCurrent()) return;
+        getGridItemFocusNode(targetIndex).requestFocus();
       }
     } finally {
-      if (mounted) setState(() => _isJumpingToLetter = false);
+      // A superseded jump leaves the flag for the jump that replaced it.
+      if (stillCurrent()) setState(() => _isJumpingToLetter = false);
     }
   }
 
@@ -859,6 +860,7 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen>
                 isMovieOrSeriesLibrary: _vm.isMovieOrSeriesLibrary,
                 onSettings: () => _showSettingsDialog(context),
                 onShuffle: _isSongsBrowse ? () => _shuffleSongsLibrary() : null,
+                isSongsBrowse: _isSongsBrowse,
                 onLetterChanged: (l) => _jumpToLetter(l),
                 onPlayedFilterChanged: (status) => _vm.setPlayedFilter(status),
               ),
@@ -1765,6 +1767,10 @@ class _LibraryHeader extends StatelessWidget {
   final FocusNode? searchFocusNode;
   final ValueChanged<String>? onSearchChanged;
 
+  /// Songs render as one flat track list where a letter jump has nowhere
+  /// sensible to land, so the alphabet bar stays hidden there.
+  final bool isSongsBrowse;
+
   const _LibraryHeader({
     required this.libraryName,
     required this.totalCount,
@@ -1793,6 +1799,7 @@ class _LibraryHeader extends StatelessWidget {
     this.searchController,
     this.searchFocusNode,
     this.onSearchChanged,
+    this.isSongsBrowse = false,
   });
 
   @override
@@ -1804,7 +1811,6 @@ class _LibraryHeader extends StatelessWidget {
     final isCompactLandscape = isMobile && isLandscape;
     final isCompactPortrait = isMobile && !isLandscape;
     final prefs = GetIt.instance<UserPreferences>();
-    final isSongsBrowse = onShuffle != null;
     final showAlpha =
         !isSongsBrowse &&
         prefs.get(UserPreferences.showAlphabeticalFilters) &&

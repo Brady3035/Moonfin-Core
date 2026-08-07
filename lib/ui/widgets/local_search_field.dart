@@ -8,33 +8,25 @@ import '../../preference/user_preferences.dart';
 import '../../util/focus/dpad_keys.dart';
 import '../../util/platform_detection.dart';
 
-/// A reusable in-view search field component used across library and system screens.
+/// The search box a library screen puts in its header.
 ///
-/// On TV clients ([PlatformDetection.isTV]):
-/// - Uses [CustomTVTextField] to integrate cleanly with TV focus, remote navigation,
-///   and the TV on-screen keyboard.
-///
-/// On Mobile and Desktop clients (![PlatformDetection.isTV]):
-/// - Uses a styled [TextField] with a search prefix icon, rounded pill container,
-///   and a clear button when text is entered.
+/// TV needs [CustomTVTextField] so the remote can reach it and the on screen
+/// keyboard opens on select. Everywhere else a plain field with a clear button
+/// does the job.
 class LocalSearchField extends StatefulWidget {
   const LocalSearchField({
     super.key,
     required this.controller,
     required this.focusNode,
     this.tvFieldKey,
-    this.hintText,
     this.onChanged,
-    this.onClear,
     this.onTvKeyEvent,
   });
 
   final TextEditingController controller;
   final FocusNode focusNode;
   final GlobalKey<CustomTVTextFieldState>? tvFieldKey;
-  final String? hintText;
   final ValueChanged<String>? onChanged;
-  final VoidCallback? onClear;
   final FocusOnKeyEventCallback? onTvKeyEvent;
 
   @override
@@ -43,12 +35,16 @@ class LocalSearchField extends StatefulWidget {
 
 class _LocalSearchFieldState extends State<LocalSearchField> {
   final GlobalKey<CustomTVTextFieldState> _fallbackTvFieldKey = GlobalKey();
+  late final UserPreferences _prefs = GetIt.instance<UserPreferences>();
+  late String _lastReportedText = widget.controller.text;
 
   @override
   void initState() {
     super.initState();
     widget.controller.addListener(_handleControllerChanged);
-    widget.focusNode.addListener(_handleFocusChanged);
+    if (PlatformDetection.isTV) {
+      widget.focusNode.addListener(_handleFocusChanged);
+    }
   }
 
   @override
@@ -58,7 +54,7 @@ class _LocalSearchFieldState extends State<LocalSearchField> {
       oldWidget.controller.removeListener(_handleControllerChanged);
       widget.controller.addListener(_handleControllerChanged);
     }
-    if (oldWidget.focusNode != widget.focusNode) {
+    if (oldWidget.focusNode != widget.focusNode && PlatformDetection.isTV) {
       oldWidget.focusNode.removeListener(_handleFocusChanged);
       widget.focusNode.addListener(_handleFocusChanged);
     }
@@ -72,7 +68,10 @@ class _LocalSearchFieldState extends State<LocalSearchField> {
   }
 
   void _handleControllerChanged() {
-    widget.onChanged?.call(widget.controller.text);
+    final text = widget.controller.text;
+    if (text == _lastReportedText) return;
+    _lastReportedText = text;
+    widget.onChanged?.call(text);
   }
 
   void _handleFocusChanged() {
@@ -82,16 +81,15 @@ class _LocalSearchFieldState extends State<LocalSearchField> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final effectiveHint = widget.hintText ?? l10n.searchThisLibrary;
-    final hasFocus = widget.focusNode.hasFocus;
-    final prefs = GetIt.instance<UserPreferences>();
-    final focusColor = Color(prefs.get(UserPreferences.focusColor).colorValue);
+    final effectiveHint = l10n.searchThisLibrary;
+    final focusColor = Color(_prefs.get(UserPreferences.focusColor).colorValue);
 
     final fillColor = AppColorScheme.surface.withValues(alpha: 0.72);
     final foreground = AppColorScheme.onSurface;
 
     if (PlatformDetection.isTV) {
       final effectiveTvKey = widget.tvFieldKey ?? _fallbackTvFieldKey;
+      final hasFocus = widget.focusNode.hasFocus;
       return Focus(
         focusNode: widget.focusNode,
         onKeyEvent: (node, event) {
@@ -110,7 +108,7 @@ class _LocalSearchFieldState extends State<LocalSearchField> {
           controller: widget.controller,
           isFocused: hasFocus,
           inputPurpose: InputPurpose.search,
-          preferSystemIme: prefs.get(UserPreferences.preferSystemImeKeyboard),
+          preferSystemIme: _prefs.get(UserPreferences.preferSystemImeKeyboard),
           popParentOnKeyboardClose: false,
           hint: effectiveHint,
           prefixIcon: Icon(Icons.search, color: foreground),
@@ -140,7 +138,6 @@ class _LocalSearchFieldState extends State<LocalSearchField> {
         return TextField(
           controller: widget.controller,
           focusNode: widget.focusNode,
-          onChanged: widget.onChanged,
           style: TextStyle(color: foreground, fontSize: 17),
           decoration: InputDecoration(
             hintText: effectiveHint,
@@ -150,11 +147,7 @@ class _LocalSearchFieldState extends State<LocalSearchField> {
                 ? null
                 : IconButton(
                     tooltip: l10n.clear,
-                    onPressed: () {
-                      widget.controller.clear();
-                      widget.onClear?.call();
-                      widget.onChanged?.call('');
-                    },
+                    onPressed: widget.controller.clear,
                     icon: Icon(Icons.close, color: foreground),
                   ),
             filled: true,

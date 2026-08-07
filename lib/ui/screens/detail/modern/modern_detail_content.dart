@@ -1191,6 +1191,7 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
                   context: context,
                   vm: seerrOnlyVm,
                   is4k: false,
+                  qualityToggle: true,
                   season: _vm.seasons[i].indexNumber,
                 )
               : context.push(

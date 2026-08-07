@@ -46,10 +46,11 @@ enum DetailButton {
   final bool canHide;
 
   /// Whether the button means anything for a title that is not in the library.
-  /// Everything else needs something to play, mark or download.
+  /// Everything else needs something to play, mark or download. The 4K slot is
+  /// left out because one request slot covers both tracks there, through the
+  /// quality switch on the sheet it opens.
   bool get availableInSeerrOnly => switch (this) {
     DetailButton.seerrRequest ||
-    DetailButton.seerrRequest4k ||
     DetailButton.seerrWatchlist ||
     DetailButton.seerrReportIssue ||
     DetailButton.seerrManage ||

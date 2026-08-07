@@ -6618,9 +6618,9 @@
     "settingsPreferServerTranscode": "Sunucu kod dönüştürmesini tercih et",
     "settingsDolbyVisionProfile7DirectPlay": "Dolby Vision Profil 7 Doğrudan Oynatma",
     "settingsDolbyVisionProfile7DirectPlayDescription": "Dolby Vision profil 7 geliştirme katmanı akışlarının oynatmayı yönlendirmesi gerekip gerekmediğini kontrol eder.",
-    "settingsAutoAftkrtEnabled": "Otomatik (AFTKRT etkin)",
-    "settingsEnabledOnThisDevice": "Bu cihazda etkinleştirildi",
-    "settingsDisabledPreferTranscode": "Devre dışı (kod dönüştürmeyi tercih edin)",
+    "settingsAutoAftkrtEnabled": "Otomatik",
+    "settingsEnabledOnThisDevice": "Etkinleştirildi",
+    "settingsDisabledPreferTranscode": "Devre dışı",
     "settingsResumeRewindDescription": "Oynatmayı devam ettirirken (İzlemeye Devam Et'ten veya bir medya öğesi sayfasından), kaç saniye geri sarılmalıdır?",
     "settingsUnpauseRewindDescription": "Duraklatma tuşuna bastıktan sonra oynatmaya devam edilirken kaç saniye geri sarılmalıdır?",
     "settingsSkipBackLengthDescription": "Geri sarma tuşuna bastıktan sonra kaç saniye geri atlanır.",
@@ -6974,11 +6974,11 @@
     "@disableTunnelingSubtitle": {
         "description": "Setting subtitle for disable tunneling"
     },
-    "mapDolbyVisionP7Title": "Dolby Vision profil 7'yi HEVC ile eşleştir",
+    "mapDolbyVisionP7Title": "Dolby Vision profil 7'yi her zaman HDR10 olarak oynat",
     "@mapDolbyVisionP7Title": {
         "description": "Setting title: play DV P7 as HDR10 HEVC on non-DV devices"
     },
-    "mapDolbyVisionP7Subtitle": "Dolby Vision profil 7 akışlarını, DV desteklemeyen cihazlarda HDR10 uyumlu HEVC olarak oynat.",
+    "mapDolbyVisionP7Subtitle": "Profil 8 dönüşümünü atla ve Dolby Vision profil 7 akışlarını HDR10 uyumlu HEVC formatına indirge. Dönüştürülen akışlar hatalı görünüyorsa bunu kullanın.",
     "@mapDolbyVisionP7Subtitle": {
         "description": "Setting subtitle for DV P7 to HEVC mapping"
     },
@@ -9496,5 +9496,77 @@
     "settingsMusicPlaybackTimeDescription": "Müzik ilerleme çubuğunun sağ tarafında ne gösterileceğini seçin.",
     "@settingsMusicPlaybackTimeDescription": {
         "description": "Setting description for the music progress bar time option"
+    },
+    "scrollDirection": "Kaydırma Yönü",
+    "@scrollDirection": {
+        "description": "Section header for scroll direction selection in library display settings"
+    },
+    "scrollDirectionVertical": "Dikey",
+    "@scrollDirectionVertical": {
+        "description": "Library scroll direction option: vertical grid (default)"
+    },
+    "scrollDirectionHorizontal": "Yatay",
+    "@scrollDirectionHorizontal": {
+        "description": "Library scroll direction option: horizontal grid for ultrawide displays"
+    },
+    "scrollToTop": "En Başa Kaydır",
+    "@scrollToTop": {
+        "description": "Tooltip for the button that returns a scrolled list to the top"
+    },
+    "sdCard": "SD Kart",
+    "@sdCard": {
+        "description": "Download location option for a removable storage volume"
+    },
+    "downloadLocationLimitedByAndroid": "Android, Moonfin uygulamasının yalnızca kendi sahip olduğu klasörlere yazmasına izin veriyor ve bu cihazda çıkarılabilir depolama alanı yok. İndirmelerin diğer uygulamaların erişebileceği bir yere kaydedilmesi için yukarıdaki 'İndirilenler klasörüne kaydet' seçeneğini açın.",
+    "@downloadLocationLimitedByAndroid": {
+        "description": "Note shown when the only download location Android allows is the default one"
+    },
+    "tags": "Etiketler",
+    "@tags": {
+        "description": "Heading for the keyword tags a title is filed under"
+    },
+    "genresAndTags": "Türler ve Etiketler",
+    "@genresAndTags": {
+        "description": "Button and dialog title for browsing a title's genres, networks and tags"
+    },
+    "manageRequests": "İstekleri Yönet",
+    "@manageRequests": {
+        "description": "Details screen button opening the pending requests to approve or decline"
+    },
+    "watchlist": "İzleme Listesi",
+    "@watchlist": {
+        "description": "Details screen button adding the title to the Seerr watchlist"
+    },
+    "onWatchlist": "İzleme Listesinde",
+    "@onWatchlist": {
+        "description": "Details screen button label when the title is already on the Seerr watchlist"
+    },
+    "settingsCinemaModeEpisodes": "Bölümler için Sinema Modu",
+    "@settingsCinemaModeEpisodes": {
+        "description": "Settings toggle label. Extends Cinema Mode, which plays pre-roll videos before playback, to TV episodes as well as films. 'Cinema Mode' is the app's feature name."
+    },
+    "settingsCinemaModeEpisodesSubtitle": "Ayrıca TV bölümlerinden önce tanıtım videoları (ön gösterimler) oynat",
+    "@settingsCinemaModeEpisodesSubtitle": {
+        "description": "Subtitle for the Cinema Mode for episodes toggle. A 'preroll' is a short video (trailer, bumper) played before the main video starts."
+    },
+    "groupByTitle": "Grupla",
+    "@groupByTitle": {
+        "description": "Dialog title and button label for library group by options"
+    },
+    "groupByDecade": "On yıl (Yıl)",
+    "@groupByDecade": {
+        "description": "Option to group library items by release decade"
+    },
+    "groupByParentalRating": "Ebeveyn Derecelendirmesi",
+    "@groupByParentalRating": {
+        "description": "Option to group library items by parental rating"
+    },
+    "groupByStudio": "Stüdyo",
+    "@groupByStudio": {
+        "description": "Option to group library items by production studio"
+    },
+    "showAlphabeticalFilters": "Alfabeyi Göster",
+    "@showAlphabeticalFilters": {
+        "description": "Checkbox label for toggling alphabetical picker visibility in Sort and Filter options"
     }
 }

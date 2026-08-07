@@ -3160,6 +3160,13 @@ class AppLocalizationsEl extends AppLocalizations {
   String get defaultLabel => 'Αθέτηση';
 
   @override
+  String get sdCard => 'SD card';
+
+  @override
+  String get downloadLocationLimitedByAndroid =>
+      'Android only lets Moonfin write to the folders it owns, and this device has no removable storage. Turn on Save to Downloads folder above to keep downloads somewhere other apps can reach.';
+
+  @override
   String get saveToDownloadsFolder => 'Αποθήκευση στο φάκελο Λήψεις';
 
   @override

@@ -3032,6 +3032,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get defaultLabel => '默认';
 
   @override
+  String get sdCard => 'SD card';
+
+  @override
+  String get downloadLocationLimitedByAndroid =>
+      'Android only lets Moonfin write to the folders it owns, and this device has no removable storage. Turn on Save to Downloads folder above to keep downloads somewhere other apps can reach.';
+
+  @override
   String get saveToDownloadsFolder => '保存到下载文件夹';
 
   @override

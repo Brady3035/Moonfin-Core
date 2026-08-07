@@ -4274,6 +4274,14 @@
   "@defaultLabel": {
     "description": "Option: default"
   },
+  "sdCard": "SD card",
+  "@sdCard": {
+    "description": "Download location option for a removable storage volume"
+  },
+  "downloadLocationLimitedByAndroid": "Android only lets Moonfin write to the folders it owns, and this device has no removable storage. Turn on Save to Downloads folder above to keep downloads somewhere other apps can reach.",
+  "@downloadLocationLimitedByAndroid": {
+    "description": "Note shown when the only download location Android allows is the default one"
+  },
   "saveToDownloadsFolder": "Save to Downloads folder",
   "@saveToDownloadsFolder": {
     "description": "Setting for saving to downloads folder"

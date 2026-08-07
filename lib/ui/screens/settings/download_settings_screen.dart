@@ -144,7 +144,9 @@ class DownloadSettingsScreen extends ConsumerWidget {
                     subtitle: Text(
                       customPath.isEmpty ? l10n.defaultLabel : customPath,
                     ),
-                    onTap: () => _pickFolder(context, prefs),
+                    onTap: () => PlatformDetection.isAndroid
+                        ? _pickAndroidLocation(context, prefs, customPath)
+                        : _pickFolder(context, prefs),
                   ),
                 if (!PlatformDetection.isWeb) ...[
                   ListTile(
@@ -361,24 +363,7 @@ class DownloadSettingsScreen extends ConsumerWidget {
     if (!context.mounted) return;
 
     final l10n = AppLocalizations.of(context);
-    final confirmed = await showFocusRestoringDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog.adaptive(
-        title: Text(l10n.changeDownloadLocation),
-        content: Text(l10n.changeDownloadLocationDescription),
-        actions: [
-          adaptiveDialogAction(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(l10n.cancel),
-          ),
-          adaptiveDialogAction(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text(l10n.confirm),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true) return;
+    if (!await _confirmLocationChange(context)) return;
 
     final storage = GetIt.instance<StoragePathService>();
     // On macOS the bookmark carries write access, so the probe would fail
@@ -397,6 +382,98 @@ class DownloadSettingsScreen extends ConsumerWidget {
     }
     await prefs.set(UserPreferences.customDownloadPath, result);
     storage.clearCache();
+  }
+
+  /// Picks between the folders Android allows, which is the default plus
+  /// whatever [StoragePathService.getRemovableDownloadDirs] turns up. The
+  /// system folder picker hands back paths the app then can't write to.
+  Future<void> _pickAndroidLocation(
+    BuildContext context,
+    UserPreferences prefs,
+    String current,
+  ) async {
+    final sdkInt = (await DeviceInfoPlugin().androidInfo).version.sdkInt;
+    if (!context.mounted) return;
+    // Android 10 and below still write through raw file paths, so the system
+    // folder picker leads somewhere usable there.
+    if (sdkInt <= 29) return _pickFolder(context, prefs);
+
+    final storage = GetIt.instance<StoragePathService>();
+    final removable = await storage.getRemovableDownloadDirs();
+    if (!context.mounted) return;
+
+    final l10n = AppLocalizations.of(context);
+    final choice = await showFocusRestoringModalBottomSheet<String>(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: RadioGroup<String>(
+          groupValue: current,
+          onChanged: (v) {
+            if (v != null) Navigator.pop(ctx, v);
+          },
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              RadioListTile<String>(
+                title: Text(l10n.defaultLabel),
+                value: '',
+              ),
+              for (final dir in removable)
+                RadioListTile<String>(
+                  title: Text(l10n.sdCard),
+                  subtitle: Text(dir.path),
+                  value: dir.path,
+                ),
+              if (removable.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                  child: Text(
+                    l10n.downloadLocationLimitedByAndroid,
+                    style: Theme.of(ctx).textTheme.bodySmall,
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (choice == null || choice == current || !context.mounted) return;
+    if (!await _confirmLocationChange(context)) return;
+
+    if (choice.isNotEmpty && !await storage.canWriteTo(choice)) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.cannotWriteToFolder)));
+      }
+      return;
+    }
+
+    await prefs.set(UserPreferences.customDownloadPath, choice);
+    storage.clearCache();
+  }
+
+  /// Existing downloads stay where they are, so the move is worth confirming.
+  Future<bool> _confirmLocationChange(BuildContext context) async {
+    final l10n = AppLocalizations.of(context);
+    final confirmed = await showFocusRestoringDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog.adaptive(
+        title: Text(l10n.changeDownloadLocation),
+        content: Text(l10n.changeDownloadLocationDescription),
+        actions: [
+          adaptiveDialogAction(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l10n.cancel),
+          ),
+          adaptiveDialogAction(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(l10n.confirm),
+          ),
+        ],
+      ),
+    );
+    return confirmed == true;
   }
 
   Future<void> _toggleMediaStore(

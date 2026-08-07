@@ -5650,6 +5650,18 @@ abstract class AppLocalizations {
   /// **'Default'**
   String get defaultLabel;
 
+  /// Download location option for a removable storage volume
+  ///
+  /// In en, this message translates to:
+  /// **'SD card'**
+  String get sdCard;
+
+  /// Note shown when the only download location Android allows is the default one
+  ///
+  /// In en, this message translates to:
+  /// **'Android only lets Moonfin write to the folders it owns, and this device has no removable storage. Turn on Save to Downloads folder above to keep downloads somewhere other apps can reach.'**
+  String get downloadLocationLimitedByAndroid;
+
   /// Setting for saving to downloads folder
   ///
   /// In en, this message translates to:

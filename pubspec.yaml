@@ -190,6 +190,9 @@ dev_dependencies:
   drift_dev: ^2.28.0
   mocktail: ^1.0.5
   msix: ^3.16.12
+  # Lets a test stand in for the Android side of path_provider.
+  path_provider_platform_interface: ^2.1.2
+  plugin_platform_interface: ^2.1.8
 
 dependency_overrides:
   media_kit_libs_android_video:

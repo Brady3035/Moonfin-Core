@@ -3890,9 +3890,14 @@ class _ContentRowsState extends State<_ContentRows>
                                       return ValueListenableBuilder<bool>(
                                         valueListenable: _chromeAudioActiveNotifier,
                                         builder: (context, chromeAudioActive, _) {
+                                          // Mobile leaves _isActivelyScrolling out. Nothing listens
+                                          // for its idle reset, so a stale true would pin the bar
+                                          // paused after scrolling back to the top, and
+                                          // isScrolledToTop already covers pausing during a scroll.
                                           final barPaused = isHoverPaused ||
                                               !isScrolledToTop ||
-                                              _isActivelyScrolling ||
+                                              (!PlatformDetection.isMobile &&
+                                                  _isActivelyScrolling) ||
                                               chromeAudioActive;
 
                                           return RepaintBoundary(

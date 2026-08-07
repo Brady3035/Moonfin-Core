@@ -178,6 +178,8 @@ static void fatal_error(void *user, const char *message) {
   (*env)->CallVoidMethod(env, c->bridge, c->on_error, jmessage);
   (*env)->DeleteLocalRef(env, jmessage);
   if (attached_here) (*c->vm)->DetachCurrentThread(c->vm);
+}
+
 static void core_message(void *user, const char *text) {
   native_ctx *c = (native_ctx *)user;
   if (!c->vm || !c->bridge || !c->on_core_message || !text) return;

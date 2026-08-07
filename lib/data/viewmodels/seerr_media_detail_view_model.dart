@@ -391,6 +391,21 @@ class SeerrMediaDetailViewModel extends ChangeNotifier {
     }
   }
 
+  /// The search hit of the kind that was asked for.
+  ///
+  /// Seerr ranks a search by popularity across every kind of media, so the
+  /// first hit for a film can easily be a series of the same name.
+  @visibleForTesting
+  static SeerrDiscoverItem bestSearchMatch(
+    List<SeerrDiscoverItem> results,
+    String mediaType,
+  ) {
+    for (final result in results) {
+      if (result.mediaType == mediaType) return result;
+    }
+    return results.first;
+  }
+
   Future<void> load(String itemId, String mediaType, {String? title}) async {
     _state = const SeerrMediaDetailState(isLoading: true);
     notifyListeners();
@@ -408,8 +423,17 @@ class SeerrMediaDetailViewModel extends ChangeNotifier {
       String resolvedMediaType = mediaType;
 
       if (itemId.startsWith('tt')) {
+        // The IMDb id names exactly one title, so it is asked first. A title
+        // search is a guess and only stands in when the id turns up nothing.
         SeerrDiscoverPage? searchPage;
-        if (title != null && title.isNotEmpty) {
+        try {
+          searchPage = await _repo.search(itemId);
+        } catch (e) {
+          debugPrint('[SeerrDetail] Search by IMDb ID failed: $e');
+        }
+        if ((searchPage == null || searchPage.results.isEmpty) &&
+            title != null &&
+            title.isNotEmpty) {
           try {
             searchPage = await _repo.search(title);
           } catch (e) {
@@ -417,18 +441,11 @@ class SeerrMediaDetailViewModel extends ChangeNotifier {
           }
         }
         if (searchPage == null || searchPage.results.isEmpty) {
-          try {
-            searchPage = await _repo.search(itemId);
-          } catch (e) {
-            debugPrint('[SeerrDetail] Search by IMDb ID failed: $e');
-          }
-        }
-        if (searchPage == null || searchPage.results.isEmpty) {
           throw Exception('Media not found on Seerr');
         }
-        final firstResult = searchPage.results.first;
-        tmdbId = firstResult.id;
-        resolvedMediaType = firstResult.mediaType ?? mediaType;
+        final match = bestSearchMatch(searchPage.results, mediaType);
+        tmdbId = match.id;
+        resolvedMediaType = match.mediaType ?? mediaType;
       } else {
         final parsed = int.tryParse(itemId);
         if (parsed == null) {

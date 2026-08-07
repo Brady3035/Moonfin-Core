@@ -240,6 +240,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen>
   final ValueNotifier<String?> _backdropUrl = ValueNotifier<String?>(null);
   StreamSubscription<String?>? _backgroundSub;
   bool _themeMusicStarted = false;
+  bool _seerrRedirectDone = false;
   String? _selectedMediaSourceId;
   bool _showNavbar = true;
   bool _actionsExpanded = false;
@@ -375,6 +376,17 @@ class _ItemDetailScreenState extends State<ItemDetailScreen>
 
   void _onChanged() {
     if (!mounted) return;
+    final resolvedLibraryId = _viewModel.seerrResolvedLibraryId;
+    if (resolvedLibraryId != null && !_seerrRedirectDone) {
+      _seerrRedirectDone = true;
+      // A notify can arrive mid build, and pushing a route from there throws.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          context.pushReplacement(Destinations.item(resolvedLibraryId));
+        }
+      });
+      return;
+    }
     setState(() {});
     final item = _viewModel.item;
     if (item != null) {

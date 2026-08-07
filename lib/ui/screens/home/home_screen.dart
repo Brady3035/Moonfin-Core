@@ -5049,9 +5049,13 @@ class _ContentRowsState extends State<_ContentRows>
       final mediaType = item.type == 'Series' || item.type == 'tv'
           ? 'tv'
           : 'movie';
+      // External rows key their items by IMDb id where they have one, which
+      // Seerr can only resolve by searching, and a search can land on the
+      // wrong title. The TMDB id these items also carry names exactly one.
+      final tmdbId = item.tmdbId;
       context.push(
         Destinations.seerrMedia(
-          item.id,
+          tmdbId != null && tmdbId.isNotEmpty ? tmdbId : item.id,
           mediaType: mediaType,
           title: item.name,
         ),

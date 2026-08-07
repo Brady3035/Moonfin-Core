@@ -297,6 +297,12 @@ class ItemDetailViewModel extends ChangeNotifier {
   bool _isSeerrOnly = false;
   bool get isSeerrOnly => _isSeerrOnly;
 
+  /// The library id of a title asked for by TMDB id that turned out to be in
+  /// the library after all. The screen swaps itself for the real item, which
+  /// has playback and everything else a synthetic one cannot offer.
+  String? _seerrResolvedLibraryId;
+  String? get seerrResolvedLibraryId => _seerrResolvedLibraryId;
+
   /// Only used to resolve an IMDb-keyed id by searching for it.
   String? _seerrOnlyTitle;
   set seerrOnlyTitle(String? value) => _seerrOnlyTitle = value;
@@ -371,6 +377,17 @@ class ItemDetailViewModel extends ChangeNotifier {
     if (state.error != null || state.tmdbId == 0) {
       _errorMessage = state.error ?? 'Media not found on Seerr';
       _state = ItemDetailState.error;
+      notifyListeners();
+      return;
+    }
+
+    // Seerr hands back the media server's own id for a title it knows is
+    // already there. Nothing else is set here, so the screen stays on its
+    // loading state until it has swapped itself out.
+    final libraryId =
+        state.mediaInfo?.jellyfinMediaId ?? state.mediaInfo?.jellyfinMediaId4k;
+    if (libraryId != null && libraryId.isNotEmpty) {
+      _seerrResolvedLibraryId = libraryId;
       notifyListeners();
       return;
     }

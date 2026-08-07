@@ -5497,6 +5497,18 @@
       }
     }
   },
+  "manageRequests": "Manage Requests",
+  "@manageRequests": {
+    "description": "Details screen button opening the pending requests to approve or decline"
+  },
+  "watchlist": "Watchlist",
+  "@watchlist": {
+    "description": "Details screen button adding the title to the Seerr watchlist"
+  },
+  "onWatchlist": "On Watchlist",
+  "@onWatchlist": {
+    "description": "Details screen button label when the title is already on the Seerr watchlist"
+  },
   "approve": "Approve",
   "@approve": {
     "description": "Tooltip/button to approve a request"

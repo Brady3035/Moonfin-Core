@@ -4108,6 +4108,15 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get manageRequests => 'Manage Requests';
+
+  @override
+  String get watchlist => 'Watchlist';
+
+  @override
+  String get onWatchlist => 'On Watchlist';
+
+  @override
   String get approve => 'Approuver';
 
   @override

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 
-/// Arranges the Modern detail pieces for portrait phones/tablets: backdrop at the
-/// top fading into the content, then a vertical stack of hero, Up Next, tabs and
-/// the active tab content. Pure arrangement; all pieces are built by the host.
+/// Arranges the Modern detail pieces for portrait phones and tablets: a
+/// full-bleed backdrop fading into the content, then a vertical stack of hero,
+/// Up Next, tabs and the active tab content. Pure arrangement, with all of the
+/// pieces built by the host.
 class ModernPortraitLayout extends StatelessWidget {
   final Widget backdrop;
   final Widget hero;
@@ -26,16 +27,10 @@ class ModernPortraitLayout extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.sizeOf(context);
-    final backdropHeight = size.height * 0.5;
     return Stack(
+      fit: StackFit.expand,
       children: [
-        Positioned(
-          top: 0,
-          left: 0,
-          right: 0,
-          height: backdropHeight,
-          child: backdrop,
-        ),
+        backdrop,
         SafeArea(
           child: SingleChildScrollView(
             controller: scrollController,

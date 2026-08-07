@@ -610,6 +610,9 @@ class AppLocalizationsSk extends AppLocalizations {
   String get scrollRight => 'Prejdite doprava';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre =>
       'Tento žáner sa momentálne nepodarilo načítať.';
 
@@ -4073,6 +4076,15 @@ class AppLocalizationsSk extends AppLocalizations {
   String requestedByName(String name) {
     return 'Požiadal $name';
   }
+
+  @override
+  String get manageRequests => 'Manage Requests';
+
+  @override
+  String get watchlist => 'Watchlist';
+
+  @override
+  String get onWatchlist => 'On Watchlist';
 
   @override
   String get approve => 'schváliť';

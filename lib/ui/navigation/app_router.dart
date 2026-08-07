@@ -29,6 +29,7 @@ import '../screens/browse/library_letters_screen.dart';
 import '../screens/browse/library_suggestions_screen.dart';
 import '../screens/browse/book_browse_screen.dart';
 import '../screens/browse/music_browse_screen.dart';
+import '../../data/models/tmdb_item_ref.dart';
 import '../screens/detail/item_detail_screen.dart';
 import '../screens/games/game_library_screen.dart';
 import '../screens/games/game_system_screen.dart';
@@ -40,7 +41,6 @@ import '../screens/home/home_screen.dart';
 import '../screens/seerr/seerr_browse_screen.dart';
 import '../screens/seerr/seerr_collection_screen.dart';
 import '../screens/seerr/seerr_discover_screen.dart';
-import '../screens/seerr/seerr_media_detail_screen.dart';
 import '../screens/seerr/seerr_person_screen.dart';
 import '../screens/seerr/seerr_requests_screen.dart';
 import '../screens/livetv/live_tv_channel_player_loader.dart';
@@ -771,10 +771,15 @@ final appRouter = GoRouter(
     GoRoute(
       path: Destinations.seerrMediaDetail,
       builder: (context, state) {
-        final itemId = state.pathParameters['itemId']!;
-        return SeerrMediaDetailScreen(
-          itemId: itemId,
-          mediaType: state.uri.queryParameters['mediaType'],
+        final tmdbId = state.pathParameters['itemId']!;
+        final kind = state.uri.queryParameters['mediaType'] == 'tv'
+            ? TmdbItemKind.tv
+            : TmdbItemKind.movie;
+        final ref = TmdbItemRef(kind, tmdbId);
+        return ItemDetailScreen(
+          key: ValueKey(ref.itemId),
+          itemId: ref.itemId,
+          seerrTitle: state.uri.queryParameters['title'],
         );
       },
     ),

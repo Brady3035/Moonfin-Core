@@ -610,6 +610,9 @@ class AppLocalizationsTe extends AppLocalizations {
   String get scrollRight => 'కుడివైపు స్క్రోల్ చేయండి';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre => 'ప్రస్తుతం ఈ శైలిని లోడ్ చేయడం సాధ్యపడలేదు.';
 
   @override
@@ -4073,6 +4076,15 @@ class AppLocalizationsTe extends AppLocalizations {
   String requestedByName(String name) {
     return '$name అభ్యర్థించారు';
   }
+
+  @override
+  String get manageRequests => 'Manage Requests';
+
+  @override
+  String get watchlist => 'Watchlist';
+
+  @override
+  String get onWatchlist => 'On Watchlist';
 
   @override
   String get approve => 'ఆమోదించండి';

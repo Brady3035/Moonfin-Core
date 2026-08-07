@@ -609,6 +609,9 @@ class AppLocalizationsUg extends AppLocalizations {
   String get scrollRight => 'ئوڭغا يۆتكەڭ';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre => 'ھازىر بۇ ژانىرنى يۈكلىيەلمىدى.';
 
   @override
@@ -4057,6 +4060,15 @@ class AppLocalizationsUg extends AppLocalizations {
   String requestedByName(String name) {
     return '$name ئىلتىماس قىلغان';
   }
+
+  @override
+  String get manageRequests => 'Manage Requests';
+
+  @override
+  String get watchlist => 'Watchlist';
+
+  @override
+  String get onWatchlist => 'On Watchlist';
 
   @override
   String get approve => 'تەستىق';

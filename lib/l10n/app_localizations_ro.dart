@@ -609,6 +609,9 @@ class AppLocalizationsRo extends AppLocalizations {
   String get scrollRight => 'Derulați spre dreapta';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre => 'Nu s-a putut încărca acest gen acum.';
 
   @override
@@ -4081,6 +4084,15 @@ class AppLocalizationsRo extends AppLocalizations {
   String requestedByName(String name) {
     return 'Solicitat de $name';
   }
+
+  @override
+  String get manageRequests => 'Manage Requests';
+
+  @override
+  String get watchlist => 'Watchlist';
+
+  @override
+  String get onWatchlist => 'On Watchlist';
 
   @override
   String get approve => 'Aproba';

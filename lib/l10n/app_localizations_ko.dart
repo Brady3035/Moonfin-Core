@@ -593,6 +593,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get scrollRight => '오른쪽으로 스크롤';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre => '지금은 이 장르를 로드할 수 없습니다.';
 
   @override
@@ -3942,6 +3945,15 @@ class AppLocalizationsKo extends AppLocalizations {
   String requestedByName(String name) {
     return '$name 요청';
   }
+
+  @override
+  String get manageRequests => 'Manage Requests';
+
+  @override
+  String get watchlist => 'Watchlist';
+
+  @override
+  String get onWatchlist => 'On Watchlist';
 
   @override
   String get approve => '승인하다';

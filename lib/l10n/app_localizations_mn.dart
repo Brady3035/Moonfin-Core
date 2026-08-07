@@ -610,6 +610,9 @@ class AppLocalizationsMn extends AppLocalizations {
   String get scrollRight => 'Баруун тийш гүйлгэх';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre => 'Энэ жанрыг яг одоо ачаалж чадсангүй.';
 
   @override
@@ -4060,6 +4063,15 @@ class AppLocalizationsMn extends AppLocalizations {
   String requestedByName(String name) {
     return 'Хүссэн $name';
   }
+
+  @override
+  String get manageRequests => 'Manage Requests';
+
+  @override
+  String get watchlist => 'Watchlist';
+
+  @override
+  String get onWatchlist => 'On Watchlist';
 
   @override
   String get approve => 'Зөвшөөрөх';

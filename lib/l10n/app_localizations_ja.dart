@@ -591,6 +591,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get scrollRight => '右にスクロール';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre => '現在このジャンルを読み込めませんでした。';
 
   @override
@@ -3949,6 +3952,15 @@ class AppLocalizationsJa extends AppLocalizations {
   String requestedByName(String name) {
     return '$name がリクエスト';
   }
+
+  @override
+  String get manageRequests => 'Manage Requests';
+
+  @override
+  String get watchlist => 'Watchlist';
+
+  @override
+  String get onWatchlist => 'On Watchlist';
 
   @override
   String get approve => '承認する';

@@ -608,6 +608,9 @@ class AppLocalizationsEo extends AppLocalizations {
   String get scrollRight => 'Rulumu dekstren';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre => 'Ne eblis ŝargi ĉi tiun ĝenron nun.';
 
   @override
@@ -4046,6 +4049,15 @@ class AppLocalizationsEo extends AppLocalizations {
   String requestedByName(String name) {
     return 'Petite de $name';
   }
+
+  @override
+  String get manageRequests => 'Manage Requests';
+
+  @override
+  String get watchlist => 'Watchlist';
+
+  @override
+  String get onWatchlist => 'On Watchlist';
 
   @override
   String get approve => 'Aprobi';

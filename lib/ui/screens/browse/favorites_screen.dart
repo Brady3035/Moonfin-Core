@@ -24,6 +24,7 @@ import '../../widgets/fullscreen_backdrop_switcher.dart';
 import '../../widgets/media_card.dart';
 import '../../widgets/navigation_layout.dart';
 import '../../widgets/overlay_sheet.dart';
+import '../../widgets/quick_return_wrapper.dart';
 import '../../widgets/rating_display.dart';
 import '../../widgets/sliding_pill_tabs.dart';
 import '../../../l10n/app_localizations.dart';
@@ -350,7 +351,11 @@ class _FavoritesScreenState extends State<FavoritesScreen> with GridFocusNodeMix
   Widget build(BuildContext context) => RequestInitialFocus(
     targetNode:
         _vm.viewStyle == FavoritesViewStyle.home ? _tabsFocusNode : null,
-    child: _buildContent(context),
+    child: QuickReturnWrapper(
+      scrollController: _scrollController,
+      topFocusNode: getGridItemFocusNode(0),
+      child: _buildContent(context),
+    ),
   );
 
   Widget _buildContent(BuildContext context) {

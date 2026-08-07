@@ -608,6 +608,9 @@ class AppLocalizationsTr extends AppLocalizations {
   String get scrollRight => 'Sağa kaydır';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre => 'Bu tür şu anda yüklenemedi.';
 
   @override
@@ -4063,6 +4066,15 @@ class AppLocalizationsTr extends AppLocalizations {
   String requestedByName(String name) {
     return '$name tarafından istendi';
   }
+
+  @override
+  String get manageRequests => 'Manage Requests';
+
+  @override
+  String get watchlist => 'Watchlist';
+
+  @override
+  String get onWatchlist => 'On Watchlist';
 
   @override
   String get approve => 'Onayla';

@@ -610,6 +610,9 @@ class AppLocalizationsId extends AppLocalizations {
   String get scrollRight => 'Gulir ke kanan';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre => 'Genre ini tidak dapat dimuat saat ini.';
 
   @override
@@ -4052,6 +4055,15 @@ class AppLocalizationsId extends AppLocalizations {
   String requestedByName(String name) {
     return 'Diminta oleh $name';
   }
+
+  @override
+  String get manageRequests => 'Manage Requests';
+
+  @override
+  String get watchlist => 'Watchlist';
+
+  @override
+  String get onWatchlist => 'On Watchlist';
 
   @override
   String get approve => 'Setujui';

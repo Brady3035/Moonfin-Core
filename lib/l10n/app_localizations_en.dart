@@ -607,6 +607,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get scrollRight => 'Scroll right';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre => 'Could not load this genre right now.';
 
   @override
@@ -4028,6 +4031,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String requestedByName(String name) {
     return 'Requested by $name';
   }
+
+  @override
+  String get manageRequests => 'Manage Requests';
+
+  @override
+  String get watchlist => 'Watchlist';
+
+  @override
+  String get onWatchlist => 'On Watchlist';
 
   @override
   String get approve => 'Approve';

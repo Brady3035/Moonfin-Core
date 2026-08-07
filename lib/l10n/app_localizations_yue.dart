@@ -585,6 +585,9 @@ class AppLocalizationsYue extends AppLocalizations {
   String get scrollRight => '向右滾動';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre => '目前無法載入此類型。';
 
   @override
@@ -3915,6 +3918,15 @@ class AppLocalizationsYue extends AppLocalizations {
   String requestedByName(String name) {
     return '由 $name 請求';
   }
+
+  @override
+  String get manageRequests => 'Manage Requests';
+
+  @override
+  String get watchlist => 'Watchlist';
+
+  @override
+  String get onWatchlist => 'On Watchlist';
 
   @override
   String get approve => '核准';

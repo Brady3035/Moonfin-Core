@@ -609,6 +609,9 @@ class AppLocalizationsBe extends AppLocalizations {
   String get scrollRight => 'Пракрутка ўправа';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre => 'Не атрымалася загрузіць гэты жанр.';
 
   @override
@@ -4069,6 +4072,15 @@ class AppLocalizationsBe extends AppLocalizations {
   String requestedByName(String name) {
     return 'Запытаў $name';
   }
+
+  @override
+  String get manageRequests => 'Manage Requests';
+
+  @override
+  String get watchlist => 'Watchlist';
+
+  @override
+  String get onWatchlist => 'On Watchlist';
 
   @override
   String get approve => 'Ухваліць';

@@ -1594,10 +1594,7 @@ class PlaybackManager implements AudioOwnable {
       }
     } else if (resolution.playMethod == StreamPlayMethod.transcode) {
       if (_subtitleStreamIndex != null && _subtitleStreamIndex != -1) {
-        final isBurnedIn =
-            (_isSubtitleBitmap(_subtitleStreamIndex!) &&
-             !(_backend?.canRenderBitmapSubtitles ?? false)) ||
-            _isSubtitleBurnedIn(_subtitleStreamIndex);
+        final isBurnedIn = _subtitleIsBurnedIntoVideo(_subtitleStreamIndex);
         if (isBurnedIn) {
           _waitAndDisableSubtitles(sessionToken, force: true);
         } else if (_subtitleRendererModeForStream(_subtitleStreamIndex!) ==
@@ -1883,6 +1880,17 @@ class PlaybackManager implements AudioOwnable {
     return _bitmapSubCodecs.contains(codec);
   }
 
+  /// Every way the picture can arrive with this subtitle already in it, so
+  /// turning the track off in the player would leave it on screen. A bitmap
+  /// subtitle the backend can't draw counts too, since asking for it is what
+  /// made the server burn it in.
+  bool _subtitleIsBurnedIntoVideo(int? streamIndex) =>
+      (streamIndex != null &&
+          streamIndex >= 0 &&
+          _isSubtitleBitmap(streamIndex) &&
+          !(_backend?.canRenderBitmapSubtitles ?? false)) ||
+      _isSubtitleBurnedIn(streamIndex);
+
   /// Whether the server is painting [streamIndex] into the video itself.
   ///
   /// Not every server says so in the stream URL, so the delivery method the
@@ -2112,12 +2120,9 @@ class PlaybackManager implements AudioOwnable {
       }
     } else if (_currentResolution?.playMethod == StreamPlayMethod.transcode ||
         _currentResolution?.playMethod == StreamPlayMethod.directStream) {
-      final previousWasBurned =
-          (previousSubtitleStreamIndex != null &&
-           previousSubtitleStreamIndex >= 0 &&
-           _isSubtitleBitmap(previousSubtitleStreamIndex) &&
-           !(_backend?.canRenderBitmapSubtitles ?? false)) ||
-          _isSubtitleBurnedIn(previousSubtitleStreamIndex);
+      final previousWasBurned = _subtitleIsBurnedIntoVideo(
+        previousSubtitleStreamIndex,
+      );
       if (previousWasBurned && !isBitmap) {
         await _backend?.disableSubtitleTrack();
         await _reResolveAtCurrentPosition();
@@ -2153,7 +2158,7 @@ class PlaybackManager implements AudioOwnable {
   }
 
   Future<void> disableSubtitles() => _withProgressPaused(() async {
-    final previousWasBurned = _isSubtitleBurnedIn(_subtitleStreamIndex);
+    final previousWasBurned = _subtitleIsBurnedIntoVideo(_subtitleStreamIndex);
     _subtitleStreamIndex = -1;
     _lastExplicitSubtitleEnabled = false;
     _lastExplicitSubtitleLanguage = null;

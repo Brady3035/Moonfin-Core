@@ -610,6 +610,9 @@ class AppLocalizationsHi extends AppLocalizations {
   String get scrollRight => 'दाईं ओर स्क्रॉल करें';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre => 'अभी इस शैली को लोड नहीं किया जा सका.';
 
   @override
@@ -4039,6 +4042,15 @@ class AppLocalizationsHi extends AppLocalizations {
   String requestedByName(String name) {
     return '$name द्वारा अनुरोधित';
   }
+
+  @override
+  String get manageRequests => 'Manage Requests';
+
+  @override
+  String get watchlist => 'Watchlist';
+
+  @override
+  String get onWatchlist => 'On Watchlist';
 
   @override
   String get approve => 'मंज़ूरी देना';

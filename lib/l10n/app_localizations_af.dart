@@ -610,6 +610,9 @@ class AppLocalizationsAf extends AppLocalizations {
   String get scrollRight => 'Blaai regs';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre =>
       'Kon nie hierdie genre op die oomblik laai nie.';
 
@@ -4053,6 +4056,15 @@ class AppLocalizationsAf extends AppLocalizations {
   String requestedByName(String name) {
     return 'Versoek deur $name';
   }
+
+  @override
+  String get manageRequests => 'Manage Requests';
+
+  @override
+  String get watchlist => 'Watchlist';
+
+  @override
+  String get onWatchlist => 'On Watchlist';
 
   @override
   String get approve => 'Keur goed';

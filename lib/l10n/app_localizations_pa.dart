@@ -609,6 +609,9 @@ class AppLocalizationsPa extends AppLocalizations {
   String get scrollRight => 'ਸੱਜੇ ਸਕ੍ਰੋਲ ਕਰੋ';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre => 'ਇਸ ਸ਼ੈਲੀ ਨੂੰ ਹੁਣੇ ਲੋਡ ਨਹੀਂ ਕੀਤਾ ਜਾ ਸਕਿਆ।';
 
   @override
@@ -4036,6 +4039,15 @@ class AppLocalizationsPa extends AppLocalizations {
   String requestedByName(String name) {
     return '$name ਦੁਆਰਾ ਬੇਨਤੀ ਕੀਤੀ';
   }
+
+  @override
+  String get manageRequests => 'Manage Requests';
+
+  @override
+  String get watchlist => 'Watchlist';
+
+  @override
+  String get onWatchlist => 'On Watchlist';
 
   @override
   String get approve => 'ਮਨਜ਼ੂਰ ਕਰੋ';

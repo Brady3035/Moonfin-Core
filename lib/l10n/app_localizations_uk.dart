@@ -610,6 +610,9 @@ class AppLocalizationsUk extends AppLocalizations {
   String get scrollRight => 'Прокрутіть праворуч';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre => 'Зараз не вдалося завантажити цей жанр.';
 
   @override
@@ -4076,6 +4079,15 @@ class AppLocalizationsUk extends AppLocalizations {
   String requestedByName(String name) {
     return 'Запит від $name';
   }
+
+  @override
+  String get manageRequests => 'Manage Requests';
+
+  @override
+  String get watchlist => 'Watchlist';
+
+  @override
+  String get onWatchlist => 'On Watchlist';
 
   @override
   String get approve => 'Затвердити';

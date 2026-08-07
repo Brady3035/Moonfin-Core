@@ -611,6 +611,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get scrollRight => 'Görgess jobbra';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre =>
       'Jelenleg nem sikerült betölteni ezt a műfajt.';
 
@@ -4081,6 +4084,15 @@ class AppLocalizationsHu extends AppLocalizations {
   String requestedByName(String name) {
     return 'Igényelte: $name';
   }
+
+  @override
+  String get manageRequests => 'Manage Requests';
+
+  @override
+  String get watchlist => 'Watchlist';
+
+  @override
+  String get onWatchlist => 'On Watchlist';
 
   @override
   String get approve => 'Jóváhagyás';

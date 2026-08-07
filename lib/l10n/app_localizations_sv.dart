@@ -606,6 +606,9 @@ class AppLocalizationsSv extends AppLocalizations {
   String get scrollRight => 'Bläddra åt höger';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre =>
       'Det gick inte att ladda den här genren just nu.';
 
@@ -4051,6 +4054,15 @@ class AppLocalizationsSv extends AppLocalizations {
   String requestedByName(String name) {
     return 'Efterfrågad av $name';
   }
+
+  @override
+  String get manageRequests => 'Manage Requests';
+
+  @override
+  String get watchlist => 'Watchlist';
+
+  @override
+  String get onWatchlist => 'On Watchlist';
 
   @override
   String get approve => 'Godkänna';

@@ -1300,6 +1300,12 @@ abstract class AppLocalizations {
   /// **'Scroll right'**
   String get scrollRight;
 
+  /// Tooltip for the button that returns a scrolled list to the top
+  ///
+  /// In en, this message translates to:
+  /// **'Scroll to top'**
+  String get scrollToTop;
+
   /// Error when a genre row fails to load
   ///
   /// In en, this message translates to:
@@ -7329,6 +7335,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Requested by {name}'**
   String requestedByName(String name);
+
+  /// Details screen button opening the pending requests to approve or decline
+  ///
+  /// In en, this message translates to:
+  /// **'Manage Requests'**
+  String get manageRequests;
+
+  /// Details screen button adding the title to the Seerr watchlist
+  ///
+  /// In en, this message translates to:
+  /// **'Watchlist'**
+  String get watchlist;
+
+  /// Details screen button label when the title is already on the Seerr watchlist
+  ///
+  /// In en, this message translates to:
+  /// **'On Watchlist'**
+  String get onWatchlist;
 
   /// Tooltip/button to approve a request
   ///

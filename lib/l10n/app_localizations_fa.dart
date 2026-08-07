@@ -605,6 +605,9 @@ class AppLocalizationsFa extends AppLocalizations {
   String get scrollRight => 'به سمت راست پیمایش کنید';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre => 'در حال حاضر این ژانر بارگیری نشد.';
 
   @override
@@ -4028,6 +4031,15 @@ class AppLocalizationsFa extends AppLocalizations {
   String requestedByName(String name) {
     return 'درخواست شده توسط $name';
   }
+
+  @override
+  String get manageRequests => 'Manage Requests';
+
+  @override
+  String get watchlist => 'Watchlist';
+
+  @override
+  String get onWatchlist => 'On Watchlist';
 
   @override
   String get approve => 'تایید کنید';

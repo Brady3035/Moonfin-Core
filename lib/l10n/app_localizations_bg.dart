@@ -608,6 +608,9 @@ class AppLocalizationsBg extends AppLocalizations {
   String get scrollRight => 'Превъртете надясно';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre => 'Не може да се зареди този жанр в момента.';
 
   @override
@@ -4072,6 +4075,15 @@ class AppLocalizationsBg extends AppLocalizations {
   String requestedByName(String name) {
     return 'Поискано от $name';
   }
+
+  @override
+  String get manageRequests => 'Manage Requests';
+
+  @override
+  String get watchlist => 'Watchlist';
+
+  @override
+  String get onWatchlist => 'On Watchlist';
 
   @override
   String get approve => 'Одобряване';

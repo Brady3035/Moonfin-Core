@@ -607,6 +607,9 @@ class AppLocalizationsLt extends AppLocalizations {
   String get scrollRight => 'Slinkite dešinėn';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre => 'Šiuo metu nepavyko įkelti šio žanro.';
 
   @override
@@ -4072,6 +4075,15 @@ class AppLocalizationsLt extends AppLocalizations {
   String requestedByName(String name) {
     return 'Užklausą pateikė $name';
   }
+
+  @override
+  String get manageRequests => 'Manage Requests';
+
+  @override
+  String get watchlist => 'Watchlist';
+
+  @override
+  String get onWatchlist => 'On Watchlist';
 
   @override
   String get approve => 'Patvirtinti';

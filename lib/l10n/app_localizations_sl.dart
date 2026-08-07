@@ -612,6 +612,9 @@ class AppLocalizationsSl extends AppLocalizations {
   String get scrollRight => 'Pomaknite se desno';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre => 'Te zvrsti trenutno ni bilo mogoče naložiti.';
 
   @override
@@ -4076,6 +4079,15 @@ class AppLocalizationsSl extends AppLocalizations {
   String requestedByName(String name) {
     return 'Zahteval $name';
   }
+
+  @override
+  String get manageRequests => 'Manage Requests';
+
+  @override
+  String get watchlist => 'Watchlist';
+
+  @override
+  String get onWatchlist => 'On Watchlist';
 
   @override
   String get approve => 'odobri';

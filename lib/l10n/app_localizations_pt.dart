@@ -609,6 +609,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get scrollRight => 'Rolar para a direita';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre =>
       'Não foi possível carregar este gênero agora.';
 
@@ -4074,6 +4077,15 @@ class AppLocalizationsPt extends AppLocalizations {
   String requestedByName(String name) {
     return 'Solicitado por $name';
   }
+
+  @override
+  String get manageRequests => 'Manage Requests';
+
+  @override
+  String get watchlist => 'Watchlist';
+
+  @override
+  String get onWatchlist => 'On Watchlist';
 
   @override
   String get approve => 'Aprovar';

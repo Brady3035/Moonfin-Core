@@ -611,6 +611,9 @@ class AppLocalizationsCy extends AppLocalizations {
   String get scrollRight => 'Sgroliwch i\'r dde';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre => 'Methu llwytho\'r genre hwn ar hyn o bryd.';
 
   @override
@@ -4075,6 +4078,15 @@ class AppLocalizationsCy extends AppLocalizations {
   String requestedByName(String name) {
     return 'Cais gan $name';
   }
+
+  @override
+  String get manageRequests => 'Manage Requests';
+
+  @override
+  String get watchlist => 'Watchlist';
+
+  @override
+  String get onWatchlist => 'On Watchlist';
 
   @override
   String get approve => 'Cymeradwyo';

@@ -612,6 +612,9 @@ class AppLocalizationsFi extends AppLocalizations {
   String get scrollRight => 'Vieritä oikealle';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre => 'Tätä genreä ei voitu ladata juuri nyt.';
 
   @override
@@ -4064,6 +4067,15 @@ class AppLocalizationsFi extends AppLocalizations {
   String requestedByName(String name) {
     return 'Pyytäjä $name';
   }
+
+  @override
+  String get manageRequests => 'Manage Requests';
+
+  @override
+  String get watchlist => 'Watchlist';
+
+  @override
+  String get onWatchlist => 'On Watchlist';
 
   @override
   String get approve => 'Hyväksyä';

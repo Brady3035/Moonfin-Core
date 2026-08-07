@@ -608,6 +608,9 @@ class AppLocalizationsSi extends AppLocalizations {
   String get scrollRight => 'දකුණට අනුචලනය කරන්න';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre => 'මෙම ප්‍රභේදය දැන් පූරණය කළ නොහැක.';
 
   @override
@@ -4048,6 +4051,15 @@ class AppLocalizationsSi extends AppLocalizations {
   String requestedByName(String name) {
     return '$name විසින් ඉල්ලා ඇත';
   }
+
+  @override
+  String get manageRequests => 'Manage Requests';
+
+  @override
+  String get watchlist => 'Watchlist';
+
+  @override
+  String get onWatchlist => 'On Watchlist';
 
   @override
   String get approve => 'අනුමත කරන්න';

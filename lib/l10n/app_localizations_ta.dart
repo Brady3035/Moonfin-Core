@@ -610,6 +610,9 @@ class AppLocalizationsTa extends AppLocalizations {
   String get scrollRight => 'வலதுபுறமாக உருட்டவும்';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre => 'இந்த வகையை இப்போது ஏற்ற முடியவில்லை.';
 
   @override
@@ -4084,6 +4087,15 @@ class AppLocalizationsTa extends AppLocalizations {
   String requestedByName(String name) {
     return '$name கோரியுள்ளார்';
   }
+
+  @override
+  String get manageRequests => 'Manage Requests';
+
+  @override
+  String get watchlist => 'Watchlist';
+
+  @override
+  String get onWatchlist => 'On Watchlist';
 
   @override
   String get approve => 'ஒப்புதல்';

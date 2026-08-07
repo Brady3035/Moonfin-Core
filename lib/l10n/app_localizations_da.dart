@@ -609,6 +609,9 @@ class AppLocalizationsDa extends AppLocalizations {
   String get scrollRight => 'Rul til højre';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre => 'Kunne ikke indlæse denne genre lige nu.';
 
   @override
@@ -4047,6 +4050,15 @@ class AppLocalizationsDa extends AppLocalizations {
   String requestedByName(String name) {
     return 'Anmodet af $name';
   }
+
+  @override
+  String get manageRequests => 'Manage Requests';
+
+  @override
+  String get watchlist => 'Watchlist';
+
+  @override
+  String get onWatchlist => 'On Watchlist';
 
   @override
   String get approve => 'Godkende';

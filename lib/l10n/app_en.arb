@@ -793,6 +793,10 @@
   "@scrollRight": {
     "description": "Tooltip for scroll right button"
   },
+  "scrollToTop": "Scroll to top",
+  "@scrollToTop": {
+    "description": "Tooltip for the button that returns a scrolled list to the top"
+  },
   "couldNotLoadGenre": "Could not load this genre right now.",
   "@couldNotLoadGenre": {
     "description": "Error when a genre row fails to load"
@@ -5492,6 +5496,18 @@
         "type": "String"
       }
     }
+  },
+  "manageRequests": "Manage Requests",
+  "@manageRequests": {
+    "description": "Details screen button opening the pending requests to approve or decline"
+  },
+  "watchlist": "Watchlist",
+  "@watchlist": {
+    "description": "Details screen button adding the title to the Seerr watchlist"
+  },
+  "onWatchlist": "On Watchlist",
+  "@onWatchlist": {
+    "description": "Details screen button label when the title is already on the Seerr watchlist"
   },
   "approve": "Approve",
   "@approve": {

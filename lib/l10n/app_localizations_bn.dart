@@ -607,6 +607,9 @@ class AppLocalizationsBn extends AppLocalizations {
   String get scrollRight => 'ডানদিকে স্ক্রোল করুন';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre => 'এই ধারাটি এখনই লোড করা যায়নি।';
 
   @override
@@ -4040,6 +4043,15 @@ class AppLocalizationsBn extends AppLocalizations {
   String requestedByName(String name) {
     return '$name দ্বারা অনুরোধ করা হয়েছে';
   }
+
+  @override
+  String get manageRequests => 'Manage Requests';
+
+  @override
+  String get watchlist => 'Watchlist';
+
+  @override
+  String get onWatchlist => 'On Watchlist';
 
   @override
   String get approve => 'অনুমোদন করুন';

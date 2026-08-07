@@ -213,6 +213,10 @@ class MediaKitPlayerBackend extends PlayerBackend {
   bool _isStale = false;
   String? _currentUrl;
 
+  // The viewer asked for no subtitles. Held here so the deferred visibility
+  // pass can tell a fresh source apart from a choice it must not undo.
+  bool _subtitlesDisabled = false;
+
   // Captions mpv found inside the video, cached from the async track-list
   // property so the sync getter can serve them. An EmbeddedCaptionTrack id is
   // a 1-based position into [_ccTrackSids], which holds the real mpv sids.
@@ -1469,6 +1473,7 @@ class MediaKitPlayerBackend extends PlayerBackend {
     String? externalSubtitleUrl,
   }) async {
     if (mpvTrackId < 1) return;
+    _subtitlesDisabled = false;
     try {
       final native = _player.platform as NativePlayer;
       final trackListBefore = await _tryNativeGetProperty(native, 'track-list');
@@ -1611,6 +1616,7 @@ class MediaKitPlayerBackend extends PlayerBackend {
   @override
   Future<void> setEmbeddedCaptionTrack(int id) async {
     if (id <= 0 || id > _ccTrackSids.length) return;
+    _subtitlesDisabled = false;
     final platform = _player.platform;
     if (platform is! NativePlayer) return;
     final sid = _ccTrackSids[id - 1].toString();
@@ -1622,6 +1628,7 @@ class MediaKitPlayerBackend extends PlayerBackend {
 
   @override
   Future<void> disableSubtitleTrack() async {
+    _subtitlesDisabled = true;
     await _player.setSubtitleTrack(SubtitleTrack.no());
     try {
       final native = _player.platform as NativePlayer;
@@ -1769,6 +1776,9 @@ class MediaKitPlayerBackend extends PlayerBackend {
 
   void _enableNativeSubtitleRendering() {
     Future.delayed(const Duration(milliseconds: 500), () async {
+      // Read on the way out rather than on the way in, since the viewer can
+      // turn subtitles off while this is still pending.
+      if (_subtitlesDisabled) return;
       try {
         final native = _player.platform as NativePlayer;
         await _nativeSetProperty(native, 'sub-visibility', 'yes');

@@ -614,6 +614,9 @@ class AppLocalizationsSw extends AppLocalizations {
   String get scrollRight => 'Sogeza kulia';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre => 'Haikuweza kupakia aina hii kwa sasa.';
 
   @override
@@ -4079,6 +4082,15 @@ class AppLocalizationsSw extends AppLocalizations {
   String requestedByName(String name) {
     return 'Imeombwa na $name';
   }
+
+  @override
+  String get manageRequests => 'Manage Requests';
+
+  @override
+  String get watchlist => 'Watchlist';
+
+  @override
+  String get onWatchlist => 'On Watchlist';
 
   @override
   String get approve => 'Idhinisha';

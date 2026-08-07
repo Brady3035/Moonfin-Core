@@ -611,6 +611,9 @@ class AppLocalizationsTl extends AppLocalizations {
   String get scrollRight => 'Mag-scroll pakanan';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre => 'Hindi ma-load ang genre na ito sa ngayon.';
 
   @override
@@ -4090,6 +4093,15 @@ class AppLocalizationsTl extends AppLocalizations {
   String requestedByName(String name) {
     return 'Hiniling ni $name';
   }
+
+  @override
+  String get manageRequests => 'Manage Requests';
+
+  @override
+  String get watchlist => 'Watchlist';
+
+  @override
+  String get onWatchlist => 'On Watchlist';
 
   @override
   String get approve => 'Aprubahan';

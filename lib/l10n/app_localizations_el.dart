@@ -614,6 +614,9 @@ class AppLocalizationsEl extends AppLocalizations {
   String get scrollRight => 'Κάντε κύλιση προς τα δεξιά';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre =>
       'Δεν ήταν δυνατή η φόρτωση αυτού του είδους αυτήν τη στιγμή.';
 
@@ -4097,6 +4100,15 @@ class AppLocalizationsEl extends AppLocalizations {
   String requestedByName(String name) {
     return 'Ζητήθηκε από $name';
   }
+
+  @override
+  String get manageRequests => 'Manage Requests';
+
+  @override
+  String get watchlist => 'Watchlist';
+
+  @override
+  String get onWatchlist => 'On Watchlist';
 
   @override
   String get approve => 'Εγκρίνω';

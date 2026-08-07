@@ -609,6 +609,9 @@ class AppLocalizationsNb extends AppLocalizations {
   String get scrollRight => 'Rull til høyre';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre =>
       'Kunne ikke laste inn denne sjangeren akkurat nå.';
 
@@ -4043,6 +4046,15 @@ class AppLocalizationsNb extends AppLocalizations {
   String requestedByName(String name) {
     return 'Forespurt av $name';
   }
+
+  @override
+  String get manageRequests => 'Manage Requests';
+
+  @override
+  String get watchlist => 'Watchlist';
+
+  @override
+  String get onWatchlist => 'On Watchlist';
 
   @override
   String get approve => 'Vedta';

@@ -602,6 +602,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get scrollRight => 'גלול ימינה';
 
   @override
+  String get scrollToTop => 'Scroll to top';
+
+  @override
   String get couldNotLoadGenre => 'לא ניתן לטעון את הז\'אנר הזה כרגע.';
 
   @override
@@ -4005,6 +4008,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String requestedByName(String name) {
     return 'התבקש על ידי $name';
   }
+
+  @override
+  String get manageRequests => 'Manage Requests';
+
+  @override
+  String get watchlist => 'Watchlist';
+
+  @override
+  String get onWatchlist => 'On Watchlist';
 
   @override
   String get approve => 'לְאַשֵׁר';

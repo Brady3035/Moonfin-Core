@@ -3,12 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:jellyfin_preference/jellyfin_preference.dart';
 import 'package:moonfin_design/moonfin_design.dart';
+import 'package:server_core/server_core.dart';
 
 import '../../../data/services/core_download_service.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../util/game_cores.dart';
 import '../../../util/platform_detection.dart';
 import '../../widgets/adaptive/adaptive_list_section.dart';
+import '../../widgets/focus/focusable_button.dart';
 import '../../widgets/focus/request_initial_focus.dart';
 import '../../widgets/settings/clean_settings_typography.dart';
 import '../../widgets/settings/preference_tiles.dart';
@@ -27,6 +29,7 @@ class EmulatorCoresScreen extends StatefulWidget {
 class _EmulatorCoresScreenState extends State<EmulatorCoresScreen> {
   late final CoreDownloadService _service =
       CoreDownloadService(GetIt.instance<PreferenceStore>());
+  final MediaServerClient _client = GetIt.instance<MediaServerClient>();
 
   final Set<String> _installed = {};
   final Map<String, double> _downloading = {};
@@ -92,6 +95,25 @@ class _EmulatorCoresScreenState extends State<EmulatorCoresScreen> {
     }
   }
 
+  Future<void> _resetSettings(GameCore core) async {
+    final l10n = AppLocalizations.of(context);
+    final games = _client.gamesApi;
+    if (games == null) return;
+    try {
+      await resetCoreSettings(games, core.coreId);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.emulatorCoreSettingsReset)),
+      );
+    } catch (e) {
+      debugPrint('[EmulatorCoresScreen] Reset settings failed: $e');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.emulatorCoreResetSettingsFailed)),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) => RequestInitialFocus(
         targetNode: PlatformDetection.isTV ? _firstTileFocusNode : null,
@@ -138,43 +160,59 @@ class _EmulatorCoresScreenState extends State<EmulatorCoresScreen> {
       subtitle = '~${core.approxSizeMb.toStringAsFixed(0)} MB';
     }
 
-    return TvFocusHighlight(
-      builder: (_, focused) => SwitchListTile.adaptive(
-        focusNode: isFirst ? _firstTileFocusNode : null,
-        secondary: downloading
-            ? SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(
-                  value: progress > 0 ? progress : null,
-                  strokeWidth: 2,
+    return Row(
+      children: [
+        Expanded(
+          child: TvFocusHighlight(
+            builder: (_, focused) => SwitchListTile.adaptive(
+              focusNode: isFirst ? _firstTileFocusNode : null,
+              secondary: downloading
+                  ? SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        value: progress > 0 ? progress : null,
+                        strokeWidth: 2,
+                      ),
+                    )
+                  : Icon(
+                      Icons.videogame_asset,
+                      color: focused
+                          ? AppColors.black.withValues(alpha: 0.54)
+                          : null,
+                    ),
+              title: Text(
+                core.system,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: focused
+                      ? AppColors.black.withValues(alpha: 0.87)
+                      : AppColorScheme.onSurface,
                 ),
-              )
-            : Icon(
-                Icons.videogame_asset,
-                color: focused ? AppColors.black.withValues(alpha: 0.54) : null,
               ),
-        title: Text(
-          core.system,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: focused
-                ? AppColors.black.withValues(alpha: 0.87)
-                : AppColorScheme.onSurface,
+              subtitle: Text(
+                subtitle,
+                style: TextStyle(
+                  color: focused ? AppColors.black.withValues(alpha: 0.54) : null,
+                ),
+              ),
+              value: installed || downloading,
+              onChanged: (available && !downloading)
+                  ? (v) => _toggle(core, v)
+                  : null,
+            ),
           ),
         ),
-        subtitle: Text(
-          subtitle,
-          style: TextStyle(
-            color: focused ? AppColors.black.withValues(alpha: 0.54) : null,
+        Tooltip(
+          message: l10n.emulatorCoreResetSettings(core.system),
+          child: FocusableButton(
+            semanticLabel: l10n.emulatorCoreResetSettings(core.system),
+            onPressed: () => _resetSettings(core),
+            child: const Icon(Icons.settings_backup_restore),
           ),
         ),
-        value: installed || downloading,
-        onChanged: (available && !downloading)
-            ? (v) => _toggle(core, v)
-            : null,
-      ),
+      ],
     );
   }
 }

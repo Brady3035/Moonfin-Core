@@ -103,6 +103,72 @@ void retro_set_environment(retro_environment_t cb) {
 // it asks the frontend to quit and would fault if it were run again.
 static int shutdown_frame;
 static int did_shutdown;
+static retro_log_printf_t log_cb;
+
+// Mirrors the operations FBNeo's minizip reader performs after it switches
+// libretro-common over to a frontend-provided VFS: open the archive, retain
+// its path, find the end-of-central-directory record from EOF, then return to
+// the local header. Keeping this in the stub makes the host regression suite
+// deterministic without depending on a downloaded third-party core.
+static bool probe_vfs_zip(const char *path) {
+  struct retro_vfs_interface_info info = {3, NULL};
+  if (!env_cb(RETRO_ENVIRONMENT_GET_VFS_INTERFACE, &info) || !info.iface) {
+    log_cb(RETRO_LOG_ERROR, "stub VFS ZIP probe: interface unavailable\n");
+    return false;
+  }
+
+  struct retro_vfs_file_handle *file =
+      info.iface->open(path, RETRO_VFS_FILE_ACCESS_READ,
+                       RETRO_VFS_FILE_ACCESS_HINT_NONE);
+  if (!file) {
+    log_cb(RETRO_LOG_ERROR, "stub VFS ZIP probe: open failed\n");
+    return false;
+  }
+
+  bool ok = true;
+  const char *reported_path = info.iface->get_path(file);
+  if (!reported_path || strcmp(reported_path, path) != 0) {
+    log_cb(RETRO_LOG_ERROR, "stub VFS ZIP probe: get_path failed\n");
+    ok = false;
+  }
+
+  int64_t size = info.iface->size(file);
+  // FBNeo's bundled minizip adapter uses stdio fseek semantics: zero means
+  // success, then tell supplies the resulting position. libretro-common's
+  // built-in VFS implementation follows that convention too.
+  if (size < 22 || info.iface->seek(file, 0, RETRO_VFS_SEEK_POSITION_END) != 0 ||
+      info.iface->tell(file) != size) {
+    log_cb(RETRO_LOG_ERROR, "stub VFS ZIP probe: size/end seek failed\n");
+    ok = false;
+  }
+
+  uint8_t signature[4] = {0};
+  if (size < 22 ||
+      info.iface->seek(file, -22, RETRO_VFS_SEEK_POSITION_END) != 0 ||
+      info.iface->tell(file) != size - 22 ||
+      info.iface->read(file, signature, sizeof(signature)) !=
+          (int64_t)sizeof(signature) ||
+      memcmp(signature, "PK\x05\x06", sizeof(signature)) != 0) {
+    log_cb(RETRO_LOG_ERROR, "stub VFS ZIP probe: central directory seek/read failed\n");
+    ok = false;
+  }
+
+  memset(signature, 0, sizeof(signature));
+  if (info.iface->seek(file, 0, RETRO_VFS_SEEK_POSITION_START) != 0 ||
+      info.iface->tell(file) != 0 ||
+      info.iface->read(file, signature, sizeof(signature)) !=
+          (int64_t)sizeof(signature) ||
+      memcmp(signature, "PK\x03\x04", sizeof(signature)) != 0) {
+    log_cb(RETRO_LOG_ERROR, "stub VFS ZIP probe: local header seek/read failed\n");
+    ok = false;
+  }
+
+  if (info.iface->close(file) != 0) {
+    log_cb(RETRO_LOG_ERROR, "stub VFS ZIP probe: close failed\n");
+    ok = false;
+  }
+  return ok;
+}
 
 void retro_set_video_refresh(retro_video_refresh_t cb) { video_cb = cb; }
 void retro_set_audio_sample(retro_audio_sample_t cb) { (void)cb; }
@@ -126,6 +192,7 @@ void retro_init(void) {
   struct retro_log_callback logging;
   memset(&logging, 0, sizeof(logging));
   env_cb(RETRO_ENVIRONMENT_GET_LOG_INTERFACE, &logging);
+  log_cb = logging.log;
   logging.log(RETRO_LOG_DEBUG, "stub core init %d\n", 0);
 }
 void retro_deinit(void) {}
@@ -167,9 +234,15 @@ static void write_pixel(uint8_t *dst, enum retro_pixel_format fmt, unsigned r,
 }
 
 bool retro_load_game(const struct retro_game_info *game) {
-  (void)game;
   shutdown_frame = 0;
   did_shutdown = 0;
+  if (game && game->path) {
+    size_t path_len = strlen(game->path);
+    if (path_len >= 7 && strcmp(game->path + path_len - 7, "vfs.zip") == 0 &&
+        !probe_vfs_zip(game->path)) {
+      return false;
+    }
+  }
   if (game && game->data && game->size >= 8 &&
       memcmp(game->data, "shutdown", 8) == 0) {
     shutdown_frame = 3;

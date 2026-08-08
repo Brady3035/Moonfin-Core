@@ -8657,6 +8657,18 @@ class AppLocalizationsMl extends AppLocalizations {
       'Could not download the core. Check your connection and try again.';
 
   @override
+  String emulatorCoreResetSettings(String system) {
+    return 'Reset $system settings to defaults';
+  }
+
+  @override
+  String get emulatorCoreSettingsReset => 'Settings reset to defaults.';
+
+  @override
+  String get emulatorCoreResetSettingsFailed =>
+      'Could not reset settings. Check your connection and try again.';
+
+  @override
   String get downloadedGames => 'Downloaded Games';
 
   @override

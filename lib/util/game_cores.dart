@@ -399,6 +399,17 @@ Future<List<int>?> loadGameStateWithMigration(
   return legacy;
 }
 
+/// The saved-settings key for [coreId], shared by every place that reads or
+/// writes a core's persisted emulator options.
+String coreSettingsKey(String coreId) => 'moonfin-native-$coreId';
+
+/// Clears [coreId]'s saved emulator settings so the next load falls back to
+/// the core's own defaults. A single newline byte, not an empty list: the
+/// settings parser already treats it as "no saved options", and it avoids
+/// sending a zero-byte PUT body, which some HTTP stacks and servers mishandle.
+Future<void> resetCoreSettings(GamesApi games, String coreId) =>
+    games.putSave(coreSettingsKey(coreId), const [10], kind: 'settings');
+
 /// The libretro core id for an EmulatorJS core name, or null if there's no
 /// mapping for it.
 String? libretroCoreId(String core) => _libretroCores[core];

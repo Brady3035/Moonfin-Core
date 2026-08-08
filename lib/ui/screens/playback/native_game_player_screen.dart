@@ -830,17 +830,18 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
   ///
   /// The most common trigger today is a hardware-rendered core: the host
   /// answers RETRO_ENVIRONMENT_SET_HW_RENDER with false, and cores with no
-  /// software renderer (Nintendo 64's mupen64plus_next above all) fail their
-  /// content load outright. See buglog bug-032.
+  /// software renderer (e.g. Nintendo 64's mupen64plus_next) fail their
+  /// content load outright.
   String _startFailureMessage(Object error) {
     if (error is PlatformException) {
       switch (error.code) {
         case 'core_missing':
           return 'The core for this system is not included in this build.';
         case 'load_failed':
-          return 'This game cannot be played with the native core. '
+          return 'This game cannot be played with the native core.\n'
               'Open the game\'s details screen and switch it to '
-              '"EmulatorJS (WebView)", then try again.';
+              '"EmulatorJS (WebView)".\nYou may also try resetting this core\'s settings in '
+              'Settings > Playback > Emulator Cores and try again.';
       }
     }
     return 'Could not start this game. ($error)';

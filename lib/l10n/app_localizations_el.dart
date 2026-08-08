@@ -8687,6 +8687,18 @@ class AppLocalizationsEl extends AppLocalizations {
       'Δεν ήταν δυνατή η λήψη του πυρήνα. Ελέγξτε τη σύνδεσή σας και δοκιμάστε ξανά.';
 
   @override
+  String emulatorCoreResetSettings(String system) {
+    return 'Reset $system settings to defaults';
+  }
+
+  @override
+  String get emulatorCoreSettingsReset => 'Settings reset to defaults.';
+
+  @override
+  String get emulatorCoreResetSettingsFailed =>
+      'Could not reset settings. Check your connection and try again.';
+
+  @override
   String get downloadedGames => 'Ληφθέντα Παιχνίδια';
 
   @override

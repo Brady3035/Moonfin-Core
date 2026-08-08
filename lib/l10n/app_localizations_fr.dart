@@ -8668,6 +8668,18 @@ class AppLocalizationsFr extends AppLocalizations {
       'Impossible de télécharger le core. Vérifiez votre connexion et réessayez.';
 
   @override
+  String emulatorCoreResetSettings(String system) {
+    return 'Reset $system settings to defaults';
+  }
+
+  @override
+  String get emulatorCoreSettingsReset => 'Settings reset to defaults.';
+
+  @override
+  String get emulatorCoreResetSettingsFailed =>
+      'Could not reset settings. Check your connection and try again.';
+
+  @override
   String get downloadedGames => 'Jeux téléchargés';
 
   @override

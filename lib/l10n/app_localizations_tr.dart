@@ -8563,6 +8563,18 @@ class AppLocalizationsTr extends AppLocalizations {
       'Çekirdek indirilemedi. Bağlantınızı kontrol edip tekrar deneyin.';
 
   @override
+  String emulatorCoreResetSettings(String system) {
+    return 'Reset $system settings to defaults';
+  }
+
+  @override
+  String get emulatorCoreSettingsReset => 'Settings reset to defaults.';
+
+  @override
+  String get emulatorCoreResetSettingsFailed =>
+      'Could not reset settings. Check your connection and try again.';
+
+  @override
   String get downloadedGames => 'İndirilen Oyunlar';
 
   @override

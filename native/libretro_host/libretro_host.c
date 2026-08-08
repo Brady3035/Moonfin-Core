@@ -18,6 +18,18 @@
 #include <time.h>
 #endif
 
+#ifdef __ANDROID__
+#include <android/log.h>
+#endif
+
+#include <errno.h>
+#include <sys/stat.h>
+#ifdef _WIN32
+#include <direct.h>
+#else
+#include <dirent.h>
+#endif
+
 // ---------------------------------------------------------------------------
 // Platform primitives: dynamic library, threading, time.
 // ---------------------------------------------------------------------------
@@ -496,6 +508,238 @@ static int parse_variable(struct lh_host *h, const char *key,
 }
 
 // ---------------------------------------------------------------------------
+// Virtual file system.
+//
+// Without GET_VFS_INTERFACE, some cores (Stella) never fall back to treating
+// game.path as a real, stat-able file - they just reject the ROM outright,
+// even though it genuinely exists on disk at that path. This is a thin,
+// portable shim over stdio/dirent so those cores work like any other.
+// ---------------------------------------------------------------------------
+
+struct retro_vfs_file_handle {
+  FILE *fp;
+  char *path;
+};
+
+struct retro_vfs_dir_handle {
+#ifdef _WIN32
+  HANDLE find;
+  WIN32_FIND_DATAA data;
+  bool pending;
+#else
+  DIR *dir;
+  struct dirent *entry;
+#endif
+};
+
+static const char *vfs_get_path(struct retro_vfs_file_handle *stream) {
+  return stream ? stream->path : NULL;
+}
+
+static struct retro_vfs_file_handle *vfs_open(const char *path, unsigned mode,
+                                               unsigned hints) {
+  (void)hints;
+  const char *fmode = "rb";
+  if (mode & RETRO_VFS_FILE_ACCESS_WRITE) {
+    fmode = (mode & RETRO_VFS_FILE_ACCESS_UPDATE_EXISTING) ? "r+b" : "w+b";
+  }
+  FILE *fp = fopen(path, fmode);
+  if (!fp && mode == RETRO_VFS_FILE_ACCESS_READ_WRITE) {
+    // "r+b" requires the file to already exist; a core opening for
+    // read/write update on a not-yet-created file needs it made first.
+    fp = fopen(path, "w+b");
+  }
+  if (!fp) return NULL;
+  struct retro_vfs_file_handle *handle = calloc(1, sizeof(*handle));
+  if (!handle) {
+    fclose(fp);
+    return NULL;
+  }
+  size_t path_len = strlen(path);
+  handle->path = malloc(path_len + 1);
+  if (!handle->path) {
+    fclose(fp);
+    free(handle);
+    return NULL;
+  }
+  memcpy(handle->path, path, path_len + 1);
+  handle->fp = fp;
+  return handle;
+}
+
+static int vfs_close(struct retro_vfs_file_handle *stream) {
+  if (!stream) return -1;
+  int rc = fclose(stream->fp);
+  free(stream->path);
+  free(stream);
+  return rc == 0 ? 0 : -1;
+}
+
+static int64_t vfs_tell(struct retro_vfs_file_handle *stream) {
+  if (!stream) return -1;
+  long pos = ftell(stream->fp);
+  return pos < 0 ? -1 : (int64_t)pos;
+}
+
+static int64_t vfs_size(struct retro_vfs_file_handle *stream) {
+  if (!stream) return -1;
+  long cur = ftell(stream->fp);
+  if (cur < 0 || fseek(stream->fp, 0, SEEK_END) != 0) return -1;
+  long end = ftell(stream->fp);
+  fseek(stream->fp, cur, SEEK_SET);
+  return end < 0 ? -1 : (int64_t)end;
+}
+
+static int64_t vfs_seek(struct retro_vfs_file_handle *stream, int64_t offset,
+                         int seek_position) {
+  if (!stream) return -1;
+  int whence = SEEK_SET;
+  if (seek_position == RETRO_VFS_SEEK_POSITION_CURRENT) whence = SEEK_CUR;
+  else if (seek_position == RETRO_VFS_SEEK_POSITION_END) whence = SEEK_END;
+  if (fseek(stream->fp, (long)offset, whence) != 0) return -1;
+  // Match libretro-common's built-in VFS and stdio fseek semantics. FBNeo's
+  // minizip bridge treats every nonzero result as a seek failure, then uses
+  // tell() when it needs the resulting position.
+  return 0;
+}
+
+static int64_t vfs_read(struct retro_vfs_file_handle *stream, void *s,
+                         uint64_t len) {
+  if (!stream) return -1;
+  return (int64_t)fread(s, 1, (size_t)len, stream->fp);
+}
+
+static int64_t vfs_write(struct retro_vfs_file_handle *stream, const void *s,
+                          uint64_t len) {
+  if (!stream) return -1;
+  return (int64_t)fwrite(s, 1, (size_t)len, stream->fp);
+}
+
+static int vfs_flush(struct retro_vfs_file_handle *stream) {
+  if (!stream) return -1;
+  return fflush(stream->fp) == 0 ? 0 : -1;
+}
+
+static int vfs_remove(const char *path) { return remove(path) == 0 ? 0 : -1; }
+
+static int vfs_rename(const char *old_path, const char *new_path) {
+  return rename(old_path, new_path) == 0 ? 0 : -1;
+}
+
+static int64_t vfs_truncate(struct retro_vfs_file_handle *stream,
+                             int64_t length) {
+  (void)stream;
+  (void)length;
+  return -1;  // Unused by any core this host ships.
+}
+
+static int vfs_stat(const char *path, int32_t *size) {
+  struct stat st;
+  if (stat(path, &st) != 0) return 0;
+  int flags = RETRO_VFS_STAT_IS_VALID;
+#ifdef _WIN32
+  if (st.st_mode & _S_IFDIR) flags |= RETRO_VFS_STAT_IS_DIRECTORY;
+#else
+  if (S_ISDIR(st.st_mode)) flags |= RETRO_VFS_STAT_IS_DIRECTORY;
+#endif
+  if (size) *size = (int32_t)st.st_size;
+  return flags;
+}
+
+static int vfs_mkdir(const char *dir) {
+#ifdef _WIN32
+  if (_mkdir(dir) == 0) return 0;
+#else
+  if (mkdir(dir, 0755) == 0) return 0;
+#endif
+  return errno == EEXIST ? -2 : -1;
+}
+
+static struct retro_vfs_dir_handle *vfs_opendir(const char *dir,
+                                                  bool include_hidden) {
+  (void)include_hidden;
+  struct retro_vfs_dir_handle *handle = calloc(1, sizeof(*handle));
+  if (!handle) return NULL;
+#ifdef _WIN32
+  char pattern[1024];
+  snprintf(pattern, sizeof(pattern), "%s\\*", dir);
+  handle->find = FindFirstFileA(pattern, &handle->data);
+  if (handle->find == INVALID_HANDLE_VALUE) {
+    free(handle);
+    return NULL;
+  }
+  handle->pending = true;
+#else
+  handle->dir = opendir(dir);
+  if (!handle->dir) {
+    free(handle);
+    return NULL;
+  }
+#endif
+  return handle;
+}
+
+static bool vfs_readdir(struct retro_vfs_dir_handle *dirstream) {
+  if (!dirstream) return false;
+#ifdef _WIN32
+  if (dirstream->pending) {
+    dirstream->pending = false;
+    return true;
+  }
+  return FindNextFileA(dirstream->find, &dirstream->data) != 0;
+#else
+  dirstream->entry = readdir(dirstream->dir);
+  return dirstream->entry != NULL;
+#endif
+}
+
+static const char *vfs_dirent_get_name(struct retro_vfs_dir_handle *dirstream) {
+  if (!dirstream) return NULL;
+#ifdef _WIN32
+  return dirstream->data.cFileName;
+#else
+  return dirstream->entry ? dirstream->entry->d_name : NULL;
+#endif
+}
+
+static bool vfs_dirent_is_dir(struct retro_vfs_dir_handle *dirstream) {
+  if (!dirstream) return false;
+#ifdef _WIN32
+  return (dirstream->data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
+#else
+  if (!dirstream->entry) return false;
+#ifdef DT_DIR
+  if (dirstream->entry->d_type == DT_DIR) return true;
+  if (dirstream->entry->d_type != DT_UNKNOWN) return false;
+#endif
+  // d_type is DT_UNKNOWN on some filesystems (notably FAT/exFAT and some
+  // Android storage); fall back to stat rather than assume "not a directory".
+  return false;
+#endif
+}
+
+static int vfs_closedir(struct retro_vfs_dir_handle *dirstream) {
+  if (!dirstream) return -1;
+#ifdef _WIN32
+  FindClose(dirstream->find);
+#else
+  closedir(dirstream->dir);
+#endif
+  free(dirstream);
+  return 0;
+}
+
+static const struct retro_vfs_interface g_vfs_interface = {
+    vfs_get_path, vfs_open,        vfs_close,
+    vfs_size,     vfs_tell,        vfs_seek,
+    vfs_read,     vfs_write,       vfs_flush,
+    vfs_remove,   vfs_rename,      vfs_truncate,
+    vfs_stat,     vfs_mkdir,       vfs_opendir,
+    vfs_readdir,  vfs_dirent_get_name, vfs_dirent_is_dir,
+    vfs_closedir, NULL,
+};
+
+// ---------------------------------------------------------------------------
 // Environment callback (mirrors the tvOS GameSession switch).
 // ---------------------------------------------------------------------------
 
@@ -558,11 +802,16 @@ static void notify_geometry(struct lh_host *h, unsigned width, unsigned height,
 // a real function.
 static void RETRO_CALLCONV log_printf_cb(enum retro_log_level level,
                                          const char *fmt, ...) {
-  (void)level;
   if (!fmt) return;
   va_list args;
   va_start(args, fmt);
+#ifdef __ANDROID__
+  (void)level;
+  __android_log_vprint(ANDROID_LOG_INFO, "moonfin_libretro", fmt, args);
+#else
+  (void)level;
   vfprintf(stderr, fmt, args);
+#endif
   va_end(args);
 }
 
@@ -727,6 +976,15 @@ static bool RETRO_CALLCONV environment_cb(unsigned cmd, void *data) {
       if (!data) return false;
       ((struct retro_log_callback *)data)->log = log_printf_cb;
       return true;
+    case RETRO_ENVIRONMENT_GET_VFS_INTERFACE: {
+      if (!data) return false;
+      struct retro_vfs_interface_info *info =
+          (struct retro_vfs_interface_info *)data;
+      if (info->required_interface_version > 3) return false;
+      info->required_interface_version = 3;
+      info->iface = (struct retro_vfs_interface *)&g_vfs_interface;
+      return true;
+    }
     case RETRO_ENVIRONMENT_GET_PREFERRED_HW_RENDER:
       return false;
     default:

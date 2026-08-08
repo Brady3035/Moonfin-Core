@@ -44,15 +44,15 @@ Moonfin is a cross-platform media client built with Flutter, designed for Jellyf
 ## Features
 
 - **One codebase, every screen** spanning phones, tablets, desktop, Android TV, Apple TV, web, and Samsung TV, with navigation tuned for touch, pointer, and remote.
-- **Broad playback support** through AetherEngine on iOS, Apple TV, and macOS, native Media3 or libmpv on Android and Android TV, libmpv on Windows and Linux, and the browser's own player on web, covering AV1, HEVC, Dolby Vision, Dolby Atmos, HDR10+, and bitstream audio passthrough. See [Playback and Codecs](https://github.com/Moonfin-Client/Moonfin-Core/wiki/Playback-and-Codecs).
+- **Broad playback support** through AetherEngine on iOS, Apple TV, and macOS, native Media3 or libmpv on Android and Android TV, libmpv on Windows and Linux, and the browser's own player on web, covering AV1, HEVC, Dolby Vision, Dolby Atmos, HDR10+, and bitstream audio passthrough. Dolby Vision Profile 7 direct plays on both Apple and Android TV, converted in real time instead of transcoded. See [Playback and Codecs](https://github.com/Moonfin-Client/Moonfin-Core/wiki/Playback-and-Codecs).
 - **Offline downloads** in original or server-transcoded quality, with automatic folder organization and offline subtitles. See [Downloads](https://github.com/Moonfin-Client/Moonfin-Core/wiki/Downloads).
 - **Ebooks and audiobooks** with EPUB, MOBI, AZW/AZW3, PDF, and comic archive reading, plus M4B audiobooks with chapter navigation.
 - **Retro games** browsed and played in-app from a server game library, with native libretro playback, gamepad support, and synced save states. See [Retro Games](https://github.com/Moonfin-Client/Moonfin-Core/wiki/Retro-Games).
-- **Multi-server unified library** that merges content from several Jellyfin and Emby servers into one browsable, searchable UI.
+- **Multi-server unified library** that merges content from several Jellyfin and Emby servers into one browsable, searchable UI, with Group By options and quick return to the top.
 - **Featured media bar** with Classic, Bookshelf, Gallery, and Banner layouts, and optional in-bar trailer previews.
-- **Themes and Theme Store** with a built-in editor and server-side sync.
+- **Themes and Theme Store** with a built-in editor, server-side sync, and an OLED mode for true blacks.
 - **Integrated admin panel** for settings, users, libraries, logs, devices, and analytics without leaving the client.
-- **Discovery with Seerr** for trending, popular, and upcoming rows, with request status overlays.
+- **Discovery with Seerr** built into the media details screen, plus trending, popular, and upcoming rows with request status overlays.
 - **Live TV and DVR** with an EPG-style guide and recording management.
 - **Cinema Mode and segment skipping** for pre-rolls, intros, credits, and SponsorBlock.
 - **Casting and remote control** over Google Cast, DLNA, and AirPlay, plus control of other Jellyfin devices on your network.

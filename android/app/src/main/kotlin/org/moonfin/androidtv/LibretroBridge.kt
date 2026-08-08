@@ -163,6 +163,11 @@ class LibretroBridge(
 
     val av = nativeLoad(core, corePath, romPath, systemDir, saveDir, gameId, keys, values)
     if (av == null) {
+      // Handle load failures more gracefully.
+      // SurfaceTextureSurfaceProducer.release() unconditionally calls
+      // surface.release() with no null check, masking the real
+      // "load_failed" cause result with a crash. This "touches" it to avoid that.
+      producer.surface
       producer.release()
       surfaceProducer = null
       result.error("load_failed", null, null)
@@ -204,6 +209,11 @@ class LibretroBridge(
     lastCoreMessage = null
     stopAudio()
     nativeStop()
+    // See the comment on the load() failure branch: release() NPEs inside the
+    // Flutter engine if .surface was never read first. A producer can reach
+    // here without ever having had its surface read -- e.g. one whose load()
+    // failed before nativeSetSurface(producer.surface) ran.
+    surfaceProducer?.surface
     surfaceProducer?.release()
     surfaceProducer = null
     portMask = 0

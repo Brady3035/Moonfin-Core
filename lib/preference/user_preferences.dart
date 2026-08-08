@@ -1455,7 +1455,7 @@ class UserPreferences extends ChangeNotifier {
 
   static final trickPlayEnabled = Preference(
     key: 'trick_play_enabled',
-    defaultValue: false,
+    defaultValue: true,
   );
 
   // Defaults chosen so the overlay looks unchanged for anyone who never opens
@@ -2204,7 +2204,7 @@ class UserPreferences extends ChangeNotifier {
   );
   static final liveTvDirectPlayEnabled = Preference(
     key: 'pref_live_direct',
-    defaultValue: true,
+    defaultValue: false,
   );
   static final syncPlayEnabled = Preference(
     key: 'pref_syncplay_enabled',

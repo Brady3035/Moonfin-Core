@@ -325,6 +325,13 @@ class Media3PlayerBackend extends PlayerBackend {
           'Media3: player rebuilt for new source '
           '(${map['viewType'] ?? ''}, sdk ${_toInt(map['sdk'])})',
         );
+      case 'loadControl':
+        _diag(
+          'Media3: buffer target '
+          '${_toInt(map['targetBufferBytes']) ~/ 1048576}MB '
+          '(heap limit ${_toInt(map['maxHeapBytes']) ~/ 1048576}MB, '
+          'lowRam=${map['lowRam'] == true})',
+        );
       case 'videoDecoderInit':
         _diag('Media3: video decoder initialized (${map['decoder'] ?? ''})');
       case 'audioDecoderInit':

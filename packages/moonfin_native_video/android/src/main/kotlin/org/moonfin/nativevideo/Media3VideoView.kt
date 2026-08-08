@@ -1367,22 +1367,37 @@ class Media3VideoView(
     // ceiling so direct play keeps a real runway, leaving local playback
     // durations at their defaults.
     private fun buildLoadControl(): DefaultLoadControl {
-        // Low RAM boxes cant spare a third of the heap for runway on top of
-        // decode buffers, so they keep the stock budgets.
-        if (isLowRamDevice) return DefaultLoadControl.Builder().build()
-        val targetBufferBytes = (Runtime.getRuntime().maxMemory() / 3)
+        // The floor is media3's small pre track selection minimum on purpose.
+        // Its stock byte targets sit near 138MB, more than the entire heap on
+        // 128MB devices like the Fire TV Stick HD, so a stock floor lets the
+        // loader fill the heap and die on a segment allocation before the
+        // byte ceiling can ever trip.
+        val maxHeapBytes = Runtime.getRuntime().maxMemory()
+        val targetBufferBytes = (maxHeapBytes / 3)
             .coerceAtMost(MAX_TARGET_BUFFER_BYTES)
-            .coerceAtLeast(DefaultLoadControl.DEFAULT_MUXED_BUFFER_SIZE.toLong())
+            .coerceAtLeast(DefaultLoadControl.DEFAULT_MIN_BUFFER_SIZE.toLong())
             .toInt()
-        return DefaultLoadControl.Builder()
+        val builder = DefaultLoadControl.Builder()
             .setTargetBufferBytes(targetBufferBytes)
-            .setBufferDurationsMsForStreaming(
+        // Low RAM boxes cant spare the stretched runway on top of decode
+        // buffers, so they keep the stock time budgets.
+        if (!isLowRamDevice) {
+            builder.setBufferDurationsMsForStreaming(
                 DefaultLoadControl.DEFAULT_MIN_BUFFER_MS,
                 STREAMING_MAX_BUFFER_MS,
                 DefaultLoadControl.DEFAULT_BUFFER_FOR_PLAYBACK_MS,
                 DefaultLoadControl.DEFAULT_BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS,
             )
-            .build()
+        }
+        Media3Bridge.emitEvent(
+            mapOf(
+                "event" to "loadControl",
+                "targetBufferBytes" to targetBufferBytes,
+                "maxHeapBytes" to maxHeapBytes,
+                "lowRam" to isLowRamDevice,
+            ),
+        )
+        return builder.build()
     }
 
     // A live fMP4 stream is joined part way through the broadcast, so its first

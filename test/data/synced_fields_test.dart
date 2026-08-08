@@ -118,6 +118,7 @@ void main() {
     'mediaBarOpacity',
     'mediaBarOverlayColor',
     'mediaBarTrailerAudio',
+    'mediaBarTrailerCaptions',
     'mediaBarTrailerPreview',
     'mediaQueuingEnabled',
     'mediaSegmentAutoHide',

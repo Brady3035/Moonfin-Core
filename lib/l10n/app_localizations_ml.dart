@@ -8828,6 +8828,13 @@ class AppLocalizationsMl extends AppLocalizations {
   String get settingsNone => 'ഒന്നുമില്ല';
 
   @override
+  String get settingsSkipButtonAutoHide => 'Auto Hide Skip Button';
+
+  @override
+  String get settingsSkipButtonAutoHideDescription =>
+      'Automatically dismiss the skip intro and outro button after a few seconds.';
+
+  @override
   String get settingsPromptUser => 'പ്രോംപ്റ്റ് ഉപയോക്താവ്';
 
   @override

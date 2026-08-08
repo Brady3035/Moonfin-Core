@@ -8408,6 +8408,13 @@ class AppLocalizationsYue extends AppLocalizations {
   String get settingsNone => '冇';
 
   @override
+  String get settingsSkipButtonAutoHide => 'Auto Hide Skip Button';
+
+  @override
+  String get settingsSkipButtonAutoHideDescription =>
+      'Automatically dismiss the skip intro and outro button after a few seconds.';
+
+  @override
   String get settingsPromptUser => '提示用戶';
 
   @override

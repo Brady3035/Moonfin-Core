@@ -120,6 +120,7 @@ void main() {
     'mediaBarTrailerAudio',
     'mediaBarTrailerPreview',
     'mediaQueuingEnabled',
+    'mediaSegmentAutoHide',
     'mediaSegmentCountdown',
     'mergeContinueWatchingNextUp',
     'mergeRadarrSonarrCalendars',

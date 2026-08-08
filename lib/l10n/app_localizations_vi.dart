@@ -8719,6 +8719,13 @@ class AppLocalizationsVi extends AppLocalizations {
   String get settingsNone => 'Không có';
 
   @override
+  String get settingsSkipButtonAutoHide => 'Auto Hide Skip Button';
+
+  @override
+  String get settingsSkipButtonAutoHideDescription =>
+      'Automatically dismiss the skip intro and outro button after a few seconds.';
+
+  @override
   String get settingsPromptUser => 'Nhắc người dùng';
 
   @override

@@ -84,6 +84,17 @@ class _AutomationQueueScreenState extends State<_AutomationQueueScreen> {
                     MediaSegmentCountdown.none => l10n.settingsNone,
                   },
                 ),
+              if (mediaSegmentActions == _promptSkipSegments)
+                EnumPreferenceTile<MediaSegmentAutoHide>(
+                  preference: UserPreferences.mediaSegmentAutoHide,
+                  title: l10n.settingsSkipButtonAutoHide,
+                  description: l10n.settingsSkipButtonAutoHideDescription,
+                  icon: Icons.visibility_off_outlined,
+                  labelOf: (v) => switch (v) {
+                    MediaSegmentAutoHide.off => l10n.off,
+                    _ => l10n.secondsValue(v.seconds),
+                  },
+                ),
             ],
           ),
           _SectionHeader(l10n.automaticQueuing),

@@ -294,6 +294,17 @@ enum MediaSegmentCountdown {
   none,
 }
 
+/// How long the skip intro and outro button stays up before it hides itself.
+/// Off is zero, which means no timer runs.
+enum MediaSegmentAutoHide {
+  s5(5),
+  s10(10),
+  off(0);
+
+  const MediaSegmentAutoHide(this.seconds);
+  final int seconds;
+}
+
 /// Banner artwork is authored at 1000x185. Card geometry and image requests
 /// both use this so the artwork that comes back matches what gets drawn.
 const double kBannerAspectRatio = 1000 / 185;

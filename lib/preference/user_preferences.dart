@@ -355,6 +355,7 @@ class UserPreferences extends ChangeNotifier {
     'enable_still_watching',
     'pref_language_override',
     'pref_media_segment_countdown',
+    'pref_media_segment_auto_hide',
     'pref_desktop_ui_scale',
     'poster_size_library',
     'poster_size_playlist',
@@ -1713,6 +1714,12 @@ class UserPreferences extends ChangeNotifier {
     key: 'pref_media_segment_countdown',
     defaultValue: MediaSegmentCountdown.both,
     values: MediaSegmentCountdown.values,
+  );
+
+  static final mediaSegmentAutoHide = EnumPreference(
+    key: 'pref_media_segment_auto_hide',
+    defaultValue: MediaSegmentAutoHide.s5,
+    values: MediaSegmentAutoHide.values,
   );
 
   static final replaceSkipOutroWithNextUp = Preference(

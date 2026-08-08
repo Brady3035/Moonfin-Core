@@ -221,6 +221,7 @@ final List<SyncedField> syncedFields = <SyncedField>[
   SyncedField('maxBitrate', UserPreferences.maxBitrate, SyncCodec.text),
   SyncedField('maxVideoResolution', UserPreferences.maxVideoResolution, SyncCodec.enumName, enumValues: prefs.MaxVideoResolution.values),
   SyncedField('mediaQueuingEnabled', UserPreferences.mediaQueuingEnabled, SyncCodec.boolean),
+  SyncedField('mediaSegmentAutoHide', UserPreferences.mediaSegmentAutoHide, SyncCodec.enumName, enumValues: prefs.MediaSegmentAutoHide.values),
   SyncedField('mediaSegmentCountdown', UserPreferences.mediaSegmentCountdown, SyncCodec.enumName, enumValues: prefs.MediaSegmentCountdown.values),
   SyncedField('mergeRadarrSonarrCalendars', UserPreferences.mergeRadarrSonarrCalendars, SyncCodec.boolean),
   SyncedField('nextUpBehavior', UserPreferences.nextUpBehavior, SyncCodec.enumName, enumValues: prefs.NextUpBehavior.values),

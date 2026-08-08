@@ -15526,6 +15526,18 @@ abstract class AppLocalizations {
   /// **'None'**
   String get settingsNone;
 
+  /// Setting label for automatically dismissing the skip intro and outro button after a delay
+  ///
+  /// In en, this message translates to:
+  /// **'Auto Hide Skip Button'**
+  String get settingsSkipButtonAutoHide;
+
+  /// No description provided for @settingsSkipButtonAutoHideDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatically dismiss the skip intro and outro button after a few seconds.'**
+  String get settingsSkipButtonAutoHideDescription;
+
   /// No description provided for @settingsPromptUser.
   ///
   /// In en, this message translates to:

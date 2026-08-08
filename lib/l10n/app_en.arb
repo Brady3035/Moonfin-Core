@@ -8263,6 +8263,11 @@
   "@settingsNone": {
     "description": "Option label to hide all decorations on media segment countdown overlay"
   },
+  "settingsSkipButtonAutoHide": "Auto Hide Skip Button",
+  "@settingsSkipButtonAutoHide": {
+    "description": "Setting label for automatically dismissing the skip intro and outro button after a delay"
+  },
+  "settingsSkipButtonAutoHideDescription": "Automatically dismiss the skip intro and outro button after a few seconds.",
   "settingsPromptUser": "Prompt User",
   "settingsSkip": "Skip",
   "settingsDoNothing": "Do Nothing",

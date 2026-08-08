@@ -113,6 +113,7 @@ class AppleTvPlaybackPromptController {
   int consecutiveEpisodes = 0;
   DateTime? _suppressSeekPromptsUntil;
   Timer? _nextUpTimer;
+  Timer? _skipSegmentAutoHideTimer;
   bool _skipSegmentVisible = false;
   Duration? _skipTo;
   MediaSegmentType? _skipSegmentType;
@@ -373,6 +374,16 @@ class AppleTvPlaybackPromptController {
           segmentEndMs: result.segment!.end.inMilliseconds,
         ),
       );
+      final autoHide = _prefs.get(UserPreferences.mediaSegmentAutoHide);
+      if (autoHide.seconds > 0) {
+        _skipSegmentAutoHideTimer = Timer(
+          Duration(seconds: autoHide.seconds),
+          () {
+            if (_disposed || !_skipSegmentVisible) return;
+            _clearSkipSegment();
+          },
+        );
+      }
     } else if (result.isNone && _skipSegmentVisible) {
       _clearSkipSegment();
     }
@@ -449,6 +460,8 @@ class AppleTvPlaybackPromptController {
   }
 
   void _clearSkipSegmentState() {
+    _skipSegmentAutoHideTimer?.cancel();
+    _skipSegmentAutoHideTimer = null;
     _skipSegmentVisible = false;
     _skipTo = null;
     _skipSegmentType = null;
@@ -464,6 +477,8 @@ class AppleTvPlaybackPromptController {
     _disposed = true;
     _nextUpTimer?.cancel();
     _nextUpTimer = null;
+    _skipSegmentAutoHideTimer?.cancel();
+    _skipSegmentAutoHideTimer = null;
     final completer = _stillWatchingCompleter;
     if (completer != null && !completer.isCompleted) {
       // The awaiting code checks the disposed flag after this resolves, so

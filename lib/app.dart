@@ -22,6 +22,7 @@ import 'data/services/download_service.dart';
 import 'data/services/seerr_notification_service.dart';
 import 'data/services/plugin_sync_service.dart';
 import 'data/services/theme_music_service.dart';
+import 'data/services/deep_link_service.dart';
 import 'data/services/topshelf_service.dart';
 import 'data/services/watch_next_service.dart';
 import 'di/providers.dart';
@@ -66,6 +67,7 @@ class MoonfinApp extends StatefulWidget {
 class _MoonfinAppState extends State<MoonfinApp> {
   late final UserPreferences _prefs;
   late final AppThemeController _themeController;
+  final DeepLinkService _deepLinks = DeepLinkService();
   Locale? _lastResolvedLocale;
 
   @override
@@ -100,6 +102,9 @@ class _MoonfinAppState extends State<MoonfinApp> {
     if (PlatformDetection.isAndroid && PlatformDetection.isTV) {
       WatchNextService().startDeepLinkListener(navigateWhenReady);
     }
+    // OS-registered moonfin:// links. The service no-ops on platforms without
+    // an app_links backend.
+    _deepLinks.startListener(navigateWhenReady);
   }
 
   void _syncThemeFromPrefs() {
@@ -181,6 +186,7 @@ class _MoonfinAppState extends State<MoonfinApp> {
     _prefs.removeListener(_syncLocaleFromPrefs);
     _prefs.removeListener(_syncIdiomFromPrefs);
     _prefs.removeListener(_syncGlassFromPrefs);
+    _deepLinks.dispose();
     _themeController.dispose();
     super.dispose();
   }

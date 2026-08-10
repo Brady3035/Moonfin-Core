@@ -545,8 +545,9 @@ class SeerrMediaDetailViewModel extends ChangeNotifier {
       ]);
 
       _state = _state.copyWith(
-        similar: futures[0].results,
-        recommendations: futures[1].results,
+        similar: futures[0].results.where((i) => !i.isBlacklisted).toList(),
+        recommendations:
+            futures[1].results.where((i) => !i.isBlacklisted).toList(),
       );
       notifyListeners();
     } catch (_) {

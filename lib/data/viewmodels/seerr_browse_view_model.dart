@@ -329,6 +329,8 @@ class SeerrBrowseViewModel extends ChangeNotifier {
   List<SeerrDiscoverItem> _applyFilter(List<SeerrDiscoverItem> items) {
     final letterFilter = _state.letterFilter;
     return items.where((item) {
+      if (item.isBlacklisted) return false;
+
       final matchesStatus = switch (_state.filter) {
         SeerrBrowseFilter.available =>
           item.mediaInfo?.status == 4 || item.mediaInfo?.status == 5,

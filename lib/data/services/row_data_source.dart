@@ -2572,8 +2572,53 @@ class RowDataSource {
       if (tmdbId != null && tmdbId.isNotEmpty) {
         final tmdbIdInt = int.tryParse(tmdbId);
         if (tmdbIdInt != null) {
+          // Seerr goes first. Its results carry the server's mediaInfo, which
+          // is what lets the blocklist apply, including tags the server has
+          // blocklisted by keyword. Direct TMDB is the fallback and can't
+          // honor any of that.
+          try {
+            final repo = await GetIt.instance.getAsync<SeerrRepository>();
+            await repo.ensureInitialized();
+            if (repo.isAvailable) {
+              final isTv = baseItem.type == 'Series';
+              final page = isTv
+                  ? await repo.getTvRecommendations(tmdbIdInt)
+                  : await repo.getMovieRecommendations(tmdbIdInt);
+
+              final blockNsfw = GetIt.instance<SeerrPreferences>().blockNsfw;
+
+              final filtered = page.results.where((item) {
+                if (item.isBlacklisted) return false;
+                if (blockNsfw) {
+                  if (item.adult) return false;
+                  final text = '${item.displayTitle} ${item.overview ?? ''}';
+                  if (SeerrDiscoverViewModel.nsfwPatterns.any((p) => p.hasMatch(text))) {
+                    return false;
+                  }
+                }
+                return true;
+              }).toList();
+
+              recommendedItems = filtered.map((item) {
+                return AggregatedItem(
+                  id: item.id.toString(),
+                  serverId: 'seerr',
+                  rawData: {
+                    'Name': item.displayTitle,
+                    'Type': item.mediaType == 'tv' ? 'Series' : 'Movie',
+                    'Overview': item.overview ?? '',
+                    'PosterPath': item.posterPath ?? '',
+                    'BackdropPath': item.backdropPath ?? '',
+                    'ProductionYear': _extractYear(item.releaseDate ?? item.firstAirDate),
+                    'SeerrMediaType': item.mediaType,
+                  },
+                );
+              }).take(limit).toList();
+            }
+          } catch (_) {}
+
           final apiKey = prefs.get(UserPreferences.tmdbApiKey);
-          if (apiKey.isNotEmpty) {
+          if (recommendedItems.isEmpty && apiKey.isNotEmpty) {
             try {
               final dio = Dio(BaseOptions(
                 connectTimeout: const Duration(seconds: 10),
@@ -2633,49 +2678,6 @@ class RowDataSource {
             } catch (e) {
               print('[RowDataSource] Direct TMDB recommendation query failed: $e');
             }
-          }
-
-          if (recommendedItems.isEmpty) {
-            try {
-              final repo = await GetIt.instance.getAsync<SeerrRepository>();
-              await repo.ensureInitialized();
-              if (repo.isAvailable) {
-                final isTv = baseItem.type == 'Series';
-                final page = isTv
-                    ? await repo.getTvRecommendations(tmdbIdInt)
-                    : await repo.getMovieRecommendations(tmdbIdInt);
-
-                final blockNsfw = GetIt.instance<SeerrPreferences>().blockNsfw;
-
-                final filtered = page.results.where((item) {
-                  if (item.isBlacklisted) return false;
-                  if (blockNsfw) {
-                    if (item.adult) return false;
-                    final text = '${item.displayTitle} ${item.overview ?? ''}';
-                    if (SeerrDiscoverViewModel.nsfwPatterns.any((p) => p.hasMatch(text))) {
-                      return false;
-                    }
-                  }
-                  return true;
-                }).toList();
-
-                recommendedItems = filtered.map((item) {
-                  return AggregatedItem(
-                    id: item.id.toString(),
-                    serverId: 'seerr',
-                    rawData: {
-                      'Name': item.displayTitle,
-                      'Type': item.mediaType == 'tv' ? 'Series' : 'Movie',
-                      'Overview': item.overview ?? '',
-                      'PosterPath': item.posterPath ?? '',
-                      'BackdropPath': item.backdropPath ?? '',
-                      'ProductionYear': _extractYear(item.releaseDate ?? item.firstAirDate),
-                      'SeerrMediaType': item.mediaType,
-                    },
-                  );
-                }).take(limit).toList();
-              }
-            } catch (_) {}
           }
         }
       }

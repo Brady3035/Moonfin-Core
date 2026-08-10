@@ -867,6 +867,20 @@ int main(int argc, char **argv) {
   CHECK(bad_rc != 0, "missing rom fails load");
   lh_destroy(bad);
 
+  char rejected_path[1024];
+  snprintf(rejected_path, sizeof(rejected_path), "%s/rejected.rom", work_dir);
+  write_rom(rejected_path, "reject");
+  g_last_message[0] = '\0';
+  lh_host *rejected = lh_create(LH_FORMAT_RGBA8888, make_callbacks());
+  int rejected_rc = lh_load(rejected, core_path, rejected_path, work_dir,
+                            work_dir, "rejected", NULL, NULL, 0, &bad_av);
+  CHECK(rejected_rc == -5, "core rejection returns the libretro load code");
+  CHECK(strstr(g_last_message, "stub rejected this content") != NULL,
+        "core rejection reason reaches the host diagnostic");
+  CHECK(strstr(g_last_message, "rejection cleanup") == NULL,
+        "later informational output does not replace the rejection reason");
+  lh_destroy(rejected);
+
   test_input_latch();
   test_vfs_zip(core_path, work_dir);
 

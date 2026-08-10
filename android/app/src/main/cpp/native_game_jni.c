@@ -18,6 +18,7 @@
 
 #define LOG_TAG "moonfin_libretro"
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
+#define LOGI(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
 
 typedef struct {
   lh_host *host;
@@ -182,6 +183,7 @@ static void fatal_error(void *user, const char *message) {
 
 static void core_message(void *user, const char *text) {
   native_ctx *c = (native_ctx *)user;
+  if (text) LOGI("%s", text);
   if (!c->vm || !c->bridge || !c->on_core_message || !text) return;
   JNIEnv *env = get_geometry_thread_env();
   if (!env) return;

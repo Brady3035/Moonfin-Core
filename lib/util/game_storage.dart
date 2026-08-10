@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:crypto/crypto.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
@@ -22,12 +23,17 @@ class GameStorage {
     return dir;
   }
 
-  /// Holds one folder per cached game, keyed by library and game id.
+  /// Holds one folder per cached game, keyed by library and a fixed-length
+  /// digest of the game id. Keeping this component bounded avoids exceeding
+  /// path-length limits in libretro cores.
   static Future<Directory> romsRoot() async =>
       _dir(await getApplicationCacheDirectory(), 'games/cache');
 
   static Future<Directory> romDir(String libraryId, String gameId) async =>
-      _dir(await romsRoot(), '$libraryId/$gameId');
+      _dir(await romsRoot(), '$libraryId/${_gameDirectoryKey(gameId)}');
+
+  static String _gameDirectoryKey(String gameId) =>
+      sha256.convert(utf8.encode(gameId)).toString();
 
   static Future<Directory> systemDir() async =>
       _dir(await getApplicationSupportDirectory(), 'games/system');

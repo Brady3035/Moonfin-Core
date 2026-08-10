@@ -243,6 +243,12 @@ bool retro_load_game(const struct retro_game_info *game) {
       return false;
     }
   }
+  if (game && game->data && game->size >= 6 &&
+      memcmp(game->data, "reject", 6) == 0) {
+    log_cb(RETRO_LOG_ERROR, "stub rejected this content\n");
+    log_cb(RETRO_LOG_INFO, "stub finished rejection cleanup\n");
+    return false;
+  }
   if (game && game->data && game->size >= 8 &&
       memcmp(game->data, "shutdown", 8) == 0) {
     shutdown_frame = 3;

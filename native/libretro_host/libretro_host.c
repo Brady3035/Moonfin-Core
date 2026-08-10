@@ -246,6 +246,10 @@ struct lh_host {
   char *sram_path;
   char *core_path;
   char *rom_path;
+  lh_mutex core_log_lock;
+  int capture_load_log;
+  char last_core_log[256];
+  char last_core_error[256];
   unsigned pixel_format;
 
   // Options.
@@ -746,7 +750,9 @@ static const struct retro_vfs_interface g_vfs_interface = {
 // Routes a formatted diagnostic to the platform's log sink, if it supplied one.
 static void host_log(struct lh_host *h, const char *fmt, ...) {
   if (!h->cb.message) return;
-  char buf[256];
+  // Increase buffer to keep the path and the core's actual reason (if provided) together
+  // in the platform diagnostic instead of truncating the message.
+  char buf[1024];
   va_list args;
   va_start(args, fmt);
   vsnprintf(buf, sizeof(buf), fmt, args);
@@ -805,6 +811,27 @@ static void RETRO_CALLCONV log_printf_cb(enum retro_log_level level,
   if (!fmt) return;
   va_list args;
   va_start(args, fmt);
+  struct lh_host *h = g_session;
+  if (h) {
+    mutex_lock(&h->core_log_lock);
+    if (h->capture_load_log) {
+      va_list copy;
+      va_copy(copy, args);
+      vsnprintf(h->last_core_log, sizeof(h->last_core_log), fmt, copy);
+      va_end(copy);
+      size_t length = strlen(h->last_core_log);
+      while (length > 0 &&
+             (h->last_core_log[length - 1] == '\n' ||
+              h->last_core_log[length - 1] == '\r')) {
+        h->last_core_log[--length] = '\0';
+      }
+      if (level >= RETRO_LOG_WARN) {
+        snprintf(h->last_core_error, sizeof(h->last_core_error), "%s",
+                 h->last_core_log);
+      }
+    }
+    mutex_unlock(&h->core_log_lock);
+  }
 #ifdef __ANDROID__
   (void)level;
   __android_log_vprint(ANDROID_LOG_INFO, "moonfin_libretro", fmt, args);
@@ -1542,6 +1569,7 @@ lh_host *lh_create(lh_output_format fmt, lh_callbacks cb) {
   h->pixel_format = RETRO_PIXEL_FORMAT_0RGB1555;
   h->variables_dirty = 1;
   mutex_init(&h->vars_lock);
+  mutex_init(&h->core_log_lock);
   mutex_init(&h->video_lock);
   mutex_init(&h->audio_lock);
   mutex_init(&h->jobs_lock);
@@ -1662,9 +1690,30 @@ static int load_content(struct lh_host *h) {
     game.size = (size_t)len;
   }
 
+  char load_diagnostic[sizeof(h->last_core_log)] = {0};
+  mutex_lock(&h->core_log_lock);
+  h->last_core_log[0] = '\0';
+  h->last_core_error[0] = '\0';
+  h->capture_load_log = 1;
+  mutex_unlock(&h->core_log_lock);
   bool ok = h->core.load_game(&game);
+  mutex_lock(&h->core_log_lock);
+  h->capture_load_log = 0;
+  const char *selected_log =
+      h->last_core_error[0] ? h->last_core_error : h->last_core_log;
+  snprintf(load_diagnostic, sizeof(load_diagnostic), "%s", selected_log);
+  mutex_unlock(&h->core_log_lock);
   free(rom_data);
-  if (!ok) return -5;
+  if (!ok) {
+    if (load_diagnostic[0]) {
+      host_log(h, "retro_load_game rejected '%s': %s", h->rom_path,
+               load_diagnostic);
+    } else {
+      host_log(h, "retro_load_game rejected '%s' without a core diagnostic",
+               h->rom_path);
+    }
+    return -5;
+  }
   // A core that asked to quit during the load has nothing to run. Unload before
   // reporting, so the caller's teardown is not left holding a live game.
   if (h->shutdown_requested) {
@@ -1920,6 +1969,7 @@ void lh_destroy(lh_host *h) {
   free(h->back.data);
   free(h->ring);
   mutex_destroy(&h->vars_lock);
+  mutex_destroy(&h->core_log_lock);
   mutex_destroy(&h->video_lock);
   mutex_destroy(&h->audio_lock);
   cond_destroy(&h->jobs_cond);

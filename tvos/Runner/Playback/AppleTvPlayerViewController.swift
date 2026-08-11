@@ -1600,16 +1600,21 @@ final class AppleTvPlayerViewController: UIViewController {
                 showOsd()
                 return
             case .select:
+                if skipSegmentActive {
+                    let osdWasOnScreen = isOsdOnScreen
+                    hideSkipSegment()
+                    onSkipSegmentSelect?()
+                    if !osdWasOnScreen {
+                        focusedZone = .scrubber
+                        updateFocusHighlight()
+                    }
+                    showOsd()
+                    return
+                }
                 if !isOsdOnScreen {
                     togglePlayPause()
                     focusedZone = .scrubber
                     updateFocusHighlight()
-                    showOsd()
-                    return
-                }
-                if skipSegmentActive {
-                    hideSkipSegment()
-                    onSkipSegmentSelect?()
                     showOsd()
                     return
                 }

@@ -7,7 +7,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../navigation/destinations.dart';
 
 /// What the request control does for one quality track right now.
-enum SeerrRequestActionKind { none, request, requested, cancel }
+enum SeerrRequestActionKind { none, request, requested }
 
 class SeerrRequestAction {
   final SeerrRequestActionKind kind;
@@ -20,25 +20,36 @@ class SeerrRequestAction {
 
 /// Works out what the request control offers for one quality track.
 ///
-/// Cancel wins over requested, which wins over request, so a viewer who can
-/// take an open request back is always offered that rather than being told
-/// something they already know. A partially available series can still be
-/// requested, which is how the missing seasons get asked for.
+/// Asking wins over being told, so a partially available series with an open
+/// request still offers Request More rather than only reporting the request.
+/// Taking a request back is a separate control, from [seerrCancelLabelFor],
+/// so the two can sit side by side.
+///
+/// Full availability is only final for a movie or an ended series. A
+/// continuing series can always grow another season, so it keeps offering
+/// Request More even with every aired season in the library.
 SeerrRequestAction seerrRequestActionFor(
   SeerrQualityStatus q,
-  SeerrMediaDetailViewModel vm,
-  AppLocalizations l10n,
-) {
-  final allowed = q.is4k ? vm.canRequest4k : vm.canRequest;
+  AppLocalizations l10n, {
+  required bool allowed,
+  bool isTv = false,
+  bool isContinuing = false,
+}) {
+  final continuingFullyAvailable = isTv && isContinuing && q.isFullyAvailable;
   final canShowRequest = allowed &&
-      !q.isFullyAvailable &&
-      (!q.hasExistingRequest || q.isPartiallyAvailable);
-  final hasOpenRequest = q.activeRequests.isNotEmpty && !q.isFullyAvailable;
+      (!q.isFullyAvailable || continuingFullyAvailable) &&
+      (!q.hasExistingRequest ||
+          q.isPartiallyAvailable ||
+          continuingFullyAvailable);
+  final hasOpenRequest = q.activeRequests.isNotEmpty &&
+      (!q.isFullyAvailable || continuingFullyAvailable);
 
-  if (hasOpenRequest && q.cancelableRequests.isNotEmpty) {
+  if (canShowRequest) {
     return SeerrRequestAction(
-      SeerrRequestActionKind.cancel,
-      q.is4k ? l10n.cancelRequest4k : l10n.cancelRequest,
+      SeerrRequestActionKind.request,
+      q.isPartiallyAvailable || continuingFullyAvailable
+          ? (q.is4k ? l10n.requestMore4k : l10n.requestMore)
+          : (q.is4k ? l10n.request4k : l10n.request),
     );
   }
   if (hasOpenRequest) {
@@ -47,15 +58,18 @@ SeerrRequestAction seerrRequestActionFor(
       q.is4k ? l10n.requested4k : l10n.seerrRequestedStatus,
     );
   }
-  if (canShowRequest) {
-    return SeerrRequestAction(
-      SeerrRequestActionKind.request,
-      q.isPartiallyAvailable
-          ? (q.is4k ? l10n.requestMore4k : l10n.requestMore)
-          : (q.is4k ? l10n.request4k : l10n.request),
-    );
-  }
   return SeerrRequestAction.none;
+}
+
+/// The label for taking this track's open request back, or null when there is
+/// nothing the viewer may cancel.
+///
+/// Not gated on the request permission: someone whose permission was revoked
+/// can still take back a request they already made.
+String? seerrCancelLabelFor(SeerrQualityStatus q, AppLocalizations l10n) {
+  if (q.activeRequests.isEmpty || q.isFullyAvailable) return null;
+  if (q.cancelableRequests.isEmpty) return null;
+  return q.is4k ? l10n.cancelRequest4k : l10n.cancelRequest;
 }
 
 /// The season numbers a series actually has.

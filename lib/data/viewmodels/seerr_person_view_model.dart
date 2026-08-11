@@ -42,13 +42,15 @@ class SeerrPersonViewModel extends ChangeNotifier {
       final person = results[0] as SeerrPersonDetails;
       final credits = results[1] as SeerrPersonCombinedCredits;
 
-      final castWithPosters =
-          credits.cast.where((i) => i.posterPath != null).toList()
-            ..sort((a, b) => a.displayTitle.compareTo(b.displayTitle));
+      final castWithPosters = credits.cast
+          .where((i) => i.posterPath != null && !i.isBlacklisted)
+          .toList()
+        ..sort((a, b) => a.displayTitle.compareTo(b.displayTitle));
 
-      final crewWithPosters =
-          credits.crew.where((i) => i.posterPath != null).toList()
-            ..sort((a, b) => a.displayTitle.compareTo(b.displayTitle));
+      final crewWithPosters = credits.crew
+          .where((i) => i.posterPath != null && !i.isBlacklisted)
+          .toList()
+        ..sort((a, b) => a.displayTitle.compareTo(b.displayTitle));
 
       _state = SeerrPersonState(
         person: person,

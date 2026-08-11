@@ -355,6 +355,7 @@ class UserPreferences extends ChangeNotifier {
     'enable_still_watching',
     'pref_language_override',
     'pref_media_segment_countdown',
+    'pref_media_segment_auto_hide',
     'pref_desktop_ui_scale',
     'poster_size_library',
     'poster_size_playlist',
@@ -450,6 +451,7 @@ class UserPreferences extends ChangeNotifier {
     'showRatingLabels',
     'showRatingBadges',
     'enableEpisodeRatings',
+    'pref_personal_rating_style',
     'tmdbApiKey',
     'seerrBlockNsfw',
     'enabledRatings',
@@ -1454,7 +1456,7 @@ class UserPreferences extends ChangeNotifier {
 
   static final trickPlayEnabled = Preference(
     key: 'trick_play_enabled',
-    defaultValue: false,
+    defaultValue: true,
   );
 
   // Defaults chosen so the overlay looks unchanged for anyone who never opens
@@ -1715,6 +1717,12 @@ class UserPreferences extends ChangeNotifier {
     values: MediaSegmentCountdown.values,
   );
 
+  static final mediaSegmentAutoHide = EnumPreference(
+    key: 'pref_media_segment_auto_hide',
+    defaultValue: MediaSegmentAutoHide.s5,
+    values: MediaSegmentAutoHide.values,
+  );
+
   static final replaceSkipOutroWithNextUp = Preference(
     key: 'replace_skip_outro_with_next_up',
     defaultValue: false,
@@ -1961,6 +1969,12 @@ class UserPreferences extends ChangeNotifier {
     defaultValue: true,
   );
 
+  static final personalRatingStyle = EnumPreference(
+    key: 'pref_personal_rating_style',
+    values: PersonalRatingStyle.values,
+    defaultValue: PersonalRatingStyle.thumbs,
+  );
+
   static final tmdbApiKey = Preference(key: 'tmdbApiKey', defaultValue: '');
 
   static final showRatingLabels = Preference(
@@ -2197,7 +2211,7 @@ class UserPreferences extends ChangeNotifier {
   );
   static final liveTvDirectPlayEnabled = Preference(
     key: 'pref_live_direct',
-    defaultValue: true,
+    defaultValue: false,
   );
   static final syncPlayEnabled = Preference(
     key: 'pref_syncplay_enabled',

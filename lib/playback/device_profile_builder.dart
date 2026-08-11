@@ -162,6 +162,7 @@ class DeviceProfileBuilder {
     bool supportsAv1Hdr10 = false,
     bool supportsAv1Hdr10Plus = false,
     bool supportsVc1 = false,
+    bool supportsMpeg4 = false,
     int maxResolutionAvcWidth = 0,
     int maxResolutionAvcHeight = 0,
     int maxResolutionHevcWidth = 0,
@@ -337,7 +338,7 @@ class DeviceProfileBuilder {
             <String, dynamic>{
               'Type': 'Video',
               'Container': directPlayVideoContainers,
-              'VideoCodec': 'av1,h264,hevc,mpeg,mpeg2video,vc1,vp8,vp9',
+              'VideoCodec': 'av1,h264,hevc,mpeg,mpeg2video,mpeg4,vc1,vp8,vp9',
               'AudioCodec': effectiveAllowedAudioCodecs.join(','),
             },
             <String, dynamic>{
@@ -424,6 +425,9 @@ class DeviceProfileBuilder {
       supportsAv1Hdr10: effectiveSupportsAv1Hdr10,
       supportsAv1Hdr10Plus: effectiveSupportsAv1Hdr10Plus,
       supportsVc1: effectiveSupportsVc1,
+      // Passed straight through, since the browser capability probe has nothing to say
+      // about MPEG-4 Part 2 for the web build to override this with.
+      supportsMpeg4: supportsMpeg4,
       maxResolutionAvcWidth: effectiveMaxResolutionAvcWidth,
       maxResolutionAvcHeight: effectiveMaxResolutionAvcHeight,
       maxResolutionHevcWidth: effectiveMaxResolutionHevcWidth,
@@ -1000,6 +1004,7 @@ class DeviceProfileBuilder {
     required bool supportsAv1Hdr10,
     required bool supportsAv1Hdr10Plus,
     required bool supportsVc1,
+    required bool supportsMpeg4,
     required int maxResolutionAvcWidth,
     required int maxResolutionAvcHeight,
     required int maxResolutionHevcWidth,
@@ -1231,6 +1236,20 @@ class DeviceProfileBuilder {
         conditions: <Map<String, dynamic>>[
           _condition(
             condition: supportsVc1 ? 'NotEquals' : 'Equals',
+            property: 'VideoProfile',
+            value: 'none',
+          ),
+        ],
+      ),
+    );
+
+    profiles.add(
+      _codecProfile(
+        type: 'Video',
+        codec: 'mpeg4',
+        conditions: <Map<String, dynamic>>[
+          _condition(
+            condition: supportsMpeg4 ? 'NotEquals' : 'Equals',
             property: 'VideoProfile',
             value: 'none',
           ),

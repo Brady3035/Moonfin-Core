@@ -248,6 +248,7 @@ object MediaCodecCapabilities {
         )
 
         val supportsVc1 = hasCodecForMime(MIME_VIDEO_VC1, codecInfos)
+        val supportsMpeg4 = hasCodecForMime(MediaFormat.MIMETYPE_VIDEO_MPEG4, codecInfos)
 
         val maxResolutionAvc = getMaxResolution(MediaFormat.MIMETYPE_VIDEO_AVC, codecInfos)
         val maxResolutionHevc = getMaxResolution(MediaFormat.MIMETYPE_VIDEO_HEVC, codecInfos)
@@ -276,6 +277,7 @@ object MediaCodecCapabilities {
             "supportsAv1Hdr10" to supportsAv1Hdr10,
             "supportsAv1Hdr10Plus" to supportsAv1Hdr10Plus,
             "supportsVc1" to supportsVc1,
+            "supportsMpeg4" to supportsMpeg4,
             "maxResolutionAvc" to mapOf(
                 "width" to maxResolutionAvc.width,
                 "height" to maxResolutionAvc.height,

@@ -691,6 +691,13 @@ class _ContentRowsState extends State<_ContentRows>
   // focus can be restored to the same row+item on return.
   String? _lastFocusedRowId;
   bool _returnFocusToMediaBar = false;
+  // Row the viewport was anchored to when a details route covered home. An id
+  // rather than an index, since the return refresh can delete a row above it.
+  // Separate from _lastFocusedRowId because desktop never writes that one, as
+  // its active row comes from the scroll offset instead of row focus. Cleared
+  // as soon as the user navigates or scrolls so the delayed realign on return
+  // can never drag them back.
+  String? _returnScrollRowId;
   int? get _activeFocusedRowIndex => _activeFocusedRowNotifier.value;
   set _activeFocusedRowIndex(int? value) {
     if (_activeFocusedRowNotifier.value != value) {
@@ -2226,6 +2233,9 @@ class _ContentRowsState extends State<_ContentRows>
     if (_verticalNavInFlight) {
       return;
     }
+    // This path scrolls to the top on its own, so drop the return anchor
+    // rather than let the delayed realign pull back down.
+    _returnScrollRowId = null;
     _verticalNavInFlight = true;
     try {
       _finishSharedPreview(releaseResources: true);
@@ -2543,19 +2553,10 @@ class _ContentRowsState extends State<_ContentRows>
   }
 
   Future<void> _scrollTvRowIntoOverlayBand(int rowIndex) async {
-    if (!mounted || !_scrollController.hasClients) return;
-
-
-    final targetTop = _tvTargetTopForRow(rowIndex);
-    final targetOffset = (_rowTopOffsets[rowIndex] - targetTop).clamp(
-      0.0,
-      _scrollController.position.maxScrollExtent,
-    );
-
-    final currentOffset = _scrollController.offset;
-    if ((targetOffset - currentOffset).abs() <= 1.0) {
-      return;
-    }
+    if (!mounted) return;
+    final targetOffset = _restingOffsetForRow(rowIndex);
+    if (targetOffset == null) return;
+    if ((targetOffset - _scrollController.offset).abs() <= 1.0) return;
 
     await _scrollController.animateTo(
       targetOffset,
@@ -2564,14 +2565,83 @@ class _ContentRowsState extends State<_ContentRows>
     );
   }
 
+  /// The offset [rowIndex] comes to rest at. Picks its band the same way
+  /// [_focusAdjacentRowItem] does, so landing here leaves a following d-pad
+  /// press or idle snap with nothing to move.
+  double? _restingOffsetForRow(int rowIndex) {
+    if (!_scrollController.hasClients) return null;
+    if (rowIndex < 0 || rowIndex >= _rowTopOffsets.length) return null;
+    final useTvBand =
+        _fullScreenRowsEnabled(widget.prefs) ||
+        (PlatformDetection.isTV && _isHomeRowsStyleV2());
+    final targetTop = useTvBand
+        ? _tvTargetTopForRow(rowIndex)
+        : _desktopRowFocusTargetTop();
+    return (_rowTopOffsets[rowIndex] - targetTop).clamp(
+      0.0,
+      _scrollController.position.maxScrollExtent,
+    );
+  }
+
+  /// Puts the viewport back on the row home was anchored to before a details
+  /// route covered it. Restoring focus fires no scroll event, so nothing else
+  /// corrects an offset the layout moved out from under: the focused row
+  /// spacing drops and returns, banner mode collapses the info placeholder,
+  /// the return refresh can delete a row, and the framework's own pop focus
+  /// can park the list between the media bar and the first row.
+  ///
+  /// Always call this a frame late. The focus request only reaches
+  /// [_onRowFocusTracked], and so [_updateOffsets], once the focus manager
+  /// applies it, and waiting also puts this after the route observer's own
+  /// post frame pass so it settles last.
+  void _realignScrollAfterReturn() {
+    if (!mounted || !_scrollController.hasClients) return;
+    if (!_mayRestoreHomeFocus()) return;
+    if (_verticalNavInFlight) return;
+    if (_mediaBarFocusNode.hasFocus) return;
+    // A recent wheel tick means the user has taken over. Deliberately not
+    // _isActivelyScrolling, which the pop time scroll sets itself and which
+    // would suppress the very correction being made here.
+    if (_lastMouseWheelTime != null &&
+        DateTime.now().difference(_lastMouseWheelTime!).inMilliseconds < 250) {
+      return;
+    }
+
+    // By id first, since the return refresh can delete a row and leave any
+    // remembered index naming the wrong one.
+    final rows = widget.viewModel.rows;
+    var rowIndex = _returnScrollRowId == null
+        ? -1
+        : rows.indexWhere((r) => r.id == _returnScrollRowId);
+    if (rowIndex < 0) rowIndex = _activeFocusedRowIndex ?? -1;
+    if (rowIndex < 0) return;
+
+    final target = _restingOffsetForRow(rowIndex);
+    if (target == null) return;
+    if ((target - _scrollController.offset).abs() <= 1.0) return;
+    // Jumps rather than animates. These routes transition instantly, so an
+    // animation would read as a stray slide, and animateTo would drive
+    // _onScroll every tick and re-arm the idle snap.
+    _scrollController.jumpTo(target);
+  }
+
   /// Re-focuses the row+item the user was on before opening a details page.
   /// The lightweight return refresh leaves that row and item in place, so this
   /// lands on the exact item (by id, falling back to the remembered index).
-  /// TV/leanback only, and no-ops elsewhere. Retries while the row settles.
+  /// TV and leanback restore focus and scroll, desktop realigns scroll only.
+  /// Retries while the row settles.
   void restoreReturnFocus({int attempt = 0}) {
     if (!mounted || PlatformDetection.useMobileUi) return;
     final isDesktop = !PlatformDetection.isTV && !PlatformDetection.useMobileUi;
-    if (isDesktop) return;
+    if (isDesktop) {
+      // Desktop keeps its own focus across the pop, and forcing a request
+      // here would paint a focus ring at a mouse user. Only the viewport
+      // needs putting back.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _realignScrollAfterReturn();
+      });
+      return;
+    }
     if (!_mayRestoreHomeFocus()) return;
 
     if (_returnFocusToMediaBar) {
@@ -2601,6 +2671,9 @@ class _ContentRowsState extends State<_ContentRows>
         rowIndex,
         preferredIndex: itemIndex >= 0 ? itemIndex : null,
       );
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _realignScrollAfterReturn();
+      });
       return;
     }
 
@@ -2615,8 +2688,17 @@ class _ContentRowsState extends State<_ContentRows>
     }
   }
 
+  /// Runs before the pushed route's focus change lands, so the outgoing focus
+  /// still reads true here.
   void noteLeavingHome() {
     _returnFocusToMediaBar = _mediaBarFocusNode.hasFocus;
+    _returnScrollRowId = null;
+    // The media bar return path scrolls itself back to the top.
+    if (_returnFocusToMediaBar) return;
+    final rowIndex = _activeFocusedRowIndex;
+    final rows = widget.viewModel.rows;
+    if (rowIndex == null || rowIndex < 0 || rowIndex >= rows.length) return;
+    _returnScrollRowId = rows[rowIndex].id;
   }
 
   /// Points the navbar to content focus bridge back at this live instance,
@@ -2627,18 +2709,25 @@ class _ContentRowsState extends State<_ContentRows>
         _focusContentFromNavbar;
   }
 
-  /// Called after the post-return row refresh lands. If the refresh removed
-  /// the row that held focus, focus is now dead and no key handler will ever
-  /// run, so re-assert it. Bails whenever anything real still has focus so
-  /// it never steals.
+  /// Called after the post-return row refresh lands. The refresh can delete a
+  /// row above the anchored one, moving every offset below it while the
+  /// scroll position stays put, so re-seat the viewport first. That happens
+  /// even when focus is intact, since it is the offset that drifted. If the
+  /// refresh removed the row that held focus, focus is now dead and no key
+  /// handler will ever run, so re-assert it on TV. Bails whenever anything
+  /// real still has focus so it never steals.
   void ensureFocusAfterReturnRefresh() {
-    if (!mounted || !PlatformDetection.isTV) return;
+    if (!mounted || PlatformDetection.useMobileUi) return;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || !_mayRestoreHomeFocus()) return;
       if (TopToolbar.isFocusedNotifier.value ||
           LeftSidebar.isFocusedNotifier.value) {
         return;
       }
+      _realignScrollAfterReturn();
+      // Last chance to use the anchor, so retire it either way.
+      _returnScrollRowId = null;
+      if (!PlatformDetection.isTV) return;
       if (_homeContentHasRealFocus()) return;
       if (!_focusIsGenuinelyLost()) return;
       if (_returnFocusToMediaBar || _lastFocusedRowId != null) {
@@ -2799,6 +2888,9 @@ class _ContentRowsState extends State<_ContentRows>
     int direction,
   ) async {
     if (_verticalNavInFlight) return;
+    // The user is moving rows, so the delayed realign on return must not
+    // drag them back to the row they arrived on.
+    _returnScrollRowId = null;
     _verticalNavInFlight = true;
     final maxRow = rows.length - 1;
     var target = fromRowIndex + direction;
@@ -3055,6 +3147,7 @@ class _ContentRowsState extends State<_ContentRows>
   }
 
   void returnToTop() {
+    _returnScrollRowId = null;
     if (_scrollController.hasClients) {
       _scrollController.animateTo(
         0,
@@ -3853,6 +3946,9 @@ class _ContentRowsState extends State<_ContentRows>
       onPointerSignal: (pointerSignal) {
         if (pointerSignal is PointerScrollEvent) {
           _lastMouseWheelTime = DateTime.now();
+          // A wheel tick is the user taking over, so the delayed realign on
+          // return must not fight it.
+          _returnScrollRowId = null;
         }
       },
       child: Stack(
@@ -3890,9 +3986,14 @@ class _ContentRowsState extends State<_ContentRows>
                                       return ValueListenableBuilder<bool>(
                                         valueListenable: _chromeAudioActiveNotifier,
                                         builder: (context, chromeAudioActive, _) {
+                                          // Mobile leaves _isActivelyScrolling out. Nothing listens
+                                          // for its idle reset, so a stale true would pin the bar
+                                          // paused after scrolling back to the top, and
+                                          // isScrolledToTop already covers pausing during a scroll.
                                           final barPaused = isHoverPaused ||
                                               !isScrolledToTop ||
-                                              _isActivelyScrolling ||
+                                              (!PlatformDetection.isMobile &&
+                                                  _isActivelyScrolling) ||
                                               chromeAudioActive;
 
                                           return RepaintBoundary(
@@ -5049,9 +5150,13 @@ class _ContentRowsState extends State<_ContentRows>
       final mediaType = item.type == 'Series' || item.type == 'tv'
           ? 'tv'
           : 'movie';
+      // External rows key their items by IMDb id where they have one, which
+      // Seerr can only resolve by searching, and a search can land on the
+      // wrong title. The TMDB id these items also carry names exactly one.
+      final tmdbId = item.tmdbId;
       context.push(
         Destinations.seerrMedia(
-          item.id,
+          tmdbId != null && tmdbId.isNotEmpty ? tmdbId : item.id,
           mediaType: mediaType,
           title: item.name,
         ),

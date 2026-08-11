@@ -274,7 +274,7 @@ class SearchViewModel extends ChangeNotifier {
       await repo.ensureInitialized();
       if (!repo.isAvailable) return const [];
       final page = await repo.search(query, limit: _resultLimit);
-      return page.results;
+      return page.results.where((item) => !item.isBlacklisted).toList();
     } catch (_) {
       return const [];
     }

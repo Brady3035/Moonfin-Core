@@ -91,6 +91,14 @@ class AggregatedItem {
 
   bool get isFavorite => _userData?['IsFavorite'] as bool? ?? false;
 
+  /// A numeric personal rating at or above this counts as liked when the
+  /// server holds a score without an explicit thumb.
+  static const likedRatingThreshold = 6.5;
+
+  double? get personalRating => (_userData?['Rating'] as num?)?.toDouble();
+
+  bool? get personalRatingLikes => _userData?['Likes'] as bool?;
+
   int? get playbackPositionTicks => _toInt(_userData?['PlaybackPositionTicks']);
 
   Duration? get playbackPosition => playbackPositionTicks != null

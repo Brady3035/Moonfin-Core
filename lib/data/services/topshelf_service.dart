@@ -7,6 +7,7 @@ import 'package:server_core/server_core.dart';
 import '../../util/platform_detection.dart';
 import '../models/aggregated_item.dart';
 import '../models/home_row.dart';
+import 'deep_link_service.dart';
 
 /// Bridges the Apple TV Top Shelf extension: writes a cached snapshot of the
 /// "Latest" home content into the shared App Group container (consumed by the
@@ -99,7 +100,7 @@ class TopShelfService {
       if (url == null) return;
       final uri = Uri.tryParse(url);
       if (uri == null) return;
-      final route = routeForDeepLink(uri);
+      final route = DeepLinkService.routeForDeepLink(uri);
       if (route != null) onRoute(route);
     }
 
@@ -115,22 +116,5 @@ class TopShelfService {
         dispatch(await _channel.invokeMethod<String>('getInitialDeepLink'));
       } catch (_) {}
     }();
-  }
-
-  /// Resolves a `moonfin://` deep link into an in-app route path, or null if
-  /// the link is not a recognized Top Shelf action.
-  static String? routeForDeepLink(Uri uri) {
-    if (uri.scheme != 'moonfin') return null;
-    final id = uri.queryParameters['id'];
-    if (id == null || id.isEmpty) return null;
-    final serverId = uri.queryParameters['serverId'];
-    final params = <String, String>{
-      if (serverId != null && serverId.isNotEmpty) 'serverId': serverId,
-      if (uri.host == 'play') 'autoPlay': 'true',
-    };
-    final query = params.entries
-        .map((e) => '${e.key}=${Uri.encodeQueryComponent(e.value)}')
-        .join('&');
-    return query.isEmpty ? '/item/$id' : '/item/$id?$query';
   }
 }

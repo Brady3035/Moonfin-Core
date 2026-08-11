@@ -95,6 +95,22 @@ class ItemDetailViewModel extends ChangeNotifier {
 
   final String itemId;
 
+  /// The season the viewer was browsing when they opened this item. Only set
+  /// when it differs from the item's own season, which happens for a special
+  /// that DisplaySpecialsWithinSeasons lists inside a regular season.
+  final String? contextSeasonId;
+
+  String? _resolvedEpisodesSeasonId;
+
+  /// The season [episodes] was actually loaded from, so callers queue playback
+  /// and build links against the list that is on screen.
+  String? get effectiveSeasonId {
+    final item = _item;
+    if (item == null) return _resolvedEpisodesSeasonId ?? contextSeasonId;
+    if (item.type == 'Season') return itemId;
+    return _resolvedEpisodesSeasonId ?? contextSeasonId ?? item.seasonId;
+  }
+
   ItemDetailState _state = ItemDetailState.loading;
   ItemDetailState get state => _state;
 
@@ -278,6 +294,11 @@ class ItemDetailViewModel extends ChangeNotifier {
 
   ImageApi get imageApi => _client.imageApi;
   String get baseUrl => _client.baseUrl;
+  bool get supportsNumericUserRatings =>
+      _client.userLibraryApi.supportsNumericUserRatings;
+
+  bool _isRatingMutationInProgress = false;
+  bool get isRatingMutationInProgress => _isRatingMutationInProgress;
 
   bool get canManagePlaylistTracks =>
       _item?.type == 'Playlist' &&
@@ -296,6 +317,12 @@ class ItemDetailViewModel extends ChangeNotifier {
   /// which case there is nothing to play, mark watched or download.
   bool _isSeerrOnly = false;
   bool get isSeerrOnly => _isSeerrOnly;
+
+  /// The library id of a title asked for by TMDB id that turned out to be in
+  /// the library after all. The screen swaps itself for the real item, which
+  /// has playback and everything else a synthetic one cannot offer.
+  String? _seerrResolvedLibraryId;
+  String? get seerrResolvedLibraryId => _seerrResolvedLibraryId;
 
   /// Only used to resolve an IMDb-keyed id by searching for it.
   String? _seerrOnlyTitle;
@@ -349,6 +376,7 @@ class ItemDetailViewModel extends ChangeNotifier {
   ItemDetailViewModel({
     required this.itemId,
     String? serverId,
+    this.contextSeasonId,
     required MediaServerClient client,
     required ItemMutationRepository mutations,
     required MdbListRepository mdbListRepository,
@@ -371,6 +399,17 @@ class ItemDetailViewModel extends ChangeNotifier {
     if (state.error != null || state.tmdbId == 0) {
       _errorMessage = state.error ?? 'Media not found on Seerr';
       _state = ItemDetailState.error;
+      notifyListeners();
+      return;
+    }
+
+    // Seerr hands back the media server's own id for a title it knows is
+    // already there. Nothing else is set here, so the screen stays on its
+    // loading state until it has swapped itself out.
+    final libraryId =
+        state.mediaInfo?.jellyfinMediaId ?? state.mediaInfo?.jellyfinMediaId4k;
+    if (libraryId != null && libraryId.isNotEmpty) {
+      _seerrResolvedLibraryId = libraryId;
       notifyListeners();
       return;
     }
@@ -632,14 +671,38 @@ class ItemDetailViewModel extends ChangeNotifier {
     final item = _item;
     if (item == null) return;
     final seriesId = item.seriesId ?? itemId;
+    final ownSeasonId = item.type == 'Season' ? itemId : item.seasonId;
+    final requestedSeasonId = item.type == 'Season'
+        ? itemId
+        : (contextSeasonId ?? item.seasonId);
     try {
-      final data = await _client.itemsApi.getEpisodes(
-        seriesId,
-        seasonId: item.type == 'Season' ? itemId : item.seasonId,
-        fields: _episodeOverviewFields,
-      );
-      final items = (data['Items'] as List?) ?? [];
-      _episodes = _mapItems(items);
+      Future<List<AggregatedItem>> episodesOf(String? seasonId) async {
+        final data = await _client.itemsApi.getEpisodes(
+          seriesId,
+          seasonId: seasonId,
+          fields: _episodeOverviewFields,
+        );
+        return _mapItems((data['Items'] as List?) ?? []);
+      }
+
+      var seasonId = requestedSeasonId;
+      var episodes = await episodesOf(seasonId);
+
+      // The browsed season only holds this item while the server inlines
+      // specials. A stale link, or an offline catalogue that files specials
+      // strictly under season 0, leaves it out — fall back to its own season
+      // rather than stranding the page on a list it does not appear in.
+      // Without a season to fall back to there is nothing better to ask for:
+      // a null season id would fetch every episode of the series.
+      if (ownSeasonId != null &&
+          seasonId != ownSeasonId &&
+          !episodes.any((e) => e.id == itemId)) {
+        seasonId = ownSeasonId;
+        episodes = await episodesOf(ownSeasonId);
+      }
+
+      _resolvedEpisodesSeasonId = seasonId;
+      _episodes = episodes;
       notifyListeners();
     } catch (_) {}
   }
@@ -1514,6 +1577,75 @@ class ItemDetailViewModel extends ChangeNotifier {
     } catch (_) {
       _applyOptimisticUpdate({'Played': !newState});
     }
+  }
+
+  Future<void> setThumbRating(bool likes) async {
+    return _mutateRating(
+      {'Likes': likes},
+      () => _mutations.setRating(itemId, likes: likes),
+    );
+  }
+
+  Future<void> setNumericRating(double rating) async {
+    if (!rating.isFinite || rating < 0 || rating > 10) {
+      throw ArgumentError.value(rating, 'rating', 'must be between 0 and 10');
+    }
+    return _mutateRating(
+      {
+        'Rating': rating,
+        'Likes': rating >= AggregatedItem.likedRatingThreshold,
+      },
+      () => _mutations.setNumericRating(itemId, rating: rating),
+    );
+  }
+
+  Future<void> clearRating() async {
+    return _mutateRating(
+      {'Rating': null, 'Likes': null},
+      () => _mutations.clearRating(itemId),
+    );
+  }
+
+  Future<void> _mutateRating(
+    Map<String, dynamic> userDataPatch,
+    Future<void> Function() mutation,
+  ) async {
+    if (_isRatingMutationInProgress) return;
+    final previousUserData = _copyUserData();
+    _isRatingMutationInProgress = true;
+    try {
+      _applyOptimisticUpdate(userDataPatch);
+      await mutation();
+      await _reload();
+    } catch (_) {
+      _restoreUserData(previousUserData);
+      rethrow;
+    } finally {
+      _isRatingMutationInProgress = false;
+      notifyListeners();
+    }
+  }
+
+  Map<String, dynamic>? _copyUserData() {
+    final userData = _item?.rawData['UserData'];
+    return userData is Map ? Map<String, dynamic>.from(userData) : null;
+  }
+
+  void _restoreUserData(Map<String, dynamic>? userData) {
+    final item = _item;
+    if (item == null) return;
+    final updatedRaw = Map<String, dynamic>.from(item.rawData);
+    if (userData == null) {
+      updatedRaw.remove('UserData');
+    } else {
+      updatedRaw['UserData'] = userData;
+    }
+    _item = AggregatedItem(
+      id: item.id,
+      serverId: item.serverId,
+      rawData: updatedRaw,
+    );
+    notifyListeners();
   }
 
   void _applyOptimisticUpdate(Map<String, dynamic> userDataPatch) {

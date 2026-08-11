@@ -20,6 +20,10 @@ class SkipSegmentOverlay extends StatefulWidget {
   final FocusNode? focusNode;
   final Stream<Duration>? positionStream;
 
+  /// Hides the button after this many seconds. Zero leaves it up until the
+  /// segment ends.
+  final int autoHideSeconds;
+
   const SkipSegmentOverlay({
     super.key,
     required this.segment,
@@ -27,6 +31,7 @@ class SkipSegmentOverlay extends StatefulWidget {
     required this.onDismiss,
     this.focusNode,
     this.positionStream,
+    this.autoHideSeconds = 0,
   });
 
   @override
@@ -36,12 +41,14 @@ class SkipSegmentOverlay extends StatefulWidget {
 class _SkipSegmentOverlayState extends State<SkipSegmentOverlay> {
   StreamSubscription<Duration>? _positionSubscription;
   Duration _currentPosition = Duration.zero;
+  Timer? _autoHideTimer;
 
   @override
   void initState() {
     super.initState();
     _currentPosition = widget.segment.start;
     _subscribe();
+    _scheduleAutoHide();
   }
 
   @override
@@ -52,6 +59,7 @@ class _SkipSegmentOverlayState extends State<SkipSegmentOverlay> {
       _unsubscribe();
       if (widget.segment != oldWidget.segment) {
         _currentPosition = widget.segment.start;
+        _scheduleAutoHide();
       }
       _subscribe();
     }
@@ -59,8 +67,17 @@ class _SkipSegmentOverlayState extends State<SkipSegmentOverlay> {
 
   @override
   void dispose() {
+    _autoHideTimer?.cancel();
     _unsubscribe();
     super.dispose();
+  }
+
+  void _scheduleAutoHide() {
+    _autoHideTimer?.cancel();
+    if (widget.autoHideSeconds <= 0) return;
+    _autoHideTimer = Timer(Duration(seconds: widget.autoHideSeconds), () {
+      if (mounted) widget.onDismiss();
+    });
   }
 
   void _subscribe() {

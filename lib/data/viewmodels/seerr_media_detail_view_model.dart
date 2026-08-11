@@ -8,6 +8,19 @@ import '../services/seerr/seerr_api_models.dart';
 import '../services/seerr/seerr_download_progress.dart';
 import '../services/seerr/seerr_error.dart';
 
+/// Reads one flag out of Seerr's public settings.
+///
+/// A server too old to know about a flag leaves it out of the payload rather
+/// than sending false, so absence means no opinion and [fallback] stands. That
+/// matters for the 4K flags: reading silence as switched off hid the 4K
+/// request control from everyone on those builds.
+@visibleForTesting
+bool seerrPublicFlag(
+  Map<String, dynamic> settings,
+  String key, {
+  required bool fallback,
+}) => settings.containsKey(key) ? settings[key] == true : fallback;
+
 /// One quality track (HD or 4K) of a title: its media status, the requests
 /// for that track, and the flags the UI reads. Seerr stores the two
 /// qualities independently, as status vs status4k and SeerrRequest.is4k, so
@@ -112,14 +125,24 @@ class SeerrQualityStatus {
     return seasons;
   }
 
+  /// Seasons the library already holds for this track, fully or partially.
+  Set<int> get availableSeasons => {
+        for (final s in seasonAvailability)
+          if (((is4k ? s.status4k : s.status) ?? 0) >= 4) s.seasonNumber,
+      };
+
+  /// Seasons the request sheet may not offer: already in the library or
+  /// already spoken for by an open request.
+  Set<int> get unavailableOrRequestedSeasons =>
+      {...requestedSeasons, ...availableSeasons};
+
   /// Season number to media status (2 pending, 3 processing, 4 partial,
   /// 5 available) for this quality track, so a series can show where it stands
   /// season by season rather than only as a whole.
   ///
-  /// Deliberately separate from [requestedSeasons], which answers the narrower
-  /// "may this season still be requested" question the request sheet asks.
-  /// Folding availability into that would quietly change which seasons a user
-  /// can tick.
+  /// Deliberately separate from [unavailableOrRequestedSeasons], which answers
+  /// the narrower "may this season still be requested" question the request
+  /// sheet asks.
   Map<int, int> get seasonStatus {
     final byNumber = <int, int>{};
 
@@ -383,12 +406,35 @@ class SeerrMediaDetailViewModel extends ChangeNotifier {
   Future<void> _loadPublicSettings() async {
     try {
       final settings = await _repo.getPublicSettings();
-      _movie4kEnabled = settings['movie4kEnabled'] == true;
-      _series4kEnabled = settings['series4kEnabled'] == true;
+      _movie4kEnabled = seerrPublicFlag(
+        settings,
+        'movie4kEnabled',
+        fallback: _movie4kEnabled,
+      );
+      _series4kEnabled = seerrPublicFlag(
+        settings,
+        'series4kEnabled',
+        fallback: _series4kEnabled,
+      );
       notifyListeners();
     } catch (_) {
       // Keep the permissive defaults.
     }
+  }
+
+  /// The search hit of the kind that was asked for.
+  ///
+  /// Seerr ranks a search by popularity across every kind of media, so the
+  /// first hit for a film can easily be a series of the same name.
+  @visibleForTesting
+  static SeerrDiscoverItem bestSearchMatch(
+    List<SeerrDiscoverItem> results,
+    String mediaType,
+  ) {
+    for (final result in results) {
+      if (result.mediaType == mediaType) return result;
+    }
+    return results.first;
   }
 
   Future<void> load(String itemId, String mediaType, {String? title}) async {
@@ -408,8 +454,17 @@ class SeerrMediaDetailViewModel extends ChangeNotifier {
       String resolvedMediaType = mediaType;
 
       if (itemId.startsWith('tt')) {
+        // The IMDb id names exactly one title, so it is asked first. A title
+        // search is a guess and only stands in when the id turns up nothing.
         SeerrDiscoverPage? searchPage;
-        if (title != null && title.isNotEmpty) {
+        try {
+          searchPage = await _repo.search(itemId);
+        } catch (e) {
+          debugPrint('[SeerrDetail] Search by IMDb ID failed: $e');
+        }
+        if ((searchPage == null || searchPage.results.isEmpty) &&
+            title != null &&
+            title.isNotEmpty) {
           try {
             searchPage = await _repo.search(title);
           } catch (e) {
@@ -417,18 +472,11 @@ class SeerrMediaDetailViewModel extends ChangeNotifier {
           }
         }
         if (searchPage == null || searchPage.results.isEmpty) {
-          try {
-            searchPage = await _repo.search(itemId);
-          } catch (e) {
-            debugPrint('[SeerrDetail] Search by IMDb ID failed: $e');
-          }
-        }
-        if (searchPage == null || searchPage.results.isEmpty) {
           throw Exception('Media not found on Seerr');
         }
-        final firstResult = searchPage.results.first;
-        tmdbId = firstResult.id;
-        resolvedMediaType = firstResult.mediaType ?? mediaType;
+        final match = bestSearchMatch(searchPage.results, mediaType);
+        tmdbId = match.id;
+        resolvedMediaType = match.mediaType ?? mediaType;
       } else {
         final parsed = int.tryParse(itemId);
         if (parsed == null) {
@@ -497,8 +545,9 @@ class SeerrMediaDetailViewModel extends ChangeNotifier {
       ]);
 
       _state = _state.copyWith(
-        similar: futures[0].results,
-        recommendations: futures[1].results,
+        similar: futures[0].results.where((i) => !i.isBlacklisted).toList(),
+        recommendations:
+            futures[1].results.where((i) => !i.isBlacklisted).toList(),
       );
       notifyListeners();
     } catch (_) {

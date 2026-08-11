@@ -5630,6 +5630,10 @@
   "@allSeasons": {
     "description": "Checkbox label for selecting all seasons"
   },
+  "seerrSeriesContinuing": "Series Continuing · Future Seasons Can Be Requested",
+  "@seerrSeriesContinuing": {
+    "description": "Banner in the Seerr request dialog for a continuing series whose aired seasons are all in the library"
+  },
   "advancedOptions": "Advanced Options",
   "@advancedOptions": {
     "description": "Expansion tile for advanced request options"
@@ -8280,6 +8284,11 @@
   "@settingsNone": {
     "description": "Option label to hide all decorations on media segment countdown overlay"
   },
+  "settingsSkipButtonAutoHide": "Auto Hide Skip Button",
+  "@settingsSkipButtonAutoHide": {
+    "description": "Setting label for automatically dismissing the skip intro and outro button after a delay"
+  },
+  "settingsSkipButtonAutoHideDescription": "Automatically dismiss the skip intro and outro button after a few seconds.",
   "settingsPromptUser": "Prompt User",
   "settingsSkip": "Skip",
   "settingsDoNothing": "Do Nothing",
@@ -9351,5 +9360,63 @@
   "showAlphabeticalFilters": "Show Alphabet",
   "@showAlphabeticalFilters": {
     "description": "Checkbox label for toggling alphabetical picker visibility in Sort and Filter options"
+  },
+  "personalRatingStyle": "Personal rating style",
+  "@personalRatingStyle": {
+    "description": "Selects how personal ratings are displayed and entered on media details."
+  },
+  "personalRatingThumbs": "Like / dislike",
+  "@personalRatingThumbs": {
+    "description": "Personal rating style using like and dislike actions."
+  },
+  "personalRatingStars": "5 stars",
+  "@personalRatingStars": {
+    "description": "Personal rating style using a five-star scale."
+  },
+  "personalRatingNumeric": "Numeric score out of 10",
+  "@personalRatingNumeric": {
+    "description": "Personal rating style using a numeric score out of ten."
+  },
+  "rate": "Rate",
+  "@rate": {
+    "description": "Action that opens the personal rating control."
+  },
+  "like": "Like",
+  "@like": {
+    "description": "Personal rating action for a positive rating."
+  },
+  "dislike": "Dislike",
+  "@dislike": {
+    "description": "Personal rating action for a negative rating."
+  },
+  "personalRatingClear": "Clear rating",
+  "@personalRatingClear": {
+    "description": "Action that removes the personal rating from the media item."
+  },
+  "personalRatingRated": "Rated",
+  "@personalRatingRated": {
+    "description": "Tooltip for a media item that has a numeric personal rating."
+  },
+  "personalRatingSaveFailed": "Could not save rating",
+  "@personalRatingSaveFailed": {
+    "description": "Error shown when saving a personal rating fails."
+  },
+  "increase": "Increase",
+  "@increase": {
+    "description": "Action that increases a numeric personal rating."
+  },
+  "decrease": "Decrease",
+  "@decrease": {
+    "description": "Action that decreases a numeric personal rating."
+  },
+  "personalRatingOutOfTen": "{rating} / 10",
+  "@personalRatingOutOfTen": {
+    "description": "Numeric personal rating displayed on a scale out of ten.",
+    "placeholders": { "rating": { "type": "String" } }
+  },
+  "personalRatingOutOfFive": "{rating} / 5",
+  "@personalRatingOutOfFive": {
+    "description": "Personal rating displayed on a five-star scale.",
+    "placeholders": { "rating": { "type": "String" } }
   }
 }

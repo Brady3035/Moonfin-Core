@@ -29,6 +29,7 @@ enum DetailButton {
   watchWithGroup('watchWithGroup'),
   watched('watched'),
   favorite('favorite'),
+  personalRating('personalRating'),
   playlist('playlist'),
   download('download'),
   deleteFiles('deleteFiles'),
@@ -46,10 +47,11 @@ enum DetailButton {
   final bool canHide;
 
   /// Whether the button means anything for a title that is not in the library.
-  /// Everything else needs something to play, mark or download.
+  /// Everything else needs something to play, mark or download. The 4K slot is
+  /// left out because one request slot covers both tracks there, through the
+  /// quality switch on the sheet it opens.
   bool get availableInSeerrOnly => switch (this) {
     DetailButton.seerrRequest ||
-    DetailButton.seerrRequest4k ||
     DetailButton.seerrWatchlist ||
     DetailButton.seerrReportIssue ||
     DetailButton.seerrManage ||
@@ -84,6 +86,7 @@ enum DetailButton {
     DetailButton.watchWithGroup => Icons.groups_rounded,
     DetailButton.watched => Icons.check_circle_outline,
     DetailButton.favorite => Icons.favorite_border,
+    DetailButton.personalRating => Icons.star_outline,
     DetailButton.playlist => Icons.playlist_add,
     DetailButton.download => Icons.download,
     DetailButton.deleteFiles => Icons.delete_outline,
@@ -107,6 +110,7 @@ enum DetailButton {
     DetailButton.watchWithGroup => l10n.watchWithGroup,
     DetailButton.watched => l10n.watched,
     DetailButton.favorite => l10n.favorite,
+    DetailButton.personalRating => l10n.rate,
     DetailButton.playlist => l10n.playlist,
     DetailButton.download => l10n.download,
     DetailButton.deleteFiles => l10n.deleteFiles,

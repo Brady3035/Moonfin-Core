@@ -203,17 +203,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get glassQuality => '玻璃质感';
 
   @override
-  String get oledMode => 'OLED Mode';
+  String get oledMode => 'OLED 模式';
 
   @override
-  String get oledModeSubtitle =>
-      'Deepen blacks and enrich artwork. Best on OLED displays.';
+  String get oledModeSubtitle => '加深黑色，提升艺术图的色彩表现力。OLED 显示屏效果最佳。';
 
   @override
-  String get oledModeSubtle => 'Subtle';
+  String get oledModeSubtle => '柔和';
 
   @override
-  String get oledModeVivid => 'Vivid';
+  String get oledModeVivid => '鲜艳';
 
   @override
   String get glassQualitySubtitle =>
@@ -484,13 +483,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get extraLarge => '超大';
 
   @override
-  String get scrollDirection => 'Scroll Direction';
+  String get scrollDirection => '滚动方向';
 
   @override
-  String get scrollDirectionVertical => 'Vertical';
+  String get scrollDirectionVertical => '垂直';
 
   @override
-  String get scrollDirectionHorizontal => 'Horizontal';
+  String get scrollDirectionHorizontal => '横向';
 
   @override
   String libraryGenresTitle(String name) {
@@ -584,7 +583,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get scrollRight => '向右滚动';
 
   @override
-  String get scrollToTop => 'Scroll to top';
+  String get scrollToTop => '返回顶部';
 
   @override
   String get couldNotLoadGenre => '目前无法加载此类型。';
@@ -2589,39 +2588,31 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsAudioDtsHdPassthrough => 'DTS-HD MA 直通';
 
   @override
-  String get settingsAudioPassthroughMode => 'Passthrough';
+  String get settingsAudioPassthroughMode => '直通';
 
   @override
-  String get settingsAudioPassthroughModeDescription =>
-      'How compressed surround sound reaches your TV or receiver.';
+  String get settingsAudioPassthroughModeDescription => '压缩后的环绕声如何传输到您的电视或接收器。';
 
   @override
-  String get settingsAudioPassthroughModeDisabled =>
-      'Disabled (always decode on this device)';
+  String get settingsAudioPassthroughModeDisabled => '禁用（始终在此设备上解码）';
 
   @override
-  String get settingsAudioPassthroughModeAuto =>
-      'Auto (match detected device support)';
+  String get settingsAudioPassthroughModeAuto => '自动（匹配检测到的设备支持）';
 
   @override
-  String get settingsAudioPassthroughModeManual =>
-      'Manual (choose formats below)';
+  String get settingsAudioPassthroughModeManual => '手动（请在下方选择格式）';
 
   @override
-  String get settingsDownmixToStereoDescription =>
-      'Mix all decoded audio down to two channels.';
+  String get settingsDownmixToStereoDescription => '将所有解码后的音频混合成两个声道。';
 
   @override
-  String get settingsAudioEac3IncludesAtmos =>
-      'Bitstream E-AC-3, including Dolby Atmos (JOC).';
+  String get settingsAudioEac3IncludesAtmos => '比特流 E-AC-3，包括杜比全景声 (JOC)。';
 
   @override
-  String get settingsAudioDtsHdIncludesDtsX =>
-      'Bitstream DTS-HD, including DTS:X.';
+  String get settingsAudioDtsHdIncludesDtsX => '比特流 DTS-HD，包括 DTS:X。';
 
   @override
-  String get settingsAudioTrueHdIncludesAtmos =>
-      'Bitstream TrueHD, including Dolby Atmos.';
+  String get settingsAudioTrueHdIncludesAtmos => '比特流 TrueHD，包括杜比全景声。';
 
   @override
   String get settingsAudioTrueHdPassthrough => 'TrueHD 直通';
@@ -3032,11 +3023,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get defaultLabel => '默认';
 
   @override
-  String get sdCard => 'SD card';
+  String get sdCard => 'SD 卡';
 
   @override
   String get downloadLocationLimitedByAndroid =>
-      'Android only lets Moonfin write to the folders it owns, and this device has no removable storage. Turn on Save to Downloads folder above to keep downloads somewhere other apps can reach.';
+      'Android 系统只允许 Moonfin 写入其拥有的文件夹，而此设备没有可移动存储设备。请启用上方的“保存到下载文件夹”选项，将下载内容保存到其他应用可以访问的位置。';
 
   @override
   String get saveToDownloadsFolder => '保存到下载文件夹';
@@ -3176,14 +3167,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get showLibrariesFromAllServers => '显示所有已连接服务器的媒体库';
 
   @override
-  String get mergeRecentRowsByType => 'Merge Recent Rows by Type';
+  String get mergeRecentRowsByType => '按类型合并最近行';
 
   @override
   String get mergeRecentRowsByTypeDescription =>
-      'Combine separate libraries of the same type for Recently Added and Recently Released home rows.';
+      '将同一类型的独立媒体库合并到“最近添加”和“最近发布”主页行中。';
 
   @override
-  String get libraryView => 'Library View';
+  String get libraryView => '媒体库视图';
 
   @override
   String get enableFolderView => '启用文件夹视图';
@@ -3666,10 +3657,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get networks => '电视网';
 
   @override
-  String get tags => 'Tags';
+  String get tags => '标签';
 
   @override
-  String get genresAndTags => 'Genres and Tags';
+  String get genresAndTags => '类型和标签';
 
   @override
   String get seerrDiscoveryRows => 'Seerr 发现栏目';
@@ -3923,13 +3914,13 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get manageRequests => 'Manage Requests';
+  String get manageRequests => '管理请求';
 
   @override
-  String get watchlist => 'Watchlist';
+  String get watchlist => '关注列表';
 
   @override
-  String get onWatchlist => 'On Watchlist';
+  String get onWatchlist => '关注列表';
 
   @override
   String get approve => '批准';
@@ -3992,6 +3983,10 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get allSeasons => '所有季';
+
+  @override
+  String get seerrSeriesContinuing =>
+      'Series Continuing · Future Seasons Can Be Requested';
 
   @override
   String get advancedOptions => '高级选项';
@@ -4862,7 +4857,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get adminLibEnablePhotos => '显示照片';
 
   @override
-  String get adminLibSaveLocalMetadata => '将封面保存到媒体文件夹';
+  String get adminLibSaveLocalMetadata => '将艺术图保存到媒体文件夹';
 
   @override
   String get adminLibRefreshInterval => '自动元数据刷新';
@@ -8404,6 +8399,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsNone => '无';
 
   @override
+  String get settingsSkipButtonAutoHide => 'Auto Hide Skip Button';
+
+  @override
+  String get settingsSkipButtonAutoHideDescription =>
+      'Automatically dismiss the skip intro and outro button after a few seconds.';
+
+  @override
   String get settingsPromptUser => '提示用户';
 
   @override
@@ -8466,13 +8468,13 @@ class AppLocalizationsZh extends AppLocalizations {
       '控制 Dolby Vision Profile 7 增强层视频流是否直接播放。';
 
   @override
-  String get settingsAutoAftkrtEnabled => '自动（AFTKRT 已启用）';
+  String get settingsAutoAftkrtEnabled => '自动';
 
   @override
-  String get settingsEnabledOnThisDevice => '在此设备上启用';
+  String get settingsEnabledOnThisDevice => '启用';
 
   @override
-  String get settingsDisabledPreferTranscode => '已禁用（首选转码）';
+  String get settingsDisabledPreferTranscode => '禁用';
 
   @override
   String get settingsResumeRewindDescription => '从“继续观看”或详情页继续播放时，先倒回多少秒？';
@@ -8508,11 +8510,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsCinemaModeSubtitle => '正片播放前播放预告片/片前视频';
 
   @override
-  String get settingsCinemaModeEpisodes => 'Cinema Mode for episodes';
+  String get settingsCinemaModeEpisodes => '剧集影院模式';
 
   @override
-  String get settingsCinemaModeEpisodesSubtitle =>
-      'Also play prerolls before TV episodes';
+  String get settingsCinemaModeEpisodesSubtitle => '在电视节目播出前也播放片头广告';
 
   @override
   String get settingsNextUpDisplayDescription =>
@@ -8655,11 +8656,11 @@ class AppLocalizationsZh extends AppLocalizations {
       '高级设置。通过耦合的硬件路径传输音频和视频。默认关闭，因为某些设备可能出现音视频中断。';
 
   @override
-  String get mapDolbyVisionP7Title => '将 Dolby Vision Profile 7 映射到 HEVC';
+  String get mapDolbyVisionP7Title => '始终以 HDR10 格式播放 Dolby Vision 7 profile';
 
   @override
   String get mapDolbyVisionP7Subtitle =>
-      '在非 DV 设备上将 Dolby Vision Profile 7 视频流作为 HDR10 兼容的 HEVC 播放。';
+      '跳过 Profile 8 转换，并将 Dolby Vision Profile 7 流转换为 HDR10 兼容的 HEVC 格式。如果转换后的流看起来有问题，请使用此方法。';
 
   @override
   String get subtitlesUseEmbeddedStyles => '使用内嵌字幕样式';
@@ -8828,11 +8829,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get collectionsRowSortingDescription => '按添加日期、发布日期、字母顺序等方式排序合集行。';
 
   @override
-  String get collectionsRowShowEpisodes => 'Show Individual Episodes';
+  String get collectionsRowShowEpisodes => '显示单集';
 
   @override
-  String get collectionsRowShowEpisodesSubtitle =>
-      'Expand TV shows to display each episode separately.';
+  String get collectionsRowShowEpisodesSubtitle => '展开电视节目，将每一集单独显示。';
 
   @override
   String get displayGenresRows => '显示类型行';
@@ -8865,11 +8865,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get playlistsRowSortingDescription => '按添加日期、发布日期、字母顺序等方式排序播放列表行。';
 
   @override
-  String get playlistsRowShowEpisodes => 'Show Individual Episodes';
+  String get playlistsRowShowEpisodes => '显示单集';
 
   @override
-  String get playlistsRowShowEpisodesSubtitle =>
-      'Expand TV shows to display each episode separately.';
+  String get playlistsRowShowEpisodesSubtitle => '展开电视节目，将每一集单独显示。';
 
   @override
   String get displayAudioRows => '显示音频行';
@@ -9721,7 +9720,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get libraryWriteAccessFixSteps =>
-      '1. 在服务器上为媒体库文件夹授予 Jellyfin 服务账号写入权限（Docker 环境需配置正确 PUID/PGID）。\n\n2. 或前往 Jellyfin 控制台-媒体库，编辑当前媒体库，关闭「将封面图片保存至媒体文件夹」，封面将统一存储在 Jellyfin 内置数据库中。';
+      '1. 在服务器上为媒体库文件夹授予 Jellyfin 服务账号写入权限（Docker 环境需配置正确 PUID/PGID）。\n\n2. 或前往 Jellyfin 控制台-媒体库，编辑当前媒体库，关闭「将艺术图保存至媒体文件夹」，艺术图将统一存储在 Jellyfin 内置数据库中。';
 
   @override
   String get dismiss => '忽略';
@@ -9731,12 +9730,12 @@ class AppLocalizationsZh extends AppLocalizations {
     String libraryName,
     String failedPath,
   ) {
-    return '您的“$libraryName”媒体库已开启「将封面图片保存至媒体文件夹」，但 Jellyfin 检测发现无权限写入以下目录：\n\n$failedPath';
+    return '您的“$libraryName”媒体库已开启「将艺术图保存至媒体文件夹」，但 Jellyfin 检测发现无权限写入以下目录：\n\n$failedPath';
   }
 
   @override
   String get libraryWriteAccessReactiveBody =>
-      'Jellyfin 封面更新失败。当前媒体库设置为直接将封面存入媒体文件夹，该报错通常是 Jellyfin 服务进程缺少媒体目录写入权限导致。';
+      'Jellyfin 艺术图更新失败。当前媒体库设置为直接将艺术图存入媒体文件夹，该报错通常是 Jellyfin 服务进程缺少媒体目录写入权限导致。';
 
   @override
   String get externalLists => '外部榜单';
@@ -10003,70 +10002,113 @@ class AppLocalizationsZh extends AppLocalizations {
   String get mixedPlaylistsSection => '混合播放列表';
 
   @override
-  String get playbackTimeDisplay => 'Progress Bar Time';
+  String get playbackTimeDisplay => '进度条时间';
 
   @override
-  String get settingsPlaybackTimeDisplayDescription =>
-      'Choose which time labels appear around the playback progress bar.';
+  String get settingsPlaybackTimeDisplayDescription => '选择播放进度条周围显示的时间标签。';
 
   @override
-  String get playbackTimeTotal => 'Total duration';
+  String get playbackTimeTotal => '总时长';
 
   @override
-  String get playbackTimeRemaining => 'Time remaining';
+  String get playbackTimeRemaining => '剩余时间';
 
   @override
-  String get playbackTimeEndsAt => 'Ends at';
+  String get playbackTimeEndsAt => '结束于';
 
   @override
-  String get playbackTimeElapsed => 'Time elapsed';
+  String get playbackTimeElapsed => '已播时间';
 
   @override
-  String get playbackTimeVideoSection => 'Video Player';
+  String get playbackTimeVideoSection => '视频播放';
 
   @override
-  String get playbackTimeMusicSection => 'Music Player';
+  String get playbackTimeMusicSection => '音乐播放';
 
   @override
-  String get playbackTimeSlotDescription =>
-      'Choose what is shown here, or hide it.';
+  String get playbackTimeSlotDescription => '选择显示此处显示的内容，或将其隐藏。';
 
   @override
-  String get playbackTimeAboveBarLeft => 'Above bar, left';
+  String get playbackTimeAboveBarLeft => '上方栏，左侧';
 
   @override
-  String get playbackTimeAboveBarCenter => 'Above bar, center';
+  String get playbackTimeAboveBarCenter => '上方栏，居中';
 
   @override
-  String get playbackTimeAboveBarRight => 'Above bar, right';
+  String get playbackTimeAboveBarRight => '上方栏，右侧';
 
   @override
-  String get playbackTimeBelowBarLeft => 'Below bar, left';
+  String get playbackTimeBelowBarLeft => '下方栏，左侧';
 
   @override
-  String get playbackTimeBelowBarCenter => 'Below bar, center';
+  String get playbackTimeBelowBarCenter => '下方栏，居中';
 
   @override
-  String get playbackTimeBelowBarRight => 'Below bar, right';
+  String get playbackTimeBelowBarRight => '下方栏，右侧';
 
   @override
-  String get settingsMusicPlaybackTimeDescription =>
-      'Choose what is shown on the right side of the music progress bar.';
+  String get settingsMusicPlaybackTimeDescription => '选择音乐进度条右侧显示的内容。';
 
   @override
-  String get groupByTitle => 'Group By';
+  String get groupByTitle => '按分组';
 
   @override
-  String get groupByDecade => 'Decade (Year)';
+  String get groupByDecade => '十年（年）';
 
   @override
-  String get groupByParentalRating => 'Parental Rating';
+  String get groupByParentalRating => '家长评级';
 
   @override
-  String get groupByStudio => 'Studio';
+  String get groupByStudio => '制片公司';
 
   @override
-  String get showAlphabeticalFilters => 'Show Alphabet';
+  String get showAlphabeticalFilters => '显示字母表';
+
+  @override
+  String get personalRatingStyle => 'Personal rating style';
+
+  @override
+  String get personalRatingThumbs => 'Like / dislike';
+
+  @override
+  String get personalRatingStars => '5 stars';
+
+  @override
+  String get personalRatingNumeric => 'Numeric score out of 10';
+
+  @override
+  String get rate => 'Rate';
+
+  @override
+  String get like => 'Like';
+
+  @override
+  String get dislike => 'Dislike';
+
+  @override
+  String get personalRatingClear => 'Clear rating';
+
+  @override
+  String get personalRatingRated => 'Rated';
+
+  @override
+  String get personalRatingSaveFailed => 'Could not save rating';
+
+  @override
+  String get increase => 'Increase';
+
+  @override
+  String get decrease => 'Decrease';
+
+  @override
+  String personalRatingOutOfTen(String rating) {
+    return '$rating / 10';
+  }
+
+  @override
+  String personalRatingOutOfFive(String rating) {
+    return '$rating / 5';
+  }
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).

@@ -475,7 +475,7 @@ class LibraryBrowseViewModel extends ChangeNotifier {
     if (!stillWanted()) return;
     while (hasMore) {
       final beforeCount = _items.length;
-      await loadMore();
+      await loadMore(pageSizeOverride: 300);
       if (!stillWanted()) return;
       if (_items.length == beforeCount) break;
     }
@@ -488,22 +488,42 @@ class LibraryBrowseViewModel extends ChangeNotifier {
     bool hasPrefix() =>
         _items.any((item) => matchesAlphabetBucket(item, letter));
 
-    while (!hasPrefix() && hasMore) {
-      final beforeCount = _items.length;
-      await loadMore();
-      if (_items.length == beforeCount) break;
+    if (hasPrefix()) return true;
+
+    // Take over the page walk so a background ensureAllItemsLoaded stops
+    // competing for loadMore while the jump is filling in.
+    final generation = ++_pageWalkGeneration;
+    bool stillWanted() => !_disposed && _pageWalkGeneration == generation;
+
+    try {
+      while (!hasPrefix() && hasMore) {
+        if (!stillWanted()) return false;
+        // A scroll triggered page may be in flight, and calling loadMore now
+        // would return without loading and end the walk early.
+        while (_loadingMore) {
+          await Future.delayed(const Duration(milliseconds: 30));
+          if (!stillWanted()) return false;
+        }
+        final beforeCount = _items.length;
+        await loadMore(pageSizeOverride: 300, notify: false);
+        if (_items.length == beforeCount) break;
+      }
+    } finally {
+      // The walk suppressed per page notifications, so send the one that
+      // shows everything it loaded.
+      if (!_disposed) notifyListeners();
     }
     return hasPrefix();
   }
 
-  Future<void> loadMore() async {
+  Future<void> loadMore({int? pageSizeOverride, bool notify = true}) async {
     if (_loadingMore || !hasMore) return;
     _loadingMore = true;
-    notifyListeners();
+    if (notify) notifyListeners();
 
     final previouslyFetched = _fetchedCount;
     try {
-      await _fetchPage(_fetchedCount);
+      await _fetchPage(_fetchedCount, pageSizeOverride: pageSizeOverride);
       // Stop on a page the server had nothing left for, not on one that only
       // repeated what is already shown, which a random sort does by chance.
       if (_fetchedCount <= previouslyFetched) {
@@ -513,11 +533,11 @@ class LibraryBrowseViewModel extends ChangeNotifier {
     } catch (_) {}
 
     _loadingMore = false;
-    notifyListeners();
+    if (notify) notifyListeners();
   }
 
-  Future<void> _fetchPage(int startIndex) async {
-    final pageSize = startIndex == 0 ? _firstPageSize : _pageSize;
+  Future<void> _fetchPage(int startIndex, {int? pageSizeOverride}) async {
+    final pageSize = pageSizeOverride ?? (startIndex == 0 ? _firstPageSize : _pageSize);
     final filters = <String>[];
     if (_playedFilter == PlayedStatusFilter.watched) {
       filters.add('IsPlayed');

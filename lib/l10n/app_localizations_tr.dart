@@ -208,17 +208,17 @@ class AppLocalizationsTr extends AppLocalizations {
   String get glassQuality => 'Cam Efekti Kalitesi';
 
   @override
-  String get oledMode => 'OLED Mode';
+  String get oledMode => 'OLED Modu';
 
   @override
   String get oledModeSubtitle =>
-      'Deepen blacks and enrich artwork. Best on OLED displays.';
+      'Siyahları derinleştirin ve görselleri zenginleştirin. OLED ekranlarda en iyisi.';
 
   @override
-  String get oledModeSubtle => 'Subtle';
+  String get oledModeSubtle => 'Hafif';
 
   @override
-  String get oledModeVivid => 'Vivid';
+  String get oledModeVivid => 'Canlı';
 
   @override
   String get glassQualitySubtitle =>
@@ -504,13 +504,13 @@ class AppLocalizationsTr extends AppLocalizations {
   String get extraLarge => 'Ekstra Büyük';
 
   @override
-  String get scrollDirection => 'Scroll Direction';
+  String get scrollDirection => 'Kaydırma Yönü';
 
   @override
-  String get scrollDirectionVertical => 'Vertical';
+  String get scrollDirectionVertical => 'Dikey';
 
   @override
-  String get scrollDirectionHorizontal => 'Horizontal';
+  String get scrollDirectionHorizontal => 'Yatay';
 
   @override
   String libraryGenresTitle(String name) {
@@ -608,7 +608,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get scrollRight => 'Sağa kaydır';
 
   @override
-  String get scrollToTop => 'Scroll to top';
+  String get scrollToTop => 'En Başa Kaydır';
 
   @override
   String get couldNotLoadGenre => 'Bu tür şu anda yüklenemedi.';
@@ -2641,7 +2641,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get settingsAudioPassthroughAdvanced =>
-      'Doğrudan Geçiş(Passthrough) (Gelişmiş)';
+      'Doğrudan Geçiş (Passthrough) (Gelişmiş)';
 
   @override
   String get settingsAudioCodecPassthrough =>
@@ -2664,39 +2664,38 @@ class AppLocalizationsTr extends AppLocalizations {
       'DTS-HD MA Doğrudan Geçiş (Passthrough)';
 
   @override
-  String get settingsAudioPassthroughMode => 'Passthrough';
+  String get settingsAudioPassthroughMode => 'Doğrudan Geçiş (Passthrough)';
 
   @override
   String get settingsAudioPassthroughModeDescription =>
-      'How compressed surround sound reaches your TV or receiver.';
+      'Sıkıştırılmış surround sesinin TV\'nize veya alıcınıza nasıl ulaştığı.';
 
   @override
   String get settingsAudioPassthroughModeDisabled =>
-      'Disabled (always decode on this device)';
+      'Devre dışı (her zaman bu cihazda çözülecek)';
 
   @override
   String get settingsAudioPassthroughModeAuto =>
-      'Auto (match detected device support)';
+      'Otomatik (algılanan cihaz desteğiyle eşleştir)';
 
   @override
   String get settingsAudioPassthroughModeManual =>
-      'Manual (choose formats below)';
+      'Manuel (aşağıdaki formatları seçin)';
 
   @override
   String get settingsDownmixToStereoDescription =>
-      'Mix all decoded audio down to two channels.';
+      'Çözülen tüm sesleri iki kanala (stereo) dönüştür.';
 
   @override
   String get settingsAudioEac3IncludesAtmos =>
-      'Bitstream E-AC-3, including Dolby Atmos (JOC).';
+      'Bitstream E-AC-3, Dolby Atmos (JOC) dahil.';
 
   @override
-  String get settingsAudioDtsHdIncludesDtsX =>
-      'Bitstream DTS-HD, including DTS:X.';
+  String get settingsAudioDtsHdIncludesDtsX => 'Bitstream DTS-HD, DTS:X dahil.';
 
   @override
   String get settingsAudioTrueHdIncludesAtmos =>
-      'Bitstream TrueHD, including Dolby Atmos.';
+      'Bitstream TrueHD, Dolby Atmos dahil.';
 
   @override
   String get settingsAudioTrueHdPassthrough =>
@@ -3130,11 +3129,11 @@ class AppLocalizationsTr extends AppLocalizations {
   String get defaultLabel => 'Varsayılan';
 
   @override
-  String get sdCard => 'SD card';
+  String get sdCard => 'SD Kart';
 
   @override
   String get downloadLocationLimitedByAndroid =>
-      'Android only lets Moonfin write to the folders it owns, and this device has no removable storage. Turn on Save to Downloads folder above to keep downloads somewhere other apps can reach.';
+      'Android, Moonfin uygulamasının yalnızca kendi sahip olduğu klasörlere yazmasına izin veriyor ve bu cihazda çıkarılabilir depolama alanı yok. İndirmelerin diğer uygulamaların erişebileceği bir yere kaydedilmesi için yukarıdaki \'İndirilenler klasörüne kaydet\' seçeneğini açın.';
 
   @override
   String get saveToDownloadsFolder => 'İndirilenler klasörüne kaydet';
@@ -3283,14 +3282,14 @@ class AppLocalizationsTr extends AppLocalizations {
       'Bağlı tüm sunuculardaki kitaplıkları göster';
 
   @override
-  String get mergeRecentRowsByType => 'Merge Recent Rows by Type';
+  String get mergeRecentRowsByType => 'Son Satırları Türe Göre Birleştir';
 
   @override
   String get mergeRecentRowsByTypeDescription =>
-      'Combine separate libraries of the same type for Recently Added and Recently Released home rows.';
+      'Son Eklenenler ve Son Çıkanlar ana sayfa satırları için aynı türdeki ayrı kütüphaneleri birleştirin.';
 
   @override
-  String get libraryView => 'Library View';
+  String get libraryView => 'Kütüphane Görünümü';
 
   @override
   String get enableFolderView => 'Klasör Görünümünü Etkinleştir';
@@ -3805,10 +3804,10 @@ class AppLocalizationsTr extends AppLocalizations {
   String get networks => 'Yayıncılar';
 
   @override
-  String get tags => 'Tags';
+  String get tags => 'Etiketler';
 
   @override
-  String get genresAndTags => 'Genres and Tags';
+  String get genresAndTags => 'Türler ve Etiketler';
 
   @override
   String get seerrDiscoveryRows => 'Seerr Keşfet Satırları';
@@ -4081,13 +4080,13 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String get manageRequests => 'Manage Requests';
+  String get manageRequests => 'İstekleri Yönet';
 
   @override
-  String get watchlist => 'Watchlist';
+  String get watchlist => 'İzleme Listesi';
 
   @override
-  String get onWatchlist => 'On Watchlist';
+  String get onWatchlist => 'İzleme Listesinde';
 
   @override
   String get approve => 'Onayla';
@@ -4150,6 +4149,10 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get allSeasons => 'Tüm Sezonlar';
+
+  @override
+  String get seerrSeriesContinuing =>
+      'Series Continuing · Future Seasons Can Be Requested';
 
   @override
   String get advancedOptions => 'Gelişmiş Seçenekler';
@@ -8743,6 +8746,13 @@ class AppLocalizationsTr extends AppLocalizations {
   String get settingsNone => 'Hiçbiri';
 
   @override
+  String get settingsSkipButtonAutoHide => 'Auto Hide Skip Button';
+
+  @override
+  String get settingsSkipButtonAutoHideDescription =>
+      'Automatically dismiss the skip intro and outro button after a few seconds.';
+
+  @override
   String get settingsPromptUser => 'Kullanıcıya Sor';
 
   @override
@@ -8808,14 +8818,13 @@ class AppLocalizationsTr extends AppLocalizations {
       'Dolby Vision profil 7 geliştirme katmanı akışlarının oynatmayı yönlendirmesi gerekip gerekmediğini kontrol eder.';
 
   @override
-  String get settingsAutoAftkrtEnabled => 'Otomatik (AFTKRT etkin)';
+  String get settingsAutoAftkrtEnabled => 'Otomatik';
 
   @override
-  String get settingsEnabledOnThisDevice => 'Bu cihazda etkinleştirildi';
+  String get settingsEnabledOnThisDevice => 'Etkinleştirildi';
 
   @override
-  String get settingsDisabledPreferTranscode =>
-      'Devre dışı (kod dönüştürmeyi tercih edin)';
+  String get settingsDisabledPreferTranscode => 'Devre dışı';
 
   @override
   String get settingsResumeRewindDescription =>
@@ -8857,11 +8866,11 @@ class AppLocalizationsTr extends AppLocalizations {
       'Ana özellikten önce fragmanları/ön gösterimleri oynatın';
 
   @override
-  String get settingsCinemaModeEpisodes => 'Cinema Mode for episodes';
+  String get settingsCinemaModeEpisodes => 'Bölümler için Sinema Modu';
 
   @override
   String get settingsCinemaModeEpisodesSubtitle =>
-      'Also play prerolls before TV episodes';
+      'Ayrıca TV bölümlerinden önce tanıtım videoları (ön gösterimler) oynat';
 
   @override
   String get settingsNextUpDisplayDescription =>
@@ -9017,11 +9026,11 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get mapDolbyVisionP7Title =>
-      'Dolby Vision profil 7\'yi HEVC ile eşleştir';
+      'Dolby Vision profil 7\'yi her zaman HDR10 olarak oynat';
 
   @override
   String get mapDolbyVisionP7Subtitle =>
-      'Dolby Vision profil 7 akışlarını, DV desteklemeyen cihazlarda HDR10 uyumlu HEVC olarak oynat.';
+      'Profil 8 dönüşümünü atla ve Dolby Vision profil 7 akışlarını HDR10 uyumlu HEVC formatına indirge. Dönüştürülen akışlar hatalı görünüyorsa bunu kullanın.';
 
   @override
   String get subtitlesUseEmbeddedStyles => 'Gömülü altyazı stillerini kullan';
@@ -9204,11 +9213,11 @@ class AppLocalizationsTr extends AppLocalizations {
       'Koleksiyonlar satırlarını ekleme tarihine, çıkış tarihine, alfabetik sıraya ve daha fazlasına göre sıralayın.';
 
   @override
-  String get collectionsRowShowEpisodes => 'Show Individual Episodes';
+  String get collectionsRowShowEpisodes => 'Tekil Bölümleri Göster';
 
   @override
   String get collectionsRowShowEpisodesSubtitle =>
-      'Expand TV shows to display each episode separately.';
+      'Her bölümü ayrı ayrı göstermek için dizileri genişlet.';
 
   @override
   String get displayGenresRows => 'Tür Satırlarını Göster';
@@ -9246,11 +9255,11 @@ class AppLocalizationsTr extends AppLocalizations {
       'Oynatma listesi satırlarını ekleme tarihi, yayınlanma tarihi, alfabetik ve daha fazlasına göre sıralayın.';
 
   @override
-  String get playlistsRowShowEpisodes => 'Show Individual Episodes';
+  String get playlistsRowShowEpisodes => 'Tekil Bölümleri Göster';
 
   @override
   String get playlistsRowShowEpisodesSubtitle =>
-      'Expand TV shows to display each episode separately.';
+      'Her bölümü ayrı ayrı göstermek için dizileri genişlet.';
 
   @override
   String get displayAudioRows => 'Ses Satırlarını Göster';
@@ -10432,68 +10441,114 @@ class AppLocalizationsTr extends AppLocalizations {
   String get mixedPlaylistsSection => 'Karışık Oynatma Listesi';
 
   @override
-  String get playbackTimeDisplay => 'Progress Bar Time';
+  String get playbackTimeDisplay => 'İlerleme Çubuğu Süresi';
 
   @override
   String get settingsPlaybackTimeDisplayDescription =>
-      'Choose which time labels appear around the playback progress bar.';
+      'Oynatma ilerleme çubuğunun etrafında hangi zaman etiketlerinin görüneceğini seçin.';
 
   @override
-  String get playbackTimeTotal => 'Total duration';
+  String get playbackTimeTotal => 'Toplam süre';
 
   @override
-  String get playbackTimeRemaining => 'Time remaining';
+  String get playbackTimeRemaining => 'Kalan süre';
 
   @override
-  String get playbackTimeEndsAt => 'Ends at';
+  String get playbackTimeEndsAt => 'Bitiş Saati';
 
   @override
-  String get playbackTimeElapsed => 'Time elapsed';
+  String get playbackTimeElapsed => 'Geçen süre';
 
   @override
-  String get playbackTimeVideoSection => 'Video Player';
+  String get playbackTimeVideoSection => 'Video Oynatıcı';
 
   @override
-  String get playbackTimeMusicSection => 'Music Player';
+  String get playbackTimeMusicSection => 'Müzik Oynatıcı';
 
   @override
   String get playbackTimeSlotDescription =>
-      'Choose what is shown here, or hide it.';
+      'Burada ne gösterileceğini seçin veya gizleyin.';
 
   @override
-  String get playbackTimeAboveBarLeft => 'Above bar, left';
+  String get playbackTimeAboveBarLeft => 'Çubuğun üstünde, sol';
 
   @override
-  String get playbackTimeAboveBarCenter => 'Above bar, center';
+  String get playbackTimeAboveBarCenter => 'Çubuğun üstünde, orta';
 
   @override
-  String get playbackTimeAboveBarRight => 'Above bar, right';
+  String get playbackTimeAboveBarRight => 'Çubuğun üstünde, sağ';
 
   @override
-  String get playbackTimeBelowBarLeft => 'Below bar, left';
+  String get playbackTimeBelowBarLeft => 'Çubuğun altında, sol';
 
   @override
-  String get playbackTimeBelowBarCenter => 'Below bar, center';
+  String get playbackTimeBelowBarCenter => 'Çubuğun altında, orta';
 
   @override
-  String get playbackTimeBelowBarRight => 'Below bar, right';
+  String get playbackTimeBelowBarRight => 'Çubuğun altında, sağ';
 
   @override
   String get settingsMusicPlaybackTimeDescription =>
-      'Choose what is shown on the right side of the music progress bar.';
+      'Müzik ilerleme çubuğunun sağ tarafında ne gösterileceğini seçin.';
 
   @override
-  String get groupByTitle => 'Group By';
+  String get groupByTitle => 'Grupla';
 
   @override
-  String get groupByDecade => 'Decade (Year)';
+  String get groupByDecade => 'On yıl (Yıl)';
 
   @override
-  String get groupByParentalRating => 'Parental Rating';
+  String get groupByParentalRating => 'Ebeveyn Derecelendirmesi';
 
   @override
-  String get groupByStudio => 'Studio';
+  String get groupByStudio => 'Stüdyo';
 
   @override
-  String get showAlphabeticalFilters => 'Show Alphabet';
+  String get showAlphabeticalFilters => 'Alfabeyi Göster';
+
+  @override
+  String get personalRatingStyle => 'Personal rating style';
+
+  @override
+  String get personalRatingThumbs => 'Like / dislike';
+
+  @override
+  String get personalRatingStars => '5 stars';
+
+  @override
+  String get personalRatingNumeric => 'Numeric score out of 10';
+
+  @override
+  String get rate => 'Rate';
+
+  @override
+  String get like => 'Like';
+
+  @override
+  String get dislike => 'Dislike';
+
+  @override
+  String get personalRatingClear => 'Clear rating';
+
+  @override
+  String get personalRatingRated => 'Rated';
+
+  @override
+  String get personalRatingSaveFailed => 'Could not save rating';
+
+  @override
+  String get increase => 'Increase';
+
+  @override
+  String get decrease => 'Decrease';
+
+  @override
+  String personalRatingOutOfTen(String rating) {
+    return '$rating / 10';
+  }
+
+  @override
+  String personalRatingOutOfFive(String rating) {
+    return '$rating / 5';
+  }
 }

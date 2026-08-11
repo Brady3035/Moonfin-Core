@@ -17,6 +17,29 @@ Set<String> _subtitleMethodsFor(Map<String, dynamic> profile, String format) {
       .toSet();
 }
 
+// A codec is marked unsupported by asking for a VideoProfile no stream carries, so the
+// condition fails and the server transcodes.
+String? _videoProfileCondition(Map<String, dynamic> profile, String codec) {
+  final codecProfiles = profile['CodecProfiles'] as List<dynamic>? ?? const [];
+
+  for (final rawProfile in codecProfiles) {
+    final codecProfile = rawProfile as Map<dynamic, dynamic>;
+    if (codecProfile['Type'] != 'Video' || codecProfile['Codec'] != codec) {
+      continue;
+    }
+
+    final conditions = codecProfile['Conditions'] as List<dynamic>? ?? const [];
+    for (final rawCondition in conditions) {
+      final condition = rawCondition as Map<dynamic, dynamic>;
+      if (condition['Property'] == 'VideoProfile') {
+        return condition['Condition'] as String?;
+      }
+    }
+  }
+
+  return null;
+}
+
 Set<String> _codecUnsupportedRangeTypes(
   Map<String, dynamic> profile,
   String codec,
@@ -996,6 +1019,29 @@ void main() {
         ),
         isFalse,
       );
+    });
+  });
+
+  group('DeviceProfileBuilder MPEG-4 video', () {
+    test('advertises mpeg4 in the direct play codec list', () {
+      final profile = DeviceProfileBuilder.build();
+      final directPlay = (profile['DirectPlayProfiles'] as List<dynamic>)
+          .cast<Map<String, dynamic>>()
+          .firstWhere((p) => p['Type'] == 'Video');
+
+      expect((directPlay['VideoCodec'] as String).split(','), contains('mpeg4'));
+    });
+
+    test('a device with an MPEG-4 decoder direct plays it', () {
+      final profile = DeviceProfileBuilder.build(supportsMpeg4: true);
+
+      expect(_videoProfileCondition(profile, 'mpeg4'), 'NotEquals');
+    });
+
+    test('a device without an MPEG-4 decoder transcodes it', () {
+      final profile = DeviceProfileBuilder.build();
+
+      expect(_videoProfileCondition(profile, 'mpeg4'), 'Equals');
     });
   });
 

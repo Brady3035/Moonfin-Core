@@ -8,7 +8,7 @@ import '../../playback/car_artwork.dart';
 import '../../util/platform_detection.dart';
 import '../models/aggregated_item.dart';
 import '../models/home_row.dart';
-import 'topshelf_service.dart';
+import 'deep_link_service.dart';
 
 class WatchNextService {
   static const _channel = MethodChannel('org.moonfin.androidtv/watch_next');
@@ -199,7 +199,7 @@ class WatchNextService {
       if (url == null) return;
       final uri = Uri.tryParse(url);
       if (uri == null) return;
-      final route = TopShelfService.routeForDeepLink(uri);
+      final route = DeepLinkService.routeForDeepLink(uri);
       if (route != null) onRoute(route);
     }
 

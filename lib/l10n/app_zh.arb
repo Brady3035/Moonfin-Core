@@ -6605,9 +6605,9 @@
     "settingsPreferServerTranscode": "优先使用服务器转码",
     "settingsDolbyVisionProfile7DirectPlay": "Dolby Vision Profile 7 直接播放",
     "settingsDolbyVisionProfile7DirectPlayDescription": "控制 Dolby Vision Profile 7 增强层视频流是否直接播放。",
-    "settingsAutoAftkrtEnabled": "自动（AFTKRT 已启用）",
-    "settingsEnabledOnThisDevice": "在此设备上启用",
-    "settingsDisabledPreferTranscode": "已禁用（首选转码）",
+    "settingsAutoAftkrtEnabled": "自动",
+    "settingsEnabledOnThisDevice": "启用",
+    "settingsDisabledPreferTranscode": "禁用",
     "settingsResumeRewindDescription": "从“继续观看”或详情页继续播放时，先倒回多少秒？",
     "settingsUnpauseRewindDescription": "暂停后继续播放时，先倒回多少秒？",
     "settingsSkipBackLengthDescription": "按快退按钮后跳回多少秒。",
@@ -6974,11 +6974,11 @@
     "@disableTunnelingSubtitle": {
         "description": "Setting subtitle for disable tunneling"
     },
-    "mapDolbyVisionP7Title": "将 Dolby Vision Profile 7 映射到 HEVC",
+    "mapDolbyVisionP7Title": "始终以 HDR10 格式播放 Dolby Vision 7 profile",
     "@mapDolbyVisionP7Title": {
         "description": "Setting title: play DV P7 as HDR10 HEVC on non-DV devices"
     },
-    "mapDolbyVisionP7Subtitle": "在非 DV 设备上将 Dolby Vision Profile 7 视频流作为 HDR10 兼容的 HEVC 播放。",
+    "mapDolbyVisionP7Subtitle": "跳过 Profile 8 转换，并将 Dolby Vision Profile 7 流转换为 HDR10 兼容的 HEVC 格式。如果转换后的流看起来有问题，请使用此方法。",
     "@mapDolbyVisionP7Subtitle": {
         "description": "Setting subtitle for DV P7 to HEVC mapping"
     },
@@ -7587,7 +7587,7 @@
     "@libraryWriteAccessHowToFix": {
         "description": "Section header for write access troubleshooting"
     },
-    "libraryWriteAccessFixSteps": "1. 在服务器上为媒体库文件夹授予 Jellyfin 服务账号写入权限（Docker 环境需配置正确 PUID/PGID）。\n\n2. 或前往 Jellyfin 控制台-媒体库，编辑当前媒体库，关闭「将封面图片保存至媒体文件夹」，封面将统一存储在 Jellyfin 内置数据库中。",
+    "libraryWriteAccessFixSteps": "1. 在服务器上为媒体库文件夹授予 Jellyfin 服务账号写入权限（Docker 环境需配置正确 PUID/PGID）。\n\n2. 或前往 Jellyfin 控制台-媒体库，编辑当前媒体库，关闭「将艺术图保存至媒体文件夹」，艺术图将统一存储在 Jellyfin 内置数据库中。",
     "@libraryWriteAccessFixSteps": {
         "description": "Troubleshooting steps for write access issues"
     },
@@ -7595,7 +7595,7 @@
     "@dismiss": {
         "description": "Dismiss button text"
     },
-    "libraryWriteAccessProactiveBody": "您的“{libraryName}”媒体库已开启「将封面图片保存至媒体文件夹」，但 Jellyfin 检测发现无权限写入以下目录：\n\n{failedPath}",
+    "libraryWriteAccessProactiveBody": "您的“{libraryName}”媒体库已开启「将艺术图保存至媒体文件夹」，但 Jellyfin 检测发现无权限写入以下目录：\n\n{failedPath}",
     "@libraryWriteAccessProactiveBody": {
         "description": "Proactive warning message about server write access",
         "placeholders": {
@@ -7607,7 +7607,7 @@
             }
         }
     },
-    "libraryWriteAccessReactiveBody": "Jellyfin 封面更新失败。当前媒体库设置为直接将封面存入媒体文件夹，该报错通常是 Jellyfin 服务进程缺少媒体目录写入权限导致。",
+    "libraryWriteAccessReactiveBody": "Jellyfin 艺术图更新失败。当前媒体库设置为直接将艺术图存入媒体文件夹，该报错通常是 Jellyfin 服务进程缺少媒体目录写入权限导致。",
     "@libraryWriteAccessReactiveBody": {
         "description": "Reactive error warning message when artwork update fails"
     },
@@ -7880,7 +7880,7 @@
     "adminLibrarySectionMovies": "电影",
     "adminLibRealtimeMonitor": "启用实时监控",
     "adminLibRealtimeMonitorHint": "检测文件更改并自动处理。",
-    "adminLibSaveLocalMetadata": "将封面保存到媒体文件夹",
+    "adminLibSaveLocalMetadata": "将艺术图保存到媒体文件夹",
     "adminLibRefreshInterval": "自动元数据刷新",
     "adminLibDisplayTitle": "显示",
     "adminLibDisplaySection": "媒体库显示",
@@ -9178,5 +9178,185 @@
                 "type": "String"
             }
         }
+    },
+    "oledMode": "OLED 模式",
+    "@oledMode": {
+        "description": "Label for the setting that deepens blacks and enriches artwork on OLED displays"
+    },
+    "oledModeSubtitle": "加深黑色，提升艺术图的色彩表现力。OLED 显示屏效果最佳。",
+    "@oledModeSubtitle": {
+        "description": "Explanation under the OLED Mode setting"
+    },
+    "oledModeVivid": "鲜艳",
+    "@oledModeVivid": {
+        "description": "OLED Mode level that uses pure black surfaces and the strongest artwork enrichment"
+    },
+    "oledModeSubtle": "柔和",
+    "@oledModeSubtle": {
+        "description": "OLED Mode level that darkens surfaces gently and lightly enriches artwork"
+    },
+    "scrollDirection": "滚动方向",
+    "@scrollDirection": {
+        "description": "Section header for scroll direction selection in library display settings"
+    },
+    "scrollDirectionVertical": "垂直",
+    "@scrollDirectionVertical": {
+        "description": "Library scroll direction option: vertical grid (default)"
+    },
+    "scrollDirectionHorizontal": "横向",
+    "@scrollDirectionHorizontal": {
+        "description": "Library scroll direction option: horizontal grid for ultrawide displays"
+    },
+    "scrollToTop": "返回顶部",
+    "@scrollToTop": {
+        "description": "Tooltip for the button that returns a scrolled list to the top"
+    },
+    "settingsAudioPassthroughMode": "直通",
+    "@settingsAudioPassthroughMode": {
+        "description": "Title of the audio passthrough mode selector"
+    },
+    "settingsAudioPassthroughModeDescription": "压缩后的环绕声如何传输到您的电视或接收器。",
+    "settingsAudioPassthroughModeDisabled": "禁用（始终在此设备上解码）",
+    "settingsAudioPassthroughModeAuto": "自动（匹配检测到的设备支持）",
+    "settingsAudioPassthroughModeManual": "手动（请在下方选择格式）",
+    "settingsDownmixToStereoDescription": "将所有解码后的音频混合成两个声道。",
+    "settingsAudioEac3IncludesAtmos": "比特流 E-AC-3，包括杜比全景声 (JOC)。",
+    "settingsAudioDtsHdIncludesDtsX": "比特流 DTS-HD，包括 DTS:X。",
+    "settingsAudioTrueHdIncludesAtmos": "比特流 TrueHD，包括杜比全景声。",
+    "sdCard": "SD 卡",
+    "@sdCard": {
+        "description": "Download location option for a removable storage volume"
+    },
+    "downloadLocationLimitedByAndroid": "Android 系统只允许 Moonfin 写入其拥有的文件夹，而此设备没有可移动存储设备。请启用上方的“保存到下载文件夹”选项，将下载内容保存到其他应用可以访问的位置。",
+    "@downloadLocationLimitedByAndroid": {
+        "description": "Note shown when the only download location Android allows is the default one"
+    },
+    "mergeRecentRowsByType": "按类型合并最近行",
+    "@mergeRecentRowsByType": {
+        "description": "Setting for merging recently added and recently released libraries by media type"
+    },
+    "mergeRecentRowsByTypeDescription": "将同一类型的独立媒体库合并到“最近添加”和“最近发布”主页行中。",
+    "@mergeRecentRowsByTypeDescription": {
+        "description": "Description for merging recent home rows by media type"
+    },
+    "libraryView": "媒体库视图",
+    "@libraryView": {
+        "description": "Section title for library view settings"
+    },
+    "tags": "标签",
+    "@tags": {
+        "description": "Heading for the keyword tags a title is filed under"
+    },
+    "genresAndTags": "类型和标签",
+    "@genresAndTags": {
+        "description": "Button and dialog title for browsing a title's genres, networks and tags"
+    },
+    "manageRequests": "管理请求",
+    "@manageRequests": {
+        "description": "Details screen button opening the pending requests to approve or decline"
+    },
+    "watchlist": "关注列表",
+    "@watchlist": {
+        "description": "Details screen button adding the title to the Seerr watchlist"
+    },
+    "onWatchlist": "关注列表",
+    "@onWatchlist": {
+        "description": "Details screen button label when the title is already on the Seerr watchlist"
+    },
+    "settingsCinemaModeEpisodes": "剧集影院模式",
+    "@settingsCinemaModeEpisodes": {
+        "description": "Settings toggle label. Extends Cinema Mode, which plays pre-roll videos before playback, to TV episodes as well as films. 'Cinema Mode' is the app's feature name."
+    },
+    "settingsCinemaModeEpisodesSubtitle": "在电视节目播出前也播放片头广告",
+    "@settingsCinemaModeEpisodesSubtitle": {
+        "description": "Subtitle for the Cinema Mode for episodes toggle. A 'preroll' is a short video (trailer, bumper) played before the main video starts."
+    },
+    "collectionsRowShowEpisodes": "显示单集",
+    "collectionsRowShowEpisodesSubtitle": "展开电视节目，将每一集单独显示。",
+    "playlistsRowShowEpisodes": "显示单集",
+    "playlistsRowShowEpisodesSubtitle": "展开电视节目，将每一集单独显示。",
+    "playbackTimeDisplay": "进度条时间",
+    "@playbackTimeDisplay": {
+        "description": "Setting title for what is shown next to the playback progress bar"
+    },
+    "settingsPlaybackTimeDisplayDescription": "选择播放进度条周围显示的时间标签。",
+    "@settingsPlaybackTimeDisplayDescription": {
+        "description": "Setting description for the progress bar time option"
+    },
+    "playbackTimeTotal": "总时长",
+    "@playbackTimeTotal": {
+        "description": "Progress bar time option showing the full runtime"
+    },
+    "playbackTimeRemaining": "剩余时间",
+    "@playbackTimeRemaining": {
+        "description": "Progress bar time option showing how much is left to play"
+    },
+    "playbackTimeEndsAt": "结束于",
+    "@playbackTimeEndsAt": {
+        "description": "Progress bar time option showing the clock time playback finishes"
+    },
+    "playbackTimeElapsed": "已播时间",
+    "@playbackTimeElapsed": {
+        "description": "Progress bar time option showing how far into the item playback is"
+    },
+    "playbackTimeVideoSection": "视频播放",
+    "@playbackTimeVideoSection": {
+        "description": "Section header above the video progress bar time slots"
+    },
+    "playbackTimeMusicSection": "音乐播放",
+    "@playbackTimeMusicSection": {
+        "description": "Section header above the music progress bar time option"
+    },
+    "playbackTimeSlotDescription": "选择显示此处显示的内容，或将其隐藏。",
+    "@playbackTimeSlotDescription": {
+        "description": "Setting description for a single progress bar time slot"
+    },
+    "playbackTimeAboveBarLeft": "上方栏，左侧",
+    "@playbackTimeAboveBarLeft": {
+        "description": "Progress bar time slot above the bar on the left"
+    },
+    "playbackTimeAboveBarCenter": "上方栏，居中",
+    "@playbackTimeAboveBarCenter": {
+        "description": "Progress bar time slot above the bar in the center"
+    },
+    "playbackTimeAboveBarRight": "上方栏，右侧",
+    "@playbackTimeAboveBarRight": {
+        "description": "Progress bar time slot above the bar on the right"
+    },
+    "playbackTimeBelowBarLeft": "下方栏，左侧",
+    "@playbackTimeBelowBarLeft": {
+        "description": "Progress bar time slot below the bar on the left"
+    },
+    "playbackTimeBelowBarCenter": "下方栏，居中",
+    "@playbackTimeBelowBarCenter": {
+        "description": "Progress bar time slot below the bar in the center"
+    },
+    "playbackTimeBelowBarRight": "下方栏，右侧",
+    "@playbackTimeBelowBarRight": {
+        "description": "Progress bar time slot below the bar on the right"
+    },
+    "settingsMusicPlaybackTimeDescription": "选择音乐进度条右侧显示的内容。",
+    "@settingsMusicPlaybackTimeDescription": {
+        "description": "Setting description for the music progress bar time option"
+    },
+    "groupByTitle": "按分组",
+    "@groupByTitle": {
+        "description": "Dialog title and button label for library group by options"
+    },
+    "groupByDecade": "十年（年）",
+    "@groupByDecade": {
+        "description": "Option to group library items by release decade"
+    },
+    "groupByParentalRating": "家长评级",
+    "@groupByParentalRating": {
+        "description": "Option to group library items by parental rating"
+    },
+    "groupByStudio": "制片公司",
+    "@groupByStudio": {
+        "description": "Option to group library items by production studio"
+    },
+    "showAlphabeticalFilters": "显示字母表",
+    "@showAlphabeticalFilters": {
+        "description": "Checkbox label for toggling alphabetical picker visibility in Sort and Filter options"
     }
 }

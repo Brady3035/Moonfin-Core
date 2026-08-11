@@ -1292,6 +1292,12 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
       l10n.settingsMediaSegmentCountdown,
     ),
     automation.leaf(
+      'pref_media_segment_auto_hide',
+      l10n.settingsSkipButtonAutoHide,
+      subtitle: l10n.settingsSkipButtonAutoHideDescription,
+      keywords: ['auto dismiss', 'skip intro', 'skip button'],
+    ),
+    automation.leaf(
       'pref_autoplay_next_episode',
       l10n.autoplayNextEpisode,
       subtitle: l10n.autoplayNextEpisodeSubtitle,

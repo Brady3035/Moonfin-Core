@@ -76,7 +76,8 @@ static void my_application_install_desktop_entry() {
       "Icon=%s\n"
       "Categories=AudioVideo;Video;\n"
       "Terminal=false\n"
-      "StartupWMClass=%s\n",
+      "StartupWMClass=%s\n"
+      "MimeType=x-scheme-handler/moonfin;\n",
       appimage, APPLICATION_ID, APPLICATION_ID);
 
   // Rewrite only when something changed, so moving the image updates the entry
@@ -97,6 +98,13 @@ static void my_application_install_desktop_entry() {
               error->message);
     return;
   }
+
+  // Index the scheme handler so moonfin:// links resolve right away. Best
+  // effort, desktops without the tool pick the entry up on their own.
+  const gchar* update_argv[] = {"update-desktop-database", applications_dir,
+                                nullptr};
+  g_spawn_async(nullptr, const_cast<gchar**>(update_argv), nullptr,
+                G_SPAWN_SEARCH_PATH, nullptr, nullptr, nullptr, nullptr);
 
   g_autofree gchar* icons_dir =
       g_build_filename(g_get_user_data_dir(), "icons", "hicolor", "512x512",
@@ -126,6 +134,16 @@ static void my_application_install_desktop_entry() {
 // Implements GApplication::activate.
 static void my_application_activate(GApplication* application) {
   MyApplication* self = MY_APPLICATION(application);
+
+  // A moonfin:// launch while the app is already open just raises the
+  // existing window. app_links receives the forwarded command line
+  // separately.
+  GList* windows = gtk_application_get_windows(GTK_APPLICATION(application));
+  if (windows) {
+    gtk_window_present(GTK_WINDOW(windows->data));
+    return;
+  }
+
   GtkWindow* window =
       GTK_WINDOW(gtk_application_window_new(GTK_APPLICATION(application)));
 
@@ -166,7 +184,10 @@ static gboolean my_application_local_command_line(GApplication* application, gch
   g_application_activate(application);
   *exit_status = 0;
 
-  return TRUE;
+  // FALSE lets GApplication forward the command line to the primary instance,
+  // which is how a moonfin:// URI reaches app_links both on a cold start and
+  // when another instance is already running.
+  return FALSE;
 }
 
 static void my_application_startup(GApplication* application) {
@@ -201,8 +222,13 @@ MyApplication* my_application_new() {
   // the application to be recognized beyond its binary name.
   g_set_prgname(APPLICATION_ID);
 
+  // Single-instance with command-line forwarding, required for app_links to
+  // receive moonfin:// URIs (a second launch hands its arguments to the
+  // primary instance over D-Bus and exits).
   return MY_APPLICATION(g_object_new(my_application_get_type(),
                                      "application-id", APPLICATION_ID,
-                                     "flags", G_APPLICATION_NON_UNIQUE,
+                                     "flags",
+                                     G_APPLICATION_HANDLES_COMMAND_LINE |
+                                         G_APPLICATION_HANDLES_OPEN,
                                      nullptr));
 }

@@ -208,6 +208,7 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen>
   /// Whether the scroll view has settled metrics and is within
   /// [_kLoadMoreExtent] of its end.
   bool get _nearGridEnd {
+    if (!_scrollController.hasClients) return false;
     // Two grids briefly share the controller while one is swapped out.
     if (_scrollController.positions.length != 1) return false;
     final pos = _scrollController.position;
@@ -286,42 +287,78 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen>
   }
 
   bool _isJumpingToLetter = false;
+  int _letterJumpGeneration = 0;
 
   /// Scrolls the first item whose sort name starts with [letter] to the
   /// leading edge, loading pages first if it hasn't arrived yet.
   Future<void> _jumpToLetter(String letter) async {
+    // Scrubbing along the alphabet bar starts a jump per letter, and an older
+    // one would keep re-asserting its own offset against the newest, so each
+    // jump checks in after every await and bows out once superseded.
+    final generation = ++_letterJumpGeneration;
+    bool stillCurrent() => mounted && generation == _letterJumpGeneration;
+
     _vm.setLetterFilter(letter);
     if (!mounted) return;
     setState(() => _isJumpingToLetter = true);
 
     try {
-      await _vm.ensureItemsLoadedForPrefix(letter);
+      await _vm.ensureItemsLoadedForPrefix(letter).timeout(
+        const Duration(seconds: 15),
+        onTimeout: () => false,
+      );
+      if (!stillCurrent()) return;
+      // The walk notifies once when it finishes, so wait for the frame that
+      // lays those items out before measuring anything against them.
       await WidgetsBinding.instance.endOfFrame;
-      if (!mounted || !_scrollController.hasClients) return;
+      if (!stillCurrent() || !_scrollController.hasClients) return;
 
       final targetIndex = _indexOfLetter(letter);
       if (targetIndex < 0) return;
 
+      double targetOffset = 0.0;
       if (_isSongsBrowse) {
-        _scrollController.jumpTo(targetIndex * _kSongRowHeight);
+        targetOffset = targetIndex * _kSongRowHeight;
       } else {
         final geometry = _gridGeometry;
         if (geometry == null) return;
         final line = targetIndex ~/ geometry.perLine;
-        _scrollController.jumpTo(
-          (geometry.leadingPad +
-                  line * (geometry.lineExtent + geometry.lineSpacing))
-              .clamp(0.0, _scrollController.position.maxScrollExtent),
-        );
+        targetOffset = geometry.leadingPad +
+            line * (geometry.lineExtent + geometry.lineSpacing);
       }
 
-      await WidgetsBinding.instance.endOfFrame;
-      if (!mounted) return;
+      // Slivers report maxScrollExtent lazily as children are laid out, so a
+      // jump deeper than the built children clamps short. Re-jump across
+      // frame boundaries until the layout reaches the target or the true
+      // scroll bottom.
+      for (int i = 0; i < 5; i++) {
+        final currentMax = _scrollController.position.maxScrollExtent;
+        final destination = targetOffset.clamp(0.0, currentMax);
+        _scrollController.jumpTo(destination);
+
+        await WidgetsBinding.instance.endOfFrame;
+        if (!stillCurrent()) return;
+        if (!_scrollController.hasClients) break;
+
+        final currentPixels = _scrollController.position.pixels;
+        final newMax = _scrollController.position.maxScrollExtent;
+        if ((currentPixels - targetOffset).abs() < 2.0 ||
+            (destination >= currentMax && currentMax == newMax)) {
+          break;
+        }
+      }
+
       if (PlatformDetection.isTV) {
+        // Delay the focus shift slightly so the D-Pad OK release registers on
+        // the letter button rather than firing onTap on the freshly focused
+        // tile.
+        await Future.delayed(const Duration(milliseconds: 150));
+        if (!stillCurrent()) return;
         getGridItemFocusNode(targetIndex).requestFocus();
       }
     } finally {
-      if (mounted) setState(() => _isJumpingToLetter = false);
+      // A superseded jump leaves the flag for the jump that replaced it.
+      if (stillCurrent()) setState(() => _isJumpingToLetter = false);
     }
   }
 
@@ -729,7 +766,9 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen>
               _vm.scrollDirection == LibraryScrollDirection.horizontal
               ? Axis.horizontal
               : Axis.vertical,
-          topFocusNode: getGridItemFocusNode(0),
+          // cleanupGridFocusNodes disposes node 0 once the list empties, and
+          // the wrapper would keep holding it, so pass nothing instead.
+          topFocusNode: _vm.items.isNotEmpty ? getGridItemFocusNode(0) : null,
           child: _buildContent(context),
         ),
       );
@@ -821,6 +860,7 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen>
                 isMovieOrSeriesLibrary: _vm.isMovieOrSeriesLibrary,
                 onSettings: () => _showSettingsDialog(context),
                 onShuffle: _isSongsBrowse ? () => _shuffleSongsLibrary() : null,
+                isSongsBrowse: _isSongsBrowse,
                 onLetterChanged: (l) => _jumpToLetter(l),
                 onPlayedFilterChanged: (status) => _vm.setPlayedFilter(status),
               ),
@@ -1003,23 +1043,41 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen>
     }
     final isMobile = _isCompact(context);
     final hPad = isMobile ? 16.0 : _horizontalPadding;
+    final items = _vm.items;
 
     return CustomScrollView(
       controller: _scrollController,
       slivers: [
         SliverPadding(
           padding: EdgeInsets.fromLTRB(hPad, 8, hPad, 32),
-          sliver: SliverToBoxAdapter(
-            child: DetailTrackList(
-              tracks: _vm.items,
-              showAlbum: true,
-              getFocusNode: (id) {
-                final index = _vm.items.indexWhere((item) => item.id == id);
-                return getGridItemFocusNode(index < 0 ? 0 : index);
-              },
-              onPlayTrack: (index) => _playSongFromIndex(index),
-              onTrackFocused: (item) => _onItemFocused(item),
-            ),
+          sliver: SliverFixedExtentList.builder(
+            itemExtent: _kSongRowHeight,
+            itemCount: items.length,
+            itemBuilder: (context, index) {
+              final track = items[index];
+              return TrackTile(
+                key: ValueKey('song-track-${track.id}'),
+                track: track,
+                focusNode: getGridItemFocusNode(index),
+                onFocused: () => _onItemFocused(track),
+                onArrowUp: index == 0
+                    ? () {
+                        if (_allLetterFocusNode.context != null) {
+                          _allLetterFocusNode.requestFocus();
+                        } else {
+                          _homeButtonFocusNode.requestFocus();
+                        }
+                      }
+                    : null,
+                index: index + 1,
+                totalCount: items.length,
+                currentIndex: index,
+                reorderable: false,
+                reorderIndex: index,
+                onTap: () => _playSongFromIndex(index),
+                showAlbum: true,
+              );
+            },
           ),
         ),
       ],
@@ -1492,7 +1550,7 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen>
 
         return Listener(
           onPointerSignal: (signal) {
-            if (signal is PointerScrollEvent) {
+            if (signal is PointerScrollEvent && _scrollController.hasClients) {
               final pos = _scrollController.position;
               final newOffset =
                   (_scrollController.offset + signal.scrollDelta.dy)
@@ -1518,6 +1576,9 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen>
                   ),
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
+                      // No childCount on this delegate, so returning null is
+                      // what tells the sliver where the list ends.
+                      if (index >= _vm.items.length) return null;
                       final item = _vm.items[index];
                       return MediaCard(
                         title: item.name,
@@ -1706,6 +1767,10 @@ class _LibraryHeader extends StatelessWidget {
   final FocusNode? searchFocusNode;
   final ValueChanged<String>? onSearchChanged;
 
+  /// Songs render as one flat track list where a letter jump has nowhere
+  /// sensible to land, so the alphabet bar stays hidden there.
+  final bool isSongsBrowse;
+
   const _LibraryHeader({
     required this.libraryName,
     required this.totalCount,
@@ -1734,6 +1799,7 @@ class _LibraryHeader extends StatelessWidget {
     this.searchController,
     this.searchFocusNode,
     this.onSearchChanged,
+    this.isSongsBrowse = false,
   });
 
   @override
@@ -1746,6 +1812,7 @@ class _LibraryHeader extends StatelessWidget {
     final isCompactPortrait = isMobile && !isLandscape;
     final prefs = GetIt.instance<UserPreferences>();
     final showAlpha =
+        !isSongsBrowse &&
         prefs.get(UserPreferences.showAlphabeticalFilters) &&
         (isMusicBrowse ||
             sortBy == LibrarySortBy.name ||

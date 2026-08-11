@@ -548,6 +548,7 @@ Categories=AudioVideo;Video;
 Comment=Jellyfin & Emby media client
 Terminal=false
 StartupWMClass=${APP_ID}
+MimeType=x-scheme-handler/moonfin;
 EOF
   # AppImage launchers read the version from the embedded desktop entry rather
   # than the filename.
@@ -1138,6 +1139,7 @@ Icon=\${SNAP}/meta/gui/icon.png
 Categories=AudioVideo;Video;
 Comment=Jellyfin & Emby media client
 Terminal=false
+MimeType=x-scheme-handler/moonfin;
 EOF
 
   cd "$snap_dir"

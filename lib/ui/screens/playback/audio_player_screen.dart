@@ -107,9 +107,7 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
         unawaited(_exitPlayback());
       }),
     ]);
-    if (PlatformDetection.useNativeVideoSurface) {
-      unawaited(_activeMedia3Backend?.setVolume(100.0));
-    }
+    unawaited(_activeMedia3Backend?.setVolume(100.0));
     if (_isWidePlayer) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
@@ -846,8 +844,7 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
   @override
   Widget build(BuildContext context) {
     final item = _resolveCurrentItem();
-    final attachMedia3View =
-        PlatformDetection.useNativeVideoSurface && _activeMedia3Backend != null;
+    final attachMedia3View = _activeMedia3Backend != null;
     final isAudiobookRoute = GoRouterState.of(context).uri.queryParameters['isAudiobook'] == 'true';
     final isAudiobook = (item != null && item.isAudiobook) || isAudiobookRoute;
     if (isAudiobook) {

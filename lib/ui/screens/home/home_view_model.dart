@@ -31,6 +31,7 @@ import '../../../data/services/plugin_sync_service.dart';
 import '../../../data/services/seerr/seerr_api_models.dart';
 import '../../../data/utils/bounded_concurrency.dart';
 import '../../../util/platform_detection.dart';
+import '../../../util/server_url.dart';
 import '../../../preference/seerr_preferences.dart';
 import '../../../data/viewmodels/seerr_discover_view_model.dart';
 import '../../../data/services/custom_external_lists_service.dart';
@@ -76,6 +77,39 @@ class HomeViewModel extends ChangeNotifier {
 
   bool get _multiServerEnabled =>
       !_isOffline && _prefs.get(UserPreferences.enableMultiServerLibraries);
+
+  /// Whether a stored address is the server this client is on, ignoring the
+  /// harmless ways the two spellings differ, such as a trailing slash or the
+  /// `/web/index.html` the dashboard runs under.
+  bool _isThisServer(String? storedServerId) {
+    if (storedServerId == null || storedServerId.isEmpty) return false;
+    return normalizeServerBaseUrl(storedServerId) ==
+        normalizeServerBaseUrl(_serverId);
+  }
+
+  /// Whether a section should show on this server's home screen.
+  ///
+  /// The admin config page stamps dynamic rows with whatever address Moonbase
+  /// was opened at, which is often not how users reach the server, so a LAN
+  /// address against a public domain never matches however it is spelled. With
+  /// one server there is nowhere else the row could belong, so keep it anyway.
+  bool _belongsToThisServer(HomeSectionConfig cfg) {
+    if (cfg.isBuiltin || cfg.pluginSource == HomeSectionPluginSource.custom) {
+      return true;
+    }
+    if (!_multiServerEnabled) return true;
+    return _isThisServer(cfg.serverId);
+  }
+
+  /// The address a dynamic row loads from. A row carrying an address this
+  /// client can't match falls back to the active server rather than reaching
+  /// for one it may not be able to see.
+  String _sectionServerId(HomeSectionConfig cfg) {
+    final stored = cfg.serverId;
+    if (stored == null || stored.isEmpty) return _serverId;
+    if (!_multiServerEnabled || _isThisServer(stored)) return _serverId;
+    return stored;
+  }
 
   String _homeCacheKey() {
     final userId = _ownerUserId;
@@ -361,7 +395,6 @@ class HomeViewModel extends ChangeNotifier {
       final sinceYouWatchedNum = _prefs.get(UserPreferences.sinceYouWatchedNumRows).value;
       final showRewatch = _prefs.get(UserPreferences.displayRewatchRow);
 
-      // Plugin-dynamic sections only make sense on the active server.
       final offline = _isOffline;
       final visibleConfigsRaw = configs
           .where(
@@ -369,9 +402,7 @@ class HomeViewModel extends ChangeNotifier {
                 // When offline, only sections the downloads catalog can
                 // answer are shown.
                 (!offline || _isOfflineCapableSection(c)) &&
-                (c.isBuiltin ||
-                    c.pluginSource == HomeSectionPluginSource.custom ||
-                    (c.serverId != null && c.serverId == _serverId)) &&
+                _belongsToThisServer(c) &&
                 (showFavoritesRows || !_isFavoriteSectionType(c.type)) &&
                 (showCollectionsRows ||
                     !((c.isBuiltin && _isCollectionsSectionType(c.type)) ||
@@ -890,7 +921,7 @@ class HomeViewModel extends ChangeNotifier {
         rowId: cfg.stableId,
         section: section,
         title: cfg.pluginDisplayText ?? section,
-        serverId: cfg.serverId ?? _serverId,
+        serverId: _sectionServerId(cfg),
         additionalData: cfg.pluginAdditionalData,
         pluginSource: cfg.pluginSource,
         forceRefresh: forceRefresh,

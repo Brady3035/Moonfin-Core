@@ -68,6 +68,7 @@ import '../../widgets/change_artwork_dialog.dart';
 import '../../widgets/navigation_layout.dart';
 import '../../widgets/horizontal_scroll_section.dart';
 import '../../widgets/rating_display.dart';
+import '../../widgets/personal_rating_dialog.dart';
 import '../../widgets/track_action_dialog.dart';
 import '../../widgets/track_selector_dialog.dart';
 import '../../widgets/remote_play_to_session_dialog.dart';
@@ -84,6 +85,7 @@ import '../../../syncplay/syncplay_manager.dart';
 import '../../../util/audio_labels.dart';
 import '../../../util/download_utils.dart';
 import '../../../util/episode_playability.dart';
+import '../../../util/season_queue_context.dart';
 import '../../../util/focus/dpad_keys.dart';
 import '../../../util/language_matching.dart';
 import '../../../util/subtitle_track_logic.dart';
@@ -217,12 +219,17 @@ class ItemDetailScreen extends StatefulWidget {
   /// Only used to resolve an IMDb-keyed Seerr id by searching for it.
   final String? seerrTitle;
 
+  /// The season the viewer came from, when it is not this item's own season —
+  /// see [ItemDetailViewModel.contextSeasonId].
+  final String? contextSeasonId;
+
   const ItemDetailScreen({
     super.key,
     required this.itemId,
     this.serverId,
     this.autoPlay = false,
     this.seerrTitle,
+    this.contextSeasonId,
   });
 
   @override
@@ -240,6 +247,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen>
   final ValueNotifier<String?> _backdropUrl = ValueNotifier<String?>(null);
   StreamSubscription<String?>? _backgroundSub;
   bool _themeMusicStarted = false;
+  bool _seerrRedirectDone = false;
   String? _selectedMediaSourceId;
   bool _showNavbar = true;
   bool _actionsExpanded = false;
@@ -268,8 +276,9 @@ class _ItemDetailScreenState extends State<ItemDetailScreen>
     _viewModel = ItemDetailViewModel(
       itemId: widget.itemId,
       serverId: widget.serverId,
+      contextSeasonId: widget.contextSeasonId,
       client: client,
-      mutations: GetIt.instance<ItemMutationRepository>(),
+      mutations: ItemMutationRepository(client),
       mdbListRepository: GetIt.instance<MdbListRepository>(),
       tmdbRepository: GetIt.instance<TmdbRepository>(),
     );
@@ -375,6 +384,17 @@ class _ItemDetailScreenState extends State<ItemDetailScreen>
 
   void _onChanged() {
     if (!mounted) return;
+    final resolvedLibraryId = _viewModel.seerrResolvedLibraryId;
+    if (resolvedLibraryId != null && !_seerrRedirectDone) {
+      _seerrRedirectDone = true;
+      // A notify can arrive mid build, and pushing a route from there throws.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          context.pushReplacement(Destinations.item(resolvedLibraryId));
+        }
+      });
+      return;
+    }
     setState(() {});
     final item = _viewModel.item;
     if (item != null) {
@@ -1876,6 +1896,7 @@ class _DetailContentState extends State<_DetailContent> {
           context: context,
           vm: seerr,
           is4k: false,
+          qualityToggle: true,
           season: seasonNumber > 0 ? seasonNumber : null,
         );
   }
@@ -2073,6 +2094,7 @@ class _DetailContentState extends State<_DetailContent> {
         DetailNextUpCard(
           episode: viewModel.nextUp!,
           imageApi: viewModel.imageApi,
+          contextSeasonId: viewModel.effectiveSeasonId,
           focusNode: seriesNextUpFocusNode,
           onKeyEvent: (event) {
             if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
@@ -2253,6 +2275,7 @@ class _DetailContentState extends State<_DetailContent> {
               imageApi: viewModel.imageApi,
               onChanged: () => viewModel.load(),
               isActive: viewModel.nextUp?.id == ep.id,
+              contextSeasonId: item.id,
             ),
           ),
         ),
@@ -2374,6 +2397,7 @@ class _DetailContentState extends State<_DetailContent> {
               DetailNextUpCard(
                 episode: nextEpisode,
                 imageApi: viewModel.imageApi,
+                contextSeasonId: viewModel.effectiveSeasonId,
                 focusNode: nextEpisodeFocusNode,
                 onKeyEvent: (event) {
                   if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
@@ -2417,6 +2441,7 @@ class _DetailContentState extends State<_DetailContent> {
             currentEpisodeId: item.id,
             imageApi: viewModel.imageApi,
             onChanged: () => viewModel.load(),
+            contextSeasonId: viewModel.effectiveSeasonId,
             scrollController: _trackSectionScrollController(
               episodesFocusNode,
               ctrl,
@@ -5522,6 +5547,7 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
     return _DetailActionButton(
       label: button.label,
       icon: button.icon,
+      iconBuilder: button.iconBuilder,
       onPressed: button.onPressed,
       onLongPress: button.onLongPress,
       onFocused: onFocused ?? button.onFocused,
@@ -5798,6 +5824,59 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
     return maxButtons > 2 ? maxButtons : 2;
   }
 
+  PersonalRatingStyle _personalRatingStyle() {
+    final style = GetIt.instance<UserPreferences>().get(
+      UserPreferences.personalRatingStyle,
+    );
+    return viewModel.supportsNumericUserRatings
+        ? style
+        : PersonalRatingStyle.thumbs;
+  }
+
+  bool? _displayRatingLikes(AggregatedItem item) =>
+      item.personalRatingLikes ??
+      (item.personalRating == null
+          ? null
+          : item.personalRating! >= AggregatedItem.likedRatingThreshold);
+
+  String _personalRatingActionLabel(
+    AppLocalizations l10n,
+    AggregatedItem item,
+  ) {
+    final rating = item.personalRating;
+    switch (_personalRatingStyle()) {
+      case PersonalRatingStyle.thumbs:
+        // A thumb rating only stores Likes on the server, so the numeric
+        // rating alone can't say whether this item was rated.
+        final likes = _displayRatingLikes(item);
+        if (likes == null) return l10n.rate;
+        return likes ? l10n.like : l10n.dislike;
+      case PersonalRatingStyle.stars:
+        if (rating == null) return l10n.rate;
+        final stars = rating / 2;
+        if (stars == 0) return l10n.personalRatingOutOfFive('0');
+        final fullStars = stars.floor();
+        final hasHalfStar = stars - fullStars >= 0.25;
+        return '${'★' * fullStars}${hasHalfStar ? '½' : ''}';
+      case PersonalRatingStyle.numeric:
+        return rating == null ? l10n.rate : l10n.personalRatingRated;
+    }
+  }
+
+  Future<void> _showPersonalRatingDialog(BuildContext context) {
+    final item = viewModel.item;
+    if (item == null) return Future.value();
+    return PersonalRatingDialog.show(
+      context,
+      style: _personalRatingStyle(),
+      rating: item.personalRating,
+      likes: _displayRatingLikes(item),
+      onSetThumbRating: viewModel.setThumbRating,
+      onSetNumericRating: viewModel.setNumericRating,
+      onClearRating: viewModel.clearRating,
+    );
+  }
+
   @override
   void didUpdateWidget(covariant DetailActionButtons oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -5838,8 +5917,15 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
       if (!mounted) return;
 
       // Consume autoPlay from the current detail route so back navigation
-      // doesn't re-trigger playback.
-      context.replace(Destinations.item(item.id, serverId: item.serverId));
+      // doesn't re-trigger playback. The browsed season has to survive the
+      // rewrite, or the screen reloads against the item's own season.
+      context.replace(
+        Destinations.item(
+          item.id,
+          serverId: item.serverId,
+          seasonContext: viewModel.contextSeasonId,
+        ),
+      );
 
       final isPhoto = item.type == 'Photo';
       final ws = _computeWatchState(item);
@@ -6298,6 +6384,31 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
           isActive: item.isFavorite,
           activeColor: const Color(0xFFFF4757),
         ),
+      if (item.type == 'Movie' && shows(DetailButton.personalRating))
+        DetailButton.personalRating: _DetailActionButton(
+          label: _personalRatingActionLabel(l10n, item),
+          icon: switch (_personalRatingStyle()) {
+            PersonalRatingStyle.thumbs => _displayRatingLikes(item) == true
+                ? Icons.thumb_up
+                : _displayRatingLikes(item) == false
+                ? Icons.thumb_down
+                : Icons.thumb_up_outlined,
+            PersonalRatingStyle.stars => Icons.star_outline,
+            PersonalRatingStyle.numeric => Icons.numbers,
+          },
+          iconBuilder: (size, color) => _PersonalRatingActionIcon(
+            style: _personalRatingStyle(),
+            rating: item.personalRating,
+            likes: _displayRatingLikes(item),
+            size: size,
+            color: color,
+          ),
+          onPressed: viewModel.isRatingMutationInProgress
+              ? () {}
+              : () => _showPersonalRatingDialog(context),
+          isActive: _displayRatingLikes(item) != null,
+          activeColor: Colors.amber,
+        ),
       if (!isBook && shows(DetailButton.playlist))
         DetailButton.playlist: _DetailActionButton(
           label: l10n.playlist,
@@ -6377,21 +6488,71 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
         ),
     };
 
+    // Taking a request back rides in the same arrangement slot as the track's
+    // request button, so moving or hiding seerrRequest carries its cancel
+    // along with it.
+    final cancelByButton = <DetailButton, Widget>{
+      if (shows(DetailButton.seerrRequest))
+        DetailButton.seerrRequest: ?_seerrCancelButton(
+          context,
+          seerr,
+          l10n,
+          is4k: false,
+        ),
+      if (shows(DetailButton.seerrRequest4k))
+        DetailButton.seerrRequest4k: ?_seerrCancelButton(
+          context,
+          seerr,
+          l10n,
+          is4k: true,
+        ),
+    };
+
     // Requesting is the only thing to do with a title you don't have, so it
     // takes the primary slot, keeping Play's focus node so everything that
     // reaches for that anchor still finds it. The request entry then leaves the
     // arranged row, since it is already leading it.
     final Widget? primaryAction;
     if (viewModel.isSeerrOnly) {
-      primaryAction = _seerrRequestButton(
+      // One slot covers both tracks, since the sheet it opens carries the
+      // quality switch. It is built off the HD track, falling back to the 4K
+      // one for a viewer who is only allowed that.
+      Widget? requestSlot(bool is4k) => _seerrRequestButton(
         context,
         seerr,
         l10n,
-        is4k: false,
+        is4k: is4k,
+        qualityToggle: true,
         isPrimary: true,
         focusNode: _tvPlayFocusNode,
         autofocus: autofocusPlay,
       );
+      // A title with nothing left to ask for leads with its cancel instead, so
+      // focus still has a primary button to land on. The row then drops that
+      // copy rather than offering the same button twice.
+      Widget? cancelSlot() {
+        for (final slot in [
+          DetailButton.seerrRequest,
+          DetailButton.seerrRequest4k,
+        ]) {
+          final cancel = _seerrCancelButton(
+            context,
+            seerr,
+            l10n,
+            is4k: slot == DetailButton.seerrRequest4k,
+            isPrimary: true,
+            focusNode: _tvPlayFocusNode,
+            autofocus: autofocusPlay,
+          );
+          if (cancel != null) {
+            cancelByButton.remove(slot);
+            return cancel;
+          }
+        }
+        return null;
+      }
+
+      primaryAction = requestSlot(false) ?? requestSlot(true) ?? cancelSlot();
       byButton.removeWhere(
         (button, _) =>
             !button.availableInSeerrOnly ||
@@ -6407,8 +6568,10 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
         DetailButton.values,
         (button) => button.id,
         prefs,
-      ))
+      )) ...[
         ?byButton[button],
+        ?cancelByButton[button],
+      ],
     ];
 
     if (isNeon) {
@@ -6424,6 +6587,7 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
         return _DetailActionButton(
           label: widget.label,
           icon: widget.icon,
+          iconBuilder: widget.iconBuilder,
           isPrimary: widget.isPrimary,
           onPressed: widget.onPressed,
           onLongPress: widget.onLongPress,
@@ -7735,6 +7899,68 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
         .toList();
   }
 
+  /// The playable season list that actually holds [target], as the season pages
+  /// display it.
+  ///
+  /// A special is filed under Specials but shown inside a regular season once
+  /// the library inlines it, and nothing on the item says which season claimed
+  /// it. So for a special, ask about the seasons of its neighbours in aired
+  /// order — the one that lists it is the one to queue. Regular episodes take
+  /// the first candidate, their own season, on the first request.
+  Future<List<AggregatedItem>> _seasonQueueContaining(
+    MediaServerClient client, {
+    required String seriesId,
+    required String serverId,
+    required AggregatedItem target,
+    required List<AggregatedItem> airedEpisodes,
+    required String fields,
+  }) async {
+    final candidates = <String>[];
+    void addCandidate(String? seasonId) {
+      if (seasonId == null || seasonId.isEmpty) return;
+      if (candidates.contains(seasonId)) return;
+      candidates.add(seasonId);
+    }
+
+    if (isSpecialEpisode(target)) {
+      final at = airedEpisodes.indexWhere((e) => e.id == target.id);
+      if (at >= 0) {
+        // Airs-before is the common case, so the season that follows leads.
+        for (var i = at + 1; i < airedEpisodes.length; i++) {
+          if (isSpecialEpisode(airedEpisodes[i])) continue;
+          addCandidate(airedEpisodes[i].seasonId);
+          break;
+        }
+        for (var i = at - 1; i >= 0; i--) {
+          if (isSpecialEpisode(airedEpisodes[i])) continue;
+          addCandidate(airedEpisodes[i].seasonId);
+          break;
+        }
+      }
+    }
+    addCandidate(target.seasonId);
+
+    for (final seasonId in candidates) {
+      try {
+        final seasonData = await client.itemsApi.getEpisodes(
+          seriesId,
+          seasonId: seasonId,
+          fields: fields,
+        );
+        final seasonEpisodes = _mapRawItemsForServer(
+          seasonData['Items'],
+          serverId,
+        );
+        if (!seasonEpisodes.any((e) => e.id == target.id)) continue;
+        final playable = seasonEpisodes
+            .where(isEligibleNextEpisodeCandidate)
+            .toList();
+        if (playable.isNotEmpty) return playable;
+      } catch (_) {}
+    }
+    return const <AggregatedItem>[];
+  }
+
   Future<List<AggregatedItem>> _truncateQueueIfImmediateNextUnplayable(
     List<AggregatedItem> queue, {
     required int startIndex,
@@ -7827,10 +8053,20 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
           lastPlayedType == 'episode' &&
           lastPlayed.id != widget.itemId) {
         if (context.mounted) {
-          final currentSeasonId = viewModel.item?.seasonId;
-          if (lastPlayed.seasonId != null &&
-              lastPlayed.seasonId!.isNotEmpty &&
-              lastPlayed.seasonId != currentSeasonId) {
+          // An inlined special owns the Specials season while being listed in
+          // the one on screen, so membership of the loaded list — not the
+          // season id — decides whether playback left the season.
+          final browsedSeasonId = viewModel.effectiveSeasonId;
+          final stayedInSeason =
+              viewModel.episodes.any((e) => e.id == lastPlayed.id) ||
+              lastPlayed.seasonId == browsedSeasonId;
+          // A special's own season is Specials, which is never the season the
+          // viewer was moved into — rebuilding the stack under it would land
+          // them exactly where this whole change keeps them out of.
+          if (!stayedInSeason &&
+              !isSpecialEpisode(lastPlayed) &&
+              lastPlayed.seasonId != null &&
+              lastPlayed.seasonId!.isNotEmpty) {
             final router = GoRouter.of(context);
             router.pushReplacement(
               Destinations.item(
@@ -7845,7 +8081,14 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
             });
           } else {
             context.pushReplacement(
-              Destinations.item(lastPlayed.id, serverId: lastPlayed.serverId),
+              Destinations.item(
+                lastPlayed.id,
+                serverId: lastPlayed.serverId,
+                seasonContext: seasonContextParam(
+                  contextSeasonId: browsedSeasonId,
+                  episodeSeasonId: lastPlayed.seasonId,
+                ),
+              ),
             );
           }
         }
@@ -7854,7 +8097,10 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
           lastPlayedType == 'episode' &&
           lastPlayed.seasonId != null &&
           lastPlayed.seasonId!.isNotEmpty &&
-          lastPlayed.seasonId != widget.itemId) {
+          lastPlayed.seasonId != widget.itemId &&
+          // A special inlined into this season is displayed here, so finishing
+          // on one must not bounce the viewer over to the Specials season.
+          !viewModel.episodes.any((e) => e.id == lastPlayed.id)) {
         if (context.mounted) {
           context.pushReplacement(
             Destinations.item(
@@ -8021,27 +8267,17 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
                   );
             }
 
-            final targetSeasonId = targetEpisode.seasonId;
-            var queueEpisodes = <AggregatedItem>[targetEpisode];
-            if (targetSeasonId != null && targetSeasonId.isNotEmpty) {
-              try {
-                final seasonData = await client.itemsApi.getEpisodes(
-                  item.id,
-                  seasonId: targetSeasonId,
-                  fields: episodeQueueFields,
-                );
-                final seasonEpisodes = _mapRawItemsForServer(
-                  seasonData['Items'],
-                  item.serverId,
-                );
-                final playableSeasonEpisodes = seasonEpisodes
-                    .where(isEligibleNextEpisodeCandidate)
-                    .toList();
-                if (playableSeasonEpisodes.isNotEmpty) {
-                  queueEpisodes = playableSeasonEpisodes;
-                }
-              } catch (_) {}
-            }
+            final playableSeasonEpisodes = await _seasonQueueContaining(
+              client,
+              seriesId: item.id,
+              serverId: item.serverId,
+              target: targetEpisode,
+              airedEpisodes: allEpisodes,
+              fields: episodeQueueFields,
+            );
+            final queueEpisodes = playableSeasonEpisodes.isNotEmpty
+                ? playableSeasonEpisodes
+                : <AggregatedItem>[targetEpisode];
 
             final startIndex = queueEpisodes.indexWhere(
               (e) => e.id == targetEpisode.id,
@@ -8156,7 +8392,9 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
             var episodes = viewModel.episodes;
             if (episodes.isEmpty || !episodes.any((e) => e.id == item.id)) {
               final seriesId = item.seriesId;
-              final seasonId = item.seasonId;
+              // Matches the list on screen, which for an inlined special is the
+              // season being browsed rather than Specials.
+              final seasonId = viewModel.effectiveSeasonId ?? item.seasonId;
               if (seriesId != null && seriesId.isNotEmpty) {
                 try {
                   const episodeQueueFields = 'Overview,RunTimeTicks,UserData';
@@ -10292,6 +10530,133 @@ class _DeleteDownloadButtonState extends State<_DeleteDownloadButton> {
   }
 }
 
+class _PersonalRatingActionIcon extends StatelessWidget {
+  final PersonalRatingStyle style;
+  final double? rating;
+  final bool? likes;
+  final double size;
+  final Color color;
+
+  const _PersonalRatingActionIcon({
+    required this.style,
+    required this.rating,
+    required this.likes,
+    required this.size,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return switch (style) {
+      PersonalRatingStyle.thumbs => likes == null
+          ? Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.thumb_up_outlined, color: color, size: size * 0.5),
+                SizedBox(width: size * 0.08),
+                Icon(
+                  Icons.thumb_down_outlined,
+                  color: color,
+                  size: size * 0.5,
+                ),
+              ],
+            )
+          : Icon(
+              likes! ? Icons.thumb_up : Icons.thumb_down,
+              color: color,
+              size: size * 0.72,
+            ),
+      PersonalRatingStyle.stars => _StarFillIcon(
+        fill: ((rating ?? 0).clamp(0, 10) / 10).toDouble(),
+        size: size * 0.82,
+        color: color,
+      ),
+      PersonalRatingStyle.numeric => Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.baseline,
+        textBaseline: TextBaseline.alphabetic,
+        children: [
+          Text(
+            rating == null
+                ? '–'
+                : rating == rating!.roundToDouble()
+                ? rating!.toInt().toString()
+                : rating!.toString(),
+            style: TextStyle(
+              color: color,
+              fontWeight: FontWeight.w800,
+              fontSize: size * 0.58,
+              height: 1,
+            ),
+          ),
+          Text(
+            ' / 10',
+            style: TextStyle(
+              color: color.withValues(alpha: 0.82),
+              fontWeight: FontWeight.w700,
+              fontSize: size * 0.28,
+              height: 1,
+            ),
+          ),
+        ],
+      ),
+    };
+  }
+}
+
+class _StarFillIcon extends StatelessWidget {
+  final double fill;
+  final double size;
+  final Color color;
+
+  const _StarFillIcon({
+    required this.fill,
+    required this.size,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // A linear fill is imperceptible at this button size: 1/5 looks empty and
+    // 4/5 looks full because the missing portion falls into a star point.
+    // Keep exact empty/full endpoints, but pull intermediate values toward the
+    // middle so every saved rating remains visually distinguishable.
+    final visualFill = fill == 0
+        ? 0.0
+        : fill == 1
+        ? 1.0
+        : 0.5 + (fill - 0.5) * 0.3;
+    if (visualFill == 0) {
+      return Icon(Icons.star_border, color: color, size: size);
+    }
+    if (visualFill == 1) {
+      return Icon(Icons.star, color: color, size: size);
+    }
+    return SizedBox(
+      width: size,
+      height: size,
+      child: Stack(
+        children: [
+          Icon(Icons.star_border, color: color, size: size),
+          ShaderMask(
+            blendMode: BlendMode.srcIn,
+            shaderCallback: (bounds) => LinearGradient(
+              colors: [
+                color,
+                color,
+                color.withValues(alpha: 0),
+                color.withValues(alpha: 0),
+              ],
+              stops: [0, visualFill, visualFill, 1],
+            ).createShader(bounds),
+            child: Icon(Icons.star, color: Colors.white, size: size),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _DetailActionButton extends StatefulWidget {
   final String label;
   final IconData? icon;
@@ -10600,7 +10965,7 @@ class _DetailActionButtonState extends State<_DetailActionButton>
                       ),
               ),
             ),
-            if (isExpanded) ...[
+            if (isExpanded && widget.label.isNotEmpty) ...[
               const SizedBox(width: 6),
               Text(
                 widget.label,
@@ -12186,10 +12551,52 @@ class _EpisodeProgressBar extends StatelessWidget {
   }
 }
 
-/// The request slot for one quality track. One button that morphs between
-/// offering a request and taking it back, and yields nothing when there is
-/// neither to offer.
+/// The request slot for one quality track: Request or Request More, and
+/// nothing when there is nothing left to ask for on that track.
 Widget? _seerrRequestButton(
+  BuildContext context,
+  SeerrMediaDetailViewModel? seerr,
+  AppLocalizations l10n, {
+  required bool is4k,
+  bool qualityToggle = false,
+  bool isPrimary = false,
+  FocusNode? focusNode,
+  bool autofocus = false,
+}) {
+  if (seerr == null) return null;
+  // A series counts as continuing until it has settled. An unknown status
+  // stays false, so a lookup that found nothing never opens the button.
+  final status = (seerr.state.tv?.status ?? '').toLowerCase();
+  final isContinuing =
+      status.isNotEmpty && status != 'ended' && status != 'canceled';
+  final action = seerrRequestActionFor(
+    seerr.state.quality(is4k: is4k),
+    l10n,
+    allowed: is4k ? seerr.canRequest4k : seerr.canRequest,
+    isTv: seerr.state.isTv,
+    isContinuing: isContinuing,
+  );
+  if (action.kind != SeerrRequestActionKind.request) return null;
+  return _DetailActionButton(
+    label: action.label,
+    icon: Icons.add,
+    isPrimary: isPrimary,
+    focusNode: focusNode,
+    autofocus: autofocus,
+    onPressed: () => showSeerrRequestDialog(
+      context: context,
+      vm: seerr,
+      is4k: is4k,
+      qualityToggle: qualityToggle,
+      isContinuing: isContinuing,
+    ),
+  );
+}
+
+/// Takes this track's open request back. Rides in the same arrangement slot
+/// as the track's request button, so an open request on a partially available
+/// series shows Request More and Cancel Request side by side.
+Widget? _seerrCancelButton(
   BuildContext context,
   SeerrMediaDetailViewModel? seerr,
   AppLocalizations l10n, {
@@ -12199,30 +12606,19 @@ Widget? _seerrRequestButton(
   bool autofocus = false,
 }) {
   if (seerr == null) return null;
-  final action = seerrRequestActionFor(
-    seerr.state.quality(is4k: is4k),
-    seerr,
-    l10n,
-  );
-  final icon = switch (action.kind) {
-    SeerrRequestActionKind.request => Icons.add,
-    SeerrRequestActionKind.cancel => Icons.close,
-    _ => null,
-  };
-  if (icon == null) return null;
+  final label = seerrCancelLabelFor(seerr.state.quality(is4k: is4k), l10n);
+  if (label == null) return null;
   return _DetailActionButton(
-    label: action.label,
-    icon: icon,
+    label: label,
+    icon: Icons.close,
     isPrimary: isPrimary,
     focusNode: focusNode,
     autofocus: autofocus,
-    onPressed: () => action.kind == SeerrRequestActionKind.request
-        ? showSeerrRequestDialog(context: context, vm: seerr, is4k: is4k)
-        : showSeerrCancelRequestDialog(
-            context: context,
-            vm: seerr,
-            is4k: is4k,
-          ),
+    onPressed: () => showSeerrCancelRequestDialog(
+      context: context,
+      vm: seerr,
+      is4k: is4k,
+    ),
   );
 }
 
@@ -12387,6 +12783,10 @@ class _EpisodesRow extends StatelessWidget {
   final KeyEventResult Function(int index, KeyEvent event)? onItemKeyEvent;
   final VoidCallback? onChanged;
 
+  /// The season these episodes are listed under — see
+  /// [DetailEpisodeCard.contextSeasonId].
+  final String? contextSeasonId;
+
   const _EpisodesRow({
     required this.episodes,
     required this.currentEpisodeId,
@@ -12395,6 +12795,7 @@ class _EpisodesRow extends StatelessWidget {
     this.firstItemFocusNode,
     this.onItemKeyEvent,
     this.onChanged,
+    this.contextSeasonId,
   });
 
   @override
@@ -12434,6 +12835,7 @@ class _EpisodesRow extends StatelessWidget {
                 ? null
                 : (event) => onItemKeyEvent!(index, event),
             onChanged: onChanged,
+            contextSeasonId: contextSeasonId,
           );
         },
       ),
@@ -12450,6 +12852,10 @@ class _EpisodeListCard extends StatefulWidget {
   final KeyEventResult Function(KeyEvent event)? onKeyEvent;
   final VoidCallback? onChanged;
 
+  /// The season this card is listed under — see
+  /// [DetailEpisodeCard.contextSeasonId].
+  final String? contextSeasonId;
+
   const _EpisodeListCard({
     required this.episode,
     required this.isCurrent,
@@ -12458,6 +12864,7 @@ class _EpisodeListCard extends StatefulWidget {
     this.focusNode,
     this.onKeyEvent,
     this.onChanged,
+    this.contextSeasonId,
   });
 
   @override
@@ -12476,6 +12883,19 @@ class _EpisodeListCardState extends State<_EpisodeListCard>
 
   void _handleLongPress() {
     showContextMenu(context, widget.episode, onChanged: widget.onChanged);
+  }
+
+  void _open() {
+    context.push(
+      Destinations.item(
+        widget.episode.id,
+        serverId: widget.episode.serverId,
+        seasonContext: seasonContextParam(
+          contextSeasonId: widget.contextSeasonId,
+          episodeSeasonId: widget.episode.seasonId,
+        ),
+      ),
+    );
   }
 
   @override
@@ -12510,8 +12930,7 @@ class _EpisodeListCardState extends State<_EpisodeListCard>
           }
           final handlerResult = _selectKeyHandler.handleKeyEvent(
             event,
-            onTap: () =>
-                context.push(Destinations.item(ep.id, serverId: ep.serverId)),
+            onTap: _open,
             onLongPress: _handleLongPress,
           );
           if (handlerResult != KeyEventResult.ignored) {
@@ -12520,8 +12939,7 @@ class _EpisodeListCardState extends State<_EpisodeListCard>
           return KeyEventResult.ignored;
         },
         child: GestureDetector(
-          onTap: () =>
-              context.push(Destinations.item(ep.id, serverId: ep.serverId)),
+          onTap: _open,
           onLongPress: _handleLongPress,
           onSecondaryTap: _handleLongPress,
           child: Container(
@@ -12673,11 +13091,16 @@ class DetailNextUpCard extends StatefulWidget {
   final FocusNode? focusNode;
   final KeyEventResult Function(KeyEvent event)? onKeyEvent;
 
+  /// The season this card is listed under — see
+  /// [DetailEpisodeCard.contextSeasonId].
+  final String? contextSeasonId;
+
   const DetailNextUpCard({
     required this.episode,
     required this.imageApi,
     this.focusNode,
     this.onKeyEvent,
+    this.contextSeasonId,
   });
 
   @override
@@ -12686,6 +13109,19 @@ class DetailNextUpCard extends StatefulWidget {
 
 class DetailNextUpCardState extends State<DetailNextUpCard>
     with FocusStateMixin {
+  void _open() {
+    context.push(
+      Destinations.item(
+        widget.episode.id,
+        serverId: widget.episode.serverId,
+        seasonContext: seasonContextParam(
+          contextSeasonId: widget.contextSeasonId,
+          episodeSeasonId: widget.episode.seasonId,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final episode = widget.episode;
@@ -12719,17 +13155,13 @@ class DetailNextUpCardState extends State<DetailNextUpCard>
             return customResult;
           }
           if (isActivateKey(event)) {
-            context.push(
-              Destinations.item(episode.id, serverId: episode.serverId),
-            );
+            _open();
             return KeyEventResult.handled;
           }
           return KeyEventResult.ignored;
         },
         child: GestureDetector(
-          onTap: () => context.push(
-            Destinations.item(episode.id, serverId: episode.serverId),
-          ),
+          onTap: _open,
           child: AnimatedScale(
             scale: cardExpansion && showFocusBorder ? 1.02 : 1.0,
             duration: const Duration(milliseconds: 120),
@@ -12848,6 +13280,10 @@ class DetailEpisodeCard extends StatefulWidget {
   final FocusNode? focusNode;
   final FocusOnKeyEventCallback? onKeyEvent;
 
+  /// The season this card is listed under, forwarded so an inlined special
+  /// opens in the season the viewer is browsing instead of Specials.
+  final String? contextSeasonId;
+
   final bool isActive;
 
   const DetailEpisodeCard({
@@ -12856,6 +13292,7 @@ class DetailEpisodeCard extends StatefulWidget {
     this.onChanged,
     this.focusNode,
     this.onKeyEvent,
+    this.contextSeasonId,
     this.isActive = false,
   });
 
@@ -12875,6 +13312,19 @@ class DetailEpisodeCardState extends State<DetailEpisodeCard>
 
   void _handleLongPress() {
     showContextMenu(context, widget.episode, onChanged: widget.onChanged);
+  }
+
+  void _open() {
+    context.push(
+      Destinations.item(
+        widget.episode.id,
+        serverId: widget.episode.serverId,
+        seasonContext: seasonContextParam(
+          contextSeasonId: widget.contextSeasonId,
+          episodeSeasonId: widget.episode.seasonId,
+        ),
+      ),
+    );
   }
 
   @override
@@ -12914,9 +13364,7 @@ class DetailEpisodeCardState extends State<DetailEpisodeCard>
           }
           final handlerResult = _selectKeyHandler.handleKeyEvent(
             event,
-            onTap: () => context.push(
-              Destinations.item(episode.id, serverId: episode.serverId),
-            ),
+            onTap: _open,
             onLongPress: _handleLongPress,
           );
           if (handlerResult != KeyEventResult.ignored) {
@@ -12925,9 +13373,7 @@ class DetailEpisodeCardState extends State<DetailEpisodeCard>
           return KeyEventResult.ignored;
         },
         child: GestureDetector(
-          onTap: () => context.push(
-            Destinations.item(episode.id, serverId: episode.serverId),
-          ),
+          onTap: _open,
           onLongPress: _handleLongPress,
           onSecondaryTap: _handleLongPress,
           child: AnimatedScale(
@@ -14450,7 +14896,7 @@ class DetailTrackList extends StatelessWidget {
         itemBuilder: (context, index) {
           final track = tracks[index];
           final keyId = track.rawData['PlaylistItemId']?.toString() ?? track.id;
-          return _TrackTile(
+          return TrackTile(
             key: ValueKey('playlist-track-$keyId'),
             track: track,
             focusNode: getFocusNode(track.id),
@@ -14503,7 +14949,7 @@ class DetailTrackList extends StatelessWidget {
       }
 
       children.add(
-        _TrackTile(
+        TrackTile(
           track: track,
           focusNode: getFocusNode(track.id),
           onArrowUp: index == 0 ? onFirstTrackUp : null,
@@ -14533,7 +14979,7 @@ class DetailTrackList extends StatelessWidget {
   }
 }
 
-class _TrackTile extends StatefulWidget {
+class TrackTile extends StatefulWidget {
   final AggregatedItem track;
   final FocusNode? focusNode;
   final VoidCallback? onFocused;
@@ -14552,7 +14998,7 @@ class _TrackTile extends StatefulWidget {
   final ValueChanged<int>? onMoveUp;
   final ValueChanged<int>? onMoveDown;
 
-  const _TrackTile({
+  const TrackTile({
     super.key,
     required this.track,
     this.focusNode,
@@ -14574,10 +15020,10 @@ class _TrackTile extends StatefulWidget {
   });
 
   @override
-  State<_TrackTile> createState() => _TrackTileState();
+  State<TrackTile> createState() => _TrackTileState();
 }
 
-class _TrackTileState extends State<_TrackTile> with FocusStateMixin {
+class _TrackTileState extends State<TrackTile> with FocusStateMixin {
   Timer? _selectLongPressTimer;
   bool _selectLongPressTriggered = false;
 

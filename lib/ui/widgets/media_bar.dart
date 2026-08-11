@@ -110,6 +110,7 @@ class _MediaBarState extends State<MediaBar>
   final _sponsorBlockService = SponsorBlockService();
   final _sponsorBlockSession = SponsorBlockSkipSession();
   bool _isHomeRouteActive = true;
+  bool _isHomeRouteTopmost = true;
 
   Timer? _autoAdvanceTimer;
   bool _isPaused = false;
@@ -224,10 +225,8 @@ class _MediaBarState extends State<MediaBar>
       _onMedia3BackendEvent,
       onError: (_) {},
     );
-    _isHomeRouteActive = _isHomePath(
-      appRouter.routerDelegate.currentConfiguration.uri.path,
-    );
-    appRouter.routerDelegate.addListener(_onRouteChanged);
+    _isHomeRouteActive = _isHomeRouteCurrent();
+    appRouter.routerDelegate.addListener(_syncHomeRouteActive);
     PlayerRouteObserver.instance.isPlayerActive
         .addListener(_onPlayerRouteChanged);
     widget.viewModel.addListener(_onStateChanged);
@@ -306,7 +305,7 @@ class _MediaBarState extends State<MediaBar>
     widget.prefs.removeListener(_onPrefsChanged);
     _screensaverController.visible.removeListener(_onScreensaverVisibleChanged);
     WidgetsBinding.instance.removeObserver(this);
-    appRouter.routerDelegate.removeListener(_onRouteChanged);
+    appRouter.routerDelegate.removeListener(_syncHomeRouteActive);
     PlayerRouteObserver.instance.isPlayerActive
         .removeListener(_onPlayerRouteChanged);
     super.dispose();
@@ -324,7 +323,8 @@ class _MediaBarState extends State<MediaBar>
   }
 
   bool _isHomeRouteCurrent() {
-    return _isHomePath(appRouter.routerDelegate.currentConfiguration.uri.path);
+    return _isHomeRouteTopmost &&
+        _isHomePath(appRouter.routerDelegate.currentConfiguration.uri.path);
   }
 
   /// Whether a trailer may play right now. Re-checked after every await in the
@@ -388,6 +388,16 @@ class _MediaBarState extends State<MediaBar>
     }
     // Re-evaluate the persistent Media3 view's mount condition.
     if (mounted) setState(() {});
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!PlatformDetection.isMobile) return;
+    final topmost = ModalRoute.isCurrentOf(context) ?? true;
+    if (topmost == _isHomeRouteTopmost) return;
+    _isHomeRouteTopmost = topmost;
+    _syncHomeRouteActive();
   }
 
   @override
@@ -657,7 +667,7 @@ class _MediaBarState extends State<MediaBar>
     }
   }
 
-  void _onRouteChanged() {
+  void _syncHomeRouteActive() {
     final isHome = _isHomeRouteCurrent();
     if (_isHomeRouteActive == isHome) return;
 

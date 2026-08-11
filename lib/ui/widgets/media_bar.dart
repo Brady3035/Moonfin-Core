@@ -269,6 +269,15 @@ class _MediaBarState extends State<MediaBar>
   @override
   Future<void> onAudioRevoked(RevokeReason reason) async {
     _cancelTrailerPreview();
+    // The native preview player's stop only pauses, so its decode pipeline
+    // and frame pump stay resident. Fine across an ambient handoff, but main
+    // playback is about to build its own pipeline, so release the player
+    // outright. A new one is created per trailer anyway.
+    if (PlatformDetection.useApplePreviewPlayer &&
+        reason != RevokeReason.ambientHandoff) {
+      await _disposeTrailerPlayer();
+      return;
+    }
     try {
       await _trailerPlayer?.stop();
     } catch (_) {}

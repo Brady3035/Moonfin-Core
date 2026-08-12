@@ -9568,5 +9568,80 @@
     "showAlphabeticalFilters": "Alfabeyi Göster",
     "@showAlphabeticalFilters": {
         "description": "Checkbox label for toggling alphabetical picker visibility in Sort and Filter options"
+    },
+    "seerrSeriesContinuing": "Dizi Devam Ediyor · Gelecek Sezonlar Talep Edilebilir",
+    "@seerrSeriesContinuing": {
+        "description": "Banner in the Seerr request dialog for a continuing series whose aired seasons are all in the library"
+    },
+    "settingsSkipButtonAutoHide": "Atla Butonunu Otomatik Gizle",
+    "@settingsSkipButtonAutoHide": {
+        "description": "Setting label for automatically dismissing the skip intro and outro button after a delay"
+    },
+    "settingsSkipButtonAutoHideDescription": "İntro ve jenerik atlama butonunu birkaç saniye sonra otomatik olarak gizle.",
+    "personalRatingStyle": "Kişisel derecelendirme tarzı",
+    "@personalRatingStyle": {
+        "description": "Selects how personal ratings are displayed and entered on media details."
+    },
+    "personalRatingThumbs": "Beğen / Beğenme",
+    "@personalRatingThumbs": {
+        "description": "Personal rating style using like and dislike actions."
+    },
+    "personalRatingStars": "5 yıldız",
+    "@personalRatingStars": {
+        "description": "Personal rating style using a five-star scale."
+    },
+    "personalRatingNumeric": "10 üzerinden sayısal puan",
+    "@personalRatingNumeric": {
+        "description": "Personal rating style using a numeric score out of ten."
+    },
+    "rate": "Puan",
+    "@rate": {
+        "description": "Action that opens the personal rating control."
+    },
+    "like": "Beğen",
+    "@like": {
+        "description": "Personal rating action for a positive rating."
+    },
+    "dislike": "Beğenme",
+    "@dislike": {
+        "description": "Personal rating action for a negative rating."
+    },
+    "personalRatingClear": "Derecelendirmeyi Sil",
+    "@personalRatingClear": {
+        "description": "Action that removes the personal rating from the media item."
+    },
+    "personalRatingRated": "Derecelendirilmiş",
+    "@personalRatingRated": {
+        "description": "Tooltip for a media item that has a numeric personal rating."
+    },
+    "personalRatingSaveFailed": "Derecelendirme kaydedilemedi",
+    "@personalRatingSaveFailed": {
+        "description": "Error shown when saving a personal rating fails."
+    },
+    "increase": "Yükselme",
+    "@increase": {
+        "description": "Action that increases a numeric personal rating."
+    },
+    "decrease": "Azalma",
+    "@decrease": {
+        "description": "Action that decreases a numeric personal rating."
+    },
+    "personalRatingOutOfTen": "{rating} / 10",
+    "@personalRatingOutOfTen": {
+        "description": "Numeric personal rating displayed on a scale out of ten.",
+        "placeholders": {
+            "rating": {
+                "type": "String"
+            }
+        }
+    },
+    "personalRatingOutOfFive": "{rating} / 5",
+    "@personalRatingOutOfFive": {
+        "description": "Personal rating displayed on a five-star scale.",
+        "placeholders": {
+            "rating": {
+                "type": "String"
+            }
+        }
     }
 }

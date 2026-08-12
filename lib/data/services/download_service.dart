@@ -69,6 +69,10 @@ class _MediaDownloadContext {
   final Completer<Response> completer = Completer<Response>();
   String currentTaskId = '';
 
+  /// Whether the native task ever reported anything past enqueued. While this
+  /// is false the task is still sitting in the scheduler.
+  bool sawStart = false;
+
   _MediaDownloadContext({
     required this.itemId,
     required this.displayName,
@@ -81,6 +85,13 @@ class _MediaDownloadContext {
 /// The native engine rejected the server's TLS certificate, so the download
 /// should be retried on the legacy engine, which accepts any certificate.
 class _TlsRejectedException implements Exception {}
+
+/// The native task never left the queue, so the download should be retried on
+/// the legacy engine. Android runs a queued task only once the network has
+/// validated against the public internet, so a LAN that reaches the server but
+/// not the internet (an offline server, a captive portal, a DNS blocker eating
+/// the connectivity check) leaves the task waiting forever.
+class _NeverStartedException implements Exception {}
 
 enum _DownloadActivityPhase { start, progress, stop }
 
@@ -733,12 +744,46 @@ class DownloadService extends ChangeNotifier {
           message: 'Failed to enqueue background download',
         );
       }
+      _armStartWatchdog(ctx);
       return await ctx.completer.future;
     } finally {
       if (identical(_pluginContexts[item.id], ctx)) {
         _pluginContexts.remove(item.id);
       }
     }
+  }
+
+  /// Hands the download to the legacy engine when the native task never leaves
+  /// the queue. The legacy engine is a plain in-process client, so it reaches
+  /// the server whenever browsing does.
+  ///
+  /// Android only, because it reports a task as running before opening the
+  /// connection, so one that stays queued really is stuck. iOS reports running
+  /// on the first bytes, where a server still starting a transcode looks the
+  /// same as a task that will never run.
+  void _armStartWatchdog(_MediaDownloadContext ctx) {
+    if (!PlatformDetection.isAndroid) return;
+    // The scheduler starts a runnable task within seconds, so one still queued
+    // after this is waiting on something that never arrives.
+    Timer(const Duration(seconds: 20), () async {
+      if (ctx.completer.isCompleted || ctx.sawStart) return;
+      // Another download holds the concurrency slot, so this one is queued
+      // behind it rather than blocked.
+      if (_pluginContexts.values
+          .any((other) => other != ctx && other.sawStart)) {
+        _armStartWatchdog(ctx);
+        return;
+      }
+      // Off WiFi in WiFi-only mode the task is waiting for the network the
+      // user asked for, so leave it queued and look again later.
+      if (!await _checkWifiPolicy()) {
+        _armStartWatchdog(ctx);
+        return;
+      }
+      if (ctx.completer.isCompleted || ctx.sawStart) return;
+      ctx.completer.completeError(_NeverStartedException());
+      unawaited(bgd.FileDownloader().cancelTaskWithId(ctx.currentTaskId));
+    });
   }
 
   bool _looksLikeTlsError(bgd.TaskException? exception) {
@@ -758,6 +803,7 @@ class DownloadService extends ChangeNotifier {
       _handleUnattendedTaskUpdate(itemId, update);
       return;
     }
+    if (update.status != bgd.TaskStatus.enqueued) ctx.sawStart = true;
     switch (update.status) {
       case bgd.TaskStatus.complete:
         _completePluginDownload(ctx, update);
@@ -1599,6 +1645,10 @@ class DownloadService extends ChangeNotifier {
             // this and all future downloads from this server.
             usePluginEngine = false;
             await _markServerNeedsLegacyTls();
+          } on _NeverStartedException {
+            // Only for this attempt, since what blocks the task is the network
+            // the device is on rather than the server.
+            usePluginEngine = false;
           }
         }
         return _legacyEngine.downloadWithHangGuard(

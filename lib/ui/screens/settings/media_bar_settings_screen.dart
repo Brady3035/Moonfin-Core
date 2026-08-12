@@ -27,7 +27,10 @@ class MediaBarSettingsScreen extends StatefulWidget {
 }
 
 class _MediaBarSettingsScreenState extends State<MediaBarSettingsScreen> {
-  final _store = GetIt.instance<PreferenceStore>();
+  // Media bar settings are stored per server and user, and only
+  // UserPreferences reaches that scoped key. Writing straight to the store
+  // lands on a bare key nothing else reads and startup drops.
+  final _prefs = GetIt.instance<UserPreferences>();
   static const _validAutoAdvanceIntervals = <int>{5000, 10000, 15000, 30000};
   bool _selectorOpen = false;
   late final PreferenceBinding<String> _mediaBarModeBinding;
@@ -36,17 +39,17 @@ class _MediaBarSettingsScreenState extends State<MediaBarSettingsScreen> {
   void initState() {
     super.initState();
     _mediaBarModeBinding = PreferenceBinding(
-      _store,
+      GetIt.instance<PreferenceStore>(),
       UserPreferences.mediaBarMode,
     );
-    final current = _store.get(UserPreferences.mediaBarMode);
+    final current = _prefs.get(UserPreferences.mediaBarMode);
     final normalized = UserPreferences.normalizeMediaBarMode(current);
     if (current != normalized) {
-      _store.set(UserPreferences.mediaBarMode, normalized);
+      _prefs.set(UserPreferences.mediaBarMode, normalized);
     }
-    final currentInterval = _store.get(UserPreferences.mediaBarIntervalMs);
+    final currentInterval = _prefs.get(UserPreferences.mediaBarIntervalMs);
     if (!_validAutoAdvanceIntervals.contains(currentInterval)) {
-      _store.set(UserPreferences.mediaBarIntervalMs, 10000);
+      _prefs.set(UserPreferences.mediaBarIntervalMs, 10000);
     }
   }
 
@@ -57,13 +60,13 @@ class _MediaBarSettingsScreenState extends State<MediaBarSettingsScreen> {
   }
 
   List<String> _splitCsv(Preference<String> pref) {
-    return _store.get(pref).split(',').where((s) => s.isNotEmpty).toList();
+    return _prefs.get(pref).split(',').where((s) => s.isNotEmpty).toList();
   }
 
   void _saveCsv(Preference<String> pref, List<String> values) {
-    _store.set(pref, values.join(','));
+    _prefs.set(pref, values.join(','));
     _pushSync();
-    setState(() {});
+    if (mounted) setState(() {});
   }
 
   void _pushSync() {

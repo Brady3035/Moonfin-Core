@@ -943,17 +943,25 @@ void main() {
       expect(tsCodecs, contains('aac'));
     });
 
-    test('a player with no DTS decoder keeps DTS off both offers, since the '
-        'server copies any codec it sees listed', () {
-      final profile = DeviceProfileBuilder.build(hlsAudioExcludesDts: true);
+    test('a player on AVFoundation keeps DTS and MP2 off both offers, since '
+        'the server copies any codec it sees listed', () {
+      final profile = DeviceProfileBuilder.build(hlsAudioForAvFoundation: true);
 
       expect(_transcodingAudioCodecList(profile, 'ts'), isNot(contains('dts')));
+      expect(_transcodingAudioCodecList(profile, 'ts'), isNot(contains('mp2')));
       expect(
         _transcodingAudioCodecList(profile, 'mp4'),
         isNot(contains('dts')),
       );
       expect(_transcodingAudioCodecList(profile, 'ts'), contains('aac'));
       expect(_transcodingAudioCodecList(profile, 'mp4'), contains('aac'));
+    });
+
+    test('a player that decodes its own HLS output still offers MP2, so a DVB '
+        'live channel is copied rather than re-encoded', () {
+      final profile = DeviceProfileBuilder.build();
+
+      expect(_transcodingAudioCodecList(profile, 'ts'), contains('mp2'));
     });
   });
 

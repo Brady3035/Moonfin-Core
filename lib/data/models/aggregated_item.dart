@@ -247,6 +247,10 @@ class AggregatedItem {
   bool get isAudiobook {
     final t = (type ?? '').toLowerCase();
     if (t == 'audiobook') return true;
+    final mediaType = (rawData['MediaType'] as String? ?? '').toLowerCase();
+    // A books library holds readable books next to audio, so a Book that is
+    // not audio stays a book whatever the collection says below.
+    if (t == 'book' && mediaType != 'audio') return false;
     final collectionType =
         (rawData['CollectionType'] as String? ?? '').toLowerCase();
     if (collectionType == 'audiobooks' || collectionType == 'books') {
@@ -257,7 +261,6 @@ class AggregatedItem {
     if (parentCollectionType == 'audiobooks' || parentCollectionType == 'books') {
       return true;
     }
-    final mediaType = (rawData['MediaType'] as String? ?? '').toLowerCase();
     if (mediaType == 'audio' && (rawData['Chapters'] as List?)?.isNotEmpty == true) {
       // Audio items with chapter metadata are very likely audiobooks.
       final runtimeTicks = runTimeTicks ?? 0;

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 import 'dart:ui';
 
 import '../../widgets/offline_aware_image.dart';
@@ -1130,12 +1131,22 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen>
         final ar = _gridBaseAspectRatio();
         final desktopTextScale = MediaQuery.textScalerOf(context).scale(1.0);
         final textHeight = (_hasSubtitles ? 42.0 : 24.0) * desktopTextScale;
-        final childAspectRatio = cellWidth / (cellWidth / ar + textHeight);
+        final cellHeight = cellWidth / ar + textHeight;
+        final childAspectRatio = cellWidth / cellHeight;
+        // A focused card grows about its center and paints past its cell, so
+        // the viewport clips the top row and the row below covers the title
+        // under the row above it. The grid reserves that much room instead.
+        // Mobile keeps its layout, since a touch press only scales while the
+        // finger is down.
+        final focusOverhang = isMobile
+            ? 0.0
+            : cellHeight * (MediaCard.focusScale - 1) / 2;
+        final rowSpacing = math.max(8.0, focusOverhang);
         _gridGeometry = (
           perLine: crossAxisCount,
-          lineExtent: cellWidth / ar + textHeight,
-          lineSpacing: 8,
-          leadingPad: 8,
+          lineExtent: cellHeight,
+          lineSpacing: rowSpacing,
+          leadingPad: 8 + focusOverhang,
         );
 
         final focusColor = _vm.isFilterBrowse
@@ -1191,7 +1202,7 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen>
                 sliver: SliverGrid(
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: crossAxisCount,
-                    mainAxisSpacing: 8,
+                    mainAxisSpacing: rowSpacing,
                     crossAxisSpacing: spacing,
                     childAspectRatio: childAspectRatio,
                   ),
@@ -1247,11 +1258,16 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen>
           controller: _scrollController,
           slivers: [
             SliverPadding(
-              padding: EdgeInsets.fromLTRB(gridPadding, 8, gridPadding, 16),
+              padding: EdgeInsets.fromLTRB(
+                gridPadding,
+                8 + focusOverhang,
+                gridPadding,
+                math.max(16.0, focusOverhang),
+              ),
               sliver: SliverGrid(
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: crossAxisCount,
-                  mainAxisSpacing: 8,
+                  mainAxisSpacing: rowSpacing,
                   crossAxisSpacing: spacing,
                   childAspectRatio: childAspectRatio,
                 ),

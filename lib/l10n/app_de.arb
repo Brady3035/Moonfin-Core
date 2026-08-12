@@ -9001,5 +9001,37 @@
     "imdbMostPopularMovies": "IMDb Beliebteste Filme",
     "imdbMostPopularTvShows": "IMDb Beliebteste Serien",
     "imdbLowestRatedMovies": "IMDb Am schlechtesten bewertete Filme",
-    "imdbTopEnglishMovies": "IMDb Bestbewertete englische Filme"
+    "imdbTopEnglishMovies": "IMDb Bestbewertete englische Filme",
+    "oledMode": "OLED Modus",
+    "@oledMode": {
+        "description": "Label for the setting that deepens blacks and enriches artwork on OLED displays"
+    },
+    "oledModeSubtle": "Subtil",
+    "@oledModeSubtle": {
+        "description": "OLED Mode level that darkens surfaces gently and lightly enriches artwork"
+    },
+    "oledModeVivid": "Lebhaft",
+    "@oledModeVivid": {
+        "description": "OLED Mode level that uses pure black surfaces and the strongest artwork enrichment"
+    },
+    "scrollDirection": "Scrollrichtung",
+    "@scrollDirection": {
+        "description": "Section header for scroll direction selection in library display settings"
+    },
+    "scrollDirectionVertical": "Vertikal",
+    "@scrollDirectionVertical": {
+        "description": "Library scroll direction option: vertical grid (default)"
+    },
+    "scrollDirectionHorizontal": "Horizontal",
+    "@scrollDirectionHorizontal": {
+        "description": "Library scroll direction option: horizontal grid for ultrawide displays"
+    },
+    "scrollToTop": "Scroll nach oben",
+    "@scrollToTop": {
+        "description": "Tooltip for the button that returns a scrolled list to the top"
+    },
+    "castMembers": "Besetzung",
+    "@castMembers": {
+        "description": "Section title for the list of actors and performers in movie and TV metadata. Not the casting-to-a-device action"
+    }
 }

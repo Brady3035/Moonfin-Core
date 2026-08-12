@@ -9,6 +9,8 @@ import '../../../l10n/app_localizations.dart';
 import '../../../util/game_library.dart';
 import '../../../util/focus/dpad_keys.dart';
 import '../../../util/platform_detection.dart';
+import '../bounded_network_image.dart';
+import '../media_card.dart';
 import 'game_card_focus_frame.dart';
 import 'retro_artwork_image.dart';
 
@@ -196,7 +198,7 @@ class _GameSystemCardState extends State<GameSystemCard> {
             child: RepaintBoundary(
               child: AnimatedScale(
                 scale: widget.cardFocusExpansion && active
-                    ? (PlatformDetection.isAppleTV ? 1.12 : 1.05)
+                    ? MediaCard.focusScale
                     : 1,
                 duration: const Duration(milliseconds: 150),
                 curve: PlatformDetection.isAppleTV

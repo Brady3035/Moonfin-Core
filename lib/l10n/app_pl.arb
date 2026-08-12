@@ -8,7 +8,7 @@
     "@signIn": {
         "description": "Sign in heading and button label"
     },
-    "connectingToServer": "Połącz z{serverName}",
+    "connectingToServer": "Łączenie z {serverName}",
     "@connectingToServer": {
         "description": "Subtitle showing which server the user is connecting to",
         "placeholders": {
@@ -2316,7 +2316,7 @@
     "@savedMedia": {
         "description": "Header title for saved/downloaded media screen"
     },
-    "tvShows": "Programy telewizyjne",
+    "tvShows": "Seriale",
     "@tvShows": {
         "description": "Filter label for TV shows"
     },
@@ -3585,7 +3585,7 @@
     "@contentType": {
         "description": "Setting for content type"
     },
-    "moviesAndTvShows": "Filmy i programy telewizyjne",
+    "moviesAndTvShows": "Filmy i seriale",
     "@moviesAndTvShows": {
         "description": "Content type: movies and TV shows"
     },
@@ -3593,7 +3593,7 @@
     "@moviesOnly": {
         "description": "Content type: movies only"
     },
-    "tvShowsOnly": "Tylko programy telewizyjne",
+    "tvShowsOnly": "Tylko seriale",
     "@tvShowsOnly": {
         "description": "Content type: TV shows only"
     },

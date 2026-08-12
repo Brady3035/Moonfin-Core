@@ -6,6 +6,7 @@ import '../../../util/game_library.dart';
 import '../../../util/focus/dpad_keys.dart';
 import '../../../util/platform_detection.dart';
 import '../bounded_network_image.dart';
+import '../media_card.dart';
 import 'game_card_focus_frame.dart';
 
 /// A box-art card for one game, with a seeded color + controller-icon fallback
@@ -123,7 +124,7 @@ class _GamePosterCardState extends State<GamePosterCard> {
   Widget build(BuildContext context) {
     final active = _active;
     final scale = widget.cardFocusExpansion && active
-        ? (PlatformDetection.isAppleTV ? 1.12 : 1.05)
+        ? MediaCard.focusScale
         : 1.0;
 
     return MouseRegion(

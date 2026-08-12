@@ -5,6 +5,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/widgets.dart';
 import 'package:get_it/get_it.dart';
+import 'package:jellyfin_preference/jellyfin_preference.dart';
 import 'package:server_core/server_core.dart';
 
 import '../../preference/user_preferences.dart';
@@ -43,25 +44,13 @@ class MediaBarRepository {
     final maxItems = pluginSyncEnabled
         ? (int.tryParse(_prefs.get(UserPreferences.mediaBarItemCount)) ?? 10)
         : 5;
-    final libraryIds = pluginSyncEnabled
-        ? _prefs
-              .get(UserPreferences.mediaBarLibraryIds)
-              .split(',')
-              .where((s) => s.isNotEmpty)
-              .toList()
-        : <String>[];
-    final collectionIds = pluginSyncEnabled
-        ? _prefs
-              .get(UserPreferences.mediaBarCollectionIds)
-              .split(',')
-              .where((s) => s.isNotEmpty)
-              .toList()
-        : <String>[];
-    final excludedGenres = _prefs
-        .get(UserPreferences.mediaBarExcludedGenres)
-        .split(',')
-        .where((s) => s.isNotEmpty)
-        .toSet();
+    // The pickers in settings are open to everyone and the filtering below is
+    // plain item queries, so a plugin is not needed to honour the choice.
+    final libraryIds = _splitCsv(UserPreferences.mediaBarLibraryIds);
+    final collectionIds = _splitCsv(UserPreferences.mediaBarCollectionIds);
+    final excludedGenres = _splitCsv(
+      UserPreferences.mediaBarExcludedGenres,
+    ).toSet();
 
     final fetchLimit = maxItems + 2;
 
@@ -223,6 +212,9 @@ class MediaBarRepository {
           ..shuffle();
     return withBackdrops.take(maxItems).toList();
   }
+
+  List<String> _splitCsv(Preference<String> pref) =>
+      _prefs.get(pref).split(',').where((s) => s.isNotEmpty).toList();
 
   Future<List<Map<String, dynamic>>> _fetchItemsFromFirstSeriesOrMoviesLibrary(
     List<String>? itemTypes,

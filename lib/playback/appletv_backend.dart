@@ -439,7 +439,7 @@ class AppleTvBackend implements PlayerBackend {
       supportsHevcMain10: PlatformDetection.supportsHevcMain10,
       transcodeHevcAllowed: serverAllowsHevcTranscode(),
       hevcRequiresFmp4Hls: true,
-      hlsAudioExcludesDts: true,
+      hlsAudioForAvFoundation: true,
       hevcMainLevel: PlatformDetection.hevcMainLevel,
       supportsHevcDolbyVision: PlatformDetection.supportsHevcDolbyVision,
       supportsHevcDolbyVisionEl: PlatformDetection.supportsHevcDolbyVisionEl,

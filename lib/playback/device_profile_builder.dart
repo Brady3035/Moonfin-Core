@@ -299,6 +299,18 @@ class DeviceProfileBuilder {
             forceStereo: forceStereo,
           );
 
+    final passthroughAudioCodecs = effectiveAllowedAudioCodecs
+        .where(
+          (codec) => _isAudioCodecPassthroughEnabled(
+            codec: codec,
+            ac3PassthroughEnabled: ac3PassthroughEnabled,
+            eac3PassthroughEnabled: eac3PassthroughEnabled,
+            dtsCorePassthroughEnabled: dtsCorePassthroughEnabled,
+            trueHdPassthroughEnabled: trueHdPassthroughEnabled,
+          ),
+        )
+        .toSet();
+
     final mpegTsAudioCodecs = _hlsAudioCodecsForFallback(
       effectiveAudioFallbackCodec: effectiveAudioFallbackCodec,
       allowedAudioCodecs: effectiveAllowedAudioCodecs,
@@ -407,6 +419,7 @@ class DeviceProfileBuilder {
 
     final codecProfiles = _codecProfiles(
       maxAudioChannels: advertisedMaxChannels,
+      passthroughAudioCodecs: passthroughAudioCodecs,
       forceStereo: limitStereoDirectPlay,
       maxResolution: maxResolution,
       supportsAvc: effectiveSupportsAvc,
@@ -990,6 +1003,7 @@ class DeviceProfileBuilder {
 
   static List<Map<String, dynamic>> _codecProfiles({
     required int maxAudioChannels,
+    required Set<String> passthroughAudioCodecs,
     required bool forceStereo,
     required MaxVideoResolution maxResolution,
     required bool supportsAvc,
@@ -1422,9 +1436,21 @@ class DeviceProfileBuilder {
       }
     }
 
+    // The channel cap describes how many PCM channels this device can render,
+    // so it only speaks for audio the device decodes. A passthrough bitstream
+    // leaves the device untouched for the receiver to decode, and object based
+    // formats carry their own layout that plays on receivers with fewer
+    // speakers than the track declares.
+    final channelCappedAudioCodecs = passthroughAudioCodecs.isEmpty
+        ? null
+        : _supportedAudioCodecs
+              .where((codec) => !passthroughAudioCodecs.contains(codec))
+              .join(',');
+
     profiles.add(
       _codecProfile(
         type: 'VideoAudio',
+        codec: channelCappedAudioCodecs,
         conditions: <Map<String, dynamic>>[
           _condition(
             condition: 'LessThanEqual',

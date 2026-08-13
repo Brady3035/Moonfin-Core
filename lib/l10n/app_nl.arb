@@ -6607,7 +6607,7 @@
     "settingsDolbyVisionProfile7DirectPlayDescription": "Bepaalt of Dolby Vision-profiel 7-verbeteringslaagstreams het afspelen moeten sturen.",
     "settingsAutoAftkrtEnabled": "Automatisch",
     "settingsEnabledOnThisDevice": "Ingeschakeld op dit apparaat",
-    "settingsDisabledPreferTranscode": "Uitgeschakeld (voorkeur voor transcoderen)",
+    "settingsDisabledPreferTranscode": "Uitgeschakeld",
     "settingsResumeRewindDescription": "Hoeveel seconden moeten worden teruggespoeld bij het hervatten van het afspelen (via 'Doorgaan met kijken' of een media-itempagina)?",
     "settingsUnpauseRewindDescription": "Hoeveel seconden moeten worden teruggespoeld als u het afspelen hervat nadat u op de pauzeknop hebt gedrukt?",
     "settingsSkipBackLengthDescription": "Hoeveel seconden moet er teruggesprongen worden nadat op de terugspoelknop is gedrukt.",
@@ -6978,7 +6978,7 @@
     "@mapDolbyVisionP7Title": {
         "description": "Setting title: play DV P7 as HDR10 HEVC on non-DV devices"
     },
-    "mapDolbyVisionP7Subtitle": "Speel Dolby Vision profiel 7-streams af als HDR10-compatibele HEVC op apparaten zonder Dolby Vision.",
+    "mapDolbyVisionP7Subtitle": "Sla de profiel 8 conversie over en haal het Dolby Vision profiel 7 op uit streams naar een HDR10-bruikbare HEVC. Gebruik deze optie als omgezette streams er vreemd uitzien.",
     "@mapDolbyVisionP7Subtitle": {
         "description": "Setting subtitle for DV P7 to HEVC mapping"
     },
@@ -9560,5 +9560,80 @@
     "showAlphabeticalFilters": "Laat alfabet zien",
     "@showAlphabeticalFilters": {
         "description": "Checkbox label for toggling alphabetical picker visibility in Sort and Filter options"
+    },
+    "seerrSeriesContinuing": "Serie gaat verder - Toekomstige seizoenen kunnen aangevraagd worden",
+    "@seerrSeriesContinuing": {
+        "description": "Banner in the Seerr request dialog for a continuing series whose aired seasons are all in the library"
+    },
+    "settingsSkipButtonAutoHide": "Verberg automatisch de overslaanknop",
+    "@settingsSkipButtonAutoHide": {
+        "description": "Setting label for automatically dismissing the skip intro and outro button after a delay"
+    },
+    "settingsSkipButtonAutoHideDescription": "Haal automatisch de knop om het intro en outro over te slaan weg na een paar seconde.",
+    "personalRatingStyle": "Persoonlijke beoordelingsstijl",
+    "@personalRatingStyle": {
+        "description": "Selects how personal ratings are displayed and entered on media details."
+    },
+    "personalRatingThumbs": "Vind ik (niet) leuk",
+    "@personalRatingThumbs": {
+        "description": "Personal rating style using like and dislike actions."
+    },
+    "personalRatingStars": "5 sterren",
+    "@personalRatingStars": {
+        "description": "Personal rating style using a five-star scale."
+    },
+    "personalRatingNumeric": "Getalscore tot 10",
+    "@personalRatingNumeric": {
+        "description": "Personal rating style using a numeric score out of ten."
+    },
+    "rate": "Beoordeel",
+    "@rate": {
+        "description": "Action that opens the personal rating control."
+    },
+    "like": "Vind ik leuk",
+    "@like": {
+        "description": "Personal rating action for a positive rating."
+    },
+    "dislike": "Vind ik niet leuk",
+    "@dislike": {
+        "description": "Personal rating action for a negative rating."
+    },
+    "personalRatingClear": "Haal beoordeling weg",
+    "@personalRatingClear": {
+        "description": "Action that removes the personal rating from the media item."
+    },
+    "personalRatingRated": "Beoordeeld",
+    "@personalRatingRated": {
+        "description": "Tooltip for a media item that has a numeric personal rating."
+    },
+    "personalRatingSaveFailed": "Kon de beoordeling niet opslaan",
+    "@personalRatingSaveFailed": {
+        "description": "Error shown when saving a personal rating fails."
+    },
+    "increase": "Verhoog",
+    "@increase": {
+        "description": "Action that increases a numeric personal rating."
+    },
+    "decrease": "Verlaag",
+    "@decrease": {
+        "description": "Action that decreases a numeric personal rating."
+    },
+    "personalRatingOutOfTen": "{rating} / 10",
+    "@personalRatingOutOfTen": {
+        "description": "Numeric personal rating displayed on a scale out of ten.",
+        "placeholders": {
+            "rating": {
+                "type": "String"
+            }
+        }
+    },
+    "personalRatingOutOfFive": "{rating} / 5",
+    "@personalRatingOutOfFive": {
+        "description": "Personal rating displayed on a five-star scale.",
+        "placeholders": {
+            "rating": {
+                "type": "String"
+            }
+        }
     }
 }

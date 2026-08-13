@@ -193,6 +193,29 @@ class CustomTVTextFieldState extends State<CustomTVTextField>
     widget.controller.addListener(_onTextChanged);
     _systemInputFocusNode.addListener(_onSystemInputFocusChanged);
     _systemInputFocusNode.canRequestFocus = false;
+    _systemInputFocusNode.onKeyEvent = _handleArmedFieldKey;
+    if (_wantsSystemImeArmed) _armSystemImeAfterFrame();
+  }
+
+  bool get _wantsSystemImeArmed => widget.preferSystemIme && widget.isFocused;
+
+  void _armSystemImeAfterFrame() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_wantsSystemImeArmed || _useSystemImeSession) return;
+      _activateSystemIme();
+    });
+  }
+
+  KeyEventResult _handleArmedFieldKey(FocusNode node, KeyEvent event) {
+    final key = event.logicalKey;
+    final leavesField =
+        _useSystemImeSession &&
+        widget.maxLines == 1 &&
+        (event is KeyDownEvent || event is KeyRepeatEvent) &&
+        (key == LogicalKeyboardKey.arrowUp ||
+            key == LogicalKeyboardKey.arrowDown);
+    if (leavesField) _deactivateSystemIme();
+    return KeyEventResult.ignored;
   }
 
   void _onTextChanged() {
@@ -306,6 +329,10 @@ class CustomTVTextFieldState extends State<CustomTVTextField>
       }
     }
 
+    if (_wantsSystemImeArmed && !oldWidget.isFocused) {
+      _armSystemImeAfterFrame();
+    }
+
     if (!widget.preferSystemIme && oldWidget.preferSystemIme) {
       _deactivateSystemIme();
     }
@@ -380,6 +407,8 @@ class CustomTVTextFieldState extends State<CustomTVTextField>
   void _deactivateSystemIme() {
     if (!_useSystemImeSession) return;
 
+    final inputHeldFocus = _systemInputFocusNode.hasFocus;
+
     setState(() {
       _useSystemImeSession = false;
     });
@@ -388,6 +417,7 @@ class CustomTVTextFieldState extends State<CustomTVTextField>
     _systemInputFocusNode.unfocus();
     _systemInputFocusNode.canRequestFocus = false;
 
+    if (!inputHeldFocus) return;
     try {
       final parentFocus = Focus.of(context);
       if (parentFocus.canRequestFocus) {

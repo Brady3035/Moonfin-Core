@@ -3420,6 +3420,42 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
           ? [Shadow(color: AppColorScheme.accent, blurRadius: blurRadius)]
           : null;
 
+  /// The expandable summary block every hero layout shares.
+  Widget _buildOverviewText(
+    BuildContext context,
+    String overview, {
+    double maxWidth = 800,
+    VoidCallback? onArrowRight,
+  }) {
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        maxWidth: _landscape ? maxWidth : double.infinity,
+      ),
+      child: ExpandableBiography(
+        text: overview,
+        toggleFocusNode: _overviewFocusNode,
+        onArrowDown: () {
+          widget.initialFocusNode?.requestFocus();
+        },
+        onArrowUp: () {
+          NavigationLayout.focusNavbarNotifier.value?.call();
+        },
+        onArrowLeft: () {
+          final navbarPosition = widget.prefs.get(UserPreferences.navbarPosition);
+          if (navbarPosition == NavbarPosition.left) {
+            NavigationLayout.focusNavbarNotifier.value?.call();
+          }
+        },
+        onArrowRight: onArrowRight,
+        onCollapse: widget.onCollapseBiography,
+        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+          height: 1.45,
+          color: AppColorScheme.onSurface.withValues(alpha: 0.85),
+        ),
+      ),
+    );
+  }
+
   Widget _buildHero(BuildContext context, AggregatedItem item) {
     final textTheme = Theme.of(context).textTheme;
     final isEpisode = item.type == 'Episode';
@@ -3499,32 +3535,7 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
           ),
           if (overview.isNotEmpty) ...[
             const SizedBox(height: 24),
-            ConstrainedBox(
-              constraints: BoxConstraints(
-                maxWidth: _landscape ? 850.0 : double.infinity,
-              ),
-              child: ExpandableBiography(
-                text: overview,
-                toggleFocusNode: _overviewFocusNode,
-                onArrowDown: () {
-                  widget.initialFocusNode?.requestFocus();
-                },
-                onArrowUp: () {
-                  NavigationLayout.focusNavbarNotifier.value?.call();
-                },
-                onArrowLeft: () {
-                  final navbarPosition = widget.prefs.get(UserPreferences.navbarPosition);
-                  if (navbarPosition == NavbarPosition.left) {
-                    NavigationLayout.focusNavbarNotifier.value?.call();
-                  }
-                },
-                onCollapse: widget.onCollapseBiography,
-                style: textTheme.bodyMedium?.copyWith(
-                  height: 1.45,
-                  color: AppColorScheme.onSurface.withValues(alpha: 0.85),
-                ),
-              ),
-            ),
+            _buildOverviewText(context, overview, maxWidth: 850),
           ],
           const SizedBox(height: 24),
           Focus(
@@ -3714,7 +3725,7 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
                 parts.add(l10n.trackCount(count));
               }
               if (isAudiobookOrBook) {
-                parts.add(l10n.audiobooks);
+                parts.add(item.isAudiobook ? l10n.audiobooks : l10n.books);
               }
               if (item.genres.isNotEmpty) {
                 final genresList = item.genres.take(2);
@@ -3726,6 +3737,12 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
               color: Colors.white.withValues(alpha: 0.7),
             ),
           ),
+          // Albums rarely carry a summary so this layout never showed one, but
+          // for a book it is the point of the page.
+          if (isAudiobookOrBook && overview.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            _buildOverviewText(context, overview),
+          ],
           const SizedBox(height: 24),
           Focus(
             canRequestFocus: false,
@@ -3963,34 +3980,11 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
         if (overview.isNotEmpty) ...[
           if (!hideTitleAndLogo || (item.tagline != null && item.tagline!.trim().isNotEmpty))
             const SizedBox(height: 8),
-          ConstrainedBox(
-            constraints: BoxConstraints(
-              maxWidth: _landscape ? 800 : double.infinity,
-            ),
-            child: ExpandableBiography(
-              text: overview,
-              toggleFocusNode: _overviewFocusNode,
-              onArrowDown: () {
-                widget.initialFocusNode?.requestFocus();
-              },
-              onArrowUp: () {
-                NavigationLayout.focusNavbarNotifier.value?.call();
-              },
-              onArrowLeft: () {
-                final navbarPosition = widget.prefs.get(UserPreferences.navbarPosition);
-                if (navbarPosition == NavbarPosition.left) {
-                  NavigationLayout.focusNavbarNotifier.value?.call();
-                }
-              },
-              onArrowRight: hasUpNext
-                  ? () => _upNextFocusNode.requestFocus()
-                  : null,
-              onCollapse: widget.onCollapseBiography,
-              style: textTheme.bodyMedium?.copyWith(
-                height: 1.45,
-                color: AppColorScheme.onSurface.withValues(alpha: 0.85),
-              ),
-            ),
+          _buildOverviewText(
+            context,
+            overview,
+            onArrowRight:
+                hasUpNext ? () => _upNextFocusNode.requestFocus() : null,
           ),
         ],
         SizedBox(height: techRow != null ? 12 : 24),

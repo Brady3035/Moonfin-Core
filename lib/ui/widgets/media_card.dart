@@ -15,6 +15,12 @@ import 'seerr/seerr_status_dot.dart';
 import '../mixins/focus_state_mixin.dart';
 
 class MediaCard extends StatefulWidget {
+  /// How much a focused card grows. The scale is centered, so a card paints
+  /// half the extra size past each edge of its cell, and a layout that packs
+  /// cards against a clip boundary or each other has to leave that much room
+  /// or the focused card loses its edges.
+  static double get focusScale => PlatformDetection.isAppleTV ? 1.12 : 1.05;
+
   final String? title;
   final String? subtitle;
   final Widget? subtitleWidget;
@@ -303,9 +309,7 @@ class _MediaCardState extends State<MediaCard> with FocusStateMixin {
         child: _withTvParallax(
           active: cardActive,
           child: AnimatedScale(
-            scale: cardActive
-                ? (PlatformDetection.isAppleTV ? 1.12 : 1.05)
-                : 1.0,
+            scale: cardActive ? MediaCard.focusScale : 1.0,
             duration: const Duration(milliseconds: 150),
             curve: PlatformDetection.isAppleTV
                 ? Curves.easeOutCubic

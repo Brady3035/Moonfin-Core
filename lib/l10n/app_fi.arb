@@ -17,7 +17,7 @@
             }
         }
     },
-    "quickConnect": "Quick Connect",
+    "quickConnect": "Pikayhteys",
     "@quickConnect": {
         "description": "Quick Connect toggle button label"
     },
@@ -168,7 +168,7 @@
     "@settingsAppearanceTheme": {
         "description": "Title for the theme selection screen and theme settings entry"
     },
-    "settingsAppearanceThemeSubtitle": "Vaihda Moonfin ja Neon Pulse välillä käynnistämättä sovellusta uudelleen",
+    "settingsAppearanceThemeSubtitle": "Ota käyttöön täysin mukautettu teema ja vaihda Apple- tai Material-tyylisen käyttöliittymän välillä.",
     "@settingsAppearanceThemeSubtitle": {
         "description": "Subtitle for the theme selection screen and theme settings entry"
     },
@@ -176,7 +176,7 @@
     "@themeMoonfin": {
         "description": "Display name for the Moonfin theme"
     },
-    "themeMoonfinSubtitle": "Nykyinen Moonfin look, johon olette kaikki rakastuneet",
+    "themeMoonfinSubtitle": "Alkuperäinen, siisti Moonfin-oletusasetus.",
     "@themeMoonfinSubtitle": {
         "description": "Preview description for the Moonfin theme"
     },
@@ -400,7 +400,7 @@
     "@continuing": {
         "description": "Series status badge for ongoing series"
     },
-    "ended": "Päättyi",
+    "ended": "Päättynyt",
     "@ended": {
         "description": "Series status badge for ended series"
     },
@@ -947,7 +947,7 @@
     "@moreLikeThis": {
         "description": "Section header for similar items"
     },
-    "castAndCrew": "Näyttelijät ja miehistö",
+    "castAndCrew": "Näyttelijät & tuotantoryhmä",
     "@castAndCrew": {
         "description": "Section header for cast and crew section"
     },
@@ -987,7 +987,7 @@
     "@discography": {
         "description": "Section header for artist discography"
     },
-    "similarArtists": "Samanlaisia ​​taiteilijoita",
+    "similarArtists": "Samankaltaisia artisteja",
     "@similarArtists": {
         "description": "Section header for similar artists"
     },
@@ -1806,7 +1806,7 @@
     "@playMethod": {
         "description": "Stream info label for play method"
     },
-    "directPlay": "Suora peli",
+    "directPlay": "Suoratoisto",
     "@directPlay": {
         "description": "Play method label"
     },
@@ -2159,7 +2159,7 @@
     "@noChannelsFound": {
         "description": "Empty state when no TV channels match the filter"
     },
-    "liveBadge": "ELÄÄ",
+    "liveBadge": "LIVE",
     "@liveBadge": {
         "description": "Badge label shown on currently airing programs"
     },
@@ -4430,7 +4430,7 @@
     "@appearances": {
         "description": "Section title for cast appearances"
     },
-    "crewSection": "Miehistö",
+    "crewSection": "Tuotantoryhmä",
     "@crewSection": {
         "description": "Section title for crew credits"
     },
@@ -7366,7 +7366,7 @@
     "@recommendationSystemSubtitle": {
         "description": "Explanation under the recommendation system setting"
     },
-    "recommendationSystemMoonfin": "Moonfin suosittelee",
+    "recommendationSystemMoonfin": "Moonfin suositukset",
     "@recommendationSystemMoonfin": {
         "description": "Recommendation system option: Moonfin Recommends"
     },
@@ -7406,7 +7406,7 @@
     "@glassQuality": {
         "description": "Label for the glass rendering quality setting"
     },
-    "glassQualitySubtitle": "Automaattinen valitsee parhaan lasitehosteen tälle laitteelle. Täysi pakottaa aidon sumennuksen, Kevennetty käyttää kevyttä lasia, joka säästää GPU:n tehoa.",
+    "glassQualitySubtitle": "Auto valitsee laitteelle parhaiten sopivan lasiefektin. Asetus ”Full” tuottaa voimakkaan sumennuksen; asetus ”Reduced” käyttää kevyttä lasiefektiä, joka säästää GPU:n tehoa.",
     "@glassQualitySubtitle": {
         "description": "Explanation under the glass quality setting"
     },
@@ -9001,5 +9001,162 @@
     "adminLibTrickplayExtraction": "Ota Trickplay-kuvien purku käyttöön",
     "adminLibTrickplayDuringScan": "Pura Trickplay-kuvat kirjastoskannauksen aikana",
     "adminLibSaveTrickplayWithMedia": "Tallenna Trickplay-kuvat mediakansioihin",
-    "adminBackupTrickplay": "Trickplay-kuvat"
+    "adminBackupTrickplay": "Trickplay-kuvat",
+    "oledMode": "OLED-tila",
+    "@oledMode": {
+        "description": "Label for the setting that deepens blacks and enriches artwork on OLED displays"
+    },
+    "oledModeSubtitle": "Syventää mustia sävyjä ja tuo lisää syvyyttä. Toimii parhaiten OLED-näytöillä.",
+    "@oledModeSubtitle": {
+        "description": "Explanation under the OLED Mode setting"
+    },
+    "oledModeSubtle": "Hienovarainen",
+    "@oledModeSubtle": {
+        "description": "OLED Mode level that darkens surfaces gently and lightly enriches artwork"
+    },
+    "oledModeVivid": "Elävä",
+    "@oledModeVivid": {
+        "description": "OLED Mode level that uses pure black surfaces and the strongest artwork enrichment"
+    },
+    "castMembers": "Näyttelijät",
+    "@castMembers": {
+        "description": "Section title for the list of actors and performers in movie and TV metadata. Not the casting-to-a-device action"
+    },
+    "scrollDirection": "Vierityssuunta",
+    "@scrollDirection": {
+        "description": "Section header for scroll direction selection in library display settings"
+    },
+    "scrollDirectionVertical": "Pystysuora",
+    "@scrollDirectionVertical": {
+        "description": "Library scroll direction option: vertical grid (default)"
+    },
+    "scrollDirectionHorizontal": "Vaakasuora",
+    "@scrollDirectionHorizontal": {
+        "description": "Library scroll direction option: horizontal grid for ultrawide displays"
+    },
+    "scrollToTop": "Vieritä sivun alkuun",
+    "@scrollToTop": {
+        "description": "Tooltip for the button that returns a scrolled list to the top"
+    },
+    "finalizingDownload": "Viimeistellään…",
+    "@finalizingDownload": {
+        "description": "Status label shown while a finished download is being moved to its final location and validated"
+    },
+    "failedToDeleteItemWithError": "Poistotoiminto epäonnistui seuraavan virheen vuoksi: {error}",
+    "@failedToDeleteItemWithError": {
+        "description": "Error message when item deletion fails, including the specific error details",
+        "placeholders": {
+            "error": {
+                "type": "String",
+                "example": "Permission denied"
+            }
+        }
+    },
+    "shuffleAll": "Sekoita kaikki",
+    "@shuffleAll": {
+        "description": "Action button label for shuffling all tracks of an artist"
+    },
+    "settingsSearchHint": "Hakuasetukset",
+    "@settingsSearchHint": {
+        "description": "Hint text in the settings search field"
+    },
+    "detailsBackgroundOpacity": "Tiedot Taustan läpikuultavuus",
+    "@detailsBackgroundOpacity": {
+        "description": "Setting for details background opacity on modern screens"
+    },
+    "osdButtons": "Soittimen painikkeet",
+    "@osdButtons": {
+        "description": "Settings screen for choosing which buttons the player shows"
+    },
+    "osdButtonsDescription": "Valitse, mitkä painikkeet soittimessa näytetään",
+    "@osdButtonsDescription": {
+        "description": "Subtitle for the player buttons settings tile"
+    },
+    "osdButtonsSectionDescription": "Toistotoiminnot ovat aina näkyvissä. Kaikki alla oleva on sinun valintasi, ja jokaisella laitteella on oma luettelonsa.",
+    "@osdButtonsSectionDescription": {
+        "description": "Explains that transport controls can't be hidden and that the list is per device kind"
+    },
+    "detailButtons": "Toimintopainikkeet",
+    "@detailButtons": {
+        "description": "Settings screen for choosing which buttons the details screen shows"
+    },
+    "detailButtonsDescription": "Valitse, mitkä painikkeet näkyvät tietonäytössä",
+    "@detailButtonsDescription": {
+        "description": "Subtitle for the details action buttons settings tile"
+    },
+    "detailButtonsSectionDescription": "Toisto on aina etusijalla, ja lukitut painikkeet näkyvät aina. Kaikki muu on sinun päätettävissäsi, ja jokaisella laitteella on oma luettelonsa.",
+    "@detailButtonsSectionDescription": {
+        "description": "Explains that the play buttons can't be hidden and that the list is per device kind"
+    },
+    "moveUp": "Siirry ylöspäin",
+    "@moveUp": {
+        "description": "Moves a button one place earlier in its row"
+    },
+    "moveDown": "Siirry alaspäin",
+    "@moveDown": {
+        "description": "Moves a button one place later in its row"
+    },
+    "buttonOrderHint": "Vaihda järjestystä nuolinäppäimillä. Kaukosäätimellä vasen ja oikea nuoli siirtävät korostettua painiketta. Kun poistat jonkin painikkeen valinnasta, se siirtyy muiden alle.",
+    "@buttonOrderHint": {
+        "description": "Explains how to reorder the buttons in a row"
+    },
+    "orientationLock": "Suuntalukitus",
+    "@orientationLock": {
+        "description": "Player button that locks the screen orientation"
+    },
+    "fullscreen": "Koko näyttö",
+    "@fullscreen": {
+        "description": "Player button that toggles fullscreen"
+    },
+    "settingsAudioPassthroughMode": "Passthrough",
+    "@settingsAudioPassthroughMode": {
+        "description": "Title of the audio passthrough mode selector"
+    },
+    "settingsAudioPassthroughModeDescription": "Miten pakattu surround-ääni välittyy televisioon tai vahvistimeen.",
+    "settingsAudioPassthroughModeDisabled": "Pois käytöstä (dekoodaa aina tällä laitteella)",
+    "settingsAudioPassthroughModeAuto": "Automaattinen (tunnistettujen laitteiden tuki)",
+    "settingsAudioPassthroughModeManual": "Käyttöopas (valitse alla olevista tiedostomuodoista)",
+    "settingsDownmixToStereoDescription": "Sekoita kaikki dekoodattu ääni kahdeksi kanavaksi.",
+    "settingsAudioEac3IncludesAtmos": "Bitstream E-AC-3, mukaan lukien Dolby Atmos (JOC).",
+    "settingsAudioDtsHdIncludesDtsX": "Bitstream DTS-HD, mukaan lukien DTS:X.",
+    "settingsAudioTrueHdIncludesAtmos": "Bitstream TrueHD, mukaan lukien Dolby Atmos.",
+    "resetProfile": "Nollaa profiili",
+    "@resetProfile": {
+        "description": "Button to reset a profile to defaults"
+    },
+    "resetProfileTitle": "Nollataanko {profiili}?",
+    "@resetProfileTitle": {
+        "description": "Title of the dialog confirming a profile reset",
+        "placeholders": {
+            "profile": {
+                "type": "String"
+            }
+        }
+    },
+    "resetProfileDescription": "Tämä poistaa {profile}-profiilin palvelimelta ja palauttaa kaikki tämän laitteen synkronoidut asetukset oletusarvoihinsa.",
+    "@resetProfileDescription": {
+        "description": "Body of the dialog confirming a device profile reset",
+        "placeholders": {
+            "profile": {
+                "type": "String"
+            }
+        }
+    },
+    "resetGlobalProfileDescription": "Tämä poistaa kaikki palvelimelle tallennetut profiilit ja palauttaa kaikki tällä laitteella synkronoidut asetukset oletusarvoihinsa.",
+    "@resetGlobalProfileDescription": {
+        "description": "Body of the dialog confirming a global profile reset"
+    },
+    "profileReset": "Palauta {profile} -profiili oletusasetuksiin.",
+    "@profileReset": {
+        "description": "Message after a profile was reset",
+        "placeholders": {
+            "profile": {
+                "type": "String"
+            }
+        }
+    },
+    "resetRatingsTitle": "Nollata arviot?",
+    "@resetRatingsTitle": {
+        "description": "Title of the dialog confirming a ratings reset"
+    }
 }

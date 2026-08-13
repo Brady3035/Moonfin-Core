@@ -32,6 +32,7 @@ class _MediaBarSettingsScreenState extends State<MediaBarSettingsScreen> {
   // lands on a bare key nothing else reads and startup drops.
   final _prefs = GetIt.instance<UserPreferences>();
   static const _validAutoAdvanceIntervals = <int>{5000, 10000, 15000, 30000};
+  static const _collectionFetchLimit = 200;
   bool _selectorOpen = false;
   late final PreferenceBinding<String> _mediaBarModeBinding;
 
@@ -77,12 +78,42 @@ class _MediaBarSettingsScreenState extends State<MediaBarSettingsScreen> {
     }
   }
 
+  /// Offers [options] for [pref], starting from what is stored and writing the
+  /// choice back. [truncated] says the fetch was capped, so the dialog is not
+  /// showing everything the server has.
+  Future<void> _pickSources({
+    required Preference<String> pref,
+    required String title,
+    required Map<String, String> options,
+    bool truncated = false,
+  }) async {
+    final split = reconcileSources(
+      stored: _splitCsv(pref).toSet(),
+      available: options.keys.toSet(),
+      truncated: truncated,
+    );
+    if (split.stale.isNotEmpty) {
+      _saveCsv(pref, split.listed.toList());
+    }
+
+    if (!mounted) return;
+    final result = await _showMultiSelectDialog(
+      title: title,
+      items: options,
+      selected: split.listed,
+    );
+    if (result != null) {
+      // The dialog only knows what it was shown, so anything held back goes
+      // in again rather than being lost on confirm.
+      _saveCsv(pref, [...result, ...split.unlisted]);
+    }
+  }
+
   Future<void> _showLibrarySelector() async {
     if (_selectorOpen) return;
     _selectorOpen = true;
     final l10n = AppLocalizations.of(context);
     final client = GetIt.instance<MediaServerClient>();
-    final selected = _splitCsv(UserPreferences.mediaBarLibraryIds).toSet();
 
     try {
       final response = await client.userViewsApi.getUserViews();
@@ -94,25 +125,15 @@ class _MediaBarSettingsScreenState extends State<MediaBarSettingsScreen> {
           })
           .toList();
 
-      final availableIds = items.map((i) => i['Id']?.toString() ?? '').toSet();
-      final pruned = selected.intersection(availableIds);
-      if (pruned.length != selected.length) {
-        _saveCsv(UserPreferences.mediaBarLibraryIds, pruned.toList());
-      }
-
-      if (!mounted) return;
-      final result = await _showMultiSelectDialog(
+      await _pickSources(
+        pref: UserPreferences.mediaBarLibraryIds,
         title: l10n.sourceLibraries,
-        items: {
+        options: {
           for (final item in items)
             item['Id']?.toString() ?? '':
                 item['Name'] as String? ?? l10n.unknown,
         },
-        selected: pruned,
       );
-      if (result != null) {
-        _saveCsv(UserPreferences.mediaBarLibraryIds, result.toList());
-      }
     } catch (_) {
     } finally {
       _selectorOpen = false;
@@ -124,7 +145,6 @@ class _MediaBarSettingsScreenState extends State<MediaBarSettingsScreen> {
     _selectorOpen = true;
     final l10n = AppLocalizations.of(context);
     final client = GetIt.instance<MediaServerClient>();
-    final selected = _splitCsv(UserPreferences.mediaBarCollectionIds).toSet();
 
     try {
       final response = await client.itemsApi.getItems(
@@ -132,30 +152,23 @@ class _MediaBarSettingsScreenState extends State<MediaBarSettingsScreen> {
         sortBy: 'SortName',
         sortOrder: 'Ascending',
         recursive: true,
-        limit: 200,
+        limit: _collectionFetchLimit,
       );
       final items = (response['Items'] as List? ?? [])
           .cast<Map<String, dynamic>>();
 
-      final availableIds = items.map((i) => i['Id']?.toString() ?? '').toSet();
-      final pruned = selected.intersection(availableIds);
-      if (pruned.length != selected.length) {
-        _saveCsv(UserPreferences.mediaBarCollectionIds, pruned.toList());
-      }
-
-      if (!mounted) return;
-      final result = await _showMultiSelectDialog(
+      await _pickSources(
+        pref: UserPreferences.mediaBarCollectionIds,
         title: l10n.sourceCollections,
-        items: {
+        options: {
           for (final item in items)
             item['Id']?.toString() ?? '':
                 item['Name'] as String? ?? l10n.unknown,
         },
-        selected: pruned,
+        // A full page back means there are probably more collections than the
+        // dialog is showing.
+        truncated: items.length >= _collectionFetchLimit,
       );
-      if (result != null) {
-        _saveCsv(UserPreferences.mediaBarCollectionIds, result.toList());
-      }
     } catch (_) {
     } finally {
       _selectorOpen = false;
@@ -167,39 +180,23 @@ class _MediaBarSettingsScreenState extends State<MediaBarSettingsScreen> {
     _selectorOpen = true;
     final l10n = AppLocalizations.of(context);
     final client = GetIt.instance<MediaServerClient>();
-    final selected = _splitCsv(UserPreferences.mediaBarExcludedGenres).toSet();
 
     try {
       final response = await client.itemsApi.getGenres(
         sortBy: 'SortName',
         sortOrder: 'Ascending',
       );
-      final items = (response['Items'] as List? ?? [])
-          .cast<Map<String, dynamic>>();
+      final names = (response['Items'] as List? ?? [])
+          .cast<Map<String, dynamic>>()
+          .map((item) => (item['Name'] as String? ?? '').trim())
+          .where((name) => name.isNotEmpty)
+          .toSet();
 
-      final names =
-          items
-              .map((item) => (item['Name'] as String? ?? '').trim())
-              .where((name) => name.isNotEmpty)
-              .toSet()
-              .toList()
-            ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
-
-      final available = names.toSet();
-      final pruned = selected.intersection(available);
-      if (pruned.length != selected.length) {
-        _saveCsv(UserPreferences.mediaBarExcludedGenres, pruned.toList());
-      }
-
-      if (!mounted) return;
-      final result = await _showMultiSelectDialog(
+      await _pickSources(
+        pref: UserPreferences.mediaBarExcludedGenres,
         title: l10n.excludedGenres,
-        items: {for (final name in names) name: name},
-        selected: pruned,
+        options: {for (final name in names) name: name},
       );
-      if (result != null) {
-        _saveCsv(UserPreferences.mediaBarExcludedGenres, result.toList());
-      }
     } catch (_) {
     } finally {
       _selectorOpen = false;
@@ -499,4 +496,24 @@ class _MediaBarActionTile extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Splits stored source ids against the ones the server just listed.
+///
+/// An id the server did not list is gone, so the picker forgets it. A capped
+/// fetch proves nothing about what it left out, so those ids are held back and
+/// stored again instead.
+@visibleForTesting
+({Set<String> listed, Set<String> unlisted, Set<String> stale})
+reconcileSources({
+  required Set<String> stored,
+  required Set<String> available,
+  required bool truncated,
+}) {
+  final missing = stored.difference(available);
+  return (
+    listed: stored.intersection(available),
+    unlisted: truncated ? missing : const <String>{},
+    stale: truncated ? const <String>{} : missing,
+  );
 }

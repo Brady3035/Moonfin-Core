@@ -11,15 +11,19 @@
 #include "../libretro_host.h"
 
 #ifdef _WIN32
+#include <direct.h>
 #include <windows.h>
 static void msleep(int ms) { Sleep(ms); }
+static int make_dir(const char *path) { return _mkdir(path); }
 #else
 #include <pthread.h>
+#include <sys/stat.h>
 #include <time.h>
 static void msleep(int ms) {
   struct timespec ts = {ms / 1000, (long)(ms % 1000) * 1000000L};
   nanosleep(&ts, NULL);
 }
+static int make_dir(const char *path) { return mkdir(path, 0755); }
 #endif
 
 static int g_failures;
@@ -210,6 +214,33 @@ static void test_vfs_zip(const char *core_path, const char *work_dir) {
   lh_destroy(host);
 }
 
+// Covers directory traversal through the VFS: opendir, readdir to the end, and
+// dirent_is_dir on a real subdirectory.
+static void test_vfs_dir_reports_subdir(const char *core_path,
+                                        const char *rom_path,
+                                        const char *work_dir) {
+  printf("VFS reports a subdirectory as a directory:\n");
+  char sys_dir[1024];
+  char sub_dir[sizeof(sys_dir) + sizeof("/probe_subdir")];
+  snprintf(sys_dir, sizeof(sys_dir), "%s/vfsdir_system", work_dir);
+  snprintf(sub_dir, sizeof(sub_dir), "%s/probe_subdir", sys_dir);
+  make_dir(sys_dir);
+  make_dir(sub_dir);
+
+  const char *keys[] = {"stub_vfs_dir_check"};
+  const char *vals[] = {"on"};
+  g_last_message[0] = '\0';
+
+  lh_host *host = lh_create(LH_FORMAT_RGBA8888, make_callbacks());
+  lh_av_info av;
+  int rc = lh_load(host, core_path, rom_path, sys_dir, work_dir,
+                   "vfsdirgame", keys, vals, 1, &av);
+  CHECK(rc == 0, "core loads with the VFS dir check variable set");
+  CHECK(strcmp(g_last_message, "stub vfs dir probe_subdir is a directory") == 0,
+        "a real subdirectory is reported as a directory through the VFS");
+  lh_destroy(host);
+}
+
 // A core that asks to quit must be left alone afterwards, since running it
 // again is what turns a failed boot into a native crash.
 static void test_shutdown(const char *core_path, const char *work_dir) {
@@ -295,8 +326,8 @@ static void test_format(const char *core_path, const char *rom_path,
 
   if (fmt == LH_FORMAT_RGBA8888) {
     // stub_speed, stub_pattern, stub_rotation, stub_format, stub_huge_frame,
-    // stub_bad_pitch.
-    CHECK(lh_option_count(host) == 6, "six core options");
+    // stub_bad_pitch, stub_vfs_dir_check.
+    CHECK(lh_option_count(host) == 7, "seven core options");
     lh_option opt;
     int opt_rc = lh_get_option(host, 0, &opt);
     CHECK(opt_rc == 0 && strcmp(opt.id, "stub_speed") == 0, "option id");
@@ -324,7 +355,7 @@ static void test_format(const char *core_path, const char *rom_path,
     uint8_t blob_a[64], blob_b[64], blob_c[64];
     CHECK(size > 0, "serialize size");
     CHECK(lh_serialize(host, blob_a, size) == 0, "serialize after restart");
-    CHECK(lh_option_count(host) == 6, "restart replaces option definitions");
+    CHECK(lh_option_count(host) == 7, "restart replaces option definitions");
     lh_get_option(host, 0, &opt);
     CHECK(strcmp(opt.current, "fast") == 0, "restart retains option value");
     int32_t restart_marker;
@@ -883,6 +914,7 @@ int main(int argc, char **argv) {
 
   test_input_latch();
   test_vfs_zip(core_path, work_dir);
+  test_vfs_dir_reports_subdir(core_path, rom_path, work_dir);
 
   test_format(core_path, rom_path, work_dir, LH_FORMAT_RGBA8888);
   test_format(core_path, rom_path, work_dir, LH_FORMAT_BGRA8888);

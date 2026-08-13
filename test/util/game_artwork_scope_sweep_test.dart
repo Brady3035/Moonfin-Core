@@ -3,6 +3,23 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:moonfin/util/game_artwork_cache.dart';
 import 'package:moonfin/util/tv_image_cache_io.dart';
+import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
+import 'package:plugin_platform_interface/plugin_platform_interface.dart';
+
+/// Lets [clearImageDiskCache] see a controlled temporary directory.
+class _FakePathProvider extends PathProviderPlatform
+    with MockPlatformInterfaceMixin {
+  _FakePathProvider(this.root);
+
+  final Directory root;
+
+  @override
+  Future<String?> getTemporaryPath() async => root.path;
+
+  @override
+  Future<String?> getApplicationSupportPath() async =>
+      '${root.path}/support';
+}
 
 void main() {
   late Directory root;
@@ -32,7 +49,7 @@ void main() {
     final key = gameArtworkCacheKeyForScope('library/Arcade & MAME');
 
     expect(key, startsWith('$gameArtworkCacheKey-'));
-    expect(key, isNot(contains('/')));
+    expect(key, matches(RegExp(r'^[A-Za-z0-9._-]+$')));
     expect(key, gameArtworkCacheKeyForScope('library/Arcade & MAME'));
   });
 
@@ -52,7 +69,6 @@ void main() {
       root,
       budgetBytes: 64,
       protectedCacheKeys: const {},
-      now: now,
     );
 
     expect(evicted, isEmpty);
@@ -83,7 +99,6 @@ void main() {
         root,
         budgetBytes: 100,
         protectedCacheKeys: const {},
-        now: now,
       );
 
       expect(evicted, [gameArtworkCacheKeyForScope('library/Arcade')]);
@@ -109,11 +124,41 @@ void main() {
       root,
       budgetBytes: 100,
       protectedCacheKeys: {gameArtworkCacheKeyForScope('library/Arcade')},
-      now: now,
     );
 
     expect(evicted, [gameArtworkCacheKeyForScope('library/Sega')]);
     expect(arcade.existsSync(), isTrue);
     expect(sega.existsSync(), isFalse);
   });
+
+  test(
+    'clearImageDiskCache live-clears a directory with an in-process manager '
+    'but deletes an orphaned one wholesale',
+    () async {
+      final originalPathProvider = PathProviderPlatform.instance;
+      PathProviderPlatform.instance = _FakePathProvider(root);
+      addTearDown(() => PathProviderPlatform.instance = originalPathProvider);
+
+      // Live manager, as browsing a game system would create.
+      gameArtworkCacheManagerForScope('library/Arcade');
+      addTearDown(resetGameArtworkCacheManagers);
+      final live = writeScope('library/Arcade', 10, now);
+      // No manager: a cache left behind by an older session.
+      final orphan = writeScope('library/Sega', 10, now);
+
+      await clearImageDiskCache();
+
+      expect(
+        live.existsSync(),
+        isTrue,
+        reason: 'a live manager must be cleared in place, not deleted out '
+            'from under it',
+      );
+      expect(
+        orphan.existsSync(),
+        isFalse,
+        reason: 'a directory with no live manager is safe to delete wholesale',
+      );
+    },
+  );
 }

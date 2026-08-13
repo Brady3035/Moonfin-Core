@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 
 /// Prefix for per-system game-artwork caches. Sharing the global media cache
@@ -56,6 +57,11 @@ Future<bool> clearLiveGameArtworkCache(String cacheKey) async {
   await manager.emptyCache();
   return true;
 }
+
+/// Test-only: a manager left registered makes a later test's cache look live to
+/// [clearLiveGameArtworkCache], so test order would decide the result.
+@visibleForTesting
+void resetGameArtworkCacheManagers() => _gameArtworkCacheManagers.clear();
 
 /// Backward-compatible fallback for callers that do not know a system. New
 /// game screens should use [gameArtworkCacheManagerForScope] instead.

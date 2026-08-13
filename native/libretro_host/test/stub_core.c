@@ -95,6 +95,7 @@ void retro_set_environment(retro_environment_t cb) {
       {"stub_format", "Pixel format; xrgb8888|rgb565|0rgb1555"},
       {"stub_huge_frame", "Huge frame; off|on"},
       {"stub_bad_pitch", "Bad pitch; off|on"},
+      {"stub_vfs_dir_check", "VFS dir check; off|on"},
       {NULL, NULL},
   };
   env_cb(RETRO_ENVIRONMENT_SET_VARIABLES, (void *)vars);
@@ -168,6 +169,45 @@ static bool probe_vfs_zip(const char *path) {
     ok = false;
   }
   return ok;
+}
+
+// Walks the system directory through the VFS and reports whether "probe_subdir"
+// came back as a directory. Covers opendir/readdir/closedir traversal - notably
+// the Win32 pending-first-entry path - since SET_MESSAGE is the stub's only
+// channel back to the harness.
+static void probe_vfs_dir(void) {
+  struct retro_vfs_interface_info info = {3, NULL};
+  if (!env_cb(RETRO_ENVIRONMENT_GET_VFS_INTERFACE, &info) || !info.iface) {
+    struct retro_message msg = {"stub vfs dir probe: interface unavailable", 180};
+    env_cb(RETRO_ENVIRONMENT_SET_MESSAGE, &msg);
+    return;
+  }
+  const char *sysdir = NULL;
+  env_cb(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &sysdir);
+  if (!sysdir) {
+    struct retro_message msg = {"stub vfs dir probe: no system directory", 180};
+    env_cb(RETRO_ENVIRONMENT_SET_MESSAGE, &msg);
+    return;
+  }
+  struct retro_vfs_dir_handle *d = info.iface->opendir(sysdir, true);
+  bool found_entry = false;
+  bool found_dir = false;
+  if (d) {
+    while (info.iface->readdir(d)) {
+      const char *name = info.iface->dirent_get_name(d);
+      if (name && strcmp(name, "probe_subdir") == 0) {
+        found_entry = true;
+        found_dir = info.iface->dirent_is_dir(d);
+        break;
+      }
+    }
+    info.iface->closedir(d);
+  }
+  struct retro_message msg = {
+      (found_entry && found_dir) ? "stub vfs dir probe_subdir is a directory"
+                                  : "stub vfs dir probe_subdir NOT a directory",
+      180};
+  env_cb(RETRO_ENVIRONMENT_SET_MESSAGE, &msg);
 }
 
 void retro_set_video_refresh(retro_video_refresh_t cb) { video_cb = cb; }
@@ -283,6 +323,12 @@ bool retro_load_game(const struct retro_game_info *game) {
   struct retro_variable pitch_var = {"stub_bad_pitch", NULL};
   env_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &pitch_var);
   bad_pitch_mode = pitch_var.value && strcmp(pitch_var.value, "on") == 0;
+
+  struct retro_variable dircheck_var = {"stub_vfs_dir_check", NULL};
+  env_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &dircheck_var);
+  if (dircheck_var.value && strcmp(dircheck_var.value, "on") == 0) {
+    probe_vfs_dir();
+  }
 
   return true;
 }

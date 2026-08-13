@@ -61,6 +61,12 @@ const _gameArtworkScopeAccessFileName = '.moonfin-scope-access';
 const _gameArtworkBudgetSweepKey = '$gameArtworkCacheKey-budget';
 final Map<String, int> _activeGameArtworkScopes = <String, int>{};
 
+/// The user just left but scope is still protected while their in-flight transfers
+/// land. Flutter cache manager can't cancel a download, so releasing a scope
+/// only stops new work; the writes already issued finish on their own.
+final Map<String, DateTime> _coolingGameArtworkScopes = <String, DateTime>{};
+const _gameArtworkScopeCooldown = Duration(seconds: 30);
+
 /// Marks a system as actively browsed. Active systems are never evicted by a
 /// resume/startup cache sweep, even if the global game-art budget is exceeded.
 Future<void> retainGameArtworkCacheScope(String scope) async {
@@ -69,6 +75,7 @@ Future<void> retainGameArtworkCacheScope(String scope) async {
     (count) => count + 1,
     ifAbsent: () => 1,
   );
+  _coolingGameArtworkScopes.remove(scope);
   try {
     final temp = await getTemporaryDirectory();
     final dir = Directory('${temp.path}/${gameArtworkCacheKeyForScope(scope)}');
@@ -83,6 +90,7 @@ void releaseGameArtworkCacheScope(String scope) {
   final count = _activeGameArtworkScopes[scope];
   if (count == null || count <= 1) {
     _activeGameArtworkScopes.remove(scope);
+    _coolingGameArtworkScopes[scope] = DateTime.now();
   } else {
     _activeGameArtworkScopes[scope] = count - 1;
   }
@@ -101,14 +109,17 @@ Future<void> _enforceGameArtworkCacheBudget({required bool throttle}) async {
   _sweepingCacheKeys.add(_gameArtworkBudgetSweepKey);
   _lastSweepByCacheKey[_gameArtworkBudgetSweepKey] = now;
   try {
+    _coolingGameArtworkScopes.removeWhere(
+      (_, releasedAt) => now.difference(releasedAt) >= _gameArtworkScopeCooldown,
+    );
     final temp = await getTemporaryDirectory();
     await evictInactiveGameArtworkCaches(
       temp,
       budgetBytes: gameArtworkCacheBudgetBytes,
-      protectedCacheKeys: _activeGameArtworkScopes.keys
-          .map(gameArtworkCacheKeyForScope)
-          .toSet(),
-      now: now,
+      protectedCacheKeys: <String>{
+        ..._activeGameArtworkScopes.keys,
+        ..._coolingGameArtworkScopes.keys,
+      }.map(gameArtworkCacheKeyForScope).toSet(),
     );
   } catch (_) {
   } finally {
@@ -116,21 +127,16 @@ Future<void> _enforceGameArtworkCacheBudget({required bool throttle}) async {
   }
 }
 
-/// Evicts complete inactive system caches least-recently-used first until the
-/// game-art budget is met. Deleting a whole inactive scope avoids puncturing a
-/// user's in-progress browse with scattered missing artwork.
-///
-/// Exposed for deterministic filesystem tests. A recently modified inactive
-/// directory is left alone because a non-cancellable image transfer from the
-/// just-closed system may still be writing into it.
+/// Evicts whole inactive system caches, least-recently-used first, until the
+/// game-art budget is met: dropping a scope entire avoids puncturing an
+/// in-progress browse with scattered missing artwork. Public for filesystem
+/// tests; callers keep a just-left scope in protectedCacheKeys for a cooldown.
 Future<List<String>> evictInactiveGameArtworkCaches(
   Directory temporaryDirectory, {
   required int budgetBytes,
   required Set<String> protectedCacheKeys,
-  DateTime? now,
 }) async {
   if (budgetBytes <= 0 || !await temporaryDirectory.exists()) return const [];
-  final sweepTime = now ?? DateTime.now();
   final caches = <_GameArtworkCacheDirectory>[];
   await for (final entity in temporaryDirectory.list(followLinks: false)) {
     if (entity is! Directory ||
@@ -146,14 +152,7 @@ Future<List<String>> evictInactiveGameArtworkCaches(
 
   final target = (budgetBytes * 0.9).round();
   final inactive =
-      caches
-          .where((cache) => !protectedCacheKeys.contains(cache.key))
-          .where(
-            (cache) =>
-                sweepTime.difference(cache.newestModified) >=
-                const Duration(seconds: 30),
-          )
-          .toList()
+      caches.where((cache) => !protectedCacheKeys.contains(cache.key)).toList()
         ..sort((a, b) => a.lastUsed.compareTo(b.lastUsed));
 
   final evicted = <String>[];
@@ -184,14 +183,12 @@ class _GameArtworkCacheDirectory {
     required this.key,
     required this.bytes,
     required this.lastUsed,
-    required this.newestModified,
   });
 
   final Directory directory;
   final String key;
   final int bytes;
   final DateTime lastUsed;
-  final DateTime newestModified;
 }
 
 Future<_GameArtworkCacheDirectory?> _inspectGameArtworkCacheDirectory(
@@ -199,7 +196,6 @@ Future<_GameArtworkCacheDirectory?> _inspectGameArtworkCacheDirectory(
 ) async {
   try {
     var bytes = 0;
-    DateTime? newestModified;
     DateTime? lastUsed;
     final accessFile = File(
       '${directory.path}/$_gameArtworkScopeAccessFileName',
@@ -213,10 +209,6 @@ Future<_GameArtworkCacheDirectory?> _inspectGameArtworkCacheDirectory(
     )) {
       if (entity is! File) continue;
       final stat = await entity.stat();
-      newestModified =
-          newestModified == null || stat.modified.isAfter(newestModified)
-          ? stat.modified
-          : newestModified;
       if (!entity.path.endsWith(_gameArtworkScopeAccessFileName)) {
         bytes += stat.size;
       }
@@ -227,7 +219,6 @@ Future<_GameArtworkCacheDirectory?> _inspectGameArtworkCacheDirectory(
       key: _directoryName(directory),
       bytes: bytes,
       lastUsed: lastUsed ?? directoryStat.modified,
-      newestModified: newestModified ?? directoryStat.modified,
     );
   } catch (_) {
     return null;
@@ -298,20 +289,12 @@ Future<void> clearImageDiskCache() async {
     await for (final entity in temp.list(followLinks: false)) {
       if (entity is Directory &&
           isGameArtworkCacheDirectoryName(_directoryName(entity))) {
-        await entity.delete(recursive: true);
+        if (!await clearLiveGameArtworkCache(_directoryName(entity))) {
+          await entity.delete(recursive: true);
+        }
       }
     }
-    final gameSystemCacheDir = Directory(
-      '${temp.path}/$gameSystemArtworkCacheKey',
-    );
-    if (await gameSystemCacheDir.exists()) {
-      await gameSystemCacheDir.delete(recursive: true);
-    }
-    // Protocol-2 artwork lives under the temporary directory too, but in its
-    // own dedicated subdirectory rather than one the sweep above matches, so
-    // it needs its own explicit delete. It is by far the largest of these
-    // caches: a 150 MB budget against a few tens of MB for everything else
-    // here.
+    await gameSystemArtworkCacheManager.emptyCache();
     final retroArtworkCacheDir = await defaultRetroArtworkDiskCacheDirectory();
     if (await retroArtworkCacheDir.exists()) {
       await retroArtworkCacheDir.delete(recursive: true);

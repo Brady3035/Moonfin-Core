@@ -309,12 +309,15 @@ class LibretroBridge(
 
   private fun stopAudio() {
     audioRunning = false
-    // stop() first: it unblocks any in-flight blocking MODE_STREAM write so the
-    // join below cannot hang. The join must then be unbounded - a bounded join
-    // lets the audio thread survive into nativeStop()'s teardown and call
-    // lh_read_audio against a destroyed mutex and a freed ring buffer. The
-    // render thread's pthread_join in teardown() is unbounded for this reason.
-    // Release only after the join, so no write can outlive the track.
+    /* A "paranoid" edge case that could maybe manifest on slower hardware.
+     This theoretically prevents the main thread hanging, causing the app to hang.
+     Pause + flush drops the queued buffer so a blocking write can
+     return immediately, while stop alone only drains it.
+     The audio thread's join remains unbounded so the thread can't reach lh_read_audio
+     after nativeStop frees the buffer/mutex.
+     */
+    audioTrack?.let { runCatching { it.pause() } }
+    audioTrack?.let { runCatching { it.flush() } }
     audioTrack?.let { runCatching { it.stop() } }
     audioThread?.join()
     audioThread = null

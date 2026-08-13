@@ -37,6 +37,18 @@
 #ifdef _WIN32
 typedef HMODULE lh_lib;
 static lh_lib lib_open(const char *path) { return LoadLibraryA(path); }
+static const char *lib_open_error(char *buf, size_t buf_size) {
+  DWORD err = GetLastError();
+  DWORD n = FormatMessageA(
+      FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, err,
+      0, buf, (DWORD)buf_size, NULL);
+  if (n == 0) snprintf(buf, buf_size, "error %lu", (unsigned long)err);
+  else {
+    // FormatMessageA appends a trailing CRLF; trim it for a single-line log.
+    while (n > 0 && (buf[n - 1] == '\n' || buf[n - 1] == '\r')) buf[--n] = '\0';
+  }
+  return buf;
+}
 static void *lib_sym(lh_lib h, const char *s) {
   return (void *)GetProcAddress(h, s);
 }
@@ -74,6 +86,8 @@ typedef void *lh_lib;
 static lh_lib lib_open(const char *path) {
   return dlopen(path, RTLD_NOW | RTLD_LOCAL);
 }
+// Must be called immediately after a NULL dlopen; any later call clears it.
+static const char *lib_open_error(void) { return dlerror(); }
 static void *lib_sym(lh_lib h, const char *s) { return dlsym(h, s); }
 static void lib_close(lh_lib h) { dlclose(h); }
 
@@ -711,14 +725,13 @@ static bool vfs_dirent_is_dir(struct retro_vfs_dir_handle *dirstream) {
 #ifdef _WIN32
   return (dirstream->data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
 #else
-  if (!dirstream->entry) return false;
-#ifdef DT_DIR
-  if (dirstream->entry->d_type == DT_DIR) return true;
-  if (dirstream->entry->d_type != DT_UNKNOWN) return false;
-#endif
-  // d_type is DT_UNKNOWN on some filesystems (notably FAT/exFAT and some
-  // Android storage); fall back to stat rather than assume "not a directory".
-  return false;
+  /* Everything we scan lives in the app's own cache/support dir — internal
+     storage on every shipped platform, where d_type is always populated.
+     Could be a problem if an app/cache dir is on NFS, overlayfs, or XFS
+     with ftype=0 would return DT_UNKNOWN and make a real directory look
+     like a file to the core. DT_LNK is not a directory either.
+  */
+  return dirstream->entry && dirstream->entry->d_type == DT_DIR;
 #endif
 }
 
@@ -1636,7 +1649,18 @@ static int load_failed(struct lh_host *h, int code) {
 
 static int open_core(struct lh_host *h) {
   h->core.handle = lib_open(h->core_path);
-  if (!h->core.handle) return -2;
+  if (!h->core.handle) {
+#ifdef _WIN32
+    char err_buf[256];
+    host_log(h, "Failed to load core '%s': %s", h->core_path,
+             lib_open_error(err_buf, sizeof(err_buf)));
+#else
+    const char *err = lib_open_error();
+    host_log(h, "Failed to load core '%s': %s", h->core_path,
+             err ? err : "unknown dlopen failure");
+#endif
+    return -2;
+  }
   if (!resolve_core(&h->core)) {
     lib_close(h->core.handle);
     memset(&h->core, 0, sizeof(h->core));

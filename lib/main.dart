@@ -115,6 +115,8 @@ Future<void> _restoreWindowGeometry() async {
   final x = prefs.get(UserPreferences.windowX);
   final y = prefs.get(UserPreferences.windowY);
   final startFullscreen = prefs.get(UserPreferences.windowFullscreen);
+  final startMaximized =
+      prefs.get(UserPreferences.windowMaximized) && !startFullscreen;
 
   const minW = 800.0;
   const minH = 500.0;
@@ -123,13 +125,18 @@ Future<void> _restoreWindowGeometry() async {
   final options = WindowOptions(
     size: hasSavedGeometry ? Size(w, h) : const Size(1280, 720),
     minimumSize: const Size(minW, minH),
-    center: !hasSavedGeometry,
+    center: !hasSavedGeometry && !startMaximized,
     skipTaskbar: false,
   );
 
   await windowManager.waitUntilReadyToShow(options, () async {
     if (hasSavedGeometry) {
       await windowManager.setPosition(Offset(x, y));
+    }
+    // Before show, so platforms that apply it right away never draw the
+    // windowed size first.
+    if (startMaximized) {
+      await windowManager.maximize();
     }
     await windowManager.show();
     await windowManager.focus();

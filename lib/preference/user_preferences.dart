@@ -2538,6 +2538,11 @@ class UserPreferences extends ChangeNotifier {
     defaultValue: false,
   );
 
+  static final windowMaximized = Preference(
+    key: 'window_maximized',
+    defaultValue: false,
+  );
+
   static final syncPlayAdvancedCorrectionEnabled = Preference(
     key: 'syncplay_advanced_correction_enabled',
     defaultValue: true,

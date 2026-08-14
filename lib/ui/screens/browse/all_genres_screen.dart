@@ -9,6 +9,7 @@ import 'package:server_core/server_core.dart' hide ImageType;
 import '../../../data/models/aggregated_item.dart';
 import '../../../auth/repositories/user_repository.dart';
 import '../../../data/services/background_service.dart';
+import '../../../data/services/log_service.dart';
 import '../../../data/utils/genre_browse_utils.dart';
 import '../../../preference/preference_constants.dart';
 import '../../../preference/user_preferences.dart';
@@ -172,7 +173,18 @@ class _AllGenresScreenState extends State<AllGenresScreen> {
           isGenreFallback: !hasCustomArtwork,
         );
       }).toList();
-    } catch (_) {}
+    } catch (e) {
+      // The screen shows the same empty state either way, so without this a
+      // server that refuses the request looks like a library with no genres.
+      if (GetIt.instance.isRegistered<LogService>()) {
+        GetIt.instance<LogService>().log(
+          LogCategory.network,
+          'Loading genres failed',
+          level: LogLevel.warning,
+          error: e,
+        );
+      }
+    }
 
     _isLoading = false;
     if (!_disposed && mounted) setState(() {});

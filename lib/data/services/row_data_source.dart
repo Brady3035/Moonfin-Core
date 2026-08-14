@@ -94,6 +94,12 @@ class RowDataSource {
     }
   }
 
+  /// A rejected request is worth one more try without the optional fields,
+  /// since a server that has no name for one of them turns the whole call down
+  /// rather than ignoring it.
+  static bool _shouldRetryWithoutFields(int statusCode) =>
+      statusCode == 400 || statusCode >= 500;
+
   Future<bool> hasLiveTvChannels() async {
     final response = await _client.liveTvApi.getChannels(
       limit: 1,
@@ -447,7 +453,7 @@ class RowDataSource {
     } on DioException catch (e) {
       final statusCode = e.response?.statusCode ?? 0;
       _recordIfAccessDenied(statusCode, parentId);
-      if (statusCode < 500) rethrow;
+      if (!_shouldRetryWithoutFields(statusCode)) rethrow;
       response = await _client.itemsApi.getGenres(
         parentId: parentId,
         sortBy: sortBy,
@@ -515,7 +521,7 @@ class RowDataSource {
       } on DioException catch (e) {
         final statusCode = e.response?.statusCode ?? 0;
         _recordIfAccessDenied(statusCode, parentId);
-        if (statusCode < 500) rethrow;
+        if (!_shouldRetryWithoutFields(statusCode)) rethrow;
         return _client.itemsApi.getStudios(
           parentId: parentId,
           userId: _client.userId,

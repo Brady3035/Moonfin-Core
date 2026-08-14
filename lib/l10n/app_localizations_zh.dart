@@ -10204,7 +10204,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   }
 
   @override
-  String get quickConnect => 'Quick Connect';
+  String get quickConnect => '快速連線';
 
   @override
   String get password => '密碼';
@@ -10344,7 +10344,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
       '使用 Moonfin Recommends 的本機媒體庫演算法，或線上 TMDb 的相似度指標。注意：線上推薦需要整合 Seerr。';
 
   @override
-  String get recommendationSystemMoonfin => 'Moonfin Recommends';
+  String get recommendationSystemMoonfin => 'Moonfin 推薦';
 
   @override
   String get recommendationSystemTmdb => 'TMDb 相似度';
@@ -10476,10 +10476,10 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get exitApp => '退出Moonfin？';
 
   @override
-  String get exitAppConfirmation => '您確定要退出嗎？';
+  String get exitAppConfirmation => '確定要退出嗎？';
 
   @override
-  String get exit => '出口';
+  String get exit => '退出';
 
   @override
   String get gameMenu => '選單';
@@ -10512,13 +10512,13 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get gamePlaybackUnsupported => '此裝置尚未支援遊玩遊戲。';
 
   @override
-  String get noHomeRowsLoaded => '無法載入主行';
+  String get noHomeRowsLoaded => '無法載入首頁內容';
 
   @override
-  String get noHomeRowsHint => '嘗試刷新或減少活躍的主頁部分。';
+  String get noHomeRowsHint => '請嘗試重新載入，或減少首頁啟用的區塊。';
 
   @override
-  String get retryHomeRows => '重試主行';
+  String get retryHomeRows => '重新載入首頁';
 
   @override
   String get guide => '指導';
@@ -10530,7 +10530,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get schedule => '行程';
 
   @override
-  String get series => '影集';
+  String get series => '劇集';
 
   @override
   String get noItemsFound => '沒有找到物品';
@@ -10542,10 +10542,10 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get browseAll => '瀏覽全部';
 
   @override
-  String get genres => '流派';
+  String get genres => '類型';
 
   @override
-  String get collectionPlaceholder => '收藏品會出現在這裡';
+  String get collectionPlaceholder => '合輯內容將顯示於此';
 
   @override
   String get browseByLetter => '按字母瀏覽';
@@ -10572,10 +10572,10 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get displaySettings => '顯示設定';
 
   @override
-  String get allGenres => '所有流派';
+  String get allGenres => '所有類型';
 
   @override
-  String get noGenresFound => '沒有找到流派';
+  String get noGenresFound => '沒有找到類型';
 
   @override
   String failedToLoadFolderError(String error) {
@@ -10712,10 +10712,10 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get scanWithYourPhone => '用手機掃描';
 
   @override
-  String get audiobookGenres => '有聲書流派';
+  String get audiobookGenres => '有聲書類型';
 
   @override
-  String get pickAudiobookGenres => '選擇要在有聲書探索中顯示的流派。';
+  String get pickAudiobookGenres => '挑選要在「有聲書探索頁」中顯示的類型。';
 
   @override
   String get discoverAudiobooks => '發現有聲書';
@@ -10822,7 +10822,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get readyWhenYouAre => '當你準備好時';
 
   @override
-  String get details => '細節';
+  String get details => '詳情';
 
   @override
   String get listeningRoom => '聽音室';
@@ -10895,7 +10895,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get unwatched => '未觀看';
 
   @override
-  String get seriesStatus => '系列狀態';
+  String get seriesStatus => '劇集狀態';
 
   @override
   String get allLibraries => '所有圖書館';
@@ -11043,13 +11043,13 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get castAndCrew => '演職人員';
 
   @override
-  String get collection => '收藏';
+  String get collection => '合輯';
 
   @override
   String get episodes => '劇集數';
 
   @override
-  String get nextUp => '下一步';
+  String get nextUp => '接下來播放';
 
   @override
   String get seasons => '季';
@@ -11186,16 +11186,16 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get startOver => '重新開始';
 
   @override
-  String get restart => '重新啟動';
+  String get restart => '從頭播放';
 
   @override
   String get readOffline => '離線閱讀';
 
   @override
-  String get playOffline => '離線玩';
+  String get playOffline => '離線播放';
 
   @override
-  String get audio => '聲音的';
+  String get audio => '音訊';
 
   @override
   String get subtitles => '字幕';
@@ -11207,22 +11207,28 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get cast => '投放';
 
   @override
+  String get castMembers => '卡司';
+
+  @override
   String get trailer => '預告片';
 
   @override
-  String get finished => '完成的';
+  String get finished => '已完成';
 
   @override
   String get favorited => '已收藏';
 
   @override
-  String get favorite => '最喜歡的';
+  String get favorite => '收藏';
 
   @override
   String get playlist => '播放清單';
 
   @override
   String get downloaded => '已下載';
+
+  @override
+  String get finalizingDownload => '即將完成…';
 
   @override
   String get downloadAll => '下載全部';
@@ -11234,7 +11240,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get deleteDownloaded => '刪除已下載';
 
   @override
-  String get goToSeries => '前往系列';
+  String get goToSeries => '前往劇集';
 
   @override
   String get editMetadata => '編輯元數據';
@@ -11405,7 +11411,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get writers => '編劇';
 
   @override
-  String get studio => '工作室';
+  String get studio => '製片商';
 
   @override
   String studioMoreCount(int count) {
@@ -11667,7 +11673,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get playback => '回放';
 
   @override
-  String get playMethod => '玩法';
+  String get playMethod => '播放方式';
 
   @override
   String get directPlay => '直接播放';
@@ -11884,7 +11890,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get readerNotReady => '讀者還沒準備好。';
 
   @override
-  String get seriesRecordings => '系列錄音';
+  String get seriesRecordings => '劇集錄製';
 
   @override
   String get now => '現在';
@@ -12015,16 +12021,16 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get failedToCancelRecording => '取消錄音失敗';
 
   @override
-  String get failedToLoadSeriesRecordings => '無法載入系列錄音';
+  String get failedToLoadSeriesRecordings => '劇集錄製載入失敗';
 
   @override
-  String get noSeriesRecordings => '沒有系列錄音';
+  String get noSeriesRecordings => '暫無劇集錄製';
 
   @override
-  String get cancelSeriesRecording => '取消系列錄音';
+  String get cancelSeriesRecording => '取消劇集錄製';
 
   @override
-  String get cancelSeriesRecordingQuestion => '取消系列錄製？';
+  String get cancelSeriesRecordingQuestion => '取消劇集錄製？';
 
   @override
   String stopRecordingName(String name) {
@@ -12032,7 +12038,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   }
 
   @override
-  String get failedToCancelSeriesRecording => '取消連續錄製失敗';
+  String get failedToCancelSeriesRecording => '取消劇集錄製失敗';
 
   @override
   String get searchThisLibrary => '搜尋這個圖書館...';
@@ -12145,10 +12151,10 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   }
 
   @override
-  String get seriesNotFound => '未找到系列';
+  String get seriesNotFound => '未找到劇集';
 
   @override
-  String get errorLoadingSeries => '載入系列時出錯';
+  String get errorLoadingSeries => '載入劇集時出錯';
 
   @override
   String get downloadedEpisodes => '下載劇集';
@@ -12318,16 +12324,16 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get focusBorderColor => '焦點邊框顏色';
 
   @override
-  String get watchedIndicators => '觀察指標';
+  String get watchedIndicators => '觀看狀態標記';
 
   @override
   String get always => '總是';
 
   @override
-  String get hideUnwatched => '隱藏無人監視';
+  String get hideUnwatched => '隱藏未觀看數量';
 
   @override
-  String get episodesOnly => '僅限劇集';
+  String get episodesOnly => '僅限單集';
 
   @override
   String get never => '絕不';
@@ -12348,19 +12354,19 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get showBackdropImages => '顯示內容後面的背景影像';
 
   @override
-  String get seriesThumbnails => '系列縮圖';
+  String get seriesThumbnails => '顯示劇集縮圖';
 
   @override
-  String get seriesThumbnailsDescription => '僅劇集：使用與每行影像類型相符的系列圖稿';
+  String get seriesThumbnailsDescription => '電視劇使用劇集主圖，而非單集縮圖。';
 
   @override
   String get homeRowInfoOverlay => '主行資訊疊加';
 
   @override
-  String get showTitleMetadataOnHomeRows => '瀏覽主行時顯示標題和元數據';
+  String get showTitleMetadataOnHomeRows => '瀏覽首頁時顯示標題與媒體資訊';
 
   @override
-  String get clockDisplay => '時鐘顯示';
+  String get clockDisplay => '顯示時間';
 
   @override
   String get inMenus => '在選單中';
@@ -12784,19 +12790,19 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get hardwareDecodingSubtitle => '可能會提高效能，但可能會導致某些裝置上的播放問題。';
 
   @override
-  String get nextUpAndQueuing => '下次和排隊';
+  String get nextUpAndQueuing => '接下來播放與佇列';
 
   @override
-  String get nextUpDisplay => '下一個顯示';
+  String get nextUpDisplay => '接下來播放提示視窗';
 
   @override
-  String get extended => '擴充';
+  String get extended => '擴展';
 
   @override
-  String get minimal => '最小';
+  String get minimal => '精簡';
 
   @override
-  String get nextUpTimeout => '下一個超時';
+  String get nextUpTimeout => '接下來播放倒數時間';
 
   @override
   String secondsValue(int value) {
@@ -13111,7 +13117,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get showShuffleButton => '顯示隨機播放鈕';
 
   @override
-  String get showGenresButton => '顯示流派按鈕';
+  String get showGenresButton => '顯示類型按鈕';
 
   @override
   String get showFavoritesButton => '顯示收藏夾按鈕';
@@ -13195,7 +13201,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get showFolderBrowsingOption => '顯示資料夾瀏覽選項';
 
   @override
-  String get groupItemsIntoCollections => '將項目歸入合輯';
+  String get groupItemsIntoCollections => '將影片歸類至系列合輯';
 
   @override
   String get hideCollectionAssociatedItems => '瀏覽媒體庫時隱藏已歸入合輯的項目';
@@ -13205,7 +13211,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get groupItemsIntoCollectionsDialogMessage =>
-      '若要使用此設定，請確認您的 Jellyfin 或 Emby 伺服器中，該媒體庫的「顯示」設定已啟用「Group movies into collections」及／或「Group shows into collections」。';
+      '若要使用此設定，請確保您的 Jellyfin 或 Emby 伺服器在「媒體庫」的「顯示」中，啟用「將電影分組到系列合輯」和/或「將劇集分組到系列合輯」的設定。';
 
   @override
   String get libraryVisibility => '圖書館可見性';
@@ -13223,7 +13229,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get sourceLibraries => '來源庫';
 
   @override
-  String get sourceCollections => '來源集';
+  String get sourceCollections => '來源合輯';
 
   @override
   String get excludedGenres => '排除的類型';
@@ -13381,10 +13387,16 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get configureImageTypeForEachRow => '為每個啟用的主行配置影像類型';
 
   @override
-  String get mergeContinueWatchingAndNextUp => '合併繼續觀看和下一步';
+  String get mergeContinueWatchingAndNextUp => '合併繼續觀看和接下來播放';
 
   @override
   String get combineBothRows => '將兩行合併為一個主頁部分';
+
+  @override
+  String get nextUpMaxDays => '接下來播放最長保留天數';
+
+  @override
+  String get nextUpMaxDaysDescription => '電視劇在上次觀看後，於接下來播放中保留的時間';
 
   @override
   String get fullScreenRows => '展開主畫面列';
@@ -13631,19 +13643,22 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get upcomingMovies => '即將上映的電影';
 
   @override
-  String get studios => '工作室';
+  String get studios => '製片商';
 
   @override
-  String get popularSeries => '熱門系列';
+  String get popularSeries => '熱門劇集';
 
   @override
-  String get seriesGenres => '系列流派';
+  String get seriesGenres => '劇集類型';
 
   @override
-  String get upcomingSeries => '即將推出的系列';
+  String get upcomingSeries => '即將推出的劇集';
 
   @override
   String get networks => '網路';
+
+  @override
+  String get genresAndTags => '類型與標籤';
 
   @override
   String get seerrDiscoveryRows => 'Seerr 探索列';
@@ -13868,7 +13883,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get cancelRequest => '取消請求';
 
   @override
-  String get playInMoonfin => '玩 Moonfin';
+  String get playInMoonfin => '在 Moonfin 中播放';
 
   @override
   String requestedByName(String name) {
@@ -13882,7 +13897,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get declineAction => '衰退';
 
   @override
-  String get similar => '相似的';
+  String get similar => '相似';
 
   @override
   String get recommendations => '建議';
@@ -13923,7 +13938,12 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String requestSeriesOrMovie(String type) {
-    return '請求$type';
+    return '請求 $type';
+  }
+
+  @override
+  String requestSeriesOrMovie4k(String type) {
+    return '請求 4K $type';
   }
 
   @override
@@ -13954,7 +13974,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get appearances => '參演作品';
 
   @override
-  String get crewSection => '全體人員';
+  String get crewSection => '幕後人員';
 
   @override
   String ageValue(int age) {
@@ -14044,7 +14064,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String partOfCollectionName(String name) {
-    return '屬於 $name';
+    return '收錄於 $name';
   }
 
   @override
@@ -14055,7 +14075,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String collectionMoviesSummary(int total, int available) {
-    return '$total 部電影 · $available 部可觀看';
+    return '共 $total 部電影 · $available 部可觀看';
   }
 
   @override
@@ -14430,7 +14450,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get analyticsContainers => '貨櫃';
 
   @override
-  String get analyticsTopGenres => '熱門流派';
+  String get analyticsTopGenres => '熱門類型';
 
   @override
   String get analyticsReleaseYears => '發布年份';
@@ -14780,7 +14800,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get adminLibrarySectionImages => '圖片';
 
   @override
-  String get adminLibrarySectionSeries => '影集';
+  String get adminLibrarySectionSeries => '劇集';
 
   @override
   String get adminLibrarySectionMusic => '音樂';
@@ -14828,7 +14848,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get adminLibGroupMovies => '將電影歸入合輯';
 
   @override
-  String get adminLibGroupShows => '將影集歸入合輯';
+  String get adminLibGroupShows => '將劇集歸入合輯';
 
   @override
   String get adminLibExternalSuggestions => '在建議中顯示外部內容';
@@ -14942,7 +14962,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get adminLibSaveTrickplayWithMedia => '將 Trickplay 圖片儲存至媒體資料夾';
 
   @override
-  String get adminLibAutomaticSeriesGrouping => '自動合併散落於多個資料夾的影集';
+  String get adminLibAutomaticSeriesGrouping => '自動合併散落於多個資料夾的劇集';
 
   @override
   String get adminLibSeasonZeroName => '第零季顯示名稱';
@@ -15131,7 +15151,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get adminAllowLiveTvManagement => '允許直播電視管理';
 
   @override
-  String get adminAllowCollectionManagement => '允許集合管理';
+  String get adminAllowCollectionManagement => '允許合輯管理';
 
   @override
   String get adminAllowSubtitleManagement => '允許字幕管理';
@@ -15218,7 +15238,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get adminUnratedTrailer => '預告片';
 
   @override
-  String get adminUnratedSeries => '影集';
+  String get adminUnratedSeries => '劇集';
 
   @override
   String get adminAccessSchedules => '存取時間表';
@@ -16261,7 +16281,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get adminRecordingPath => '錄音路徑';
 
   @override
-  String get adminSeriesRecordingPath => '系列錄音路徑';
+  String get adminSeriesRecordingPath => '劇集錄製路徑';
 
   @override
   String get adminMovieRecordingPath => '電影錄影路徑';
@@ -16362,7 +16382,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String adminSeriesPathDisplay(String path) {
-    return '影集路徑：$path';
+    return '劇集路徑：$path';
   }
 
   @override
@@ -16523,13 +16543,13 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get adminMetadataFieldOverview => '概述';
 
   @override
-  String get adminMetadataGenres => '流派';
+  String get adminMetadataGenres => '類型';
 
   @override
   String get adminMetadataTags => '標籤';
 
   @override
-  String get adminMetadataStudios => '工作室';
+  String get adminMetadataStudios => '製片商';
 
   @override
   String get adminMetadataPeople => '人們';
@@ -16541,7 +16561,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get adminMetadataAddTag => '添加標籤';
 
   @override
-  String get adminMetadataAddStudio => '新增工作室';
+  String get adminMetadataAddStudio => '新增製片商';
 
   @override
   String get adminMetadataAddPerson => '新增人員';
@@ -17880,7 +17900,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get shuffleNoLibraries => '沒有可用的相容庫。';
 
   @override
-  String get shuffleNoGenres => '沒有找到適合此隨機播放模式的流派。';
+  String get shuffleNoGenres => '未找到適合此隨機播放模式的類型。';
 
   @override
   String get posterDisplayTitle => '展示';
@@ -17922,7 +17942,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get lyricsNotAvailable => '沒有可用的歌詞';
 
   @override
-  String get upNext => '下一個';
+  String get upNext => '接下來';
 
   @override
   String get playNext => '播放下一個';
@@ -17945,7 +17965,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get liveTv => '電視直播';
 
   @override
-  String get continueWatchingAndNextUp => '繼續觀看並繼續觀看';
+  String get continueWatchingAndNextUp => '繼續觀看與接下來播放';
 
   @override
   String downloadingBatchProgress(int current, int total, String fileName) {
@@ -17982,7 +18002,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get playerTooltipFloatOnTop => '浮在上面';
 
   @override
-  String get playerTooltipExitFloatOnTop => '禁用頂部浮動';
+  String get playerTooltipExitFloatOnTop => '取消視窗置頂';
 
   @override
   String get playerTooltipLockLandscape => '鎖風景';
@@ -18012,13 +18032,13 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get contextMenuRemoveFromFavorites => '從收藏夾中刪除';
 
   @override
-  String get contextMenuGoToSeries => '前往系列';
+  String get contextMenuGoToSeries => '前往劇集';
 
   @override
   String get contextMenuHideFromContinueWatching => '從「繼續觀看」中隱藏';
 
   @override
-  String get contextMenuHideFromNextUp => '從「下一集」中隱藏';
+  String get contextMenuHideFromNextUp => '從接下來播放中隱藏';
 
   @override
   String get contextMenuAddToCollection => '加入合輯';
@@ -18115,7 +18135,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get settingsShowShuffleButtonInNavigation => '在導覽列中顯示隨機播放按鈕';
 
   @override
-  String get settingsShowGenresButtonInNavigation => '在導覽列中顯示流派按鈕';
+  String get settingsShowGenresButtonInNavigation => '在導覽列中顯示類型按鈕';
 
   @override
   String get settingsShowFavoritesButtonInNavigation => '在導覽列中顯示收藏夾按鈕';
@@ -18383,7 +18403,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get settingsNextUpDisplayDescription =>
-      '擴展顯示包含劇集插圖和描述的完整卡片。最小顯示緊湊的倒數疊加。禁用會完全隱藏提示。';
+      '「擴展」模式顯示單集劇照與倒數視窗。「精簡」模式僅顯示倒數視窗。「停用」模式會完全隱藏提示。';
 
   @override
   String get settingsShort => '短的';
@@ -18469,10 +18489,10 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get onNow => '現在播出';
 
   @override
-  String get collections => '收藏';
+  String get collections => '合輯';
 
   @override
-  String get lastPlayed => '上次玩過';
+  String get lastPlayed => '上次播放';
 
   @override
   String libraryNameWithServer(String libraryName, String serverName) {
@@ -18674,7 +18694,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get displayFavoritesRows => '顯示我的最愛列';
 
   @override
-  String get displayFavoritesRowsSubtitle => '在主畫面區段中顯示最愛電影、影集及其他最愛列。';
+  String get displayFavoritesRowsSubtitle => '在首頁中顯示收藏的電影、劇集及其他收藏列。';
 
   @override
   String get favoritesRowSorting => '我的最愛列排序';
@@ -18686,7 +18706,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get displayCollectionsRows => '顯示合輯列';
 
   @override
-  String get displayCollectionsRowsSubtitle => '在主畫面區段中顯示合輯列。';
+  String get displayCollectionsRowsSubtitle => '在首頁中顯示合輯列。';
 
   @override
   String get collectionsRowSorting => '合輯列排序';
@@ -18695,10 +18715,16 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get collectionsRowSortingDescription => '依加入日期、上映日期、字母順序等方式排序合輯列。';
 
   @override
+  String get collectionsRowShowEpisodes => '顯示單集';
+
+  @override
+  String get collectionsRowShowEpisodesSubtitle => '將電視劇展開，單獨顯示每一集。';
+
+  @override
   String get displayGenresRows => '顯示類型列';
 
   @override
-  String get displayGenresRowsSubtitle => '在主畫面區段中顯示類型列。';
+  String get displayGenresRowsSubtitle => '在首頁中顯示類型列。';
 
   @override
   String get genresRowSorting => '類型列排序';
@@ -18710,7 +18736,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get genresRowItems => '類型列項目';
 
   @override
-  String get genresRowItemsDescription => '在類型列中顯示電影、影集或兩者。';
+  String get genresRowItemsDescription => '在類型列中顯示電影、劇集或兩者。';
 
   @override
   String get displayPlaylistsRows => '顯示播放清單列';
@@ -18800,11 +18826,11 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get alwaysOn => '一律開啟。';
 
   @override
-  String get replaceSkipOutroWithNextUpDisplay => '以「下一集」顯示取代「略過片尾」';
+  String get replaceSkipOutroWithNextUpDisplay => '用「接下來播放」取代「跳過片尾」';
 
   @override
   String get replaceSkipOutroWithNextUpDisplaySubtitle =>
-      '顯示「下一集」覆蓋層，而非「略過片尾」按鈕。';
+      '顯示「接下來播放」覆蓋「跳過片尾」按鈕。';
 
   @override
   String get playerRouting => '播放器路由';
@@ -19245,7 +19271,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get randomShuffleLabel => '隨機播放';
 
   @override
-  String get genresShuffleLabel => '類型隨機播放';
+  String get genresShuffleLabel => '按類型隨機播放';
 
   @override
   String get autoHdrSwitching => '自動切換 HDR';
@@ -19767,4 +19793,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get imdbTopEnglishMovies => 'IMDb 評分最高英語電影';
+
+  @override
+  String get groupByStudio => '製片商';
 }

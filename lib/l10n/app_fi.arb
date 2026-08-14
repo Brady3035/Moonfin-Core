@@ -9124,7 +9124,7 @@
     "@resetProfile": {
         "description": "Button to reset a profile to defaults"
     },
-    "resetProfileTitle": "Nollataanko {profiili}?",
+    "resetProfileTitle": "Nollataanko {profile}?",
     "@resetProfileTitle": {
         "description": "Title of the dialog confirming a profile reset",
         "placeholders": {

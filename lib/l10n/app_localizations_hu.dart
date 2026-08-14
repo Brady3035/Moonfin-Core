@@ -9266,6 +9266,15 @@ class AppLocalizationsHu extends AppLocalizations {
       'A klasszikus megtartja a soronkénti képtípust és az információs fedvényt. A modern állóképről háttérképre váltó sorokat használ.';
 
   @override
+  String get sortOrder => 'Sort Order';
+
+  @override
+  String get ascending => 'Ascending';
+
+  @override
+  String get descending => 'Descending';
+
+  @override
   String get displayFavoritesRows => 'Kedvencek sorainak megjelenítése';
 
   @override
@@ -9280,6 +9289,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'A kedvencek sorainak rendezése a hozzáadás dátuma, a megjelenés dátuma, ábécérend vagy egyebek szerint.';
 
   @override
+  String get favoritesRowSortOrderDescription =>
+      'Sort Favorites rows in ascending or descending order.';
+
+  @override
   String get displayCollectionsRows => 'Gyűjtemények sorainak megjelenítése';
 
   @override
@@ -9292,6 +9305,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get collectionsRowSortingDescription =>
       'A gyűjtemények sorainak rendezése a hozzáadás dátuma, a megjelenés dátuma, ábécérend vagy egyebek szerint.';
+
+  @override
+  String get collectionsRowSortOrderDescription =>
+      'Sort Collections rows in ascending or descending order.';
 
   @override
   String get collectionsRowShowEpisodes => 'Show Individual Episodes';
@@ -9315,11 +9332,63 @@ class AppLocalizationsHu extends AppLocalizations {
       'A műfajok sorainak rendezése a hozzáadás dátuma, a megjelenés dátuma, ábécérend vagy egyebek szerint.';
 
   @override
+  String get genresRowSortOrderDescription =>
+      'Sort Genres rows in ascending or descending order.';
+
+  @override
   String get genresRowItems => 'Műfajsorok elemei';
 
   @override
   String get genresRowItemsDescription =>
       'Filmek, sorozatok vagy mindkettő megjelenítése a műfajsorokban.';
+
+  @override
+  String get displayStudiosRows => 'Display Studio Row';
+
+  @override
+  String get displayStudiosRowsSubtitle => 'Show Studio row in Home Sections.';
+
+  @override
+  String get studiosRowSorting => 'Studio Row Sorting';
+
+  @override
+  String get studiosRowSortingDescription =>
+      'Studio row by name, recently added, and more.';
+
+  @override
+  String get studiosRowSortOrderDescription =>
+      'Choose Ascending or Descending sort order.';
+
+  @override
+  String get selectStudiosToInclude => 'Select Studios to Include';
+
+  @override
+  String get selectStudiosToIncludeDescription =>
+      'Select which studios should be included on the home row.';
+
+  @override
+  String get selectAllStudios => 'Select All';
+
+  @override
+  String get deselectAllStudios => 'Deselect All';
+
+  @override
+  String get tvStudiosFilter => 'TV Studios';
+
+  @override
+  String get movieStudiosFilter => 'Movie Studios';
+
+  @override
+  String get selectedStudiosFilter => 'Selected Studios';
+
+  @override
+  String get unselectedStudiosFilter => 'Unselected Studios';
+
+  @override
+  String get filtersHeader => 'Filters';
+
+  @override
+  String get showHeader => 'Show';
 
   @override
   String get displayPlaylistsRows => 'Lejátszási listák sorainak megjelenítése';
@@ -9334,6 +9403,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get playlistsRowSortingDescription =>
       'Lejátszási listák sorainak rendezése a hozzáadás dátuma, a megjelenés dátuma, ábécérend vagy egyéb szempontok szerint.';
+
+  @override
+  String get playlistsRowSortOrderDescription =>
+      'Sort Playlist rows in ascending or descending order.';
 
   @override
   String get playlistsRowShowEpisodes => 'Show Individual Episodes';
@@ -9355,6 +9428,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get audioRowsSortingDescription =>
       'Audiósorok rendezése a hozzáadás dátuma, a megjelenés dátuma, ábécérend vagy egyéb szempontok szerint.';
+
+  @override
+  String get audioRowsSortOrderDescription =>
+      'Sort Audio rows in ascending or descending order.';
 
   @override
   String get audioPlaylists => 'Audió lejátszási listák';

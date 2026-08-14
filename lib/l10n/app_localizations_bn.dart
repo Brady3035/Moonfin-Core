@@ -9159,6 +9159,15 @@ class AppLocalizationsBn extends AppLocalizations {
       'ক্লাসিক প্রতি-সারি ছবির ধরন এবং তথ্য ওভারলে রাখে। আধুনিক পোর্ট্রেট-টু-ব্যাকড্রপ সারি ব্যবহার করে।';
 
   @override
+  String get sortOrder => 'Sort Order';
+
+  @override
+  String get ascending => 'Ascending';
+
+  @override
+  String get descending => 'Descending';
+
+  @override
   String get displayFavoritesRows => 'পছন্দের সারি প্রদর্শন করুন';
 
   @override
@@ -9173,6 +9182,10 @@ class AppLocalizationsBn extends AppLocalizations {
       'যোগ করা তারিখ, প্রকাশের তারিখ, বর্ণানুক্রমিকভাবে, এবং আরও অনেক কিছু অনুসারে পছন্দের সারিগুলি সাজান৷';
 
   @override
+  String get favoritesRowSortOrderDescription =>
+      'Sort Favorites rows in ascending or descending order.';
+
+  @override
   String get displayCollectionsRows => 'সংগ্রহের সারি প্রদর্শন করুন';
 
   @override
@@ -9185,6 +9198,10 @@ class AppLocalizationsBn extends AppLocalizations {
   @override
   String get collectionsRowSortingDescription =>
       'যোগ করা তারিখ, প্রকাশের তারিখ, বর্ণানুক্রমিকভাবে এবং আরও অনেক কিছু অনুসারে সংগ্রহের সারি সাজান।';
+
+  @override
+  String get collectionsRowSortOrderDescription =>
+      'Sort Collections rows in ascending or descending order.';
 
   @override
   String get collectionsRowShowEpisodes => 'Show Individual Episodes';
@@ -9207,11 +9224,63 @@ class AppLocalizationsBn extends AppLocalizations {
       'যোগ করা তারিখ, প্রকাশের তারিখ, বর্ণানুক্রমিকভাবে, এবং আরও অনেক কিছু অনুসারে জেনার সারি সাজান।';
 
   @override
+  String get genresRowSortOrderDescription =>
+      'Sort Genres rows in ascending or descending order.';
+
+  @override
   String get genresRowItems => 'জেনারস সারি আইটেম';
 
   @override
   String get genresRowItemsDescription =>
       'সিনেমা, সিরিজ বা উভয় প্রকারের সারিতে দেখান।';
+
+  @override
+  String get displayStudiosRows => 'Display Studio Row';
+
+  @override
+  String get displayStudiosRowsSubtitle => 'Show Studio row in Home Sections.';
+
+  @override
+  String get studiosRowSorting => 'Studio Row Sorting';
+
+  @override
+  String get studiosRowSortingDescription =>
+      'Studio row by name, recently added, and more.';
+
+  @override
+  String get studiosRowSortOrderDescription =>
+      'Choose Ascending or Descending sort order.';
+
+  @override
+  String get selectStudiosToInclude => 'Select Studios to Include';
+
+  @override
+  String get selectStudiosToIncludeDescription =>
+      'Select which studios should be included on the home row.';
+
+  @override
+  String get selectAllStudios => 'Select All';
+
+  @override
+  String get deselectAllStudios => 'Deselect All';
+
+  @override
+  String get tvStudiosFilter => 'TV Studios';
+
+  @override
+  String get movieStudiosFilter => 'Movie Studios';
+
+  @override
+  String get selectedStudiosFilter => 'Selected Studios';
+
+  @override
+  String get unselectedStudiosFilter => 'Unselected Studios';
+
+  @override
+  String get filtersHeader => 'Filters';
+
+  @override
+  String get showHeader => 'Show';
 
   @override
   String get displayPlaylistsRows => 'প্লেলিস্ট রো দেখান';
@@ -9225,6 +9294,10 @@ class AppLocalizationsBn extends AppLocalizations {
   @override
   String get playlistsRowSortingDescription =>
       'প্লেলিস্ট রো যোগ করার তারিখ, মুক্তির তারিখ, বর্ণানুক্রম এবং আরও নানাভাবে সাজান।';
+
+  @override
+  String get playlistsRowSortOrderDescription =>
+      'Sort Playlist rows in ascending or descending order.';
 
   @override
   String get playlistsRowShowEpisodes => 'Show Individual Episodes';
@@ -9245,6 +9318,10 @@ class AppLocalizationsBn extends AppLocalizations {
   @override
   String get audioRowsSortingDescription =>
       'অডিও রো যোগ করার তারিখ, মুক্তির তারিখ, বর্ণানুক্রম এবং আরও নানাভাবে সাজান।';
+
+  @override
+  String get audioRowsSortOrderDescription =>
+      'Sort Audio rows in ascending or descending order.';
 
   @override
   String get audioPlaylists => 'অডিও প্লেলিস্ট';

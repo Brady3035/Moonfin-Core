@@ -161,6 +161,7 @@ class JellyfinItemsApi implements ItemsApi {
   Future<Map<String, dynamic>> getNextUp({
     String? seriesId,
     String? parentId,
+    int? startIndex,
     int? limit,
     String? fields,
     bool? enableResumable,
@@ -175,6 +176,7 @@ class JellyfinItemsApi implements ItemsApi {
         'UserId': userId,
         'SeriesId': ?seriesId,
         'ParentId': ?parentId,
+        'StartIndex': ?startIndex,
         'Limit': ?limit,
         'Fields': ?fields,
         'EnableResumable': ?enableResumable,
@@ -190,6 +192,7 @@ class JellyfinItemsApi implements ItemsApi {
   Future<Map<String, dynamic>> getResumeItems({
     String? parentId,
     List<String>? includeItemTypes,
+    int? startIndex,
     int? limit,
     String? fields,
     String? enableImageTypes,
@@ -201,6 +204,7 @@ class JellyfinItemsApi implements ItemsApi {
         'ParentId': ?parentId,
         if (includeItemTypes != null)
           'IncludeItemTypes': includeItemTypes.join(','),
+        'StartIndex': ?startIndex,
         'Limit': ?limit,
         'Fields': ?fields,
         'EnableImageTypes': ?enableImageTypes,
@@ -552,6 +556,36 @@ class JellyfinItemsApi implements ItemsApi {
   }) async {
     final response = await _dio.get(
       '/Genres',
+      queryParameters: {
+        'ParentId': ?parentId,
+        'UserId': ?userId,
+        'SortBy': ?sortBy,
+        'SortOrder': ?sortOrder,
+        'StartIndex': ?startIndex,
+        'Limit': ?limit,
+        'Recursive': ?recursive,
+        'Fields': ?fields,
+        if (includeItemTypes != null && includeItemTypes.isNotEmpty)
+          'IncludeItemTypes': includeItemTypes.join(','),
+      },
+    );
+    return response.data as Map<String, dynamic>;
+  }
+
+  @override
+  Future<Map<String, dynamic>> getStudios({
+    String? parentId,
+    String? userId,
+    String? sortBy,
+    String? sortOrder,
+    int? startIndex,
+    int? limit,
+    bool? recursive,
+    String? fields,
+    List<String>? includeItemTypes,
+  }) async {
+    final response = await _dio.get(
+      '/Studios',
       queryParameters: {
         'ParentId': ?parentId,
         'UserId': ?userId,

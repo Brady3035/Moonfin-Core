@@ -82,10 +82,22 @@ class LocalFirstMediaStreamResolver extends MediaStreamResolver {
 
       // A transcoded download holds one video and one audio track and no
       // embedded subtitles, so the stored original-file metadata would list
-      // phantom tracks in the selectors. Sidecar subtitles still work through
-      // externalSubtitles below, which does not depend on this list.
+      // phantom tracks in the selectors. Its sidecars are real though, and an
+      // empty list puts them out of reach of both the track picker and the
+      // stream index to player track mapping that turns a selection into a
+      // player call, so it describes those and nothing else.
       final mediaStreams = local.isTranscoded
-          ? const <Map<String, dynamic>>[]
+          ? [
+              for (final sub in local.externalSubtitles)
+                <String, dynamic>{
+                  'Type': 'Subtitle',
+                  'Index': sub.index,
+                  'IsExternal': true,
+                  'Codec': sub.codec,
+                  'Title': sub.title,
+                  'Language': sub.language,
+                },
+            ]
           : local.mediaStreams;
 
       return StreamResolutionResult(

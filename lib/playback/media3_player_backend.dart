@@ -291,6 +291,17 @@ class Media3PlayerBackend extends PlayerBackend {
           '${_toInt(map['elapsedMs'])}ms since last feed)',
           level: LogLevel.warning,
         );
+      case 'subtitleSelection':
+        final how = map['how']?.toString() ?? 'unknown';
+        _diag(
+          'Media3: subtitle track ${_toInt(map['trackId'])} picked by $how '
+          '(applied=${map['selected'] == true}, '
+          '${_toInt(map['textTrackCount'])} text tracks, '
+          '${_toInt(map['externalCount'])} external files)',
+          level: how == 'positionalAfterUrlMiss'
+              ? LogLevel.warning
+              : LogLevel.debug,
+        );
       case 'audioSinkError':
         _diag(
           'Media3: audio sink error: ${map['message'] ?? ''}',
@@ -705,6 +716,11 @@ class Media3PlayerBackend extends PlayerBackend {
       'DoVi display ${PlatformDetection.supportsDolbyVision})',
     );
 
+    // media3 opens the stream itself rather than through the Dart client, so
+    // the trust setting has to reach it separately.
+    await _invoke<void>('setAllowUntrustedTls', {
+      'enabled': _prefs.get(UserPreferences.allowSelfSignedCerts),
+    });
     await _invoke<void>('setDecoderPreferences', {
       'preferFfmpeg': _prefs.get(UserPreferences.preferExoPlayerFfmpeg),
       'tunnelingDisabled': _sessionTunnelingDisabled,

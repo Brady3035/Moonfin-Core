@@ -50,6 +50,10 @@ class HomeViewModel extends ChangeNotifier {
   final Set<String> _inFlightPagingRowIds = {};
   final Map<String, int> _rowOffsets = {};
 
+  /// How many items a row asks for per page, matching what RowDataSource
+  /// requests so the offsets tracked here stay in step with it.
+  static const _rowPageSize = 15;
+
   final TopShelfService _topShelf = TopShelfService();
   final WatchNextService _watchNext = WatchNextService();
   final TvChannelsService _tvChannels = TvChannelsService();
@@ -394,6 +398,7 @@ class HomeViewModel extends ChangeNotifier {
       final showSinceYouWatched = _prefs.get(UserPreferences.displaySinceYouWatchedRows);
       final sinceYouWatchedNum = _prefs.get(UserPreferences.sinceYouWatchedNumRows).value;
       final showRewatch = _prefs.get(UserPreferences.displayRewatchRow);
+      final showStudiosRows = _prefs.get(UserPreferences.displayStudiosRows);
 
       final offline = _isOffline;
       final visibleConfigsRaw = configs
@@ -414,6 +419,7 @@ class HomeViewModel extends ChangeNotifier {
                         (c.isPluginDynamic &&
                             c.pluginSource ==
                                 HomeSectionPluginSource.genres))) &&
+                (showStudiosRows || c.type != HomeSectionType.studios) &&
                 (showPlaylistsRows ||
                     !((c.isBuiltin && _isPlaylistsSectionType(c.type)) ||
                         (c.isPluginDynamic &&
@@ -689,6 +695,9 @@ class HomeViewModel extends ChangeNotifier {
       case HomeSectionType.genres:
         return row.rowType == HomeRowType.genres &&
             !row.id.startsWith('pluginDynamic:');
+      case HomeSectionType.studios:
+        return row.rowType == HomeRowType.studios &&
+            !row.id.startsWith('pluginDynamic:');
       case HomeSectionType.libraryTilesSmall:
         return row.rowType == HomeRowType.libraryTiles;
       case HomeSectionType.libraryButtons:
@@ -884,6 +893,15 @@ class HomeViewModel extends ChangeNotifier {
         return;
       }
 
+      // The aggregated multi-server rows take no offset, so they keep the
+      // paging they already had.
+      if (row.id == 'resume' &&
+          !_multiServerEnabled &&
+          _prefs.get(UserPreferences.mergeContinueWatchingNextUp)) {
+        await _loadMoreMergedResume(rowIndex);
+        return;
+      }
+
       final int currentOffset = _rowOffsets[row.id] ?? row.items.length;
       final (List<AggregatedItem> items, int totalCount) result;
       if (_multiServerEnabled && !row.id.startsWith('pluginDynamic:')) {
@@ -895,7 +913,7 @@ class HomeViewModel extends ChangeNotifier {
           offset: currentOffset,
         );
       }
-      _rowOffsets[row.id] = currentOffset + 15;
+      _rowOffsets[row.id] = currentOffset + _rowPageSize;
 
       final filteredItems = _filterEmptyElements(result.$1);
       final newTotalCount = filteredItems.length <= row.items.length
@@ -994,6 +1012,8 @@ class HomeViewModel extends ChangeNotifier {
         return const {'collections'};
       case HomeSectionType.genres:
         return const {'genres'};
+      case HomeSectionType.studios:
+        return const {'studios'};
       case HomeSectionType.activeRecordings:
         return const {'activeRecordings'};
       case HomeSectionType.seerrRecentRequests:
@@ -1091,14 +1111,22 @@ class HomeViewModel extends ChangeNotifier {
     final favoritesSortBy = _prefs
         .get(UserPreferences.favoritesRowSortBy)
         .apiValue;
+    final favoritesSortOrder = _prefs
+        .get(UserPreferences.favoritesRowSortOrder)
+        .apiValue;
     final collectionsSortBy = _prefs
         .get(UserPreferences.collectionsRowSortBy)
         .apiValue;
+    final collectionsSortOrder = _prefs
+        .get(UserPreferences.collectionsRowSortOrder)
+        .apiValue;
     final genresSortBy = _prefs.get(UserPreferences.genresRowSortBy).apiValue;
+    final genresSortOrder = _prefs
+        .get(UserPreferences.genresRowSortOrder)
+        .apiValue;
     final genresItemFilter = _prefs
         .get(UserPreferences.genresRowItemFilter)
         .includeItemTypes;
-    const sortOrder = 'Ascending';
     switch (section) {
       case HomeSectionType.resume:
         final row = _multiServerEnabled
@@ -1123,64 +1151,76 @@ class HomeViewModel extends ChangeNotifier {
         final playlistsSortBy = _prefs
             .get(UserPreferences.playlistsRowSortBy)
             .apiValue;
+        final playlistsSortOrder = _prefs
+            .get(UserPreferences.playlistsRowSortOrder)
+            .apiValue;
         return [
           _multiServerEnabled
               ? await _multiServerRepo.getAggregatedPlaylists(
                   sortBy: playlistsSortBy,
-                  sortOrder: sortOrder,
+                  sortOrder: playlistsSortOrder,
                 )
               : await _dataSource.loadPlaylists(
                   _serverId,
                   sortBy: playlistsSortBy,
-                  sortOrder: sortOrder,
+                  sortOrder: playlistsSortOrder,
                 ),
         ];
       case HomeSectionType.audioArtists:
         final audioSortBy = _prefs
             .get(UserPreferences.audioRowsSortBy)
             .apiValue;
+        final audioSortOrder = _prefs
+            .get(UserPreferences.audioRowsSortOrder)
+            .apiValue;
         return [
           _multiServerEnabled
               ? await _multiServerRepo.getAggregatedAudioArtists(
                   sortBy: audioSortBy,
-                  sortOrder: sortOrder,
+                  sortOrder: audioSortOrder,
                 )
               : await _dataSource.loadAudioArtists(
                   _serverId,
                   sortBy: audioSortBy,
-                  sortOrder: sortOrder,
+                  sortOrder: audioSortOrder,
                 ),
         ];
       case HomeSectionType.audioAlbums:
         final audioSortBy = _prefs
             .get(UserPreferences.audioRowsSortBy)
             .apiValue;
+        final audioSortOrder = _prefs
+            .get(UserPreferences.audioRowsSortOrder)
+            .apiValue;
         return [
           _multiServerEnabled
               ? await _multiServerRepo.getAggregatedAudioAlbums(
                   sortBy: audioSortBy,
-                  sortOrder: sortOrder,
+                  sortOrder: audioSortOrder,
                 )
               : await _dataSource.loadAudioAlbums(
                   _serverId,
                   sortBy: audioSortBy,
-                  sortOrder: sortOrder,
+                  sortOrder: audioSortOrder,
                 ),
         ];
       case HomeSectionType.audioPlaylists:
         final audioSortBy = _prefs
             .get(UserPreferences.audioRowsSortBy)
             .apiValue;
+        final audioSortOrder = _prefs
+            .get(UserPreferences.audioRowsSortOrder)
+            .apiValue;
         return [
           _multiServerEnabled
               ? await _multiServerRepo.getAggregatedAudioPlaylists(
                   sortBy: audioSortBy,
-                  sortOrder: sortOrder,
+                  sortOrder: audioSortOrder,
                 )
               : await _dataSource.loadAudioPlaylists(
                   _serverId,
                   sortBy: audioSortBy,
-                  sortOrder: sortOrder,
+                  sortOrder: audioSortOrder,
                 ),
         ];
       case HomeSectionType.favoriteMovies:
@@ -1201,7 +1241,7 @@ class HomeViewModel extends ChangeNotifier {
                   title: title,
                   includeItemTypes: favoriteFilter.itemTypes,
                   sortBy: favoritesSortBy,
-                  sortOrder: sortOrder,
+                  sortOrder: favoritesSortOrder,
                 )
               : await _dataSource.loadFavorites(
                   _serverId,
@@ -1209,7 +1249,7 @@ class HomeViewModel extends ChangeNotifier {
                   title: title,
                   includeItemTypes: favoriteFilter.itemTypes,
                   sortBy: favoritesSortBy,
-                  sortOrder: sortOrder,
+                  sortOrder: favoritesSortOrder,
                 ),
         ];
       case HomeSectionType.collections:
@@ -1217,12 +1257,12 @@ class HomeViewModel extends ChangeNotifier {
           _multiServerEnabled
               ? await _multiServerRepo.getAggregatedCollections(
                   sortBy: collectionsSortBy,
-                  sortOrder: sortOrder,
+                  sortOrder: collectionsSortOrder,
                 )
               : await _dataSource.loadCollections(
                   _serverId,
                   sortBy: collectionsSortBy,
-                  sortOrder: sortOrder,
+                  sortOrder: collectionsSortOrder,
                 ),
         ];
       case HomeSectionType.genres:
@@ -1230,14 +1270,34 @@ class HomeViewModel extends ChangeNotifier {
           _multiServerEnabled
               ? await _multiServerRepo.getAggregatedGenres(
                   sortBy: genresSortBy,
-                  sortOrder: sortOrder,
+                  sortOrder: genresSortOrder,
                   includeItemTypes: genresItemFilter,
                 )
               : await _dataSource.loadGenres(
                   _serverId,
                   sortBy: genresSortBy,
-                  sortOrder: sortOrder,
+                  sortOrder: genresSortOrder,
                   includeItemTypes: genresItemFilter,
+                ),
+        ];
+      case HomeSectionType.studios:
+        final studiosSortBy = _prefs.get(UserPreferences.studiosRowSortBy).apiValue;
+        final studiosSortOrder = _prefs.get(UserPreferences.studiosRowSortOrder).apiValue;
+        final selectedIds = _prefs.get(UserPreferences.studiosRowSelectedIds);
+        return [
+          _multiServerEnabled
+              ? await _multiServerRepo.getAggregatedStudios(
+                  sortBy: studiosSortBy,
+                  sortOrder: studiosSortOrder,
+                  selectedIds: selectedIds,
+                  title: l10n.studios,
+                )
+              : await _dataSource.loadStudios(
+                  _serverId,
+                  sortBy: studiosSortBy,
+                  sortOrder: studiosSortOrder,
+                  selectedIds: selectedIds,
+                  title: l10n.studios,
                 ),
         ];
       case HomeSectionType.libraryTilesSmall:
@@ -1679,6 +1739,13 @@ class HomeViewModel extends ChangeNotifier {
           rowType: HomeRowType.genres,
           isLoading: true,
         );
+      case HomeSectionType.studios:
+        return HomeRow(
+          id: 'studios',
+          title: l10n.studios,
+          rowType: HomeRowType.studios,
+          isLoading: true,
+        );
       case HomeSectionType.libraryTilesSmall:
         return HomeRow(
           id: 'libraryTiles',
@@ -2000,60 +2067,26 @@ class HomeViewModel extends ChangeNotifier {
     _bgMergeInFlight = true;
     return () async {
       try {
+        // Fetched side by side but tolerated separately. A server that is
+        // slow to answer one of these must not take the other down with it,
+        // which would leave the merged row empty and drop it from the home
+        // screen.
         if (_multiServerEnabled) {
-          final resumeFuture = _multiServerRepo.getAggregatedResume();
-          final nextUpFuture = () async {
-            try {
-              return await _multiServerRepo.getAggregatedNextUp();
-            } catch (_) {
-              return null;
-            }
-          }();
-          final resumeRow = await resumeFuture;
-          final nextUpRow = await nextUpFuture;
-          final filteredResume = _prefs.filterContinueWatching(resumeRow.items);
-          final filteredNextUp = _prefs.filterNextUp(nextUpRow?.items ?? []);
-          final mergedItemsMap = <String, AggregatedItem>{};
-          for (final item in filteredResume) {
-            mergedItemsMap[item.id] = item;
-          }
-          for (final item in filteredNextUp) {
-            mergedItemsMap.putIfAbsent(item.id, () => item);
-          }
-          int byLastPlayedDate(AggregatedItem a, AggregatedItem b) {
-            final aDate =
-                a.rawData['UserData']?['LastPlayedDate'] as String? ?? '';
-            final bDate =
-                b.rawData['UserData']?['LastPlayedDate'] as String? ?? '';
-            return bDate.compareTo(aDate);
-          }
-
-          final sorted = mergedItemsMap.values.toList()..sort(byLastPlayedDate);
-          _applyMergedResumeResult(sorted);
+          final resumeFuture = _loadRowOrNull(
+            () => _multiServerRepo.getAggregatedResume(),
+          );
+          final nextUpFuture = _loadRowOrNull(
+            () => _multiServerRepo.getAggregatedNextUp(),
+          );
+          _applyMergedResumeRows(await resumeFuture, await nextUpFuture);
         } else {
-          final results = await Future.wait([
-            _dataSource.loadResume(_serverId),
-            _dataSource.loadNextUp(_serverId),
-          ]);
-          final filteredResume = _prefs.filterContinueWatching(results[0].items);
-          final filteredNextUp = _prefs.filterNextUp(results[1].items);
-          final mergedItemsMap = <String, AggregatedItem>{};
-          for (final item in filteredResume) {
-            mergedItemsMap[item.id] = item;
-          }
-          for (final item in filteredNextUp) {
-            mergedItemsMap.putIfAbsent(item.id, () => item);
-          }
-          int byLastPlayedDate(AggregatedItem a, AggregatedItem b) {
-            final aDate =
-                a.rawData['UserData']?['LastPlayedDate'] as String? ?? '';
-            final bDate =
-                b.rawData['UserData']?['LastPlayedDate'] as String? ?? '';
-            return bDate.compareTo(aDate);
-          }
-
-          final sorted = mergedItemsMap.values.toList()..sort(byLastPlayedDate);
-          _applyMergedResumeResult(sorted);
+          final resumeFuture = _loadRowOrNull(
+            () => _dataSource.loadResume(_serverId),
+          );
+          final nextUpFuture = _loadRowOrNull(
+            () => _dataSource.loadNextUp(_serverId),
+          );
+          _applyMergedResumeRows(await resumeFuture, await nextUpFuture);
         }
       } catch (_) {
       } finally {
@@ -2062,7 +2095,53 @@ class HomeViewModel extends ChangeNotifier {
     }();
   }
 
-  void _applyMergedResumeResult(List<AggregatedItem> mergedItems) {
+  /// Newest first by when the user last played the item.
+  static int _byLastPlayedDate(AggregatedItem a, AggregatedItem b) {
+    final aDate = a.rawData['UserData']?['LastPlayedDate'] as String? ?? '';
+    final bDate = b.rawData['UserData']?['LastPlayedDate'] as String? ?? '';
+    return bDate.compareTo(aDate);
+  }
+
+  /// Returns null rather than throwing, so a caller merging several sources
+  /// can keep the ones that answered.
+  static Future<HomeRow?> _loadRowOrNull(
+    Future<HomeRow> Function() load,
+  ) async {
+    try {
+      return await load();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Merges a fresh first page of Continue Watching and Next Up into the
+  /// resume row. Resume items win the dedupe.
+  void _applyMergedResumeRows(HomeRow? resumeRow, HomeRow? nextUpRow) {
+    if (resumeRow == null && nextUpRow == null) return;
+    final merged = <String, AggregatedItem>{};
+    for (final item in _prefs.filterContinueWatching(
+      resumeRow?.items ?? const [],
+    )) {
+      merged[item.id] = item;
+    }
+    for (final item in _prefs.filterNextUp(nextUpRow?.items ?? const [])) {
+      merged.putIfAbsent(item.id, () => item);
+    }
+    final sorted = merged.values.toList()..sort(_byLastPlayedDate);
+    // Each source contributed its first page, and the merged item count can't
+    // stand in for a per source offset, so the paging cursor starts at one
+    // page no matter how many unique items the merge kept.
+    _rowOffsets['resume'] = _rowPageSize;
+    _applyMergedResumeResult(
+      sorted,
+      totalCount: (resumeRow?.totalCount ?? 0) + (nextUpRow?.totalCount ?? 0),
+    );
+  }
+
+  void _applyMergedResumeResult(
+    List<AggregatedItem> mergedItems, {
+    int? totalCount,
+  }) {
     final resumeIndex = _rows.indexWhere((r) => r.id == 'resume');
     if (resumeIndex < 0) return;
     _rows = List.of(_rows);
@@ -2072,11 +2151,56 @@ class HomeViewModel extends ChangeNotifier {
       _rows[resumeIndex] = _rows[resumeIndex].copyWith(
         items: mergedItems,
         isLoading: false,
+        totalCount: totalCount ?? _rows[resumeIndex].totalCount,
       );
     }
     notifyListeners();
     _watchNext.update(_rows);
     _tvChannels.update();
+  }
+
+  /// The merged row draws on two endpoints, so it pages both at the same offset
+  /// and merges the results in. Each source is walked in full and the dedupe
+  /// only drops what is already on screen, so nothing gets skipped. The counts
+  /// the two report overlap, so a page that adds nothing new closes the row.
+  Future<void> _loadMoreMergedResume(int rowIndex) async {
+    final row = _rows[rowIndex];
+    final offset = _rowOffsets[row.id] ?? row.items.length;
+
+    final resumeFuture = _loadRowOrNull(
+      () => _dataSource.loadResume(_serverId, startIndex: offset),
+    );
+    final nextUpFuture = _loadRowOrNull(
+      () => _dataSource.loadNextUp(_serverId, startIndex: offset),
+    );
+    final resumeRow = await resumeFuture;
+    final nextUpRow = await nextUpFuture;
+    if (resumeRow == null && nextUpRow == null) return;
+    _rowOffsets[row.id] = offset + _rowPageSize;
+
+    final merged = <String, AggregatedItem>{
+      for (final item in row.items) item.id: item,
+    };
+    final countBefore = merged.length;
+    for (final item in _prefs.filterContinueWatching(
+      resumeRow?.items ?? const [],
+    )) {
+      merged.putIfAbsent(item.id, () => item);
+    }
+    for (final item in _prefs.filterNextUp(nextUpRow?.items ?? const [])) {
+      merged.putIfAbsent(item.id, () => item);
+    }
+
+    final items = _filterEmptyElements(merged.values.toList())
+      ..sort(_byLastPlayedDate);
+    final index = _rows.indexWhere((r) => r.id == row.id);
+    if (index < 0) return;
+    _rows = List.of(_rows);
+    _rows[index] = _rows[index].copyWith(
+      items: items,
+      totalCount: merged.length == countBefore ? items.length : null,
+    );
+    notifyListeners();
   }
 
   static const _seerrEnrichConcurrency = 5;

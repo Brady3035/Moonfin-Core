@@ -357,6 +357,7 @@ enum HomeSectionType {
   favoriteSongs('favoritesongs'),
   collections('collections'),
   genres('genres'),
+  studios('studios'),
   liveTv('livetv'),
   seerrRecentRequests('seerr_recent_requests'),
   seerrWatchlist('seerr_watchlist'),
@@ -473,8 +474,12 @@ enum GenresRowItemFilter {
 }
 
 enum SortDirection {
-  ascending,
-  descending,
+  ascending('Ascending'),
+  descending('Descending');
+
+  const SortDirection(this.apiValue);
+
+  final String apiValue;
 }
 
 enum PlayedStatusFilter {

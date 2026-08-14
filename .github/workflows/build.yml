@@ -394,11 +394,6 @@ jobs:
       - name: Install snapcraft
         run: sudo snap install snapcraft --classic
 
-      - name: Prepare snapd and core22
-        run: |
-          sudo snap wait system seed.loaded
-          sudo snap list core22 >/dev/null 2>&1 || sudo snap install core22 --channel=latest/stable
-
       - name: Build all Linux packages
         run: |
           chmod +x build-linux.sh

@@ -32,4 +32,61 @@ void main() {
     expect(request?.path, '/Users/user-1/Items/movie-1');
     expect(request?.queryParameters['Fields'], contains('UserData'));
   });
+
+  test('resume items page through StartIndex', () async {
+    RequestOptions? request;
+    final dio = Dio()
+      ..interceptors.add(
+        _FakeServer((options, handler) {
+          request = options;
+          handler.resolve(
+            Response(requestOptions: options, data: <String, dynamic>{}),
+          );
+        }),
+      );
+
+    await JellyfinItemsApi(
+      dio,
+      () => 'user-1',
+    ).getResumeItems(startIndex: 30, limit: 15);
+
+    expect(request?.path, '/UserItems/Resume');
+    expect(request?.queryParameters['StartIndex'], 30);
+    expect(request?.queryParameters['Limit'], 15);
+  });
+
+  test('next up pages through StartIndex', () async {
+    RequestOptions? request;
+    final dio = Dio()
+      ..interceptors.add(
+        _FakeServer((options, handler) {
+          request = options;
+          handler.resolve(
+            Response(requestOptions: options, data: <String, dynamic>{}),
+          );
+        }),
+      );
+
+    await JellyfinItemsApi(dio, () => 'user-1').getNextUp(startIndex: 15);
+
+    expect(request?.path, '/Shows/NextUp');
+    expect(request?.queryParameters['StartIndex'], 15);
+  });
+
+  test('an unpaged request sends no StartIndex', () async {
+    RequestOptions? request;
+    final dio = Dio()
+      ..interceptors.add(
+        _FakeServer((options, handler) {
+          request = options;
+          handler.resolve(
+            Response(requestOptions: options, data: <String, dynamic>{}),
+          );
+        }),
+      );
+
+    await JellyfinItemsApi(dio, () => 'user-1').getResumeItems(limit: 15);
+
+    expect(request?.queryParameters.containsKey('StartIndex'), isFalse);
+  });
 }

@@ -32,6 +32,7 @@ import 'playback/appletv_backend.dart';
 import 'playback/audio_capability_profile.dart';
 import 'playback/audio_capability_probe.dart';
 import 'playback/audio_handler.dart';
+import 'playback/codec_caps_repair.dart';
 import 'playback/media_browse_service.dart';
 import 'playback/mpris_service.dart';
 import 'playback/playback_lifecycle_handler.dart';
@@ -115,6 +116,8 @@ Future<void> _restoreWindowGeometry() async {
   final x = prefs.get(UserPreferences.windowX);
   final y = prefs.get(UserPreferences.windowY);
   final startFullscreen = prefs.get(UserPreferences.windowFullscreen);
+  final startMaximized =
+      prefs.get(UserPreferences.windowMaximized) && !startFullscreen;
 
   const minW = 800.0;
   const minH = 500.0;
@@ -123,13 +126,18 @@ Future<void> _restoreWindowGeometry() async {
   final options = WindowOptions(
     size: hasSavedGeometry ? Size(w, h) : const Size(1280, 720),
     minimumSize: const Size(minW, minH),
-    center: !hasSavedGeometry,
+    center: !hasSavedGeometry && !startMaximized,
     skipTaskbar: false,
   );
 
   await windowManager.waitUntilReadyToShow(options, () async {
     if (hasSavedGeometry) {
       await windowManager.setPosition(Offset(x, y));
+    }
+    // Before show, so platforms that apply it right away never draw the
+    // windowed size first.
+    if (startMaximized) {
+      await windowManager.maximize();
     }
     await windowManager.show();
     await windowManager.focus();
@@ -181,15 +189,6 @@ Future<void> _detectAndSetDisplayCapabilities() async {
   } catch (_) {}
 }
 
-/// A cold-start probe can race codec enumeration and return a map with no
-/// usable H264 support. Every Android device that reaches this code plays
-/// H264, so such a result is a transient failure, not a real capability.
-bool _codecCapsLookDegenerate(Map<String, dynamic> caps) {
-  final supportsAvc = caps['supportsAvc'] == true;
-  final avcMainLevel = caps['avcMainLevel'];
-  return !supportsAvc || avcMainLevel is! int || avcMainLevel <= 0;
-}
-
 Future<Map<String, dynamic>?> _queryCodecCaps(MethodChannel channel) async {
   final raw = await channel.invokeMethod<Map<dynamic, dynamic>>(
     'mediaCodecCapabilities',
@@ -205,17 +204,24 @@ Future<Map<String, dynamic>?> _queryCodecCaps(MethodChannel channel) async {
 /// retries must never extend the launch path. The device profile is built
 /// per playback, so a corrected result applied here still fixes the next
 /// playback without a restart.
+///
+/// Backs off between attempts, since enumeration loses the race when the
+/// device is busiest right after boot. Whatever the outcome the AVC floor
+/// stays in place, so giving up degrades to extra transcodes rather than to
+/// failed playback.
 Future<void> _retryCodecCapsOffLaunchPath(MethodChannel channel) async {
-  for (var i = 0; i < 2; i++) {
-    await Future<void>.delayed(const Duration(seconds: 2));
+  var delay = const Duration(seconds: 2);
+  for (var i = 0; i < 4; i++) {
+    await Future<void>.delayed(delay);
+    delay *= 2;
     try {
       final caps = await _queryCodecCaps(channel);
-      if (caps != null && !_codecCapsLookDegenerate(caps)) {
+      if (caps != null && !codecCapsLookDegenerate(caps)) {
         PlatformDetection.setMediaCodecCapabilities(caps);
         return;
       }
     } catch (_) {
-      return;
+      // A failed probe says nothing about the next one, so keep trying.
     }
   }
 }
@@ -227,10 +233,14 @@ Future<void> _detectAndSetCodecCapabilities() async {
 
     final codecCaps = await _queryCodecCaps(channel);
     if (codecCaps != null) {
-      PlatformDetection.setMediaCodecCapabilities(codecCaps);
       // A degenerate cold-start result would otherwise poison the device
-      // profile until app restart and force needless transcodes.
-      if (_codecCapsLookDegenerate(codecCaps)) {
+      // profile until app restart, leaving playback broken rather than just
+      // inefficient.
+      final degenerate = codecCapsLookDegenerate(codecCaps);
+      PlatformDetection.setMediaCodecCapabilities(
+        degenerate ? withAvcFloor(codecCaps) : codecCaps,
+      );
+      if (degenerate) {
         unawaited(_retryCodecCapsOffLaunchPath(channel));
       }
       return;

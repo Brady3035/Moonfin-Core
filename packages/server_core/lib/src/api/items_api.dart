@@ -53,6 +53,7 @@ abstract class ItemsApi {
   Future<Map<String, dynamic>> getNextUp({
     String? seriesId,
     String? parentId,
+    int? startIndex,
     int? limit,
     String? fields,
     bool? enableResumable,
@@ -64,6 +65,7 @@ abstract class ItemsApi {
   Future<Map<String, dynamic>> getResumeItems({
     String? parentId,
     List<String>? includeItemTypes,
+    int? startIndex,
     int? limit,
     String? fields,
     String? enableImageTypes,
@@ -170,6 +172,18 @@ abstract class ItemsApi {
   Future<void> deletePlaylist(String playlistId);
 
   Future<Map<String, dynamic>> getGenres({
+    String? parentId,
+    String? userId,
+    String? sortBy,
+    String? sortOrder,
+    int? startIndex,
+    int? limit,
+    bool? recursive,
+    String? fields,
+    List<String>? includeItemTypes,
+  });
+
+  Future<Map<String, dynamic>> getStudios({
     String? parentId,
     String? userId,
     String? sortBy,

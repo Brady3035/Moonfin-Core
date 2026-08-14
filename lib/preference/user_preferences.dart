@@ -280,7 +280,9 @@ class UserPreferences extends ChangeNotifier {
     'playback_time_below_right',
     'player_zoom_mode',
     'pref_audio_rows_sort_by',
+    'pref_audio_rows_sort_order',
     'pref_diagnostic_logging_enabled',
+    'pref_display_studios_rows',
     'pref_epg_mobile_view',
     'pref_favorites_view_style',
     'pref_group_items_into_collections',
@@ -291,6 +293,7 @@ class UserPreferences extends ChangeNotifier {
     'pref_max_video_resolution',
     'pref_playlists_row_show_episodes',
     'pref_playlists_row_sort_by',
+    'pref_playlists_row_sort_order',
     'pref_recommendations_apply_parental_rating_cap',
     'pref_resume_last_queue_on_play',
     'pref_screensaver_clock_mode',
@@ -300,6 +303,9 @@ class UserPreferences extends ChangeNotifier {
     'pref_screensaver_mode',
     'pref_screensaver_require_rating',
     'pref_screensaver_timeout',
+    'pref_studios_row_selected_ids',
+    'pref_studios_row_sort_by',
+    'pref_studios_row_sort_order',
     'pref_syncplay_enabled',
     'showDescriptionOnPause',
     'since_you_watched_1_enabled',
@@ -401,9 +407,12 @@ class UserPreferences extends ChangeNotifier {
     'pref_display_collections_rows',
     'pref_display_genres_rows',
     'pref_favorites_row_sort_by',
+    'pref_favorites_row_sort_order',
     'pref_collections_row_show_episodes',
     'pref_collections_row_sort_by',
+    'pref_collections_row_sort_order',
     'pref_genres_row_sort_by',
+    'pref_genres_row_sort_order',
     'pref_genres_row_item_filter',
     'pref_show_shuffle_button',
     'pref_show_genres_button',
@@ -915,6 +924,11 @@ class UserPreferences extends ChangeNotifier {
     defaultValue: false,
   );
 
+  static final displayStudiosRows = Preference(
+    key: 'pref_display_studios_rows',
+    defaultValue: false,
+  );
+
   static final displayPlaylistsRows = Preference(
     key: 'pref_display_playlists_rows',
     defaultValue: false,
@@ -1015,10 +1029,22 @@ class UserPreferences extends ChangeNotifier {
     values: LibrarySortBy.values,
   );
 
+  static final favoritesRowSortOrder = EnumPreference(
+    key: 'pref_favorites_row_sort_order',
+    defaultValue: SortDirection.ascending,
+    values: SortDirection.values,
+  );
+
   static final collectionsRowSortBy = EnumPreference(
     key: 'pref_collections_row_sort_by',
     defaultValue: LibrarySortBy.playlistOrder,
     values: LibrarySortBy.values,
+  );
+
+  static final collectionsRowSortOrder = EnumPreference(
+    key: 'pref_collections_row_sort_order',
+    defaultValue: SortDirection.ascending,
+    values: SortDirection.values,
   );
 
   static final collectionsRowShowEpisodes = Preference(
@@ -1032,10 +1058,22 @@ class UserPreferences extends ChangeNotifier {
     values: LibrarySortBy.values,
   );
 
+  static final genresRowSortOrder = EnumPreference(
+    key: 'pref_genres_row_sort_order',
+    defaultValue: SortDirection.ascending,
+    values: SortDirection.values,
+  );
+
   static final playlistsRowSortBy = EnumPreference(
     key: 'pref_playlists_row_sort_by',
     defaultValue: LibrarySortBy.playlistOrder,
     values: LibrarySortBy.values,
+  );
+
+  static final playlistsRowSortOrder = EnumPreference(
+    key: 'pref_playlists_row_sort_order',
+    defaultValue: SortDirection.ascending,
+    values: SortDirection.values,
   );
 
   static final playlistsRowShowEpisodes = Preference(
@@ -1047,6 +1085,29 @@ class UserPreferences extends ChangeNotifier {
     key: 'pref_audio_rows_sort_by',
     defaultValue: LibrarySortBy.name,
     values: LibrarySortBy.values,
+  );
+
+  static final audioRowsSortOrder = EnumPreference(
+    key: 'pref_audio_rows_sort_order',
+    defaultValue: SortDirection.ascending,
+    values: SortDirection.values,
+  );
+
+  static final studiosRowSortBy = EnumPreference(
+    key: 'pref_studios_row_sort_by',
+    defaultValue: LibrarySortBy.name,
+    values: LibrarySortBy.values,
+  );
+
+  static final studiosRowSortOrder = EnumPreference(
+    key: 'pref_studios_row_sort_order',
+    defaultValue: SortDirection.ascending,
+    values: SortDirection.values,
+  );
+
+  static final studiosRowSelectedIds = Preference<String>(
+    key: 'pref_studios_row_selected_ids',
+    defaultValue: '',
   );
 
   static final genresRowItemFilter = EnumPreference(
@@ -2474,6 +2535,11 @@ class UserPreferences extends ChangeNotifier {
 
   static final windowFullscreen = Preference(
     key: 'window_fullscreen',
+    defaultValue: false,
+  );
+
+  static final windowMaximized = Preference(
+    key: 'window_maximized',
     defaultValue: false,
   );
 

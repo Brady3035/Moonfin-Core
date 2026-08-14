@@ -309,6 +309,30 @@ void main() {
     expect((done['UserData'] as Map)['Played'], true);
   });
 
+  test('getResumeItems pages past the items already shown', () async {
+    for (var i = 0; i < 3; i++) {
+      await insert(
+        id: 'm$i',
+        type: 'Movie',
+        name: 'Movie $i',
+        positionTicks: 500,
+        metadata: {'RunTimeTicks': 1000},
+      );
+    }
+    await catalog.warm();
+
+    final firstPage = await api.getResumeItems(limit: 2);
+    final secondPage = await api.getResumeItems(startIndex: 2, limit: 2);
+
+    expect(items(firstPage), hasLength(2));
+    expect(items(secondPage), hasLength(1));
+    expect(
+      items(secondPage).map((i) => i['Id']),
+      isNot(anyElement(isIn(items(firstPage).map((i) => i['Id'])))),
+    );
+    expect(secondPage['TotalRecordCount'], 3);
+  });
+
   test('getGenres aggregates distinct genres with counts', () async {
     await insert(
       id: 'm1',

@@ -7,6 +7,25 @@ class EmbyItemsApi implements ItemsApi {
 
   EmbyItemsApi(this._dio, this._getUserId);
 
+  /// Field names with no Emby equivalent, dropped here rather than at every
+  /// call site because a name Emby has never heard of turns down the whole
+  /// request. ItemCounts is a Jellyfin name, and the counts it asks for
+  /// already come back on Emby's items by name results.
+  static const _unknownToEmbyFields = <String>{'ItemCounts'};
+
+  static String? _knownFields(String? fields) {
+    if (fields == null) return null;
+    if (!_unknownToEmbyFields.any(fields.contains)) return fields;
+    final kept = fields
+        .split(',')
+        .map((field) => field.trim())
+        .where(
+          (field) => field.isNotEmpty && !_unknownToEmbyFields.contains(field),
+        )
+        .join(',');
+    return kept.isEmpty ? null : kept;
+  }
+
   bool _shouldRetryCollectionFallback(int statusCode) {
     return statusCode == 400 ||
         statusCode == 404 ||
@@ -62,7 +81,7 @@ class EmbyItemsApi implements ItemsApi {
       'Limit': ?limit,
       'Recursive': ?recursive,
       'SearchTerm': ?searchTerm,
-      'Fields': ?fields,
+      'Fields': ?_knownFields(fields),
       if (personIds != null) 'PersonIds': personIds.join(','),
       if (artistIds != null) 'ArtistIds': artistIds.join(','),
       if (filters != null) 'Filters': filters.join(','),
@@ -111,7 +130,7 @@ class EmbyItemsApi implements ItemsApi {
         'UserId': _getUserId(),
         'SearchTerm': searchTerm,
         'Limit': ?limit,
-        'Fields': ?fields,
+        'Fields': ?_knownFields(fields),
         'EnableImageTypes': ?enableImageTypes,
       },
     );
@@ -129,7 +148,7 @@ class EmbyItemsApi implements ItemsApi {
       '/Users/$userId/Items/$itemId',
       queryParameters: {
         if (mediaSourceId != null) 'mediaSourceId': mediaSourceId,
-        if (fields != null && fields.isNotEmpty) 'Fields': fields,
+        'Fields': ?_knownFields(fields),
       },
     );
     return response.data as Map<String, dynamic>;
@@ -164,6 +183,7 @@ class EmbyItemsApi implements ItemsApi {
   Future<Map<String, dynamic>> getNextUp({
     String? seriesId,
     String? parentId,
+    int? startIndex,
     int? limit,
     String? fields,
     bool? enableResumable,
@@ -180,8 +200,9 @@ class EmbyItemsApi implements ItemsApi {
         'UserId': userId,
         'SeriesId': ?seriesId,
         'ParentId': ?parentId,
+        'StartIndex': ?startIndex,
         'Limit': ?limit,
-        'Fields': ?fields,
+        'Fields': ?_knownFields(fields),
         'EnableResumable': ?enableResumable,
         'EnableImageTypes': ?enableImageTypes,
         'ImageTypeLimit': ?imageTypeLimit,
@@ -194,6 +215,7 @@ class EmbyItemsApi implements ItemsApi {
   Future<Map<String, dynamic>> getResumeItems({
     String? parentId,
     List<String>? includeItemTypes,
+    int? startIndex,
     int? limit,
     String? fields,
     String? enableImageTypes,
@@ -206,8 +228,9 @@ class EmbyItemsApi implements ItemsApi {
         'ParentId': ?parentId,
         if (includeItemTypes != null)
           'IncludeItemTypes': includeItemTypes.join(','),
+        'StartIndex': ?startIndex,
         'Limit': ?limit,
-        'Fields': ?fields,
+        'Fields': ?_knownFields(fields),
         'EnableImageTypes': ?enableImageTypes,
         'ImageTypeLimit': ?imageTypeLimit,
       },
@@ -232,7 +255,7 @@ class EmbyItemsApi implements ItemsApi {
         if (includeItemTypes != null)
           'IncludeItemTypes': includeItemTypes.join(','),
         if (limit != null) 'Limit': limit,
-        if (fields != null) 'Fields': fields,
+        'Fields': ?_knownFields(fields),
         if (enableImageTypes != null) 'EnableImageTypes': enableImageTypes,
         if (imageTypeLimit != null) 'ImageTypeLimit': imageTypeLimit,
       },
@@ -265,7 +288,7 @@ class EmbyItemsApi implements ItemsApi {
         if (includeItemTypes != null)
           'IncludeItemTypes': includeItemTypes.join(','),
         if (limit != null) 'Limit': limit,
-        if (fields != null) 'Fields': fields,
+        'Fields': ?_knownFields(fields),
         if (enableImageTypes != null) 'EnableImageTypes': enableImageTypes,
         if (imageTypeLimit != null) 'ImageTypeLimit': imageTypeLimit,
         'SortBy' : 'PremiereDate',
@@ -297,7 +320,7 @@ class EmbyItemsApi implements ItemsApi {
   }) async {
     final response = await _dio.get(
       '/Shows/$seriesId/Episodes',
-      queryParameters: {'SeasonId': ?seasonId, 'Fields': ?fields},
+      queryParameters: {'SeasonId': ?seasonId, 'Fields': ?_knownFields(fields)},
     );
     return response.data as Map<String, dynamic>;
   }
@@ -357,7 +380,7 @@ class EmbyItemsApi implements ItemsApi {
         'StartIndex': ?startIndex,
         'Limit': ?limit,
         'Recursive': ?recursive,
-        'Fields': ?fields,
+        'Fields': ?_knownFields(fields),
         'NameStartsWith': ?nameStartsWith,
         'NameLessThan': ?nameLessThan,
         'IsFavorite': ?isFavorite,
@@ -390,7 +413,7 @@ class EmbyItemsApi implements ItemsApi {
         'StartIndex': ?startIndex,
         'Limit': ?limit,
         'Recursive': ?recursive,
-        'Fields': ?fields,
+        'Fields': ?_knownFields(fields),
         'NameStartsWith': ?nameStartsWith,
         'NameLessThan': ?nameLessThan,
         'IsFavorite': ?isFavorite,
@@ -580,7 +603,37 @@ class EmbyItemsApi implements ItemsApi {
         'StartIndex': ?startIndex,
         'Limit': ?limit,
         'Recursive': ?recursive,
-        'Fields': ?fields,
+        'Fields': ?_knownFields(fields),
+        if (includeItemTypes != null && includeItemTypes.isNotEmpty)
+          'IncludeItemTypes': includeItemTypes.join(','),
+      },
+    );
+    return response.data as Map<String, dynamic>;
+  }
+
+  @override
+  Future<Map<String, dynamic>> getStudios({
+    String? parentId,
+    String? userId,
+    String? sortBy,
+    String? sortOrder,
+    int? startIndex,
+    int? limit,
+    bool? recursive,
+    String? fields,
+    List<String>? includeItemTypes,
+  }) async {
+    final response = await _dio.get(
+      '/Studios',
+      queryParameters: {
+        'ParentId': ?parentId,
+        'UserId': ?userId,
+        'SortBy': ?sortBy,
+        'SortOrder': ?sortOrder,
+        'StartIndex': ?startIndex,
+        'Limit': ?limit,
+        'Recursive': ?recursive,
+        'Fields': ?_knownFields(fields),
         if (includeItemTypes != null && includeItemTypes.isNotEmpty)
           'IncludeItemTypes': includeItemTypes.join(','),
       },

@@ -33,6 +33,7 @@ class RowDataSource {
   static const _maxItems = 100;
   static const _defaultSortBy = 'SortName';
   static const _defaultSortOrder = 'Ascending';
+  static const _studioPageSize = 200;
   static const _genreArtworkConcurrency = 6;
 
   static const _fields =
@@ -93,6 +94,12 @@ class RowDataSource {
     }
   }
 
+  /// A rejected request is worth one more try without the optional fields,
+  /// since a server that has no name for one of them turns the whole call down
+  /// rather than ignoring it.
+  static bool _shouldRetryWithoutFields(int statusCode) =>
+      statusCode == 400 || statusCode >= 500;
+
   Future<bool> hasLiveTvChannels() async {
     final response = await _client.liveTvApi.getChannels(
       limit: 1,
@@ -116,9 +123,10 @@ class RowDataSource {
     );
   }
 
-  Future<HomeRow> loadResume(String serverId) async {
+  Future<HomeRow> loadResume(String serverId, {int? startIndex}) async {
     final response = await _getResumeItemsWithFallback(
       includeItemTypes: ['Movie', 'Episode'],
+      startIndex: startIndex,
       limit: _defaultLimit,
     );
     return _buildRow(
@@ -144,8 +152,9 @@ class RowDataSource {
     );
   }
 
-  Future<HomeRow> loadNextUp(String serverId) async {
+  Future<HomeRow> loadNextUp(String serverId, {int? startIndex}) async {
     final response = await _getNextUpWithFallback(
+      startIndex: startIndex,
       limit: _defaultLimit,
       enableResumable: false,
     );
@@ -444,7 +453,7 @@ class RowDataSource {
     } on DioException catch (e) {
       final statusCode = e.response?.statusCode ?? 0;
       _recordIfAccessDenied(statusCode, parentId);
-      if (statusCode < 500) rethrow;
+      if (!_shouldRetryWithoutFields(statusCode)) rethrow;
       response = await _client.itemsApi.getGenres(
         parentId: parentId,
         sortBy: sortBy,
@@ -471,6 +480,107 @@ class RowDataSource {
         ? row.items.length
         : _maxItems;
     return row.copyWith(totalCount: totalCount);
+  }
+
+  Future<HomeRow> loadStudios(
+    String serverId, {
+    String sortBy = _defaultSortBy,
+    String sortOrder = _defaultSortOrder,
+    String selectedIds = '',
+    String? title,
+    String? parentId,
+  }) async {
+    final rowTitle = title ?? _l10n.studios;
+    if (_isAccessDenied(parentId)) {
+      return _buildRow(
+        id: 'studios',
+        title: rowTitle,
+        response: const <String, dynamic>{'Items': <dynamic>[]},
+        serverId: serverId,
+        rowType: HomeRowType.studios,
+      );
+    }
+    final selectedSet = selectedIds
+        .split(',')
+        .map((s) => s.trim())
+        .where((s) => s.isNotEmpty)
+        .toSet();
+
+    Future<Map<String, dynamic>> fetchPage(int startIndex, int limit) async {
+      try {
+        return await _client.itemsApi.getStudios(
+          parentId: parentId,
+          userId: _client.userId,
+          sortBy: sortBy,
+          sortOrder: sortOrder,
+          recursive: true,
+          startIndex: startIndex,
+          limit: limit,
+          fields: 'ItemCounts,PrimaryImageAspectRatio',
+        );
+      } on DioException catch (e) {
+        final statusCode = e.response?.statusCode ?? 0;
+        _recordIfAccessDenied(statusCode, parentId);
+        if (!_shouldRetryWithoutFields(statusCode)) rethrow;
+        return _client.itemsApi.getStudios(
+          parentId: parentId,
+          userId: _client.userId,
+          sortBy: sortBy,
+          sortOrder: sortOrder,
+          recursive: true,
+          startIndex: startIndex,
+          limit: limit,
+        );
+      }
+    }
+
+    final List<Map<String, dynamic>> items;
+    if (selectedSet.isEmpty) {
+      final page = await fetchPage(0, _defaultLimit);
+      items = (page['Items'] as List? ?? []).cast<Map<String, dynamic>>();
+    } else {
+      items = await _collectStudios(selectedSet, fetchPage);
+    }
+
+    return _buildRow(
+      id: 'studios',
+      title: rowTitle,
+      response: {'Items': items},
+      serverId: serverId,
+      rowType: HomeRowType.studios,
+    );
+  }
+
+  /// Walks the studio list a page at a time until every id in [wanted] has
+  /// turned up.
+  ///
+  /// The endpoint has no way to ask for particular studios and a library can
+  /// report well over a thousand of them, so reading the lot to keep a handful
+  /// is a heavy call to make on every home load. Stopping once the selection is
+  /// accounted for usually means one page.
+  Future<List<Map<String, dynamic>>> _collectStudios(
+    Set<String> wanted,
+    Future<Map<String, dynamic>> Function(int startIndex, int limit) fetchPage,
+  ) async {
+    final outstanding = wanted.toSet();
+    final found = <Map<String, dynamic>>[];
+    var startIndex = 0;
+
+    while (outstanding.isNotEmpty) {
+      final response = await fetchPage(startIndex, _studioPageSize);
+      final page = (response['Items'] as List? ?? [])
+          .cast<Map<String, dynamic>>();
+      if (page.isEmpty) break;
+      for (final studio in page) {
+        if (outstanding.remove(studio['Id']?.toString() ?? '')) {
+          found.add(studio);
+        }
+      }
+      if (page.length < _studioPageSize) break;
+      startIndex += _studioPageSize;
+    }
+
+    return found;
   }
 
   Future<Map<String, dynamic>> _enrichGenreResponseForBrowse(
@@ -1059,10 +1169,13 @@ class RowDataSource {
               limit: _defaultLimit,
             );
           } else {
+            final sortOrder =
+                prefs?.get(UserPreferences.playlistsRowSortOrder).apiValue ??
+                _defaultSortOrder;
             response = await _getItemsWithFallback(
               parentId: playlistId,
               sortBy: sortPref.apiValue,
-              sortOrder: 'Ascending',
+              sortOrder: sortOrder,
               recursive: false,
               startIndex: currentOffset,
               limit: _defaultLimit,
@@ -1090,10 +1203,13 @@ class RowDataSource {
         final sortBy =
             prefs?.get(UserPreferences.favoritesRowSortBy).apiValue ??
             _defaultSortBy;
+        final sortOrder =
+            prefs?.get(UserPreferences.favoritesRowSortOrder).apiValue ??
+            _defaultSortOrder;
         response = await _getItemsWithFallback(
           includeItemTypes: FavoriteTypeFilter.fromRowId(row.id).itemTypes,
           sortBy: sortBy,
-          sortOrder: 'Ascending',
+          sortOrder: sortOrder,
           recursive: true,
           startIndex: currentOffset,
           limit: _defaultLimit,
@@ -1119,11 +1235,14 @@ class RowDataSource {
         final effectiveSortBy = (sortPref.usesDedicatedEndpoint && parentId != null)
             ? null
             : sortPref.apiValue;
+        final sortOrder =
+            prefs?.get(UserPreferences.collectionsRowSortOrder).apiValue ??
+            _defaultSortOrder;
         response = await _getItemsWithFallback(
           parentId: parentId,
           includeItemTypes: includeItemTypes,
           sortBy: effectiveSortBy,
-          sortOrder: 'Ascending',
+          sortOrder: sortOrder,
           // A pinned collection pages through its own children, the way its
           // first page was read. Walking it would hand back the episodes inside
           // each series instead.
@@ -1135,10 +1254,13 @@ class RowDataSource {
         final sortBy =
             prefs?.get(UserPreferences.audioRowsSortBy).apiValue ??
             _defaultSortBy;
+        final audioSortOrder =
+            prefs?.get(UserPreferences.audioRowsSortOrder).apiValue ??
+            _defaultSortOrder;
         response = await _getItemsWithFallback(
           includeItemTypes: const ['MusicArtist'],
           sortBy: sortBy,
-          sortOrder: 'Ascending',
+          sortOrder: audioSortOrder,
           recursive: true,
           startIndex: currentOffset,
           limit: _defaultLimit,
@@ -1147,10 +1269,13 @@ class RowDataSource {
         final sortBy =
             prefs?.get(UserPreferences.audioRowsSortBy).apiValue ??
             _defaultSortBy;
+        final audioSortOrder =
+            prefs?.get(UserPreferences.audioRowsSortOrder).apiValue ??
+            _defaultSortOrder;
         response = await _getItemsWithFallback(
           includeItemTypes: const ['MusicAlbum'],
           sortBy: sortBy,
-          sortOrder: 'Ascending',
+          sortOrder: audioSortOrder,
           recursive: true,
           startIndex: currentOffset,
           limit: _defaultLimit,
@@ -1159,12 +1284,15 @@ class RowDataSource {
         final sortBy =
             prefs?.get(UserPreferences.audioRowsSortBy).apiValue ??
             _defaultSortBy;
+        final audioSortOrder =
+            prefs?.get(UserPreferences.audioRowsSortOrder).apiValue ??
+            _defaultSortOrder;
         final pageCount = (currentOffset / _defaultLimit).ceil();
         final startIndex = pageCount * _defaultLimit;
         response = await _getItemsWithFallback(
           includeItemTypes: const ['Playlist'],
           sortBy: sortBy,
-          sortOrder: 'Ascending',
+          sortOrder: audioSortOrder,
           recursive: true,
           startIndex: startIndex,
           limit: _defaultLimit,
@@ -1174,6 +1302,9 @@ class RowDataSource {
         final sortBy =
             prefs?.get(UserPreferences.genresRowSortBy).apiValue ??
             _defaultSortBy;
+        final genresSortOrder =
+            prefs?.get(UserPreferences.genresRowSortOrder).apiValue ??
+            _defaultSortOrder;
         final includeItemTypes = prefs
             ?.get(UserPreferences.genresRowItemFilter)
             .includeItemTypes;
@@ -1187,7 +1318,7 @@ class RowDataSource {
           try {
             response = await _client.itemsApi.getGenres(
               sortBy: sortBy,
-              sortOrder: 'Ascending',
+              sortOrder: genresSortOrder,
               recursive: true,
               startIndex: startIndex,
               limit: _defaultLimit,
@@ -1199,7 +1330,7 @@ class RowDataSource {
             if (statusCode < 500) rethrow;
             response = await _client.itemsApi.getGenres(
               sortBy: sortBy,
-              sortOrder: 'Ascending',
+              sortOrder: genresSortOrder,
               recursive: true,
               startIndex: startIndex,
               limit: _defaultLimit,
@@ -1224,7 +1355,7 @@ class RowDataSource {
           response = await _getItemsWithFallback(
             genreIds: [genreId],
             sortBy: sortBy,
-            sortOrder: 'Ascending',
+            sortOrder: genresSortOrder,
             recursive: true,
             startIndex: currentOffset,
             limit: _defaultLimit,
@@ -1232,6 +1363,10 @@ class RowDataSource {
             excludeItemTypes: const ['Episode'],
           );
         }
+      case HomeRowType.studios:
+        // The row holds exactly the studios the viewer picked, so it arrives
+        // complete and there is no next page to ask the server for.
+        return (row.items, row.totalCount);
       case HomeRowType.latestMedia:
         // Stitched from several libraries at load time, so the id names a media
         // kind rather than a parent the server would recognise.
@@ -1346,10 +1481,25 @@ class RowDataSource {
             return (row.items, row.totalCount);
           }
         }
-      case HomeRowType.recentlyReleased:
       case HomeRowType.resume:
+        response = await _getResumeItemsWithFallback(
+          includeItemTypes: const ['Movie', 'Episode'],
+          startIndex: currentOffset,
+          limit: _defaultLimit,
+        );
       case HomeRowType.resumeAudio:
+        response = await _getResumeItemsWithFallback(
+          includeItemTypes: const ['Audio'],
+          startIndex: currentOffset,
+          limit: _defaultLimit,
+        );
       case HomeRowType.nextUp:
+        response = await _getNextUpWithFallback(
+          startIndex: currentOffset,
+          limit: _defaultLimit,
+          enableResumable: false,
+        );
+      case HomeRowType.recentlyReleased:
       case HomeRowType.libraryTiles:
       case HomeRowType.libraryTilesSmall:
       case HomeRowType.liveTv:
@@ -1448,6 +1598,7 @@ class RowDataSource {
   Future<Map<String, dynamic>> _getResumeItemsWithFallback({
     String? parentId,
     List<String>? includeItemTypes,
+    int? startIndex,
     required int limit,
   }) async {
     try {
@@ -1455,6 +1606,7 @@ class RowDataSource {
           .getResumeItems(
             parentId: parentId,
             includeItemTypes: includeItemTypes,
+            startIndex: startIndex,
             limit: limit,
             fields: _fields,
             enableImageTypes: _imageTypes,
@@ -1467,6 +1619,7 @@ class RowDataSource {
           .getResumeItems(
             parentId: parentId,
             includeItemTypes: includeItemTypes,
+            startIndex: startIndex,
             limit: limit,
             fields: _fallbackFields,
             enableImageTypes: _imageTypes,
@@ -1480,6 +1633,7 @@ class RowDataSource {
       final response = await _client.itemsApi.getResumeItems(
         parentId: parentId,
         includeItemTypes: includeItemTypes,
+        startIndex: startIndex,
         limit: limit,
         fields: _fallbackFields,
         enableImageTypes: _imageTypes,
@@ -1491,6 +1645,7 @@ class RowDataSource {
 
   Future<Map<String, dynamic>> _getNextUpWithFallback({
     String? parentId,
+    int? startIndex,
     required int limit,
     bool? enableResumable,
   }) async {
@@ -1498,6 +1653,7 @@ class RowDataSource {
       final response = await _client.itemsApi
           .getNextUp(
             parentId: parentId,
+            startIndex: startIndex,
             limit: limit,
             fields: _fields,
             enableImageTypes: _imageTypes,
@@ -1511,6 +1667,7 @@ class RowDataSource {
       final response = await _client.itemsApi
           .getNextUp(
             parentId: parentId,
+            startIndex: startIndex,
             limit: limit,
             fields: _fallbackFields,
             enableImageTypes: _imageTypes,
@@ -1525,6 +1682,7 @@ class RowDataSource {
       if (statusCode < 500) rethrow;
       final response = await _client.itemsApi.getNextUp(
         parentId: parentId,
+        startIndex: startIndex,
         limit: limit,
         fields: _fallbackFields,
         enableImageTypes: _imageTypes,
@@ -1714,6 +1872,9 @@ class RowDataSource {
               : null;
           final sortPref = prefs?.get(UserPreferences.collectionsRowSortBy) ??
               LibrarySortBy.playlistOrder;
+          final collectionsSortOrder =
+              prefs?.get(UserPreferences.collectionsRowSortOrder).apiValue ??
+              _defaultSortOrder;
           final usePlaylistOrder = sortPref.usesDedicatedEndpoint;
           final showEpisodes =
               prefs?.get(UserPreferences.collectionsRowShowEpisodes) ?? false;
@@ -1723,7 +1884,7 @@ class RowDataSource {
             title: title,
             rowId: rowId,
             sortBy: usePlaylistOrder ? _defaultSortBy : sortPref.apiValue,
-            sortOrder: _defaultSortOrder,
+            sortOrder: collectionsSortOrder,
             usePlaylistOrder: usePlaylistOrder,
             showEpisodes: showEpisodes,
           );
@@ -1742,10 +1903,12 @@ class RowDataSource {
         }
         try {
           var sortBy = _defaultSortBy;
+          var sortOrder = _defaultSortOrder;
           List<String>? includeItemTypes;
           if (GetIt.instance.isRegistered<UserPreferences>()) {
             final prefs = GetIt.instance<UserPreferences>();
             sortBy = prefs.get(UserPreferences.genresRowSortBy).apiValue;
+            sortOrder = prefs.get(UserPreferences.genresRowSortOrder).apiValue;
             includeItemTypes = prefs
                 .get(UserPreferences.genresRowItemFilter)
                 .includeItemTypes;
@@ -1756,7 +1919,7 @@ class RowDataSource {
             title: title,
             rowId: rowId,
             sortBy: sortBy,
-            sortOrder: _defaultSortOrder,
+            sortOrder: sortOrder,
             includeItemTypes: includeItemTypes,
           );
           return row;
@@ -1778,6 +1941,9 @@ class RowDataSource {
               : null;
           final sortPref = prefs?.get(UserPreferences.playlistsRowSortBy) ??
               LibrarySortBy.playlistOrder;
+          final playlistsSortOrder =
+              prefs?.get(UserPreferences.playlistsRowSortOrder).apiValue ??
+              _defaultSortOrder;
           final usePlaylistOrder = sortPref.usesDedicatedEndpoint;
           final showEpisodes =
               prefs?.get(UserPreferences.playlistsRowShowEpisodes) ?? false;
@@ -1787,7 +1953,7 @@ class RowDataSource {
             title: title,
             rowId: rowId,
             sortBy: usePlaylistOrder ? _defaultSortBy : sortPref.apiValue,
-            sortOrder: _defaultSortOrder,
+            sortOrder: playlistsSortOrder,
             usePlaylistOrder: usePlaylistOrder,
             showEpisodes: showEpisodes,
           );

@@ -96,9 +96,13 @@ final class AetherVideoChannel: NSObject, FlutterStreamHandler {
             player.setAudioTrack((args["index"] as? NSNumber)?.int32Value ?? -1)
         case "setSubtitleTrack":
             let isExternal = (args["isExternalSubtitle"] as? Bool) == true
+            let externalUrl = isExternal ? args["externalSubtitleUrl"] as? String : nil
+            // The player keys its external tracks by the url addExternalSubtitle built,
+            // and a downloaded sidecar comes back here as the bare path it was added
+            // with, so it takes the same conversion or the lookup misses.
             player.selectSubtitleTrack(
                 (args["index"] as? NSNumber)?.int32Value ?? -1,
-                externalUrl: isExternal ? args["externalSubtitleUrl"] as? String : nil
+                externalUrl: externalUrl.flatMap { urlFrom($0)?.absoluteString } ?? externalUrl
             )
         case "addExternalSubtitle":
             if let urlString = args["url"] as? String, let url = urlFrom(urlString) {

@@ -9228,6 +9228,15 @@ class AppLocalizationsCy extends AppLocalizations {
       'Mae Classic yn cadw\'r math o ddelwedd fesul rhes a throshaen gwybodaeth. Mae Modern yn defnyddio rhesi portread-i-gefndir.';
 
   @override
+  String get sortOrder => 'Sort Order';
+
+  @override
+  String get ascending => 'Ascending';
+
+  @override
+  String get descending => 'Descending';
+
+  @override
   String get displayFavoritesRows => 'Dangos Rhesi Ffefrynnau';
 
   @override
@@ -9242,6 +9251,10 @@ class AppLocalizationsCy extends AppLocalizations {
       'Trefnu rhesi Ffefrynnau yn ôl dyddiad a ychwanegwyd, dyddiad rhyddhau, yn nhrefn yr wyddor, a mwy.';
 
   @override
+  String get favoritesRowSortOrderDescription =>
+      'Sort Favorites rows in ascending or descending order.';
+
+  @override
   String get displayCollectionsRows => 'Rhesi Casgliadau Arddangos';
 
   @override
@@ -9254,6 +9267,10 @@ class AppLocalizationsCy extends AppLocalizations {
   @override
   String get collectionsRowSortingDescription =>
       'Trefnu rhesi Casgliadau yn ôl dyddiad a ychwanegwyd, dyddiad rhyddhau, yn nhrefn yr wyddor, a mwy.';
+
+  @override
+  String get collectionsRowSortOrderDescription =>
+      'Sort Collections rows in ascending or descending order.';
 
   @override
   String get collectionsRowShowEpisodes => 'Show Individual Episodes';
@@ -9277,11 +9294,63 @@ class AppLocalizationsCy extends AppLocalizations {
       'Trefnu rhesi Genres yn ôl dyddiad a ychwanegwyd, dyddiad rhyddhau, yn nhrefn yr wyddor, a mwy.';
 
   @override
+  String get genresRowSortOrderDescription =>
+      'Sort Genres rows in ascending or descending order.';
+
+  @override
   String get genresRowItems => 'Eitemau Rhes Genres';
 
   @override
   String get genresRowItemsDescription =>
       'Dangos Ffilmiau, Cyfresi, neu\'r ddau yn rhesi Genres.';
+
+  @override
+  String get displayStudiosRows => 'Display Studio Row';
+
+  @override
+  String get displayStudiosRowsSubtitle => 'Show Studio row in Home Sections.';
+
+  @override
+  String get studiosRowSorting => 'Studio Row Sorting';
+
+  @override
+  String get studiosRowSortingDescription =>
+      'Studio row by name, recently added, and more.';
+
+  @override
+  String get studiosRowSortOrderDescription =>
+      'Choose Ascending or Descending sort order.';
+
+  @override
+  String get selectStudiosToInclude => 'Select Studios to Include';
+
+  @override
+  String get selectStudiosToIncludeDescription =>
+      'Select which studios should be included on the home row.';
+
+  @override
+  String get selectAllStudios => 'Select All';
+
+  @override
+  String get deselectAllStudios => 'Deselect All';
+
+  @override
+  String get tvStudiosFilter => 'TV Studios';
+
+  @override
+  String get movieStudiosFilter => 'Movie Studios';
+
+  @override
+  String get selectedStudiosFilter => 'Selected Studios';
+
+  @override
+  String get unselectedStudiosFilter => 'Unselected Studios';
+
+  @override
+  String get filtersHeader => 'Filters';
+
+  @override
+  String get showHeader => 'Show';
 
   @override
   String get displayPlaylistsRows => 'Dangos Rhesi Rhestrau Chwarae';
@@ -9296,6 +9365,10 @@ class AppLocalizationsCy extends AppLocalizations {
   @override
   String get playlistsRowSortingDescription =>
       'Trefnu rhesi\'r Rhestrau Chwarae yn ôl y dyddiad ychwanegu, y dyddiad rhyddhau, yn nhrefn yr wyddor, a mwy.';
+
+  @override
+  String get playlistsRowSortOrderDescription =>
+      'Sort Playlist rows in ascending or descending order.';
 
   @override
   String get playlistsRowShowEpisodes => 'Show Individual Episodes';
@@ -9317,6 +9390,10 @@ class AppLocalizationsCy extends AppLocalizations {
   @override
   String get audioRowsSortingDescription =>
       'Trefnu rhesi Sain yn ôl y dyddiad ychwanegu, y dyddiad rhyddhau, yn nhrefn yr wyddor, a mwy.';
+
+  @override
+  String get audioRowsSortOrderDescription =>
+      'Sort Audio rows in ascending or descending order.';
 
   @override
   String get audioPlaylists => 'Rhestrau Chwarae Sain';

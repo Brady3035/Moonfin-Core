@@ -61,6 +61,7 @@ class MultiServerRepository {
   static const _maxItems = 100;
   static const _defaultSortBy = 'SortName';
   static const _defaultSortOrder = 'Ascending';
+  static const _studioPageSize = 200;
   static const _genreArtworkConcurrency = 6;
 
   List<ServerUserSession>? _cachedSessions;
@@ -503,6 +504,97 @@ class MultiServerRepository {
     );
   }
 
+  Future<HomeRow> getAggregatedStudios({
+    int limit = _defaultLimit,
+    String sortBy = _defaultSortBy,
+    String sortOrder = _defaultSortOrder,
+    String selectedIds = '',
+    String? title,
+  }) async {
+    const cacheKeyPrefix = 'studios';
+    const rowType = HomeRowType.studios;
+
+    final sessions = await getLoggedInServers();
+    final perServer = (limit * 3).clamp(1, 100);
+
+    final selectedSet = selectedIds
+        .split(',')
+        .map((s) => s.trim())
+        .where((s) => s.isNotEmpty)
+        .toSet();
+
+    final results = await Future.wait(
+      sessions.map(
+        (session) => _withTimeout(() async {
+          Future<Map<String, dynamic>> fetchPage(int startIndex, int limit) =>
+              session.client.itemsApi.getStudios(
+                userId: session.client.userId,
+                sortBy: sortBy,
+                sortOrder: sortOrder,
+                recursive: true,
+                startIndex: startIndex,
+                limit: limit,
+                fields: 'ItemCounts,PrimaryImageAspectRatio',
+              );
+
+          if (selectedSet.isEmpty) {
+            final response = await fetchPage(0, perServer);
+            return _parseItems(response, session.server.id);
+          }
+          return _collectStudios(selectedSet, session.server.id, fetchPage);
+        }, label: '$cacheKeyPrefix from ${session.server.name}'),
+      ),
+    );
+
+    final all = _sortAggregatedItems(
+      results.expand((e) => e).toList(growable: false),
+      sortBy: sortBy,
+      sortOrder: sortOrder,
+    );
+
+    // The row arrives complete either way, so the count has to match what it
+    // holds or it will claim a next page that no one can serve.
+    final items = selectedSet.isEmpty ? all.take(limit).toList() : all;
+
+    return HomeRow(
+      id: cacheKeyPrefix,
+      title: title ?? _l10n.studios,
+      items: items,
+      rowType: rowType,
+      totalCount: items.length,
+    );
+  }
+
+  /// Walks one server's studio list a page at a time until every id in
+  /// [wanted] has turned up.
+  ///
+  /// The endpoint has no way to ask for particular studios and a library can
+  /// report well over a thousand of them, so reading the lot to keep a handful
+  /// is a heavy call to make on every home load, once per server. Stopping once
+  /// the selection is accounted for usually means one page.
+  Future<List<AggregatedItem>> _collectStudios(
+    Set<String> wanted,
+    String serverId,
+    Future<Map<String, dynamic>> Function(int startIndex, int limit) fetchPage,
+  ) async {
+    final outstanding = wanted.toSet();
+    final found = <AggregatedItem>[];
+    var startIndex = 0;
+
+    while (outstanding.isNotEmpty) {
+      final response = await fetchPage(startIndex, _studioPageSize);
+      final page = _parseItems(response, serverId);
+      if (page.isEmpty) break;
+      for (final studio in page) {
+        if (outstanding.remove(studio.id)) found.add(studio);
+      }
+      if (page.length < _studioPageSize) break;
+      startIndex += _studioPageSize;
+    }
+
+    return found;
+  }
+
   Future<(List<AggregatedItem>, int)> loadMore({required HomeRow row}) async {
     if (!row.hasMore || row.items.length >= _maxItems) {
       return (row.items, row.totalCount);
@@ -540,11 +632,14 @@ class MultiServerRepository {
               final sortBy =
                   prefs?.get(UserPreferences.playlistsRowSortBy).apiValue ??
                   _defaultSortBy;
+              final sortOrder =
+                  prefs?.get(UserPreferences.playlistsRowSortOrder).apiValue ??
+                  _defaultSortOrder;
 
               final response = await session.client.itemsApi.getItems(
                 includeItemTypes: const ['Playlist'],
                 sortBy: sortBy,
-                sortOrder: 'Ascending',
+                sortOrder: sortOrder,
                 recursive: true,
                 startIndex: targetStartIndex,
                 limit: _defaultLimit,
@@ -566,11 +661,14 @@ class MultiServerRepository {
               final sortBy =
                   prefs?.get(UserPreferences.audioRowsSortBy).apiValue ??
                   _defaultSortBy;
+              final sortOrder =
+                  prefs?.get(UserPreferences.audioRowsSortOrder).apiValue ??
+                  _defaultSortOrder;
 
               final response = await session.client.itemsApi.getItems(
                 includeItemTypes: const ['Playlist'],
                 sortBy: sortBy,
-                sortOrder: 'Ascending',
+                sortOrder: sortOrder,
                 recursive: true,
                 startIndex: targetStartIndex,
                 limit: _defaultLimit,
@@ -591,11 +689,14 @@ class MultiServerRepository {
               final sortBy =
                   prefs?.get(UserPreferences.audioRowsSortBy).apiValue ??
                   _defaultSortBy;
+              final sortOrder =
+                  prefs?.get(UserPreferences.audioRowsSortOrder).apiValue ??
+                  _defaultSortOrder;
 
               final response = await session.client.itemsApi.getItems(
                 includeItemTypes: const ['MusicArtist'],
                 sortBy: sortBy,
-                sortOrder: 'Ascending',
+                sortOrder: sortOrder,
                 recursive: true,
                 startIndex: startIndex,
                 limit: _defaultLimit,
@@ -612,11 +713,14 @@ class MultiServerRepository {
               final sortBy =
                   prefs?.get(UserPreferences.audioRowsSortBy).apiValue ??
                   _defaultSortBy;
+              final sortOrder =
+                  prefs?.get(UserPreferences.audioRowsSortOrder).apiValue ??
+                  _defaultSortOrder;
 
               final response = await session.client.itemsApi.getItems(
                 includeItemTypes: const ['MusicAlbum'],
                 sortBy: sortBy,
-                sortOrder: 'Ascending',
+                sortOrder: sortOrder,
                 recursive: true,
                 startIndex: startIndex,
                 limit: _defaultLimit,
@@ -633,12 +737,15 @@ class MultiServerRepository {
               final sortBy =
                   prefs?.get(UserPreferences.favoritesRowSortBy).apiValue ??
                   _defaultSortBy;
+              final sortOrder =
+                  prefs?.get(UserPreferences.favoritesRowSortOrder).apiValue ??
+                  _defaultSortOrder;
               _rowOffsets[cacheKey] = startIndex + _defaultLimit;
 
               final response = await session.client.itemsApi.getItems(
                 includeItemTypes: favoriteFilter.itemTypes,
                 sortBy: sortBy,
-                sortOrder: 'Ascending',
+                sortOrder: sortOrder,
                 recursive: true,
                 startIndex: startIndex,
                 limit: _defaultLimit,
@@ -655,12 +762,15 @@ class MultiServerRepository {
               final sortBy =
                   prefs?.get(UserPreferences.collectionsRowSortBy).apiValue ??
                   _defaultSortBy;
+              final sortOrder =
+                  prefs?.get(UserPreferences.collectionsRowSortOrder).apiValue ??
+                  _defaultSortOrder;
               _rowOffsets[cacheKey] = startIndex + _defaultLimit;
 
               final response = await session.client.itemsApi.getItems(
                 includeItemTypes: const ['BoxSet'],
                 sortBy: sortBy,
-                sortOrder: 'Ascending',
+                sortOrder: sortOrder,
                 recursive: true,
                 startIndex: startIndex,
                 limit: _defaultLimit,
@@ -676,6 +786,9 @@ class MultiServerRepository {
               final sortBy =
                   prefs?.get(UserPreferences.genresRowSortBy).apiValue ??
                   _defaultSortBy;
+              final sortOrder =
+                  prefs?.get(UserPreferences.genresRowSortOrder).apiValue ??
+                  _defaultSortOrder;
               final includeItemTypes = prefs
                   ?.get(UserPreferences.genresRowItemFilter)
                   .includeItemTypes;
@@ -689,7 +802,7 @@ class MultiServerRepository {
 
                 final response = await session.client.itemsApi.getGenres(
                   sortBy: sortBy,
-                  sortOrder: 'Ascending',
+                  sortOrder: sortOrder,
                   recursive: true,
                   startIndex: targetStartIndex,
                   limit: _defaultLimit,
@@ -710,7 +823,7 @@ class MultiServerRepository {
                 final response = await session.client.itemsApi.getItems(
                   genreIds: [row.id],
                   sortBy: sortBy,
-                  sortOrder: 'Ascending',
+                  sortOrder: sortOrder,
                   recursive: true,
                   startIndex: startIndex,
                   limit: _defaultLimit,
@@ -785,13 +898,23 @@ class MultiServerRepository {
         final sortBy = row.rowType == HomeRowType.audioPlaylists
             ? (prefs?.get(UserPreferences.audioRowsSortBy).apiValue ?? _defaultSortBy)
             : (prefs?.get(UserPreferences.playlistsRowSortBy).apiValue ?? _defaultSortBy);
+        final sortOrder = row.rowType == HomeRowType.audioPlaylists
+            ? (prefs?.get(UserPreferences.audioRowsSortOrder).apiValue ??
+                  _defaultSortOrder)
+            : (prefs?.get(UserPreferences.playlistsRowSortOrder).apiValue ??
+                  _defaultSortOrder);
         if (sortBy == 'SortName') {
-          uniqueCombined.sort((a, b) => a.name.compareTo(b.name));
+          final ascending = sortOrder == SortDirection.ascending.apiValue;
+          uniqueCombined.sort(
+            (a, b) => ascending
+                ? a.name.compareTo(b.name)
+                : b.name.compareTo(a.name),
+          );
         } else {
           _sortAggregatedItems(
             uniqueCombined,
             sortBy: sortBy,
-            sortOrder: 'Ascending',
+            sortOrder: sortOrder,
           );
         }
       }
@@ -824,11 +947,27 @@ class MultiServerRepository {
                 _defaultSortBy,
           _ => _defaultSortBy,
         };
+        final sortOrder = switch (row.rowType) {
+          HomeRowType.favorites =>
+            prefs?.get(UserPreferences.favoritesRowSortOrder).apiValue ??
+                _defaultSortOrder,
+          HomeRowType.collections =>
+            prefs?.get(UserPreferences.collectionsRowSortOrder).apiValue ??
+                _defaultSortOrder,
+          HomeRowType.genres =>
+            prefs?.get(UserPreferences.genresRowSortOrder).apiValue ??
+                _defaultSortOrder,
+          HomeRowType.audioArtists ||
+          HomeRowType.audioAlbums =>
+            prefs?.get(UserPreferences.audioRowsSortOrder).apiValue ??
+                _defaultSortOrder,
+          _ => _defaultSortOrder,
+        };
 
         sortedCombined = _sortAggregatedItems(
           uniqueCombined,
           sortBy: sortBy,
-          sortOrder: 'Ascending',
+          sortOrder: sortOrder,
         );
       }
     }

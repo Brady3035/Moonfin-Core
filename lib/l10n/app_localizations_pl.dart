@@ -28,7 +28,7 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String connectingToServer(String serverName) {
-    return 'Połącz z$serverName';
+    return 'Łączenie z $serverName';
   }
 
   @override
@@ -1982,7 +1982,7 @@ class AppLocalizationsPl extends AppLocalizations {
   String get savedMedia => 'Zapisane multimedia';
 
   @override
-  String get tvShows => 'Programy telewizyjne';
+  String get tvShows => 'Seriale';
 
   @override
   String get music => 'Muzyka';
@@ -3387,13 +3387,13 @@ class AppLocalizationsPl extends AppLocalizations {
   String get contentType => 'Typ zawartości';
 
   @override
-  String get moviesAndTvShows => 'Filmy i programy telewizyjne';
+  String get moviesAndTvShows => 'Filmy i seriale';
 
   @override
   String get moviesOnly => 'Tylko filmy';
 
   @override
-  String get tvShowsOnly => 'Tylko programy telewizyjne';
+  String get tvShowsOnly => 'Tylko seriale';
 
   @override
   String get itemCount => 'Liczba pozycji';
@@ -9229,6 +9229,15 @@ class AppLocalizationsPl extends AppLocalizations {
       'Klasyczny zachowuje typ obrazu na wiersz i nakładkę informacyjną. Nowoczesny używa wierszy portret–tło.';
 
   @override
+  String get sortOrder => 'Sort Order';
+
+  @override
+  String get ascending => 'Ascending';
+
+  @override
+  String get descending => 'Descending';
+
+  @override
   String get displayFavoritesRows => 'Pokaż wiersze ulubionych';
 
   @override
@@ -9243,6 +9252,10 @@ class AppLocalizationsPl extends AppLocalizations {
       'Sortuj wiersze ulubionych według daty dodania, daty wydania, alfabetycznie i nie tylko.';
 
   @override
+  String get favoritesRowSortOrderDescription =>
+      'Sort Favorites rows in ascending or descending order.';
+
+  @override
   String get displayCollectionsRows => 'Pokaż wiersze kolekcji';
 
   @override
@@ -9255,6 +9268,10 @@ class AppLocalizationsPl extends AppLocalizations {
   @override
   String get collectionsRowSortingDescription =>
       'Sortuj wiersze kolekcji według daty dodania, daty wydania, alfabetycznie i nie tylko.';
+
+  @override
+  String get collectionsRowSortOrderDescription =>
+      'Sort Collections rows in ascending or descending order.';
 
   @override
   String get collectionsRowShowEpisodes => 'Pokaż poszczególne odcinki';
@@ -9278,11 +9295,63 @@ class AppLocalizationsPl extends AppLocalizations {
       'Sortuj wiersze gatunków według daty dodania, daty wydania, alfabetycznie i nie tylko.';
 
   @override
+  String get genresRowSortOrderDescription =>
+      'Sort Genres rows in ascending or descending order.';
+
+  @override
   String get genresRowItems => 'Elementy wierszy gatunków';
 
   @override
   String get genresRowItemsDescription =>
       'Pokazuj filmy, seriale lub jedno i drugie w wierszach gatunków.';
+
+  @override
+  String get displayStudiosRows => 'Display Studio Row';
+
+  @override
+  String get displayStudiosRowsSubtitle => 'Show Studio row in Home Sections.';
+
+  @override
+  String get studiosRowSorting => 'Studio Row Sorting';
+
+  @override
+  String get studiosRowSortingDescription =>
+      'Studio row by name, recently added, and more.';
+
+  @override
+  String get studiosRowSortOrderDescription =>
+      'Choose Ascending or Descending sort order.';
+
+  @override
+  String get selectStudiosToInclude => 'Select Studios to Include';
+
+  @override
+  String get selectStudiosToIncludeDescription =>
+      'Select which studios should be included on the home row.';
+
+  @override
+  String get selectAllStudios => 'Select All';
+
+  @override
+  String get deselectAllStudios => 'Deselect All';
+
+  @override
+  String get tvStudiosFilter => 'TV Studios';
+
+  @override
+  String get movieStudiosFilter => 'Movie Studios';
+
+  @override
+  String get selectedStudiosFilter => 'Selected Studios';
+
+  @override
+  String get unselectedStudiosFilter => 'Unselected Studios';
+
+  @override
+  String get filtersHeader => 'Filters';
+
+  @override
+  String get showHeader => 'Show';
 
   @override
   String get displayPlaylistsRows => 'Pokaż wiersze playlist';
@@ -9297,6 +9366,10 @@ class AppLocalizationsPl extends AppLocalizations {
   @override
   String get playlistsRowSortingDescription =>
       'Sortuj wiersze playlist według daty dodania, daty wydania, alfabetycznie i nie tylko.';
+
+  @override
+  String get playlistsRowSortOrderDescription =>
+      'Sort Playlist rows in ascending or descending order.';
 
   @override
   String get playlistsRowShowEpisodes => 'Pokaż poszczególne odcinki';
@@ -9318,6 +9391,10 @@ class AppLocalizationsPl extends AppLocalizations {
   @override
   String get audioRowsSortingDescription =>
       'Sortuj wiersze audio według daty dodania, daty wydania, alfabetycznie i nie tylko.';
+
+  @override
+  String get audioRowsSortOrderDescription =>
+      'Sort Audio rows in ascending or descending order.';
 
   @override
   String get audioPlaylists => 'Playlisty audio';

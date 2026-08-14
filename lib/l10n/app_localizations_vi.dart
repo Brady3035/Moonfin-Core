@@ -9173,6 +9173,15 @@ class AppLocalizationsVi extends AppLocalizations {
       'Classic giữ loại hình ảnh và lớp phủ thông tin trên mỗi hàng. Hiện đại sử dụng các hàng từ dọc đến phông nền.';
 
   @override
+  String get sortOrder => 'Sort Order';
+
+  @override
+  String get ascending => 'Ascending';
+
+  @override
+  String get descending => 'Descending';
+
+  @override
   String get displayFavoritesRows => 'Hiển thị hàng yêu thích';
 
   @override
@@ -9187,6 +9196,10 @@ class AppLocalizationsVi extends AppLocalizations {
       'Sắp xếp các hàng Mục yêu thích theo ngày thêm, ngày phát hành, theo thứ tự bảng chữ cái, v.v.';
 
   @override
+  String get favoritesRowSortOrderDescription =>
+      'Sort Favorites rows in ascending or descending order.';
+
+  @override
   String get displayCollectionsRows => 'Hiển thị các hàng bộ sưu tập';
 
   @override
@@ -9199,6 +9212,10 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get collectionsRowSortingDescription =>
       'Sắp xếp các hàng Bộ sưu tập theo ngày thêm, ngày phát hành, theo thứ tự bảng chữ cái, v.v.';
+
+  @override
+  String get collectionsRowSortOrderDescription =>
+      'Sort Collections rows in ascending or descending order.';
 
   @override
   String get collectionsRowShowEpisodes => 'Show Individual Episodes';
@@ -9222,11 +9239,63 @@ class AppLocalizationsVi extends AppLocalizations {
       'Sắp xếp các hàng Thể loại theo ngày thêm, ngày phát hành, theo thứ tự bảng chữ cái, v.v.';
 
   @override
+  String get genresRowSortOrderDescription =>
+      'Sort Genres rows in ascending or descending order.';
+
+  @override
   String get genresRowItems => 'Các mục hàng thể loại';
 
   @override
   String get genresRowItemsDescription =>
       'Hiển thị Phim, Bộ hoặc cả hai trong hàng Thể loại.';
+
+  @override
+  String get displayStudiosRows => 'Display Studio Row';
+
+  @override
+  String get displayStudiosRowsSubtitle => 'Show Studio row in Home Sections.';
+
+  @override
+  String get studiosRowSorting => 'Studio Row Sorting';
+
+  @override
+  String get studiosRowSortingDescription =>
+      'Studio row by name, recently added, and more.';
+
+  @override
+  String get studiosRowSortOrderDescription =>
+      'Choose Ascending or Descending sort order.';
+
+  @override
+  String get selectStudiosToInclude => 'Select Studios to Include';
+
+  @override
+  String get selectStudiosToIncludeDescription =>
+      'Select which studios should be included on the home row.';
+
+  @override
+  String get selectAllStudios => 'Select All';
+
+  @override
+  String get deselectAllStudios => 'Deselect All';
+
+  @override
+  String get tvStudiosFilter => 'TV Studios';
+
+  @override
+  String get movieStudiosFilter => 'Movie Studios';
+
+  @override
+  String get selectedStudiosFilter => 'Selected Studios';
+
+  @override
+  String get unselectedStudiosFilter => 'Unselected Studios';
+
+  @override
+  String get filtersHeader => 'Filters';
+
+  @override
+  String get showHeader => 'Show';
 
   @override
   String get displayPlaylistsRows => 'Hiển thị hàng danh sách phát';
@@ -9241,6 +9310,10 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get playlistsRowSortingDescription =>
       'Sắp xếp hàng danh sách phát theo ngày thêm, ngày phát hành, theo bảng chữ cái và nhiều tiêu chí khác.';
+
+  @override
+  String get playlistsRowSortOrderDescription =>
+      'Sort Playlist rows in ascending or descending order.';
 
   @override
   String get playlistsRowShowEpisodes => 'Show Individual Episodes';
@@ -9262,6 +9335,10 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get audioRowsSortingDescription =>
       'Sắp xếp hàng âm thanh theo ngày thêm, ngày phát hành, theo bảng chữ cái và nhiều tiêu chí khác.';
+
+  @override
+  String get audioRowsSortOrderDescription =>
+      'Sort Audio rows in ascending or descending order.';
 
   @override
   String get audioPlaylists => 'Danh sách phát âm thanh';

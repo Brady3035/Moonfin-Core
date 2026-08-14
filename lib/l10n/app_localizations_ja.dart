@@ -8900,6 +8900,15 @@ class AppLocalizationsJa extends AppLocalizations {
       'クラシックは行ごとの画像タイプと情報オーバーレイを維持します。モダンは縦長から横長へ変化する行を使用します。';
 
   @override
+  String get sortOrder => 'Sort Order';
+
+  @override
+  String get ascending => 'Ascending';
+
+  @override
+  String get descending => 'Descending';
+
+  @override
   String get displayFavoritesRows => 'お気に入りの行を表示';
 
   @override
@@ -8913,6 +8922,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get favoritesRowSortingDescription => 'お気に入りの行を追加日、公開日、名前順などで並べ替えます。';
 
   @override
+  String get favoritesRowSortOrderDescription =>
+      'Sort Favorites rows in ascending or descending order.';
+
+  @override
   String get displayCollectionsRows => 'コレクションの行を表示';
 
   @override
@@ -8924,6 +8937,10 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get collectionsRowSortingDescription =>
       'コレクションの行を追加日、公開日、名前順などで並べ替えます。';
+
+  @override
+  String get collectionsRowSortOrderDescription =>
+      'Sort Collections rows in ascending or descending order.';
 
   @override
   String get collectionsRowShowEpisodes => 'Show Individual Episodes';
@@ -8945,10 +8962,62 @@ class AppLocalizationsJa extends AppLocalizations {
   String get genresRowSortingDescription => 'ジャンルの行を追加日、公開日、名前順などで並べ替えます。';
 
   @override
+  String get genresRowSortOrderDescription =>
+      'Sort Genres rows in ascending or descending order.';
+
+  @override
   String get genresRowItems => 'ジャンルの行のアイテム';
 
   @override
   String get genresRowItemsDescription => 'ジャンルの行に映画、シリーズ、またはその両方を表示します。';
+
+  @override
+  String get displayStudiosRows => 'Display Studio Row';
+
+  @override
+  String get displayStudiosRowsSubtitle => 'Show Studio row in Home Sections.';
+
+  @override
+  String get studiosRowSorting => 'Studio Row Sorting';
+
+  @override
+  String get studiosRowSortingDescription =>
+      'Studio row by name, recently added, and more.';
+
+  @override
+  String get studiosRowSortOrderDescription =>
+      'Choose Ascending or Descending sort order.';
+
+  @override
+  String get selectStudiosToInclude => 'Select Studios to Include';
+
+  @override
+  String get selectStudiosToIncludeDescription =>
+      'Select which studios should be included on the home row.';
+
+  @override
+  String get selectAllStudios => 'Select All';
+
+  @override
+  String get deselectAllStudios => 'Deselect All';
+
+  @override
+  String get tvStudiosFilter => 'TV Studios';
+
+  @override
+  String get movieStudiosFilter => 'Movie Studios';
+
+  @override
+  String get selectedStudiosFilter => 'Selected Studios';
+
+  @override
+  String get unselectedStudiosFilter => 'Unselected Studios';
+
+  @override
+  String get filtersHeader => 'Filters';
+
+  @override
+  String get showHeader => 'Show';
 
   @override
   String get displayPlaylistsRows => 'プレイリストの行を表示';
@@ -8961,6 +9030,10 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get playlistsRowSortingDescription => 'プレイリストの行を追加日、公開日、名前順などで並べ替えます。';
+
+  @override
+  String get playlistsRowSortOrderDescription =>
+      'Sort Playlist rows in ascending or descending order.';
 
   @override
   String get playlistsRowShowEpisodes => 'Show Individual Episodes';
@@ -8980,6 +9053,10 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get audioRowsSortingDescription => 'オーディオの行を追加日、公開日、名前順などで並べ替えます。';
+
+  @override
+  String get audioRowsSortOrderDescription =>
+      'Sort Audio rows in ascending or descending order.';
 
   @override
   String get audioPlaylists => 'オーディオのプレイリスト';

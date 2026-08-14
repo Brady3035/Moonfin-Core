@@ -221,6 +221,13 @@ object Media3Bridge {
             return
         }
 
+        if (call.method == "setAllowUntrustedTls") {
+            val args = call.arguments as? Map<*, *>
+            InsecureTls.setAllowed(args?.get("enabled") as? Boolean ?: false)
+            result.success(null)
+            return
+        }
+
         if (call.method == "setDecoderPreferences") {
             val args = call.arguments as? Map<*, *>
             preferFfmpegDecoder = args?.get("preferFfmpeg") as? Boolean ?: false

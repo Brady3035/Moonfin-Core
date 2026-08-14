@@ -11889,6 +11889,7 @@ class _ChapterListCardState extends State<_ChapterListCard>
                           width: double.infinity,
                           child: Image.network(
                             widget.chapterImageUrl,
+                            headers: serverImageHeaders,
                             fit: BoxFit.cover,
                             filterQuality: FilterQuality.high,
                             errorBuilder: (_, _, _) => Container(
@@ -12569,12 +12570,20 @@ Widget? _seerrRequestButton(
   final status = (seerr.state.tv?.status ?? '').toLowerCase();
   final isContinuing =
       status.isNotEmpty && status != 'ended' && status != 'canceled';
+  final quality = seerr.state.quality(is4k: is4k);
+  // The same set the request sheet reads to decide which seasons it may offer.
+  final hasUnrequestedSeasons = seerr.state.isTv &&
+      seerrSeasonNumbersOf(
+        seerr.state.tv?.seasons ?? const [],
+        seerr.state.numberOfSeasons ?? 0,
+      ).any((s) => !quality.unavailableOrRequestedSeasons.contains(s));
   final action = seerrRequestActionFor(
-    seerr.state.quality(is4k: is4k),
+    quality,
     l10n,
     allowed: is4k ? seerr.canRequest4k : seerr.canRequest,
     isTv: seerr.state.isTv,
     isContinuing: isContinuing,
+    hasUnrequestedSeasons: hasUnrequestedSeasons,
   );
   if (action.kind != SeerrRequestActionKind.request) return null;
   return _DetailActionButton(

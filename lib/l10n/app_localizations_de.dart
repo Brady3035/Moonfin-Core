@@ -208,17 +208,17 @@ class AppLocalizationsDe extends AppLocalizations {
   String get glassQuality => 'Glass-Qualität';
 
   @override
-  String get oledMode => 'OLED Mode';
+  String get oledMode => 'OLED Modus';
 
   @override
   String get oledModeSubtitle =>
       'Deepen blacks and enrich artwork. Best on OLED displays.';
 
   @override
-  String get oledModeSubtle => 'Subtle';
+  String get oledModeSubtle => 'Subtil';
 
   @override
-  String get oledModeVivid => 'Vivid';
+  String get oledModeVivid => 'Lebhaft';
 
   @override
   String get glassQualitySubtitle =>
@@ -521,10 +521,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get extraLarge => 'Sehr groß';
 
   @override
-  String get scrollDirection => 'Scroll Direction';
+  String get scrollDirection => 'Scrollrichtung';
 
   @override
-  String get scrollDirectionVertical => 'Vertical';
+  String get scrollDirectionVertical => 'Vertikal';
 
   @override
   String get scrollDirectionHorizontal => 'Horizontal';
@@ -642,7 +642,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get scrollRight => 'Nach rechts scrollen';
 
   @override
-  String get scrollToTop => 'Scroll to top';
+  String get scrollToTop => 'Scroll nach oben';
 
   @override
   String get couldNotLoadGenre =>
@@ -1165,7 +1165,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get cast => 'Übertragen';
 
   @override
-  String get castMembers => 'Cast';
+  String get castMembers => 'Besetzung';
 
   @override
   String get trailer => 'Trailer';
@@ -9323,6 +9323,15 @@ class AppLocalizationsDe extends AppLocalizations {
       'Classic behält den Bildtyp und die Informationsüberlagerung pro Zeile bei. Modern verwendet Hochformat-zu-Hintergrund-Reihen.';
 
   @override
+  String get sortOrder => 'Sort Order';
+
+  @override
+  String get ascending => 'Ascending';
+
+  @override
+  String get descending => 'Descending';
+
+  @override
   String get displayFavoritesRows => 'Favoritenzeilen anzeigen';
 
   @override
@@ -9337,6 +9346,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Sortieren Sie die Favoritenzeilen nach Hinzufügungsdatum, Veröffentlichungsdatum, alphabetisch und mehr.';
 
   @override
+  String get favoritesRowSortOrderDescription =>
+      'Sort Favorites rows in ascending or descending order.';
+
+  @override
   String get displayCollectionsRows => 'Sammlungszeilen anzeigen';
 
   @override
@@ -9349,6 +9362,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get collectionsRowSortingDescription =>
       'Sortieren Sie die Sammlungszeilen nach Hinzufügungsdatum, Veröffentlichungsdatum, alphabetisch und mehr.';
+
+  @override
+  String get collectionsRowSortOrderDescription =>
+      'Sort Collections rows in ascending or descending order.';
 
   @override
   String get collectionsRowShowEpisodes => 'Show Individual Episodes';
@@ -9372,11 +9389,63 @@ class AppLocalizationsDe extends AppLocalizations {
       'Sortieren Sie die Genrezeilen nach Hinzufügungsdatum, Veröffentlichungsdatum, alphabetisch und mehr.';
 
   @override
+  String get genresRowSortOrderDescription =>
+      'Sort Genres rows in ascending or descending order.';
+
+  @override
   String get genresRowItems => 'Zeilenelemente „Genres“.';
 
   @override
   String get genresRowItemsDescription =>
       'Zeigen Sie Filme, Serien oder beides in den Genrezeilen an.';
+
+  @override
+  String get displayStudiosRows => 'Display Studio Row';
+
+  @override
+  String get displayStudiosRowsSubtitle => 'Show Studio row in Home Sections.';
+
+  @override
+  String get studiosRowSorting => 'Studio Row Sorting';
+
+  @override
+  String get studiosRowSortingDescription =>
+      'Studio row by name, recently added, and more.';
+
+  @override
+  String get studiosRowSortOrderDescription =>
+      'Choose Ascending or Descending sort order.';
+
+  @override
+  String get selectStudiosToInclude => 'Select Studios to Include';
+
+  @override
+  String get selectStudiosToIncludeDescription =>
+      'Select which studios should be included on the home row.';
+
+  @override
+  String get selectAllStudios => 'Select All';
+
+  @override
+  String get deselectAllStudios => 'Deselect All';
+
+  @override
+  String get tvStudiosFilter => 'TV Studios';
+
+  @override
+  String get movieStudiosFilter => 'Movie Studios';
+
+  @override
+  String get selectedStudiosFilter => 'Selected Studios';
+
+  @override
+  String get unselectedStudiosFilter => 'Unselected Studios';
+
+  @override
+  String get filtersHeader => 'Filters';
+
+  @override
+  String get showHeader => 'Show';
 
   @override
   String get displayPlaylistsRows => 'Wiedergabelisten-Zeilen anzeigen';
@@ -9391,6 +9460,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get playlistsRowSortingDescription =>
       'Wiedergabelisten-Zeilen nach Hinzufügungsdatum, Veröffentlichungsdatum, alphabetisch und mehr sortieren.';
+
+  @override
+  String get playlistsRowSortOrderDescription =>
+      'Sort Playlist rows in ascending or descending order.';
 
   @override
   String get playlistsRowShowEpisodes => 'Show Individual Episodes';
@@ -9412,6 +9485,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get audioRowsSortingDescription =>
       'Audio-Zeilen nach Hinzufügungsdatum, Veröffentlichungsdatum, alphabetisch und mehr sortieren.';
+
+  @override
+  String get audioRowsSortOrderDescription =>
+      'Sort Audio rows in ascending or descending order.';
 
   @override
   String get audioPlaylists => 'Audio-Wiedergabelisten';

@@ -9395,6 +9395,15 @@ class AppLocalizationsHr extends AppLocalizations {
       'Klasični zadržava vrstu slike po redu i informacijski sloj. Moderni koristi redove od portreta do pozadinske slike.';
 
   @override
+  String get sortOrder => 'Sort Order';
+
+  @override
+  String get ascending => 'Ascending';
+
+  @override
+  String get descending => 'Descending';
+
+  @override
   String get displayFavoritesRows => 'Prikaži redove favorita';
 
   @override
@@ -9409,6 +9418,10 @@ class AppLocalizationsHr extends AppLocalizations {
       'Sortirajte redove favorita prema datumu dodavanja, datumu izlaska, abecedno i više.';
 
   @override
+  String get favoritesRowSortOrderDescription =>
+      'Sort Favorites rows in ascending or descending order.';
+
+  @override
   String get displayCollectionsRows => 'Prikaži redove kolekcija';
 
   @override
@@ -9421,6 +9434,10 @@ class AppLocalizationsHr extends AppLocalizations {
   @override
   String get collectionsRowSortingDescription =>
       'Sortirajte redove kolekcija prema datumu dodavanja, datumu izlaska, abecedno i više.';
+
+  @override
+  String get collectionsRowSortOrderDescription =>
+      'Sort Collections rows in ascending or descending order.';
 
   @override
   String get collectionsRowShowEpisodes => 'Show Individual Episodes';
@@ -9444,11 +9461,63 @@ class AppLocalizationsHr extends AppLocalizations {
       'Sortirajte redove žanrova prema datumu dodavanja, datumu izlaska, abecedno i više.';
 
   @override
+  String get genresRowSortOrderDescription =>
+      'Sort Genres rows in ascending or descending order.';
+
+  @override
   String get genresRowItems => 'Stavke redova žanrova';
 
   @override
   String get genresRowItemsDescription =>
       'Prikaži filmove, serije ili oboje u redovima žanrova.';
+
+  @override
+  String get displayStudiosRows => 'Display Studio Row';
+
+  @override
+  String get displayStudiosRowsSubtitle => 'Show Studio row in Home Sections.';
+
+  @override
+  String get studiosRowSorting => 'Studio Row Sorting';
+
+  @override
+  String get studiosRowSortingDescription =>
+      'Studio row by name, recently added, and more.';
+
+  @override
+  String get studiosRowSortOrderDescription =>
+      'Choose Ascending or Descending sort order.';
+
+  @override
+  String get selectStudiosToInclude => 'Select Studios to Include';
+
+  @override
+  String get selectStudiosToIncludeDescription =>
+      'Select which studios should be included on the home row.';
+
+  @override
+  String get selectAllStudios => 'Select All';
+
+  @override
+  String get deselectAllStudios => 'Deselect All';
+
+  @override
+  String get tvStudiosFilter => 'TV Studios';
+
+  @override
+  String get movieStudiosFilter => 'Movie Studios';
+
+  @override
+  String get selectedStudiosFilter => 'Selected Studios';
+
+  @override
+  String get unselectedStudiosFilter => 'Unselected Studios';
+
+  @override
+  String get filtersHeader => 'Filters';
+
+  @override
+  String get showHeader => 'Show';
 
   @override
   String get displayPlaylistsRows => 'Prikaži redove popisa za reprodukciju';
@@ -9463,6 +9532,10 @@ class AppLocalizationsHr extends AppLocalizations {
   @override
   String get playlistsRowSortingDescription =>
       'Sortirajte redove popisa za reprodukciju prema datumu dodavanja, datumu izlaska, abecedno i više.';
+
+  @override
+  String get playlistsRowSortOrderDescription =>
+      'Sort Playlist rows in ascending or descending order.';
 
   @override
   String get playlistsRowShowEpisodes => 'Show Individual Episodes';
@@ -9484,6 +9557,10 @@ class AppLocalizationsHr extends AppLocalizations {
   @override
   String get audioRowsSortingDescription =>
       'Sortirajte audioredove prema datumu dodavanja, datumu izlaska, abecedno i više.';
+
+  @override
+  String get audioRowsSortOrderDescription =>
+      'Sort Audio rows in ascending or descending order.';
 
   @override
   String get audioPlaylists => 'Audiopopisi za reprodukciju';

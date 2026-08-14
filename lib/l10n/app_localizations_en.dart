@@ -9098,6 +9098,15 @@ class AppLocalizationsEn extends AppLocalizations {
       'Classic keeps per-row image type and info overlay. Modern uses portrait-to-backdrop rows.';
 
   @override
+  String get sortOrder => 'Sort Order';
+
+  @override
+  String get ascending => 'Ascending';
+
+  @override
+  String get descending => 'Descending';
+
+  @override
   String get displayFavoritesRows => 'Display Favorites Rows';
 
   @override
@@ -9112,6 +9121,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Sort Favorites rows by date added, release date, alphabetically, and more.';
 
   @override
+  String get favoritesRowSortOrderDescription =>
+      'Sort Favorites rows in ascending or descending order.';
+
+  @override
   String get displayCollectionsRows => 'Display Collections Rows';
 
   @override
@@ -9124,6 +9137,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get collectionsRowSortingDescription =>
       'Sort Collections rows by date added, release date, alphabetically, and more.';
+
+  @override
+  String get collectionsRowSortOrderDescription =>
+      'Sort Collections rows in ascending or descending order.';
 
   @override
   String get collectionsRowShowEpisodes => 'Show Individual Episodes';
@@ -9146,11 +9163,63 @@ class AppLocalizationsEn extends AppLocalizations {
       'Sort Genres rows by date added, release date, alphabetically, and more.';
 
   @override
+  String get genresRowSortOrderDescription =>
+      'Sort Genres rows in ascending or descending order.';
+
+  @override
   String get genresRowItems => 'Genres Row Items';
 
   @override
   String get genresRowItemsDescription =>
       'Show Movies, Series, or both in Genres rows.';
+
+  @override
+  String get displayStudiosRows => 'Display Studio Row';
+
+  @override
+  String get displayStudiosRowsSubtitle => 'Show Studio row in Home Sections.';
+
+  @override
+  String get studiosRowSorting => 'Studio Row Sorting';
+
+  @override
+  String get studiosRowSortingDescription =>
+      'Studio row by name, recently added, and more.';
+
+  @override
+  String get studiosRowSortOrderDescription =>
+      'Choose Ascending or Descending sort order.';
+
+  @override
+  String get selectStudiosToInclude => 'Select Studios to Include';
+
+  @override
+  String get selectStudiosToIncludeDescription =>
+      'Select which studios should be included on the home row.';
+
+  @override
+  String get selectAllStudios => 'Select All';
+
+  @override
+  String get deselectAllStudios => 'Deselect All';
+
+  @override
+  String get tvStudiosFilter => 'TV Studios';
+
+  @override
+  String get movieStudiosFilter => 'Movie Studios';
+
+  @override
+  String get selectedStudiosFilter => 'Selected Studios';
+
+  @override
+  String get unselectedStudiosFilter => 'Unselected Studios';
+
+  @override
+  String get filtersHeader => 'Filters';
+
+  @override
+  String get showHeader => 'Show';
 
   @override
   String get displayPlaylistsRows => 'Display Playlist Rows';
@@ -9165,6 +9234,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get playlistsRowSortingDescription =>
       'Sort Playlist rows by date added, release date, alphabetically, and more.';
+
+  @override
+  String get playlistsRowSortOrderDescription =>
+      'Sort Playlist rows in ascending or descending order.';
 
   @override
   String get playlistsRowShowEpisodes => 'Show Individual Episodes';
@@ -9185,6 +9258,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get audioRowsSortingDescription =>
       'Sort Audio rows by date added, release date, alphabetically, and more.';
+
+  @override
+  String get audioRowsSortOrderDescription =>
+      'Sort Audio rows in ascending or descending order.';
 
   @override
   String get audioPlaylists => 'Audio Playlists';

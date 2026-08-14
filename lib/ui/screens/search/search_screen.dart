@@ -1351,13 +1351,17 @@ class _SearchScreenState extends State<SearchScreen> with GridFocusNodeMixin {
     required FocusNode? focusNode,
     required KeyEventResult Function(FocusNode, KeyEvent)? onNavKey,
   }) {
+    // Card widths are logical pixels, so asking the server for that many
+    // leaves the screen stretching the image two or three times over. These
+    // are the widths library browse asks for at this card size.
+    final requestWidth = ar < 1 ? 420 : 720;
     return MediaCard(
       title: item.name,
       subtitle: _subtitle(item),
       imageUrl: _imageUrl(
         item,
-        maxWidth: width.toInt(),
-        maxHeight: (width / ar).toInt(),
+        maxWidth: requestWidth,
+        maxHeight: (requestWidth / ar).round(),
       ),
       width: width,
       aspectRatio: ar,

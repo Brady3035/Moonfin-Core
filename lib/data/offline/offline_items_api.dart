@@ -482,6 +482,7 @@ class OfflineItemsApi implements ItemsApi {
   Future<Map<String, dynamic>> getNextUp({
     String? seriesId,
     String? parentId,
+    int? startIndex,
     int? limit,
     String? fields,
     bool? enableResumable,
@@ -529,13 +530,18 @@ class OfflineItemsApi implements ItemsApi {
           DateTime.fromMillisecondsSinceEpoch(0);
       return bDate.compareTo(aDate);
     });
-    return _envelope(_materialize(nextUp), limit: limit);
+    return _envelope(
+      _materialize(nextUp),
+      startIndex: startIndex,
+      limit: limit,
+    );
   }
 
   @override
   Future<Map<String, dynamic>> getResumeItems({
     String? parentId,
     List<String>? includeItemTypes,
+    int? startIndex,
     int? limit,
     String? fields,
     String? enableImageTypes,
@@ -559,7 +565,11 @@ class OfflineItemsApi implements ItemsApi {
                 DateTime.fromMillisecondsSinceEpoch(0);
             return bDate.compareTo(aDate);
           });
-    return _envelope(_materialize(resumable), limit: limit);
+    return _envelope(
+      _materialize(resumable),
+      startIndex: startIndex,
+      limit: limit,
+    );
   }
 
   @override
@@ -958,6 +968,61 @@ class OfflineItemsApi implements ItemsApi {
         ),
       );
     return _envelope(result, startIndex: startIndex, limit: limit);
+  }
+
+  @override
+  Future<Map<String, dynamic>> getStudios({
+    String? parentId,
+    String? userId,
+    String? sortBy,
+    String? sortOrder,
+    int? startIndex,
+    int? limit,
+    bool? recursive,
+    String? fields,
+    List<String>? includeItemTypes,
+  }) async {
+    var scope = _scopeIncludingChildren(parentId);
+    if (includeItemTypes != null && includeItemTypes.isNotEmpty) {
+      scope = scope.where((e) => includeItemTypes.contains(e.type)).toList();
+    }
+
+    final studiosByName = <String, Map<String, dynamic>>{};
+    for (final e in scope) {
+      final studioItems = ((e.metadata['Studios'] as List?) ?? const [])
+          .whereType<Map>()
+          .toList();
+      if (studioItems.isNotEmpty) {
+        for (final s in studioItems) {
+          final name = s['Name'] as String?;
+          if (name == null || name.isEmpty) continue;
+          studiosByName.putIfAbsent(
+            name.toLowerCase(),
+            () => {
+              'Id': s['Id']?.toString() ?? 'offline-studio:$name',
+              'Name': name,
+              'Type': 'Studio',
+              'ServerId': e.row.serverId,
+            },
+          );
+        }
+      }
+    }
+
+    // A downloaded item records nothing about its studio beyond the name, so
+    // name is the only thing there is to sort on and sortBy has nothing to act
+    // on offline.
+    final result = studiosByName.values.toList()
+      ..sort(
+        (a, b) => (a['Name'] as String).toLowerCase().compareTo(
+          (b['Name'] as String).toLowerCase(),
+        ),
+      );
+    return _envelope(
+      sortOrder == 'Descending' ? result.reversed.toList() : result,
+      startIndex: startIndex,
+      limit: limit,
+    );
   }
 
   @override

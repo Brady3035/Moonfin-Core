@@ -9249,6 +9249,15 @@ class AppLocalizationsPt extends AppLocalizations {
       'Classic mantém o tipo de imagem por linha e a sobreposição de informações. Moderno usa linhas do retrato ao pano de fundo.';
 
   @override
+  String get sortOrder => 'Sort Order';
+
+  @override
+  String get ascending => 'Ascending';
+
+  @override
+  String get descending => 'Descending';
+
+  @override
   String get displayFavoritesRows => 'Exibir linhas de favoritos';
 
   @override
@@ -9263,6 +9272,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Classifique as linhas de Favoritos por data de adição, data de lançamento, em ordem alfabética e muito mais.';
 
   @override
+  String get favoritesRowSortOrderDescription =>
+      'Sort Favorites rows in ascending or descending order.';
+
+  @override
   String get displayCollectionsRows => 'Exibir linhas de coleções';
 
   @override
@@ -9275,6 +9288,10 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get collectionsRowSortingDescription =>
       'Classifique as linhas das coleções por data de adição, data de lançamento, em ordem alfabética e muito mais.';
+
+  @override
+  String get collectionsRowSortOrderDescription =>
+      'Sort Collections rows in ascending or descending order.';
 
   @override
   String get collectionsRowShowEpisodes => 'Show Individual Episodes';
@@ -9298,11 +9315,63 @@ class AppLocalizationsPt extends AppLocalizations {
       'Classifique as linhas de gêneros por data de adição, data de lançamento, em ordem alfabética e muito mais.';
 
   @override
+  String get genresRowSortOrderDescription =>
+      'Sort Genres rows in ascending or descending order.';
+
+  @override
   String get genresRowItems => 'Itens de linha de gêneros';
 
   @override
   String get genresRowItemsDescription =>
       'Mostre filmes, séries ou ambos nas linhas de gêneros.';
+
+  @override
+  String get displayStudiosRows => 'Display Studio Row';
+
+  @override
+  String get displayStudiosRowsSubtitle => 'Show Studio row in Home Sections.';
+
+  @override
+  String get studiosRowSorting => 'Studio Row Sorting';
+
+  @override
+  String get studiosRowSortingDescription =>
+      'Studio row by name, recently added, and more.';
+
+  @override
+  String get studiosRowSortOrderDescription =>
+      'Choose Ascending or Descending sort order.';
+
+  @override
+  String get selectStudiosToInclude => 'Select Studios to Include';
+
+  @override
+  String get selectStudiosToIncludeDescription =>
+      'Select which studios should be included on the home row.';
+
+  @override
+  String get selectAllStudios => 'Select All';
+
+  @override
+  String get deselectAllStudios => 'Deselect All';
+
+  @override
+  String get tvStudiosFilter => 'TV Studios';
+
+  @override
+  String get movieStudiosFilter => 'Movie Studios';
+
+  @override
+  String get selectedStudiosFilter => 'Selected Studios';
+
+  @override
+  String get unselectedStudiosFilter => 'Unselected Studios';
+
+  @override
+  String get filtersHeader => 'Filters';
+
+  @override
+  String get showHeader => 'Show';
 
   @override
   String get displayPlaylistsRows => 'Exibir Linhas de Listas de Reprodução';
@@ -9318,6 +9387,10 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get playlistsRowSortingDescription =>
       'Ordene as linhas de listas de reprodução por data de adição, data de lançamento, ordem alfabética e mais.';
+
+  @override
+  String get playlistsRowSortOrderDescription =>
+      'Sort Playlist rows in ascending or descending order.';
 
   @override
   String get playlistsRowShowEpisodes => 'Show Individual Episodes';
@@ -9339,6 +9412,10 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get audioRowsSortingDescription =>
       'Ordene as linhas de áudio por data de adição, data de lançamento, ordem alfabética e mais.';
+
+  @override
+  String get audioRowsSortOrderDescription =>
+      'Sort Audio rows in ascending or descending order.';
 
   @override
   String get audioPlaylists => 'Listas de Reprodução de Áudio';

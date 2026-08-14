@@ -265,7 +265,7 @@
     "@noHomeRowsLoaded": {
         "description": "Heading when home screen has no rows to display"
     },
-    "noHomeRowsHint": "請嘗試重新載入，或減少首頁啟用的區塊。",
+    "noHomeRowsHint": "請嘗試重新載入，或減少首頁啟用的區段。",
     "@noHomeRowsHint": {
         "description": "Hint text below the no-home-rows heading"
     },
@@ -428,19 +428,19 @@
     "@posterSize": {
         "description": "Setting for poster size"
     },
-    "small": "小的",
+    "small": "小",
     "@small": {
         "description": "Poster size option"
     },
-    "medium": "中等的",
+    "medium": "中",
     "@medium": {
         "description": "Poster size option"
     },
-    "large": "大的",
+    "large": "大",
     "@large": {
         "description": "Poster size option"
     },
-    "extraLarge": "特大號",
+    "extraLarge": "特大",
     "@extraLarge": {
         "description": "Size option: extra large"
     },
@@ -2726,7 +2726,7 @@
     "@seriesThumbnailsDescription": {
         "description": "Description for series thumbnails setting"
     },
-    "homeRowInfoOverlay": "主行資訊疊加",
+    "homeRowInfoOverlay": "首頁列資訊浮層",
     "@homeRowInfoOverlay": {
         "description": "Setting for home row info overlay"
     },
@@ -2787,11 +2787,11 @@
             }
         }
     },
-    "themeMusicOnHomeRows": "主行主題音樂",
+    "themeMusicOnHomeRows": "首頁主題音樂",
     "@themeMusicOnHomeRows": {
         "description": "Setting for theme music on home rows"
     },
-    "playWhenBrowsingHomeScreen": "瀏覽主畫面時播放",
+    "playWhenBrowsingHomeScreen": "瀏覽首頁時播放",
     "@playWhenBrowsingHomeScreen": {
         "description": "Description for theme music on home rows"
     },
@@ -3512,7 +3512,7 @@
     "@libraryVisibility": {
         "description": "Section title for library visibility"
     },
-    "libraryVisibilityDescription": "切換每個庫的主頁可見性。重新啟動 Moonfin 以使變更生效。",
+    "libraryVisibilityDescription": "切換各媒體庫在首頁的顯示狀態。重新啟動 Moonfin 後設定才會生效。",
     "@libraryVisibilityDescription": {
         "description": "Explanation shown on the library visibility settings screen"
     },
@@ -3649,7 +3649,7 @@
     "@latestMedia": {
         "description": "Home section: latest media"
     },
-    "recentlyReleased": "最近發布",
+    "recentlyReleased": "最近發行",
     "@recentlyReleased": {
         "description": "Home section: recently released"
     },
@@ -3685,7 +3685,7 @@
     "@liveTV": {
         "description": "Home section: live TV"
     },
-    "homeSections": "首頁 欄目",
+    "homeSections": "首頁區段",
     "@homeSections": {
         "description": "Settings title for home sections"
     },
@@ -3693,7 +3693,7 @@
     "@resetToDefaults": {
         "description": "Tooltip for reset to defaults button"
     },
-    "homeRowPosterSize": "主排海報尺寸",
+    "homeRowPosterSize": "首頁列海報尺寸",
     "@homeRowPosterSize": {
         "description": "Setting for home row poster size"
     },
@@ -3701,7 +3701,7 @@
     "@perRowImageTypeSelection": {
         "description": "Setting for per-row image type selection"
     },
-    "configureImageTypeForEachRow": "為每個啟用的主行配置影像類型",
+    "configureImageTypeForEachRow": "設定各啟用首頁列的圖片類型",
     "@configureImageTypeForEachRow": {
         "description": "Description for per-row image type selection"
     },
@@ -3709,7 +3709,7 @@
     "@mergeContinueWatchingAndNextUp": {
         "description": "Setting for merging continue watching and next up"
     },
-    "combineBothRows": "將兩行合併為一個主頁部分",
+    "combineBothRows": "將兩列合併為單一首頁區段",
     "@combineBothRows": {
         "description": "Description for merge continue watching and next up"
     },
@@ -4223,7 +4223,7 @@
     "@navbarStyleToolbarAppearance": {
         "description": "Navigation settings subtitle"
     },
-    "reorderToggleHomeRows": "重新排序和切換主行",
+    "reorderToggleHomeRows": "重新排列並切換媒體庫與外部來源的首頁列",
     "@reorderToggleHomeRows": {
         "description": "Home sections settings subtitle"
     },
@@ -4483,7 +4483,7 @@
     "@tmdbScore": {
         "description": "Stat label for TMDB user score"
     },
-    "releaseDateLabel": "發布日期",
+    "releaseDateLabel": "發行日期",
     "@releaseDateLabel": {
         "description": "Stat label for release date"
     },
@@ -4629,7 +4629,7 @@
     "analyticsAudioCodecs": "音訊編解碼器",
     "analyticsContainers": "貨櫃",
     "analyticsTopGenres": "熱門類型",
-    "analyticsReleaseYears": "發布年份",
+    "analyticsReleaseYears": "發行年份",
     "analyticsContentRatings": "內容評級",
     "analyticsRuntimeBuckets": "運行時桶",
     "analyticsFileFormats": "文件格式",
@@ -6515,7 +6515,7 @@
     "settingsAccountSecurity": "帳戶與安全",
     "settingsAccountSecuritySubtitle": "身份驗證、PIN 碼和家長控制",
     "settingsPersonalization": "個人化",
-    "settingsPersonalizationSubtitle": "主題、導航、主行和庫可見性",
+    "settingsPersonalizationSubtitle": "主題、導覽、首頁和媒體庫顯示設定",
     "settingsDynamicContent": "動態內容",
     "settingsDynamicContentSubtitle": "媒體欄和視覺覆蓋",
     "settingsPlaybackSyncplay": "回放 & SyncPlay",
@@ -6531,7 +6531,7 @@
     "settingsGeneralStyle": "通用風格",
     "settingsGeneralStyleSubtitle": "主題口音、背景、觀看指示器和主題音樂",
     "settingsHomePage": "首頁",
-    "settingsHomePageSubtitle": "部分、圖像類型、疊加和媒體預覽",
+    "settingsHomePageSubtitle": "首頁區段、圖片類型、浮層和媒體預覽",
     "settingsLibrariesSubtitle": "庫可見性、資料夾視圖和多伺服器行為",
     "settingsTwentyFourHourClock": "24 小時制",
     "settingsTwentyFourHourClockSubtitle": "無論何時顯示時鐘，都使用 24 小時時間格式",
@@ -6539,7 +6539,7 @@
     "settingsShowGenresButtonInNavigation": "在導覽列中顯示類型按鈕",
     "settingsShowFavoritesButtonInNavigation": "在導覽列中顯示收藏夾按鈕",
     "settingsShowLibrariesButtonInNavigation": "在導覽列中顯示庫按鈕",
-    "settingsLibraryVisibilitySubtitle": "切換每個庫的主頁可見性。重新啟動 Moonfin 以使變更生效。",
+    "settingsLibraryVisibilitySubtitle": "切換各媒體庫在首頁的顯示狀態。重新啟動 Moonfin 後設定才會生效。",
     "settingsMediaBarAndLocalPreviews": "媒體欄和本地預覽",
     "settingsVisualOverlays": "視覺疊加",
     "settingsSeasonalSurprise": "季節性驚喜",
@@ -6668,7 +6668,7 @@
             }
         }
     },
-    "latestLibraryName": "Latest {libraryName}",
+    "latestLibraryName": "最近新增的 {libraryName}",
     "@latestLibraryName": {
         "description": "Row title for latest media in a specific library",
         "placeholders": {
@@ -7050,11 +7050,11 @@
     "savedThemesManageSubtitle": "管理此裝置上已下載的外掛程式主題",
     "themeEditor": "主題編輯器",
     "themeEditorSubtitle": "在您的瀏覽器中開啟 Moonfin 主題編輯器",
-    "homeScreen": "主畫面",
+    "homeScreen": "首頁畫面",
     "bottomBar": "底部列",
     "homeRowsStyleClassic": "經典",
     "homeRowsStyleModern": "現代",
-    "homeRowsSection": "主畫面列",
+    "homeRowsSection": "首頁列",
     "rowsType": "Rows Type",
     "rowsTypeDescription": "「經典」保留各列的圖片類型與資訊覆蓋層。「現代」使用直式轉背景圖的列。",
     "displayFavoritesRows": "顯示我的最愛列",
@@ -7072,7 +7072,7 @@
     "genresRowItems": "類型列項目",
     "genresRowItemsDescription": "在類型列中顯示電影、劇集或兩者。",
     "appearance": "外觀",
-    "cardSize": "Card Size",
+    "cardSize": "首頁列項目尺寸",
     "externalPlayerApp": "外部播放器應用程式",
     "externalPlayerAskEachTimeSubtitle": "開始播放時顯示應用程式選擇器。",
     "loadingInstalledPlayers": "正在載入已安裝的播放器...",
@@ -7164,7 +7164,7 @@
     "photoAlbums": "相簿",
     "photos": "相片",
     "people": "人物",
-    "recentlyReleasedEpisodes": "最近上架的集數",
+    "recentlyReleasedEpisodes": "最近發行的單集",
     "watchAgain": "再看一次",
     "guestAppearances": "客串演出",
     "appearancesSeerr": "演出（Seerr）",
@@ -7649,7 +7649,7 @@
             }
         }
     },
-    "themeMusicSettingsSubtitle": "詳細資料頁、主畫面列與音量",
+    "themeMusicSettingsSubtitle": "詳細頁、首頁及音量的設定",
     "@themeMusicSettingsSubtitle": {
         "description": "Subtitle for the Theme Music settings sub-category tile"
     },
@@ -7891,11 +7891,11 @@
     "@enableTrailerAudio": {
         "description": "Description for trailer audio"
     },
-    "fullScreenRows": "展開主畫面列",
+    "fullScreenRows": "展開首頁列",
     "@fullScreenRows": {
         "description": "Setting for full screen home rows"
     },
-    "fullScreenRowsDescription": "每個畫面僅顯示一列主畫面列",
+    "fullScreenRowsDescription": "每個畫面僅顯示一列首頁內容",
     "@fullScreenRowsDescription": {
         "description": "Description for full screen home rows"
     },
@@ -8552,7 +8552,7 @@
     "@settingsNone": {
         "description": "Option label to hide all decorations on media segment countdown overlay"
     },
-    "recentlyReleasedLibraryName": "最近上架的{libraryName}",
+    "recentlyReleasedLibraryName": "最近發行的 {libraryName}",
     "@recentlyReleasedLibraryName": {
         "description": "Row title for recently released media in a specific library",
         "placeholders": {
@@ -8599,17 +8599,17 @@
             }
         }
     },
-    "homeRowDisplay": "主畫面列顯示",
-    "homeRowSections": "主畫面列區段",
-    "homeRowToggles": "主畫面列開關",
-    "homeRowTogglesSubtitle": "啟用或停用以媒體庫為基礎的主畫面列類別",
-    "homeRowTogglesDescription": "啟用下列開關，即可在主畫面區段中顯示對應的列。",
+    "homeRowDisplay": "首頁列顯示",
+    "homeRowSections": "首頁列區段",
+    "homeRowToggles": "首頁列顯示設定",
+    "homeRowTogglesSubtitle": "啟用或停用首頁列的媒體庫類別",
+    "homeRowTogglesDescription": "啟用下列選項，即可在首頁區段中顯示對應的列。",
     "displayPlaylistsRows": "顯示播放清單列",
-    "displayPlaylistsRowsSubtitle": "在主畫面區段中顯示播放清單列。",
+    "displayPlaylistsRowsSubtitle": "在首頁中顯示播放清單列。",
     "playlistsRowSorting": "播放清單列排序",
     "playlistsRowSortingDescription": "依加入日期、上映日期、字母順序等方式排序播放清單列。",
     "displayAudioRows": "顯示音訊列",
-    "displayAudioRowsSubtitle": "在主畫面區段中顯示音訊列。",
+    "displayAudioRowsSubtitle": "在首頁中顯示音樂列。",
     "audioRowsSorting": "音訊列排序",
     "audioRowsSortingDescription": "依加入日期、上映日期、字母順序等方式排序音訊列。",
     "audioPlaylists": "音訊播放清單",
@@ -9036,5 +9036,18 @@
                 "type": "String"
             }
         }
+    },
+    "mergeRecentRowsByTypeDescription": "合併相同類型的媒體庫，並顯示於首頁的「最近新增」和「最近發行」。",
+    "@mergeRecentRowsByTypeDescription": {
+        "description": "Description for merging recent home rows by media type"
+    },
+    "displayStudiosRowsSubtitle": "在首頁中顯示製片商列。",
+    "homeRowsPadding": "首頁列內邊距",
+    "@homeRowsPadding": {
+        "description": "Title for home rows padding setting"
+    },
+    "homeRowsPaddingDescription": "自訂首頁列之間的內邊距",
+    "@homeRowsPaddingDescription": {
+        "description": "Description for home rows padding setting"
     }
 }

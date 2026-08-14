@@ -199,6 +199,7 @@ class OverlaySheetController {
     BuildContext context, {
     required WidgetBuilder builder,
     AlignmentGeometry alignment = Alignment.center,
+    Offset? anchor,
     FocusNode? initialFocusNode,
     bool barrierDismissible = true,
     Color? barrierColor,
@@ -216,6 +217,7 @@ class OverlaySheetController {
         completer: completer,
         builder: builder,
         alignment: alignment,
+        anchor: anchor,
         initialFocusNode: initialFocusNode,
         barrierDismissible: barrierDismissible,
         barrierColor: effectiveBarrierColor,
@@ -246,10 +248,49 @@ class OverlaySheetController {
   }
 }
 
+/// Places the sheet at the point the pointer asked from, flipping it back over
+/// that point when there is no room left after it.
+class _AnchoredSheetLayout extends SingleChildLayoutDelegate {
+  const _AnchoredSheetLayout(this.anchor);
+
+  final Offset anchor;
+
+  static const double _margin = 12.0;
+
+  // Leaving a margin on both sides means the child can never be larger than the
+  // space the clamps below measure against.
+  @override
+  BoxConstraints getConstraintsForChild(BoxConstraints constraints) =>
+      BoxConstraints.loose(constraints.biggest).deflate(
+        const EdgeInsets.all(_margin),
+      );
+
+  @override
+  Offset getPositionForChild(Size size, Size childSize) {
+    var dx = anchor.dx;
+    var dy = anchor.dy;
+    if (dx + childSize.width > size.width - _margin) {
+      dx = anchor.dx - childSize.width;
+    }
+    if (dy + childSize.height > size.height - _margin) {
+      dy = anchor.dy - childSize.height;
+    }
+    return Offset(
+      dx.clamp(_margin, size.width - childSize.width - _margin),
+      dy.clamp(_margin, size.height - childSize.height - _margin),
+    );
+  }
+
+  @override
+  bool shouldRelayout(_AnchoredSheetLayout oldDelegate) =>
+      oldDelegate.anchor != anchor;
+}
+
 class _OverlaySheet<T> extends StatefulWidget {
   final Completer<T?> completer;
   final WidgetBuilder builder;
   final AlignmentGeometry alignment;
+  final Offset? anchor;
   final FocusNode? initialFocusNode;
   final bool barrierDismissible;
   final Color barrierColor;
@@ -260,6 +301,7 @@ class _OverlaySheet<T> extends StatefulWidget {
     required this.completer,
     required this.builder,
     required this.alignment,
+    required this.anchor,
     required this.initialFocusNode,
     required this.barrierDismissible,
     required this.barrierColor,
@@ -368,13 +410,18 @@ class _OverlaySheetState<T> extends State<_OverlaySheet<T>>
                 onKeyEvent: _onKey,
                 child: SlideTransition(
                   position: _slide,
-                  child: Align(
-                    alignment: widget.alignment,
-                    child: AnimatedContainer(
-                      duration: FocusTheme.animationDuration,
-                      child: Builder(builder: widget.builder),
-                    ),
-                  ),
+                  child: widget.anchor == null
+                      ? Align(
+                          alignment: widget.alignment,
+                          child: AnimatedContainer(
+                            duration: FocusTheme.animationDuration,
+                            child: Builder(builder: widget.builder),
+                          ),
+                        )
+                      : CustomSingleChildLayout(
+                          delegate: _AnchoredSheetLayout(widget.anchor!),
+                          child: Builder(builder: widget.builder),
+                        ),
                 ),
               ),
             ),

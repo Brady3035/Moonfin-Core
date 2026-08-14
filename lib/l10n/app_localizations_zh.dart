@@ -10527,7 +10527,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get noHomeRowsLoaded => '無法載入首頁內容';
 
   @override
-  String get noHomeRowsHint => '請嘗試重新載入，或減少首頁啟用的區塊。';
+  String get noHomeRowsHint => '請嘗試重新載入，或減少首頁啟用的區段。';
 
   @override
   String get retryHomeRows => '重新載入首頁';
@@ -10644,16 +10644,16 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get posterSize => '海報尺寸';
 
   @override
-  String get small => '小的';
+  String get small => '小';
 
   @override
-  String get medium => '中等的';
+  String get medium => '中';
 
   @override
-  String get large => '大的';
+  String get large => '大';
 
   @override
-  String get extraLarge => '特大號';
+  String get extraLarge => '特大';
 
   @override
   String libraryGenresTitle(String name) {
@@ -12372,7 +12372,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get seriesThumbnailsDescription => '電視劇使用劇集主圖，而非單集縮圖。';
 
   @override
-  String get homeRowInfoOverlay => '主行資訊疊加';
+  String get homeRowInfoOverlay => '首頁列資訊浮層';
 
   @override
   String get showTitleMetadataOnHomeRows => '瀏覽首頁時顯示標題與媒體資訊';
@@ -12414,7 +12414,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get themeMusicVolume => '主題音樂音量';
 
   @override
-  String get themeMusicSettingsSubtitle => '詳細資料頁、主畫面列與音量';
+  String get themeMusicSettingsSubtitle => '詳細頁、首頁及音量的設定';
 
   @override
   String percentValue(int value) {
@@ -12422,10 +12422,10 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   }
 
   @override
-  String get themeMusicOnHomeRows => '主行主題音樂';
+  String get themeMusicOnHomeRows => '首頁主題音樂';
 
   @override
-  String get playWhenBrowsingHomeScreen => '瀏覽主畫面時播放';
+  String get playWhenBrowsingHomeScreen => '瀏覽首頁時播放';
 
   @override
   String get loopThemeMusic => '循環播放主題音樂';
@@ -13207,6 +13207,10 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get showLibrariesFromAllServers => '顯示所有連接伺服器的庫';
 
   @override
+  String get mergeRecentRowsByTypeDescription =>
+      '合併相同類型的媒體庫，並顯示於首頁的「最近新增」和「最近發行」。';
+
+  @override
   String get enableFolderView => '啟用資料夾視圖';
 
   @override
@@ -13229,7 +13233,8 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get libraryVisibility => '圖書館可見性';
 
   @override
-  String get libraryVisibilityDescription => '切換每個庫的主頁可見性。重新啟動 Moonfin 以使變更生效。';
+  String get libraryVisibilityDescription =>
+      '切換各媒體庫在首頁的顯示狀態。重新啟動 Moonfin 後設定才會生效。';
 
   @override
   String get showInNavigation => '在導航中顯示';
@@ -13357,7 +13362,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get latestMedia => '最新媒體';
 
   @override
-  String get recentlyReleased => '最近發布';
+  String get recentlyReleased => '最近發行';
 
   @override
   String get myMedia => '我的媒體';
@@ -13384,25 +13389,25 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get liveTV => '電視直播';
 
   @override
-  String get homeSections => '首頁 欄目';
+  String get homeSections => '首頁區段';
 
   @override
   String get resetToDefaults => '重設為預設值';
 
   @override
-  String get homeRowPosterSize => '主排海報尺寸';
+  String get homeRowPosterSize => '首頁列海報尺寸';
 
   @override
   String get perRowImageTypeSelection => '每行影像類型選擇';
 
   @override
-  String get configureImageTypeForEachRow => '為每個啟用的主行配置影像類型';
+  String get configureImageTypeForEachRow => '設定各啟用首頁列的圖片類型';
 
   @override
   String get mergeContinueWatchingAndNextUp => '合併繼續觀看和接下來播放';
 
   @override
-  String get combineBothRows => '將兩行合併為一個主頁部分';
+  String get combineBothRows => '將兩列合併為單一首頁區段';
 
   @override
   String get nextUpMaxDays => '接下來播放最長保留天數';
@@ -13411,10 +13416,16 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get nextUpMaxDaysDescription => '電視劇在上次觀看後，於接下來播放中保留的時間';
 
   @override
-  String get fullScreenRows => '展開主畫面列';
+  String get fullScreenRows => '展開首頁列';
 
   @override
-  String get fullScreenRowsDescription => '每個畫面僅顯示一列主畫面列';
+  String get fullScreenRowsDescription => '每個畫面僅顯示一列首頁內容';
+
+  @override
+  String get homeRowsPadding => '首頁列內邊距';
+
+  @override
+  String get homeRowsPaddingDescription => '自訂首頁列之間的內邊距';
 
   @override
   String get perRowImageType => '每行圖像類型';
@@ -13824,7 +13835,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get navbarStyleToolbarAppearance => '導覽列樣式、工具列按鈕、外觀';
 
   @override
-  String get reorderToggleHomeRows => '重新排序和切換主行';
+  String get reorderToggleHomeRows => '重新排列並切換媒體庫與外部來源的首頁列';
 
   @override
   String get featuredContentAppearance => '特色內容、外觀';
@@ -14166,7 +14177,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get tmdbScore => 'TMDB分數';
 
   @override
-  String get releaseDateLabel => '發布日期';
+  String get releaseDateLabel => '發行日期';
 
   @override
   String get firstAirDateLabel => '首播日期';
@@ -14465,7 +14476,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get analyticsTopGenres => '熱門類型';
 
   @override
-  String get analyticsReleaseYears => '發布年份';
+  String get analyticsReleaseYears => '發行年份';
 
   @override
   String get analyticsContentRatings => '內容評級';
@@ -18068,7 +18079,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get settingsPersonalization => '個人化';
 
   @override
-  String get settingsPersonalizationSubtitle => '主題、導航、主行和庫可見性';
+  String get settingsPersonalizationSubtitle => '主題、導覽、首頁和媒體庫顯示設定';
 
   @override
   String get settingsDynamicContent => '動態內容';
@@ -18132,7 +18143,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get settingsHomePage => '首頁';
 
   @override
-  String get settingsHomePageSubtitle => '部分、圖像類型、疊加和媒體預覽';
+  String get settingsHomePageSubtitle => '首頁區段、圖片類型、浮層和媒體預覽';
 
   @override
   String get settingsLibrariesSubtitle => '庫可見性、資料夾視圖和多伺服器行為';
@@ -18163,7 +18174,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get settingsLibraryVisibilitySubtitle =>
-      '切換每個庫的主頁可見性。重新啟動 Moonfin 以使變更生效。';
+      '切換各媒體庫在首頁的顯示狀態。重新啟動 Moonfin 後設定才會生效。';
 
   @override
   String get settingsMediaBarAndLocalPreviews => '媒體欄和本地預覽';
@@ -18513,12 +18524,12 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String latestLibraryName(String libraryName) {
-    return 'Latest $libraryName';
+    return '最近新增的 $libraryName';
   }
 
   @override
   String recentlyReleasedLibraryName(String libraryName) {
-    return '最近上架的$libraryName';
+    return '最近發行的 $libraryName';
   }
 
   @override
@@ -18667,7 +18678,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get themeEditorSubtitle => '在您的瀏覽器中開啟 Moonfin 主題編輯器';
 
   @override
-  String get homeScreen => '主畫面';
+  String get homeScreen => '首頁畫面';
 
   @override
   String get bottomBar => '底部列';
@@ -18679,22 +18690,22 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get homeRowsStyleModern => '現代';
 
   @override
-  String get homeRowsSection => '主畫面列';
+  String get homeRowsSection => '首頁列';
 
   @override
-  String get homeRowDisplay => '主畫面列顯示';
+  String get homeRowDisplay => '首頁列顯示';
 
   @override
-  String get homeRowSections => '主畫面列區段';
+  String get homeRowSections => '首頁列區段';
 
   @override
-  String get homeRowToggles => '主畫面列開關';
+  String get homeRowToggles => '首頁列顯示設定';
 
   @override
-  String get homeRowTogglesSubtitle => '啟用或停用以媒體庫為基礎的主畫面列類別';
+  String get homeRowTogglesSubtitle => '啟用或停用首頁列的媒體庫類別';
 
   @override
-  String get homeRowTogglesDescription => '啟用下列開關，即可在主畫面區段中顯示對應的列。';
+  String get homeRowTogglesDescription => '啟用下列選項，即可在首頁區段中顯示對應的列。';
 
   @override
   String get rowsType => 'Rows Type';
@@ -18751,10 +18762,13 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get genresRowItemsDescription => '在類型列中顯示電影、劇集或兩者。';
 
   @override
+  String get displayStudiosRowsSubtitle => '在首頁中顯示製片商列。';
+
+  @override
   String get displayPlaylistsRows => '顯示播放清單列';
 
   @override
-  String get displayPlaylistsRowsSubtitle => '在主畫面區段中顯示播放清單列。';
+  String get displayPlaylistsRowsSubtitle => '在首頁中顯示播放清單列。';
 
   @override
   String get playlistsRowSorting => '播放清單列排序';
@@ -18766,7 +18780,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get displayAudioRows => '顯示音訊列';
 
   @override
-  String get displayAudioRowsSubtitle => '在主畫面區段中顯示音訊列。';
+  String get displayAudioRowsSubtitle => '在首頁中顯示音樂列。';
 
   @override
   String get audioRowsSorting => '音訊列排序';
@@ -18799,7 +18813,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get mpvConfiguration => 'MPV 設定';
 
   @override
-  String get cardSize => 'Card Size';
+  String get cardSize => '首頁列項目尺寸';
 
   @override
   String get externalPlayerApp => '外部播放器應用程式';
@@ -19033,7 +19047,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get people => '人物';
 
   @override
-  String get recentlyReleasedEpisodes => '最近上架的集數';
+  String get recentlyReleasedEpisodes => '最近發行的單集';
 
   @override
   String get watchAgain => '再看一次';

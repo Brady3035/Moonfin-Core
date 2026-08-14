@@ -431,7 +431,11 @@ class MediaKitPlayerBackend extends PlayerBackend {
     unawaited(player.setPlaylistMode(PlaylistMode.none));
     final platform = player.platform;
     if (platform is NativePlayer) {
-      _nativeSetProperty(platform, 'network-timeout', '120');
+      // A connection that died while playback sat paused is only noticed when
+      // the resumed read blocks and times out, and the reconnect options can't
+      // re-open the stream until the read gives up, so this bounds how long a
+      // resume can sit frozen.
+      _nativeSetProperty(platform, 'network-timeout', '20');
       // mpv stops reading ahead at 150MiB, which a high bitrate remux burns
       // through in seconds, so bursty networks stutter. A larger demuxer
       // budget keeps a real runway on desktop, but a filled 256MiB cache on
@@ -443,7 +447,8 @@ class MediaKitPlayerBackend extends PlayerBackend {
       _nativeSetProperty(
         platform,
         'stream-lavf-o',
-        'reconnect=1,reconnect_on_network_error=1,reconnect_streamed=1,reconnect_delay_max=5',
+        'reconnect=1,reconnect_on_network_error=1,reconnect_on_http_error=5xx,'
+            'reconnect_streamed=1,reconnect_delay_max=5',
       );
       // Surface the CEA-608/708 captions broadcasters carry inside the video
       // as an mpv subtitle track. It only appears once caption data is seen,

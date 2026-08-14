@@ -647,7 +647,9 @@ class _ActiveDownloadsSection extends StatelessWidget {
                         Padding(
                           padding: const EdgeInsets.only(bottom: 4),
                           child: Text(
-                            l10n.transcodingTimeRemainingUnavailable,
+                            p.etaSeconds != null
+                                ? l10n.timeRemaining(formatEta(p.etaSeconds!))
+                                : l10n.transcodingTimeRemainingUnavailable,
                             style: TextStyle(
                               color: AppColorScheme.onSurface.withValues(
                                 alpha: 0.7,

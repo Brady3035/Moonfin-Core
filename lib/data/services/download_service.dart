@@ -38,6 +38,10 @@ class DownloadProgress {
   final String? error;
   final DownloadQuality quality;
 
+  /// Seconds the server expects its transcode to still need, read from the
+  /// plugin while a transcoded download runs. Null when nothing answers.
+  final int? etaSeconds;
+
   const DownloadProgress({
     required this.itemId,
     required this.fileName,
@@ -46,6 +50,7 @@ class DownloadProgress {
     this.isComplete = false,
     this.error,
     this.quality = DownloadQuality.original,
+    this.etaSeconds,
   });
 
   bool get isTranscoded => quality.isTranscoded;
@@ -114,6 +119,13 @@ class DownloadService extends ChangeNotifier {
   final Map<String, double> _lastPersistedProgress = {};
   final Map<String, double> _lastNotifiedProgress = {};
   final Map<String, double> _lastCallbackProgress = {};
+
+  // The server side view of a running transcoded download, polled from the
+  // plugin. Progress replaces the indeterminate bar and the ETA feeds the
+  // label, and both simply stay empty when no plugin answers.
+  final Map<String, Timer> _transcodeStatusTimers = {};
+  final Map<String, double> _serverTranscodeProgress = {};
+  final Map<String, int> _transcodeEtaSeconds = {};
   bool _cancelAllRequested = false;
 
   int _totalQueued = 0;
@@ -1026,6 +1038,96 @@ class DownloadService extends ChangeNotifier {
     };
   }
 
+  /// Follows the server's own transcode job for a running download, turning
+  /// its completion percentage and clock into the progress and ETA the UI
+  /// shows. The endpoint only exists where the Moonfin plugin is installed,
+  /// so the first failed read stops the polling and the download keeps the
+  /// indeterminate label.
+  void _startTranscodeStatusPolling(String itemId, String playSessionId) {
+    _transcodeStatusTimers.remove(itemId)?.cancel();
+    _transcodeStatusTimers[itemId] = Timer.periodic(
+      const Duration(seconds: 4),
+      (timer) async {
+        try {
+          final response = await _downloadDio.get<List<dynamic>>(
+            '${_client.baseUrl}/Moonfin/Transcodes/Mine',
+            options: Options(
+              headers: {
+                ..._buildDownloadRequestHeaders(),
+                'Accept': 'application/json',
+              },
+              responseType: ResponseType.json,
+            ),
+          );
+          final job = (response.data ?? const <dynamic>[])
+              .whereType<Map<String, dynamic>>()
+              .where((j) => j['PlaySessionId'] == playSessionId)
+              .firstOrNull;
+          if (job == null) return;
+          _applyTranscodeStatus(itemId, job);
+        } catch (_) {
+          timer.cancel();
+          _transcodeStatusTimers.remove(itemId);
+        }
+      },
+    );
+  }
+
+  void _applyTranscodeStatus(String itemId, Map<String, dynamic> job) {
+    final percent = (job['CompletionPercentage'] as num?)?.toDouble();
+    final positionTicks = (job['PositionTicks'] as num?)?.toInt();
+    final runtimeTicks = (job['RuntimeTicks'] as num?)?.toInt();
+    final start = DateTime.tryParse(job['StartTime'] as String? ?? '');
+    final elapsed = start == null
+        ? null
+        : DateTime.now().toUtc().difference(start.toUtc()).inSeconds;
+
+    // The transcode's media position over its wall clock gives the encode
+    // speed, and the remaining media over that speed gives the ETA. The
+    // percentage based estimate stands in when position is not usable.
+    int? eta;
+    if (positionTicks != null &&
+        runtimeTicks != null &&
+        positionTicks > 0 &&
+        runtimeTicks > positionTicks &&
+        elapsed != null &&
+        elapsed > 0) {
+      final ticksPerSecond = positionTicks / elapsed;
+      eta = ((runtimeTicks - positionTicks) / ticksPerSecond).round();
+    } else if (percent != null &&
+        percent > 0 &&
+        elapsed != null &&
+        elapsed > 0) {
+      eta = (elapsed * (100 - percent) / percent).round();
+    }
+
+    if (percent == null && eta == null) return;
+
+    if (percent != null) {
+      // The encode reaching the end is not the transfer reaching the end, so
+      // the bar is held just short of the finalizing threshold until the
+      // bytes themselves finish.
+      _serverTranscodeProgress[itemId] = (percent / 100).clamp(0.0, 0.98);
+    }
+    if (eta != null && eta >= 0) {
+      _transcodeEtaSeconds[itemId] = eta;
+    }
+
+    final current = _activeDownloads[itemId];
+    if (current == null || current.isComplete || current.error != null) {
+      return;
+    }
+    _activeDownloads[itemId] = DownloadProgress(
+      itemId: itemId,
+      fileName: current.fileName,
+      progress: _serverTranscodeProgress[itemId] ?? current.progress,
+      bytesReceived: current.bytesReceived,
+      quality: current.quality,
+      etaSeconds: _transcodeEtaSeconds[itemId],
+    );
+    notifyListeners();
+  }
+
   Map<String, String> _buildDownloadRequestHeaders() {
     final token = _client.accessToken;
     if (token == null || token.isEmpty) {
@@ -1542,12 +1644,17 @@ class DownloadService extends ChangeNotifier {
       }
       notifyListeners();
 
+      // Every transcoded download carries a session id so the server's job
+      // can be recognized again, whether or not it is reported as activity.
+      String? transcodePlaySessionId;
+      if (quality.isTranscoded && _supportsTranscodedDownload(fullItem.type)) {
+        transcodePlaySessionId = const Uuid().v4();
+      }
       final reportActivity =
-          quality.isTranscoded &&
-          _supportsTranscodedDownload(fullItem.type) &&
+          transcodePlaySessionId != null &&
           _prefs.get(UserPreferences.reportDownloadsAsActivity);
       if (reportActivity) {
-        activityPlaySessionId = const Uuid().v4();
+        activityPlaySessionId = transcodePlaySessionId;
         activityMediaSourceId = _primaryMediaSourceId(fullItem);
         activityResumeTicks = fullItem.playbackPositionTicks ?? 0;
       }
@@ -1556,8 +1663,11 @@ class DownloadService extends ChangeNotifier {
         item.id,
         fullItem,
         quality,
-        playSessionId: activityPlaySessionId,
+        playSessionId: transcodePlaySessionId,
       );
+      if (transcodePlaySessionId != null) {
+        _startTranscodeStatusPolling(item.id, transcodePlaySessionId);
+      }
       final headers = _buildDownloadRequestHeaders();
 
       if (activityPlaySessionId != null) {
@@ -1581,12 +1691,17 @@ class DownloadService extends ChangeNotifier {
       }
 
       void onReceiveProgress(int received, int total) {
-        final rawProgress = _calculateProgress(
+        var rawProgress = _calculateProgress(
           received: received,
           total: total,
           estimatedSize: estimatedSize,
           quality: quality,
         );
+        // The byte count of a transcoded stream says nothing about how far
+        // along it is, but the server's own transcode percentage does.
+        if (rawProgress < 0) {
+          rawProgress = _serverTranscodeProgress[item.id] ?? rawProgress;
+        }
         final progress = rawProgress >= 1.0 ? 0.99 : rawProgress;
         if (progress >= 0 && progress < 0.99) {
           final lastCb = _lastCallbackProgress[item.id] ?? -1.0;
@@ -1600,6 +1715,7 @@ class DownloadService extends ChangeNotifier {
           progress: progress,
           bytesReceived: received,
           quality: quality,
+          etaSeconds: _transcodeEtaSeconds[item.id],
         );
         if (_shouldPersistProgress(item.id, progress)) {
           unawaited(
@@ -1851,6 +1967,9 @@ class DownloadService extends ChangeNotifier {
       _lastPersistedProgress.remove(item.id);
       _lastNotifiedProgress.remove(item.id);
       _lastCallbackProgress.remove(item.id);
+      _transcodeStatusTimers.remove(item.id)?.cancel();
+      _serverTranscodeProgress.remove(item.id);
+      _transcodeEtaSeconds.remove(item.id);
       notifyListeners();
     }
   }

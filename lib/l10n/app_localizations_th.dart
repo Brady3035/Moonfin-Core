@@ -2411,6 +2411,13 @@ class AppLocalizationsTh extends AppLocalizations {
       'แสดงปุ่มล็อคที่บล็อกการป้อนข้อมูลแบบสัมผัสจนกว่าจะกดค้าง';
 
   @override
+  String get playerSwipeGestures => 'Volume and Brightness Swipes';
+
+  @override
+  String get playerSwipeGesturesDescription =>
+      'Slide up or down on the player to change brightness on the left and volume on the right';
+
+  @override
   String get osdButtons => 'Player Buttons';
 
   @override

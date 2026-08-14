@@ -278,6 +278,7 @@ class UserPreferences extends ChangeNotifier {
     'playback_time_below_center',
     'playback_time_below_left',
     'playback_time_below_right',
+    'playerSwipeGestures',
     'player_zoom_mode',
     'pref_audio_rows_sort_by',
     'pref_audio_rows_sort_order',
@@ -1838,6 +1839,10 @@ class UserPreferences extends ChangeNotifier {
   static final osdLockEnabled = Preference(
     key: 'osdLockEnabled',
     defaultValue: false,
+  );
+  static final playerSwipeGestures = Preference(
+    key: 'playerSwipeGestures',
+    defaultValue: true,
   );
   static final detailButtonOrderTv = Preference(
     key: 'detailButtonOrderTv',

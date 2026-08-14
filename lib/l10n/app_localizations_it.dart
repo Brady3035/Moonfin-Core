@@ -2441,6 +2441,13 @@ class AppLocalizationsIt extends AppLocalizations {
       'Mostra un pulsante di blocco che blocca l\'input touch fino alla pressione prolungata';
 
   @override
+  String get playerSwipeGestures => 'Volume and Brightness Swipes';
+
+  @override
+  String get playerSwipeGesturesDescription =>
+      'Slide up or down on the player to change brightness on the left and volume on the right';
+
+  @override
   String get osdButtons => 'Player Buttons';
 
   @override

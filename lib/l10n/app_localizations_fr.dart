@@ -2462,6 +2462,13 @@ class AppLocalizationsFr extends AppLocalizations {
       'Afficher un bouton de verrouillage qui bloque les touches tactiles jusqu’à un appui long';
 
   @override
+  String get playerSwipeGestures => 'Volume and Brightness Swipes';
+
+  @override
+  String get playerSwipeGesturesDescription =>
+      'Slide up or down on the player to change brightness on the left and volume on the right';
+
+  @override
   String get osdButtons => 'Boutons du lecteur';
 
   @override

@@ -2378,6 +2378,13 @@ class AppLocalizationsKo extends AppLocalizations {
   String get osdLockButtonDescription => '길게 누를 때까지 터치 입력을 차단하는 잠금 버튼 표시';
 
   @override
+  String get playerSwipeGestures => 'Volume and Brightness Swipes';
+
+  @override
+  String get playerSwipeGesturesDescription =>
+      'Slide up or down on the player to change brightness on the left and volume on the right';
+
+  @override
   String get osdButtons => 'Player Buttons';
 
   @override

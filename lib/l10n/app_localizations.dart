@@ -4390,6 +4390,18 @@ abstract class AppLocalizations {
   /// **'Show a lock button that blocks touch input until long-pressed'**
   String get osdLockButtonDescription;
 
+  /// Setting for player swipe gestures
+  ///
+  /// In en, this message translates to:
+  /// **'Volume and Brightness Swipes'**
+  String get playerSwipeGestures;
+
+  /// Description for player swipe gestures
+  ///
+  /// In en, this message translates to:
+  /// **'Slide up or down on the player to change brightness on the left and volume on the right'**
+  String get playerSwipeGesturesDescription;
+
   /// Settings screen for choosing which buttons the player shows
   ///
   /// In en, this message translates to:

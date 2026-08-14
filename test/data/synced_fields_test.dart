@@ -154,6 +154,7 @@ void main() {
     'playbackTimeBelowCenter',
     'playbackTimeBelowLeft',
     'playbackTimeBelowRight',
+    'playerSwipeGestures',
     'playerZoomMode',
     'playlistPosterSize',
     'playlistsRowShowEpisodes',

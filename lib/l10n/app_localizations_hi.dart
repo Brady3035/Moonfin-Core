@@ -2421,6 +2421,13 @@ class AppLocalizationsHi extends AppLocalizations {
       'एक लॉक बटन दिखाएं जो लंबे समय तक दबाए जाने तक टच इनपुट को ब्लॉक कर देता है';
 
   @override
+  String get playerSwipeGestures => 'Volume and Brightness Swipes';
+
+  @override
+  String get playerSwipeGesturesDescription =>
+      'Slide up or down on the player to change brightness on the left and volume on the right';
+
+  @override
   String get osdButtons => 'Player Buttons';
 
   @override

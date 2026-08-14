@@ -3388,6 +3388,13 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
   @override
   Widget build(BuildContext context) {
     final hideOsdForPreroll = _isCurrentPreroll;
+    // Volume and brightness ride on the vertical swipe, which is easy to brush
+    // by accident when a phone changes hands, so it turns off on its own
+    // rather than by locking the whole OSD.
+    final swipeGestures =
+        PlatformDetection.useMobileUi &&
+        !_isOsdLocked &&
+        _prefs.get(UserPreferences.playerSwipeGestures);
     if (_isInPiP) {
       return Scaffold(
         backgroundColor: Colors.black,
@@ -3437,26 +3444,10 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
             onDoubleTap: PlatformDetection.useDesktopUi
                 ? null
                 : _handleDoubleTapGesture,
-            onVerticalDragStart: PlatformDetection.isTV
-                ? null
-                : PlatformDetection.useMobileUi && !_isOsdLocked
-                ? _onVerticalDragStart
-                : null,
-            onVerticalDragUpdate: PlatformDetection.isTV
-                ? null
-                : PlatformDetection.useMobileUi && !_isOsdLocked
-                ? _onVerticalDragUpdate
-                : null,
-            onVerticalDragEnd: PlatformDetection.isTV
-                ? null
-                : PlatformDetection.useMobileUi && !_isOsdLocked
-                ? _onVerticalDragEnd
-                : null,
-            onVerticalDragCancel: PlatformDetection.isTV
-                ? null
-                : PlatformDetection.useMobileUi && !_isOsdLocked
-                ? _onVerticalDragCancel
-                : null,
+            onVerticalDragStart: swipeGestures ? _onVerticalDragStart : null,
+            onVerticalDragUpdate: swipeGestures ? _onVerticalDragUpdate : null,
+            onVerticalDragEnd: swipeGestures ? _onVerticalDragEnd : null,
+            onVerticalDragCancel: swipeGestures ? _onVerticalDragCancel : null,
             onPanDown: PlatformDetection.useDesktopUi
                 ? (_) => _showControls()
                 : null,

@@ -2425,6 +2425,13 @@ class AppLocalizationsPa extends AppLocalizations {
       'ਇੱਕ ਲੌਕ ਬਟਨ ਦਿਖਾਓ ਜੋ ਲੰਬੇ ਸਮੇਂ ਤੱਕ ਦਬਾਏ ਜਾਣ ਤੱਕ ਟੱਚ ਇਨਪੁਟ ਨੂੰ ਰੋਕਦਾ ਹੈ';
 
   @override
+  String get playerSwipeGestures => 'Volume and Brightness Swipes';
+
+  @override
+  String get playerSwipeGesturesDescription =>
+      'Slide up or down on the player to change brightness on the left and volume on the right';
+
+  @override
   String get osdButtons => 'Player Buttons';
 
   @override

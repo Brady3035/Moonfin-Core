@@ -2364,6 +2364,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get osdLockButtonDescription => '显示锁定按钮，长按解锁前会阻止触摸输入';
 
   @override
+  String get playerSwipeGestures => 'Volume and Brightness Swipes';
+
+  @override
+  String get playerSwipeGesturesDescription =>
+      'Slide up or down on the player to change brightness on the left and volume on the right';
+
+  @override
   String get osdButtons => '播放器按钮';
 
   @override

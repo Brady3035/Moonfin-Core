@@ -1093,13 +1093,20 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
     video.leaf('skipForwardLength', l10n.skipForwardLength, keywords: [
       'seek forward',
     ]),
-    if (PlatformDetection.useMobileUi)
+    if (PlatformDetection.useMobileUi) ...[
       video.leaf(
         'osdLockEnabled',
         l10n.osdLockButton,
         subtitle: l10n.osdLockButtonDescription,
         keywords: ['lock controls'],
       ),
+      video.leaf(
+        'playerSwipeGestures',
+        l10n.playerSwipeGestures,
+        subtitle: l10n.playerSwipeGesturesDescription,
+        keywords: ['swipe', 'gestures', 'volume', 'brightness'],
+      ),
+    ],
     osdButtons.screen(keywords: [
       'player buttons',
       'hide',

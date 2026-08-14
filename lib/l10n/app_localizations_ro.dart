@@ -2447,6 +2447,13 @@ class AppLocalizationsRo extends AppLocalizations {
       'Afișați un buton de blocare care blochează introducerea tactilă până când este apăsat lung';
 
   @override
+  String get playerSwipeGestures => 'Volume and Brightness Swipes';
+
+  @override
+  String get playerSwipeGesturesDescription =>
+      'Slide up or down on the player to change brightness on the left and volume on the right';
+
+  @override
   String get osdButtons => 'Butoanele playerului';
 
   @override

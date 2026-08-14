@@ -2443,6 +2443,13 @@ class AppLocalizationsMl extends AppLocalizations {
       'ദീർഘനേരം അമർത്തുന്നത് വരെ ടച്ച് ഇൻപുട്ടിനെ തടയുന്ന ഒരു ലോക്ക് ബട്ടൺ കാണിക്കുക';
 
   @override
+  String get playerSwipeGestures => 'Volume and Brightness Swipes';
+
+  @override
+  String get playerSwipeGesturesDescription =>
+      'Slide up or down on the player to change brightness on the left and volume on the right';
+
+  @override
   String get osdButtons => 'Player Buttons';
 
   @override

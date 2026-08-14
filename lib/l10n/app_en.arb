@@ -3407,6 +3407,14 @@
   "@osdLockButtonDescription": {
     "description": "Description for OSD lock button"
   },
+  "playerSwipeGestures": "Volume and Brightness Swipes",
+  "@playerSwipeGestures": {
+    "description": "Setting for player swipe gestures"
+  },
+  "playerSwipeGesturesDescription": "Slide up or down on the player to change brightness on the left and volume on the right",
+  "@playerSwipeGesturesDescription": {
+    "description": "Description for player swipe gestures"
+  },
   "osdButtons": "Player Buttons",
   "@osdButtons": {
     "description": "Settings screen for choosing which buttons the player shows"

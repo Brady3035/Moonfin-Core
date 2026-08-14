@@ -2442,6 +2442,13 @@ class AppLocalizationsTe extends AppLocalizations {
       'ఎక్కువసేపు నొక్కినంత వరకు టచ్ ఇన్‌పుట్‌ను నిరోధించే లాక్ బటన్‌ను చూపండి';
 
   @override
+  String get playerSwipeGestures => 'Volume and Brightness Swipes';
+
+  @override
+  String get playerSwipeGesturesDescription =>
+      'Slide up or down on the player to change brightness on the left and volume on the right';
+
+  @override
   String get osdButtons => 'Player Buttons';
 
   @override

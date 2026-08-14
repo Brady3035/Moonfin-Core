@@ -2458,6 +2458,13 @@ class AppLocalizationsGl extends AppLocalizations {
       'Mostra un botón de bloqueo que bloquea a entrada táctil ata que se preme durante moito tempo';
 
   @override
+  String get playerSwipeGestures => 'Volume and Brightness Swipes';
+
+  @override
+  String get playerSwipeGesturesDescription =>
+      'Slide up or down on the player to change brightness on the left and volume on the right';
+
+  @override
   String get osdButtons => 'Player Buttons';
 
   @override

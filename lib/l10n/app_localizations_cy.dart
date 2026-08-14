@@ -2455,6 +2455,13 @@ class AppLocalizationsCy extends AppLocalizations {
       'Dangoswch fotwm clo sy\'n rhwystro mewnbwn cyffwrdd nes ei fod wedi\'i wasgu\'n hir';
 
   @override
+  String get playerSwipeGestures => 'Volume and Brightness Swipes';
+
+  @override
+  String get playerSwipeGesturesDescription =>
+      'Slide up or down on the player to change brightness on the left and volume on the right';
+
+  @override
   String get osdButtons => 'Player Buttons';
 
   @override

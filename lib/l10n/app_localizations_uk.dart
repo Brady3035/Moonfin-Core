@@ -2451,6 +2451,13 @@ class AppLocalizationsUk extends AppLocalizations {
       'Показати кнопку блокування, яка блокує сенсорне введення, поки не буде натиснуто довго';
 
   @override
+  String get playerSwipeGestures => 'Volume and Brightness Swipes';
+
+  @override
+  String get playerSwipeGesturesDescription =>
+      'Slide up or down on the player to change brightness on the left and volume on the right';
+
+  @override
   String get osdButtons => 'Player Buttons';
 
   @override

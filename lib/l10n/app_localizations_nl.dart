@@ -2444,6 +2444,13 @@ class AppLocalizationsNl extends AppLocalizations {
       'Toon een vergrendelknop die aanraakinvoer blokkeert totdat deze lang wordt ingedrukt';
 
   @override
+  String get playerSwipeGestures => 'Volume and Brightness Swipes';
+
+  @override
+  String get playerSwipeGesturesDescription =>
+      'Slide up or down on the player to change brightness on the left and volume on the right';
+
+  @override
   String get osdButtons => 'Afspeelknoppen';
 
   @override

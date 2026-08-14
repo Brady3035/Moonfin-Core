@@ -705,6 +705,11 @@ class Media3PlayerBackend extends PlayerBackend {
       'DoVi display ${PlatformDetection.supportsDolbyVision})',
     );
 
+    // media3 opens the stream itself rather than through the Dart client, so
+    // the trust setting has to reach it separately.
+    await _invoke<void>('setAllowUntrustedTls', {
+      'enabled': _prefs.get(UserPreferences.allowSelfSignedCerts),
+    });
     await _invoke<void>('setDecoderPreferences', {
       'preferFfmpeg': _prefs.get(UserPreferences.preferExoPlayerFfmpeg),
       'tunnelingDisabled': _sessionTunnelingDisabled,

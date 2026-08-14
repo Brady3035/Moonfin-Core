@@ -164,6 +164,7 @@ class EmbyItemsApi implements ItemsApi {
   Future<Map<String, dynamic>> getNextUp({
     String? seriesId,
     String? parentId,
+    int? startIndex,
     int? limit,
     String? fields,
     bool? enableResumable,
@@ -180,6 +181,7 @@ class EmbyItemsApi implements ItemsApi {
         'UserId': userId,
         'SeriesId': ?seriesId,
         'ParentId': ?parentId,
+        'StartIndex': ?startIndex,
         'Limit': ?limit,
         'Fields': ?fields,
         'EnableResumable': ?enableResumable,
@@ -194,6 +196,7 @@ class EmbyItemsApi implements ItemsApi {
   Future<Map<String, dynamic>> getResumeItems({
     String? parentId,
     List<String>? includeItemTypes,
+    int? startIndex,
     int? limit,
     String? fields,
     String? enableImageTypes,
@@ -206,6 +209,7 @@ class EmbyItemsApi implements ItemsApi {
         'ParentId': ?parentId,
         if (includeItemTypes != null)
           'IncludeItemTypes': includeItemTypes.join(','),
+        'StartIndex': ?startIndex,
         'Limit': ?limit,
         'Fields': ?fields,
         'EnableImageTypes': ?enableImageTypes,

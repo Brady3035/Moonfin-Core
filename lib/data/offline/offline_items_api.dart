@@ -482,6 +482,7 @@ class OfflineItemsApi implements ItemsApi {
   Future<Map<String, dynamic>> getNextUp({
     String? seriesId,
     String? parentId,
+    int? startIndex,
     int? limit,
     String? fields,
     bool? enableResumable,
@@ -529,13 +530,18 @@ class OfflineItemsApi implements ItemsApi {
           DateTime.fromMillisecondsSinceEpoch(0);
       return bDate.compareTo(aDate);
     });
-    return _envelope(_materialize(nextUp), limit: limit);
+    return _envelope(
+      _materialize(nextUp),
+      startIndex: startIndex,
+      limit: limit,
+    );
   }
 
   @override
   Future<Map<String, dynamic>> getResumeItems({
     String? parentId,
     List<String>? includeItemTypes,
+    int? startIndex,
     int? limit,
     String? fields,
     String? enableImageTypes,
@@ -559,7 +565,11 @@ class OfflineItemsApi implements ItemsApi {
                 DateTime.fromMillisecondsSinceEpoch(0);
             return bDate.compareTo(aDate);
           });
-    return _envelope(_materialize(resumable), limit: limit);
+    return _envelope(
+      _materialize(resumable),
+      startIndex: startIndex,
+      limit: limit,
+    );
   }
 
   @override

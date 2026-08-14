@@ -86,11 +86,19 @@ final class SubtitleOverlay: PlatformView {
         subtitleStrokeEnabled ? max(2 * canvasScale, 1) : 0
     }
 
-    /// The 40pt base margin stays absolute rather than scaling with height,
-    /// because it also positions bitmap cues that arrive without a canvas rect
-    /// and those already sit correctly on a phone.
-    private var subtitleBottomOffset: CGFloat {
-        40 + canvasHeight * 0.5 * CGFloat(100 - subtitlePositionBase) / 60.0
+    /// The lowest position puts the text on the bottom edge itself, which is
+    /// what the setting reads as zero and what a wide film needs to keep its
+    /// lines inside the black bar under the picture.
+    private var textBottomOffset: CGFloat {
+        canvasHeight * 0.5 * CGFloat(100 - subtitlePositionBase) / 60.0
+    }
+
+    /// A bitmap cue that arrives without a canvas rect has nothing tying it to
+    /// the picture, so it keeps a margin off the edge on top of the position.
+    /// The margin stays absolute rather than scaling with height, since those
+    /// cues already sit correctly on a phone.
+    private var bitmapBottomOffset: CGFloat {
+        40 + textBottomOffset
     }
 
     override init(frame: CGRect) {
@@ -341,7 +349,7 @@ final class SubtitleOverlay: PlatformView {
         let size = textLabel.sizeThatFits(CGSize(width: maxWidth, height: bounds.height * 0.4))
         textLabel.frame = CGRect(
             x: (bounds.width - size.width) / 2,
-            y: bounds.height - size.height - subtitleBottomOffset,
+            y: bounds.height - size.height - textBottomOffset,
             width: size.width,
             height: size.height
         )
@@ -373,7 +381,7 @@ final class SubtitleOverlay: PlatformView {
             let h = CGFloat(event.bitmapHeight) * scale
             bitmapView.frame = CGRect(
                 x: (bounds.width - w) / 2,
-                y: bounds.height - h - subtitleBottomOffset,
+                y: bounds.height - h - bitmapBottomOffset,
                 width: w,
                 height: h
             )

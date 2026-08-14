@@ -1966,11 +1966,21 @@ class _MediaBarState extends State<MediaBar>
                     ),
                   ),
                   ..._buildVideoOverlays(allowPersistentMedia3: true),
-                  if(!_isTrailerPlaying) // no gradient when trailer playing
-                    _GradientOverlay(
-                      color: overlayColor,
-                      opacity: overlayOpacity,
-                    ),
+                  // The gradient gives way to a playing trailer, and a trailer
+                  // that stops and restarts flips that within a frame or two.
+                  // Switching it outright flashes the bottom of the screen, so
+                  // the alpha fades instead, which hides a flip that short and
+                  // turns a real one into a transition.
+                  TweenAnimationBuilder<double>(
+                    tween: Tween<double>(end: _isTrailerPlaying ? 0.0 : 1.0),
+                    duration: const Duration(milliseconds: 250),
+                    builder: (_, shown, _) => shown <= 0.0
+                        ? const SizedBox.shrink()
+                        : _GradientOverlay(
+                            color: overlayColor,
+                            opacity: overlayOpacity * shown,
+                          ),
+                  ),
                   if (items.length > 1 && !_isTrailerPlaying)
                     Positioned(
                       bottom: 8,
@@ -2186,50 +2196,58 @@ class _MediaBarState extends State<MediaBar>
                     ),
                   if (!isMobile)
                     ..._buildVideoOverlays(allowPersistentMedia3: true),
-                  if (!isMobile && !_isTrailerPlaying) // no gradient when trailer playing
+                  // Both gradients give way to a playing trailer together, and
+                  // they fade for the same reason the other layout's does.
+                  if (!isMobile)
                     Positioned.fill(
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.centerLeft,
-                            end: Alignment.centerRight,
-                            colors: [
-                              overlayColor.withValues(
-                                alpha: overlayOpacity * 0.78,
-                              ),
-                              overlayColor.withValues(
-                                alpha: overlayOpacity * 0.46,
-                              ),
-                              overlayColor.withValues(
-                                alpha: overlayOpacity * 0.06,
-                              ),
-                            ],
-                            stops: const [0.0, 0.46, 1.0],
-                          ),
+                      child: TweenAnimationBuilder<double>(
+                        tween: Tween<double>(
+                          end: _isTrailerPlaying ? 0.0 : 1.0,
                         ),
-                      ),
-                    ),
-                  if (!isMobile && !_isTrailerPlaying) // no gradient when trailer playing
-                    Positioned.fill(
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              overlayColor.withValues(
-                                alpha: overlayOpacity * 0.12,
+                        duration: const Duration(milliseconds: 250),
+                        builder: (_, shown, _) => shown <= 0.0
+                            ? const SizedBox.shrink()
+                            : DecoratedBox(
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment.centerLeft,
+                                    end: Alignment.centerRight,
+                                    colors: [
+                                      overlayColor.withValues(
+                                        alpha: overlayOpacity * shown * 0.78,
+                                      ),
+                                      overlayColor.withValues(
+                                        alpha: overlayOpacity * shown * 0.46,
+                                      ),
+                                      overlayColor.withValues(
+                                        alpha: overlayOpacity * shown * 0.06,
+                                      ),
+                                    ],
+                                    stops: const [0.0, 0.46, 1.0],
+                                  ),
+                                ),
+                                child: DecoratedBox(
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter,
+                                      colors: [
+                                        overlayColor.withValues(
+                                          alpha: overlayOpacity * shown * 0.12,
+                                        ),
+                                        overlayColor.withValues(
+                                          alpha: overlayOpacity * shown * 0.28,
+                                        ),
+                                        overlayColor.withValues(
+                                          alpha: overlayOpacity * shown * 0.78,
+                                        ),
+                                      ],
+                                      stops: const [0.0, 0.48, 1.0],
+                                    ),
+                                  ),
+                                  child: const SizedBox.expand(),
+                                ),
                               ),
-                              overlayColor.withValues(
-                                alpha: overlayOpacity * 0.28,
-                              ),
-                              overlayColor.withValues(
-                                alpha: overlayOpacity * 0.78,
-                              ),
-                            ],
-                            stops: const [0.0, 0.48, 1.0],
-                          ),
-                        ),
                       ),
                     ),
                   if (currentItem != null)

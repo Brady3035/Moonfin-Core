@@ -140,8 +140,10 @@ class MethodChannelGamePlayer implements NativeGamePlayer {
     );
   }
 
+  // Not _invoke: a `start_failed` here means no emulation thread, so swallowing
+  // it would leave the user on a frozen screen.
   @override
-  Future<void> start() => _invoke('start');
+  Future<void> start() => _control.invokeMethod<void>('start');
   @override
   Future<void> pause() => _invoke('pause');
   @override

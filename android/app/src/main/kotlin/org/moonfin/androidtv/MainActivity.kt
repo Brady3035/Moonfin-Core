@@ -97,6 +97,22 @@ class MainActivity : AudioServiceActivity(), GamepadsCompatibleActivity {
     // (it needs that instance to reach nativeSetMask). Nullable rather than
     // lateinit since dispatchKeyEvent can run before the engine is configured.
     private var nativePad: NativePadInput? = null
+    // GameInputRouter is deliberately Android-free, so the Activity owns the
+    // registration and forwards.
+    private val gameInputManager by lazy {
+        getSystemService(Context.INPUT_SERVICE) as? InputManager
+    }
+
+    private val gameInputDeviceListener = object : InputManager.InputDeviceListener {
+        override fun onInputDeviceAdded(deviceId: Int) {}
+
+        override fun onInputDeviceRemoved(deviceId: Int) =
+            gameInputRouter.onDeviceRemoved(deviceId)
+
+        override fun onInputDeviceChanged(deviceId: Int) =
+            gameInputRouter.onDeviceChanged(deviceId)
+    }
+
     private val gameInputRouter = GameInputRouter(object : GameInputRouter.Callbacks {
         override fun onEmulatorButton(label: String, pressed: Boolean, device: Map<String, String>?) {
             sendGamepadButton(label, pressed, device)
@@ -215,6 +231,7 @@ class MainActivity : AudioServiceActivity(), GamepadsCompatibleActivity {
             runCatching { window.colorMode = ActivityInfo.COLOR_MODE_HDR }
         }
         deepLinkFrom(intent)?.let { pendingDeepLink = it }
+        gameInputManager?.registerInputDeviceListener(gameInputDeviceListener, null)
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -829,16 +846,21 @@ class MainActivity : AudioServiceActivity(), GamepadsCompatibleActivity {
 
     override fun onDestroy() {
         val shouldTerminateProcess = isFinishing && !isChangingConfigurations
+        // Process-wide InputManager registration: without this the listener
+        // keeps this Activity alive across every recreation.
+        gameInputManager?.unregisterInputDeviceListener(gameInputDeviceListener)
         // A native game may still be running. When the process also dies below
         // this is redundant but harmless; when it doesn't - e.g. the system
         // destroys this stopped activity to reclaim memory while a foreground
-        // service (AudioService) keeps the process alive, or "Don't keep
-        // activities" is on - stop() is the only path that reaches teardown()
-        // and joins the render/audio threads. Without it they leak into the
-        // next activity instance. stop() is idempotent, so calling it here even
-        // when nothing is loaded, or when killProcess() runs moments later, is
-        // safe.
+        // service (AudioService) keeps the process alive.
+        // Without it they leak into the next activity instance.
+        // stop() is idempotent, so calling it here even when nothing is loaded,
+        // or when killProcess() runs moments later, is safe.
         libretroBridge?.stop()
+        // After stop(), so its onActiveChanged(false) can still reach
+        // setActive(false) on a live pad.
+        nativePad?.dispose()
+        nativePad = null
         dismissRunnable?.let { handler.removeCallbacks(it) }
         pendingCastTimeout?.let { handler.removeCallbacks(it) }
         val castContext = runCatching { CastContext.getSharedInstance(this) }.getOrNull()

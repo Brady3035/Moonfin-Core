@@ -81,7 +81,10 @@ class LibretroBridge(
     val args = arguments as? Map<String, Any?> ?: emptyMap()
     when (method) {
       "load" -> load(args, result)
-      "start" -> { nativeStart(); result.success(null) }
+      "start" -> {
+        if (nativeStart() == 0) result.success(null)
+        else result.error("start_failed", "The render thread could not be started.", null)
+      }
       "pause" -> { userPaused = true; nativePause(); result.success(null) }
       "resume" -> { userPaused = false; nativeResume(); result.success(null) }
       "restart" -> {
@@ -444,7 +447,7 @@ class LibretroBridge(
     optVals: Array<String>): DoubleArray?
 
   private external fun nativeSetSurface(surface: Surface?)
-  private external fun nativeStart()
+  private external fun nativeStart(): Int
   private external fun nativePause()
   private external fun nativeResume()
   private external fun nativeReset(): Boolean

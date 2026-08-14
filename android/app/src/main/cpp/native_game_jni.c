@@ -469,18 +469,31 @@ JNI(void, nativeSetSurface)(JNIEnv *env, jobject thiz, jobject surface) {
   pthread_mutex_unlock(&g_window_lock);
 }
 
-JNI(void, nativeStart)(JNIEnv *env, jobject thiz) {
+// 0 on success, -1 when the render thread could not be created.
+// Reported rather than ignored
+JNI(jint, nativeStart)(JNIEnv *env, jobject thiz) {
   (void)env;
   (void)thiz;
-  if (!g_ctx.host) return;
-  if (g_ctx.has_render_thread) return;  // already started; see lh_start's guard
+  if (!g_ctx.host) return -1;
+  if (g_ctx.has_render_thread) return 0;  // already started; see lh_start's guard
   lh_set_audio_paced(g_ctx.host, 1);
   atomic_store(&g_ctx.frame_dirty, 0);
   atomic_store(&g_ctx.render_running, 1);
-  if (pthread_create(&g_ctx.render_thread, NULL, render_loop, &g_ctx) == 0) {
-    g_ctx.has_render_thread = 1;
+  int rc = pthread_create(&g_ctx.render_thread, NULL, render_loop, &g_ctx);
+  if (rc != 0) {
+    LOGE("nativeStart: render thread creation failed (%d)", rc);
+    atomic_store(&g_ctx.render_running, 0);
+    return -1;
   }
-  lh_start(g_ctx.host);
+  g_ctx.has_render_thread = 1;
+  if (lh_start(g_ctx.host) != 0) {
+    LOGE("nativeStart: emulation thread creation failed");
+    atomic_store(&g_ctx.render_running, 0);
+    pthread_join(g_ctx.render_thread, NULL);
+    g_ctx.has_render_thread = 0;
+    return -1;
+  }
+  return 0;
 }
 
 JNI(void, nativePause)(JNIEnv *env, jobject thiz) {

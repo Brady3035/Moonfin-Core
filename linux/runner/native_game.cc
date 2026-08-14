@@ -291,8 +291,13 @@ void HandleMethod(FlMethodChannel* channel, FlMethodCall* call,
     response = FL_METHOD_RESPONSE(
         fl_method_success_response_new(Load(args)));
   } else if (g_strcmp0(method, "start") == 0) {
-    if (g_host) lh_start(g_host);
-    response = FL_METHOD_RESPONSE(fl_method_success_response_new(nullptr));
+    if (g_host && lh_start(g_host) != 0) {
+      response = FL_METHOD_RESPONSE(fl_method_error_response_new(
+          "start_failed", "The emulation thread could not be started.",
+          nullptr));
+    } else {
+      response = FL_METHOD_RESPONSE(fl_method_success_response_new(nullptr));
+    }
   } else if (g_strcmp0(method, "pause") == 0) {
     if (g_host) lh_pause(g_host);
     response = FL_METHOD_RESPONSE(fl_method_success_response_new(nullptr));

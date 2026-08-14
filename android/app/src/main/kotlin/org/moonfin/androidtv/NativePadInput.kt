@@ -60,42 +60,52 @@ internal class NativePadInput(
 
     private val inputManager = context.getSystemService(Context.INPUT_SERVICE) as? InputManager
 
+    // Retained so [dispose] can unregister it. InputManager is process-wide and
+    // outlives the Activity, so an unregistered listener keeps this object, the
+    // bridge, the callbacks and the Activity reachable for the life of the
+    // process -- and the orphan keeps receiving device callbacks.
+    private val deviceListener = object : InputManager.InputDeviceListener {
+        // A pad that re-enumerates arrives here under a new id, and any
+        // direction still latched from the old one is orphaned: the
+        // axis that asserted it belongs to a device that no longer
+        // exists, so no motion event can ever clear it. Releasing the
+        // motion bits (not the key bits, which recover on their own via
+        // releaseLostHolds) is what stops that from reading as a
+        // direction held for ever.
+        override fun onInputDeviceAdded(deviceId: Int) {
+            invalidateDevice(deviceId)
+            releaseMotionInputs()
+        }
+
+        // Only a removal releases held bits. onInputDeviceChanged fires
+        // for unrelated reasons -- a keyboard-layout reconfiguration
+        // raises it for every device -- and releasing on those would
+        // cut a genuinely held direction short mid-game.
+        override fun onInputDeviceRemoved(deviceId: Int) {
+            invalidateDevice(deviceId)
+            releaseAllInputs()
+        }
+
+        override fun onInputDeviceChanged(deviceId: Int) {
+            invalidateDevice(deviceId)
+        }
+    }
+
     init {
         // Reconnecting a controller (or hot-plugging a second one) can hand
         // out a new/changed deviceId; drop just that id's cached table so the
         // next event resolves it fresh against the stable identity rather
         // than reusing a table built for whatever device previously held
-        // that int. Registered without a Handler, so callbacks land on this
-        // thread (the UI thread, same as onKey/onMotion).
-        inputManager?.registerInputDeviceListener(
-            object : InputManager.InputDeviceListener {
-                // A pad that re-enumerates arrives here under a new id, and any
-                // direction still latched from the old one is orphaned: the
-                // axis that asserted it belongs to a device that no longer
-                // exists, so no motion event can ever clear it. Releasing the
-                // motion bits (not the key bits, which recover on their own via
-                // releaseLostHolds) is what stops that from reading as a
-                // direction held for ever.
-                override fun onInputDeviceAdded(deviceId: Int) {
-                    invalidateDevice(deviceId)
-                    releaseMotionInputs()
-                }
+        // that int.
+        inputManager?.registerInputDeviceListener(deviceListener, null)
+    }
 
-                // Only a removal releases held bits. onInputDeviceChanged fires
-                // for unrelated reasons -- a keyboard-layout reconfiguration
-                // raises it for every device -- and releasing on those would
-                // cut a genuinely held direction short mid-game.
-                override fun onInputDeviceRemoved(deviceId: Int) {
-                    invalidateDevice(deviceId)
-                    releaseAllInputs()
-                }
-
-                override fun onInputDeviceChanged(deviceId: Int) {
-                    invalidateDevice(deviceId)
-                }
-            },
-            null,
-        )
+    /** Releases the process-wide listener. Safe to call more than once. */
+    fun dispose() {
+        inputManager?.unregisterInputDeviceListener(deviceListener)
+        cancelStartTimer()
+        startConsumed = false
+        releaseAllInputs()
     }
 
     private fun invalidateDevice(deviceId: Int) {

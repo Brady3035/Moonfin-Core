@@ -44,11 +44,10 @@ void main() {
   );
 
   test(
-    'lifecycle calls other than restart() swallow platform errors',
+    'pause/resume/stop swallow platform errors',
     () async {
-      // start/pause/resume/stop are fire-and-forget with no error handler
-      // downstream, so _invoke() must keep swallowing for them -- only
-      // restart() was carved out.
+      // Fire-and-forget with no error handler downstream, so _invoke() keeps
+      // swallowing for them.
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(controlChannel, (call) async {
         throw PlatformException(code: 'boom');
@@ -56,10 +55,32 @@ void main() {
 
       final player = NativeGamePlayerChannel();
 
-      await expectLater(player.start(), completes);
       await expectLater(player.pause(), completes);
       await expectLater(player.resume(), completes);
       await expectLater(player.stop(), completes);
+    },
+  );
+
+  test(
+    'start() propagates so a failed launch is not a frozen screen',
+    () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(controlChannel, (call) async {
+        throw PlatformException(code: 'start_failed');
+      });
+
+      final player = NativeGamePlayerChannel();
+
+      await expectLater(
+        player.start(),
+        throwsA(
+          isA<PlatformException>().having(
+            (e) => e.code,
+            'code',
+            'start_failed',
+          ),
+        ),
+      );
     },
   );
 }

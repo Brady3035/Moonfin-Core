@@ -781,6 +781,10 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
       if (mounted) setState(() => _textureId = info.textureId);
     } catch (e) {
       _releaseGameplayArtworkBlock();
+      // load() may have succeeded before this threw, leaving the host, audio
+      // thread and texture allocated behind the error screen. stop() is
+      // idempotent, so calling it when nothing loaded is safe.
+      await _player.stop();
       if (mounted) {
         setState(() => _error = _startFailureMessage(e));
       }

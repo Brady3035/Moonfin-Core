@@ -95,9 +95,11 @@ final class GameSession {
       fps: info.fps, sampleRate: info.sample_rate)
   }
 
-  func start() {
-    guard let host else { return }
-    lh_start(host)
+  // false when the emulation thread could not be created; the caller reports it
+  // instead of leaving a frozen screen.
+  func start() -> Bool {
+    guard let host else { return false }
+    return lh_start(host) == 0
   }
 
   func setPaused(_ paused: Bool) {

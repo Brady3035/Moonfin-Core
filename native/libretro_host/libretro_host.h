@@ -126,7 +126,9 @@ int lh_load(lh_host *host, const char *core_path, const char *rom_path,
 
 // Runs, pauses, or tears down the emulation. lh_stop flushes SRAM and unloads
 // the core, so the host can then be destroyed or loaded again.
-void lh_start(lh_host *host);
+// lh_start returns 0 when the emulation thread is running (including when it
+// already was), non-zero when it could not be created.
+int lh_start(lh_host *host);
 void lh_pause(lh_host *host);
 void lh_resume(lh_host *host);
 // Fully recreates the core and reloads its current content. Unlike lh_reset,

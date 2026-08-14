@@ -23,19 +23,47 @@ internal class GameInputRouter(
 
     private var gameActive = false
     private var emulatorControlsActive = false
-    private var hatX = 0
-    private var hatY = 0
-    private var motionDpadX = 0
-    private var motionDpadY = 0
-    private val pressedDpadKeys = mutableSetOf<Int>()
-    private var leftTriggerPressed = false
-    private var rightTriggerPressed = false
+    // Per controller, not global.
+    private class PadState {
+        var hatX = 0
+        var hatY = 0
+        var motionDpadX = 0
+        var motionDpadY = 0
+        val pressedDpadKeys = mutableSetOf<Int>()
+        var leftTriggerPressed = false
+        var rightTriggerPressed = false
+
+        // Every label currently reported pressed, so a disconnect can release
+        // face/shoulder/Start/Select too rather than only directions.
+        val heldLabels = mutableSetOf<String>()
+
+        // The identity those presses were emitted with. Held here rather than
+        // read from deviceCache at release time, which onDeviceChanged can
+        // invalidate while labels are still held.
+        var identity: Map<String, String>? = null
+    }
+
+    private val padStates = mutableMapOf<String, PadState>()
+
+    // A removed device can no longer be resolved with InputDevice.getDevice, so
+    // its descriptor has to be remembered while it is still present.
+    private val descriptorsByDeviceId = mutableMapOf<Int, String>()
+
+    private fun descriptorOf(device: InputDevice?): String {
+        val descriptor = device?.descriptor ?: return UNKNOWN_DEVICE_KEY
+        descriptorsByDeviceId[device.id] = descriptor
+        return descriptor
+    }
+
+    private fun padState(device: InputDevice?): PadState =
+        padStates.getOrPut(descriptorOf(device)) { PadState() }
     private var navX = 0
     private var navY = 0
 
     // Android device IDs can change after reconnecting. Cache the derived
     // identity by descriptor for the active game session only.
     private val deviceCache = mutableMapOf<String, Map<String, String>>()
+    private val gamepadCache = mutableMapOf<String, Boolean>()
 
     fun setGameActive(active: Boolean) {
         gameActive = active
@@ -70,11 +98,7 @@ internal class GameInputRouter(
                     label in DPAD_LABELS &&
                     event.action == KeyEvent.ACTION_DOWN
             if ((event.repeatCount == 0 || isRemoteNavigationRepeat) && isButtonTransition(event)) {
-                callbacks.onEmulatorButton(
-                    label,
-                    event.action == KeyEvent.ACTION_DOWN,
-                    device?.let(::deviceIdentity),
-                )
+                emitButton(label, event.action == KeyEvent.ACTION_DOWN, device)
             }
             return true
         }
@@ -95,15 +119,16 @@ internal class GameInputRouter(
     fun onMotionEvent(event: MotionEvent): Boolean {
         if (gameActive && isJoystickMove(event)) {
             val device = event.device
-            motionDpadX = axisDirection(event, MotionEvent.AXIS_HAT_X, MotionEvent.AXIS_X)
-            motionDpadY = axisDirection(event, MotionEvent.AXIS_HAT_Y, MotionEvent.AXIS_Y)
-            updateGameplayDpad(device)
+            val state = padState(device)
+            state.motionDpadX = axisDirection(event, MotionEvent.AXIS_HAT_X, MotionEvent.AXIS_X)
+            state.motionDpadY = axisDirection(event, MotionEvent.AXIS_HAT_Y, MotionEvent.AXIS_Y)
+            updateGameplayDpad(state, device)
 
-            updateTrigger(event, MotionEvent.AXIS_LTRIGGER, LEFT_BOTTOM_SHOULDER, leftTriggerPressed) {
-                leftTriggerPressed = it
+            updateTrigger(event, MotionEvent.AXIS_LTRIGGER, LEFT_BOTTOM_SHOULDER, state.leftTriggerPressed) {
+                state.leftTriggerPressed = it
             }
-            updateTrigger(event, MotionEvent.AXIS_RTRIGGER, RIGHT_BOTTOM_SHOULDER, rightTriggerPressed) {
-                rightTriggerPressed = it
+            updateTrigger(event, MotionEvent.AXIS_RTRIGGER, RIGHT_BOTTOM_SHOULDER, state.rightTriggerPressed) {
+                state.rightTriggerPressed = it
             }
             return true
         }
@@ -118,17 +143,48 @@ internal class GameInputRouter(
         return false
     }
 
+    /**
+     * A device that vanishes mid-press sends no release, so EmulatorJS would
+     * hold it for ever -- and the stale state would then swallow the next press
+     * after a reconnect under the same descriptor.
+     */
+    fun onDeviceRemoved(deviceId: Int) {
+        val descriptor = descriptorsByDeviceId.remove(deviceId) ?: return
+        padStates.remove(descriptor)?.let { state ->
+            for (label in state.heldLabels) {
+                callbacks.onEmulatorButton(label, false, state.identity)
+            }
+        }
+        deviceCache.remove(descriptor)
+        gamepadCache.remove(descriptor)
+    }
+
+    /** Capabilities and identity may both have changed. */
+    fun onDeviceChanged(deviceId: Int) {
+        val descriptor = descriptorsByDeviceId[deviceId] ?: return
+        deviceCache.remove(descriptor)
+        gamepadCache.remove(descriptor)
+    }
+
     private fun resetSessionState() {
-        hatX = 0
-        hatY = 0
-        motionDpadX = 0
-        motionDpadY = 0
-        pressedDpadKeys.clear()
-        leftTriggerPressed = false
-        rightTriggerPressed = false
+        padStates.clear()
+        descriptorsByDeviceId.clear()
         navX = 0
         navY = 0
         deviceCache.clear()
+        gamepadCache.clear()
+    }
+
+    // Single emit path, so heldLabels always matches what EmulatorJS believes
+    // is pressed.
+    private fun emitButton(label: String, pressed: Boolean, device: InputDevice?) {
+        val identity = device?.let(::deviceIdentity)
+        if (device != null) {
+            val state = padState(device)
+            if (pressed) state.heldLabels += label else state.heldLabels -= label
+            state.identity = identity
+        }
+        callbacks.onEmulatorButton(label, pressed, identity)
     }
 
     private fun emitEmulatorAxisTransition(
@@ -138,46 +194,47 @@ internal class GameInputRouter(
         positive: String,
         device: InputDevice?,
     ) {
-        val identity = physicalDevice(device)?.let(::deviceIdentity)
-        if (previous == -1) callbacks.onEmulatorButton(negative, false, identity)
-        if (previous == 1) callbacks.onEmulatorButton(positive, false, identity)
-        if (next == -1) callbacks.onEmulatorButton(negative, true, identity)
-        if (next == 1) callbacks.onEmulatorButton(positive, true, identity)
+        val physical = physicalDevice(device)
+        if (previous == -1) emitButton(negative, false, physical)
+        if (previous == 1) emitButton(positive, false, physical)
+        if (next == -1) emitButton(negative, true, physical)
+        if (next == 1) emitButton(positive, true, physical)
     }
 
     /** Returns true when this key was a D-pad transition this method fully handled. */
     private fun handlePhysicalDpadKey(event: KeyEvent, device: InputDevice?): Boolean {
         if (device == null || event.repeatCount != 0 || !isButtonTransition(event)) return false
         if (event.keyCode !in DPAD_KEY_CODES) return false
+        val state = padState(device)
         if (event.action == KeyEvent.ACTION_DOWN) {
-            pressedDpadKeys += event.keyCode
+            state.pressedDpadKeys += event.keyCode
         } else {
-            pressedDpadKeys -= event.keyCode
+            state.pressedDpadKeys -= event.keyCode
         }
-        updateGameplayDpad(device)
+        updateGameplayDpad(state, device)
         return true
     }
 
-    private fun updateGameplayDpad(device: InputDevice?) {
+    private fun updateGameplayDpad(state: PadState, device: InputDevice?) {
         val keyX = when {
-            KeyEvent.KEYCODE_DPAD_LEFT in pressedDpadKeys -> -1
-            KeyEvent.KEYCODE_DPAD_RIGHT in pressedDpadKeys -> 1
+            KeyEvent.KEYCODE_DPAD_LEFT in state.pressedDpadKeys -> -1
+            KeyEvent.KEYCODE_DPAD_RIGHT in state.pressedDpadKeys -> 1
             else -> 0
         }
         val keyY = when {
-            KeyEvent.KEYCODE_DPAD_UP in pressedDpadKeys -> -1
-            KeyEvent.KEYCODE_DPAD_DOWN in pressedDpadKeys -> 1
+            KeyEvent.KEYCODE_DPAD_UP in state.pressedDpadKeys -> -1
+            KeyEvent.KEYCODE_DPAD_DOWN in state.pressedDpadKeys -> 1
             else -> 0
         }
-        val nextX = keyX.takeIf { it != 0 } ?: motionDpadX
-        val nextY = keyY.takeIf { it != 0 } ?: motionDpadY
-        if (nextX != hatX) {
-            emitEmulatorAxisTransition(hatX, nextX, "DPAD_LEFT", "DPAD_RIGHT", device)
-            hatX = nextX
+        val nextX = keyX.takeIf { it != 0 } ?: state.motionDpadX
+        val nextY = keyY.takeIf { it != 0 } ?: state.motionDpadY
+        if (nextX != state.hatX) {
+            emitEmulatorAxisTransition(state.hatX, nextX, "DPAD_LEFT", "DPAD_RIGHT", device)
+            state.hatX = nextX
         }
-        if (nextY != hatY) {
-            emitEmulatorAxisTransition(hatY, nextY, "DPAD_UP", "DPAD_DOWN", device)
-            hatY = nextY
+        if (nextY != state.hatY) {
+            emitEmulatorAxisTransition(state.hatY, nextY, "DPAD_UP", "DPAD_DOWN", device)
+            state.hatY = nextY
         }
     }
 
@@ -190,7 +247,7 @@ internal class GameInputRouter(
     ) {
         val pressed = event.getAxisValue(axis) >= AXIS_PRESS_THRESHOLD
         if (pressed != previous) {
-            callbacks.onEmulatorButton(label, pressed, physicalDevice(event.device)?.let(::deviceIdentity))
+            emitButton(label, pressed, physicalDevice(event.device))
             setPressed(pressed)
         }
     }
@@ -212,7 +269,14 @@ internal class GameInputRouter(
     private fun physicalDevice(device: InputDevice?): InputDevice? =
         device?.takeIf(::isPhysicalGamepad)
 
-    private fun isPhysicalGamepad(device: InputDevice): Boolean {
+    // Cached: this is reached from every key event via physicalDevice(), and
+    // hasKeys() below is a synchronous binder call to system_server. Paying that
+    // per event blocks the main thread whenever system_server is busy, which
+    // under lock contention there is long enough to trip an input-dispatch ANR.
+    private fun isPhysicalGamepad(device: InputDevice): Boolean =
+        gamepadCache.getOrPut(descriptorOf(device)) { classifyGamepad(device) }
+
+    private fun classifyGamepad(device: InputDevice): Boolean {
         if (device.isVirtual) return false
         val hasGamepadSource = device.supportsSource(InputDevice.SOURCE_GAMEPAD)
         val hasJoystickSource = device.supportsSource(InputDevice.SOURCE_JOYSTICK)
@@ -220,25 +284,27 @@ internal class GameInputRouter(
         val hasJoystickAxis = device.motionRanges.any { range ->
             range.source and InputDevice.SOURCE_JOYSTICK == InputDevice.SOURCE_JOYSTICK
         }
-        // hasKeys() is a synchronous binder call to system_server. Only pay for
-        // it when hasJoystickAxis alone can't decide the result -- this method
-        // runs per key event via physicalDevice(), so evaluating it eagerly
-        // (as a val computed before the ||) meant every real gamepad, which
-        // already satisfies hasJoystickAxis, paid the IPC for a result that
-        // was then discarded by short-circuiting.
-        return hasJoystickAxis || (device.isExternal && hasFaceButtons(device))
+        if (hasJoystickAxis) return true
+        // external device with 4 face buttons to detection.
+        // Known trade-off: a pad with no joystick hat axis AND fewer than four face buttons
+        // is rejected. Deliberate -- anything looser risks a remote taking over
+        // gameplay, and pads that sparse are rare (a d-pad usually shows up as
+        // hat axes, which the check above already accepts).
+        // Trying to cover every possible controller is a losing battle, so this is a pragmatic compromise.
+        return device.isExternal && hasAllFaceButtons(device)
     }
 
-    private fun hasFaceButtons(device: InputDevice): Boolean = device.hasKeys(
+    private fun hasAllFaceButtons(device: InputDevice): Boolean = device.hasKeys(
         KeyEvent.KEYCODE_BUTTON_A,
         KeyEvent.KEYCODE_BUTTON_B,
         KeyEvent.KEYCODE_BUTTON_X,
         KeyEvent.KEYCODE_BUTTON_Y,
-    ).any { it }
+    ).all { it }
 
     private fun deviceIdentity(device: InputDevice): Map<String, String> {
-        deviceCache[device.descriptor]?.let { return it }
-        return AndroidGamepadIdentity.of(device).also { deviceCache[device.descriptor] = it }
+        val descriptor = descriptorOf(device)
+        deviceCache[descriptor]?.let { return it }
+        return AndroidGamepadIdentity.of(device).also { deviceCache[descriptor] = it }
     }
 
     private fun isJoystickMove(event: MotionEvent): Boolean =
@@ -288,6 +354,9 @@ internal class GameInputRouter(
 
     private companion object {
         const val AXIS_PRESS_THRESHOLD = 0.5f
+        // Events that arrive without an InputDevice share one bucket rather
+        // than colliding with a real controller's state.
+        const val UNKNOWN_DEVICE_KEY = ""
         const val BACK = "BACK"
         const val LEFT_BOTTOM_SHOULDER = "LEFT_BOTTOM_SHOULDER"
         const val RIGHT_BOTTOM_SHOULDER = "RIGHT_BOTTOM_SHOULDER"

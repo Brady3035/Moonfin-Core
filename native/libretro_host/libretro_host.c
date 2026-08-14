@@ -1847,15 +1847,30 @@ int lh_load(lh_host *h, const char *core_path, const char *rom_path,
   return 0;
 }
 
-void lh_start(lh_host *h) {
-  if (!h->core_loaded || h->has_thread || h->shutdown_requested) return;
+int lh_start(lh_host *h) {
+  if (h->has_thread) return 0;  // already running
+  if (!h->core_loaded || h->shutdown_requested) return -1;
   h->running = 1;
   h->paused = 0;
+  // Opened before thread_start, or run_job could run a job inline while the
+  // loop is already live.
   mutex_lock(&h->jobs_lock);
   h->jobs_open = 1;
   mutex_unlock(&h->jobs_lock);
   thread_start(h);
-  if (!h->has_thread) h->running = 0;
+  if (!h->has_thread) {
+    // Close and drain, or run_job waits forever on a condvar no thread can
+    // signal. Draining is required here because while (!job->done) ignores a wake.
+    h->running = 0;
+    mutex_lock(&h->jobs_lock);
+    h->jobs_open = 0;
+    for (int i = 0; i < h->job_count; i++) h->jobs[i]->done = 1;
+    h->job_count = 0;
+    cond_broadcast(&h->jobs_cond);
+    mutex_unlock(&h->jobs_lock);
+    return -1;
+  }
+  return 0;
 }
 
 void lh_pause(lh_host *h) { h->paused = 1; }

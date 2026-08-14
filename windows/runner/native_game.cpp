@@ -123,8 +123,12 @@ void NativeGame::HandleMethod(
   if (method == "load") {
     result->Success(Load(map));
   } else if (method == "start") {
-    if (host_) lh_start(host_);
-    result->Success();
+    if (host_ && lh_start(host_) != 0) {
+      result->Error("start_failed",
+                    "The emulation thread could not be started.");
+    } else {
+      result->Success();
+    }
   } else if (method == "pause") {
     if (host_) lh_pause(host_);
     result->Success();

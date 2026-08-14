@@ -703,8 +703,7 @@ class _LeftSidebarState extends State<LeftSidebar> with RouteAware {
   }
 
   Widget _buildTvLayout() {
-    final overlayColor = _overlayColor();
-    final opacity = _overlayOpacity();
+    final backdropColor = _overlayColor().withValues(alpha: _overlayOpacity());
     final isNeon = ThemeRegistry.active.id == ThemeRegistry.neonPulseId;
     final desktopHoverRail =
         (PlatformDetection.isDesktop || (PlatformDetection.isWeb && !PlatformDetection.useMobileUi)) && !PlatformDetection.isTV;
@@ -740,18 +739,7 @@ class _LeftSidebarState extends State<LeftSidebar> with RouteAware {
                           Container(
                             width: _kExpandedBackdropWidthTV,
                             decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.centerLeft,
-                                end: Alignment.centerRight,
-                                colors: [
-                                  overlayColor.withValues(
-                                    alpha: math.max(opacity, 0.7),
-                                  ),
-                                  overlayColor.withValues(
-                                    alpha: math.max(opacity, 0.5),
-                                  ),
-                                ],
-                              ),
+                              color: backdropColor,
                               border: isNeon
                                   ? Border(
                                       right: ThemeRegistry
@@ -777,12 +765,7 @@ class _LeftSidebarState extends State<LeftSidebar> with RouteAware {
                                 gradient: LinearGradient(
                                   begin: Alignment.centerLeft,
                                   end: Alignment.centerRight,
-                                  colors: [
-                                    overlayColor.withValues(
-                                      alpha: math.max(opacity, 0.5),
-                                    ),
-                                    Colors.transparent,
-                                  ],
+                                  colors: [backdropColor, Colors.transparent],
                                 ),
                               ),
                             ),

@@ -322,6 +322,52 @@ void main() {
     },
   );
 
+  test('a search narrows the categories and their contents', () async {
+    final api = _FakeItemsApi([
+      [
+        _movie('Alien', genres: ['Horror']),
+        _movie('Aliens', genres: ['Horror']),
+        _movie('Cars', genres: ['Family']),
+      ],
+    ]);
+    final vm = await _viewModel(api, groupBy: LibraryGroupBy.genres);
+    await vm.load();
+
+    expect(vm.groupedCategories.keys, ['Family', 'Horror']);
+
+    vm.setSearchQuery('alien');
+
+    expect(
+      vm.groupedCategories.keys,
+      ['Horror'],
+      reason: 'a category none of the matches belong to should drop out',
+    );
+    expect(_idsIn(vm.groupedCategories, 'Horror'), ['Alien', 'Aliens']);
+
+    vm.setSearchQuery('');
+
+    expect(vm.groupedCategories.keys, ['Family', 'Horror']);
+  });
+
+  test('a search matching nothing leaves no categories to browse', () async {
+    final api = _FakeItemsApi([
+      [
+        _movie('Alien', genres: ['Horror']),
+      ],
+    ]);
+    final vm = await _viewModel(api, groupBy: LibraryGroupBy.genres);
+    await vm.load();
+
+    vm.setSearchQuery('nothing matches this');
+
+    expect(vm.groupedCategories, isEmpty);
+    expect(
+      vm.currentCategoryItems,
+      isEmpty,
+      reason: 'falling back to every item would show what the search excluded',
+    );
+  });
+
   test('disposing mid-walk stops the page fetching instead of notifying a '
       'dead listener', () async {
     final api = _FakeItemsApi([

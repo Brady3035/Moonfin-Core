@@ -1012,17 +1012,22 @@ class LibraryBrowseViewModel extends ChangeNotifier {
   Map<String, List<AggregatedItem>> get groupedCategories {
     if (!isGrouping) return const {};
 
-    // _items is replaced wholesale on every fetch, so identity is enough to
-    // tell a fresh list from the one the cache was built against.
+    // Group what the search left, so it narrows the categories the same way it
+    // narrows a plain grid.
+    final source = items;
+
+    // Neither the fetched list nor the search results are edited in place, so
+    // identity is enough to tell a fresh list from the one the cache was built
+    // against.
     final cached = _groupedCategoriesCache;
     if (cached != null &&
         _groupedCategoriesGroupBy == _groupBy &&
-        identical(_groupedCategoriesSource, _items)) {
+        identical(_groupedCategoriesSource, source)) {
       return cached;
     }
 
     final map = <String, List<AggregatedItem>>{};
-    for (final item in _items) {
+    for (final item in source) {
       switch (_groupBy) {
         case LibraryGroupBy.genres:
           // An item lands in every genre it carries, so the counts add up to
@@ -1083,15 +1088,15 @@ class LibraryBrowseViewModel extends ChangeNotifier {
     }
 
     _groupedCategoriesCache = sortedMap;
-    _groupedCategoriesSource = _items;
+    _groupedCategoriesSource = source;
     _groupedCategoriesGroupBy = _groupBy;
     return sortedMap;
   }
 
   List<AggregatedItem> get currentCategoryItems {
-    if (!isGrouping) return _items;
+    if (!isGrouping) return items;
     final categories = groupedCategories;
-    if (categories.isEmpty) return _items;
+    if (categories.isEmpty) return items;
     // A filter can retire the selected category. Falling back to every item
     // would mix in the other categories, so fall back to the first instead.
     final selected = _selectedCategoryTab ?? categories.keys.first;

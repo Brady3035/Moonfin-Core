@@ -142,6 +142,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
   double _audioDelay = 0.0;
   double _subtitleDelay = 0.0;
   bool _subtitleActive = false;
+  int? _subtitleIndexBeforeQuickOff;
   bool _subtitleReapplyRetryScheduled = false;
   bool _isStopping = false;
   bool _readyToPop = false;
@@ -881,6 +882,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
         _nextUpDismissed = false;
         _showNextUp = false;
         _skipSegment = null;
+        // Stream indexes belong to the file they came from, so the next item
+        // must not have a track from the last one put back on it.
+        _subtitleIndexBeforeQuickOff = null;
         if (isPreroll) {
           _controlsVisible = false;
           _isOsdLocked = false;
@@ -3360,6 +3364,50 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
       case LogicalKeyboardKey.arrowDown:
         _changeVolumeBy(-0.05);
         _showControls();
+        return KeyEventResult.handled;
+      case LogicalKeyboardKey.keyK:
+        _togglePlayPause();
+        _showControls();
+        return KeyEventResult.handled;
+      case LogicalKeyboardKey.keyJ:
+        _seekRelative(
+          -_accelerateSeekStep(
+            _prefs.get(UserPreferences.skipBackLength),
+            event,
+          ),
+        );
+        return KeyEventResult.handled;
+      case LogicalKeyboardKey.keyL:
+        _seekRelative(
+          _accelerateSeekStep(
+            _prefs.get(UserPreferences.skipForwardLength),
+            event,
+          ),
+        );
+        return KeyEventResult.handled;
+      case LogicalKeyboardKey.keyH:
+        if (event is! KeyRepeatEvent) {
+          _exitPlayback();
+        }
+        return KeyEventResult.handled;
+      case LogicalKeyboardKey.keyF:
+        if (PlatformDetection.useDesktopUi) {
+          unawaited(_toggleDesktopFullscreen());
+          return KeyEventResult.handled;
+        }
+        return KeyEventResult.ignored;
+      case LogicalKeyboardKey.keyM:
+        _toggleMute();
+        _showControls();
+        return KeyEventResult.handled;
+      case LogicalKeyboardKey.keyC:
+        unawaited(_toggleSubtitlesQuick());
+        return KeyEventResult.handled;
+      case LogicalKeyboardKey.comma:
+        _stepPlaybackSpeed(-1);
+        return KeyEventResult.handled;
+      case LogicalKeyboardKey.period:
+        _stepPlaybackSpeed(1);
         return KeyEventResult.handled;
       case LogicalKeyboardKey.keyI:
         _showStreamInfo();
@@ -6014,13 +6062,66 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
     );
   }
 
+  static const _speedSteps = <double>[0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0];
+
+  /// Nudges the playback speed one step along the same ladder the speed
+  /// picker offers, from whichever step sits nearest the current speed.
+  void _stepPlaybackSpeed(int direction) {
+    final current = _state.playbackSpeed;
+    var nearest = 0;
+    for (var i = 1; i < _speedSteps.length; i++) {
+      if ((current - _speedSteps[i]).abs() <
+          (current - _speedSteps[nearest]).abs()) {
+        nearest = i;
+      }
+    }
+    final target = (nearest + direction).clamp(0, _speedSteps.length - 1);
+    final speed = _speedSteps[target];
+    if ((current - speed).abs() < 0.001) return;
+    unawaited(() async {
+      final changed = await _runSinglePlayerMutation(
+        'speed_$speed',
+        () async => _manager.setPlaybackSpeed(speed),
+      );
+      if (changed && mounted) {
+        setState(() {});
+      }
+    }());
+    _showControls();
+  }
+
+  /// One key that puts the subtitles out and back. Turning them off remembers
+  /// the track, turning them on brings that track back, and with nothing to
+  /// bring back the selector opens so there is always a visible response.
+  Future<void> _toggleSubtitlesQuick() async {
+    final activeIndex = _manager.subtitleStreamIndex ?? -1;
+    if (activeIndex >= 0) {
+      _subtitleIndexBeforeQuickOff = activeIndex;
+      await _runSinglePlayerMutation(
+        'subtitles_off',
+        _manager.disableSubtitles,
+      );
+    } else {
+      final remembered = _subtitleIndexBeforeQuickOff;
+      if (remembered == null || remembered < 0) {
+        _showTrackSelector(audio: false);
+        return;
+      }
+      await _runSinglePlayerMutation(
+        'subtitles_on_$remembered',
+        () => _manager.changeSubtitleTrack(remembered),
+      );
+    }
+    _syncSubtitleActive();
+    _showControls();
+  }
+
   void _showSpeedSelector() {
-    const speedOptions = <double>[0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0];
     final l10n = AppLocalizations.of(context);
-    final options = speedOptions
+    final options = _speedSteps
         .map((s) => TrackOption(label: '${s}x'))
         .toList();
-    final currentIdx = speedOptions.indexWhere(
+    final currentIdx = _speedSteps.indexWhere(
       (s) => (_state.playbackSpeed - s).abs() < 0.001,
     );
     unawaited(() async {
@@ -6032,7 +6133,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
       );
       _suppressBackNavigation();
       if (result == null || !mounted) return;
-      final speed = speedOptions[result];
+      final speed = _speedSteps[result];
       final changed = await _runSinglePlayerMutation(
         'speed_$speed',
         () async => _manager.setPlaybackSpeed(speed),

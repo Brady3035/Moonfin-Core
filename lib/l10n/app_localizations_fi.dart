@@ -3079,14 +3079,14 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get resetRatingsDescription =>
-      'This puts every ratings setting back to its default, including which sources show and the order they appear in.';
+      'Tämä palauttaa kaikki asetukset oletusarvoihinsa, mukaan lukien näytettävät lähteet ja niiden näyttöjärjestyksen.';
 
   @override
-  String get ratingsReset => 'Reset ratings to defaults.';
+  String get ratingsReset => 'Palauta arviot oletusarvoihin.';
 
   @override
   String failedToResetProfile(String profile) {
-    return 'Failed to reset $profile profile.';
+    return '$profile-profiilin nollaaminen epäonnistui.';
   }
 
   @override
@@ -3138,11 +3138,11 @@ class AppLocalizationsFi extends AppLocalizations {
   String get defaultLabel => 'Oletus';
 
   @override
-  String get sdCard => 'SD card';
+  String get sdCard => 'SD-kortti';
 
   @override
   String get downloadLocationLimitedByAndroid =>
-      'Android only lets Moonfin write to the folders it owns, and this device has no removable storage. Turn on Save to Downloads folder above to keep downloads somewhere other apps can reach.';
+      'Android sallii Moonfinin kirjoittaa vain niihin kansioihin, jotka se omistaa, eikä tässä laitteessa ole irrotettavaa tallennustilaa. Ota yllä oleva ”Tallenna Lataukset-kansioon” -vaihtoehto käyttöön, jotta lataukset tallennetaan paikkaan, johon muut sovellukset pääsevät käsiksi.';
 
   @override
   String get saveToDownloadsFolder => 'Tallenna Lataukset-kansioon';
@@ -3184,7 +3184,7 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get transcodingTimeRemainingUnavailable =>
-      'Transcoding: Time Remaining Unavailable';
+      'Transkoodaus: Jäljellä oleva aika ei ole saatavilla';
 
   @override
   String get enable => 'Ota käyttöön';
@@ -3289,14 +3289,15 @@ class AppLocalizationsFi extends AppLocalizations {
       'Näytä kaikkien yhdistettyjen palvelimien kirjastot';
 
   @override
-  String get mergeRecentRowsByType => 'Merge Recent Rows by Type';
+  String get mergeRecentRowsByType =>
+      'Yhdistä viimeisimmät rivit tyypin mukaan';
 
   @override
   String get mergeRecentRowsByTypeDescription =>
-      'Combine separate libraries of the same type for Recently Added and Recently Released home rows.';
+      'Yhdistä saman tyyppiset erilliset kirjastot ”Äskettäin lisätty” ja ”Äskettäin julkaistu” -aloitussarjoihin.';
 
   @override
-  String get libraryView => 'Library View';
+  String get libraryView => 'Kirjastonäkymä';
 
   @override
   String get enableFolderView => 'Ota käyttöön kansionäkymä';
@@ -3330,7 +3331,8 @@ class AppLocalizationsFi extends AppLocalizations {
   String get showInNavigation => 'Näytä navigoinnissa';
 
   @override
-  String get showInLatestMedia => 'Näytä uusimmassa mediassa';
+  String get showInLatestMedia =>
+      'Näytä äskettäin lisätyissä/julkaistuissa tiedostoissa';
 
   @override
   String get sourceLibraries => 'Lähdekirjastot';
@@ -3435,11 +3437,11 @@ class AppLocalizationsFi extends AppLocalizations {
   String get enableTrailerAudio => 'Ota trailerien ääni käyttöön mediapalkissa';
 
   @override
-  String get trailerCaptions => 'Trailer Captions';
+  String get trailerCaptions => 'Trailerin tekstitykset';
 
   @override
   String get trailerCaptionsDescription =>
-      'Show captions on YouTube trailers in the media bar';
+      'Näytä YouTube-trailereiden tekstitykset mediapalkissa';
 
   @override
   String get episodePreview => 'Jakson esikatselu';
@@ -3459,11 +3461,10 @@ class AppLocalizationsFi extends AppLocalizations {
   String get previewAudio => 'Äänen esikatselu';
 
   @override
-  String get enablePreviewAudio =>
-      'Ota ääni käyttöön trailerien ja jaksojen esikatseluissa';
+  String get enablePreviewAudio => 'Ota ääni käyttöön mediaesikatseluissa';
 
   @override
-  String get latestMedia => 'Uusin Media';
+  String get latestMedia => 'Äskettäin lisätty media';
 
   @override
   String get recentlyReleased => 'Äskettäin julkaistu';
@@ -3516,15 +3517,15 @@ class AppLocalizationsFi extends AppLocalizations {
   String get combineBothRows => 'Yhdistä molemmat rivit yhdeksi kotiosioon';
 
   @override
-  String get nextUpMaxDays => 'Max days in Next Up';
+  String get nextUpMaxDays => 'Enimmäispäivien määrä Next Up -kohdassa';
 
   @override
   String get nextUpMaxDaysDescription =>
-      'How long a show stays in Next Up after you last watched it';
+      'Kuinka kauan ohjelma pysyy Next Up -osiossa sen jälkeen, kun olet katsonut sen viimeksi';
 
   @override
   String daysValue(int days) {
-    return '$days days';
+    return '$days päivää';
   }
 
   @override
@@ -3535,11 +3536,11 @@ class AppLocalizationsFi extends AppLocalizations {
       'Näytä vain yksi aloitusnäytön rivi kerrallaan';
 
   @override
-  String get homeRowsPadding => 'Home Row Padding';
+  String get homeRowsPadding => 'Kotirivin täytöt';
 
   @override
   String get homeRowsPaddingDescription =>
-      'Customize padding between home rows';
+      'Mukauta kotirivien välistä etäisyyttä';
 
   @override
   String get perRowImageType => 'Rivikuvatyypin mukaan';
@@ -3809,16 +3810,16 @@ class AppLocalizationsFi extends AppLocalizations {
   String get networks => 'Verkot';
 
   @override
-  String get tags => 'Tags';
+  String get tags => 'Tunnisteet';
 
   @override
-  String get genresAndTags => 'Genres and Tags';
+  String get genresAndTags => 'Genret ja tunnisteet';
 
   @override
   String get seerrDiscoveryRows => 'Seerr-löytörivit';
 
   @override
-  String get yourWatchlist => 'Your Watchlist';
+  String get yourWatchlist => 'Seurantalistat';
 
   @override
   String get resetRowsToDefaults => 'Palauta rivit oletusarvoihin';
@@ -3866,11 +3867,11 @@ class AppLocalizationsFi extends AppLocalizations {
       'Uudet ongelmat, vastaukset ja ratkaisut';
 
   @override
-  String get seerrNotifyNewMediaTitle => 'New media added';
+  String get seerrNotifyNewMediaTitle => 'Uusia tiedostoja lisätty';
 
   @override
   String get seerrNotifyNewMediaSubtitle =>
-      'Anything new added to the server library';
+      'Onko palvelimen kirjastoon lisätty mitään uutta';
 
   @override
   String loggedInAs(String username) {
@@ -3895,7 +3896,7 @@ class AppLocalizationsFi extends AppLocalizations {
   String get hidden => 'Piilotettu';
 
   @override
-  String get aboutTitle => 'Noin';
+  String get aboutTitle => 'Tietoja';
 
   @override
   String versionValue(String version) {
@@ -3991,7 +3992,8 @@ class AppLocalizationsFi extends AppLocalizations {
       'Navigointipalkin tyyli, työkalupalkin painikkeet, ulkonäkö';
 
   @override
-  String get reorderToggleHomeRows => 'Järjestä ja vaihda kotirivejä uudelleen';
+  String get reorderToggleHomeRows =>
+      'Järjestä uudelleen ja vaihda sekä kirjastopohjaisten että ulkoisten kotirivien järjestystä';
 
   @override
   String get featuredContentAppearance => 'Suositeltu sisältö, ulkonäkö';
@@ -4057,22 +4059,22 @@ class AppLocalizationsFi extends AppLocalizations {
   String get requestMore => 'Pyydä lisää';
 
   @override
-  String get requestMore4k => 'Request More in 4K';
+  String get requestMore4k => 'Pyydä lisää 4K-laadulla';
 
   @override
   String get request => 'Pyytää';
 
   @override
-  String get request4k => 'Request 4K';
+  String get request4k => 'Pyydä 4K';
 
   @override
-  String get requested4k => '4K Requested';
+  String get requested4k => 'Pyydetään 4K-tarkkuutta';
 
   @override
   String get cancelRequest => 'Peruuta pyyntö';
 
   @override
-  String get cancelRequest4k => 'Cancel 4K Request';
+  String get cancelRequest4k => 'Peruuta 4K-pyyntö';
 
   @override
   String get playInMoonfin => 'Pelaa Moonfinissä';
@@ -4083,13 +4085,13 @@ class AppLocalizationsFi extends AppLocalizations {
   }
 
   @override
-  String get manageRequests => 'Manage Requests';
+  String get manageRequests => 'Hallitse pyyntöjä';
 
   @override
-  String get watchlist => 'Watchlist';
+  String get watchlist => 'Seurantaluettelo';
 
   @override
-  String get onWatchlist => 'On Watchlist';
+  String get onWatchlist => 'Seurantaluettelossa';
 
   @override
   String get approve => 'Hyväksyä';
@@ -4144,7 +4146,7 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String requestSeriesOrMovie4k(String type) {
-    return 'Request 4K $type';
+    return 'Pyydä 4K $type';
   }
 
   @override
@@ -4155,7 +4157,7 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get seerrSeriesContinuing =>
-      'Series Continuing · Future Seasons Can Be Requested';
+      'Sarja jatkuu · Tulevia kausia voi pyytää';
 
   @override
   String get advancedOptions => 'Lisäasetukset';
@@ -8483,7 +8485,7 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get settingsGeneralStyleSubtitle =>
-      'Teeman korostukset, taustat, katsotut indikaattorit ja teemamusiikki';
+      'Teemakorostukset, taustakuvat ja seurattavat indikaattorit';
 
   @override
   String get settingsDetailsScreen => 'Tietonäkymä';
@@ -8559,62 +8561,63 @@ class AppLocalizationsFi extends AppLocalizations {
   String get settingsOfflineDownloads => 'Offline-lataukset';
 
   @override
-  String get useNativeEmulator => 'Native Emulation';
+  String get useNativeEmulator => 'Alkuperäinen emulointi';
 
   @override
   String get useNativeEmulatorSubtitle =>
-      'Play games with native cores instead of the EmulatorJS web player';
+      'Pelaa pelejä natiivi-ytimillä EmulatorJS-verkkosoittimen sijaan';
 
   @override
-  String get emulatorCores => 'Emulator Cores';
+  String get emulatorCores => 'Emulaattoriytimet';
 
   @override
-  String get emulatorCoresSubtitle => 'Download systems to play games natively';
+  String get emulatorCoresSubtitle =>
+      'Lataa järjestelmät, joilla pelejä voi pelata suoraan';
 
   @override
   String get emulatorCoresDescription =>
-      'Choose which systems to install. Cores are provided by the libretro project and let games run natively instead of in a browser view.';
+      'Valitse, mitkä järjestelmät haluat asentaa. Libretro-projekti tarjoaa ytimet, joiden avulla pelejä voidaan ajaa natiivisti selaimen näkymän sijaan.';
 
   @override
-  String get emulatorCoreDownloading => 'Downloading';
+  String get emulatorCoreDownloading => 'Lataaminen';
 
   @override
-  String get emulatorCoreUnavailable => 'Not available for this device';
+  String get emulatorCoreUnavailable => 'Ei saatavilla tälle laitteelle';
 
   @override
   String get emulatorCoreDownloadFailed =>
-      'Could not download the core. Check your connection and try again.';
+      'Ydintiedostoa ei voitu ladata. Tarkista verkkoyhteytesi ja yritä uudelleen.';
 
   @override
-  String get downloadedGames => 'Downloaded Games';
+  String get downloadedGames => 'Ladatut pelit';
 
   @override
-  String get downloadedGamesSubtitle => 'Free up space used by game files';
+  String get downloadedGamesSubtitle => 'Vapauta pelitiedostojen viemää tilaa';
 
   @override
   String get downloadedGamesDescription =>
-      'Games are copied to this device before they play. Remove the ones you have finished to free up space. Saves are kept on the server and are not deleted.';
+      'Pelit kopioidaan tähän laitteeseen ennen pelaamista. Poista pelit, jotka olet pelannut loppuun, jotta saat lisää tilaa. Tallennukset säilytetään palvelimella, eikä niitä poisteta.';
 
   @override
   String get downloadedGamesEmpty =>
-      'No games have been downloaded to this device yet.';
+      'Tähän laitteeseen ei ole vielä ladattu yhtään peliä.';
 
   @override
   String downloadedGamesTotal(int count, String size) {
-    return '$count games, $size';
+    return '$count peliä, $size';
   }
 
   @override
-  String get removeAllDownloadedGames => 'Remove All';
+  String get removeAllDownloadedGames => 'Poista kaikki';
 
   @override
   String removeDownloadedGameConfirm(String title) {
-    return 'Remove $title from this device? It will download again the next time you play it.';
+    return 'Haluatko poistaa $title tästä laitteesta? Se ladataan uudelleen, kun seuraavan kerran toistat sen.';
   }
 
   @override
   String get removeAllDownloadedGamesConfirm =>
-      'Remove all downloaded games from this device? They will download again the next time you play them.';
+      'Haluatko poistaa kaikki ladatut pelit tästä laitteesta? Ne ladataan uudelleen, kun pelaat niitä seuraavan kerran.';
 
   @override
   String get settingsHigh => 'Korkea';
@@ -8754,11 +8757,12 @@ class AppLocalizationsFi extends AppLocalizations {
   String get settingsNone => 'Ei mitään';
 
   @override
-  String get settingsSkipButtonAutoHide => 'Auto Hide Skip Button';
+  String get settingsSkipButtonAutoHide =>
+      'Piilota ohituspainike automaattisesti';
 
   @override
   String get settingsSkipButtonAutoHideDescription =>
-      'Automatically dismiss the skip intro and outro button after a few seconds.';
+      'Piilota ”Ohita intro ja outro” -painike automaattisesti muutaman sekunnin kuluttua.';
 
   @override
   String get settingsPromptUser => 'Kehota käyttäjää';
@@ -8825,14 +8829,13 @@ class AppLocalizationsFi extends AppLocalizations {
       'Ohjaa, ohjataanko Dolby Vision -profiili 7 -parannuskerroksen streameja.';
 
   @override
-  String get settingsAutoAftkrtEnabled => 'Automaattinen (AFTKRT käytössä)';
+  String get settingsAutoAftkrtEnabled => 'Auto';
 
   @override
-  String get settingsEnabledOnThisDevice => 'Käytössä tässä laitteessa';
+  String get settingsEnabledOnThisDevice => 'Käytössä';
 
   @override
-  String get settingsDisabledPreferTranscode =>
-      'Ei käytössä (ensisijaisesti transkoodaus)';
+  String get settingsDisabledPreferTranscode => 'Pois';
 
   @override
   String get settingsResumeRewindDescription =>
@@ -8874,11 +8877,11 @@ class AppLocalizationsFi extends AppLocalizations {
       'Toista trailereita/esivideoita ennen pääominaisuutta';
 
   @override
-  String get settingsCinemaModeEpisodes => 'Cinema Mode for episodes';
+  String get settingsCinemaModeEpisodes => 'Elokuvamoodi jaksoille';
 
   @override
   String get settingsCinemaModeEpisodesSubtitle =>
-      'Also play prerolls before TV episodes';
+      'Katso myös mainosvideot ennen TV-jaksoja';
 
   @override
   String get settingsNextUpDisplayDescription =>
@@ -8988,7 +8991,7 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String latestLibraryName(String libraryName) {
-    return 'Uusin $libraryName';
+    return 'Äskettäin lisätty $libraryName';
   }
 
   @override
@@ -9033,11 +9036,11 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get mapDolbyVisionP7Title =>
-      'Yhdistä Dolby Vision profiili 7 HEVC:hen';
+      'Toista Dolby Vision -profiili 7 aina HDR10-muodossa';
 
   @override
   String get mapDolbyVisionP7Subtitle =>
-      'Toista Dolby Vision profiilin 7 suoratoisto HDR10-yhteensopivana HEVC:nä muilla kuin DV-laitteilla.';
+      'Ohita profiilin 8 muuntaminen ja muunna Dolby Vision -profiilin 7 virrat HDR10-yhteensopivaksi HEVC-muodoksi. Käytä tätä, jos muunnettuja virtoja katsottaessa kuva näyttää virheelliseltä.';
 
   @override
   String get subtitlesUseEmbeddedStyles => 'Käytä upotettuja tekstitystyylejä';
@@ -9193,13 +9196,13 @@ class AppLocalizationsFi extends AppLocalizations {
       'Classic säilyttää rivikohtaisen kuvatyypin ja tietopeittokuvan. Moderni käyttää muotokuvasta taustaan ​​-rivejä.';
 
   @override
-  String get sortOrder => 'Sort Order';
+  String get sortOrder => 'Lajittelujärjestys';
 
   @override
-  String get ascending => 'Ascending';
+  String get ascending => 'Nouseva';
 
   @override
-  String get descending => 'Descending';
+  String get descending => 'Laskeutuva';
 
   @override
   String get displayFavoritesRows => 'Näytä suosikkirivit';
@@ -9217,7 +9220,7 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get favoritesRowSortOrderDescription =>
-      'Sort Favorites rows in ascending or descending order.';
+      'Lajittele Suosikit-rivit nousevaan tai laskevaan järjestykseen.';
 
   @override
   String get displayCollectionsRows => 'Näytä kokoelmarivit';
@@ -9235,14 +9238,14 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get collectionsRowSortOrderDescription =>
-      'Sort Collections rows in ascending or descending order.';
+      'Lajittele Kokoelmat-taulukon rivit nousevaan tai laskevaan järjestykseen.';
 
   @override
-  String get collectionsRowShowEpisodes => 'Show Individual Episodes';
+  String get collectionsRowShowEpisodes => 'Näytä yksittäiset jaksot';
 
   @override
   String get collectionsRowShowEpisodesSubtitle =>
-      'Expand TV shows to display each episode separately.';
+      'Laajenna TV-sarjoja, jotta jokainen jakso näkyy erikseen.';
 
   @override
   String get displayGenresRows => 'Näytä lajityypit rivit';
@@ -9259,7 +9262,7 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get genresRowSortOrderDescription =>
-      'Sort Genres rows in ascending or descending order.';
+      'Lajittele ”Genret”-rivit nousevaan tai laskevaan järjestykseen.';
 
   @override
   String get genresRowItems => 'Genret rivikohdat';

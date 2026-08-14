@@ -19,6 +19,13 @@ class InputModeTracker extends StatefulWidget {
   static InputMode _fallbackMode() =>
       PlatformDetection.isTV ? InputMode.keyboard : InputMode.pointer;
 
+  static Offset? _lastPointerDownPosition;
+
+  /// Where the pointer last went down, which is where a menu the pointer asked
+  /// for belongs. Null until a pointer has been used, so a remote or a touch
+  /// gets the centered menu it expects.
+  static Offset? get lastPointerDownPosition => _lastPointerDownPosition;
+
   static _InputModeTrackerState? _instance;
 
   @override
@@ -57,6 +64,11 @@ class _InputModeTrackerState extends State<InputModeTracker> {
     _setMode(InputMode.pointer);
   }
 
+  void _onPointerDown(PointerDownEvent event) {
+    InputModeTracker._lastPointerDownPosition = event.position;
+    _onPointer(event);
+  }
+
   void _setMode(InputMode mode) {
     if (PlatformDetection.isTV && mode == InputMode.pointer) return;
     if (_mode == mode) return;
@@ -74,7 +86,7 @@ class _InputModeTrackerState extends State<InputModeTracker> {
   Widget build(BuildContext context) {
     return Listener(
       behavior: HitTestBehavior.translucent,
-      onPointerDown: _onPointer,
+      onPointerDown: _onPointerDown,
       onPointerHover: _onPointer,
       onPointerSignal: _onPointer,
       child: _InputModeProvider(mode: _mode, child: widget.child),

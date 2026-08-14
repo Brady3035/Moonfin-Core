@@ -476,7 +476,7 @@ void registerPlaybackModule() {
     PlaybackProfileDiagnostics.instance.logPlaybackDecision(
       context: context,
       audioCapabilityProfile: audioCapabilityProfile,
-      media3Capabilities: PlatformDetection.hasAudioCapabilities
+      deviceAudioCapabilities: PlatformDetection.hasAudioCapabilities
           ? PlatformDetection.audioCapabilitiesSnapshot
           : const <String, dynamic>{},
       audioSpdifCodecs: audioSpdifCodecs,

@@ -3664,10 +3664,31 @@ class Media3VideoView(
     }
 
     private fun selectTextTrack(oneBasedIndex: Int, externalUrl: String?): Boolean {
-        if (!externalUrl.isNullOrBlank() && selectExternalSubtitleByUrl(externalUrl)) {
+        val url = externalUrl?.takeIf { it.isNotBlank() }
+        if (url != null && selectExternalSubtitleByUrl(url)) {
+            emitSubtitleSelection(oneBasedIndex, "url", true)
             return true
         }
-        return selectTrack(C.TRACK_TYPE_TEXT, oneBasedIndex)
+        // Positional selection counts on the player seeing tracks in the same
+        // order the server listed them, which an external that failed to match
+        // by url has already disproved, so say which way the track was picked.
+        val how = if (url != null) "positionalAfterUrlMiss" else "positional"
+        val selected = selectTrack(C.TRACK_TYPE_TEXT, oneBasedIndex)
+        emitSubtitleSelection(oneBasedIndex, how, selected)
+        return selected
+    }
+
+    private fun emitSubtitleSelection(oneBasedIndex: Int, how: String, selected: Boolean) {
+        Media3Bridge.emitEvent(
+            mapOf(
+                "event" to "subtitleSelection",
+                "trackId" to oneBasedIndex,
+                "how" to how,
+                "selected" to selected,
+                "externalCount" to externalSubtitleConfigurations.size,
+                "textTrackCount" to collectTracks(C.TRACK_TYPE_TEXT).size,
+            ),
+        )
     }
 
     private fun selectExternalSubtitleByUrl(url: String): Boolean {

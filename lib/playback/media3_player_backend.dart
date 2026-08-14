@@ -291,6 +291,17 @@ class Media3PlayerBackend extends PlayerBackend {
           '${_toInt(map['elapsedMs'])}ms since last feed)',
           level: LogLevel.warning,
         );
+      case 'subtitleSelection':
+        final how = map['how']?.toString() ?? 'unknown';
+        _diag(
+          'Media3: subtitle track ${_toInt(map['trackId'])} picked by $how '
+          '(applied=${map['selected'] == true}, '
+          '${_toInt(map['textTrackCount'])} text tracks, '
+          '${_toInt(map['externalCount'])} external files)',
+          level: how == 'positionalAfterUrlMiss'
+              ? LogLevel.warning
+              : LogLevel.debug,
+        );
       case 'audioSinkError':
         _diag(
           'Media3: audio sink error: ${map['message'] ?? ''}',

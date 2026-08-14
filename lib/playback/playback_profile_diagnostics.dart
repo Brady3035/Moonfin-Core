@@ -22,7 +22,7 @@ class PlaybackProfileDiagnostics {
   void logPlaybackDecision({
     required PlaybackDecisionContext context,
     required AudioCapabilityProfile audioCapabilityProfile,
-    required Map<String, dynamic> media3Capabilities,
+    required Map<String, dynamic> deviceAudioCapabilities,
     required List<String> audioSpdifCodecs,
     Map<String, dynamic> audioPreferenceContext = const <String, dynamic>{},
   }) {
@@ -70,10 +70,29 @@ class PlaybackProfileDiagnostics {
         'dvProfile7': PlatformDetection.supportsDoViProfile7,
         'dvProfile8': PlatformDetection.supportsDoViProfile8,
       },
+      // What the decoder probe claimed, which is what the profile advertises,
+      // and so what the server copies a stream through on. A decoder that
+      // rejects a format it was handed disagrees with one of these.
+      'videoCodecCapabilities': <String, dynamic>{
+        'avc': PlatformDetection.supportsAvc,
+        'avcLevel': PlatformDetection.avcMainLevel,
+        'avcHigh10': PlatformDetection.supportsAvcHigh10,
+        'avcHigh10Level': PlatformDetection.avcHigh10Level,
+        'hevc': PlatformDetection.supportsHevc,
+        'hevcLevel': PlatformDetection.hevcMainLevel,
+        'hevcMain10': PlatformDetection.supportsHevcMain10,
+        'hevcMain10Level': PlatformDetection.hevcMain10Level,
+        'av1': PlatformDetection.supportsAv1,
+        'av1Main10': PlatformDetection.supportsAv1Main10,
+      },
       'audioCodec': _streamCodec(audioStream),
       'audioProfile': _streamString(audioStream, 'Profile'),
       'audioChannels': _streamChannels(audioStream),
       'subtitleCodec': _streamCodec(subtitleStream),
+      // Every subtitle the server offered, paired with the track number the
+      // backend is asked for. A track that plays the wrong language shows up
+      // here as a stream whose ordinal points at a different row.
+      'subtitleTracks': _subtitleTracks(context),
       'allowedAudioCodecs': allowedAudioCodecs,
       'hlsMpegTsAudioCodecs': hlsAudioTargets['mpegts'] ?? const <String>[],
       'hlsFmp4AudioCodecs': hlsAudioTargets['fmp4'] ?? const <String>[],
@@ -86,7 +105,9 @@ class PlaybackProfileDiagnostics {
       'audioCapabilities': audioCapabilityProfile.toMap(),
       'activeRouteType': audioCapabilityProfile.activeRouteType.name,
       'routeSupportsHdAudio': audioCapabilityProfile.routeSupportsHdAudio,
-      'media3Capabilities': Map<String, dynamic>.from(media3Capabilities),
+      'deviceAudioCapabilities': Map<String, dynamic>.from(
+        deviceAudioCapabilities,
+      ),
       'maxStreamingBitrate': context.maxStreamingBitrate,
     };
 
@@ -167,6 +188,49 @@ class PlaybackProfileDiagnostics {
     }
 
     return null;
+  }
+
+  /// The subtitle rows the viewer picks from, each with the track number the
+  /// backend gets asked for. The ordinal is worked out the same way playback
+  /// works it out, so a mapping that has drifted is visible here rather than
+  /// only on screen.
+  List<Map<String, dynamic>> _subtitleTracks(PlaybackDecisionContext context) {
+    final resolution = context.resolution;
+    final streams = resolution.mediaStreams;
+    if (streams.isEmpty) return const <Map<String, dynamic>>[];
+
+    final stripped =
+        resolution.playMethod == StreamPlayMethod.transcode ||
+        resolution.playMethod == StreamPlayMethod.directStream ||
+        !context.backend.demuxesEmbeddedSubtitles;
+    final externals = resolution.externalSubtitles;
+
+    final tracks = <Map<String, dynamic>>[];
+    for (final stream in streams) {
+      if ((stream['Type'] as String?)?.toLowerCase() != 'subtitle') continue;
+      final index = stream['Index'];
+      if (index is! int) continue;
+      final deliveredExternally = externals.any((s) => s.streamIndex == index);
+      tracks.add(<String, dynamic>{
+        'index': index,
+        'language': _streamString(stream, 'Language'),
+        'title': _streamString(stream, 'DisplayTitle'),
+        'codec': _streamCodec(stream),
+        'isExternal': stream['IsExternal'] == true,
+        'isForced': stream['IsForced'] == true,
+        'isHearingImpaired': stream['IsHearingImpaired'] == true,
+        'deliveryMethod': _streamString(stream, 'DeliveryMethod'),
+        'deliveredExternally': deliveredExternally,
+        'backendTrackId': TrackOrdinalMapper.mpvTrackIdForStream(
+          streamIndex: index,
+          type: 'Subtitle',
+          mediaStreams: streams,
+          externalSubtitles: externals,
+          embeddedStripped: stripped,
+        ),
+      });
+    }
+    return tracks;
   }
 
   Map<String, dynamic>? _firstStreamOfType(

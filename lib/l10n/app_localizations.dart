@@ -18861,6 +18861,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{rating} / 5'**
   String personalRatingOutOfFive(String rating);
+
+  /// Library filter for items the viewer has started but not finished.
+  ///
+  /// In en, this message translates to:
+  /// **'In Progress'**
+  String get filterInProgress;
+
+  /// Series status filter for shows that have not started airing.
+  ///
+  /// In en, this message translates to:
+  /// **'Unreleased'**
+  String get filterUnreleased;
+
+  /// Library filter for items that have a trailer.
+  ///
+  /// In en, this message translates to:
+  /// **'Trailers'**
+  String get filterTrailers;
+
+  /// Library filter for items that have bonus features.
+  ///
+  /// In en, this message translates to:
+  /// **'Extras'**
+  String get filterExtras;
+
+  /// Library filter for items that have a theme song.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme Songs'**
+  String get filterThemeSongs;
+
+  /// Library filter for items that have a theme video.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme Videos'**
+  String get filterThemeVideos;
+
+  /// Heading for the disc source filters in the library filter picker.
+  ///
+  /// In en, this message translates to:
+  /// **'Source'**
+  String get source;
+
+  /// Heading for the release year filters in the library filter picker.
+  ///
+  /// In en, this message translates to:
+  /// **'Years'**
+  String get years;
+
+  /// Heading for the audio language filters in the library filter picker.
+  ///
+  /// In en, this message translates to:
+  /// **'Audio Language'**
+  String get audioLanguage;
+
+  /// Heading for the subtitle language filters in the library filter picker.
+  ///
+  /// In en, this message translates to:
+  /// **'Subtitle Language'**
+  String get subtitleLanguage;
+
+  /// Action that turns every library filter back off.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear Filters'**
+  String get clearFilters;
 }
 
 class _AppLocalizationsDelegate

@@ -9436,5 +9436,49 @@
   "@personalRatingOutOfFive": {
     "description": "Personal rating displayed on a five-star scale.",
     "placeholders": { "rating": { "type": "String" } }
+  },
+  "filterInProgress": "In Progress",
+  "@filterInProgress": {
+    "description": "Library filter for items the viewer has started but not finished."
+  },
+  "filterUnreleased": "Unreleased",
+  "@filterUnreleased": {
+    "description": "Series status filter for shows that have not started airing."
+  },
+  "filterTrailers": "Trailers",
+  "@filterTrailers": {
+    "description": "Library filter for items that have a trailer."
+  },
+  "filterExtras": "Extras",
+  "@filterExtras": {
+    "description": "Library filter for items that have bonus features."
+  },
+  "filterThemeSongs": "Theme Songs",
+  "@filterThemeSongs": {
+    "description": "Library filter for items that have a theme song."
+  },
+  "filterThemeVideos": "Theme Videos",
+  "@filterThemeVideos": {
+    "description": "Library filter for items that have a theme video."
+  },
+  "source": "Source",
+  "@source": {
+    "description": "Heading for the disc source filters in the library filter picker."
+  },
+  "years": "Years",
+  "@years": {
+    "description": "Heading for the release year filters in the library filter picker."
+  },
+  "audioLanguage": "Audio Language",
+  "@audioLanguage": {
+    "description": "Heading for the audio language filters in the library filter picker."
+  },
+  "subtitleLanguage": "Subtitle Language",
+  "@subtitleLanguage": {
+    "description": "Heading for the subtitle language filters in the library filter picker."
+  },
+  "clearFilters": "Clear Filters",
+  "@clearFilters": {
+    "description": "Action that turns every library filter back off."
   }
 }

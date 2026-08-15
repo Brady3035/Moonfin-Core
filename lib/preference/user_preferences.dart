@@ -2433,6 +2433,63 @@ class UserPreferences extends ChangeNotifier {
   static Preference<bool> libraryFavoriteFilter(String libraryId) =>
       Preference(key: 'library_fav_filter_$libraryId', defaultValue: false);
 
+  /// The multi choice filters, each held as the selected enum names or the
+  /// selected facet values so a library reopens the way it was left.
+  static Preference<List<String>> libraryFeatureFilters(String libraryId) =>
+      Preference(
+        key: 'library_feature_filters_$libraryId',
+        defaultValue: const [],
+      );
+
+  static Preference<List<String>> libraryVideoQualityFilters(
+    String libraryId,
+  ) => Preference(
+    key: 'library_video_quality_filters_$libraryId',
+    defaultValue: const [],
+  );
+
+  static Preference<List<String>> libraryVideoSourceFilters(String libraryId) =>
+      Preference(
+        key: 'library_video_source_filters_$libraryId',
+        defaultValue: const [],
+      );
+
+  static Preference<List<String>> libraryGenreFilters(String libraryId) =>
+      Preference(
+        key: 'library_genre_filters_$libraryId',
+        defaultValue: const [],
+      );
+
+  static Preference<List<String>> libraryOfficialRatingFilters(
+    String libraryId,
+  ) => Preference(
+    key: 'library_official_rating_filters_$libraryId',
+    defaultValue: const [],
+  );
+
+  static Preference<List<String>> libraryTagFilters(String libraryId) =>
+      Preference(key: 'library_tag_filters_$libraryId', defaultValue: const []);
+
+  static Preference<List<String>> libraryYearFilters(String libraryId) =>
+      Preference(
+        key: 'library_year_filters_$libraryId',
+        defaultValue: const [],
+      );
+
+  static Preference<List<String>> libraryAudioLanguageFilters(
+    String libraryId,
+  ) => Preference(
+    key: 'library_audio_language_filters_$libraryId',
+    defaultValue: const [],
+  );
+
+  static Preference<List<String>> librarySubtitleLanguageFilters(
+    String libraryId,
+  ) => Preference(
+    key: 'library_subtitle_language_filters_$libraryId',
+    defaultValue: const [],
+  );
+
   static EnumPreference<ImageType> libraryImageType(String libraryId) =>
       EnumPreference(
         key: 'library_image_type_$libraryId',

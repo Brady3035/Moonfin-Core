@@ -566,6 +566,12 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
       'scaling',
     ]),
     style.leaf(
+      'pref_desktop_scroll_sensitivity',
+      l10n.scrollSensitivity,
+      subtitle: l10n.scrollSensitivitySubtitle,
+      keywords: ['mouse', 'wheel', 'speed', 'scrolling'],
+    ),
+    style.leaf(
       'pref_show_backdrop',
       l10n.backgroundBackdrops,
       subtitle: l10n.showBackdropImages,

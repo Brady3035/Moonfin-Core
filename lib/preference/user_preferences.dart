@@ -363,6 +363,7 @@ class UserPreferences extends ChangeNotifier {
     'pref_language_override',
     'pref_media_segment_countdown',
     'pref_media_segment_auto_hide',
+    'pref_desktop_scroll_sensitivity',
     'pref_desktop_ui_scale',
     'poster_size_library',
     'poster_size_playlist',
@@ -875,6 +876,13 @@ class UserPreferences extends ChangeNotifier {
   static final classicHomeRowsPadding = Preference<int>(
     key: 'pref_classic_home_rows_padding',
     defaultValue: 30,
+  );
+
+  /// How far a mouse wheel notch scrolls, as a percentage of what the platform
+  /// reports.
+  static final desktopScrollSensitivity = Preference(
+    key: 'pref_desktop_scroll_sensitivity',
+    defaultValue: 100,
   );
 
   static final desktopUiScale = EnumPreference(

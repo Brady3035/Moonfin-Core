@@ -18,6 +18,7 @@ import 'package:window_manager/window_manager.dart';
 
 import '../../../playback/subtitle_style.dart';
 import '../../../util/fullscreen_helper.dart';
+import '../../../util/scroll_sensitivity_binding.dart';
 import '../../widgets/playback/playback_time_row.dart';
 import '../../widgets/playback/seek_icons.dart';
 import '../../widgets/playback/trickplay_tile_image.dart';
@@ -5234,7 +5235,14 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
       _scrollWheelAccumulated = 0.0;
     }
     _scrollWheelAccumulated += dy;
-    if (_scrollWheelAccumulated.abs() < _scrollWheelNotch) return;
+    // Scroll sensitivity scales mouse deltas but leaves a trackpad alone, so
+    // the notch follows the same rule. Without it a turned down setting would
+    // take several turns to move one step, and a turned up one would make a
+    // trackpad swipe a long way for the same.
+    final notch = event.kind == PointerDeviceKind.mouse
+        ? _scrollWheelNotch * ScrollSensitivityBinding.current
+        : _scrollWheelNotch;
+    if (_scrollWheelAccumulated.abs() < notch) return;
     // scrollDelta.dy is negative when scrolling up / away from the user.
     final scrollingUp = _scrollWheelAccumulated < 0;
     _scrollWheelAccumulated = 0.0;

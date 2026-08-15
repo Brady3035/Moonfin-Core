@@ -18975,6 +18975,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'White is much brighter in HDR than in SDR, so a dimmer style here avoids the glare'**
   String get subtitleHdrSeparateSubtitle;
+
+  /// Title of the desktop setting that scales mouse wheel scrolling.
+  ///
+  /// In en, this message translates to:
+  /// **'Scroll Sensitivity'**
+  String get scrollSensitivity;
+
+  /// Explains the desktop scroll sensitivity slider.
+  ///
+  /// In en, this message translates to:
+  /// **'How far one mouse wheel notch scrolls'**
+  String get scrollSensitivitySubtitle;
 }
 
 class _AppLocalizationsDelegate

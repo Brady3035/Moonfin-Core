@@ -36,6 +36,7 @@ void main() {
     'defaultDownloadQuality',
     'defaultFavoritesFilter',
     'defaultSubtitleLanguage',
+    'desktopScrollSensitivity',
     'desktopUiScale',
     'detailButtonOrderDesktop',
     'detailButtonOrderMobile',

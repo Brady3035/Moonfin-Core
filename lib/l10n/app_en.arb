@@ -9512,5 +9512,13 @@
   "subtitleHdrSeparateSubtitle": "White is much brighter in HDR than in SDR, so a dimmer style here avoids the glare",
   "@subtitleHdrSeparateSubtitle": {
     "description": "Explains why a separate HDR subtitle style is worth setting."
+  },
+  "scrollSensitivity": "Scroll Sensitivity",
+  "@scrollSensitivity": {
+    "description": "Title of the desktop setting that scales mouse wheel scrolling."
+  },
+  "scrollSensitivitySubtitle": "How far one mouse wheel notch scrolls",
+  "@scrollSensitivitySubtitle": {
+    "description": "Explains the desktop scroll sensitivity slider."
   }
 }

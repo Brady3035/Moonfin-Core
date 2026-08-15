@@ -24,6 +24,7 @@ import 'data/services/push_messaging_service.dart';
 import 'data/services/seerr_notification_service.dart';
 import 'data/services/media_server_client_factory.dart';
 import 'data/services/storage_path_service.dart';
+import 'util/scroll_sensitivity_binding.dart';
 import 'util/webview_environment.dart';
 import 'data/services/theme_store_service.dart';
 import 'di/injection.dart';
@@ -366,6 +367,19 @@ class _ImageCacheSweepObserver with WidgetsBindingObserver {
   }
 }
 
+/// Desktop is the only place a mouse wheel is the main way to scroll, so the
+/// setting stays inert elsewhere.
+void _bindScrollSensitivity(UserPreferences prefs) {
+  if (!PlatformDetection.useDesktopUi) return;
+  void apply() {
+    (WidgetsBinding.instance as ScrollSensitivityBinding).multiplier =
+        prefs.get(UserPreferences.desktopScrollSensitivity) / 100;
+  }
+
+  apply();
+  prefs.addListener(apply);
+}
+
 class _PreferenceWriteFlushObserver with WidgetsBindingObserver {
   _PreferenceWriteFlushObserver(this._prefs);
 
@@ -399,7 +413,7 @@ Future<void> watchNextBackgroundMain() => watch_next_bg.watchNextBackgroundMain(
 
 void main() async {
   configureHttpOverrides();
-  WidgetsFlutterBinding.ensureInitialized();
+  ScrollSensitivityBinding.ensureInitialized();
 
   // Pre-warms the liquid_glass_widgets shader programs so the first glass
   // pane doesn't white-flash. Cheap no-op on tiers where the package
@@ -511,6 +525,7 @@ void main() async {
   }
 
   final prefs = GetIt.instance<UserPreferences>();
+  _bindScrollSensitivity(prefs);
   WidgetsBinding.instance.addObserver(_PreferenceWriteFlushObserver(prefs));
   WidgetsBinding.instance.addObserver(_ImageCacheSweepObserver(prefs));
   WidgetsBinding.instance.addPostFrameCallback((_) => _sweepImageCache(prefs));

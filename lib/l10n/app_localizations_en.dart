@@ -10590,6 +10590,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get subtitleHdrSeparateSubtitle =>
       'White is much brighter in HDR than in SDR, so a dimmer style here avoids the glare';
+
+  @override
+  String get scrollSensitivity => 'Scroll Sensitivity';
+
+  @override
+  String get scrollSensitivitySubtitle =>
+      'How far one mouse wheel notch scrolls';
 }
 
 /// The translations for English, as used in the United Kingdom (`en_GB`).

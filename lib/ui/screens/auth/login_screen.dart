@@ -16,6 +16,7 @@ import '../../../auth/models/server.dart';
 import '../../../auth/repositories/auth_repository.dart';
 import '../../../auth/repositories/server_repository.dart';
 import '../../../auth/repositories/session_repository.dart';
+import '../../../auth/store/authentication_store.dart';
 import '../../../data/services/media_server_client_factory.dart';
 import '../../../preference/user_preferences.dart';
 import '../../../util/focus/dpad_keys.dart';
@@ -66,6 +67,7 @@ class _LoginScreenState extends State<LoginScreen> {
   MediaServerClient? _client;
   bool _isLoading = false;
   String? _errorMessage;
+  List<String> _recentUsernames = const [];
 
   bool _supportsQuickConnect = false;
   bool _showQuickConnect = true;
@@ -102,7 +104,17 @@ class _LoginScreenState extends State<LoginScreen> {
       _usernameController.text = widget.prefillUsername!;
     }
     _setupFocusHandlers();
+    _loadRecentUsernames();
     _initServer();
+  }
+
+  /// Names that signed in on this server before, freshest first, offered as
+  /// keyboard chips so a returning user never types theirs again.
+  void _loadRecentUsernames() {
+    final users = GetIt.instance<AuthenticationStore>()
+        .getUsers(widget.serverId)
+      ..sort((a, b) => b.lastUsed.compareTo(a.lastUsed));
+    _recentUsernames = [for (final user in users) user.name];
   }
 
   @override
@@ -744,6 +756,7 @@ class _LoginScreenState extends State<LoginScreen> {
             controller: _usernameController,
             focusNode: _usernameFocus,
             label: l10n.username,
+            recentSuggestions: _recentUsernames,
             textInputAction: _hasPassword
                 ? TextInputAction.next
                 : TextInputAction.done,
@@ -794,6 +807,7 @@ class _LoginScreenState extends State<LoginScreen> {
     required FocusNode focusNode,
     required String label,
     bool obscureText = false,
+    List<String> recentSuggestions = const [],
     TextInputAction? textInputAction,
     ValueChanged<String>? onSubmitted,
   }) {
@@ -814,6 +828,7 @@ class _LoginScreenState extends State<LoginScreen> {
               inputPurpose: obscureText
                   ? InputPurpose.password
                   : InputPurpose.username,
+              recentSuggestions: recentSuggestions,
               preferSystemIme: _userPreferences.get(
                 UserPreferences.preferSystemImeKeyboard,
               ),

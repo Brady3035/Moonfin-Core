@@ -10660,6 +10660,9 @@ class AppLocalizationsPl extends AppLocalizations {
   String get personalRatingRated => 'Oceniono';
 
   @override
+  String get personalRatingMine => 'My Rating';
+
+  @override
   String get personalRatingSaveFailed => 'Nie udało się zapisać oceny';
 
   @override

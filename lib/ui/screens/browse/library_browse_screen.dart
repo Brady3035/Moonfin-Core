@@ -2083,6 +2083,7 @@ class _FocusedItemHud extends StatelessWidget {
                     ratings: ratings,
                     communityRating: item!.communityRating,
                     criticRating: item!.criticRating,
+                    personalRating: item!.personalRating,
                     enableAdditionalRatings: enableAdditionalRatings,
                     enabledRatings: enabledRatings,
                     showLabels: showLabels,
@@ -2421,7 +2422,9 @@ class _FilterSortDialogState extends State<_FilterSortDialog> {
                   LibrarySortBy.random,
                 ];
               }
-              return LibrarySortBy.itemsApiValues.where((o) =>
+              return [
+                if (vm.supportsMyRatingSort) LibrarySortBy.myRating,
+              ].followedBy(LibrarySortBy.itemsApiValues.where((o) =>
                   (!vm.isMusicBrowse ||
                       (o != LibrarySortBy.rating &&
                           o != LibrarySortBy.criticRating &&
@@ -2432,7 +2435,7 @@ class _FilterSortDialogState extends State<_FilterSortDialog> {
                   (vm.isMusicBrowse ||
                       (o != LibrarySortBy.albumArtist &&
                           o != LibrarySortBy.album &&
-                          o != LibrarySortBy.genre)));
+                          o != LibrarySortBy.genre))));
             }())
               _DialogRadioTile(
                 label: () {
@@ -2501,6 +2504,20 @@ class _FilterSortDialogState extends State<_FilterSortDialog> {
                 onSurface: onSurface,
               ),
             ],
+            Divider(color: dividerColor),
+            _sectionHeader(l10n.personalRatingMine, sectionColor),
+            for (final status in LikedStatusFilter.values)
+              _DialogRadioTile(
+                label: switch (status) {
+                  LikedStatusFilter.all => l10n.all,
+                  LikedStatusFilter.liked => l10n.like,
+                  LikedStatusFilter.disliked => l10n.dislike,
+                },
+                selected: vm.likedFilter == status,
+                onTap: () => vm.setLikedFilter(status),
+                accent: accent,
+                onSurface: onSurface,
+              ),
             if (vm.isSeriesLibrary) ...[
               Divider(color: dividerColor),
               _sectionHeader(l10n.seriesStatus, sectionColor),

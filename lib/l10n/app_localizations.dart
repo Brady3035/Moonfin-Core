@@ -18826,6 +18826,12 @@ abstract class AppLocalizations {
   /// **'Rated'**
   String get personalRatingRated;
 
+  /// Label under the viewer's own rating in the ratings row.
+  ///
+  /// In en, this message translates to:
+  /// **'My Rating'**
+  String get personalRatingMine;
+
   /// Error shown when saving a personal rating fails.
   ///
   /// In en, this message translates to:

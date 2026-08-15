@@ -10656,6 +10656,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get personalRatingRated => 'Beoordeeld';
 
   @override
+  String get personalRatingMine => 'My Rating';
+
+  @override
   String get personalRatingSaveFailed => 'Kon de beoordeling niet opslaan';
 
   @override

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
+import 'package:get_it/get_it.dart';
 import 'package:server_core/server_core.dart' hide ImageType;
 
 import '../../preference/preference_constants.dart';
@@ -8,6 +9,8 @@ import '../../preference/user_preferences.dart';
 import '../../util/parental_rating_severity.dart';
 import '../models/aggregated_item.dart';
 import '../repositories/mdblist_repository.dart';
+import '../services/plugin_sync_service.dart';
+import '../services/user_ratings_api.dart';
 import '../utils/alphabet_bucket.dart';
 import '../utils/bounded_concurrency.dart';
 import '../utils/playlist_utils.dart';
@@ -111,6 +114,15 @@ class LibraryBrowseViewModel extends ChangeNotifier {
 
   late PlayedStatusFilter _playedFilter;
   PlayedStatusFilter get playedFilter => _playedFilter;
+
+  late LikedStatusFilter _likedFilter;
+  LikedStatusFilter get likedFilter => _likedFilter;
+
+  /// Whether the My Rating sort can actually be served, which needs the
+  /// Moonfin plugin on the server.
+  bool get supportsMyRatingSort =>
+      GetIt.instance.isRegistered<PluginSyncService>() &&
+      GetIt.instance<PluginSyncService>().pluginAvailable;
 
   late SeriesStatusFilter _seriesFilter;
   SeriesStatusFilter get seriesFilter => _seriesFilter;
@@ -329,6 +341,7 @@ class LibraryBrowseViewModel extends ChangeNotifier {
     _sortBy = _prefs.get(UserPreferences.librarySortBy(_prefKey));
     _sortDirection = _prefs.get(UserPreferences.librarySortDirection(_prefKey));
     _playedFilter = _prefs.get(UserPreferences.libraryPlayedFilter(_prefKey));
+    _likedFilter = _prefs.get(UserPreferences.libraryLikedFilter(_prefKey));
     _seriesFilter = _prefs.get(UserPreferences.librarySeriesFilter(_prefKey));
     _favoriteFilter =
         favoritesOnly ||
@@ -544,6 +557,11 @@ class LibraryBrowseViewModel extends ChangeNotifier {
     } else if (_playedFilter == PlayedStatusFilter.unwatched) {
       filters.add('IsUnplayed');
     }
+    if (_likedFilter == LikedStatusFilter.liked) {
+      filters.add('Likes');
+    } else if (_likedFilter == LikedStatusFilter.disliked) {
+      filters.add('Dislikes');
+    }
 
     final seriesStatus = <String>[];
     if (_seriesFilter == SeriesStatusFilter.continuing) {
@@ -652,8 +670,31 @@ class LibraryBrowseViewModel extends ChangeNotifier {
       sortBy = 'SortName';
     }
 
+    // Everything the user rated loads as one page, since the plugin serves
+    // ids and scores rather than a paged, sorted stream. With the endpoint
+    // unreachable this stays null and the browse falls back to the normal
+    // name sort instead of presenting an empty library.
+    Map<String, dynamic>? myRatingResponse;
+    if (_sortBy == LibrarySortBy.myRating &&
+        !isAlbumArtistBrowse &&
+        !isArtistBrowse) {
+      myRatingResponse = startIndex == 0
+          ? await _fetchAllByMyRating(
+              includeItemTypes: includeTypes,
+              excludeItemTypes: excludeTypes,
+              filters: filters,
+              fields: _browseFields,
+            )
+          : <String, dynamic>{
+              'Items': const <dynamic>[],
+              'TotalRecordCount': _items.length,
+            };
+    }
+
     final Map<String, dynamic> response;
-    if (isAlbumArtistBrowse) {
+    if (myRatingResponse != null) {
+      response = myRatingResponse;
+    } else if (isAlbumArtistBrowse) {
       response = await _client.itemsApi.getAlbumArtists(
         parentId: _effectiveParentId,
         userId: _client.userId,
@@ -755,6 +796,67 @@ class LibraryBrowseViewModel extends ChangeNotifier {
     } else {
       _items = [..._items, ...filtered];
     }
+  }
+
+  /// Loads every item the user rated, ordered by their score, through the
+  /// plugin's ratings endpoint plus id lookups. The id fetches keep the
+  /// parent, type and filter constraints so the result stays scoped to the
+  /// library being browsed. Null when the endpoint is unreachable, which the
+  /// caller treats as the sort being unavailable.
+  Future<Map<String, dynamic>?> _fetchAllByMyRating({
+    required String fields,
+    List<String>? includeItemTypes,
+    List<String>? excludeItemTypes,
+    List<String>? filters,
+  }) async {
+    final ratings = await fetchMyUserRatings(_client);
+    if (ratings == null) return null;
+    if (ratings.isEmpty) {
+      return {'Items': const <dynamic>[], 'TotalRecordCount': 0};
+    }
+
+    final ascending = _sortDirection == SortDirection.ascending;
+    final entries = ratings.entries.toList()
+      ..sort((a, b) {
+        final byRating = ascending
+            ? a.value.compareTo(b.value)
+            : b.value.compareTo(a.value);
+        // Ties settle on the id so the order survives a reload.
+        return byRating != 0 ? byRating : a.key.compareTo(b.key);
+      });
+
+    final byId = <String, Map<String, dynamic>>{};
+    const chunkSize = 100;
+    for (var i = 0; i < entries.length; i += chunkSize) {
+      final chunk = [
+        for (final entry in entries.skip(i).take(chunkSize)) entry.key,
+      ];
+      final response = await _client.itemsApi.getItems(
+        ids: chunk,
+        parentId: _effectiveParentId,
+        genreIds: genreId != null ? [genreId!] : null,
+        studios: studioName != null ? [studioName!] : null,
+        recursive: true,
+        includeItemTypes: includeItemTypes,
+        excludeItemTypes: excludeItemTypes,
+        filters: (filters?.isEmpty ?? true) ? null : filters,
+        isFavorite: _favoriteFilter ? true : null,
+        fields: fields,
+      );
+      for (final raw in (response['Items'] as List?) ?? const []) {
+        if (raw is! Map) continue;
+        final id = raw['Id']?.toString();
+        if (id != null && id.isNotEmpty) {
+          byId[id] = raw.cast<String, dynamic>();
+        }
+      }
+    }
+
+    final ordered = [
+      for (final entry in entries)
+        if (byId.containsKey(entry.key)) byId[entry.key]!,
+    ];
+    return {'Items': ordered, 'TotalRecordCount': ordered.length};
   }
 
   Future<Map<String, dynamic>> _fetchItemsWithFallback({
@@ -884,6 +986,13 @@ class LibraryBrowseViewModel extends ChangeNotifier {
     if (_playedFilter == value) return;
     _playedFilter = value;
     await _prefs.set(UserPreferences.libraryPlayedFilter(_prefKey), value);
+    await load();
+  }
+
+  Future<void> setLikedFilter(LikedStatusFilter value) async {
+    if (_likedFilter == value) return;
+    _likedFilter = value;
+    await _prefs.set(UserPreferences.libraryLikedFilter(_prefKey), value);
     await load();
   }
 
@@ -1167,6 +1276,8 @@ class LibraryBrowseViewModel extends ChangeNotifier {
     if (_playedFilter == PlayedStatusFilter.unwatched) {
       parts.add(isBookLibrary ? 'Unread' : 'Unwatched');
     }
+    if (_likedFilter == LikedStatusFilter.liked) parts.add('Liked');
+    if (_likedFilter == LikedStatusFilter.disliked) parts.add('Disliked');
     if (_seriesFilter == SeriesStatusFilter.continuing) parts.add('Continuing');
     if (_seriesFilter == SeriesStatusFilter.ended) parts.add('Ended');
     if (_letterFilter.isNotEmpty) parts.add('Starting with $_letterFilter');

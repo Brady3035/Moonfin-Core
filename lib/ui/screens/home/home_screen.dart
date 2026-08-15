@@ -4927,6 +4927,7 @@ class _ContentRowsState extends State<_ContentRows>
                         ratings: additionalRatings,
                         communityRating: item.communityRating,
                         criticRating: item.criticRating,
+                        personalRating: item.personalRating,
                         enableAdditionalRatings: widget.prefs.get(
                           UserPreferences.enableAdditionalRatings,
                         ),

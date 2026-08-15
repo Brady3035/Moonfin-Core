@@ -8,6 +8,7 @@ import 'package:get_it/get_it.dart';
 import 'package:playback_core/playback_core.dart';
 import 'package:server_core/server_core.dart';
 
+import '../../auth/repositories/session_repository.dart';
 import '../../util/platform_detection.dart';
 import 'sync_service.dart';
 
@@ -128,9 +129,17 @@ class ConnectivityService extends ChangeNotifier {
     }
     final syncService = getIt<SyncService>();
     final client = getIt<MediaServerClient>();
-    syncService.syncPlaybackProgress(client).then((_) {
-      syncService.refreshMetadata(client);
-    });
+    final serverId = getIt.isRegistered<SessionRepository>()
+        ? getIt<SessionRepository>().activeServerId
+        : null;
+    // Ratings push first, so the metadata refresh at the end of the chain
+    // pulls back items that already carry them.
+    syncService
+        .syncPendingRatings(client, serverId: serverId)
+        .then((_) => syncService.syncPlaybackProgress(client))
+        .then((_) {
+          syncService.refreshMetadata(client);
+        });
   }
 
   bool _isForegroundOrPlaying() {

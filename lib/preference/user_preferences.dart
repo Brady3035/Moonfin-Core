@@ -2414,6 +2414,14 @@ class UserPreferences extends ChangeNotifier {
     values: PlayedStatusFilter.values,
   );
 
+  static EnumPreference<LikedStatusFilter> libraryLikedFilter(
+    String libraryId,
+  ) => EnumPreference(
+    key: 'library_liked_filter_$libraryId',
+    defaultValue: LikedStatusFilter.all,
+    values: LikedStatusFilter.values,
+  );
+
   static EnumPreference<SeriesStatusFilter> librarySeriesFilter(
     String libraryId,
   ) => EnumPreference(

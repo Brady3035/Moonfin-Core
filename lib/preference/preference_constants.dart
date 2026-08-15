@@ -422,6 +422,11 @@ enum LibrarySortBy {
   random('Random', 'Random'),
   criticRating('CriticRating', 'Critic Rating'),
   communityRating('CommunityRating', 'Community Rating'),
+
+  /// Served by the Moonfin plugin rather than the Items API, since neither
+  /// server sorts on the user's own rating. The api value is the fallback for
+  /// consumers without the dedicated path.
+  myRating('SortName', 'My Rating', usesDedicatedEndpoint: true),
   albumArtist('AlbumArtist,Album,SortName', 'Album Artist'),
   album('Album,SortName', 'Album'),
   genre('Genre,SortName', 'Genre');
@@ -486,6 +491,14 @@ enum PlayedStatusFilter {
   all,
   watched,
   unwatched,
+}
+
+/// Filters a library on the viewer's own like or dislike, which both server
+/// types expose as the Likes and Dislikes item filters.
+enum LikedStatusFilter {
+  all,
+  liked,
+  disliked,
 }
 
 enum SeriesStatusFilter {

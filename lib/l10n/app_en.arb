@@ -9411,6 +9411,10 @@
   "@personalRatingRated": {
     "description": "Tooltip for a media item that has a numeric personal rating."
   },
+  "personalRatingMine": "My Rating",
+  "@personalRatingMine": {
+    "description": "Label under the viewer's own rating in the ratings row."
+  },
   "personalRatingSaveFailed": "Could not save rating",
   "@personalRatingSaveFailed": {
     "description": "Error shown when saving a personal rating fails."

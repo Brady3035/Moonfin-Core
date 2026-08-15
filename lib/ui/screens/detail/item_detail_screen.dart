@@ -127,6 +127,24 @@ void _animateScrollToTop(ScrollPosition position) {
 const _destructiveRed = Color(0xFFD32F2F);
 const _destructiveRedDim = Color(0xFFB71C1C);
 
+/// Types a personal rating can attach to. The servers store user data per
+/// item, so a series, season and episode each carry their own rating with no
+/// propagation between them. People, photos and playlists stay out.
+const _ratableItemTypes = {
+  'Movie',
+  'Series',
+  'Season',
+  'Episode',
+  'Video',
+  'MusicVideo',
+  'MusicAlbum',
+  'MusicArtist',
+  'Audio',
+  'AudioBook',
+  'Book',
+  'BoxSet',
+};
+
 String _deleteFailureMessage(
   AppLocalizations l10n,
   DeleteItemFailure failure, {
@@ -3941,12 +3959,14 @@ class _HeaderSection extends StatelessWidget {
         ),
         if (viewModel.ratings.isNotEmpty ||
             item.communityRating != null ||
-            item.criticRating != null) ...[
+            item.criticRating != null ||
+            item.personalRating != null) ...[
           const SizedBox(height: 8),
           RatingsRow(
             ratings: viewModel.ratings,
             communityRating: item.communityRating,
             criticRating: item.criticRating,
+            personalRating: item.personalRating,
             enableAdditionalRatings: prefs.get(
               UserPreferences.enableAdditionalRatings,
             ),
@@ -6384,7 +6404,8 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
           isActive: item.isFavorite,
           activeColor: const Color(0xFFFF4757),
         ),
-      if (item.type == 'Movie' && shows(DetailButton.personalRating))
+      if (_ratableItemTypes.contains(item.type) &&
+          shows(DetailButton.personalRating))
         DetailButton.personalRating: _DetailActionButton(
           label: _personalRatingActionLabel(l10n, item),
           icon: switch (_personalRatingStyle()) {

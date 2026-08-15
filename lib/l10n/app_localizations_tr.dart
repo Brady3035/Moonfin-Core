@@ -10606,6 +10606,9 @@ class AppLocalizationsTr extends AppLocalizations {
   String get personalRatingRated => 'Derecelendirilmiş';
 
   @override
+  String get personalRatingMine => 'My Rating';
+
+  @override
   String get personalRatingSaveFailed => 'Derecelendirme kaydedilemedi';
 
   @override

@@ -200,16 +200,17 @@ Future<Map<String, dynamic>?> _queryCodecCaps(MethodChannel channel) async {
   return raw?.map((key, value) => MapEntry(key.toString(), value));
 }
 
-/// Re-probes in the background when the startup result looked degenerate.
-/// The native query enumerates codecs on the platform main thread, so the
-/// retries must never extend the launch path. The device profile is built
-/// per playback, so a corrected result applied here still fixes the next
-/// playback without a restart.
+/// Re-probes in the background when the startup probe threw or came back
+/// looking wrong. The native query enumerates codecs on the platform main
+/// thread, so the retries must never extend the launch path. The device
+/// profile is built per playback, so a corrected result applied here still
+/// fixes the next playback without a restart.
 ///
 /// Backs off between attempts, since enumeration loses the race when the
-/// device is busiest right after boot. Whatever the outcome the AVC floor
-/// stays in place, so giving up degrades to extra transcodes rather than to
-/// failed playback.
+/// device is busiest right after boot. Every sound result is applied as it
+/// arrives, and the retries only stop early once one carries HEVC, since a
+/// result without it is either a partial enumeration worth another look or a
+/// device that really lacks the decoder and loses nothing to the re-probes.
 Future<void> _retryCodecCapsOffLaunchPath(MethodChannel channel) async {
   var delay = const Duration(seconds: 2);
   for (var i = 0; i < 4; i++) {
@@ -217,10 +218,9 @@ Future<void> _retryCodecCapsOffLaunchPath(MethodChannel channel) async {
     delay *= 2;
     try {
       final caps = await _queryCodecCaps(channel);
-      if (caps != null && !codecCapsLookDegenerate(caps)) {
-        PlatformDetection.setMediaCodecCapabilities(caps);
-        return;
-      }
+      if (caps == null || codecCapsLookDegenerate(caps)) continue;
+      PlatformDetection.setMediaCodecCapabilities(caps);
+      if (!codecCapsLookIncomplete(caps)) return;
     } catch (_) {
       // A failed probe says nothing about the next one, so keep trying.
     }
@@ -229,9 +229,8 @@ Future<void> _retryCodecCapsOffLaunchPath(MethodChannel channel) async {
 
 Future<void> _detectAndSetCodecCapabilities() async {
   if (!PlatformDetection.isAndroid) return;
+  const channel = MethodChannel('org.moonfin.androidtv/platform');
   try {
-    const channel = MethodChannel('org.moonfin.androidtv/platform');
-
     final codecCaps = await _queryCodecCaps(channel);
     if (codecCaps != null) {
       // A degenerate cold-start result would otherwise poison the device
@@ -241,7 +240,10 @@ Future<void> _detectAndSetCodecCapabilities() async {
       PlatformDetection.setMediaCodecCapabilities(
         degenerate ? withAvcFloor(codecCaps) : codecCaps,
       );
-      if (degenerate) {
+      // A result that cleared the AVC check can still be a partial
+      // enumeration, seen in the field as a box whose HEVC decoder vanished
+      // for one launch and every HEVC library transcoding until a restart.
+      if (degenerate || codecCapsLookIncomplete(codecCaps)) {
         unawaited(_retryCodecCapsOffLaunchPath(channel));
       }
       return;
@@ -255,7 +257,15 @@ Future<void> _detectAndSetCodecCapabilities() async {
         (key, value) => MapEntry(key.toString(), value == true),
       ),
     );
-  } catch (_) {}
+  } catch (_) {
+    // A probe that never answered, like a channel hit before the plugin
+    // registered, leaves every codec flag false and the profile claiming the
+    // device decodes nothing. The floor keeps transcodes playable in the
+    // meantime and the retries are the same recovery a degenerate answer
+    // gets.
+    PlatformDetection.setMediaCodecCapabilities(withAvcFloor(const {}));
+    unawaited(_retryCodecCapsOffLaunchPath(channel));
+  }
 }
 
 Future<void> _detectAndSetAetherCapabilities() async {

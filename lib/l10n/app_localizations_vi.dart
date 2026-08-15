@@ -10671,4 +10671,11 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get seerrRuntime => 'Runtime';
+
+  @override
+  String get subtitleHdrSeparate => 'Separate HDR Style';
+
+  @override
+  String get subtitleHdrSeparateSubtitle =>
+      'White is much brighter in HDR than in SDR, so a dimmer style here avoids the glare';
 }

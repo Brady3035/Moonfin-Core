@@ -389,6 +389,13 @@ class UserPreferences extends ChangeNotifier {
     'subtitles_text_size',
     'subtitles_offset_position',
     'subtitles_default_to_none',
+    'subtitles_hdr_separate',
+    'subtitles_hdr_background_color',
+    'subtitles_hdr_text_weight',
+    'subtitles_hdr_text_color',
+    'subtitles_hdr_text_stroke_color',
+    'subtitles_hdr_text_size',
+    'subtitles_hdr_offset_position',
     'subtitles_use_embedded_styles',
     'subtitles_use_embedded_font_sizes',
     'prefer_sdh_subtitles',
@@ -1733,6 +1740,43 @@ class UserPreferences extends ChangeNotifier {
 
   static final subtitlesOffsetPosition = Preference(
     key: 'subtitles_offset_position',
+    defaultValue: 0.04,
+  );
+
+  /// A second appearance used only while HDR reaches the screen, defaulting to
+  /// grey text since white reads far brighter in HDR than in SDR.
+  static final subtitlesHdrSeparate = Preference(
+    key: 'subtitles_hdr_separate',
+    defaultValue: false,
+  );
+
+  static final subtitlesHdrBackgroundColor = Preference(
+    key: 'subtitles_hdr_background_color',
+    defaultValue: 0x00000000,
+  );
+
+  static final subtitlesHdrTextWeight = Preference(
+    key: 'subtitles_hdr_text_weight',
+    defaultValue: 400,
+  );
+
+  static final subtitlesHdrTextColor = Preference(
+    key: 'subtitles_hdr_text_color',
+    defaultValue: 0xFF808080,
+  );
+
+  static final subtitlesHdrTextStrokeColor = Preference(
+    key: 'subtitles_hdr_text_stroke_color',
+    defaultValue: 0xFF000000,
+  );
+
+  static final subtitlesHdrTextSize = Preference(
+    key: 'subtitles_hdr_text_size',
+    defaultValue: 20.0,
+  );
+
+  static final subtitlesHdrOffsetPosition = Preference(
+    key: 'subtitles_hdr_offset_position',
     defaultValue: 0.04,
   );
 

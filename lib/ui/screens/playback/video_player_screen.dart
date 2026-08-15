@@ -16,6 +16,7 @@ import 'package:screen_brightness_platform_interface/screen_brightness_platform_
 import 'package:volume_controller/volume_controller.dart';
 import 'package:window_manager/window_manager.dart';
 
+import '../../../playback/subtitle_style.dart';
 import '../../../util/fullscreen_helper.dart';
 import '../../widgets/playback/playback_time_row.dart';
 import '../../widgets/playback/seek_icons.dart';
@@ -2908,14 +2909,16 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
   }
 
   SubtitleViewConfiguration _buildSubtitleConfig() {
-    final textColor = Color(_prefs.get(UserPreferences.subtitlesTextColor));
-    final bgColor = Color(_prefs.get(UserPreferences.subtitlesBackgroundColor));
-    final strokeColor = Color(
-      _prefs.get(UserPreferences.subtitleTextStrokeColor),
+    final style = SubtitleStyle.forResolution(
+      _prefs,
+      _manager.currentResolution,
     );
-    final prefSize = _prefs.get(UserPreferences.subtitlesTextSize);
-    final fontWeight = _prefs.get(UserPreferences.subtitlesTextWeight);
-    final offset = _prefs.get(UserPreferences.subtitlesOffsetPosition);
+    final textColor = Color(style.textColor);
+    final bgColor = Color(style.backgroundColor);
+    final strokeColor = Color(style.strokeColor);
+    final prefSize = style.fontSize;
+    final fontWeight = style.fontWeight;
+    final offset = style.verticalOffset;
 
     final baseSize = PlatformDetection.useMobileUi ? 40.0 : 32.0;
     final fontSize = (prefSize / 24.0) * baseSize;
@@ -2961,14 +2964,16 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
     final backend = _activeBackend;
     if (backend == null) return;
 
-    final textColor = _prefs.get(UserPreferences.subtitlesTextColor);
-    final backgroundColor = _prefs.get(
-      UserPreferences.subtitlesBackgroundColor,
+    final style = SubtitleStyle.forResolution(
+      _prefs,
+      _manager.currentResolution,
     );
-    final strokeColor = _prefs.get(UserPreferences.subtitleTextStrokeColor);
-    final fontSize = _prefs.get(UserPreferences.subtitlesTextSize);
-    final fontWeight = _prefs.get(UserPreferences.subtitlesTextWeight);
-    final verticalOffset = _prefs.get(UserPreferences.subtitlesOffsetPosition);
+    final textColor = style.textColor;
+    final backgroundColor = style.backgroundColor;
+    final strokeColor = style.strokeColor;
+    final fontSize = style.fontSize;
+    final fontWeight = style.fontWeight;
+    final verticalOffset = style.verticalOffset;
 
     // Embedded-style overrides are Media3-specific (Android only) and live on
     // the Media3PlayerBackend's wider signature, not the base PlayerBackend.

@@ -18963,6 +18963,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Runtime'**
   String get seerrRuntime;
+
+  /// Toggle for a second subtitle appearance used only while HDR is playing.
+  ///
+  /// In en, this message translates to:
+  /// **'Separate HDR Style'**
+  String get subtitleHdrSeparate;
+
+  /// Explains why a separate HDR subtitle style is worth setting.
+  ///
+  /// In en, this message translates to:
+  /// **'White is much brighter in HDR than in SDR, so a dimmer style here avoids the glare'**
+  String get subtitleHdrSeparateSubtitle;
 }
 
 class _AppLocalizationsDelegate

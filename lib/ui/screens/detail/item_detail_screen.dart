@@ -5713,15 +5713,52 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
     _focusTarget(widget.downTarget, alignment: 0.42);
   }
 
+  /// The width both button kinds are laid out at when focused, and the one the
+  /// circles are actually capped to.
+  static const _modernFocusedFloor = 200.0;
+
+  /// The width the focused Play pill actually takes, which is its label plus
+  /// the icon, the gap and the padding around them. The circles are capped at
+  /// [_modernFocusedFloor] but the pill only has that as a floor, so a long
+  /// label makes it wider and the row has to be measured against the real
+  /// thing rather than the floor.
+  double _modernPlayFocusedWidth(String? label) {
+    if (label == null) return _modernFocusedFloor;
+    // Matching what _buildModernChild lays out around the label.
+    const iconWidth = 24.0;
+    const iconGap = 2.0;
+    const horizontalPadding = 24.0;
+    final painter = TextPainter(
+      text: TextSpan(
+        text: label,
+        // The second line of a two line label is a point smaller, so measuring
+        // both at the larger size can only leave room to spare.
+        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+          fontWeight: FontWeight.bold,
+          fontSize: 13,
+          height: 1.1,
+        ),
+      ),
+      textDirection: Directionality.of(context),
+      textScaler: MediaQuery.textScalerOf(context),
+    )..layout();
+    final measured = painter.width + iconWidth + iconGap + horizontalPadding;
+    painter.dispose();
+    return measured < _modernFocusedFloor ? _modernFocusedFloor : measured;
+  }
+
   /// The widest a modern row of [buttonCount] buttons can get. Only one
   /// button is focused at a time, so the worst case is everything at rest
   /// except the one grown to its focused width, whichever of the two that
   /// leaves wider. The sizes match what _buildModernChild lays out.
-  double _modernRowWorstWidth(int buttonCount, double spacing) {
+  double _modernRowWorstWidth(
+    int buttonCount,
+    double spacing,
+    double playFocused,
+  ) {
     const playResting = 54.0;
-    const playFocused = 200.0;
     const circleResting = 52.0;
-    const circleFocused = 200.0;
+    const circleFocused = _modernFocusedFloor;
 
     final circles = buttonCount - 1;
     if (circles <= 0) return playFocused;
@@ -6655,8 +6692,18 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
     // column and behind the Next Up card. Hosts that do not report a width
     // fall back to the count for this device.
     final rowBudget = widget.rowMaxWidth;
+    final playLabel = allButtons
+        .whereType<_DetailActionButton>()
+        .where((button) => button.isPrimary)
+        .map((button) => button.label)
+        .firstOrNull;
     final fitsOneLine = widget.modernStyle && rowBudget != null
-        ? _modernRowWorstWidth(allButtons.length, buttonSpacing) <= rowBudget
+        ? _modernRowWorstWidth(
+                allButtons.length,
+                buttonSpacing,
+                _modernPlayFocusedWidth(playLabel),
+              ) <=
+              rowBudget
         : allButtons.length <= maxVisible;
 
     if (isTwoColumnLayout && fitsOneLine) {

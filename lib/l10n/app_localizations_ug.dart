@@ -3489,6 +3489,13 @@ class AppLocalizationsUg extends AppLocalizations {
   String get recentlyReleased => 'يېقىندا ئېلان قىلىندى';
 
   @override
+  String get recentlyReleasedSeriesType => 'Recently Released Series Type';
+
+  @override
+  String get recentlyReleasedSeriesTypeDescription =>
+      'What to show in recently released row for tv show libraries';
+
+  @override
   String get myMedia => 'مېنىڭ مېدىيا';
 
   @override

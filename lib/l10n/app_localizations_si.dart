@@ -3479,7 +3479,8 @@ class AppLocalizationsSi extends AppLocalizations {
   String get recentlyReleased => 'මෑතකදී නිකුත් කරන ලදී';
 
   @override
-  String get recentlyReleasedSeriesType => 'Recently Released Series Type';
+  String get recentlyReleasedSeriesType =>
+      'Recently Released Series Filter Type';
 
   @override
   String get recentlyReleasedSeriesTypeDescription =>

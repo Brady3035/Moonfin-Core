@@ -3362,7 +3362,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get recentlyReleased => '近期发布';
 
   @override
-  String get recentlyReleasedSeriesType => 'Recently Released Series Type';
+  String get recentlyReleasedSeriesType =>
+      'Recently Released Series Filter Type';
 
   @override
   String get recentlyReleasedSeriesTypeDescription =>

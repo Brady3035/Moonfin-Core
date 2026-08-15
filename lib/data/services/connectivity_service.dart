@@ -113,7 +113,16 @@ class ConnectivityService extends ChangeNotifier {
     _triggerSync();
   }
 
+  /// Every path that reports the network came back lands here, and that is
+  /// the moment a socket part way through its backoff should stop waiting.
+  void _nudgeSocket() {
+    final getIt = GetIt.instance;
+    if (!getIt.isRegistered<SessionRepository>()) return;
+    getIt<SessionRepository>().onNetworkRegained();
+  }
+
   void _triggerSync() {
+    _nudgeSocket();
     // Every network flip lands here, and the full progress and metadata sync
     // keeps the radio and CPU busy on a device nobody is looking at. Defer it
     // until the app is visible again, unless playback is active and progress

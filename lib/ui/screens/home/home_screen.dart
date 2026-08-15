@@ -24,6 +24,7 @@ import '../../../data/models/aggregated_item.dart';
 import '../../../data/models/home_row.dart';
 import '../../../data/repositories/mdblist_repository.dart';
 import '../../../data/repositories/seerr_repository.dart';
+import '../../widgets/seerr/seerr_shortcuts.dart';
 import '../../../data/services/background_service.dart';
 import '../../widgets/rating_display.dart';
 import '../../../data/services/theme_music_service.dart';
@@ -5123,6 +5124,7 @@ class _ContentRowsState extends State<_ContentRows>
   }
 
   static bool _isSeerrFilterRow(HomeRow row) =>
+      row.id == 'seerr_shortcuts' ||
       row.id == 'seerr_movie_genres' ||
       row.id == 'seerr_series_genres' ||
       row.id == 'seerr_studios' ||
@@ -5135,6 +5137,13 @@ class _ContentRowsState extends State<_ContentRows>
   }
 
   static void _navigateToSeerrItem(BuildContext context, AggregatedItem item) {
+    final shortcut = SeerrShortcut.fromName(
+      item.rawData['SeerrShortcut'] as String?,
+    );
+    if (shortcut != null) {
+      shortcut.open(context);
+      return;
+    }
     final filterType = item.rawData['FilterType'] as String?;
     if (filterType != null) {
       final mediaType = item.rawData['MediaType'] as String? ?? 'movie';

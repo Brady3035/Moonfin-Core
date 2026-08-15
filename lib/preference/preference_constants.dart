@@ -359,6 +359,7 @@ enum HomeSectionType {
   genres('genres'),
   studios('studios'),
   liveTv('livetv'),
+  seerrShortcuts('seerr_shortcuts'),
   seerrRecentRequests('seerr_recent_requests'),
   seerrWatchlist('seerr_watchlist'),
   seerrRecentlyAdded('seerr_recently_added'),
@@ -681,6 +682,7 @@ enum SeerrFetchLimit {
 }
 
 enum SeerrRowType {
+  shortcuts('shortcuts'),
   recentRequests('recent_requests'),
   yourWatchlist('watchlist'),
   recentlyAdded('recently_added'),
@@ -706,6 +708,7 @@ enum SeerrRowType {
 
 extension SeerrRowTypeHomeSection on SeerrRowType {
   HomeSectionType get homeSectionType => switch (this) {
+        SeerrRowType.shortcuts => HomeSectionType.seerrShortcuts,
         SeerrRowType.recentRequests => HomeSectionType.seerrRecentRequests,
         SeerrRowType.yourWatchlist => HomeSectionType.seerrWatchlist,
         SeerrRowType.recentlyAdded => HomeSectionType.seerrRecentlyAdded,
@@ -723,6 +726,7 @@ extension SeerrRowTypeHomeSection on SeerrRowType {
 
 extension HomeSectionTypeSeerrRow on HomeSectionType {
   SeerrRowType? get seerrRowType => switch (this) {
+        HomeSectionType.seerrShortcuts => SeerrRowType.shortcuts,
         HomeSectionType.seerrRecentRequests => SeerrRowType.recentRequests,
         HomeSectionType.seerrWatchlist => SeerrRowType.yourWatchlist,
         HomeSectionType.seerrRecentlyAdded => SeerrRowType.recentlyAdded,

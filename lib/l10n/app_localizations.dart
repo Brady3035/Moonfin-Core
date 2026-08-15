@@ -18927,6 +18927,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Clear Filters'**
   String get clearFilters;
+
+  /// Title of the Seerr shortcuts row that jumps to Discover, Movies, Series, Requests and Issues.
+  ///
+  /// In en, this message translates to:
+  /// **'Seerr Browse'**
+  String get seerrShortcutsRow;
+
+  /// Heading for the release window filter in the Seerr browse dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Released'**
+  String get seerrReleased;
+
+  /// Heading for the TMDB score floor filter in the Seerr browse dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum Rating'**
+  String get seerrMinRating;
+
+  /// Heading for the TMDB vote count floor filter in the Seerr browse dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum Votes'**
+  String get seerrMinVotes;
+
+  /// Heading for the original language filter in the Seerr browse dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Original Language'**
+  String get seerrOriginalLanguage;
+
+  /// Heading for the runtime window filter in the Seerr browse dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Runtime'**
+  String get seerrRuntime;
 }
 
 class _AppLocalizationsDelegate

@@ -9480,5 +9480,29 @@
   "clearFilters": "Clear Filters",
   "@clearFilters": {
     "description": "Action that turns every library filter back off."
+  },
+  "seerrShortcutsRow": "Seerr Browse",
+  "@seerrShortcutsRow": {
+    "description": "Title of the Seerr shortcuts row that jumps to Discover, Movies, Series, Requests and Issues."
+  },
+  "seerrReleased": "Released",
+  "@seerrReleased": {
+    "description": "Heading for the release window filter in the Seerr browse dialog."
+  },
+  "seerrMinRating": "Minimum Rating",
+  "@seerrMinRating": {
+    "description": "Heading for the TMDB score floor filter in the Seerr browse dialog."
+  },
+  "seerrMinVotes": "Minimum Votes",
+  "@seerrMinVotes": {
+    "description": "Heading for the TMDB vote count floor filter in the Seerr browse dialog."
+  },
+  "seerrOriginalLanguage": "Original Language",
+  "@seerrOriginalLanguage": {
+    "description": "Heading for the original language filter in the Seerr browse dialog."
+  },
+  "seerrRuntime": "Runtime",
+  "@seerrRuntime": {
+    "description": "Heading for the runtime window filter in the Seerr browse dialog."
   }
 }

@@ -35,6 +35,13 @@ class UserPreferences extends ChangeNotifier {
     mediaBarModeOff,
   };
 
+  // Where the bar draws its titles from. Every source still passes through the
+  // library, collection, content type and genre filters, and still picks its
+  // slides at random out of what comes back.
+  static const mediaBarSourceRandom = 'random';
+  static const mediaBarSourceRecentlyAdded = 'recentlyAdded';
+  static const mediaBarSourceRecentlyReleased = 'recentlyReleased';
+
   final PreferenceStore _store;
 
   UserPreferences(this._store) {
@@ -439,6 +446,7 @@ class UserPreferences extends ChangeNotifier {
     'mediaBarEnabled',
     'mediaBarMode',
     'mediaBarContentType',
+    'mediaBarSourceType',
     'mediaBarItemCount',
     'mediaBarOverlayOpacity',
     'mediaBarOverlayColor',
@@ -1959,6 +1967,11 @@ class UserPreferences extends ChangeNotifier {
   static final mediaBarContentType = Preference(
     key: 'mediaBarContentType',
     defaultValue: 'both',
+  );
+
+  static final mediaBarSourceType = Preference(
+    key: 'mediaBarSourceType',
+    defaultValue: mediaBarSourceRandom,
   );
 
   static final mediaBarItemCount = Preference(

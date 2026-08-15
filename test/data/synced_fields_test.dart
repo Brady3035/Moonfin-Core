@@ -123,6 +123,7 @@ void main() {
     'mediaBarLibraryIds',
     'mediaBarOpacity',
     'mediaBarOverlayColor',
+    'mediaBarSourceType',
     'mediaBarTrailerAudio',
     'mediaBarTrailerCaptions',
     'mediaBarTrailerPreview',

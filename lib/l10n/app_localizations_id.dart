@@ -3389,6 +3389,12 @@ class AppLocalizationsId extends AppLocalizations {
   String get contentType => 'Tipe Konten';
 
   @override
+  String get mediaBarSourceType => 'Source';
+
+  @override
+  String get mediaBarSourceRandom => 'Random';
+
+  @override
   String get moviesAndTvShows => 'Film & Acara TV';
 
   @override

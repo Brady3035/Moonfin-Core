@@ -3413,6 +3413,12 @@ class AppLocalizationsUk extends AppLocalizations {
   String get contentType => 'Тип вмісту';
 
   @override
+  String get mediaBarSourceType => 'Source';
+
+  @override
+  String get mediaBarSourceRandom => 'Random';
+
+  @override
   String get moviesAndTvShows => 'Фільми та телешоу';
 
   @override

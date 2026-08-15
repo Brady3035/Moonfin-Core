@@ -144,6 +144,7 @@ final List<SyncedField> syncedFields = <SyncedField>[
   SyncedField('enableFolderView', UserPreferences.enableFolderView, SyncCodec.boolean),
   SyncedField('seasonalSurprise', UserPreferences.seasonalSurprise, SyncCodec.text),
   SyncedField('mediaBarItemCount', UserPreferences.mediaBarItemCount, SyncCodec.textAsInt, fallbackInt: 10),
+  SyncedField('mediaBarSourceType', UserPreferences.mediaBarSourceType, SyncCodec.text),
   SyncedField('mediaBarOpacity', UserPreferences.mediaBarOverlayOpacity, SyncCodec.integer),
   SyncedField('mediaBarOverlayColor', UserPreferences.mediaBarOverlayColor, SyncCodec.text),
   SyncedField('navbarOpacity', UserPreferences.navbarOpacity, SyncCodec.integer),

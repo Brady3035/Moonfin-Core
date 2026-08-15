@@ -3404,6 +3404,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get contentType => 'Tipo de Conteúdo';
 
   @override
+  String get mediaBarSourceType => 'Source';
+
+  @override
+  String get mediaBarSourceRandom => 'Random';
+
+  @override
   String get moviesAndTvShows => 'Filmes e Séries de TV';
 
   @override

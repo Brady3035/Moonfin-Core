@@ -3396,6 +3396,12 @@ class AppLocalizationsTr extends AppLocalizations {
   String get contentType => 'İçerik Türü';
 
   @override
+  String get mediaBarSourceType => 'Source';
+
+  @override
+  String get mediaBarSourceRandom => 'Random';
+
+  @override
   String get moviesAndTvShows => 'Filmler ve TV Programları';
 
   @override

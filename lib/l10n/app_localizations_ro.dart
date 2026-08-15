@@ -3412,6 +3412,12 @@ class AppLocalizationsRo extends AppLocalizations {
   String get contentType => 'Tip de conținut';
 
   @override
+  String get mediaBarSourceType => 'Source';
+
+  @override
+  String get mediaBarSourceRandom => 'Random';
+
+  @override
   String get moviesAndTvShows => 'Filme și emisiuni TV';
 
   @override

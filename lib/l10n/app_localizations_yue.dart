@@ -3289,6 +3289,12 @@ class AppLocalizationsYue extends AppLocalizations {
   String get contentType => '內容類型';
 
   @override
+  String get mediaBarSourceType => 'Source';
+
+  @override
+  String get mediaBarSourceRandom => 'Random';
+
+  @override
   String get moviesAndTvShows => '電影和電視節目';
 
   @override

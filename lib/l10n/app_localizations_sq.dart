@@ -3413,6 +3413,12 @@ class AppLocalizationsSq extends AppLocalizations {
   String get contentType => 'Lloji i përmbajtjes';
 
   @override
+  String get mediaBarSourceType => 'Source';
+
+  @override
+  String get mediaBarSourceRandom => 'Random';
+
+  @override
   String get moviesAndTvShows => 'Filma dhe shfaqje televizive';
 
   @override

@@ -3274,6 +3274,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get contentType => '内容类型';
 
   @override
+  String get mediaBarSourceType => 'Source';
+
+  @override
+  String get mediaBarSourceRandom => 'Random';
+
+  @override
   String get moviesAndTvShows => '电影和剧集';
 
   @override

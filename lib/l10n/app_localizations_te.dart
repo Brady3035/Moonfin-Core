@@ -3406,6 +3406,12 @@ class AppLocalizationsTe extends AppLocalizations {
   String get contentType => 'కంటెంట్ రకం';
 
   @override
+  String get mediaBarSourceType => 'Source';
+
+  @override
+  String get mediaBarSourceRandom => 'Random';
+
+  @override
   String get moviesAndTvShows => 'సినిమాలు & టీవీ షోలు';
 
   @override

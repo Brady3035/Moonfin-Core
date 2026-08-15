@@ -962,6 +962,12 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
       'movies',
       'shows',
     ]),
+    mediaBar.leaf('mediaBarSourceType', l10n.mediaBarSourceType, keywords: [
+      'random',
+      'recently added',
+      'recently released',
+      'newest',
+    ]),
     mediaBar.leaf('mediaBarItemCount', l10n.itemCount),
     mediaBar.leaf('mediaBarLibraryIds', l10n.sourceLibraries),
     mediaBar.leaf('mediaBarCollectionIds', l10n.sourceCollections),

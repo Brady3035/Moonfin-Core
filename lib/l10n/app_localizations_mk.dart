@@ -3407,6 +3407,12 @@ class AppLocalizationsMk extends AppLocalizations {
   String get contentType => 'Тип на содржина';
 
   @override
+  String get mediaBarSourceType => 'Source';
+
+  @override
+  String get mediaBarSourceRandom => 'Random';
+
+  @override
   String get moviesAndTvShows => 'Филмови и ТВ серии';
 
   @override

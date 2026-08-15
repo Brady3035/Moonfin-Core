@@ -3415,6 +3415,12 @@ class AppLocalizationsTl extends AppLocalizations {
   String get contentType => 'Uri ng Nilalaman';
 
   @override
+  String get mediaBarSourceType => 'Source';
+
+  @override
+  String get mediaBarSourceRandom => 'Random';
+
+  @override
   String get moviesAndTvShows => 'Mga Pelikula at Palabas sa TV';
 
   @override

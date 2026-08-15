@@ -4619,6 +4619,14 @@
   "@contentType": {
     "description": "Setting for content type"
   },
+  "mediaBarSourceType": "Source",
+  "@mediaBarSourceType": {
+    "description": "Setting for which titles the media bar draws from"
+  },
+  "mediaBarSourceRandom": "Random",
+  "@mediaBarSourceRandom": {
+    "description": "Media bar source: any eligible title"
+  },
   "moviesAndTvShows": "Movies & TV Shows",
   "@moviesAndTvShows": {
     "description": "Content type: movies and TV shows"

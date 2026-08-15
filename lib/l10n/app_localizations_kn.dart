@@ -3406,6 +3406,12 @@ class AppLocalizationsKn extends AppLocalizations {
   String get contentType => 'ವಿಷಯದ ಪ್ರಕಾರ';
 
   @override
+  String get mediaBarSourceType => 'Source';
+
+  @override
+  String get mediaBarSourceRandom => 'Random';
+
+  @override
   String get moviesAndTvShows => 'ಚಲನಚಿತ್ರಗಳು ಮತ್ತು ಟಿವಿ ಶೋಗಳು';
 
   @override

@@ -3411,6 +3411,12 @@ class AppLocalizationsTa extends AppLocalizations {
   String get contentType => 'உள்ளடக்க வகை';
 
   @override
+  String get mediaBarSourceType => 'Source';
+
+  @override
+  String get mediaBarSourceRandom => 'Random';
+
+  @override
   String get moviesAndTvShows => 'திரைப்படங்கள் & டிவி நிகழ்ச்சிகள்';
 
   @override

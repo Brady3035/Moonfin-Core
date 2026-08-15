@@ -3361,6 +3361,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get contentType => 'סוג תוכן';
 
   @override
+  String get mediaBarSourceType => 'Source';
+
+  @override
+  String get mediaBarSourceRandom => 'Random';
+
+  @override
   String get moviesAndTvShows => 'סרטים ותוכניות טלוויזיה';
 
   @override

@@ -3394,6 +3394,12 @@ class AppLocalizationsUg extends AppLocalizations {
   String get contentType => 'مەزمۇن تىپى';
 
   @override
+  String get mediaBarSourceType => 'Source';
+
+  @override
+  String get mediaBarSourceRandom => 'Random';
+
+  @override
   String get moviesAndTvShows => 'كىنو ۋە تېلېۋىزىيە پروگراممىلىرى';
 
   @override

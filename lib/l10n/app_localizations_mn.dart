@@ -3392,6 +3392,12 @@ class AppLocalizationsMn extends AppLocalizations {
   String get contentType => 'Агуулгын төрөл';
 
   @override
+  String get mediaBarSourceType => 'Source';
+
+  @override
+  String get mediaBarSourceRandom => 'Random';
+
+  @override
   String get moviesAndTvShows => 'Кино, ТВ шоу';
 
   @override

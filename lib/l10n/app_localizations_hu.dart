@@ -3411,6 +3411,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get contentType => 'Tartalom típusa';
 
   @override
+  String get mediaBarSourceType => 'Source';
+
+  @override
+  String get mediaBarSourceRandom => 'Random';
+
+  @override
   String get moviesAndTvShows => 'Filmek és tévéműsorok';
 
   @override

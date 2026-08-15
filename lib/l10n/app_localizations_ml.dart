@@ -3408,6 +3408,12 @@ class AppLocalizationsMl extends AppLocalizations {
   String get contentType => 'ഉള്ളടക്ക തരം';
 
   @override
+  String get mediaBarSourceType => 'Source';
+
+  @override
+  String get mediaBarSourceRandom => 'Random';
+
+  @override
   String get moviesAndTvShows => 'സിനിമകളും ടിവി ഷോകളും';
 
   @override

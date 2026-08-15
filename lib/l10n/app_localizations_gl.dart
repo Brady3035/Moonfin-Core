@@ -3425,6 +3425,12 @@ class AppLocalizationsGl extends AppLocalizations {
   String get contentType => 'Tipo de contido';
 
   @override
+  String get mediaBarSourceType => 'Source';
+
+  @override
+  String get mediaBarSourceRandom => 'Random';
+
+  @override
   String get moviesAndTvShows => 'Películas e programas de televisión';
 
   @override

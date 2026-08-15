@@ -3402,6 +3402,12 @@ class AppLocalizationsCs extends AppLocalizations {
   String get contentType => 'Typ obsahu';
 
   @override
+  String get mediaBarSourceType => 'Source';
+
+  @override
+  String get mediaBarSourceRandom => 'Random';
+
+  @override
   String get moviesAndTvShows => 'Filmy a televizní pořady';
 
   @override

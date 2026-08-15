@@ -3395,6 +3395,12 @@ class AppLocalizationsEt extends AppLocalizations {
   String get contentType => 'Sisu tüüp';
 
   @override
+  String get mediaBarSourceType => 'Source';
+
+  @override
+  String get mediaBarSourceRandom => 'Random';
+
+  @override
   String get moviesAndTvShows => 'Filmid ja telesaated';
 
   @override

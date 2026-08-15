@@ -3386,6 +3386,12 @@ class AppLocalizationsEo extends AppLocalizations {
   String get contentType => 'Enhavo Tipo';
 
   @override
+  String get mediaBarSourceType => 'Source';
+
+  @override
+  String get mediaBarSourceRandom => 'Random';
+
+  @override
   String get moviesAndTvShows => 'Filmoj kaj Televidprogramoj';
 
   @override

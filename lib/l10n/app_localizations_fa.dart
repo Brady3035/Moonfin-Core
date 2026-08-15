@@ -3367,6 +3367,12 @@ class AppLocalizationsFa extends AppLocalizations {
   String get contentType => 'نوع محتوا';
 
   @override
+  String get mediaBarSourceType => 'Source';
+
+  @override
+  String get mediaBarSourceRandom => 'Random';
+
+  @override
   String get moviesAndTvShows => 'فیلم‌ها و نمایش‌های تلویزیونی';
 
   @override

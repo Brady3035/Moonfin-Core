@@ -3312,6 +3312,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String get contentType => '콘텐츠 유형';
 
   @override
+  String get mediaBarSourceType => 'Source';
+
+  @override
+  String get mediaBarSourceRandom => 'Random';
+
+  @override
   String get moviesAndTvShows => '영화 및 TV 프로그램';
 
   @override

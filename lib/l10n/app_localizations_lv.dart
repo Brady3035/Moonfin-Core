@@ -3407,6 +3407,12 @@ class AppLocalizationsLv extends AppLocalizations {
   String get contentType => 'Satura veids';
 
   @override
+  String get mediaBarSourceType => 'Source';
+
+  @override
+  String get mediaBarSourceRandom => 'Random';
+
+  @override
   String get moviesAndTvShows => 'Filmas un TV šovi';
 
   @override

@@ -3406,6 +3406,12 @@ class AppLocalizationsLt extends AppLocalizations {
   String get contentType => 'Turinio tipas';
 
   @override
+  String get mediaBarSourceType => 'Source';
+
+  @override
+  String get mediaBarSourceRandom => 'Random';
+
+  @override
   String get moviesAndTvShows => 'Filmai ir TV laidos';
 
   @override

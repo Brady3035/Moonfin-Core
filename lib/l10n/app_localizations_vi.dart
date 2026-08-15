@@ -3391,6 +3391,12 @@ class AppLocalizationsVi extends AppLocalizations {
   String get contentType => 'Loại nội dung';
 
   @override
+  String get mediaBarSourceType => 'Source';
+
+  @override
+  String get mediaBarSourceRandom => 'Random';
+
+  @override
   String get moviesAndTvShows => 'Phim & Chương trình truyền hình';
 
   @override

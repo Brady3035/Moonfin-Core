@@ -6136,6 +6136,18 @@ abstract class AppLocalizations {
   /// **'Content Type'**
   String get contentType;
 
+  /// Setting for which titles the media bar draws from
+  ///
+  /// In en, this message translates to:
+  /// **'Source'**
+  String get mediaBarSourceType;
+
+  /// Media bar source: any eligible title
+  ///
+  /// In en, this message translates to:
+  /// **'Random'**
+  String get mediaBarSourceRandom;
+
   /// Content type: movies and TV shows
   ///
   /// In en, this message translates to:

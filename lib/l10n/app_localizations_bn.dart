@@ -3380,6 +3380,12 @@ class AppLocalizationsBn extends AppLocalizations {
   String get contentType => 'বিষয়বস্তুর প্রকার';
 
   @override
+  String get mediaBarSourceType => 'Source';
+
+  @override
+  String get mediaBarSourceRandom => 'Random';
+
+  @override
   String get moviesAndTvShows => 'সিনেমা ও টিভি শো';
 
   @override

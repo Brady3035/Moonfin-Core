@@ -3404,6 +3404,12 @@ class AppLocalizationsFi extends AppLocalizations {
   String get contentType => 'Sisältötyyppi';
 
   @override
+  String get mediaBarSourceType => 'Source';
+
+  @override
+  String get mediaBarSourceRandom => 'Random';
+
+  @override
   String get moviesAndTvShows => 'Elokuvat ja TV-ohjelmat';
 
   @override

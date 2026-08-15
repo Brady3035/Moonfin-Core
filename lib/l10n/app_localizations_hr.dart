@@ -3513,6 +3513,12 @@ class AppLocalizationsHr extends AppLocalizations {
   String get contentType => 'Vrsta sadržaja';
 
   @override
+  String get mediaBarSourceType => 'Source';
+
+  @override
+  String get mediaBarSourceRandom => 'Random';
+
+  @override
   String get moviesAndTvShows => 'Filmovi i TV emisije';
 
   @override

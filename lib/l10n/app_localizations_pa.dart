@@ -3379,6 +3379,12 @@ class AppLocalizationsPa extends AppLocalizations {
   String get contentType => 'ਸਮੱਗਰੀ ਦੀ ਕਿਸਮ';
 
   @override
+  String get mediaBarSourceType => 'Source';
+
+  @override
+  String get mediaBarSourceRandom => 'Random';
+
+  @override
   String get moviesAndTvShows => 'ਫਿਲਮਾਂ ਅਤੇ ਟੀਵੀ ਸ਼ੋਅ';
 
   @override

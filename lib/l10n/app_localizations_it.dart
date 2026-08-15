@@ -3409,6 +3409,12 @@ class AppLocalizationsIt extends AppLocalizations {
   String get contentType => 'Tipo Contenuto';
 
   @override
+  String get mediaBarSourceType => 'Source';
+
+  @override
+  String get mediaBarSourceRandom => 'Random';
+
+  @override
   String get moviesAndTvShows => 'Film e Serie TV';
 
   @override

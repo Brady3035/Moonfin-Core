@@ -3410,6 +3410,12 @@ class AppLocalizationsSw extends AppLocalizations {
   String get contentType => 'Aina ya Maudhui';
 
   @override
+  String get mediaBarSourceType => 'Source';
+
+  @override
+  String get mediaBarSourceRandom => 'Random';
+
+  @override
   String get moviesAndTvShows => 'Filamu na Vipindi vya Televisheni';
 
   @override

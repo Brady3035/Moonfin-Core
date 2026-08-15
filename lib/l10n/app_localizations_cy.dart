@@ -3415,6 +3415,12 @@ class AppLocalizationsCy extends AppLocalizations {
   String get contentType => 'Math o Gynnwys';
 
   @override
+  String get mediaBarSourceType => 'Source';
+
+  @override
+  String get mediaBarSourceRandom => 'Random';
+
+  @override
   String get moviesAndTvShows => 'Ffilmiau a Sioeau Teledu';
 
   @override

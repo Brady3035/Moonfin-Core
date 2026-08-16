@@ -2651,6 +2651,22 @@
   "@unableToCreateRecording": {
     "description": "Error when creating a live TV recording fails"
   },
+  "recordSeries": "Record Series",
+  "@recordSeries": {
+    "description": "Button label to record every showing of a live TV series"
+  },
+  "seriesSetToRecord": "Series set to record",
+  "@seriesSetToRecord": {
+    "description": "Snackbar confirmation after scheduling a live TV series recording"
+  },
+  "seriesRecordingCancelled": "Series recording cancelled",
+  "@seriesRecordingCancelled": {
+    "description": "Snackbar confirmation after cancelling a live TV series recording"
+  },
+  "unableToCreateSeriesRecording": "Unable to create series recording",
+  "@unableToCreateSeriesRecording": {
+    "description": "Error when creating a live TV series recording fails"
+  },
   "watch": "Watch",
   "@watch": {
     "description": "Button label to start watching a channel"

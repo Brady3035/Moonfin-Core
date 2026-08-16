@@ -1888,6 +1888,19 @@ class AppLocalizationsVi extends AppLocalizations {
   String get unableToCreateRecording => 'Không thể tạo bản ghi';
 
   @override
+  String get recordSeries => 'Record Series';
+
+  @override
+  String get seriesSetToRecord => 'Series set to record';
+
+  @override
+  String get seriesRecordingCancelled => 'Series recording cancelled';
+
+  @override
+  String get unableToCreateSeriesRecording =>
+      'Unable to create series recording';
+
+  @override
   String get watch => 'Xem';
 
   @override

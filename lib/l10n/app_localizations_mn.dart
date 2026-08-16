@@ -1881,6 +1881,19 @@ class AppLocalizationsMn extends AppLocalizations {
   String get unableToCreateRecording => 'Бичлэг үүсгэх боломжгүй';
 
   @override
+  String get recordSeries => 'Record Series';
+
+  @override
+  String get seriesSetToRecord => 'Series set to record';
+
+  @override
+  String get seriesRecordingCancelled => 'Series recording cancelled';
+
+  @override
+  String get unableToCreateSeriesRecording =>
+      'Unable to create series recording';
+
+  @override
   String get watch => 'Үзэх';
 
   @override

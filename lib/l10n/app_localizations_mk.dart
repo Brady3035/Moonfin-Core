@@ -1892,6 +1892,19 @@ class AppLocalizationsMk extends AppLocalizations {
   String get unableToCreateRecording => 'Не може да се создаде снимка';
 
   @override
+  String get recordSeries => 'Record Series';
+
+  @override
+  String get seriesSetToRecord => 'Series set to record';
+
+  @override
+  String get seriesRecordingCancelled => 'Series recording cancelled';
+
+  @override
+  String get unableToCreateSeriesRecording =>
+      'Unable to create series recording';
+
+  @override
   String get watch => 'Гледај';
 
   @override

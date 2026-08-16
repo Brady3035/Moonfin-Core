@@ -1874,6 +1874,19 @@ class AppLocalizationsFa extends AppLocalizations {
   String get unableToCreateRecording => 'امکان ایجاد ضبط وجود ندارد';
 
   @override
+  String get recordSeries => 'Record Series';
+
+  @override
+  String get seriesSetToRecord => 'Series set to record';
+
+  @override
+  String get seriesRecordingCancelled => 'Series recording cancelled';
+
+  @override
+  String get unableToCreateSeriesRecording =>
+      'Unable to create series recording';
+
+  @override
   String get watch => 'تماشا';
 
   @override

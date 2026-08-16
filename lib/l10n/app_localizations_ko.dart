@@ -1846,6 +1846,19 @@ class AppLocalizationsKo extends AppLocalizations {
   String get unableToCreateRecording => '녹화를 예약할 수 없습니다';
 
   @override
+  String get recordSeries => 'Record Series';
+
+  @override
+  String get seriesSetToRecord => 'Series set to record';
+
+  @override
+  String get seriesRecordingCancelled => 'Series recording cancelled';
+
+  @override
+  String get unableToCreateSeriesRecording =>
+      'Unable to create series recording';
+
+  @override
   String get watch => '시청';
 
   @override

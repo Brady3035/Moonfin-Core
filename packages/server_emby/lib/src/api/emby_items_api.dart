@@ -820,15 +820,18 @@ class EmbyItemsApi implements ItemsApi {
     required String language,
     bool? isPerfectMatch,
   }) async {
-    throw UnsupportedError(
-      'Remote subtitle search is only supported for Jellyfin servers.',
+    final response = await _dio.get(
+      '/Items/$itemId/RemoteSearch/Subtitles/$language',
+      queryParameters: {'IsPerfectMatch': ?isPerfectMatch},
     );
+    return ((response.data as List?) ?? const [])
+        .whereType<Map>()
+        .map((e) => e.cast<String, dynamic>())
+        .toList(growable: false);
   }
 
   @override
   Future<void> downloadRemoteSubtitle(String itemId, String subtitleId) async {
-    throw UnsupportedError(
-      'Remote subtitle download is only supported for Jellyfin servers.',
-    );
+    await _dio.post('/Items/$itemId/RemoteSearch/Subtitles/$subtitleId');
   }
 }

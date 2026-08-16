@@ -386,7 +386,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
   }
 
   bool _canDownloadRemoteSubtitles(AggregatedItem item) {
-    final client = _clientForItem(item);
     final user = GetIt.instance<UserRepository>().currentUser;
     final mediaType = item.rawData['MediaType'] as String?;
     final isAudio =
@@ -395,8 +394,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
         item.type == 'AudioBook' ||
         mediaType == 'Audio';
 
-    return client.serverType == ServerType.jellyfin &&
-        (user?.canManageSubtitles ?? false) &&
+    return (user?.canManageSubtitles ?? false) &&
         item.mediaSources.isNotEmpty &&
         item.type != 'Photo' &&
         item.type != 'Book' &&

@@ -9133,7 +9133,6 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
   }
 
   bool _canDownloadRemoteSubtitles(AggregatedItem item) {
-    final client = GetIt.instance<MediaServerClient>();
     final user = GetIt.instance<UserRepository>().currentUser;
     final mediaType = item.rawData['MediaType'] as String?;
     final isAudio =
@@ -9142,8 +9141,7 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
         item.type == 'AudioBook' ||
         mediaType == 'Audio';
 
-    return client.serverType == ServerType.jellyfin &&
-        (user?.canManageSubtitles ?? false) &&
+    return (user?.canManageSubtitles ?? false) &&
         item.mediaSources.isNotEmpty &&
         item.type != 'Photo' &&
         !_isReadableBookItem(item) &&

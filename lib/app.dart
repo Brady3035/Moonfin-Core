@@ -874,15 +874,7 @@ class _GlobalShortcutScopeState extends State<_GlobalShortcutScope>
         keys.contains(LogicalKeyboardKey.altRight);
 
     if ((key == LogicalKeyboardKey.enter || key == LogicalKeyboardKey.select) && !altPressed) {
-      final targetContext =
-          FocusManager.instance.primaryFocus?.context ?? context;
-      final activated = Actions.maybeInvoke(
-        targetContext,
-        const ActivateIntent(),
-      );
-      return activated == null
-          ? KeyEventResult.ignored
-          : KeyEventResult.handled;
+      return activateFocusedTarget(context);
     }
 
     return KeyEventResult.ignored;

@@ -3521,6 +3521,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get liveTV => 'Прямой эфир';
 
   @override
+  String get favoriteChannels => 'Favorite Channels';
+
+  @override
   String get homeSections => 'Главная Разделы';
 
   @override

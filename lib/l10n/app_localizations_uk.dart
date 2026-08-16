@@ -3517,6 +3517,9 @@ class AppLocalizationsUk extends AppLocalizations {
   String get liveTV => 'Пряме телебачення';
 
   @override
+  String get favoriteChannels => 'Favorite Channels';
+
+  @override
   String get homeSections => 'Домашні розділи';
 
   @override

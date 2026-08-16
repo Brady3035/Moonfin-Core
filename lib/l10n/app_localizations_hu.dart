@@ -3516,6 +3516,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get liveTV => 'Élő TV';
 
   @override
+  String get favoriteChannels => 'Favorite Channels';
+
+  @override
   String get homeSections => 'Kezdőlapszakaszok';
 
   @override

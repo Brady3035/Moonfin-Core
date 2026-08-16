@@ -3373,6 +3373,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get liveTV => '直播电视';
 
   @override
+  String get favoriteChannels => 'Favorite Channels';
+
+  @override
   String get homeSections => '首页栏目';
 
   @override

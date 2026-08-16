@@ -3421,6 +3421,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get liveTV => 'ライブテレビ';
 
   @override
+  String get favoriteChannels => 'Favorite Channels';
+
+  @override
   String get homeSections => 'ホームセクション';
 
   @override

@@ -3500,6 +3500,9 @@ class AppLocalizationsTr extends AppLocalizations {
   String get liveTV => 'Canlı TV';
 
   @override
+  String get favoriteChannels => 'Favorite Channels';
+
+  @override
   String get homeSections => 'Ana Sayfa Bölümleri';
 
   @override

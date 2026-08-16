@@ -6334,6 +6334,12 @@ abstract class AppLocalizations {
   /// **'Live TV'**
   String get liveTV;
 
+  /// Home row: favourited live TV channels
+  ///
+  /// In en, this message translates to:
+  /// **'Favorite Channels'**
+  String get favoriteChannels;
+
   /// Settings title for home sections
   ///
   /// In en, this message translates to:

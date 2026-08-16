@@ -3494,6 +3494,9 @@ class AppLocalizationsId extends AppLocalizations {
   String get liveTV => 'TV Langsung';
 
   @override
+  String get favoriteChannels => 'Favorite Channels';
+
+  @override
   String get homeSections => 'Bagian Beranda';
 
   @override

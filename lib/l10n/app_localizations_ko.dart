@@ -3414,6 +3414,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get liveTV => '라이브 TV';
 
   @override
+  String get favoriteChannels => 'Favorite Channels';
+
+  @override
   String get homeSections => '홈 섹션';
 
   @override

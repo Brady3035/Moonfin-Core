@@ -3500,6 +3500,9 @@ class AppLocalizationsUg extends AppLocalizations {
   String get liveTV => 'بىۋاسىتە تېلېۋىزىيە';
 
   @override
+  String get favoriteChannels => 'Favorite Channels';
+
+  @override
   String get homeSections => 'ئائىلە بۆلەكلىرى';
 
   @override

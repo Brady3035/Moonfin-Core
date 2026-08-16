@@ -3511,6 +3511,9 @@ class AppLocalizationsBe extends AppLocalizations {
   String get liveTV => 'Жывое тэлебачанне';
 
   @override
+  String get favoriteChannels => 'Favorite Channels';
+
+  @override
   String get homeSections => 'Хатнія раздзелы';
 
   @override

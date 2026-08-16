@@ -3515,6 +3515,9 @@ class AppLocalizationsSk extends AppLocalizations {
   String get liveTV => 'Živá televízia';
 
   @override
+  String get favoriteChannels => 'Favorite Channels';
+
+  @override
   String get homeSections => 'Domáce Sekcie';
 
   @override

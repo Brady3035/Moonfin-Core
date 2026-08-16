@@ -3531,6 +3531,9 @@ class AppLocalizationsEl extends AppLocalizations {
   String get liveTV => 'Ζωντανή τηλεόραση';
 
   @override
+  String get favoriteChannels => 'Favorite Channels';
+
+  @override
   String get homeSections => 'Αρχική Ενότητες';
 
   @override

@@ -1345,6 +1345,8 @@ class HomeViewModel extends ChangeNotifier {
         try {
           final onNow = await _dataSource.loadOnNow(_serverId);
           if (onNow.items.isNotEmpty) rows.add(onNow);
+          final favorites = await _dataSource.loadFavoritesChannels(_serverId);
+          if (favorites.items.isNotEmpty) rows.add(favorites);
         } catch (_) {}
         return rows;
       case HomeSectionType.activeRecordings:

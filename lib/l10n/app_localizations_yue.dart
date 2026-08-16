@@ -3389,6 +3389,9 @@ class AppLocalizationsYue extends AppLocalizations {
   String get liveTV => '電視直播';
 
   @override
+  String get favoriteChannels => 'Favorite Channels';
+
+  @override
   String get homeSections => '首頁 欄目';
 
   @override

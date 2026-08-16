@@ -3471,6 +3471,9 @@ class AppLocalizationsFa extends AppLocalizations {
   String get liveTV => 'تلویزیون زنده';
 
   @override
+  String get favoriteChannels => 'Favorite Channels';
+
+  @override
   String get homeSections => 'بخش های صفحه اصلی';
 
   @override

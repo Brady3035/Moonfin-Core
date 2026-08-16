@@ -3616,6 +3616,9 @@ class AppLocalizationsSr extends AppLocalizations {
   String get liveTV => 'ТВ уживо';
 
   @override
+  String get favoriteChannels => 'Favorite Channels';
+
+  @override
   String get homeSections => 'Хоме Сецтионс';
 
   @override

@@ -3505,6 +3505,9 @@ class AppLocalizationsCs extends AppLocalizations {
   String get liveTV => 'Živá televize';
 
   @override
+  String get favoriteChannels => 'Favorite Channels';
+
+  @override
   String get homeSections => 'Domácí sekce';
 
   @override

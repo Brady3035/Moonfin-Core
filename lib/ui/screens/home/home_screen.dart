@@ -5509,6 +5509,9 @@ class _ContentRowsState extends State<_ContentRows>
     if (row.isAudio) {
       return 1.0;
     }
+    if (row.rowType == HomeRowType.liveTvFavorites) {
+      return 1.0;
+    }
     if (_isSeerrFilterRow(row)) {
       return 16 / 9;
     }
@@ -5574,6 +5577,18 @@ class _ContentRowsState extends State<_ContentRows>
       }
       return poster ?? backdrop;
     }
+
+    if (Destinations.isLiveTvChannelType(item.type)) {
+      final logoTag = item.logoImageTag;
+      if (logoTag != null) {
+        return imageApi.getLogoImageUrl(
+          item.id,
+          maxWidth: (height * requestScale).toInt(),
+          tag: logoTag,
+        );
+      }
+    }
+
     final itemThumbTag = _tagForType(item, 'Thumb');
     final itemBannerTag = _tagForType(item, 'Banner');
     final parentThumbItemId = item.rawData['ParentThumbItemId']?.toString();

@@ -3520,6 +3520,9 @@ class AppLocalizationsCy extends AppLocalizations {
   String get liveTV => 'Teledu byw';
 
   @override
+  String get favoriteChannels => 'Favorite Channels';
+
+  @override
   String get homeSections => 'Adrannau Cartref';
 
   @override

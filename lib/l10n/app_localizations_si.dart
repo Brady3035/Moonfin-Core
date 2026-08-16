@@ -3490,6 +3490,9 @@ class AppLocalizationsSi extends AppLocalizations {
   String get liveTV => 'සජීවී රූපවාහිනිය';
 
   @override
+  String get favoriteChannels => 'Favorite Channels';
+
+  @override
   String get homeSections => 'මුල් පිටුව කොටස්';
 
   @override

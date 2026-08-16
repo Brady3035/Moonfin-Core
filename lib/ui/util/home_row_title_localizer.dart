@@ -36,6 +36,8 @@ String localizeHomeRowTitle({
       return l10n.liveTv;
     case 'liveTvOnNow':
       return l10n.onNow;
+    case 'liveTvFavorites':
+      return l10n.favoriteChannels;
     case 'activeRecordings':
       return l10n.activeRecordings;
     case 'radarr_calendar':

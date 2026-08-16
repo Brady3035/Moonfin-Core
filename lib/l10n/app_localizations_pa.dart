@@ -3482,6 +3482,9 @@ class AppLocalizationsPa extends AppLocalizations {
   String get liveTV => 'ਲਾਈਵ ਟੀ.ਵੀ';
 
   @override
+  String get favoriteChannels => 'Favorite Channels';
+
+  @override
   String get homeSections => 'ਹੋਮ ਸੈਕਸ਼ਨ';
 
   @override

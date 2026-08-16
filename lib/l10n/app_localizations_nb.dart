@@ -3488,6 +3488,9 @@ class AppLocalizationsNb extends AppLocalizations {
   String get liveTV => 'Direktesendt TV';
 
   @override
+  String get favoriteChannels => 'Favorite Channels';
+
+  @override
   String get homeSections => 'Hjem Seksjoner';
 
   @override

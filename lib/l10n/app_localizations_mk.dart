@@ -3512,6 +3512,9 @@ class AppLocalizationsMk extends AppLocalizations {
   String get liveTV => 'ТВ во живо';
 
   @override
+  String get favoriteChannels => 'Favorite Channels';
+
+  @override
   String get homeSections => 'Домашни секции';
 
   @override

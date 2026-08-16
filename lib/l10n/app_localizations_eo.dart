@@ -3491,6 +3491,9 @@ class AppLocalizationsEo extends AppLocalizations {
   String get liveTV => 'Viva televido';
 
   @override
+  String get favoriteChannels => 'Favorite Channels';
+
+  @override
   String get homeSections => 'Hejmaj Sekcioj';
 
   @override

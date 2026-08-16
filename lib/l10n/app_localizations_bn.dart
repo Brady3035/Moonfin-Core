@@ -3484,6 +3484,9 @@ class AppLocalizationsBn extends AppLocalizations {
   String get liveTV => 'লাইভ টিভি';
 
   @override
+  String get favoriteChannels => 'Favorite Channels';
+
+  @override
   String get homeSections => 'হোম বিভাগ';
 
   @override

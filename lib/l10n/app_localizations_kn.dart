@@ -3511,6 +3511,9 @@ class AppLocalizationsKn extends AppLocalizations {
   String get liveTV => 'ಲೈವ್ ಟಿವಿ';
 
   @override
+  String get favoriteChannels => 'Favorite Channels';
+
+  @override
   String get homeSections => 'ಮುಖಪುಟ ವಿಭಾಗಗಳು';
 
   @override

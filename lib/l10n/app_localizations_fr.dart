@@ -3539,6 +3539,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get liveTV => 'TV en direct';
 
   @override
+  String get favoriteChannels => 'Favorite Channels';
+
+  @override
   String get homeSections => 'Sections de l’accueil';
 
   @override

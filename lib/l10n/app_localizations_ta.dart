@@ -3516,6 +3516,9 @@ class AppLocalizationsTa extends AppLocalizations {
   String get liveTV => 'நேரலை டிவி';
 
   @override
+  String get favoriteChannels => 'Favorite Channels';
+
+  @override
   String get homeSections => 'முகப்பு பிரிவுகள்';
 
   @override

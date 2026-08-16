@@ -3505,6 +3505,9 @@ class AppLocalizationsKk extends AppLocalizations {
   String get liveTV => 'Тікелей теледидар';
 
   @override
+  String get favoriteChannels => 'Favorite Channels';
+
+  @override
   String get homeSections => 'Үй бөлімдері';
 
   @override

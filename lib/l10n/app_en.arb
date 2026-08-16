@@ -4759,6 +4759,10 @@
   "@liveTV": {
     "description": "Home section: live TV"
   },
+  "favoriteChannels": "Favorite Channels",
+  "@favoriteChannels": {
+    "description": "Home row: favourited live TV channels"
+  },
   "homeSections": "Home Sections",
   "@homeSections": {
     "description": "Settings title for home sections"

@@ -3511,6 +3511,9 @@ class AppLocalizationsTe extends AppLocalizations {
   String get liveTV => 'ప్రత్యక్ష TV';
 
   @override
+  String get favoriteChannels => 'Favorite Channels';
+
+  @override
   String get homeSections => 'హోమ్ విభాగాలు';
 
   @override

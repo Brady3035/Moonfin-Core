@@ -3497,6 +3497,9 @@ class AppLocalizationsMn extends AppLocalizations {
   String get liveTV => 'Шууд ТВ';
 
   @override
+  String get favoriteChannels => 'Favorite Channels';
+
+  @override
   String get homeSections => 'Гэрийн хэсгүүд';
 
   @override

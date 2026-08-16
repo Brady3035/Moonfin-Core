@@ -3516,6 +3516,9 @@ class AppLocalizationsSw extends AppLocalizations {
   String get liveTV => 'TV ya moja kwa moja';
 
   @override
+  String get favoriteChannels => 'Favorite Channels';
+
+  @override
   String get homeSections => 'Sehemu za Nyumbani';
 
   @override

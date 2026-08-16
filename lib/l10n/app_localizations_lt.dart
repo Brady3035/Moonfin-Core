@@ -3509,6 +3509,9 @@ class AppLocalizationsLt extends AppLocalizations {
   String get liveTV => 'Tiesioginė televizija';
 
   @override
+  String get favoriteChannels => 'Favorite Channels';
+
+  @override
   String get homeSections => 'Pagrindinis skyrius';
 
   @override

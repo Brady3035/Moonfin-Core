@@ -3498,6 +3498,9 @@ class AppLocalizationsEt extends AppLocalizations {
   String get liveTV => 'Otse-TV';
 
   @override
+  String get favoriteChannels => 'Favorite Channels';
+
+  @override
   String get homeSections => 'Avaleht Sektsioonid';
 
   @override

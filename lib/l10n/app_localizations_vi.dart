@@ -3496,6 +3496,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get liveTV => 'Truyền hình trực tiếp';
 
   @override
+  String get favoriteChannels => 'Favorite Channels';
+
+  @override
   String get homeSections => 'Trang chủ';
 
   @override

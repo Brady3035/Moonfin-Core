@@ -3518,6 +3518,9 @@ class AppLocalizationsSq extends AppLocalizations {
   String get liveTV => 'TV drejtpërdrejt';
 
   @override
+  String get favoriteChannels => 'Favorite Channels';
+
+  @override
   String get homeSections => 'Seksionet kryesore';
 
   @override

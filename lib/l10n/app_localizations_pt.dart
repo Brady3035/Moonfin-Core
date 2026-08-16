@@ -3510,6 +3510,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get liveTV => 'TV ao Vivo';
 
   @override
+  String get favoriteChannels => 'Favorite Channels';
+
+  @override
   String get homeSections => 'Seções Iniciais';
 
   @override

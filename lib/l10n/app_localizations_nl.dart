@@ -3511,6 +3511,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get liveTV => 'Live-tv';
 
   @override
+  String get favoriteChannels => 'Favorite Channels';
+
+  @override
   String get homeSections => 'Homesecties';
 
   @override

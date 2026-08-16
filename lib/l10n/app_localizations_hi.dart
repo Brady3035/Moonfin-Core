@@ -3483,6 +3483,9 @@ class AppLocalizationsHi extends AppLocalizations {
   String get liveTV => 'लाइव टीवी';
 
   @override
+  String get favoriteChannels => 'Favorite Channels';
+
+  @override
   String get homeSections => 'गृह अनुभाग';
 
   @override

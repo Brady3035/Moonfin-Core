@@ -3512,6 +3512,9 @@ class AppLocalizationsBg extends AppLocalizations {
   String get liveTV => 'Телевизия на живо';
 
   @override
+  String get favoriteChannels => 'Favorite Channels';
+
+  @override
   String get homeSections => 'Начало Раздели';
 
   @override

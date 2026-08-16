@@ -3513,6 +3513,9 @@ class AppLocalizationsMl extends AppLocalizations {
   String get liveTV => 'ലൈവ് ടി.വി';
 
   @override
+  String get favoriteChannels => 'Favorite Channels';
+
+  @override
   String get homeSections => 'ഹോം വിഭാഗങ്ങൾ';
 
   @override

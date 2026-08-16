@@ -3496,6 +3496,9 @@ class AppLocalizationsAf extends AppLocalizations {
   String get liveTV => 'Regstreekse TV';
 
   @override
+  String get favoriteChannels => 'Favorite Channels';
+
+  @override
   String get homeSections => 'Tuisafdelings';
 
   @override

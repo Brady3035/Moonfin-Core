@@ -3531,6 +3531,9 @@ class AppLocalizationsGl extends AppLocalizations {
   String get liveTV => 'TV en directo';
 
   @override
+  String get favoriteChannels => 'Favorite Channels';
+
+  @override
   String get homeSections => 'Seccións de inicio';
 
   @override

@@ -3517,6 +3517,9 @@ class AppLocalizationsRo extends AppLocalizations {
   String get liveTV => 'TV în direct';
 
   @override
+  String get favoriteChannels => 'Favorite Channels';
+
+  @override
   String get homeSections => 'Secțiuni de acasă';
 
   @override

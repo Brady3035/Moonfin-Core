@@ -3520,6 +3520,9 @@ class AppLocalizationsTl extends AppLocalizations {
   String get liveTV => 'Live na TV';
 
   @override
+  String get favoriteChannels => 'Favorite Channels';
+
+  @override
   String get homeSections => 'Mga Seksyon ng Tahanan';
 
   @override

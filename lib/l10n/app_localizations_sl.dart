@@ -3520,6 +3520,9 @@ class AppLocalizationsSl extends AppLocalizations {
   String get liveTV => 'TV v živo';
 
   @override
+  String get favoriteChannels => 'Favorite Channels';
+
+  @override
   String get homeSections => 'Domači razdelki';
 
   @override

@@ -3507,6 +3507,9 @@ class AppLocalizationsFi extends AppLocalizations {
   String get liveTV => 'Live-TV';
 
   @override
+  String get favoriteChannels => 'Favorite Channels';
+
+  @override
   String get homeSections => 'Kotisivut';
 
   @override

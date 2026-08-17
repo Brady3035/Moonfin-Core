@@ -1018,11 +1018,12 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
       subtitle: l10n.playThemeMusicOnDetailPages,
     ),
     themeMusic.leaf('themeMusicVolume', l10n.themeMusicVolume),
-    themeMusic.leaf(
-      'themeMusicOnHomeRows',
-      l10n.themeMusicOnHomeRows,
-      subtitle: l10n.playWhenBrowsingHomeScreen,
-    ),
+    if (!PlatformDetection.isMobile)
+      themeMusic.leaf(
+        'themeMusicOnHomeRows',
+        l10n.themeMusicOnHomeRows,
+        subtitle: l10n.playWhenBrowsingHomeScreen,
+      ),
     themeMusic.leaf(
       'themeMusicLoop',
       l10n.loopThemeMusic,

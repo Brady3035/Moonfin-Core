@@ -332,6 +332,7 @@ class _HomeShellState extends State<_HomeShell>
 
   void _maybeRegisterThemeMusic() {
     final shouldRegister =
+        !PlatformDetection.isMobile &&
         _userPrefs.get(UserPreferences.themeMusicEnabled) &&
         _userPrefs.get(UserPreferences.themeMusicOnHomeRows);
     if (shouldRegister && !_themeMusicRegistered) {

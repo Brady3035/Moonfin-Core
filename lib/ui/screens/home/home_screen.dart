@@ -36,6 +36,7 @@ import '../../../playback/inline_preview_engine.dart';
 import '../../../playback/media3_player_backend.dart';
 import '../../../preference/home_section_config.dart';
 import '../../../preference/preference_constants.dart';
+import '../../../preference/media_type_badge_preferences.dart';
 import '../../../preference/user_preferences.dart';
 import '../../widgets/exit_confirmation_dialog.dart';
 import '../../widgets/overlay_sheet.dart';
@@ -4393,6 +4394,23 @@ class _ContentRowsState extends State<_ContentRows>
     );
   }
 
+  bool _showMediaTypeBadgesForRow(HomeRow row, UserPreferences prefs) {
+    return switch (prefs.get(MediaTypeBadgePreferences.behavior)) {
+      MediaTypeBadgeBehavior.always => true,
+      MediaTypeBadgeBehavior.never => false,
+      MediaTypeBadgeBehavior.mixedRowsOnly => () {
+        final mediaTypes = <String>{};
+        for (final item in row.items) {
+          final type = item.seerrMediaType?.toLowerCase();
+          if (type != 'movie' && type != 'tv') continue;
+          mediaTypes.add(type!);
+          if (mediaTypes.length > 1) return true;
+        }
+        return false;
+      }(),
+    };
+  }
+
   Widget _buildMediaRow({
     required HomeRow row,
     required int rowIndex,
@@ -4406,6 +4424,7 @@ class _ContentRowsState extends State<_ContentRows>
     required AppLocalizations l10n,
   }) {
     final suppressFocusGlow = ThemeRegistry.active.borders.focusGlow.isNotEmpty;
+    final showMediaTypeBadges = _showMediaTypeBadgesForRow(row, prefs);
     final isSeerrRowOverride = _isSeerrFilterRow(row);
     final isRowsV2 =
         prefs.get(UserPreferences.homeRowsStyle) == HomeRowsStyle.v2 &&
@@ -4749,7 +4768,7 @@ class _ContentRowsState extends State<_ContentRows>
                     playedPercentage: item.playedPercentage,
                     watchedBehavior: watchedBehavior,
                     itemType: item.type,
-                    seerrMediaType: item.seerrMediaType,
+                    seerrMediaType: showMediaTypeBadges ? item.seerrMediaType : null,
                     seerrStatus: item.seerrStatus,
                     isGenreFallback: (row.rowType == HomeRowType.genres && row.id == 'genres') &&
                         (() {

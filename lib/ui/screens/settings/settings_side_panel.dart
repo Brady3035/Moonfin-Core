@@ -42,6 +42,7 @@ import '../../../playback/audio_capability_profile.dart';
 import '../../../playback/audio_capability_probe.dart';
 import '../../../playback/external_player_service.dart';
 import '../../../preference/preference_constants.dart';
+import '../../../preference/media_type_badge_preferences.dart';
 import '../../../preference/user_preferences.dart';
 import '../../../preference/home_section_config.dart';
 import '../../../preference/seerr_preferences.dart';

@@ -841,7 +841,7 @@ class _LiveTvPlayerScreenState extends State<LiveTvPlayerScreen>
 
   void _applyPlayerDisplayMode() {
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-    if (_forcedLandscape) {
+    if (_forcedLandscape && !PlatformDetection.isTV) {
       SystemChrome.setPreferredOrientations([
         DeviceOrientation.landscapeLeft,
         DeviceOrientation.landscapeRight,

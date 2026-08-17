@@ -748,11 +748,12 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
         subtitle: l10n.fullScreenRowsDescription,
         keywords: ['immersive'],
       ),
-    home.leaf(
-      'pref_home_row_info_overlay',
-      l10n.homeRowInfoOverlay,
-      subtitle: l10n.showTitleMetadataOnHomeRows,
-    ),
+    if (!PlatformDetection.useMobileUi)
+      home.leaf(
+        'pref_home_row_info_overlay',
+        l10n.homeRowInfoOverlay,
+        subtitle: l10n.showTitleMetadataOnHomeRows,
+      ),
     home.leaf('home_rows_padding', l10n.homeRowsPadding, keywords: [
       'spacing',
       'gap',

@@ -1892,6 +1892,9 @@ class _ContentRowsState extends State<_ContentRows>
   }
 
   bool _showHomeRowInfoOverlay() {
+    if (PlatformDetection.useMobileUi) {
+      return false;
+    }
     if (_isHomeRowsStyleV2()) {
       return false;
     }

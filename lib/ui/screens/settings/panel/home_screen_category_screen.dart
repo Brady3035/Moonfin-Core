@@ -26,10 +26,12 @@ class _HomeScreenCategoryScreenState extends State<_HomeScreenCategoryScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final rowsStyle = _prefs.get(UserPreferences.homeRowsStyle);
+    final isMobileUi = PlatformDetection.useMobileUi;
     final isFullScreenRows =
-        !PlatformDetection.useMobileUi &&
+        !isMobileUi &&
         _prefs.get(UserPreferences.fullScreenRows);
     final isInfoOverlayOn =
+        !isMobileUi &&
         rowsStyle == HomeRowsStyle.v1 &&
         _prefs.get(UserPreferences.homeRowInfoOverlay);
     final isPaddingEnabled = !isFullScreenRows && !isInfoOverlayOn;
@@ -97,7 +99,7 @@ class _HomeScreenCategoryScreenState extends State<_HomeScreenCategoryScreen> {
                     setState(() {});
                   },
                 ),
-              if (rowsStyle == HomeRowsStyle.v1)
+              if (rowsStyle == HomeRowsStyle.v1 && !isMobileUi)
                 SwitchPreferenceTile(
                   preference: UserPreferences.homeRowInfoOverlay,
                   title: l10n.homeRowInfoOverlay,

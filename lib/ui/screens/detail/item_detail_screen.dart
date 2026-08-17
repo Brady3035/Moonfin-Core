@@ -10615,17 +10615,19 @@ class _PersonalRatingActionIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     return switch (style) {
       PersonalRatingStyle.thumbs => likes == null
-          ? Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.thumb_up_outlined, color: color, size: size * 0.5),
-                SizedBox(width: size * 0.08),
-                Icon(
-                  Icons.thumb_down_outlined,
-                  color: color,
-                  size: size * 0.5,
-                ),
-              ],
+          ? Center(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.thumb_up_outlined, color: color, size: size * 0.5),
+                  SizedBox(width: size * 0.08),
+                  Icon(
+                    Icons.thumb_down_outlined,
+                    color: color,
+                    size: size * 0.5,
+                  ),
+                ],
+              ),
             )
           : Icon(
               likes! ? Icons.thumb_up : Icons.thumb_down,

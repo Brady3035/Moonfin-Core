@@ -175,6 +175,7 @@ void main() {
     'radarrCalendarShowDate',
     'radarrCalendarShowDigital',
     'radarrCalendarShowPhysical',
+    'recentlyReleasedSeriesType',
     'recommendationSystemSource',
     'recommendationsApplyParentalRatingCap',
     'replaceSkipOutroWithNextUp',

@@ -2219,6 +2219,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get always => 'いつも';
 
   @override
+  String get mixedRowsOnly => 'Mixed rows only';
+
+  @override
   String get hideUnwatched => '未視聴を非表示にする';
 
   @override

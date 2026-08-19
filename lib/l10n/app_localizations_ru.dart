@@ -2280,6 +2280,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get always => 'Всегда';
 
   @override
+  String get mixedRowsOnly => 'Mixed rows only';
+
+  @override
   String get hideUnwatched => 'Скрыть непросмотренные';
 
   @override

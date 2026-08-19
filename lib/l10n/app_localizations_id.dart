@@ -2261,6 +2261,9 @@ class AppLocalizationsId extends AppLocalizations {
   String get always => 'Selalu';
 
   @override
+  String get mixedRowsOnly => 'Mixed rows only';
+
+  @override
   String get hideUnwatched => 'Sembunyikan yang Belum Ditonton';
 
   @override

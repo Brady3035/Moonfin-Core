@@ -2274,6 +2274,9 @@ class AppLocalizationsTa extends AppLocalizations {
   String get always => 'எப்போதும்';
 
   @override
+  String get mixedRowsOnly => 'Mixed rows only';
+
+  @override
   String get hideUnwatched => 'பார்க்கப்படாததை மறை';
 
   @override

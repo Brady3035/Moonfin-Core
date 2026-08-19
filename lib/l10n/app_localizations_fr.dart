@@ -2286,6 +2286,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get always => 'Toujours';
 
   @override
+  String get mixedRowsOnly => 'Mixed rows only';
+
+  @override
   String get hideUnwatched => 'Masquer les non vus';
 
   @override

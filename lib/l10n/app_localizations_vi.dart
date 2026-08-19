@@ -2263,6 +2263,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get always => 'Luôn luôn';
 
   @override
+  String get mixedRowsOnly => 'Mixed rows only';
+
+  @override
   String get hideUnwatched => 'Ẩn phần chưa xem';
 
   @override

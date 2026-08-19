@@ -2257,6 +2257,9 @@ class AppLocalizationsSi extends AppLocalizations {
   String get always => 'සෑම විටම';
 
   @override
+  String get mixedRowsOnly => 'Mixed rows only';
+
+  @override
   String get hideUnwatched => 'නොදුටු සඟවන්න';
 
   @override

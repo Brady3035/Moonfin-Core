@@ -3189,6 +3189,10 @@
   "@always": {
     "description": "Option: always"
   },
+  "mixedRowsOnly": "Mixed rows only",
+  "@mixedRowsOnly": {
+    "description": "Option: only show the label on rows holding both movies and series"
+  },
   "hideUnwatched": "Hide Unwatched",
   "@hideUnwatched": {
     "description": "Option: hide unwatched indicators"

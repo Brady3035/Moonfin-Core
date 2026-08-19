@@ -472,6 +472,7 @@ class UserPreferences extends ChangeNotifier {
     'homeRowsUniversalOverride',
     'homeRowsUniversalImageType',
     'pref_enable_series_thumbnails',
+    'pref_media_type_badge_behavior',
     'pref_show_backdrop',
     'detailsBackgroundBlurAmount',
     'browsingBackgroundBlurAmount',
@@ -924,6 +925,12 @@ class UserPreferences extends ChangeNotifier {
   static final seriesThumbnailsEnabled = Preference(
     key: 'pref_enable_series_thumbnails',
     defaultValue: false,
+  );
+
+  static final mediaTypeBadgeBehavior = EnumPreference(
+    key: 'pref_media_type_badge_behavior',
+    defaultValue: MediaTypeBadgeBehavior.always,
+    values: MediaTypeBadgeBehavior.values,
   );
 
   static final homeRowInfoOverlay = Preference(

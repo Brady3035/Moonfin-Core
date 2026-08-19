@@ -2267,6 +2267,9 @@ class AppLocalizationsBg extends AppLocalizations {
   String get always => 'Винаги';
 
   @override
+  String get mixedRowsOnly => 'Mixed rows only';
+
+  @override
   String get hideUnwatched => 'Скриване на ненаблюдавани';
 
   @override

@@ -2273,6 +2273,9 @@ class AppLocalizationsMk extends AppLocalizations {
   String get always => 'Секогаш';
 
   @override
+  String get mixedRowsOnly => 'Mixed rows only';
+
+  @override
   String get hideUnwatched => 'Сокриј го невиденото';
 
   @override

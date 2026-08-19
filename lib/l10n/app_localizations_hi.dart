@@ -2256,6 +2256,9 @@ class AppLocalizationsHi extends AppLocalizations {
   String get always => 'हमेशा';
 
   @override
+  String get mixedRowsOnly => 'Mixed rows only';
+
+  @override
   String get hideUnwatched => 'बिना देखे छिपाएँ';
 
   @override

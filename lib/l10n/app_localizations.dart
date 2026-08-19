@@ -4078,6 +4078,12 @@ abstract class AppLocalizations {
   /// **'Always'**
   String get always;
 
+  /// Option: only show the label on rows holding both movies and series
+  ///
+  /// In en, this message translates to:
+  /// **'Mixed rows only'**
+  String get mixedRowsOnly;
+
   /// Option: hide unwatched indicators
   ///
   /// In en, this message translates to:

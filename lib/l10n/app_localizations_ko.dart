@@ -2217,6 +2217,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get always => '언제나';
 
   @override
+  String get mixedRowsOnly => 'Mixed rows only';
+
+  @override
   String get hideUnwatched => '보지 않은 항목 숨기기';
 
   @override

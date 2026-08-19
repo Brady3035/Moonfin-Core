@@ -2270,6 +2270,9 @@ class AppLocalizationsLt extends AppLocalizations {
   String get always => 'Visada';
 
   @override
+  String get mixedRowsOnly => 'Mixed rows only';
+
+  @override
   String get hideUnwatched => 'Slėpti nežiūrėtus';
 
   @override

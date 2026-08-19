@@ -2207,6 +2207,9 @@ class AppLocalizationsYue extends AppLocalizations {
   String get always => '總是';
 
   @override
+  String get mixedRowsOnly => 'Mixed rows only';
+
+  @override
   String get hideUnwatched => '隱藏無人監視';
 
   @override

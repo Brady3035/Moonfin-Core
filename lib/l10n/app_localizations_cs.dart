@@ -2274,6 +2274,9 @@ class AppLocalizationsCs extends AppLocalizations {
   String get always => 'Vždy';
 
   @override
+  String get mixedRowsOnly => 'Mixed rows only';
+
+  @override
   String get hideUnwatched => 'Skrýt Nesledované';
 
   @override

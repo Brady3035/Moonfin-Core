@@ -2260,6 +2260,9 @@ class AppLocalizationsDa extends AppLocalizations {
   String get always => 'Altid';
 
   @override
+  String get mixedRowsOnly => 'Mixed rows only';
+
+  @override
   String get hideUnwatched => 'Skjul uovervåget';
 
   @override

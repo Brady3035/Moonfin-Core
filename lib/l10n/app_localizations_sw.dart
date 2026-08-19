@@ -2275,6 +2275,9 @@ class AppLocalizationsSw extends AppLocalizations {
   String get always => 'Daima';
 
   @override
+  String get mixedRowsOnly => 'Mixed rows only';
+
+  @override
   String get hideUnwatched => 'Ficha Isiyotazamwa';
 
   @override

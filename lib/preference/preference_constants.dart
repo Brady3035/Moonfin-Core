@@ -819,3 +819,7 @@ enum RewatchSortBy {
 /// series carries its first episode's date, so a long running show stops
 /// surfacing. The row shows series cards whichever of these is picked.
 enum RecentlyReleasedSeriesType { series, season, episode }
+
+/// When a home row card shows its MOVIE or SERIES label. Only external rows
+/// carry a media type, so the rest are unaffected either way.
+enum MediaTypeBadgeBehavior { always, mixedRowsOnly, never }

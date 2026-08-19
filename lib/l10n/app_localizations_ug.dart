@@ -2262,6 +2262,9 @@ class AppLocalizationsUg extends AppLocalizations {
   String get always => 'ھەمىشە';
 
   @override
+  String get mixedRowsOnly => 'Mixed rows only';
+
+  @override
   String get hideUnwatched => 'كۆزىتىلمىگەننى يوشۇر';
 
   @override

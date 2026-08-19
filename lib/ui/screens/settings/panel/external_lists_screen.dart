@@ -58,6 +58,15 @@ class _ExternalListsScreenState extends State<_ExternalListsScreen> {
     super.dispose();
   }
 
+  String _mediaTypeBadgeBehaviorLabel(
+    AppLocalizations l10n,
+    MediaTypeBadgeBehavior behavior,
+  ) => switch (behavior) {
+    MediaTypeBadgeBehavior.always => l10n.always,
+    MediaTypeBadgeBehavior.mixedRowsOnly => l10n.mixedRowsOnly,
+    MediaTypeBadgeBehavior.never => l10n.never,
+  };
+
   Future<void> _refreshAllEnabledLists() async {
     final prefs = GetIt.instance<UserPreferences>();
     
@@ -195,6 +204,24 @@ class _ExternalListsScreenState extends State<_ExternalListsScreen> {
                           title: const Text('Refresh All Enabled Lists'),
                           subtitle: const Text('Force a full update of TMDB and fully custom lists cache.'),
                           onTap: _refreshAllEnabledLists,
+                        ),
+                      ],
+                    ),
+                    const _SectionHeader('External Home Row Display'),
+                    adaptiveListSection(
+                      children: [
+                        EnumPreferenceTile<MediaTypeBadgeBehavior>(
+                          preference: UserPreferences.mediaTypeBadgeBehavior,
+                          title: 'Media type badges',
+                          description:
+                              'Show MOVIE / SERIES labels on external home-row cards',
+                          icon: Icons.info_outline,
+                          labelOf: (behavior) =>
+                              _mediaTypeBadgeBehaviorLabel(l10n, behavior),
+                          onChanged: () {
+                            if (!mounted) return;
+                            setState(() {});
+                          },
                         ),
                       ],
                     ),

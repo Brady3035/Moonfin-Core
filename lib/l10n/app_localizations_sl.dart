@@ -2282,6 +2282,9 @@ class AppLocalizationsSl extends AppLocalizations {
   String get always => 'Vedno';
 
   @override
+  String get mixedRowsOnly => 'Mixed rows only';
+
+  @override
   String get hideUnwatched => 'Skrij neogledano';
 
   @override

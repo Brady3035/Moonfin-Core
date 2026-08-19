@@ -2284,6 +2284,9 @@ class AppLocalizationsCy extends AppLocalizations {
   String get always => 'Bob amser';
 
   @override
+  String get mixedRowsOnly => 'Mixed rows only';
+
+  @override
   String get hideUnwatched => 'Cuddio Heb ei wylio';
 
   @override

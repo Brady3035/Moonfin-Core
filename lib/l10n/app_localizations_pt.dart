@@ -2269,6 +2269,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get always => 'Sempre';
 
   @override
+  String get mixedRowsOnly => 'Mixed rows only';
+
+  @override
   String get hideUnwatched => 'Ocultar Não Assistidos';
 
   @override

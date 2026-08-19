@@ -2259,6 +2259,9 @@ class AppLocalizationsEo extends AppLocalizations {
   String get always => 'Ĉiam';
 
   @override
+  String get mixedRowsOnly => 'Mixed rows only';
+
+  @override
   String get hideUnwatched => 'Kaŝi Nerigardita';
 
   @override

@@ -30,6 +30,7 @@ import '../../widgets/rating_display.dart';
 import '../../../data/services/theme_music_service.dart';
 import '../../../data/services/media_server_client_factory.dart';
 import '../../../data/services/plugin_sync_service.dart';
+import '../../../data/utils/media_type_badges.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../playback/appletv_preview_player.dart';
 import '../../../playback/inline_preview_engine.dart';
@@ -4406,6 +4407,10 @@ class _ContentRowsState extends State<_ContentRows>
     required AppLocalizations l10n,
   }) {
     final suppressFocusGlow = ThemeRegistry.active.borders.focusGlow.isNotEmpty;
+    final showMediaTypeBadges = showsMediaTypeBadges(
+      prefs.get(UserPreferences.mediaTypeBadgeBehavior),
+      row.items,
+    );
     final isSeerrRowOverride = _isSeerrFilterRow(row);
     final isRowsV2 =
         prefs.get(UserPreferences.homeRowsStyle) == HomeRowsStyle.v2 &&
@@ -4749,7 +4754,7 @@ class _ContentRowsState extends State<_ContentRows>
                     playedPercentage: item.playedPercentage,
                     watchedBehavior: watchedBehavior,
                     itemType: item.type,
-                    seerrMediaType: item.seerrMediaType,
+                    seerrMediaType: showMediaTypeBadges ? item.seerrMediaType : null,
                     seerrStatus: item.seerrStatus,
                     isGenreFallback: (row.rowType == HomeRowType.genres && row.id == 'genres') &&
                         (() {

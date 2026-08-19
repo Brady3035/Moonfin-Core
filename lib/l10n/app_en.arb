@@ -2791,7 +2791,7 @@
   },
   "seerr": "Seerr",
   "@seerr": {
-    "description": "Title for the Seerr (Overseerr/Jellyseerr) results section"
+    "description": "Title for the Seerr results section"
   },
   "seerrAccountType": "Seerr Account Type",
   "@seerrAccountType": {

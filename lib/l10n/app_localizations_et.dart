@@ -2267,6 +2267,9 @@ class AppLocalizationsEt extends AppLocalizations {
   String get always => 'Alati';
 
   @override
+  String get mixedRowsOnly => 'Mixed rows only';
+
+  @override
   String get hideUnwatched => 'Peida jälgimata';
 
   @override

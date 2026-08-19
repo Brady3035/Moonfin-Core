@@ -2254,6 +2254,9 @@ class AppLocalizationsBn extends AppLocalizations {
   String get always => 'সর্বদা';
 
   @override
+  String get mixedRowsOnly => 'Mixed rows only';
+
+  @override
   String get hideUnwatched => 'লুকান Unwatched';
 
   @override

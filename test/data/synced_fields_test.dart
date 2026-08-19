@@ -130,6 +130,7 @@ void main() {
     'mediaQueuingEnabled',
     'mediaSegmentAutoHide',
     'mediaSegmentCountdown',
+    'mediaTypeBadgeBehavior',
     'mergeContinueWatchingNextUp',
     'mergeRadarrSonarrCalendars',
     'mergeRecentRowsByType',

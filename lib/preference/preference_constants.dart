@@ -814,3 +814,7 @@ enum RewatchSortBy {
 
   String get displayName => this == recentlyWatched ? 'Recently Watched' : 'Random';
 }
+
+/// When a home row card shows its MOVIE or SERIES label. Only external rows
+/// carry a media type, so the rest are unaffected either way.
+enum MediaTypeBadgeBehavior { always, mixedRowsOnly, never }

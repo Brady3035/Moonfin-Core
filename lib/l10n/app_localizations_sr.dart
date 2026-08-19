@@ -2377,6 +2377,9 @@ class AppLocalizationsSr extends AppLocalizations {
   String get always => 'Увек';
 
   @override
+  String get mixedRowsOnly => 'Mixed rows only';
+
+  @override
   String get hideUnwatched => 'Сакриј Негледано';
 
   @override

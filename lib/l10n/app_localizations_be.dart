@@ -2273,6 +2273,9 @@ class AppLocalizationsBe extends AppLocalizations {
   String get always => 'Заўсёды';
 
   @override
+  String get mixedRowsOnly => 'Mixed rows only';
+
+  @override
   String get hideUnwatched => 'Схаваць неназіраныя';
 
   @override

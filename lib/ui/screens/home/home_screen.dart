@@ -30,13 +30,13 @@ import '../../widgets/rating_display.dart';
 import '../../../data/services/theme_music_service.dart';
 import '../../../data/services/media_server_client_factory.dart';
 import '../../../data/services/plugin_sync_service.dart';
+import '../../../data/utils/media_type_badges.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../playback/appletv_preview_player.dart';
 import '../../../playback/inline_preview_engine.dart';
 import '../../../playback/media3_player_backend.dart';
 import '../../../preference/home_section_config.dart';
 import '../../../preference/preference_constants.dart';
-import '../../../preference/media_type_badge_preferences.dart';
 import '../../../preference/user_preferences.dart';
 import '../../widgets/exit_confirmation_dialog.dart';
 import '../../widgets/overlay_sheet.dart';
@@ -4394,23 +4394,6 @@ class _ContentRowsState extends State<_ContentRows>
     );
   }
 
-  bool _showMediaTypeBadgesForRow(HomeRow row, UserPreferences prefs) {
-    return switch (prefs.get(MediaTypeBadgePreferences.behavior)) {
-      MediaTypeBadgeBehavior.always => true,
-      MediaTypeBadgeBehavior.never => false,
-      MediaTypeBadgeBehavior.mixedRowsOnly => () {
-        final mediaTypes = <String>{};
-        for (final item in row.items) {
-          final type = item.seerrMediaType?.toLowerCase();
-          if (type != 'movie' && type != 'tv') continue;
-          mediaTypes.add(type!);
-          if (mediaTypes.length > 1) return true;
-        }
-        return false;
-      }(),
-    };
-  }
-
   Widget _buildMediaRow({
     required HomeRow row,
     required int rowIndex,
@@ -4424,7 +4407,10 @@ class _ContentRowsState extends State<_ContentRows>
     required AppLocalizations l10n,
   }) {
     final suppressFocusGlow = ThemeRegistry.active.borders.focusGlow.isNotEmpty;
-    final showMediaTypeBadges = _showMediaTypeBadgesForRow(row, prefs);
+    final showMediaTypeBadges = showsMediaTypeBadges(
+      prefs.get(UserPreferences.mediaTypeBadgeBehavior),
+      row.items,
+    );
     final isSeerrRowOverride = _isSeerrFilterRow(row);
     final isRowsV2 =
         prefs.get(UserPreferences.homeRowsStyle) == HomeRowsStyle.v2 &&

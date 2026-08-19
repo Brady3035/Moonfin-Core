@@ -2285,6 +2285,9 @@ class AppLocalizationsEl extends AppLocalizations {
   String get always => 'Πάντοτε';
 
   @override
+  String get mixedRowsOnly => 'Mixed rows only';
+
+  @override
   String get hideUnwatched => 'Απόκρυψη Unwatched';
 
   @override

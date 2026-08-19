@@ -2269,6 +2269,9 @@ class AppLocalizationsFi extends AppLocalizations {
   String get always => 'Aina';
 
   @override
+  String get mixedRowsOnly => 'Mixed rows only';
+
+  @override
   String get hideUnwatched => 'Piilota katsomattomat';
 
   @override

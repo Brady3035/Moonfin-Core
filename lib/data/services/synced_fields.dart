@@ -167,6 +167,7 @@ final List<SyncedField> syncedFields = <SyncedField>[
   SyncedField('homeRowsImageTypeOverride', UserPreferences.homeRowsUniversalOverride, SyncCodec.boolean),
   SyncedField('homeRowsImageType', UserPreferences.homeRowsUniversalImageType, SyncCodec.enumName, enumValues: prefs.ImageType.values),
   SyncedField('homeImageUseSeriesImage', UserPreferences.seriesThumbnailsEnabled, SyncCodec.boolean),
+  SyncedField('mediaTypeBadgeBehavior', UserPreferences.mediaTypeBadgeBehavior, SyncCodec.enumName, enumValues: prefs.MediaTypeBadgeBehavior.values),
   SyncedField('backdropEnabled', UserPreferences.backdropEnabled, SyncCodec.boolean),
   SyncedField('detailsScreenBlur', UserPreferences.detailsBackgroundBlurAmount, SyncCodec.intAsText),
   SyncedField('browsingBlur', UserPreferences.browsingBackgroundBlurAmount, SyncCodec.intAsText),

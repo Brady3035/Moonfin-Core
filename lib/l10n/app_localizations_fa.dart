@@ -2248,6 +2248,9 @@ class AppLocalizationsFa extends AppLocalizations {
   String get always => 'همیشه';
 
   @override
+  String get mixedRowsOnly => 'Mixed rows only';
+
+  @override
   String get hideUnwatched => 'پنهان کردن Unwatched';
 
   @override

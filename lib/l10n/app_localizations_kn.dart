@@ -2269,6 +2269,9 @@ class AppLocalizationsKn extends AppLocalizations {
   String get always => 'ಯಾವಾಗಲೂ';
 
   @override
+  String get mixedRowsOnly => 'Mixed rows only';
+
+  @override
   String get hideUnwatched => 'ವೀಕ್ಷಿಸದಿರುವುದನ್ನು ಮರೆಮಾಡಿ';
 
   @override

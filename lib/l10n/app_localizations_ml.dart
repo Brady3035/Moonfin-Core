@@ -2271,6 +2271,9 @@ class AppLocalizationsMl extends AppLocalizations {
   String get always => 'എപ്പോഴും';
 
   @override
+  String get mixedRowsOnly => 'Mixed rows only';
+
+  @override
   String get hideUnwatched => 'കാണാത്തവ മറയ്ക്കുക';
 
   @override

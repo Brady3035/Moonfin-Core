@@ -2205,6 +2205,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get always => '总是';
 
   @override
+  String get mixedRowsOnly => 'Mixed rows only';
+
+  @override
   String get hideUnwatched => '隐藏未观看';
 
   @override

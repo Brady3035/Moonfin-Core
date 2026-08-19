@@ -63,7 +63,7 @@ class _ExternalListsScreenState extends State<_ExternalListsScreen> {
     MediaTypeBadgeBehavior behavior,
   ) => switch (behavior) {
     MediaTypeBadgeBehavior.always => l10n.always,
-    MediaTypeBadgeBehavior.mixedRowsOnly => 'Mixed rows only',
+    MediaTypeBadgeBehavior.mixedRowsOnly => l10n.mixedRowsOnly,
     MediaTypeBadgeBehavior.never => l10n.never,
   };
 
@@ -207,26 +207,24 @@ class _ExternalListsScreenState extends State<_ExternalListsScreen> {
                         ),
                       ],
                     ),
-                    if (!PlatformDetection.useMobileUi) ...[
-                      const _SectionHeader('External Home Row Display'),
-                      adaptiveListSection(
-                        children: [
-                          EnumPreferenceTile<MediaTypeBadgeBehavior>(
-                            preference: MediaTypeBadgePreferences.behavior,
-                            title: 'Media type badges',
-                            description:
-                                'Show MOVIE / SERIES labels on external home-row cards',
-                            icon: Icons.info_outline,
-                            labelOf: (behavior) =>
-                                _mediaTypeBadgeBehaviorLabel(l10n, behavior),
-                            onChanged: () {
-                              if (!mounted) return;
-                              setState(() {});
-                            },
-                          ),
-                        ],
-                      ),
-                    ],
+                    const _SectionHeader('External Home Row Display'),
+                    adaptiveListSection(
+                      children: [
+                        EnumPreferenceTile<MediaTypeBadgeBehavior>(
+                          preference: UserPreferences.mediaTypeBadgeBehavior,
+                          title: 'Media type badges',
+                          description:
+                              'Show MOVIE / SERIES labels on external home-row cards',
+                          icon: Icons.info_outline,
+                          labelOf: (behavior) =>
+                              _mediaTypeBadgeBehaviorLabel(l10n, behavior),
+                          onChanged: () {
+                            if (!mounted) return;
+                            setState(() {});
+                          },
+                        ),
+                      ],
+                    ),
                     const _SectionHeader('External Home Row Configurations'),
                     adaptiveListSection(
                       children: [

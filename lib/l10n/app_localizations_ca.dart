@@ -2288,6 +2288,9 @@ class AppLocalizationsCa extends AppLocalizations {
   String get always => 'Sempre';
 
   @override
+  String get mixedRowsOnly => 'Mixed rows only';
+
+  @override
   String get hideUnwatched => 'Amaga sense veure';
 
   @override

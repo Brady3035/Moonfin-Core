@@ -2246,6 +2246,9 @@ class AppLocalizationsTh extends AppLocalizations {
   String get always => 'เสมอ';
 
   @override
+  String get mixedRowsOnly => 'Mixed rows only';
+
+  @override
   String get hideUnwatched => 'ซ่อนรายการที่ไม่ได้ดู';
 
   @override

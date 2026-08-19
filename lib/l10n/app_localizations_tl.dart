@@ -2276,6 +2276,9 @@ class AppLocalizationsTl extends AppLocalizations {
   String get always => 'Laging';
 
   @override
+  String get mixedRowsOnly => 'Mixed rows only';
+
+  @override
   String get hideUnwatched => 'Itago ang Hindi Napanood';
 
   @override

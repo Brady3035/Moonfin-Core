@@ -2275,6 +2275,9 @@ class AppLocalizationsLv extends AppLocalizations {
   String get always => 'Vienmēr';
 
   @override
+  String get mixedRowsOnly => 'Mixed rows only';
+
+  @override
   String get hideUnwatched => 'Paslēpt neskatītos';
 
   @override

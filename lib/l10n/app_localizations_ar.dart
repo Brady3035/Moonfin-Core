@@ -2275,6 +2275,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get always => 'دائماً';
 
   @override
+  String get mixedRowsOnly => 'Mixed rows only';
+
+  @override
   String get hideUnwatched => 'إخفاء غير مراقب';
 
   @override

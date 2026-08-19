@@ -2272,6 +2272,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get always => 'Mindig';
 
   @override
+  String get mixedRowsOnly => 'Mixed rows only';
+
+  @override
   String get hideUnwatched => 'Nem megtekintettek elrejtése';
 
   @override

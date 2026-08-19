@@ -2265,6 +2265,9 @@ class AppLocalizationsKk extends AppLocalizations {
   String get always => 'Әрқашан';
 
   @override
+  String get mixedRowsOnly => 'Mixed rows only';
+
+  @override
   String get hideUnwatched => 'Қаралмағандарды жасыру';
 
   @override

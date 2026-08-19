@@ -2265,6 +2265,9 @@ class AppLocalizationsAf extends AppLocalizations {
   String get always => 'Altyd';
 
   @override
+  String get mixedRowsOnly => 'Mixed rows only';
+
+  @override
   String get hideUnwatched => 'Versteek ongekyk';
 
   @override

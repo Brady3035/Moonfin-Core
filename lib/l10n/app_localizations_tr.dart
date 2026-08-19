@@ -2256,6 +2256,9 @@ class AppLocalizationsTr extends AppLocalizations {
   String get always => 'Her zaman';
 
   @override
+  String get mixedRowsOnly => 'Mixed rows only';
+
+  @override
   String get hideUnwatched => 'İzlenmeyenleri Gizle';
 
   @override

@@ -2259,6 +2259,9 @@ class AppLocalizationsMn extends AppLocalizations {
   String get always => 'Үргэлж';
 
   @override
+  String get mixedRowsOnly => 'Mixed rows only';
+
+  @override
   String get hideUnwatched => 'Үзээгүй нуух';
 
   @override

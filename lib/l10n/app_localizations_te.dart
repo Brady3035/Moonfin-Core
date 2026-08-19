@@ -2270,6 +2270,9 @@ class AppLocalizationsTe extends AppLocalizations {
   String get always => 'ఎల్లప్పుడూ';
 
   @override
+  String get mixedRowsOnly => 'Mixed rows only';
+
+  @override
   String get hideUnwatched => 'చూడనివి దాచు';
 
   @override

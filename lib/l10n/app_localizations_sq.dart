@@ -2276,6 +2276,9 @@ class AppLocalizationsSq extends AppLocalizations {
   String get always => 'Gjithmonë';
 
   @override
+  String get mixedRowsOnly => 'Mixed rows only';
+
+  @override
   String get hideUnwatched => 'Fshihe të pashikuara';
 
   @override

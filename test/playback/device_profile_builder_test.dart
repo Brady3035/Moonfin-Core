@@ -826,6 +826,38 @@ void main() {
   });
 
   group('DeviceProfileBuilder universalAudioDecode', () {
+    test('a player without a TrueHD decoder stops advertising it', () {
+      final profile = DeviceProfileBuilder.build(
+        universalAudioDecode: true,
+        playerDecodesTrueHd: false,
+      );
+
+      final codecs = _videoDirectPlayAudioCodecs(profile);
+      expect(codecs, isNot(contains('truehd')));
+      expect(codecs, isNot(contains('mlp')));
+      expect(
+        codecs,
+        containsAll(<String>['ac3', 'eac3', 'dts', 'flac', 'opus', 'aac']),
+      );
+    });
+
+    test(
+      'a missing TrueHD decoder still withholds it when the probe says the '
+      'platform has one',
+      () {
+        final profile = DeviceProfileBuilder.build(
+          audioCapabilityProfile: _capabilityProfile(canDecodeTrueHd: true),
+          universalAudioDecode: true,
+          playerDecodesTrueHd: false,
+        );
+
+        expect(
+          _videoDirectPlayAudioCodecs(profile),
+          isNot(contains('truehd')),
+        );
+      },
+    );
+
     test(
       'downmix keeps the full codec list and 8ch direct play when the player '
       'decodes everything in software',

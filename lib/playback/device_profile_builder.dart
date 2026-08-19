@@ -1390,7 +1390,9 @@ class DeviceProfileBuilder {
         unsupportedRangeTypesHevc.add('DOVI_WITH_ELHDR10_PLUS');
       }
     }
-    if (!supportsDvProfile8) {
+    if (!supportsDvProfile8 && !supportsHevcHdr10) {
+      // The profile 8.1 base layer is plain HDR10, so missing a profile 8
+      // decoder only forces a transcode when HDR10 rendering is missing too.
       unsupportedRangeTypesHevc.add('DOVI_WITH_HDR10');
     }
 

@@ -338,7 +338,8 @@ void main() {
 
   group('DeviceProfileBuilder HEVC range filtering', () {
     test(
-      'does not exclude DoVi HDR10+ only because profile 8 is unsupported',
+      'does not exclude the profile 8 range types only because profile 8 is '
+      'unsupported',
       () {
         final profile = DeviceProfileBuilder.build(
           supportsHevc: true,
@@ -355,10 +356,23 @@ void main() {
 
         final unsupportedRanges = _codecUnsupportedRangeTypes(profile, 'hevc');
 
-        expect(unsupportedRanges, contains('DOVI_WITH_HDR10'));
+        expect(unsupportedRanges, isNot(contains('DOVI_WITH_HDR10')));
         expect(unsupportedRanges, isNot(contains('DOVI_WITH_HDR10_PLUS')));
       },
     );
+
+    test('an HDR10 device without any DoVi decoder direct plays profile 8.1 '
+        'via the base layer', () {
+      final profile = DeviceProfileBuilder.build(
+        supportsHevc: true,
+        supportsHevcMain10: true,
+        supportsHevcHdr10: true,
+      );
+
+      final unsupportedRanges = _codecUnsupportedRangeTypes(profile, 'hevc');
+
+      expect(unsupportedRanges, isNot(contains('DOVI_WITH_HDR10')));
+    });
 
     test('a device with neither DoVi nor HDR10 excludes both profile 8 range '
         'types, since their base layers render as HDR10', () {

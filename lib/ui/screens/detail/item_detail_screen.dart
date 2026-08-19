@@ -864,6 +864,14 @@ class _DetailContentState extends State<_DetailContent> {
   }
 
   FocusNode? _headerOverviewFocusNode(AggregatedItem item) {
+    if (hidesMediaDescription(
+      itemType: item.type,
+      hideMediaDescription: prefs.get(
+        UserPreferences.hideDetailsMediaDescription,
+      ),
+    )) {
+      return null;
+    }
     final overview = item.overview?.trim();
     if (overview == null || overview.isEmpty) {
       return null;
@@ -3992,7 +4000,14 @@ class _HeaderSection extends StatelessWidget {
             textAlign: isMobile ? TextAlign.center : null,
           ),
         ],
-        if (item.overview != null && item.overview!.isNotEmpty) ...[
+        if (item.overview != null &&
+            item.overview!.isNotEmpty &&
+            !hidesMediaDescription(
+              itemType: item.type,
+              hideMediaDescription: prefs.get(
+                UserPreferences.hideDetailsMediaDescription,
+              ),
+            )) ...[
           const SizedBox(height: 8),
           _OverviewText(
             text: item.overview!,
@@ -4295,6 +4310,44 @@ class DetailPosterImage extends StatelessWidget {
   }
 }
 
+/// The thumb endpoint only takes a width, so a card that reserves its space by
+/// height asks for the 16:9 width that fills it.
+int _landscapeWidthFor(int height) => (height * 16 / 9).round();
+
+/// The parent series artwork, for standing in where an episode still or a
+/// chapter frame would give something away. Null when the series offers nothing
+/// to show, which leaves the caller on the picture it would have used.
+String? _resolveSeriesLandscapeThumbnailUrl(
+  AggregatedItem item,
+  ImageApi imageApi, {
+  required int maxWidth,
+}) {
+  final thumbId = item.parentThumbItemId ?? item.seriesId;
+  final thumbTag = item.parentThumbImageTag ?? item.seriesThumbImageTag;
+  if (thumbId != null &&
+      thumbId.isNotEmpty &&
+      thumbTag != null &&
+      thumbTag.isNotEmpty) {
+    return imageApi.getThumbImageUrl(thumbId, maxWidth: maxWidth, tag: thumbTag);
+  }
+
+  final seriesId = item.seriesId ?? item.parentPrimaryImageItemId;
+  final seriesPrimaryTag =
+      item.seriesPrimaryImageTag ?? item.parentPrimaryImageTag;
+  if (seriesId != null &&
+      seriesId.isNotEmpty &&
+      seriesPrimaryTag != null &&
+      seriesPrimaryTag.isNotEmpty) {
+    return imageApi.getPrimaryImageUrl(
+      seriesId,
+      maxWidth: maxWidth,
+      tag: seriesPrimaryTag,
+    );
+  }
+
+  return null;
+}
+
 class _EpisodeThumbnail extends StatelessWidget {
   final AggregatedItem item;
   final ImageApi imageApi;
@@ -4307,8 +4360,25 @@ class _EpisodeThumbnail extends StatelessWidget {
     final desktopScale = _desktopUiScale();
     final w = isMobile ? 200.0 : 280.0 * desktopScale;
     final h = isMobile ? 113.0 : 158.0 * desktopScale;
+    final maxW = isMobile ? 400 : (560 * desktopScale).round();
 
-    if (item.primaryImageTag == null) return SizedBox(width: w, height: h);
+    final seriesThumbUrl =
+        GetIt.instance<UserPreferences>().get(
+          UserPreferences.detailUseSeriesThumbnails,
+        )
+        ? _resolveSeriesLandscapeThumbnailUrl(item, imageApi, maxWidth: maxW)
+        : null;
+
+    final imageUrl = seriesThumbUrl ??
+        (item.primaryImageTag != null
+            ? imageApi.getPrimaryImageUrl(
+                item.id,
+                maxWidth: maxW,
+                tag: item.primaryImageTag,
+              )
+            : null);
+
+    if (imageUrl == null) return SizedBox(width: w, height: h);
 
     return SizedBox(
       width: w,
@@ -4318,11 +4388,7 @@ class _EpisodeThumbnail extends StatelessWidget {
           ClipRRect(
             borderRadius: AppRadius.circular(8),
             child: OfflineAwareImage(
-              imageUrl: imageApi.getPrimaryImageUrl(
-                item.id,
-                maxWidth: isMobile ? 400 : (560 * desktopScale).round(),
-                tag: item.primaryImageTag,
-              ),
+              imageUrl: imageUrl,
               width: w,
               height: h,
               fit: BoxFit.cover,
@@ -11763,6 +11829,16 @@ class DetailChaptersRow extends StatelessWidget {
     final chapterCardWidth = isMobile ? 220.0 : 280.0 * desktopScale;
     final devicePixelRatio = MediaQuery.devicePixelRatioOf(context);
     final chapterImageWidth = (chapterCardWidth * devicePixelRatio).ceil();
+    final seriesThumbUrl =
+        GetIt.instance<UserPreferences>().get(
+          UserPreferences.detailUseSeriesThumbnails,
+        )
+        ? _resolveSeriesLandscapeThumbnailUrl(
+            item,
+            imageApi,
+            maxWidth: chapterImageWidth,
+          )
+        : null;
 
     return SizedBox(
       height: isMobile ? 180 : 210 * desktopScale,
@@ -11782,12 +11858,13 @@ class DetailChaptersRow extends StatelessWidget {
               ? (chapter['Name'] as String)
               : AppLocalizations.of(context).chapterNumber(index + 1);
           final imageTag = chapter['ImageTag'] as String?;
-          final chapterImageUrl = imageApi.getChapterImageUrl(
-            item.id,
-            index: index,
-            maxWidth: chapterImageWidth,
-            tag: imageTag,
-          );
+          final chapterImageUrl = seriesThumbUrl ??
+              imageApi.getChapterImageUrl(
+                item.id,
+                index: index,
+                maxWidth: chapterImageWidth,
+                tag: imageTag,
+              );
 
           return _ChapterListCard(
             chapterName: name,
@@ -12987,11 +13064,26 @@ class _EpisodeListCardState extends State<_EpisodeListCard>
               ? '${runtime.inHours}h ${runtime.inMinutes.remainder(60)}m'
               : '${runtime.inMinutes}m')
         : null;
-    final focusColor = Color(
-      GetIt.instance<UserPreferences>()
-          .get(UserPreferences.focusColor)
-          .colorValue,
-    );
+    final prefs = GetIt.instance<UserPreferences>();
+    final focusColor = Color(prefs.get(UserPreferences.focusColor).colorValue);
+    final maxH = widget.isMobile ? 250 : (250 * desktopScale).round();
+    final seriesThumbUrl =
+        prefs.get(UserPreferences.detailUseSeriesThumbnails)
+        ? _resolveSeriesLandscapeThumbnailUrl(
+            ep,
+            widget.imageApi,
+            maxWidth: _landscapeWidthFor(maxH),
+          )
+        : null;
+
+    final epImageUrl = seriesThumbUrl ??
+        (ep.primaryImageTag != null
+            ? widget.imageApi.getPrimaryImageUrl(
+                ep.id,
+                maxHeight: maxH,
+                tag: ep.primaryImageTag,
+              )
+            : null);
 
     return MouseRegion(
       cursor: SystemMouseCursors.click,
@@ -13036,15 +13128,9 @@ class _EpisodeListCardState extends State<_EpisodeListCard>
                       child: Stack(
                         fit: StackFit.expand,
                         children: [
-                          if (ep.primaryImageTag != null)
+                          if (epImageUrl != null)
                             OfflineAwareImage(
-                              imageUrl: widget.imageApi.getPrimaryImageUrl(
-                                ep.id,
-                                maxHeight: widget.isMobile
-                                    ? 250
-                                    : (250 * desktopScale).round(),
-                                tag: ep.primaryImageTag,
-                              ),
+                              imageUrl: epImageUrl,
                               fit: BoxFit.cover,
                               errorWidget: (_, _, _) => Container(
                                 color: Colors.white.withValues(alpha: 0.05),
@@ -13210,14 +13296,28 @@ class DetailNextUpCardState extends State<DetailNextUpCard>
     final subtitle = [?label, episode.name].join(' - ');
 
     final isMobile = _isCompact(context);
-    final focusColor = Color(
-      GetIt.instance<UserPreferences>()
-          .get(UserPreferences.focusColor)
-          .colorValue,
-    );
-    final cardExpansion = GetIt.instance<UserPreferences>().get(
-      UserPreferences.cardFocusExpansion,
-    );
+    final prefs = GetIt.instance<UserPreferences>();
+    final focusColor = Color(prefs.get(UserPreferences.focusColor).colorValue);
+    final cardExpansion = prefs.get(UserPreferences.cardFocusExpansion);
+    final maxH = isMobile ? 240 : (240 * desktopScale).round();
+    final seriesThumbUrl =
+        prefs.get(UserPreferences.detailUseSeriesThumbnails)
+        ? _resolveSeriesLandscapeThumbnailUrl(
+            episode,
+            widget.imageApi,
+            maxWidth: _landscapeWidthFor(maxH),
+          )
+        : null;
+
+    final epThumbTag = episode.primaryImageTag;
+    final epImageUrl = seriesThumbUrl ??
+        (epThumbTag != null
+            ? widget.imageApi.getPrimaryImageUrl(
+                episode.id,
+                maxHeight: maxH,
+                tag: epThumbTag,
+              )
+            : null);
 
     return MouseRegion(
       cursor: SystemMouseCursors.click,
@@ -13261,15 +13361,9 @@ class DetailNextUpCardState extends State<DetailNextUpCard>
                         child: Stack(
                           fit: StackFit.expand,
                           children: [
-                            if (episode.primaryImageTag != null)
+                            if (epImageUrl != null)
                               OfflineAwareImage(
-                                imageUrl: widget.imageApi.getPrimaryImageUrl(
-                                  episode.id,
-                                  maxHeight: isMobile
-                                      ? 240
-                                      : (240 * desktopScale).round(),
-                                  tag: episode.primaryImageTag,
-                                ),
+                                imageUrl: epImageUrl,
                                 fit: BoxFit.cover,
                                 errorWidget: (_, _, _) => const SizedBox.shrink(),
                               ),
@@ -13417,15 +13511,29 @@ class DetailEpisodeCardState extends State<DetailEpisodeCard>
               : '${runtime.inMinutes}m')
         : null;
 
-    final focusColor = Color(
-      GetIt.instance<UserPreferences>()
-          .get(UserPreferences.focusColor)
-          .colorValue,
-    );
-    final cardExpansion = GetIt.instance<UserPreferences>().get(
-      UserPreferences.cardFocusExpansion,
-    );
+    final prefs = GetIt.instance<UserPreferences>();
+    final focusColor = Color(prefs.get(UserPreferences.focusColor).colorValue);
+    final cardExpansion = prefs.get(UserPreferences.cardFocusExpansion);
     final isMobile = _isCompact(context);
+    final maxH = isMobile ? 220 : (220 * desktopScale).round();
+    final seriesThumbUrl =
+        prefs.get(UserPreferences.detailUseSeriesThumbnails)
+        ? _resolveSeriesLandscapeThumbnailUrl(
+            episode,
+            widget.imageApi,
+            maxWidth: _landscapeWidthFor(maxH),
+          )
+        : null;
+
+    final epThumbTag = episode.primaryImageTag;
+    final epImageUrl = seriesThumbUrl ??
+        (epThumbTag != null
+            ? widget.imageApi.getPrimaryImageUrl(
+                episode.id,
+                maxHeight: maxH,
+                tag: epThumbTag,
+              )
+            : null);
 
     return MouseRegion(
       cursor: SystemMouseCursors.click,
@@ -13478,15 +13586,9 @@ class DetailEpisodeCardState extends State<DetailEpisodeCard>
                           child: Stack(
                             fit: StackFit.expand,
                             children: [
-                              if (episode.primaryImageTag != null)
+                              if (epImageUrl != null)
                                 OfflineAwareImage(
-                                  imageUrl: widget.imageApi.getPrimaryImageUrl(
-                                    episode.id,
-                                    maxHeight: isMobile
-                                        ? 220
-                                        : (220 * desktopScale).round(),
-                                    tag: episode.primaryImageTag,
-                                  ),
+                                  imageUrl: epImageUrl,
                                   fit: BoxFit.cover,
                                   errorWidget: (_, _, _) => Container(
                                     color: Colors.white.withValues(alpha: 0.05),

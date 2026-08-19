@@ -136,6 +136,8 @@ class EmbyMediaStreamResolver implements MediaStreamResolver {
         sourceBitrate: source.bitrate,
         maxStreamingBitrate: maxStreamingBitrate,
         audioStreamIndex: audioStreamIndex ?? source.defaultAudioStreamIndex,
+        subtitleStreamIndex:
+            subtitleStreamIndex ?? source.defaultSubtitleStreamIndex,
         deviceProfile: deviceProfile,
       ),
       serverOfferedDirectPlay: source.supportsDirectPlay,

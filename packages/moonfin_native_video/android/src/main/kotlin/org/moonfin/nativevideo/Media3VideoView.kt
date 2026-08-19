@@ -86,10 +86,10 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.platform.PlatformView
 import io.github.peerless2012.ass.media.AssHandler
+import io.github.peerless2012.ass.media.AssHandlerConfig
 import io.github.peerless2012.ass.media.kt.withAssSupport
 import io.github.peerless2012.ass.media.parser.AssSubtitleParserFactory
 import io.github.peerless2012.ass.media.type.AssRenderType
-import io.github.peerless2012.ass.media.widget.AssSubtitleView
 import java.io.File
 import java.nio.ByteBuffer
 import kotlin.math.roundToInt
@@ -538,6 +538,8 @@ class Media3VideoView(
 
         private const val ASS_FALLBACK_FONT_ASSET = "fonts/NotoSans-Regular.ttf"
         private const val ASS_FALLBACK_FONT_NAME = "Noto Sans"
+        private const val ASS_MAX_CACHE_SIZE_MB = 128
+        private const val ASS_MIN_CACHE_SIZE_MB = 16
         private val FONT_EXTENSIONS = setOf("ttf", "otf", "ttc")
         private val ASS_SYSTEM_CJK_FONTS = listOf(
             "NotoSansCJK-Regular.ttc",
@@ -741,6 +743,11 @@ class Media3VideoView(
     private var lastAudioTrackMapping: List<Map<String, Any?>>? = null
 
     private var player: ExoPlayer
+
+    // Renders the ASS overlay for the current player and owns the thread that
+    // calls libass. Torn down before the player, so an in-flight render never
+    // outlives the native objects it reads.
+    private var assOverlayView: MoonfinAssOverlayView? = null
 
     // True once a source has been loaded into the current player. Reusing the
     // same ExoPlayer instance + surface for a second source hangs in buffering
@@ -1323,6 +1330,7 @@ class Media3VideoView(
         currentAudioSessionId = C.AUDIO_SESSION_ID_UNSET
         restorePreferredDisplayMode()
         detectedFrameRate = null
+        releaseAssOverlay()
         player.removeListener(listener)
         player.removeAnalyticsListener(analyticsListener)
         audioPipeline.release()
@@ -1556,9 +1564,17 @@ class Media3VideoView(
             .setConnectTimeoutMs(120_000)
             .setReadTimeoutMs(120_000)
         val bootDataSourceFactory = DefaultDataSource.Factory(context, httpDataSourceFactory)
-        val assHandler = AssHandler(AssRenderType.OVERLAY_CANVAS)
+        val assHandler = AssHandler(
+            AssRenderType.OVERLAY_CANVAS,
+            AssHandlerConfig(cacheSize = assCacheSizeMb()),
+        )
         registerAssFonts(assHandler)
-        val assParserFactory = AssSubtitleParserFactory(assHandler)
+        // Serializes track creation and dialogue reads against the overlay's
+        // render thread.
+        val assParserFactory = MoonfinAssParserFactory(
+            AssSubtitleParserFactory(assHandler),
+            assHandler,
+        )
         val bootMediaSourceFactory = DefaultMediaSourceFactory(
             bootDataSourceFactory,
             // The DoVi wrapper sits outermost so it sees the extractors every
@@ -1586,7 +1602,12 @@ class Media3VideoView(
             .build()
             .also {
                 attachAssOverlay(assHandler)
+                // init() sets up the handler's looper and registers it as a
+                // listener. Its callbacks reach libass unlocked, so the
+                // forwarder takes that seat instead.
                 assHandler.init(it)
+                it.removeListener(assHandler)
+                it.addListener(MoonfinAssPlayerListener(assHandler))
                 if (currentMediaType != "audio") {
                     if (useSurfaceView) {
                         it.setVideoSurfaceView(videoView as SurfaceView)
@@ -1642,13 +1663,38 @@ class Media3VideoView(
         }
     }
 
+    // libass caches rasterized glyphs in native memory, and ass-media asks for
+    // 128MB on every device. That's more than the whole Java heap on the low
+    // memory boxes this ships to, so the ask scales with the heap instead.
+    private fun assCacheSizeMb(): Int {
+        val quarterHeapMb = Runtime.getRuntime().maxMemory() / (4L * 1024L * 1024L)
+        return quarterHeapMb
+            .coerceIn(ASS_MIN_CACHE_SIZE_MB.toLong(), ASS_MAX_CACHE_SIZE_MB.toLong())
+            .toInt()
+    }
+
     private fun attachAssOverlay(assHandler: AssHandler) {
-        for (i in subtitleView.childCount - 1 downTo 0) {
-            if (subtitleView.getChildAt(i) is AssSubtitleView) {
-                subtitleView.removeViewAt(i)
-            }
+        releaseAssOverlay()
+        val overlay = MoonfinAssOverlayView(context, assHandler)
+        subtitleView.addView(
+            overlay,
+            FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.MATCH_PARENT,
+            ),
+        )
+        assOverlayView = overlay
+    }
+
+    // Stops the render thread and waits for the frame inside libass to finish.
+    // Runs before the player goes, because releasing the player is what drops
+    // the last references to the handler's native objects.
+    private fun releaseAssOverlay() {
+        assOverlayView?.let { overlay ->
+            subtitleView.removeView(overlay)
+            overlay.release()
         }
-        subtitleView.withAssSupport(assHandler)
+        assOverlayView = null
     }
 
     private fun rebuildPlayerForDecoderPreference() {
@@ -1656,6 +1702,7 @@ class Media3VideoView(
         currentAudioSessionId = C.AUDIO_SESSION_ID_UNSET
         restorePreferredDisplayMode()
         detectedFrameRate = null
+        releaseAssOverlay()
         player.removeListener(listener)
         player.removeAnalyticsListener(analyticsListener)
         player.clearVideoSurface()
@@ -3890,6 +3937,7 @@ class Media3VideoView(
         Media3Bridge.emitEvent(
             mapOf(
                 "event" to "tracksChanged",
+                "videoTrackCount" to trackCount(C.TRACK_TYPE_VIDEO),
                 "audioTrackCount" to trackCount(C.TRACK_TYPE_AUDIO),
                 "textTrackCount" to trackCount(C.TRACK_TYPE_TEXT),
                 "closedCaptionTracks" to closedCaptionTrackOptions(),

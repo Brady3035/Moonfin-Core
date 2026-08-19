@@ -815,6 +815,11 @@ enum RewatchSortBy {
   String get displayName => this == recentlyWatched ? 'Recently Watched' : 'Random';
 }
 
+/// Which record dates a show in the recently released row of a TV library. A
+/// series carries its first episode's date, so a long running show stops
+/// surfacing. The row shows series cards whichever of these is picked.
+enum RecentlyReleasedSeriesType { series, season, episode }
+
 /// When a home row card shows its MOVIE or SERIES label. Only external rows
 /// carry a media type, so the rest are unaffected either way.
 enum MediaTypeBadgeBehavior { always, mixedRowsOnly, never }

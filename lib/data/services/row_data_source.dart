@@ -307,9 +307,25 @@ class RowDataSource {
       defaultLimit: _defaultLimit,
       maxLimit: _maxItems,
     );
+    List<String>? seriesType;
+    var recursive = false;
+    if (collectionType == 'tvshows') {
+      final prefSeriesType = GetIt.instance<UserPreferences>().get(
+        UserPreferences.recentlyReleasedSeriesType,
+      );
+      seriesType = switch (prefSeriesType) {
+        RecentlyReleasedSeriesType.series => const ['Series'],
+        RecentlyReleasedSeriesType.season => const ['Season'],
+        RecentlyReleasedSeriesType.episode => const ['Episode'],
+      };
+      // Seasons and episodes sit below the library rather than directly in it.
+      recursive = prefSeriesType != RecentlyReleasedSeriesType.series;
+    }
     final response = await _getRecentlyReleasedItemsWithFallback(
       parentId: parentId,
       limit: fetchLimit,
+      includeItemTypes: seriesType,
+      recursive: recursive,
     );
     final items = normalizeLatestMediaItems(
       _parseItems(response, serverId),
@@ -1849,6 +1865,8 @@ class RowDataSource {
   Future<Map<String, dynamic>> _getRecentlyReleasedItemsWithFallback({
     required String parentId,
     required int limit,
+    List<String>? includeItemTypes,
+    bool recursive = false,
   }) async {
     try {
       final response = await _client.itemsApi.getRecentlyReleasedItems(
@@ -1857,6 +1875,8 @@ class RowDataSource {
         fields: _fields,
         enableImageTypes: _imageTypes,
         imageTypeLimit: _imageTypeLimit,
+        includeItemTypes: includeItemTypes,
+        recursive: recursive,
       );
       return response;
     } on DioException catch (e) {
@@ -1868,6 +1888,8 @@ class RowDataSource {
         fields: _fallbackFields,
         enableImageTypes: _imageTypes,
         imageTypeLimit: _imageTypeLimit,
+        includeItemTypes: includeItemTypes,
+        recursive: recursive,
       );
       return response;
     }

@@ -100,6 +100,9 @@ final List<SyncedField> syncedFields = <SyncedField>[
   SyncedField('personalRatingStyle', UserPreferences.personalRatingStyle, SyncCodec.enumName, enumValues: prefs.PersonalRatingStyle.values),
   SyncedField('detailExpandedTabs', UserPreferences.detailExpandedTabs, SyncCodec.boolean),
   SyncedField('detailShowTechnicalDetails', UserPreferences.detailShowTechnicalDetails, SyncCodec.boolean),
+  SyncedField('hideDetailsMediaDescription', UserPreferences.hideDetailsMediaDescription, SyncCodec.boolean),
+  SyncedField('detailUseSeriesThumbnails', UserPreferences.detailUseSeriesThumbnails, SyncCodec.boolean),
+  SyncedField('hideHomeMediaDescription', UserPreferences.hideHomeMediaDescription, SyncCodec.boolean),
   SyncedField('fullScreenRows', UserPreferences.fullScreenRows, SyncCodec.boolean),
   SyncedField('homeImageTypeContinueWatching', UserPreferences.homeRowImageType(prefs.HomeSectionType.resume), SyncCodec.enumName, enumValues: prefs.ImageType.values),
   SyncedField('posterSize', UserPreferences.posterSize, SyncCodec.enumName, enumValues: prefs.PosterSize.values),
@@ -179,6 +182,7 @@ final List<SyncedField> syncedFields = <SyncedField>[
   SyncedField('tmdbApiKey', UserPreferences.tmdbApiKey, SyncCodec.text, receiveOnly: true),
   SyncedField('seerrEnabled', UserPreferences.seerrEnabled, SyncCodec.boolean),
   SyncedField('seerrBlockNsfw', UserPreferences.seerrBlockNsfw, SyncCodec.boolean),
+  SyncedField('recentlyReleasedSeriesType', UserPreferences.recentlyReleasedSeriesType, SyncCodec.enumName, enumValues: prefs.RecentlyReleasedSeriesType.values),
 
   // Settings that previously stayed on the device. Grouped roughly by the screen they
   // appear on rather than by codec, so a missing one is easier to spot.

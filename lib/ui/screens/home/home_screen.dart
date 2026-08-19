@@ -2420,7 +2420,7 @@ class _ContentRowsState extends State<_ContentRows>
 
     final desktopScale = _desktopUiScaleFactor();
     final metadataScale = desktopScale;
-    final isRowsV2 = prefs.get(UserPreferences.homeRowsStyle) == HomeRowsStyle.v2 && !_isSeerrFilterRow(row);
+    final isRowsV2 = prefs.get(UserPreferences.homeRowsStyle) == HomeRowsStyle.v2 && !_isWideArtworkRow(row);
     final fullScreenRows = _fullScreenRowsEnabled(prefs);
     final platformScale = PlatformDetection.isTV ? 0.8 * desktopScale : desktopScale;
 
@@ -2509,7 +2509,7 @@ class _ContentRowsState extends State<_ContentRows>
     final row = rowIndex < widget.viewModel.rows.length ? widget.viewModel.rows[rowIndex] : null;
     if (row == null) return defaultTop;
     final isRowsV2 = widget.prefs.get(UserPreferences.homeRowsStyle) == HomeRowsStyle.v2 &&
-        !_isSeerrFilterRow(row);
+        !_isWideArtworkRow(row);
 
     if (rowIndex == 0 && _rowTopOffsets.isNotEmpty) {
       if (_isMediaBarIncluded() && !_isBannerMode()) {
@@ -3452,7 +3452,7 @@ class _ContentRowsState extends State<_ContentRows>
       final isSeerrRowOverride = _isSeerrFilterRow(row);
       final isRowsV2 =
           prefs.get(UserPreferences.homeRowsStyle) == HomeRowsStyle.v2 &&
-          !isSeerrRowOverride;
+          !_isWideArtworkRow(row);
       final rowImageType = isSeerrRowOverride
           ? ImageType.thumb
           : (isRowsV2 ? ImageType.poster : _homeRowImageTypeForRow(row, prefs));
@@ -3505,7 +3505,7 @@ class _ContentRowsState extends State<_ContentRows>
       final safeTop = MediaQuery.paddingOf(context).top;
       final isRowsV2 =
           prefs.get(UserPreferences.homeRowsStyle) == HomeRowsStyle.v2 &&
-          !_isSeerrFilterRow(row);
+          !_isWideArtworkRow(row);
 
       final navbarIsTop =
           prefs.get(UserPreferences.navbarPosition) == NavbarPosition.top;
@@ -4108,7 +4108,7 @@ class _ContentRowsState extends State<_ContentRows>
 
                     final contentHeight = _rowContentHeight(row, posterSize, prefs);
                     final targetExtent = rowExtents[rowIndex];
-                    final isRowsV2 = prefs.get(UserPreferences.homeRowsStyle) == HomeRowsStyle.v2 && !_isSeerrFilterRow(row);
+                    final isRowsV2 = prefs.get(UserPreferences.homeRowsStyle) == HomeRowsStyle.v2 && !_isWideArtworkRow(row);
                     final extraTopPadding = isRowsV2
                         ? ((targetExtent - contentHeight) * 0.1).clamp(0.0, double.infinity)
                         : ((targetExtent - contentHeight) / 2.0).clamp(0.0, double.infinity);
@@ -4414,7 +4414,7 @@ class _ContentRowsState extends State<_ContentRows>
     final isSeerrRowOverride = _isSeerrFilterRow(row);
     final isRowsV2 =
         prefs.get(UserPreferences.homeRowsStyle) == HomeRowsStyle.v2 &&
-        !isSeerrRowOverride;
+        !_isWideArtworkRow(row);
     final rowImageType = isSeerrRowOverride
         ? ImageType.thumb
         : (isRowsV2 ? ImageType.poster : _homeRowImageTypeForRow(row, prefs));
@@ -4951,7 +4951,7 @@ class _ContentRowsState extends State<_ContentRows>
                           UserPreferences.showRatingBadges,
                         ),
                       ),
-                    if (overview.isNotEmpty)
+                    if (overview.isNotEmpty && !widget.prefs.get(UserPreferences.hideHomeMediaDescription))
                       Padding(
                         padding: const EdgeInsets.only(top: 4),
                         child: Text(
@@ -5138,6 +5138,13 @@ class _ContentRowsState extends State<_ContentRows>
       row.id == 'seerr_series_genres' ||
       row.id == 'seerr_studios' ||
       row.id == 'seerr_networks';
+
+  /// Rows whose artwork is a wide logo rather than cover art. The modern style
+  /// draws every card portrait, which crops those, so these rows stay on the
+  /// classic layout whichever style is picked.
+  static bool _isWideArtworkRow(HomeRow row) =>
+      _isSeerrFilterRow(row) ||
+      (row.rowType == HomeRowType.studios && row.id == 'studios');
 
   static String? _seerrTmdbImageUrl(String? path, int width) {
     if (path == null || path.isEmpty) return null;

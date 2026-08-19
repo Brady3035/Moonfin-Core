@@ -344,6 +344,9 @@ class UserPreferences extends ChangeNotifier {
     'pref_detail_screen_style',
     'pref_detail_expanded_tabs',
     'pref_detail_show_technical_details',
+    'pref_hide_details_media_description',
+    'pref_detail_use_series_thumbnails',
+    'pref_hide_home_media_description',
     'pref_display_audio_rows',
     'pref_display_since_you_watched_rows',
     'pref_since_you_watched_source',
@@ -517,6 +520,7 @@ class UserPreferences extends ChangeNotifier {
     'last_radarr_calendar_fetch_time',
     'last_sonarr_calendar_fetch_time',
     'merge_radarr_sonarr_calendars',
+    'recently_released_series_type',
   };
 
   bool _isScopedPreference<T>(Preference<T> pref) {
@@ -1237,6 +1241,24 @@ class UserPreferences extends ChangeNotifier {
   /// server like [detailScreenStyle].
   static final detailShowTechnicalDetails = Preference(
     key: 'pref_detail_show_technical_details',
+    defaultValue: false,
+  );
+
+  /// When on, media description paragraph on the details page is hidden.
+  static final hideDetailsMediaDescription = Preference(
+    key: 'pref_hide_details_media_description',
+    defaultValue: false,
+  );
+
+  /// When on, thumbnails on Classic details page are replaced with series thumbnail.
+  static final detailUseSeriesThumbnails = Preference(
+    key: 'pref_detail_use_series_thumbnails',
+    defaultValue: false,
+  );
+
+  /// When on, media description paragraph on the Home screen is hidden.
+  static final hideHomeMediaDescription = Preference(
+    key: 'pref_hide_home_media_description',
     defaultValue: false,
   );
 
@@ -2293,6 +2315,12 @@ class UserPreferences extends ChangeNotifier {
   static final mergeRadarrSonarrCalendars = Preference(
     key: 'merge_radarr_sonarr_calendars',
     defaultValue: false,
+  );
+
+  static final recentlyReleasedSeriesType = EnumPreference(
+    key: 'recently_released_series_type',
+    defaultValue: RecentlyReleasedSeriesType.series,
+    values: RecentlyReleasedSeriesType.values,
   );
 
   List<HomeSectionConfig> get homeSectionsConfig {

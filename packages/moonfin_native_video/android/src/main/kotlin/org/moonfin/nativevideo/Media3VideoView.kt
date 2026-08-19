@@ -3937,6 +3937,7 @@ class Media3VideoView(
         Media3Bridge.emitEvent(
             mapOf(
                 "event" to "tracksChanged",
+                "videoTrackCount" to trackCount(C.TRACK_TYPE_VIDEO),
                 "audioTrackCount" to trackCount(C.TRACK_TYPE_AUDIO),
                 "textTrackCount" to trackCount(C.TRACK_TYPE_TEXT),
                 "closedCaptionTracks" to closedCaptionTrackOptions(),

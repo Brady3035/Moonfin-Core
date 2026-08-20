@@ -2440,6 +2440,23 @@ class UserPreferences extends ChangeNotifier {
         defaultValue: false,
       );
 
+  /// How far through the first-run setup this server and user have been taken.
+  ///
+  /// A version rather than a flag, so a release that adds a step can show only
+  /// the new one instead of asking everything again. Kept per server and user
+  /// because a second server is a fresh set of libraries worth arranging, and
+  /// kept out of the synced fields so a new device asks rather than inheriting
+  /// somebody else's answer.
+  static Preference<int> setupWizardVersionForServer(String serverKey) =>
+      Preference(
+        key: 'pref_setup_wizard_version_$serverKey',
+        defaultValue: 0,
+      );
+
+  /// Bumped only when a release adds a step that earns its place. Everything
+  /// already answered stays answered.
+  static const setupWizardVersion = 1;
+
   static final confirmExit = Preference(
     key: 'confirm_exit',
     defaultValue: true,

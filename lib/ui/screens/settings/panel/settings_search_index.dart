@@ -1512,6 +1512,11 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
       subtitle: l10n.settingsReportAnIssueSubtitle,
       keywords: ['bug', 'github'],
     ),
+    about.leaf(
+      'run_setup_again',
+      l10n.runSetupAgain,
+      keywords: ['setup', 'wizard', 'first run', 'onboarding', 'quick start'],
+    ),
     diagnostics.screen(keywords: ['logs', 'report', 'debug']),
   ];
 

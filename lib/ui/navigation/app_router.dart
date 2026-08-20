@@ -6,6 +6,7 @@ import 'package:playback_core/playback_core.dart';
 import '../../auth/repositories/session_repository.dart';
 import '../../auth/repositories/user_repository.dart';
 import '../../data/services/connectivity_service.dart';
+import '../../data/services/media_server_client_factory.dart';
 import '../../di/injection.dart';
 import '../../playback/external_player_policy.dart';
 import '../../preference/user_preferences.dart';
@@ -63,6 +64,8 @@ import '../screens/playback/appletv_player_host_screen.dart';
 import '../screens/playback/appletv_livetv_player_host_screen.dart';
 import '../screens/search/search_screen.dart';
 import '../screens/settings/settings_side_panel.dart';
+import '../screens/setup/setup_wizard_gate.dart';
+import '../screens/setup/setup_wizard_screen.dart';
 import '../screens/admin/admin_shell_screen.dart';
 import '../screens/admin/admin_content_analytics_screen.dart';
 import '../screens/admin/admin_dashboard_screen.dart';
@@ -107,6 +110,20 @@ const _authRoutes = {
   Destinations.server,
   Destinations.login,
 };
+
+/// Whether first-run setup still has something to ask about.
+///
+/// Runs on every navigation, so it does no more than read preferences. It
+/// answers false for anything it can't decide cheaply, since letting somebody
+/// through to Home costs nothing next to stranding them outside it.
+bool _shouldRunSetupWizard() {
+  try {
+    final client = GetIt.instance<MediaServerClientFactory>().getActiveClient();
+    return GetIt.instance<SetupWizardGate>().shouldRun(client);
+  } catch (_) {
+    return false;
+  }
+}
 
 /// Surfaces that genuinely need the server. Everything else works offline
 /// against the downloads catalog.
@@ -181,6 +198,14 @@ final appRouter = GoRouter(
       return Destinations.startup;
     }
 
+    // Has to sit above every other rule and below the signed-out one: the
+    // wizard needs a user to set up, and nothing else is worth showing until
+    // it has had its turn. Exempting its own path is what stops it redirecting
+    // to itself forever.
+    if (path != Destinations.setup && _shouldRunSetupWizard()) {
+      return Destinations.setup;
+    }
+
     if (path.startsWith('/admin')) {
       final user = getIt<UserRepository>().currentUser;
       if (user == null || !user.isAdministrator) {
@@ -211,6 +236,10 @@ final appRouter = GoRouter(
     GoRoute(
       path: Destinations.serverSelect,
       builder: (context, state) => const ServerSelectScreen(),
+    ),
+    GoRoute(
+      path: Destinations.setup,
+      builder: (context, state) => const SetupWizardScreen(),
     ),
     GoRoute(
       path: Destinations.embyConnect,

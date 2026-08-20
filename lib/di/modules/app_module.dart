@@ -42,6 +42,7 @@ import '../../preference/seerr_preferences.dart';
 import '../../preference/user_preferences.dart';
 import '../../ui/screensaver/screensaver_controller.dart';
 import '../../ui/screens/home/home_view_model.dart';
+import '../../ui/screens/setup/setup_wizard_gate.dart';
 
 final _getIt = GetIt.instance;
 
@@ -86,6 +87,7 @@ void registerAppModule() {
     () => ScreensaverController(_getIt<UserPreferences>(), _getIt<PlaybackManager>()),
     dispose: (controller) => controller.dispose(),
   );
+  _getIt.registerLazySingleton(() => SetupWizardGate(_getIt<UserPreferences>()));
   _getIt.registerLazySingleton(() => const NativeCastChannel());
   _getIt.registerLazySingleton(() => const NativeDlnaChannel());
   _getIt.registerLazySingleton(() => const NativeAirPlayChannel());

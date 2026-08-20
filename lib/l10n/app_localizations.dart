@@ -2524,6 +2524,12 @@ abstract class AppLocalizations {
   /// **'DIRECTOR'**
   String get director;
 
+  /// Metadata label for the leading cast
+  ///
+  /// In en, this message translates to:
+  /// **'STARRING'**
+  String get starring;
+
   /// Metadata label for directors
   ///
   /// In en, this message translates to:
@@ -6183,6 +6189,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Off'**
   String get mediaBarModeOff;
+
+  /// Media bar style option: Bookshelf
+  ///
+  /// In en, this message translates to:
+  /// **'Bookshelf'**
+  String get mediaBarModeBookshelf;
+
+  /// Media bar style option: Gallery
+  ///
+  /// In en, this message translates to:
+  /// **'Gallery'**
+  String get mediaBarModeGallery;
+
+  /// Media bar style option: Banner
+  ///
+  /// In en, this message translates to:
+  /// **'Banner'**
+  String get mediaBarModeBanner;
 
   /// Setting for enabling media bar
   ///
@@ -19131,6 +19155,120 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Continue Watching and Next Up'**
   String get continueWatchingAndNextUpHeader;
+
+  /// Leaves the first-run setup wizard without answering anything
+  ///
+  /// In en, this message translates to:
+  /// **'Skip setup'**
+  String get setupSkip;
+
+  /// Setup wizard question for the media bar style
+  ///
+  /// In en, this message translates to:
+  /// **'How should the top of your Home screen look?'**
+  String get setupMediaBarQuestion;
+
+  /// Setup wizard question for the home row style
+  ///
+  /// In en, this message translates to:
+  /// **'How should your rows look?'**
+  String get setupHomeRowsQuestion;
+
+  /// Setup wizard question for the detail screen style
+  ///
+  /// In en, this message translates to:
+  /// **'How should a movie or show look when you open it?'**
+  String get setupDetailQuestion;
+
+  /// Heading of the final setup wizard screen
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re set. Here\'s what else is in here.'**
+  String get setupTourQuestion;
+
+  /// Name of the original layout, offered in the setup wizard
+  ///
+  /// In en, this message translates to:
+  /// **'Classic'**
+  String get setupStyleClassic;
+
+  /// Name of the newer layout, offered in the setup wizard
+  ///
+  /// In en, this message translates to:
+  /// **'Modern'**
+  String get setupStyleModern;
+
+  /// What the classic home row style gives you
+  ///
+  /// In en, this message translates to:
+  /// **'Compact. More rows on screen at once.'**
+  String get setupRowsClassicHint;
+
+  /// What the modern home row style gives you
+  ///
+  /// In en, this message translates to:
+  /// **'Larger cards with titles underneath.'**
+  String get setupRowsModernHint;
+
+  /// What the classic detail screen style gives you
+  ///
+  /// In en, this message translates to:
+  /// **'Everything centred in one stack.'**
+  String get setupDetailClassicHint;
+
+  /// What the modern detail screen style gives you
+  ///
+  /// In en, this message translates to:
+  /// **'Cinematic, with tabs for cast and extras.'**
+  String get setupDetailModernHint;
+
+  /// Label above the theme swatches on the final setup screen
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a look'**
+  String get setupPickALook;
+
+  /// Heading of the closing setup screen block that lists features found in settings
+  ///
+  /// In en, this message translates to:
+  /// **'There is more waiting in Settings'**
+  String get setupTourMoreHeader;
+
+  /// Bullet on the closing setup screen for the Seerr request feature
+  ///
+  /// In en, this message translates to:
+  /// **'Seerr requests'**
+  String get setupTourBulletRequests;
+
+  /// Bullet on the closing setup screen for SyncPlay
+  ///
+  /// In en, this message translates to:
+  /// **'SyncPlay watch parties'**
+  String get setupTourBulletSyncPlay;
+
+  /// Bullet on the closing setup screen for custom themes
+  ///
+  /// In en, this message translates to:
+  /// **'Custom themes'**
+  String get setupTourBulletThemes;
+
+  /// Bullet on the closing setup screen for downloads
+  ///
+  /// In en, this message translates to:
+  /// **'Offline downloads'**
+  String get setupTourBulletDownloads;
+
+  /// Closing bullet on the setup screen settings list
+  ///
+  /// In en, this message translates to:
+  /// **'And plenty more'**
+  String get setupTourBulletMore;
+
+  /// Starts the first-run setup wizard again from settings
+  ///
+  /// In en, this message translates to:
+  /// **'Run setup again'**
+  String get runSetupAgain;
 }
 
 class _AppLocalizationsDelegate

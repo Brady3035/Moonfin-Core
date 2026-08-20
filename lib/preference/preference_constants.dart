@@ -245,9 +245,9 @@ enum VisualThemeId {
 
 /// Selectable structural style for the media detail screen.
 ///
-/// [moonfin] is the original centered-stack layout (default). [modern] is the
-/// responsive cinematic layout (landscape two-pane / portrait stack). Resolved
-/// globally (not scoped per server/user).
+/// [classic] is the original centered-stack layout. [modern] is the responsive
+/// cinematic layout (landscape two-pane / portrait stack) and is the default.
+/// Stored per server and user.
 enum DetailScreenStyle {
   classic,
   modern;

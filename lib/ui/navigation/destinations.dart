@@ -62,6 +62,10 @@ class Destinations {
   static const server = '/server';
   static const login = '/login';
 
+  /// First-run setup. Sits between login and home the first time a user lands
+  /// on a server, and is reachable again from About afterwards.
+  static const setup = '/setup';
+
   // General
   static const home = '/home';
   static const search = '/search';

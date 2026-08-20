@@ -410,6 +410,7 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen>
             item.id,
             serverId: item.serverId,
             type: item.type,
+            channelId: item.channelId,
           ),
         )
         .then((result) {

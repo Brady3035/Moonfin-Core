@@ -3378,6 +3378,7 @@ class _DetailContentState extends State<_DetailContent> {
                   selectedTrack.id,
                   serverId: selectedTrack.serverId,
                   type: selectedTrack.type,
+                  channelId: selectedTrack.channelId,
                 ),
               );
               return;

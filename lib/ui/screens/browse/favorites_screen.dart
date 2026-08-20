@@ -621,6 +621,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> with GridFocusNodeMix
           item.id,
           serverId: item.serverId,
           type: item.type,
+          channelId: item.channelId,
         ),
       ),
     );
@@ -756,6 +757,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> with GridFocusNodeMix
                         item.id,
                         serverId: item.serverId,
                         type: item.type,
+                        channelId: item.channelId,
                       ),
                     ),
                   );

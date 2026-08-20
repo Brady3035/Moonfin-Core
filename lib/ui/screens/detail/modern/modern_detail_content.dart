@@ -200,6 +200,10 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
 
   PlaybackInfoResult? _playbackInfo;
   bool _loadingPlaybackInfo = false;
+  // A failed request has to count as loaded too. This runs from build, so
+  // retrying just because the last attempt failed turns one server error into
+  // a request every frame.
+  bool _playbackInfoFailed = false;
   String? _loadedPlaybackInfoItemId;
 
   bool _upNextResolvedThisBuild = false;
@@ -207,14 +211,15 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
 
   Future<void> _loadPlaybackInfo(AggregatedItem item) async {
     if (_loadingPlaybackInfo) return;
-    if (_playbackInfo != null &&
+    if ((_playbackInfo != null || _playbackInfoFailed) &&
         _loadedPlaybackInfoItemId == item.id &&
         _loadedAudioIndex == _vm.selectedAudioIndex &&
         _loadedSubtitleIndex == _vm.selectedSubtitleIndex) {
       return;
     }
-    
+
     _loadingPlaybackInfo = true;
+    _playbackInfoFailed = false;
     _loadedPlaybackInfoItemId = item.id;
     _loadedAudioIndex = _vm.selectedAudioIndex;
     _loadedSubtitleIndex = _vm.selectedSubtitleIndex;
@@ -267,6 +272,7 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
         setState(() {
           _loadingPlaybackInfo = false;
           _playbackInfo = null;
+          _playbackInfoFailed = true;
         });
       }
     }

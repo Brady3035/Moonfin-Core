@@ -4572,6 +4572,7 @@ class _ContentRowsState extends State<_ContentRows>
                 item.id,
                 serverId: item.serverId,
                 type: item.type,
+                channelId: item.channelId,
               ),
             );
           }
@@ -4671,6 +4672,7 @@ class _ContentRowsState extends State<_ContentRows>
                           item.id,
                           serverId: item.serverId,
                           type: item.type,
+                          channelId: item.channelId,
                         ),
                       );
                     }

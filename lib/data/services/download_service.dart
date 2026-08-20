@@ -679,8 +679,8 @@ class DownloadService extends ChangeNotifier {
     required _MediaDownloadContext ctx,
     required Map<String, String> headers,
   }) async {
-    final (baseDirectory, directory, filename) = await bgd.Task.split(
-      filePath: ctx.savePath,
+    final (baseDirectory, directory, filename) = await splitDownloadPath(
+      ctx.savePath,
     );
     final metaData = jsonEncode({
       'itemId': ctx.itemId,

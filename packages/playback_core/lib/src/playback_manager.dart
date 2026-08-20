@@ -302,6 +302,7 @@ class PlaybackManager implements AudioOwnable {
     double? normalizationGainDb,
     String? hybridAudioUrl,
     bool isLive = false,
+    bool autoPlay = true,
   }) {
     final resolvedMediaType = mediaType?.trim().toLowerCase();
 
@@ -364,6 +365,7 @@ class PlaybackManager implements AudioOwnable {
 
     return <String, dynamic>{
       'url': url,
+      'autoPlay': autoPlay,
       if (container != null && container.isNotEmpty) 'container': container,
       if (videoRangeType != null && videoRangeType.isNotEmpty)
         'videoRangeType': videoRangeType,
@@ -884,7 +886,10 @@ class PlaybackManager implements AudioOwnable {
     Future<void> recoverViaTranscode() async {
       _unsupportedAudioRecoveryInFlight = true;
       try {
-        await _reResolveAtCurrentPosition(forceTranscode: true);
+        await _reResolveAtCurrentPosition(
+          forceTranscode: true,
+          isErrorRecovery: true,
+        );
       } catch (_) {
         emitFailedBringupState('Playback failed.');
       } finally {
@@ -1146,6 +1151,7 @@ class PlaybackManager implements AudioOwnable {
     bool enableDirectStream = true,
     bool enableTranscoding = true,
     bool allowStartupRecovery = true,
+    bool autoPlay = true,
   }) async {
     _deferredStartPosition = Duration.zero;
     _deferPlaybackToExternalPlayer = false;
@@ -1373,6 +1379,7 @@ class PlaybackManager implements AudioOwnable {
           enableDirectStream: enableDirectStream,
           enableTranscoding: enableTranscoding,
           allowStartupRecovery: allowStartupRecovery,
+          autoPlay: autoPlay,
         );
         return;
       } finally {
@@ -1492,6 +1499,7 @@ class PlaybackManager implements AudioOwnable {
         normalizationGainDb: resolution.normalizationGainDb,
         hybridAudioUrl: resolution.hybridAudioUrl,
         isLive: resolution.liveStreamId != null,
+        autoPlay: autoPlay,
       );
       await _arbiter?.acquire(AudioProducer.mainPlayback);
       if (sessionToken != _playbackSessionToken) {
@@ -1610,6 +1618,7 @@ class PlaybackManager implements AudioOwnable {
               : enableDirectStream,
           enableTranscoding: forceTranscodeFallback ? true : enableTranscoding,
           allowStartupRecovery: false,
+          autoPlay: autoPlay,
         );
         return;
       }
@@ -1650,7 +1659,10 @@ class PlaybackManager implements AudioOwnable {
           playMethod: resolution.playMethod.name,
         ),
       );
-      await _seekWhilePausedAndResume(startPosition);
+      await _seekWhilePausedAndMaybeResume(
+        startPosition,
+        resumeAfterSeek: autoPlay,
+      );
     }
 
     if (resolution.externalSubtitles.isNotEmpty) {
@@ -1861,7 +1873,10 @@ class PlaybackManager implements AudioOwnable {
     return false;
   }
 
-  Future<void> _seekWhilePausedAndResume(Duration position) async {
+  Future<void> _seekWhilePausedAndMaybeResume(
+    Duration position, {
+    bool resumeAfterSeek = true,
+  }) async {
     await _backend!.seekTo(position);
     for (var i = 0; i < 50; i++) {
       await Future.delayed(const Duration(milliseconds: 100));
@@ -1869,7 +1884,10 @@ class PlaybackManager implements AudioOwnable {
         break;
       }
     }
-    await _backend!.resume();
+
+    if (resumeAfterSeek) {
+      await _backend!.resume();
+    }
   }
 
   Future<void> stop({bool userInitiated = true}) async {
@@ -2360,6 +2378,8 @@ class PlaybackManager implements AudioOwnable {
     bool forceTranscode = false,
     bool isErrorRecovery = false,
   }) {
+    final autoPlayAfterResolve =
+    isErrorRecovery ? true : (_backend?.isPlaying ?? state.isPlaying);
     final previous = _reResolveQueue;
     final run = () async {
       if (previous != null) {
@@ -2370,6 +2390,7 @@ class PlaybackManager implements AudioOwnable {
       await _reResolveNow(
         forceTranscode: forceTranscode,
         isErrorRecovery: isErrorRecovery,
+        autoPlayAfterResolve: autoPlayAfterResolve,
       );
     }();
     _reResolveQueue = run;
@@ -2379,6 +2400,7 @@ class PlaybackManager implements AudioOwnable {
   Future<void> _reResolveNow({
     required bool forceTranscode,
     required bool isErrorRecovery,
+    required bool autoPlayAfterResolve,
   }) async {
     final backendPos = _backend?.position ?? Duration.zero;
     final currentPos = Duration(
@@ -2436,6 +2458,7 @@ class PlaybackManager implements AudioOwnable {
         startPosition: currentPos,
         enableDirectPlay: !forceTranscode,
         enableDirectStream: !forceTranscode,
+        autoPlay: autoPlayAfterResolve,
       );
     } finally {
       _teardownForReResolve = false;
@@ -2728,7 +2751,7 @@ class PlaybackManager implements AudioOwnable {
     }
 
     if (startPosition > Duration.zero) {
-      await _seekWhilePausedAndResume(startPosition);
+      await _seekWhilePausedAndMaybeResume(startPosition);
     }
   }
 

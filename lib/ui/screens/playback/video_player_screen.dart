@@ -5419,6 +5419,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
   }
 
   void _handleDoubleTapGesture() {
+    if (_isCurrentPreroll) {
+      return;
+    }
     if (PlatformDetection.useDesktopUi) {
       return;
     }

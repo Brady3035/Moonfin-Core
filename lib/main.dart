@@ -36,6 +36,7 @@ import 'playback/audio_capability_profile.dart';
 import 'playback/audio_capability_probe.dart';
 import 'playback/audio_handler.dart';
 import 'playback/codec_caps_repair.dart';
+import 'playback/device_capability_cache.dart';
 import 'playback/media_browse_service.dart';
 import 'playback/mpris_service.dart';
 import 'playback/playback_lifecycle_handler.dart';
@@ -212,15 +213,90 @@ Future<void> _detectAndSetTvMode() async {
   );
 }
 
+/// Seeds the capability state from the last launch's good probe results.
+///
+/// On a cold boot the app can start before HDMI has finished negotiating, and
+/// every probe then reports a device that can do nothing. Starting from the
+/// persisted last-good answers means even the first playback of such a launch
+/// gets a profile that matches the hardware. A probe that later succeeds
+/// overwrites the seed in either direction.
+Future<void> _seedCapabilitiesFromCache() async {
+  final audio = await DeviceCapabilityCache.readMap(
+    DeviceCapabilityCache.audioKey,
+  );
+  if (audio != null) {
+    PlatformDetection.setAudioCapabilities(audio);
+  }
+  if (PlatformDetection.isAndroid && PlatformDetection.isTV) {
+    final hdrTypes = await DeviceCapabilityCache.readStringList(
+      DeviceCapabilityCache.displayHdrKey,
+    );
+    if (hdrTypes != null && hdrTypes.isNotEmpty) {
+      PlatformDetection.setDisplayHdrTypes(hdrTypes);
+    }
+  }
+}
+
+/// Runs [attempt] with a doubling delay, first wait two seconds, and stops as
+/// soon as one attempt reports done. An attempt that throws counts the same
+/// as one that came up short, since a failed probe says nothing about the
+/// next one.
+Future<bool> _retryOffLaunchPath(Future<bool> Function() attempt) async {
+  var delay = const Duration(seconds: 2);
+  for (var i = 0; i < 4; i++) {
+    await Future<void>.delayed(delay);
+    delay *= 2;
+    try {
+      if (await attempt()) return true;
+    } catch (_) {}
+  }
+  return false;
+}
+
+/// One display probe: applies and persists a non-empty answer. Returns false
+/// on an empty one and throws when the channel does.
+Future<bool> _probeDisplayHdrOnce() async {
+  const channel = MethodChannel('org.moonfin.androidtv/platform');
+  final hdrTypes = await channel.invokeMethod<List<dynamic>>('displayHdrTypes');
+  final types = (hdrTypes ?? const [])
+      .map((value) => value.toString())
+      .toList(growable: false);
+  if (types.isEmpty) return false;
+  PlatformDetection.setDisplayHdrTypes(types);
+  unawaited(
+    DeviceCapabilityCache.writeStringList(
+      DeviceCapabilityCache.displayHdrKey,
+      types,
+    ),
+  );
+  return true;
+}
+
 Future<void> _detectAndSetDisplayCapabilities() async {
   if (!(PlatformDetection.isAndroid && PlatformDetection.isTV)) return;
   try {
-    const channel = MethodChannel('org.moonfin.androidtv/platform');
-    final hdrTypes = await channel.invokeMethod<List<dynamic>>('displayHdrTypes');
-    PlatformDetection.setDisplayHdrTypes(
-      hdrTypes?.map((value) => value.toString()),
-    );
+    if (await _probeDisplayHdrOnce()) return;
   } catch (_) {}
+  // An empty list from a TV is a probe that ran before the display was up,
+  // not an SDR panel, so the cached seed stays in place while the retries
+  // run. Only a whole run of empty answers is believed.
+  unawaited(_retryDisplayHdrOffLaunchPath());
+}
+
+/// When every retry still reports nothing, that emptiness is accepted as a
+/// genuinely SDR display and the cache is cleared, which is how a box moved
+/// to an SDR TV stops advertising HDR. A run where the channel only ever
+/// threw proves nothing about the panel, so the seed stays.
+Future<void> _retryDisplayHdrOffLaunchPath() async {
+  var answered = false;
+  final found = await _retryOffLaunchPath(() async {
+    if (await _probeDisplayHdrOnce()) return true;
+    answered = true;
+    return false;
+  });
+  if (found || !answered) return;
+  PlatformDetection.setDisplayHdrTypes(const []);
+  await DeviceCapabilityCache.remove(DeviceCapabilityCache.displayHdrKey);
 }
 
 Future<Map<String, dynamic>?> _queryCodecCaps(MethodChannel channel) async {
@@ -244,25 +320,59 @@ Future<Map<String, dynamic>?> _queryCodecCaps(MethodChannel channel) async {
 /// arrives, and the retries only stop early once one carries HEVC, since a
 /// result without it is either a partial enumeration worth another look or a
 /// device that really lacks the decoder and loses nothing to the re-probes.
-Future<void> _retryCodecCapsOffLaunchPath(MethodChannel channel) async {
-  var delay = const Duration(seconds: 2);
-  for (var i = 0; i < 4; i++) {
-    await Future<void>.delayed(delay);
-    delay *= 2;
-    try {
+Future<void> _retryCodecCapsOffLaunchPath(MethodChannel channel) =>
+    _retryOffLaunchPath(() async {
       final caps = await _queryCodecCaps(channel);
-      if (caps == null || codecCapsLookDegenerate(caps)) continue;
+      if (caps == null || codecCapsLookDegenerate(caps)) return false;
       PlatformDetection.setMediaCodecCapabilities(caps);
-      if (!codecCapsLookIncomplete(caps)) return;
-    } catch (_) {
-      // A failed probe says nothing about the next one, so keep trying.
-    }
+      if (codecCapsLookIncomplete(caps)) return false;
+      await _cacheCodecCaps(channel, caps);
+      return true;
+    });
+
+/// The OS build fingerprint, which is the key the codec cache is valid under.
+/// Codec support only changes with a firmware update, and a firmware update
+/// always changes the fingerprint.
+Future<String?> _androidBuildFingerprint(MethodChannel channel) async {
+  try {
+    return await channel.invokeMethod<String>('buildFingerprint');
+  } catch (_) {
+    return null;
   }
+}
+
+Future<void> _cacheCodecCaps(
+  MethodChannel channel,
+  Map<String, dynamic> caps,
+) async {
+  final build = await _androidBuildFingerprint(channel);
+  if (build == null) return;
+  await DeviceCapabilityCache.writeMap(
+    DeviceCapabilityCache.codecKey,
+    caps,
+    build: build,
+  );
 }
 
 Future<void> _detectAndSetCodecCapabilities() async {
   if (!PlatformDetection.isAndroid) return;
   const channel = MethodChannel('org.moonfin.androidtv/platform');
+
+  // What a chip decodes only changes with its firmware, so a sound result
+  // saved under this build is the answer and the enumeration, the slowest
+  // probe of the launch, is skipped entirely.
+  final build = await _androidBuildFingerprint(channel);
+  if (build != null) {
+    final cached = await DeviceCapabilityCache.readMap(
+      DeviceCapabilityCache.codecKey,
+      build: build,
+    );
+    if (cached != null) {
+      PlatformDetection.setMediaCodecCapabilities(cached);
+      return;
+    }
+  }
+
   try {
     final codecCaps = await _queryCodecCaps(channel);
     if (codecCaps != null) {
@@ -278,6 +388,8 @@ Future<void> _detectAndSetCodecCapabilities() async {
       // for one launch and every HEVC library transcoding until a restart.
       if (degenerate || codecCapsLookIncomplete(codecCaps)) {
         unawaited(_retryCodecCapsOffLaunchPath(channel));
+      } else {
+        unawaited(_cacheCodecCaps(channel, codecCaps));
       }
       return;
     }
@@ -303,15 +415,7 @@ Future<void> _detectAndSetCodecCapabilities() async {
 
 Future<void> _detectAndSetAetherCapabilities() async {
   const channel = MethodChannel('moonfin/ios_aether_control');
-  Map<String, dynamic>? caps;
-  try {
-    final raw = await channel.invokeMethod<Map<dynamic, dynamic>>(
-      'getCapabilities',
-    );
-    if (raw != null) {
-      caps = raw.map((key, value) => MapEntry(key.toString(), value));
-    }
-  } catch (_) {}
+  final caps = await _queryAppleVideoCaps(channel);
 
   // Fallback mirrors AetherEngine's guaranteed baseline on the hardware the
   // deployment floors allow (iOS 16, macOS 14).
@@ -337,17 +441,38 @@ Future<void> _detectAndSetAetherCapabilities() async {
   );
 }
 
-Future<void> _detectAndSetAppleTvCapabilities() async {
-  const channel = MethodChannel('moonfin/appletv_video_control');
-  Map<String, dynamic>? caps;
+/// Queries an Apple video capability channel, preferring the last good
+/// answer over the static baseline when the probe fails. Keyed to the OS
+/// version, since that is what changes what these decoders can do.
+Future<Map<String, dynamic>?> _queryAppleVideoCaps(
+  MethodChannel channel,
+) async {
+  final build = PlatformDetection.osVersion;
   try {
     final raw = await channel.invokeMethod<Map<dynamic, dynamic>>(
       'getCapabilities',
     );
     if (raw != null) {
-      caps = raw.map((key, value) => MapEntry(key.toString(), value));
+      final caps = raw.map((key, value) => MapEntry(key.toString(), value));
+      unawaited(
+        DeviceCapabilityCache.writeMap(
+          DeviceCapabilityCache.appleVideoKey,
+          caps,
+          build: build,
+        ),
+      );
+      return caps;
     }
   } catch (_) {}
+  return DeviceCapabilityCache.readMap(
+    DeviceCapabilityCache.appleVideoKey,
+    build: build,
+  );
+}
+
+Future<void> _detectAndSetAppleTvCapabilities() async {
+  const channel = MethodChannel('moonfin/appletv_video_control');
+  final caps = await _queryAppleVideoCaps(channel);
 
   PlatformDetection.setMediaCodecCapabilities(
     caps ??
@@ -373,10 +498,17 @@ Future<void> _detectAndSetAppleTvCapabilities() async {
 Future<void> _detectAndApplyAudioCapabilities(UserPreferences prefs) async {
   if (!AudioCapabilityProbe.isSupported) return;
   try {
-    // Probe with a short retry so a startup enumeration race doesn't strand us
-    // on an empty result, then publish so getDeviceProfile() picks it up.
+    // Probe with a retry window sized against an HDMI handshake, then publish
+    // so getDeviceProfile() picks it up.
     final profile = await AudioCapabilityProbe.queryWithRetry();
     AudioCapabilityProbe.apply(profile);
+
+    // A launch that still has no real answer keeps trying with a longer
+    // backoff, since a box powered on with the app can take a while to bring
+    // its audio outputs up.
+    if (profile == null || AudioCapabilityProbe.looksEmpty(profile)) {
+      unawaited(_retryAudioCapsOffLaunchPath());
+    }
 
     // Installs migrated into manual mode carry only the toggles they had set
     // by hand, so fill the rest from the probe and every switch has a real
@@ -393,6 +525,16 @@ Future<void> _detectAndApplyAudioCapabilities(UserPreferences prefs) async {
   } catch (_) {}
 }
 
+Future<void> _retryAudioCapsOffLaunchPath() =>
+    _retryOffLaunchPath(() async {
+      final profile = await AudioCapabilityProbe.query();
+      if (profile == null || AudioCapabilityProbe.looksEmpty(profile)) {
+        return false;
+      }
+      AudioCapabilityProbe.apply(profile);
+      return true;
+    });
+
 void _sweepImageCache(UserPreferences prefs, {bool throttle = false}) {
   final mb = prefs.get(UserPreferences.imageCacheLimitMb);
   unawaited(enforceImageCacheBudget(mb * 1024 * 1024, throttle: throttle));
@@ -407,6 +549,39 @@ class _ImageCacheSweepObserver with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state != AppLifecycleState.resumed) return;
     _sweepImageCache(_prefs, throttle: true);
+  }
+}
+
+/// Re-probes display and audio capabilities when the app comes back to the
+/// foreground, which on a TV covers being woken from standby, the moment the
+/// HDMI chain has just renegotiated. Only answers that carry something are
+/// applied here: an empty answer mid-renegotiation must not clobber a good
+/// snapshot.
+class _CapabilityRefreshObserver with WidgetsBindingObserver {
+  static const _throttle = Duration(seconds: 30);
+  DateTime? _lastRefresh;
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state != AppLifecycleState.resumed) return;
+    final now = DateTime.now();
+    final last = _lastRefresh;
+    if (last != null && now.difference(last) < _throttle) return;
+    _lastRefresh = now;
+    unawaited(_refresh());
+  }
+
+  Future<void> _refresh() async {
+    if (PlatformDetection.isAndroid && PlatformDetection.isTV) {
+      try {
+        await _probeDisplayHdrOnce();
+      } catch (_) {}
+    }
+    if (AudioCapabilityProbe.isSupported) {
+      // The guard inside apply keeps a null or unenumerated answer from
+      // touching the last detection.
+      AudioCapabilityProbe.apply(await AudioCapabilityProbe.query());
+    }
   }
 }
 
@@ -514,6 +689,7 @@ void main() async {
 
   await _applyInterfaceLayoutOverride();
   await _detectAndSetTvMode();
+  await _seedCapabilitiesFromCache();
   await Future.wait([
     _detectAndSetDisplayCapabilities(),
     _detectAndSetCodecCapabilities(),
@@ -572,6 +748,7 @@ void main() async {
   _bindScrollSensitivity(prefs);
   WidgetsBinding.instance.addObserver(_PreferenceWriteFlushObserver(prefs));
   WidgetsBinding.instance.addObserver(_ImageCacheSweepObserver(prefs));
+  WidgetsBinding.instance.addObserver(_CapabilityRefreshObserver());
   WidgetsBinding.instance.addPostFrameCallback((_) => _sweepImageCache(prefs));
 
   GetIt.instance<PlaybackManager>().queueService.queueChangedStream.listen((_) {

@@ -250,6 +250,7 @@ class MainActivity : AudioServiceActivity(), GamepadsCompatibleActivity {
                     result.success(isTvDevice())
                 }
                 "displayHdrTypes" -> result.success(getDisplayHdrTypes())
+                "buildFingerprint" -> result.success(Build.FINGERPRINT)
                 "dolbyVisionCodecCapabilities" -> {
                     result.success(MediaCodecCapabilities.queryDolbyVisionCapabilities())
                 }

@@ -6,6 +6,9 @@ import 'os_version_stub.dart' if (dart.library.io) 'os_version_io.dart';
 class PlatformDetection {
   const PlatformDetection._();
 
+  /// The raw OS version string, empty on web where dart:io is unavailable.
+  static String get osVersion => osVersionRaw();
+
   static const double _mobileFormFactorBreakpoint = 600;
 
   /// True when compiled for Tizen (Samsung TV). Set via

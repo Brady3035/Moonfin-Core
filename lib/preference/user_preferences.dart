@@ -1197,6 +1197,12 @@ class UserPreferences extends ChangeNotifier {
     values: InterfaceStyle.values,
   );
 
+  static final interfaceLayout = EnumPreference(
+    key: 'pref_interface_layout',
+    defaultValue: InterfaceLayout.automatic,
+    values: InterfaceLayout.values,
+  );
+
   static final glassQuality = EnumPreference(
     key: 'pref_glass_quality',
     defaultValue: GlassQualityMode.auto,

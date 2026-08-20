@@ -574,6 +574,42 @@ abstract class AppLocalizations {
   /// **'Material'**
   String get interfaceStyleMaterial;
 
+  /// Setting to override which UI layout the app uses
+  ///
+  /// In en, this message translates to:
+  /// **'Interface Layout'**
+  String get interfaceLayout;
+
+  /// Subtitle for the interface layout setting
+  ///
+  /// In en, this message translates to:
+  /// **'Override the detected layout when this device is read wrong. Restart Moonfin for changes to take effect.'**
+  String get interfaceLayoutSubtitle;
+
+  /// Interface layout option: detect from the device
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic'**
+  String get interfaceLayoutAutomatic;
+
+  /// Interface layout option: 10-foot TV layout
+  ///
+  /// In en, this message translates to:
+  /// **'TV'**
+  String get interfaceLayoutTv;
+
+  /// Interface layout option: desktop layout
+  ///
+  /// In en, this message translates to:
+  /// **'Desktop'**
+  String get interfaceLayoutDesktop;
+
+  /// Interface layout option: phone layout
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get interfaceLayoutPhone;
+
   /// Label for the glass rendering quality setting
   ///
   /// In en, this message translates to:

@@ -52,13 +52,28 @@ class PlatformDetection {
   /// UI and is handled by [isAppleTV]/[useLeanbackUi].
   static bool get isApple => isIOS || isMacOS;
 
-  static bool get isTV =>
-      _isTv ||
-      isTizen ||
-      isAppleTV ||
-      const bool.fromEnvironment('MOONFIN_FORCE_TV');
+  static bool get isTV {
+    if (isTizen ||
+        isAppleTV ||
+        const bool.fromEnvironment('MOONFIN_FORCE_TV')) {
+      return true;
+    }
+    return switch (_interfaceLayout) {
+      InterfaceLayout.tv => true,
+      InterfaceLayout.desktop || InterfaceLayout.phone => false,
+      InterfaceLayout.automatic => _isTv,
+    };
+  }
+
   static bool _isTv = false;
   static void setTvMode(bool value) => _isTv = value;
+
+  /// The user's layout override. The compile time platforms above are never
+  /// overridden, so this only steers the two where detection has to guess.
+  static InterfaceLayout _interfaceLayout = InterfaceLayout.automatic;
+  static void setInterfaceLayout(InterfaceLayout value) =>
+      _interfaceLayout = value;
+  static bool get canOverrideInterfaceLayout => isAndroid || isDesktop;
 
   /// Games play via EmulatorJS in a WebView everywhere except tvOS, which has
   /// no WebKit and uses the native libretro bridge instead. Per-system support
@@ -307,6 +322,8 @@ class PlatformDetection {
   }
 
   static bool get _hasMobileFormFactor {
+    if (_interfaceLayout == InterfaceLayout.phone) return true;
+    if (_interfaceLayout == InterfaceLayout.desktop) return false;
     if (isDesktop) return false;
     if (isAndroid || isIOS) return true;
     final size = _screenLogicalSize;
@@ -327,3 +344,8 @@ class PlatformDetection {
   /// media_kit Player for inline trailers, home-row previews and theme music.
   static bool get useApplePreviewPlayer => isAppleTV || isIOS || isMacOS;
 }
+
+/// Which layout to build, where [automatic] leaves it to platform detection.
+/// Stored per device and never synced, since it exists to correct one
+/// device's wrong guess.
+enum InterfaceLayout { automatic, tv, desktop, phone }

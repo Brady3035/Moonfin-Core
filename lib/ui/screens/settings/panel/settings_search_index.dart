@@ -527,6 +527,12 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
       'classic',
       'modern',
     ]),
+    if (PlatformDetection.canOverrideInterfaceLayout)
+      style.leaf('pref_interface_layout', l10n.interfaceLayout, keywords: [
+        'tv mode',
+        'leanback',
+        'force',
+      ]),
     themes.screen(keywords: ['theme', 'color scheme', 'glass', 'neon']),
     if (AppColorScheme.isGlass)
       style.leaf('pref_glass_quality', l10n.glassQuality, keywords: [

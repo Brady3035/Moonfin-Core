@@ -264,6 +264,30 @@
   "@interfaceStyleMaterial": {
     "description": "Interface style option: Material look"
   },
+  "interfaceLayout": "Interface Layout",
+  "@interfaceLayout": {
+    "description": "Setting to override which UI layout the app uses"
+  },
+  "interfaceLayoutSubtitle": "Override the detected layout when this device is read wrong. Restart Moonfin for changes to take effect.",
+  "@interfaceLayoutSubtitle": {
+    "description": "Subtitle for the interface layout setting"
+  },
+  "interfaceLayoutAutomatic": "Automatic",
+  "@interfaceLayoutAutomatic": {
+    "description": "Interface layout option: detect from the device"
+  },
+  "interfaceLayoutTv": "TV",
+  "@interfaceLayoutTv": {
+    "description": "Interface layout option: 10-foot TV layout"
+  },
+  "interfaceLayoutDesktop": "Desktop",
+  "@interfaceLayoutDesktop": {
+    "description": "Interface layout option: desktop layout"
+  },
+  "interfaceLayoutPhone": "Phone",
+  "@interfaceLayoutPhone": {
+    "description": "Interface layout option: phone layout"
+  },
   "glassQuality": "Glass Quality",
   "@glassQuality": {
     "description": "Label for the glass rendering quality setting"

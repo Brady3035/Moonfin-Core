@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:get_it/get_it.dart';
+import 'package:jellyfin_preference/jellyfin_preference.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:moonfin_design/moonfin_design.dart' show LiquidGlassWidgets;
 import 'package:path_provider/path_provider.dart';
@@ -169,6 +170,19 @@ Future<List<Rect>> _workAreas() async {
   } catch (_) {
     return const [];
   }
+}
+
+/// Applies the stored layout override before anything reads the platform
+/// flags. Reads its own store instance because dependency injection has not
+/// happened yet this early in startup.
+Future<void> _applyInterfaceLayoutOverride() async {
+  try {
+    final store = PreferenceStore();
+    await store.init();
+    PlatformDetection.setInterfaceLayout(
+      store.get(UserPreferences.interfaceLayout),
+    );
+  } catch (_) {}
 }
 
 /// Resolves whether this Android device is a TV, which decides the leanback UI
@@ -498,6 +512,7 @@ void main() async {
     MediaKit.ensureInitialized();
   }
 
+  await _applyInterfaceLayoutOverride();
   await _detectAndSetTvMode();
   await Future.wait([
     _detectAndSetDisplayCapabilities(),

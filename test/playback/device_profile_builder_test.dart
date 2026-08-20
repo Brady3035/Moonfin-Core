@@ -85,29 +85,36 @@ bool _excludesVideoProfile(
   return false;
 }
 
-/// The server only serialises positive VideoProfile conditions into the
-/// transcode URL, so a negated veto is silently dropped and the stream gets
-/// copied instead of re-encoded.
-bool _vetoSurvivesToTranscodeUrl(
-  Map<String, dynamic> profile,
-  String codec,
-) {
+/// The allow-list a codec's VideoProfile condition carries, in order, or empty
+/// when it carries none. The server encodes against the first entry, so the
+/// order is load bearing.
+List<String> _allowedVideoProfiles(Map<String, dynamic> profile, String codec) {
   final codecProfiles = profile['CodecProfiles'] as List<dynamic>? ?? const [];
 
-  return codecProfiles.any((rawProfile) {
+  for (final rawProfile in codecProfiles) {
     final codecProfile = rawProfile as Map<dynamic, dynamic>;
     if (codecProfile['Type'] != 'Video' || codecProfile['Codec'] != codec) {
-      return false;
+      continue;
     }
 
     final conditions = codecProfile['Conditions'] as List<dynamic>? ?? const [];
-    return conditions.any((rawCondition) {
+    for (final rawCondition in conditions) {
       final condition = rawCondition as Map<dynamic, dynamic>;
-      return condition['Property'] == 'VideoProfile' &&
-          condition['Condition'] == 'EqualsAny';
-    });
-  });
+      if (condition['Property'] == 'VideoProfile' &&
+          condition['Condition'] == 'EqualsAny') {
+        return (condition['Value'] as String).split('|');
+      }
+    }
+  }
+
+  return const [];
 }
+
+/// The server only serialises positive VideoProfile conditions into the
+/// transcode URL, so a negated veto is silently dropped and the stream gets
+/// copied instead of re-encoded.
+bool _vetoSurvivesToTranscodeUrl(Map<String, dynamic> profile, String codec) =>
+    _allowedVideoProfiles(profile, codec).isNotEmpty;
 
 Set<String> _codecUnsupportedRangeTypes(
   Map<String, dynamic> profile,
@@ -383,6 +390,58 @@ void main() {
       );
 
       expect(_vetoSurvivesToTranscodeUrl(profile, 'h264'), isTrue);
+    });
+
+    test('the 8 bit profiles a High decoder handles stay direct playable', () {
+      final profile = DeviceProfileBuilder.build(
+        supportsAvc: true,
+        avcMainLevel: 51,
+      );
+
+      for (final videoProfile in <String>[
+        'high',
+        'main',
+        'baseline',
+        'constrained baseline',
+        'progressive high',
+        'constrained high',
+      ]) {
+        expect(
+          _excludesVideoProfile(profile, 'h264', videoProfile),
+          isFalse,
+          reason: videoProfile,
+        );
+      }
+    });
+
+    test('the 10 bit and high chroma profiles stay vetoed', () {
+      final profile = DeviceProfileBuilder.build(
+        supportsAvc: true,
+        avcMainLevel: 51,
+      );
+
+      for (final videoProfile in <String>[
+        'high 10',
+        'high 10 intra',
+        'high 4:2:2',
+        'high 4:4:4 predictive',
+      ]) {
+        expect(
+          _excludesVideoProfile(profile, 'h264', videoProfile),
+          isTrue,
+          reason: videoProfile,
+        );
+      }
+    });
+
+    test('high leads the allow list, since the server encodes against the '
+        'first entry and ffmpeg has no two word profiles', () {
+      final profile = DeviceProfileBuilder.build(
+        supportsAvc: true,
+        avcMainLevel: 51,
+      );
+
+      expect(_allowedVideoProfiles(profile, 'h264').first, 'high');
     });
   });
 

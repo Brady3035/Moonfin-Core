@@ -1079,10 +1079,16 @@ class DeviceProfileBuilder {
           type: 'Video',
           codec: 'h264',
           conditions: <Map<String, dynamic>>[
+            // Every 8 bit profile a High decoder handles, so only the 10 bit
+            // and high chroma ones are left out. High stays first because the
+            // server encodes against the first entry, and the two word names
+            // are not profiles ffmpeg accepts.
             _condition(
               condition: 'EqualsAny',
               property: 'VideoProfile',
-              value: 'high|main|baseline|constrained baseline',
+              value:
+                  'high|main|baseline|constrained baseline|'
+                  'progressive high|constrained high',
             ),
           ],
         ),

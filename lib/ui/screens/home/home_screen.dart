@@ -719,6 +719,8 @@ class _ContentRowsState extends State<_ContentRows>
   VideoController? _previewController;
   AppleTvPreviewPlayer? _appleTvPreviewPlayer;
   StreamSubscription<void>? _appleTvPreviewCompletedSub;
+  MediaServerClient? _previewEncodingClient;
+  String? _previewPlaySessionId;
   int _previewRequestId = 0;
   bool _mainPlaybackActive = false;
   bool _previewUsingMedia3 = false;
@@ -1492,7 +1494,27 @@ class _ContentRowsState extends State<_ContentRows>
       _previewReady = false;
       _pendingPreviewKey = null;
     }
+    _stopPreviewEncoding();
     _themeMusicService.setExternalAudioActive(false);
+  }
+
+  /// Tells the server to stop the preview's transcode. Scoped to the
+  /// preview's own play session, so a running main playback transcode on the
+  /// same device is left alone.
+  void _stopPreviewEncoding() {
+    final client = _previewEncodingClient;
+    final playSessionId = _previewPlaySessionId;
+    _previewEncodingClient = null;
+    _previewPlaySessionId = null;
+    if (client == null || playSessionId == null) return;
+    unawaited(
+      client.playbackApi
+          .stopActiveEncodings(
+            deviceId: client.deviceInfo.id,
+            playSessionId: playSessionId,
+          )
+          .catchError((_) {}),
+    );
   }
 
   void _disposeSharedPreview() {
@@ -1527,6 +1549,7 @@ class _ContentRowsState extends State<_ContentRows>
       await _appleTvPreviewPlayer?.stop();
       _previewUsingAppleTv = false;
     }
+    _stopPreviewEncoding();
     _themeMusicService.setExternalAudioActive(true);
 
     try {
@@ -1541,7 +1564,13 @@ class _ContentRowsState extends State<_ContentRows>
       }
 
       final seekPosition = _previewSeekPosition(target);
-      final previewUrl = _buildPreviewUrl(client, target, seekPosition);
+      final playSessionId = '${DateTime.now().microsecondsSinceEpoch}';
+      final previewUrl = _buildPreviewUrl(
+        client,
+        target,
+        seekPosition,
+        playSessionId,
+      );
       final previewUri = Uri.tryParse(previewUrl);
       if (previewUri == null ||
           !previewUri.hasScheme ||
@@ -1549,6 +1578,10 @@ class _ContentRowsState extends State<_ContentRows>
         _finishSharedPreview();
         return;
       }
+      // Remembered so every finish path can tell the server to stop this
+      // transcode instead of leaving the job to the idle reaper.
+      _previewEncodingClient = client;
+      _previewPlaySessionId = playSessionId;
 
       final previewAudioEnabled = widget.prefs.get(
         UserPreferences.previewAudioEnabled,
@@ -1786,6 +1819,7 @@ class _ContentRowsState extends State<_ContentRows>
     MediaServerClient client,
     AggregatedItem item,
     Duration startPosition,
+    String playSessionId,
   ) {
     if (item.id.isEmpty) return '';
 
@@ -1801,6 +1835,10 @@ class _ContentRowsState extends State<_ContentRows>
     final startTicks = startPosition.inMicroseconds * 10;
     final params = <String, String>{
       'Static': 'false',
+      // The transcode is registered against these two, and stopping it later
+      // looks it up the same way.
+      'PlaySessionId': playSessionId,
+      if (client.deviceInfo.id.isNotEmpty) 'DeviceId': client.deviceInfo.id,
       'videoCodec': 'h264',
       'audioCodec': 'aac',
       'maxVideoBitDepth': '8',
@@ -1821,7 +1859,15 @@ class _ContentRowsState extends State<_ContentRows>
     final normalizedBasePath = baseUri.path.endsWith('/')
         ? baseUri.path.substring(0, baseUri.path.length - 1)
         : baseUri.path;
-    final streamPath = kIsWeb ? 'stream.mp4' : 'stream';
+    // AVPlayer never reaches readyToPlay on a growing progressive transcode,
+    // so the preview stays blank until the open times out. HLS is the form
+    // AVFoundation reads natively, so the Apple preview player asks for the
+    // segmented version of the same request.
+    final streamPath = kIsWeb
+        ? 'stream.mp4'
+        : PlatformDetection.useApplePreviewPlayer
+        ? 'master.m3u8'
+        : 'stream';
     final fullPath = '$normalizedBasePath/Videos/${item.id}/$streamPath';
 
     return baseUri.replace(path: fullPath, queryParameters: params).toString();

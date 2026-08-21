@@ -6312,9 +6312,7 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
         .toList();
 
     final canShowDownloadActions =
-        _isDownloadable(item.type) &&
-        _canUserDownload() &&
-        !PlatformDetection.isTV;
+        _isDownloadable(item.type) && _canUserDownload();
 
     final String playButtonLabel;
     if (isPhoto) {
@@ -10087,7 +10085,8 @@ bool _isDownloadable(String? type) {
 
 bool _canUserDownload() {
   final user = GetIt.instance<UserRepository>().currentUser;
-  return !PlatformDetection.isTV && (user?.canDownload ?? false);
+  return PlatformDetection.supportsOfflineDownloads &&
+      (user?.canDownload ?? false);
 }
 
 class _DownloadButton extends StatefulWidget {

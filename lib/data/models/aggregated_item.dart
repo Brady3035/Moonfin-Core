@@ -240,6 +240,13 @@ class AggregatedItem {
   List<Map<String, dynamic>> get remoteTrailers =>
       _toListOfMaps(rawData['RemoteTrailers']);
 
+  /// Trailers stored alongside the media, counted by the server.
+  ///
+  /// A trailers folder, a bare trailer file and a name ending in a trailer
+  /// suffix all land in this one count, so it answers for every layout the
+  /// server recognizes.
+  int get localTrailerCount => _toInt(rawData['LocalTrailerCount']) ?? 0;
+
   List<Map<String, dynamic>> get chapters => _toListOfMaps(rawData['Chapters']);
 
   /// Whether this item should use the audiobook player experience.

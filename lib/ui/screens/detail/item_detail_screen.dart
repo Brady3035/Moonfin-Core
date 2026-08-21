@@ -83,6 +83,7 @@ import '../../../playback/hdr_stream_capability.dart';
 import '../../../playback/known_defects.dart';
 import '../../../syncplay/syncplay_manager.dart';
 import '../../../util/audio_labels.dart';
+import '../../../util/detail_trailer.dart';
 import '../../../util/download_utils.dart';
 import '../../../util/episode_playability.dart';
 import '../../../util/season_queue_context.dart';
@@ -6470,8 +6471,12 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
         ),
       if (viewModel.isSeerrOnly
           ? seerrTrailer != null && shows(DetailButton.trailer)
-          : (item.type == 'Series' || _hasTrailer(item)) &&
-              shows(DetailButton.trailer))
+          // A series keeps the button even when nothing was counted for it,
+          // since a trailer in a season folder belongs to that season and
+          // isn't counted against the series it came from.
+          : (item.type == 'Series' ||
+                    hasTrailer(item, viewModel.features)) &&
+                shows(DetailButton.trailer))
         DetailButton.trailer: _DetailActionButton(
           label: l10n.trailer,
           icon: Icons.movie_outlined,
@@ -9006,23 +9011,12 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
     return mediaStreamsForItem(item, selectedSource);
   }
 
-  bool _hasTrailer(AggregatedItem item) {
-    if (item.remoteTrailers.isNotEmpty) return true;
-    return viewModel.features.any(_isTrailerFeatureItem);
-  }
-
-  bool _isTrailerFeatureItem(AggregatedItem feature) {
-    final extraType = feature.rawData['ExtraType'] as String?;
-    final type = feature.type;
-    return extraType == 'Trailer' || type == 'Trailer';
-  }
-
   AggregatedItem? _firstLocalTrailerFromFeatures(
     List<AggregatedItem> features,
   ) {
     final candidates = features
         .where(
-          (feature) => _isTrailerFeatureItem(feature) && feature.id.isNotEmpty,
+          (feature) => isTrailerFeature(feature) && feature.id.isNotEmpty,
         )
         .toList(growable: false);
     return _preferredLocalTrailer(candidates);

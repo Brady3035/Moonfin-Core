@@ -116,9 +116,7 @@ class TizenPlayerBackend extends PlayerBackend {
   Future<void> play(
     dynamic mediaItem,
     {Duration startPosition = Duration.zero}) async {
-    final payload = mediaItem is Map
-    ? mediaItem
-    : const <String, dynamic>{};
+    final payload = mediaItem is Map ? mediaItem : const <String, dynamic>{};
 
     final autoPlay = payload['autoPlay'] != false;
 

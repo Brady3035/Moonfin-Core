@@ -278,16 +278,14 @@ class AppleTvBackend implements PlayerBackend {
     dynamic mediaItem, {
     Duration startPosition = Duration.zero,
   }) async {
-    final payload = mediaItem is Map 
-      ? mediaItem 
-      : const <String, dynamic>{};
+    final payload = mediaItem is Map ? mediaItem : const <String, dynamic>{};
     final url = mediaItem is String
         ? mediaItem
         : payload['url']?.toString() ?? '';
     if (_disposed || url.isEmpty) return;
 
     final autoPlay = payload['autoPlay'] != false;
-    
+
     final headers = payload['headers'] is Map
         ? (payload['headers'] as Map).map(
             (key, value) => MapEntry(key.toString(), value.toString()),

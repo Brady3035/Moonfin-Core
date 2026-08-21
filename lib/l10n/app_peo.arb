@@ -1,1 +1,100 @@
-{}
+{
+    "appTitle": "Moonfin",
+    "@appTitle": {
+        "description": "The application title"
+    },
+    "whosWatching": "چه کسی تماشا می‌کند؟",
+    "@whosWatching": {
+        "description": "Server user selection heading"
+    },
+    "accountPreferences": "تنظیمات برگزیده حساب",
+    "@accountPreferences": {
+        "description": "Section header for account preferences settings"
+    },
+    "interfaceLanguage": "زبان رابط کاربری",
+    "@interfaceLanguage": {
+        "description": "Label for the app interface language setting"
+    },
+    "systemLanguageDefault": "پیش‌فرض سیستم",
+    "@systemLanguageDefault": {
+        "description": "Label for using the system default language in settings"
+    },
+    "signIn": "ورود",
+    "@signIn": {
+        "description": "Sign in heading and button label"
+    },
+    "empty": "خالی",
+    "@empty": {
+        "description": "Label indicating a section or category is empty"
+    },
+    "connectingToServer": "در حال اتصال به {serverName}",
+    "@connectingToServer": {
+        "description": "Subtitle showing which server the user is connecting to",
+        "placeholders": {
+            "serverName": {
+                "type": "String"
+            }
+        }
+    },
+    "quickConnect": "اتصال سریع",
+    "@quickConnect": {
+        "description": "Quick Connect toggle button label"
+    },
+    "password": "گذرواژه",
+    "@password": {
+        "description": "Password field label and toggle button"
+    },
+    "username": "نام کاربری",
+    "@username": {
+        "description": "Username field label"
+    },
+    "email": "ایمیل",
+    "@email": {
+        "description": "Email field label"
+    },
+    "quickConnectInstruction": "این کد را در داشبورد وب سرور خود وارد کنید:",
+    "@quickConnectInstruction": {
+        "description": "Instruction text for Quick Connect code entry"
+    },
+    "waitingForAuthorization": "در انتظار مجوز…",
+    "@waitingForAuthorization": {
+        "description": "Quick Connect polling status text"
+    },
+    "back": "بازگشت",
+    "@back": {
+        "description": "Back button label"
+    },
+    "serverUnavailable": "سرور در دسترس نمی باشد",
+    "@serverUnavailable": {
+        "description": "Error message when server cannot be reached"
+    },
+    "loginFailed": "ورود ناموفق بود",
+    "@loginFailed": {
+        "description": "Generic login failure message"
+    },
+    "quickConnectUnavailable": "اتصال سریع در دسترس نیست:{detail}",
+    "@quickConnectUnavailable": {
+        "description": "Quick Connect generic error message",
+        "placeholders": {
+            "detail": {
+                "type": "String"
+            }
+        }
+    },
+    "addUser": "افزودن کاربر",
+    "@addUser": {
+        "description": "Button to add a new user on the server screen"
+    },
+    "quickConnectUnavailableWithStatus": "اتصال سریع در دسترس نیست:{status}{detail}",
+    "@quickConnectUnavailableWithStatus": {
+        "description": "Quick Connect error message with HTTP status info",
+        "placeholders": {
+            "status": {
+                "type": "String"
+            },
+            "detail": {
+                "type": "String"
+            }
+        }
+    }
+}

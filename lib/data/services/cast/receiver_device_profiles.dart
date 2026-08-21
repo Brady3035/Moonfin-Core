@@ -65,10 +65,14 @@ Map<String, dynamic> chromecastDeviceProfile() {
             'Value': 'high|main|baseline|constrained baseline',
             'IsRequired': false,
           },
+          // Cast generations 1 through 3 stop at High profile level 4.1, and
+          // only Ultra and Google TV go past it. Allowing 4.2 makes the server
+          // hand those receivers a manifest they reject outright, before any
+          // segment is fetched.
           <String, dynamic>{
             'Condition': 'LessThanEqual',
             'Property': 'VideoLevel',
-            'Value': '42',
+            'Value': '41',
             'IsRequired': false,
           },
           // The oldest Cast devices still in use top out at 1080p, and the

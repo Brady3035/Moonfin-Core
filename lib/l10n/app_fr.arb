@@ -17,7 +17,7 @@
             }
         }
     },
-    "quickConnect": "Connexion rapide",
+    "quickConnect": "Quick Connect",
     "@quickConnect": {
         "description": "Quick Connect toggle button label"
     },
@@ -49,7 +49,7 @@
     "@loginFailed": {
         "description": "Generic login failure message"
     },
-    "quickConnectUnavailable": "QuickConnect indisponible : {detail}",
+    "quickConnectUnavailable": "Quick Connect indisponible : {detail}",
     "@quickConnectUnavailable": {
         "description": "Quick Connect generic error message",
         "placeholders": {
@@ -58,7 +58,7 @@
             }
         }
     },
-    "quickConnectUnavailableWithStatus": "QuickConnect indisponible ({status}) : {detail}",
+    "quickConnectUnavailableWithStatus": "Quick Connect indisponible ({status}) : {detail}",
     "@quickConnectUnavailableWithStatus": {
         "description": "Quick Connect error message with HTTP status info",
         "placeholders": {
@@ -6619,8 +6619,8 @@
     "settingsDolbyVisionProfile7DirectPlay": "Dolby Vision Profile 7 Lecture directe",
     "settingsDolbyVisionProfile7DirectPlayDescription": "Contrôle si les flux de couche d'amélioration du profil Dolby Vision 7 doivent être lus directement.",
     "settingsAutoAftkrtEnabled": "Auto (AFTKRT activé)",
-    "settingsEnabledOnThisDevice": "Activé sur cet appareil",
-    "settingsDisabledPreferTranscode": "Désactivé (préférer le transcodage)",
+    "settingsEnabledOnThisDevice": "Activé",
+    "settingsDisabledPreferTranscode": "Désactivé",
     "settingsResumeRewindDescription": "Nombre de secondes à revenir en arrière à la reprise de la lecture (depuis « Continuer à regarder » ou la fiche d'un média).",
     "settingsUnpauseRewindDescription": "Nombre de secondes à revenir en arrière après une pause.",
     "settingsSkipBackLengthDescription": "Nombre de secondes à revenir en arrière à chaque appui sur le bouton.",
@@ -6974,11 +6974,11 @@
     "@disableTunnelingSubtitle": {
         "description": "Setting subtitle for disable tunneling"
     },
-    "mapDolbyVisionP7Title": "Mapper le profil Dolby Vision 7 sur HEVC",
+    "mapDolbyVisionP7Title": "Toujours lire le profil Dolby Vision 7 en HDR10",
     "@mapDolbyVisionP7Title": {
         "description": "Setting title: play DV P7 as HDR10 HEVC on non-DV devices"
     },
-    "mapDolbyVisionP7Subtitle": "Lisez les flux Dolby Vision du profil 7 en tant que HEVC compatible HDR10 sur des appareils non DV.",
+    "mapDolbyVisionP7Subtitle": "Ignore la conversion vers le profil 8 et convertit les flux Dolby Vision profil 7 en HEVC compatible HDR10. À utiliser si les flux convertis s'affichent mal.",
     "@mapDolbyVisionP7Subtitle": {
         "description": "Setting subtitle for DV P7 to HEVC mapping"
     },
@@ -8983,7 +8983,7 @@
     "@adminRepoSortNameDesc": {
         "description": "Repository sort option, alphabetical descending"
     },
-    "adminAnalyticsLoadingProgress": "Chargement des analyses du serveur... {percentage}%",
+    "adminAnalyticsLoadingProgress": "Chargement des statistiques du serveur... {percentage}%",
     "@adminAnalyticsLoadingProgress": {
         "description": "Progress label shown while server analytics load",
         "placeholders": {
@@ -9380,5 +9380,271 @@
     "mixedPlaylistsSection": "Playlists mixtes",
     "@mixedPlaylistsSection": {
         "description": "Section header above mixed playlists when Group by Type is enabled"
+    },
+    "settingsAudioPassthroughModeManual": "Manuel (choisir les formats ci-dessous)",
+    "oledModeVivid": "Éclatant",
+    "@oledModeVivid": {
+        "description": "OLED Mode level that uses pure black surfaces and the strongest artwork enrichment"
+    },
+    "scrollDirectionVertical": "Vertical",
+    "@scrollDirectionVertical": {
+        "description": "Library scroll direction option: vertical grid (default)"
+    },
+    "manageRequests": "Gérer les demandes",
+    "@manageRequests": {
+        "description": "Details screen button opening the pending requests to approve or decline"
+    },
+    "watchlist": "Liste à voir",
+    "@watchlist": {
+        "description": "Details screen button adding the title to the Seerr watchlist"
+    },
+    "genresRowSortOrderDescription": "Trie les rangées de genres par ordre croissant ou décroissant.",
+    "selectStudiosToInclude": "Sélectionner les studios à inclure",
+    "playbackTimeAboveBarLeft": "Au-dessus, à gauche",
+    "@playbackTimeAboveBarLeft": {
+        "description": "Progress bar time slot above the bar on the left"
+    },
+    "playbackTimeBelowBarCenter": "En dessous, au centre",
+    "@playbackTimeBelowBarCenter": {
+        "description": "Progress bar time slot below the bar in the center"
+    },
+    "downloadLocationLimitedByAndroid": "Android autorise Moonfin à écrire uniquement dans ses propres dossiers, et cet appareil n'a pas de stockage amovible. Activez « Enregistrer dans le dossier Téléchargements » ci-dessus pour que vos téléchargements soient accessibles.",
+    "@downloadLocationLimitedByAndroid": {
+        "description": "Note shown when the only download location Android allows is the default one"
+    },
+    "scrollDirectionHorizontal": "Horizontal",
+    "@scrollDirectionHorizontal": {
+        "description": "Library scroll direction option: horizontal grid for ultrawide displays"
+    },
+    "scrollToTop": "Revenir en haut",
+    "@scrollToTop": {
+        "description": "Tooltip for the button that returns a scrolled list to the top"
+    },
+    "settingsAudioPassthroughModeDisabled": "Désactivé (toujours décoder sur cet appareil)",
+    "settingsAudioPassthroughModeAuto": "Auto (selon la prise en charge détectée)",
+    "tags": "Tags",
+    "@tags": {
+        "description": "Heading for the keyword tags a title is filed under"
+    },
+    "genresAndTags": "Genres et tags",
+    "@genresAndTags": {
+        "description": "Button and dialog title for browsing a title's genres, networks and tags"
+    },
+    "onWatchlist": "Dans la liste à voir",
+    "@onWatchlist": {
+        "description": "Details screen button label when the title is already on the Seerr watchlist"
+    },
+    "seerrSeriesContinuing": "Série en cours · Les prochaines saisons peuvent être demandées",
+    "@seerrSeriesContinuing": {
+        "description": "Banner in the Seerr request dialog for a continuing series whose aired seasons are all in the library"
+    },
+    "descending": "Décroissant",
+    "favoritesRowSortOrderDescription": "Trie les rangées de favoris par ordre croissant ou décroissant.",
+    "collectionsRowSortOrderDescription": "Trie les rangées de collections par ordre croissant ou décroissant.",
+    "displayStudiosRowsSubtitle": "Afficher la rangée des studios dans les sections d'accueil.",
+    "studiosRowSorting": "Tri de la rangée des studios",
+    "studiosRowSortingDescription": "Trie la rangée des studios par nom, ajout récent, et plus encore.",
+    "studiosRowSortOrderDescription": "Choisir l'ordre de tri croissant ou décroissant.",
+    "selectStudiosToIncludeDescription": "Choisir les studios à afficher dans la rangée d'accueil.",
+    "selectAllStudios": "Tout sélectionner",
+    "deselectAllStudios": "Tout désélectionner",
+    "movieStudiosFilter": "Studios de cinéma",
+    "selectedStudiosFilter": "Studios sélectionnés",
+    "unselectedStudiosFilter": "Studios non sélectionnés",
+    "filtersHeader": "Filtres",
+    "playlistsRowSortOrderDescription": "Trie les rangées de playlists par ordre croissant ou décroissant.",
+    "playlistsRowShowEpisodes": "Afficher les épisodes individuellement",
+    "audioRowsSortOrderDescription": "Trie les rangées audio par ordre croissant ou décroissant.",
+    "settingsMusicPlaybackTimeDescription": "Choisir ce qui s'affiche à droite de la barre de progression musicale.",
+    "@settingsMusicPlaybackTimeDescription": {
+        "description": "Setting description for the music progress bar time option"
+    },
+    "playbackTimeAboveBarCenter": "Au-dessus, au centre",
+    "@playbackTimeAboveBarCenter": {
+        "description": "Progress bar time slot above the bar in the center"
+    },
+    "playbackTimeSlotDescription": "Choisir ce qui s'affiche ici, ou ne rien afficher.",
+    "@playbackTimeSlotDescription": {
+        "description": "Setting description for a single progress bar time slot"
+    },
+    "playbackTimeElapsed": "Temps écoulé",
+    "@playbackTimeElapsed": {
+        "description": "Progress bar time option showing how far into the item playback is"
+    },
+    "playbackTimeAboveBarRight": "Au-dessus, à droite",
+    "@playbackTimeAboveBarRight": {
+        "description": "Progress bar time slot above the bar on the right"
+    },
+    "oledModeSubtitle": "Approfondit les noirs et enrichit les visuels. Idéal sur les écrans OLED.",
+    "@oledModeSubtitle": {
+        "description": "Explanation under the OLED Mode setting"
+    },
+    "oledModeSubtle": "Subtil",
+    "@oledModeSubtle": {
+        "description": "OLED Mode level that darkens surfaces gently and lightly enriches artwork"
+    },
+    "playbackTimeBelowBarRight": "En dessous, à droite",
+    "@playbackTimeBelowBarRight": {
+        "description": "Progress bar time slot below the bar on the right"
+    },
+    "playbackTimeBelowBarLeft": "En dessous, à gauche",
+    "@playbackTimeBelowBarLeft": {
+        "description": "Progress bar time slot below the bar on the left"
+    },
+    "sortOrder": "Ordre de tri",
+    "ascending": "Croissant",
+    "displayStudiosRows": "Afficher la rangée des studios",
+    "tvStudiosFilter": "Studios TV",
+    "showHeader": "Afficher",
+    "settingsAudioPassthroughModeDescription": "Comment le son surround compressé est transmis à votre téléviseur ou ampli.",
+    "mergeRecentRowsByTypeDescription": "Regroupe les bibliothèques distinctes de même type dans les rangées d'accueil « Ajouts récents » et « Sorties récentes ».",
+    "@mergeRecentRowsByTypeDescription": {
+        "description": "Description for merging recent home rows by media type"
+    },
+    "libraryView": "Vue de la bibliothèque",
+    "@libraryView": {
+        "description": "Section title for library view settings"
+    },
+    "settingsCinemaModeEpisodesSubtitle": "Diffuser aussi les bandes-annonces avant les épisodes de série",
+    "@settingsCinemaModeEpisodesSubtitle": {
+        "description": "Subtitle for the Cinema Mode for episodes toggle. A 'preroll' is a short video (trailer, bumper) played before the main video starts."
+    },
+    "collectionsRowShowEpisodes": "Afficher les épisodes individuellement",
+    "collectionsRowShowEpisodesSubtitle": "Affiche chaque épisode séparément plutôt que la série entière.",
+    "playbackTimeTotal": "Durée totale",
+    "@playbackTimeTotal": {
+        "description": "Progress bar time option showing the full runtime"
+    },
+    "playbackTimeDisplay": "Temps sur la barre de progression",
+    "@playbackTimeDisplay": {
+        "description": "Setting title for what is shown next to the playback progress bar"
+    },
+    "settingsPlaybackTimeDisplayDescription": "Choisir les indications de temps affichées autour de la barre de progression.",
+    "@settingsPlaybackTimeDisplayDescription": {
+        "description": "Setting description for the progress bar time option"
+    },
+    "playbackTimeRemaining": "Temps restant",
+    "@playbackTimeRemaining": {
+        "description": "Progress bar time option showing how much is left to play"
+    },
+    "decrease": "Diminuer",
+    "@decrease": {
+        "description": "Action that decreases a numeric personal rating."
+    },
+    "personalRatingOutOfTen": "{rating} / 10",
+    "@personalRatingOutOfTen": {
+        "description": "Numeric personal rating displayed on a scale out of ten.",
+        "placeholders": {
+            "rating": {
+                "type": "String"
+            }
+        }
+    },
+    "groupByParentalRating": "Classification parentale",
+    "@groupByParentalRating": {
+        "description": "Option to group library items by parental rating"
+    },
+    "groupByStudio": "Studio",
+    "@groupByStudio": {
+        "description": "Option to group library items by production studio"
+    },
+    "showAlphabeticalFilters": "Afficher l'alphabet",
+    "@showAlphabeticalFilters": {
+        "description": "Checkbox label for toggling alphabetical picker visibility in Sort and Filter options"
+    },
+    "personalRatingStyle": "Style de notation",
+    "@personalRatingStyle": {
+        "description": "Selects how personal ratings are displayed and entered on media details."
+    },
+    "personalRatingThumbs": "J'aime / Je n'aime pas",
+    "@personalRatingThumbs": {
+        "description": "Personal rating style using like and dislike actions."
+    },
+    "personalRatingStars": "5 étoiles",
+    "@personalRatingStars": {
+        "description": "Personal rating style using a five-star scale."
+    },
+    "personalRatingNumeric": "Note sur 10",
+    "@personalRatingNumeric": {
+        "description": "Personal rating style using a numeric score out of ten."
+    },
+    "rate": "Noter",
+    "@rate": {
+        "description": "Action that opens the personal rating control."
+    },
+    "dislike": "Je n'aime pas",
+    "@dislike": {
+        "description": "Personal rating action for a negative rating."
+    },
+    "personalRatingClear": "Effacer la note",
+    "@personalRatingClear": {
+        "description": "Action that removes the personal rating from the media item."
+    },
+    "personalRatingRated": "Noté",
+    "@personalRatingRated": {
+        "description": "Tooltip for a media item that has a numeric personal rating."
+    },
+    "personalRatingSaveFailed": "Impossible d'enregistrer la note",
+    "@personalRatingSaveFailed": {
+        "description": "Error shown when saving a personal rating fails."
+    },
+    "increase": "Augmenter",
+    "@increase": {
+        "description": "Action that increases a numeric personal rating."
+    },
+    "settingsSkipButtonAutoHide": "Masquer automatiquement le bouton Passer",
+    "@settingsSkipButtonAutoHide": {
+        "description": "Setting label for automatically dismissing the skip intro and outro button after a delay"
+    },
+    "settingsSkipButtonAutoHideDescription": "Masque automatiquement le bouton « Passer l'intro » ou « Passer le générique » après quelques secondes.",
+    "playlistsRowShowEpisodesSubtitle": "Affiche chaque épisode séparément plutôt que la série entière.",
+    "playbackTimeEndsAt": "Fin à",
+    "@playbackTimeEndsAt": {
+        "description": "Progress bar time option showing the clock time playback finishes"
+    },
+    "groupByTitle": "Regrouper par",
+    "@groupByTitle": {
+        "description": "Dialog title and button label for library group by options"
+    },
+    "groupByDecade": "Décennie (année)",
+    "@groupByDecade": {
+        "description": "Option to group library items by release decade"
+    },
+    "like": "J'aime",
+    "@like": {
+        "description": "Personal rating action for a positive rating."
+    },
+    "personalRatingOutOfFive": "{rating} / 5",
+    "@personalRatingOutOfFive": {
+        "description": "Personal rating displayed on a five-star scale.",
+        "placeholders": {
+            "rating": {
+                "type": "String"
+            }
+        }
+    },
+    "settingsAudioPassthroughMode": "Passthrough",
+    "@settingsAudioPassthroughMode": {
+        "description": "Title of the audio passthrough mode selector"
+    },
+    "settingsDownmixToStereoDescription": "Réduit tout l'audio décodé à deux canaux.",
+    "settingsAudioEac3IncludesAtmos": "Transmet le flux E-AC-3, y compris Dolby Atmos (JOC).",
+    "settingsAudioDtsHdIncludesDtsX": "Transmet le flux DTS-HD, y compris DTS:X.",
+    "settingsAudioTrueHdIncludesAtmos": "Transmet le flux TrueHD, y compris Dolby Atmos.",
+    "mergeRecentRowsByType": "Fusionner les rangées récentes par type",
+    "@mergeRecentRowsByType": {
+        "description": "Setting for merging recently added and recently released libraries by media type"
+    },
+    "playbackTimeVideoSection": "Lecteur vidéo",
+    "@playbackTimeVideoSection": {
+        "description": "Section header above the video progress bar time slots"
+    },
+    "playbackTimeMusicSection": "Lecteur de musique",
+    "@playbackTimeMusicSection": {
+        "description": "Section header above the music progress bar time option"
+    },
+    "scrollDirection": "Sens de défilement",
+    "@scrollDirection": {
+        "description": "Section header for scroll direction selection in library display settings"
     }
 }

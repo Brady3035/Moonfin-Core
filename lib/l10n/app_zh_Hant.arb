@@ -2282,7 +2282,7 @@
     "@failedToCancelSeriesRecording": {
         "description": "Error when cancelling a series recording fails"
     },
-    "searchThisLibrary": "搜尋這個圖書館...",
+    "searchThisLibrary": "搜尋這個媒體庫...",
     "@searchThisLibrary": {
         "description": "Search hint when scoped to a specific library"
     },

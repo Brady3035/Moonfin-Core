@@ -5,6 +5,7 @@ import 'package:playback_emby/playback_emby.dart';
 import 'package:playback_jellyfin/playback_jellyfin.dart';
 import 'package:server_core/server_core.dart';
 
+import '../../../preference/user_preferences.dart';
 import '../../../util/platform_detection.dart';
 import '../../models/aggregated_item.dart';
 import '../media_server_client_factory.dart';
@@ -29,6 +30,16 @@ class GoogleCastProvider implements CastProvider, CastTransportControls {
 
   const GoogleCastProvider(this._native, this._clientFactory);
 
+  // The receiver pulls the stream itself, so the ceiling that matters is the
+  // one the user set for their own network, the same value the local players
+  // read. Unset leaves the profile on its own default.
+  int? get _maxBitrateMbps {
+    if (!GetIt.instance.isRegistered<UserPreferences>()) return null;
+    return int.tryParse(
+      GetIt.instance<UserPreferences>().get(UserPreferences.maxBitrate),
+    );
+  }
+
   MediaStreamResolver _resolverForClient(MediaServerClient client) {
     return switch (client.serverType) {
       ServerType.jellyfin => JellyfinPlugin(client).createStreamResolver(),
@@ -52,7 +63,9 @@ class GoogleCastProvider implements CastProvider, CastTransportControls {
     Future<StreamResolutionResult> attempt({required bool open}) =>
         resolver.resolve(
           item,
-          deviceProfile: chromecastDeviceProfile(),
+          deviceProfile: chromecastDeviceProfile(
+            maxBitrateMbps: _maxBitrateMbps,
+          ),
           mediaSourceId: mediaSourceId,
           audioStreamIndex: audioStreamIndex,
           subtitleStreamIndex: subtitleStreamIndex,

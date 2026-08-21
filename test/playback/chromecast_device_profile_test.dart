@@ -40,6 +40,23 @@ void main() {
       expect(_condition(codecProfile, 'VideoProfile'), isNot(contains('10')));
     });
 
+    test('uses the default ceiling when no preference is set', () {
+      expect(chromecastDeviceProfile()['MaxStreamingBitrate'], 20000000);
+      expect(
+        chromecastDeviceProfile(maxBitrateMbps: 0)['MaxStreamingBitrate'],
+        20000000,
+      );
+    });
+
+    test('honours the user ceiling', () {
+      // Receivers differ in what they can actually pull, so the cast path
+      // reads the same preference the local players do.
+      final profile = chromecastDeviceProfile(maxBitrateMbps: 5);
+
+      expect(profile['MaxStreamingBitrate'], 5000000);
+      expect(profile['MaxStaticBitrate'], 5000000);
+    });
+
     test('only ever asks the server for H264', () {
       final transcoding =
           (chromecastDeviceProfile()['TranscodingProfiles'] as List)

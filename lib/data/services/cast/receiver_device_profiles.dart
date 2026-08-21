@@ -7,8 +7,14 @@ library;
 /// VP8/VP9 in WebM, so anything else transcodes to HLS. The empty subtitle
 /// list makes the server burn a selected subtitle in, since the receiver is
 /// never handed a side-loaded track.
-Map<String, dynamic> chromecastDeviceProfile() {
-  const bitrate = 20000000;
+///
+/// [maxBitrateMbps] is the user's own ceiling, the one the local players
+/// already read. A receiver that cant pull the default stalls part way in and
+/// restarts, and until now the cast path gave nobody a way to lower it.
+Map<String, dynamic> chromecastDeviceProfile({int? maxBitrateMbps}) {
+  final bitrate = (maxBitrateMbps != null && maxBitrateMbps > 0)
+      ? maxBitrateMbps * 1000000
+      : 20000000;
   return <String, dynamic>{
     'Name': 'Moonfin Chromecast',
     'MaxStaticBitrate': bitrate,

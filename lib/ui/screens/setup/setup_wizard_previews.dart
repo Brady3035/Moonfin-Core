@@ -6,6 +6,8 @@ import 'package:moonfin_design/moonfin_design.dart';
 
 import '../../../auth/repositories/user_repository.dart';
 import '../../../data/models/media_bar_slide_item.dart';
+import '../../../data/models/media_bar_state.dart';
+import '../../../data/repositories/media_bar_repository.dart';
 import '../../../data/viewmodels/media_bar_view_model.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../preference/preference_constants.dart';
@@ -31,14 +33,64 @@ abstract final class SetupPreviewData {
       ? GetIt.instance<MediaBarViewModel>()
       : null;
 
-  static Listenable? get listenable => debugOverride ?? _viewModel;
+  /// Filled when the bar pipeline has settled on giving nothing. The bar can
+  /// refuse whole classes of server for good, mixed libraries carry no movies
+  /// or series collection type and some libraries have no backdrop artwork
+  /// at all, and the previews shouldn't inherit either refusal.
+  static final _fallbackItems = ValueNotifier<List<MediaBarSlideItem>>(
+    const [],
+  );
 
-  static List<MediaBarSlideItem> get items =>
-      debugOverride?.value ?? _viewModel?.items ?? const [];
+  static Listenable? get listenable {
+    if (debugOverride != null) return debugOverride;
+    final viewModel = _viewModel;
+    if (viewModel == null) return null;
+    return Listenable.merge([viewModel, _fallbackItems]);
+  }
+
+  static List<MediaBarSlideItem> get items {
+    final override = debugOverride;
+    if (override != null) return override.value;
+    final loaded = _viewModel?.items ?? const [];
+    return loaded.isNotEmpty ? loaded : _fallbackItems.value;
+  }
+
+  static bool _loading = false;
 
   static Future<void> ensureLoaded() async {
-    if (debugOverride != null) return;
-    await _viewModel?.load();
+    if (debugOverride != null || _loading) return;
+    if (items.isNotEmpty) return;
+    final viewModel = _viewModel;
+    if (viewModel == null) return;
+
+    // The wizard runs seconds after the first sign-in, which is exactly when
+    // a first fetch can fail or come back empty, and load() treats any
+    // settled state as done and never runs again on its own. Without the
+    // forced retries a single early miss would leave every preview on the
+    // drawn stand-ins for the whole wizard.
+    _loading = true;
+    try {
+      const attempts = 4;
+      var delay = const Duration(seconds: 2);
+      for (var attempt = 0; attempt < attempts; attempt++) {
+        await viewModel.load(force: attempt > 0);
+        if (viewModel.items.isNotEmpty) return;
+        // Disabled is the pipeline's settled answer for this server, so the
+        // remaining retries would only repeat it.
+        if (viewModel.state is MediaBarDisabled) break;
+        if (attempt < attempts - 1) {
+          await Future<void>.delayed(delay);
+          delay *= 2;
+        }
+      }
+      if (GetIt.instance.isRegistered<MediaBarRepository>()) {
+        final fetched = await GetIt.instance<MediaBarRepository>()
+            .fetchPreviewItems();
+        if (fetched.isNotEmpty) _fallbackItems.value = fetched;
+      }
+    } finally {
+      _loading = false;
+    }
   }
 }
 

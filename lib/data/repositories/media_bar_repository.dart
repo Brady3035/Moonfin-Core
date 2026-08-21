@@ -497,6 +497,33 @@ class MediaBarRepository {
     return genres.any((g) => excluded.contains(g));
   }
 
+  /// Items for the setup wizard previews, free of the bar's own rules.
+  ///
+  /// The bar refuses to run without a movies or series library, and again
+  /// without backdrop artwork, and both refusals hold for the whole session
+  /// no matter how often it is asked. The previews only need something real
+  /// to draw, so this takes the newest items across everything the user can
+  /// see and keeps whatever comes back, posters and all.
+  Future<List<MediaBarSlideItem>> fetchPreviewItems({int limit = 10}) async {
+    try {
+      final response = await _client.itemsApi
+          .getItems(
+            includeItemTypes: const ['Movie', 'Series'],
+            sortBy: 'DateCreated',
+            sortOrder: 'Descending',
+            recursive: true,
+            limit: limit,
+            fields: _fields,
+          )
+          .timeout(const Duration(seconds: 15));
+      final items = (response['Items'] as List? ?? [])
+          .cast<Map<String, dynamic>>();
+      return items.map(_toSlideItem).toList(growable: false);
+    } catch (_) {
+      return const [];
+    }
+  }
+
   MediaBarSlideItem _toSlideItem(Map<String, dynamic> data) {
     final itemId = data['Id']?.toString() ?? '';
     final serverId = data['ServerId']?.toString() ?? '';

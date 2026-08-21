@@ -49,7 +49,7 @@
     "@loginFailed": {
         "description": "Generic login failure message"
     },
-    "quickConnectUnavailable": "Quick Connect kullanılamıyor: {detail}",
+    "quickConnectUnavailable": "Hızlı Bağlantı Kullanılamıyor: {detail}",
     "@quickConnectUnavailable": {
         "description": "Quick Connect generic error message",
         "placeholders": {
@@ -8596,7 +8596,7 @@
     "@items": {
         "description": "Tab label for the items in a collection/box set"
     },
-    "detailScreenStyle": "Detay Görüntüleme Stili",
+    "detailScreenStyle": "Detay Ekranı Stili",
     "@detailScreenStyle": {
         "description": "Label for the media detail screen layout style setting"
     },
@@ -9666,5 +9666,297 @@
     "filtersHeader": "Filtreler",
     "playlistsRowSortOrderDescription": "Oynatma listesi satırlarını artan veya azalan sırada sıralayın.",
     "audioRowsSortOrderDescription": "Ses satırlarını artan veya azalan sırada sıralayın.",
-    "descending": "Azalan"
+    "descending": "Azalan",
+    "interfaceLayout": "Arayüz Düzeni",
+    "@interfaceLayout": {
+        "description": "Setting to override which UI layout the app uses"
+    },
+    "interfaceLayoutSubtitle": "Bu cihaz için algılanan düzen yanlış okunduğunda geçersiz kılın. Değişikliklerin etkili olması için Moonfin'i yeniden başlatın.",
+    "@interfaceLayoutSubtitle": {
+        "description": "Subtitle for the interface layout setting"
+    },
+    "interfaceLayoutAutomatic": "Otomatik",
+    "@interfaceLayoutAutomatic": {
+        "description": "Interface layout option: detect from the device"
+    },
+    "interfaceLayoutTv": "Televizyon",
+    "@interfaceLayoutTv": {
+        "description": "Interface layout option: 10-foot TV layout"
+    },
+    "interfaceLayoutDesktop": "Masaüstü",
+    "@interfaceLayoutDesktop": {
+        "description": "Interface layout option: desktop layout"
+    },
+    "interfaceLayoutPhone": "Telefon",
+    "@interfaceLayoutPhone": {
+        "description": "Interface layout option: phone layout"
+    },
+    "starring": "BAŞROLDE",
+    "@starring": {
+        "description": "Metadata label for the leading cast"
+    },
+    "recordSeries": "Diziyi Kaydet",
+    "@recordSeries": {
+        "description": "Button label to record every showing of a live TV series"
+    },
+    "seriesSetToRecord": "Dizi kaydedilmek üzere ayarlandı",
+    "@seriesSetToRecord": {
+        "description": "Snackbar confirmation after scheduling a live TV series recording"
+    },
+    "seriesRecordingCancelled": "Dizi kaydı iptal edildi",
+    "@seriesRecordingCancelled": {
+        "description": "Snackbar confirmation after cancelling a live TV series recording"
+    },
+    "unableToCreateSeriesRecording": "Dizi kaydı oluşturulamıyor",
+    "@unableToCreateSeriesRecording": {
+        "description": "Error when creating a live TV series recording fails"
+    },
+    "mixedRowsOnly": "Yalnızca karışık satırlar",
+    "@mixedRowsOnly": {
+        "description": "Option: only show the label on rows holding both movies and series"
+    },
+    "playerSwipeGestures": "Ses ve Parlaklık Kaydırma Hareketleri",
+    "@playerSwipeGestures": {
+        "description": "Setting for player swipe gestures"
+    },
+    "playerSwipeGesturesDescription": "Parlaklığı değiştirmek için sol tarafta, sesi değiştirmek için sağ tarafta oynatıcı üzerinde yukarı veya aşağı kaydırın",
+    "@playerSwipeGesturesDescription": {
+        "description": "Description for player swipe gestures"
+    },
+    "mediaBarModeBookshelf": "Kitaplık",
+    "@mediaBarModeBookshelf": {
+        "description": "Media bar style option: Bookshelf"
+    },
+    "mediaBarModeGallery": "Galeri",
+    "@mediaBarModeGallery": {
+        "description": "Media bar style option: Gallery"
+    },
+    "mediaBarModeBanner": "Afiş",
+    "@mediaBarModeBanner": {
+        "description": "Media bar style option: Banner"
+    },
+    "mediaBarModeAya": "Aya",
+    "@mediaBarModeAya": {
+        "description": "Media bar style option: Aya"
+    },
+    "mediaBarSourceType": "Kaynak",
+    "@mediaBarSourceType": {
+        "description": "Setting for which titles the media bar draws from"
+    },
+    "mediaBarSourceRandom": "Rastgele",
+    "@mediaBarSourceRandom": {
+        "description": "Media bar source: any eligible title"
+    },
+    "recentlyReleasedSeriesType": "Son Çıkan Diziler Göre Sırala",
+    "@recentlyReleasedSeriesType": {
+        "description": "Setting for sorting series in recently released series row"
+    },
+    "recentlyReleasedSeriesTypeDescription": "Son çıkan diziler ana sayfa satırlarını diziye, son sezona veya son bölüm yayın tarihine göre sırala",
+    "@recentlyReleasedSeriesTypeDescription": {
+        "description": "Description for recently released series type setting"
+    },
+    "favoriteChannels": "Favori Kanallar",
+    "@favoriteChannels": {
+        "description": "Home row: favourited live TV channels"
+    },
+    "personalRatingMine": "Derecelendirmem",
+    "@personalRatingMine": {
+        "description": "Label under the viewer's own rating in the ratings row."
+    },
+    "filterInProgress": "Devam Ediyor",
+    "@filterInProgress": {
+        "description": "Library filter for items the viewer has started but not finished."
+    },
+    "filterUnreleased": "Yayınlanmadı",
+    "@filterUnreleased": {
+        "description": "Series status filter for shows that have not started airing."
+    },
+    "filterTrailers": "Fragmanlar",
+    "@filterTrailers": {
+        "description": "Library filter for items that have a trailer."
+    },
+    "filterExtras": "Özel Özellikler",
+    "@filterExtras": {
+        "description": "Library filter for items that have bonus features."
+    },
+    "filterThemeSongs": "Tema Şarkıları",
+    "@filterThemeSongs": {
+        "description": "Library filter for items that have a theme song."
+    },
+    "filterThemeVideos": "Tema Videoları",
+    "@filterThemeVideos": {
+        "description": "Library filter for items that have a theme video."
+    },
+    "source": "Kaynak",
+    "@source": {
+        "description": "Heading for the disc source filters in the library filter picker."
+    },
+    "years": "Yıllar",
+    "@years": {
+        "description": "Heading for the release year filters in the library filter picker."
+    },
+    "audioLanguage": "Ses Dili",
+    "@audioLanguage": {
+        "description": "Heading for the audio language filters in the library filter picker."
+    },
+    "subtitleLanguage": "Altyazı Dili",
+    "@subtitleLanguage": {
+        "description": "Heading for the subtitle language filters in the library filter picker."
+    },
+    "clearFilters": "Filtreyi Temizle",
+    "@clearFilters": {
+        "description": "Action that turns every library filter back off."
+    },
+    "seerrShortcutsRow": "Seerr Gözat",
+    "@seerrShortcutsRow": {
+        "description": "Title of the Seerr shortcuts row that jumps to Discover, Movies, Series, Requests and Issues."
+    },
+    "seerrReleased": "Yayınlandı",
+    "@seerrReleased": {
+        "description": "Heading for the release window filter in the Seerr browse dialog."
+    },
+    "seerrMinRating": "Minimum Decerelendirme",
+    "@seerrMinRating": {
+        "description": "Heading for the TMDB score floor filter in the Seerr browse dialog."
+    },
+    "seerrMinVotes": "Minimum Oy",
+    "@seerrMinVotes": {
+        "description": "Heading for the TMDB vote count floor filter in the Seerr browse dialog."
+    },
+    "seerrOriginalLanguage": "Orijinal Dil",
+    "@seerrOriginalLanguage": {
+        "description": "Heading for the original language filter in the Seerr browse dialog."
+    },
+    "seerrRuntime": "Süre",
+    "@seerrRuntime": {
+        "description": "Heading for the runtime window filter in the Seerr browse dialog."
+    },
+    "subtitleHdrSeparate": "Ayrı HDR Stili",
+    "@subtitleHdrSeparate": {
+        "description": "Toggle for a second subtitle appearance used only while HDR is playing."
+    },
+    "subtitleHdrSeparateSubtitle": "HDR'de beyaz renkler SDR'ye göre çok daha parlaktır; bu nedenle buradaki daha sönük bir stil göz almasını (parlama yapar) engeller",
+    "@subtitleHdrSeparateSubtitle": {
+        "description": "Explains why a separate HDR subtitle style is worth setting."
+    },
+    "scrollSensitivity": "Kaydırma Hassasiyeti",
+    "@scrollSensitivity": {
+        "description": "Title of the desktop setting that scales mouse wheel scrolling."
+    },
+    "scrollSensitivitySubtitle": "Fare tekerleğinin bir çentik (tık) hareketle ne kadar kaydıracağı",
+    "@scrollSensitivitySubtitle": {
+        "description": "Explains the desktop scroll sensitivity slider."
+    },
+    "mediaDetailsAndSpoilers": "Medya Ayrıntıları ve Spoiler'lar",
+    "@mediaDetailsAndSpoilers": {
+        "description": "Section header for media details and spoiler settings"
+    },
+    "hideDetailsMediaDescription": "Ayrıntılar Sayfasında Medya Açıklamasını Gizle",
+    "@hideDetailsMediaDescription": {
+        "description": "Setting title to hide media description on details screen"
+    },
+    "hideDetailsMediaDescriptionSubtitle": "Film veya bölüm açıklama metnini gizler.",
+    "@hideDetailsMediaDescriptionSubtitle": {
+        "description": "Description for setting to hide media description on details page"
+    },
+    "detailUseSeriesThumbnails": "Ayrıntılar Sayfasında Dizi Küçük Resimlerini Kullan",
+    "@detailUseSeriesThumbnails": {
+        "description": "Setting title to replace thumbnails on Classic details page with series thumbnail"
+    },
+    "detailUseSeriesThumbnailsSubtitle": "Klasik ayrıntılar sayfasındaki tüm küçük resimleri dizi küçük resmiyle değiştir",
+    "@detailUseSeriesThumbnailsSubtitle": {
+        "description": "Description for setting to use series thumbnails on Classic details page"
+    },
+    "hideHomeMediaDescription": "Ana Sayfada Medya Açıklamasını Gizle",
+    "@hideHomeMediaDescription": {
+        "description": "Setting title to hide media description on home screen"
+    },
+    "hideHomeMediaDescriptionSubtitle": "Film veya bölüm açıklama metnini gizler.",
+    "@hideHomeMediaDescriptionSubtitle": {
+        "description": "Description for setting to hide media description on home screen"
+    },
+    "continueWatchingAndNextUpHeader": "İzlemeye Devam Et ve Sonraki Bölümler",
+    "@continueWatchingAndNextUpHeader": {
+        "description": "Header for settings section containing Continue Watching and Next Up options"
+    },
+    "setupSkip": "Kurulumu Atla",
+    "@setupSkip": {
+        "description": "Leaves the first-run setup wizard without answering anything"
+    },
+    "setupNavbarQuestion": "Gezinme çubuğu nereye gitsin?",
+    "@setupNavbarQuestion": {
+        "description": "Setup question asking where the navigation bar should sit"
+    },
+    "setupMediaBarQuestion": "Ana ekranınızın üst kısmı nasıl görünmeli?",
+    "@setupMediaBarQuestion": {
+        "description": "Setup wizard question for the media bar style"
+    },
+    "setupHomeRowsQuestion": "Satırlarınız nasıl görünmeli?",
+    "@setupHomeRowsQuestion": {
+        "description": "Setup wizard question for the home row style"
+    },
+    "setupDetailQuestion": "Bir film veya dizi açıldığında nasıl görünmeli?",
+    "@setupDetailQuestion": {
+        "description": "Setup wizard question for the detail screen style"
+    },
+    "setupTourQuestion": "Hazırsınız. İşte burada yer alan diğer şeyler.",
+    "@setupTourQuestion": {
+        "description": "Heading of the final setup wizard screen"
+    },
+    "setupStyleClassic": "Klasik",
+    "@setupStyleClassic": {
+        "description": "Name of the original layout, offered in the setup wizard"
+    },
+    "setupStyleModern": "Modern",
+    "@setupStyleModern": {
+        "description": "Name of the newer layout, offered in the setup wizard"
+    },
+    "setupRowsClassicHint": "Kompakt. Ekranda aynı anda daha fazla satır.",
+    "@setupRowsClassicHint": {
+        "description": "What the classic home row style gives you"
+    },
+    "setupRowsModernHint": "Başlıkları altında olan daha büyük kartlar.",
+    "@setupRowsModernHint": {
+        "description": "What the modern home row style gives you"
+    },
+    "setupDetailClassicHint": "Her şey tek bir yığın halinde ortalanmış.",
+    "@setupDetailClassicHint": {
+        "description": "What the classic detail screen style gives you"
+    },
+    "setupDetailModernHint": "Sinematik, oyuncu kadrosu ve ekstralar için sekmelerle birlikte.",
+    "@setupDetailModernHint": {
+        "description": "What the modern detail screen style gives you"
+    },
+    "setupPickALook": "Bir görünüm seçin",
+    "@setupPickALook": {
+        "description": "Label above the theme swatches on the final setup screen"
+    },
+    "setupTourMoreHeader": "Ayarlarda bekleyen daha çok şey var",
+    "@setupTourMoreHeader": {
+        "description": "Heading of the closing setup screen block that lists features found in settings"
+    },
+    "setupTourBulletRequests": "Seerr istekleri",
+    "@setupTourBulletRequests": {
+        "description": "Bullet on the closing setup screen for the Seerr request feature"
+    },
+    "setupTourBulletSyncPlay": "SyncPlay birlikte izleme etkinlikleri",
+    "@setupTourBulletSyncPlay": {
+        "description": "Bullet on the closing setup screen for SyncPlay"
+    },
+    "setupTourBulletThemes": "Özel Temalar",
+    "@setupTourBulletThemes": {
+        "description": "Bullet on the closing setup screen for custom themes"
+    },
+    "setupTourBulletDownloads": "Çevrimdışı indirmeler",
+    "@setupTourBulletDownloads": {
+        "description": "Bullet on the closing setup screen for downloads"
+    },
+    "setupTourBulletMore": "Ve çok daha fazlası",
+    "@setupTourBulletMore": {
+        "description": "Closing bullet on the setup screen settings list"
+    },
+    "runSetupAgain": "Kurulumu yeniden çalıştır",
+    "@runSetupAgain": {
+        "description": "Starts the first-run setup wizard again from settings"
+    }
 }

@@ -15,6 +15,7 @@ import '../../../util/focus/dpad_keys.dart';
 import '../../../util/platform_detection.dart';
 import '../../navigation/destinations.dart';
 import '../../theme/app_theme_controller.dart';
+import '../../widgets/navigation_layout.dart';
 import 'setup_wizard_gate.dart';
 import 'setup_wizard_previews.dart';
 
@@ -44,8 +45,9 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
   bool _advancing = true;
 
   // Held rather than written as they are chosen. Each write kicks off a full
-  // profile push that the plugin then echoes back, so four of them across four
-  // screens becomes one batch at the end.
+  // profile push that the plugin then echoes back, so the answers across the
+  // steps become one batch at the end.
+  NavbarPosition? _navbar;
   String? _mediaBar;
   HomeRowsStyle? _homeRows;
   DetailScreenStyle? _detailStyle;
@@ -118,8 +120,12 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
 
   Future<void> _finish() async {
     final client = _client;
+    final navbar = _navbar;
 
     await _prefs.batchNotifications(() async {
+      if (navbar != null) {
+        await _prefs.set(UserPreferences.navbarPosition, navbar);
+      }
       final mediaBar = _mediaBar;
       if (mediaBar != null) {
         await _prefs.set(UserPreferences.mediaBarMode, mediaBar);
@@ -133,6 +139,13 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
         await _prefs.set(UserPreferences.detailScreenStyle, detailStyle);
       }
     });
+
+    // The chrome listens on this rather than the preference, so Home comes up
+    // with the bar where it was just asked to be.
+    if (navbar != null) {
+      NavigationLayout.positionNotifier.value =
+          NavigationLayout.sanitizeNavbarPosition(navbar);
+    }
 
     if (client != null) await _gate.markComplete(client);
     _goHome();
@@ -201,22 +214,25 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
       },
       child: Scaffold(
         backgroundColor: AppColorScheme.background,
-        body: FocusScope(
-          node: _scopeNode,
-          autofocus: true,
-          // The route owns the whole screen, so the scope is the trap: there is
-          // nothing outside it for focus to travel to, and traversal already
-          // stops rather than wrapping at the ends of a row.
-          child: Focus(
-            onKeyEvent: _onKey,
-            canRequestFocus: false,
-            skipTraversal: true,
-            child: FocusTraversalGroup(
-              policy: OrderedTraversalPolicy(),
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(maxWidth: _maxWidth),
-                  child: _buildSurface(context),
+        // Keeps the action row clear of the OS gesture bar on phones.
+        body: SafeArea(
+          child: FocusScope(
+            node: _scopeNode,
+            autofocus: true,
+            // The route owns the whole screen, so the scope is the trap: there is
+            // nothing outside it for focus to travel to, and traversal already
+            // stops rather than wrapping at the ends of a row.
+            child: Focus(
+              onKeyEvent: _onKey,
+              canRequestFocus: false,
+              skipTraversal: true,
+              child: FocusTraversalGroup(
+                policy: OrderedTraversalPolicy(),
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(maxWidth: _maxWidth),
+                    child: _buildSurface(context),
+                  ),
                 ),
               ),
             ),
@@ -296,6 +312,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
             height: 1.2,
           ),
         ),
+        const SizedBox(height: AppSpacing.spaceSm),
         Expanded(
           child: AnimatedSwitcher(
             duration: const Duration(milliseconds: 260),
@@ -352,6 +369,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
   }
 
   String _questionFor(SetupStep step, AppLocalizations l10n) => switch (step) {
+    SetupStep.navbar => l10n.setupNavbarQuestion,
     SetupStep.mediaBar => l10n.setupMediaBarQuestion,
     SetupStep.homeRows => l10n.setupHomeRowsQuestion,
     SetupStep.detailStyle => l10n.setupDetailQuestion,
@@ -363,11 +381,41 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
     SetupStep step,
     AppLocalizations l10n,
   ) => switch (step) {
+    SetupStep.navbar => _buildNavbarStep(l10n),
     SetupStep.mediaBar => _buildMediaBarStep(l10n),
     SetupStep.homeRows => _buildHomeRowsStep(l10n),
     SetupStep.detailStyle => _buildDetailStyleStep(l10n),
     SetupStep.tour => _SetupTourStep(prefs: _prefs),
   };
+
+  Widget _buildNavbarStep(AppLocalizations l10n) {
+    // The bottom bar is only offered where the app can actually draw one, so
+    // this list is two entries on a TV or desktop and three on a phone.
+    final positions = NavigationLayout.availableNavbarPositions;
+    final labels = {
+      NavbarPosition.top: l10n.topBar,
+      NavbarPosition.left: l10n.leftSidebar,
+      NavbarPosition.bottom: l10n.bottomBar,
+    };
+    final selected = NavigationLayout.sanitizeNavbarPosition(
+      _navbar ?? _prefs.get(UserPreferences.navbarPosition),
+    );
+
+    return _OptionLayout(
+      columns: positions.length,
+      children: [
+        for (var i = 0; i < positions.length; i++)
+          _OptionCard(
+            order: i,
+            label: labels[positions[i]] ?? positions[i].name,
+            selected: selected == positions[i],
+            autofocus: selected == positions[i],
+            preview: SetupPreview(child: navbarPreview(positions[i])),
+            onPressed: () => setState(() => _navbar = positions[i]),
+          ),
+      ],
+    );
+  }
 
   Widget _buildMediaBarStep(AppLocalizations l10n) {
     const modes = [
@@ -393,9 +441,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
     return _OptionLayout(
       // A remote only moves along one row comfortably, so leanback fits every
       // style on a single line and lets the card width shrink to suit.
-      columns: PlatformDetection.useMobileUi
-          ? 2
-          : (PlatformDetection.useLeanbackUi ? modes.length : 4),
+      columns: PlatformDetection.useLeanbackUi ? modes.length : 4,
       children: [
         for (var i = 0; i < modes.length; i++)
           _OptionCard(
@@ -413,7 +459,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
   Widget _buildHomeRowsStep(AppLocalizations l10n) {
     final selected = _homeRows ?? _prefs.get(UserPreferences.homeRowsStyle);
     return _OptionLayout(
-      columns: PlatformDetection.useMobileUi ? 1 : 2,
+      columns: 2,
       children: [
         _OptionCard(
           order: 0,
@@ -441,7 +487,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
     final selected =
         _detailStyle ?? _prefs.get(UserPreferences.detailScreenStyle);
     return _OptionLayout(
-      columns: PlatformDetection.useMobileUi ? 1 : 2,
+      columns: 2,
       children: [
         _OptionCard(
           order: 0,
@@ -494,9 +540,40 @@ class _OptionLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (columns == 1) {
-      return SingleChildScrollView(
-        child: Column(spacing: AppSpacing.spaceMd, children: children),
+    // Phones get one sideways strip instead of a stack of rows. The cards are
+    // sized so the next one peeks in from the edge, which is what tells the
+    // user there is more to scroll, and the action row below never gets
+    // pushed off the screen.
+    if (PlatformDetection.useMobileUi) {
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          // Breathing room inside the strip, so a card's selection border and
+          // its focus growth stay visible instead of clipping against the
+          // scroll viewport at the top and at either end.
+          const inset = AppSpacing.spaceMd;
+          const labelAllowance = 84.0;
+          final byWidth = (constraints.maxWidth - inset * 2) * 0.42;
+          final byHeight =
+              (constraints.maxHeight - inset * 2 - labelAllowance) *
+              setupPreviewAspect();
+          final width = (byWidth < byHeight ? byWidth : byHeight).clamp(
+            120.0,
+            220.0,
+          );
+          return SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.all(inset),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                for (var i = 0; i < children.length; i++) ...[
+                  if (i > 0) const SizedBox(width: AppSpacing.spaceMd),
+                  SizedBox(width: width, child: children[i]),
+                ],
+              ],
+            ),
+          );
+        },
       );
     }
     return LayoutBuilder(

@@ -50,6 +50,7 @@ void main() {
   group('what the wizard still has to ask', () {
     test('a fresh sign-in is asked everything, and ends on the tour', () {
       expect(gate.remainingSteps(), [
+        SetupStep.navbar,
         SetupStep.mediaBar,
         SetupStep.homeRows,
         SetupStep.detailStyle,
@@ -65,6 +66,7 @@ void main() {
       );
 
       expect(gate.remainingSteps(), [
+        SetupStep.navbar,
         SetupStep.homeRows,
         SetupStep.detailStyle,
         SetupStep.tour,
@@ -76,6 +78,7 @@ void main() {
     test(
       'an account that has answered everything is not shown the wizard',
       () async {
+        await prefs.set(UserPreferences.navbarPosition, NavbarPosition.left);
         await prefs.set(
           UserPreferences.mediaBarMode,
           UserPreferences.mediaBarModeGallery,
@@ -92,6 +95,7 @@ void main() {
     );
 
     test('the tour never shows up on its own', () async {
+      await prefs.set(UserPreferences.navbarPosition, NavbarPosition.top);
       await prefs.set(
         UserPreferences.mediaBarMode,
         UserPreferences.mediaBarModeOff,

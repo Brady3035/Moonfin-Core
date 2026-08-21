@@ -9641,6 +9641,10 @@
   "@setupSkip": {
     "description": "Leaves the first-run setup wizard without answering anything"
   },
+  "setupNavbarQuestion": "Where should navigation go?",
+  "@setupNavbarQuestion": {
+    "description": "Setup question asking where the navigation bar should sit"
+  },
   "setupMediaBarQuestion": "How should the top of your Home screen look?",
   "@setupMediaBarQuestion": {
     "description": "Setup wizard question for the media bar style"

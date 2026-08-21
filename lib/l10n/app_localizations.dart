@@ -19168,6 +19168,12 @@ abstract class AppLocalizations {
   /// **'Skip setup'**
   String get setupSkip;
 
+  /// Setup question asking where the navigation bar should sit
+  ///
+  /// In en, this message translates to:
+  /// **'Where should navigation go?'**
+  String get setupNavbarQuestion;
+
   /// Setup wizard question for the media bar style
   ///
   /// In en, this message translates to:

@@ -10950,6 +10950,9 @@ class AppLocalizationsCa extends AppLocalizations {
   String get setupSkip => 'Skip setup';
 
   @override
+  String get setupNavbarQuestion => 'Where should navigation go?';
+
+  @override
   String get setupMediaBarQuestion =>
       'How should the top of your Home screen look?';
 

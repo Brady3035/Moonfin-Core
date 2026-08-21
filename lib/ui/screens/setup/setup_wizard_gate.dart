@@ -8,9 +8,10 @@ import '../../../preference/user_preferences.dart';
 
 /// Which questions the first-run wizard still has to ask, in the order shown.
 ///
+/// [navbar] leads because it is the frame everything after it sits in.
 /// [tour] is never suppressed, since it asks nothing that could already have
 /// been answered.
-enum SetupStep { mediaBar, homeRows, detailStyle, tour }
+enum SetupStep { navbar, mediaBar, homeRows, detailStyle, tour }
 
 /// Decides whether the wizard runs, and for which steps.
 ///
@@ -85,6 +86,8 @@ class SetupWizardGate {
     if (_rerunning) return SetupStep.values;
 
     final steps = <SetupStep>[
+      if (!_prefs.containsPreference(UserPreferences.navbarPosition))
+        SetupStep.navbar,
       if (!_prefs.containsPreference(UserPreferences.mediaBarMode))
         SetupStep.mediaBar,
       if (!_prefs.containsPreference(UserPreferences.homeRowsStyle))

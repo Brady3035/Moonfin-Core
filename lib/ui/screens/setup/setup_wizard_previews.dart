@@ -4,9 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:moonfin_design/moonfin_design.dart';
 
+import '../../../auth/repositories/user_repository.dart';
 import '../../../data/models/media_bar_slide_item.dart';
 import '../../../data/viewmodels/media_bar_view_model.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../preference/preference_constants.dart';
 import '../../../preference/user_preferences.dart';
 import '../../../util/overlay_color_palette.dart';
 import '../../../util/platform_detection.dart';
@@ -39,6 +41,11 @@ abstract final class SetupPreviewData {
     await _viewModel?.load();
   }
 }
+
+/// The aspect every preview card renders at, which is the screen it mocks.
+/// The wizard sizes mobile cards from the height with this, so a card never
+/// runs out of the step body.
+double setupPreviewAspect() => _designSize().aspectRatio;
 
 /// Frame shared by every option card preview.
 class SetupPreview extends StatelessWidget {
@@ -1566,6 +1573,339 @@ Widget _ayaBar(BuildContext context, List<MediaBarSlideItem> items) {
       ),
     ],
   );
+}
+
+// ---------------------------------------------------------------------------
+// Navbar positions
+// ---------------------------------------------------------------------------
+
+Widget navbarPreview(NavbarPosition position) => _liveOrFallback(
+  live: (context, items) => switch (position) {
+    NavbarPosition.top => _topNavbarPreview(context, items),
+    NavbarPosition.left => _leftNavbarPreview(context, items),
+    NavbarPosition.bottom => _bottomNavbarPreview(context, items),
+  },
+  fallback: _fallbackNavbar(position),
+);
+
+/// The default button set: home, search, shuffle, favorites, libraries and
+/// settings, which is what the chrome shows before anyone touches a toggle.
+const _navIcons = [
+  Icons.home_rounded,
+  Icons.search_rounded,
+  Icons.shuffle_rounded,
+  Icons.favorite_rounded,
+  Icons.video_library_rounded,
+  Icons.settings_rounded,
+];
+
+/// The nav slot colour when the theme cycles one, the resting grey otherwise,
+/// exactly as the real buttons resolve it.
+Color _navIconColor(int slot) =>
+    AppColorScheme.navColorForSlot(slot) ??
+    AppColorScheme.onSurface.withValues(alpha: 0.6);
+
+Color get _navbarSurface {
+  final prefs = GetIt.instance<UserPreferences>();
+  return OverlayColorPalette.resolveColor(
+    prefs.get(UserPreferences.navbarColor),
+  ).withValues(
+    alpha:
+        prefs.get(UserPreferences.navbarOpacity).toDouble().clamp(0.0, 100.0) /
+        100.0,
+  );
+}
+
+Widget _navAvatar() {
+  var initial = '?';
+  if (GetIt.instance.isRegistered<UserRepository>()) {
+    final name = GetIt.instance<UserRepository>().currentUser?.name ?? '';
+    if (name.isNotEmpty) initial = name[0].toUpperCase();
+  }
+  return Container(
+    width: 40,
+    height: 40,
+    alignment: Alignment.center,
+    decoration: BoxDecoration(
+      shape: BoxShape.circle,
+      color: Colors.white.withValues(alpha: 0.1),
+    ),
+    child: Text(
+      initial,
+      style: const TextStyle(
+        color: Colors.white,
+        fontSize: 16,
+        fontWeight: FontWeight.w600,
+      ),
+    ),
+  );
+}
+
+/// The rows every navbar preview sits around, packed tight so the chrome is
+/// judged against a full screen rather than empty space. [topInset] keeps the
+/// first row off whatever sits above it, chrome or the card's own edge.
+Widget _navbarRows(
+  BuildContext context,
+  List<MediaBarSlideItem> items, {
+  double topInset = 12,
+}) {
+  return Padding(
+    padding: EdgeInsets.only(top: topInset),
+    child: ClipRect(
+      child: OverflowBox(
+        alignment: Alignment.topCenter,
+        maxHeight: double.infinity,
+        child: _homeRowsColumn(
+          context,
+          items,
+          modern: !_phone,
+          rowGapOverride: 24,
+        ),
+      ),
+    ),
+  );
+}
+
+/// The toolbar draws no band of its own. An avatar sits on the left, the
+/// buttons live in one translucent pill in the middle, and the clock keeps
+/// the right, all floating straight over the content.
+Widget _topNavbarPreview(BuildContext context, List<MediaBarSlideItem> items) {
+  final toolbarHeight = _tv ? 95.0 : (_phone ? 60.0 : 80.0);
+  final hPad = _tv ? 48.0 : (_phone ? 12.0 : 32.0);
+  final vPad = _tv ? 27.0 : (_phone ? 8.0 : 10.0);
+  final buttonWidth = _phone ? 40.0 : (_tv ? 44.0 : 56.0);
+  final iconSize = _phone ? 22.0 : (_tv ? 24.0 : 30.0);
+  // A phone fits fewer buttons, and settings always keeps the end slot.
+  final icons = _phone
+      ? const [
+          Icons.home_rounded,
+          Icons.search_rounded,
+          Icons.shuffle_rounded,
+          Icons.settings_rounded,
+        ]
+      : _navIcons;
+  final now = DateTime.now();
+  final clock =
+      '${now.hour.toString().padLeft(2, '0')}:'
+      '${now.minute.toString().padLeft(2, '0')}';
+
+  final pill = Container(
+    decoration: BoxDecoration(
+      color: _navbarSurface,
+      borderRadius: AppRadius.circular(36),
+    ),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (var i = 0; i < icons.length; i++)
+          SizedBox(
+            width: buttonWidth,
+            height: buttonWidth,
+            child: Icon(icons[i], size: iconSize, color: _navIconColor(i)),
+          ),
+      ],
+    ),
+  );
+
+  return Column(
+    children: [
+      SizedBox(
+        height: toolbarHeight,
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: hPad, vertical: vPad),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Align(alignment: Alignment.centerLeft, child: _navAvatar()),
+              pill,
+              if (!_phone)
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Text(
+                    clock,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColorScheme.onSurface.withValues(alpha: 0.8),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+      Expanded(child: _navbarRows(context, items)),
+    ],
+  );
+}
+
+/// The collapsed rail is a bare 72 wide gutter of icons with no backdrop, so
+/// the preview keeps it transparent too and just moves the rows over.
+Widget _leftNavbarPreview(BuildContext context, List<MediaBarSlideItem> items) {
+  final iconSize = _tv ? 24.0 : 28.0;
+  final itemHeight = _tv ? 40.0 : 44.0;
+  return Row(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      SizedBox(
+        width: 72,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            for (var i = 0; i < _navIcons.length; i++)
+              SizedBox(
+                height: itemHeight,
+                child: Icon(
+                  _navIcons[i],
+                  size: iconSize,
+                  color: _navIconColor(i),
+                ),
+              ),
+          ],
+        ),
+      ),
+      Expanded(child: _navbarRows(context, items, topInset: 24)),
+    ],
+  );
+}
+
+/// A floating pill above the bottom edge, its active tab held in a glowing
+/// chip, the way the real bar draws it. Content keeps running underneath.
+Widget _bottomNavbarPreview(
+  BuildContext context,
+  List<MediaBarSlideItem> items,
+) {
+  const tabs = [
+    Icons.home_rounded,
+    Icons.search_rounded,
+    Icons.shuffle_rounded,
+    Icons.favorite_rounded,
+    Icons.settings_rounded,
+  ];
+
+  Widget tab(int index) {
+    final active = index == 0;
+    final slot = AppColorScheme.navColorForSlot(index);
+    final base = slot ?? AppColorScheme.accent;
+    final color = active
+        ? Color.lerp(base, Colors.white, 0.30)!
+        : (slot ?? Colors.white.withValues(alpha: 0.6));
+    return SizedBox(
+      width: 64,
+      child: Center(
+        child: Container(
+          width: 56,
+          height: 32,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: active ? base.withValues(alpha: 0.16) : null,
+            borderRadius: AppRadius.circular(16),
+            boxShadow: active
+                ? [
+                    BoxShadow(
+                      color: base.withValues(alpha: 0.35),
+                      blurRadius: 12,
+                    ),
+                  ]
+                : null,
+          ),
+          child: Icon(tabs[index], size: 24, color: color),
+        ),
+      ),
+    );
+  }
+
+  final bar = Padding(
+    padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+    child: Container(
+      height: 54,
+      decoration: BoxDecoration(
+        color: Color.alphaBlend(
+          _navbarSurface.withValues(alpha: 0.98),
+          AppColorScheme.surface,
+        ),
+        borderRadius: AppRadius.circular(22),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.45),
+            blurRadius: 30,
+            spreadRadius: -12,
+            offset: const Offset(0, 14),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [for (var i = 0; i < tabs.length; i++) tab(i)],
+      ),
+    ),
+  );
+
+  return Stack(
+    children: [
+      Positioned.fill(child: _navbarRows(context, items, topInset: 24)),
+      Align(alignment: Alignment.bottomCenter, child: bar),
+    ],
+  );
+}
+
+Widget _fallbackNavbar(NavbarPosition position) {
+  Widget chrome({double? width, double? height}) => Container(
+    width: width,
+    height: height,
+    color: AppColorScheme.onSurface.withValues(alpha: 0.14),
+    child: Center(
+      child: width != null
+          ? Column(
+              mainAxisSize: MainAxisSize.min,
+              spacing: 5,
+              children: [for (var i = 0; i < 4; i++) _bar(8, 3, _strong)],
+            )
+          : Row(
+              mainAxisSize: MainAxisSize.min,
+              spacing: 5,
+              children: [for (var i = 0; i < 4; i++) _bar(8, 3, _strong)],
+            ),
+    ),
+  );
+
+  final rows = Padding(
+    padding: const EdgeInsets.all(8),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.center,
+      spacing: 6,
+      children: [
+        _bar(30, 3, _weak),
+        Row(
+          spacing: 4,
+          children: [for (var i = 0; i < 4; i++) _posterCard(13)],
+        ),
+      ],
+    ),
+  );
+
+  return switch (position) {
+    NavbarPosition.top => Column(
+      children: [
+        chrome(height: 16),
+        Expanded(child: rows),
+      ],
+    ),
+    NavbarPosition.left => Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        chrome(width: 16),
+        Expanded(child: rows),
+      ],
+    ),
+    NavbarPosition.bottom => Column(
+      children: [
+        Expanded(child: rows),
+        chrome(height: 16),
+      ],
+    ),
+  };
 }
 
 // ---------------------------------------------------------------------------

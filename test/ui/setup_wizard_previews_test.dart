@@ -5,6 +5,7 @@ import 'package:get_it/get_it.dart';
 import 'package:jellyfin_preference/jellyfin_preference.dart';
 import 'package:moonfin/data/models/media_bar_slide_item.dart';
 import 'package:moonfin/l10n/app_localizations.dart';
+import 'package:moonfin/preference/preference_constants.dart';
 import 'package:moonfin/preference/user_preferences.dart';
 import 'package:moonfin/ui/screens/setup/setup_wizard_previews.dart';
 import 'package:moonfin/util/platform_detection.dart';
@@ -94,6 +95,9 @@ void main() {
         for (final mode in _mediaBarModes) {
           await pumpPreview(tester, mediaBarPreview(mode));
         }
+        for (final position in NavbarPosition.values) {
+          await pumpPreview(tester, navbarPreview(position));
+        }
         await pumpPreview(tester, homeRowsPreview(modern: false));
         await pumpPreview(tester, homeRowsPreview(modern: true));
         await pumpPreview(tester, detailStylePreview(modern: false));
@@ -108,6 +112,9 @@ void main() {
         SetupPreviewData.debugOverride = ValueNotifier(const []);
         for (final mode in _mediaBarModes) {
           await pumpPreview(tester, mediaBarPreview(mode));
+        }
+        for (final position in NavbarPosition.values) {
+          await pumpPreview(tester, navbarPreview(position));
         }
         await pumpPreview(tester, homeRowsPreview(modern: false));
         await pumpPreview(tester, detailStylePreview(modern: true));

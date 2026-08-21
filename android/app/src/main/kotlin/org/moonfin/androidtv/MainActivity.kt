@@ -83,6 +83,12 @@ class MainActivity : AudioServiceActivity(), GamepadsCompatibleActivity {
     private var audioDeviceCallback: AudioDeviceCallback? = null
     private var castStatusListener: SessionManagerListener<CastSession>? = null
     private var castDiscoveryCallback: MediaRouter.Callback? = null
+
+    // A receiver is published by both the MediaRouter and the MediaRouter2
+    // provider service, so it arrives once per provider under ids that differ
+    // only in their provider prefix. Keyed on the receiver itself, the picker
+    // lists each device once.
+    private val emittedCastReceivers = mutableSetOf<String>()
     private var dlnaChannel: MethodChannel? = null
     private var dlnaEventsChannel: EventChannel? = null
     private var dlnaController: DlnaController? = null
@@ -918,9 +924,11 @@ class MainActivity : AudioServiceActivity(), GamepadsCompatibleActivity {
             .build()
 
         val mediaRouter = MediaRouter.getInstance(this)
-        val routes = mediaRouter.routes.filter { route ->
-            route.isEnabled && route.matchesSelector(selector)
-        }
+        val routes = dedupedCastRoutes(
+            mediaRouter.routes.filter { route ->
+                route.isEnabled && route.matchesSelector(selector)
+            },
+        )
 
         return routes.map { route ->
             mapOf(
@@ -948,6 +956,7 @@ class MainActivity : AudioServiceActivity(), GamepadsCompatibleActivity {
         runOnUiThread {
             val mediaRouter = MediaRouter.getInstance(this)
             val selector = castRouteSelector()
+            emittedCastReceivers.clear()
             if (castDiscoveryCallback == null) {
                 val callback = object : MediaRouter.Callback() {
                     override fun onRouteAdded(router: MediaRouter, route: MediaRouter.RouteInfo) {
@@ -965,7 +974,9 @@ class MainActivity : AudioServiceActivity(), GamepadsCompatibleActivity {
                     MediaRouter.CALLBACK_FLAG_PERFORM_ACTIVE_SCAN,
                 )
             }
-            mediaRouter.routes.forEach { emitCastRouteFound(it, selector) }
+            dedupedCastRoutes(mediaRouter.routes).forEach {
+                emitCastRouteFound(it, selector)
+            }
         }
     }
 
@@ -974,11 +985,22 @@ class MainActivity : AudioServiceActivity(), GamepadsCompatibleActivity {
             val callback = castDiscoveryCallback ?: return@runOnUiThread
             MediaRouter.getInstance(this).removeCallback(callback)
             castDiscoveryCallback = null
+            emittedCastReceivers.clear()
         }
     }
 
+    // Route ids carry the publishing provider ahead of a colon and the receiver
+    // after it, so the receiver alone is what tells two devices apart.
+    private fun castReceiverKey(routeId: String): String =
+        routeId.substringAfterLast(':', routeId)
+
+    private fun dedupedCastRoutes(
+        routes: List<MediaRouter.RouteInfo>,
+    ): List<MediaRouter.RouteInfo> = routes.distinctBy { castReceiverKey(it.id) }
+
     private fun emitCastRouteFound(route: MediaRouter.RouteInfo, selector: MediaRouteSelector) {
         if (!route.isEnabled || !route.matchesSelector(selector)) return
+        if (!emittedCastReceivers.add(castReceiverKey(route.id))) return
         castEventsSink?.success(
             mapOf(
                 "kind" to "googleCast",

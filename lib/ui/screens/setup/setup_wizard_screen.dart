@@ -442,9 +442,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
     final selected = _mediaBar ?? _prefs.get(UserPreferences.mediaBarMode);
 
     return _OptionLayout(
-      // A remote only moves along one row comfortably, so leanback fits every
-      // style on a single line and lets the card width shrink to suit.
-      columns: PlatformDetection.useLeanbackUi ? modes.length : 4,
+      columns: 4,
       children: [
         for (var i = 0; i < modes.length; i++)
           _OptionCard(

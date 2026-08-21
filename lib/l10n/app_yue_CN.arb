@@ -9632,5 +9632,27 @@
     "quickConnectInvalidOrExpired": "",
     "quickConnectNotSupported": "",
     "quickConnectAuthorizeFailed": "",
-    "quickConnectForbidden": ""
+    "quickConnectForbidden": "",
+    "adminAnalyticsLoadingProgress": "",
+    "@adminAnalyticsLoadingProgress": {
+        "description": "Progress label shown while server analytics load",
+        "placeholders": {
+            "percentage": {
+                "type": "int"
+            }
+        }
+    },
+    "checkingDirectPlay": "",
+    "requestingProgress": "",
+    "@requestingProgress": {
+        "description": "Progress label while collection requests are submitted",
+        "placeholders": {
+            "current": {
+                "type": "int"
+            },
+            "total": {
+                "type": "int"
+            }
+        }
+    }
 }

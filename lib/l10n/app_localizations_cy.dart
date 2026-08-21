@@ -48,7 +48,7 @@ class AppLocalizationsCy extends AppLocalizations {
       'Rhowch y cod hwn ar ddangosfwrdd gwe eich gweinydd:';
 
   @override
-  String get waitingForAuthorization => 'Aros am awdurdodiad...';
+  String get waitingForAuthorization => 'Aros am awdurdodiad…';
 
   @override
   String get back => 'Yn ôl';
@@ -332,10 +332,10 @@ class AppLocalizationsCy extends AppLocalizations {
 
   @override
   String get loadingLinkedServers =>
-      'Wrthi\'n llwytho gweinyddion cysylltiedig...';
+      'Wrthi\'n llwytho gweinyddion cysylltiedig…';
 
   @override
-  String get connectingToServerEllipsis => 'Wrthi\'n cysylltu â\'r gweinydd...';
+  String get connectingToServerEllipsis => 'Wrthi\'n cysylltu â\'r gweinydd…';
 
   @override
   String get noReachableAddress => 'Ni ddarparwyd cyfeiriad cyraeddadwy';
@@ -1223,7 +1223,7 @@ class AppLocalizationsCy extends AppLocalizations {
 
   @override
   String downloadingTitle(String title, int count) {
-    return 'Wrthi\'n llwytho i lawr $title ($count items)...';
+    return 'Wrthi\'n llwytho i lawr $title ($count items)…';
   }
 
   @override
@@ -1252,7 +1252,7 @@ class AppLocalizationsCy extends AppLocalizations {
   String get none => 'Dim';
 
   @override
-  String get downloadSubtitlesLabel => 'Lawrlwythwch isdeitlau...';
+  String get downloadSubtitlesLabel => 'Lawrlwythwch isdeitlau…';
 
   @override
   String get searchOpenSubtitlesPlugin =>
@@ -1304,7 +1304,7 @@ class AppLocalizationsCy extends AppLocalizations {
 
   @override
   String downloadingItem(String name, String quality) {
-    return 'Wrthi\'n lawrlwytho $name ($quality)...';
+    return 'Wrthi\'n lawrlwytho $name ($quality)…';
   }
 
   @override
@@ -1746,7 +1746,7 @@ class AppLocalizationsCy extends AppLocalizations {
   }
 
   @override
-  String get updating => 'Wrthi\'n diweddaru...';
+  String get updating => 'Wrthi\'n diweddaru…';
 
   @override
   String get markUnread => 'Marcio Heb ei Ddarllen';
@@ -1779,7 +1779,7 @@ class AppLocalizationsCy extends AppLocalizations {
   String get addBookmark => 'Ychwanegu Nod tudalen';
 
   @override
-  String get bookmarksEllipsis => 'Llyfrnodau...';
+  String get bookmarksEllipsis => 'Llyfrnodau…';
 
   @override
   String get markedAsRead => 'Wedi ei nodi fel wedi ei ddarllen';
@@ -1811,7 +1811,7 @@ class AppLocalizationsCy extends AppLocalizations {
   String get invertColorsPdf => 'Lliwiau Gwrthdro (PDF)';
 
   @override
-  String get preparingInAppReader => 'Wrthi\'n paratoi darllenydd mewn-app...';
+  String get preparingInAppReader => 'Wrthi\'n paratoi darllenydd mewn-app…';
 
   @override
   String get pdfDataNotAvailable => 'Data PDF ddim ar gael.';
@@ -2006,10 +2006,10 @@ class AppLocalizationsCy extends AppLocalizations {
       'Wedi methu canslo recordiad cyfres';
 
   @override
-  String get searchThisLibrary => 'Chwiliwch y llyfrgell hon...';
+  String get searchThisLibrary => 'Chwiliwch y llyfrgell hon…';
 
   @override
-  String get searchEllipsis => 'Chwilio...';
+  String get searchEllipsis => 'Chwilio…';
 
   @override
   String noResultsForQuery(String query) {
@@ -3105,7 +3105,7 @@ class AppLocalizationsCy extends AppLocalizations {
   String get loadProfile => 'Proffil Llwyth';
 
   @override
-  String get syncing => 'Wrthi\'n cysoni...';
+  String get syncing => 'Wrthi\'n cysoni…';
 
   @override
   String get syncToProfile => 'Cysoni i Broffil';
@@ -3187,7 +3187,7 @@ class AppLocalizationsCy extends AppLocalizations {
   String get manage => 'Rheoli';
 
   @override
-  String get calculating => 'Wrthi\'n cyfrifo...';
+  String get calculating => 'Wrthi\'n cyfrifo…';
 
   @override
   String get downloadLocation => 'Lleoliad Lawrlwytho';
@@ -4050,7 +4050,7 @@ class AppLocalizationsCy extends AppLocalizations {
   String get readReleaseNotes => 'Darllenwch Nodiadau Rhyddhau';
 
   @override
-  String get downloadingUpdate => 'Wrthi\'n lawrlwytho diweddariad...';
+  String get downloadingUpdate => 'Wrthi\'n lawrlwytho diweddariad…';
 
   @override
   String get updateDownloadFailed =>
@@ -4377,7 +4377,7 @@ class AppLocalizationsCy extends AppLocalizations {
 
   @override
   String requestingProgress(int current, int total) {
-    return 'Wrthi\'n gwneud cais am $current o $total...';
+    return 'Wrthi\'n gwneud cais am $current o $total…';
   }
 
   @override
@@ -5783,7 +5783,7 @@ class AppLocalizationsCy extends AppLocalizations {
   String get adminBackupTrickplay => 'Delweddau Trickplay';
 
   @override
-  String get adminCreatingBackup => 'Wrthi\'n creu copi wrth gefn...';
+  String get adminCreatingBackup => 'Wrthi\'n creu copi wrth gefn…';
 
   @override
   String get adminBackupCreated => 'Crëwyd copi wrth gefn yn llwyddiannus';
@@ -5811,7 +5811,7 @@ class AppLocalizationsCy extends AppLocalizations {
   String get adminConfirmRestore => 'Cadarnhau Adfer';
 
   @override
-  String get adminRestoringBackup => 'Wrthi\'n adfer copi wrth gefn...';
+  String get adminRestoringBackup => 'Wrthi\'n adfer copi wrth gefn…';
 
   @override
   String adminRestoreFailed(String error) {
@@ -5937,7 +5937,7 @@ class AppLocalizationsCy extends AppLocalizations {
   String get adminDayOfWeek => 'Diwrnod yr wythnos';
 
   @override
-  String get adminSearchPlugins => 'Chwilio ategion...';
+  String get adminSearchPlugins => 'Chwilio ategion…';
 
   @override
   String adminPluginToggleFailed(String error) {
@@ -6018,7 +6018,7 @@ class AppLocalizationsCy extends AppLocalizations {
 
   @override
   String adminPluginUpdating(String name, String version) {
-    return 'Wrthi\'n diweddaru \"$name\" i v$version...';
+    return 'Wrthi\'n diweddaru \"$name\" i v$version…';
   }
 
   @override
@@ -7096,7 +7096,7 @@ class AppLocalizationsCy extends AppLocalizations {
 
   @override
   String adminPluginsInstalling(String name) {
-    return 'Mae \"$name\" yn cael ei osod...';
+    return 'Mae \"$name\" yn cael ei osod…';
   }
 
   @override
@@ -7554,10 +7554,10 @@ class AppLocalizationsCy extends AppLocalizations {
       'Nid oes unrhyw dasgau yn cyfateb i\'r hidlydd cyfredol';
 
   @override
-  String get adminTaskCancelling => 'Wrthi\'n canslo...';
+  String get adminTaskCancelling => 'Wrthi\'n canslo…';
 
   @override
-  String get adminTaskRunning => 'Yn rhedeg...';
+  String get adminTaskRunning => 'Yn rhedeg…';
 
   @override
   String get adminTaskNeverRun => 'Peidiwch byth â rhedeg';
@@ -8099,7 +8099,7 @@ class AppLocalizationsCy extends AppLocalizations {
   String get remoteControl => 'Rheolaeth Anghysbell';
 
   @override
-  String get mediaBarLoading => 'Wrthi\'n llwytho bar cyfryngau...';
+  String get mediaBarLoading => 'Wrthi\'n llwytho bar cyfryngau…';
 
   @override
   String get mediaBarError => 'Methodd bar cyfryngau llwytho';
@@ -8327,7 +8327,7 @@ class AppLocalizationsCy extends AppLocalizations {
 
   @override
   String trackActionDownloading(String name) {
-    return 'Wrthi\'n llwytho i lawr $name...';
+    return 'Wrthi\'n llwytho i lawr $name…';
   }
 
   @override
@@ -8921,7 +8921,7 @@ class AppLocalizationsCy extends AppLocalizations {
       'Yn rheoli a ddylai ffrydiau haen gwella proffil Dolby Vision 7 gyfeirio chwarae.';
 
   @override
-  String get settingsAutoAftkrtEnabled => 'Auto (AFTKRT wedi\'i alluogi)';
+  String get settingsAutoAftkrtEnabled => 'Auto';
 
   @override
   String get settingsEnabledOnThisDevice => 'Wedi\'i alluogi ar y ddyfais hon';
@@ -9496,7 +9496,7 @@ class AppLocalizationsCy extends AppLocalizations {
 
   @override
   String get loadingInstalledPlayers =>
-      'Wrthi\'n llwytho chwaraewyr sydd wedi\'u gosod...';
+      'Wrthi\'n llwytho chwaraewyr sydd wedi\'u gosod…';
 
   @override
   String get connection => 'Cysylltiad';
@@ -9991,7 +9991,7 @@ class AppLocalizationsCy extends AppLocalizations {
   String get closeGenrePanel => 'Panel genre agos';
 
   @override
-  String get loadingShuffle => 'Wrthi\'n llwytho siffrwd...';
+  String get loadingShuffle => 'Wrthi\'n llwytho siffrwd…';
 
   @override
   String get libraryShuffleLabel => 'HAPCHWARAE\'R LLYFRGELL';
@@ -10376,7 +10376,7 @@ class AppLocalizationsCy extends AppLocalizations {
   }
 
   @override
-  String get checkingDirectPlay => 'Yn gwirio\'r gallu Direct Play...';
+  String get checkingDirectPlay => 'Yn gwirio\'r gallu Direct Play…';
 
   @override
   String get directPlayCapabilityLabel => 'Gallu Direct Play: ';

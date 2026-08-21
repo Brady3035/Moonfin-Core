@@ -35,10 +35,10 @@ class AppLocalizationsSv extends AppLocalizations {
   String get quickConnect => 'Quick Connect';
 
   @override
-  String get password => 'Losenord';
+  String get password => 'Lösenord';
 
   @override
-  String get username => 'Anvandarnamn';
+  String get username => 'Användarnamn';
 
   @override
   String get email => 'E-post';
@@ -48,7 +48,7 @@ class AppLocalizationsSv extends AppLocalizations {
       'Ange den här koden på din servers webbinstrumentpanel:';
 
   @override
-  String get waitingForAuthorization => 'Vantar pa auktorisering...';
+  String get waitingForAuthorization => 'Väntar pa auktorisering…';
 
   @override
   String get back => 'Tillbaka';
@@ -10534,49 +10534,49 @@ class AppLocalizationsSv extends AppLocalizations {
   String get adminBackToSearch => 'Back to Search Criteria';
 
   @override
-  String get grouping => 'Grouping';
+  String get grouping => 'Gruppering';
 
   @override
-  String get groupByType => 'Group by Type';
+  String get groupByType => 'Gruppera efter typ';
 
   @override
-  String get playlistTypes => 'Playlist Types';
+  String get playlistTypes => 'Typer av spellistor';
 
   @override
   String get playlistTypeVideo => 'Video';
 
   @override
-  String get playlistTypeAudio => 'Audio (Music)';
+  String get playlistTypeAudio => 'Audio';
 
   @override
-  String get playlistTypeAudiobook => 'Audiobook';
+  String get playlistTypeAudiobook => 'Ljudbok';
 
   @override
-  String get playlistTypeBook => 'Book';
+  String get playlistTypeBook => 'Bok';
 
   @override
-  String get playlistTypePhoto => 'Photo';
+  String get playlistTypePhoto => 'Foto';
 
   @override
-  String get playlistTypeMixed => 'Mixed';
+  String get playlistTypeMixed => 'Mixat';
 
   @override
-  String get videoPlaylistsSection => 'Video Playlists';
+  String get videoPlaylistsSection => 'Spellistor (video)';
 
   @override
-  String get audioPlaylistsSection => 'Audio Playlists';
+  String get audioPlaylistsSection => 'Spellistor (audio)';
 
   @override
-  String get audiobookPlaylistsSection => 'Audiobook Playlists';
+  String get audiobookPlaylistsSection => 'Spellistor (ljudböcker)';
 
   @override
-  String get bookPlaylistsSection => 'Book Playlists';
+  String get bookPlaylistsSection => 'Spellistor (böcker)';
 
   @override
-  String get photoPlaylistsSection => 'Photo Playlists';
+  String get photoPlaylistsSection => 'Spellistor (foton)';
 
   @override
-  String get mixedPlaylistsSection => 'Mixed Playlists';
+  String get mixedPlaylistsSection => 'Spellistor (blandat)';
 
   @override
   String get playbackTimeDisplay => 'Progress Bar Time';
@@ -10660,10 +10660,10 @@ class AppLocalizationsSv extends AppLocalizations {
   String get rate => 'Rate';
 
   @override
-  String get like => 'Like';
+  String get like => 'Gilla';
 
   @override
-  String get dislike => 'Dislike';
+  String get dislike => 'Ogilla';
 
   @override
   String get personalRatingClear => 'Clear rating';
@@ -10678,10 +10678,10 @@ class AppLocalizationsSv extends AppLocalizations {
   String get personalRatingSaveFailed => 'Could not save rating';
 
   @override
-  String get increase => 'Increase';
+  String get increase => 'Öka';
 
   @override
-  String get decrease => 'Decrease';
+  String get decrease => 'Minska';
 
   @override
   String personalRatingOutOfTen(String rating) {

@@ -12,13 +12,13 @@ class AppLocalizationsFi extends AppLocalizations {
   String get appTitle => 'Moonfin';
 
   @override
-  String get accountPreferences => 'TILIASETUKSET';
+  String get accountPreferences => 'TILIN ASETUKSET';
 
   @override
   String get interfaceLanguage => 'Käyttöliittymän kieli';
 
   @override
-  String get systemLanguageDefault => 'Järjestelmän oletus';
+  String get systemLanguageDefault => 'Järjestelmän oletusasetus';
 
   @override
   String get signIn => 'Kirjaudu sisään';
@@ -48,7 +48,7 @@ class AppLocalizationsFi extends AppLocalizations {
       'Syötä tämä koodi palvelimesi web-hallintapaneeliin:';
 
   @override
-  String get waitingForAuthorization => 'Odotetaan valtuutusta...';
+  String get waitingForAuthorization => 'Odotetaan valtuutusta…';
 
   @override
   String get back => 'Takaisin';
@@ -61,12 +61,12 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String quickConnectUnavailable(String detail) {
-    return 'QuickConnect ei ole käytettävissä: $detail';
+    return 'Pikayhteys ei käytettävissä: $detail';
   }
 
   @override
   String quickConnectUnavailableWithStatus(String status, String detail) {
-    return 'QuickConnect ei ole käytettävissä ($status): $detail';
+    return 'Pikayhteys ei käytettävissä ($status): $detail';
   }
 
   @override
@@ -334,10 +334,10 @@ class AppLocalizationsFi extends AppLocalizations {
       'Verkkovirhe otettaessa yhteyttä Emby Connectiin tai valittuun palvelimeen';
 
   @override
-  String get loadingLinkedServers => 'Ladataan linkitettyjä palvelimia...';
+  String get loadingLinkedServers => 'Ladataan linkitettyjä palvelimia…';
 
   @override
-  String get connectingToServerEllipsis => 'Yhdistetään palvelimeen...';
+  String get connectingToServerEllipsis => 'Yhdistetään palvelimeen…';
 
   @override
   String get noReachableAddress => 'Yhteysosoitetta ei ole annettu';
@@ -10663,40 +10663,40 @@ class AppLocalizationsFi extends AppLocalizations {
   String get groupByStudio => 'Studio';
 
   @override
-  String get showAlphabeticalFilters => 'Show Alphabet';
+  String get showAlphabeticalFilters => 'Näytä aakkoset';
 
   @override
-  String get personalRatingStyle => 'Personal rating style';
+  String get personalRatingStyle => 'Henkilökohtainen arviointityyli';
 
   @override
-  String get personalRatingThumbs => 'Like / dislike';
+  String get personalRatingThumbs => 'Tykkää / ei tykkää';
 
   @override
-  String get personalRatingStars => '5 stars';
+  String get personalRatingStars => '5 tähteä';
 
   @override
-  String get personalRatingNumeric => 'Numeric score out of 10';
+  String get personalRatingNumeric => 'Pisteet asteikolla 1–10';
 
   @override
-  String get rate => 'Rate';
+  String get rate => 'Arvosana';
 
   @override
-  String get like => 'Like';
+  String get like => 'Tykkää';
 
   @override
-  String get dislike => 'Dislike';
+  String get dislike => 'En tykkää';
 
   @override
-  String get personalRatingClear => 'Clear rating';
+  String get personalRatingClear => 'Arvostelun tyhjentäminen';
 
   @override
-  String get personalRatingRated => 'Rated';
+  String get personalRatingRated => 'Arvosana';
 
   @override
   String get personalRatingMine => 'My Rating';
 
   @override
-  String get personalRatingSaveFailed => 'Could not save rating';
+  String get personalRatingSaveFailed => 'Arvostelua ei voitu tallentaa';
 
   @override
   String get increase => 'Increase';

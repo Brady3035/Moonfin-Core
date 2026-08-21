@@ -33,7 +33,7 @@
     "@quickConnectInstruction": {
         "description": "Instruction text for Quick Connect code entry"
     },
-    "waitingForAuthorization": "Oczekiwanie na autoryzację…",
+    "waitingForAuthorization": "Oczekiwanie na autoryzację...",
     "@waitingForAuthorization": {
         "description": "Quick Connect polling status text"
     },
@@ -49,7 +49,7 @@
     "@loginFailed": {
         "description": "Generic login failure message"
     },
-    "quickConnectUnavailable": "Quick Connect niedostępne: {detail}",
+    "quickConnectUnavailable": "QuickConnect niedostępne: {detail}",
     "@quickConnectUnavailable": {
         "description": "Quick Connect generic error message",
         "placeholders": {
@@ -58,7 +58,7 @@
             }
         }
     },
-    "quickConnectUnavailableWithStatus": "Quick Connect niedostępne ({status}): {detail}",
+    "quickConnectUnavailableWithStatus": "QuickConnect niedostępne ({status}): {detail}",
     "@quickConnectUnavailableWithStatus": {
         "description": "Quick Connect error message with HTTP status info",
         "placeholders": {
@@ -224,11 +224,11 @@
     "@embyConnectNetworkError": {
         "description": "Generic network error during Emby Connect flow"
     },
-    "loadingLinkedServers": "Pobieranie listy serwerów…",
+    "loadingLinkedServers": "Pobieranie listy serwerów...",
     "@loadingLinkedServers": {
         "description": "Status text while fetching Emby Connect server list"
     },
-    "connectingToServerEllipsis": "Łączenie z serwerem…",
+    "connectingToServerEllipsis": "Łączenie z serwerem...",
     "@connectingToServerEllipsis": {
         "description": "Status text while connecting to a selected server"
     },
@@ -1229,7 +1229,7 @@
             }
         }
     },
-    "downloadingTitle": "Pobieranie „{title}” ({count, plural, one{{count} pozycja} few{{count} pozycje} many{{count} pozycji} other{{count} pozycji}})…",
+    "downloadingTitle": "Pobieranie „{title}” ({count, plural, one{{count} pozycja} few{{count} pozycje} many{{count} pozycji} other{{count} pozycji}})...",
     "@downloadingTitle": {
         "description": "Snackbar message when downloading album tracks",
         "placeholders": {
@@ -1279,7 +1279,7 @@
     "@none": {
         "description": "Option label for no subtitle selected"
     },
-    "downloadSubtitlesLabel": "Pobierz napisy…",
+    "downloadSubtitlesLabel": "Pobierz napisy...",
     "@downloadSubtitlesLabel": {
         "description": "Label for the download subtitles option"
     },
@@ -1350,7 +1350,7 @@
     "@noEpisodesLoaded": {
         "description": "Message when no episodes are available for download"
     },
-    "downloadingItem": "Pobieranie „{name}” ({quality})…",
+    "downloadingItem": "Pobieranie „{name}” ({quality})...",
     "@downloadingItem": {
         "description": "Snackbar message when downloading an item",
         "placeholders": {
@@ -1991,7 +1991,7 @@
             }
         }
     },
-    "updating": "Aktualizowanie…",
+    "updating": "Aktualizowanie...",
     "@updating": {
         "description": "Button label while updating"
     },
@@ -2036,7 +2036,7 @@
     "@addBookmark": {
         "description": "Tooltip for add bookmark button"
     },
-    "bookmarksEllipsis": "Zakładki…",
+    "bookmarksEllipsis": "Zakładki...",
     "@bookmarksEllipsis": {
         "description": "Menu item to view bookmarks"
     },
@@ -2081,7 +2081,7 @@
     "@invertColorsPdf": {
         "description": "Menu item to invert colors for PDF"
     },
-    "preparingInAppReader": "Przygotowywanie czytnika…",
+    "preparingInAppReader": "Przygotowywanie czytnika...",
     "@preparingInAppReader": {
         "description": "Loading text while reader is being prepared"
     },
@@ -2282,11 +2282,11 @@
     "@failedToCancelSeriesRecording": {
         "description": "Error when cancelling a series recording fails"
     },
-    "searchThisLibrary": "Przeszukaj bibliotekę…",
+    "searchThisLibrary": "Przeszukaj bibliotekę...",
     "@searchThisLibrary": {
         "description": "Search hint when scoped to a specific library"
     },
-    "searchEllipsis": "Szukaj…",
+    "searchEllipsis": "Szukaj...",
     "@searchEllipsis": {
         "description": "Search hint placeholder"
     },
@@ -3272,7 +3272,7 @@
     "@loadProfile": {
         "description": "Button to load a profile"
     },
-    "syncing": "Synchronizacja…",
+    "syncing": "Synchronizacja...",
     "@syncing": {
         "description": "Label while syncing"
     },
@@ -3320,7 +3320,7 @@
     "@manage": {
         "description": "Button to manage storage"
     },
-    "calculating": "Obliczanie…",
+    "calculating": "Obliczanie...",
     "@calculating": {
         "description": "Label while calculating"
     },
@@ -4195,7 +4195,7 @@
     "@readReleaseNotes": {
         "description": "Option to read the release notes in a browser"
     },
-    "downloadingUpdate": "Pobieranie aktualizacji…",
+    "downloadingUpdate": "Pobieranie aktualizacji...",
     "@downloadingUpdate": {
         "description": "Label shown while an update is being downloaded"
     },
@@ -4548,7 +4548,7 @@
     "rename": "Przemianować",
     "revoke": "Unieważnić",
     "role": "Rola",
-    "root": "Źródło",
+    "root": "Główny",
     "run": "Uruchomić",
     "search": "Szukaj",
     "select": "Wybierać",
@@ -5023,7 +5023,7 @@
             }
         }
     },
-    "adminCreatingBackup": "Tworzenie kopii zapasowej…",
+    "adminCreatingBackup": "Tworzenie kopii zapasowej...",
     "adminBackupCreated": "Kopia zapasowa została utworzona pomyślnie",
     "adminBackupCreateFailed": "Nie udało się utworzyć kopii zapasowej: {error}",
     "@adminBackupCreateFailed": {
@@ -5051,7 +5051,7 @@
         }
     },
     "adminConfirmRestore": "Potwierdź Przywróć",
-    "adminRestoringBackup": "Przywracanie kopii zapasowej…",
+    "adminRestoringBackup": "Przywracanie kopii zapasowej...",
     "adminRestoreFailed": "Nie udało się przywrócić kopii zapasowej: {error}",
     "@adminRestoreFailed": {
         "placeholders": {
@@ -5162,7 +5162,7 @@
         }
     },
     "adminDayOfWeek": "Dzień tygodnia",
-    "adminSearchPlugins": "Wyszukaj wtyczki…",
+    "adminSearchPlugins": "Wyszukaj wtyczki...",
     "adminPluginToggleFailed": "Nie udało się przełączyć wtyczki: {error}",
     "@adminPluginToggleFailed": {
         "placeholders": {
@@ -5251,7 +5251,7 @@
             }
         }
     },
-    "adminPluginUpdating": "Aktualizowanie „{name}” do wersji {version}…",
+    "adminPluginUpdating": "Aktualizowanie „{name}” do wersji {version}...",
     "@adminPluginUpdating": {
         "placeholders": {
             "name": {
@@ -5849,7 +5849,7 @@
     },
     "adminPluginsCatalogNoSearchResults": "Żaden pakiet nie pasuje do Twojego wyszukiwania",
     "adminPluginsCatalogEmpty": "Brak dostępnych pakietów",
-    "adminPluginsInstalling": "Instalowanie „{name}”…",
+    "adminPluginsInstalling": "Instalowanie „{name}”...",
     "@adminPluginsInstalling": {
         "placeholders": {
             "name": {
@@ -5981,8 +5981,8 @@
     "adminTrickplayProcessing": "Przetwarzanie",
     "adminTasksEmpty": "Nie znaleziono zaplanowanych zadań",
     "adminTasksNoFilterMatch": "Żadne zadania nie pasują do bieżącego filtra",
-    "adminTaskCancelling": "Anulowanie…",
-    "adminTaskRunning": "W toku…",
+    "adminTaskCancelling": "Anulowanie...",
+    "adminTaskRunning": "W toku...",
     "adminTaskNeverRun": "Nigdy nie biegaj",
     "adminTaskStop": "Zatrzymaj",
     "adminTaskRun": "Uruchomić",
@@ -6264,7 +6264,7 @@
     "noItems": "Brak pozycji",
     "switchUser": "Zmień użytkownika",
     "remoteControl": "Zdalne sterowanie",
-    "mediaBarLoading": "Wczytywanie paska multimediów…",
+    "mediaBarLoading": "Wczytywanie paska multimediów...",
     "mediaBarError": "Nie udało się wczytać paska multimediów",
     "offlineServerUnavailable": "Połączono z Internetem, ale bieżący serwer jest niedostępny.",
     "offlineNoInternet": "Jesteś offline. Dostępne są tylko pobrane materiały.",
@@ -6382,7 +6382,7 @@
     "trackActionAddToFavorites": "Dodaj do ulubionych",
     "trackActionGoToAlbum": "Przejdź do albumu",
     "trackActionGoToArtist": "Przejdź do Artysty",
-    "trackActionDownloading": "Pobieranie „{name}”…",
+    "trackActionDownloading": "Pobieranie „{name}”...",
     "@trackActionDownloading": {
         "placeholders": {
             "name": {
@@ -7075,7 +7075,7 @@
     "cardSize": "Card Size",
     "externalPlayerApp": "Zewnętrzna aplikacja odtwarzacza",
     "externalPlayerAskEachTimeSubtitle": "Pokazuj wybór aplikacji przy rozpoczęciu odtwarzania.",
-    "loadingInstalledPlayers": "Wczytywanie zainstalowanych odtwarzaczy…",
+    "loadingInstalledPlayers": "Wczytywanie zainstalowanych odtwarzaczy...",
     "connection": "Połączenie",
     "audioTranscodeTarget": "Docelowy format transkodowania audio",
     "passthrough": "Passthrough",
@@ -7301,7 +7301,7 @@
     "cb7ExtractionUnavailable": "Wypakowywanie CB7 jest niedostępne na tej platformie.",
     "cb7ExtractionPluginUnavailable": "Wtyczka do wypakowywania CB7 jest niedostępna na tej platformie.",
     "closeGenrePanel": "Zamknij panel gatunków",
-    "loadingShuffle": "Wczytywanie losowania…",
+    "loadingShuffle": "Wczytywanie losowania...",
     "libraryShuffleLabel": "LOSOWANIE BIBLIOTEKI",
     "randomShuffleLabel": "LOSOWANIE PRZYPADKOWE",
     "genresShuffleLabel": "LOSOWANIE GATUNKÓW",
@@ -7326,7 +7326,7 @@
     "@empty": {
         "description": "Label indicating a section or category is empty"
     },
-    "detailScreenStyle": "Widok szczegółów",
+    "detailScreenStyle": "Styl widoku szczegółów",
     "@detailScreenStyle": {
         "description": "Label for the media detail screen layout style setting"
     },
@@ -7541,7 +7541,7 @@
     "@deletedScenes": {
         "description": "Tab label for deleted scenes special features"
     },
-    "featurettes": "Materiały dodatkowe",
+    "featurettes": "Materiały specjalne",
     "@featurettes": {
         "description": "Tab label for featurettes special features"
     },
@@ -8091,7 +8091,7 @@
             }
         }
     },
-    "requestingProgress": "Wysyłanie próśb: {current} z {total}…",
+    "requestingProgress": "Wysyłanie próśb: {current} z {total}...",
     "@requestingProgress": {
         "description": "Progress label while collection requests are submitted",
         "placeholders": {
@@ -8899,7 +8899,7 @@
             }
         }
     },
-    "checkingDirectPlay": "Sprawdzanie obsługi Direct Play…",
+    "checkingDirectPlay": "Sprawdzanie obsługi Direct Play...",
     "directPlayCapabilityLabel": "Odtwarzanie bezpośrednie: ",
     "forced": "Wymuszone",
     "transcodeContainerNotSupported": "Format kontenera nie jest obsługiwany przez odtwarzacz.",
@@ -8983,7 +8983,7 @@
     "@adminRepoSortNameDesc": {
         "description": "Repository sort option, alphabetical descending"
     },
-    "adminAnalyticsLoadingProgress": "Wczytywanie statystyk serwera… {percentage}%",
+    "adminAnalyticsLoadingProgress": "Wczytywanie statystyk serwera... {percentage}%",
     "@adminAnalyticsLoadingProgress": {
         "description": "Progress label shown while server analytics load",
         "placeholders": {
@@ -9658,5 +9658,297 @@
     "displayStudiosRows": "Pokaż sekcję wytwórni",
     "studiosRowSorting": "Sortowanie sekcji wytwórni",
     "selectStudiosToIncludeDescription": "Wybierz wytwórnie wyświetlane na ekranie głównym.",
-    "audioRowsSortOrderDescription": "Sortuj sekcje audio rosnąco lub malejąco."
+    "audioRowsSortOrderDescription": "Sortuj sekcje audio rosnąco lub malejąco.",
+    "interfaceLayout": "Układ interfejsu",
+    "@interfaceLayout": {
+        "description": "Setting to override which UI layout the app uses"
+    },
+    "interfaceLayoutSubtitle": "Zmień wykryty układ, jeśli urządzenie zostało rozpoznane nieprawidłowo. Uruchom Moonfin ponownie, aby zastosować zmiany.",
+    "@interfaceLayoutSubtitle": {
+        "description": "Subtitle for the interface layout setting"
+    },
+    "interfaceLayoutAutomatic": "Automatyczny",
+    "@interfaceLayoutAutomatic": {
+        "description": "Interface layout option: detect from the device"
+    },
+    "interfaceLayoutTv": "TV",
+    "@interfaceLayoutTv": {
+        "description": "Interface layout option: 10-foot TV layout"
+    },
+    "interfaceLayoutDesktop": "Komputer",
+    "@interfaceLayoutDesktop": {
+        "description": "Interface layout option: desktop layout"
+    },
+    "interfaceLayoutPhone": "Telefon",
+    "@interfaceLayoutPhone": {
+        "description": "Interface layout option: phone layout"
+    },
+    "starring": "W ROLACH GŁÓWNYCH",
+    "@starring": {
+        "description": "Metadata label for the leading cast"
+    },
+    "recordSeries": "Nagrywaj serial",
+    "@recordSeries": {
+        "description": "Button label to record every showing of a live TV series"
+    },
+    "seriesSetToRecord": "Zaplanowano nagrywanie serialu",
+    "@seriesSetToRecord": {
+        "description": "Snackbar confirmation after scheduling a live TV series recording"
+    },
+    "seriesRecordingCancelled": "Anulowano nagrywanie serialu",
+    "@seriesRecordingCancelled": {
+        "description": "Snackbar confirmation after cancelling a live TV series recording"
+    },
+    "unableToCreateSeriesRecording": "Nie udało się zaplanować nagrywania serialu",
+    "@unableToCreateSeriesRecording": {
+        "description": "Error when creating a live TV series recording fails"
+    },
+    "mixedRowsOnly": "Tylko sekcje mieszane",
+    "@mixedRowsOnly": {
+        "description": "Option: only show the label on rows holding both movies and series"
+    },
+    "playerSwipeGestures": "Gesty głośności i jasności",
+    "@playerSwipeGestures": {
+        "description": "Setting for player swipe gestures"
+    },
+    "playerSwipeGesturesDescription": "Przesuwaj palcem w górę lub w dół: po lewej stronie, aby zmienić jasność, a po prawej - głośność",
+    "@playerSwipeGesturesDescription": {
+        "description": "Description for player swipe gestures"
+    },
+    "mediaBarModeBookshelf": "Półka",
+    "@mediaBarModeBookshelf": {
+        "description": "Media bar style option: Bookshelf"
+    },
+    "mediaBarModeGallery": "Galeria",
+    "@mediaBarModeGallery": {
+        "description": "Media bar style option: Gallery"
+    },
+    "mediaBarModeBanner": "Baner",
+    "@mediaBarModeBanner": {
+        "description": "Media bar style option: Banner"
+    },
+    "mediaBarModeAya": "Aya",
+    "@mediaBarModeAya": {
+        "description": "Media bar style option: Aya"
+    },
+    "mediaBarSourceType": "Źródło",
+    "@mediaBarSourceType": {
+        "description": "Setting for which titles the media bar draws from"
+    },
+    "mediaBarSourceRandom": "Losowo",
+    "@mediaBarSourceRandom": {
+        "description": "Media bar source: any eligible title"
+    },
+    "recentlyReleasedSeriesType": "Sortowanie ostatnio wydanych seriali",
+    "@recentlyReleasedSeriesType": {
+        "description": "Setting for sorting series in recently released series row"
+    },
+    "recentlyReleasedSeriesTypeDescription": "Sortuj sekcje ostatnio wydanych seriali według serialu, najnowszego sezonu lub daty emisji najnowszego odcinka",
+    "@recentlyReleasedSeriesTypeDescription": {
+        "description": "Description for recently released series type setting"
+    },
+    "favoriteChannels": "Ulubione kanały",
+    "@favoriteChannels": {
+        "description": "Home row: favourited live TV channels"
+    },
+    "personalRatingMine": "Moja ocena",
+    "@personalRatingMine": {
+        "description": "Label under the viewer's own rating in the ratings row."
+    },
+    "filterInProgress": "W trakcie",
+    "@filterInProgress": {
+        "description": "Library filter for items the viewer has started but not finished."
+    },
+    "filterUnreleased": "Przed premierą",
+    "@filterUnreleased": {
+        "description": "Series status filter for shows that have not started airing."
+    },
+    "filterTrailers": "Zwiastuny",
+    "@filterTrailers": {
+        "description": "Library filter for items that have a trailer."
+    },
+    "filterExtras": "Materiały dodatkowe",
+    "@filterExtras": {
+        "description": "Library filter for items that have bonus features."
+    },
+    "filterThemeSongs": "Utwory motywu",
+    "@filterThemeSongs": {
+        "description": "Library filter for items that have a theme song."
+    },
+    "filterThemeVideos": "Wideo motywu",
+    "@filterThemeVideos": {
+        "description": "Library filter for items that have a theme video."
+    },
+    "source": "Źródło",
+    "@source": {
+        "description": "Heading for the disc source filters in the library filter picker."
+    },
+    "years": "Lata",
+    "@years": {
+        "description": "Heading for the release year filters in the library filter picker."
+    },
+    "audioLanguage": "Język audio",
+    "@audioLanguage": {
+        "description": "Heading for the audio language filters in the library filter picker."
+    },
+    "subtitleLanguage": "Język napisów",
+    "@subtitleLanguage": {
+        "description": "Heading for the subtitle language filters in the library filter picker."
+    },
+    "clearFilters": "Wyczyść filtry",
+    "@clearFilters": {
+        "description": "Action that turns every library filter back off."
+    },
+    "seerrShortcutsRow": "Przeglądaj Seerr",
+    "@seerrShortcutsRow": {
+        "description": "Title of the Seerr shortcuts row that jumps to Discover, Movies, Series, Requests and Issues."
+    },
+    "seerrReleased": "Data premiery",
+    "@seerrReleased": {
+        "description": "Heading for the release window filter in the Seerr browse dialog."
+    },
+    "seerrMinRating": "Minimalna ocena",
+    "@seerrMinRating": {
+        "description": "Heading for the TMDB score floor filter in the Seerr browse dialog."
+    },
+    "seerrMinVotes": "Minimalna liczba głosów",
+    "@seerrMinVotes": {
+        "description": "Heading for the TMDB vote count floor filter in the Seerr browse dialog."
+    },
+    "seerrOriginalLanguage": "Język oryginalny",
+    "@seerrOriginalLanguage": {
+        "description": "Heading for the original language filter in the Seerr browse dialog."
+    },
+    "seerrRuntime": "Czas trwania",
+    "@seerrRuntime": {
+        "description": "Heading for the runtime window filter in the Seerr browse dialog."
+    },
+    "subtitleHdrSeparate": "Osobny styl HDR",
+    "@subtitleHdrSeparate": {
+        "description": "Toggle for a second subtitle appearance used only while HDR is playing."
+    },
+    "subtitleHdrSeparateSubtitle": "Biel jest w HDR znacznie jaśniejsza niż w SDR, dlatego ciemniejszy styl pomaga ograniczyć oślepiający efekt",
+    "@subtitleHdrSeparateSubtitle": {
+        "description": "Explains why a separate HDR subtitle style is worth setting."
+    },
+    "scrollSensitivity": "Czułość przewijania",
+    "@scrollSensitivity": {
+        "description": "Title of the desktop setting that scales mouse wheel scrolling."
+    },
+    "scrollSensitivitySubtitle": "Odległość przewijania jednym skokiem kółka myszy",
+    "@scrollSensitivitySubtitle": {
+        "description": "Explains the desktop scroll sensitivity slider."
+    },
+    "mediaDetailsAndSpoilers": "Szczegóły materiałów i spoilery",
+    "@mediaDetailsAndSpoilers": {
+        "description": "Section header for media details and spoiler settings"
+    },
+    "hideDetailsMediaDescription": "Ukryj opis na ekranie szczegółów",
+    "@hideDetailsMediaDescription": {
+        "description": "Setting title to hide media description on details screen"
+    },
+    "hideDetailsMediaDescriptionSubtitle": "Ukryj opis filmu lub odcinka.",
+    "@hideDetailsMediaDescriptionSubtitle": {
+        "description": "Description for setting to hide media description on details page"
+    },
+    "detailUseSeriesThumbnails": "Używaj miniatur serialu na ekranie szczegółów",
+    "@detailUseSeriesThumbnails": {
+        "description": "Setting title to replace thumbnails on Classic details page with series thumbnail"
+    },
+    "detailUseSeriesThumbnailsSubtitle": "Zastąp wszystkie miniatury na klasycznym ekranie szczegółów miniaturą serialu",
+    "@detailUseSeriesThumbnailsSubtitle": {
+        "description": "Description for setting to use series thumbnails on Classic details page"
+    },
+    "hideHomeMediaDescription": "Ukryj opis na ekranie głównym",
+    "@hideHomeMediaDescription": {
+        "description": "Setting title to hide media description on home screen"
+    },
+    "hideHomeMediaDescriptionSubtitle": "Ukryj opis filmu lub odcinka.",
+    "@hideHomeMediaDescriptionSubtitle": {
+        "description": "Description for setting to hide media description on home screen"
+    },
+    "continueWatchingAndNextUpHeader": "Oglądaj dalej i Następne",
+    "@continueWatchingAndNextUpHeader": {
+        "description": "Header for settings section containing Continue Watching and Next Up options"
+    },
+    "setupSkip": "Pomiń konfigurację",
+    "@setupSkip": {
+        "description": "Leaves the first-run setup wizard without answering anything"
+    },
+    "setupNavbarQuestion": "Gdzie ma znajdować się nawigacja?",
+    "@setupNavbarQuestion": {
+        "description": "Setup question asking where the navigation bar should sit"
+    },
+    "setupMediaBarQuestion": "Jak ma wyglądać górna część ekranu głównego?",
+    "@setupMediaBarQuestion": {
+        "description": "Setup wizard question for the media bar style"
+    },
+    "setupHomeRowsQuestion": "Jak mają wyglądać sekcje ekranu głównego?",
+    "@setupHomeRowsQuestion": {
+        "description": "Setup wizard question for the home row style"
+    },
+    "setupDetailQuestion": "Jak ma wyglądać film lub serial po jego otwarciu?",
+    "@setupDetailQuestion": {
+        "description": "Setup wizard question for the detail screen style"
+    },
+    "setupTourQuestion": "Gotowe. Zobacz, co jeszcze znajdziesz w Moonfin.",
+    "@setupTourQuestion": {
+        "description": "Heading of the final setup wizard screen"
+    },
+    "setupStyleClassic": "Klasyczny",
+    "@setupStyleClassic": {
+        "description": "Name of the original layout, offered in the setup wizard"
+    },
+    "setupStyleModern": "Nowoczesny",
+    "@setupStyleModern": {
+        "description": "Name of the newer layout, offered in the setup wizard"
+    },
+    "setupRowsClassicHint": "Kompaktowy. Więcej sekcji widocznych jednocześnie.",
+    "@setupRowsClassicHint": {
+        "description": "What the classic home row style gives you"
+    },
+    "setupRowsModernHint": "Większe karty z tytułami pod spodem.",
+    "@setupRowsModernHint": {
+        "description": "What the modern home row style gives you"
+    },
+    "setupDetailClassicHint": "Wszystko wyśrodkowane w jednej kolumnie.",
+    "@setupDetailClassicHint": {
+        "description": "What the classic detail screen style gives you"
+    },
+    "setupDetailModernHint": "Kinowy układ z kartami obsady i materiałów dodatkowych.",
+    "@setupDetailModernHint": {
+        "description": "What the modern detail screen style gives you"
+    },
+    "setupPickALook": "Wybierz wygląd",
+    "@setupPickALook": {
+        "description": "Label above the theme swatches on the final setup screen"
+    },
+    "setupTourMoreHeader": "Więcej znajdziesz w Ustawieniach",
+    "@setupTourMoreHeader": {
+        "description": "Heading of the closing setup screen block that lists features found in settings"
+    },
+    "setupTourBulletRequests": "Prośby Seerr",
+    "@setupTourBulletRequests": {
+        "description": "Bullet on the closing setup screen for the Seerr request feature"
+    },
+    "setupTourBulletSyncPlay": "Wspólne oglądanie z SyncPlay",
+    "@setupTourBulletSyncPlay": {
+        "description": "Bullet on the closing setup screen for SyncPlay"
+    },
+    "setupTourBulletThemes": "Własne motywy",
+    "@setupTourBulletThemes": {
+        "description": "Bullet on the closing setup screen for custom themes"
+    },
+    "setupTourBulletDownloads": "Pobieranie offline",
+    "@setupTourBulletDownloads": {
+        "description": "Bullet on the closing setup screen for downloads"
+    },
+    "setupTourBulletMore": "I wiele więcej",
+    "@setupTourBulletMore": {
+        "description": "Closing bullet on the setup screen settings list"
+    },
+    "runSetupAgain": "Uruchom konfigurację ponownie",
+    "@runSetupAgain": {
+        "description": "Starts the first-run setup wizard again from settings"
+    }
 }

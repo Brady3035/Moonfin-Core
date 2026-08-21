@@ -9635,5 +9635,28 @@
                 "type": "String"
             }
         }
-    }
+    },
+    "sortOrder": "",
+    "ascending": "",
+    "descending": "",
+    "favoritesRowSortOrderDescription": "",
+    "collectionsRowSortOrderDescription": "",
+    "genresRowSortOrderDescription": "",
+    "displayStudiosRows": "",
+    "displayStudiosRowsSubtitle": "",
+    "studiosRowSorting": "",
+    "studiosRowSortingDescription": "",
+    "studiosRowSortOrderDescription": "",
+    "selectStudiosToInclude": "",
+    "selectStudiosToIncludeDescription": "",
+    "selectAllStudios": "",
+    "deselectAllStudios": "",
+    "tvStudiosFilter": "",
+    "movieStudiosFilter": "",
+    "selectedStudiosFilter": "",
+    "unselectedStudiosFilter": "",
+    "filtersHeader": "",
+    "showHeader": "",
+    "playlistsRowSortOrderDescription": "",
+    "audioRowsSortOrderDescription": ""
 }

@@ -65,7 +65,7 @@ end
 # fork and has no upstream release yet, so this pins a revision rather than
 # a version. Move it back to an upstream tag once the hook lands there.
 aether_remote_url = 'https://github.com/RadicalMuffinMan/AetherEngine'
-aether_revision = 'fe472e5d26439227b9072c0f60abea901ed5068b'
+aether_revision = 'a6d48fa80ad03a6b90dda40fcacc641fd2b53767'
 aether_local_path = File.expand_path(File.join(project_dir, '..', '..', 'AetherEngine'))
 use_local_aether = ENV['AETHER_LOCAL'] == '1'
 

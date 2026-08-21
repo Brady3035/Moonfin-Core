@@ -8305,6 +8305,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get emulatorCoreDownloadFailed => '内核下载失败，请检查网络连接后重试。';
 
   @override
+  String emulatorCoreResetSettings(String system) {
+    return 'Reset $system settings to defaults';
+  }
+
+  @override
+  String get emulatorCoreSettingsReset => 'Settings reset to defaults.';
+
+  @override
+  String get emulatorCoreResetSettingsFailed =>
+      'Could not reset settings. Check your connection and try again.';
+
+  @override
   String get downloadedGames => '已下载游戏';
 
   @override

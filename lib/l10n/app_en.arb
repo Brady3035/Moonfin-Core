@@ -8251,6 +8251,23 @@
   "emulatorCoreDownloading": "Downloading",
   "emulatorCoreUnavailable": "Not available for this device",
   "emulatorCoreDownloadFailed": "Could not download the core. Check your connection and try again.",
+  "emulatorCoreResetSettings": "Reset {system} settings to defaults",
+  "@emulatorCoreResetSettings": {
+    "description": "Semantic label for the button that resets one core's saved emulator settings",
+    "placeholders": {
+      "system": {
+        "type": "String"
+      }
+    }
+  },
+  "emulatorCoreSettingsReset": "Settings reset to defaults.",
+  "@emulatorCoreSettingsReset": {
+    "description": "Snackbar shown after resetting a core's saved emulator settings"
+  },
+  "emulatorCoreResetSettingsFailed": "Could not reset settings. Check your connection and try again.",
+  "@emulatorCoreResetSettingsFailed": {
+    "description": "Snackbar shown when resetting a core's saved emulator settings fails"
+  },
   "downloadedGames": "Downloaded Games",
   "@downloadedGames": {
     "description": "Settings screen title for managing game files stored on the device"

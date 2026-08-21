@@ -8678,6 +8678,18 @@ class AppLocalizationsNl extends AppLocalizations {
       'Het downloaden van de core is mislukt. Controleer uw internetverbinding en probeer het opnieuw.';
 
   @override
+  String emulatorCoreResetSettings(String system) {
+    return 'Reset $system settings to defaults';
+  }
+
+  @override
+  String get emulatorCoreSettingsReset => 'Settings reset to defaults.';
+
+  @override
+  String get emulatorCoreResetSettingsFailed =>
+      'Could not reset settings. Check your connection and try again.';
+
+  @override
   String get downloadedGames => 'Gedownloade spellen';
 
   @override

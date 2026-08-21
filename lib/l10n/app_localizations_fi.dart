@@ -8662,6 +8662,18 @@ class AppLocalizationsFi extends AppLocalizations {
       'Ydintiedostoa ei voitu ladata. Tarkista verkkoyhteytesi ja yritä uudelleen.';
 
   @override
+  String emulatorCoreResetSettings(String system) {
+    return 'Reset $system settings to defaults';
+  }
+
+  @override
+  String get emulatorCoreSettingsReset => 'Settings reset to defaults.';
+
+  @override
+  String get emulatorCoreResetSettingsFailed =>
+      'Could not reset settings. Check your connection and try again.';
+
+  @override
   String get downloadedGames => 'Ladatut pelit';
 
   @override

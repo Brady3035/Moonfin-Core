@@ -136,18 +136,6 @@ class _HomeScreenCategoryScreenState extends State<_HomeScreenCategoryScreen> {
                 icon: Icons.image_aspect_ratio,
                 onChanged: _pushPersonalizationSync,
               ),
-              if (!PlatformDetection.useMobileUi)
-                SwitchPreferenceTile(
-                  preference: UserPreferences.fullScreenRows,
-                  title: l10n.fullScreenRows,
-                  subtitle: l10n.fullScreenRowsDescription,
-                  icon: Icons.image_aspect_ratio,
-                  onChanged: () {
-                    _pushPersonalizationSync();
-                    if (!mounted) return;
-                    setState(() {});
-                  },
-                ),
               if (rowsStyle == HomeRowsStyle.v1 && !isMobileUi)
                 SwitchPreferenceTile(
                   preference: UserPreferences.homeRowInfoOverlay,

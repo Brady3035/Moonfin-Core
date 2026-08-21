@@ -33,7 +33,7 @@
     "@quickConnectInstruction": {
         "description": "Instruction text for Quick Connect code entry"
     },
-    "waitingForAuthorization": "Yetkilendirme bekleniyor...",
+    "waitingForAuthorization": "Yetkilendirme bekleniyor…",
     "@waitingForAuthorization": {
         "description": "Quick Connect polling status text"
     },
@@ -49,7 +49,7 @@
     "@loginFailed": {
         "description": "Generic login failure message"
     },
-    "quickConnectUnavailable": "QuickConnect kullanılamıyor: {detail}",
+    "quickConnectUnavailable": "Quick Connect kullanılamıyor: {detail}",
     "@quickConnectUnavailable": {
         "description": "Quick Connect generic error message",
         "placeholders": {
@@ -58,7 +58,7 @@
             }
         }
     },
-    "quickConnectUnavailableWithStatus": "QuickConnect kullanılamıyor ({status}): {detail}",
+    "quickConnectUnavailableWithStatus": "Hızlı Bağlantı kullanılamıyor ({status}): {detail}",
     "@quickConnectUnavailableWithStatus": {
         "description": "Quick Connect error message with HTTP status info",
         "placeholders": {
@@ -224,11 +224,11 @@
     "@embyConnectNetworkError": {
         "description": "Generic network error during Emby Connect flow"
     },
-    "loadingLinkedServers": "Bağlantılı sunucular yükleniyor...",
+    "loadingLinkedServers": "Bağlantılı sunucular yükleniyor…",
     "@loadingLinkedServers": {
         "description": "Status text while fetching Emby Connect server list"
     },
-    "connectingToServerEllipsis": "Sunucuya bağlanılıyor...",
+    "connectingToServerEllipsis": "Sunucuya bağlanılıyor…",
     "@connectingToServerEllipsis": {
         "description": "Status text while connecting to a selected server"
     },
@@ -1230,7 +1230,7 @@
             }
         }
     },
-    "downloadingTitle": "{title} indiriliyor ({count} öge)...",
+    "downloadingTitle": "{title} indiriliyor ({count} öge)…",
     "@downloadingTitle": {
         "description": "Snackbar message when downloading album tracks",
         "placeholders": {
@@ -1280,7 +1280,7 @@
     "@none": {
         "description": "Option label for no subtitle selected"
     },
-    "downloadSubtitlesLabel": "Altyazıları indir...",
+    "downloadSubtitlesLabel": "Altyazıları indir…",
     "@downloadSubtitlesLabel": {
         "description": "Label for the download subtitles option"
     },
@@ -1351,7 +1351,7 @@
     "@noEpisodesLoaded": {
         "description": "Message when no episodes are available for download"
     },
-    "downloadingItem": "{name} indiriliyor ({quality})...",
+    "downloadingItem": "{name} indiriliyor ({quality})…",
     "@downloadingItem": {
         "description": "Snackbar message when downloading an item",
         "placeholders": {
@@ -1974,7 +1974,7 @@
             }
         }
     },
-    "updating": "Güncelleniyor...",
+    "updating": "Güncelleniyor…",
     "@updating": {
         "description": "Button label while updating"
     },
@@ -2019,7 +2019,7 @@
     "@addBookmark": {
         "description": "Tooltip for add bookmark button"
     },
-    "bookmarksEllipsis": "Yer imleri...",
+    "bookmarksEllipsis": "Yer imleri…",
     "@bookmarksEllipsis": {
         "description": "Menu item to view bookmarks"
     },
@@ -2064,7 +2064,7 @@
     "@invertColorsPdf": {
         "description": "Menu item to invert colors for PDF"
     },
-    "preparingInAppReader": "Uygulama içi okuyucu hazırlanıyor...",
+    "preparingInAppReader": "Uygulama içi okuyucu hazırlanıyor…",
     "@preparingInAppReader": {
         "description": "Loading text while reader is being prepared"
     },
@@ -2265,11 +2265,11 @@
     "@failedToCancelSeriesRecording": {
         "description": "Error when cancelling a series recording fails"
     },
-    "searchThisLibrary": "Bu kütüphaneyi arayın...",
+    "searchThisLibrary": "Bu kütüphaneyi arayın…",
     "@searchThisLibrary": {
         "description": "Search hint when scoped to a specific library"
     },
-    "searchEllipsis": "Ara...",
+    "searchEllipsis": "Ara…",
     "@searchEllipsis": {
         "description": "Search hint placeholder"
     },
@@ -3218,7 +3218,7 @@
     "@loadProfile": {
         "description": "Button to load a profile"
     },
-    "syncing": "Senkronize ediliyor...",
+    "syncing": "Senkronize ediliyor…",
     "@syncing": {
         "description": "Label while syncing"
     },
@@ -3266,7 +3266,7 @@
     "@manage": {
         "description": "Button to manage storage"
     },
-    "calculating": "Hesaplanıyor...",
+    "calculating": "Hesaplanıyor…",
     "@calculating": {
         "description": "Label while calculating"
     },
@@ -4858,7 +4858,7 @@
     "adminApiKeysLoadFailed": "API anahtarları yüklenemedi",
     "adminCreateKey": "Anahtar Oluştur",
     "adminNoApiKeys": "API anahtarı bulunamadı",
-    "adminCreatingBackup": "Yedek oluşturuluyor...",
+    "adminCreatingBackup": "Yedek oluşturuluyor…",
     "adminBackupCreated": "Yedekleme başarıyla oluşturuldu",
     "adminBackupCreateFailed": "Yedek oluşturulamadı: {error}",
     "@adminBackupCreateFailed": {
@@ -4886,7 +4886,7 @@
         }
     },
     "adminConfirmRestore": "Geri Yüklemeyi Onayla",
-    "adminRestoringBackup": "Yedekleme geri yükleniyor...",
+    "adminRestoringBackup": "Yedekleme geri yükleniyor…",
     "adminRestoreFailed": "Yedek geri yüklenemedi: {error}",
     "@adminRestoreFailed": {
         "placeholders": {
@@ -4997,7 +4997,7 @@
         }
     },
     "adminDayOfWeek": "Haftanın günü",
-    "adminSearchPlugins": "Eklentileri ara...",
+    "adminSearchPlugins": "Eklentileri ara…",
     "adminPluginToggleFailed": "Eklenti durumu değiştirilemedi: {error}",
     "@adminPluginToggleFailed": {
         "placeholders": {
@@ -5086,7 +5086,7 @@
             }
         }
     },
-    "adminPluginUpdating": "\"{name}\", v{version} sürümüne güncelleniyor...",
+    "adminPluginUpdating": "\"{name}\", v{version} sürümüne güncelleniyor…",
     "@adminPluginUpdating": {
         "placeholders": {
             "name": {
@@ -5683,7 +5683,7 @@
     },
     "adminPluginsCatalogNoSearchResults": "Aramanızla eşleşen paket yok",
     "adminPluginsCatalogEmpty": "Mevcut paket yok",
-    "adminPluginsInstalling": "\"{name}\" yükleniyor...",
+    "adminPluginsInstalling": "\"{name}\" yükleniyor…",
     "@adminPluginsInstalling": {
         "placeholders": {
             "name": {
@@ -5815,8 +5815,8 @@
     "adminTrickplayProcessing": "İşleme",
     "adminTasksEmpty": "Zamanlanmış görev bulunamadı",
     "adminTasksNoFilterMatch": "Geçerli filtreyle eşleşen görev yok",
-    "adminTaskCancelling": "İptal...",
-    "adminTaskRunning": "Çalışıyor...",
+    "adminTaskCancelling": "İptal Ediliyor…",
+    "adminTaskRunning": "Çalışıyor…",
     "adminTaskNeverRun": "Asla çalışma",
     "adminTaskStop": "Durdur",
     "adminTaskRun": "Çalıştır",
@@ -6002,7 +6002,7 @@
     "noItems": "Öğe yok",
     "switchUser": "Kullanıcıyı Değiştir",
     "remoteControl": "Uzaktan kumanda",
-    "mediaBarLoading": "Medya çubuğu yükleniyor...",
+    "mediaBarLoading": "Medya çubuğu yükleniyor…",
     "mediaBarError": "Medya çubuğu yüklenemedi",
     "offlineServerUnavailable": "İnternete bağlı, ancak mevcut sunucu kullanılamıyor.",
     "offlineNoInternet": "Çevrimdışısınız. Yalnızca indirilen içerik kullanılabilir.",
@@ -6119,7 +6119,7 @@
     "trackActionAddToFavorites": "Favorilere Ekle",
     "trackActionGoToAlbum": "Albüme Git",
     "trackActionGoToArtist": "Sanatçıya Git",
-    "trackActionDownloading": "{name} indiriliyor...",
+    "trackActionDownloading": "{name} indiriliyor…",
     "@trackActionDownloading": {
         "placeholders": {
             "name": {
@@ -6328,7 +6328,7 @@
     "@readReleaseNotes": {
         "description": "Option to read the release notes in a browser"
     },
-    "downloadingUpdate": "Güncelleme indiriliyor...",
+    "downloadingUpdate": "Güncelleme indiriliyor…",
     "@downloadingUpdate": {
         "description": "Label shown while an update is being downloaded"
     },
@@ -7075,7 +7075,7 @@
     "cardSize": "Ana Sayfa Satırı Kart Gösterim Boyutu",
     "externalPlayerApp": "Harici oynatıcı",
     "externalPlayerAskEachTimeSubtitle": "Oynatma başladığında uygulama seçiciyi göster.",
-    "loadingInstalledPlayers": "Yüklü oynatıcılar yükleniyor...",
+    "loadingInstalledPlayers": "Yüklü oynatıcılar yükleniyor…",
     "connection": "Bağlantı",
     "audioTranscodeTarget": "Ses Yeniden Kodlama Hedefi",
     "passthrough": "Doğrudan Geçiş (Passthrough)",
@@ -7301,7 +7301,7 @@
     "cb7ExtractionUnavailable": "CB7 çıkarma işlemi bu platformda mevcut değil.",
     "cb7ExtractionPluginUnavailable": "CB7 çıkarma eklentisi bu platformda mevcut değil.",
     "closeGenrePanel": "Tür panelini kapat",
-    "loadingShuffle": "Karışık liste yükleniyor...",
+    "loadingShuffle": "Karışık liste yükleniyor…",
     "libraryShuffleLabel": "KÜTÜPHANEYİ KARIŞTIR",
     "randomShuffleLabel": "RASTGELE KARIŞTIR",
     "genresShuffleLabel": "TÜRLERİ KARIŞTIR",
@@ -8057,7 +8057,7 @@
             }
         }
     },
-    "checkingDirectPlay": "Doğrudan Oynatma uyumluluğu kontrol ediliyor...",
+    "checkingDirectPlay": "Doğrudan Oynatma uyumluluğu kontrol ediliyor…",
     "directPlayCapabilityLabel": "Doğrudan Oynatma Uyumluluğu: ",
     "seerrNotifyNewRequestsTitle": "Yeni keşfet bildirimleri",
     "@seerrNotifyNewRequestsTitle": {
@@ -8813,7 +8813,7 @@
             }
         }
     },
-    "requestingProgress": "İsteniyor: {current} / {total}...",
+    "requestingProgress": "İsteniyor: {current} / {total}…",
     "@requestingProgress": {
         "description": "Progress label while collection requests are submitted",
         "placeholders": {
@@ -9643,5 +9643,28 @@
                 "type": "String"
             }
         }
-    }
+    },
+    "ascending": "Artan",
+    "sortOrder": "Sıralama Düzeni",
+    "favoritesRowSortOrderDescription": "Favoriler satırlarını artan veya azalan sırada sıralayın.",
+    "studiosRowSortingDescription": "Stüdyo satırı isme göre, son eklenenlere göre ve daha fazlasına göre sıralanır.",
+    "showHeader": "Göster",
+    "genresRowSortOrderDescription": "Türler satırlarını artan veya azalan sırada sıralayın.",
+    "studiosRowSorting": "Stüdyo Satırı Sıralaması",
+    "deselectAllStudios": "Tümünün Seçimini Kaldır",
+    "collectionsRowSortOrderDescription": "Koleksiyonlar satırlarını artan veya azalan sırada sıralayın.",
+    "displayStudiosRows": "Stüdyo Satırını Göster",
+    "displayStudiosRowsSubtitle": "Stüdyo satırını Ana Sayfa Bölümlerinde göster.",
+    "studiosRowSortOrderDescription": "Artan veya azalan sıralama düzenini seçin.",
+    "selectStudiosToInclude": "Dahil Edilecek Stüdyoları Seçin",
+    "selectStudiosToIncludeDescription": "Ana satıra hangi stüdyoların dahil edileceğini seçin.",
+    "selectAllStudios": "Tümünü Seç",
+    "tvStudiosFilter": "TV Stüdyoları",
+    "movieStudiosFilter": "Film Stüdyoları",
+    "selectedStudiosFilter": "Seçilen Stüdyolar",
+    "unselectedStudiosFilter": "Seçilmemiş Stüdyolar",
+    "filtersHeader": "Filtreler",
+    "playlistsRowSortOrderDescription": "Oynatma listesi satırlarını artan veya azalan sırada sıralayın.",
+    "audioRowsSortOrderDescription": "Ses satırlarını artan veya azalan sırada sıralayın.",
+    "descending": "Azalan"
 }

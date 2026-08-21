@@ -75,6 +75,7 @@ import '../../widgets/remote_play_to_session_dialog.dart';
 import '../../widgets/fullscreen_backdrop_switcher.dart';
 import '../../widgets/seerr_icons.dart';
 import '../../widgets/focus/context_menu_sheet.dart';
+import '../../widgets/focus/dpad_list_tile.dart';
 import '../../widgets/focus/focusable_button.dart';
 import '../../widgets/focus/request_initial_focus.dart';
 import '../../widgets/overlay_sheet.dart';
@@ -10415,6 +10416,77 @@ class _DownloadButtonState extends State<_DownloadButton> {
     final multiEstimateSubtitles = isMulti
         ? _multiTranscodedEstimateSubtitles(estimationItems, availableQualities)
         : const <DownloadQuality, String>{};
+
+    if (PlatformDetection.isTV) {
+      showFocusRestoringModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: const Color(0xFF1E1E1E),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        ),
+        builder: (sheetContext) => SafeArea(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.sizeOf(sheetContext).height * 0.9,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+                  child: Text(
+                    isMulti
+                        ? AppLocalizations.of(sheetContext).downloadAllQuality
+                        : AppLocalizations.of(sheetContext).downloadQuality,
+                    style: Theme.of(sheetContext).textTheme.titleMedium?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                Flexible(
+                  child: ListView(
+                    shrinkWrap: true,
+                    padding: const EdgeInsets.only(bottom: 8),
+                    children: availableQualities.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final quality = entry.value;
+                      return DpadListTile(
+                        autofocus: index == 0,
+                        leading: AdaptiveIcon(
+                          quality.isTranscoded
+                              ? Icons.compress
+                              : Icons.file_copy_outlined,
+                        ),
+                        title: Text(quality.label),
+                        subtitle: Text(
+                          _qualitySubtitle(
+                            item,
+                            quality,
+                            supportsTranscoding: supportsTranscoding,
+                            isMulti: isMulti,
+                            multiEstimateSubtitle:
+                                multiEstimateSubtitles[quality],
+                          ),
+                        ),
+                        onTap: () {
+                          Navigator.pop(sheetContext);
+                          _startDownload(context, service, quality);
+                        },
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+      return;
+    }
+
     showFocusRestoringModalBottomSheet(
       context: context,
       backgroundColor: const Color(0xFF1E1E1E),

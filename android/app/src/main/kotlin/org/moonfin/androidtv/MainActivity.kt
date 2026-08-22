@@ -909,20 +909,9 @@ class MainActivity : AudioServiceActivity(), GamepadsCompatibleActivity {
     }
 
     private fun discoverGoogleCastTargets(): List<Map<String, Any>> {
-        val selector = MediaRouteSelector.Builder()
-            .addControlCategory(
-                CastMediaControlIntent.categoryForCast(
-                    CastMediaControlIntent.DEFAULT_MEDIA_RECEIVER_APPLICATION_ID,
-                ),
-            )
-            .build()
-
+        val selector = castRouteSelector()
         val mediaRouter = MediaRouter.getInstance(this)
-        val routes = dedupedCastRoutes(
-            mediaRouter.routes.filter { route ->
-                route.isEnabled && route.matchesSelector(selector)
-            },
-        )
+        val routes = dedupedCastRoutes(mediaRouter.routes, selector)
 
         return routes.map { route ->
             mapOf(
@@ -968,7 +957,7 @@ class MainActivity : AudioServiceActivity(), GamepadsCompatibleActivity {
                     MediaRouter.CALLBACK_FLAG_PERFORM_ACTIVE_SCAN,
                 )
             }
-            dedupedCastRoutes(mediaRouter.routes).forEach {
+            dedupedCastRoutes(mediaRouter.routes, selector).forEach {
                 emitCastRouteFound(it, selector)
             }
         }
@@ -988,9 +977,15 @@ class MainActivity : AudioServiceActivity(), GamepadsCompatibleActivity {
     private fun castReceiverKey(routeId: String): String =
         routeId.substringAfterLast(':', routeId)
 
+    // Filtering before the dedupe matters: distinctBy keeps whichever route it
+    // meets first, so a route that fails the selector would otherwise take the
+    // slot for a receiver and leave the matching one unlisted.
     private fun dedupedCastRoutes(
         routes: List<MediaRouter.RouteInfo>,
-    ): List<MediaRouter.RouteInfo> = routes.distinctBy { castReceiverKey(it.id) }
+        selector: MediaRouteSelector,
+    ): List<MediaRouter.RouteInfo> = routes
+        .filter { it.isEnabled && it.matchesSelector(selector) }
+        .distinctBy { castReceiverKey(it.id) }
 
     private fun emitCastRouteFound(route: MediaRouter.RouteInfo, selector: MediaRouteSelector) {
         if (!route.isEnabled || !route.matchesSelector(selector)) return

@@ -149,14 +149,17 @@ Future<void> _restoreWindowGeometry() async {
     }
     await windowManager.show();
     await windowManager.focus();
-    if (startFullscreen) {
-      // Delay slightly to let the window render its first frame before transitioning to fullscreen.
-      // This avoids graphics context race conditions (black screens) and window layout artifacts.
-      unawaited(Future.delayed(const Duration(milliseconds: 150), () async {
-        await FullscreenHelper.setFullscreen(true);
-      }));
-    }
   });
+
+  // Fullscreen resizes the window, and doing that before the engine has drawn
+  // leaves it laid out at the old size with the rest of the window black. The
+  // timer this replaces was standing in for the first frame, which is a race
+  // on a cold start.
+  if (startFullscreen) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(FullscreenHelper.setFullscreen(true));
+    });
+  }
 }
 
 /// Usable areas of the attached displays, or an empty list when they cannot be

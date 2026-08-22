@@ -11,10 +11,17 @@ library;
 /// [maxBitrateMbps] is the user's own ceiling, the one the local players
 /// already read. A receiver that cant pull the default stalls part way in and
 /// restarts, and until now the cast path gave nobody a way to lower it.
+///
+/// It can only lower the ceiling, never raise it. The preference describes the
+/// user's network rather than the receiver, and it defaults to 120, so taking
+/// it at face value would hand every default install six times what casting
+/// asked for before.
 Map<String, dynamic> chromecastDeviceProfile({int? maxBitrateMbps}) {
-  final bitrate = (maxBitrateMbps != null && maxBitrateMbps > 0)
+  const castCeiling = 20000000;
+  final requested = (maxBitrateMbps != null && maxBitrateMbps > 0)
       ? maxBitrateMbps * 1000000
-      : 20000000;
+      : castCeiling;
+  final bitrate = requested < castCeiling ? requested : castCeiling;
   return <String, dynamic>{
     'Name': 'Moonfin Chromecast',
     'MaxStaticBitrate': bitrate,

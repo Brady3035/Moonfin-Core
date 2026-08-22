@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:moonfin/data/services/cast/receiver_device_profiles.dart';
+import 'package:moonfin/preference/user_preferences.dart';
 
 Map<String, dynamic> _h264CodecProfile(Map<String, dynamic> profile) {
   final codecProfiles =
@@ -55,6 +56,26 @@ void main() {
 
       expect(profile['MaxStreamingBitrate'], 5000000);
       expect(profile['MaxStaticBitrate'], 5000000);
+    });
+
+    test('never raises the ceiling above what casting asked for before', () {
+      // The preference describes the user's network, not the receiver, and
+      // most installs sit on its default. Feeding it through has to leave
+      // them where they already were.
+      final fromDefault = int.tryParse(
+        UserPreferences.maxBitrate.defaultValue.toString(),
+      );
+
+      expect(
+        chromecastDeviceProfile(
+          maxBitrateMbps: fromDefault,
+        )['MaxStreamingBitrate'],
+        20000000,
+      );
+      expect(
+        chromecastDeviceProfile(maxBitrateMbps: 200)['MaxStreamingBitrate'],
+        20000000,
+      );
     });
 
     test('only ever asks the server for H264', () {

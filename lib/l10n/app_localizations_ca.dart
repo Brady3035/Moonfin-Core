@@ -218,26 +218,26 @@ class AppLocalizationsCa extends AppLocalizations {
   String get interfaceLayoutTv => 'TV';
 
   @override
-  String get interfaceLayoutDesktop => 'Desktop';
+  String get interfaceLayoutDesktop => 'Escriptori';
 
   @override
-  String get interfaceLayoutPhone => 'Phone';
+  String get interfaceLayoutPhone => 'Mòbil';
 
   @override
   String get glassQuality => 'Qualitat de Glass';
 
   @override
-  String get oledMode => 'OLED Mode';
+  String get oledMode => 'Mode OLED';
 
   @override
   String get oledModeSubtitle =>
-      'Deepen blacks and enrich artwork. Best on OLED displays.';
+      'Profunditza els negres i enriqueix l\'art. Millor en pantalles OLED.';
 
   @override
-  String get oledModeSubtle => 'Subtle';
+  String get oledModeSubtle => 'Subtil';
 
   @override
-  String get oledModeVivid => 'Vivid';
+  String get oledModeVivid => 'Viu';
 
   @override
   String get glassQualitySubtitle =>
@@ -528,13 +528,13 @@ class AppLocalizationsCa extends AppLocalizations {
   String get extraLarge => 'Extragran';
 
   @override
-  String get scrollDirection => 'Scroll Direction';
+  String get scrollDirection => 'Direcció de desplaçament';
 
   @override
   String get scrollDirectionVertical => 'Vertical';
 
   @override
-  String get scrollDirectionHorizontal => 'Horizontal';
+  String get scrollDirectionHorizontal => 'Horitzontal';
 
   @override
   String libraryGenresTitle(String name) {
@@ -632,7 +632,7 @@ class AppLocalizationsCa extends AppLocalizations {
   String get scrollRight => 'Desplaceu-vos cap a la dreta';
 
   @override
-  String get scrollToTop => 'Scroll to top';
+  String get scrollToTop => 'Torna a dalt';
 
   @override
   String get couldNotLoadGenre =>
@@ -1328,7 +1328,7 @@ class AppLocalizationsCa extends AppLocalizations {
   String get director => 'DIRECTOR';
 
   @override
-  String get starring => 'STARRING';
+  String get starring => 'PROTAGONISTES';
 
   @override
   String get directors => 'DIRECTORS';
@@ -1926,17 +1926,18 @@ class AppLocalizationsCa extends AppLocalizations {
   String get unableToCreateRecording => 'No es pot crear la gravació';
 
   @override
-  String get recordSeries => 'Record Series';
+  String get recordSeries => 'Gravar Sèrie';
 
   @override
-  String get seriesSetToRecord => 'Series set to record';
+  String get seriesSetToRecord => 'Sèrie programada per gravar';
 
   @override
-  String get seriesRecordingCancelled => 'Series recording cancelled';
+  String get seriesRecordingCancelled =>
+      'S\'ha cancel·lat l\'enregistrament de la sèrie';
 
   @override
   String get unableToCreateSeriesRecording =>
-      'Unable to create series recording';
+      'No s\'ha pogut crear l\'enregistrament de sèrie';
 
   @override
   String get watch => 'Mira';
@@ -2310,7 +2311,7 @@ class AppLocalizationsCa extends AppLocalizations {
   String get always => 'Sempre';
 
   @override
-  String get mixedRowsOnly => 'Mixed rows only';
+  String get mixedRowsOnly => 'Només files mixtes';
 
   @override
   String get hideUnwatched => 'Amaga sense veure';
@@ -2499,11 +2500,11 @@ class AppLocalizationsCa extends AppLocalizations {
       'Mostra un botó de bloqueig que bloqueja l\'entrada tàctil fins que estigui premut durant molt de temps';
 
   @override
-  String get playerSwipeGestures => 'Volume and Brightness Swipes';
+  String get playerSwipeGestures => 'Desplaçaments de volum i brillantor';
 
   @override
   String get playerSwipeGesturesDescription =>
-      'Slide up or down on the player to change brightness on the left and volume on the right';
+      'Desplaça el controlador cap amunt o cap avall per canviar la brillantor a l\'esquerra i el volum a la dreta';
 
   @override
   String get osdButtons => 'Botons del reproductor';
@@ -2744,35 +2745,35 @@ class AppLocalizationsCa extends AppLocalizations {
 
   @override
   String get settingsAudioPassthroughModeDescription =>
-      'How compressed surround sound reaches your TV or receiver.';
+      'Com el so envoltant comprimit arriba al teu televisor o receptor.';
 
   @override
   String get settingsAudioPassthroughModeDisabled =>
-      'Disabled (always decode on this device)';
+      'Deshabilitat (descodifica sempre en aquest dispositiu)';
 
   @override
   String get settingsAudioPassthroughModeAuto =>
-      'Auto (match detected device support)';
+      'Automàtic (detecta el suport de dispositius)';
 
   @override
   String get settingsAudioPassthroughModeManual =>
-      'Manual (choose formats below)';
+      'Manual (trieu els formats a continuació)';
 
   @override
   String get settingsDownmixToStereoDescription =>
-      'Mix all decoded audio down to two channels.';
+      'Mescla tot l\'àudio descodificat en dos canals (Stereo).';
 
   @override
   String get settingsAudioEac3IncludesAtmos =>
-      'Bitstream E-AC-3, including Dolby Atmos (JOC).';
+      'Bitstream E-AC-3, incloent Dolby Atmos (JOC).';
 
   @override
   String get settingsAudioDtsHdIncludesDtsX =>
-      'Bitstream DTS-HD, including DTS:X.';
+      'Bitstream DTS-HD, incloent DTS:X.';
 
   @override
   String get settingsAudioTrueHdIncludesAtmos =>
-      'Bitstream TrueHD, including Dolby Atmos.';
+      'Bitstream TrueHD, incloent Dolby Atmos.';
 
   @override
   String get settingsAudioTrueHdPassthrough => 'Passthrough TrueHD';
@@ -3207,11 +3208,11 @@ class AppLocalizationsCa extends AppLocalizations {
   String get defaultLabel => 'Per defecte';
 
   @override
-  String get sdCard => 'SD card';
+  String get sdCard => 'targeta SD';
 
   @override
   String get downloadLocationLimitedByAndroid =>
-      'Android only lets Moonfin write to the folders it owns, and this device has no removable storage. Turn on Save to Downloads folder above to keep downloads somewhere other apps can reach.';
+      'Android només permet que Moonfin escrigui a les carpetes que posseeix, i aquest dispositiu no té emmagatzematge extraïble. Activa la carpeta «Desar a Baixades» anterior per guardar les descàrregues en un lloc al qual les altres aplicacions puguin accedir.';
 
   @override
   String get saveToDownloadsFolder => 'Desa a la carpeta Baixades';
@@ -3361,14 +3362,14 @@ class AppLocalizationsCa extends AppLocalizations {
       'Mostra les biblioteques de tots els servidors connectats';
 
   @override
-  String get mergeRecentRowsByType => 'Merge Recent Rows by Type';
+  String get mergeRecentRowsByType => 'Fusiona les files recents per tipus';
 
   @override
   String get mergeRecentRowsByTypeDescription =>
-      'Combine separate libraries of the same type for Recently Added and Recently Released home rows.';
+      'Combina biblioteques separades del mateix tipus per a les files d\'inici de «Afegit recentment» i «Publicat recentment».';
 
   @override
-  String get libraryView => 'Library View';
+  String get libraryView => 'Vista de la biblioteca';
 
   @override
   String get enableFolderView => 'Activa la vista de carpetes';
@@ -3459,10 +3460,10 @@ class AppLocalizationsCa extends AppLocalizations {
   String get mediaBarModeOff => 'Desactivat';
 
   @override
-  String get mediaBarModeBookshelf => 'Bookshelf';
+  String get mediaBarModeBookshelf => 'Llibreria';
 
   @override
-  String get mediaBarModeGallery => 'Gallery';
+  String get mediaBarModeGallery => 'Galeria';
 
   @override
   String get mediaBarModeBanner => 'Banner';
@@ -3481,10 +3482,10 @@ class AppLocalizationsCa extends AppLocalizations {
   String get contentType => 'Tipus de contingut';
 
   @override
-  String get mediaBarSourceType => 'Source';
+  String get mediaBarSourceType => 'Font';
 
   @override
-  String get mediaBarSourceRandom => 'Random';
+  String get mediaBarSourceRandom => 'Aleatori';
 
   @override
   String get moviesAndTvShows => 'Pel·lícules i programes de televisió';
@@ -3563,11 +3564,12 @@ class AppLocalizationsCa extends AppLocalizations {
   String get recentlyReleased => 'Publicat recentment';
 
   @override
-  String get recentlyReleasedSeriesType => 'Recently Released Series Sort By';
+  String get recentlyReleasedSeriesType =>
+      'Ordena per sèries recentment publicades';
 
   @override
   String get recentlyReleasedSeriesTypeDescription =>
-      'Sort Recently Released Series home rows by series, latest season, or latest episode air date';
+      'Ordena les files de la pàgina d\'inici de les sèries recentment estrenades per sèrie, temporada més recent o data d\'emissió de l\'episodi més recent';
 
   @override
   String get myMedia => 'La meva biblioteca';
@@ -3594,7 +3596,7 @@ class AppLocalizationsCa extends AppLocalizations {
   String get liveTV => 'TV en directe';
 
   @override
-  String get favoriteChannels => 'Favorite Channels';
+  String get favoriteChannels => 'Canals preferits';
 
   @override
   String get homeSections => 'Seccions d\'inici';
@@ -3916,10 +3918,10 @@ class AppLocalizationsCa extends AppLocalizations {
   String get networks => 'Xarxes';
 
   @override
-  String get tags => 'Tags';
+  String get tags => 'Etiquetes';
 
   @override
-  String get genresAndTags => 'Genres and Tags';
+  String get genresAndTags => 'Gèneres i etiquetes';
 
   @override
   String get seerrDiscoveryRows => 'Fileres de descoberta Seerr';
@@ -4196,13 +4198,13 @@ class AppLocalizationsCa extends AppLocalizations {
   }
 
   @override
-  String get manageRequests => 'Manage Requests';
+  String get manageRequests => 'Gestiona sol·licituds';
 
   @override
-  String get watchlist => 'Watchlist';
+  String get watchlist => 'Llista de seguiment';
 
   @override
-  String get onWatchlist => 'On Watchlist';
+  String get onWatchlist => 'A la llista de seguiment';
 
   @override
   String get approve => 'Aprovar';
@@ -4270,7 +4272,7 @@ class AppLocalizationsCa extends AppLocalizations {
 
   @override
   String get seerrSeriesContinuing =>
-      'Series Continuing · Future Seasons Can Be Requested';
+      'La sèrie continua · Es poden sol·licitar temporades futures';
 
   @override
   String get advancedOptions => 'Opcions avançades';
@@ -8954,11 +8956,12 @@ class AppLocalizationsCa extends AppLocalizations {
   String get settingsNone => 'Cap';
 
   @override
-  String get settingsSkipButtonAutoHide => 'Auto Hide Skip Button';
+  String get settingsSkipButtonAutoHide =>
+      'Amaga automàticament el botó per saltar';
 
   @override
   String get settingsSkipButtonAutoHideDescription =>
-      'Automatically dismiss the skip intro and outro button after a few seconds.';
+      'Desactiva automàticament el botó per saltar l\'intro i l\'outro després de pocs segons.';
 
   @override
   String get settingsPromptUser => 'Usuari prompte';
@@ -9027,7 +9030,7 @@ class AppLocalizationsCa extends AppLocalizations {
       'Controla si els fluxos de capa de millora del perfil Dolby Vision 7 han de dirigir la reproducció.';
 
   @override
-  String get settingsAutoAftkrtEnabled => 'Automàtic (AFTKRT habilitat)';
+  String get settingsAutoAftkrtEnabled => 'Auto';
 
   @override
   String get settingsEnabledOnThisDevice => 'Habilitat en aquest dispositiu';
@@ -9076,11 +9079,11 @@ class AppLocalizationsCa extends AppLocalizations {
       'Reprodueix tràilers/prerolls abans d\'una funció principal';
 
   @override
-  String get settingsCinemaModeEpisodes => 'Cinema Mode for episodes';
+  String get settingsCinemaModeEpisodes => 'Mode Cinema per a episodis';
 
   @override
   String get settingsCinemaModeEpisodesSubtitle =>
-      'Also play prerolls before TV episodes';
+      'També reprodueix prerolls abans dels episodis de televisió';
 
   @override
   String get settingsNextUpDisplayDescription =>
@@ -9400,13 +9403,13 @@ class AppLocalizationsCa extends AppLocalizations {
       'El clàssic manté el tipus d\'imatge per fila i la superposició d\'informació. Modern utilitza files de retrat a fons.';
 
   @override
-  String get sortOrder => 'Sort Order';
+  String get sortOrder => 'Ordre de classificació';
 
   @override
-  String get ascending => 'Ascending';
+  String get ascending => 'Ascendent';
 
   @override
-  String get descending => 'Descending';
+  String get descending => 'Descendent';
 
   @override
   String get displayFavoritesRows => 'Mostra les files de preferits';
@@ -9424,7 +9427,7 @@ class AppLocalizationsCa extends AppLocalizations {
 
   @override
   String get favoritesRowSortOrderDescription =>
-      'Sort Favorites rows in ascending or descending order.';
+      'Ordena les files de favorits en ordre ascendent o descendent.';
 
   @override
   String get displayCollectionsRows => 'Mostra les files de les col·leccions';
@@ -9442,14 +9445,14 @@ class AppLocalizationsCa extends AppLocalizations {
 
   @override
   String get collectionsRowSortOrderDescription =>
-      'Sort Collections rows in ascending or descending order.';
+      'Ordena les files de les col·leccions en ordre ascendent o descendent.';
 
   @override
-  String get collectionsRowShowEpisodes => 'Show Individual Episodes';
+  String get collectionsRowShowEpisodes => 'Mostra els episodis individuals';
 
   @override
   String get collectionsRowShowEpisodesSubtitle =>
-      'Expand TV shows to display each episode separately.';
+      'Expandir els programes de televisió per mostrar cada episodi per separat.';
 
   @override
   String get displayGenresRows => 'Mostra les files de gèneres';
@@ -9467,7 +9470,7 @@ class AppLocalizationsCa extends AppLocalizations {
 
   @override
   String get genresRowSortOrderDescription =>
-      'Sort Genres rows in ascending or descending order.';
+      'Ordena les files de gèneres en ordre ascendent o descendent.';
 
   @override
   String get genresRowItems => 'Gèneres Elements de fila';
@@ -9477,52 +9480,53 @@ class AppLocalizationsCa extends AppLocalizations {
       'Mostra pel·lícules, sèries o totes dues a les files Gèneres.';
 
   @override
-  String get displayStudiosRows => 'Display Studio Row';
+  String get displayStudiosRows => 'Mostra la fila de l\'estudi';
 
   @override
-  String get displayStudiosRowsSubtitle => 'Show Studio row in Home Sections.';
+  String get displayStudiosRowsSubtitle =>
+      'Mostra la fila de l\'estudi a les seccions d\'inici.';
 
   @override
-  String get studiosRowSorting => 'Studio Row Sorting';
+  String get studiosRowSorting => 'Ordenació de files d\'estudi';
 
   @override
   String get studiosRowSortingDescription =>
-      'Studio row by name, recently added, and more.';
+      'Fila d\'estudi per nom, afegit recentment, i més.';
 
   @override
   String get studiosRowSortOrderDescription =>
-      'Choose Ascending or Descending sort order.';
+      'Trieu l\'ordre de classificació ascendent o descendent.';
 
   @override
-  String get selectStudiosToInclude => 'Select Studios to Include';
+  String get selectStudiosToInclude => 'Selecciona estudis per incloure';
 
   @override
   String get selectStudiosToIncludeDescription =>
-      'Select which studios should be included on the home row.';
+      'Seleccioneu quins estudis s\'han d\'incloure a la fila d\'inici.';
 
   @override
-  String get selectAllStudios => 'Select All';
+  String get selectAllStudios => 'Selecciona-ho tot';
 
   @override
-  String get deselectAllStudios => 'Deselect All';
+  String get deselectAllStudios => 'Deselecciona-ho tot';
 
   @override
-  String get tvStudiosFilter => 'TV Studios';
+  String get tvStudiosFilter => 'Estudis de TV';
 
   @override
-  String get movieStudiosFilter => 'Movie Studios';
+  String get movieStudiosFilter => 'Estudis de cinema';
 
   @override
-  String get selectedStudiosFilter => 'Selected Studios';
+  String get selectedStudiosFilter => 'Estudis seleccionats';
 
   @override
-  String get unselectedStudiosFilter => 'Unselected Studios';
+  String get unselectedStudiosFilter => 'Estudis no seleccionats';
 
   @override
-  String get filtersHeader => 'Filters';
+  String get filtersHeader => 'Filtres';
 
   @override
-  String get showHeader => 'Show';
+  String get showHeader => 'Mostra';
 
   @override
   String get displayPlaylistsRows =>

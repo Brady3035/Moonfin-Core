@@ -61,7 +61,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String quickConnectUnavailable(String detail) {
-    return 'Quick Connect kullanılamıyor: $detail';
+    return 'Hızlı Bağlantı Kullanılamıyor: $detail';
   }
 
   @override
@@ -141,7 +141,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get settingsAppearanceTheme => 'Uygulama Teması';
 
   @override
-  String get detailScreenStyle => 'Detay Görüntüleme Stili';
+  String get detailScreenStyle => 'Detay Ekranı Stili';
 
   @override
   String get detailScreenStyleSubtitle =>
@@ -205,23 +205,23 @@ class AppLocalizationsTr extends AppLocalizations {
   String get interfaceStyleMaterial => 'Material';
 
   @override
-  String get interfaceLayout => 'Interface Layout';
+  String get interfaceLayout => 'Arayüz Düzeni';
 
   @override
   String get interfaceLayoutSubtitle =>
-      'Override the detected layout when this device is read wrong. Restart Moonfin for changes to take effect.';
+      'Bu cihaz için algılanan düzen yanlış okunduğunda geçersiz kılın. Değişikliklerin etkili olması için Moonfin\'i yeniden başlatın.';
 
   @override
-  String get interfaceLayoutAutomatic => 'Automatic';
+  String get interfaceLayoutAutomatic => 'Otomatik';
 
   @override
-  String get interfaceLayoutTv => 'TV';
+  String get interfaceLayoutTv => 'Televizyon';
 
   @override
-  String get interfaceLayoutDesktop => 'Desktop';
+  String get interfaceLayoutDesktop => 'Masaüstü';
 
   @override
-  String get interfaceLayoutPhone => 'Phone';
+  String get interfaceLayoutPhone => 'Telefon';
 
   @override
   String get glassQuality => 'Cam Efekti Kalitesi';
@@ -1319,7 +1319,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get director => 'YÖNETMEN';
 
   @override
-  String get starring => 'STARRING';
+  String get starring => 'BAŞROLDE';
 
   @override
   String get directors => 'YÖNETMENLER';
@@ -1903,17 +1903,16 @@ class AppLocalizationsTr extends AppLocalizations {
   String get unableToCreateRecording => 'Kayıt oluşturulamadı';
 
   @override
-  String get recordSeries => 'Record Series';
+  String get recordSeries => 'Diziyi Kaydet';
 
   @override
-  String get seriesSetToRecord => 'Series set to record';
+  String get seriesSetToRecord => 'Dizi kaydedilmek üzere ayarlandı';
 
   @override
-  String get seriesRecordingCancelled => 'Series recording cancelled';
+  String get seriesRecordingCancelled => 'Dizi kaydı iptal edildi';
 
   @override
-  String get unableToCreateSeriesRecording =>
-      'Unable to create series recording';
+  String get unableToCreateSeriesRecording => 'Dizi kaydı oluşturulamıyor';
 
   @override
   String get watch => 'İzle';
@@ -2278,7 +2277,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get always => 'Her zaman';
 
   @override
-  String get mixedRowsOnly => 'Mixed rows only';
+  String get mixedRowsOnly => 'Yalnızca karışık satırlar';
 
   @override
   String get hideUnwatched => 'İzlenmeyenleri Gizle';
@@ -2465,11 +2464,11 @@ class AppLocalizationsTr extends AppLocalizations {
       'Uzun basılana kadar dokunma girişini engelleyen bir kilitleme düğmesi göster';
 
   @override
-  String get playerSwipeGestures => 'Volume and Brightness Swipes';
+  String get playerSwipeGestures => 'Ses ve Parlaklık Kaydırma Hareketleri';
 
   @override
   String get playerSwipeGesturesDescription =>
-      'Slide up or down on the player to change brightness on the left and volume on the right';
+      'Parlaklığı değiştirmek için sol tarafta, sesi değiştirmek için sağ tarafta oynatıcı üzerinde yukarı veya aşağı kaydırın';
 
   @override
   String get osdButtons => 'Oynatıcı butonları';
@@ -3424,13 +3423,13 @@ class AppLocalizationsTr extends AppLocalizations {
   String get mediaBarModeOff => 'Kapalı';
 
   @override
-  String get mediaBarModeBookshelf => 'Bookshelf';
+  String get mediaBarModeBookshelf => 'Kitaplık';
 
   @override
-  String get mediaBarModeGallery => 'Gallery';
+  String get mediaBarModeGallery => 'Galeri';
 
   @override
-  String get mediaBarModeBanner => 'Banner';
+  String get mediaBarModeBanner => 'Afiş';
 
   @override
   String get mediaBarModeAya => 'Aya';
@@ -3446,10 +3445,10 @@ class AppLocalizationsTr extends AppLocalizations {
   String get contentType => 'İçerik Türü';
 
   @override
-  String get mediaBarSourceType => 'Source';
+  String get mediaBarSourceType => 'Kaynak';
 
   @override
-  String get mediaBarSourceRandom => 'Random';
+  String get mediaBarSourceRandom => 'Rastgele';
 
   @override
   String get moviesAndTvShows => 'Filmler ve TV Programları';
@@ -3526,11 +3525,11 @@ class AppLocalizationsTr extends AppLocalizations {
   String get recentlyReleased => 'Son Çıkanlar';
 
   @override
-  String get recentlyReleasedSeriesType => 'Recently Released Series Sort By';
+  String get recentlyReleasedSeriesType => 'Son Çıkan Diziler Göre Sırala';
 
   @override
   String get recentlyReleasedSeriesTypeDescription =>
-      'Sort Recently Released Series home rows by series, latest season, or latest episode air date';
+      'Son çıkan diziler ana sayfa satırlarını diziye, son sezona veya son bölüm yayın tarihine göre sırala';
 
   @override
   String get myMedia => 'Medyam';
@@ -3557,7 +3556,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get liveTV => 'Canlı TV';
 
   @override
-  String get favoriteChannels => 'Favorite Channels';
+  String get favoriteChannels => 'Favori Kanallar';
 
   @override
   String get homeSections => 'Ana Sayfa Bölümleri';
@@ -10685,7 +10684,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get personalRatingRated => 'Derecelendirilmiş';
 
   @override
-  String get personalRatingMine => 'My Rating';
+  String get personalRatingMine => 'Derecelendirmem';
 
   @override
   String get personalRatingSaveFailed => 'Derecelendirme kaydedilemedi';
@@ -10707,160 +10706,164 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String get filterInProgress => 'In Progress';
+  String get filterInProgress => 'Devam Ediyor';
 
   @override
-  String get filterUnreleased => 'Unreleased';
+  String get filterUnreleased => 'Yayınlanmadı';
 
   @override
-  String get filterTrailers => 'Trailers';
+  String get filterTrailers => 'Fragmanlar';
 
   @override
-  String get filterExtras => 'Extras';
+  String get filterExtras => 'Özel Özellikler';
 
   @override
-  String get filterThemeSongs => 'Theme Songs';
+  String get filterThemeSongs => 'Tema Şarkıları';
 
   @override
-  String get filterThemeVideos => 'Theme Videos';
+  String get filterThemeVideos => 'Tema Videoları';
 
   @override
-  String get source => 'Source';
+  String get source => 'Kaynak';
 
   @override
-  String get years => 'Years';
+  String get years => 'Yıllar';
 
   @override
-  String get audioLanguage => 'Audio Language';
+  String get audioLanguage => 'Ses Dili';
 
   @override
-  String get subtitleLanguage => 'Subtitle Language';
+  String get subtitleLanguage => 'Altyazı Dili';
 
   @override
-  String get clearFilters => 'Clear Filters';
+  String get clearFilters => 'Filtreyi Temizle';
 
   @override
-  String get seerrShortcutsRow => 'Seerr Browse';
+  String get seerrShortcutsRow => 'Seerr Gözat';
 
   @override
-  String get seerrReleased => 'Released';
+  String get seerrReleased => 'Yayınlandı';
 
   @override
-  String get seerrMinRating => 'Minimum Rating';
+  String get seerrMinRating => 'Minimum Decerelendirme';
 
   @override
-  String get seerrMinVotes => 'Minimum Votes';
+  String get seerrMinVotes => 'Minimum Oy';
 
   @override
-  String get seerrOriginalLanguage => 'Original Language';
+  String get seerrOriginalLanguage => 'Orijinal Dil';
 
   @override
-  String get seerrRuntime => 'Runtime';
+  String get seerrRuntime => 'Süre';
 
   @override
-  String get subtitleHdrSeparate => 'Separate HDR Style';
+  String get subtitleHdrSeparate => 'Ayrı HDR Stili';
 
   @override
   String get subtitleHdrSeparateSubtitle =>
-      'White is much brighter in HDR than in SDR, so a dimmer style here avoids the glare';
+      'HDR\'de beyaz renkler SDR\'ye göre çok daha parlaktır; bu nedenle buradaki daha sönük bir stil göz almasını (parlama yapar) engeller';
 
   @override
-  String get scrollSensitivity => 'Scroll Sensitivity';
+  String get scrollSensitivity => 'Kaydırma Hassasiyeti';
 
   @override
   String get scrollSensitivitySubtitle =>
-      'How far one mouse wheel notch scrolls';
+      'Fare tekerleğinin bir çentik (tık) hareketle ne kadar kaydıracağı';
 
   @override
-  String get mediaDetailsAndSpoilers => 'Media Details and Spoilers';
+  String get mediaDetailsAndSpoilers => 'Medya Ayrıntıları ve Spoiler\'lar';
 
   @override
   String get hideDetailsMediaDescription =>
-      'Hide Media Description on Details Page';
+      'Ayrıntılar Sayfasında Medya Açıklamasını Gizle';
 
   @override
   String get hideDetailsMediaDescriptionSubtitle =>
-      'Hide the movie or episode descriptive text.';
+      'Film veya bölüm açıklama metnini gizler.';
 
   @override
   String get detailUseSeriesThumbnails =>
-      'Use Series Thumbnails on Details Page';
+      'Ayrıntılar Sayfasında Dizi Küçük Resimlerini Kullan';
 
   @override
   String get detailUseSeriesThumbnailsSubtitle =>
-      'Replace all thumbnails on Classic details page with series thumbnail';
+      'Klasik ayrıntılar sayfasındaki tüm küçük resimleri dizi küçük resmiyle değiştir';
 
   @override
-  String get hideHomeMediaDescription =>
-      'Hide Media Description on Home Screen';
+  String get hideHomeMediaDescription => 'Ana Sayfada Medya Açıklamasını Gizle';
 
   @override
   String get hideHomeMediaDescriptionSubtitle =>
-      'Hide the movie or episode descriptive text.';
+      'Film veya bölüm açıklama metnini gizler.';
 
   @override
-  String get continueWatchingAndNextUpHeader => 'Continue Watching and Next Up';
+  String get continueWatchingAndNextUpHeader =>
+      'İzlemeye Devam Et ve Sonraki Bölümler';
 
   @override
-  String get setupSkip => 'Skip setup';
+  String get setupSkip => 'Kurulumu Atla';
 
   @override
-  String get setupNavbarQuestion => 'Where should navigation go?';
+  String get setupNavbarQuestion => 'Gezinme çubuğu nereye gitsin?';
 
   @override
   String get setupMediaBarQuestion =>
-      'How should the top of your Home screen look?';
+      'Ana ekranınızın üst kısmı nasıl görünmeli?';
 
   @override
-  String get setupHomeRowsQuestion => 'How should your rows look?';
+  String get setupHomeRowsQuestion => 'Satırlarınız nasıl görünmeli?';
 
   @override
   String get setupDetailQuestion =>
-      'How should a movie or show look when you open it?';
+      'Bir film veya dizi açıldığında nasıl görünmeli?';
 
   @override
-  String get setupTourQuestion => 'You\'re set. Here\'s what else is in here.';
+  String get setupTourQuestion =>
+      'Hazırsınız. İşte burada yer alan diğer şeyler.';
 
   @override
-  String get setupStyleClassic => 'Classic';
+  String get setupStyleClassic => 'Klasik';
 
   @override
   String get setupStyleModern => 'Modern';
 
   @override
-  String get setupRowsClassicHint => 'Compact. More rows on screen at once.';
+  String get setupRowsClassicHint =>
+      'Kompakt. Ekranda aynı anda daha fazla satır.';
 
   @override
-  String get setupRowsModernHint => 'Larger cards with titles underneath.';
+  String get setupRowsModernHint =>
+      'Başlıkları altında olan daha büyük kartlar.';
 
   @override
-  String get setupDetailClassicHint => 'Everything centred in one stack.';
+  String get setupDetailClassicHint =>
+      'Her şey tek bir yığın halinde ortalanmış.';
 
   @override
   String get setupDetailModernHint =>
-      'Cinematic, with tabs for cast and extras.';
+      'Sinematik, oyuncu kadrosu ve ekstralar için sekmelerle birlikte.';
 
   @override
-  String get setupPickALook => 'Pick a look';
+  String get setupPickALook => 'Bir görünüm seçin';
 
   @override
-  String get setupTourMoreHeader => 'There is more waiting in Settings';
+  String get setupTourMoreHeader => 'Ayarlarda bekleyen daha çok şey var';
 
   @override
-  String get setupTourBulletRequests => 'Seerr requests';
+  String get setupTourBulletRequests => 'Seerr istekleri';
 
   @override
-  String get setupTourBulletSyncPlay => 'SyncPlay watch parties';
+  String get setupTourBulletSyncPlay => 'SyncPlay birlikte izleme etkinlikleri';
 
   @override
-  String get setupTourBulletThemes => 'Custom themes';
+  String get setupTourBulletThemes => 'Özel Temalar';
 
   @override
-  String get setupTourBulletDownloads => 'Offline downloads';
+  String get setupTourBulletDownloads => 'Çevrimdışı indirmeler';
 
   @override
-  String get setupTourBulletMore => 'And plenty more';
+  String get setupTourBulletMore => 'Ve çok daha fazlası';
 
   @override
-  String get runSetupAgain => 'Run setup again';
+  String get runSetupAgain => 'Kurulumu yeniden çalıştır';
 }

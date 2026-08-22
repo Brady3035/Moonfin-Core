@@ -205,23 +205,23 @@ class AppLocalizationsFr extends AppLocalizations {
   String get interfaceStyleMaterial => 'Material';
 
   @override
-  String get interfaceLayout => 'Interface Layout';
+  String get interfaceLayout => 'Type d\'interface';
 
   @override
   String get interfaceLayoutSubtitle =>
-      'Override the detected layout when this device is read wrong. Restart Moonfin for changes to take effect.';
+      'Remplacer le type détecté si votre appareil n\'est pas reconnu correctement. Redémarrez Moonfin pour appliquer les modifications.';
 
   @override
-  String get interfaceLayoutAutomatic => 'Automatic';
+  String get interfaceLayoutAutomatic => 'Automatique';
 
   @override
   String get interfaceLayoutTv => 'TV';
 
   @override
-  String get interfaceLayoutDesktop => 'Desktop';
+  String get interfaceLayoutDesktop => 'Ordinateur';
 
   @override
-  String get interfaceLayoutPhone => 'Phone';
+  String get interfaceLayoutPhone => 'Téléphone';
 
   @override
   String get glassQuality => 'Qualité de l\'effet verre';
@@ -1326,7 +1326,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get director => 'RÉALISATEUR';
 
   @override
-  String get starring => 'STARRING';
+  String get starring => 'AVEC';
 
   @override
   String get directors => 'RÉALISATEURS';
@@ -1926,17 +1926,17 @@ class AppLocalizationsFr extends AppLocalizations {
   String get unableToCreateRecording => 'Impossible de créer un enregistrement';
 
   @override
-  String get recordSeries => 'Record Series';
+  String get recordSeries => 'Enregistrer la série';
 
   @override
-  String get seriesSetToRecord => 'Series set to record';
+  String get seriesSetToRecord => 'Enregistrement de la série programmé';
 
   @override
-  String get seriesRecordingCancelled => 'Series recording cancelled';
+  String get seriesRecordingCancelled => 'Enregistrement de la série annulé';
 
   @override
   String get unableToCreateSeriesRecording =>
-      'Unable to create series recording';
+      'Impossible de programmer l\'enregistrement de la série';
 
   @override
   String get watch => 'Regarder';
@@ -2308,7 +2308,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get always => 'Toujours';
 
   @override
-  String get mixedRowsOnly => 'Mixed rows only';
+  String get mixedRowsOnly => 'Rangées mixtes uniquement';
 
   @override
   String get hideUnwatched => 'Masquer les non vus';
@@ -2500,11 +2500,11 @@ class AppLocalizationsFr extends AppLocalizations {
       'Afficher un bouton de verrouillage qui bloque les touches tactiles jusqu’à un appui long';
 
   @override
-  String get playerSwipeGestures => 'Volume and Brightness Swipes';
+  String get playerSwipeGestures => 'Gestes de volume et de luminosité';
 
   @override
   String get playerSwipeGesturesDescription =>
-      'Slide up or down on the player to change brightness on the left and volume on the right';
+      'Glissez vers le haut ou le bas sur le lecteur : à gauche pour la luminosité, à droite pour le volume';
 
   @override
   String get osdButtons => 'Boutons du lecteur';
@@ -3198,7 +3198,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get manage => 'Gérer';
 
   @override
-  String get calculating => 'Calcul…';
+  String get calculating => 'Calcul en cours…';
 
   @override
   String get downloadLocation => 'Emplacement de téléchargement';
@@ -3461,13 +3461,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get mediaBarModeOff => 'Désactivé';
 
   @override
-  String get mediaBarModeBookshelf => 'Bookshelf';
+  String get mediaBarModeBookshelf => 'Étagère';
 
   @override
-  String get mediaBarModeGallery => 'Gallery';
+  String get mediaBarModeGallery => 'Galerie';
 
   @override
-  String get mediaBarModeBanner => 'Banner';
+  String get mediaBarModeBanner => 'Bannière';
 
   @override
   String get mediaBarModeAya => 'Aya';
@@ -3486,7 +3486,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get mediaBarSourceType => 'Source';
 
   @override
-  String get mediaBarSourceRandom => 'Random';
+  String get mediaBarSourceRandom => 'Aléatoire';
 
   @override
   String get moviesAndTvShows => 'Films et séries TV';
@@ -3565,11 +3565,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get recentlyReleased => 'Récemment sortis';
 
   @override
-  String get recentlyReleasedSeriesType => 'Recently Released Series Sort By';
+  String get recentlyReleasedSeriesType => 'Tri des séries récemment sorties';
 
   @override
   String get recentlyReleasedSeriesTypeDescription =>
-      'Sort Recently Released Series home rows by series, latest season, or latest episode air date';
+      'Trie les rangées d\'accueil « Séries récemment sorties » par série, dernière saison ou date de diffusion du dernier épisode';
 
   @override
   String get myMedia => 'Mes médias';
@@ -3596,7 +3596,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get liveTV => 'TV en direct';
 
   @override
-  String get favoriteChannels => 'Favorite Channels';
+  String get favoriteChannels => 'Chaînes favorites';
 
   @override
   String get homeSections => 'Sections de l’accueil';
@@ -4404,7 +4404,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String requestingProgress(int current, int total) {
-    return 'Demande de $current sur $total…';
+    return 'Demande $current sur $total…';
   }
 
   @override
@@ -10077,7 +10077,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get closeGenrePanel => 'Fermer le panneau des genres';
 
   @override
-  String get loadingShuffle => 'Chargement aléatoire…';
+  String get loadingShuffle => 'Chargement de la lecture aléatoire…';
 
   @override
   String get libraryShuffleLabel => 'BIBLIOTHÈQUE ALÉATOIRE';
@@ -10462,8 +10462,7 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get checkingDirectPlay =>
-      'Vérification de la possibilité de lecture directe…';
+  String get checkingDirectPlay => 'Vérification de la lecture directe…';
 
   @override
   String get directPlayCapabilityLabel => 'Possibilité de lecture directe : ';
@@ -10813,7 +10812,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get personalRatingRated => 'Noté';
 
   @override
-  String get personalRatingMine => 'My Rating';
+  String get personalRatingMine => 'Ma note';
 
   @override
   String get personalRatingSaveFailed => 'Impossible d\'enregistrer la note';
@@ -10835,160 +10834,166 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get filterInProgress => 'In Progress';
+  String get filterInProgress => 'En cours';
 
   @override
-  String get filterUnreleased => 'Unreleased';
+  String get filterUnreleased => 'Non sorti';
 
   @override
-  String get filterTrailers => 'Trailers';
+  String get filterTrailers => 'Bandes-annonces';
 
   @override
-  String get filterExtras => 'Extras';
+  String get filterExtras => 'Bonus';
 
   @override
-  String get filterThemeSongs => 'Theme Songs';
+  String get filterThemeSongs => 'Thèmes musicaux';
 
   @override
-  String get filterThemeVideos => 'Theme Videos';
+  String get filterThemeVideos => 'Vidéos de thème';
 
   @override
   String get source => 'Source';
 
   @override
-  String get years => 'Years';
+  String get years => 'Années';
 
   @override
-  String get audioLanguage => 'Audio Language';
+  String get audioLanguage => 'Langue audio';
 
   @override
-  String get subtitleLanguage => 'Subtitle Language';
+  String get subtitleLanguage => 'Langue des sous-titres';
 
   @override
-  String get clearFilters => 'Clear Filters';
+  String get clearFilters => 'Effacer les filtres';
 
   @override
-  String get seerrShortcutsRow => 'Seerr Browse';
+  String get seerrShortcutsRow => 'Parcourir Seerr';
 
   @override
-  String get seerrReleased => 'Released';
+  String get seerrReleased => 'Sorti';
 
   @override
-  String get seerrMinRating => 'Minimum Rating';
+  String get seerrMinRating => 'Note minimale';
 
   @override
-  String get seerrMinVotes => 'Minimum Votes';
+  String get seerrMinVotes => 'Nombre de votes minimum';
 
   @override
-  String get seerrOriginalLanguage => 'Original Language';
+  String get seerrOriginalLanguage => 'Langue originale';
 
   @override
-  String get seerrRuntime => 'Runtime';
+  String get seerrRuntime => 'Durée';
 
   @override
-  String get subtitleHdrSeparate => 'Separate HDR Style';
+  String get subtitleHdrSeparate => 'Style HDR distinct';
 
   @override
   String get subtitleHdrSeparateSubtitle =>
-      'White is much brighter in HDR than in SDR, so a dimmer style here avoids the glare';
+      'Le blanc est bien plus lumineux en HDR qu\'en SDR : un style de sous-titres plus sombre évite l\'éblouissement';
 
   @override
-  String get scrollSensitivity => 'Scroll Sensitivity';
+  String get scrollSensitivity => 'Sensibilité du défilement';
 
   @override
   String get scrollSensitivitySubtitle =>
-      'How far one mouse wheel notch scrolls';
+      'Distance parcourue par un cran de molette';
 
   @override
-  String get mediaDetailsAndSpoilers => 'Media Details and Spoilers';
+  String get mediaDetailsAndSpoilers => 'Détails et spoilers';
 
   @override
   String get hideDetailsMediaDescription =>
-      'Hide Media Description on Details Page';
+      'Masquer la description sur la page de détails';
 
   @override
   String get hideDetailsMediaDescriptionSubtitle =>
-      'Hide the movie or episode descriptive text.';
+      'Masque le texte descriptif du film ou de l\'épisode.';
 
   @override
   String get detailUseSeriesThumbnails =>
-      'Use Series Thumbnails on Details Page';
+      'Utiliser les miniatures de la série sur la page de détails';
 
   @override
   String get detailUseSeriesThumbnailsSubtitle =>
-      'Replace all thumbnails on Classic details page with series thumbnail';
+      'Remplace toutes les miniatures de la page de détails Classique par celle de la série';
 
   @override
   String get hideHomeMediaDescription =>
-      'Hide Media Description on Home Screen';
+      'Masquer la description sur l\'écran d\'accueil';
 
   @override
   String get hideHomeMediaDescriptionSubtitle =>
-      'Hide the movie or episode descriptive text.';
+      'Masque le texte descriptif du film ou de l\'épisode.';
 
   @override
-  String get continueWatchingAndNextUpHeader => 'Continue Watching and Next Up';
+  String get continueWatchingAndNextUpHeader =>
+      'Continuer à regarder et prochain épisode';
 
   @override
-  String get setupSkip => 'Skip setup';
+  String get setupSkip => 'Ignorer la configuration';
 
   @override
-  String get setupNavbarQuestion => 'Where should navigation go?';
+  String get setupNavbarQuestion => 'Où placer la navigation ?';
 
   @override
   String get setupMediaBarQuestion =>
-      'How should the top of your Home screen look?';
+      'Quelle apparence pour le haut de votre écran d\'accueil ?';
 
   @override
-  String get setupHomeRowsQuestion => 'How should your rows look?';
+  String get setupHomeRowsQuestion => 'Quelle apparence pour vos rangées ?';
 
   @override
   String get setupDetailQuestion =>
-      'How should a movie or show look when you open it?';
+      'Quelle apparence pour la fiche d\'un film ou d\'une série ?';
 
   @override
-  String get setupTourQuestion => 'You\'re set. Here\'s what else is in here.';
+  String get setupTourQuestion =>
+      'C\'est prêt. Voici ce que vous pouvez encore découvrir.';
 
   @override
-  String get setupStyleClassic => 'Classic';
+  String get setupStyleClassic => 'Classique';
 
   @override
-  String get setupStyleModern => 'Modern';
+  String get setupStyleModern => 'Moderne';
 
   @override
-  String get setupRowsClassicHint => 'Compact. More rows on screen at once.';
+  String get setupRowsClassicHint =>
+      'Compact. Plus de rangées visibles à l\'écran.';
 
   @override
-  String get setupRowsModernHint => 'Larger cards with titles underneath.';
+  String get setupRowsModernHint =>
+      'Cartes plus grandes, avec les titres en dessous.';
 
   @override
-  String get setupDetailClassicHint => 'Everything centred in one stack.';
+  String get setupDetailClassicHint =>
+      'Tout est centré, sur une seule colonne.';
 
   @override
   String get setupDetailModernHint =>
-      'Cinematic, with tabs for cast and extras.';
+      'Cinématique, avec des onglets pour la distribution et les bonus.';
 
   @override
-  String get setupPickALook => 'Pick a look';
+  String get setupPickALook => 'Choisissez une apparence';
 
   @override
-  String get setupTourMoreHeader => 'There is more waiting in Settings';
+  String get setupTourMoreHeader =>
+      'D\'autres options vous attendent dans les réglages';
 
   @override
-  String get setupTourBulletRequests => 'Seerr requests';
+  String get setupTourBulletRequests => 'Demandes Seerr';
 
   @override
-  String get setupTourBulletSyncPlay => 'SyncPlay watch parties';
+  String get setupTourBulletSyncPlay => 'Sessions de visionnage SyncPlay';
 
   @override
-  String get setupTourBulletThemes => 'Custom themes';
+  String get setupTourBulletThemes => 'Thèmes personnalisés';
 
   @override
-  String get setupTourBulletDownloads => 'Offline downloads';
+  String get setupTourBulletDownloads => 'Téléchargements hors ligne';
 
   @override
-  String get setupTourBulletMore => 'And plenty more';
+  String get setupTourBulletMore => 'Et bien plus encore';
 
   @override
-  String get runSetupAgain => 'Run setup again';
+  String get runSetupAgain => 'Relancer la configuration';
 }

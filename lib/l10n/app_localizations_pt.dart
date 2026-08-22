@@ -13148,6 +13148,9 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
   String get always => 'Sempre';
 
   @override
+  String get mixedRowsOnly => 'Somente linhas mistas';
+
+  @override
   String get hideUnwatched => 'Ocultar não assistido';
 
   @override

@@ -154,7 +154,11 @@ class SessionRepository {
     }
 
     try {
-      return await switchCurrentSession(serverId: serverId, userId: userId);
+      return await switchCurrentSession(
+        serverId: serverId,
+        userId: userId,
+        validateToken: true,
+      );
     } catch (error) {
       // Secure storage refuses on a machine whose keychain the app cannot
       // reach, and an escape from here leaves the session mid switch forever,
@@ -170,6 +174,7 @@ class SessionRepository {
     required String userId,
     String? username,
     String? password,
+    bool validateToken = false,
   }) async {
     _setState(SessionState.switching);
     _pluginSyncService.resetState();
@@ -210,6 +215,31 @@ class SessionRepository {
     client.accessToken = accessToken;
     client.userId = userId;
 
+    // A stored token can be long dead, and everything past this point fires
+    // authenticated requests in parallel. One rejected probe here keeps a dead
+    // token to a single 401 instead of a burst that trips fail2ban jails.
+    ServerUser? validatedUser;
+    if (validateToken) {
+      try {
+        validatedUser = await client.usersApi.getCurrentUser();
+      } on DioException catch (e) {
+        if (e.response?.statusCode == 401) {
+          _logger.w('Stored access token was rejected. Logging out.');
+          // Point the teardown at this session so it removes the right
+          // stored credentials.
+          _activeServerId = serverId;
+          _activeUserId = userId;
+          await destroyCurrentSession(tokenKnownInvalid: true);
+          appRouter.go(
+            '${Destinations.login}?serverId=$serverId&username=${Uri.encodeComponent(user.name)}',
+          );
+          return false;
+        }
+        // Anything else is the server being unreachable, and startup still
+        // has to reach the offline experience.
+      } catch (_) {}
+    }
+
     setActiveServerClient(client);
     resetUserScopedSingletons();
     setActiveStreamResolver(client);
@@ -241,6 +271,7 @@ class SessionRepository {
       serverId,
       username,
       password,
+      preFetchedServerUser: validatedUser,
     ).catchError((_) {});
 
     if (shouldPrioritizeInitialSync) {
@@ -264,12 +295,14 @@ class SessionRepository {
     PrivateUser user,
     String serverId,
     String? username,
-    String? password,
-  ) async {
+    String? password, {
+    ServerUser? preFetchedServerUser,
+  }) async {
     await _reportRemoteCapabilities(client);
 
     try {
-      final serverUser = await client.usersApi.getCurrentUser();
+      final serverUser =
+          preFetchedServerUser ?? await client.usersApi.getCurrentUser();
       final isAdmin = serverUser.policy?.isAdministrator ?? false;
       final canDownload = serverUser.policy?.enableContentDownloading ?? false;
       final canManageSubtitles =
@@ -300,7 +333,7 @@ class SessionRepository {
     } on DioException catch (e) {
       if (e.response?.statusCode == 401) {
         _logger.w('Access token expired or unauthorized. Logging out.');
-        await destroyCurrentSession();
+        await destroyCurrentSession(tokenKnownInvalid: true);
         appRouter.go(
           '${Destinations.login}?serverId=$serverId&username=${Uri.encodeComponent(user.name)}',
         );
@@ -414,7 +447,10 @@ class SessionRepository {
     return false;
   }
 
-  Future<void> destroyCurrentSession() async {
+  /// [tokenKnownInvalid] is set when the server has already rejected the
+  /// token. The push unregister and the logout both authenticate with it, so
+  /// sending them would only add 401s to the burst that got us here.
+  Future<void> destroyCurrentSession({bool tokenKnownInvalid = false}) async {
     final serverId = _activeServerId;
     final userId = _activeUserId;
 
@@ -423,7 +459,7 @@ class SessionRepository {
 
     // Drop this device's push registration while the session/token is still
     // live, otherwise the plugin keeps sending closed-app pushes after logout.
-    if (PlatformDetection.isMobile) {
+    if (PlatformDetection.isMobile && !tokenKnownInvalid) {
       try {
         if (GetIt.instance.isRegistered<PushMessagingService>()) {
           await GetIt.instance<PushMessagingService>().unregister();
@@ -433,7 +469,7 @@ class SessionRepository {
 
     _pluginSyncService.resetState();
 
-    if (serverId != null) {
+    if (serverId != null && !tokenKnownInvalid) {
       try {
         final client = _clientFactory.getClientIfExists(serverId);
         await client?.authApi.logout();

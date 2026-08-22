@@ -88,8 +88,26 @@ class _MediaDownloadContext {
 }
 
 /// The native engine rejected the server's TLS certificate, so the download
-/// should be retried on the legacy engine, which accepts any certificate.
+/// should be retried on the legacy engine, which honours the user's
+/// self-signed certificate setting.
 class _TlsRejectedException implements Exception {}
+
+/// Whether a native task failure is the server's certificate being refused.
+///
+/// Matched on the description rather than the exception type. Android maps any
+/// IOException to a file system exception, and SSLHandshakeException is one, so
+/// a refused certificate arrives as TaskFileSystemException rather than the
+/// connection exception it reads like.
+bool looksLikeTlsError(bgd.TaskException? exception) {
+  if (exception == null) return false;
+  final description = exception.description.toLowerCase();
+  return description.contains('certificate') ||
+      description.contains('handshake') ||
+      description.contains('ssl') ||
+      description.contains('trust anchor') ||
+      description.contains('cert path') ||
+      description.contains('certpath');
+}
 
 /// The native task never left the queue, so the download should be retried on
 /// the legacy engine. Android runs a queued task only once the network has
@@ -798,15 +816,6 @@ class DownloadService extends ChangeNotifier {
     });
   }
 
-  bool _looksLikeTlsError(bgd.TaskException? exception) {
-    if (exception is! bgd.TaskConnectionException) return false;
-    final description = exception.description.toLowerCase();
-    return description.contains('certificate') ||
-        description.contains('handshake') ||
-        description.contains('ssl') ||
-        description.contains('trust anchor');
-  }
-
   void _onTaskStatus(bgd.TaskStatusUpdate update) {
     final itemId = _itemIdForTask(update.task);
     if (itemId == null) return;
@@ -823,7 +832,7 @@ class DownloadService extends ChangeNotifier {
         _failPluginDownload(ctx, update, statusCode: 404);
       case bgd.TaskStatus.failed:
         final exception = update.exception;
-        if (_looksLikeTlsError(exception)) {
+        if (looksLikeTlsError(exception)) {
           if (!ctx.completer.isCompleted) {
             ctx.completer.completeError(_TlsRejectedException());
           }
@@ -1757,8 +1766,9 @@ class DownloadService extends ChangeNotifier {
           } on _TlsRejectedException {
             // The native engine can't accept this server's certificate,
             // typically self-signed. Remember that and fall back to the
-            // legacy in-process engine, which accepts any certificate, for
-            // this and all future downloads from this server.
+            // legacy in-process engine, which can accept it when the user
+            // allowed self-signed certificates, for this and all future
+            // downloads from this server.
             usePluginEngine = false;
             await _markServerNeedsLegacyTls();
           } on _NeverStartedException {

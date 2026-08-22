@@ -2473,6 +2473,12 @@ class AppLocalizationsCa extends AppLocalizations {
   String get disabled => 'Desactivat';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'Escala a la televisió';
 
   @override

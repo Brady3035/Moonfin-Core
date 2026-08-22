@@ -2459,6 +2459,12 @@ class AppLocalizationsTl extends AppLocalizations {
   String get disabled => 'Naka-disable';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'Scale sa TV';
 
   @override

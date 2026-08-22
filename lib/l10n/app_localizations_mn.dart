@@ -2442,6 +2442,12 @@ class AppLocalizationsMn extends AppLocalizations {
   String get disabled => 'Идэвхгүй';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'Зурагтаар масштаблах';
 
   @override

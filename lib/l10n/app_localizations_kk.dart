@@ -2448,6 +2448,12 @@ class AppLocalizationsKk extends AppLocalizations {
   String get disabled => 'Өшірілген';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'Теледидарда масштабтау';
 
   @override

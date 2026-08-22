@@ -2526,6 +2526,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get disabled => 'Deaktiviert';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'Auf TV skalieren';
 
   @override

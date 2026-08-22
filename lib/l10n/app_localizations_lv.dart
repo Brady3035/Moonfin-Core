@@ -2457,6 +2457,12 @@ class AppLocalizationsLv extends AppLocalizations {
   String get disabled => 'Atspējots';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'Mērogs televizorā';
 
   @override

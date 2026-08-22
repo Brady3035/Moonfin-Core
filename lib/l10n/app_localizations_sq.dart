@@ -2458,6 +2458,12 @@ class AppLocalizationsSq extends AppLocalizations {
   String get disabled => 'Çaktivizuar';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'Shkallë në TV';
 
   @override

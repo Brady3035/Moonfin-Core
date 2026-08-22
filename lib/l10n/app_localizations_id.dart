@@ -2443,6 +2443,12 @@ class AppLocalizationsId extends AppLocalizations {
   String get disabled => 'Dinonaktifkan';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'Skalakan di TV';
 
   @override

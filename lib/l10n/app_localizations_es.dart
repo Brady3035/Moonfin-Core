@@ -2457,6 +2457,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get disabled => 'Desactivado';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'Escalar en TV';
 
   @override

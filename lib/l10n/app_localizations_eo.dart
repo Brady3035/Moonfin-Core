@@ -2439,6 +2439,12 @@ class AppLocalizationsEo extends AppLocalizations {
   String get disabled => 'Malebligita';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'Skalo en televido';
 
   @override

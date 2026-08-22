@@ -2557,6 +2557,12 @@ class AppLocalizationsHr extends AppLocalizations {
   String get disabled => 'Onemogućeno';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'Skala na TV-u';
 
   @override

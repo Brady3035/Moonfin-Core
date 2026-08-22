@@ -2432,6 +2432,12 @@ class AppLocalizationsBn extends AppLocalizations {
   String get disabled => 'নিষ্ক্রিয়';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'টিভিতে স্কেল';
 
   @override

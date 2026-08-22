@@ -2473,6 +2473,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get disabled => 'Désactivé';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'Mise à l’échelle sur TV';
 
   @override

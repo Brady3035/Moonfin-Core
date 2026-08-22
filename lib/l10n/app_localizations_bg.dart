@@ -2451,6 +2451,12 @@ class AppLocalizationsBg extends AppLocalizations {
   String get disabled => 'Изключено';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'Мащаб по телевизията';
 
   @override

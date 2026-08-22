@@ -2455,6 +2455,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get disabled => 'Uitgeschakeld';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'Schaal op tv';
 
   @override

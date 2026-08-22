@@ -2452,6 +2452,12 @@ class AppLocalizationsLt extends AppLocalizations {
   String get disabled => 'Išjungta';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'Mastelis televizoriuje';
 
   @override

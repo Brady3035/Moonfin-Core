@@ -2445,6 +2445,12 @@ class AppLocalizationsAf extends AppLocalizations {
   String get disabled => 'Gedeaktiveer';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'Skaal op TV';
 
   @override

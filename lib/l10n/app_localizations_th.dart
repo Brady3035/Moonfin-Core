@@ -2423,6 +2423,12 @@ class AppLocalizationsTh extends AppLocalizations {
   String get disabled => 'ปิดใช้งาน';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'สเกลบนทีวี';
 
   @override

@@ -2453,6 +2453,12 @@ class AppLocalizationsMl extends AppLocalizations {
   String get disabled => 'പ്രവർത്തനരഹിതം';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'ടിവിയിൽ സ്കെയിൽ';
 
   @override

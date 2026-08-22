@@ -2455,6 +2455,12 @@ class AppLocalizationsMk extends AppLocalizations {
   String get disabled => 'Оневозможено';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'Скала на ТВ';
 
   @override

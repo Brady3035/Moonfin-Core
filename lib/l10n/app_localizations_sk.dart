@@ -2462,6 +2462,12 @@ class AppLocalizationsSk extends AppLocalizations {
   String get disabled => 'Vypnuté';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'Mierka v televízii';
 
   @override

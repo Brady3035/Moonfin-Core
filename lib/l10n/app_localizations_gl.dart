@@ -2469,6 +2469,12 @@ class AppLocalizationsGl extends AppLocalizations {
   String get disabled => 'Desactivado';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'Escala na TV';
 
   @override

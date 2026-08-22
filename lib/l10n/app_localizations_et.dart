@@ -2447,6 +2447,12 @@ class AppLocalizationsEt extends AppLocalizations {
   String get disabled => 'Keelatud';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'Skaala teleris';
 
   @override

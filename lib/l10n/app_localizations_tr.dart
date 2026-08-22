@@ -2437,6 +2437,12 @@ class AppLocalizationsTr extends AppLocalizations {
   String get disabled => 'Devre dışı';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'TV\'de Ölçekle';
 
   @override

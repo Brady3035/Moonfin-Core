@@ -2470,6 +2470,12 @@ class AppLocalizationsEl extends AppLocalizations {
   String get disabled => 'Απενεργοποιημένο';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'Κλίμακα στην τηλεόραση';
 
   @override

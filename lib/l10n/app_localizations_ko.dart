@@ -2392,6 +2392,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String get disabled => '사용 안 함';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'TV의 규모';
 
   @override

@@ -2394,6 +2394,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get disabled => '無効';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'テレビのスケール';
 
   @override

@@ -2447,6 +2447,12 @@ class AppLocalizationsSv extends AppLocalizations {
   String get disabled => 'Inaktiverad';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'Skala på TV';
 
   @override

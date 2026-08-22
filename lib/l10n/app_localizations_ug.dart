@@ -2444,6 +2444,12 @@ class AppLocalizationsUg extends AppLocalizations {
   String get disabled => 'تاقالغان';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'تېلېۋىزوردىكى كۆلەم';
 
   @override

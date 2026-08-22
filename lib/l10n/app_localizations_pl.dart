@@ -2583,6 +2583,12 @@ class AppLocalizationsPl extends AppLocalizations {
   String get disabled => 'Wyłączone';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'Skaluj na TV';
 
   @override

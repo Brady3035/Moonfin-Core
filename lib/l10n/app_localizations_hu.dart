@@ -2455,6 +2455,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get disabled => 'Letiltva';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'Skálázás a tévén';
 
   @override

@@ -2453,6 +2453,12 @@ class AppLocalizationsTe extends AppLocalizations {
   String get disabled => 'నిలిపివేయబడింది';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'టీవీలో స్కేల్';
 
   @override

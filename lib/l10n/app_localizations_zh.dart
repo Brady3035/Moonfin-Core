@@ -2378,6 +2378,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get disabled => '已禁用';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => '在电视上缩放';
 
   @override

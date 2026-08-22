@@ -2457,6 +2457,12 @@ class AppLocalizationsTa extends AppLocalizations {
   String get disabled => 'முடக்கப்பட்டது';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'தொலைக்காட்சியில் அளவிடவும்';
 
   @override

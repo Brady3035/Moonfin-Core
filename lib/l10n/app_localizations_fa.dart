@@ -2427,6 +2427,12 @@ class AppLocalizationsFa extends AppLocalizations {
   String get disabled => 'غیرفعال';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'مقیاس در تلویزیون';
 
   @override

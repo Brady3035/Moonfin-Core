@@ -2452,6 +2452,12 @@ class AppLocalizationsKn extends AppLocalizations {
   String get disabled => 'ನಿಷ್ಕ್ರಿಯಗೊಳಿಸಲಾಗಿದೆ';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'ಟಿವಿಯಲ್ಲಿ ಸ್ಕೇಲ್';
 
   @override

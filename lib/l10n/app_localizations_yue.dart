@@ -2380,6 +2380,12 @@ class AppLocalizationsYue extends AppLocalizations {
   String get disabled => '已停用';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => '在電視上縮放';
 
   @override

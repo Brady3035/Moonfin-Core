@@ -2432,6 +2432,12 @@ class AppLocalizationsHi extends AppLocalizations {
   String get disabled => 'अक्षम';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'टीवी पर स्केल';
 
   @override

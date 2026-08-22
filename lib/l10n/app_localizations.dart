@@ -4414,6 +4414,18 @@ abstract class AppLocalizations {
   /// **'Disabled'**
   String get disabled;
 
+  /// Option: manual
+  ///
+  /// In en, this message translates to:
+  /// **'Manual'**
+  String get manual;
+
+  /// Option: detect the value automatically
+  ///
+  /// In en, this message translates to:
+  /// **'Auto Detect'**
+  String get autoDetect;
+
   /// Refresh rate option: scale on TV
   ///
   /// In en, this message translates to:

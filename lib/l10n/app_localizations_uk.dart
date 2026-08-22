@@ -2462,6 +2462,12 @@ class AppLocalizationsUk extends AppLocalizations {
   String get disabled => 'Вимкнено';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'Шкала на ТБ';
 
   @override

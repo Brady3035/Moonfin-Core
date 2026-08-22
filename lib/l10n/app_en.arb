@@ -3423,6 +3423,14 @@
   "@disabled": {
     "description": "Option: disabled"
   },
+  "manual": "Manual",
+  "@manual": {
+    "description": "Option: manual"
+  },
+  "autoDetect": "Auto Detect",
+  "@autoDetect": {
+    "description": "Option: detect the value automatically"
+  },
   "scaleOnTv": "Scale on TV",
   "@scaleOnTv": {
     "description": "Refresh rate option: scale on TV"

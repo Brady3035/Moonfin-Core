@@ -2455,6 +2455,12 @@ class AppLocalizationsCs extends AppLocalizations {
   String get disabled => 'Vypnuto';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'Měřítko v televizi';
 
   @override

@@ -2445,6 +2445,12 @@ class AppLocalizationsVi extends AppLocalizations {
   String get disabled => 'Đã tắt';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'Cân trên TV';
 
   @override

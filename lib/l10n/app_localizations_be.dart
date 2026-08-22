@@ -2455,6 +2455,12 @@ class AppLocalizationsBe extends AppLocalizations {
   String get disabled => 'Адключана';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'Шкала на ТБ';
 
   @override

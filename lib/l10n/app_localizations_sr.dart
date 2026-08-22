@@ -2558,6 +2558,12 @@ class AppLocalizationsSr extends AppLocalizations {
   String get disabled => 'Онемогућено';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'Скала на ТВ-у';
 
   @override

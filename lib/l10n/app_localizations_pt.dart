@@ -2451,6 +2451,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get disabled => 'Desativado';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'Ajustar na TV';
 
   @override

@@ -2436,6 +2436,12 @@ class AppLocalizationsPa extends AppLocalizations {
   String get disabled => 'ਅਸਮਰੱਥ';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'ਟੀਵੀ \'ਤੇ ਸਕੇਲ';
 
   @override

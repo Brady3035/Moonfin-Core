@@ -2466,6 +2466,12 @@ class AppLocalizationsCy extends AppLocalizations {
   String get disabled => 'Wedi\'i analluogi';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'Graddfa ar y teledu';
 
   @override

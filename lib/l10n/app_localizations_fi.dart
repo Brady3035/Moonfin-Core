@@ -2450,6 +2450,12 @@ class AppLocalizationsFi extends AppLocalizations {
   String get disabled => 'Ei käytössä';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'Asteikko televisiossa';
 
   @override

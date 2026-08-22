@@ -2438,6 +2438,12 @@ class AppLocalizationsSi extends AppLocalizations {
   String get disabled => 'අක්‍රියයි';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'රූපවාහිනියේ පරිමාණය';
 
   @override

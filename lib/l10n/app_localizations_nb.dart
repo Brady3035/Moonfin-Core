@@ -2439,6 +2439,12 @@ class AppLocalizationsNb extends AppLocalizations {
   String get disabled => 'Deaktivert';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'Skala på TV';
 
   @override

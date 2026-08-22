@@ -2458,6 +2458,12 @@ class AppLocalizationsRo extends AppLocalizations {
   String get disabled => 'Dezactivat';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'Scala la televizor';
 
   @override

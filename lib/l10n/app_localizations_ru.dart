@@ -2464,6 +2464,12 @@ class AppLocalizationsRu extends AppLocalizations {
   String get disabled => 'Отключено';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'Масштабирование на ТВ';
 
   @override

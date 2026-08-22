@@ -2457,6 +2457,12 @@ class AppLocalizationsSw extends AppLocalizations {
   String get disabled => 'Imezimwa';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'Kiwango kwenye TV';
 
   @override

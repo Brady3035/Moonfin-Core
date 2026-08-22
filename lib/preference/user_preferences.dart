@@ -1878,7 +1878,7 @@ class UserPreferences extends ChangeNotifier {
 
   static final mediaSegmentAutoHide = EnumPreference(
     key: 'pref_media_segment_auto_hide',
-    defaultValue: MediaSegmentAutoHide.s5,
+    defaultValue: MediaSegmentAutoHide.off,
     values: MediaSegmentAutoHide.values,
   );
 

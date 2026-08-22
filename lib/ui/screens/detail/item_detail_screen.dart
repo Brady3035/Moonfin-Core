@@ -10306,6 +10306,8 @@ class _DownloadButtonState extends State<_DownloadButton> {
           // so show an ellipsis rather than a misleading "0.0 MB".
           final label = progress.isFinalizing
               ? AppLocalizations.of(context).finalizingDownload
+              : progress.isQueued
+              ? AppLocalizations.of(context).queuedDownload
               : progress.progress >= 0
               ? '${(progress.progress * 100).toInt()}%'
               : progress.bytesReceived > 0

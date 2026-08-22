@@ -1101,6 +1101,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get finalizingDownload => '正在整理…';
 
   @override
+  String get queuedDownload => 'Queued';
+
+  @override
   String get downloadAll => '全部下载';
 
   @override

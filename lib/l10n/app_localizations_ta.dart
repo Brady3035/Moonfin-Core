@@ -1145,6 +1145,9 @@ class AppLocalizationsTa extends AppLocalizations {
   String get finalizingDownload => 'Finalizing…';
 
   @override
+  String get queuedDownload => 'Queued';
+
+  @override
   String get downloadAll => 'அனைத்தையும் பதிவிறக்கவும்';
 
   @override

@@ -66,6 +66,122 @@ void main() {
     expect(find.byType(TvFocusHighlight), findsNothing);
   });
 
+  testWidgets('outerPadding overrides the shared tile margins on TV only', (
+    tester,
+  ) async {
+    Future<EdgeInsets> tileOuterPadding() async {
+      final ancestor = find.ancestor(
+        of: find.byType(AnimatedContainer),
+        matching: find.byType(Padding),
+      );
+      expect(ancestor, findsOneWidget);
+      final widget = tester.widget<Padding>(ancestor);
+      return widget.padding.resolve(TextDirection.ltr);
+    }
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: DpadListTile(
+            outerPadding: EdgeInsets.symmetric(vertical: 4),
+            title: Text('Row'),
+          ),
+        ),
+      ),
+    );
+
+    expect(
+      await tileOuterPadding(),
+      const EdgeInsets.symmetric(vertical: 4),
+      reason: 'an explicit outerPadding must replace the default margins',
+    );
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(body: DpadListTile(title: Text('Row'))),
+      ),
+    );
+
+    expect(
+      await tileOuterPadding(),
+      const EdgeInsets.fromLTRB(12, 4, 12, 4),
+      reason: 'without an override the shared settings margins apply',
+    );
+
+    PlatformDetection.setTvMode(false);
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: DpadListTile(
+            outerPadding: EdgeInsets.symmetric(vertical: 4),
+            title: Text('Row'),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.byType(TvFocusHighlight), findsNothing);
+  });
+
+  testWidgets('tile subtitle palette inverts with focus on TV', (
+    tester,
+  ) async {
+    final firstFocus = FocusNode();
+    final secondFocus = FocusNode();
+    addTearDown(firstFocus.dispose);
+    addTearDown(secondFocus.dispose);
+
+    Widget subtitleProbe(List<Color?> observed) => Builder(
+      builder: (context) {
+        observed.add(DefaultTextStyle.of(context).style.color);
+        return const SizedBox.shrink();
+      },
+    );
+
+    final firstColors = <Color?>[];
+    final secondColors = <Color?>[];
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Column(
+            children: [
+              DpadListTile(
+                focusNode: firstFocus,
+                autofocus: true,
+                title: const Text('First'),
+                subtitle: subtitleProbe(firstColors),
+                onTap: () {},
+              ),
+              DpadListTile(
+                focusNode: secondFocus,
+                title: const Text('Second'),
+                subtitle: subtitleProbe(secondColors),
+                onTap: () {},
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(firstFocus.hasFocus, isTrue);
+    expect(firstColors.last!.computeLuminance(), lessThan(0.5));
+    expect(secondColors.last!.computeLuminance(), greaterThan(0.5));
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    await tester.pumpAndSettle();
+
+    expect(secondFocus.hasFocus, isTrue);
+    expect(
+      firstColors.last!.computeLuminance(),
+      greaterThan(0.5),
+      reason: 'the blurred tile returns to the light palette',
+    );
+    expect(secondColors.last!.computeLuminance(), lessThan(0.5));
+  });
+
   testWidgets('D-pad select activates a focused list tile once', (
     tester,
   ) async {

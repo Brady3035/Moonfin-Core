@@ -1206,6 +1206,9 @@ class AppLocalizationsHr extends AppLocalizations {
   String get finalizingDownload => 'Finalizing…';
 
   @override
+  String get queuedDownload => 'Queued';
+
+  @override
   String get downloadAll => 'Preuzmi sve';
 
   @override

@@ -1147,6 +1147,9 @@ class AppLocalizationsCa extends AppLocalizations {
   String get finalizingDownload => 'Finalitzant…';
 
   @override
+  String get queuedDownload => 'Queued';
+
+  @override
   String get downloadAll => 'Descarrega-ho tot';
 
   @override

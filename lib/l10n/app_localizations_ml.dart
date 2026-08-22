@@ -1144,6 +1144,9 @@ class AppLocalizationsMl extends AppLocalizations {
   String get finalizingDownload => 'Finalizing…';
 
   @override
+  String get queuedDownload => 'Queued';
+
+  @override
   String get downloadAll => 'എല്ലാം ഡൗൺലോഡ് ചെയ്യുക';
 
   @override

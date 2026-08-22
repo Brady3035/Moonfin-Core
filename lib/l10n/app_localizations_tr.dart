@@ -1139,6 +1139,9 @@ class AppLocalizationsTr extends AppLocalizations {
   String get finalizingDownload => 'Tamamlanıyor…';
 
   @override
+  String get queuedDownload => 'Queued';
+
+  @override
   String get downloadAll => 'Tümünü İndir';
 
   @override

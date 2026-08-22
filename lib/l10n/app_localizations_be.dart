@@ -1145,6 +1145,9 @@ class AppLocalizationsBe extends AppLocalizations {
   String get finalizingDownload => 'Finalizing…';
 
   @override
+  String get queuedDownload => 'Queued';
+
+  @override
   String get downloadAll => 'Спампаваць усе';
 
   @override

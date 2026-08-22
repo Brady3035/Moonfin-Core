@@ -1144,6 +1144,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get finalizingDownload => 'Finalizing…';
 
   @override
+  String get queuedDownload => 'Queued';
+
+  @override
   String get downloadAll => 'Az összes letöltése';
 
   @override

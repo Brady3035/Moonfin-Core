@@ -1112,6 +1112,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get finalizingDownload => 'Finalizing…';
 
   @override
+  String get queuedDownload => 'Queued';
+
+  @override
   String get downloadAll => '모두 다운로드';
 
   @override

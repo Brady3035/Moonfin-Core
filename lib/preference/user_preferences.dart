@@ -2693,6 +2693,12 @@ class UserPreferences extends ChangeNotifier {
     defaultValue: 2,
   );
 
+  /// The user's download concurrency, clamped to the supported range. The
+  /// app-level scheduler and the native engine's holding queue must both use
+  /// this single resolver so their limits can never drift apart.
+  int get effectiveDownloadConcurrentCount =>
+      get(downloadConcurrentCount).clamp(1, 8).toInt();
+
   static final reportDownloadsAsActivity = Preference(
     key: 'download_report_as_activity',
     defaultValue: true,

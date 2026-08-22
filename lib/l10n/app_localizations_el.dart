@@ -1148,6 +1148,9 @@ class AppLocalizationsEl extends AppLocalizations {
   String get finalizingDownload => 'Ολοκλήρωση…';
 
   @override
+  String get queuedDownload => 'Queued';
+
+  @override
   String get downloadAll => 'Λήψη όλων';
 
   @override

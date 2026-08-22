@@ -2218,6 +2218,12 @@ abstract class AppLocalizations {
   /// **'Finalizing…'**
   String get finalizingDownload;
 
+  /// Status label for a download waiting in the queue for a free download slot
+  ///
+  /// In en, this message translates to:
+  /// **'Queued'**
+  String get queuedDownload;
+
   /// Action button label to download all items
   ///
   /// In en, this message translates to:

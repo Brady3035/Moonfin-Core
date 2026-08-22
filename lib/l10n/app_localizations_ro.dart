@@ -1144,6 +1144,9 @@ class AppLocalizationsRo extends AppLocalizations {
   String get finalizingDownload => 'Finalizare…';
 
   @override
+  String get queuedDownload => 'Queued';
+
+  @override
   String get downloadAll => 'Descărcați toate';
 
   @override

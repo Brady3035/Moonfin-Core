@@ -19,6 +19,7 @@ class DpadListTile extends StatelessWidget {
     this.subtitle,
     this.trailing,
     this.contentPadding,
+    this.outerPadding,
     this.useSettingsIconShell = false,
     this.onTap,
   });
@@ -31,6 +32,10 @@ class DpadListTile extends StatelessWidget {
   final Widget? subtitle;
   final Widget? trailing;
   final EdgeInsetsGeometry? contentPadding;
+
+  /// Overrides the TV focus highlight's outer margin (TV only). Panels that
+  /// want edge-to-edge highlights pass a tighter EdgeInsets.
+  final EdgeInsetsGeometry? outerPadding;
 
   /// Applies the shared bordered settings icon treatment on TV. Non-TV
   /// platforms always retain the native [ListTile] leading widget.
@@ -52,6 +57,7 @@ class DpadListTile extends StatelessWidget {
         },
         child: TvFocusHighlight(
           enabled: enabled,
+          outerPadding: outerPadding,
           builder: (context, focused) => ListTile(
             focusNode: focusNode,
             autofocus: autofocus,

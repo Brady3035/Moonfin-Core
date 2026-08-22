@@ -1142,6 +1142,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get finalizingDownload => 'Afronden…';
 
   @override
+  String get queuedDownload => 'Queued';
+
+  @override
   String get downloadAll => 'Alles downloaden';
 
   @override

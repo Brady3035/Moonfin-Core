@@ -1143,6 +1143,9 @@ class AppLocalizationsTe extends AppLocalizations {
   String get finalizingDownload => 'Finalizing…';
 
   @override
+  String get queuedDownload => 'Queued';
+
+  @override
   String get downloadAll => 'అన్నీ డౌన్‌లోడ్ చేయండి';
 
   @override

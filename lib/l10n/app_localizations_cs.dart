@@ -1148,6 +1148,9 @@ class AppLocalizationsCs extends AppLocalizations {
   String get finalizingDownload => 'Finalizing…';
 
   @override
+  String get queuedDownload => 'Queued';
+
+  @override
   String get downloadAll => 'Stáhnout vše';
 
   @override

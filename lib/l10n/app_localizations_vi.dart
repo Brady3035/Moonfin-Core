@@ -1144,6 +1144,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get finalizingDownload => 'Finalizing…';
 
   @override
+  String get queuedDownload => 'Queued';
+
+  @override
   String get downloadAll => 'Tải xuống tất cả';
 
   @override

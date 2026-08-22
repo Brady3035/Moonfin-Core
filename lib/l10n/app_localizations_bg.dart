@@ -1138,6 +1138,9 @@ class AppLocalizationsBg extends AppLocalizations {
   String get finalizingDownload => 'Finalizing…';
 
   @override
+  String get queuedDownload => 'Queued';
+
+  @override
   String get downloadAll => 'Изтегли всички';
 
   @override

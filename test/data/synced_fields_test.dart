@@ -31,6 +31,7 @@ void main() {
     'collectionsRowSortBy',
     'collectionsRowSortOrder',
     'confirmExit',
+    'crashReportsEnabled',
     'customThemeId',
     'defaultAudioLanguage',
     'defaultDownloadQuality',

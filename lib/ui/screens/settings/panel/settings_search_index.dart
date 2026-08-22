@@ -1518,6 +1518,11 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
       keywords: ['setup', 'wizard', 'first run', 'onboarding', 'quick start'],
     ),
     diagnostics.screen(keywords: ['logs', 'report', 'debug']),
+    diagnostics.leaf(
+      'pref_crash_reports_enabled',
+      'Send crash reports to server',
+      keywords: ['error', 'bug', 'crashes'],
+    ),
   ];
 
   assert(() {

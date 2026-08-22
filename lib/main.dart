@@ -25,6 +25,8 @@ import 'data/services/download_notification_service.dart';
 import 'data/services/push_messaging_service.dart';
 import 'data/services/seerr_notification_service.dart';
 import 'data/services/media_server_client_factory.dart';
+import 'data/services/crash_report_service.dart';
+import 'data/services/log_service.dart';
 import 'data/services/storage_path_service.dart';
 import 'util/scroll_sensitivity_binding.dart';
 import 'util/webview_environment.dart';
@@ -112,6 +114,50 @@ void _configureImageCache() {
 
   imageCache.maximumSize = 600;
   imageCache.maximumSizeBytes = 256 << 20;
+}
+
+Timer? _crashFlushDebounce;
+
+/// Routes uncaught Dart errors into the diagnostic buffer and the pending
+/// crash store. Both handlers keep the console output they replace.
+void _installCrashHandlers() {
+  FlutterError.onError = (details) {
+    FlutterError.presentError(details);
+    _captureCrash(details.exception, details.stack);
+  };
+  WidgetsBinding.instance.platformDispatcher.onError = (error, stack) {
+    // Returning true marks the error handled, which drops the engine's print.
+    debugPrint('Uncaught: $error\n$stack');
+    _captureCrash(error, stack);
+    return true;
+  };
+}
+
+void _captureCrash(Object error, StackTrace? stack) {
+  try {
+    final errorLine = error.toString().split('\n').first;
+    final frameLine = stack?.toString().split('\n').first.trim() ?? '';
+    final signature = '$errorLine @ $frameLine';
+
+    final crashes = GetIt.instance<CrashReportService>();
+    if (!crashes.shouldCapture(signature)) return;
+
+    final logs = GetIt.instance<LogService>();
+    logs.logCrash(
+      'Uncaught: $errorLine',
+      stack == null ? error : '$error\n$stack',
+    );
+    unawaited(crashes.record(signature, logs.exportText(maxEntries: 300)));
+
+    // Debounced so a burst of errors settles before the upload, and so a
+    // crash during startup waits for the session rather than racing it.
+    _crashFlushDebounce?.cancel();
+    _crashFlushDebounce = Timer(const Duration(seconds: 5), () {
+      unawaited(crashes.flushPending());
+    });
+  } catch (_) {
+    // The crash handler must never become a second crash.
+  }
 }
 
 Future<void> _restoreWindowGeometry() async {
@@ -735,6 +781,7 @@ void main() async {
   }
 
   await configureDependencies();
+  _installCrashHandlers();
 
   // Registered before runApp so a CarPlay-only launch (no window scene, no
   // widgets) can browse and start playback.

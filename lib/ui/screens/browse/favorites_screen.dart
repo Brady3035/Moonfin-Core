@@ -420,7 +420,9 @@ class _FavoritesScreenState extends State<FavoritesScreen> with GridFocusNodeMix
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              _vm.errorMessage ?? AppLocalizations.of(context).failedToLoadFavorites,
+              _vm.isNetworkError
+                  ? AppLocalizations.of(context).unableToConnectToServer
+                  : _vm.errorMessage ?? AppLocalizations.of(context).failedToLoadFavorites,
               style: const TextStyle(color: Colors.white),
             ),
             const SizedBox(height: 16),

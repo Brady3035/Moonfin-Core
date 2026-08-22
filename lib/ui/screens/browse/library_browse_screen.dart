@@ -1014,7 +1014,9 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen>
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      _vm.errorMessage ?? AppLocalizations.of(context).failedToLoadLibrary,
+                      _vm.isNetworkError
+                          ? AppLocalizations.of(context).unableToConnectToServer
+                          : _vm.errorMessage ?? AppLocalizations.of(context).failedToLoadLibrary,
                       style: TextStyle(
                         color: _vm.isBookLibrary ? const Color(0xFFF4E6D5) : Colors.white,
                       ),

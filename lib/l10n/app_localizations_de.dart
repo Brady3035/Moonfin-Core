@@ -231,7 +231,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get oledModeSubtitle =>
-      'Deepen blacks and enrich artwork. Best on OLED displays.';
+      'Tiefere Schwarztöne und sattere Grafiken. Besonders gut auf OLED-Displays.';
 
   @override
   String get oledModeSubtle => 'Subtil';
@@ -1205,7 +1205,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get downloaded => 'Heruntergeladen';
 
   @override
-  String get finalizingDownload => 'Finalizing…';
+  String get finalizingDownload => 'Fertigstellung…';
 
   @override
   String get downloadAll => 'Alle herunterladen';
@@ -1250,7 +1250,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String failedToDeleteItemWithError(String error) {
-    return 'Deletion operation failed with the following error: $error';
+    return 'Löschen fehlgeschlagen mit folgendem Fehler: $error';
   }
 
   @override
@@ -2270,7 +2270,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings => 'Einstellungen';
 
   @override
-  String get settingsSearchHint => 'Search settings';
+  String get settingsSearchHint => 'Einstellungen durschsuchen';
 
   @override
   String get authentication => 'Authentifizierung';
@@ -8764,6 +8764,18 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get emulatorCoreDownloadFailed =>
       'Could not download the core. Check your connection and try again.';
+
+  @override
+  String emulatorCoreResetSettings(String system) {
+    return 'Reset $system settings to defaults';
+  }
+
+  @override
+  String get emulatorCoreSettingsReset => 'Settings reset to defaults.';
+
+  @override
+  String get emulatorCoreResetSettingsFailed =>
+      'Could not reset settings. Check your connection and try again.';
 
   @override
   String get downloadedGames => 'Downloaded Games';

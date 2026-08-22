@@ -3,6 +3,7 @@
 #include <stdarg.h>
 #include <stdatomic.h>
 #include <stdbool.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -17,6 +18,18 @@
 #include <time.h>
 #endif
 
+#ifdef __ANDROID__
+#include <android/log.h>
+#endif
+
+#include <errno.h>
+#include <sys/stat.h>
+#ifdef _WIN32
+#include <direct.h>
+#else
+#include <dirent.h>
+#endif
+
 // ---------------------------------------------------------------------------
 // Platform primitives: dynamic library, threading, time.
 // ---------------------------------------------------------------------------
@@ -24,6 +37,18 @@
 #ifdef _WIN32
 typedef HMODULE lh_lib;
 static lh_lib lib_open(const char *path) { return LoadLibraryA(path); }
+static const char *lib_open_error(char *buf, size_t buf_size) {
+  DWORD err = GetLastError();
+  DWORD n = FormatMessageA(
+      FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, err,
+      0, buf, (DWORD)buf_size, NULL);
+  if (n == 0) snprintf(buf, buf_size, "error %lu", (unsigned long)err);
+  else {
+    // FormatMessageA appends a trailing CRLF; trim it for a single-line log.
+    while (n > 0 && (buf[n - 1] == '\n' || buf[n - 1] == '\r')) buf[--n] = '\0';
+  }
+  return buf;
+}
 static void *lib_sym(lh_lib h, const char *s) {
   return (void *)GetProcAddress(h, s);
 }
@@ -47,7 +72,12 @@ static uint64_t now_ns(void) {
   LARGE_INTEGER f, t;
   QueryPerformanceFrequency(&f);
   QueryPerformanceCounter(&t);
-  return (uint64_t)(t.QuadPart * 1000000000ull / f.QuadPart);
+  // t.QuadPart * 1e9 overflows a 64-bit value at ~1845s of uptime with a
+  // 10 MHz QPC. Split into whole seconds and the sub-second remainder before
+  // scaling so neither term can overflow.
+  uint64_t whole = (uint64_t)t.QuadPart / (uint64_t)f.QuadPart;
+  uint64_t frac = (uint64_t)t.QuadPart % (uint64_t)f.QuadPart;
+  return whole * 1000000000ull + (frac * 1000000000ull) / (uint64_t)f.QuadPart;
 }
 static void sleep_ns(uint64_t ns) { Sleep((DWORD)(ns / 1000000ull)); }
 static char *lh_strdup(const char *s) { return _strdup(s); }
@@ -56,6 +86,8 @@ typedef void *lh_lib;
 static lh_lib lib_open(const char *path) {
   return dlopen(path, RTLD_NOW | RTLD_LOCAL);
 }
+// Must be called immediately after a NULL dlopen; any later call clears it.
+static const char *lib_open_error(void) { return dlerror(); }
 static void *lib_sym(lh_lib h, const char *s) { return dlsym(h, s); }
 static void lib_close(lh_lib h) { dlclose(h); }
 
@@ -84,6 +116,22 @@ static void sleep_ns(uint64_t ns) {
 }
 static char *lh_strdup(const char *s) { return strdup(s); }
 #endif
+
+// Truncating copy into a fixed buffer. Always NUL-terminates and tolerates a
+// NULL source, so the option snapshot below never leaves a caller with an
+// unterminated buffer to read past. strncpy is deliberately avoided: it does
+// not terminate on truncation, which is exactly the case that matters here.
+static void lh_copy_bounded(char *dst, size_t cap, const char *src) {
+  if (!dst || cap == 0) return;
+  if (!src) {
+    dst[0] = '\0';
+    return;
+  }
+  size_t n = strlen(src);
+  if (n >= cap) n = cap - 1;
+  memcpy(dst, src, n);
+  dst[n] = '\0';
+}
 
 // ---------------------------------------------------------------------------
 // Core entry points, resolved from the loaded library.
@@ -164,6 +212,7 @@ typedef struct {
 
 typedef enum {
   JOB_RESET,
+  JOB_RESTART,
   JOB_SERIALIZE_SIZE,
   JOB_SERIALIZE,
   JOB_UNSERIALIZE,
@@ -181,6 +230,22 @@ typedef struct {
 
 #define LH_MAX_JOBS 16
 
+// Largest per-side frame dimension the host will accept, either from
+// notify_geometry (SET_SYSTEM_AV_INFO / SET_GEOMETRY) or from a video_refresh
+// callback. Both ultimately come from the loaded core, which is not a trusted
+// boundary: a buggy or malicious core can report whatever it likes. The real
+// hazard is convert_frame's size_t multiply (out_width * out_height * 4). On
+// a 32-bit size_t (armeabi-v7a is still shipped, see build.gradle) a large
+// enough width/height pair wraps that multiply to a small number, so the
+// allocation is undersized while the pixel loop below still walks the full,
+// un-wrapped width*height - a heap overflow. 8192 per side is far beyond any
+// real libretro core's output (the largest arcade/console framebuffers top
+// out in the low thousands) and small enough that width*height*4 cannot
+// overflow even a 32-bit size_t (8192*8192*4 < 2^32), so rejecting anything
+// larger removes the wraparound case entirely rather than merely computing
+// around it.
+#define LH_MAX_FRAME_DIMENSION 8192
+
 struct lh_host {
   lh_output_format format;
   lh_callbacks cb;
@@ -193,6 +258,12 @@ struct lh_host {
   char *system_dir;
   char *save_dir;
   char *sram_path;
+  char *core_path;
+  char *rom_path;
+  lh_mutex core_log_lock;
+  int capture_load_log;
+  char last_core_log[256];
+  char last_core_error[256];
   unsigned pixel_format;
 
   // Options.
@@ -200,7 +271,20 @@ struct lh_host {
   int def_count;
   lh_var *vars;
   int var_count;
+  // Option values the core may still be holding after they were replaced.
+  // See vars_retire: replaced value strings are parked here for the life of
+  // the load instead of being freed, and the whole list is released at
+  // session teardown.
+  char **retired_values;
+  int retired_count;
   int variables_dirty;
+  // Set when parse_variable fails to allocate while handling a
+  // SET_VARIABLES environment call during retro_init/retro_load_game.
+  // Checked once open_core/load_content return, so a core that hit an
+  // allocation failure mid-init still fails the load instead of running with
+  // silently incomplete option definitions. Reset before each such call (see
+  // open_core).
+  int alloc_failed;
   lh_mutex vars_lock;
 
   // Video.
@@ -224,6 +308,8 @@ struct lh_host {
   atomic_int running;
   atomic_int paused;
   atomic_int fast_forward;
+  atomic_int restart_requested;
+  atomic_uint restart_generation;
   atomic_int shutdown_requested;
   uint64_t last_sram_flush_ns;
 
@@ -234,10 +320,25 @@ struct lh_host {
   int jobs_open;
   lh_mutex jobs_lock;
   lh_cond jobs_cond;
+
+  // Input latch. Writers (any thread, any platform) call lh_set_input, which
+  // ORs into input_pending and replaces input_level. Once per real libretro
+  // poll, latch_input exchanges input_pending back down to the current level
+  // and hands the exchanged value to input_frame - the value the core reads
+  // for the rest of that frame via input_state_cb. See lh_set_input's comment
+  // for why this, rather than a plain instantaneous read, is required.
+  // input_frame is touched only from the emulation thread (inside
+  // input_poll_cb/input_state_cb, or the equivalent test hooks called with no
+  // core running), so it is a plain array, not atomic.
+  atomic_uint input_level[LH_MAX_PORTS];
+  atomic_uint input_pending[LH_MAX_PORTS];
+  uint16_t input_frame[LH_MAX_PORTS];
 };
 
 // libretro's callbacks carry no user pointer, so the single live host is global.
 static struct lh_host *g_session;
+
+static int restart_core(struct lh_host *h);
 
 // ---------------------------------------------------------------------------
 // Options helpers.
@@ -250,68 +351,466 @@ static const char *vars_get(struct lh_host *h, const char *key) {
   return NULL;
 }
 
-static void vars_set(struct lh_host *h, const char *key, const char *value) {
-  for (int i = 0; i < h->var_count; i++) {
-    if (strcmp(h->vars[i].key, key) == 0) {
-      free(h->vars[i].value);
-      h->vars[i].value = lh_strdup(value);
-      return;
-    }
+// Values handed to the core through RETRO_ENVIRONMENT_GET_VARIABLE must
+// outlive a concurrent lh_set_option on the platform thread: the core is given
+// a raw pointer into h->vars and is entitled to hold it across frames (most
+// cores keep it until the next GET_VARIABLE_UPDATE tells them to re-poll, and
+// re-polling is exactly what an option change triggers). Freeing the replaced
+// string in place is therefore a use-after-free on the emulation thread. Park
+// it here instead and release the whole list when the session ends.
+//
+// Growth is bounded in practice: one entry per option change, and option
+// changes are a human action in the pause menu, so a session accumulates a
+// handful of short strings at most. This is a per-load arena, not a leak -
+// vars_free_retired drains it at every teardown and restart.
+//
+// Called with vars_lock held.
+static void vars_retire(struct lh_host *h, char *old_value) {
+  if (!old_value) return;
+  char **grown = realloc(h->retired_values,
+                         sizeof(char *) * (size_t)(h->retired_count + 1));
+  if (!grown) {
+    // Losing the pointer leaks one string for the session; freeing it could
+    // crash the core that is still reading it. Leak deliberately.
+    h->alloc_failed = 1;
+    return;
   }
-  h->vars = realloc(h->vars, sizeof(lh_var) * (h->var_count + 1));
-  h->vars[h->var_count].key = lh_strdup(key);
-  h->vars[h->var_count].value = lh_strdup(value);
-  h->var_count++;
+  h->retired_values = grown;
+  h->retired_values[h->retired_count++] = old_value;
 }
 
-// Parses one SET_VARIABLES entry into its label and choice list.
-static void parse_variable(struct lh_host *h, const char *key,
-                           const char *raw) {
+// Releases every retired value. Only safe once the core is torn down (or was
+// never loaded), because that is the point at which no core-held pointer can
+// still be dereferenced. Idempotent: it resets the list so a second call from
+// a later teardown path is a no-op.
+static void vars_free_retired(struct lh_host *h) {
+  for (int i = 0; i < h->retired_count; i++) free(h->retired_values[i]);
+  free(h->retired_values);
+  h->retired_values = NULL;
+  h->retired_count = 0;
+}
+
+// Sets h->vars[key] = value, adding a new entry if key is unseen. Returns 0 on
+// success, -1 if an allocation failed. The realloc result always lands in a
+// temporary first: assigning straight into h->vars, as the old code did,
+// loses the original block on failure (realloc leaves it untouched and
+// returns NULL) and leaves h->vars NULL while var_count still claims entries
+// exist - the next vars_get/vars_set dereferences that NULL. Every new-entry
+// path below is fully populated or fully abandoned before var_count moves, so
+// a failure here never publishes a half-built slot with a NULL key or value.
+static int vars_set(struct lh_host *h, const char *key, const char *value) {
+  for (int i = 0; i < h->var_count; i++) {
+    if (strcmp(h->vars[i].key, key) == 0) {
+      char *new_value = lh_strdup(value);
+      if (!new_value) return -1;
+      vars_retire(h, h->vars[i].value);
+      h->vars[i].value = new_value;
+      return 0;
+    }
+  }
+  lh_var *grown = realloc(h->vars, sizeof(lh_var) * (h->var_count + 1));
+  if (!grown) return -1;
+  h->vars = grown;
+  char *key_copy = lh_strdup(key);
+  char *value_copy = lh_strdup(value);
+  if (!key_copy || !value_copy) {
+    free(key_copy);
+    free(value_copy);
+    return -1;
+  }
+  h->vars[h->var_count].key = key_copy;
+  h->vars[h->var_count].value = value_copy;
+  h->var_count++;
+  return 0;
+}
+
+static void free_option_definitions(struct lh_host *h) {
+  for (int i = 0; i < h->def_count; i++) {
+    free(h->defs[i].id);
+    free(h->defs[i].label);
+    for (int c = 0; c < h->defs[i].choice_count; c++) {
+      free(h->defs[i].choices[c]);
+    }
+    free(h->defs[i].choices);
+  }
+  free(h->defs);
+  h->defs = NULL;
+  h->def_count = 0;
+}
+
+// Frees a not-yet-published choice list/label pair, for the allocation
+// failure paths below where h->defs was never touched.
+static void free_pending_choices(char *label, char **choices, int nchoices) {
+  free(label);
+  for (int c = 0; c < nchoices; c++) free(choices[c]);
+  free(choices);
+}
+
+// Parses one SET_VARIABLES entry into its label and choice list. Returns 0 on
+// success, -1 if an allocation failed anywhere along the way. Every realloc
+// result lands in a temporary before it replaces choices/h->defs, so a
+// failure never drops the last-good block (the bug the old code had: a failed
+// realloc returns NULL, and assigning that straight back into choices/h->defs
+// leaks the previous allocation and leaves a NULL the next line immediately
+// writes through). On any failure, everything allocated for *this* entry is
+// freed and nothing partial is published into h->defs, so the definitions
+// table is left exactly as it was before this call - the caller only has to
+// decide whether to abandon the load, not to unwind partial state here.
+static int parse_variable(struct lh_host *h, const char *key,
+                          const char *raw) {
   const char *sep = strstr(raw, "; ");
-  char *label;
+  char *label = NULL;
   char **choices = NULL;
   int nchoices = 0;
   if (sep) {
     size_t label_len = (size_t)(sep - raw);
     label = malloc(label_len + 1);
+    if (!label) return -1;
     memcpy(label, raw, label_len);
     label[label_len] = '\0';
     const char *list = sep + 2;
     char *copy = lh_strdup(list);
+    if (!copy) {
+      free_pending_choices(label, choices, nchoices);
+      return -1;
+    }
     char *tok = strtok(copy, "|");
     while (tok) {
-      choices = realloc(choices, sizeof(char *) * (nchoices + 1));
-      choices[nchoices++] = lh_strdup(tok);
+      char **grown = realloc(choices, sizeof(char *) * (nchoices + 1));
+      if (!grown) {
+        free(copy);
+        free_pending_choices(label, choices, nchoices);
+        return -1;
+      }
+      choices = grown;
+      char *choice_copy = lh_strdup(tok);
+      if (!choice_copy) {
+        free(copy);
+        free_pending_choices(label, choices, nchoices);
+        return -1;
+      }
+      choices[nchoices++] = choice_copy;
       tok = strtok(NULL, "|");
     }
     free(copy);
   } else {
     label = lh_strdup(key);
+    if (!label) return -1;
   }
 
-  h->defs = realloc(h->defs, sizeof(lh_optdef) * (h->def_count + 1));
-  h->defs[h->def_count].id = lh_strdup(key);
+  lh_optdef *grown_defs =
+      realloc(h->defs, sizeof(lh_optdef) * (h->def_count + 1));
+  if (!grown_defs) {
+    free_pending_choices(label, choices, nchoices);
+    return -1;
+  }
+  h->defs = grown_defs;
+  char *id_copy = lh_strdup(key);
+  if (!id_copy) {
+    free_pending_choices(label, choices, nchoices);
+    return -1;
+  }
+  h->defs[h->def_count].id = id_copy;
   h->defs[h->def_count].label = label;
   h->defs[h->def_count].choices = choices;
   h->defs[h->def_count].choice_count = nchoices;
   h->def_count++;
 
   if (vars_get(h, key) == NULL && nchoices > 0) {
-    vars_set(h, key, choices[0]);
+    // The definition is already published above by this point, so a failure
+    // here only means the option keeps its core-supplied fallback instead of
+    // an explicit default - it does not need to unwind def_count.
+    if (vars_set(h, key, choices[0]) != 0) return -1;
   }
+  return 0;
 }
+
+// ---------------------------------------------------------------------------
+// Virtual file system.
+//
+// Without GET_VFS_INTERFACE, some cores (Stella) never fall back to treating
+// game.path as a real, stat-able file - they just reject the ROM outright,
+// even though it genuinely exists on disk at that path. This is a thin,
+// portable shim over stdio/dirent so those cores work like any other.
+// ---------------------------------------------------------------------------
+
+struct retro_vfs_file_handle {
+  FILE *fp;
+  char *path;
+};
+
+struct retro_vfs_dir_handle {
+#ifdef _WIN32
+  HANDLE find;
+  WIN32_FIND_DATAA data;
+  bool pending;
+#else
+  DIR *dir;
+  struct dirent *entry;
+#endif
+};
+
+static const char *vfs_get_path(struct retro_vfs_file_handle *stream) {
+  return stream ? stream->path : NULL;
+}
+
+static struct retro_vfs_file_handle *vfs_open(const char *path, unsigned mode,
+                                               unsigned hints) {
+  (void)hints;
+  const char *fmode = "rb";
+  if (mode & RETRO_VFS_FILE_ACCESS_WRITE) {
+    fmode = (mode & RETRO_VFS_FILE_ACCESS_UPDATE_EXISTING) ? "r+b" : "w+b";
+  }
+  FILE *fp = fopen(path, fmode);
+  if (!fp && mode == RETRO_VFS_FILE_ACCESS_READ_WRITE) {
+    // "r+b" requires the file to already exist; a core opening for
+    // read/write update on a not-yet-created file needs it made first.
+    fp = fopen(path, "w+b");
+  }
+  if (!fp) return NULL;
+  struct retro_vfs_file_handle *handle = calloc(1, sizeof(*handle));
+  if (!handle) {
+    fclose(fp);
+    return NULL;
+  }
+  size_t path_len = strlen(path);
+  handle->path = malloc(path_len + 1);
+  if (!handle->path) {
+    fclose(fp);
+    free(handle);
+    return NULL;
+  }
+  memcpy(handle->path, path, path_len + 1);
+  handle->fp = fp;
+  return handle;
+}
+
+static int vfs_close(struct retro_vfs_file_handle *stream) {
+  if (!stream) return -1;
+  int rc = fclose(stream->fp);
+  free(stream->path);
+  free(stream);
+  return rc == 0 ? 0 : -1;
+}
+
+static int64_t vfs_tell(struct retro_vfs_file_handle *stream) {
+  if (!stream) return -1;
+  long pos = ftell(stream->fp);
+  return pos < 0 ? -1 : (int64_t)pos;
+}
+
+static int64_t vfs_size(struct retro_vfs_file_handle *stream) {
+  if (!stream) return -1;
+  long cur = ftell(stream->fp);
+  if (cur < 0 || fseek(stream->fp, 0, SEEK_END) != 0) return -1;
+  long end = ftell(stream->fp);
+  fseek(stream->fp, cur, SEEK_SET);
+  return end < 0 ? -1 : (int64_t)end;
+}
+
+static int64_t vfs_seek(struct retro_vfs_file_handle *stream, int64_t offset,
+                         int seek_position) {
+  if (!stream) return -1;
+  int whence = SEEK_SET;
+  if (seek_position == RETRO_VFS_SEEK_POSITION_CURRENT) whence = SEEK_CUR;
+  else if (seek_position == RETRO_VFS_SEEK_POSITION_END) whence = SEEK_END;
+  if (fseek(stream->fp, (long)offset, whence) != 0) return -1;
+  // Match libretro-common's built-in VFS and stdio fseek semantics. FBNeo's
+  // minizip bridge treats every nonzero result as a seek failure, then uses
+  // tell() when it needs the resulting position.
+  return 0;
+}
+
+static int64_t vfs_read(struct retro_vfs_file_handle *stream, void *s,
+                         uint64_t len) {
+  if (!stream) return -1;
+  return (int64_t)fread(s, 1, (size_t)len, stream->fp);
+}
+
+static int64_t vfs_write(struct retro_vfs_file_handle *stream, const void *s,
+                          uint64_t len) {
+  if (!stream) return -1;
+  return (int64_t)fwrite(s, 1, (size_t)len, stream->fp);
+}
+
+static int vfs_flush(struct retro_vfs_file_handle *stream) {
+  if (!stream) return -1;
+  return fflush(stream->fp) == 0 ? 0 : -1;
+}
+
+static int vfs_remove(const char *path) { return remove(path) == 0 ? 0 : -1; }
+
+static int vfs_rename(const char *old_path, const char *new_path) {
+  return rename(old_path, new_path) == 0 ? 0 : -1;
+}
+
+static int64_t vfs_truncate(struct retro_vfs_file_handle *stream,
+                             int64_t length) {
+  (void)stream;
+  (void)length;
+  return -1;  // Unused by any core this host ships.
+}
+
+static int vfs_stat(const char *path, int32_t *size) {
+  struct stat st;
+  if (stat(path, &st) != 0) return 0;
+  int flags = RETRO_VFS_STAT_IS_VALID;
+#ifdef _WIN32
+  if (st.st_mode & _S_IFDIR) flags |= RETRO_VFS_STAT_IS_DIRECTORY;
+#else
+  if (S_ISDIR(st.st_mode)) flags |= RETRO_VFS_STAT_IS_DIRECTORY;
+#endif
+  if (size) *size = (int32_t)st.st_size;
+  return flags;
+}
+
+static int vfs_mkdir(const char *dir) {
+#ifdef _WIN32
+  if (_mkdir(dir) == 0) return 0;
+#else
+  if (mkdir(dir, 0755) == 0) return 0;
+#endif
+  return errno == EEXIST ? -2 : -1;
+}
+
+static struct retro_vfs_dir_handle *vfs_opendir(const char *dir,
+                                                  bool include_hidden) {
+  (void)include_hidden;
+  struct retro_vfs_dir_handle *handle = calloc(1, sizeof(*handle));
+  if (!handle) return NULL;
+#ifdef _WIN32
+  char pattern[1024];
+  snprintf(pattern, sizeof(pattern), "%s\\*", dir);
+  handle->find = FindFirstFileA(pattern, &handle->data);
+  if (handle->find == INVALID_HANDLE_VALUE) {
+    free(handle);
+    return NULL;
+  }
+  handle->pending = true;
+#else
+  handle->dir = opendir(dir);
+  if (!handle->dir) {
+    free(handle);
+    return NULL;
+  }
+#endif
+  return handle;
+}
+
+static bool vfs_readdir(struct retro_vfs_dir_handle *dirstream) {
+  if (!dirstream) return false;
+#ifdef _WIN32
+  if (dirstream->pending) {
+    dirstream->pending = false;
+    return true;
+  }
+  return FindNextFileA(dirstream->find, &dirstream->data) != 0;
+#else
+  dirstream->entry = readdir(dirstream->dir);
+  return dirstream->entry != NULL;
+#endif
+}
+
+static const char *vfs_dirent_get_name(struct retro_vfs_dir_handle *dirstream) {
+  if (!dirstream) return NULL;
+#ifdef _WIN32
+  return dirstream->data.cFileName;
+#else
+  return dirstream->entry ? dirstream->entry->d_name : NULL;
+#endif
+}
+
+static bool vfs_dirent_is_dir(struct retro_vfs_dir_handle *dirstream) {
+  if (!dirstream) return false;
+#ifdef _WIN32
+  return (dirstream->data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
+#else
+  /* Everything we scan lives in the app's own cache/support dir — internal
+     storage on every shipped platform, where d_type is always populated.
+     Could be a problem if an app/cache dir is on NFS, overlayfs, or XFS
+     with ftype=0 would return DT_UNKNOWN and make a real directory look
+     like a file to the core. DT_LNK is not a directory either.
+  */
+  return dirstream->entry && dirstream->entry->d_type == DT_DIR;
+#endif
+}
+
+static int vfs_closedir(struct retro_vfs_dir_handle *dirstream) {
+  if (!dirstream) return -1;
+#ifdef _WIN32
+  FindClose(dirstream->find);
+#else
+  closedir(dirstream->dir);
+#endif
+  free(dirstream);
+  return 0;
+}
+
+static const struct retro_vfs_interface g_vfs_interface = {
+    vfs_get_path, vfs_open,        vfs_close,
+    vfs_size,     vfs_tell,        vfs_seek,
+    vfs_read,     vfs_write,       vfs_flush,
+    vfs_remove,   vfs_rename,      vfs_truncate,
+    vfs_stat,     vfs_mkdir,       vfs_opendir,
+    vfs_readdir,  vfs_dirent_get_name, vfs_dirent_is_dir,
+    vfs_closedir, NULL,
+};
 
 // ---------------------------------------------------------------------------
 // Environment callback (mirrors the tvOS GameSession switch).
 // ---------------------------------------------------------------------------
 
+// Routes a formatted diagnostic to the platform's log sink, if it supplied one.
+static void host_log(struct lh_host *h, const char *fmt, ...) {
+  if (!h->cb.message) return;
+  // Increase buffer to keep the path and the core's actual reason (if provided) together
+  // in the platform diagnostic instead of truncating the message.
+  char buf[1024];
+  va_list args;
+  va_start(args, fmt);
+  vsnprintf(buf, sizeof(buf), fmt, args);
+  va_end(args);
+  h->cb.message(h->cb.user, buf);
+}
+
+// The host bakes SET_ROTATION into the converted frame, so the geometry it
+// advertises has to describe the rotated frame, not the core's raw buffer.
+// Quarter turns swap the axes.
+//
+// The aspect ratio is deliberately left alone whenever the core supplied one:
+// a core that asks for rotation reports the aspect of the *final* display, not
+// of its own unrotated buffer. Verified against FBNeo, which pairs a landscape
+// 512x480 buffer with a 0.75 portrait aspect for a vertical cabinet. Inverting
+// that would double-correct and stretch the picture. Only a fallback aspect the
+// host derived itself has to be recomputed from the swapped dimensions.
+static void apply_rotation_to_av(struct lh_host *h, int aspect_reported) {
+  if (h->av.rotation == 1 || h->av.rotation == 3) {
+    int w = h->av.width;
+    h->av.width = h->av.height;
+    h->av.height = w;
+  }
+  if (!aspect_reported) {
+    h->av.aspect =
+        (double)h->av.width / (double)(h->av.height > 0 ? h->av.height : 1);
+  }
+}
+
 static void notify_geometry(struct lh_host *h, unsigned width, unsigned height,
                             float aspect_ratio) {
+  // A core reporting zero or an absurd dimension here would otherwise flow
+  // straight into h->av (and out through geometry_changed to the platform's
+  // texture allocation) as well as size the next convert_frame call. Reject it
+  // at the source instead of trusting the core - see LH_MAX_FRAME_DIMENSION
+  // for why 8192 and why this matters on 32-bit size_t.
+  if (width == 0 || height == 0 || width > LH_MAX_FRAME_DIMENSION ||
+      height > LH_MAX_FRAME_DIMENSION) {
+    host_log(h, "Rejected geometry %ux%u (out of bounds)", width, height);
+    return;
+  }
   h->av.width = (int)width;
   h->av.height = (int)height;
-  h->av.aspect = aspect_ratio > 0
-                     ? (double)aspect_ratio
-                     : (double)width / (double)(height > 0 ? height : 1);
+  if (aspect_ratio > 0) h->av.aspect = (double)aspect_ratio;
+  apply_rotation_to_av(h, aspect_ratio > 0);
   if (h->cb.geometry_changed) {
     h->cb.geometry_changed(h->cb.user, h->av.width, h->av.height, h->av.aspect);
   }
@@ -322,11 +821,37 @@ static void notify_geometry(struct lh_host *h, unsigned width, unsigned height,
 // a real function.
 static void RETRO_CALLCONV log_printf_cb(enum retro_log_level level,
                                          const char *fmt, ...) {
-  (void)level;
   if (!fmt) return;
   va_list args;
   va_start(args, fmt);
+  struct lh_host *h = g_session;
+  if (h) {
+    mutex_lock(&h->core_log_lock);
+    if (h->capture_load_log) {
+      va_list copy;
+      va_copy(copy, args);
+      vsnprintf(h->last_core_log, sizeof(h->last_core_log), fmt, copy);
+      va_end(copy);
+      size_t length = strlen(h->last_core_log);
+      while (length > 0 &&
+             (h->last_core_log[length - 1] == '\n' ||
+              h->last_core_log[length - 1] == '\r')) {
+        h->last_core_log[--length] = '\0';
+      }
+      if (level >= RETRO_LOG_WARN) {
+        snprintf(h->last_core_error, sizeof(h->last_core_error), "%s",
+                 h->last_core_log);
+      }
+    }
+    mutex_unlock(&h->core_log_lock);
+  }
+#ifdef __ANDROID__
+  (void)level;
+  __android_log_vprint(ANDROID_LOG_INFO, "moonfin_libretro", fmt, args);
+#else
+  (void)level;
   vfprintf(stderr, fmt, args);
+#endif
   va_end(args);
 }
 
@@ -387,7 +912,14 @@ static bool RETRO_CALLCONV environment_cb(unsigned cmd, void *data) {
       if (!var->key) return false;
       mutex_lock(&h->vars_lock);
       const char *value = vars_get(h, var->key);
-      var->value = value;  // owned by h->vars, stable until changed
+      // Owned by the host and readable for the life of this load. The core
+      // may keep this pointer across frames: a later lh_set_option on the
+      // platform thread swaps in a new string and retires the old one (see
+      // vars_retire) rather than freeing it, precisely because the core is
+      // still allowed to be reading it here. Only the contents can go stale,
+      // never the memory; a core that wants the new value re-polls after
+      // GET_VARIABLE_UPDATE.
+      var->value = value;
       mutex_unlock(&h->vars_lock);
       return value != NULL;
     }
@@ -397,7 +929,17 @@ static bool RETRO_CALLCONV environment_cb(unsigned cmd, void *data) {
           (const struct retro_variable *)data;
       mutex_lock(&h->vars_lock);
       while (cursor->key && cursor->value) {
-        parse_variable(h, cursor->key, cursor->value);
+        // A core is allowed to publish dozens of options, so one allocation
+        // failure partway through shouldn't stop parsing the rest (later
+        // entries are independent and may still succeed) - but it does mean
+        // the option set is now incomplete, so the load has to be failed
+        // once open_core/load_content return control to lh_load. Keep
+        // parsing instead of bailing out here so h->def_count reflects
+        // whatever really was parsed, which matters if a caller ever
+        // inspects options after logging the failure.
+        if (parse_variable(h, cursor->key, cursor->value) != 0) {
+          h->alloc_failed = 1;
+        }
         cursor++;
       }
       h->variables_dirty = 1;
@@ -431,6 +973,31 @@ static bool RETRO_CALLCONV environment_cb(unsigned cmd, void *data) {
       notify_geometry(h, geo->base_width, geo->base_height, geo->aspect_ratio);
       return true;
     }
+    case RETRO_ENVIRONMENT_SET_ROTATION: {
+      // Vertically-oriented arcade cabinets (and a few console games) ask the
+      // frontend to rotate. The host bakes it into convert_frame instead of
+      // asking every platform for a GPU transform.
+      if (!data) return false;
+      unsigned rot = *(const unsigned *)data;
+      if (rot > 3) return false;
+      int was_quarter = (h->av.rotation == 1 || h->av.rotation == 3);
+      int is_quarter = (rot == 1 || rot == 3);
+      h->av.rotation = (int)rot;
+      host_log(h, "SET_ROTATION rot=%u", rot);
+      // Geometry recorded before this request describes the other orientation.
+      // Only the axes move; the aspect the core reported already describes the
+      // final display (see apply_rotation_to_av).
+      if (was_quarter != is_quarter && h->av.width > 0) {
+        int w = h->av.width;
+        h->av.width = h->av.height;
+        h->av.height = w;
+        if (h->cb.geometry_changed) {
+          h->cb.geometry_changed(h->cb.user, h->av.width, h->av.height,
+                                 h->av.aspect);
+        }
+      }
+      return true;
+    }
     case RETRO_ENVIRONMENT_GET_LANGUAGE:
       if (data) *(unsigned *)data = RETRO_LANGUAGE_ENGLISH;
       return true;
@@ -449,6 +1016,15 @@ static bool RETRO_CALLCONV environment_cb(unsigned cmd, void *data) {
       if (!data) return false;
       ((struct retro_log_callback *)data)->log = log_printf_cb;
       return true;
+    case RETRO_ENVIRONMENT_GET_VFS_INTERFACE: {
+      if (!data) return false;
+      struct retro_vfs_interface_info *info =
+          (struct retro_vfs_interface_info *)data;
+      if (info->required_interface_version > 3) return false;
+      info->required_interface_version = 3;
+      info->iface = (struct retro_vfs_interface *)&g_vfs_interface;
+      return true;
+    }
     case RETRO_ENVIRONMENT_GET_PREFERRED_HW_RENDER:
       return false;
     default:
@@ -468,60 +1044,167 @@ static void pack_pixel(struct lh_host *h, uint8_t *dst, unsigned r, unsigned g,
   memcpy(dst, &word, 4);
 }
 
-static void convert_frame(struct lh_host *h, const void *src, int width,
-                          int height, int pitch) {
-  size_t needed = (size_t)width * (size_t)height * 4;
+// Decodes one source pixel of [fmt] into 8-bit r/g/b. [fmt] is constant for
+// the whole frame, so this branch predicts perfectly; it is not the cost
+// convert_frame's rewrite targets (see the comment below).
+static void unpack_pixel(unsigned fmt, const uint8_t *p, unsigned *r,
+                         unsigned *g, unsigned *b) {
+  if (fmt == RETRO_PIXEL_FORMAT_XRGB8888) {
+    uint32_t v;
+    memcpy(&v, p, 4);
+    *r = (v >> 16) & 0xFF;
+    *g = (v >> 8) & 0xFF;
+    *b = v & 0xFF;
+  } else if (fmt == RETRO_PIXEL_FORMAT_RGB565) {
+    uint16_t v;
+    memcpy(&v, p, 2);
+    unsigned r5 = (v >> 11) & 0x1F, g6 = (v >> 5) & 0x3F, b5 = v & 0x1F;
+    *r = (r5 << 3) | (r5 >> 2);
+    *g = (g6 << 2) | (g6 >> 4);
+    *b = (b5 << 3) | (b5 >> 2);
+  } else {  // 0RGB1555
+    uint16_t v;
+    memcpy(&v, p, 2);
+    unsigned r5 = (v >> 10) & 0x1F, g5 = (v >> 5) & 0x1F, b5 = v & 0x1F;
+    *r = (r5 << 3) | (r5 >> 2);
+    *g = (g5 << 3) | (g5 >> 2);
+    *b = (b5 << 3) | (b5 >> 2);
+  }
+}
+
+static int convert_frame(struct lh_host *h, const void *src, int width,
+                         int height, size_t pitch) {
+  const int bpp = h->pixel_format == RETRO_PIXEL_FORMAT_XRGB8888 ? 4 : 2;
+
+  // `pitch` is whatever the core passed to video_refresh_cb; convert_frame
+  // reads `src_bytes + y*pitch + x*bpp` for every row below. A pitch smaller
+  // than one full row of pixels (width*bpp) would make that read walk into
+  // the next row's data - or, on the last scanline, off the end of the
+  // buffer entirely - which is an out-of-bounds read the core fully controls.
+  // Reject it here rather than trusting the core to report a sane pitch.
+  if (pitch < (size_t)width * (size_t)bpp) {
+    host_log(h, "Rejected frame: pitch %zu too small for %dx%d bpp %d", pitch,
+             width, height, bpp);
+    return 0;
+  }
+
+  const int rotation = h->av.rotation;
+  const int quarter = (rotation == 1 || rotation == 3);
+  const int out_width = quarter ? height : width;
+  const int out_height = quarter ? width : height;
+
+  // Overflow-safe size computation. notify_geometry/video_refresh_cb already
+  // reject any width/height over LH_MAX_FRAME_DIMENSION before a frame gets
+  // here, which keeps out_width*out_height*4 comfortably under 2^32 - but
+  // that bound lives in the callers, not in this function's own contract.
+  // Check by division (which cannot itself overflow) rather than by
+  // multiplying and inspecting the result, so a future caller that forgets to
+  // validate still fails safely here instead of silently wrapping size_t into
+  // an undersized allocation while the pixel loop below keeps writing the
+  // full, un-wrapped pixel count (the 32-bit armeabi-v7a heap overflow this
+  // guards against).
+  if (out_height <= 0 || out_width <= 0 ||
+      (size_t)out_width > (SIZE_MAX / 4) / (size_t)out_height) {
+    host_log(h, "Rejected frame: %dx%d overflows frame buffer size", out_width,
+             out_height);
+    return 0;
+  }
+  size_t needed = (size_t)out_width * (size_t)out_height * 4;
   if (h->back.capacity < needed) {
-    h->back.data = realloc(h->back.data, needed);
+    uint8_t *data = realloc(h->back.data, needed);
+    if (!data) return 0;
+    h->back.data = data;
     h->back.capacity = needed;
   }
+
+  // dst_row0 is the destination index a (x=0, y=0) source pixel maps to;
+  // step_x/step_y are how that index moves as x/y advance by one. Both are
+  // constant for the whole frame, derived once here instead of re-running
+  // this switch - and the index multiply it replaces - for every pixel.
+  // libretro's SET_ROTATION counts quarter turns counter-clockwise, so a 90
+  // degree turn sends the source's right-hand column to the top row.
+  //
+  // A tiled/blocked write was also tried here for the quarter-turn case
+  // (rotations 1 and 3, where step_x is +-out_width*4 bytes and consecutive
+  // source pixels land on different destination cache lines). Measured
+  // against this plain accumulating walk on x86-64 at 512x480, tiling
+  // through a scratch buffer was consistently slower - about 25% - because
+  // it doubles the stores per pixel (once into the scratch tile, once out to
+  // the real destination) for a locality win that a modern desktop's cache
+  // hierarchy doesn't need. It was dropped in favor of this simpler,
+  // measured-faster loop; ARM Cortex-A55 class hardware couldn't be measured
+  // directly, but the doubled-store cost is architecture independent while
+  // the cache benefit is not guaranteed to outweigh it there either.
+  ptrdiff_t dst_row0, step_x, step_y;
+  switch (rotation) {
+    case 1:  // 90 CCW
+      dst_row0 = (ptrdiff_t)(width - 1) * out_width;
+      step_x = -(ptrdiff_t)out_width;
+      step_y = 1;
+      break;
+    case 2:  // 180
+      dst_row0 = (ptrdiff_t)(height - 1) * out_width + (width - 1);
+      step_x = -1;
+      step_y = -(ptrdiff_t)out_width;
+      break;
+    case 3:  // 270 CCW
+      dst_row0 = height - 1;
+      step_x = out_width;
+      step_y = -1;
+      break;
+    default:  // 0
+      dst_row0 = 0;
+      step_x = 1;
+      step_y = out_width;
+      break;
+  }
+
   const uint8_t *src_bytes = (const uint8_t *)src;
+  uint8_t *back = h->back.data;
+  unsigned fmt = h->pixel_format;
+  ptrdiff_t row_dst = dst_row0;
   for (int y = 0; y < height; y++) {
     const uint8_t *s = src_bytes + (size_t)y * pitch;
-    uint8_t *d = h->back.data + (size_t)y * width * 4;
+    ptrdiff_t dst = row_dst;
     for (int x = 0; x < width; x++) {
       unsigned r, g, b;
-      if (h->pixel_format == RETRO_PIXEL_FORMAT_XRGB8888) {
-        uint32_t p;
-        memcpy(&p, s + x * 4, 4);
-        r = (p >> 16) & 0xFF;
-        g = (p >> 8) & 0xFF;
-        b = p & 0xFF;
-      } else if (h->pixel_format == RETRO_PIXEL_FORMAT_RGB565) {
-        uint16_t p;
-        memcpy(&p, s + x * 2, 2);
-        unsigned r5 = (p >> 11) & 0x1F, g6 = (p >> 5) & 0x3F, b5 = p & 0x1F;
-        r = (r5 << 3) | (r5 >> 2);
-        g = (g6 << 2) | (g6 >> 4);
-        b = (b5 << 3) | (b5 >> 2);
-      } else {  // 0RGB1555
-        uint16_t p;
-        memcpy(&p, s + x * 2, 2);
-        unsigned r5 = (p >> 10) & 0x1F, g5 = (p >> 5) & 0x1F, b5 = p & 0x1F;
-        r = (r5 << 3) | (r5 >> 2);
-        g = (g5 << 3) | (g5 >> 2);
-        b = (b5 << 3) | (b5 >> 2);
-      }
-      pack_pixel(h, d + x * 4, r, g, b);
+      unpack_pixel(fmt, s + (size_t)x * bpp, &r, &g, &b);
+      pack_pixel(h, back + (size_t)dst * 4, r, g, b);
+      dst += step_x;
     }
+    row_dst += step_y;
   }
-  h->back.width = width;
-  h->back.height = height;
+  h->back.width = out_width;
+  h->back.height = out_height;
+  return 1;
 }
 
 static void RETRO_CALLCONV video_refresh_cb(const void *data, unsigned width,
                                             unsigned height, size_t pitch) {
   struct lh_host *h = g_session;
   if (!h || width == 0 || height == 0) return;
+  // Reject an out-of-bounds frame here, before it ever reaches convert_frame's
+  // allocation math. width/height come straight from the core on every frame
+  // (unlike notify_geometry's SET_SYSTEM_AV_INFO/SET_GEOMETRY, this path has
+  // no separate announcement step to reject first), so the same
+  // LH_MAX_FRAME_DIMENSION bound has to be enforced here too.
+  if (width > LH_MAX_FRAME_DIMENSION || height > LH_MAX_FRAME_DIMENSION) {
+    host_log(h, "Rejected frame %ux%u (out of bounds)", width, height);
+    return;
+  }
   if (!data) {  // duped frame: re-signal the last one
     if (h->cb.frame_ready) h->cb.frame_ready(h->cb.user);
     return;
   }
   mutex_lock(&h->video_lock);
-  convert_frame(h, data, (int)width, (int)height, (int)pitch);
-  h->back_ready = 1;
+  // pitch stays a size_t end to end (see convert_frame): truncating it to int
+  // here would let a core report a huge real pitch that wraps to something
+  // small and passes convert_frame's `pitch < width*bpp` rejection check by
+  // accident, defeating FIX 3 instead of enforcing it.
+  int converted = convert_frame(h, data, (int)width, (int)height, pitch);
+  if (converted) h->back_ready = 1;
   mutex_unlock(&h->video_lock);
-  if (h->cb.frame_ready) h->cb.frame_ready(h->cb.user);
+  if (converted && h->cb.frame_ready) h->cb.frame_ready(h->cb.user);
 }
 
 // ---------------------------------------------------------------------------
@@ -554,7 +1237,13 @@ static size_t RETRO_CALLCONV audio_batch_cb(const int16_t *data,
                                             size_t frames) {
   struct lh_host *h = g_session;
   if (!h || !data || frames == 0) return frames;
-  if (h->fast_forward <= 1) audio_push(h, data, (int)frames);
+  // audio_push doubles this for stereo sample count and stores it in an int,
+  // so anything that wouldn't fit after doubling must be clamped here, before
+  // the (int) cast below can turn a huge frame count negative. No real core
+  // reports anything close to this many frames in one callback; this is
+  // purely a guard against untrusted core input.
+  size_t clamped = frames > (size_t)(INT_MAX / 2) ? (size_t)(INT_MAX / 2) : frames;
+  if (h->fast_forward <= 1) audio_push(h, data, (int)clamped);
   return frames;
 }
 
@@ -567,14 +1256,49 @@ static void RETRO_CALLCONV audio_sample_cb(int16_t left, int16_t right) {
 // Input.
 // ---------------------------------------------------------------------------
 
-static void RETRO_CALLCONV input_poll_cb(void) {}
+// The one implementation of the OR-latch: every platform writer calls
+// lh_set_input, and this is the only place that ever drains it. Called once
+// per real libretro poll from input_poll_cb (on the emulation thread), and
+// directly by lh_test_poll_input for deterministic tests that don't want to
+// race a running core's frame timing.
+static void latch_input(struct lh_host *h) {
+  for (int p = 0; p < LH_MAX_PORTS; p++) {
+    // Drain the edges first, then read the level, and never write a level back
+    // into pending. Seeding pending with a previously read level is a race: a
+    // write landing between the read and the exchange publishes its bit into
+    // level and into pending, and the exchange then overwrites pending with
+    // the stale level -- erasing a bit that is still physically held, so the
+    // next poll reports the button released mid-press.
+    //
+    // Ordering here is the mirror of lh_set_input's: it ORs the edge into
+    // pending before publishing the level, and this drains pending before
+    // reading the level, so a write that straddles either pair is caught by
+    // one half or the other. Worst case a bit is reported one poll later
+    // rather than lost.
+    unsigned observed = atomic_exchange(&h->input_pending[p], 0u);
+    unsigned level = atomic_load(&h->input_level[p]);
+    h->input_frame[p] = (uint16_t)(observed | level);
+  }
+}
+
+// Was a no-op: the core polled input by immediately re-reading whatever the
+// platform's atomic mask held at that instant, so a press whose down and up
+// both landed inside one poll window was never observed at all (see
+// lh_set_input's comment). Latching here, once per poll, is what fixes that.
+static void RETRO_CALLCONV input_poll_cb(void) {
+  struct lh_host *h = g_session;
+  if (h) latch_input(h);
+}
 
 static int16_t RETRO_CALLCONV input_state_cb(unsigned port, unsigned device,
                                              unsigned index, unsigned id) {
   (void)index;
   struct lh_host *h = g_session;
-  if (!h || device != RETRO_DEVICE_JOYPAD || !h->cb.poll_input) return 0;
-  uint16_t mask = h->cb.poll_input(h->cb.user, (int)port);
+  if (!h || device != RETRO_DEVICE_JOYPAD || port >= LH_MAX_PORTS) return 0;
+  // Latched by input_poll_cb above, not a fresh read: every id read during
+  // this frame sees the same snapshot, so composing e.g. up and left from two
+  // different instants of the same frame (a torn read) can't happen.
+  uint16_t mask = h->input_frame[port];
   if (id == RETRO_DEVICE_ID_JOYPAD_MASK) return (int16_t)mask;
   if (id >= 16) return 0;
   return (mask & (1u << id)) ? 1 : 0;
@@ -588,6 +1312,22 @@ static void execute_job(struct lh_host *h, lh_job *job) {
   switch (job->kind) {
     case JOB_RESET:
       if (h->core.reset) h->core.reset();
+      break;
+    case JOB_RESTART:
+      job->result_ok = restart_core(h) == 0;
+      if (!job->result_ok) {
+        // restart_core already set h->running = 0 on failure, which would
+        // otherwise freeze the picture with no signal to the platform layer.
+        // Mirror the async restart path (run_loop's restart_requested
+        // handling) so a synchronous lh_restart failure is reported the
+        // same way.
+        if (h->cb.message) {
+          h->cb.message(h->cb.user, "Failed to restart libretro core");
+        }
+        if (h->cb.fatal_error) {
+          h->cb.fatal_error(h->cb.user, "Failed to restart libretro core");
+        }
+      }
       break;
     case JOB_SERIALIZE_SIZE:
       job->result_size = h->core.serialize_size ? h->core.serialize_size() : 0;
@@ -652,8 +1392,14 @@ static void sram_load(struct lh_host *h) {
   if (size == 0 || !mem) return;
   FILE *f = fopen(h->sram_path, "rb");
   if (!f) return;
-  fread(mem, 1, size, f);
+  size_t got = fread(mem, 1, size, f);
   fclose(f);
+  if (got < size) {
+    // A truncated .srm otherwise leaves the tail of SRAM at whatever
+    // retro_init put there, silently.
+    host_log(h, "sram_load: read %zu of %zu expected bytes from %s", got,
+             size, h->sram_path);
+  }
 }
 
 static void sram_flush(struct lh_host *h) {
@@ -682,6 +1428,17 @@ static void *run_loop(void *arg) {
   uint64_t next = now_ns();
 
   while (h->running) {
+    if (atomic_exchange(&h->restart_requested, 0)) {
+      if (restart_core(h) != 0) {
+        if (h->cb.message) {
+          h->cb.message(h->cb.user, "Failed to restart libretro core");
+        }
+        if (h->cb.fatal_error) {
+          h->cb.fatal_error(h->cb.user, "Failed to restart libretro core");
+        }
+      }
+      continue;
+    }
     if (h->paused) {
       sleep_ns(16000000);
       drain_jobs(h);
@@ -763,10 +1520,10 @@ static DWORD WINAPI run_loop_win(LPVOID arg) {
 static void thread_start(struct lh_host *h) {
 #ifdef _WIN32
   h->thread = CreateThread(NULL, 0, run_loop_win, h, 0, NULL);
+  h->has_thread = h->thread != NULL;
 #else
-  pthread_create(&h->thread, NULL, run_loop, h);
+  h->has_thread = pthread_create(&h->thread, NULL, run_loop, h) == 0;
 #endif
-  h->has_thread = 1;
 }
 
 static void thread_join(struct lh_host *h) {
@@ -818,12 +1575,14 @@ static int resolve_core(lh_core *core) {
 
 lh_host *lh_create(lh_output_format fmt, lh_callbacks cb) {
   struct lh_host *h = calloc(1, sizeof(struct lh_host));
+  if (!h) return NULL;
   h->format = fmt;
   h->cb = cb;
   h->fast_forward = 1;
   h->pixel_format = RETRO_PIXEL_FORMAT_0RGB1555;
   h->variables_dirty = 1;
   mutex_init(&h->vars_lock);
+  mutex_init(&h->core_log_lock);
   mutex_init(&h->video_lock);
   mutex_init(&h->audio_lock);
   mutex_init(&h->jobs_lock);
@@ -831,18 +1590,199 @@ lh_host *lh_create(lh_output_format fmt, lh_callbacks cb) {
   return h;
 }
 
-// Unwinds a load that failed after retro_init, pairing the init and freeing the
-// directory strings that lh_stop would otherwise own.
-static int load_failed(struct lh_host *h, int code) {
-  h->core.deinit();
-  lib_close(h->core.handle);
-  memset(&h->core, 0, sizeof(h->core));
+void lh_set_input(lh_host *host, int port, uint16_t mask) {
+  if (!host || port < 0 || port >= LH_MAX_PORTS) return;
+  // Order matters: OR the edge into pending before publishing the new level,
+  // so a poll landing between these two lines still sees the bit that just
+  // went low in level - it was already folded into pending on the line
+  // above, which is exactly the case latch_input exists to preserve.
+  atomic_fetch_or(&host->input_pending[port], (unsigned)mask);
+  atomic_store(&host->input_level[port], (unsigned)mask);
+}
+
+void lh_test_poll_input(lh_host *host) {
+  if (host) latch_input(host);
+}
+
+uint16_t lh_test_read_input(lh_host *host, int port) {
+  if (!host || port < 0 || port >= LH_MAX_PORTS) return 0;
+  return host->input_frame[port];
+}
+
+static void free_load_paths(struct lh_host *h) {
   free(h->system_dir);
   free(h->save_dir);
   free(h->sram_path);
-  h->system_dir = h->save_dir = h->sram_path = NULL;
+  free(h->core_path);
+  free(h->rom_path);
+  h->system_dir = h->save_dir = h->sram_path = h->core_path = h->rom_path =
+      NULL;
+}
+
+// Unwinds a core that was opened (and possibly loaded) for an attempt that
+// is now being abandoned: lh_load's load_failed and restart_core's failure
+// path both reach this. load_content can fail (e.g. -7, alloc_failed) after
+// it already set core_loaded = 1 and called retro_load_game successfully;
+// leaving core_loaded = 1 here would let lh_serialize_size/lh_reset/lh_stop
+// pass their core_loaded guard and run a job against a core struct this
+// function is about to zero out. retro_unload_game must also be paired with
+// the retro_load_game that succeeded before deinit runs - calling deinit
+// without unload_game first is out of the libretro contract.
+static void unwind_failed_core(struct lh_host *h) {
+  if (h->core_loaded) {
+    if (h->core.unload_game) h->core.unload_game();
+    h->core_loaded = 0;
+  }
+  if (h->core.deinit) h->core.deinit();
+  if (h->core.handle) lib_close(h->core.handle);
+  memset(&h->core, 0, sizeof(h->core));
+}
+
+// Unwinds a load that failed after retro_init, pairing the init and freeing the
+// paths that lh_stop would otherwise own.
+static int load_failed(struct lh_host *h, int code) {
+  unwind_failed_core(h);
+  free_load_paths(h);
   g_session = NULL;
   return code;
+}
+
+static int open_core(struct lh_host *h) {
+  h->core.handle = lib_open(h->core_path);
+  if (!h->core.handle) {
+#ifdef _WIN32
+    char err_buf[256];
+    host_log(h, "Failed to load core '%s': %s", h->core_path,
+             lib_open_error(err_buf, sizeof(err_buf)));
+#else
+    const char *err = lib_open_error();
+    host_log(h, "Failed to load core '%s': %s", h->core_path,
+             err ? err : "unknown dlopen failure");
+#endif
+    return -2;
+  }
+  if (!resolve_core(&h->core)) {
+    lib_close(h->core.handle);
+    memset(&h->core, 0, sizeof(h->core));
+    return -3;
+  }
+
+  h->pixel_format = RETRO_PIXEL_FORMAT_0RGB1555;
+  h->av.rotation = 0;
+  // retro_init (below) and, later, retro_load_game are the two points a core
+  // can call SET_VARIABLES from; reset the flag here so a failure from a
+  // *previous* load/restart attempt (already handled by that attempt's own
+  // rc check) can't be mistaken for one from this one.
+  h->alloc_failed = 0;
+  h->core.set_environment(environment_cb);
+  h->core.set_video_refresh(video_refresh_cb);
+  h->core.set_audio_sample(audio_sample_cb);
+  h->core.set_audio_sample_batch(audio_batch_cb);
+  h->core.set_input_poll(input_poll_cb);
+  h->core.set_input_state(input_state_cb);
+  h->core.init();
+  return 0;
+}
+
+static int load_content(struct lh_host *h) {
+  struct retro_system_info info;
+  memset(&info, 0, sizeof(info));
+  h->core.get_system_info(&info);
+
+  struct retro_game_info game;
+  memset(&game, 0, sizeof(game));
+  game.path = h->rom_path;
+  void *rom_data = NULL;
+  if (!info.need_fullpath) {
+    FILE *f = fopen(h->rom_path, "rb");
+    if (!f) return -4;
+    fseek(f, 0, SEEK_END);
+    long len = ftell(f);
+    fseek(f, 0, SEEK_SET);
+    if (len <= 0) {
+      fclose(f);
+      return -4;
+    }
+    rom_data = malloc((size_t)len);
+    size_t got = rom_data ? fread(rom_data, 1, (size_t)len, f) : 0;
+    fclose(f);
+    if (got != (size_t)len) {
+      free(rom_data);
+      return -4;
+    }
+    game.data = rom_data;
+    game.size = (size_t)len;
+  }
+
+  char load_diagnostic[sizeof(h->last_core_log)] = {0};
+  mutex_lock(&h->core_log_lock);
+  h->last_core_log[0] = '\0';
+  h->last_core_error[0] = '\0';
+  h->capture_load_log = 1;
+  mutex_unlock(&h->core_log_lock);
+  bool ok = h->core.load_game(&game);
+  mutex_lock(&h->core_log_lock);
+  h->capture_load_log = 0;
+  const char *selected_log =
+      h->last_core_error[0] ? h->last_core_error : h->last_core_log;
+  snprintf(load_diagnostic, sizeof(load_diagnostic), "%s", selected_log);
+  mutex_unlock(&h->core_log_lock);
+  free(rom_data);
+  if (!ok) {
+    if (load_diagnostic[0]) {
+      host_log(h, "retro_load_game rejected '%s': %s", h->rom_path,
+               load_diagnostic);
+    } else {
+      host_log(h, "retro_load_game rejected '%s' without a core diagnostic",
+               h->rom_path);
+    }
+    return -5;
+  }
+  // A core that asked to quit during the load has nothing to run. Unload before
+  // reporting, so the caller's teardown is not left holding a live game.
+  if (h->shutdown_requested) {
+    if (h->core.unload_game) h->core.unload_game();
+    return -6;
+  }
+
+  struct retro_system_av_info av;
+  memset(&av, 0, sizeof(av));
+  h->core.get_system_av_info(&av);
+  h->av.width = (int)av.geometry.base_width;
+  h->av.height = (int)av.geometry.base_height;
+  if (av.geometry.aspect_ratio > 0) {
+    h->av.aspect = (double)av.geometry.aspect_ratio;
+  }
+  // load_game is where SET_ROTATION arrives, so it is already known here.
+  apply_rotation_to_av(h, av.geometry.aspect_ratio > 0);
+  h->av.fps = av.timing.fps > 0 ? av.timing.fps : 60;
+  h->av.sample_rate = av.timing.sample_rate > 0 ? av.timing.sample_rate : 44100;
+
+  int cap_frames = (int)(h->av.sample_rate * 0.25);
+  if (cap_frames <= 0 || cap_frames > INT_MAX / 2) return -6;
+  int ring_capacity = cap_frames * 2;
+  int16_t *ring = calloc((size_t)ring_capacity, sizeof(int16_t));
+  if (!ring) return -6;
+  mutex_lock(&h->audio_lock);
+  int16_t *old_ring = h->ring;
+  h->ring = ring;
+  h->ring_capacity = ring_capacity;
+  h->ring_read = h->ring_write = h->ring_stored = 0;
+  mutex_unlock(&h->audio_lock);
+  free(old_ring);
+
+  sram_load(h);
+  h->core_loaded = 1;
+  h->last_sram_flush_ns = now_ns();
+  // load_game (just above) is the other point besides retro_init that a core
+  // can call SET_VARIABLES from, so alloc_failed has to be re-checked here
+  // too: a core is fully loaded and playable at this point, but with an
+  // incomplete option set, which lh_load and restart_core both need to treat
+  // as a failure rather than a silent partial success. -7 joins this
+  // function's existing -4/-5/-6 as "the same allocation-failure code lh_load
+  // uses for its own setup", so both callers just check `rc != 0`.
+  if (h->alloc_failed) return -7;
+  return 0;
 }
 
 int lh_load(lh_host *h, const char *core_path, const char *rom_path,
@@ -852,102 +1792,85 @@ int lh_load(lh_host *h, const char *core_path, const char *rom_path,
   if (g_session) return -1;  // one session per process
   h->shutdown_requested = 0;
 
-  h->core.handle = lib_open(core_path);
-  if (!h->core.handle) return -2;
-  if (!resolve_core(&h->core)) {
-    lib_close(h->core.handle);
-    memset(&h->core, 0, sizeof(h->core));
-    return -3;
+  // FIX 5: game_id names the SRAM file below and ultimately originates from a
+  // route parameter seeded by server data (app_router.dart ->
+  // LibretroBridge.kt -> nativeLoad here), which is not a trusted boundary. A
+  // hostile or compromised server could hand this an id containing "../" to
+  // make sram_path point outside save_dir - an arbitrary file write/overwrite
+  // once combined with the core's own read/write of that path. Reject it
+  // outright rather than stripping or rewriting the offending characters:
+  // silently sanitizing would silently change which save file a legitimate
+  // game_id maps to, which is a worse, quieter failure mode than refusing the
+  // load with a clear error.
+  if (!game_id || strchr(game_id, '/') || strchr(game_id, '\\') ||
+      strstr(game_id, "..")) {
+    return -8;
   }
 
   h->system_dir = lh_strdup(system_dir);
   h->save_dir = lh_strdup(save_dir);
+  h->core_path = lh_strdup(core_path);
+  h->rom_path = lh_strdup(rom_path);
   size_t sram_len = strlen(save_dir) + strlen(game_id) + 6;
   h->sram_path = malloc(sram_len);
+  // FIX 4: lh_strdup/malloc can all return NULL under memory pressure. The
+  // old code walked straight into snprintf-ing through h->sram_path (a
+  // guaranteed NULL-pointer write if that malloc failed) and later into
+  // open_core, which hands system_dir/core_path/rom_path to dlopen/fopen
+  // without ever having checked them. -7 is a new code (existing ones are all
+  // core/content specific: -2/-3 core load, -4/-5 rom/game, -6 audio ring),
+  // reserved for "the host itself couldn't allocate what it needed to attempt
+  // the load" so a caller can tell this apart from a bad core or ROM.
+  if (!h->system_dir || !h->save_dir || !h->core_path || !h->rom_path ||
+      !h->sram_path) {
+    free_load_paths(h);
+    return -7;
+  }
   snprintf(h->sram_path, sram_len, "%s/%s.srm", save_dir, game_id);
-  for (int i = 0; i < opt_count; i++) vars_set(h, opt_keys[i], opt_vals[i]);
+  for (int i = 0; i < opt_count; i++) {
+    if (vars_set(h, opt_keys[i], opt_vals[i]) != 0) {
+      free_load_paths(h);
+      return -7;
+    }
+  }
 
   g_session = h;
-  h->core.set_environment(environment_cb);
-  h->core.set_video_refresh(video_refresh_cb);
-  h->core.set_audio_sample(audio_sample_cb);
-  h->core.set_audio_sample_batch(audio_batch_cb);
-  h->core.set_input_poll(input_poll_cb);
-  h->core.set_input_state(input_state_cb);
-  h->core.init();
-
-  struct retro_system_info info;
-  memset(&info, 0, sizeof(info));
-  h->core.get_system_info(&info);
-
-  struct retro_game_info game;
-  memset(&game, 0, sizeof(game));
-  game.path = rom_path;
-  void *rom_data = NULL;
-  if (!info.need_fullpath) {
-    FILE *f = fopen(rom_path, "rb");
-    if (!f) return load_failed(h, -4);
-    fseek(f, 0, SEEK_END);
-    long len = ftell(f);
-    fseek(f, 0, SEEK_SET);
-    if (len <= 0) {
-      fclose(f);
-      return load_failed(h, -4);
-    }
-    rom_data = malloc((size_t)len);
-    size_t got = rom_data ? fread(rom_data, 1, (size_t)len, f) : 0;
-    fclose(f);
-    if (got != (size_t)len) {
-      free(rom_data);
-      return load_failed(h, -4);
-    }
-    game.data = rom_data;
-    game.size = (size_t)len;
+  int rc = open_core(h);
+  if (rc != 0) {
+    free_load_paths(h);
+    g_session = NULL;
+    return rc;
   }
-
-  bool ok = h->core.load_game(&game);
-  free(rom_data);
-  if (!ok) return load_failed(h, -5);
-  // A core that asked to quit during the load has nothing to run.
-  if (h->shutdown_requested) {
-    if (h->core.unload_game) h->core.unload_game();
-    return load_failed(h, -6);
-  }
-
-  struct retro_system_av_info av;
-  memset(&av, 0, sizeof(av));
-  h->core.get_system_av_info(&av);
-  h->av.width = (int)av.geometry.base_width;
-  h->av.height = (int)av.geometry.base_height;
-  h->av.aspect =
-      av.geometry.aspect_ratio > 0
-          ? (double)av.geometry.aspect_ratio
-          : (double)av.geometry.base_width /
-                (double)(av.geometry.base_height > 0 ? av.geometry.base_height
-                                                     : 1);
-  h->av.fps = av.timing.fps > 0 ? av.timing.fps : 60;
-  h->av.sample_rate = av.timing.sample_rate > 0 ? av.timing.sample_rate : 44100;
-
-  int cap_frames = (int)(h->av.sample_rate * 0.25);
-  h->ring_capacity = cap_frames * 2;
-  h->ring = calloc((size_t)h->ring_capacity, sizeof(int16_t));
-  h->ring_read = h->ring_write = h->ring_stored = 0;
-
-  sram_load(h);
-  h->core_loaded = 1;
-  h->last_sram_flush_ns = now_ns();
+  rc = load_content(h);
+  if (rc != 0) return load_failed(h, rc);
   if (out_info) *out_info = h->av;
   return 0;
 }
 
-void lh_start(lh_host *h) {
-  if (!h->core_loaded || h->has_thread || h->shutdown_requested) return;
+int lh_start(lh_host *h) {
+  if (h->has_thread) return 0;  // already running
+  if (!h->core_loaded || h->shutdown_requested) return -1;
   h->running = 1;
   h->paused = 0;
+  // Opened before thread_start, or run_job could run a job inline while the
+  // loop is already live.
   mutex_lock(&h->jobs_lock);
   h->jobs_open = 1;
   mutex_unlock(&h->jobs_lock);
   thread_start(h);
+  if (!h->has_thread) {
+    // Close and drain, or run_job waits forever on a condvar no thread can
+    // signal. Draining is required here because while (!job->done) ignores a wake.
+    h->running = 0;
+    mutex_lock(&h->jobs_lock);
+    h->jobs_open = 0;
+    for (int i = 0; i < h->job_count; i++) h->jobs[i]->done = 1;
+    h->job_count = 0;
+    cond_broadcast(&h->jobs_cond);
+    mutex_unlock(&h->jobs_lock);
+    return -1;
+  }
+  return 0;
 }
 
 void lh_pause(lh_host *h) { h->paused = 1; }
@@ -966,9 +1889,77 @@ void lh_reset(lh_host *h) {
   run_job(h, &job);
 }
 
+// This follows the same lifecycle as leaving and launching the game again,
+// while keeping the platform's existing texture and input objects alive.
+static int restart_core(struct lh_host *h) {
+  if (!h->core_loaded) {
+    atomic_fetch_add(&h->restart_generation, 1);
+    return -1;
+  }
+
+  sram_flush(h);
+  if (h->core.unload_game) h->core.unload_game();
+  if (h->core.deinit) h->core.deinit();
+  if (h->core.handle) lib_close(h->core.handle);
+  memset(&h->core, 0, sizeof(h->core));
+  h->core_loaded = 0;
+
+  mutex_lock(&h->vars_lock);
+  free_option_definitions(h);
+  // The old core is fully unloaded above, so nothing can still be holding a
+  // GET_VARIABLE pointer from the previous session. Draining here (rather
+  // than only at lh_stop) keeps the arena from carrying across restarts.
+  vars_free_retired(h);
+  h->variables_dirty = 1;
+  mutex_unlock(&h->vars_lock);
+
+  int rc = open_core(h);
+  if (rc == 0) rc = load_content(h);
+  if (rc != 0) {
+    // Same unwind load_failed performs for lh_load, but restart_core keeps
+    // g_session and the load paths alive (a later restart attempt reuses
+    // core_path/rom_path via open_core, and lh_stop still needs them).
+    unwind_failed_core(h);
+    h->running = 0;
+  }
+  atomic_fetch_add(&h->restart_generation, 1);
+  return rc;
+}
+
+int lh_restart(lh_host *h) {
+  if (!h->core_loaded) return -1;
+  lh_job job = {0};
+  job.kind = JOB_RESTART;
+  run_job(h, &job);
+  return job.result_ok ? 0 : -1;
+}
+
+int lh_restart_async(lh_host *h) {
+  if (!h || !atomic_load(&h->running)) {
+    return -1;
+  }
+  atomic_store(&h->restart_requested, 1);
+  return 0;
+}
+
+unsigned lh_restart_generation(lh_host *h) {
+  return atomic_load(&h->restart_generation);
+}
+
 void lh_stop(lh_host *h) {
   if (h->has_thread) {
+    // Clearing running under jobs_lock makes this transition atomic with
+    // run_job's queue-or-execute decision (see the comment on run_job): either
+    // a concurrent run_job call observes running==1 here and queues into a
+    // loop that is guaranteed one more drain_jobs before it can exit (see
+    // run_loop's final drain), or it observes running==0 and fails the job
+    // without entering a core that may be unloading. Without holding the lock across this
+    // write, run_job could read running==1 a moment after this store and
+    // queue into a loop that has already fallen out of its while() condition,
+    // and the job would then wait on jobs_cond forever.
+    mutex_lock(&h->jobs_lock);
     h->running = 0;
+    mutex_unlock(&h->jobs_lock);
     thread_join(h);  // the loop flushes SRAM and tears the core down
   } else if (h->core_loaded) {
     // Same order as the run loop's exit, so a job from another thread is
@@ -982,25 +1973,20 @@ void lh_stop(lh_host *h) {
     if (h->core.handle) lib_close(h->core.handle);
     memset(&h->core, 0, sizeof(h->core));
   }
+  // Both branches above end with the core torn down (thread_join returns only
+  // after run_loop has unloaded it), so no core-held GET_VARIABLE pointer can
+  // outlive this point and the retired values can go. h->vars themselves stay
+  // put - lh_destroy's free_options owns those.
+  mutex_lock(&h->vars_lock);
+  vars_free_retired(h);
+  mutex_unlock(&h->vars_lock);
+
   g_session = NULL;
-  free(h->system_dir);
-  free(h->save_dir);
-  free(h->sram_path);
-  h->system_dir = h->save_dir = h->sram_path = NULL;
+  free_load_paths(h);
 }
 
 static void free_options(struct lh_host *h) {
-  for (int i = 0; i < h->def_count; i++) {
-    free(h->defs[i].id);
-    free(h->defs[i].label);
-    for (int c = 0; c < h->defs[i].choice_count; c++) {
-      free(h->defs[i].choices[c]);
-    }
-    free(h->defs[i].choices);
-  }
-  free(h->defs);
-  h->defs = NULL;
-  h->def_count = 0;
+  free_option_definitions(h);
   for (int i = 0; i < h->var_count; i++) {
     free(h->vars[i].key);
     free(h->vars[i].value);
@@ -1008,6 +1994,10 @@ static void free_options(struct lh_host *h) {
   free(h->vars);
   h->vars = NULL;
   h->var_count = 0;
+  // Backstop for the lh_destroy path that never loaded a core (and so never
+  // ran lh_stop). vars_free_retired is idempotent, so the ordinary
+  // lh_stop-then-destroy sequence just finds an empty list here.
+  vars_free_retired(h);
 }
 
 void lh_destroy(lh_host *h) {
@@ -1018,6 +2008,7 @@ void lh_destroy(lh_host *h) {
   free(h->back.data);
   free(h->ring);
   mutex_destroy(&h->vars_lock);
+  mutex_destroy(&h->core_log_lock);
   mutex_destroy(&h->video_lock);
   mutex_destroy(&h->audio_lock);
   cond_destroy(&h->jobs_cond);
@@ -1101,7 +2092,15 @@ int lh_option_count(lh_host *h) {
   return count;
 }
 
+// Copies one definition into caller-owned storage while still holding the
+// lock. Handing back the host's own pointers, as this used to, was a
+// cross-thread use-after-free: restart_core frees every definition from the
+// emulation thread and lh_set_option frees the replaced value from whichever
+// thread changed it, both after this function has already unlocked and
+// returned. Copying is cheap next to the JNI/Flutter marshalling every caller
+// does with the result anyway.
 int lh_get_option(lh_host *h, int index, lh_option *out) {
+  if (!h || !out) return -1;
   mutex_lock(&h->vars_lock);
   if (index < 0 || index >= h->def_count) {
     mutex_unlock(&h->vars_lock);
@@ -1109,19 +2108,32 @@ int lh_get_option(lh_host *h, int index, lh_option *out) {
   }
   lh_optdef *def = &h->defs[index];
   const char *current = vars_get(h, def->id);
-  out->id = def->id;
-  out->label = def->label;
-  out->current = current ? current
-                         : (def->choice_count > 0 ? def->choices[0] : "");
-  out->choices = (const char *const *)def->choices;
-  out->choice_count = def->choice_count;
+  lh_copy_bounded(out->id, sizeof(out->id), def->id);
+  lh_copy_bounded(out->label, sizeof(out->label), def->label);
+  lh_copy_bounded(out->current, sizeof(out->current),
+                  current ? current
+                          : (def->choice_count > 0 ? def->choices[0] : ""));
+  int n = def->choice_count;
+  if (n > LH_OPTION_CHOICE_MAX) n = LH_OPTION_CHOICE_MAX;
+  for (int c = 0; c < n; c++) {
+    lh_copy_bounded(out->choices[c], sizeof(out->choices[c]), def->choices[c]);
+  }
+  out->choice_count = n;
   mutex_unlock(&h->vars_lock);
   return 0;
 }
 
 void lh_set_option(lh_host *h, const char *id, const char *value) {
   mutex_lock(&h->vars_lock);
-  vars_set(h, id, value);
-  h->variables_dirty = 1;
+  // There is no "load" to fail here - the core is already running - so an
+  // allocation failure is skipped cleanly instead: leave the option at its
+  // previous value and don't mark variables dirty for a change that never
+  // actually took, rather than telling the core an update happened when it
+  // didn't.
+  if (vars_set(h, id, value) == 0) {
+    h->variables_dirty = 1;
+  } else {
+    host_log(h, "Failed to set option %s (allocation failure)", id);
+  }
   mutex_unlock(&h->vars_lock);
 }

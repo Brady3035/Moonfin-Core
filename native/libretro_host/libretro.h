@@ -2973,7 +2973,7 @@ typedef int64_t (RETRO_CALLCONV *retro_vfs_tell_t)(struct retro_vfs_file_handle 
  * @param stream The file to set the position of.
  * @param offset The new position, in bytes.
  * @param seek_position The position to seek from.
- * @return The new position,
+ * @return 0 on success,
  * or -1 if there was an error.
  * @since VFS API v1
  * @see File Seek Positions

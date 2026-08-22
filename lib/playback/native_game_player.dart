@@ -140,14 +140,22 @@ class MethodChannelGamePlayer implements NativeGamePlayer {
     );
   }
 
+  // Not _invoke: a `start_failed` here means no emulation thread, so swallowing
+  // it would leave the user on a frozen screen.
   @override
-  Future<void> start() => _invoke('start');
+  Future<void> start() => _control.invokeMethod<void>('start');
   @override
   Future<void> pause() => _invoke('pause');
   @override
   Future<void> resume() => _invoke('resume');
+  // Unlike the other lifecycle calls below, this one is allowed to throw: the
+  // native side genuinely raises a `restart_unavailable` PlatformException
+  // for cores that can't restart, and the UI (native_game_player_screen's
+  // _restart) has a catch clause specifically for that code. Swallowing it
+  // here the way _invoke does for fire-and-forget calls would make that
+  // branch permanently unreachable.
   @override
-  Future<void> restart() => _invoke('restart');
+  Future<void> restart() => _control.invokeMethod<void>('restart');
   @override
   Future<void> stop() => _invoke('stop');
 

@@ -65,10 +65,12 @@ Map<String, dynamic> chromecastDeviceProfile() {
             'Value': 'high|main|baseline|constrained baseline',
             'IsRequired': false,
           },
-          // Cast generations 1 through 3 stop at High profile level 4.1, and
-          // only Ultra and Google TV go past it. Allowing 4.2 makes the server
-          // hand those receivers a manifest they reject outright, before any
-          // segment is fetched.
+          // First and second generation Cast devices stop at High profile
+          // level 4.1, and the sender can't ask which model it reached, so
+          // this takes the floor like the width cap below does. Nothing is
+          // lost at 1080p either, since 4.2 only buys frame rates past 60.
+          // A receiver that is handed a level it refuses rejects the whole
+          // manifest before fetching a segment, so no transcode ever starts.
           <String, dynamic>{
             'Condition': 'LessThanEqual',
             'Property': 'VideoLevel',

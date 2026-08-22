@@ -23,9 +23,9 @@ String? _condition(Map<String, dynamic> codecProfile, String property) {
 void main() {
   group('chromecastDeviceProfile', () {
     test('caps H264 at level 4.1', () {
-      // Cast generations 1 through 3 stop at High profile level 4.1. At 4.2
-      // the receiver rejects the HLS manifest outright, before requesting a
-      // single segment, so nothing ever reaches the screen.
+      // First and second generation Cast devices stop at level 4.1, and a
+      // receiver handed a level it refuses rejects the whole manifest before
+      // requesting a segment, so nothing reaches the screen.
       final codecProfile = _h264CodecProfile(chromecastDeviceProfile());
 
       expect(_condition(codecProfile, 'VideoLevel'), '41');

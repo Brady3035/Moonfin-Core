@@ -2148,9 +2148,9 @@ class DownloadService extends ChangeNotifier {
           error: friendlyError,
         );
         if (!_pluginNotificationsFor(
-        quality,
-        destinationOnRemovableStorage: destinationOnRemovableStorage,
-      )) {
+          quality,
+          destinationOnRemovableStorage: destinationOnRemovableStorage,
+        )) {
           await _notificationService.showError(
             itemName: item.name,
             error: friendlyError,

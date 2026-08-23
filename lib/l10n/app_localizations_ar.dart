@@ -2458,6 +2458,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get disabled => 'معطّل';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'مقياس على شاشة التلفزيون';
 
   @override
@@ -7000,10 +7006,20 @@ class AppLocalizationsAr extends AppLocalizations {
   String get adminPluginsRestart => 'إعادة تشغيل';
 
   @override
+  String get adminPluginsRestartRequired => 'Restart required';
+
+  @override
   String get adminPluginsNoSearchResults => 'لا توجد مكونات إضافية تطابق بحثك';
 
   @override
   String get adminPluginsNoneInstalled => 'لم يتم تثبيت أي مكونات إضافية';
+
+  @override
+  String get adminPluginsNoneActive => 'No active plugins';
+
+  @override
+  String get adminPluginsNoneRequireRestart =>
+      'No plugins require a server restart';
 
   @override
   String adminPluginsUpdateAvailable(String version) {
@@ -8790,6 +8806,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settingsSkipIntrosAndOutros => 'تخطي المقدمات والنهايات؟';
+
+  @override
+  String settingsMediaSegmentTypeAction(String segment) {
+    return '$segment Segments';
+  }
 
   @override
   String get settingsMediaSegmentCountdown => 'العد التنازلي لمقاطع الوسائط';

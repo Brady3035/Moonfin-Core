@@ -2430,6 +2430,12 @@ class AppLocalizationsFa extends AppLocalizations {
   String get disabled => 'غیرفعال';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'مقیاس در تلویزیون';
 
   @override
@@ -6979,11 +6985,21 @@ class AppLocalizationsFa extends AppLocalizations {
   String get adminPluginsRestart => 'راه اندازی مجدد';
 
   @override
+  String get adminPluginsRestartRequired => 'Restart required';
+
+  @override
   String get adminPluginsNoSearchResults =>
       'هیچ افزونه ای با جستجوی شما مطابقت ندارد';
 
   @override
   String get adminPluginsNoneInstalled => 'هیچ پلاگینی نصب نشده است';
+
+  @override
+  String get adminPluginsNoneActive => 'No active plugins';
+
+  @override
+  String get adminPluginsNoneRequireRestart =>
+      'No plugins require a server restart';
 
   @override
   String adminPluginsUpdateAvailable(String version) {
@@ -8747,6 +8763,11 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get settingsSkipIntrosAndOutros => 'از معرفی و برون رفت بگذرید؟';
+
+  @override
+  String settingsMediaSegmentTypeAction(String segment) {
+    return '$segment Segments';
+  }
 
   @override
   String get settingsMediaSegmentCountdown => 'شمارش معکوس بخش رسانه';

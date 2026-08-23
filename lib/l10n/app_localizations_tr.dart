@@ -2440,6 +2440,12 @@ class AppLocalizationsTr extends AppLocalizations {
   String get disabled => 'Devre dışı';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'TV\'de Ölçekle';
 
   @override
@@ -7028,10 +7034,20 @@ class AppLocalizationsTr extends AppLocalizations {
   String get adminPluginsRestart => 'Tekrar başlat';
 
   @override
+  String get adminPluginsRestartRequired => 'Restart required';
+
+  @override
   String get adminPluginsNoSearchResults => 'Aramanızla eşleşen eklenti yok';
 
   @override
   String get adminPluginsNoneInstalled => 'Hiçbir eklenti yüklü değil';
+
+  @override
+  String get adminPluginsNoneActive => 'No active plugins';
+
+  @override
+  String get adminPluginsNoneRequireRestart =>
+      'No plugins require a server restart';
 
   @override
   String adminPluginsUpdateAvailable(String version) {
@@ -8814,6 +8830,11 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get settingsSkipIntrosAndOutros => 'Giriş ve Jenerikleri atlansın mı?';
+
+  @override
+  String settingsMediaSegmentTypeAction(String segment) {
+    return '$segment Segments';
+  }
 
   @override
   String get settingsMediaSegmentCountdown => 'Medya Bölümü Geri Sayımı';

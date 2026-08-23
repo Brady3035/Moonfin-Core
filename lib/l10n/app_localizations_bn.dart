@@ -2435,6 +2435,12 @@ class AppLocalizationsBn extends AppLocalizations {
   String get disabled => 'নিষ্ক্রিয়';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'টিভিতে স্কেল';
 
   @override
@@ -7012,11 +7018,21 @@ class AppLocalizationsBn extends AppLocalizations {
   String get adminPluginsRestart => 'রিস্টার্ট করুন';
 
   @override
+  String get adminPluginsRestartRequired => 'Restart required';
+
+  @override
   String get adminPluginsNoSearchResults =>
       'কোনো প্লাগইন আপনার অনুসন্ধানের সাথে মেলে না';
 
   @override
   String get adminPluginsNoneInstalled => 'কোন প্লাগইন ইনস্টল করা নেই';
+
+  @override
+  String get adminPluginsNoneActive => 'No active plugins';
+
+  @override
+  String get adminPluginsNoneRequireRestart =>
+      'No plugins require a server restart';
 
   @override
   String adminPluginsUpdateAvailable(String version) {
@@ -8788,6 +8804,11 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get settingsSkipIntrosAndOutros => 'Intros এবং Outros এড়িয়ে যান?';
+
+  @override
+  String settingsMediaSegmentTypeAction(String segment) {
+    return '$segment Segments';
+  }
 
   @override
   String get settingsMediaSegmentCountdown => 'মিডিয়া সেগমেন্ট কাউন্টডাউন';

@@ -7,6 +7,7 @@ import 'package:server_core/server_core.dart' hide ImageType;
 
 import '../../preference/preference_constants.dart';
 import '../../preference/user_preferences.dart';
+import '../../util/network_errors.dart';
 import '../../util/parental_rating_severity.dart';
 import '../models/aggregated_item.dart';
 import '../repositories/mdblist_repository.dart';
@@ -229,6 +230,8 @@ class LibraryBrowseViewModel extends ChangeNotifier {
 
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
+  bool _isNetworkError = false;
+  bool get isNetworkError => _isNetworkError;
 
   bool? _lastGroupCollectionsValue;
 
@@ -539,6 +542,7 @@ class LibraryBrowseViewModel extends ChangeNotifier {
       _state = LibraryBrowseState.ready;
     } catch (e) {
       _errorMessage = e.toString();
+      _isNetworkError = isNetworkException(e);
       _state = LibraryBrowseState.error;
     }
     notifyListeners();

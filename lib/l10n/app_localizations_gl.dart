@@ -2472,6 +2472,12 @@ class AppLocalizationsGl extends AppLocalizations {
   String get disabled => 'Desactivado';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'Escala na TV';
 
   @override
@@ -7113,11 +7119,21 @@ class AppLocalizationsGl extends AppLocalizations {
   String get adminPluginsRestart => 'Reiniciar';
 
   @override
+  String get adminPluginsRestartRequired => 'Restart required';
+
+  @override
   String get adminPluginsNoSearchResults =>
       'Ningún complemento coincide coa túa busca';
 
   @override
   String get adminPluginsNoneInstalled => 'Non hai complementos instalados';
+
+  @override
+  String get adminPluginsNoneActive => 'No active plugins';
+
+  @override
+  String get adminPluginsNoneRequireRestart =>
+      'No plugins require a server restart';
 
   @override
   String adminPluginsUpdateAvailable(String version) {
@@ -8928,6 +8944,11 @@ class AppLocalizationsGl extends AppLocalizations {
 
   @override
   String get settingsSkipIntrosAndOutros => 'Omitir intros e outros?';
+
+  @override
+  String settingsMediaSegmentTypeAction(String segment) {
+    return '$segment Segments';
+  }
 
   @override
   String get settingsMediaSegmentCountdown =>

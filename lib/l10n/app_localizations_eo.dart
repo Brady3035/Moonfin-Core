@@ -2442,6 +2442,12 @@ class AppLocalizationsEo extends AppLocalizations {
   String get disabled => 'Malebligita';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'Skalo en televido';
 
   @override
@@ -7010,11 +7016,21 @@ class AppLocalizationsEo extends AppLocalizations {
   String get adminPluginsRestart => 'Rekomencu';
 
   @override
+  String get adminPluginsRestartRequired => 'Restart required';
+
+  @override
   String get adminPluginsNoSearchResults =>
       'Neniuj kromprogramoj kongruas kun via serĉo';
 
   @override
   String get adminPluginsNoneInstalled => 'Neniuj kromprogramoj instalitaj';
+
+  @override
+  String get adminPluginsNoneActive => 'No active plugins';
+
+  @override
+  String get adminPluginsNoneRequireRestart =>
+      'No plugins require a server restart';
 
   @override
   String adminPluginsUpdateAvailable(String version) {
@@ -8793,6 +8809,11 @@ class AppLocalizationsEo extends AppLocalizations {
   @override
   String get settingsSkipIntrosAndOutros =>
       'Ĉu preterpasi enkondukojn kaj aliajn?';
+
+  @override
+  String settingsMediaSegmentTypeAction(String segment) {
+    return '$segment Segments';
+  }
 
   @override
   String get settingsMediaSegmentCountdown =>

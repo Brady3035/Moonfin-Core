@@ -2462,6 +2462,12 @@ class AppLocalizationsTl extends AppLocalizations {
   String get disabled => 'Naka-disable';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'Scale sa TV';
 
   @override
@@ -7098,11 +7104,21 @@ class AppLocalizationsTl extends AppLocalizations {
   String get adminPluginsRestart => 'I-restart';
 
   @override
+  String get adminPluginsRestartRequired => 'Restart required';
+
+  @override
   String get adminPluginsNoSearchResults =>
       'Walang mga plugin na tumutugma sa iyong paghahanap';
 
   @override
   String get adminPluginsNoneInstalled => 'Walang naka-install na plugin';
+
+  @override
+  String get adminPluginsNoneActive => 'No active plugins';
+
+  @override
+  String get adminPluginsNoneRequireRestart =>
+      'No plugins require a server restart';
 
   @override
   String adminPluginsUpdateAvailable(String version) {
@@ -8901,6 +8917,11 @@ class AppLocalizationsTl extends AppLocalizations {
 
   @override
   String get settingsSkipIntrosAndOutros => 'Laktawan ang Intro at Outros?';
+
+  @override
+  String settingsMediaSegmentTypeAction(String segment) {
+    return '$segment Segments';
+  }
 
   @override
   String get settingsMediaSegmentCountdown => 'Media Segment Countdown';

@@ -2381,6 +2381,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get disabled => '已禁用';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => '在电视上缩放';
 
   @override
@@ -6778,10 +6784,20 @@ class AppLocalizationsZh extends AppLocalizations {
   String get adminPluginsRestart => '重启';
 
   @override
+  String get adminPluginsRestartRequired => 'Restart required';
+
+  @override
   String get adminPluginsNoSearchResults => '未找到符合搜索条件的插件';
 
   @override
   String get adminPluginsNoneInstalled => '未安装插件';
+
+  @override
+  String get adminPluginsNoneActive => 'No active plugins';
+
+  @override
+  String get adminPluginsNoneRequireRestart =>
+      'No plugins require a server restart';
 
   @override
   String adminPluginsUpdateAvailable(String version) {
@@ -8467,6 +8483,11 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settingsSkipIntrosAndOutros => '跳过片头和片尾？';
+
+  @override
+  String settingsMediaSegmentTypeAction(String segment) {
+    return '$segment Segments';
+  }
 
   @override
   String get settingsMediaSegmentCountdown => '媒体片段倒计时';

@@ -2460,6 +2460,12 @@ class AppLocalizationsSw extends AppLocalizations {
   String get disabled => 'Imezimwa';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'Kiwango kwenye TV';
 
   @override
@@ -7073,12 +7079,22 @@ class AppLocalizationsSw extends AppLocalizations {
   String get adminPluginsRestart => 'Anzisha upya';
 
   @override
+  String get adminPluginsRestartRequired => 'Restart required';
+
+  @override
   String get adminPluginsNoSearchResults =>
       'Hakuna programu-jalizi zinazolingana na utafutaji wako';
 
   @override
   String get adminPluginsNoneInstalled =>
       'Hakuna programu-jalizi zilizosakinishwa';
+
+  @override
+  String get adminPluginsNoneActive => 'No active plugins';
+
+  @override
+  String get adminPluginsNoneRequireRestart =>
+      'No plugins require a server restart';
 
   @override
   String adminPluginsUpdateAvailable(String version) {
@@ -8876,6 +8892,11 @@ class AppLocalizationsSw extends AppLocalizations {
   @override
   String get settingsSkipIntrosAndOutros =>
       'Ungependa Kuruka Utambulisho na Outros?';
+
+  @override
+  String settingsMediaSegmentTypeAction(String segment) {
+    return '$segment Segments';
+  }
 
   @override
   String get settingsMediaSegmentCountdown =>

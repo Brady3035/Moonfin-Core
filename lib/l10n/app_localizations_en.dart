@@ -2432,6 +2432,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get disabled => 'Disabled';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'Scale on TV';
 
   @override
@@ -6967,10 +6973,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get adminPluginsRestart => 'Restart';
 
   @override
+  String get adminPluginsRestartRequired => 'Restart required';
+
+  @override
   String get adminPluginsNoSearchResults => 'No plugins match your search';
 
   @override
   String get adminPluginsNoneInstalled => 'No plugins installed';
+
+  @override
+  String get adminPluginsNoneActive => 'No active plugins';
+
+  @override
+  String get adminPluginsNoneRequireRestart =>
+      'No plugins require a server restart';
 
   @override
   String adminPluginsUpdateAvailable(String version) {
@@ -8732,6 +8748,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsSkipIntrosAndOutros => 'Skip Intros and Outros?';
+
+  @override
+  String settingsMediaSegmentTypeAction(String segment) {
+    return '$segment Segments';
+  }
 
   @override
   String get settingsMediaSegmentCountdown => 'Media Segment Countdown';
@@ -17660,10 +17681,20 @@ class AppLocalizationsEnGb extends AppLocalizationsEn {
   String get adminPluginsRestart => 'Restart';
 
   @override
+  String get adminPluginsRestartRequired => 'Restart required';
+
+  @override
   String get adminPluginsNoSearchResults => 'No plugins match your search';
 
   @override
   String get adminPluginsNoneInstalled => 'No plugins installed';
+
+  @override
+  String get adminPluginsNoneActive => 'No active plugins';
+
+  @override
+  String get adminPluginsNoneRequireRestart =>
+      'No plugins require a server restart';
 
   @override
   String adminPluginsUpdateAvailable(String version) {

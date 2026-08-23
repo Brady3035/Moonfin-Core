@@ -2456,6 +2456,12 @@ class AppLocalizationsMl extends AppLocalizations {
   String get disabled => 'പ്രവർത്തനരഹിതം';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'ടിവിയിൽ സ്കെയിൽ';
 
   @override
@@ -7098,12 +7104,22 @@ class AppLocalizationsMl extends AppLocalizations {
   String get adminPluginsRestart => 'പുനരാരംഭിക്കുക';
 
   @override
+  String get adminPluginsRestartRequired => 'Restart required';
+
+  @override
   String get adminPluginsNoSearchResults =>
       'നിങ്ങളുടെ തിരയലുമായി പൊരുത്തപ്പെടുന്ന പ്ലഗിനുകളൊന്നും ഇല്ല';
 
   @override
   String get adminPluginsNoneInstalled =>
       'പ്ലഗിന്നുകളൊന്നും ഇൻസ്റ്റാൾ ചെയ്തിട്ടില്ല';
+
+  @override
+  String get adminPluginsNoneActive => 'No active plugins';
+
+  @override
+  String get adminPluginsNoneRequireRestart =>
+      'No plugins require a server restart';
 
   @override
   String adminPluginsUpdateAvailable(String version) {
@@ -8913,6 +8929,11 @@ class AppLocalizationsMl extends AppLocalizations {
   @override
   String get settingsSkipIntrosAndOutros =>
       'ആമുഖങ്ങളും ഔട്ട്റോകളും ഒഴിവാക്കണോ?';
+
+  @override
+  String settingsMediaSegmentTypeAction(String segment) {
+    return '$segment Segments';
+  }
 
   @override
   String get settingsMediaSegmentCountdown => 'മീഡിയ സെഗ്‌മെന്റ് കൗണ്ട്ഡൗൺ';

@@ -2560,6 +2560,12 @@ class AppLocalizationsHr extends AppLocalizations {
   String get disabled => 'Onemogućeno';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'Skala na TV-u';
 
   @override
@@ -7222,11 +7228,21 @@ class AppLocalizationsHr extends AppLocalizations {
   String get adminPluginsRestart => 'Ponovno pokretanje';
 
   @override
+  String get adminPluginsRestartRequired => 'Restart required';
+
+  @override
   String get adminPluginsNoSearchResults =>
       'Nijedan dodatak ne odgovara vašem pretraživanju';
 
   @override
   String get adminPluginsNoneInstalled => 'Nema instaliranih dodataka';
+
+  @override
+  String get adminPluginsNoneActive => 'No active plugins';
+
+  @override
+  String get adminPluginsNoneRequireRestart =>
+      'No plugins require a server restart';
 
   @override
   String adminPluginsUpdateAvailable(String version) {
@@ -9022,6 +9038,11 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String get settingsSkipIntrosAndOutros => 'Preskočiti Intros i Outros?';
+
+  @override
+  String settingsMediaSegmentTypeAction(String segment) {
+    return '$segment Segments';
+  }
 
   @override
   String get settingsMediaSegmentCountdown => 'Odbrojavanje medijskog segmenta';

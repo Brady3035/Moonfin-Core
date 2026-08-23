@@ -2458,6 +2458,12 @@ class AppLocalizationsBe extends AppLocalizations {
   String get disabled => 'Адключана';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'Шкала на ТБ';
 
   @override
@@ -7046,11 +7052,21 @@ class AppLocalizationsBe extends AppLocalizations {
   String get adminPluginsRestart => 'Перазапуск';
 
   @override
+  String get adminPluginsRestartRequired => 'Restart required';
+
+  @override
   String get adminPluginsNoSearchResults =>
       'Няма плагінаў, якія адпавядаюць вашаму пошуку';
 
   @override
   String get adminPluginsNoneInstalled => 'Убудоў не ўстаноўлена';
+
+  @override
+  String get adminPluginsNoneActive => 'No active plugins';
+
+  @override
+  String get adminPluginsNoneRequireRestart =>
+      'No plugins require a server restart';
 
   @override
   String adminPluginsUpdateAvailable(String version) {
@@ -8855,6 +8871,11 @@ class AppLocalizationsBe extends AppLocalizations {
   @override
   String get settingsSkipIntrosAndOutros =>
       'Прапусціць уводныя і канчатковыя часткі?';
+
+  @override
+  String settingsMediaSegmentTypeAction(String segment) {
+    return '$segment Segments';
+  }
 
   @override
   String get settingsMediaSegmentCountdown => 'Адлік медыясегмента';

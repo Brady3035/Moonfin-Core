@@ -2460,6 +2460,12 @@ class AppLocalizationsLv extends AppLocalizations {
   String get disabled => 'Atspējots';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'Mērogs televizorā';
 
   @override
@@ -7059,11 +7065,21 @@ class AppLocalizationsLv extends AppLocalizations {
   String get adminPluginsRestart => 'Restartēt';
 
   @override
+  String get adminPluginsRestartRequired => 'Restart required';
+
+  @override
   String get adminPluginsNoSearchResults =>
       'Neviens spraudnis neatbilst jūsu meklēšanas vaicājumam';
 
   @override
   String get adminPluginsNoneInstalled => 'Nav instalēts neviens spraudnis';
+
+  @override
+  String get adminPluginsNoneActive => 'No active plugins';
+
+  @override
+  String get adminPluginsNoneRequireRestart =>
+      'No plugins require a server restart';
 
   @override
   String adminPluginsUpdateAvailable(String version) {
@@ -8855,6 +8871,11 @@ class AppLocalizationsLv extends AppLocalizations {
   @override
   String get settingsSkipIntrosAndOutros =>
       'Vai izlaist ievadus un noslēgumus?';
+
+  @override
+  String settingsMediaSegmentTypeAction(String segment) {
+    return '$segment Segments';
+  }
 
   @override
   String get settingsMediaSegmentCountdown =>

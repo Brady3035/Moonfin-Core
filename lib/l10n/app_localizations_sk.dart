@@ -2465,6 +2465,12 @@ class AppLocalizationsSk extends AppLocalizations {
   String get disabled => 'Vypnuté';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'Mierka v televízii';
 
   @override
@@ -7060,11 +7066,21 @@ class AppLocalizationsSk extends AppLocalizations {
   String get adminPluginsRestart => 'Reštartujte';
 
   @override
+  String get adminPluginsRestartRequired => 'Restart required';
+
+  @override
   String get adminPluginsNoSearchResults =>
       'Vášmu vyhľadávaniu nezodpovedajú žiadne doplnky';
 
   @override
   String get adminPluginsNoneInstalled => 'Nie sú nainštalované žiadne doplnky';
+
+  @override
+  String get adminPluginsNoneActive => 'No active plugins';
+
+  @override
+  String get adminPluginsNoneRequireRestart =>
+      'No plugins require a server restart';
 
   @override
   String adminPluginsUpdateAvailable(String version) {
@@ -8862,6 +8878,11 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get settingsSkipIntrosAndOutros => 'Preskočiť úvody a závery?';
+
+  @override
+  String settingsMediaSegmentTypeAction(String segment) {
+    return '$segment Segments';
+  }
 
   @override
   String get settingsMediaSegmentCountdown =>

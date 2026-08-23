@@ -2395,6 +2395,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String get disabled => '사용 안 함';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'TV의 규모';
 
   @override
@@ -6836,10 +6842,20 @@ class AppLocalizationsKo extends AppLocalizations {
   String get adminPluginsRestart => '다시 시작';
 
   @override
+  String get adminPluginsRestartRequired => 'Restart required';
+
+  @override
   String get adminPluginsNoSearchResults => '검색어와 일치하는 플러그인이 없습니다';
 
   @override
   String get adminPluginsNoneInstalled => '플러그인이 설치되지 않았습니다.';
+
+  @override
+  String get adminPluginsNoneActive => 'No active plugins';
+
+  @override
+  String get adminPluginsNoneRequireRestart =>
+      'No plugins require a server restart';
 
   @override
   String adminPluginsUpdateAvailable(String version) {
@@ -8544,6 +8560,11 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get settingsSkipIntrosAndOutros => '인트로와 아웃트로를 건너뛰시겠습니까?';
+
+  @override
+  String settingsMediaSegmentTypeAction(String segment) {
+    return '$segment Segments';
+  }
 
   @override
   String get settingsMediaSegmentCountdown => '미디어 구간 카운트다운';

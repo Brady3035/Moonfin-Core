@@ -14,6 +14,7 @@ import 'package:server_core/server_core.dart';
 import '../../data/models/aggregated_item.dart';
 import '../../data/services/carplay_service.dart';
 import '../../data/services/cast/cast_service.dart';
+import '../../data/services/crash_report_service.dart';
 import '../../data/services/download_notification_service.dart';
 import '../../data/services/tv_channels_service.dart';
 import '../../data/services/watch_next_service.dart';
@@ -299,6 +300,11 @@ class SessionRepository {
     ServerUser? preFetchedServerUser,
   }) async {
     await _reportRemoteCapabilities(client);
+
+    // A server is signed in now, so crash reports from earlier runs can go.
+    try {
+      unawaited(GetIt.instance<CrashReportService>().flushPending());
+    } catch (_) {}
 
     try {
       final serverUser =

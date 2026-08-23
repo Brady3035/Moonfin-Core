@@ -1032,7 +1032,12 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
     if (_wasAlwaysOnTopOnEntry == false && _isAlwaysOnTop) {
       unawaited(_setAlwaysOnTop(false));
     }
-    if (!_isStopping) _manager.stop(userInitiated: false);
+    // The launch coordinator briefly owns this route while Android decides
+    // whether to hand the queue to an external player. Keep that prepared
+    // queue intact when the internal host is being replaced.
+    if (!_isStopping && !_manager.playbackDeferredToExternalPlayer) {
+      _manager.stop(userInitiated: false);
+    }
     unawaited(_restoreSystemUiForExit());
     super.dispose();
   }
@@ -1992,7 +1997,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
     }
 
     await backend.setUiMetadata(
-      hasPrevious: _queue.hasPrevious,
+      hasPrevious: true,
       hasNext: _queue.hasNext,
       chapters: chapters,
       skipBackMs: _prefs.get(UserPreferences.skipBackLength),
@@ -3788,15 +3793,13 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
   }
 
   bool _isBringupInProgress(PlaybackBringupPhase phase) {
-    return phase == PlaybackBringupPhase.stoppingPrevious ||
-        phase == PlaybackBringupPhase.resolving ||
-        phase == PlaybackBringupPhase.opening ||
-        phase == PlaybackBringupPhase.waitingForReady ||
-        phase == PlaybackBringupPhase.seekingResume;
+    return phase.isInProgress;
   }
 
   String _bringupLabel() {
     switch (_bringupState.phase) {
+      case PlaybackBringupPhase.preparing:
+        return _streamLoadingLabel;
       case PlaybackBringupPhase.stoppingPrevious:
         return 'Stopping previous playback...';
       case PlaybackBringupPhase.resolving:
@@ -4678,7 +4681,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
         MediaQuery.of(context).orientation == Orientation.landscape;
     final buttonExtent = isLandscape ? 56.0 : 48.0;
     final buttonIconSize = isLandscape ? 28.0 : 24.0;
-    final hasPrevious = _queue.hasPrevious;
     final hasNext = _queue.hasNext;
 
     return FocusTraversalGroup(
@@ -4689,15 +4691,14 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            if (_queue.hasPrevious)
-              _controlButton(
-                Icons.skip_previous_rounded,
-                onPressed: _manager.previous,
-                size: buttonIconSize,
-                extent: buttonExtent,
-                focusNode: _tvTransportFirstFocus,
-                tooltip: l10n.playerTooltipPrevious,
-              ),
+            _controlButton(
+              Icons.skip_previous_rounded,
+              onPressed: _manager.previous,
+              size: buttonIconSize,
+              extent: buttonExtent,
+              focusNode: _tvTransportFirstFocus,
+              tooltip: l10n.playerTooltipPrevious,
+            ),
             const SizedBox(width: 4),
             _controlButton(
               seekBackIcon(_prefs.get(UserPreferences.skipBackLength)),
@@ -4705,7 +4706,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
                   _seekRelative(-_prefs.get(UserPreferences.skipBackLength)),
               size: buttonIconSize,
               extent: buttonExtent,
-              focusNode: hasPrevious ? null : _tvTransportFirstFocus,
               tooltip: _tooltipMessage(
                 l10n.playerTooltipSeekBack,
                 shortcut: 'Left',
@@ -5851,14 +5851,13 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    if (_queue.hasPrevious)
-                      _controlButton(
-                        Icons.skip_previous_rounded,
-                        onPressed: _manager.previous,
-                        size: 40,
-                        extent: 72,
-                        tooltip: l10n.playerTooltipPrevious,
-                      ),
+                    _controlButton(
+                      Icons.skip_previous_rounded,
+                      onPressed: _manager.previous,
+                      size: 40,
+                      extent: 72,
+                      tooltip: l10n.playerTooltipPrevious,
+                    ),
                     _controlButton(
                       seekBackIcon(_prefs.get(UserPreferences.skipBackLength)),
                       onPressed: () =>

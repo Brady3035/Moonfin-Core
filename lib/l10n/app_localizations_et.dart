@@ -2450,6 +2450,12 @@ class AppLocalizationsEt extends AppLocalizations {
   String get disabled => 'Keelatud';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'Skaala teleris';
 
   @override
@@ -7019,11 +7025,21 @@ class AppLocalizationsEt extends AppLocalizations {
   String get adminPluginsRestart => 'Taaskäivitage';
 
   @override
+  String get adminPluginsRestartRequired => 'Restart required';
+
+  @override
   String get adminPluginsNoSearchResults =>
       'Ükski pistikprogramm ei vasta teie otsingule';
 
   @override
   String get adminPluginsNoneInstalled => 'Pluginaid pole installitud';
+
+  @override
+  String get adminPluginsNoneActive => 'No active plugins';
+
+  @override
+  String get adminPluginsNoneRequireRestart =>
+      'No plugins require a server restart';
 
   @override
   String adminPluginsUpdateAvailable(String version) {
@@ -8813,6 +8829,11 @@ class AppLocalizationsEt extends AppLocalizations {
   @override
   String get settingsSkipIntrosAndOutros =>
       'Kas jätta sissejuhatused ja välised vahele?';
+
+  @override
+  String settingsMediaSegmentTypeAction(String segment) {
+    return '$segment Segments';
+  }
 
   @override
   String get settingsMediaSegmentCountdown => 'Meediasegmendi loendur';

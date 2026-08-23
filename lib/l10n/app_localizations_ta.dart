@@ -2460,6 +2460,12 @@ class AppLocalizationsTa extends AppLocalizations {
   String get disabled => 'முடக்கப்பட்டது';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'தொலைக்காட்சியில் அளவிடவும்';
 
   @override
@@ -7080,12 +7086,22 @@ class AppLocalizationsTa extends AppLocalizations {
   String get adminPluginsRestart => 'மறுதொடக்கம்';
 
   @override
+  String get adminPluginsRestartRequired => 'Restart required';
+
+  @override
   String get adminPluginsNoSearchResults =>
       'உங்கள் தேடலுடன் எந்த செருகுநிரல்களும் பொருந்தவில்லை';
 
   @override
   String get adminPluginsNoneInstalled =>
       'செருகுநிரல்கள் எதுவும் நிறுவப்படவில்லை';
+
+  @override
+  String get adminPluginsNoneActive => 'No active plugins';
+
+  @override
+  String get adminPluginsNoneRequireRestart =>
+      'No plugins require a server restart';
 
   @override
   String adminPluginsUpdateAvailable(String version) {
@@ -8876,6 +8892,11 @@ class AppLocalizationsTa extends AppLocalizations {
   @override
   String get settingsSkipIntrosAndOutros =>
       'அறிமுகங்கள் மற்றும் அவுட்ரோக்களை தவிர்க்கவா?';
+
+  @override
+  String settingsMediaSegmentTypeAction(String segment) {
+    return '$segment Segments';
+  }
 
   @override
   String get settingsMediaSegmentCountdown => 'மீடியா பிரிவு கவுண்ட்டவுன்';

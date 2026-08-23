@@ -2458,6 +2458,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get disabled => 'Uitgeschakeld';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'Schaal op tv';
 
   @override
@@ -7059,11 +7065,21 @@ class AppLocalizationsNl extends AppLocalizations {
   String get adminPluginsRestart => 'Opnieuw opstarten';
 
   @override
+  String get adminPluginsRestartRequired => 'Restart required';
+
+  @override
   String get adminPluginsNoSearchResults =>
       'Er zijn geen plug-ins die overeenkomen met uw zoekopdracht';
 
   @override
   String get adminPluginsNoneInstalled => 'Geen plug-ins geïnstalleerd';
+
+  @override
+  String get adminPluginsNoneActive => 'No active plugins';
+
+  @override
+  String get adminPluginsNoneRequireRestart =>
+      'No plugins require a server restart';
 
   @override
   String adminPluginsUpdateAvailable(String version) {
@@ -8855,6 +8871,11 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settingsSkipIntrosAndOutros => 'Intro\'s en Outro\'s overslaan?';
+
+  @override
+  String settingsMediaSegmentTypeAction(String segment) {
+    return '$segment Segments';
+  }
 
   @override
   String get settingsMediaSegmentCountdown => 'Aftellen bij mediasegmenten';

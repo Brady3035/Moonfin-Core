@@ -195,6 +195,24 @@ class PlaybackManager implements AudioOwnable {
   String? get lastExplicitSubtitleLanguage => _lastExplicitSubtitleLanguage;
   bool? get lastExplicitSubtitleEnabled => _lastExplicitSubtitleEnabled;
   bool get playbackDeferredToExternalPlayer => _deferPlaybackToExternalPlayer;
+
+  /// Marks the work that happens before [playItems] can take ownership of the
+  /// queue. Player routes use this to render launch feedback while item
+  /// hydration, prompts, and queue construction are still in progress.
+  void beginPlaybackPreparation() {
+    _setBringupState(
+      const PlaybackBringupState(phase: PlaybackBringupPhase.preparing),
+    );
+  }
+
+  /// Clears an abandoned preparation without overwriting a newer playback
+  /// phase that may already have taken ownership.
+  void cancelPlaybackPreparation() {
+    if (_bringupState.phase == PlaybackBringupPhase.preparing) {
+      _setBringupState(const PlaybackBringupState.idle());
+    }
+  }
+
   bool consumeSkipExternalRoutingOnce() {
     final shouldSkip = _skipExternalRoutingOnce;
     _skipExternalRoutingOnce = false;
@@ -1939,17 +1957,17 @@ class PlaybackManager implements AudioOwnable {
 
   Future<void> previous() async {
     if (await _maybeIntercept(TransportAction.previous)) return;
-    if (state.position.inSeconds > 3) {
+    // A press this far in restarts the item, and so does one with nothing to
+    // step back to.
+    if (state.position.inSeconds > 3 || !queueService.hasPrevious) {
       await seekTo(Duration.zero);
       return;
     }
     _mediaSourceId = null;
     await _stopAndReportCurrent(skipQueueChange: true);
     _resetBackendSelectionLock();
-    final hadPrevious = queueService.previous();
-    if (hadPrevious) {
-      await _playCurrentItem();
-    }
+    queueService.previous();
+    await _playCurrentItem();
   }
 
   Future<void> playFromQueue(int index) async {
@@ -3003,6 +3021,7 @@ class PlaybackStartupRecoveryAbortedException implements Exception {
 
 enum PlaybackBringupPhase {
   idle,
+  preparing,
   stoppingPrevious,
   resolving,
   opening,
@@ -3010,6 +3029,20 @@ enum PlaybackBringupPhase {
   seekingResume,
   ready,
   failed,
+}
+
+extension PlaybackBringupPhaseX on PlaybackBringupPhase {
+  bool get isInProgress => switch (this) {
+    PlaybackBringupPhase.preparing ||
+    PlaybackBringupPhase.stoppingPrevious ||
+    PlaybackBringupPhase.resolving ||
+    PlaybackBringupPhase.opening ||
+    PlaybackBringupPhase.waitingForReady ||
+    PlaybackBringupPhase.seekingResume => true,
+    PlaybackBringupPhase.idle ||
+    PlaybackBringupPhase.ready ||
+    PlaybackBringupPhase.failed => false,
+  };
 }
 
 class PlaybackBringupState {

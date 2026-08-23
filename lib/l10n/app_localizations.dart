@@ -4420,6 +4420,18 @@ abstract class AppLocalizations {
   /// **'Disabled'**
   String get disabled;
 
+  /// Option: manual
+  ///
+  /// In en, this message translates to:
+  /// **'Manual'**
+  String get manual;
+
+  /// Option: detect the value automatically
+  ///
+  /// In en, this message translates to:
+  /// **'Auto Detect'**
+  String get autoDetect;
+
   /// Refresh rate option: scale on TV
   ///
   /// In en, this message translates to:
@@ -12550,6 +12562,12 @@ abstract class AppLocalizations {
   /// **'Restart'**
   String get adminPluginsRestart;
 
+  /// Label for the installed-plugin filter showing changes that require a server restart
+  ///
+  /// In en, this message translates to:
+  /// **'Restart required'**
+  String get adminPluginsRestartRequired;
+
   /// No description provided for @adminPluginsNoSearchResults.
   ///
   /// In en, this message translates to:
@@ -12561,6 +12579,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No plugins installed'**
   String get adminPluginsNoneInstalled;
+
+  /// Empty state for the active installed-plugin filter
+  ///
+  /// In en, this message translates to:
+  /// **'No active plugins'**
+  String get adminPluginsNoneActive;
+
+  /// Empty state for the installed-plugin filter showing changes that require a server restart
+  ///
+  /// In en, this message translates to:
+  /// **'No plugins require a server restart'**
+  String get adminPluginsNoneRequireRestart;
 
   /// No description provided for @adminPluginsUpdateAvailable.
   ///
@@ -15681,6 +15711,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Skip Intros and Outros?'**
   String get settingsSkipIntrosAndOutros;
+
+  /// Setting label for what to do with one type of media segment
+  ///
+  /// In en, this message translates to:
+  /// **'{segment} Segments'**
+  String settingsMediaSegmentTypeAction(String segment);
 
   /// Setting label for media segment countdown customizations
   ///

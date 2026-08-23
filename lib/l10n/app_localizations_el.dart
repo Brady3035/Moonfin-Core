@@ -2473,6 +2473,12 @@ class AppLocalizationsEl extends AppLocalizations {
   String get disabled => 'Απενεργοποιημένο';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'Κλίμακα στην τηλεόραση';
 
   @override
@@ -7122,11 +7128,21 @@ class AppLocalizationsEl extends AppLocalizations {
   String get adminPluginsRestart => 'Επανεκκίνηση';
 
   @override
+  String get adminPluginsRestartRequired => 'Restart required';
+
+  @override
   String get adminPluginsNoSearchResults =>
       'Δεν υπάρχουν πρόσθετα που να αντιστοιχούν στην αναζήτησή σας';
 
   @override
   String get adminPluginsNoneInstalled => 'Δεν έχουν εγκατασταθεί πρόσθετα';
+
+  @override
+  String get adminPluginsNoneActive => 'No active plugins';
+
+  @override
+  String get adminPluginsNoneRequireRestart =>
+      'No plugins require a server restart';
 
   @override
   String adminPluginsUpdateAvailable(String version) {
@@ -8944,6 +8960,11 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get settingsSkipIntrosAndOutros => 'Παράλειψη εισαγωγών και εξόδων;';
+
+  @override
+  String settingsMediaSegmentTypeAction(String segment) {
+    return '$segment Segments';
+  }
 
   @override
   String get settingsMediaSegmentCountdown =>

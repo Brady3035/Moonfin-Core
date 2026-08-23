@@ -956,10 +956,16 @@ class _ContentRowsState extends State<_ContentRows>
         primary == null ||
         primary is FocusScopeNode ||
         identical(primary, globalShortcutFocusNode);
+    final onToolbar = TopToolbar.isFocusedNotifier.value;
     final chromeFocusActive =
         SettingsPanel.isOpenNotifier.value ||
         (!onIdleFocus && !desktopUnfocused && !onMediaBar && !hasRowContext);
-    final chromeAudioActive = chromeFocusActive || onSidebar;
+    // Ending a row preview and pausing the bar part company at the toolbar.
+    // Focus rests there after launch and after a mouse scroll, so pausing for
+    // it left the bar silent and still with no way back, while a preview the
+    // user has just navigated away from should still end.
+    final chromePreviewActive = chromeFocusActive || onSidebar;
+    final chromeAudioActive = (chromeFocusActive && !onToolbar) || onSidebar;
 
     final nextMediaBarVisible = isMobileUi
         ? true
@@ -989,7 +995,7 @@ class _ContentRowsState extends State<_ContentRows>
     _wasSidebarFocused = onSidebar;
     _lastGlobalPrimaryFocus = primary;
 
-    if (chromeAudioActive && (chromeChanged || _activePreviewKey != null)) {
+    if (chromePreviewActive && (chromeChanged || _activePreviewKey != null)) {
       _finishSharedPreview(releaseResources: true);
     }
   }
@@ -1080,6 +1086,7 @@ class _ContentRowsState extends State<_ContentRows>
     FocusManager.instance.addListener(_onGlobalFocusChanged);
     SettingsPanel.isOpenNotifier.addListener(_onSettingsPanelOpenChanged);
     LeftSidebar.isFocusedNotifier.addListener(_onGlobalFocusChanged);
+    TopToolbar.isFocusedNotifier.addListener(_onGlobalFocusChanged);
     _lastMedia3PreviewPreference = _useMedia3InlinePreview();
     widget.prefs.addListener(_onPreviewPrefsChanged);
     _previousFocusContentFromNavbarCallback =
@@ -1232,6 +1239,7 @@ class _ContentRowsState extends State<_ContentRows>
     FocusManager.instance.removeListener(_onGlobalFocusChanged);
     SettingsPanel.isOpenNotifier.removeListener(_onSettingsPanelOpenChanged);
     LeftSidebar.isFocusedNotifier.removeListener(_onGlobalFocusChanged);
+    TopToolbar.isFocusedNotifier.removeListener(_onGlobalFocusChanged);
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     _scrollOffsetNotifier.dispose();

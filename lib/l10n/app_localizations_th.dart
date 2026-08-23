@@ -2426,6 +2426,12 @@ class AppLocalizationsTh extends AppLocalizations {
   String get disabled => 'ปิดใช้งาน';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'สเกลบนทีวี';
 
   @override
@@ -6971,11 +6977,21 @@ class AppLocalizationsTh extends AppLocalizations {
   String get adminPluginsRestart => 'รีสตาร์ท';
 
   @override
+  String get adminPluginsRestartRequired => 'Restart required';
+
+  @override
   String get adminPluginsNoSearchResults =>
       'ไม่มีปลั๊กอินที่ตรงกับการค้นหาของคุณ';
 
   @override
   String get adminPluginsNoneInstalled => 'ไม่มีการติดตั้งปลั๊กอิน';
+
+  @override
+  String get adminPluginsNoneActive => 'No active plugins';
+
+  @override
+  String get adminPluginsNoneRequireRestart =>
+      'No plugins require a server restart';
 
   @override
   String adminPluginsUpdateAvailable(String version) {
@@ -8741,6 +8757,11 @@ class AppLocalizationsTh extends AppLocalizations {
 
   @override
   String get settingsSkipIntrosAndOutros => 'ข้ามช่วงแนะนำและส่วนท้ายใช่ไหม';
+
+  @override
+  String settingsMediaSegmentTypeAction(String segment) {
+    return '$segment Segments';
+  }
 
   @override
   String get settingsMediaSegmentCountdown => 'การนับถอยหลังของช่วงสื่อ';

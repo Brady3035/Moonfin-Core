@@ -2383,6 +2383,12 @@ class AppLocalizationsYue extends AppLocalizations {
   String get disabled => '已停用';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => '在電視上縮放';
 
   @override
@@ -6799,10 +6805,20 @@ class AppLocalizationsYue extends AppLocalizations {
   String get adminPluginsRestart => '重新啟動';
 
   @override
+  String get adminPluginsRestartRequired => 'Restart required';
+
+  @override
   String get adminPluginsNoSearchResults => '沒有符合您搜尋條件的插件';
 
   @override
   String get adminPluginsNoneInstalled => '沒有安裝插件';
+
+  @override
+  String get adminPluginsNoneActive => 'No active plugins';
+
+  @override
+  String get adminPluginsNoneRequireRestart =>
+      'No plugins require a server restart';
 
   @override
   String adminPluginsUpdateAvailable(String version) {
@@ -8493,6 +8509,11 @@ class AppLocalizationsYue extends AppLocalizations {
 
   @override
   String get settingsSkipIntrosAndOutros => '跳過片頭和片尾？';
+
+  @override
+  String settingsMediaSegmentTypeAction(String segment) {
+    return '$segment Segments';
+  }
 
   @override
   String get settingsMediaSegmentCountdown => '媒體片段倒數';

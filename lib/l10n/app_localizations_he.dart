@@ -2426,6 +2426,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get disabled => 'מושבת';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'קנה מידה בטלוויזיה';
 
   @override
@@ -6929,10 +6935,20 @@ class AppLocalizationsHe extends AppLocalizations {
   String get adminPluginsRestart => 'הפעל מחדש';
 
   @override
+  String get adminPluginsRestartRequired => 'Restart required';
+
+  @override
   String get adminPluginsNoSearchResults => 'אין תוספים שתואמים לחיפוש שלך';
 
   @override
   String get adminPluginsNoneInstalled => 'לא מותקנים תוספים';
+
+  @override
+  String get adminPluginsNoneActive => 'No active plugins';
+
+  @override
+  String get adminPluginsNoneRequireRestart =>
+      'No plugins require a server restart';
 
   @override
   String adminPluginsUpdateAvailable(String version) {
@@ -8683,6 +8699,11 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settingsSkipIntrosAndOutros => 'לדלג על Intros ו-Outros?';
+
+  @override
+  String settingsMediaSegmentTypeAction(String segment) {
+    return '$segment Segments';
+  }
 
   @override
   String get settingsMediaSegmentCountdown => 'ספירה לאחור של מקטע מדיה';

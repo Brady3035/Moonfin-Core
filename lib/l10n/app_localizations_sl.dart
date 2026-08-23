@@ -2467,6 +2467,12 @@ class AppLocalizationsSl extends AppLocalizations {
   String get disabled => 'Onemogočeno';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'Lestvica na TV';
 
   @override
@@ -7056,11 +7062,21 @@ class AppLocalizationsSl extends AppLocalizations {
   String get adminPluginsRestart => 'Znova zaženite';
 
   @override
+  String get adminPluginsRestartRequired => 'Restart required';
+
+  @override
   String get adminPluginsNoSearchResults =>
       'Noben vtičnik ne ustreza vašemu iskanju';
 
   @override
   String get adminPluginsNoneInstalled => 'Ni nameščenih vtičnikov';
+
+  @override
+  String get adminPluginsNoneActive => 'No active plugins';
+
+  @override
+  String get adminPluginsNoneRequireRestart =>
+      'No plugins require a server restart';
 
   @override
   String adminPluginsUpdateAvailable(String version) {
@@ -8859,6 +8875,11 @@ class AppLocalizationsSl extends AppLocalizations {
   @override
   String get settingsSkipIntrosAndOutros =>
       'Preskočiti uvodne in končne elemente?';
+
+  @override
+  String settingsMediaSegmentTypeAction(String segment) {
+    return '$segment Segments';
+  }
 
   @override
   String get settingsMediaSegmentCountdown =>

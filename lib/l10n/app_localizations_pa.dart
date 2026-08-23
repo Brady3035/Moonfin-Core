@@ -2439,6 +2439,12 @@ class AppLocalizationsPa extends AppLocalizations {
   String get disabled => 'ਅਸਮਰੱਥ';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'ਟੀਵੀ \'ਤੇ ਸਕੇਲ';
 
   @override
@@ -6999,11 +7005,21 @@ class AppLocalizationsPa extends AppLocalizations {
   String get adminPluginsRestart => 'ਰੀਸਟਾਰਟ ਕਰੋ';
 
   @override
+  String get adminPluginsRestartRequired => 'Restart required';
+
+  @override
   String get adminPluginsNoSearchResults =>
       'ਕੋਈ ਪਲੱਗਇਨ ਤੁਹਾਡੀ ਖੋਜ ਨਾਲ ਮੇਲ ਨਹੀਂ ਖਾਂਦਾ';
 
   @override
   String get adminPluginsNoneInstalled => 'ਕੋਈ ਪਲੱਗਇਨ ਸਥਾਪਤ ਨਹੀਂ ਹਨ';
+
+  @override
+  String get adminPluginsNoneActive => 'No active plugins';
+
+  @override
+  String get adminPluginsNoneRequireRestart =>
+      'No plugins require a server restart';
 
   @override
   String adminPluginsUpdateAvailable(String version) {
@@ -8768,6 +8784,11 @@ class AppLocalizationsPa extends AppLocalizations {
 
   @override
   String get settingsSkipIntrosAndOutros => 'Intros ਅਤੇ Outros ਨੂੰ ਛੱਡਣਾ ਹੈ?';
+
+  @override
+  String settingsMediaSegmentTypeAction(String segment) {
+    return '$segment Segments';
+  }
 
   @override
   String get settingsMediaSegmentCountdown => 'ਮੀਡੀਆ ਖੰਡ ਕਾਊਂਟਡਾਊਨ';

@@ -291,6 +291,7 @@ class UserPreferences extends ChangeNotifier {
     'player_zoom_mode',
     'pref_audio_rows_sort_by',
     'pref_audio_rows_sort_order',
+    'pref_crash_reports_enabled',
     'pref_diagnostic_logging_enabled',
     'pref_display_studios_rows',
     'pref_epg_mobile_view',
@@ -1388,6 +1389,13 @@ class UserPreferences extends ChangeNotifier {
   static final diagnosticLoggingEnabled = Preference(
     key: 'pref_diagnostic_logging_enabled',
     defaultValue: false,
+  );
+
+  /// Gates uploading crash reports to the server. Capture itself always runs
+  /// and stays on the device.
+  static final crashReportsEnabled = Preference(
+    key: 'pref_crash_reports_enabled',
+    defaultValue: true,
   );
 
   static final enableFolderView = Preference(

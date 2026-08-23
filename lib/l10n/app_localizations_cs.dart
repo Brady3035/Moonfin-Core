@@ -2458,6 +2458,12 @@ class AppLocalizationsCs extends AppLocalizations {
   String get disabled => 'Vypnuto';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'Měřítko v televizi';
 
   @override
@@ -7039,11 +7045,21 @@ class AppLocalizationsCs extends AppLocalizations {
   String get adminPluginsRestart => 'Restartujte';
 
   @override
+  String get adminPluginsRestartRequired => 'Restart required';
+
+  @override
   String get adminPluginsNoSearchResults =>
       'Vašemu vyhledávání neodpovídají žádné pluginy';
 
   @override
   String get adminPluginsNoneInstalled => 'Nejsou nainstalovány žádné pluginy';
+
+  @override
+  String get adminPluginsNoneActive => 'No active plugins';
+
+  @override
+  String get adminPluginsNoneRequireRestart =>
+      'No plugins require a server restart';
 
   @override
   String adminPluginsUpdateAvailable(String version) {
@@ -8837,6 +8853,11 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get settingsSkipIntrosAndOutros => 'Přeskočit úvody a závěry?';
+
+  @override
+  String settingsMediaSegmentTypeAction(String segment) {
+    return '$segment Segments';
+  }
 
   @override
   String get settingsMediaSegmentCountdown => 'Odpočet mediálních segmentů';

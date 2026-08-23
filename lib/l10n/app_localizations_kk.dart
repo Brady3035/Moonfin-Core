@@ -2451,6 +2451,12 @@ class AppLocalizationsKk extends AppLocalizations {
   String get disabled => 'Өшірілген';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'Теледидарда масштабтау';
 
   @override
@@ -7055,11 +7061,21 @@ class AppLocalizationsKk extends AppLocalizations {
   String get adminPluginsRestart => 'Қайтадан қосу';
 
   @override
+  String get adminPluginsRestartRequired => 'Restart required';
+
+  @override
   String get adminPluginsNoSearchResults =>
       'Іздеуіңізге сәйкес келетін плагиндер жоқ';
 
   @override
   String get adminPluginsNoneInstalled => 'Ешқандай плагин орнатылмаған';
+
+  @override
+  String get adminPluginsNoneActive => 'No active plugins';
+
+  @override
+  String get adminPluginsNoneRequireRestart =>
+      'No plugins require a server restart';
 
   @override
   String adminPluginsUpdateAvailable(String version) {
@@ -8848,6 +8864,11 @@ class AppLocalizationsKk extends AppLocalizations {
   @override
   String get settingsSkipIntrosAndOutros =>
       'Кіріспелер мен шығыстарды өткізіп жіберу керек пе?';
+
+  @override
+  String settingsMediaSegmentTypeAction(String segment) {
+    return '$segment Segments';
+  }
 
   @override
   String get settingsMediaSegmentCountdown => 'Медиасегмент кері санағы';

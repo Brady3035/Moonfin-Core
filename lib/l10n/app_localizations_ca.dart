@@ -2476,6 +2476,12 @@ class AppLocalizationsCa extends AppLocalizations {
   String get disabled => 'Desactivat';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'Escala a la televisió';
 
   @override
@@ -7132,11 +7138,21 @@ class AppLocalizationsCa extends AppLocalizations {
   String get adminPluginsRestart => 'Reinicieu';
 
   @override
+  String get adminPluginsRestartRequired => 'Restart required';
+
+  @override
   String get adminPluginsNoSearchResults =>
       'Cap connector coincideix amb la vostra cerca';
 
   @override
   String get adminPluginsNoneInstalled => 'No hi ha connectors instal·lats';
+
+  @override
+  String get adminPluginsNoneActive => 'No active plugins';
+
+  @override
+  String get adminPluginsNoneRequireRestart =>
+      'No plugins require a server restart';
 
   @override
   String adminPluginsUpdateAvailable(String version) {
@@ -8952,6 +8968,11 @@ class AppLocalizationsCa extends AppLocalizations {
 
   @override
   String get settingsSkipIntrosAndOutros => 'Ometeu introduccions i altres?';
+
+  @override
+  String settingsMediaSegmentTypeAction(String segment) {
+    return '$segment Segments';
+  }
 
   @override
   String get settingsMediaSegmentCountdown => 'Compte enrere per els segments';

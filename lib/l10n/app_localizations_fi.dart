@@ -2453,6 +2453,12 @@ class AppLocalizationsFi extends AppLocalizations {
   String get disabled => 'Ei käytössä';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'Asteikko televisiossa';
 
   @override
@@ -7044,11 +7050,21 @@ class AppLocalizationsFi extends AppLocalizations {
   String get adminPluginsRestart => 'Käynnistä uudelleen';
 
   @override
+  String get adminPluginsRestartRequired => 'Restart required';
+
+  @override
   String get adminPluginsNoSearchResults =>
       'Mikään laajennus ei vastaa hakuasi';
 
   @override
   String get adminPluginsNoneInstalled => 'Laajennuksia ei ole asennettu';
+
+  @override
+  String get adminPluginsNoneActive => 'No active plugins';
+
+  @override
+  String get adminPluginsNoneRequireRestart =>
+      'No plugins require a server restart';
 
   @override
   String adminPluginsUpdateAvailable(String version) {
@@ -8838,6 +8854,11 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get settingsSkipIntrosAndOutros => 'Ohitetaanko introt ja loppupalat?';
+
+  @override
+  String settingsMediaSegmentTypeAction(String segment) {
+    return '$segment Segments';
+  }
 
   @override
   String get settingsMediaSegmentCountdown => 'Mediasegmentin ajastin';

@@ -2461,6 +2461,12 @@ class AppLocalizationsRo extends AppLocalizations {
   String get disabled => 'Dezactivat';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'Scala la televizor';
 
   @override
@@ -7078,11 +7084,21 @@ class AppLocalizationsRo extends AppLocalizations {
   String get adminPluginsRestart => 'Repornire';
 
   @override
+  String get adminPluginsRestartRequired => 'Restart required';
+
+  @override
   String get adminPluginsNoSearchResults =>
       'Niciun plugin nu corespunde căutării tale';
 
   @override
   String get adminPluginsNoneInstalled => 'Nu există pluginuri instalate';
+
+  @override
+  String get adminPluginsNoneActive => 'No active plugins';
+
+  @override
+  String get adminPluginsNoneRequireRestart =>
+      'No plugins require a server restart';
 
   @override
   String adminPluginsUpdateAvailable(String version) {
@@ -8880,6 +8896,11 @@ class AppLocalizationsRo extends AppLocalizations {
   @override
   String get settingsSkipIntrosAndOutros =>
       'Sari peste introsuri si versiuni suplimentare?';
+
+  @override
+  String settingsMediaSegmentTypeAction(String segment) {
+    return '$segment Segments';
+  }
 
   @override
   String get settingsMediaSegmentCountdown =>

@@ -2441,6 +2441,12 @@ class AppLocalizationsSi extends AppLocalizations {
   String get disabled => 'අක්‍රියයි';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'රූපවාහිනියේ පරිමාණය';
 
   @override
@@ -7015,11 +7021,21 @@ class AppLocalizationsSi extends AppLocalizations {
   String get adminPluginsRestart => 'යළි අරඹන්න';
 
   @override
+  String get adminPluginsRestartRequired => 'Restart required';
+
+  @override
   String get adminPluginsNoSearchResults =>
       'ඔබගේ සෙවුමට ගැලපෙන ප්ලගීන කිසිවක් නැත';
 
   @override
   String get adminPluginsNoneInstalled => 'ප්ලගීන ස්ථාපනය කර නැත';
+
+  @override
+  String get adminPluginsNoneActive => 'No active plugins';
+
+  @override
+  String get adminPluginsNoneRequireRestart =>
+      'No plugins require a server restart';
 
   @override
   String adminPluginsUpdateAvailable(String version) {
@@ -8796,6 +8812,11 @@ class AppLocalizationsSi extends AppLocalizations {
 
   @override
   String get settingsSkipIntrosAndOutros => 'හැඳින්වීම් සහ පිටවීම් මඟ හරින්නද?';
+
+  @override
+  String settingsMediaSegmentTypeAction(String segment) {
+    return '$segment Segments';
+  }
 
   @override
   String get settingsMediaSegmentCountdown => 'මාධ්‍ය කොටස් ආපසු ගණන් කිරීම';

@@ -2458,6 +2458,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get disabled => 'Letiltva';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'Skálázás a tévén';
 
   @override
@@ -7081,11 +7087,21 @@ class AppLocalizationsHu extends AppLocalizations {
   String get adminPluginsRestart => 'Újraindítás';
 
   @override
+  String get adminPluginsRestartRequired => 'Restart required';
+
+  @override
   String get adminPluginsNoSearchResults =>
       'Egyetlen beépülő modul sem felel meg a keresésnek';
 
   @override
   String get adminPluginsNoneInstalled => 'Nincs telepítve beépülő modul';
+
+  @override
+  String get adminPluginsNoneActive => 'No active plugins';
+
+  @override
+  String get adminPluginsNoneRequireRestart =>
+      'No plugins require a server restart';
 
   @override
   String adminPluginsUpdateAvailable(String version) {
@@ -8888,6 +8904,11 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settingsSkipIntrosAndOutros =>
       'Kihagyod a bevezetőket és a stáblistákat?';
+
+  @override
+  String settingsMediaSegmentTypeAction(String segment) {
+    return '$segment Segments';
+  }
 
   @override
   String get settingsMediaSegmentCountdown => 'Médiaszegmens visszaszámlálása';

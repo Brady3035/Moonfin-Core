@@ -2461,6 +2461,12 @@ class AppLocalizationsSq extends AppLocalizations {
   String get disabled => 'Çaktivizuar';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'Shkallë në TV';
 
   @override
@@ -7083,11 +7089,21 @@ class AppLocalizationsSq extends AppLocalizations {
   String get adminPluginsRestart => 'Rinis';
 
   @override
+  String get adminPluginsRestartRequired => 'Restart required';
+
+  @override
   String get adminPluginsNoSearchResults =>
       'Asnjë shtojcë nuk përputhet me kërkimin tuaj';
 
   @override
   String get adminPluginsNoneInstalled => 'Asnjë shtojcë e instaluar';
+
+  @override
+  String get adminPluginsNoneActive => 'No active plugins';
+
+  @override
+  String get adminPluginsNoneRequireRestart =>
+      'No plugins require a server restart';
 
   @override
   String adminPluginsUpdateAvailable(String version) {
@@ -8886,6 +8902,11 @@ class AppLocalizationsSq extends AppLocalizations {
 
   @override
   String get settingsSkipIntrosAndOutros => 'Të kapërcehen hyrjet dhe daljet?';
+
+  @override
+  String settingsMediaSegmentTypeAction(String segment) {
+    return '$segment Segments';
+  }
 
   @override
   String get settingsMediaSegmentCountdown =>

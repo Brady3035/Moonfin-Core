@@ -2444,6 +2444,12 @@ class AppLocalizationsDa extends AppLocalizations {
   String get disabled => 'Deaktiveret';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'Skala på TV';
 
   @override
@@ -7014,10 +7020,20 @@ class AppLocalizationsDa extends AppLocalizations {
   String get adminPluginsRestart => 'Genstart';
 
   @override
+  String get adminPluginsRestartRequired => 'Restart required';
+
+  @override
   String get adminPluginsNoSearchResults => 'Ingen plugins matcher din søgning';
 
   @override
   String get adminPluginsNoneInstalled => 'Ingen plugins installeret';
+
+  @override
+  String get adminPluginsNoneActive => 'No active plugins';
+
+  @override
+  String get adminPluginsNoneRequireRestart =>
+      'No plugins require a server restart';
 
   @override
   String adminPluginsUpdateAvailable(String version) {
@@ -8801,6 +8817,11 @@ class AppLocalizationsDa extends AppLocalizations {
 
   @override
   String get settingsSkipIntrosAndOutros => 'Springe introer og outros over?';
+
+  @override
+  String settingsMediaSegmentTypeAction(String segment) {
+    return '$segment Segments';
+  }
 
   @override
   String get settingsMediaSegmentCountdown => 'Nedtælling for mediesegment';

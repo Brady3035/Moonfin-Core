@@ -2445,6 +2445,12 @@ class AppLocalizationsMn extends AppLocalizations {
   String get disabled => 'Идэвхгүй';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'Зурагтаар масштаблах';
 
   @override
@@ -7035,11 +7041,21 @@ class AppLocalizationsMn extends AppLocalizations {
   String get adminPluginsRestart => 'Дахин эхлүүлэх';
 
   @override
+  String get adminPluginsRestartRequired => 'Restart required';
+
+  @override
   String get adminPluginsNoSearchResults =>
       'Таны хайлтад тохирох нэмэлт өргөтгөл байхгүй байна';
 
   @override
   String get adminPluginsNoneInstalled => 'Ямар ч залгаас суулгаагүй байна';
+
+  @override
+  String get adminPluginsNoneActive => 'No active plugins';
+
+  @override
+  String get adminPluginsNoneRequireRestart =>
+      'No plugins require a server restart';
 
   @override
   String adminPluginsUpdateAvailable(String version) {
@@ -8826,6 +8842,11 @@ class AppLocalizationsMn extends AppLocalizations {
   @override
   String get settingsSkipIntrosAndOutros =>
       'Танилцуулга болон гадуурх хэсгийг алгасах уу?';
+
+  @override
+  String settingsMediaSegmentTypeAction(String segment) {
+    return '$segment Segments';
+  }
 
   @override
   String get settingsMediaSegmentCountdown => 'Медиа сегментийн тоолол';

@@ -2447,6 +2447,12 @@ class AppLocalizationsUg extends AppLocalizations {
   String get disabled => 'تاقالغان';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'تېلېۋىزوردىكى كۆلەم';
 
   @override
@@ -7039,11 +7045,21 @@ class AppLocalizationsUg extends AppLocalizations {
   String get adminPluginsRestart => 'قايتا قوزغىتىڭ';
 
   @override
+  String get adminPluginsRestartRequired => 'Restart required';
+
+  @override
   String get adminPluginsNoSearchResults =>
       'ھېچقانداق قىستۇرما ئىزدىشىڭىزگە ماس كەلمەيدۇ';
 
   @override
   String get adminPluginsNoneInstalled => 'قىستۇرما ئورنىتىلمىدى';
+
+  @override
+  String get adminPluginsNoneActive => 'No active plugins';
+
+  @override
+  String get adminPluginsNoneRequireRestart =>
+      'No plugins require a server restart';
 
   @override
   String adminPluginsUpdateAvailable(String version) {
@@ -8834,6 +8850,11 @@ class AppLocalizationsUg extends AppLocalizations {
   @override
   String get settingsSkipIntrosAndOutros =>
       'Intros ۋە Outros نى ئاتلاپ ئۆتۈپ كېتەمسىز؟';
+
+  @override
+  String settingsMediaSegmentTypeAction(String segment) {
+    return '$segment Segments';
+  }
 
   @override
   String get settingsMediaSegmentCountdown => 'مېدىيا بۆلىكى تەتۈر ساناش';

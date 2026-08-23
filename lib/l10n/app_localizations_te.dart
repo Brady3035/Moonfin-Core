@@ -2456,6 +2456,12 @@ class AppLocalizationsTe extends AppLocalizations {
   String get disabled => 'నిలిపివేయబడింది';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'టీవీలో స్కేల్';
 
   @override
@@ -7069,10 +7075,20 @@ class AppLocalizationsTe extends AppLocalizations {
   String get adminPluginsRestart => 'పునఃప్రారంభించండి';
 
   @override
+  String get adminPluginsRestartRequired => 'Restart required';
+
+  @override
   String get adminPluginsNoSearchResults => 'మీ శోధనకు సరిపోలే ప్లగిన్‌లు లేవు';
 
   @override
   String get adminPluginsNoneInstalled => 'ప్లగిన్‌లు ఏవీ ఇన్‌స్టాల్ చేయబడలేదు';
+
+  @override
+  String get adminPluginsNoneActive => 'No active plugins';
+
+  @override
+  String get adminPluginsNoneRequireRestart =>
+      'No plugins require a server restart';
 
   @override
   String adminPluginsUpdateAvailable(String version) {
@@ -8869,6 +8885,11 @@ class AppLocalizationsTe extends AppLocalizations {
   @override
   String get settingsSkipIntrosAndOutros =>
       'పరిచయాలు మరియు అవుట్‌రోలను దాటవేయాలా?';
+
+  @override
+  String settingsMediaSegmentTypeAction(String segment) {
+    return '$segment Segments';
+  }
 
   @override
   String get settingsMediaSegmentCountdown => 'మీడియా సెగ్మెంట్ కౌంట్‌డౌన్';

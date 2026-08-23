@@ -2469,6 +2469,12 @@ class AppLocalizationsCy extends AppLocalizations {
   String get disabled => 'Wedi\'i analluogi';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'Graddfa ar y teledu';
 
   @override
@@ -7062,11 +7068,21 @@ class AppLocalizationsCy extends AppLocalizations {
   String get adminPluginsRestart => 'Ailgychwyn';
 
   @override
+  String get adminPluginsRestartRequired => 'Restart required';
+
+  @override
   String get adminPluginsNoSearchResults =>
       'Nid oes unrhyw ategion yn cyfateb i\'ch chwiliad';
 
   @override
   String get adminPluginsNoneInstalled => 'Dim ategion wedi\'u gosod';
+
+  @override
+  String get adminPluginsNoneActive => 'No active plugins';
+
+  @override
+  String get adminPluginsNoneRequireRestart =>
+      'No plugins require a server restart';
 
   @override
   String adminPluginsUpdateAvailable(String version) {
@@ -8856,6 +8872,11 @@ class AppLocalizationsCy extends AppLocalizations {
 
   @override
   String get settingsSkipIntrosAndOutros => 'Hepgor Intros a Outros?';
+
+  @override
+  String settingsMediaSegmentTypeAction(String segment) {
+    return '$segment Segments';
+  }
 
   @override
   String get settingsMediaSegmentCountdown => 'Cyfrif i Lawr Segment Cyfryngau';

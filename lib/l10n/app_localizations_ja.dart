@@ -2397,6 +2397,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get disabled => '無効';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'テレビのスケール';
 
   @override
@@ -6844,10 +6850,20 @@ class AppLocalizationsJa extends AppLocalizations {
   String get adminPluginsRestart => '再起動';
 
   @override
+  String get adminPluginsRestartRequired => 'Restart required';
+
+  @override
   String get adminPluginsNoSearchResults => '検索に一致するプラグインはありません';
 
   @override
   String get adminPluginsNoneInstalled => 'プラグインがインストールされていません';
+
+  @override
+  String get adminPluginsNoneActive => 'No active plugins';
+
+  @override
+  String get adminPluginsNoneRequireRestart =>
+      'No plugins require a server restart';
 
   @override
   String adminPluginsUpdateAvailable(String version) {
@@ -8555,6 +8571,11 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get settingsSkipIntrosAndOutros => 'イントロとアウトロをスキップしますか?';
+
+  @override
+  String settingsMediaSegmentTypeAction(String segment) {
+    return '$segment Segments';
+  }
 
   @override
   String get settingsMediaSegmentCountdown => 'メディアセグメントのカウントダウン';

@@ -2448,6 +2448,12 @@ class AppLocalizationsVi extends AppLocalizations {
   String get disabled => 'Đã tắt';
 
   @override
+  String get manual => 'Manual';
+
+  @override
+  String get autoDetect => 'Auto Detect';
+
+  @override
   String get scaleOnTv => 'Cân trên TV';
 
   @override
@@ -7023,11 +7029,21 @@ class AppLocalizationsVi extends AppLocalizations {
   String get adminPluginsRestart => 'Khởi động lại';
 
   @override
+  String get adminPluginsRestartRequired => 'Restart required';
+
+  @override
   String get adminPluginsNoSearchResults =>
       'Không có plugin nào phù hợp với tìm kiếm của bạn';
 
   @override
   String get adminPluginsNoneInstalled => 'Không có plugin nào được cài đặt';
+
+  @override
+  String get adminPluginsNoneActive => 'No active plugins';
+
+  @override
+  String get adminPluginsNoneRequireRestart =>
+      'No plugins require a server restart';
 
   @override
   String adminPluginsUpdateAvailable(String version) {
@@ -8804,6 +8820,11 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get settingsSkipIntrosAndOutros =>
       'Bỏ qua phần giới thiệu và phần kết thúc?';
+
+  @override
+  String settingsMediaSegmentTypeAction(String segment) {
+    return '$segment Segments';
+  }
 
   @override
   String get settingsMediaSegmentCountdown => 'Đếm ngược phân đoạn phương tiện';

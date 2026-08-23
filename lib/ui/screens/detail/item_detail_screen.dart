@@ -76,6 +76,7 @@ import '../../widgets/remote_play_to_session_dialog.dart';
 import '../../widgets/fullscreen_backdrop_switcher.dart';
 import '../../widgets/seerr_icons.dart';
 import '../../widgets/focus/context_menu_sheet.dart';
+import '../../widgets/focus/dpad_list_tile.dart';
 import '../../widgets/focus/focusable_button.dart';
 import '../../widgets/focus/request_initial_focus.dart';
 import '../../widgets/overlay_sheet.dart';
@@ -562,7 +563,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen>
       destination: Destinations.videoPlayer,
       startPlayback: (launchSession) async {
         final forceTranscode =
-            await _shouldForceTranscodeForDolbyVisionQueue(
+            await shouldForceTranscodeForDolbyVisionQueue(
               context,
               [item],
               mediaSourceId: mediaSourceId,
@@ -2567,7 +2568,7 @@ class _DetailContentState extends State<_DetailContent> {
       destination: Destinations.videoPlayer,
       startPlayback: (launchSession) async {
         final forceTranscode =
-            await _shouldForceTranscodeForDolbyVisionQueue(
+            await shouldForceTranscodeForDolbyVisionQueue(
               context,
               [item],
               mediaSourceId: mediaSourceId,
@@ -3309,7 +3310,7 @@ class _DetailContentState extends State<_DetailContent> {
         isPlaylist && viewModel.canManagePlaylistTracks;
     final canDeleteItem = item.canDelete;
     final canDownloadAll =
-        _canUserDownload() &&
+        userCanDownload() &&
         (item.type == 'MusicAlbum' ||
             item.type == 'AudioBook' ||
             (item.type == 'Playlist' &&
@@ -6335,9 +6336,7 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
         .toList();
 
     final canShowDownloadActions =
-        _isDownloadable(item.type) &&
-        _canUserDownload() &&
-        !PlatformDetection.isTV;
+        _isDownloadable(item.type) && userCanDownload();
 
     final String playButtonLabel;
     if (isPhoto) {
@@ -6449,16 +6448,6 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
                   forceStartOver: true,
                 )
               : null,
-        ),
-      // Playback is local-first, so this plays the downloaded copy. The
-      // button mostly signals that one exists.
-      if (_availableOffline)
-        DetailButton.playOffline: _DetailActionButton(
-          label: isBook ? l10n.readOffline : l10n.playOffline,
-          icon: isBook ? Icons.menu_book : Icons.offline_pin,
-          onPressed: () => _play(context, item),
-          isActive: true,
-          activeColor: const Color(0xFF4CAF50),
         ),
       if (isPlayableVideo &&
           audioStreams.length > 1 &&
@@ -7586,7 +7575,7 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
     List<AggregatedItem> queue, {
     String? mediaSourceId,
   }) async {
-    return _shouldForceTranscodeForDolbyVisionQueue(
+    return shouldForceTranscodeForDolbyVisionQueue(
       context,
       queue,
       mediaSourceId: mediaSourceId ?? widget.selectedMediaSourceId,
@@ -9169,7 +9158,7 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
         destination: Destinations.videoPlayer,
         startPlayback: (launchSession) async {
           final forceTranscode =
-              await _shouldForceTranscodeForDolbyVisionQueue(
+              await shouldForceTranscodeForDolbyVisionQueue(
                 context,
                 [localTrailer!],
               );
@@ -9891,12 +9880,31 @@ Future<_DolbyVisionPlayDecision?> _showDolbyVisionFallbackDecisionDialog(
   );
 }
 
-Future<bool> _shouldForceTranscodeForDolbyVisionQueue(
+Future<bool> _anyItemHasCompletedDownload(Iterable<AggregatedItem> items) async {
+  final repo = GetIt.instance<OfflineRepository>();
+  for (final item in items) {
+    final row = await repo.getItem(item.id);
+    if (row != null && row.downloadStatus == 2 && row.localFilePath != null) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/// Whether Android TV playback of [queue] must stream a Dolby Vision
+/// transcode instead of direct playing the original. Public and annotated for
+/// the gate regression tests; every production caller lives in this file.
+@visibleForTesting
+Future<bool> shouldForceTranscodeForDolbyVisionQueue(
   BuildContext context,
   List<AggregatedItem> queue, {
   String? mediaSourceId,
 }) async {
   if (!(PlatformDetection.isAndroid && PlatformDetection.isTV)) {
+    return false;
+  }
+
+  if (await _anyItemHasCompletedDownload(queue)) {
     return false;
   }
 
@@ -9933,6 +9941,7 @@ Future<bool> _shouldForceTranscodeForDolbyVisionQueue(
     return !PlatformDetection.supportsHdr10;
   }
 
+  if (!context.mounted) return false;
   final decision = await _showDolbyVisionFallbackDecisionDialog(context);
   if (decision == null) {
     return false;
@@ -10143,11 +10152,6 @@ bool _isDownloadable(String? type) {
       type == 'MusicVideo' ||
       type == 'Video' ||
       type == 'MusicAlbum';
-}
-
-bool _canUserDownload() {
-  final user = GetIt.instance<UserRepository>().currentUser;
-  return !PlatformDetection.isTV && (user?.canDownload ?? false);
 }
 
 class _DownloadButton extends StatefulWidget {
@@ -10366,6 +10370,8 @@ class _DownloadButtonState extends State<_DownloadButton> {
           // so show an ellipsis rather than a misleading "0.0 MB".
           final label = progress.isFinalizing
               ? AppLocalizations.of(context).finalizingDownload
+              : progress.isQueued
+              ? AppLocalizations.of(context).queuedDownload
               : progress.progress >= 0
               ? '${(progress.progress * 100).toInt()}%'
               : progress.bytesReceived > 0
@@ -10476,6 +10482,77 @@ class _DownloadButtonState extends State<_DownloadButton> {
     final multiEstimateSubtitles = isMulti
         ? _multiTranscodedEstimateSubtitles(estimationItems, availableQualities)
         : const <DownloadQuality, String>{};
+
+    if (PlatformDetection.isTV) {
+      showFocusRestoringModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: const Color(0xFF1E1E1E),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        ),
+        builder: (sheetContext) => SafeArea(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.sizeOf(sheetContext).height * 0.9,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+                  child: Text(
+                    isMulti
+                        ? AppLocalizations.of(sheetContext).downloadAllQuality
+                        : AppLocalizations.of(sheetContext).downloadQuality,
+                    style: Theme.of(sheetContext).textTheme.titleMedium?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                Flexible(
+                  child: ListView(
+                    shrinkWrap: true,
+                    padding: const EdgeInsets.only(bottom: 8),
+                    children: availableQualities.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final quality = entry.value;
+                      return DpadListTile(
+                        autofocus: index == 0,
+                        leading: AdaptiveIcon(
+                          quality.isTranscoded
+                              ? Icons.compress
+                              : Icons.file_copy_outlined,
+                        ),
+                        title: Text(quality.label),
+                        subtitle: Text(
+                          _qualitySubtitle(
+                            item,
+                            quality,
+                            supportsTranscoding: supportsTranscoding,
+                            isMulti: isMulti,
+                            multiEstimateSubtitle:
+                                multiEstimateSubtitles[quality],
+                          ),
+                        ),
+                        onTap: () {
+                          Navigator.pop(sheetContext);
+                          _startDownload(context, service, quality);
+                        },
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+      return;
+    }
+
     showFocusRestoringModalBottomSheet(
       context: context,
       backgroundColor: const Color(0xFF1E1E1E),

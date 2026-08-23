@@ -1144,6 +1144,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get finalizingDownload => 'Finalizing…';
 
   @override
+  String get queuedDownload => 'Queued';
+
+  @override
   String get downloadAll => 'Az összes letöltése';
 
   @override
@@ -3164,6 +3167,13 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get wifiOnlyDownloads => 'Csak WiFi letöltések';
+
+  @override
+  String get tvOfflineDownloads => 'Enable offline downloads';
+
+  @override
+  String get tvOfflineDownloadsSubtitle =>
+      'Show download actions on item pages';
 
   @override
   String get reportDownloadsActivity => 'Letöltések megjelenítése a szerveren';

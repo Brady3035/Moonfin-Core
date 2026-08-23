@@ -1101,6 +1101,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get finalizingDownload => '正在整理…';
 
   @override
+  String get queuedDownload => 'Queued';
+
+  @override
   String get downloadAll => '全部下载';
 
   @override
@@ -3045,6 +3048,13 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get wifiOnlyDownloads => '仅 Wi-Fi 下载';
+
+  @override
+  String get tvOfflineDownloads => 'Enable offline downloads';
+
+  @override
+  String get tvOfflineDownloadsSubtitle =>
+      'Show download actions on item pages';
 
   @override
   String get reportDownloadsActivity => '在服务器上显示下载';

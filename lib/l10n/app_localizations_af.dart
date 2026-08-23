@@ -1144,6 +1144,9 @@ class AppLocalizationsAf extends AppLocalizations {
   String get finalizingDownload => 'Finalizing…';
 
   @override
+  String get queuedDownload => 'Queued';
+
+  @override
   String get downloadAll => 'Laai Alles af';
 
   @override
@@ -3147,6 +3150,13 @@ class AppLocalizationsAf extends AppLocalizations {
 
   @override
   String get wifiOnlyDownloads => 'Slegs WiFi-aflaaie';
+
+  @override
+  String get tvOfflineDownloads => 'Enable offline downloads';
+
+  @override
+  String get tvOfflineDownloadsSubtitle =>
+      'Show download actions on item pages';
 
   @override
   String get reportDownloadsActivity => 'Wys aflaaie op die bediener';

@@ -1148,6 +1148,9 @@ class AppLocalizationsEl extends AppLocalizations {
   String get finalizingDownload => 'Ολοκλήρωση…';
 
   @override
+  String get queuedDownload => 'Queued';
+
+  @override
   String get downloadAll => 'Λήψη όλων';
 
   @override
@@ -3181,6 +3184,13 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get wifiOnlyDownloads => 'Λήψεις μόνο με WiFi';
+
+  @override
+  String get tvOfflineDownloads => 'Enable offline downloads';
+
+  @override
+  String get tvOfflineDownloadsSubtitle =>
+      'Show download actions on item pages';
 
   @override
   String get reportDownloadsActivity => 'Εμφάνιση λήψεων στον διακομιστή';

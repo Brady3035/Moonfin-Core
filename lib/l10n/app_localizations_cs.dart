@@ -1148,6 +1148,9 @@ class AppLocalizationsCs extends AppLocalizations {
   String get finalizingDownload => 'Finalizing…';
 
   @override
+  String get queuedDownload => 'Queued';
+
+  @override
   String get downloadAll => 'Stáhnout vše';
 
   @override
@@ -3159,6 +3162,13 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get wifiOnlyDownloads => 'Stahování pouze pro WiFi';
+
+  @override
+  String get tvOfflineDownloads => 'Enable offline downloads';
+
+  @override
+  String get tvOfflineDownloadsSubtitle =>
+      'Show download actions on item pages';
 
   @override
   String get reportDownloadsActivity => 'Zobrazovat stahování na serveru';

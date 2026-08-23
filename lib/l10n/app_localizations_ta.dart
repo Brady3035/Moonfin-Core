@@ -1145,6 +1145,9 @@ class AppLocalizationsTa extends AppLocalizations {
   String get finalizingDownload => 'Finalizing…';
 
   @override
+  String get queuedDownload => 'Queued';
+
+  @override
   String get downloadAll => 'அனைத்தையும் பதிவிறக்கவும்';
 
   @override
@@ -3165,6 +3168,13 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get wifiOnlyDownloads => 'WiFi-மட்டும் பதிவிறக்கங்கள்';
+
+  @override
+  String get tvOfflineDownloads => 'Enable offline downloads';
+
+  @override
+  String get tvOfflineDownloadsSubtitle =>
+      'Show download actions on item pages';
 
   @override
   String get reportDownloadsActivity => 'சர்வரில் பதிவிறக்கங்களைக் காட்டு';

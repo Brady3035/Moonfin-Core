@@ -1143,6 +1143,9 @@ class AppLocalizationsTe extends AppLocalizations {
   String get finalizingDownload => 'Finalizing…';
 
   @override
+  String get queuedDownload => 'Queued';
+
+  @override
   String get downloadAll => 'అన్నీ డౌన్‌లోడ్ చేయండి';
 
   @override
@@ -3161,6 +3164,13 @@ class AppLocalizationsTe extends AppLocalizations {
 
   @override
   String get wifiOnlyDownloads => 'WiFi-మాత్రమే డౌన్‌లోడ్‌లు';
+
+  @override
+  String get tvOfflineDownloads => 'Enable offline downloads';
+
+  @override
+  String get tvOfflineDownloadsSubtitle =>
+      'Show download actions on item pages';
 
   @override
   String get reportDownloadsActivity => 'సర్వర్‌లో డౌన్‌లోడ్‌లను చూపించండి';

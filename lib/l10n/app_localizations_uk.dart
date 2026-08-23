@@ -1145,6 +1145,9 @@ class AppLocalizationsUk extends AppLocalizations {
   String get finalizingDownload => 'Finalizing…';
 
   @override
+  String get queuedDownload => 'Queued';
+
+  @override
   String get downloadAll => 'Завантажити все';
 
   @override
@@ -3168,6 +3171,13 @@ class AppLocalizationsUk extends AppLocalizations {
 
   @override
   String get wifiOnlyDownloads => 'Завантаження лише через Wi-Fi';
+
+  @override
+  String get tvOfflineDownloads => 'Enable offline downloads';
+
+  @override
+  String get tvOfflineDownloadsSubtitle =>
+      'Show download actions on item pages';
 
   @override
   String get reportDownloadsActivity => 'Показувати завантаження на сервері';

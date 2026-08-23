@@ -1103,6 +1103,9 @@ class AppLocalizationsYue extends AppLocalizations {
   String get finalizingDownload => 'Finalizing…';
 
   @override
+  String get queuedDownload => 'Queued';
+
+  @override
   String get downloadAll => '下載全部';
 
   @override
@@ -3059,6 +3062,13 @@ class AppLocalizationsYue extends AppLocalizations {
 
   @override
   String get wifiOnlyDownloads => '僅 WiFi 下載';
+
+  @override
+  String get tvOfflineDownloads => 'Enable offline downloads';
+
+  @override
+  String get tvOfflineDownloadsSubtitle =>
+      'Show download actions on item pages';
 
   @override
   String get reportDownloadsActivity => '喺伺服器度顯示下載紀錄';

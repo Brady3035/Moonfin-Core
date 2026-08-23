@@ -1370,7 +1370,8 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
       keywords: ['are you still watching'],
     ),
 
-    if (!PlatformDetection.isTV && !PlatformDetection.isWeb) ...[
+    if (PlatformDetection.supportsOfflineDownloads &&
+        !PlatformDetection.isWeb) ...[
       downloads.screen(keywords: ['offline', 'storage']),
       downloads.leaf(
         'download_default_quality',

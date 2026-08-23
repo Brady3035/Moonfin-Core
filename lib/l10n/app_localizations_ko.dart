@@ -1112,6 +1112,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get finalizingDownload => 'Finalizing…';
 
   @override
+  String get queuedDownload => 'Queued';
+
+  @override
   String get downloadAll => '모두 다운로드';
 
   @override
@@ -3079,6 +3082,13 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get wifiOnlyDownloads => 'WiFi 전용 다운로드';
+
+  @override
+  String get tvOfflineDownloads => 'Enable offline downloads';
+
+  @override
+  String get tvOfflineDownloadsSubtitle =>
+      'Show download actions on item pages';
 
   @override
   String get reportDownloadsActivity => '서버에 다운로드 표시';

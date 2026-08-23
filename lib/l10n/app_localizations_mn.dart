@@ -1140,6 +1140,9 @@ class AppLocalizationsMn extends AppLocalizations {
   String get finalizingDownload => 'Finalizing…';
 
   @override
+  String get queuedDownload => 'Queued';
+
+  @override
   String get downloadAll => 'Бүгдийг татаж авах';
 
   @override
@@ -3148,6 +3151,13 @@ class AppLocalizationsMn extends AppLocalizations {
 
   @override
   String get wifiOnlyDownloads => 'Зөвхөн WiFi-аар татагдсан файлууд';
+
+  @override
+  String get tvOfflineDownloads => 'Enable offline downloads';
+
+  @override
+  String get tvOfflineDownloadsSubtitle =>
+      'Show download actions on item pages';
 
   @override
   String get reportDownloadsActivity => 'Татаж авалтыг сервер дээр харуулах';

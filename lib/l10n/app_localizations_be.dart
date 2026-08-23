@@ -1145,6 +1145,9 @@ class AppLocalizationsBe extends AppLocalizations {
   String get finalizingDownload => 'Finalizing…';
 
   @override
+  String get queuedDownload => 'Queued';
+
+  @override
   String get downloadAll => 'Спампаваць усе';
 
   @override
@@ -3161,6 +3164,13 @@ class AppLocalizationsBe extends AppLocalizations {
 
   @override
   String get wifiOnlyDownloads => 'Спампоўкі толькі па Wi-Fi';
+
+  @override
+  String get tvOfflineDownloads => 'Enable offline downloads';
+
+  @override
+  String get tvOfflineDownloadsSubtitle =>
+      'Show download actions on item pages';
 
   @override
   String get reportDownloadsActivity => 'Паказваць спампоўкі на серверы';

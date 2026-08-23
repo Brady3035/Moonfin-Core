@@ -1143,6 +1143,9 @@ class AppLocalizationsId extends AppLocalizations {
   String get finalizingDownload => 'Finalizing…';
 
   @override
+  String get queuedDownload => 'Queued';
+
+  @override
   String get downloadAll => 'Unduh Semua';
 
   @override
@@ -3147,6 +3150,13 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get wifiOnlyDownloads => 'Unduhan Hanya WiFi';
+
+  @override
+  String get tvOfflineDownloads => 'Enable offline downloads';
+
+  @override
+  String get tvOfflineDownloadsSubtitle =>
+      'Show download actions on item pages';
 
   @override
   String get reportDownloadsActivity => 'Tampilkan unduhan di server';

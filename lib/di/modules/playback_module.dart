@@ -428,6 +428,11 @@ void registerPlaybackModule() {
       return false;
     }
 
+    // A local resolution is never swapped for a server stream.
+    if (resolution.isLocalMedia) {
+      return false;
+    }
+
     if (_hasUnsupportedDolbyVisionProfile(resolution)) {
       return true;
     }

@@ -1142,6 +1142,9 @@ class AppLocalizationsKn extends AppLocalizations {
   String get finalizingDownload => 'Finalizing…';
 
   @override
+  String get queuedDownload => 'Queued';
+
+  @override
   String get downloadAll => 'ಎಲ್ಲವನ್ನೂ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ';
 
   @override
@@ -3161,6 +3164,13 @@ class AppLocalizationsKn extends AppLocalizations {
 
   @override
   String get wifiOnlyDownloads => 'ವೈಫೈ-ಮಾತ್ರ ಡೌನ್‌ಲೋಡ್‌ಗಳು';
+
+  @override
+  String get tvOfflineDownloads => 'Enable offline downloads';
+
+  @override
+  String get tvOfflineDownloadsSubtitle =>
+      'Show download actions on item pages';
 
   @override
   String get reportDownloadsActivity => 'ಸರ್ವರ್‌ನಲ್ಲಿ ಡೌನ್‌ಲೋಡ್‌ಗಳನ್ನು ತೋರಿಸಿ';

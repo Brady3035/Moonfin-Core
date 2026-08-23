@@ -1146,6 +1146,9 @@ class AppLocalizationsSq extends AppLocalizations {
   String get finalizingDownload => 'Finalizing…';
 
   @override
+  String get queuedDownload => 'Queued';
+
+  @override
   String get downloadAll => 'Shkarkoni të gjitha';
 
   @override
@@ -3167,6 +3170,13 @@ class AppLocalizationsSq extends AppLocalizations {
 
   @override
   String get wifiOnlyDownloads => 'Shkarkime vetëm me WiFi';
+
+  @override
+  String get tvOfflineDownloads => 'Enable offline downloads';
+
+  @override
+  String get tvOfflineDownloadsSubtitle =>
+      'Show download actions on item pages';
 
   @override
   String get reportDownloadsActivity => 'Shfaq shkarkimet në server';

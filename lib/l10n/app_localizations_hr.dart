@@ -1206,6 +1206,9 @@ class AppLocalizationsHr extends AppLocalizations {
   String get finalizingDownload => 'Finalizing…';
 
   @override
+  String get queuedDownload => 'Queued';
+
+  @override
   String get downloadAll => 'Preuzmi sve';
 
   @override
@@ -3263,6 +3266,13 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String get wifiOnlyDownloads => 'Preuzimanja samo za WiFi';
+
+  @override
+  String get tvOfflineDownloads => 'Enable offline downloads';
+
+  @override
+  String get tvOfflineDownloadsSubtitle =>
+      'Show download actions on item pages';
 
   @override
   String get reportDownloadsActivity => 'Prikaži preuzimanja na poslužitelju';

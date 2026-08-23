@@ -1142,6 +1142,9 @@ class AppLocalizationsEt extends AppLocalizations {
   String get finalizingDownload => 'Finalizing…';
 
   @override
+  String get queuedDownload => 'Queued';
+
+  @override
   String get downloadAll => 'Laadige kõik alla';
 
   @override
@@ -3152,6 +3155,13 @@ class AppLocalizationsEt extends AppLocalizations {
 
   @override
   String get wifiOnlyDownloads => 'Allalaadimised ainult WiFi kaudu';
+
+  @override
+  String get tvOfflineDownloads => 'Enable offline downloads';
+
+  @override
+  String get tvOfflineDownloadsSubtitle =>
+      'Show download actions on item pages';
 
   @override
   String get reportDownloadsActivity => 'Näita allalaadimisi serveris';

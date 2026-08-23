@@ -1522,6 +1522,10 @@
   "@finalizingDownload": {
     "description": "Status label shown while a finished download is being moved to its final location and validated"
   },
+  "queuedDownload": "Queued",
+  "@queuedDownload": {
+    "description": "Status label for a download waiting in the queue for a free download slot"
+  },
   "downloadAll": "Download All",
   "@downloadAll": {
     "description": "Action button label to download all items"
@@ -4307,6 +4311,14 @@
   "wifiOnlyDownloads": "WiFi-Only Downloads",
   "@wifiOnlyDownloads": {
     "description": "Setting for wifi-only downloads"
+  },
+  "tvOfflineDownloads": "Enable offline downloads",
+  "@tvOfflineDownloads": {
+    "description": "TV-only toggle in the Offline Downloads settings: offer download actions on item pages"
+  },
+  "tvOfflineDownloadsSubtitle": "Show download actions on item pages",
+  "@tvOfflineDownloadsSubtitle": {
+    "description": "Subtitle for the TV-only offline downloads toggle"
   },
   "reportDownloadsActivity": "Show downloads on the server",
   "reportDownloadsActivitySubtitle": "Let the server admin see your transcoded downloads in the dashboard",

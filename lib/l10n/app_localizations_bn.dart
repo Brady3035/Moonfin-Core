@@ -1135,6 +1135,9 @@ class AppLocalizationsBn extends AppLocalizations {
   String get finalizingDownload => 'Finalizing…';
 
   @override
+  String get queuedDownload => 'Queued';
+
+  @override
   String get downloadAll => 'সব ডাউনলোড করুন';
 
   @override
@@ -3136,6 +3139,13 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get wifiOnlyDownloads => 'শুধুমাত্র ওয়াইফাই ডাউনলোড';
+
+  @override
+  String get tvOfflineDownloads => 'Enable offline downloads';
+
+  @override
+  String get tvOfflineDownloadsSubtitle =>
+      'Show download actions on item pages';
 
   @override
   String get reportDownloadsActivity => 'সার্ভারে ডাউনলোড দেখান';

@@ -19,6 +19,7 @@ import 'package:window_manager/window_manager.dart';
 import '../../../playback/subtitle_style.dart';
 import '../../../util/fullscreen_helper.dart';
 import '../../../util/scroll_sensitivity_binding.dart';
+import '../../widgets/player_volume_control.dart';
 import '../../widgets/playback/playback_time_row.dart';
 import '../../widgets/playback/seek_icons.dart';
 import '../../widgets/playback/trickplay_tile_image.dart';
@@ -5953,12 +5954,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
     );
   }
 
-  IconData _volumeIcon(double fraction) => fraction <= 0
-      ? Icons.volume_off_rounded
-      : fraction < 0.5
-      ? Icons.volume_down_rounded
-      : Icons.volume_up_rounded;
-
   double get _osdVolume =>
       _useSystemVolume ? _systemVolume : _playerVolume / 100.0;
 
@@ -6014,7 +6009,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
               }
             },
             icon: AdaptiveIcon(
-              _volumeIcon(_osdVolume),
+              volumeIconFor(_osdVolume),
               color: Colors.white,
               size: iconSize,
             ),
@@ -6049,7 +6044,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
                     _toggleMute();
                   },
                   icon: AdaptiveIcon(
-                    _volumeIcon(_osdVolume),
+                    volumeIconFor(_osdVolume),
                     color: Colors.white,
                     size: 20,
                   ),

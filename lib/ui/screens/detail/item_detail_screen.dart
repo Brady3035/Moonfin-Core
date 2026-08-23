@@ -15487,6 +15487,11 @@ class _TrackTileState extends State<TrackTile> with FocusStateMixin {
             return artistText.isNotEmpty ? artistText : null;
           }();
 
+    final subtitleLine = [
+      if (subtitle != null && subtitle.isNotEmpty) subtitle,
+      ?runtimeText,
+    ].join(' • ');
+
     Widget? thumbnailWidget;
     if (widget.isPlaylist && widget.imageApi != null) {
       final imgId = widget.track.primaryImageItemId ?? widget.track.id;
@@ -15672,9 +15677,9 @@ class _TrackTileState extends State<TrackTile> with FocusStateMixin {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      if (subtitle != null)
+                      if (subtitleLine.isNotEmpty)
                         Text(
-                          subtitle,
+                          subtitleLine,
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: showFocusBorder
                                 ? Colors.white.withValues(alpha: 0.82)
@@ -15686,29 +15691,6 @@ class _TrackTileState extends State<TrackTile> with FocusStateMixin {
                     ],
                   ),
                 ),
-                () {
-                  final releaseYear =
-                      widget.track.productionYear ??
-                      (widget.track.premiereDate != null
-                          ? widget.track.premiereDate!.year
-                          : null);
-                  final parts = [
-                    if (releaseYear != null) '$releaseYear',
-                    if (runtimeText != null) runtimeText,
-                  ];
-                  if (parts.isEmpty) return const SizedBox.shrink();
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: Text(
-                      parts.join('  •  '),
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: showFocusBorder
-                            ? Colors.white.withValues(alpha: 0.82)
-                            : Colors.white.withValues(alpha: 0.5),
-                      ),
-                    ),
-                  );
-                }(),
                 if (PlatformDetection.isTV) ...[
                   if (widget.reorderable) ...[
                     IconButton(
@@ -15765,15 +15747,6 @@ class _TrackTileState extends State<TrackTile> with FocusStateMixin {
                         ),
                       ),
                     ),
-                  IconButton(
-                    onPressed: widget.onTap,
-                    icon: AdaptiveIcon(
-                      Icons.play_arrow,
-                      color: showFocusBorder ? Colors.white : Colors.white54,
-                      size: 22,
-                    ),
-                    splashRadius: 20,
-                  ),
                   IconButton(
                     onPressed: () => _showTrackActions(context),
                     icon: AdaptiveIcon(

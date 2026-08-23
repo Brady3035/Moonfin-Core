@@ -20,7 +20,6 @@ enum DetailButton {
   seerrRequest4k('seerrRequest4k'),
   shuffle('shuffle'),
   restart('restart', canHide: false),
-  playOffline('playOffline', canHide: false),
   audio('audio'),
   subtitles('subtitles'),
   version('version'),
@@ -77,7 +76,6 @@ enum DetailButton {
   IconData get icon => switch (this) {
     DetailButton.shuffle => Icons.shuffle_rounded,
     DetailButton.restart => Icons.restart_alt,
-    DetailButton.playOffline => Icons.offline_pin,
     DetailButton.audio => Icons.audiotrack,
     DetailButton.subtitles => Icons.subtitles,
     DetailButton.version => Icons.video_file,
@@ -101,7 +99,6 @@ enum DetailButton {
   String label(AppLocalizations l10n) => switch (this) {
     DetailButton.shuffle => l10n.shuffle,
     DetailButton.restart => l10n.restart,
-    DetailButton.playOffline => l10n.playOffline,
     DetailButton.audio => l10n.audio,
     DetailButton.subtitles => l10n.subtitles,
     DetailButton.version => l10n.version,

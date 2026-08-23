@@ -556,7 +556,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen>
     String? mediaSourceId,
   ) async {
     final manager = GetIt.instance<PlaybackManager>();
-    final forceTranscode = await _shouldForceTranscodeForDolbyVisionQueue(
+    final forceTranscode = await shouldForceTranscodeForDolbyVisionQueue(
       context,
       [item],
       mediaSourceId: mediaSourceId,
@@ -2556,7 +2556,7 @@ class _DetailContentState extends State<_DetailContent> {
     String? mediaSourceId,
   ) async {
     final manager = GetIt.instance<PlaybackManager>();
-    final forceTranscode = await _shouldForceTranscodeForDolbyVisionQueue(
+    final forceTranscode = await shouldForceTranscodeForDolbyVisionQueue(
       context,
       [item],
       mediaSourceId: mediaSourceId,
@@ -6426,16 +6426,6 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
                 )
               : null,
         ),
-      // Playback is local-first, so this plays the downloaded copy. The
-      // button mostly signals that one exists.
-      if (_availableOffline)
-        DetailButton.playOffline: _DetailActionButton(
-          label: isBook ? l10n.readOffline : l10n.playOffline,
-          icon: isBook ? Icons.menu_book : Icons.offline_pin,
-          onPressed: () => _play(context, item),
-          isActive: true,
-          activeColor: const Color(0xFF4CAF50),
-        ),
       if (isPlayableVideo &&
           audioStreams.length > 1 &&
           shows(DetailButton.audio))
@@ -7560,7 +7550,7 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
     List<AggregatedItem> queue, {
     String? mediaSourceId,
   }) async {
-    return _shouldForceTranscodeForDolbyVisionQueue(
+    return shouldForceTranscodeForDolbyVisionQueue(
       context,
       queue,
       mediaSourceId: mediaSourceId ?? widget.selectedMediaSourceId,
@@ -9117,7 +9107,7 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
     if (!context.mounted) return;
 
     if (localTrailer != null) {
-      final forceTranscode = await _shouldForceTranscodeForDolbyVisionQueue(
+      final forceTranscode = await shouldForceTranscodeForDolbyVisionQueue(
         context,
         [localTrailer],
       );
@@ -9839,12 +9829,31 @@ Future<_DolbyVisionPlayDecision?> _showDolbyVisionFallbackDecisionDialog(
   );
 }
 
-Future<bool> _shouldForceTranscodeForDolbyVisionQueue(
+Future<bool> _anyItemHasCompletedDownload(Iterable<AggregatedItem> items) async {
+  final repo = GetIt.instance<OfflineRepository>();
+  for (final item in items) {
+    final row = await repo.getItem(item.id);
+    if (row != null && row.downloadStatus == 2 && row.localFilePath != null) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/// Whether Android TV playback of [queue] must stream a Dolby Vision
+/// transcode instead of direct playing the original. Public and annotated for
+/// the gate regression tests; every production caller lives in this file.
+@visibleForTesting
+Future<bool> shouldForceTranscodeForDolbyVisionQueue(
   BuildContext context,
   List<AggregatedItem> queue, {
   String? mediaSourceId,
 }) async {
   if (!(PlatformDetection.isAndroid && PlatformDetection.isTV)) {
+    return false;
+  }
+
+  if (await _anyItemHasCompletedDownload(queue)) {
     return false;
   }
 
@@ -9881,6 +9890,7 @@ Future<bool> _shouldForceTranscodeForDolbyVisionQueue(
     return !PlatformDetection.supportsHdr10;
   }
 
+  if (!context.mounted) return false;
   final decision = await _showDolbyVisionFallbackDecisionDialog(context);
   if (decision == null) {
     return false;

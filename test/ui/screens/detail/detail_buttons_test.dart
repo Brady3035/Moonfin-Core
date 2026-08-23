@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:jellyfin_preference/jellyfin_preference.dart';
 import 'package:moonfin/preference/user_preferences.dart';
 import 'package:moonfin/ui/screens/detail/detail_buttons.dart';
+import 'package:moonfin/util/download_utils.dart';
 import 'package:moonfin/util/platform_detection.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

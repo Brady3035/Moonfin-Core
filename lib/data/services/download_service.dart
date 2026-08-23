@@ -94,6 +94,34 @@ class _MediaDownloadContext {
   });
 }
 
+/// Whether one media download should run on the native background engine.
+///
+/// Android TV keeps transcoded downloads on the in-process legacy engine:
+/// Jellyfin transcodes are chunked responses with no content length, which
+/// the native Android engine cannot move to its foreground worker and
+/// therefore cancels after its nine-minute WorkManager limit. Original
+/// quality downloads are ordinary finite responses, so TV takes the native
+/// engine for them like every other platform.
+///
+/// Destinations on removable storage also stay on the legacy engine: the
+/// native engine stages its temp file on internal storage and its completing
+/// move across volumes is a full copy, a long visible wait for a
+/// multi-gigabyte file.
+@visibleForTesting
+bool downloadUsesPluginEngine({
+  required bool pluginEngineSupported,
+  required bool serverNeedsLegacyTls,
+  required bool isAndroidTv,
+  required bool qualityTranscoded,
+  required bool destinationOnRemovableStorage,
+}) {
+  if (!pluginEngineSupported) return false;
+  if (serverNeedsLegacyTls) return false;
+  if (isAndroidTv && qualityTranscoded) return false;
+  if (destinationOnRemovableStorage) return false;
+  return true;
+}
+
 /// The native engine rejected the server's TLS certificate, so the download
 /// should be retried on the legacy engine, which honours the user's
 /// self-signed certificate setting.
@@ -221,23 +249,33 @@ class DownloadService extends ChangeNotifier {
           PlatformDetection.isAndroid ||
           PlatformDetection.isDesktop);
 
-  /// Whether media downloads for the active server run on the native
-  /// background_downloader engine.
-  ///
-  /// Android TV uses the established in-process engine instead. Jellyfin
-  /// transcodes are chunked responses with no content length, which the
-  /// native Android engine cannot move to its foreground worker and therefore
-  /// cancels after its nine-minute WorkManager limit.
-  bool get _usesPluginEngine =>
-      _pluginEngineSupported &&
-      !(PlatformDetection.isAndroid && PlatformDetection.isTV) &&
-      !_serverNeedsLegacyTls;
+  /// Whether the native engine handles this media download, or the legacy
+  /// in-process engine does. A server whose certificate the native engine
+  /// refused (see [_serverNeedsLegacyTls]) always downloads through the
+  /// legacy engine, on every platform.
+  bool _pluginEngineFor(
+    DownloadQuality quality, {
+    required bool destinationOnRemovableStorage,
+  }) =>
+      downloadUsesPluginEngine(
+        pluginEngineSupported: _pluginEngineSupported,
+        serverNeedsLegacyTls: _serverNeedsLegacyTls,
+        isAndroidTv: PlatformDetection.isAndroid && PlatformDetection.isTV,
+        qualityTranscoded: quality.isTranscoded,
+        destinationOnRemovableStorage: destinationOnRemovableStorage,
+      );
 
-  /// On iOS and Android the plugin posts its own download notifications.
-  /// The desktop plugin engine and the legacy engine post none, so those
-  /// keep the flutter_local_notifications path.
-  bool get _usesPluginNotifications =>
-      _usesPluginEngine &&
+  /// On iOS and Android the plugin posts its own download notifications for
+  /// the downloads it runs. The desktop plugin engine and the legacy engine
+  /// post none, so those keep the flutter_local_notifications path.
+  bool _pluginNotificationsFor(
+    DownloadQuality quality, {
+    required bool destinationOnRemovableStorage,
+  }) =>
+      _pluginEngineFor(
+        quality,
+        destinationOnRemovableStorage: destinationOnRemovableStorage,
+      ) &&
       (PlatformDetection.isIOS || PlatformDetection.isAndroid);
 
   // Memoized because this is checked from every progress callback.
@@ -1732,6 +1770,10 @@ class DownloadService extends ChangeNotifier {
     }
 
     String? savePath;
+    // False until the destination is known; the native engine stages its
+    // temp file on internal storage, so a removable destination stays on the
+    // direct-writing legacy engine (see [StoragePathService.isOnRemovableStorage]).
+    var destinationOnRemovableStorage = false;
     Timer? activityHeartbeat;
     String? activityPlaySessionId;
     String? activityMediaSourceId;
@@ -1788,6 +1830,10 @@ class DownloadService extends ChangeNotifier {
         if (await stale.exists()) await stale.delete();
       }
       if (preparationCancelled()) return;
+      destinationOnRemovableStorage = await _storagePath.isOnRemovableStorage(
+        savePath,
+      );
+      if (preparationCancelled()) return;
 
       await _offlineRepo.upsertItem(
         DownloadedItemsCompanion(
@@ -1824,7 +1870,10 @@ class DownloadService extends ChangeNotifier {
         progress: initialProgress,
         quality: quality,
       );
-      if (!_usesPluginNotifications) {
+      if (!_pluginNotificationsFor(
+        quality,
+        destinationOnRemovableStorage: destinationOnRemovableStorage,
+      )) {
         await _notificationService.showProgress(
           itemName: item.name,
           progress: initialProgress,
@@ -1916,7 +1965,10 @@ class DownloadService extends ChangeNotifier {
             ),
           );
         }
-        if (!_usesPluginNotifications &&
+        if (!_pluginNotificationsFor(
+              quality,
+              destinationOnRemovableStorage: destinationOnRemovableStorage,
+            ) &&
             _shouldUpdateSystemNotification(item.id, progress)) {
           unawaited(
             _notificationService.showProgress(
@@ -1930,7 +1982,10 @@ class DownloadService extends ChangeNotifier {
         notifyListeners();
       }
 
-      var usePluginEngine = _usesPluginEngine;
+      var usePluginEngine = _pluginEngineFor(
+        quality,
+        destinationOnRemovableStorage: destinationOnRemovableStorage,
+      );
 
       Future<Response> engineDownload(String downloadUrl) async {
         if (usePluginEngine) {
@@ -2092,7 +2147,10 @@ class DownloadService extends ChangeNotifier {
           3,
           error: friendlyError,
         );
-        if (!_usesPluginNotifications) {
+        if (!_pluginNotificationsFor(
+        quality,
+        destinationOnRemovableStorage: destinationOnRemovableStorage,
+      )) {
           await _notificationService.showError(
             itemName: item.name,
             error: friendlyError,
@@ -2112,7 +2170,10 @@ class DownloadService extends ChangeNotifier {
         quality: quality,
       );
       await _offlineRepo.updateDownloadStatus(item.id, 3, error: friendlyError);
-      if (!_usesPluginNotifications) {
+      if (!_pluginNotificationsFor(
+        quality,
+        destinationOnRemovableStorage: destinationOnRemovableStorage,
+      )) {
         await _notificationService.showError(
           itemName: item.name,
           error: friendlyError,
@@ -2135,7 +2196,10 @@ class DownloadService extends ChangeNotifier {
         quality: quality,
       );
       await _offlineRepo.updateDownloadStatus(item.id, 3, error: friendlyError);
-      if (!_usesPluginNotifications) {
+      if (!_pluginNotificationsFor(
+        quality,
+        destinationOnRemovableStorage: destinationOnRemovableStorage,
+      )) {
         await _notificationService.showError(
           itemName: item.name,
           error: friendlyError,

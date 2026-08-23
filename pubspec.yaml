@@ -57,7 +57,7 @@ dependencies:
   # to the wrong one, which aborts playback, so Apple keeps libmpv out
   # entirely. The platforms that need it are listed individually instead.
   media_kit_libs_android_video: 1.3.8
-  media_kit_libs_windows_video: 1.0.11
+  media_kit_libs_windows_video: 1.0.12
   media_kit_libs_linux: 1.2.1
   # Tizen playback backend (TizenPlayerBackend) — media_kit/libmpv and Media3
   # are unavailable on Tizen, so video plays through video_player, whose Tizen
@@ -209,8 +209,16 @@ dev_dependencies:
 dependency_overrides:
   media_kit_libs_android_video:
     path: packages/media_kit_libs_android_video_full
+  # Fork of 1.0.12 keeping shinchiro's newer libmpv over the media-kit archives,
+  # which build with a decoder allowlist that leaves out pgssub and so listed
+  # PGS tracks that could never render. Also carries the ARM64 ANGLE build and
+  # the libc++ it links, neither of which upstream ships. Meant to go upstream,
+  # so drop this once a published version covers it.
   media_kit_libs_windows_video:
-    path: packages/media_kit_libs_windows_video
+    git:
+      url: https://github.com/RadicalMuffinMan/media-kit.git
+      path: libs/windows/media_kit_libs_windows_video
+      ref: 43368ec394dcce7795707358b751a748c1fdc610
   # Vendored 0.6.0 with a Windows texture_bridge.cc fix for scroll/resize and
   # tab-switch crashes (null-visual guard + WGC Recreate moved off the
   # capture-thread mutex). The delta is recorded in
@@ -235,7 +243,7 @@ dependency_overrides:
     git:
       url: https://github.com/RadicalMuffinMan/media-kit.git
       path: media_kit_video
-      ref: 7e695ec0c8b1e1e5d7350035ca5b21d3d9deb266
+      ref: 43368ec394dcce7795707358b751a748c1fdc610
   synchronized: 3.3.1
   wakelock_plus: 1.3.3
   screen_brightness_android: 2.1.3

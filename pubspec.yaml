@@ -225,6 +225,17 @@ dependency_overrides:
   # re-vendor the matching version and re-apply that patch.
   gamepads_linux:
     path: packages/gamepads_linux
+  # Fork of 2.0.1 carrying a Linux renderer fix: an EGLImage that NVIDIA leaves
+  # idle under Wayland stops presenting, so a long gap between mpv frames
+  # rebuilds the texture, and frame notifications move onto the main thread.
+  # The pinned commit sits ahead of the published release, so it also carries
+  # unreleased upstream work on the Apple and Dart sides. Re-check those builds
+  # when moving the ref, and drop this once the fix reaches a published version.
+  media_kit_video:
+    git:
+      url: https://github.com/RadicalMuffinMan/media-kit.git
+      path: media_kit_video
+      ref: 7e695ec0c8b1e1e5d7350035ca5b21d3d9deb266
   synchronized: 3.3.1
   wakelock_plus: 1.3.3
   screen_brightness_android: 2.1.3

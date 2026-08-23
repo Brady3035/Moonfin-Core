@@ -3167,6 +3167,13 @@ class AppLocalizationsUk extends AppLocalizations {
   String get wifiOnlyDownloads => 'Завантаження лише через Wi-Fi';
 
   @override
+  String get tvOfflineDownloads => 'Enable offline downloads';
+
+  @override
+  String get tvOfflineDownloadsSubtitle =>
+      'Show download actions on item pages';
+
+  @override
   String get reportDownloadsActivity => 'Показувати завантаження на сервері';
 
   @override

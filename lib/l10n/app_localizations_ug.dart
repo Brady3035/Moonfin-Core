@@ -3148,6 +3148,13 @@ class AppLocalizationsUg extends AppLocalizations {
   String get wifiOnlyDownloads => 'پەقەت WiFi نىلا چۈشۈرۈش';
 
   @override
+  String get tvOfflineDownloads => 'Enable offline downloads';
+
+  @override
+  String get tvOfflineDownloadsSubtitle =>
+      'Show download actions on item pages';
+
+  @override
   String get reportDownloadsActivity => 'چۈشۈرۈشلەرنى مۇلازىمېتىردا كۆرسىتىش';
 
   @override

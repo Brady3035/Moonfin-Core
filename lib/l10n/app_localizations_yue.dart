@@ -3058,6 +3058,13 @@ class AppLocalizationsYue extends AppLocalizations {
   String get wifiOnlyDownloads => '僅 WiFi 下載';
 
   @override
+  String get tvOfflineDownloads => 'Enable offline downloads';
+
+  @override
+  String get tvOfflineDownloadsSubtitle =>
+      'Show download actions on item pages';
+
+  @override
   String get reportDownloadsActivity => '喺伺服器度顯示下載紀錄';
 
   @override

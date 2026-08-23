@@ -3166,6 +3166,13 @@ class AppLocalizationsSq extends AppLocalizations {
   String get wifiOnlyDownloads => 'Shkarkime vetëm me WiFi';
 
   @override
+  String get tvOfflineDownloads => 'Enable offline downloads';
+
+  @override
+  String get tvOfflineDownloadsSubtitle =>
+      'Show download actions on item pages';
+
+  @override
   String get reportDownloadsActivity => 'Shfaq shkarkimet në server';
 
   @override

@@ -3146,6 +3146,13 @@ class AppLocalizationsAf extends AppLocalizations {
   String get wifiOnlyDownloads => 'Slegs WiFi-aflaaie';
 
   @override
+  String get tvOfflineDownloads => 'Enable offline downloads';
+
+  @override
+  String get tvOfflineDownloadsSubtitle =>
+      'Show download actions on item pages';
+
+  @override
   String get reportDownloadsActivity => 'Wys aflaaie op die bediener';
 
   @override

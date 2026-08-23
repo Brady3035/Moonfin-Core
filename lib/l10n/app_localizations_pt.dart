@@ -3157,6 +3157,13 @@ class AppLocalizationsPt extends AppLocalizations {
   String get wifiOnlyDownloads => 'Downloads Apenas por WiFi';
 
   @override
+  String get tvOfflineDownloads => 'Enable offline downloads';
+
+  @override
+  String get tvOfflineDownloadsSubtitle =>
+      'Show download actions on item pages';
+
+  @override
   String get reportDownloadsActivity => 'Mostrar downloads no servidor';
 
   @override

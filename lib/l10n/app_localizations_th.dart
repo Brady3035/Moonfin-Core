@@ -3125,6 +3125,13 @@ class AppLocalizationsTh extends AppLocalizations {
   String get wifiOnlyDownloads => 'ดาวน์โหลดเฉพาะ WiFi เท่านั้น';
 
   @override
+  String get tvOfflineDownloads => 'Enable offline downloads';
+
+  @override
+  String get tvOfflineDownloadsSubtitle =>
+      'Show download actions on item pages';
+
+  @override
   String get reportDownloadsActivity => 'แสดงการดาวน์โหลดบนเซิร์ฟเวอร์';
 
   @override

@@ -3170,6 +3170,13 @@ class AppLocalizationsCy extends AppLocalizations {
   String get wifiOnlyDownloads => 'Dadlwythiadau WiFi yn Unig';
 
   @override
+  String get tvOfflineDownloads => 'Enable offline downloads';
+
+  @override
+  String get tvOfflineDownloadsSubtitle =>
+      'Show download actions on item pages';
+
+  @override
   String get reportDownloadsActivity => 'Dangos lawrlwythiadau ar y gweinydd';
 
   @override

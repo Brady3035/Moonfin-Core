@@ -3125,6 +3125,13 @@ class AppLocalizationsFa extends AppLocalizations {
   String get wifiOnlyDownloads => 'دانلودهای فقط وای فای';
 
   @override
+  String get tvOfflineDownloads => 'Enable offline downloads';
+
+  @override
+  String get tvOfflineDownloadsSubtitle =>
+      'Show download actions on item pages';
+
+  @override
   String get reportDownloadsActivity => 'نمایش دانلودها در سرور';
 
   @override

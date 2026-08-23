@@ -3180,6 +3180,13 @@ class AppLocalizationsEl extends AppLocalizations {
   String get wifiOnlyDownloads => 'Λήψεις μόνο με WiFi';
 
   @override
+  String get tvOfflineDownloads => 'Enable offline downloads';
+
+  @override
+  String get tvOfflineDownloadsSubtitle =>
+      'Show download actions on item pages';
+
+  @override
   String get reportDownloadsActivity => 'Εμφάνιση λήψεων στον διακομιστή';
 
   @override

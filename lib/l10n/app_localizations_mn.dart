@@ -3147,6 +3147,13 @@ class AppLocalizationsMn extends AppLocalizations {
   String get wifiOnlyDownloads => 'Зөвхөн WiFi-аар татагдсан файлууд';
 
   @override
+  String get tvOfflineDownloads => 'Enable offline downloads';
+
+  @override
+  String get tvOfflineDownloadsSubtitle =>
+      'Show download actions on item pages';
+
+  @override
   String get reportDownloadsActivity => 'Татаж авалтыг сервер дээр харуулах';
 
   @override

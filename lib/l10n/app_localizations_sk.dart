@@ -3165,6 +3165,13 @@ class AppLocalizationsSk extends AppLocalizations {
   String get wifiOnlyDownloads => 'Sťahovanie iba cez WiFi';
 
   @override
+  String get tvOfflineDownloads => 'Enable offline downloads';
+
+  @override
+  String get tvOfflineDownloadsSubtitle =>
+      'Show download actions on item pages';
+
+  @override
   String get reportDownloadsActivity => 'Zobrazovať sťahovania na serveri';
 
   @override

@@ -3148,6 +3148,13 @@ class AppLocalizationsVi extends AppLocalizations {
   String get wifiOnlyDownloads => 'Tải xuống chỉ qua Wi-Fi';
 
   @override
+  String get tvOfflineDownloads => 'Enable offline downloads';
+
+  @override
+  String get tvOfflineDownloadsSubtitle =>
+      'Show download actions on item pages';
+
+  @override
   String get reportDownloadsActivity => 'Hiển thị lượt tải xuống trên máy chủ';
 
   @override

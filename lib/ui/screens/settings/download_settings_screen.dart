@@ -45,6 +45,7 @@ class DownloadSettingsScreen extends ConsumerWidget {
     final imageCacheLimitMb = prefs.get(UserPreferences.imageCacheLimitMb);
     final concurrentCount = prefs.get(UserPreferences.downloadConcurrentCount);
     final customPath = prefs.get(UserPreferences.customDownloadPath);
+    final tvOfflineDownloads = prefs.get(UserPreferences.tvOfflineDownloads);
     final storage = ref.watch(storageUsedProvider);
     final l10n = AppLocalizations.of(context);
 
@@ -57,6 +58,22 @@ class DownloadSettingsScreen extends ConsumerWidget {
         ),
         body: ListView(
           children: [
+            // The discovery point for the whole feature on TV: the panel
+            // stays reachable while the item-page actions wait for opt-in.
+            if (PlatformDetection.isTV)
+              adaptiveListSection(
+                children: [
+                  DpadSwitchListTile(
+                    useSettingsIconShell: true,
+                    secondary: const Icon(Icons.download),
+                    title: Text(l10n.tvOfflineDownloads),
+                    subtitle: Text(l10n.tvOfflineDownloadsSubtitle),
+                    value: tvOfflineDownloads,
+                    onChanged: (v) =>
+                        prefs.set(UserPreferences.tvOfflineDownloads, v),
+                  ),
+                ],
+              ),
             _Section(title: l10n.quality),
             adaptiveListSection(
               children: [

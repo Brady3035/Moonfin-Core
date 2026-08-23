@@ -3162,6 +3162,13 @@ class AppLocalizationsMl extends AppLocalizations {
   String get wifiOnlyDownloads => 'വൈഫൈ-മാത്രം ഡൗൺലോഡുകൾ';
 
   @override
+  String get tvOfflineDownloads => 'Enable offline downloads';
+
+  @override
+  String get tvOfflineDownloadsSubtitle =>
+      'Show download actions on item pages';
+
+  @override
   String get reportDownloadsActivity => 'സെർവറിൽ ഡൗൺലോഡുകൾ കാണിക്കുക';
 
   @override

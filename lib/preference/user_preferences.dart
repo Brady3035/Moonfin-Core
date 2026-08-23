@@ -2675,6 +2675,16 @@ class UserPreferences extends ChangeNotifier {
     defaultValue: false,
   );
 
+  // Android TV only: the detail page keeps its download, delete, and
+  // download-all actions hidden until the user opts in from
+  // Settings -> Playback -> Offline Downloads. Other platforms offer
+  // downloads unconditionally, and nothing about existing downloads or the
+  // management screens is gated by this.
+  static final tvOfflineDownloads = Preference(
+    key: 'tv_offline_downloads',
+    defaultValue: false,
+  );
+
   // JSON-encoded list of server base URLs whose TLS certificate the native
   // download engine rejected (typically self-signed). Downloads for these
   // servers run on the legacy in-process engine, which accepts any cert.

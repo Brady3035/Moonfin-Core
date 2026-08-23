@@ -3044,6 +3044,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get wifiOnlyDownloads => '仅 Wi-Fi 下载';
 
   @override
+  String get tvOfflineDownloads => 'Enable offline downloads';
+
+  @override
+  String get tvOfflineDownloadsSubtitle =>
+      'Show download actions on item pages';
+
+  @override
   String get reportDownloadsActivity => '在服务器上显示下载';
 
   @override

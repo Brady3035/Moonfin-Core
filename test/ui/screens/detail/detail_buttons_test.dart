@@ -95,4 +95,23 @@ void main() {
       expect(DetailButton.cast.isOffered, isFalse);
     });
   });
+
+  group('showsTvDownloadActions', () {
+    test('TV hides the download actions until the user opts in', () async {
+      PlatformDetection.setTvMode(true);
+      final prefs = await _prefs();
+
+      expect(showsTvDownloadActions(prefs), isFalse);
+
+      await prefs.set(UserPreferences.tvOfflineDownloads, true);
+      expect(showsTvDownloadActions(prefs), isTrue);
+    });
+
+    test('non-TV platforms offer downloads unconditionally', () async {
+      PlatformDetection.setTvMode(false);
+      final prefs = await _prefs();
+
+      expect(showsTvDownloadActions(prefs), isTrue);
+    });
+  });
 }

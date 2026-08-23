@@ -3141,6 +3141,13 @@ class AppLocalizationsNb extends AppLocalizations {
   String get wifiOnlyDownloads => 'Kun WiFi-nedlastinger';
 
   @override
+  String get tvOfflineDownloads => 'Enable offline downloads';
+
+  @override
+  String get tvOfflineDownloadsSubtitle =>
+      'Show download actions on item pages';
+
+  @override
   String get reportDownloadsActivity => 'Vis nedlastinger på serveren';
 
   @override

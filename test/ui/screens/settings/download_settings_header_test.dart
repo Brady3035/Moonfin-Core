@@ -50,6 +50,55 @@ void main() {
     expect(find.text('Offline Downloads'), findsOneWidget);
   });
 
+  testWidgets('TV offers the offline downloads opt-in as the first row', (
+    tester,
+  ) async {
+    final prefs = GetIt.instance<UserPreferences>();
+    expect(prefs.get(UserPreferences.tvOfflineDownloads), isFalse);
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [storageUsedProvider.overrideWith((_) => Stream.value(0))],
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const DownloadSettingsScreen(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // The initial focus grab scrolls the TV list to its end; the opt-in
+    // lives at the top, so scroll back before asserting.
+    await tester.drag(find.byType(Scrollable), const Offset(0, 800));
+    await tester.pumpAndSettle();
+
+    final toggle = find.text('Enable offline downloads');
+    expect(toggle, findsOneWidget);
+
+    await tester.tap(toggle);
+    await tester.pumpAndSettle();
+    expect(prefs.get(UserPreferences.tvOfflineDownloads), isTrue);
+  });
+
+  testWidgets('non-TV platforms never see the opt-in toggle', (tester) async {
+    PlatformDetection.setTvMode(false);
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [storageUsedProvider.overrideWith((_) => Stream.value(0))],
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const DownloadSettingsScreen(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Enable offline downloads'), findsNothing);
+  });
+
   testWidgets('TV quality picker scrolls focused options into view', (
     tester,
   ) async {

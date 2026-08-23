@@ -3141,6 +3141,13 @@ class AppLocalizationsEo extends AppLocalizations {
   String get wifiOnlyDownloads => 'Nur WiFi-Elŝutoj';
 
   @override
+  String get tvOfflineDownloads => 'Enable offline downloads';
+
+  @override
+  String get tvOfflineDownloadsSubtitle =>
+      'Show download actions on item pages';
+
+  @override
   String get reportDownloadsActivity => 'Montri elŝutojn sur la servilo';
 
   @override

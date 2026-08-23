@@ -3160,6 +3160,13 @@ class AppLocalizationsTe extends AppLocalizations {
   String get wifiOnlyDownloads => 'WiFi-మాత్రమే డౌన్‌లోడ్‌లు';
 
   @override
+  String get tvOfflineDownloads => 'Enable offline downloads';
+
+  @override
+  String get tvOfflineDownloadsSubtitle =>
+      'Show download actions on item pages';
+
+  @override
   String get reportDownloadsActivity => 'సర్వర్‌లో డౌన్‌లోడ్‌లను చూపించండి';
 
   @override

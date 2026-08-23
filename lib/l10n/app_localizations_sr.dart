@@ -3261,6 +3261,13 @@ class AppLocalizationsSr extends AppLocalizations {
   String get wifiOnlyDownloads => 'Преузимања само за ВиФи';
 
   @override
+  String get tvOfflineDownloads => 'Enable offline downloads';
+
+  @override
+  String get tvOfflineDownloadsSubtitle =>
+      'Show download actions on item pages';
+
+  @override
   String get reportDownloadsActivity => 'Прикажи преузимања на серверу';
 
   @override

@@ -3135,6 +3135,13 @@ class AppLocalizationsBn extends AppLocalizations {
   String get wifiOnlyDownloads => 'শুধুমাত্র ওয়াইফাই ডাউনলোড';
 
   @override
+  String get tvOfflineDownloads => 'Enable offline downloads';
+
+  @override
+  String get tvOfflineDownloadsSubtitle =>
+      'Show download actions on item pages';
+
+  @override
   String get reportDownloadsActivity => 'সার্ভারে ডাউনলোড দেখান';
 
   @override

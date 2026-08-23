@@ -3165,6 +3165,13 @@ class AppLocalizationsRo extends AppLocalizations {
   String get wifiOnlyDownloads => 'Descărcări numai pentru WiFi';
 
   @override
+  String get tvOfflineDownloads => 'Enable offline downloads';
+
+  @override
+  String get tvOfflineDownloadsSubtitle =>
+      'Show download actions on item pages';
+
+  @override
   String get reportDownloadsActivity => 'Afișează descărcările pe server';
 
   @override

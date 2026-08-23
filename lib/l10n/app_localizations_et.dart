@@ -3151,6 +3151,13 @@ class AppLocalizationsEt extends AppLocalizations {
   String get wifiOnlyDownloads => 'Allalaadimised ainult WiFi kaudu';
 
   @override
+  String get tvOfflineDownloads => 'Enable offline downloads';
+
+  @override
+  String get tvOfflineDownloadsSubtitle =>
+      'Show download actions on item pages';
+
+  @override
   String get reportDownloadsActivity => 'Näita allalaadimisi serveris';
 
   @override

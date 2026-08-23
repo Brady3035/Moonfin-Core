@@ -3289,6 +3289,13 @@ class AppLocalizationsPl extends AppLocalizations {
   String get wifiOnlyDownloads => 'Pobieranie tylko przez Wi-Fi';
 
   @override
+  String get tvOfflineDownloads => 'Enable offline downloads';
+
+  @override
+  String get tvOfflineDownloadsSubtitle =>
+      'Show download actions on item pages';
+
+  @override
   String get reportDownloadsActivity => 'Pokazuj pobierania na serwerze';
 
   @override

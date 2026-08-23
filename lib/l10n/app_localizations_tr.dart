@@ -3148,6 +3148,13 @@ class AppLocalizationsTr extends AppLocalizations {
   String get wifiOnlyDownloads => 'Yalnızca WiFi İndirmeleri';
 
   @override
+  String get tvOfflineDownloads => 'Enable offline downloads';
+
+  @override
+  String get tvOfflineDownloadsSubtitle =>
+      'Show download actions on item pages';
+
+  @override
   String get reportDownloadsActivity => 'İndirmeleri sunucuda göster';
 
   @override

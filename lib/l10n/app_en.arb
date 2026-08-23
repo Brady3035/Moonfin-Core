@@ -4304,6 +4304,14 @@
   "@wifiOnlyDownloads": {
     "description": "Setting for wifi-only downloads"
   },
+  "tvOfflineDownloads": "Enable offline downloads",
+  "@tvOfflineDownloads": {
+    "description": "TV-only toggle in the Offline Downloads settings: offer download actions on item pages"
+  },
+  "tvOfflineDownloadsSubtitle": "Show download actions on item pages",
+  "@tvOfflineDownloadsSubtitle": {
+    "description": "Subtitle for the TV-only offline downloads toggle"
+  },
   "reportDownloadsActivity": "Show downloads on the server",
   "reportDownloadsActivitySubtitle": "Let the server admin see your transcoded downloads in the dashboard",
   "onlyDownloadOnWifi": "Only download when connected to WiFi",

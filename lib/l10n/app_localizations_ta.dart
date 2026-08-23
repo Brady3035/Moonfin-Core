@@ -3164,6 +3164,13 @@ class AppLocalizationsTa extends AppLocalizations {
   String get wifiOnlyDownloads => 'WiFi-மட்டும் பதிவிறக்கங்கள்';
 
   @override
+  String get tvOfflineDownloads => 'Enable offline downloads';
+
+  @override
+  String get tvOfflineDownloadsSubtitle =>
+      'Show download actions on item pages';
+
+  @override
   String get reportDownloadsActivity => 'சர்வரில் பதிவிறக்கங்களைக் காட்டு';
 
   @override

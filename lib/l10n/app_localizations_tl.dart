@@ -3167,6 +3167,13 @@ class AppLocalizationsTl extends AppLocalizations {
   String get wifiOnlyDownloads => 'Mga Download sa WiFi Lang';
 
   @override
+  String get tvOfflineDownloads => 'Enable offline downloads';
+
+  @override
+  String get tvOfflineDownloadsSubtitle =>
+      'Show download actions on item pages';
+
+  @override
   String get reportDownloadsActivity => 'Ipakita ang mga download sa server';
 
   @override

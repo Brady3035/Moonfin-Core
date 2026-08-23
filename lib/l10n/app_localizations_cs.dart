@@ -3158,6 +3158,13 @@ class AppLocalizationsCs extends AppLocalizations {
   String get wifiOnlyDownloads => 'Stahování pouze pro WiFi';
 
   @override
+  String get tvOfflineDownloads => 'Enable offline downloads';
+
+  @override
+  String get tvOfflineDownloadsSubtitle =>
+      'Show download actions on item pages';
+
+  @override
   String get reportDownloadsActivity => 'Zobrazovat stahování na serveru';
 
   @override

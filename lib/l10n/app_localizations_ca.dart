@@ -3183,6 +3183,13 @@ class AppLocalizationsCa extends AppLocalizations {
   String get wifiOnlyDownloads => 'Descàrregues només per a WiFi';
 
   @override
+  String get tvOfflineDownloads => 'Enable offline downloads';
+
+  @override
+  String get tvOfflineDownloadsSubtitle =>
+      'Show download actions on item pages';
+
+  @override
   String get reportDownloadsActivity => 'Mostra les descàrregues al servidor';
 
   @override

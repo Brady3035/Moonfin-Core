@@ -129,3 +129,12 @@ final detailButtonLayout = ButtonLayout(
   orderMobile: UserPreferences.detailButtonOrderMobile,
   orderDesktop: UserPreferences.detailButtonOrderDesktop,
 );
+
+/// Whether the detail page may offer its download actions on this device.
+///
+/// Android TV keeps them hidden until the user enables offline downloads in
+/// Settings -> Playback -> Offline Downloads; every other platform that
+/// supports downloads offers them unconditionally. Existing downloads and
+/// the management screens are never affected by this gate.
+bool showsTvDownloadActions(UserPreferences prefs) =>
+    !PlatformDetection.isTV || prefs.get(UserPreferences.tvOfflineDownloads);

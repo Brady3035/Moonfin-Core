@@ -5686,6 +5686,18 @@ abstract class AppLocalizations {
   /// **'WiFi-Only Downloads'**
   String get wifiOnlyDownloads;
 
+  /// TV-only toggle in the Offline Downloads settings: offer download actions on item pages
+  ///
+  /// In en, this message translates to:
+  /// **'Enable offline downloads'**
+  String get tvOfflineDownloads;
+
+  /// Subtitle for the TV-only offline downloads toggle
+  ///
+  /// In en, this message translates to:
+  /// **'Show download actions on item pages'**
+  String get tvOfflineDownloadsSubtitle;
+
   /// No description provided for @reportDownloadsActivity.
   ///
   /// In en, this message translates to:

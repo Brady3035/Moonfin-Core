@@ -10097,6 +10097,7 @@ bool _isDownloadable(String? type) {
 bool _canUserDownload() {
   final user = GetIt.instance<UserRepository>().currentUser;
   return PlatformDetection.supportsOfflineDownloads &&
+      showsTvDownloadActions(GetIt.instance<UserPreferences>()) &&
       (user?.canDownload ?? false);
 }
 

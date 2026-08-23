@@ -3146,6 +3146,13 @@ class AppLocalizationsId extends AppLocalizations {
   String get wifiOnlyDownloads => 'Unduhan Hanya WiFi';
 
   @override
+  String get tvOfflineDownloads => 'Enable offline downloads';
+
+  @override
+  String get tvOfflineDownloadsSubtitle =>
+      'Show download actions on item pages';
+
+  @override
   String get reportDownloadsActivity => 'Tampilkan unduhan di server';
 
   @override

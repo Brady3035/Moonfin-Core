@@ -77,9 +77,15 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
   double? _progress;
   String? _coreMessage;
   Timer? _coreMessageTimer;
+  String? _inputNotice;
+  Timer? _inputNoticeTimer;
   int? _textureId;
   double _aspect = 4 / 3;
   int _controllers = 1;
+  // Guards the "playing with the remote" notice so it shows once per
+  // session rather than every time the remote's Bluetooth link naps and
+  // wakes, which would otherwise re-fire controllersChanged repeatedly.
+  bool _notifiedNavigationOnly = false;
   bool _exiting = false;
   // True once the native session has been told to stop. Separate from
   // _exiting so a fatal error can tear the core down without also
@@ -253,6 +259,7 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
     _gamepadEvents?.cancel();
     _startHoldTimer?.cancel();
     _coreMessageTimer?.cancel();
+    _inputNoticeTimer?.cancel();
     _overlayScroll.dispose();
     _settingsScroll.dispose();
     _pickerScroll.dispose();
@@ -279,6 +286,9 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
         }
       case 'controllersChanged':
         final count = (event['count'] as num?)?.toInt() ?? 0;
+        // Defaults to false so an older native build that never sends this
+        // key behaves exactly as before: no notice, same blocking gate.
+        final navigationOnly = event['navigationOnly'] as bool? ?? false;
         if (mounted) setState(() => _controllers = count);
         // The native registry can change independently of the overlay. Refresh
         // profile metadata as a best-effort snapshot; gameplay never waits on
@@ -289,9 +299,26 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
         if (!usesKeyboardInput && !usesOnScreenControls) {
           if (count == 0) {
             _player.pause();
-          } else {
+          } else if (!_overlayOpen) {
+            // The overlay owns the visible pause, so a device connecting or
+            // waking while it is open must not start the game moving
+            // underneath it. Closing the overlay resumes.
             _player.resume();
           }
+        }
+        // Same platform gate as the pause above: the notice explains why the
+        // game is playable with no gamepad, which only needs saying where
+        // there is no keyboard or on-screen pad to answer it already. The
+        // native side ships to Android phones too, where an attached
+        // Bluetooth keyboard would otherwise report navigationOnly.
+        if (navigationOnly &&
+            !_notifiedNavigationOnly &&
+            !usesKeyboardInput &&
+            !usesOnScreenControls) {
+          _notifiedNavigationOnly = true;
+          _showInputNotice(
+            'No game controller connected — playing with the remote.',
+          );
         }
       case 'menuPressed':
         _toggleOverlay();
@@ -354,6 +381,19 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
     setState(() => _coreMessage = message);
     _coreMessageTimer = Timer(const Duration(seconds: 6), () {
       if (mounted) setState(() => _coreMessage = null);
+    });
+  }
+
+  // Kept separate from _coreMessage: the core emits its own messages at
+  // session start and would otherwise clobber this notice.
+  void _showInputNotice(String? message) {
+    if (message == null || message.isEmpty || !mounted) return;
+    _inputNoticeTimer?.cancel();
+    setState(() => _inputNotice = message);
+    // Shorter than a core message's six seconds: this one says the same thing
+    // every launch, so it only has to register, not be read.
+    _inputNoticeTimer = Timer(const Duration(seconds: 3), () {
+      if (mounted) setState(() => _inputNotice = null);
     });
   }
 
@@ -795,6 +835,7 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
       }
       _aspect = info.aspect > 0 ? info.aspect : 4 / 3;
       _controllers = await _player.controllerCount();
+      _notifiedNavigationOnly = false;
       await _loadControllerTypes(coreId, games);
 
       await _player.start();
@@ -2035,6 +2076,33 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
                   icon: const Icon(Icons.arrow_back, color: Colors.white),
                   iconSize: 32,
                   onPressed: _backOut,
+                ),
+              ),
+            ),
+          if (_inputNotice != null && _error == null)
+            Positioned(
+              left: 24,
+              right: 24,
+              bottom: 88,
+              // Purely informational, so it never takes a press meant for the
+              // on-screen pad underneath it.
+              child: IgnorePointer(
+                child: SafeArea(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.black87,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      _inputNotice!,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: Colors.white, fontSize: 16),
+                    ),
+                  ),
                 ),
               ),
             ),

@@ -19,8 +19,11 @@ import '../../../data/services/retro_artwork/retro_artwork_activity_gate.dart';
 import '../../../playback/native_game_player.dart';
 import '../../../util/game_cores.dart';
 import '../../../util/game_storage.dart';
+import '../../../util/core_input_descriptors.dart';
 import '../../../util/native_controller_mapping.dart';
+import '../../../util/native_controller_player_assignments.dart';
 import '../../../util/platform_detection.dart';
+import '../../../util/settings_save_retry.dart';
 import '../../../util/focus/gamepad/android_gamepad_channel.dart';
 import '../../../util/focus/gamepad/gamepad_suppressor.dart';
 import '../../screensaver/screensaver_controller.dart';
@@ -60,11 +63,12 @@ class NativeGamePlayerScreen extends StatefulWidget {
 }
 
 class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
-    with GameAudioOwner {
+    with GameAudioOwner, WidgetsBindingObserver {
   final MediaServerClient _client = GetIt.instance<MediaServerClient>();
   late final NativeGamePlayer _player;
-  late final CoreDownloadService _cores =
-      CoreDownloadService(GetIt.instance<PreferenceStore>());
+  late final CoreDownloadService _cores = CoreDownloadService(
+    GetIt.instance<PreferenceStore>(),
+  );
 
   String get _stateKey => gameStateKey(widget.gameId, widget.core);
 
@@ -113,6 +117,11 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
       GlobalKey<NativeControllerMappingScreenState>();
   List<NativeControllerDevice> _controllerDevices = const [];
   Map<String, NativeControllerMapping> _controllerMappings = const {};
+  NativeControllerPlayerAssignments _controllerAssignments =
+      NativeControllerPlayerAssignments.empty;
+  Map<int, List<CoreControllerType>> _controllerTypesByPort = const {};
+  CoreInputDescriptors _inputDescriptors = CoreInputDescriptors.empty;
+  int _controllerRefreshGeneration = 0;
 
   // Controller Start is deferred so it can double as the menu gesture: a quick
   // press reaches the game on release, holding it opens the overlay.
@@ -166,6 +175,11 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
   @override
   void initState() {
     super.initState();
+    // Without this the emulation thread keeps running after the system Home
+    // button. The native side has a pause hook on SurfaceProducer.Callback,
+    // but setCallback is a documented no-op for SurfaceTextureSurfaceProducer
+    // (see buglog), so that hook never fires and nothing else was listening.
+    WidgetsBinding.instance.addObserver(this);
     _player = widget.player ?? NativeGamePlayer.create();
     _acquireGameplayArtworkBlock();
     _acquireScreensaverBlock();
@@ -231,6 +245,7 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _releaseGameplayArtworkBlock();
     _releaseScreensaverBlock();
     releaseGameAudio();
@@ -265,6 +280,10 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
       case 'controllersChanged':
         final count = (event['count'] as num?)?.toInt() ?? 0;
         if (mounted) setState(() => _controllers = count);
+        // The native registry can change independently of the overlay. Refresh
+        // profile metadata as a best-effort snapshot; gameplay never waits on
+        // this Dart-side work.
+        unawaited(_refreshControllerMappings());
         // Keyboard and touch platforms play fine without a controller, so
         // losing the last one should not pause the game there.
         if (!usesKeyboardInput && !usesOnScreenControls) {
@@ -598,6 +617,10 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
     } else if (_settingsOpen) {
       setState(() => _settingsOpen = false);
     } else if (_controllerMappingOpen) {
+      // The mapping screen has its own levels (armed capture, player and
+      // controller-type pickers, copy confirmation). Let it step back through
+      // them first; closing outright would skip the list the user came from.
+      if (_controllerMappingKey.currentState?.handleBack() == true) return;
       setState(() => _controllerMappingOpen = false);
     } else {
       _closeOverlay();
@@ -743,10 +766,16 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
         return;
       }
 
-      final settingsJson = await _loadSettings(
-        games,
-        coreId,
-      ).catchError((_) => null);
+      Map<String, String>? settingsJson;
+      try {
+        settingsJson = await _loadSettings(games, coreId);
+        _coreOptionsReadable = true;
+      } catch (_) {
+        // Unreachable is not the same as absent. Starting on defaults is
+        // recoverable; persisting those defaults over settings we never
+        // managed to read is not, so writes stay disabled for this session.
+        _coreOptionsReadable = false;
+      }
       // Last check before starting the one-per-process native session: if the
       // screen was unmounted while settings were loading, starting it now
       // would leave a session running with nothing left to tear it down.
@@ -766,6 +795,7 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
       }
       _aspect = info.aspect > 0 ? info.aspect : 4 / 3;
       _controllers = await _player.controllerCount();
+      await _loadControllerTypes(coreId, games);
 
       await _player.start();
       if (!widget.startFresh) {
@@ -811,8 +841,10 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
       );
     } catch (_) {
       if (mounted) {
-        setState(() => _error =
-            'The system files for this core could not be installed. Check your connection and try again.');
+        setState(
+          () => _error =
+              'The system files for this core could not be installed. Check your connection and try again.',
+        );
       }
       return false;
     }
@@ -912,13 +944,32 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
     }
   }
 
+  /// This game's emulator settings for this device, falling back through the
+  /// documents written before each narrowing of scope: per game, then the
+  /// core-wide one.
+  ///
+  /// Older documents are inherited in memory but never written back to. The
+  /// core-wide one holds every game's options for this core, so copying it
+  /// forward would carry another game's dipswitches along. The first write
+  /// stores this game's options under the current id, which is the migration.
   Future<Map<String, String>?> _loadSettings(
     GamesApi games,
     String coreId,
   ) async {
-    final blob = await games.getSave(
-      'moonfin-native-$coreId',
-      kind: 'settings',
+    final own = await _readSettings(games, _gameOptionsSaveId(coreId));
+    if (own != null) return own;
+    final perGame = await _readSettings(games, _legacyGameOptionsSaveId(coreId));
+    if (perGame != null) return perGame;
+    return _readSettings(games, _legacyCoreOptionsSaveId(coreId));
+  }
+
+  Future<Map<String, String>?> _readSettings(
+    GamesApi games,
+    String saveId,
+  ) async {
+    final blob = await games.getSave(saveId, kind: 'settings');
+    debugPrint(
+      '[moonfin_settings] read $saveId -> ${blob == null || blob.isEmpty ? 'absent' : '${blob.length} bytes'}',
     );
     if (blob == null || blob.isEmpty) return null;
     final text = String.fromCharCodes(blob);
@@ -941,6 +992,7 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
   List<_OverlayAction> _actions() => _confirmingExit
       ? [
           _OverlayAction('Keep playing', _cancelExitConfirmation),
+          _OverlayAction('Save & exit', _saveAndExit),
           _OverlayAction('Exit game', _exit, danger: true),
         ]
       : _mainActions();
@@ -987,6 +1039,35 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
       _confirmingExit = false;
       _selected = 0;
     });
+  }
+
+  /// Stops emulating while the app is in the background, and picks up again on
+  /// return.
+  ///
+  /// Deliberately does NOT save state: a save is destructive and belongs to a
+  /// choice the user made, not to a Home button press.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    // Nothing is running before the texture exists, and resuming then would
+    // start a session the load path has not finished setting up.
+    if (_textureId == null || _exiting) return;
+    switch (state) {
+      case AppLifecycleState.resumed:
+        // The overlay is the one pause the user can see, so it decides
+        // whether coming back to the app should start the game moving again.
+        debugPrint('[moonfin_life] resumed overlayOpen=$_overlayOpen');
+        if (!_overlayOpen) _player.resume();
+      case AppLifecycleState.inactive:
+        // Transient and common (a system dialog, the volume panel). Pausing
+        // here would flicker the game for events the user never left for.
+        break;
+      case AppLifecycleState.paused:
+      case AppLifecycleState.hidden:
+      case AppLifecycleState.detached:
+        debugPrint('[moonfin_life] backgrounded ($state) - pausing');
+        _player.pause();
+    }
   }
 
   void _toggleOverlay() {
@@ -1120,33 +1201,128 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
     unawaited(_persistOptions());
   }
 
+  /// Emulator settings are stored per game, not per core.
+  ///
+  /// Cores publish per-game options -- FBNeo's dipswitches are per driver -- so
+  /// a single document per core cannot hold two games' settings at once.
+  /// Confirmed on device: BurgerTime's lives reverted after merely loading and
+  /// exiting Spy Hunter, with no setting changed there, because that exit
+  /// rewrote the shared document from Spy Hunter's options alone. Per-game ids
+  /// remove the sharing rather than arbitrate it.
+  /// Emulator settings are per game AND per device.
+  ///
+  /// Per device because they are not all portable: a colour depth or frame
+  /// skip that is right on the Shield can be wrong on weaker hardware, and a
+  /// setting that follows the user onto a slower box makes that box worse.
+  /// Game-configuration options (dipswitches) would be safe to share, but
+  /// libretro gives no way to tell the two classes apart, so the whole
+  /// document stays local rather than guessing wrong in the harmful direction.
+  String _gameOptionsSaveId(String coreId) {
+    final deviceId = _client.deviceInfo.id;
+    final base = 'moonfin-native-$coreId-${widget.gameId}';
+    return deviceId.isEmpty ? base : '$base-$deviceId';
+  }
+
+  /// The pre-per-device id. Read as a fallback so settings saved before this
+  /// split still apply; never written to.
+  String _legacyGameOptionsSaveId(String coreId) =>
+      'moonfin-native-$coreId-${widget.gameId}';
+
+  /// The pre-per-game id, read for its values when a game has no document of
+  /// its own. Never written to; see [_loadSettings].
+  static String _legacyCoreOptionsSaveId(String coreId) =>
+      'moonfin-native-$coreId';
+
+  /// False when this game's settings could not be READ this session, which
+  /// would make a write a blind overwrite of settings we never saw.
+  bool _coreOptionsReadable = true;
+
+  /// The one place emulator settings are written, so the retry policy and the
+  /// save id cannot drift between the menu path and the exit path.
+  ///
+  /// A whole-document write is correct here because the document belongs to
+  /// one game and [options] is that game's complete option set -- both callers
+  /// enumerate what the core published for the loaded content.
+  ///
+  /// [backoff] is shortened on exit: a user leaving the game should not wait
+  /// out a full retry ladder for a settings write.
+  Future<void> _writeOptions(
+    GamesApi games,
+    String coreId,
+    Iterable<MapEntry<String, String>> options, {
+    List<Duration> backoff = defaultSettingsSaveBackoff,
+  }) {
+    if (!_coreOptionsReadable) {
+      throw StateError('emulator settings were not readable this session');
+    }
+    debugPrint('[moonfin_settings] write ${_gameOptionsSaveId(coreId)}');
+    return retryOnTransientFailure(
+      () => games.putSave(
+        _gameOptionsSaveId(coreId),
+        options.map((e) => '${e.key}=${e.value}').join('\n').codeUnits,
+        kind: 'settings',
+      ),
+      backoff: backoff,
+    );
+  }
+
   Future<void> _persistOptions() async {
     final games = _client.gamesApi;
     final coreId = libretroCoreId(widget.core);
     if (games == null || coreId == null || _options.isEmpty) return;
-    final blob = _options
-        .map((o) => '${o.id}=${o.current}')
-        .join('\n')
-        .codeUnits;
-    try {
-      await games.putSave('moonfin-native-$coreId', blob, kind: 'settings');
-    } on Exception {
-      // A settings write is not worth interrupting the game for.
+    if (!_coreOptionsReadable) {
+      _showTransientMessage(
+        'Saved settings could not be read; not overwriting them.',
+      );
+      return;
     }
+    try {
+      await _writeOptions(
+        games,
+        coreId,
+        _options.map((o) => MapEntry(o.id, o.current)),
+      );
+    } catch (_) {
+      // The option is live in the core either way, but it will be back to its
+      // old value next launch, and only the user can decide to redo it.
+      _showTransientMessage('Setting applied for now, but not saved.');
+    }
+  }
+
+  /// True only when the state actually reached the server.
+  Future<bool> _persistState() async {
+    final games = _client.gamesApi;
+    final bytes = await _player.saveState();
+    if (bytes == null || bytes.isEmpty || games == null) return false;
+    await games.putSave(_stateKey, bytes);
+    return true;
   }
 
   Future<void> _saveState() async {
     try {
-      final games = _client.gamesApi;
-      final bytes = await _player.saveState();
-      if (bytes != null && bytes.isNotEmpty && games != null) {
-        await games.putSave(_stateKey, bytes);
-      }
+      await _persistState();
     } catch (_) {
       _showTransientMessage('Could not save state.');
     } finally {
       if (mounted) _closeOverlay();
     }
+  }
+
+  /// Leaves only once the state is stored. Exiting on a failed save is the
+  /// exact outcome the exit warning exists to prevent, so a failure keeps the
+  /// game running and says so.
+  Future<void> _saveAndExit() async {
+    var saved = false;
+    try {
+      saved = await _persistState();
+    } catch (_) {
+      saved = false;
+    }
+    if (saved) {
+      await _exit();
+      return;
+    }
+    if (mounted) _showTransientMessage('Could not save state. Still playing.');
   }
 
   Future<void> _loadState() async {
@@ -1260,7 +1436,7 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
   /// hidden.
   Future<List<NativeControllerDevice>> _remappableDevices() async {
     if (PlatformDetection.isAndroid) {
-      final rawDevices = await AndroidGamepadChannel.getEmulatorGamepads();
+      final rawDevices = await AndroidGamepadChannel.getNativeGamepadDevices();
       return rawDevices
           .map(NativeControllerDevice.fromMap)
           .where((device) => device.id.isNotEmpty)
@@ -1274,22 +1450,154 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
           (pad) => NativeControllerDevice(
             id: desktopControllerDeviceId(pad.id),
             name: pad.name.isEmpty ? 'Gamepad ${pad.id}' : pad.name,
+            connectionId: desktopControllerDeviceId(pad.id),
           ),
         )
         .toList(growable: false);
   }
 
   Future<void> _loadControllerMappings(GamesApi games) async {
-    final devices = await _remappableDevices();
-    if (devices.isEmpty) return;
-    final mappings = <String, NativeControllerMapping>{};
-    for (final device in devices) {
-      mappings[device.id] = await loadControllerMapping(games, device.id);
+    // Assignments are pushed before the core starts, so the native registry
+    // allocates ports from the user's choice on the first pass rather than
+    // reshuffling everyone a moment after the game appears.
+    _controllerAssignments = await loadControllerPlayerAssignments(games);
+    await _syncControllerAssignments();
+    await _refreshControllerMappings(games: games);
+  }
+
+  /// Re-reads what the core calls each button. Cores re-send their input
+  /// descriptors after a port's device type changes, so this runs after every
+  /// controller-type change as well as at load.
+  Future<void> _refreshInputDescriptors() async {
+    try {
+      final descriptors = await _player.getInputDescriptors();
+      if (!mounted) return;
+      setState(() => _inputDescriptors = descriptors);
+    } catch (error) {
+      // Descriptions are a labelling nicety; without them the mapping screen
+      // shows bare button names, which is what it always did.
+      debugPrint(
+        '[NativeGamePlayerScreen] Could not read input descriptors: $error',
+      );
     }
-    if (!mounted) return;
-    _controllerDevices = devices;
-    _controllerMappings = mappings;
-    await _syncControllerMappings();
+  }
+
+  Future<void> _syncControllerAssignments() async {
+    if (!PlatformDetection.isAndroid) return;
+    await AndroidGamepadChannel.setControllerAssignments(
+      _controllerAssignments.toJson(),
+    );
+  }
+
+  /// Applies an edited player assignment: native first so the ports move
+  /// immediately, then persisted, then the device list is re-read so the UI
+  /// shows the slots the registry actually handed out.
+  Future<void> _onControllerAssignmentsChanged(
+    NativeControllerPlayerAssignments assignments,
+  ) async {
+    setState(() => _controllerAssignments = assignments);
+    await _syncControllerAssignments();
+    final games = _client.gamesApi;
+    if (games != null) {
+      try {
+        await saveControllerPlayerAssignments(games, assignments);
+      } catch (error) {
+        // The assignment is live for this session. This edit is made from the
+        // controller menu, not mid-game, so a transient line there is the
+        // cheaper surprise -- cheaper than the pin being silently gone at the
+        // next launch.
+        debugPrint(
+          '[NativeGamePlayerScreen] Could not save player assignment: $error',
+        );
+        _showTransientMessage(
+          'Player assignment applied for now, but not saved to the server.',
+        );
+      }
+    }
+    await _refreshControllerMappings();
+  }
+
+  Future<void> _refreshControllerMappings({GamesApi? games}) async {
+    final generation = ++_controllerRefreshGeneration;
+    try {
+      final api = games ?? _client.gamesApi;
+      if (api == null) return;
+      final devices = await _remappableDevices();
+      final profileIds = devices.map((device) => device.id).toSet();
+      // Keep active-session edits while a hot-plug refresh discovers a new
+      // profile. Persisted reads are only needed for profiles not already
+      // present; otherwise a delayed refresh could visibly revert a mapping
+      // that was just captured in this session.
+      final mappings = <String, NativeControllerMapping>{
+        ..._controllerMappings,
+      };
+      final loaded = await Future.wait(
+        profileIds
+            .where((id) => !mappings.containsKey(id))
+            .map(
+              (id) async =>
+                  MapEntry(id, await loadControllerMappingChecked(api, id)),
+            ),
+      );
+      if (!mounted || generation != _controllerRefreshGeneration) return;
+      final currentMappings = _controllerMappings;
+      mappings
+        ..clear()
+        ..addAll(currentMappings);
+      for (final entry in loaded) {
+        if (currentMappings.containsKey(entry.key)) continue;
+        if (!entry.value.reachable) {
+          // The read failed, so we do NOT know this pad's bindings. Leaving it
+          // out means the screen shows nothing to edit rather than showing
+          // defaults that a later edit would persist over the real mapping.
+          _unreadableMappingProfiles.add(entry.key);
+          continue;
+        }
+        _unreadableMappingProfiles.remove(entry.key);
+        mappings[entry.key] = entry.value.mapping;
+      }
+      final coreId = libretroCoreId(widget.core);
+      final repairedProfiles = <String>{};
+      if (coreId != null && _controllerTypesByPort.isNotEmpty) {
+        for (final device in devices) {
+          final port = device.port;
+          final mapping = mappings[device.id];
+          if (port == null || mapping == null) continue;
+          final selected = mapping.controllerTypeForCore(coreId);
+          if (!_isControllerTypeSupportedAtPort(
+            coreId,
+            port,
+            selected,
+            _controllerTypesByPort,
+          )) {
+            mappings[device.id] = mapping.withControllerType(
+              coreId,
+              retroDeviceJoypad,
+            );
+            repairedProfiles.add(device.id);
+          }
+        }
+      }
+      setState(() {
+        _controllerDevices = devices;
+        _controllerMappings = Map.unmodifiable(mappings);
+      });
+      await _syncControllerMappings();
+      if (_controllerTypesByPort.isNotEmpty) {
+        await _syncControllerTypes();
+      }
+      await Future.wait(
+        repairedProfiles.map((deviceId) async {
+          try {
+            await saveControllerMapping(api, deviceId, mappings[deviceId]!);
+          } catch (_) {
+            // The repaired Auto setting remains active for this session.
+          }
+        }),
+      );
+    } catch (error) {
+      debugPrint('[NativeGamePlayerScreen] Controller refresh failed: $error');
+    }
   }
 
   String _controllerMappingsJson() => jsonEncode({
@@ -1306,7 +1614,105 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
   Future<void> _syncControllerMappings() async {
     if (!PlatformDetection.isAndroid) return;
     await AndroidGamepadChannel.setControllerMapping(_controllerMappingsJson());
+    await AndroidGamepadChannel.setStickSnap({
+      for (final entry in _controllerMappings.entries)
+        entry.key: entry.value.snapForGame(widget.gameId).wireName,
+    });
   }
+
+  /// Reads every advertisement for Moonfin's routable ports, including device
+  /// types the current UI cannot offer yet. The native host also logs entries
+  /// for extra ports, while Dart retains the routable entries unfiltered.
+  Future<void> _loadControllerTypes(String coreId, GamesApi games) async {
+    final advertised = await _player.getControllerTypes();
+    final byPort = <int, List<CoreControllerType>>{};
+    for (final type in advertised) {
+      byPort.putIfAbsent(type.port, () => []).add(type);
+    }
+
+    final next = <String, NativeControllerMapping>{..._controllerMappings};
+    final changedProfiles = <String>{};
+    // No advertisement can mean a legacy runner. Keep a saved choice in that
+    // case; a non-empty current advertisement is what proves an old alternate
+    // is no longer valid for this core/port.
+    if (advertised.isNotEmpty) {
+      for (final device in _controllerDevices) {
+        final port = device.port;
+        final mapping = next[device.id];
+        if (port == null || mapping == null) continue;
+        final selected = mapping.controllerTypeForCore(coreId);
+        if (selected == retroDeviceJoypad) continue;
+        if (!_isControllerTypeSupportedAtPort(coreId, port, selected, byPort)) {
+          next[device.id] = mapping.withControllerType(
+            coreId,
+            retroDeviceJoypad,
+          );
+          changedProfiles.add(device.id);
+        }
+      }
+    }
+    if (!mounted) return;
+    setState(() {
+      _controllerTypesByPort = Map<int, List<CoreControllerType>>.unmodifiable({
+        for (final entry in byPort.entries)
+          entry.key: List<CoreControllerType>.unmodifiable(entry.value),
+      });
+      _controllerMappings = Map.unmodifiable(next);
+    });
+    await _syncControllerTypes();
+    await _refreshInputDescriptors();
+    await Future.wait(
+      changedProfiles.map((deviceId) async {
+        try {
+          await saveControllerMapping(games, deviceId, next[deviceId]!);
+        } catch (_) {
+          // Auto still applies for this session if repairing an obsolete saved
+          // layout cannot be persisted right now.
+        }
+      }),
+    );
+  }
+
+  /// Applies each profile's saved layout to its current session port. The
+  /// native bridge maps [retroDeviceJoypad] to the core default.
+  Future<void> _syncControllerTypes() async {
+    final coreId = libretroCoreId(widget.core);
+    if (coreId == null || _controllerTypesByPort.isEmpty) return;
+    for (final device in _controllerDevices) {
+      final port = device.port;
+      if (!device.supported || port == null) continue;
+      final mapping = _controllerMappings[device.id];
+      final selected =
+          mapping?.controllerTypeForCore(coreId) ?? retroDeviceJoypad;
+      final type =
+          _isControllerTypeSupportedAtPort(
+            coreId,
+            port,
+            selected,
+            _controllerTypesByPort,
+          )
+          ? selected
+          : retroDeviceJoypad;
+      await _player.setControllerType(port, type);
+    }
+  }
+
+  bool _isControllerTypeSupportedAtPort(
+    String coreId,
+    int port,
+    int deviceType,
+    Map<int, List<CoreControllerType>> typesByPort,
+  ) {
+    if (deviceType == retroDeviceJoypad) return true;
+    return typesByPort[port]?.any(
+          (type) => type.id == deviceType && type.isSupportedForCore(coreId),
+        ) ??
+        false;
+  }
+
+  /// Profiles whose stored mapping could not be READ this session. Writing for
+  /// one of these would overwrite bindings we never managed to see.
+  final Set<String> _unreadableMappingProfiles = <String>{};
 
   Future<void> _updateControllerMapping(
     String deviceId,
@@ -1314,6 +1720,14 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
   ) async {
     final games = _client.gamesApi;
     if (games == null) return;
+    if (_unreadableMappingProfiles.contains(deviceId)) {
+      // Refusing is the safe half of the trade: the edit applies for this
+      // session, but is not persisted over a mapping we failed to load.
+      _showTransientMessage(
+        'Saved mapping could not be read; not overwriting it.',
+      );
+      return;
+    }
     setState(() {
       _controllerMappings = Map.unmodifiable({
         ..._controllerMappings,
@@ -1324,8 +1738,115 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
     try {
       await saveControllerMapping(games, deviceId, mapping);
     } catch (_) {
-      // The mapping is active for this session even if the best-effort sync
-      // fails; the next successful change will persist the latest value.
+      // The mapping is active for this session, but it will not survive the
+      // exit, and only the user can decide whether to redo it later.
+      _showTransientMessage('Button saved for now, but not to the server.');
+    }
+  }
+
+  Future<void> _updateControllerType(String deviceId, int deviceType) async {
+    final games = _client.gamesApi;
+    final coreId = libretroCoreId(widget.core);
+    if (games == null || coreId == null) return;
+    final current =
+        _controllerMappings[deviceId] ?? NativeControllerMapping.empty;
+    final next = current.withControllerType(coreId, deviceType);
+    setState(() {
+      _controllerMappings = Map.unmodifiable({
+        ..._controllerMappings,
+        deviceId: next,
+      });
+    });
+    final device = _controllerDevices
+        .where((item) => item.id == deviceId)
+        .firstOrNull;
+    if (device?.supported == true && device?.port != null) {
+      await _player.setControllerType(device!.port!, deviceType);
+    }
+    try {
+      await saveControllerMapping(games, deviceId, next);
+    } catch (_) {
+      // The layout stays applied for this session; say so rather than let the
+      // user find it reverted at the next launch.
+      _showTransientMessage(
+        'Controller type applied for now, but not saved to the server.',
+      );
+    }
+  }
+
+  Future<void> _copyControllerMapping(String sourceDeviceId) async {
+    final games = _client.gamesApi;
+    final coreId = libretroCoreId(widget.core);
+    if (games == null || coreId == null) return;
+    final sourceDevice = _controllerDevices.firstWhere(
+      (device) => device.id == sourceDeviceId,
+      orElse: () => const NativeControllerDevice(id: '', name: ''),
+    );
+    if (!sourceDevice.supported || sourceDevice.port == null) return;
+    final source = _controllerMappings[sourceDeviceId];
+    if (source == null) return;
+    final targetIds = _controllerDevices
+        .where(
+          (device) =>
+              device.supported &&
+              device.port != null &&
+              device.id != sourceDeviceId,
+        )
+        .map((device) => device.id)
+        .toSet();
+    if (targetIds.isEmpty) return;
+    final sourceType = source.controllerTypeForCore(coreId);
+    final next = <String, NativeControllerMapping>{
+      ..._controllerMappings,
+      for (final target in _controllerDevices.where(
+        (device) => targetIds.contains(device.id),
+      ))
+        target.id:
+            NativeControllerMapping(
+              source.keycodeToButton,
+              controllerTypesByCore:
+                  _controllerMappings[target.id]?.controllerTypesByCore ??
+                  const {},
+            ).withControllerType(
+              coreId,
+              target.port != null &&
+                      _isControllerTypeSupportedAtPort(
+                        coreId,
+                        target.port!,
+                        sourceType,
+                        _controllerTypesByPort,
+                      )
+                  ? sourceType
+                  : retroDeviceJoypad,
+            ),
+    };
+    if (mounted) {
+      setState(() => _controllerMappings = Map.unmodifiable(next));
+    } else {
+      _controllerMappings = Map.unmodifiable(next);
+    }
+    await _syncControllerMappings();
+    await _syncControllerTypes();
+    // One profile failing to persist must not prevent other pads from
+    // receiving the active-session mapping, so failures are counted rather
+    // than thrown, and reported once instead of once per pad.
+    var failed = 0;
+    await Future.wait(
+      targetIds.map((id) async {
+        try {
+          await saveControllerMapping(games, id, next[id]!);
+        } catch (_) {
+          failed++;
+        }
+      }),
+    );
+    if (failed > 0) {
+      _showTransientMessage(
+        failed == targetIds.length
+            ? 'Copied for now, but not saved to the server.'
+            : 'Copied, but $failed of ${targetIds.length} pads were not saved '
+                  'to the server.',
+      );
     }
   }
 
@@ -1335,6 +1856,10 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
       _settingsOpen = false;
       _pickerOption = null;
     });
+    unawaited(_refreshControllerMappings());
+    // FBNeo sends SET_INPUT_DESCRIPTORS from the emulation thread a few ms
+    // after load returns, so the read at load time saw nothing; re-read here.
+    unawaited(_refreshInputDescriptors());
   }
 
   Future<void> _exit() async {
@@ -1348,13 +1873,16 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
           await games.putSave(_stateKey, state);
         }
         final options = await _player.getCurrentOptions();
-        if (options.isNotEmpty) {
-          final coreId = libretroCoreId(widget.core);
-          final blob = options.entries
-              .map((e) => '${e.key}=${e.value}')
-              .join('\n')
-              .codeUnits;
-          await games.putSave('moonfin-native-$coreId', blob, kind: 'settings');
+        final coreId = libretroCoreId(widget.core);
+        if (options.isNotEmpty && coreId != null) {
+          // One short retry only: the user is leaving, so a long ladder here
+          // would read as a hung exit.
+          await _writeOptions(
+            games,
+            coreId,
+            options.entries,
+            backoff: const [Duration(milliseconds: 250)],
+          );
         }
       }
     } catch (_) {
@@ -1520,8 +2048,10 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
               child: IgnorePointer(
                 child: SafeArea(
                   child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 10,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.black87,
                       borderRadius: BorderRadius.circular(8),
@@ -1837,6 +2367,16 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
         devices: _controllerDevices,
         mappings: _controllerMappings,
         onMappingChanged: _updateControllerMapping,
+        coreId: libretroCoreId(widget.core) ?? '',
+        controllerTypesByPort: _controllerTypesByPort,
+        onControllerTypeChanged: _updateControllerType,
+        onCopyMapping: _copyControllerMapping,
+        assignments: _controllerAssignments,
+        inputDescriptors: _inputDescriptors,
+        gameId: widget.gameId,
+        onAssignmentChanged: PlatformDetection.isAndroid
+            ? _onControllerAssignmentsChanged
+            : null,
         onClose: () => setState(() => _controllerMappingOpen = false),
       );
     }

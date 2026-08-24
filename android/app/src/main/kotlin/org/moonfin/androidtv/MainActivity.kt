@@ -270,8 +270,14 @@ class MainActivity : AudioServiceActivity(), GamepadsCompatibleActivity {
             handler,
             this,
             object : NativePadInput.Callbacks {
-                override fun onControllerMappingKey(keyCode: Int, device: Map<String, String>) =
+                override fun onControllerMappingKey(keyCode: Int, device: Map<String, Any?>) =
                     sendControllerMappingKey(keyCode, device)
+
+                override fun onControllerDiagnosticsAxes(payload: Map<String, Any?>) =
+                    sendControllerDiagnosticsAxes(payload)
+
+                override fun onControllerDiagnosticsButton(payload: Map<String, Any?>) =
+                    sendControllerDiagnosticsButton(payload)
             },
         )
 
@@ -335,10 +341,26 @@ class MainActivity : AudioServiceActivity(), GamepadsCompatibleActivity {
                     nativePad?.setControllerMappings(call.argument<String>("mapping") ?: "{}")
                     result.success(true)
                 }
+                "setControllerAssignments" -> {
+                    nativePad?.setControllerAssignments(call.argument<String>("assignments") ?: "{}")
+                    result.success(true)
+                }
+                "setStickSnap" -> {
+                    val modes = call.argument<Map<String, String>>("modes") ?: emptyMap()
+                    nativePad?.setStickSnap(modes)
+                    result.success(true)
+                }
                 "setControllerMappingCapture" -> {
                     nativePad?.setCapture(
                         call.argument<Boolean>("active") ?: false,
-                        call.argument<String>("deviceId"),
+                        call.argument<String>("connectionId") ?: call.argument<String>("deviceId"),
+                    )
+                    result.success(true)
+                }
+                "setControllerDiagnostics" -> {
+                    nativePad?.setDiagnostics(
+                        call.argument<Boolean>("active") ?: false,
+                        call.argument<String>("connectionId"),
                     )
                     result.success(true)
                 }
@@ -347,6 +369,7 @@ class MainActivity : AudioServiceActivity(), GamepadsCompatibleActivity {
                     result.success(true)
                 }
                 "getGamepadDevices" -> result.success(gameInputRouter.gamepadDevices())
+                "getNativeGamepadDevices" -> result.success(nativePad?.nativeGamepadDevices() ?: emptyList<Any>())
                 else -> result.notImplemented()
             }
         }
@@ -736,7 +759,7 @@ class MainActivity : AudioServiceActivity(), GamepadsCompatibleActivity {
         }
     }
 
-    private fun sendControllerMappingKey(keyCode: Int, device: Map<String, String>) {
+    private fun sendControllerMappingKey(keyCode: Int, device: Map<String, Any?>) {
         runOnUiThread {
             gamepadChannel?.invokeMethod(
                 "onControllerMappingKey",
@@ -745,6 +768,18 @@ class MainActivity : AudioServiceActivity(), GamepadsCompatibleActivity {
                     "device" to device,
                 ),
             )
+        }
+    }
+
+    private fun sendControllerDiagnosticsAxes(payload: Map<String, Any?>) {
+        runOnUiThread {
+            gamepadChannel?.invokeMethod("onControllerDiagnosticsAxes", payload)
+        }
+    }
+
+    private fun sendControllerDiagnosticsButton(payload: Map<String, Any?>) {
+        runOnUiThread {
+            gamepadChannel?.invokeMethod("onControllerDiagnosticsButton", payload)
         }
     }
 

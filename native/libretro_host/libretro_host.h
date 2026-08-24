@@ -78,6 +78,28 @@ typedef struct {
 #define LH_OPTION_VALUE_MAX 128
 #define LH_OPTION_CHOICE_MAX 64
 
+// One controller configuration the core advertised for an emulated input
+// port. This is a caller-owned snapshot, just like lh_option: labels supplied
+// by RETRO_ENVIRONMENT_SET_CONTROLLER_INFO belong to the core and may be
+// replaced immediately after the environment callback returns.
+#define LH_CONTROLLER_TYPE_LABEL_MAX 256
+typedef struct {
+  unsigned id;
+  char label[LH_CONTROLLER_TYPE_LABEL_MAX];
+} lh_controller_type;
+
+// One RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS entry, copied: like
+// lh_controller_type, the core owns the string and may replace it as soon as
+// the environment callback returns.
+#define LH_INPUT_DESCRIPTOR_LABEL_MAX 256
+typedef struct {
+  unsigned port;
+  unsigned device;
+  unsigned index;
+  unsigned id;
+  char description[LH_INPUT_DESCRIPTOR_LABEL_MAX];
+} lh_input_descriptor;
+
 // One core option and its choices, as a caller-owned snapshot.
 //
 // These used to be borrowed pointers into the host's own allocations, which
@@ -114,6 +136,16 @@ lh_host *lh_create(lh_output_format fmt, lh_callbacks cb);
 // write just has nothing to be read by yet. [port] outside
 // [0, LH_MAX_PORTS) is ignored.
 void lh_set_input(lh_host *host, int port, uint16_t mask);
+
+// Whole-pad state in one call: the digital mask plus the analog axes and
+// trigger pressures. One call rather than several keeps the digital and analog
+// stores adjacent, so a poll rarely lands between them, and halves the
+// per-event platform-boundary crossings.
+//
+// Axes are -32768..32767; triggers are 0..0x7fff.
+void lh_set_pad_state(lh_host *host, int port, uint16_t mask,
+                      int16_t lx, int16_t ly, int16_t rx, int16_t ry,
+                      uint16_t l2, uint16_t r2);
 
 // Loads [core_path] and [rom_path]. [system_dir] and [save_dir] back the core's
 // directory requests. [game_id] names the SRAM file. [opt_keys]/[opt_vals] seed
@@ -181,6 +213,50 @@ int lh_option_count(lh_host *host);
 int lh_get_option(lh_host *host, int index, lh_option *out);
 void lh_set_option(lh_host *host, const char *id, const char *value);
 
+// Controller configurations reported through
+// RETRO_ENVIRONMENT_SET_CONTROLLER_INFO. The host logs every port and type the
+// core reports (including unsupported extras), and retains snapshots for the
+// Moonfin input ports it can route.
+// lh_get_controller_type copies one entry into caller-owned storage; it returns
+// -1 for a NULL host/out or an index outside the latest snapshot. A core may
+// publish a replacement snapshot at any time, so treat that result as the end
+// of enumeration rather than a hole.
+int lh_controller_type_count(lh_host *host, int port);
+int lh_get_controller_type(lh_host *host, int port, int index,
+                           lh_controller_type *out);
+
+// Core-supplied (port, device, index, id) -> label entries. Returns -1 for a
+// NULL host/out or an index past the latest snapshot; since a core may publish
+// a replacement snapshot at any time (notably after
+// retro_set_controller_port_device), treat -1 as end of enumeration, not a hole.
+int lh_input_descriptor_count(lh_host *host);
+int lh_get_input_descriptor(lh_host *host, int index,
+                            lh_input_descriptor *out);
+
+// Applies a controller device on the emulation thread. RETRO_DEVICE_JOYPAD is
+// Auto/the libretro default and is always accepted, even when it is not in a
+// core's advertised list. An explicit unadvertised device safely falls back to
+// that default and returns 1; an exact or Auto application returns 0. Returns
+// -1 when the port is outside Moonfin's input range, no loaded core exports
+// retro_set_controller_port_device, or the host can no longer run a job.
+int lh_set_controller_type(lh_host *host, int port, unsigned device);
+
+// Bitmask of ports on which the core has queried RETRO_DEVICE_ANALOG since
+// the current content was loaded. Bit N = port N. Reset to 0 by lh_load and
+// by every internal restart (lh_restart/lh_restart_async), because the
+// design treats this as per-game state, not per-core: the same core can
+// query analog on one piece of content and not on another. Thread-safe.
+unsigned lh_analog_queried_ports(lh_host *host);
+
+// Bitmask of ports the current game describes ANALOG controls for, from
+// RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS. Bit N = port N.
+//
+// This is per-GAME and authoritative, unlike "did the core query analog":
+// FBNeo queries analog for every game including purely 4-way ones, so that
+// signal cannot distinguish BurgerTime (no analog descriptors) from Capcom
+// Bowling (Trackball X/Y).
+unsigned lh_analog_descriptor_ports(lh_host *host);
+
 // Test-only: drives one input-latch step directly, without a running core or
 // run loop, and reads the value that step produced for [port]. This is the
 // exact same latch step input_poll_cb runs once per real libretro poll (see
@@ -190,6 +266,12 @@ void lh_set_option(lh_host *host, const char *id, const char *value);
 // contract; no shipping caller should need these.
 void lh_test_poll_input(lh_host *host);
 uint16_t lh_test_read_input(lh_host *host, int port);
+// Test-only: reads the post-latch analog snapshot ([index] 0=left, 1=right
+// stick; [axis] 0=X, 1=Y) and trigger snapshot ([which] 0=L2, 1=R2) for
+// [port], exactly like lh_test_read_input reads input_frame. See that
+// comment for why these hooks exist.
+int16_t lh_test_read_analog(lh_host *host, int port, int index, int axis);
+uint16_t lh_test_read_trigger(lh_host *host, int port, int which);
 
 #ifdef __cplusplus
 }

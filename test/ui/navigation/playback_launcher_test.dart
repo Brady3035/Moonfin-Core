@@ -2,10 +2,35 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
+import 'package:jellyfin_preference/jellyfin_preference.dart';
+import 'package:moonfin/data/services/log_service.dart';
+import 'package:moonfin/data/services/media_server_client_factory.dart';
+import 'package:moonfin/preference/user_preferences.dart';
 import 'package:moonfin/ui/navigation/destinations.dart';
 import 'package:moonfin/ui/navigation/playback_launcher.dart';
 import 'package:playback_core/playback_core.dart';
+import 'package:server_core/server_core.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+class _FakeClientFactory extends Fake implements MediaServerClientFactory {}
+
+Future<LogService> _logService() async {
+  SharedPreferences.setMockInitialValues({});
+  final store = PreferenceStore();
+  await store.init();
+  return LogService(
+    UserPreferences(store),
+    _FakeClientFactory(),
+    const DeviceInfo(
+      id: 'dev-1',
+      name: 'Test Device',
+      appName: 'Moonfin',
+      appVersion: '0.0.0',
+    ),
+  );
+}
 
 void main() {
   testWidgets('video route paints before playback preparation runs', (
@@ -93,6 +118,152 @@ void main() {
     expect(playbackStarted, isFalse);
     expect(find.text('home'), findsOneWidget);
     expect(manager.bringupState.phase, PlaybackBringupPhase.idle);
+
+    manager.dispose();
+    router.dispose();
+  });
+
+  testWidgets('a preparation outlives the widget that started it', (
+    tester,
+  ) async {
+    final manager = PlaybackManager();
+    final startGate = Completer<bool>();
+    PlaybackLaunchSession? captured;
+    Future<bool>? launchFuture;
+
+    final router = _router(
+      onLaunch: (context) {
+        launchFuture = launchPlayerWhilePreparing(
+          context,
+          manager: manager,
+          destination: Destinations.videoPlayer,
+          startPlayback: (session) {
+            captured = session;
+            return startGate.future;
+          },
+        );
+      },
+    );
+    await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+
+    await tester.tap(find.byKey(const ValueKey('launch')));
+    await tester.pumpAndSettle();
+
+    expect(captured, isNotNull);
+    // A live launch keeps preparing whatever happened to the tapped widget.
+    expect(() => ensureLaunchStillWanted(captured), returnsNormally);
+    expect(() => ensureLaunchStillWanted(null), returnsNormally);
+
+    router.pop();
+    await tester.pumpAndSettle();
+
+    // Backing out is what ends a start, so now the preparation must abort.
+    expect(
+      () => ensureLaunchStillWanted(captured),
+      throwsA(isA<PlaybackStartupRecoveryAbortedException>()),
+    );
+
+    startGate.complete(false);
+    await tester.pumpAndSettle();
+    expect(await launchFuture, isFalse);
+
+    manager.dispose();
+    router.dispose();
+  });
+
+  testWidgets('a start that claims success without playing closes the player', (
+    tester,
+  ) async {
+    GetIt.instance.registerSingleton<LogService>(await _logService());
+    addTearDown(GetIt.instance.reset);
+    final manager = PlaybackManager();
+    Future<bool>? launchFuture;
+
+    final router = _router(
+      onLaunch: (context) {
+        launchFuture = launchPlayerWhilePreparing(
+          context,
+          manager: manager,
+          destination: Destinations.videoPlayer,
+          // Reports success but never asks the manager to play anything, the
+          // way a silently aborted preparation does.
+          startPlayback: (_) async => true,
+        );
+      },
+    );
+    await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+
+    await tester.tap(find.byKey(const ValueKey('launch')));
+    await tester.pumpAndSettle();
+
+    expect(await launchFuture, isFalse);
+    expect(
+      find.text('home'),
+      findsOneWidget,
+      reason: 'the player used to stay open on a bringup stuck at preparing',
+    );
+    expect(manager.bringupState.phase, PlaybackBringupPhase.idle);
+
+    manager.dispose();
+    router.dispose();
+  });
+
+  testWidgets('backing out of a start that never settles frees the slot', (
+    tester,
+  ) async {
+    final manager = PlaybackManager();
+    // Completed by nothing, the way a start wedged on an await with no
+    // timeout behaves.
+    final hungStart = Completer<bool>();
+    var attempts = 0;
+    var secondStartRan = false;
+    Future<bool>? secondLaunch;
+
+    final router = _router(
+      onLaunch: (context) {
+        attempts++;
+        if (attempts == 1) {
+          unawaited(
+            launchPlayerWhilePreparing(
+              context,
+              manager: manager,
+              destination: Destinations.videoPlayer,
+              startPlayback: (_) => hungStart.future,
+            ),
+          );
+        } else {
+          secondLaunch = launchPlayerWhilePreparing(
+            context,
+            manager: manager,
+            destination: Destinations.videoPlayer,
+            startPlayback: (_) async {
+              secondStartRan = true;
+              return false;
+            },
+          );
+        }
+      },
+    );
+    await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+
+    await tester.tap(find.byKey(const ValueKey('launch')));
+    await tester.pumpAndSettle();
+    expect(find.text('video'), findsOneWidget);
+
+    router.pop();
+    await tester.pumpAndSettle();
+    expect(find.text('home'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('launch')));
+    await tester.pumpAndSettle();
+
+    expect(
+      secondStartRan,
+      isTrue,
+      reason: 'a hung first start used to hold the slot and swallow the tap',
+    );
+    expect(await secondLaunch, isFalse);
+    expect(find.text('home'), findsOneWidget);
 
     manager.dispose();
     router.dispose();

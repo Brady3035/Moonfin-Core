@@ -1,9 +1,11 @@
 import 'dart:async';
 
 import 'package:flutter/widgets.dart';
+import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:playback_core/playback_core.dart';
 
+import '../../data/services/log_service.dart';
 import 'destinations.dart';
 
 typedef PlaybackStarter = Future<bool> Function(PlaybackLaunchSession? session);
@@ -13,6 +15,19 @@ Future<T> runPlaybackStart<T>(
   Future<T> Function() action,
 ) {
   return session == null ? action() : session.runIfActive(action);
+}
+
+/// Aborts a preparation whose launch is gone, the user backed out or another
+/// launch took over. The session is the lifecycle a start belongs to, the
+/// widget that happened to be tapped is not: on a phone the player forces
+/// landscape as it opens, the covered screen rebuilds for the new orientation
+/// and the tapped element is unmounted while the start it began is still
+/// wanted. A null session is a start with no player route to lose, so there
+/// is nothing to check.
+void ensureLaunchStillWanted(PlaybackLaunchSession? session) {
+  if (session != null && !session.isActive) {
+    throw PlaybackStartupRecoveryAbortedException();
+  }
 }
 
 PlaybackLaunchSession? _activeVideoLaunch;
@@ -63,6 +78,15 @@ Future<bool> launchPlayerWhilePreparing(
       if (!session._startupFinished) {
         session._cancelled = true;
         manager.cancelPlaybackPreparation();
+        // The slot is normally released in the finally below, but that only
+        // runs once startPlayback settles. A start that hangs on an await
+        // with no timeout never settles, and without this the slot survives
+        // the user backing out and swallows every following play press. The
+        // session is already cancelled here, so a hung pipeline that later
+        // wakes throws at its next checkpoint rather than continuing.
+        if (identical(_activeVideoLaunch, session)) {
+          _activeVideoLaunch = null;
+        }
       }
     }),
   );
@@ -74,8 +98,22 @@ Future<bool> launchPlayerWhilePreparing(
     if (!session.isActive) return false;
 
     final started = await startPlayback(session);
-    if (!started || !session.isActive) {
-      if (started) {
+    // A preparation that quietly gives up on the way to playItems still
+    // reports success, and taking it at its word parks the player route on a
+    // bringup that never leaves preparing. Nothing was asked to play, so the
+    // phase is the ground truth.
+    final startedNothing =
+        started && manager.bringupState.phase == PlaybackBringupPhase.preparing;
+    if (startedNothing) {
+      GetIt.instance<LogService>().log(
+        LogCategory.playback,
+        'Bringup: start reported success without starting playback, '
+        'closing the player',
+        level: LogLevel.warning,
+      );
+    }
+    if (!started || startedNothing || !session.isActive) {
+      if (started && !startedNothing) {
         unawaited(manager.stop(userInitiated: true));
       }
       if (context.mounted) {

@@ -8411,17 +8411,18 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
                 ? (selectedEpisode.playbackPosition ?? Duration.zero)
                 : Duration.zero;
 
-            if (!context.mounted) return;
+            ensureLaunchStillWanted(launchSession);
             final prerolls = await _prerollsForStart(
               selectedEpisode,
               startPosition,
               useExternalPlayer: useExternalPlayer,
             );
-            if (!context.mounted) return;
-            final dvForceTranscode = await _shouldForceTranscodeForDolbyVision(
-              context,
-              [selectedEpisode],
-            );
+            ensureLaunchStillWanted(launchSession);
+            final dvForceTranscode =
+                context.mounted &&
+                await _shouldForceTranscodeForDolbyVision(context, [
+                  selectedEpisode,
+                ]);
             final directAllowed = !dvForceTranscode && !forceTranscode;
 
             final epMediaStreams = _mediaStreamsForCurrentSelection(selectedEpisode);
@@ -8451,7 +8452,9 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
             final episodes = viewModel.episodes
                 .where(isEligibleNextEpisodeCandidate)
                 .toList();
-            if (episodes.isEmpty) return;
+            if (episodes.isEmpty) {
+              throw PlaybackStartupRecoveryAbortedException();
+            }
             final startIndex = resume
                 ? episodes.indexWhere(
                     (e) => (e.playedPercentage ?? 0) > 0 && !e.isPlayed,
@@ -8461,7 +8464,7 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
             var selectedEpisode = episodes[idx];
             selectedEpisode = await _ensureHydrated(selectedEpisode);
             episodes[idx] = selectedEpisode;
-            if (!context.mounted) return;
+            ensureLaunchStillWanted(launchSession);
 
             final seasonQueue = await _truncateQueueIfImmediateNextUnplayable(
               episodes,
@@ -8470,17 +8473,18 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
             final startPosition = resume
                 ? (selectedEpisode.playbackPosition ?? Duration.zero)
                 : Duration.zero;
-            if (!context.mounted) return;
+            ensureLaunchStillWanted(launchSession);
             final prerolls = await _prerollsForStart(
               selectedEpisode,
               startPosition,
               useExternalPlayer: useExternalPlayer,
             );
-            if (!context.mounted) return;
-            final dvForceTranscode = await _shouldForceTranscodeForDolbyVision(
-              context,
-              [selectedEpisode],
-            );
+            ensureLaunchStillWanted(launchSession);
+            final dvForceTranscode =
+                context.mounted &&
+                await _shouldForceTranscodeForDolbyVision(context, [
+                  selectedEpisode,
+                ]);
             final directAllowed = !dvForceTranscode && !forceTranscode;
 
             final epMediaStreams = _mediaStreamsForCurrentSelection(selectedEpisode);
@@ -8529,7 +8533,7 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
                 } catch (_) {}
               }
             }
-            if (!context.mounted) return;
+            ensureLaunchStillWanted(launchSession);
 
             if (episodes.length > 1) {
               final playableEpisodes = episodes
@@ -8544,14 +8548,14 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
               var selectedEpisode = playableEpisodes[idx];
               selectedEpisode = await _ensureHydrated(selectedEpisode);
               playableEpisodes[idx] = selectedEpisode;
-              if (!context.mounted) return;
+              ensureLaunchStillWanted(launchSession);
 
               final episodeQueue =
                   await _truncateQueueIfImmediateNextUnplayable(
                     playableEpisodes,
                     startIndex: idx,
                   );
-              if (!context.mounted) return;
+              ensureLaunchStillWanted(launchSession);
 
               // Fallback to the master item's position context if it's the target episode
               final startPosition = resume
@@ -8566,9 +8570,10 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
                 startPosition,
                 useExternalPlayer: useExternalPlayer,
               );
-              if (!context.mounted) return;
+              ensureLaunchStillWanted(launchSession);
 
               final dvForceTranscode =
+                  context.mounted &&
                   await _shouldForceTranscodeForDolbyVision(context, [
                     selectedEpisode,
                   ], mediaSourceId: widget.selectedMediaSourceId);
@@ -8615,16 +8620,17 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
               playableQueue,
             );
 
-            if (!context.mounted) return;
+            ensureLaunchStillWanted(launchSession);
             var targetItem = playableQueue[startIndex];
             targetItem = await _ensureHydrated(targetItem);
             playableQueue[startIndex] = targetItem;
-            if (!context.mounted) return;
+            ensureLaunchStillWanted(launchSession);
 
-            final dvForceTranscode = await _shouldForceTranscodeForDolbyVision(
-              context,
-              [targetItem],
-            );
+            final dvForceTranscode =
+                context.mounted &&
+                await _shouldForceTranscodeForDolbyVision(context, [
+                  targetItem,
+                ]);
             final directAllowed = !dvForceTranscode && !forceTranscode;
 
             final epMediaStreams = _mediaStreamsForCurrentSelection(targetItem);
@@ -8741,7 +8747,7 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
               }
               throw PlaybackStartupRecoveryAbortedException();
             }
-            if (!context.mounted) return;
+            ensureLaunchStillWanted(launchSession);
 
             // Start at the first unwatched item, or resume the one left partway
             // through, instead of always restarting from the top.
@@ -8749,10 +8755,9 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
 
             // Playlists can contain video, so honor the Dolby Vision
             // force-transcode check before allowing direct play/stream.
-            final dvForceTranscode = await _shouldForceTranscodeForDolbyVision(
-              context,
-              tracks,
-            );
+            final dvForceTranscode =
+                context.mounted &&
+                await _shouldForceTranscodeForDolbyVision(context, tracks);
             final directAllowed = !dvForceTranscode && !forceTranscode;
             await runPlaybackStart(
               launchSession,
@@ -8867,10 +8872,11 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
               startPosition,
               useExternalPlayer: useExternalPlayer,
             );
-            if (!context.mounted) return;
+            ensureLaunchStillWanted(launchSession);
             final selectedMediaSourceId = widget.selectedMediaSourceId;
             final dvForceTranscode =
                 !isAudio &&
+                context.mounted &&
                 await _shouldForceTranscodeForDolbyVision(context, [
                   item,
                 ], mediaSourceId: selectedMediaSourceId);
@@ -8914,24 +8920,30 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
     Future<
       ({List<AggregatedItem> queue, bool isAudio, bool forceTranscode})?
     >
-    prepareQueue() async {
+    prepareQueue(PlaybackLaunchSession? session) async {
+      // With a player route already up, the session is the lifecycle: the
+      // rotation the player forces on a phone unmounts this context while
+      // the start is still wanted. Without one the context is all there is.
+      bool launchGone() =>
+          session == null ? !context.mounted : !session.isActive;
       final queue = await _shuffleQueueForItem(item);
       final playableQueue = queue
           .where((e) => isEligibleNextEpisodeCandidate(e) || e.id == item.id)
           .toList();
-      if (playableQueue.isEmpty || !context.mounted) return null;
+      if (playableQueue.isEmpty || launchGone()) return null;
 
       final shuffled = List<AggregatedItem>.from(playableQueue)..shuffle();
       shuffled[0] = await _ensureHydrated(shuffled.first);
-      if (!context.mounted) return null;
+      if (launchGone()) return null;
       final isAudio = shuffled.every((queuedItem) {
         final mediaType = queuedItem.rawData['MediaType'] as String?;
         return queuedItem.type == 'Audio' || mediaType == 'Audio';
       });
       final forceTranscode =
           !isAudio &&
+          context.mounted &&
           await _shouldForceTranscodeForDolbyVision(context, [shuffled.first]);
-      if (!context.mounted) return null;
+      if (launchGone()) return null;
       return (
         queue: shuffled,
         isAudio: isAudio,
@@ -8966,7 +8978,7 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
         context,
         destination: Destinations.videoPlayer,
         startPlayback: (launchSession) async {
-          final prepared = await prepareQueue();
+          final prepared = await prepareQueue(launchSession);
           if (prepared == null) return false;
           return startPlayback(launchSession, prepared);
         },
@@ -8974,7 +8986,7 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
       return;
     }
 
-    final prepared = await prepareQueue();
+    final prepared = await prepareQueue(null);
     if (prepared == null || !context.mounted) return;
 
     await _pushPlayerRouteWhileStartingPlayback(

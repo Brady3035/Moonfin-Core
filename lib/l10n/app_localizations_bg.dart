@@ -9157,13 +9157,7 @@ class AppLocalizationsBg extends AppLocalizations {
       'Media3 (препоръчително)';
 
   @override
-  String get settingsPlaybackEngineMedia3Legacy => 'Media3 (наследено)';
-
-  @override
   String get settingsPlaybackEngineMpvLegacy => 'mpv (наследено)';
-
-  @override
-  String get settingsPlaybackEngineMpvRecommended => 'mpv (препоръчително)';
 
   @override
   String get settingsDolbyVisionFallback => 'Dolby Vision Резервен вариант';

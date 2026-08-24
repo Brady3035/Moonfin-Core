@@ -9073,13 +9073,7 @@ class AppLocalizationsEt extends AppLocalizations {
   String get settingsPlaybackEngineMedia3Recommended => 'Media3 (soovitatav)';
 
   @override
-  String get settingsPlaybackEngineMedia3Legacy => 'Media3 (pärand)';
-
-  @override
   String get settingsPlaybackEngineMpvLegacy => 'mpv (pärand)';
-
-  @override
-  String get settingsPlaybackEngineMpvRecommended => 'mpv (soovitatav)';
 
   @override
   String get settingsDolbyVisionFallback => 'Dolby Visioni tagavara';

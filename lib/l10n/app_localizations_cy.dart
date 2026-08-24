@@ -9116,13 +9116,7 @@ class AppLocalizationsCy extends AppLocalizations {
   String get settingsPlaybackEngineMedia3Recommended => 'Media3 (argymhellir)';
 
   @override
-  String get settingsPlaybackEngineMedia3Legacy => 'Media3 (etifeddiaeth)';
-
-  @override
   String get settingsPlaybackEngineMpvLegacy => 'mpv (etifeddiaeth)';
-
-  @override
-  String get settingsPlaybackEngineMpvRecommended => 'mpv (argymhellir)';
 
   @override
   String get settingsDolbyVisionFallback => 'Dolby Vision wrth gefn';

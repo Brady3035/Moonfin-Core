@@ -9131,13 +9131,7 @@ class AppLocalizationsTe extends AppLocalizations {
       'Media3 (సిఫార్సు చేయబడింది)';
 
   @override
-  String get settingsPlaybackEngineMedia3Legacy => 'Media3 (లెగసీ)';
-
-  @override
   String get settingsPlaybackEngineMpvLegacy => 'mpv (లెగసీ)';
-
-  @override
-  String get settingsPlaybackEngineMpvRecommended => 'mpv (సిఫార్సు చేయబడింది)';
 
   @override
   String get settingsDolbyVisionFallback => 'Dolby Vision ఫాల్‌బ్యాక్';

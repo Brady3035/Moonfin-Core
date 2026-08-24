@@ -9122,13 +9122,7 @@ class AppLocalizationsLt extends AppLocalizations {
       'Media3 (rekomenduojama)';
 
   @override
-  String get settingsPlaybackEngineMedia3Legacy => 'Media3 (senas)';
-
-  @override
   String get settingsPlaybackEngineMpvLegacy => 'mpv (palikimas)';
-
-  @override
-  String get settingsPlaybackEngineMpvRecommended => 'mpv (rekomenduojama)';
 
   @override
   String get settingsDolbyVisionFallback =>

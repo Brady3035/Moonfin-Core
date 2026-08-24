@@ -8943,13 +8943,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settingsPlaybackEngineMedia3Recommended => 'Media3 (מומלץ)';
 
   @override
-  String get settingsPlaybackEngineMedia3Legacy => 'Media3 (מיושן)';
-
-  @override
   String get settingsPlaybackEngineMpvLegacy => 'mpv (מורשת)';
-
-  @override
-  String get settingsPlaybackEngineMpvRecommended => 'mpv (מומלץ)';
 
   @override
   String get settingsDolbyVisionFallback => 'Dolby Vision סתירה';

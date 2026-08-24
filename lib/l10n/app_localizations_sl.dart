@@ -9121,13 +9121,7 @@ class AppLocalizationsSl extends AppLocalizations {
   String get settingsPlaybackEngineMedia3Recommended => 'Media3 (priporočeno)';
 
   @override
-  String get settingsPlaybackEngineMedia3Legacy => 'Media3 (starejši)';
-
-  @override
   String get settingsPlaybackEngineMpvLegacy => 'mpv (podedovano)';
-
-  @override
-  String get settingsPlaybackEngineMpvRecommended => 'mpv (priporočeno)';
 
   @override
   String get settingsDolbyVisionFallback => 'Nadomestni Dolby Vision';

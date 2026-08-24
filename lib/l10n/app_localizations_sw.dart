@@ -9139,13 +9139,7 @@ class AppLocalizationsSw extends AppLocalizations {
       'Media3 (inapendekezwa)';
 
   @override
-  String get settingsPlaybackEngineMedia3Legacy => 'Media3 (ya zamani)';
-
-  @override
   String get settingsPlaybackEngineMpvLegacy => 'mpv (urithi)';
-
-  @override
-  String get settingsPlaybackEngineMpvRecommended => 'mpv (inapendekezwa)';
 
   @override
   String get settingsDolbyVisionFallback => 'Dolby Vision Njia mbadala';

@@ -9148,13 +9148,7 @@ class AppLocalizationsSq extends AppLocalizations {
   String get settingsPlaybackEngineMedia3Recommended => 'Media3 (rekomandohet)';
 
   @override
-  String get settingsPlaybackEngineMedia3Legacy => 'Media3 (i vjetër)';
-
-  @override
   String get settingsPlaybackEngineMpvLegacy => 'mpv (trashëgimia)';
-
-  @override
-  String get settingsPlaybackEngineMpvRecommended => 'mpv (rekomandohet)';
 
   @override
   String get settingsDolbyVisionFallback => 'Rikthim i Dolby Vision';

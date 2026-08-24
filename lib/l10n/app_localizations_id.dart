@@ -9068,13 +9068,7 @@ class AppLocalizationsId extends AppLocalizations {
       'Media3 (direkomendasikan)';
 
   @override
-  String get settingsPlaybackEngineMedia3Legacy => 'Media3 (lawas)';
-
-  @override
   String get settingsPlaybackEngineMpvLegacy => 'mpv (lawas)';
-
-  @override
-  String get settingsPlaybackEngineMpvRecommended => 'mpv (direkomendasikan)';
 
   @override
   String get settingsDolbyVisionFallback => 'Fallback Dolby Vision';

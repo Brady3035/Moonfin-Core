@@ -9061,13 +9061,7 @@ class AppLocalizationsDa extends AppLocalizations {
   String get settingsPlaybackEngineMedia3Recommended => 'Media3 (anbefales)';
 
   @override
-  String get settingsPlaybackEngineMedia3Legacy => 'Media3 (ældre)';
-
-  @override
   String get settingsPlaybackEngineMpvLegacy => 'mpv (forældet)';
-
-  @override
-  String get settingsPlaybackEngineMpvRecommended => 'mpv (anbefales)';
 
   @override
   String get settingsDolbyVisionFallback => 'Dolby Vision-reserve';

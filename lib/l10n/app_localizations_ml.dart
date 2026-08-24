@@ -9175,13 +9175,7 @@ class AppLocalizationsMl extends AppLocalizations {
       'Media3 (ശുപാർശ ചെയ്യുന്നു)';
 
   @override
-  String get settingsPlaybackEngineMedia3Legacy => 'Media3 (പൈതൃകം)';
-
-  @override
   String get settingsPlaybackEngineMpvLegacy => 'mpv (പൈതൃകം)';
-
-  @override
-  String get settingsPlaybackEngineMpvRecommended => 'mpv (ശുപാർശ ചെയ്യുന്നു)';
 
   @override
   String get settingsDolbyVisionFallback => 'Dolby Vision ഫാൾബാക്ക്';

@@ -9127,13 +9127,7 @@ class AppLocalizationsKn extends AppLocalizations {
       'Media3 (ಶಿಫಾರಸು ಮಾಡಲಾಗಿದೆ)';
 
   @override
-  String get settingsPlaybackEngineMedia3Legacy => 'Media3 (ಲೆಗಸಿ)';
-
-  @override
   String get settingsPlaybackEngineMpvLegacy => 'mpv (ಪರಂಪರೆ)';
-
-  @override
-  String get settingsPlaybackEngineMpvRecommended => 'mpv (ಶಿಫಾರಸು ಮಾಡಲಾಗಿದೆ)';
 
   @override
   String get settingsDolbyVisionFallback => 'Dolby Vision ಫಾಲ್‌ಬ್ಯಾಕ್';

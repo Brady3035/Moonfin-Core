@@ -9140,13 +9140,7 @@ class AppLocalizationsUk extends AppLocalizations {
       'Media3 (рекомендовано)';
 
   @override
-  String get settingsPlaybackEngineMedia3Legacy => 'Media3 (застаріле)';
-
-  @override
   String get settingsPlaybackEngineMpvLegacy => 'mpv (застаріле)';
-
-  @override
-  String get settingsPlaybackEngineMpvRecommended => 'mpv (рекомендовано)';
 
   @override
   String get settingsDolbyVisionFallback => 'Dolby Vision Запасний варіант';

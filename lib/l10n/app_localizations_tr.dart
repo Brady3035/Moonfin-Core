@@ -9074,13 +9074,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get settingsPlaybackEngineMedia3Recommended => 'Media3 (önerilir)';
 
   @override
-  String get settingsPlaybackEngineMedia3Legacy => 'Media3 (eski nesil)';
-
-  @override
   String get settingsPlaybackEngineMpvLegacy => 'mpv (eski)';
-
-  @override
-  String get settingsPlaybackEngineMpvRecommended => 'mpv (önerilen)';
 
   @override
   String get settingsDolbyVisionFallback => 'Dolby Vision Yedek Modu';

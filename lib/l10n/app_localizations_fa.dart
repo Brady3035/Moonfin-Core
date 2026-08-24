@@ -9007,13 +9007,7 @@ class AppLocalizationsFa extends AppLocalizations {
   String get settingsPlaybackEngineMedia3Recommended => 'Media3 (توصیه می‌شود)';
 
   @override
-  String get settingsPlaybackEngineMedia3Legacy => 'Media3 (میراث)';
-
-  @override
   String get settingsPlaybackEngineMpvLegacy => 'mpv (میراث)';
-
-  @override
-  String get settingsPlaybackEngineMpvRecommended => 'mpv (توصیه می‌شود)';
 
   @override
   String get settingsDolbyVisionFallback => 'Dolby Vision بازگشت مجدد';

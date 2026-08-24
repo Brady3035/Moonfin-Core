@@ -9116,13 +9116,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settingsPlaybackEngineMedia3Recommended => 'Media3 (aanbevolen)';
 
   @override
-  String get settingsPlaybackEngineMedia3Legacy => 'Media3 (verouderd)';
-
-  @override
   String get settingsPlaybackEngineMpvLegacy => 'mpv (verouderd)';
-
-  @override
-  String get settingsPlaybackEngineMpvRecommended => 'mpv (aanbevolen)';
 
   @override
   String get settingsDolbyVisionFallback => 'Dolby Vision-terugval';

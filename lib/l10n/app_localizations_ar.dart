@@ -9050,13 +9050,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settingsPlaybackEngineMedia3Recommended => 'Media3 (مستحسن)';
 
   @override
-  String get settingsPlaybackEngineMedia3Legacy => 'Media3 (قديم)';
-
-  @override
   String get settingsPlaybackEngineMpvLegacy => 'mpv (قديم)';
-
-  @override
-  String get settingsPlaybackEngineMpvRecommended => 'mpv (مستحسن)';
 
   @override
   String get settingsDolbyVisionFallback => 'Dolby Vision احتياطي';

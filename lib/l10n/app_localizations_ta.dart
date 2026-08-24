@@ -9138,14 +9138,7 @@ class AppLocalizationsTa extends AppLocalizations {
       'Media3 (பரிந்துரைக்கப்பட்டது)';
 
   @override
-  String get settingsPlaybackEngineMedia3Legacy => 'Media3 (பழையது)';
-
-  @override
   String get settingsPlaybackEngineMpvLegacy => 'mpv (மரபு)';
-
-  @override
-  String get settingsPlaybackEngineMpvRecommended =>
-      'mpv (பரிந்துரைக்கப்படுகிறது)';
 
   @override
   String get settingsDolbyVisionFallback => 'Dolby Vision ஃபால்பேக்';

@@ -9109,13 +9109,7 @@ class AppLocalizationsKk extends AppLocalizations {
   String get settingsPlaybackEngineMedia3Recommended => 'Media3 (ұсынылады)';
 
   @override
-  String get settingsPlaybackEngineMedia3Legacy => 'Media3 (ескі)';
-
-  @override
   String get settingsPlaybackEngineMpvLegacy => 'mpv (мұра)';
-
-  @override
-  String get settingsPlaybackEngineMpvRecommended => 'mpv (ұсынылады)';
 
   @override
   String get settingsDolbyVisionFallback => 'Dolby Vision Қайта';

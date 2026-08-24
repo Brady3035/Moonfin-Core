@@ -9167,13 +9167,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settingsPlaybackEngineMedia3Recommended => 'Media3 (recomendado)';
 
   @override
-  String get settingsPlaybackEngineMedia3Legacy => 'Media3 (heredado)';
-
-  @override
   String get settingsPlaybackEngineMpvLegacy => 'mpv (heredado)';
-
-  @override
-  String get settingsPlaybackEngineMpvRecommended => 'mpv (recomendado)';
 
   @override
   String get settingsDolbyVisionFallback => 'Retroceso de Dolby Vision';
@@ -18278,13 +18272,7 @@ class AppLocalizationsEs419 extends AppLocalizationsEs {
   String get settingsPlaybackEngineMedia3Recommended => 'Media3 (recomendado)';
 
   @override
-  String get settingsPlaybackEngineMedia3Legacy => 'Media3 (heredado)';
-
-  @override
   String get settingsPlaybackEngineMpvLegacy => 'mpv (heredado)';
-
-  @override
-  String get settingsPlaybackEngineMpvRecommended => 'mpv (recomendado)';
 
   @override
   String get settingsDolbyVisionFallback => 'Retroceso de Dolby Vision';
@@ -26064,13 +26052,7 @@ class AppLocalizationsEsAr extends AppLocalizationsEs {
   String get settingsPlaybackEngineMedia3Recommended => 'Media3 (recomendado)';
 
   @override
-  String get settingsPlaybackEngineMedia3Legacy => 'Media3 (heredado)';
-
-  @override
   String get settingsPlaybackEngineMpvLegacy => 'mpv (heredado)';
-
-  @override
-  String get settingsPlaybackEngineMpvRecommended => 'mpv (recomendado)';
 
   @override
   String get settingsDolbyVisionFallback => 'Retroceso de Dolby Vision';
@@ -33850,13 +33832,7 @@ class AppLocalizationsEsDo extends AppLocalizationsEs {
   String get settingsPlaybackEngineMedia3Recommended => 'Media3 (recomendado)';
 
   @override
-  String get settingsPlaybackEngineMedia3Legacy => 'Media3 (heredado)';
-
-  @override
   String get settingsPlaybackEngineMpvLegacy => 'mpv (heredado)';
-
-  @override
-  String get settingsPlaybackEngineMpvRecommended => 'mpv (recomendado)';
 
   @override
   String get settingsDolbyVisionFallback => 'Retroceso de Dolby Vision';
@@ -41636,13 +41612,7 @@ class AppLocalizationsEsMx extends AppLocalizationsEs {
   String get settingsPlaybackEngineMedia3Recommended => 'Media3 (recomendado)';
 
   @override
-  String get settingsPlaybackEngineMedia3Legacy => 'Media3 (heredado)';
-
-  @override
   String get settingsPlaybackEngineMpvLegacy => 'mpv (heredado)';
-
-  @override
-  String get settingsPlaybackEngineMpvRecommended => 'mpv (recomendado)';
 
   @override
   String get settingsDolbyVisionFallback => 'Retroceso de Dolby Vision';

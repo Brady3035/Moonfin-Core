@@ -9206,13 +9206,7 @@ class AppLocalizationsEl extends AppLocalizations {
   String get settingsPlaybackEngineMedia3Recommended => 'Media3 (προτείνεται)';
 
   @override
-  String get settingsPlaybackEngineMedia3Legacy => 'Media3 (παλαιού τύπου)';
-
-  @override
   String get settingsPlaybackEngineMpvLegacy => 'mpv (παλαιού τύπου)';
-
-  @override
-  String get settingsPlaybackEngineMpvRecommended => 'mpv (προτείνεται)';
 
   @override
   String get settingsDolbyVisionFallback => 'Dolby Vision Επιστροφή';

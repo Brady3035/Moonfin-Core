@@ -9049,13 +9049,7 @@ class AppLocalizationsBn extends AppLocalizations {
   String get settingsPlaybackEngineMedia3Recommended => 'Media3 (প্রস্তাবিত)';
 
   @override
-  String get settingsPlaybackEngineMedia3Legacy => 'Media3 (উত্তরাধিকার)';
-
-  @override
   String get settingsPlaybackEngineMpvLegacy => 'mpv (উত্তরাধিকার)';
-
-  @override
-  String get settingsPlaybackEngineMpvRecommended => 'mpv (প্রস্তাবিত)';
 
   @override
   String get settingsDolbyVisionFallback => 'Dolby Vision ফলব্যাক';

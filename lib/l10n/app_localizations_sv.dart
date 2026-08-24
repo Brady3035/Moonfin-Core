@@ -9077,13 +9077,7 @@ class AppLocalizationsSv extends AppLocalizations {
       'Media3 (rekommenderas)';
 
   @override
-  String get settingsPlaybackEngineMedia3Legacy => 'Media3 (äldre)';
-
-  @override
   String get settingsPlaybackEngineMpvLegacy => 'mpv (äldre)';
-
-  @override
-  String get settingsPlaybackEngineMpvRecommended => 'mpv (rekommenderas)';
 
   @override
   String get settingsDolbyVisionFallback => 'Dolby Vision Reserv';

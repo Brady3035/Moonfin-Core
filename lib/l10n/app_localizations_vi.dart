@@ -9065,13 +9065,7 @@ class AppLocalizationsVi extends AppLocalizations {
       'Media3 (được khuyến nghị)';
 
   @override
-  String get settingsPlaybackEngineMedia3Legacy => 'Media3 (cũ)';
-
-  @override
   String get settingsPlaybackEngineMpvLegacy => 'mpv (cũ)';
-
-  @override
-  String get settingsPlaybackEngineMpvRecommended => 'mpv (được khuyến nghị)';
 
   @override
   String get settingsDolbyVisionFallback => 'Dự phòng Dolby Vision';

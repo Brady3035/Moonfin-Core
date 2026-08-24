@@ -9136,13 +9136,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settingsPlaybackEngineMedia3Recommended => 'Media3 (recomendado)';
 
   @override
-  String get settingsPlaybackEngineMedia3Legacy => 'Media3 (legado)';
-
-  @override
   String get settingsPlaybackEngineMpvLegacy => 'mpv (legado)';
-
-  @override
-  String get settingsPlaybackEngineMpvRecommended => 'mpv (recomendado)';
 
   @override
   String get settingsDolbyVisionFallback => 'Dolby Vision substituto';
@@ -19690,13 +19684,7 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
   String get settingsPlaybackEngineMedia3Recommended => 'Media3 (recomendado)';
 
   @override
-  String get settingsPlaybackEngineMedia3Legacy => 'Media3 (legado)';
-
-  @override
   String get settingsPlaybackEngineMpvLegacy => 'mpv (legado)';
-
-  @override
-  String get settingsPlaybackEngineMpvRecommended => 'mpv (recomendado)';
 
   @override
   String get settingsDolbyVisionFallback => 'Substituição Dolby Vision';
@@ -29778,13 +29766,7 @@ class AppLocalizationsPtPt extends AppLocalizationsPt {
   String get settingsPlaybackEngineMedia3Recommended => 'Media3 (recomendado)';
 
   @override
-  String get settingsPlaybackEngineMedia3Legacy => 'Media3 (legado)';
-
-  @override
   String get settingsPlaybackEngineMpvLegacy => 'mpv (legado)';
-
-  @override
-  String get settingsPlaybackEngineMpvRecommended => 'mpv (recomendado)';
 
   @override
   String get settingsDolbyVisionFallback => 'Substituição Dolby Vision';

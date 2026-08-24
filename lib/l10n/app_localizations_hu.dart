@@ -9148,13 +9148,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settingsPlaybackEngineMedia3Recommended => 'Media3 (ajánlott)';
 
   @override
-  String get settingsPlaybackEngineMedia3Legacy => 'Media3 (korábbi)';
-
-  @override
   String get settingsPlaybackEngineMpvLegacy => 'mpv (korábbi)';
-
-  @override
-  String get settingsPlaybackEngineMpvRecommended => 'mpv (ajánlott)';
 
   @override
   String get settingsDolbyVisionFallback => 'Dolby Vision-tartalék';

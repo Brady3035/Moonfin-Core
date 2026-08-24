@@ -9135,13 +9135,7 @@ class AppLocalizationsMk extends AppLocalizations {
   String get settingsPlaybackEngineMedia3Recommended => 'Media3 (препорачано)';
 
   @override
-  String get settingsPlaybackEngineMedia3Legacy => 'Media3 (застарено)';
-
-  @override
   String get settingsPlaybackEngineMpvLegacy => 'mpv (наследство)';
-
-  @override
-  String get settingsPlaybackEngineMpvRecommended => 'mpv (препорачано)';
 
   @override
   String get settingsDolbyVisionFallback =>

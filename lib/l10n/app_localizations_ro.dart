@@ -9141,13 +9141,7 @@ class AppLocalizationsRo extends AppLocalizations {
   String get settingsPlaybackEngineMedia3Recommended => 'Media3 (recomandat)';
 
   @override
-  String get settingsPlaybackEngineMedia3Legacy => 'Media3 (moștenire)';
-
-  @override
   String get settingsPlaybackEngineMpvLegacy => 'mpv (moștenire)';
-
-  @override
-  String get settingsPlaybackEngineMpvRecommended => 'mpv (recomandat)';
 
   @override
   String get settingsDolbyVisionFallback => 'Dolby Vision De rezervă';

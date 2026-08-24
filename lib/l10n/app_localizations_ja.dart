@@ -8814,13 +8814,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settingsPlaybackEngineMedia3Recommended => 'Media3 (推奨)';
 
   @override
-  String get settingsPlaybackEngineMedia3Legacy => 'Media3 (旧方式)';
-
-  @override
   String get settingsPlaybackEngineMpvLegacy => 'mpv (レガシー)';
-
-  @override
-  String get settingsPlaybackEngineMpvRecommended => 'mpv (推奨)';
 
   @override
   String get settingsDolbyVisionFallback => 'Dolby Vision フォールバック';

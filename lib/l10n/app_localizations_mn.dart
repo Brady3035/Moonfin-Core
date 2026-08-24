@@ -9087,13 +9087,7 @@ class AppLocalizationsMn extends AppLocalizations {
       'Media3 (санал болгосон)';
 
   @override
-  String get settingsPlaybackEngineMedia3Legacy => 'Media3 (хуучин)';
-
-  @override
   String get settingsPlaybackEngineMpvLegacy => 'mpv (хуучин)';
-
-  @override
-  String get settingsPlaybackEngineMpvRecommended => 'mpv (санал болгосон)';
 
   @override
   String get settingsDolbyVisionFallback => 'Dolby Vision Буцах';

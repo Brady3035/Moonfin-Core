@@ -9124,13 +9124,7 @@ class AppLocalizationsSk extends AppLocalizations {
   String get settingsPlaybackEngineMedia3Recommended => 'Media3 (odporúčané)';
 
   @override
-  String get settingsPlaybackEngineMedia3Legacy => 'Media3 (staršie)';
-
-  @override
   String get settingsPlaybackEngineMpvLegacy => 'mpv (staršie)';
-
-  @override
-  String get settingsPlaybackEngineMpvRecommended => 'mpv (odporúčané)';
 
   @override
   String get settingsDolbyVisionFallback => 'Dolby Vision Záložná';

@@ -9001,13 +9001,7 @@ class AppLocalizationsTh extends AppLocalizations {
   String get settingsPlaybackEngineMedia3Recommended => 'Media3 (แนะนำ)';
 
   @override
-  String get settingsPlaybackEngineMedia3Legacy => 'Media3 (ดั้งเดิม)';
-
-  @override
   String get settingsPlaybackEngineMpvLegacy => 'mpv (ดั้งเดิม)';
-
-  @override
-  String get settingsPlaybackEngineMpvRecommended => 'mpv (แนะนำ)';
 
   @override
   String get settingsDolbyVisionFallback => 'Dolby Vision ทางเลือกสำรอง';

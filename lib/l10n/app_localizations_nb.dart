@@ -9060,13 +9060,7 @@ class AppLocalizationsNb extends AppLocalizations {
   String get settingsPlaybackEngineMedia3Recommended => 'Media3 (anbefalt)';
 
   @override
-  String get settingsPlaybackEngineMedia3Legacy => 'Media3 (eldre)';
-
-  @override
   String get settingsPlaybackEngineMpvLegacy => 'mpv (eldre)';
-
-  @override
-  String get settingsPlaybackEngineMpvRecommended => 'mpv (anbefalt)';
 
   @override
   String get settingsDolbyVisionFallback => 'Dolby Vision Reserve';

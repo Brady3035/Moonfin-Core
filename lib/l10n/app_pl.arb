@@ -10052,5 +10052,30 @@
     "openTrailersExternallySubtitle": "",
     "@openTrailersExternallySubtitle": {
         "description": "Subtitle for the external trailers setting"
+    },
+    "emulatorCoreResetSettings": "Przywróć domyślne ustawienia {system}",
+    "@emulatorCoreResetSettings": {
+        "description": "Semantic label for the button that resets one core's saved emulator settings",
+        "placeholders": {
+            "system": {
+                "type": "String"
+            }
+        }
+    },
+    "emulatorCoreSettingsReset": "Przywrócono ustawienia domyślne.",
+    "@emulatorCoreSettingsReset": {
+        "description": "Snackbar shown after resetting a core's saved emulator settings"
+    },
+    "emulatorCoreResetSettingsFailed": "Nie udało się przywrócić ustawień domyślnych. Sprawdź połączenie i spróbuj ponownie.",
+    "@emulatorCoreResetSettingsFailed": {
+        "description": "Snackbar shown when resetting a core's saved emulator settings fails"
+    },
+    "manual": "Ręcznie",
+    "@manual": {
+        "description": "Option: manual"
+    },
+    "autoDetect": "Wykryj automatycznie",
+    "@autoDetect": {
+        "description": "Option: detect the value automatically"
     }
 }

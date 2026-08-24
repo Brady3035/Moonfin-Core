@@ -71,6 +71,7 @@ import '../../../syncplay/syncplay_manager.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../playback/media3_player_backend.dart';
 import '../../../playback/tizen_player_backend.dart';
+import 'playback_takeover.dart';
 import 'osd_buttons.dart';
 import 'package:video_player/video_player.dart';
 
@@ -772,6 +773,14 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
   @override
   void initState() {
     super.initState();
+    if (PlatformDetection.isTV || PlatformDetection.isMobile) {
+      // The decoder wants every megabyte a constrained box has, and a stale
+      // IME binding swallows d-pad presses mid-playback. Desktop keeps its
+      // artwork cache, it has the memory to spare and hops in and out of
+      // playback far more often.
+      releaseImageMemoryForPlayback();
+      detachTextInputForPlayback();
+    }
     _screensaverController.setPlaybackActive(true);
     _screensaverPlayingSub = _state.playingStream.listen(
       _screensaverController.setPlaybackActive,

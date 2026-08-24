@@ -21,6 +21,7 @@ import '../../../util/insecure_certificates.dart';
 import '../../../util/webview_environment.dart';
 import '../../screensaver/screensaver_controller.dart';
 import 'game_playback_ui.dart';
+import 'playback_takeover.dart';
 import 'game_audio_owner.dart';
 
 /// Full-screen EmulatorJS host. Loads the Moonbase plugin's player shell in a WebView, streams
@@ -125,7 +126,7 @@ class _GameEmulatorScreenState extends State<GameEmulatorScreen>
     _enterImmersive();
     // A game owns every key from here; a stale IME binding from the browse
     // screen's search field would otherwise sit in front of the d-pad.
-    detachTextInputForGameplay();
+    detachTextInputForPlayback();
     _acquireScreensaverBlock();
     // Outside the Android guard on purpose, because the pad belongs to the
     // game on every platform. Either way UI navigation shouldn't also react.
@@ -159,7 +160,7 @@ class _GameEmulatorScreenState extends State<GameEmulatorScreen>
     // The gate stops new artwork work but frees none of what is already
     // decoded, and the WebView renderer this screen is about to start competes
     // for that memory from a separate process.
-    releaseImageMemoryForGameplay();
+    releaseImageMemoryForPlayback();
   }
 
   void _releaseGameplayArtworkBlock() {

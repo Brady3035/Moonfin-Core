@@ -25,6 +25,7 @@ import '../../../util/focus/gamepad/android_gamepad_channel.dart';
 import '../../../util/focus/gamepad/gamepad_suppressor.dart';
 import '../../screensaver/screensaver_controller.dart';
 import 'game_playback_ui.dart';
+import 'playback_takeover.dart';
 import 'native_controller_mapping_screen.dart';
 import 'game_audio_owner.dart';
 
@@ -172,7 +173,7 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
     _enterImmersive();
     // A game owns every key from here; a stale IME binding from the browse
     // screen's search field would otherwise sit in front of the d-pad.
-    detachTextInputForGameplay();
+    detachTextInputForPlayback();
     // The pad belongs to the libretro core while a game is running, so UI level
     // pad navigation stays suppressed for the lifetime of this screen.
     GamepadSuppressor.push();
@@ -198,7 +199,7 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
     // The gate stops new artwork work but frees none of what is already
     // decoded, and the core about to load allocates its own heap and frame
     // buffers on top of whatever this app is still holding.
-    releaseImageMemoryForGameplay();
+    releaseImageMemoryForPlayback();
   }
 
   void _releaseGameplayArtworkBlock() {

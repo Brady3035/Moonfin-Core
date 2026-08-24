@@ -31,6 +31,18 @@ import 'game_playback_ui.dart';
 import 'native_controller_mapping_screen.dart';
 import 'game_audio_owner.dart';
 
+/// Whether the current native allocation has an assignable controller on
+/// Player 1. A portless remote remains navigation input rather than owning the
+/// player slot; a keyboard explicitly pinned to Player 1 does own it.
+@visibleForTesting
+bool hasConnectedPlayerOneController(List<NativeControllerDevice> devices) =>
+    devices.any(
+      (device) =>
+          device.deviceClass != NativeControllerDeviceClass.remote &&
+          device.supported &&
+          device.port == 0,
+    );
+
 /// Native game player: the libretro core runs in the runner and renders into a
 /// Flutter texture, so this screen stays plain Flutter. It downloads and
 /// extracts the ROM, plays with a game controller, and syncs the save state on
@@ -102,6 +114,8 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
   bool _settingsOpen = false;
   bool _controllerMappingOpen = false;
   bool _confirmingExit = false;
+  bool _confirmingControllerMappingExit = false;
+  String _controllerMappingExitWarning = '';
   int _selected = 0;
   int _settingsSelected = 0;
   int _fastForward = 1;
@@ -128,6 +142,7 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
   Map<int, List<CoreControllerType>> _controllerTypesByPort = const {};
   CoreInputDescriptors _inputDescriptors = CoreInputDescriptors.empty;
   int _controllerRefreshGeneration = 0;
+  Future<void> _controllerAssignmentUpdate = Future<void>.value();
 
   // Controller Start is deferred so it can double as the menu gesture: a quick
   // press reaches the game on release, holding it opens the overlay.
@@ -652,6 +667,8 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
     // never falls through to something that ends the session.
     if (_confirmingExit) {
       _cancelExitConfirmation();
+    } else if (_confirmingControllerMappingExit) {
+      _cancelControllerMappingExitConfirmation();
     } else if (_pickerOpen) {
       setState(() => _pickerOption = null);
     } else if (_settingsOpen) {
@@ -661,7 +678,7 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
       // controller-type pickers, copy confirmation). Let it step back through
       // them first; closing outright would skip the list the user came from.
       if (_controllerMappingKey.currentState?.handleBack() == true) return;
-      setState(() => _controllerMappingOpen = false);
+      unawaited(_requestControllerMappingClose());
     } else {
       _closeOverlay();
     }
@@ -1027,13 +1044,29 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
   // keyboard alike, because selection, wrapping and scrolling are all driven
   // off this list. "Keep playing" is first so the default highlight is the
   // safe choice.
-  List<_OverlayAction> _actions() => _confirmingExit
-      ? [
-          _OverlayAction('Keep playing', _cancelExitConfirmation),
-          _OverlayAction('Save & exit', _saveAndExit),
-          _OverlayAction('Exit game', _exit, danger: true),
-        ]
-      : _mainActions();
+  List<_OverlayAction> _actions() {
+    if (_confirmingExit) {
+      return [
+        _OverlayAction('Keep playing', _cancelExitConfirmation),
+        _OverlayAction('Save & exit', _saveAndExit),
+        _OverlayAction('Exit game', _exit, danger: true),
+      ];
+    }
+    if (_confirmingControllerMappingExit) {
+      return [
+        _OverlayAction(
+          'Keep editing',
+          _cancelControllerMappingExitConfirmation,
+        ),
+        _OverlayAction(
+          'Leave with Player 1 vacant',
+          _closeControllerMapping,
+          danger: true,
+        ),
+      ];
+    }
+    return _mainActions();
+  }
 
   List<_OverlayAction> _mainActions() => [
     _OverlayAction('Resume', _closeOverlay),
@@ -1126,6 +1159,8 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
       _settingsOpen = false;
       _controllerMappingOpen = false;
       _confirmingExit = false;
+      _confirmingControllerMappingExit = false;
+      _controllerMappingExitWarning = '';
       _pickerOption = null;
     });
     unawaited(AndroidGamepadChannel.setOverlayOpen(false));
@@ -1517,10 +1552,12 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
     }
   }
 
-  Future<void> _syncControllerAssignments() async {
+  Future<void> _syncControllerAssignments([
+    NativeControllerPlayerAssignments? assignments,
+  ]) async {
     if (!PlatformDetection.isAndroid) return;
     await AndroidGamepadChannel.setControllerAssignments(
-      _controllerAssignments.toJson(),
+      (assignments ?? _controllerAssignments).toJson(),
     );
   }
 
@@ -1531,7 +1568,25 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
     NativeControllerPlayerAssignments assignments,
   ) async {
     setState(() => _controllerAssignments = assignments);
-    await _syncControllerAssignments();
+    // The mapping panel intentionally does not await its callback so its
+    // player picker closes instantly. Keep those writes ordered here, and let
+    // a top-level Back await this tail before checking the native allocation.
+    final previous = _controllerAssignmentUpdate;
+    final update = _applyControllerAssignments(assignments, previous);
+    _controllerAssignmentUpdate = update;
+    return update;
+  }
+
+  Future<void> _applyControllerAssignments(
+    NativeControllerPlayerAssignments assignments,
+    Future<void> previous,
+  ) async {
+    try {
+      await previous;
+    } catch (_) {
+      // A later edit still deserves a chance to reach the native registry.
+    }
+    await _syncControllerAssignments(assignments);
     final games = _client.gamesApi;
     if (games != null) {
       try {
@@ -1550,6 +1605,109 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
       }
     }
     await _refreshControllerMappings();
+  }
+
+  /// Closes the mapping screen, unless a fresh native allocation says Player
+  /// 1 has no connected assignable controller. This runs only after the panel
+  /// declined to consume Back, so its submenus retain their ordinary Back
+  /// behaviour.
+  Future<void> _requestControllerMappingClose() async {
+    if (_confirmingControllerMappingExit || !_controllerMappingOpen) return;
+    try {
+      await _controllerAssignmentUpdate;
+    } catch (_) {
+      // The edit already reported its save failure; still inspect the live
+      // allocation, which is the source of truth for this warning.
+    }
+    if (!mounted || !_controllerMappingOpen) return;
+
+    if (!PlatformDetection.isAndroid) {
+      _closeControllerMapping();
+      return;
+    }
+
+    late final List<NativeControllerDevice> devices;
+    try {
+      devices = await _remappableDevices();
+    } catch (error) {
+      debugPrint(
+        '[NativeGamePlayerScreen] Could not verify Player 1 allocation: $error',
+      );
+      if (!mounted || !_controllerMappingOpen) return;
+      _showControllerMappingExitConfirmation(
+        'Could not verify whether Player 1 currently has a connected '
+        'controller.',
+      );
+      return;
+    }
+    if (!mounted || !_controllerMappingOpen) return;
+    if (hasConnectedPlayerOneController(devices)) {
+      _closeControllerMapping();
+      return;
+    }
+
+    final pinnedPlayerOne = _controllerAssignments.profileIdByPlayer[1];
+    final assignedControllerIsDisconnected =
+        pinnedPlayerOne != null &&
+        !devices.any((device) => device.id == pinnedPlayerOne);
+    final hasRemote = devices.any(
+      (device) =>
+          device.deviceClass == NativeControllerDeviceClass.remote &&
+          !device.supported,
+    );
+    final hasKeyboard = devices.any(
+      (device) =>
+          device.deviceClass == NativeControllerDeviceClass.keyboard &&
+          !device.supported,
+    );
+    final navigationInput = switch ((hasRemote, hasKeyboard)) {
+      (true, true) =>
+        'A connected remote or keyboard can still navigate '
+            'menus and provide Player 1 input.',
+      (true, false) =>
+        'The connected remote can still navigate menus and '
+            'provide Player 1 input.',
+      (false, true) =>
+        'The connected keyboard can still navigate menus and '
+            'provide Player 1 input.',
+      (false, false) => '',
+    };
+    _controllerDevices = devices;
+    final warning = assignedControllerIsDisconnected
+        ? 'Player 1\'s assigned controller is not connected. Most games '
+              'require a Player 1 controller.'
+        : 'No controller is currently allocated to Player 1. Most games '
+              'require one.';
+    _showControllerMappingExitConfirmation(
+      navigationInput.isEmpty ? warning : '$warning $navigationInput',
+    );
+  }
+
+  void _showControllerMappingExitConfirmation(String warning) {
+    if (!mounted) return;
+    setState(() {
+      _controllerMappingExitWarning = warning;
+      _confirmingControllerMappingExit = true;
+      _selected = 0;
+    });
+  }
+
+  void _cancelControllerMappingExitConfirmation() {
+    setState(() {
+      _confirmingControllerMappingExit = false;
+      _controllerMappingExitWarning = '';
+      _selected = 0;
+    });
+  }
+
+  void _closeControllerMapping() {
+    if (!mounted) return;
+    setState(() {
+      _controllerMappingOpen = false;
+      _confirmingControllerMappingExit = false;
+      _controllerMappingExitWarning = '';
+      _selected = 0;
+    });
   }
 
   Future<void> _refreshControllerMappings({GamesApi? games}) async {
@@ -2340,7 +2498,9 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
     final l10n = AppLocalizations.of(context);
     final showBack = _settingsOpen || _pickerOpen || _controllerMappingOpen;
     final String title;
-    if (_controllerMappingOpen) {
+    if (_confirmingControllerMappingExit) {
+      title = 'Player 1 unavailable';
+    } else if (_controllerMappingOpen) {
       title = 'Controller mapping';
     } else if (_pickerOpen) {
       title = _options[_pickerOption!].label;
@@ -2423,7 +2583,7 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
   }
 
   Widget _buildOverlayBody(AppLocalizations l10n) {
-    if (_controllerMappingOpen) {
+    if (_controllerMappingOpen && !_confirmingControllerMappingExit) {
       return NativeControllerMappingScreen(
         key: _controllerMappingKey,
         devices: _controllerDevices,
@@ -2439,7 +2599,7 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
         onAssignmentChanged: PlatformDetection.isAndroid
             ? _onControllerAssignmentsChanged
             : null,
-        onClose: () => setState(() => _controllerMappingOpen = false),
+        onClose: () => unawaited(_requestControllerMappingClose()),
       );
     }
     if (_pickerOpen) {
@@ -2503,6 +2663,14 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
               child: Text(
                 'Exit this game? Progress since the last save will be lost.',
                 style: TextStyle(color: Colors.white70, fontSize: 18),
+              ),
+            ),
+          if (_confirmingControllerMappingExit)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+              child: Text(
+                _controllerMappingExitWarning,
+                style: const TextStyle(color: Colors.white70, fontSize: 18),
               ),
             ),
           Flexible(

@@ -122,29 +122,41 @@ class NativeControllerPortRegistryTest {
     }
 
     @Test
-    fun `a lone pinned player two pad is promoted into player one at session start`() {
+    fun `a lone pad pinned to player two stays on player two at session start`() {
         val registry = NativeControllerPortRegistry()
         registry.setPins(mapOf("eightbitdo" to 0, "xbox" to 1))
 
         val connections = registry.activate(listOf(candidate(9, "xbox")))
 
-        // Promotion is session-only, so the borrowed slot must not read as pinned.
-        assertEquals(0, connections.single().port)
-        assertFalse(connections.single().pinned)
+        assertEquals(1, connections.single().port)
+        assertTrue(connections.single().pinned)
     }
 
     @Test
-    fun `a pin is honoured again once its device returns`() {
+    fun `pads pinned to players two and four stay put while player one is disconnected`() {
         val registry = NativeControllerPortRegistry()
-        registry.setPins(mapOf("eightbitdo" to 0, "xbox" to 1))
-        registry.activate(listOf(candidate(9, "xbox")))
+        registry.setPins(mapOf("eightbitdo" to 0, "xbox" to 1, "dualshock" to 3))
 
         val connections = registry.activate(
-            listOf(candidate(9, "xbox"), candidate(3, "eightbitdo")),
+            listOf(candidate(9, "xbox"), candidate(3, "dualshock")),
         )
 
-        assertEquals(0, connections.single { it.profileId == "eightbitdo" }.port)
         assertEquals(1, connections.single { it.profileId == "xbox" }.port)
+        assertEquals(3, connections.single { it.profileId == "dualshock" }.port)
+        assertTrue(connections.none { it.port == 0 })
+    }
+
+    @Test
+    fun `reconnecting player one fills its vacancy without moving pinned players`() {
+        val registry = NativeControllerPortRegistry()
+        registry.setPins(mapOf("eightbitdo" to 0, "xbox" to 1, "dualshock" to 3))
+        registry.activate(listOf(candidate(9, "xbox"), candidate(3, "dualshock")))
+
+        val playerOne = registry.addOrUpdate(candidate(5, "eightbitdo"))
+
+        assertEquals(0, playerOne.port)
+        assertEquals(1, registry.connection(9)?.port)
+        assertEquals(3, registry.connection(3)?.port)
     }
 
     @Test

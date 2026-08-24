@@ -12,6 +12,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:moonfin/data/services/retro_artwork/retro_artwork_activity_gate.dart';
 import 'package:moonfin/l10n/app_localizations.dart';
 import 'package:moonfin/playback/native_game_player.dart';
+import 'package:moonfin/ui/screens/playback/native_controller_mapping_screen.dart';
 import 'package:moonfin/ui/screens/playback/native_game_player_screen.dart';
 import 'package:moonfin/util/core_input_descriptors.dart';
 import 'package:moonfin/util/game_cores.dart';
@@ -323,6 +324,42 @@ void main() {
     // A couple of tests flip this to reach the TV-only notice gate; reset
     // unconditionally so it never leaks into a later test in this file.
     PlatformDetection.setTvMode(false);
+  });
+
+  test('only a live Player 1 controller allocation clears the exit guard', () {
+    const remoteOnPlayerOne = NativeControllerDevice(
+      id: 'remote',
+      name: 'Remote',
+      port: 0,
+      deviceClass: NativeControllerDeviceClass.remote,
+    );
+    const keyboardOnPlayerOne = NativeControllerDevice(
+      id: 'keyboard',
+      name: 'Keyboard',
+      port: 0,
+      deviceClass: NativeControllerDeviceClass.keyboard,
+    );
+    const disconnectedGamepad = NativeControllerDevice(
+      id: 'pad',
+      name: 'Gamepad',
+      supported: false,
+    );
+    const playerTwoGamepad = NativeControllerDevice(
+      id: 'pad',
+      name: 'Gamepad',
+      port: 1,
+    );
+    const playerOneGamepad = NativeControllerDevice(
+      id: 'pad',
+      name: 'Gamepad',
+      port: 0,
+    );
+
+    expect(hasConnectedPlayerOneController([remoteOnPlayerOne]), isFalse);
+    expect(hasConnectedPlayerOneController([keyboardOnPlayerOne]), isTrue);
+    expect(hasConnectedPlayerOneController([disconnectedGamepad]), isFalse);
+    expect(hasConnectedPlayerOneController([playerTwoGamepad]), isFalse);
+    expect(hasConnectedPlayerOneController([playerOneGamepad]), isTrue);
   });
 
   testWidgets(

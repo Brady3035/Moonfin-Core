@@ -9958,5 +9958,73 @@
     "runSetupAgain": "Kurulumu yeniden çalıştır",
     "@runSetupAgain": {
         "description": "Starts the first-run setup wizard again from settings"
-    }
+    },
+    "queuedDownload": "Sırada",
+    "@queuedDownload": {
+        "description": "Status label for a download waiting in the queue for a free download slot"
+    },
+    "manual": "Elle",
+    "@manual": {
+        "description": "Option: manual"
+    },
+    "autoDetect": "Otomatik Tespit Et",
+    "@autoDetect": {
+        "description": "Option: detect the value automatically"
+    },
+    "tvOfflineDownloads": "Çevrimdışı indirmeleri etkinleştir",
+    "@tvOfflineDownloads": {
+        "description": "TV-only toggle in the Offline Downloads settings: offer download actions on item pages"
+    },
+    "tvOfflineDownloadsSubtitle": "Öğe sayfalarında indirme işlemlerini göster",
+    "@tvOfflineDownloadsSubtitle": {
+        "description": "Subtitle for the TV-only offline downloads toggle"
+    },
+    "adminMetadataFieldCustomRating": "Özel derecelendirme",
+    "adminMetadataFieldDisplayOrder": "Görüntüleme sırası",
+    "adminMetadataDisplayOrderAired": "Yayın tarihi",
+    "adminMetadataDisplayOrderOriginalAirDate": "Orijinal yayın tarihi",
+    "adminMetadataDisplayOrderAbsolute": "Mutlak Sıralama",
+    "adminMetadataDisplayOrderDvd": "DVD",
+    "adminMetadataDisplayOrderDigital": "Dijital",
+    "adminMetadataDisplayOrderStoryArc": "Hikaye Örgüsü",
+    "adminMetadataDisplayOrderProduction": "Yapım Sırası",
+    "adminMetadataDisplayOrderTv": "TV",
+    "adminMetadataDisplayOrderAlternate": "Alternatif",
+    "adminMetadataDisplayOrderRegional": "Bölgesel",
+    "adminMetadataDisplayOrderAlternateDvd": "Alternatif DVD",
+    "adminMetadataDisplayOrderDateModified": "Değiştirilme Tarihi",
+    "adminMetadataDisplayOrderSortName": "Sıralama Adı",
+    "adminMetadataDisplayOrderReleaseDate": "Yayınlanma Tarihi",
+    "adminMetadataSettings": "Metaveri Ayarları",
+    "adminMetadataDownloadLanguage": "Tercih edilen indirme dili",
+    "adminMetadataCountryRegion": "Ülke / Bölge",
+    "adminMetadataInheritHelp": "Ayarı üst öğeden veya sunucu varsayılanından devralmak için bunu Varsayılan olarak bırakın.",
+    "adminMetadataField3DFormat": "3D format",
+    "adminMetadataPersonKindUnknown": "Bilinmeyen",
+    "adminMetadataPersonKindActor": "Aktör",
+    "adminMetadataPersonKindDirector": "Yönetmen",
+    "adminMetadataPersonKindComposer": "Besteci",
+    "adminMetadataPersonKindWriter": "Yazar",
+    "adminMetadataPersonKindGuestStar": "Konuk Oyuncu",
+    "adminMetadataPersonKindProducer": "Yapımcı",
+    "adminMetadataPersonKindConductor": "Şef",
+    "adminMetadataPersonKindLyricist": "Söz Yazarı",
+    "adminMetadataPersonKindArranger": "Aranjör",
+    "adminMetadataPersonKindEngineer": "Mühendis",
+    "adminMetadataPersonKindMixer": "Miksaj",
+    "adminMetadataPersonKindRemixer": "Remiks Yapan",
+    "adminMetadataPersonKindCreator": "Yaratıcı",
+    "adminMetadataPersonKindArtist": "Sanatçı",
+    "adminMetadataPersonKindAlbumArtist": "Albüm Sanatçısı",
+    "adminMetadataPersonKindAuthor": "Yazar",
+    "adminMetadataPersonKindIllustrator": "Çizer",
+    "adminMetadataPersonKindPenciller": "Kurşun Kalem Çizeri",
+    "adminMetadataPersonKindInker": "Mürekkep Çizeri",
+    "adminMetadataPersonKindColorist": "Renklendirici",
+    "adminMetadataPersonKindLetterer": "Harf Dizgici",
+    "adminMetadataPersonKindCoverArtist": "Kapak Çizeri",
+    "adminMetadataPersonKindEditor": "Editör",
+    "adminMetadataPersonKindTranslator": "Çevirmen",
+    "adminMetadataPersonKindNarrator": "Anlatıcı",
+    "adminMetadataAirDays": "Yayın Günleri"
 }

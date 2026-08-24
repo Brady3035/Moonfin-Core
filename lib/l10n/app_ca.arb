@@ -9584,5 +9584,115 @@
     "selectedStudiosFilter": "Estudis seleccionats",
     "unselectedStudiosFilter": "Estudis no seleccionats",
     "filtersHeader": "Filtres",
-    "showHeader": "Mostra"
+    "showHeader": "Mostra",
+    "manual": "",
+    "@manual": {
+        "description": "Option: manual"
+    },
+    "autoDetect": "",
+    "@autoDetect": {
+        "description": "Option: detect the value automatically"
+    },
+    "queuedDownload": "",
+    "@queuedDownload": {
+        "description": "Status label for a download waiting in the queue for a free download slot"
+    },
+    "tvOfflineDownloads": "",
+    "@tvOfflineDownloads": {
+        "description": "TV-only toggle in the Offline Downloads settings: offer download actions on item pages"
+    },
+    "tvOfflineDownloadsSubtitle": "",
+    "@tvOfflineDownloadsSubtitle": {
+        "description": "Subtitle for the TV-only offline downloads toggle"
+    },
+    "adminMetadataFieldCustomRating": "",
+    "adminMetadataFieldDisplayOrder": "",
+    "adminMetadataDisplayOrderAired": "",
+    "adminMetadataDisplayOrderOriginalAirDate": "",
+    "adminMetadataDisplayOrderAbsolute": "",
+    "adminMetadataDisplayOrderDvd": "",
+    "adminMetadataDisplayOrderDigital": "",
+    "adminMetadataDisplayOrderStoryArc": "",
+    "adminMetadataDisplayOrderProduction": "",
+    "adminMetadataDisplayOrderTv": "",
+    "adminMetadataDisplayOrderAlternate": "",
+    "adminMetadataDisplayOrderRegional": "",
+    "adminMetadataDisplayOrderAlternateDvd": "",
+    "adminMetadataDisplayOrderDateModified": "",
+    "adminMetadataDisplayOrderSortName": "",
+    "adminMetadataDisplayOrderReleaseDate": "",
+    "adminMetadataSettings": "",
+    "adminMetadataDownloadLanguage": "",
+    "adminMetadataCountryRegion": "",
+    "adminMetadataInheritHelp": "",
+    "adminMetadataField3DFormat": "",
+    "adminMetadataPersonKindUnknown": "",
+    "adminMetadataPersonKindActor": "",
+    "adminMetadataPersonKindDirector": "",
+    "adminMetadataPersonKindComposer": "",
+    "adminMetadataPersonKindWriter": "",
+    "adminMetadataPersonKindGuestStar": "",
+    "adminMetadataPersonKindProducer": "",
+    "adminMetadataPersonKindConductor": "",
+    "adminMetadataPersonKindLyricist": "",
+    "adminMetadataPersonKindArranger": "",
+    "adminMetadataPersonKindEngineer": "",
+    "adminMetadataPersonKindMixer": "",
+    "adminMetadataPersonKindRemixer": "",
+    "adminMetadataPersonKindCreator": "",
+    "adminMetadataPersonKindArtist": "",
+    "adminMetadataPersonKindAlbumArtist": "",
+    "adminMetadataPersonKindAuthor": "",
+    "adminMetadataPersonKindIllustrator": "",
+    "adminMetadataPersonKindPenciller": "",
+    "adminMetadataPersonKindInker": "",
+    "adminMetadataPersonKindColorist": "",
+    "adminMetadataPersonKindLetterer": "",
+    "adminMetadataPersonKindCoverArtist": "",
+    "adminMetadataPersonKindEditor": "",
+    "adminMetadataPersonKindTranslator": "",
+    "adminMetadataPersonKindNarrator": "",
+    "adminMetadataAirDays": "",
+    "adminMetadataLockItem": "",
+    "adminMetadataEnabledFields": "",
+    "adminMetadataEnabledFieldsHelp": "",
+    "adminMetadataLockFieldName": "",
+    "adminMetadataLockFieldOverview": "",
+    "adminMetadataLockFieldGenres": "",
+    "adminMetadataLockFieldOfficialRating": "",
+    "adminMetadataLockFieldCast": "",
+    "adminMetadataLockFieldProductionLocations": "",
+    "adminMetadataLockFieldBirthLocation": "",
+    "adminMetadataLockFieldRuntime": "",
+    "adminMetadataLockFieldStudios": "",
+    "adminMetadataLockFieldTags": "",
+    "adminPluginsRestartRequired": "",
+    "@adminPluginsRestartRequired": {
+        "description": "Label for the installed-plugin filter showing changes that require a server restart"
+    },
+    "adminPluginsNoneActive": "",
+    "@adminPluginsNoneActive": {
+        "description": "Empty state for the active installed-plugin filter"
+    },
+    "adminPluginsNoneRequireRestart": "",
+    "@adminPluginsNoneRequireRestart": {
+        "description": "Empty state for the installed-plugin filter showing changes that require a server restart"
+    },
+    "settingsMediaSegmentTypeAction": "",
+    "@settingsMediaSegmentTypeAction": {
+        "description": "Setting label for what to do with one type of media segment",
+        "placeholders": {
+            "segment": {
+                "type": "String"
+            }
+        }
+    },
+    "openTrailersExternally": "",
+    "@openTrailersExternally": {
+        "description": "Details screen setting that hands trailers to the system"
+    },
+    "openTrailersExternallySubtitle": "",
+    "@openTrailersExternallySubtitle": {
+        "description": "Subtitle for the external trailers setting"
+    }
 }

@@ -10042,5 +10042,36 @@
     "seerrNotifyLibraryAddedSubtitle": "",
     "@seerrNotifyLibraryAddedSubtitle": {
         "description": "Subtitle for the library-added notifications toggle"
+    },
+    "adminAnalyticsLoadingProgress": "",
+    "@adminAnalyticsLoadingProgress": {
+        "description": "Progress label shown while server analytics load",
+        "placeholders": {
+            "percentage": {
+                "type": "int"
+            }
+        }
+    },
+    "checkingDirectPlay": "",
+    "quickConnectUnavailable": "",
+    "@quickConnectUnavailable": {
+        "description": "Quick Connect generic error message",
+        "placeholders": {
+            "detail": {
+                "type": "String"
+            }
+        }
+    },
+    "requestingProgress": "",
+    "@requestingProgress": {
+        "description": "Progress label while collection requests are submitted",
+        "placeholders": {
+            "current": {
+                "type": "int"
+            },
+            "total": {
+                "type": "int"
+            }
+        }
     }
 }

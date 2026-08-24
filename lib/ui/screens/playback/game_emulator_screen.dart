@@ -79,6 +79,13 @@ class _GameEmulatorScreenState extends State<GameEmulatorScreen>
   // fixed sentinel id + the "settings" save kind. Restored into localStorage at document start
   // (before EmulatorJS reads it) and saved back on exit.
   static const String _settingsId = 'moonfin-global';
+
+  // Always absent when the bridge asserts its contract, so reporting them is
+  // noise rather than a finding; see the contract-violation case below.
+  static const Set<String> _expectedAtReady = {
+    'emu.gameManager',
+    'emu.changeSettingOption',
+  };
   final List<UserScript> _userScripts = [];
 
   // Cached in build() so the gamepad-driven action list (built outside a build context) can
@@ -323,16 +330,23 @@ class _GameEmulatorScreenState extends State<GameEmulatorScreen>
         unawaited(_onEmulatorControlsClosed(reason));
         break;
       case 'moonfin-emulator-contract-violation':
-        // player.html's moonfinAssertEmulatorContract reports (but never throws for) each
-        // EmulatorJS internal the native controller-menu adapter depends on that is missing at
-        // ready-time -- e.g. after an EmulatorJS upstream upgrade renamed or removed one. This
-        // has no user-visible effect on its own (the adapter's own per-access try/catch already
-        // degrades to an unresponsive control row rather than crashing), so it is only logged
-        // here for whoever investigates a "controller settings don't work" report.
+        // moonfin-bridge.js reports (but never throws for) each EmulatorJS internal it
+        // depends on that is absent at ready-time.
+        //
+        // `emu.gameManager` and `emu.changeSettingOption` are EXPECTED here and mean nothing
+        // is wrong: EmulatorJS fires `ready` from a setTimeout inside its constructor, before
+        // Start is clicked, while those two are assigned only once the core has downloaded
+        // and the game has started. Verified against EmulatorJS 4.2.3 and 4.3.0-pre; see
+        // bug-100. Any OTHER name is a real upstream rename worth investigating, and how bad
+        // that is depends on which: the DOM/control-menu entries only cost an unresponsive
+        // controller-settings row, but gameManager backs save, load, restart, fast-forward,
+        // pause and the core-options list.
         final missing = message['missing'] as String?;
-        debugPrint(
-          '[GameEmulatorScreen] EmulatorJS contract violation: missing $missing',
-        );
+        if (!_expectedAtReady.contains(missing)) {
+          debugPrint(
+            '[GameEmulatorScreen] EmulatorJS contract violation: missing $missing',
+          );
+        }
         break;
     }
   }

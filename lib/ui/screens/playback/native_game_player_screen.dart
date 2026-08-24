@@ -1009,9 +1009,6 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
     String saveId,
   ) async {
     final blob = await games.getSave(saveId, kind: 'settings');
-    debugPrint(
-      '[moonfin_settings] read $saveId -> ${blob == null || blob.isEmpty ? 'absent' : '${blob.length} bytes'}',
-    );
     if (blob == null || blob.isEmpty) return null;
     final text = String.fromCharCodes(blob);
     final map = <String, String>{};
@@ -1097,7 +1094,6 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
       case AppLifecycleState.resumed:
         // The overlay is the one pause the user can see, so it decides
         // whether coming back to the app should start the game moving again.
-        debugPrint('[moonfin_life] resumed overlayOpen=$_overlayOpen');
         if (!_overlayOpen) _player.resume();
       case AppLifecycleState.inactive:
         // Transient and common (a system dialog, the volume panel). Pausing
@@ -1106,7 +1102,6 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
       case AppLifecycleState.paused:
       case AppLifecycleState.hidden:
       case AppLifecycleState.detached:
-        debugPrint('[moonfin_life] backgrounded ($state) - pausing');
         _player.pause();
     }
   }
@@ -1296,7 +1291,6 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
     if (!_coreOptionsReadable) {
       throw StateError('emulator settings were not readable this session');
     }
-    debugPrint('[moonfin_settings] write ${_gameOptionsSaveId(coreId)}');
     return retryOnTransientFailure(
       () => games.putSave(
         _gameOptionsSaveId(coreId),

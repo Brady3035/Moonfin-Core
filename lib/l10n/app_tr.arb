@@ -10026,5 +10026,64 @@
     "adminMetadataPersonKindEditor": "Editör",
     "adminMetadataPersonKindTranslator": "Çevirmen",
     "adminMetadataPersonKindNarrator": "Anlatıcı",
-    "adminMetadataAirDays": "Yayın Günleri"
+    "adminMetadataAirDays": "Yayın Günleri",
+    "adminMetadataLockItem": "Gelecekteki üstveri değişikliklerini önlemek için bu öğeyi kilitle",
+    "adminMetadataEnabledFields": "Etkin Alanlar",
+    "adminMetadataEnabledFieldsHelp": "Bir alanı kilitlemek ve verilerinin değiştirilmesini önlemek için tikini kaldırın.",
+    "adminMetadataLockFieldName": "İsim",
+    "adminMetadataLockFieldOverview": "Özet",
+    "adminMetadataLockFieldGenres": "Türler",
+    "adminMetadataLockFieldOfficialRating": "Ebeveyn Derecelendirmesi",
+    "adminMetadataLockFieldCast": "Kişiler",
+    "adminMetadataLockFieldProductionLocations": "Çekim Yerleri",
+    "adminMetadataLockFieldBirthLocation": "Doğum Yeri",
+    "adminMetadataLockFieldRuntime": "Süre",
+    "adminMetadataLockFieldStudios": "Stüdyolar",
+    "adminMetadataLockFieldTags": "Etiketler",
+    "adminPluginsRestartRequired": "Yeniden başlatma gerekli",
+    "@adminPluginsRestartRequired": {
+        "description": "Label for the installed-plugin filter showing changes that require a server restart"
+    },
+    "adminPluginsNoneActive": "Etkin eklenti yok",
+    "@adminPluginsNoneActive": {
+        "description": "Empty state for the active installed-plugin filter"
+    },
+    "adminPluginsNoneRequireRestart": "Hiçbir eklenti sunucunun yeniden başlatılmasını gerektirmiyor",
+    "@adminPluginsNoneRequireRestart": {
+        "description": "Empty state for the installed-plugin filter showing changes that require a server restart"
+    },
+    "emulatorCoreResetSettings": "{system} ayarlarını varsayılana sıfırla",
+    "@emulatorCoreResetSettings": {
+        "description": "Semantic label for the button that resets one core's saved emulator settings",
+        "placeholders": {
+            "system": {
+                "type": "String"
+            }
+        }
+    },
+    "emulatorCoreSettingsReset": "Ayarlar varsayılana sıfırlandı.",
+    "@emulatorCoreSettingsReset": {
+        "description": "Snackbar shown after resetting a core's saved emulator settings"
+    },
+    "emulatorCoreResetSettingsFailed": "Ayarlar sıfırlanamadı. Bağlantınızı kontrol edip tekrar deneyin.",
+    "@emulatorCoreResetSettingsFailed": {
+        "description": "Snackbar shown when resetting a core's saved emulator settings fails"
+    },
+    "settingsMediaSegmentTypeAction": "{segment} Bölüm",
+    "@settingsMediaSegmentTypeAction": {
+        "description": "Setting label for what to do with one type of media segment",
+        "placeholders": {
+            "segment": {
+                "type": "String"
+            }
+        }
+    },
+    "openTrailersExternally": "Fragmanları Harici Uygulamada Aç",
+    "@openTrailersExternally": {
+        "description": "Details screen setting that hands trailers to the system"
+    },
+    "openTrailersExternallySubtitle": "Fragmanlar yerleşik oynatıcı yerine YouTube uygulamasında veya tarayıcıda açılır",
+    "@openTrailersExternallySubtitle": {
+        "description": "Subtitle for the external trailers setting"
+    }
 }

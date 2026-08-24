@@ -10042,5 +10042,36 @@
     "adminPlaybackH265Crf": "",
     "adminNetworkingAutoDiscovery": "",
     "adminNetworkingLocalSubnets": "",
-    "adminNetworkingPublishedUris": ""
+    "adminNetworkingPublishedUris": "",
+    "adminAnalyticsLoadingProgress": "",
+    "@adminAnalyticsLoadingProgress": {
+        "description": "Progress label shown while server analytics load",
+        "placeholders": {
+            "percentage": {
+                "type": "int"
+            }
+        }
+    },
+    "quickConnectUnavailable": "",
+    "@quickConnectUnavailable": {
+        "description": "Quick Connect generic error message",
+        "placeholders": {
+            "detail": {
+                "type": "String"
+            }
+        }
+    },
+    "requestingProgress": "",
+    "@requestingProgress": {
+        "description": "Progress label while collection requests are submitted",
+        "placeholders": {
+            "current": {
+                "type": "int"
+            },
+            "total": {
+                "type": "int"
+            }
+        }
+    },
+    "checkingDirectPlay": ""
 }

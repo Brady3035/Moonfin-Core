@@ -347,6 +347,7 @@ class UserPreferences extends ChangeNotifier {
     'pref_detail_screen_style',
     'pref_detail_expanded_tabs',
     'pref_detail_show_technical_details',
+    'pref_detail_trailers_external',
     'pref_hide_details_media_description',
     'pref_detail_use_series_thumbnails',
     'pref_hide_home_media_description',
@@ -1250,6 +1251,15 @@ class UserPreferences extends ChangeNotifier {
   /// server like [detailScreenStyle].
   static final detailShowTechnicalDetails = Preference(
     key: 'pref_detail_show_technical_details',
+    defaultValue: false,
+  );
+
+  /// When on, the details screen hands remote trailers to the system, the
+  /// YouTube app on TV or the browser elsewhere, instead of the in-app
+  /// player. Local trailers are server files only this app can stream, so
+  /// they always play in-app. Stored per server like [detailScreenStyle].
+  static final detailTrailersExternal = Preference(
+    key: 'pref_detail_trailers_external',
     defaultValue: false,
   );
 

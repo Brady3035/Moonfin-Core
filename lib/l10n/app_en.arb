@@ -9728,6 +9728,14 @@
   "@mediaDetailsAndSpoilers": {
     "description": "Section header for media details and spoiler settings"
   },
+  "openTrailersExternally": "Open Trailers in External App",
+  "@openTrailersExternally": {
+    "description": "Details screen setting that hands trailers to the system"
+  },
+  "openTrailersExternallySubtitle": "Trailers open in the YouTube app or browser instead of the built-in player",
+  "@openTrailersExternallySubtitle": {
+    "description": "Subtitle for the external trailers setting"
+  },
   "hideDetailsMediaDescription": "Hide Media Description on Details Page",
   "@hideDetailsMediaDescription": {
     "description": "Setting title to hide media description on details screen"

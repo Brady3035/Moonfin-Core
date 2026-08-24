@@ -45,6 +45,7 @@ void main() {
     'detailExpandedTabs',
     'detailScreenStyle',
     'detailShowTechnicalDetails',
+    'detailTrailersExternal',
     'detailUseSeriesThumbnails',
     'detailsScreenBlur',
     'diagnosticLoggingEnabled',

@@ -11261,6 +11261,13 @@ class AppLocalizationsPl extends AppLocalizations {
   String get mediaDetailsAndSpoilers => 'Szczegóły materiałów i spoilery';
 
   @override
+  String get openTrailersExternally => 'Open Trailers in External App';
+
+  @override
+  String get openTrailersExternallySubtitle =>
+      'Trailers open in the YouTube app or browser instead of the built-in player';
+
+  @override
   String get hideDetailsMediaDescription => 'Ukryj opis na ekranie szczegółów';
 
   @override

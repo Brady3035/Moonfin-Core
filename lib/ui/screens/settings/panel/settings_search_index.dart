@@ -626,6 +626,12 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
       keywords: ['codec', 'bitrate info'],
     ),
     details.leaf(
+      'pref_detail_trailers_external',
+      l10n.openTrailersExternally,
+      subtitle: l10n.openTrailersExternallySubtitle,
+      keywords: ['youtube', 'trailer', 'external app'],
+    ),
+    details.leaf(
       'pref_hide_details_media_description',
       l10n.hideDetailsMediaDescription,
       subtitle: l10n.hideDetailsMediaDescriptionSubtitle,

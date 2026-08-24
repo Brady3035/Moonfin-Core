@@ -9195,6 +9195,11 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
       return;
     }
 
+    if (opensTrailersExternally() &&
+        await launchTrailerExternally(trailerUrl)) {
+      return;
+    }
+    if (!context.mounted) return;
     await context.push(Destinations.trailer(url: trailerUrl));
   }
 

@@ -10540,6 +10540,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get mediaDetailsAndSpoilers => 'Media Details and Spoilers';
 
   @override
+  String get openTrailersExternally => 'Open Trailers in External App';
+
+  @override
+  String get openTrailersExternallySubtitle =>
+      'Trailers open in the YouTube app or browser instead of the built-in player';
+
+  @override
   String get hideDetailsMediaDescription =>
       'Hide Media Description on Details Page';
 

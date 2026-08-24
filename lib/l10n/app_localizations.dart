@@ -19558,6 +19558,18 @@ abstract class AppLocalizations {
   /// **'Media Details and Spoilers'**
   String get mediaDetailsAndSpoilers;
 
+  /// Details screen setting that hands trailers to the system
+  ///
+  /// In en, this message translates to:
+  /// **'Open Trailers in External App'**
+  String get openTrailersExternally;
+
+  /// Subtitle for the external trailers setting
+  ///
+  /// In en, this message translates to:
+  /// **'Trailers open in the YouTube app or browser instead of the built-in player'**
+  String get openTrailersExternallySubtitle;
+
   /// Setting title to hide media description on details screen
   ///
   /// In en, this message translates to:

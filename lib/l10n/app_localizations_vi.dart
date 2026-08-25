@@ -1270,6 +1270,12 @@ class AppLocalizationsVi extends AppLocalizations {
   String get downloadSubtitles => 'Tải xuống phụ đề';
 
   @override
+  String get searchingSubtitles => 'Searching for subtitles…';
+
+  @override
+  String get downloadingSubtitle => 'Downloading subtitle…';
+
+  @override
   String get selectedSubtitleInvalid => 'Phụ đề đã chọn không hợp lệ.';
 
   @override
@@ -1439,6 +1445,20 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get perfectMatch => 'Kết hợp hoàn hảo';
+
+  @override
+  String get aiTranslated => 'AI translated';
+
+  @override
+  String get machineTranslated => 'Machine translated';
+
+  @override
+  String get hearingImpaired => 'SDH';
+
+  @override
+  String framerateFps(String rate) {
+    return '$rate fps';
+  }
 
   @override
   String channelsCount(int count) {

@@ -1261,6 +1261,12 @@ class AppLocalizationsFa extends AppLocalizations {
   String get downloadSubtitles => 'دانلود زیرنویس';
 
   @override
+  String get searchingSubtitles => 'Searching for subtitles…';
+
+  @override
+  String get downloadingSubtitle => 'Downloading subtitle…';
+
+  @override
   String get selectedSubtitleInvalid => 'زیرنویس انتخاب شده نامعتبر است.';
 
   @override
@@ -1430,6 +1436,20 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get perfectMatch => 'تطابق کامل';
+
+  @override
+  String get aiTranslated => 'AI translated';
+
+  @override
+  String get machineTranslated => 'Machine translated';
+
+  @override
+  String get hearingImpaired => 'SDH';
+
+  @override
+  String framerateFps(String rate) {
+    return '$rate fps';
+  }
 
   @override
   String channelsCount(int count) {

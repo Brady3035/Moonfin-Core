@@ -1272,6 +1272,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get downloadSubtitles => 'Feliratok letöltése';
 
   @override
+  String get searchingSubtitles => 'Searching for subtitles…';
+
+  @override
+  String get downloadingSubtitle => 'Downloading subtitle…';
+
+  @override
   String get selectedSubtitleInvalid => 'A kiválasztott felirat érvénytelen.';
 
   @override
@@ -1441,6 +1447,20 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get perfectMatch => 'Tökéletes párosítás';
+
+  @override
+  String get aiTranslated => 'AI translated';
+
+  @override
+  String get machineTranslated => 'Machine translated';
+
+  @override
+  String get hearingImpaired => 'SDH';
+
+  @override
+  String framerateFps(String rate) {
+    return '$rate fps';
+  }
 
   @override
   String channelsCount(int count) {

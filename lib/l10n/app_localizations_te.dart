@@ -1270,6 +1270,12 @@ class AppLocalizationsTe extends AppLocalizations {
   String get downloadSubtitles => 'ఉపశీర్షికలను డౌన్‌లోడ్ చేయండి';
 
   @override
+  String get searchingSubtitles => 'Searching for subtitles…';
+
+  @override
+  String get downloadingSubtitle => 'Downloading subtitle…';
+
+  @override
   String get selectedSubtitleInvalid => 'ఎంచుకున్న ఉపశీర్షిక చెల్లదు.';
 
   @override
@@ -1439,6 +1445,20 @@ class AppLocalizationsTe extends AppLocalizations {
 
   @override
   String get perfectMatch => 'పర్ఫెక్ట్ మ్యాచ్';
+
+  @override
+  String get aiTranslated => 'AI translated';
+
+  @override
+  String get machineTranslated => 'Machine translated';
+
+  @override
+  String get hearingImpaired => 'SDH';
+
+  @override
+  String framerateFps(String rate) {
+    return '$rate fps';
+  }
 
   @override
   String channelsCount(int count) {

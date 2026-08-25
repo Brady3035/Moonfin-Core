@@ -1349,6 +1349,12 @@ class AppLocalizationsPl extends AppLocalizations {
   String get downloadSubtitles => 'Pobierz napisy';
 
   @override
+  String get searchingSubtitles => 'Searching for subtitles…';
+
+  @override
+  String get downloadingSubtitle => 'Downloading subtitle…';
+
+  @override
   String get selectedSubtitleInvalid => 'Wybrane napisy są nieprawidłowe.';
 
   @override
@@ -1538,6 +1544,20 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get perfectMatch => 'Idealne dopasowanie';
+
+  @override
+  String get aiTranslated => 'AI translated';
+
+  @override
+  String get machineTranslated => 'Machine translated';
+
+  @override
+  String get hearingImpaired => 'SDH';
+
+  @override
+  String framerateFps(String rate) {
+    return '$rate fps';
+  }
 
   @override
   String channelsCount(int count) {

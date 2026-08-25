@@ -142,6 +142,7 @@ class NativeControllerMappingScreenState
   int _selected = 0;
   int _deviceIndex = 0;
   bool _confirmingCopy = false;
+  int _copySelected = 0;
   bool _choosingControllerType = false;
   int _controllerTypeSelected = 0;
   bool _choosingPlayer = false;
@@ -365,12 +366,12 @@ class NativeControllerMappingScreenState
         case 4:
         case 5:
           setState(() {
-            _selected = _selected == _copyConfirmRow
+            _copySelected = _copySelected == _copyConfirmRow
                 ? _copyCancelRow
                 : _copyConfirmRow;
           });
         case 0:
-          if (_selected == _copyConfirmRow) {
+          if (_copySelected == _copyConfirmRow) {
             _confirmCopy();
           } else {
             setState(() => _confirmingCopy = false);
@@ -624,7 +625,7 @@ class NativeControllerMappingScreenState
     if (widget.onCopyMapping == null || !_canCopy) return;
     setState(() {
       _confirmingCopy = true;
-      _selected = _copyConfirmRow;
+      _copySelected = _copyConfirmRow;
     });
   }
 
@@ -1160,11 +1161,11 @@ class NativeControllerMappingScreenState
     );
   }
 
-  /// The row cursor for whichever list is currently on screen. The player and
-  /// controller-type sub-lists keep their own cursors
+  /// Each sub-list keeps its own cursor so backing out never moves this one.
   int get _cursor {
     if (_choosingPlayer) return _playerSelected;
     if (_choosingControllerType) return _controllerTypeSelected;
+    if (_confirmingCopy) return _copySelected;
     return _selected;
   }
 

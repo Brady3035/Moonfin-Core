@@ -194,6 +194,75 @@ void main() {
     expect(copied, 'a');
   });
 
+  testWidgets(
+    'cancelling the copy confirmation restores the copy row cursor, not the '
+    'device row',
+    (tester) async {
+      final key = GlobalKey<NativeControllerMappingScreenState>();
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Column(
+              children: [
+                NativeControllerMappingScreen(
+                  key: key,
+                  devices: const [
+                    NativeControllerDevice(
+                      id: 'a',
+                      connectionId: 'a-connection',
+                      name: 'Pad A',
+                      port: 0,
+                    ),
+                    NativeControllerDevice(
+                      id: 'b',
+                      connectionId: 'b-connection',
+                      name: 'Pad B',
+                      port: 1,
+                    ),
+                  ],
+                  mappings: const {
+                    'a': NativeControllerMapping({96: RetroPadButton.a}),
+                  },
+                  onMappingChanged: (_, _) async {},
+                  onCopyMapping: (id) async {},
+                  onClose: () {},
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      // Navigate down to the copy row (stick snap, 16 buttons, then copy).
+      for (var i = 0; i < 18; i++) {
+        key.currentState!.handleButton(5, true);
+      }
+      key.currentState!.handleButton(0, true); // open copy confirmation
+      await tester.pump();
+      expect(
+        find.textContaining('copies Android button keycodes'),
+        findsOneWidget,
+      );
+
+      key.currentState!.handleButton(8, true); // back out of confirmation
+      await tester.pump();
+      // Still on Pad A -- if the cursor had fallen back to the device row (as
+      // it did before the fix), the next assertion below would find Pad B.
+      expect(find.textContaining('Pad A'), findsOneWidget);
+
+      key.currentState!.handleButton(0, true);
+      await tester.pump();
+      // The cursor must still be on the copy row, so pressing A reopens the
+      // confirmation rather than cycling to the next device.
+      expect(
+        find.textContaining('copies Android button keycodes'),
+        findsOneWidget,
+      );
+      expect(find.textContaining('Pad B'), findsNothing);
+    },
+  );
+
   testWidgets('shows and applies the supported core controller type selector', (
     tester,
   ) async {

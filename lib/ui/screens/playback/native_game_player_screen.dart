@@ -32,17 +32,39 @@ import 'playback_takeover.dart';
 import 'native_controller_mapping_screen.dart';
 import 'game_audio_owner.dart';
 
-/// Whether the current native allocation has an assignable controller on
-/// Player 1. A portless remote remains navigation input rather than owning the
-/// player slot; a keyboard explicitly pinned to Player 1 does own it.
+/// Why leaving the controller mapping screen deserves a warning.
+enum PlayerOneWarning {
+  /// A gamepad is connected, but none of them holds Player 1.
+  gamepadNotAssigned,
+
+  /// Player 1's chosen controller is gone and a different gamepad is present.
+  assignedControllerMissing,
+}
+
+/// Why leaving deserves a warning, or null when it does not.
+///
+/// The question is not "is Player 1 empty" -- a remote is composed into port 0,
+/// so it never is -- but "is a better input going unused". Only a connected
+/// gamepad the user could move there earns the interruption. Holding port 0
+/// owns Player 1, which covers a keyboard deliberately pinned to it.
 @visibleForTesting
-bool hasConnectedPlayerOneController(List<NativeControllerDevice> devices) =>
-    devices.any(
-      (device) =>
-          device.deviceClass != NativeControllerDeviceClass.remote &&
-          device.supported &&
-          device.port == 0,
-    );
+PlayerOneWarning? playerOneWarningFor(
+  List<NativeControllerDevice> devices, {
+  String? pinnedPlayerOneProfileId,
+}) {
+  if (devices.any((device) => device.port == 0)) return null;
+  final hasGamepad = devices.any(
+    (device) => device.deviceClass == NativeControllerDeviceClass.gamepad,
+  );
+  if (!hasGamepad) return null;
+  final pinnedIsMissing =
+      pinnedPlayerOneProfileId != null &&
+      !devices.any((device) => device.id == pinnedPlayerOneProfileId);
+  return pinnedIsMissing
+      ? PlayerOneWarning.assignedControllerMissing
+      : PlayerOneWarning.gamepadNotAssigned;
+}
+
 /// The RetroPad bit a saved binding gives [button], or null when it is unbound.
 ///
 /// Split out so the desktop trigger path is testable: the gamepad stream is a
@@ -132,6 +154,7 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
   bool _controllerMappingOpen = false;
   bool _confirmingExit = false;
   bool _confirmingControllerMappingExit = false;
+  String _controllerMappingExitLeaveLabel = 'Leave anyway';
   String _controllerMappingExitWarning = '';
   int _selected = 0;
   int _settingsSelected = 0;
@@ -368,10 +391,13 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
             !PlatformDetection.isAppleTV &&
             !_controllerMappingOpen) {
           _onStartButton(pressed);
-        } else if (_overlayOpen && pressed) {
-          if (_controllerMappingOpen) {
+        } else if (_overlayOpen) {
+          // The mapping screen is unmounted while confirming; fall through to _nav.
+          if (_controllerMappingOpen && !_confirmingControllerMappingExit) {
+            // Both edges: Controller Test needs the release to cancel its
+            // exit hold. handleButton drops the releases it does not want.
             _controllerMappingKey.currentState?.handleButton(index, pressed);
-          } else {
+          } else if (pressed) {
             _nav(_navForButton(index));
           }
         }
@@ -485,7 +511,7 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
     final button = event.button;
     if (button != null) {
       final pressed = event.value != 0;
-      if (button == GamepadButton.start) {
+      if (button == GamepadButton.start && !_controllerMappingOpen) {
         _onStartButton(pressed);
         return;
       }
@@ -497,25 +523,25 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
           _stickMask = 0;
           _sendMask();
         }
-        if (pressed) {
-          // The remapping panel is driven by RetroPad indices from the native
-          // 'button' event stream, which only Android and the Apple runners
-          // emit -- desktop runners consume setInput and send nothing back. So
-          // the panel has to be fed from here, or its rows would sit inert
-          // while the d-pad quietly moved the pause menu underneath it.
-          //
-          // No guard against the press that is being captured for a binding:
-          // handleButton already ignores everything while _capturing is set,
-          // which is what keeps the button the user is binding from also
-          // activating the row they are binding it to.
-          if (_controllerMappingOpen) {
-            final index = _retroPadIndexForGamepad(button);
-            if (index != null) {
-              _controllerMappingKey.currentState?.handleButton(index, true);
-            }
-          } else {
-            _nav(_navActionForGamepad(button));
+        // The remapping panel is driven by RetroPad indices from the native
+        // 'button' event stream, which only Android and the Apple runners
+        // emit -- desktop runners consume setInput and send nothing back. So
+        // the panel has to be fed from here, or its rows would sit inert
+        // while the d-pad quietly moved the pause menu underneath it.
+        //
+        // No guard against the press that is being captured for a binding:
+        // handleButton already ignores everything while _capturing is set,
+        // which is what keeps the button the user is binding from also
+        // activating the row they are binding it to.
+        // Same gate as the 'button' handler above.
+        if (_controllerMappingOpen && !_confirmingControllerMappingExit) {
+          // Both edges, for the same reason as the native route.
+          final index = _retroPadIndexForGamepad(button);
+          if (index != null) {
+            _controllerMappingKey.currentState?.handleButton(index, pressed);
           }
+        } else if (pressed) {
+          _nav(_navActionForGamepad(button));
         }
         return;
       }
@@ -1109,7 +1135,7 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
           _cancelControllerMappingExitConfirmation,
         ),
         _OverlayAction(
-          'Leave with Player 1 vacant',
+          _controllerMappingExitLeaveLabel,
           _closeControllerMapping,
           danger: true,
         ),
@@ -1701,15 +1727,16 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
       return;
     }
     if (!mounted || !_controllerMappingOpen) return;
-    if (hasConnectedPlayerOneController(devices)) {
+    final pinnedPlayerOne = _controllerAssignments.profileIdByPlayer[1];
+    final reason = playerOneWarningFor(
+      devices,
+      pinnedPlayerOneProfileId: pinnedPlayerOne,
+    );
+    if (reason == null) {
       _closeControllerMapping();
       return;
     }
 
-    final pinnedPlayerOne = _controllerAssignments.profileIdByPlayer[1];
-    final assignedControllerIsDisconnected =
-        pinnedPlayerOne != null &&
-        !devices.any((device) => device.id == pinnedPlayerOne);
     final hasRemote = devices.any(
       (device) =>
           device.deviceClass == NativeControllerDeviceClass.remote &&
@@ -1720,32 +1747,39 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
           device.deviceClass == NativeControllerDeviceClass.keyboard &&
           !device.supported,
     );
-    final navigationInput = switch ((hasRemote, hasKeyboard)) {
-      (true, true) =>
-        'A connected remote or keyboard can still navigate '
-            'menus and provide Player 1 input.',
-      (true, false) =>
-        'The connected remote can still navigate menus and '
-            'provide Player 1 input.',
+    // Say what WILL happen, not only what is missing: a remote does play as
+    // Player 1, just poorly, and that is the part worth knowing.
+    final fallback = switch ((hasRemote, hasKeyboard)) {
+      (true, _) => 'The remote will play as Player 1, which is very limited.',
       (false, true) =>
-        'The connected keyboard can still navigate menus and '
-            'provide Player 1 input.',
-      (false, false) => '',
+        'The keyboard will play as Player 1, which is very limited.',
+      (false, false) => 'Player 1 will have no input at all.',
     };
     _controllerDevices = devices;
-    final warning = assignedControllerIsDisconnected
-        ? 'Player 1\'s assigned controller is not connected. Most games '
-              'require a Player 1 controller.'
-        : 'No controller is currently allocated to Player 1. Most games '
-              'require one.';
+    final warning = switch (reason) {
+      PlayerOneWarning.assignedControllerMissing =>
+        "Player 1's assigned controller is not connected, but another "
+            'gamepad is.',
+      PlayerOneWarning.gamepadNotAssigned =>
+        'You have a gamepad connected, but none is assigned to Player 1.',
+    };
     _showControllerMappingExitConfirmation(
-      navigationInput.isEmpty ? warning : '$warning $navigationInput',
+      '$warning $fallback',
+      leaveLabel: hasRemote
+          ? 'Use the remote for Player 1'
+          : hasKeyboard
+          ? 'Use the keyboard for Player 1'
+          : 'Leave with Player 1 vacant',
     );
   }
 
-  void _showControllerMappingExitConfirmation(String warning) {
+  void _showControllerMappingExitConfirmation(
+    String warning, {
+    String leaveLabel = 'Leave anyway',
+  }) {
     if (!mounted) return;
     setState(() {
+      _controllerMappingExitLeaveLabel = leaveLabel;
       _controllerMappingExitWarning = warning;
       _confirmingControllerMappingExit = true;
       _selected = 0;
@@ -1967,20 +2001,24 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
   /// one of these would overwrite bindings we never managed to see.
   final Set<String> _unreadableMappingProfiles = <String>{};
 
+  /// Whether [deviceId]'s mapping may be written back to the server.
+  ///
+  /// Every mapping write must pass through this: a profile whose read failed
+  /// holds a fallback, so writing it replaces bindings we never saw.
+  bool _canPersistMapping(String deviceId) =>
+      !_unreadableMappingProfiles.contains(deviceId);
+
+  static const String _unreadableMappingMessage =
+      'Saved mapping could not be read; not overwriting it.';
+
   Future<void> _updateControllerMapping(
     String deviceId,
     NativeControllerMapping mapping,
   ) async {
     final games = _client.gamesApi;
     if (games == null) return;
-    if (_unreadableMappingProfiles.contains(deviceId)) {
-      // Refusing is the safe half of the trade: the edit applies for this
-      // session, but is not persisted over a mapping we failed to load.
-      _showTransientMessage(
-        'Saved mapping could not be read; not overwriting it.',
-      );
-      return;
-    }
+    // Applied to the session first, so the panel's display and what the core
+    // receives agree; only the write is refused.
     setState(() {
       _controllerMappings = Map.unmodifiable({
         ..._controllerMappings,
@@ -1988,6 +2026,12 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
       });
     });
     await _syncControllerMappings();
+    if (!_canPersistMapping(deviceId)) {
+      // Refusing is the safe half of the trade: the edit applies for this
+      // session, but is not persisted over a mapping we failed to load.
+      _showTransientMessage(_unreadableMappingMessage);
+      return;
+    }
     try {
       await saveControllerMapping(games, deviceId, mapping);
     } catch (_) {
@@ -2001,6 +2045,17 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
     final games = _client.gamesApi;
     final coreId = libretroCoreId(widget.core);
     if (games == null || coreId == null) return;
+    final device = _controllerDevices
+        .where((item) => item.id == deviceId)
+        .firstOrNull;
+    if (device?.supported == true && device?.port != null) {
+      try {
+        await _player.setControllerType(device!.port!, deviceType);
+      } catch (_) {
+        _showTransientMessage('Controller type not supported by this core.');
+        return;
+      }
+    }
     final current =
         _controllerMappings[deviceId] ?? NativeControllerMapping.empty;
     final next = current.withControllerType(coreId, deviceType);
@@ -2010,11 +2065,11 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
         deviceId: next,
       });
     });
-    final device = _controllerDevices
-        .where((item) => item.id == deviceId)
-        .firstOrNull;
-    if (device?.supported == true && device?.port != null) {
-      await _player.setControllerType(device!.port!, deviceType);
+    if (!_canPersistMapping(deviceId)) {
+      // The type is live on the port either way; the write is what would
+      // destroy bindings this session never managed to read.
+      _showTransientMessage(_unreadableMappingMessage);
+      return;
     }
     try {
       await saveControllerMapping(games, deviceId, next);
@@ -2060,6 +2115,9 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
               controllerTypesByCore:
                   _controllerMappings[target.id]?.controllerTypesByCore ??
                   const {},
+              // Snap is per game and per controller; keep the target's own.
+              snapByGame: _controllerMappings[target.id]?.snapByGame ??
+                  const {},
             ).withControllerType(
               coreId,
               target.port != null &&
@@ -2084,8 +2142,10 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
     // receiving the active-session mapping, so failures are counted rather
     // than thrown, and reported once instead of once per pad.
     var failed = 0;
+    final writable = targetIds.where(_canPersistMapping).toSet();
+    final skipped = targetIds.length - writable.length;
     await Future.wait(
-      targetIds.map((id) async {
+      writable.map((id) async {
         try {
           await saveControllerMapping(games, id, next[id]!);
         } catch (_) {
@@ -2093,11 +2153,16 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
         }
       }),
     );
+    // Skipped and failed are different facts: one is a mapping we refused to
+    // overwrite, the other a write that did not land.
+    if (skipped > 0) {
+      _showTransientMessage(_unreadableMappingMessage);
+    }
     if (failed > 0) {
       _showTransientMessage(
-        failed == targetIds.length
+        failed == writable.length
             ? 'Copied for now, but not saved to the server.'
-            : 'Copied, but $failed of ${targetIds.length} pads were not saved '
+            : 'Copied, but $failed of ${writable.length} pads were not saved '
                   'to the server.',
       );
     }

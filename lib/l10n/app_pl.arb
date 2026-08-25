@@ -119,7 +119,7 @@
     "@removeServer": {
         "description": "Dialog title for removing a saved server"
     },
-    "removeServerConfirmation": "Usunąć \"{serverName}\" ?",
+    "removeServerConfirmation": "Usunąć „{serverName}” z listy serwerów?",
     "@removeServerConfirmation": {
         "description": "Confirmation message when removing a saved server",
         "placeholders": {
@@ -168,7 +168,7 @@
     "@settingsAppearanceTheme": {
         "description": "Title for the theme selection screen and theme settings entry"
     },
-    "settingsAppearanceThemeSubtitle": "Zastosuj niestandardowy motyw i przełączaj się między interfejsami.",
+    "settingsAppearanceThemeSubtitle": "Zastosuj niestandardowy motyw i wybierz interfejs inspirowany stylem Apple lub Material.",
     "@settingsAppearanceThemeSubtitle": {
         "description": "Subtitle for the theme selection screen and theme settings entry"
     },
@@ -204,11 +204,11 @@
     "@tryAgain": {
         "description": "Button to retry a failed operation"
     },
-    "noLinkedServers": "Żadne serwery nie są połączone z tym kontem Emby Connect",
+    "noLinkedServers": "Brak serwerów połączonych z tym kontem Emby Connect",
     "@noLinkedServers": {
         "description": "Error when Emby Connect account has no linked servers"
     },
-    "invalidEmbyConnectCredentials": "Nieprawidłowe poświadczenia Emby Connect",
+    "invalidEmbyConnectCredentials": "Nieprawidłowe dane logowania Emby Connect",
     "@invalidEmbyConnectCredentials": {
         "description": "Error when Emby Connect auth response is invalid"
     },
@@ -216,7 +216,7 @@
     "@invalidEmbyConnectLogin": {
         "description": "Error for wrong Emby Connect credentials"
     },
-    "embyConnectExchangeNotSupported": "Serwer nie obsługuje wymiany Emby Connect",
+    "embyConnectExchangeNotSupported": "Serwer nie obsługuje logowania przez Emby Connect",
     "@embyConnectExchangeNotSupported": {
         "description": "Error when server lacks Emby Connect exchange endpoint"
     },
@@ -236,7 +236,7 @@
     "@noReachableAddress": {
         "description": "Shown when a discovered server has no usable address"
     },
-    "invalidServerExchangeResponse": "Nieprawidłowa odpowiedź z punktu końcowego serwera",
+    "invalidServerExchangeResponse": "Nieprawidłowa odpowiedź podczas komunikacji z serwerem",
     "@invalidServerExchangeResponse": {
         "description": "Error when server exchange returns invalid data"
     },
@@ -249,7 +249,7 @@
             }
         }
     },
-    "exitApp": "Wyjść z Moonfina?",
+    "exitApp": "Wyjść z Moonfin?",
     "@exitApp": {
         "description": "Title of exit confirmation dialog"
     },
@@ -273,7 +273,7 @@
     "@retryHomeRows": {
         "description": "Button to retry loading home rows after failure"
     },
-    "guide": "Przewodnik",
+    "guide": "Program TV",
     "@guide": {
         "description": "Live TV guide button label"
     },
@@ -313,7 +313,7 @@
     "@browseByLetter": {
         "description": "Title for alphabetical browse screen"
     },
-    "alphabeticalBrowsePlaceholder": "Tutaj pojawi się przeglądanie alfabetyczne",
+    "alphabeticalBrowsePlaceholder": "Tutaj pojawi się lista alfabetyczna",
     "@alphabeticalBrowsePlaceholder": {
         "description": "Placeholder text for alphabetical browse screen"
     },
@@ -396,7 +396,7 @@
             }
         }
     },
-    "continuing": "Kontynuowany",
+    "continuing": "W trakcie",
     "@continuing": {
         "description": "Series status badge for ongoing series"
     },
@@ -489,7 +489,7 @@
     "@page": {
         "description": "Bookmark mode label for pdf/comic format"
     },
-    "bookmark": "Zakładka w książce",
+    "bookmark": "Zakładka",
     "@bookmark": {
         "description": "Generic bookmark mode label"
     },
@@ -536,7 +536,7 @@
     "@apply": {
         "description": "Button label to apply selected options"
     },
-    "openLink": "Otwórz łącze",
+    "openLink": "Otwórz link",
     "@openLink": {
         "description": "Action label to open a URL externally"
     },
@@ -625,7 +625,7 @@
     "@pickUpAgain": {
         "description": "Book rail title for in-progress bookmarked items"
     },
-    "bookHighlightsDescription": "Twoje książki z najciekawszymi, ulubionymi i postępami w czytaniu.",
+    "bookHighlightsDescription": "Twoje książki z zaznaczeniami, dodane do ulubionych lub z zapisanym postępem czytania.",
     "@bookHighlightsDescription": {
         "description": "Subtitle for saved highlights section"
     },
@@ -637,7 +637,7 @@
     "@handPickedFromListeningQueue": {
         "description": "Subtitle for primary book rail from audiobooks"
     },
-    "booksWithHighlights": "Książki z najciekawszymi, ulubionymi lub postępami w czytaniu.",
+    "booksWithHighlights": "Książki z zaznaczeniami, dodane do ulubionych lub z zapisanym postępem czytania.",
     "@booksWithHighlights": {
         "description": "Subtitle for bookmarks secondary rail"
     },
@@ -657,7 +657,7 @@
     "@searchAudiobooks": {
         "description": "Placeholder text in audiobook search bar"
     },
-    "searchYourLibrary": "Przeszukaj swoją bibliotekę",
+    "searchYourLibrary": "Szukaj w bibliotece",
     "@searchYourLibrary": {
         "description": "Placeholder text in library search bar"
     },
@@ -753,7 +753,7 @@
     "@noBookmarkedItems": {
         "description": "Empty state for bookmarks grid"
     },
-    "nothingMatchesSection": "Nic jeszcze nie pasuje do tej sekcji. Wypróbuj inną kartę lub wróć po zakończeniu synchronizacji biblioteki.",
+    "nothingMatchesSection": "Nic jeszcze nie pasuje do tej sekcji. Wybierz inną kartę lub wróć po zakończeniu synchronizacji biblioteki.",
     "@nothingMatchesSection": {
         "description": "Empty state for book experience when no items match"
     },
@@ -846,7 +846,7 @@
     "@librivoxPage": {
         "description": "Button label for LibriVox external link"
     },
-    "internetArchive": "Archiwum internetowe",
+    "internetArchive": "Internet Archive",
     "@internetArchive": {
         "description": "Button label for Internet Archive external link"
     },
@@ -876,7 +876,7 @@
             }
         }
     },
-    "noOpenLibraryOverview": "W Open Library nie ma jeszcze przeglądu tego tytułu.",
+    "noOpenLibraryOverview": "Open Library nie ma jeszcze opisu tego tytułu.",
     "@noOpenLibraryOverview": {
         "description": "Fallback when Open Library has no description"
     },
@@ -897,7 +897,7 @@
             }
         }
     },
-    "couldNotLoadSubject": "Nie można teraz wczytać tego tematu.",
+    "couldNotLoadSubject": "Nie udało się wczytać tego tematu.",
     "@couldNotLoadSubject": {
         "description": "Error when a discover subject row fails to load"
     },
@@ -1054,7 +1054,7 @@
             }
         }
     },
-    "view": "Pogląd",
+    "view": "Wyświetl",
     "@view": {
         "description": "Action button label for viewing a photo"
     },
@@ -1123,11 +1123,11 @@
     "@favorited": {
         "description": "Status label for a favorited item"
     },
-    "favorite": "Ulubiony",
+    "favorite": "Dodaj do ulubionych",
     "@favorite": {
         "description": "Action button label to favorite an item"
     },
-    "playlist": "Lista odtwarzania",
+    "playlist": "Dodaj do playlisty",
     "@playlist": {
         "description": "Action button label for adding to a playlist"
     },
@@ -1167,7 +1167,7 @@
     "@deleteItem": {
         "description": "Dialog title for deleting an item"
     },
-    "deletePlaylist": "Usuń listę odtwarzania",
+    "deletePlaylist": "Usuń playlistę",
     "@deletePlaylist": {
         "description": "Dialog title for deleting a playlist"
     },
@@ -1187,7 +1187,7 @@
     "@failedToDeleteItem": {
         "description": "Error message when item deletion fails"
     },
-    "renamePlaylist": "Zmień nazwę listy odtwarzania",
+    "renamePlaylist": "Zmień nazwę playlisty",
     "@renamePlaylist": {
         "description": "Dialog title for renaming a playlist"
     },
@@ -1199,7 +1199,7 @@
     "@deleteDownloadedAlbum": {
         "description": "Dialog title for deleting downloaded album tracks"
     },
-    "deleteDownloadedTracksMessage": "Usuń pobrany utwór \"{title}\"?",
+    "deleteDownloadedTracksMessage": "Usunąć pobrane utwory z „{title}”?",
     "@deleteDownloadedTracksMessage": {
         "description": "Confirmation message for deleting downloaded album tracks",
         "placeholders": {
@@ -1366,7 +1366,7 @@
     "@deleteDownloadedFiles": {
         "description": "Dialog title for deleting downloaded files"
     },
-    "deleteLocalFilesMessage": "Usuń lokalne pliki {typeLabel}?\n\nZwolni to miejsce. Pliki można pobrać ponownie później.",
+    "deleteLocalFilesMessage": "Usunąć lokalne pliki {typeLabel}?\n\nZwolni to miejsce na urządzeniu. Pliki będzie można pobrać ponownie później.",
     "@deleteLocalFilesMessage": {
         "description": "Confirmation message for deleting local downloaded files",
         "placeholders": {
@@ -1465,7 +1465,7 @@
             }
         }
     },
-    "born": "Urodziny {date}",
+    "born": "Data urodzenia {date}",
     "@born": {
         "description": "Person birth date label",
         "placeholders": {
@@ -1474,7 +1474,7 @@
             }
         }
     },
-    "died": "Śmierć {date}",
+    "died": "Data śmierci {date}",
     "@died": {
         "description": "Person death date label",
         "placeholders": {
@@ -1585,7 +1585,7 @@
             }
         }
     },
-    "deleteSeriesFiles": "wszystkie pobrane odcinki \"{name}\"",
+    "deleteSeriesFiles": "wszystkie pobrane odcinki serialu „{name}”",
     "@deleteSeriesFiles": {
         "description": "Type label for series file deletion",
         "placeholders": {
@@ -1651,7 +1651,7 @@
             }
         }
     },
-    "castControlsTitle": "{label} Sterowanie",
+    "castControlsTitle": "Sterowanie {label}",
     "@castControlsTitle": {
         "description": "Title for cast controls dialog",
         "placeholders": {
@@ -1806,11 +1806,11 @@
     "@playMethod": {
         "description": "Stream info label for play method"
     },
-    "directPlay": "Odtwarzanie bezpośrednie",
+    "directPlay": "Direct Play",
     "@directPlay": {
         "description": "Play method label"
     },
-    "directStream": "Bezpośredni strumień",
+    "directStream": "Direct Stream",
     "@directStream": {
         "description": "Audio option: direct stream"
     },
@@ -1866,7 +1866,7 @@
     "@audioBitrate": {
         "description": "Stream info label for audio bitrate"
     },
-    "sampleRate": "Częstotliwość audio",
+    "sampleRate": "Częstotliwość próbkowania",
     "@sampleRate": {
         "description": "Stream info label for audio sample rate"
     },
@@ -1874,11 +1874,11 @@
     "@format": {
         "description": "Stream info label for subtitle format"
     },
-    "external": "Zewnętrzny",
+    "external": "Zewnętrzne",
     "@external": {
         "description": "Subtitle type label for external subtitles"
     },
-    "embedded": "Osadzony",
+    "embedded": "Osadzone",
     "@embedded": {
         "description": "Subtitle type label for embedded subtitles"
     },
@@ -1913,7 +1913,7 @@
             }
         }
     },
-    "embeddedRenderingUnavailable": "Wbudowane renderowanie dokumentów jest niedostępne na tej platformie.",
+    "embeddedRenderingUnavailable": "Wyświetlanie dokumentów w aplikacji jest niedostępne na tej platformie.",
     "@embeddedRenderingUnavailable": {
         "description": "Fallback message when embedded renderer unavailable"
     },
@@ -1948,7 +1948,7 @@
             }
         }
     },
-    "noBookmarksYet": "Nie ma jeszcze żadnych zakładek.\nStuknij ikonę zakładki podczas czytania, aby zapisać swoją pozycję.",
+    "noBookmarksYet": "Nie masz jeszcze żadnych zakładek.\nStuknij ikonę zakładki podczas czytania, aby zapisać miejsce.",
     "@noBookmarksYet": {
         "description": "Empty state for bookmarks sheet"
     },
@@ -1982,7 +1982,7 @@
             }
         }
     },
-    "percentRead": "{percent}% przeczytane",
+    "percentRead": "Przeczytano {percent}%",
     "@percentRead": {
         "description": "Chip label showing reading progress",
         "placeholders": {
@@ -2003,7 +2003,7 @@
     "@markAsRead": {
         "description": "Button or menu item to mark as read"
     },
-    "reloadReader": "Załaduj ponownie czytnik",
+    "reloadReader": "Uruchom ponownie czytnik",
     "@reloadReader": {
         "description": "Button or menu item to reload the reader"
     },
@@ -2011,11 +2011,11 @@
     "@noPagesFound": {
         "description": "Empty state for comic reader"
     },
-    "failedToDecodePageImage": "Nie udało się zdekodować obrazu strony.",
+    "failedToDecodePageImage": "Nie udało się wczytać obrazu strony.",
     "@failedToDecodePageImage": {
         "description": "Error when comic page image cannot be decoded"
     },
-    "resetZoom": "Reset powiększenia ({zoom}x)",
+    "resetZoom": "Przywróć powiększenie ({zoom}x)",
     "@resetZoom": {
         "description": "Tooltip for reset zoom button",
         "placeholders": {
@@ -2057,19 +2057,19 @@
             }
         }
     },
-    "themeSystem": "Styl: Systemowy",
+    "themeSystem": "Motyw: systemowy",
     "@themeSystem": {
         "description": "Reader theme option for system default"
     },
-    "themeLight": "Styl: Jasny",
+    "themeLight": "Motyw: jasny",
     "@themeLight": {
         "description": "Reader theme option for light mode"
     },
-    "themeDark": "Styl: Ciemny",
+    "themeDark": "Motyw: ciemny",
     "@themeDark": {
         "description": "Reader theme option for dark mode"
     },
-    "themeSepia": "Styl: Sepia",
+    "themeSepia": "Motyw: sepia",
     "@themeSepia": {
         "description": "Reader theme option for sepia mode"
     },
@@ -2134,7 +2134,7 @@
     "@news": {
         "description": "News category filter label"
     },
-    "kids": "Dzieci",
+    "kids": "Dla dzieci",
     "@kids": {
         "description": "Kids category filter label"
     },
@@ -2142,7 +2142,7 @@
     "@premiere": {
         "description": "Premiere category filter label"
     },
-    "guideTimeline": "Przewodnik po osi czasu",
+    "guideTimeline": "Oś czasu programu TV",
     "@guideTimeline": {
         "description": "Section title for the TV guide timeline"
     },
@@ -3677,7 +3677,7 @@
     "@activeRecordings": {
         "description": "Home section: active recordings"
     },
-    "playlists": "Listy odtwarzania",
+    "playlists": "Playlisty",
     "@playlists": {
         "description": "Home section: playlists"
     },
@@ -4430,7 +4430,7 @@
     "@appearances": {
         "description": "Section title for cast appearances"
     },
-    "crewSection": "Załoga",
+    "crewSection": "Twórcy",
     "@crewSection": {
         "description": "Section title for crew credits"
     },
@@ -6373,9 +6373,9 @@
     "noRemoteDevicesIos": "Brak dostępnych urządzeń do zdalnego odtwarzania.\n\nW iOS urządzenia AirPlay mogą być niedostępne w symulatorze.",
     "trackActionPlayNext": "Graj dalej",
     "trackActionAddToQueue": "Dodaj do kolejki",
-    "trackActionAddToPlaylist": "Dodaj do listy odtwarzania",
+    "trackActionAddToPlaylist": "Dodaj do playlisty",
     "trackActionCancelDownload": "Anuluj pobieranie",
-    "trackActionDeleteFromPlaylist": "Usuń z listy odtwarzania",
+    "trackActionDeleteFromPlaylist": "Usuń z playlisty",
     "trackActionMoveUp": "Podnieść",
     "trackActionMoveDown": "Opuszczać",
     "trackActionRemoveFromFavorites": "Usuń z ulubionych",
@@ -6408,9 +6408,9 @@
     "playlistCreateFailed": "Nie udało się utworzyć playlisty",
     "playlistNew": "Nowa playlista",
     "playlistCreate": "Tworzyć",
-    "playlistCreateNew": "Utwórz nową listę odtwarzania",
+    "playlistCreateNew": "Utwórz nową playlistę",
     "playlistNoneFound": "Nie znaleziono playlist",
-    "addToPlaylist": "Dodaj do listy odtwarzania",
+    "addToPlaylist": "Dodaj do playlisty",
     "lyricsNotAvailable": "Brak dostępnych tekstów",
     "upNext": "Następne",
     "playNext": "Graj dalej",
@@ -7342,7 +7342,7 @@
     "@detailScreenStyleModern": {
         "description": "Detail screen style option: the responsive cinematic layout"
     },
-    "expandedTabs": "Rozwinięcie zakładki",
+    "expandedTabs": "Rozszerzone zakładki",
     "@expandedTabs": {
         "description": "Label for the detail screen expanded tabs setting"
     },
@@ -7362,15 +7362,15 @@
     "@recommendationSystemMoonfin": {
         "description": "Recommendation system option: Moonfin Recommends"
     },
-    "recommendationSystemTmdb": "Dopasowanie TMDb",
+    "recommendationSystemTmdb": "Podobieństwo TMDb",
     "@recommendationSystemTmdb": {
         "description": "Recommendation system option: TMDb Similarity"
     },
-    "recommendationsApplyParentalRatingCap": "Zastosować limit oceny rodzicielskiej?",
+    "recommendationsApplyParentalRatingCap": "Zastosować limit klasyfikacji wiekowej?",
     "@recommendationsApplyParentalRatingCap": {
         "description": "Label for the toggle that controls whether similar suggestions are capped by target media parental rating"
     },
-    "recommendationsApplyParentalRatingCapSubtitle": "Ogranicz sugestie Moonfin do poziomu oceny rodzicielskiej filmu",
+    "recommendationsApplyParentalRatingCapSubtitle": "Ogranicz sugestie Moonfin do klasyfikacji wiekowej wybranego materiału",
     "@recommendationsApplyParentalRatingCapSubtitle": {
         "description": "Explanation under the parental rating cap setting toggle"
     },
@@ -7394,11 +7394,11 @@
     "@interfaceStyleMaterial": {
         "description": "Interface style option: Material look"
     },
-    "glassQuality": "Jakość efektu szkła/rozmycia",
+    "glassQuality": "Jakość efektu szkła",
     "@glassQuality": {
         "description": "Label for the glass rendering quality setting"
     },
-    "glassQualitySubtitle": "Automatycznie dobiera najlepszy efekt dla tego urządzenia. Pełny wymusza prawdziwe rozmycie. Zmniejszony korzysta z uproszczonego efektu, oszczędzając GPU.",
+    "glassQualitySubtitle": "Automatycznie wybiera najlepszy efekt szkła dla tego urządzenia. Pełny wymusza rzeczywiste rozmycie, a Zmniejszony używa lżejszego efektu szkła, który mniej obciąża GPU.",
     "@glassQualitySubtitle": {
         "description": "Explanation under the glass quality setting"
     },
@@ -9975,5 +9975,107 @@
     "autoDetect": "Wykryj automatycznie",
     "@autoDetect": {
         "description": "Option: detect the value automatically"
+    },
+    "queuedDownload": "W kolejce",
+    "@queuedDownload": {
+        "description": "Status label for a download waiting in the queue for a free download slot"
+    },
+    "tvOfflineDownloads": "Włącz pobieranie offline",
+    "@tvOfflineDownloads": {
+        "description": "TV-only toggle in the Offline Downloads settings: offer download actions on item pages"
+    },
+    "tvOfflineDownloadsSubtitle": "Pokazuj opcje pobierania na stronach materiałów",
+    "@tvOfflineDownloadsSubtitle": {
+        "description": "Subtitle for the TV-only offline downloads toggle"
+    },
+    "adminMetadataFieldCustomRating": "Niestandardowa klasyfikacja",
+    "adminMetadataFieldDisplayOrder": "Kolejność wyświetlania",
+    "adminMetadataDisplayOrderAired": "Emisja",
+    "adminMetadataDisplayOrderOriginalAirDate": "Oryginalna data emisji",
+    "adminMetadataDisplayOrderAbsolute": "Absolutna",
+    "adminMetadataDisplayOrderDvd": "DVD",
+    "adminMetadataDisplayOrderDigital": "Cyfrowa",
+    "adminMetadataDisplayOrderStoryArc": "Wątek fabularny",
+    "adminMetadataDisplayOrderProduction": "Produkcja",
+    "adminMetadataDisplayOrderTv": "TV",
+    "adminMetadataDisplayOrderAlternate": "Alternatywna",
+    "adminMetadataDisplayOrderRegional": "Regionalna",
+    "adminMetadataDisplayOrderAlternateDvd": "Alternatywna DVD",
+    "adminMetadataDisplayOrderDateModified": "Data modyfikacji",
+    "adminMetadataDisplayOrderSortName": "Nazwa sortowania",
+    "adminMetadataDisplayOrderReleaseDate": "Data premiery",
+    "adminMetadataSettings": "Ustawienia metadanych",
+    "adminMetadataDownloadLanguage": "Preferowany język pobierania",
+    "adminMetadataCountryRegion": "Kraj/region",
+    "adminMetadataInheritHelp": "Pozostaw wartość „Domyślne”, aby odziedziczyć ustawienie z pozycji nadrzędnej lub domyślnych ustawień serwera.",
+    "adminMetadataField3DFormat": "Format 3D",
+    "adminMetadataPersonKindUnknown": "Nieznany",
+    "adminMetadataPersonKindActor": "Aktor",
+    "adminMetadataPersonKindDirector": "Reżyser",
+    "adminMetadataPersonKindComposer": "Kompozytor",
+    "adminMetadataPersonKindWriter": "Scenarzysta",
+    "adminMetadataPersonKindGuestStar": "Gościnnie",
+    "adminMetadataPersonKindProducer": "Producent",
+    "adminMetadataPersonKindConductor": "Dyrygent",
+    "adminMetadataPersonKindLyricist": "Autor tekstów",
+    "adminMetadataPersonKindArranger": "Aranżer",
+    "adminMetadataPersonKindEngineer": "Inżynier dźwięku",
+    "adminMetadataPersonKindMixer": "Realizator miksu",
+    "adminMetadataPersonKindRemixer": "Remikser",
+    "adminMetadataPersonKindCreator": "Twórca",
+    "adminMetadataPersonKindArtist": "Artysta",
+    "adminMetadataPersonKindAlbumArtist": "Wykonawca albumu",
+    "adminMetadataPersonKindAuthor": "Autor",
+    "adminMetadataPersonKindIllustrator": "Ilustrator",
+    "adminMetadataPersonKindInker": "Tuszownik",
+    "adminMetadataPersonKindColorist": "Kolorysta",
+    "adminMetadataPersonKindPenciller": "Rysownik",
+    "adminMetadataPersonKindLetterer": "Liternik",
+    "adminMetadataPersonKindCoverArtist": "Autor okładki",
+    "adminMetadataPersonKindEditor": "Redaktor",
+    "adminMetadataPersonKindTranslator": "Tłumacz",
+    "adminMetadataPersonKindNarrator": "Narrator",
+    "adminMetadataAirDays": "Dni emisji",
+    "adminMetadataLockItem": "Zablokuj tę pozycję, aby zapobiec przyszłym zmianom metadanych",
+    "adminMetadataEnabledFields": "Włączone pola",
+    "adminMetadataEnabledFieldsHelp": "Odznacz pole, aby je zablokować i zapobiec zmianom jego danych.",
+    "adminMetadataLockFieldName": "Nazwa",
+    "adminMetadataLockFieldOverview": "Opis",
+    "adminMetadataLockFieldGenres": "Gatunki",
+    "adminMetadataLockFieldOfficialRating": "Klasyfikacja wiekowa",
+    "adminMetadataLockFieldCast": "Osoby",
+    "adminMetadataLockFieldProductionLocations": "Miejsca produkcji",
+    "adminMetadataLockFieldBirthLocation": "Miejsce urodzenia",
+    "adminMetadataLockFieldRuntime": "Czas trwania",
+    "adminMetadataLockFieldStudios": "Wytwórnie",
+    "adminMetadataLockFieldTags": "Tagi",
+    "adminPluginsRestartRequired": "Wymagane ponowne uruchomienie",
+    "@adminPluginsRestartRequired": {
+        "description": "Label for the installed-plugin filter showing changes that require a server restart"
+    },
+    "adminPluginsNoneActive": "Brak aktywnych wtyczek",
+    "@adminPluginsNoneActive": {
+        "description": "Empty state for the active installed-plugin filter"
+    },
+    "adminPluginsNoneRequireRestart": "Żadna wtyczka nie wymaga ponownego uruchomienia serwera",
+    "@adminPluginsNoneRequireRestart": {
+        "description": "Empty state for the installed-plugin filter showing changes that require a server restart"
+    },
+    "settingsMediaSegmentTypeAction": "Segmenty: {segment}",
+    "@settingsMediaSegmentTypeAction": {
+        "description": "Setting label for what to do with one type of media segment",
+        "placeholders": {
+            "segment": {
+                "type": "String"
+            }
+        }
+    },
+    "openTrailersExternally": "Otwieraj zwiastuny w zewnętrznej aplikacji",
+    "@openTrailersExternally": {
+        "description": "Details screen setting that hands trailers to the system"
+    },
+    "openTrailersExternallySubtitle": "Otwieraj zwiastuny w aplikacji YouTube lub przeglądarce zamiast we wbudowanym odtwarzaczu",
+    "@openTrailersExternallySubtitle": {
+        "description": "Subtitle for the external trailers setting"
     }
 }

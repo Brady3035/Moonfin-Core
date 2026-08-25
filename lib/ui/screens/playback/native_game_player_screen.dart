@@ -43,6 +43,17 @@ bool hasConnectedPlayerOneController(List<NativeControllerDevice> devices) =>
           device.supported &&
           device.port == 0,
     );
+/// The RetroPad bit a saved binding gives [button], or null when it is unbound.
+///
+/// Split out so the desktop trigger path is testable: the gamepad stream is a
+/// static, and only Windows/Linux read it in Dart.
+@visibleForTesting
+int? desktopBoundBit(NativeControllerMapping? mapping, GamepadButton button) {
+  final code = desktopGamepadButtonCodes[button];
+  if (mapping == null || code == null) return null;
+  final bound = mapping.keycodeToButton[code];
+  return bound == null ? null : 1 << bound.retroPadIndex;
+}
 
 /// Native game player: the libretro core runs in the runner and renders into a
 /// Flutter texture, so this screen stays plain Flutter. It downloads and
@@ -195,6 +206,10 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
     GamepadButton.dpadRight: 1 << 7,
     GamepadButton.leftBumper: 1 << 10,
     GamepadButton.rightBumper: 1 << 11,
+    // A pad may report a trigger as a button or as an axis; both resolve
+    // through the same binding, and both default to L2/R2.
+    GamepadButton.leftTrigger: 1 << 12,
+    GamepadButton.rightTrigger: 1 << 13,
     GamepadButton.back: 1 << 2,
     GamepadButton.leftStick: 1 << 14,
     GamepadButton.rightStick: 1 << 15,
@@ -518,9 +533,19 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
       case GamepadAxis.leftStickY:
         _setStickBits(1 << 5, 1 << 4, event.value);
       case GamepadAxis.leftTrigger:
-        _setTriggerBit(1 << 12, event.value);
+        _setTriggerBit(
+          event.gamepadId,
+          GamepadButton.leftTrigger,
+          1 << 12,
+          event.value,
+        );
       case GamepadAxis.rightTrigger:
-        _setTriggerBit(1 << 13, event.value);
+        _setTriggerBit(
+          event.gamepadId,
+          GamepadButton.rightTrigger,
+          1 << 13,
+          event.value,
+        );
       default:
         return;
     }
@@ -538,12 +563,7 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
   /// like the pad has broken.
   int? _bitForGamepadButton(String gamepadId, GamepadButton button) {
     final mapping = _controllerMappings[desktopControllerDeviceId(gamepadId)];
-    final code = desktopGamepadButtonCodes[button];
-    if (mapping != null && code != null) {
-      final bound = mapping.keycodeToButton[code];
-      if (bound != null) return 1 << bound.retroPadIndex;
-    }
-    return _gamepadButtonToBit[button];
+    return desktopBoundBit(mapping, button) ?? _gamepadButtonToBit[button];
   }
 
   // Negative stick values map to the first bit, positive to the second. The Y
@@ -557,11 +577,34 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
     }
   }
 
-  void _setTriggerBit(int bit, double value) {
+  /// Sets whichever RetroPad bit an analog trigger is bound to.
+  ///
+  /// Triggers arrive as axes here but are BOUND as buttons, so a pad reporting
+  /// a trigger either way honours the one binding. The bit last driven is
+  /// remembered so rebinding a held trigger releases the bit it used to drive
+  /// instead of stranding it.
+  void _setTriggerBit(
+    String gamepadId,
+    GamepadButton trigger,
+    int fallbackBit,
+    double value,
+  ) {
+    final mapping = _controllerMappings[desktopControllerDeviceId(gamepadId)];
+    final bit = desktopBoundBit(mapping, trigger) ?? fallbackBit;
+    // Keyed by pad too: two controllers resolve the same trigger to different
+    // bits, and a shared key let one clear the bit the other was holding.
+    final key = (gamepadId, trigger);
+    final previous = _triggerBits[key];
+    if (previous != null && previous != bit) _stickMask &= ~previous;
+    _triggerBits[key] = bit;
     _stickMask = value >= _gamepadDeadzone
         ? _stickMask | bit
         : _stickMask & ~bit;
   }
+
+  /// The bit each pad's analog trigger currently drives; see [_setTriggerBit].
+  final Map<(String, GamepadButton), int> _triggerBits =
+      <(String, GamepadButton), int>{};
 
   /// The RetroPad index [NativeControllerMappingScreen.handleButton] expects
   /// for a physical button. Deliberately the raw button rather than the

@@ -397,12 +397,13 @@ internal class NativePadInput(
 
         // Triggers arrive as axes, not key events, so without this they could
         // never be bound: arming capture and squeezing one produced nothing.
-        // Report a crossing as a synthetic code the mapping layer can store
-        // like any other, so a trigger can drive whatever the user chooses.
+        // A crossing is reported under the keycode a pad with digital triggers
+        // would send, so one binding covers both report styles and the mapping
+        // table can hold it like any other key.
         if (captureActive && matchesCapture(connection)) {
             val crossed = when {
-                leftTrigger >= AXIS_THRESHOLD -> SYNTHETIC_KEYCODE_L2
-                rightTrigger >= AXIS_THRESHOLD -> SYNTHETIC_KEYCODE_R2
+                leftTrigger >= AXIS_THRESHOLD -> KeyEvent.KEYCODE_BUTTON_L2
+                rightTrigger >= AXIS_THRESHOLD -> KeyEvent.KEYCODE_BUTTON_R2
                 else -> null
             }
             if (crossed != null) {
@@ -412,8 +413,8 @@ internal class NativePadInput(
                 return true
             }
         }
-        applyMotionBit(state, RETRO_L2, leftTrigger >= AXIS_THRESHOLD)
-        applyMotionBit(state, RETRO_R2, rightTrigger >= AXIS_THRESHOLD)
+        applyTriggerBit(state, KeyEvent.KEYCODE_BUTTON_L2, RETRO_L2, leftTrigger >= AXIS_THRESHOLD)
+        applyTriggerBit(state, KeyEvent.KEYCODE_BUTTON_R2, RETRO_R2, rightTrigger >= AXIS_THRESHOLD)
 
         // Packed into a Long rather than a Pair: this is per motion event on
         // every pad, and a Pair would be a heap allocation each time.
@@ -712,6 +713,25 @@ internal class NativePadInput(
         if (state.keyMask and bit != 0) state.keyMask = state.keyMask and bit.inv()
     }
 
+    /**
+     * Sets whichever RetroPad bit [keyCode] is bound to, falling back to
+     * [fallback] when the table holds no usable entry.
+     *
+     * The last bit driven is remembered per trigger so rebinding one while it
+     * is held releases the bit it used to drive instead of stranding it.
+     */
+    private fun applyTriggerBit(state: PadState, keyCode: Int, fallback: Int, pressed: Boolean) {
+        val index = indexFor(state.table, keyCode)
+        val target = if (index == NONE || index == SWALLOW) fallback else index
+        val left = keyCode == KeyEvent.KEYCODE_BUTTON_L2
+        val previous = if (left) state.l2Target else state.r2Target
+        if (previous != target) {
+            applyMotionBit(state, previous, false)
+            if (left) state.l2Target = target else state.r2Target = target
+        }
+        applyMotionBit(state, target, pressed)
+    }
+
     private fun applyMotionBit(state: PadState, index: Int, pressed: Boolean) {
         val bit = 1 shl index
         val was = state.motionMask and bit != 0
@@ -886,14 +906,17 @@ internal class NativePadInput(
         // PadState is constructed, i.e. every game load.
         var coreReadsAnalog: Boolean = false,
         var snap: StickSnap = StickSnap.OFF,
+        // The bit each trigger axis currently drives; see applyTriggerBit.
+        var l2Target: Int = RETRO_L2,
+        var r2Target: Int = RETRO_R2,
     )
 
     private companion object {
         const val AXIS_THRESHOLD = 0.5f
         // Well clear of any real Android keycode (KEYCODE_* tops out in the
         // low hundreds), so a stored binding can never collide with one.
-        const val SYNTHETIC_KEYCODE_L2 = 0x10012
-        const val SYNTHETIC_KEYCODE_R2 = 0x10013
+        const val SYNTHETIC_KEYCODE_L2 = NativeMappingTables.SYNTHETIC_KEYCODE_L2
+        const val SYNTHETIC_KEYCODE_R2 = NativeMappingTables.SYNTHETIC_KEYCODE_R2
         // ~1/255 in int16 terms (32767/255 ≈ 128): the finest step the pads
         // actually report, per the design doc's measured 8-bit resolution.
         // A resting stick's rounding noise stays under this, a real move does
@@ -956,6 +979,10 @@ internal object NativePadStateGuard {
  * than duplicating it; behaviour for every existing caller is unchanged.
  */
 internal object NativeMappingTables {
+    // Legacy trigger codes, kept only so mappings saved under them still load;
+    // deliberately outside the real Android keycode range.
+    const val SYNTHETIC_KEYCODE_L2 = 0x10012
+    const val SYNTHETIC_KEYCODE_R2 = 0x10013
     const val TABLE_SIZE = 256
     const val NONE = -1
     const val SWALLOW = -2
@@ -1037,7 +1064,14 @@ internal object NativeMappingTables {
     fun custom(overrides: Map<Int, Int>?): IntArray {
         if (overrides == null) return DEFAULT
         val table = DEFAULT.copyOf()
-        for ((keyCode, index) in overrides) {
+        for ((rawKeyCode, index) in overrides) {
+            // Trigger bindings were briefly written under synthetic codes; they
+            // live under the real trigger keycodes now.
+            val keyCode = when (rawKeyCode) {
+                SYNTHETIC_KEYCODE_L2 -> KeyEvent.KEYCODE_BUTTON_L2
+                SYNTHETIC_KEYCODE_R2 -> KeyEvent.KEYCODE_BUTTON_R2
+                else -> rawKeyCode
+            }
             if (keyCode in 0 until TABLE_SIZE && index in 0..15) table[keyCode] = index
         }
         return table

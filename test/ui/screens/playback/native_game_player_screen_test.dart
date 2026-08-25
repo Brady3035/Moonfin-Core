@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
+import 'package:gamepads/gamepads.dart';
 import 'package:playback_core/playback_core.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mocktail/mocktail.dart';
@@ -353,7 +354,38 @@ void main() {
       id: 'pad',
       name: 'Gamepad',
       port: 0,
+  // Windows and Linux read gamepads in Dart, and their triggers arrive as AXES
+  // while the mapping stores them as BUTTONS (codes 1006/1007). These cover the
+  // resolution both paths share, which is what stopped an analog trigger on
+  // desktop from ever honouring its binding.
+  test('an unbound trigger resolves to no binding, so the caller keeps L2/R2', () {
+    const empty = NativeControllerMapping.empty;
+    expect(desktopBoundBit(empty, GamepadButton.leftTrigger), isNull);
+    expect(desktopBoundBit(empty, GamepadButton.rightTrigger), isNull);
+    expect(desktopBoundBit(null, GamepadButton.leftTrigger), isNull);
+  });
+
+  test('a rebound trigger resolves to the button it was bound to', () {
+    final mapping = NativeControllerMapping(const {
+      1006: RetroPadButton.a,
+      1007: RetroPadButton.b,
+    });
+
+    expect(
+      desktopBoundBit(mapping, GamepadButton.leftTrigger),
+      1 << RetroPadButton.a.retroPadIndex,
     );
+    expect(
+      desktopBoundBit(mapping, GamepadButton.rightTrigger),
+      1 << RetroPadButton.b.retroPadIndex,
+    );
+    // Not the hardwired L2/R2 bits the axis path used to send regardless.
+    expect(desktopBoundBit(mapping, GamepadButton.leftTrigger), isNot(1 << 12));
+    expect(desktopBoundBit(mapping, GamepadButton.rightTrigger), isNot(1 << 13));
+  });
+
+  test('a rebound face button still resolves, and one binding does not move another', () {
+    final mapping = NativeControllerMapping(const {1000: RetroPadButton.y});
 
     expect(hasConnectedPlayerOneController([remoteOnPlayerOne]), isFalse);
     expect(hasConnectedPlayerOneController([keyboardOnPlayerOne]), isTrue);

@@ -1204,10 +1204,7 @@ internal const val STICK_RELEASE = 0.20f
  *  actually report, vs the 0.125 they declare. See the design doc. */
 internal const val ANALOG_DEAD_ZONE = 0.02f
 
-/** Snap tolerance for [StickSnap.OFF]: corrects small drift only. */
-internal const val SNAP_DEGREES = 10f
-
-private const val SNAP_CARDINAL_RATIO = 0.176327f   // tan(10)
+private const val SNAP_CARDINAL_RATIO = 0.176327f   // tan(10), the OFF-snap drift tolerance
 private const val SNAP_DIAGONAL_RATIO = 0.700208f   // tan(35)
 private const val SNAP_EIGHT_WAY_RATIO = 0.414214f  // tan(22.5)
 private const val DIAGONAL_COMPONENT = 0.707107f    // cos(45)

@@ -569,13 +569,13 @@ internal class NativePadInput(
         return resolved
     }
 
-    // A pad returning under a new id leaves the old id's bits latched if its
-    // removal callback lands after this one. Releases input only; the registry
-    // keeps the vacated port for the pad to reclaim.
+    // A pad can return under a new id before Android reports the old id removed.
+    // Drop the vanished connection before allocating the replacement, so its
+    // port is available without moving any live player.
     private fun releaseVanishedPadStates() {
-        for (index in 0 until padStates.size()) {
+        for (index in padStates.size() - 1 downTo 0) {
             val state = padStates.valueAt(index)
-            if (InputDevice.getDevice(state.deviceId) == null) clearPadState(state, publish = active)
+            if (InputDevice.getDevice(state.deviceId) == null) removeDevice(state.deviceId)
         }
     }
 
@@ -588,14 +588,20 @@ internal class NativePadInput(
     }
 
     private fun onDeviceRemoved(deviceId: Int) {
-        val connection = registry.remove(deviceId) ?: return
+        removeDevice(deviceId)
+        if (active) bridge.setControllerCount(playableCount(), navigationOnly = navigationOnly(), force = true)
+    }
+
+    /** Clears state even when a late removal follows an add-before-remove reconnect. */
+    private fun removeDevice(deviceId: Int) {
+        val connection = registry.remove(deviceId)
         padStates.get(deviceId)?.let { clearPadState(it, publish = active) }
         padStates.remove(deviceId)
         triggerAxisCache.remove(deviceId)
+        val connectionId = connection?.connectionId ?: "android-connection-$deviceId"
         // No promotion pass here: reallocating would move live players.
-        if (captureConnectionId == connection.connectionId) setCapture(false, null)
-        if (diagnosticsConnectionId == connection.connectionId) setDiagnostics(false, null)
-        if (active) bridge.setControllerCount(playableCount(), navigationOnly = navigationOnly(), force = true)
+        if (captureConnectionId == connectionId) setCapture(false, null)
+        if (diagnosticsConnectionId == connectionId) setDiagnostics(false, null)
     }
 
     private fun onDeviceChanged(deviceId: Int) {
@@ -787,7 +793,7 @@ internal class NativePadInput(
             state.startConsumed = false
             state.startTimer?.let(handler::removeCallbacks)
             val timer = Runnable {
-                if (padStates.get(state.deviceId) !== state || !active) return@Runnable
+                if (!NativePadStateGuard.isCurrent(state, keyboardState, padStates.get(state.deviceId)) || !active) return@Runnable
                 state.startTimer = null
                 state.startConsumed = true
                 bridge.onMenu(state.port)
@@ -812,7 +818,7 @@ internal class NativePadInput(
         state.pulseMask = state.pulseMask or bit
         publishMask(state)
         val timer = Runnable {
-            if (padStates.get(state.deviceId) !== state || !active) return@Runnable
+            if (!NativePadStateGuard.isCurrent(state, keyboardState, padStates.get(state.deviceId)) || !active) return@Runnable
             state.pulseTimer = null
             state.pulseMask = state.pulseMask and bit.inv()
             publishMask(state)
@@ -934,6 +940,12 @@ internal class NativePadInput(
         val SWALLOWED_KEYCODES = NativeMappingTables.SWALLOWED_KEYCODES
         val DEFAULT_TABLE: IntArray = NativeMappingTables.DEFAULT
     }
+}
+
+/** Identity check shared by delayed start actions; keyboardState is never in padStates. */
+internal object NativePadStateGuard {
+    fun isCurrent(state: Any, keyboardState: Any, registeredState: Any?): Boolean =
+        state === keyboardState || registeredState === state
 }
 
 /**

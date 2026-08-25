@@ -36,6 +36,34 @@ class NativeControllerPortRegistryTest {
     }
 
     @Test
+    fun `add before old remove lets a pinned controller reclaim its port`() {
+        val registry = NativeControllerPortRegistry()
+        registry.setPins(mapOf("p1" to 0))
+        registry.activate(listOf(candidate(1, "p1"), candidate(2, "p2")))
+
+        // NativePadInput notices that device 1 vanished while handling device
+        // 20's add callback, then frees only that stale connection.
+        registry.remove(1)
+        val returned = registry.addOrUpdate(candidate(20, "p1"))
+
+        assertEquals(0, returned.port)
+        assertEquals(1, registry.connection(2)?.port)
+    }
+
+    @Test
+    fun `late removal after a reconnect cannot remove the replacement`() {
+        val registry = NativeControllerPortRegistry()
+        registry.setPins(mapOf("p1" to 0))
+        registry.activate(listOf(candidate(1, "p1"), candidate(2, "p2")))
+        registry.remove(1)
+        registry.addOrUpdate(candidate(20, "p1"))
+
+        assertNull(registry.remove(1))
+        assertEquals(0, registry.connection(20)?.port)
+        assertEquals(1, registry.connection(2)?.port)
+    }
+
+    @Test
     fun `fifth connection remains visible but unsupported`() {
         val registry = NativeControllerPortRegistry()
         val connections = registry.activate((1..5).map { candidate(it, "p$it") })

@@ -95,6 +95,11 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
   int? _textureId;
   double _aspect = 4 / 3;
   int _controllers = 1;
+
+  // Same gate controllersChanged pauses on, so resume can't undo that pause.
+  bool get _hasNoUsableInput =>
+      _controllers == 0 && !usesKeyboardInput && !usesOnScreenControls;
+
   // Guards the "playing with the remote" notice so it shows once per
   // session rather than every time the remote's Bluetooth link naps and
   // wakes, which would otherwise re-fire controllersChanged repeatedly.
@@ -140,6 +145,7 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
   Map<String, NativeControllerMapping> _controllerMappings = const {};
   NativeControllerPlayerAssignments _controllerAssignments =
       NativeControllerPlayerAssignments.empty;
+  bool _controllerAssignmentsReachable = true;
   Map<int, List<CoreControllerType>> _controllerTypesByPort = const {};
   CoreInputDescriptors _inputDescriptors = CoreInputDescriptors.empty;
   int _controllerRefreshGeneration = 0;
@@ -313,7 +319,7 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
         // Keyboard and touch platforms play fine without a controller, so
         // losing the last one should not pause the game there.
         if (!usesKeyboardInput && !usesOnScreenControls) {
-          if (count == 0) {
+          if (_hasNoUsableInput) {
             _player.pause();
           } else if (!_overlayOpen) {
             // The overlay owns the visible pause, so a device connecting or
@@ -1128,7 +1134,7 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
       case AppLifecycleState.resumed:
         // The overlay is the one pause the user can see, so it decides
         // whether coming back to the app should start the game moving again.
-        if (!_overlayOpen) _player.resume();
+        if (!_overlayOpen && !_hasNoUsableInput) _player.resume();
       case AppLifecycleState.inactive:
         // Transient and common (a system dialog, the volume panel). Pausing
         // here would flicker the game for events the user never left for.
@@ -1531,7 +1537,9 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
     // Assignments are pushed before the core starts, so the native registry
     // allocates ports from the user's choice on the first pass rather than
     // reshuffling everyone a moment after the game appears.
-    _controllerAssignments = await loadControllerPlayerAssignments(games);
+    final assignmentLoad = await loadControllerPlayerAssignmentsChecked(games);
+    _controllerAssignments = assignmentLoad.assignments;
+    _controllerAssignmentsReachable = assignmentLoad.reachable;
     await _syncControllerAssignments();
     await _refreshControllerMappings(games: games);
   }
@@ -1590,19 +1598,27 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
     await _syncControllerAssignments(assignments);
     final games = _client.gamesApi;
     if (games != null) {
-      try {
-        await saveControllerPlayerAssignments(games, assignments);
-      } catch (error) {
-        // The assignment is live for this session. This edit is made from the
-        // controller menu, not mid-game, so a transient line there is the
-        // cheaper surprise -- cheaper than the pin being silently gone at the
-        // next launch.
-        debugPrint(
-          '[NativeGamePlayerScreen] Could not save player assignment: $error',
-        );
+      if (!_controllerAssignmentsReachable) {
+        // An empty fallback after a failed read is not the stored truth. Keep
+        // the native assignment live, but never replace pins we could not see.
         _showTransientMessage(
-          'Player assignment applied for now, but not saved to the server.',
+          'Saved player assignments could not be read; not overwriting them.',
         );
+      } else {
+        try {
+          await saveControllerPlayerAssignments(games, assignments);
+        } catch (error) {
+          // The assignment is live for this session. This edit is made from
+          // the controller menu, not mid-game, so a transient line there is
+          // the cheaper surprise -- cheaper than the pin being silently gone
+          // at the next launch.
+          debugPrint(
+            '[NativeGamePlayerScreen] Could not save player assignment: $error',
+          );
+          _showTransientMessage(
+            'Player assignment applied for now, but not saved to the server.',
+          );
+        }
       }
     }
     await _refreshControllerMappings();

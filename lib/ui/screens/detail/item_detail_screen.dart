@@ -9275,7 +9275,8 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
       if (!context.mounted) {
         return;
       }
-      messenger.showSnackBar(
+      trySnackBar(
+        messenger,
         SnackBar(
           content: Text(
             remoteSubtitleErrorMessage(
@@ -9293,7 +9294,8 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
       return;
     }
     if (results.isEmpty) {
-      messenger.showSnackBar(
+      trySnackBar(
+        messenger,
         SnackBar(
           content: Text(
             AppLocalizations.of(context).noRemoteSubtitlesFound(language),
@@ -9316,6 +9318,8 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
         return TrackOption(
           label: label,
           subtitle: subtitleText.isNotEmpty ? subtitleText : null,
+          subtitleMaxLines: 2,
+          badges: remoteSubtitleFlags(subtitle, l10n),
         );
       }).toList(),
     );
@@ -9326,7 +9330,8 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
 
     final subtitleId = results[result]['Id']?.toString();
     if (subtitleId == null || subtitleId.isEmpty) {
-      messenger.showSnackBar(
+      trySnackBar(
+        messenger,
         SnackBar(
           content: Text(AppLocalizations.of(context).selectedSubtitleInvalid),
         ),
@@ -9354,7 +9359,8 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
 
       if (newStream != null) {
         setState(() => _selectedSubtitleIndex = newStream['Index'] as int?);
-        messenger.showSnackBar(
+        trySnackBar(
+          messenger,
           SnackBar(
             content: Text(
               AppLocalizations.of(context).subtitleDownloadedSelected(
@@ -9369,7 +9375,8 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
         return;
       }
 
-      messenger.showSnackBar(
+      trySnackBar(
+        messenger,
         SnackBar(
           content: Text(AppLocalizations.of(context).subtitleDownloadedPending),
         ),
@@ -9378,7 +9385,8 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
       if (!context.mounted) {
         return;
       }
-      messenger.showSnackBar(
+      trySnackBar(
+        messenger,
         SnackBar(
           content: Text(
             remoteSubtitleErrorMessage(

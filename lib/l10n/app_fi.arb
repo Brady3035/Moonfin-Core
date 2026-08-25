@@ -49,7 +49,7 @@
     "@loginFailed": {
         "description": "Generic login failure message"
     },
-    "quickConnectUnavailable": "Pikayhteys ei käytettävissä: {detail}",
+    "quickConnectUnavailable": "Pikayhdistys ei käytettävissä: {detail}",
     "@quickConnectUnavailable": {
         "description": "Quick Connect generic error message",
         "placeholders": {
@@ -58,7 +58,7 @@
             }
         }
     },
-    "quickConnectUnavailableWithStatus": "Pikayhteys ei käytettävissä ({status}): {detail}",
+    "quickConnectUnavailableWithStatus": "Pikayhdistys ei käytettävissä ({status}): {detail}",
     "@quickConnectUnavailableWithStatus": {
         "description": "Quick Connect error message with HTTP status info",
         "placeholders": {
@@ -1066,7 +1066,7 @@
     "@read": {
         "description": "Action button label to start reading a book"
     },
-    "resumeFrom": "Jatka osoitteesta {position}",
+    "resumeFrom": "Jatka kohdasta {position}",
     "@resumeFrom": {
         "description": "Action button label showing resume position",
         "placeholders": {
@@ -5069,7 +5069,7 @@
     "adminNoLogFiles": "Lokitiedostoja ei löytynyt",
     "adminLogCopied": "Loki kopioitu leikepöydälle",
     "adminSaveLogFile": "Tallenna lokitiedosto",
-    "adminSavedTo": "Tallennettu osoitteeseen {path}",
+    "adminSavedTo": "Tallennettu kohteeseen {path}",
     "@adminSavedTo": {
         "placeholders": {
             "path": {
@@ -5991,7 +5991,7 @@
     "adminTaskDetailEnded": "Päättyi",
     "adminTaskDetailDuration": "Kesto",
     "adminTaskDetailErrorLabel": "Virhe:",
-    "adminTaskTriggerDaily": "Päivittäin osoitteessa {time}",
+    "adminTaskTriggerDaily": "Päivittäin klo {time}",
     "@adminTaskTriggerDaily": {
         "placeholders": {
             "time": {
@@ -7326,7 +7326,7 @@
     "@empty": {
         "description": "Label indicating a section or category is empty"
     },
-    "detailScreenStyle": "Tietonäkymän tyyli",
+    "detailScreenStyle": "Tietonäkymän Tyyli",
     "@detailScreenStyle": {
         "description": "Label for the media detail screen layout style setting"
     },
@@ -9569,5 +9569,9 @@
     "adminMetadataPersonKindRemixer": "Remixer",
     "adminMetadataPersonKindCreator": "Luoja",
     "adminMetadataPersonKindArtist": "Artisti",
-    "adminMetadataPersonKindAlbumArtist": "Albumin artisti"
+    "adminMetadataPersonKindAlbumArtist": "Albumin artisti",
+    "adminMetadataPersonKindAuthor": "Luoja",
+    "adminMetadataPersonKindIllustrator": "Kuvittaja",
+    "adminMetadataPersonKindTranslator": "Kääntäjä",
+    "adminMetadataPersonKindNarrator": "Kertoja"
 }

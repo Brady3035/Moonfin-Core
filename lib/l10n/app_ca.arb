@@ -180,7 +180,7 @@
     "@themeMoonfinSubtitle": {
         "description": "Preview description for the Moonfin theme"
     },
-    "themeNeonPulse": "pols de neó",
+    "themeNeonPulse": "Neon Pulse",
     "@themeNeonPulse": {
         "description": "Display name for the Neon Pulse theme"
     },
@@ -4011,7 +4011,7 @@
     "@recentlyAdded": {
         "description": "Seerr row: recently added"
     },
-    "trending": "Tendència",
+    "trending": "Tendències",
     "@trending": {
         "description": "Seerr row: trending"
     },
@@ -4039,7 +4039,7 @@
     "@seriesGenres": {
         "description": "Seerr row: series genres"
     },
-    "upcomingSeries": "Pròxima Sèrie",
+    "upcomingSeries": "Pròximes Sèries",
     "@upcomingSeries": {
         "description": "Seerr row: upcoming series"
     },
@@ -7233,7 +7233,7 @@
     "homeVideos": "Vídeos de la llar",
     "mixedContent": "Contingut mixt",
     "homeVideosAndPhotos": "Vídeos i fotos d'inici",
-    "mixedMoviesAndShows": "Pel·lícules i programes mixtes",
+    "mixedMoviesAndShows": "Pel·lícules i sèries barrejades",
     "intelQuickSync": "Intel Quick Sync",
     "rockchipMpp": "Rockchip MPP",
     "dolbyVision": "Dolby Vision",
@@ -8996,12 +8996,12 @@
     "@adminLibChapterImageResolutionMatchSource": {
         "description": "Chapter image resolution option that matches the source resolution"
     },
-    "imdbTop250Movies": "Top 250 pel·lícules d'IMDb",
-    "imdbTop250TvShows": "Top 250 sèries de TV d'IMDb",
-    "imdbMostPopularMovies": "Pel·lícules més populars d'IMDb",
-    "imdbMostPopularTvShows": "Sèries de TV més populars d'IMDb",
-    "imdbLowestRatedMovies": "Pel·lícules pitjor valorades d'IMDb",
-    "imdbTopEnglishMovies": "Millors pel·lícules en anglès d'IMDb",
+    "imdbTop250Movies": "Top 250 pel·lícules a IMDb",
+    "imdbTop250TvShows": "Top 250 sèries a IMDb",
+    "imdbMostPopularMovies": "Pel·lícules més populars a IMDb",
+    "imdbMostPopularTvShows": "Sèries més populars a IMDb",
+    "imdbLowestRatedMovies": "Pel·lícules pitjor valorades a IMDb",
+    "imdbTopEnglishMovies": "Millors pel·lícules en anglès a IMDb",
     "castMembers": "Repartiment",
     "@castMembers": {
         "description": "Section title for the list of actors and performers in movie and TV metadata. Not the casting-to-a-device action"
@@ -9967,5 +9967,115 @@
     "interfaceLayoutAutomatic": "Automàtic",
     "@interfaceLayoutAutomatic": {
         "description": "Interface layout option: detect from the device"
+    },
+    "manual": "Manual",
+    "@manual": {
+        "description": "Option: manual"
+    },
+    "autoDetect": "Detecció automàtica",
+    "@autoDetect": {
+        "description": "Option: detect the value automatically"
+    },
+    "adminMetadataDisplayOrderDvd": "DVD",
+    "adminMetadataDisplayOrderDigital": "Digital",
+    "adminMetadataDisplayOrderStoryArc": "Arc argumental",
+    "adminMetadataDisplayOrderProduction": "Producció",
+    "adminMetadataDisplayOrderTv": "TV",
+    "adminMetadataDisplayOrderRegional": "Regional",
+    "adminMetadataDisplayOrderAlternateDvd": "DVD alternatiu",
+    "adminMetadataPersonKindUnknown": "Desconegut",
+    "adminMetadataPersonKindActor": "Actor",
+    "adminMetadataPersonKindDirector": "Director",
+    "adminMetadataPersonKindComposer": "Compositor",
+    "adminMetadataPersonKindWriter": "Escriptor",
+    "adminMetadataPersonKindProducer": "Productor",
+    "adminMetadataPersonKindMixer": "Mesclador",
+    "adminMetadataPersonKindCreator": "Creador",
+    "adminMetadataPersonKindArtist": "Artista",
+    "adminMetadataPersonKindAuthor": "Autor",
+    "adminMetadataPersonKindIllustrator": "Il·lustrador",
+    "adminMetadataPersonKindEditor": "Editor",
+    "adminMetadataPersonKindTranslator": "Traductor",
+    "adminMetadataPersonKindNarrator": "Narrador",
+    "adminMetadataLockFieldName": "Nom",
+    "adminMetadataLockFieldGenres": "Gèneres",
+    "adminMetadataLockFieldOfficialRating": "Qualificació parental",
+    "adminMetadataLockFieldBirthLocation": "Lloc de naixement",
+    "adminMetadataLockFieldRuntime": "Duració",
+    "adminMetadataLockFieldStudios": "Estudis",
+    "adminMetadataLockFieldTags": "Etiquetes",
+    "settingsMediaSegmentTypeAction": "{segment} Segments",
+    "@settingsMediaSegmentTypeAction": {
+        "description": "Setting label for what to do with one type of media segment",
+        "placeholders": {
+            "segment": {
+                "type": "String"
+            }
+        }
+    },
+    "queuedDownload": "En cua",
+    "@queuedDownload": {
+        "description": "Status label for a download waiting in the queue for a free download slot"
+    },
+    "tvOfflineDownloads": "Habilita descàrregues offline",
+    "@tvOfflineDownloads": {
+        "description": "TV-only toggle in the Offline Downloads settings: offer download actions on item pages"
+    },
+    "tvOfflineDownloadsSubtitle": "Mostra accions de descàrrega a les pàgines d'ítems",
+    "@tvOfflineDownloadsSubtitle": {
+        "description": "Subtitle for the TV-only offline downloads toggle"
+    },
+    "adminMetadataFieldCustomRating": "Puntuació personalitzada",
+    "adminMetadataDisplayOrderAbsolute": "Absolut",
+    "adminMetadataDisplayOrderOriginalAirDate": "Data d'emissió original",
+    "adminMetadataDisplayOrderAired": "Emès",
+    "adminMetadataFieldDisplayOrder": "Ordre de visualització",
+    "adminMetadataDisplayOrderAlternate": "Alternatiu",
+    "adminMetadataDisplayOrderDateModified": "Data de modificació",
+    "adminMetadataDisplayOrderSortName": "Ordenar per nom",
+    "adminMetadataDisplayOrderReleaseDate": "Data de publicació",
+    "adminMetadataSettings": "Configuració de metadades",
+    "adminMetadataDownloadLanguage": "Idioma de descàrrega preferit",
+    "adminMetadataCountryRegion": "País/Regió",
+    "adminMetadataInheritHelp": "Deixa-ho com a Predeterminat per heretar la configuració d'un element principal o de la configuració predeterminada del servidor.",
+    "adminMetadataField3DFormat": "Format 3D",
+    "adminMetadataPersonKindGuestStar": "Estrella convidada",
+    "adminMetadataPersonKindConductor": "Director d'orquestra",
+    "adminMetadataPersonKindLyricist": "Lletrista",
+    "adminMetadataPersonKindArranger": "Arranjador",
+    "adminMetadataPersonKindEngineer": "Enginyer",
+    "adminMetadataPersonKindRemixer": "Remesclador",
+    "adminMetadataPersonKindPenciller": "Dibuixant",
+    "adminMetadataPersonKindAlbumArtist": "Artista d'àlbum",
+    "adminMetadataPersonKindInker": "Entintador",
+    "adminMetadataPersonKindColorist": "Colorista",
+    "adminMetadataPersonKindLetterer": "Rotulista",
+    "adminMetadataPersonKindCoverArtist": "Artista de portada",
+    "adminMetadataAirDays": "Dies d'emissió",
+    "adminMetadataLockItem": "Bloqueja aquest element per evitar futurs canvis de metadades",
+    "adminMetadataEnabledFields": "Camps habilitats",
+    "adminMetadataEnabledFieldsHelp": "Desselecciona un camp per bloquejar-lo i evitar que les seves dades siguin modificades.",
+    "adminMetadataLockFieldOverview": "Resum",
+    "adminMetadataLockFieldCast": "Persones",
+    "adminMetadataLockFieldProductionLocations": "Ubicacions de producció",
+    "adminPluginsRestartRequired": "Cal reiniciar",
+    "@adminPluginsRestartRequired": {
+        "description": "Label for the installed-plugin filter showing changes that require a server restart"
+    },
+    "adminPluginsNoneActive": "Cap plugin actiu",
+    "@adminPluginsNoneActive": {
+        "description": "Empty state for the active installed-plugin filter"
+    },
+    "adminPluginsNoneRequireRestart": "Cap plugin requereix un reinici del servidor",
+    "@adminPluginsNoneRequireRestart": {
+        "description": "Empty state for the installed-plugin filter showing changes that require a server restart"
+    },
+    "openTrailersExternally": "Obre els tràilers en aplicació externa",
+    "@openTrailersExternally": {
+        "description": "Details screen setting that hands trailers to the system"
+    },
+    "openTrailersExternallySubtitle": "Els tràilers s'obren a l'aplicació de YouTube o al navegador en lloc del reproductor integrat",
+    "@openTrailersExternallySubtitle": {
+        "description": "Subtitle for the external trailers setting"
     }
 }

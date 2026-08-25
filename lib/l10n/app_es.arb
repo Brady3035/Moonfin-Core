@@ -6650,7 +6650,7 @@
     "settingsPreferServerTranscode": "Prefiere la transcodificación del servidor",
     "settingsDolbyVisionProfile7DirectPlay": "Dolby Vision Perfil 7 Reproducción directa",
     "settingsDolbyVisionProfile7DirectPlayDescription": "Controla si las transmisiones de capa de mejora del perfil 7 de Dolby Vision deben dirigir la reproducción.",
-    "settingsAutoAftkrtEnabled": "Automático (AFTKRT habilitado)",
+    "settingsAutoAftkrtEnabled": "Automático",
     "settingsEnabledOnThisDevice": "Habilitado en este dispositivo",
     "settingsDisabledPreferTranscode": "Deshabilitado (prefiero transcodificar)",
     "settingsResumeRewindDescription": "Al reanudar la reproducción (desde Continuar viendo o desde una página de elementos multimedia), ¿cuántos segundos se deben rebobinar?",
@@ -9001,5 +9001,23 @@
     "imdbMostPopularMovies": "Películas más populares de IMDb",
     "imdbMostPopularTvShows": "Series más populares de IMDb",
     "imdbLowestRatedMovies": "Películas peor valoradas de IMDb",
-    "imdbTopEnglishMovies": "Películas en inglés mejor valoradas de IMDb"
+    "imdbTopEnglishMovies": "Películas en inglés mejor valoradas de IMDb",
+    "failedToDeleteItemWithError": "La operación de borrado falló con el siguiente error: {error}",
+    "@failedToDeleteItemWithError": {
+        "description": "Error message when item deletion fails, including the specific error details",
+        "placeholders": {
+            "error": {
+                "type": "String",
+                "example": "Permission denied"
+            }
+        }
+    },
+    "homeRowsPadding": "Separación de filas en Inicio",
+    "@homeRowsPadding": {
+        "description": "Title for home rows padding setting"
+    },
+    "homeRowsPaddingDescription": "Personalizar el espaciado entre filas de inicio",
+    "@homeRowsPaddingDescription": {
+        "description": "Description for home rows padding setting"
+    }
 }

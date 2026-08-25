@@ -68,6 +68,9 @@ internal class NativePadInput(
     // while a pad is live.
     private var analogPollCounter = 0
 
+    // Seeds coreReadsAnalog for pads added between polls.
+    private var analogPortMask = 0
+
     /** True while a native session is loaded; checked first in dispatch. */
     @Volatile var active = false
         private set
@@ -128,10 +131,13 @@ internal class NativePadInput(
             // d-pad re-asserts them on its next event, but nothing else would.
             state.stickDirX = 0
             state.stickDirY = 0
-            applyMotionBit(state, RETRO_LEFT, false)
-            applyMotionBit(state, RETRO_RIGHT, false)
-            applyMotionBit(state, RETRO_UP, false)
-            applyMotionBit(state, RETRO_DOWN, false)
+            // Only the stick's contribution goes. A hat held across the flip
+            // keeps its direction: it re-asserts nothing until it next moves,
+            // so clearing it here would strand the user with no direction.
+            applyMotionBit(state, RETRO_LEFT, state.hatDirX == -1)
+            applyMotionBit(state, RETRO_RIGHT, state.hatDirX == 1)
+            applyMotionBit(state, RETRO_UP, state.hatDirY == -1)
+            applyMotionBit(state, RETRO_DOWN, state.hatDirY == 1)
             publishMask(state)
         }
     }
@@ -170,6 +176,7 @@ internal class NativePadInput(
      */
     private fun refreshAnalogPorts() {
         val mask = bridge.analogDescriptorPorts()
+        analogPortMask = mask
         for (port in 0 until NativeControllerPortRegistry.MAX_PORTS) {
             setCoreReadsAnalog(port, (mask shr port) and 1 != 0)
         }
@@ -187,6 +194,9 @@ internal class NativePadInput(
         clearPadStates(publish = false)
         bridge.resetPadMasks()
         analogPollCounter = 0
+        // Descriptors are per game, so the next game must not start on the
+        // last one's mask while the delayed refresh is still pending.
+        analogPortMask = 0
         if (value) {
             val connections = registry.activate(discoverCandidates(logDiagnostics = true))
             for (connection in connections) addPadState(connection)
@@ -376,9 +386,13 @@ internal class NativePadInput(
         // rest of the time (when it is still allowed to, see above).
         val rawHatX = event.getAxisValue(MotionEvent.AXIS_HAT_X)
         val rawHatY = event.getAxisValue(MotionEvent.AXIS_HAT_Y)
+        // Kept apart from the stick's latched direction so a mode flip can
+        // preserve a held hat; Android sends no event until the hat moves.
+        state.hatDirX = direction(rawHatX)
+        state.hatDirY = direction(rawHatY)
         val stickDrivesDigital = !state.coreReadsAnalog || bridge.overlayOpen
-        val hatX = hatFallback(direction(rawHatX), state.stickDirX, !stickDrivesDigital)
-        val hatY = hatFallback(direction(rawHatY), state.stickDirY, !stickDrivesDigital)
+        val hatX = hatFallback(state.hatDirX, state.stickDirX, !stickDrivesDigital)
+        val hatY = hatFallback(state.hatDirY, state.stickDirY, !stickDrivesDigital)
         applyMotionBit(state, RETRO_LEFT, hatX == -1)
         applyMotionBit(state, RETRO_RIGHT, hatX == 1)
         applyMotionBit(state, RETRO_UP, hatY == -1)
@@ -615,7 +629,13 @@ internal class NativePadInput(
         // A device can re-enumerate with a different HID descriptor under the
         // same id; re-probe trigger axes rather than trusting a stale cache.
         triggerAxisCache.remove(deviceId)
-        if (previous?.profileId != connection.profileId) {
+        // Port and class matter as well as profile: a reclassified device can
+        // now be re-allocated or lose its port, and a PadState carries the port
+        // it was built for.
+        if (previous?.profileId != connection.profileId ||
+            previous.port != connection.port ||
+            previous.deviceClass != connection.deviceClass
+        ) {
             padStates.get(deviceId)?.let { clearPadState(it, publish = active) }
             padStates.remove(deviceId)
             if (active && connection.supported) addPadState(connection)
@@ -675,6 +695,8 @@ internal class NativePadInput(
     private fun addPadState(connection: NativeControllerConnection) {
         val port = connection.port ?: return
         val state = PadState(connection.deviceId, connection.profileId, port, tableFor(connection.profileId))
+        state.snap = snapModes[connection.profileId] ?: StickSnap.OFF
+        state.coreReadsAnalog = (analogPortMask shr port) and 1 != 0
         padStates.put(connection.deviceId, state)
     }
 
@@ -892,6 +914,9 @@ internal class NativePadInput(
         // previous value to hold on to. Hat axes are stateless.
         var stickDirX: Int = 0,
         var stickDirY: Int = 0,
+        // The hat's own last direction, so a mode change can keep it.
+        var hatDirX: Int = 0,
+        var hatDirY: Int = 0,
         // Last-sent analog state, int16 range (-32768..32767 for axes,
         // 0..0x7fff for triggers). Used both as the value forwarded to
         // lh_set_pad_state and as the baseline analogMoved diffs against.
@@ -902,8 +927,7 @@ internal class NativePadInput(
         var trigL: Int = 0,
         var trigR: Int = 0,
         // Set once the host reports the running core queried RETRO_DEVICE_ANALOG
-        // on this port; see setCoreReadsAnalog. Resets to false whenever a new
-        // PadState is constructed, i.e. every game load.
+        // on this port; see setCoreReadsAnalog. addPadState seeds it.
         var coreReadsAnalog: Boolean = false,
         var snap: StickSnap = StickSnap.OFF,
         // The bit each trigger axis currently drives; see applyTriggerBit.

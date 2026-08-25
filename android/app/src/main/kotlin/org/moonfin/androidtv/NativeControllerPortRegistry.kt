@@ -102,7 +102,19 @@ internal class NativeControllerPortRegistry {
     fun addOrUpdate(candidate: NativeControllerCandidate): NativeControllerConnection {
         val existing = connections[candidate.deviceId]
         if (existing != null) {
-            val updated = candidate.toConnection(existing.port)
+            val reclassified = existing.profileId != candidate.profileId ||
+                existing.deviceClass != candidate.deviceClass
+            // A device that re-enumerates as something else has no claim on the
+            // port its previous identity held, and may have a pin of its own.
+            // Removing first lets allocatePort see the vacated port as free;
+            // every other live player keeps its port either way.
+            val port = if (!reclassified) {
+                existing.port
+            } else {
+                connections.remove(candidate.deviceId)
+                if (sessionActive && isEligible(candidate)) allocatePort(candidate.profileId) else null
+            }
+            val updated = candidate.toConnection(port)
             connections[candidate.deviceId] = updated
             if (updated.port != null && !updated.pinned) {
                 profilePortHints[candidate.profileId] = updated.port

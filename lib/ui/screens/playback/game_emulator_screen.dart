@@ -26,6 +26,16 @@ import 'game_playback_ui.dart';
 import 'playback_takeover.dart';
 import 'game_audio_owner.dart';
 
+@visibleForTesting
+Future<void> persistGameEmulatorExit({
+  required bool saveState,
+  required Future<void> Function() persistState,
+  required Future<void> Function() persistSettings,
+}) async {
+  if (saveState) await persistState();
+  await persistSettings();
+}
+
 /// Full-screen EmulatorJS host. Loads the Moonbase plugin's player shell in a WebView, streams
 /// the ROM from the user's server, and syncs the save state on exit. Includes a native,
 /// d-pad-navigable in-game overlay (Resume / Save / Load / Restart / Fast-forward / Exit)
@@ -116,6 +126,8 @@ class _GameEmulatorScreenState extends State<GameEmulatorScreen>
 
   // True only while Android is driving EmulatorJS's own control-mapping dialog.
   bool _emulatorControlsOpen = false;
+  Timer? _controlsCloseWatch;
+  bool _controlsCloseQueryInFlight = false;
   bool _confirmingExit = false;
 
   // Open-overlay gesture: hold Start+Select for 5 seconds.
@@ -396,6 +408,10 @@ class _GameEmulatorScreenState extends State<GameEmulatorScreen>
           );
         }
         break;
+      default:
+        debugPrint(
+          '[GameEmulatorScreen] unhandled player message: ${message['type']}',
+        );
     }
   }
 
@@ -593,12 +609,17 @@ class _GameEmulatorScreenState extends State<GameEmulatorScreen>
     });
   }
 
-  void _closeOverlay() {
+  /// Dismisses the overlay, resuming the game unless [resume] says otherwise.
+  ///
+  /// The controls picker is a handoff, not a dismissal: it keeps the pause and
+  /// releases it in [_onEmulatorControlsClosed].
+  void _closeOverlay({bool resume = true}) {
     if (!_overlayOpen) return;
     setState(() {
       _overlayOpen = false;
       _confirmingExit = false;
     });
+    if (!resume) return;
     unawaited(
       _invokePlayer(
         'moonfinPause',
@@ -636,9 +657,10 @@ class _GameEmulatorScreenState extends State<GameEmulatorScreen>
     // first, so the default highlight cannot end the game.
     if (_confirmingExit) {
       return [
+        // Back, not Resume: this returns to the pause menu and stays paused.
         _OverlayItem(
-          Icons.play_arrow,
-          l?.resume ?? 'Keep playing',
+          Icons.arrow_back,
+          l?.back ?? 'Back',
           null,
           _cancelExitConfirmation,
         ),
@@ -758,11 +780,12 @@ class _GameEmulatorScreenState extends State<GameEmulatorScreen>
       );
       return;
     }
-    _closeOverlay();
-    if (PlatformDetection.isAndroid) {
-      setState(() => _emulatorControlsOpen = true);
-      await AndroidGamepadChannel.setEmulatorControlsActive(true);
-    }
+    // Tracked on every platform, or the page's close message is dropped and
+    // the pause taken here is never released. The Android call self-guards.
+    _closeOverlay(resume: false);
+    setState(() => _emulatorControlsOpen = true);
+    _watchForControlsClose();
+    await AndroidGamepadChannel.setEmulatorControlsActive(true);
   }
 
   void _sendEmulatorControlInput(
@@ -785,15 +808,70 @@ class _GameEmulatorScreenState extends State<GameEmulatorScreen>
   }
 
   Future<void> _onEmulatorControlsClosed(String reason) async {
+    _controlsCloseWatch?.cancel();
+    _controlsCloseWatch = null;
     if (!mounted || !_emulatorControlsOpen) return;
     setState(() => _emulatorControlsOpen = false);
     await AndroidGamepadChannel.setEmulatorControlsActive(false);
     // A controller may have connected while the picker was open. Re-query it
     // before gameplay resumes instead of requiring a page reload.
     unawaited(_registerAndroidGamepads());
-    // Back is the deliberate exit path to Moonfin's pause menu. The upstream
-    // Close footer button resumes gameplay directly.
-    if (reason == 'back') _openOverlay();
+    // Back returns to Moonfin's pause menu, which pauses for itself. Any other
+    // close returns to the game, so release the pause the picker took.
+    if (reason == 'back') {
+      _openOverlay();
+      return;
+    }
+    unawaited(
+      _invokePlayer(
+        'moonfinPause',
+        [false],
+        () async => _controller?.evaluateJavascript(
+          source: 'window.moonfinPause && window.moonfinPause(false);',
+        ),
+      ),
+    );
+  }
+
+  /// Polls the player for the controls menu closing.
+  ///
+  /// The page reports a close only from its own controller-input handler, so a
+  /// mouse click on Close is never announced and asking is the only way to
+  /// find out. A page without the query is treated as still open.
+  void _watchForControlsClose() {
+    _controlsCloseWatch?.cancel();
+    _controlsCloseWatch = Timer.periodic(const Duration(milliseconds: 400), (
+      _,
+    ) async {
+      // Timer.periodic does not await this, and the non-web fallback is a real
+      // channel round trip: a stalled call would pile ticks onto the channel
+      // carrying controller input. A skipped tick costs 400ms.
+      if (_controlsCloseQueryInFlight) return;
+      if (!mounted || !_emulatorControlsOpen) {
+        _controlsCloseWatch?.cancel();
+        _controlsCloseWatch = null;
+        return;
+      }
+      _controlsCloseQueryInFlight = true;
+      final controller = _controller;
+      Object? open;
+      try {
+        open = await _invokePlayer('moonfinControlsOpen', const [], () async {
+          final r = await controller?.callAsyncJavaScript(
+            functionBody: 'return window.moonfinControlsOpen ? '
+                'window.moonfinControlsOpen() : true;',
+          );
+          return r?.value;
+        });
+      } catch (_) {
+        return;
+      } finally {
+        _controlsCloseQueryInFlight = false;
+      }
+      // Anything but a definite false means "still open": never resume on a
+      // reading we could not trust.
+      if (open == false) await _onEmulatorControlsClosed('close');
+    });
   }
 
   Future<void> _sendEmulatorKeyboardInput(int keyCode) async {
@@ -1005,7 +1083,7 @@ class _GameEmulatorScreenState extends State<GameEmulatorScreen>
       saved = false;
     }
     if (saved) {
-      await _exit();
+      await _exit(stateAlreadySaved: true);
       return;
     }
     if (mounted) _showTransientMessage('Could not save state. Still playing.');
@@ -1159,14 +1237,16 @@ class _GameEmulatorScreenState extends State<GameEmulatorScreen>
     setState(() => _error = message);
   }
 
-  Future<void> _exit() async {
+  Future<void> _exit({bool stateAlreadySaved = false}) async {
     if (_exiting) return;
     _exiting = true;
     // The save reads state back out of the WebView, and on Windows and web that
     // round-trip can stall on a large PSP state. Give it a few seconds and leave
     // anyway, otherwise the WebView stays on screen and swallows every input.
     try {
-      await _persistOnExit().timeout(const Duration(seconds: 3));
+      await _persistOnExit(
+        saveState: !stateAlreadySaved,
+      ).timeout(const Duration(seconds: 3));
     } catch (_) {}
     await _restoreSystemUi();
     _releaseScreensaverBlock();
@@ -1181,9 +1261,14 @@ class _GameEmulatorScreenState extends State<GameEmulatorScreen>
     }
   }
 
-  Future<void> _persistOnExit() async {
-    await _saveState();
-    await _saveSettings();
+  Future<void> _persistOnExit({required bool saveState}) async {
+    await persistGameEmulatorExit(
+      saveState: saveState,
+      persistState: () async {
+        await _saveState();
+      },
+      persistSettings: _saveSettings,
+    );
   }
 
   @override
@@ -1204,6 +1289,7 @@ class _GameEmulatorScreenState extends State<GameEmulatorScreen>
     _releaseScreensaverBlock();
     releaseGameAudio();
     _comboTimer?.cancel();
+    _controlsCloseWatch?.cancel();
     _settingsScroll.dispose();
     _overlayScroll.dispose();
     _pickerScroll.dispose();

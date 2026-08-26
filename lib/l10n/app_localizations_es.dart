@@ -1199,7 +1199,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String failedToDeleteItemWithError(String error) {
-    return 'Deletion operation failed with the following error: $error';
+    return 'La operación de borrado falló con el siguiente error: $error';
   }
 
   @override
@@ -2106,7 +2106,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String durationMinutes(int minutes) {
-    return '$minutes mín.';
+    return '$minutes min.';
   }
 
   @override
@@ -3063,7 +3063,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get subtitlePreviewText =>
-      'El rápido zorro marrón salta sobre el perro perezoso.';
+      'El rápido zorro marrón salta sobre el perro perezoso';
 
   @override
   String get verticalOffset => 'Desplazamiento vertical';
@@ -3671,11 +3671,11 @@ class AppLocalizationsEs extends AppLocalizations {
       'Limitar las filas del inicio a 1 por pantalla';
 
   @override
-  String get homeRowsPadding => 'Home Row Padding';
+  String get homeRowsPadding => 'Separación de filas en Inicio';
 
   @override
   String get homeRowsPaddingDescription =>
-      'Customize padding between home rows';
+      'Personalizar el espaciado entre filas de inicio';
 
   @override
   String get perRowImageType => 'Tipo de imagen por fila';
@@ -8907,7 +8907,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settingsShowGenresButtonInNavigation =>
-      'Mostrar el botón de géneros en la barra de navegación.';
+      'Mostrar el botón de géneros en la barra de navegación';
 
   @override
   String get settingsShowFavoritesButtonInNavigation =>
@@ -9136,11 +9136,11 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settingsSyncplaySubtitle =>
-      'Lógica de sincronización para sesiones grupales.';
+      'Lógica de sincronización para sesiones grupales';
 
   @override
   String get settingsAdvancedOptionsSubtitle =>
-      'Funciones de reproductor especializadas. Úselo con precaución, ya que algunas opciones pueden causar problemas de reproducción.';
+      'Funciones de reproductor especializadas. Úselo con precaución, ya que algunas opciones pueden causar problemas de reproducción';
 
   @override
   String get settingsSkipIntrosAndOutros => '¿Saltar introducciones y finales?';
@@ -9231,7 +9231,7 @@ class AppLocalizationsEs extends AppLocalizations {
       'Controla si las transmisiones de capa de mejora del perfil 7 de Dolby Vision deben dirigir la reproducción.';
 
   @override
-  String get settingsAutoAftkrtEnabled => 'Automático (AFTKRT habilitado)';
+  String get settingsAutoAftkrtEnabled => 'Automático';
 
   @override
   String get settingsEnabledOnThisDevice => 'Habilitado en este dispositivo';
@@ -9561,7 +9561,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get themeEditorSubtitle =>
-      'Abra el editor de temas Moonfin en su navegador.';
+      'Abra el editor de temas Moonfin en su navegador';
 
   @override
   String get homeScreen => 'Pantalla de inicio';
@@ -34781,12 +34781,30 @@ class AppLocalizationsEsMx extends AppLocalizationsEs {
   AppLocalizationsEsMx() : super('es_MX');
 
   @override
+  String get appTitle => 'Moonfin';
+
+  @override
+  String get accountPreferences => 'PREFERENCIAS DE LA CUENTA';
+
+  @override
+  String get interfaceLanguage => 'Idioma de la Intefaz';
+
+  @override
+  String get systemLanguageDefault => 'Predeterminado del Sistema';
+
+  @override
   String get signIn => 'Iniciar sesión';
+
+  @override
+  String get empty => 'Vacío';
 
   @override
   String connectingToServer(String serverName) {
     return 'Conectándose a $serverName';
   }
+
+  @override
+  String get quickConnect => 'Quick Connect';
 
   @override
   String get password => 'Contraseña';
@@ -34812,6 +34830,11 @@ class AppLocalizationsEsMx extends AppLocalizationsEs {
 
   @override
   String get loginFailed => 'error de inicio de sesion';
+
+  @override
+  String quickConnectUnavailable(String detail) {
+    return 'QuickConnect no disponible: $detail';
+  }
 
   @override
   String quickConnectUnavailableWithStatus(String status, String detail) {
@@ -34888,6 +34911,36 @@ class AppLocalizationsEsMx extends AppLocalizationsEs {
 
   @override
   String get settingsAppearanceTheme => 'Tema de la aplicación';
+
+  @override
+  String get detailScreenStyle => 'Estilo de la pantalla de detalles';
+
+  @override
+  String get detailScreenStyleSubtitle =>
+      'Clásico es el diseño centrado original de moonfin. Moderno es un diseño cinematográfico adaptable.';
+
+  @override
+  String get detailScreenStyleMoonfin => 'Clásico';
+
+  @override
+  String get detailScreenStyleModern => 'Moderno';
+
+  @override
+  String get expandedTabs => 'Pestañas Extendidas';
+
+  @override
+  String get expandedTabsSubtitle =>
+      'Muestra automáticamente el contenido de las pestañas al navegar por ellas. Desactívalo para abrir y cerrar cada pestaña manualmente.';
+
+  @override
+  String get showTechnicalDetails => '¿Mostrar Detalles Técnicos?';
+
+  @override
+  String get showTechnicalDetailsSubtitle =>
+      'Mostrar el códec, la resolución y información del stream en el resumen del banner';
+
+  @override
+  String get recommendationSystem => 'Sistema de Recomendaciones';
 
   @override
   String get settingsAppearanceThemeSubtitle =>
@@ -42554,4 +42607,15 @@ class AppLocalizationsEsMx extends AppLocalizationsEs {
 
   @override
   String get transcodingLimits => 'Límites de transcodificación';
+
+  @override
+  String get playbackTimeDisplay => 'Barra de Progreso de Tiempo';
+
+  @override
+  String get settingsPlaybackTimeDisplayDescription =>
+      'Elige qué etiquetas aparecen alrededor de la barra de progreso de reproducción.';
+
+  @override
+  String get settingsMusicPlaybackTimeDescription =>
+      'Elige qué se muestra a la derecha de la barra de progreso de la música.';
 }

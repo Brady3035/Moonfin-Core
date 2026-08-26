@@ -57,6 +57,7 @@ import 'ui/widgets/overlay_sheet.dart';
 import 'package:moonfin_design/moonfin_design.dart';
 import 'util/focus/key_event_utils.dart';
 import 'util/focus/gamepad/gamepad_navigation_scope.dart';
+import 'util/focus/open_popup.dart';
 import 'package:custom_tv_text_field/custom_tv_text_field.dart';
 
 class MoonfinApp extends StatefulWidget {
@@ -680,6 +681,26 @@ class _GlobalShortcutScopeState extends State<_GlobalShortcutScope>
         return true;
       }
       if (InlineBackInterceptor.handleBack()) {
+        if (PlatformDetection.isAndroid && key == LogicalKeyboardKey.goBack) {
+          DialogBackSuppressor.markDismissed();
+        }
+        return true;
+      }
+      final focus = FocusManager.instance.primaryFocus;
+      final popup = openPopupFor(
+        focus: focus,
+        root: appRouter.routerDelegate.navigatorKey.currentState,
+      );
+      if (popup != null) {
+        // The focus tree sees every key after the handlers here, whatever they
+        // return, and a popup holding focus closes itself from there through
+        // its own back handler or the framework's dismiss action. Acting on it
+        // here as well would pop twice, so the handler only stands aside.
+        if (focusIsInside(focus, popup.route)) {
+          return false;
+        }
+        // Focus wandered out of the popup, so nothing else will close it.
+        unawaited(popup.navigator.maybePop());
         if (PlatformDetection.isAndroid && key == LogicalKeyboardKey.goBack) {
           DialogBackSuppressor.markDismissed();
         }

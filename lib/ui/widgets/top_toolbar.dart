@@ -26,6 +26,7 @@ import '../navigation/destinations.dart';
 import '../navigation/home_refresh_bus.dart';
 import '../navigation/route_lifecycle_observer.dart';
 import 'expandable_icon_button.dart';
+import 'overlay_sheet.dart';
 import 'navigation_layout.dart';
 import 'settings/settings_panel.dart';
 import '../screens/settings/settings_side_panel.dart';
@@ -1918,9 +1919,14 @@ class _LibrariesDropdownState extends State<_LibrariesDropdown> {
   }
 
   void _removeOverlay() {
+    InlineBackInterceptor.remove(_closeFromBack);
     _overlayEntry?.remove();
     _overlayEntry = null;
   }
+
+  // The dropdown is an overlay entry rather than a route, so nothing pops it on
+  // back. Registering it lets the key close it instead of leaving the page.
+  void _closeFromBack() => _hideDropdown(focusButton: true);
 
   void _showDropdown({bool focusFirstItem = false}) {
     _hideTimer?.cancel();
@@ -1941,6 +1947,7 @@ class _LibrariesDropdownState extends State<_LibrariesDropdown> {
 
     _overlayEntry = OverlayEntry(builder: _buildOverlay);
     Overlay.of(context).insert(_overlayEntry!);
+    InlineBackInterceptor.push(_closeFromBack);
     setState(() {});
 
     if (focusFirstItem && _itemFocusNodes.isNotEmpty) {

@@ -9633,21 +9633,21 @@ Future<bool> _runWithDolbyVisionStartupFallbackPrompt(
   }
 }
 
-({bool hasDolbyVision, bool hasUnsupportedProfile}) _analyzeDolbyVisionQueue(
+({bool needsFallback, bool hasUnsupportedProfile}) _analyzeDolbyVisionQueue(
   List<AggregatedItem> queue, {
   String? mediaSourceId,
   bool allowDolbyVisionProfile7ElDirectPlay = false,
 }) {
-  var hasDolbyVision = false;
+  var needsFallback = false;
   var hasUnsupportedProfile = false;
 
   for (final item in queue) {
     final selectedSource = selectedMediaSourceForItem(item, mediaSourceId);
     final streams = mediaStreamsForItem(item, selectedSource);
     for (final stream in streams) {
-      if (!hasDolbyVision &&
-          HdrStreamCapability.isDolbyVisionVideoStream(stream)) {
-        hasDolbyVision = true;
+      if (!needsFallback &&
+          HdrStreamCapability.needsDolbyVisionFallback(stream)) {
+        needsFallback = true;
       }
       if (!hasUnsupportedProfile &&
           HdrStreamCapability.streamNeedsDolbyVisionProfileTranscode(
@@ -9657,14 +9657,14 @@ Future<bool> _runWithDolbyVisionStartupFallbackPrompt(
           )) {
         hasUnsupportedProfile = true;
       }
-      if (hasDolbyVision && hasUnsupportedProfile) {
-        return (hasDolbyVision: true, hasUnsupportedProfile: true);
+      if (needsFallback && hasUnsupportedProfile) {
+        return (needsFallback: true, hasUnsupportedProfile: true);
       }
     }
   }
 
   return (
-    hasDolbyVision: hasDolbyVision,
+    needsFallback: needsFallback,
     hasUnsupportedProfile: hasUnsupportedProfile,
   );
 }
@@ -9776,7 +9776,7 @@ Future<bool> shouldForceTranscodeForDolbyVisionQueue(
     mediaSourceId: mediaSourceId,
     allowDolbyVisionProfile7ElDirectPlay: allowDolbyVisionProfile7ElDirectPlay,
   );
-  if (!dvAnalysis.hasDolbyVision) {
+  if (!dvAnalysis.needsFallback) {
     return false;
   }
 

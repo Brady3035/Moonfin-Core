@@ -915,14 +915,22 @@ class NativeControllerMappingScreenState
 
     if (_testingController) {
       final device = _device;
+      // Scaled to fit rather than scrolled: the panel's height varies with what
+      // the pad reports (a snap line, a two-line last button, the exit ring),
+      // and nothing in it is focusable, so on a remote there is no way to
+      // scroll to anything that overflows.
       return Flexible(
-        child: SingleChildScrollView(
-          controller: _scroll,
-          child: ControllerTestPanel(
-            snapshot: _diagnosticsSnapshot,
-            deviceName: device?.name ?? 'Controller',
-            port: device?.port,
-            exitHoldProgress: _testExitProgress,
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.topCenter,
+          child: SizedBox(
+            width: 520,
+            child: ControllerTestPanel(
+              snapshot: _diagnosticsSnapshot,
+              deviceName: device?.name ?? 'Controller',
+              port: device?.port,
+              exitHoldProgress: _testExitProgress,
+            ),
           ),
         ),
       );

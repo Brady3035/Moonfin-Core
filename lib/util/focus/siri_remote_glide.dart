@@ -2,6 +2,8 @@ import 'dart:async' show unawaited;
 
 import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter/services.dart' show MethodChannel;
+import 'package:flutter/widgets.dart'
+    show AppLifecycleState, WidgetsBinding, WidgetsBindingObserver;
 import 'package:flutter_tvos/flutter_tvos.dart'
     show TvRemoteController, TvRemoteTouchEvent, TvRemoteTouchPhase;
 
@@ -23,7 +25,7 @@ import 'gamepad/gamepad_key_synthesizer.dart';
 ///
 /// While a native view controller covers Flutter the engine stops forwarding
 /// touches, so this layer goes quiet on its own.
-class SiriRemoteGlide {
+class SiriRemoteGlide with WidgetsBindingObserver {
   SiriRemoteGlide._();
 
   static final SiriRemoteGlide instance = SiriRemoteGlide._();
@@ -51,6 +53,14 @@ class SiriRemoteGlide {
     if (_attached) return;
     _attached = true;
     TvRemoteController.instance.addRawListener(_onTouch);
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  /// Losing the foreground can swallow the touch ended event, and a finger
+  /// cannot be on the pad while another app has the screen.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state != AppLifecycleState.resumed) _setTouching(false);
   }
 
   @visibleForTesting
@@ -91,11 +101,13 @@ class SiriRemoteGlide {
     _steppedThisGesture = false;
   }
 
-  /// Tells the native press gate whether a finger is on the pad. The gate is
-  /// absent if the engine ever stops putting recognizers on its presses, and a
-  /// report nobody listens for is no reason to break the gesture.
+  /// Tells the native press gate whether a finger is on the pad. A repeated
+  /// value still goes out, since the gate clears itself when the app loses the
+  /// foreground or a controller drops and the next gesture has to re-arm it.
+  /// The gate is absent if the engine ever stops putting recognizers on its
+  /// presses, and a report nobody listens for is no reason to break the
+  /// gesture.
   void _setTouching(bool touching) {
-    if (touching == _touching) return;
     _touching = touching;
     if (!PlatformDetection.isAppleTV) return;
     unawaited(

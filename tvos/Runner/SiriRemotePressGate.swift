@@ -51,6 +51,19 @@ final class SiriRemotePressGate: NSObject, UIGestureRecognizerDelegate {
                 result(nil)
             }
         }
+        // A backgrounded app or a controller that drops mid gesture never
+        // delivers the touch ended report, which would leave the gate blocking
+        // arrows on stale evidence. Either way no finger is on the pad.
+        for name in [
+            UIApplication.willResignActiveNotification,
+            .GCControllerDidDisconnect,
+        ] {
+            NotificationCenter.default.addObserver(
+                forName: name, object: nil, queue: .main
+            ) { [weak self] _ in
+                MainActor.assumeIsolated { self?.padIsTouched = false }
+            }
+        }
     }
 
     /// Wraps the delegate of every arrow recognizer on `view`. Returns nil when
@@ -79,6 +92,16 @@ final class SiriRemotePressGate: NSObject, UIGestureRecognizerDelegate {
     }
 
     func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+        // Temporary diagnostic, do not ship. Answers whether tvOS synthesizes
+        // arrow presses from swipes: lines with padIsTouched=true during a
+        // swipe mean it does and the gate is load bearing, lines only on
+        // taps, clicks, and IR presses mean the gate guards nothing a swipe
+        // produces.
+        let types = (gestureRecognizer as? UILongPressGestureRecognizer)?
+            .allowedPressTypes.map(\.intValue) ?? []
+        NSLog(
+            "[gate] arrow press types=%@ padIsTouched=%d clicked=%d",
+            "\(types)", padIsTouched ? 1 : 0, Self.surfaceIsClicked ? 1 : 0)
         if padIsTouched, !Self.surfaceIsClicked { return false }
         return upstream?.gestureRecognizerShouldBegin?(gestureRecognizer) ?? true
     }

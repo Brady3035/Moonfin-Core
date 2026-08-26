@@ -271,6 +271,16 @@ class AppLocalizationsRo extends AppLocalizations {
       'Utilizați metoda de introducere a dispozitivului în mod implicit pentru introducerea textului';
 
   @override
+  String get controller => 'Controller';
+
+  @override
+  String get gamepadNavigation => 'Gamepad navigation';
+
+  @override
+  String get gamepadNavigationDescription =>
+      'Let a connected game controller move focus and select items';
+
+  @override
   String get themeMoonfin => 'Moonfin';
 
   @override

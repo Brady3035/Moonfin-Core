@@ -273,6 +273,16 @@ class AppLocalizationsEl extends AppLocalizations {
       'Χρησιμοποιήστε τη μέθοδο εισαγωγής της συσκευής σας από προεπιλογή για την εισαγωγή κειμένου';
 
   @override
+  String get controller => 'Controller';
+
+  @override
+  String get gamepadNavigation => 'Gamepad navigation';
+
+  @override
+  String get gamepadNavigationDescription =>
+      'Let a connected game controller move focus and select items';
+
+  @override
   String get themeMoonfin => 'Moonfin';
 
   @override

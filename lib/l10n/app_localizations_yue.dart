@@ -265,6 +265,16 @@ class AppLocalizationsYue extends AppLocalizations {
   String get keyboardPreferSystemImeDescription => '預設用你部裝置嘅輸入法嚟打字';
 
   @override
+  String get controller => 'Controller';
+
+  @override
+  String get gamepadNavigation => 'Gamepad navigation';
+
+  @override
+  String get gamepadNavigationDescription =>
+      'Let a connected game controller move focus and select items';
+
+  @override
   String get themeMoonfin => 'Moonfin';
 
   @override

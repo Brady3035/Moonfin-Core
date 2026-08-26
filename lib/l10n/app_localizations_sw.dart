@@ -271,6 +271,16 @@ class AppLocalizationsSw extends AppLocalizations {
       'Tumia mbinu ya kuingiza maandishi ya kifaa chako kama chaguo-msingi';
 
   @override
+  String get controller => 'Controller';
+
+  @override
+  String get gamepadNavigation => 'Gamepad navigation';
+
+  @override
+  String get gamepadNavigationDescription =>
+      'Let a connected game controller move focus and select items';
+
+  @override
   String get themeMoonfin => 'Moonfin';
 
   @override

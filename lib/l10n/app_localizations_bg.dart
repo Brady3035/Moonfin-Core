@@ -271,6 +271,16 @@ class AppLocalizationsBg extends AppLocalizations {
       'Използвайте метода на въвеждане на вашето устройство по подразбиране за въвеждане на текст';
 
   @override
+  String get controller => 'Controller';
+
+  @override
+  String get gamepadNavigation => 'Gamepad navigation';
+
+  @override
+  String get gamepadNavigationDescription =>
+      'Let a connected game controller move focus and select items';
+
+  @override
   String get themeMoonfin => 'Moonfin';
 
   @override

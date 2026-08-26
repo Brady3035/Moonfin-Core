@@ -271,6 +271,16 @@ class AppLocalizationsPt extends AppLocalizations {
       'Use o método de entrada do seu dispositivo por padrão para entrada de texto';
 
   @override
+  String get controller => 'Controller';
+
+  @override
+  String get gamepadNavigation => 'Gamepad navigation';
+
+  @override
+  String get gamepadNavigationDescription =>
+      'Let a connected game controller move focus and select items';
+
+  @override
   String get themeMoonfin => 'Moonfin';
 
   @override

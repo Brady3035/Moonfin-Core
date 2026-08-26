@@ -1188,6 +1188,15 @@ class UserPreferences extends ChangeNotifier {
         PlatformDetection.isAppleTV,
   );
 
+  /// Whether a game controller drives the app UI. Off by default. Games take
+  /// the pad for themselves either way. Belongs to the device rather than the
+  /// account, like [useExternalPlayer], so it's neither synced nor stored per
+  /// server.
+  static final gamepadNavigationEnabled = Preference(
+    key: 'pref_gamepad_navigation_enabled',
+    defaultValue: false,
+  );
+
   static final visualTheme = EnumPreference(
     key: 'app_theme_id',
     defaultValue: PlatformDetection.isApple || PlatformDetection.isAppleTV

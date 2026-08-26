@@ -271,6 +271,16 @@ class AppLocalizationsEs extends AppLocalizations {
       'Utilice el método de entrada de su dispositivo de forma predeterminada para la entrada de texto';
 
   @override
+  String get controller => 'Controller';
+
+  @override
+  String get gamepadNavigation => 'Gamepad navigation';
+
+  @override
+  String get gamepadNavigationDescription =>
+      'Let a connected game controller move focus and select items';
+
+  @override
   String get themeMoonfin => 'Moonfin';
 
   @override

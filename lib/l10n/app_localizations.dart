@@ -694,6 +694,24 @@ abstract class AppLocalizations {
   /// **'Use your device input method by default for text entry'**
   String get keyboardPreferSystemImeDescription;
 
+  /// Settings section header for game controller options
+  ///
+  /// In en, this message translates to:
+  /// **'Controller'**
+  String get controller;
+
+  /// Settings label for the switch that lets a game controller move focus and select items
+  ///
+  /// In en, this message translates to:
+  /// **'Gamepad navigation'**
+  String get gamepadNavigation;
+
+  /// Settings subtitle for the gamepad navigation switch
+  ///
+  /// In en, this message translates to:
+  /// **'Let a connected game controller move focus and select items'**
+  String get gamepadNavigationDescription;
+
   /// Display name for the Moonfin theme
   ///
   /// In en, this message translates to:

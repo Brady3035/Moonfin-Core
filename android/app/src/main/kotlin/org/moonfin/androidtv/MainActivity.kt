@@ -331,6 +331,10 @@ class MainActivity : AudioServiceActivity(), GamepadsCompatibleActivity {
                     gameInputRouter.setEmulatorControlsActive(call.argument<Boolean>("active") ?: false)
                     result.success(true)
                 }
+                "setNavigationEnabled" -> {
+                    gameInputRouter.setNavigationEnabled(call.argument<Boolean>("enabled") ?: false)
+                    result.success(true)
+                }
                 "setControllerMapping" -> {
                     nativePad?.setControllerMappings(call.argument<String>("mapping") ?: "{}")
                     result.success(true)
@@ -686,6 +690,9 @@ class MainActivity : AudioServiceActivity(), GamepadsCompatibleActivity {
         val pad = nativePad
         if (pad != null && pad.active && pad.onKey(event)) return true
         if (gameInputRouter.onKeyEvent(event)) return true
+        // A native session decides for itself what a pad button does, so the
+        // gate waits for it to finish.
+        if (pad?.active != true && gameInputRouter.blocksNavigation(event)) return true
         // keyHandler is the gamepads_android plugin's registration
         // (GamepadsCompatibleActivity.registerKeyEventHandler), which forwards
         // to the xyz.luan/gamepads channel's Gamepads.normalizedEvents stream.

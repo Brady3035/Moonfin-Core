@@ -271,6 +271,16 @@ class AppLocalizationsEo extends AppLocalizations {
       'Uzu vian aparatan enigmetodon defaŭlte por tekstoenigo';
 
   @override
+  String get controller => 'Controller';
+
+  @override
+  String get gamepadNavigation => 'Gamepad navigation';
+
+  @override
+  String get gamepadNavigationDescription =>
+      'Let a connected game controller move focus and select items';
+
+  @override
   String get themeMoonfin => 'Moonfin';
 
   @override

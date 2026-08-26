@@ -272,6 +272,16 @@ class AppLocalizationsUk extends AppLocalizations {
       'Типово використовувати метод введення вашого пристрою для введення тексту';
 
   @override
+  String get controller => 'Controller';
+
+  @override
+  String get gamepadNavigation => 'Gamepad navigation';
+
+  @override
+  String get gamepadNavigationDescription =>
+      'Let a connected game controller move focus and select items';
+
+  @override
   String get themeMoonfin => 'Moonfin';
 
   @override

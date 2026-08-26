@@ -266,6 +266,16 @@ class AppLocalizationsJa extends AppLocalizations {
   String get keyboardPreferSystemImeDescription => '文字入力に標準でデバイスの入力方式を使用します';
 
   @override
+  String get controller => 'Controller';
+
+  @override
+  String get gamepadNavigation => 'Gamepad navigation';
+
+  @override
+  String get gamepadNavigationDescription =>
+      'Let a connected game controller move focus and select items';
+
+  @override
   String get themeMoonfin => 'Moonfin';
 
   @override

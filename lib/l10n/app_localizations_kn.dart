@@ -271,6 +271,16 @@ class AppLocalizationsKn extends AppLocalizations {
       'ಪಠ್ಯ ನಮೂದಿಗೆ ಪೂರ್ವನಿಯೋಜಿತವಾಗಿ ನಿಮ್ಮ ಸಾಧನದ ಇನ್‌ಪುಟ್ ವಿಧಾನವನ್ನು ಬಳಸಿ';
 
   @override
+  String get controller => 'Controller';
+
+  @override
+  String get gamepadNavigation => 'Gamepad navigation';
+
+  @override
+  String get gamepadNavigationDescription =>
+      'Let a connected game controller move focus and select items';
+
+  @override
   String get themeMoonfin => 'Moonfin';
 
   @override

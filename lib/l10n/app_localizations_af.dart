@@ -271,6 +271,16 @@ class AppLocalizationsAf extends AppLocalizations {
       'Gebruik jou toestelinvoermetode by verstek vir teksinvoer';
 
   @override
+  String get controller => 'Controller';
+
+  @override
+  String get gamepadNavigation => 'Gamepad navigation';
+
+  @override
+  String get gamepadNavigationDescription =>
+      'Let a connected game controller move focus and select items';
+
+  @override
   String get themeMoonfin => 'Moonfin';
 
   @override

@@ -271,6 +271,16 @@ class AppLocalizationsVi extends AppLocalizations {
       'Sử dụng phương thức nhập thiết bị của bạn theo mặc định để nhập văn bản';
 
   @override
+  String get controller => 'Controller';
+
+  @override
+  String get gamepadNavigation => 'Gamepad navigation';
+
+  @override
+  String get gamepadNavigationDescription =>
+      'Let a connected game controller move focus and select items';
+
+  @override
   String get themeMoonfin => 'Moonfin';
 
   @override

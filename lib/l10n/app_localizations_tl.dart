@@ -272,6 +272,16 @@ class AppLocalizationsTl extends AppLocalizations {
       'Gamitin ang paraan ng pag-input ng iyong device bilang default para sa pagpasok ng text';
 
   @override
+  String get controller => 'Controller';
+
+  @override
+  String get gamepadNavigation => 'Gamepad navigation';
+
+  @override
+  String get gamepadNavigationDescription =>
+      'Let a connected game controller move focus and select items';
+
+  @override
   String get themeMoonfin => 'Moonfin';
 
   @override

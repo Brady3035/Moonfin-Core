@@ -344,6 +344,18 @@
   "@keyboardPreferSystemImeDescription": {
     "description": "Settings subtitle for the system keyboard preference"
   },
+  "controller": "Controller",
+  "@controller": {
+    "description": "Settings section header for game controller options"
+  },
+  "gamepadNavigation": "Gamepad navigation",
+  "@gamepadNavigation": {
+    "description": "Settings label for the switch that lets a game controller move focus and select items"
+  },
+  "gamepadNavigationDescription": "Let a connected game controller move focus and select items",
+  "@gamepadNavigationDescription": {
+    "description": "Settings subtitle for the gamepad navigation switch"
+  },
   "themeMoonfin": "Moonfin",
   "@themeMoonfin": {
     "description": "Display name for the Moonfin theme"

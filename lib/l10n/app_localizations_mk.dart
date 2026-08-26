@@ -271,6 +271,16 @@ class AppLocalizationsMk extends AppLocalizations {
       'Стандардно користи го методот за внес на вашиот уред за внесување текст';
 
   @override
+  String get controller => 'Controller';
+
+  @override
+  String get gamepadNavigation => 'Gamepad navigation';
+
+  @override
+  String get gamepadNavigationDescription =>
+      'Let a connected game controller move focus and select items';
+
+  @override
   String get themeMoonfin => 'Moonfin';
 
   @override

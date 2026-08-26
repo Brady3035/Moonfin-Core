@@ -271,6 +271,16 @@ class AppLocalizationsDe extends AppLocalizations {
       'Nutze zur Texteingabe standardmäßig die Eingabemethode des Gerätes';
 
   @override
+  String get controller => 'Controller';
+
+  @override
+  String get gamepadNavigation => 'Gamepad navigation';
+
+  @override
+  String get gamepadNavigationDescription =>
+      'Let a connected game controller move focus and select items';
+
+  @override
   String get themeMoonfin => 'Moonfin';
 
   @override

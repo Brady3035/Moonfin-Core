@@ -268,6 +268,16 @@ class AppLocalizationsKo extends AppLocalizations {
       '텍스트 입력 시 기기의 입력기를 기본으로 사용합니다';
 
   @override
+  String get controller => 'Controller';
+
+  @override
+  String get gamepadNavigation => 'Gamepad navigation';
+
+  @override
+  String get gamepadNavigationDescription =>
+      'Let a connected game controller move focus and select items';
+
+  @override
   String get themeMoonfin => 'Moonfin';
 
   @override

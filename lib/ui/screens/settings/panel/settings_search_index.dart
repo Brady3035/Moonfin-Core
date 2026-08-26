@@ -552,6 +552,13 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
         subtitle: l10n.keyboardPreferSystemImeDescription,
         keywords: ['keyboard', 'input'],
       ),
+    if (GamepadNavigationScope.isConfigurable)
+      style.leaf(
+        'pref_gamepad_navigation_enabled',
+        l10n.gamepadNavigation,
+        subtitle: l10n.gamepadNavigationDescription,
+        keywords: ['gamepad', 'controller', 'input'],
+      ),
     style.leaf('pref_clock_behavior', l10n.clockDisplay, keywords: ['time']),
     style.leaf(
       'pref_use_24_hour_clock',

@@ -25,6 +25,7 @@ import '../../../util/idiom/app_ui_idiom.dart';
 import '../../../util/insecure_certificates.dart';
 import '../../../platform/web_runtime_config.dart';
 import '../../../util/focus/dpad_keys.dart';
+import '../../../util/focus/gamepad/gamepad_navigation_scope.dart';
 import '../../../util/language_codes.dart';
 import '../../../util/locale_names.dart';
 import '../../util/home_row_title_localizer.dart';

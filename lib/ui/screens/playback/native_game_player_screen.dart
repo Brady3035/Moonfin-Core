@@ -64,8 +64,9 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
     with GameAudioOwner {
   final MediaServerClient _client = GetIt.instance<MediaServerClient>();
   late final NativeGamePlayer _player;
-  late final CoreDownloadService _cores =
-      CoreDownloadService(GetIt.instance<PreferenceStore>());
+  late final CoreDownloadService _cores = CoreDownloadService(
+    GetIt.instance<PreferenceStore>(),
+  );
 
   String get _stateKey => gameStateKey(widget.gameId, widget.core);
 
@@ -738,7 +739,8 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
       );
       if (contentPath == null) {
         _releaseGameplayArtworkBlock();
-        if (mounted) {
+        // Extraction may already have reported something more specific than this.
+        if (mounted && _error == null) {
           setState(() => _error = 'This archive format is not supported.');
         }
         return;
@@ -812,8 +814,10 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
       );
     } catch (_) {
       if (mounted) {
-        setState(() => _error =
-            'The system files for this core could not be installed. Check your connection and try again.');
+        setState(
+          () => _error =
+              'The system files for this core could not be installed. Check your connection and try again.',
+        );
       }
       return false;
     }
@@ -858,15 +862,20 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
   /// zip's own name and expect every chip inside it, so extracting "the
   /// largest file" like every other system does would destroy the set.
   /// 7z is not readable here yet.
+  ///
+  /// The file's signature decides, not its name: a server unpacks a single-ROM
+  /// archive itself and sends the raw ROM under the archive's own name, so a
+  /// download called .zip is often a plain ROM already.
   Future<String?> _extractIfArchive(
     File file,
     Directory cacheDir, {
     bool preserveArchive = false,
   }) async {
-    final lower = file.path.toLowerCase();
-    if (lower.endsWith('.7z')) return null;
-    if (!lower.endsWith('.zip')) return file.path;
     if (preserveArchive) return file.path;
+
+    final signature = await _readSignature(file);
+    if (_is7zSignature(signature)) return null;
+    if (!_isZipSignature(signature)) return file.path;
 
     final marker = File('${cacheDir.path}/.extracted');
     if (await marker.exists()) {
@@ -912,6 +921,31 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
       await input.close();
     }
   }
+
+  static Future<List<int>> _readSignature(File file) async {
+    final handle = await file.open();
+    try {
+      return await handle.read(6);
+    } finally {
+      await handle.close();
+    }
+  }
+
+  static bool _isZipSignature(List<int> s) =>
+      s.length >= 4 &&
+      s[0] == 0x50 &&
+      s[1] == 0x4B &&
+      s[2] == 0x03 &&
+      s[3] == 0x04;
+
+  static bool _is7zSignature(List<int> s) =>
+      s.length >= 6 &&
+      s[0] == 0x37 &&
+      s[1] == 0x7A &&
+      s[2] == 0xBC &&
+      s[3] == 0xAF &&
+      s[4] == 0x27 &&
+      s[5] == 0x1C;
 
   Future<Map<String, String>?> _loadSettings(
     GamesApi games,
@@ -1521,8 +1555,10 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
               child: IgnorePointer(
                 child: SafeArea(
                   child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 10,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.black87,
                       borderRadius: BorderRadius.circular(8),

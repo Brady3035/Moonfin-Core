@@ -39,11 +39,9 @@ class JellyfinMediaServerClient extends MediaServerClient {
   }) : _dio = Dio(BaseOptions(
          baseUrl: baseUrl,
          followRedirects: false,
-         // Covers the wait for a free connection slot as well as the
-         // handshake, so a screen that asks for more at once than the pool
-         // holds can spend most of it queued. The socket has its own shorter
-         // timeout, so an unreachable address still gives up quickly.
-         connectTimeout: const Duration(seconds: 30),
+         // Only the connect. Waiting for a free slot happens before this
+         // starts, so it can stay short enough to give up on a hung host.
+         connectTimeout: const Duration(seconds: 8),
          receiveTimeout: const Duration(seconds: 30),
        )) {
     _baseUrl = baseUrl;

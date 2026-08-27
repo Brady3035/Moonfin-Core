@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
-import 'package:dio/io.dart';
 import 'package:server_core/server_core.dart';
 import 'package:test/test.dart';
 
@@ -79,75 +78,85 @@ void main() {
     });
   });
 
-  // Reaching the host is the part that has to fail fast. The caller's timeout
-  // can't do that job, since it also covers queueing for a free slot.
-  group('configureServerDio socket timeout', () {
-    Duration socketTimeoutFor(Duration? dioTimeout) {
-      final dio = Dio(BaseOptions(connectTimeout: dioTimeout));
-      configureServerDio(dio);
-      final adapter = dio.httpClientAdapter as IOHttpClientAdapter;
-      return adapter.createHttpClient!().connectionTimeout!;
-    }
-
-    test('stays short whatever the caller allows for queueing', () {
-      const short = Duration(seconds: 10);
-      expect(socketTimeoutFor(const Duration(seconds: 30)), short);
-      expect(socketTimeoutFor(const Duration(minutes: 3)), short);
-      expect(socketTimeoutFor(null), short);
-    });
-  });
-
-  // Waiting for one of the fifteen per host slots is ordinary queueing, but Dio
-  // counts it against its connect timeout and calls it a connection timeout. A
-  // screen that asks for more at once than the pool holds then fails on a link
-  // where each request keeps its slot long enough for a queue to build.
-  group('a full connection pool', () {
+  // A screen that asks for more at once than the slots hold has to queue, and
+  // none of that wait may count against the connect timeout.
+  group('slot limited requests', () {
     late HttpServer server;
     const slowResponse = Duration(milliseconds: 300);
     const moreRequestsThanSlots = 60;
+    var inFlight = 0;
+    var mostInFlight = 0;
+    var failEveryRequest = false;
 
     setUp(() async {
+      inFlight = 0;
+      mostInFlight = 0;
+      failEveryRequest = false;
       server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
       server.listen((request) async {
+        inFlight++;
+        if (inFlight > mostInFlight) mostInFlight = inFlight;
         await Future<void>.delayed(slowResponse);
-        request.response.statusCode = 200;
+        inFlight--;
+        request.response.statusCode = failEveryRequest
+            ? HttpStatus.internalServerError
+            : HttpStatus.ok;
         await request.response.close();
       });
     });
 
     tearDown(() => server.close(force: true));
 
-    Future<List<Object?>> fireConcurrently(Duration connectTimeout) {
+    Dio dioWith(Duration connectTimeout) {
       final dio = Dio(
         BaseOptions(
           baseUrl: 'http://${server.address.address}:${server.port}',
           connectTimeout: connectTimeout,
-          validateStatus: (_) => true,
         ),
       );
       configureServerDio(dio);
-      return Future.wait(
-        List.generate(
-          moreRequestsThanSlots,
-          (i) => dio
-              .get<void>('/$i')
-              .then<Object?>((r) => r)
-              .catchError((Object e) => e),
-        ),
-      );
+      return dio;
     }
 
-    test('queues rather than failing when the caller allows for it', () async {
-      final results = await fireConcurrently(const Duration(seconds: 30));
+    Future<List<Object?>> fireConcurrently(Dio dio) => Future.wait(
+      List.generate(
+        moreRequestsThanSlots,
+        (i) => dio
+            .get<void>('/$i')
+            .then<Object?>((r) => r)
+            .catchError((Object e) => e),
+      ),
+    );
+
+    test('queueing is never billed to the connect timeout', () async {
+      final results = await fireConcurrently(
+        dioWith(const Duration(milliseconds: 400)),
+      );
       expect(results.whereType<DioException>(), isEmpty);
     });
 
-    test('is what a short connect timeout cuts off', () async {
-      final results = await fireConcurrently(const Duration(milliseconds: 400));
-      final timedOut = results
-          .whereType<DioException>()
-          .where((e) => e.type == DioExceptionType.connectionTimeout);
-      expect(timedOut, isNotEmpty);
+    test('holds the rest back once the slots are taken', () async {
+      await fireConcurrently(dioWith(const Duration(seconds: 30)));
+      // A browser allows itself six per host without multiplexing, and going
+      // past that is what a proxy reads as a flood.
+      expect(mostInFlight, lessThanOrEqualTo(6));
+      expect(mostInFlight, greaterThan(1));
+    });
+
+    test('hands a slot back when the request fails', () async {
+      final dio = dioWith(const Duration(seconds: 30));
+      failEveryRequest = true;
+      final failed = await fireConcurrently(dio);
+      expect(
+        failed.whereType<DioException>(),
+        hasLength(moreRequestsThanSlots),
+      );
+
+      failEveryRequest = false;
+      final response = await dio
+          .get<void>('/after')
+          .timeout(const Duration(seconds: 5));
+      expect(response.statusCode, HttpStatus.ok);
     });
   });
 }

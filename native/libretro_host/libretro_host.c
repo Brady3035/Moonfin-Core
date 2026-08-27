@@ -144,6 +144,7 @@ typedef void(RETRO_CALLCONV *fn_set_audio)(retro_audio_sample_t);
 typedef void(RETRO_CALLCONV *fn_set_audio_batch)(retro_audio_sample_batch_t);
 typedef void(RETRO_CALLCONV *fn_set_input_poll)(retro_input_poll_t);
 typedef void(RETRO_CALLCONV *fn_set_input_state)(retro_input_state_t);
+typedef void(RETRO_CALLCONV *fn_set_controller_port_device)(unsigned,unsigned);
 typedef void(RETRO_CALLCONV *fn_get_sysinfo)(struct retro_system_info *);
 typedef void(RETRO_CALLCONV *fn_get_avinfo)(struct retro_system_av_info *);
 typedef bool(RETRO_CALLCONV *fn_load_game)(const struct retro_game_info *);
@@ -161,6 +162,9 @@ typedef struct {
   fn_set_audio_batch set_audio_sample_batch;
   fn_set_input_poll set_input_poll;
   fn_set_input_state set_input_state;
+  // Optional in practice: older/minimal cores can omit this entry point even
+  // though the libretro API documents it. Keep the rest of the core usable.
+  fn_set_controller_port_device set_controller_port_device;
   fn_void init;
   fn_void deinit;
   fn_get_sysinfo get_system_info;
@@ -192,6 +196,15 @@ typedef struct {
   char *value;
 } lh_var;
 
+typedef struct {
+  lh_controller_type *types;
+  unsigned type_count;
+} lh_controller_port;
+
+// lh_input_descriptor (one RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS entry, as
+// a caller-owned snapshot) is declared in libretro_host.h alongside
+// lh_controller_type, since both are part of the public accessor surface.
+
 // ---------------------------------------------------------------------------
 // Video double buffer: the run loop converts into the back buffer, the platform
 // pulls the front. A pull swaps them, so a returned frame stays valid until the
@@ -216,6 +229,7 @@ typedef enum {
   JOB_SERIALIZE_SIZE,
   JOB_SERIALIZE,
   JOB_UNSERIALIZE,
+  JOB_CONTROLLER_DEVICE,
 } lh_job_kind;
 
 typedef struct {
@@ -225,6 +239,8 @@ typedef struct {
   size_t size;
   size_t result_size;
   int result_ok;
+  int port;
+  unsigned device;
   int done;
 } lh_job;
 
@@ -287,6 +303,28 @@ struct lh_host {
   int alloc_failed;
   lh_mutex vars_lock;
 
+  // Controller configuration snapshots. The core owns the structures passed
+  // through SET_CONTROLLER_INFO, so retain only copied labels and IDs here.
+  // We log every reported port, including ports Moonfin cannot drive, but keep
+  // snapshots only for the four ports this host can actually route input to.
+  lh_controller_port *controller_ports;
+  int controller_port_count;
+  lh_mutex controller_info_lock;
+  // Last device successfully handed to the core for each routable port. This
+  // survives an internal restart, whose new core instance otherwise forgets
+  // every retro_set_controller_port_device call.
+  // Atomic, not mutex-guarded: independent per-port scalars, like input_level.
+  atomic_uint controller_devices[LH_MAX_PORTS];
+
+  // RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS snapshot: a flat, core-supplied
+  // list of (port, device, index, id) -> human-readable label entries. Kept
+  // behind its own lock rather than controller_info_lock, since the two are
+  // updated independently and sharing the lock would only widen an unrelated
+  // critical section.
+  lh_input_descriptor *input_descriptors;
+  int input_descriptor_count;
+  lh_mutex input_descriptor_lock;
+
   // Video.
   lh_frame front;
   lh_frame back;
@@ -333,6 +371,16 @@ struct lh_host {
   atomic_uint input_level[LH_MAX_PORTS];
   atomic_uint input_pending[LH_MAX_PORTS];
   uint16_t input_frame[LH_MAX_PORTS];
+
+  // Analog is a level, not an edge, so it deliberately does NOT use the
+  // OR-latch above. X and Y share one 32-bit word so a diagonal cannot tear:
+  // cores read each axis many times per frame (measured ~7x), and two
+  // independent atomics would be read at different instants.
+  atomic_uint analog_level[LH_MAX_PORTS][2];   // [port][0=left,1=right]
+  uint32_t analog_frame[LH_MAX_PORTS][2];      // emulation thread only
+  // l2 packed in the high 16 bits, r2 in the low, for the same reason.
+  atomic_uint trigger_level[LH_MAX_PORTS];
+  uint32_t trigger_frame[LH_MAX_PORTS];        // emulation thread only
 };
 
 // libretro's callbacks carry no user pointer, so the single live host is global.
@@ -773,6 +821,22 @@ static void host_log(struct lh_host *h, const char *fmt, ...) {
   h->cb.message(h->cb.user, buf);
 }
 
+// Host diagnostics that must never become a core message/overlay event. In
+// particular, a core's controller inventory can be sizeable and is useful in
+// logcat, but is not user-facing state. Keep this separate from log_printf_cb
+// too: these host messages must not overwrite a core's load-failure reason.
+static void diagnostic_log(const char *fmt, ...) {
+  va_list args;
+  va_start(args, fmt);
+#ifdef __ANDROID__
+  __android_log_vprint(ANDROID_LOG_INFO, "moonfin_libretro", fmt, args);
+#else
+  vfprintf(stderr, fmt, args);
+  fputc('\n', stderr);
+#endif
+  va_end(args);
+}
+
 // The host bakes SET_ROTATION into the converted frame, so the geometry it
 // advertises has to describe the rotated frame, not the core's raw buffer.
 // Quarter turns swap the axes.
@@ -804,7 +868,7 @@ static void notify_geometry(struct lh_host *h, unsigned width, unsigned height,
   // for why 8192 and why this matters on 32-bit size_t.
   if (width == 0 || height == 0 || width > LH_MAX_FRAME_DIMENSION ||
       height > LH_MAX_FRAME_DIMENSION) {
-    host_log(h, "Rejected geometry %ux%u (out of bounds)", width, height);
+    diagnostic_log("Rejected geometry %ux%u (out of bounds)", width, height);
     return;
   }
   h->av.width = (int)width;
@@ -859,6 +923,234 @@ static void deliver_message(struct lh_host *h, const char *text) {
   if (text && *text && h->cb.message) h->cb.message(h->cb.user, text);
 }
 
+static void free_controller_ports(lh_controller_port *ports, int count) {
+  for (int p = 0; p < count; p++) free(ports[p].types);
+  free(ports);
+}
+
+static void clear_controller_info(struct lh_host *h) {
+  mutex_lock(&h->controller_info_lock);
+  lh_controller_port *ports = h->controller_ports;
+  int count = h->controller_port_count;
+  h->controller_ports = NULL;
+  h->controller_port_count = 0;
+  mutex_unlock(&h->controller_info_lock);
+  free_controller_ports(ports, count);
+}
+
+static void clear_input_descriptors(struct lh_host *h) {
+  mutex_lock(&h->input_descriptor_lock);
+  lh_input_descriptor *descriptors = h->input_descriptors;
+  h->input_descriptors = NULL;
+  h->input_descriptor_count = 0;
+  mutex_unlock(&h->input_descriptor_lock);
+  free(descriptors);
+}
+
+// Borrowed array, NULL-description terminated. Like SET_CONTROLLER_INFO, cores
+// may free it after this returns, so nothing from it may escape; the snapshot is
+// built whole before publishing so readers never see a half-rebuilt list.
+static bool copy_input_descriptors(struct lh_host *h,
+                                   const struct retro_input_descriptor *descriptors) {
+  int count = 0;
+  for (;;) {
+    if (count == INT_MAX) {
+      diagnostic_log("Rejected input descriptors with too many entries");
+      return false;
+    }
+    if (!descriptors[count].description) break;
+    count++;
+  }
+
+  lh_input_descriptor *copy = NULL;
+  if (count > 0) {
+#if SIZE_MAX <= UINT_MAX
+    if ((size_t)count > SIZE_MAX / sizeof(lh_input_descriptor)) {
+      diagnostic_log("Rejected input descriptors with too many entries");
+      return false;
+    }
+#endif
+    copy = calloc((size_t)count, sizeof(*copy));
+    if (!copy) {
+      diagnostic_log("Failed to allocate input descriptor snapshot");
+      return false;
+    }
+  }
+
+  for (int i = 0; i < count; i++) {
+    const struct retro_input_descriptor *source = &descriptors[i];
+    copy[i].port = source->port;
+    copy[i].device = source->device;
+    copy[i].index = source->index;
+    copy[i].id = source->id;
+    lh_copy_bounded(copy[i].description, sizeof(copy[i].description),
+                    source->description);
+  }
+
+  // Logged before publishing, while copy is still exclusively owned. Once it is
+  // in h->input_descriptors a concurrent clear can free it mid-read.
+  // Timestamped so "the core never sent any" is distinguishable from "we read
+  // them too early"
+  diagnostic_log("SET_INPUT_DESCRIPTORS: %d entries", count);
+  for (int i = 0; i < count && i < 8; i++) {
+    diagnostic_log("  descriptor port=%u device=%u index=%u id=%u '%s'",
+                   copy[i].port, copy[i].device, copy[i].index, copy[i].id,
+                   copy[i].description);
+  }
+
+  mutex_lock(&h->input_descriptor_lock);
+  lh_input_descriptor *old = h->input_descriptors;
+  h->input_descriptors = copy;
+  h->input_descriptor_count = count;
+  mutex_unlock(&h->input_descriptor_lock);
+  free(old);
+  return true;
+}
+
+// Clears every analog word for a fresh session. The digital mask is zeroed by
+// the platform on session change (its reset path writes a zero mask), but that
+// path is mask-only and never touches these words -- so without this a stick
+// left deflected when one game exits would still be deflected for the first
+// frames of the next, before any motion event arrives to overwrite it.
+static void reset_analog_state(struct lh_host *h) {
+  for (int p = 0; p < LH_MAX_PORTS; p++) {
+    atomic_store(&h->analog_level[p][0], 0u);
+    atomic_store(&h->analog_level[p][1], 0u);
+    atomic_store(&h->trigger_level[p], 0u);
+    h->analog_frame[p][0] = 0;
+    h->analog_frame[p][1] = 0;
+    h->trigger_frame[p] = 0;
+  }
+}
+
+static void reset_controller_devices(struct lh_host *h) {
+  for (int port = 0; port < LH_MAX_PORTS; port++) {
+    atomic_store(&h->controller_devices[port], (unsigned)RETRO_DEVICE_JOYPAD);
+  }
+}
+
+// SET_CONTROLLER_INFO is a borrowed, zero-terminated array. Cores often keep
+// it in static storage, but the API permits them to replace it after this
+// callback returns, so no pointer from it may escape this function. Build a
+// complete new snapshot before publishing it, leaving a reader with either the
+// old whole list or the new whole list (never a half-rebuilt list).
+static bool copy_controller_info(struct lh_host *h,
+                                 const struct retro_controller_info *info) {
+  lh_controller_port *ports = calloc(LH_MAX_PORTS, sizeof(*ports));
+  int stored_count = 0;
+  int source_port = 0;
+  if (!ports) {
+    diagnostic_log("Failed to allocate controller info snapshot");
+    return false;
+  }
+
+  for (;;) {
+    if (source_port == INT_MAX) {
+      diagnostic_log("Rejected controller info with too many ports");
+      free_controller_ports(ports, stored_count);
+      return false;
+    }
+    if (!info[source_port].types) break;
+
+    const struct retro_controller_info *source = &info[source_port];
+#if SIZE_MAX <= UINT_MAX
+    if ((size_t)source->num_types > SIZE_MAX / sizeof(lh_controller_type)) {
+      diagnostic_log("Rejected controller info for port %d with too many types",
+                     source_port);
+      free_controller_ports(ports, stored_count);
+      return false;
+    }
+#endif
+
+    lh_controller_type *types = NULL;
+    if (source_port < LH_MAX_PORTS && source->num_types > 0) {
+      types = calloc(source->num_types, sizeof(*types));
+      if (!types) {
+        diagnostic_log("Failed to copy controller info for port %d", source_port);
+        free_controller_ports(ports, stored_count);
+        return false;
+      }
+    }
+    for (unsigned t = 0; t < source->num_types; t++) {
+      const struct retro_controller_description *description = &source->types[t];
+      if (source_port < LH_MAX_PORTS) {
+        types[t].id = description->id;
+        lh_copy_bounded(types[t].label, sizeof(types[t].label),
+                        description->desc);
+      }
+      // Log every type rather than filtering to devices Moonfin currently
+      // understands. In particular, retain this diagnostic for an extra core
+      // port even though Moonfin currently exposes input only through P4.
+      diagnostic_log("Controller capability port=%d id=%u label='%s'%s",
+                     source_port, description->id,
+                     description->desc && *description->desc ? description->desc
+                                                              : "(unnamed)",
+                     source_port < LH_MAX_PORTS ? "" : " (unsupported port)");
+    }
+
+    if (source_port < LH_MAX_PORTS) {
+      ports[source_port].types = types;
+      ports[source_port].type_count = source->num_types;
+      stored_count = source_port + 1;
+    }
+    source_port++;
+  }
+
+  mutex_lock(&h->controller_info_lock);
+  lh_controller_port *old_ports = h->controller_ports;
+  int old_count = h->controller_port_count;
+  h->controller_ports = ports;
+  h->controller_port_count = stored_count;
+  mutex_unlock(&h->controller_info_lock);
+  free_controller_ports(old_ports, old_count);
+  return true;
+}
+
+static int controller_device_is_advertised(struct lh_host *h, int port,
+                                           unsigned device) {
+  if (device == RETRO_DEVICE_JOYPAD) return 1;  // Auto/libretro default.
+  int advertised = 0;
+  mutex_lock(&h->controller_info_lock);
+  if (port >= 0 && port < h->controller_port_count) {
+    lh_controller_port *controller_port = &h->controller_ports[port];
+    for (unsigned i = 0; i < controller_port->type_count; i++) {
+      if (controller_port->types[i].id == device) {
+        advertised = 1;
+        break;
+      }
+    }
+  }
+  mutex_unlock(&h->controller_info_lock);
+  return advertised;
+}
+
+// restart_core runs on the emulation thread after the new core has finished
+// load_content and re-published its controller list. Re-check stored explicit
+// IDs against that fresh list: a core version/content change can remove one,
+// in which case preserving a stale value is less safe than returning to Auto.
+static void reapply_controller_devices(struct lh_host *h) {
+  for (int port = 0; port < LH_MAX_PORTS; port++) {
+    unsigned device = atomic_load(&h->controller_devices[port]);
+    if (!controller_device_is_advertised(h, port, device)) {
+      diagnostic_log(
+          "Controller device port=%d id=%u is no longer advertised after "
+          "restart; using Auto (%u)",
+          port, device, RETRO_DEVICE_JOYPAD);
+      device = RETRO_DEVICE_JOYPAD;
+      atomic_store(&h->controller_devices[port], device);
+    }
+    if (h->core.set_controller_port_device) {
+      h->core.set_controller_port_device((unsigned)port, device);
+    } else if (device != RETRO_DEVICE_JOYPAD) {
+      diagnostic_log(
+          "Controller device port=%d id=%u could not be reapplied; core has "
+          "no controller-device entry point",
+          port, device);
+      atomic_store(&h->controller_devices[port], (unsigned)RETRO_DEVICE_JOYPAD);
+    }
+  }
+}
+
 static bool RETRO_CALLCONV environment_cb(unsigned cmd, void *data) {
   struct lh_host *h = g_session;
   if (!h) return false;
@@ -902,8 +1194,11 @@ static bool RETRO_CALLCONV environment_cb(unsigned cmd, void *data) {
       return true;
     }
     case RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS:
+      return data && copy_input_descriptors(
+                         h, (const struct retro_input_descriptor *)data);
     case RETRO_ENVIRONMENT_SET_CONTROLLER_INFO:
-      return true;
+      return data && copy_controller_info(
+                         h, (const struct retro_controller_info *)data);
     case RETRO_ENVIRONMENT_SET_HW_RENDER:
       return false;  // software rendering only
     case RETRO_ENVIRONMENT_GET_VARIABLE: {
@@ -983,7 +1278,9 @@ static bool RETRO_CALLCONV environment_cb(unsigned cmd, void *data) {
       int was_quarter = (h->av.rotation == 1 || h->av.rotation == 3);
       int is_quarter = (rot == 1 || rot == 3);
       h->av.rotation = (int)rot;
-      host_log(h, "SET_ROTATION rot=%u", rot);
+      // diagnostic_log, not host_log: every vertical cabinet sends this on a
+      // normal load, and host_log surfaces it as a user-facing core message.
+      diagnostic_log("SET_ROTATION rot=%u", rot);
       // Geometry recorded before this request describes the other orientation.
       // Only the axes move; the aspect the core reported already describes the
       // final display (see apply_rotation_to_av).
@@ -1083,7 +1380,7 @@ static int convert_frame(struct lh_host *h, const void *src, int width,
   // buffer entirely - which is an out-of-bounds read the core fully controls.
   // Reject it here rather than trusting the core to report a sane pitch.
   if (pitch < (size_t)width * (size_t)bpp) {
-    host_log(h, "Rejected frame: pitch %zu too small for %dx%d bpp %d", pitch,
+    diagnostic_log("Rejected frame: pitch %zu too small for %dx%d bpp %d", pitch,
              width, height, bpp);
     return 0;
   }
@@ -1105,7 +1402,7 @@ static int convert_frame(struct lh_host *h, const void *src, int width,
   // guards against).
   if (out_height <= 0 || out_width <= 0 ||
       (size_t)out_width > (SIZE_MAX / 4) / (size_t)out_height) {
-    host_log(h, "Rejected frame: %dx%d overflows frame buffer size", out_width,
+    diagnostic_log("Rejected frame: %dx%d overflows frame buffer size", out_width,
              out_height);
     return 0;
   }
@@ -1189,7 +1486,7 @@ static void RETRO_CALLCONV video_refresh_cb(const void *data, unsigned width,
   // no separate announcement step to reject first), so the same
   // LH_MAX_FRAME_DIMENSION bound has to be enforced here too.
   if (width > LH_MAX_FRAME_DIMENSION || height > LH_MAX_FRAME_DIMENSION) {
-    host_log(h, "Rejected frame %ux%u (out of bounds)", width, height);
+    diagnostic_log("Rejected frame %ux%u (out of bounds)", width, height);
     return;
   }
   if (!data) {  // duped frame: re-signal the last one
@@ -1256,6 +1553,15 @@ static void RETRO_CALLCONV audio_sample_cb(int16_t left, int16_t right) {
 // Input.
 // ---------------------------------------------------------------------------
 
+// Packing helpers for the analog and trigger atomics: two int16 halves share
+// one 32-bit word so a diagonal (or an L2/R2 pair) read many times per frame
+// can never tear across two independently-updated atomics.
+static inline uint32_t pack_axes(int16_t x, int16_t y) {
+  return ((uint32_t)(uint16_t)x << 16) | (uint16_t)y;
+}
+static inline int16_t unpack_x(uint32_t v) { return (int16_t)(v >> 16); }
+static inline int16_t unpack_y(uint32_t v) { return (int16_t)(v & 0xffff); }
+
 // The one implementation of the OR-latch: every platform writer calls
 // lh_set_input, and this is the only place that ever drains it. Called once
 // per real libretro poll from input_poll_cb (on the emulation thread), and
@@ -1279,6 +1585,14 @@ static void latch_input(struct lh_host *h) {
     unsigned level = atomic_load(&h->input_level[p]);
     h->input_frame[p] = (uint16_t)(observed | level);
   }
+
+  // Analog is a level, not an edge: no OR-latch, just a plain snapshot of
+  // whatever was last written. See the struct comment on analog_level.
+  for (int p = 0; p < LH_MAX_PORTS; p++) {
+    h->analog_frame[p][0] = atomic_load(&h->analog_level[p][0]);
+    h->analog_frame[p][1] = atomic_load(&h->analog_level[p][1]);
+    h->trigger_frame[p]   = atomic_load(&h->trigger_level[p]);
+  }
 }
 
 // Was a no-op: the core polled input by immediately re-reading whatever the
@@ -1292,9 +1606,37 @@ static void RETRO_CALLCONV input_poll_cb(void) {
 
 static int16_t RETRO_CALLCONV input_state_cb(unsigned port, unsigned device,
                                              unsigned index, unsigned id) {
-  (void)index;
   struct lh_host *h = g_session;
-  if (!h || device != RETRO_DEVICE_JOYPAD || port >= LH_MAX_PORTS) return 0;
+  if (!h || port >= LH_MAX_PORTS) return 0;
+
+  if (device == RETRO_DEVICE_ANALOG) {
+    // Latched by input_poll_cb above, not a fresh read - see the digital
+    // comment below for why that matters (torn diagonals here, instead of
+    // torn button combinations).
+    if (index == RETRO_DEVICE_INDEX_ANALOG_LEFT ||
+        index == RETRO_DEVICE_INDEX_ANALOG_RIGHT) {
+      uint32_t packed = h->analog_frame[port][index];
+      if (id == RETRO_DEVICE_ID_ANALOG_X) return unpack_x(packed);
+      if (id == RETRO_DEVICE_ID_ANALOG_Y) return unpack_y(packed);
+      return 0;
+    }
+    if (index == RETRO_DEVICE_INDEX_ANALOG_BUTTON) {
+      if (id == RETRO_DEVICE_ID_JOYPAD_L2) {
+        return unpack_x((uint32_t)h->trigger_frame[port]);
+      }
+      if (id == RETRO_DEVICE_ID_JOYPAD_R2) {
+        return unpack_y((uint32_t)h->trigger_frame[port]);
+      }
+      // Derived, not stored: every other analog-button id just reflects the
+      // matching digital bit at full deflection, so a core reading this
+      // plane instead of JOYPAD directly still sees the button.
+      if (id >= 16) return 0;
+      return (h->input_frame[port] & (1u << id)) ? 0x7fff : 0;
+    }
+    return 0;
+  }
+
+  if (device != RETRO_DEVICE_JOYPAD) return 0;
   // Latched by input_poll_cb above, not a fresh read: every id read during
   // this frame sees the same snapshot, so composing e.g. up and left from two
   // different instants of the same frame (a torn read) can't happen.
@@ -1341,25 +1683,36 @@ static void execute_job(struct lh_host *h, lh_job *job) {
           h->core.unserialize && h->core.unserialize(job->cbuf, job->size) ? 1
                                                                            : 0;
       break;
+    case JOB_CONTROLLER_DEVICE:
+      if (h->core.set_controller_port_device) {
+        h->core.set_controller_port_device((unsigned)job->port, job->device);
+        atomic_store(&h->controller_devices[job->port], job->device);
+        job->result_ok = 1;
+      }
+      break;
   }
 }
 
 // Runs [job] on the emulation thread and waits, or inline when no loop runs.
 // A full queue or a loop that already exited gives up instead of waiting, since
 // nothing would ever mark the job done.
-static void run_job(struct lh_host *h, lh_job *job) {
+static int run_job(struct lh_host *h, lh_job *job) {
   mutex_lock(&h->jobs_lock);
   if (h->jobs_open) {
     if (h->job_count < LH_MAX_JOBS) {
       h->jobs[h->job_count++] = job;
       while (!job->done) cond_wait(&h->jobs_cond, &h->jobs_lock);
+      mutex_unlock(&h->jobs_lock);
+      return 0;
     }
     mutex_unlock(&h->jobs_lock);
-    return;
+    return -1;
   }
   int loaded = h->core_loaded;
   mutex_unlock(&h->jobs_lock);
-  if (loaded) execute_job(h, job);
+  if (!loaded) return -1;
+  execute_job(h, job);
+  return 0;
 }
 
 static void drain_jobs(struct lh_host *h) {
@@ -1502,6 +1855,8 @@ static void *run_loop(void *arg) {
   if (h->core.deinit) h->core.deinit();
   if (h->core.handle) lib_close(h->core.handle);
   memset(&h->core, 0, sizeof(h->core));
+  clear_controller_info(h);
+  clear_input_descriptors(h);
 
   // Reported last, once nothing in here touches the core any more.
   if (h->shutdown_requested && h->cb.core_shutdown) {
@@ -1566,6 +1921,9 @@ static int resolve_core(lh_core *core) {
   SYM(get_memory_data, "retro_get_memory_data")
   SYM(get_memory_size, "retro_get_memory_size")
 #undef SYM
+  core->set_controller_port_device =
+      (fn_set_controller_port_device)lib_sym(
+          core->handle, "retro_set_controller_port_device");
   return ok;
 }
 
@@ -1581,7 +1939,10 @@ lh_host *lh_create(lh_output_format fmt, lh_callbacks cb) {
   h->fast_forward = 1;
   h->pixel_format = RETRO_PIXEL_FORMAT_0RGB1555;
   h->variables_dirty = 1;
+  reset_controller_devices(h);
   mutex_init(&h->vars_lock);
+  mutex_init(&h->controller_info_lock);
+  mutex_init(&h->input_descriptor_lock);
   mutex_init(&h->core_log_lock);
   mutex_init(&h->video_lock);
   mutex_init(&h->audio_lock);
@@ -1600,6 +1961,31 @@ void lh_set_input(lh_host *host, int port, uint16_t mask) {
   atomic_store(&host->input_level[port], (unsigned)mask);
 }
 
+void lh_set_pad_state(lh_host *host, int port, uint16_t mask, int16_t lx,
+                      int16_t ly, int16_t rx, int16_t ry, uint16_t l2,
+                      uint16_t r2) {
+  if (!host || port < 0 || port >= LH_MAX_PORTS) return;
+  // Analog first, digital second, deliberately.
+  //
+  // These are separate words, so a poll landing between them shows the core one
+  // domain a frame ahead of the other. The window is a few instructions against
+  // a 16.7ms poll, so it is rare either way -- but it is not symmetric in which
+  // direction is preferable. Writing analog first means that when the button
+  // mask lands, the stick position accompanying it is already current: a
+  // direction never arrives later than the button pressed with it, which is the
+  // ordering that matters for direction+button inputs.
+  atomic_store(&host->analog_level[port][0], pack_axes(lx, ly));
+  atomic_store(&host->analog_level[port][1], pack_axes(rx, ry));
+  atomic_store(&host->trigger_level[port],
+              pack_axes((int16_t)l2, (int16_t)r2));
+
+  // Same digital ordering as lh_set_input, and for the same reason - see its
+  // comment. lh_set_input stays a separate entry point (other platforms and
+  // tests call it directly) and leaves the analog words above untouched.
+  atomic_fetch_or(&host->input_pending[port], (unsigned)mask);
+  atomic_store(&host->input_level[port], (unsigned)mask);
+}
+
 void lh_test_poll_input(lh_host *host) {
   if (host) latch_input(host);
 }
@@ -1607,6 +1993,20 @@ void lh_test_poll_input(lh_host *host) {
 uint16_t lh_test_read_input(lh_host *host, int port) {
   if (!host || port < 0 || port >= LH_MAX_PORTS) return 0;
   return host->input_frame[port];
+}
+
+int16_t lh_test_read_analog(lh_host *host, int port, int index, int axis) {
+  if (!host || port < 0 || port >= LH_MAX_PORTS || index < 0 || index > 1) {
+    return 0;
+  }
+  uint32_t packed = host->analog_frame[port][index];
+  return axis == 0 ? unpack_x(packed) : unpack_y(packed);
+}
+
+uint16_t lh_test_read_trigger(lh_host *host, int port, int which) {
+  if (!host || port < 0 || port >= LH_MAX_PORTS) return 0;
+  uint32_t packed = host->trigger_frame[port];
+  return which == 0 ? (uint16_t)unpack_x(packed) : (uint16_t)unpack_y(packed);
 }
 
 static void free_load_paths(struct lh_host *h) {
@@ -1642,6 +2042,8 @@ static void unwind_failed_core(struct lh_host *h) {
 // paths that lh_stop would otherwise own.
 static int load_failed(struct lh_host *h, int code) {
   unwind_failed_core(h);
+  clear_controller_info(h);
+  clear_input_descriptors(h);
   free_load_paths(h);
   g_session = NULL;
   return code;
@@ -1669,6 +2071,8 @@ static int open_core(struct lh_host *h) {
 
   h->pixel_format = RETRO_PIXEL_FORMAT_0RGB1555;
   h->av.rotation = 0;
+  clear_controller_info(h);
+  clear_input_descriptors(h);
   // retro_init (below) and, later, retro_load_game are the two points a core
   // can call SET_VARIABLES from; reset the flag here so a failure from a
   // *previous* load/restart attempt (already handled by that attempt's own
@@ -1791,6 +2195,13 @@ int lh_load(lh_host *h, const char *core_path, const char *rom_path,
             int opt_count, lh_av_info *out_info) {
   if (g_session) return -1;  // one session per process
   h->shutdown_requested = 0;
+  // A fresh load is a new session, so do not carry a choice from a different
+  // core/content forward. Internal restart deliberately does not call this.
+  reset_controller_devices(h);
+  // Analog-queried is per-game, not per-core (see the struct comment): clear
+  // it, and the analog values with it, so neither a stale "reads analog"
+  // signal nor a stale stick deflection leaks into new content.
+  reset_analog_state(h);
 
   // FIX 5: game_id names the SRAM file below and ultimately originates from a
   // route parameter seeded by server data (app_router.dart ->
@@ -1874,7 +2285,22 @@ int lh_start(lh_host *h) {
 }
 
 void lh_pause(lh_host *h) { h->paused = 1; }
-void lh_resume(lh_host *h) { h->paused = 0; }
+void lh_resume(lh_host *h) {
+  // The pending latch exists so a press+release falling entirely between two
+  // polls is still observed for one frame (see test_input_latch). While paused
+  // there IS no next poll, so anything pressed in a menu -- the controller test
+  // panel most obviously, where pressing buttons is the whole point -- stays
+  // latched and fires on the first frame after resuming.
+  //
+  // Only the latch is dropped. input_level is left alone, so a button that is
+  // genuinely still held across the resume keeps working. The platform layers
+  // cannot do this themselves: they can only publish a mask, and publishing 0
+  // ORs nothing into pending, so the stale edge would survive.
+  for (int p = 0; p < LH_MAX_PORTS; p++) {
+    atomic_store(&h->input_pending[p], 0u);
+  }
+  h->paused = 0;
+}
 
 void lh_set_fast_forward(lh_host *h, int factor) {
   if (factor < 1) factor = 1;
@@ -1904,6 +2330,12 @@ static int restart_core(struct lh_host *h) {
   memset(&h->core, 0, sizeof(h->core));
   h->core_loaded = 0;
 
+  // Same reasoning as lh_load: the design treats analog-queried as per-game,
+  // so a restart clears it -- and the analog values with it -- even though it
+  // keeps most other state (e.g. controller_devices, reapplied below) alive
+  // across the new core instance.
+  reset_analog_state(h);
+
   mutex_lock(&h->vars_lock);
   free_option_definitions(h);
   // The old core is fully unloaded above, so nothing can still be holding a
@@ -1915,6 +2347,7 @@ static int restart_core(struct lh_host *h) {
 
   int rc = open_core(h);
   if (rc == 0) rc = load_content(h);
+  if (rc == 0) reapply_controller_devices(h);
   if (rc != 0) {
     // Same unwind load_failed performs for lh_load, but restart_core keeps
     // g_session and the load paths alive (a later restart attempt reuses
@@ -1981,6 +2414,9 @@ void lh_stop(lh_host *h) {
   vars_free_retired(h);
   mutex_unlock(&h->vars_lock);
 
+  clear_controller_info(h);
+  clear_input_descriptors(h);
+  reset_controller_devices(h);
   g_session = NULL;
   free_load_paths(h);
 }
@@ -2004,10 +2440,14 @@ void lh_destroy(lh_host *h) {
   if (!h) return;
   if (h->core_loaded || h->has_thread) lh_stop(h);
   free_options(h);
+  clear_controller_info(h);
+  clear_input_descriptors(h);
   free(h->front.data);
   free(h->back.data);
   free(h->ring);
   mutex_destroy(&h->vars_lock);
+  mutex_destroy(&h->controller_info_lock);
+  mutex_destroy(&h->input_descriptor_lock);
   mutex_destroy(&h->core_log_lock);
   mutex_destroy(&h->video_lock);
   mutex_destroy(&h->audio_lock);
@@ -2136,4 +2576,90 @@ void lh_set_option(lh_host *h, const char *id, const char *value) {
     host_log(h, "Failed to set option %s (allocation failure)", id);
   }
   mutex_unlock(&h->vars_lock);
+}
+
+int lh_controller_type_count(lh_host *h, int port) {
+  if (!h || port < 0) return 0;
+  mutex_lock(&h->controller_info_lock);
+  int count = port < h->controller_port_count
+                  ? (h->controller_ports[port].type_count > INT_MAX
+                         ? INT_MAX
+                         : (int)h->controller_ports[port].type_count)
+                  : 0;
+  mutex_unlock(&h->controller_info_lock);
+  return count;
+}
+
+int lh_get_controller_type(lh_host *h, int port, int index,
+                           lh_controller_type *out) {
+  if (!h || !out || port < 0 || index < 0) return -1;
+  mutex_lock(&h->controller_info_lock);
+  if (port >= h->controller_port_count ||
+      (unsigned)index >= h->controller_ports[port].type_count) {
+    mutex_unlock(&h->controller_info_lock);
+    return -1;
+  }
+  *out = h->controller_ports[port].types[index];
+  mutex_unlock(&h->controller_info_lock);
+  return 0;
+}
+
+int lh_input_descriptor_count(lh_host *h) {
+  if (!h) return 0;
+  mutex_lock(&h->input_descriptor_lock);
+  int count = h->input_descriptor_count;
+  mutex_unlock(&h->input_descriptor_lock);
+  return count;
+}
+
+int lh_get_input_descriptor(lh_host *h, int index, lh_input_descriptor *out) {
+  if (!h || !out || index < 0) return -1;
+  mutex_lock(&h->input_descriptor_lock);
+  if (index >= h->input_descriptor_count) {
+    mutex_unlock(&h->input_descriptor_lock);
+    return -1;
+  }
+  *out = h->input_descriptors[index];
+  mutex_unlock(&h->input_descriptor_lock);
+  return 0;
+}
+
+unsigned lh_analog_descriptor_ports(lh_host *h) {
+  if (!h) return 0;
+  unsigned ports = 0;
+  mutex_lock(&h->input_descriptor_lock);
+  for (int i = 0; i < h->input_descriptor_count; i++) {
+    const lh_input_descriptor *d = &h->input_descriptors[i];
+    // Only STICK descriptors decide the stick's mode. An analog BUTTON
+    // descriptor (index 2, i.e. trigger pressure) says nothing about whether
+    // the game wants an analog stick -- counting it would switch the stick to
+    // analog for a game whose movement is digital, which is exactly the
+    // BurgerTime failure this signal exists to avoid.
+    if (d->device == RETRO_DEVICE_ANALOG && d->port < LH_MAX_PORTS &&
+        (d->index == RETRO_DEVICE_INDEX_ANALOG_LEFT ||
+         d->index == RETRO_DEVICE_INDEX_ANALOG_RIGHT)) {
+      ports |= (1u << d->port);
+    }
+  }
+  mutex_unlock(&h->input_descriptor_lock);
+  return ports;
+}
+
+int lh_set_controller_type(lh_host *h, int port, unsigned device) {
+  if (!h || port < 0 || port >= LH_MAX_PORTS) return -1;
+
+  int fallback = !controller_device_is_advertised(h, port, device);
+  if (fallback) {
+    diagnostic_log(
+        "Controller device port=%d id=%u was not advertised; using Auto (%u)",
+        port, device, RETRO_DEVICE_JOYPAD);
+    device = RETRO_DEVICE_JOYPAD;
+  }
+
+  lh_job job = {0};
+  job.kind = JOB_CONTROLLER_DEVICE;
+  job.port = port;
+  job.device = device;
+  if (run_job(h, &job) != 0 || !job.result_ok) return -1;
+  return fallback ? 1 : 0;
 }

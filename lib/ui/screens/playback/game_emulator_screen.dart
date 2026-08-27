@@ -10,6 +10,7 @@ import 'package:go_router/go_router.dart';
 import 'package:pointer_interceptor/pointer_interceptor.dart';
 import 'package:server_core/server_core.dart';
 
+import '../../navigation/destinations.dart';
 import '../../widgets/adaptive/adaptive_glass.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../data/services/retro_artwork/retro_artwork_activity_gate.dart';
@@ -17,12 +18,23 @@ import '../../../util/game_cores.dart';
 import '../../../util/platform_detection.dart';
 import '../../../util/focus/gamepad/gamepad_suppressor.dart';
 import '../../../util/focus/gamepad/android_gamepad_channel.dart';
+import '../../../util/emulator_host_messages.dart';
 import '../../../util/insecure_certificates.dart';
 import '../../../util/webview_environment.dart';
 import '../../screensaver/screensaver_controller.dart';
 import 'game_playback_ui.dart';
 import 'playback_takeover.dart';
 import 'game_audio_owner.dart';
+
+@visibleForTesting
+Future<void> persistGameEmulatorExit({
+  required bool saveState,
+  required Future<void> Function() persistState,
+  required Future<void> Function() persistSettings,
+}) async {
+  if (saveState) await persistState();
+  await persistSettings();
+}
 
 /// Full-screen EmulatorJS host. Loads the Moonbase plugin's player shell in a WebView, streams
 /// the ROM from the user's server, and syncs the save state on exit. Includes a native,
@@ -61,6 +73,7 @@ class _GameEmulatorScreenState extends State<GameEmulatorScreen>
   InAppWebViewController? _controller;
 
   String? _playerUrl;
+  void Function()? _disposeHostMessages;
   String? _error;
   bool _emulatorReady = false;
   // Set once by _exit and never reset. Unlike a "saving in progress" flag that
@@ -79,6 +92,13 @@ class _GameEmulatorScreenState extends State<GameEmulatorScreen>
   // fixed sentinel id + the "settings" save kind. Restored into localStorage at document start
   // (before EmulatorJS reads it) and saved back on exit.
   static const String _settingsId = 'moonfin-global';
+
+  // Always absent when the bridge asserts its contract, so reporting them is
+  // noise rather than a finding; see the contract-violation case below.
+  static const Set<String> _expectedAtReady = {
+    'emu.gameManager',
+    'emu.changeSettingOption',
+  };
   final List<UserScript> _userScripts = [];
 
   // Cached in build() so the gamepad-driven action list (built outside a build context) can
@@ -106,6 +126,8 @@ class _GameEmulatorScreenState extends State<GameEmulatorScreen>
 
   // True only while Android is driving EmulatorJS's own control-mapping dialog.
   bool _emulatorControlsOpen = false;
+  Timer? _controlsCloseWatch;
+  bool _controlsCloseQueryInFlight = false;
   bool _confirmingExit = false;
 
   // Open-overlay gesture: hold Start+Select for 5 seconds.
@@ -281,6 +303,50 @@ class _GameEmulatorScreenState extends State<GameEmulatorScreen>
 
     if (!mounted) return;
     setState(() => _playerUrl = url);
+
+    // flutter_inappwebview's JavaScript handler (registered on the WebView
+    // below) never fires on Flutter web -- see emulator_host_messages.dart --
+    // so also listen for the postMessage the player shell falls back to.
+    _disposeHostMessages?.call();
+    _disposeHostMessages = null;
+    final origin = _originOf(url);
+    if (origin != null) {
+      _disposeHostMessages = EmulatorHostMessages.subscribe(
+        allowedOrigin: origin,
+        onMessage: (message) => _onPlayerMessage([message]),
+      );
+    }
+  }
+
+  /// Uri.origin throws for anything that is not http(s) with an authority, and
+  /// this is evaluated on every platform even though only web subscribes.
+  static String? _originOf(String url) {
+    try {
+      return Uri.parse(url).origin;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Calls a `window.moonfinX` player function. On web this goes straight
+  /// through the iframe; every other platform runs [fallback], the call
+  /// site's original route through [_controller], unchanged.
+  Future<Object?> _invokePlayer(
+    String function,
+    List<Object?> args,
+    Future<Object?> Function() fallback,
+  ) {
+    final playerUrl = _playerUrl;
+    if (EmulatorHostMessages.supportsDirectCalls && playerUrl != null) {
+      return Future.value(
+        EmulatorHostMessages.callPlayer(
+          playerUrl: playerUrl,
+          function: function,
+          args: args,
+        ),
+      );
+    }
+    return fallback();
   }
 
   void _enterImmersive() {
@@ -305,7 +371,8 @@ class _GameEmulatorScreenState extends State<GameEmulatorScreen>
       case 'gamepad':
         // JS-forwarded (iOS/desktop): standard Gamepad API indices; gameplay is read natively
         // by EmulatorJS, so this drives only the overlay, never injection.
-        final index = message['index'] as int;
+        // dartify() on web can hand back a double for a JS number, so tolerate both.
+        final index = (message['index'] as num).toInt();
         final pressed = message['pressed'] as bool;
         _handleGamepad(_semanticFromStandard(index), pressed, canInject: false);
         break;
@@ -323,17 +390,28 @@ class _GameEmulatorScreenState extends State<GameEmulatorScreen>
         unawaited(_onEmulatorControlsClosed(reason));
         break;
       case 'moonfin-emulator-contract-violation':
-        // player.html's moonfinAssertEmulatorContract reports (but never throws for) each
-        // EmulatorJS internal the native controller-menu adapter depends on that is missing at
-        // ready-time -- e.g. after an EmulatorJS upstream upgrade renamed or removed one. This
-        // has no user-visible effect on its own (the adapter's own per-access try/catch already
-        // degrades to an unresponsive control row rather than crashing), so it is only logged
-        // here for whoever investigates a "controller settings don't work" report.
+        // moonfin-bridge.js reports (but never throws for) each EmulatorJS internal it
+        // depends on that is absent at ready-time.
+        //
+        // `emu.gameManager` and `emu.changeSettingOption` are EXPECTED here and mean nothing
+        // is wrong: EmulatorJS fires `ready` from a setTimeout inside its constructor, before
+        // Start is clicked, while those two are assigned only once the core has downloaded
+        // and the game has started. Verified against EmulatorJS 4.2.3 and 4.3.0-pre; see
+        // bug-100. Any OTHER name is a real upstream rename worth investigating, and how bad
+        // that is depends on which: the DOM/control-menu entries only cost an unresponsive
+        // controller-settings row, but gameManager backs save, load, restart, fast-forward,
+        // pause and the core-options list.
         final missing = message['missing'] as String?;
-        debugPrint(
-          '[GameEmulatorScreen] EmulatorJS contract violation: missing $missing',
-        );
+        if (!_expectedAtReady.contains(missing)) {
+          debugPrint(
+            '[GameEmulatorScreen] EmulatorJS contract violation: missing $missing',
+          );
+        }
         break;
+      default:
+        debugPrint(
+          '[GameEmulatorScreen] unhandled player message: ${message['type']}',
+        );
     }
   }
 
@@ -429,11 +507,17 @@ class _GameEmulatorScreenState extends State<GameEmulatorScreen>
       final suppress =
           _startHeld && _selectHeld && (sem == _Gp.start || sem == _Gp.select);
       if (!suppress) {
-        _controller?.evaluateJavascript(
-          source:
-              'window.moonfinGamepadInput && '
-              'window.moonfinGamepadInput(${jsonEncode(emulatorLabel)}, $pressed, '
-              '${jsonEncode(emulatorDevice)});',
+        unawaited(
+          _invokePlayer(
+            'moonfinGamepadInput',
+            [emulatorLabel, pressed, emulatorDevice],
+            () async => _controller?.evaluateJavascript(
+              source:
+                  'window.moonfinGamepadInput && '
+                  'window.moonfinGamepadInput(${jsonEncode(emulatorLabel)}, $pressed, '
+                  '${jsonEncode(emulatorDevice)});',
+            ),
+          ),
         );
       }
     }
@@ -464,8 +548,14 @@ class _GameEmulatorScreenState extends State<GameEmulatorScreen>
       _overlayOpen = true;
       _selected = 0;
     });
-    _controller?.evaluateJavascript(
-      source: 'window.moonfinPause && window.moonfinPause(true);',
+    unawaited(
+      _invokePlayer(
+        'moonfinPause',
+        [true],
+        () async => _controller?.evaluateJavascript(
+          source: 'window.moonfinPause && window.moonfinPause(true);',
+        ),
+      ),
     );
   }
 
@@ -519,14 +609,25 @@ class _GameEmulatorScreenState extends State<GameEmulatorScreen>
     });
   }
 
-  void _closeOverlay() {
+  /// Dismisses the overlay, resuming the game unless [resume] says otherwise.
+  ///
+  /// The controls picker is a handoff, not a dismissal: it keeps the pause and
+  /// releases it in [_onEmulatorControlsClosed].
+  void _closeOverlay({bool resume = true}) {
     if (!_overlayOpen) return;
     setState(() {
       _overlayOpen = false;
       _confirmingExit = false;
     });
-    _controller?.evaluateJavascript(
-      source: 'window.moonfinPause && window.moonfinPause(false);',
+    if (!resume) return;
+    unawaited(
+      _invokePlayer(
+        'moonfinPause',
+        [false],
+        () async => _controller?.evaluateJavascript(
+          source: 'window.moonfinPause && window.moonfinPause(false);',
+        ),
+      ),
     );
   }
 
@@ -556,12 +657,16 @@ class _GameEmulatorScreenState extends State<GameEmulatorScreen>
     // first, so the default highlight cannot end the game.
     if (_confirmingExit) {
       return [
+        // Back, not Resume: this returns to the pause menu and stays paused.
         _OverlayItem(
-          Icons.play_arrow,
-          l?.resume ?? 'Keep playing',
+          Icons.arrow_back,
+          l?.back ?? 'Back',
           null,
           _cancelExitConfirmation,
         ),
+        // Not localized yet: adding an .arb key regenerates every locale file,
+        // so this matches the native player's untranslated exit actions.
+        _OverlayItem(Icons.save_outlined, 'Save & exit', null, _saveAndExit),
         _OverlayItem(Icons.close, l?.exit ?? 'Exit', null, _exit, danger: true),
       ];
     }
@@ -627,31 +732,55 @@ class _GameEmulatorScreenState extends State<GameEmulatorScreen>
     await _registerAndroidGamepads();
     final controller = _controller;
     if (controller == null) return;
-    var opened = false;
+    Object? result;
     try {
-      final result = await controller.callAsyncJavaScript(
-        functionBody: '''
-          if (window.moonfinControlsApiVersion !== 1 ||
-              typeof window.moonfinOpenControls !== 'function') {
-            return false;
-          }
-          return window.moonfinOpenControls() === true;
-        ''',
-      );
-      opened = result?.value == true;
-    } catch (_) {}
+      final playerUrl = _playerUrl;
+      if (EmulatorHostMessages.supportsDirectCalls && playerUrl != null) {
+        // The direct path has to apply the same contract-version gate the
+        // fallback's script does, or web alone would drive a plugin whose
+        // controls API has changed under it.
+        final version = EmulatorHostMessages.readPlayer(
+          playerUrl: playerUrl,
+          name: 'moonfinControlsApiVersion',
+        );
+        result = (version as num?)?.toInt() != 1
+            ? false
+            : EmulatorHostMessages.callPlayer(
+                playerUrl: playerUrl,
+                function: 'moonfinOpenControls',
+              );
+      } else {
+        final r = await controller.callAsyncJavaScript(
+          functionBody: '''
+            if (window.moonfinControlsApiVersion !== 1 ||
+                typeof window.moonfinOpenControls !== 'function') {
+              return false;
+            }
+            return window.moonfinOpenControls() === true;
+          ''',
+        );
+        result = r?.value;
+      }
+    } catch (_) {
+      result = null;
+    }
     if (!mounted) return;
-    if (!opened) {
+    if (result != true) {
+      // A null result means the call never reached the page; false means the
+      // page answered. Only the second is actually a stale server.
       _showTransientMessage(
-        'Controller settings need a newer version of the server emulator player.',
+        result == null
+            ? 'Could not reach the game to open controller settings.'
+            : 'Controller settings need a newer version of the server emulator player.',
       );
       return;
     }
-    _closeOverlay();
-    if (PlatformDetection.isAndroid) {
-      setState(() => _emulatorControlsOpen = true);
-      await AndroidGamepadChannel.setEmulatorControlsActive(true);
-    }
+    // Tracked on every platform, or the page's close message is dropped and
+    // the pause taken here is never released. The Android call self-guards.
+    _closeOverlay(resume: false);
+    setState(() => _emulatorControlsOpen = true);
+    _watchForControlsClose();
+    await AndroidGamepadChannel.setEmulatorControlsActive(true);
   }
 
   void _sendEmulatorControlInput(
@@ -659,25 +788,86 @@ class _GameEmulatorScreenState extends State<GameEmulatorScreen>
     bool pressed, [
     Map<String, dynamic>? device,
   ]) {
-    final controller = _controller;
-    if (controller == null) return;
-    controller.evaluateJavascript(
-      source:
-          'window.moonfinControlInput && window.moonfinControlInput('
-          '${jsonEncode(label)}, $pressed, ${jsonEncode(device)});',
+    if (_controller == null) return;
+    unawaited(
+      _invokePlayer(
+        'moonfinControlInput',
+        [label, pressed, device],
+        () async => _controller?.evaluateJavascript(
+          source:
+              'window.moonfinControlInput && window.moonfinControlInput('
+              '${jsonEncode(label)}, $pressed, ${jsonEncode(device)});',
+        ),
+      ),
     );
   }
 
   Future<void> _onEmulatorControlsClosed(String reason) async {
+    _controlsCloseWatch?.cancel();
+    _controlsCloseWatch = null;
     if (!mounted || !_emulatorControlsOpen) return;
     setState(() => _emulatorControlsOpen = false);
     await AndroidGamepadChannel.setEmulatorControlsActive(false);
     // A controller may have connected while the picker was open. Re-query it
     // before gameplay resumes instead of requiring a page reload.
     unawaited(_registerAndroidGamepads());
-    // Back is the deliberate exit path to Moonfin's pause menu. The upstream
-    // Close footer button resumes gameplay directly.
-    if (reason == 'back') _openOverlay();
+    // Back returns to Moonfin's pause menu, which pauses for itself. Any other
+    // close returns to the game, so release the pause the picker took.
+    if (reason == 'back') {
+      _openOverlay();
+      return;
+    }
+    unawaited(
+      _invokePlayer(
+        'moonfinPause',
+        [false],
+        () async => _controller?.evaluateJavascript(
+          source: 'window.moonfinPause && window.moonfinPause(false);',
+        ),
+      ),
+    );
+  }
+
+  /// Polls the player for the controls menu closing.
+  ///
+  /// The page reports a close only from its own controller-input handler, so a
+  /// mouse click on Close is never announced and asking is the only way to
+  /// find out. A page without the query is treated as still open.
+  void _watchForControlsClose() {
+    _controlsCloseWatch?.cancel();
+    _controlsCloseWatch = Timer.periodic(const Duration(milliseconds: 400), (
+      _,
+    ) async {
+      // Timer.periodic does not await this, and the non-web fallback is a real
+      // channel round trip: a stalled call would pile ticks onto the channel
+      // carrying controller input. A skipped tick costs 400ms.
+      if (_controlsCloseQueryInFlight) return;
+      if (!mounted || !_emulatorControlsOpen) {
+        _controlsCloseWatch?.cancel();
+        _controlsCloseWatch = null;
+        return;
+      }
+      _controlsCloseQueryInFlight = true;
+      final controller = _controller;
+      Object? open;
+      try {
+        open = await _invokePlayer('moonfinControlsOpen', const [], () async {
+          final r = await controller?.callAsyncJavaScript(
+            functionBody:
+                'return window.moonfinControlsOpen ? '
+                'window.moonfinControlsOpen() : true;',
+          );
+          return r?.value;
+        });
+      } catch (_) {
+        return;
+      } finally {
+        _controlsCloseQueryInFlight = false;
+      }
+      // Anything but a definite false means "still open": never resume on a
+      // reading we could not trust.
+      if (open == false) await _onEmulatorControlsClosed('close');
+    });
   }
 
   Future<void> _sendEmulatorKeyboardInput(int keyCode) async {
@@ -685,9 +875,13 @@ class _GameEmulatorScreenState extends State<GameEmulatorScreen>
     // evaluateJavascript with an existence check, rather than
     // callAsyncJavaScript. Still async because the only caller (the
     // "onKeyboard" branch of _onNativeGamepad) awaits it.
-    await _controller?.evaluateJavascript(
-      source:
-          'window.moonfinKeyboardInput && window.moonfinKeyboardInput($keyCode);',
+    await _invokePlayer(
+      'moonfinKeyboardInput',
+      [keyCode],
+      () async => _controller?.evaluateJavascript(
+        source:
+            'window.moonfinKeyboardInput && window.moonfinKeyboardInput($keyCode);',
+      ),
     );
   }
 
@@ -695,10 +889,14 @@ class _GameEmulatorScreenState extends State<GameEmulatorScreen>
     if (!PlatformDetection.isAndroid || _controller == null) return;
     final devices = await AndroidGamepadChannel.getEmulatorGamepads();
     if (devices.isEmpty || !mounted) return;
-    await _controller!.evaluateJavascript(
-      source:
-          'window.moonfinRegisterGamepads && '
-          'window.moonfinRegisterGamepads(${jsonEncode(devices)});',
+    await _invokePlayer(
+      'moonfinRegisterGamepads',
+      [devices],
+      () async => _controller?.evaluateJavascript(
+        source:
+            'window.moonfinRegisterGamepads && '
+            'window.moonfinRegisterGamepads(${jsonEncode(devices)});',
+      ),
     );
   }
 
@@ -707,11 +905,13 @@ class _GameEmulatorScreenState extends State<GameEmulatorScreen>
     if (controller == null) return;
     var options = <_GameOption>[];
     try {
-      final result = await controller.callAsyncJavaScript(
-        functionBody:
-            'return window.moonfinGetOptions ? window.moonfinGetOptions() : "[]";',
-      );
-      final value = result?.value;
+      final value = await _invokePlayer('moonfinGetOptions', const [], () async {
+        final r = await controller.callAsyncJavaScript(
+          functionBody:
+              'return window.moonfinGetOptions ? window.moonfinGetOptions() : "[]";',
+        );
+        return r?.value;
+      });
       if (value is String && value.isNotEmpty) {
         options = _parseOptions(value);
       }
@@ -764,10 +964,16 @@ class _GameEmulatorScreenState extends State<GameEmulatorScreen>
   void _applyChoice(_GameOption option, int choiceIndex) {
     setState(() => option.currentIndex = choiceIndex);
     final choice = option.choices[choiceIndex];
-    _controller?.evaluateJavascript(
-      source:
-          "window.moonfinSetOption && window.moonfinSetOption("
-          "${jsonEncode(option.id)}, ${jsonEncode(choice.value)});",
+    unawaited(
+      _invokePlayer(
+        'moonfinSetOption',
+        [option.id, choice.value],
+        () async => _controller?.evaluateJavascript(
+          source:
+              "window.moonfinSetOption && window.moonfinSetOption("
+              "${jsonEncode(option.id)}, ${jsonEncode(choice.value)});",
+        ),
+      ),
     );
   }
 
@@ -862,6 +1068,23 @@ class _GameEmulatorScreenState extends State<GameEmulatorScreen>
     _closeOverlay();
   }
 
+  /// Leaves only once the state is stored. Exiting on a failed save is the
+  /// exact outcome the exit warning exists to prevent, so a failure keeps the
+  /// game running and says so.
+  Future<void> _saveAndExit() async {
+    var saved = false;
+    try {
+      saved = await _saveState();
+    } catch (_) {
+      saved = false;
+    }
+    if (saved) {
+      await _exit(stateAlreadySaved: true);
+      return;
+    }
+    if (mounted) _showTransientMessage('Could not save state. Still playing.');
+  }
+
   Future<void> _loadAction() async {
     final games = _client.gamesApi;
     if (games != null) {
@@ -874,9 +1097,13 @@ class _GameEmulatorScreenState extends State<GameEmulatorScreen>
         );
         if (bytes != null && bytes.isNotEmpty) {
           final b64 = base64.encode(bytes);
-          await _controller?.evaluateJavascript(
-            source:
-                "window.moonfinLoadState && window.moonfinLoadState('$b64');",
+          await _invokePlayer(
+            'moonfinLoadState',
+            [b64],
+            () async => _controller?.evaluateJavascript(
+              source:
+                  "window.moonfinLoadState && window.moonfinLoadState('$b64');",
+            ),
           );
         }
       } catch (_) {
@@ -891,8 +1118,12 @@ class _GameEmulatorScreenState extends State<GameEmulatorScreen>
       // Awaited (unlike the other fire-and-forget evaluateJavascript calls in
       // this file) so a rejected WebView call is actually caught here instead
       // of surfacing as an unhandled async error.
-      await _controller?.evaluateJavascript(
-        source: 'window.moonfinRestart && window.moonfinRestart();',
+      await _invokePlayer(
+        'moonfinRestart',
+        const [],
+        () async => _controller?.evaluateJavascript(
+          source: 'window.moonfinRestart && window.moonfinRestart();',
+        ),
       );
     } catch (_) {
       _showTransientMessage('Could not restart.');
@@ -902,9 +1133,15 @@ class _GameEmulatorScreenState extends State<GameEmulatorScreen>
 
   void _toggleFastForward() {
     setState(() => _fastForward = !_fastForward);
-    _controller?.evaluateJavascript(
-      source:
-          'window.moonfinFastForward && window.moonfinFastForward($_fastForward);',
+    unawaited(
+      _invokePlayer(
+        'moonfinFastForward',
+        [_fastForward],
+        () async => _controller?.evaluateJavascript(
+          source:
+              'window.moonfinFastForward && window.moonfinFastForward($_fastForward);',
+        ),
+      ),
     );
   }
 
@@ -914,7 +1151,10 @@ class _GameEmulatorScreenState extends State<GameEmulatorScreen>
   /// already wraps this in its own try/timeout, and `_saveAction` (the menu
   /// caller) needs to see failures so it can surface them instead of silently
   /// looking like a successful save.
-  Future<void> _saveState() async {
+  /// True only when a state actually reached the server. Every early return
+  /// here is a silent "no save happened", so callers that gate on it must not
+  /// treat a skip as success.
+  Future<bool> _saveState() async {
     final controller = _controller;
     final games = _client.gamesApi;
     // Every one of these is a silent "no save happened", and the user is told
@@ -927,22 +1167,24 @@ class _GameEmulatorScreenState extends State<GameEmulatorScreen>
         'controller=${controller != null}, api=${games != null}, '
         'emulatorReady=$_emulatorReady',
       );
-      return;
+      return false;
     }
 
     Object? value;
     try {
-      final result = await controller.callAsyncJavaScript(
-        functionBody:
-            'return window.moonfinGetState ? window.moonfinGetState() : null;',
-      );
-      value = result?.value;
+      value = await _invokePlayer('moonfinGetState', const [], () async {
+        final result = await controller.callAsyncJavaScript(
+          functionBody:
+              'return window.moonfinGetState ? window.moonfinGetState() : null;',
+        );
+        return result?.value;
+      });
     } catch (error) {
       // callAsyncJavaScript is not supported on every platform this screen
       // runs on, and a throw here would otherwise be swallowed whole by
       // _persistOnExit's catch.
       debugPrint('[GameEmulatorScreen] Save state read failed: $error');
-      return;
+      return false;
     }
 
     if (value is! String || value.isEmpty) {
@@ -950,7 +1192,7 @@ class _GameEmulatorScreenState extends State<GameEmulatorScreen>
         '[GameEmulatorScreen] Save state empty; nothing persisted '
         '(moonfinGetState returned ${value == null ? 'null' : value.runtimeType})',
       );
-      return;
+      return false;
     }
     final bytes = base64.decode(value);
     await games.putSave(
@@ -958,6 +1200,7 @@ class _GameEmulatorScreenState extends State<GameEmulatorScreen>
       bytes,
     );
     debugPrint('[GameEmulatorScreen] Save state persisted: ${bytes.length} B');
+    return true;
   }
 
   /// Reads EmulatorJS's settings out of the WebView and syncs them to the server (per user).
@@ -966,11 +1209,13 @@ class _GameEmulatorScreenState extends State<GameEmulatorScreen>
     final games = _client.gamesApi;
     if (controller == null || games == null) return;
     try {
-      final result = await controller.callAsyncJavaScript(
-        functionBody:
-            'return window.moonfinGetSettings ? window.moonfinGetSettings() : null;',
-      );
-      final value = result?.value;
+      final value = await _invokePlayer('moonfinGetSettings', const [], () async {
+        final result = await controller.callAsyncJavaScript(
+          functionBody:
+              'return window.moonfinGetSettings ? window.moonfinGetSettings() : null;',
+        );
+        return result?.value;
+      });
       if (value is String && value.isNotEmpty) {
         await games.putSave(_settingsId, utf8.encode(value), kind: 'settings');
       }
@@ -988,37 +1233,59 @@ class _GameEmulatorScreenState extends State<GameEmulatorScreen>
     setState(() => _error = message);
   }
 
-  Future<void> _exit() async {
+  Future<void> _exit({bool stateAlreadySaved = false}) async {
     if (_exiting) return;
     _exiting = true;
     // The save reads state back out of the WebView, and on Windows and web that
     // round-trip can stall on a large PSP state. Give it a few seconds and leave
     // anyway, otherwise the WebView stays on screen and swallows every input.
     try {
-      await _persistOnExit().timeout(const Duration(seconds: 3));
+      await _persistOnExit(
+        saveState: !stateAlreadySaved,
+      ).timeout(const Duration(seconds: 3));
     } catch (_) {}
     await _restoreSystemUi();
     _releaseScreensaverBlock();
-    if (mounted) context.pop();
+    if (!mounted) return;
+    // Popping the last route empties the navigator and finishes the activity;
+    // MainActivity.onDestroy then calls Process.killProcess, killing the app
+    // instead of returning to the library.
+    if (context.canPop()) {
+      context.pop();
+    } else {
+      context.go(Destinations.home);
+    }
   }
 
-  Future<void> _persistOnExit() async {
-    await _saveState();
-    await _saveSettings();
+  Future<void> _persistOnExit({required bool saveState}) async {
+    await persistGameEmulatorExit(
+      saveState: saveState,
+      persistState: () async {
+        await _saveState();
+      },
+      persistSettings: _saveSettings,
+    );
   }
 
   @override
   Future<void> pauseForAudioClaim() async {
-    await _controller?.evaluateJavascript(
-        source: 'window.moonfinPause && window.moonfinPause(true);');
+    await _invokePlayer(
+      'moonfinPause',
+      [true],
+      () async => _controller?.evaluateJavascript(
+        source: 'window.moonfinPause && window.moonfinPause(true);',
+      ),
+    );
   }
 
   @override
   void dispose() {
+    _disposeHostMessages?.call();
     _releaseGameplayArtworkBlock();
     _releaseScreensaverBlock();
     releaseGameAudio();
     _comboTimer?.cancel();
+    _controlsCloseWatch?.cancel();
     _settingsScroll.dispose();
     _overlayScroll.dispose();
     _pickerScroll.dispose();

@@ -271,6 +271,14 @@ class _GameDetailScreenState extends State<GameDetailScreen> with RouteAware {
         _loading = false;
       });
 
+      // Land on Play/Continue. The button's own autofocus only wins when
+      // nothing else holds focus by the time it is built, which depends on how
+      // long the load took.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || _routeIsCovered) return;
+        _primaryActionFocusNode.requestFocus();
+      });
+
       unawaited(_initializeArtworkDataSource(game));
 
       // Save state and related games are enrichments; a failure here must not block the
@@ -1201,6 +1209,7 @@ class _ActionRow extends StatelessWidget {
             focusNode: primaryFocusNode,
             autofocus: true,
             focusColor: accent,
+            autoScroll: true,
             padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
             onPressed: onPlay,
             child: _ActionLabel(
@@ -1212,6 +1221,7 @@ class _ActionRow extends StatelessWidget {
           if (hasSave) ...[
             const SizedBox(width: 12),
             FocusableButton(
+              autoScroll: true,
               padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
               onPressed: onRestart,
               child: const _ActionLabel(
@@ -1231,6 +1241,7 @@ class _ActionRow extends StatelessWidget {
                 ),
               ),
               child: FocusableButton(
+                autoScroll: true,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 22,
                   vertical: 14,
@@ -1429,6 +1440,7 @@ class _CoreDetailRow extends StatelessWidget {
       padding: EdgeInsets.zero,
       borderRadius: 8,
       semanticLabel: 'Core, ${_coreLabel(game.core)}',
+      autoScroll: true,
       onPressed: onTap,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 4),
@@ -1674,6 +1686,7 @@ class _CorePickerOption extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
       borderRadius: 8,
       semanticLabel: label,
+      autoScroll: true,
       onPressed: onTap,
       child: Row(
         children: [

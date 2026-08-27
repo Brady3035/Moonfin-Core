@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:ui';
 
+import '../../widgets/bounded_network_image.dart';
 import '../../widgets/offline_aware_image.dart';
 import '../../widgets/identify_dialog.dart';
 import '../../widgets/focus/context_action.dart' show canIdentifyItemType;
@@ -1553,7 +1554,6 @@ class _DetailContentState extends State<_DetailContent> {
 
   List<Widget> _buildBookContent(BuildContext context, AggregatedItem item) {
     final l10n = AppLocalizations.of(context);
-    final compact = _isCompact(context);
     final author = _bookAuthorName(item);
     final authorDisplay = author ?? l10n.unknownAuthor;
     final overview = item.overview?.trim();
@@ -1567,11 +1567,16 @@ class _DetailContentState extends State<_DetailContent> {
         ? _sectionFocusNode('detailBookSimilar')
         : null;
     final coverTag = item.primaryImageTag;
+    const coverWidth = 132.0;
+    final dpr = MediaQuery.devicePixelRatioOf(context);
     final coverUrl = coverTag == null
         ? null
         : viewModel.imageApi.getPrimaryImageUrl(
             item.id,
-            maxHeight: compact ? 520 : 720,
+            maxHeight: BoundedNetworkImage.physicalPixels(
+              coverWidth * 3 / 2,
+              dpr,
+            ),
             tag: coverTag,
           );
 
@@ -1580,7 +1585,7 @@ class _DetailContentState extends State<_DetailContent> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: 132,
+            width: coverWidth,
             child: AspectRatio(
               aspectRatio: 2 / 3,
               child: ClipRRect(
@@ -1597,6 +1602,10 @@ class _DetailContentState extends State<_DetailContent> {
                       )
                     : OfflineAwareImage(
                         imageUrl: coverUrl,
+                        memCacheWidth: BoundedNetworkImage.cacheWidthFor(
+                          coverWidth,
+                          dpr,
+                        ),
                         fit: BoxFit.cover,
                         errorWidget: (_, _, _) => Container(
                           color: const Color(0xFF2C77B7),
@@ -3828,7 +3837,9 @@ class _Backdrop extends StatelessWidget {
       imageUrl: imageUrl,
       fit: BoxFit.cover,
       fadeInDuration: Duration.zero,
-      memCacheWidth: blurred ? 640 : null,
+      memCacheWidth: blurred
+          ? BackgroundService.backdropBlurredDecodeWidth
+          : BackgroundService.backdropMaxWidth,
       errorWidget: (_, _, _) => const SizedBox.shrink(),
     );
     if (!blurred) return image;
@@ -4251,6 +4262,7 @@ class DetailPosterImage extends StatelessWidget {
     final desktopScale = _desktopUiScale();
     final w = isMobile ? 120.0 : 165.0 * desktopScale;
     final h = isMobile ? 180.0 : 248.0 * desktopScale;
+    final dpr = MediaQuery.devicePixelRatioOf(context);
 
     final posterPath = item.rawData['PosterPath'] as String?;
     if (item.primaryImageTag == null &&
@@ -4270,11 +4282,12 @@ class DetailPosterImage extends StatelessWidget {
                   ? '$seerrPosterBase$posterPath'
                   : imageApi.getPrimaryImageUrl(
                       item.id,
-                      maxHeight: isMobile ? 360 : (500 * desktopScale).round(),
+                      maxHeight: BoundedNetworkImage.physicalPixels(h, dpr),
                       tag: item.primaryImageTag,
                     ),
               width: w,
               height: h,
+              memCacheWidth: BoundedNetworkImage.cacheWidthFor(w, dpr),
               fit: BoxFit.cover,
               errorWidget: (_, _, _) => SizedBox(width: w, height: h),
             ),
@@ -4389,7 +4402,8 @@ class _EpisodeThumbnail extends StatelessWidget {
     final desktopScale = _desktopUiScale();
     final w = isMobile ? 200.0 : 280.0 * desktopScale;
     final h = isMobile ? 113.0 : 158.0 * desktopScale;
-    final maxW = isMobile ? 400 : (560 * desktopScale).round();
+    final dpr = MediaQuery.devicePixelRatioOf(context);
+    final maxW = BoundedNetworkImage.physicalPixels(w, dpr);
 
     final seriesThumbUrl =
         GetIt.instance<UserPreferences>().get(
@@ -4420,6 +4434,7 @@ class _EpisodeThumbnail extends StatelessWidget {
               imageUrl: imageUrl,
               width: w,
               height: h,
+              memCacheWidth: BoundedNetworkImage.cacheWidthFor(w, dpr),
               fit: BoxFit.cover,
               errorWidget: (_, _, _) => SizedBox(width: w, height: h),
             ),
@@ -5203,6 +5218,10 @@ class _AuthorHeader extends StatelessWidget {
                     )
                   : OfflineAwareImage(
                       imageUrl: photoUrl!,
+                      memCacheWidth: BoundedNetworkImage.cacheWidthFor(
+                        84,
+                        MediaQuery.devicePixelRatioOf(context),
+                      ),
                       fit: BoxFit.cover,
                       errorWidget: (_, _, _) => const AdaptiveIcon(
                         Icons.person,

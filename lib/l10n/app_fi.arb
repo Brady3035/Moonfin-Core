@@ -9566,11 +9566,11 @@
     "adminMetadataPersonKindLyricist": "Sanoittaja",
     "adminMetadataPersonKindArranger": "Järjestä",
     "adminMetadataPersonKindMixer": "Sekoita",
-    "adminMetadataPersonKindRemixer": "Remixer",
+    "adminMetadataPersonKindRemixer": "Remixaaja",
     "adminMetadataPersonKindCreator": "Luoja",
     "adminMetadataPersonKindArtist": "Artisti",
     "adminMetadataPersonKindAlbumArtist": "Albumin artisti",
-    "adminMetadataPersonKindAuthor": "Luoja",
+    "adminMetadataPersonKindAuthor": "Tekijä",
     "adminMetadataPersonKindIllustrator": "Kuvittaja",
     "adminMetadataPersonKindTranslator": "Kääntäjä",
     "adminMetadataPersonKindNarrator": "Kertoja",
@@ -9582,7 +9582,7 @@
     "adminMetadataLockFieldName": "Nimi",
     "adminMetadataLockFieldOverview": "Yleiskatsaus",
     "adminMetadataLockFieldGenres": "Genret",
-    "adminMetadataLockFieldOfficialRating": "Vanhempien luokitus",
+    "adminMetadataLockFieldOfficialRating": "Ikäraja",
     "adminMetadataLockFieldProductionLocations": "Tuotantopaikat",
     "adminMetadataLockFieldBirthLocation": "Syntymäpaikka",
     "adminMetadataLockFieldRuntime": "Kesto",
@@ -10040,5 +10040,61 @@
     "setupTourBulletMore": "Ja paljon muuta",
     "@setupTourBulletMore": {
         "description": "Closing bullet on the setup screen settings list"
-    }
+    },
+    "adminMetadataPersonKindEngineer": "Insinööri",
+    "adminMetadataPersonKindInker": "Tussaaja",
+    "adminMetadataPersonKindLetterer": "Tekstaaja",
+    "adminMetadataPersonKindCoverArtist": "Kansitaiteilija",
+    "adminMetadataPersonKindEditor": "Editori",
+    "personalRatingOutOfTen": "{rating} / 10",
+    "@personalRatingOutOfTen": {
+        "description": "Numeric personal rating displayed on a scale out of ten.",
+        "placeholders": {
+            "rating": {
+                "type": "String"
+            }
+        }
+    },
+    "personalRatingOutOfFive": "{rating} / 5",
+    "@personalRatingOutOfFive": {
+        "description": "Personal rating displayed on a five-star scale.",
+        "placeholders": {
+            "rating": {
+                "type": "String"
+            }
+        }
+    },
+    "seerrShortcutsRow": "Seerr Valitse",
+    "@seerrShortcutsRow": {
+        "description": "Title of the Seerr shortcuts row that jumps to Discover, Movies, Series, Requests and Issues."
+    },
+    "setupTourBulletRequests": "Seerr-pyynnöt",
+    "@setupTourBulletRequests": {
+        "description": "Bullet on the closing setup screen for the Seerr request feature"
+    },
+    "runSetupAgain": "Suorita asennus uudelleen",
+    "@runSetupAgain": {
+        "description": "Starts the first-run setup wizard again from settings"
+    },
+    "serverMessages": "Viestit",
+    "@serverMessages": {
+        "description": "Menu button and window title for messages sent by the server admin"
+    },
+    "serverMessagesEmpty": "Palvelimeltasi ei ole vielä viestejä",
+    "@serverMessagesEmpty": {
+        "description": "Shown in the messages window when the server has sent nothing"
+    },
+    "serverMessagesMarkAllRead": "Merkitse kaikki luetuiksi",
+    "@serverMessagesMarkAllRead": {
+        "description": "Button in the messages window that marks every message as read"
+    },
+    "serverMessagesShowButton": "Näytä viestit -painike",
+    "@serverMessagesShowButton": {
+        "description": "Setting that shows or hides the messages button in the menu"
+    },
+    "serverMessagesShowButtonSubtitle": "Lisää valikkoon painikkeen, joka koskee palvelimen järjestelmänvalvojan lähettämiä viestejä",
+    "@serverMessagesShowButtonSubtitle": {
+        "description": "Explains the setting that shows or hides the messages button"
+    },
+    "adminMetadataLockFieldCast": "Henkilöt"
 }

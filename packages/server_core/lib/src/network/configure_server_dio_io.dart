@@ -5,6 +5,14 @@ import 'package:dio/io.dart';
 
 import 'server_user_agent.dart';
 
+/// How long one socket may spend reaching the host.
+///
+/// Not tied to the caller's timeout. Dio bills the wait for a free slot in the
+/// pool below to its own connect timeout, and queueing isn't a connection
+/// problem, so the caller's has to be generous. Reaching a host either happens
+/// quickly or isn't going to, and giving up here first hands the slot back.
+const _socketConnectTimeout = Duration(seconds: 10);
+
 void configureServerDio(Dio dio) {
   dio.transformer = FusedTransformer(contentLengthIsolateThreshold: 50 * 1024);
 
@@ -16,14 +24,7 @@ void configureServerDio(Dio dio) {
 
       client.badCertificateCallback = (_, _, _) => true;
 
-      // A fixed 30 seconds here outlived callers that give up sooner, so a
-      // stalled server left connects nobody was waiting for holding the 15
-      // per host slots, and every retry refilled them. Following the caller
-      // frees the slot when it gives up, and the margin leaves the reporting
-      // to Dio.
-      client.connectionTimeout =
-          (dio.options.connectTimeout ?? const Duration(seconds: 30)) +
-          const Duration(seconds: 2);
+      client.connectionTimeout = _socketConnectTimeout;
       client.idleTimeout = const Duration(seconds: 120);
 
       client.maxConnectionsPerHost = 15;

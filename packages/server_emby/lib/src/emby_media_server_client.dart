@@ -27,12 +27,11 @@ class EmbyMediaServerClient extends MediaServerClient {
   }) : _dio = Dio(BaseOptions(
          baseUrl: baseUrl,
          followRedirects: false,
-         // Connecting is just the handshake, which a reachable server clears
-         // in well under a second. Thirty seconds meant every request to an
-         // unreachable LAN address held the app that long off network. The
-         // reachability probe judges the server at five, so anything it
-         // passes clears this too.
-         connectTimeout: const Duration(seconds: 8),
+         // Covers the wait for a free connection slot as well as the
+         // handshake, so a screen that asks for more at once than the pool
+         // holds can spend most of it queued. The socket has its own shorter
+         // timeout, so an unreachable address still gives up quickly.
+         connectTimeout: const Duration(seconds: 30),
          receiveTimeout: const Duration(minutes: 3),
        )) {
     _baseUrl = baseUrl;

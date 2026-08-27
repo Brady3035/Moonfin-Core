@@ -1141,7 +1141,10 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
   ) async {
     final own = await _readSettings(games, _gameOptionsSaveId(coreId));
     if (own != null) return own;
-    final perGame = await _readSettings(games, _legacyGameOptionsSaveId(coreId));
+    final perGame = await _readSettings(
+      games,
+      _legacyGameOptionsSaveId(coreId),
+    );
     if (perGame != null) return perGame;
     return _readSettings(games, _legacyCoreOptionsSaveId(coreId));
   }
@@ -2165,8 +2168,8 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen>
                   _controllerMappings[target.id]?.controllerTypesByCore ??
                   const {},
               // Snap is per game and per controller; keep the target's own.
-              snapByGame: _controllerMappings[target.id]?.snapByGame ??
-                  const {},
+              snapByGame:
+                  _controllerMappings[target.id]?.snapByGame ?? const {},
             ).withControllerType(
               coreId,
               target.port != null &&

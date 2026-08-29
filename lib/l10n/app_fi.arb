@@ -700,19 +700,19 @@
     "@readyWhenYouAre": {
         "description": "Label shown when no reading progress exists"
     },
-    "details": "Yksityiskohdat",
+    "details": "Tekniset tiedot",
     "@details": {
         "description": "Button and title label for detail views"
     },
-    "listeningRoom": "Kuunteluhuone",
+    "listeningRoom": "Kuuntelutila",
     "@listeningRoom": {
         "description": "Panel header for audiobook section"
     },
-    "bookmarksAndProgress": "Kirjanmerkit ja edistyminen",
+    "bookmarksAndProgress": "Kirjanmerkit & Edistyminen",
     "@bookmarksAndProgress": {
         "description": "Panel header for bookmarks section"
     },
-    "titlesArrangedForBrowsing": "{count} otsikot, jotka on järjestetty luettavaksi ensimmäiseksi selaamiseksi.",
+    "titlesArrangedForBrowsing": "{count}  otsikot on järjestetty niin, että niitä on helppo selata.",
     "@titlesArrangedForBrowsing": {
         "description": "Panel subtitle showing total titles",
         "placeholders": {
@@ -721,23 +721,23 @@
             }
         }
     },
-    "titles": "Nimikkeet",
+    "titles": "Otsikot",
     "@titles": {
         "description": "Stat card label for total titles"
     },
-    "allTitles": "Kaikki otsikot",
+    "allTitles": "Kaikki nimikkeet",
     "@allTitles": {
         "description": "Collection picker dialog title for all titles"
     },
-    "authors": "Tekijät",
+    "authors": "Kirjoittaja",
     "@authors": {
         "description": "Stat card label for author count"
     },
-    "browseByAuthor": "Selaa tekijän mukaan",
+    "browseByAuthor": "Selaa kirjoittajien mukaan",
     "@browseByAuthor": {
         "description": "Collection picker dialog title for author browse"
     },
-    "browseByGenre": "Selaa genren mukaan",
+    "browseByGenre": "Selaa tyylilajin mukaan",
     "@browseByGenre": {
         "description": "Collection picker dialog title for genre browse"
     },
@@ -745,15 +745,15 @@
     "@discover": {
         "description": "Section title for book discovery"
     },
-    "trendingTitlesOpenLibrary": "Nousussa olevat otsikot aiheittain alkaen Open Library.",
+    "trendingTitlesOpenLibrary": "Open Libraryn suosittuja teoksia aiheittain.",
     "@trendingTitlesOpenLibrary": {
         "description": "Subtitle for book discovery section"
     },
-    "noBookmarkedItems": "Ei vielä kirjanmerkkeihin merkittyjä kohteita",
+    "noBookmarkedItems": "Ei vielä merkittyjä kohteita",
     "@noBookmarkedItems": {
         "description": "Empty state for bookmarks grid"
     },
-    "nothingMatchesSection": "Mikään ei vielä vastaa tätä osiota. Kokeile toista välilehteä tai palaa kirjaston synkronoinnin päätyttyä.",
+    "nothingMatchesSection": "Tälle jaksolle ei ole vielä löydetty vastaavuutta. Kokeile toista välilehteä tai palaa takaisin, kun kirjaston synkronointi on valmis.",
     "@nothingMatchesSection": {
         "description": "Empty state for book experience when no items match"
     },
@@ -778,15 +778,15 @@
     "@filters": {
         "description": "Section header for filter options"
     },
-    "readingStatus": "Lukemisen tila",
+    "readingStatus": "Lukutilanne",
     "@readingStatus": {
         "description": "Section header for book reading status filter"
     },
-    "playedStatus": "Pelin tila",
+    "playedStatus": "Pelitilanne",
     "@playedStatus": {
         "description": "Section header for played status filter"
     },
-    "readStatus": "Lukea",
+    "readStatus": "Lue",
     "@readStatus": {
         "description": "Filter label for read/watched items in book libraries"
     },
@@ -1387,7 +1387,7 @@
     "@deleteFiles": {
         "description": "Action button label for deleting downloaded files"
     },
-    "director": "JOHTAJA",
+    "director": "OHJAAJA",
     "@director": {
         "description": "Metadata label for director"
     },
@@ -1517,7 +1517,7 @@
     "@perfectMatch": {
         "description": "Label for a subtitle that is a hash match"
     },
-    "channelsCount": "{count} kan.",
+    "channelsCount": "{count} ch",
     "@channelsCount": {
         "description": "Audio channel count label",
         "placeholders": {
@@ -2832,7 +2832,7 @@
     "@autoCrop": {
         "description": "Zoom mode: auto crop"
     },
-    "stretch": "Venyttää",
+    "stretch": "Venytä",
     "@stretch": {
         "description": "Zoom mode: stretch"
     },
@@ -2844,7 +2844,7 @@
     "@disabled": {
         "description": "Option: disabled"
     },
-    "scaleOnTv": "Asteikko televisiossa",
+    "scaleOnTv": "Skaalaa televisiossa",
     "@scaleOnTv": {
         "description": "Refresh rate option: scale on TV"
     },
@@ -2852,7 +2852,7 @@
     "@scaleOnDevice": {
         "description": "Refresh rate option: scale on device"
     },
-    "trickPlay": "Kelauksen esikatselu",
+    "trickPlay": "Trick Play",
     "@trickPlay": {
         "description": "Setting for trick play thumbnails"
     },
@@ -2860,7 +2860,7 @@
     "@showPreviewThumbnailsWhenSeeking": {
         "description": "Description for trick play"
     },
-    "showDescriptionOnPause": "Näytä kuvaus tauolla",
+    "showDescriptionOnPause": "Näytä kuvaus tauon aikana",
     "@showDescriptionOnPause": {
         "description": "Setting for showing description on pause"
     },
@@ -6092,7 +6092,7 @@
             }
         }
     },
-    "adminActivityDateShort": "{day}.{month}.",
+    "adminActivityDateShort": "{day}/{month}",
     "@adminActivityDateShort": {
         "placeholders": {
             "month": {
@@ -6404,7 +6404,7 @@
     "imageTypePoster": "Juliste",
     "imageTypeThumbnail": "Pikkukuva",
     "imageTypeBanner": "Banneri",
-    "playlistAddFailed": "Lisääminen soittolistaan ​​epäonnistui",
+    "playlistAddFailed": "Lisääminen soittolistaan epäonnistui",
     "playlistCreateFailed": "Soittolistan luominen epäonnistui",
     "playlistNew": "Uusi soittolista",
     "playlistCreate": "Luoda",
@@ -6998,7 +6998,7 @@
     "@subtitlesUseEmbeddedFontSizesSubtitle": {
         "description": "Setting subtitle for embedded font sizes toggle"
     },
-    "useDetailedSubHeadings": "Käytä yksityiskohtaisia ​​alaotsikoita",
+    "useDetailedSubHeadings": "Käytä yksityiskohtaisia alaotsikoita",
     "@useDetailedSubHeadings": {
         "description": "Label for setting to toggle detailed or minimal subrow on library pages"
     },
@@ -9108,7 +9108,7 @@
     "@fullscreen": {
         "description": "Player button that toggles fullscreen"
     },
-    "settingsAudioPassthroughMode": "Passthrough",
+    "settingsAudioPassthroughMode": "Läpivienti",
     "@settingsAudioPassthroughMode": {
         "description": "Title of the audio passthrough mode selector"
     },
@@ -9241,7 +9241,7 @@
     "@genresAndTags": {
         "description": "Button and dialog title for browsing a title's genres, networks and tags"
     },
-    "yourWatchlist": "Seurantalistat",
+    "yourWatchlist": "Seurantaluettelosi",
     "@yourWatchlist": {
         "description": "Seerr row: watchlist"
     },
@@ -9273,11 +9273,11 @@
     "@manageRequests": {
         "description": "Details screen button opening the pending requests to approve or decline"
     },
-    "watchlist": "Seurantaluettelo",
+    "watchlist": "Seuraa",
     "@watchlist": {
         "description": "Details screen button adding the title to the Seerr watchlist"
     },
-    "onWatchlist": "Seurantaluettelossa",
+    "onWatchlist": "Seurannassa",
     "@onWatchlist": {
         "description": "Details screen button label when the title is already on the Seerr watchlist"
     },
@@ -9645,11 +9645,11 @@
     "playlistsRowShowEpisodes": "Näytä yksittäiset jaksot",
     "playlistsRowShowEpisodesSubtitle": "Laajenna TV-sarjat, jotta jokainen jakso näkyy erikseen.",
     "audioRowsSortOrderDescription": "Lajittele ääni-rivit nousevaan tai laskevaan järjestykseen.",
-    "addToWatchlist": "Lisää seurantalistalle",
+    "addToWatchlist": "Lisää seurantaan",
     "@addToWatchlist": {
         "description": "Button label to add media to the user's Seerr watchlist"
     },
-    "removeFromWatchlist": "Poista seurantalistalta",
+    "removeFromWatchlist": "Poista seurannasta",
     "@removeFromWatchlist": {
         "description": "Button label to remove media from the user's Seerr watchlist"
     },
@@ -10096,5 +10096,74 @@
     "@serverMessagesShowButtonSubtitle": {
         "description": "Explains the setting that shows or hides the messages button"
     },
-    "adminMetadataLockFieldCast": "Henkilöt"
+    "adminMetadataLockFieldCast": "Henkilöt",
+    "controller": "Ohjain",
+    "@controller": {
+        "description": "Settings section header for game controller options"
+    },
+    "gamepadNavigation": "Ohjainlaitteen avulla liikkuminen",
+    "@gamepadNavigation": {
+        "description": "Settings label for the switch that lets a game controller move focus and select items"
+    },
+    "gamepadNavigationDescription": "Annetaan liitetyn peliohjaimen siirtää kohdistusta ja valita kohteita",
+    "@gamepadNavigationDescription": {
+        "description": "Settings subtitle for the gamepad navigation switch"
+    },
+    "searchingSubtitles": "Etsitään tekstityksiä…",
+    "@searchingSubtitles": {
+        "description": "Shown while a remote subtitle search is running"
+    },
+    "downloadingSubtitle": "Lataa tekstitys…",
+    "@downloadingSubtitle": {
+        "description": "Shown while a chosen subtitle is downloaded and the server is picking it up"
+    },
+    "aiTranslated": "Tekoälyn kääntämä",
+    "@aiTranslated": {
+        "description": "Label for a remote subtitle the provider marked as AI translated"
+    },
+    "machineTranslated": "Koneellisesti käännetty",
+    "@machineTranslated": {
+        "description": "Label for a remote subtitle the provider marked as machine translated"
+    },
+    "hearingImpaired": "SDH",
+    "@hearingImpaired": {
+        "description": "Label for a remote subtitle marked as hearing impaired"
+    },
+    "framerateFps": "{rate} fps",
+    "@framerateFps": {
+        "description": "Framerate of a remote subtitle, shown in its detail line",
+        "placeholders": {
+            "rate": {
+                "type": "String"
+            }
+        }
+    },
+    "trickplayDisplayStyleSingle": "Yksi pikkukuva",
+    "@trickplayDisplayStyleSingle": {
+        "description": "Trickplay display style option: one thumbnail at the scrub position"
+    },
+    "trickplayDisplayStyleStrip": "Filmikaistale",
+    "@trickplayDisplayStyleStrip": {
+        "description": "Trickplay display style option: a row of 5 thumbnails around the scrub position"
+    },
+    "trickplayModeFull": "Koko näyttö",
+    "@trickplayModeFull": {
+        "description": "Trickplay mode option: temporarily replaces the video with the trickplay image while scrubbing"
+    },
+    "trickplaySettingsPreviewHint": "Vedä liukusäädintä nähdäksesi esikatselun liu’uttamisesta",
+    "@trickplaySettingsPreviewHint": {
+        "description": "Hint shown below the live trickplay settings preview"
+    },
+    "trickplayPreviewScale": "Esikatselukoko",
+    "@trickplayPreviewScale": {
+        "description": "Setting for the size of the trickplay seek preview"
+    },
+    "trickplayVerticalOffset": "Etäisyys hakupalkista",
+    "@trickplayVerticalOffset": {
+        "description": "Setting for the vertical position of the trickplay seek preview relative to the seekbar"
+    },
+    "trickplayFollowScrubPositionSubtitle": "Esikatsele hakupalkilla, kun liu’utat, sen sijaan että ne pysyisivät keskellä",
+    "@trickplayFollowScrubPositionSubtitle": {
+        "description": "Description for the trickplay follow-scrub-position setting"
+    }
 }

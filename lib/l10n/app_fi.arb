@@ -4285,7 +4285,7 @@
     "@requestMore": {
         "description": "Button to request more seasons"
     },
-    "request": "Pyytää",
+    "request": "Pyydä",
     "@request": {
         "description": "Button to submit a media request"
     },
@@ -4385,7 +4385,7 @@
             }
         }
     },
-    "requestSeriesOrMovie": "Pyyntö {type}",
+    "requestSeriesOrMovie": "Pyydä {type}",
     "@requestSeriesOrMovie": {
         "description": "Bottom sheet title for requesting media",
         "placeholders": {
@@ -4398,7 +4398,7 @@
     "@submitRequest": {
         "description": "Button to finalize a media request"
     },
-    "allSeasons": "Kaikki vuodenajat",
+    "allSeasons": "Kaikki kaudet",
     "@allSeasons": {
         "description": "Checkbox label for selecting all seasons"
     },
@@ -10165,5 +10165,9 @@
     "trickplayFollowScrubPositionSubtitle": "Esikatsele hakupalkilla, kun liu’utat, sen sijaan että ne pysyisivät keskellä",
     "@trickplayFollowScrubPositionSubtitle": {
         "description": "Description for the trickplay follow-scrub-position setting"
+    },
+    "seerrDownloading": "Ladataan",
+    "@seerrDownloading": {
+        "description": "Seerr download bar label when the server reports no usable file sizes"
     }
 }

@@ -1883,7 +1883,7 @@
             }
         }
     },
-    "epubUnavailableOnPlatform": "In-App EPUB-Darstellung ist auf dieser Plattform noch nicht verfügbar.",
+    "epubUnavailableOnPlatform": "EPUB-Darstellung in der App ist auf dieser Plattform noch nicht verfügbar.",
     "@epubUnavailableOnPlatform": {
         "description": "Fallback message when EPUB cannot render on current platform"
     },
@@ -2680,7 +2680,7 @@
     "@focusExpansionAnimation": {
         "description": "Setting for focus expansion animation"
     },
-    "scaleFocusedCards": "Fokussierte oder überfahrene Karten und Kacheln vergrößern",
+    "scaleFocusedCards": "Fokussierte oder überfahrene Karten und Kacheln vergrößern.",
     "@scaleFocusedCards": {
         "description": "Description for focus expansion animation"
     },
@@ -2688,7 +2688,7 @@
     "@backgroundBackdrops": {
         "description": "Setting for background backdrops"
     },
-    "showBackdropImages": "Hintergrundbilder hinter Inhalten anzeigen",
+    "showBackdropImages": "Hintergrundbilder hinter Inhalten anzeigen.",
     "@showBackdropImages": {
         "description": "Description for background backdrops"
     },
@@ -2696,7 +2696,7 @@
     "@seriesThumbnails": {
         "description": "Setting for series thumbnails"
     },
-    "seriesThumbnailsDescription": "Nur Episoden: Serienbilder verwenden, die zum Bildtyp jeder Reihe passen",
+    "seriesThumbnailsDescription": "Nur Episoden: Serienbilder verwenden, die zum Bildtyp jeder Reihe passen.",
     "@seriesThumbnailsDescription": {
         "description": "Description for series thumbnails setting"
     },
@@ -2782,7 +2782,7 @@
             }
         }
     },
-    "browsingBackgroundBlur": "Stöbern-Hintergrundunschärfe",
+    "browsingBackgroundBlur": "Hintergrundunschärfe beim Stöbern",
     "@browsingBackgroundBlur": {
         "description": "Setting for browsing background blur"
     },
@@ -3651,7 +3651,7 @@
     "@mergeContinueWatchingAndNextUp": {
         "description": "Setting for merging continue watching and next up"
     },
-    "combineBothRows": "Beide Reihen in einen Startseitenbereich zusammenführen",
+    "combineBothRows": "Beide Reihen in einen Startseitenbereich zusammenführen.",
     "@combineBothRows": {
         "description": "Description for merge continue watching and next up"
     },
@@ -6535,7 +6535,7 @@
     "settingsPlaybackSyncplaySubtitle": "Audio-/Videoeinstellungen, Untertitel, Downloads und SyncPlay-Steuerelemente",
     "settingsIntegrationsSubtitle": "Plugin-Synchronisierung, Seerr, Bewertungen und mehr",
     "settingsAboutSubtitle": "App-Version, rechtliche Informationen und Credits",
-    "settingsAuthenticationSection": "AUTHENTIFIZIERUNG",
+    "settingsAuthenticationSection": "Authentifizierung",
     "settingsSortServersBy": "Server sortieren nach",
     "settingsLastUsed": "Zuletzt verwendet",
     "settingsAlphabetical": "Alphabetisch",
@@ -6547,11 +6547,11 @@
     "settingsHomePageSubtitle": "Abschnitte, Bildtypen, Überlagerungen und Medienvorschauen",
     "settingsLibrariesSubtitle": "Sichtbarkeit der Bibliothek, Ordneransicht und Verhalten bei mehreren Servern",
     "settingsTwentyFourHourClock": "24-Stunden-Uhr",
-    "settingsTwentyFourHourClockSubtitle": "Verwenden Sie überall dort, wo die Uhr angezeigt wird, das 24-Stunden-Format",
-    "settingsShowShuffleButtonInNavigation": "Zeigen Sie die Zufallsschaltfläche in der Navigationsleiste an",
-    "settingsShowGenresButtonInNavigation": "Zeigen Sie die Schaltfläche „Genres“ in der Navigationsleiste an",
-    "settingsShowFavoritesButtonInNavigation": "Zeigen Sie die Favoritenschaltfläche in der Navigationsleiste an",
-    "settingsShowLibrariesButtonInNavigation": "Zeigen Sie die Schaltfläche „Bibliotheken“ in der Navigationsleiste an",
+    "settingsTwentyFourHourClockSubtitle": "Verwenden Sie überall dort, wo die Uhr angezeigt wird, das 24-Stunden-Format.",
+    "settingsShowShuffleButtonInNavigation": "Zeigen Sie die Zufallsschaltfläche in der Navigationsleiste an.",
+    "settingsShowGenresButtonInNavigation": "Zeigen Sie die Schaltfläche „Genres“ in der Navigationsleiste an.",
+    "settingsShowFavoritesButtonInNavigation": "Zeigen Sie die Favoritenschaltfläche in der Navigationsleiste an.",
+    "settingsShowLibrariesButtonInNavigation": "Zeigen Sie die Schaltfläche „Bibliotheken“ in der Navigationsleiste an.",
     "settingsLibraryVisibilitySubtitle": "Schalten Sie die Sichtbarkeit der Startseite pro Bibliothek um. Starten Sie Moonfin neu, damit die Änderungen wirksam werden.",
     "settingsMediaBarAndLocalPreviews": "Medienleiste und lokale Vorschauen",
     "settingsVisualOverlays": "Visuelle Überlagerungen",
@@ -6653,7 +6653,7 @@
     "settingsSyncplayEnabled": "SyncPlay aktiviert",
     "settingsSyncplayEnabledSubtitle": "Aktivieren Sie Gruppenüberwachungsfunktionen",
     "settingsSyncplayButton": "SyncPlay-Taste",
-    "settingsSyncplayButtonSubtitle": "Zeigen Sie die SyncPlay-Schaltfläche in der Navigationsleiste an",
+    "settingsSyncplayButtonSubtitle": "Zeigen Sie die SyncPlay-Schaltfläche in der Navigationsleiste an.",
     "settingsSyncplayAdvancedCorrection": "Erweiterte Korrektur",
     "settingsSyncplayAdvancedCorrectionSubtitle": "Aktivieren Sie eine fein abgestimmte Synchronisierungslogik",
     "settingsSyncplaySyncCorrection": "Synchronisierungskorrektur",
@@ -7047,7 +7047,7 @@
         }
     },
     "savedThemesDeleteTooltip": "Gespeichertes Thema löschen",
-    "savedThemesManageSubtitle": "Verwalten Sie heruntergeladene Plugin-Themes auf diesem Gerät",
+    "savedThemesManageSubtitle": "Verwalten Sie heruntergeladene Plugin-Themes auf diesem Gerät.",
     "themeEditor": "Theme-Editor",
     "themeEditorSubtitle": "Öffnen Sie den Moonfin Theme-Editor in Ihrem Browser",
     "homeScreen": "Startbildschirm",
@@ -7895,7 +7895,7 @@
     "@fullScreenRows": {
         "description": "Setting for full screen home rows"
     },
-    "fullScreenRowsDescription": "Startseite auf eine Zeile pro Bildschirm begrenzen",
+    "fullScreenRowsDescription": "Startseite auf eine Zeile pro Bildschirm begrenzen.",
     "@fullScreenRowsDescription": {
         "description": "Description for full screen home rows"
     },
@@ -8520,7 +8520,7 @@
     "@contextMenuAddToCollection": {
         "description": "Context menu action to add an item to a collection"
     },
-    "settingsConnectionSection": "VERBINDUNG",
+    "settingsConnectionSection": "Verbindungseinstellungen",
     "@settingsConnectionSection": {
         "description": "Section header for server connection settings"
     },
@@ -8534,8 +8534,8 @@
     },
     "settingsDetailsScreen": "Detailseite",
     "settingsDetailsScreenSubtitle": "Stil, Hintergrundunschärfe und Tab-Verhalten",
-    "settingsShowSeerrButtonInNavigation": "Seerr-Schaltfläche in der Navigationsleiste anzeigen",
-    "settingsAlwaysExpandNavbarLabels": "Textbeschriftungen in der oberen Navigationsleiste immer anzeigen",
+    "settingsShowSeerrButtonInNavigation": "Seerr-Schaltfläche in der Navigationsleiste anzeigen.",
+    "settingsAlwaysExpandNavbarLabels": "Textbeschriftungen in der oberen Navigationsleiste immer anzeigen.",
     "settingsMediaSegmentCountdown": "Countdown für Mediensegmente",
     "@settingsMediaSegmentCountdown": {
         "description": "Setting label for media segment countdown customizations"
@@ -8582,7 +8582,7 @@
         "description": "Setting title to show/hide backdrops when browsing library pages"
     },
     "themeStore": "Theme-Store",
-    "themeStoreSubtitle": "Community-Themes durchstöbern und speichern",
+    "themeStoreSubtitle": "Community-Themes durchstöbern und speichern.",
     "themeStoreDescription": "Speichern Sie ein Theme, um es wie Ihre anderen gespeicherten Themes zu verwenden.",
     "themeStoreEmpty": "Derzeit sind keine Themes verfügbar.",
     "themeStoreLoadFailed": "Der Theme-Store konnte nicht geladen werden. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
@@ -9072,7 +9072,7 @@
     "@interfaceLayoutPhone": {
         "description": "Interface layout option: phone layout"
     },
-    "osdButtons": "Player Knöpfe",
+    "osdButtons": "Bedienelemente des Players",
     "@osdButtons": {
         "description": "Settings screen for choosing which buttons the player shows"
     },
@@ -9170,7 +9170,7 @@
     "@nextUpMaxDays": {
         "description": "Setting for how far back the Next Up row reaches"
     },
-    "nextUpMaxDaysDescription": "Wie lange eine Sendung in Als Nächstes angezeigt wird nachdem sie angeshen wurde",
+    "nextUpMaxDaysDescription": "Wie lange eine Sendung in Als Nächstes angezeigt wird nachdem sie angesehen wurde.",
     "@nextUpMaxDaysDescription": {
         "description": "Description for the Next Up window setting"
     },
@@ -9326,5 +9326,104 @@
     "trickplaySettingsPreviewHint": "Bewegen Sie den Schieberegler für eine interaktive Vorschau",
     "@trickplaySettingsPreviewHint": {
         "description": "Hint shown below the live trickplay settings preview"
+    },
+    "osdButtonsDescription": "Lege fest, welche Schaltflächen im Player angezeigt werden",
+    "@osdButtonsDescription": {
+        "description": "Subtitle for the player buttons settings tile"
+    },
+    "emulatorCores": "Emulatoren",
+    "emulatorCoresSubtitle": "Lade Emulatoren herunter, um Spiele nativ auszuführen",
+    "emulatorCoresDescription": "Wählen Sie aus, welche Emulatoren installiert werden sollen. Die Emulatoren werden vom libretro-Projekt bereitgestellt und ermöglichen es, Spiele nativ statt in einer Browseransicht auszuführen",
+    "gamepadNavigation": "Steuerung mit Gamepad",
+    "@gamepadNavigation": {
+        "description": "Settings label for the switch that lets a game controller move focus and select items"
+    },
+    "gamepadNavigationDescription": "Ermöglicht die Navigation und Auswahl von Elementen mit einem verbundenen Gamepad.",
+    "@gamepadNavigationDescription": {
+        "description": "Settings subtitle for the gamepad navigation switch"
+    },
+    "scrollSensitivity": "Mausrad-Empfindlichkeit",
+    "@scrollSensitivity": {
+        "description": "Title of the desktop setting that scales mouse wheel scrolling."
+    },
+    "scrollSensitivitySubtitle": "Legt fest, wie weit ein Mausradschritt scrollt.",
+    "@scrollSensitivitySubtitle": {
+        "description": "Explains the desktop scroll sensitivity slider."
+    },
+    "personalRatingStyle": "Bewertungsstil",
+    "@personalRatingStyle": {
+        "description": "Selects how personal ratings are displayed and entered on media details."
+    },
+    "personalRatingThumbs": "Gefällt mir / Gefällt mir nicht",
+    "@personalRatingThumbs": {
+        "description": "Personal rating style using like and dislike actions."
+    },
+    "personalRatingStars": "5 Sterne System",
+    "@personalRatingStars": {
+        "description": "Personal rating style using a five-star scale."
+    },
+    "personalRatingNumeric": "Numerische Bewertung von 1 bis 10",
+    "@personalRatingNumeric": {
+        "description": "Personal rating style using a numeric score out of ten."
+    },
+    "detailButtons": "Aktionsschaltflächen",
+    "@detailButtons": {
+        "description": "Settings screen for choosing which buttons the details screen shows"
+    },
+    "detailButtonsDescription": "Legen Sie fest, welche Aktionen auf der Detailseite verfügbar sind.",
+    "@detailButtonsDescription": {
+        "description": "Subtitle for the details action buttons settings tile"
+    },
+    "detailButtonsSectionDescription": "\"Wiedergeben\" steht immer an erster Stelle und gesperrte Schaltflächen werden immer angezeigt. Die übrigen Aktionen können Sie frei festlegen. Jeder Gerätetyp verwendet eine eigene Liste.",
+    "@detailButtonsSectionDescription": {
+        "description": "Explains that the play buttons can't be hidden and that the list is per device kind"
+    },
+    "mediaDetailsAndSpoilers": "Mediendetails und Spoilereinstellungen",
+    "@mediaDetailsAndSpoilers": {
+        "description": "Section header for media details and spoiler settings"
+    },
+    "openTrailersExternally": "Trailer in externer App öffnen",
+    "@openTrailersExternally": {
+        "description": "Details screen setting that hands trailers to the system"
+    },
+    "openTrailersExternallySubtitle": "Trailer werden in der YouTube-App oder im Browser statt im integrierten Player geöffnet.",
+    "@openTrailersExternallySubtitle": {
+        "description": "Subtitle for the external trailers setting"
+    },
+    "hideDetailsMediaDescription": "Medienbeschreibung auf der Detailseite ausblenden",
+    "@hideDetailsMediaDescription": {
+        "description": "Setting title to hide media description on details screen"
+    },
+    "hideDetailsMediaDescriptionSubtitle": "Blendet die Beschreibung des Films oder der Episode aus.",
+    "@hideDetailsMediaDescriptionSubtitle": {
+        "description": "Description for setting to hide media description on details page"
+    },
+    "serverMessagesShowButton": "Nachrichten-Schaltfläche anzeigen",
+    "@serverMessagesShowButton": {
+        "description": "Setting that shows or hides the messages button in the menu"
+    },
+    "serverMessagesShowButtonSubtitle": "Fügt dem Menü eine Schaltfläche für Nachrichten vom Serveradministrator hinzu.",
+    "@serverMessagesShowButtonSubtitle": {
+        "description": "Explains the setting that shows or hides the messages button"
+    },
+    "homeRowsPadding": "Innenabstand der Startseitenzeilen",
+    "@homeRowsPadding": {
+        "description": "Title for home rows padding setting"
+    },
+    "homeRowsPaddingDescription": "Passen Sie den Abstand zwischen den Zeilen auf der Startseite an.",
+    "@homeRowsPaddingDescription": {
+        "description": "Description for home rows padding setting"
+    },
+    "continueWatchingAndNextUpHeader": "Weiterschauen und Als Nächstes",
+    "@continueWatchingAndNextUpHeader": {
+        "description": "Header for settings section containing Continue Watching and Next Up options"
+    },
+    "hideHomeMediaDescription": "Medienbeschreibung auf der Startseite ausblenden",
+    "@hideHomeMediaDescription": {
+        "description": "Setting title to hide media description on home screen"
+    },
+    "hideHomeMediaDescriptionSubtitle": "Blendet die Beschreibung des Films oder der Episode auf der Startseite aus.",
+    "@hideHomeMediaDescriptionSubtitle": {
+        "description": "Description for setting to hide media description on home screen"
     }
 }

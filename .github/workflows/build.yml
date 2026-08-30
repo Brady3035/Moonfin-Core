@@ -503,6 +503,34 @@ jobs:
             ${{ matrix.artifact_prefix }}_v*.flatpak
           if-no-files-found: error
 
+  # What the PR Comment workflow reads to build its comment. always() keeps this
+  # running when a platform job fails, which is the case the comment most needs
+  # to report.
+  save-pr-results:
+    if: always() && github.event_name == 'pull_request'
+    needs: [android, ios, macos, windows, windows-arm64, linux]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Write outcomes.json
+        run: |
+          cat > outcomes.json <<EOF
+          {
+            "pr_number": ${{ github.event.pull_request.number }},
+            "sha": "${{ github.event.pull_request.head.sha }}",
+            "android": "${{ needs.android.result }}",
+            "ios": "${{ needs.ios.result }}",
+            "macos": "${{ needs.macos.result }}",
+            "windows": "${{ needs.windows.result }}",
+            "windows_arm64": "${{ needs.windows-arm64.result }}",
+            "linux": "${{ needs.linux.result }}"
+          }
+          EOF
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: build-results
+          path: outcomes.json
+
   # GitHub Release
   release:
     if: startsWith(github.ref, 'refs/tags/')

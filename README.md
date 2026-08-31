@@ -18,6 +18,18 @@
 
 Moonfin is a cross-platform media client built with Flutter, designed for Jellyfin and Emby users who want a modern, customizable experience across mobile, tablet, desktop, TV, and web. A single shared codebase powers phones and tablets, Windows, macOS, and Linux, Android TV and Apple TV, the browser, and experimental Samsung TV (Tizen).
 
+## All Moonfin-Core Clients
+
+| Platform            | Download                                                                                                                                                                                                                                                                                       |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Android Mobile / TV | [![Google Play](https://img.shields.io/badge/Google%20Play-grey?logo=Google+Play\&label=)](https://play.google.com/store/apps/details?id=org.moonfin.androidtv)                                                                                                                                |
+| Fire TV             | [![Amazon Appstore](https://img.shields.io/badge/Amazon%20Appstore-FF9900?logo=amazon\&logoColor=white)](https://www.amazon.com/Moonfin/dp/B0H76BG3DW)                                                                                                                                         |
+| iOS                 | [![App Store](https://img.shields.io/badge/App_Store-0D96F6?logo=app-store\&logoColor=white)](https://apps.apple.com/app/moonfin/id6761283970)                                                                                                                                                 |
+| Linux               | [![Arch Linux](https://img.shields.io/badge/Arch%20Linux-1793D1?logo=arch-linux\&logoColor=fff)](https://aur.archlinux.org/packages/moonfin-bin)<br>[![Linux](https://img.shields.io/badge/Linux-FCC624?logo=linux\&logoColor=black)](https://github.com/Moonfin-Client/Moonfin-Core/releases) |
+| macOS               | [![App Store](https://img.shields.io/badge/App_Store-0D96F6?logo=app-store\&logoColor=white)](https://apps.apple.com/app/moonfin/id6761283970)<br>[![Homebrew](https://img.shields.io/badge/Homebrew-FBB040?logo=homebrew\&logoColor=fff)](https://formulae.brew.sh/cask/moonfin)              |
+| tvOS                | [![App Store](https://img.shields.io/badge/App_Store-0D96F6?logo=app-store\&logoColor=white)](https://apps.apple.com/app/moonfin/id6761283970)                                                                                                                                                 |
+| Windows             | [![Release](https://img.shields.io/github/v/release/Moonfin-Client/Moonfin-Core?label=Release\&logo=github\&logoColor=white)](https://github.com/Moonfin-Client/Moonfin-Core/releases)                                                                                                         |
+
 ## Supported Servers
 
 | Server | Minimum Version | Status |

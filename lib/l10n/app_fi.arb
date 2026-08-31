@@ -128,7 +128,7 @@
             }
         }
     },
-    "cancel": "Peruuttaa",
+    "cancel": "Peruuta",
     "@cancel": {
         "description": "Generic cancel button label"
     },
@@ -156,7 +156,7 @@
     "@secureStorageUnavailable": {
         "description": "Dialog title when system keyring is inaccessible"
     },
-    "secureStorageUnavailableMessage": "Moonfin ei voinut käyttää järjestelmäavaimenperääsi. Kirjautuminen voi jatkua, mutta suojattu tunnuksen tallennus ei välttämättä ole käytettävissä, ennen kuin avaimenperä on avattu.",
+    "secureStorageUnavailableMessage": "Moonfin ei voinut käyttää järjestelmän avainnippu. Kirjautuminen voi jatkua, mutta suojattu tunnuksen tallennus ei välttämättä ole käytettävissä, ennen kuin avainnippu on avattu.",
     "@secureStorageUnavailableMessage": {
         "description": "Explanation when secure storage is not available"
     },
@@ -2601,7 +2601,7 @@
     "@languageSizeAppearance": {
         "description": "Subtitle settings description"
     },
-    "qualityStorage": "Laatu, säilytys",
+    "qualityStorage": "Laatu, tallennus",
     "@qualityStorage": {
         "description": "Download settings description"
     },
@@ -2633,7 +2633,7 @@
     "@signInAndSecurity": {
         "description": "Account section description"
     },
-    "administration": "Järjestelmänvalvoja",
+    "administration": "Ylläpito",
     "@administration": {
         "description": "Administration section title"
     },
@@ -2641,7 +2641,7 @@
     "@serverSettingsUsersLibraries": {
         "description": "Administration section description"
     },
-    "customization": "Räätälöinti",
+    "customization": "Kustomointi",
     "@customization": {
         "description": "Customization section title"
     },
@@ -10169,5 +10169,31 @@
     "seerrDownloading": "Ladataan",
     "@seerrDownloading": {
         "description": "Seerr download bar label when the server reports no usable file sizes"
+    },
+    "adminMetadataAirDays": "Lähetyspäivät",
+    "trickplayFollowScrubPosition": "Seuraa Scrub Kohtaa",
+    "@trickplayFollowScrubPosition": {
+        "description": "Setting for whether the trickplay preview horizontally tracks the scrub handle"
+    },
+    "seerrDownloadingSize": "Ladataan · {done} / {total}",
+    "@seerrDownloadingSize": {
+        "description": "Label above the Seerr download progress bar when byte counts are known",
+        "placeholders": {
+            "done": {
+                "type": "String"
+            },
+            "total": {
+                "type": "String"
+            }
+        }
+    },
+    "seerrPercentValue": "{percent}%",
+    "@seerrPercentValue": {
+        "description": "Standalone percentage shown at the end of the Seerr download bar label",
+        "placeholders": {
+            "percent": {
+                "type": "int"
+            }
+        }
     }
 }

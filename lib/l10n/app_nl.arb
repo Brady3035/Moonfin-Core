@@ -9635,5 +9635,499 @@
                 "type": "String"
             }
         }
+    },
+    "interfaceLayout": "Interfacelay-out",
+    "@interfaceLayout": {
+        "description": "Setting to override which UI layout the app uses"
+    },
+    "interfaceLayoutSubtitle": "De gedetecteerde lay-out overschrijven als dit apparaat onjuist wordt gelezen. Start Moonfin opnieuw op om de wijzigingen door te voeren.",
+    "@interfaceLayoutSubtitle": {
+        "description": "Subtitle for the interface layout setting"
+    },
+    "interfaceLayoutAutomatic": "Automatisch",
+    "@interfaceLayoutAutomatic": {
+        "description": "Interface layout option: detect from the device"
+    },
+    "interfaceLayoutTv": "TV",
+    "@interfaceLayoutTv": {
+        "description": "Interface layout option: 10-foot TV layout"
+    },
+    "interfaceLayoutDesktop": "Desktop",
+    "@interfaceLayoutDesktop": {
+        "description": "Interface layout option: desktop layout"
+    },
+    "interfaceLayoutPhone": "Telefoon",
+    "@interfaceLayoutPhone": {
+        "description": "Interface layout option: phone layout"
+    },
+    "controller": "Controller",
+    "@controller": {
+        "description": "Settings section header for game controller options"
+    },
+    "gamepadNavigation": "Gamepad-navigatie",
+    "@gamepadNavigation": {
+        "description": "Settings label for the switch that lets a game controller move focus and select items"
+    },
+    "gamepadNavigationDescription": "Laat een aangesloten gamecontroller de focus verplaatsen en items selecteren",
+    "@gamepadNavigationDescription": {
+        "description": "Settings subtitle for the gamepad navigation switch"
+    },
+    "queuedDownload": "In de wachtrij",
+    "@queuedDownload": {
+        "description": "Status label for a download waiting in the queue for a free download slot"
+    },
+    "searchingSubtitles": "Naar ondertitels aan het zoeken…",
+    "@searchingSubtitles": {
+        "description": "Shown while a remote subtitle search is running"
+    },
+    "downloadingSubtitle": "Ondertitels downloaden…",
+    "@downloadingSubtitle": {
+        "description": "Shown while a chosen subtitle is downloaded and the server is picking it up"
+    },
+    "starring": "Met in de hoofdrol",
+    "@starring": {
+        "description": "Metadata label for the leading cast"
+    },
+    "aiTranslated": "AI-vertaald",
+    "@aiTranslated": {
+        "description": "Label for a remote subtitle the provider marked as AI translated"
+    },
+    "machineTranslated": "Machine-vertaald",
+    "@machineTranslated": {
+        "description": "Label for a remote subtitle the provider marked as machine translated"
+    },
+    "hearingImpaired": "SDH",
+    "@hearingImpaired": {
+        "description": "Label for a remote subtitle marked as hearing impaired"
+    },
+    "framerateFps": "{rate} fps",
+    "@framerateFps": {
+        "description": "Framerate of a remote subtitle, shown in its detail line",
+        "placeholders": {
+            "rate": {
+                "type": "String"
+            }
+        }
+    },
+    "recordSeries": "Serie opnemen",
+    "@recordSeries": {
+        "description": "Button label to record every showing of a live TV series"
+    },
+    "seriesSetToRecord": "Serie wordt opgenomen",
+    "@seriesSetToRecord": {
+        "description": "Snackbar confirmation after scheduling a live TV series recording"
+    },
+    "seriesRecordingCancelled": "Serie-opname geannuleerd",
+    "@seriesRecordingCancelled": {
+        "description": "Snackbar confirmation after cancelling a live TV series recording"
+    },
+    "unableToCreateSeriesRecording": "Serie-opname aanmaken mislukt",
+    "@unableToCreateSeriesRecording": {
+        "description": "Error when creating a live TV series recording fails"
+    },
+    "mixedRowsOnly": "Alleen gemengde rijen",
+    "@mixedRowsOnly": {
+        "description": "Option: only show the label on rows holding both movies and series"
+    },
+    "manual": "Handmatig",
+    "@manual": {
+        "description": "Option: manual"
+    },
+    "autoDetect": "Autodetecteren",
+    "@autoDetect": {
+        "description": "Option: detect the value automatically"
+    },
+    "trickplayDisplayStyleSingle": "Enkele miniatuur",
+    "@trickplayDisplayStyleSingle": {
+        "description": "Trickplay display style option: one thumbnail at the scrub position"
+    },
+    "trickplayDisplayStyleStrip": "Filmstrook",
+    "@trickplayDisplayStyleStrip": {
+        "description": "Trickplay display style option: a row of 5 thumbnails around the scrub position"
+    },
+    "trickplayModeFull": "Volledig scherm",
+    "@trickplayModeFull": {
+        "description": "Trickplay mode option: temporarily replaces the video with the trickplay image while scrubbing"
+    },
+    "trickplayPreviewScale": "Voorbeeldgrootte",
+    "@trickplayPreviewScale": {
+        "description": "Setting for the size of the trickplay seek preview"
+    },
+    "trickplayVerticalOffset": "Afstand van de zoekbalk",
+    "@trickplayVerticalOffset": {
+        "description": "Setting for the vertical position of the trickplay seek preview relative to the seekbar"
+    },
+    "trickplayFollowScrubPosition": "Schrobpositie volgen",
+    "@trickplayFollowScrubPosition": {
+        "description": "Setting for whether the trickplay preview horizontally tracks the scrub handle"
+    },
+    "ascending": "Oplopend",
+    "descending": "Aflopend",
+    "filtersHeader": "Filters",
+    "showHeader": "Laat zien",
+    "mediaBarModeBookshelf": "Boekenplank",
+    "@mediaBarModeBookshelf": {
+        "description": "Media bar style option: Bookshelf"
+    },
+    "mediaBarModeGallery": "Gallerij",
+    "@mediaBarModeGallery": {
+        "description": "Media bar style option: Gallery"
+    },
+    "mediaBarModeBanner": "Banner",
+    "@mediaBarModeBanner": {
+        "description": "Media bar style option: Banner"
+    },
+    "mediaBarModeAya": "Aya",
+    "@mediaBarModeAya": {
+        "description": "Media bar style option: Aya"
+    },
+    "mediaBarSourceType": "Bron",
+    "@mediaBarSourceType": {
+        "description": "Setting for which titles the media bar draws from"
+    },
+    "mediaBarSourceRandom": "Willekeurig",
+    "@mediaBarSourceRandom": {
+        "description": "Media bar source: any eligible title"
+    },
+    "filterUnreleased": "Onuitgebracht",
+    "@filterUnreleased": {
+        "description": "Series status filter for shows that have not started airing."
+    },
+    "filterTrailers": "Trailers",
+    "@filterTrailers": {
+        "description": "Library filter for items that have a trailer."
+    },
+    "filterExtras": "Extra's",
+    "@filterExtras": {
+        "description": "Library filter for items that have bonus features."
+    },
+    "source": "Bron",
+    "@source": {
+        "description": "Heading for the disc source filters in the library filter picker."
+    },
+    "years": "Jaren",
+    "@years": {
+        "description": "Heading for the release year filters in the library filter picker."
+    },
+    "seerrReleased": "Uitgebracht",
+    "@seerrReleased": {
+        "description": "Heading for the release window filter in the Seerr browse dialog."
+    },
+    "seerrRuntime": "Looptijd",
+    "@seerrRuntime": {
+        "description": "Heading for the runtime window filter in the Seerr browse dialog."
+    },
+    "setupStyleClassic": "Klassiek",
+    "@setupStyleClassic": {
+        "description": "Name of the original layout, offered in the setup wizard"
+    },
+    "setupStyleModern": "Modern",
+    "@setupStyleModern": {
+        "description": "Name of the newer layout, offered in the setup wizard"
+    },
+    "adminMetadataDisplayOrderAired": "Uitgezonden",
+    "adminMetadataDisplayOrderAbsolute": "Absoluut",
+    "adminMetadataDisplayOrderDvd": "DVD",
+    "adminMetadataDisplayOrderDigital": "Digitaal",
+    "adminMetadataDisplayOrderProduction": "Productie",
+    "adminMetadataDisplayOrderTv": "TV",
+    "adminMetadataDisplayOrderAlternate": "Alternatief",
+    "adminMetadataDisplayOrderRegional": "Regionaal",
+    "adminMetadataCountryRegion": "Land/Regio",
+    "adminMetadataPersonKindUnknown": "Onbekend",
+    "adminMetadataPersonKindActor": "Acteur",
+    "adminMetadataPersonKindDirector": "Regisseur",
+    "adminMetadataPersonKindComposer": "Componist",
+    "adminMetadataPersonKindWriter": "Schrijver",
+    "adminMetadataPersonKindProducer": "Producent",
+    "adminMetadataPersonKindConductor": "Dirigent",
+    "adminMetadataPersonKindLyricist": "Tekstschrijver",
+    "adminMetadataPersonKindArranger": "Arrangeur",
+    "adminMetadataPersonKindEngineer": "Technicus",
+    "adminMetadataPersonKindMixer": "Mixer",
+    "adminMetadataPersonKindRemixer": "Remixer",
+    "adminMetadataPersonKindCreator": "Maker",
+    "adminMetadataPersonKindArtist": "Artiest",
+    "adminMetadataPersonKindAuthor": "Auteur",
+    "adminMetadataPersonKindIllustrator": "Illustrator",
+    "adminMetadataPersonKindPenciller": "Boekmaker",
+    "adminMetadataPersonKindInker": "Inkter",
+    "adminMetadataPersonKindColorist": "Colorist",
+    "adminMetadataPersonKindLetterer": "Letteraar",
+    "adminMetadataPersonKindEditor": "Redacteur",
+    "adminMetadataPersonKindTranslator": "Vertaler",
+    "adminMetadataPersonKindNarrator": "Verteller",
+    "adminMetadataLockFieldName": "Naam",
+    "adminMetadataLockFieldOverview": "Overzicht",
+    "adminMetadataLockFieldGenres": "Genres",
+    "adminMetadataLockFieldCast": "Mensen",
+    "adminMetadataLockFieldRuntime": "Looptijd",
+    "adminMetadataLockFieldStudios": "Studio's",
+    "adminMetadataLockFieldTags": "Tags",
+    "serverMessages": "Berichten",
+    "@serverMessages": {
+        "description": "Menu button and window title for messages sent by the server admin"
+    },
+    "seerrDownloading": "Downloaden",
+    "@seerrDownloading": {
+        "description": "Seerr download bar label when the server reports no usable file sizes"
+    },
+    "seerrPercentValue": "{percent}%",
+    "@seerrPercentValue": {
+        "description": "Standalone percentage shown at the end of the Seerr download bar label",
+        "placeholders": {
+            "percent": {
+                "type": "int"
+            }
+        }
+    },
+    "sortOrder": "Sorteervolgorde",
+    "selectAllStudios": "Alles selecteren",
+    "deselectAllStudios": "Alles deselecteren",
+    "tvStudiosFilter": "TV-studio's",
+    "movieStudiosFilter": "Filmstudio's",
+    "selectedStudiosFilter": "Geselecteerde studio's",
+    "unselectedStudiosFilter": "Niet-geselecteerde studio's",
+    "favoriteChannels": "Favoriete kanalen",
+    "@favoriteChannels": {
+        "description": "Home row: favourited live TV channels"
+    },
+    "personalRatingMine": "Mijn score",
+    "@personalRatingMine": {
+        "description": "Label under the viewer's own rating in the ratings row."
+    },
+    "filterInProgress": "Bezig",
+    "@filterInProgress": {
+        "description": "Library filter for items the viewer has started but not finished."
+    },
+    "filterThemeSongs": "Themaliedjes",
+    "@filterThemeSongs": {
+        "description": "Library filter for items that have a theme song."
+    },
+    "filterThemeVideos": "Themavideo's",
+    "@filterThemeVideos": {
+        "description": "Library filter for items that have a theme video."
+    },
+    "audioLanguage": "Audiotaal",
+    "@audioLanguage": {
+        "description": "Heading for the audio language filters in the library filter picker."
+    },
+    "subtitleLanguage": "Ondertiteltaal",
+    "@subtitleLanguage": {
+        "description": "Heading for the subtitle language filters in the library filter picker."
+    },
+    "clearFilters": "Wis filters",
+    "@clearFilters": {
+        "description": "Action that turns every library filter back off."
+    },
+    "seerrShortcutsRow": "Seerr bladeren",
+    "@seerrShortcutsRow": {
+        "description": "Title of the Seerr shortcuts row that jumps to Discover, Movies, Series, Requests and Issues."
+    },
+    "seerrMinRating": "Minimale beoordeling",
+    "@seerrMinRating": {
+        "description": "Heading for the TMDB score floor filter in the Seerr browse dialog."
+    },
+    "seerrMinVotes": "Minimale stemmen",
+    "@seerrMinVotes": {
+        "description": "Heading for the TMDB vote count floor filter in the Seerr browse dialog."
+    },
+    "seerrOriginalLanguage": "Oorspronkelijke taal",
+    "@seerrOriginalLanguage": {
+        "description": "Heading for the original language filter in the Seerr browse dialog."
+    },
+    "scrollSensitivity": "Scrollgevoeligheid",
+    "@scrollSensitivity": {
+        "description": "Title of the desktop setting that scales mouse wheel scrolling."
+    },
+    "setupSkip": "Setup overslaan",
+    "@setupSkip": {
+        "description": "Leaves the first-run setup wizard without answering anything"
+    },
+    "setupTourBulletRequests": "Seerr-aanvragen",
+    "@setupTourBulletRequests": {
+        "description": "Bullet on the closing setup screen for the Seerr request feature"
+    },
+    "setupTourBulletThemes": "Aangepaste thema's",
+    "@setupTourBulletThemes": {
+        "description": "Bullet on the closing setup screen for custom themes"
+    },
+    "setupTourBulletDownloads": "Offline downloads",
+    "@setupTourBulletDownloads": {
+        "description": "Bullet on the closing setup screen for downloads"
+    },
+    "adminMetadataFieldCustomRating": "Aangepaste beoordeling",
+    "adminMetadataFieldDisplayOrder": "Weergavevolgorde",
+    "adminMetadataDisplayOrderStoryArc": "Verhaallijn",
+    "adminMetadataDisplayOrderAlternateDvd": "Alternatieve DVD",
+    "adminMetadataDisplayOrderDateModified": "Datum aangepast",
+    "adminMetadataDisplayOrderSortName": "Sorteernaam",
+    "adminMetadataDisplayOrderReleaseDate": "Releasedatum",
+    "adminMetadataSettings": "Metadata-instellingen",
+    "adminMetadataField3DFormat": "3D-formaat",
+    "adminMetadataPersonKindGuestStar": "Gastrol",
+    "adminMetadataPersonKindAlbumArtist": "Albumartiest",
+    "adminMetadataPersonKindCoverArtist": "Coverartiest",
+    "adminMetadataAirDays": "Uitzenddagen",
+    "adminMetadataEnabledFields": "Ingeschakelde velden",
+    "adminMetadataLockFieldOfficialRating": "Kijkwijzer",
+    "adminMetadataLockFieldProductionLocations": "Productielocaties",
+    "adminMetadataLockFieldBirthLocation": "Geboorteplek",
+    "adminPluginsRestartRequired": "Opnieuw opstarten vereist",
+    "@adminPluginsRestartRequired": {
+        "description": "Label for the installed-plugin filter showing changes that require a server restart"
+    },
+    "settingsMediaSegmentTypeAction": "{segment} segmenten",
+    "@settingsMediaSegmentTypeAction": {
+        "description": "Setting label for what to do with one type of media segment",
+        "placeholders": {
+            "segment": {
+                "type": "String"
+            }
+        }
+    },
+    "displayStudiosRows": "Laat studiorij zien",
+    "studiosRowSorting": "Studiorij sorteren",
+    "subtitleHdrSeparate": "Aparte HDR-stijl",
+    "@subtitleHdrSeparate": {
+        "description": "Toggle for a second subtitle appearance used only while HDR is playing."
+    },
+    "setupPickALook": "Kies een look",
+    "@setupPickALook": {
+        "description": "Label above the theme swatches on the final setup screen"
+    },
+    "setupTourBulletSyncPlay": "SyncPlay kijkfeesten",
+    "@setupTourBulletSyncPlay": {
+        "description": "Bullet on the closing setup screen for SyncPlay"
+    },
+    "setupTourBulletMore": "En nog veel meer",
+    "@setupTourBulletMore": {
+        "description": "Closing bullet on the setup screen settings list"
+    },
+    "runSetupAgain": "Voer de installatie opnieuw uit",
+    "@runSetupAgain": {
+        "description": "Starts the first-run setup wizard again from settings"
+    },
+    "tvOfflineDownloads": "Schakel offline-downloads in",
+    "@tvOfflineDownloads": {
+        "description": "TV-only toggle in the Offline Downloads settings: offer download actions on item pages"
+    },
+    "adminMetadataDisplayOrderOriginalAirDate": "Oorspronkelijke uitzenddatum",
+    "adminMetadataDownloadLanguage": "Voorkeurstaal downloads",
+    "adminPluginsNoneActive": "Geen actieve plugins",
+    "@adminPluginsNoneActive": {
+        "description": "Empty state for the active installed-plugin filter"
+    },
+    "serverMessagesShowButton": "Laat berichtenknop zien",
+    "@serverMessagesShowButton": {
+        "description": "Setting that shows or hides the messages button in the menu"
+    },
+    "seerrDownloadedOfTotal": "{done} / {total}",
+    "@seerrDownloadedOfTotal": {
+        "description": "Short form of the Seerr download label, used when the card is too narrow for the verb",
+        "placeholders": {
+            "done": {
+                "type": "String"
+            },
+            "total": {
+                "type": "String"
+            }
+        }
+    },
+    "selectStudiosToInclude": "Selecteer studio's om mee te nemen",
+    "playerSwipeGestures": "Volume- en helderheidsveegbewegingen",
+    "@playerSwipeGestures": {
+        "description": "Setting for player swipe gestures"
+    },
+    "mediaDetailsAndSpoilers": "Mediadetails en spoilers",
+    "@mediaDetailsAndSpoilers": {
+        "description": "Section header for media details and spoiler settings"
+    },
+    "setupNavbarQuestion": "Waar moet de navigatie heen?",
+    "@setupNavbarQuestion": {
+        "description": "Setup question asking where the navigation bar should sit"
+    },
+    "emulatorCoreSettingsReset": "Instellingen terugzetten naar standaardwaarden.",
+    "@emulatorCoreSettingsReset": {
+        "description": "Snackbar shown after resetting a core's saved emulator settings"
+    },
+    "serverMessagesMarkAllRead": "Alles als gelezen markeren",
+    "@serverMessagesMarkAllRead": {
+        "description": "Button in the messages window that marks every message as read"
+    },
+    "recentlyReleasedSeriesType": "Recent uitgebrachte series sorteren",
+    "@recentlyReleasedSeriesType": {
+        "description": "Setting for sorting series in recently released series row"
+    },
+    "continueWatchingAndNextUpHeader": "Doorgaan met kijken en Volgende",
+    "@continueWatchingAndNextUpHeader": {
+        "description": "Header for settings section containing Continue Watching and Next Up options"
+    },
+    "setupHomeRowsQuestion": "Hoe moeten uw rijen eruit zien?",
+    "@setupHomeRowsQuestion": {
+        "description": "Setup wizard question for the home row style"
+    },
+    "setupRowsModernHint": "Grotere kaarten met titels eronder.",
+    "@setupRowsModernHint": {
+        "description": "What the modern home row style gives you"
+    },
+    "setupDetailClassicHint": "Alles gecentreerd in een stapel.",
+    "@setupDetailClassicHint": {
+        "description": "What the classic detail screen style gives you"
+    },
+    "emulatorCoreResetSettings": "Zet instellingen {system} terug naar standaardwaarden",
+    "@emulatorCoreResetSettings": {
+        "description": "Semantic label for the button that resets one core's saved emulator settings",
+        "placeholders": {
+            "system": {
+                "type": "String"
+            }
+        }
+    },
+    "openTrailersExternally": "Open trailers in externe app",
+    "@openTrailersExternally": {
+        "description": "Details screen setting that hands trailers to the system"
+    },
+    "seerrDownloadingSize": "Downloaden · {done} / {total}",
+    "@seerrDownloadingSize": {
+        "description": "Label above the Seerr download progress bar when byte counts are known",
+        "placeholders": {
+            "done": {
+                "type": "String"
+            },
+            "total": {
+                "type": "String"
+            }
+        }
+    },
+    "displayStudiosRowsSubtitle": "Laat studiorij zien in thuissecties.",
+    "studiosRowSortOrderDescription": "Kies oplopende of aflopende sortering.",
+    "hideDetailsMediaDescription": "Verberg de mediabeschrijving op de detailpagina",
+    "@hideDetailsMediaDescription": {
+        "description": "Setting title to hide media description on details screen"
+    },
+    "detailUseSeriesThumbnails": "Gebruik serieminiaturen op de detailpagina",
+    "@detailUseSeriesThumbnails": {
+        "description": "Setting title to replace thumbnails on Classic details page with series thumbnail"
+    },
+    "hideHomeMediaDescription": "Verberg mediaomschrijving op thuisscherm",
+    "@hideHomeMediaDescription": {
+        "description": "Setting title to hide media description on home screen"
+    },
+    "setupTourMoreHeader": "Er is meer onder Instellingen",
+    "@setupTourMoreHeader": {
+        "description": "Heading of the closing setup screen block that lists features found in settings"
+    },
+    "tvOfflineDownloadsSubtitle": "Laat downloadacties zien op itempagina's",
+    "@tvOfflineDownloadsSubtitle": {
+        "description": "Subtitle for the TV-only offline downloads toggle"
+    },
+    "adminPluginsNoneRequireRestart": "Geen plugins hebben een serverherstart nodig",
+    "@adminPluginsNoneRequireRestart": {
+        "description": "Empty state for the installed-plugin filter showing changes that require a server restart"
+    },
+    "serverMessagesEmpty": "Nog geen berichten van uw server",
+    "@serverMessagesEmpty": {
+        "description": "Shown in the messages window when the server has sent nothing"
     }
 }

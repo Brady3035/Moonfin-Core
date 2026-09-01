@@ -712,7 +712,7 @@
     "@bookmarksAndProgress": {
         "description": "Panel header for bookmarks section"
     },
-    "titlesArrangedForBrowsing": "{count}  otsikot on järjestetty niin, että niitä on helppo selata.",
+    "titlesArrangedForBrowsing": "{count} otsikot on järjestetty niin, että niitä on helppo selata.",
     "@titlesArrangedForBrowsing": {
         "description": "Panel subtitle showing total titles",
         "placeholders": {
@@ -959,7 +959,7 @@
     "@episodes": {
         "description": "Section header for episodes"
     },
-    "nextUp": "Seuraavaksi",
+    "nextUp": "Seuraavana",
     "@nextUp": {
         "description": "Home section: next up"
     },
@@ -3020,7 +3020,7 @@
     "@hardwareDecodingSubtitle": {
         "description": "Description for hardware decoding toggle"
     },
-    "nextUpAndQueuing": "Seuraava ylös ja jonotus",
+    "nextUpAndQueuing": "Seuraavana ja jonossa",
     "@nextUpAndQueuing": {
         "description": "Section title for next up and queuing"
     },
@@ -3633,7 +3633,7 @@
     "@episodePreview": {
         "description": "Setting for episode preview"
     },
-    "episodePreviewDescription": "Pelaa 30 sekunnin rivin esikatselu tarkennetuilla, leijutetuilla tai pitkään painetuilla korteilla",
+    "episodePreviewDescription": "Toista 30 sekunnin esikatselu kohdistetuilla, leijutetuilla tai pitkään painetuilla korteilla",
     "@episodePreviewDescription": {
         "description": "Description for episode preview"
     },
@@ -4293,7 +4293,7 @@
     "@cancelRequest": {
         "description": "Button/dialog title to cancel a media request"
     },
-    "playInMoonfin": "Pelaa Moonfinissä",
+    "playInMoonfin": "Toista Moonfinissä",
     "@playInMoonfin": {
         "description": "Button to play available media in Moonfin"
     },
@@ -6182,7 +6182,7 @@
     "syncPlayIgnoreWait": "Ohita odotus",
     "syncPlayIgnoreWaitSubtitle": "Älä pidä ryhmää pystyssä, kun tämä laite puskuroi",
     "syncPlayContinueLocallyNoWait": "Jatka paikallisesti odottamatta hitaita jäseniä",
-    "syncPlayRepeat": "Toistaa",
+    "syncPlayRepeat": "Toista uudestaan",
     "syncPlayRepeatOne": "Yksi",
     "syncPlayShuffleModeShuffled": "Sekoitettu",
     "syncPlayShuffleModeSorted": "Lajiteltu",
@@ -6199,7 +6199,7 @@
             }
         }
     },
-    "syncPlayPlayNow": "Pelaa nyt",
+    "syncPlayPlayNow": "Toista nyt",
     "syncPlayCreateNewGroup": "Luo uusi ryhmä",
     "syncPlayGroupName": "Ryhmän nimi",
     "syncPlayDefaultGroupName": "Oma SyncPlay-ryhmä",
@@ -6212,7 +6212,7 @@
     "syncPlayStateIdle": "Tyhjäkäynti",
     "syncPlayStateWaiting": "Odottaa",
     "syncPlayStatePaused": "Keskeytetty",
-    "syncPlayStatePlaying": "Pelaaminen",
+    "syncPlayStatePlaying": "Toistaa",
     "syncPlayUserJoinedGroup": "{userName} liittyi SyncPlay ryhmään",
     "@syncPlayUserJoinedGroup": {
         "description": "Snackbar message when a user joins a SyncPlay group",
@@ -6249,7 +6249,7 @@
     "dolbyVisionNotSupportedTitle": "Dolby Visionia ei tueta",
     "dolbyVisionNotSupportedMessage": "Tämä laite ei voi purkaa Dolby Vision -sisältöä suoraan. Käytä HDR10-varaa tai pyydä palvelimen transkoodausta.",
     "rememberMyChoice": "Muista valintani",
-    "playHdr10Fallback": "Pelaa HDR10-varaa",
+    "playHdr10Fallback": "Toista vara-HDR10",
     "requestTranscode": "Pyydä transkoodausta",
     "integrationRowsDiscoveredCount": "{count, plural, one {# rivi löytyi} other {# riviä löytyi}}",
     "@integrationRowsDiscoveredCount": {
@@ -6371,7 +6371,7 @@
     },
     "noRemoteDevices": "Etätoistolaitteita ei ole saatavilla.",
     "noRemoteDevicesIos": "Etätoistolaitteita ei ole saatavilla.\n\niOS:ssä AirPlay-kohteet eivät ehkä ole käytettävissä simulaattorissa.",
-    "trackActionPlayNext": "Pelaa seuraavaksi",
+    "trackActionPlayNext": "Toista seuraavaksi",
     "trackActionAddToQueue": "Lisää jonoon",
     "trackActionAddToPlaylist": "Lisää soittolistaan",
     "trackActionCancelDownload": "Peruuta lataus",
@@ -6412,8 +6412,8 @@
     "playlistNoneFound": "Soittolistoja ei löytynyt",
     "addToPlaylist": "Lisää soittolistaan",
     "lyricsNotAvailable": "Sanoja ei ole saatavilla",
-    "upNext": "Seuraavaksi ylös",
-    "playNext": "Pelaa seuraavaksi",
+    "upNext": "Seuraavaksi",
+    "playNext": "Toista seuraavaksi",
     "stillWatchingContent": "Toisto on keskeytetty. Katsotko vielä?",
     "stillWatchingStop": "Pysäytä",
     "stillWatchingContinue": "Jatkaa",
@@ -6747,7 +6747,7 @@
     "@mediaPreview": {
         "description": "Setting for media preview"
     },
-    "mediaPreviewDescription": "Pelaa 30 sekunnin rivin esikatselu tarkennetuilla, leijutetuilla tai pitkään painetuilla korteilla",
+    "mediaPreviewDescription": "Toista 30 sekunnin esikatselu tarkennetuilla, kohdistetuilla tai pitkään painetuilla korteilla",
     "@mediaPreviewDescription": {
         "description": "Description for media preview"
     },
@@ -7056,7 +7056,7 @@
     "homeRowsStyleModern": "Moderni",
     "homeRowsSection": "Kotirivit",
     "rowsType": "Rivien tyyppi",
-    "rowsTypeDescription": "Classic säilyttää rivikohtaisen kuvatyypin ja tietopeittokuvan. Moderni käyttää muotokuvasta taustaan ​​-rivejä.",
+    "rowsTypeDescription": "Classic säilyttää rivikohtaisen kuvatyypin ja tietopeittokuvan. Moderni käyttää muotokuvasta taustaan -rivejä.",
     "displayFavoritesRows": "Näytä suosikkirivit",
     "displayFavoritesRowsSubtitle": "Näytä suosikkielokuvat, -sarjat ja muut suosikkirivit Etusivu-osioissa.",
     "favoritesRowSorting": "Suosikkirivien lajittelu",
@@ -7089,7 +7089,7 @@
     "alwaysOn": "Aina päällä.",
     "replaceSkipOutroWithNextUpDisplay": "Korvaa Skip Outro Next Up -näytöllä",
     "replaceSkipOutroWithNextUpDisplaySubtitle": "Näytä Next Up -peittokuva Ohita Outro -painikkeen sijaan.",
-    "playerRouting": "Pelaajien reititys",
+    "playerRouting": "Soittimen reititys",
     "preferSoftwareDecoders": "Suosi ohjelmistodekoodeja",
     "preferSoftwareDecodersSubtitle": "Käytä FFmpeg (audio) ja libgav1 (AV1) ennen laitteistodekoodeja. Poista käytöstä, jos HDMI-äänen läpivienti katkeaa.",
     "useExternalPlayer": "Käytä ulkoista soitinta",
@@ -9576,7 +9576,7 @@
     "adminMetadataPersonKindNarrator": "Kertoja",
     "adminMetadataPersonKindPenciller": "Piirtäjä",
     "adminMetadataPersonKindColorist": "Värimäärittelijä",
-    "adminMetadataLockItem": "Lukitse tämä kohde, jotta metatietoja ei voida muuttaa myöhemmin",
+    "adminMetadataLockItem": "Lukitse tämä kohde estääksesi tulevat metadatan muutokset",
     "adminMetadataEnabledFields": "Käytössä olevat kentät",
     "adminMetadataEnabledFieldsHelp": "Poista valinta kentästä, jotta se lukitaan ja sen tietojen muuttaminen estetään.",
     "adminMetadataLockFieldName": "Nimi",

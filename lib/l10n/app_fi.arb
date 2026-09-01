@@ -2577,7 +2577,7 @@
     "@autoLoginServerManagement": {
         "description": "Auth settings description"
     },
-    "pinCode": "PIN-koodi",
+    "pinCode": "PIN koodi",
     "@pinCode": {
         "description": "PIN code settings title"
     },
@@ -6212,7 +6212,7 @@
     "syncPlayStateIdle": "Tyhjäkäynti",
     "syncPlayStateWaiting": "Odottaa",
     "syncPlayStatePaused": "Keskeytetty",
-    "syncPlayStatePlaying": "Toistaa",
+    "syncPlayStatePlaying": "Toistetaan",
     "syncPlayUserJoinedGroup": "{userName} liittyi SyncPlay ryhmään",
     "@syncPlayUserJoinedGroup": {
         "description": "Snackbar message when a user joins a SyncPlay group",

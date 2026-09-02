@@ -10,6 +10,7 @@ import 'package:server_core/server_core.dart';
 
 import '../data/services/retro_artwork/retro_artwork_disk_cache_io.dart';
 import 'game_artwork_cache.dart';
+import 'image_file_service.dart';
 import 'platform_detection.dart';
 
 final Set<String> _sweepingCacheKeys = <String>{};
@@ -23,13 +24,7 @@ Future<void> configureImageDiskCache() async {
     final key = DefaultCacheManager.key;
     const stalePeriod = Duration(days: 14);
     const maxObjects = 600;
-    // Images fetch through the cache manager's own client rather than Dio, so
-    // this is the one place they can pick up the server User-Agent. Without it
-    // a proxy that filters on the agent blocks every image while API calls
-    // still succeed.
-    final fileService = HttpFileService(
-      httpClient: _ServerUserAgentHttpClient(IOClient(buildImageHttpClient())),
-    );
+    final fileService = buildImageFileService();
     Config config;
     if (PlatformDetection.isAppleTV) {
       final cacheDir = await getApplicationCacheDirectory();
@@ -325,10 +320,30 @@ Future<void> clearImageDiskCache() async {
 HttpClient buildImageHttpClient() => HttpClient()
   ..maxConnectionsPerHost = imageRequestSlots
   ..connectionTimeout = const Duration(seconds: 8)
-  ..idleTimeout = const Duration(seconds: 120);
+  // dart:io reuses a pooled connection without checking it is still open, so
+  // the longer one is held the better the odds the peer let go of it in the
+  // meantime. Two minutes covered a whole browse, and a stale one there stalls
+  // every image rather than one request.
+  ..idleTimeout = const Duration(seconds: 15);
 
 /// Artwork shares the link with the API calls, so it takes the smaller share.
 const imageRequestSlots = 4;
+
+/// The service every artwork request goes through.
+///
+/// Images fetch through the cache manager's own client rather than Dio, so
+/// this is the one place they can pick up the server User-Agent. Without it a
+/// proxy that filters on the agent blocks every image while API calls still
+/// succeed.
+///
+/// It admits no more at once than [buildImageHttpClient] will connect. Letting
+/// more through leaves the rest in a queue inside dart:io that nothing times
+/// out, where the cache manager's own queue is drained every time a fetch
+/// finishes.
+BoundedImageFileService buildImageFileService() => BoundedImageFileService(
+  _ServerUserAgentHttpClient(IOClient(buildImageHttpClient())),
+  concurrentFetches: imageRequestSlots,
+);
 
 class _ServerUserAgentHttpClient extends http.BaseClient {
   _ServerUserAgentHttpClient(this._inner);

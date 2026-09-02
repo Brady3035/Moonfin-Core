@@ -224,7 +224,10 @@ class DownloadService extends ChangeNotifier {
         receiveTimeout: const Duration(hours: 6),
       ),
     );
-    configureServerDio(_downloadDio);
+    // Artwork and subtitles arrive as a run of separate files with gaps in
+    // between, and no screen is waiting on them, so the pool holds on to a
+    // connection long enough to save a handshake apiece.
+    configureServerDio(_downloadDio, idleTimeout: const Duration(seconds: 120));
     _coordinator?.attach(
       statusHandler: _onTaskStatus,
       progressHandler: _onTaskProgress,

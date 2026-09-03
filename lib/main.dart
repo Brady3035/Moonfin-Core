@@ -50,6 +50,7 @@ import 'util/window_geometry.dart';
 import 'util/http_overrides_stub.dart'
     if (dart.library.io) 'util/http_overrides_io.dart';
 import 'util/game_core_licenses.dart';
+import 'util/device_performance.dart';
 import 'util/platform_detection.dart';
 import 'util/tv_image_cache_stub.dart'
     if (dart.library.io) 'util/tv_image_cache_io.dart';
@@ -89,31 +90,41 @@ void _attachIosAudioRouteHandling() {
   });
 }
 
+/// What this device can afford. Its callers size themselves before dependency
+/// injection runs, so it works off [_startupPerformanceMode] rather than off
+/// UserPreferences.
+DevicePerformanceTier _resolvedTier() => resolveDevicePerformanceTierFor(
+  _startupPerformanceMode,
+  PlatformDetection.deviceMemory,
+);
+
 // The entry counts are generous on purpose: a library grid shows dozens of
 // posters at once, so a small count evicts them after about two screenfuls and
 // scrolling back re-decodes everything. maximumSizeBytes is what really bounds
 // memory here.
 void _configureImageCache() {
   final imageCache = PaintingBinding.instance.imageCache;
+  final tier = _resolvedTier();
+  void apply(int entries, int bytes) {
+    imageCache.maximumSize = entries;
+    imageCache.maximumSizeBytes = imageCacheBytesFor(tier, bytes);
+  }
+
   if (PlatformDetection.isWeb) {
-    imageCache.maximumSize = 400;
-    imageCache.maximumSizeBytes = 96 << 20;
+    apply(400, 96 << 20);
     return;
   }
   if (PlatformDetection.isMobile) {
-    imageCache.maximumSize = 400;
-    imageCache.maximumSizeBytes = 120 << 20;
+    apply(400, 120 << 20);
     return;
   }
 
   if (PlatformDetection.isTV) {
-    imageCache.maximumSize = 500;
-    imageCache.maximumSizeBytes = 96 << 20;
+    apply(500, 96 << 20);
     return;
   }
 
-  imageCache.maximumSize = 600;
-  imageCache.maximumSizeBytes = 256 << 20;
+  apply(600, 256 << 20);
 }
 
 Timer? _crashFlushDebounce;
@@ -235,6 +246,19 @@ Future<void> _applyInterfaceLayoutOverride() async {
   } catch (_) {}
 }
 
+/// The user's performance choice, read the same way and for the same reason:
+/// the tier is needed long before sign-in makes a per-user key readable, which
+/// is also why this preference is never stored per server and user.
+DevicePerformanceMode _startupPerformanceMode = DevicePerformanceMode.auto;
+
+Future<void> _readPerformanceModeOverride() async {
+  try {
+    final store = PreferenceStore();
+    await store.init();
+    _startupPerformanceMode = store.get(UserPreferences.performanceMode);
+  } catch (_) {}
+}
+
 /// Resolves whether this Android device is a TV, which decides the leanback UI
 /// and the default playback engine.
 Future<void> _detectAndSetTvMode() async {
@@ -288,6 +312,14 @@ Future<void> _seedCapabilitiesFromCache() async {
       PlatformDetection.setMediaCodecCapabilities(codecs);
     }
   }
+  if (PlatformDetection.isAndroid) {
+    final memory = await DeviceCapabilityCache.readMap(
+      DeviceCapabilityCache.deviceMemoryKey,
+    );
+    if (memory != null) {
+      PlatformDetection.setDeviceMemory(memory);
+    }
+  }
   if (PlatformDetection.isAndroid && PlatformDetection.isTV) {
     final hdrTypes = await DeviceCapabilityCache.readStringList(
       DeviceCapabilityCache.displayHdrKey,
@@ -331,6 +363,31 @@ Future<bool> _probeDisplayHdrOnce() async {
     ),
   );
   return true;
+}
+
+/// How much RAM this device has. Fixed for the life of the device, so one
+/// attempt with a deadline and no retry, and a cached answer stands in when the
+/// channel cant reach the platform side. Its own try/catch matters: this runs
+/// inside a Future.wait, which gives up on every sibling the moment one throws.
+Future<void> _detectAndSetDeviceMemory() async {
+  if (!PlatformDetection.isAndroid) return;
+  try {
+    const channel = MethodChannel('org.moonfin.androidtv/platform');
+    final raw = await channel
+        .invokeMethod<Map<dynamic, dynamic>>('deviceMemory')
+        .timeout(const Duration(seconds: 2));
+    if (raw == null) return;
+    final memory = raw.map((key, value) => MapEntry(key.toString(), value));
+    PlatformDetection.setDeviceMemory(memory);
+    // The facts go in, never the verdict, so moving the threshold later
+    // re-decides an old device instead of reading back a stale answer.
+    unawaited(
+      DeviceCapabilityCache.writeMap(
+        DeviceCapabilityCache.deviceMemoryKey,
+        memory,
+      ),
+    );
+  } catch (_) {}
 }
 
 Future<void> _detectAndSetDisplayCapabilities() async {
@@ -770,11 +827,13 @@ void main() async {
   }
 
   await _applyInterfaceLayoutOverride();
+  await _readPerformanceModeOverride();
   await _detectAndSetTvMode();
   await _seedCapabilitiesFromCache();
   await Future.wait([
     _detectAndSetDisplayCapabilities(),
     _detectAndSetCodecCapabilities(),
+    _detectAndSetDeviceMemory(),
   ]);
 
   if (PlatformDetection.isAppleTV) {
@@ -785,7 +844,7 @@ void main() async {
   }
 
   _configureImageCache();
-  await configureImageDiskCache();
+  await configureImageDiskCache(tier: _resolvedTier());
 
   // On Linux the GTK font pipeline loads fonts asynchronously. The first frame
   // can render before MaterialIcons and other fonts are ready, causing icons to

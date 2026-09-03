@@ -253,6 +253,26 @@ class AppLocalizationsKn extends AppLocalizations {
   String get glassQualityReduced => 'ರಿಡ್ಯೂಸ್ಡ್';
 
   @override
+  String get performanceMode => 'Performance';
+
+  @override
+  String get performanceModeSubtitle =>
+      'Auto measures this device and holds back on the ones short on memory, which keeps fewer images in memory and leaves trailers as still images. Takes full effect on the next launch.';
+
+  @override
+  String get performanceModeAuto => 'Auto';
+
+  @override
+  String get performanceModeStandard => 'Standard';
+
+  @override
+  String get performanceModeReduced => 'Reduced';
+
+  @override
+  String get trailerPreviewHeldBack =>
+      'Off because Performance is set to Reduced for this device';
+
+  @override
   String get settingsAppearanceThemeSubtitle =>
       'ಅಪ್ಲಿಕೇಶನ್ ಅನ್ನು ಮರುಪ್ರಾರಂಭಿಸದೆಯೇ Moonfin ಮತ್ತು Neon Pulse ನಡುವೆ ಬದಲಿಸಿ';
 

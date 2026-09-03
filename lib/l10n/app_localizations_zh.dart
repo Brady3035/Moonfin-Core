@@ -246,6 +246,26 @@ class AppLocalizationsZh extends AppLocalizations {
   String get glassQualityReduced => '简化';
 
   @override
+  String get performanceMode => 'Performance';
+
+  @override
+  String get performanceModeSubtitle =>
+      'Auto measures this device and holds back on the ones short on memory, which keeps fewer images in memory and leaves trailers as still images. Takes full effect on the next launch.';
+
+  @override
+  String get performanceModeAuto => 'Auto';
+
+  @override
+  String get performanceModeStandard => 'Standard';
+
+  @override
+  String get performanceModeReduced => 'Reduced';
+
+  @override
+  String get trailerPreviewHeldBack =>
+      'Off because Performance is set to Reduced for this device';
+
+  @override
   String get settingsAppearanceThemeSubtitle =>
       '可在 Moonfin 与 Neon Pulse 之间切换，无需重启应用。';
 

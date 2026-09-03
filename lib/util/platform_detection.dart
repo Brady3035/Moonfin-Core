@@ -90,6 +90,7 @@ class PlatformDetection {
   static final Set<String> _displayHdrTypes = <String>{};
   static final Map<String, dynamic> _mediaCodecCapabilities =
       <String, dynamic>{};
+  static final Map<String, dynamic> _deviceMemory = <String, dynamic>{};
   static final Map<String, dynamic> _audioCapabilities = <String, dynamic>{};
   static bool _hasDolbyVisionCodecCapabilities = false;
   static bool _supportsDoViProfile5 = false;
@@ -248,6 +249,17 @@ class PlatformDetection {
 
   static void setAudioCapabilities(Map<String, dynamic>? values) {
     _audioCapabilities
+      ..clear()
+      ..addAll(values ?? const <String, dynamic>{});
+  }
+
+  /// What the device reports about its own RAM. Empty until the probe answers,
+  /// and empty is read as "nothing known", never as "small".
+  static Map<String, dynamic> get deviceMemory =>
+      Map<String, dynamic>.unmodifiable(_deviceMemory);
+
+  static void setDeviceMemory(Map<String, dynamic>? values) {
+    _deviceMemory
       ..clear()
       ..addAll(values ?? const <String, dynamic>{});
   }

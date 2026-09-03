@@ -8,6 +8,7 @@ import 'package:server_core/server_core.dart' hide ImageType;
 import '../data/models/aggregated_item.dart';
 import '../data/models/series_track_preference.dart';
 import '../playback/audio_capability_profile.dart';
+import '../util/device_performance.dart';
 import '../util/idiom/app_ui_idiom.dart';
 import '../util/insecure_certificates.dart';
 import '../util/language_matching.dart';
@@ -641,6 +642,20 @@ class UserPreferences extends ChangeNotifier {
       get(enableEpisodeRatings) &&
       isRatingSourceEnabled('tmdb');
 
+  /// What this device can afford, taking the user's choice over the probe.
+  DevicePerformanceTier resolveDevicePerformanceTier() =>
+      resolveDevicePerformanceTierFor(
+        get(performanceMode),
+        PlatformDetection.deviceMemory,
+      );
+
+  /// Whether a media bar trailer may play here. A device on the reduced tier
+  /// keeps the still image, because the decoder is what takes it down.
+  bool resolveMediaBarTrailerPreview() => inlinePreviewAllowed(
+    userEnabled: get(mediaBarTrailerPreview),
+    tier: resolveDevicePerformanceTier(),
+  );
+
   AudioFallbackCodec resolveAudioFallbackCodec() => get(audioFallbackCodec);
 
   int resolveMaxAudioChannels() => get(maxAudioChannels);
@@ -1221,6 +1236,17 @@ class UserPreferences extends ChangeNotifier {
     key: 'pref_glass_quality',
     defaultValue: GlassQualityMode.auto,
     values: GlassQualityMode.values,
+  );
+
+  /// How much this device is asked to spend on decoded images and inline
+  /// video. Auto on every platform: the variation belongs in the resolver, not
+  /// in the default. Deliberately neither scoped nor synced, because it is a
+  /// fact about this device rather than about the account, and because the
+  /// tier has to resolve before sign-in makes a scoped key readable.
+  static final performanceMode = EnumPreference(
+    key: 'pref_performance_mode',
+    defaultValue: DevicePerformanceMode.auto,
+    values: DevicePerformanceMode.values,
   );
 
   /// Deepens chrome toward pure black and enriches artwork, on top of the

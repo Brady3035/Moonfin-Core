@@ -9,6 +9,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:server_core/server_core.dart';
 
 import '../data/services/retro_artwork/retro_artwork_disk_cache_io.dart';
+import 'device_performance.dart';
 import 'game_artwork_cache.dart';
 import 'image_file_service.dart';
 import 'platform_detection.dart';
@@ -19,12 +20,14 @@ final Map<String, DateTime> _lastSweepByCacheKey = <String, DateTime>{};
 // Point cached_network_image at a cache manager with a shorter stale period and
 // a higher object count than the library default. Files stay in the library's
 // default directory so an existing cache is never orphaned on update.
-Future<void> configureImageDiskCache() async {
+Future<void> configureImageDiskCache({
+  DevicePerformanceTier tier = DevicePerformanceTier.standard,
+}) async {
   try {
     final key = DefaultCacheManager.key;
     const stalePeriod = Duration(days: 14);
     const maxObjects = 600;
-    final fileService = buildImageFileService();
+    final fileService = buildImageFileService(tier: tier);
     Config config;
     if (PlatformDetection.isAppleTV) {
       final cacheDir = await getApplicationCacheDirectory();
@@ -329,6 +332,17 @@ HttpClient buildImageHttpClient() => HttpClient()
 /// Artwork shares the link with the API calls, so it takes the smaller share.
 const imageRequestSlots = 4;
 
+/// What a device short on memory fetches at once. Halving the burst halves how
+/// many encoded images are in flight while their neighbours decode. Two rather
+/// than one, because a single slot puts every stalled fetch in front of the
+/// whole grid and trades the crash for a wait.
+const reducedImageRequestSlots = 2;
+
+int imageRequestSlotsFor(DevicePerformanceTier tier) => switch (tier) {
+  DevicePerformanceTier.standard => imageRequestSlots,
+  DevicePerformanceTier.reduced => reducedImageRequestSlots,
+};
+
 /// The service every artwork request goes through.
 ///
 /// Images fetch through the cache manager's own client rather than Dio, so
@@ -340,9 +354,11 @@ const imageRequestSlots = 4;
 /// more through leaves the rest in a queue inside dart:io that nothing times
 /// out, where the cache manager's own queue is drained every time a fetch
 /// finishes.
-BoundedImageFileService buildImageFileService() => BoundedImageFileService(
+BoundedImageFileService buildImageFileService({
+  DevicePerformanceTier tier = DevicePerformanceTier.standard,
+}) => BoundedImageFileService(
   _ServerUserAgentHttpClient(IOClient(buildImageHttpClient())),
-  concurrentFetches: imageRequestSlots,
+  concurrentFetches: imageRequestSlotsFor(tier),
 );
 
 class _ServerUserAgentHttpClient extends http.BaseClient {

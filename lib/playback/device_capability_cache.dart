@@ -22,6 +22,7 @@ class DeviceCapabilityCache {
   static const displayHdrKey = 'device_capability_display_hdr';
   static const codecKey = 'device_capability_codec';
   static const appleVideoKey = 'device_capability_apple_video';
+  static const deviceMemoryKey = 'device_capability_device_memory';
 
   static Future<SharedPreferences> get _store =>
       SharedPreferences.getInstance();

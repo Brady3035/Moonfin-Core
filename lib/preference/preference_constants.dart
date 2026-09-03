@@ -202,6 +202,10 @@ enum DesktopScrollWheelAction {
 /// `reduced` forces the zero-blur sheen everywhere.
 enum GlassQualityMode { auto, full, reduced }
 
+/// How much this device is asked to spend on decoded images and inline video.
+/// [DevicePerformanceMode.auto] measures the device, the other two pin it.
+enum DevicePerformanceMode { auto, standard, reduced }
+
 /// Persisted settled quality of the adaptive glass renderer, mirroring the
 /// package's GlassQuality tiers. `unset` means no benchmark has settled yet,
 /// so the adaptive scope runs its warm-up pass on next launch. Kept as a

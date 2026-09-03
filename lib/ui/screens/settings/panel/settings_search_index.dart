@@ -1453,9 +1453,18 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
 
     advanced.screen(keywords: ['mpv', 'cache', 'tuning']),
     advanced.leaf('video_start_delay', l10n.settingsVideoStartDelay),
+    if (PlatformDetection.isAndroid)
+      advanced.leaf('pref_performance_mode', l10n.performanceMode, keywords: [
+        'memory',
+        'low ram',
+        'trailers',
+        'previews',
+        'slow',
+      ]),
     if (!PlatformDetection.isWeb) ...[
       advanced.leaf('image_cache_limit_mb', l10n.imageCacheLimit, keywords: [
         'storage',
+        'disk',
       ]),
       advanced.leaf('clear_image_cache', l10n.clearImageCache),
     ],

@@ -90,6 +90,9 @@ class PlaybackProfileDiagnostics {
         'av1': PlatformDetection.supportsAv1,
         'av1Main10': PlatformDetection.supportsAv1Main10,
       },
+      // Empty off Android. Says which budget a report was gathered under,
+      // which is otherwise invisible once a device is held back.
+      'deviceMemory': PlatformDetection.deviceMemory,
       'audioCodec': _streamCodec(audioStream),
       'audioProfile': _streamString(audioStream, 'Profile'),
       'audioChannels': _streamChannels(audioStream),

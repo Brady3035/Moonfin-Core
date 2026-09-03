@@ -1,6 +1,7 @@
 package org.moonfin.androidtv
 
 import android.app.Activity
+import android.app.ActivityManager
 import android.app.PendingIntent
 import android.app.PictureInPictureParams
 import android.app.RemoteAction
@@ -194,6 +195,19 @@ class MainActivity : AudioServiceActivity(), GamepadsCompatibleActivity {
         private const val API_MPV_RESULT_ID = "is.xyz.mpv.MPVActivity.result"
     }
 
+    // Both facts are fixed for the life of the device, unlike availMem, which
+    // would make a feature come and go between launches. totalMem stays a Long
+    // on the wire: narrowing it to Int overflows to negative above 2 GB.
+    private fun deviceMemory(): Map<String, Any> {
+        val activityManager = getSystemService(ACTIVITY_SERVICE) as ActivityManager
+        val info = ActivityManager.MemoryInfo()
+        activityManager.getMemoryInfo(info)
+        return mapOf(
+            "totalMem" to info.totalMem,
+            "lowRam" to activityManager.isLowRamDevice,
+        )
+    }
+
     private fun getDisplayHdrTypes(): List<String> {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
             return emptyList()
@@ -336,6 +350,9 @@ class MainActivity : AudioServiceActivity(), GamepadsCompatibleActivity {
                 }
                 "audioCapabilities" -> {
                     result.success(AudioCapabilities.query(this))
+                }
+                "deviceMemory" -> {
+                    result.success(deviceMemory())
                 }
                 "exitApp" -> {
                     result.success(true)

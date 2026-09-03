@@ -664,6 +664,42 @@ abstract class AppLocalizations {
   /// **'Reduced'**
   String get glassQualityReduced;
 
+  /// Label for the device performance setting
+  ///
+  /// In en, this message translates to:
+  /// **'Performance'**
+  String get performanceMode;
+
+  /// Explanation under the device performance setting
+  ///
+  /// In en, this message translates to:
+  /// **'Auto measures this device and holds back on the ones short on memory, which keeps fewer images in memory and leaves trailers as still images. Takes full effect on the next launch.'**
+  String get performanceModeSubtitle;
+
+  /// Performance option: measure the device
+  ///
+  /// In en, this message translates to:
+  /// **'Auto'**
+  String get performanceModeAuto;
+
+  /// Performance option: never hold back
+  ///
+  /// In en, this message translates to:
+  /// **'Standard'**
+  String get performanceModeStandard;
+
+  /// Performance option: always hold back
+  ///
+  /// In en, this message translates to:
+  /// **'Reduced'**
+  String get performanceModeReduced;
+
+  /// Shown under the trailer preview switch when the device tier suppresses trailers
+  ///
+  /// In en, this message translates to:
+  /// **'Off because Performance is set to Reduced for this device'**
+  String get trailerPreviewHeldBack;
+
   /// Subtitle for the theme selection screen and theme settings entry
   ///
   /// In en, this message translates to:

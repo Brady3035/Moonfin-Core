@@ -4161,11 +4161,11 @@ class AppLocalizationsNb extends AppLocalizations {
   String get seerrRequestedStatus => 'Forespurt';
 
   @override
-  String get seerrDownloading => 'Downloading';
+  String get seerrDownloading => 'Laster ned';
 
   @override
   String seerrDownloadingSize(String done, String total) {
-    return 'Downloading · $done / $total';
+    return 'Laster ned · $done / $total';
   }
 
   @override
@@ -4198,22 +4198,22 @@ class AppLocalizationsNb extends AppLocalizations {
   String get requestMore => 'Be om mer';
 
   @override
-  String get requestMore4k => 'Request More in 4K';
+  String get requestMore4k => 'Be om mer i 4K';
 
   @override
-  String get request => 'Forespørsel';
+  String get request => 'Forespør';
 
   @override
-  String get request4k => 'Request 4K';
+  String get request4k => 'Forespør i 4K';
 
   @override
-  String get requested4k => '4K Requested';
+  String get requested4k => '4K Forespurt';
 
   @override
   String get cancelRequest => 'Avbryt forespørsel';
 
   @override
-  String get cancelRequest4k => 'Cancel 4K Request';
+  String get cancelRequest4k => 'Avbryt 4K Foresørsel';
 
   @override
   String get playInMoonfin => 'Spill i Moonfin';
@@ -4224,13 +4224,13 @@ class AppLocalizationsNb extends AppLocalizations {
   }
 
   @override
-  String get manageRequests => 'Manage Requests';
+  String get manageRequests => 'Administrer Forespørsler';
 
   @override
-  String get watchlist => 'Watchlist';
+  String get watchlist => 'Skal sjå liste';
 
   @override
-  String get onWatchlist => 'On Watchlist';
+  String get onWatchlist => 'På Skal Sjå lista';
 
   @override
   String get approve => 'Vedta';
@@ -4286,18 +4286,18 @@ class AppLocalizationsNb extends AppLocalizations {
 
   @override
   String requestSeriesOrMovie4k(String type) {
-    return 'Request 4K $type';
+    return 'Forespør i 4K $type';
   }
 
   @override
   String get submitRequest => 'Send inn forespørsel';
 
   @override
-  String get allSeasons => 'Alle årstider';
+  String get allSeasons => 'Alle sesonger';
 
   @override
   String get seerrSeriesContinuing =>
-      'Series Continuing · Future Seasons Can Be Requested';
+      'Serien fortsetter · Kommende sesonger kan bli forespurt';
 
   @override
   String get advancedOptions => 'Avanserte alternativer';

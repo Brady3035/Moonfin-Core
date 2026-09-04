@@ -295,9 +295,13 @@ void registerPlaybackModule() {
     _getIt.registerSingleton<AetherBackend>(iosBackend);
   } else {
     backend = MediaKitPlayerBackend(prefs);
-    media3Backend = Media3PlayerBackend(prefs);
     _getIt.registerSingleton<MediaKitPlayerBackend>(backend);
-    _getIt.registerSingleton<Media3PlayerBackend>(media3Backend);
+    // The constructor subscribes to moonfin/media3_video_events, which only
+    // Android implements, so building this anywhere else raises on its own.
+    if (PlatformDetection.isAndroid) {
+      media3Backend = Media3PlayerBackend(prefs);
+      _getIt.registerSingleton<Media3PlayerBackend>(media3Backend);
+    }
   }
 
   HtmlVideoBackend? htmlBackend;

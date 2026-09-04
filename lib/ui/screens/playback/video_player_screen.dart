@@ -1645,13 +1645,14 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
     final fileName = resolveFileName();
     final bitrate = mediaSource?['Bitrate'] as int?;
     final overrideMbps = _manager.maxBitrateOverrideMbps;
+    final delivered = resolution?.deliveredFormat;
 
     String effectiveBitrateText() {
       // The override is the user's cap rather than what the server settled on,
       // so it only stands in when the stream URL is silent.
-      final delivered = _manager.currentResolution?.deliveredBitrate;
-      if (delivered != null) {
-        return _formatBitrate(delivered);
+      final total = delivered?.totalBitrate;
+      if (total != null) {
+        return _formatBitrate(total);
       }
       if (overrideMbps != null) {
         return l10n.bitrateValueMbps(overrideMbps);
@@ -1707,6 +1708,23 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
         ),
     ];
     addSection(l10n.playback, playbackRows);
+
+    // Its own section rather than overwriting the source rows below, which
+    // are what the transcode reasons above are about.
+    if (delivered != null) {
+      addSection(l10n.transcoding, [
+        if (delivered.container case final container?)
+          row(l10n.container, container.toUpperCase()),
+        if (delivered.videoCodec case final codec?)
+          row(l10n.video, codec.toUpperCase()),
+        if (delivered.videoBitrate case final rate?)
+          row(l10n.videoBitrate, _formatBitrate(rate)),
+        if (delivered.audioCodec case final codec?)
+          row(l10n.audio, codec.toUpperCase()),
+        if (delivered.audioBitrate case final rate?)
+          row(l10n.audioBitrate, _formatBitrate(rate)),
+      ]);
+    }
 
     if (videoStream case final video?) {
       final fps = video['RealFrameRate'] as num?;

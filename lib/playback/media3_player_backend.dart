@@ -383,6 +383,8 @@ class Media3PlayerBackend extends PlayerBackend {
         _onAudioTrackMapping(map);
       case 'doviCompat':
         _onDoviCompat(map);
+      case 'media3Transfer':
+        _diag(_transferLine(map));
       case 'media3Log':
         final repeats = _toInt(map['repeats']);
         final error = map['error']?.toString();
@@ -555,6 +557,29 @@ class Media3PlayerBackend extends PlayerBackend {
     // signal than discontinuity exceptions, so they don't persist the
     // tunneling-disabled preference the way _onTunnelingDiscontinuity does.
     unawaited(disableTunnelingFallback(persist: false));
+  }
+
+  /// Lines say requesting rather than fetched because the native side logs
+  /// as the request goes out, so one that never returns is still the last
+  /// line for its stream.
+  String _transferLine(Map<String, dynamic> map) {
+    switch (map['reason']?.toString()) {
+      case 'playlist':
+        return 'Media3 HLS: requesting playlist ${map['name'] ?? ''}';
+      case 'outOfOrder':
+        return 'Media3 HLS: requesting segment ${_toInt(map['index'])}, '
+            'previous was ${_toInt(map['previousIndex'])}';
+      case 'progress':
+        return 'Media3 HLS: requesting segment ${_toInt(map['index'])}, '
+            '${_toInt(map['requested'])} asked for, '
+            '${_toInt(map['averageMs'])}ms average';
+      case 'slow':
+        return 'Media3 HLS: segment ${_toInt(map['index'])} took '
+            '${_toInt(map['elapsedMs'])}ms';
+      case 'first':
+      default:
+        return 'Media3 HLS: requesting segment ${_toInt(map['index'])}';
+    }
   }
 
   void _diag(String message, {LogLevel level = LogLevel.debug}) {

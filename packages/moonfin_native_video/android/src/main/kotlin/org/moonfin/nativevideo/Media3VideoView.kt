@@ -1662,6 +1662,7 @@ class Media3VideoView(
             .setConnectTimeoutMs(120_000)
             .setReadTimeoutMs(120_000)
         val bootDataSourceFactory = DefaultDataSource.Factory(context, httpDataSourceFactory)
+            .setTransferListener(Media3TransferLog)
         val assHandler = AssHandler(
             AssRenderType.OVERLAY_CANVAS,
             AssHandlerConfig(cacheSize = assCacheSizeMb()),
@@ -2251,6 +2252,7 @@ class Media3VideoView(
         stereoDownmixRetryAttemptedForCurrentSource = false
         tunnelingRetryAttemptedForCurrentSource = false
         containerFallbackAttempted = false
+        Media3TransferLog.reset()
         // Start each source with the downmix the user asked for or the state
         // the device has proven it needs (sticky once an AudioTrack init
         // failure was recovered).

@@ -111,7 +111,7 @@ class AppLocalizationsFi extends AppLocalizations {
   }
 
   @override
-  String get cancel => 'Peruuta';
+  String get cancel => 'Keskeytä';
 
   @override
   String get remove => 'Poista';
@@ -140,7 +140,7 @@ class AppLocalizationsFi extends AppLocalizations {
   String get ok => 'OK';
 
   @override
-  String get settingsAppearanceTheme => 'Sovelluksen teema';
+  String get settingsAppearanceTheme => 'Sovelluksen Teema';
 
   @override
   String get detailScreenStyle => 'Tietonäkymän Tyyli';
@@ -255,24 +255,24 @@ class AppLocalizationsFi extends AppLocalizations {
   String get glassQualityReduced => 'Kevennetty';
 
   @override
-  String get performanceMode => 'Performance';
+  String get performanceMode => 'Suorituskyky';
 
   @override
   String get performanceModeSubtitle =>
-      'Auto measures this device and holds back on the ones short on memory, which keeps fewer images in memory and leaves trailers as still images. Takes full effect on the next launch.';
+      'Toiminto mittaa laitteen resurssit automaattisesti ja rajoittaa toimintoja laitteissa, joissa on vähän muistia. Näin muistiin tallennetaan vähemmän kuvia ja videot tallennetaan still-kuvina. Muutos astuu voimaan seuraavalla käynnistyskerralla.';
 
   @override
   String get performanceModeAuto => 'Auto';
 
   @override
-  String get performanceModeStandard => 'Standard';
+  String get performanceModeStandard => 'Vakio';
 
   @override
-  String get performanceModeReduced => 'Reduced';
+  String get performanceModeReduced => 'Rajoitettu';
 
   @override
   String get trailerPreviewHeldBack =>
-      'Off because Performance is set to Reduced for this device';
+      'Pois päältä, koska tämän laitteen suorituskyky on asetettu tilaan Rajoitettu';
 
   @override
   String get settingsAppearanceThemeSubtitle =>
@@ -321,7 +321,7 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get themeGlassSubtitle =>
-      'Nestemäisen lasin tyyli, jossa on liukuva liukuväritausta, huurteiset pinnat ja Applen sininen korostusväri';
+      'Liquid-glass tyyli, jossa on liukuva liukuväritausta, jäämaiset pinnat ja Applen sininen korostusväri';
 
   @override
   String get theme8BitHero => '8-bittinen sankari';
@@ -1989,7 +1989,7 @@ class AppLocalizationsFi extends AppLocalizations {
   String get record => 'Tallenna';
 
   @override
-  String get cancelRecordingAction => 'Peruuta tallennus';
+  String get cancelRecordingAction => 'Keskeytä tallennus';
 
   @override
   String get programSetToRecord => 'Ohjelma asetettu tallentamaan';
@@ -2042,29 +2042,28 @@ class AppLocalizationsFi extends AppLocalizations {
   String get noScheduledRecordings => 'Ei ajoitettuja tallennuksia';
 
   @override
-  String get cancelRecording => 'Peruutetaanko tallennus?';
+  String get cancelRecording => 'Keskeytä  tallennus?';
 
   @override
   String cancelScheduledRecordingOf(String name) {
-    return 'Perutaanko \"$name\" ajoitettu nauhoitus?';
+    return 'Keskeytä  \"$name\" ajoitettu nauhoitus?';
   }
 
   @override
   String get no => 'Ei';
 
   @override
-  String get yesCancel => 'Kyllä, peruuta';
+  String get yesCancel => 'Kyllä, keskeytä';
 
   @override
-  String get failedToCancelRecording =>
-      'Tallennuksen peruuttaminen epäonnistui';
+  String get failedToCancelRecording => 'Tallennuksen keskeytys  epäonnistui';
 
   @override
   String get failedToLoadSeriesRecordings =>
-      'Sarjatallenteiden lataaminen epäonnistui';
+      'Sarjan tallenteiden lataaminen epäonnistui';
 
   @override
-  String get noSeriesRecordings => 'Ei sarjatallenteita';
+  String get noSeriesRecordings => 'Ei sarjan tallenteita';
 
   @override
   String get cancelSeriesRecording => 'Peruuta sarjan tallennus';
@@ -3026,7 +3025,7 @@ class AppLocalizationsFi extends AppLocalizations {
   String get resumeRewind => 'Jatka taaksepäinkelausta';
 
   @override
-  String get unpauseRewind => 'Peruuta kelaus taaksepäin';
+  String get unpauseRewind => 'Keskeytä kelaus taaksepäin';
 
   @override
   String get fiveSeconds => '5 sekuntia';
@@ -4292,10 +4291,10 @@ class AppLocalizationsFi extends AppLocalizations {
   String get requested4k => 'Pyydetään 4K-tarkkuutta';
 
   @override
-  String get cancelRequest => 'Peruuta pyyntö';
+  String get cancelRequest => 'Keskeytä  pyyntö';
 
   @override
-  String get cancelRequest4k => 'Peruuta 4K-pyyntö';
+  String get cancelRequest4k => 'Keskeytä 4K-pyyntö';
 
   @override
   String get playInMoonfin => 'Toista Moonfinissä';
@@ -4657,7 +4656,7 @@ class AppLocalizationsFi extends AppLocalizations {
   String get go => 'Mennä';
 
   @override
-  String get install => 'Asentaa';
+  String get install => 'Asenna';
 
   @override
   String get installed => 'Asennettu';
@@ -4684,7 +4683,7 @@ class AppLocalizationsFi extends AppLocalizations {
   String get permissions => 'Käyttöoikeudet';
 
   @override
-  String get processing => 'Käsittely';
+  String get processing => 'Käsitellään';
 
   @override
   String get profile => 'Profiili';
@@ -4702,16 +4701,16 @@ class AppLocalizationsFi extends AppLocalizations {
   String get rename => 'Nimeä uudelleen';
 
   @override
-  String get revoke => 'Peruuttaa';
+  String get revoke => 'Peruuta';
 
   @override
-  String get role => 'Rooli';
+  String get role => 'Tehtävä';
 
   @override
-  String get root => 'Juuri';
+  String get root => 'Root';
 
   @override
-  String get run => 'Juokse';
+  String get run => 'Aja';
 
   @override
   String get search => 'Haku';
@@ -6025,7 +6024,7 @@ class AppLocalizationsFi extends AppLocalizations {
   }
 
   @override
-  String get adminRunNow => 'Juokse nyt';
+  String get adminRunNow => 'Suorita nyt';
 
   @override
   String adminTriggerRemoveFailed(String error) {
@@ -7889,10 +7888,10 @@ class AppLocalizationsFi extends AppLocalizations {
   String get adminTaskCancelling => 'Peruutetaan...';
 
   @override
-  String get adminTaskRunning => 'Juokse...';
+  String get adminTaskRunning => 'Suoritetaan...';
 
   @override
-  String get adminTaskNeverRun => 'Älä koskaan juokse';
+  String get adminTaskNeverRun => 'Älä koskaan suorita';
 
   @override
   String get adminTaskStop => 'Pysäytä';
@@ -7901,7 +7900,7 @@ class AppLocalizationsFi extends AppLocalizations {
   String get adminRunningTasks => 'Käynnissä olevat tehtävät';
 
   @override
-  String get adminTaskRun => 'Juokse';
+  String get adminTaskRun => 'Suorita';
 
   @override
   String get adminTaskDetailLastExecution => 'Viimeinen teloitus';
@@ -8628,7 +8627,7 @@ class AppLocalizationsFi extends AppLocalizations {
   String get trackActionAddToPlaylist => 'Lisää soittolistaan';
 
   @override
-  String get trackActionCancelDownload => 'Peruuta lataus';
+  String get trackActionCancelDownload => 'Keskeytä  lataus';
 
   @override
   String get trackActionDeleteFromPlaylist => 'Poista soittolistasta';
@@ -10626,7 +10625,7 @@ class AppLocalizationsFi extends AppLocalizations {
   String get audiobookSave => 'Tallenna';
 
   @override
-  String get audiobookCancel => 'Peruuta';
+  String get audiobookCancel => 'Keskeytä';
 
   @override
   String get audiobookDelete => 'Poista';

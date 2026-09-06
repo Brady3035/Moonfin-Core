@@ -1,5 +1,6 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
+
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -253,24 +254,24 @@ class AppLocalizationsTr extends AppLocalizations {
   String get glassQualityReduced => 'Azaltılmış';
 
   @override
-  String get performanceMode => 'Performance';
+  String get performanceMode => 'Performans';
 
   @override
   String get performanceModeSubtitle =>
-      'Auto measures this device and holds back on the ones short on memory, which keeps fewer images in memory and leaves trailers as still images. Takes full effect on the next launch.';
+      'Otomatik bu cihazı ölçer ve hafızası yetersiz olanları kısıtlar; bu sayede bellekte daha az görsel tutar ve fragmanları sabit resim olarak bırakır. Bir sonraki başlatmada tamamen geçerli olur.';
 
   @override
-  String get performanceModeAuto => 'Auto';
+  String get performanceModeAuto => 'Otomatik';
 
   @override
-  String get performanceModeStandard => 'Standard';
+  String get performanceModeStandard => 'Standart';
 
   @override
-  String get performanceModeReduced => 'Reduced';
+  String get performanceModeReduced => 'Azaltılmış';
 
   @override
   String get trailerPreviewHeldBack =>
-      'Off because Performance is set to Reduced for this device';
+      'Bu cihaz için Performans \"Azaltılmış\" olarak ayarlandığından kapalı';
 
   @override
   String get settingsAppearanceThemeSubtitle =>
@@ -1648,10 +1649,10 @@ class AppLocalizationsTr extends AppLocalizations {
   String get playbackInformation => 'Oynatma Bilgileri';
 
   @override
-  String get showMpvStats => 'Show mpv Statistics (Shift+I)';
+  String get showMpvStats => 'MPV İstatistiklerini Göster (Shift+I)';
 
   @override
-  String get hideMpvStats => 'Hide mpv Statistics (Shift+I)';
+  String get hideMpvStats => 'MPV İstatistiklerini Gizle (Shift+I)';
 
   @override
   String get playback => 'Oynatma';
@@ -1690,36 +1691,36 @@ class AppLocalizationsTr extends AppLocalizations {
   String get hdr => 'HDR';
 
   @override
-  String get hdrOutput => 'HDR output';
+  String get hdrOutput => 'HDR çıkışı';
 
   @override
   String hdrOutputActive(String format) {
-    return 'Active — $format';
+    return 'Aktif— $format';
   }
 
   @override
   String get hdrOutputActiveTonemapped =>
-      'Active — tone-mapped to SDR for this display';
+      'Aktif — bu ekran için SDR\'a ton eşlemesi yapıldı';
 
   @override
-  String get hdrOutputDisplayNotHdr => 'Inactive — display is not in HDR mode';
+  String get hdrOutputDisplayNotHdr => 'Devre dışı — ekran HDR modunda değil';
 
   @override
-  String get hdrOutputContentSdr => 'Inactive — content is SDR';
+  String get hdrOutputContentSdr => 'Devre dışı — içerik SDR';
 
   @override
-  String get hdrOutputDisabled => 'Inactive — turned off in settings';
+  String get hdrOutputDisabled => 'Devre dışı — ayarlardan kapatıldı';
 
   @override
   String get hdrOutputFailed =>
-      'Inactive — could not start, using the standard path';
+      'Devre dışı — başlatılamadı, standart yol kullanılıyor';
 
   @override
-  String get nativeHdrOutput => 'Native HDR output';
+  String get nativeHdrOutput => 'Yerel HDR çıkışı';
 
   @override
   String get nativeHdrOutputDescription =>
-      'Sends HDR video to the display untouched instead of converting it to SDR. Used only when the display is already in HDR mode and the title is HDR.';
+      'HDR videoyu SDR\'a dönüştürmek yerine ekrana olduğu gibi gönderir. Yalnızca ekran zaten HDR modundayken ve oynatılan içerik HDR olduğunda kullanılır.';
 
   @override
   String get codec => 'Kodek';

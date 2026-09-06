@@ -1,5 +1,6 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
+
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -1289,7 +1290,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get downloadSubtitles => 'Scarica Sottotitoli';
 
   @override
-  String get searchingSubtitles => 'Searching for subtitles…';
+  String get searchingSubtitles => 'Ricerca sottotitoli…';
 
   @override
   String get downloadingSubtitle => 'Downloading subtitle…';
@@ -1467,7 +1468,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get perfectMatch => 'Corrispondenza perfetta';
 
   @override
-  String get aiTranslated => 'AI Translated';
+  String get aiTranslated => 'Tradotto dall\' IA';
 
   @override
   String get machineTranslated => 'Machine Translated';

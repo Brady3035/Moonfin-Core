@@ -1,5 +1,6 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
+
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -18,7 +19,7 @@ class AppLocalizationsFi extends AppLocalizations {
   String get interfaceLanguage => 'Käyttöliittymän kieli';
 
   @override
-  String get systemLanguageDefault => 'Järjestelmän oletusasetus';
+  String get systemLanguageDefault => 'Oletuskieli';
 
   @override
   String get signIn => 'Kirjaudu sisään';
@@ -32,7 +33,7 @@ class AppLocalizationsFi extends AppLocalizations {
   }
 
   @override
-  String get quickConnect => 'Pikayhteys';
+  String get quickConnect => 'Pikayhdistys';
 
   @override
   String get password => 'Salasana';
@@ -70,7 +71,7 @@ class AppLocalizationsFi extends AppLocalizations {
   }
 
   @override
-  String get whosWatching => 'Kuka katsoo?';
+  String get whosWatching => 'Kuka katselee?';
 
   @override
   String get addUser => 'Lisää käyttäjä';
@@ -100,7 +101,7 @@ class AppLocalizationsFi extends AppLocalizations {
   String get addServer => 'Lisää palvelin';
 
   @override
-  String get embyConnect => 'Emby Yhdistä';
+  String get embyConnect => 'Yhdistä Emby';
 
   @override
   String get removeServer => 'Poista palvelin';
@@ -134,7 +135,7 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get secureStorageUnavailableMessage =>
-      'Moonfin ei voinut käyttää järjestelmän avainnippu. Kirjautuminen voi jatkua, mutta suojattu tunnuksen tallennus ei välttämättä ole käytettävissä, ennen kuin avainnippu on avattu.';
+      'Moonfin ei voinut käyttää järjestelmän avainketjua . Kirjautuminen voi jatkua, mutta suojattu tunnuksen tallennus ei välttämättä ole käytettävissä, ennen kuin avainketju on avattu.';
 
   @override
   String get ok => 'OK';
@@ -651,14 +652,14 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String titlesCount(int count) {
-    return '$count otsikoita';
+    return '$count nimikkeet';
   }
 
   @override
-  String get scrollLeft => 'Vieritä vasemmalle';
+  String get scrollLeft => 'Vieritä vasen';
 
   @override
-  String get scrollRight => 'Vieritä oikealle';
+  String get scrollRight => 'Vieritä oikea';
 
   @override
   String get scrollToTop => 'Vieritä sivun alkuun';
@@ -829,7 +830,7 @@ class AppLocalizationsFi extends AppLocalizations {
   String get unread => 'Lukematon';
 
   @override
-  String get unwatched => 'Katsomattomat';
+  String get unwatched => 'Katsomaton';
 
   @override
   String get seriesStatus => 'Sarjan tila';
@@ -1128,13 +1129,13 @@ class AppLocalizationsFi extends AppLocalizations {
   String get startOver => 'Aloita alusta';
 
   @override
-  String get restart => 'Käynnistä uudelleen';
+  String get restart => 'Aloita Alusta';
 
   @override
-  String get readOffline => 'Lue offline-tilassa';
+  String get readOffline => 'Lue offline';
 
   @override
-  String get playOffline => 'Pelaa offline-tilassa';
+  String get playOffline => 'Pelaa offline';
 
   @override
   String get audio => 'Ääni';
@@ -1146,7 +1147,7 @@ class AppLocalizationsFi extends AppLocalizations {
   String get version => 'Versio';
 
   @override
-  String get cast => 'Lähetä laitteelle';
+  String get cast => 'Peilaus';
 
   @override
   String get castMembers => 'Näyttelijät';
@@ -1158,7 +1159,7 @@ class AppLocalizationsFi extends AppLocalizations {
   String get finished => 'Valmis';
 
   @override
-  String get favorited => 'Suosikkiin';
+  String get favorited => 'Suosikit';
 
   @override
   String get favorite => 'Suosikki';
@@ -1185,7 +1186,7 @@ class AppLocalizationsFi extends AppLocalizations {
   String get deleteDownloaded => 'Poista ladatut';
 
   @override
-  String get goToSeries => 'Siirry sarjaan';
+  String get goToSeries => 'Avaa sarja';
 
   @override
   String get editMetadata => 'Muokkaa metatietoja';
@@ -1651,10 +1652,10 @@ class AppLocalizationsFi extends AppLocalizations {
   String get playbackInformation => 'Toistotiedot';
 
   @override
-  String get showMpvStats => 'Show mpv Statistics (Shift+I)';
+  String get showMpvStats => 'Näytä mpv-tilastot (Shift+I)';
 
   @override
-  String get hideMpvStats => 'Hide mpv Statistics (Shift+I)';
+  String get hideMpvStats => 'Piilota mpv-tilastot (Shift+I)';
 
   @override
   String get playback => 'Toisto';
@@ -1693,36 +1694,38 @@ class AppLocalizationsFi extends AppLocalizations {
   String get hdr => 'HDR';
 
   @override
-  String get hdrOutput => 'HDR output';
+  String get hdrOutput => 'HDR-lähtö';
 
   @override
   String hdrOutputActive(String format) {
-    return 'Active — $format';
+    return 'Aktiivinen — $format';
   }
 
   @override
   String get hdrOutputActiveTonemapped =>
-      'Active — tone-mapped to SDR for this display';
+      'Aktiivinen — sävykartoitus SDR:ään tälle näytölle';
 
   @override
-  String get hdrOutputDisplayNotHdr => 'Inactive — display is not in HDR mode';
+  String get hdrOutputDisplayNotHdr =>
+      'Ei käytössä — näyttö ei ole HDR-tilassa';
 
   @override
-  String get hdrOutputContentSdr => 'Inactive — content is SDR';
+  String get hdrOutputContentSdr => 'Ei käytössä — sisältö on SDR-muodossa';
 
   @override
-  String get hdrOutputDisabled => 'Inactive — turned off in settings';
+  String get hdrOutputDisabled =>
+      'Ei käytössä — poistettu käytöstä asetuksissa';
 
   @override
   String get hdrOutputFailed =>
-      'Inactive — could not start, using the standard path';
+      'Ei aktiivinen — käynnistystä ei voitu suorittaa, käytetään oletuspolkua';
 
   @override
-  String get nativeHdrOutput => 'Native HDR output';
+  String get nativeHdrOutput => 'Natiivi HDR-lähtö';
 
   @override
   String get nativeHdrOutputDescription =>
-      'Sends HDR video to the display untouched instead of converting it to SDR. Used only when the display is already in HDR mode and the title is HDR.';
+      'Lähettää HDR-videon näytölle muokkaamattomana sen sijaan, että se muunnettaisiin SDR-muotoon. Käytetään vain silloin, kun näyttö on jo HDR-tilassa ja sisältö on HDR-muotoista.';
 
   @override
   String get codec => 'Koodekki';
@@ -4021,7 +4024,7 @@ class AppLocalizationsFi extends AppLocalizations {
   String get seerrDiscoveryRows => 'Seerr-löytörivit';
 
   @override
-  String get yourWatchlist => 'Seurantaluettelosi';
+  String get yourWatchlist => 'Aktiivilistalla';
 
   @override
   String get resetRowsToDefaults => 'Palauta rivit oletusarvoihin';
@@ -4532,7 +4535,7 @@ class AppLocalizationsFi extends AppLocalizations {
       'Kaikki elokuvat ovat jo saatavilla tai pyydetty';
 
   @override
-  String get reportIssue => 'Ilmoita ongelmasta';
+  String get reportIssue => 'Raportoi';
 
   @override
   String get issueTypeVideo => 'Video';
@@ -4809,7 +4812,7 @@ class AppLocalizationsFi extends AppLocalizations {
   String get adminDrawerActivity => 'Toiminta';
 
   @override
-  String get adminDrawerNetworking => 'Verkostoituminen';
+  String get adminDrawerNetworking => 'Verkkoasetukset';
 
   @override
   String get adminDrawerApiKeys => 'API-avaimet';
@@ -4821,13 +4824,13 @@ class AppLocalizationsFi extends AppLocalizations {
   String get adminDrawerLogs => 'Lokit';
 
   @override
-  String get adminDrawerScheduledTasks => 'Aikataulutetut tehtävät';
+  String get adminDrawerScheduledTasks => 'Ajastetut tehtävät';
 
   @override
   String get adminDrawerPlugins => 'Laajennukset';
 
   @override
-  String get adminDrawerRepositories => 'Tietovarastot';
+  String get adminDrawerRepositories => 'Pakettivarastot';
 
   @override
   String get adminDrawerLiveTv => 'Live-TV';
@@ -4836,7 +4839,7 @@ class AppLocalizationsFi extends AppLocalizations {
   String get adminExitTooltip => 'Poistu järjestelmänvalvojasta';
 
   @override
-  String get adminDashboardLoadFailed => 'Kojelaudan lataaminen epäonnistui';
+  String get adminDashboardLoadFailed => 'Koontinäyttöä ei voitu ladata';
 
   @override
   String get adminMediaOverview => 'Median yleiskatsaus';
@@ -7846,7 +7849,7 @@ class AppLocalizationsFi extends AppLocalizations {
   String get adminTrickplayPriorityBelowNormal => 'Normaalin alapuolella';
 
   @override
-  String get adminTrickplayPriorityIdle => 'Tyhjäkäynti';
+  String get adminTrickplayPriorityIdle => 'Taustalla';
 
   @override
   String get adminTrickplayImageSettings => 'Kuva-asetukset';

@@ -676,7 +676,10 @@ class ItemDetailViewModel extends ChangeNotifier {
 
   Future<void> _loadSeasons() async {
     try {
-      final data = await _client.itemsApi.getSeasons(itemId);
+      final data = await _client.itemsApi.getSeasons(
+        itemId,
+        fields: 'ChildCount',
+      );
       final items = (data['Items'] as List?) ?? [];
       _seasons = _mapItems(items);
       notifyListeners();

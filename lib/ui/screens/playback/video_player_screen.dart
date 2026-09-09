@@ -2987,16 +2987,19 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
       _prefs.get(UserPreferences.trickPlayMode) != TrickplayMode.disabled &&
       (_trickplayInfo?.isValid ?? false);
 
+  bool get _pauseDuringScrub =>
+      _hasTrickplayPreview &&
+      _prefs.get(UserPreferences.trickPlayPauseWhileScrubbing);
+
   // Pauses playback once per scrub session so the trickplay preview has a
-  // stable frozen reference; without a preview, scrubbing leaves playback
-  // untouched. The Slider path resumes after its committed seek converges;
-  // the D-pad path stays paused until the user presses play. Callers gate
-  // this on
-  // _pendingScrubSeekTarget being null (see _accumulateScrub), not on
-  // _isSeeking - _isSeeking can still be true from an OLDER commit that
-  // hasn't finished converging yet when a brand new gesture starts (release,
-  // then press again quickly), and that stale state must not block this new
-  // gesture's own setup.
+  // stable frozen reference, unless the setting is off. Without a preview,
+  // scrubbing leaves playback untouched. The Slider path resumes after its
+  // committed seek converges and the D-pad path stays paused until the user
+  // presses play. Callers gate this on _pendingScrubSeekTarget being null
+  // (see _accumulateScrub), not on _isSeeking - _isSeeking can still be true
+  // from an OLDER commit that hasn't finished converging yet when a brand new
+  // gesture starts (release, then press again quickly), and that stale state
+  // must not block this new gesture's own setup.
   void _beginScrub() {
     // Dragging fires PointerMoveEvents, not hover events, so stale
     // _hoverPosition must be cleared or it flashes the wrong preview on drag end.
@@ -3009,15 +3012,17 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
     _scrubSeekCommitId++;
     if (_hasTrickplayPreview) {
       _prefetchAllTrickplaySheets(_state.position);
-      _isPausedScrubActive = true;
-      // If an earlier still-resolving commit already paused playback for
-      // this chain of overlapping gestures, _wasPlayingBeforeScrubPause is
-      // already correctly true - re-reading _state.isPlaying now would see
-      // "paused" and wrongly conclude nothing needs resuming later.
-      if (!_wasPlayingBeforeScrubPause) {
-        _wasPlayingBeforeScrubPause = _state.isPlaying;
-        if (_wasPlayingBeforeScrubPause) {
-          _manager.pause();
+      if (_pauseDuringScrub) {
+        _isPausedScrubActive = true;
+        // If an earlier still-resolving commit already paused playback for
+        // this chain of overlapping gestures, _wasPlayingBeforeScrubPause is
+        // already correctly true - re-reading _state.isPlaying now would see
+        // "paused" and wrongly conclude nothing needs resuming later.
+        if (!_wasPlayingBeforeScrubPause) {
+          _wasPlayingBeforeScrubPause = _state.isPlaying;
+          if (_wasPlayingBeforeScrubPause) {
+            _manager.pause();
+          }
         }
       }
     }
@@ -3463,10 +3468,10 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
       if (event.logicalKey == LogicalKeyboardKey.arrowLeft ||
           event.logicalKey == LogicalKeyboardKey.arrowRight) {
         _resetSeekAcceleration();
-        // With a trickplay preview up, the session survives key-release -
-        // the preview stays on the paused frame and play is what commits
-        // (#1025). With nothing to browse, release commits directly.
-        if (!_hasTrickplayPreview) {
+        // While the preview holds a paused frame the session survives
+        // key-release and play is what commits. Otherwise release commits
+        // directly.
+        if (!_pauseDuringScrub) {
           _commitPendingScrub();
         }
       }

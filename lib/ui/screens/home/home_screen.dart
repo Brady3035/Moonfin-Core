@@ -31,6 +31,7 @@ import '../../widgets/rating_display.dart';
 import '../../../data/services/theme_music_service.dart';
 import '../../../data/services/media_server_client_factory.dart';
 import '../../../data/services/plugin_sync_service.dart';
+import '../../../data/services/user_data_sync.dart';
 import '../../../data/services/connectivity_service.dart';
 import '../../../data/utils/media_type_badges.dart';
 import '../../../l10n/app_localizations.dart';
@@ -170,6 +171,7 @@ class _HomeShellState extends State<_HomeShell>
     appRouter.routerDelegate.addListener(_onRouteChanged);
     _lastObservedPath = appRouter.routerDelegate.currentConfiguration.uri.path;
     homeRefreshBus.addListener(_onHomeRefreshRequested);
+    userDataSync.addListener(_onUserDataChanged);
     if (homeRefreshBus.consumePending()) {
       _viewModel.refresh(preserveExisting: true);
     }
@@ -209,6 +211,13 @@ class _HomeShellState extends State<_HomeShell>
     _viewModel.load(preserveExisting: _viewModel.rows.isNotEmpty);
   }
 
+  /// The rows on screen were built before the watched state changed, so patch
+  /// them rather than refetch.
+  void _onUserDataChanged() {
+    if (!mounted) return;
+    _viewModel.applyUserDataChanges();
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -229,6 +238,7 @@ class _HomeShellState extends State<_HomeShell>
     }
     appRouter.routerDelegate.removeListener(_onRouteChanged);
     homeRefreshBus.removeListener(_onHomeRefreshRequested);
+    userDataSync.removeListener(_onUserDataChanged);
     WidgetsBinding.instance.removeObserver(this);
     _selectionDebounce?.cancel();
     _backdropDebounce?.cancel();

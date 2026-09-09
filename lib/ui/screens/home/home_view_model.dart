@@ -20,6 +20,7 @@ import '../../../data/services/row_data_source.dart';
 import '../../../data/services/topshelf_service.dart';
 import '../../../data/services/tv_channels_service.dart';
 import '../../../data/services/watch_next_service.dart';
+import '../../../data/services/user_data_sync.dart';
 import '../../../data/viewmodels/media_bar_view_model.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../l10n/current_app_localizations.dart';
@@ -640,6 +641,22 @@ class HomeViewModel extends ChangeNotifier {
         await load(preserveExisting: nextPreserveExisting, forceRefresh: nextForceRefresh);
       }
     }
+  }
+
+  /// Repaints the watched ticks on the rows already built, without refetching
+  /// them. The home screen drives this so the listener lives and dies with the
+  /// widget rather than with this singleton.
+  void applyUserDataChanges() {
+    List<HomeRow>? rows;
+    for (var i = 0; i < _rows.length; i++) {
+      final patched = userDataSync.applyAll(_rows[i].items);
+      if (identical(patched, _rows[i].items)) continue;
+      rows ??= List<HomeRow>.of(_rows);
+      rows[i] = _rows[i].copyWith(items: patched);
+    }
+    if (rows == null) return;
+    _rows = rows;
+    notifyListeners();
   }
 
   List<HomeRow> _reconcilePreservedRows(

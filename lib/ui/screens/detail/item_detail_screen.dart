@@ -342,6 +342,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen>
   @override
   void didPopNext() {
     super.didPopNext();
+    unawaited(_viewModel.syncUserDataIfStale());
     final item = _viewModel.item;
     if (item != null) {
       _backgroundService.setBackground(item, context: BlurContext.details);

@@ -1,6 +1,7 @@
 import 'dart:ui' as ui;
 import 'dart:convert';
 import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:jellyfin_preference/jellyfin_preference.dart';
 import 'package:server_core/server_core.dart' hide ImageType;
@@ -287,6 +288,11 @@ class UserPreferences extends ChangeNotifier {
   }
 
   static final Set<String> _scopedPreferenceKeys = {
+    // Per account but never synced: the result of this device's last
+    // subscription check, and whether that account has already been told
+    // the device is too full to keep downloading.
+    'auto_download_last_run',
+    'auto_download_storage_notice_shown',
     // Newly synced settings. Anything that goes to the server profile has to be stored
     // per server and user, or one server's value is read back on the next.
     'all_genres_image_type',
@@ -298,6 +304,10 @@ class UserPreferences extends ChangeNotifier {
     'detailButtonOrderMobile',
     'detailButtonOrderTv',
     'download_default_quality',
+    'auto_download_enabled',
+    'auto_download_keep_unwatched',
+    'auto_download_delete_after_hours',
+    'auto_download_background_refresh',
     'download_report_as_activity',
     'download_storage_limit_mb',
     'download_wifi_only',
@@ -490,6 +500,7 @@ class UserPreferences extends ChangeNotifier {
     'pref_show_genres_button',
     'pref_show_favorites_button',
     'pref_show_syncplay_button',
+    'pref_show_downloads_button',
     'pref_show_libraries_in_toolbar',
     'pref_navbar_always_expanded',
     'pref_shuffle_content_type',
@@ -1433,6 +1444,11 @@ class UserPreferences extends ChangeNotifier {
     defaultValue: true,
   );
 
+  static final showDownloadsButton = Preference(
+    key: 'pref_show_downloads_button',
+    defaultValue: true,
+  );
+
   static final showAlphabeticalFilters = Preference(
     key: 'pref_show_alphabetical_filters',
     defaultValue: false,
@@ -1768,6 +1784,11 @@ class UserPreferences extends ChangeNotifier {
 
   static final trickPlayFollowScrubPosition = Preference<bool>(
     key: 'trickplay_follow_scrub_position',
+    defaultValue: true,
+  );
+
+  static final trickPlayPauseWhileScrubbing = Preference<bool>(
+    key: 'trickplay_pause_while_scrubbing',
     defaultValue: true,
   );
 
@@ -2889,6 +2910,50 @@ class UserPreferences extends ChangeNotifier {
 
   static final downloadWifiOnly = Preference(
     key: 'download_wifi_only',
+    defaultValue: false,
+  );
+
+  /// Master switch for auto-download subscriptions. Off pauses every
+  /// subscription without forgetting it.
+  static final autoDownloadEnabled = Preference(
+    key: 'auto_download_enabled',
+    defaultValue: true,
+  );
+
+  /// How many unwatched episodes a subscription keeps downloaded or in
+  /// flight at once. 0 means no cap.
+  static final autoDownloadKeepUnwatched = Preference(
+    key: 'auto_download_keep_unwatched',
+    defaultValue: 3,
+  );
+
+  /// Hours after an auto-downloaded episode was watched before it is
+  /// deleted: 0 right away, -1 never.
+  static final autoDownloadDeleteAfterHours = Preference(
+    key: 'auto_download_delete_after_hours',
+    defaultValue: -1,
+  );
+
+  /// Let the OS wake the app in the background to run subscription checks
+  /// (iOS Background App Refresh).
+  static final autoDownloadBackgroundRefresh = Preference(
+    key: 'auto_download_background_refresh',
+    defaultValue: true,
+  );
+
+  /// JSON summary of the most recent subscription check, for the settings
+  /// screen. Written by AutoDownloadService.
+  static final autoDownloadLastRun = Preference(
+    key: 'auto_download_last_run',
+    defaultValue: '',
+  );
+
+  /// Whether the "not enough storage" notice is out: set when a check
+  /// first holds episodes back, cleared by a check that fits everything,
+  /// so a full phone is announced once rather than every few hours.
+  /// Written by AutoDownloadService.
+  static final autoDownloadStorageNoticeShown = Preference(
+    key: 'auto_download_storage_notice_shown',
     defaultValue: false,
   );
 

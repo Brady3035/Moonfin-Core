@@ -92,6 +92,7 @@ final class AppleTvPlayerViewController: UIViewController {
     private var trickplayScalePercent = 30
     private var trickplayVerticalPercent = 0
     private var trickplayFollowScrub = true
+    private var trickplayPauseWhileScrubbing = true
 
     // The Next Up card, skip button, and Still Watching prompt are pure
     // renderers. The Dart side owns every decision (when to show, the
@@ -1235,6 +1236,7 @@ final class AppleTvPlayerViewController: UIViewController {
         trickplayScalePercent = (dict["scalePercent"] as? NSNumber)?.intValue ?? 30
         trickplayVerticalPercent = (dict["verticalPositionPercent"] as? NSNumber)?.intValue ?? 0
         trickplayFollowScrub = (dict["followScrub"] as? Bool) ?? true
+        trickplayPauseWhileScrubbing = (dict["pauseWhileScrubbing"] as? Bool) ?? true
         if scrubTargetMs != nil || scrubFrozenMs != nil {
             updateTrickplay()
         }
@@ -1703,10 +1705,9 @@ final class AppleTvPlayerViewController: UIViewController {
         guard scrubHoldTimer != nil else { return }
         scrubHoldTimer?.invalidate()
         scrubHoldTimer = nil
-        // With a preview up the session outlives the key: the preview stays on
-        // the paused frame and play is what commits. With nothing to look at,
-        // letting go is the commit.
-        if scrubTargetMs != nil && !hasTrickplayPreview { commitScrub() }
+        // While the preview holds a paused frame the session outlives the key
+        // and play is what commits. Otherwise letting go is the commit.
+        if scrubTargetMs != nil && !pauseDuringScrub { commitScrub() }
     }
 
     private func handleSelect() {
@@ -1937,14 +1938,19 @@ final class AppleTvPlayerViewController: UIViewController {
         trickplayMode != .disabled && trickplay != nil
     }
 
-    // Pauses once per session so the preview has a still frame to sit on.
-    // Without a preview scrubbing leaves playback alone.
+    private var pauseDuringScrub: Bool {
+        hasTrickplayPreview && trickplayPauseWhileScrubbing
+    }
+
+    // Pauses once per session so the preview has a still frame to sit on,
+    // unless the setting is off. Without a preview scrubbing leaves playback
+    // alone.
     private func beginScrub() {
         scrubCommitId += 1
         scrubConvergeTimer?.invalidate()
         scrubConvergeTimer = nil
         scrubFrozenMs = nil
-        guard hasTrickplayPreview else { return }
+        guard pauseDuringScrub else { return }
         if !wasPlayingBeforeScrub {
             wasPlayingBeforeScrub = !isPaused()
             if wasPlayingBeforeScrub { player.pause() }

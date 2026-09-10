@@ -677,6 +677,9 @@ class _AppleTvPlayerHostScreenState extends State<AppleTvPlayerHostScreen> {
         UserPreferences.trickPlayVerticalPositionPercent,
       ),
       'followScrub': prefs.get(UserPreferences.trickPlayFollowScrubPosition),
+      'pauseWhileScrubbing': prefs.get(
+        UserPreferences.trickPlayPauseWhileScrubbing,
+      ),
     };
   }
 
@@ -687,6 +690,7 @@ class _AppleTvPlayerHostScreenState extends State<AppleTvPlayerHostScreen> {
     prefs.get(UserPreferences.trickPlayPreviewScalePercent),
     prefs.get(UserPreferences.trickPlayVerticalPositionPercent),
     prefs.get(UserPreferences.trickPlayFollowScrubPosition),
+    prefs.get(UserPreferences.trickPlayPauseWhileScrubbing),
   ].join('|');
 
   void _onPrefsChanged() {

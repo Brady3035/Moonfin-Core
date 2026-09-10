@@ -189,6 +189,9 @@ enum PlaybackTimeSlot {
 
   /// Wall-clock time the item will finish at, e.g. `Ends at 21:45`.
   endsAt,
+
+  /// The current time
+  time,
 }
 
 enum DesktopScrollWheelAction {
@@ -417,6 +420,18 @@ enum HomeSectionType {
 
   const HomeSectionType(this.serializedName);
   final String serializedName;
+
+  /// Which Since You Watched row this is, counting from one, or zero for
+  /// anything else. Those rows render only up to the configured count, so the
+  /// position is what decides whether a row falls inside it.
+  int get sinceYouWatchedRow => switch (this) {
+    HomeSectionType.sinceYouWatched1 => 1,
+    HomeSectionType.sinceYouWatched2 => 2,
+    HomeSectionType.sinceYouWatched3 => 3,
+    HomeSectionType.sinceYouWatched4 => 4,
+    HomeSectionType.sinceYouWatched5 => 5,
+    _ => 0,
+  };
 
   static HomeSectionType fromSerialized(String name) {
     if (name == 'watchlist') return HomeSectionType.playlists;

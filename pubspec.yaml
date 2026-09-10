@@ -33,7 +33,6 @@ dependencies:
   dio: ^5.11.1
   background_downloader: ^9.6.0
   ffi: ^2.1.0
-  cookie_jar: ^4.0.9
   web_socket_channel: ^3.0.3
 
   # Local Storage

@@ -31,7 +31,6 @@ dependencies:
 
   # Networking
   dio: ^5.11.1
-  dio_cookie_manager: ^3.4.0
   background_downloader: ^9.6.0
   ffi: ^2.1.0
   cookie_jar: ^4.0.9

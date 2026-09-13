@@ -24,7 +24,7 @@ class EpgChannelCell extends StatelessWidget {
   static const double _numberSize = 13;
   static const double _logoWidth = 48;
   static const double _logoGap = 6;
-  static const Color _restingCellColor = Color(0xFF66727B);
+  static const Color _restingCellColor = Color(0xEF353940);
 
   const EpgChannelCell({
     super.key,

@@ -11,7 +11,7 @@ import '../../../../widgets/marquee_text.dart';
 /// Apple, a tokenized translucent panel on Material.
 class EpgHeroPreview extends StatelessWidget {
   static const double compactHeight = 144;
-  static const Color _logoPlate = Color(0xFF66727B);
+  static const Color _logoPlate = Color(0xEF353940);
 
   final String? title;
 

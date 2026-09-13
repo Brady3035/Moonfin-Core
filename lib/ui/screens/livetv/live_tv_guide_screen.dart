@@ -197,7 +197,10 @@ class _LiveTvGuideScreenState extends State<LiveTvGuideScreen>
 
   bool get _apple => AppUiIdiomResolver.isApple;
 
-  double _contentTopInset() => 20.0;
+  // Standalone landscape guides can reclaim the route's top breathing room;
+  // mobile and embedded guides keep their existing inset.
+  double _contentTopInset({bool landscape = false}) =>
+      landscape && !widget.miniPlayerMode ? 8.0 : 20.0;
 
   double _contentLeftInset() => 24.0;
 
@@ -226,12 +229,13 @@ class _LiveTvGuideScreenState extends State<LiveTvGuideScreen>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       final mediaQuery = MediaQuery.of(context);
-      final landscape = mediaQuery.size.width >= mediaQuery.size.height;
+      final landscape = _isLandscapeSize(mediaQuery.size);
+      final topInset = _contentTopInset(landscape: landscape);
       final width =
           mediaQuery.size.width - _contentLeftInset() - (landscape ? 24 : 16);
       final profile = GuideLayoutProfile.fromAvailableArea(
         availableWidth: width,
-        availableHeight: mediaQuery.size.height - _contentTopInset() - 16,
+        availableHeight: mediaQuery.size.height - topInset - 16,
         textScaleFactor: mediaQuery.textScaler.scale(1),
       );
       _layoutProfile = profile;
@@ -719,25 +723,22 @@ class _LiveTvGuideScreenState extends State<LiveTvGuideScreen>
   Widget _buildContent(BuildContext context) {
     final body = LayoutBuilder(
       builder: (context, constraints) {
+        final landscape = _isLandscapeConstraints(constraints);
+        final topInset = _contentTopInset(landscape: landscape);
         final availableWidth =
             constraints.maxWidth -
             _contentLeftInset() -
             (constraints.maxWidth >= constraints.maxHeight ? 24 : 16);
         final profile = GuideLayoutProfile.fromAvailableArea(
           availableWidth: availableWidth,
-          availableHeight: constraints.maxHeight - _contentTopInset() - 16,
+          availableHeight: constraints.maxHeight - topInset - 16,
           textScaleFactor: MediaQuery.textScalerOf(context).scale(1),
         );
         _layoutProfile = profile;
-        final landscape =
-            widget.miniPlayerMode ||
-            PlatformDetection.isTV ||
-            PlatformDetection.useDesktopUi ||
-            constraints.maxWidth >= constraints.maxHeight;
         if (landscape) _scheduleGuideWindowUpdate(profile.guideWindow);
         return Padding(
           padding: EdgeInsets.only(
-            top: _contentTopInset(),
+            top: topInset,
             left: landscape ? _contentLeftInset() : 8,
             right: landscape ? 24 : 8,
             bottom: 16,
@@ -763,6 +764,18 @@ class _LiveTvGuideScreenState extends State<LiveTvGuideScreen>
     );
   }
 
+  bool _isLandscapeSize(Size size) =>
+      widget.miniPlayerMode ||
+      PlatformDetection.isTV ||
+      PlatformDetection.useDesktopUi ||
+      size.width >= size.height;
+
+  bool _isLandscapeConstraints(BoxConstraints constraints) =>
+      widget.miniPlayerMode ||
+      PlatformDetection.isTV ||
+      PlatformDetection.useDesktopUi ||
+      constraints.maxWidth >= constraints.maxHeight;
+
   void _scheduleGuideWindowUpdate(Duration window) {
     if (_vm.state != GuideState.ready ||
         window == _vm.guideWindow ||
@@ -786,7 +799,7 @@ class _LiveTvGuideScreenState extends State<LiveTvGuideScreen>
     return Column(
       children: [
         _buildTopSection(),
-        const SizedBox(height: 8),
+        SizedBox(height: widget.miniPlayerMode ? 8 : 2),
         // The window control sits directly above the grid; the tick strip's
         // left region is only channel-column wide and 22-24 px tall, so it
         // cannot hold the chevrons and the range text at the narrowest size.
@@ -831,7 +844,7 @@ class _LiveTvGuideScreenState extends State<LiveTvGuideScreen>
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [_buildToolbar(), const SizedBox(height: 8), _buildHero()],
+      children: [_buildToolbar(), const SizedBox(height: 2), _buildHero()],
     );
   }
 
@@ -847,7 +860,7 @@ class _LiveTvGuideScreenState extends State<LiveTvGuideScreen>
         final channel = !_channelRailFocused.value && program != null
             ? _vm.channelForId(program.channelId)
             : _focusedChannel.value;
-        // Focus on the channel column has no programme, so the band previews
+        // Focus on the channel column has no program, so the band previews
         // what that channel is airing now under the channel's name.
         final preview =
             program ??
@@ -1221,7 +1234,7 @@ class _LiveTvGuideScreenState extends State<LiveTvGuideScreen>
 
   Widget _buildToolbar() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+      padding: const EdgeInsets.fromLTRB(8, 0, 8, 0),
       child: Row(
         children: [
           if (!PlatformDetection.isTV) ...[
@@ -1233,7 +1246,7 @@ class _LiveTvGuideScreenState extends State<LiveTvGuideScreen>
           ],
           Expanded(
             child: _buildFilterRail(
-              padding: const EdgeInsets.symmetric(vertical: 2),
+              padding: EdgeInsets.zero,
               onNavigateDown: _focusWindowBarFromGenres,
             ),
           ),
@@ -1247,7 +1260,7 @@ class _LiveTvGuideScreenState extends State<LiveTvGuideScreen>
   /// continuous LEFT/RIGHT run between the genre rail and the channel column.
   Widget _buildGuideWindowBar() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 6),
+      padding: const EdgeInsets.fromLTRB(8, 0, 8, 2),
       child: Row(
         children: [
           _windowBarButton(
@@ -1259,20 +1272,20 @@ class _LiveTvGuideScreenState extends State<LiveTvGuideScreen>
               allowPast: true,
             ),
           ),
-          const SizedBox(width: 4),
+          const SizedBox(width: 2),
           _windowBarButton(
             _kWindowBarNow,
             label: AppLocalizations.of(context).now,
             onPressed: _goToNow,
           ),
-          const SizedBox(width: 4),
+          const SizedBox(width: 2),
           _windowBarButton(
             _kWindowBarNext,
             icon: Icons.chevron_right,
             onPressed: () =>
                 _shiftGuideWindow(_vm.guideWindow, focusGrid: false),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 8),
           Expanded(
             child: Text(
               '${_formatDate(_vm.guideDate)}  ${_formatTime(_vm.windowStart)} – ${_formatTime(_vm.windowEnd)}',
@@ -1283,19 +1296,19 @@ class _LiveTvGuideScreenState extends State<LiveTvGuideScreen>
               overflow: TextOverflow.ellipsis,
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 8),
           _windowBarButton(
             _kWindowBarSort,
             icon: Icons.sort,
             onPressed: _openSortDialog,
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 4),
           _windowBarButton(
             _kWindowBarDate,
             icon: Icons.calendar_today,
             onPressed: _openDatePicker,
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 4),
           _windowBarButton(
             _kWindowBarRecordings,
             icon: Icons.fiber_dvr,
@@ -1318,6 +1331,7 @@ class _LiveTvGuideScreenState extends State<LiveTvGuideScreen>
     return _GuidePillButton(
       icon: icon,
       label: label,
+      compact: true,
       focusNode: _windowBarFocusNodeFor(index),
       onPressed: onPressed,
       onKeyEvent: (_, event) {
@@ -1588,7 +1602,7 @@ class _LiveTvGuideScreenState extends State<LiveTvGuideScreen>
   static bool _cellsAreLoading(List<GuideCell> cells) =>
       cells.length == 1 && cells.first.kind == GuideCellKind.loading;
 
-  /// Enters the programme row at the same timeline anchor the viewer last
+  /// Enters the program row at the same timeline anchor the viewer last
   /// used, falling back to now when focus arrived through the channel rail.
   void _focusProgramFromChannel(int rowIndex) {
     final channels = _vm.filteredChannels;
@@ -2297,6 +2311,7 @@ class _GuidePillButton extends StatefulWidget {
   final VoidCallback? onPressed;
   final FocusNode? focusNode;
   final FocusOnKeyEventCallback? onKeyEvent;
+  final bool compact;
 
   const _GuidePillButton({
     this.label,
@@ -2304,6 +2319,7 @@ class _GuidePillButton extends StatefulWidget {
     this.onPressed,
     this.focusNode,
     this.onKeyEvent,
+    this.compact = false,
   });
 
   @override
@@ -2326,7 +2342,9 @@ class _GuidePillButtonState extends State<_GuidePillButton> {
       borderRadius: AppRadius.circular(20),
       builder: (_) => AnimatedContainer(
         duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+        padding: widget.compact
+            ? const EdgeInsets.symmetric(horizontal: 12, vertical: 5)
+            : const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
         decoration: BoxDecoration(
           color: active
               ? AppColorScheme.accent.withValues(alpha: _focused ? 1.0 : 0.7)
@@ -2527,7 +2545,7 @@ class _GuideProgramRowState extends State<_GuideProgramRow> {
     }
   }
 
-  /// Re-binds focus to the selected programme after a data change, so a
+  /// Re-binds focus to the selected program after a data change, so a
   /// same-length refresh cannot leave focus on a different show.
   void _reresolveFocus(int focused) {
     if (focused < 0) return;
@@ -2723,7 +2741,7 @@ class _GuideProgramRowState extends State<_GuideProgramRow> {
           tags:
               program?.categoryTags.map(widget.filterLabel).toList() ??
               const [],
-          // The geometry clips a cell to the window, so the programme's own
+          // The geometry clips a cell to the window, so the program's own
           // start is the only thing that says it began before the left edge.
           startsBeforeWindow:
               program != null && program.startDate.isBefore(widget.windowStart),

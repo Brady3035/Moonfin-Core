@@ -17,6 +17,9 @@ class _CarouselGuide extends LiveTvGuideViewModel {
   final List<List<String>> requests = [];
   bool disposed = false;
   int schedules = 0;
+  int refreshCalls = 0;
+  int programLookups = 0;
+  bool ready = false;
   bool get listening => hasListeners;
   String titleSuffix = '';
 
@@ -31,11 +34,15 @@ class _CarouselGuide extends LiveTvGuideViewModel {
   List<GuideChannel> get filteredChannels => lineup;
 
   @override
+  GuideState get state => ready ? GuideState.ready : GuideState.loading;
+
+  @override
   GuideChannel? channelForId(String channelId) =>
       lineup.where((channel) => channel.id == channelId).firstOrNull;
 
   @override
   List<GuideProgram> unfilteredProgramsForChannel(String channelId) {
+    programLookups++;
     final now = DateTime.now();
     return [
       GuideProgram(
@@ -57,6 +64,7 @@ class _CarouselGuide extends LiveTvGuideViewModel {
     DateTime? windowStart,
     bool livePosition = true,
   }) async {
+    ready = true;
     requests.add(initialChannelIds!);
     notifyListeners();
   }
@@ -64,6 +72,12 @@ class _CarouselGuide extends LiveTvGuideViewModel {
   @override
   Future<void> ensureProgramsForChannels(List<String> channelIds) async {
     requests.add(channelIds);
+  }
+
+  @override
+  Future<void> refreshCarouselPrograms() async {
+    refreshCalls++;
+    notifyListeners();
   }
 
   @override
@@ -119,6 +133,56 @@ void main() {
     );
     expect(overlay.inactivityDuration, const Duration(minutes: 2));
   });
+
+  testWidgets(
+    'live progress tracks render at a program boundary for focused and unfocused cards',
+    (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.buildTheme(ThemeRegistry.active),
+          home: const Scaffold(
+            body: Row(
+              children: [
+                ChannelCarouselCard(
+                  key: ValueKey('focused-boundary-card'),
+                  channelNumber: '1',
+                  channelName: 'Focused',
+                  isFavorite: false,
+                  programTitle: 'New program',
+                  timeLabel: '9:08 PM - 10:00 PM',
+                  genre: null,
+                  isLive: true,
+                  progress: 0,
+                  hasTimer: false,
+                  centered: true,
+                ),
+                ChannelCarouselCard(
+                  key: ValueKey('unfocused-boundary-card'),
+                  channelNumber: '2',
+                  channelName: 'Unfocused',
+                  isFavorite: false,
+                  programTitle: 'New program',
+                  timeLabel: '9:08 PM - 10:00 PM',
+                  genre: null,
+                  isLive: true,
+                  progress: 0,
+                  hasTimer: false,
+                  centered: false,
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byType(LinearProgressIndicator), findsNWidgets(2));
+      for (final indicator in tester.widgetList<LinearProgressIndicator>(
+        find.byType(LinearProgressIndicator),
+      )) {
+        expect(indicator.value, 0);
+      }
+    },
+  );
 
   tearDown(() => HardwareKeyboard.instance.clearState());
 
@@ -254,6 +318,105 @@ void main() {
     expect(vm.listening, isFalse);
   });
 
+  testWidgets('prewarm loads every carousel channel and arms its boundary', (
+    tester,
+  ) async {
+    final client = _CarouselClient();
+    final channels = List.generate(
+      12,
+      (i) => GuideChannel(
+        id: 'ch$i',
+        name: 'Channel $i',
+        number: '${i + 1}',
+        rawData: const {},
+      ),
+    );
+    final vm = _CarouselGuide(client, channels);
+    final now = DateTime(2026, 9, 13, 18);
+    final prewarm = ChannelCarouselPrewarm(
+      client,
+      viewModelFactory: (_) => vm,
+      hourlyRefreshInterval: const Duration(seconds: 2),
+      now: () => now,
+    );
+    prewarm.tuned(channels, 'ch6');
+    await tester.pump(ChannelCarouselPrewarm.settleDelay);
+    await tester.pump();
+
+    expect(vm.requests, hasLength(1));
+    expect(vm.requests.single, channels.map((channel) => channel.id));
+    expect(vm.schedules, greaterThanOrEqualTo(1));
+    expect(prewarm.hourlyDueAt, now.add(const Duration(seconds: 2)));
+    prewarm.dispose();
+  });
+
+  testWidgets('prewarm refreshes hourly and catches a missed resume', (
+    tester,
+  ) async {
+    final client = _CarouselClient();
+    final channels = List.generate(
+      4,
+      (i) => GuideChannel(
+        id: 'ch$i',
+        name: 'Channel $i',
+        number: '${i + 1}',
+        rawData: const {},
+      ),
+    );
+    final vm = _CarouselGuide(client, channels);
+    var now = DateTime(2026, 9, 13, 18);
+    final prewarm = ChannelCarouselPrewarm(
+      client,
+      viewModelFactory: (_) => vm,
+      hourlyRefreshInterval: const Duration(seconds: 1),
+      now: () => now,
+    );
+    prewarm.tuned(channels, 'ch1');
+    await tester.pump(ChannelCarouselPrewarm.settleDelay);
+    await tester.pump(const Duration(seconds: 1));
+    expect(vm.refreshCalls, 1);
+
+    now = now.add(const Duration(hours: 2));
+    await prewarm.onAppResumed();
+    expect(vm.refreshCalls, 2);
+    expect(prewarm.hourlyDueAt, now.add(const Duration(seconds: 1)));
+    prewarm.dispose();
+  });
+
+  testWidgets(
+    'normal tune only ensures missing programs when coverage is current',
+    (tester) async {
+      final client = _CarouselClient();
+      final channels = List.generate(
+        4,
+        (i) => GuideChannel(
+          id: 'ch$i',
+          name: 'Channel $i',
+          number: '${i + 1}',
+          rawData: const {},
+        ),
+      );
+      final vm = _CarouselGuide(client, channels);
+      final prewarm = ChannelCarouselPrewarm(
+        client,
+        viewModelFactory: (_) => vm,
+        now: () => DateTime(2026, 9, 13, 18),
+      );
+
+      prewarm.tuned(channels, 'ch1');
+      await tester.pump(ChannelCarouselPrewarm.settleDelay);
+      await tester.pump();
+      prewarm.tuned(channels, 'ch2');
+      await tester.pump(ChannelCarouselPrewarm.settleDelay);
+      await tester.pump();
+
+      expect(vm.requests, hasLength(2));
+      expect(vm.requests.last, channels.map((channel) => channel.id));
+      expect(vm.refreshCalls, 0);
+      prewarm.dispose();
+    },
+  );
+
   testWidgets(
     'overlay debounces visible loads and follows data notifications',
     (tester) async {
@@ -262,7 +425,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
       await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
       await tester.pump();
-      await tester.pump(const Duration(milliseconds: 199));
+      await tester.pump(const Duration(milliseconds: 149));
       expect(vm.requests, hasLength(1));
       await tester.pump(const Duration(milliseconds: 1));
       expect(vm.requests, hasLength(2));
@@ -273,6 +436,96 @@ void main() {
       await tester.pumpWidget(const SizedBox.shrink());
     },
   );
+
+  testWidgets('overlay does not poll presentation on a 20-second timer', (
+    tester,
+  ) async {
+    final vm = await pumpOverlay(
+      tester,
+      inactivity: const Duration(minutes: 10),
+    );
+    await tester.pump(const Duration(milliseconds: 200));
+    final lookupsBeforeElapsedTime = vm.programLookups;
+
+    await tester.pump(const Duration(seconds: 21));
+
+    expect(vm.programLookups, lookupsBeforeElapsedTime);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  testWidgets(
+    'program boundary notification updates the focused card and header',
+    (tester) async {
+      final vm = await pumpOverlay(
+        tester,
+        inactivity: const Duration(minutes: 10),
+      );
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(find.text('Show ch10 (S6:E19)'), findsOneWidget);
+
+      vm.changeProgram();
+      await tester.pump();
+
+      final header = find.byKey(const ValueKey('carousel-program-header'));
+      expect(
+        find.descendant(
+          of: header,
+          matching: find.text('Show ch10 updated (S6:E19)'),
+        ),
+        findsOneWidget,
+      );
+      final selected = find.byWidgetPredicate(
+        (widget) => widget is ChannelCarouselCard && widget.centered,
+      );
+      expect(
+        tester.widget<ChannelCarouselCard>(selected).programTitle,
+        'Show ch10 updated',
+      );
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+      await tester.pumpAndSettle();
+      expect(
+        tester.widget<ChannelCarouselCard>(selected).channelName,
+        'Channel 11',
+      );
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowLeft);
+      await tester.pumpAndSettle();
+      expect(
+        tester.widget<ChannelCarouselCard>(selected).channelName,
+        'Channel 10',
+      );
+      await tester.pumpWidget(const SizedBox.shrink());
+    },
+  );
+
+  testWidgets('overlay restores carousel focus after program refresh', (
+    tester,
+  ) async {
+    final vm = await pumpOverlay(tester);
+    FocusManager.instance.primaryFocus?.unfocus();
+    await tester.pump();
+    vm.changeProgram();
+    await tester.pump(const Duration(milliseconds: 200));
+    await tester.pump();
+
+    expect(FocusManager.instance.primaryFocus?.debugLabel, 'ChannelCarousel');
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+    await tester.pumpAndSettle();
+    final selected = find.byWidgetPredicate(
+      (widget) => widget is ChannelCarouselCard && widget.centered,
+    );
+    expect(
+      tester.widget<ChannelCarouselCard>(selected).channelName,
+      'Channel 11',
+    );
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowLeft);
+    await tester.pumpAndSettle();
+    expect(
+      tester.widget<ChannelCarouselCard>(selected).channelName,
+      'Channel 10',
+    );
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
 
   testWidgets('overlay follows a restored current channel after tune failure', (
     tester,

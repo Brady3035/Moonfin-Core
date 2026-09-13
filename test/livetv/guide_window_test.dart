@@ -12,6 +12,15 @@ void main() {
     expect(guideLeftEdge(DateTime(2026, 9, 8, 19, 46)), DateTime(2026, 9, 8, 19, 30));
   });
 
+  test('live left edge advances exactly at the next half-hour boundary', () {
+    final justBefore = DateTime(2026, 9, 8, 17, 59, 59);
+    final boundary = DateTime(2026, 9, 8, 18);
+
+    expect(guideLeftEdge(justBefore), DateTime(2026, 9, 8, 17, 30));
+    expect(guideLeftEdge(boundary), boundary);
+    expect(guideLeftEdge(boundary), isNot(guideLeftEdge(justBefore)));
+  });
+
   test('leftEdge stays within 0 to 30 minutes behind now, always on :00 or :30', () {
     var t = DateTime(2026, 9, 8);
     for (var i = 0; i < 24 * 60; i++) {
@@ -37,7 +46,7 @@ void main() {
       rawData: const {},
     );
 
-    test('a cell that survives the shift keeps its programme and clamps the anchor', () {
+    test('a cell that survives the shift keeps its program and clamps the anchor', () {
       final windowStart = DateTime(2026, 9, 8, 19, 15);
       final film = program('film', DateTime(2026, 9, 8, 19, 0), DateTime(2026, 9, 8, 21, 0));
       final cells = [

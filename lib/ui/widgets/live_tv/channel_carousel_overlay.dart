@@ -53,72 +53,186 @@ List<String> carouselNeighborhood(
 /// entries a closed overlay could produce are mostly placeholders that the
 /// neighbourhood fetch invalidates a moment later anyway.
 class ChannelCarouselPrewarm {
-  /// A tune is often one step of channel surfing, so the neighbourhood fetch
-  /// waits for the lineup to settle rather than firing once per step.
+  /// A tune is often one step of channel surfing, so the complete channel
+  /// program fetch waits for the lineup to settle rather than firing per step.
   static const Duration settleDelay = Duration(seconds: 1);
 
   final LiveTvGuideViewModel viewModel;
+  final Duration _hourlyRefreshInterval;
+  final DateTime Function() _now;
 
   Timer? _timer;
+  Timer? _hourlyTimer;
+  DateTime? _hourlyDueAt;
   Future<void>? _inFlight;
+  bool _warmPending = false;
+  bool _hourlyPending = false;
   bool _disposed = false;
-
-  /// True while an overlay is mounted on this view model. It drives its own
-  /// neighbourhood loads then, and a warm fetch underneath could reset them.
-  bool _inUse = false;
 
   ChannelCarouselPrewarm(
     MediaServerClient client, {
     LiveTvGuideViewModel Function(MediaServerClient)? viewModelFactory,
-  }) : viewModel =
+    this._hourlyRefreshInterval = const Duration(hours: 1),
+    DateTime Function()? now,
+  }) : _now = now ?? DateTime.now,
+       viewModel =
            viewModelFactory?.call(client) ?? LiveTvGuideViewModel(client);
 
-  /// True once the lineup and the tuned channel's neighbourhood are resident,
-  /// which is what lets the overlay mount already showing cards.
+  /// True once the lineup and its carousel programs are resident, which is
+  /// what lets the overlay mount already showing cards.
   bool get isWarm => viewModel.state == GuideState.ready;
 
-  /// Called by the overlay around its own lifetime, so warming stands aside
-  /// while the open changer owns the fetching.
-  void adopt() => _inUse = true;
+  @visibleForTesting
+  DateTime? get hourlyDueAt => _hourlyDueAt;
 
-  void release() => _inUse = false;
-
-  /// Called when a channel is tuned. Idempotent: an already-cached
-  /// neighbourhood costs nothing beyond the set arithmetic.
+  /// Called when a channel is tuned. The delayed load covers the complete
+  /// carousel lineup after rapid channel changes settle.
   void tuned(List<GuideChannel> channels, String channelId) {
     if (_disposed || channels.isEmpty) return;
+    _channels = List<GuideChannel>.of(channels);
     _timer?.cancel();
-    _timer = Timer(settleDelay, () => unawaited(_warm(channels, channelId)));
+    _timer = Timer(settleDelay, () => _requestWarm());
   }
 
-  Future<void> _warm(List<GuideChannel> channels, String channelId) async {
-    if (_disposed || _inUse || _inFlight != null) return;
-    final sorted = List.of(channels)
-      ..sort(LiveTvGuideViewModel.comparatorFor(viewModel.sortBy));
-    final ids = carouselNeighborhood(sorted, channelId, _defaultVisibleCards);
-    if (ids.isEmpty) return;
-    // A first warm fetches the lineup too; later ones only top up the
-    // programmes the shifted neighbourhood is missing.
-    final work = isWarm
-        ? viewModel.ensureProgramsForChannels(ids)
-        : viewModel.load(
-            initialChannelIds: ids,
-            windowStart: guideLeftEdge(DateTime.now()),
-            livePosition: true,
-          );
-    _inFlight = work;
-    try {
-      await work;
-    } catch (_) {
-      // A warm that fails simply leaves the overlay to load on open.
-    } finally {
-      _inFlight = null;
+  List<GuideChannel> _channels = const [];
+
+  void _requestWarm() {
+    if (_disposed) return;
+    if (_inFlight != null) {
+      _warmPending = true;
+      return;
     }
+    unawaited(_warm());
+  }
+
+  Future<void> _warm() async {
+    if (_disposed || _channels.isEmpty) return;
+    final ids = _channels.map((channel) => channel.id).toSet().toList();
+    await _runExclusive(() => _warmPrograms(ids));
+    if (_disposed) return;
+    viewModel.scheduleBoundaryRefresh();
+    if (_hourlyDueAt == null) _armHourly();
+  }
+
+  Future<void> _warmPrograms(List<String> ids) async {
+    if (isWarm) {
+      await viewModel.ensureProgramsForChannels(ids);
+      return;
+    }
+    await viewModel.load(
+      initialChannelIds: ids,
+      windowStart: guideLeftEdge(_now()),
+      livePosition: true,
+    );
+  }
+
+  Future<void> _runExclusive(Future<void> Function() work) async {
+    final inFlight = _inFlight;
+    if (inFlight != null) {
+      await inFlight;
+      return;
+    }
+    late Future<void> tracked;
+    tracked = Future<void>.sync(work).whenComplete(() {
+      if (identical(_inFlight, tracked)) {
+        _inFlight = null;
+        _drainPending();
+      }
+    });
+    _inFlight = tracked;
+    try {
+      await tracked;
+    } catch (_) {
+      // A failed warm/refresh leaves the last good cache in place.
+    }
+  }
+
+  void _drainPending() {
+    if (_disposed || _inFlight != null) return;
+    if (_warmPending) {
+      _warmPending = false;
+      unawaited(_warm());
+    } else if (_hourlyPending) {
+      _hourlyPending = false;
+      unawaited(_refreshHourly());
+    }
+  }
+
+  void _armHourly() {
+    if (_disposed) return;
+    _hourlyTimer?.cancel();
+    _hourlyDueAt = _now().add(_hourlyRefreshInterval);
+    _hourlyTimer = Timer(_hourlyRefreshInterval, () {
+      _hourlyTimer = null;
+      _hourlyDueAt = null;
+      unawaited(_refreshHourly());
+    });
+  }
+
+  Future<void> _refreshHourly() async {
+    if (_disposed) return;
+    if (_inFlight != null) {
+      _hourlyPending = true;
+      await _waitForExclusiveWork();
+      return;
+    }
+    await _runExclusive(() => viewModel.refreshCarouselPrograms());
+    if (_disposed) return;
+    _armHourly();
+  }
+
+  Future<void> _waitForExclusiveWork() async {
+    while (!_disposed) {
+      final inFlight = _inFlight;
+      if (inFlight == null) return;
+      await inFlight;
+    }
+  }
+
+  /// Re-arms boundary scheduling and performs any hourly work missed while the
+  /// app was suspended. The player forwards resume here; the overlay does not
+  /// become a second lifecycle owner when it adopts this prewarm.
+  Future<void> onAppResumed() async {
+    if (_disposed) return;
+    final due = _hourlyDueAt;
+    if (due == null || !due.isAfter(_now())) {
+      await _refreshHourly();
+      await _waitForExclusiveWork();
+    }
+    if (!_disposed) viewModel.scheduleBoundaryRefresh();
+  }
+
+  Future<void> ensureVisibleChannels(List<String> channelIds) async {
+    if (_disposed) return;
+    if (_inFlight != null) return;
+    await _runExclusive(() => viewModel.ensureProgramsForChannels(channelIds));
+    if (!_disposed) viewModel.scheduleBoundaryRefresh();
+  }
+
+  Future<void> ensureReady() async {
+    if (_disposed) return;
+    if (isWarm) {
+      final due = _hourlyDueAt;
+      if (due == null || !due.isAfter(_now())) {
+        await _refreshHourly();
+        await _waitForExclusiveWork();
+      }
+      if (!_disposed) viewModel.scheduleBoundaryRefresh();
+      return;
+    }
+    _timer?.cancel();
+    _timer = null;
+    _requestWarm();
+    final inFlight = _inFlight;
+    if (inFlight != null) await inFlight;
   }
 
   void dispose() {
     _disposed = true;
     _timer?.cancel();
+    _hourlyTimer?.cancel();
+    _hourlyTimer = null;
+    _hourlyDueAt = null;
     viewModel.cancelBoundaryRefresh();
     viewModel.dispose();
   }
@@ -160,14 +274,12 @@ class ChannelCarouselOverlay extends StatefulWidget {
 
 class _ChannelCarouselOverlayState extends State<ChannelCarouselOverlay>
     with WidgetsBindingObserver, SingleTickerProviderStateMixin {
-  static const _debounce = Duration(milliseconds: 100);
-
-  /// How often live progress and the current programme are re-evaluated.
-  /// Probably should refactor to trigger when a program ends.
-  static const _clockTick = Duration(seconds: 20);
+  // Keep this longer than the carousel's 110 ms hold-repeat interval so a
+  // sustained left/right press settles before visible guide data is loaded.
+  static const _debounce = Duration(milliseconds: 150);
 
   /// The header reserves room for its four lines whether or not the centred
-  /// programme fills them, so the strip never shifts as the selection moves.
+  /// program fills them, so the strip never shifts as the selection moves.
   /// Measuring the lines rather than guessing a fixed height keeps that
   /// promise without leaving a band of empty scrim above the cards.
   static const EdgeInsets _headerPadding = EdgeInsets.fromLTRB(16, 6, 16, 0);
@@ -197,16 +309,15 @@ class _ChannelCarouselOverlayState extends State<ChannelCarouselOverlay>
   late final Animation<Offset> _offset;
   late List<GuideChannel> _channels;
 
-  /// Presentation entries, recomputed only when the guide data or the clock
-  /// moves. Building them per frame made every debounced `setState` walk the
-  /// whole lineup, reformatting times and image URLs it already had.
+  /// Presentation entries, recomputed only when the guide data changes.
+  /// Building them per frame would walk the whole lineup, reformatting times
+  /// and image URLs it already had.
   List<ChannelCarouselEntry> _entries = const [];
   bool _entriesDirty = true;
   late String _centeredId;
   Timer? _headerTimer;
   Timer? _loadTimer;
   Timer? _hideTimer;
-  Timer? _clockTimer;
   Timer? _quarterTimer;
   GuideProgram? _headerProgram;
   GuideChannel? _headerChannel;
@@ -219,6 +330,7 @@ class _ChannelCarouselOverlayState extends State<ChannelCarouselOverlay>
   final FocusNode _overlayFocus = FocusNode(
     debugLabel: 'ChannelCarouselOverlay',
   );
+  final FocusNode _carouselFocus = FocusNode(debugLabel: 'ChannelCarousel');
 
   @override
   void initState() {
@@ -253,18 +365,15 @@ class _ChannelCarouselOverlayState extends State<ChannelCarouselOverlay>
     // Warm data is adopted by assignment only. Nothing here builds entries, so
     // no localised formatting runs before the first build has a context.
     if (warm?.isWarm == true) _adoptWarmChannels();
-    warm?.adopt();
     _vm.addListener(_onDataChanged);
-    WidgetsBinding.instance.addObserver(this);
+    if (warm?.isWarm == true) unawaited(warm!.ensureReady());
+    if (_ownsViewModel) WidgetsBinding.instance.addObserver(this);
     _resetInactivity();
-    _vm.scheduleBoundaryRefresh();
-    _clockTimer = Timer.periodic(_clockTick, (_) {
-      if (mounted) setState(_invalidateEntries);
-    });
-    _scheduleQuarterRefresh();
+    if (_ownsViewModel) _vm.scheduleBoundaryRefresh();
+    if (_ownsViewModel) _scheduleQuarterRefresh();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted && _overlayFocus.canRequestFocus) {
-        _overlayFocus.requestFocus();
+      if (mounted && _carouselFocus.canRequestFocus) {
+        FocusScope.of(context).requestFocus(_carouselFocus);
       }
     });
     if (_ready) {
@@ -304,6 +413,7 @@ class _ChannelCarouselOverlayState extends State<ChannelCarouselOverlay>
   @override
   void didUpdateWidget(covariant ChannelCarouselOverlay oldWidget) {
     super.didUpdateWidget(oldWidget);
+    _restoreCarouselFocus();
     if (oldWidget.currentChannelId == widget.currentChannelId &&
         oldWidget.selectionRevision == widget.selectionRevision) {
       return;
@@ -318,37 +428,43 @@ class _ChannelCarouselOverlayState extends State<ChannelCarouselOverlay>
 
   @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
+    if (_ownsViewModel) WidgetsBinding.instance.removeObserver(this);
     _headerTimer?.cancel();
     _loadTimer?.cancel();
     _hideTimer?.cancel();
-    _clockTimer?.cancel();
     _quarterTimer?.cancel();
     _vm.removeListener(_onDataChanged);
-    _vm.cancelBoundaryRefresh();
-    widget.prewarm?.release();
+    if (_ownsViewModel) _vm.cancelBoundaryRefresh();
     if (_ownsViewModel) _vm.dispose();
     _slide.dispose();
     _overlayFocus.dispose();
+    _carouselFocus.dispose();
     super.dispose();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      _vm.scheduleBoundaryRefresh();
-      _scheduleQuarterRefresh();
+      if (_ownsViewModel) {
+        _vm.scheduleBoundaryRefresh();
+        _scheduleQuarterRefresh();
+      }
       _scheduleHeader();
       setState(_invalidateEntries);
     }
   }
 
   Future<void> _load() async {
-    await _vm.load(
-      initialChannelIds: _neighborhood(),
-      windowStart: guideLeftEdge(DateTime.now()),
-      livePosition: true,
-    );
+    final prewarm = widget.prewarm;
+    if (prewarm != null) {
+      await prewarm.ensureReady();
+    } else {
+      await _vm.load(
+        initialChannelIds: _neighborhood(),
+        windowStart: guideLeftEdge(DateTime.now()),
+        livePosition: true,
+      );
+    }
     if (!mounted) return;
     final playbackIds = widget.channels.map((channel) => channel.id).toSet();
     setState(() {
@@ -366,7 +482,7 @@ class _ChannelCarouselOverlayState extends State<ChannelCarouselOverlay>
       _dismiss();
       return;
     }
-    _vm.scheduleBoundaryRefresh();
+    if (_ownsViewModel) _vm.scheduleBoundaryRefresh();
     _scheduleHeader();
     _scheduleVisibleLoad();
   }
@@ -376,8 +492,33 @@ class _ChannelCarouselOverlayState extends State<ChannelCarouselOverlay>
 
   void _onDataChanged() {
     if (!mounted) return;
-    setState(_invalidateEntries);
-    if (_ready) _scheduleHeader();
+    setState(() {
+      _invalidateEntries();
+      if (_ready && !_scrolling) _updateHeader();
+    });
+    if (_ready && _scrolling) _scheduleHeader();
+    _restoreCarouselFocus();
+  }
+
+  void _updateHeader() {
+    _headerChannel = _vm.channelForId(_centeredId);
+    _headerProgram = _currentProgram(_centeredId);
+  }
+
+  /// A player-level program refresh can rebuild this overlay at the same
+  /// instant that the guide promotes a new program. Keep navigation owned by
+  /// the carousel child; otherwise the parent player focus node receives the
+  /// next arrow event and the open carousel looks frozen.
+  void _restoreCarouselFocus() {
+    if (_dismissed) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted &&
+          !_dismissed &&
+          !_carouselFocus.hasFocus &&
+          _carouselFocus.canRequestFocus) {
+        FocusScope.of(context).requestFocus(_carouselFocus);
+      }
+    });
   }
 
   void _invalidateEntries() => _entriesDirty = true;
@@ -388,9 +529,7 @@ class _ChannelCarouselOverlayState extends State<ChannelCarouselOverlay>
   List<ChannelCarouselEntry> get _currentEntries {
     if (!_entriesDirty) return _entries;
     _entriesDirty = false;
-    // Quantised to the clock tick that is meant to refresh the strip, so a
-    // rebuild between ticks produces entries equal to the ones it replaces.
-    final now = _tickAlignedNow();
+    final now = DateTime.now();
     var changed = _entries.length != _channels.length;
     final next = <ChannelCarouselEntry>[];
     for (var i = 0; i < _channels.length; i++) {
@@ -409,19 +548,6 @@ class _ChannelCarouselOverlayState extends State<ChannelCarouselOverlay>
     return _entries;
   }
 
-  static DateTime _tickAlignedNow() {
-    final now = DateTime.now();
-    final seconds = now.second - now.second % _clockTick.inSeconds;
-    return DateTime(
-      now.year,
-      now.month,
-      now.day,
-      now.hour,
-      now.minute,
-      seconds,
-    );
-  }
-
   void _centered(int index) {
     _centeredId = _channels[index].id;
     _clearHeader();
@@ -437,10 +563,9 @@ class _ChannelCarouselOverlayState extends State<ChannelCarouselOverlay>
     });
   }
 
-  /// A hold repeats faster than [_debounce], so a sustained one would never
-  /// let the debounce fire and would scroll into permanently unloaded
-  /// territory. Landing on a channel with nothing cached forces a fetch
-  /// instead, at most this often.
+  /// Landing on a channel with nothing cached forces a fetch instead, at most
+  /// this often, without allowing sustained movement to queue one load per
+  /// repeated key event.
   static const _blindThrottle = Duration(milliseconds: 500);
   DateTime? _lastBlindLoad;
 
@@ -466,8 +591,13 @@ class _ChannelCarouselOverlayState extends State<ChannelCarouselOverlay>
     }
     _loadingVisible = true;
     try {
-      await _vm.ensureProgramsForChannels(_neighborhood());
-      if (mounted) _vm.scheduleBoundaryRefresh();
+      final prewarm = widget.prewarm;
+      if (prewarm != null) {
+        await prewarm.ensureVisibleChannels(_neighborhood());
+      } else {
+        await _vm.ensureProgramsForChannels(_neighborhood());
+        if (mounted) _vm.scheduleBoundaryRefresh();
+      }
     } catch (_) {
       // Keep cached cards when a newly visible channel cannot be loaded.
     } finally {
@@ -669,7 +799,7 @@ class _ChannelCarouselOverlayState extends State<ChannelCarouselOverlay>
     final suffix = season != null && episode != null
         ? ' (S$season:E$episode)'
         : '';
-    // Some sources repeat the programme name as the episode title; showing it
+    // Some sources repeat the program name as the episode title; showing it
     // twice reads as a glitch.
     final episodeTitle = program?.episodeTitle;
     final episodeName =
@@ -768,6 +898,7 @@ class _ChannelCarouselOverlayState extends State<ChannelCarouselOverlay>
                     NotificationListener<ScrollNotification>(
                       onNotification: _onScroll,
                       child: ChannelCarousel(
+                        focusNode: _carouselFocus,
                         channels: _currentEntries,
                         selectionRevision: widget.selectionRevision,
                         initialIndex: math.max(

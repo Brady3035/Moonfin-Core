@@ -11,7 +11,7 @@ import '../../screens/livetv/epg/epg_genre.dart';
 /// [centered] marks the card pinned at the viewport centre, which gets an
 /// accent border and focus glow instead of the plain card border.
 ///
-/// The programme block mirrors the guide cell: a top-aligned regular-weight
+/// The program block mirrors the guide cell: a top-aligned regular-weight
 /// title over a muted metadata line. The card is far taller than a guide row,
 /// so it spends the extra height on a second title line instead of dropping
 /// the metadata.
@@ -44,7 +44,7 @@ class ChannelCarouselCard extends StatelessWidget {
   final bool hasTimer;
   final bool centered;
 
-  /// Draws the programme block as a skeleton: the schedule is still on its
+  /// Draws the program block as a skeleton: the schedule is still on its
   /// way rather than genuinely empty.
   final bool programLoading;
 
@@ -58,7 +58,7 @@ class ChannelCarouselCard extends StatelessWidget {
   static const double cardSpacing = 10;
 
   /// The logo owns the header's right edge; it grows to the header band's
-  /// height so it never reaches the programme text below it.
+  /// height so it never reaches the program text below it.
   static const double _logoHeight = 30;
   static const double _logoMaxWidth = 44;
   static const double cardPitch = cardWidth + cardSpacing;
@@ -67,7 +67,7 @@ class ChannelCarouselCard extends StatelessWidget {
   static const double minCardWidth = 150;
   static const double maxCardWidth = 280;
 
-  /// Absolute floor: below this the programme block has nothing to say, so a
+  /// Absolute floor: below this the program block has nothing to say, so a
   /// narrower strip takes fewer cards instead.
   static const double _minLegibleWidth = 96;
 
@@ -165,7 +165,7 @@ class ChannelCarouselCard extends StatelessWidget {
     final metaStyle = (textTheme.labelLarge ?? const TextStyle(fontSize: 14))
         .copyWith(color: muted);
     // One step up from bodyMedium: the header is logo-height anyway, so the
-    // channel name can afford the extra 2 dp without pushing the programme
+    // channel name can afford the extra 2 dp without pushing the program
     // block.
     final nameStyle = (textTheme.titleMedium ?? const TextStyle()).copyWith(
       fontWeight: FontWeight.w600,
@@ -183,7 +183,10 @@ class ChannelCarouselCard extends StatelessWidget {
     // boundary per card cost more than the arithmetic it guarded.
     final titleLine = _lineHeight(titleStyle, scaler);
     final metaLine = _lineHeight(metaStyle, scaler);
-    final headerHeight = math.max(_logoHeight, _lineHeight(numberStyle, scaler));
+    final headerHeight = math.max(
+      _logoHeight,
+      _lineHeight(numberStyle, scaler),
+    );
     final belowHeader = _contentHeight - headerHeight - _headerGap;
     final metaItems = _fittingMeta(_contentWidth, metaStyle, scaler);
     final showMeta =
@@ -200,9 +203,9 @@ class ChannelCarouselCard extends StatelessWidget {
       child: Container(
         clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
-          // A hint of the programme's genre over a dark base, so the card
+          // A hint of the program's genre over a dark base, so the card
           // carries a little colour without competing with its own text. A
-          // programme with no genre falls back to plain dark grey.
+          // program with no genre falls back to plain dark grey.
           color: Color.alphaBlend(
             (genre?.color ?? AppColorScheme.surfaceVariant).withValues(
               alpha: centered ? 0.22 : 0.14,
@@ -255,7 +258,9 @@ class ChannelCarouselCard extends StatelessWidget {
             // Progress reads as a seekbar, not as card structure: range tokens
             // rather than the genre colour, inset from the genre bar and from
             // both card edges so it never looks like a border.
-            if (isLive && progress > 0)
+            // Keep the track visible at the exact program boundary, when the
+            // new live program's progress is legitimately zero.
+            if (isLive)
               Positioned(
                 left: _genreBarWidth + AppSpacing.spaceSm,
                 right: AppSpacing.spaceSm,
@@ -276,7 +281,7 @@ class ChannelCarouselCard extends StatelessWidget {
     );
   }
 
-  /// Stands in for the programme block while its data is still unfetched. The
+  /// Stands in for the program block while its data is still unfetched. The
   /// channel's own identity always renders, so a card the strip has run past
   /// reads as loading rather than as empty.
   Widget _programPlaceholder() => Column(
@@ -401,6 +406,4 @@ class ChannelCarouselCard extends StatelessWidget {
 
   static double _textWidth(String text, TextStyle style, TextScaler scaler) =>
       _measure('w$text', text, style, scaler, (p) => p.width);
-
-
 }

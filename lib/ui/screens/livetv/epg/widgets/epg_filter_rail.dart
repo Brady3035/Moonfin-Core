@@ -125,7 +125,7 @@ class _EpgFilterRailState extends State<EpgFilterRail> {
         for (var i = 0; i < widget.labels.length; i++)
           Padding(
             key: _chipKey(i),
-            padding: EdgeInsets.only(right: widget.apple ? 2 : 8),
+            padding: EdgeInsets.only(right: widget.apple ? 2 : 4),
             child: FocusableWrapper(
               focusNode: widget.focusNodeFor(i),
               disableScale: true,
@@ -163,7 +163,7 @@ class _EpgFilterRailState extends State<EpgFilterRail> {
               blur: 14,
               fallbackColor: AppColorScheme.surface.withValues(alpha: 0.35),
               tint: Colors.white.withValues(alpha: 0.06),
-              child: Padding(padding: const EdgeInsets.all(3), child: row),
+              child: Padding(padding: const EdgeInsets.all(2), child: row),
             )
           : row,
     );
@@ -214,7 +214,7 @@ class _EpgFilterRailState extends State<EpgFilterRail> {
     }
     return AnimatedContainer(
       duration: const Duration(milliseconds: 150),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
       decoration: BoxDecoration(
         color: bg,
         borderRadius: AppRadius.circular(13),

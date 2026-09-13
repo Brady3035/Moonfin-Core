@@ -420,6 +420,7 @@ void main() {
     late List<Map<String, dynamic>> items;
     late List<DateTime> requestedFrom;
     late List<DateTime> requestedTo;
+    late List<List<String>> requestedChannelIds;
     late bool guideThrows;
 
     DateTime at(int minutes) => base.add(Duration(minutes: minutes));
@@ -431,6 +432,7 @@ void main() {
       items = <Map<String, dynamic>>[];
       requestedFrom = <DateTime>[];
       requestedTo = <DateTime>[];
+      requestedChannelIds = <List<String>>[];
 
       when(
         () => liveTv.getChannels(
@@ -461,6 +463,11 @@ void main() {
         guideCalls++;
         requestedFrom.add(invocation.namedArguments[#startDate] as DateTime);
         requestedTo.add(invocation.namedArguments[#endDate] as DateTime);
+        requestedChannelIds.add(
+          List<String>.from(
+            invocation.namedArguments[#channelIds] as List<String>,
+          ),
+        );
         if (guideThrows) throw StateError('guide unavailable');
         return {'Items': List<Map<String, dynamic>>.from(items)};
       });
@@ -485,6 +492,25 @@ void main() {
         vm.cancelBoundaryRefresh();
       });
     });
+
+    test(
+      'a cached future start promotes without a future-guide reload',
+      () async {
+        items = [_span('upcoming', 'c0', at(30), at(60))];
+        final vm = LiveTvGuideViewModel(client, now: () => clock);
+        await vm.load(windowStart: at(90), livePosition: false);
+
+        vm.scheduleBoundaryRefresh();
+        expect(vm.boundaryDueAt, at(30));
+
+        clock = at(31);
+        await vm.handleBoundaryElapsed();
+
+        expect(guideCalls, 1);
+        expect(vm.boundaryDueAt, at(60));
+        vm.cancelBoundaryRefresh();
+      },
+    );
 
     test('an elapsed boundary refreshes exactly once, not in a loop', () async {
       seedLapsingSchedule();
@@ -540,21 +566,172 @@ void main() {
       vm.cancelBoundaryRefresh();
     });
 
-    test('the refresh range spans the guide viewport', () async {
+    test(
+      'boundary refresh preserves the viewport and covers live horizon',
+      () async {
+        seedLapsingSchedule();
+        final vm = LiveTvGuideViewModel(client, now: () => clock);
+        await vm.load(windowStart: at(-360));
+        vm.scheduleBoundaryRefresh();
+
+        clock = at(31);
+        items = [...items, _span('next', 'c0', at(30), at(200))];
+        await vm.handleBoundaryElapsed();
+
+        expect(requestedFrom.last, vm.windowStart);
+        expect(
+          requestedTo.last,
+          at(31).add(LiveTvGuideViewModel.rollingRefreshHorizon),
+        );
+        expect(vm.boundaryDueAt, at(200));
+        vm.cancelBoundaryRefresh();
+      },
+    );
+
+    test(
+      'rolling refresh reanchors beyond cached coverage in one bounded window',
+      () async {
+        when(
+          () => liveTv.getChannels(
+            sortBy: any(named: 'sortBy'),
+            sortOrder: any(named: 'sortOrder'),
+            fields: any(named: 'fields'),
+            enableTotalRecordCount: any(named: 'enableTotalRecordCount'),
+            userId: any(named: 'userId'),
+          ),
+        ).thenAnswer(
+          (_) async => {
+            'Items': [_channel('c0'), _channel('c1')],
+          },
+        );
+        items = [
+          _span('old-0', 'c0', at(-60), at(30)),
+          _span('old-1', 'c1', at(-60), at(30)),
+        ];
+        final vm = LiveTvGuideViewModel(client, now: () => clock);
+        await vm.load();
+
+        // The cache ends before the current clock; staleness is coverage-based.
+        clock = at(45);
+        items = [
+          _span('new-0', 'c0', at(35), at(90)),
+          _span('new-1', 'c1', at(35), at(90)),
+        ];
+        await vm.refreshCarouselPrograms();
+
+        expect(guideCalls, 2);
+        expect(requestedChannelIds.last, containsAll(<String>['c0', 'c1']));
+        expect(
+          requestedFrom.last,
+          at(45).subtract(LiveTvGuideViewModel.rollingRefreshLookback),
+        );
+        expect(
+          requestedTo.last,
+          at(45).add(LiveTvGuideViewModel.rollingRefreshHorizon),
+        );
+        expect(vm.programsForChannel('c0').single.id, 'new-0');
+        expect(vm.programsForChannel('c1').single.id, 'new-1');
+        vm.cancelBoundaryRefresh();
+      },
+    );
+
+    test('overlapping rolling refresh calls share one request', () async {
       seedLapsingSchedule();
       final vm = LiveTvGuideViewModel(client, now: () => clock);
       await vm.load();
-      vm.scheduleBoundaryRefresh();
 
-      clock = at(31);
-      items = [...items, _span('next', 'c0', at(30), at(200))];
-      await vm.handleBoundaryElapsed();
+      final reply = Completer<Map<String, dynamic>>();
+      when(() => _guide(liveTv)).thenAnswer((_) {
+        guideCalls++;
+        return reply.future;
+      });
 
-      // A narrower range would shrink a displayed guide's cached coverage.
-      expect(requestedFrom.last.isAfter(vm.windowStart), isFalse);
-      expect(requestedTo.last.isBefore(vm.windowEnd), isFalse);
-      expect(vm.boundaryDueAt, at(200));
+      final first = vm.refreshCarouselPrograms();
+      await pumpEventQueue();
+      final second = vm.refreshCarouselPrograms();
+
+      expect(second, same(first));
+      expect(guideCalls, 2);
+      reply.complete({
+        'Items': [_span('new', 'c0', at(-10), at(90))],
+      });
+      await Future.wait([first, second]);
+
+      expect(vm.programsForChannel('c0').single.id, 'new');
       vm.cancelBoundaryRefresh();
+    });
+
+    test('a superseding replacement rejects a stale rolling reply', () async {
+      seedLapsingSchedule();
+      final vm = LiveTvGuideViewModel(client, now: () => clock);
+      await vm.load();
+
+      final pending = <Completer<Map<String, dynamic>>>[];
+      when(() => _guide(liveTv)).thenAnswer((_) {
+        final reply = Completer<Map<String, dynamic>>();
+        pending.add(reply);
+        return reply.future;
+      });
+
+      vm.scheduleBoundaryRefresh();
+      final rolling = vm.refreshCarouselPrograms();
+      await pumpEventQueue();
+      final replacement = vm.replacePrograms(
+        channelIds: const ['c0'],
+        from: at(0),
+        to: at(90),
+      );
+      await pumpEventQueue();
+
+      expect(pending, hasLength(2));
+      pending[1].complete({
+        'Items': [_span('current', 'c0', at(-10), at(90))],
+      });
+      await replacement;
+      pending[0].complete({
+        'Items': [_span('stale', 'c0', at(-10), at(60))],
+      });
+      await rolling;
+
+      expect(vm.programsForChannel('c0').single.id, 'current');
+      expect(vm.boundaryDueAt, at(90));
+      vm.cancelBoundaryRefresh();
+    });
+
+    test('a failed rolling refresh preserves the existing cache', () async {
+      seedLapsingSchedule();
+      final vm = LiveTvGuideViewModel(client, now: () => clock);
+      await vm.load();
+
+      guideThrows = true;
+      await vm.refreshCarouselPrograms();
+
+      expect(vm.programsForChannel('c0').map((p) => p.id), ['ended', 'airing']);
+      expect(vm.boundaryDueAt, clock.add(LiveTvGuideViewModel.failureBackoff));
+      vm.cancelBoundaryRefresh();
+    });
+
+    test('a disposed view model ignores a rolling refresh request', () async {
+      seedLapsingSchedule();
+      final vm = LiveTvGuideViewModel(client, now: () => clock);
+      await vm.load();
+      clearInteractions(liveTv);
+
+      vm.dispose();
+      await vm.refreshCarouselPrograms();
+
+      verifyNever(
+        () => liveTv.getGuide(
+          startDate: any(named: 'startDate'),
+          endDate: any(named: 'endDate'),
+          channelIds: any(named: 'channelIds'),
+          fields: any(named: 'fields'),
+          enableTotalRecordCount: any(named: 'enableTotalRecordCount'),
+          enableImages: any(named: 'enableImages'),
+          enableUserData: any(named: 'enableUserData'),
+          userId: any(named: 'userId'),
+        ),
+      );
     });
 
     test('a failed refresh backs off and keeps the data', () async {
@@ -726,7 +903,7 @@ void main() {
     });
   });
 
-  group('recording defaults carry the programme id', () {
+  group('recording defaults carry the program id', () {
     setUp(() {
       when(
         () => liveTv.getChannels(

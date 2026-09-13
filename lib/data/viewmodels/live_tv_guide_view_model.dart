@@ -78,7 +78,7 @@ class GuideProgram {
   /// carries one.
   String? get officialRating => rawData['OfficialRating'] as String?;
 
-  /// The programme's categories in a fixed order, as the same [GuideFilter]
+  /// The program's categories in a fixed order, as the same [GuideFilter]
   /// values the guide's filter chips label, so callers localise them once.
   List<GuideFilter> get categoryTags => [
     if (isMovie) GuideFilter.movies,
@@ -858,9 +858,19 @@ class LiveTvGuideViewModel extends ChangeNotifier {
   @visibleForTesting
   static const failureBackoff = Duration(minutes: 1);
 
+  /// Keeps the current program visible when a rolling request starts late.
+  @visibleForTesting
+  static const rollingRefreshLookback = Duration(minutes: 15);
+
+  /// Default amount of future guide data retained by a rolling refresh.
+  @visibleForTesting
+  static const rollingRefreshHorizon = _defaultGuideWindow;
+
   Timer? _boundaryTimer;
   DateTime? _boundaryDueAt;
+  Future<void>? _carouselRefreshInFlight;
   bool _boundaryRefreshInFlight = false;
+  bool _boundarySchedulingEnabled = false;
 
   // Boundaries already handled, so one can never be selected twice.
   final Set<DateTime> _processedBoundaries = <DateTime>{};
@@ -869,16 +879,21 @@ class LiveTvGuideViewModel extends ChangeNotifier {
   @visibleForTesting
   DateTime? get boundaryDueAt => _boundaryDueAt;
 
-  /// The earliest cached program end that is after now and unprocessed.
+  /// The earliest cached program start or end that is after now and
+  /// unprocessed.
   @visibleForTesting
   DateTime? get nextBoundaryAt => _nextBoundary(_now());
 
   /// Arms a one-shot refresh on the next unprocessed future program boundary.
   ///
+  /// Boundary fetches preserve the guide viewport. Carousel prewarming uses
+  /// [refreshCarouselPrograms] for a bounded rolling window instead.
+  ///
   /// This view model is not a lifecycle observer: the surface that owns it must
   /// call this again on app resume, because timers do not fire while suspended.
   void scheduleBoundaryRefresh() {
     if (_disposed) return;
+    _boundarySchedulingEnabled = true;
     _boundaryTimer?.cancel();
     _boundaryTimer = null;
     final now = _now();
@@ -914,8 +929,29 @@ class LiveTvGuideViewModel extends ChangeNotifier {
     await handleBoundaryElapsed(forceRefresh: true);
   }
 
+  /// Atomically refreshes loaded carousel channels around the current time.
+  ///
+  /// The bounded range is independent of the guide viewport. Concurrent calls
+  /// coalesce, and a failed or stale response preserves the existing cache.
+  Future<void> refreshCarouselPrograms() {
+    if (_disposed) return Future<void>.value();
+    _boundarySchedulingEnabled = true;
+    final inFlight = _carouselRefreshInFlight;
+    if (inFlight != null) return inFlight;
+
+    late Future<void> tracked;
+    tracked = _refreshCarouselPrograms().whenComplete(() {
+      if (identical(_carouselRefreshInFlight, tracked)) {
+        _carouselRefreshInFlight = null;
+      }
+    });
+    _carouselRefreshInFlight = tracked;
+    return tracked;
+  }
+
   /// Stops the boundary refresh; call when the surface is torn down.
   void cancelBoundaryRefresh() {
+    _boundarySchedulingEnabled = false;
     _boundaryTimer?.cancel();
     _boundaryTimer = null;
     _boundaryDueAt = null;
@@ -985,6 +1021,48 @@ class LiveTvGuideViewModel extends ChangeNotifier {
     scheduleBoundaryRefresh();
   }
 
+  Future<void> _refreshCarouselPrograms() async {
+    final now = _now();
+    final ids = _programsLoadedIds.toList();
+    if (ids.isEmpty) {
+      scheduleBoundaryRefresh();
+      return;
+    }
+
+    final generation = ++_programGeneration;
+    final from = now.subtract(rollingRefreshLookback);
+    final to = now.add(rollingRefreshHorizon);
+
+    Map<String, List<GuideProgram>>? replacements;
+    try {
+      replacements = await _fetchProgramReplacements(
+        ids,
+        from: from,
+        to: to,
+        generation: generation,
+      );
+      if (replacements == null) {
+        _rearmBoundaryIfEnabled();
+        return;
+      }
+    } catch (_) {
+      // Preserve the existing cache when the rolling request fails.
+      if (_boundarySchedulingEnabled) _armRetry(failureBackoff);
+      return;
+    }
+
+    if (_disposed || generation != _programGeneration) {
+      _rearmBoundaryIfEnabled();
+      return;
+    }
+    for (final entry in replacements.entries) {
+      _programsByChannel[entry.key] = entry.value;
+    }
+    _processedBoundaries.removeWhere((boundary) => !boundary.isAfter(now));
+    _notifyListeners();
+    _scheduleAfterRollingRefresh();
+  }
+
   /// Replaces every cached channel over a range that spans the guide viewport,
   /// in batches, so no surface's coverage can shrink to a rolling horizon.
   Future<void> _refreshLoadedChannels(DateTime now) async {
@@ -1003,8 +1081,43 @@ class LiveTvGuideViewModel extends ChangeNotifier {
     }
   }
 
-  Iterable<DateTime> _boundaries() =>
-      _programsByChannel.values.expand((ps) => ps.map((p) => p.endDate));
+  void _scheduleAfterRollingRefresh() {
+    if (!_boundarySchedulingEnabled) return;
+    if (_nextBoundary(_now()) != null) {
+      scheduleBoundaryRefresh();
+    } else if (_boundaries().isNotEmpty) {
+      _armRetry(noNewCoverageRetry);
+    } else {
+      scheduleBoundaryRefresh();
+    }
+  }
+
+  void _rearmBoundaryIfEnabled() {
+    if (_boundarySchedulingEnabled && !_disposed) scheduleBoundaryRefresh();
+  }
+
+  Future<Map<String, List<GuideProgram>>?> _fetchProgramReplacements(
+    List<String> ids, {
+    required DateTime from,
+    required DateTime to,
+    required int generation,
+  }) async {
+    final replacements = <String, List<GuideProgram>>{};
+    for (var i = 0; i < ids.length; i += _programBatchSize) {
+      final chunk = ids.sublist(i, min(i + _programBatchSize, ids.length));
+      final response = await _fetchGuide(channelIds: chunk, from: from, to: to);
+      if (_disposed || generation != _programGeneration) return null;
+      final parsed = _parsePrograms(response);
+      for (final id in chunk) {
+        replacements[id] = parsed[id] ?? <GuideProgram>[];
+      }
+    }
+    return replacements;
+  }
+
+  Iterable<DateTime> _boundaries() => _programsByChannel.values.expand(
+    (programs) => programs.expand((p) => [p.startDate, p.endDate]),
+  );
 
   DateTime? _nextBoundary(DateTime now) {
     DateTime? next;

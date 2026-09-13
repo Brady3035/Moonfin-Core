@@ -139,6 +139,11 @@ void main() {
         enableTotalRecordCount: any(named: 'enableTotalRecordCount'),
         enableImages: any(named: 'enableImages'),
         enableUserData: any(named: 'enableUserData'),
+        isMovie: any(named: 'isMovie'),
+        isSeries: any(named: 'isSeries'),
+        isSports: any(named: 'isSports'),
+        isNews: any(named: 'isNews'),
+        isKids: any(named: 'isKids'),
         userId: any(named: 'userId'),
       ),
     ).thenAnswer((invocation) async {
@@ -274,7 +279,7 @@ void main() {
       channels = [_channelRaw('cFiltered', 'Channel Filtered')];
       // A movie for the first hour, then a non-movie filling the rest of the
       // widest window the surface can derive; under the Movies filter that
-      // second programme's slot is a filtered hole, not a gap.
+      // second program's slot is a filtered hole, not a gap.
       programsByChannel['cFiltered'] = [
         _programRaw(
           id: 'p1',

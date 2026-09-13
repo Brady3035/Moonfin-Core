@@ -12,6 +12,7 @@ import 'package:moonfin/ui/screens/livetv/epg/widgets/epg_channel_cell.dart';
 import 'package:moonfin/ui/screens/livetv/epg/widgets/epg_filter_rail.dart';
 import 'package:moonfin/ui/screens/livetv/epg/widgets/epg_hero_preview.dart';
 import 'package:moonfin/ui/screens/livetv/guide/guide_window.dart';
+import 'package:moonfin/ui/screens/livetv/guide/guide_layout_profile.dart';
 import 'package:moonfin/ui/screens/livetv/live_tv_guide_screen.dart';
 import 'package:server_core/server_core.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -51,13 +52,14 @@ void main() {
 
     _windowStart = guideLeftEdge(DateTime.now());
     channels = [
-      <String, dynamic>{
-        'Id': 'ch0',
-        'Name': 'Channel Zero',
-        'ChannelNumber': '101',
-        'ImageTags': <String, dynamic>{'Primary': 'channel-tag'},
-        'UserData': <String, dynamic>{'IsFavorite': false},
-      },
+      for (var i = 0; i < 8; i++)
+        <String, dynamic>{
+          'Id': 'ch$i',
+          'Name': i == 0 ? 'Channel Zero' : 'Channel $i',
+          'ChannelNumber': '${100 + i + 1}',
+          'ImageTags': <String, dynamic>{'Primary': 'channel-tag'},
+          'UserData': <String, dynamic>{'IsFavorite': false},
+        },
     ];
     programs = [
       <String, dynamic>{
@@ -226,23 +228,51 @@ void main() {
     );
   });
 
-  testWidgets(
-    'the hero keeps the channel logo when a programme cell has focus',
-    (tester) async {
-      await pumpGuide(tester);
+  testWidgets('the hero keeps the channel logo when a program cell has focus', (
+    tester,
+  ) async {
+    await pumpGuide(tester);
 
-      _nodeLabelled(tester, 'GuideProgramRow0:0').requestFocus();
-      await tester.pumpAndSettle();
+    _nodeLabelled(tester, 'GuideProgramRow0:0').requestFocus();
+    await tester.pumpAndSettle();
 
-      expect(
-        find.descendant(
-          of: find.byType(EpgHeroPreview),
-          matching: find.byType(CachedNetworkImage),
-        ),
-        findsOneWidget,
-      );
-    },
-  );
+    expect(
+      find.descendant(
+        of: find.byType(EpgHeroPreview),
+        matching: find.byType(CachedNetworkImage),
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('compact landscape chrome leaves five full guide rows visible', (
+    tester,
+  ) async {
+    const surface = Size(960, 540);
+    await pumpGuide(tester, surface: surface);
+
+    final rail = tester.getRect(find.byType(EpgFilterRail));
+    final hero = tester.getRect(find.byType(EpgHeroPreview));
+    final l10n = AppLocalizations.of(
+      tester.element(find.byType(LiveTvGuideScreen)),
+    );
+    final now = tester.getRect(find.text(l10n.now));
+    final channelCells = find.byType(EpgChannelCell);
+    final profile = GuideLayoutProfile.fromAvailableArea(
+      availableWidth: surface.width - 24 - 24,
+      availableHeight: surface.height - 8 - 16,
+    );
+
+    expect(hero.height, closeTo(EpgHeroPreview.compactHeight, 0.1));
+    expect(hero.top - rail.bottom, lessThanOrEqualTo(8));
+    expect(now.top - hero.bottom, lessThanOrEqualTo(8));
+    expect(channelCells.evaluate().length, greaterThanOrEqualTo(5));
+
+    final fifth = tester.getRect(channelCells.at(4));
+    // The parent row reserves one pixel for its bottom divider.
+    expect(fifth.height, closeTo(profile.rowHeight - 1, 0.1));
+    expect(fifth.bottom, lessThanOrEqualTo(surface.height - 16));
+  });
 
   testWidgets('DOWN from the genre rail descends through the controls row', (
     tester,

@@ -20,7 +20,7 @@ class _MockLiveTvApi extends Mock implements LiveTvApi {}
 
 class _MockPlaybackManager extends Mock implements PlaybackManager {}
 
-/// Deliberately asymmetric row shapes: differing programme durations give the
+/// Deliberately asymmetric row shapes: differing program durations give the
 /// rows differing cell counts and boundaries, which is what makes a drifting
 /// vertical move visible as a different cell index.
 const _durations = <int>[20, 30, 45, 60, 180];
@@ -61,7 +61,7 @@ List<Map<String, dynamic>> _programsFor(String channelId) {
   final start = _fixtureWindowStart;
   final programs = <Map<String, dynamic>>[];
   // Twelve hours of listings, so whatever window width the surface derives is
-  // tiled edge to edge and every row's cells are whole programmes.
+  // tiled edge to edge and every row's cells are whole programs.
   for (var minute = 0; minute < 720; minute += duration) {
     programs.add(<String, dynamic>{
       'Id': '$channelId-p$minute',
@@ -102,7 +102,13 @@ FocusNode _nodeLabelled(WidgetTester tester, String label) => tester
 
 String? _focusedLabel() => FocusManager.instance.primaryFocus?.debugLabel;
 
-/// `(row, cellIndex)` of the focused programme cell, or null when focus is
+String _windowRangeText(WidgetTester tester) => tester
+    .widgetList<Text>(find.byType(Text))
+    .map((text) => text.data)
+    .whereType<String>()
+    .firstWhere((text) => text.contains(' – '));
+
+/// `(row, cellIndex)` of the focused program cell, or null when focus is
 /// somewhere else in the guide.
 ({int row, int index})? _focusedCell() {
   final label = _focusedLabel();
@@ -431,7 +437,7 @@ void main() {
     await _pumpFrames(tester);
     expect(_focusedCell()!.row, 49);
 
-    // Select on the focused programme opens the details dialog.
+    // Select on the focused program opens the details dialog.
     await tester.sendKeyEvent(LogicalKeyboardKey.enter);
     await _pumpFrames(tester);
     expect(_alertDialog, findsOneWidget);
@@ -543,6 +549,31 @@ void main() {
     expect(_horizontalOffsets(tester), offsets);
   });
 
+  testWidgets(
+    'a paged-ahead guide does not re-anchor at a half-hour boundary',
+    (tester) async {
+      await pumpGuide(tester);
+
+      final next = _nodeLabelled(tester, 'GuideWindowBar:2');
+      next.requestFocus();
+      await tester.pumpAndSettle();
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await tester.pumpAndSettle();
+
+      final futureRange = _windowRangeText(tester);
+      expect(_focusedLabel(), 'GuideWindowBar:2');
+
+      // The fake timer advances far enough for the scheduled half-hour callback
+      // to run. DateTime.now remains fixed in Flutter's test clock, so the
+      // assertion exercises the non-live guard rather than simulating a wall
+      // clock change.
+      await tester.pump(const Duration(minutes: 31));
+
+      expect(_windowRangeText(tester), futureRange);
+      expect(_focusedLabel(), 'GuideWindowBar:2');
+    },
+  );
+
   testWidgets('the channel column handles ordinary vertical arrows', (
     tester,
   ) async {
@@ -580,7 +611,7 @@ void main() {
     expect(_focusedLabel(), 'GuideChannel:0');
   });
 
-  testWidgets('RIGHT enters the programme row and LEFT returns to its channel', (
+  testWidgets('RIGHT enters the program row and LEFT returns to its channel', (
     tester,
   ) async {
     await pumpGuide(tester);

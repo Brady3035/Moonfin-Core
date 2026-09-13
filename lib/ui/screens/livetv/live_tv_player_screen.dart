@@ -275,6 +275,9 @@ class _LiveTvPlayerScreenState extends State<LiveTvPlayerScreen>
         PlatformDetection.isMobile) {
       _syncBrightnessFromSystem();
     }
+    if (lifecycleState == AppLifecycleState.resumed) {
+      unawaited(_carouselPrewarm?.onAppResumed());
+    }
   }
 
   void _onPiPChanged(bool isInPiP) {

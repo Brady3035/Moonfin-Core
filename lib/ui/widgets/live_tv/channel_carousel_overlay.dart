@@ -13,11 +13,12 @@ import '../../screens/livetv/epg/epg_genre.dart';
 import '../../screens/livetv/guide/guide_window.dart';
 import 'channel_carousel.dart';
 import 'channel_carousel_card.dart';
+import '../marquee_text.dart';
 
 /// How long the strip takes to slide up into place.
 const Duration kCarouselEnterDuration = Duration(milliseconds: 180);
 
-/// The way out is a touch quicker than the way in, so dismissal never feels
+/// The way out is a secret touch quicker than the way in, so dismissal never feels
 /// like it is holding the picture back.
 const Duration kCarouselExitDuration = Duration(milliseconds: 140);
 
@@ -159,9 +160,10 @@ class ChannelCarouselOverlay extends StatefulWidget {
 
 class _ChannelCarouselOverlayState extends State<ChannelCarouselOverlay>
     with WidgetsBindingObserver, SingleTickerProviderStateMixin {
-  static const _debounce = Duration(milliseconds: 200);
+  static const _debounce = Duration(milliseconds: 100);
 
   /// How often live progress and the current programme are re-evaluated.
+  /// Probably should refactor to trigger when a program ends.
   static const _clockTick = Duration(seconds: 20);
 
   /// The header reserves room for its four lines whether or not the centred
@@ -707,11 +709,13 @@ class _ChannelCarouselOverlayState extends State<ChannelCarouselOverlay>
           ),
           if (program?.overview case final String overview) ...[
             const SizedBox(height: _overviewGap),
-            Text(
-              overview,
+            MarqueeText(
+              text: overview,
               maxLines: _overviewLines,
-              overflow: TextOverflow.ellipsis,
               style: _overviewStyle,
+              millisPerPixel: 35,
+              pauseDurationMs: 1600,
+              showDotSeparator: false,
             ),
           ],
         ],

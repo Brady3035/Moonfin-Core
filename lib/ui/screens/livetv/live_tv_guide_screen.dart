@@ -14,6 +14,7 @@ import '../../../util/platform_detection.dart';
 import '../../../util/idiom/app_ui_idiom.dart';
 import '../../navigation/destinations.dart';
 import '../../widgets/adaptive/adaptive_dialog.dart';
+import '../../widgets/bounded_network_image.dart';
 import '../../widgets/horizontal_scroll_section.dart';
 import '../../widgets/live_tv/live_tv_mini_player.dart';
 import '../../widgets/overlay_sheet.dart';
@@ -38,6 +39,7 @@ import 'guide/guide_window.dart';
 // lazily-loaded edge, so rows are usually populated by the time they're visible.
 const _kProgramPrefetchRows = 12;
 const _kGuideScrollLead = 24.0;
+const _kGuideLogoPrecacheRows = 24;
 
 /// How far back the guide will page; most EPG sources keep little history,
 /// so beyond this the grid would only ever show empty cells.
@@ -191,6 +193,7 @@ class _LiveTvGuideScreenState extends State<LiveTvGuideScreen>
   /// row whose focus nodes are private to that row's state.
   final Map<int, _GuideProgramRowState> _rowStates = {};
   List<String> _visibleChannelIds = const [];
+  final Set<String> _precachedGuideLogoUrls = <String>{};
 
   bool get _apple => AppUiIdiomResolver.isApple;
 
@@ -319,6 +322,7 @@ class _LiveTvGuideScreenState extends State<LiveTvGuideScreen>
     final channelIds = _vm.filteredChannels
         .map((channel) => channel.id)
         .toList();
+    _precacheGuideLogos(_vm.filteredChannels);
     final lineupChanged = !listEquals(channelIds, _visibleChannelIds);
     _visibleChannelIds = channelIds;
     setState(_initializeMiniPlayerMode);
@@ -334,6 +338,33 @@ class _LiveTvGuideScreenState extends State<LiveTvGuideScreen>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _applyPendingVerticalMove();
     });
+  }
+
+  void _precacheGuideLogos(Iterable<GuideChannel> channels) {
+    if (!mounted) return;
+    if (_precachedGuideLogoUrls.length > 512) {
+      _precachedGuideLogoUrls.clear();
+    }
+    for (final channel in channels.take(_kGuideLogoPrecacheRows)) {
+      final tag = channel.imageTag;
+      if (tag == null) continue;
+      final url = _vm.imageApi.getPrimaryImageUrl(
+        channel.id,
+        maxHeight: _layoutProfile.rowHeight.toInt(),
+        tag: tag,
+      );
+      if (url.isEmpty || !_precachedGuideLogoUrls.add(url)) continue;
+      unawaited(
+        BoundedNetworkImage.precache(
+          context,
+          url,
+          layoutWidth: 34,
+          maxWidth: 128,
+        ).catchError((_) {
+          _precachedGuideLogoUrls.remove(url);
+        }),
+      );
+    }
   }
 
   void _rebindSelectionAfterLineupChange() {
@@ -835,6 +866,9 @@ class _LiveTvGuideScreenState extends State<LiveTvGuideScreen>
                 tag: channelWithLogo.imageTag,
               )
             : null;
+        if (channelLogoUrl != null) {
+          _precacheGuideLogoUrl(channelLogoUrl, layoutWidth: 100);
+        }
         return EpgHeroPreview(
           title:
               channel?.name ??
@@ -852,6 +886,20 @@ class _LiveTvGuideScreenState extends State<LiveTvGuideScreen>
           compact: true,
         );
       },
+    );
+  }
+
+  void _precacheGuideLogoUrl(String url, {required double layoutWidth}) {
+    if (!mounted || url.isEmpty || !_precachedGuideLogoUrls.add(url)) return;
+    unawaited(
+      BoundedNetworkImage.precache(
+        context,
+        url,
+        layoutWidth: layoutWidth,
+        maxWidth: 256,
+      ).catchError((_) {
+        _precachedGuideLogoUrls.remove(url);
+      }),
     );
   }
 
@@ -1444,6 +1492,9 @@ class _LiveTvGuideScreenState extends State<LiveTvGuideScreen>
             tag: channel.imageTag,
           )
         : null;
+    if (imageUrl != null) {
+      _precacheGuideLogoUrl(imageUrl, layoutWidth: 34);
+    }
 
     return _GuideFocusableSurface(
       focusNode: _channelFocusNodeFor(index),
@@ -2138,8 +2189,9 @@ class _LiveTvGuideScreenState extends State<LiveTvGuideScreen>
                       dialogActionInProgress = true;
                       try {
                         await _vm.toggleChannelFavorite(program.channelId);
-                        if (!pageContext.mounted || !dialogContext.mounted)
+                        if (!pageContext.mounted || !dialogContext.mounted) {
                           return;
+                        }
                         Navigator.of(dialogContext).pop();
                         ScaffoldMessenger.of(pageContext).showSnackBar(
                           SnackBar(

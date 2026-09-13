@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:moonfin_design/moonfin_design.dart';
 
 import '../../../../widgets/adaptive/adaptive_glass.dart';
+import '../../../../widgets/bounded_network_image.dart';
+import '../../../../widgets/marquee_text.dart';
 
 /// Landscape hero band that previews the focused program. Pure presentation;
 /// the host feeds it the focused values (typically via a ValueListenableBuilder)
@@ -10,6 +11,7 @@ import '../../../../widgets/adaptive/adaptive_glass.dart';
 /// Apple, a tokenized translucent panel on Material.
 class EpgHeroPreview extends StatelessWidget {
   static const double compactHeight = 144;
+  static const Color _logoPlate = Color(0xFF3A4148);
 
   final String? title;
 
@@ -68,17 +70,37 @@ class EpgHeroPreview extends StatelessWidget {
     ].whereType<String>().join('  ·  ');
 
     final hasChannelPreview = channelLogoUrl != null || programTitle != null;
-    final text = Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisAlignment: MainAxisAlignment.center,
+    final channelLine = Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        if (hasChannelPreview) ...[
-          Text(
+        Flexible(
+          child: Text(
             title ?? '',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: channelTitleStyle,
           ),
+        ),
+        if (meta.isNotEmpty) ...[
+          const SizedBox(width: 10),
+          Flexible(
+            child: Text(
+              meta,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: metaStyle,
+            ),
+          ),
+        ],
+      ],
+    );
+
+    final text = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        if (hasChannelPreview) ...[
+          channelLine,
           if (programTitle != null && programTitle!.isNotEmpty)
             Padding(
               padding: EdgeInsets.only(top: compact ? 2 : 4),
@@ -96,7 +118,7 @@ class EpgHeroPreview extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             style: textTheme.titleLarge,
           ),
-        if (meta.isNotEmpty) ...[
+        if (!hasChannelPreview && meta.isNotEmpty) ...[
           SizedBox(height: compact ? 4 : 6),
           Text(
             meta,
@@ -107,11 +129,13 @@ class EpgHeroPreview extends StatelessWidget {
         ],
         if (synopsis != null && synopsis!.isNotEmpty) ...[
           SizedBox(height: compact ? 4 : 8),
-          Text(
-            synopsis!,
-            maxLines: compact ? 1 : 2,
-            overflow: TextOverflow.ellipsis,
+          MarqueeText(
+            text: synopsis!,
+            maxLines: 2,
             style: synopsisStyle,
+            millisPerPixel: 35,
+            pauseDurationMs: 1600,
+            showDotSeparator: false,
           ),
         ],
       ],
@@ -122,14 +146,26 @@ class EpgHeroPreview extends StatelessWidget {
       child: channelLogoUrl != null
           ? Row(
               children: [
-                SizedBox(
-                  width: 112,
-                  height: 120,
-                  child: CachedNetworkImage(
-                    imageUrl: channelLogoUrl!,
-                    fit: BoxFit.contain,
-                    errorWidget: (_, _, _) => const Icon(Icons.tv),
-                    placeholder: (_, _) => const Icon(Icons.tv),
+                DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: _logoPlate,
+                    borderRadius: AppRadius.circular(10),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.08),
+                    ),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(6),
+                    child: SizedBox(
+                      width: 100,
+                      height: 108,
+                      child: BoundedNetworkImage(
+                        imageUrl: channelLogoUrl!,
+                        fit: BoxFit.contain,
+                        fadeInDuration: Duration.zero,
+                        maxWidth: 256,
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 14),

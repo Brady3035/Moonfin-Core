@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
@@ -187,6 +188,7 @@ class _ChannelCarouselState extends State<ChannelCarousel> {
   Timer? _pageRepeatTimer;
   Timer? _watchdogTimer;
   int _holdDirection = 0;
+  final ValueNotifier<int> _rawIndexListenable = ValueNotifier(0);
 
   int get _channelCount => widget.channels.length;
 
@@ -228,6 +230,7 @@ class _ChannelCarouselState extends State<ChannelCarousel> {
   void dispose() {
     _endHold();
     _scrollController?.dispose();
+    _rawIndexListenable.dispose();
     if (_ownsFocusNode) _focusNode.dispose();
     super.dispose();
   }
@@ -246,6 +249,7 @@ class _ChannelCarouselState extends State<ChannelCarousel> {
     );
     _seedIndex = _channelCount * _seedLineups;
     _rawIndex = _seedIndex + start;
+    _rawIndexListenable.value = _rawIndex;
     _scrollController?.dispose();
     _scrollController = ScrollController(
       initialScrollOffset: _offsetFor(_rawIndex),
@@ -256,6 +260,7 @@ class _ChannelCarouselState extends State<ChannelCarousel> {
     if (_channelCount == 0) return;
     final start = widget.initialIndex.clamp(0, _channelCount - 1);
     _rawIndex = _seedIndex + start;
+    _rawIndexListenable.value = _rawIndex;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final controller = _scrollController;
       if (mounted && controller?.hasClients == true) {
@@ -391,7 +396,8 @@ class _ChannelCarouselState extends State<ChannelCarousel> {
       target = recentred;
     }
 
-    setState(() => _rawIndex = target);
+    _rawIndex = target;
+    _rawIndexListenable.value = target;
     _animateToCentred();
     if (_centredChannelIndex != before) {
       widget.onChannelCentered?.call(_centredChannelIndex);
@@ -518,6 +524,7 @@ class _ChannelCarouselState extends State<ChannelCarousel> {
       controller: _scrollController,
       scrollDirection: Axis.horizontal,
       physics: const NeverScrollableScrollPhysics(),
+      scrollCacheExtent: ScrollCacheExtent.pixels(_cardExtent * 2),
       padding: EdgeInsets.symmetric(horizontal: leading),
       itemExtent: _cardExtent,
       itemCount: _channelCount * _totalLineups,
@@ -547,9 +554,12 @@ class _ChannelCarouselState extends State<ChannelCarousel> {
             _applyLayout(width);
             // The derived count is always odd, so an equal run sits
             // symmetrically around the centred card.
-            return _channelCount <= _visibleCards
-                ? _buildFittingStrip(width)
-                : _buildScrollingStrip(width);
+            return ValueListenableBuilder<int>(
+              valueListenable: _rawIndexListenable,
+              builder: (context, _, child) => _channelCount <= _visibleCards
+                  ? _buildFittingStrip(width)
+                  : _buildScrollingStrip(width),
+            );
           },
         ),
       ),

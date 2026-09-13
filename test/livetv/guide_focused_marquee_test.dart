@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:moonfin/ui/screens/livetv/epg/epg_genre.dart';
 import 'package:moonfin/ui/screens/livetv/epg/widgets/epg_channel_cell.dart';
+import 'package:moonfin/ui/screens/livetv/epg/widgets/epg_hero_preview.dart';
 import 'package:moonfin/ui/screens/livetv/epg/widgets/epg_program_cell.dart';
 import 'package:moonfin/ui/widgets/marquee_text.dart';
+import 'package:moonfin/ui/widgets/bounded_network_image.dart';
 
 void main() {
   testWidgets('only a focused channel name uses marquee overflow', (
@@ -83,6 +85,92 @@ void main() {
     expect(
       tester.state<ScrollableState>(scroller).position.pixels,
       greaterThan(0),
+    );
+  });
+
+  testWidgets('hero keeps two description lines and scrolls overflow', (
+    tester,
+  ) async {
+    const synopsis =
+        'This is a deliberately long programme description that '
+        'needs more than two full lines on a television screen so the viewer '
+        'can read the remaining details.';
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Center(
+          child: SizedBox(
+            width: 420,
+            child: EpgHeroPreview(
+              title: 'FOX',
+              programTitle: 'Evening Series',
+              timeLabel: '2:00 PM - 3:00 PM',
+              genreLabel: 'Series',
+              synopsis: synopsis,
+              isLive: true,
+              apple: false,
+              compact: true,
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    final marquee = find.byType(MarqueeText);
+    expect(marquee, findsOneWidget);
+    expect(tester.getSize(marquee).height, greaterThan(30));
+    expect(
+      find.descendant(of: marquee, matching: find.byType(Scrollable)),
+      findsOneWidget,
+    );
+
+    final channel = tester.getRect(find.text('FOX'));
+    final meta = tester.getRect(
+      find.text('Live  ·  2:00 PM - 3:00 PM  ·  Series'),
+    );
+    expect(meta.top, closeTo(channel.top, 3));
+
+    await tester.pump(const Duration(milliseconds: 1600));
+    await tester.pump(const Duration(milliseconds: 500));
+    final scroller = find.descendant(
+      of: marquee,
+      matching: find.byType(Scrollable),
+    );
+    expect(
+      tester.state<ScrollableState>(scroller).position.pixels,
+      greaterThan(0),
+    );
+  });
+
+  testWidgets('guide channel logo uses the zero-fade bounded image', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Center(
+          child: SizedBox(
+            width: 180,
+            height: 56,
+            child: EpgChannelCell(
+              logoUrl: 'https://example.invalid/fox.png',
+              name: 'FOX',
+              number: '25',
+              focused: false,
+              apple: false,
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.byType(BoundedNetworkImage), findsOneWidget);
+    expect(
+      tester
+          .widget<BoundedNetworkImage>(find.byType(BoundedNetworkImage))
+          .fadeInDuration,
+      Duration.zero,
     );
   });
 }

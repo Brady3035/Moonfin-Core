@@ -1,7 +1,7 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:moonfin_design/moonfin_design.dart';
 
+import '../../../../widgets/bounded_network_image.dart';
 import '../../../../widgets/marquee_text.dart';
 
 /// Channel identity cell for the guide rail: logo pinned left, with the accent
@@ -22,9 +22,10 @@ class EpgChannelCell extends StatelessWidget {
 
   /// The number is what a viewer navigates by, so it outsizes the call sign.
   static const double _numberSize = 13;
-  static const double _logoSize = 30;
+  static const double _logoSize = 34;
   static const double _logoGap = 6;
-  static const double _restingPlateAlpha = 0.07;
+  static const double _restingPlateAlpha = 0.12;
+  static const Color _logoPlate = Color(0xFF3A4148);
 
   const EpgChannelCell({
     super.key,
@@ -126,18 +127,30 @@ class EpgChannelCell extends StatelessWidget {
     );
   }
 
-  /// Bare artwork: the contrast the logo needs comes from the cell's plate, so
-  /// a tile of its own would only box every logo in a lighter rectangle.
+  /// The restrained gray tile keeps black station marks visible without
+  /// turning every channel into a bright card inside the dark guide rail.
   Widget _logo(double size) => SizedBox(
     width: size,
     height: size,
-    child: (logoUrl != null && logoUrl!.isNotEmpty)
-        ? CachedNetworkImage(
-            imageUrl: logoUrl!,
-            fit: BoxFit.contain,
-            errorWidget: (context, url, error) => _fallback(),
-          )
-        : _fallback(),
+    child: DecoratedBox(
+      decoration: BoxDecoration(
+        color: _logoPlate,
+        borderRadius: AppRadius.circular(6),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.07)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(3),
+        child: (logoUrl != null && logoUrl!.isNotEmpty)
+            ? BoundedNetworkImage(
+                imageUrl: logoUrl!,
+                fit: BoxFit.contain,
+                fadeInDuration: Duration.zero,
+                maxWidth: 128,
+                errorBuilder: (context, url, error) => _fallback(),
+              )
+            : _fallback(),
+      ),
+    ),
   );
 
   Widget _fallback() => Icon(

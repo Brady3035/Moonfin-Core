@@ -7,6 +7,12 @@ class MarqueeText extends StatefulWidget {
   final String text;
   final TextStyle style;
 
+  /// The number of lines visible before an overflowing value scrolls. The
+  /// default is the original horizontal one-line marquee; values above one
+  /// use the same pause/repeat timing to scroll vertically through wrapped
+  /// text, keeping the full visible line budget available to the caller.
+  final int maxLines;
+
   /// Optional rich content rendered in place of [text], so one scrolling line
   /// can mix styles, such as a bold title followed by a dimmer subtitle.
   /// [style] still applies as the root, and [text] stays as the plain text
@@ -27,6 +33,7 @@ class MarqueeText extends StatefulWidget {
     super.key,
     required this.text,
     required this.style,
+    this.maxLines = 1,
     this.spans,
     this.minDurationMs = 2200,
     this.maxDurationMs = 12000,
@@ -37,7 +44,7 @@ class MarqueeText extends StatefulWidget {
     this.dotSize = 4.0,
     this.textAlign = TextAlign.start,
     this.startAtEnd = false,
-  });
+  }) : assert(maxLines > 0);
 
   @override
   State<MarqueeText> createState() => _MarqueeTextState();
@@ -55,7 +62,11 @@ class _MarqueeTextState extends State<MarqueeText>
   double get _startOffset =>
       widget.startAtEnd ? math.max(0, _lastTextWidth - _lastParentWidth) : 0;
 
-  double get _endOffset => widget.startAtEnd ? 0 : _lastTextWidth + widget.gap;
+  double get _endOffset => widget.maxLines > 1
+      ? _lastTextWidth
+      : widget.startAtEnd
+      ? 0
+      : _lastTextWidth + widget.gap;
 
   /// What gets painted and measured, the spans when given, otherwise [text].
   TextSpan get _span => widget.spans != null
@@ -84,7 +95,9 @@ class _MarqueeTextState extends State<MarqueeText>
   @override
   void didUpdateWidget(covariant MarqueeText oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.text != widget.text || oldWidget.style != widget.style) {
+    if (oldWidget.text != widget.text ||
+        oldWidget.style != widget.style ||
+        oldWidget.maxLines != widget.maxLines) {
       if (_controller.hasClients) {
         _controller.jumpTo(0);
       }
@@ -152,17 +165,85 @@ class _MarqueeTextState extends State<MarqueeText>
   @override
   Widget build(BuildContext context) {
     final span = _span;
-    final textPainter = TextPainter(
-      text: span,
-      textDirection: Directionality.maybeOf(context) ?? TextDirection.ltr,
-      maxLines: 1,
-      textScaler: MediaQuery.textScalerOf(context),
-    )..layout();
-    final textWidth = textPainter.width;
 
     return LayoutBuilder(
       builder: (context, constraints) {
         final parentWidth = constraints.maxWidth;
+
+        if (widget.maxLines > 1) {
+          final scaler = MediaQuery.textScalerOf(context);
+          final direction =
+              Directionality.maybeOf(context) ?? TextDirection.ltr;
+          final linePainter = TextPainter(
+            text: TextSpan(text: 'Ag', style: widget.style),
+            textDirection: direction,
+            maxLines: 1,
+            textScaler: scaler,
+          )..layout();
+          final lineHeight = linePainter.height;
+          linePainter.dispose();
+          final parentHeight = constraints.maxHeight.isFinite
+              ? constraints.maxHeight
+              : lineHeight * widget.maxLines;
+          final textPainter =
+              TextPainter(
+                text: span,
+                textDirection: direction,
+                textScaler: scaler,
+              )..layout(
+                maxWidth: parentWidth.isFinite ? parentWidth : double.infinity,
+              );
+          final textHeight = textPainter.height;
+          textPainter.dispose();
+
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _updateAnimation(textHeight, parentHeight);
+          });
+
+          if (textHeight <= parentHeight + 0.5) {
+            return SizedBox(
+              width: parentWidth.isFinite ? parentWidth : null,
+              height: parentHeight,
+              child: widget.spans == null
+                  ? Text(
+                      widget.text,
+                      style: widget.style,
+                      maxLines: widget.maxLines,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: widget.textAlign,
+                    )
+                  : Text.rich(
+                      span,
+                      maxLines: widget.maxLines,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: widget.textAlign,
+                    ),
+            );
+          }
+
+          return SizedBox(
+            width: parentWidth.isFinite ? parentWidth : null,
+            height: parentHeight,
+            child: SingleChildScrollView(
+              controller: _controller,
+              scrollDirection: Axis.vertical,
+              physics: const NeverScrollableScrollPhysics(),
+              child: SizedBox(
+                width: parentWidth.isFinite ? parentWidth : null,
+                child: Text.rich(span, textAlign: widget.textAlign),
+              ),
+            ),
+          );
+        }
+
+        final textPainter = TextPainter(
+          text: span,
+          textDirection: Directionality.maybeOf(context) ?? TextDirection.ltr,
+          maxLines: 1,
+          textScaler: MediaQuery.textScalerOf(context),
+        )..layout();
+        final textWidth = textPainter.width;
+        textPainter.dispose();
 
         WidgetsBinding.instance.addPostFrameCallback((_) {
           _updateAnimation(textWidth, parentWidth);
@@ -173,12 +254,20 @@ class _MarqueeTextState extends State<MarqueeText>
         if (!overflows) {
           return SizedBox(
             width: parentWidth.isFinite ? parentWidth : null,
-            child: Text.rich(
-              span,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              textAlign: widget.textAlign,
-            ),
+            child: widget.spans == null
+                ? Text(
+                    widget.text,
+                    style: widget.style,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: widget.textAlign,
+                  )
+                : Text.rich(
+                    span,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: widget.textAlign,
+                  ),
           );
         }
 

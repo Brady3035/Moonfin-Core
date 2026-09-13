@@ -180,6 +180,7 @@ void main() {
     await tester.pump(const Duration(seconds: 2));
     expect(find.text('Show ch11 (S6:E19)'), findsOneWidget);
     expect(find.text('Overview ch11'), findsOneWidget);
+    expect(tester.widget<Text>(find.text('Overview ch11')).style?.fontSize, 16);
     await tester.pumpWidget(const SizedBox.shrink());
   });
 

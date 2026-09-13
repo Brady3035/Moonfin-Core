@@ -24,6 +24,9 @@ void main() {
       ),
     );
 
-    expect(tester.getSize(find.byType(EpgHeroPreview)).height, 110);
+    expect(
+      tester.getSize(find.byType(EpgHeroPreview)).height,
+      EpgHeroPreview.compactHeight,
+    );
   });
 }

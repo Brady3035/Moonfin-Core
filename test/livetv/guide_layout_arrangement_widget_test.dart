@@ -226,6 +226,24 @@ void main() {
     );
   });
 
+  testWidgets(
+    'the hero keeps the channel logo when a programme cell has focus',
+    (tester) async {
+      await pumpGuide(tester);
+
+      _nodeLabelled(tester, 'GuideProgramRow0:0').requestFocus();
+      await tester.pumpAndSettle();
+
+      expect(
+        find.descendant(
+          of: find.byType(EpgHeroPreview),
+          matching: find.byType(CachedNetworkImage),
+        ),
+        findsOneWidget,
+      );
+    },
+  );
+
   testWidgets('DOWN from the genre rail descends through the controls row', (
     tester,
   ) async {

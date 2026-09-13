@@ -120,15 +120,23 @@ class EpgProgramCell extends StatelessWidget {
       );
     }
 
-    // Regular weight throughout: focus and on-now already read from the
-    // background tint and the focus border.
-    final titleStyle = (textTheme.bodySmall ?? const TextStyle()).copyWith(
-      fontWeight: FontWeight.w400,
-      color: placeholderLabel != null ? muted : AppColorScheme.onSurface,
-    );
+    // TV guide titles meet the 10-foot UI body-text floor while retaining a
+    // regular weight for the existing focus and on-now treatments.
+    final titleStyle =
+        (textTheme.bodyMedium ??
+                const TextStyle(fontSize: AppTypography.fontSizeSm))
+            .copyWith(
+              fontSize: AppTypography.fontSizeSm,
+              fontWeight: FontWeight.w400,
+              color: placeholderLabel != null
+                  ? muted
+                  : AppColorScheme.onSurface,
+            );
 
-    final metaStyle = (textTheme.labelSmall ?? const TextStyle(fontSize: 10))
-        .copyWith(color: muted);
+    final metaStyle =
+        (textTheme.labelMedium ??
+                const TextStyle(fontSize: AppTypography.fontSizeXs))
+            .copyWith(fontSize: AppTypography.fontSizeXs, color: muted);
 
     final markerStyle = titleStyle.copyWith(
       fontWeight: FontWeight.w700,

@@ -826,20 +826,21 @@ class _LiveTvGuideScreenState extends State<LiveTvGuideScreen>
             preview != null &&
             now.isAfter(preview.startDate) &&
             now.isBefore(preview.endDate);
-        final isChannelPreview = _channelRailFocused.value && channel != null;
-        final channelLogoUrl = isChannelPreview && channel.imageTag != null
+        final channelWithLogo = channel;
+        final channelLogoUrl =
+            channelWithLogo != null && channelWithLogo.imageTag != null
             ? _vm.imageApi.getPrimaryImageUrl(
-                channel.id,
-                maxHeight: 110,
-                tag: channel.imageTag,
+                channelWithLogo.id,
+                maxHeight: EpgHeroPreview.compactHeight.toInt(),
+                tag: channelWithLogo.imageTag,
               )
             : null;
         return EpgHeroPreview(
           title:
               channel?.name ??
-              program?.name ??
+              preview?.name ??
               AppLocalizations.of(context).guideTimeline,
-          programTitle: isChannelPreview ? preview?.name : null,
+          programTitle: channel == null ? null : preview?.name,
           channelLogoUrl: channelLogoUrl,
           timeLabel: preview == null
               ? null

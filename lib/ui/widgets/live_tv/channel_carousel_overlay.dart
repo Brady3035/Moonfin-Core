@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:moonfin_design/moonfin_design.dart';
 import 'package:server_core/server_core.dart';
 
 import '../../../data/viewmodels/live_tv_guide_view_model.dart';
@@ -183,8 +184,8 @@ class _ChannelCarouselOverlayState extends State<ChannelCarouselOverlay>
   );
   static const TextStyle _overviewStyle = TextStyle(
     color: Colors.white60,
-    fontSize: 13,
-    height: 1.2,
+    fontSize: AppTypography.fontSizeMd,
+    height: 1.25,
   );
   late final LiveTvGuideViewModel _vm;
 

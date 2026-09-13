@@ -65,6 +65,11 @@ void main() {
     await tester.pumpWidget(cell(false));
     expect(find.byType(MarqueeText), findsNothing);
 
+    final title = tester.widget<Text>(
+      find.text('A deliberately long programme title'),
+    );
+    expect(title.style?.fontSize, 14);
+
     await tester.pumpWidget(cell(true));
     await tester.pump();
     expect(find.byType(MarqueeText), findsOneWidget);

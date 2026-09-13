@@ -9,6 +9,8 @@ import '../../../../widgets/adaptive/adaptive_glass.dart';
 /// so only this band rebuilds as focus moves. Idiom aware: frosted glass on
 /// Apple, a tokenized translucent panel on Material.
 class EpgHeroPreview extends StatelessWidget {
+  static const double compactHeight = 144;
+
   final String? title;
 
   /// Optional channel/program split used when the guide focus is on the
@@ -39,6 +41,26 @@ class EpgHeroPreview extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final muted = AppColorScheme.onSurface.withValues(alpha: 0.7);
+    final channelTitleStyle =
+        (textTheme.bodyLarge ??
+                const TextStyle(fontSize: AppTypography.fontSizeMd))
+            .copyWith(fontWeight: FontWeight.w600);
+    final programTitleStyle =
+        (textTheme.headlineSmall ??
+                const TextStyle(fontSize: AppTypography.fontSize2xl))
+            .copyWith(fontWeight: FontWeight.w600);
+    final metaStyle =
+        (textTheme.bodyMedium ??
+                const TextStyle(fontSize: AppTypography.fontSizeSm))
+            .copyWith(color: muted);
+    final synopsisStyle =
+        (textTheme.bodyMedium ??
+                const TextStyle(fontSize: AppTypography.fontSizeSm))
+            .copyWith(
+              color: AppColorScheme.onSurface.withValues(alpha: 0.72),
+              fontSize: compact ? AppTypography.fontSizeMd : null,
+              height: 1.2,
+            );
     final meta = [
       if (isLive) 'Live',
       if (timeLabel != null) timeLabel,
@@ -55,7 +77,7 @@ class EpgHeroPreview extends StatelessWidget {
             title ?? '',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+            style: channelTitleStyle,
           ),
           if (programTitle != null && programTitle!.isNotEmpty)
             Padding(
@@ -64,7 +86,7 @@ class EpgHeroPreview extends StatelessWidget {
                 programTitle!,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: textTheme.headlineSmall,
+                style: programTitleStyle,
               ),
             ),
         ] else
@@ -80,7 +102,7 @@ class EpgHeroPreview extends StatelessWidget {
             meta,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: textTheme.bodyMedium?.copyWith(color: muted),
+            style: metaStyle,
           ),
         ],
         if (synopsis != null && synopsis!.isNotEmpty) ...[
@@ -89,9 +111,7 @@ class EpgHeroPreview extends StatelessWidget {
             synopsis!,
             maxLines: compact ? 1 : 2,
             overflow: TextOverflow.ellipsis,
-            style: textTheme.bodySmall?.copyWith(
-              color: AppColorScheme.onSurface.withValues(alpha: 0.6),
-            ),
+            style: synopsisStyle,
           ),
         ],
       ],
@@ -103,8 +123,8 @@ class EpgHeroPreview extends StatelessWidget {
           ? Row(
               children: [
                 SizedBox(
-                  width: compact ? 92 : 112,
-                  height: compact ? 94 : 120,
+                  width: 112,
+                  height: 120,
                   child: CachedNetworkImage(
                     imageUrl: channelLogoUrl!,
                     fit: BoxFit.contain,
@@ -119,7 +139,9 @@ class EpgHeroPreview extends StatelessWidget {
           : text,
     );
 
-    final content = compact ? SizedBox(height: 110, child: inner) : inner;
+    final content = compact
+        ? SizedBox(height: compactHeight, child: inner)
+        : inner;
 
     return apple
         ? adaptiveGlass(

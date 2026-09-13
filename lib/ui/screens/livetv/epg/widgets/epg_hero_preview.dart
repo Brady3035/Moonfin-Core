@@ -133,7 +133,7 @@ class EpgHeroPreview extends StatelessWidget {
             text: synopsis!,
             maxLines: 3,
             style: synopsisStyle,
-            millisPerPixel: 35,
+            millisPerPixel: 40,
             pauseDurationMs: 1600,
             showDotSeparator: false,
           ),

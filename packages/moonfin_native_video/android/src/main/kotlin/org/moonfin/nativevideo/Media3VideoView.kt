@@ -96,6 +96,7 @@ import java.io.File
 import java.nio.ByteBuffer
 import java.util.Locale
 import kotlin.math.roundToInt
+import org.moonfin.nativevideo.iec.Iec61937AudioOutputProvider
 
 @OptIn(ExperimentalApi::class)
 private class MoonfinRenderersFactory(
@@ -106,6 +107,7 @@ private class MoonfinRenderersFactory(
     private val passthroughPolicy: AudioPassthroughPolicy,
     private val stereoDownmixRequested: () -> Boolean,
     private val onPassthroughRecoveryNeeded: (String) -> Unit,
+    private val iecOutputProvider: Iec61937AudioOutputProvider?,
 ) : DefaultRenderersFactory(context) {
     override fun buildVideoRenderers(
         context: Context,
@@ -204,7 +206,7 @@ private class MoonfinRenderersFactory(
         // Float output must stay disabled: DefaultAudioSink skips the
         // processor chain on the float path, which would silently drop both
         // the downmix mixer and the audio delay processor.
-        val sink = DefaultAudioSink.Builder(context)
+        val sinkBuilder = DefaultAudioSink.Builder(context)
             .setAudioProcessorChain(
                 DefaultAudioSink.DefaultAudioProcessorChain(
                     // Downmix runs first (on decoded multichannel PCM), then the
@@ -221,7 +223,13 @@ private class MoonfinRenderersFactory(
             )
             .setEnableFloatOutput(enableFloatOutput)
             .setEnableAudioOutputPlaybackParameters(enableAudioOutputPlaybackParams)
-            .build()
+        if (iecOutputProvider != null) {
+            // App-side IEC 61937 packing for eligible bitstreams. Everything
+            // else routes to the stock provider inside, and when the provider
+            // is absent (the default) the builder chain above is untouched.
+            sinkBuilder.setAudioOutputProvider(iecOutputProvider)
+        }
+        val sink = sinkBuilder.build()
         // Some TV HALs never resume a paused bitstream track and hand back a
         // dead replacement when one is rebuilt too quickly. The recovery
         // wrapper watches for that and rebuilds with a short write hold, and
@@ -496,6 +504,8 @@ private fun encodingName(encoding: Int): String = when (encoding) {
     C.ENCODING_DTS -> "dts"
     C.ENCODING_DTS_HD -> "dtshd"
     C.ENCODING_DOLBY_TRUEHD -> "truehd"
+    // AudioFormat.ENCODING_IEC61937: media3's C has no constant for it.
+    13 -> "iec61937"
     else -> "encoding $encoding"
 }
 
@@ -742,6 +752,12 @@ class Media3VideoView(
     private var frameRateSwitchingBehavior = Media3Bridge.frameRateSwitchingBehavior()
     private var passthroughMode = Media3Bridge.passthroughMode()
     private var passthroughCodecs = Media3Bridge.passthroughCodecs()
+    private var passthroughOutput = Media3Bridge.passthroughOutput()
+    // Present only while the IEC output mode is active. The provider is
+    // chosen at buildAudioSink time, so changes ride the rebuild-on-dirty
+    // path like the other passthrough preferences.
+    private var iecOutputProvider: Iec61937AudioOutputProvider? = null
+    private var iecRetryAttemptedForCurrentSource = false
     private var downmixToStereoPreference = Media3Bridge.downmixToStereoEnabled()
     private var decoderPreferenceDirty = false
     private val audioDelayProcessor = AdjustableAudioDelayProcessor()
@@ -1112,12 +1128,15 @@ class Media3VideoView(
             // in flight is most likely the dropped surface, so that retry gets
             // the first look. An init failure under tunneling is retried
             // untunneled before any downmix so a tunnel failure can't stick
-            // the whole session to stereo. The downmix retry stays last and
+            // the whole session to stereo. A failure on an IEC-packed track is
+            // retried with IEC disabled (raw/decode return) before anything
+            // condemns the session to stereo. The downmix retry stays last and
             // handles 7.1 PCM that the device can't open as an 8-channel
             // AudioTrack.
             val nativeRetryTriggered = retryPlaybackOnDisplayModeSwitchErrorIfNeeded(error) ||
                 retryAudioWithoutOffloadIfNeeded(error) ||
                 retryAudioWithoutTunnelingIfNeeded(error) ||
+                retryAudioWithoutIecIfNeeded(error) ||
                 retryAudioWithStereoDownmixIfNeeded(error)
             if (nativeRetryTriggered) {
                 Media3Bridge.emitEvent(
@@ -1391,7 +1410,12 @@ class Media3VideoView(
             audioTrackConfig: AudioSink.AudioTrackConfig,
         ) {
             // Ground truth for whether bitstreaming engaged: a non-PCM
-            // encoding on the AudioTrack is passthrough by definition.
+            // encoding on the AudioTrack is passthrough by definition. Under
+            // the IEC packer the reported encoding is the media truth (ac3,
+            // truehd, ...) while the platform track is ENCODING_IEC61937, and
+            // the iec* fields carry that transport truth.
+            val iecEngaged = iecOutputProvider?.lastOutputWasIec == true
+            val iecCarrier = if (iecEngaged) iecOutputProvider?.lastIecCarrier else null
             Media3Bridge.emitEvent(
                 mapOf(
                     "event" to "audioTrackInitialized",
@@ -1406,6 +1430,9 @@ class Media3VideoView(
                     "tunneling" to audioTrackConfig.tunneling,
                     "offload" to audioTrackConfig.offload,
                     "bufferSize" to audioTrackConfig.bufferSize,
+                    "iecPacker" to iecEngaged,
+                    "iecCarrierRate" to (iecCarrier?.sampleRate ?: 0),
+                    "iecCarrierChannels" to (iecCarrier?.channelCount ?: 0),
                 ),
             )
         }
@@ -1777,6 +1804,11 @@ class Media3VideoView(
             passthroughMode,
             passthroughCodecs,
         )
+        iecOutputProvider = if (passthroughOutput == "iec" && Build.VERSION.SDK_INT >= 24) {
+            Iec61937AudioOutputProvider(context)
+        } else {
+            null
+        }
         val renderersFactory = MoonfinRenderersFactory(
             context = context,
             audioDelayProcessor = audioDelayProcessor,
@@ -1785,6 +1817,7 @@ class Media3VideoView(
             passthroughPolicy = passthroughPolicy,
             stereoDownmixRequested = ::effectiveStereoDownmix,
             onPassthroughRecoveryNeeded = ::recoverPassthroughSilence,
+            iecOutputProvider = iecOutputProvider,
         ).apply {
             setEnableDecoderFallback(true)
             setExtensionRendererMode(extensionRendererModeFor(passthroughPolicy))
@@ -2413,6 +2446,7 @@ class Media3VideoView(
         audioOffloadRetryAttemptedForCurrentSource = false
         stereoDownmixRetryAttemptedForCurrentSource = false
         tunnelingRetryAttemptedForCurrentSource = false
+        iecRetryAttemptedForCurrentSource = false
         containerFallbackAttempted = false
         unsupportedVideoReported = false
         Media3TransferLog.reset()
@@ -2844,7 +2878,12 @@ class Media3VideoView(
                 // Tunneled TrueHD/MLP passthrough can be silent with no sink
                 // exception on some AVR chains. Tunneling is only a latency
                 // optimization, so drop it whenever a lossless track is active.
-                !currentAudioIsLossless
+                !currentAudioIsLossless &&
+                // App-side IEC packing writes PCM-shaped bursts that must
+                // never get HW_AV_SYNC headers, so tunneling stays off while
+                // the IEC output mode is live (it returns after the session
+                // fallback disables IEC).
+                (iecOutputProvider?.sessionIecDisabled != false)
 
         tunnelingActive = shouldEnableTunneling
 
@@ -2914,6 +2953,13 @@ class Media3VideoView(
         val nextPassthroughCodecs = Media3Bridge.passthroughCodecs()
         if (args.containsKey("passthroughCodecs") && passthroughCodecs != nextPassthroughCodecs) {
             passthroughCodecs = nextPassthroughCodecs
+            decoderPreferenceDirty = true
+        }
+        // The audio output provider is chosen at buildAudioSink time, so the
+        // RAW-vs-IEC packer choice also rides the rebuild-on-dirty path.
+        val nextPassthroughOutput = Media3Bridge.passthroughOutput()
+        if (args.containsKey("passthroughOutput") && passthroughOutput != nextPassthroughOutput) {
+            passthroughOutput = nextPassthroughOutput
             decoderPreferenceDirty = true
         }
 
@@ -3921,6 +3967,43 @@ class Media3VideoView(
         disableTunnelingForSession()
         Media3Bridge.emitEvent(
             mapOf("event" to "tunnelingDisabledOnAudioTrackFailure"),
+        )
+        player.setMediaItem(mediaItem, retryPositionMs)
+        player.prepare()
+        player.playWhenReady = playWhenReady
+        return true
+    }
+
+    /**
+     * A track failure while the app-side IEC 61937 packer owned the output is
+     * most likely a device that advertises IEC61937 but can't actually play
+     * it, or a bitstream the packer can't carry. Disable IEC for the session
+     * and re-prepare: eligible codecs then take the device's normal raw
+     * passthrough or local decode path, and tunneling may return.
+     */
+    private fun retryAudioWithoutIecIfNeeded(error: PlaybackException): Boolean {
+        val provider = iecOutputProvider ?: return false
+        val isRetryableError =
+            error.errorCode == PlaybackException.ERROR_CODE_AUDIO_TRACK_INIT_FAILED ||
+                error.errorCode == PlaybackException.ERROR_CODE_AUDIO_TRACK_WRITE_FAILED
+
+        if (!isRetryableError ||
+            provider.sessionIecDisabled ||
+            !provider.lastOutputWasIec ||
+            iecRetryAttemptedForCurrentSource
+        ) {
+            return false
+        }
+
+        val mediaItem = player.currentMediaItem ?: return false
+        iecRetryAttemptedForCurrentSource = true
+        val retryPositionMs = player.currentPosition.coerceAtLeast(0L)
+        val playWhenReady = player.playWhenReady
+
+        provider.disableForSession()
+        applyTrackSelectorForCurrentSource()
+        Media3Bridge.emitEvent(
+            mapOf("event" to "iecDisabledOnAudioTrackFailure"),
         )
         player.setMediaItem(mediaItem, retryPositionMs)
         player.prepare()

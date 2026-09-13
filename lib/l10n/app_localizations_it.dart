@@ -3450,6 +3450,23 @@ class AppLocalizationsIt extends AppLocalizations {
       'Manuale (scegli i formati qui sotto)';
 
   @override
+  String get settingsAudioPassthroughOutput => 'Passthrough output';
+
+  @override
+  String get settingsAudioPassthroughOutputDescription =>
+      'Who packs bitstreams for the HDMI link. Try the app packer if passthrough is silent or glitchy on this device.';
+
+  @override
+  String get settingsAudioPassthroughOutputPlatform =>
+      'Automatic, system packer (AudioTrack RAW)';
+
+  @override
+  String get settingsAudioPassthroughOutputIec => 'App packer (AudioTrack IEC)';
+
+  @override
+  String get settingsAudioPassthroughOutputIecLabel => 'App (IEC)';
+
+  @override
   String get settingsDownmixToStereoDescription =>
       'Converti tutto l\'audio decodificato su due canali.';
 

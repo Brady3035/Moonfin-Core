@@ -4605,6 +4605,14 @@
   "settingsAudioPassthroughModeDisabled": "Disabled (always decode on this device)",
   "settingsAudioPassthroughModeAuto": "Auto (match detected device support)",
   "settingsAudioPassthroughModeManual": "Manual (choose formats below)",
+  "settingsAudioPassthroughOutput": "Passthrough output",
+  "@settingsAudioPassthroughOutput": {
+    "description": "Title of the RAW-vs-IEC passthrough packer selector (Android TV, Media3 engine)"
+  },
+  "settingsAudioPassthroughOutputDescription": "Who packs bitstreams for the HDMI link. Try the app packer if passthrough is silent or glitchy on this device.",
+  "settingsAudioPassthroughOutputPlatform": "Automatic, system packer (AudioTrack RAW)",
+  "settingsAudioPassthroughOutputIec": "App packer (AudioTrack IEC)",
+  "settingsAudioPassthroughOutputIecLabel": "App (IEC)",
   "settingsDownmixToStereoDescription": "Mix all decoded audio down to two channels.",
   "settingsAudioEac3IncludesAtmos": "Bitstream E-AC-3, including Dolby Atmos (JOC).",
   "settingsAudioDtsHdIncludesDtsX": "Bitstream DTS-HD, including DTS:X.",

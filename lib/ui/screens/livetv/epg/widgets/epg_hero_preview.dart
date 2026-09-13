@@ -11,7 +11,7 @@ import '../../../../widgets/marquee_text.dart';
 /// Apple, a tokenized translucent panel on Material.
 class EpgHeroPreview extends StatelessWidget {
   static const double compactHeight = 144;
-  static const Color _logoPlate = Color(0xFF3A4148);
+  static const Color _logoPlate = Color(0xFF66727B);
 
   final String? title;
 
@@ -131,7 +131,7 @@ class EpgHeroPreview extends StatelessWidget {
           SizedBox(height: compact ? 4 : 8),
           MarqueeText(
             text: synopsis!,
-            maxLines: 2,
+            maxLines: 3,
             style: synopsisStyle,
             millisPerPixel: 35,
             pauseDurationMs: 1600,
@@ -142,7 +142,7 @@ class EpgHeroPreview extends StatelessWidget {
     );
 
     final inner = Padding(
-      padding: EdgeInsets.fromLTRB(20, compact ? 8 : 16, 20, compact ? 8 : 16),
+      padding: EdgeInsets.fromLTRB(12, compact ? 4 : 8, 12, compact ? 4 : 8),
       child: channelLogoUrl != null
           ? Row(
               children: [
@@ -155,7 +155,7 @@ class EpgHeroPreview extends StatelessWidget {
                     ),
                   ),
                   child: Padding(
-                    padding: const EdgeInsets.all(6),
+                    padding: const EdgeInsets.all(2),
                     child: SizedBox(
                       width: 100,
                       height: 108,
@@ -168,7 +168,7 @@ class EpgHeroPreview extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(width: 14),
+                const SizedBox(width: 8),
                 Expanded(child: text),
               ],
             )

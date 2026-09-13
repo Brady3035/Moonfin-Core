@@ -6,8 +6,8 @@ import '../../../../widgets/marquee_text.dart';
 
 /// Channel identity cell for the guide rail: logo pinned left, with the accent
 /// number chip and the channel name right-justified against the cell's trailing
-/// edge. The cell itself carries a dim plate so pale logo artwork has something
-/// to sit against; the logo is drawn bare on top of it. Pure presentation; the host owns focus + key handling and
+/// edge. The cell itself provides the contrast surface for the bare logo. Pure
+/// presentation; the host owns focus + key handling and
 /// passes [focused]. Idiom-aware surface (glass-tinted on Apple, accent tint on
 /// Material).
 class EpgChannelCell extends StatelessWidget {
@@ -22,10 +22,9 @@ class EpgChannelCell extends StatelessWidget {
 
   /// The number is what a viewer navigates by, so it outsizes the call sign.
   static const double _numberSize = 13;
-  static const double _logoSize = 34;
+  static const double _logoWidth = 48;
   static const double _logoGap = 6;
-  static const double _restingPlateAlpha = 0.12;
-  static const Color _logoPlate = Color(0xFF3A4148);
+  static const Color _restingCellColor = Color(0xFF66727B);
 
   const EpgChannelCell({
     super.key,
@@ -48,9 +47,9 @@ class EpgChannelCell extends StatelessWidget {
           ? Colors.white.withValues(alpha: 0.16)
           : accent.withValues(alpha: 0.16);
     } else {
-      // Dim enough to read as the column's own surface rather than as a
-      // selection, but light enough to separate a white logo from the guide.
-      bg = Colors.white.withValues(alpha: _restingPlateAlpha);
+      // This is the cell surface, not a logo tile. The muted slate is bright
+      // enough for black station marks while keeping white rail text legible.
+      bg = _restingCellColor;
     }
 
     final nameStyle = textTheme.bodySmall?.copyWith(
@@ -63,7 +62,7 @@ class EpgChannelCell extends StatelessWidget {
 
     final body = Row(
       children: [
-        _logo(_logoSize),
+        _logo(_logoWidth),
         const SizedBox(width: _logoGap),
         Expanded(
           child: Column(
@@ -113,7 +112,7 @@ class EpgChannelCell extends StatelessWidget {
     );
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 8),
       decoration: BoxDecoration(
         color: bg,
         borderRadius: AppRadius.circular(radius),
@@ -127,30 +126,20 @@ class EpgChannelCell extends StatelessWidget {
     );
   }
 
-  /// The restrained gray tile keeps black station marks visible without
-  /// turning every channel into a bright card inside the dark guide rail.
-  Widget _logo(double size) => SizedBox(
-    width: size,
-    height: size,
-    child: DecoratedBox(
-      decoration: BoxDecoration(
-        color: _logoPlate,
-        borderRadius: AppRadius.circular(6),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.07)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(3),
-        child: (logoUrl != null && logoUrl!.isNotEmpty)
-            ? BoundedNetworkImage(
-                imageUrl: logoUrl!,
-                fit: BoxFit.contain,
-                fadeInDuration: Duration.zero,
-                maxWidth: 128,
-                errorBuilder: (context, url, error) => _fallback(),
-              )
-            : _fallback(),
-      ),
-    ),
+  /// The image viewport fills the cell's available height. The cell surface
+  /// behind it supplies the contrast, so logos do not get a second card.
+  Widget _logo(double width) => SizedBox(
+    width: width,
+    height: double.infinity,
+    child: (logoUrl != null && logoUrl!.isNotEmpty)
+        ? BoundedNetworkImage(
+            imageUrl: logoUrl!,
+            fit: BoxFit.contain,
+            fadeInDuration: Duration.zero,
+            maxWidth: 256,
+            errorBuilder: (context, url, error) => _fallback(),
+          )
+        : _fallback(),
   );
 
   Widget _fallback() => Icon(

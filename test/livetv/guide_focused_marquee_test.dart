@@ -88,12 +88,12 @@ void main() {
     );
   });
 
-  testWidgets('hero keeps two description lines and scrolls overflow', (
+  testWidgets('hero keeps three description lines and scrolls overflow', (
     tester,
   ) async {
     const synopsis =
         'This is a deliberately long programme description that '
-        'needs more than two full lines on a television screen so the viewer '
+        'needs more than three full lines on a television screen so the viewer '
         'can read the remaining details.';
 
     await tester.pumpWidget(
@@ -119,7 +119,7 @@ void main() {
 
     final marquee = find.byType(MarqueeText);
     expect(marquee, findsOneWidget);
-    expect(tester.getSize(marquee).height, greaterThan(30));
+    expect(tester.getSize(marquee).height, greaterThan(45));
     expect(
       find.descendant(of: marquee, matching: find.byType(Scrollable)),
       findsOneWidget,

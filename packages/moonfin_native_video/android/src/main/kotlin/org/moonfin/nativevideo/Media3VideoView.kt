@@ -783,6 +783,8 @@ class Media3VideoView(
     // Guards the container/source-error transcode fallback against re-emitting.
     private var containerFallbackAttempted = false
 
+    private var unsupportedVideoReported = false
+
     // Last audio track mapping reported, so an unchanged one stays quiet.
     private var lastAudioTrackMapping: List<Map<String, Any?>>? = null
 
@@ -827,6 +829,7 @@ class Media3VideoView(
     private var currentNormalizationGainDb: Float? = null
     private var currentContainer: String? = null
     private var currentIsLive = false
+    private var currentIsPreview = false
     private var currentMediaType: String = "video"
     private var currentAudioSessionId = C.AUDIO_SESSION_ID_UNSET
     private var openedAudioEffectSessionId = C.AUDIO_SESSION_ID_UNSET
@@ -1184,6 +1187,7 @@ class Media3VideoView(
                 }
             }
             emitTracksChanged()
+            reportUnsupportedVideoIfNeeded()
             emitState()
         }
 
@@ -2405,10 +2409,12 @@ class Media3VideoView(
             ?.lowercase()
             ?.takeIf { it.isNotEmpty() }
         currentIsLive = args["isLive"] as? Boolean ?: false
+        currentIsPreview = isPreview
         audioOffloadRetryAttemptedForCurrentSource = false
         stereoDownmixRetryAttemptedForCurrentSource = false
         tunnelingRetryAttemptedForCurrentSource = false
         containerFallbackAttempted = false
+        unsupportedVideoReported = false
         Media3TransferLog.reset()
         // Start each source with the downmix the user asked for or the state
         // the device has proven it needs (sticky once an AudioTrack init
@@ -4541,6 +4547,33 @@ class Media3VideoView(
             ),
         )
         emitAudioTrackMapping()
+    }
+
+    // Media3 raises nothing when no renderer takes the video, it just leaves
+    // the track unselected and plays the audio over a black screen. Reporting
+    // it here lets the Dart side try the item again as a transcode.
+    private fun reportUnsupportedVideoIfNeeded() {
+        val tracks = player.currentTracks
+        val report = shouldReportUnsupportedVideo(
+            mediaType = currentMediaType,
+            isPreview = currentIsPreview,
+            alreadyReported = unsupportedVideoReported,
+            hasVideoTrack = tracks.containsType(C.TRACK_TYPE_VIDEO),
+            videoSelected = tracks.isTypeSelected(C.TRACK_TYPE_VIDEO),
+        )
+        if (!report) {
+            return
+        }
+
+        unsupportedVideoReported = true
+        Media3Bridge.emitEvent(
+            mapOf(
+                "event" to "playerError",
+                "recoverable" to true,
+                "kind" to "unsupported_video",
+                "message" to "No renderer took the video track",
+            ),
+        )
     }
 
     /**

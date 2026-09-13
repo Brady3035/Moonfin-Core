@@ -1195,6 +1195,10 @@ class Media3PlayerBackend extends PlayerBackend {
       supportsAv1DolbyVision: PlatformDetection.supportsAv1DolbyVision,
       supportsAv1Hdr10: PlatformDetection.supportsAv1Hdr10,
       supportsAv1Hdr10Plus: PlatformDetection.supportsAv1Hdr10Plus,
+      // Media3 hands a Dolby Vision profile 10 track to a plain AV1 decoder
+      // when it has no Dolby Vision decoder for it, so the base layer plays as
+      // HDR10 and the HDR10+ gate has nothing left to protect here.
+      rendersAv1DoviViaHdr10BaseLayer: true,
       supportsVc1: PlatformDetection.supportsVc1,
       supportsMpeg4: PlatformDetection.supportsMpeg4,
       maxResolutionAvcWidth: PlatformDetection.maxResolutionAvcWidth,

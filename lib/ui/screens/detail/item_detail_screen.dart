@@ -5,6 +5,7 @@ import '../../theme/focus_foreground.dart';
 import '../../widgets/bounded_network_image.dart';
 import '../../widgets/offline_aware_image.dart';
 import '../../widgets/identify_dialog.dart';
+import '../../widgets/media_badge.dart';
 import 'detail_admin_actions.dart';
 
 import 'package:flutter/foundation.dart';
@@ -38,6 +39,9 @@ import '../../navigation/home_refresh_bus.dart';
 import '../../navigation/app_router.dart';
 import '../../navigation/playback_launcher.dart';
 import 'detail_buttons.dart';
+import '../../../data/models/upcoming_episode_info.dart';
+import '../../../preference/detail_metadata_layout.dart';
+import 'upcoming_episode_badge.dart';
 import 'nouveau/nouveau_detail_content.dart';
 import 'nouveau/hero/nouveau_action_buttons.dart';
 import 'modern/modern_detail_content.dart';
@@ -4143,10 +4147,8 @@ class _HeaderSection extends StatelessWidget {
         DetailMetadataRow(
           item: item,
           selectedMediaSource: selectedMediaSource,
-          extraBadges: [
-            if (seerrStatus != null)
-              SeerrStatusPills(state: seerrStatus, onlyNoteworthy: true),
-          ],
+          upcomingEpisode: viewModel.upcomingEpisode,
+          seerrStatus: seerrStatus,
         ),
         if (viewModel.ratings.isNotEmpty ||
             item.communityRating != null ||
@@ -4440,37 +4442,13 @@ class DetailPosterImage extends StatelessWidget {
             Positioned(
               top: 6,
               left: 6,
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.6),
-                  shape: BoxShape.circle,
-                ),
-                child: const AdaptiveIcon(
-                  Icons.favorite,
-                  color: Color(0xFFFF4757),
-                  size: 16,
-                ),
-              ),
+              child: MediaFavoriteBadge(size: 26),
             ),
           if (item.isPlayed)
             Positioned(
               top: 6,
               right: 6,
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: AppColorScheme.accent,
-                  shape: BoxShape.circle,
-                ),
-                child: const Padding(
-                  padding: EdgeInsets.all(3),
-                  child: AdaptiveIcon(
-                    Icons.check,
-                    color: Colors.white,
-                    size: 12,
-                  ),
-                ),
-              ),
+              child: MediaWatchedBadge(size: 26),
             ),
           if ((item.playedPercentage ?? 0) > 0)
             Positioned(
@@ -4592,37 +4570,13 @@ class _EpisodeThumbnail extends StatelessWidget {
             Positioned(
               top: 6,
               left: 6,
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.6),
-                  shape: BoxShape.circle,
-                ),
-                child: const AdaptiveIcon(
-                  Icons.favorite,
-                  color: Color(0xFFFF4757),
-                  size: 14,
-                ),
-              ),
+              child: MediaFavoriteBadge(size: 24),
             ),
           if (item.isPlayed)
             Positioned(
               top: 6,
               right: 6,
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: AppColorScheme.accent,
-                  shape: BoxShape.circle,
-                ),
-                child: const Padding(
-                  padding: EdgeInsets.all(3),
-                  child: AdaptiveIcon(
-                    Icons.check,
-                    color: Colors.white,
-                    size: 10,
-                  ),
-                ),
-              ),
+              child: MediaWatchedBadge(size: 24),
             ),
           if ((item.playedPercentage ?? 0) > 0)
             Positioned(
@@ -4650,6 +4604,8 @@ class _EpisodeThumbnail extends StatelessWidget {
 class DetailMetadataRow extends StatelessWidget {
   final AggregatedItem item;
   final Map<String, dynamic>? selectedMediaSource;
+  final UpcomingEpisodeInfo? upcomingEpisode;
+  final SeerrMediaDetailState? seerrStatus;
 
   /// When true, render only the file size and technical badges (no year, rating,
   /// runtime, seasons, status, ends-at or genres). Used by the Modern Details
@@ -4662,6 +4618,8 @@ class DetailMetadataRow extends StatelessWidget {
   const DetailMetadataRow({
     required this.item,
     this.selectedMediaSource,
+    this.upcomingEpisode,
+    this.seerrStatus,
     this.technicalOnly = false,
     this.extraBadges = const [],
   });
@@ -4671,56 +4629,77 @@ class DetailMetadataRow extends StatelessWidget {
     final parts = <Widget>[];
     final theme = Theme.of(context);
     final isNeon = ThemeRegistry.active.id == ThemeRegistry.neonPulseId;
+    final l10n = AppLocalizations.of(context);
+    final prefs = GetIt.instance<UserPreferences>();
 
-    if (!technicalOnly && item.productionYear != null) {
-      parts.add(_text(theme, item.productionYear.toString()));
-    }
-
-    if (!technicalOnly && item.officialRating != null) {
-      parts.add(_badge(theme, item.officialRating!));
-    }
-
-    final showTech = GetIt.instance<UserPreferences>().get(
-      UserPreferences.detailShowTechnicalDetails,
-    );
+    final showTech = prefs.get(UserPreferences.detailShowTechnicalDetails);
     final tech = showTech
         ? technicalDetailsFor(item, selectedMediaSource)
         : null;
 
+    if (!technicalOnly) {
+      final hidden = detailMetadataLayout.hidden(prefs);
+      final ordered = detailMetadataLayout.ordered(
+        DetailMetadataItem.values,
+        (entry) => entry.id,
+        prefs,
+      );
+
+      final runtime = _runtimeForItem(item, selectedMediaSource);
+
+      for (final entry in ordered) {
+        if (hidden.contains(entry.id)) continue;
+        switch (entry) {
+          case DetailMetadataItem.year:
+            if (item.productionYear != null) {
+              parts.add(_text(theme, item.productionYear.toString()));
+            }
+          case DetailMetadataItem.parentalRating:
+            if (item.officialRating != null) {
+              parts.add(_badge(theme, item.officialRating!));
+            }
+          case DetailMetadataItem.runtimeAndSeasons:
+            if (item.type == 'Series') {
+              final count = item.childCount;
+              if (count != null) {
+                parts.add(_text(theme, l10n.seasonCount(count)));
+              }
+            } else if (runtime != null) {
+              final h = runtime.inHours;
+              final m = runtime.inMinutes.remainder(60);
+              parts.add(_text(theme, h > 0 ? '${h}h ${m}m' : '${m}m'));
+              final use24 = prefs.get(UserPreferences.use24HourClock);
+              final endsAt = _endsAt(item, runtime, use24Hour: use24);
+              if (endsAt != null) {
+                parts.add(_text(theme, l10n.endsAt(endsAt)));
+              }
+            }
+          case DetailMetadataItem.status:
+            if (item.type == 'Series' && item.status != null) {
+              parts.add(_statusBadge(context, theme, item.status!));
+            }
+          case DetailMetadataItem.upcomingEpisodeDate:
+            if (item.type == 'Series' && upcomingEpisode != null) {
+              parts.add(
+                UpcomingEpisodeBadge(text: upcomingEpisode!.format(context)),
+              );
+            }
+          case DetailMetadataItem.genres:
+            if (item.genres.isNotEmpty) {
+              parts.add(_text(theme, item.genres.take(3).join(' \u2022 ')));
+            }
+          case DetailMetadataItem.seerrAvailability:
+            if (seerrStatus != null) {
+              parts.add(
+                SeerrStatusPills(state: seerrStatus!, onlyNoteworthy: true),
+              );
+            }
+        }
+      }
+    }
+
     if (tech?.formattedSize != null) {
       parts.add(_text(theme, tech!.formattedSize!));
-    }
-
-    final runtime = _runtimeForItem(item, selectedMediaSource);
-    if (!technicalOnly && runtime != null && item.type != 'Series') {
-      final h = runtime.inHours;
-      final m = runtime.inMinutes.remainder(60);
-      parts.add(_text(theme, h > 0 ? '${h}h ${m}m' : '${m}m'));
-    }
-
-    if (!technicalOnly && item.type == 'Series') {
-      final count = item.childCount;
-      if (count != null) {
-        parts.add(
-          _text(theme, AppLocalizations.of(context).seasonCount(count)),
-        );
-      }
-      final status = item.status;
-      if (status != null) {
-        parts.add(_statusBadge(context, theme, status));
-      }
-    }
-
-    final use24 = GetIt.instance<UserPreferences>().get(
-      UserPreferences.use24HourClock,
-    );
-    final endsAt = _endsAt(item, runtime, use24Hour: use24);
-    if (!technicalOnly && endsAt != null && item.type != 'Series') {
-      parts.add(_text(theme, AppLocalizations.of(context).endsAt(endsAt)));
-    }
-
-    if (!technicalOnly && item.genres.isNotEmpty) {
-      parts.add(_text(theme, item.genres.take(3).join(' \u2022 ')));
     }
 
     if (parts.isEmpty) return const SizedBox.shrink();

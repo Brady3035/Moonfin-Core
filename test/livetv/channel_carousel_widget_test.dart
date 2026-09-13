@@ -446,8 +446,9 @@ void main() {
     final delegate = list.childrenDelegate as SliverChildBuilderDelegate;
     expect(delegate.childCount, isNotNull);
     expect(delegate.childCount, greaterThan(1000));
+    expect(list.scrollCacheExtent, isNotNull);
     expect(
-      list.scrollCacheExtent.value,
+      list.scrollCacheExtent!.value,
       greaterThan(ChannelCarouselCard.cardPitch),
     );
     final scrollable = tester.state<ScrollableState>(find.byType(Scrollable));

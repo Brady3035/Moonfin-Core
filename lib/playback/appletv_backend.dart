@@ -11,8 +11,10 @@ import '../util/loggable_url.dart';
 import '../util/platform_detection.dart';
 
 import 'device_profile_builder.dart';
+import 'dolby_vision_av1.dart';
 import 'engine_trust.dart';
 import 'known_defects.dart';
+import 'letterbox_croppers.dart';
 import 'server_transcode_capabilities.dart';
 
 class AppleTvBackend implements PlayerBackend {
@@ -313,6 +315,7 @@ class AppleTvBackend implements PlayerBackend {
       'videoRangeType': payload['videoRangeType']?.toString(),
       'videoCodec': payload['videoCodec']?.toString(),
       'videoDvProfile': payload['videoDvProfile'],
+      'dolbyVisionBaseLayerOnly': needsBaseLayerOnlyForDolbyVisionAv1(payload),
       'videoFrameRate': payload['videoFrameRate'],
       'videoWidth': payload['videoWidth'],
       'videoHeight': payload['videoHeight'],
@@ -402,6 +405,9 @@ class AppleTvBackend implements PlayerBackend {
   Stream<bool> get bufferingStream => _bufferingStream.stream;
 
   @override
+  Stream<bool>? get pictureShownStream => null;
+
+  @override
   Stream<bool> get completedStream => _completedStream.stream;
 
   @override
@@ -448,6 +454,7 @@ class AppleTvBackend implements PlayerBackend {
       supportsAv1DolbyVision: PlatformDetection.supportsAv1DolbyVision,
       supportsAv1Hdr10: PlatformDetection.supportsAv1Hdr10,
       supportsAv1Hdr10Plus: PlatformDetection.supportsAv1Hdr10Plus,
+      rendersAv1DoviViaHdr10BaseLayer: true,
       supportsVc1: PlatformDetection.supportsVc1,
       maxResolutionAvcWidth: PlatformDetection.maxResolutionAvcWidth,
       maxResolutionAvcHeight: PlatformDetection.maxResolutionAvcHeight,
@@ -597,6 +604,16 @@ class AppleTvBackend implements PlayerBackend {
   /// when the subtitle arrived and the progress alert can just go away.
   Future<void> hideSubtitleProgress({String? message}) async {
     await _invoke<void>('hideSubtitleProgress', {'message': message});
+  }
+
+  /// A line of status over the picture. Unlike the progress alert it takes
+  /// no focus, so the remote's Menu press still leaves the player.
+  Future<void> showStatusMessage(String message) async {
+    await _invoke<void>('showStatusMessage', {'message': message});
+  }
+
+  Future<void> hideStatusMessage() async {
+    await _invoke<void>('hideStatusMessage');
   }
 
   Future<void> setThemeConfig({
@@ -785,6 +802,12 @@ class AppleTvBackend implements PlayerBackend {
 
   @override
   bool get supportsRuntimeTrackSelection => true;
+
+  @override
+  LetterboxCropper get letterboxCropper => const AppleTvLetterboxCropper();
+
+  @override
+  bool get supportsLetterboxCrop => letterboxCropper.isSupported;
 
   @override
   bool get supportsDirectPlayAudioSwitch => false;

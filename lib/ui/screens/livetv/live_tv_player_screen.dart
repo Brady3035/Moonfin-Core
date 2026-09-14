@@ -27,6 +27,7 @@ import '../../../util/subtitle_track_logic.dart';
 import '../../../util/play_method_label.dart';
 import '../../../util/platform_detection.dart';
 import '../../../util/playback_time_label.dart';
+import '../../../util/player_edge_drag.dart';
 import '../../../util/system_ui.dart';
 import '../../widgets/adaptive/sf_symbol.dart';
 import '../../widgets/aether_video_view.dart';
@@ -456,15 +457,15 @@ class _LiveTvPlayerScreenState extends State<LiveTvPlayerScreen>
   }
 
   void _onVerticalDragStart(DragStartDetails details) {
-    final screenWidth = MediaQuery.sizeOf(context).width;
+    final size = MediaQuery.sizeOf(context);
     _verticalDragStartY = details.localPosition.dy;
-    // Ignore drags that begin in the top edge strip so a swipe there pulls down
-    // the system notification shade instead of changing brightness or volume.
-    final topInset = MediaQuery.paddingOf(context).top;
-    final topDeadZone = topInset > 48.0 ? topInset : 48.0;
-    _verticalDragIgnored = _verticalDragStartY < topDeadZone;
+    _verticalDragIgnored = startsInSystemEdgeStrip(
+      _verticalDragStartY,
+      size.height,
+      MediaQuery.paddingOf(context),
+    );
     if (_verticalDragIgnored) return;
-    _verticalDragIsVolume = details.localPosition.dx > screenWidth / 2;
+    _verticalDragIsVolume = details.localPosition.dx > size.width / 2;
     if (_verticalDragIsVolume) {
       final includeBoost = _activeMedia3Backend != null;
       _verticalDragStartValue = includeBoost

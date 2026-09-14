@@ -56,6 +56,7 @@ import '../../../util/audio_labels.dart';
 import '../../../util/subtitle_track_logic.dart';
 import '../../../util/auto_hdr_switcher.dart';
 import '../../../util/episode_playability.dart';
+import '../../../util/player_edge_drag.dart';
 import '../../../playback/hdr_composition.dart';
 import '../../../playback/hdr_output_controller.dart';
 import '../../../playback/hdr_overlay_channel.dart';
@@ -6198,16 +6199,15 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
   }
 
   void _onVerticalDragStart(DragStartDetails details) {
-    final screenWidth = MediaQuery.sizeOf(context).width;
+    final size = MediaQuery.sizeOf(context);
     _verticalDragStartY = details.localPosition.dy;
-    // Ignore drags that begin in the top edge strip so a swipe there pulls
-    // down the system notification shade instead of changing brightness or
-    // volume. Falls back to a fixed strip when the status bar is hidden.
-    final topInset = MediaQuery.paddingOf(context).top;
-    final topDeadZone = topInset > 48.0 ? topInset : 48.0;
-    _verticalDragIgnored = _verticalDragStartY < topDeadZone;
+    _verticalDragIgnored = startsInSystemEdgeStrip(
+      _verticalDragStartY,
+      size.height,
+      MediaQuery.paddingOf(context),
+    );
     if (_verticalDragIgnored) return;
-    _verticalDragIsVolume = details.localPosition.dx > screenWidth / 2;
+    _verticalDragIsVolume = details.localPosition.dx > size.width / 2;
     if (_verticalDragIsVolume) {
       final baseVolume = PlatformDetection.isMobile
           ? _systemVolume

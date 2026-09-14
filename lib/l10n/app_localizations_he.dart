@@ -1888,6 +1888,11 @@ class AppLocalizationsHe extends AppLocalizations {
   String get subtitleDelay => 'עיכוב כתוביות';
 
   @override
+  String subtitleDelayAuto(String value) {
+    return 'Auto $value';
+  }
+
+  @override
   String get reset => 'איפוס';
 
   @override

@@ -1914,6 +1914,11 @@ class AppLocalizationsSk extends AppLocalizations {
   String get subtitleDelay => 'Oneskorenie titulkov';
 
   @override
+  String subtitleDelayAuto(String value) {
+    return 'Auto $value';
+  }
+
+  @override
   String get reset => 'Resetovať';
 
   @override

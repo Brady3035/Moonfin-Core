@@ -1896,6 +1896,11 @@ class AppLocalizationsMn extends AppLocalizations {
   String get subtitleDelay => 'Хадмал орчуулгын саатал';
 
   @override
+  String subtitleDelayAuto(String value) {
+    return 'Auto $value';
+  }
+
+  @override
   String get reset => 'Дахин тохируулах';
 
   @override

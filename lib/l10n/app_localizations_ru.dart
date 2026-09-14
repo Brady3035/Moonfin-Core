@@ -1912,6 +1912,11 @@ class AppLocalizationsRu extends AppLocalizations {
   String get subtitleDelay => 'Задержка субтитров';
 
   @override
+  String subtitleDelayAuto(String value) {
+    return 'Auto $value';
+  }
+
+  @override
   String get reset => 'Сбросить';
 
   @override

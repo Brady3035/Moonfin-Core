@@ -1907,6 +1907,11 @@ class AppLocalizationsMl extends AppLocalizations {
   String get subtitleDelay => 'സബ്‌ടൈറ്റിൽ കാലതാമസം';
 
   @override
+  String subtitleDelayAuto(String value) {
+    return 'Auto $value';
+  }
+
+  @override
   String get reset => 'പുനഃസജ്ജമാക്കുക';
 
   @override

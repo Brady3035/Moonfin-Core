@@ -1888,6 +1888,11 @@ class AppLocalizationsTh extends AppLocalizations {
   String get subtitleDelay => 'คำบรรยายล่าช้า';
 
   @override
+  String subtitleDelayAuto(String value) {
+    return 'Auto $value';
+  }
+
+  @override
   String get reset => 'รีเซ็ต';
 
   @override

@@ -1907,6 +1907,11 @@ class AppLocalizationsTa extends AppLocalizations {
   String get subtitleDelay => 'வசனம் தாமதம்';
 
   @override
+  String subtitleDelayAuto(String value) {
+    return 'Auto $value';
+  }
+
+  @override
   String get reset => 'மீட்டமை';
 
   @override

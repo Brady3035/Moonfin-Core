@@ -1979,6 +1979,11 @@ class AppLocalizationsDe extends AppLocalizations {
   String get subtitleDelay => 'Untertitelverzögerung';
 
   @override
+  String subtitleDelayAuto(String value) {
+    return 'Auto $value';
+  }
+
+  @override
   String get reset => 'Zurücksetzen';
 
   @override

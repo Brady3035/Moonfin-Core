@@ -1856,6 +1856,11 @@ class AppLocalizationsYue extends AppLocalizations {
   String get subtitleDelay => '字幕延遲';
 
   @override
+  String subtitleDelayAuto(String value) {
+    return 'Auto $value';
+  }
+
+  @override
   String get reset => '重設';
 
   @override

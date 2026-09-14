@@ -111,6 +111,7 @@ class Media3PlayerBackend extends PlayerBackend {
   double _volume = 100.0;
   double _audioDelaySeconds = 0.0;
   double _subtitleDelaySeconds = 0.0;
+  double _subtitleAutoOffsetSeconds = 0.0;
   int _volumeBoostLevel = 0;
   bool _skipSilenceEnabled = false;
   RepeatMode _repeatMode = RepeatMode.none;
@@ -164,6 +165,7 @@ class Media3PlayerBackend extends PlayerBackend {
   final _completedStream = StreamController<bool>.broadcast();
   final _errorStream = StreamController<Map<String, dynamic>>.broadcast();
   final _pictureShownStream = StreamController<bool>.broadcast();
+  final _subtitleAutoOffsetStream = StreamController<double>.broadcast();
   bool _pictureShown = false;
 
   int get volumeBoostLevel => _volumeBoostLevel;
@@ -173,6 +175,12 @@ class Media3PlayerBackend extends PlayerBackend {
 
   @override
   Stream<bool> get pictureShownStream => _pictureShownStream.stream;
+
+  @override
+  double get subtitleAutoOffsetSeconds => _subtitleAutoOffsetSeconds;
+
+  @override
+  Stream<double> get subtitleAutoOffsetStream => _subtitleAutoOffsetStream.stream;
 
   Future<T?> _invoke<T>(String method, [dynamic arguments]) async {
     if (_disposed) return null;
@@ -318,6 +326,7 @@ class Media3PlayerBackend extends PlayerBackend {
       case 'syncDelays':
         _audioDelaySeconds = _toInt(map['audioDelayMs']) / 1000.0;
         _subtitleDelaySeconds = _toInt(map['subtitleDelayMs']) / 1000.0;
+        _setSubtitleAutoOffset(_toInt(map['subtitleAutoOffsetMs']));
       case 'volumeBoost':
         _volumeBoostLevel = (_toInt(map['level']).clamp(0, 10)).toInt();
       case 'repeatModeChanged':
@@ -670,6 +679,21 @@ class Media3PlayerBackend extends PlayerBackend {
     }
   }
 
+  void _setSubtitleAutoOffset(int offsetMs) {
+    final seconds = offsetMs / 1000.0;
+    if (seconds == _subtitleAutoOffsetSeconds) return;
+    _subtitleAutoOffsetSeconds = seconds;
+    if (offsetMs == 0) {
+      _diag('Media3: subtitle auto offset cleared');
+    } else {
+      final sign = offsetMs > 0 ? '+' : '';
+      _diag(
+        'Media3: subtitle auto offset $sign${offsetMs}ms (HLS timestamp adjuster)',
+      );
+    }
+    _subtitleAutoOffsetStream.add(seconds);
+  }
+
   void _diag(String message, {LogLevel level = LogLevel.debug}) {
     if (GetIt.instance.isRegistered<LogService>()) {
       GetIt.instance<LogService>().media(message, level: level);
@@ -1017,6 +1041,7 @@ class Media3PlayerBackend extends PlayerBackend {
     });
     _lastFrameRateLine = null;
     _sourceIsLive = payload['isLive'] == true;
+    _setSubtitleAutoOffset(0);
     await _invoke<void>('setSource', {
       'url': url,
       'headers': headers,
@@ -1502,6 +1527,7 @@ class Media3PlayerBackend extends PlayerBackend {
     _completedStream.close();
     _errorStream.close();
     _pictureShownStream.close();
+    _subtitleAutoOffsetStream.close();
     _tracksChangedController.close();
   }
 }

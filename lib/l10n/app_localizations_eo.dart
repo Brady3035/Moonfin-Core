@@ -1897,6 +1897,11 @@ class AppLocalizationsEo extends AppLocalizations {
   String get subtitleDelay => 'Subtitolo Prokrasto';
 
   @override
+  String subtitleDelayAuto(String value) {
+    return 'Auto $value';
+  }
+
+  @override
   String get reset => 'Restarigi';
 
   @override

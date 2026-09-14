@@ -1899,6 +1899,11 @@ class AppLocalizationsKk extends AppLocalizations {
   String get subtitleDelay => 'Субтитрді кешіктіру';
 
   @override
+  String subtitleDelayAuto(String value) {
+    return 'Auto $value';
+  }
+
+  @override
   String get reset => 'Қалпына келтіру';
 
   @override

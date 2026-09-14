@@ -1909,6 +1909,11 @@ class AppLocalizationsEs extends AppLocalizations {
   String get subtitleDelay => 'Retardo de subtítulos';
 
   @override
+  String subtitleDelayAuto(String value) {
+    return 'Auto $value';
+  }
+
+  @override
   String get reset => 'Restablecer';
 
   @override

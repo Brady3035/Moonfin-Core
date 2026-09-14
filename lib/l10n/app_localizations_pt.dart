@@ -1903,6 +1903,11 @@ class AppLocalizationsPt extends AppLocalizations {
   String get subtitleDelay => 'Atraso de Legenda';
 
   @override
+  String subtitleDelayAuto(String value) {
+    return 'Auto $value';
+  }
+
+  @override
   String get reset => 'Redefinir';
 
   @override

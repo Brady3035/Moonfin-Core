@@ -1908,6 +1908,11 @@ class AppLocalizationsLv extends AppLocalizations {
   String get subtitleDelay => 'Subtitru aizkave';
 
   @override
+  String subtitleDelayAuto(String value) {
+    return 'Auto $value';
+  }
+
+  @override
   String get reset => 'Atiestatīt';
 
   @override

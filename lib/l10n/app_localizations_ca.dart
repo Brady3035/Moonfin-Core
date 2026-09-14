@@ -1916,6 +1916,11 @@ class AppLocalizationsCa extends AppLocalizations {
   String get subtitleDelay => 'Retard dels subtítols';
 
   @override
+  String subtitleDelayAuto(String value) {
+    return 'Auto $value';
+  }
+
+  @override
   String get reset => 'Restableix';
 
   @override

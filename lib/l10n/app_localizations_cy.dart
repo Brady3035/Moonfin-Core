@@ -1917,6 +1917,11 @@ class AppLocalizationsCy extends AppLocalizations {
   String get subtitleDelay => 'Oedi Isdeitl';
 
   @override
+  String subtitleDelayAuto(String value) {
+    return 'Auto $value';
+  }
+
+  @override
   String get reset => 'Ailosod';
 
   @override

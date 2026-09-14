@@ -1902,6 +1902,11 @@ class AppLocalizationsEt extends AppLocalizations {
   String get subtitleDelay => 'Subtiitrite viivitus';
 
   @override
+  String subtitleDelayAuto(String value) {
+    return 'Auto $value';
+  }
+
+  @override
   String get reset => 'Lähtesta';
 
   @override

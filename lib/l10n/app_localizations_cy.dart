@@ -2382,6 +2382,9 @@ class AppLocalizationsCy extends AppLocalizations {
   String get noChannelsFound => 'Heb ganfod sianeli';
 
   @override
+  String get noProgramData => 'No program data';
+
+  @override
   String get liveBadge => 'BYW';
 
   @override
@@ -2453,6 +2456,9 @@ class AppLocalizationsCy extends AppLocalizations {
 
   @override
   String get watch => 'Gwylio';
+
+  @override
+  String get watchChannelLive => 'Watch channel live';
 
   @override
   String get close => 'Cau';

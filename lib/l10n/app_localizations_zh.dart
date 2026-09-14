@@ -2308,6 +2308,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get noChannelsFound => '未找到频道';
 
   @override
+  String get noProgramData => 'No program data';
+
+  @override
   String get liveBadge => '直播';
 
   @override
@@ -2377,6 +2380,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get watch => '观看';
+
+  @override
+  String get watchChannelLive => 'Watch channel live';
 
   @override
   String get close => '关闭';

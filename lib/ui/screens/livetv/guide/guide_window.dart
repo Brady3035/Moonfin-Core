@@ -32,7 +32,7 @@ GuideCell? _selectedCell(GuideSelection current, List<GuideCell> cells) {
 
 /// Re-resolves [current] against a window that has just moved. The selected
 /// cell is kept when it still intersects the window, with the anchor clamped
-/// into its visible interval; otherwise the currently airing cell is taken and
+/// into its visible interval. Otherwise the currently airing cell is taken and
 /// the anchor reset to [now]. The channel is never changed.
 GuideSelection reanchorSelection({
   required GuideSelection current,

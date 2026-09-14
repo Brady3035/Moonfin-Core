@@ -5,8 +5,8 @@ import '../../../../widgets/adaptive/adaptive_glass.dart';
 import '../../../../widgets/bounded_network_image.dart';
 import '../../../../widgets/marquee_text.dart';
 
-/// Landscape hero band that previews the focused program. Pure presentation;
-/// the host feeds it the focused values (typically via a ValueListenableBuilder)
+/// Landscape hero band that previews the focused program. Pure presentation.
+/// The host feeds it the focused values (typically via a ValueListenableBuilder)
 /// so only this band rebuilds as focus moves. Idiom aware: frosted glass on
 /// Apple, a tokenized translucent panel on Material.
 class EpgHeroPreview extends StatelessWidget {
@@ -16,7 +16,7 @@ class EpgHeroPreview extends StatelessWidget {
   final String? title;
 
   /// Optional channel/program split used when the guide focus is on the
-  /// channel rail rather than a programme cell.
+  /// channel rail rather than a program cell.
   final String? programTitle;
   final String? channelLogoUrl;
   final String? timeLabel;

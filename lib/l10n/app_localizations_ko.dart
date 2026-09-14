@@ -2326,6 +2326,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get noChannelsFound => '채널을 찾을 수 없습니다';
 
   @override
+  String get noProgramData => 'No program data';
+
+  @override
   String get liveBadge => '살다';
 
   @override
@@ -2395,6 +2398,9 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get watch => '시청';
+
+  @override
+  String get watchChannelLive => 'Watch channel live';
 
   @override
   String get close => '닫기';

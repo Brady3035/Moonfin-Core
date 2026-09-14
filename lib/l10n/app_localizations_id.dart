@@ -2364,6 +2364,9 @@ class AppLocalizationsId extends AppLocalizations {
   String get noChannelsFound => 'Tidak ada saluran yang ditemukan';
 
   @override
+  String get noProgramData => 'No program data';
+
+  @override
   String get liveBadge => 'LANGSUNG';
 
   @override
@@ -2435,6 +2438,9 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get watch => 'Tonton';
+
+  @override
+  String get watchChannelLive => 'Watch channel live';
 
   @override
   String get close => 'Tutup';

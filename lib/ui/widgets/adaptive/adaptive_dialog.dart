@@ -10,8 +10,8 @@ import '../../../util/idiom/app_ui_idiom.dart';
 /// filled button instead of a text one. Callers that pass neither keep the
 /// plain [TextButton], so existing dialogs look the same as before.
 ///
-/// [focusNode] lets a caller reach the button's focus after the dialog is up;
-/// the Apple idiom has no equivalent and ignores it.
+/// [focusNode] lets a caller reach the button's focus after the dialog is up.
+/// The Apple idiom has no equivalent and ignores it.
 Widget adaptiveDialogAction({
   required VoidCallback? onPressed,
   required Widget child,

@@ -168,7 +168,7 @@ class _EpgFilterRailState extends State<EpgFilterRail> {
           : row,
     );
 
-    // The mask stays in the tree in every state so toggling a fade does not
+    // The mask stays in the tree in every state so toggling a fade doesn't
     // rebuild the scroll view and drop its offset.
     return ShaderMask(
       blendMode: BlendMode.dstIn,

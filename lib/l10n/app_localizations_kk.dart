@@ -2365,6 +2365,9 @@ class AppLocalizationsKk extends AppLocalizations {
   String get noChannelsFound => 'Ешбір арна табылмады';
 
   @override
+  String get noProgramData => 'No program data';
+
+  @override
   String get liveBadge => 'ТІКЕЛЕЙ ЭФИР';
 
   @override
@@ -2436,6 +2439,9 @@ class AppLocalizationsKk extends AppLocalizations {
 
   @override
   String get watch => 'Қарау';
+
+  @override
+  String get watchChannelLive => 'Watch channel live';
 
   @override
   String get close => 'Жабу';

@@ -2378,6 +2378,9 @@ class AppLocalizationsSl extends AppLocalizations {
   String get noChannelsFound => 'Ni kanalov';
 
   @override
+  String get noProgramData => 'No program data';
+
+  @override
   String get liveBadge => 'V ŽIVO';
 
   @override
@@ -2450,6 +2453,9 @@ class AppLocalizationsSl extends AppLocalizations {
 
   @override
   String get watch => 'Glej';
+
+  @override
+  String get watchChannelLive => 'Watch channel live';
 
   @override
   String get close => 'Zapri';

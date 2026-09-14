@@ -15,7 +15,7 @@ class _MockUserLibraryApi extends Mock implements UserLibraryApi {}
 Map<String, dynamic> _channel(String id, {String? number}) => {
   'Id': id,
   'Name': 'Ch $id',
-  if (number != null) 'ChannelNumber': number,
+  'ChannelNumber': ?number,
 };
 
 Map<String, dynamic> _program(
@@ -473,7 +473,7 @@ void main() {
       });
     });
 
-    // A retained ended program plus one airing program; the schedule stops at
+    // A retained ended program plus one airing program. The schedule stops at
     // at(30), so a refresh past that boundary genuinely needs extending.
     void seedLapsingSchedule() {
       items = [
@@ -523,7 +523,7 @@ void main() {
       await vm.handleBoundaryElapsed();
       await pumpEventQueue();
 
-      // The server returns the same retained programs; one request, no storm.
+      // The server returns the same retained programs. One request, no storm.
       expect(guideCalls, 2);
       expect(vm.programsForChannel('c0').map((p) => p.id), ['ended', 'airing']);
       // Both past boundaries are processed, so neither can be selected again.
@@ -611,7 +611,7 @@ void main() {
         final vm = LiveTvGuideViewModel(client, now: () => clock);
         await vm.load();
 
-        // The cache ends before the current clock; staleness is coverage-based.
+        // The cache ends before the current clock. Staleness is coverage-based.
         clock = at(45);
         items = [
           _span('new-0', 'c0', at(35), at(90)),
@@ -755,7 +755,7 @@ void main() {
       await vm.load();
       vm.scheduleBoundaryRefresh();
 
-      // The timer could not fire while the app was suspended.
+      // The timer couldn't fire while the app was suspended.
       clock = at(45);
       vm.scheduleBoundaryRefresh();
       await pumpEventQueue();

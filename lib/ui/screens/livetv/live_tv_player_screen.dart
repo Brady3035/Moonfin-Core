@@ -783,7 +783,7 @@ class _LiveTvPlayerScreenState extends State<LiveTvPlayerScreen>
         return;
       }
 
-      // A channel switch can complete while this request is in flight. Do not
+      // A channel switch can complete while this request is in flight. Don't
       // let an older response overwrite the newly selected channel's OSD.
       if (!mounted || _currentChannel.id != channelId) return;
 
@@ -1569,8 +1569,8 @@ class _LiveTvPlayerScreenState extends State<LiveTvPlayerScreen>
       return KeyEventResult.ignored;
     }
 
-    // While either in-player picker is open it owns all navigation keys;
-    // let them flow to the embedded guide's focus subtree.
+    // While either in-player picker is open it owns all navigation keys.
+    // Let them flow to the embedded guide's focus subtree.
     if (_isGuidePickerOpen || _isCarouselOpen) {
       return KeyEventResult.ignored;
     }

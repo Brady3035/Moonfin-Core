@@ -40,7 +40,7 @@ void main() {
     }
   });
 
-  test('a hole with no underlying programme is a gap', () {
+  test('a hole with no underlying program is a gap', () {
     final cells = buildRowCells(
       visible: [_p('a', 19, 0, 20, 0)],
       unfiltered: [_p('a', 19, 0, 20, 0)],
@@ -52,7 +52,7 @@ void main() {
   });
 
   test('a hole created by the genre filter is filtered, not a gap', () {
-    // The programme exists; the filter removed it. Labelling this "No programme
+    // The program exists. The filter removed it. Labelling this "No program
     // data" would describe a known show as missing data.
     final cells = buildRowCells(
       visible: [_p('a', 19, 0, 20, 0)],

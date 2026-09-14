@@ -2383,6 +2383,9 @@ class AppLocalizationsEl extends AppLocalizations {
   String get noChannelsFound => 'Δεν βρέθηκαν κανάλια';
 
   @override
+  String get noProgramData => 'No program data';
+
+  @override
   String get liveBadge => 'ΖΩ';
 
   @override
@@ -2456,6 +2459,9 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get watch => 'Παρακολούθηση';
+
+  @override
+  String get watchChannelLive => 'Watch channel live';
 
   @override
   String get close => 'Κλείσιμο';

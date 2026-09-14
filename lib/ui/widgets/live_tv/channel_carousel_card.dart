@@ -7,7 +7,7 @@ import 'package:moonfin_design/moonfin_design.dart';
 import '../../screens/livetv/epg/epg_genre.dart';
 
 /// One channel in the quick channel carousel. Pure presentation: the host
-/// owns scrolling, focus, and data — this only renders what it is given.
+/// owns scrolling, focus, and data. This only renders what it is given.
 /// [centered] marks the card pinned at the viewport centre, which gets an
 /// accent border and focus glow instead of the plain card border.
 ///
@@ -29,7 +29,7 @@ class ChannelCarouselCard extends StatelessWidget {
   final bool isFavorite;
   final String? programTitle;
 
-  /// Broadcast window (`8:00 PM - 9:00 PM`); first item of the metadata line.
+  /// Broadcast window (`8:00 PM - 9:00 PM`). First item of the metadata line.
   final String? timeLabel;
 
   /// Official rating (`TV-14`), shown after the time.
@@ -48,7 +48,7 @@ class ChannelCarouselCard extends StatelessWidget {
   /// way rather than genuinely empty.
   final bool programLoading;
 
-  /// Laid-out width. Defaults to [cardWidth]; the strip overrides it with the
+  /// Laid-out width. Defaults to [cardWidth]. The strip overrides it with the
   /// width [layoutFor] derives from the viewport.
   final double width;
 
@@ -57,7 +57,7 @@ class ChannelCarouselCard extends StatelessWidget {
   static const double cardHeight = 108;
   static const double cardSpacing = 10;
 
-  /// The logo owns the header's right edge; it grows to the header band's
+  /// The logo owns the header's right edge. It grows to the header band's
   /// height so it never reaches the program text below it.
   static const double _logoHeight = 30;
   static const double _logoMaxWidth = 44;
@@ -71,7 +71,7 @@ class ChannelCarouselCard extends StatelessWidget {
   /// narrower strip takes fewer cards instead.
   static const double _minLegibleWidth = 96;
 
-  /// Upper bound on the whole-card count, so a very wide window cannot turn
+  /// Upper bound on the whole-card count, so a very wide window can't turn
   /// the strip into a row of slivers.
   static const int _maxCardCount = 15;
 
@@ -109,7 +109,7 @@ class ChannelCarouselCard extends StatelessWidget {
 
   /// Strip geometry for an available width. The strip is centre-locked, so
   /// only an odd number of whole cards can sit symmetrically around the
-  /// centre; taking the pitch as the width over that odd count leaves exactly
+  /// centre. Taking the pitch as the width over that odd count leaves exactly
   /// one gutter of slack and so never clips a card at either edge.
   static ({double pitch, double width, int count}) layoutFor(
     double stripWidth,
@@ -156,7 +156,7 @@ class ChannelCarouselCard extends StatelessWidget {
 
     // Regular weight throughout: the centred card already reads from its
     // accent border and glow. Title and metadata are one step up from
-    // bodySmall/labelSmall; the 108 dp height still fits a wrapped title over
+    // bodySmall/labelSmall. The 108 dp height still fits a wrapped title over
     // the metadata line.
     final titleStyle = (textTheme.bodyLarge ?? const TextStyle()).copyWith(
       fontWeight: FontWeight.w400,
@@ -191,7 +191,7 @@ class ChannelCarouselCard extends StatelessWidget {
     final metaItems = _fittingMeta(_contentWidth, metaStyle, scaler);
     final showMeta =
         metaItems.isNotEmpty && belowHeader >= titleLine + metaLine;
-    // The card has room to wrap and keep the metadata; only a scaled-up text
+    // The card has room to wrap and keep the metadata. Only a scaled-up text
     // size takes the second line back.
     final wrapTitle =
         programTitle != null &&
@@ -356,7 +356,7 @@ class ChannelCarouselCard extends StatelessWidget {
     ),
   );
 
-  /// Metadata that fits the given width — time, then rating, then tags —
+  /// Metadata that fits the given width. Time, then rating, then tags,
   /// dropping from the end once the line is full.
   List<String> _fittingMeta(double width, TextStyle style, TextScaler scaler) {
     final items = <String>[

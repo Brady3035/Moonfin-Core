@@ -2373,6 +2373,9 @@ class AppLocalizationsCs extends AppLocalizations {
   String get noChannelsFound => 'Nebyly nalezeny žádné kanály';
 
   @override
+  String get noProgramData => 'No program data';
+
+  @override
   String get liveBadge => 'ŽÍT';
 
   @override
@@ -2444,6 +2447,9 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get watch => 'Sledovat';
+
+  @override
+  String get watchChannelLive => 'Watch channel live';
 
   @override
   String get close => 'Zavřít';

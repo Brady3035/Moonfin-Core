@@ -10,7 +10,7 @@ import '../epg_genre.dart';
 /// program gets a progress bar, scheduled recordings a red dot.
 ///
 /// [placeholderLabel] renders centered muted text over neutral filler, for a
-/// real schedule gap; leave it null for a genre-filtered hole, which must stay
+/// real schedule gap. Leave it null for a genre-filtered hole, which must stay
 /// unlabelled. [loading] and [failed] override everything else with their own
 /// treatment for a non-program placeholder cell spanning the whole row.
 class EpgProgramCell extends StatelessWidget {
@@ -34,12 +34,12 @@ class EpgProgramCell extends StatelessWidget {
   final bool failed;
   final double textLeftPadding;
 
-  /// Programme started before the visible window's left edge; shows a compact
+  /// Program started before the visible window's left edge. Shows a compact
   /// double-chevron continuation marker that survives even when the title has
   /// no room at all.
   final bool startsBeforeWindow;
 
-  /// Official rating (`TV-G`, `PG-13`); first item of the metadata line.
+  /// Official rating (`TV-G`, `PG-13`). First item of the metadata line.
   final String? rating;
 
   /// Category labels (`Sports`, `News`) shown after the rating.
@@ -89,7 +89,7 @@ class EpgProgramCell extends StatelessWidget {
         : null;
 
     // Loading and failed placeholders span the whole row while programs are
-    // unresolved for this channel; both override the normal program layout.
+    // unresolved for this channel. Both override the normal program layout.
     if (loading) {
       return Container(
         decoration: BoxDecoration(
@@ -192,7 +192,7 @@ class EpgProgramCell extends StatelessWidget {
                   : double.infinity;
 
               // Metadata earns a line only when the row is tall enough for it
-              // on top of a full title line; the title is never given up.
+              // on top of a full title line. The title is never given up.
               final metaItems =
                   placeholderLabel == null && innerWidth >= _minMetaWidth
                   ? _fittingMeta(innerWidth, metaStyle, scaler)
@@ -215,7 +215,7 @@ class EpgProgramCell extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
-                  // Programmes read from the top down; a gap label stays centred.
+                  // Programs read from the top down. A gap label stays centred.
                   mainAxisAlignment: placeholderLabel != null
                       ? MainAxisAlignment.center
                       : MainAxisAlignment.start,
@@ -304,9 +304,9 @@ class EpgProgramCell extends StatelessWidget {
   Widget _timerDot() =>
       const Icon(Icons.fiber_manual_record, size: 9, color: Color(0xFFE0685C));
 
-  /// Width-priority title row for a programme that started before the window:
+  /// Width-priority title row for a program that started before the window:
   /// every slot is measured and allotted in order, so the continuation marker
-  /// is served before the title and cannot be squeezed out or overflow the row.
+  /// is served before the title and can't be squeezed out or overflow the row.
   Widget _markerRow(TextStyle titleStyle, TextStyle markerStyle) {
     const markerWidth = 16.0;
 

@@ -43,7 +43,7 @@ void main() {
     );
   });
 
-  testWidgets('only a focused single-line programme title uses marquee', (
+  testWidgets('only a focused single-line program title uses marquee', (
     tester,
   ) async {
     Widget cell(bool focused) => MaterialApp(
@@ -52,7 +52,7 @@ void main() {
           width: 100,
           height: 56,
           child: EpgProgramCell(
-            title: 'A deliberately long programme title',
+            title: 'A deliberately long program title',
             genre: const EpgGenre('Drama', Colors.blue),
             isLive: false,
             progress: 0,
@@ -68,7 +68,7 @@ void main() {
     expect(find.byType(MarqueeText), findsNothing);
 
     final title = tester.widget<Text>(
-      find.text('A deliberately long programme title'),
+      find.text('A deliberately long program title'),
     );
     expect(title.style?.fontSize, 14);
 
@@ -92,7 +92,7 @@ void main() {
     tester,
   ) async {
     const synopsis =
-        'This is a deliberately long programme description that '
+        'This is a deliberately long program description that '
         'needs more than three full lines on a television screen so the viewer '
         'can read the remaining details.';
 

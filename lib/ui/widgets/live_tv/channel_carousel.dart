@@ -15,12 +15,12 @@ import 'channel_carousel_controller.dart';
 /// press moves exactly one channel.
 const Duration kCarouselHoldStartDelay = Duration(milliseconds: 350);
 
-/// Subsequent hold-repeats fire at this interval — roughly nine channels a
+/// Subsequent hold-repeats fire at this interval, roughly nine channels a
 /// second, which reads as fast continuous scrolling rather than stepping.
 const Duration kCarouselHoldRepeatInterval = Duration(milliseconds: 110);
 
 /// Watchdog window. Refreshed by each *incoming* key event only, so a hold
-/// whose repeats stop arriving (a missed key-up) cannot scroll forever.
+/// whose repeats stop arriving (a missed key-up) can't scroll forever.
 const Duration kCarouselHoldSafety = Duration(milliseconds: 900);
 
 const double _cardHeight = ChannelCarouselCard.cardHeight;
@@ -54,7 +54,7 @@ class ChannelCarouselEntry {
   final double progress;
   final bool hasTimer;
 
-  /// No programme yet because the channel's schedule is still unfetched, as
+  /// No program yet because the channel's schedule is still unfetched, as
   /// opposed to a channel whose schedule is loaded and simply has no entry.
   final bool programLoading;
 
@@ -115,14 +115,14 @@ class ChannelCarouselEntry {
 
 /// Centre-locked horizontal channel strip: the selected card is pinned at the
 /// viewport centre and the strip animates beneath it. Rendering and key input
-/// only — the host owns data, chrome, and dismissal.
+/// only. The host owns data, chrome, and dismissal.
 class ChannelCarousel extends StatefulWidget {
   final List<ChannelCarouselEntry> channels;
 
   /// Index into [channels] to open on.
   final int initialIndex;
 
-  /// Forces restoration even when the requested index has not changed.
+  /// Forces restoration even when the requested index hasn't changed.
   final int selectionRevision;
 
   /// Fires whenever the centred channel changes, with its [channels] index.
@@ -137,8 +137,8 @@ class ChannelCarousel extends StatefulWidget {
   /// Every incoming key event, for the host's inactivity timer.
   final VoidCallback? onKeyInteraction;
 
-  /// Reported once, after the first frame, when [channels] is empty — the
-  /// strip cannot open on an empty lineup and the host must dismiss it.
+  /// Reported once, after the first frame, when [channels] is empty. The
+  /// strip can't open on an empty lineup and the host must dismiss it.
   final VoidCallback? onEmpty;
 
   final FocusNode? focusNode;
@@ -323,7 +323,7 @@ class _ChannelCarouselState extends State<ChannelCarousel> {
 
     final direction = key.isRightKey ? 1 : -1;
 
-    // A physical key event — down or repeat — is the only thing that keeps the
+    // A physical key event, down or repeat, is the only thing that keeps the
     // hold alive. `_pageFromTimer` deliberately never reaches this line.
     _refreshWatchdog();
 
@@ -386,7 +386,7 @@ class _ChannelCarouselState extends State<ChannelCarousel> {
     if (needsRecentre(target, _channelCount, _seedIndex)) {
       final recentred = recentre(target, _channelCount, _seedIndex);
       // A whole multiple of the lineup: the mapped channel is unchanged, so
-      // shifting the live position by the same amount is not visible.
+      // shifting the live position by the same amount isn't visible.
       final shift = recentred - target;
       _rawIndex += shift;
       final controller = _scrollController;
@@ -419,7 +419,7 @@ class _ChannelCarouselState extends State<ChannelCarousel> {
   // ---------------------------------------------------------------------
 
   /// Card widgets are cached per channel so that paging rebuilds only the two
-  /// cards whose centred state actually flipped; the rest are handed back the
+  /// cards whose centred state actually flipped. The rest are handed back the
   /// identical instance and their elements skip the rebuild entirely. The
   /// cache is dropped whenever the host hands over a new entry list.
   List<ChannelCarouselEntry>? _cachedFor;
@@ -439,7 +439,7 @@ class _ChannelCarouselState extends State<ChannelCarousel> {
     return cache[channelIndex] ??= _buildCard(channelIndex, centered);
   }
 
-  /// Drops only the entries that actually changed. One channel's programme
+  /// Drops only the entries that actually changed. One channel's program
   /// data arriving must not cost a rebuild of every other card.
   void _syncCardCache() {
     final channels = widget.channels;
@@ -497,7 +497,7 @@ class _ChannelCarouselState extends State<ChannelCarousel> {
   }
 
   /// A lineup that fits the viewport renders its real count, centred, with no
-  /// scrolling; selection still wraps across the short list.
+  /// scrolling. Selection still wraps across the short list.
   Widget _buildFittingStrip(double viewportWidth) {
     final selected = _centredChannelIndex;
     final middle = _channelCount ~/ 2;

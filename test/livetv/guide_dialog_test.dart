@@ -167,7 +167,7 @@ void main() {
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         // Embedded mode drops the guide's own Scaffold because the host
-        // supplies it; stand in for that host here.
+        // supplies it. Stand in for that host here.
         home: miniPlayerMode
             ? Material(color: Colors.black, child: guide)
             : guide,
@@ -183,12 +183,21 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  /// The back chevron is the one way to see programs that ended before the
+  /// live window opened.
+  Future<void> pageBackOnce(WidgetTester tester) async {
+    _nodeLabelled(tester, 'GuideWindowBar:0').requestFocus();
+    await tester.pumpAndSettle();
+    await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+    await tester.pumpAndSettle();
+  }
+
   testWidgets(
     'opening the dialog leaves Watch holding primary focus, not Record',
     (tester) async {
       channels = [_channelRaw('cA', 'Channel A')];
       // Spans the whole window, whatever width the surface derives, so the
-      // programme is neither ended nor future and cell 0 is always it.
+      // program is neither ended nor future and cell 0 is always it.
       programs = [
         _programRaw(
           channelId: 'cA',
@@ -207,21 +216,22 @@ void main() {
     },
   );
 
-  testWidgets('an ended series programme offers no single-episode record '
+  testWidgets('an ended series program offers no single-episode record '
       'action but offers series recording', (tester) async {
     channels = [_channelRaw('cB', 'Channel B')];
     programs = [
       _programRaw(
         channelId: 'cB',
-        start: _windowStart.subtract(const Duration(hours: 1)),
-        // The back-slice is fifteen to thirty minutes wide, so a cell ending
-        // five minutes into the window has certainly ended by now.
-        end: _windowStart.add(const Duration(minutes: 5)),
+        // Ends before the live window opens, so it has ended whatever the
+        // clock reads, and it fills the whole paged-back window.
+        start: _windowStart.subtract(const Duration(days: 1)),
+        end: _windowStart.subtract(const Duration(minutes: 5)),
         isSeries: true,
       ),
     ];
 
     await pumpGuide(tester);
+    await pageBackOnce(tester);
     await openDialogOnRow0(tester);
 
     expect(_alertDialog, findsOneWidget);
@@ -231,19 +241,20 @@ void main() {
     expect(find.text(l10n.recordSeries), findsOneWidget);
   });
 
-  testWidgets('an ended non-series programme offers no record action and no '
+  testWidgets('an ended non-series program offers no record action and no '
       'series action either', (tester) async {
     channels = [_channelRaw('cC', 'Channel C')];
     programs = [
       _programRaw(
         channelId: 'cC',
-        start: _windowStart.subtract(const Duration(hours: 1)),
-        end: _windowStart.add(const Duration(minutes: 5)),
+        start: _windowStart.subtract(const Duration(days: 1)),
+        end: _windowStart.subtract(const Duration(minutes: 5)),
         isSeries: false,
       ),
     ];
 
     await pumpGuide(tester);
+    await pageBackOnce(tester);
     await openDialogOnRow0(tester);
 
     expect(_alertDialog, findsOneWidget);
@@ -254,7 +265,7 @@ void main() {
     expect(find.text(l10n.cancelSeriesRecording), findsNothing);
   });
 
-  testWidgets('a programme recording right now focuses cancelling it, not '
+  testWidgets('a program recording right now focuses cancelling it, not '
       'Watch', (tester) async {
     channels = [_channelRaw('cE', 'Channel E')];
     programs = [

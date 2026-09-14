@@ -49,7 +49,7 @@ List<String> carouselNeighborhood(
 ///
 /// Data only: presentation entries are still built from `build`, where the
 /// localisations `TimeOfDay.format` needs are available. Warming them here
-/// would mean formatting off a context the holder does not have, and the
+/// would mean formatting off a context the holder doesn't have, and the
 /// entries a closed overlay could produce are mostly placeholders that the
 /// neighbourhood fetch invalidates a moment later anyway.
 class ChannelCarouselPrewarm {
@@ -190,7 +190,7 @@ class ChannelCarouselPrewarm {
   }
 
   /// Re-arms boundary scheduling and performs any hourly work missed while the
-  /// app was suspended. The player forwards resume here; the overlay does not
+  /// app was suspended. The player forwards resume here. The overlay doesn't
   /// become a second lifecycle owner when it adopts this prewarm.
   Future<void> onAppResumed() async {
     if (_disposed) return;
@@ -251,7 +251,7 @@ class ChannelCarouselOverlay extends StatefulWidget {
   final LiveTvGuideViewModel Function(MediaServerClient)? viewModelFactory;
 
   /// Guide data warmed at tune time. When supplied the overlay adopts it and
-  /// does not dispose it; the host that warmed it owns its lifetime.
+  /// doesn't dispose it. The host that warmed it owns its lifetime.
   final ChannelCarouselPrewarm? prewarm;
 
   const ChannelCarouselOverlay({
@@ -507,7 +507,7 @@ class _ChannelCarouselOverlayState extends State<ChannelCarouselOverlay>
 
   /// A player-level program refresh can rebuild this overlay at the same
   /// instant that the guide promotes a new program. Keep navigation owned by
-  /// the carousel child; otherwise the parent player focus node receives the
+  /// the carousel child. Otherwise the parent player focus node receives the
   /// next arrow event and the open carousel looks frozen.
   void _restoreCarouselFocus() {
     if (_dismissed) return;
@@ -599,7 +599,7 @@ class _ChannelCarouselOverlayState extends State<ChannelCarouselOverlay>
         if (mounted) _vm.scheduleBoundaryRefresh();
       }
     } catch (_) {
-      // Keep cached cards when a newly visible channel cannot be loaded.
+      // Keep cached cards when a newly visible channel can't be loaded.
     } finally {
       _loadingVisible = false;
       if (mounted && _loadAgain) {
@@ -659,8 +659,8 @@ class _ChannelCarouselOverlayState extends State<ChannelCarouselOverlay>
 
   /// Reverses the entrance before handing back to the host. The overlay stays
   /// mounted and focused throughout, so the back key-up that follows the
-  /// key-down it consumed is swallowed here rather than reaching the route;
-  /// the host's own suppression window then covers the unmounted case.
+  /// key-down it consumed is swallowed here rather than reaching the route.
+  /// The host's own suppression window then covers the unmounted case.
   void _dismiss() {
     if (_dismissed) return;
     _dismissed = true;
@@ -669,7 +669,7 @@ class _ChannelCarouselOverlayState extends State<ChannelCarouselOverlay>
   }
 
   /// The host is told only once the strip has left the screen, so the overlay
-  /// keeps focus — and keeps eating the trailing back key-up — until then.
+  /// keeps focus, and keeps eating the trailing back key-up, until then.
   void _onSlideStatus(AnimationStatus status) {
     if (status == AnimationStatus.dismissed && _dismissed && mounted) {
       widget.onDismiss();
@@ -799,7 +799,7 @@ class _ChannelCarouselOverlayState extends State<ChannelCarouselOverlay>
     final suffix = season != null && episode != null
         ? ' (S$season:E$episode)'
         : '';
-    // Some sources repeat the program name as the episode title; showing it
+    // Some sources repeat the program name as the episode title. Showing it
     // twice reads as a glitch.
     final episodeTitle = program?.episodeTitle;
     final episodeName =

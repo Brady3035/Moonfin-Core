@@ -2444,6 +2444,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get noChannelsFound => 'Keine TV-Kanäle gefunden';
 
   @override
+  String get noProgramData => 'No program data';
+
+  @override
   String get liveBadge => 'LIVE';
 
   @override
@@ -2514,6 +2517,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get watch => 'Ansehen';
+
+  @override
+  String get watchChannelLive => 'Watch channel live';
 
   @override
   String get close => 'Schließen';

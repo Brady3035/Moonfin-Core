@@ -28,7 +28,7 @@ const _durations = <int>[20, 30, 45, 60, 180];
 const _channelCount = 48;
 
 /// One batch is 50 channels, so a lineup past that leaves the tail rows
-/// genuinely unloaded — the only honest way to observe a loading row.
+/// genuinely unloaded, the only honest way to observe a loading row.
 const _deferredChannelCount = 60;
 const _firstDeferredChannelId = 'ch50';
 
@@ -83,7 +83,7 @@ Widget _hosted(Widget guide, {required bool embedded}) =>
 /// not match, so match the supertype instead.
 final Finder _alertDialog = find.byWidgetPredicate((w) => w is AlertDialog);
 
-/// `pumpAndSettle` cannot be used once any row is loading — that row's cell
+/// `pumpAndSettle` can't be used once any row is loading. That row's cell
 /// draws an indefinite progress indicator, so frames never stop. Pump a fixed
 /// span instead, comfortably past the guide's 200 ms row-scroll animation.
 Future<void> _pumpFrames(WidgetTester tester) async {
@@ -220,8 +220,8 @@ void main() {
     WidgetTester tester, {
     bool miniPlayerMode = false,
   }) async {
-    // Wide enough for a multi-hour window and tall enough for a dozen rows;
-    // the guide sizes its own time density to whatever surface it is given.
+    // Wide enough for a multi-hour window and tall enough for a dozen rows.
+    // The guide sizes its own time density to whatever surface it is given.
     tester.view.physicalSize = const Size(900, 700);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
@@ -231,7 +231,7 @@ void main() {
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         // Embedded mode drops the guide's own Scaffold because the host
-        // supplies it; stand in for that host here.
+        // supplies it. Stand in for that host here.
         home: _hosted(
           LiveTvGuideScreen(
             miniPlayerMode: miniPlayerMode,
@@ -273,7 +273,7 @@ void main() {
   /// Asserts the measured on-device regression: after [presses] DOWN presses
   /// the horizontal viewport is byte-for-byte where it started and the
   /// selection is still on the cell holding the anchor. Six presses drifted by
-  /// about an hour; forty-five collapsed onto the row's first cell.
+  /// about an hour. Forty-five collapsed onto the row's first cell.
   Future<void> expectNoDrift(WidgetTester tester, int presses) async {
     await pumpGuide(tester);
     final anchorMinutes = await establishAnchor(tester);
@@ -285,7 +285,7 @@ void main() {
     expect(_horizontalOffsets(tester), before);
 
     // Without this the offset check alone would pass on a guide that never
-    // moved at all, which is not what the regression was about.
+    // moved at all, which isn't what the regression was about.
     final focused = _focusedCell();
     expect(focused, isNotNull, reason: 'focus left the grid');
     expect(focused!.row, presses);
@@ -354,7 +354,7 @@ void main() {
     final before = _horizontalOffsets(tester);
 
     // Row 3's hour-long cell around the anchor extends past the viewport's
-    // right edge; row 4 is a single cell wider than the viewport.
+    // right edge. Row 4 is a single cell wider than the viewport.
     for (var step = 1; step <= 4; step++) {
       await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
       await tester.pumpAndSettle();

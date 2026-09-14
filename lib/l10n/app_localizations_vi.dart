@@ -2367,6 +2367,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get noChannelsFound => 'Không tìm thấy kênh nào';
 
   @override
+  String get noProgramData => 'No program data';
+
+  @override
   String get liveBadge => 'SỐNG';
 
   @override
@@ -2438,6 +2441,9 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get watch => 'Xem';
+
+  @override
+  String get watchChannelLive => 'Watch channel live';
 
   @override
   String get close => 'Đóng';

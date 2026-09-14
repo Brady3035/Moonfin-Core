@@ -122,7 +122,7 @@ void main() {
 
   test('the overlay stays up for two minutes unless dismissed', () {
     // Owner requirement: the changer is for browsing, so it must not vanish
-    // mid-look; the player relies on this default and passes no override.
+    // mid-look. The player relies on this default and passes no override.
     final overlay = ChannelCarouselOverlay(
       client: _CarouselClient(),
       channels: const [],
@@ -256,7 +256,7 @@ void main() {
     final description = tester.getRect(find.text('Overview ch10'));
     final stripTop = tester.getRect(find.byType(ChannelCarousel)).top;
     // The header reserves both overview lines so the strip holds still as the
-    // selection moves; this fixture's overview is one line, so the second one
+    // selection moves. This fixture's overview is one line, so the second one
     // plus the deliberate gap is everything that may sit under it.
     expect(
       stripTop - description.bottom,
@@ -600,7 +600,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 4999));
     expect(dismissals, 0);
     await tester.pump(const Duration(milliseconds: 1));
-    // The timeout starts the slide out; the host is told once it has run.
+    // The timeout starts the slide out. The host is told once it has run.
     expect(dismissals, 0);
     await tester.pump();
     await tester.pump(kCarouselExitDuration * 2);
@@ -746,8 +746,8 @@ void main() {
   testWidgets(
     'a lineup past the visible run scrolls while a hold advances by one',
     (tester) async {
-      // The derived card count is always odd, so an even exact fit cannot
-      // arise; one channel more than fits is the case that must scroll.
+      // The derived card count is always odd, so an even exact fit can't
+      // arise. One channel more than fits is the case that must scroll.
       final centered = await pumpCarousel(tester, 6, initialIndex: 5);
       expect(find.byType(ListView), findsOneWidget);
       final selected = find.byWidgetPredicate(
@@ -789,7 +789,7 @@ void main() {
     }
 
     // A watchdog measured from key-down would have cancelled the hold at
-    // 900 ms; incoming repeats keep it alive.
+    // 900 ms. Incoming repeats keep it alive.
     expect(centred.length, greaterThan(movesBy900ms));
 
     await tester.sendKeyUpEvent(LogicalKeyboardKey.arrowRight);
@@ -803,7 +803,7 @@ void main() {
     await tester.sendKeyDownEvent(LogicalKeyboardKey.arrowRight);
     await tester.pump();
 
-    // Repeats stop at 400 ms; no key-up ever arrives.
+    // Repeats stop at 400 ms. No key-up ever arrives.
     for (var elapsed = 100; elapsed <= 400; elapsed += 100) {
       await tester.pump(const Duration(milliseconds: 100));
       await tester.sendKeyRepeatEvent(LogicalKeyboardKey.arrowRight);
@@ -831,7 +831,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 400));
     expect(centred.length, 2, reason: 'key-down move plus the 350 ms move');
 
-    // Timer-driven moves cannot postpone the watchdog, so it fires 900 ms
+    // Timer-driven moves can't postpone the watchdog, so it fires 900 ms
     // after the key-down and every move after that is cancelled.
     await tester.pump(const Duration(milliseconds: 490));
     final movesAtWatchdog = centred.length;

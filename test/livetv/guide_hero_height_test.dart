@@ -11,7 +11,7 @@ void main() {
         home: Align(
           alignment: Alignment.topCenter,
           child: EpgHeroPreview(
-            title: 'Programme',
+            title: 'Program',
             timeLabel: '7:00 - 8:00',
             genreLabel: 'Drama',
             synopsis:

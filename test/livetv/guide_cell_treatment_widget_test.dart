@@ -23,7 +23,7 @@ class _MockLiveTvApi extends Mock implements LiveTvApi {}
 
 class _MockPlaybackManager extends Mock implements PlaybackManager {}
 
-/// One batch is 50 channels; a lineup past that leaves the tail genuinely
+/// One batch is 50 channels. A lineup past that leaves the tail genuinely
 /// unloaded, which is the only honest way to observe a loading cell.
 const _deferredChannelCount = 60;
 const _firstDeferredChannelId = 'ch50';
@@ -36,7 +36,7 @@ late DateTime _windowStart;
 /// not match, so match the supertype instead.
 final Finder _alertDialog = find.byWidgetPredicate((w) => w is AlertDialog);
 
-/// `pumpAndSettle` cannot be used once any row is loading — that row's cell
+/// `pumpAndSettle` can't be used once any row is loading. That row's cell
 /// draws an indefinite progress indicator, so frames never stop. Pump a fixed
 /// span instead, comfortably past the guide's 200 ms row-scroll animation.
 Future<void> _pumpFrames(WidgetTester tester) async {
@@ -187,7 +187,7 @@ void main() {
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         // Embedded mode drops the guide's own Scaffold because the host
-        // supplies it; stand in for that host here.
+        // supplies it. Stand in for that host here.
         home: Material(
           color: Colors.black,
           child: LiveTvGuideScreen(
@@ -241,7 +241,7 @@ void main() {
     'a gap cell shows "No program data" and tunes the channel on press',
     (tester) async {
       channels = [_channelRaw('cGap', 'Channel Gap')];
-      // Covers only the first hour; the rest of the window is a genuine
+      // Covers only the first hour. The rest of the window is a genuine
       // schedule gap, not a filtered-out show.
       programsByChannel['cGap'] = [
         _programRaw(
@@ -278,7 +278,7 @@ void main() {
     (tester) async {
       channels = [_channelRaw('cFiltered', 'Channel Filtered')];
       // A movie for the first hour, then a non-movie filling the rest of the
-      // widest window the surface can derive; under the Movies filter that
+      // widest window the surface can derive. Under the Movies filter that
       // second program's slot is a filtered hole, not a gap.
       programsByChannel['cFiltered'] = [
         _programRaw(

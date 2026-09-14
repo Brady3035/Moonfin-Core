@@ -1,7 +1,7 @@
 // Pure indexing math for the circular channel carousel: no Flutter imports.
 
-/// Recentre once the raw index drifts this many lineups away from the seed;
-/// callers seed deep inside a `channelCount * N` space (N in the hundreds)
+/// Recentre once the raw index drifts this many lineups away from the seed.
+/// Callers seed deep inside a `channelCount * N` space (N in the hundreds)
 /// so this threshold is reached only after long, sustained scrolling.
 const int _driftThresholdMultiplier = 200;
 
@@ -12,7 +12,7 @@ int channelIndexFor(int rawIndex, int channelCount) {
 
 /// How many channels a held LEFT/RIGHT press advances per repeat. A hold
 /// moves one channel at a time, rapidly, so the strip reads as continuous
-/// motion instead of turning over a screenful per repeat; a lineup of one
+/// motion instead of turning over a screenful per repeat. A lineup of one
 /// stays inert.
 int holdStep(int channelCount) => channelCount <= 1 ? 0 : 1;
 

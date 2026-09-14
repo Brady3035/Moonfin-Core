@@ -41,7 +41,7 @@ const _kProgramPrefetchRows = 12;
 const _kGuideScrollLead = 24.0;
 const _kGuideLogoPrecacheRows = 24;
 
-/// How far back the guide will page; most EPG sources keep little history,
+/// How far back the guide will page. Most EPG sources keep little history,
 /// so beyond this the grid would only ever show empty cells.
 const _kMaxGuideHistory = Duration(hours: 24);
 
@@ -75,7 +75,7 @@ const int _kWindowBarDate = 4;
 const int _kWindowBarRecordings = 5;
 const int _kWindowBarLast = _kWindowBarRecordings;
 
-/// 1 pages a viewport of rows forward, -1 back, 0 when the key does not page.
+/// 1 pages a viewport of rows forward, -1 back, 0 when the key doesn't page.
 int _pageRowDirection(LogicalKeyboardKey key) {
   if (_kPageForwardKeys.contains(key)) return 1;
   if (_kPageBackKeys.contains(key)) return -1;
@@ -128,8 +128,8 @@ class LiveTvGuideScreen extends StatefulWidget {
   State<LiveTvGuideScreen> createState() => _LiveTvGuideScreenState();
 }
 
-/// A vertical move that could not be resolved when the key was pressed. At
-/// most one is held; it is superseded by the next navigation key and cancelled
+/// A vertical move that couldn't be resolved when the key was pressed. At
+/// most one is held. It is superseded by the next navigation key and cancelled
 /// outright by anything that invalidates the destination.
 class _PendingVerticalMove {
   final int targetRowIndex;
@@ -175,14 +175,14 @@ class _LiveTvGuideScreenState extends State<LiveTvGuideScreen>
   );
   Duration? _pendingGuideWindow;
 
-  /// The grid's selection model; vertical navigation resolves against its
+  /// The grid's selection model. Vertical navigation resolves against its
   /// anchor time instead of focus geometry. Seeded on the first cell focus.
   GuideSelection? _selection;
 
   /// The single deferred vertical move, or null when nothing is pending.
   _PendingVerticalMove? _pendingVerticalMove;
 
-  /// One-shot timer to the next half hour; rescheduled when it fires.
+  /// One-shot timer to the next half hour. Rescheduled when it fires.
   Timer? _reanchorTimer;
   Timer? _displayClockTimer;
 
@@ -197,8 +197,8 @@ class _LiveTvGuideScreenState extends State<LiveTvGuideScreen>
 
   bool get _apple => AppUiIdiomResolver.isApple;
 
-  // Standalone landscape guides can reclaim the route's top breathing room;
-  // mobile and embedded guides keep their existing inset.
+  // Standalone landscape guides can reclaim the route's top breathing room.
+  // Mobile and embedded guides keep their existing inset.
   double _contentTopInset({bool landscape = false}) =>
       landscape && !widget.miniPlayerMode ? 8.0 : 20.0;
 
@@ -588,7 +588,7 @@ class _LiveTvGuideScreenState extends State<LiveTvGuideScreen>
           },
           // RadioGroup binds the arrow keys to "select the adjacent radio", so
           // on a d-pad the first move commits a sort and closes the dialog.
-          // Restore plain directional focus; centre-press still picks.
+          // Restore plain directional focus. Centre-press still picks.
           child: Shortcuts(
             shortcuts: const <ShortcutActivator, Intent>{
               SingleActivator(LogicalKeyboardKey.arrowUp):
@@ -800,9 +800,9 @@ class _LiveTvGuideScreenState extends State<LiveTvGuideScreen>
       children: [
         _buildTopSection(),
         SizedBox(height: widget.miniPlayerMode ? 8 : 2),
-        // The window control sits directly above the grid; the tick strip's
+        // The window control sits directly above the grid. The tick strip's
         // left region is only channel-column wide and 22-24 px tall, so it
-        // cannot hold the chevrons and the range text at the narrowest size.
+        // can't hold the chevrons and the range text at the narrowest size.
         if (!widget.miniPlayerMode) _buildGuideWindowBar(),
         Expanded(child: _buildBody()),
       ],
@@ -1179,7 +1179,7 @@ class _LiveTvGuideScreenState extends State<LiveTvGuideScreen>
             ],
           ),
         ),
-        // Back-only dismissal is a TV rule; desktop and web need a clickable exit.
+        // Back-only dismissal is a TV rule. Desktop and web need a clickable exit.
         if (!PlatformDetection.isTV)
           Positioned(
             top: 4,
@@ -1563,7 +1563,7 @@ class _LiveTvGuideScreenState extends State<LiveTvGuideScreen>
       },
       builder: (focused) => Container(
         height: _layoutProfile.rowHeight,
-        // The cell brings its own vertical padding; doubling it here starved
+        // The cell brings its own vertical padding. Doubling it here starved
         // the number chip and name of height and overflowed the row.
         padding: const EdgeInsets.symmetric(horizontal: 6),
         decoration: BoxDecoration(
@@ -1581,7 +1581,7 @@ class _LiveTvGuideScreenState extends State<LiveTvGuideScreen>
     );
   }
 
-  /// The cell timeline for one channel; the single place `buildRowCells` is
+  /// The cell timeline for one channel. The single place `buildRowCells` is
   /// called, so a row the screen navigates to is built the same way it renders.
   List<GuideCell> _cellsForChannel(String channelId) => buildRowCells(
     visible: _vm.programsForChannel(channelId),
@@ -1650,7 +1650,7 @@ class _LiveTvGuideScreenState extends State<LiveTvGuideScreen>
     rowState.focusCellAt(resolveCellIndexAt(cells, selection.anchorTime));
   }
 
-  /// Completes the deferred move once its row is mounted and loaded; the
+  /// Completes the deferred move once its row is mounted and loaded. The
   /// intent survives until then or until something clears it.
   void _applyPendingVerticalMove() {
     final pending = _pendingVerticalMove;
@@ -1664,7 +1664,7 @@ class _LiveTvGuideScreenState extends State<LiveTvGuideScreen>
     rowState.focusCellAt(resolveCellIndexAt(cells, pending.anchorTime));
   }
 
-  /// Defers the apply to after the current frame; rows report themselves while
+  /// Defers the apply to after the current frame. Rows report themselves while
   /// building, when focus must not be requested.
   void _scheduleApplyPendingVerticalMove() {
     if (_pendingVerticalMove == null) return;
@@ -1680,7 +1680,7 @@ class _LiveTvGuideScreenState extends State<LiveTvGuideScreen>
     _cancelPendingVerticalMove();
   }
 
-  /// Arms a single timer for the next :00/:30 rather than polling; the window
+  /// Arms a single timer for the next :00/:30 rather than polling. The window
   /// only moves on the half hour [guideLeftEdge] floors to.
   void _scheduleReanchor() {
     _reanchorTimer?.cancel();
@@ -1756,7 +1756,7 @@ class _LiveTvGuideScreenState extends State<LiveTvGuideScreen>
   }
 
   /// [focusGrid] is false when a control drove the shift, so pressing a
-  /// chevron does not yank focus down into the grid. [allowPast] is true only
+  /// chevron doesn't yank focus down into the grid. [allowPast] is true only
   /// for the back chevron, the one way to browse earlier than the live window.
   Future<void> _shiftGuideWindow(
     Duration amount, {
@@ -1769,7 +1769,7 @@ class _LiveTvGuideScreenState extends State<LiveTvGuideScreen>
     final target = oldStart.add(amount);
     final liveStart = guideLeftEdge(DateTime.now());
     // Only the back chevron may look at history, and only as far as the
-    // server realistically keeps it; every other backward path exists to
+    // server realistically keeps it. Every other backward path exists to
     // return toward live after paging ahead.
     final backFloor = liveStart.subtract(_kMaxGuideHistory);
     final floor = allowPast ? backFloor : liveStart;
@@ -1823,7 +1823,7 @@ class _LiveTvGuideScreenState extends State<LiveTvGuideScreen>
     );
     if (target == fromRowIndex) return;
     _moveSelectionVertically(fromRowIndex, target - fromRowIndex);
-    // A row a viewport away is usually unbuilt; scrolling mounts it so the
+    // A row a viewport away is usually unbuilt. Scrolling mounts it so the
     // deferred move can complete.
     if (_pendingVerticalMove != null) _scrollToRow(target);
   }
@@ -1901,7 +1901,7 @@ class _LiveTvGuideScreenState extends State<LiveTvGuideScreen>
       noProgramDataLabel: AppLocalizations.of(context).noProgramData,
       filterLabel: _filterLabel,
       // Per A3: a gap or filtered hole tunes live, never opens the recording
-      // dialog; loading is inert; failed has no retry producer yet.
+      // dialog. Loading is inert. Failed has no retry producer yet.
       onProgramSelected: (cell) {
         switch (cell.kind) {
           case GuideCellKind.program:
@@ -2020,7 +2020,7 @@ class _LiveTvGuideScreenState extends State<LiveTvGuideScreen>
     final hasTimer = program.hasTimer;
     final hasSeriesTimer = program.hasSeriesTimer;
     final now = DateTime.now();
-    // That airing is over; only a future or currently-airing showing can still be recorded.
+    // That airing is over. Only a future or currently-airing showing can still be recorded.
     final isEnded = now.isAfter(program.endDate);
     final isFuture = now.isBefore(program.startDate);
     // Airing right now with a timer set: the recording is in progress, so
@@ -2040,7 +2040,7 @@ class _LiveTvGuideScreenState extends State<LiveTvGuideScreen>
           defaultActionFocusRequested = true;
           // On TV a navigator observer hands a freshly pushed route's first
           // focusable the focus from a post-frame callback registered at push
-          // time, which lands after `autofocus` resolves; re-assert from a
+          // time, which lands after `autofocus` resolves. Re-assert from a
           // later callback so the intended action keeps it.
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (defaultActionFocusNode.context != null) {
@@ -2118,7 +2118,7 @@ class _LiveTvGuideScreenState extends State<LiveTvGuideScreen>
             ),
           ),
           actions: [
-            // That airing is over; single-episode recording no longer applies.
+            // That airing is over. Single-episode recording no longer applies.
             if (!isEnded)
               adaptiveDialogAction(
                 autofocus: isRecordingNow,
@@ -2241,7 +2241,7 @@ class _LiveTvGuideScreenState extends State<LiveTvGuideScreen>
                 Navigator.of(dialogContext).pop();
                 _watchChannel(program.channelId);
               },
-              // A future or ended showing will not itself play; the label says so.
+              // A future or ended showing won't itself play. The label says so.
               child: Text(
                 isEnded || isFuture ? l10n.watchChannelLive : l10n.watch,
               ),
@@ -2290,7 +2290,7 @@ class _GuideGridView extends StatelessWidget {
           itemCount: channels.length,
           itemExtent: rowHeight,
           itemBuilder: (context, index) {
-            // Always the real row; an unloaded channel's `loading` cell carries
+            // Always the real row. An unloaded channel's `loading` cell carries
             // the loading treatment and stays focusable.
             return SizedBox(
               key: ValueKey(channels[index].id),
@@ -2451,14 +2451,14 @@ class _GuideProgramRow extends StatefulWidget {
   final List<GuideCell> cells;
   final int rowIndex;
 
-  /// The screen's registry of mounted rows; this row adds and removes itself.
+  /// The screen's registry of mounted rows. This row adds and removes itself.
   final Map<int, _GuideProgramRowState> rowStates;
 
   /// Null until the first cell takes focus.
   final GuideSelection? selection;
   final void Function(int fromRowIndex, int delta) onVerticalMove;
 
-  /// Pages whole channel rows; like any vertical move it preserves the anchor.
+  /// Pages whole channel rows. Like any vertical move it preserves the anchor.
   final void Function(int fromRowIndex, int direction) onPageRows;
 
   /// Fired before any arrow key is acted on, so a deferred move the user has
@@ -2483,7 +2483,7 @@ class _GuideProgramRow extends StatefulWidget {
   final void Function(GuideCell cell, double left, double width)?
   onHorizontalMove;
 
-  /// Label for a real schedule gap (A3); a genre-filtered hole never shows it.
+  /// Label for a real schedule gap. A genre-filtered hole never shows it.
   final String noProgramDataLabel;
   final String Function(GuideFilter) filterLabel;
 
@@ -2546,7 +2546,7 @@ class _GuideProgramRowState extends State<_GuideProgramRow> {
   }
 
   /// Re-binds focus to the selected program after a data change, so a
-  /// same-length refresh cannot leave focus on a different show.
+  /// same-length refresh can't leave focus on a different show.
   void _reresolveFocus(int focused) {
     if (focused < 0) return;
     final selection = widget.selection;
@@ -2575,7 +2575,7 @@ class _GuideProgramRowState extends State<_GuideProgramRow> {
     return false;
   }
 
-  /// Focuses one of this row's cells on the screen's behalf; the nodes are
+  /// Focuses one of this row's cells on the screen's behalf. The nodes are
   /// private to this state.
   void focusCellAt(int index) {
     if (index < 0 || index >= _focusNodes.length) return;
@@ -2661,7 +2661,7 @@ class _GuideProgramRowState extends State<_GuideProgramRow> {
       return KeyEventResult.handled;
     }
     if (key.isDownKey) {
-      // Consumed even when refused, so directional traversal cannot pick a
+      // Consumed even when refused, so directional traversal can't pick a
       // cell by geometry and drift the selection in time.
       widget.onVerticalMove(widget.rowIndex, 1);
       return KeyEventResult.handled;

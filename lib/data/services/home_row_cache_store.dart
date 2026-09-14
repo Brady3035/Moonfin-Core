@@ -20,7 +20,7 @@ class HomeRowCacheStore {
   static const _maxAge = Duration(days: 3);
 
   /// Rows whose items are only true for the minutes they describe. Replaying
-  /// them from disk paints programmes that already ended.
+  /// them from disk paints programs that already ended.
   static bool _isTimeBound(HomeRowType rowType) =>
       rowType == HomeRowType.liveTvOnNow;
 

@@ -121,12 +121,12 @@ class LiveTvGuideViewModel extends ChangeNotifier {
   final MediaServerClient _client;
   bool _disposed = false;
 
-  // The smallest responsive guide span; wider landscape surfaces replace it
+  // The smallest responsive guide span. Wider landscape surfaces replace it
   // through setWindow after GuideLayoutProfile measures their available area.
   static const _defaultGuideWindow = Duration(minutes: 150);
   // Programs only need the synopsis; channel logos come from the separate
   // /LiveTv/Channels fetch, so we don't request ImageTags here. OfficialRating
-  // needs no entry: it is not an ItemFields value and the server returns it
+  // needs no entry: it isn't an ItemFields value and the server returns it
   // unconditionally.
   static const _fields = 'Overview';
 
@@ -506,7 +506,7 @@ class LiveTvGuideViewModel extends ChangeNotifier {
       if (initialChannelIds == null) {
         await loadInitialPrograms();
       } else {
-        // A targeted open (the carousel) fetches only its neighbourhood; the
+        // A targeted open (the carousel) fetches only its neighbourhood. The
         // guide's default still walks the ordered batches.
         _resetPrograms();
         await ensureProgramsForChannels(initialChannelIds);
@@ -704,7 +704,7 @@ class LiveTvGuideViewModel extends ChangeNotifier {
   }
 
   /// Call when the guide becomes visible. A window left open past 30 minutes
-  /// stale forces a full reload; this is the one re-entry path where that is
+  /// stale forces a full reload. This is the one re-entry path where that is
   /// still correct, since background refresh elsewhere avoids it.
   Future<void> reloadIfStale({Duration? window, DateTime? windowStart}) async {
     if (_reloadOnEntry ||
@@ -850,7 +850,7 @@ class LiveTvGuideViewModel extends ChangeNotifier {
   // --- Next-future-boundary refresh -----------------------------------------
 
   /// Delay before retrying when the server returned nothing beyond the coverage
-  /// already held; without it that case retries immediately and spins.
+  /// already held. Without it that case retries immediately and spins.
   @visibleForTesting
   static const noNewCoverageRetry = Duration(minutes: 5);
 
@@ -889,8 +889,8 @@ class LiveTvGuideViewModel extends ChangeNotifier {
   /// Boundary fetches preserve the guide viewport. Carousel prewarming uses
   /// [refreshCarouselPrograms] for a bounded rolling window instead.
   ///
-  /// This view model is not a lifecycle observer: the surface that owns it must
-  /// call this again on app resume, because timers do not fire while suspended.
+  /// This view model isn't a lifecycle observer: the surface that owns it must
+  /// call this again on app resume, because timers don't fire while suspended.
   void scheduleBoundaryRefresh() {
     if (_disposed) return;
     _boundarySchedulingEnabled = true;
@@ -949,7 +949,7 @@ class LiveTvGuideViewModel extends ChangeNotifier {
     return tracked;
   }
 
-  /// Stops the boundary refresh; call when the surface is torn down.
+  /// Stops the boundary refresh. Call when the surface is torn down.
   void cancelBoundaryRefresh() {
     _boundarySchedulingEnabled = false;
     _boundaryTimer?.cancel();
@@ -1005,7 +1005,7 @@ class LiveTvGuideViewModel extends ChangeNotifier {
         return;
       }
     } catch (_) {
-      // Keep the data we hold; a failed refresh must not blank the guide.
+      // Keep the data we hold. A failed refresh must not blank the guide.
       _boundaryRefreshInFlight = false;
       _armRetry(failureBackoff);
       return;
@@ -1139,7 +1139,7 @@ class LiveTvGuideViewModel extends ChangeNotifier {
   }
 
   /// True when some channel with cached programs has run out of them, which is
-  /// the only case a local promotion cannot cover.
+  /// the only case a local promotion can't cover.
   bool _coverageLapsed(DateTime now) {
     for (final programs in _programsByChannel.values) {
       if (programs.isEmpty) continue;

@@ -7,7 +7,7 @@ import '../../../../widgets/marquee_text.dart';
 /// Channel identity cell for the guide rail: logo pinned left, with the accent
 /// number chip and the channel name right-justified against the cell's trailing
 /// edge. The cell itself provides the contrast surface for the bare logo. Pure
-/// presentation; the host owns focus + key handling and
+/// presentation. The host owns focus + key handling and
 /// passes [focused]. Idiom-aware surface (glass-tinted on Apple, accent tint on
 /// Material).
 class EpgChannelCell extends StatelessWidget {
@@ -116,7 +116,7 @@ class EpgChannelCell extends StatelessWidget {
       decoration: BoxDecoration(
         color: bg,
         borderRadius: AppRadius.circular(radius),
-        // Always reserve the border so focus does not change the cell height.
+        // Always reserve the border so focus doesn't change the cell height.
         border: Border.all(
           color: focused ? accent.withValues(alpha: 0.7) : Colors.transparent,
           width: 1,
@@ -127,7 +127,7 @@ class EpgChannelCell extends StatelessWidget {
   }
 
   /// The image viewport fills the cell's available height. The cell surface
-  /// behind it supplies the contrast, so logos do not get a second card.
+  /// behind it supplies the contrast, so logos don't get a second card.
   Widget _logo(double width) => SizedBox(
     width: width,
     height: double.infinity,

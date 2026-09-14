@@ -3,7 +3,7 @@ import '../../../../data/viewmodels/live_tv_guide_view_model.dart';
 /// What a guide row's presentation cell represents at a given interval.
 enum GuideCellKind { program, gap, filtered, loading, failed }
 
-/// A presentation-only slice of a guide row's timeline; never written back to
+/// A presentation-only slice of a guide row's timeline. Never written back to
 /// the server-backed program cache.
 class GuideCell {
   final DateTime start;
@@ -36,7 +36,7 @@ List<GuideCell> buildRowCells({
     return [GuideCell(start: windowStart, end: windowEnd, kind: kind)];
   }
 
-  // Clip and sort the visible programs to the window; the server can return
+  // Clip and sort the visible programs to the window. The server can return
   // programs unsorted, and clipping can also produce a zero-width interval
   // for a program that only touches the window edge.
   final clipped = visible
@@ -53,7 +53,7 @@ List<GuideCell> buildRowCells({
   final cells = <GuideCell>[];
   var cursor = windowStart;
   for (final c in clipped) {
-    // Overlapping input programs can put c.start behind the cursor; skip the
+    // Overlapping input programs can put c.start behind the cursor. Skip the
     // already-covered portion rather than emitting an overlapping cell.
     final start = c.start.isBefore(cursor) ? cursor : c.start;
     if (!start.isBefore(c.end)) continue;
@@ -76,8 +76,8 @@ List<GuideCell> buildRowCells({
   return cells;
 }
 
-/// Partitions a hole at hidden-program boundaries so real gaps are not
-/// swallowed by a filtered programme that covers only part of the interval.
+/// Partitions a hole at hidden-program boundaries so real gaps aren't
+/// swallowed by a filtered program that covers only part of the interval.
 List<GuideCell> _fillHole(
   DateTime start,
   DateTime end,

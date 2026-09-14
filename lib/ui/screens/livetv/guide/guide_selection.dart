@@ -26,7 +26,7 @@ class GuideSelection {
       );
 }
 
-/// Index of the cell covering [anchor]; cells tile the window, so one always matches.
+/// Index of the cell covering [anchor]. Cells tile the window, so one always matches.
 int resolveCellIndexAt(List<GuideCell> cells, DateTime anchor) {
   for (var i = 0; i < cells.length; i++) {
     if (!cells[i].start.isAfter(anchor) && cells[i].end.isAfter(anchor)) return i;

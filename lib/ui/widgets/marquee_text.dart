@@ -8,7 +8,7 @@ class MarqueeText extends StatefulWidget {
   final TextStyle style;
 
   /// The number of lines visible before an overflowing value scrolls. The
-  /// default is the original horizontal one-line marquee; values above one
+  /// default is the original horizontal one-line marquee. Values above one
   /// use the same pause/repeat timing to scroll vertically through wrapped
   /// text, keeping the full visible line budget available to the caller.
   final int maxLines;

@@ -2354,6 +2354,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noChannelsFound => 'No channels found';
 
   @override
+  String get noProgramData => 'No program data';
+
+  @override
   String get liveBadge => 'LIVE';
 
   @override
@@ -2425,6 +2428,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get watch => 'Watch';
+
+  @override
+  String get watchChannelLive => 'Watch channel live';
 
   @override
   String get close => 'Close';

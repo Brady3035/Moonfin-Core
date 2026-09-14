@@ -80,6 +80,14 @@ class PluginSyncService extends ChangeNotifier {
   bool get mdblistAvailable => _mdblistAvailable;
   bool _tmdbAvailable = false;
   bool get tmdbAvailable => _tmdbAvailable;
+  bool _recommendationsSupported = false;
+  bool get recommendationsSupported =>
+      _pluginAvailable && _recommendationsSupported;
+
+  /// Whether the server will take an uploaded diagnostic report. An older
+  /// plugin, or none at all, leaves it false.
+  bool _clientLogSupported = false;
+  bool get clientLogSupported => _pluginAvailable && _clientLogSupported;
   String? _activeThemeCacheServerId;
   void Function(
     String title,
@@ -205,6 +213,8 @@ class PluginSyncService extends ChangeNotifier {
     _seerrInfoAvailable = false;
     _mdblistAvailable = false;
     _tmdbAvailable = false;
+    _recommendationsSupported = false;
+    _clientLogSupported = false;
     _activeThemeCacheServerId = null;
     if (notify) {
       _setLocalSeerrEnabled(false);
@@ -261,10 +271,13 @@ class PluginSyncService extends ChangeNotifier {
       _seerrEnabled = _readBool(pingResult, 'seerrEnabled') ?? false;
       _mdblistAvailable = _readBool(pingResult, 'mdblistAvailable') ?? false;
       _tmdbAvailable = _readBool(pingResult, 'tmdbAvailable') ?? false;
+      _recommendationsSupported =
+          _readBool(pingResult, 'recommendationsSupported') ?? false;
       // Older plugins leave this out, which reads as false and hides the button.
       _messages?.setSupported(
         _readBool(pingResult, 'messagesSupported') ?? false,
       );
+      _clientLogSupported = _readBool(pingResult, 'clientLogSupported') ?? false;
 
       final seerrConfig = await _fetchSeerrConfig(client);
       if (seerrConfig != null) {
@@ -1026,6 +1039,29 @@ class PluginSyncService extends ChangeNotifier {
         return response.data as Map<String, dynamic>;
       }
     } catch (_) {}
+    return null;
+  }
+
+  Future<Map<String, dynamic>?> fetchSimilarItems(
+    MediaServerClient client,
+    String itemId, {
+    int limit = 100,
+  }) async {
+    final headers = _authHeaders(client);
+    if (headers == null) return null;
+
+    try {
+      final response = await _dio.get(
+        '${client.baseUrl}/Moonfin/Items/$itemId/Similar',
+        queryParameters: {'limit': limit},
+        options: Options(headers: headers),
+      );
+      if (response.data is Map<String, dynamic>) {
+        return response.data as Map<String, dynamic>;
+      }
+    } catch (e) {
+      debugPrint('[PluginSyncService] fetchSimilarItems failed: $e');
+    }
     return null;
   }
 

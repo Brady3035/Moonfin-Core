@@ -90,6 +90,77 @@ typedef struct {
   void (*fatal_error)(void *user, const char *message);
 } lh_callbacks;
 
+// ---------------------------------------------------------------------------
+// Platform-supplied hardware-rendering backend. The interface is graphics-API
+// neutral; registering it does not enable hardware rendering by itself.
+
+// Bump when the backend layout changes.
+#define LH_HW_BACKEND_VERSION 1
+
+// Graphics APIs understood by the host.
+typedef enum {
+  LH_HW_API_NONE = 0,
+  LH_HW_API_GLES2 = 1,
+  LH_HW_API_GLES = 2,
+  LH_HW_API_GL = 3,
+  LH_HW_API_GL_CORE = 4,
+  // Reserved; no backend currently implements Vulkan.
+  LH_HW_API_VULKAN = 5,
+} lh_hw_api;
+
+// Normalized hardware-render request.
+typedef struct {
+  lh_hw_api api;
+  int version_major;
+  int version_minor;
+  int depth;
+  int stencil;
+  // Non-zero when the core uses a bottom-left origin.
+  int bottom_left_origin;
+  int debug_context;
+  // Maximum render-target dimensions. The target is fixed for the session.
+  int max_width;
+  int max_height;
+} lh_hw_request;
+
+// Opaque render-target handle.
+#define LH_HW_TARGET_NONE 0
+#define LH_HW_TARGET_GL_FBO 1
+typedef struct {
+  uint32_t kind;
+  union {
+    uint64_t gl_fbo_name;
+    void *opaque;
+  } u;
+} lh_hw_target;
+
+// Backend callbacks. All callbacks except supports run on the emulation thread.
+typedef struct {
+  uint32_t struct_version;
+
+  // Returns non-zero when the requested context can be created.
+  int (*supports)(void *user, const lh_hw_request *req);
+
+  // Create the context and fixed-size render target.
+  int (*context_create)(void *user, const lh_hw_request *req);
+
+  // Tear down the context before unloading the core.
+  void (*context_destroy)(void *user);
+
+  // Bind/unbind the context on the emulation thread.
+  int (*make_current)(void *user);
+  void (*release_current)(void *user);
+
+  // Return the render target. It must remain stable for the session.
+  lh_hw_target (*current_target)(void *user);
+
+  // Resolve a graphics entry point for the core.
+  void *(*get_proc_address)(void *user, const char *sym);
+
+  // Present the current sub-rectangle with the requested rotation.
+  int (*present)(void *user, int width, int height, int rotation);
+} lh_hw_backend;
+
 // Bounds for the option snapshot below. The host only speaks the legacy
 // SET_VARIABLES form ("Label; a|b|c" - GET_CORE_OPTIONS_VERSION is answered
 // with 0), where ids, labels, and values are all short, so these caps are
@@ -147,11 +218,9 @@ lh_host *lh_create(lh_output_format fmt, lh_callbacks cb);
 // held on [port]. Call this every time the platform's raw input state
 // changes - on a key/button edge, a controller value-changed callback, a
 // method-channel message, whatever the platform's transport is - not once
-// per frame. The host does not sample this instantaneously: every mask
-// reported between two core polls is OR'd into a pending latch, so a press
-// whose down and up both land inside one ~16.7ms poll window is still
-// observed by the core for exactly one frame, and reads of different button
-// ids within the same frame stay coherent (RetroArch does the same thing).
+// per frame. The host records press and release transitions between frontend
+// frames, so a complete short tap is exposed as DOWN and then UP instead of
+// disappearing. Every button read comes from one complete atomic mask.
 // A bit held continuously across many frames stays set in every one of them.
 // Thread-safe and safe to call before a core is loaded or after lh_stop; the
 // write just has nothing to be read by yet. [port] outside
@@ -183,6 +252,9 @@ int lh_load(lh_host *host, const char *core_path, const char *rom_path,
 // already was), non-zero when it could not be created.
 int lh_start(lh_host *host);
 void lh_pause(lh_host *host);
+// Resumes asynchronously with respect to input lifecycle state: the native
+// emulation loop clears queued/stale digital transitions before its next
+// frame, while preserving buttons that remain physically held.
 void lh_resume(lh_host *host);
 // Fully recreates the core and reloads its current content. Unlike lh_reset,
 // this applies options that a core only reads during initialization.
@@ -200,9 +272,24 @@ void lh_set_fast_forward(lh_host *host, int factor);
 void lh_stop(lh_host *host);
 void lh_destroy(lh_host *host);
 
+// Register or clear a backend before lh_load. The table is copied; user must
+// remain valid for the host lifetime. Returns 0 on success.
+int lh_set_hw_backend(lh_host *host, const lh_hw_backend *backend, void *user);
+
+// Return the fixed hardware render-target size, or 0 for software rendering.
+int lh_hw_render_size(lh_host *host, int *width, int *height);
+
+// Return whether the current load uses the backend.
+int lh_hw_active(lh_host *host);
+
+// Notify the host that the graphics context was lost externally.
+void lh_notify_hw_context_lost(lh_host *host);
+
 // Copies the latest frame under the host's lock. Returns 1 and fills the out
 // params when a frame exists, 0 otherwise. The pointer stays valid until the
 // next lh_get_frame call.
+//
+// Software path only. See lh_hw_active.
 int lh_get_frame(lh_host *host, const void **data, int *width, int *height,
                  int *stride);
 
@@ -272,23 +359,32 @@ int lh_get_input_descriptor(lh_host *host, int index,
 // retro_set_controller_port_device, or the host can no longer run a job.
 int lh_set_controller_type(lh_host *host, int port, unsigned device);
 
-// Bitmask of ports the current game describes ANALOG controls for, from
-// RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS. Bit N = port N.
+// Bitmask of ports whose left stick is passed through as an analog stick
+// rather than converted to d-pad bits. Bit N = port N.
 //
-// This is per-GAME and authoritative, unlike "did the core query analog":
-// FBNeo queries analog for every game including purely 4-way ones, so that
-// signal cannot distinguish BurgerTime (no analog descriptors) from Capcom
-// Bowling (Trackball X/Y).
-unsigned lh_analog_descriptor_ports(lh_host *host);
+// Set only where the game DESCRIBES a stick (SET_INPUT_DESCRIPTORS at
+// ANALOG_LEFT/RIGHT) and the core has actually READ one. Both are needed:
+// FBNeo describes accurately but reads analog for every game including 4-way
+// ones, while Stella reads accurately but describes an axis for every ROM.
+// An ANALOG_BUTTON entry or read is trigger pressure and counts for neither.
+//
+// Until the core has completed a frame in which it read input, a described port
+// reports analog on the descriptor alone: the core has not answered yet, and
+// concluding digital early costs binary steering in a driving game. This waits
+// on the core's own behaviour rather than on elapsed frames or time, so it does
+// not shift on slower hardware.
+//
+// The read half is per-game: cleared by lh_load, by an internal restart, and
+// by lh_set_controller_type. Thread-safe.
+unsigned lh_analog_stick_ports(lh_host *host);
 
-// Test-only: drives one input-latch step directly, without a running core or
-// run loop, and reads the value that step produced for [port]. This is the
-// exact same latch step input_poll_cb runs once per real libretro poll (see
-// lh_set_input) - these exist so its exactly-once-per-edge semantics can be
-// verified deterministically in native/libretro_host/test, instead of racing
-// a live run loop's wall-clock pacing. Not part of the platform-facing
-// contract; no shipping caller should need these.
+// Test-only: drives the frontend-frame input latch directly, without a running
+// core or run loop. This is the same step the host runs before retro_run, so
+// its transition delivery can be tested without wall-clock timing. Not part of
+// the platform-facing contract; no shipping caller should need these.
 void lh_test_poll_input(lh_host *host);
+// A core-driven poll inside retro_run: refreshes analog only, like input_poll_cb.
+void lh_test_core_poll_input(lh_host *host);
 uint16_t lh_test_read_input(lh_host *host, int port);
 // Test-only: reads the post-latch analog snapshot ([index] 0=left, 1=right
 // stick; [axis] 0=X, 1=Y) and trigger snapshot ([which] 0=L2, 1=R2) for
@@ -296,6 +392,26 @@ uint16_t lh_test_read_input(lh_host *host, int port);
 // comment for why these hooks exist.
 int16_t lh_test_read_analog(lh_host *host, int port, int index, int axis);
 uint16_t lh_test_read_trigger(lh_host *host, int port, int which);
+
+// Distinct environment commands this host has answered with the default
+// false. Test-only: the diagnostic those commands emit goes to stderr or
+// logcat, which the harness cannot read, so the dedupe is observed here.
+int lh_test_unhandled_env_count(lh_host *host);
+
+// How many times a core read input from a thread other than the one that
+// latched it. Non-zero means the input frame is being published across
+// threads without synchronisation.
+int lh_test_input_thread_mismatch(lh_host *host);
+
+
+// Reads a port the way a core does, INCLUDING acknowledging the edge bits it
+// returns. lh_test_read_input peeks without acknowledging; use this one to
+// assert the delivered-once contract.
+uint16_t lh_test_observe_input(lh_host *host, int port);
+
+// Reads one button the way a core querying ids individually does: returns that
+// bit and acknowledges only it, leaving other buttons' edges undelivered.
+int lh_test_observe_input_id(lh_host *host, int port, unsigned id);
 
 #ifdef __cplusplus
 }

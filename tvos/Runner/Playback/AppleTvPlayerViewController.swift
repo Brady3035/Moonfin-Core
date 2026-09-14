@@ -40,6 +40,18 @@ struct TimeSlotConfig {
     }
 }
 
+/// A fixed locale so the label reads the same as the Dart formatter on the other
+/// platforms instead of following the device region.
+///
+/// It sits outside the view controller because the formatter is built in a stored
+/// property initializer, and those can't reference `Self`.
+private func makeClockFormatter(use24Hour: Bool) -> DateFormatter {
+    let formatter = DateFormatter()
+    formatter.locale = Locale(identifier: "en_US_POSIX")
+    formatter.dateFormat = use24Hour ? "HH:mm" : "h:mm a"
+    return formatter
+}
+
 final class AppleTvPlayerViewController: UIViewController {
     private let player: AetherPlayerWrapper
     var onExit: (() -> Void)?
@@ -147,6 +159,10 @@ final class AppleTvPlayerViewController: UIViewController {
 
     private let loadingOverlay = UIView()
     private let loadingSpinner = UIActivityIndicatorView(style: .large)
+    // A line of status over the picture, such as the live tuner still
+    // trying. Not an alert on purpose: an alert takes the Menu press, and
+    // the viewer must be able to leave a channel that is not coming.
+    private let statusLabel = PaddedLabel()
     private var loadingDismissed = false
 
     private var isLive = false
@@ -276,16 +292,7 @@ final class AppleTvPlayerViewController: UIViewController {
     private var chapters: [(title: String, startMs: Int)] = []
 
     private var timeSlots = TimeSlotConfig()
-    private var clockFormatter = Self.makeClockFormatter(use24Hour: false)
-
-    /// A fixed locale so the label reads the same as the Dart formatter on the
-    /// other platforms instead of following the device region.
-    private static func makeClockFormatter(use24Hour: Bool) -> DateFormatter {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.dateFormat = use24Hour ? "HH:mm" : "h:mm a"
-        return formatter
-    }
+    private var clockFormatter = makeClockFormatter(use24Hour: false)
 
     init(player: AetherPlayerWrapper) {
         self.player = player
@@ -375,7 +382,7 @@ final class AppleTvPlayerViewController: UIViewController {
         if let v = slot("belowRight") { timeSlots.belowRight = v }
         if let v = args["use24Hour"] as? Bool, v != timeSlots.use24Hour {
             timeSlots.use24Hour = v
-            clockFormatter = Self.makeClockFormatter(use24Hour: v)
+            clockFormatter = makeClockFormatter(use24Hour: v)
         }
         if let v = args["endsAt"] as? String { timeSlots.endsAtTemplate = v }
         if isViewLoaded {
@@ -549,6 +556,36 @@ final class AppleTvPlayerViewController: UIViewController {
         setupLiveOverlays()
         setupSkipSegment()
         setupLoadingOverlay()
+        setupStatusMessage()
+    }
+
+    private func setupStatusMessage() {
+        statusLabel.translatesAutoresizingMaskIntoConstraints = false
+        statusLabel.insets = UIEdgeInsets(top: 14, left: 28, bottom: 14, right: 28)
+        statusLabel.backgroundColor = UIColor(white: 0, alpha: 0.6)
+        statusLabel.layer.cornerRadius = 14
+        statusLabel.clipsToBounds = true
+        statusLabel.textColor = .white
+        statusLabel.font = .systemFont(ofSize: 31, weight: .semibold)
+        statusLabel.textAlignment = .center
+        statusLabel.numberOfLines = 2
+        statusLabel.isHidden = true
+        statusLabel.isUserInteractionEnabled = false
+        view.addSubview(statusLabel)
+        NSLayoutConstraint.activate([
+            statusLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            statusLabel.topAnchor.constraint(equalTo: view.centerYAnchor, constant: 60),
+            statusLabel.widthAnchor.constraint(lessThanOrEqualTo: view.widthAnchor, multiplier: 0.6),
+        ])
+    }
+
+    func showStatusMessage(_ message: String) {
+        statusLabel.text = message
+        statusLabel.isHidden = false
+    }
+
+    func hideStatusMessage() {
+        statusLabel.isHidden = true
     }
 
     private func setupLoadingOverlay() {
@@ -2479,6 +2516,10 @@ final class AppleTvPlayerViewController: UIViewController {
             return
         }
         subtitleProgressAlert = nil
+        guard existing.presentingViewController != nil else {
+            next()
+            return
+        }
         existing.dismiss(animated: true) { next() }
     }
 

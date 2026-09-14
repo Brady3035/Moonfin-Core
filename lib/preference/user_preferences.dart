@@ -303,6 +303,10 @@ class UserPreferences extends ChangeNotifier {
     'detailButtonOrderDesktop',
     'detailButtonOrderMobile',
     'detailButtonOrderTv',
+    'detailButtonsMaxVisible',
+    'detailMetadataOrderDesktop',
+    'detailMetadataOrderMobile',
+    'detailMetadataOrderTv',
     'download_default_quality',
     'auto_download_enabled',
     'auto_download_keep_unwatched',
@@ -314,6 +318,9 @@ class UserPreferences extends ChangeNotifier {
     'hiddenDetailButtonsDesktop',
     'hiddenDetailButtonsMobile',
     'hiddenDetailButtonsTv',
+    'hiddenDetailMetadataDesktop',
+    'hiddenDetailMetadataMobile',
+    'hiddenDetailMetadataTv',
     'hiddenOsdButtonsDesktop',
     'hiddenOsdButtonsMobile',
     'hiddenOsdButtonsTv',
@@ -441,6 +448,7 @@ class UserPreferences extends ChangeNotifier {
     'poster_size_playlist',
     'pref_home_rows_fullscreen',
     'pref_show_seerr_button',
+    'pref_show_seerr_availability_badges',
     'pref_show_server_messages_button',
     'pref_show_media_details_on_library_page',
     'pref_use_detailed_sub_headings',
@@ -484,6 +492,7 @@ class UserPreferences extends ChangeNotifier {
     'pref_home_rows_style',
     'pref_modern_home_rows_padding',
     'pref_classic_home_rows_padding',
+    'pref_modern_cards_my_media',
     'poster_size',
     'pref_display_favorites_rows',
     'pref_display_collections_rows',
@@ -499,6 +508,7 @@ class UserPreferences extends ChangeNotifier {
     'pref_show_shuffle_button',
     'pref_show_genres_button',
     'pref_show_favorites_button',
+    'pref_show_live_tv_button',
     'pref_show_syncplay_button',
     'pref_show_downloads_button',
     'pref_show_libraries_in_toolbar',
@@ -548,6 +558,7 @@ class UserPreferences extends ChangeNotifier {
     'pref_personal_rating_style',
     'tmdbApiKey',
     'seerrBlockNsfw',
+    'seerrShowMissingCollectionItems',
     'enabledRatings',
     'home_sections_config',
     'pref_audio_display_latest',
@@ -747,20 +758,36 @@ class UserPreferences extends ChangeNotifier {
         )
       : const AudioCapabilityProfile.optimistic();
 
+  /// Whether the IEC app packer is the active output path: the preference is
+  /// set, the engine is Media3, and this is Android TV. The single choke
+  /// point that keeps every other engine and platform untouched.
+  bool get media3IecPackerSelected =>
+      get(audioPassthroughOutput) == AudioPassthroughOutput.iecPacker &&
+      get(playbackEnginePreference) == PlaybackEnginePreference.media3 &&
+      PlatformDetection.isAndroid &&
+      PlatformDetection.isTV;
+
   // Mode-aware passthrough resolution. Disabled bitstreams nothing, auto
   // follows the detected hardware capability, and manual follows the stored
   // toggles. Callers may pass a profile they already built, and when omitted
-  // the live detected profile is used.
+  // the live detected profile is used. Under the IEC packer the capability
+  // predicate is the codec's IEC carrier eligibility instead of the raw
+  // passthrough encoding, so auto mode and the advertised server profile
+  // follow what the IEC path can actually carry.
   bool _resolvePassthrough(
     Preference<bool> pref,
     bool Function(AudioCapabilityProfile) capabilityOf,
+    bool Function(AudioCapabilityProfile) iecCapabilityOf,
     AudioCapabilityProfile? profile,
   ) {
     switch (get(audioPassthroughMode)) {
       case AudioPassthroughMode.disabled:
         return false;
       case AudioPassthroughMode.auto:
-        return capabilityOf(profile ?? detectedAudioCapabilities);
+        final capabilities = profile ?? detectedAudioCapabilities;
+        return media3IecPackerSelected
+            ? iecCapabilityOf(capabilities)
+            : capabilityOf(capabilities);
       case AudioPassthroughMode.manual:
         return get(pref);
     }
@@ -770,6 +797,7 @@ class UserPreferences extends ChangeNotifier {
       _resolvePassthrough(
         ac3PassthroughEnabled,
         (p) => p.canPassthroughAc3,
+        (p) => p.canIecAc3,
         profile,
       );
 
@@ -777,6 +805,7 @@ class UserPreferences extends ChangeNotifier {
       _resolvePassthrough(
         eac3PassthroughEnabled,
         (p) => p.canPassthroughEac3,
+        (p) => p.canIecEac3,
         profile,
       );
 
@@ -784,6 +813,7 @@ class UserPreferences extends ChangeNotifier {
       _resolvePassthrough(
         dtsCorePassthroughEnabled,
         (p) => p.canPassthroughDts,
+        (p) => p.canIecDts,
         profile,
       );
 
@@ -794,6 +824,7 @@ class UserPreferences extends ChangeNotifier {
       _resolvePassthrough(
         dtsHdPassthroughEnabled,
         (p) => p.canPassthroughDtsHd,
+        (p) => p.canIecDtsHd,
         profile,
       );
 
@@ -801,6 +832,7 @@ class UserPreferences extends ChangeNotifier {
       _resolvePassthrough(
         trueHdPassthroughEnabled,
         (p) => p.canPassthroughTrueHd,
+        (p) => p.canIecTrueHd,
         profile,
       );
 
@@ -974,6 +1006,11 @@ class UserPreferences extends ChangeNotifier {
     defaultValue: 30,
   );
 
+  static final modernCardsOnMyMediaRow = Preference<bool>(
+    key: 'pref_modern_cards_my_media',
+    defaultValue: true,
+  );
+
   /// How far a mouse wheel notch scrolls, as a percentage of what the platform
   /// reports.
   static final desktopScrollSensitivity = Preference(
@@ -1002,6 +1039,12 @@ class UserPreferences extends ChangeNotifier {
   /// the right backend is a per-device choice.
   static final useNativeEmulator = Preference(
     key: 'pref_use_native_emulator',
+    defaultValue: true,
+  );
+
+  /// Enables Android's experimental libretro hardware-rendering path.
+  static final useHardwareRendering = Preference(
+    key: 'pref_use_hardware_rendering',
     defaultValue: true,
   );
 
@@ -1332,6 +1375,33 @@ class UserPreferences extends ChangeNotifier {
     values: GlassSettledQuality.values,
   );
 
+  /// Animation speed for page navigation transitions.
+  static final pageTransitionSpeed = EnumPreference(
+    key: 'pref_page_transition_speed',
+    defaultValue: PageTransitionSpeed.medium,
+    values: PageTransitionSpeed.values,
+  );
+
+  /// Animation speed for focus movement and row scrolling.
+  static final navigationAnimationSpeed = EnumPreference(
+    key: 'pref_navigation_animation_speed',
+    defaultValue: NavigationAnimationSpeed.medium,
+    values: NavigationAnimationSpeed.values,
+  );
+
+  /// Animation speed for Modern card focus expansion transitions.
+  static final modernCardTransitionSpeed = EnumPreference(
+    key: 'pref_modern_card_transition_speed',
+    defaultValue: ModernCardTransitionSpeed.medium,
+    values: ModernCardTransitionSpeed.values,
+  );
+
+  /// When on, delays Modern card expansion during rapid navigation until focus settles.
+  static final delayCardExpansionOnRapidScroll = Preference(
+    key: 'pref_delay_card_expansion_on_rapid_scroll',
+    defaultValue: true,
+  );
+
   /// Structural style for the media detail screen. Stored per server and user,
   /// because it syncs to that server's profile.
   static final detailScreenStyle = EnumPreference(
@@ -1444,6 +1514,11 @@ class UserPreferences extends ChangeNotifier {
     defaultValue: true,
   );
 
+  static final showLiveTvButton = Preference(
+    key: 'pref_show_live_tv_button',
+    defaultValue: true,
+  );
+
   static final showDownloadsButton = Preference(
     key: 'pref_show_downloads_button',
     defaultValue: true,
@@ -1471,6 +1546,11 @@ class UserPreferences extends ChangeNotifier {
 
   static final showSeerrButton = Preference(
     key: 'pref_show_seerr_button',
+    defaultValue: true,
+  );
+
+  static final showSeerrAvailabilityBadges = Preference(
+    key: 'pref_show_seerr_availability_badges',
     defaultValue: true,
   );
 
@@ -1760,6 +1840,14 @@ class UserPreferences extends ChangeNotifier {
     values: ZoomMode.values,
   );
 
+  /// One-shot encoded-letterbox crop. libmpv on Linux/Windows; Media3
+  /// (and libmpv if selected) on Android phone and TV. Hidden on iOS,
+  /// macOS, web, and tvOS.
+  static final cropBlackBars = Preference(
+    key: 'crop_black_bars',
+    defaultValue: false,
+  );
+
   static final desktopScrollWheelAction = EnumPreference(
     key: 'desktop_scroll_wheel_action',
     defaultValue: DesktopScrollWheelAction.volume,
@@ -1861,6 +1949,14 @@ class UserPreferences extends ChangeNotifier {
     key: 'pref_audio_passthrough_mode',
     defaultValue: AudioPassthroughMode.auto,
     values: AudioPassthroughMode.values,
+  );
+
+  /// How bitstreams reach the AudioTrack on the Media3 engine, see
+  /// [AudioPassthroughOutput].
+  static final audioPassthroughOutput = EnumPreference(
+    key: 'pref_audio_passthrough_output',
+    defaultValue: AudioPassthroughOutput.platform,
+    values: AudioPassthroughOutput.values,
   );
 
   static final downmixToStereo = Preference(
@@ -2186,6 +2282,34 @@ class UserPreferences extends ChangeNotifier {
   );
   static final hiddenDetailButtonsDesktop = Preference(
     key: 'hiddenDetailButtonsDesktop',
+    defaultValue: '',
+  );
+  static final detailButtonsMaxVisible = Preference(
+    key: 'detailButtonsMaxVisible',
+    defaultValue: 0,
+  );
+  static final detailMetadataOrderTv = Preference(
+    key: 'detailMetadataOrderTv',
+    defaultValue: '',
+  );
+  static final detailMetadataOrderMobile = Preference(
+    key: 'detailMetadataOrderMobile',
+    defaultValue: '',
+  );
+  static final detailMetadataOrderDesktop = Preference(
+    key: 'detailMetadataOrderDesktop',
+    defaultValue: '',
+  );
+  static final hiddenDetailMetadataTv = Preference(
+    key: 'hiddenDetailMetadataTv',
+    defaultValue: '',
+  );
+  static final hiddenDetailMetadataMobile = Preference(
+    key: 'hiddenDetailMetadataMobile',
+    defaultValue: '',
+  );
+  static final hiddenDetailMetadataDesktop = Preference(
+    key: 'hiddenDetailMetadataDesktop',
     defaultValue: '',
   );
   static final hiddenOsdButtonsTv = Preference(
@@ -2901,6 +3025,11 @@ class UserPreferences extends ChangeNotifier {
   static final seerrBlockNsfw = Preference(
     key: 'seerrBlockNsfw',
     defaultValue: false,
+  );
+
+  static final seerrShowMissingCollectionItems = Preference(
+    key: 'seerrShowMissingCollectionItems',
+    defaultValue: true,
   );
 
   static final defaultDownloadQuality = Preference(

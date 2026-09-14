@@ -206,6 +206,16 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
     icon: Icons.smart_button,
     open: () => push(const _DetailButtonsScreen()),
   );
+  final detailMetadata = _SearchSection(
+    slug: 'detail-metadata',
+    path: [
+      l10n.settingsPersonalization,
+      l10n.settingsDetailsScreen,
+      l10n.detailMetadata,
+    ],
+    icon: Icons.view_headline_outlined,
+    open: () => push(const _DetailMetadataScreen()),
+  );
   final navigation = _SearchSection(
     slug: 'navigation',
     path: [l10n.settingsPersonalization, l10n.navigation],
@@ -455,6 +465,12 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
     icon: Icons.bug_report,
     open: () => push(const DiagnosticsSettingsScreen()),
   );
+  final shortcuts = _SearchSection(
+    slug: 'keyboard_shortcuts',
+    path: [l10n.aboutTitle, l10n.keyboardShortcutsTitle],
+    icon: Icons.keyboard_outlined,
+    open: () => push(const _KeyboardShortcutsScreen()),
+  );
 
   final entries = <_SettingsSearchEntry>[
     if (showAdmin)
@@ -620,11 +636,38 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
       l10n.watchedIndicators,
       keywords: ['checkmark', 'seen', 'badge'],
     ),
+    if (!PlatformDetection.useMobileUi) ...[
+      style.leaf(
+        'pref_page_transition_speed',
+        l10n.pageTransitions,
+        subtitle: l10n.pageTransitionsSubtitle,
+        keywords: ['animation', 'page', 'transition', 'speed', 'motion'],
+      ),
+      style.leaf(
+        'pref_navigation_animation_speed',
+        l10n.navigationSpeed,
+        subtitle: l10n.navigationSpeedSubtitle,
+        keywords: ['focus', 'scroll', 'speed', 'animation', 'cursor'],
+      ),
+      style.leaf(
+        'pref_modern_card_transition_speed',
+        l10n.modernCardsTransitionSpeed,
+        subtitle: l10n.modernCardsTransitionSpeedSubtitle,
+        keywords: ['cards', 'modern', 'expansion', 'speed', 'animation'],
+      ),
+      style.leaf(
+        'pref_delay_card_expansion_on_rapid_scroll',
+        l10n.delayCardExpansionOnRapidScroll,
+        subtitle: l10n.delayCardExpansionOnRapidScrollSubtitle,
+        keywords: ['debounce', 'rapid scroll', 'modern cards', 'expansion', 'delay'],
+      ),
+    ],
 
     details.screen(keywords: ['movie page', 'show page', 'item page']),
     details.leaf('pref_detail_screen_style', l10n.detailScreenStyle, keywords: [
       'classic',
       'modern',
+      'spotlight',
     ]),
     details.leaf('detailsBackgroundBlurAmount', l10n.detailsBackgroundBlur),
     details.leaf(
@@ -675,6 +718,20 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
       'favorite',
       'playlist',
     ]),
+    detailMetadata.screen(keywords: [
+      'metadata',
+      'release date',
+      'upcoming',
+      'air date',
+      'year',
+      'parental rating',
+      'runtime',
+      'seasons',
+      'status',
+      'genres',
+      'seerr',
+      'reorder',
+    ]),
 
     navigation.screen(keywords: ['navbar', 'toolbar', 'sidebar']),
     navigation.leaf('pref_navbar_position', l10n.navigationStyle, keywords: [
@@ -707,6 +764,12 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
       'pref_show_favorites_button',
       l10n.showFavoritesButton,
       subtitle: l10n.settingsShowFavoritesButtonInNavigation,
+    ),
+    navigation.leaf(
+      'pref_show_live_tv_button',
+      l10n.showLiveTvButton,
+      subtitle: l10n.settingsShowLiveTvButtonInNavigation,
+      keywords: ['guide', 'channels'],
     ),
     navigation.leaf(
       'pref_show_libraries_in_toolbar',
@@ -1108,6 +1171,14 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
       'crop',
       'stretch',
     ]),
+    if (letterboxCropSettingVisible())
+      video.leaf('crop_black_bars', l10n.cropBlackBars, keywords: [
+        'letterbox',
+        'cropdetect',
+        'black bars',
+        'mpv',
+        'android',
+      ]),
     playbackTime.screen(keywords: [
       'time left',
       'time remaining',
@@ -1296,6 +1367,12 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
         l10n.settingsAudioPassthroughMode,
         keywords: ['passthrough', 'bitstream', 'receiver', 'output'],
       ),
+      if (PlatformDetection.isAndroid && PlatformDetection.isTV)
+        audio.leaf(
+          'pref_audio_passthrough_output',
+          l10n.settingsAudioPassthroughOutput,
+          keywords: ['iec', 'audiotrack', 'bitstream', 'packer', 'kodi', 'raw'],
+        ),
       audio.leaf(
         'pref_downmix_to_stereo',
         l10n.downmixToStereo,
@@ -1615,6 +1692,10 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
     ]),
 
     about.screen(keywords: ['version', 'update', 'discord', 'license']),
+    if (PlatformDetection.useDesktopUi)
+      shortcuts.screen(
+        keywords: ['keys', 'hotkeys', 'keybind', 'keyboard', 'player'],
+      ),
     if (AppDistribution.supportsInAppUpdates)
       about.leaf(
         'check_updates',

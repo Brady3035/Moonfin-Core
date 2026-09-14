@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'dart:ui';
 
+import '../../theme/focus_foreground.dart';
 import '../../widgets/bounded_network_image.dart';
 import '../../widgets/offline_aware_image.dart';
 import '../../widgets/anime_marker_badge.dart';
 import '../../../data/repositories/anime_marker_repository.dart';
 import '../../widgets/identify_dialog.dart';
+import '../../widgets/media_badge.dart';
 import 'detail_admin_actions.dart';
 
 import 'package:flutter/foundation.dart';
@@ -39,7 +41,15 @@ import '../../navigation/home_refresh_bus.dart';
 import '../../navigation/app_router.dart';
 import '../../navigation/playback_launcher.dart';
 import 'detail_buttons.dart';
+import '../../../data/models/upcoming_episode_info.dart';
+import '../../../preference/detail_metadata_layout.dart';
+import 'upcoming_episode_badge.dart';
+import 'nouveau/nouveau_detail_content.dart';
+import 'nouveau/hero/nouveau_action_buttons.dart';
 import 'modern/modern_detail_content.dart';
+import 'spotlight/spotlight_detail_content.dart';
+import '../../widgets/skeleton/skeleton_detail_screen.dart';
+import '../../widgets/skeleton/skeleton_shimmer.dart';
 import '../../../data/repositories/seerr_repository.dart';
 import '../../../data/services/seerr/seerr_api_models.dart';
 import '../../../l10n/app_localizations.dart';
@@ -54,6 +64,7 @@ import '../../../ui/mixins/focus_state_mixin.dart';
 import '../../../auth/repositories/user_repository.dart';
 import '../../../util/focus/key_event_utils.dart';
 import '../../../util/overview_text.dart';
+import '../../../util/seerr_credits.dart';
 import '../../navigation/destinations.dart';
 import '../../widgets/adaptive/adaptive_dialog.dart';
 import '../../widgets/adaptive/sf_symbol.dart';
@@ -89,7 +100,6 @@ import '../../widgets/focus/dpad_list_tile.dart';
 import '../../widgets/focus/focusable_button.dart';
 import '../../widgets/focus/request_initial_focus.dart';
 import '../../widgets/overlay_sheet.dart';
-import '../../widgets/playback/player_loading_overlay.dart';
 import '../../../playback/hdr_stream_capability.dart';
 import '../../../playback/known_defects.dart';
 import '../../../syncplay/syncplay_manager.dart';
@@ -285,6 +295,8 @@ class _ItemDetailScreenState extends State<ItemDetailScreen>
   Timer? _focusedBackdropDebounce;
   String? _lastFocusedBackdropItemId;
   String? _lastDetailBackdropItemId;
+  final GlobalKey<NouveauDetailContentState> _nouveauContentKey =
+      GlobalKey<NouveauDetailContentState>();
   final Map<String, String> _focusedPrimaryBackdropUrlCache =
       <String, String>{};
   FocusNode? _initialContentFocusNode;
@@ -344,29 +356,46 @@ class _ItemDetailScreenState extends State<ItemDetailScreen>
   @override
   void didPopNext() {
     super.didPopNext();
+
     unawaited(_viewModel.syncUserDataIfStale());
-    final item = _viewModel.item;
-    if (item != null) {
-      _backgroundService.setBackground(item, context: BlurContext.details);
-      final nextUrl = _backgroundService.currentUrl;
-      // Keep the last good backdrop if the service has none to give (e.g. after
-      // returning from a child with no backdrop that cleared the shared service).
-      if (nextUrl != null && nextUrl != _backdropUrl.value) {
-        _backdropUrl.value = nextUrl;
+
+    // Every style needs this cleared, not just Nouveau. The card focused on the
+    // way out never got its backdrop applied, and _onBackdropItemFocused turns
+    // away a repeat of the same id.
+    _lastFocusedBackdropItemId = null;
+
+    final nouveauState = _nouveauContentKey.currentState;
+    final nouveauHandled =
+        nouveauState?.restoreBackdropAfterResume() ?? false;
+
+    if (!nouveauHandled) {
+      final item = _viewModel.item;
+      if (item != null) {
+        _backgroundService.setBackground(item, context: BlurContext.details);
+        final nextUrl = _backgroundService.currentUrl;
+
+        // Keep the last good backdrop if the service has none to give (e.g. after
+        // returning from a child with no backdrop that cleared the shared service).
+        if (nextUrl != null && nextUrl != _backdropUrl.value) {
+          _backdropUrl.value = nextUrl;
+        }
       }
     }
+
     // A pushed child screen (e.g. a similar item) clears the shared play-button
     // notifier on its way out; reclaim it so focus restoration finds this screen.
     if (PlatformDetection.isTV && _initialContentFocusNode != null) {
       NavigationLayout.focusDetailsPlayButtonNotifier.value =
           _initialContentFocusNode;
     }
+
     _resumeThemeMusicIfEligible();
   }
 
   @override
   void didPushNext() {
     super.didPushNext();
+    _focusedBackdropDebounce?.cancel();
     // This screen stays mounted under the pushed route, so dispose does not run.
     // Stop the theme so it does not keep playing over the screen on top; the
     // paired didPopNext resumes it on return.
@@ -504,10 +533,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen>
         }
       }
 
-      _backgroundService.setBackground(
-        focusedItem,
-        context: BlurContext.details,
-      );
+      _backgroundService.setBackground(focusedItem, context: BlurContext.details);
       final nextUrl = _backgroundService.currentUrl;
       if (nextUrl != _backdropUrl.value) {
         _backdropUrl.value = nextUrl;
@@ -559,6 +585,42 @@ class _ItemDetailScreenState extends State<ItemDetailScreen>
       child: _buildBody(context),
     );
 
+    if (!PlatformDetection.isTV) {
+      final content = body;
+      body = ValueListenableBuilder<NavbarPosition?>(
+        valueListenable: NavigationLayout.positionNotifier,
+        builder: (context, position, child) {
+          void reveal() {
+            if (!_showNavbar && mounted) setState(() => _showNavbar = true);
+          }
+
+          return Stack(
+            children: [
+              Positioned.fill(child: child!),
+              if (!_showNavbar) ...[
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  height: 90,
+                  child: _NavbarRevealZone(onReveal: reveal),
+                ),
+                if (position == NavbarPosition.left)
+                  Positioned(
+                    top: 0,
+                    left: 0,
+                    bottom: 0,
+                    width: 80,
+                    child: _NavbarRevealZone(onReveal: reveal),
+                  ),
+              ],
+            ],
+          );
+        },
+        child: content,
+      );
+    }
+
     body = PopScope(canPop: !wasCollapsedRecently, child: body);
     return RequestInitialFocus(
       targetNode: node,
@@ -604,8 +666,9 @@ class _ItemDetailScreenState extends State<ItemDetailScreen>
 
   Widget _buildBody(BuildContext context) {
     return switch (_viewModel.state) {
-      ItemDetailState.loading => const Center(
-        child: PlayerLoadingOverlay(customSize: 120),
+      ItemDetailState.loading => DetailScreenSkeleton(
+        style: _prefs.get(UserPreferences.detailScreenStyle),
+        prefs: _prefs,
       ),
       ItemDetailState.error => Center(
         child: Column(
@@ -630,48 +693,103 @@ class _ItemDetailScreenState extends State<ItemDetailScreen>
           ],
         ),
       ),
-      ItemDetailState.ready =>
-        _prefs.get(UserPreferences.detailScreenStyle) ==
-                DetailScreenStyle.modern
-            ? ModernDetailContent(
-                viewModel: _viewModel,
-                prefs: _prefs,
-                backdropUrl: _backdropUrl,
-                selectedMediaSourceId: _selectedMediaSourceId,
-                initialFocusNode: _ensureInitialFocusNode(),
-                onSelectedMediaSourceChanged: (id) {
-                  setState(() => _selectedMediaSourceId = id);
-                  _viewModel.load(mediaSourceId: id);
-                },
-                onBackdropItemFocused: _onBackdropItemFocused,
-                autoPlay: widget.autoPlay,
-                onPlayFromChapter: (position) => unawaited(
-                  _playFromChapter(
-                    context,
-                    _viewModel.item!,
-                    position,
-                    _selectedMediaSourceId,
-                  ),
-                ),
-                onToggleNavbar: (show) => setState(() => _showNavbar = show),
-                actionsExpanded: _actionsExpanded,
-                onActionsExpandedChanged: (val) =>
-                    setState(() => _actionsExpanded = val),
-                onCollapseBiography: () => setState(() {}),
-              )
-            : _DetailContent(
-                viewModel: _viewModel,
-                prefs: _prefs,
-                backdropUrl: _backdropUrl,
-                selectedMediaSourceId: _selectedMediaSourceId,
-                initialFocusNode: _ensureInitialFocusNode(),
-                onSelectedMediaSourceChanged: (id) {
-                  setState(() => _selectedMediaSourceId = id);
-                  _viewModel.load(mediaSourceId: id);
-                },
-                onBackdropItemFocused: _onBackdropItemFocused,
-                autoPlay: widget.autoPlay,
-              ),
+      ItemDetailState.ready => switch (
+      _prefs.get(UserPreferences.detailScreenStyle)
+      ) {
+        DetailScreenStyle.classic => _DetailContent(
+          viewModel: _viewModel,
+          prefs: _prefs,
+          backdropUrl: _backdropUrl,
+          selectedMediaSourceId: _selectedMediaSourceId,
+          initialFocusNode: _ensureInitialFocusNode(),
+          onSelectedMediaSourceChanged: (id) {
+            setState(() => _selectedMediaSourceId = id);
+            _viewModel.load(mediaSourceId: id);
+          },
+          onBackdropItemFocused: _onBackdropItemFocused,
+          autoPlay: widget.autoPlay,
+        ),
+
+        DetailScreenStyle.modern => ModernDetailContent(
+          viewModel: _viewModel,
+          prefs: _prefs,
+          backdropUrl: _backdropUrl,
+          selectedMediaSourceId: _selectedMediaSourceId,
+          initialFocusNode: _ensureInitialFocusNode(),
+          onSelectedMediaSourceChanged: (id) {
+            setState(() => _selectedMediaSourceId = id);
+            _viewModel.load(mediaSourceId: id);
+          },
+          onBackdropItemFocused: _onBackdropItemFocused,
+          autoPlay: widget.autoPlay,
+          onPlayFromChapter: (position) => unawaited(
+            _playFromChapter(
+              context,
+              _viewModel.item!,
+              position,
+              _selectedMediaSourceId,
+            ),
+          ),
+          onToggleNavbar: (show) => setState(() => _showNavbar = show),
+          actionsExpanded: _actionsExpanded,
+          onActionsExpandedChanged: (val) =>
+              setState(() => _actionsExpanded = val),
+          onCollapseBiography: () => setState(() {}),
+        ),
+
+        DetailScreenStyle.spotlight => SpotlightDetailContent(
+          viewModel: _viewModel,
+          prefs: _prefs,
+          backdropUrl: _backdropUrl,
+          selectedMediaSourceId: _selectedMediaSourceId,
+          initialFocusNode: _ensureInitialFocusNode(),
+          onSelectedMediaSourceChanged: (id) {
+            setState(() => _selectedMediaSourceId = id);
+            _viewModel.load(mediaSourceId: id);
+          },
+          onBackdropItemFocused: _onBackdropItemFocused,
+          autoPlay: widget.autoPlay,
+          onPlayFromChapter: (position) => unawaited(
+            _playFromChapter(
+              context,
+              _viewModel.item!,
+              position,
+              _selectedMediaSourceId,
+            ),
+          ),
+          onToggleNavbar: (show) => setState(() => _showNavbar = show),
+          actionsExpanded: _actionsExpanded,
+          onActionsExpandedChanged: (val) =>
+              setState(() => _actionsExpanded = val),
+          onCollapseBiography: () => setState(() {}),
+        ),
+
+        DetailScreenStyle.nouveau => NouveauDetailContent(
+          key: _nouveauContentKey,
+          viewModel: _viewModel,
+          prefs: _prefs,
+          backdropUrl: _backdropUrl,
+          selectedMediaSourceId: _selectedMediaSourceId,
+          initialFocusNode: _ensureInitialFocusNode(),
+          onSelectedMediaSourceChanged: (id) {
+            setState(() => _selectedMediaSourceId = id);
+            _viewModel.load(mediaSourceId: id);
+          },
+          onBackdropItemFocused: _onBackdropItemFocused,
+          autoPlay: widget.autoPlay,
+          onPlayFromChapter: (position) => unawaited(
+            _playFromChapter(
+              context,
+              _viewModel.item!,
+              position,
+              _selectedMediaSourceId,
+            ),
+          ),
+          actionsExpanded: _actionsExpanded,
+          onActionsExpandedChanged: (val) =>
+              setState(() => _actionsExpanded = val),
+        ),
+      },
     };
   }
 }
@@ -770,24 +888,11 @@ class _DetailContentState extends State<_DetailContent> {
       await repo.ensureInitialized();
       final personId = int.tryParse(tmdbId);
       if (personId != null) {
-        final credits = await repo.getPersonCombinedCredits(personId);
-        const excludedJobs = {'thanks', 'special thanks'};
-        final castWithPosters =
-            credits.cast.where((i) => i.posterPath != null).toList()
-              ..sort((a, b) => a.displayTitle.compareTo(b.displayTitle));
-        final crewWithPosters =
-            credits.crew
-                .where(
-                  (i) =>
-                      i.posterPath != null &&
-                      !excludedJobs.contains(i.job?.toLowerCase()),
-                )
-                .toList()
-              ..sort((a, b) => a.displayTitle.compareTo(b.displayTitle));
+        final credits = await loadSeerrPersonCredits(repo, personId);
         if (mounted) {
           setState(() {
-            _seerrAppearances = castWithPosters;
-            _seerrCrewCredits = crewWithPosters;
+            _seerrAppearances = credits.cast;
+            _seerrCrewCredits = credits.crew;
           });
         }
       }
@@ -4045,10 +4150,8 @@ class _HeaderSection extends StatelessWidget {
         DetailMetadataRow(
           item: item,
           selectedMediaSource: selectedMediaSource,
-          extraBadges: [
-            if (seerrStatus != null)
-              SeerrStatusPills(state: seerrStatus, onlyNoteworthy: true),
-          ],
+          upcomingEpisode: viewModel.upcomingEpisode,
+          seerrStatus: seerrStatus,
         ),
         if (viewModel.ratings.isNotEmpty ||
             item.communityRating != null ||
@@ -4342,37 +4445,13 @@ class DetailPosterImage extends StatelessWidget {
             Positioned(
               top: 6,
               left: 6,
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.6),
-                  shape: BoxShape.circle,
-                ),
-                child: const AdaptiveIcon(
-                  Icons.favorite,
-                  color: Color(0xFFFF4757),
-                  size: 16,
-                ),
-              ),
+              child: MediaFavoriteBadge(size: 26),
             ),
           if (item.isPlayed)
             Positioned(
               top: 6,
               right: 6,
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: AppColorScheme.accent,
-                  shape: BoxShape.circle,
-                ),
-                child: const Padding(
-                  padding: EdgeInsets.all(3),
-                  child: AdaptiveIcon(
-                    Icons.check,
-                    color: Colors.white,
-                    size: 12,
-                  ),
-                ),
-              ),
+              child: MediaWatchedBadge(size: 26),
             ),
           if ((item.playedPercentage ?? 0) > 0)
             Positioned(
@@ -4494,37 +4573,13 @@ class _EpisodeThumbnail extends StatelessWidget {
             Positioned(
               top: 6,
               left: 6,
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.6),
-                  shape: BoxShape.circle,
-                ),
-                child: const AdaptiveIcon(
-                  Icons.favorite,
-                  color: Color(0xFFFF4757),
-                  size: 14,
-                ),
-              ),
+              child: MediaFavoriteBadge(size: 24),
             ),
           if (item.isPlayed)
             Positioned(
               top: 6,
               right: 6,
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: AppColorScheme.accent,
-                  shape: BoxShape.circle,
-                ),
-                child: const Padding(
-                  padding: EdgeInsets.all(3),
-                  child: AdaptiveIcon(
-                    Icons.check,
-                    color: Colors.white,
-                    size: 10,
-                  ),
-                ),
-              ),
+              child: MediaWatchedBadge(size: 24),
             ),
           if ((item.playedPercentage ?? 0) > 0)
             Positioned(
@@ -4552,6 +4607,8 @@ class _EpisodeThumbnail extends StatelessWidget {
 class DetailMetadataRow extends StatelessWidget {
   final AggregatedItem item;
   final Map<String, dynamic>? selectedMediaSource;
+  final UpcomingEpisodeInfo? upcomingEpisode;
+  final SeerrMediaDetailState? seerrStatus;
 
   /// When true, render only the file size and technical badges (no year, rating,
   /// runtime, seasons, status, ends-at or genres). Used by the Modern Details
@@ -4564,6 +4621,8 @@ class DetailMetadataRow extends StatelessWidget {
   const DetailMetadataRow({
     required this.item,
     this.selectedMediaSource,
+    this.upcomingEpisode,
+    this.seerrStatus,
     this.technicalOnly = false,
     this.extraBadges = const [],
   });
@@ -4573,56 +4632,77 @@ class DetailMetadataRow extends StatelessWidget {
     final parts = <Widget>[];
     final theme = Theme.of(context);
     final isNeon = ThemeRegistry.active.id == ThemeRegistry.neonPulseId;
+    final l10n = AppLocalizations.of(context);
+    final prefs = GetIt.instance<UserPreferences>();
 
-    if (!technicalOnly && item.productionYear != null) {
-      parts.add(_text(theme, item.productionYear.toString()));
-    }
-
-    if (!technicalOnly && item.officialRating != null) {
-      parts.add(_badge(theme, item.officialRating!));
-    }
-
-    final showTech = GetIt.instance<UserPreferences>().get(
-      UserPreferences.detailShowTechnicalDetails,
-    );
+    final showTech = prefs.get(UserPreferences.detailShowTechnicalDetails);
     final tech = showTech
         ? technicalDetailsFor(item, selectedMediaSource)
         : null;
 
+    if (!technicalOnly) {
+      final hidden = detailMetadataLayout.hidden(prefs);
+      final ordered = detailMetadataLayout.ordered(
+        DetailMetadataItem.values,
+        (entry) => entry.id,
+        prefs,
+      );
+
+      final runtime = _runtimeForItem(item, selectedMediaSource);
+
+      for (final entry in ordered) {
+        if (hidden.contains(entry.id)) continue;
+        switch (entry) {
+          case DetailMetadataItem.year:
+            if (item.productionYear != null) {
+              parts.add(_text(theme, item.productionYear.toString()));
+            }
+          case DetailMetadataItem.parentalRating:
+            if (item.officialRating != null) {
+              parts.add(_badge(theme, item.officialRating!));
+            }
+          case DetailMetadataItem.runtimeAndSeasons:
+            if (item.type == 'Series') {
+              final count = item.childCount;
+              if (count != null) {
+                parts.add(_text(theme, l10n.seasonCount(count)));
+              }
+            } else if (runtime != null) {
+              final h = runtime.inHours;
+              final m = runtime.inMinutes.remainder(60);
+              parts.add(_text(theme, h > 0 ? '${h}h ${m}m' : '${m}m'));
+              final use24 = prefs.get(UserPreferences.use24HourClock);
+              final endsAt = _endsAt(item, runtime, use24Hour: use24);
+              if (endsAt != null) {
+                parts.add(_text(theme, l10n.endsAt(endsAt)));
+              }
+            }
+          case DetailMetadataItem.status:
+            if (item.type == 'Series' && item.status != null) {
+              parts.add(_statusBadge(context, theme, item.status!));
+            }
+          case DetailMetadataItem.upcomingEpisodeDate:
+            if (item.type == 'Series' && upcomingEpisode != null) {
+              parts.add(
+                UpcomingEpisodeBadge(text: upcomingEpisode!.format(context)),
+              );
+            }
+          case DetailMetadataItem.genres:
+            if (item.genres.isNotEmpty) {
+              parts.add(_text(theme, item.genres.take(3).join(' \u2022 ')));
+            }
+          case DetailMetadataItem.seerrAvailability:
+            if (seerrStatus != null) {
+              parts.add(
+                SeerrStatusPills(state: seerrStatus!, onlyNoteworthy: true),
+              );
+            }
+        }
+      }
+    }
+
     if (tech?.formattedSize != null) {
       parts.add(_text(theme, tech!.formattedSize!));
-    }
-
-    final runtime = _runtimeForItem(item, selectedMediaSource);
-    if (!technicalOnly && runtime != null && item.type != 'Series') {
-      final h = runtime.inHours;
-      final m = runtime.inMinutes.remainder(60);
-      parts.add(_text(theme, h > 0 ? '${h}h ${m}m' : '${m}m'));
-    }
-
-    if (!technicalOnly && item.type == 'Series') {
-      final count = item.childCount;
-      if (count != null) {
-        parts.add(
-          _text(theme, AppLocalizations.of(context).seasonCount(count)),
-        );
-      }
-      final status = item.status;
-      if (status != null) {
-        parts.add(_statusBadge(context, theme, status));
-      }
-    }
-
-    final use24 = GetIt.instance<UserPreferences>().get(
-      UserPreferences.use24HourClock,
-    );
-    final endsAt = _endsAt(item, runtime, use24Hour: use24);
-    if (!technicalOnly && endsAt != null && item.type != 'Series') {
-      parts.add(_text(theme, AppLocalizations.of(context).endsAt(endsAt)));
-    }
-
-    if (!technicalOnly && item.genres.isNotEmpty) {
-      parts.add(_text(theme, item.genres.take(3).join(' \u2022 ')));
     }
 
     if (parts.isEmpty) return const SizedBox.shrink();
@@ -4786,10 +4866,22 @@ class DetailActionButtons extends StatefulWidget {
   /// secondary icon buttons. Defaults to the classic square layout.
   final bool modernStyle;
 
+  /// Renders the "nouveau" detail style: a dedicated cinematic action layout
+  /// with Nouveau-specific overflow, progress, and directional focus behavior.
+  final bool nouveauStyle;
+
   /// In modern style, render the primary Play as a full-width pill (portrait).
   /// When false the pill is content-width and sits inline with the secondary
   /// circular buttons (landscape).
   final bool fullWidthPrimary;
+
+  /// Spotlight mode: the overflow button is an ellipsis that opens a popup
+  /// menu of the remaining actions instead of expanding them inline, and the
+  /// count split applies to every item type (the Series/Season two-column
+  /// heuristic is bypassed). Overflow also triggers strictly, so never more
+  /// than [maxVisibleButtonsOverride] minus the ellipsis slot stays inline,
+  /// even when the menu would hold a single action.
+  final bool overflowAsMenu;
 
   /// How wide the column hosting the row is. The two column layout measures
   /// its buttons against this to decide when they stop fitting on one line,
@@ -4802,6 +4894,7 @@ class DetailActionButtons extends StatefulWidget {
   final ValueChanged<bool>? onActionsExpandedChanged;
 
   const DetailActionButtons({
+    super.key,
     required this.viewModel,
     this.itemId,
     this.selectedMediaSourceId,
@@ -4814,7 +4907,9 @@ class DetailActionButtons extends StatefulWidget {
     this.maxVisibleButtonsOverride,
     this.onArrowRightAtEnd,
     this.modernStyle = false,
+    this.nouveauStyle = false,
     this.fullWidthPrimary = false,
+    this.overflowAsMenu = false,
     this.rowMaxWidth,
     this.actionRowRightFocusNode,
     this.extraFirstFocusNode,
@@ -5143,8 +5238,11 @@ class _BookAuthorDetailScreenState extends State<_BookAuthorDetailScreen> {
       ),
       body: SafeArea(
         child: _loading && data == null
-            ? const Center(
-                child: CircularProgressIndicator(color: Color(0xFF32B9E8)),
+            ? _buildSkeleton(
+                context,
+                horizontalPadding,
+                crossAxisCount,
+                gridSpacing,
               )
             : data == null
             ? Center(
@@ -5229,6 +5327,105 @@ class _BookAuthorDetailScreenState extends State<_BookAuthorDetailScreen> {
                   ],
                 ),
               ),
+      ),
+    );
+  }
+
+  Widget _buildSkeleton(
+    BuildContext context,
+    double horizontalPadding,
+    int crossAxisCount,
+    double gridSpacing,
+  ) {
+    return SkeletonShimmer(
+      child: SingleChildScrollView(
+        padding: EdgeInsets.fromLTRB(
+          horizontalPadding,
+          8,
+          horizontalPadding,
+          24,
+        ),
+        physics: const NeverScrollableScrollPhysics(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                SkeletonBox(
+                  width: 84,
+                  height: 84,
+                  borderRadius: BorderRadius.circular(42),
+                ),
+                const SizedBox(width: 20),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: const [
+                      SkeletonBox(
+                        width: 200,
+                        height: 24,
+                        borderRadius: BorderRadius.all(Radius.circular(4)),
+                      ),
+                      SizedBox(height: 8),
+                      SkeletonBox(
+                        width: 110,
+                        height: 14,
+                        borderRadius: BorderRadius.all(Radius.circular(4)),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            const SkeletonBox(
+              width: 100,
+              height: 18,
+              borderRadius: BorderRadius.all(Radius.circular(4)),
+            ),
+            const SizedBox(height: 10),
+            const SkeletonBox(
+              width: double.infinity,
+              height: 13,
+              borderRadius: BorderRadius.all(Radius.circular(4)),
+            ),
+            const SizedBox(height: 6),
+            const SkeletonBox(
+              width: double.infinity,
+              height: 13,
+              borderRadius: BorderRadius.all(Radius.circular(4)),
+            ),
+            const SizedBox(height: 6),
+            const SkeletonBox(
+              width: 240,
+              height: 13,
+              borderRadius: BorderRadius.all(Radius.circular(4)),
+            ),
+            const SizedBox(height: 32),
+            const SkeletonBox(
+              width: 80,
+              height: 18,
+              borderRadius: BorderRadius.all(Radius.circular(4)),
+            ),
+            const SizedBox(height: 12),
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: crossAxisCount,
+                crossAxisSpacing: gridSpacing,
+                mainAxisSpacing: gridSpacing,
+                childAspectRatio: 2 / 3,
+              ),
+              itemCount: crossAxisCount * 2,
+              itemBuilder: (_, _) => const SkeletonBox(
+                width: double.infinity,
+                height: double.infinity,
+                borderRadius: BorderRadius.all(Radius.circular(8)),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -5562,6 +5759,271 @@ class _DolbyVisionPlayDecision {
   });
 }
 
+class _HorizontalActionRow extends StatefulWidget {
+  final List<Widget> children;
+  final double spacing;
+  final double? buttonWidth;
+  final AlignmentGeometry alignment;
+
+  const _HorizontalActionRow({
+    required this.children,
+    required this.spacing,
+    this.buttonWidth,
+    this.alignment = AlignmentDirectional.centerStart,
+  });
+
+  @override
+  State<_HorizontalActionRow> createState() => _HorizontalActionRowState();
+}
+
+class _HorizontalActionRowState extends State<_HorizontalActionRow> {
+  final ScrollController _scrollController = ScrollController();
+  bool _canScrollLeft = false;
+  bool _canScrollRight = false;
+  bool _hasOverflow = false;
+  int _fitCount = 1;
+  double _effectiveButtonWidth = 108.0;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_updateScrollMetrics);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _updateScrollMetrics());
+  }
+
+  @override
+  void didUpdateWidget(covariant _HorizontalActionRow oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _updateScrollMetrics());
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_updateScrollMetrics);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _updateScrollMetrics() {
+    if (!mounted || !_scrollController.hasClients) return;
+    final position = _scrollController.position;
+    if (!position.hasContentDimensions) return;
+    final maxScroll = position.maxScrollExtent;
+    final hasOverflow = maxScroll > 0;
+    final canLeft = position.pixels > 0;
+    final canRight = position.pixels < maxScroll;
+    if (hasOverflow != _hasOverflow ||
+        canLeft != _canScrollLeft ||
+        canRight != _canScrollRight) {
+      setState(() {
+        _hasOverflow = hasOverflow;
+        _canScrollLeft = canLeft;
+        _canScrollRight = canRight;
+      });
+    }
+  }
+
+  void _scrollToIndex(int index) {
+    if (!mounted || !_scrollController.hasClients) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _scrollController.hasClients) _scrollToIndex(index);
+      });
+      return;
+    }
+    final stride = _effectiveButtonWidth + widget.spacing;
+    final visibleContentWidth =
+        _fitCount * _effectiveButtonWidth + (_fitCount - 1) * widget.spacing;
+    final currentOffset = _scrollController.offset;
+    final bStart = index * stride;
+    final bEnd = bStart + _effectiveButtonWidth;
+
+    if (bStart >= currentOffset - 1.0 &&
+        bEnd <= currentOffset + visibleContentWidth + 1.0) {
+      return;
+    }
+
+    double targetOffset;
+    if (bEnd > currentOffset + visibleContentWidth) {
+      targetOffset = (index - _fitCount + 1) * stride;
+    } else {
+      targetOffset = index * stride;
+    }
+
+    final maxOffset = _scrollController.position.maxScrollExtent;
+    targetOffset = targetOffset.clamp(0.0, maxOffset);
+
+    _scrollController.animateTo(
+      targetOffset,
+      duration: const Duration(milliseconds: 220),
+      curve: Curves.easeOutCubic,
+    );
+  }
+
+  void _scrollByButtons(int count) {
+    if (!_scrollController.hasClients) return;
+    final stride = _effectiveButtonWidth + widget.spacing;
+    final current = _scrollController.offset;
+    final targetIndex = ((current + count * stride) / stride).round();
+    final maxOffset = _scrollController.position.maxScrollExtent;
+    final maxIndex = (maxOffset / stride).ceil();
+    final clampedIndex = targetIndex.clamp(0, maxIndex);
+    final target = (clampedIndex * stride).clamp(0.0, maxOffset);
+    _scrollController.animateTo(
+      target,
+      duration: const Duration(milliseconds: 240),
+      curve: Curves.easeOutCubic,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final showDesktopChevrons =
+        _hasOverflow && PlatformDetection.useDesktopUi && !PlatformDetection.isTV;
+
+    final scrollRow = NotificationListener<ScrollNotification>(
+      onNotification: (notification) {
+        _updateScrollMetrics();
+        return false;
+      },
+      child: SingleChildScrollView(
+        controller: _scrollController,
+        scrollDirection: Axis.horizontal,
+        clipBehavior: Clip.none,
+        physics: PlatformDetection.isTV
+            ? const NeverScrollableScrollPhysics()
+            : const BouncingScrollPhysics(),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              for (var i = 0; i < widget.children.length; i++) ...[
+                if (i > 0) SizedBox(width: widget.spacing),
+                Focus(
+                  canRequestFocus: false,
+                  skipTraversal: true,
+                  onFocusChange: (focused) {
+                    if (focused) {
+                      _scrollToIndex(i);
+                    }
+                  },
+                  child: widget.children[i],
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        WidgetsBinding.instance.addPostFrameCallback((_) => _updateScrollMetrics());
+
+        final isMobile = _isCompact(context);
+        final desktopScale = _desktopUiScale();
+        final double bWidth = widget.buttonWidth ??
+            (isMobile ? 80.0 : 108.0 * desktopScale);
+        final double spacing = widget.spacing;
+        _effectiveButtonWidth = bWidth;
+
+        const double horizontalPadding = 14.0;
+        const double totalPadding = horizontalPadding * 2;
+
+        final double availableWidth = constraints.maxWidth - totalPadding;
+        final double stride = bWidth + spacing;
+        int fitCount = ((availableWidth + spacing) / stride).floor();
+        fitCount = fitCount.clamp(1, widget.children.length);
+        _fitCount = fitCount;
+
+        final double snappedInnerWidth =
+            fitCount * bWidth + (fitCount - 1) * spacing;
+        final double pillWidth = snappedInnerWidth + totalPadding;
+
+        Widget pillRow = scrollRow;
+        if (_hasOverflow) {
+          pillRow = Container(
+            width: pillWidth,
+            clipBehavior: Clip.antiAlias,
+            padding: const EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 4),
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.32),
+              borderRadius: BorderRadius.circular(999),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.15),
+                width: 1.0,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.25),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: scrollRow,
+          );
+        }
+
+        if (!showDesktopChevrons) {
+          return Align(
+            alignment: widget.alignment,
+            child: pillRow,
+          );
+        }
+
+        final int chevronStep = fitCount >= 5 ? 3 : (fitCount >= 3 ? 2 : 1);
+
+        return Align(
+          alignment: widget.alignment,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(
+                width: pillWidth,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  mainAxisSize: MainAxisSize.max,
+                  children: [
+                    Focus(
+                      canRequestFocus: false,
+                      skipTraversal: true,
+                      descendantsAreFocusable: false,
+                      child: IconButton(
+                        icon: const Icon(Icons.chevron_left),
+                        onPressed: _canScrollLeft
+                            ? () => _scrollByButtons(-chevronStep)
+                            : null,
+                        visualDensity: VisualDensity.compact,
+                      ),
+                    ),
+                    Focus(
+                      canRequestFocus: false,
+                      skipTraversal: true,
+                      descendantsAreFocusable: false,
+                      child: IconButton(
+                        icon: const Icon(Icons.chevron_right),
+                        onPressed: _canScrollRight
+                            ? () => _scrollByButtons(chevronStep)
+                            : null,
+                        visualDensity: VisualDensity.compact,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 6),
+              pillRow,
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
 class DetailActionButtonsState extends State<DetailActionButtons> {
   int? get _selectedAudioIndex => viewModel.selectedAudioIndex;
   set _selectedAudioIndex(int? value) => viewModel.selectedAudioIndex = value;
@@ -5797,6 +6259,37 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
     return button;
   }
 
+  NouveauAction _toNouveauAction(
+    _DetailActionButton button, {
+    FocusNode? focusNode,
+    VoidCallback? onFocused,
+    VoidCallback? onArrowUp,
+    VoidCallback? onArrowDown,
+    VoidCallback? onArrowLeft,
+    VoidCallback? onArrowRight,
+    double? progress,
+    String? trailingLabel,
+  }) {
+    return NouveauAction(
+      label: button.label,
+      icon: button.icon,
+      iconBuilder: button.iconBuilder,
+      onPressed: button.onPressed,
+      onLongPress: button.onLongPress,
+      onFocused: onFocused ?? button.onFocused,
+      onArrowUp: onArrowUp ?? button.onArrowUp,
+      onArrowDown: onArrowDown ?? button.onArrowDown,
+      onArrowLeft: onArrowLeft ?? button.onArrowLeft,
+      onArrowRight: onArrowRight ?? button.onArrowRight,
+      focusNode: focusNode ?? button.focusNode,
+      autofocus: button.autofocus,
+      isActive: button.isActive,
+      activeColor: button.activeColor,
+      progress: progress,
+      trailingLabel: trailingLabel,
+    );
+  }
+
   bool _tryFocusSidebar() {
     if (GetIt.instance<UserPreferences>().get(UserPreferences.navbarPosition) !=
         NavbarPosition.left) {
@@ -6016,9 +6509,199 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
     }
   }
 
+  /// Spotlight overflow: opens the remaining actions as a popup menu. Each
+  /// row invokes the original button's handler after the menu closes, so no
+  /// action logic is duplicated. Focus returns to the ellipsis through the
+  /// dialog's focus-restore wrapper.
+  Future<void> _showOverflowMenu(
+    BuildContext context,
+    List<Widget> extraButtons,
+  ) async {
+    final l10n = AppLocalizations.of(context);
+    final actions = <_DetailActionButton>[
+      for (final btn in extraButtons)
+        ?_actionForOverflow(context, btn),
+    ];
+    if (actions.isEmpty) return;
+    final selected = await showStyledPlayerDialog<VoidCallback>(
+      context,
+      title: l10n.spotlightMoreActions,
+      builder: (dialogContext) => ListView.builder(
+        shrinkWrap: true,
+        itemCount: actions.length,
+        itemBuilder: (rowContext, index) {
+          final action = actions[index];
+          return _SpotlightOverflowTile(
+            action: action,
+            autofocus: index == 0,
+            onTap: () => Navigator.pop(rowContext, action.onPressed),
+            onLongPress: action.onLongPress == null
+                ? null
+                : () => Navigator.pop(rowContext, action.onLongPress),
+          );
+        },
+      ),
+    );
+    if (selected != null) {
+      // Let the pop and focus restore settle first, since several actions
+      // immediately open a dialog of their own.
+      WidgetsBinding.instance.addPostFrameCallback((_) => selected());
+    }
+  }
+
+  _DetailActionButton? _actionForOverflow(
+    BuildContext context,
+    Widget button,
+  ) {
+    if (button is _DetailActionButton) {
+      return button;
+    }
+    if (button is _DownloadButton) {
+      return _buildDownloadDetailAction(context, button.item);
+    }
+    if (button is _DeleteDownloadButton) {
+      return _buildDeleteDetailAction(context, button.item);
+    }
+    return null;
+  }
+
+  _DetailActionButton _buildDownloadDetailAction(
+    BuildContext context,
+    AggregatedItem item,
+  ) {
+    final l10n = AppLocalizations.of(context);
+    final downloadService = GetIt.instance.isRegistered<DownloadService>()
+        ? GetIt.instance<DownloadService>()
+        : null;
+    final progress = downloadService?.activeDownloads[item.id];
+    final isMulti = _DownloadButtonState._isBatchType(item.type);
+    final isBatch = downloadService?.isBatchDownloading ?? false;
+
+    if (progress != null && !progress.isComplete && progress.error == null) {
+      final label = progress.isFinalizing
+          ? l10n.finalizingDownload
+          : progress.isQueued
+          ? l10n.queuedDownload
+          : progress.progress >= 0
+          ? '${(progress.progress * 100).toInt()}%'
+          : progress.bytesReceived > 0
+          ? '${(progress.bytesReceived / 1048576).toStringAsFixed(1)} MB'
+          : '…';
+      return _DetailActionButton(
+        label: label,
+        icon: Icons.close,
+        onPressed: () => downloadService?.cancelDownload(item.id),
+        isActive: true,
+        activeColor: AppColorScheme.accent,
+      );
+    }
+
+    if (isBatch && isMulti && downloadService != null) {
+      final done = downloadService.completedCount;
+      final total = downloadService.totalQueued;
+      var pct = '';
+      for (final p in downloadService.activeDownloads.values) {
+        if (!p.isComplete && p.error == null) {
+          if (p.progress >= 0) {
+            pct = '${(p.progress * 100).toInt()}%';
+          }
+          break;
+        }
+      }
+      return _DetailActionButton(
+        label: '${done + 1}/$total${pct.isNotEmpty ? ' · $pct' : ''}',
+        icon: Icons.close,
+        onPressed: () => downloadService.cancelAll(),
+        isActive: true,
+        activeColor: AppColorScheme.accent,
+      );
+    }
+
+    if (_availableOffline || (progress != null && progress.isComplete)) {
+      return _DetailActionButton(
+        label: l10n.downloaded,
+        icon: Icons.download_done,
+        isActive: true,
+        activeColor: const Color(0xFF4CAF50),
+        onPressed: () {
+          if (downloadService != null) {
+            _DownloadButton.showDownloadOptions(context, item, downloadService);
+          }
+        },
+      );
+    }
+
+    return _DetailActionButton(
+      label: l10n.download,
+      icon: Icons.download_for_offline,
+      onPressed: () {
+        if (downloadService != null) {
+          _DownloadButton.showDownloadOptions(context, item, downloadService);
+        }
+      },
+    );
+  }
+
+  _DetailActionButton _buildDeleteDetailAction(
+    BuildContext context,
+    AggregatedItem item,
+  ) {
+    final l10n = AppLocalizations.of(context);
+    return _DetailActionButton(
+      label: l10n.deleteDownloadedFiles,
+      icon: Icons.delete_outline,
+      onPressed: () => _DeleteDownloadButton.confirmDelete(
+        context,
+        item,
+        onDeleted: () {
+          if (mounted) {
+            setState(() => _availableOffline = false);
+          }
+        },
+      ),
+      isActive: true,
+      activeColor: const Color(0xFFFF4757),
+    );
+  }
+
+  /// The count-based overflow decision, extracted pure so the Spotlight cap
+  /// (Play + 3 secondaries + ellipsis, strictly) is pinned by tests.
+  ///
+  /// [totalButtons] counts every button including the primary Play slot.
+  /// On the modern mobile layout the full-width primary sits on its own row,
+  /// so it neither occupies a visible slot nor counts toward the split. In
+  /// [overflowAsMenu] (Spotlight) mode overflow triggers as soon as one more
+  /// button exists than the visible slots hold, even when the ellipsis menu
+  /// would hold a single action. Otherwise a row exactly at the cap stays
+  /// inline.
+  @visibleForTesting
+  static ({int visibleCount, bool needsOverflow}) countSplit({
+    required int totalButtons,
+    required int maxVisible,
+    required bool isModernMobile,
+    required bool overflowAsMenu,
+    required bool countCapped,
+  }) {
+    final secondaryCount = isModernMobile ? totalButtons - 1 : totalButtons;
+    final visibleCount = isModernMobile ? maxVisible : maxVisible - 1;
+    final overflowThreshold = overflowAsMenu
+        ? (isModernMobile ? visibleCount - 1 : visibleCount)
+        : maxVisible;
+    return (
+      visibleCount: visibleCount,
+      needsOverflow: countCapped && secondaryCount > overflowThreshold,
+    );
+  }
+
   int _calculateMaxVisibleButtons(BuildContext context) {
     final override = widget.maxVisibleButtonsOverride;
     if (override != null) return override > 2 ? override : 2;
+    final prefs = GetIt.instance<UserPreferences>();
+    final prefLimit = prefs.get(UserPreferences.detailButtonsMaxVisible);
+    if (prefLimit > 0) {
+      final target = prefLimit + 1;
+      return target > 2 ? target : 2;
+    }
     if (PlatformDetection.isTV) {
       final maxItems = widget.modernStyle ? 11 : 7;
       final desktopScale = _desktopUiScale();
@@ -6579,7 +7262,7 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
         ),
       if (!isBook && shows(DetailButton.playlist))
         DetailButton.playlist: _DetailActionButton(
-          label: l10n.playlist,
+          label: l10n.addToPlaylist,
           icon: Icons.playlist_add,
           onPressed: () => AddToPlaylistDialog.show(
             context,
@@ -6596,7 +7279,7 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
           shows(DetailButton.deleteFiles) &&
           _availableOffline)
         DetailButton.deleteFiles: _DeleteDownloadButton(item: item),
-      if (item.type == 'Episode' &&
+      if ((item.type == 'Episode' || item.type == 'Season') &&
           item.seriesId != null &&
           shows(DetailButton.goToSeries))
         DetailButton.goToSeries: _DetailActionButton(
@@ -6622,7 +7305,7 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
         ),
       if (seerr != null && shows(DetailButton.seerrWatchlist))
         DetailButton.seerrWatchlist: _DetailActionButton(
-          label: onWatchlist ? l10n.onWatchlist : l10n.watchlist,
+          label: onWatchlist ? l10n.removeFromWatchlist : l10n.addToWatchlist,
           icon: onWatchlist ? Icons.bookmark : Icons.bookmark_border,
           onPressed: () => seerr.toggleWatchlist(),
           isActive: onWatchlist,
@@ -6634,8 +7317,14 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
         DetailButton.seerrReportIssue: _DetailActionButton(
           label: l10n.reportIssue,
           icon: Icons.report_problem_outlined,
-          onPressed: () =>
-              showSeerrReportIssueDialog(context: context, vm: seerr),
+          onPressed: () => showSeerrReportIssueDialog(
+            context: context,
+            vm: seerr,
+            initialSeason: item.type == 'Episode'
+                ? item.parentIndexNumber
+                : (item.type == 'Season' ? item.indexNumber : null),
+            initialEpisode: item.type == 'Episode' ? item.indexNumber : null,
+          ),
         ),
       if (seerr != null &&
           seerr.canManageRequests &&
@@ -6771,6 +7460,146 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
       }).toList();
     }
 
+    if (widget.nouveauStyle) {
+      final orderedSecondaryButtons = <_DetailActionButton>[
+        for (final detailButton in detailButtonLayout.ordered(
+          DetailButton.values,
+          (button) => button.id,
+          prefs,
+        )) ...[
+          if (byButton[detailButton] case final btn?)
+            ?_actionForOverflow(context, btn),
+          if (cancelByButton[detailButton] case final btn?)
+            ?_actionForOverflow(context, btn),
+        ],
+      ];
+
+      // A null primary only means there is nothing to play, and the secondary
+      // actions still stand on their own. NouveauActionButtons shrinks itself
+      // when every slot is empty.
+      final primaryButton = primaryAction is _DetailActionButton
+          ? primaryAction
+          : null;
+
+      final primaryFocusNode =
+          widget.tvPlayFocusNode ?? _primaryFocusNode(0);
+
+      final runtime = item.runtime;
+      final playbackPosition =
+          item.playbackPosition ?? Duration.zero;
+
+      double? playbackProgress;
+      String? remainingLabel;
+
+      if (runtime != null &&
+          runtime.inMilliseconds > 0 &&
+          playbackPosition.inMilliseconds > 0 &&
+          playbackPosition < runtime) {
+        playbackProgress =
+            (playbackPosition.inMilliseconds /
+                runtime.inMilliseconds)
+                .clamp(0.0, 1.0);
+
+        final remaining = runtime - playbackPosition;
+
+        final remainingMinutes =
+        (remaining.inSeconds / 60).ceil();
+
+        if (remainingMinutes >= 60) {
+          final hours = remainingMinutes ~/ 60;
+          final minutes = remainingMinutes % 60;
+
+          final formatted = minutes > 0
+              ? '${hours}h ${minutes}m'
+              : '${hours}h';
+
+          remainingLabel = l10n.timeRemaining(formatted);
+        } else if (remainingMinutes > 0) {
+          remainingLabel =
+              l10n.timeRemaining('${remainingMinutes}m');
+        }
+      }
+
+      final nouveauPrimaryAction = primaryButton == null
+          ? null
+          : _toNouveauAction(
+              primaryButton,
+              focusNode: primaryFocusNode,
+              progress: playbackProgress,
+              trailingLabel: remainingLabel,
+              onArrowUp:
+                  NavigationLayout.focusNavbarNotifier.value != null ||
+                      widget.upTarget != null
+                  ? _focusUpTarget
+                  : null,
+              onArrowDown: widget.downTarget != null
+                  ? _focusDownTarget
+                  : null,
+              onArrowLeft: _focusSidebar,
+              onArrowRight: orderedSecondaryButtons.isNotEmpty
+                  ? () => _primaryFocusNode(1).requestFocus()
+                  : widget.onArrowRightAtEnd,
+            );
+
+      final secondaryActions = orderedSecondaryButtons.asMap().entries.map((
+        entry,
+      ) {
+        final index = entry.key;
+        final button = entry.value;
+        final focusIndex = index + 1;
+
+        return _toNouveauAction(
+          button,
+          focusNode: _primaryFocusNode(focusIndex),
+          onArrowUp:
+              NavigationLayout.focusNavbarNotifier.value != null ||
+                  widget.upTarget != null
+              ? _focusUpTarget
+              : null,
+          onArrowDown: widget.downTarget != null
+              ? _focusDownTarget
+              : null,
+          // With no primary button there is nothing to the left of the first
+          // secondary, so fall back to the sidebar the primary would have used.
+          onArrowLeft: index == 0
+              ? (primaryButton == null
+                    ? _focusSidebar
+                    : () => primaryFocusNode.requestFocus())
+              : () => _primaryFocusNode(focusIndex - 1).requestFocus(),
+          onArrowRight: index == orderedSecondaryButtons.length - 1
+              ? widget.onArrowRightAtEnd
+              : () => _primaryFocusNode(focusIndex + 1).requestFocus(),
+        );
+      }).toList();
+
+      final rowContent = NouveauActionButtons(
+        primaryAction: nouveauPrimaryAction,
+        secondaryActions: secondaryActions,
+        maxVisibleButtons: prefs.get(UserPreferences.detailButtonsMaxVisible),
+      );
+
+      final downloads = seerrItemDownloads(viewModel);
+
+      final withDownloads = downloads == null
+          ? rowContent
+          : Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          rowContent,
+          SeerrItemDownloadBars(
+            state: downloads,
+          ),
+        ],
+      );
+
+      return Focus(
+        canRequestFocus: false,
+        skipTraversal: true,
+        child: withDownloads,
+      );
+    }
+
     final compact =
         (widget.modernStyle && _isCompact(context)) ||
         !_useDesktopDetailLayout(context);
@@ -6791,7 +7620,9 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
     final bool isModernMobile = widget.modernStyle && _isCompact(context);
     // Series/Season keep the two-column inline-Play layout on TV/desktop; on the
     // compact (mobile) layout every type uses the full-width primary + overflow.
-    final bool isTwoColumnLayout = !isModernMobile && isTvShow;
+    // The menu-overflow (Spotlight) mode uses the count split for every type.
+    final bool isTwoColumnLayout =
+        !widget.overflowAsMenu && !isModernMobile && isTvShow;
 
     // The buttons only fold into More once they stop fitting on one line.
     // Measuring the worst case, where whichever button is focused has grown
@@ -6804,14 +7635,17 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
         .where((button) => button.isPrimary)
         .map((button) => button.label)
         .firstOrNull;
-    final fitsOneLine = widget.modernStyle && rowBudget != null
-        ? modernRowWorstWidth(
-                allButtons.length,
-                buttonSpacing,
-                _modernPlayFocusedWidth(playLabel),
-              ) <=
-              rowBudget
-        : allButtons.length <= maxVisible;
+    final prefLimit = prefs.get(UserPreferences.detailButtonsMaxVisible);
+    final fitsOneLine = prefLimit == -1
+        ? true
+        : (widget.modernStyle && rowBudget != null
+            ? modernRowWorstWidth(
+                    allButtons.length,
+                    buttonSpacing,
+                    _modernPlayFocusedWidth(playLabel),
+                  ) <=
+                  rowBudget
+            : allButtons.length <= maxVisible);
 
     if (isTwoColumnLayout && fitsOneLine) {
       primaryButtons = allButtons;
@@ -6842,15 +7676,21 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
     } else {
       // On mobile the full-width primary sits on its own row, so it does not
       // occupy a slot in the secondary row: exclude it from the count and split.
-      final int secondaryCount = isModernMobile
-          ? allButtons.length - 1
-          : allButtons.length;
-      final int visibleCount = isModernMobile ? maxVisible : maxVisible - 1;
-      needsOverflow =
-          (compact ||
-              PlatformDetection.isTV ||
-              widget.maxVisibleButtonsOverride != null) &&
-          secondaryCount > maxVisible;
+      final split = countSplit(
+        totalButtons: allButtons.length,
+        maxVisible: maxVisible,
+        isModernMobile: isModernMobile,
+        overflowAsMenu: widget.overflowAsMenu,
+        countCapped: prefLimit == -1
+            ? false
+            : (prefLimit > 0
+                ? true
+                : (compact ||
+                    PlatformDetection.isTV ||
+                    widget.maxVisibleButtonsOverride != null)),
+      );
+      final int visibleCount = split.visibleCount;
+      needsOverflow = split.needsOverflow;
       if (needsOverflow) {
         primaryButtons = allButtons.take(visibleCount).toList();
         extraButtons = allButtons.skip(visibleCount).toList();
@@ -6906,20 +7746,28 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
           },
         );
       }).toList();
-      rowContent = Align(
-        alignment: widget.modernStyle
-            ? AlignmentDirectional.centerStart
-            : Alignment.center,
-        child: Wrap(
-          spacing: buttonSpacing,
-          runSpacing: buttonRunSpacing,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          alignment: widget.modernStyle
-              ? WrapAlignment.start
-              : WrapAlignment.center,
-          children: normalizedButtons,
-        ),
-      );
+      final rowAlignment = widget.modernStyle
+          ? AlignmentDirectional.centerStart
+          : Alignment.center;
+      rowContent = prefLimit == -1
+          ? _HorizontalActionRow(
+              spacing: buttonSpacing,
+              buttonWidth: compact ? 80.0 : 108.0 * desktopScale,
+              alignment: rowAlignment,
+              children: normalizedButtons,
+            )
+          : Align(
+              alignment: rowAlignment,
+              child: Wrap(
+                spacing: buttonSpacing,
+                runSpacing: buttonRunSpacing,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                alignment: widget.modernStyle
+                    ? WrapAlignment.start
+                    : WrapAlignment.center,
+                children: normalizedButtons,
+              ),
+            );
     } else {
       final normalizedPrimaryButtons = primaryButtons.asMap().entries.map((
         entry,
@@ -7031,8 +7879,12 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
       }).toList();
 
       final moreButton = _DetailActionButton(
-        label: _expanded ? l10n.less : l10n.more,
-        icon: _expanded ? Icons.expand_less : Icons.expand_more,
+        label: widget.overflowAsMenu
+            ? l10n.spotlightMoreActions
+            : (_expanded ? l10n.less : l10n.more),
+        icon: widget.overflowAsMenu
+            ? Icons.more_horiz
+            : (_expanded ? Icons.expand_less : Icons.expand_more),
         focusNode: widget.actionRowRightFocusNode ?? _overflowMoreFocusNode,
         onFocused: () => widget.onFocusExtra?.call(false),
         onArrowUp:
@@ -7056,7 +7908,9 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
           );
         },
         onArrowRight: widget.onArrowRightAtEnd ?? () {},
-        onPressed: () => setState(() => _expanded = !_expanded),
+        onPressed: widget.overflowAsMenu
+            ? () => unawaited(_showOverflowMenu(context, extraButtons))
+            : () => setState(() => _expanded = !_expanded),
       );
 
       if (widget.modernStyle) {
@@ -7756,7 +8610,7 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
     );
   }
 
-  void _play(
+  Future<void> _play(
     BuildContext context,
     AggregatedItem item, {
     bool resume = false,
@@ -7788,6 +8642,18 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
     } finally {
       _playLaunchInFlight = false;
     }
+  }
+
+  Future<void> playItem(
+      BuildContext context,
+      AggregatedItem item, {
+        bool resume = false,
+      }) {
+    return _play(
+      context,
+      item,
+      resume: resume,
+    );
   }
 
   void _shuffle(BuildContext context, AggregatedItem item) async {
@@ -10151,6 +11017,12 @@ class _DownloadButton extends StatefulWidget {
     this.suppressAutoScrollToTop = false,
   });
 
+  static void showDownloadOptions(
+    BuildContext context,
+    AggregatedItem item,
+    DownloadService service,
+  ) => _DownloadButtonState._showDownloadOptionsFor(context, item, service);
+
   @override
   State<_DownloadButton> createState() => _DownloadButtonState();
 }
@@ -10159,7 +11031,8 @@ class _DownloadButtonState extends State<_DownloadButton> {
   bool _isOffline = false;
   DownloadService? _downloadService;
 
-  String _originalQualitySubtitle(
+  static String _originalQualitySubtitle(
+    BuildContext context,
     AggregatedItem item, {
     required bool isMulti,
     List<AggregatedItem> batchItems = const [],
@@ -10167,6 +11040,7 @@ class _DownloadButtonState extends State<_DownloadButton> {
     final l10n = AppLocalizations.of(context);
     if (isMulti) {
       final sizeLabel = _batchSizeLabel(
+        context,
         batchItems,
         sourceSizeBytes,
         l10n.downloadSizeTotal,
@@ -10206,7 +11080,8 @@ class _DownloadButtonState extends State<_DownloadButton> {
     return details.join(' • ');
   }
 
-  String _qualitySubtitle(
+  static String _qualitySubtitle(
+    BuildContext context,
     AggregatedItem item,
     DownloadQuality quality, {
     required bool supportsTranscoding,
@@ -10215,6 +11090,7 @@ class _DownloadButtonState extends State<_DownloadButton> {
   }) {
     if (!quality.isTranscoded || !supportsTranscoding) {
       return _originalQualitySubtitle(
+        context,
         item,
         isMulti: isMulti,
         batchItems: batchItems,
@@ -10223,6 +11099,7 @@ class _DownloadButtonState extends State<_DownloadButton> {
 
     final estimate = isMulti
         ? _batchSizeLabel(
+            context,
             batchItems,
             (batchItem) => estimateTranscodedSizeBytes(batchItem, quality),
             AppLocalizations.of(context).downloadEstimateTotal,
@@ -10237,7 +11114,8 @@ class _DownloadButtonState extends State<_DownloadButton> {
   /// Sums [bytesOf] over [items], skipping items whose size is unknown, and
   /// formats the total with [label]. Notes how many items were skipped.
   /// Null when no item had a size.
-  String? _batchSizeLabel(
+  static String? _batchSizeLabel(
+    BuildContext context,
     List<AggregatedItem> items,
     int? Function(AggregatedItem item) bytesOf,
     String Function(String size) label,
@@ -10409,7 +11287,7 @@ class _DownloadButtonState extends State<_DownloadButton> {
       type == 'Season' || type == 'Series' || type == 'BoxSet';
 
   /// One line of context under a sheet title.
-  Widget _sheetNote(BuildContext sheetContext, String text) => Padding(
+  static Widget _sheetNote(BuildContext sheetContext, String text) => Padding(
     padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
     child: Text(
       text,
@@ -10422,7 +11300,7 @@ class _DownloadButtonState extends State<_DownloadButton> {
     ),
   );
 
-  Widget _sheetTitle(BuildContext sheetContext, String text) => Padding(
+  static Widget _sheetTitle(BuildContext sheetContext, String text) => Padding(
     padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
     child: Text(
       text,
@@ -10433,25 +11311,33 @@ class _DownloadButtonState extends State<_DownloadButton> {
     ),
   );
 
+  void _showDownloadOptions(BuildContext context, DownloadService service) {
+    _showDownloadOptionsFor(context, widget.item, service);
+  }
+
   /// Entry point for the download button. Series, seasons and collections
   /// first ask whether to download everything or only unwatched items; single
   /// items go straight to the quality picker.
-  void _showDownloadOptions(BuildContext context, DownloadService service) {
-    if (_isBatchType(widget.item.type)) {
-      _showScopePicker(context, service);
+  static void _showDownloadOptionsFor(
+    BuildContext context,
+    AggregatedItem item,
+    DownloadService service,
+  ) {
+    if (_isBatchType(item.type)) {
+      _showScopePicker(context, item, service);
     } else {
-      _showQualityPicker(context, service);
+      _showQualityPicker(context, item, service);
     }
   }
 
   /// Asks whether to download all items or only unwatched ones, then opens
   /// the quality picker for the chosen list. The list is resolved once here
   /// so the counts, the size estimates and the queued downloads all agree.
-  Future<void> _showScopePicker(
+  static Future<void> _showScopePicker(
     BuildContext context,
+    AggregatedItem item,
     DownloadService service,
   ) async {
-    final item = widget.item;
     final isCollection = item.type == 'BoxSet';
     final seriesId = item.seriesId;
 
@@ -10538,6 +11424,7 @@ class _DownloadButtonState extends State<_DownloadButton> {
                         children: [
                           _scopeRow(
                             sheetContext,
+                            item: item,
                             autofocus: true,
                             icon: Icons.download_for_offline,
                             label: isCollection
@@ -10548,6 +11435,7 @@ class _DownloadButtonState extends State<_DownloadButton> {
                           ),
                           _scopeRow(
                             sheetContext,
+                            item: item,
                             autofocus: false,
                             icon: Icons.visibility_off_outlined,
                             label: isCollection
@@ -10563,6 +11451,7 @@ class _DownloadButtonState extends State<_DownloadButton> {
                   if (autoDownloads != null)
                     _autoDownloadRow(
                       sheetContext,
+                      item,
                       autoDownloads,
                       initial: subscription,
                       onSubscription: (current) => subscription = current,
@@ -10579,26 +11468,27 @@ class _DownloadButtonState extends State<_DownloadButton> {
         );
     // Opened only after the scope sheet is gone, so the quality picker
     // restores focus to the Download button rather than to a disposed row.
-    if (!mounted) return;
+    if (!context.mounted) return;
     if (autoChosen) {
-      await _toggleAutoDownload(autoDownloads!, existing: subscription);
+      await _toggleAutoDownload(context, item, autoDownloads!, existing: subscription);
       return;
     }
     if (chosen == null) return;
-    _showQualityPicker(this.context, service, items: chosen);
+    _showQualityPicker(context, item, service, items: chosen);
   }
 
   /// Follows or unfollows the series. Following asks for a quality first so
   /// the subscription records one.
-  Future<void> _toggleAutoDownload(
+  static Future<void> _toggleAutoDownload(
+    BuildContext context,
+    AggregatedItem item,
     AutoDownloadService autoDownloads, {
     required AutoDownloadSubscription? existing,
   }) async {
-    final item = widget.item;
     final l10n = AppLocalizations.of(context);
     if (existing != null) {
       await autoDownloads.unsubscribe(item.id);
-      if (!mounted) return;
+      if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(l10n.autoDownloadStoppedFor(item.name))),
       );
@@ -10606,10 +11496,11 @@ class _DownloadButtonState extends State<_DownloadButton> {
     }
     final quality = await _pickQuality(
       context,
+      item,
       title: l10n.autoDownloadQualityTitle,
       note: l10n.autoDownloadTranscodedForegroundNote,
     );
-    if (quality == null || !mounted) return;
+    if (quality == null || !context.mounted) return;
     unawaited(autoDownloads.subscribe(item, quality: quality));
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(l10n.autoDownloadEnabledFor(item.name))),
@@ -10619,8 +11510,9 @@ class _DownloadButtonState extends State<_DownloadButton> {
   /// Third row of a series' scope sheet: subscribe to new episodes, or stop.
   /// Reports the current subscription through [onSubscription] so the
   /// caller knows which of the two [onTap] meant.
-  Widget _autoDownloadRow(
+  static Widget _autoDownloadRow(
     BuildContext sheetContext,
+    AggregatedItem item,
     AutoDownloadService autoDownloads, {
     required AutoDownloadSubscription? initial,
     required void Function(AutoDownloadSubscription?) onSubscription,
@@ -10633,7 +11525,7 @@ class _DownloadButtonState extends State<_DownloadButton> {
     );
     return StreamBuilder<AutoDownloadSubscription?>(
       initialData: initial,
-      stream: autoDownloads.watchSubscription(widget.item.id),
+      stream: autoDownloads.watchSubscription(item.id),
       builder: (_, snapshot) {
         final subscription = snapshot.data;
         onSubscription(subscription);
@@ -10668,8 +11560,9 @@ class _DownloadButtonState extends State<_DownloadButton> {
     );
   }
 
-  Widget _scopeRow(
+  static Widget _scopeRow(
     BuildContext sheetContext, {
+    required AggregatedItem item,
     required bool autofocus,
     required IconData icon,
     required String label,
@@ -10681,7 +11574,7 @@ class _DownloadButtonState extends State<_DownloadButton> {
     final enabled = loading || items.isNotEmpty;
     final subtitle = loading
         ? l10n.downloadScopeLoading
-        : widget.item.type == 'BoxSet'
+        : item.type == 'BoxSet'
         ? l10n.itemCountLabel(items.length)
         : l10n.episodeCount(items.length);
     return DpadListTile(
@@ -10712,26 +11605,27 @@ class _DownloadButtonState extends State<_DownloadButton> {
   /// Shows the quality picker and queues the download. For series, seasons
   /// and collections [items] is the list resolved by the scope picker and
   /// drives both the size estimate and what gets queued.
-  Future<void> _showQualityPicker(
+  static Future<void> _showQualityPicker(
     BuildContext context,
+    AggregatedItem item,
     DownloadService service, {
     List<AggregatedItem>? items,
   }) async {
-    final item = widget.item;
     final isMulti = _isBatchType(item.type);
     if (!isMulti && !_supportsTranscoding(item.type)) {
-      _startDownload(context, service, DownloadQuality.original);
+      _startDownload(context, item, service, DownloadQuality.original);
       return;
     }
     final quality = await _pickQuality(
       context,
+      item,
       title: isMulti
           ? AppLocalizations.of(context).downloadAllQuality
           : AppLocalizations.of(context).downloadQuality,
       items: items ?? const [],
     );
-    if (quality == null || !mounted) return;
-    _startDownload(this.context, service, quality, items: items);
+    if (quality == null || !context.mounted) return;
+    _startDownload(context, item, service, quality, items: items);
   }
 
   static bool _supportsTranscoding(String? type) =>
@@ -10744,13 +11638,13 @@ class _DownloadButtonState extends State<_DownloadButton> {
   /// [items] for batches. Null when the sheet is dismissed.
   /// [note] is shown once under the title, for callers where the choice has
   /// a consequence worth stating.
-  Future<DownloadQuality?> _pickQuality(
-    BuildContext context, {
+  static Future<DownloadQuality?> _pickQuality(
+    BuildContext context,
+    AggregatedItem item, {
     required String title,
     List<AggregatedItem> items = const [],
     String? note,
   }) {
-    final item = widget.item;
     final isMulti = _isBatchType(item.type);
     final supportsTranscoding = isMulti || _supportsTranscoding(item.type);
     final batchItems = items;
@@ -10778,6 +11672,7 @@ class _DownloadButtonState extends State<_DownloadButton> {
     final subtitles = {
       for (final quality in availableQualities)
         quality: _qualitySubtitle(
+          context,
           item,
           quality,
           supportsTranscoding: supportsTranscoding,
@@ -10873,13 +11768,13 @@ class _DownloadButtonState extends State<_DownloadButton> {
 
   /// Queues the download. [items] is the list chosen in the scope sheet for
   /// series, seasons and collections; single items leave it null.
-  void _startDownload(
+  static void _startDownload(
     BuildContext context,
+    AggregatedItem item,
     DownloadService service,
     DownloadQuality quality, {
     List<AggregatedItem>? items,
   }) {
-    final item = widget.item;
     final l10n = AppLocalizations.of(context);
     final String message;
     if (items != null) {
@@ -10927,6 +11822,16 @@ class _DeleteDownloadButton extends StatefulWidget {
     this.suppressAutoScrollToTop = false,
   });
 
+  static Future<void> confirmDelete(
+    BuildContext context,
+    AggregatedItem item, {
+    VoidCallback? onDeleted,
+  }) => _DeleteDownloadButtonState._confirmDelete(
+    context,
+    item,
+    onDeleted: onDeleted,
+  );
+
   @override
   State<_DeleteDownloadButton> createState() => _DeleteDownloadButtonState();
 }
@@ -10970,9 +11875,17 @@ class _DeleteDownloadButtonState extends State<_DeleteDownloadButton> {
     if (_checking || !_hasFiles) return const SizedBox.shrink();
 
     return _DetailActionButton(
-      label: AppLocalizations.of(context).deleteFiles,
+      label: AppLocalizations.of(context).deleteDownloadedFiles,
       icon: Icons.delete_outline,
-      onPressed: () => _confirmDelete(context),
+      onPressed: () => _confirmDelete(
+        context,
+        widget.item,
+        onDeleted: () {
+          if (mounted) {
+            setState(() => _hasFiles = false);
+          }
+        },
+      ),
       isActive: true,
       activeColor: const Color(0xFFFF4757),
       focusNode: widget.focusNode,
@@ -10985,8 +11898,11 @@ class _DeleteDownloadButtonState extends State<_DeleteDownloadButton> {
     );
   }
 
-  Future<void> _confirmDelete(BuildContext context) async {
-    final item = widget.item;
+  static Future<void> _confirmDelete(
+    BuildContext context,
+    AggregatedItem item, {
+    VoidCallback? onDeleted,
+  }) async {
     final l10n = AppLocalizations.of(context);
     final typeLabel = switch (item.type) {
       'Series' => l10n.deleteSeriesFiles(item.seriesName ?? item.name),
@@ -11035,7 +11951,7 @@ class _DeleteDownloadButtonState extends State<_DeleteDownloadButton> {
           ),
         );
         if (success) {
-          setState(() => _hasFiles = false);
+          onDeleted?.call();
         }
       }
     }
@@ -11060,31 +11976,13 @@ class _PersonalRatingActionIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return switch (style) {
-      PersonalRatingStyle.thumbs =>
+      PersonalRatingStyle.thumbs => Icon(
         likes == null
-            ? Center(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.thumb_up_outlined,
-                      color: color,
-                      size: size * 0.5,
-                    ),
-                    SizedBox(width: size * 0.08),
-                    Icon(
-                      Icons.thumb_down_outlined,
-                      color: color,
-                      size: size * 0.5,
-                    ),
-                  ],
-                ),
-              )
-            : Icon(
-                likes! ? Icons.thumb_up : Icons.thumb_down,
-                color: color,
-                size: size * 0.72,
-              ),
+            ? Icons.thumb_up_outlined
+            : (likes! ? Icons.thumb_up : Icons.thumb_down),
+        color: color,
+        size: size * 0.85,
+      ),
       PersonalRatingStyle.stars => _StarFillIcon(
         fill: ((rating ?? 0).clamp(0, 10) / 10).toDouble(),
         size: size * 0.82,
@@ -11494,9 +12392,19 @@ class _DetailActionButtonState extends State<_DetailActionButton>
   void _scrollToTopOnFocus() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      final scrollable = Scrollable.maybeOf(context);
-      if (scrollable == null) return;
-      final position = scrollable.position;
+      ScrollableState? verticalScrollable;
+      context.visitAncestorElements((element) {
+        if (element is StatefulElement && element.state is ScrollableState) {
+          final state = element.state as ScrollableState;
+          if (state.position.axis == Axis.vertical) {
+            verticalScrollable = state;
+            return false;
+          }
+        }
+        return true;
+      });
+      if (verticalScrollable == null) return;
+      final position = verticalScrollable!.position;
       if (position.pixels <= position.minScrollExtent) return;
       position.animateTo(
         position.minScrollExtent,
@@ -11733,6 +12641,167 @@ class _DetailActionButtonState extends State<_DetailActionButton>
                     ],
                   ),
                 ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SpotlightOverflowTile extends StatefulWidget {
+  final _DetailActionButton action;
+  final bool autofocus;
+  final VoidCallback onTap;
+  final VoidCallback? onLongPress;
+
+  const _SpotlightOverflowTile({
+    required this.action,
+    this.autofocus = false,
+    required this.onTap,
+    this.onLongPress,
+  });
+
+  @override
+  State<_SpotlightOverflowTile> createState() => _SpotlightOverflowTileState();
+}
+
+class _SpotlightOverflowTileState extends State<_SpotlightOverflowTile> {
+  final _focusNode = FocusNode();
+  bool _isFocused = false;
+  bool _isHovered = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _focusNode.addListener(() {
+      if (mounted) {
+        final hasFocus = _focusNode.hasFocus;
+        setState(() => _isFocused = hasFocus);
+        if (hasFocus) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              Scrollable.ensureVisible(
+                context,
+                alignment: 0.5,
+                duration: const Duration(milliseconds: 150),
+                curve: Curves.easeOut,
+              );
+            }
+          });
+        }
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final action = widget.action;
+    final isTv = PlatformDetection.isTV;
+    final showHighlight = _isFocused || _isHovered;
+
+    final focusBg = AppColorScheme.buttonFocused;
+    final focusedFg = readableOnFocusFill(focusBg);
+
+    final textColor = showHighlight
+        ? (isTv ? focusedFg : Colors.white)
+        : Colors.white;
+
+    final iconColor = showHighlight
+        ? (isTv ? focusedFg : AppColorScheme.accent)
+        : (action.isActive
+            ? (action.activeColor ?? AppColorScheme.accent)
+            : Colors.white.withValues(alpha: 0.85));
+
+    // The plain icon first. The builders draw for the button row, where the
+    // rating one pairs a thumb up and down and the star one part fills, and
+    // both come out a smudge at 22. The label carries the rating anyway.
+    final Widget? leadingWidget;
+    if (action.icon != null) {
+      leadingWidget = AdaptiveIcon(action.icon!, color: iconColor, size: 22);
+    } else if (action.iconBuilder != null) {
+      leadingWidget = action.iconBuilder!(22, iconColor);
+    } else {
+      leadingWidget = null;
+    }
+
+    final focusColor = Color(
+      GetIt.instance<UserPreferences>()
+          .get(UserPreferences.focusColor)
+          .colorValue,
+    );
+
+    return Focus(
+      focusNode: _focusNode,
+      autofocus: widget.autofocus,
+      onKeyEvent: (_, event) {
+        if (!event.logicalKey.isSelectKey) return KeyEventResult.ignored;
+        if (event is KeyDownEvent) {
+          widget.onTap();
+          return KeyEventResult.handled;
+        }
+        return KeyEventResult.ignored;
+      },
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        onEnter: (_) => setState(() => _isHovered = true),
+        onExit: (_) => setState(() => _isHovered = false),
+        child: GestureDetector(
+          onTap: widget.onTap,
+          onLongPress: widget.onLongPress,
+          behavior: HitTestBehavior.opaque,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 90),
+              curve: Curves.easeOut,
+              decoration: BoxDecoration(
+                color: showHighlight
+                    ? (isTv
+                        ? focusBg
+                        : AppColorScheme.accent.withValues(alpha: 0.16))
+                    : Colors.transparent,
+                borderRadius: AppRadius.circular(10),
+                border: Border.all(
+                  color: showHighlight
+                      ? (isTv
+                          ? focusColor
+                          : AppColorScheme.accent.withValues(alpha: 0.6))
+                      : Colors.white.withValues(alpha: 0.15),
+                  width: showHighlight ? 1.5 : 1.0,
+                ),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                children: [
+                  if (leadingWidget != null) ...[
+                    SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: Center(child: leadingWidget),
+                    ),
+                    const SizedBox(width: 14),
+                  ],
+                  Expanded(
+                    child: Text(
+                      action.label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: textColor,
+                        fontWeight: action.isActive ? FontWeight.w600 : FontWeight.w500,
+                        fontSize: 15,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -13192,8 +14261,11 @@ class DetailSeasonsRow extends StatelessWidget {
             SizedBox(width: isMobile ? 8 : 12 * desktopScale),
         itemBuilder: (context, index) {
           final season = seasons[index];
+          final showAvailabilityBadges =
+              prefs.get(UserPreferences.showSeerrAvailabilityBadges);
           final seerrStatus = seerrSeasonStatus?[season.indexNumber];
-          final hasSeerrDot = SeerrMediaStatus.hasDot(seerrStatus);
+          final hasSeerrDot =
+              showAvailabilityBadges && SeerrMediaStatus.hasDot(seerrStatus);
           return MediaCard(
             title: season.name,
             subtitle: _progressText(season),
@@ -14067,8 +15139,8 @@ class DetailEpisodeCardState extends State<DetailEpisodeCard>
                               ),
                               if (runtimeText != null) ...[
                                 const SizedBox(height: 2),
-                                // A bage besides the runtime with when a overlow happens,
-                                // the overlow is returned underneath the runtime.
+                                // The runtime and the pills share a line, and the pills
+                                // wrap underneath it when the row runs out of room.
                                 AnimeMarkerBadge(
                                   seriesId: episode.seriesId,
                                   episodeId: episode.id,
@@ -16432,3 +17504,20 @@ class _PersonDisplaySettingsDialogState
 }
 
 typedef PersonDisplaySettingsDialog = _PersonDisplaySettingsDialog;
+
+/// An invisible edge strip that brings the hidden navbar back when the
+/// pointer reaches it. Mouse only, so it stays out of the way on touch.
+class _NavbarRevealZone extends StatelessWidget {
+  const _NavbarRevealZone({required this.onReveal});
+
+  final VoidCallback onReveal;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      opaque: false,
+      onEnter: (_) => onReveal(),
+      onHover: (_) => onReveal(),
+    );
+  }
+}

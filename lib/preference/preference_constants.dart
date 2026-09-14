@@ -29,6 +29,23 @@ enum AudioPassthroughMode {
   manual,
 }
 
+/// How a bitstream reaches the AudioTrack on the Media3 engine, while
+/// [AudioPassthroughMode] decides whether a codec may bitstream at all.
+/// - [platform]: raw codec encodings, the Android HAL packs the IEC frames.
+///   The default.
+/// - [iecPacker]: the app packs IEC 61937 itself and plays through an
+///   ENCODING_IEC61937 track, bypassing buggy vendor packers. Under this mode
+///   an eligible codec either rides the IEC path or decodes locally.
+enum AudioPassthroughOutput {
+  platform('platform'),
+  iecPacker('iec');
+
+  const AudioPassthroughOutput(this.wireName);
+
+  /// The token shared with the native Media3 bridge.
+  final String wireName;
+}
+
 /// Passthrough-controllable base codecs. Variants ride inside the base
 /// bitstream: Atmos (JOC) in eac3, DTS:X in dtsHd, Atmos in trueHd.
 enum PassthroughCodec {
@@ -254,15 +271,22 @@ enum VisualThemeId {
 ///
 /// [classic] is the original centered-stack layout. [modern] is the responsive
 /// cinematic layout (landscape two-pane / portrait stack) and is the default.
-/// Stored per server and user.
+/// [spotlight] is the hero-first layout: Play plus at most three action
+/// buttons with the rest behind an ellipsis menu, and summary cards that open
+/// sectioned grid modals. [nouveau] is the full-screen layout, with every
+/// section stacked down the page rather than behind tabs or cards. Stored per
+/// server and user.
 enum DetailScreenStyle {
   classic,
-  modern;
+  modern,
+  spotlight,
+  nouveau;
 }
 
 /// Selectable algorithm source for similarity recommendation system.
 enum RecommendationSystemSource {
   local,
+  server,
   online;
 }
 
@@ -854,9 +878,14 @@ enum ScreensaverTimeout {
 
 enum SinceYouWatchedSource {
   local,
+  server,
   online;
 
-  String get displayName => this == local ? 'Local' : 'Online';
+  String get displayName => switch (this) {
+    SinceYouWatchedSource.local => 'Moonfin Recommends',
+    SinceYouWatchedSource.server => 'Jellyfin Recommends',
+    SinceYouWatchedSource.online => 'TMDb Similarity',
+  };
 }
 
 enum SinceYouWatchedSourceType {
@@ -953,3 +982,33 @@ enum LoadingAnimationSpeed {
   ultra,
 }
 
+enum PageTransitionSpeed {
+  slow(Duration(milliseconds: 450)),
+  medium(Duration(milliseconds: 300)),
+  fast(Duration(milliseconds: 150)),
+  off(Duration.zero);
+
+  const PageTransitionSpeed(this.duration);
+  final Duration duration;
+}
+
+enum NavigationAnimationSpeed {
+  extraSlow(Duration(milliseconds: 400)),
+  slow(Duration(milliseconds: 250)),
+  medium(Duration(milliseconds: 150)),
+  fast(Duration(milliseconds: 80));
+
+  const NavigationAnimationSpeed(this.duration);
+  final Duration duration;
+}
+
+enum ModernCardTransitionSpeed {
+  extraSlow(Duration(milliseconds: 450)),
+  slow(Duration(milliseconds: 300)),
+  medium(Duration(milliseconds: 180)),
+  fast(Duration(milliseconds: 90)),
+  off(Duration.zero);
+
+  const ModernCardTransitionSpeed(this.duration);
+  final Duration duration;
+}

@@ -1,8 +1,6 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-
-import 'anime_marker_badge.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_tvos/flutter_tvos.dart'
     show TvRemoteController, TvRemoteTouchEvent, TvRemoteTouchPhase;
@@ -13,9 +11,13 @@ import '../../preference/preference_constants.dart';
 import '../../util/platform_detection.dart';
 import '../../util/focus/dpad_keys.dart';
 import '../../util/focus/key_event_utils.dart';
+import '../../util/item_watch_state.dart';
+import '../../util/focus/scroll_utils.dart';
+import 'anime_marker_badge.dart';
 import 'bounded_network_image.dart';
 import 'focus/glass_focus_halo.dart';
 import 'marquee_text.dart';
+import 'media_badge.dart';
 import 'seerr/seerr_status_dot.dart';
 import '../mixins/focus_state_mixin.dart';
 
@@ -75,8 +77,8 @@ class MediaCard extends StatefulWidget {
   /// card guess from [aspectRatio].
   final bool isBanner;
 
-  /// The item id of the anime marker, for the subbed/dubbed pill. 
-  /// Only set for standalone items such as movies, which have no series to inherit from.
+  /// The item behind the subbed/dubbed pill. Set only for standalone items such as
+  /// movies, which have no series to inherit a verdict from.
   final String? animeMarkerItemId;
 
   /// Extra widgets layered over the poster image (inside its clip), e.g.
@@ -347,7 +349,7 @@ class _MediaCardState extends State<MediaCard> with FocusStateMixin {
           active: cardActive,
           child: AnimatedScale(
             scale: cardActive ? MediaCard.focusScale : 1.0,
-            duration: const Duration(milliseconds: 150),
+            duration: navigationAnimationDuration,
             curve: PlatformDetection.isAppleTV
                 ? Curves.easeOutCubic
                 : Curves.linear,
@@ -670,6 +672,12 @@ class _CardImage extends StatelessWidget {
     this.isGenreFallback = false,
   });
 
+  /// How far the focus ring sits outside the artwork. The ring is 3px thick
+  /// and drawn inside its own box, so this also decides the gap between the
+  /// two. Too small a gap and an antialiased poster corner bleeds over the
+  /// ring, which reads as the image escaping its rounded container.
+  static const _focusRingInset = 5.0;
+
   @override
   Widget build(BuildContext context) {
     final radius = isCircular ? 999.0 : 8.0;
@@ -691,16 +699,17 @@ class _CardImage extends StatelessWidget {
         children: [
           if (showGlow)
             Positioned(
-              top: -3.5,
-              bottom: -3.5,
-              left: -3.5,
-              right: -3.5,
+              top: -_focusRingInset,
+              bottom: -_focusRingInset,
+              left: -_focusRingInset,
+              right: -_focusRingInset,
               child: IgnorePointer(
                 child: Container(
                   decoration: BoxDecoration(
                     borderRadius: isCircular
-                        ? AppRadius.circular(radius + 3.5)
-                        : borders.cardRadius + AppRadius.circular(3.5),
+                        ? AppRadius.circular(radius + _focusRingInset)
+                        : borders.cardRadius +
+                              AppRadius.circular(_focusRingInset),
                     boxShadow: borders.focusGlow,
                   ),
                 ),
@@ -788,14 +797,10 @@ class _CardImage extends StatelessWidget {
                 if (isFavorite)
                   Positioned(
                     top: (_showSeerrMediaTypeBadge || overlayOccupiesTopLeft)
-                        ? 28
-                        : 4,
-                    left: 4,
-                    child: Icon(
-                      Icons.favorite,
-                      color: AppColorScheme.recordingActive,
-                      size: 18,
-                    ),
+                        ? 32
+                        : 6,
+                    left: 6,
+                    child: MediaFavoriteBadge(size: 22),
                   ),
                 if (_showSeerrMediaTypeBadge)
                   Positioned(
@@ -810,7 +815,7 @@ class _CardImage extends StatelessWidget {
                     child: SeerrStatusDot(status: seerrStatus),
                   )
                 else if (_showWatchedIndicator)
-                  Positioned(top: 4, right: 4, child: _buildWatchedIndicator()),
+                  Positioned(top: 6, right: 6, child: _buildWatchedIndicator()),
                 if (playedPercentage != null && playedPercentage! > 0)
                   Positioned(
                     left: 6,
@@ -836,16 +841,17 @@ class _CardImage extends StatelessWidget {
           ),
           if (showBorder)
             Positioned(
-              top: -3.5,
-              bottom: -3.5,
-              left: -3.5,
-              right: -3.5,
+              top: -_focusRingInset,
+              bottom: -_focusRingInset,
+              left: -_focusRingInset,
+              right: -_focusRingInset,
               child: IgnorePointer(
                 child: Container(
                   decoration: BoxDecoration(
                     borderRadius: isCircular
-                        ? AppRadius.circular(radius + 3.5)
-                        : borders.cardRadius + AppRadius.circular(3.5),
+                        ? AppRadius.circular(radius + _focusRingInset)
+                        : borders.cardRadius +
+                              AppRadius.circular(_focusRingInset),
                     border: Border.fromBorderSide(
                       borders.focusBorder.copyWith(
                         color: borderColor,
@@ -861,19 +867,12 @@ class _CardImage extends StatelessWidget {
     );
   }
 
-  bool get _showWatchedIndicator {
-    switch (watchedBehavior) {
-      case WatchedIndicatorBehavior.always:
-        return isPlayed || (unplayedCount != null && unplayedCount! > 0);
-      case WatchedIndicatorBehavior.hideUnwatched:
-        return isPlayed;
-      case WatchedIndicatorBehavior.episodesOnly:
-        return itemType == 'Episode' &&
-            (isPlayed || (unplayedCount != null && unplayedCount! > 0));
-      case WatchedIndicatorBehavior.never:
-        return false;
-    }
-  }
+  bool get _showWatchedIndicator => showsWatchedIndicator(
+    behavior: watchedBehavior,
+    isPlayed: isPlayed,
+    itemType: itemType,
+    unplayedCount: unplayedCount,
+  );
 
   bool get _showSeerrMediaTypeBadge {
     final type = seerrMediaType?.toLowerCase();
@@ -884,33 +883,10 @@ class _CardImage extends StatelessWidget {
 
   Widget _buildWatchedIndicator() {
     if (isPlayed) {
-      return DecoratedBox(
-        decoration: BoxDecoration(
-          color: AppColorScheme.badgeWatched,
-          shape: BoxShape.circle,
-        ),
-        child: Padding(
-          padding: EdgeInsets.all(2),
-          child: Icon(Icons.check, color: AppColorScheme.onBadge, size: 12),
-        ),
-      );
+      return MediaWatchedBadge(size: 22);
     }
     if (unplayedCount != null && unplayedCount! > 0) {
-      return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-        decoration: BoxDecoration(
-          color: AppColorScheme.badgeUnplayed,
-          borderRadius: AppRadius.circular(8),
-        ),
-        child: Text(
-          '$unplayedCount',
-          style: TextStyle(
-            color: AppColorScheme.onBadge,
-            fontSize: 10,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      );
+      return MediaUnplayedBadge(count: unplayedCount!);
     }
     return const SizedBox.shrink();
   }

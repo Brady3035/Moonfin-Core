@@ -47,7 +47,12 @@ class _DetailsScreenSettingsScreenState
                     labelOf: (v) => switch (v) {
                       DetailScreenStyle.classic =>
                         l10n.detailScreenStyleMoonfin,
-                      DetailScreenStyle.modern => l10n.detailScreenStyleModern,
+                      DetailScreenStyle.modern =>
+                        l10n.detailScreenStyleModern,
+                      DetailScreenStyle.spotlight =>
+                        l10n.detailScreenStyleSpotlight,
+                      DetailScreenStyle.nouveau =>
+                        l10n.detailScreenStyleNouveau,
                     },
                   ),
                   EnumPreferenceTile<PersonalRatingStyle>(
@@ -65,7 +70,7 @@ class _DetailsScreenSettingsScreenState
                       PersonalRatingStyle.numeric => l10n.personalRatingNumeric,
                     },
                   ),
-                  if (prefs.get(UserPreferences.detailScreenStyle) != DetailScreenStyle.modern)
+                  if (prefs.get(UserPreferences.detailScreenStyle) == DetailScreenStyle.classic)
                     SliderPreferenceTile(
                       preference: UserPreferences.detailsBackgroundBlurAmount,
                       title: l10n.detailsBackgroundBlur,
@@ -95,11 +100,39 @@ class _DetailsScreenSettingsScreenState
                       const _DetailButtonsScreen(),
                     ),
                   ),
+                  IntPickerPreferenceTile(
+                    preference: UserPreferences.detailButtonsMaxVisible,
+                    title: l10n.actionButtonsOnScreen,
+                    description: l10n.actionButtonsOnScreenDescription,
+                    icon: Icons.more_horiz,
+                    options: {
+                      0: l10n.actionButtonsOnScreenAuto,
+                      1: l10n.actionButtonsOnScreenPlayOnly,
+                      2: '2',
+                      3: '3',
+                      4: '4',
+                      5: '5',
+                      6: '6',
+                      7: '7',
+                      8: '8',
+                      9: '9',
+                      10: '10',
+                      -1: l10n.actionButtonsOnScreenAll,
+                    },
+                  ),
                 ],
               ),
               _SectionHeader(l10n.mediaDetailsAndSpoilers),
               adaptiveListSection(
                 children: [
+                  _TvSettingsListTile(
+                    leading: const Icon(Icons.view_headline_outlined),
+                    title: Text(l10n.detailMetadata),
+                    subtitle: Text(l10n.detailMetadataDescription),
+                    onTap: () => context.pushSettingsScreen(
+                      const _DetailMetadataScreen(),
+                    ),
+                  ),
                   if (prefs.get(UserPreferences.detailScreenStyle) == DetailScreenStyle.modern)
                     SwitchPreferenceTile(
                       preference: UserPreferences.detailExpandedTabs,
@@ -150,6 +183,8 @@ class _DetailsScreenSettingsScreenState
                     labelOf: (v) => switch (v) {
                       RecommendationSystemSource.local =>
                         l10n.recommendationSystemMoonfin,
+                      RecommendationSystemSource.server =>
+                        l10n.recommendationSystemJellyfin,
                       RecommendationSystemSource.online =>
                         l10n.recommendationSystemTmdb,
                     },

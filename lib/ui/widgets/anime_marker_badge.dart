@@ -5,14 +5,8 @@ import 'package:moonfin_design/moonfin_design.dart';
 import '../../data/repositories/anime_marker_repository.dart';
 import '../../l10n/app_localizations.dart';
 
-/// Debug Pill to see what it resposnds for each epsiode.
-const bool kAnimeMarkerDebug = false;
-
-/// Whether to show anime markers.
-const bool kAnimeMarkersEnabled = true;
-
-/// A badge for an episode card, shown only when there is something worth warning about:
-/// filler, mixed canon/filler, or a recap. Everything else renders nothing at all, so a
+/// A badge for an episode card, shown only when there is something worth flagging:
+/// filler, mixed canon and filler, or a recap. Anything else draws nothing at all, so a
 /// mixed library of anime and ordinary shows is untouched outside the anime that matched.
 class AnimeMarkerBadge extends StatefulWidget {
   final String? seriesId;
@@ -21,21 +15,19 @@ class AnimeMarkerBadge extends StatefulWidget {
   /// Scales with the surrounding card so the pills do not dominate on TV.
   final double scale;
 
-  /// Applied only when a pill actually renders, so an episode with no marker.
+  /// Applied only when a pill actually draws, so a card with no marker keeps the
+  /// spacing it had before.
   final EdgeInsetsGeometry padding;
 
-  /// The server's preferred placement for the pill, when it has one. If the server
-  /// has not yet responded, or the server does not know where to put it, the
-  /// badge falls back to the layout that always fits.
+  /// The placement this badge stands in. A badge whose slot the server did not pick
+  /// draws nothing, which lets one card offer several slots and let the server choose.
   final AnimeMarkerPlacement? slot;
 
   /// Solid pills with white text, for when the badge sits over artwork.
   final bool filled;
 
-  /// A leading widget that is always shown, even when the server has not yet resolved the
-  /// episode's marker. The pill is only shown when the server has resolved a noteworthy
-  /// marker, so this allows a card to always show something in the corner even when the
-  /// pill is not present.
+  /// Drawn whether or not a pill resolves, so a card can keep something in the corner
+  /// while the marker is still on its way.
   final Widget? leading;
 
   const AnimeMarkerBadge({
@@ -56,18 +48,6 @@ class AnimeMarkerBadge extends StatefulWidget {
 class _AnimeMarkerBadgeState extends State<AnimeMarkerBadge> {
   AnimeEpisodeMarker? _marker;
   bool _pending = false;
-  String? _debugReason;
-
-  void _note(String reason) {
-    if (!kAnimeMarkerDebug) return;
-
-    _debugReason = reason;
-    if (!mounted) return;
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) setState(() {});
-    });
-  }
 
   @override
   void initState() {
@@ -78,8 +58,8 @@ class _AnimeMarkerBadgeState extends State<AnimeMarkerBadge> {
   @override
   void didUpdateWidget(AnimeMarkerBadge oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Episode cards are recycled while scrolling, so a new episode in the same
-    // widget slot has to drop the previous episode's pill.
+    // Episode cards are recycled while scrolling, so a new episode in the same widget
+    // slot has to drop the previous episode's pill.
     if (oldWidget.episodeId != widget.episodeId ||
         oldWidget.seriesId != widget.seriesId) {
       _marker = null;
@@ -89,18 +69,10 @@ class _AnimeMarkerBadgeState extends State<AnimeMarkerBadge> {
   }
 
   Future<void> _load() async {
-    if (!kAnimeMarkersEnabled) return;
-
     final seriesId = widget.seriesId;
-    if (seriesId == null || seriesId.isEmpty) {
-      _note('no-seriesId');
-      return;
-    }
+    if (seriesId == null || seriesId.isEmpty) return;
+    if (!GetIt.instance.isRegistered<AnimeMarkerRepository>()) return;
 
-    if (!GetIt.instance.isRegistered<AnimeMarkerRepository>()) {
-      _note('no-repo');
-      return;
-    }
     final repository = GetIt.instance<AnimeMarkerRepository>();
 
     final cached = repository.peek(
@@ -112,9 +84,8 @@ class _AnimeMarkerBadgeState extends State<AnimeMarkerBadge> {
       return;
     }
 
-    // Already looked up and this episode carries no marker, or the plugin is unavailable.
+    // Already looked up and this episode carries no marker, or the plugin isnt there.
     if (repository.isResolved(seriesId)) {
-      _note('resolved:${repository.lastDiagnostic ?? "no-marker"}');
       _pending = repository.isPending(seriesId);
       return;
     }
@@ -128,7 +99,6 @@ class _AnimeMarkerBadgeState extends State<AnimeMarkerBadge> {
       episodeId: widget.episodeId,
     );
     if (resolved == null) {
-      _note(repository.lastDiagnostic ?? 'no-marker');
       if (repository.isPending(seriesId)) {
         setState(() => _pending = true);
       }
@@ -140,10 +110,8 @@ class _AnimeMarkerBadgeState extends State<AnimeMarkerBadge> {
 
   @override
   Widget build(BuildContext context) {
-    if (!kAnimeMarkersEnabled) return widget.leading ?? const SizedBox.shrink();
-
     // Standing in a slot the server did not choose. Any leading widget still belongs on
-    // screen; only the pills move elsewhere.
+    // screen, only the pills move elsewhere.
     if (widget.slot != null &&
         GetIt.instance.isRegistered<AnimeMarkerRepository>() &&
         GetIt.instance<AnimeMarkerRepository>().placement != widget.slot) {
@@ -155,19 +123,8 @@ class _AnimeMarkerBadgeState extends State<AnimeMarkerBadge> {
     final marker = _marker;
 
     if (marker == null || !marker.isNoteworthy) {
-      if (kAnimeMarkerDebug && _debugReason != null) {
-        return Padding(
-          padding: widget.padding,
-          child: _Pill(
-            label: _debugReason!,
-            color: const Color(0xFF8B949E),
-            scale: widget.scale,
-          ),
-        );
-      }
-
-      // The server knows this show but has not fetched its table yet, so markers really are
-      // on the way. A series that matched nothing is not pending and stays silent.
+      // The server knows this show but hasnt fetched its table yet, so the markers really
+      // are coming. A series that matched nothing isnt pending and stays quiet.
       if (_pending) {
         return Padding(
           padding: widget.padding,
@@ -221,8 +178,6 @@ class _AnimeMarkerBadgeState extends State<AnimeMarkerBadge> {
         animeAudioPill(l10n, audio, scale, filled: widget.filled),
     ];
 
-    if (pills.isEmpty) return widget.leading ?? const SizedBox.shrink();
-
     return Padding(
       padding: widget.padding,
       child: Wrap(
@@ -266,20 +221,18 @@ Widget animeAudioPill(
 
 /// A subbed/dubbed pill for a whole season, for the season list.
 ///
-/// Shows nothing unless every episode in the season agreed, so a season holding both a dub
-/// and a sub stays blank.
+/// Shows nothing unless every episode in the season agreed, so a season holding both a
+/// dub and a sub stays blank.
 class AnimeSeasonAudioBadge extends StatefulWidget {
   final String? seriesId;
   final String seasonId;
   final double scale;
-  final EdgeInsetsGeometry padding;
 
   const AnimeSeasonAudioBadge({
     super.key,
     required this.seriesId,
     required this.seasonId,
     this.scale = 1.0,
-    this.padding = EdgeInsets.zero,
   });
 
   @override
@@ -306,8 +259,6 @@ class _AnimeSeasonAudioBadgeState extends State<AnimeSeasonAudioBadge> {
   }
 
   Future<void> _load() async {
-    if (!kAnimeMarkersEnabled) return;
-
     final seriesId = widget.seriesId;
     if (seriesId == null || seriesId.isEmpty) return;
     if (!GetIt.instance.isRegistered<AnimeMarkerRepository>()) return;
@@ -342,14 +293,11 @@ class _AnimeSeasonAudioBadgeState extends State<AnimeSeasonAudioBadge> {
     final audio = _audio;
     if (audio == null) return const SizedBox.shrink();
 
-    return Padding(
-      padding: widget.padding,
-      child: animeAudioPill(
-        AppLocalizations.of(context),
-        audio,
-        widget.scale,
-        filled: true,
-      ),
+    return animeAudioPill(
+      AppLocalizations.of(context),
+      audio,
+      widget.scale,
+      filled: true,
     );
   }
 }
@@ -358,7 +306,6 @@ class _AnimeSeasonAudioBadgeState extends State<AnimeSeasonAudioBadge> {
 class AnimeItemAudioBadge extends StatefulWidget {
   final String itemId;
   final double scale;
-  final EdgeInsetsGeometry padding;
 
   /// Solid fill, for when the pill sits on top of artwork.
   final bool filled;
@@ -367,7 +314,6 @@ class AnimeItemAudioBadge extends StatefulWidget {
     super.key,
     required this.itemId,
     this.scale = 1.0,
-    this.padding = EdgeInsets.zero,
     this.filled = true,
   });
 
@@ -394,8 +340,6 @@ class _AnimeItemAudioBadgeState extends State<AnimeItemAudioBadge> {
   }
 
   Future<void> _load() async {
-    if (!kAnimeMarkersEnabled) return;
-
     if (widget.itemId.isEmpty) return;
     if (!GetIt.instance.isRegistered<AnimeMarkerRepository>()) return;
 
@@ -417,14 +361,11 @@ class _AnimeItemAudioBadgeState extends State<AnimeItemAudioBadge> {
     final audio = _audio;
     if (audio == null) return const SizedBox.shrink();
 
-    return Padding(
-      padding: widget.padding,
-      child: animeAudioPill(
-        AppLocalizations.of(context),
-        audio,
-        widget.scale,
-        filled: widget.filled,
-      ),
+    return animeAudioPill(
+      AppLocalizations.of(context),
+      audio,
+      widget.scale,
+      filled: widget.filled,
     );
   }
 }
@@ -434,9 +375,7 @@ class _Pill extends StatelessWidget {
   final Color color;
   final double scale;
 
-  /// Whether the pill is filled with color or just an outline. 
-  /// The outline is for when the pill sits on a light background, 
-  /// and the fill is for when it sits on top of artwork.
+  /// Outlined for a pill on a plain background, filled for one sitting over artwork.
   final bool filled;
 
   const _Pill({

@@ -1,8 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-
-import '../anime_marker_badge.dart';
 import 'package:flutter/services.dart';
 import 'package:get_it/get_it.dart';
 import 'package:moonfin_design/moonfin_design.dart';
@@ -14,6 +12,7 @@ import '../../../preference/preference_constants.dart';
 import '../../../preference/user_preferences.dart';
 import '../../../util/platform_detection.dart';
 import '../adaptive/adaptive_glass.dart';
+import '../anime_marker_badge.dart';
 import '../focus/focus_theme.dart';
 
 class SkipSegmentOverlay extends StatefulWidget {

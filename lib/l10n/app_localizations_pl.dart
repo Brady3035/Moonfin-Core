@@ -12783,4 +12783,11 @@ class AppLocalizationsPl extends AppLocalizations {
   @override
   String get liveTvChannelLostBody =>
       'Strumień został przerwany, a tuner nie zdołał go przywrócić. Spróbuj ponownie lub wybierz inny kanał.';
+
+  @override
+  String get siriRemoteSwipeSensitivity => 'Touchpad swipe sensitivity';
+
+  @override
+  String get siriRemoteSwipeSensitivityDescription =>
+      'How far focus moves for each swipe on the Siri Remote touchpad';
 }

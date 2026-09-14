@@ -111,6 +111,8 @@ class _MoonfinAppState extends State<MoonfinApp> {
         keyRepeatInitialDelay: Duration(milliseconds: 450),
         keyRepeatInterval: Duration(milliseconds: 180),
       );
+      _syncSiriRemoteFromPrefs();
+      _prefs.addListener(_syncSiriRemoteFromPrefs);
       SiriRemoteGlide.instance.attach();
     }
     if (PlatformDetection.isAndroid && PlatformDetection.isTV) {
@@ -131,6 +133,12 @@ class _MoonfinAppState extends State<MoonfinApp> {
     if (AppUiIdiomResolver.current != before && mounted) {
       setState(() {});
     }
+  }
+
+  void _syncSiriRemoteFromPrefs() {
+    SiriRemoteGlide.instance.sensitivity = _prefs.get(
+      UserPreferences.siriRemoteSwipeSensitivity,
+    );
   }
 
   void _syncGlassFromPrefs() {
@@ -202,6 +210,7 @@ class _MoonfinAppState extends State<MoonfinApp> {
     _prefs.removeListener(_syncLocaleFromPrefs);
     _prefs.removeListener(_syncIdiomFromPrefs);
     _prefs.removeListener(_syncGlassFromPrefs);
+    _prefs.removeListener(_syncSiriRemoteFromPrefs);
     _deepLinks.dispose();
     _themeController.dispose();
     super.dispose();

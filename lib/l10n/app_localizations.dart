@@ -21862,6 +21862,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The stream stopped and the tuner did not bring it back. Try again or pick another channel.'**
   String get liveTvChannelLostBody;
+
+  /// Apple TV settings label for how far a swipe on the Siri Remote touchpad moves the focus highlight
+  ///
+  /// In en, this message translates to:
+  /// **'Touchpad swipe sensitivity'**
+  String get siriRemoteSwipeSensitivity;
+
+  /// Apple TV settings subtitle for the Siri Remote touchpad swipe sensitivity option
+  ///
+  /// In en, this message translates to:
+  /// **'How far focus moves for each swipe on the Siri Remote touchpad'**
+  String get siriRemoteSwipeSensitivityDescription;
 }
 
 class _AppLocalizationsDelegate

@@ -12490,4 +12490,11 @@ class AppLocalizationsFi extends AppLocalizations {
   @override
   String get liveTvChannelLostBody =>
       'Lähetys keskeytyi, eikä viritin saanut sitä takaisin. Yritä uudelleen tai valitse toinen kanava.';
+
+  @override
+  String get siriRemoteSwipeSensitivity => 'Touchpad swipe sensitivity';
+
+  @override
+  String get siriRemoteSwipeSensitivityDescription =>
+      'How far focus moves for each swipe on the Siri Remote touchpad';
 }

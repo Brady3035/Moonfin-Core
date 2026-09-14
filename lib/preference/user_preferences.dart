@@ -1322,6 +1322,14 @@ class UserPreferences extends ChangeNotifier {
     defaultValue: PlatformDetection.isAppleTV,
   );
 
+  /// How far a Siri Remote touchpad swipe moves focus on Apple TV. Belongs to
+  /// the device, since it tunes a physical remote, so it isn't synced.
+  static final siriRemoteSwipeSensitivity = EnumPreference(
+    key: 'pref_siri_remote_swipe_sensitivity',
+    defaultValue: SiriRemoteSwipeSensitivity.medium,
+    values: SiriRemoteSwipeSensitivity.values,
+  );
+
   static final visualTheme = EnumPreference(
     key: 'app_theme_id',
     defaultValue: PlatformDetection.isApple || PlatformDetection.isAppleTV

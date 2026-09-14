@@ -12637,4 +12637,11 @@ class AppLocalizationsCa extends AppLocalizations {
   @override
   String get liveTvChannelLostBody =>
       'La reproducció s\'ha aturat i el sintonitzador no l\'ha recuperada. Torna-ho a provar o tria un altre canal.';
+
+  @override
+  String get siriRemoteSwipeSensitivity => 'Touchpad swipe sensitivity';
+
+  @override
+  String get siriRemoteSwipeSensitivityDescription =>
+      'How far focus moves for each swipe on the Siri Remote touchpad';
 }

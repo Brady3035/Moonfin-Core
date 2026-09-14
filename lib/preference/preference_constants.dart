@@ -141,6 +141,20 @@ enum DesktopUiScale {
   final double scaleFactor;
 }
 
+/// How much finger travel on the Siri Remote touchpad moves focus one item,
+/// in normalized pad units where the pad is 2.0 across. A full slow drag moves
+/// about two items on low, three on medium and five on high.
+enum SiriRemoteSwipeSensitivity {
+  low(0.6, 0.9),
+  medium(0.45, 0.6),
+  high(0.28, 0.36);
+
+  const SiriRemoteSwipeSensitivity(this.firstStepTravel, this.stepTravel);
+
+  final double firstStepTravel;
+  final double stepTravel;
+}
+
 enum RefreshRateSwitchingBehavior {
   disabled,
   scaleOnTv,

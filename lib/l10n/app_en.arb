@@ -11351,5 +11351,13 @@
   "liveTvChannelLostBody": "The stream stopped and the tuner did not bring it back. Try again or pick another channel.",
   "@liveTvChannelLostBody": {
     "description": "Explanation shown when a playing live TV channel stopped and did not recover"
+  },
+  "siriRemoteSwipeSensitivity": "Touchpad swipe sensitivity",
+  "@siriRemoteSwipeSensitivity": {
+    "description": "Apple TV settings label for how far a swipe on the Siri Remote touchpad moves the focus highlight"
+  },
+  "siriRemoteSwipeSensitivityDescription": "How far focus moves for each swipe on the Siri Remote touchpad",
+  "@siriRemoteSwipeSensitivityDescription": {
+    "description": "Apple TV settings subtitle for the Siri Remote touchpad swipe sensitivity option"
   }
 }

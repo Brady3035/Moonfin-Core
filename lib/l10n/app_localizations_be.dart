@@ -12514,4 +12514,11 @@ class AppLocalizationsBe extends AppLocalizations {
   @override
   String get liveTvChannelLostBody =>
       'The stream stopped and the tuner did not bring it back. Try again or pick another channel.';
+
+  @override
+  String get siriRemoteSwipeSensitivity => 'Touchpad swipe sensitivity';
+
+  @override
+  String get siriRemoteSwipeSensitivityDescription =>
+      'How far focus moves for each swipe on the Siri Remote touchpad';
 }

@@ -2402,6 +2402,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get noChannelsFound => 'لم يتم العثور على قنوات';
 
   @override
+  String get noProgramData => 'No program data';
+
+  @override
   String get liveBadge => 'يعيش';
 
   @override
@@ -2472,6 +2475,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get watch => 'مشاهدة';
+
+  @override
+  String get watchChannelLive => 'Watch channel live';
 
   @override
   String get close => 'إغلاق';

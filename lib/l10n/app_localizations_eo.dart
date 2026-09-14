@@ -2388,6 +2388,9 @@ class AppLocalizationsEo extends AppLocalizations {
   String get noChannelsFound => 'Neniuj kanaloj trovitaj';
 
   @override
+  String get noProgramData => 'No program data';
+
+  @override
   String get liveBadge => 'VIVU';
 
   @override
@@ -2459,6 +2462,9 @@ class AppLocalizationsEo extends AppLocalizations {
 
   @override
   String get watch => 'Spekti';
+
+  @override
+  String get watchChannelLive => 'Watch channel live';
 
   @override
   String get close => 'Fermi';

@@ -2343,6 +2343,9 @@ class AppLocalizationsYue extends AppLocalizations {
   String get noChannelsFound => '沒有找到頻道';
 
   @override
+  String get noProgramData => 'No program data';
+
+  @override
   String get liveBadge => '居住';
 
   @override
@@ -2413,6 +2416,9 @@ class AppLocalizationsYue extends AppLocalizations {
 
   @override
   String get watch => '睇';
+
+  @override
+  String get watchChannelLive => 'Watch channel live';
 
   @override
   String get close => '關閉';

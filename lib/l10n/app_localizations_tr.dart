@@ -2388,6 +2388,9 @@ class AppLocalizationsTr extends AppLocalizations {
   String get noChannelsFound => 'Hiçbir kanal bulunamadı';
 
   @override
+  String get noProgramData => 'No program data';
+
+  @override
   String get liveBadge => 'CANLI';
 
   @override
@@ -2457,6 +2460,9 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get watch => 'İzle';
+
+  @override
+  String get watchChannelLive => 'Watch channel live';
 
   @override
   String get close => 'Kapat';

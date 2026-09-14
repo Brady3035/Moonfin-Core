@@ -2395,6 +2395,9 @@ class AppLocalizationsKn extends AppLocalizations {
   String get noChannelsFound => 'ಯಾವುದೇ ಚಾನಲ್‌ಗಳು ಕಂಡುಬಂದಿಲ್ಲ';
 
   @override
+  String get noProgramData => 'No program data';
+
+  @override
   String get liveBadge => 'ಲೈವ್';
 
   @override
@@ -2467,6 +2470,9 @@ class AppLocalizationsKn extends AppLocalizations {
 
   @override
   String get watch => 'ವೀಕ್ಷಿಸಿ';
+
+  @override
+  String get watchChannelLive => 'Watch channel live';
 
   @override
   String get close => 'ಮುಚ್ಚಿ';

@@ -2403,6 +2403,9 @@ class AppLocalizationsTl extends AppLocalizations {
   String get noChannelsFound => 'Walang nakitang mga channel';
 
   @override
+  String get noProgramData => 'No program data';
+
+  @override
   String get liveBadge => 'LIVE';
 
   @override
@@ -2474,6 +2477,9 @@ class AppLocalizationsTl extends AppLocalizations {
 
   @override
   String get watch => 'Panoorin';
+
+  @override
+  String get watchChannelLive => 'Watch channel live';
 
   @override
   String get close => 'Isara';

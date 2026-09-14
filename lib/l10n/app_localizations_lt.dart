@@ -2396,6 +2396,9 @@ class AppLocalizationsLt extends AppLocalizations {
   String get noChannelsFound => 'Nerasta jokių kanalų';
 
   @override
+  String get noProgramData => 'No program data';
+
+  @override
   String get liveBadge => 'GYVAI';
 
   @override
@@ -2467,6 +2470,9 @@ class AppLocalizationsLt extends AppLocalizations {
 
   @override
   String get watch => 'Žiūrėti';
+
+  @override
+  String get watchChannelLive => 'Watch channel live';
 
   @override
   String get close => 'Uždaryti';

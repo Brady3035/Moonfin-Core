@@ -2395,6 +2395,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get noChannelsFound => 'Nenhum canal encontrado';
 
   @override
+  String get noProgramData => 'No program data';
+
+  @override
   String get liveBadge => 'AO VIVO';
 
   @override
@@ -2466,6 +2469,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get watch => 'Assistir';
+
+  @override
+  String get watchChannelLive => 'Watch channel live';
 
   @override
   String get close => 'Fechar';

@@ -2401,6 +2401,9 @@ class AppLocalizationsSq extends AppLocalizations {
   String get noChannelsFound => 'Nuk u gjet asnjë kanal';
 
   @override
+  String get noProgramData => 'No program data';
+
+  @override
   String get liveBadge => 'LIVE';
 
   @override
@@ -2472,6 +2475,9 @@ class AppLocalizationsSq extends AppLocalizations {
 
   @override
   String get watch => 'Shiko';
+
+  @override
+  String get watchChannelLive => 'Watch channel live';
 
   @override
   String get close => 'Mbyll';

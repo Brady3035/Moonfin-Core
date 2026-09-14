@@ -2400,6 +2400,9 @@ class AppLocalizationsTa extends AppLocalizations {
   String get noChannelsFound => 'சேனல்கள் எதுவும் இல்லை';
 
   @override
+  String get noProgramData => 'No program data';
+
+  @override
   String get liveBadge => 'நேரலை';
 
   @override
@@ -2472,6 +2475,9 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get watch => 'பார்';
+
+  @override
+  String get watchChannelLive => 'Watch channel live';
 
   @override
   String get close => 'மூடு';

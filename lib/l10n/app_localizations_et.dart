@@ -2395,6 +2395,9 @@ class AppLocalizationsEt extends AppLocalizations {
   String get noChannelsFound => 'Ühtegi kanalit ei leitud';
 
   @override
+  String get noProgramData => 'No program data';
+
+  @override
   String get liveBadge => 'OTSE';
 
   @override
@@ -2466,6 +2469,9 @@ class AppLocalizationsEt extends AppLocalizations {
 
   @override
   String get watch => 'Vaata';
+
+  @override
+  String get watchChannelLive => 'Watch channel live';
 
   @override
   String get close => 'Sule';

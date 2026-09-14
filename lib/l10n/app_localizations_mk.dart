@@ -2398,6 +2398,9 @@ class AppLocalizationsMk extends AppLocalizations {
   String get noChannelsFound => 'Не се пронајдени канали';
 
   @override
+  String get noProgramData => 'No program data';
+
+  @override
   String get liveBadge => 'ВО ЖИВО';
 
   @override
@@ -2469,6 +2472,9 @@ class AppLocalizationsMk extends AppLocalizations {
 
   @override
   String get watch => 'Гледај';
+
+  @override
+  String get watchChannelLive => 'Watch channel live';
 
   @override
   String get close => 'Затвори';

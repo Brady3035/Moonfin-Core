@@ -2399,6 +2399,9 @@ class AppLocalizationsLv extends AppLocalizations {
   String get noChannelsFound => 'Nav atrasts neviens kanāls';
 
   @override
+  String get noProgramData => 'No program data';
+
+  @override
   String get liveBadge => 'TIEŠRAIDĒ';
 
   @override
@@ -2471,6 +2474,9 @@ class AppLocalizationsLv extends AppLocalizations {
 
   @override
   String get watch => 'Skatīties';
+
+  @override
+  String get watchChannelLive => 'Watch channel live';
 
   @override
   String get close => 'Aizvērt';

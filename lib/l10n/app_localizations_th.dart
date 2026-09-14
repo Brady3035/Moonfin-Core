@@ -2378,6 +2378,9 @@ class AppLocalizationsTh extends AppLocalizations {
   String get noChannelsFound => 'ไม่พบช่อง';
 
   @override
+  String get noProgramData => 'No program data';
+
+  @override
   String get liveBadge => 'สด';
 
   @override
@@ -2448,6 +2451,9 @@ class AppLocalizationsTh extends AppLocalizations {
 
   @override
   String get watch => 'รับชม';
+
+  @override
+  String get watchChannelLive => 'Watch channel live';
 
   @override
   String get close => 'ปิด';

@@ -1408,7 +1408,7 @@ class UserPreferences extends ChangeNotifier {
   /// When on, delays Modern card expansion during rapid navigation until focus settles.
   static final delayCardExpansionOnRapidScroll = Preference(
     key: 'pref_delay_card_expansion_on_rapid_scroll',
-    defaultValue: true,
+    defaultValue: false,
   );
 
   /// Structural style for the media detail screen. Stored per server and user,

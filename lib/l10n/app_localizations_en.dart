@@ -12503,13 +12503,19 @@ class AppLocalizationsEnGb extends AppLocalizationsEn {
 
   @override
   String get detailScreenStyleSubtitle =>
-      'Classic is the original centered moonfin layout. Modern is a responsive cinematic layout.';
+      'Classic is the original centred Moonfin layout. Modern is a responsive cinematic layout. Spotlight is a hero-first layout with pop-up content cards. Nouveau is a full-screen layout with sections stacked down the page.';
 
   @override
   String get detailScreenStyleMoonfin => 'Classic';
 
   @override
   String get detailScreenStyleModern => 'Modern';
+
+  @override
+  String get detailScreenStyleSpotlight => 'Spotlight';
+
+  @override
+  String get spotlightMoreActions => 'More Actions';
 
   @override
   String get expandedTabs => 'Expanded Tabs';

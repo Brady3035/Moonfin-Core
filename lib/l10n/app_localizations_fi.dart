@@ -187,14 +187,14 @@ class AppLocalizationsFi extends AppLocalizations {
   String get detailScreenStyleSpotlight => 'Esittelyssä';
 
   @override
-  String get spotlightMoreActions => 'Lisää toimintoja';
+  String get spotlightMoreActions => 'Lisää Toimintoja';
 
   @override
   String get spotlightCastCrewStudios =>
       'Näyttelijät, Tuotantoryhmä ja Studiot';
 
   @override
-  String get spotlightChaptersExtras => 'Kappaleet  ja lisämateriaali';
+  String get spotlightChaptersExtras => 'Kappaleet ja Lisämateriaalit';
 
   @override
   String get spotlightSimilarRecommendations => 'Samankaltaiset ja Suositukset';
@@ -702,7 +702,7 @@ class AppLocalizationsFi extends AppLocalizations {
   String get displaySettings => 'Näyttöasetukset';
 
   @override
-  String get allGenres => 'Kaikki genret';
+  String get allGenres => 'Kaikki Genret';
 
   @override
   String get noGenresFound => 'Genrejä ei löytynyt';
@@ -2898,10 +2898,10 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get seasonalEffectsDescription =>
-      'Visuaalisia tehosteita ja vuodenaikojen koristeita';
+      'Visuaaliset tehosteet ja kausittaiset efektit';
 
   @override
-  String get loadingAnimation => 'Animaatio latautuu';
+  String get loadingAnimation => 'Ladataan Animaatiota';
 
   @override
   String get loadingAnimationDescription =>
@@ -3093,11 +3093,11 @@ class AppLocalizationsFi extends AppLocalizations {
   String get autoCrop => 'Automaattinen rajaus';
 
   @override
-  String get cropBlackBars => 'Crop black bars';
+  String get cropBlackBars => 'Leikkaa mustat palkit pois';
 
   @override
   String get settingsCropBlackBarsDescription =>
-      'Detect encoded letterbox bars, crop them, then fill the screen.';
+      'Tunnista koodatut letterbox-palkit, rajaa ne pois ja täytä sitten näyttö.';
 
   @override
   String get stretch => 'Venytä';
@@ -3221,59 +3221,59 @@ class AppLocalizationsFi extends AppLocalizations {
   String get actionButtonsOnScreenAll => 'All (Horizontal Scroll)';
 
   @override
-  String get detailMetadata => 'Metadata Row';
+  String get detailMetadata => 'Metatietorivi';
 
   @override
   String get detailMetadataDescription =>
-      'Choose and reorder what metadata the details screen shows';
+      'Valitse ja järjestä uudelleen, mitä metatietoja tietonäkymässä näytetään';
 
   @override
   String get detailMetadataSectionDescription =>
-      'Turn metadata items on or off, and arrange the order they appear on the details screen. Each kind of device keeps its own list.';
+      'Voit ottaa metatietokohteet käyttöön tai poistaa ne käytöstä sekä määrittää niiden näkyvän järjestyksen tietonäytöllä. Jokaisella laitetyypillä on oma luettelonsa.';
 
   @override
-  String get detailMetadataYear => 'Release Year';
+  String get detailMetadataYear => 'Julkaisuvuosi';
 
   @override
-  String get detailMetadataParentalRating => 'Parental Rating';
+  String get detailMetadataParentalRating => 'Ikäraja Luokitus';
 
   @override
-  String get detailMetadataRuntimeAndSeasons => 'Runtime & Seasons';
+  String get detailMetadataRuntimeAndSeasons => 'Kesto ja Esityskaudet';
 
   @override
-  String get detailMetadataStatus => 'Series Status';
+  String get detailMetadataStatus => 'Sarjan Tila';
 
   @override
   String get detailMetadataStatusSubtitle =>
-      'Shows whether the series is continuing, ended, or returning';
+      'Ilmaisee, onko sarja vielä tuotannossa, päättynyt vai palaako se ruutuun';
 
   @override
-  String get detailMetadataGenres => 'Genres';
+  String get detailMetadataGenres => 'Genret';
 
   @override
-  String get detailMetadataSeerrAvailability => 'Seerr Availability';
+  String get detailMetadataSeerrAvailability => 'Seerr Saatavuus';
 
   @override
   String get detailMetadataSeerrAvailabilitySubtitle =>
-      'Shows request and media availability status from Seerr';
+      'Näyttää Seerr pyyntöjen ja median saatavuustilan';
 
   @override
-  String get detailMetadataUpcomingEpisodeDate => 'Upcoming Episodes';
+  String get detailMetadataUpcomingEpisodeDate => 'Tulevat Jaksot';
 
   @override
   String get detailMetadataUpcomingEpisodeDateSubtitle =>
-      'Uses Sonarr and TMDB to show upcoming release dates';
+      'Käyttää Sonarr- ja TMDB-palveluita tulevien julkaisupäivien näyttämiseen';
 
   @override
   String upcomingEpisodeNext(String date, int season, int episode) {
-    return 'Next: $date (S$season:E$episode)';
+    return 'Seuraava: $date (S$season:E$episode)';
   }
 
   @override
-  String get upcomingEpisodeToday => 'Today';
+  String get upcomingEpisodeToday => 'Tänään';
 
   @override
-  String get upcomingEpisodeTomorrow => 'Tomorrow';
+  String get upcomingEpisodeTomorrow => 'Huomenna';
 
   @override
   String get moveUp => 'Siirry ylöspäin';
@@ -12113,7 +12113,7 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get setupDetailSpotlightHint =>
-      'Pääosassa ja mukana ponnahduskortissa näyttelijät ja avustajat';
+      'Pääosassa ja mukana ponnahduskortissa näyttelijät ja avustajat.';
 
   @override
   String get setupStyleNouveau => 'Nouveau';
@@ -12433,11 +12433,11 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get delayCardExpansionOnRapidScroll =>
-      'Viive Card Expansion on Rapid Scroll';
+      'Viive laajennuskortin vierityksessä';
 
   @override
   String get delayCardExpansionOnRapidScrollSubtitle =>
-      'Odottaa, että  liike pysähtyy, ennen kuin modernit-kortit avautuvat';
+      'Odottaa, että liike pysähtyy, ennen kuin modernit kortit avataan';
 
   @override
   String get animationSpeedExtraSlow => 'Erittäin Hidas';
@@ -12467,26 +12467,27 @@ class AppLocalizationsFi extends AppLocalizations {
   String get pageTransitionFadeLong => 'Hidas Häivytys';
 
   @override
-  String get liveTvConnecting => 'Connecting to channel…';
+  String get liveTvConnecting => 'Yhdistetään Kanavalle…';
 
   @override
   String get liveTvTunerStillTrying =>
-      'The tuner is still trying to get this channel…';
+      'Viritin yrittää edelleen löytää tätä kanavaa…';
 
   @override
-  String get liveTvReconnecting => 'Signal lost. The tuner is reconnecting…';
+  String get liveTvReconnecting =>
+      'Signaali katosi. Viritin muodostaa yhteyden uudelleen…';
 
   @override
-  String get liveTvChannelUnavailableTitle => 'Channel unavailable';
+  String get liveTvChannelUnavailableTitle => 'Kanava ei ole käytettävissä';
 
   @override
   String get liveTvChannelUnavailableBody =>
-      'The server could not get this channel from the tuner. The source may be down, or the tuner gave up after retrying.';
+      'Palvelin ei onnistunut hakemaan tätä kanavaa virittimestä. Lähde saattaa olla poissa käytöstä, tai viritin luopui yrityksestä uudelleenyrittämisen jälkeen.';
 
   @override
-  String get liveTvChannelLostTitle => 'Channel lost';
+  String get liveTvChannelLostTitle => 'Kanava kadoksissa';
 
   @override
   String get liveTvChannelLostBody =>
-      'The stream stopped and the tuner did not bring it back. Try again or pick another channel.';
+      'Lähetys keskeytyi, eikä viritin saanut sitä takaisin. Yritä uudelleen tai valitse toinen kanava.';
 }

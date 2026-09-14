@@ -242,23 +242,20 @@ class _MarqueeTextState extends State<MarqueeText>
         final overflows = textWidth > parentWidth;
 
         if (!overflows) {
-          return SizedBox(
-            width: parentWidth.isFinite ? parentWidth : null,
-            child: widget.spans == null
-                ? Text(
-                    widget.text,
-                    style: widget.style,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: widget.textAlign,
-                  )
-                : Text.rich(
-                    span,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: widget.textAlign,
-                  ),
-          );
+          return widget.spans == null
+              ? Text(
+                  widget.text,
+                  style: widget.style,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: widget.textAlign,
+                )
+              : Text.rich(
+                  span,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: widget.textAlign,
+                );
         }
 
         final Widget separatorWidget;
@@ -290,7 +287,7 @@ class _MarqueeTextState extends State<MarqueeText>
           separatorWidget = SizedBox(width: widget.gap);
         }
 
-        return SingleChildScrollView(
+        final scrollView = SingleChildScrollView(
           controller: _controller,
           scrollDirection: Axis.horizontal,
           physics: const NeverScrollableScrollPhysics(),
@@ -302,6 +299,10 @@ class _MarqueeTextState extends State<MarqueeText>
             ],
           ),
         );
+
+        return parentWidth.isFinite
+            ? SizedBox(width: parentWidth, child: scrollView)
+            : scrollView;
       },
     );
   }

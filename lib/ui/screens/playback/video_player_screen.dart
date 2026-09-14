@@ -7646,7 +7646,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
               },
             ),
           // The same list ? and F1 open, for whoever does not know those keys.
-          if (!PlatformDetection.isTV)
+          if (PlatformDetection.useDesktopUi)
             (
               label: l10n.keyboardShortcutsTitle,
               icon: Icons.keyboard_outlined,

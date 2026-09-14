@@ -101,7 +101,6 @@ class _SkipSegmentOverlayState extends State<SkipSegmentOverlay> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final isDesktop = PlatformDetection.useDesktopUi;
 
     final prefs = GetIt.instance<UserPreferences>();
     final mediaSegmentCountdown = prefs.get(UserPreferences.mediaSegmentCountdown);
@@ -129,6 +128,9 @@ class _SkipSegmentOverlayState extends State<SkipSegmentOverlay> {
     final bool numberInRing = showTimer && showRing && remainingSec < 60;
     final bool showInlineTimer = showTimer && !numberInRing;
 
+    // TV dismisses with the back button, so this is for touch and desktop.
+    final bool showDismissButton = !PlatformDetection.isTV;
+
     return Positioned(
       right: 24,
       bottom: 120,
@@ -148,8 +150,17 @@ class _SkipSegmentOverlayState extends State<SkipSegmentOverlay> {
             }
             return KeyEventResult.ignored;
           },
-          child: Stack(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+              if (showDismissButton) ...[
+                _SkipDismissButton(
+                  onPressed: widget.onDismiss,
+                  label: l10n.dismiss,
+                ),
+                const SizedBox(height: 8),
+              ],
               InkWell(
                 onTap: widget.onSkip,
                 borderRadius: AppRadius.circular(_capsuleRadius),
@@ -166,7 +177,7 @@ class _SkipSegmentOverlayState extends State<SkipSegmentOverlay> {
                     fallbackColor: AppColorScheme.surface.withValues(alpha: 0.55),
                     tint: AppColorScheme.surface.withValues(alpha: 0.18),
                     child: Padding(
-                      padding: EdgeInsets.fromLTRB(20, 10, isDesktop ? 40 : 16, 10),
+                      padding: const EdgeInsets.fromLTRB(20, 10, 16, 10),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -232,30 +243,6 @@ class _SkipSegmentOverlayState extends State<SkipSegmentOverlay> {
                   ),
                 ),
               ),
-              if (isDesktop)
-                Positioned.fill(
-                  child: Align(
-                    alignment: Alignment.centerRight,
-                    child: Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: IconButton(
-                        onPressed: widget.onDismiss,
-                        tooltip: l10n.close,
-                        padding: EdgeInsets.zero,
-                        visualDensity: VisualDensity.compact,
-                        constraints: const BoxConstraints.tightFor(
-                          width: 24,
-                          height: 24,
-                        ),
-                        icon: Icon(
-                          Icons.close_rounded,
-                          size: 16,
-                          color: AppColorScheme.onSurface,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
             ],
           ),
         ),
@@ -293,4 +280,50 @@ class _CountdownRing extends StatelessWidget {
   }
 }
 
+/// The close chip above the skip capsule. The padding widens the tap target
+/// without making the chip itself any bigger.
+class _SkipDismissButton extends StatelessWidget {
+  const _SkipDismissButton({required this.onPressed, required this.label});
+
+  final VoidCallback onPressed;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: label,
+      excludeFromSemantics: true,
+      child: Semantics(
+        button: true,
+        label: label,
+        child: InkWell(
+          onTap: onPressed,
+          customBorder: const CircleBorder(),
+          child: Padding(
+            padding: const EdgeInsets.all(_dismissTapPadding),
+            child: adaptiveGlass(
+              context: context,
+              cornerRadius: _dismissChipSize / 2,
+              blur: 24,
+              fallbackColor: AppColorScheme.surface.withValues(alpha: 0.55),
+              tint: AppColorScheme.surface.withValues(alpha: 0.18),
+              child: SizedBox(
+                width: _dismissChipSize,
+                height: _dismissChipSize,
+                child: Icon(
+                  Icons.close_rounded,
+                  size: 18,
+                  color: AppColorScheme.onSurface,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 const double _capsuleRadius = 28;
+const double _dismissChipSize = 32;
+const double _dismissTapPadding = 6;

@@ -12614,31 +12614,6 @@ class AppLocalizationsCa extends AppLocalizations {
   String get pageTransitionFadeLong => 'Esvaïment llarg';
 
   @override
-  String get liveTvConnecting => 'S\'està connectant al canal…';
-
-  @override
-  String get liveTvTunerStillTrying =>
-      'El sintonitzador encara intenta obtenir aquest canal…';
-
-  @override
-  String get liveTvReconnecting =>
-      'S\'ha perdut el senyal. El sintonitzador s\'està reconnectant…';
-
-  @override
-  String get liveTvChannelUnavailableTitle => 'Canal no disponible';
-
-  @override
-  String get liveTvChannelUnavailableBody =>
-      'El servidor no ha pogut obtenir aquest canal del sintonitzador. Pot ser que la font estigui caiguda o que el sintonitzador hagi desistit després de diversos intents.';
-
-  @override
-  String get liveTvChannelLostTitle => 'S\'ha perdut el canal';
-
-  @override
-  String get liveTvChannelLostBody =>
-      'La reproducció s\'ha aturat i el sintonitzador no l\'ha recuperada. Torna-ho a provar o tria un altre canal.';
-
-  @override
   String get siriRemoteSwipeSensitivity => 'Touchpad swipe sensitivity';
 
   @override

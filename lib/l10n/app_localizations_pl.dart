@@ -12762,29 +12762,6 @@ class AppLocalizationsPl extends AppLocalizations {
   String get pageTransitionFadeLong => 'Długie zanikanie';
 
   @override
-  String get liveTvConnecting => 'Łączenie z kanałem…';
-
-  @override
-  String get liveTvTunerStillTrying => 'Tuner nadal próbuje uzyskać ten kanał…';
-
-  @override
-  String get liveTvReconnecting => 'Utracono sygnał. Tuner łączy się ponownie…';
-
-  @override
-  String get liveTvChannelUnavailableTitle => 'Kanał niedostępny';
-
-  @override
-  String get liveTvChannelUnavailableBody =>
-      'Serwer nie mógł uzyskać tego kanału z tunera. Źródło może być niedostępne albo tuner przerwał próby po kilku ponowieniach.';
-
-  @override
-  String get liveTvChannelLostTitle => 'Utracono kanał';
-
-  @override
-  String get liveTvChannelLostBody =>
-      'Strumień został przerwany, a tuner nie zdołał go przywrócić. Spróbuj ponownie lub wybierz inny kanał.';
-
-  @override
   String get siriRemoteSwipeSensitivity => 'Touchpad swipe sensitivity';
 
   @override

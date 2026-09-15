@@ -354,9 +354,6 @@ class AetherBackend implements PlayerBackend {
   Stream<bool> get bufferingStream => _bufferingStream.stream;
 
   @override
-  Stream<bool>? get pictureShownStream => null;
-
-  @override
   double get subtitleAutoOffsetSeconds => 0.0;
 
   @override

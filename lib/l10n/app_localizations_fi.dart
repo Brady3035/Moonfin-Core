@@ -12467,31 +12467,6 @@ class AppLocalizationsFi extends AppLocalizations {
   String get pageTransitionFadeLong => 'Hidas Häivytys';
 
   @override
-  String get liveTvConnecting => 'Yhdistetään Kanavalle…';
-
-  @override
-  String get liveTvTunerStillTrying =>
-      'Viritin yrittää edelleen löytää tätä kanavaa…';
-
-  @override
-  String get liveTvReconnecting =>
-      'Signaali katosi. Viritin muodostaa yhteyden uudelleen…';
-
-  @override
-  String get liveTvChannelUnavailableTitle => 'Kanava ei ole käytettävissä';
-
-  @override
-  String get liveTvChannelUnavailableBody =>
-      'Palvelin ei onnistunut hakemaan tätä kanavaa virittimestä. Lähde saattaa olla poissa käytöstä, tai viritin luopui yrityksestä uudelleenyrittämisen jälkeen.';
-
-  @override
-  String get liveTvChannelLostTitle => 'Kanava kadoksissa';
-
-  @override
-  String get liveTvChannelLostBody =>
-      'Lähetys keskeytyi, eikä viritin saanut sitä takaisin. Yritä uudelleen tai valitse toinen kanava.';
-
-  @override
   String get siriRemoteSwipeSensitivity => 'Touchpad swipe sensitivity';
 
   @override

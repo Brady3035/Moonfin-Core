@@ -1067,32 +1067,6 @@ class _ContentRowsState extends State<_ContentRows>
     if (chromePreviewActive && (chromeChanged || _activePreviewKey != null)) {
       _finishSharedPreview(releaseResources: true);
     }
-
-    if (_infoRevealed) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _collapsePinnedInfoIfMediaBarOwnsHero();
-      });
-    }
-  }
-
-  /// The pinned info band belongs to the rows, so collapse it once focus has
-  /// left them and the media bar owns the hero again. Otherwise a row item
-  /// revealed during start-up stays drawn over the bar's own slide.
-  void _collapsePinnedInfoIfMediaBarOwnsHero() {
-    if (!_infoRevealed) return;
-    if (!_showHomeRowInfoOverlay()) return;
-    if (!_isMediaBarIncluded() || _isBannerMode()) return;
-    if (_activeFocusedRowIndex != null || _isSidebarFocus) return;
-    if (_verticalNavInFlight) return;
-    if (OverlaySheetController.hasOpenSheet ||
-        SettingsPanel.isOpenNotifier.value) {
-      return;
-    }
-    if (_scrollController.hasClients &&
-        _scrollController.offset >= _pinnedInfoCollapseOffset()) {
-      return;
-    }
-    _infoRevealed = false;
   }
 
   void _onSettingsPanelOpenChanged() {
@@ -2269,12 +2243,8 @@ class _ContentRowsState extends State<_ContentRows>
       return;
     }
 
-    // The hero belongs to the media bar until the user deliberately moves
-    // down into the rows. A tile that takes focus on its own at startup must
-    // not paint the info band over it.
-    if ((fromMouseHover || !_verticalNavInFlight) &&
+    if (fromMouseHover &&
         _isMediaBarIncluded() &&
-        !_isBannerMode() &&
         _scrollController.hasClients &&
         _scrollController.offset < _pinnedInfoCollapseOffset()) {
       return;
@@ -2563,7 +2533,9 @@ class _ContentRowsState extends State<_ContentRows>
       );
       controller.addListener(() => _onRowScrolled(rowId, controller));
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _maybeLoadMoreForRow(rowId, controller);
+        if (mounted && !widget.viewModel.isLoading) {
+          _maybeLoadMoreForRow(rowId, controller);
+        }
       });
       return controller;
     });
@@ -2603,6 +2575,7 @@ class _ContentRowsState extends State<_ContentRows>
   }
 
   void _checkAllRowsFillViewport() {
+    if (widget.viewModel.isLoading) return;
     for (final entry in _rowHorizontalControllers.entries) {
       _maybeLoadMoreForRow(entry.key, entry.value);
     }
@@ -5095,7 +5068,6 @@ class _ContentRowsState extends State<_ContentRows>
                   final isSeerrGenreCard =
                       _isSeerrFilterRow(row) && item.type == 'Genre';
                   final card = MediaCard(
-                    animeMarkerItemId: isSeerrGenreCard ? null : item.id,
                     title: cardTitle,
                     imageOverlays: isSeerrGenreCard
                         ? [Positioned.fill(child: SeerrGenreLabel(name: item.name))]

@@ -4,11 +4,7 @@ import 'package:moonfin/preference/user_preferences.dart';
 
 void main() {
   group('the TMDB home sections', () {
-    // Whether a section is a TMDB one, and which preference turns it on, used
-    // to be written out separately on the home screen, the settings screen and
-    // the plugin sync. This is what keeps the one remaining list honest: adding
-    // a tmdb* section without adding it here fails right here rather than
-    // showing up as a row that cannot be switched off.
+    // A new tmdb* section missing from the map fails here.
     test('every tmdb section in the enum has a preference', () {
       final inEnum = HomeSectionType.values
           .where((type) => type.name.startsWith('tmdb'))

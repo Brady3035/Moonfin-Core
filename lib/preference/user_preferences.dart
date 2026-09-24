@@ -2876,12 +2876,6 @@ class UserPreferences extends ChangeNotifier {
   );
 
   /// Every TMDB home section, against the preference that turns it on.
-  ///
-  /// The one place that knows which sections come from TMDB. Asking whether a
-  /// section is a TMDB one and asking which preference it reads used to be
-  /// written out separately on the home screen, the settings screen and the
-  /// plugin sync, so adding a row meant remembering all of them. A test asserts
-  /// this map covers the whole enum.
   static final Map<HomeSectionType, Preference<bool>> tmdbSectionEnabled = {
     HomeSectionType.tmdbPopularMovies: tmdbPopularMoviesEnabled,
     HomeSectionType.tmdbTopRatedMovies: tmdbTopRatedMoviesEnabled,

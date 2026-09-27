@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
 import 'package:jellyfin_preference/jellyfin_preference.dart';
@@ -9,6 +10,7 @@ import 'package:moonfin/data/repositories/offline_repository.dart';
 import 'package:moonfin/data/services/plugin_sync_service.dart';
 import 'package:moonfin/data/viewmodels/item_detail_view_model.dart';
 import 'package:moonfin/l10n/app_localizations.dart';
+import 'package:moonfin/ui/widgets/rating_display.dart';
 import 'package:moonfin/preference/preference_constants.dart';
 import 'package:moonfin/preference/seerr_preferences.dart';
 import 'package:moonfin/preference/user_preferences.dart';
@@ -176,6 +178,56 @@ void main() {
     );
   }
 
+  Future<void> openCollection(WidgetTester tester) async {
+    when(() => vm.item).thenReturn(
+      AggregatedItem(
+        id: 'boxset-1',
+        serverId: 'server-1',
+        rawData: const {
+          'Id': 'boxset-1',
+          'Name': '1001 Movies You Must See Before You Die',
+          'Type': 'BoxSet',
+          'Studios': [
+            {'Id': 'studio-1', 'Name': '20th Century Fox'},
+          ],
+        },
+      ),
+    );
+    await tester.pumpWidget(buildTestWidget());
+    await tester.pump(const Duration(milliseconds: 100));
+  }
+
+  Future<void> loadCollectionMovie(WidgetTester tester) async {
+    when(() => vm.collectionItems).thenReturn([
+      AggregatedItem(
+        id: 'movie-1',
+        serverId: 'server-1',
+        rawData: const {'Id': 'movie-1', 'Name': 'Alien', 'Type': 'Movie'},
+      ),
+    ]);
+    await tester.pumpWidget(buildTestWidget());
+    await tester.pump(const Duration(milliseconds: 100));
+  }
+
+  testWidgets('a score the viewer set alone is enough to draw the row', (tester) async {
+    when(() => vm.item).thenReturn(AggregatedItem(
+      id: 'movie-1',
+      serverId: 'server-1',
+      rawData: const {
+        'Id': 'movie-1',
+        'Name': 'Arcane',
+        'Type': 'Movie',
+        'UserData': {'Rating': 9.0},
+      },
+    ));
+
+    await tester.pumpWidget(buildTestWidget());
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(find.byType(RatingsRow), findsWidgets);
+  });
+
   testWidgets('Series reserves Seasons tab at index 0 and renders SkeletonHomeRow while seasons are empty', (tester) async {
     when(() => vm.item).thenReturn(seriesItem());
     when(() => vm.seasons).thenReturn([]);
@@ -219,6 +271,45 @@ void main() {
 
     expect(find.text('Cast'), findsOneWidget);
     expect(selectedTabLabel(tester), 'Similar');
+  });
+
+  testWidgets('a collection opens on Movies when its studios load before its movies', (tester) async {
+    await openCollection(tester);
+    expect(selectedTabLabel(tester), 'Studios');
+
+    await loadCollectionMovie(tester);
+    expect(selectedTabLabel(tester), 'Movies');
+  });
+
+  testWidgets('a collection stays on Studios when the user picks it before its movies load', (tester) async {
+    await openCollection(tester);
+    await tester.tap(find.text('Studios'));
+    await tester.pump(const Duration(milliseconds: 100));
+
+    await loadCollectionMovie(tester);
+    expect(selectedTabLabel(tester), 'Studios');
+  });
+
+  testWidgets('a collection stays on Studios when the user moves down into it before its movies load', (tester) async {
+    await openCollection(tester);
+    tester.widget<DetailsTabBar>(find.byType(DetailsTabBar)).focusNodeFor(0).requestFocus();
+    await tester.pump();
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    await tester.pump(const Duration(milliseconds: 100));
+
+    await loadCollectionMovie(tester);
+    expect(selectedTabLabel(tester), 'Studios');
+  });
+
+  testWidgets('a collection stays on Movies when the user clicks it after it loads', (tester) async {
+    await openCollection(tester);
+    await loadCollectionMovie(tester);
+    await tester.tap(find.text('Movies'));
+    await tester.pump(const Duration(milliseconds: 100));
+
+    await tester.pumpWidget(buildTestWidget());
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(selectedTabLabel(tester), 'Movies');
   });
 
   testWidgets('a Series with no seasons says so once the fetch is done', (tester) async {

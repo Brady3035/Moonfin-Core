@@ -98,6 +98,7 @@ import '../../widgets/track_selector_dialog.dart';
 import '../../widgets/remote_play_to_session_dialog.dart';
 import '../../widgets/fullscreen_backdrop_switcher.dart';
 import '../../widgets/seerr_icons.dart';
+import '../../widgets/focus/can_claim_initial_focus.dart';
 import '../../widgets/focus/context_action.dart';
 import '../../widgets/focus/context_menu_sheet.dart';
 import '../../widgets/focus/dpad_list_tile.dart';
@@ -660,6 +661,64 @@ class _ItemDetailScreenState extends State<ItemDetailScreen>
     );
   }
 
+  Widget _buildModernContent() {
+    return ModernDetailContent(
+      viewModel: _viewModel,
+      prefs: _prefs,
+      backdropUrl: _backdropUrl,
+      selectedMediaSourceId: _selectedMediaSourceId,
+      initialFocusNode: _ensureInitialFocusNode(),
+      onSelectedMediaSourceChanged: (id) {
+        setState(() => _selectedMediaSourceId = id);
+        _viewModel.load(mediaSourceId: id);
+      },
+      onBackdropItemFocused: _onBackdropItemFocused,
+      autoPlay: widget.autoPlay,
+      onPlayFromChapter: (position) => unawaited(
+        _playFromChapter(
+          context,
+          _viewModel.item!,
+          position,
+          _selectedMediaSourceId,
+        ),
+      ),
+      onToggleNavbar: (show) => setState(() => _showNavbar = show),
+      actionsExpanded: _actionsExpanded,
+      onActionsExpandedChanged: (val) =>
+          setState(() => _actionsExpanded = val),
+      onCollapseBiography: () => setState(() {}),
+    );
+  }
+
+  Widget _buildSpotlightContent() {
+    return SpotlightDetailContent(
+      viewModel: _viewModel,
+      prefs: _prefs,
+      backdropUrl: _backdropUrl,
+      selectedMediaSourceId: _selectedMediaSourceId,
+      initialFocusNode: _ensureInitialFocusNode(),
+      onSelectedMediaSourceChanged: (id) {
+        setState(() => _selectedMediaSourceId = id);
+        _viewModel.load(mediaSourceId: id);
+      },
+      onBackdropItemFocused: _onBackdropItemFocused,
+      autoPlay: widget.autoPlay,
+      onPlayFromChapter: (position) => unawaited(
+        _playFromChapter(
+          context,
+          _viewModel.item!,
+          position,
+          _selectedMediaSourceId,
+        ),
+      ),
+      onToggleNavbar: (show) => setState(() => _showNavbar = show),
+      actionsExpanded: _actionsExpanded,
+      onActionsExpandedChanged: (val) =>
+          setState(() => _actionsExpanded = val),
+      onCollapseBiography: () => setState(() {}),
+    );
+  }
+
   Widget _buildBody(BuildContext context) {
     return switch (_viewModel.state) {
       ItemDetailState.loading => DetailScreenSkeleton(
@@ -722,59 +781,12 @@ class _ItemDetailScreenState extends State<ItemDetailScreen>
           autoPlay: widget.autoPlay,
         ),
 
-        DetailScreenStyle.modern => ModernDetailContent(
-          viewModel: _viewModel,
-          prefs: _prefs,
-          backdropUrl: _backdropUrl,
-          selectedMediaSourceId: _selectedMediaSourceId,
-          initialFocusNode: _ensureInitialFocusNode(),
-          onSelectedMediaSourceChanged: (id) {
-            setState(() => _selectedMediaSourceId = id);
-            _viewModel.load(mediaSourceId: id);
-          },
-          onBackdropItemFocused: _onBackdropItemFocused,
-          autoPlay: widget.autoPlay,
-          onPlayFromChapter: (position) => unawaited(
-            _playFromChapter(
-              context,
-              _viewModel.item!,
-              position,
-              _selectedMediaSourceId,
-            ),
-          ),
-          onToggleNavbar: (show) => setState(() => _showNavbar = show),
-          actionsExpanded: _actionsExpanded,
-          onActionsExpandedChanged: (val) =>
-              setState(() => _actionsExpanded = val),
-          onCollapseBiography: () => setState(() {}),
-        ),
+        DetailScreenStyle.modern => _buildModernContent(),
 
-        DetailScreenStyle.spotlight => SpotlightDetailContent(
-          viewModel: _viewModel,
-          prefs: _prefs,
-          backdropUrl: _backdropUrl,
-          selectedMediaSourceId: _selectedMediaSourceId,
-          initialFocusNode: _ensureInitialFocusNode(),
-          onSelectedMediaSourceChanged: (id) {
-            setState(() => _selectedMediaSourceId = id);
-            _viewModel.load(mediaSourceId: id);
-          },
-          onBackdropItemFocused: _onBackdropItemFocused,
-          autoPlay: widget.autoPlay,
-          onPlayFromChapter: (position) => unawaited(
-            _playFromChapter(
-              context,
-              _viewModel.item!,
-              position,
-              _selectedMediaSourceId,
-            ),
-          ),
-          onToggleNavbar: (show) => setState(() => _showNavbar = show),
-          actionsExpanded: _actionsExpanded,
-          onActionsExpandedChanged: (val) =>
-              setState(() => _actionsExpanded = val),
-          onCollapseBiography: () => setState(() {}),
-        ),
+        DetailScreenStyle.spotlight =>
+          detailFallsBackToModern(_viewModel.item?.type)
+            ? _buildModernContent()
+            : _buildSpotlightContent(),
 
         DetailScreenStyle.nouveau => NouveauDetailContent(
           key: _nouveauContentKey,
@@ -1231,7 +1243,11 @@ class _DetailContentState extends State<_DetailContent> {
   void initState() {
     super.initState();
     _scrollController = ScrollController();
-    _contentFocusNode = FocusNode(debugLabel: 'detailContent');
+    _contentFocusNode = FocusNode(
+      debugLabel: 'detailContent',
+      canRequestFocus: false,
+      skipTraversal: true,
+    );
     widget.prefs.addListener(_onPrefsChanged);
     _loadSeerrAppearances();
   }
@@ -1263,6 +1279,7 @@ class _DetailContentState extends State<_DetailContent> {
   void _tryRequestTvAlbumPlayFocus(String itemId, int attempt) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
+      if (!canClaimInitialFocus(context)) return;
       if (_tvAlbumPlayFocusAppliedForItemId == itemId) return;
       final node = _albumPlayFocusNode;
       if (node.context != null && node.canRequestFocus) {
@@ -1461,28 +1478,6 @@ class _DetailContentState extends State<_DetailContent> {
       hideNavbar: true,
       child: Focus(
         focusNode: _contentFocusNode,
-        onKeyEvent: (node, event) {
-          final primaryFocus = FocusManager.instance.primaryFocus;
-          if (!identical(primaryFocus, _contentFocusNode)) {
-            return KeyEventResult.ignored;
-          }
-          if ((event is KeyDownEvent || event is KeyRepeatEvent) &&
-              event.logicalKey == LogicalKeyboardKey.arrowUp) {
-            final navbarPos = prefs.get(UserPreferences.navbarPosition);
-            if (navbarPos == NavbarPosition.top) {
-              _scrollMainToTop();
-              NavigationLayout.focusNavbarNotifier.value?.call();
-              return KeyEventResult.handled;
-            }
-            final isAtTop =
-                !_scrollController.hasClients || _scrollController.offset <= 0;
-            if (isAtTop) {
-              NavigationLayout.focusNavbarNotifier.value?.call();
-              return KeyEventResult.handled;
-            }
-          }
-          return KeyEventResult.ignored;
-        },
         child: Stack(
           fit: StackFit.expand,
           children: [
@@ -6475,6 +6470,9 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
   void _tryRequestPlayFocus(String itemId, int attempt) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
+      // Inside the retry rather than on the way in, since it runs for
+      // seconds and a panel can open partway through it.
+      if (!canClaimInitialFocus(context)) return;
       final node = _tvPlayFocusNode;
       if (node.context != null && node.canRequestFocus) {
         node.requestFocus();
@@ -6583,8 +6581,7 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
         ? GetIt.instance<DownloadService>()
         : null;
     final progress = downloadService?.activeDownloads[item.id];
-    final isMulti = _DownloadButtonState._isBatchType(item.type);
-    final isBatch = downloadService?.isBatchDownloading ?? false;
+    final batch = downloadService?.batchProgressFor(item.id);
 
     if (progress != null && !progress.isComplete && progress.error == null) {
       final label = progress.isFinalizing
@@ -6605,22 +6602,11 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
       );
     }
 
-    if (isBatch && isMulti && downloadService != null) {
-      final done = downloadService.completedCount;
-      final total = downloadService.totalQueued;
-      var pct = '';
-      for (final p in downloadService.activeDownloads.values) {
-        if (!p.isComplete && p.error == null) {
-          if (p.progress >= 0) {
-            pct = '${(p.progress * 100).toInt()}%';
-          }
-          break;
-        }
-      }
+    if (batch != null) {
       return _DetailActionButton(
-        label: '${done + 1}/$total${pct.isNotEmpty ? ' · $pct' : ''}',
+        label: _DownloadButtonState._batchLabel(batch),
         icon: Icons.close,
-        onPressed: () => downloadService.cancelAll(),
+        onPressed: () => downloadService!.cancelBatch(item.id),
         isActive: true,
         activeColor: AppColorScheme.accent,
       );
@@ -11203,10 +11189,9 @@ class _DownloadButtonState extends State<_DownloadButton> {
       listenable: downloadService,
       builder: (context, _) {
         final item = widget.item;
-        final isMulti = _isBatchType(item.type);
+        final batch = downloadService.batchProgressFor(item.id);
         final progress = downloadService.activeDownloads[item.id];
         final downloadError = progress?.error;
-        final isBatch = downloadService.isBatchDownloading;
 
         // Forward the focus node and arrow wiring the action row assigns to this
         // slot so the button is reachable by d-pad in every download state.
@@ -11256,22 +11241,11 @@ class _DownloadButtonState extends State<_DownloadButton> {
           );
         }
 
-        if (isBatch && isMulti) {
-          final done = downloadService.completedCount;
-          final total = downloadService.totalQueued;
-          var pct = '';
-          for (final progress in downloadService.activeDownloads.values) {
-            if (!progress.isComplete && progress.error == null) {
-              if (progress.progress >= 0) {
-                pct = '${(progress.progress * 100).toInt()}%';
-              }
-              break;
-            }
-          }
+        if (batch != null) {
           return wire(
-            label: '${done + 1}/$total${pct.isNotEmpty ? ' · $pct' : ''}',
+            label: _batchLabel(batch),
             icon: Icons.close,
-            onPressed: () => downloadService.cancelAll(),
+            onPressed: () => downloadService.cancelBatch(item.id),
             isActive: true,
             activeColor: AppColorScheme.accent,
           );
@@ -11315,6 +11289,15 @@ class _DownloadButtonState extends State<_DownloadButton> {
 
   static bool _isBatchType(String? type) =>
       type == 'Season' || type == 'Series' || type == 'BoxSet';
+
+  /// "2/5 · 40%": the item in progress and, when known, its percentage.
+  static String _batchLabel(BatchProgress batch) {
+    final current = batch.current;
+    final pct = current != null && current.progress >= 0
+        ? ' · ${(current.progress * 100).toInt()}%'
+        : '';
+    return '${batch.done + 1}/${batch.total}$pct';
+  }
 
   /// One line of context under a sheet title.
   static Widget _sheetNote(BuildContext sheetContext, String text) => Padding(
@@ -11814,7 +11797,7 @@ class _DownloadButtonState extends State<_DownloadButton> {
         ).showSnackBar(SnackBar(content: Text(l10n.noEpisodesLoaded)));
         return;
       }
-      service.downloadItems(items, quality: quality);
+      service.downloadItems(items, quality: quality, ownerId: item.id);
       message = l10n.downloadingTitle(item.name, items.length);
     } else {
       if (item.type == 'MusicAlbum') {
@@ -15901,7 +15884,6 @@ class FilmographyRow extends StatelessWidget {
             playedPercentage: item.playedPercentage,
             watchedBehavior: watchedBehavior,
             itemType: item.type,
-            autofocus: index == 0 && firstFocusNode != null,
             focusNode: index == 0 ? firstFocusNode : null,
             onKeyEvent: onItemKeyEvent == null
                 ? null
@@ -15986,7 +15968,6 @@ class SeerrAppearancesRow extends StatelessWidget {
             suppressFocusGlow: suppressFocusGlow,
             seerrMediaType: item.mediaType,
             seerrStatus: item.mediaInfo?.status,
-            autofocus: index == 0 && firstFocusNode != null,
             focusNode: index == 0 ? firstFocusNode : null,
             onKeyEvent: onItemKeyEvent == null
                 ? null
@@ -16070,7 +16051,6 @@ class SeerrCrewCreditsRow extends StatelessWidget {
             suppressFocusGlow: suppressFocusGlow,
             seerrMediaType: item.mediaType,
             seerrStatus: item.mediaInfo?.status,
-            autofocus: index == 0 && firstFocusNode != null,
             focusNode: index == 0 ? firstFocusNode : null,
             onKeyEvent: onItemKeyEvent == null
                 ? null

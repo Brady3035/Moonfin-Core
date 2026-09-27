@@ -17,12 +17,14 @@ import 'package:screen_brightness_platform_interface/screen_brightness_platform_
 import 'package:volume_controller/volume_controller.dart';
 import 'package:window_manager/window_manager.dart';
 
+import '../../../data/utils/chapter_markers.dart';
 import '../../../data/utils/video_range_label.dart';
 import '../../../playback/subtitle_style.dart';
 import '../../../util/fullscreen_helper.dart';
 import '../../../util/scroll_sensitivity_binding.dart';
 import '../../widgets/player_volume_control.dart';
 import '../../widgets/playback/playback_time_row.dart';
+import '../../widgets/playback/player_logo.dart';
 import '../../widgets/playback/seek_icons.dart';
 import '../../widgets/playback/trickplay.dart';
 import '../../widgets/playback/trickplay_tile_image.dart';
@@ -74,6 +76,7 @@ import '../../widgets/remote_play_to_session_dialog.dart';
 import '../../widgets/track_selector_dialog.dart';
 import '../../widgets/playback/player_loading_overlay.dart';
 import '../../widgets/playback/loading_animation_widget.dart';
+import '../../widgets/playback/chapter_marker_track.dart';
 import '../../widgets/playback/skip_segment_overlay.dart';
 import '../../widgets/playback/next_up_overlay.dart';
 import '../../widgets/playback/still_watching_dialog.dart';
@@ -106,6 +109,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
     with WidgetsBindingObserver, WindowListener, ImmersiveSystemUi {
   static final _camelCaseSpaceRe = RegExp(r'(?<=[a-z])(?=[A-Z])');
   static const _streamLoadingLabel = 'Loading Stream...';
+
+  /// How long away counts as having moved on rather than stepped out.
+  static const _staleSuspendExit = Duration(minutes: 30);
   static const _tvTemporarySpeed = 2.0;
   static const _tvTemporarySpeedHoldDelay = Duration(milliseconds: 420);
   static const _seekPromptSuppressionDuration = Duration(milliseconds: 1200);
@@ -136,6 +142,11 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
       ? GetIt.instance<SyncPlayManager>()
       : null;
   late MediaSegmentService _segmentService;
+
+  /// Parsed chapters for the current item, held so the seek bar doesn't
+  /// reparse them on every position tick.
+  List<Map<String, dynamic>> _chapters = const [];
+  final _chaptersFetchedItemIds = <String>{};
 
   PlayerBackend? get _activeBackend => _manager.backend;
 
@@ -272,6 +283,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
   bool _didRequestIosPiPForBackground = false;
   bool _isStartingIosPiPForBackground = false;
   bool _didHandleBackgroundSuspend = false;
+  StreamSubscription? _userLeftAppSub;
+  bool _userLeftApp = false;
+  DateTime? _userLeftAppAt;
   bool _videoNeedsReattachAfterScreenOff = false;
   Timer? _tvBackgroundExitTimer;
   Timer? _tvTemporarySpeedHoldTimer;
@@ -833,6 +847,11 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
       _showBringupFailureIfAny(state);
       unawaited(_syncAutoHdrSwitching());
       unawaited(_syncMedia3ZoomMode());
+      // Anything earlier still reports the outgoing item's resolution, which
+      // would put the HDR palette on an SDR title.
+      if (state.phase == PlaybackBringupPhase.ready) {
+        _applySubtitleStyle(force: true);
+      }
     });
     _syncPlayManager?.addListener(_onSyncPlayChanged);
     _prefs.addListener(_onPlaybackPrefsChanged);
@@ -877,6 +896,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
         unawaited(backend.setVolume(_playerVolume));
       }
       if (!mounted) return;
+      _applySubtitleStyle(force: true);
       setState(() {});
     });
     _syncMedia3VolumeBoostLevel(resetWhenUnavailable: true);
@@ -973,6 +993,11 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
 
     if (PlatformDetection.isAndroid) {
       _screenLockSub = _pipService.onScreenLock.listen(_onScreenLock);
+      if (PlatformDetection.isTV) {
+        _userLeftAppSub = _pipService.onUserLeftApp.listen((_) {
+          _userLeftApp = true;
+        });
+      }
     }
 
     if (PlatformDetection.useDesktopUi) {
@@ -1053,6 +1078,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
     _backendSub?.cancel();
     _bringupSub?.cancel();
     _pipChangedSub?.cancel();
+    _userLeftAppSub?.cancel();
     _pipActionSub?.cancel();
     _playingSub?.cancel();
     _bufferingSub?.cancel();
@@ -1204,6 +1230,14 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
     if (error == null || error.isEmpty) {
       return;
     }
+    // `liveStreamLostError`/`streamStarvedError` are internal sentinels the
+    // manager uses to tag why it gave up recovering, not viewer-facing text.
+    if (error == liveStreamLostError || error == streamStarvedError) {
+      _showThrottledPlaybackError(
+        AppLocalizations.of(context).playbackStreamLost,
+      );
+      return;
+    }
     _showThrottledPlaybackError(error);
   }
 
@@ -1276,6 +1310,20 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
       }
       unawaited(_exitPlayback());
     });
+  }
+
+  /// Leaves the player when the viewer has been away long enough that coming
+  /// back to a held frame is less use to them than the item they left.
+  ///
+  /// Returns true when it took over, since the rest of the resume is restoring
+  /// a player that is on its way out.
+  bool _consumeStaleSuspend() {
+    final leftAt = _userLeftAppAt;
+    _userLeftAppAt = null;
+    if (leftAt == null || _isStopping) return false;
+    if (DateTime.now().difference(leftAt) < _staleSuspendExit) return false;
+    unawaited(_exitPlayback());
+    return true;
   }
 
   void _cancelTvBackgroundExit() {
@@ -1355,6 +1403,12 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
           if (_isTvLifecycleExitSuppressed()) return;
           if (_didHandleBackgroundSuspend) return;
           _didHandleBackgroundSuspend = true;
+          // Only a leave the viewer chose starts the clock. The screensaver
+          // suspends us the same way and should still come back to the player.
+          if (_userLeftApp) {
+            _userLeftApp = false;
+            _userLeftAppAt = DateTime.now();
+          }
           if (_state.isPlaying && _activeMedia3Backend == null) {
             _scheduleTvBackgroundExit();
           }
@@ -1373,6 +1427,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
       case AppLifecycleState.resumed:
         _didHandleBackgroundSuspend = false;
         _cancelTvBackgroundExit();
+        if (_consumeStaleSuspend()) return;
         _didRequestIosPiPForBackground = false;
         if (PlatformDetection.isIOS && _isInPiP) {
           _pipService.enableAutoPiP(false);
@@ -1561,12 +1616,44 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
   Future<void> _loadSegmentsForCurrentItem() async {
     final item = _queue.currentItem;
     final trickplayLoad = _loadTrickplayInfo(item);
+    _applyChapters();
     if (item is AggregatedItem) {
       _segmentService = _createSegmentService(item);
       await _segmentService.loadSegments(item.id);
     }
+    unawaited(_ensureChaptersForCurrentItem());
     await trickplayLoad;
     await _pushMedia3UiMetadata();
+  }
+
+  /// Caches the current item's chapters and hands their starts to the
+  /// manager, which steps previous and next through them before it steps
+  /// through the queue. Runs per item, so one with none clears the last.
+  void _applyChapters() {
+    _chapters = chaptersForItem(
+      _queue.currentItem,
+      _manager.currentOfflineMetadata,
+    );
+    _manager.setChapterStarts([
+      for (final ms in chapterStartsMs(_chapters)) Duration(milliseconds: ms),
+    ]);
+  }
+
+  /// Fills in chapters the current item arrived without. A row query leaves
+  /// Chapters off, so playing from a library grid would otherwise lose the
+  /// chapter button, its menu and the marks.
+  Future<void> _ensureChaptersForCurrentItem() async {
+    final item = _queue.currentItem;
+    if (item is! AggregatedItem) return;
+    if (item.chapters.isNotEmpty) return;
+    // A title with none would otherwise be asked for every time the queue
+    // comes back to it, so each item is tried once.
+    if (!_chaptersFetchedItemIds.add(item.id)) return;
+    final fetched = await fetchChapters(_clientForQueueItem(item), item.id);
+    if (fetched.isEmpty || !mounted) return;
+    item.rawData['Chapters'] = fetched;
+    setState(_applyChapters);
+    unawaited(_pushMedia3UiMetadata());
   }
 
   /// [hdrTonemapped] is what the display is receiving right now, resolved at
@@ -2019,7 +2106,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
 
     final l10n = AppLocalizations.of(context);
     final item = _queue.currentItem;
-    final chapters = <Map<String, dynamic>>[];
+    final chapters = _chapters;
     final streamInfoSections = _buildMedia3StreamInfoSections();
     final hasCastCrew = _hasCastCrew(item);
     final castPeople = await _resolveCastPeopleForMetadata(item);
@@ -2032,29 +2119,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
         ? ''
         : _castStateLabel(_remotePlaybackState!, l10n);
     final artworkUrl = _artworkUrlForQueueItem(item) ?? '';
-
-    List<Map<String, dynamic>>? rawChapters;
-    if (item is AggregatedItem) {
-      rawChapters = item.chapters;
-    } else if (item is String) {
-      rawChapters = (_manager.currentOfflineMetadata?['Chapters'] as List?)
-          ?.cast<Map<String, dynamic>>();
-    }
-
-    if (rawChapters != null) {
-      for (var i = 0; i < rawChapters.length; i++) {
-        final chapter = rawChapters[i];
-        final ticks = (chapter['StartPositionTicks'] as int?) ?? 0;
-        final startMs = ticks ~/ 10000;
-        final title = (chapter['Name'] as String?)?.trim();
-        chapters.add({
-          'title': (title != null && title.isNotEmpty)
-              ? title
-              : 'Chapter ${i + 1}',
-          'startMs': startMs,
-        });
-      }
-    }
 
     String topTitle = '';
     String topSubtitle = '';
@@ -2121,7 +2185,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
         unawaited(
           _runSinglePlayerMutation(
             'native_activity_next',
-            () async => _manager.next(),
+            () async => _manager.nextInQueue(),
             suppressBackFor: const Duration(milliseconds: 500),
           ),
         );
@@ -2415,6 +2479,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
   void _onPlaybackPrefsChanged() {
     _syncMediaQueuingPreference();
     if (!mounted) return;
+    _applySubtitleStyle();
     final zoom = _prefs.get(UserPreferences.playerZoomMode);
     if (zoom == _zoomMode) return;
     setState(() => _zoomMode = zoom);
@@ -2634,7 +2699,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
     setState(() => _showNextUp = false);
     try {
       if (!await _checkStillWatching()) return;
-      await _manager.next();
+      // The next item, not the next chapter, even when the card came up
+      // during one.
+      await _manager.nextInQueue();
     } finally {
       _isNextUpAdvancing = false;
     }
@@ -3403,7 +3470,10 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
     );
   }
 
-  void _applySubtitleStyle() {
+  (SubtitleStyle, bool, bool)? _lastSubtitleStyle;
+
+  /// [force] pushes even when nothing changed, for a new stream or backend.
+  void _applySubtitleStyle({bool force = false}) {
     final backend = _activeBackend;
     if (backend == null) return;
 
@@ -3411,41 +3481,42 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
       _prefs,
       _manager.currentResolution,
     );
-    final textColor = style.textColor;
-    final backgroundColor = style.backgroundColor;
-    final strokeColor = style.strokeColor;
-    final fontSize = style.fontSize;
-    final fontWeight = style.fontWeight;
-    final verticalOffset = style.verticalOffset;
+    final embeddedStyles = _prefs.get(
+      UserPreferences.subtitlesUseEmbeddedStyles,
+    );
+    final embeddedFontSizes = _prefs.get(
+      UserPreferences.subtitlesUseEmbeddedFontSizes,
+    );
+    // Every preference write lands here and a push costs several native round
+    // trips, so most calls have nothing to do.
+    final next = (style, embeddedStyles, embeddedFontSizes);
+    if (!force && next == _lastSubtitleStyle) return;
+    _lastSubtitleStyle = next;
 
     // Embedded-style overrides are Media3-specific (Android only) and live on
     // the Media3PlayerBackend's wider signature, not the base PlayerBackend.
     if (backend is Media3PlayerBackend) {
       unawaited(
         backend.configureSubtitleStyle(
-          textColor: textColor,
-          backgroundColor: backgroundColor,
-          strokeColor: strokeColor,
-          fontSize: fontSize,
-          fontWeight: fontWeight,
-          verticalOffset: verticalOffset,
-          applyEmbeddedStyles: _prefs.get(
-            UserPreferences.subtitlesUseEmbeddedStyles,
-          ),
-          applyEmbeddedFontSizes: _prefs.get(
-            UserPreferences.subtitlesUseEmbeddedFontSizes,
-          ),
+          textColor: style.textColor,
+          backgroundColor: style.backgroundColor,
+          strokeColor: style.strokeColor,
+          fontSize: style.fontSize,
+          fontWeight: style.fontWeight,
+          verticalOffset: style.verticalOffset,
+          applyEmbeddedStyles: embeddedStyles,
+          applyEmbeddedFontSizes: embeddedFontSizes,
         ),
       );
     } else {
       unawaited(
         backend.configureSubtitleStyle(
-          textColor: textColor,
-          backgroundColor: backgroundColor,
-          strokeColor: strokeColor,
-          fontSize: fontSize,
-          fontWeight: fontWeight,
-          verticalOffset: verticalOffset,
+          textColor: style.textColor,
+          backgroundColor: style.backgroundColor,
+          strokeColor: style.strokeColor,
+          fontSize: style.fontSize,
+          fontWeight: style.fontWeight,
+          verticalOffset: style.verticalOffset,
         ),
       );
     }
@@ -4601,12 +4672,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
       mainAxisSize: MainAxisSize.min,
       children: [
         if (logoUrl != null) ...[
-          Image.network(
-            logoUrl,
-            headers: serverImageHeaders,
-            height: 64,
-            fit: BoxFit.contain,
-            alignment: Alignment.centerLeft,
+          PlayerLogo(
+            image: NetworkImage(logoUrl, headers: serverImageHeaders),
             errorBuilder: (_, _, _) => Text(
               seriesName ?? titleText,
               style: const TextStyle(
@@ -4885,6 +4952,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
     final belowCenterSlot = _prefs.get(UserPreferences.playbackTimeBelowCenter);
     final belowRightSlot = _prefs.get(UserPreferences.playbackTimeBelowRight);
     final use24Hour = _prefs.get(UserPreferences.use24HourClock);
+    final showChapterMarks = _prefs.get(UserPreferences.showChapterMarkers);
     return StreamBuilder<Duration>(
       stream: _state.positionStream,
       initialData: _state.position,
@@ -5006,71 +5074,26 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
                             },
                             child: ExcludeFocus(
                               excluding: PlatformDetection.isTV,
-                              child: SliderTheme(
-                                data: SliderThemeData(
-                                  trackHeight: 4,
-                                  thumbShape: const RoundSliderThumbShape(
-                                    enabledThumbRadius:
-                                        TrickplayPreviewLayout.seekThumbRadius,
+                              child: Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  _buildSeekSlider(
+                                    positionMs: positionMs,
+                                    durationMs: durationMs,
+                                    bufferMs: bufferMs,
                                   ),
-                                  overlayShape: const RoundSliderOverlayShape(
-                                    overlayRadius: 14,
+                                  // Over the slider, so a mark stays visible
+                                  // where it crosses the played part.
+                                  ChapterMarkerTrack(
+                                    positionsMs: showChapterMarks
+                                        ? chapterMarkerPositions(
+                                            _chapters,
+                                            duration.inMilliseconds,
+                                          )
+                                        : const [],
+                                    durationMs: duration.inMilliseconds,
                                   ),
-                                  activeTrackColor:
-                                      AppColorScheme.rangeProgress,
-                                  secondaryActiveTrackColor: AppColorScheme
-                                      .rangeTrack
-                                      .withValues(alpha: 0.8),
-                                  inactiveTrackColor: AppColorScheme.rangeTrack,
-                                  thumbColor:
-                                      (PlatformDetection.isTV &&
-                                          _seekbarFocused)
-                                      ? Colors.white
-                                      : AppColorScheme.rangeThumb,
-                                  overlayColor: AppColorScheme.rangeThumb
-                                      .withValues(alpha: 0.2),
-                                ),
-                                child: Slider(
-                                  value: positionMs.clamp(0.0, durationMs),
-                                  secondaryTrackValue: bufferMs.clamp(
-                                    0.0,
-                                    durationMs,
-                                  ),
-                                  max: durationMs,
-                                  onChangeStart: (v) {
-                                    _suppressSeekPrompts(
-                                      duration:
-                                          _seekDragPromptSuppressionDuration,
-                                    );
-                                    _pendingScrubSeekTarget = null;
-                                    _beginScrub();
-                                    setState(() {
-                                      _isSeeking = true;
-                                      _seekValue = v;
-                                    });
-                                    _hideTimer?.cancel();
-                                  },
-                                  onChanged: (v) {
-                                    _suppressSeekPrompts(
-                                      duration:
-                                          _seekDragPromptSuppressionDuration,
-                                      dismissVisiblePrompts: false,
-                                    );
-                                    setState(() => _seekValue = v);
-                                    _prefetchVisibleTrickplayPreview(
-                                      Duration(milliseconds: v.round()),
-                                    );
-                                  },
-                                  onChangeEnd: (v) {
-                                    _suppressSeekPrompts();
-                                    _accumulateScrub(
-                                      Duration(milliseconds: v.round()),
-                                      showControls: false,
-                                    );
-                                    _commitPendingScrub();
-                                    _scheduleHide();
-                                  },
-                                ),
+                                ],
                               ),
                             ),
                           ),
@@ -5104,6 +5127,82 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
           },
         );
       },
+    );
+  }
+
+
+  /// The seek bar slider itself, lifted out so the marker layer can stack
+  /// over it without pushing the whole tree past the line limit.
+  Widget _buildSeekSlider({
+    required double positionMs,
+    required double durationMs,
+    required double bufferMs,
+  }) {
+    return SliderTheme(
+      data: SliderThemeData(
+        trackHeight: 4,
+        thumbShape: const RoundSliderThumbShape(
+          enabledThumbRadius:
+              TrickplayPreviewLayout.seekThumbRadius,
+        ),
+        overlayShape: const RoundSliderOverlayShape(
+          overlayRadius: 14,
+        ),
+        activeTrackColor:
+            AppColorScheme.rangeProgress,
+        secondaryActiveTrackColor: AppColorScheme
+            .rangeTrack
+            .withValues(alpha: 0.8),
+        inactiveTrackColor: AppColorScheme.rangeTrack,
+        thumbColor:
+            (PlatformDetection.isTV &&
+                _seekbarFocused)
+            ? Colors.white
+            : AppColorScheme.rangeThumb,
+        overlayColor: AppColorScheme.rangeThumb
+            .withValues(alpha: 0.2),
+      ),
+      child: Slider(
+        value: positionMs.clamp(0.0, durationMs),
+        secondaryTrackValue: bufferMs.clamp(
+          0.0,
+          durationMs,
+        ),
+        max: durationMs,
+        onChangeStart: (v) {
+          _suppressSeekPrompts(
+            duration:
+                _seekDragPromptSuppressionDuration,
+          );
+          _pendingScrubSeekTarget = null;
+          _beginScrub();
+          setState(() {
+            _isSeeking = true;
+            _seekValue = v;
+          });
+          _hideTimer?.cancel();
+        },
+        onChanged: (v) {
+          _suppressSeekPrompts(
+            duration:
+                _seekDragPromptSuppressionDuration,
+            dismissVisiblePrompts: false,
+          );
+          setState(() => _seekValue = v);
+          _prefetchVisibleTrickplayPreview(
+            Duration(milliseconds: v.round()),
+          );
+        },
+        onChangeEnd: (v) {
+          _suppressSeekPrompts();
+          _accumulateScrub(
+            Duration(milliseconds: v.round()),
+            showControls: false,
+          );
+          _commitPendingScrub();
+          _scheduleHide();
+        },
+      ),
     );
   }
 
@@ -5362,7 +5461,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
         MediaQuery.of(context).orientation == Orientation.landscape;
     final buttonExtent = isLandscape ? 56.0 : 48.0;
     final buttonIconSize = isLandscape ? 28.0 : 24.0;
-    final hasNext = _queue.hasNext;
 
     return FocusTraversalGroup(
       policy: ReadingOrderTraversalPolicy(),
@@ -5420,22 +5518,22 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
                   _seekRelative(_prefs.get(UserPreferences.skipForwardLength)),
               size: buttonIconSize,
               extent: buttonExtent,
-              focusNode: hasNext ? null : _tvTransportLastFocus,
               tooltip: _tooltipMessage(
                 l10n.playerTooltipSeekForward,
                 shortcut: 'Right',
               ),
             ),
             const SizedBox(width: 4),
-            if (_queue.hasNext)
-              _controlButton(
-                Icons.skip_next_rounded,
-                onPressed: _manager.next,
-                size: buttonIconSize,
-                extent: buttonExtent,
-                focusNode: _tvTransportLastFocus,
-                tooltip: l10n.next,
-              ),
+            // Always here, because it steps chapters before it steps the
+            // queue, so it has something to do on a lone movie too.
+            _controlButton(
+              Icons.skip_next_rounded,
+              onPressed: _manager.next,
+              size: buttonIconSize,
+              extent: buttonExtent,
+              focusNode: _tvTransportLastFocus,
+              tooltip: l10n.next,
+            ),
           ],
         ),
       ),
@@ -6617,14 +6715,13 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
                         shortcut: 'Right',
                       ),
                     ),
-                    if (_queue.hasNext)
-                      _controlButton(
-                        Icons.skip_next_rounded,
-                        onPressed: _manager.next,
-                        size: 40,
-                        extent: 72,
-                        tooltip: l10n.next,
-                      ),
+                    _controlButton(
+                      Icons.skip_next_rounded,
+                      onPressed: _manager.next,
+                      size: 40,
+                      extent: 72,
+                      tooltip: l10n.next,
+                    ),
                   ],
                 ),
               ),
@@ -7060,7 +7157,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
 
       if (!mounted) return;
 
-      final delayLimits = delayLimitsFor(_activeBackend, audio: audio);
+      final backend = _activeBackend;
+      final delayLimits = delayLimitsFor(backend, audio: audio);
       final result = await TrackSelectorDialog.show(
         context,
         title: audio ? l10n.audioTrack : l10n.subtitleTrack,
@@ -7070,15 +7168,14 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
         footer: delayLimits == null
             ? null
             : DelayFooter(
-                initialDelay: audio ? _audioDelay : _subtitleDelay,
+                initialDelay: audio
+                    ? _audioDelay
+                    : backend is Media3PlayerBackend
+                    ? backend.subtitleDelaySeconds
+                    : _subtitleDelay,
                 label: audio ? l10n.audioDelay : l10n.subtitleDelay,
                 minDelay: delayLimits.$1,
                 maxDelay: delayLimits.$2,
-                autoOffset: audio
-                    ? 0.0
-                    : (_activeBackend?.subtitleAutoOffsetSeconds ?? 0.0),
-                autoOffsetStream:
-                    audio ? null : _activeBackend?.subtitleAutoOffsetStream,
                 onDelayChanged: (d) => _applyDelay(audio: audio, delay: d),
                 formatDelay: _formatDelay,
               ),

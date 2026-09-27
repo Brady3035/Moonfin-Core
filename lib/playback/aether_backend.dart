@@ -243,6 +243,7 @@ class AetherBackend implements PlayerBackend {
           payload['mediaType']?.toString() != 'audio' &&
           _prefs.get(UserPreferences.subtitleMode) == SubtitleMode.none,
       'dolbyVisionBaseLayerOnly': needsBaseLayerOnlyForDolbyVisionAv1(payload),
+      'externalSubtitles': payload['externalSubtitles'] ?? const [],
     });
   }
 
@@ -255,6 +256,14 @@ class AetherBackend implements PlayerBackend {
   Future<void> pause() async {
     await _invoke<void>('pause');
   }
+
+  // Implements rather than extends, so the interface default is not inherited.
+  @override
+  bool? get playWhenReady => null;
+
+  // No way to re-open a live source in place, so the manager escalates.
+  @override
+  Future<bool> resumeLiveEdge() async => false;
 
   @override
   Future<void> stop() async {
@@ -352,12 +361,6 @@ class AetherBackend implements PlayerBackend {
 
   @override
   Stream<bool> get bufferingStream => _bufferingStream.stream;
-
-  @override
-  double get subtitleAutoOffsetSeconds => 0.0;
-
-  @override
-  Stream<double>? get subtitleAutoOffsetStream => null;
 
   @override
   Stream<bool> get completedStream => _completedStream.stream;

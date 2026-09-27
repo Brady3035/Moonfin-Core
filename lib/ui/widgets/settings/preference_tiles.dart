@@ -464,11 +464,15 @@ class EnumPreferenceTile<T extends Enum> extends StatefulWidget {
 class _EnumPreferenceTileState<T extends Enum>
     extends State<EnumPreferenceTile<T>> {
   late PreferenceBinding<T> _binding;
+  late final FocusNode _focusNode;
   bool _pickerOpen = false;
 
   @override
   void initState() {
     super.initState();
+    _focusNode = FocusNode(
+      debugLabel: 'EnumPreferenceTile_${widget.preference.key}',
+    );
     _binding = PreferenceBinding(
       GetIt.instance<PreferenceStore>(),
       widget.preference,
@@ -487,6 +491,7 @@ class _EnumPreferenceTileState<T extends Enum>
 
   @override
   void dispose() {
+    _focusNode.dispose();
     _binding.dispose();
     super.dispose();
   }
@@ -501,6 +506,7 @@ class _EnumPreferenceTileState<T extends Enum>
           final current = values.contains(value) ? value : values.first;
           final label = widget.labelOf(current);
           return ListTile(
+            focusNode: _focusNode,
             autofocus: widget.autofocus,
             leading: widget.icon != null
                 ? buildSettingsLeadingIconShell(
@@ -533,80 +539,107 @@ class _EnumPreferenceTileState<T extends Enum>
   void _showPicker(BuildContext context, T current) async {
     if (_pickerOpen) return;
     _pickerOpen = true;
-    final values = widget.values ?? widget.preference.values.toList();
-    final selectedIndex = values.indexOf(current);
-    final autofocusIndex = selectedIndex >= 0 ? selectedIndex : 0;
-    var picked = false;
-    final result = await showFocusRestoringDialog<T>(
-      context: context,
-      useRootNavigator: false,
-      builder: (ctx) => withBackClose(
-        ctx,
-        SimpleDialog(
-          title: Text(widget.title, style: _kSettingsTitleTextStyle),
-          children: values.asMap().entries.map((entry) {
-            final i = entry.key;
-            final v = entry.value;
-            final selected = v == current;
-            return TvFocusHighlight(
-              builder: (_, focused) {
-                final invert = focused && settingsTileInvertsOnFocus;
-                return ListTile(
-                  autofocus: i == autofocusIndex,
-                  focusColor: Colors.transparent,
-                  hoverColor: Colors.transparent,
-                  title: Text(
-                    (widget.dialogLabelOf ?? widget.labelOf)(v),
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: invert
-                          ? AppColors.black.withValues(alpha: 0.87)
-                          : AppColorScheme.onSurface,
-                    ),
-                  ),
-                  subtitle: widget.dialogSubtitleOf != null
-                      ? Text(
-                          widget.dialogSubtitleOf!(v),
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: invert
-                                ? AppColors.black.withValues(alpha: 0.54)
-                                : AppColorScheme.onSurface.withValues(
-                                    alpha: 0.6,
-                                  ),
-                          ),
-                        )
-                      : null,
-                  isThreeLine: widget.dialogSubtitleOf != null,
-                  trailing: selected
-                      ? Icon(
-                          Icons.check,
-                          color: invert
-                              ? AppColors.black.withValues(alpha: 0.54)
-                              : (AppUiIdiomResolver.isApple
-                                  ? AppColorScheme.accent
-                                  : null),
-                        )
-                      : null,
-                  onTap: () {
-                    if (picked) return;
-                    picked = true;
-                    Navigator.pop(ctx, v);
-                  },
-                );
-              },
-            );
-          }).toList(),
-        ),
-      ),
+    final result = await showSettingsPicker<T>(
+      context,
+      title: widget.title,
+      values: widget.values ?? widget.preference.values.toList(),
+      current: current,
+      labelOf: widget.dialogLabelOf ?? widget.labelOf,
+      subtitleOf: widget.dialogSubtitleOf,
     );
     _pickerOpen = false;
     if (!mounted || result == null || result == _binding.value) return;
     _binding.value = result;
     widget.onChanged?.call();
     widget.onChangedValue?.call(result);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted &&
+          !_focusNode.hasFocus &&
+          (ModalRoute.of(context)?.isCurrent ?? true)) {
+        _focusNode.requestFocus();
+      }
+    });
   }
+}
+
+/// The list a settings picker opens: every value, the current one ticked, and
+/// an optional line under each. Resolves to the value pressed, or null when
+/// the dialog is closed without a choice.
+Future<T?> showSettingsPicker<T>(
+  BuildContext context, {
+  required String title,
+  required List<T> values,
+  required T current,
+  required String Function(T value) labelOf,
+  String Function(T value)? subtitleOf,
+}) {
+  final selectedIndex = values.indexOf(current);
+  final autofocusIndex = selectedIndex >= 0 ? selectedIndex : 0;
+  var picked = false;
+  return showFocusRestoringDialog<T>(
+    context: context,
+    useRootNavigator: false,
+    builder: (ctx) => withBackClose(
+      ctx,
+      SimpleDialog(
+        title: Text(title, style: _kSettingsTitleTextStyle),
+        children: values.asMap().entries.map((entry) {
+          final i = entry.key;
+          final v = entry.value;
+          final selected = v == current;
+          return TvFocusHighlight(
+            builder: (_, focused) {
+              final invert = focused && settingsTileInvertsOnFocus;
+              return ListTile(
+                autofocus: i == autofocusIndex,
+                focusColor: Colors.transparent,
+                hoverColor: Colors.transparent,
+                title: Text(
+                  labelOf(v),
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: invert
+                        ? AppColors.black.withValues(alpha: 0.87)
+                        : AppColorScheme.onSurface,
+                  ),
+                ),
+                subtitle: subtitleOf != null
+                    ? Text(
+                        subtitleOf(v),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: invert
+                              ? AppColors.black.withValues(alpha: 0.54)
+                              : AppColorScheme.onSurface.withValues(
+                                  alpha: 0.6,
+                                ),
+                        ),
+                      )
+                    : null,
+                isThreeLine: subtitleOf != null,
+                trailing: selected
+                    ? Icon(
+                        Icons.check,
+                        color: invert
+                            ? AppColors.black.withValues(alpha: 0.54)
+                            : (AppUiIdiomResolver.isApple
+                                ? AppColorScheme.accent
+                                : null),
+                      )
+                    : null,
+                onTap: () {
+                  if (picked) return;
+                  picked = true;
+                  Navigator.pop(ctx, v);
+                },
+              );
+            },
+          );
+        }).toList(),
+      ),
+    ),
+  );
 }
 
 class SliderPreferenceTile extends StatefulWidget {

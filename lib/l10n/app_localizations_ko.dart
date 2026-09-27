@@ -783,6 +783,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get extraLarge => '특대';
 
   @override
+  String get uiScaleGrandparents => 'Grandparents';
+
+  @override
   String get scrollDirection => '스크롤 방향';
 
   @override
@@ -1917,11 +1920,6 @@ class AppLocalizationsKo extends AppLocalizations {
   String get subtitleDelay => '자막 지연';
 
   @override
-  String subtitleDelayAuto(String value) {
-    return 'Auto $value';
-  }
-
-  @override
   String get reset => '초기화';
 
   @override
@@ -2463,6 +2461,15 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String failedToPlayChannel(String name) {
     return '$name을(를) 재생하지 못했습니다';
+  }
+
+  @override
+  String get playbackStreamLost =>
+      'Playback stopped and could not be recovered.';
+
+  @override
+  String liveReconnecting(int attempt, int total) {
+    return 'Reconnecting… ($attempt of $total)';
   }
 
   @override
@@ -3211,6 +3218,13 @@ class AppLocalizationsKo extends AppLocalizations {
   String get dimVideoShowOverview => '일시중지된 동안 비디오를 어둡게 하고 개요 텍스트를 표시합니다.';
 
   @override
+  String get showChapterMarkers => 'Chapter Marks';
+
+  @override
+  String get showChapterMarkersDescription =>
+      'Mark where each chapter starts on the seek bar';
+
+  @override
   String get osdLockButton => 'OSD 잠금 버튼';
 
   @override
@@ -3858,6 +3872,21 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get semiTransparentBlack => '반투명 검정색';
+
+  @override
+  String get semiTransparentWhite => 'Semi-transparent White';
+
+  @override
+  String get lightGray => 'Light Gray';
+
+  @override
+  String get darkGray => 'Dark Gray';
+
+  @override
+  String get blue => 'Blue';
+
+  @override
+  String get magenta => 'Magenta';
 
   @override
   String get global => '글로벌';
@@ -4998,6 +5027,9 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get playInMoonfin => 'Moonfin에 플레이';
+
+  @override
+  String get requestedByLabel => 'Requested by';
 
   @override
   String requestedByName(String name) {
@@ -11986,6 +12018,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get playlistTypeVideo => '비디오';
 
   @override
+  String get playlistTypeMusicVideo => 'Music Video';
+
+  @override
   String get playlistTypeAudio => '오디오(음악)';
 
   @override
@@ -12002,6 +12037,9 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get videoPlaylistsSection => '비디오 재생목록';
+
+  @override
+  String get musicVideoPlaylistsSection => 'Music Video Playlists';
 
   @override
   String get audioPlaylistsSection => '오디오 재생목록';
@@ -12250,6 +12288,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String get setupTourQuestion => '설정이 완료되었습니다. 그 밖의 기능을 살펴보세요.';
 
   @override
+  String get setupPlaybackLanguages => 'Playback languages';
+
+  @override
+  String get setupOptional => 'Optional';
+
+  @override
   String get setupStyleClassic => '클래식';
 
   @override
@@ -12287,6 +12331,21 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get setupDetailMinimalistHint =>
       'Artwork, one play button and the episodes.';
+
+  @override
+  String get setupNavbarStyleQuestion => 'How should the bottom bar look?';
+
+  @override
+  String get setupNavbarStyleDockHint =>
+      'A floating pill with labels under every tab.';
+
+  @override
+  String get setupNavbarStyleSplitHint =>
+      'Search gets its own button, and the bar shrinks while you scroll.';
+
+  @override
+  String get setupNavbarStyleStripHint =>
+      'A full-width bar along the bottom edge.';
 
   @override
   String get setupPickALook => '스타일 선택';
@@ -12651,4 +12710,53 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get keepVideoClearOfDynamicIslandDescription =>
       'In landscape the camera housing covers one edge of the screen. This holds the picture back from it, which only changes anything for video wide enough to reach that far.';
+
+  @override
+  String get bottomNavbarStyle => 'Bottom Bar Style';
+
+  @override
+  String get bottomNavbarStyleDock => 'Dock';
+
+  @override
+  String get bottomNavbarStyleSplit => 'Split';
+
+  @override
+  String get bottomNavbarStyleStrip => 'Strip';
+
+  @override
+  String get bottomNavbarTabs => 'Bottom Bar Tabs';
+
+  @override
+  String get bottomNavbarTabsDescription =>
+      'Pin up to 3 tabs between Home and You. Everything else is in the You menu.';
+
+  @override
+  String get bottomNavbarTabsAutomatic => 'Automatic';
+
+  @override
+  String get bottomNavbarTabsPinned => 'Pinned';
+
+  @override
+  String get bottomNavbarTabsAvailable => 'Available';
+
+  @override
+  String get bottomNavbarTabsReset => 'Reset to Automatic';
+
+  @override
+  String get bottomNavbarTabsLimit =>
+      'You can pin up to 3 tabs. Remove one to pin another.';
+
+  @override
+  String get bottomNavbarTabTurnedOff => 'Turned off under Buttons';
+
+  @override
+  String get bottomNavbarSplitSearchNote =>
+      'In the Split style, Search always has its own button.';
+
+  @override
+  String get bottomNavbarButtonsNote =>
+      'These decide which tabs you can pin to the bottom bar and what shows in the You menu.';
+
+  @override
+  String get navYou => 'You';
 }

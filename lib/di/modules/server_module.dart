@@ -11,10 +11,12 @@ import '../../data/repositories/offline_repository.dart';
 import '../../data/services/pending_rating_store.dart';
 import '../../data/services/auto_download_service.dart';
 import '../../data/services/background_download_coordinator.dart';
+import '../../data/services/connectivity_service.dart';
 import '../../data/services/download_notification_service.dart';
 import '../../data/services/download_service.dart';
 import '../../data/services/media_server_client_factory.dart';
 import '../../data/services/push_messaging_service.dart';
+import '../../data/services/saved_media_presence.dart';
 import '../../data/services/seerr_notification_service.dart';
 import '../../data/services/socket_handler.dart';
 import '../../data/services/storage_path_service.dart';
@@ -94,6 +96,11 @@ void setActiveServerClient(
   }
   _getIt.registerSingleton<MediaServerClient>(wrapped);
 
+  if (_getIt.isRegistered<SavedMediaPresence>()) {
+    // Listens to the download service, so it goes before the one it watches.
+    _getIt<SavedMediaPresence>().dispose();
+    _getIt.unregister<SavedMediaPresence>();
+  }
   if (_getIt.isRegistered<DownloadService>()) {
     // Detach the replaced instance's app-lifetime listeners (preferences,
     // download coordinator); its in-flight downloads keep running.
@@ -105,6 +112,13 @@ void setActiveServerClient(
     _getIt<DownloadNotificationService>(),
   );
   _getIt.registerSingleton<DownloadService>(downloadService);
+
+  // Absent on the background isolates, which never draw a nav bar.
+  if (_getIt.isRegistered<OfflineRepository>()) {
+    _getIt.registerSingleton<SavedMediaPresence>(
+      SavedMediaPresence(_getIt<OfflineRepository>(), downloadService),
+    );
+  }
 
   if (AutoDownloadService.isSupportedPlatform) {
     _replaceAutoDownloadService(
@@ -119,6 +133,17 @@ void setActiveServerClient(
   // Fire and forget: device profiles read the cached result and fall back to
   // the H264-only transcode offer until the probe lands.
   _getIt<ServerTranscodeCapabilities>().refresh(rawClient);
+
+  // Absent on the background isolates, which never sync progress. On the app
+  // engine a new client is the moment to push progress recorded offline, as
+  // no reachability edge follows a sign-in or a restore on a live network.
+  if (!background && _getIt.isRegistered<ConnectivityService>()) {
+    unawaited(
+      _getIt<ConnectivityService>().onServerClientReady(
+        _getIt<MediaServerClientFactory>().serverIdOf(rawClient),
+      ),
+    );
+  }
 }
 
 /// Sign-out: nobody is left to check for, so the auto-download service goes

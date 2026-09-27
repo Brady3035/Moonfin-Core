@@ -1450,6 +1450,12 @@ abstract class AppLocalizations {
   /// **'Extra Large'**
   String get extraLarge;
 
+  /// UI scaling option above extra large
+  ///
+  /// In en, this message translates to:
+  /// **'Grandparents'**
+  String get uiScaleGrandparents;
+
   /// Section header for scroll direction selection in library display settings
   ///
   /// In en, this message translates to:
@@ -3352,12 +3358,6 @@ abstract class AppLocalizations {
   /// **'Subtitle Delay'**
   String get subtitleDelay;
 
-  /// Read-only line under the subtitle delay showing a correction the player applied on its own, value is a formatted delay like +2000 ms
-  ///
-  /// In en, this message translates to:
-  /// **'Auto {value}'**
-  String subtitleDelayAuto(String value);
-
   /// Button label to reset a value
   ///
   /// In en, this message translates to:
@@ -4347,6 +4347,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Failed to play {name}'**
   String failedToPlayChannel(String name);
+
+  /// Shown in place of an internal sentinel error code when playback gives up trying to recover a stalled or starved stream
+  ///
+  /// In en, this message translates to:
+  /// **'Playback stopped and could not be recovered.'**
+  String get playbackStreamLost;
+
+  /// Overlay shown while a live channel's bounded recovery is retrying
+  ///
+  /// In en, this message translates to:
+  /// **'Reconnecting… ({attempt} of {total})'**
+  String liveReconnecting(int attempt, int total);
 
   /// Error when recordings fail to load
   ///
@@ -5686,6 +5698,18 @@ abstract class AppLocalizations {
   /// **'Dim video and show overview text while paused'**
   String get dimVideoShowOverview;
 
+  /// Setting label for drawing a mark per chapter on the player seek bar
+  ///
+  /// In en, this message translates to:
+  /// **'Chapter Marks'**
+  String get showChapterMarkers;
+
+  /// Description for the chapter marks setting
+  ///
+  /// In en, this message translates to:
+  /// **'Mark where each chapter starts on the seek bar'**
+  String get showChapterMarkersDescription;
+
   /// Setting for OSD lock button
   ///
   /// In en, this message translates to:
@@ -6909,6 +6933,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Semi-transparent Black'**
   String get semiTransparentBlack;
+
+  /// Color: semi-transparent white
+  ///
+  /// In en, this message translates to:
+  /// **'Semi-transparent White'**
+  String get semiTransparentWhite;
+
+  /// Color: light gray
+  ///
+  /// In en, this message translates to:
+  /// **'Light Gray'**
+  String get lightGray;
+
+  /// Color: dark gray
+  ///
+  /// In en, this message translates to:
+  /// **'Dark Gray'**
+  String get darkGray;
+
+  /// Color: blue
+  ///
+  /// In en, this message translates to:
+  /// **'Blue'**
+  String get blue;
+
+  /// Color: magenta
+  ///
+  /// In en, this message translates to:
+  /// **'Magenta'**
+  String get magenta;
 
   /// Profile: global
   ///
@@ -9051,6 +9105,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Play in Moonfin'**
   String get playInMoonfin;
+
+  /// Label above the name of whoever requested media, where the name sits on its own line
+  ///
+  /// In en, this message translates to:
+  /// **'Requested by'**
+  String get requestedByLabel;
 
   /// Label showing who requested media
   ///
@@ -21661,6 +21721,12 @@ abstract class AppLocalizations {
   /// **'Video'**
   String get playlistTypeVideo;
 
+  /// Filter checkbox label for music video playlists
+  ///
+  /// In en, this message translates to:
+  /// **'Music Video'**
+  String get playlistTypeMusicVideo;
+
   /// Filter checkbox label for audio/music playlists
   ///
   /// In en, this message translates to:
@@ -21696,6 +21762,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Video Playlists'**
   String get videoPlaylistsSection;
+
+  /// Section header above music video playlists when Group by Type is enabled
+  ///
+  /// In en, this message translates to:
+  /// **'Music Video Playlists'**
+  String get musicVideoPlaylistsSection;
 
   /// Section header above audio playlists when Group by Type is enabled
   ///
@@ -22171,6 +22243,18 @@ abstract class AppLocalizations {
   /// **'You\'re set. Here\'s what else is in here.'**
   String get setupTourQuestion;
 
+  /// Heading of the optional audio and subtitle language section on the last setup wizard screen
+  ///
+  /// In en, this message translates to:
+  /// **'Playback languages'**
+  String get setupPlaybackLanguages;
+
+  /// Tag beside an optional section in the setup wizard
+  ///
+  /// In en, this message translates to:
+  /// **'Optional'**
+  String get setupOptional;
+
   /// Name of the original layout, offered in the setup wizard
   ///
   /// In en, this message translates to:
@@ -22242,6 +22326,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Artwork, one play button and the episodes.'**
   String get setupDetailMinimalistHint;
+
+  /// Setup question asking which style the bottom navigation bar should use
+  ///
+  /// In en, this message translates to:
+  /// **'How should the bottom bar look?'**
+  String get setupNavbarStyleQuestion;
+
+  /// What the Dock bottom bar style gives you
+  ///
+  /// In en, this message translates to:
+  /// **'A floating pill with labels under every tab.'**
+  String get setupNavbarStyleDockHint;
+
+  /// What the Split bottom bar style gives you
+  ///
+  /// In en, this message translates to:
+  /// **'Search gets its own button, and the bar shrinks while you scroll.'**
+  String get setupNavbarStyleSplitHint;
+
+  /// What the Strip bottom bar style gives you
+  ///
+  /// In en, this message translates to:
+  /// **'A full-width bar along the bottom edge.'**
+  String get setupNavbarStyleStripHint;
 
   /// Label above the theme swatches on the final setup screen
   ///
@@ -22780,6 +22888,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'In landscape the camera housing covers one edge of the screen. This holds the picture back from it, which only changes anything for video wide enough to reach that far.'**
   String get keepVideoClearOfDynamicIslandDescription;
+
+  /// Settings title for choosing how the mobile bottom navigation bar looks
+  ///
+  /// In en, this message translates to:
+  /// **'Bottom Bar Style'**
+  String get bottomNavbarStyle;
+
+  /// Bottom bar style: a floating pill with labelled tabs
+  ///
+  /// In en, this message translates to:
+  /// **'Dock'**
+  String get bottomNavbarStyleDock;
+
+  /// Bottom bar style: tabs in one capsule with search as its own round button
+  ///
+  /// In en, this message translates to:
+  /// **'Split'**
+  String get bottomNavbarStyleSplit;
+
+  /// Bottom bar style: a full-width bar along the bottom edge
+  ///
+  /// In en, this message translates to:
+  /// **'Strip'**
+  String get bottomNavbarStyleStrip;
+
+  /// Settings title for choosing which tabs sit on the mobile bottom navigation bar
+  ///
+  /// In en, this message translates to:
+  /// **'Bottom Bar Tabs'**
+  String get bottomNavbarTabs;
+
+  /// Explains the bottom bar tabs screen
+  ///
+  /// In en, this message translates to:
+  /// **'Pin up to 3 tabs between Home and You. Everything else is in the You menu.'**
+  String get bottomNavbarTabsDescription;
+
+  /// Shown when the bottom bar tabs are picked from the navigation button settings
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic'**
+  String get bottomNavbarTabsAutomatic;
+
+  /// Section header for the tabs pinned to the bottom bar
+  ///
+  /// In en, this message translates to:
+  /// **'Pinned'**
+  String get bottomNavbarTabsPinned;
+
+  /// Section header for tabs that can be pinned to the bottom bar
+  ///
+  /// In en, this message translates to:
+  /// **'Available'**
+  String get bottomNavbarTabsAvailable;
+
+  /// Action that clears the pinned bottom bar tabs so they are picked automatically again
+  ///
+  /// In en, this message translates to:
+  /// **'Reset to Automatic'**
+  String get bottomNavbarTabsReset;
+
+  /// Hint shown when the maximum number of bottom bar tabs is already pinned
+  ///
+  /// In en, this message translates to:
+  /// **'You can pin up to 3 tabs. Remove one to pin another.'**
+  String get bottomNavbarTabsLimit;
+
+  /// Hint on a bottom bar tab that can't be pinned because its navigation button setting is off
+  ///
+  /// In en, this message translates to:
+  /// **'Turned off under Buttons'**
+  String get bottomNavbarTabTurnedOff;
+
+  /// Note on the bottom bar tabs screen about the Split style
+  ///
+  /// In en, this message translates to:
+  /// **'In the Split style, Search always has its own button.'**
+  String get bottomNavbarSplitSearchNote;
+
+  /// Note under the navigation buttons section while the bottom bar is in use
+  ///
+  /// In en, this message translates to:
+  /// **'These decide which tabs you can pin to the bottom bar and what shows in the You menu.'**
+  String get bottomNavbarButtonsNote;
+
+  /// Bottom bar tab that opens the user's own menu with their profile, extra destinations and settings
+  ///
+  /// In en, this message translates to:
+  /// **'You'**
+  String get navYou;
 }
 
 class _AppLocalizationsDelegate

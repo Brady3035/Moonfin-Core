@@ -40,6 +40,7 @@ import '../../../widgets/logo_view.dart';
 import '../../../widgets/marquee_text.dart';
 import '../../../widgets/media_card.dart';
 import '../../../widgets/rating_display.dart';
+import '../../../widgets/focus/can_claim_initial_focus.dart';
 import '../../../widgets/focus/context_action.dart';
 import '../../../widgets/focus/context_menu_sheet.dart';
 import '../../../widgets/focus/focusable_wrapper.dart';
@@ -193,6 +194,7 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
   int _selectedTab = 0;
   String? _selectedTabId;
   String? _lastItemId;
+  bool _tabPickedByUser = false;
   bool _landscape = true;
 
   /// Expanded Tabs preference: when on, tabs behave like the search pill, with
@@ -549,7 +551,8 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
     _selectedTab = (_expandedTabs || _vm.item?.type == 'Season') ? 0 : -1;
     if (PlatformDetection.isTV) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) widget.initialFocusNode?.requestFocus();
+        if (!mounted || !canClaimInitialFocus(context)) return;
+        widget.initialFocusNode?.requestFocus();
       });
       NavigationLayout.focusDetailsPlayButtonNotifier.value = widget.initialFocusNode;
     }
@@ -572,7 +575,8 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
     super.didUpdateWidget(oldWidget);
     if (widget.initialFocusNode != oldWidget.initialFocusNode && PlatformDetection.isTV) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) widget.initialFocusNode?.requestFocus();
+        if (!mounted || !canClaimInitialFocus(context)) return;
+        widget.initialFocusNode?.requestFocus();
       });
       NavigationLayout.focusDetailsPlayButtonNotifier.value = widget.initialFocusNode;
     }
@@ -779,6 +783,7 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
 
   void _onTabBarNavigateDown(int tabIndex) {
     if (_vm.item == null) return;
+    _tabPickedByUser = true;
     if (_selectedTab != tabIndex) {
       _selectTab(tabIndex);
     }
@@ -3867,7 +3872,8 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
     final hasUpNext = _landscape && _buildUpNext(context, item) != null;
     final showRatings = _vm.ratings.isNotEmpty ||
         item.communityRating != null ||
-        item.criticRating != null;
+        item.criticRating != null ||
+        item.personalRating != null;
 
     final desktopScale = _desktopUiScale(prefs: widget.prefs);
     final logoScaleFactor = desktopScale > 1.1 ? 0.70 : 1.0;
@@ -4961,6 +4967,7 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
   }
 
   void _selectTab(int index) {
+    _tabPickedByUser = true;
     if (index == _selectedTab) {
       // With Expanded Tabs on, reselecting the current tab never collapses.
       if (!_expandedTabs) {
@@ -5026,6 +5033,7 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
     // Reset tab selection if the item changed completely.
     if (_lastItemId != item.id) {
       _lastItemId = item.id;
+      _tabPickedByUser = false;
       _selectedTab = (isMusicAlbumOrPlaylist || _expandedTabs || item.type == 'Season') ? 0 : -1;
       _selectedTabId = (_selectedTab == 0 && tabs.isNotEmpty) ? tabs[0].id : null;
     }
@@ -5036,6 +5044,10 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
     } else if (tabs.isEmpty) {
       _selectedTab = -1;
       _selectedTabId = null;
+    } else if (!_tabPickedByUser && _selectedTab == 0) {
+      // Tabs that load later can land in front of the default one, so until the
+      // user picks a tab the selection stays on whichever tab is first.
+      _selectedTabId = tabs[0].id;
     } else {
       // Identity-aware resolution: anchor to _selectedTabId across dynamic tab insertions/prepending
       if (_selectedTabId != null) {
@@ -5132,7 +5144,8 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
 
     final showRatings = _vm.ratings.isNotEmpty ||
         item.communityRating != null ||
-        item.criticRating != null;
+        item.criticRating != null ||
+        item.personalRating != null;
 
     final selectedSource = selectedMediaSourceForItem(item, widget.selectedMediaSourceId);
 

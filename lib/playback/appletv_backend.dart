@@ -316,6 +316,7 @@ class AppleTvBackend implements PlayerBackend {
       'videoCodec': payload['videoCodec']?.toString(),
       'videoDvProfile': payload['videoDvProfile'],
       'dolbyVisionBaseLayerOnly': needsBaseLayerOnlyForDolbyVisionAv1(payload),
+      'externalSubtitles': payload['externalSubtitles'] ?? const [],
       'videoFrameRate': payload['videoFrameRate'],
       'videoWidth': payload['videoWidth'],
       'videoHeight': payload['videoHeight'],
@@ -356,6 +357,14 @@ class AppleTvBackend implements PlayerBackend {
   Future<void> pause() async {
     await _invoke<void>('pause');
   }
+
+  // Implements rather than extends, so the interface default is not inherited.
+  @override
+  bool? get playWhenReady => null;
+
+  // No way to re-open a live source in place, so the manager escalates.
+  @override
+  Future<bool> resumeLiveEdge() async => false;
 
   @override
   Future<void> stop() async {
@@ -403,12 +412,6 @@ class AppleTvBackend implements PlayerBackend {
 
   @override
   Stream<bool> get bufferingStream => _bufferingStream.stream;
-
-  @override
-  double get subtitleAutoOffsetSeconds => 0.0;
-
-  @override
-  Stream<double>? get subtitleAutoOffsetStream => null;
 
   @override
   Stream<bool> get completedStream => _completedStream.stream;
@@ -491,6 +494,10 @@ class AppleTvBackend implements PlayerBackend {
     required String topTitle,
     required String topSubtitle,
     required List<Map<String, dynamic>> chapters,
+    // Gates the marks alone. The chapter list still travels in full, since
+    // the chapters button and its menu read the same array. Off by default
+    // to match the preference.
+    bool showChapterMarkers = false,
     required bool hasPrevious,
     required bool hasNext,
     required int skipForwardMs,
@@ -519,6 +526,7 @@ class AppleTvBackend implements PlayerBackend {
       'topTitle': topTitle,
       'topSubtitle': topSubtitle,
       'chapters': chapters,
+      'showChapterMarkers': showChapterMarkers,
       'hasPrevious': hasPrevious,
       'hasNext': hasNext,
       'skipForwardMs': skipForwardMs,

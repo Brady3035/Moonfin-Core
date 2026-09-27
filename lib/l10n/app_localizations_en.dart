@@ -1946,11 +1946,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get subtitleDelay => 'Subtitle Delay';
 
   @override
-  String subtitleDelayAuto(String value) {
-    return 'Auto $value';
-  }
-
-  @override
   String get reset => 'Reset';
 
   @override
@@ -14973,11 +14968,6 @@ class AppLocalizationsEnGb extends AppLocalizationsEn {
 
   @override
   String get subtitleDelay => 'Subtitle Delay';
-
-  @override
-  String subtitleDelayAuto(String value) {
-    return 'Auto $value';
-  }
 
   @override
   String get reset => 'Reset';

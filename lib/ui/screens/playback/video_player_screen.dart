@@ -24,6 +24,7 @@ import '../../../util/fullscreen_helper.dart';
 import '../../../util/scroll_sensitivity_binding.dart';
 import '../../widgets/player_volume_control.dart';
 import '../../widgets/playback/playback_time_row.dart';
+import '../../widgets/playback/player_logo.dart';
 import '../../widgets/playback/seek_icons.dart';
 import '../../widgets/playback/trickplay.dart';
 import '../../widgets/playback/trickplay_tile_image.dart';
@@ -4671,12 +4672,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
       mainAxisSize: MainAxisSize.min,
       children: [
         if (logoUrl != null) ...[
-          Image.network(
-            logoUrl,
-            headers: serverImageHeaders,
-            height: 64,
-            fit: BoxFit.contain,
-            alignment: Alignment.centerLeft,
+          PlayerLogo(
+            image: NetworkImage(logoUrl, headers: serverImageHeaders),
             errorBuilder: (_, _, _) => Text(
               seriesName ?? titleText,
               style: const TextStyle(

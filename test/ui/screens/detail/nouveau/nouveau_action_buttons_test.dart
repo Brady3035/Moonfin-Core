@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:get_it/get_it.dart';
+import 'package:jellyfin_preference/jellyfin_preference.dart';
+import 'package:moonfin/preference/preference_constants.dart'
+    show DesktopUiScale;
+import 'package:moonfin/preference/user_preferences.dart';
 import 'package:moonfin/ui/screens/detail/nouveau/hero/nouveau_action_buttons.dart';
 import 'package:moonfin/ui/theme/app_theme.dart';
 import 'package:moonfin/ui/widgets/marquee_text.dart';
+import 'package:moonfin/util/platform_detection.dart';
 import 'package:moonfin_design/moonfin_design.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   setUp(() => ThemeRegistry.setActiveById(ThemeRegistry.moonfinId));
@@ -310,6 +317,68 @@ void main() {
       ),
       findsNothing,
     );
+  });
+
+  group('UI scale', () {
+    late UserPreferences prefs;
+
+    setUp(() async {
+      SharedPreferences.setMockInitialValues({});
+      final store = PreferenceStore();
+      await store.init();
+      prefs = UserPreferences(store);
+      GetIt.instance.registerSingleton<UserPreferences>(prefs);
+      PlatformDetection.setInterfaceLayout(InterfaceLayout.desktop);
+    });
+
+    tearDown(() async {
+      PlatformDetection.setInterfaceLayout(InterfaceLayout.automatic);
+      await GetIt.instance.reset();
+    });
+
+    testWidgets('the buttons grow with it but the text leaves it to the '
+        'text scaler', (tester) async {
+      tester.view.physicalSize = const Size(1920, 1080);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+
+      Future<void> pumpRow() => tester.pumpWidget(
+        _TestApp(
+          child: NouveauActionButtons(
+            primaryAction: NouveauAction(
+              label: 'Play',
+              icon: Icons.play_arrow,
+              onPressed: () {},
+            ),
+            secondaryActions: [
+              NouveauAction(
+                label: 'Favorite',
+                icon: Icons.favorite,
+                onPressed: () {},
+              ),
+            ],
+          ),
+        ),
+      );
+      final circle = find.byWidgetPredicate(
+        (widget) =>
+            widget.runtimeType.toString() == '_NouveauCircleActionButton',
+      );
+      double playFontSize() =>
+          tester.widget<Text>(find.text('Play')).style!.fontSize!;
+
+      await pumpRow();
+      expect(tester.getSize(circle), const Size(64, 64));
+      expect(playFontSize(), 16.5);
+
+      await prefs.set(
+        UserPreferences.desktopUiScale,
+        DesktopUiScale.extraLarge,
+      );
+      await pumpRow();
+      expect(tester.getSize(circle).width, closeTo(64 * 1.3, 0.001));
+      expect(playFontSize(), 16.5);
+    });
   });
 }
 

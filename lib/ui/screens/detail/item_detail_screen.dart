@@ -132,6 +132,11 @@ bool _useDesktopDetailLayout(BuildContext context) =>
 double _desktopUiScale({UserPreferences? prefs}) =>
     detailDesktopScale(prefs: prefs);
 
+/// The UI scale the modern buttons are drawn at. A compact layout keeps its
+/// fixed sizes like the rest of the screen does.
+double _modernButtonScale(BuildContext context) =>
+    _isCompact(context) ? 1.0 : _desktopUiScale();
+
 /// Smoothly scrolls a position back to the top. Ignore if already there.
 void _animateScrollToTop(ScrollPosition position) {
   if (position.pixels <= position.minScrollExtent) return;
@@ -6380,11 +6385,12 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
   /// the pill is drawn within, so a label too long to fit is measured at the
   /// width it ends up ellipsised to rather than the width it wanted.
   double _modernPlayFocusedWidth(String? label) {
-    if (label == null) return _modernFocusedFloor;
+    final scale = _modernButtonScale(context);
+    if (label == null) return _modernFocusedFloor * scale;
     // Matching what _buildModernChild lays out around the label.
-    const iconWidth = 50.0; // height (54) - 4
-    const iconGap = 6.0;
-    const horizontalPadding = 22.0; // left (6) + right (16)
+    final iconWidth = 54.0 * scale - 4; // height - 4
+    final iconGap = 6.0 * scale;
+    final horizontalPadding = 22.0 * scale; // left (6) + right (16)
     const borderWidth = 5.0; // showHighlight ? 2.5 * 2
     final painter = TextPainter(
       text: TextSpan(
@@ -6401,7 +6407,10 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
     final measured =
         painter.width + iconWidth + iconGap + horizontalPadding + borderWidth;
     painter.dispose();
-    return measured.clamp(_modernPlayFocusedFloor, _modernFocusedFloor);
+    return measured.clamp(
+      _modernPlayFocusedFloor * scale,
+      _modernFocusedFloor * scale,
+    );
   }
 
   /// The widest a modern row of [buttonCount] buttons can get. One button
@@ -6415,11 +6424,12 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
   static double modernRowWorstWidth(
     int buttonCount,
     double spacing,
-    double playFocused,
-  ) {
-    const playResting = 54.0;
-    const circleResting = 52.0;
-    const circleFocused = _modernFocusedFloor;
+    double playFocused, {
+    double scale = 1.0,
+  }) {
+    final playResting = 54.0 * scale;
+    final circleResting = 52.0 * scale;
+    final circleFocused = _modernFocusedFloor * scale;
 
     final circles = buttonCount - 1;
     if (circles <= 0) return playFocused;
@@ -7652,6 +7662,7 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
                     allButtons.length,
                     buttonSpacing,
                     _modernPlayFocusedWidth(playLabel),
+                    scale: _modernButtonScale(context),
                   ) <=
                   rowBudget
             : allButtons.length <= maxVisible);
@@ -12157,9 +12168,10 @@ class _DetailActionButtonState extends State<_DetailActionButton>
     required Color labelColor,
   }) {
     final isExpanded = showHighlight;
+    final scale = _modernButtonScale(context);
     final double height = widget.isPrimary
-        ? (isMobile ? 50.0 : 54.0)
-        : (isMobile ? 48.0 : 52.0);
+        ? (isMobile ? 50.0 : 54.0 * scale)
+        : (isMobile ? 48.0 : 52.0 * scale);
 
     // Portrait spans the primary Play full width (circular secondary actions
     // wrap beneath); landscape keeps it content-width, inline with them.
@@ -12278,13 +12290,13 @@ class _DetailActionButtonState extends State<_DetailActionButton>
     }
 
     final double minWidth = height;
-    final double maxWidth = isExpanded ? 200.0 : height;
+    final double maxWidth = isExpanded ? 200.0 * scale : height;
     final double maxLabelWidth =
         (maxWidth -
-                (isExpanded ? 22.0 : 0.0) -
+                (isExpanded ? 22.0 * scale : 0.0) -
                 (showHighlight ? 5.0 : 3.0) -
                 (height - 4) -
-                6.0)
+                6.0 * scale)
             .clamp(0.0, maxWidth);
 
     final containerColor = showHighlight
@@ -12311,16 +12323,16 @@ class _DetailActionButtonState extends State<_DetailActionButton>
                 : (showHighlight
                       ? AppColorScheme.onButtonFocused
                       : AppColorScheme.onAccent),
-            size: 24,
+            size: 24 * scale,
           )
         : (widget.iconBuilder != null
-              ? widget.iconBuilder!(36, iconColor)
+              ? widget.iconBuilder!(36 * scale, iconColor)
               : AdaptiveIcon(
                   widget.icon!,
                   color: (widget.icon == Icons.favorite && widget.isActive)
                       ? const Color(0xFFE50914)
                       : iconColor,
-                  size: 24,
+                  size: 24 * scale,
                 ));
 
     final effectiveLabelColor = widget.isPrimary
@@ -12335,8 +12347,8 @@ class _DetailActionButtonState extends State<_DetailActionButton>
       height: height,
       constraints: BoxConstraints(minWidth: minWidth, maxWidth: maxWidth),
       padding: EdgeInsets.only(
-        left: isExpanded ? 6 : 0,
-        right: isExpanded ? 16 : 0,
+        left: isExpanded ? 6 * scale : 0,
+        right: isExpanded ? 16 * scale : 0,
       ),
       decoration: BoxDecoration(
         borderRadius: AppRadius.circular(height / 2),
@@ -12361,7 +12373,7 @@ class _DetailActionButtonState extends State<_DetailActionButton>
                 child: Center(child: iconWidget),
               ),
               if (isExpanded && widget.label.isNotEmpty) ...[
-                const SizedBox(width: 6),
+                SizedBox(width: 6 * scale),
                 ConstrainedBox(
                   constraints: BoxConstraints(maxWidth: maxLabelWidth),
                   child: MarqueeText(

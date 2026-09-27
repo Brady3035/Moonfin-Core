@@ -13243,7 +13243,7 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
   String get interfaceLanguage => 'Idioma da interface';
 
   @override
-  String get systemLanguageDefault => 'Padrão do sistema';
+  String get systemLanguageDefault => 'Padrão do Sistema';
 
   @override
   String get signIn => 'Entrar';
@@ -13579,10 +13579,13 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
 
   @override
   String get recommendationSystemSubtitle =>
-      'Use o algoritmo de biblioteca local do Moonfin Recommends ou as métricas de similaridade online do TMDb. Observação: recomendações online exigem a integração com o Seerr.';
+      'Use o algoritmo de biblioteca local Moonfin Recommends, o mecanismo de servidor Jellyfin Recommends ou as métricas de similaridade online do TMDb. Observação: recomendações online exigem integração com o Seerr.';
 
   @override
   String get recommendationSystemMoonfin => 'Moonfin Recommends';
+
+  @override
+  String get recommendationSystemJellyfin => 'Jellyfin Recomenda';
 
   @override
   String get recommendationSystemTmdb => 'Similaridade do TMDb';
@@ -13610,6 +13613,19 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
 
   @override
   String get interfaceStyleMaterial => 'Material';
+
+  @override
+  String get interfaceLayout => 'Layout da interface';
+
+  @override
+  String get interfaceLayoutSubtitle =>
+      'Override the detected layout when this device is read wrong. Restart Moonfin for changes to take effect.';
+
+  @override
+  String get interfaceLayoutAutomatic => 'Automamatico';
+
+  @override
+  String get interfaceLayoutTv => 'TV';
 
   @override
   String get glassQuality => 'Qualidade do vidro';

@@ -884,14 +884,14 @@ class AppLocalizationsFi extends AppLocalizations {
   String get scanWithYourPhone => 'Skannaa puhelimellasi';
 
   @override
-  String get audiobookGenres => 'Äänikirjan tyylilajit';
+  String get audiobookGenres => 'Äänikirjan Genret';
 
   @override
   String get pickAudiobookGenres =>
-      'Valitse äänikirja Discoverissa näytettävät tyylilajit.';
+      'Valitse, mitkä genret haluat näyttää Audiobook Discover -osiossa.';
 
   @override
-  String get discoverAudiobooks => 'Tutustu äänikirjoihin';
+  String get discoverAudiobooks => 'Tutustu Äänikirjoihin';
 
   @override
   String get librivoxDescription =>
@@ -3021,7 +3021,7 @@ class AppLocalizationsFi extends AppLocalizations {
       'Visuaaliset tehosteet ja kausittaiset efektit';
 
   @override
-  String get loadingAnimation => 'Ladataan Animaatiota';
+  String get loadingAnimation => 'Latausanimaatio';
 
   @override
   String get loadingAnimationDescription =>
@@ -4191,31 +4191,31 @@ class AppLocalizationsFi extends AppLocalizations {
   String get showShuffleButton => 'Näytä satunnaistoistopainike';
 
   @override
-  String get showGenresButton => 'Näytä genret -painike';
+  String get showGenresButton => 'Näytä Genret Painike';
 
   @override
-  String get showFavoritesButton => 'Näytä suosikit-painike';
+  String get showFavoritesButton => 'Näytä Suosikit Painike';
 
   @override
-  String get showLiveTvButton => 'Näytä Live TV -painike';
+  String get showLiveTvButton => 'Näytä Live TV Painike';
 
   @override
-  String get showDownloadsButton => 'Näytä latauspainike';
+  String get showDownloadsButton => 'Näytä Latauspainike';
 
   @override
-  String get showLibrariesInToolbar => 'Näytä kirjastot työkalupalkissa';
+  String get showLibrariesInToolbar => 'Näytä Kirjastot Työkalupalkissa';
 
   @override
-  String get navbarAlwaysExpanded => 'Näytä navigointipalkin tekstit aina';
+  String get navbarAlwaysExpanded => 'Näytä Navigointipalkin tekstit aina';
 
   @override
-  String get showSeerrButton => 'Näytä Seerr-painike';
+  String get showSeerrButton => 'Näytä Seerr Painike';
 
   @override
-  String get navbarOpacity => 'Navbarin läpinäkyvyys';
+  String get navbarOpacity => 'Navbarin Läpinäkyvyys';
 
   @override
-  String get navbarColor => 'Navipalkin väri';
+  String get navbarColor => 'Navipalkin Väri';
 
   @override
   String get gray => 'Harmaa';
@@ -4329,7 +4329,7 @@ class AppLocalizationsFi extends AppLocalizations {
   String get sourceCollections => 'Lähdekokoelmat';
 
   @override
-  String get excludedGenres => 'Poissuljetut genret';
+  String get excludedGenres => 'Poissuljetut Genret';
 
   @override
   String get selectAll => 'Valitse Kaikki';
@@ -4352,7 +4352,7 @@ class AppLocalizationsFi extends AppLocalizations {
   String get seconds => 'sekuntia';
 
   @override
-  String get localPreviews => 'Paikalliset esikatselut';
+  String get localPreviews => 'Paikalliset Esikatselut';
 
   @override
   String get localPreviewsDescription =>
@@ -4866,7 +4866,7 @@ class AppLocalizationsFi extends AppLocalizations {
   String get popularSeries => 'Suosittu sarja';
 
   @override
-  String get seriesGenres => 'Sarjan genret';
+  String get seriesGenres => 'Sarjojen Genret';
 
   @override
   String get upcomingSeries => 'Tuleva sarja';
@@ -4878,13 +4878,13 @@ class AppLocalizationsFi extends AppLocalizations {
   String get tags => 'Tunnisteet';
 
   @override
-  String get genresAndTags => 'Genret ja tunnisteet';
+  String get genresAndTags => 'Genret ja Tunnisteet';
 
   @override
   String get seerrDiscoveryRows => 'Seerr Suositusrivit';
 
   @override
-  String get yourWatchlist => 'Aktiivilistallasi';
+  String get yourWatchlist => 'Katselulistallasi';
 
   @override
   String get resetRowsToDefaults => 'Palauta rivit oletusarvoihin';
@@ -5168,16 +5168,16 @@ class AppLocalizationsFi extends AppLocalizations {
   String get requested4k => 'Pyydetään 4K-tarkkuutta';
 
   @override
-  String get cancelRequest => 'Keskeytä pyyntö';
+  String get cancelRequest => 'Peruuta Pyyntö';
 
   @override
-  String get cancelRequest4k => 'Keskeytä 4K-pyyntö';
+  String get cancelRequest4k => 'Peruuta 4K-pyyntö';
 
   @override
   String get playInMoonfin => 'Toista Moonfinissä';
 
   @override
-  String get requestedByLabel => 'Pyynnön esittäjä';
+  String get requestedByLabel => 'Pyytäjän nimi';
 
   @override
   String requestedByName(String name) {
@@ -5762,7 +5762,7 @@ class AppLocalizationsFi extends AppLocalizations {
   String get analyticsContainers => 'Säiliöt';
 
   @override
-  String get analyticsTopGenres => 'Suosituimmat genret';
+  String get analyticsTopGenres => 'Suosituimmat Genret';
 
   @override
   String get analyticsReleaseYears => 'Julkaisuvuodet';
@@ -10641,7 +10641,7 @@ class AppLocalizationsFi extends AppLocalizations {
   String get displayGenresRowsSubtitle => 'Näytä Genres-rivit Koti-osioissa.';
 
   @override
-  String get genresRowSorting => 'Genret rivilajittelu';
+  String get genresRowSorting => 'Genret Rivilajittelu';
 
   @override
   String get genresRowSortingDescription =>
@@ -10649,10 +10649,10 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get genresRowSortOrderDescription =>
-      'Lajittele ”Genret”-rivit nousevaan tai laskevaan järjestykseen.';
+      'Lajittele Genre rivit nousevaan tai laskevaan järjestykseen.';
 
   @override
-  String get genresRowItems => 'Genret rivikohdat';
+  String get genresRowItems => 'Kohteet Genre rivillä';
 
   @override
   String get genresRowItemsDescription =>
@@ -11321,7 +11321,7 @@ class AppLocalizationsFi extends AppLocalizations {
   String get achievementsStatLibraries => 'Vieraillut kirjastot';
 
   @override
-  String get achievementsStatGenres => 'Genret katsotut';
+  String get achievementsStatGenres => 'Katsotut Genret';
 
   @override
   String get achievementsStatDecades => 'Vuosikymmen katsotut';
@@ -11698,10 +11698,10 @@ class AppLocalizationsFi extends AppLocalizations {
   String get randomShuffleLabel => 'SATUNNAINEN SEKOITUS';
 
   @override
-  String get genresShuffleLabel => 'GENREJEN SEKOITUS';
+  String get genresShuffleLabel => 'GENRE SEKOITUS';
 
   @override
-  String get autoHdrSwitching => 'Automaattinen HDR-vaihto';
+  String get autoHdrSwitching => 'Automaattinen HDR Kytkentä';
 
   @override
   String get autoHdrSwitchingDescription =>

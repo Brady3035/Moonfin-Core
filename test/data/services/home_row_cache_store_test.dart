@@ -56,4 +56,19 @@ void main() {
 
     expect(rows?.map((r) => r.rowType), [HomeRowType.resume]);
   });
+
+  // The home saves once its sections load and again when the resume row
+  // refreshes behind them, and the bigger first save takes longer to encode.
+  test('a newer save lands after an older one still encoding', () async {
+    final older = store.write('key', [
+      for (var i = 0; i < 400; i++) _row('latest$i', HomeRowType.latestMedia),
+      _row('stale', HomeRowType.resume),
+    ]);
+    final newer = store.write('key', [_row('fresh', HomeRowType.resume)]);
+    await Future.wait([older, newer]);
+
+    final rows = await store.read('key');
+
+    expect(rows?.map((r) => r.id), ['fresh']);
+  });
 }

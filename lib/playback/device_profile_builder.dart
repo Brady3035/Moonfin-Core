@@ -133,6 +133,9 @@ class DeviceProfileBuilder {
     // codec direct plays and the player decodes, bitstreams or downmixes it
     // locally. Detection never subtracts from the advertised list.
     bool universalAudioDecode = false,
+    // The player re-encodes the codecs its container can't carry to EAC3 on
+    // the device, and that encoder won't open above 48 kHz.
+    bool bridgesAudioToEac3 = false,
     bool playerDecodesTrueHd = true,
     // Whether the player can decode a stereo TrueHD track. One that can't asks
     // the server for surround TrueHD only, so the rest transcodes instead of
@@ -436,7 +439,7 @@ class DeviceProfileBuilder {
     final codecProfiles = _codecProfiles(
       maxAudioChannels: advertisedMaxChannels,
       passthroughAudioCodecs: passthroughAudioCodecs,
-      universalAudioDecode: universalAudioDecode,
+      bridgesAudioToEac3: bridgesAudioToEac3,
       playerDecodesStereoTrueHd: playerDecodesStereoTrueHd,
       forceStereo: limitStereoDirectPlay,
       maxResolution: maxResolution,
@@ -1056,7 +1059,7 @@ class DeviceProfileBuilder {
   static List<Map<String, dynamic>> _codecProfiles({
     required int maxAudioChannels,
     required Set<String> passthroughAudioCodecs,
-    required bool universalAudioDecode,
+    required bool bridgesAudioToEac3,
     required bool playerDecodesStereoTrueHd,
     required bool forceStereo,
     required MaxVideoResolution maxResolution,
@@ -1544,7 +1547,7 @@ class DeviceProfileBuilder {
     // Past the bridge encoder's ceiling it refuses to open and the player has
     // nothing left to fall back to, so the track direct plays as silence.
     // Saying so here is what gets the server to re-encode it instead.
-    if (universalAudioDecode) {
+    if (bridgesAudioToEac3) {
       profiles.add(
         _codecProfile(
           type: 'VideoAudio',

@@ -11670,15 +11670,6 @@
     "@uiScaleGrandparents": {
         "description": "UI scaling option above extra large"
     },
-    "subtitleDelayAuto": "Automatycznie: {value}",
-    "@subtitleDelayAuto": {
-        "description": "Read-only line under the subtitle delay showing a correction the player applied on its own, value is a formatted delay like +2000 ms",
-        "placeholders": {
-            "value": {
-                "type": "String"
-            }
-        }
-    },
     "guideRepeatBadge": "Powtórka",
     "@guideRepeatBadge": {
         "description": "Short badge label shown on a rerun in the guide hero band"

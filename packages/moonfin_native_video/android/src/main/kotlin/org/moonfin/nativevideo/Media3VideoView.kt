@@ -981,6 +981,8 @@ class Media3VideoView(
     private var tunnelingActive = false
     private var audioRekickRunnable: Runnable? = null
     private var suppressStateEmissionsForRekick = false
+    private var resumeWedgeCheck: Runnable? = null
+    private var pausedWhileReady = false
     private var skipSilenceEnabled = false
     // The delay the user set. Positive shows subtitles later.
     private var manualSubtitleDelayMs = 0L
@@ -1060,6 +1062,39 @@ class Media3VideoView(
         audioRekickRunnable = null
     }
 
+    private fun scheduleResumeWedgeCheck() {
+        cancelResumeWedgeCheck()
+        val check = Runnable {
+            resumeWedgeCheck = null
+            if (isDisposed || currentUrl == null) return@Runnable
+            val bufferedAheadMs = player.bufferedPosition - player.currentPosition
+            val stuck = ResumeWedgePolicy.shouldReprepare(
+                stillBuffering = player.playbackState == Player.STATE_BUFFERING,
+                playWhenReady = player.playWhenReady,
+                bufferedAheadMs = bufferedAheadMs,
+                isLiveSource = currentIsLive,
+                playerLive = isPlayerLive(),
+            )
+            if (!stuck) return@Runnable
+            val resumeMs = player.currentPosition.coerceAtLeast(0L)
+            Media3Bridge.emitEvent(
+                mapOf(
+                    "event" to "resumeWedgeRecovery",
+                    "positionMs" to resumeMs,
+                    "bufferedAheadMs" to bufferedAheadMs,
+                ),
+            )
+            prepareCurrentSource(resumeMs, playWhenReady = true)
+        }
+        resumeWedgeCheck = check
+        mainHandler.postDelayed(check, ResumeWedgePolicy.CHECK_DELAY_MS)
+    }
+
+    private fun cancelResumeWedgeCheck() {
+        resumeWedgeCheck?.let { mainHandler.removeCallbacks(it) }
+        resumeWedgeCheck = null
+    }
+
     private fun performAudioRekick() {
         if (isDisposed || !player.playWhenReady) return
         suppressStateEmissionsForRekick = true
@@ -1137,6 +1172,19 @@ class Media3VideoView(
                 systemPauseReason = reason
             } else {
                 systemPausedAtMs = 0L
+            }
+            // Only a pause the viewer asked for. The system's own pauses have
+            // their recoveries above, and the rekick after a seek toggles play
+            // without anyone pausing.
+            if (!suppressStateEmissionsForRekick) {
+                if (!playWhenReady) {
+                    cancelResumeWedgeCheck()
+                    pausedWhileReady = player.playbackState == Player.STATE_READY &&
+                        reason == Player.PLAY_WHEN_READY_CHANGE_REASON_USER_REQUEST
+                } else if (pausedWhileReady) {
+                    pausedWhileReady = false
+                    scheduleResumeWedgeCheck()
+                }
             }
             emitState()
             syncTicker()
@@ -1552,6 +1600,7 @@ class Media3VideoView(
         isDisposed = true
         cancelPendingRetime()
         cancelPendingAudioRekick()
+        cancelResumeWedgeCheck()
         stopTicker()
         closeExternalAudioEffectSessionIfOpen()
         currentAudioSessionId = C.AUDIO_SESSION_ID_UNSET
@@ -2079,6 +2128,7 @@ class Media3VideoView(
         clearSubtitleCues()
         cancelPendingRetime()
         cancelPendingAudioRekick()
+        cancelResumeWedgeCheck()
         closeExternalAudioEffectSessionIfOpen()
         currentAudioSessionId = C.AUDIO_SESSION_ID_UNSET
         restorePreferredDisplayMode()
@@ -2465,6 +2515,8 @@ class Media3VideoView(
         val autoPlay = args["autoPlay"] as? Boolean ?: false
         displayModeSwitchRetriesForCurrentSource = 0
         decoderReclaimRetriesForCurrentSource = 0
+        cancelResumeWedgeCheck()
+        pausedWhileReady = false
 
         restorePreferredDisplayMode()
         detectedFrameRate = null

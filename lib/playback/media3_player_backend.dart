@@ -419,6 +419,13 @@ class Media3PlayerBackend extends PlayerBackend {
           'rebuilding the track in place at ${_toInt(map['positionMs'])}ms',
           level: LogLevel.warning,
         );
+      case 'resumeWedgeRecovery':
+        _diag(
+          'Media3: resume stuck buffering with '
+          '${_toInt(map['bufferedAheadMs'])}ms loaded ahead, preparing the '
+          'source again at ${_toInt(map['positionMs'])}ms',
+          level: LogLevel.warning,
+        );
       case 'audioClockRecovery':
         _diag(
           'Media3: audio clock corrupted by a playback head reset '

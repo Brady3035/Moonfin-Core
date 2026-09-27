@@ -777,8 +777,21 @@ class Media3VideoView(
     private val firstFrameCover = View(context).apply {
         setBackgroundColor(Color.BLACK)
     }
+    private val paddingRowMask = View(context).apply {
+        setBackgroundColor(Color.BLACK)
+    }
     private val subtitleView = SubtitleView(context)
-    private val containerView: FrameLayout = FrameLayout(context).also { container ->
+    private val containerView: FrameLayout = object : FrameLayout(context) {
+        override fun onVisibilityAggregated(isVisible: Boolean) {
+            super.onVisibilityAggregated(isVisible)
+            if (isVisible) ParkedFlutterSurface.clear(this)
+        }
+
+        override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
+            super.onLayout(changed, left, top, right, bottom)
+            layoutPaddingRowMask()
+        }
+    }.also { container ->
         container.setBackgroundColor(Color.BLACK)
         container.clipChildren = true
         container.clipToPadding = true
@@ -796,6 +809,7 @@ class Media3VideoView(
             FrameLayout.LayoutParams.MATCH_PARENT,
         )
         container.addView(videoView, videoLayoutParams)
+        container.addView(paddingRowMask)
         // The cover keeps its own params so resizing the subtitle canvas to the
         // active video box never shrinks the full-frame cover.
         container.addView(
@@ -1211,6 +1225,7 @@ class Media3VideoView(
             videoHeightPx = videoSize.height
             videoPixelRatio = videoSize.pixelWidthHeightRatio
             applyVideoLayout()
+            layoutPaddingRowMask()
             resolveSelectedVideoFrameRate()?.let { frameRate ->
                 // detectedFrameRate holds the normalized rate, so compare like
                 // with like or every callback re-runs the whole switch.
@@ -3572,6 +3587,13 @@ class Media3VideoView(
             targetSize.first.coerceAtLeast(1),
             targetSize.second.coerceAtLeast(1),
         )
+    }
+
+    private fun layoutPaddingRowMask() {
+        val video = videoView
+        val maskHeight =
+            if (video.visibility == View.VISIBLE) PaddingRowMask.heightPx(videoHeightPx, video.height) else 0
+        paddingRowMask.layout(video.left, video.bottom - maskHeight, video.right, video.bottom)
     }
 
     private fun applyLayoutBounds(

@@ -132,6 +132,10 @@ bool _useDesktopDetailLayout(BuildContext context) =>
 double _desktopUiScale({UserPreferences? prefs}) =>
     detailDesktopScale(prefs: prefs);
 
+/// How far below its top edge every row starts its cards, so each section's
+/// title sits the same distance from the row under it.
+const double _kDetailRowTopInset = 4.0;
+
 /// The UI scale the modern buttons are drawn at. A compact layout keeps its
 /// fixed sizes like the rest of the screen does.
 double _modernButtonScale(BuildContext context) =>
@@ -2318,47 +2322,50 @@ class _DetailContentState extends State<_DetailContent> {
       ],
       if (hasNextUp) ...[
         const SizedBox(height: 32),
-        Text(
-          l10n.nextUp,
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+        HorizontalScrollSection(
+          title: l10n.nextUp,
+          titleStyle: Theme.of(context).textTheme.titleLarge?.copyWith(
             color: AppColorScheme.onSurface,
             fontWeight: FontWeight.bold,
             shadows: _textShadows,
             fontSize: _isCompact(context) ? 17 : null,
           ),
-        ),
-        const SizedBox(height: 12),
-        DetailNextUpCard(
-          episode: viewModel.nextUp!,
-          imageApi: viewModel.imageApi,
-          contextSeasonId: viewModel.effectiveSeasonId,
-          focusNode: seriesNextUpFocusNode,
-          onKeyEvent: (event) {
-            if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
-              return KeyEventResult.ignored;
-            }
-            if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
-              if (event is KeyDownEvent) {
-                _tryFocusSidebar();
-                return KeyEventResult.handled;
-              }
-              return KeyEventResult.ignored;
-            }
-            if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
-              return KeyEventResult.handled;
-            }
-            if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
-              return _requestSectionFocus(
-                metadataFocusNode ?? actionButtonsFocusNode,
-              );
-            }
-            if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
-              return _requestSectionFocus(
-                seasonsFocusNode ?? castFocusNode ?? similarFocusNode,
-              );
-            }
-            return KeyEventResult.ignored;
-          },
+          showControls: false,
+          builder: (_, _) => Padding(
+            padding: const EdgeInsets.only(top: _kDetailRowTopInset),
+            child: DetailNextUpCard(
+              episode: viewModel.nextUp!,
+              imageApi: viewModel.imageApi,
+              contextSeasonId: viewModel.effectiveSeasonId,
+              focusNode: seriesNextUpFocusNode,
+              onKeyEvent: (event) {
+                if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
+                  return KeyEventResult.ignored;
+                }
+                if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
+                  if (event is KeyDownEvent) {
+                    _tryFocusSidebar();
+                    return KeyEventResult.handled;
+                  }
+                  return KeyEventResult.ignored;
+                }
+                if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
+                  return KeyEventResult.handled;
+                }
+                if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
+                  return _requestSectionFocus(
+                    metadataFocusNode ?? actionButtonsFocusNode,
+                  );
+                }
+                if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
+                  return _requestSectionFocus(
+                    seasonsFocusNode ?? castFocusNode ?? similarFocusNode,
+                  );
+                }
+                return KeyEventResult.ignored;
+              },
+            ),
+          ),
         ),
       ],
       if (hasSeasons) ...[
@@ -2614,49 +2621,46 @@ class _DetailContentState extends State<_DetailContent> {
         nextSectionFocusNode: chapterFeatureNextNode,
       ),
       if (nextEpisode != null) ...[
-        Padding(
-          padding: const EdgeInsets.only(top: 32),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                l10n.nextEpisode,
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: AppColorScheme.onSurface,
-                  fontWeight: FontWeight.bold,
-                  shadows: _textShadows,
-                  fontSize: _isCompact(context) ? 17 : null,
-                ),
-              ),
-              DetailNextUpCard(
-                episode: nextEpisode,
-                imageApi: viewModel.imageApi,
-                contextSeasonId: viewModel.effectiveSeasonId,
-                focusNode: nextEpisodeFocusNode,
-                onKeyEvent: (event) {
-                  if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
-                    return KeyEventResult.ignored;
-                  }
-                  if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
-                    if (event is KeyDownEvent) {
-                      _tryFocusSidebar();
-                      return KeyEventResult.handled;
-                    }
-                    return KeyEventResult.ignored;
-                  }
-                  if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
+        const SizedBox(height: 32),
+        HorizontalScrollSection(
+          title: l10n.nextEpisode,
+          titleStyle: Theme.of(context).textTheme.titleLarge?.copyWith(
+            color: AppColorScheme.onSurface,
+            fontWeight: FontWeight.bold,
+            shadows: _textShadows,
+            fontSize: _isCompact(context) ? 17 : null,
+          ),
+          showControls: false,
+          builder: (_, _) => Padding(
+            padding: const EdgeInsets.only(top: _kDetailRowTopInset),
+            child: DetailNextUpCard(
+              episode: nextEpisode,
+              imageApi: viewModel.imageApi,
+              contextSeasonId: viewModel.effectiveSeasonId,
+              focusNode: nextEpisodeFocusNode,
+              onKeyEvent: (event) {
+                if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
+                  return KeyEventResult.ignored;
+                }
+                if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
+                  if (event is KeyDownEvent) {
+                    _tryFocusSidebar();
                     return KeyEventResult.handled;
                   }
-                  if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
-                    return _requestSectionFocus(chapterFeatureLastNode);
-                  }
-                  if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
-                    return _requestSectionFocus(episodesFocusNode);
-                  }
                   return KeyEventResult.ignored;
-                },
-              ),
-            ],
+                }
+                if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
+                  return KeyEventResult.handled;
+                }
+                if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
+                  return _requestSectionFocus(chapterFeatureLastNode);
+                }
+                if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
+                  return _requestSectionFocus(episodesFocusNode);
+                }
+                return KeyEventResult.ignored;
+              },
+            ),
           ),
         ),
       ],
@@ -12885,7 +12889,13 @@ class DetailCastRow extends StatelessWidget {
         controller: scrollController,
         scrollDirection: Axis.horizontal,
         clipBehavior: Clip.none,
-        padding: const EdgeInsets.fromLTRB(4, 12, 4, 12),
+        // The ring around each avatar adds the other 3.5.
+        padding: const EdgeInsets.fromLTRB(
+          4,
+          _kDetailRowTopInset - 3.5,
+          4,
+          12,
+        ),
         itemCount: people.length,
         separatorBuilder: (_, _) =>
             SizedBox(width: isMobile ? 12 : 16 * desktopScale),
@@ -13125,7 +13135,7 @@ class DetailSimilarRow extends StatelessWidget {
         controller: scrollController,
         scrollDirection: Axis.horizontal,
         clipBehavior: Clip.none,
-        padding: const EdgeInsets.fromLTRB(6, 10, 6, 4),
+        padding: const EdgeInsets.fromLTRB(6, _kDetailRowTopInset, 6, 4),
         itemCount: items.length,
         separatorBuilder: (_, _) => SizedBox(width: separatorWidth),
         itemBuilder: (context, index) {
@@ -13218,7 +13228,7 @@ class DetailFeaturesRow extends StatelessWidget {
         controller: scrollController,
         scrollDirection: Axis.horizontal,
         clipBehavior: Clip.none,
-        padding: const EdgeInsets.fromLTRB(4, 4, 4, 4),
+        padding: const EdgeInsets.fromLTRB(4, _kDetailRowTopInset, 4, 4),
         itemCount: items.length,
         separatorBuilder: (_, _) =>
             SizedBox(width: isMobile ? 8 : 12 * desktopScale),
@@ -13306,7 +13316,7 @@ class DetailChaptersRow extends StatelessWidget {
         controller: scrollController,
         scrollDirection: Axis.horizontal,
         clipBehavior: Clip.none,
-        padding: const EdgeInsets.fromLTRB(4, 4, 4, 4),
+        padding: const EdgeInsets.fromLTRB(4, _kDetailRowTopInset, 4, 4),
         itemCount: chapters.length,
         separatorBuilder: (_, _) =>
             SizedBox(width: isMobile ? 8 : 12 * desktopScale),
@@ -14280,7 +14290,7 @@ class DetailSeasonsRow extends StatelessWidget {
         controller: scrollController,
         scrollDirection: Axis.horizontal,
         clipBehavior: Clip.none,
-        padding: const EdgeInsets.fromLTRB(4, 4, 4, 4),
+        padding: const EdgeInsets.fromLTRB(4, _kDetailRowTopInset, 4, 4),
         itemCount: seasons.length,
         separatorBuilder: (_, _) =>
             SizedBox(width: isMobile ? 8 : 12 * desktopScale),
@@ -14441,11 +14451,12 @@ class _EpisodesRow extends StatelessWidget {
     ).scale((labelStyle?.fontSize ?? 12) * (labelStyle?.height ?? 1.4));
 
     return SizedBox(
-      height: imageHeight + 10 + labelLine + 6,
+      height: _kDetailRowTopInset + imageHeight + 10 + labelLine + 6,
       child: ListView.separated(
         controller: scrollController,
         scrollDirection: Axis.horizontal,
         clipBehavior: Clip.none,
+        padding: const EdgeInsets.only(top: _kDetailRowTopInset),
         itemCount: episodes.length,
         separatorBuilder: (_, _) =>
             SizedBox(width: isMobile ? 8 : 12 * desktopScale),
@@ -15844,7 +15855,9 @@ class FilmographyRow extends StatelessWidget {
     final cardWidth = isMobile
         ? (isEpisode ? 160.0 : 120.0)
         : cardHeight * cardAspectRatio;
-    final rowHeight = isMobile ? 240.0 : cardHeight + (56 * metadataScale);
+    final rowHeight =
+        _kDetailRowTopInset +
+        (isMobile ? 240.0 : cardHeight + (56 * metadataScale));
 
     return SizedBox(
       height: rowHeight,
@@ -15852,6 +15865,7 @@ class FilmographyRow extends StatelessWidget {
         controller: scrollController,
         scrollDirection: Axis.horizontal,
         clipBehavior: Clip.none,
+        padding: const EdgeInsets.only(top: _kDetailRowTopInset),
         itemCount: items.length,
         separatorBuilder: (_, _) =>
             SizedBox(width: isMobile ? 8 : 12 * desktopScale),
@@ -15948,7 +15962,9 @@ class SeerrAppearancesRow extends StatelessWidget {
         posterSize.portraitHeight.toDouble() * platformScale * rowScale;
 
     final cardWidth = isMobile ? 120.0 : cardHeight * (2 / 3);
-    final rowHeight = isMobile ? 240.0 : cardHeight + (56 * metadataScale);
+    final rowHeight =
+        _kDetailRowTopInset +
+        (isMobile ? 240.0 : cardHeight + (56 * metadataScale));
     final focusColor = Color(prefs.get(UserPreferences.focusColor).colorValue);
     final suppressFocusGlow = ThemeRegistry.active.borders.focusGlow.isNotEmpty;
     final baseGap = isMobile ? 8.0 : 12 * desktopScale;
@@ -15962,6 +15978,7 @@ class SeerrAppearancesRow extends StatelessWidget {
         controller: scrollController,
         scrollDirection: Axis.horizontal,
         clipBehavior: Clip.none,
+        padding: const EdgeInsets.only(top: _kDetailRowTopInset),
         itemCount: items.length,
         separatorBuilder: (_, _) => SizedBox(width: separatorWidth),
         itemBuilder: (context, index) {
@@ -16034,7 +16051,9 @@ class SeerrCrewCreditsRow extends StatelessWidget {
         posterSize.portraitHeight.toDouble() * platformScale * rowScale;
 
     final cardWidth = isMobile ? 120.0 : cardHeight * (2 / 3);
-    final rowHeight = isMobile ? 240.0 : cardHeight + (56 * metadataScale);
+    final rowHeight =
+        _kDetailRowTopInset +
+        (isMobile ? 240.0 : cardHeight + (56 * metadataScale));
     final focusColor = Color(prefs.get(UserPreferences.focusColor).colorValue);
     final suppressFocusGlow = ThemeRegistry.active.borders.focusGlow.isNotEmpty;
 
@@ -16044,6 +16063,7 @@ class SeerrCrewCreditsRow extends StatelessWidget {
         controller: scrollController,
         scrollDirection: Axis.horizontal,
         clipBehavior: Clip.none,
+        padding: const EdgeInsets.only(top: _kDetailRowTopInset),
         itemCount: items.length,
         separatorBuilder: (_, _) =>
             SizedBox(width: isMobile ? 8 : 12 * desktopScale),
@@ -16526,11 +16546,12 @@ class _AlbumsRow extends StatelessWidget {
     final cardWidth = isMobile ? 120.0 : 150.0 * desktopScale;
 
     return SizedBox(
-      height: isMobile ? 180 : 220 * desktopScale,
+      height: _kDetailRowTopInset + (isMobile ? 180 : 220 * desktopScale),
       child: ListView.separated(
         controller: scrollController,
         scrollDirection: Axis.horizontal,
         clipBehavior: Clip.none,
+        padding: const EdgeInsets.only(top: _kDetailRowTopInset),
         itemCount: albums.length,
         separatorBuilder: (_, _) =>
             SizedBox(width: isMobile ? 8 : 12 * desktopScale),

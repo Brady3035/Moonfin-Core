@@ -801,6 +801,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get uiScaleGrandparents => 'Grand-mère';
 
   @override
+  String get uiScaleGreatGrandparents => 'Great-Grandparents';
+
+  @override
   String get scrollDirection => 'Sens de défilement';
 
   @override

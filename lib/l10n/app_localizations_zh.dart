@@ -773,6 +773,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get uiScaleGrandparents => 'Grandparents';
 
   @override
+  String get uiScaleGreatGrandparents => 'Great-Grandparents';
+
+  @override
   String get scrollDirection => '滚动方向';
 
   @override

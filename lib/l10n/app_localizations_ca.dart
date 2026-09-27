@@ -802,6 +802,9 @@ class AppLocalizationsCa extends AppLocalizations {
   String get uiScaleGrandparents => 'Per als avis';
 
   @override
+  String get uiScaleGreatGrandparents => 'Great-Grandparents';
+
+  @override
   String get scrollDirection => 'Direcció de desplaçament';
 
   @override

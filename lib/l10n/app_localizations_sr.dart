@@ -822,6 +822,9 @@ class AppLocalizationsSr extends AppLocalizations {
   String get uiScaleGrandparents => 'Grandparents';
 
   @override
+  String get uiScaleGreatGrandparents => 'Great-Grandparents';
+
+  @override
   String get scrollDirection => 'Смер скроловања';
 
   @override

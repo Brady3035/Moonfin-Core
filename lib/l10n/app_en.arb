@@ -947,6 +947,10 @@
   "@uiScaleGrandparents": {
     "description": "UI scaling option above extra large"
   },
+  "uiScaleGreatGrandparents": "Great-Grandparents",
+  "@uiScaleGreatGrandparents": {
+    "description": "UI scaling option above Grandparents"
+  },
   "scrollDirection": "Scroll Direction",
   "@scrollDirection": {
     "description": "Section header for scroll direction selection in library display settings"

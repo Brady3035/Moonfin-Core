@@ -802,6 +802,9 @@ class AppLocalizationsFi extends AppLocalizations {
   String get uiScaleGrandparents => 'Isovanhemmat';
 
   @override
+  String get uiScaleGreatGrandparents => 'Great-Grandparents';
+
+  @override
   String get scrollDirection => 'Vierityssuunta';
 
   @override

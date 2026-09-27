@@ -1456,6 +1456,12 @@ abstract class AppLocalizations {
   /// **'Grandparents'**
   String get uiScaleGrandparents;
 
+  /// UI scaling option above Grandparents
+  ///
+  /// In en, this message translates to:
+  /// **'Great-Grandparents'**
+  String get uiScaleGreatGrandparents;
+
   /// Section header for scroll direction selection in library display settings
   ///
   /// In en, this message translates to:

@@ -71,6 +71,7 @@ import androidx.media3.exoplayer.Renderer
 import androidx.media3.exoplayer.RendererCapabilities
 import androidx.media3.exoplayer.hls.DefaultHlsExtractorFactory
 import androidx.media3.exoplayer.hls.HlsMediaSource
+import androidx.media3.exoplayer.mediacodec.ForwardingMediaCodecAdapter
 import androidx.media3.exoplayer.mediacodec.MediaCodecAdapter
 import androidx.media3.exoplayer.mediacodec.MediaCodecInfo
 import androidx.media3.exoplayer.mediacodec.MediaCodecSelector
@@ -325,18 +326,23 @@ private class VsyncPacingAdapterFactory(
         VsyncPacingAdapter(delegate.createAdapter(configuration), display)
 }
 
-/** Applies [VsyncPacer] to the video codec's frame release. */
+/**
+ * Applies [VsyncPacer] to the video codec's frame release. Kotlin delegation
+ * would skip the interface's default methods, which the asynchronous adapter
+ * overrides to fill input buffers under its callback lock and to report when
+ * buffers free up, so this forwards everything instead.
+ */
 @UnstableApi
 private class VsyncPacingAdapter(
-    private val inner: MediaCodecAdapter,
+    inner: MediaCodecAdapter,
     private val display: Display?,
-) : MediaCodecAdapter by inner {
+) : ForwardingMediaCodecAdapter(inner) {
     private val pacer = VsyncPacer()
     private var vsyncNs = 0L
     private var vsyncReadAtMs = -1L
 
     override fun releaseOutputBuffer(index: Int, renderTimeStampNs: Long) {
-        inner.releaseOutputBuffer(index, pacer.pace(renderTimeStampNs, currentVsyncNs()))
+        super.releaseOutputBuffer(index, pacer.pace(renderTimeStampNs, currentVsyncNs()))
     }
 
     // Re-read so a refresh-rate switch during playback is followed.

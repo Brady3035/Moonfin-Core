@@ -115,6 +115,7 @@ import '../../../util/episode_playability.dart';
 import '../../../util/item_watch_state.dart';
 import '../../../util/season_queue_context.dart';
 import '../../../util/focus/dpad_keys.dart';
+import '../../../util/focus/input_mode_tracker.dart';
 import '../../../util/language_matching.dart';
 import '../../../util/subtitle_track_logic.dart';
 import '../../../util/audio_track_logic.dart';
@@ -12487,7 +12488,11 @@ class _DetailActionButtonState extends State<_DetailActionButton>
           .colorValue,
     );
     final nodeHasFocus = widget.focusNode?.hasFocus ?? false;
-    final showHighlight = showFocusBorder || nodeHasFocus;
+    // Focus only shows while the keys are driving, or the Play button that
+    // takes focus on arrival would stay lit beside whatever the mouse hovers.
+    final showHighlight =
+        hovered ||
+        InputModeTracker.showFocusVisuals(context, focused || nodeHasFocus);
     final modern =
         context
             .findAncestorWidgetOfExactType<DetailActionButtons>()

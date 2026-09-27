@@ -12303,9 +12303,13 @@ class _DetailActionButtonState extends State<_DetailActionButton>
                 6.0 * scale)
             .clamp(0.0, maxWidth);
 
+    // Only a compact layout keeps Play filled with the accent. Everywhere else
+    // it looks like the buttons beside it until it has focus.
+    final accentPrimary = widget.isPrimary && isMobile;
+
     final containerColor = showHighlight
         ? AppColorScheme.buttonFocused
-        : (widget.isPrimary
+        : (accentPrimary
               ? AppColorScheme.accent
               : (widget.isActive
                     ? (widget.activeColor ?? AppColorScheme.accent).withValues(
@@ -12315,7 +12319,7 @@ class _DetailActionButtonState extends State<_DetailActionButton>
 
     final borderColor = showHighlight
         ? focusColor
-        : (widget.isPrimary
+        : (accentPrimary
               ? Colors.transparent
               : AppColorScheme.onSurface.withValues(alpha: 0.35));
 
@@ -12324,9 +12328,9 @@ class _DetailActionButtonState extends State<_DetailActionButton>
             widget.icon ?? Icons.play_arrow,
             color: (widget.icon == Icons.favorite && widget.isActive)
                 ? const Color(0xFFE50914)
-                : (showHighlight
-                      ? AppColorScheme.onButtonFocused
-                      : AppColorScheme.onAccent),
+                : (accentPrimary && !showHighlight
+                      ? AppColorScheme.onAccent
+                      : iconColor),
             size: 24 * scale,
           )
         : (widget.iconBuilder != null
@@ -12339,10 +12343,8 @@ class _DetailActionButtonState extends State<_DetailActionButton>
                   size: 24 * scale,
                 ));
 
-    final effectiveLabelColor = widget.isPrimary
-        ? (showHighlight
-              ? AppColorScheme.onButtonFocused
-              : AppColorScheme.onAccent)
+    final effectiveLabelColor = accentPrimary && !showHighlight
+        ? AppColorScheme.onAccent
         : labelColor;
 
     return AnimatedContainer(

@@ -812,6 +812,9 @@ class AppLocalizationsHr extends AppLocalizations {
   String get uiScaleGrandparents => 'Grandparents';
 
   @override
+  String get uiScaleGreatGrandparents => 'Great-Grandparents';
+
+  @override
   String get scrollDirection => 'Scroll Direction';
 
   @override
@@ -2043,11 +2046,6 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String get subtitleDelay => 'Odgoda titla';
-
-  @override
-  String subtitleDelayAuto(String value) {
-    return 'Auto $value';
-  }
 
   @override
   String get reset => 'Resetiraj';

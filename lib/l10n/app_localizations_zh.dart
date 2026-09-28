@@ -773,6 +773,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get uiScaleGrandparents => 'Grandparents';
 
   @override
+  String get uiScaleGreatGrandparents => 'Great-Grandparents';
+
+  @override
   String get scrollDirection => '滚动方向';
 
   @override
@@ -1903,11 +1906,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get subtitleDelay => '字幕延迟';
-
-  @override
-  String subtitleDelayAuto(String value) {
-    return 'Auto $value';
-  }
 
   @override
   String get reset => '重置';

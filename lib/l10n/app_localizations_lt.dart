@@ -797,6 +797,9 @@ class AppLocalizationsLt extends AppLocalizations {
   String get uiScaleGrandparents => 'Grandparents';
 
   @override
+  String get uiScaleGreatGrandparents => 'Great-Grandparents';
+
+  @override
   String get scrollDirection => 'Scroll Direction';
 
   @override
@@ -1956,11 +1959,6 @@ class AppLocalizationsLt extends AppLocalizations {
 
   @override
   String get subtitleDelay => 'Subtitrų vėlavimas';
-
-  @override
-  String subtitleDelayAuto(String value) {
-    return 'Auto $value';
-  }
 
   @override
   String get reset => 'Atstatyti';

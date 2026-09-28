@@ -800,6 +800,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get uiScaleGrandparents => 'Grandparents';
 
   @override
+  String get uiScaleGreatGrandparents => 'Great-Grandparents';
+
+  @override
   String get scrollDirection => 'Scroll Direction';
 
   @override
@@ -1962,11 +1965,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get subtitleDelay => 'Retardo de subtítulos';
-
-  @override
-  String subtitleDelayAuto(String value) {
-    return 'Auto $value';
-  }
 
   @override
   String get reset => 'Restablecer';
@@ -37627,7 +37625,7 @@ class AppLocalizationsEsMx extends AppLocalizationsEs {
   }
 
   @override
-  String get play => 'Jugar';
+  String get play => 'Reproducir';
 
   @override
   String get startOver => 'Empezar de nuevo';
@@ -37639,7 +37637,7 @@ class AppLocalizationsEsMx extends AppLocalizationsEs {
   String get readOffline => 'Leer sin conexión';
 
   @override
-  String get playOffline => 'Jugar sin conexión';
+  String get playOffline => 'Reproducir sin conexión';
 
   @override
   String get audio => 'Audio';
@@ -40100,7 +40098,7 @@ class AppLocalizationsEsMx extends AppLocalizationsEs {
   String get cancelRequest => 'Cancelar solicitud';
 
   @override
-  String get playInMoonfin => 'Jugar en Moonfin';
+  String get playInMoonfin => 'Reproducir en Moonfin';
 
   @override
   String requestedByName(String name) {

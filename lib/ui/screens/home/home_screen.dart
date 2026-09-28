@@ -104,6 +104,9 @@ double _focusHeadroom(double imageHeight, bool cardExpansion) =>
 ///
 /// The focused row must remain complete: it is the user's active navigation
 /// target, and clipping its artwork can leave only the card metadata visible.
+/// [isFocused] means the row holds focus. A mouse scroll makes the row nearest
+/// the top the active one without focusing it, so that row still passes
+/// behind the info area like the rest.
 @visibleForTesting
 double classicHomeRowOverlayClipTop({
   required bool isFocused,
@@ -772,6 +775,7 @@ class _ContentRowsState extends State<_ContentRows>
   int _layoutPrefsVersion = 0;
   Type? _lastMediaBarStateRuntime;
   int _lastMediaBarItemCount = 0;
+  bool _wasEmpty = false;
   // Cache for non-focused row image URLs (independent of focus state). Cleared
   // with the extent cache on data/pref/scale change, and size-capped.
   final Map<String, String?> _rowImageUrlCache = {};
@@ -1262,9 +1266,22 @@ class _ContentRowsState extends State<_ContentRows>
     }
   }
 
+  /// The backdrop and theme music belong to the last focused item, and would
+  /// stay up behind the empty message once every row is gone, as when the
+  /// libraries they came from were deleted.
+  void _clearSelectionOnceEmpty() {
+    final empty =
+        !widget.viewModel.isLoading &&
+        widget.viewModel.rows.isEmpty &&
+        !_isMediaBarIncluded();
+    if (empty && !_wasEmpty) widget.onItemSelected(null);
+    _wasEmpty = empty;
+  }
+
   void _onViewModelChanged() {
     _invalidateStaticRowHeightCache();
     _updateOffsets();
+    _clearSelectionOnceEmpty();
     if (mounted) setState(() {});
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -1289,6 +1306,7 @@ class _ContentRowsState extends State<_ContentRows>
     final barFocusDetaching =
         !_isMediaBarIncluded() && _mediaBarFocusNode.hasFocus;
     _updateOffsets();
+    _clearSelectionOnceEmpty();
     setState(() {});
     if (barFocusDetaching) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -3993,7 +4011,7 @@ class _ContentRowsState extends State<_ContentRows>
         viewportHeight: _scrollController.position.viewportDimension,
         overlayBottom: overlayBottom,
         classicClipTop: classicHomeRowOverlayClipTop(
-          isFocused: isFocusedRow,
+          isFocused: _rowStateOf(rowIndex)?.hasFocusedItem ?? false,
           rowViewportTop: rowViewportTop,
           rowExtent: rowExtent,
           overlayBottom: overlayBottom,

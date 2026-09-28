@@ -798,6 +798,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get uiScaleGrandparents => 'Grandparents';
 
   @override
+  String get uiScaleGreatGrandparents => 'Great-Grandparents';
+
+  @override
   String get scrollDirection => 'Scroll Direction';
 
   @override
@@ -1965,11 +1968,6 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get subtitleDelay => 'Задержка субтитров';
-
-  @override
-  String subtitleDelayAuto(String value) {
-    return 'Auto $value';
-  }
 
   @override
   String get reset => 'Сбросить';

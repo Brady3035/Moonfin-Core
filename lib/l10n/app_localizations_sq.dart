@@ -802,6 +802,9 @@ class AppLocalizationsSq extends AppLocalizations {
   String get uiScaleGrandparents => 'Grandparents';
 
   @override
+  String get uiScaleGreatGrandparents => 'Great-Grandparents';
+
+  @override
   String get scrollDirection => 'Scroll Direction';
 
   @override
@@ -1960,11 +1963,6 @@ class AppLocalizationsSq extends AppLocalizations {
 
   @override
   String get subtitleDelay => 'Vonesa e titrave';
-
-  @override
-  String subtitleDelayAuto(String value) {
-    return 'Auto $value';
-  }
 
   @override
   String get reset => 'Rivendos';

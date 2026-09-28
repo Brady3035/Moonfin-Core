@@ -1456,6 +1456,12 @@ abstract class AppLocalizations {
   /// **'Grandparents'**
   String get uiScaleGrandparents;
 
+  /// UI scaling option above Grandparents
+  ///
+  /// In en, this message translates to:
+  /// **'Great-Grandparents'**
+  String get uiScaleGreatGrandparents;
+
   /// Section header for scroll direction selection in library display settings
   ///
   /// In en, this message translates to:
@@ -3357,12 +3363,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Subtitle Delay'**
   String get subtitleDelay;
-
-  /// Read-only line under the subtitle delay showing a correction the player applied on its own, value is a formatted delay like +2000 ms
-  ///
-  /// In en, this message translates to:
-  /// **'Auto {value}'**
-  String subtitleDelayAuto(String value);
 
   /// Button label to reset a value
   ///

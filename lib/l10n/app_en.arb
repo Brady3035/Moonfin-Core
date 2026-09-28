@@ -947,6 +947,10 @@
   "@uiScaleGrandparents": {
     "description": "UI scaling option above extra large"
   },
+  "uiScaleGreatGrandparents": "Great-Grandparents",
+  "@uiScaleGreatGrandparents": {
+    "description": "UI scaling option above Grandparents"
+  },
   "scrollDirection": "Scroll Direction",
   "@scrollDirection": {
     "description": "Section header for scroll direction selection in library display settings"
@@ -2607,15 +2611,6 @@
   "subtitleDelay": "Subtitle Delay",
   "@subtitleDelay": {
     "description": "Title for subtitle delay adjuster"
-  },
-  "subtitleDelayAuto": "Auto {value}",
-  "@subtitleDelayAuto": {
-    "description": "Read-only line under the subtitle delay showing a correction the player applied on its own, value is a formatted delay like +2000 ms",
-    "placeholders": {
-      "value": {
-        "type": "String"
-      }
-    }
   },
   "reset": "Reset",
   "@reset": {

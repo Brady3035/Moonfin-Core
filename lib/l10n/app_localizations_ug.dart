@@ -799,6 +799,9 @@ class AppLocalizationsUg extends AppLocalizations {
   String get uiScaleGrandparents => 'Grandparents';
 
   @override
+  String get uiScaleGreatGrandparents => 'Great-Grandparents';
+
+  @override
   String get scrollDirection => 'Scroll Direction';
 
   @override
@@ -1949,11 +1952,6 @@ class AppLocalizationsUg extends AppLocalizations {
 
   @override
   String get subtitleDelay => 'ئېكران خېتى كېچىكتۈرۈش';
-
-  @override
-  String subtitleDelayAuto(String value) {
-    return 'Auto $value';
-  }
 
   @override
   String get reset => 'ئەسلىگە قايتۇرۇش';

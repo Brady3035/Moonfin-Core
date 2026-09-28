@@ -797,6 +797,9 @@ class AppLocalizationsTr extends AppLocalizations {
   String get uiScaleGrandparents => 'Grandparents';
 
   @override
+  String get uiScaleGreatGrandparents => 'Great-Grandparents';
+
+  @override
   String get scrollDirection => 'Kaydırma Yönü';
 
   @override
@@ -1951,11 +1954,6 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get subtitleDelay => 'Altyazı Gecikmesi';
-
-  @override
-  String subtitleDelayAuto(String value) {
-    return 'Otomatik $value';
-  }
 
   @override
   String get reset => 'Sıfırla';

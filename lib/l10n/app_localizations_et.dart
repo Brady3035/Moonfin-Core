@@ -800,6 +800,9 @@ class AppLocalizationsEt extends AppLocalizations {
   String get uiScaleGrandparents => 'Grandparents';
 
   @override
+  String get uiScaleGreatGrandparents => 'Great-Grandparents';
+
+  @override
   String get scrollDirection => 'Kerimise Suund';
 
   @override
@@ -1955,11 +1958,6 @@ class AppLocalizationsEt extends AppLocalizations {
 
   @override
   String get subtitleDelay => 'Subtiitrite viivitus';
-
-  @override
-  String subtitleDelayAuto(String value) {
-    return 'Auto $value';
-  }
 
   @override
   String get reset => 'Lähtesta';

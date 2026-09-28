@@ -799,6 +799,9 @@ class AppLocalizationsHi extends AppLocalizations {
   String get uiScaleGrandparents => 'Grandparents';
 
   @override
+  String get uiScaleGreatGrandparents => 'Great-Grandparents';
+
+  @override
   String get scrollDirection => 'Scroll Direction';
 
   @override
@@ -1948,11 +1951,6 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get subtitleDelay => 'उपशीर्षक विलंब';
-
-  @override
-  String subtitleDelayAuto(String value) {
-    return 'Auto $value';
-  }
 
   @override
   String get reset => 'रीसेट करें';

@@ -146,6 +146,7 @@ class DeviceProfileBuilder {
     bool assDirectPlay = true,
     bool supportsEmbeddedSubtitles = true,
     bool supportsExternalTextSubtitles = true,
+    bool supportsExternalPgsSubtitles = false,
     bool supportsAvc = false,
     bool supportsAvcHigh10 = false,
     int avcMainLevel = 0,
@@ -495,6 +496,7 @@ class DeviceProfileBuilder {
         assDirectPlay: assDirectPlay,
         supportsEmbeddedSubtitles: supportsEmbeddedSubtitles,
         supportsExternalTextSubtitles: supportsExternalTextSubtitles,
+        supportsExternalPgsSubtitles: supportsExternalPgsSubtitles,
       ),
     };
   }
@@ -1751,11 +1753,15 @@ class DeviceProfileBuilder {
   /// formats included, so a player that can't read them leaves the server to
   /// burn them in. [supportsExternalTextSubtitles] is narrower and only covers
   /// the plain text formats, which is why ass and ssa still offer External.
+  /// [supportsExternalPgsSubtitles] also offers PGS as External, for a player
+  /// that reads a whole .sup file. The playback manager takes that offer back
+  /// whenever the picked track is an embedded PGS one.
   static List<Map<String, dynamic>> _subtitleProfiles({
     required bool pgsDirectPlay,
     required bool assDirectPlay,
     bool supportsEmbeddedSubtitles = true,
     bool supportsExternalTextSubtitles = true,
+    bool supportsExternalPgsSubtitles = false,
   }) {
     final profiles = <Map<String, dynamic>>[];
 
@@ -1790,6 +1796,9 @@ class DeviceProfileBuilder {
     for (final format in const <String>['pgs', 'pgssub']) {
       if (pgsDirectPlay && supportsEmbeddedSubtitles) {
         add(format, 'Embed');
+      }
+      if (pgsDirectPlay && supportsExternalPgsSubtitles) {
+        add(format, 'External');
       }
       add(format, 'Encode');
     }

@@ -1043,6 +1043,34 @@ void main() {
       expect(_subtitleMethodsFor(profile, 'vtt'), contains('Embed'));
       expect(_subtitleMethodsFor(profile, 'srt'), contains('Embed'));
     });
+
+    test("PGS isn't offered as a file unless the player reads .sup", () {
+      final profile = DeviceProfileBuilder.build();
+
+      expect(_subtitleMethodsFor(profile, 'pgssub'), {'Embed', 'Encode'});
+    });
+
+    test('a player that reads .sup files is offered PGS as a file', () {
+      final profile = DeviceProfileBuilder.build(
+        supportsExternalPgsSubtitles: true,
+      );
+
+      expect(_subtitleMethodsFor(profile, 'pgssub'), {
+        'Embed',
+        'External',
+        'Encode',
+      });
+      expect(_subtitleMethodsFor(profile, 'pgs'), contains('External'));
+    });
+
+    test('turning PGS direct play off burns every PGS track in', () {
+      final profile = DeviceProfileBuilder.build(
+        pgsDirectPlay: false,
+        supportsExternalPgsSubtitles: true,
+      );
+
+      expect(_subtitleMethodsFor(profile, 'pgssub'), {'Encode'});
+    });
   });
 
   group('DeviceProfileBuilder stereo AAC fallback', () {

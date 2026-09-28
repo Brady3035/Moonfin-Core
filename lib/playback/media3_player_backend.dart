@@ -1251,6 +1251,7 @@ class Media3PlayerBackend extends PlayerBackend {
       pgsDirectPlay:
           _prefs.get(UserPreferences.pgsDirectPlay) && canRenderBitmapSubtitles,
       assDirectPlay: _prefs.get(UserPreferences.assDirectPlay),
+      supportsExternalPgsSubtitles: true,
       supportsAvc: PlatformDetection.supportsAvc,
       supportsAvcHigh10: PlatformDetection.supportsAvcHigh10,
       avcMainLevel: PlatformDetection.avcMainLevel,

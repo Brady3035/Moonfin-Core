@@ -90,6 +90,21 @@ void stripVetoedAudioCodecs(
   }
 }
 
+/// Takes back the offer in [profile] to receive PGS as a file. The server
+/// answers that offer for a PGS track inside the media file by extracting the
+/// whole track before it sends a byte, so a request that picks one withholds
+/// it and the track gets burned in instead.
+void withholdExternalPgsSubtitles(Map<String, dynamic> profile) {
+  final entries = profile['SubtitleProfiles'];
+  if (entries is! List) return;
+  entries.removeWhere(
+    (entry) =>
+        entry is Map &&
+        entry['Method'] == 'External' &&
+        MediaStreamResolver.isPgsCodec(entry['Format'] as String?),
+  );
+}
+
 class PlaybackManager implements AudioOwnable {
   static const _mediaReadyPollInterval = Duration(milliseconds: 100);
   static const _defaultMediaReadyTimeout = Duration(seconds: 60);
@@ -2133,6 +2148,7 @@ class PlaybackManager implements AudioOwnable {
     bool enableTranscoding = true,
     bool allowStartupRecovery = true,
     bool autoPlay = true,
+    bool withholdExternalPgs = false,
   }) async {
     _deferredStartPosition = Duration.zero;
     _deferPlaybackToExternalPlayer = false;
@@ -2222,6 +2238,9 @@ class PlaybackManager implements AudioOwnable {
       useProgressiveTranscode: forceTranscode,
     );
     stripVetoedAudioCodecs(profile, _vetoedAudioCodecs);
+    if (withholdExternalPgs) {
+      withholdExternalPgsSubtitles(profile);
+    }
     if (_maxBitrateOverrideMbps != null) {
       profile['MaxStreamingBitrate'] = _maxBitrateOverrideMbps! * 1000000;
     }
@@ -2304,6 +2323,7 @@ class PlaybackManager implements AudioOwnable {
           enableDirectStream: false,
           enableTranscoding: true,
           allowStartupRecovery: allowStartupRecovery,
+          withholdExternalPgs: withholdExternalPgs,
         );
         return;
       }
@@ -2378,6 +2398,21 @@ class PlaybackManager implements AudioOwnable {
       }
     }
 
+    final pickedSubtitleIndex =
+        _subtitleStreamIndex ?? resolution.selectedSubtitleStreamIndex;
+    final pickedSubtitle = resolution.mediaStreams.firstWhere(
+      (s) => s['Type'] == 'Subtitle' && s['Index'] == pickedSubtitleIndex,
+      orElse: () => const <String, dynamic>{},
+    );
+    final pickedEmbeddedPgs = MediaStreamResolver.isEmbeddedPgsSubtitle(
+      pickedSubtitle,
+    );
+    if (pickedEmbeddedPgs &&
+        !withholdExternalPgs &&
+        pickedSubtitle['DeliveryMethod'] == 'External') {
+      needsReResolve = true;
+    }
+
     if (needsReResolve && !_reResolvingForTrackMatch) {
       _reResolvingForTrackMatch = true;
       try {
@@ -2388,6 +2423,7 @@ class PlaybackManager implements AudioOwnable {
           enableTranscoding: enableTranscoding,
           allowStartupRecovery: allowStartupRecovery,
           autoPlay: autoPlay,
+          withholdExternalPgs: pickedEmbeddedPgs,
         );
         return;
       } finally {

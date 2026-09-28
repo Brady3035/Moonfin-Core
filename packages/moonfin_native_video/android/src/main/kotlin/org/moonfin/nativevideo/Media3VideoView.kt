@@ -105,6 +105,7 @@ import kotlin.math.roundToInt
 import org.moonfin.nativevideo.iec.Iec61937AudioOutputProvider
 import org.moonfin.nativevideo.subtitle.SidecarSourceFactory
 import org.moonfin.nativevideo.subtitle.SourceTree
+import org.moonfin.nativevideo.subtitle.SupAwareSubtitleParserFactory
 import org.moonfin.nativevideo.subtitle.TextStreamOffsetMediaSource
 import org.moonfin.nativevideo.subtitle.TimeOffsetMediaSource
 import org.moonfin.nativevideo.subtitle.clampManualDelayMs
@@ -1949,7 +1950,7 @@ class Media3VideoView(
         // Serializes track creation and dialogue reads against the overlay's
         // render thread.
         assParserFactory = MoonfinAssParserFactory(
-            AssSubtitleParserFactory(assHandler),
+            SupAwareSubtitleParserFactory(AssSubtitleParserFactory(assHandler)),
             assHandler,
         )
         bootMediaSourceFactory = DefaultMediaSourceFactory(

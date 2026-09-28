@@ -1743,7 +1743,7 @@
             }
         }
     },
-    "auto": "Automaattinen",
+    "auto": "Auto",
     "@auto": {
         "description": "Label for automatic bitrate selection"
     },
@@ -7409,7 +7409,7 @@
     "@glassQualitySubtitle": {
         "description": "Explanation under the glass quality setting"
     },
-    "glassQualityAuto": "Automaattinen",
+    "glassQualityAuto": "Auto",
     "@glassQualityAuto": {
         "description": "Glass quality option: per-device default"
     },
@@ -8475,7 +8475,7 @@
     "adminPlaybackDownmixBoost": "Äänen alasmiksauksen korostus",
     "adminPlaybackDownmixAlgorithm": "Stereoalasmiksauksen algoritmi",
     "adminPlaybackMaxMuxingQueue": "Muksausjonon enimmäiskoko",
-    "adminPlaybackAutoOption": "Automaattinen",
+    "adminPlaybackAutoOption": "Auto",
     "adminRunningTasks": "Käynnissä olevat tehtävät",
     "adminNetworkingPublicHttpPort": "Julkinen HTTP-portti",
     "adminNetworkingRequireHttps": "Vaadi HTTPS",
@@ -12354,7 +12354,7 @@
     "@achievementsDoubleCreditBody": {
         "description": "What the Double Credit power-up does"
     },
-    "achievementsStreakFreeze": "Streak Freeze",
+    "achievementsStreakFreeze": "Katselusarjan suojaus",
     "@achievementsStreakFreeze": {
         "description": "Power-up that protects a watch streak"
     },
@@ -12604,5 +12604,9 @@
     "navYou": "You",
     "@navYou": {
         "description": "Bottom bar tab that opens the user's own menu with their profile, extra destinations and settings"
+    },
+    "uiScaleGreatGrandparents": "Isoisovanhemmat",
+    "@uiScaleGreatGrandparents": {
+        "description": "UI scaling option above Grandparents"
     }
 }

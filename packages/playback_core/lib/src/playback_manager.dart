@@ -1159,6 +1159,18 @@ class PlaybackManager implements AudioOwnable {
     _streamSubs.clear();
   }
 
+  /// The ceiling Auto sends. The server holds direct play to it too, so a
+  /// source that outruns [measured] gets its own bitrate as the ceiling and
+  /// still direct plays. A transcode that happens anyway is then held to the
+  /// source's bitrate, no more than playing the file would ask of the link.
+  static int _autoBitrateCap(
+    int measured,
+    int? sourceBitrate,
+    bool enableDirectPlay,
+  ) => enableDirectPlay && sourceBitrate != null && sourceBitrate > measured
+      ? sourceBitrate
+      : measured;
+
   /// The highest bitrate any of [item]'s sources needs, or null when the item
   /// does not say. Read duck-typed like the rest of the item, so a queue entry
   /// that is only an id costs nothing.
@@ -2245,29 +2257,25 @@ class PlaybackManager implements AudioOwnable {
       profile['MaxStreamingBitrate'] = _maxBitrateOverrideMbps! * 1000000;
     }
     var maxBitrate = profile['MaxStreamingBitrate'] as int?;
+    int? measuredBitrate;
     if (maxBitrate == null && autoBitrateProvider != null) {
       final measured = await autoBitrateProvider!();
       if (sessionToken != _playbackSessionToken) return;
       if (measured != null && measured > 0) {
-        // The measurement bounds how heavy a transcode the server is asked
-        // for, but the server reads it as a ceiling on direct play too, and a
-        // short sample under-reads a fast link. A source that outruns it keeps
-        // the uncapped request rather than becoming a transcode nothing asked
-        // for.
-        final sourceBps = _sourceBitrate(item);
-        final vetoesDirectPlay =
-            enableDirectPlay && sourceBps != null && sourceBps > measured;
-        if (!vetoesDirectPlay) {
-          maxBitrate = measured;
-          profile['MaxStreamingBitrate'] = measured;
-        }
+        measuredBitrate = measured;
+        maxBitrate = _autoBitrateCap(
+          measured,
+          _sourceBitrate(item),
+          enableDirectPlay,
+        );
+        profile['MaxStreamingBitrate'] = maxBitrate;
       }
     }
 
-    final resolution = await _resolver!.resolve(
+    Future<StreamResolutionResult> resolve(int? cap) => _resolver!.resolve(
       item,
       deviceProfile: profile,
-      maxStreamingBitrate: maxBitrate,
+      maxStreamingBitrate: cap,
       audioStreamIndex: _audioStreamIndex,
       subtitleStreamIndex: _subtitleStreamIndex,
       startTimeTicks: startTicks,
@@ -2277,9 +2285,33 @@ class PlaybackManager implements AudioOwnable {
       enableTranscoding: enableTranscoding,
     );
 
+    var resolution = await resolve(maxBitrate);
+
     if (sessionToken != _playbackSessionToken) {
       _cleanupPreemptedSession(item, resolution);
       return;
+    }
+
+    // An item that came without its sources only learns the source bitrate
+    // from the server, so the ceiling is weighed again once it's known. A live
+    // stream is left as is, since asking again would open a second one.
+    if (measuredBitrate != null &&
+        resolution.liveStreamId == null &&
+        resolution.playMethod == StreamPlayMethod.transcode) {
+      final cap = _autoBitrateCap(
+        measuredBitrate,
+        resolution.sourceBitrate,
+        enableDirectPlay,
+      );
+      if (cap > maxBitrate!) {
+        maxBitrate = cap;
+        profile['MaxStreamingBitrate'] = cap;
+        resolution = await resolve(cap);
+        if (sessionToken != _playbackSessionToken) {
+          _cleanupPreemptedSession(item, resolution);
+          return;
+        }
+      }
     }
 
     _setBringupState(

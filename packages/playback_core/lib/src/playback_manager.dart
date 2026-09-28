@@ -243,7 +243,9 @@ class PlaybackManager implements AudioOwnable {
   /// engine can't), attempt 2 re-resolves, and attempt 3 escalates one step
   /// past the current route: direct play hands the stream to the server,
   /// and a server-served channel forces a transcode. The next failure gives
-  /// up. A clean minute since the last attempt restores the budget.
+  /// up. A clean minute since the last attempt restores the budget, and so
+  /// does a recovered channel that keeps playing for
+  /// [_liveRecoveryProvenAfter].
   ///
   /// Gaps are measured from the end of the previous attempt, since a tune can
   /// itself take 17s or more: 4s before attempt 1 and the give-up, which

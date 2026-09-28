@@ -15,6 +15,7 @@ import '../data/services/media_server_client_factory.dart';
 import '../platform/pip_service.dart';
 import '../util/platform_detection.dart';
 import '../preference/user_preferences.dart';
+import 'aether_backend.dart';
 import 'car_artwork.dart';
 import 'headless_session_bootstrap.dart';
 import 'last_playback_session_store.dart';
@@ -43,6 +44,8 @@ class MoonfinAudioHandler extends BaseAudioHandler
   bool _sessionActive = false;
   bool _resumeAfterInterruption = false;
 
+  AetherBackend? _engineNowPlaying;
+
   MoonfinAudioHandler(
     this._manager,
     this._clientFactory,
@@ -51,6 +54,7 @@ class MoonfinAudioHandler extends BaseAudioHandler
   ) {
     _bindStreams();
     unawaited(_attachAndroidInterruptions());
+    _attachEngineNowPlaying();
     // Resolve the artwork provider authority before the first now-playing push
     // so its artUri can be wrapped; harmless no-op off Android.
     unawaited(CarArtwork.instance.ensureReady());
@@ -268,6 +272,34 @@ class MoonfinAudioHandler extends BaseAudioHandler
     } catch (_) {}
   }
 
+  // iOS music plays on the engine's own Now Playing session, which the system
+  // shows in place of this handler's entry. Its presses come back here so they
+  // do what ours would. Like the listener above, this outlives stop().
+  void _attachEngineNowPlaying() {
+    if (!PlatformDetection.isIOS ||
+        !GetIt.instance.isRegistered<AetherBackend>()) {
+      return;
+    }
+    final engine = _engineNowPlaying = GetIt.instance<AetherBackend>();
+    engine.remoteCommandStream.listen((command) {
+      switch (command['event']) {
+        case 'play':
+          unawaited(play());
+        case 'pause':
+          unawaited(pause());
+        case 'seek':
+          final positionMs = (command['positionMs'] as num?)?.toInt();
+          if (positionMs != null) {
+            unawaited(seek(Duration(milliseconds: positionMs)));
+          }
+        case 'next':
+          unawaited(skipToNext());
+        case 'previous':
+          unawaited(skipToPrevious());
+      }
+    });
+  }
+
   void _pushPlaybackState() {
     final s = _manager.state;
     final q = _manager.queueService;
@@ -373,7 +405,16 @@ class MoonfinAudioHandler extends BaseAudioHandler
       mediaItem.add(null);
       return;
     }
-    mediaItem.add(_mediaItemFor(raw));
+    final item = _mediaItemFor(raw);
+    mediaItem.add(item);
+    unawaited(
+      _engineNowPlaying?.setNowPlaying(
+        title: item.title,
+        artist: item.artist ?? '',
+        artworkUrl: item.artUri?.toString(),
+        hasNext: _manager.queueService.hasNext,
+      ),
+    );
     // The wrapped artUri is only readable once its host is on the provider's
     // allowlist.
     unawaited(CarArtwork.instance.persistHosts());

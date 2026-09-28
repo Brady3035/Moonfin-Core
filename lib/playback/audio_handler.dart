@@ -12,6 +12,7 @@ import 'package:server_core/server_core.dart';
 import '../data/models/aggregated_item.dart';
 import '../data/services/audiobook_resume_service.dart';
 import '../data/services/media_server_client_factory.dart';
+import '../platform/pip_service.dart';
 import '../util/platform_detection.dart';
 import '../preference/user_preferences.dart';
 import 'car_artwork.dart';
@@ -98,6 +99,17 @@ class MoonfinAudioHandler extends BaseAudioHandler
           _updateAudioSession();
         }
       }),
+      // Closing Picture in Picture on iOS takes down the shared Now Playing
+      // entry it borrowed, which leaves headphone and lock screen controls
+      // dead. A fresh media item makes the platform side rewrite the whole
+      // entry, not only the fields that changed.
+      if (PlatformDetection.isIOS)
+        GetIt.instance<PipService>().onPiPChanged
+            .where((inPiP) => !inPiP)
+            .listen((_) {
+              _pushPlaybackState();
+              _pushMediaItemForCurrentTrack();
+            }),
     ]);
   }
 

@@ -457,6 +457,9 @@ final class AetherPlayerWrapper: NSObject, ObservableObject {
         let title = (args["topTitle"] as? String) ?? ""
         let subtitle = (args["topSubtitle"] as? String) ?? ""
         let logo = args["logoUrl"] as? String
+        nowPlaying.setQueueCapabilities(
+            hasNext: (args["hasNext"] as? Bool) ?? false,
+            hasPrevious: (args["hasPrevious"] as? Bool) ?? false)
         // The engine's audio Now Playing bridge is an iOS/tvOS API. This whole
         // method is a no-op off tvOS through drivesNowPlaying, but the call
         // still has to compile out on macOS.
@@ -481,9 +484,6 @@ final class AetherPlayerWrapper: NSObject, ObservableObject {
             subtitle: subtitle,
             durationSeconds: duration,
             artworkURL: (logo?.isEmpty ?? true) ? nil : logo)
-        nowPlaying.setQueueCapabilities(
-            hasNext: (args["hasNext"] as? Bool) ?? false,
-            hasPrevious: (args["hasPrevious"] as? Bool) ?? false)
         nowPlaying.updatePlaybackState(
             isPlaying: isPlaying, elapsed: currentTime, duration: duration, rate: rate)
     }
@@ -753,6 +753,14 @@ final class AetherPlayerWrapper: NSObject, ObservableObject {
             // A load that outlived its watchdog or was superseded finished
             // against an engine that has already been stopped or reloaded.
             guard loadGeneration == generation, !didEmitLoadError else { return }
+            #if os(tvOS)
+                // The engine opens its music session during the load, so it
+                // can only be adopted once the load returns.
+                if audioOnly {
+                    nowPlaying.adopt(session: engine.audioNowPlayingSession)
+                }
+                nowPlaying.setIntervalSkipsEnabled(!audioOnly)
+            #endif
             seatDeclaredSubtitles(engine)
             if forceSubtitlesDisabledOnStart {
                 engine.clearSubtitle()

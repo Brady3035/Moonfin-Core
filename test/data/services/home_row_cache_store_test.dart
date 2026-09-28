@@ -71,4 +71,20 @@ void main() {
 
     expect(rows?.map((r) => r.id), ['fresh']);
   });
+
+  test('a home that loaded empty drops its saved rows', () async {
+    await store.write('key', [_row('resume', HomeRowType.resume)]);
+
+    await store.write('key', const []);
+
+    expect(await store.read('key'), isNull);
+  });
+
+  test('an empty home leaves rows saved under another key alone', () async {
+    await store.write('online', [_row('resume', HomeRowType.resume)]);
+
+    await store.write('offline', const []);
+
+    expect((await store.read('online'))?.map((r) => r.id), ['resume']);
+  });
 }

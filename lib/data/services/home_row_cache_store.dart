@@ -64,7 +64,9 @@ class HomeRowCacheStore {
 
   Future<void> _lastWrite = Future.value();
 
-  /// Persists the populated, non-placeholder rows under [cacheKey].
+  /// Persists the populated, non-placeholder rows under [cacheKey]. With none
+  /// to save, the rows already saved for that key are dropped, or every cold
+  /// start would paint them again until they aged out.
   ///
   /// Writes land in the order they were asked for, so an older set of rows
   /// that took longer to encode never lands on top of a newer one.
@@ -76,13 +78,24 @@ class HomeRowCacheStore {
         )
         .map(_rowToJson)
         .toList(growable: false);
-    if (serializable.isEmpty) return _lastWrite;
+    if (serializable.isEmpty) {
+      return _lastWrite = _lastWrite.then((_) => _clear(cacheKey));
+    }
     final envelope = {
       'key': cacheKey,
       'savedAt': DateTime.now().millisecondsSinceEpoch,
       'rows': serializable,
     };
     return _lastWrite = _lastWrite.then((_) => _writeEnvelope(envelope));
+  }
+
+  /// Rows saved under another key, such as the online home while offline,
+  /// stay put.
+  Future<void> _clear(String cacheKey) async {
+    try {
+      if (await read(cacheKey) == null) return;
+      await (await _file()).delete();
+    } catch (_) {}
   }
 
   Future<void> _writeEnvelope(Map<String, Object> envelope) async {

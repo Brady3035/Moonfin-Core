@@ -12600,5 +12600,9 @@
     "navYou": "Tu",
     "@navYou": {
         "description": "Bottom bar tab that opens the user's own menu with their profile, extra destinations and settings"
+    },
+    "uiScaleGreatGrandparents": "Per als besavis",
+    "@uiScaleGreatGrandparents": {
+        "description": "UI scaling option above Grandparents"
     }
 }

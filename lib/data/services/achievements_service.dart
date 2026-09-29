@@ -22,10 +22,8 @@ BaseOptions achievementRequestOptions() => BaseOptions(
 /// jellyfin-web. Everything it knows is on a plain HTTP API, which is what this
 /// reads so the panel can be drawn natively on every platform.
 ///
-/// Almost all of it is reading. The login ping, the quest reroll, spending a
-/// power-up, buying one and changing what the profile wears are the only
-/// things written, because they are the only parts the plugin expects a
-/// client to drive.
+/// Most of it is reading. The login ping, the quest reroll, power-ups, the
+/// shop, what the profile wears, friends and chat are the parts written.
 class AchievementsService extends ChangeNotifier {
   static const String _root = 'Plugins/AchievementBadges';
 
@@ -53,6 +51,14 @@ class AchievementsService extends ChangeNotifier {
   bool _questsEnabled = true;
   bool _activityEnabled = true;
   bool _privacyMode = false;
+  bool _friendsEnabled = true;
+  bool _friendsSimpleMode = false;
+
+  /// Whether the friends list and chat are on for this server.
+  bool get socialAvailable => _available && _friendsEnabled;
+
+  /// The admin made everyone a friend, so there are no requests to send.
+  bool get friendsSimpleMode => _friendsSimpleMode;
 
   /// The catalogue lives in the plugin's own code, so it only changes when
   /// the server takes a new release, which ends this session with it.
@@ -81,7 +87,10 @@ class AchievementsService extends ChangeNotifier {
     _questsEnabled = true;
     _activityEnabled = true;
     _privacyMode = false;
+    _friendsEnabled = true;
+    _friendsSimpleMode = false;
     _catalog = null;
+    _clearSocial();
     if (!_available) return;
     debugPrint('[AchievementsService] cleared, the entry is hidden again');
     _available = false;
@@ -124,6 +133,8 @@ class AchievementsService extends ChangeNotifier {
     _questsEnabled = config['QuestsEnabled'] != false;
     _activityEnabled = config['ActivityFeedEnabled'] != false;
     _privacyMode = config['ForcePrivacyMode'] == true;
+    _friendsEnabled = config['FriendsEnabled'] != false;
+    _friendsSimpleMode = config['FriendsSimpleMode'] == true;
     return true;
   }
 
@@ -179,18 +190,19 @@ class AchievementsService extends ChangeNotifier {
     MediaServerClient client,
     String path, {
     required int refusedWith,
-    Map<String, dynamic>? body,
+    Object? body,
     Map<String, dynamic>? query,
+    String method = 'POST',
   }) async {
     final headers = _authHeaders(client);
     if (headers == null) return const _Written();
 
     try {
-      final response = await _dio.post<dynamic>(
+      final response = await _dio.request<dynamic>(
         '${_base(client)}/$_root/$path',
         data: body,
         queryParameters: query,
-        options: Options(headers: headers),
+        options: Options(method: method, headers: headers),
       );
       final data = response.data;
       return _Written(body: data is Map<String, dynamic> ? data : null);
@@ -572,6 +584,8 @@ class AchievementsService extends ChangeNotifier {
 
   @override
   void dispose() {
+    _socialTimer?.cancel();
+    unawaited(_incoming.close());
     _dio.close(force: true);
     super.dispose();
   }
@@ -590,6 +604,489 @@ class AchievementsService extends ChangeNotifier {
     final path = category.isEmpty ? 'leaderboard' : 'leaderboard/$category';
     final rows = await _getList(client, path, query: {'limit': limit});
     return rows.map(LeaderboardEntry.fromJson).toList();
+  }
+
+  // ---------- Friends and chat ----------
+
+  /// How often the friends badge is refreshed. Each refresh is two small reads,
+  /// well inside the plugin's 60 requests a minute.
+  static const Duration socialPollInterval = Duration(seconds: 30);
+
+  Timer? _socialTimer;
+  FriendsList? _friends;
+  List<ChatThread> _threads = const [];
+
+  /// The chats as the last refresh saw them. Null until the first one, which
+  /// only records what is there.
+  Map<String, ChatThread>? _seenThreads;
+  bool _messageNotifications = true;
+  final _incoming = StreamController<ChatThread>.broadcast();
+
+  /// The last friends list read, or null before the first one lands.
+  FriendsList? get friends => _friends;
+
+  /// Chats, newest first.
+  List<ChatThread> get threads => _threads;
+
+  int get incomingRequestCount => _friends?.incoming.length ?? 0;
+
+  int get unreadMessageCount =>
+      _threads.fold(0, (sum, thread) => sum + thread.unreadCount);
+
+  /// What the friends button shows on its badge.
+  int get socialBadgeCount => incomingRequestCount + unreadMessageCount;
+
+  /// A chat that got a message from someone else since the last refresh.
+  Stream<ChatThread> get incomingMessages => _incoming.stream;
+
+  /// The chat on screen, so a message landing in it doesn't pop a banner.
+  String? openConversationId;
+
+  void _clearSocial() {
+    _socialTimer?.cancel();
+    _socialTimer = null;
+    _friends = null;
+    _threads = const [];
+    _seenThreads = null;
+    _messageNotifications = true;
+    openConversationId = null;
+  }
+
+  /// Keeps the friends badge current until [reset] ends the session.
+  void startSocialPolling(MediaServerClient client) {
+    _socialTimer?.cancel();
+    if (!socialAvailable) return;
+    unawaited(_loadNotificationSetting(client));
+    unawaited(refreshSocial(client));
+    _socialTimer = Timer.periodic(
+      socialPollInterval,
+      (_) => refreshSocial(client),
+    );
+  }
+
+  Future<void> _loadNotificationSetting(MediaServerClient client) async {
+    final privacy = await fetchSocialPrivacy(client);
+    if (privacy != null) _messageNotifications = privacy.messageNotifications;
+  }
+
+  /// Reads the friends list and the chats again.
+  ///
+  /// The first read only records what is there, so messages that were already
+  /// waiting when the app started don't all pop up at once.
+  Future<void> refreshSocial(MediaServerClient client) async {
+    if (!socialAvailable) return;
+
+    final results = await Future.wait<Object?>([
+      fetchFriends(client),
+      _fetchThreads(client),
+    ]);
+    final friends = results[0] as FriendsList?;
+    final threads = results[1] as List<ChatThread>?;
+
+    if (friends != null) _friends = friends;
+    if (threads != null) {
+      final seen = _seenThreads;
+      if (seen != null && _messageNotifications) {
+        for (final thread in threads) {
+          if (_isNewFromOthers(thread, seen[thread.conversationId])) {
+            _incoming.add(thread);
+          }
+        }
+      }
+      _threads = threads;
+      _seenThreads = {for (final t in threads) t.conversationId: t};
+    }
+    if (friends != null || threads != null) notifyListeners();
+  }
+
+  bool _isNewFromOthers(ChatThread thread, ChatThread? before) {
+    if (thread.lastFromMe || thread.unreadCount == 0) return false;
+    if (thread.conversationId == openConversationId) return false;
+    if (before == null) return true;
+    final at = thread.lastAt;
+    final was = before.lastAt;
+    return thread.unreadCount > before.unreadCount ||
+        (at != null && was != null && at.isAfter(was));
+  }
+
+  /// A name for [userId] from whatever was read last, for group members the
+  /// chat payloads only name by id.
+  String? displayNameFor(String userId) {
+    final friends = _friends;
+    final people = <SocialUser>[
+      if (friends != null)
+        for (final friend in friends.friends)
+          SocialUser(userId: friend.userId, userName: friend.userName),
+      ...?friends?.incoming,
+      ...?friends?.outgoing,
+      for (final thread in _threads) ...thread.participants,
+    ];
+    for (final person in people) {
+      if (sameUserId(person.userId, userId) && person.userName.isNotEmpty) {
+        return person.userName;
+      }
+    }
+    return null;
+  }
+
+  Future<FriendsList?> fetchFriends(MediaServerClient client) async {
+    final userId = client.userId;
+    if (userId == null || userId.isEmpty) return null;
+
+    final json = await _getMap(client, 'users/$userId/friends');
+    return json == null ? null : FriendsList.fromJson(json);
+  }
+
+  /// Accepts at once when [userId] already asked first.
+  Future<SocialWrite<void>> sendFriendRequest(
+    MediaServerClient client,
+    String userId,
+  ) => _social(client, 'POST', 'friends/$userId');
+
+  Future<SocialWrite<void>> acceptFriendRequest(
+    MediaServerClient client,
+    String userId,
+  ) => _social(client, 'POST', 'friends/$userId/accept');
+
+  /// Also declines a request from [userId], or takes one back.
+  Future<SocialWrite<void>> removeFriend(
+    MediaServerClient client,
+    String userId,
+  ) => _social(client, 'DELETE', 'friends/$userId');
+
+  /// Answers 404 for someone who hides from the leaderboard, which comes back
+  /// null like any other miss.
+  Future<PublicProfile?> fetchPublicProfile(
+    MediaServerClient client,
+    String userId,
+  ) async {
+    final json = await _getMap(client, 'profiles/$userId/summary');
+    return json == null ? null : PublicProfile.fromJson(json);
+  }
+
+  /// Everyone on the server, for finding people to add. Jellyfin lists all
+  /// users to anyone signed in, which is what the plugin's own page relies on.
+  Future<List<SocialUser>> fetchServerUsers(MediaServerClient client) async {
+    final headers = _authHeaders(client);
+    if (headers == null) return const <SocialUser>[];
+
+    try {
+      final response = await _dio.get<dynamic>(
+        '${_base(client)}/Users',
+        options: Options(headers: headers),
+      );
+      final data = response.data;
+      if (data is! List) return const <SocialUser>[];
+      return data
+          .whereType<Map<String, dynamic>>()
+          .map(
+            (user) => SocialUser(
+              userId: user['Id'] is String ? user['Id'] as String : '',
+              userName: user['Name'] is String ? user['Name'] as String : '',
+            ),
+          )
+          .where((user) => user.userId.isNotEmpty)
+          .toList();
+    } catch (e) {
+      debugPrint('[AchievementsService] Users failed: $e');
+      return const <SocialUser>[];
+    }
+  }
+
+  Future<List<ChatThread>?> _fetchThreads(MediaServerClient client) async {
+    final userId = client.userId;
+    if (userId == null || userId.isEmpty) return null;
+
+    final json = await _getMap(client, 'users/$userId/messages/threads');
+    if (json == null) return null;
+    final list = json['Threads'];
+    if (list is! List) return const <ChatThread>[];
+    return list
+        .whereType<Map<String, dynamic>>()
+        .map(ChatThread.fromJson)
+        .toList();
+  }
+
+  /// The direct chat with [otherUserId]. The plugin makes it on first use.
+  Future<String?> openDirectChat(
+    MediaServerClient client,
+    String otherUserId,
+  ) async {
+    final userId = client.userId;
+    if (userId == null || userId.isEmpty) return null;
+
+    final json = await _getMap(
+      client,
+      'users/$userId/messages/$otherUserId',
+      query: {'limit': 1},
+    );
+    final id = json?['ConversationId'];
+    return id is String && id.isNotEmpty ? id : null;
+  }
+
+  Future<ChatConversation?> fetchConversation(
+    MediaServerClient client,
+    String conversationId,
+  ) async {
+    final userId = client.userId;
+    if (userId == null || userId.isEmpty) return null;
+
+    final json = await _getMap(
+      client,
+      'users/$userId/conversations/$conversationId',
+    );
+    final conversation = json?['Conversation'];
+    if (json?['Success'] != true || conversation is! Map<String, dynamic>) {
+      return null;
+    }
+    return ChatConversation.fromJson(conversation);
+  }
+
+  /// The latest messages, oldest first. Reading them marks them as read.
+  Future<List<ChatMessage>?> fetchMessages(
+    MediaServerClient client,
+    String conversationId, {
+    int limit = 200,
+  }) async {
+    final userId = client.userId;
+    if (userId == null || userId.isEmpty) return null;
+
+    final json = await _getMap(
+      client,
+      'users/$userId/conversations/$conversationId/messages',
+      query: {'limit': limit},
+    );
+    if (json == null) return null;
+    final list = json['Messages'];
+    if (list is! List) return const <ChatMessage>[];
+    return list
+        .whereType<Map<String, dynamic>>()
+        .map(ChatMessage.fromJson)
+        .toList();
+  }
+
+  /// The plugin caps a message at 1000 characters and 20 a minute, and says so
+  /// in the refusal.
+  Future<SocialWrite<ChatMessage>> sendMessage(
+    MediaServerClient client,
+    String conversationId, {
+    String text = '',
+    String? attachmentId,
+  }) => _social(
+    client,
+    'POST',
+    'conversations/$conversationId/messages',
+    body: {'Text': text, 'AttachmentId': ?attachmentId},
+    read: (body) => _readMessage(body['Sent']),
+  );
+
+  Future<SocialWrite<ChatMessage>> editMessage(
+    MediaServerClient client,
+    String messageId,
+    String text,
+  ) => _social(
+    client,
+    'PATCH',
+    'messages/$messageId',
+    body: {'Text': text},
+    read: (body) => _readMessage(body['Updated']),
+  );
+
+  Future<SocialWrite<void>> deleteMessage(
+    MediaServerClient client,
+    String messageId,
+  ) => _social(client, 'DELETE', 'messages/by-id/$messageId');
+
+  /// Empties the chat for everyone in it.
+  Future<SocialWrite<void>> clearConversation(
+    MediaServerClient client,
+    String conversationId,
+  ) => _social(client, 'DELETE', 'conversations/$conversationId/clear');
+
+  /// A group needs at least two friends besides the signed-in user.
+  Future<SocialWrite<ChatConversation>> createGroup(
+    MediaServerClient client, {
+    String? title,
+    required List<String> memberIds,
+  }) => _social(
+    client,
+    'POST',
+    'conversations',
+    body: {'Title': title, 'ParticipantIds': memberIds},
+    read: (body) {
+      final conversation = body['Conversation'];
+      return conversation is Map<String, dynamic>
+          ? ChatConversation.fromJson(conversation)
+          : null;
+    },
+  );
+
+  Future<SocialWrite<void>> renameGroup(
+    MediaServerClient client,
+    String conversationId,
+    String title,
+  ) => _social(
+    client,
+    'POST',
+    'conversations/$conversationId/rename',
+    body: {'Title': title},
+  );
+
+  Future<SocialWrite<void>> addGroupMember(
+    MediaServerClient client,
+    String conversationId,
+    String userId,
+  ) => _social(client, 'POST', 'conversations/$conversationId/members/$userId');
+
+  /// Leaves the group when [userId] is the signed-in user.
+  Future<SocialWrite<void>> removeGroupMember(
+    MediaServerClient client,
+    String conversationId,
+    String userId,
+  ) => _social(
+    client,
+    'DELETE',
+    'conversations/$conversationId/members/$userId',
+  );
+
+  Future<SocialWrite<void>> setGroupAdmin(
+    MediaServerClient client,
+    String conversationId,
+    String userId, {
+    required bool admin,
+  }) => _social(
+    client,
+    admin ? 'POST' : 'DELETE',
+    'conversations/$conversationId/admins/$userId',
+  );
+
+  /// Blocking works both ways: neither side can message the other.
+  Future<SocialWrite<void>> setBlocked(
+    MediaServerClient client,
+    String userId, {
+    required bool blocked,
+  }) => _social(client, blocked ? 'POST' : 'DELETE', 'block/$userId');
+
+  Future<List<String>> fetchBlocked(MediaServerClient client) async {
+    final userId = client.userId;
+    if (userId == null || userId.isEmpty) return const <String>[];
+
+    final json = await _getMap(client, 'users/$userId/blocked');
+    final list = json?['Blocked'];
+    return list is List ? list.whereType<String>().toList() : const <String>[];
+  }
+
+  /// Uploads an image to send. The plugin takes PNG, JPEG, GIF and WebP up to
+  /// 8 MB, and checks the bytes match the type.
+  Future<SocialWrite<String>> uploadAttachment(
+    MediaServerClient client,
+    Uint8List bytes, {
+    required String fileName,
+    required String mimeType,
+  }) => _social(
+    client,
+    'POST',
+    'attachments',
+    body: FormData.fromMap({
+      'file': MultipartFile.fromBytes(
+        bytes,
+        filename: fileName,
+        contentType: DioMediaType.parse(mimeType),
+      ),
+    }),
+    read: (body) {
+      final attachment = body['Attachment'];
+      final id = attachment is Map ? attachment['id'] : null;
+      return id is String && id.isNotEmpty ? id : null;
+    },
+  );
+
+  /// The image behind [attachmentId]. It needs the token, so it can't be a
+  /// plain network image.
+  Future<Uint8List?> fetchAttachment(
+    MediaServerClient client,
+    String attachmentId,
+  ) async {
+    final headers = _authHeaders(client);
+    if (headers == null) return null;
+
+    try {
+      final response = await _dio.get<List<int>>(
+        '${_base(client)}/$_root/attachments/$attachmentId',
+        options: Options(headers: headers, responseType: ResponseType.bytes),
+      );
+      final data = response.data;
+      return data == null ? null : Uint8List.fromList(data);
+    } catch (e) {
+      debugPrint('[AchievementsService] attachment failed: $e');
+      return null;
+    }
+  }
+
+  Future<SocialPrivacy?> fetchSocialPrivacy(MediaServerClient client) async {
+    final userId = client.userId;
+    if (userId == null || userId.isEmpty) return null;
+
+    final json = await _getMap(client, 'users/$userId/preferences');
+    return json == null ? null : SocialPrivacy.fromJson(json);
+  }
+
+  /// The plugin replaces its whole preferences object on save, so this reads a
+  /// fresh copy first and only changes the friend settings in it.
+  Future<bool> saveSocialPrivacy(
+    MediaServerClient client,
+    SocialPrivacy privacy,
+  ) async {
+    final userId = client.userId;
+    if (userId == null || userId.isEmpty) return false;
+
+    final current = await _getMap(client, 'users/$userId/preferences');
+    if (current == null) return false;
+    final written = await _post(
+      client,
+      'users/$userId/preferences',
+      refusedWith: 400,
+      body: privacy.applyTo(current),
+    );
+    if (written.body == null) return false;
+    _messageNotifications = privacy.messageNotifications;
+    return true;
+  }
+
+  ChatMessage? _readMessage(dynamic value) =>
+      value is Map<String, dynamic> ? ChatMessage.fromJson(value) : null;
+
+  /// One write on the signed-in user's friends or chat routes.
+  ///
+  /// A 429 means the plugin's rate limit, which is a refusal rather than a
+  /// fault worth logging.
+  Future<SocialWrite<T>> _social<T>(
+    MediaServerClient client,
+    String method,
+    String path, {
+    Object? body,
+    T? Function(Map<String, dynamic> body)? read,
+  }) async {
+    final userId = client.userId;
+    if (userId == null || userId.isEmpty) return SocialWrite<T>.failed();
+
+    final written = await _post(
+      client,
+      'users/$userId/$path',
+      refusedWith: 429,
+      body: body,
+      method: method,
+    );
+    final data = written.body;
+    if (data == null) return SocialWrite<T>.failed(message: written.message);
+
+    final ok = data['Success'] != false;
+    final message = data['Message'];
+    return SocialWrite<T>(
+      ok,
+      message: message is String && message.isNotEmpty ? message : null,
+      value: ok ? read?.call(data) : null,
+    );
   }
 }
 

@@ -175,6 +175,13 @@ class _NavigationCategoryScreenState extends State<_NavigationCategoryScreen> {
                 icon: Icons.info_outline_rounded,
                 onChanged: _pushPersonalizationSync,
               ),
+              SwitchPreferenceTile(
+                preference: UserPreferences.showFriendsButton,
+                title: l10n.friendsShowButton,
+                subtitle: l10n.friendsShowButtonSubtitle,
+                icon: Icons.people_alt_rounded,
+                onChanged: _pushPersonalizationSync,
+              ),
             ],
           ),
         ],

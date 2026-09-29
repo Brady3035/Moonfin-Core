@@ -1,3 +1,16 @@
+import 'dart:async';
+
+import 'package:custom_tv_text_field/custom_tv_text_field.dart';
+import 'package:emoji_picker_flutter/emoji_picker_flutter.dart'
+    show
+        BottomActionBarConfig,
+        CategoryViewConfig,
+        Config,
+        EmojiPicker,
+        EmojiViewConfig,
+        SearchViewConfig,
+        SkinToneConfig;
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get_it/get_it.dart';
@@ -7,8 +20,11 @@ import 'package:server_core/server_core.dart';
 import '../../../data/models/achievement_models.dart';
 import '../../../data/services/achievements_service.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../preference/user_preferences.dart';
 import '../../../util/achievement_icons.dart';
 import '../../../util/focus/dpad_keys.dart';
+import '../../../util/focus/input_mode_tracker.dart';
+import '../../../util/image_mime.dart';
 import '../../../util/relative_time_label.dart';
 import '../../../util/platform_detection.dart';
 import '../../navigation/destinations.dart';
@@ -21,13 +37,16 @@ import '../../widgets/settings/preference_tiles.dart';
 import '../../widgets/settings/settings_panel.dart';
 import '../../widgets/settings/settings_section_header.dart';
 import '../../widgets/sliding_pill_tabs.dart';
+import '../../widgets/unread_badge.dart';
 import 'settings_app_bar.dart';
+
+part 'achievements_friends.dart';
+part 'achievements_chat.dart';
 
 /// Shows what the Achievement Badges plugin has recorded for the signed-in
 /// user.
 ///
-/// Read-only. The plugin's shop, power-ups, friends and messaging all need
-/// write calls and a lot more UI than this.
+/// Friends and chat live in their own part files, behind [FriendsScreen].
 class AchievementsScreen extends StatefulWidget {
   const AchievementsScreen({super.key});
 
@@ -129,6 +148,16 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                   onTap: () =>
                       context.pushSettingsScreen(const _ActivityScreen()),
                 ),
+              if (GetIt.instance<AchievementsService>().socialAvailable)
+                DpadListTile(
+                  useSettingsIconShell: true,
+                  leading: const Icon(Icons.people_alt),
+                  trailing: const Icon(Icons.chevron_right),
+                  title: Text(l10n.friends),
+                  subtitle: Text(l10n.friendsSubtitle),
+                  onTap: () =>
+                      context.pushSettingsScreen(const FriendsScreen()),
+                ),
               if (overview.leaderboardEnabled)
                 DpadListTile(
                   useSettingsIconShell: true,
@@ -221,10 +250,15 @@ MediaServerClient? _client() => GetIt.instance.isRegistered<MediaServerClient>()
 /// One shell for every screen here: the settings typography, the settings app
 /// bar, and a focus scope the remote can't wander out of.
 class _AchievementsScaffold extends StatefulWidget {
-  const _AchievementsScaffold({required this.title, required this.builder});
+  const _AchievementsScaffold({
+    required this.title,
+    required this.builder,
+    this.actions,
+  });
 
   final String title;
   final WidgetBuilder builder;
+  final List<Widget>? actions;
 
   @override
   State<_AchievementsScaffold> createState() => _AchievementsScaffoldState();
@@ -247,7 +281,11 @@ class _AchievementsScaffoldState extends State<_AchievementsScaffold> {
     context,
     Builder(
       builder: (context) => Scaffold(
-        appBar: buildSettingsAppBar(context, Text(widget.title)),
+        appBar: buildSettingsAppBar(
+          context,
+          Text(widget.title),
+          actions: widget.actions,
+        ),
         body: FocusScope(
           node: _scope,
           autofocus: true,
@@ -413,8 +451,9 @@ String _powerUpBody(AppLocalizations l10n, String type) => switch (type) {
   _ => '',
 };
 
-/// Asks before spending something the user only gets so many of.
-Future<bool> _confirmSpend(
+/// Asks before spending something the user only gets so many of, or before a
+/// change that can't be undone.
+Future<bool> _confirm(
   BuildContext context, {
   required String title,
   required String body,
@@ -1197,7 +1236,7 @@ class _LoadoutScreenState extends State<_LoadoutScreen>
     final client = _client();
     if (client == null || _busy) return;
 
-    final go = await _confirmSpend(
+    final go = await _confirm(
       context,
       title: l10n.achievementsUsePowerUp,
       body: l10n.achievementsUsePowerUpBody,
@@ -1334,7 +1373,7 @@ class _AppearanceScreenState extends State<_AppearanceScreen>
     final worn = _worn;
     if (client == null || worn == null || _busy) return;
 
-    final go = await _confirmSpend(
+    final go = await _confirm(
       context,
       title: l10n.achievementsBuyConfirm,
       body: l10n.achievementsBuyConfirmBody,
@@ -1898,7 +1937,7 @@ class _ShopScreenState extends State<_ShopScreen>
     final client = _client();
     if (client == null || _busy) return;
 
-    final go = await _confirmSpend(
+    final go = await _confirm(
       context,
       title: l10n.achievementsBuyConfirm,
       body: l10n.achievementsBuyConfirmBody,
@@ -2080,7 +2119,7 @@ class _QuestsScreenState extends State<_QuestsScreen> {
   Future<void> _reroll(AppLocalizations l10n, {required bool weekly}) async {
     final client = _client();
     if (client == null || _rerolling) return;
-    final go = await _confirmSpend(
+    final go = await _confirm(
       context,
       title: l10n.achievementsRerollConfirm,
       body: l10n.achievementsRerollConfirmBody,

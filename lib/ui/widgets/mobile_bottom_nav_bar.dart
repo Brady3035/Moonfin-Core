@@ -12,6 +12,7 @@ import '../../data/repositories/multi_server_repository.dart';
 import '../../data/repositories/user_views_repository.dart';
 import '../../data/services/library_scope_service.dart';
 import '../../data/services/plugin_sync_service.dart';
+import '../../data/services/achievements_service.dart';
 import '../../data/services/server_messages_service.dart';
 import '../../l10n/app_localizations.dart';
 import '../../preference/seerr_preferences.dart';
@@ -24,6 +25,7 @@ import '../navigation/destinations.dart';
 import '../navigation/home_refresh_bus.dart';
 import '../screens/downloads/downloads_panel.dart';
 import 'downloads_nav_slot.dart';
+import 'friends_nav_slot.dart';
 import '../screens/settings/settings_side_panel.dart';
 import '../screens/syncplay/syncplay_screen.dart';
 import 'adaptive/adaptive_glass.dart';
@@ -75,6 +77,11 @@ class _MobileBottomNavBarState extends State<MobileBottomNavBar> {
     GetIt.instance<ServerMessagesService>().addListener(
       _onServerMessagesChanged,
     );
+    if (GetIt.instance.isRegistered<AchievementsService>()) {
+      GetIt.instance<AchievementsService>().addListener(
+        _onServerMessagesChanged,
+      );
+    }
     if (GetIt.instance.isRegistered<SavedMediaPresence>()) {
       GetIt.instance<SavedMediaPresence>().addListener(_onSavedMediaChanged);
     }
@@ -90,6 +97,11 @@ class _MobileBottomNavBarState extends State<MobileBottomNavBar> {
       GetIt.instance<ServerMessagesService>().removeListener(
         _onServerMessagesChanged,
       );
+      if (GetIt.instance.isRegistered<AchievementsService>()) {
+        GetIt.instance<AchievementsService>().removeListener(
+          _onServerMessagesChanged,
+        );
+      }
       if (GetIt.instance.isRegistered<SavedMediaPresence>()) {
         GetIt.instance<SavedMediaPresence>().removeListener(
           _onSavedMediaChanged,
@@ -111,7 +123,8 @@ class _MobileBottomNavBarState extends State<MobileBottomNavBar> {
     setState(() {});
   }
 
-  // Only the button changes, so the libraries are left alone.
+  // Only the button changes, so the libraries are left alone. The friends badge
+  // comes through here too.
   void _onServerMessagesChanged() {
     if (mounted) setState(() {});
   }
@@ -399,6 +412,25 @@ class _MobileBottomNavBarState extends State<MobileBottomNavBar> {
       isActive: false,
       badgeCount: service.unreadCount,
       onTap: () => showServerMessagesDialog(context),
+    );
+  }
+
+  /// The friends entry, or null when the user turned it off or the server has
+  /// no friends feature.
+  _BottomNavAction? _friendsAction(
+    BuildContext context,
+    AppLocalizations l10n,
+  ) {
+    if (!FriendsNavSlot.isOffered() || !FriendsNavSlot.isAvailable()) {
+      return null;
+    }
+
+    return _BottomNavAction(
+      icon: Icons.people_alt_rounded,
+      label: l10n.friends,
+      isActive: false,
+      badgeCount: GetIt.instance<AchievementsService>().socialBadgeCount,
+      onTap: () => FriendsNavSlot.open(context),
     );
   }
 
@@ -718,8 +750,14 @@ class _MobileBottomNavBarState extends State<MobileBottomNavBar> {
     final l10n = AppLocalizations.of(context);
     final content = _contentActions(context, l10n);
     final messages = _serverMessagesAction(context, l10n);
+    final friends = _friendsAction(context, l10n);
     final settings = _settingsAction(context, l10n);
-    final actions = <_BottomNavAction>[...content, ?messages, settings];
+    final actions = <_BottomNavAction>[
+      ...content,
+      ?friends,
+      ?messages,
+      settings,
+    ];
 
     const maxInline = 5;
     final List<_BottomNavAction> tabs;

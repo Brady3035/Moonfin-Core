@@ -32,6 +32,7 @@ import 'navigation_layout.dart';
 import 'settings/settings_panel.dart';
 import '../screens/downloads/downloads_panel.dart';
 import 'downloads_nav_slot.dart';
+import 'friends_nav_slot.dart';
 import '../screens/syncplay/syncplay_screen.dart';
 import '../screens/settings/settings_side_panel.dart';
 import 'seerr_icons.dart';
@@ -88,6 +89,7 @@ class _LeftSidebarState extends State<LeftSidebar> with RouteAware {
   final _serverMessagesFocusNode = FocusNode(
     debugLabel: 'LeftSidebarServerMessages',
   );
+  final _friendsFocusNode = FocusNode(debugLabel: 'LeftSidebarFriends');
   final _profileFocusNode = FocusNode(debugLabel: 'LeftSidebarProfile');
   final _musicCardFocusNode = FocusNode(debugLabel: 'SidebarMusicCard');
   late final VoidCallback _focusNavbarCallback;
@@ -231,6 +233,7 @@ class _LeftSidebarState extends State<LeftSidebar> with RouteAware {
     _homeFocusNode.dispose();
     _settingsFocusNode.dispose();
     _serverMessagesFocusNode.dispose();
+    _friendsFocusNode.dispose();
     _profileFocusNode.dispose();
     _musicCardFocusNode.dispose();
     _sidebarFocus.dispose();
@@ -866,6 +869,31 @@ class _LeftSidebarState extends State<LeftSidebar> with RouteAware {
     );
   }
 
+  /// The friends row, or nothing when the server has no friends feature.
+  Widget _friendsSidebarItem({
+    required Color? navColor,
+    required String label,
+  }) {
+    return FriendsNavSlot(
+      builder: (context, badge) => _SidebarItem(
+        key: const ValueKey('sidebar-friends'),
+        icon: Icons.people_alt_rounded,
+        label: label,
+        baseColor: navColor,
+        badgeCount: badge,
+        focusNode: _friendsFocusNode,
+        showLabel: _showLabels,
+        onPressed: () async {
+          _onNavigate();
+          await FriendsNavSlot.open(context);
+          if (!mounted) return;
+          _markNavigationAwayFromSidebar();
+          _friendsFocusNode.requestFocus();
+        },
+      ),
+    );
+  }
+
   Widget _buildContent() {
     final l10n = AppLocalizations.of(context);
     final showShuffle = _prefs.get(UserPreferences.showShuffleButton);
@@ -1149,6 +1177,11 @@ class _LeftSidebarState extends State<LeftSidebar> with RouteAware {
                 // The slot is taken here rather than inside the builder, so the
                 // settings row keeps its colour whether or not there are any
                 // messages to show.
+                if (FriendsNavSlot.isOffered())
+                  _friendsSidebarItem(
+                    navColor: nextMainSidebarColor(),
+                    label: l10n.friends,
+                  ),
                 if (_prefs.get(UserPreferences.showServerMessagesButton))
                   _serverMessagesSidebarItem(
                     navColor: nextMainSidebarColor(),

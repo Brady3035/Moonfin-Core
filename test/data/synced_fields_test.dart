@@ -230,6 +230,7 @@ void main() {
     'showDescriptionOnPause',
     'showDownloadsButton',
     'showFavoritesButton',
+    'showFriendsButton',
     'showGenresButton',
     'showLibrariesInToolbar',
     'showLiveTvButton',

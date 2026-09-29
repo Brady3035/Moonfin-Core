@@ -391,14 +391,19 @@ class SessionRepository {
       }
     } catch (_) {}
 
-    await _pluginSyncService.syncOnLogin(client, serverId: serverId);
-
-    // The settings entry stays hidden until this answers.
+    // The settings entry and the friends button stay hidden until this
+    // answers. It doesn't wait for the settings sync, which on a first
+    // connection can take long enough to leave them hidden on the home screen.
     if (GetIt.instance.isRegistered<AchievementsService>()) {
+      final achievements = GetIt.instance<AchievementsService>();
       unawaited(
-        GetIt.instance<AchievementsService>().refreshAvailability(client),
+        achievements.refreshAvailability(client).then((available) {
+          if (available) achievements.startSocialPolling(client);
+        }),
       );
     }
+
+    await _pluginSyncService.syncOnLogin(client, serverId: serverId);
 
     // Register the FCM token now that a session exists, and push the current
     // notification prefs so defaults reach the plugin. Startup registration

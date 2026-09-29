@@ -28,6 +28,7 @@ import '../navigation/destinations.dart';
 import '../navigation/home_refresh_bus.dart';
 import '../navigation/route_lifecycle_observer.dart';
 import 'downloads_nav_slot.dart';
+import 'friends_nav_slot.dart';
 import 'expandable_icon_button.dart';
 import 'overlay_sheet.dart';
 import 'navigation_layout.dart';
@@ -120,6 +121,7 @@ class _TopToolbarState extends State<TopToolbar> with RouteAware {
   final _serverMessagesFocus = FocusNode(
     debugLabel: 'TopToolbarServerMessages',
   );
+  final _friendsFocus = FocusNode(debugLabel: 'TopToolbarFriends');
   final _inlineLibrariesTriggerFocus = FocusNode(
     debugLabel: 'TopToolbarInlineLibrariesTrigger',
   );
@@ -245,6 +247,7 @@ class _TopToolbarState extends State<TopToolbar> with RouteAware {
     _homeFocus.dispose();
     _settingsFocus.dispose();
     _serverMessagesFocus.dispose();
+    _friendsFocus.dispose();
     _inlineLibrariesTriggerFocus.dispose();
     _musicBarFocusNode.dispose();
     _userSub?.cancel();
@@ -1193,6 +1196,15 @@ class _TopToolbarState extends State<TopToolbar> with RouteAware {
                     label: l10n.savedMedia,
                   ),
                 ),
+              if (FriendsNavSlot.isOffered())
+                _orderButton(
+                  order: 97.5,
+                  child: _buildFriendsButton(
+                    navColor: nextNavColor(),
+                    alwaysExpanded: alwaysExpanded,
+                    label: l10n.friends,
+                  ),
+                ),
               if (_prefs.get(UserPreferences.showServerMessagesButton))
                 _orderButton(
                   order: 98,
@@ -1356,6 +1368,9 @@ class _TopToolbarState extends State<TopToolbar> with RouteAware {
     return ServerMessagesNavSlot(
       builder: (context, unread) => Row(
         mainAxisSize: MainAxisSize.min,
+        // Stretch like the bare buttons, or the hover pill stops short of the
+        // bar's height.
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           ExpandableIconButton(
             key: const ValueKey('toolbar_server_messages'),
@@ -1368,6 +1383,39 @@ class _TopToolbarState extends State<TopToolbar> with RouteAware {
             onPressed: () async {
               await showServerMessagesDialog(context);
               if (mounted) _serverMessagesFocus.requestFocus();
+            },
+          ),
+          _gap(),
+        ],
+      ),
+    );
+  }
+
+  /// The friends button, or nothing when the server has no friends feature.
+  /// The gap to the next button travels with it, like the messages button.
+  Widget _buildFriendsButton({
+    required Color? navColor,
+    required bool alwaysExpanded,
+    required String label,
+  }) {
+    return FriendsNavSlot(
+      builder: (context, badge) => Row(
+        mainAxisSize: MainAxisSize.min,
+        // Stretch like the bare buttons, or the hover pill stops short of the
+        // bar's height.
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          ExpandableIconButton(
+            key: const ValueKey('toolbar_friends'),
+            forceExpanded: alwaysExpanded,
+            icon: Icons.people_alt_rounded,
+            label: label,
+            baseColor: navColor,
+            badgeCount: badge,
+            focusNode: _friendsFocus,
+            onPressed: () async {
+              await FriendsNavSlot.open(context);
+              if (mounted) _friendsFocus.requestFocus();
             },
           ),
           _gap(),

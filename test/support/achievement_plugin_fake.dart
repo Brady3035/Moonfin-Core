@@ -10,6 +10,8 @@ import 'package:server_core/server_core.dart';
 
 class MockMediaServerClient extends Mock implements MediaServerClient {}
 
+class MockImageApi extends Mock implements ImageApi {}
+
 /// Answers the plugin's routes the way it does, with PascalCase properties and
 /// null fields left out of the payload rather than written as null. Records
 /// every request so tests can assert which ones ran.
@@ -21,6 +23,259 @@ class AchievementPluginAdapter implements HttpClientAdapter {
 
   /// The body of the last write, for asserting what was bought.
   String? lastBody;
+
+  /// The admin switches for friends and chat.
+  bool friendsEnabled = true;
+  bool friendsSimpleMode = false;
+
+  /// Grace is online and watching something, Linus is offline, and Margaret
+  /// is waiting on an answer.
+  final List<Map<String, dynamic>> friendRows = [
+    {
+      'UserId': 'user2',
+      'UserName': 'Grace',
+      'Online': true,
+      'Equipped': [
+        {'Icon': 'bolt', 'Title': 'Binge Titan', 'Rarity': 'Epic'},
+      ],
+      'NowPlaying': {
+        'Id': 'item-9',
+        'Name': 'Pilot',
+        'Type': 'Episode',
+        'SeriesName': 'Severance',
+      },
+    },
+    {
+      'UserId': 'user3',
+      'UserName': 'Linus',
+      'Online': false,
+      'Equipped': const <dynamic>[],
+      'LastWatched': {'Id': 'item-7', 'Name': 'Heat', 'Type': 'Movie'},
+    },
+  ];
+  final List<Map<String, dynamic>> incoming = [
+    {'UserId': 'user4', 'UserName': 'Margaret'},
+  ];
+  final List<Map<String, dynamic>> outgoing = [];
+  final Set<String> blocked = {};
+
+  /// The whole preferences object, with a setting unrelated to friends that a
+  /// save must not lose.
+  Map<String, dynamic> preferences = {
+    'Language': 'fr',
+    'AppearOffline': false,
+    'HideNowPlaying': false,
+    'HideLastWatched': false,
+    'MessageNotifications': true,
+    'BlockedUsers': const <dynamic>[],
+  };
+
+  /// The one chat, with Grace. Reading it marks it read.
+  int unread = 2;
+  final List<Map<String, dynamic>> chat = [
+    {
+      'id': 'msg-1',
+      'conversationId': 'conv-grace',
+      'fromUserId': 'user2',
+      'fromUserName': 'Grace',
+      'toUserId': 'user1',
+      'text': 'Did you finish it?',
+      'sentAt': '2026-09-20T18:00:00Z',
+      'readBy': const <String, dynamic>{},
+    },
+    {
+      'id': 'msg-2',
+      'conversationId': 'conv-grace',
+      'fromUserId': 'user2',
+      'fromUserName': 'Grace',
+      'toUserId': 'user1',
+      'text': 'No spoilers please',
+      'sentAt': '2026-09-20T18:01:00Z',
+      'readBy': const <String, dynamic>{},
+    },
+  ];
+  final List<String> uploads = [];
+
+  /// Chats beyond the one with Grace, as the threads route sends them.
+  final List<Map<String, dynamic>> extraThreads = [];
+
+  Map<String, dynamic> get _thread => {
+    'conversationId': 'conv-grace',
+    'type': 'dm',
+    'participants': [
+      {'userId': 'user2', 'userName': 'Grace'},
+    ],
+    'otherUserId': 'user2',
+    'otherUserName': 'Grace',
+    'lastMessage': chat.isEmpty ? '' : chat.last['text'],
+    'lastFromMe': chat.isNotEmpty && chat.last['fromUserId'] == 'user1',
+    'lastAt': chat.isEmpty ? '2026-09-20T18:00:00Z' : chat.last['sentAt'],
+    'unreadCount': unread,
+    'hasAttachment': chat.isNotEmpty && chat.last['attachmentId'] != null,
+  };
+
+  static Map<String, dynamic> _ok([Map<String, dynamic>? extra]) => {
+    'Success': true,
+    ...?extra,
+  };
+
+  static Map<String, dynamic> _no(String message) => {
+    'Success': false,
+    'Message': message,
+  };
+
+  /// Answers the friends and chat routes, or null for anything else.
+  dynamic _social(RequestOptions options, String path, String? sent) {
+    final method = options.method;
+    final body = sent == null || options.data is FormData
+        ? const <String, dynamic>{}
+        : jsonDecode(sent) as Map<String, dynamic>;
+
+    if (path == '/Users') {
+      return [
+        {'Id': 'user1', 'Name': 'Ada'},
+        {'Id': 'user2', 'Name': 'Grace'},
+        {'Id': 'user3', 'Name': 'Linus'},
+        {'Id': 'user4', 'Name': 'Margaret'},
+        {'Id': 'user5', 'Name': 'Barbara'},
+      ];
+    }
+    if (path.contains('/profiles/') && path.endsWith('/summary')) {
+      return {
+        'UserId': 'user2',
+        'UserName': 'Grace',
+        'Unlocked': 40,
+        'Total': 200,
+        'Percentage': 20.0,
+        'Score': 900,
+        'BestWatchStreak': 14,
+        'Equipped': const <dynamic>[],
+        'CustomTitle': 'Cinephile',
+      };
+    }
+    if (path.endsWith('/friends') && method == 'GET') {
+      return {
+        'Friends': friendRows,
+        'Incoming': incoming,
+        'Outgoing': outgoing,
+        'SimpleMode': friendsSimpleMode,
+      };
+    }
+    if (path.endsWith('/accept')) {
+      final id = path.split('/')[path.split('/').length - 2];
+      final row = incoming.firstWhere((u) => u['UserId'] == id);
+      incoming.remove(row);
+      friendRows.add({...row, 'Online': false});
+      return _ok({'Message': 'Friend added.'});
+    }
+    if (path.contains('/friends/')) {
+      final id = path.split('/').last;
+      if (method == 'DELETE') {
+        friendRows.removeWhere((u) => u['UserId'] == id);
+        incoming.removeWhere((u) => u['UserId'] == id);
+        outgoing.removeWhere((u) => u['UserId'] == id);
+        return _ok();
+      }
+      outgoing.add({'UserId': id, 'UserName': id});
+      return _ok({'Message': 'Request sent.'});
+    }
+    if (path.endsWith('/messages/threads')) {
+      return {
+        'Threads': [_thread, ...extraThreads],
+      };
+    }
+    if (path.endsWith('/messages/user2')) {
+      return {'Messages': chat, 'ConversationId': 'conv-grace'};
+    }
+    if (path.contains('/messages/by-id/')) {
+      final id = path.split('/').last;
+      chat.removeWhere((m) => m['id'] == id);
+      return _ok();
+    }
+    if (method == 'PATCH' && path.contains('/messages/')) {
+      final id = path.split('/').last;
+      final message = chat.firstWhere((m) => m['id'] == id);
+      message['text'] = body['Text'];
+      message['editedAt'] = '2026-09-20T18:05:00Z';
+      return _ok({'Updated': message});
+    }
+    if (path.endsWith('/conversations/conv-grace/messages')) {
+      if (method == 'GET') {
+        unread = 0;
+        return {'Messages': chat};
+      }
+      final text = (body['Text'] as String? ?? '').trim();
+      if (text.length > 1000) {
+        return _no('Message exceeds 1000 character limit.');
+      }
+      final message = {
+        'id': 'msg-${chat.length + 1}',
+        'conversationId': 'conv-grace',
+        'fromUserId': 'user1',
+        'fromUserName': 'Ada',
+        'toUserId': 'user2',
+        'text': text,
+        'sentAt': '2026-09-20T18:10:00Z',
+        'readBy': const <String, dynamic>{},
+        'attachmentId': ?body['AttachmentId'],
+      };
+      chat.add(message);
+      return _ok({'Sent': message});
+    }
+    if (path.endsWith('/conversations/conv-grace/clear')) {
+      chat.clear();
+      return {'Success': true, 'Deleted': 2};
+    }
+    if (path.endsWith('/conversations/conv-grace')) {
+      return _ok({
+        'Conversation': {
+          'id': 'conv-grace',
+          'type': 'dm',
+          'participantIds': ['user1', 'user2'],
+          'createdByUserId': 'user2',
+          'adminIds': const <String>[],
+        },
+      });
+    }
+    if (path.endsWith('/conversations') && method == 'POST') {
+      final ids = (body['ParticipantIds'] as List).cast<String>();
+      if (ids.length < 2) {
+        return _no('Group chat needs at least 3 members (you + 2).');
+      }
+      return _ok({
+        'Conversation': {
+          'id': 'conv-group',
+          'type': 'group',
+          'title': body['Title'],
+          'participantIds': ['user1', ...ids],
+          'createdByUserId': 'user1',
+          'adminIds': const <String>[],
+        },
+      });
+    }
+    if (path.endsWith('/blocked')) {
+      return {'Blocked': blocked.toList()};
+    }
+    if (path.contains('/block/')) {
+      final id = path.split('/').last;
+      method == 'DELETE' ? blocked.remove(id) : blocked.add(id);
+      return _ok();
+    }
+    if (path.endsWith('/preferences')) {
+      if (method == 'POST') {
+        preferences = body;
+        return _ok();
+      }
+      return preferences;
+    }
+    if (path.endsWith('/attachments') && method == 'POST') {
+      uploads.add(sent ?? '');
+      return _ok({
+        'Attachment': {'id': 'att-1', 'mimeType': 'image/png'},
+      });
+    }
+    return null;
+  }
 
   /// The plugin's admin switches.
   bool leaderboardEnabled = true;
@@ -153,12 +408,16 @@ class AchievementPluginAdapter implements HttpClientAdapter {
     final path = options.uri.path;
     requests.add('${options.method} $path');
 
-    // The purchase route is the only one that sends a body, and which item it
-    // names is worth asserting on.
+    // Which item a purchase names, and what a chat write carries, are worth
+    // asserting on.
+    String? requestBody;
     if (requestStream != null) {
       final chunks = await requestStream.toList();
       if (chunks.isNotEmpty) {
-        lastBody = utf8.decode(chunks.expand((c) => c).toList());
+        requestBody = lastBody = utf8.decode(
+          chunks.expand((c) => c).toList(),
+          allowMalformed: true,
+        );
       }
     }
 
@@ -166,13 +425,21 @@ class AchievementPluginAdapter implements HttpClientAdapter {
       return ResponseBody.fromString('', 404);
     }
 
-    dynamic body;
-    if (path.endsWith('/public-config')) {
+    if (path.endsWith('/attachments/att-1')) {
+      return ResponseBody.fromBytes(onePixelPng, 200);
+    }
+
+    dynamic body = _social(options, path, requestBody);
+    if (body != null) {
+      // Answered above.
+    } else if (path.endsWith('/public-config')) {
       body = {
         'LeaderboardEnabled': leaderboardEnabled,
         'QuestsEnabled': questsEnabled,
         'ActivityFeedEnabled': activityFeedEnabled,
         'ForcePrivacyMode': forcePrivacyMode,
+        'FriendsEnabled': friendsEnabled,
+        'FriendsSimpleMode': friendsSimpleMode,
       };
     } else if (path.endsWith('/records')) {
       body = {
@@ -583,6 +850,11 @@ class AchievementPluginAdapter implements HttpClientAdapter {
   void close({bool force = false}) {}
 }
 
+/// The smallest valid PNG, so an attachment can be drawn in a widget test.
+final onePixelPng = base64Decode(
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVR4nGNgAAIAAAUAAXpeqz8AAAAASUVORK5CYII=',
+);
+
 /// A signed-in client pointed at the fake server.
 MockMediaServerClient buildAchievementClient({
   ServerType serverType = ServerType.jellyfin,
@@ -595,6 +867,11 @@ MockMediaServerClient buildAchievementClient({
   when(() => mock.accessToken).thenReturn(token);
   when(() => mock.userId).thenReturn(userId);
   when(() => mock.serverType).thenReturn(serverType);
+  final images = MockImageApi();
+  when(() => images.getUserImageUrl(any())).thenAnswer(
+    (call) => '$baseUrl/Users/${call.positionalArguments.first}/Images/Primary',
+  );
+  when(() => mock.imageApi).thenReturn(images);
   when(() => mock.deviceInfo).thenReturn(
     const DeviceInfo(
       id: 'dev1',

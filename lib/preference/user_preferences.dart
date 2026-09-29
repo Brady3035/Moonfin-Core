@@ -452,6 +452,7 @@ class UserPreferences extends ChangeNotifier {
     'pref_show_seerr_button',
     'pref_show_seerr_availability_badges',
     'pref_show_server_messages_button',
+    'pref_show_friends_button',
     'pref_show_book_discover_tab',
     'pref_show_media_details_on_library_page',
     'pref_use_detailed_sub_headings',
@@ -1636,6 +1637,13 @@ class UserPreferences extends ChangeNotifier {
   static final showServerMessagesButton = Preference(
     key: 'pref_show_server_messages_button',
     defaultValue: false,
+  );
+
+  /// On by default, since the button only shows where the Achievement Badges
+  /// plugin has friends turned on.
+  static final showFriendsButton = Preference(
+    key: 'pref_show_friends_button',
+    defaultValue: true,
   );
 
   /// On by default, so a server without Moonbase keeps the tab. An admin can

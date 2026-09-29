@@ -173,16 +173,19 @@ class _FloatingNotificationCardState extends State<_FloatingNotificationCard>
             opacity: _fade,
             child: SlideTransition(
               position: _slide,
-              child: tappable
-                  ? Material(
-                      color: Colors.transparent,
-                      child: InkWell(
+              // The Material is there even when the card can't be tapped, as on
+              // TV. Without it the text has no theme and draws in the debug
+              // style, underlined in yellow.
+              child: Material(
+                type: MaterialType.transparency,
+                child: tappable
+                    ? InkWell(
                         borderRadius: AppRadius.circular(14),
                         onTap: _handleTap,
                         child: card,
-                      ),
-                    )
-                  : card,
+                      )
+                    : card,
+              ),
             ),
           ),
         ),

@@ -7053,7 +7053,7 @@
     "bottomBar": "Alapalkki",
     "homeRowsStyleClassic": "Klassinen",
     "homeRowsStyleModern": "Moderni",
-    "homeRowsSection": "Etusivulla",
+    "homeRowsSection": "Kotirivit",
     "rowsType": "Rivien tyyppi",
     "rowsTypeDescription": "Classic säilyttää rivikohtaisen kuvatyypin ja tietopeittokuvan. Moderni käyttää muotokuvasta taustaan -rivejä.",
     "displayFavoritesRows": "Näytä suosikkirivit",

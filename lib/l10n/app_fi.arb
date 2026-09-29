@@ -3693,7 +3693,7 @@
     "@resetToDefaults": {
         "description": "Tooltip for reset to defaults button"
     },
-    "homeRowPosterSize": "Kotirivin julisteen koko",
+    "homeRowPosterSize": "Etusivun julisteen koko",
     "@homeRowPosterSize": {
         "description": "Setting for home row poster size"
     },
@@ -9224,7 +9224,7 @@
             }
         }
     },
-    "homeRowsPadding": "Kotirivin täytöt",
+    "homeRowsPadding": "Etusivun t",
     "@homeRowsPadding": {
         "description": "Title for home rows padding setting"
     },

@@ -13959,9 +13959,11 @@ class DetailMetadataSectionState extends State<DetailMetadataSection> {
     });
   }
 
-  void _handleInterceptedBack() {
+  bool _handleInterceptedBack() {
     final g = _enteredGroupIndex;
-    if (g != null) _exitGroup(g);
+    if (g == null) return false;
+    _exitGroup(g);
+    return true;
   }
 
   void _exitGroup(int g) {

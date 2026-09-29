@@ -27,19 +27,23 @@ class DialogBackSuppressor {
   }
 }
 
+/// Back handlers for things that close in place rather than as routes. Each
+/// one says whether it did anything, so a handler with nothing left to do
+/// passes Back on instead of swallowing every press.
 class InlineBackInterceptor {
   InlineBackInterceptor._();
 
-  static final List<VoidCallback> _handlers = <VoidCallback>[];
+  static final List<bool Function()> _handlers = <bool Function()>[];
 
-  static void push(VoidCallback onBack) => _handlers.add(onBack);
+  static void push(bool Function() onBack) => _handlers.add(onBack);
 
-  static void remove(VoidCallback onBack) => _handlers.remove(onBack);
+  static void remove(bool Function() onBack) => _handlers.remove(onBack);
 
   static bool handleBack() {
-    if (_handlers.isEmpty) return false;
-    _handlers.last();
-    return true;
+    for (final handler in _handlers.reversed) {
+      if (handler()) return true;
+    }
+    return false;
   }
 }
 

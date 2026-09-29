@@ -7053,7 +7053,7 @@
     "bottomBar": "Alapalkki",
     "homeRowsStyleClassic": "Klassinen",
     "homeRowsStyleModern": "Moderni",
-    "homeRowsSection": "Kotirivit",
+    "homeRowsSection": "Etusivulla",
     "rowsType": "Rivien tyyppi",
     "rowsTypeDescription": "Classic säilyttää rivikohtaisen kuvatyypin ja tietopeittokuvan. Moderni käyttää muotokuvasta taustaan -rivejä.",
     "displayFavoritesRows": "Näytä suosikkirivit",
@@ -9224,11 +9224,11 @@
             }
         }
     },
-    "homeRowsPadding": "Etusivun t",
+    "homeRowsPadding": "Etusivun täyttö",
     "@homeRowsPadding": {
         "description": "Title for home rows padding setting"
     },
-    "homeRowsPaddingDescription": "Mukauta kotirivien välistä etäisyyttä",
+    "homeRowsPaddingDescription": "Mukauta etusivun täytön välistä etäisyyttä",
     "@homeRowsPaddingDescription": {
         "description": "Description for home rows padding setting"
     },

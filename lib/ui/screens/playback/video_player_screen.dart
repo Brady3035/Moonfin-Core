@@ -975,6 +975,11 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
     _displayPlaying = _state.isPlaying;
     _playingSub = _state.playingStream.listen((playing) {
       _updateDisplayPlaying(playing);
+      // The hide timer passes over a player that hasn't started yet, so a
+      // start or resume slower than its delay needs it armed again here.
+      if (playing && _controlsVisible && !_isSeeking) {
+        _scheduleHide();
+      }
       if (isMobilePlayback) {
         _pipService.updatePiPActions(isPlaying: playing);
         _syncAirPlayPlaybackState();

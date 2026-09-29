@@ -111,7 +111,7 @@
     "@addServer": {
         "description": "Button to manually add a server address"
     },
-    "embyConnect": "Yhdistä Emby",
+    "embyConnect": "Emby Yhteys",
     "@embyConnect": {
         "description": "Emby Connect sign-in option label"
     },

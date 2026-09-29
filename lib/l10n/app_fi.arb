@@ -3693,7 +3693,7 @@
     "@resetToDefaults": {
         "description": "Tooltip for reset to defaults button"
     },
-    "homeRowPosterSize": "Etusivun julisteen koko",
+    "homeRowPosterSize": "Etusivu rivin julisteen koko",
     "@homeRowPosterSize": {
         "description": "Setting for home row poster size"
     },
@@ -3701,7 +3701,7 @@
     "@perRowImageTypeSelection": {
         "description": "Setting for per-row image type selection"
     },
-    "configureImageTypeForEachRow": "Määritä kuvatyyppi kullekin käytössä olevalle kotiriville",
+    "configureImageTypeForEachRow": "Määritä kuvatyyppi kullekin käytössä olevalle etusivu riville",
     "@configureImageTypeForEachRow": {
         "description": "Description for per-row image type selection"
     },
@@ -4223,7 +4223,7 @@
     "@navbarStyleToolbarAppearance": {
         "description": "Navigation settings subtitle"
     },
-    "reorderToggleHomeRows": "Järjestä uudelleen ja vaihda sekä kirjastopohjaisten että ulkoisten kotirivien järjestystä",
+    "reorderToggleHomeRows": "Järjestä uudelleen ja vaihda sekä kirjastopohjaisten että ulkoisten sivurivien järjestystä",
     "@reorderToggleHomeRows": {
         "description": "Home sections settings subtitle"
     },
@@ -9224,11 +9224,11 @@
             }
         }
     },
-    "homeRowsPadding": "Etusivun täyttö",
+    "homeRowsPadding": "Etusivu rivien täyttö",
     "@homeRowsPadding": {
         "description": "Title for home rows padding setting"
     },
-    "homeRowsPaddingDescription": "Mukauta etusivun täytön välistä etäisyyttä",
+    "homeRowsPaddingDescription": "Mukauta etusivu rivien täytön välistä etäisyyttä",
     "@homeRowsPaddingDescription": {
         "description": "Description for home rows padding setting"
     },

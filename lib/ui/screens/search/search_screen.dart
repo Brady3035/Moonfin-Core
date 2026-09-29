@@ -11,6 +11,8 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:server_core/server_core.dart';
 
 import '../../../data/models/aggregated_item.dart';
+import '../../../data/offline/connectivity_aware_media_server_client.dart';
+import '../../../data/repositories/multi_server_repository.dart';
 import '../../../data/repositories/search_repository.dart';
 import '../../../data/repositories/seerr_repository.dart';
 import '../../../data/services/recent_searches_store.dart';
@@ -31,8 +33,10 @@ import '../../util/error_message.dart';
 import '../../util/search_group_title_localizer.dart';
 import '../../../util/focus/grid_focus_node_mixin.dart';
 import '../../../util/focus/row_focus_coordinator.dart';
+import '../../theme/app_theme_controller.dart';
 import '../../widgets/bottom_nav/bottom_navbar.dart';
 import '../../widgets/library_row.dart';
+import '../../widgets/media_badge.dart';
 import '../../widgets/media_card.dart';
 import '../../widgets/navigation_layout.dart';
 import '../../widgets/focus/context_menu_sheet.dart';
@@ -107,6 +111,11 @@ class _SearchScreenState extends State<SearchScreen>
       _searchRepository,
       getIt<MediaServerClient>(),
       scopedParentId: widget.scopedLibraryId,
+      multiServerRepository: widget.scopedLibraryId == null &&
+              _userPreferences.get(UserPreferences.enableMultiServerLibraries) &&
+              !shouldUseOfflineCatalog()
+          ? getIt<MultiServerRepository>()
+          : null,
     );
     _vm.addListener(_onViewModelChanged);
     _initSeerr();
@@ -736,7 +745,7 @@ class _SearchScreenState extends State<SearchScreen>
   }
 
   String? _imageUrl(AggregatedItem item, {int? maxWidth, int? maxHeight}) {
-    final api = _vm.imageApi;
+    final api = _vm.imageApiFor(item);
     final type = item.type;
     if (type == 'Episode' || type == 'Program' || type == 'Recording') {
       if (item.backdropImageTags.isNotEmpty) {
@@ -1418,10 +1427,26 @@ class _SearchScreenState extends State<SearchScreen>
       MediaQuery.devicePixelRatioOf(context),
       ArtworkShape.forAspectRatio(ar),
     );
+    final serverName = _vm.serverNameFor(item);
+    // A person's round portrait would clip the badge, so their server goes on
+    // the line under the name instead.
+    final serverOnSubtitle = serverName != null && item.type == 'Person';
     return MediaCard(
       title: item.name,
-      subtitle: _subtitle(item),
+      subtitle: serverOnSubtitle ? serverName : _subtitle(item),
       imageUrl: _imageUrl(item, maxWidth: requestWidth),
+      imageOverlays: [
+        if (serverName != null && !serverOnSubtitle)
+          Positioned(
+            left: 6,
+            right: 6,
+            bottom: (item.playedPercentage ?? 0) > 0 ? 16 : 6,
+            child: Align(
+              alignment: Alignment.bottomLeft,
+              child: _ServerBadge(name: serverName),
+            ),
+          ),
+      ],
       width: width,
       aspectRatio: ar,
       isFavorite: item.isFavorite,
@@ -1677,6 +1702,37 @@ class _SearchScreenState extends State<SearchScreen>
         columns: columns,
         count: count,
         event: event,
+      ),
+    );
+  }
+}
+
+class _ServerBadge extends StatelessWidget {
+  const _ServerBadge({required this.name});
+
+  final String name;
+
+  @override
+  Widget build(BuildContext context) {
+    context.dependOnInheritedWidgetOfExactType<AppThemeScope>();
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: AppColorScheme.scrim.withValues(alpha: 0.75),
+        borderRadius: AppRadius.circular(4),
+        boxShadow: kMediaBadgeShadow,
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        child: Text(
+          name,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            color: AppColorScheme.onBadge,
+            fontSize: 10,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
       ),
     );
   }

@@ -242,13 +242,16 @@ class _NavigationCategoryScreenState extends State<_NavigationCategoryScreen> {
                 icon: Icons.info_outline_rounded,
                 onChanged: _pushPersonalizationSync,
               ),
-              SwitchPreferenceTile(
-                preference: UserPreferences.showFriendsButton,
-                title: l10n.friendsShowButton,
-                subtitle: l10n.friendsShowButtonSubtitle,
-                icon: Icons.people_alt_rounded,
-                onChanged: _pushPersonalizationSync,
-              ),
+              // Only where the plugin has friends on, so nobody is offered a
+              // button that would never show.
+              if (GetIt.instance<AchievementsService>().socialAvailable)
+                SwitchPreferenceTile(
+                  preference: UserPreferences.showFriendsButton,
+                  title: l10n.friendsShowButton,
+                  subtitle: l10n.friendsShowButtonSubtitle,
+                  icon: Icons.people_alt_rounded,
+                  onChanged: _pushPersonalizationSync,
+                ),
             ],
           ),
         ],

@@ -285,6 +285,14 @@ class _AchievementsScaffoldState extends State<_AchievementsScaffold> {
           context,
           Text(widget.title),
           actions: widget.actions,
+          // First in the side panel, as when opened from the nav bar or a
+          // chat banner, there is nothing to go back to, so back closes it.
+          leading: Navigator.of(context).canPop()
+              ? null
+              : BackButton(
+                  onPressed: () =>
+                      Navigator.of(context, rootNavigator: true).pop(),
+                ),
         ),
         body: FocusScope(
           node: _scope,

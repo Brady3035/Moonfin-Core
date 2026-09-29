@@ -822,6 +822,7 @@ class _SocialPrivacyScreen extends StatefulWidget {
 class _SocialPrivacyScreenState extends State<_SocialPrivacyScreen>
     with _LoadsOnOpen<_SocialPrivacyScreen> {
   final _service = GetIt.instance<AchievementsService>();
+  final _prefs = GetIt.instance<UserPreferences>();
   SocialPrivacy? _privacy;
   List<SocialUser> _blocked = const [];
 
@@ -946,6 +947,25 @@ class _SocialPrivacyScreenState extends State<_SocialPrivacyScreen>
                   value: privacy.messageNotifications,
                   apply: (v) => privacy.copyWith(messageNotifications: v),
                 ),
+                // A setting on the device rather than the plugin's, whose own
+                // one defaults to off.
+                if (privacy.messageNotifications)
+                  DpadSwitchListTile(
+                    useSettingsIconShell: true,
+                    secondary: const Icon(Icons.do_not_disturb_on),
+                    title: Text(l10n.friendsMuteDuringPlayback),
+                    subtitle: Text(l10n.friendsMuteDuringPlaybackSubtitle),
+                    value: _prefs.get(
+                      UserPreferences.muteChatBannersDuringPlayback,
+                    ),
+                    onChanged: (value) async {
+                      await _prefs.set(
+                        UserPreferences.muteChatBannersDuringPlayback,
+                        value,
+                      );
+                      if (mounted) setState(() {});
+                    },
+                  ),
               ],
             ),
             if (_blocked.isNotEmpty) ...[

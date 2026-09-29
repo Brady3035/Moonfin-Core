@@ -1160,6 +1160,13 @@ class _ConnectivityListenerState extends ConsumerState<_ConnectivityListener>
 
   /// A banner for a chat message from a friend. Tapping it opens the chat.
   void _handleIncomingChat(ChatThread thread) {
+    if (GetIt.instance<UserPreferences>().get(
+      UserPreferences.muteChatBannersDuringPlayback,
+    )) {
+      final matches = appRouter.routerDelegate.currentConfiguration.matches;
+      final path = matches.isEmpty ? '' : matches.last.matchedLocation;
+      if (Destinations.isPlayerRoute(path)) return;
+    }
     final navContext = _navigatorContext();
     if (navContext == null) return;
     final l10n = AppLocalizations.of(navContext);

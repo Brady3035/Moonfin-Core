@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart'
+    show AppLifecycleListener, AppLifecycleState;
 import 'package:server_core/server_core.dart';
 
 import '../models/achievement_models.dart';
@@ -585,6 +587,7 @@ class AchievementsService extends ChangeNotifier {
   @override
   void dispose() {
     _socialTimer?.cancel();
+    _lifecycle?.dispose();
     unawaited(_incoming.close());
     _dio.close(force: true);
     super.dispose();
@@ -620,6 +623,12 @@ class AchievementsService extends ChangeNotifier {
   /// only records what is there.
   Map<String, ChatThread>? _seenThreads;
   bool _messageNotifications = true;
+
+  /// The client the badge refreshes with, kept so a return from the
+  /// background can pick the refreshes back up.
+  MediaServerClient? _socialClient;
+  AppLifecycleListener? _lifecycle;
+
   final _incoming = StreamController<ChatThread>.broadcast();
 
   /// The last friends list read, or null before the first one lands.
@@ -645,6 +654,9 @@ class AchievementsService extends ChangeNotifier {
   void _clearSocial() {
     _socialTimer?.cancel();
     _socialTimer = null;
+    _lifecycle?.dispose();
+    _lifecycle = null;
+    _socialClient = null;
     _friends = null;
     _threads = const [];
     _seenThreads = null;
@@ -653,16 +665,46 @@ class AchievementsService extends ChangeNotifier {
   }
 
   /// Keeps the friends badge current until [reset] ends the session.
+  ///
+  /// The refreshes stop while the app is in the background and pick up again,
+  /// with one straight away, when it comes back.
   void startSocialPolling(MediaServerClient client) {
-    _socialTimer?.cancel();
     if (!socialAvailable) return;
+    _socialClient = client;
+    _lifecycle ??= AppLifecycleListener(onStateChange: _onLifecycleChanged);
     unawaited(_loadNotificationSetting(client));
+    _resumeSocialPolling();
+  }
+
+  void _resumeSocialPolling() {
+    final client = _socialClient;
+    if (client == null || !socialAvailable) return;
+    _socialTimer?.cancel();
     unawaited(refreshSocial(client));
     _socialTimer = Timer.periodic(
       socialPollInterval,
       (_) => refreshSocial(client),
     );
   }
+
+  /// Only a hidden or paused app stops. An inactive one is still on screen,
+  /// like a desktop window without focus.
+  void _onLifecycleChanged(AppLifecycleState state) {
+    switch (state) {
+      case AppLifecycleState.resumed:
+        if (_socialTimer == null) _resumeSocialPolling();
+      case AppLifecycleState.hidden:
+      case AppLifecycleState.paused:
+        _socialTimer?.cancel();
+        _socialTimer = null;
+      case AppLifecycleState.inactive:
+      case AppLifecycleState.detached:
+        break;
+    }
+  }
+
+  @visibleForTesting
+  bool get socialPolling => _socialTimer != null;
 
   Future<void> _loadNotificationSetting(MediaServerClient client) async {
     final privacy = await fetchSocialPrivacy(client);

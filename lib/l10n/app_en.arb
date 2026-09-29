@@ -10710,7 +10710,7 @@
   "@friendsShowButton": {
     "description": "Navigation setting that adds a Friends button"
   },
-  "friendsShowButtonSubtitle": "Shown when the Achievement Badges plugin has friends turned on",
+  "friendsShowButtonSubtitle": "Friends and chat from the Achievement Badges plugin",
   "@friendsShowButtonSubtitle": {
     "description": "Subtitle of the setting that adds a Friends button"
   },
@@ -10962,6 +10962,14 @@
   "friendsMessageNotificationsSubtitle": "Show a banner when a friend messages you",
   "@friendsMessageNotificationsSubtitle": {
     "description": "Subtitle of the Message notifications setting"
+  },
+  "friendsMuteDuringPlayback": "Mute during playback",
+  "@friendsMuteDuringPlayback": {
+    "description": "Setting that hides new message banners while a video or game plays"
+  },
+  "friendsMuteDuringPlaybackSubtitle": "No message banners while a video or game is playing",
+  "@friendsMuteDuringPlaybackSubtitle": {
+    "description": "Subtitle of the Mute during playback setting"
   },
   "friendsSaveFailed": "Could not save your settings.",
   "@friendsSaveFailed": {

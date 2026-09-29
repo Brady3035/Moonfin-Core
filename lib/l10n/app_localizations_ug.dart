@@ -11460,7 +11460,7 @@ class AppLocalizationsUg extends AppLocalizations {
 
   @override
   String get friendsShowButtonSubtitle =>
-      'Shown when the Achievement Badges plugin has friends turned on';
+      'Friends and chat from the Achievement Badges plugin';
 
   @override
   String get friendsMessages => 'Messages';
@@ -11645,6 +11645,13 @@ class AppLocalizationsUg extends AppLocalizations {
   @override
   String get friendsMessageNotificationsSubtitle =>
       'Show a banner when a friend messages you';
+
+  @override
+  String get friendsMuteDuringPlayback => 'Mute during playback';
+
+  @override
+  String get friendsMuteDuringPlaybackSubtitle =>
+      'No message banners while a video or game is playing';
 
   @override
   String get friendsSaveFailed => 'Could not save your settings.';

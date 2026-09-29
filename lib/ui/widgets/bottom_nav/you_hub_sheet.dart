@@ -6,6 +6,7 @@ import '../../../preference/bottom_nav_tabs.dart';
 import '../../../preference/preference_constants.dart';
 import '../../screens/settings/settings_side_panel.dart';
 import '../adaptive/sf_symbol.dart';
+import '../friends_nav_slot.dart';
 import '../server_messages_dialog.dart';
 import '../settings/settings_panel.dart';
 import '../user_menu_dialog.dart';
@@ -63,6 +64,7 @@ Future<void> showYouHub({
                 runBottomNavHubAction(context, tile.action!);
               }
             }),
+            onFriends: () => then(() => FriendsNavSlot.open(context)),
             onMessages: () => then(() => showServerMessagesDialog(context)),
             onSettings: () => then(
               () => SettingsPanel.open(context, const SettingsSidePanel()),
@@ -81,6 +83,7 @@ class _YouHub extends StatelessWidget {
   final BottomNavTheme theme;
   final VoidCallback onAccount;
   final ValueChanged<BottomNavHubTile> onTile;
+  final VoidCallback onFriends;
   final VoidCallback onMessages;
   final VoidCallback onSettings;
 
@@ -89,6 +92,7 @@ class _YouHub extends StatelessWidget {
     required this.theme,
     required this.onAccount,
     required this.onTile,
+    required this.onFriends,
     required this.onMessages,
     required this.onSettings,
   });
@@ -192,12 +196,20 @@ class _YouHub extends StatelessWidget {
             clipBehavior: Clip.antiAlias,
             child: Column(
               children: [
+                if (controller.friendsVisible)
+                  _HubRow(
+                    icon: Icons.people_alt_rounded,
+                    label: l10n.friends,
+                    theme: theme,
+                    trailing: _countBadge(controller.friendsBadge),
+                    onTap: onFriends,
+                  ),
                 if (controller.messagesVisible)
                   _HubRow(
                     icon: Icons.info_outline_rounded,
                     label: l10n.serverMessages,
                     theme: theme,
-                    trailing: _countBadge(),
+                    trailing: _countBadge(controller.unreadMessages),
                     onTap: onMessages,
                   ),
                 _HubRow(
@@ -214,23 +226,27 @@ class _YouHub extends StatelessWidget {
     );
   }
 
-  Widget? _countBadge() {
-    final unread = controller.unreadMessages;
+  Widget? _countBadge(int unread) {
     if (unread <= 0) return null;
     return Container(
       constraints: const BoxConstraints(minWidth: 22, minHeight: 22),
       padding: const EdgeInsets.symmetric(horizontal: 6),
-      alignment: Alignment.center,
       decoration: BoxDecoration(
         color: const Color(0xFFE03B36),
         borderRadius: AppRadius.circular(11),
       ),
-      child: Text(
-        unread > 9 ? '9+' : '$unread',
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 11,
-          fontWeight: FontWeight.w800,
+      // Sized to the count. An alignment on the Container would stretch it
+      // across the whole row, which a ListTile trailing can't lay out.
+      child: Center(
+        widthFactor: 1,
+        heightFactor: 1,
+        child: Text(
+          unread > 9 ? '9+' : '$unread',
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 11,
+            fontWeight: FontWeight.w800,
+          ),
         ),
       ),
     );

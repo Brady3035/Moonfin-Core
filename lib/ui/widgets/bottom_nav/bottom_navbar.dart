@@ -205,7 +205,7 @@ class _BottomNavbarState extends State<BottomNavbar> {
         bottomNavItemView(
           item,
           l10n,
-          badge: _controller.unreadMessages,
+          badge: _controller.hubBadge,
           avatar: (active, size, color) => BottomNavAvatar(
             imageUrl: _controller.userImageUrl,
             name: _controller.userName,

@@ -1648,6 +1648,13 @@ class UserPreferences extends ChangeNotifier {
     defaultValue: true,
   );
 
+  /// On by default, since a chat banner over a film is rarely wanted. Kept on
+  /// the device rather than in the plugin, whose own setting defaults to off.
+  static final muteChatBannersDuringPlayback = Preference(
+    key: 'pref_mute_chat_banners_during_playback',
+    defaultValue: true,
+  );
+
   /// On by default, so a server without Moonbase keeps the tab. An admin can
   /// set a different default in the Moonbase default settings.
   static final showBookDiscoverTab = Preference(

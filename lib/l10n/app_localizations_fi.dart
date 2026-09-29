@@ -101,7 +101,7 @@ class AppLocalizationsFi extends AppLocalizations {
   String get whosWatching => 'Kuka katselee?';
 
   @override
-  String get addUser => 'Lisää käyttäjä';
+  String get addUser => 'Lisää Käyttäjä';
 
   @override
   String get selectServer => 'Valitse Palvelin';
@@ -112,7 +112,7 @@ class AppLocalizationsFi extends AppLocalizations {
   }
 
   @override
-  String get savedServers => 'Tallennetut palvelimet';
+  String get savedServers => 'Tallennetut Palvelimet';
 
   @override
   String get discoveredServers => 'Löydetyt Palvelimet';
@@ -122,13 +122,13 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get unableToConnectToServer =>
-      'Ei voida muodostaa yhteyttä palvelimeen';
+      'Yhteyttä palvelimeen ei voitu muodostaa';
 
   @override
   String get addServer => 'Lisää Palvelin';
 
   @override
-  String get embyConnect => 'Yhdistä Emby';
+  String get embyConnect => 'Emby Yhteys';
 
   @override
   String get removeServer => 'Poista Palvelin';
@@ -139,7 +139,7 @@ class AppLocalizationsFi extends AppLocalizations {
   }
 
   @override
-  String get cancel => 'Keskeytä';
+  String get cancel => 'Peruuta';
 
   @override
   String get remove => 'Poista';
@@ -158,11 +158,11 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get secureStorageUnavailable =>
-      'Suojattua Tallennustilaa ei ole Käytettävissä';
+      'Turvallista tallennustilaa ei ole käytettävissä';
 
   @override
   String get secureStorageUnavailableMessage =>
-      'Moonfin ei voinut käyttää järjestelmän avainketjua . Kirjautuminen voi jatkua, mutta suojattu tunnuksen tallennus ei välttämättä ole käytettävissä, ennen kuin avainketju on avattu.';
+      'Moonfin ei voinut käyttää järjestelmän avainketjua. \tVoit kirjautua, mutta suojatun tunnuksen tallennus ei välttämättä ole käytettävissä, ennen kuin avainketju on avattu.';
 
   @override
   String get ok => 'OK';
@@ -175,13 +175,13 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get detailScreenStyleSubtitle =>
-      'Classic on alkuperäinen, keskitetyn moonfin-asettelun versio. Modern on responsiivinen, elokuvamainen asettelu. Spotlight on hero-first-asettelu, jossa on ponnahdusikkunoina avautuvia sisältökortteja. Nouveau on koko näytön asettelu, jossa osiot on pinottu sivun alaspäin. Minimalist koostuu kuvamateriaalista, yhdestä toistopainikkeesta ja jaksoista.';
+      'Classic on alkuperäinen, keskitetyn moonfin-asettelun versio. \tModern on responsiivinen, elokuvamainen asettelu.\tSpotlight on hero-first-asettelu, jossa on ponnahdusikkunoina avautuvia sisältökortteja.\tNouveau on koko näytön asettelu, jossa osiot on pinottu sivun alaspäin. \tMinimalist koostuu kuvamateriaalista, yhdestä toistopainikkeesta ja jaksoista.';
 
   @override
   String get detailScreenStyleMoonfin => 'Klassinen';
 
   @override
-  String get detailScreenStyleModern => 'Moderni';
+  String get detailScreenStyleModern => 'Modern';
 
   @override
   String get detailScreenStyleSpotlight => 'Esittelyssä';
@@ -399,7 +399,7 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get expandedTabsSubtitle =>
-      'Näytä välilehden sisältö automaattisesti välilehtiä selatessasi. Poista käytöstä, jos haluat avata ja sulkea jokaisen välilehden itse.';
+      'Näytä välilehden sisältö automaattisesti välilehtiä selatessasi. \tPoista käytöstä, jos haluat avata ja sulkea jokaisen välilehden itse.';
 
   @override
   String get showTechnicalDetails => 'Näytetäänkö Tekniset Tiedot?';
@@ -501,7 +501,7 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get performanceModeSubtitle =>
-      'Toiminto mittaa laitteen resurssit automaattisesti ja rajoittaa toimintoja laitteissa, joissa on vähän muistia. Näin muistiin tallennetaan vähemmän kuvia ja videot tallennetaan still-kuvina. Muutos astuu voimaan seuraavalla käynnistyskerralla.';
+      'Toiminto mittaa laitteen resurssit automaattisesti ja rajoittaa toimintoja laitteissa, joissa on vähän muistia. \nNäin muistiin tallennetaan vähemmän kuvia ja videot tallennetaan still-kuvina. Muutos astuu voimaan seuraavalla käynnistyskerralla.';
 
   @override
   String get performanceModeAuto => 'Auto';
@@ -591,7 +591,7 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get invalidEmbyConnectCredentials =>
-      'Virheelliset Emby Connect -tunnistetiedot';
+      'Virheelliset Emby Connect -tiedot';
 
   @override
   String get invalidEmbyConnectLogin =>
@@ -599,24 +599,25 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get embyConnectExchangeNotSupported =>
-      'Palvelin ei tue Emby Connect -vaihtoa';
+      'Palvelin ei tue Emby Connect -tiedonsiirtoa';
 
   @override
   String get embyConnectNetworkError =>
-      'Verkkovirhe otettaessa yhteyttä Emby Connectiin tai valittuun palvelimeen';
+      'Verkkovirhe yhteyden muodostamisessa Emby Connectiin tai valittuun palvelimeen';
 
   @override
-  String get loadingLinkedServers => 'Ladataan linkitettyjä palvelimia...';
+  String get loadingLinkedServers => 'Lataa linkitettyjä palvelimia...';
 
   @override
   String get connectingToServerEllipsis => 'Yhdistetään palvelimeen…';
 
   @override
-  String get noReachableAddress => 'Yhteysosoitetta ei ole annettu';
+  String get noReachableAddress =>
+      'Käytettävissä olevaa osoitetta ei ole annettu';
 
   @override
   String get invalidServerExchangeResponse =>
-      'Virheellinen vastaus palvelimen vaihdon päätepisteestä';
+      'Virheellinen vastaus Exchange-palvelimen päätelaitteelta';
 
   @override
   String unableToConnectTo(String target) {
@@ -662,7 +663,7 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get gamePlaybackUnsupported =>
-      'Pelaamista ei vielä tueta tällä laitteella.';
+      'Peliä ei vielä tueta tällä laitteella.';
 
   @override
   String get noHomeRowsLoaded => 'Kotirivejä ei voitu ladata';
@@ -672,7 +673,7 @@ class AppLocalizationsFi extends AppLocalizations {
       'Yritä päivittää tai vähentää aktiivisia kotiosioita.';
 
   @override
-  String get retryHomeRows => 'Yritä kotirivejä uudelleen';
+  String get retryHomeRows => 'Yritä ladata etusivu uudelleen';
 
   @override
   String get guide => 'Opas';
@@ -4480,7 +4481,7 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get recentlyReleasedSeriesTypeDescription =>
-      'Lajittele äskettäin julkaistujen sarjojen kotirivit sarjan, uusimman kauden tai uusimman jakson esityspäivän mukaan';
+      'Lajittele äskettäin julkaistujen sarjojen rivin , uusimman kauden tai uusimman jakson esityspäivän mukaan';
 
   @override
   String get myMedia => 'Oma Media';
@@ -4516,14 +4517,14 @@ class AppLocalizationsFi extends AppLocalizations {
   String get resetToDefaults => 'Palauta oletusasetukset';
 
   @override
-  String get homeRowPosterSize => 'Kotirivin julisteen koko';
+  String get homeRowPosterSize => 'Etusivu Rivin julisteen koko';
 
   @override
   String get perRowImageTypeSelection => 'Rivikohtainen kuvatyypin valinta';
 
   @override
   String get configureImageTypeForEachRow =>
-      'Määritä kuvatyyppi kullekin käytössä olevalle kotiriville';
+      'Määritä kuvatyyppi kullekin käytössä olevalle etusivu riville';
 
   @override
   String get mergeContinueWatchingAndNextUp =>
@@ -4552,11 +4553,11 @@ class AppLocalizationsFi extends AppLocalizations {
       'Näytä vain yksi aloitusnäytön rivi kerrallaan';
 
   @override
-  String get homeRowsPadding => 'Kotirivin täytöt';
+  String get homeRowsPadding => 'Etusivu rivien täyttö';
 
   @override
   String get homeRowsPaddingDescription =>
-      'Mukauta kotirivien välistä etäisyyttä';
+      'Mukauta etusivu rivien täytön välistä etäisyyttä';
 
   @override
   String get perRowImageType => 'Rivikuvatyypin mukaan';
@@ -5071,7 +5072,7 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get reorderToggleHomeRows =>
-      'Järjestä uudelleen ja vaihda sekä kirjastopohjaisten että ulkoisten kotirivien järjestystä';
+      'Järjestä uudelleen ja vaihda sekä kirjastopohjaisten että ulkoisten sivurivien järjestystä';
 
   @override
   String get featuredContentAppearance => 'Suositeltu sisältö, ulkonäkö';
@@ -9753,7 +9754,7 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get settingsPersonalizationSubtitle =>
-      'Teema, navigointi, kotirivit ja kirjaston näkyvyys';
+      'Teema, navigointi, etusivun rivit ja kirjaston näkyvyys';
 
   @override
   String get settingsDynamicContent => 'Dynaaminen sisältö';
@@ -10547,7 +10548,7 @@ class AppLocalizationsFi extends AppLocalizations {
   String get homeRowsStyleModern => 'Moderni';
 
   @override
-  String get homeRowsSection => 'Kotirivit';
+  String get homeRowsSection => 'Etusivun Rivit';
 
   @override
   String get homeRowDisplay => 'Aloitusnäytön rivien näyttö';
@@ -11475,7 +11476,7 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get friendsShowButtonSubtitle =>
-      'Shown when the Achievement Badges plugin has friends turned on';
+      'Friends and chat from the Achievement Badges plugin';
 
   @override
   String get friendsMessages => 'Messages';
@@ -11660,6 +11661,13 @@ class AppLocalizationsFi extends AppLocalizations {
   @override
   String get friendsMessageNotificationsSubtitle =>
       'Show a banner when a friend messages you';
+
+  @override
+  String get friendsMuteDuringPlayback => 'Mute during playback';
+
+  @override
+  String get friendsMuteDuringPlaybackSubtitle =>
+      'No message banners while a video or game is playing';
 
   @override
   String get friendsSaveFailed => 'Could not save your settings.';

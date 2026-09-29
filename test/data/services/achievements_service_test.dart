@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart' show AppLifecycleState;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:moonfin/data/models/achievement_models.dart';
 import 'package:moonfin/data/services/achievements_service.dart';
@@ -630,6 +631,38 @@ void main() {
 
       await service.setBlocked(client, 'user3', blocked: false);
       expect(await service.fetchBlocked(client), isEmpty);
+    });
+  });
+
+  group('background', () {
+    tearDown(() => service.reset());
+
+    test('the badge pauses in the background and catches up', () async {
+      final binding = TestWidgetsFlutterBinding.instance;
+      binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await service.refreshAvailability(client);
+      service.startSocialPolling(client);
+      expect(service.socialPolling, isTrue);
+
+      // A desktop window without focus is still on screen.
+      binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      expect(service.socialPolling, isTrue);
+
+      binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+      binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+      expect(service.socialPolling, isFalse);
+
+      adapter.requests.clear();
+      binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+      binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await pumpEventQueue();
+
+      expect(service.socialPolling, isTrue);
+      expect(
+        adapter.requests,
+        contains('GET /Plugins/AchievementBadges/users/user1/friends'),
+      );
     });
   });
 }

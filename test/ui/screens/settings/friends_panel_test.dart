@@ -10,7 +10,9 @@ import 'package:moonfin/data/services/achievements_service.dart';
 import 'package:moonfin/l10n/app_localizations.dart';
 import 'package:moonfin/preference/user_preferences.dart';
 import 'package:moonfin/ui/screens/settings/achievements_screen.dart';
+import 'package:moonfin/ui/widgets/focus/dpad_list_tile.dart';
 import 'package:moonfin/ui/widgets/settings/preference_tiles.dart';
+import 'package:moonfin/ui/widgets/settings/settings_panel.dart';
 import 'package:moonfin/util/platform_detection.dart';
 import 'package:server_core/server_core.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -28,6 +30,7 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     final store = PreferenceStore();
     await store.init();
+    GetIt.instance.registerSingleton<PreferenceStore>(store);
     GetIt.instance.registerSingleton<UserPreferences>(UserPreferences(store));
 
     adapter = AchievementPluginAdapter();
@@ -400,5 +403,54 @@ void main() {
     await tester.enterText(find.byType(TextField), 'hi \u{1F600} there');
     await tester.pump();
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('the playback mute sits under message notifications', (
+    tester,
+  ) async {
+    await pump(tester, const FriendsScreen());
+    await tester.tap(find.text('Privacy'));
+    await tester.pumpAndSettle();
+    expect(find.text('Mute during playback'), findsOneWidget);
+
+    // Drawn like the other switches here, on by default, and saved on tap.
+    final prefs = GetIt.instance<UserPreferences>();
+    final mute = find.ancestor(
+      of: find.text('Mute during playback'),
+      matching: find.byType(DpadSwitchListTile),
+    );
+    expect(tester.widget<DpadSwitchListTile>(mute).value, isTrue);
+    await tester.tap(find.text('Mute during playback'));
+    await tester.pumpAndSettle();
+    expect(prefs.get(UserPreferences.muteChatBannersDuringPlayback), isFalse);
+
+    await tester.tap(find.text('Message notifications'));
+    await tester.pumpAndSettle();
+    expect(find.text('Mute during playback'), findsNothing);
+  });
+
+  testWidgets('opened on its own in the side panel, back closes it', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Builder(
+          builder: (context) => TextButton(
+            onPressed: () => SettingsPanel.open(context, const FriendsScreen()),
+            child: const Text('open'),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    expect(find.text('Messages'), findsOneWidget);
+
+    await tester.tap(find.byType(BackButton));
+    await tester.pumpAndSettle();
+    expect(find.text('Messages'), findsNothing);
+    expect(find.text('open'), findsOneWidget);
   });
 }

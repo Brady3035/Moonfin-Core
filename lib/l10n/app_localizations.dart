@@ -20131,7 +20131,7 @@ abstract class AppLocalizations {
   /// Subtitle of the setting that adds a Friends button
   ///
   /// In en, this message translates to:
-  /// **'Shown when the Achievement Badges plugin has friends turned on'**
+  /// **'Friends and chat from the Achievement Badges plugin'**
   String get friendsShowButtonSubtitle;
 
   /// Entry that opens the list of chats
@@ -20409,6 +20409,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Show a banner when a friend messages you'**
   String get friendsMessageNotificationsSubtitle;
+
+  /// Setting that hides new message banners while a video or game plays
+  ///
+  /// In en, this message translates to:
+  /// **'Mute during playback'**
+  String get friendsMuteDuringPlayback;
+
+  /// Subtitle of the Mute during playback setting
+  ///
+  /// In en, this message translates to:
+  /// **'No message banners while a video or game is playing'**
+  String get friendsMuteDuringPlaybackSubtitle;
 
   /// Shown when the friends privacy settings fail to save
   ///

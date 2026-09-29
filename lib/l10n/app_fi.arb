@@ -3693,7 +3693,7 @@
     "@resetToDefaults": {
         "description": "Tooltip for reset to defaults button"
     },
-    "homeRowPosterSize": "Etusivu rivin julisteen koko",
+    "homeRowPosterSize": "Etusivu Rivin julisteen koko",
     "@homeRowPosterSize": {
         "description": "Setting for home row poster size"
     },
@@ -9525,7 +9525,7 @@
     "@recentlyReleasedSeriesType": {
         "description": "Setting for sorting series in recently released series row"
     },
-    "recentlyReleasedSeriesTypeDescription": "Lajittele äskettäin julkaistujen sarjojen kotirivit sarjan, uusimman kauden tai uusimman jakson esityspäivän mukaan",
+    "recentlyReleasedSeriesTypeDescription": "Lajittele äskettäin julkaistujen sarjojen rivistön  sarjan, uusimman kauden tai uusimman jakson esityspäivän mukaan",
     "@recentlyReleasedSeriesTypeDescription": {
         "description": "Description for recently released series type setting"
     },

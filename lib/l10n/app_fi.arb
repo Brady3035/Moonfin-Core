@@ -7329,7 +7329,7 @@
     "@detailScreenStyle": {
         "description": "Label for the media detail screen layout style setting"
     },
-    "detailScreenStyleSubtitle": "Classic on alkuperäinen, keskitetyn moonfin-asettelun versio. Modern on responsiivinen, elokuvamainen asettelu. Spotlight on hero-first-asettelu, jossa on ponnahdusikkunoina avautuvia sisältökortteja. Nouveau on koko näytön asettelu, jossa osiot on pinottu sivun alaspäin. Minimalist koostuu kuvamateriaalista, yhdestä toistopainikkeesta ja jaksoista.",
+    "detailScreenStyleSubtitle": "Classic on alkuperäinen, keskitetyn moonfin-asettelun versio. \nModern on responsiivinen, elokuvamainen asettelu. \nSpotlight on hero-first-asettelu, jossa on ponnahdusikkunoina avautuvia sisältökortteja. \nNouveau on koko näytön asettelu, jossa osiot on pinottu sivun alaspäin. \nMinimalist koostuu kuvamateriaalista, yhdestä toistopainikkeesta ja jaksoista.",
     "@detailScreenStyleSubtitle": {
         "description": "Explanation under the detail screen style setting"
     },
@@ -7337,7 +7337,7 @@
     "@detailScreenStyleMoonfin": {
         "description": "Detail screen style option: the classic centered layout"
     },
-    "detailScreenStyleModern": "Moderni",
+    "detailScreenStyleModern": "Modern",
     "@detailScreenStyleModern": {
         "description": "Detail screen style option: the responsive cinematic layout"
     },

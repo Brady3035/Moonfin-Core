@@ -128,7 +128,7 @@
             }
         }
     },
-    "cancel": "Peruuta",
+    "cancel": "Keskeytä",
     "@cancel": {
         "description": "Generic cancel button label"
     },
@@ -265,7 +265,7 @@
     "@noHomeRowsLoaded": {
         "description": "Heading when home screen has no rows to display"
     },
-    "noHomeRowsHint": "Yritä päivittää tai vähentää aktiivisia kotiosioita.",
+    "noHomeRowsHint": "Yritä päivittää tai vähentää aktiivisia osioita etusivulla.",
     "@noHomeRowsHint": {
         "description": "Hint text below the no-home-rows heading"
     },
@@ -524,7 +524,7 @@
             }
         }
     },
-    "discoverySubjects": "Löytöaiheet",
+    "discoverySubjects": "Tutustu ja Löydä",
     "@discoverySubjects": {
         "description": "Title for the book discovery subject picker panel"
     },
@@ -2726,11 +2726,11 @@
     "@seriesThumbnailsDescription": {
         "description": "Description for series thumbnails setting"
     },
-    "homeRowInfoOverlay": "Kotirivin tiedot peittokuva",
+    "homeRowInfoOverlay": "Etusivu rivin info tietopaneeli",
     "@homeRowInfoOverlay": {
         "description": "Setting for home row info overlay"
     },
-    "showTitleMetadataOnHomeRows": "Näytä otsikko ja metatiedot, kun selaat kotirivejä",
+    "showTitleMetadataOnHomeRows": "Näytä otsikko ja metatiedot selatessa rivejä",
     "@showTitleMetadataOnHomeRows": {
         "description": "Description for home row info overlay"
     },
@@ -2787,7 +2787,7 @@
             }
         }
     },
-    "themeMusicOnHomeRows": "Teemamusiikki kotiriveillä",
+    "themeMusicOnHomeRows": "Tunnusmusiikki selatessa",
     "@themeMusicOnHomeRows": {
         "description": "Setting for theme music on home rows"
     },
@@ -3685,7 +3685,7 @@
     "@liveTV": {
         "description": "Home section: live TV"
     },
-    "homeSections": "Kotisivut",
+    "homeSections": "Kotiosiot",
     "@homeSections": {
         "description": "Settings title for home sections"
     },
@@ -6514,7 +6514,7 @@
     "settingsAccountSecurity": "Tili ja suojaus",
     "settingsAccountSecuritySubtitle": "Todennus, PIN-koodi ja lapsilukko",
     "settingsPersonalization": "Personointi",
-    "settingsPersonalizationSubtitle": "Teema, navigointi, etusivun rivit ja kirjaston näkyvyys",
+    "settingsPersonalizationSubtitle": "Teema, navigointi, etusivun rivit, ja kirjaston näkyvyys",
     "settingsDynamicContent": "Dynaaminen sisältö",
     "settingsDynamicContentSubtitle": "Mediapalkki ja visuaaliset peittokuvat",
     "settingsPlaybackSyncplay": "Toisto ja SyncPlay",
@@ -7065,7 +7065,7 @@
     "collectionsRowSorting": "Kokoelmat rivien lajittelu",
     "collectionsRowSortingDescription": "Lajittele kokoelmien rivit lisäyspäivän, julkaisupäivän, aakkosjärjestyksen ja muiden mukaan.",
     "displayGenresRows": "Näytä lajityypit rivit",
-    "displayGenresRowsSubtitle": "Näytä Genres-rivit Koti-osioissa.",
+    "displayGenresRowsSubtitle": "Näytä Genre rivit Kotiosioissa.",
     "genresRowSorting": "Genret Rivilajittelu",
     "genresRowSortingDescription": "Lajittele Genres-rivit lisäyspäivän, julkaisupäivän, aakkosjärjestyksen ja muiden mukaan.",
     "genresRowItems": "Kohteet Genre rivillä",
@@ -7231,7 +7231,7 @@
     "adminDrawerSectionLiveTv": "Live-TV",
     "homeVideos": "Kotivideot",
     "mixedContent": "Sekoitettu sisältö",
-    "homeVideosAndPhotos": "Kotivideot ja valokuvat",
+    "homeVideosAndPhotos": "Kotivideot & Valokuvat",
     "mixedMoviesAndShows": "Sekalaiset elokuvat ja ohjelmat",
     "intelQuickSync": "Intel Quick Sync",
     "rockchipMpp": "Rockchip MPP",
@@ -7329,7 +7329,7 @@
     "@detailScreenStyle": {
         "description": "Label for the media detail screen layout style setting"
     },
-    "detailScreenStyleSubtitle": "Classic on alkuperäinen, keskitetyn moonfin-asettelun versio. \tModern on responsiivinen, elokuvamainen asettelu.\tSpotlight on hero-first-asettelu, jossa on ponnahdusikkunoina avautuvia sisältökortteja.\tNouveau on koko näytön asettelu, jossa osiot on pinottu sivun alaspäin. \tMinimalist koostuu kuvamateriaalista, yhdestä toistopainikkeesta ja jaksoista.",
+    "detailScreenStyleSubtitle": "Classic on alkuperäinen, keskitetyn moonfin-asettelun versio. Modern on responsiivinen, elokuvamainen asettelu. Spotlight on hero-first-asettelu, jossa on ponnahdusikkunoina avautuvia sisältökortteja. Nouveau on koko näytön asettelu, jossa osiot on pinottu sivun alaspäin. Minimalist koostuu kuvamateriaalista, yhdestä toistopainikkeesta ja jaksoista.",
     "@detailScreenStyleSubtitle": {
         "description": "Explanation under the detail screen style setting"
     },
@@ -9525,7 +9525,7 @@
     "@recentlyReleasedSeriesType": {
         "description": "Setting for sorting series in recently released series row"
     },
-    "recentlyReleasedSeriesTypeDescription": "Lajittele äskettäin julkaistujen sarjojen rivin , uusimman kauden tai uusimman jakson esityspäivän mukaan",
+    "recentlyReleasedSeriesTypeDescription": "Lajittele äskettäin julkaistujen sarjojen rivi, uusimman kauden tai uusimman jakson esityspäivän mukaan",
     "@recentlyReleasedSeriesTypeDescription": {
         "description": "Description for recently released series type setting"
     },
@@ -9626,7 +9626,7 @@
         }
     },
     "displayStudiosRows": "Display Studio -rivi",
-    "displayStudiosRowsSubtitle": "Näytä Studio-rivi Koti-osiossa.",
+    "displayStudiosRowsSubtitle": "Näytä Studiorivi Kotiosiossa.",
     "studiosRowSorting": "Studio Row -lajittelu",
     "studiosRowSortingDescription": "”Studio row” -nimiset, äskettäin lisätyt ja paljon muuta.",
     "studiosRowSortOrderDescription": "Valitse lajittelujärjestys: nouseva tai laskeva.",

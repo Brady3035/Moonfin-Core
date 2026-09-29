@@ -7481,7 +7481,7 @@
     "@gameHoldToOpenMenu": {
         "description": "Hint shown while holding the gamepad combo to open the in-game menu"
     },
-    "gamePlaybackUnsupported": "Pelaamista ei vielä tueta tällä laitteella.",
+    "gamePlaybackUnsupported": "Pelien toistamista ei vielä tueta tällä laitteella.",
     "@gamePlaybackUnsupported": {
         "description": "Shown when the device cannot run the retro-game emulator"
     },

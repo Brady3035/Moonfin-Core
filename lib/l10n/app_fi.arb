@@ -236,7 +236,7 @@
     "@noReachableAddress": {
         "description": "Shown when a discovered server has no usable address"
     },
-    "invalidServerExchangeResponse": "Virheellinen vastaus palvelimen vaihdon päätepisteestä",
+    "invalidServerExchangeResponse": "Palvelinvaihtopisteen virheellinen vastaus",
     "@invalidServerExchangeResponse": {
         "description": "Error when server exchange returns invalid data"
     },

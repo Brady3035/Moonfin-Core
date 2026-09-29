@@ -10625,15 +10625,6 @@
             }
         }
     },
-    "subtitleDelayAuto": "Otomatik {value}",
-    "@subtitleDelayAuto": {
-        "description": "Read-only line under the subtitle delay showing a correction the player applied on its own, value is a formatted delay like +2000 ms",
-        "placeholders": {
-            "value": {
-                "type": "String"
-            }
-        }
-    },
     "keyboardShortcutsTitle": "Klavye kısayolları",
     "@keyboardShortcutsTitle": {
         "description": "Title of the screen and dialog that list every keyboard shortcut"
@@ -11386,5 +11377,29 @@
     "@blockedRatingsUnrankedSection": {
         "description": "Heading for ratings the app can't rank, which block only the exact rating rather than everything above it"
     },
-    "settingsShowLiveTvButtonInNavigation": "Sunucuda Canlı TV kütüphanesi varsa gezinme çubuğunda Canlı TV düğmesini göster"
+    "settingsShowLiveTvButtonInNavigation": "Sunucuda Canlı TV kütüphanesi varsa gezinme çubuğunda Canlı TV düğmesini göster",
+    "uiScaleGrandparents": "Yaşlılar İçin",
+    "@uiScaleGrandparents": {
+        "description": "UI scaling option above extra large"
+    },
+    "uiScaleGreatGrandparents": "Çok Yaşlılar İçin",
+    "@uiScaleGreatGrandparents": {
+        "description": "UI scaling option above Grandparents"
+    },
+    "playbackStreamLost": "Oynatma durdu ve kurtarılamadı.",
+    "@playbackStreamLost": {
+        "description": "Shown in place of an internal sentinel error code when playback gives up trying to recover a stalled or starved stream"
+    },
+    "liveReconnecting": "Yeniden bağlanılıyor… ({attempt}/{total})",
+    "@liveReconnecting": {
+        "description": "Overlay shown while a live channel's bounded recovery is retrying",
+        "placeholders": {
+            "attempt": {
+                "type": "int"
+            },
+            "total": {
+                "type": "int"
+            }
+        }
+    }
 }

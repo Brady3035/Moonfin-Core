@@ -11,15 +11,19 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:server_core/server_core.dart';
 
 import '../../../data/models/aggregated_item.dart';
+import '../../../data/offline/connectivity_aware_media_server_client.dart';
+import '../../../data/repositories/multi_server_repository.dart';
 import '../../../data/repositories/search_repository.dart';
 import '../../../data/repositories/seerr_repository.dart';
 import '../../../data/services/recent_searches_store.dart';
+import '../../../data/services/remote_search_session.dart';
 import '../../../data/services/voice_search_controller.dart';
 import '../../../data/viewmodels/search_view_model.dart';
 import '../../../preference/preference_constants.dart';
 import '../../../preference/user_preferences.dart';
 import '../../../preference/seerr_preferences.dart';
 import '../../navigation/destinations.dart';
+import '../../navigation/route_lifecycle_observer.dart';
 import '../../../util/artwork_request_size.dart';
 import '../../../util/platform_detection.dart';
 import '../../../util/game_library.dart';
@@ -29,7 +33,10 @@ import '../../util/error_message.dart';
 import '../../util/search_group_title_localizer.dart';
 import '../../../util/focus/grid_focus_node_mixin.dart';
 import '../../../util/focus/row_focus_coordinator.dart';
+import '../../theme/app_theme_controller.dart';
+import '../../widgets/bottom_nav/bottom_navbar.dart';
 import '../../widgets/library_row.dart';
+import '../../widgets/media_badge.dart';
 import '../../widgets/media_card.dart';
 import '../../widgets/navigation_layout.dart';
 import '../../widgets/focus/context_menu_sheet.dart';
@@ -40,14 +47,21 @@ import '../../widgets/skeleton/skeleton_library_grid.dart';
 class SearchScreen extends StatefulWidget {
   final String? initialQuery;
   final String? scopedLibraryId;
+  final RemoteSearchSession? remoteSearch;
 
-  const SearchScreen({super.key, this.initialQuery, this.scopedLibraryId});
+  const SearchScreen({
+    super.key,
+    this.initialQuery,
+    this.scopedLibraryId,
+    this.remoteSearch,
+  });
 
   @override
   State<SearchScreen> createState() => _SearchScreenState();
 }
 
-class _SearchScreenState extends State<SearchScreen> with GridFocusNodeMixin {
+class _SearchScreenState extends State<SearchScreen>
+    with GridFocusNodeMixin, RouteAware {
   final _searchController = TextEditingController();
   final _voiceFocus = FocusNode();
   final _searchFocus = FocusNode();
@@ -73,15 +87,13 @@ class _SearchScreenState extends State<SearchScreen> with GridFocusNodeMixin {
   int _selectedTab = 0;
   String? _tabSelectionQuery;
   bool _focusTabsAfterResults = false;
+  bool _applyingRemoteSearch = false;
+  String _lastSearchText = '';
 
   // Tracks the current grid tab's content so async refreshes can restore focus
   // without stealing it from the search field.
   int _lastGridCount = -1;
   Object? _lastGridFirstId;
-
-  /// D-pad/keyboard focus navigation applies on TV and desktop; mobile is touch.
-  bool get _usesDpad =>
-      PlatformDetection.isTV || PlatformDetection.useDesktopUi;
 
   /// The focus node that owns the search field on this platform.
   FocusNode get _fieldNode =>
@@ -99,6 +111,11 @@ class _SearchScreenState extends State<SearchScreen> with GridFocusNodeMixin {
       _searchRepository,
       getIt<MediaServerClient>(),
       scopedParentId: widget.scopedLibraryId,
+      multiServerRepository: widget.scopedLibraryId == null &&
+              _userPreferences.get(UserPreferences.enableMultiServerLibraries) &&
+              !shouldUseOfflineCatalog()
+          ? getIt<MultiServerRepository>()
+          : null,
     );
     _vm.addListener(_onViewModelChanged);
     _initSeerr();
@@ -114,12 +131,32 @@ class _SearchScreenState extends State<SearchScreen> with GridFocusNodeMixin {
     _searchInputFocus.addListener(_onFocusChanged);
     _voiceController.addListener(_onVoiceControllerChanged);
 
-    // Desktop keyboard/d-pad: let arrow Down/Up leave the plain text field.
-    if (PlatformDetection.useDesktopUi) {
+    if (widget.remoteSearch != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        widget.remoteSearch!.attach(_applyRemoteSearch);
+        _fieldNode.requestFocus();
+      });
+    }
+
+    // Let keyboard/remote arrows leave the normal-layout search field.
+    if (!PlatformDetection.isTV) {
       _searchInputFocus.onKeyEvent = _onSearchInputKey;
     }
     // Initial focus is granted by the RequestInitialFocus wrapper in build().
   }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (widget.remoteSearch != null && route is PageRoute<dynamic>) {
+      pageRouteLifecycleObserver.subscribe(this, route);
+    }
+  }
+
+  @override
+  void didPushNext() => widget.remoteSearch?.close();
 
   Future<void> _initSeerr() async {
     try {
@@ -196,6 +233,10 @@ class _SearchScreenState extends State<SearchScreen> with GridFocusNodeMixin {
   }
 
   void _onSearchTextChanged() {
+    if (!_applyingRemoteSearch && _searchController.text != _lastSearchText) {
+      widget.remoteSearch?.close();
+    }
+    _lastSearchText = _searchController.text;
     _vm.searchDebounced(_searchController.text);
     if (mounted) setState(() {});
   }
@@ -206,6 +247,22 @@ class _SearchScreenState extends State<SearchScreen> with GridFocusNodeMixin {
       parentId: widget.scopedLibraryId,
       limit: 5,
     );
+  }
+
+  void _applyRemoteSearch(String text) {
+    if (!mounted) return;
+    _applyingRemoteSearch = true;
+    try {
+      // A native editor has its own snapshot. Dismiss it before applying phone
+      // text so a later native completion can't replace the newer query.
+      _searchTvFieldKey.currentState?.closeKeyboard(submit: false);
+      _searchController.value = TextEditingValue(
+        text: text,
+        selection: TextSelection.collapsed(offset: text.length),
+      );
+    } finally {
+      _applyingRemoteSearch = false;
+    }
   }
 
   Future<void> _saveRecentSearch(String query) async {
@@ -309,7 +366,6 @@ class _SearchScreenState extends State<SearchScreen> with GridFocusNodeMixin {
   }
 
   void _focusFirstResult() {
-    if (!_usesDpad) return;
     if (_tabIsAll(_selectedTab)) {
       _focusAllCard(0, 0);
     } else {
@@ -468,6 +524,8 @@ class _SearchScreenState extends State<SearchScreen> with GridFocusNodeMixin {
 
   @override
   void dispose() {
+    pageRouteLifecycleObserver.unsubscribe(this);
+    widget.remoteSearch?.close();
     _vm.removeListener(_onViewModelChanged);
     _searchController.removeListener(_onSearchTextChanged);
     _voiceFocus.removeListener(_onFocusChanged);
@@ -587,7 +645,13 @@ class _SearchScreenState extends State<SearchScreen> with GridFocusNodeMixin {
   }
 
   KeyEventResult _onVoiceKey(FocusNode node, KeyEvent event) {
-    if (!PlatformDetection.isTV) return KeyEventResult.ignored;
+    if (!PlatformDetection.isTV) {
+      if (isActivateKey(event)) {
+        _toggleVoiceSearch();
+        return KeyEventResult.handled;
+      }
+      return KeyEventResult.ignored;
+    }
     if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
       return KeyEventResult.ignored;
     }
@@ -681,7 +745,7 @@ class _SearchScreenState extends State<SearchScreen> with GridFocusNodeMixin {
   }
 
   String? _imageUrl(AggregatedItem item, {int? maxWidth, int? maxHeight}) {
-    final api = _vm.imageApi;
+    final api = _vm.imageApiFor(item);
     final type = item.type;
     if (type == 'Episode' || type == 'Program' || type == 'Recording') {
       if (item.backdropImageTags.isNotEmpty) {
@@ -718,7 +782,7 @@ class _SearchScreenState extends State<SearchScreen> with GridFocusNodeMixin {
   }
 
   Widget _buildVoiceActivation() {
-    final hasFocus = _usesDpad && _voiceFocus.hasFocus;
+    final hasFocus = _voiceFocus.hasFocus;
     final isListening = _voiceController.isListening;
     final isInitializing = _voiceController.isInitializing;
     final backgroundColor = isListening
@@ -775,12 +839,8 @@ class _SearchScreenState extends State<SearchScreen> with GridFocusNodeMixin {
       ),
     );
 
-    if (!_usesDpad) {
-      return button;
-    }
-
-    // On TV, _onVoiceKey drives directional focus; on desktop the button just
-    // joins the Tab traversal order (the handler no-ops off-TV).
+    // TV handles directional focus itself. Other layouts use normal traversal
+    // and also take activation from a connected remote.
     return Focus(
       focusNode: _voiceFocus,
       onKeyEvent: _onVoiceKey,
@@ -822,6 +882,7 @@ class _SearchScreenState extends State<SearchScreen> with GridFocusNodeMixin {
     final scaffold = Scaffold(
       backgroundColor: AppColorScheme.background,
       body: NavigationLayout(
+        activeRoute: Destinations.search,
         showBackButton: true,
         pinTopToolbar: true,
         child: SafeArea(
@@ -1281,10 +1342,13 @@ class _SearchScreenState extends State<SearchScreen> with GridFocusNodeMixin {
       );
     }
 
-    return ListView(
-      controller: _resultsScrollController,
-      padding: EdgeInsets.fromLTRB(horizontalPadding, 8, 0, 32),
-      children: rows,
+    return BottomNavPadded(
+      fallback: 32,
+      builder: (context, bottom) => ListView(
+        controller: _resultsScrollController,
+        padding: EdgeInsets.fromLTRB(horizontalPadding, 8, 0, bottom),
+        children: rows,
+      ),
     );
   }
 
@@ -1304,10 +1368,8 @@ class _SearchScreenState extends State<SearchScreen> with GridFocusNodeMixin {
       ar: ar,
       focusColor: focusColor,
       cardFocusExpansion: cardFocusExpansion,
-      focusNode: _usesDpad ? _allCardNode(row, col) : null,
-      onNavKey: _usesDpad
-          ? (node, event) => _onAllCardKey(row, col, rowLens, event)
-          : null,
+      focusNode: _allCardNode(row, col),
+      onNavKey: (node, event) => _onAllCardKey(row, col, rowLens, event),
     );
   }
 
@@ -1324,10 +1386,8 @@ class _SearchScreenState extends State<SearchScreen> with GridFocusNodeMixin {
       width: cardWidth,
       focusColor: focusColor,
       cardFocusExpansion: cardFocusExpansion,
-      focusNode: _usesDpad ? _allCardNode(row, col) : null,
-      onNavKey: _usesDpad
-          ? (node, event) => _onAllCardKey(row, col, rowLens, event)
-          : null,
+      focusNode: _allCardNode(row, col),
+      onNavKey: (node, event) => _onAllCardKey(row, col, rowLens, event),
     );
   }
 
@@ -1344,10 +1404,8 @@ class _SearchScreenState extends State<SearchScreen> with GridFocusNodeMixin {
       width: cardWidth,
       focusColor: focusColor,
       cardFocusExpansion: cardFocusExpansion,
-      focusNode: _usesDpad ? _allCardNode(row, col) : null,
-      onNavKey: _usesDpad
-          ? (node, event) => _onAllCardKey(row, col, rowLens, event)
-          : null,
+      focusNode: _allCardNode(row, col),
+      onNavKey: (node, event) => _onAllCardKey(row, col, rowLens, event),
     );
   }
 
@@ -1369,10 +1427,26 @@ class _SearchScreenState extends State<SearchScreen> with GridFocusNodeMixin {
       MediaQuery.devicePixelRatioOf(context),
       ArtworkShape.forAspectRatio(ar),
     );
+    final serverName = _vm.serverNameFor(item);
+    // A person's round portrait would clip the badge, so their server goes on
+    // the line under the name instead.
+    final serverOnSubtitle = serverName != null && item.type == 'Person';
     return MediaCard(
       title: item.name,
-      subtitle: _subtitle(item),
+      subtitle: serverOnSubtitle ? serverName : _subtitle(item),
       imageUrl: _imageUrl(item, maxWidth: requestWidth),
+      imageOverlays: [
+        if (serverName != null && !serverOnSubtitle)
+          Positioned(
+            left: 6,
+            right: 6,
+            bottom: (item.playedPercentage ?? 0) > 0 ? 16 : 6,
+            child: Align(
+              alignment: Alignment.bottomLeft,
+              child: _ServerBadge(name: serverName),
+            ),
+          ),
+      ],
       width: width,
       aspectRatio: ar,
       isFavorite: item.isFavorite,
@@ -1548,15 +1622,13 @@ class _SearchScreenState extends State<SearchScreen> with GridFocusNodeMixin {
       ar: ar,
       focusColor: focusColor,
       cardFocusExpansion: cardFocusExpansion,
-      focusNode: _usesDpad ? getGridItemFocusNode(index) : null,
-      onNavKey: _usesDpad
-          ? (node, event) => _onGridKey(
-              index: index,
-              columns: columns,
-              count: count,
-              event: event,
-            )
-          : null,
+      focusNode: getGridItemFocusNode(index),
+      onNavKey: (node, event) => _onGridKey(
+        index: index,
+        columns: columns,
+        count: count,
+        event: event,
+      ),
     );
   }
 
@@ -1573,15 +1645,13 @@ class _SearchScreenState extends State<SearchScreen> with GridFocusNodeMixin {
       width: cellWidth,
       focusColor: focusColor,
       cardFocusExpansion: cardFocusExpansion,
-      focusNode: _usesDpad ? getGridItemFocusNode(index) : null,
-      onNavKey: _usesDpad
-          ? (node, event) => _onGridKey(
-              index: index,
-              columns: columns,
-              count: count,
-              event: event,
-            )
-          : null,
+      focusNode: getGridItemFocusNode(index),
+      onNavKey: (node, event) => _onGridKey(
+        index: index,
+        columns: columns,
+        count: count,
+        event: event,
+      ),
     );
   }
 
@@ -1626,15 +1696,44 @@ class _SearchScreenState extends State<SearchScreen> with GridFocusNodeMixin {
       width: cellWidth,
       focusColor: focusColor,
       cardFocusExpansion: cardFocusExpansion,
-      focusNode: _usesDpad ? getGridItemFocusNode(index) : null,
-      onNavKey: _usesDpad
-          ? (node, event) => _onGridKey(
-              index: index,
-              columns: columns,
-              count: count,
-              event: event,
-            )
-          : null,
+      focusNode: getGridItemFocusNode(index),
+      onNavKey: (node, event) => _onGridKey(
+        index: index,
+        columns: columns,
+        count: count,
+        event: event,
+      ),
+    );
+  }
+}
+
+class _ServerBadge extends StatelessWidget {
+  const _ServerBadge({required this.name});
+
+  final String name;
+
+  @override
+  Widget build(BuildContext context) {
+    context.dependOnInheritedWidgetOfExactType<AppThemeScope>();
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: AppColorScheme.scrim.withValues(alpha: 0.75),
+        borderRadius: AppRadius.circular(4),
+        boxShadow: kMediaBadgeShadow,
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        child: Text(
+          name,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            color: AppColorScheme.onBadge,
+            fontSize: 10,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
     );
   }
 }

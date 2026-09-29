@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:server_core/server_core.dart';
@@ -6,6 +7,7 @@ import 'package:server_core/server_core.dart';
 import '../../l10n/current_app_localizations.dart';
 import '../../util/accent_folding.dart';
 import '../models/aggregated_item.dart';
+import '../repositories/multi_server_repository.dart';
 import '../repositories/search_repository.dart';
 import '../repositories/seerr_repository.dart';
 import '../services/seerr/seerr_api_models.dart';
@@ -41,6 +43,8 @@ class SearchViewModel extends ChangeNotifier {
   final SearchRepository _searchRepository;
   final MediaServerClient _client;
   final String? _scopedParentId;
+  // Only set when search should cover every signed-in server.
+  final MultiServerRepository? _multiServerRepository;
   SeerrRepository? _seerrRepository;
 
   SearchViewModel(
@@ -48,7 +52,9 @@ class SearchViewModel extends ChangeNotifier {
     this._client, {
     SeerrRepository? seerrRepository,
     String? scopedParentId,
+    MultiServerRepository? multiServerRepository,
   }) : _seerrRepository = seerrRepository,
+       _multiServerRepository = multiServerRepository,
        _scopedParentId =
            (scopedParentId != null && scopedParentId.isNotEmpty)
                ? scopedParentId
@@ -58,7 +64,14 @@ class SearchViewModel extends ChangeNotifier {
     _seerrRepository = repo;
   }
 
-  ImageApi get imageApi => _client.imageApi;
+  ImageApi imageApiFor(AggregatedItem item) =>
+      _multiServerRepository?.getImageApiForServer(item.serverId) ??
+      _client.imageApi;
+
+  Map<String, String> _serverNames = const {};
+
+  /// The server [item] came from, or null when only one server was searched.
+  String? serverNameFor(AggregatedItem item) => _serverNames[item.serverId];
 
   SearchState _state = SearchState.idle;
   SearchState get state => _state;
@@ -209,14 +222,24 @@ class SearchViewModel extends ChangeNotifier {
     String query,
     List<SearchResultGroup> activeGroups,
   ) async {
-    final peopleFuture = _searchRepository
-        .searchPeople(query, limit: _resultLimit)
-        .catchError((_) => <AggregatedItem>[]);
+    // Looked up once before the searches start, so each of them reuses it
+    // instead of looking the servers up again.
+    final sessions = await _multiServerRepository?.getLoggedInServers();
+    _serverNames = sessions != null && sessions.length > 1
+        ? {for (final session in sessions) session.server.id: session.server.name}
+        : const {};
+    final peopleFuture = _searchEachServer(
+      (repository) => repository.searchPeople(query, limit: _resultLimit),
+      label: 'people search',
+    ).then(_interleave).catchError((_) => <AggregatedItem>[]);
     final channelsFuture = _channelMatches(query);
-    final allItems = await _searchRepository.search(
-      query,
-      parentId: _scopedParentId,
-      limit: _globalFetchLimit,
+    final perServerItems = await _searchEachServer(
+      (repository) => repository.search(
+        query,
+        parentId: _scopedParentId,
+        limit: _globalFetchLimit,
+      ),
+      label: 'search',
     );
     final people = await peopleFuture;
     final channels = await channelsFuture;
@@ -231,14 +254,34 @@ class SearchViewModel extends ChangeNotifier {
         grouped.add(group.copyWith(items: channels));
         continue;
       }
-      final matched = allItems
-          .where((item) => group.itemTypes.contains(item.type))
-          .take(_resultLimit)
-          .toList();
+      final matched = _interleave([
+        for (final items in perServerItems)
+          items.where((item) => group.itemTypes.contains(item.type)).toList(),
+      ]).take(_resultLimit).toList();
       grouped.add(group.copyWith(items: matched));
     }
 
     return grouped;
+  }
+
+  Future<List<List<AggregatedItem>>> _searchEachServer(
+    Future<List<AggregatedItem>> Function(SearchRepository repository) search, {
+    required String label,
+  }) async {
+    final multiServer = _multiServerRepository;
+    if (multiServer == null) return [await search(_searchRepository)];
+    return multiServer.searchEachServer(search, label: label);
+  }
+
+  /// Takes one result from each server in turn, so every server keeps its own
+  /// ranking and none crowds the others out of a capped group.
+  static List<AggregatedItem> _interleave(List<List<AggregatedItem>> perServer) {
+    final longest = perServer.fold(0, (most, items) => max(most, items.length));
+    return [
+      for (var i = 0; i < longest; i++)
+        for (final items in perServer)
+          if (i < items.length) items[i],
+    ];
   }
 
   // The lineup is fetched once per search session and reused across queries,
@@ -250,7 +293,10 @@ class SearchViewModel extends ChangeNotifier {
     // answers, so the folding it would have done has to happen here.
     final q = foldForSearch(query.trim());
     if (q.isEmpty || q.startsWith('studio:')) return const [];
-    _channelsFuture ??= _searchRepository.fetchLiveTvChannels();
+    _channelsFuture ??= _searchEachServer(
+      (repository) => repository.fetchLiveTvChannels(),
+      label: 'channel lineup',
+    ).then((perServer) => perServer.expand((channels) => channels).toList());
     try {
       final all = await _channelsFuture!;
       return all

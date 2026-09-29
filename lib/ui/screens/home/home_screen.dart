@@ -50,6 +50,7 @@ import '../../../util/global_shortcut_focus.dart';
 import '../../widgets/focus/context_menu_sheet.dart';
 import '../../widgets/focus/locked_focus_row.dart';
 import '../../../util/focus/dpad_keys.dart';
+import '../../../util/focus/input_mode_tracker.dart';
 import '../../../util/artwork_request_size.dart';
 import '../../../util/platform_detection.dart';
 import '../../../util/server_url.dart';
@@ -66,7 +67,7 @@ import '../../widgets/mediabar/banner_media_bar.dart';
 import '../../widgets/image_source.dart';
 import '../../widgets/media_card.dart';
 import '../../widgets/selector_builder.dart';
-import '../../widgets/mobile_bottom_nav_bar.dart';
+import '../../widgets/bottom_nav/bottom_navbar.dart';
 import '../../widgets/navigation_layout.dart';
 import '../../widgets/responsive_layout.dart';
 import '../../widgets/seasonal_effects.dart';
@@ -104,6 +105,9 @@ double _focusHeadroom(double imageHeight, bool cardExpansion) =>
 ///
 /// The focused row must remain complete: it is the user's active navigation
 /// target, and clipping its artwork can leave only the card metadata visible.
+/// [isFocused] means the row holds focus. A mouse scroll makes the row nearest
+/// the top the active one without focusing it, so that row still passes
+/// behind the info area like the rest.
 @visibleForTesting
 double classicHomeRowOverlayClipTop({
   required bool isFocused,
@@ -772,6 +776,7 @@ class _ContentRowsState extends State<_ContentRows>
   int _layoutPrefsVersion = 0;
   Type? _lastMediaBarStateRuntime;
   int _lastMediaBarItemCount = 0;
+  bool _wasEmpty = false;
   // Cache for non-focused row image URLs (independent of focus state). Cleared
   // with the extent cache on data/pref/scale change, and size-capped.
   final Map<String, String?> _rowImageUrlCache = {};
@@ -1011,12 +1016,7 @@ class _ContentRowsState extends State<_ContentRows>
 
   /// Height of the navbar the rows scroll behind, or zero when it is not
   /// along the bottom.
-  double _bottomNavbarInset() {
-    if (!NavigationLayout.allowBottomNavbar) return 0.0;
-    final position = widget.prefs.get(UserPreferences.navbarPosition);
-    if (position != NavbarPosition.bottom) return 0.0;
-    return MobileBottomNavBar.heightFor(context);
-  }
+  double _bottomNavbarInset() => BottomNavInsetScope.maybeOf(context) ?? 0.0;
 
   List<double> _rowTargetOffsetsForScroll({required bool fullScreenRows}) {
     final maxScrollExtent = _scrollController.hasClients
@@ -1267,9 +1267,22 @@ class _ContentRowsState extends State<_ContentRows>
     }
   }
 
+  /// The backdrop and theme music belong to the last focused item, and would
+  /// stay up behind the empty message once every row is gone, as when the
+  /// libraries they came from were deleted.
+  void _clearSelectionOnceEmpty() {
+    final empty =
+        !widget.viewModel.isLoading &&
+        widget.viewModel.rows.isEmpty &&
+        !_isMediaBarIncluded();
+    if (empty && !_wasEmpty) widget.onItemSelected(null);
+    _wasEmpty = empty;
+  }
+
   void _onViewModelChanged() {
     _invalidateStaticRowHeightCache();
     _updateOffsets();
+    _clearSelectionOnceEmpty();
     if (mounted) setState(() {});
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -1294,6 +1307,7 @@ class _ContentRowsState extends State<_ContentRows>
     final barFocusDetaching =
         !_isMediaBarIncluded() && _mediaBarFocusNode.hasFocus;
     _updateOffsets();
+    _clearSelectionOnceEmpty();
     setState(() {});
     if (barFocusDetaching) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -3998,7 +4012,7 @@ class _ContentRowsState extends State<_ContentRows>
         viewportHeight: _scrollController.position.viewportDimension,
         overlayBottom: overlayBottom,
         classicClipTop: classicHomeRowOverlayClipTop(
-          isFocused: isFocusedRow,
+          isFocused: _rowStateOf(rowIndex)?.hasFocusedItem ?? false,
           rowViewportTop: rowViewportTop,
           rowExtent: rowExtent,
           overlayBottom: overlayBottom,
@@ -4976,7 +4990,8 @@ class _ContentRowsState extends State<_ContentRows>
           ).clamp(1.0, 2.0);
           final imageApi = widget.viewModel.imageApiForServer(item.serverId);
           final previewKey = _previewKeyFor(item, rowIndex);
-          final isV2MobileTouch = isRowsV2 && PlatformDetection.useMobileUi;
+          final isV2MobileTouch = isRowsV2 && PlatformDetection.useMobileUi &&
+              InputModeTracker.of(ctx) == InputMode.pointer;
           final delayExpansion =
               prefs.get(UserPreferences.delayCardExpansionOnRapidScroll);
           return SelectorBuilder<bool>(
@@ -4986,7 +5001,7 @@ class _ContentRowsState extends State<_ContentRows>
               isFocused: isFocused,
               isRowsV2: isRowsV2,
               isV2MobileTouch: isV2MobileTouch,
-              delayExpansion: delayExpansion,
+              delayExpansion: delayExpansion && !PlatformDetection.useMobileUi,
             ),
             builder: (ctx, effectiveV2Focused) {
           late final double ar;

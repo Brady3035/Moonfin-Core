@@ -74,7 +74,7 @@
     "@whosWatching": {
         "description": "Server user selection heading"
     },
-    "addUser": "Lisää käyttäjä",
+    "addUser": "Lisää Käyttäjä",
     "@addUser": {
         "description": "Button to add a new user on the server screen"
     },
@@ -91,7 +91,7 @@
             }
         }
     },
-    "savedServers": "Tallennetut palvelimet",
+    "savedServers": "Tallennetut Palvelimet",
     "@savedServers": {
         "description": "Section heading for previously saved servers"
     },
@@ -103,7 +103,7 @@
     "@noneFound": {
         "description": "Shown when no servers are discovered on the network"
     },
-    "unableToConnectToServer": "Ei voida muodostaa yhteyttä palvelimeen",
+    "unableToConnectToServer": "Yhteyttä palvelimeen ei voitu muodostaa",
     "@unableToConnectToServer": {
         "description": "Error when a server connection attempt fails"
     },
@@ -111,7 +111,7 @@
     "@addServer": {
         "description": "Button to manually add a server address"
     },
-    "embyConnect": "Yhdistä Emby",
+    "embyConnect": "Emby Yhteys",
     "@embyConnect": {
         "description": "Emby Connect sign-in option label"
     },
@@ -128,7 +128,7 @@
             }
         }
     },
-    "cancel": "Keskeytä",
+    "cancel": "Peruuta",
     "@cancel": {
         "description": "Generic cancel button label"
     },
@@ -152,11 +152,11 @@
     "@connect": {
         "description": "Button to initiate connection to a server"
     },
-    "secureStorageUnavailable": "Suojattua Tallennustilaa ei ole Käytettävissä",
+    "secureStorageUnavailable": "Turvallista tallennustilaa ei ole käytettävissä",
     "@secureStorageUnavailable": {
         "description": "Dialog title when system keyring is inaccessible"
     },
-    "secureStorageUnavailableMessage": "Moonfin ei voinut käyttää järjestelmän avainketjua . Kirjautuminen voi jatkua, mutta suojattu tunnuksen tallennus ei välttämättä ole käytettävissä, ennen kuin avainketju on avattu.",
+    "secureStorageUnavailableMessage": "Moonfin ei voinut käyttää järjestelmän avainketjua. \tVoit kirjautua, mutta suojatun tunnuksen tallennus ei välttämättä ole käytettävissä, ennen kuin avainketju on avattu.",
     "@secureStorageUnavailableMessage": {
         "description": "Explanation when secure storage is not available"
     },
@@ -208,7 +208,7 @@
     "@noLinkedServers": {
         "description": "Error when Emby Connect account has no linked servers"
     },
-    "invalidEmbyConnectCredentials": "Virheelliset Emby Connect -tunnistetiedot",
+    "invalidEmbyConnectCredentials": "Virheelliset Emby Connect -tiedot",
     "@invalidEmbyConnectCredentials": {
         "description": "Error when Emby Connect auth response is invalid"
     },
@@ -216,15 +216,15 @@
     "@invalidEmbyConnectLogin": {
         "description": "Error for wrong Emby Connect credentials"
     },
-    "embyConnectExchangeNotSupported": "Palvelin ei tue Emby Connect -vaihtoa",
+    "embyConnectExchangeNotSupported": "Palvelin ei tue Emby Connect -tiedonsiirtoa",
     "@embyConnectExchangeNotSupported": {
         "description": "Error when server lacks Emby Connect exchange endpoint"
     },
-    "embyConnectNetworkError": "Verkkovirhe otettaessa yhteyttä Emby Connectiin tai valittuun palvelimeen",
+    "embyConnectNetworkError": "Verkkovirhe yhteyden muodostamisessa Emby Connectiin tai valittuun palvelimeen",
     "@embyConnectNetworkError": {
         "description": "Generic network error during Emby Connect flow"
     },
-    "loadingLinkedServers": "Ladataan linkitettyjä palvelimia...",
+    "loadingLinkedServers": "Lataa linkitettyjä palvelimia...",
     "@loadingLinkedServers": {
         "description": "Status text while fetching Emby Connect server list"
     },
@@ -232,11 +232,11 @@
     "@connectingToServerEllipsis": {
         "description": "Status text while connecting to a selected server"
     },
-    "noReachableAddress": "Yhteysosoitetta ei ole annettu",
+    "noReachableAddress": "Käytettävissä olevaa osoitetta ei ole annettu",
     "@noReachableAddress": {
         "description": "Shown when a discovered server has no usable address"
     },
-    "invalidServerExchangeResponse": "Virheellinen vastaus palvelimen vaihdon päätepisteestä",
+    "invalidServerExchangeResponse": "Virheellinen vastaus Exchange-palvelimen päätelaitteelta",
     "@invalidServerExchangeResponse": {
         "description": "Error when server exchange returns invalid data"
     },
@@ -269,7 +269,7 @@
     "@noHomeRowsHint": {
         "description": "Hint text below the no-home-rows heading"
     },
-    "retryHomeRows": "Yritä kotirivejä uudelleen",
+    "retryHomeRows": "Yritä ladata etusivu uudelleen",
     "@retryHomeRows": {
         "description": "Button to retry loading home rows after failure"
     },
@@ -544,15 +544,15 @@
     "@scanWithYourPhone": {
         "description": "Instruction shown above a QR code"
     },
-    "audiobookGenres": "Äänikirjan tyylilajit",
+    "audiobookGenres": "Äänikirjan Genret",
     "@audiobookGenres": {
         "description": "Title for audiobook genre picker panel"
     },
-    "pickAudiobookGenres": "Valitse äänikirja Discoverissa näytettävät tyylilajit.",
+    "pickAudiobookGenres": "Valitse, mitkä genret haluat näyttää Audiobook Discover -osiossa.",
     "@pickAudiobookGenres": {
         "description": "Instruction text in audiobook genre picker"
     },
-    "discoverAudiobooks": "Tutustu äänikirjoihin",
+    "discoverAudiobooks": "Tutustu Äänikirjoihin",
     "@discoverAudiobooks": {
         "description": "Section title for audiobook discovery"
     },
@@ -1743,7 +1743,7 @@
             }
         }
     },
-    "auto": "Automaattinen",
+    "auto": "Auto",
     "@auto": {
         "description": "Label for automatic bitrate selection"
     },
@@ -3404,23 +3404,23 @@
     "@showShuffleButton": {
         "description": "Setting for showing shuffle button"
     },
-    "showGenresButton": "Näytä genret -painike",
+    "showGenresButton": "Näytä Genret Painike",
     "@showGenresButton": {
         "description": "Setting for showing genres button"
     },
-    "showFavoritesButton": "Näytä suosikit-painike",
+    "showFavoritesButton": "Näytä Suosikit Painike",
     "@showFavoritesButton": {
         "description": "Setting for showing favorites button"
     },
-    "showLibrariesInToolbar": "Näytä kirjastot työkalupalkissa",
+    "showLibrariesInToolbar": "Näytä Kirjastot Työkalupalkissa",
     "@showLibrariesInToolbar": {
         "description": "Setting for showing libraries in toolbar"
     },
-    "navbarOpacity": "Navbarin läpinäkyvyys",
+    "navbarOpacity": "Navbarin Läpinäkyvyys",
     "@navbarOpacity": {
         "description": "Setting for navbar opacity"
     },
-    "navbarColor": "Navipalkin väri",
+    "navbarColor": "Navipalkin Väri",
     "@navbarColor": {
         "description": "Setting for navbar color"
     },
@@ -3532,7 +3532,7 @@
     "@sourceCollections": {
         "description": "Setting for source collections"
     },
-    "excludedGenres": "Poissuljetut genret",
+    "excludedGenres": "Poissuljetut Genret",
     "@excludedGenres": {
         "description": "Setting for excluded genres"
     },
@@ -3693,7 +3693,7 @@
     "@resetToDefaults": {
         "description": "Tooltip for reset to defaults button"
     },
-    "homeRowPosterSize": "Kotirivin julisteen koko",
+    "homeRowPosterSize": "Etusivu Rivin julisteen koko",
     "@homeRowPosterSize": {
         "description": "Setting for home row poster size"
     },
@@ -3701,7 +3701,7 @@
     "@perRowImageTypeSelection": {
         "description": "Setting for per-row image type selection"
     },
-    "configureImageTypeForEachRow": "Määritä kuvatyyppi kullekin käytössä olevalle kotiriville",
+    "configureImageTypeForEachRow": "Määritä kuvatyyppi kullekin käytössä olevalle etusivu riville",
     "@configureImageTypeForEachRow": {
         "description": "Description for per-row image type selection"
     },
@@ -3891,7 +3891,7 @@
     "@trakt": {
         "description": "Rating source: Trakt"
     },
-    "letterboxd": "Kirjelaatikkod",
+    "letterboxd": "Letterboxd",
     "@letterboxd": {
         "description": "Rating source: Letterboxd"
     },
@@ -4035,7 +4035,7 @@
     "@popularSeries": {
         "description": "Seerr row: popular series"
     },
-    "seriesGenres": "Sarjan genret",
+    "seriesGenres": "Sarjojen Genret",
     "@seriesGenres": {
         "description": "Seerr row: series genres"
     },
@@ -4223,7 +4223,7 @@
     "@navbarStyleToolbarAppearance": {
         "description": "Navigation settings subtitle"
     },
-    "reorderToggleHomeRows": "Järjestä uudelleen ja vaihda sekä kirjastopohjaisten että ulkoisten kotirivien järjestystä",
+    "reorderToggleHomeRows": "Järjestä uudelleen ja vaihda sekä kirjastopohjaisten että ulkoisten sivurivien järjestystä",
     "@reorderToggleHomeRows": {
         "description": "Home sections settings subtitle"
     },
@@ -4289,7 +4289,7 @@
     "@request": {
         "description": "Button to submit a media request"
     },
-    "cancelRequest": "Keskeytä pyyntö",
+    "cancelRequest": "Peruuta Pyyntö",
     "@cancelRequest": {
         "description": "Button/dialog title to cancel a media request"
     },
@@ -4628,7 +4628,7 @@
     "analyticsVideoCodecs": "Videokoodekit",
     "analyticsAudioCodecs": "Äänikoodekit",
     "analyticsContainers": "Säiliöt",
-    "analyticsTopGenres": "Suosituimmat genret",
+    "analyticsTopGenres": "Suosituimmat Genret",
     "analyticsReleaseYears": "Julkaisuvuodet",
     "analyticsContentRatings": "Sisällön luokitukset",
     "analyticsRuntimeBuckets": "Ajonaikaiset kauhat",
@@ -6514,7 +6514,7 @@
     "settingsAccountSecurity": "Tili ja suojaus",
     "settingsAccountSecuritySubtitle": "Todennus, PIN-koodi ja lapsilukko",
     "settingsPersonalization": "Personointi",
-    "settingsPersonalizationSubtitle": "Teema, navigointi, kotirivit ja kirjaston näkyvyys",
+    "settingsPersonalizationSubtitle": "Teema, navigointi, etusivun rivit ja kirjaston näkyvyys",
     "settingsDynamicContent": "Dynaaminen sisältö",
     "settingsDynamicContentSubtitle": "Mediapalkki ja visuaaliset peittokuvat",
     "settingsPlaybackSyncplay": "Toisto ja SyncPlay",
@@ -6734,7 +6734,7 @@
     "@seconds": {
         "description": "Time unit label in seconds"
     },
-    "localPreviews": "Paikalliset esikatselut",
+    "localPreviews": "Paikalliset Esikatselut",
     "@localPreviews": {
         "description": "Local previews settings screen title"
     },
@@ -7053,7 +7053,7 @@
     "bottomBar": "Alapalkki",
     "homeRowsStyleClassic": "Klassinen",
     "homeRowsStyleModern": "Moderni",
-    "homeRowsSection": "Kotirivit",
+    "homeRowsSection": "Etusivun Rivit",
     "rowsType": "Rivien tyyppi",
     "rowsTypeDescription": "Classic säilyttää rivikohtaisen kuvatyypin ja tietopeittokuvan. Moderni käyttää muotokuvasta taustaan -rivejä.",
     "displayFavoritesRows": "Näytä suosikkirivit",
@@ -7066,9 +7066,9 @@
     "collectionsRowSortingDescription": "Lajittele kokoelmien rivit lisäyspäivän, julkaisupäivän, aakkosjärjestyksen ja muiden mukaan.",
     "displayGenresRows": "Näytä lajityypit rivit",
     "displayGenresRowsSubtitle": "Näytä Genres-rivit Koti-osioissa.",
-    "genresRowSorting": "Genret rivilajittelu",
+    "genresRowSorting": "Genret Rivilajittelu",
     "genresRowSortingDescription": "Lajittele Genres-rivit lisäyspäivän, julkaisupäivän, aakkosjärjestyksen ja muiden mukaan.",
-    "genresRowItems": "Genret rivikohdat",
+    "genresRowItems": "Kohteet Genre rivillä",
     "genresRowItemsDescription": "Näytä elokuvat, sarjat tai molemmat lajityypit-riveillä.",
     "appearance": "Ulkoasu",
     "cardSize": "Kortin koko",
@@ -7303,8 +7303,8 @@
     "loadingShuffle": "Ladataan satunnaistoistoa...",
     "libraryShuffleLabel": "KIRJASTON SEKOITUS",
     "randomShuffleLabel": "SATUNNAINEN SEKOITUS",
-    "genresShuffleLabel": "GENREJEN SEKOITUS",
-    "autoHdrSwitching": "Automaattinen HDR-vaihto",
+    "genresShuffleLabel": "GENRE SEKOITUS",
+    "autoHdrSwitching": "Automaattinen HDR Kytkentä",
     "autoHdrSwitchingDescription": "Ota HDR automaattisesti käyttöön HDR-videon toistoa varten ja palauta näyttötila poistuessasi.",
     "whenFullscreen": "Kun koko näyttö",
     "transcodingLimits": "Transkoodausrajat",
@@ -7329,7 +7329,7 @@
     "@detailScreenStyle": {
         "description": "Label for the media detail screen layout style setting"
     },
-    "detailScreenStyleSubtitle": "Classic on alkuperäinen, keskitetyn moonfin-asettelun versio. Modern on responsiivinen, elokuvamainen asettelu. Spotlight on hero-first-asettelu, jossa on ponnahdusikkunoina avautuvia sisältökortteja. Nouveau on koko näytön asettelu, jossa osiot on pinottu sivun alaspäin. Minimalist koostuu kuvamateriaalista, yhdestä toistopainikkeesta ja jaksoista.",
+    "detailScreenStyleSubtitle": "Classic on alkuperäinen, keskitetyn moonfin-asettelun versio. \tModern on responsiivinen, elokuvamainen asettelu.\tSpotlight on hero-first-asettelu, jossa on ponnahdusikkunoina avautuvia sisältökortteja.\tNouveau on koko näytön asettelu, jossa osiot on pinottu sivun alaspäin. \tMinimalist koostuu kuvamateriaalista, yhdestä toistopainikkeesta ja jaksoista.",
     "@detailScreenStyleSubtitle": {
         "description": "Explanation under the detail screen style setting"
     },
@@ -7337,7 +7337,7 @@
     "@detailScreenStyleMoonfin": {
         "description": "Detail screen style option: the classic centered layout"
     },
-    "detailScreenStyleModern": "Moderni",
+    "detailScreenStyleModern": "Modern",
     "@detailScreenStyleModern": {
         "description": "Detail screen style option: the responsive cinematic layout"
     },
@@ -7345,7 +7345,7 @@
     "@expandedTabs": {
         "description": "Label for the detail screen expanded tabs setting"
     },
-    "expandedTabsSubtitle": "Näytä välilehden sisältö automaattisesti välilehtiä selatessasi. Poista käytöstä, jos haluat avata ja sulkea jokaisen välilehden itse.",
+    "expandedTabsSubtitle": "Näytä välilehden sisältö automaattisesti välilehtiä selatessasi. \tPoista käytöstä, jos haluat avata ja sulkea jokaisen välilehden itse.",
     "@expandedTabsSubtitle": {
         "description": "Explanation under the expanded tabs setting"
     },
@@ -7409,7 +7409,7 @@
     "@glassQualitySubtitle": {
         "description": "Explanation under the glass quality setting"
     },
-    "glassQualityAuto": "Automaattinen",
+    "glassQualityAuto": "Auto",
     "@glassQualityAuto": {
         "description": "Glass quality option: per-device default"
     },
@@ -7481,7 +7481,7 @@
     "@gameHoldToOpenMenu": {
         "description": "Hint shown while holding the gamepad combo to open the in-game menu"
     },
-    "gamePlaybackUnsupported": "Pelaamista ei vielä tueta tällä laitteella.",
+    "gamePlaybackUnsupported": "Peliä ei vielä tueta tällä laitteella.",
     "@gamePlaybackUnsupported": {
         "description": "Shown when the device cannot run the retro-game emulator"
     },
@@ -7858,11 +7858,11 @@
     },
     "reportDownloadsActivity": "Näytä lataukset palvelimella",
     "reportDownloadsActivitySubtitle": "Anna palvelimen ylläpitäjän nähdä transkoodatut lataukset hallintapaneelissa",
-    "navbarAlwaysExpanded": "Näytä navigointipalkin tekstit aina",
+    "navbarAlwaysExpanded": "Näytä Navigointipalkin tekstit aina",
     "@navbarAlwaysExpanded": {
         "description": "Setting to keep every top navbar heading's text label visible at all times, tvOS-style"
     },
-    "showSeerrButton": "Näytä Seerr-painike",
+    "showSeerrButton": "Näytä Seerr Painike",
     "@showSeerrButton": {
         "description": "Setting for showing Seerr button"
     },
@@ -8475,7 +8475,7 @@
     "adminPlaybackDownmixBoost": "Äänen alasmiksauksen korostus",
     "adminPlaybackDownmixAlgorithm": "Stereoalasmiksauksen algoritmi",
     "adminPlaybackMaxMuxingQueue": "Muksausjonon enimmäiskoko",
-    "adminPlaybackAutoOption": "Automaattinen",
+    "adminPlaybackAutoOption": "Auto",
     "adminRunningTasks": "Käynnissä olevat tehtävät",
     "adminNetworkingPublicHttpPort": "Julkinen HTTP-portti",
     "adminNetworkingRequireHttps": "Vaadi HTTPS",
@@ -9224,11 +9224,11 @@
             }
         }
     },
-    "homeRowsPadding": "Kotirivin täytöt",
+    "homeRowsPadding": "Etusivu rivien täyttö",
     "@homeRowsPadding": {
         "description": "Title for home rows padding setting"
     },
-    "homeRowsPaddingDescription": "Mukauta kotirivien välistä etäisyyttä",
+    "homeRowsPaddingDescription": "Mukauta etusivu rivien täytön välistä etäisyyttä",
     "@homeRowsPaddingDescription": {
         "description": "Description for home rows padding setting"
     },
@@ -9236,11 +9236,11 @@
     "@tags": {
         "description": "Heading for the keyword tags a title is filed under"
     },
-    "genresAndTags": "Genret ja tunnisteet",
+    "genresAndTags": "Genret ja Tunnisteet",
     "@genresAndTags": {
         "description": "Button and dialog title for browsing a title's genres, networks and tags"
     },
-    "yourWatchlist": "Aktiivilistallasi",
+    "yourWatchlist": "Katselulistallasi",
     "@yourWatchlist": {
         "description": "Seerr row: watchlist"
     },
@@ -9264,7 +9264,7 @@
     "@requested4k": {
         "description": "Disabled label shown when a 4K request already exists and the user cannot cancel it"
     },
-    "cancelRequest4k": "Keskeytä 4K-pyyntö",
+    "cancelRequest4k": "Peruuta 4K-pyyntö",
     "@cancelRequest4k": {
         "description": "Button/dialog title to cancel a 4K media request"
     },
@@ -9372,7 +9372,7 @@
     "collectionsRowSortOrderDescription": "Lajittele Kokoelmat-taulukon rivit nousevaan tai laskevaan järjestykseen.",
     "collectionsRowShowEpisodes": "Näytä yksittäiset jaksot",
     "collectionsRowShowEpisodesSubtitle": "Laajenna TV-sarjoja, jotta jokainen jakso näkyy erikseen.",
-    "genresRowSortOrderDescription": "Lajittele ”Genret”-rivit nousevaan tai laskevaan järjestykseen.",
+    "genresRowSortOrderDescription": "Lajittele Genre rivit nousevaan tai laskevaan järjestykseen.",
     "personalRatingStars": "5 tähteä",
     "@personalRatingStars": {
         "description": "Personal rating style using a five-star scale."
@@ -9525,7 +9525,7 @@
     "@recentlyReleasedSeriesType": {
         "description": "Setting for sorting series in recently released series row"
     },
-    "recentlyReleasedSeriesTypeDescription": "Lajittele äskettäin julkaistujen sarjojen kotirivit sarjan, uusimman kauden tai uusimman jakson esityspäivän mukaan",
+    "recentlyReleasedSeriesTypeDescription": "Lajittele äskettäin julkaistujen sarjojen rivin , uusimman kauden tai uusimman jakson esityspäivän mukaan",
     "@recentlyReleasedSeriesTypeDescription": {
         "description": "Description for recently released series type setting"
     },
@@ -10149,7 +10149,7 @@
     "@trickplayModeFull": {
         "description": "Trickplay mode option: temporarily replaces the video with the trickplay image while scrubbing"
     },
-    "trickplaySettingsPreviewHint": "Vedä liukusäädintä nähdäksesi esikatselun liu’uttamisesta",
+    "trickplaySettingsPreviewHint": "Vedä liukusäädintä nähdäksesi esikatselun",
     "@trickplaySettingsPreviewHint": {
         "description": "Hint shown below the live trickplay settings preview"
     },
@@ -10211,7 +10211,7 @@
     "@performanceMode": {
         "description": "Label for the device performance setting"
     },
-    "performanceModeSubtitle": "Toiminto mittaa laitteen resurssit automaattisesti ja rajoittaa toimintoja laitteissa, joissa on vähän muistia. Näin muistiin tallennetaan vähemmän kuvia ja videot tallennetaan still-kuvina. Muutos astuu voimaan seuraavalla käynnistyskerralla.",
+    "performanceModeSubtitle": "Toiminto mittaa laitteen resurssit automaattisesti ja rajoittaa toimintoja laitteissa, joissa on vähän muistia. \nNäin muistiin tallennetaan vähemmän kuvia ja videot tallennetaan still-kuvina. Muutos astuu voimaan seuraavalla käynnistyskerralla.",
     "@performanceModeSubtitle": {
         "description": "Explanation under the device performance setting"
     },
@@ -10281,7 +10281,7 @@
     "@nativeHdrOutputDescription": {
         "description": "Settings description for native HDR output"
     },
-    "loadingAnimation": "Ladataan Animaatiota",
+    "loadingAnimation": "Latausanimaatio",
     "@loadingAnimation": {
         "description": "Setting title for custom loading animation"
     },
@@ -10562,7 +10562,7 @@
             }
         }
     },
-    "showDownloadsButton": "Näytä latauspainike",
+    "showDownloadsButton": "Näytä Latauspainike",
     "@showDownloadsButton": {
         "description": "Setting for showing downloads button"
     },
@@ -10585,7 +10585,7 @@
     "settingsRedetectDisplay": "Näytä uudelleen-toiminto",
     "settingsRedetectDisplayDescription": "Kysy televisiolta uudelleen, mitä HDR-formaatteja se tukee. Käytä tätä, jos Dolby Vision- tai HDR10-sisältöjä transkoodataan sen jälkeen, kun televisio tai vastaanotin on kytketty päälle myöhään.",
     "settingsDisplayIsSdr": "Televisiossani ei ole HDR-tukea",
-    "settingsDisplayIsSdrDescription": "Älä muistuta tämän näytön HDR-tukea. Käytä tätä vain, jos tunnistustoiminto ilmoittaa jatkuvasti HDR:stä, jota televisio ei todellisuudessa pysty näyttämään.",
+    "settingsDisplayIsSdrDescription": "Älä muistuta tämän näytön HDR-tukea.",
     "settingsDisplayRedetected": "Näyttö tunnistettu uudelleen: {formats}",
     "@settingsDisplayRedetected": {
         "placeholders": {
@@ -10932,7 +10932,7 @@
             }
         }
     },
-    "trickplayPauseWhileScrubbing": "Tauko Kelauksen Ajaksi",
+    "trickplayPauseWhileScrubbing": "Tauko Skrubbauksen Ajaksi",
     "@trickplayPauseWhileScrubbing": {
         "description": "Setting for whether seeking pauses playback so the trickplay preview holds still"
     },
@@ -11321,7 +11321,7 @@
     "@shortcutResetZoom": {
         "description": "Reader shortcut action"
     },
-    "showLiveTvButton": "Näytä Live TV -painike",
+    "showLiveTvButton": "Näytä Live TV Painike",
     "@showLiveTvButton": {
         "description": "Setting for showing live TV button"
     },
@@ -11643,15 +11643,6 @@
     "animeMarkerRecap": "Yhteenveto",
     "@animeMarkerRecap": {
         "description": "Badge on an anime episode that recaps earlier episodes"
-    },
-    "subtitleDelayAuto": "Auto {value}",
-    "@subtitleDelayAuto": {
-        "description": "Read-only line under the subtitle delay showing a correction the player applied on its own, value is a formatted delay like +2000 ms",
-        "placeholders": {
-            "value": {
-                "type": "String"
-            }
-        }
     },
     "noProgramData": "Ohjelmatietoja ei ole",
     "@noProgramData": {
@@ -12255,7 +12246,7 @@
     "@achievementsStatLibraries": {
         "description": "Counter label"
     },
-    "achievementsStatGenres": "Genret katsotut",
+    "achievementsStatGenres": "Katsotut Genret",
     "@achievementsStatGenres": {
         "description": "Counter label"
     },
@@ -12363,7 +12354,7 @@
     "@achievementsDoubleCreditBody": {
         "description": "What the Double Credit power-up does"
     },
-    "achievementsStreakFreeze": "Streak Freeze",
+    "achievementsStreakFreeze": "Katselusarjan suojaus",
     "@achievementsStreakFreeze": {
         "description": "Power-up that protects a watch streak"
     },
@@ -12454,7 +12445,7 @@
     "@setupDetailMinimalistHint": {
         "description": "What the minimalist detail screen style gives you"
     },
-    "guideRepeatBadge": "Toista",
+    "guideRepeatBadge": "Jatkuva",
     "@guideRepeatBadge": {
         "description": "Short badge label shown on a rerun in the guide hero band"
     },
@@ -12498,7 +12489,7 @@
     "@magenta": {
         "description": "Color: magenta"
     },
-    "requestedByLabel": "Pyynnön esittäjä",
+    "requestedByLabel": "Pyytäjän nimi",
     "@requestedByLabel": {
         "description": "Label above the name of whoever requested media, where the name sits on its own line"
     },
@@ -12513,5 +12504,109 @@
     "uiScaleGrandparents": "Isovanhemmat",
     "@uiScaleGrandparents": {
         "description": "UI scaling option above extra large"
+    },
+    "playbackStreamLost": "Toisto keskeytyi, eikä sitä voitu jatkaa.",
+    "@playbackStreamLost": {
+        "description": "Shown in place of an internal sentinel error code when playback gives up trying to recover a stalled or starved stream"
+    },
+    "liveReconnecting": "Yhdistetään uudelleen… ({attempt} of {total})",
+    "@liveReconnecting": {
+        "description": "Overlay shown while a live channel's bounded recovery is retrying",
+        "placeholders": {
+            "attempt": {
+                "type": "int"
+            },
+            "total": {
+                "type": "int"
+            }
+        }
+    },
+    "setupPlaybackLanguages": "Toistokielet",
+    "@setupPlaybackLanguages": {
+        "description": "Heading of the optional audio and subtitle language section on the last setup wizard screen"
+    },
+    "setupOptional": "Valinnainen",
+    "@setupOptional": {
+        "description": "Tag beside an optional section in the setup wizard"
+    },
+    "setupNavbarStyleQuestion": "Miltä alareunan palkin pitäisi näyttää?",
+    "@setupNavbarStyleQuestion": {
+        "description": "Setup question asking which style the bottom navigation bar should use"
+    },
+    "setupNavbarStyleDockHint": "Kelluva painike, jonka jokaisen välilehden alla on merkintöjä.",
+    "@setupNavbarStyleDockHint": {
+        "description": "What the Dock bottom bar style gives you"
+    },
+    "setupNavbarStyleSplitHint": "Hakutoiminnolle tulee oma painike, ja hakupalkki kutistuu, kun vierität sivua.",
+    "@setupNavbarStyleSplitHint": {
+        "description": "What the Split bottom bar style gives you"
+    },
+    "setupNavbarStyleStripHint": "Alareunassa oleva koko sivun levyinen palkki.",
+    "@setupNavbarStyleStripHint": {
+        "description": "What the Strip bottom bar style gives you"
+    },
+    "bottomNavbarStyle": "Alaosan palkin tyyli",
+    "@bottomNavbarStyle": {
+        "description": "Settings title for choosing how the mobile bottom navigation bar looks"
+    },
+    "bottomNavbarStyleDock": "Telakka",
+    "@bottomNavbarStyleDock": {
+        "description": "Bottom bar style: a floating pill with labelled tabs"
+    },
+    "bottomNavbarStyleSplit": "Jaettu",
+    "@bottomNavbarStyleSplit": {
+        "description": "Bottom bar style: tabs in one capsule with search as its own round button"
+    },
+    "bottomNavbarStyleStrip": "Nauha",
+    "@bottomNavbarStyleStrip": {
+        "description": "Bottom bar style: a full-width bar along the bottom edge"
+    },
+    "bottomNavbarTabs": "Alareunan välilehdet",
+    "@bottomNavbarTabs": {
+        "description": "Settings title for choosing which tabs sit on the mobile bottom navigation bar"
+    },
+    "bottomNavbarTabsDescription": "Voit kiinnittää enintään 3 välilehteä Home ja You välilehtien väliin. Kaikki muu löytyy You valikosta.",
+    "@bottomNavbarTabsDescription": {
+        "description": "Explains the bottom bar tabs screen"
+    },
+    "bottomNavbarTabsAutomatic": "Automaattinen",
+    "@bottomNavbarTabsAutomatic": {
+        "description": "Shown when the bottom bar tabs are picked from the navigation button settings"
+    },
+    "bottomNavbarTabsPinned": "Kiinnitetty",
+    "@bottomNavbarTabsPinned": {
+        "description": "Section header for the tabs pinned to the bottom bar"
+    },
+    "bottomNavbarTabsAvailable": "Saatavilla",
+    "@bottomNavbarTabsAvailable": {
+        "description": "Section header for tabs that can be pinned to the bottom bar"
+    },
+    "bottomNavbarTabsReset": "Palauta automaattitilaan",
+    "@bottomNavbarTabsReset": {
+        "description": "Action that clears the pinned bottom bar tabs so they are picked automatically again"
+    },
+    "bottomNavbarTabsLimit": "Voit kiinnittää enintään 3 välilehteä. Poista yksi, jotta voit kiinnittää toisen.",
+    "@bottomNavbarTabsLimit": {
+        "description": "Hint shown when the maximum number of bottom bar tabs is already pinned"
+    },
+    "bottomNavbarTabTurnedOff": "Poistettu käytöstä Painikkeet kohdasta",
+    "@bottomNavbarTabTurnedOff": {
+        "description": "Hint on a bottom bar tab that can't be pinned because its navigation button setting is off"
+    },
+    "bottomNavbarSplitSearchNote": "Split tyylissä Haku toiminnolla on aina oma painikkeensa.",
+    "@bottomNavbarSplitSearchNote": {
+        "description": "Note on the bottom bar tabs screen about the Split style"
+    },
+    "bottomNavbarButtonsNote": "Nämä asetukset määrittävät, mitkä välilehdet voit kiinnittää alareunan palkkiin ja mitä ”You”-valikossa näkyy.",
+    "@bottomNavbarButtonsNote": {
+        "description": "Note under the navigation buttons section while the bottom bar is in use"
+    },
+    "navYou": "You",
+    "@navYou": {
+        "description": "Bottom bar tab that opens the user's own menu with their profile, extra destinations and settings"
+    },
+    "uiScaleGreatGrandparents": "Isoisovanhemmat",
+    "@uiScaleGreatGrandparents": {
+        "description": "UI scaling option above Grandparents"
     }
 }

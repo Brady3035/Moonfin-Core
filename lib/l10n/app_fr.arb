@@ -9895,6 +9895,14 @@
     "@setupTourQuestion": {
         "description": "Heading of the final setup wizard screen"
     },
+    "setupPlaybackLanguages": "Langues de lecture",
+    "@setupPlaybackLanguages": {
+        "description": "Heading of the optional audio and subtitle language section on the last setup wizard screen"
+    },
+    "setupOptional": "Facultatif",
+    "@setupOptional": {
+        "description": "Tag beside an optional section in the setup wizard"
+    },
     "setupStyleClassic": "Classique",
     "@setupStyleClassic": {
         "description": "Name of the original layout, offered in the setup wizard"
@@ -10449,15 +10457,6 @@
         "description": "Framerate of a remote subtitle, shown in its detail line",
         "placeholders": {
             "rate": {
-                "type": "String"
-            }
-        }
-    },
-    "subtitleDelayAuto": "Auto {value}",
-    "@subtitleDelayAuto": {
-        "description": "Read-only line under the subtitle delay showing a correction the player applied on its own, value is a formatted delay like +2000 ms",
-        "placeholders": {
-            "value": {
                 "type": "String"
             }
         }

@@ -20110,6 +20110,558 @@ abstract class AppLocalizations {
   /// **'Could not load your achievements.'**
   String get achievementsLoadFailed;
 
+  /// Title of the friends panel from the Achievement Badges plugin
+  ///
+  /// In en, this message translates to:
+  /// **'Friends'**
+  String get friends;
+
+  /// Subtitle of the Friends entry
+  ///
+  /// In en, this message translates to:
+  /// **'See who\'s online and chat with people on this server'**
+  String get friendsSubtitle;
+
+  /// Navigation setting that adds a Friends button
+  ///
+  /// In en, this message translates to:
+  /// **'Show friends button'**
+  String get friendsShowButton;
+
+  /// Subtitle of the setting that adds a Friends button
+  ///
+  /// In en, this message translates to:
+  /// **'Friends and chat from the Achievement Badges plugin'**
+  String get friendsShowButtonSubtitle;
+
+  /// Entry that opens the list of chats
+  ///
+  /// In en, this message translates to:
+  /// **'Messages'**
+  String get friendsMessages;
+
+  /// How many chat messages are unread
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No unread messages} =1{1 unread message} other{{count} unread messages}}'**
+  String friendsUnreadCount(int count);
+
+  /// Entry that opens pending friend requests
+  ///
+  /// In en, this message translates to:
+  /// **'Friend requests'**
+  String get friendsRequests;
+
+  /// How many friend requests wait for an answer
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Nothing waiting} =1{1 waiting for you} other{{count} waiting for you}}'**
+  String friendsRequestCount(int count);
+
+  /// Entry that opens the people search
+  ///
+  /// In en, this message translates to:
+  /// **'Add friends'**
+  String get friendsAdd;
+
+  /// Subtitle of the Add friends entry
+  ///
+  /// In en, this message translates to:
+  /// **'Find people on this server'**
+  String get friendsAddSubtitle;
+
+  /// Entry that opens the friends privacy settings
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy'**
+  String get friendsPrivacy;
+
+  /// Subtitle of the friends Privacy entry
+  ///
+  /// In en, this message translates to:
+  /// **'What your friends can see'**
+  String get friendsPrivacySubtitle;
+
+  /// Section header and status for friends who are online
+  ///
+  /// In en, this message translates to:
+  /// **'Online'**
+  String get friendsOnline;
+
+  /// Section header and status for friends who are offline
+  ///
+  /// In en, this message translates to:
+  /// **'Offline'**
+  String get friendsOffline;
+
+  /// Shown when the friends list is empty
+  ///
+  /// In en, this message translates to:
+  /// **'No friends yet. Add people from this server to see them here.'**
+  String get friendsNone;
+
+  /// Status line of a friend who is playing something
+  ///
+  /// In en, this message translates to:
+  /// **'Watching {title}'**
+  String friendsWatching(String title);
+
+  /// Status line of an offline friend with the last thing they played
+  ///
+  /// In en, this message translates to:
+  /// **'Last watched {title}'**
+  String friendsLastWatched(String title);
+
+  /// Status line of an offline friend, with a relative time such as 5m ago
+  ///
+  /// In en, this message translates to:
+  /// **'Last seen {time}'**
+  String friendsLastSeen(String time);
+
+  /// Shown when a friends or chat screen fails to load
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load this. Check your connection and try again.'**
+  String get friendsLoadFailed;
+
+  /// Shown when a friends or chat action fails without a reason from the server
+  ///
+  /// In en, this message translates to:
+  /// **'That didn\'t work. Try again in a moment.'**
+  String get friendsActionFailed;
+
+  /// Section header for friend requests others sent
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for you'**
+  String get friendsIncoming;
+
+  /// Section header for friend requests the user sent
+  ///
+  /// In en, this message translates to:
+  /// **'Sent by you'**
+  String get friendsOutgoing;
+
+  /// Shown when there are no pending friend requests
+  ///
+  /// In en, this message translates to:
+  /// **'No friend requests.'**
+  String get friendsNoRequests;
+
+  /// Accept a friend request
+  ///
+  /// In en, this message translates to:
+  /// **'Accept'**
+  String get friendsAccept;
+
+  /// Decline a friend request
+  ///
+  /// In en, this message translates to:
+  /// **'Decline'**
+  String get friendsDecline;
+
+  /// Take back a friend request the user sent
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel request'**
+  String get friendsCancelRequest;
+
+  /// Title of the dialog answering a friend request
+  ///
+  /// In en, this message translates to:
+  /// **'{name} wants to be friends'**
+  String friendsRequestFrom(String name);
+
+  /// Body of the dialog cancelling a sent friend request
+  ///
+  /// In en, this message translates to:
+  /// **'Take back the request you sent to {name}?'**
+  String friendsCancelRequestBody(String name);
+
+  /// Hint of the people search field
+  ///
+  /// In en, this message translates to:
+  /// **'Search people'**
+  String get friendsSearchHint;
+
+  /// Shown when the people search finds nobody
+  ///
+  /// In en, this message translates to:
+  /// **'No one matches that name.'**
+  String get friendsNoMatches;
+
+  /// Shown after sending a friend request
+  ///
+  /// In en, this message translates to:
+  /// **'Request sent to {name}'**
+  String friendsRequestSent(String name);
+
+  /// Action that sends a friend request to someone
+  ///
+  /// In en, this message translates to:
+  /// **'Add as friend'**
+  String get friendsSendRequest;
+
+  /// Action that opens a chat with a friend
+  ///
+  /// In en, this message translates to:
+  /// **'Send message'**
+  String get friendsSendMessage;
+
+  /// Action that opens what a friend is watching
+  ///
+  /// In en, this message translates to:
+  /// **'Open {title}'**
+  String friendsOpenItem(String title);
+
+  /// Action that removes a friend
+  ///
+  /// In en, this message translates to:
+  /// **'Remove friend'**
+  String get friendsRemove;
+
+  /// Body of the dialog removing a friend
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {name} from your friends? You can add them again later.'**
+  String friendsRemoveBody(String name);
+
+  /// Action that blocks a user from messaging
+  ///
+  /// In en, this message translates to:
+  /// **'Block'**
+  String get friendsBlock;
+
+  /// Action that unblocks a user
+  ///
+  /// In en, this message translates to:
+  /// **'Unblock'**
+  String get friendsUnblock;
+
+  /// Body of the dialog blocking a user
+  ///
+  /// In en, this message translates to:
+  /// **'Block {name}? Neither of you will be able to message the other directly. Group chats you share stay open.'**
+  String friendsBlockBody(String name);
+
+  /// Body of the dialog unblocking a user
+  ///
+  /// In en, this message translates to:
+  /// **'Unblock {name}?'**
+  String friendsUnblockBody(String name);
+
+  /// Section header listing blocked users
+  ///
+  /// In en, this message translates to:
+  /// **'Blocked users'**
+  String get friendsBlocked;
+
+  /// Shown when another user hides their profile
+  ///
+  /// In en, this message translates to:
+  /// **'{name} keeps their profile private.'**
+  String friendsProfileHidden(String name);
+
+  /// Privacy setting that always shows the user as offline
+  ///
+  /// In en, this message translates to:
+  /// **'Appear offline'**
+  String get friendsAppearOffline;
+
+  /// Subtitle of the Appear offline setting
+  ///
+  /// In en, this message translates to:
+  /// **'Friends always see you as offline'**
+  String get friendsAppearOfflineSubtitle;
+
+  /// Privacy setting that hides what is playing
+  ///
+  /// In en, this message translates to:
+  /// **'Hide what I\'m watching'**
+  String get friendsHideNowPlaying;
+
+  /// Subtitle of the Hide what I am watching setting
+  ///
+  /// In en, this message translates to:
+  /// **'Friends still see you online, but not what\'s playing'**
+  String get friendsHideNowPlayingSubtitle;
+
+  /// Privacy setting that hides the last played item while offline
+  ///
+  /// In en, this message translates to:
+  /// **'Hide my last watched'**
+  String get friendsHideLastWatched;
+
+  /// Subtitle of the Hide my last watched setting
+  ///
+  /// In en, this message translates to:
+  /// **'Friends won\'t see what you watched last while you\'re offline'**
+  String get friendsHideLastWatchedSubtitle;
+
+  /// Setting that shows a banner for new chat messages
+  ///
+  /// In en, this message translates to:
+  /// **'Message notifications'**
+  String get friendsMessageNotifications;
+
+  /// Subtitle of the Message notifications setting
+  ///
+  /// In en, this message translates to:
+  /// **'Show a banner when a friend messages you'**
+  String get friendsMessageNotificationsSubtitle;
+
+  /// Setting that hides new message banners while a video or game plays
+  ///
+  /// In en, this message translates to:
+  /// **'Mute during playback'**
+  String get friendsMuteDuringPlayback;
+
+  /// Subtitle of the Mute during playback setting
+  ///
+  /// In en, this message translates to:
+  /// **'No message banners while a video or game is playing'**
+  String get friendsMuteDuringPlaybackSubtitle;
+
+  /// Shown when the friends privacy settings fail to save
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save your settings.'**
+  String get friendsSaveFailed;
+
+  /// Entry that starts a chat with one friend
+  ///
+  /// In en, this message translates to:
+  /// **'New message'**
+  String get chatNew;
+
+  /// Subtitle of the New message entry
+  ///
+  /// In en, this message translates to:
+  /// **'Start a chat with a friend'**
+  String get chatNewSubtitle;
+
+  /// Entry that creates a group chat
+  ///
+  /// In en, this message translates to:
+  /// **'New group'**
+  String get chatNewGroup;
+
+  /// Subtitle of the New group entry
+  ///
+  /// In en, this message translates to:
+  /// **'Chat with several friends at once'**
+  String get chatNewGroupSubtitle;
+
+  /// Shown when there are no chats or no messages in a chat
+  ///
+  /// In en, this message translates to:
+  /// **'No messages yet.'**
+  String get chatNone;
+
+  /// Stands for the signed-in user in chats and member lists
+  ///
+  /// In en, this message translates to:
+  /// **'You'**
+  String get chatYou;
+
+  /// Preview of the last chat message when the user sent it
+  ///
+  /// In en, this message translates to:
+  /// **'You: {text}'**
+  String chatYouSaid(String text);
+
+  /// Preview of a chat message that is an image
+  ///
+  /// In en, this message translates to:
+  /// **'Photo'**
+  String get chatPhoto;
+
+  /// Button that opens the emoji picker in a chat
+  ///
+  /// In en, this message translates to:
+  /// **'Emoji'**
+  String get chatEmoji;
+
+  /// Hint of the search field in the emoji picker
+  ///
+  /// In en, this message translates to:
+  /// **'Search emoji'**
+  String get chatEmojiSearch;
+
+  /// Shown in the emoji picker's recent tab before any emoji was used
+  ///
+  /// In en, this message translates to:
+  /// **'No recent emoji'**
+  String get chatNoRecentEmoji;
+
+  /// Action that opens a photo sent in a chat at full size
+  ///
+  /// In en, this message translates to:
+  /// **'View photo'**
+  String get chatViewPhoto;
+
+  /// Hint of the chat message field
+  ///
+  /// In en, this message translates to:
+  /// **'Write a message'**
+  String get chatHint;
+
+  /// Button that picks an image to send in a chat
+  ///
+  /// In en, this message translates to:
+  /// **'Send a photo'**
+  String get chatAttach;
+
+  /// Marks a chat message that was changed after sending
+  ///
+  /// In en, this message translates to:
+  /// **'edited'**
+  String get chatEdited;
+
+  /// Read receipt on a sent chat message
+  ///
+  /// In en, this message translates to:
+  /// **'Seen'**
+  String get chatSeen;
+
+  /// Delivery mark on a sent chat message nobody has read yet
+  ///
+  /// In en, this message translates to:
+  /// **'Sent'**
+  String get chatSent;
+
+  /// Banner above the chat field while changing a sent message
+  ///
+  /// In en, this message translates to:
+  /// **'Editing message'**
+  String get chatEditing;
+
+  /// Title of the dialog with actions for a chat message
+  ///
+  /// In en, this message translates to:
+  /// **'Message options'**
+  String get chatMessageOptions;
+
+  /// Body of the dialog deleting a chat message
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this message for everyone?'**
+  String get chatDeleteBody;
+
+  /// Action that deletes every message in a chat
+  ///
+  /// In en, this message translates to:
+  /// **'Clear conversation'**
+  String get chatClear;
+
+  /// Body of the dialog clearing a chat
+  ///
+  /// In en, this message translates to:
+  /// **'Delete every message in this chat for everyone in it?'**
+  String get chatClearBody;
+
+  /// Screen and action with a group chat name and members
+  ///
+  /// In en, this message translates to:
+  /// **'Group info'**
+  String get chatGroupInfo;
+
+  /// Label of the group chat name field
+  ///
+  /// In en, this message translates to:
+  /// **'Group name'**
+  String get chatGroupName;
+
+  /// How many people are in a group chat
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 member} other{{count} members}}'**
+  String chatMemberCount(int count);
+
+  /// Marks the person who created a group chat
+  ///
+  /// In en, this message translates to:
+  /// **'Owner'**
+  String get chatOwner;
+
+  /// Marks a group chat admin
+  ///
+  /// In en, this message translates to:
+  /// **'Admin'**
+  String get chatAdmin;
+
+  /// Action that makes a group member an admin
+  ///
+  /// In en, this message translates to:
+  /// **'Make admin'**
+  String get chatMakeAdmin;
+
+  /// Action that takes admin away from a group member
+  ///
+  /// In en, this message translates to:
+  /// **'Remove admin'**
+  String get chatRemoveAdmin;
+
+  /// Action that removes someone from a group chat
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from group'**
+  String get chatRemoveMember;
+
+  /// Action that adds friends to a group chat
+  ///
+  /// In en, this message translates to:
+  /// **'Add people'**
+  String get chatAddMember;
+
+  /// Shown when every friend is already in the group
+  ///
+  /// In en, this message translates to:
+  /// **'No one left to add.'**
+  String get chatNobodyToAdd;
+
+  /// Action that leaves a group chat
+  ///
+  /// In en, this message translates to:
+  /// **'Leave group'**
+  String get chatLeave;
+
+  /// Body of the dialog leaving a group chat
+  ///
+  /// In en, this message translates to:
+  /// **'Leave this group? Someone will have to add you back to rejoin.'**
+  String get chatLeaveBody;
+
+  /// Button that creates a group chat
+  ///
+  /// In en, this message translates to:
+  /// **'Create group'**
+  String get chatCreate;
+
+  /// Hint on the new group screen
+  ///
+  /// In en, this message translates to:
+  /// **'Pick at least two friends'**
+  String get chatPickMembers;
+
+  /// Title of the banner for a new chat message
+  ///
+  /// In en, this message translates to:
+  /// **'New message from {name}'**
+  String chatNewMessageFrom(String name);
+
+  /// Shown when a picked chat image is too big
+  ///
+  /// In en, this message translates to:
+  /// **'That image is over 8 MB.'**
+  String get chatImageTooLarge;
+
+  /// Shown when a picked chat image has an unsupported type
+  ///
+  /// In en, this message translates to:
+  /// **'Only PNG, JPEG, GIF and WebP images can be sent.'**
+  String get chatImageUnsupported;
+
   /// No description provided for @embeddedBrowserNotAvailable.
   ///
   /// In en, this message translates to:

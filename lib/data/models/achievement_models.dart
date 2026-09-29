@@ -956,3 +956,360 @@ class AchievementsOverview {
   final bool leaderboardEnabled;
   final bool questsEnabled;
 }
+
+/// The plugin sends user ids with or without dashes depending on the route, so
+/// two ids are compared in one shape.
+bool sameUserId(String a, String b) => _userKey(a) == _userKey(b);
+
+String _userKey(String id) => id.replaceAll('-', '').toLowerCase();
+
+/// A user as the friends and chat routes name them.
+class SocialUser {
+  const SocialUser({required this.userId, required this.userName});
+
+  final String userId;
+  final String userName;
+
+  factory SocialUser.fromJson(Map<String, dynamic> json) {
+    return SocialUser(
+      userId: _asString(json['UserId'] ?? json['userId']),
+      userName: _asString(json['UserName'] ?? json['userName']),
+    );
+  }
+}
+
+/// What a friend is watching now, or watched last.
+class FriendMedia {
+  const FriendMedia({
+    required this.id,
+    required this.name,
+    required this.seriesName,
+  });
+
+  final String id;
+  final String name;
+  final String? seriesName;
+
+  factory FriendMedia.fromJson(Map<String, dynamic> json) {
+    return FriendMedia(
+      id: _asString(json['Id']),
+      name: _asString(json['Name']),
+      seriesName: _nonEmpty(json['SeriesName']),
+    );
+  }
+
+  static FriendMedia? maybe(dynamic value) =>
+      value is Map<String, dynamic> ? FriendMedia.fromJson(value) : null;
+}
+
+/// One row of the friends list.
+///
+/// The server applies each friend's privacy settings before sending the row,
+/// so a friend who appears offline simply comes through offline.
+class Friend {
+  const Friend({
+    required this.userId,
+    required this.userName,
+    required this.online,
+    required this.lastSeen,
+    required this.equipped,
+    required this.nowPlaying,
+    required this.lastWatched,
+  });
+
+  final String userId;
+  final String userName;
+  final bool online;
+  final DateTime? lastSeen;
+
+  /// Only the icon, title and rarity are sent for another user's badges.
+  final List<AchievementBadge> equipped;
+  final FriendMedia? nowPlaying;
+  final FriendMedia? lastWatched;
+
+  factory Friend.fromJson(Map<String, dynamic> json) {
+    return Friend(
+      userId: _asString(json['UserId']),
+      userName: _asString(json['UserName']),
+      online: _asBool(json['Online']),
+      lastSeen: _asDate(json['LastSeen']),
+      equipped: _mapList(json['Equipped'], AchievementBadge.fromJson),
+      nowPlaying: FriendMedia.maybe(json['NowPlaying']),
+      lastWatched: FriendMedia.maybe(json['LastWatched']),
+    );
+  }
+}
+
+class FriendsList {
+  const FriendsList({
+    required this.friends,
+    required this.incoming,
+    required this.outgoing,
+    required this.simpleMode,
+  });
+
+  final List<Friend> friends;
+  final List<SocialUser> incoming;
+  final List<SocialUser> outgoing;
+
+  /// The admin made everyone on the server a friend, so there are no requests.
+  final bool simpleMode;
+
+  factory FriendsList.fromJson(Map<String, dynamic> json) {
+    return FriendsList(
+      friends: _mapList(json['Friends'], Friend.fromJson),
+      incoming: _mapList(json['Incoming'], SocialUser.fromJson),
+      outgoing: _mapList(json['Outgoing'], SocialUser.fromJson),
+      simpleMode: _asBool(json['SimpleMode']),
+    );
+  }
+
+  bool isFriend(String userId) =>
+      friends.any((friend) => sameUserId(friend.userId, userId));
+
+  bool isPending(String userId) =>
+      [...incoming, ...outgoing].any((user) => sameUserId(user.userId, userId));
+}
+
+/// The card for another user. It carries what the leaderboard already shows.
+class PublicProfile {
+  const PublicProfile({
+    required this.userName,
+    required this.unlocked,
+    required this.total,
+    required this.percentage,
+    required this.score,
+    required this.bestWatchStreak,
+    required this.equipped,
+    required this.customTitle,
+  });
+
+  final String userName;
+  final int unlocked;
+  final int total;
+  final double percentage;
+  final int score;
+  final int bestWatchStreak;
+  final List<AchievementBadge> equipped;
+  final String? customTitle;
+
+  factory PublicProfile.fromJson(Map<String, dynamic> json) {
+    return PublicProfile(
+      userName: _asString(json['UserName']),
+      unlocked: _asInt(json['Unlocked']),
+      total: _asInt(json['Total']),
+      percentage: _asDouble(json['Percentage']),
+      score: _asInt(json['Score']),
+      bestWatchStreak: _asInt(json['BestWatchStreak']),
+      equipped: _mapList(json['Equipped'], AchievementBadge.fromJson),
+      customTitle: _nonEmpty(json['CustomTitle']),
+    );
+  }
+}
+
+/// The friend related settings the plugin keeps per user.
+class SocialPrivacy {
+  const SocialPrivacy({
+    required this.appearOffline,
+    required this.hideNowPlaying,
+    required this.hideLastWatched,
+    required this.messageNotifications,
+  });
+
+  final bool appearOffline;
+  final bool hideNowPlaying;
+  final bool hideLastWatched;
+  final bool messageNotifications;
+
+  factory SocialPrivacy.fromJson(Map<String, dynamic> json) {
+    return SocialPrivacy(
+      appearOffline: _asBool(json['AppearOffline']),
+      hideNowPlaying: _asBool(json['HideNowPlaying']),
+      hideLastWatched: _asBool(json['HideLastWatched']),
+      messageNotifications: json['MessageNotifications'] != false,
+    );
+  }
+
+  /// The plugin saves its whole preferences object at once, so these are
+  /// written over a fresh copy of it.
+  Map<String, dynamic> applyTo(Map<String, dynamic> prefs) => {
+    ...prefs,
+    'AppearOffline': appearOffline,
+    'HideNowPlaying': hideNowPlaying,
+    'HideLastWatched': hideLastWatched,
+    'MessageNotifications': messageNotifications,
+  };
+
+  SocialPrivacy copyWith({
+    bool? appearOffline,
+    bool? hideNowPlaying,
+    bool? hideLastWatched,
+    bool? messageNotifications,
+  }) {
+    return SocialPrivacy(
+      appearOffline: appearOffline ?? this.appearOffline,
+      hideNowPlaying: hideNowPlaying ?? this.hideNowPlaying,
+      hideLastWatched: hideLastWatched ?? this.hideLastWatched,
+      messageNotifications: messageNotifications ?? this.messageNotifications,
+    );
+  }
+}
+
+/// One entry of the messages list. Unlike the rest of the plugin, the chat
+/// payloads use camelCase names.
+class ChatThread {
+  const ChatThread({
+    required this.conversationId,
+    required this.isGroup,
+    required this.name,
+    required this.participants,
+    required this.otherUserId,
+    required this.lastMessage,
+    required this.lastFromMe,
+    required this.lastAt,
+    required this.unreadCount,
+    required this.hasAttachment,
+  });
+
+  final String conversationId;
+  final bool isGroup;
+
+  /// The other person for a direct chat, or the group's name.
+  final String name;
+
+  /// Everyone in the chat except the signed-in user.
+  final List<SocialUser> participants;
+  final String otherUserId;
+  final String lastMessage;
+  final bool lastFromMe;
+  final DateTime? lastAt;
+  final int unreadCount;
+  final bool hasAttachment;
+
+  /// The plugin previews an image with no text as "[image]".
+  bool get lastIsPhoto =>
+      hasAttachment && (lastMessage.isEmpty || lastMessage == '[image]');
+
+  factory ChatThread.fromJson(Map<String, dynamic> json) {
+    return ChatThread(
+      conversationId: _asString(json['conversationId']),
+      isGroup: json['type'] == 'group',
+      name: _asString(json['otherUserName']),
+      participants: _mapList(json['participants'], SocialUser.fromJson),
+      otherUserId: _asString(json['otherUserId']),
+      lastMessage: _asString(json['lastMessage']),
+      lastFromMe: _asBool(json['lastFromMe']),
+      lastAt: _asDate(json['lastAt']),
+      unreadCount: _asInt(json['unreadCount']),
+      hasAttachment: _asBool(json['hasAttachment']),
+    );
+  }
+}
+
+/// Who is in a chat and who runs it.
+class ChatConversation {
+  const ChatConversation({
+    required this.id,
+    required this.isGroup,
+    required this.title,
+    required this.participantIds,
+    required this.createdByUserId,
+    required this.adminIds,
+  });
+
+  final String id;
+  final bool isGroup;
+  final String? title;
+  final List<String> participantIds;
+  final String createdByUserId;
+
+  /// Admins other than the creator, who is always one.
+  final List<String> adminIds;
+
+  factory ChatConversation.fromJson(Map<String, dynamic> json) {
+    List<String> ids(dynamic value) =>
+        value is List ? value.whereType<String>().toList() : <String>[];
+    return ChatConversation(
+      id: _asString(json['id']),
+      isGroup: json['type'] == 'group',
+      title: _nonEmpty(json['title']),
+      participantIds: ids(json['participantIds']),
+      createdByUserId: _asString(json['createdByUserId']),
+      adminIds: ids(json['adminIds']),
+    );
+  }
+
+  bool isOwner(String userId) => sameUserId(createdByUserId, userId);
+
+  bool isAdmin(String userId) =>
+      isOwner(userId) || adminIds.any((id) => sameUserId(id, userId));
+}
+
+class ChatMessage {
+  const ChatMessage({
+    required this.id,
+    required this.fromUserId,
+    required this.fromUserName,
+    required this.text,
+    required this.sentAt,
+    required this.editedAt,
+    required this.attachmentId,
+    required this.readBy,
+    required this.readAt,
+  });
+
+  final String id;
+  final String fromUserId;
+  final String fromUserName;
+  final String text;
+  final DateTime? sentAt;
+  final DateTime? editedAt;
+  final String? attachmentId;
+
+  /// Ids of the users who opened the chat since this was sent.
+  final Set<String> readBy;
+
+  /// The old single read stamp, still set on direct chats.
+  final DateTime? readAt;
+
+  factory ChatMessage.fromJson(Map<String, dynamic> json) {
+    final readBy = json['readBy'];
+    return ChatMessage(
+      id: _asString(json['id']),
+      fromUserId: _asString(json['fromUserId']),
+      fromUserName: _asString(json['fromUserName']),
+      text: _asString(json['text']),
+      sentAt: _asDate(json['sentAt']),
+      editedAt: _asDate(json['editedAt']),
+      attachmentId: _nonEmpty(json['attachmentId']),
+      readBy: readBy is Map ? readBy.keys.whereType<String>().toSet() : {},
+      readAt: _asDate(json['readAt']),
+    );
+  }
+
+  /// Whether someone other than the sender has seen it.
+  bool get isRead =>
+      readAt != null || readBy.any((id) => !sameUserId(id, fromUserId));
+
+  /// The plugin lets a sender edit a message for a day.
+  bool canEdit(DateTime now) {
+    final sent = sentAt;
+    return text.isNotEmpty &&
+        sent != null &&
+        now.difference(sent) < const Duration(hours: 24);
+  }
+}
+
+/// The result of a friends or chat write.
+///
+/// These routes answer 200 with a Success flag, and put the reason in Message
+/// when it is false.
+class SocialWrite<T> {
+  const SocialWrite(this.ok, {this.message, this.value});
+
+  const SocialWrite.failed({this.message}) : ok = false, value = null;
+
+  final bool ok;
+  final String? message;
+  final T? value;
+}

@@ -1,4 +1,8 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart' show AppLifecycleState;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:moonfin/data/models/achievement_models.dart';
 import 'package:moonfin/data/services/achievements_service.dart';
@@ -410,6 +414,273 @@ void main() {
 
       expect(recap?.period, 'year');
       expect(recap?.daysWatched, 11);
+    });
+  });
+
+  group('friends', () {
+    test('the list, presence and requests are read', () async {
+      await service.refreshAvailability(client);
+
+      final friends = await service.fetchFriends(client);
+      expect(friends?.friends.map((f) => f.userName), ['Grace', 'Linus']);
+      final grace = friends!.friends.first;
+      expect(grace.online, isTrue);
+      expect(grace.nowPlaying?.seriesName, 'Severance');
+      expect(grace.equipped.single.rarity, 'Epic');
+      expect(friends.friends.last.lastWatched?.name, 'Heat');
+      expect(friends.incoming.single.userName, 'Margaret');
+      expect(friends.isPending('user4'), isTrue);
+    });
+
+    test('the badge counts requests and unread messages', () async {
+      await service.refreshAvailability(client);
+      await service.refreshSocial(client);
+
+      expect(service.incomingRequestCount, 1);
+      expect(service.unreadMessageCount, 2);
+      expect(service.socialBadgeCount, 3);
+    });
+
+    test('nothing is asked when an admin turned friends off', () async {
+      adapter.friendsEnabled = false;
+      await service.refreshAvailability(client);
+      adapter.requests.clear();
+
+      await service.refreshSocial(client);
+
+      expect(service.socialAvailable, isFalse);
+      expect(adapter.requests, isEmpty);
+    });
+
+    test('accepting moves a request into the friends list', () async {
+      await service.refreshAvailability(client);
+
+      final write = await service.acceptFriendRequest(client, 'user4');
+      final friends = await service.fetchFriends(client);
+
+      expect(write.ok, isTrue);
+      expect(friends?.incoming, isEmpty);
+      expect(friends?.isFriend('user4'), isTrue);
+    });
+
+    test('people to add come from the plugin directory', () async {
+      final users = await service.fetchServerUsers(client);
+
+      final names = users.map((user) => user.userName);
+      expect(names, contains('Barbara'));
+      expect(names, isNot(contains('Hedy')));
+      expect(adapter.requests, isNot(contains('GET /Users')));
+    });
+
+    test('a plugin without a directory falls back to /Users', () async {
+      adapter.directoryMissing = true;
+
+      final users = await service.fetchServerUsers(client);
+
+      expect(users.map((user) => user.userName), contains('Hedy'));
+      expect(adapter.requests.last, 'GET /Users');
+    });
+
+    test('ids match with or without dashes', () {
+      expect(
+        sameUserId(
+          '5f2b9c1e-0000-4000-8000-00000000abcd',
+          '5F2B9C1E00004000800000000000ABCD',
+        ),
+        isTrue,
+      );
+    });
+  });
+
+  group('chat', () {
+    test('only messages new since the last read raise a banner', () async {
+      await service.refreshAvailability(client);
+      final banners = <ChatThread>[];
+      final sub = service.incomingMessages.listen(banners.add);
+
+      // Two messages were already waiting, which is no news.
+      await service.refreshSocial(client);
+      adapter.chat.add({
+        'id': 'msg-3',
+        'fromUserId': 'user2',
+        'fromUserName': 'Grace',
+        'text': 'Hello?',
+        'sentAt': '2026-09-20T18:30:00Z',
+      });
+      adapter.unread = 3;
+      await service.refreshSocial(client);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(banners.single.name, 'Grace');
+      expect(banners.single.lastMessage, 'Hello?');
+      await sub.cancel();
+    });
+
+    test('the open chat raises no banner', () async {
+      await service.refreshAvailability(client);
+      final banners = <ChatThread>[];
+      final sub = service.incomingMessages.listen(banners.add);
+
+      await service.refreshSocial(client);
+      service.openConversationId = 'conv-grace';
+      adapter.unread = 3;
+      await service.refreshSocial(client);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(banners, isEmpty);
+      await sub.cancel();
+    });
+
+    test('messages come oldest first, not read by the sender alone', () async {
+      await service.refreshAvailability(client);
+      adapter.chat.first['readBy'] = {'user2': '2026-09-20T18:00:00Z'};
+
+      final messages = await service.fetchMessages(client, 'conv-grace');
+
+      expect(messages?.map((m) => m.id), ['msg-1', 'msg-2']);
+      expect(messages!.first.isRead, isFalse);
+      expect(messages.first.sentAt, DateTime.utc(2026, 9, 20, 18).toLocal());
+    });
+
+    test('a sent message comes back from the server', () async {
+      await service.refreshAvailability(client);
+
+      final write = await service.sendMessage(
+        client,
+        'conv-grace',
+        text: 'On my way',
+      );
+
+      expect(write.ok, isTrue);
+      expect(write.value?.text, 'On my way');
+      expect(jsonDecode(adapter.lastBody!), {'Text': 'On my way'});
+    });
+
+    test('a refusal carries the plugin\'s reason', () async {
+      await service.refreshAvailability(client);
+
+      final write = await service.sendMessage(
+        client,
+        'conv-grace',
+        text: 'x' * 1001,
+      );
+
+      expect(write.ok, isFalse);
+      expect(write.message, 'Message exceeds 1000 character limit.');
+    });
+
+    test('an edit is a PATCH on the message', () async {
+      await service.refreshAvailability(client);
+
+      final write = await service.editMessage(client, 'msg-2', 'Fixed');
+
+      expect(write.value?.text, 'Fixed');
+      expect(write.value?.editedAt, isNotNull);
+      expect(
+        adapter.requests,
+        contains('PATCH /Plugins/AchievementBadges/users/user1/messages/msg-2'),
+      );
+    });
+
+    test('an image is uploaded as a file, then sent by id', () async {
+      await service.refreshAvailability(client);
+
+      final upload = await service.uploadAttachment(
+        client,
+        Uint8List.fromList(utf8.encode('png bytes')),
+        fileName: 'cat.png',
+        mimeType: 'image/png',
+      );
+      final write = await service.sendMessage(
+        client,
+        'conv-grace',
+        attachmentId: upload.value,
+      );
+
+      expect(upload.value, 'att-1');
+      expect(adapter.uploads.single, contains('filename="cat.png"'));
+      expect(adapter.uploads.single, contains('png bytes'));
+      expect(write.value?.attachmentId, 'att-1');
+      expect(await service.fetchAttachment(client, 'att-1'), onePixelPng);
+    });
+
+    test('a group needs two friends besides the user', () async {
+      await service.refreshAvailability(client);
+
+      final refused = await service.createGroup(
+        client,
+        title: 'Movie night',
+        memberIds: ['user2'],
+      );
+      final created = await service.createGroup(
+        client,
+        title: 'Movie night',
+        memberIds: ['user2', 'user3'],
+      );
+
+      expect(refused.ok, isFalse);
+      expect(refused.message, contains('at least 3'));
+      expect(created.value?.title, 'Movie night');
+      expect(created.value?.isOwner('user1'), isTrue);
+    });
+  });
+
+  group('privacy', () {
+    test('saving keeps the plugin settings it does not own', () async {
+      await service.refreshAvailability(client);
+      final privacy = await service.fetchSocialPrivacy(client);
+
+      final saved = await service.saveSocialPrivacy(
+        client,
+        privacy!.copyWith(appearOffline: true),
+      );
+
+      expect(saved, isTrue);
+      expect(adapter.preferences['AppearOffline'], isTrue);
+      expect(adapter.preferences['Language'], 'fr');
+      expect(adapter.preferences['MessageNotifications'], isTrue);
+    });
+
+    test('blocking shows up in the blocked list', () async {
+      await service.refreshAvailability(client);
+
+      await service.setBlocked(client, 'user3', blocked: true);
+      expect(await service.fetchBlocked(client), ['user3']);
+
+      await service.setBlocked(client, 'user3', blocked: false);
+      expect(await service.fetchBlocked(client), isEmpty);
+    });
+  });
+
+  group('background', () {
+    tearDown(() => service.reset());
+
+    test('the badge pauses in the background and catches up', () async {
+      final binding = TestWidgetsFlutterBinding.instance;
+      binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await service.refreshAvailability(client);
+      service.startSocialPolling(client);
+      expect(service.socialPolling, isTrue);
+
+      // A desktop window without focus is still on screen.
+      binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      expect(service.socialPolling, isTrue);
+
+      binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+      binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+      expect(service.socialPolling, isFalse);
+
+      adapter.requests.clear();
+      binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+      binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await pumpEventQueue();
+
+      expect(service.socialPolling, isTrue);
+      expect(
+        adapter.requests,
+        contains('GET /Plugins/AchievementBadges/users/user1/friends'),
+      );
     });
   });
 }

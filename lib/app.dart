@@ -15,7 +15,9 @@ import 'package:playback_core/playback_core.dart';
 import 'package:window_manager/window_manager.dart';
 
 import 'auth/repositories/session_repository.dart';
+import 'data/models/achievement_models.dart';
 import 'data/models/aggregated_item.dart';
+import 'data/services/achievements_service.dart';
 import 'data/services/cast/cast_service.dart';
 import 'data/services/connectivity_service.dart';
 import 'data/services/download_service.dart';
@@ -41,7 +43,10 @@ import 'ui/theme/app_theme.dart';
 import 'ui/theme/app_theme_controller.dart';
 import 'ui/widgets/app_update_banner.dart';
 import 'ui/widgets/cast_mini_player.dart';
+import 'ui/screens/settings/achievements_screen.dart';
+import 'ui/widgets/floating_notification.dart';
 import 'ui/widgets/offline_banner.dart';
+import 'ui/widgets/settings/settings_panel.dart';
 import 'ui/widgets/server_messages_dialog.dart';
 import 'ui/widgets/exit_confirmation_dialog.dart';
 import 'ui/widgets/keyboard_shortcuts/keyboard_shortcut_reference.dart';
@@ -1020,6 +1025,7 @@ class _ConnectivityListenerState extends ConsumerState<_ConnectivityListener>
   bool? _wasServerReachable;
   StreamSubscription<SyncPlayUiEvent>? _syncPlayEventsSub;
   StreamSubscription<String>? _downloadErrorSub;
+  StreamSubscription<ChatThread>? _chatMessageSub;
 
   @override
   void initState() {
@@ -1053,6 +1059,10 @@ class _ConnectivityListenerState extends ConsumerState<_ConnectivityListener>
         _handleDownloadError,
       );
     }
+    if (GetIt.instance.isRegistered<AchievementsService>()) {
+      _chatMessageSub = GetIt.instance<AchievementsService>().incomingMessages
+          .listen(_handleIncomingChat);
+    }
   }
 
   @override
@@ -1060,6 +1070,7 @@ class _ConnectivityListenerState extends ConsumerState<_ConnectivityListener>
     WidgetsBinding.instance.removeObserver(this);
     _syncPlayEventsSub?.cancel();
     _downloadErrorSub?.cancel();
+    _chatMessageSub?.cancel();
     if (GetIt.instance.isRegistered<PluginSyncService>()) {
       GetIt.instance<PluginSyncService>().onSeerrNotification = null;
     }
@@ -1144,6 +1155,26 @@ class _ConnectivityListenerState extends ConsumerState<_ConnectivityListener>
         duration: const Duration(seconds: 5),
         behavior: SnackBarBehavior.floating,
       ),
+    );
+  }
+
+  /// A banner for a chat message from a friend. Tapping it opens the chat.
+  void _handleIncomingChat(ChatThread thread) {
+    if (GetIt.instance<UserPreferences>().get(
+      UserPreferences.muteChatBannersDuringPlayback,
+    )) {
+      final matches = appRouter.routerDelegate.currentConfiguration.matches;
+      final path = matches.isEmpty ? '' : matches.last.matchedLocation;
+      if (Destinations.isPlayerRoute(path)) return;
+    }
+    final navContext = _navigatorContext();
+    if (navContext == null) return;
+    final l10n = AppLocalizations.of(navContext);
+    FloatingNotification.show(
+      navContext,
+      l10n.chatNewMessageFrom(thread.name),
+      thread.lastIsPhoto ? l10n.chatPhoto : thread.lastMessage,
+      () => SettingsPanel.open(navContext, FriendChatScreen.forThread(thread)),
     );
   }
 

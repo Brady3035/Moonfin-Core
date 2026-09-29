@@ -138,6 +138,7 @@ dependencies:
     path: packages/moonfin_native_video
   url_launcher: ^6.3.2
   file_picker: ^11.0.2
+  emoji_picker_flutter: ^4.5.4
   webview_flutter: ^4.13.1
   flutter_inappwebview: ^6.1.5
   webview_win_floating: ^3.0.3

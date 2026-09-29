@@ -101,7 +101,7 @@ class AppLocalizationsFi extends AppLocalizations {
   String get whosWatching => 'Kuka katselee?';
 
   @override
-  String get addUser => 'Lisää käyttäjä';
+  String get addUser => 'Lisää Käyttäjä';
 
   @override
   String get selectServer => 'Valitse Palvelin';
@@ -112,7 +112,7 @@ class AppLocalizationsFi extends AppLocalizations {
   }
 
   @override
-  String get savedServers => 'Tallennetut palvelimet';
+  String get savedServers => 'Tallennetut Palvelimet';
 
   @override
   String get discoveredServers => 'Löydetyt Palvelimet';
@@ -122,13 +122,13 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get unableToConnectToServer =>
-      'Ei voida muodostaa yhteyttä palvelimeen';
+      'Yhteyttä palvelimeen ei voitu muodostaa';
 
   @override
   String get addServer => 'Lisää Palvelin';
 
   @override
-  String get embyConnect => 'Yhdistä Emby';
+  String get embyConnect => 'Emby Yhteys';
 
   @override
   String get removeServer => 'Poista Palvelin';
@@ -139,7 +139,7 @@ class AppLocalizationsFi extends AppLocalizations {
   }
 
   @override
-  String get cancel => 'Keskeytä';
+  String get cancel => 'Peruuta';
 
   @override
   String get remove => 'Poista';
@@ -158,11 +158,11 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get secureStorageUnavailable =>
-      'Suojattua Tallennustilaa ei ole Käytettävissä';
+      'Turvallista tallennustilaa ei ole käytettävissä';
 
   @override
   String get secureStorageUnavailableMessage =>
-      'Moonfin ei voinut käyttää järjestelmän avainketjua . Kirjautuminen voi jatkua, mutta suojattu tunnuksen tallennus ei välttämättä ole käytettävissä, ennen kuin avainketju on avattu.';
+      'Moonfin ei voinut käyttää järjestelmän avainketjua. \tVoit kirjautua, mutta suojatun tunnuksen tallennus ei välttämättä ole käytettävissä, ennen kuin avainketju on avattu.';
 
   @override
   String get ok => 'OK';
@@ -175,13 +175,13 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get detailScreenStyleSubtitle =>
-      'Classic on alkuperäinen, keskitetyn moonfin-asettelun versio. Modern on responsiivinen, elokuvamainen asettelu. Spotlight on hero-first-asettelu, jossa on ponnahdusikkunoina avautuvia sisältökortteja. Nouveau on koko näytön asettelu, jossa osiot on pinottu sivun alaspäin. Minimalist koostuu kuvamateriaalista, yhdestä toistopainikkeesta ja jaksoista.';
+      'Classic on alkuperäinen, keskitetyn moonfin-asettelun versio. \tModern on responsiivinen, elokuvamainen asettelu.\tSpotlight on hero-first-asettelu, jossa on ponnahdusikkunoina avautuvia sisältökortteja.\tNouveau on koko näytön asettelu, jossa osiot on pinottu sivun alaspäin. \tMinimalist koostuu kuvamateriaalista, yhdestä toistopainikkeesta ja jaksoista.';
 
   @override
   String get detailScreenStyleMoonfin => 'Klassinen';
 
   @override
-  String get detailScreenStyleModern => 'Moderni';
+  String get detailScreenStyleModern => 'Modern';
 
   @override
   String get detailScreenStyleSpotlight => 'Esittelyssä';
@@ -399,7 +399,7 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get expandedTabsSubtitle =>
-      'Näytä välilehden sisältö automaattisesti välilehtiä selatessasi. Poista käytöstä, jos haluat avata ja sulkea jokaisen välilehden itse.';
+      'Näytä välilehden sisältö automaattisesti välilehtiä selatessasi. \tPoista käytöstä, jos haluat avata ja sulkea jokaisen välilehden itse.';
 
   @override
   String get showTechnicalDetails => 'Näytetäänkö Tekniset Tiedot?';
@@ -501,7 +501,7 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get performanceModeSubtitle =>
-      'Toiminto mittaa laitteen resurssit automaattisesti ja rajoittaa toimintoja laitteissa, joissa on vähän muistia. Näin muistiin tallennetaan vähemmän kuvia ja videot tallennetaan still-kuvina. Muutos astuu voimaan seuraavalla käynnistyskerralla.';
+      'Toiminto mittaa laitteen resurssit automaattisesti ja rajoittaa toimintoja laitteissa, joissa on vähän muistia. \nNäin muistiin tallennetaan vähemmän kuvia ja videot tallennetaan still-kuvina. Muutos astuu voimaan seuraavalla käynnistyskerralla.';
 
   @override
   String get performanceModeAuto => 'Auto';
@@ -591,7 +591,7 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get invalidEmbyConnectCredentials =>
-      'Virheelliset Emby Connect -tunnistetiedot';
+      'Virheelliset Emby Connect -tiedot';
 
   @override
   String get invalidEmbyConnectLogin =>
@@ -599,24 +599,25 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get embyConnectExchangeNotSupported =>
-      'Palvelin ei tue Emby Connect -vaihtoa';
+      'Palvelin ei tue Emby Connect -tiedonsiirtoa';
 
   @override
   String get embyConnectNetworkError =>
-      'Verkkovirhe otettaessa yhteyttä Emby Connectiin tai valittuun palvelimeen';
+      'Verkkovirhe yhteyden muodostamisessa Emby Connectiin tai valittuun palvelimeen';
 
   @override
-  String get loadingLinkedServers => 'Ladataan linkitettyjä palvelimia...';
+  String get loadingLinkedServers => 'Lataa linkitettyjä palvelimia...';
 
   @override
   String get connectingToServerEllipsis => 'Yhdistetään palvelimeen…';
 
   @override
-  String get noReachableAddress => 'Yhteysosoitetta ei ole annettu';
+  String get noReachableAddress =>
+      'Käytettävissä olevaa osoitetta ei ole annettu';
 
   @override
   String get invalidServerExchangeResponse =>
-      'Virheellinen vastaus palvelimen vaihdon päätepisteestä';
+      'Virheellinen vastaus Exchange-palvelimen päätelaitteelta';
 
   @override
   String unableToConnectTo(String target) {
@@ -662,7 +663,7 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get gamePlaybackUnsupported =>
-      'Pelaamista ei vielä tueta tällä laitteella.';
+      'Peliä ei vielä tueta tällä laitteella.';
 
   @override
   String get noHomeRowsLoaded => 'Kotirivejä ei voitu ladata';
@@ -672,7 +673,7 @@ class AppLocalizationsFi extends AppLocalizations {
       'Yritä päivittää tai vähentää aktiivisia kotiosioita.';
 
   @override
-  String get retryHomeRows => 'Yritä kotirivejä uudelleen';
+  String get retryHomeRows => 'Yritä ladata etusivu uudelleen';
 
   @override
   String get guide => 'Opas';
@@ -4480,7 +4481,7 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get recentlyReleasedSeriesTypeDescription =>
-      'Lajittele äskettäin julkaistujen sarjojen kotirivit sarjan, uusimman kauden tai uusimman jakson esityspäivän mukaan';
+      'Lajittele äskettäin julkaistujen sarjojen rivin , uusimman kauden tai uusimman jakson esityspäivän mukaan';
 
   @override
   String get myMedia => 'Oma Media';
@@ -4516,14 +4517,14 @@ class AppLocalizationsFi extends AppLocalizations {
   String get resetToDefaults => 'Palauta oletusasetukset';
 
   @override
-  String get homeRowPosterSize => 'Kotirivin julisteen koko';
+  String get homeRowPosterSize => 'Etusivu Rivin julisteen koko';
 
   @override
   String get perRowImageTypeSelection => 'Rivikohtainen kuvatyypin valinta';
 
   @override
   String get configureImageTypeForEachRow =>
-      'Määritä kuvatyyppi kullekin käytössä olevalle kotiriville';
+      'Määritä kuvatyyppi kullekin käytössä olevalle etusivu riville';
 
   @override
   String get mergeContinueWatchingAndNextUp =>
@@ -4552,11 +4553,11 @@ class AppLocalizationsFi extends AppLocalizations {
       'Näytä vain yksi aloitusnäytön rivi kerrallaan';
 
   @override
-  String get homeRowsPadding => 'Kotirivin täytöt';
+  String get homeRowsPadding => 'Etusivu rivien täyttö';
 
   @override
   String get homeRowsPaddingDescription =>
-      'Mukauta kotirivien välistä etäisyyttä';
+      'Mukauta etusivu rivien täytön välistä etäisyyttä';
 
   @override
   String get perRowImageType => 'Rivikuvatyypin mukaan';
@@ -5071,7 +5072,7 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get reorderToggleHomeRows =>
-      'Järjestä uudelleen ja vaihda sekä kirjastopohjaisten että ulkoisten kotirivien järjestystä';
+      'Järjestä uudelleen ja vaihda sekä kirjastopohjaisten että ulkoisten sivurivien järjestystä';
 
   @override
   String get featuredContentAppearance => 'Suositeltu sisältö, ulkonäkö';
@@ -9753,7 +9754,7 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get settingsPersonalizationSubtitle =>
-      'Teema, navigointi, kotirivit ja kirjaston näkyvyys';
+      'Teema, navigointi, etusivun rivit ja kirjaston näkyvyys';
 
   @override
   String get settingsDynamicContent => 'Dynaaminen sisältö';
@@ -10547,7 +10548,7 @@ class AppLocalizationsFi extends AppLocalizations {
   String get homeRowsStyleModern => 'Moderni';
 
   @override
-  String get homeRowsSection => 'Kotirivit';
+  String get homeRowsSection => 'Etusivun Rivit';
 
   @override
   String get homeRowDisplay => 'Aloitusnäytön rivien näyttö';
@@ -11462,6 +11463,346 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get achievementsLoadFailed => 'Saavutuksiasi ei voitu ladata.';
+
+  @override
+  String get friends => 'Friends';
+
+  @override
+  String get friendsSubtitle =>
+      'See who\'s online and chat with people on this server';
+
+  @override
+  String get friendsShowButton => 'Show friends button';
+
+  @override
+  String get friendsShowButtonSubtitle =>
+      'Friends and chat from the Achievement Badges plugin';
+
+  @override
+  String get friendsMessages => 'Messages';
+
+  @override
+  String friendsUnreadCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count unread messages',
+      one: '1 unread message',
+      zero: 'No unread messages',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get friendsRequests => 'Friend requests';
+
+  @override
+  String friendsRequestCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count waiting for you',
+      one: '1 waiting for you',
+      zero: 'Nothing waiting',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get friendsAdd => 'Add friends';
+
+  @override
+  String get friendsAddSubtitle => 'Find people on this server';
+
+  @override
+  String get friendsPrivacy => 'Privacy';
+
+  @override
+  String get friendsPrivacySubtitle => 'What your friends can see';
+
+  @override
+  String get friendsOnline => 'Online';
+
+  @override
+  String get friendsOffline => 'Offline';
+
+  @override
+  String get friendsNone =>
+      'No friends yet. Add people from this server to see them here.';
+
+  @override
+  String friendsWatching(String title) {
+    return 'Watching $title';
+  }
+
+  @override
+  String friendsLastWatched(String title) {
+    return 'Last watched $title';
+  }
+
+  @override
+  String friendsLastSeen(String time) {
+    return 'Last seen $time';
+  }
+
+  @override
+  String get friendsLoadFailed =>
+      'Could not load this. Check your connection and try again.';
+
+  @override
+  String get friendsActionFailed => 'That didn\'t work. Try again in a moment.';
+
+  @override
+  String get friendsIncoming => 'Waiting for you';
+
+  @override
+  String get friendsOutgoing => 'Sent by you';
+
+  @override
+  String get friendsNoRequests => 'No friend requests.';
+
+  @override
+  String get friendsAccept => 'Accept';
+
+  @override
+  String get friendsDecline => 'Decline';
+
+  @override
+  String get friendsCancelRequest => 'Cancel request';
+
+  @override
+  String friendsRequestFrom(String name) {
+    return '$name wants to be friends';
+  }
+
+  @override
+  String friendsCancelRequestBody(String name) {
+    return 'Take back the request you sent to $name?';
+  }
+
+  @override
+  String get friendsSearchHint => 'Search people';
+
+  @override
+  String get friendsNoMatches => 'No one matches that name.';
+
+  @override
+  String friendsRequestSent(String name) {
+    return 'Request sent to $name';
+  }
+
+  @override
+  String get friendsSendRequest => 'Add as friend';
+
+  @override
+  String get friendsSendMessage => 'Send message';
+
+  @override
+  String friendsOpenItem(String title) {
+    return 'Open $title';
+  }
+
+  @override
+  String get friendsRemove => 'Remove friend';
+
+  @override
+  String friendsRemoveBody(String name) {
+    return 'Remove $name from your friends? You can add them again later.';
+  }
+
+  @override
+  String get friendsBlock => 'Block';
+
+  @override
+  String get friendsUnblock => 'Unblock';
+
+  @override
+  String friendsBlockBody(String name) {
+    return 'Block $name? Neither of you will be able to message the other directly. Group chats you share stay open.';
+  }
+
+  @override
+  String friendsUnblockBody(String name) {
+    return 'Unblock $name?';
+  }
+
+  @override
+  String get friendsBlocked => 'Blocked users';
+
+  @override
+  String friendsProfileHidden(String name) {
+    return '$name keeps their profile private.';
+  }
+
+  @override
+  String get friendsAppearOffline => 'Appear offline';
+
+  @override
+  String get friendsAppearOfflineSubtitle =>
+      'Friends always see you as offline';
+
+  @override
+  String get friendsHideNowPlaying => 'Hide what I\'m watching';
+
+  @override
+  String get friendsHideNowPlayingSubtitle =>
+      'Friends still see you online, but not what\'s playing';
+
+  @override
+  String get friendsHideLastWatched => 'Hide my last watched';
+
+  @override
+  String get friendsHideLastWatchedSubtitle =>
+      'Friends won\'t see what you watched last while you\'re offline';
+
+  @override
+  String get friendsMessageNotifications => 'Message notifications';
+
+  @override
+  String get friendsMessageNotificationsSubtitle =>
+      'Show a banner when a friend messages you';
+
+  @override
+  String get friendsMuteDuringPlayback => 'Mute during playback';
+
+  @override
+  String get friendsMuteDuringPlaybackSubtitle =>
+      'No message banners while a video or game is playing';
+
+  @override
+  String get friendsSaveFailed => 'Could not save your settings.';
+
+  @override
+  String get chatNew => 'New message';
+
+  @override
+  String get chatNewSubtitle => 'Start a chat with a friend';
+
+  @override
+  String get chatNewGroup => 'New group';
+
+  @override
+  String get chatNewGroupSubtitle => 'Chat with several friends at once';
+
+  @override
+  String get chatNone => 'No messages yet.';
+
+  @override
+  String get chatYou => 'You';
+
+  @override
+  String chatYouSaid(String text) {
+    return 'You: $text';
+  }
+
+  @override
+  String get chatPhoto => 'Photo';
+
+  @override
+  String get chatEmoji => 'Emoji';
+
+  @override
+  String get chatEmojiSearch => 'Search emoji';
+
+  @override
+  String get chatNoRecentEmoji => 'No recent emoji';
+
+  @override
+  String get chatViewPhoto => 'View photo';
+
+  @override
+  String get chatHint => 'Write a message';
+
+  @override
+  String get chatAttach => 'Send a photo';
+
+  @override
+  String get chatEdited => 'edited';
+
+  @override
+  String get chatSeen => 'Seen';
+
+  @override
+  String get chatSent => 'Sent';
+
+  @override
+  String get chatEditing => 'Editing message';
+
+  @override
+  String get chatMessageOptions => 'Message options';
+
+  @override
+  String get chatDeleteBody => 'Delete this message for everyone?';
+
+  @override
+  String get chatClear => 'Clear conversation';
+
+  @override
+  String get chatClearBody =>
+      'Delete every message in this chat for everyone in it?';
+
+  @override
+  String get chatGroupInfo => 'Group info';
+
+  @override
+  String get chatGroupName => 'Group name';
+
+  @override
+  String chatMemberCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count members',
+      one: '1 member',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get chatOwner => 'Owner';
+
+  @override
+  String get chatAdmin => 'Admin';
+
+  @override
+  String get chatMakeAdmin => 'Make admin';
+
+  @override
+  String get chatRemoveAdmin => 'Remove admin';
+
+  @override
+  String get chatRemoveMember => 'Remove from group';
+
+  @override
+  String get chatAddMember => 'Add people';
+
+  @override
+  String get chatNobodyToAdd => 'No one left to add.';
+
+  @override
+  String get chatLeave => 'Leave group';
+
+  @override
+  String get chatLeaveBody =>
+      'Leave this group? Someone will have to add you back to rejoin.';
+
+  @override
+  String get chatCreate => 'Create group';
+
+  @override
+  String get chatPickMembers => 'Pick at least two friends';
+
+  @override
+  String chatNewMessageFrom(String name) {
+    return 'New message from $name';
+  }
+
+  @override
+  String get chatImageTooLarge => 'That image is over 8 MB.';
+
+  @override
+  String get chatImageUnsupported =>
+      'Only PNG, JPEG, GIF and WebP images can be sent.';
 
   @override
   String get embeddedBrowserNotAvailable =>

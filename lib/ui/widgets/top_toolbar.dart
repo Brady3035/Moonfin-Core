@@ -14,6 +14,7 @@ import '../../auth/repositories/user_repository.dart';
 import '../../data/models/aggregated_library.dart';
 import '../../data/repositories/multi_server_repository.dart';
 import '../../data/repositories/user_views_repository.dart';
+import '../../data/services/achievements_service.dart';
 import '../../data/services/library_scope_service.dart';
 import '../../data/services/plugin_sync_service.dart';
 import '../../preference/preference_constants.dart';
@@ -28,6 +29,7 @@ import '../navigation/destinations.dart';
 import '../navigation/home_refresh_bus.dart';
 import '../navigation/route_lifecycle_observer.dart';
 import 'downloads_nav_slot.dart';
+import 'friends_nav_slot.dart';
 import 'expandable_icon_button.dart';
 import 'marquee_text.dart';
 import 'overlay_sheet.dart';
@@ -122,6 +124,7 @@ class _TopToolbarState extends State<TopToolbar> with RouteAware {
   final _serverMessagesFocus = FocusNode(
     debugLabel: 'TopToolbarServerMessages',
   );
+  final _friendsFocus = FocusNode(debugLabel: 'TopToolbarFriends');
   final _inlineLibrariesTriggerFocus = FocusNode(
     debugLabel: 'TopToolbarInlineLibrariesTrigger',
   );
@@ -139,6 +142,7 @@ class _TopToolbarState extends State<TopToolbar> with RouteAware {
   // Tracked per instance so only the toolbar that actually held focus
   // clears the shared isFocusedNotifier on dispose.
   bool _toolbarHadFocus = false;
+  bool _friendsAvailable = FriendsNavSlot.isAvailable();
   List<AggregatedLibrary> _libraries = [];
   Timer? _clockTimer;
   Timer? _librariesReloadDebounce;
@@ -180,6 +184,9 @@ class _TopToolbarState extends State<TopToolbar> with RouteAware {
     _prefs.addListener(_onPrefsChanged);
     _viewsRepo.addListener(_onUserViewsChanged);
     GetIt.instance<PluginSyncService>().addListener(_onPrefsChanged);
+    if (GetIt.instance.isRegistered<AchievementsService>()) {
+      GetIt.instance<AchievementsService>().addListener(_onAchievementsChanged);
+    }
     _loadLibraries();
     final manager = GetIt.instance<PlaybackManager>();
     _playSub = manager.state.playingStream.listen((_) {
@@ -247,6 +254,7 @@ class _TopToolbarState extends State<TopToolbar> with RouteAware {
     _homeFocus.dispose();
     _settingsFocus.dispose();
     _serverMessagesFocus.dispose();
+    _friendsFocus.dispose();
     _inlineLibrariesTriggerFocus.dispose();
     _musicBarFocusNode.dispose();
     _userSub?.cancel();
@@ -255,6 +263,11 @@ class _TopToolbarState extends State<TopToolbar> with RouteAware {
     } catch (_) {}
     try {
       GetIt.instance<PluginSyncService>().removeListener(_onPrefsChanged);
+    } catch (_) {}
+    try {
+      GetIt.instance<AchievementsService>().removeListener(
+        _onAchievementsChanged,
+      );
     } catch (_) {}
     _prefs.removeListener(_onPrefsChanged);
     _currentTime.dispose();
@@ -290,6 +303,14 @@ class _TopToolbarState extends State<TopToolbar> with RouteAware {
   void _onUserViewsChanged() {
     if (!mounted) return;
     _scheduleLibrariesReload();
+  }
+
+  /// The service also notifies on every badge refresh, which the slot redraws
+  /// by itself, so the bar only rebuilds when the button comes or goes.
+  void _onAchievementsChanged() {
+    final available = FriendsNavSlot.isAvailable();
+    if (!mounted || available == _friendsAvailable) return;
+    setState(() => _friendsAvailable = available);
   }
 
   // Collapses a burst of change notifications, like the settings sync
@@ -1195,6 +1216,17 @@ class _TopToolbarState extends State<TopToolbar> with RouteAware {
                     label: l10n.savedMedia,
                   ),
                 ),
+              if (FriendsNavSlot.isOffered() && _friendsAvailable)
+                _orderButton(
+                  order: 97.5,
+                  // Only taken where the plugin has friends on, so on every
+                  // other server the icons after it keep their color.
+                  child: _buildFriendsButton(
+                    navColor: nextNavColor(),
+                    alwaysExpanded: alwaysExpanded,
+                    label: l10n.friends,
+                  ),
+                ),
               if (_prefs.get(UserPreferences.showServerMessagesButton))
                 _orderButton(
                   order: 98,
@@ -1358,6 +1390,9 @@ class _TopToolbarState extends State<TopToolbar> with RouteAware {
     return ServerMessagesNavSlot(
       builder: (context, unread) => Row(
         mainAxisSize: MainAxisSize.min,
+        // Stretch like the bare buttons, or the hover pill stops short of the
+        // bar's height.
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           ExpandableIconButton(
             key: const ValueKey('toolbar_server_messages'),
@@ -1370,6 +1405,39 @@ class _TopToolbarState extends State<TopToolbar> with RouteAware {
             onPressed: () async {
               await showServerMessagesDialog(context);
               if (mounted) _serverMessagesFocus.requestFocus();
+            },
+          ),
+          _gap(),
+        ],
+      ),
+    );
+  }
+
+  /// The friends button, or nothing when the server has no friends feature.
+  /// The gap to the next button travels with it, like the messages button.
+  Widget _buildFriendsButton({
+    required Color? navColor,
+    required bool alwaysExpanded,
+    required String label,
+  }) {
+    return FriendsNavSlot(
+      builder: (context, badge) => Row(
+        mainAxisSize: MainAxisSize.min,
+        // Stretch like the bare buttons, or the hover pill stops short of the
+        // bar's height.
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          ExpandableIconButton(
+            key: const ValueKey('toolbar_friends'),
+            forceExpanded: alwaysExpanded,
+            icon: Icons.people_alt_rounded,
+            label: label,
+            baseColor: navColor,
+            badgeCount: badge,
+            focusNode: _friendsFocus,
+            onPressed: () async {
+              await FriendsNavSlot.open(context);
+              if (mounted) _friendsFocus.requestFocus();
             },
           ),
           _gap(),

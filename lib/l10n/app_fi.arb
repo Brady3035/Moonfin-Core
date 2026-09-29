@@ -208,7 +208,7 @@
     "@noLinkedServers": {
         "description": "Error when Emby Connect account has no linked servers"
     },
-    "invalidEmbyConnectCredentials": "Virheelliset Emby Connect -tunnistetiedot",
+    "invalidEmbyConnectCredentials": "Virheelliset Emby Connect -tiedot",
     "@invalidEmbyConnectCredentials": {
         "description": "Error when Emby Connect auth response is invalid"
     },
@@ -216,15 +216,15 @@
     "@invalidEmbyConnectLogin": {
         "description": "Error for wrong Emby Connect credentials"
     },
-    "embyConnectExchangeNotSupported": "Palvelin ei tue Emby Connect -vaihtoa",
+    "embyConnectExchangeNotSupported": "Palvelin ei tue Emby Connect -tiedonsiirtoa",
     "@embyConnectExchangeNotSupported": {
         "description": "Error when server lacks Emby Connect exchange endpoint"
     },
-    "embyConnectNetworkError": "Verkkovirhe otettaessa yhteyttä Emby Connectiin tai valittuun palvelimeen",
+    "embyConnectNetworkError": "Verkkovirhe yhteyden muodostamisessa Emby Connectiin tai valittuun palvelimeen",
     "@embyConnectNetworkError": {
         "description": "Generic network error during Emby Connect flow"
     },
-    "loadingLinkedServers": "Ladataan linkitettyjä palvelimia...",
+    "loadingLinkedServers": "Lataa linkitettyjä palvelimia...",
     "@loadingLinkedServers": {
         "description": "Status text while fetching Emby Connect server list"
     },
@@ -232,7 +232,7 @@
     "@connectingToServerEllipsis": {
         "description": "Status text while connecting to a selected server"
     },
-    "noReachableAddress": "Yhteysosoitetta ei ole annettu",
+    "noReachableAddress": "Käytettävissä olevaa osoitetta ei ole annettu",
     "@noReachableAddress": {
         "description": "Shown when a discovered server has no usable address"
     },

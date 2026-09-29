@@ -101,7 +101,7 @@ class AppLocalizationsFi extends AppLocalizations {
   String get whosWatching => 'Kuka katselee?';
 
   @override
-  String get addUser => 'Lisää käyttäjä';
+  String get addUser => 'Lisää Käyttäjä';
 
   @override
   String get selectServer => 'Valitse Palvelin';
@@ -112,7 +112,7 @@ class AppLocalizationsFi extends AppLocalizations {
   }
 
   @override
-  String get savedServers => 'Tallennetut palvelimet';
+  String get savedServers => 'Tallennetut Palvelimet';
 
   @override
   String get discoveredServers => 'Löydetyt Palvelimet';
@@ -122,13 +122,13 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get unableToConnectToServer =>
-      'Ei voida muodostaa yhteyttä palvelimeen';
+      'Yhteyttä palvelimeen ei voitu muodostaa';
 
   @override
   String get addServer => 'Lisää Palvelin';
 
   @override
-  String get embyConnect => 'Yhdistä Emby';
+  String get embyConnect => 'Emby Yhteys';
 
   @override
   String get removeServer => 'Poista Palvelin';
@@ -139,7 +139,7 @@ class AppLocalizationsFi extends AppLocalizations {
   }
 
   @override
-  String get cancel => 'Keskeytä';
+  String get cancel => 'Peruuta';
 
   @override
   String get remove => 'Poista';
@@ -158,11 +158,11 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get secureStorageUnavailable =>
-      'Suojattua Tallennustilaa ei ole Käytettävissä';
+      'Turvallista tallennustilaa ei ole käytettävissä';
 
   @override
   String get secureStorageUnavailableMessage =>
-      'Moonfin ei voinut käyttää järjestelmän avainketjua . Kirjautuminen voi jatkua, mutta suojattu tunnuksen tallennus ei välttämättä ole käytettävissä, ennen kuin avainketju on avattu.';
+      'Moonfin ei voinut käyttää järjestelmän avainketjua. \tVoit kirjautua, mutta suojatun tunnuksen tallennus ei välttämättä ole käytettävissä, ennen kuin avainketju on avattu.';
 
   @override
   String get ok => 'OK';
@@ -175,13 +175,13 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get detailScreenStyleSubtitle =>
-      'Classic on alkuperäinen, keskitetyn Moonfin-asettelun malli. Modern on responsiivinen, elokuvamainen asettelu. Spotlight on pääkuvaa korostava asettelu, jossa on ponnahdusikkunoina avautuvia sisältökortteja. Nouveau on koko näytön kattava asettelu, jossa osiot on pinottu sivun alaspäin.';
+      'Classic on alkuperäinen, keskitetyn moonfin-asettelun versio. \tModern on responsiivinen, elokuvamainen asettelu.\tSpotlight on hero-first-asettelu, jossa on ponnahdusikkunoina avautuvia sisältökortteja.\tNouveau on koko näytön asettelu, jossa osiot on pinottu sivun alaspäin. \tMinimalist koostuu kuvamateriaalista, yhdestä toistopainikkeesta ja jaksoista.';
 
   @override
   String get detailScreenStyleMoonfin => 'Klassinen';
 
   @override
-  String get detailScreenStyleModern => 'Moderni';
+  String get detailScreenStyleModern => 'Modern';
 
   @override
   String get detailScreenStyleSpotlight => 'Esittelyssä';
@@ -392,14 +392,14 @@ class AppLocalizationsFi extends AppLocalizations {
   String get detailScreenStyleNouveau => 'Nouveau';
 
   @override
-  String get detailScreenStyleMinimalist => 'Minimalist';
+  String get detailScreenStyleMinimalist => 'Minimalistinen';
 
   @override
   String get expandedTabs => 'Laajennetut Välilehdet';
 
   @override
   String get expandedTabsSubtitle =>
-      'Näytä välilehden sisältö automaattisesti välilehtiä selatessasi. Poista käytöstä, jos haluat avata ja sulkea jokaisen välilehden itse.';
+      'Näytä välilehden sisältö automaattisesti välilehtiä selatessasi. \tPoista käytöstä, jos haluat avata ja sulkea jokaisen välilehden itse.';
 
   @override
   String get showTechnicalDetails => 'Näytetäänkö Tekniset Tiedot?';
@@ -488,7 +488,7 @@ class AppLocalizationsFi extends AppLocalizations {
       'Auto valitsee laitteelle parhaiten sopivan lasiefektin. Asetus ”Full” tuottaa voimakkaan sumennuksen; asetus ”Reduced” käyttää kevyttä lasiefektiä, joka säästää GPU:n tehoa.';
 
   @override
-  String get glassQualityAuto => 'Automaattinen';
+  String get glassQualityAuto => 'Auto';
 
   @override
   String get glassQualityFull => 'Täysi';
@@ -501,7 +501,7 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get performanceModeSubtitle =>
-      'Toiminto mittaa laitteen resurssit automaattisesti ja rajoittaa toimintoja laitteissa, joissa on vähän muistia. Näin muistiin tallennetaan vähemmän kuvia ja videot tallennetaan still-kuvina. Muutos astuu voimaan seuraavalla käynnistyskerralla.';
+      'Toiminto mittaa laitteen resurssit automaattisesti ja rajoittaa toimintoja laitteissa, joissa on vähän muistia. \nNäin muistiin tallennetaan vähemmän kuvia ja videot tallennetaan still-kuvina. Muutos astuu voimaan seuraavalla käynnistyskerralla.';
 
   @override
   String get performanceModeAuto => 'Auto';
@@ -591,7 +591,7 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get invalidEmbyConnectCredentials =>
-      'Virheelliset Emby Connect -tunnistetiedot';
+      'Virheelliset Emby Connect -tiedot';
 
   @override
   String get invalidEmbyConnectLogin =>
@@ -599,24 +599,25 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get embyConnectExchangeNotSupported =>
-      'Palvelin ei tue Emby Connect -vaihtoa';
+      'Palvelin ei tue Emby Connect -tiedonsiirtoa';
 
   @override
   String get embyConnectNetworkError =>
-      'Verkkovirhe otettaessa yhteyttä Emby Connectiin tai valittuun palvelimeen';
+      'Verkkovirhe yhteyden muodostamisessa Emby Connectiin tai valittuun palvelimeen';
 
   @override
-  String get loadingLinkedServers => 'Ladataan linkitettyjä palvelimia...';
+  String get loadingLinkedServers => 'Lataa linkitettyjä palvelimia...';
 
   @override
   String get connectingToServerEllipsis => 'Yhdistetään palvelimeen…';
 
   @override
-  String get noReachableAddress => 'Yhteysosoitetta ei ole annettu';
+  String get noReachableAddress =>
+      'Käytettävissä olevaa osoitetta ei ole annettu';
 
   @override
   String get invalidServerExchangeResponse =>
-      'Virheellinen vastaus palvelimen vaihdon päätepisteestä';
+      'Virheellinen vastaus Exchange-palvelimen päätelaitteelta';
 
   @override
   String unableToConnectTo(String target) {
@@ -662,7 +663,7 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get gamePlaybackUnsupported =>
-      'Pelaamista ei vielä tueta tällä laitteella.';
+      'Peliä ei vielä tueta tällä laitteella.';
 
   @override
   String get noHomeRowsLoaded => 'Kotirivejä ei voitu ladata';
@@ -672,7 +673,7 @@ class AppLocalizationsFi extends AppLocalizations {
       'Yritä päivittää tai vähentää aktiivisia kotiosioita.';
 
   @override
-  String get retryHomeRows => 'Yritä kotirivejä uudelleen';
+  String get retryHomeRows => 'Yritä ladata etusivu uudelleen';
 
   @override
   String get guide => 'Opas';
@@ -799,6 +800,12 @@ class AppLocalizationsFi extends AppLocalizations {
   String get extraLarge => 'Erittäin suuri';
 
   @override
+  String get uiScaleGrandparents => 'Isovanhemmat';
+
+  @override
+  String get uiScaleGreatGrandparents => 'Isoisovanhemmat';
+
+  @override
   String get scrollDirection => 'Vierityssuunta';
 
   @override
@@ -878,14 +885,14 @@ class AppLocalizationsFi extends AppLocalizations {
   String get scanWithYourPhone => 'Skannaa puhelimellasi';
 
   @override
-  String get audiobookGenres => 'Äänikirjan tyylilajit';
+  String get audiobookGenres => 'Äänikirjan Genret';
 
   @override
   String get pickAudiobookGenres =>
-      'Valitse äänikirja Discoverissa näytettävät tyylilajit.';
+      'Valitse, mitkä genret haluat näyttää Audiobook Discover -osiossa.';
 
   @override
-  String get discoverAudiobooks => 'Tutustu äänikirjoihin';
+  String get discoverAudiobooks => 'Tutustu Äänikirjoihin';
 
   @override
   String get librivoxDescription =>
@@ -1928,7 +1935,7 @@ class AppLocalizationsFi extends AppLocalizations {
   }
 
   @override
-  String get auto => 'Automaattinen';
+  String get auto => 'Auto';
 
   @override
   String bitrateValueMbps(int mbps) {
@@ -1953,11 +1960,6 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get subtitleDelay => 'Tekstityksen viive';
-
-  @override
-  String subtitleDelayAuto(String value) {
-    return 'Auto $value';
-  }
 
   @override
   String get reset => 'Nollaa';
@@ -2416,7 +2418,7 @@ class AppLocalizationsFi extends AppLocalizations {
   String get premiere => 'Ensiesitys';
 
   @override
-  String get guideRepeatBadge => 'Repeat';
+  String get guideRepeatBadge => 'Jatkuva';
 
   @override
   String get guideTimeline => 'Opas aikajana';
@@ -2513,6 +2515,14 @@ class AppLocalizationsFi extends AppLocalizations {
   @override
   String failedToPlayChannel(String name) {
     return 'Toistaminen epäonnistui $name';
+  }
+
+  @override
+  String get playbackStreamLost => 'Toisto keskeytyi, eikä sitä voitu jatkaa.';
+
+  @override
+  String liveReconnecting(int attempt, int total) {
+    return 'Yhdistetään uudelleen… ($attempt of $total)';
   }
 
   @override
@@ -2910,7 +2920,7 @@ class AppLocalizationsFi extends AppLocalizations {
   String get signInAndSecurity => 'Sisäänkirjautuminen ja suojaus';
 
   @override
-  String get administration => 'Ylläpito';
+  String get administration => 'Hallinta';
 
   @override
   String get serverSettingsUsersLibraries =>
@@ -3011,7 +3021,7 @@ class AppLocalizationsFi extends AppLocalizations {
       'Visuaaliset tehosteet ja kausittaiset efektit';
 
   @override
-  String get loadingAnimation => 'Ladataan Animaatiota';
+  String get loadingAnimation => 'Latausanimaatio';
 
   @override
   String get loadingAnimationDescription =>
@@ -3248,7 +3258,7 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get trickplaySettingsPreviewHint =>
-      'Vedä liukusäädintä nähdäksesi esikatselun liu’uttamisesta';
+      'Vedä liukusäädintä nähdäksesi esikatselun';
 
   @override
   String get trickplayPreviewScale => 'Esikatselukoko';
@@ -3264,7 +3274,7 @@ class AppLocalizationsFi extends AppLocalizations {
       'Esikatsele hakupalkilla, kun liu’utat, sen sijaan että ne pysyisivät keskellä';
 
   @override
-  String get trickplayPauseWhileScrubbing => 'Tauko Kelauksen Ajaksi';
+  String get trickplayPauseWhileScrubbing => 'Tauko Skrubbauksen Ajaksi';
 
   @override
   String get trickplayPauseWhileScrubbingSubtitle =>
@@ -3276,6 +3286,13 @@ class AppLocalizationsFi extends AppLocalizations {
   @override
   String get dimVideoShowOverview =>
       'Himmennä video ja näytä yleiskatsausteksti tauon aikana';
+
+  @override
+  String get showChapterMarkers => 'Lukumerkit';
+
+  @override
+  String get showChapterMarkersDescription =>
+      'Merkitse hakupalkkiin kunkin luvun alkupiste';
 
   @override
   String get osdLockButton => 'OSD-lukituspainike';
@@ -3953,6 +3970,21 @@ class AppLocalizationsFi extends AppLocalizations {
   String get semiTransparentBlack => 'Puoliksi läpinäkyvä musta';
 
   @override
+  String get semiTransparentWhite => 'Semiläpinäkyvä valkoinen';
+
+  @override
+  String get lightGray => 'Vaaleanharmaa';
+
+  @override
+  String get darkGray => 'Tummanharmaa';
+
+  @override
+  String get blue => 'Sininen';
+
+  @override
+  String get magenta => 'Magenta';
+
+  @override
   String get global => 'Maailmanlaajuinen';
 
   @override
@@ -4118,7 +4150,7 @@ class AppLocalizationsFi extends AppLocalizations {
       'Uudet lataukset tallennetaan valittuun kansioon. Nykyiset lataukset pysyvät nykyisessä paikassaan, ja niitä voidaan hallita tallennusasetuksista.';
 
   @override
-  String get confirm => 'Vahvistaa';
+  String get confirm => 'Vahvista';
 
   @override
   String get cannotWriteToFolder =>
@@ -4159,31 +4191,31 @@ class AppLocalizationsFi extends AppLocalizations {
   String get showShuffleButton => 'Näytä satunnaistoistopainike';
 
   @override
-  String get showGenresButton => 'Näytä genret -painike';
+  String get showGenresButton => 'Näytä Genret Painike';
 
   @override
-  String get showFavoritesButton => 'Näytä suosikit-painike';
+  String get showFavoritesButton => 'Näytä Suosikit Painike';
 
   @override
-  String get showLiveTvButton => 'Näytä Live TV -painike';
+  String get showLiveTvButton => 'Näytä Live TV Painike';
 
   @override
-  String get showDownloadsButton => 'Näytä latauspainike';
+  String get showDownloadsButton => 'Näytä Latauspainike';
 
   @override
-  String get showLibrariesInToolbar => 'Näytä kirjastot työkalupalkissa';
+  String get showLibrariesInToolbar => 'Näytä Kirjastot Työkalupalkissa';
 
   @override
-  String get navbarAlwaysExpanded => 'Näytä navigointipalkin tekstit aina';
+  String get navbarAlwaysExpanded => 'Näytä Navigointipalkin tekstit aina';
 
   @override
-  String get showSeerrButton => 'Näytä Seerr-painike';
+  String get showSeerrButton => 'Näytä Seerr Painike';
 
   @override
-  String get navbarOpacity => 'Navbarin läpinäkyvyys';
+  String get navbarOpacity => 'Navbarin Läpinäkyvyys';
 
   @override
-  String get navbarColor => 'Navipalkin väri';
+  String get navbarColor => 'Navipalkin Väri';
 
   @override
   String get gray => 'Harmaa';
@@ -4297,7 +4329,7 @@ class AppLocalizationsFi extends AppLocalizations {
   String get sourceCollections => 'Lähdekokoelmat';
 
   @override
-  String get excludedGenres => 'Poissuljetut genret';
+  String get excludedGenres => 'Poissuljetut Genret';
 
   @override
   String get selectAll => 'Valitse Kaikki';
@@ -4320,7 +4352,7 @@ class AppLocalizationsFi extends AppLocalizations {
   String get seconds => 'sekuntia';
 
   @override
-  String get localPreviews => 'Paikalliset esikatselut';
+  String get localPreviews => 'Paikalliset Esikatselut';
 
   @override
   String get localPreviewsDescription =>
@@ -4449,7 +4481,7 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get recentlyReleasedSeriesTypeDescription =>
-      'Lajittele äskettäin julkaistujen sarjojen kotirivit sarjan, uusimman kauden tai uusimman jakson esityspäivän mukaan';
+      'Lajittele äskettäin julkaistujen sarjojen rivin , uusimman kauden tai uusimman jakson esityspäivän mukaan';
 
   @override
   String get myMedia => 'Oma Media';
@@ -4485,14 +4517,14 @@ class AppLocalizationsFi extends AppLocalizations {
   String get resetToDefaults => 'Palauta oletusasetukset';
 
   @override
-  String get homeRowPosterSize => 'Kotirivin julisteen koko';
+  String get homeRowPosterSize => 'Etusivu Rivin julisteen koko';
 
   @override
   String get perRowImageTypeSelection => 'Rivikohtainen kuvatyypin valinta';
 
   @override
   String get configureImageTypeForEachRow =>
-      'Määritä kuvatyyppi kullekin käytössä olevalle kotiriville';
+      'Määritä kuvatyyppi kullekin käytössä olevalle etusivu riville';
 
   @override
   String get mergeContinueWatchingAndNextUp =>
@@ -4521,11 +4553,11 @@ class AppLocalizationsFi extends AppLocalizations {
       'Näytä vain yksi aloitusnäytön rivi kerrallaan';
 
   @override
-  String get homeRowsPadding => 'Kotirivin täytöt';
+  String get homeRowsPadding => 'Etusivu rivien täyttö';
 
   @override
   String get homeRowsPaddingDescription =>
-      'Mukauta kotirivien välistä etäisyyttä';
+      'Mukauta etusivu rivien täytön välistä etäisyyttä';
 
   @override
   String get perRowImageType => 'Rivikuvatyypin mukaan';
@@ -4723,7 +4755,7 @@ class AppLocalizationsFi extends AppLocalizations {
   String get trakt => 'Trakt';
 
   @override
-  String get letterboxd => 'Kirjelaatikkod';
+  String get letterboxd => 'Letterboxd';
 
   @override
   String get myAnimeList => 'MyAnimeList';
@@ -4834,7 +4866,7 @@ class AppLocalizationsFi extends AppLocalizations {
   String get popularSeries => 'Suosittu sarja';
 
   @override
-  String get seriesGenres => 'Sarjan genret';
+  String get seriesGenres => 'Sarjojen Genret';
 
   @override
   String get upcomingSeries => 'Tuleva sarja';
@@ -4846,13 +4878,13 @@ class AppLocalizationsFi extends AppLocalizations {
   String get tags => 'Tunnisteet';
 
   @override
-  String get genresAndTags => 'Genret ja tunnisteet';
+  String get genresAndTags => 'Genret ja Tunnisteet';
 
   @override
   String get seerrDiscoveryRows => 'Seerr Suositusrivit';
 
   @override
-  String get yourWatchlist => 'Aktiivilistallasi';
+  String get yourWatchlist => 'Katselulistallasi';
 
   @override
   String get resetRowsToDefaults => 'Palauta rivit oletusarvoihin';
@@ -5040,7 +5072,7 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get reorderToggleHomeRows =>
-      'Järjestä uudelleen ja vaihda sekä kirjastopohjaisten että ulkoisten kotirivien järjestystä';
+      'Järjestä uudelleen ja vaihda sekä kirjastopohjaisten että ulkoisten sivurivien järjestystä';
 
   @override
   String get featuredContentAppearance => 'Suositeltu sisältö, ulkonäkö';
@@ -5136,13 +5168,16 @@ class AppLocalizationsFi extends AppLocalizations {
   String get requested4k => 'Pyydetään 4K-tarkkuutta';
 
   @override
-  String get cancelRequest => 'Keskeytä pyyntö';
+  String get cancelRequest => 'Peruuta Pyyntö';
 
   @override
-  String get cancelRequest4k => 'Keskeytä 4K-pyyntö';
+  String get cancelRequest4k => 'Peruuta 4K-pyyntö';
 
   @override
   String get playInMoonfin => 'Toista Moonfinissä';
+
+  @override
+  String get requestedByLabel => 'Pyytäjän nimi';
 
   @override
   String requestedByName(String name) {
@@ -5165,7 +5200,7 @@ class AppLocalizationsFi extends AppLocalizations {
   String get declineAction => 'Hylkää';
 
   @override
-  String get similar => 'Samanlainen';
+  String get similar => 'Samantyylinen';
 
   @override
   String get recommendations => 'Suositukset';
@@ -5678,7 +5713,7 @@ class AppLocalizationsFi extends AppLocalizations {
   String get adminDrawerLiveTv => 'Live-TV';
 
   @override
-  String get adminExitTooltip => 'Poistu järjestelmänvalvojasta';
+  String get adminExitTooltip => 'Poistu';
 
   @override
   String get adminDashboardLoadFailed => 'Koontinäyttöä ei voitu ladata';
@@ -5727,7 +5762,7 @@ class AppLocalizationsFi extends AppLocalizations {
   String get analyticsContainers => 'Säiliöt';
 
   @override
-  String get analyticsTopGenres => 'Suosituimmat genret';
+  String get analyticsTopGenres => 'Suosituimmat Genret';
 
   @override
   String get analyticsReleaseYears => 'Julkaisuvuodet';
@@ -6393,7 +6428,7 @@ class AppLocalizationsFi extends AppLocalizations {
   String get adminDeleteUser => 'Poista käyttäjä';
 
   @override
-  String get admin => 'Järjestelmänvalvoja';
+  String get admin => 'Hallinta';
 
   @override
   String get adminFullAccessWarning =>
@@ -8619,7 +8654,7 @@ class AppLocalizationsFi extends AppLocalizations {
   String get adminPlaybackMaxMuxingQueue => 'Muksausjonon enimmäiskoko';
 
   @override
-  String get adminPlaybackAutoOption => 'Automaattinen';
+  String get adminPlaybackAutoOption => 'Auto';
 
   @override
   String get adminPlaybackEncoding => 'Koodaus';
@@ -9369,24 +9404,25 @@ class AppLocalizationsFi extends AppLocalizations {
   }
 
   @override
-  String get kidsMode => 'Kids Mode';
+  String get kidsMode => 'Lastentila';
 
   @override
   String get kidsModeSubtitle =>
-      'Simplify the app and lock the way out with a PIN';
+      'Yksinkertaista sovellusta ja suojaa uloskirjautuminen PIN-koodilla';
 
   @override
-  String get kidsModeExit => 'Exit Kids Mode';
+  String get kidsModeExit => 'Poistu Lastentilasta';
 
   @override
-  String get kidsModeExitSubtitle => 'Enter your PIN to restore the full app';
+  String get kidsModeExitSubtitle =>
+      'Syötä PIN-koodisi, jotta voit palauttaa sovelluksen täysversio';
 
   @override
   String get pinIncorrect => 'Väärä PIN-koodi';
 
   @override
   String pinTryAgainIn(String wait) {
-    return 'Too many attempts. Try again in $wait.';
+    return 'Yritit liian monta kertaa. Yritä uudelleen $wait.';
   }
 
   @override
@@ -9718,7 +9754,7 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get settingsPersonalizationSubtitle =>
-      'Teema, navigointi, kotirivit ja kirjaston näkyvyys';
+      'Teema, navigointi, etusivun rivit ja kirjaston näkyvyys';
 
   @override
   String get settingsDynamicContent => 'Dynaaminen sisältö';
@@ -9770,14 +9806,14 @@ class AppLocalizationsFi extends AppLocalizations {
       'YKSITYISYYDEN SUOJA JA TURVALLISUUS';
 
   @override
-  String get itemBlockedByParentalControls => 'This isn\'t available';
+  String get itemBlockedByParentalControls => 'Tätä ei ole saatavilla';
 
   @override
   String get blockedRatingsCeilingHint =>
-      'Blocking a rating also blocks everything stronger than it.';
+      'Arvostelun estäminen estää myös kaikki sitä korkeammat arvostelut.';
 
   @override
-  String get blockedRatingsUnrankedSection => 'Only blocks itself';
+  String get blockedRatingsUnrankedSection => 'Estää vain sen';
 
   @override
   String get settingsBlockedRatings => 'Estetyt luokitukset';
@@ -10134,7 +10170,7 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get settingsDisplayIsSdrDescription =>
-      'Älä muistuta tämän näytön HDR-tukea. Käytä tätä vain, jos tunnistustoiminto ilmoittaa jatkuvasti HDR:stä, jota televisio ei todellisuudessa pysty näyttämään.';
+      'Älä muistuta tämän näytön HDR-tukea.';
 
   @override
   String settingsDisplayRedetected(String formats) {
@@ -10512,7 +10548,7 @@ class AppLocalizationsFi extends AppLocalizations {
   String get homeRowsStyleModern => 'Moderni';
 
   @override
-  String get homeRowsSection => 'Kotirivit';
+  String get homeRowsSection => 'Etusivun Rivit';
 
   @override
   String get homeRowDisplay => 'Aloitusnäytön rivien näyttö';
@@ -10605,7 +10641,7 @@ class AppLocalizationsFi extends AppLocalizations {
   String get displayGenresRowsSubtitle => 'Näytä Genres-rivit Koti-osioissa.';
 
   @override
-  String get genresRowSorting => 'Genret rivilajittelu';
+  String get genresRowSorting => 'Genret Rivilajittelu';
 
   @override
   String get genresRowSortingDescription =>
@@ -10613,10 +10649,10 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get genresRowSortOrderDescription =>
-      'Lajittele ”Genret”-rivit nousevaan tai laskevaan järjestykseen.';
+      'Lajittele Genre rivit nousevaan tai laskevaan järjestykseen.';
 
   @override
-  String get genresRowItems => 'Genret rivikohdat';
+  String get genresRowItems => 'Kohteet Genre rivillä';
 
   @override
   String get genresRowItemsDescription =>
@@ -11023,105 +11059,105 @@ class AppLocalizationsFi extends AppLocalizations {
   String get openInBrowser => 'Avaa selaimessa';
 
   @override
-  String get achievementBadges => 'Achievement Badges';
+  String get achievementBadges => 'Saavutusmerkit';
 
   @override
   String get achievementBadgesSubtitle =>
-      'Badges, ranks and quests earned from what you watch';
+      'Katsomastasi sisällöstä ansaitut merkit, tasot ja tehtävät';
 
   @override
-  String get achievementsBadges => 'Badges';
+  String get achievementsBadges => 'Merkit';
 
   @override
   String achievementsBadgeCount(int unlocked, int total) {
-    return '$unlocked of $total badges';
+    return '$unlocked :n $total merkit';
   }
 
   @override
-  String get achievementsQuests => 'Quests';
+  String get achievementsQuests => 'Vierailijat';
 
   @override
   String achievementsQuestCount(int count) {
-    return '$count completed';
+    return '$count valmiina';
   }
 
   @override
-  String get achievementsLeaderboard => 'Leaderboard';
+  String get achievementsLeaderboard => 'Tulostaulukko';
 
   @override
   String get achievementsLeaderboardSubtitle =>
-      'How you compare with other users on this server';
+      'Miten sijoitut muihin tämän palvelimen käyttäjiin verrattuna';
 
   @override
-  String get achievementsRecap => 'Recap';
+  String get achievementsRecap => 'Yhteenveto';
 
   @override
-  String get achievementsRecapSubtitle => 'What you watched recently';
+  String get achievementsRecapSubtitle => 'Mitä olet katsellut viime aikoina';
 
   @override
-  String get achievementsLibraryCompletion => 'Library completion';
+  String get achievementsLibraryCompletion => 'Kirjaston valmistuminen';
 
   @override
   String achievementsLibraryCount(int count) {
-    return '$count libraries';
+    return '$count kirjastot';
   }
 
   @override
   String achievementsScore(int score) {
-    return '$score points';
+    return '$score pisteet';
   }
 
   @override
-  String get achievementsScoreLabel => 'Score';
+  String get achievementsScoreLabel => 'Pistemäärä';
 
   @override
-  String get achievementsTopRank => 'Top rank reached';
+  String get achievementsTopRank => 'Saavutettu korkein sijoitus';
 
   @override
   String achievementsPointsToNextRank(int points, String tier) {
-    return '$points points to $tier';
+    return '$points viittaa $tier';
   }
 
   @override
   String achievementsCurrentStreak(int days) {
-    return '$days day streak';
+    return '$days peräkkäisten päivien putki';
   }
 
   @override
   String achievementsBestStreak(int days) {
-    return 'Best: $days days';
+    return 'Parhaat: $days päivät';
   }
 
   @override
-  String get achievementsShowcase => 'Showcase';
+  String get achievementsShowcase => 'Esittely';
 
   @override
-  String get achievementsUnlocked => 'Unlocked';
+  String get achievementsUnlocked => 'Avattu';
 
   @override
-  String get achievementsLocked => 'Locked';
+  String get achievementsLocked => 'Lukittu';
 
   @override
-  String get achievementsNothingHere => 'Nothing here yet.';
+  String get achievementsNothingHere => 'Täällä ei ole vielä mitään.';
 
   @override
-  String get achievementsHiddenBadge => 'Hidden achievement';
+  String get achievementsHiddenBadge => 'Piilotettu saavutus';
 
   @override
   String achievementsUnlockedOn(String date) {
-    return 'Unlocked $date';
+    return 'Avattu $date';
   }
 
   @override
   String achievementsPoints(int points) {
-    return '$points pts';
+    return '$points pisteet';
   }
 
   @override
-  String get achievementsDailyQuests => 'Daily';
+  String get achievementsDailyQuests => 'Päivittäin';
 
   @override
-  String get achievementsWeeklyQuests => 'Weekly';
+  String get achievementsWeeklyQuests => 'Viikoittain';
 
   @override
   String achievementsQuestReward(int points) {
@@ -11129,200 +11165,203 @@ class AppLocalizationsFi extends AppLocalizations {
   }
 
   @override
-  String get achievementsRerollDaily => 'Reroll daily quests';
+  String get achievementsRerollDaily => 'Päivittäisten tehtävien uusiminen';
 
   @override
-  String get achievementsRerollWeekly => 'Reroll weekly quests';
+  String get achievementsRerollWeekly => 'Viikoittaisten tehtävien uusiminen';
 
   @override
-  String get achievementsRerollOffer => 'Swap this set for a different one';
+  String get achievementsRerollOffer => 'Vaihda tämä sarja toiseen';
 
   @override
   String get achievementsRerollSpentDaily =>
-      'Used today, comes back at midnight UTC';
+      'Käytetään tänään, palautetaan keskiyöllä UTC-aikaa';
 
   @override
   String get achievementsRerollSpentWeekly =>
-      'Used this week, comes back Monday UTC';
+      'Käytetty tällä viikolla, palautetaan maanantaina (UTC)';
 
   @override
-  String get achievementsRerollConfirm => 'Reroll these quests?';
+  String get achievementsRerollConfirm =>
+      'Haluatko suorittaa nämä tehtävät uudelleen?';
 
   @override
   String get achievementsRerollConfirmBody =>
-      'You get one daily and one weekly reroll, and this spends it.';
+      'Saat yhden päivittäisen ja yhden viikoittaisen uudelleenkierroksen, ja tämä kuluttaa ne.';
 
   @override
-  String get achievementsRerollFailed => 'Could not reroll those quests.';
+  String get achievementsRerollFailed =>
+      'Tehtäviä ei voitu suorittaa uudelleen.';
 
   @override
-  String get achievementsSuggested => 'Suggested items to watch';
+  String get achievementsSuggested => 'Suositeltavia katsottavia kohteita';
 
   @override
-  String get achievementsNoSuggestions => 'Nothing to suggest for this badge.';
+  String get achievementsNoSuggestions =>
+      'Tähän merkkiin ei ole mitään ehdotuksia.';
 
   @override
-  String get achievementsProgressLabel => 'Progress';
+  String get achievementsProgressLabel => 'Edistyminen';
 
   @override
-  String get achievementsLoadout => 'Loadout';
+  String get achievementsLoadout => 'Varustus';
 
   @override
   String get achievementsLoadoutSubtitle =>
-      'Score to spend and the boosts you hold';
+      'Käytettävissä oleva pistemäärä ja hallussasi olevat tehostukset';
 
   @override
-  String get achievementsAppearance => 'Appearance';
+  String get achievementsAppearance => 'Ulkonäkö';
 
   @override
-  String get achievementsAppearanceSubtitle =>
-      'The avatar and title on your profile';
+  String get achievementsAppearanceSubtitle => 'Profiilisi avatar ja otsikko';
 
   @override
-  String get achievementsAvatars => 'Avatars';
+  String get achievementsAvatars => 'Avatarit';
 
   @override
-  String get achievementsTitles => 'Titles';
+  String get achievementsTitles => 'Nimikkeet';
 
   @override
-  String get achievementsEquipped => 'Equipped';
+  String get achievementsEquipped => 'Varustettu';
 
   @override
-  String get achievementsOwned => 'Owned';
+  String get achievementsOwned => 'Omistettu';
 
   @override
   String achievementsEarnedAt(int score) {
-    return 'Earned at $score lifetime score';
+    return 'Elinikäinen pistemäärä: $score';
   }
 
   @override
   String get achievementsAppearanceEmpty =>
-      'This server has no avatars or titles to wear.';
+      'Tällä palvelimella ei ole avatareita eikä titteleitä, joita voisi käyttää.';
 
   @override
   String get achievementsAppearanceFailed =>
-      'Could not change how the profile looks.';
+      'Profiilin ulkoasua ei voitu muuttaa.';
 
   @override
-  String get achievementsPowerUps => 'Power-ups';
+  String get achievementsPowerUps => 'Teho-lisäykset';
 
   @override
-  String get achievementsStats => 'Stats';
+  String get achievementsStats => 'Tilastot';
 
   @override
-  String get achievementsStatsSubtitle =>
-      'Your records and how the server is doing';
+  String get achievementsStatsSubtitle => 'Tietosi ja palvelimen tilanne';
 
   @override
-  String get achievementsStatsWatched => 'Watched';
+  String get achievementsStatsWatched => 'Katsottu';
 
   @override
-  String get achievementsStatsBests => 'Bests';
+  String get achievementsStatsBests => 'Parhaat';
 
   @override
-  String get achievementsStatsHabits => 'Habits';
+  String get achievementsStatsHabits => 'Tottumukset';
 
   @override
-  String get achievementsStatsVariety => 'Variety';
+  String get achievementsStatsVariety => 'Monipuolisuus';
 
   @override
-  String get achievementsStatsServer => 'This server';
+  String get achievementsStatsServer => 'Tämä palvelin';
 
   @override
-  String get achievementsStatsClock => 'When you watch';
+  String get achievementsStatsClock => 'Koska katsoit';
 
   @override
-  String get achievementsStatItems => 'Items watched';
+  String get achievementsStatItems => 'Seuratut kohteet';
 
   @override
-  String get achievementsStatMovies => 'Films watched';
+  String get achievementsStatMovies => 'Katsotut elokuvat';
 
   @override
-  String get achievementsStatSeries => 'Series finished';
+  String get achievementsStatSeries => 'Sarja on päättynyt';
 
   @override
-  String get achievementsStatHours => 'Hours watched';
+  String get achievementsStatHours => 'Katselutunnit';
 
   @override
-  String get achievementsStatDays => 'Days watched';
+  String get achievementsStatDays => 'Katsellut päivät';
 
   @override
-  String get achievementsStatRewatches => 'Rewatches';
+  String get achievementsStatRewatches => 'Uudelleenkatselut';
 
   @override
-  String get achievementsStatBestWatchStreak => 'Best watch streak';
+  String get achievementsStatBestWatchStreak =>
+      'Pisin peräkkäisten katselukertojen putki';
 
   @override
-  String get achievementsStatBestLoginStreak => 'Best login streak';
+  String get achievementsStatBestLoginStreak => 'Pisin kirjautumisputki';
 
   @override
-  String get achievementsStatMostEpisodes => 'Most episodes in a day';
+  String get achievementsStatMostEpisodes => 'Eniten jaksoja päivässä';
 
   @override
-  String get achievementsStatMostMovies => 'Most films in a day';
+  String get achievementsStatMostMovies => 'Eniten elokuvia päivässä';
 
   @override
-  String get achievementsStatLongestItem => 'Longest single item';
+  String get achievementsStatLongestItem => 'Pisin yksittäinen kohde';
 
   @override
-  String get achievementsStatBestCombo => 'Best combo';
+  String get achievementsStatBestCombo => 'Paras yhdistelmä';
 
   @override
-  String get achievementsStatLateNight => 'Late night sessions';
+  String get achievementsStatLateNight => 'Myöhäisillan sessiot';
 
   @override
-  String get achievementsStatEarlyMorning => 'Early morning sessions';
+  String get achievementsStatEarlyMorning => 'Aikaiset aamusessiot';
 
   @override
-  String get achievementsStatWeekend => 'Weekend sessions';
+  String get achievementsStatWeekend => 'Viikonlopun sessiot';
 
   @override
-  String get achievementsStatDaysSignedIn => 'Days signed in';
+  String get achievementsStatDaysSignedIn => 'Kirjautuneena sisään päivät';
 
   @override
-  String get achievementsStatLibraries => 'Libraries visited';
+  String get achievementsStatLibraries => 'Vieraillut kirjastot';
 
   @override
-  String get achievementsStatGenres => 'Genres watched';
+  String get achievementsStatGenres => 'Katsotut Genret';
 
   @override
-  String get achievementsStatDecades => 'Decades watched';
+  String get achievementsStatDecades => 'Vuosikymmen katsotut';
 
   @override
-  String get achievementsStatCountries => 'Countries watched';
+  String get achievementsStatCountries => 'Maat katsotut';
 
   @override
-  String get achievementsStatLanguages => 'Languages watched';
+  String get achievementsStatLanguages => 'Kielet katsotut';
 
   @override
-  String get achievementsStatUsers => 'Users';
+  String get achievementsStatUsers => 'Käyttäjät';
 
   @override
-  String get achievementsStatBadgesUnlocked => 'Badges unlocked';
+  String get achievementsStatBadgesUnlocked => 'Avatut merkit';
 
   @override
-  String get achievementsStatScoreEarned => 'Score earned';
+  String get achievementsStatScoreEarned => 'Saavutettu pistemäärä';
 
   @override
-  String get achievementsStatCommonBadge => 'Most common badge';
+  String get achievementsStatCommonBadge => 'Yleisin merkki';
 
   @override
-  String get achievementsActivity => 'Activity';
+  String get achievementsActivity => 'Toiminta';
 
   @override
   String get achievementsActivitySubtitle =>
-      'What the server has unlocked lately';
+      'Mitä palvelin on avannut viime aikoina';
 
   @override
   String achievementsActivityUnlocked(String user, String badge) {
-    return '$user unlocked $badge';
+    return '$user avatut $badge';
   }
 
   @override
-  String get achievementsShop => 'Shop';
+  String get achievementsShop => 'Kauppa';
 
   @override
-  String get achievementsShopSubtitle => 'Spend score on more boosts';
+  String get achievementsShopSubtitle =>
+      'Käytä pisteitä lisävoimien hankkimiseen';
 
   @override
   String achievementsShopPack(String name, int count) {
@@ -11330,41 +11369,42 @@ class AppLocalizationsFi extends AppLocalizations {
   }
 
   @override
-  String get achievementsShopEmpty => 'Nothing for sale right now.';
+  String get achievementsShopEmpty =>
+      'Tällä hetkellä ei ole mitään hankittavaa.';
 
   @override
-  String get achievementsBuyConfirm => 'Buy this?';
+  String get achievementsBuyConfirm => 'Hanki tämä?';
 
   @override
   String get achievementsBuyConfirmBody =>
-      'It comes straight out of your score bank.';
+      'Se vähennetään suoraan pistepankistasi.';
 
   @override
-  String get achievementsBuyFailed => 'Could not buy that.';
+  String get achievementsBuyFailed => 'En voinut hankkia sitä.';
 
   @override
-  String get achievementsScoreBank => 'Score bank';
+  String get achievementsScoreBank => 'Pistepankki';
 
   @override
   String get achievementsBoost => 'XP Boost';
 
   @override
   String get achievementsBoostBody =>
-      'Doubles score for an hour. Using it again restarts the hour.';
+      'Tuplaa pistemäärän tunnin ajan. Kun käytät sitä uudelleen, tunti alkaa alusta.';
 
   @override
-  String get achievementsDoubleCredit => 'Double Credit';
+  String get achievementsDoubleCredit => 'Kaksinkertaiset Pisteet';
 
   @override
   String get achievementsDoubleCreditBody =>
-      'The next thing you finish counts twice towards badges.';
+      'Seuraava suorittamasi tehtävä lasketaan kaksinkertaisesti merkeissä.';
 
   @override
-  String get achievementsStreakFreeze => 'Streak Freeze';
+  String get achievementsStreakFreeze => 'Katselusarjan suojaus';
 
   @override
   String get achievementsStreakFreezeBody =>
-      'Covers one missed day. Only one can be banked.';
+      'Korvaa yhden poissaolopäivän. Vain yksi päivä voidaan siirtää myöhemmäksi.';
 
   @override
   String achievementsPowerUpHeld(int count) {
@@ -11379,51 +11419,390 @@ class AppLocalizationsFi extends AppLocalizations {
   }
 
   @override
-  String get achievementsPowerUpActive => 'Running now';
+  String get achievementsPowerUpActive => 'Käynnissä nyt';
 
   @override
-  String get achievementsUsePowerUp => 'Use this power-up?';
+  String get achievementsUsePowerUp => 'Käytetäänkö tätä tehostetta?';
 
   @override
-  String get achievementsUsePowerUpBody =>
-      'It\'s spent as soon as you confirm.';
+  String get achievementsUsePowerUpBody => 'Se käytetään heti, kun vahvistat.';
 
   @override
-  String get achievementsPowerUpFailed => 'Could not use that power-up.';
+  String get achievementsPowerUpFailed => 'Tätä tehostetta ei voitu käyttää.';
 
   @override
-  String get achievementsHours => 'Hours';
+  String get achievementsHours => 'Tunnit';
 
   @override
-  String get achievementsStreak => 'Streak';
+  String get achievementsStreak => 'Putki';
 
   @override
-  String get achievementsPeriodWeek => 'Week';
+  String get achievementsPeriodWeek => 'Viikko';
 
   @override
-  String get achievementsPeriodMonth => 'Month';
+  String get achievementsPeriodMonth => 'Kuukausi';
 
   @override
-  String get achievementsPeriodYear => 'Year';
+  String get achievementsPeriodYear => 'Vuosi';
 
   @override
   String achievementsDaysWatched(int count) {
-    return '$count days watched';
+    return '$count katsottujen päivien määrä';
   }
 
   @override
   String achievementsBadgesEarned(int count) {
-    return '$count badges earned';
+    return '$count ansaitut merkit';
   }
 
   @override
-  String get achievementsTopDirectors => 'Top directors';
+  String get achievementsTopDirectors => 'Huippuohjaajat';
 
   @override
-  String get achievementsTopActors => 'Top actors';
+  String get achievementsTopActors => 'Huippunäyttelijät';
 
   @override
-  String get achievementsLoadFailed => 'Could not load your achievements.';
+  String get achievementsLoadFailed => 'Saavutuksiasi ei voitu ladata.';
+
+  @override
+  String get friends => 'Friends';
+
+  @override
+  String get friendsSubtitle =>
+      'See who\'s online and chat with people on this server';
+
+  @override
+  String get friendsShowButton => 'Show friends button';
+
+  @override
+  String get friendsShowButtonSubtitle =>
+      'Friends and chat from the Achievement Badges plugin';
+
+  @override
+  String get friendsMessages => 'Messages';
+
+  @override
+  String friendsUnreadCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count unread messages',
+      one: '1 unread message',
+      zero: 'No unread messages',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get friendsRequests => 'Friend requests';
+
+  @override
+  String friendsRequestCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count waiting for you',
+      one: '1 waiting for you',
+      zero: 'Nothing waiting',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get friendsAdd => 'Add friends';
+
+  @override
+  String get friendsAddSubtitle => 'Find people on this server';
+
+  @override
+  String get friendsPrivacy => 'Privacy';
+
+  @override
+  String get friendsPrivacySubtitle => 'What your friends can see';
+
+  @override
+  String get friendsOnline => 'Online';
+
+  @override
+  String get friendsOffline => 'Offline';
+
+  @override
+  String get friendsNone =>
+      'No friends yet. Add people from this server to see them here.';
+
+  @override
+  String friendsWatching(String title) {
+    return 'Watching $title';
+  }
+
+  @override
+  String friendsLastWatched(String title) {
+    return 'Last watched $title';
+  }
+
+  @override
+  String friendsLastSeen(String time) {
+    return 'Last seen $time';
+  }
+
+  @override
+  String get friendsLoadFailed =>
+      'Could not load this. Check your connection and try again.';
+
+  @override
+  String get friendsActionFailed => 'That didn\'t work. Try again in a moment.';
+
+  @override
+  String get friendsIncoming => 'Waiting for you';
+
+  @override
+  String get friendsOutgoing => 'Sent by you';
+
+  @override
+  String get friendsNoRequests => 'No friend requests.';
+
+  @override
+  String get friendsAccept => 'Accept';
+
+  @override
+  String get friendsDecline => 'Decline';
+
+  @override
+  String get friendsCancelRequest => 'Cancel request';
+
+  @override
+  String friendsRequestFrom(String name) {
+    return '$name wants to be friends';
+  }
+
+  @override
+  String friendsCancelRequestBody(String name) {
+    return 'Take back the request you sent to $name?';
+  }
+
+  @override
+  String get friendsSearchHint => 'Search people';
+
+  @override
+  String get friendsNoMatches => 'No one matches that name.';
+
+  @override
+  String friendsRequestSent(String name) {
+    return 'Request sent to $name';
+  }
+
+  @override
+  String get friendsSendRequest => 'Add as friend';
+
+  @override
+  String get friendsSendMessage => 'Send message';
+
+  @override
+  String friendsOpenItem(String title) {
+    return 'Open $title';
+  }
+
+  @override
+  String get friendsRemove => 'Remove friend';
+
+  @override
+  String friendsRemoveBody(String name) {
+    return 'Remove $name from your friends? You can add them again later.';
+  }
+
+  @override
+  String get friendsBlock => 'Block';
+
+  @override
+  String get friendsUnblock => 'Unblock';
+
+  @override
+  String friendsBlockBody(String name) {
+    return 'Block $name? Neither of you will be able to message the other directly. Group chats you share stay open.';
+  }
+
+  @override
+  String friendsUnblockBody(String name) {
+    return 'Unblock $name?';
+  }
+
+  @override
+  String get friendsBlocked => 'Blocked users';
+
+  @override
+  String friendsProfileHidden(String name) {
+    return '$name keeps their profile private.';
+  }
+
+  @override
+  String get friendsAppearOffline => 'Appear offline';
+
+  @override
+  String get friendsAppearOfflineSubtitle =>
+      'Friends always see you as offline';
+
+  @override
+  String get friendsHideNowPlaying => 'Hide what I\'m watching';
+
+  @override
+  String get friendsHideNowPlayingSubtitle =>
+      'Friends still see you online, but not what\'s playing';
+
+  @override
+  String get friendsHideLastWatched => 'Hide my last watched';
+
+  @override
+  String get friendsHideLastWatchedSubtitle =>
+      'Friends won\'t see what you watched last while you\'re offline';
+
+  @override
+  String get friendsMessageNotifications => 'Message notifications';
+
+  @override
+  String get friendsMessageNotificationsSubtitle =>
+      'Show a banner when a friend messages you';
+
+  @override
+  String get friendsMuteDuringPlayback => 'Mute during playback';
+
+  @override
+  String get friendsMuteDuringPlaybackSubtitle =>
+      'No message banners while a video or game is playing';
+
+  @override
+  String get friendsSaveFailed => 'Could not save your settings.';
+
+  @override
+  String get chatNew => 'New message';
+
+  @override
+  String get chatNewSubtitle => 'Start a chat with a friend';
+
+  @override
+  String get chatNewGroup => 'New group';
+
+  @override
+  String get chatNewGroupSubtitle => 'Chat with several friends at once';
+
+  @override
+  String get chatNone => 'No messages yet.';
+
+  @override
+  String get chatYou => 'You';
+
+  @override
+  String chatYouSaid(String text) {
+    return 'You: $text';
+  }
+
+  @override
+  String get chatPhoto => 'Photo';
+
+  @override
+  String get chatEmoji => 'Emoji';
+
+  @override
+  String get chatEmojiSearch => 'Search emoji';
+
+  @override
+  String get chatNoRecentEmoji => 'No recent emoji';
+
+  @override
+  String get chatViewPhoto => 'View photo';
+
+  @override
+  String get chatHint => 'Write a message';
+
+  @override
+  String get chatAttach => 'Send a photo';
+
+  @override
+  String get chatEdited => 'edited';
+
+  @override
+  String get chatSeen => 'Seen';
+
+  @override
+  String get chatSent => 'Sent';
+
+  @override
+  String get chatEditing => 'Editing message';
+
+  @override
+  String get chatMessageOptions => 'Message options';
+
+  @override
+  String get chatDeleteBody => 'Delete this message for everyone?';
+
+  @override
+  String get chatClear => 'Clear conversation';
+
+  @override
+  String get chatClearBody =>
+      'Delete every message in this chat for everyone in it?';
+
+  @override
+  String get chatGroupInfo => 'Group info';
+
+  @override
+  String get chatGroupName => 'Group name';
+
+  @override
+  String chatMemberCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count members',
+      one: '1 member',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get chatOwner => 'Owner';
+
+  @override
+  String get chatAdmin => 'Admin';
+
+  @override
+  String get chatMakeAdmin => 'Make admin';
+
+  @override
+  String get chatRemoveAdmin => 'Remove admin';
+
+  @override
+  String get chatRemoveMember => 'Remove from group';
+
+  @override
+  String get chatAddMember => 'Add people';
+
+  @override
+  String get chatNobodyToAdd => 'No one left to add.';
+
+  @override
+  String get chatLeave => 'Leave group';
+
+  @override
+  String get chatLeaveBody =>
+      'Leave this group? Someone will have to add you back to rejoin.';
+
+  @override
+  String get chatCreate => 'Create group';
+
+  @override
+  String get chatPickMembers => 'Pick at least two friends';
+
+  @override
+  String chatNewMessageFrom(String name) {
+    return 'New message from $name';
+  }
+
+  @override
+  String get chatImageTooLarge => 'That image is over 8 MB.';
+
+  @override
+  String get chatImageUnsupported =>
+      'Only PNG, JPEG, GIF and WebP images can be sent.';
 
   @override
   String get embeddedBrowserNotAvailable =>
@@ -11659,10 +12038,10 @@ class AppLocalizationsFi extends AppLocalizations {
   String get randomShuffleLabel => 'SATUNNAINEN SEKOITUS';
 
   @override
-  String get genresShuffleLabel => 'GENREJEN SEKOITUS';
+  String get genresShuffleLabel => 'GENRE SEKOITUS';
 
   @override
-  String get autoHdrSwitching => 'Automaattinen HDR-vaihto';
+  String get autoHdrSwitching => 'Automaattinen HDR Kytkentä';
 
   @override
   String get autoHdrSwitchingDescription =>
@@ -12371,6 +12750,9 @@ class AppLocalizationsFi extends AppLocalizations {
   String get playlistTypeVideo => 'Video';
 
   @override
+  String get playlistTypeMusicVideo => 'Musiikkivideo';
+
+  @override
   String get playlistTypeAudio => 'Ääni (musiikki)';
 
   @override
@@ -12387,6 +12769,9 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get videoPlaylistsSection => 'Videosoittolistat';
+
+  @override
+  String get musicVideoPlaylistsSection => 'Musiikkivideoiden soittolistat';
 
   @override
   String get audioPlaylistsSection => 'Äänisoittolistat';
@@ -12647,6 +13032,12 @@ class AppLocalizationsFi extends AppLocalizations {
   String get setupTourQuestion => 'Valmis. Tässä on muutkin sisällön osat.';
 
   @override
+  String get setupPlaybackLanguages => 'Toistokielet';
+
+  @override
+  String get setupOptional => 'Valinnainen';
+
+  @override
   String get setupStyleClassic => 'Klassikko';
 
   @override
@@ -12681,11 +13072,27 @@ class AppLocalizationsFi extends AppLocalizations {
       'Koko näytön tila, jossa osiot on järjestetty päällekkäin välilehtien sijaan.';
 
   @override
-  String get setupStyleMinimalist => 'Minimalist';
+  String get setupStyleMinimalist => 'Minimalistinen';
 
   @override
   String get setupDetailMinimalistHint =>
-      'Artwork, one play button and the episodes.';
+      'Kuvitus, yksi toistopainike ja jaksot.';
+
+  @override
+  String get setupNavbarStyleQuestion =>
+      'Miltä alareunan palkin pitäisi näyttää?';
+
+  @override
+  String get setupNavbarStyleDockHint =>
+      'Kelluva painike, jonka jokaisen välilehden alla on merkintöjä.';
+
+  @override
+  String get setupNavbarStyleSplitHint =>
+      'Hakutoiminnolle tulee oma painike, ja hakupalkki kutistuu, kun vierität sivua.';
+
+  @override
+  String get setupNavbarStyleStripHint =>
+      'Alareunassa oleva koko sivun levyinen palkki.';
 
   @override
   String get setupPickALook => 'Valitse tyyli';
@@ -13047,9 +13454,59 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get keepVideoClearOfDynamicIsland =>
-      'Keep video clear of the Dynamic Island';
+      'Varmista, että video ei peitä Dynamic Islandia';
 
   @override
   String get keepVideoClearOfDynamicIslandDescription =>
-      'In landscape the camera housing covers one edge of the screen. This holds the picture back from it, which only changes anything for video wide enough to reach that far.';
+      'Vaakakuvausasennossa kamerakotelo peittää näytön yhden reunan. Tämä rajoittaa kuvan ulottuvuutta, mikä vaikuttaa ainoastaan videoihin, jotka ovat riittävän leveitä ulottuakseen sinne asti.';
+
+  @override
+  String get bottomNavbarStyle => 'Alaosan palkin tyyli';
+
+  @override
+  String get bottomNavbarStyleDock => 'Telakka';
+
+  @override
+  String get bottomNavbarStyleSplit => 'Jaettu';
+
+  @override
+  String get bottomNavbarStyleStrip => 'Nauha';
+
+  @override
+  String get bottomNavbarTabs => 'Alareunan välilehdet';
+
+  @override
+  String get bottomNavbarTabsDescription =>
+      'Voit kiinnittää enintään 3 välilehteä Home ja You välilehtien väliin. Kaikki muu löytyy You valikosta.';
+
+  @override
+  String get bottomNavbarTabsAutomatic => 'Automaattinen';
+
+  @override
+  String get bottomNavbarTabsPinned => 'Kiinnitetty';
+
+  @override
+  String get bottomNavbarTabsAvailable => 'Saatavilla';
+
+  @override
+  String get bottomNavbarTabsReset => 'Palauta automaattitilaan';
+
+  @override
+  String get bottomNavbarTabsLimit =>
+      'Voit kiinnittää enintään 3 välilehteä. Poista yksi, jotta voit kiinnittää toisen.';
+
+  @override
+  String get bottomNavbarTabTurnedOff =>
+      'Poistettu käytöstä Painikkeet kohdasta';
+
+  @override
+  String get bottomNavbarSplitSearchNote =>
+      'Split tyylissä Haku toiminnolla on aina oma painikkeensa.';
+
+  @override
+  String get bottomNavbarButtonsNote =>
+      'Nämä asetukset määrittävät, mitkä välilehdet voit kiinnittää alareunan palkkiin ja mitä ”You”-valikossa näkyy.';
+
+  @override
+  String get navYou => 'You';
 }

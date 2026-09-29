@@ -197,6 +197,9 @@ class _GeneralStyleScreenState extends State<_GeneralStyleScreen> {
                       DesktopUiScale.medium => l10n.medium,
                       DesktopUiScale.large => l10n.large,
                       DesktopUiScale.extraLarge => l10n.extraLarge,
+                      DesktopUiScale.grandparents => l10n.uiScaleGrandparents,
+                      DesktopUiScale.greatGrandparents =>
+                        l10n.uiScaleGreatGrandparents,
                     },
                     onChanged: _pushPersonalizationSync,
                   ),

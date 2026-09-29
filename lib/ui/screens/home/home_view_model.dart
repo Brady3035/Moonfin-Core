@@ -124,7 +124,7 @@ class HomeViewModel extends ChangeNotifier {
     final userId = _ownerUserId;
     final sections = _prefs.get(UserPreferences.homeSectionsJson);
     final multiServer = _prefs.get(UserPreferences.enableMultiServerLibraries);
-    final merge = _prefs.get(UserPreferences.mergeContinueWatchingNextUp);
+    final merge = _prefs.effectiveMergeContinueWatchingNextUp;
     final blocked = _prefs.get(UserPreferences.blockedParentalRatings);
     // Offline rows are cached separately so cached online rows never hydrate
     // an offline home (and vice versa).
@@ -132,6 +132,11 @@ class HomeViewModel extends ChangeNotifier {
     final shape = RowDataSource.fieldShapeToken;
     return '$_serverId|$userId|$sections|$multiServer|$merge|$blocked|offline:$offline|fields:$shape';
   }
+
+  /// Called again when the resume and next up rows refresh on their own, or
+  /// the next cold start paints the ones from before the last episode
+  /// finished.
+  void _saveRowCache() => unawaited(_cacheStore.write(_homeCacheKey(), _rows));
 
   static bool _isFavoriteSectionType(HomeSectionType type) {
     return switch (type) {
@@ -496,7 +501,7 @@ class HomeViewModel extends ChangeNotifier {
         _mediaBarViewModel.load(force: forceRefresh);
       }
 
-      final merge = _prefs.get(UserPreferences.mergeContinueWatchingNextUp);
+      final merge = _prefs.effectiveMergeContinueWatchingNextUp;
       final effectiveConfigs = visibleConfigs
           .where(
             (c) => !(c.isBuiltin && merge && c.type == HomeSectionType.nextUp),
@@ -628,20 +633,22 @@ class HomeViewModel extends ChangeNotifier {
         notifyListeners();
       }
 
+      // The merged row is the one a viewer checks first, so it doesn't wait
+      // behind every other section while its cached copy sits on screen.
+      if (showMergedResume) {
+        unawaited(_loadResumeAndNextUpInBackground());
+      }
+
       await mapBounded<HomeSectionConfig, void>(
         nonResumeEffectiveConfigs,
         3,
         (cfg) => loadConfigItem(cfg),
       );
 
-      unawaited(_cacheStore.write(_homeCacheKey(), _rows));
+      _saveRowCache();
       _topShelf.update(_rows);
       _watchNext.update(_rows);
       _tvChannels.update();
-
-      if (showMergedResume) {
-        unawaited(_loadResumeAndNextUpInBackground());
-      }
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -870,7 +877,7 @@ class HomeViewModel extends ChangeNotifier {
     // A full load already covers these rows, so don't compete with it.
     if (_isLoading) return;
 
-    if (_prefs.get(UserPreferences.mergeContinueWatchingNextUp)) {
+    if (_prefs.effectiveMergeContinueWatchingNextUp) {
       await _loadResumeAndNextUpInBackground();
       return;
     }
@@ -904,6 +911,7 @@ class HomeViewModel extends ChangeNotifier {
     } finally {
       _bgResumeRefreshInFlight = false;
     }
+    _saveRowCache();
     _topShelf.update(_rows);
     _watchNext.update(_rows);
     _tvChannels.update();
@@ -955,7 +963,7 @@ class HomeViewModel extends ChangeNotifier {
       // paging they already had.
       if (row.id == 'resume' &&
           !_multiServerEnabled &&
-          _prefs.get(UserPreferences.mergeContinueWatchingNextUp)) {
+          _prefs.effectiveMergeContinueWatchingNextUp) {
         await _loadMoreMergedResume(rowIndex);
         return;
       }
@@ -2259,6 +2267,7 @@ class HomeViewModel extends ChangeNotifier {
       );
     }
     notifyListeners();
+    _saveRowCache();
     _watchNext.update(_rows);
     _tvChannels.update();
   }

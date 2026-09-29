@@ -943,6 +943,14 @@
   "@extraLarge": {
     "description": "Size option: extra large"
   },
+  "uiScaleGrandparents": "Grandparents",
+  "@uiScaleGrandparents": {
+    "description": "UI scaling option above extra large"
+  },
+  "uiScaleGreatGrandparents": "Great-Grandparents",
+  "@uiScaleGreatGrandparents": {
+    "description": "UI scaling option above Grandparents"
+  },
   "scrollDirection": "Scroll Direction",
   "@scrollDirection": {
     "description": "Section header for scroll direction selection in library display settings"
@@ -2604,15 +2612,6 @@
   "@subtitleDelay": {
     "description": "Title for subtitle delay adjuster"
   },
-  "subtitleDelayAuto": "Auto {value}",
-  "@subtitleDelayAuto": {
-    "description": "Read-only line under the subtitle delay showing a correction the player applied on its own, value is a formatted delay like +2000 ms",
-    "placeholders": {
-      "value": {
-        "type": "String"
-      }
-    }
-  },
   "reset": "Reset",
   "@reset": {
     "description": "Button label to reset a value"
@@ -3372,6 +3371,22 @@
     "placeholders": {
       "name": {
         "type": "String"
+      }
+    }
+  },
+  "playbackStreamLost": "Playback stopped and could not be recovered.",
+  "@playbackStreamLost": {
+    "description": "Shown in place of an internal sentinel error code when playback gives up trying to recover a stalled or starved stream"
+  },
+  "liveReconnecting": "Reconnecting… ({attempt} of {total})",
+  "@liveReconnecting": {
+    "description": "Overlay shown while a live channel's bounded recovery is retrying",
+    "placeholders": {
+      "attempt": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
       }
     }
   },
@@ -4402,6 +4417,14 @@
   "@dimVideoShowOverview": {
     "description": "Description for show description on pause"
   },
+  "showChapterMarkers": "Chapter Marks",
+  "@showChapterMarkers": {
+    "description": "Setting label for drawing a mark per chapter on the player seek bar"
+  },
+  "showChapterMarkersDescription": "Mark where each chapter starts on the seek bar",
+  "@showChapterMarkersDescription": {
+    "description": "Description for the chapter marks setting"
+  },
   "osdLockButton": "OSD Lock Button",
   "@osdLockButton": {
     "description": "Setting for OSD lock button"
@@ -5204,6 +5227,26 @@
   "semiTransparentBlack": "Semi-transparent Black",
   "@semiTransparentBlack": {
     "description": "Color: semi-transparent black"
+  },
+  "semiTransparentWhite": "Semi-transparent White",
+  "@semiTransparentWhite": {
+    "description": "Color: semi-transparent white"
+  },
+  "lightGray": "Light Gray",
+  "@lightGray": {
+    "description": "Color: light gray"
+  },
+  "darkGray": "Dark Gray",
+  "@darkGray": {
+    "description": "Color: dark gray"
+  },
+  "blue": "Blue",
+  "@blue": {
+    "description": "Color: blue"
+  },
+  "magenta": "Magenta",
+  "@magenta": {
+    "description": "Color: magenta"
   },
   "global": "Global",
   "@global": {
@@ -6739,6 +6782,10 @@
   "playInMoonfin": "Play in Moonfin",
   "@playInMoonfin": {
     "description": "Button to play available media in Moonfin"
+  },
+  "requestedByLabel": "Requested by",
+  "@requestedByLabel": {
+    "description": "Label above the name of whoever requested media, where the name sits on its own line"
   },
   "requestedByName": "Requested by {name}",
   "@requestedByName": {
@@ -10651,6 +10698,454 @@
   "@achievementsLoadFailed": {
     "description": "Shown when the Achievement Badges plugin data fails to load"
   },
+  "friends": "Friends",
+  "@friends": {
+    "description": "Title of the friends panel from the Achievement Badges plugin"
+  },
+  "friendsSubtitle": "See who's online and chat with people on this server",
+  "@friendsSubtitle": {
+    "description": "Subtitle of the Friends entry"
+  },
+  "friendsShowButton": "Show friends button",
+  "@friendsShowButton": {
+    "description": "Navigation setting that adds a Friends button"
+  },
+  "friendsShowButtonSubtitle": "Friends and chat from the Achievement Badges plugin",
+  "@friendsShowButtonSubtitle": {
+    "description": "Subtitle of the setting that adds a Friends button"
+  },
+  "friendsMessages": "Messages",
+  "@friendsMessages": {
+    "description": "Entry that opens the list of chats"
+  },
+  "friendsUnreadCount": "{count, plural, =0{No unread messages} =1{1 unread message} other{{count} unread messages}}",
+  "@friendsUnreadCount": {
+    "description": "How many chat messages are unread",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "friendsRequests": "Friend requests",
+  "@friendsRequests": {
+    "description": "Entry that opens pending friend requests"
+  },
+  "friendsRequestCount": "{count, plural, =0{Nothing waiting} =1{1 waiting for you} other{{count} waiting for you}}",
+  "@friendsRequestCount": {
+    "description": "How many friend requests wait for an answer",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "friendsAdd": "Add friends",
+  "@friendsAdd": {
+    "description": "Entry that opens the people search"
+  },
+  "friendsAddSubtitle": "Find people on this server",
+  "@friendsAddSubtitle": {
+    "description": "Subtitle of the Add friends entry"
+  },
+  "friendsPrivacy": "Privacy",
+  "@friendsPrivacy": {
+    "description": "Entry that opens the friends privacy settings"
+  },
+  "friendsPrivacySubtitle": "What your friends can see",
+  "@friendsPrivacySubtitle": {
+    "description": "Subtitle of the friends Privacy entry"
+  },
+  "friendsOnline": "Online",
+  "@friendsOnline": {
+    "description": "Section header and status for friends who are online"
+  },
+  "friendsOffline": "Offline",
+  "@friendsOffline": {
+    "description": "Section header and status for friends who are offline"
+  },
+  "friendsNone": "No friends yet. Add people from this server to see them here.",
+  "@friendsNone": {
+    "description": "Shown when the friends list is empty"
+  },
+  "friendsWatching": "Watching {title}",
+  "@friendsWatching": {
+    "description": "Status line of a friend who is playing something",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "friendsLastWatched": "Last watched {title}",
+  "@friendsLastWatched": {
+    "description": "Status line of an offline friend with the last thing they played",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "friendsLastSeen": "Last seen {time}",
+  "@friendsLastSeen": {
+    "description": "Status line of an offline friend, with a relative time such as 5m ago",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "friendsLoadFailed": "Could not load this. Check your connection and try again.",
+  "@friendsLoadFailed": {
+    "description": "Shown when a friends or chat screen fails to load"
+  },
+  "friendsActionFailed": "That didn't work. Try again in a moment.",
+  "@friendsActionFailed": {
+    "description": "Shown when a friends or chat action fails without a reason from the server"
+  },
+  "friendsIncoming": "Waiting for you",
+  "@friendsIncoming": {
+    "description": "Section header for friend requests others sent"
+  },
+  "friendsOutgoing": "Sent by you",
+  "@friendsOutgoing": {
+    "description": "Section header for friend requests the user sent"
+  },
+  "friendsNoRequests": "No friend requests.",
+  "@friendsNoRequests": {
+    "description": "Shown when there are no pending friend requests"
+  },
+  "friendsAccept": "Accept",
+  "@friendsAccept": {
+    "description": "Accept a friend request"
+  },
+  "friendsDecline": "Decline",
+  "@friendsDecline": {
+    "description": "Decline a friend request"
+  },
+  "friendsCancelRequest": "Cancel request",
+  "@friendsCancelRequest": {
+    "description": "Take back a friend request the user sent"
+  },
+  "friendsRequestFrom": "{name} wants to be friends",
+  "@friendsRequestFrom": {
+    "description": "Title of the dialog answering a friend request",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "friendsCancelRequestBody": "Take back the request you sent to {name}?",
+  "@friendsCancelRequestBody": {
+    "description": "Body of the dialog cancelling a sent friend request",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "friendsSearchHint": "Search people",
+  "@friendsSearchHint": {
+    "description": "Hint of the people search field"
+  },
+  "friendsNoMatches": "No one matches that name.",
+  "@friendsNoMatches": {
+    "description": "Shown when the people search finds nobody"
+  },
+  "friendsRequestSent": "Request sent to {name}",
+  "@friendsRequestSent": {
+    "description": "Shown after sending a friend request",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "friendsSendRequest": "Add as friend",
+  "@friendsSendRequest": {
+    "description": "Action that sends a friend request to someone"
+  },
+  "friendsSendMessage": "Send message",
+  "@friendsSendMessage": {
+    "description": "Action that opens a chat with a friend"
+  },
+  "friendsOpenItem": "Open {title}",
+  "@friendsOpenItem": {
+    "description": "Action that opens what a friend is watching",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "friendsRemove": "Remove friend",
+  "@friendsRemove": {
+    "description": "Action that removes a friend"
+  },
+  "friendsRemoveBody": "Remove {name} from your friends? You can add them again later.",
+  "@friendsRemoveBody": {
+    "description": "Body of the dialog removing a friend",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "friendsBlock": "Block",
+  "@friendsBlock": {
+    "description": "Action that blocks a user from messaging"
+  },
+  "friendsUnblock": "Unblock",
+  "@friendsUnblock": {
+    "description": "Action that unblocks a user"
+  },
+  "friendsBlockBody": "Block {name}? Neither of you will be able to message the other directly. Group chats you share stay open.",
+  "@friendsBlockBody": {
+    "description": "Body of the dialog blocking a user",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "friendsUnblockBody": "Unblock {name}?",
+  "@friendsUnblockBody": {
+    "description": "Body of the dialog unblocking a user",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "friendsBlocked": "Blocked users",
+  "@friendsBlocked": {
+    "description": "Section header listing blocked users"
+  },
+  "friendsProfileHidden": "{name} keeps their profile private.",
+  "@friendsProfileHidden": {
+    "description": "Shown when another user hides their profile",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "friendsAppearOffline": "Appear offline",
+  "@friendsAppearOffline": {
+    "description": "Privacy setting that always shows the user as offline"
+  },
+  "friendsAppearOfflineSubtitle": "Friends always see you as offline",
+  "@friendsAppearOfflineSubtitle": {
+    "description": "Subtitle of the Appear offline setting"
+  },
+  "friendsHideNowPlaying": "Hide what I'm watching",
+  "@friendsHideNowPlaying": {
+    "description": "Privacy setting that hides what is playing"
+  },
+  "friendsHideNowPlayingSubtitle": "Friends still see you online, but not what's playing",
+  "@friendsHideNowPlayingSubtitle": {
+    "description": "Subtitle of the Hide what I am watching setting"
+  },
+  "friendsHideLastWatched": "Hide my last watched",
+  "@friendsHideLastWatched": {
+    "description": "Privacy setting that hides the last played item while offline"
+  },
+  "friendsHideLastWatchedSubtitle": "Friends won't see what you watched last while you're offline",
+  "@friendsHideLastWatchedSubtitle": {
+    "description": "Subtitle of the Hide my last watched setting"
+  },
+  "friendsMessageNotifications": "Message notifications",
+  "@friendsMessageNotifications": {
+    "description": "Setting that shows a banner for new chat messages"
+  },
+  "friendsMessageNotificationsSubtitle": "Show a banner when a friend messages you",
+  "@friendsMessageNotificationsSubtitle": {
+    "description": "Subtitle of the Message notifications setting"
+  },
+  "friendsMuteDuringPlayback": "Mute during playback",
+  "@friendsMuteDuringPlayback": {
+    "description": "Setting that hides new message banners while a video or game plays"
+  },
+  "friendsMuteDuringPlaybackSubtitle": "No message banners while a video or game is playing",
+  "@friendsMuteDuringPlaybackSubtitle": {
+    "description": "Subtitle of the Mute during playback setting"
+  },
+  "friendsSaveFailed": "Could not save your settings.",
+  "@friendsSaveFailed": {
+    "description": "Shown when the friends privacy settings fail to save"
+  },
+  "chatNew": "New message",
+  "@chatNew": {
+    "description": "Entry that starts a chat with one friend"
+  },
+  "chatNewSubtitle": "Start a chat with a friend",
+  "@chatNewSubtitle": {
+    "description": "Subtitle of the New message entry"
+  },
+  "chatNewGroup": "New group",
+  "@chatNewGroup": {
+    "description": "Entry that creates a group chat"
+  },
+  "chatNewGroupSubtitle": "Chat with several friends at once",
+  "@chatNewGroupSubtitle": {
+    "description": "Subtitle of the New group entry"
+  },
+  "chatNone": "No messages yet.",
+  "@chatNone": {
+    "description": "Shown when there are no chats or no messages in a chat"
+  },
+  "chatYou": "You",
+  "@chatYou": {
+    "description": "Stands for the signed-in user in chats and member lists"
+  },
+  "chatYouSaid": "You: {text}",
+  "@chatYouSaid": {
+    "description": "Preview of the last chat message when the user sent it",
+    "placeholders": {
+      "text": {
+        "type": "String"
+      }
+    }
+  },
+  "chatPhoto": "Photo",
+  "@chatPhoto": {
+    "description": "Preview of a chat message that is an image"
+  },
+  "chatEmoji": "Emoji",
+  "@chatEmoji": {
+    "description": "Button that opens the emoji picker in a chat"
+  },
+  "chatEmojiSearch": "Search emoji",
+  "@chatEmojiSearch": {
+    "description": "Hint of the search field in the emoji picker"
+  },
+  "chatNoRecentEmoji": "No recent emoji",
+  "@chatNoRecentEmoji": {
+    "description": "Shown in the emoji picker's recent tab before any emoji was used"
+  },
+  "chatViewPhoto": "View photo",
+  "@chatViewPhoto": {
+    "description": "Action that opens a photo sent in a chat at full size"
+  },
+  "chatHint": "Write a message",
+  "@chatHint": {
+    "description": "Hint of the chat message field"
+  },
+  "chatAttach": "Send a photo",
+  "@chatAttach": {
+    "description": "Button that picks an image to send in a chat"
+  },
+  "chatEdited": "edited",
+  "@chatEdited": {
+    "description": "Marks a chat message that was changed after sending"
+  },
+  "chatSeen": "Seen",
+  "@chatSeen": {
+    "description": "Read receipt on a sent chat message"
+  },
+  "chatSent": "Sent",
+  "@chatSent": {
+    "description": "Delivery mark on a sent chat message nobody has read yet"
+  },
+  "chatEditing": "Editing message",
+  "@chatEditing": {
+    "description": "Banner above the chat field while changing a sent message"
+  },
+  "chatMessageOptions": "Message options",
+  "@chatMessageOptions": {
+    "description": "Title of the dialog with actions for a chat message"
+  },
+  "chatDeleteBody": "Delete this message for everyone?",
+  "@chatDeleteBody": {
+    "description": "Body of the dialog deleting a chat message"
+  },
+  "chatClear": "Clear conversation",
+  "@chatClear": {
+    "description": "Action that deletes every message in a chat"
+  },
+  "chatClearBody": "Delete every message in this chat for everyone in it?",
+  "@chatClearBody": {
+    "description": "Body of the dialog clearing a chat"
+  },
+  "chatGroupInfo": "Group info",
+  "@chatGroupInfo": {
+    "description": "Screen and action with a group chat name and members"
+  },
+  "chatGroupName": "Group name",
+  "@chatGroupName": {
+    "description": "Label of the group chat name field"
+  },
+  "chatMemberCount": "{count, plural, =1{1 member} other{{count} members}}",
+  "@chatMemberCount": {
+    "description": "How many people are in a group chat",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "chatOwner": "Owner",
+  "@chatOwner": {
+    "description": "Marks the person who created a group chat"
+  },
+  "chatAdmin": "Admin",
+  "@chatAdmin": {
+    "description": "Marks a group chat admin"
+  },
+  "chatMakeAdmin": "Make admin",
+  "@chatMakeAdmin": {
+    "description": "Action that makes a group member an admin"
+  },
+  "chatRemoveAdmin": "Remove admin",
+  "@chatRemoveAdmin": {
+    "description": "Action that takes admin away from a group member"
+  },
+  "chatRemoveMember": "Remove from group",
+  "@chatRemoveMember": {
+    "description": "Action that removes someone from a group chat"
+  },
+  "chatAddMember": "Add people",
+  "@chatAddMember": {
+    "description": "Action that adds friends to a group chat"
+  },
+  "chatNobodyToAdd": "No one left to add.",
+  "@chatNobodyToAdd": {
+    "description": "Shown when every friend is already in the group"
+  },
+  "chatLeave": "Leave group",
+  "@chatLeave": {
+    "description": "Action that leaves a group chat"
+  },
+  "chatLeaveBody": "Leave this group? Someone will have to add you back to rejoin.",
+  "@chatLeaveBody": {
+    "description": "Body of the dialog leaving a group chat"
+  },
+  "chatCreate": "Create group",
+  "@chatCreate": {
+    "description": "Button that creates a group chat"
+  },
+  "chatPickMembers": "Pick at least two friends",
+  "@chatPickMembers": {
+    "description": "Hint on the new group screen"
+  },
+  "chatNewMessageFrom": "New message from {name}",
+  "@chatNewMessageFrom": {
+    "description": "Title of the banner for a new chat message",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "chatImageTooLarge": "That image is over 8 MB.",
+  "@chatImageTooLarge": {
+    "description": "Shown when a picked chat image is too big"
+  },
+  "chatImageUnsupported": "Only PNG, JPEG, GIF and WebP images can be sent.",
+  "@chatImageUnsupported": {
+    "description": "Shown when a picked chat image has an unsupported type"
+  },
   "embeddedBrowserNotAvailable": "Embedded browser is not available on this platform.",
   "adminRestartServerConfirmation": "Are you sure you want to restart the server?",
   "adminShutdownServerConfirmation": "Are you sure you want to shut down the server? You will need to restart it manually.",
@@ -11232,6 +11727,10 @@
   "@playlistTypeVideo": {
     "description": "Filter checkbox label for video playlists"
   },
+  "playlistTypeMusicVideo": "Music Video",
+  "@playlistTypeMusicVideo": {
+    "description": "Filter checkbox label for music video playlists"
+  },
   "playlistTypeAudio": "Audio (Music)",
   "@playlistTypeAudio": {
     "description": "Filter checkbox label for audio/music playlists"
@@ -11255,6 +11754,10 @@
   "videoPlaylistsSection": "Video Playlists",
   "@videoPlaylistsSection": {
     "description": "Section header above video playlists when Group by Type is enabled"
+  },
+  "musicVideoPlaylistsSection": "Music Video Playlists",
+  "@musicVideoPlaylistsSection": {
+    "description": "Section header above music video playlists when Group by Type is enabled"
   },
   "audioPlaylistsSection": "Audio Playlists",
   "@audioPlaylistsSection": {
@@ -11574,6 +12077,14 @@
   "@setupTourQuestion": {
     "description": "Heading of the final setup wizard screen"
   },
+  "setupPlaybackLanguages": "Playback languages",
+  "@setupPlaybackLanguages": {
+    "description": "Heading of the optional audio and subtitle language section on the last setup wizard screen"
+  },
+  "setupOptional": "Optional",
+  "@setupOptional": {
+    "description": "Tag beside an optional section in the setup wizard"
+  },
   "setupStyleClassic": "Classic",
   "@setupStyleClassic": {
     "description": "Name of the original layout, offered in the setup wizard"
@@ -11621,6 +12132,22 @@
   "setupDetailMinimalistHint": "Artwork, one play button and the episodes.",
   "@setupDetailMinimalistHint": {
     "description": "What the minimalist detail screen style gives you"
+  },
+  "setupNavbarStyleQuestion": "How should the bottom bar look?",
+  "@setupNavbarStyleQuestion": {
+    "description": "Setup question asking which style the bottom navigation bar should use"
+  },
+  "setupNavbarStyleDockHint": "A floating pill with labels under every tab.",
+  "@setupNavbarStyleDockHint": {
+    "description": "What the Dock bottom bar style gives you"
+  },
+  "setupNavbarStyleSplitHint": "Search gets its own button, and the bar shrinks while you scroll.",
+  "@setupNavbarStyleSplitHint": {
+    "description": "What the Split bottom bar style gives you"
+  },
+  "setupNavbarStyleStripHint": "A full-width bar along the bottom edge.",
+  "@setupNavbarStyleStripHint": {
+    "description": "What the Strip bottom bar style gives you"
   },
   "setupPickALook": "Pick a look",
   "@setupPickALook": {
@@ -12095,5 +12622,65 @@
   "keepVideoClearOfDynamicIslandDescription": "In landscape the camera housing covers one edge of the screen. This holds the picture back from it, which only changes anything for video wide enough to reach that far.",
   "@keepVideoClearOfDynamicIslandDescription": {
     "description": "Description for the iPhone setting that keeps video clear of the Dynamic Island"
+  },
+  "bottomNavbarStyle": "Bottom Bar Style",
+  "@bottomNavbarStyle": {
+    "description": "Settings title for choosing how the mobile bottom navigation bar looks"
+  },
+  "bottomNavbarStyleDock": "Dock",
+  "@bottomNavbarStyleDock": {
+    "description": "Bottom bar style: a floating pill with labelled tabs"
+  },
+  "bottomNavbarStyleSplit": "Split",
+  "@bottomNavbarStyleSplit": {
+    "description": "Bottom bar style: tabs in one capsule with search as its own round button"
+  },
+  "bottomNavbarStyleStrip": "Strip",
+  "@bottomNavbarStyleStrip": {
+    "description": "Bottom bar style: a full-width bar along the bottom edge"
+  },
+  "bottomNavbarTabs": "Bottom Bar Tabs",
+  "@bottomNavbarTabs": {
+    "description": "Settings title for choosing which tabs sit on the mobile bottom navigation bar"
+  },
+  "bottomNavbarTabsDescription": "Pin up to 3 tabs between Home and You. Everything else is in the You menu.",
+  "@bottomNavbarTabsDescription": {
+    "description": "Explains the bottom bar tabs screen"
+  },
+  "bottomNavbarTabsAutomatic": "Automatic",
+  "@bottomNavbarTabsAutomatic": {
+    "description": "Shown when the bottom bar tabs are picked from the navigation button settings"
+  },
+  "bottomNavbarTabsPinned": "Pinned",
+  "@bottomNavbarTabsPinned": {
+    "description": "Section header for the tabs pinned to the bottom bar"
+  },
+  "bottomNavbarTabsAvailable": "Available",
+  "@bottomNavbarTabsAvailable": {
+    "description": "Section header for tabs that can be pinned to the bottom bar"
+  },
+  "bottomNavbarTabsReset": "Reset to Automatic",
+  "@bottomNavbarTabsReset": {
+    "description": "Action that clears the pinned bottom bar tabs so they are picked automatically again"
+  },
+  "bottomNavbarTabsLimit": "You can pin up to 3 tabs. Remove one to pin another.",
+  "@bottomNavbarTabsLimit": {
+    "description": "Hint shown when the maximum number of bottom bar tabs is already pinned"
+  },
+  "bottomNavbarTabTurnedOff": "Turned off under Buttons",
+  "@bottomNavbarTabTurnedOff": {
+    "description": "Hint on a bottom bar tab that can't be pinned because its navigation button setting is off"
+  },
+  "bottomNavbarSplitSearchNote": "In the Split style, Search always has its own button.",
+  "@bottomNavbarSplitSearchNote": {
+    "description": "Note on the bottom bar tabs screen about the Split style"
+  },
+  "bottomNavbarButtonsNote": "These decide which tabs you can pin to the bottom bar and what shows in the You menu.",
+  "@bottomNavbarButtonsNote": {
+    "description": "Note under the navigation buttons section while the bottom bar is in use"
+  },
+  "navYou": "You",
+  "@navYou": {
+    "description": "Bottom bar tab that opens the user's own menu with their profile, extra destinations and settings"
   }
 }

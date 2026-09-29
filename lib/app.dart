@@ -15,7 +15,9 @@ import 'package:playback_core/playback_core.dart';
 import 'package:window_manager/window_manager.dart';
 
 import 'auth/repositories/session_repository.dart';
+import 'data/models/achievement_models.dart';
 import 'data/models/aggregated_item.dart';
+import 'data/services/achievements_service.dart';
 import 'data/services/cast/cast_service.dart';
 import 'data/services/connectivity_service.dart';
 import 'data/services/download_service.dart';
@@ -33,6 +35,7 @@ import 'preference/preference_constants.dart' show GlassSettledQuality;
 import 'preference/user_preferences.dart';
 import 'syncplay/syncplay_manager.dart';
 import 'ui/navigation/app_router.dart';
+import 'ui/navigation/deferred_route_pop.dart';
 import 'ui/navigation/deep_link_navigator.dart';
 import 'ui/navigation/destinations.dart';
 import 'ui/navigation/home_refresh_bus.dart';
@@ -40,7 +43,10 @@ import 'ui/theme/app_theme.dart';
 import 'ui/theme/app_theme_controller.dart';
 import 'ui/widgets/app_update_banner.dart';
 import 'ui/widgets/cast_mini_player.dart';
+import 'ui/screens/settings/achievements_screen.dart';
+import 'ui/widgets/floating_notification.dart';
 import 'ui/widgets/offline_banner.dart';
+import 'ui/widgets/settings/settings_panel.dart';
 import 'ui/widgets/server_messages_dialog.dart';
 import 'ui/widgets/exit_confirmation_dialog.dart';
 import 'ui/widgets/keyboard_shortcuts/keyboard_shortcut_reference.dart';
@@ -55,10 +61,12 @@ import 'util/focus/input_mode_tracker.dart';
 import 'util/idiom/app_ui_idiom.dart';
 import 'util/idiom/glass_capability.dart';
 import 'util/platform_detection.dart';
+import 'util/tv_ui_scale.dart';
 import 'ui/widgets/overlay_sheet.dart';
 import 'package:moonfin_design/moonfin_design.dart';
 import 'util/focus/key_event_utils.dart';
 import 'util/focus/gamepad/gamepad_navigation_scope.dart';
+import 'util/focus/gamepad/gamepad_key_synthesizer.dart';
 import 'util/focus/open_popup.dart';
 import 'package:custom_tv_text_field/custom_tv_text_field.dart';
 
@@ -353,13 +361,14 @@ class _MoonfinAppState extends State<MoonfinApp> {
                   ],
                 );
 
-                final mainChild = PlatformDetection.isAppleTV
-                    ? _TvUiScale(child: overlay)
-                    : overlay;
-
                 return ListenableBuilder(
                   listenable: _prefs,
                   builder: (context, _) {
+                    // Read here rather than hoisted above the builder, so a
+                    // change to the interface layout override is picked up.
+                    final mainChild = PlatformDetection.isTV
+                        ? TvUiScale(child: overlay)
+                        : overlay;
                     final scale = _prefs
                         .get(UserPreferences.desktopUiScale)
                         .scaleFactor;
@@ -707,6 +716,7 @@ class _GlobalShortcutScopeState extends State<_GlobalShortcutScope>
 
     final isBackspace = key == LogicalKeyboardKey.backspace;
     if (key.isBackKey) {
+      final fromRemote = GamepadKeySynthesizer.isRemote(event.physicalKey);
       if (isBackspace && _isEditingText()) {
         return false;
       }
@@ -718,6 +728,13 @@ class _GlobalShortcutScopeState extends State<_GlobalShortcutScope>
         if (PlatformDetection.isAndroid && key == LogicalKeyboardKey.goBack) {
           DialogBackSuppressor.markDismissed();
         }
+        return true;
+      }
+      // Dismiss a receiving phone's keyboard before leaving its page.
+      if (fromRemote &&
+          _isEditingText() &&
+          View.of(context).viewInsets.bottom > 0) {
+        FocusManager.instance.primaryFocus?.unfocus();
         return true;
       }
       if (OverlaySheetController.closeTopSheet()) {
@@ -759,11 +776,10 @@ class _GlobalShortcutScopeState extends State<_GlobalShortcutScope>
         if (PlatformDetection.isAndroid && key == LogicalKeyboardKey.goBack) {
           return true;
         }
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!mounted) return;
-          appRouter.pop();
-        });
+        scheduleRoutePop(appRouter, isMounted: () => mounted);
       } else if (!_exitDialogShowing) {
+        // A server remote only navigates, it can't quit the app it's driving.
+        if (fromRemote) return true;
         if (PlatformDetection.isAndroid && key == LogicalKeyboardKey.goBack) {
           return true;
         }
@@ -1009,6 +1025,7 @@ class _ConnectivityListenerState extends ConsumerState<_ConnectivityListener>
   bool? _wasServerReachable;
   StreamSubscription<SyncPlayUiEvent>? _syncPlayEventsSub;
   StreamSubscription<String>? _downloadErrorSub;
+  StreamSubscription<ChatThread>? _chatMessageSub;
 
   @override
   void initState() {
@@ -1042,6 +1059,10 @@ class _ConnectivityListenerState extends ConsumerState<_ConnectivityListener>
         _handleDownloadError,
       );
     }
+    if (GetIt.instance.isRegistered<AchievementsService>()) {
+      _chatMessageSub = GetIt.instance<AchievementsService>().incomingMessages
+          .listen(_handleIncomingChat);
+    }
   }
 
   @override
@@ -1049,6 +1070,7 @@ class _ConnectivityListenerState extends ConsumerState<_ConnectivityListener>
     WidgetsBinding.instance.removeObserver(this);
     _syncPlayEventsSub?.cancel();
     _downloadErrorSub?.cancel();
+    _chatMessageSub?.cancel();
     if (GetIt.instance.isRegistered<PluginSyncService>()) {
       GetIt.instance<PluginSyncService>().onSeerrNotification = null;
     }
@@ -1136,6 +1158,26 @@ class _ConnectivityListenerState extends ConsumerState<_ConnectivityListener>
     );
   }
 
+  /// A banner for a chat message from a friend. Tapping it opens the chat.
+  void _handleIncomingChat(ChatThread thread) {
+    if (GetIt.instance<UserPreferences>().get(
+      UserPreferences.muteChatBannersDuringPlayback,
+    )) {
+      final matches = appRouter.routerDelegate.currentConfiguration.matches;
+      final path = matches.isEmpty ? '' : matches.last.matchedLocation;
+      if (Destinations.isPlayerRoute(path)) return;
+    }
+    final navContext = _navigatorContext();
+    if (navContext == null) return;
+    final l10n = AppLocalizations.of(navContext);
+    FloatingNotification.show(
+      navContext,
+      l10n.chatNewMessageFrom(thread.name),
+      thread.lastIsPhoto ? l10n.chatPhoto : thread.lastMessage,
+      () => SettingsPanel.open(navContext, FriendChatScreen.forThread(thread)),
+    );
+  }
+
   BuildContext? _navigatorContext() {
     if (!mounted) return null;
     final navContext =
@@ -1193,49 +1235,5 @@ class _ConnectivityListenerState extends ConsumerState<_ConnectivityListener>
     _wasOnline = isOnline;
 
     return widget.child;
-  }
-}
-
-class _TvUiScale extends StatelessWidget {
-  const _TvUiScale({required this.child});
-
-  final Widget child;
-
-  static const double _targetScale = 1.45;
-  static const double _designWidth = 1920 / _targetScale;
-
-  @override
-  Widget build(BuildContext context) {
-    final mq = MediaQuery.of(context);
-    final realSize = mq.size;
-    if (realSize.width <= 0) {
-      return child;
-    }
-    final scale = realSize.width / _designWidth;
-    final logicalSize = Size(realSize.width / scale, realSize.height / scale);
-    EdgeInsets scaleInsets(EdgeInsets insets, {bool zeroTop = false}) =>
-        EdgeInsets.fromLTRB(
-          insets.left / scale,
-          zeroTop ? 0 : insets.top / scale,
-          insets.right / scale,
-          insets.bottom / scale,
-        );
-    return FittedBox(
-      fit: BoxFit.fill,
-      child: SizedBox(
-        width: logicalSize.width,
-        height: logicalSize.height,
-        child: MediaQuery(
-          data: mq.copyWith(
-            size: logicalSize,
-            devicePixelRatio: mq.devicePixelRatio * scale,
-            padding: scaleInsets(mq.padding, zeroTop: true),
-            viewPadding: scaleInsets(mq.viewPadding, zeroTop: true),
-            viewInsets: scaleInsets(mq.viewInsets),
-          ),
-          child: child,
-        ),
-      ),
-    );
   }
 }

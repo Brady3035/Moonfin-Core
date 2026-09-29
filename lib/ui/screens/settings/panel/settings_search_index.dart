@@ -117,6 +117,8 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
 }) {
   final seerrAvailable = GetIt.instance<PluginSyncService>().seerrAvailable;
   final tmdbAvailable = GetIt.instance<PluginSyncService>().tmdbAvailable;
+  final friendsAvailable =
+      GetIt.instance<AchievementsService>().socialAvailable;
 
   final account = _SearchSection(
     slug: 'account',
@@ -227,6 +229,16 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
     path: [l10n.settingsPersonalization, l10n.navigation],
     icon: Icons.navigation,
     open: () => push(const _NavigationCategoryScreen()),
+  );
+  final bottomNavTabs = _SearchSection(
+    slug: 'bottom-nav-tabs',
+    path: [
+      l10n.settingsPersonalization,
+      l10n.navigation,
+      l10n.bottomNavbarTabs,
+    ],
+    icon: Icons.push_pin_outlined,
+    open: () => push(const _BottomNavTabsScreen()),
   );
   final screensaver = _SearchSection(
     slug: 'screensaver',
@@ -758,6 +770,21 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
       'left',
       'bottom',
     ]),
+    // Device gate only: the entries stay findable while another position is
+    // picked, like every other setting here.
+    if (NavigationLayout.allowBottomNavbar) ...[
+      navigation.leaf(
+        'pref_bottom_navbar_style',
+        l10n.bottomNavbarStyle,
+        keywords: ['dock', 'split', 'strip', 'bottom bar', 'tab bar'],
+      ),
+      bottomNavTabs.screen(keywords: [
+        'pin',
+        'tabs',
+        'bottom bar',
+        'reorder',
+      ]),
+    ],
     navigation.leaf('navbarColor', l10n.navbarColor),
     navigation.leaf('navbarOpacity', l10n.navbarOpacity, keywords: [
       'transparency',
@@ -812,6 +839,13 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
         l10n.showSeerrButton,
         subtitle: l10n.settingsShowSeerrButtonInNavigation,
         keywords: ['requests'],
+      ),
+    if (friendsAvailable)
+      navigation.leaf(
+        'pref_show_friends_button',
+        l10n.friendsShowButton,
+        subtitle: l10n.friendsShowButtonSubtitle,
+        keywords: ['chat', 'messages', 'achievements'],
       ),
 
     if (PlatformDetection.isTV) ...[
@@ -1279,6 +1313,12 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
     video.leaf('skipForwardLength', l10n.skipForwardLength, keywords: [
       'seek forward',
     ]),
+    video.leaf(
+      'showChapterMarkers',
+      l10n.showChapterMarkers,
+      subtitle: l10n.showChapterMarkersDescription,
+      keywords: ['seek bar', 'seekbar', 'progress bar', 'chapters', 'marks'],
+    ),
     if (PlatformDetection.useMobileUi) ...[
       video.leaf(
         'osdLockEnabled',

@@ -74,7 +74,7 @@
     "@whosWatching": {
         "description": "Server user selection heading"
     },
-    "addUser": "Lisää käyttäjä",
+    "addUser": "Lisää Käyttäjä",
     "@addUser": {
         "description": "Button to add a new user on the server screen"
     },
@@ -91,7 +91,7 @@
             }
         }
     },
-    "savedServers": "Tallennetut palvelimet",
+    "savedServers": "Tallennetut Palvelimet",
     "@savedServers": {
         "description": "Section heading for previously saved servers"
     },
@@ -103,7 +103,7 @@
     "@noneFound": {
         "description": "Shown when no servers are discovered on the network"
     },
-    "unableToConnectToServer": "Ei voida muodostaa yhteyttä palvelimeen",
+    "unableToConnectToServer": "Yhteyttä palvelimeen ei voitu muodostaa",
     "@unableToConnectToServer": {
         "description": "Error when a server connection attempt fails"
     },

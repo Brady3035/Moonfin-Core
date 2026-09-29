@@ -269,7 +269,7 @@
     "@noHomeRowsHint": {
         "description": "Hint text below the no-home-rows heading"
     },
-    "retryHomeRows": "Yritä kotirivejä uudelleen",
+    "retryHomeRows": "Yritä Etusivua uudelleen",
     "@retryHomeRows": {
         "description": "Button to retry loading home rows after failure"
     },

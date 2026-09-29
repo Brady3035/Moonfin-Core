@@ -152,11 +152,11 @@
     "@connect": {
         "description": "Button to initiate connection to a server"
     },
-    "secureStorageUnavailable": "Suojattua Tallennustilaa ei ole Käytettävissä",
+    "secureStorageUnavailable": "Turvallista tallennustilaa ei ole käytettävissä",
     "@secureStorageUnavailable": {
         "description": "Dialog title when system keyring is inaccessible"
     },
-    "secureStorageUnavailableMessage": "Moonfin ei voinut käyttää järjestelmän avainketjua . Kirjautuminen voi jatkua, mutta suojattu tunnuksen tallennus ei välttämättä ole käytettävissä, ennen kuin avainketju on avattu.",
+    "secureStorageUnavailableMessage": "Moonfin ei voinut käyttää järjestelmän avainketjua. Voit kirjautua, mutta suojattu tunnuksen tallennus ei välttämättä ole käytettävissä, ennen kuin avainketju on avattu.",
     "@secureStorageUnavailableMessage": {
         "description": "Explanation when secure storage is not available"
     },

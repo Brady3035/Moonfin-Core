@@ -30,7 +30,8 @@ class AchievementsService extends ChangeNotifier {
   static const String _root = 'Plugins/AchievementBadges';
 
   /// The plugin gives each user 60 requests a minute across all of its routes,
-  /// so a panel load costs roughly a sixth of that. Nothing here polls.
+  /// so a panel load costs roughly a sixth of that. Only the friends badge and
+  /// an open chat poll, and both stop while the app is in the background.
   final Dio _dio;
 
   AchievementsService({@visibleForTesting Dio? dio})
@@ -806,11 +807,19 @@ class AchievementsService extends ChangeNotifier {
     return json == null ? null : PublicProfile.fromJson(json);
   }
 
-  /// Everyone on the server, for finding people to add. Jellyfin lists all
-  /// users to anyone signed in, which is what the plugin's own page relies on.
+  /// The users this user can see. The plugin's directory leaves out accounts
+  /// an admin hid from the login screen, which Jellyfin's /Users lists to
+  /// anyone signed in. Plugin builds before 2.4.1 have no directory and fall
+  /// back to /Users.
   Future<List<SocialUser>> fetchServerUsers(MediaServerClient client) async {
     final headers = _authHeaders(client);
     if (headers == null) return const <SocialUser>[];
+
+    final userId = client.userId;
+    if (userId != null && userId.isNotEmpty) {
+      final directory = await _get(client, 'users/$userId/directory');
+      if (directory is List) return _readUsers(directory);
+    }
 
     try {
       final response = await _dio.get<dynamic>(
@@ -818,22 +827,23 @@ class AchievementsService extends ChangeNotifier {
         options: Options(headers: headers),
       );
       final data = response.data;
-      if (data is! List) return const <SocialUser>[];
-      return data
-          .whereType<Map<String, dynamic>>()
-          .map(
-            (user) => SocialUser(
-              userId: user['Id'] is String ? user['Id'] as String : '',
-              userName: user['Name'] is String ? user['Name'] as String : '',
-            ),
-          )
-          .where((user) => user.userId.isNotEmpty)
-          .toList();
+      return data is List ? _readUsers(data) : const <SocialUser>[];
     } catch (e) {
       debugPrint('[AchievementsService] Users failed: $e');
       return const <SocialUser>[];
     }
   }
+
+  List<SocialUser> _readUsers(List<dynamic> rows) => rows
+      .whereType<Map<String, dynamic>>()
+      .map(
+        (user) => SocialUser(
+          userId: user['Id'] is String ? user['Id'] as String : '',
+          userName: user['Name'] is String ? user['Name'] as String : '',
+        ),
+      )
+      .where((user) => user.userId.isNotEmpty)
+      .toList();
 
   Future<List<ChatThread>?> _fetchThreads(MediaServerClient client) async {
     final userId = client.userId;
@@ -1002,7 +1012,8 @@ class AchievementsService extends ChangeNotifier {
     'conversations/$conversationId/admins/$userId',
   );
 
-  /// Blocking works both ways: neither side can message the other.
+  /// Blocking works both ways in a direct chat: neither side can message the
+  /// other. The plugin doesn't check it in a group they share.
   Future<SocialWrite<void>> setBlocked(
     MediaServerClient client,
     String userId, {

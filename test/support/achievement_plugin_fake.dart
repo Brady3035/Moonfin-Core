@@ -24,6 +24,9 @@ class AchievementPluginAdapter implements HttpClientAdapter {
   /// The body of the last write, for asserting what was bought.
   String? lastBody;
 
+  /// Set for a plugin build before 2.4.1, which has no user directory.
+  bool directoryMissing = false;
+
   /// The admin switches for friends and chat.
   bool friendsEnabled = true;
   bool friendsSimpleMode = false;
@@ -131,14 +134,23 @@ class AchievementPluginAdapter implements HttpClientAdapter {
         ? const <String, dynamic>{}
         : jsonDecode(sent) as Map<String, dynamic>;
 
+    // Hedy is hidden from the login screen, which Jellyfin's /Users ignores
+    // and the plugin's directory doesn't.
+    const visible = [
+      {'Id': 'user1', 'Name': 'Ada'},
+      {'Id': 'user2', 'Name': 'Grace'},
+      {'Id': 'user3', 'Name': 'Linus'},
+      {'Id': 'user4', 'Name': 'Margaret'},
+      {'Id': 'user5', 'Name': 'Barbara'},
+    ];
     if (path == '/Users') {
       return [
-        {'Id': 'user1', 'Name': 'Ada'},
-        {'Id': 'user2', 'Name': 'Grace'},
-        {'Id': 'user3', 'Name': 'Linus'},
-        {'Id': 'user4', 'Name': 'Margaret'},
-        {'Id': 'user5', 'Name': 'Barbara'},
+        ...visible,
+        {'Id': 'user6', 'Name': 'Hedy'},
       ];
+    }
+    if (path.endsWith('/users/user1/directory') && !directoryMissing) {
+      return visible;
     }
     if (path.contains('/profiles/') && path.endsWith('/summary')) {
       return {

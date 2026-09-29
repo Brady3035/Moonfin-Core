@@ -494,6 +494,7 @@ class _FriendChatScreenState extends State<FriendChatScreen> {
   final _composerFocus = FocusNode(debugLabel: 'ChatComposer');
   final _images = <String, Future<Uint8List?>>{};
   Timer? _poll;
+  late final AppLifecycleListener _lifecycle;
   List<ChatMessage>? _messages;
   ChatConversation? _conversation;
   ChatMessage? _editing;
@@ -525,13 +526,38 @@ class _FriendChatScreenState extends State<FriendChatScreen> {
         setState(() => _emojiOpen = false);
       }
     });
+    _lifecycle = AppLifecycleListener(onStateChange: _onLifecycleChanged);
     _load();
+    _startPolling();
+  }
+
+  void _startPolling() {
     _poll = Timer.periodic(_pollInterval, (_) => _loadMessages());
+  }
+
+  /// Reading the chat marks it read, so polling stops while the app is out of
+  /// sight. Otherwise the other side would see messages as seen that nobody
+  /// saw.
+  void _onLifecycleChanged(AppLifecycleState state) {
+    switch (state) {
+      case AppLifecycleState.resumed:
+        if (_poll != null) return;
+        unawaited(_loadMessages());
+        _startPolling();
+      case AppLifecycleState.hidden:
+      case AppLifecycleState.paused:
+        _poll?.cancel();
+        _poll = null;
+      case AppLifecycleState.inactive:
+      case AppLifecycleState.detached:
+        break;
+    }
   }
 
   @override
   void dispose() {
     _poll?.cancel();
+    _lifecycle.dispose();
     if (_service.openConversationId == widget.conversationId) {
       _service.openConversationId = null;
     }

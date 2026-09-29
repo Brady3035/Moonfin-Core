@@ -13,6 +13,7 @@ import '../../auth/repositories/user_repository.dart';
 import '../../data/models/aggregated_library.dart';
 import '../../data/repositories/multi_server_repository.dart';
 import '../../data/repositories/user_views_repository.dart';
+import '../../data/services/achievements_service.dart';
 import '../../data/services/library_scope_service.dart';
 import '../../data/services/plugin_sync_service.dart';
 import '../../preference/preference_constants.dart';
@@ -108,6 +109,7 @@ class _LeftSidebarState extends State<LeftSidebar> with RouteAware {
   // where a stale value from another route's sidebar would break focus-gain
   // detection and leave focus stuck in a collapsed rail.
   bool _sidebarHadFocus = false;
+  bool _friendsAvailable = FriendsNavSlot.isAvailable();
   Timer? _clockTimer;
   Timer? _labelTimer;
   Timer? _focusExpandGateTimer;
@@ -165,6 +167,9 @@ class _LeftSidebarState extends State<LeftSidebar> with RouteAware {
     _prefs.addListener(_onPrefsChanged);
     _viewsRepo.addListener(_onUserViewsChanged);
     GetIt.instance<PluginSyncService>().addListener(_onPrefsChanged);
+    if (GetIt.instance.isRegistered<AchievementsService>()) {
+      GetIt.instance<AchievementsService>().addListener(_onAchievementsChanged);
+    }
     _loadLibraries();
     FocusManager.instance.addListener(_trackPreviousFocus);
     if (PlatformDetection.isTV || (PlatformDetection.isDesktop || (PlatformDetection.isWeb && !PlatformDetection.useMobileUi))) {
@@ -245,6 +250,11 @@ class _LeftSidebarState extends State<LeftSidebar> with RouteAware {
     try {
       GetIt.instance<PluginSyncService>().removeListener(_onPrefsChanged);
     } catch (_) {}
+    try {
+      GetIt.instance<AchievementsService>().removeListener(
+        _onAchievementsChanged,
+      );
+    } catch (_) {}
     _prefs.removeListener(_onPrefsChanged);
     _currentTime.dispose();
     // Only clear the shared flag if this instance held focus, so a torn-down
@@ -265,6 +275,14 @@ class _LeftSidebarState extends State<LeftSidebar> with RouteAware {
   void _onUserViewsChanged() {
     if (!mounted) return;
     _scheduleLibrariesReload();
+  }
+
+  /// The service also notifies on every badge refresh, which the slot redraws
+  /// by itself, so the sidebar only rebuilds when the row comes or goes.
+  void _onAchievementsChanged() {
+    final available = FriendsNavSlot.isAvailable();
+    if (!mounted || available == _friendsAvailable) return;
+    setState(() => _friendsAvailable = available);
   }
 
   // Collapses a burst of change notifications, like the settings sync
@@ -1174,14 +1192,16 @@ class _LeftSidebarState extends State<LeftSidebar> with RouteAware {
                     navColor: nextMainSidebarColor(),
                     label: l10n.savedMedia,
                   ),
-                // The slot is taken here rather than inside the builder, so the
-                // settings row keeps its colour whether or not there are any
-                // messages to show.
-                if (FriendsNavSlot.isOffered())
+                // Only taken where the plugin has friends on, so on every
+                // other server the rows after it keep their color.
+                if (FriendsNavSlot.isOffered() && _friendsAvailable)
                   _friendsSidebarItem(
                     navColor: nextMainSidebarColor(),
                     label: l10n.friends,
                   ),
+                // The slot is taken here rather than inside the builder, so the
+                // settings row keeps its colour whether or not there are any
+                // messages to show.
                 if (_prefs.get(UserPreferences.showServerMessagesButton))
                   _serverMessagesSidebarItem(
                     navColor: nextMainSidebarColor(),

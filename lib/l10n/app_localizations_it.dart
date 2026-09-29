@@ -11654,7 +11654,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String friendsBlockBody(String name) {
-    return 'Block $name? Neither of you will be able to message the other.';
+    return 'Block $name? Neither of you will be able to message the other directly. Group chats you share stay open.';
   }
 
   @override
@@ -11784,11 +11784,14 @@ class AppLocalizationsIt extends AppLocalizations {
   String get chatGroupName => 'Group name';
 
   @override
-  String get chatMembers => 'Members';
-
-  @override
   String chatMemberCount(int count) {
-    return '$count members';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count members',
+      one: '1 member',
+    );
+    return '$_temp0';
   }
 
   @override

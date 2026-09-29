@@ -117,6 +117,8 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
 }) {
   final seerrAvailable = GetIt.instance<PluginSyncService>().seerrAvailable;
   final tmdbAvailable = GetIt.instance<PluginSyncService>().tmdbAvailable;
+  final friendsAvailable =
+      GetIt.instance<AchievementsService>().socialAvailable;
 
   final account = _SearchSection(
     slug: 'account',
@@ -837,6 +839,13 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
         l10n.showSeerrButton,
         subtitle: l10n.settingsShowSeerrButtonInNavigation,
         keywords: ['requests'],
+      ),
+    if (friendsAvailable)
+      navigation.leaf(
+        'pref_show_friends_button',
+        l10n.friendsShowButton,
+        subtitle: l10n.friendsShowButtonSubtitle,
+        keywords: ['chat', 'messages', 'achievements'],
       ),
 
     if (PlatformDetection.isTV) ...[

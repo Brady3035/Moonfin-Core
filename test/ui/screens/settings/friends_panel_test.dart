@@ -158,6 +158,35 @@ void main() {
     expect(adapter.chat.last['text'], 'On my way');
   });
 
+  testWidgets('a chat stops reading while the app is in the background', (
+    tester,
+  ) async {
+    const read =
+        'GET /Plugins/AchievementBadges/users/user1/conversations/conv-grace/messages';
+    final binding = tester.binding;
+    await pump(
+      tester,
+      const FriendChatScreen(
+        conversationId: 'conv-grace',
+        title: 'Grace',
+        otherUserId: 'user2',
+      ),
+    );
+
+    binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+    binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    adapter.requests.clear();
+    await tester.pump(const Duration(seconds: 20));
+    expect(adapter.requests, isNot(contains(read)));
+
+    binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+    binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pumpAndSettle();
+    expect(adapter.requests, contains(read));
+  });
+
   testWidgets('an own message can be edited', (tester) async {
     adapter.chat.add({
       'id': 'msg-3',

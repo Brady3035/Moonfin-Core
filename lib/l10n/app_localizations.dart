@@ -20341,7 +20341,7 @@ abstract class AppLocalizations {
   /// Body of the dialog blocking a user
   ///
   /// In en, this message translates to:
-  /// **'Block {name}? Neither of you will be able to message the other.'**
+  /// **'Block {name}? Neither of you will be able to message the other directly. Group chats you share stay open.'**
   String friendsBlockBody(String name);
 
   /// Body of the dialog unblocking a user
@@ -20572,16 +20572,10 @@ abstract class AppLocalizations {
   /// **'Group name'**
   String get chatGroupName;
 
-  /// Section header listing group chat members
-  ///
-  /// In en, this message translates to:
-  /// **'Members'**
-  String get chatMembers;
-
   /// How many people are in a group chat
   ///
   /// In en, this message translates to:
-  /// **'{count} members'**
+  /// **'{count, plural, =1{1 member} other{{count} members}}'**
   String chatMemberCount(int count);
 
   /// Marks the person who created a group chat

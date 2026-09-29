@@ -10900,7 +10900,7 @@
   "@friendsUnblock": {
     "description": "Action that unblocks a user"
   },
-  "friendsBlockBody": "Block {name}? Neither of you will be able to message the other.",
+  "friendsBlockBody": "Block {name}? Neither of you will be able to message the other directly. Group chats you share stay open.",
   "@friendsBlockBody": {
     "description": "Body of the dialog blocking a user",
     "placeholders": {
@@ -11076,11 +11076,7 @@
   "@chatGroupName": {
     "description": "Label of the group chat name field"
   },
-  "chatMembers": "Members",
-  "@chatMembers": {
-    "description": "Section header listing group chat members"
-  },
-  "chatMemberCount": "{count} members",
+  "chatMemberCount": "{count, plural, =1{1 member} other{{count} members}}",
   "@chatMemberCount": {
     "description": "How many people are in a group chat",
     "placeholders": {

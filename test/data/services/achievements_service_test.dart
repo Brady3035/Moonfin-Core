@@ -463,6 +463,24 @@ void main() {
       expect(friends?.isFriend('user4'), isTrue);
     });
 
+    test('people to add come from the plugin directory', () async {
+      final users = await service.fetchServerUsers(client);
+
+      final names = users.map((user) => user.userName);
+      expect(names, contains('Barbara'));
+      expect(names, isNot(contains('Hedy')));
+      expect(adapter.requests, isNot(contains('GET /Users')));
+    });
+
+    test('a plugin without a directory falls back to /Users', () async {
+      adapter.directoryMissing = true;
+
+      final users = await service.fetchServerUsers(client);
+
+      expect(users.map((user) => user.userName), contains('Hedy'));
+      expect(adapter.requests.last, 'GET /Users');
+    });
+
     test('ids match with or without dashes', () {
       expect(
         sameUserId(

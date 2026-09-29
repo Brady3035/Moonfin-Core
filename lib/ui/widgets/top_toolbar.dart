@@ -14,6 +14,7 @@ import '../../auth/repositories/user_repository.dart';
 import '../../data/models/aggregated_library.dart';
 import '../../data/repositories/multi_server_repository.dart';
 import '../../data/repositories/user_views_repository.dart';
+import '../../data/services/achievements_service.dart';
 import '../../data/services/library_scope_service.dart';
 import '../../data/services/plugin_sync_service.dart';
 import '../../preference/preference_constants.dart';
@@ -141,6 +142,7 @@ class _TopToolbarState extends State<TopToolbar> with RouteAware {
   // Tracked per instance so only the toolbar that actually held focus
   // clears the shared isFocusedNotifier on dispose.
   bool _toolbarHadFocus = false;
+  bool _friendsAvailable = FriendsNavSlot.isAvailable();
   List<AggregatedLibrary> _libraries = [];
   Timer? _clockTimer;
   Timer? _librariesReloadDebounce;
@@ -182,6 +184,9 @@ class _TopToolbarState extends State<TopToolbar> with RouteAware {
     _prefs.addListener(_onPrefsChanged);
     _viewsRepo.addListener(_onUserViewsChanged);
     GetIt.instance<PluginSyncService>().addListener(_onPrefsChanged);
+    if (GetIt.instance.isRegistered<AchievementsService>()) {
+      GetIt.instance<AchievementsService>().addListener(_onAchievementsChanged);
+    }
     _loadLibraries();
     final manager = GetIt.instance<PlaybackManager>();
     _playSub = manager.state.playingStream.listen((_) {
@@ -259,6 +264,11 @@ class _TopToolbarState extends State<TopToolbar> with RouteAware {
     try {
       GetIt.instance<PluginSyncService>().removeListener(_onPrefsChanged);
     } catch (_) {}
+    try {
+      GetIt.instance<AchievementsService>().removeListener(
+        _onAchievementsChanged,
+      );
+    } catch (_) {}
     _prefs.removeListener(_onPrefsChanged);
     _currentTime.dispose();
     _playSub?.cancel();
@@ -293,6 +303,14 @@ class _TopToolbarState extends State<TopToolbar> with RouteAware {
   void _onUserViewsChanged() {
     if (!mounted) return;
     _scheduleLibrariesReload();
+  }
+
+  /// The service also notifies on every badge refresh, which the slot redraws
+  /// by itself, so the bar only rebuilds when the button comes or goes.
+  void _onAchievementsChanged() {
+    final available = FriendsNavSlot.isAvailable();
+    if (!mounted || available == _friendsAvailable) return;
+    setState(() => _friendsAvailable = available);
   }
 
   // Collapses a burst of change notifications, like the settings sync
@@ -1198,9 +1216,11 @@ class _TopToolbarState extends State<TopToolbar> with RouteAware {
                     label: l10n.savedMedia,
                   ),
                 ),
-              if (FriendsNavSlot.isOffered())
+              if (FriendsNavSlot.isOffered() && _friendsAvailable)
                 _orderButton(
                   order: 97.5,
+                  // Only taken where the plugin has friends on, so on every
+                  // other server the icons after it keep their color.
                   child: _buildFriendsButton(
                     navColor: nextNavColor(),
                     alwaysExpanded: alwaysExpanded,

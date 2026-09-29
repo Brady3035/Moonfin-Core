@@ -10211,7 +10211,7 @@
     "@performanceMode": {
         "description": "Label for the device performance setting"
     },
-    "performanceModeSubtitle": "Toiminto mittaa laitteen resurssit automaattisesti ja rajoittaa toimintoja laitteissa, joissa on vähän muistia. Näin muistiin tallennetaan vähemmän kuvia ja videot tallennetaan still-kuvina. Muutos astuu voimaan seuraavalla käynnistyskerralla.",
+    "performanceModeSubtitle": "Toiminto mittaa laitteen resurssit automaattisesti ja rajoittaa toimintoja laitteissa, joissa on vähän muistia. \nNäin muistiin tallennetaan vähemmän kuvia ja videot tallennetaan still-kuvina. Muutos astuu voimaan seuraavalla käynnistyskerralla.",
     "@performanceModeSubtitle": {
         "description": "Explanation under the device performance setting"
     },

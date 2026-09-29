@@ -128,7 +128,7 @@
             }
         }
     },
-    "cancel": "Keskeytä",
+    "cancel": "Peruuta",
     "@cancel": {
         "description": "Generic cancel button label"
     },

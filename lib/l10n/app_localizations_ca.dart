@@ -802,7 +802,7 @@ class AppLocalizationsCa extends AppLocalizations {
   String get uiScaleGrandparents => 'Per als avis';
 
   @override
-  String get uiScaleGreatGrandparents => 'Great-Grandparents';
+  String get uiScaleGreatGrandparents => 'Per als besavis';
 
   @override
   String get scrollDirection => 'Direcció de desplaçament';
@@ -2533,11 +2533,11 @@ class AppLocalizationsCa extends AppLocalizations {
 
   @override
   String get playbackStreamLost =>
-      'Playback stopped and could not be recovered.';
+      'La reproducció s\'ha aturat i no s\'ha pogut recuperar.';
 
   @override
   String liveReconnecting(int attempt, int total) {
-    return 'Reconnecting… ($attempt of $total)';
+    return 'S\'està reconnectant… ($attempt de $total)';
   }
 
   @override
@@ -12840,10 +12840,10 @@ class AppLocalizationsCa extends AppLocalizations {
       'Ja està tot a punt. Aquí tens què més hi ha.';
 
   @override
-  String get setupPlaybackLanguages => 'Playback languages';
+  String get setupPlaybackLanguages => 'Idiomes de reproducció';
 
   @override
-  String get setupOptional => 'Optional';
+  String get setupOptional => 'Opcional';
 
   @override
   String get setupStyleClassic => 'Clàssic';
@@ -12887,19 +12887,20 @@ class AppLocalizationsCa extends AppLocalizations {
       'La il·lustració, un botó de reproducció i els episodis.';
 
   @override
-  String get setupNavbarStyleQuestion => 'How should the bottom bar look?';
+  String get setupNavbarStyleQuestion =>
+      'Quin aspecte ha de tenir la barra inferior?';
 
   @override
   String get setupNavbarStyleDockHint =>
-      'A floating pill with labels under every tab.';
+      'Una càpsula flotant amb etiquetes sota cada pestanya.';
 
   @override
   String get setupNavbarStyleSplitHint =>
-      'Search gets its own button, and the bar shrinks while you scroll.';
+      'La cerca té el seu propi botó i la barra s\'encongeix mentre et desplaces.';
 
   @override
   String get setupNavbarStyleStripHint =>
-      'A full-width bar along the bottom edge.';
+      'Una barra d\'amplada completa al llarg de la vora inferior.';
 
   @override
   String get setupPickALook => 'Tria un aspecte';
@@ -13272,51 +13273,51 @@ class AppLocalizationsCa extends AppLocalizations {
       'En horitzontal, l\'allotjament de la càmera tapa una vora de la pantalla. Això manté la imatge apartada, cosa que només té efecte en vídeos prou amples per arribar-hi.';
 
   @override
-  String get bottomNavbarStyle => 'Bottom Bar Style';
+  String get bottomNavbarStyle => 'Estil de la barra inferior';
 
   @override
   String get bottomNavbarStyleDock => 'Dock';
 
   @override
-  String get bottomNavbarStyleSplit => 'Split';
+  String get bottomNavbarStyleSplit => 'Dividida';
 
   @override
-  String get bottomNavbarStyleStrip => 'Strip';
+  String get bottomNavbarStyleStrip => 'Franja';
 
   @override
-  String get bottomNavbarTabs => 'Bottom Bar Tabs';
+  String get bottomNavbarTabs => 'Pestanyes de la barra inferior';
 
   @override
   String get bottomNavbarTabsDescription =>
-      'Pin up to 3 tabs between Home and You. Everything else is in the You menu.';
+      'Fixa fins a 3 pestanyes entre «Inici» i «Tu». Tota la resta és al menú «Tu».';
 
   @override
-  String get bottomNavbarTabsAutomatic => 'Automatic';
+  String get bottomNavbarTabsAutomatic => 'Automàtic';
 
   @override
-  String get bottomNavbarTabsPinned => 'Pinned';
+  String get bottomNavbarTabsPinned => 'Fixades';
 
   @override
-  String get bottomNavbarTabsAvailable => 'Available';
+  String get bottomNavbarTabsAvailable => 'Disponibles';
 
   @override
-  String get bottomNavbarTabsReset => 'Reset to Automatic';
+  String get bottomNavbarTabsReset => 'Restableix a automàtic';
 
   @override
   String get bottomNavbarTabsLimit =>
-      'You can pin up to 3 tabs. Remove one to pin another.';
+      'Pots fixar fins a 3 pestanyes. Treu-ne una per fixar-ne una altra.';
 
   @override
-  String get bottomNavbarTabTurnedOff => 'Turned off under Buttons';
+  String get bottomNavbarTabTurnedOff => 'Desactivada a «Botons»';
 
   @override
   String get bottomNavbarSplitSearchNote =>
-      'In the Split style, Search always has its own button.';
+      'A l\'estil «Dividida», la cerca sempre té el seu propi botó.';
 
   @override
   String get bottomNavbarButtonsNote =>
-      'These decide which tabs you can pin to the bottom bar and what shows in the You menu.';
+      'Aquests botons decideixen quines pestanyes pots fixar a la barra inferior i què es mostra al menú «Tu».';
 
   @override
-  String get navYou => 'You';
+  String get navYou => 'Tu';
 }

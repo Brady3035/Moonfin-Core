@@ -794,10 +794,10 @@ class AppLocalizationsTr extends AppLocalizations {
   String get extraLarge => 'Ekstra Büyük';
 
   @override
-  String get uiScaleGrandparents => 'Grandparents';
+  String get uiScaleGrandparents => 'Yaşlılar İçin';
 
   @override
-  String get uiScaleGreatGrandparents => 'Great-Grandparents';
+  String get uiScaleGreatGrandparents => 'Çok Yaşlılar İçin';
 
   @override
   String get scrollDirection => 'Kaydırma Yönü';
@@ -2503,12 +2503,11 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String get playbackStreamLost =>
-      'Playback stopped and could not be recovered.';
+  String get playbackStreamLost => 'Oynatma durdu ve kurtarılamadı.';
 
   @override
   String liveReconnecting(int attempt, int total) {
-    return 'Reconnecting… ($attempt of $total)';
+    return 'Yeniden bağlanılıyor… ($attempt/$total)';
   }
 
   @override

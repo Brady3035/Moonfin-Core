@@ -488,7 +488,7 @@ class AppLocalizationsFi extends AppLocalizations {
       'Auto valitsee laitteelle parhaiten sopivan lasiefektin. Asetus ”Full” tuottaa voimakkaan sumennuksen; asetus ”Reduced” käyttää kevyttä lasiefektiä, joka säästää GPU:n tehoa.';
 
   @override
-  String get glassQualityAuto => 'Automaattinen';
+  String get glassQualityAuto => 'Auto';
 
   @override
   String get glassQualityFull => 'Täysi';
@@ -802,7 +802,7 @@ class AppLocalizationsFi extends AppLocalizations {
   String get uiScaleGrandparents => 'Isovanhemmat';
 
   @override
-  String get uiScaleGreatGrandparents => 'Great-Grandparents';
+  String get uiScaleGreatGrandparents => 'Isoisovanhemmat';
 
   @override
   String get scrollDirection => 'Vierityssuunta';
@@ -1934,7 +1934,7 @@ class AppLocalizationsFi extends AppLocalizations {
   }
 
   @override
-  String get auto => 'Automaattinen';
+  String get auto => 'Auto';
 
   @override
   String bitrateValueMbps(int mbps) {
@@ -2517,12 +2517,11 @@ class AppLocalizationsFi extends AppLocalizations {
   }
 
   @override
-  String get playbackStreamLost =>
-      'Playback stopped and could not be recovered.';
+  String get playbackStreamLost => 'Toisto keskeytyi, eikä sitä voitu jatkaa.';
 
   @override
   String liveReconnecting(int attempt, int total) {
-    return 'Reconnecting… ($attempt of $total)';
+    return 'Yhdistetään uudelleen… ($attempt of $total)';
   }
 
   @override
@@ -4755,7 +4754,7 @@ class AppLocalizationsFi extends AppLocalizations {
   String get trakt => 'Trakt';
 
   @override
-  String get letterboxd => 'Kirjelaatikkod';
+  String get letterboxd => 'Letterboxd';
 
   @override
   String get myAnimeList => 'MyAnimeList';
@@ -8654,7 +8653,7 @@ class AppLocalizationsFi extends AppLocalizations {
   String get adminPlaybackMaxMuxingQueue => 'Muksausjonon enimmäiskoko';
 
   @override
-  String get adminPlaybackAutoOption => 'Automaattinen';
+  String get adminPlaybackAutoOption => 'Auto';
 
   @override
   String get adminPlaybackEncoding => 'Koodaus';
@@ -10170,7 +10169,7 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get settingsDisplayIsSdrDescription =>
-      'Älä muistuta tämän näytön HDR-tukea. Käytä tätä vain, jos tunnistustoiminto ilmoittaa jatkuvasti HDR:stä, jota televisio ei todellisuudessa pysty näyttämään.';
+      'Älä muistuta tämän näytön HDR-tukea.';
 
   @override
   String settingsDisplayRedetected(String formats) {
@@ -11400,7 +11399,7 @@ class AppLocalizationsFi extends AppLocalizations {
       'Seuraava suorittamasi tehtävä lasketaan kaksinkertaisesti merkeissä.';
 
   @override
-  String get achievementsStreakFreeze => 'Streak Freeze';
+  String get achievementsStreakFreeze => 'Katselusarjan suojaus';
 
   @override
   String get achievementsStreakFreezeBody =>
@@ -12692,10 +12691,10 @@ class AppLocalizationsFi extends AppLocalizations {
   String get setupTourQuestion => 'Valmis. Tässä on muutkin sisällön osat.';
 
   @override
-  String get setupPlaybackLanguages => 'Playback languages';
+  String get setupPlaybackLanguages => 'Toistokielet';
 
   @override
-  String get setupOptional => 'Optional';
+  String get setupOptional => 'Valinnainen';
 
   @override
   String get setupStyleClassic => 'Klassikko';
@@ -12739,19 +12738,20 @@ class AppLocalizationsFi extends AppLocalizations {
       'Kuvitus, yksi toistopainike ja jaksot.';
 
   @override
-  String get setupNavbarStyleQuestion => 'How should the bottom bar look?';
+  String get setupNavbarStyleQuestion =>
+      'Miltä alareunan palkin pitäisi näyttää?';
 
   @override
   String get setupNavbarStyleDockHint =>
-      'A floating pill with labels under every tab.';
+      'Kelluva painike, jonka jokaisen välilehden alla on merkintöjä.';
 
   @override
   String get setupNavbarStyleSplitHint =>
-      'Search gets its own button, and the bar shrinks while you scroll.';
+      'Hakutoiminnolle tulee oma painike, ja hakupalkki kutistuu, kun vierität sivua.';
 
   @override
   String get setupNavbarStyleStripHint =>
-      'A full-width bar along the bottom edge.';
+      'Alareunassa oleva koko sivun levyinen palkki.';
 
   @override
   String get setupPickALook => 'Valitse tyyli';
@@ -13120,50 +13120,51 @@ class AppLocalizationsFi extends AppLocalizations {
       'Vaakakuvausasennossa kamerakotelo peittää näytön yhden reunan. Tämä rajoittaa kuvan ulottuvuutta, mikä vaikuttaa ainoastaan videoihin, jotka ovat riittävän leveitä ulottuakseen sinne asti.';
 
   @override
-  String get bottomNavbarStyle => 'Bottom Bar Style';
+  String get bottomNavbarStyle => 'Alaosan palkin tyyli';
 
   @override
-  String get bottomNavbarStyleDock => 'Dock';
+  String get bottomNavbarStyleDock => 'Telakka';
 
   @override
-  String get bottomNavbarStyleSplit => 'Split';
+  String get bottomNavbarStyleSplit => 'Jaettu';
 
   @override
-  String get bottomNavbarStyleStrip => 'Strip';
+  String get bottomNavbarStyleStrip => 'Nauha';
 
   @override
-  String get bottomNavbarTabs => 'Bottom Bar Tabs';
+  String get bottomNavbarTabs => 'Alareunan välilehdet';
 
   @override
   String get bottomNavbarTabsDescription =>
-      'Pin up to 3 tabs between Home and You. Everything else is in the You menu.';
+      'Voit kiinnittää enintään 3 välilehteä Home ja You välilehtien väliin. Kaikki muu löytyy You valikosta.';
 
   @override
-  String get bottomNavbarTabsAutomatic => 'Automatic';
+  String get bottomNavbarTabsAutomatic => 'Automaattinen';
 
   @override
-  String get bottomNavbarTabsPinned => 'Pinned';
+  String get bottomNavbarTabsPinned => 'Kiinnitetty';
 
   @override
-  String get bottomNavbarTabsAvailable => 'Available';
+  String get bottomNavbarTabsAvailable => 'Saatavilla';
 
   @override
-  String get bottomNavbarTabsReset => 'Reset to Automatic';
+  String get bottomNavbarTabsReset => 'Palauta automaattitilaan';
 
   @override
   String get bottomNavbarTabsLimit =>
-      'You can pin up to 3 tabs. Remove one to pin another.';
+      'Voit kiinnittää enintään 3 välilehteä. Poista yksi, jotta voit kiinnittää toisen.';
 
   @override
-  String get bottomNavbarTabTurnedOff => 'Turned off under Buttons';
+  String get bottomNavbarTabTurnedOff =>
+      'Poistettu käytöstä Painikkeet kohdasta';
 
   @override
   String get bottomNavbarSplitSearchNote =>
-      'In the Split style, Search always has its own button.';
+      'Split tyylissä Haku toiminnolla on aina oma painikkeensa.';
 
   @override
   String get bottomNavbarButtonsNote =>
-      'These decide which tabs you can pin to the bottom bar and what shows in the You menu.';
+      'Nämä asetukset määrittävät, mitkä välilehdet voit kiinnittää alareunan palkkiin ja mitä ”You”-valikossa näkyy.';
 
   @override
   String get navYou => 'You';

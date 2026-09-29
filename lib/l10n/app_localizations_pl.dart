@@ -843,7 +843,7 @@ class AppLocalizationsPl extends AppLocalizations {
   String get uiScaleGrandparents => 'Dla dziadków';
 
   @override
-  String get uiScaleGreatGrandparents => 'Great-Grandparents';
+  String get uiScaleGreatGrandparents => 'Dla pradziadków';
 
   @override
   String get scrollDirection => 'Kierunek przewijania';
@@ -2653,11 +2653,11 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get playbackStreamLost =>
-      'Playback stopped and could not be recovered.';
+      'Odtwarzanie zostało zatrzymane i nie udało się go wznowić.';
 
   @override
   String liveReconnecting(int attempt, int total) {
-    return 'Reconnecting… ($attempt of $total)';
+    return 'Ponowne łączenie… ($attempt z $total)';
   }
 
   @override
@@ -13001,10 +13001,10 @@ class AppLocalizationsPl extends AppLocalizations {
       'Gotowe. Zobacz, co jeszcze znajdziesz w Moonfin.';
 
   @override
-  String get setupPlaybackLanguages => 'Playback languages';
+  String get setupPlaybackLanguages => 'Języki odtwarzania';
 
   @override
-  String get setupOptional => 'Optional';
+  String get setupOptional => 'Opcjonalne';
 
   @override
   String get setupStyleClassic => 'Klasyczny';
@@ -13049,19 +13049,19 @@ class AppLocalizationsPl extends AppLocalizations {
       'Grafika, jeden przycisk odtwarzania i odcinki.';
 
   @override
-  String get setupNavbarStyleQuestion => 'How should the bottom bar look?';
+  String get setupNavbarStyleQuestion => 'Jak ma wyglądać dolny pasek?';
 
   @override
   String get setupNavbarStyleDockHint =>
-      'A floating pill with labels under every tab.';
+      'Pływający pasek z etykietami pod każdą kartą.';
 
   @override
   String get setupNavbarStyleSplitHint =>
-      'Search gets its own button, and the bar shrinks while you scroll.';
+      'Wyszukiwanie ma osobny przycisk, a pasek zmniejsza się podczas przewijania.';
 
   @override
   String get setupNavbarStyleStripHint =>
-      'A full-width bar along the bottom edge.';
+      'Pasek na całą szerokość wzdłuż dolnej krawędzi.';
 
   @override
   String get setupPickALook => 'Wybierz wygląd';
@@ -13438,7 +13438,7 @@ class AppLocalizationsPl extends AppLocalizations {
       'W orientacji poziomej obudowa aparatu zasłania jedną krawędź ekranu. Ta opcja odsuwa od niej obraz i ma znaczenie tylko w przypadku materiałów wystarczająco szerokich, aby sięgały aż do tej krawędzi.';
 
   @override
-  String get bottomNavbarStyle => 'Bottom Bar Style';
+  String get bottomNavbarStyle => 'Styl dolnego paska';
 
   @override
   String get bottomNavbarStyleDock => 'Dock';
@@ -13450,39 +13450,39 @@ class AppLocalizationsPl extends AppLocalizations {
   String get bottomNavbarStyleStrip => 'Strip';
 
   @override
-  String get bottomNavbarTabs => 'Bottom Bar Tabs';
+  String get bottomNavbarTabs => 'Karty dolnego paska';
 
   @override
   String get bottomNavbarTabsDescription =>
-      'Pin up to 3 tabs between Home and You. Everything else is in the You menu.';
+      'Przypnij maksymalnie 3 karty między „Stroną główną” a „Ty”. Pozostałe znajdziesz w menu „Ty”.';
 
   @override
-  String get bottomNavbarTabsAutomatic => 'Automatic';
+  String get bottomNavbarTabsAutomatic => 'Automatycznie';
 
   @override
-  String get bottomNavbarTabsPinned => 'Pinned';
+  String get bottomNavbarTabsPinned => 'Przypięte';
 
   @override
-  String get bottomNavbarTabsAvailable => 'Available';
+  String get bottomNavbarTabsAvailable => 'Dostępne';
 
   @override
-  String get bottomNavbarTabsReset => 'Reset to Automatic';
+  String get bottomNavbarTabsReset => 'Przywróć automatyczny wybór';
 
   @override
   String get bottomNavbarTabsLimit =>
-      'You can pin up to 3 tabs. Remove one to pin another.';
+      'Możesz przypiąć maksymalnie 3 karty. Usuń jedną, aby przypiąć inną.';
 
   @override
-  String get bottomNavbarTabTurnedOff => 'Turned off under Buttons';
+  String get bottomNavbarTabTurnedOff => 'Wyłączone w sekcji „Przyciski”';
 
   @override
   String get bottomNavbarSplitSearchNote =>
-      'In the Split style, Search always has its own button.';
+      'W stylu Split wyszukiwanie zawsze ma osobny przycisk.';
 
   @override
   String get bottomNavbarButtonsNote =>
-      'These decide which tabs you can pin to the bottom bar and what shows in the You menu.';
+      'Te ustawienia określają, które karty możesz przypiąć do dolnego paska oraz co pojawia się w menu „Ty”.';
 
   @override
-  String get navYou => 'You';
+  String get navYou => 'Ty';
 }

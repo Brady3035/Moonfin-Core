@@ -16,28 +16,28 @@ class AppLocalizationsHu extends AppLocalizations {
   String get animeMarkerFiller => 'Filler';
 
   @override
-  String get animeMarkerMixed => 'Mixed';
+  String get animeMarkerMixed => 'Vegyes';
 
   @override
-  String get animeMarkerAnimeCanon => 'Anime Canon';
+  String get animeMarkerAnimeCanon => 'Anime Kánon';
 
   @override
-  String get animeMarkerMangaCanon => 'Manga Canon';
+  String get animeMarkerMangaCanon => 'Manga Kánon';
 
   @override
-  String get animeMarkerSubbed => 'Subbed';
+  String get animeMarkerSubbed => 'Feliratos';
 
   @override
-  String get animeMarkerDubbed => 'Dubbed';
+  String get animeMarkerDubbed => 'Szinkronos';
 
   @override
-  String get animeMarkerSubbedAndDubbed => 'Subbed/Dubbed';
+  String get animeMarkerSubbedAndDubbed => 'Feliratos/Szinkronos';
 
   @override
-  String get animeMarkerPending => 'Pending';
+  String get animeMarkerPending => 'Függő';
 
   @override
-  String get animeMarkerRecap => 'Recap';
+  String get animeMarkerRecap => 'Összefoglaló';
 
   @override
   String get accountPreferences => 'Fiókbeállítások';
@@ -56,7 +56,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String connectingToServer(String serverName) {
-    return 'Csatlakozás $serverName-hez';
+    return 'Csatlakozás folyamatban: $serverName';
   }
 
   @override
@@ -173,7 +173,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get detailScreenStyleSubtitle =>
-      'A klasszikus az eredeti, középre igazított Moonfin elrendezés. A modern egy reszponzív, moziszerű elrendezés.';
+      'A Klasszikus az eredeti, középre igazított Moonfin elrendezés. A Modern egy reszponzív, moziszerű elrendezés. A Kiemelt egy tartalomközpontú elrendezés felugró tartalomkártyákkal. Az Újszerű egy teljesképernyős elrendezés, egymás alá rendezett szekciókkal. A Minimalista csak a borítóképet, lejátszási gombot és epizódlistát tartalmaz.';
 
   @override
   String get detailScreenStyleMoonfin => 'Klasszikus';
@@ -182,51 +182,51 @@ class AppLocalizationsHu extends AppLocalizations {
   String get detailScreenStyleModern => 'Modern';
 
   @override
-  String get detailScreenStyleSpotlight => 'Spotlight';
+  String get detailScreenStyleSpotlight => 'Kiemelt';
 
   @override
-  String get spotlightMoreActions => 'More Actions';
+  String get spotlightMoreActions => 'További hatások';
 
   @override
-  String get spotlightCastCrewStudios => 'Cast, Crew, and Studios';
+  String get spotlightCastCrewStudios => 'Szereplők, stáb és stúdiók';
 
   @override
-  String get spotlightChaptersExtras => 'Chapters and Extras';
+  String get spotlightChaptersExtras => 'Fejezetek és további tartalmak';
 
   @override
-  String get spotlightSimilarRecommendations => 'Similar and Recommendations';
+  String get spotlightSimilarRecommendations => 'Hasonló és javaslatok';
 
   @override
-  String get spotlightSeasonsEpisodes => 'Seasons and Episodes';
+  String get spotlightSeasonsEpisodes => 'Évadok és epizódok';
 
   @override
-  String get spotlightMoreEpisodes => 'More Episodes';
+  String get spotlightMoreEpisodes => 'További epizódok';
 
   @override
-  String get spotlightFilmography => 'Filmography';
+  String get spotlightFilmography => 'Filmográfia';
 
   @override
-  String get spotlightCollectionsCard => 'Collections';
+  String get spotlightCollectionsCard => 'Gyűjtemények';
 
   @override
-  String get spotlightPlaylistOrder => 'Playlist Order';
+  String get spotlightPlaylistOrder => 'Lejátszási lista sorrend';
 
   @override
-  String get spotlightMoviesAndShows => 'Movies & Shows';
+  String get spotlightMoviesAndShows => 'Filmek & Sorozatok';
 
   @override
-  String get spotlightSimilarSeerr => 'Similar (Seerr)';
+  String get spotlightSimilarSeerr => 'Hasonló (Seerr)';
 
   @override
-  String get spotlightRecommendationsSeerr => 'Recommendations (Seerr)';
+  String get spotlightRecommendationsSeerr => 'Ajánlások (Seerr)';
 
   @override
   String spotlightPeopleCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count people',
-      one: '1 person',
+      other: '$count személy',
+      one: '1 személy',
     );
     return '$_temp0';
   }
@@ -236,8 +236,8 @@ class AppLocalizationsHu extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count facts',
-      one: '1 fact',
+      other: '$count tény',
+      one: '1 tény',
     );
     return '$_temp0';
   }
@@ -247,8 +247,8 @@ class AppLocalizationsHu extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count tags',
-      one: '1 tag',
+      other: '$count címke',
+      one: '1 címke',
     );
     return '$_temp0';
   }
@@ -258,8 +258,8 @@ class AppLocalizationsHu extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count studios',
-      one: '1 studio',
+      other: '$count stúdió',
+      one: '1 stúdió',
     );
     return '$_temp0';
   }
@@ -269,8 +269,8 @@ class AppLocalizationsHu extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count chapters',
-      one: '1 chapter',
+      other: '$count fejezet',
+      one: '1 fejezet',
     );
     return '$_temp0';
   }
@@ -280,8 +280,8 @@ class AppLocalizationsHu extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count extras',
-      one: '1 extra',
+      other: '$count kiegészítő',
+      one: '1 kiegészítő',
     );
     return '$_temp0';
   }
@@ -291,8 +291,8 @@ class AppLocalizationsHu extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count seasons',
-      one: '1 season',
+      other: '$count évad',
+      one: '1 évad',
     );
     return '$_temp0';
   }
@@ -302,8 +302,8 @@ class AppLocalizationsHu extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count episodes',
-      one: '1 episode',
+      other: '$count epizód',
+      one: '1 epizód',
     );
     return '$_temp0';
   }
@@ -313,8 +313,8 @@ class AppLocalizationsHu extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count movies',
-      one: '1 movie',
+      other: '$count film',
+      one: '1 film',
     );
     return '$_temp0';
   }
@@ -324,8 +324,8 @@ class AppLocalizationsHu extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count shows',
-      one: '1 show',
+      other: '$count sorozat',
+      one: '1 sorozat',
     );
     return '$_temp0';
   }
@@ -335,8 +335,8 @@ class AppLocalizationsHu extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count tracks',
-      one: '1 track',
+      other: '$count sáv',
+      one: '1 sáv',
     );
     return '$_temp0';
   }
@@ -346,8 +346,8 @@ class AppLocalizationsHu extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count items',
-      one: '1 item',
+      other: '$count elem',
+      one: '1 elem',
     );
     return '$_temp0';
   }
@@ -357,7 +357,7 @@ class AppLocalizationsHu extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count albums',
+      other: '$count album',
       one: '1 album',
     );
     return '$_temp0';
@@ -368,8 +368,8 @@ class AppLocalizationsHu extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count collections',
-      one: '1 collection',
+      other: '$count gyűjtemény',
+      one: '1 gyűjtemény',
     );
     return '$_temp0';
   }
@@ -379,17 +379,17 @@ class AppLocalizationsHu extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count titles',
-      one: '1 title',
+      other: '$count cím',
+      one: '1 cím',
     );
     return '$_temp0';
   }
 
   @override
-  String get detailScreenStyleNouveau => 'Nouveau';
+  String get detailScreenStyleNouveau => 'Újszerű';
 
   @override
-  String get detailScreenStyleMinimalist => 'Minimalist';
+  String get detailScreenStyleMinimalist => 'Minimalista';
 
   @override
   String get expandedTabs => 'Kibontott lapok';
@@ -410,13 +410,13 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get recommendationSystemSubtitle =>
-      'Használd a Moonfin ajánlásai helyi könyvtári algoritmust vagy az online TMDb hasonlósági mutatóit. Megjegyzés: Az online ajánlásokhoz Seerr-integráció szükséges.';
+      'Használd a Moonfin helyi könyvtárhoz készült ajánlóalgoritmusát, a Jellyfin ajánlóalgoritmusát vagy a TMDb online hasonlósági mutatóit. Megjegyzés: Az online ajánlásokhoz Seerr-integráció szükséges.';
 
   @override
   String get recommendationSystemMoonfin => 'Moonfin ajánlásai';
 
   @override
-  String get recommendationSystemJellyfin => 'Jellyfin Recommends';
+  String get recommendationSystemJellyfin => 'Jellyfin Ajánlások';
 
   @override
   String get recommendationSystemTmdb => 'TMDb hasonlóság';
@@ -446,39 +446,39 @@ class AppLocalizationsHu extends AppLocalizations {
   String get interfaceStyleMaterial => 'Material';
 
   @override
-  String get interfaceLayout => 'Interface Layout';
+  String get interfaceLayout => 'Felület elrendezése';
 
   @override
   String get interfaceLayoutSubtitle =>
-      'Override the detected layout when this device is read wrong. Restart Moonfin for changes to take effect.';
+      'Írd felül az észlelt elrendezést, ha az eszközt a rendszer hibásan ismeri fel. A módosítások érvénybe lépéséhez indítsd újra a Moonfint.';
 
   @override
-  String get interfaceLayoutAutomatic => 'Automatic';
+  String get interfaceLayoutAutomatic => 'Automatikus';
 
   @override
   String get interfaceLayoutTv => 'TV';
 
   @override
-  String get interfaceLayoutDesktop => 'Desktop';
+  String get interfaceLayoutDesktop => 'Asztali';
 
   @override
-  String get interfaceLayoutPhone => 'Phone';
+  String get interfaceLayoutPhone => 'Mobil';
 
   @override
   String get glassQuality => 'Üveghatás minősége';
 
   @override
-  String get oledMode => 'OLED Mode';
+  String get oledMode => 'OLED mód';
 
   @override
   String get oledModeSubtitle =>
-      'Deepen blacks and enrich artwork. Best on OLED displays.';
+      'Mélyebb feketék és élénkebb vizuális megjelenés. OLED kijelzőkhöz ideális.';
 
   @override
-  String get oledModeSubtle => 'Subtle';
+  String get oledModeSubtle => 'Visszafogott';
 
   @override
-  String get oledModeVivid => 'Vivid';
+  String get oledModeVivid => 'Élénk';
 
   @override
   String get glassQualitySubtitle =>
@@ -494,24 +494,24 @@ class AppLocalizationsHu extends AppLocalizations {
   String get glassQualityReduced => 'Csökkentett';
 
   @override
-  String get performanceMode => 'Performance';
+  String get performanceMode => 'Teljesítmény';
 
   @override
   String get performanceModeSubtitle =>
-      'Auto measures this device and holds back on the ones short on memory, which keeps fewer images in memory and leaves trailers as still images. Takes full effect on the next launch.';
+      'Az Automatikus mód az eszköz memóriájához igazítja a működést. Kevés memória esetén kevesebb képet tart betöltve, az előzeteseket pedig állóképként jeleníti meg. A beállítás a következő indításkor lép teljesen érvénybe.';
 
   @override
-  String get performanceModeAuto => 'Auto';
+  String get performanceModeAuto => 'Automatikus';
 
   @override
-  String get performanceModeStandard => 'Standard';
+  String get performanceModeStandard => 'Normál';
 
   @override
-  String get performanceModeReduced => 'Reduced';
+  String get performanceModeReduced => 'Csökkentett';
 
   @override
   String get trailerPreviewHeldBack =>
-      'Off because Performance is set to Reduced for this device';
+      'Kikapcsolva, mert ezen az eszközön a Csökkentett teljesítmény van beállítva';
 
   @override
   String get settingsAppearanceThemeSubtitle =>
@@ -533,14 +533,14 @@ class AppLocalizationsHu extends AppLocalizations {
       'Használd alapértelmezetten az eszközöd beviteli módját a szövegbevitelhez';
 
   @override
-  String get controller => 'Controller';
+  String get controller => 'Kontroller';
 
   @override
-  String get gamepadNavigation => 'Gamepad navigation';
+  String get gamepadNavigation => 'Kontrolleres navigáció';
 
   @override
   String get gamepadNavigationDescription =>
-      'Let a connected game controller move focus and select items';
+      'Engedélyezi, hogy a csatlakoztatott kontrollerrel mozgasd a kijelölést és kiválaszd az elemeket';
 
   @override
   String get themeMoonfin => 'Moonfin';
@@ -797,19 +797,19 @@ class AppLocalizationsHu extends AppLocalizations {
   String get extraLarge => 'Extra nagy';
 
   @override
-  String get uiScaleGrandparents => 'Grandparents';
+  String get uiScaleGrandparents => 'Óriási';
 
   @override
-  String get uiScaleGreatGrandparents => 'Great-Grandparents';
+  String get uiScaleGreatGrandparents => 'Gigantikus';
 
   @override
-  String get scrollDirection => 'Scroll Direction';
+  String get scrollDirection => 'Görgetés iránya';
 
   @override
-  String get scrollDirectionVertical => 'Vertical';
+  String get scrollDirectionVertical => 'Függőleges';
 
   @override
-  String get scrollDirectionHorizontal => 'Horizontal';
+  String get scrollDirectionHorizontal => 'Vízszintes';
 
   @override
   String libraryGenresTitle(String name) {
@@ -907,7 +907,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get scrollRight => 'Görgess jobbra';
 
   @override
-  String get scrollToTop => 'Scroll to top';
+  String get scrollToTop => 'Görgetés a tetejére';
 
   @override
   String get couldNotLoadGenre =>
@@ -1096,10 +1096,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get latestAudiobooks => 'Legújabb hangoskönyvek';
 
   @override
-  String get latestComics => 'Latest Comics';
+  String get latestComics => 'Legutóbbi Képregények';
 
   @override
-  String get comics => 'Comics';
+  String get comics => 'Képregények';
 
   @override
   String bookSeriesItemCount(int count) {
@@ -1119,14 +1119,14 @@ class AppLocalizationsHu extends AppLocalizations {
   String get bookFormatAudiobook => 'Hangoskönyv';
 
   @override
-  String get bookFormatComic => 'Comic';
+  String get bookFormatComic => 'Képregény';
 
   @override
   String get noBooksFound => 'Nem található könyv ehhez a szerzőhöz.';
 
   @override
   String get noBooksFoundDescription =>
-      'This library does not contain any books, audiobooks, or comics yet.';
+      'Ebben a könyvtárban még nincs könyv, hangoskönyv vagy képregény.';
 
   @override
   String bookPercentRead(int percent) {
@@ -1410,7 +1410,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get cast => 'Átküldés';
 
   @override
-  String get castMembers => 'Cast';
+  String get castMembers => 'Szereplők';
 
   @override
   String get trailer => 'Előzetes';
@@ -1431,18 +1431,18 @@ class AppLocalizationsHu extends AppLocalizations {
   String get downloaded => 'Letöltve';
 
   @override
-  String get finalizingDownload => 'Finalizing…';
+  String get finalizingDownload => 'Befejezés…';
 
   @override
-  String get queuedDownload => 'Queued';
+  String get queuedDownload => 'Várólistán';
 
   @override
   String queuedMoreCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count more queued',
-      one: '1 more queued',
+      other: 'Még $count várakozik',
+      one: 'Még 1 várakozik',
     );
     return '$_temp0';
   }
@@ -1490,7 +1490,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String failedToDeleteItemWithError(String error) {
-    return 'Deletion operation failed with the following error: $error';
+    return 'A törlés sikertelen volt a következő hiba miatt: $error';
   }
 
   @override
@@ -1563,10 +1563,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get downloadSubtitles => 'Feliratok letöltése';
 
   @override
-  String get searchingSubtitles => 'Searching for subtitles…';
+  String get searchingSubtitles => 'Feliratok keresése…';
 
   @override
-  String get downloadingSubtitle => 'Downloading subtitle…';
+  String get downloadingSubtitle => 'Felirat letöltése…';
 
   @override
   String get selectedSubtitleInvalid => 'A kiválasztott felirat érvénytelen.';
@@ -1609,34 +1609,35 @@ class AppLocalizationsHu extends AppLocalizations {
   String get noEpisodesLoaded => 'Nincsenek betöltve epizódok';
 
   @override
-  String get downloadScopeTitle => 'What to download';
+  String get downloadScopeTitle => 'Letöltés tartalma';
 
   @override
-  String get downloadAllEpisodes => 'All episodes';
+  String get downloadAllEpisodes => 'Minden epizód';
 
   @override
-  String get downloadUnwatchedEpisodes => 'All unwatched episodes';
+  String get downloadUnwatchedEpisodes => 'Összes megtekintetlen epizód';
 
   @override
-  String get downloadAllMovies => 'All movies';
+  String get downloadAllMovies => 'Minden film';
 
   @override
-  String get downloadUnwatchedMovies => 'All unwatched movies';
+  String get downloadUnwatchedMovies => 'Összes megtekintetlen film';
 
   @override
-  String get downloadScopeLoading => 'Loading items...';
+  String get downloadScopeLoading => 'Elemek betöltése...';
 
   @override
-  String get downloadScopeLoadFailed => 'Could not load items to download';
+  String get downloadScopeLoadFailed =>
+      'Nem sikerült betölteni a letöltésre váró elemeket';
 
   @override
   String downloadEstimateTotal(String size) {
-    return '~$size total';
+    return 'Összesen ~$size';
   }
 
   @override
   String downloadBytesOfTotal(String received, String total) {
-    return '$received of $total';
+    return '$received / $total';
   }
 
   @override
@@ -1646,12 +1647,12 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String downloadSizeTotal(String size) {
-    return '$size total';
+    return 'Összesen $size';
   }
 
   @override
   String downloadEstimateUnknownCount(int count) {
-    return '$count unknown';
+    return '$count ismeretlen';
   }
 
   @override
@@ -1680,7 +1681,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get director => 'RENDEZŐ';
 
   @override
-  String get starring => 'STARRING';
+  String get starring => 'Főszerepben';
 
   @override
   String get directors => 'RENDEZŐK';
@@ -1766,7 +1767,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get shuffle => 'Keverés';
 
   @override
-  String get shuffleAll => 'Shuffle All';
+  String get shuffleAll => 'Összes keverése';
 
   @override
   String get shuffleAllMusic => 'Összes zene keverése';
@@ -1786,17 +1787,17 @@ class AppLocalizationsHu extends AppLocalizations {
   String get perfectMatch => 'Tökéletes párosítás';
 
   @override
-  String get aiTranslated => 'AI Translated';
+  String get aiTranslated => 'MI által fordított';
 
   @override
-  String get machineTranslated => 'Machine Translated';
+  String get machineTranslated => 'Gépi fordítás';
 
   @override
-  String get hearingImpaired => 'SDH';
+  String get hearingImpaired => 'Hallássérülteknek';
 
   @override
   String framerateFps(String rate) {
-    return '$rate fps';
+    return 'Képkockasebesség $rate';
   }
 
   @override
@@ -1972,13 +1973,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get playbackInformation => 'Lejátszási információk';
 
   @override
-  String get showMpvStats => 'Show mpv Statistics (Shift+I)';
+  String get showMpvStats => 'mpv statisztikák mutatása (Shift+I)';
 
   @override
-  String get hideMpvStats => 'Hide mpv Statistics (Shift+I)';
+  String get hideMpvStats => 'mpv statisztikák elrejtése (Shift+I)';
 
   @override
-  String get keyboardShortcutsTitle => 'Keyboard shortcuts';
+  String get keyboardShortcutsTitle => 'Gyorsbillentyűk';
 
   @override
   String get keyboardShortcutsSubtitle =>
@@ -12771,11 +12772,11 @@ class AppLocalizationsHu extends AppLocalizations {
       'Hero-first, with pop-up cards for cast and extras.';
 
   @override
-  String get setupStyleNouveau => 'Nouveau';
+  String get setupStyleNouveau => 'Újszerű';
 
   @override
   String get setupDetailNouveauHint =>
-      'Full-screen, with sections stacked instead of tabs.';
+      'Teljesképernyő, fülek helyett rendezett szekciókkal.';
 
   @override
   String get setupStyleMinimalist => 'Minimalist';

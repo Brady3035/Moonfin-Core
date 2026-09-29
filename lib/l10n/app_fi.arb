@@ -7345,7 +7345,7 @@
     "@expandedTabs": {
         "description": "Label for the detail screen expanded tabs setting"
     },
-    "expandedTabsSubtitle": "Näytä välilehden sisältö automaattisesti välilehtiä selatessasi. Poista käytöstä, jos haluat avata ja sulkea jokaisen välilehden itse.",
+    "expandedTabsSubtitle": "Näytä välilehden sisältö automaattisesti välilehtiä selatessasi. \tPoista käytöstä, jos haluat avata ja sulkea jokaisen välilehden itse.",
     "@expandedTabsSubtitle": {
         "description": "Explanation under the expanded tabs setting"
     },

@@ -9283,7 +9283,7 @@
     "@interfaceLayoutTv": {
         "description": "Interface layout option: 10-foot TV layout"
     },
-    "spotlightCollectionsCount": "\"{count, plural, =1{1 coleção} other{{count} coleções}}\"",
+    "spotlightCollectionsCount": "{count, plural, =1{1 coleção} other{{count} coleções}}",
     "@spotlightCollectionsCount": {
         "description": "Count fragment on spotlight summary cards: collections",
         "placeholders": {

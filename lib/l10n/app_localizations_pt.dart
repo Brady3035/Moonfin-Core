@@ -13930,6 +13930,17 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
   }
 
   @override
+  String spotlightCollectionsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count coleções',
+      one: '1 coleção',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get expandedTabs => 'Abas expandidas';
 
   @override

@@ -9520,7 +9520,7 @@ class AppLocalizationsFi extends AppLocalizations {
   String get trackActionPlayNext => 'Toista seuraavaksi';
 
   @override
-  String get trackActionViewDetails => 'View Details';
+  String get trackActionViewDetails => 'Katso tiedot';
 
   @override
   String get trackActionAddToQueue => 'Lisää jonoon';
@@ -11077,29 +11077,29 @@ class AppLocalizationsFi extends AppLocalizations {
   }
 
   @override
-  String get achievementsUnlockToasts => 'Unlock notifications';
+  String get achievementsUnlockToasts => 'Avaa ilmoitukset';
 
   @override
   String get achievementsUnlockToastsSubtitle =>
-      'Show a notification when you unlock a badge';
+      'Näytä ilmoitus, kun avaat merkin';
 
   @override
-  String get achievementsUnlockedNotification => 'Achievement unlocked';
+  String get achievementsUnlockedNotification => 'Saavutus avattu';
 
   @override
   String achievementsUnlockedCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count achievements unlocked',
-      one: '$count achievement unlocked',
+      other: '$count saavutusta avattu',
+      one: '$count saavutus avattu',
     );
     return '$_temp0';
   }
 
   @override
   String achievementsUnlockedMore(int count) {
-    return '+$count more';
+    return '+$count lisää';
   }
 
   @override
@@ -11494,60 +11494,60 @@ class AppLocalizationsFi extends AppLocalizations {
   String get achievementsLoadFailed => 'Saavutuksiasi ei voitu ladata.';
 
   @override
-  String get friends => 'Friends';
+  String get friends => 'Ystävät';
 
   @override
   String get friendsSubtitle =>
-      'See who\'s online and chat with people on this server';
+      'Katso, ketkä ovat verkossa, ja keskustele tämän palvelimen käyttäjien kanssa';
 
   @override
-  String get friendsShowButton => 'Show friends button';
+  String get friendsShowButton => 'Näytä ystävät -painike';
 
   @override
   String get friendsShowButtonSubtitle =>
-      'Friends and chat from the Achievement Badges plugin';
+      'Ystävät ja chat Achievement Badges -laajennuksesta';
 
   @override
-  String get friendsMessages => 'Messages';
+  String get friendsMessages => 'Viestit';
 
   @override
   String friendsUnreadCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count unread messages',
-      one: '1 unread message',
-      zero: 'No unread messages',
+      other: '$count lukematonta viestiä',
+      one: '1 lukematon viesti',
+      zero: 'Ei lukemattomia viestejä',
     );
     return '$_temp0';
   }
 
   @override
-  String get friendsRequests => 'Friend requests';
+  String get friendsRequests => 'Kaveripyynnöt';
 
   @override
   String friendsRequestCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count waiting for you',
-      one: '1 waiting for you',
-      zero: 'Nothing waiting',
+      other: '$count odottaa sinua',
+      one: '1 odottaa sinua',
+      zero: 'Ei ketään odottamassa',
     );
     return '$_temp0';
   }
 
   @override
-  String get friendsAdd => 'Add friends';
+  String get friendsAdd => 'Lisää kavereita';
 
   @override
-  String get friendsAddSubtitle => 'Find people on this server';
+  String get friendsAddSubtitle => 'Etsi käyttäjiä tältä palvelimelta';
 
   @override
-  String get friendsPrivacy => 'Privacy';
+  String get friendsPrivacy => 'Tietosuoja';
 
   @override
-  String get friendsPrivacySubtitle => 'What your friends can see';
+  String get friendsPrivacySubtitle => 'Mitä ystäväsi voivat nähdä';
 
   @override
   String get friendsOnline => 'Online';
@@ -11557,224 +11557,226 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get friendsNone =>
-      'No friends yet. Add people from this server to see them here.';
+      'Ei vielä kavereita. Lisää ihmisiä tältä palvelimelta, jotta näet heidät täällä.';
 
   @override
   String friendsWatching(String title) {
-    return 'Watching $title';
+    return 'Katselen $title';
   }
 
   @override
   String friendsLastWatched(String title) {
-    return 'Last watched $title';
+    return 'Viimeksi katsottu $title';
   }
 
   @override
   String friendsLastSeen(String time) {
-    return 'Last seen $time';
+    return 'Viimeksi nähty $time';
   }
 
   @override
   String get friendsLoadFailed =>
-      'Could not load this. Check your connection and try again.';
+      'Tätä ei voitu ladata. Tarkista verkkoyhteytesi ja yritä uudelleen.';
 
   @override
-  String get friendsActionFailed => 'That didn\'t work. Try again in a moment.';
+  String get friendsActionFailed =>
+      'Se ei onnistunut. Yritä uudelleen hetken kuluttua.';
 
   @override
-  String get friendsIncoming => 'Waiting for you';
+  String get friendsIncoming => 'Odotan sinua';
 
   @override
-  String get friendsOutgoing => 'Sent by you';
+  String get friendsOutgoing => 'Lähetetyt kaveripyynnöt';
 
   @override
-  String get friendsNoRequests => 'No friend requests.';
+  String get friendsNoRequests => 'Ei kaveripyyntöjä.';
 
   @override
-  String get friendsAccept => 'Accept';
+  String get friendsAccept => 'Hyväksy';
 
   @override
-  String get friendsDecline => 'Decline';
+  String get friendsDecline => 'Kieltäydy';
 
   @override
-  String get friendsCancelRequest => 'Cancel request';
+  String get friendsCancelRequest => 'Peruuta pyyntö';
 
   @override
   String friendsRequestFrom(String name) {
-    return '$name wants to be friends';
+    return '$name lähetti kaveripyynnön';
   }
 
   @override
   String friendsCancelRequestBody(String name) {
-    return 'Take back the request you sent to $name?';
+    return 'Haluatko peruuttaa pyynnön, jonka lähetit $name:lle?';
   }
 
   @override
-  String get friendsSearchHint => 'Search people';
+  String get friendsSearchHint => 'Hae henkilöitä';
 
   @override
-  String get friendsNoMatches => 'No one matches that name.';
+  String get friendsNoMatches => 'Kukaan ei vastaa tuota nimeä.';
 
   @override
   String friendsRequestSent(String name) {
-    return 'Request sent to $name';
+    return 'Pyyntö lähetetty $name:lle';
   }
 
   @override
-  String get friendsSendRequest => 'Add as friend';
+  String get friendsSendRequest => 'Lisää kaveriksi';
 
   @override
-  String get friendsSendMessage => 'Send message';
+  String get friendsSendMessage => 'Lähetä viesti';
 
   @override
   String friendsOpenItem(String title) {
-    return 'Open $title';
+    return 'Avaa $title';
   }
 
   @override
-  String get friendsRemove => 'Remove friend';
+  String get friendsRemove => 'Poista kaveri';
 
   @override
   String friendsRemoveBody(String name) {
-    return 'Remove $name from your friends? You can add them again later.';
+    return 'Haluatko poistaa $name kaveriluettelostasi? Voit lisätä hänet uudelleen myöhemmin.';
   }
 
   @override
-  String get friendsBlock => 'Block';
+  String get friendsBlock => 'Estä';
 
   @override
-  String get friendsUnblock => 'Unblock';
+  String get friendsUnblock => 'Poista esto';
 
   @override
   String friendsBlockBody(String name) {
-    return 'Block $name? Neither of you will be able to message the other directly. Group chats you share stay open.';
+    return 'Estätkö $name:n? Kumpikaan teistä ei voi lähettää viestejä suoraan toiselle. Yhteiset ryhmäkeskustelunne pysyvät auki.';
   }
 
   @override
   String friendsUnblockBody(String name) {
-    return 'Unblock $name?';
+    return 'Poistetaanko $name:n esto?';
   }
 
   @override
-  String get friendsBlocked => 'Blocked users';
+  String get friendsBlocked => 'Estetyt käyttäjät';
 
   @override
   String friendsProfileHidden(String name) {
-    return '$name keeps their profile private.';
+    return '$name on asettanut profiilinsa yksityiseksi.';
   }
 
   @override
-  String get friendsAppearOffline => 'Appear offline';
+  String get friendsAppearOffline => 'Näytä offline-tilassa';
 
   @override
   String get friendsAppearOfflineSubtitle =>
-      'Friends always see you as offline';
+      'Ystävät näkevät sinut aina offline-tilassa';
 
   @override
-  String get friendsHideNowPlaying => 'Hide what I\'m watching';
+  String get friendsHideNowPlaying => 'Piilota katsomani sisältö';
 
   @override
   String get friendsHideNowPlayingSubtitle =>
-      'Friends still see you online, but not what\'s playing';
+      'Kaverit näkevät sinut edelleen verkossa, mutta eivät näe, mitä olet katsomassa';
 
   @override
-  String get friendsHideLastWatched => 'Hide my last watched';
+  String get friendsHideLastWatched => 'Piilota viimeksi katsomani';
 
   @override
   String get friendsHideLastWatchedSubtitle =>
-      'Friends won\'t see what you watched last while you\'re offline';
+      'Kaverit eivät näe, mitä katsoit viimeksi, kun olet offline-tilassa';
 
   @override
-  String get friendsMessageNotifications => 'Message notifications';
+  String get friendsMessageNotifications => 'Viestihälytykset';
 
   @override
   String get friendsMessageNotificationsSubtitle =>
-      'Show a banner when a friend messages you';
+      'Näytä banneri, kun kaverit lähettää sinulle viestin';
 
   @override
-  String get friendsMuteDuringPlayback => 'Mute during playback';
+  String get friendsMuteDuringPlayback => 'Mykistä toiston aikana';
 
   @override
   String get friendsMuteDuringPlaybackSubtitle =>
-      'No message banners while a video or game is playing';
+      'Videon tai pelin toiston aikana ei näytetä viestibannereita';
 
   @override
-  String get friendsSaveFailed => 'Could not save your settings.';
+  String get friendsSaveFailed => 'Asetuksia ei voitu tallentaa.';
 
   @override
-  String get chatNew => 'New message';
+  String get chatNew => 'Uusi viesti';
 
   @override
-  String get chatNewSubtitle => 'Start a chat with a friend';
+  String get chatNewSubtitle => 'Aloita keskustelu kaverin kanssa';
 
   @override
-  String get chatNewGroup => 'New group';
+  String get chatNewGroup => 'Uusi ryhmä';
 
   @override
-  String get chatNewGroupSubtitle => 'Chat with several friends at once';
+  String get chatNewGroupSubtitle =>
+      'Keskustele kavereiden kanssa samanaikaisesti';
 
   @override
-  String get chatNone => 'No messages yet.';
+  String get chatNone => 'Vielä ei ole viestejä.';
 
   @override
   String get chatYou => 'You';
 
   @override
   String chatYouSaid(String text) {
-    return 'You: $text';
+    return 'Sinä: $text';
   }
 
   @override
-  String get chatPhoto => 'Photo';
+  String get chatPhoto => 'Kuva';
 
   @override
   String get chatEmoji => 'Emoji';
 
   @override
-  String get chatEmojiSearch => 'Search emoji';
+  String get chatEmojiSearch => 'Hae emojeja';
 
   @override
-  String get chatNoRecentEmoji => 'No recent emoji';
+  String get chatNoRecentEmoji => 'Ei tuoreita emojeja';
 
   @override
-  String get chatViewPhoto => 'View photo';
+  String get chatViewPhoto => 'Katso kuva';
 
   @override
-  String get chatHint => 'Write a message';
+  String get chatHint => 'Kirjoita viesti';
 
   @override
-  String get chatAttach => 'Send a photo';
+  String get chatAttach => 'Lähetä kuva';
 
   @override
-  String get chatEdited => 'edited';
+  String get chatEdited => 'muokattu';
 
   @override
-  String get chatSeen => 'Seen';
+  String get chatSeen => 'Nähty';
 
   @override
-  String get chatSent => 'Sent';
+  String get chatSent => 'Lähetetty';
 
   @override
-  String get chatEditing => 'Editing message';
+  String get chatEditing => 'Viestin muokkaaminen';
 
   @override
-  String get chatMessageOptions => 'Message options';
+  String get chatMessageOptions => 'Viestin asetukset';
 
   @override
-  String get chatDeleteBody => 'Delete this message for everyone?';
+  String get chatDeleteBody => 'Poistetaanko tämä viesti kaikilta?';
 
   @override
-  String get chatClear => 'Clear conversation';
+  String get chatClear => 'Poista keskustelu';
 
   @override
   String get chatClearBody =>
-      'Delete every message in this chat for everyone in it?';
+      'Poistetaanko kaikki tämän keskustelun viestit kaikilta osallistujilta?';
 
   @override
-  String get chatGroupInfo => 'Group info';
+  String get chatGroupInfo => 'Ryhmätiedot';
 
   @override
-  String get chatGroupName => 'Group name';
+  String get chatGroupName => 'Ryhmän nimi';
 
   @override
   String chatMemberCount(int count) {
@@ -11788,50 +11790,50 @@ class AppLocalizationsFi extends AppLocalizations {
   }
 
   @override
-  String get chatOwner => 'Owner';
+  String get chatOwner => 'Omistaja';
 
   @override
-  String get chatAdmin => 'Admin';
+  String get chatAdmin => 'Järjestelmänvalvoja';
 
   @override
-  String get chatMakeAdmin => 'Make admin';
+  String get chatMakeAdmin => 'Määritä järjestelmänvalvoja';
 
   @override
-  String get chatRemoveAdmin => 'Remove admin';
+  String get chatRemoveAdmin => 'Poista järjestelmänvalvoja';
 
   @override
-  String get chatRemoveMember => 'Remove from group';
+  String get chatRemoveMember => 'Poista ryhmästä';
 
   @override
-  String get chatAddMember => 'Add people';
+  String get chatAddMember => 'Lisää henkilöitä';
 
   @override
-  String get chatNobodyToAdd => 'No one left to add.';
+  String get chatNobodyToAdd => 'Lisättävää ei ole.';
 
   @override
-  String get chatLeave => 'Leave group';
+  String get chatLeave => 'Poistu ryhmästä';
 
   @override
   String get chatLeaveBody =>
-      'Leave this group? Someone will have to add you back to rejoin.';
+      'Haluatko poistua tästä ryhmästä? Joku joutuu lisäämään sinut takaisin, jotta voit liittyä ryhmään uudelleen.';
 
   @override
-  String get chatCreate => 'Create group';
+  String get chatCreate => 'Luo ryhmä';
 
   @override
-  String get chatPickMembers => 'Pick at least two friends';
+  String get chatPickMembers => 'Valitse vähintään kaksi kaveria';
 
   @override
   String chatNewMessageFrom(String name) {
-    return 'New message from $name';
+    return 'Uusi viesti lähettäjältä $name';
   }
 
   @override
-  String get chatImageTooLarge => 'That image is over 8 MB.';
+  String get chatImageTooLarge => 'Kuvan koko on yli 8 Mt.';
 
   @override
   String get chatImageUnsupported =>
-      'Only PNG, JPEG, GIF and WebP images can be sent.';
+      'Vain PNG-, JPEG-, GIF- ja WebP-kuvia voidaan lähettää.';
 
   @override
   String get embeddedBrowserNotAvailable =>

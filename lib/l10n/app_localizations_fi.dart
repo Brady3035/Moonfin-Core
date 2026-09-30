@@ -139,7 +139,7 @@ class AppLocalizationsFi extends AppLocalizations {
   }
 
   @override
-  String get cancel => 'Peruuta';
+  String get cancel => 'Keskeytä';
 
   @override
   String get remove => 'Poista';
@@ -175,7 +175,7 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get detailScreenStyleSubtitle =>
-      'Classic on alkuperäinen, keskitetyn moonfin-asettelun versio. \tModern on responsiivinen, elokuvamainen asettelu.\tSpotlight on hero-first-asettelu, jossa on ponnahdusikkunoina avautuvia sisältökortteja.\tNouveau on koko näytön asettelu, jossa osiot on pinottu sivun alaspäin. \tMinimalist koostuu kuvamateriaalista, yhdestä toistopainikkeesta ja jaksoista.';
+      'Classic on alkuperäinen, keskitetyn moonfin-asettelun versio. Modern on responsiivinen, elokuvamainen asettelu. Spotlight on hero-first-asettelu, jossa on ponnahdusikkunoina avautuvia sisältökortteja. Nouveau on koko näytön asettelu, jossa osiot on pinottu sivun alaspäin. Minimalist koostuu kuvamateriaalista, yhdestä toistopainikkeesta ja jaksoista.';
 
   @override
   String get detailScreenStyleMoonfin => 'Klassinen';
@@ -670,7 +670,7 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get noHomeRowsHint =>
-      'Yritä päivittää tai vähentää aktiivisia kotiosioita.';
+      'Yritä päivittää tai vähentää aktiivisia osioita etusivulla.';
 
   @override
   String get retryHomeRows => 'Yritä ladata etusivu uudelleen';
@@ -869,7 +869,7 @@ class AppLocalizationsFi extends AppLocalizations {
   }
 
   @override
-  String get discoverySubjects => 'Löytöaiheet';
+  String get discoverySubjects => 'Tutustu ja Löydä';
 
   @override
   String get pickDiscoverySubjects =>
@@ -2998,11 +2998,11 @@ class AppLocalizationsFi extends AppLocalizations {
       'Televisiosarjojen kohdalla käytä sarjan pääkuvaa jakson pikkukuvan sijaan.';
 
   @override
-  String get homeRowInfoOverlay => 'Kotirivin tiedot peittokuva';
+  String get homeRowInfoOverlay => 'Etusivu rivin info tietopaneeli';
 
   @override
   String get showTitleMetadataOnHomeRows =>
-      'Näytä otsikko ja metatiedot, kun selaat kotirivejä';
+      'Näytä otsikko ja metatiedot selatessa rivejä';
 
   @override
   String get clockDisplay => 'Kellon näyttö';
@@ -3152,7 +3152,7 @@ class AppLocalizationsFi extends AppLocalizations {
   }
 
   @override
-  String get themeMusicOnHomeRows => 'Teemamusiikki kotiriveillä';
+  String get themeMusicOnHomeRows => 'Tunnusmusiikki selatessa';
 
   @override
   String get playWhenBrowsingHomeScreen => 'Toista aloitusnäyttöä selatessasi';
@@ -4481,7 +4481,7 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get recentlyReleasedSeriesTypeDescription =>
-      'Lajittele äskettäin julkaistujen sarjojen rivin , uusimman kauden tai uusimman jakson esityspäivän mukaan';
+      'Lajittele äskettäin julkaistujen sarjojen rivi, uusimman kauden tai uusimman jakson esityspäivän mukaan';
 
   @override
   String get myMedia => 'Oma Media';
@@ -4511,7 +4511,7 @@ class AppLocalizationsFi extends AppLocalizations {
   String get favoriteChannels => 'Suosikkikanavat';
 
   @override
-  String get homeSections => 'Kotisivut';
+  String get homeSections => 'Kotiosiot';
 
   @override
   String get resetToDefaults => 'Palauta oletusasetukset';
@@ -9757,7 +9757,7 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get settingsPersonalizationSubtitle =>
-      'Teema, navigointi, etusivun rivit ja kirjaston näkyvyys';
+      'Teema, navigointi, etusivun rivit, ja kirjaston näkyvyys';
 
   @override
   String get settingsDynamicContent => 'Dynaaminen sisältö';
@@ -10641,7 +10641,7 @@ class AppLocalizationsFi extends AppLocalizations {
   String get displayGenresRows => 'Näytä lajityypit rivit';
 
   @override
-  String get displayGenresRowsSubtitle => 'Näytä Genres-rivit Koti-osioissa.';
+  String get displayGenresRowsSubtitle => 'Näytä Genre rivit Kotiosioissa.';
 
   @override
   String get genresRowSorting => 'Genret Rivilajittelu';
@@ -10665,7 +10665,7 @@ class AppLocalizationsFi extends AppLocalizations {
   String get displayStudiosRows => 'Display Studio -rivi';
 
   @override
-  String get displayStudiosRowsSubtitle => 'Näytä Studio-rivi Koti-osiossa.';
+  String get displayStudiosRowsSubtitle => 'Näytä Studiorivi Kotiosiossa.';
 
   @override
   String get studiosRowSorting => 'Studio Row -lajittelu';
@@ -11961,7 +11961,7 @@ class AppLocalizationsFi extends AppLocalizations {
   String get mixedContent => 'Sekoitettu sisältö';
 
   @override
-  String get homeVideosAndPhotos => 'Kotivideot ja valokuvat';
+  String get homeVideosAndPhotos => 'Kotivideot & Valokuvat';
 
   @override
   String get mixedMoviesAndShows => 'Sekalaiset elokuvat ja ohjelmat';

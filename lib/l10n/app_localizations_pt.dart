@@ -13962,7 +13962,7 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
 
   @override
   String get interfaceLayoutSubtitle =>
-      'Override the detected layout when this device is read wrong. Restart Moonfin for changes to take effect.';
+      'Substituir o layout detectado quando este dispositivo for identificado incorretamente. Reinicie o Moonfin para que as alterações tenham efeito.';
 
   @override
   String get interfaceLayoutAutomatic => 'Automamatico';

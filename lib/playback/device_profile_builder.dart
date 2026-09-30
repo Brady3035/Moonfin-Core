@@ -1384,6 +1384,15 @@ class DeviceProfileBuilder {
       detectedWidth: maxResolutionVc1Width,
       detectedHeight: maxResolutionVc1Height,
     );
+    // Nothing probes a decoder size for the rest of the direct play codecs,
+    // so the viewer's Max Resolution is the only cap they get.
+    _addResolutionProfile(
+      profiles: profiles,
+      codec: 'mpeg,mpeg2video,mpeg4,vp8,vp9',
+      maxResolution: maxResolution,
+      detectedWidth: 0,
+      detectedHeight: 0,
+    );
 
     final unsupportedRangeTypesAv1 = <String>{};
     if (!supportsAv1DolbyVision) {

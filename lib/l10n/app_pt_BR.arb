@@ -9291,5 +9291,14 @@
                 "type": "int"
             }
         }
+    },
+    "spotlightTitlesCount": "{count, plural, =1{1 título} other{{count} títulos}}",
+    "@spotlightTitlesCount": {
+        "description": "Count fragment on the spotlight similar card: titles across the library and Seerr sections",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
     }
 }

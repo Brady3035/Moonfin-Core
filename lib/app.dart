@@ -701,6 +701,11 @@ class _GlobalShortcutScopeState extends State<_GlobalShortcutScope>
   }
 
   bool _onHardwareKeyEvent(KeyEvent event) {
+    // This runs before anything can mark the press, so it only clears a mark
+    // an earlier press left behind.
+    if (event is KeyDownEvent && event.logicalKey.isBackKey) {
+      DialogBackSuppressor.newBackPress();
+    }
     if (PlatformDetection.isTV &&
         _screensaverController.handleKeyEvent(event)) {
       return true;

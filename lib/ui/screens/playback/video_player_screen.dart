@@ -1338,9 +1338,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
     _tvBackgroundExitTimer = null;
   }
 
-  void _suppressBackNavigation({
-    Duration duration = const Duration(seconds: 1),
-  }) {
+  void _suppressBackNavigation({required Duration duration}) {
     _suppressBackNavigationUntil = DateTime.now().add(duration);
   }
 
@@ -7054,7 +7052,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
         options: options,
         selectedIndex: currentIdx >= 0 ? currentIdx : null,
       );
-      _suppressBackNavigation();
       if (result == null || !mounted) return;
       final speed = _speedSteps[result];
       final changed = await _runSinglePlayerMutation(
@@ -7089,7 +7086,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
         options: trackOptions,
         selectedIndex: currentIdx >= 0 ? currentIdx : null,
       );
-      _suppressBackNavigation();
       if (result == null || !mounted) return;
       final selectedBitrate = options[result];
       _manager.changeBitrate(selectedBitrate);
@@ -7244,7 +7240,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
                 formatDelay: _formatDelay,
               ),
       );
-      _suppressBackNavigation();
       if (result == null || !mounted) return;
       if (!audio) {
         if (result == 0) {
@@ -7412,7 +7407,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
         title: l10n.chapters,
         options: options,
       );
-      _suppressBackNavigation();
       if (result == null || !mounted) return;
       final ch = chapters[result];
       final ticks = ch['StartPositionTicks'] as int? ?? 0;
@@ -7548,7 +7542,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
           ),
         ),
       );
-      _suppressBackNavigation();
     }());
     _showControls();
   }
@@ -7739,7 +7732,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
           );
         },
       );
-      _suppressBackNavigation();
     }());
   }
 

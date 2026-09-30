@@ -18,6 +18,11 @@ class DialogBackSuppressor {
 
   static void markDismissed() => _count++;
 
+  /// Drops a mark the last press never used. Before Android 13, popRoute only
+  /// follows a Back whose key up went unhandled, so a mark left by a screen
+  /// that handles it would otherwise swallow the next real Back.
+  static void newBackPress() => _count = 0;
+
   static bool consume() {
     if (_count > 0) {
       _count--;

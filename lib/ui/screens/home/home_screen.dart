@@ -843,7 +843,6 @@ class _ContentRowsState extends State<_ContentRows>
   bool _initialFocusResolved = false;
   bool _hasEverFocusedHomeContent = false;
   String? _lastObservedPath;
-  bool _suppressNextRowPreviewFromMediaBar = false;
   bool _forceRevealOnNextRowFocusFromMediaBar = false;
   DateTime? _lastScrollTime;
   DateTime? _lastMouseWheelTime;
@@ -1612,9 +1611,11 @@ class _ContentRowsState extends State<_ContentRows>
       _finishSharedPreview();
     }
 
+    // Chrome focus is checked when the delay runs out, not here. A row reports
+    // its new focus before the chrome state catches up, so the first card
+    // entered from the toolbar would still see the toolbar's state.
     if (!widget.prefs.get(UserPreferences.episodePreviewEnabled) ||
         !_supportsEpisodePreview(item) ||
-        _chromeFocusActive ||
         _mainPlaybackActive) {
       return;
     }
@@ -2477,7 +2478,6 @@ class _ContentRowsState extends State<_ContentRows>
       return;
     }
     _finishSharedPreview(releaseResources: true);
-    _suppressNextRowPreviewFromMediaBar = true;
     _forceRevealOnNextRowFocusFromMediaBar = true;
     final isBanner = _isBannerMode();
     if (mounted &&
@@ -2516,7 +2516,6 @@ class _ContentRowsState extends State<_ContentRows>
     widget.onItemSelected(item);
     unawaited(_revealAndScrollToPinnedInfo(ignoreScrollCooldown: forceReveal));
     _finishSharedPreview();
-    _suppressNextRowPreviewFromMediaBar = false;
   }
 
   Future<void> _moveFocusFromRowsToMediaBar() async {
@@ -4946,11 +4945,6 @@ class _ContentRowsState extends State<_ContentRows>
           unawaited(
             _revealAndScrollToPinnedInfo(ignoreScrollCooldown: forceReveal),
           );
-          if (_suppressNextRowPreviewFromMediaBar) {
-            _suppressNextRowPreviewFromMediaBar = false;
-            _finishSharedPreview();
-            return;
-          }
           final canPreview = _supportsEpisodePreview(item);
           if (!PlatformDetection.useMobileUi && canPreview) {
             _schedulePreview(item, delay: _previewStartDelay, rowIndex: rowIndex);

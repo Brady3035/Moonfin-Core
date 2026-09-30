@@ -209,6 +209,16 @@ void main() {
     expect(result['Items'], isEmpty);
   });
 
+  // Issue #1700: without a user, Emby lists a series once per folder and a
+  // movie once per version, and ignores the user's parental controls.
+  test('recently released asks as the user', () async {
+    final (dio, request) = _recordingDio();
+
+    await EmbyItemsApi(dio, () => 'user-1').getRecentlyReleasedItems();
+
+    expect(request()?.path, '/Users/user-1/Items');
+  });
+
   test('a next up scoped to a series is asked as is', () async {
     final (dio, request) = _recordingDio(
       data: const {'Items': <dynamic>[], 'TotalRecordCount': 0},

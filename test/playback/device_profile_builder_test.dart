@@ -1448,6 +1448,45 @@ void main() {
       expect(_videoAudioChannelsConditionValue(profile), '8');
     });
 
+    test(
+      'downmix gets the stereo offer when the player can\'t downmix on its own',
+      () {
+        final profile = DeviceProfileBuilder.build(
+          downmixToStereo: true,
+          universalAudioDecode: true,
+          appliesDownmixToStereo: false,
+        );
+
+        expect(
+          _videoDirectPlayAudioCodecs(profile),
+          equals(<String>{'aac', 'mp2', 'mp3'}),
+        );
+        expect(_stereoAacFallbackProfile(profile), isNotNull);
+        final channels = _transcodingMaxAudioChannels(profile);
+        expect(channels, isNotEmpty);
+        expect(channels, everyElement('2'));
+      },
+    );
+
+    test('a detected 2ch route still direct plays everything when the player '
+        'can\'t downmix on its own', () {
+      final profile = DeviceProfileBuilder.build(
+        audioCapabilityProfile: _capabilityProfile(
+          maxPcmChannels: 2,
+          activeRouteType: AudioRouteType.speaker,
+        ),
+        universalAudioDecode: true,
+        appliesDownmixToStereo: false,
+      );
+
+      expect(
+        _videoDirectPlayAudioCodecs(profile),
+        containsAll(<String>['aac', 'ac3', 'eac3', 'dts', 'truehd', 'flac']),
+      );
+      expect(_stereoAacFallbackProfile(profile), isNull);
+      expect(_transcodingMaxAudioChannels(profile), isEmpty);
+    });
+
     test('an explicit stereo channel cap also caps the transcode target', () {
       final profile = DeviceProfileBuilder.build(
         maxAudioChannels: 2,

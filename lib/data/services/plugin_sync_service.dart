@@ -12,6 +12,7 @@ import 'package:server_core/server_core.dart';
 
 import '../../data/repositories/seerr_repository.dart';
 import 'server_messages_service.dart';
+import 'settings_stream_transport.dart';
 import 'storage_path_service.dart';
 import 'synced_fields.dart';
 import '../../ui/widgets/navigation_layout.dart';
@@ -89,14 +90,18 @@ class PluginSyncService extends ChangeNotifier {
   bool _clientLogSupported = false;
   bool get clientLogSupported => _pluginAvailable && _clientLogSupported;
   String? _activeThemeCacheServerId;
-  void Function(
-    String title,
-    String body,
-    String route, {
-    String? requestId,
-    bool isRequest,
-  })?
-  onSeerrNotification;
+
+  final _seerrNotifications =
+      StreamController<SeerrNotificationEvent>.broadcast();
+
+  /// Seerr notifications the plugin pushed. Each listener holds its own
+  /// subscription, so one going away never silences another.
+  Stream<SeerrNotificationEvent> get seerrNotifications =>
+      _seerrNotifications.stream;
+
+  /// The server writes a heartbeat after 30 seconds without events, so a
+  /// stream quiet for this long has missed more than one and counts as dead.
+  static const Duration _settingsStreamIdleTimeout = Duration(seconds: 75);
   CancelToken? _settingsStreamCancelToken;
   StreamSubscription<String>? _settingsStreamSubscription;
   bool _settingsStreamReconnectPending = false;
@@ -527,16 +532,17 @@ class PluginSyncService extends ChangeNotifier {
       final route = _eventValue(parsed, 'route');
       final kind = _eventValue(parsed, 'kind');
       final requestIdRaw = _eventValue(parsed, 'requestId');
-      final requestId = requestIdRaw is String ? requestIdRaw : null;
-      if (route is String && route.trim().isNotEmpty) {
-        onSeerrNotification?.call(
-          title is String ? title : '',
-          body is String ? body : '',
-          route.trim(),
-          requestId: requestId,
+      // A summary of several library additions has no single page to open,
+      // so an empty route still comes through.
+      _seerrNotifications.add(
+        SeerrNotificationEvent(
+          title: title is String ? title : '',
+          body: body is String ? body : '',
+          route: route is String ? route.trim() : '',
+          requestId: requestIdRaw is String ? requestIdRaw : null,
           isRequest: kind == 'request',
-        );
-      }
+        ),
+      );
       return;
     }
 
@@ -584,13 +590,12 @@ class PluginSyncService extends ChangeNotifier {
     _settingsStreamCancelToken = cancelToken;
 
     try {
-      final response = await _dio.get<ResponseBody>(
+      final body = await openSettingsStream(
+        _dio,
         '${client.baseUrl}/Moonfin/Settings/Stream',
-        options: Options(headers: headers, responseType: ResponseType.stream),
+        headers: headers,
         cancelToken: cancelToken,
-      );
-
-      final body = response.data;
+      ).timeout(_settingsStreamIdleTimeout);
       if (body == null) {
         if (!cancelToken.isCancelled) {
           _scheduleSettingsStreamReconnect(client);
@@ -600,8 +605,10 @@ class PluginSyncService extends ChangeNotifier {
 
       _settingsStreamReconnectAttempt = 0;
 
-      _settingsStreamSubscription = body.stream
-          .cast<List<int>>()
+      // A timeout arrives as an error, which reconnects straight away rather
+      // than waiting on a dead connection to finish closing.
+      _settingsStreamSubscription = body
+          .timeout(_settingsStreamIdleTimeout)
           .transform(utf8.decoder)
           .transform(const LineSplitter())
           .listen(
@@ -2065,6 +2072,26 @@ class PluginSyncService extends ChangeNotifier {
     _pushDebounceTimer?.cancel();
     _syncRetryTimer?.cancel();
     _stopSettingsStream();
+    unawaited(_seerrNotifications.close());
     super.dispose();
   }
+}
+
+/// A Seerr notification the plugin pushed to this user.
+class SeerrNotificationEvent {
+  const SeerrNotificationEvent({
+    required this.title,
+    required this.body,
+    required this.route,
+    this.requestId,
+    this.isRequest = false,
+  });
+
+  final String title;
+  final String body;
+
+  /// Where a tap goes, or empty when there's nowhere to go.
+  final String route;
+  final String? requestId;
+  final bool isRequest;
 }

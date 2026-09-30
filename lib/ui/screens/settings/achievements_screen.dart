@@ -108,6 +108,8 @@ class _AchievementsScreenState extends State<AchievementsScreen>
             _ShowcaseStrip(badges: overview.equipped),
           adaptiveListSection(
             children: [
+              if (GetIt.instance<AchievementsService>().unlockToastsAvailable)
+                const _UnlockToastsTile(),
               DpadListTile(
                 autofocus: true,
                 useSettingsIconShell: true,
@@ -235,6 +237,64 @@ class _AchievementsScreenState extends State<AchievementsScreen>
 
   int _questsDone(AchievementQuests quests) {
     return [...quests.daily, ...quests.weekly].where((q) => q.completed).length;
+  }
+}
+
+/// The plugin's own unlock notification switch, which jellyfin-web follows
+/// too, so flipping it here changes it for every client the user signs in on.
+class _UnlockToastsTile extends StatefulWidget {
+  const _UnlockToastsTile();
+
+  @override
+  State<_UnlockToastsTile> createState() => _UnlockToastsTileState();
+}
+
+class _UnlockToastsTileState extends State<_UnlockToastsTile> {
+  final _service = GetIt.instance<AchievementsService>();
+  late bool? _enabled = _service.unlockToastsEnabled;
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_load());
+  }
+
+  Future<void> _load() async {
+    final client = _client();
+    if (client == null) return;
+    final settings = await _service.fetchUnlockToastSettings(client);
+    if (settings != null && mounted) {
+      setState(() => _enabled = settings.enabled);
+    }
+  }
+
+  Future<void> _set(bool value) async {
+    final client = _client();
+    final before = _enabled;
+    if (client == null) return;
+
+    setState(() => _enabled = value);
+    final saved = await _service.saveUnlockToasts(client, value);
+    if (saved || !mounted) return;
+    setState(() => _enabled = before);
+    _say(context, AppLocalizations.of(context).friendsSaveFailed);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final enabled = _enabled;
+    return DpadSwitchListTile(
+      useSettingsIconShell: true,
+      secondary: const Icon(Icons.notifications_active),
+      title: Text(l10n.achievementsUnlockToasts),
+      subtitle: Text(l10n.achievementsUnlockToastsSubtitle),
+      // Held until the plugin says which way it is, so it can't flip the
+      // wrong way.
+      enabled: enabled != null,
+      value: enabled ?? false,
+      onChanged: _set,
+    );
   }
 }
 

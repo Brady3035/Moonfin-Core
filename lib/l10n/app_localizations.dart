@@ -19444,6 +19444,36 @@ abstract class AppLocalizations {
   /// **'{unlocked} of {total} badges'**
   String achievementsBadgeCount(int unlocked, int total);
 
+  /// Switch that shows a notification when the user unlocks a badge
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock notifications'**
+  String get achievementsUnlockToasts;
+
+  /// Subtitle of the unlock notifications switch
+  ///
+  /// In en, this message translates to:
+  /// **'Show a notification when you unlock a badge'**
+  String get achievementsUnlockToastsSubtitle;
+
+  /// Title of the notification for one newly unlocked badge
+  ///
+  /// In en, this message translates to:
+  /// **'Achievement unlocked'**
+  String get achievementsUnlockedNotification;
+
+  /// Title of the notification for several badges unlocked at once
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} achievement unlocked} other{{count} achievements unlocked}}'**
+  String achievementsUnlockedCount(int count);
+
+  /// Follows the first few badge names when more were unlocked at once
+  ///
+  /// In en, this message translates to:
+  /// **'+{count} more'**
+  String achievementsUnlockedMore(int count);
+
   /// Quests section title
   ///
   /// In en, this message translates to:

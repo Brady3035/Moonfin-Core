@@ -421,7 +421,7 @@ class SessionRepository {
       final achievements = GetIt.instance<AchievementsService>();
       unawaited(
         achievements.refreshAvailability(client).then((available) {
-          if (available) achievements.startSocialPolling(client);
+          if (available) achievements.startPolling(client);
         }),
       );
     }

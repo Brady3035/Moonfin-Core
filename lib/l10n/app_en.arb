@@ -10167,6 +10167,36 @@
       }
     }
   },
+  "achievementsUnlockToasts": "Unlock notifications",
+  "@achievementsUnlockToasts": {
+    "description": "Switch that shows a notification when the user unlocks a badge"
+  },
+  "achievementsUnlockToastsSubtitle": "Show a notification when you unlock a badge",
+  "@achievementsUnlockToastsSubtitle": {
+    "description": "Subtitle of the unlock notifications switch"
+  },
+  "achievementsUnlockedNotification": "Achievement unlocked",
+  "@achievementsUnlockedNotification": {
+    "description": "Title of the notification for one newly unlocked badge"
+  },
+  "achievementsUnlockedCount": "{count, plural, one{{count} achievement unlocked} other{{count} achievements unlocked}}",
+  "@achievementsUnlockedCount": {
+    "description": "Title of the notification for several badges unlocked at once",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "achievementsUnlockedMore": "+{count} more",
+  "@achievementsUnlockedMore": {
+    "description": "Follows the first few badge names when more were unlocked at once",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "achievementsQuests": "Quests",
   "@achievementsQuests": {
     "description": "Quests section title"

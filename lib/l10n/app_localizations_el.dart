@@ -11193,6 +11193,32 @@ class AppLocalizationsEl extends AppLocalizations {
   }
 
   @override
+  String get achievementsUnlockToasts => 'Unlock notifications';
+
+  @override
+  String get achievementsUnlockToastsSubtitle =>
+      'Show a notification when you unlock a badge';
+
+  @override
+  String get achievementsUnlockedNotification => 'Achievement unlocked';
+
+  @override
+  String achievementsUnlockedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count achievements unlocked',
+      one: '$count achievement unlocked',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String achievementsUnlockedMore(int count) {
+    return '+$count more';
+  }
+
+  @override
   String get achievementsQuests => 'Quests';
 
   @override

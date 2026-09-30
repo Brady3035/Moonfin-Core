@@ -1641,11 +1641,11 @@ class UserPreferences extends ChangeNotifier {
     defaultValue: false,
   );
 
-  /// On by default, since the button only shows where the Achievement Badges
-  /// plugin has friends turned on.
+  /// Off by default. Friends and chat stay reachable from the achievements
+  /// screen, so this only adds a shortcut for people who use them.
   static final showFriendsButton = Preference(
     key: 'pref_show_friends_button',
-    defaultValue: true,
+    defaultValue: false,
   );
 
   /// On by default, since a chat banner over a film is rarely wanted. Kept on

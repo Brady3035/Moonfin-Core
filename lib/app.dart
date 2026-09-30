@@ -52,6 +52,7 @@ import 'ui/widgets/exit_confirmation_dialog.dart';
 import 'ui/widgets/keyboard_shortcuts/keyboard_shortcut_reference.dart';
 import 'ui/screensaver/screensaver_controller.dart';
 import 'ui/screensaver/screensaver_host.dart';
+import 'util/achievement_icons.dart';
 import 'util/app_exit.dart';
 import 'util/focus/dpad_keys.dart';
 import 'util/focus/siri_remote_glide.dart';
@@ -1026,6 +1027,7 @@ class _ConnectivityListenerState extends ConsumerState<_ConnectivityListener>
   StreamSubscription<SyncPlayUiEvent>? _syncPlayEventsSub;
   StreamSubscription<String>? _downloadErrorSub;
   StreamSubscription<ChatThread>? _chatMessageSub;
+  StreamSubscription<AchievementUnlocks>? _unlockSub;
 
   @override
   void initState() {
@@ -1060,8 +1062,11 @@ class _ConnectivityListenerState extends ConsumerState<_ConnectivityListener>
       );
     }
     if (GetIt.instance.isRegistered<AchievementsService>()) {
-      _chatMessageSub = GetIt.instance<AchievementsService>().incomingMessages
-          .listen(_handleIncomingChat);
+      final achievements = GetIt.instance<AchievementsService>();
+      _chatMessageSub = achievements.incomingMessages.listen(
+        _handleIncomingChat,
+      );
+      _unlockSub = achievements.unlocks.listen(_handleUnlocks);
     }
   }
 
@@ -1071,6 +1076,7 @@ class _ConnectivityListenerState extends ConsumerState<_ConnectivityListener>
     _syncPlayEventsSub?.cancel();
     _downloadErrorSub?.cancel();
     _chatMessageSub?.cancel();
+    _unlockSub?.cancel();
     if (GetIt.instance.isRegistered<PluginSyncService>()) {
       GetIt.instance<PluginSyncService>().onSeerrNotification = null;
     }
@@ -1158,14 +1164,19 @@ class _ConnectivityListenerState extends ConsumerState<_ConnectivityListener>
     );
   }
 
+  bool _onPlayerRoute() {
+    final matches = appRouter.routerDelegate.currentConfiguration.matches;
+    final path = matches.isEmpty ? '' : matches.last.matchedLocation;
+    return Destinations.isPlayerRoute(path);
+  }
+
   /// A banner for a chat message from a friend. Tapping it opens the chat.
   void _handleIncomingChat(ChatThread thread) {
     if (GetIt.instance<UserPreferences>().get(
-      UserPreferences.muteChatBannersDuringPlayback,
-    )) {
-      final matches = appRouter.routerDelegate.currentConfiguration.matches;
-      final path = matches.isEmpty ? '' : matches.last.matchedLocation;
-      if (Destinations.isPlayerRoute(path)) return;
+          UserPreferences.muteChatBannersDuringPlayback,
+        ) &&
+        _onPlayerRoute()) {
+      return;
     }
     final navContext = _navigatorContext();
     if (navContext == null) return;
@@ -1176,6 +1187,53 @@ class _ConnectivityListenerState extends ConsumerState<_ConnectivityListener>
       thread.lastIsPhoto ? l10n.chatPhoto : thread.lastMessage,
       () => SettingsPanel.open(navContext, FriendChatScreen.forThread(thread)),
     );
+  }
+
+  /// Banners for badges the user just unlocked. The plugin's grouping setting
+  /// decides between one banner for the lot and one each, shown in turn so
+  /// they don't stack. Tapping one opens the achievements.
+  void _handleUnlocks(AchievementUnlocks unlocks) {
+    if (unlocks.muteDuringPlayback && _onPlayerRoute()) return;
+    final navContext = _navigatorContext();
+    if (navContext == null) return;
+    final l10n = AppLocalizations.of(navContext);
+    final badges = unlocks.badges;
+
+    void show(String title, String body, IconData icon) {
+      final context = _navigatorContext();
+      if (context == null) return;
+      FloatingNotification.show(
+        context,
+        title,
+        body,
+        () => SettingsPanel.open(context, const AchievementsScreen()),
+        icon: icon,
+      );
+    }
+
+    if (unlocks.grouped && badges.length > 1) {
+      final top = badges.reduce((a, b) => b.score > a.score ? b : a);
+      final names = badges.take(3).map((b) => b.title).join(', ');
+      show(
+        l10n.achievementsUnlockedCount(badges.length),
+        badges.length > 3
+            ? '$names ${l10n.achievementsUnlockedMore(badges.length - 3)}'
+            : names,
+        achievementIcon(top.icon),
+      );
+      return;
+    }
+    for (var i = 0; i < badges.length; i++) {
+      final badge = badges[i];
+      Future<void>.delayed(
+        FloatingNotification.displayDuration * i,
+        () => show(
+          l10n.achievementsUnlockedNotification,
+          badge.title,
+          achievementIcon(badge.icon),
+        ),
+      );
+    }
   }
 
   BuildContext? _navigatorContext() {

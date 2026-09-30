@@ -13066,5 +13066,26 @@
     "chatCreate": "Luo ryhmä",
     "@chatCreate": {
         "description": "Button that creates a group chat"
+    },
+    "chatPickMembers": "Valitse vähintään kaksi kaveria",
+    "@chatPickMembers": {
+        "description": "Hint on the new group screen"
+    },
+    "chatNewMessageFrom": "Uusi viesti lähettäjältä {name}",
+    "@chatNewMessageFrom": {
+        "description": "Title of the banner for a new chat message",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "chatImageTooLarge": "Kuvan koko on yli 8 Mt.",
+    "@chatImageTooLarge": {
+        "description": "Shown when a picked chat image is too big"
+    },
+    "chatImageUnsupported": "Vain PNG-, JPEG-, GIF- ja WebP-kuvia voidaan lähettää.",
+    "@chatImageUnsupported": {
+        "description": "Shown when a picked chat image has an unsupported type"
     }
 }

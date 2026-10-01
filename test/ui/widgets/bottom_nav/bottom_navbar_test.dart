@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:moonfin/l10n/app_localizations.dart';
 import 'package:moonfin/preference/preference_constants.dart';
 import 'package:moonfin/preference/user_preferences.dart';
+import 'package:moonfin/ui/widgets/adaptive/sf_symbol.dart';
 import 'package:moonfin/ui/widgets/bottom_nav/bottom_mini_player.dart';
 import 'package:moonfin/ui/widgets/bottom_nav/bottom_nav_indicator.dart';
 import 'package:moonfin/ui/widgets/bottom_nav/bottom_nav_metrics.dart';
@@ -138,6 +139,44 @@ void main() {
       expect(find.text('Settings'), findsOneWidget);
       expect(find.text('Shuffle'), findsOneWidget);
       expect(find.text('Genres'), findsOneWidget);
+      expect(find.text('Remote Control'), findsOneWidget);
+      // No Jellyfin client is signed in here, so Quick Connect has nothing
+      // to authorize against.
+      expect(find.text('Quick Connect'), findsNothing);
+    });
+
+    testWidgets('hub tiles are short, with the icon centered over the label',
+        (tester) async {
+      usePhoneView(tester);
+      // A 3-button nav bar and a large text setting.
+      tester.view.padding = const FakeViewPadding(bottom: 48 * 3);
+      tester.platformDispatcher.textScaleFactorTestValue = 2;
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+      await tester.pumpWidget(bottomNavApp());
+      await tester.pump();
+
+      await tester.tap(find.text('You'));
+      await tester.pumpAndSettle();
+
+      final tile = find
+          .ancestor(of: find.text('Shuffle'), matching: find.byType(InkWell))
+          .first;
+      final icon = find.descendant(
+        of: tile,
+        matching: find.byType(AdaptiveIcon),
+      );
+      expect(tester.getSize(tile).height, 72);
+      expect(tester.getCenter(icon).dx, tester.getCenter(tile).dx);
+      expect(
+        tester.getRect(icon).bottom,
+        lessThan(tester.getRect(find.text('Shuffle')).top),
+      );
+      // The grid ends at its last row instead of padding itself with the
+      // system inset.
+      expect(
+        tester.getRect(find.byType(GridView)).bottom,
+        tester.getRect(tile).bottom,
+      );
     });
 
     testWidgets('a new screen springs the indicator over from the last tab',

@@ -18,11 +18,11 @@ import 'bottom_nav_metrics.dart';
 import 'bottom_nav_model.dart';
 import 'bottom_nav_tab.dart';
 import 'bottom_nav_theme.dart';
+import 'bottom_navbar_hub_sheet.dart';
 import 'dock_bar.dart';
 import 'libraries_sheet.dart';
 import 'split_bar.dart';
 import 'strip_bar.dart';
-import 'you_hub_sheet.dart';
 
 /// How much of the bottom of the screen the bottom navbar covers, for content
 /// that scrolls underneath it. Only present while the bottom navbar is.
@@ -185,7 +185,7 @@ class _BottomNavbarState extends State<BottomNavbar> {
           openBottomNavTab(context, tab);
         }
       case BottomNavItemKind.you:
-        showYouHub(
+        showBottomNavbarHub(
           context: context,
           controller: _controller,
           theme: theme,

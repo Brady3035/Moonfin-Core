@@ -23516,7 +23516,7 @@ abstract class AppLocalizations {
   /// Explains the bottom bar tabs screen
   ///
   /// In en, this message translates to:
-  /// **'Pin up to 3 tabs between Home and You. Everything else is in the You menu.'**
+  /// **'Pin up to 3 tabs between Home and You. Everything else is in the bottom navbar hub.'**
   String get bottomNavbarTabsDescription;
 
   /// Shown when the bottom bar tabs are picked from the navigation button settings
@@ -23564,7 +23564,7 @@ abstract class AppLocalizations {
   /// Note under the navigation buttons section while the bottom bar is in use
   ///
   /// In en, this message translates to:
-  /// **'These decide which tabs you can pin to the bottom bar and what shows in the You menu.'**
+  /// **'These decide what shows in the bottom navbar hub and which tabs you can pin to the bottom bar. Tabs already on the bar aren\'t listed here.'**
   String get bottomNavbarButtonsNote;
 
   /// Bottom bar tab that opens the user's own menu with their profile, extra destinations and settings

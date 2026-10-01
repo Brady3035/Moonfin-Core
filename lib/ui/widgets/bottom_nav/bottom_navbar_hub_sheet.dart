@@ -18,9 +18,9 @@ import 'bottom_nav_tab.dart';
 import 'bottom_nav_theme.dart';
 import 'libraries_sheet.dart';
 
-/// The You tab: who is signed in, everything that isn't on the bar, and the
-/// way into settings.
-Future<void> showYouHub({
+/// The bottom navbar hub: who is signed in, everything that isn't on the bar,
+/// and the way into settings.
+Future<void> showBottomNavbarHub({
   required BuildContext context,
   required BottomNavController controller,
   required BottomNavTheme theme,
@@ -44,7 +44,7 @@ Future<void> showYouHub({
 
         return ListenableBuilder(
           listenable: controller,
-          builder: (_, _) => _YouHub(
+          builder: (_, _) => _BottomNavbarHub(
             controller: controller,
             theme: theme,
             onAccount: () => then(() => showUserMenu(context)),
@@ -78,7 +78,7 @@ Future<void> showYouHub({
   }
 }
 
-class _YouHub extends StatelessWidget {
+class _BottomNavbarHub extends StatelessWidget {
   final BottomNavController controller;
   final BottomNavTheme theme;
   final VoidCallback onAccount;
@@ -87,7 +87,7 @@ class _YouHub extends StatelessWidget {
   final VoidCallback onMessages;
   final VoidCallback onSettings;
 
-  const _YouHub({
+  const _BottomNavbarHub({
     required this.controller,
     required this.theme,
     required this.onAccount,
@@ -171,13 +171,19 @@ class _YouHub extends StatelessWidget {
           ),
           if (tiles.isNotEmpty) ...[
             const SizedBox(height: 16),
-            GridView.count(
-              crossAxisCount: 3,
+            // Without zero padding the grid pads itself with the system nav
+            // bar inset. A fixed tile height keeps the rows short on wide
+            // sheets.
+            GridView(
               shrinkWrap: true,
+              padding: EdgeInsets.zero,
               physics: const NeverScrollableScrollPhysics(),
-              mainAxisSpacing: 10,
-              crossAxisSpacing: 10,
-              childAspectRatio: 1.2,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3,
+                mainAxisSpacing: 10,
+                crossAxisSpacing: 10,
+                mainAxisExtent: _HubTile.height,
+              ),
               children: [
                 for (var i = 0; i < tiles.length; i++)
                   _HubTile(
@@ -254,6 +260,9 @@ class _YouHub extends StatelessWidget {
 }
 
 class _HubTile extends StatelessWidget {
+  static const double height = 72;
+  static const double _iconSize = 32;
+
   final BottomNavHubTile tile;
   final int slot;
   final BottomNavTheme theme;
@@ -276,12 +285,22 @@ class _HubTile extends StatelessWidget {
         ? bottomNavTabLabel(l10n, tab)
         : bottomNavHubActionLabel(l10n, tile.action!);
     final icon = tab != null
-        ? bottomNavTabIconWidget(tab, active: false, size: 22, color: iconColor)
+        ? bottomNavTabIconWidget(
+            tab,
+            active: false,
+            size: _iconSize,
+            color: iconColor,
+          )
         : AdaptiveIcon(
             bottomNavHubActionIcon(tile.action!),
-            size: 22,
+            size: _iconSize,
             color: iconColor,
           );
+    // The tile height is fixed, so a large text setting stops growing the
+    // label before it pushes the icon out.
+    final textScaler = MediaQuery.textScalerOf(context).clamp(
+      maxScaleFactor: 1.3,
+    );
 
     return Semantics(
       button: true,
@@ -298,16 +317,18 @@ class _HubTile extends StatelessWidget {
               borderRadius: AppRadius.circular(18),
               border: Border.all(color: onBar.withValues(alpha: 0.06)),
             ),
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 icon,
+                const SizedBox(height: 6),
                 Text(
                   label,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  textScaler: textScaler,
                   style: theme.labelStyle.copyWith(
                     color: onBar,
                     fontSize: 13,

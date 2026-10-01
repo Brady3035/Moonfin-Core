@@ -136,6 +136,24 @@ void _configureImageCache() {
   apply(600, 256 << 20);
 }
 
+/// The TV builds draw with Skia, which sizes its GPU cache from the screen, and
+/// Impeller builds ignore this call. It waits for the first frame so the view
+/// has its real size.
+void _capSkiaCache() {
+  if (!PlatformDetection.isAndroid) return;
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    final size = WidgetsBinding.instance.platformDispatcher.implicitView
+        ?.physicalSize;
+    final cap = size == null ? null : skiaCacheCapFor(size.width * size.height);
+    if (cap == null) return;
+    unawaited(
+      SystemChannels.skia
+          .invokeMethod<void>('Skia.setResourceCacheMaxBytes', cap)
+          .catchError((_) {}),
+    );
+  });
+}
+
 Timer? _crashFlushDebounce;
 
 /// Routes uncaught Dart errors into the diagnostic buffer and the pending
@@ -889,6 +907,7 @@ void main() async {
   }
 
   _configureImageCache();
+  _capSkiaCache();
   await configureImageDiskCache(tier: _resolvedTier());
 
   // On Linux the GTK font pipeline loads fonts asynchronously. The first frame

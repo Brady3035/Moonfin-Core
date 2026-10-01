@@ -381,11 +381,17 @@ class MainActivity : AudioServiceActivity(), GamepadsCompatibleActivity {
             DeviceStorageHelper.CHANNEL,
         ).setMethodCallHandler(DeviceStorageHelper())
 
+        val exitHistory = ProcessExitHistory.get(this)
         MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
             PLATFORM_CHANNEL,
         ).setMethodCallHandler { call, result ->
             when (call.method) {
+                "previousExits" -> result.success(exitHistory.takeUnreportedExits())
+                "setProcessState" -> {
+                    exitHistory.setAppState(call.argument<String>("state") ?: "")
+                    result.success(null)
+                }
                 "isTvDevice" -> {
                     result.success(isTvDevice())
                 }

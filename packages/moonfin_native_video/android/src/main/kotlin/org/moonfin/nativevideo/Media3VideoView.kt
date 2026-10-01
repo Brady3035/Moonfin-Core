@@ -984,6 +984,7 @@ class Media3VideoView(
     private var subtitleEmbeddedFontSizesEnabled = true
     private var assFallbackFontBytes: ByteArray? = null
     private var isDisposed = false
+    internal var leaveCensus: (() -> Unit)? = null
     private var isDisposedByFlutter = false
     private var lastAudioClockRecoveryAtMs = 0L
     private var playerCreatedAtMs = 0L
@@ -1605,6 +1606,7 @@ class Media3VideoView(
     }
 
     override fun dispose() {
+        leaveCensus?.invoke()
         isDisposedByFlutter = true
         // Unregister before the audio early return so a disposed view can
         // never be re-activated.

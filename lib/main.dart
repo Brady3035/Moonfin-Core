@@ -56,7 +56,10 @@ import 'util/http_overrides_stub.dart'
     if (dart.library.io) 'util/http_overrides_io.dart';
 import 'util/game_core_licenses.dart';
 import 'util/device_performance.dart';
+import 'ui/navigation/app_router.dart';
+import 'ui/screensaver/screensaver_controller.dart';
 import 'util/platform_detection.dart';
+import 'util/process_exit_reporter.dart';
 import 'util/system_ui.dart';
 import 'util/tv_image_cache_stub.dart'
     if (dart.library.io) 'util/tv_image_cache_io.dart';
@@ -175,6 +178,26 @@ void _captureCrash(Object error, StackTrace? stack) {
   } catch (_) {
     // The crash handler must never become a second crash.
   }
+}
+
+void _startProcessExitReporter() {
+  final reporter = ProcessExitReporter(
+    GetIt.instance<LogService>(),
+    GetIt.instance<CrashReportService>(),
+  );
+  unawaited(reporter.reportPreviousExits());
+  reporter.watch(
+    routeChanges: appRouter.routerDelegate,
+    // A player is pushed over the tab that opened it, so the last match is
+    // what's on screen.
+    currentRoute: () {
+      final matches = appRouter.routerDelegate.currentConfiguration.matches;
+      return matches.isEmpty ? '' : matches.last.matchedLocation;
+    },
+    screensaverVisible: PlatformDetection.isTV
+        ? GetIt.instance<ScreensaverController>().visible
+        : null,
+  );
 }
 
 Future<void> _restoreWindowGeometry() async {
@@ -890,6 +913,7 @@ void main() async {
 
   await configureDependencies();
   _installCrashHandlers();
+  if (PlatformDetection.isAndroid) _startProcessExitReporter();
   // When the system runs the auto-download refresh task against this
   // engine, the native side retries its call until this handler is bound.
   if (AutoDownloadService.isSupportedPlatform) {

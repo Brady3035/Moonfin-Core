@@ -7,12 +7,13 @@ import '../../../../util/platform_detection.dart';
 /// Arranges the Modern detail pieces for landscape (TV, desktop, any landscape
 /// device): full-bleed backdrop, a left hero column, a floating Up Next card on
 /// the right, and a bottom band with the tab bar + active tab content. Pure
-/// arrangement; all pieces are built by the host.
+/// arrangement. The host builds every piece and leaves [tabBar] out when there
+/// are no tabs.
 class ModernLandscapeLayout extends StatelessWidget {
   final Widget backdrop;
   final Widget hero;
   final Widget? upNext;
-  final Widget tabBar;
+  final Widget? tabBar;
   final Widget tabContent;
   final double topInset;
   final ScrollController? scrollController;
@@ -105,10 +106,11 @@ class ModernLandscapeLayout extends StatelessWidget {
                     ],
                   ),
                 ),
-                Padding(
-                  padding: EdgeInsets.fromLTRB(leftPadding, 16 / scale, 40, 8 / scale),
-                  child: tabBar,
-                ),
+                if (tabBar != null)
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(leftPadding, 16 / scale, 40, 8 / scale),
+                    child: tabBar,
+                  ),
                 Padding(
                   padding: EdgeInsets.fromLTRB(
                     leftPadding,

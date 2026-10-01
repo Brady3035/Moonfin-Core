@@ -5884,6 +5884,264 @@ abstract class AppLocalizations {
   /// **'Uses Sonarr and TMDB to show upcoming release dates'**
   String get detailMetadataUpcomingEpisodeDateSubtitle;
 
+  /// Settings tile title for switching Details screen sections on and off
+  ///
+  /// In en, this message translates to:
+  /// **'Sections'**
+  String get detailSections;
+
+  /// Settings tile subtitle for the Details screen sections list
+  ///
+  /// In en, this message translates to:
+  /// **'Choose which parts of the Details screen to show'**
+  String get detailSectionsDescription;
+
+  /// Explanatory text at the top of the Details screen sections list
+  ///
+  /// In en, this message translates to:
+  /// **'Only the sections the current Details screen style can show are listed. Hiding one hides it in every style that has it.'**
+  String get detailSectionsScreenDescription;
+
+  /// Group heading for the title area of the Details screen
+  ///
+  /// In en, this message translates to:
+  /// **'Header'**
+  String get detailSectionGroupHeader;
+
+  /// Group heading for the rows, tabs and cards of the Details screen
+  ///
+  /// In en, this message translates to:
+  /// **'Sections'**
+  String get detailSectionGroupSections;
+
+  /// Group heading for sections only shown on a person's Details screen
+  ///
+  /// In en, this message translates to:
+  /// **'Person pages'**
+  String get detailSectionGroupPerson;
+
+  /// Group heading for sections only shown on a collection's Details screen
+  ///
+  /// In en, this message translates to:
+  /// **'Collection pages'**
+  String get detailSectionGroupCollection;
+
+  /// Group heading for Details screen sections that fit no other group
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get detailSectionGroupOther;
+
+  /// Details screen section: the title logo artwork
+  ///
+  /// In en, this message translates to:
+  /// **'Logo'**
+  String get detailSectionLogo;
+
+  /// Subtitle for the logo section switch
+  ///
+  /// In en, this message translates to:
+  /// **'Shows the title as text when off'**
+  String get detailSectionLogoSubtitle;
+
+  /// Details screen section: the short tagline under the title
+  ///
+  /// In en, this message translates to:
+  /// **'Tagline'**
+  String get detailSectionTagline;
+
+  /// Details screen section: the poster image beside the title
+  ///
+  /// In en, this message translates to:
+  /// **'Poster'**
+  String get detailSectionPoster;
+
+  /// Details screen section: the badge shown when an item has more than one version
+  ///
+  /// In en, this message translates to:
+  /// **'Version badge'**
+  String get detailSectionVersionBadge;
+
+  /// Details screen section: the next up or next episode card
+  ///
+  /// In en, this message translates to:
+  /// **'Next Up'**
+  String get detailSectionUpNext;
+
+  /// Details screen section: the lyrics panel for songs
+  ///
+  /// In en, this message translates to:
+  /// **'Lyrics'**
+  String get detailSectionLyrics;
+
+  /// Details screen section: the cast row, tab or card
+  ///
+  /// In en, this message translates to:
+  /// **'Cast'**
+  String get detailSectionCast;
+
+  /// Subtitle for the cast section switch
+  ///
+  /// In en, this message translates to:
+  /// **'Also on collection pages'**
+  String get detailSectionCastSubtitle;
+
+  /// Details screen section: directors and writers
+  ///
+  /// In en, this message translates to:
+  /// **'Directors & writers'**
+  String get detailSectionCrew;
+
+  /// Details screen section: studios and networks
+  ///
+  /// In en, this message translates to:
+  /// **'Studios'**
+  String get detailSectionStudios;
+
+  /// Details screen section: chapters
+  ///
+  /// In en, this message translates to:
+  /// **'Chapters'**
+  String get detailSectionChapters;
+
+  /// Details screen section: trailers, featurettes and other extras
+  ///
+  /// In en, this message translates to:
+  /// **'Extras'**
+  String get detailSectionExtras;
+
+  /// Details screen section: the collections an item belongs to
+  ///
+  /// In en, this message translates to:
+  /// **'Collections'**
+  String get detailSectionCollections;
+
+  /// Details screen section: similar items from the library
+  ///
+  /// In en, this message translates to:
+  /// **'More Like This'**
+  String get detailSectionMoreLikeThis;
+
+  /// Subtitle for the More Like This section switch
+  ///
+  /// In en, this message translates to:
+  /// **'Also similar albums and artists'**
+  String get detailSectionMoreLikeThisSubtitle;
+
+  /// Details screen section: the other episodes of a show on an episode's page
+  ///
+  /// In en, this message translates to:
+  /// **'More episodes'**
+  String get detailSectionMoreEpisodes;
+
+  /// Subtitle for the More episodes section switch
+  ///
+  /// In en, this message translates to:
+  /// **'On episode pages'**
+  String get detailSectionMoreEpisodesSubtitle;
+
+  /// Details screen section: file, stream and Direct Play details
+  ///
+  /// In en, this message translates to:
+  /// **'Media info'**
+  String get detailSectionMediaInfo;
+
+  /// Subtitle for the media info section switch
+  ///
+  /// In en, this message translates to:
+  /// **'File, streams and Direct Play check'**
+  String get detailSectionMediaInfoSubtitle;
+
+  /// Details screen Seerr section: genre and keyword chips
+  ///
+  /// In en, this message translates to:
+  /// **'Genres & tags'**
+  String get detailSectionSeerrGenresTags;
+
+  /// Details screen Seerr section: TMDB score, status, budget and revenue
+  ///
+  /// In en, this message translates to:
+  /// **'Stats'**
+  String get detailSectionSeerrStats;
+
+  /// Details screen Seerr section: recommended titles
+  ///
+  /// In en, this message translates to:
+  /// **'Recommendations'**
+  String get detailSectionSeerrRecommendations;
+
+  /// Details screen Seerr section: similar titles
+  ///
+  /// In en, this message translates to:
+  /// **'Similar titles'**
+  String get detailSectionSeerrSimilar;
+
+  /// Details screen Seerr section: the banner for the collection a movie is part of
+  ///
+  /// In en, this message translates to:
+  /// **'Collection banner'**
+  String get detailSectionSeerrCollection;
+
+  /// Details screen Seerr section: a person's appearances
+  ///
+  /// In en, this message translates to:
+  /// **'Appearances'**
+  String get detailSectionSeerrPersonAppearances;
+
+  /// Details screen Seerr section: a person's crew credits
+  ///
+  /// In en, this message translates to:
+  /// **'Crew credits'**
+  String get detailSectionSeerrPersonCrew;
+
+  /// Subtitle for Seerr sections only shown on a person's Details screen
+  ///
+  /// In en, this message translates to:
+  /// **'On person pages'**
+  String get detailSectionPersonPagesSubtitle;
+
+  /// Details screen section: a person's biography
+  ///
+  /// In en, this message translates to:
+  /// **'Biography'**
+  String get detailSectionBiography;
+
+  /// Details screen section: a person's place of birth
+  ///
+  /// In en, this message translates to:
+  /// **'Birthplace'**
+  String get detailSectionBirthplace;
+
+  /// Details screen section: a person's guest appearances
+  ///
+  /// In en, this message translates to:
+  /// **'Guest appearances'**
+  String get detailSectionGuestAppearances;
+
+  /// Details screen section: a person's music videos
+  ///
+  /// In en, this message translates to:
+  /// **'Music videos'**
+  String get detailSectionMusicVideos;
+
+  /// Details screen section: a collection's playlist order
+  ///
+  /// In en, this message translates to:
+  /// **'Playlist order'**
+  String get detailSectionPlaylistOrder;
+
+  /// Details screen section: the genre chips on a book's page
+  ///
+  /// In en, this message translates to:
+  /// **'Book genres'**
+  String get detailSectionBookGenres;
+
+  /// Details screen section: camera and image details on a photo's page
+  ///
+  /// In en, this message translates to:
+  /// **'Photo details'**
+  String get detailSectionPhotoExif;
+
   /// Formatted badge text for an upcoming episode release date
   ///
   /// In en, this message translates to:

@@ -3396,6 +3396,139 @@ class AppLocalizationsUk extends AppLocalizations {
       'Uses Sonarr and TMDB to show upcoming release dates';
 
   @override
+  String get detailSections => 'Sections';
+
+  @override
+  String get detailSectionsDescription =>
+      'Choose which parts of the Details screen to show';
+
+  @override
+  String get detailSectionsScreenDescription =>
+      'Only the sections the current Details screen style can show are listed. Hiding one hides it in every style that has it.';
+
+  @override
+  String get detailSectionGroupHeader => 'Header';
+
+  @override
+  String get detailSectionGroupSections => 'Sections';
+
+  @override
+  String get detailSectionGroupPerson => 'Person pages';
+
+  @override
+  String get detailSectionGroupCollection => 'Collection pages';
+
+  @override
+  String get detailSectionGroupOther => 'Other';
+
+  @override
+  String get detailSectionLogo => 'Logo';
+
+  @override
+  String get detailSectionLogoSubtitle => 'Shows the title as text when off';
+
+  @override
+  String get detailSectionTagline => 'Tagline';
+
+  @override
+  String get detailSectionPoster => 'Poster';
+
+  @override
+  String get detailSectionVersionBadge => 'Version badge';
+
+  @override
+  String get detailSectionUpNext => 'Next Up';
+
+  @override
+  String get detailSectionLyrics => 'Lyrics';
+
+  @override
+  String get detailSectionCast => 'Cast';
+
+  @override
+  String get detailSectionCastSubtitle => 'Also on collection pages';
+
+  @override
+  String get detailSectionCrew => 'Directors & writers';
+
+  @override
+  String get detailSectionStudios => 'Studios';
+
+  @override
+  String get detailSectionChapters => 'Chapters';
+
+  @override
+  String get detailSectionExtras => 'Extras';
+
+  @override
+  String get detailSectionCollections => 'Collections';
+
+  @override
+  String get detailSectionMoreLikeThis => 'More Like This';
+
+  @override
+  String get detailSectionMoreLikeThisSubtitle =>
+      'Also similar albums and artists';
+
+  @override
+  String get detailSectionMoreEpisodes => 'More episodes';
+
+  @override
+  String get detailSectionMoreEpisodesSubtitle => 'On episode pages';
+
+  @override
+  String get detailSectionMediaInfo => 'Media info';
+
+  @override
+  String get detailSectionMediaInfoSubtitle =>
+      'File, streams and Direct Play check';
+
+  @override
+  String get detailSectionSeerrGenresTags => 'Genres & tags';
+
+  @override
+  String get detailSectionSeerrStats => 'Stats';
+
+  @override
+  String get detailSectionSeerrRecommendations => 'Recommendations';
+
+  @override
+  String get detailSectionSeerrSimilar => 'Similar titles';
+
+  @override
+  String get detailSectionSeerrCollection => 'Collection banner';
+
+  @override
+  String get detailSectionSeerrPersonAppearances => 'Appearances';
+
+  @override
+  String get detailSectionSeerrPersonCrew => 'Crew credits';
+
+  @override
+  String get detailSectionPersonPagesSubtitle => 'On person pages';
+
+  @override
+  String get detailSectionBiography => 'Biography';
+
+  @override
+  String get detailSectionBirthplace => 'Birthplace';
+
+  @override
+  String get detailSectionGuestAppearances => 'Guest appearances';
+
+  @override
+  String get detailSectionMusicVideos => 'Music videos';
+
+  @override
+  String get detailSectionPlaylistOrder => 'Playlist order';
+
+  @override
+  String get detailSectionBookGenres => 'Book genres';
+
+  @override
+  String get detailSectionPhotoExif => 'Photo details';
+
+  @override
   String upcomingEpisodeNext(String date, int season, int episode) {
     return 'Next: $date (S$season:E$episode)';
   }

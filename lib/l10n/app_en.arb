@@ -4537,6 +4537,178 @@
   "@detailMetadataUpcomingEpisodeDateSubtitle": {
     "description": "Subtitle describing data sources for upcoming episode air dates in metadata row"
   },
+  "detailSections": "Sections",
+  "@detailSections": {
+    "description": "Settings tile title for switching Details screen sections on and off"
+  },
+  "detailSectionsDescription": "Choose which parts of the Details screen to show",
+  "@detailSectionsDescription": {
+    "description": "Settings tile subtitle for the Details screen sections list"
+  },
+  "detailSectionsScreenDescription": "Only the sections the current Details screen style can show are listed. Hiding one hides it in every style that has it.",
+  "@detailSectionsScreenDescription": {
+    "description": "Explanatory text at the top of the Details screen sections list"
+  },
+  "detailSectionGroupHeader": "Header",
+  "@detailSectionGroupHeader": {
+    "description": "Group heading for the title area of the Details screen"
+  },
+  "detailSectionGroupSections": "Sections",
+  "@detailSectionGroupSections": {
+    "description": "Group heading for the rows, tabs and cards of the Details screen"
+  },
+  "detailSectionGroupPerson": "Person pages",
+  "@detailSectionGroupPerson": {
+    "description": "Group heading for sections only shown on a person's Details screen"
+  },
+  "detailSectionGroupCollection": "Collection pages",
+  "@detailSectionGroupCollection": {
+    "description": "Group heading for sections only shown on a collection's Details screen"
+  },
+  "detailSectionGroupOther": "Other",
+  "@detailSectionGroupOther": {
+    "description": "Group heading for Details screen sections that fit no other group"
+  },
+  "detailSectionLogo": "Logo",
+  "@detailSectionLogo": {
+    "description": "Details screen section: the title logo artwork"
+  },
+  "detailSectionLogoSubtitle": "Shows the title as text when off",
+  "@detailSectionLogoSubtitle": {
+    "description": "Subtitle for the logo section switch"
+  },
+  "detailSectionTagline": "Tagline",
+  "@detailSectionTagline": {
+    "description": "Details screen section: the short tagline under the title"
+  },
+  "detailSectionPoster": "Poster",
+  "@detailSectionPoster": {
+    "description": "Details screen section: the poster image beside the title"
+  },
+  "detailSectionVersionBadge": "Version badge",
+  "@detailSectionVersionBadge": {
+    "description": "Details screen section: the badge shown when an item has more than one version"
+  },
+  "detailSectionUpNext": "Next Up",
+  "@detailSectionUpNext": {
+    "description": "Details screen section: the next up or next episode card"
+  },
+  "detailSectionLyrics": "Lyrics",
+  "@detailSectionLyrics": {
+    "description": "Details screen section: the lyrics panel for songs"
+  },
+  "detailSectionCast": "Cast",
+  "@detailSectionCast": {
+    "description": "Details screen section: the cast row, tab or card"
+  },
+  "detailSectionCastSubtitle": "Also on collection pages",
+  "@detailSectionCastSubtitle": {
+    "description": "Subtitle for the cast section switch"
+  },
+  "detailSectionCrew": "Directors & writers",
+  "@detailSectionCrew": {
+    "description": "Details screen section: directors and writers"
+  },
+  "detailSectionStudios": "Studios",
+  "@detailSectionStudios": {
+    "description": "Details screen section: studios and networks"
+  },
+  "detailSectionChapters": "Chapters",
+  "@detailSectionChapters": {
+    "description": "Details screen section: chapters"
+  },
+  "detailSectionExtras": "Extras",
+  "@detailSectionExtras": {
+    "description": "Details screen section: trailers, featurettes and other extras"
+  },
+  "detailSectionCollections": "Collections",
+  "@detailSectionCollections": {
+    "description": "Details screen section: the collections an item belongs to"
+  },
+  "detailSectionMoreLikeThis": "More Like This",
+  "@detailSectionMoreLikeThis": {
+    "description": "Details screen section: similar items from the library"
+  },
+  "detailSectionMoreLikeThisSubtitle": "Also similar albums and artists",
+  "@detailSectionMoreLikeThisSubtitle": {
+    "description": "Subtitle for the More Like This section switch"
+  },
+  "detailSectionMoreEpisodes": "More episodes",
+  "@detailSectionMoreEpisodes": {
+    "description": "Details screen section: the other episodes of a show on an episode's page"
+  },
+  "detailSectionMoreEpisodesSubtitle": "On episode pages",
+  "@detailSectionMoreEpisodesSubtitle": {
+    "description": "Subtitle for the More episodes section switch"
+  },
+  "detailSectionMediaInfo": "Media info",
+  "@detailSectionMediaInfo": {
+    "description": "Details screen section: file, stream and Direct Play details"
+  },
+  "detailSectionMediaInfoSubtitle": "File, streams and Direct Play check",
+  "@detailSectionMediaInfoSubtitle": {
+    "description": "Subtitle for the media info section switch"
+  },
+  "detailSectionSeerrGenresTags": "Genres & tags",
+  "@detailSectionSeerrGenresTags": {
+    "description": "Details screen Seerr section: genre and keyword chips"
+  },
+  "detailSectionSeerrStats": "Stats",
+  "@detailSectionSeerrStats": {
+    "description": "Details screen Seerr section: TMDB score, status, budget and revenue"
+  },
+  "detailSectionSeerrRecommendations": "Recommendations",
+  "@detailSectionSeerrRecommendations": {
+    "description": "Details screen Seerr section: recommended titles"
+  },
+  "detailSectionSeerrSimilar": "Similar titles",
+  "@detailSectionSeerrSimilar": {
+    "description": "Details screen Seerr section: similar titles"
+  },
+  "detailSectionSeerrCollection": "Collection banner",
+  "@detailSectionSeerrCollection": {
+    "description": "Details screen Seerr section: the banner for the collection a movie is part of"
+  },
+  "detailSectionSeerrPersonAppearances": "Appearances",
+  "@detailSectionSeerrPersonAppearances": {
+    "description": "Details screen Seerr section: a person's appearances"
+  },
+  "detailSectionSeerrPersonCrew": "Crew credits",
+  "@detailSectionSeerrPersonCrew": {
+    "description": "Details screen Seerr section: a person's crew credits"
+  },
+  "detailSectionPersonPagesSubtitle": "On person pages",
+  "@detailSectionPersonPagesSubtitle": {
+    "description": "Subtitle for Seerr sections only shown on a person's Details screen"
+  },
+  "detailSectionBiography": "Biography",
+  "@detailSectionBiography": {
+    "description": "Details screen section: a person's biography"
+  },
+  "detailSectionBirthplace": "Birthplace",
+  "@detailSectionBirthplace": {
+    "description": "Details screen section: a person's place of birth"
+  },
+  "detailSectionGuestAppearances": "Guest appearances",
+  "@detailSectionGuestAppearances": {
+    "description": "Details screen section: a person's guest appearances"
+  },
+  "detailSectionMusicVideos": "Music videos",
+  "@detailSectionMusicVideos": {
+    "description": "Details screen section: a person's music videos"
+  },
+  "detailSectionPlaylistOrder": "Playlist order",
+  "@detailSectionPlaylistOrder": {
+    "description": "Details screen section: a collection's playlist order"
+  },
+  "detailSectionBookGenres": "Book genres",
+  "@detailSectionBookGenres": {
+    "description": "Details screen section: the genre chips on a book's page"
+  },
+  "detailSectionPhotoExif": "Photo details",
+  "@detailSectionPhotoExif": {
+    "description": "Details screen section: camera and image details on a photo's page"
+  },
   "upcomingEpisodeNext": "Next: {date} (S{season}:E{episode})",
   "@upcomingEpisodeNext": {
     "description": "Formatted badge text for an upcoming episode release date",

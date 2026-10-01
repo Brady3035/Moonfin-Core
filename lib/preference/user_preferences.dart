@@ -321,6 +321,9 @@ class UserPreferences extends ChangeNotifier {
     'hiddenDetailMetadataDesktop',
     'hiddenDetailMetadataMobile',
     'hiddenDetailMetadataTv',
+    'hiddenDetailSectionsDesktop',
+    'hiddenDetailSectionsMobile',
+    'hiddenDetailSectionsTv',
     'hiddenOsdButtonsDesktop',
     'hiddenOsdButtonsMobile',
     'hiddenOsdButtonsTv',
@@ -2437,6 +2440,18 @@ class UserPreferences extends ChangeNotifier {
   );
   static final hiddenDetailMetadataDesktop = Preference(
     key: 'hiddenDetailMetadataDesktop',
+    defaultValue: '',
+  );
+  static final hiddenDetailSectionsTv = Preference(
+    key: 'hiddenDetailSectionsTv',
+    defaultValue: '',
+  );
+  static final hiddenDetailSectionsMobile = Preference(
+    key: 'hiddenDetailSectionsMobile',
+    defaultValue: '',
+  );
+  static final hiddenDetailSectionsDesktop = Preference(
+    key: 'hiddenDetailSectionsDesktop',
     defaultValue: '',
   );
   static final hiddenOsdButtonsTv = Preference(

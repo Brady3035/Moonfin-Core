@@ -136,6 +136,14 @@ class _DetailsScreenSettingsScreenState
                       const _DetailMetadataScreen(),
                     ),
                   ),
+                  _TvSettingsListTile(
+                    leading: const Icon(Icons.dashboard_customize_outlined),
+                    title: Text(l10n.detailSections),
+                    subtitle: Text(l10n.detailSectionsDescription),
+                    onTap: () => context.pushSettingsScreen(
+                      const _DetailSectionsScreen(),
+                    ),
+                  ),
                   if (prefs.get(UserPreferences.detailScreenStyle) == DetailScreenStyle.modern)
                     SwitchPreferenceTile(
                       preference: UserPreferences.detailExpandedTabs,

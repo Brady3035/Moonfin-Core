@@ -224,6 +224,16 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
     icon: Icons.view_headline_outlined,
     open: () => push(const _DetailMetadataScreen()),
   );
+  final detailSections = _SearchSection(
+    slug: 'detail-sections',
+    path: [
+      l10n.settingsPersonalization,
+      l10n.settingsDetailsScreen,
+      l10n.detailSections,
+    ],
+    icon: Icons.dashboard_customize_outlined,
+    open: () => push(const _DetailSectionsScreen()),
+  );
   final navigation = _SearchSection(
     slug: 'navigation',
     path: [l10n.settingsPersonalization, l10n.navigation],
@@ -767,6 +777,25 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
       'genres',
       'seerr',
       'reorder',
+    ]),
+    detailSections.screen(keywords: [
+      'sections',
+      'hide',
+      'logo',
+      'tagline',
+      'cast',
+      'crew',
+      'studios',
+      'chapters',
+      'extras',
+      'collections',
+      'similar',
+      'more like this',
+      'episodes',
+      'media info',
+      'seerr',
+      'recommendations',
+      'biography',
     ]),
 
     navigation.screen(keywords: ['navbar', 'toolbar', 'sidebar']),

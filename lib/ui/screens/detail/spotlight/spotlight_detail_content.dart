@@ -16,6 +16,7 @@ import '../../../../data/services/seerr/seerr_api_models.dart';
 import '../../../../data/viewmodels/item_detail_view_model.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../preference/detail_metadata_layout.dart';
+import '../../../../preference/detail_section_layout.dart';
 import '../../../../preference/preference_constants.dart';
 import '../../../../preference/user_preferences.dart';
 import '../upcoming_episode_badge.dart';
@@ -662,12 +663,19 @@ class _SpotlightDetailContentState extends State<SpotlightDetailContent> {
     );
   }
 
-  Widget _buildTitleOrLogo(BuildContext context, AggregatedItem item) {
+  /// With [showLogo] off this draws what an item with no logo gets: the
+  /// title, and on an episode the show's name above it.
+  Widget _buildTitleOrLogo(
+    BuildContext context,
+    AggregatedItem item, {
+    required bool showLogo,
+  }) {
     final textTheme = Theme.of(context).textTheme;
     final logoScaleFactor = _desktopScale > 1.1 ? 0.70 : 1.0;
     final isEpisode = item.type == 'Episode';
-    final logoTag =
-        item.logoImageTag ?? (isEpisode ? item.seriesLogoImageTag : null);
+    final logoTag = showLogo
+        ? item.logoImageTag ?? (isEpisode ? item.seriesLogoImageTag : null)
+        : null;
     final logoId = logoTag != null
         ? (item.logoImageTag != null ? item.id : item.seriesId)
         : null;
@@ -995,6 +1003,7 @@ class _SpotlightDetailContentState extends State<SpotlightDetailContent> {
   ) {
     final overview = cleanOverview(item.overview?.trim());
     final isPerson = item.type == 'Person';
+    final visibility = DetailSectionVisibility.of(widget.prefs);
     final selectedSource = selectedMediaSourceForItem(
       item,
       widget.selectedMediaSourceId,
@@ -1012,13 +1021,16 @@ class _SpotlightDetailContentState extends State<SpotlightDetailContent> {
             item.personalRating != null);
     final showOverview =
         overview.isNotEmpty &&
+        (!isPerson || visibility.shows(DetailSection.biography)) &&
         !hidesMediaDescription(
           itemType: item.type,
           hideMediaDescription: widget.prefs.get(
             UserPreferences.hideDetailsMediaDescription,
           ),
         );
-    final tagline = isPerson ? null : _buildTagline(context, item);
+    final tagline = isPerson || !visibility.shows(DetailSection.tagline)
+        ? null
+        : _buildTagline(context, item);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1028,7 +1040,11 @@ class _SpotlightDetailContentState extends State<SpotlightDetailContent> {
         if (isPerson)
           _buildPersonHeader(context, item)
         else
-          _buildTitleOrLogo(context, item),
+          _buildTitleOrLogo(
+            context,
+            item,
+            showLogo: visibility.shows(DetailSection.logo),
+          ),
         const SizedBox(height: 8),
         if (!isPerson) _metadataRow(context, item, selectedSource),
         if (techRow != null) ...[const SizedBox(height: 8), techRow],

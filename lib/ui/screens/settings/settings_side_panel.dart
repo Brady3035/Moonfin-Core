@@ -91,6 +91,7 @@ import 'home_rows_image_type_screen.dart';
 import 'emulator_cores_screen.dart';
 import 'achievements_screen.dart';
 import 'downloaded_games_screen.dart';
+import 'library_order_screen.dart';
 import 'library_settings_screen.dart';
 import 'media_bar_settings_screen.dart';
 import 'screensaver_settings_screen.dart';

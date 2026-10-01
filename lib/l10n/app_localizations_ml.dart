@@ -4319,6 +4319,23 @@ class AppLocalizationsMl extends AppLocalizations {
   String get showInLatestMedia => 'ഏറ്റവും പുതിയ മീഡിയയിൽ കാണിക്കുക';
 
   @override
+  String get libraryOrder => 'Library Order';
+
+  @override
+  String get libraryOrderSubtitle => 'Choose the order of your libraries';
+
+  @override
+  String get libraryOrderDescription =>
+      'Your libraries appear in this order on My Media, the recently added rows and the navigation bar. The order is saved to your server account, so other apps you sign in to use it too.';
+
+  @override
+  String get libraryOrderTvHint =>
+      'Press left or right to move the highlighted library.';
+
+  @override
+  String get libraryOrderSaveFailed => 'Couldn\'t save the library order';
+
+  @override
   String get sourceLibraries => 'ഉറവിട ലൈബ്രറികൾ';
 
   @override

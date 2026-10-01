@@ -326,6 +326,12 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
     icon: Icons.visibility,
     open: () => push(const LibraryVisibilityScreen()),
   );
+  final libraryOrder = _SearchSection(
+    slug: 'library-order',
+    path: [l10n.settingsPersonalization, l10n.libraries, l10n.libraryOrder],
+    icon: Icons.swap_vert,
+    open: () => push(const LibraryOrderScreen()),
+  );
   final mediaBar = _SearchSection(
     slug: 'media-bar',
     path: [l10n.settingsPersonalization, l10n.mediaBar],
@@ -1081,6 +1087,12 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
       'hide library',
       'show in navigation',
       'latest media',
+    ]),
+    libraryOrder.screen(keywords: [
+      'reorder libraries',
+      'sort libraries',
+      'my media',
+      'navbar',
     ]),
     libraries.leaf(
       'enable_multi_server_libraries',

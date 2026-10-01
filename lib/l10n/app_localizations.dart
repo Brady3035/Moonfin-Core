@@ -7570,6 +7570,36 @@ abstract class AppLocalizations {
   /// **'Show in recently added/released media'**
   String get showInLatestMedia;
 
+  /// Title of the settings screen that reorders the user's libraries
+  ///
+  /// In en, this message translates to:
+  /// **'Library Order'**
+  String get libraryOrder;
+
+  /// Subtitle of the Library Order entry in the libraries settings
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the order of your libraries'**
+  String get libraryOrderSubtitle;
+
+  /// Explanation shown at the top of the Library Order settings screen
+  ///
+  /// In en, this message translates to:
+  /// **'Your libraries appear in this order on My Media, the recently added rows and the navigation bar. The order is saved to your server account, so other apps you sign in to use it too.'**
+  String get libraryOrderDescription;
+
+  /// Remote control hint on the Library Order settings screen
+  ///
+  /// In en, this message translates to:
+  /// **'Press left or right to move the highlighted library.'**
+  String get libraryOrderTvHint;
+
+  /// Error shown when saving the library order to the server fails
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save the library order'**
+  String get libraryOrderSaveFailed;
+
   /// Setting for source libraries
   ///
   /// In en, this message translates to:

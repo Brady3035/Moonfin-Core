@@ -5677,6 +5677,26 @@
   "@showInLatestMedia": {
     "description": "Toggle for showing library in recently added/released media"
   },
+  "libraryOrder": "Library Order",
+  "@libraryOrder": {
+    "description": "Title of the settings screen that reorders the user's libraries"
+  },
+  "libraryOrderSubtitle": "Choose the order of your libraries",
+  "@libraryOrderSubtitle": {
+    "description": "Subtitle of the Library Order entry in the libraries settings"
+  },
+  "libraryOrderDescription": "Your libraries appear in this order on My Media, the recently added rows and the navigation bar. The order is saved to your server account, so other apps you sign in to use it too.",
+  "@libraryOrderDescription": {
+    "description": "Explanation shown at the top of the Library Order settings screen"
+  },
+  "libraryOrderTvHint": "Press left or right to move the highlighted library.",
+  "@libraryOrderTvHint": {
+    "description": "Remote control hint on the Library Order settings screen"
+  },
+  "libraryOrderSaveFailed": "Couldn't save the library order",
+  "@libraryOrderSaveFailed": {
+    "description": "Error shown when saving the library order to the server fails"
+  },
   "sourceLibraries": "Source Libraries",
   "@sourceLibraries": {
     "description": "Setting for source libraries"

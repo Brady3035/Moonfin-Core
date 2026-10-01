@@ -8522,6 +8522,8 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
     AggregatedItem item, {
     bool forceStartOver = false,
   }) async {
+    // A long press can land after the page it came from has closed.
+    if (!context.mounted) return;
     // Transcode overrides and the external player handoff shouldn't be a
     // long press away in Kids Mode. Gated here to cover every entry point.
     if (GetIt.instance<UserPreferences>().get(

@@ -1096,6 +1096,7 @@ class Media3PlayerBackend extends PlayerBackend {
       'skipSilenceEnabled': _skipSilenceEnabled,
       'preferredAudioLanguage': preferredAudioLanguage,
       'preferredTextLanguage': preferredSubtitleLanguage,
+      'externalSubtitles': payload['externalSubtitles'] ?? const [],
       if (payload['audioTrackOrdinal'] is int)
         'audioTrackOrdinal': payload['audioTrackOrdinal'],
       'selectUndeterminedTextLanguage': false,

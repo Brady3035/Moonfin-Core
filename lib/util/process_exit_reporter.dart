@@ -96,6 +96,10 @@ String appStateSummary({required String route, required bool screensaver}) {
   final rssKb = exit['rssKb'] as int? ?? 0;
   final description = exit['description'] as String?;
   final mainThread = exit['mainThread'] as String?;
+  final abortMessage = exit['abortMessage'] as String?;
+  final crashThread = exit['crashThread'] as String?;
+  final frames = (exit['frames'] as List?)?.cast<String>() ?? const [];
+  final crashLogs = (exit['crashLogs'] as List?)?.cast<String>() ?? const [];
   final timestampMs = exit['timestampMs'] as int?;
 
   final what = signal == null ? reason : '$reason (signal $signal)';
@@ -115,9 +119,23 @@ String appStateSummary({required String route, required bool screensaver}) {
       ..writeln('Main thread:')
       ..writeln(mainThread);
   }
+  if (abortMessage != null) details.writeln('Abort: $abortMessage');
+  if (crashThread != null) details.writeln('Thread: $crashThread');
+  if (frames.isNotEmpty) {
+    details
+      ..writeln('Frames:')
+      ..writeAll(frames, '\n')
+      ..writeln();
+  }
+  if (crashLogs.isNotEmpty) {
+    details
+      ..writeln('Logs:')
+      ..writeAll(crashLogs, '\n')
+      ..writeln();
+  }
   return (
     message: 'Previous run ended: $what while $importance',
     details: details.toString().trimRight(),
-    signature: 'exit:$what:${state ?? ''}',
+    signature: 'exit:$what:${crashThread ?? ''}:${state ?? ''}',
   );
 }

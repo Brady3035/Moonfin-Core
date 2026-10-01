@@ -72,22 +72,35 @@ class ProcessExitHistory private constructor(private val context: Context) {
     }
 
     @RequiresApi(Build.VERSION_CODES.R)
-    private fun describe(info: ApplicationExitInfo): Map<String, Any?> = mapOf(
-        "timestampMs" to info.timestamp,
-        "reason" to exitReasonName(info.reason),
-        "importance" to importanceName(info.importance),
-        "signal" to info.status.takeIf {
-            info.reason == REASON_CRASH_NATIVE || info.reason == REASON_SIGNALED
-        },
-        "pssKb" to info.pss,
-        "rssKb" to info.rss,
-        "description" to info.description,
-        "state" to info.processStateSummary?.toString(Charsets.UTF_8),
-        "mainThread" to if (info.reason == REASON_ANR) anrMainThread(info) else null,
-    )
+    private fun describe(info: ApplicationExitInfo): Map<String, Any?> {
+        val tombstone = if (info.reason == REASON_CRASH_NATIVE) tombstoneOf(info) else null
+        return mapOf(
+            "timestampMs" to info.timestamp,
+            "reason" to exitReasonName(info.reason),
+            "importance" to importanceName(info.importance),
+            "signal" to info.status.takeIf {
+                info.reason == REASON_CRASH_NATIVE || info.reason == REASON_SIGNALED
+            },
+            "pssKb" to info.pss,
+            "rssKb" to info.rss,
+            "description" to info.description,
+            "state" to info.processStateSummary?.toString(Charsets.UTF_8),
+            "mainThread" to if (info.reason == REASON_ANR) anrMainThread(info) else null,
+            "abortMessage" to tombstone?.abortMessage,
+            "crashThread" to tombstone?.threadName,
+            "frames" to tombstone?.frames,
+            "crashLogs" to tombstone?.errorLogs,
+        )
+    }
 
     @RequiresApi(Build.VERSION_CODES.R)
     private fun anrMainThread(info: ApplicationExitInfo): String? = runCatching {
         info.traceInputStream?.bufferedReader()?.use { mainThreadStack(it.lineSequence()) }
+    }.getOrNull()
+
+    /** Android 12 and later keep the tombstone with a native crash's record. */
+    @RequiresApi(Build.VERSION_CODES.R)
+    private fun tombstoneOf(info: ApplicationExitInfo): TombstoneSummary? = runCatching {
+        info.traceInputStream?.use { readTombstone(it.readBytes()) }
     }.getOrNull()
 }

@@ -56,6 +56,7 @@ import io.flutter.embedding.engine.FlutterEngineCache
 import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodChannel
 import java.io.ByteArrayOutputStream
+import kotlin.concurrent.thread
 
 import android.hardware.input.InputManager
 import org.flame_engine.gamepads_android.GamepadsCompatibleActivity
@@ -387,7 +388,12 @@ class MainActivity : AudioServiceActivity(), GamepadsCompatibleActivity {
             PLATFORM_CHANNEL,
         ).setMethodCallHandler { call, result ->
             when (call.method) {
-                "previousExits" -> result.success(exitHistory.takeUnreportedExits())
+                // Reading a crash record can mean parsing its tombstone, so it
+                // stays off the main thread.
+                "previousExits" -> thread(name = "moonfin-exit-history") {
+                    val exits = exitHistory.takeUnreportedExits()
+                    handler.post { result.success(exits) }
+                }
                 "setProcessState" -> {
                     exitHistory.setAppState(call.argument<String>("state") ?: "")
                     result.success(null)

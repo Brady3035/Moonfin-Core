@@ -540,7 +540,14 @@ class NouveauCollectionSectionState
   }
 
   void _openItem(BuildContext context, AggregatedItem item) {
-    context.push(Destinations.item(item.id, serverId: item.serverId));
+    context.push(
+      Destinations.itemOrPhoto(
+        item.id,
+        serverId: item.serverId,
+        type: item.type,
+        channelId: item.channelId,
+      ),
+    );
   }
 
   void _playItem(BuildContext context, AggregatedItem item) {

@@ -228,6 +228,7 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
   final FocusNode _collectionSortFocusNode = FocusNode(debugLabel: 'collectionSort');
   final FocusNode _moviesFirstFocusNode = FocusNode(debugLabel: 'moviesFirst');
   final FocusNode _seriesFirstFocusNode = FocusNode(debugLabel: 'seriesFirst');
+  final FocusNode _otherFirstFocusNode = FocusNode(debugLabel: 'otherFirst');
   final FocusNode _collectionFirstFocusNode = FocusNode(debugLabel: 'collectionFirst');
   final FocusNode _seasonsFirstFocusNode = FocusNode(debugLabel: 'seasonsFirst');
   final FocusNode _episodesFirstFocusNode = FocusNode(debugLabel: 'episodesFirst');
@@ -497,6 +498,7 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
     _gridFirstFocusNode.onKeyEvent = leftToSidebarHandler;
     _moviesFirstFocusNode.onKeyEvent = leftToSidebarHandler;
     _seriesFirstFocusNode.onKeyEvent = leftToSidebarHandler;
+    _otherFirstFocusNode.onKeyEvent = leftToSidebarHandler;
     _collectionFirstFocusNode.onKeyEvent = leftToSidebarHandler;
 
     void attachAutoScroll(FocusNode node) {
@@ -667,6 +669,7 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
     _collectionSortFocusNode.dispose();
     _moviesFirstFocusNode.dispose();
     _seriesFirstFocusNode.dispose();
+    _otherFirstFocusNode.dispose();
     _collectionFirstFocusNode.dispose();
     _seasonsFirstFocusNode.dispose();
     _episodesFirstFocusNode.dispose();
@@ -842,6 +845,9 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
               } else {
                 _personSeriesFirstFocusNode.requestFocus();
               }
+              break;
+            case 'other':
+              _otherFirstFocusNode.requestFocus();
               break;
             case 'seerr':
               final state = seerrItemTabState(_vm);
@@ -1064,11 +1070,17 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
             ? mergeMissingByReleaseOrder(librarySeries, missingSeries)
             : librarySeries;
 
+        final otherItems = _vm.collectionItems
+            .where((i) => i.type != 'Movie' && i.type != 'Series')
+            .toList();
+
         return [
           if (moviesList.isNotEmpty)
             _ModernTab('movies', l10n.movies, (context, item) => _mediaGrid(context, moviesList, firstFocusNode: _moviesFirstFocusNode, onItemLongPress: _showCollectionItemMenu)),
           if (seriesList.isNotEmpty)
             _ModernTab('series', l10n.series, (context, item) => _mediaGrid(context, seriesList, firstFocusNode: _seriesFirstFocusNode, onItemLongPress: _showCollectionItemMenu)),
+          if (otherItems.isNotEmpty)
+            _ModernTab('other', l10n.other, (context, item) => _mediaGrid(context, otherItems, firstFocusNode: _otherFirstFocusNode, onItemLongPress: _showCollectionItemMenu)),
           if (hasCast) _ModernTab('cast', l10n.castMembers, _boxSetCastTab),
           if (hasCrew) _ModernTab('crew', l10n.crewSection, _boxSetCrewTab),
           if (hasStudios) studios,
@@ -3470,7 +3482,7 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
   }
 
   /// Responsive poster grid shared by the Similar tab and the collection
-  /// Movies/Shows tabs. Columns scale to width; d-pad uses default geometric
+  /// Movies/Shows/Other tabs. Columns scale to width, d-pad uses default geometric
   /// traversal, the top row escapes up to the tab bar, and cards scroll into
   /// view on focus so rows below the fold stay reachable.
   Widget _mediaGrid(
@@ -3587,8 +3599,12 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
                           );
                         } else {
                           context.push(
-                            Destinations.item(entry.id,
-                                serverId: entry.serverId),
+                            Destinations.itemOrPhoto(
+                              entry.id,
+                              serverId: entry.serverId,
+                              type: entry.type,
+                              channelId: entry.channelId,
+                            ),
                           );
                         }
                       },

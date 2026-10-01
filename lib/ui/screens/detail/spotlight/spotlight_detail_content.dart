@@ -367,7 +367,14 @@ class _SpotlightDetailContentState extends State<SpotlightDetailContent> {
             ),
           );
         } else {
-          context.push(Destinations.item(entry.id, serverId: entry.serverId));
+          context.push(
+            Destinations.itemOrPhoto(
+              entry.id,
+              serverId: entry.serverId,
+              type: entry.type,
+              channelId: entry.channelId,
+            ),
+          );
         }
       }),
       openPerson: (personId) => _closeModalThen(() {

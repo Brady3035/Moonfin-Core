@@ -13198,7 +13198,12 @@ class DetailSimilarRow extends StatelessWidget {
                 );
               } else {
                 context.push(
-                  Destinations.item(item.id, serverId: item.serverId),
+                  Destinations.itemOrPhoto(
+                    item.id,
+                    serverId: item.serverId,
+                    type: item.type,
+                    channelId: item.channelId,
+                  ),
                 );
               }
             },

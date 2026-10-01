@@ -310,6 +310,28 @@ void main() {
     expect(selectedTabLabel(tester), 'Movies');
   });
 
+  testWidgets('a collection of Live TV channels opens on Other with the channels in it', (tester) async {
+    await openCollection(tester);
+    when(() => vm.collectionItems).thenReturn([
+      AggregatedItem(
+        id: 'channel-1',
+        serverId: 'server-1',
+        rawData: const {'Id': 'channel-1', 'Name': 'BBC One', 'Type': 'TvChannel'},
+      ),
+      AggregatedItem(
+        id: 'channel-2',
+        serverId: 'server-1',
+        rawData: const {'Id': 'channel-2', 'Name': 'BBC Two', 'Type': 'TvChannel'},
+      ),
+    ]);
+    await tester.pumpWidget(buildTestWidget());
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(selectedTabLabel(tester), 'Other');
+    expect(find.text('BBC One'), findsOneWidget);
+    expect(find.text('BBC Two'), findsOneWidget);
+  });
+
   testWidgets('a Series with no seasons says so once the fetch is done', (tester) async {
     when(() => vm.item).thenReturn(seriesItem());
     when(() => vm.seasons).thenReturn([]);

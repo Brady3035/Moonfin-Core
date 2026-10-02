@@ -12783,14 +12783,26 @@ class DetailFeaturesRow extends StatelessWidget {
     final isMobile = _isCompact(context);
     final desktopScale = _desktopUiScale(prefs: prefs);
     final cardWidth = isMobile ? 140.0 : 170.0 * desktopScale;
+    const padding = EdgeInsets.fromLTRB(4, _kDetailRowTopInset, 4, 4);
+
+    var tallestCard = 0.0;
+    for (final item in items) {
+      final cardHeight = MediaCard.layoutHeight(
+        context,
+        width: cardWidth,
+        aspectRatio: MediaCard.aspectRatioForType(item.type),
+        hasSubtitle: item.subtitle?.isNotEmpty ?? false,
+      );
+      if (cardHeight > tallestCard) tallestCard = cardHeight;
+    }
 
     return SizedBox(
-      height: isMobile ? 230 : 280 * desktopScale,
+      height: tallestCard + padding.vertical,
       child: ListView.separated(
         controller: scrollController,
         scrollDirection: Axis.horizontal,
         clipBehavior: Clip.none,
-        padding: const EdgeInsets.fromLTRB(4, _kDetailRowTopInset, 4, 4),
+        padding: padding,
         itemCount: items.length,
         separatorBuilder: (_, _) =>
             SizedBox(width: isMobile ? 8 : 12 * desktopScale),

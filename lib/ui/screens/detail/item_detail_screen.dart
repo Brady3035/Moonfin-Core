@@ -91,6 +91,7 @@ import '../../widgets/seerr/seerr_status_dot.dart';
 import '../../widgets/seerr/seerr_status_pill.dart';
 import '../../widgets/change_artwork_dialog.dart';
 import '../../widgets/navigation_layout.dart';
+import '../../widgets/bottom_nav/bottom_navbar.dart';
 import '../../widgets/horizontal_scroll_section.dart';
 import '../../widgets/rating_display.dart';
 import '../../widgets/personal_rating_dialog.dart';
@@ -1637,7 +1638,7 @@ class _DetailContentState extends State<_DetailContent> {
                             _isCompact(context) ? 16 : 48,
                             0,
                             _isCompact(context) ? 16 : 48,
-                            (MediaQuery.of(context).padding.bottom + 48.0) *
+                            (bottomContentInset(context) + 48.0) *
                                 _desktopUiScale(),
                           ),
                     sliver: isAlbumOrPlaylist

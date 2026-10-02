@@ -23,7 +23,9 @@ class _DetailsScreenSettingsScreenState
 
   @override
   Widget build(BuildContext context) {
-    final bottomPad = PlatformDetection.isTV ? 96.0 : 24.0;
+    final bottomPad =
+        (PlatformDetection.isTV ? 96.0 : 24.0) +
+        MediaQuery.paddingOf(context).bottom;
     final l10n = AppLocalizations.of(context);
     final prefs = GetIt.instance<UserPreferences>();
     return Scaffold(

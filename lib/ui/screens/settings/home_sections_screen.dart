@@ -2427,6 +2427,9 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen>
             );
           },
         ),
+        SliverToBoxAdapter(
+          child: SizedBox(height: 16 + MediaQuery.paddingOf(context).bottom),
+        ),
       ],
     );
   }

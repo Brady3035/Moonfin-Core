@@ -33,6 +33,7 @@ import '../../../data/services/media_server_client_factory.dart';
 import '../../../data/services/plugin_sync_service.dart';
 import '../../../data/services/user_data_sync.dart';
 import '../../../data/services/connectivity_service.dart';
+import '../../../data/services/log_service.dart';
 import '../../../data/utils/media_type_badges.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../playback/appletv_preview_player.dart';
@@ -1786,6 +1787,16 @@ class _ContentRowsState extends State<_ContentRows>
       );
       final previewVolume = kIsWeb ? 0.0 : (previewAudioEnabled ? 100.0 : 0.0);
       final useMedia3 = _useMedia3InlinePreview();
+      final backend = useMedia3
+          ? 'Media3'
+          : PlatformDetection.useApplePreviewPlayer
+          ? 'AVPlayer'
+          : 'media_kit';
+      final sourceProtocol = target.mediaSources.firstOrNull?['Protocol'];
+      _logPreview(
+        'item ${target.id}, ${sourceProtocol ?? 'unknown'} source, start at '
+        '${seekPosition.inSeconds}s on $backend, $previewUrl',
+      );
       await _audioArbiter.acquire(AudioProducer.inlinePreview);
 
       if (!_isPreviewRequestActive(requestId, previewKey)) {
@@ -1861,6 +1872,7 @@ class _ContentRowsState extends State<_ContentRows>
       }
       _previewStopTimer = Timer(const Duration(seconds: 30), () {
         if (requestId == _previewRequestId && _activePreviewKey == previewKey) {
+          _logPreview('stopping at the 30 second limit');
           _finishSharedPreview();
         }
       });
@@ -1868,11 +1880,20 @@ class _ContentRowsState extends State<_ContentRows>
       if (_isPreviewRequestActive(requestId, previewKey)) {
         _previewReady = true;
       }
-    } catch (_) {
+    } catch (e) {
       if (_isPreviewRequestActive(requestId, previewKey)) {
+        _logPreview('could not start', error: e);
         _finishSharedPreview();
       }
     }
+  }
+
+  void _logPreview(String message, {Object? error}) {
+    if (!GetIt.instance.isRegistered<LogService>()) return;
+    GetIt.instance<LogService>().playback(
+      'Home preview: $message',
+      error: error,
+    );
   }
 
   AppleTvPreviewPlayer _ensureAppleTvSharedPreviewPlayer() {

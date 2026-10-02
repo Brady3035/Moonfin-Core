@@ -9962,6 +9962,10 @@ class AppLocalizationsCy extends AppLocalizations {
       'Ymddiried mewn gweinyddion sy\'n defnyddio tystysgrifau TLS hunanlofnodedig neu rai o CA preifat. Galluogwch hyn ar gyfer gweinyddion rydych chi\'n eu rheoli yn unig. Mae hyn yn analluogi dilysu tystysgrifau ar gyfer pob cysylltiad.';
 
   @override
+  String get untrustedServerCertificate =>
+      'This server\'s certificate isn\'t trusted. If it\'s your own server and uses a self-signed or private certificate, you can allow it here.';
+
+  @override
   String get settingsPrivacyAndSafetySection => 'PREIFATRWYDD A DIOGELWCH';
 
   @override

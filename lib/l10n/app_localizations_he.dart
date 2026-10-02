@@ -9796,6 +9796,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'תן אמון בשרתים המשתמשים בתעודות TLS בחתימה עצמית או מרשות אישורים פרטית. הפעל רק עבור שרתים שבשליטתך. פעולה זו משביתה את אימות התעודות בכל החיבורים.';
 
   @override
+  String get untrustedServerCertificate =>
+      'This server\'s certificate isn\'t trusted. If it\'s your own server and uses a self-signed or private certificate, you can allow it here.';
+
+  @override
   String get settingsPrivacyAndSafetySection => 'פרטיות ובטיחות';
 
   @override

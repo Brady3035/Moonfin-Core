@@ -10032,6 +10032,10 @@ class AppLocalizationsRo extends AppLocalizations {
       'Ai încredere în serverele care folosesc certificate TLS autosemnate sau emise de o autoritate privată. Activează doar pentru serverele pe care le controlezi. Această opțiune dezactivează validarea certificatelor pentru toate conexiunile.';
 
   @override
+  String get untrustedServerCertificate =>
+      'This server\'s certificate isn\'t trusted. If it\'s your own server and uses a self-signed or private certificate, you can allow it here.';
+
+  @override
   String get settingsPrivacyAndSafetySection =>
       'CONFIDENȚIALITATE ȘI SIGURANȚĂ';
 

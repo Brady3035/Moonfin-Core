@@ -9992,6 +9992,10 @@ class AppLocalizationsSq extends AppLocalizations {
       'Beso serverët që përdorin certifikata TLS të vetënënshkruara ose me CA private. Aktivizoje vetëm për serverët që kontrollon vetë. Kjo çaktivizon vlerësimin e certifikatave për të gjitha lidhjet.';
 
   @override
+  String get untrustedServerCertificate =>
+      'This server\'s certificate isn\'t trusted. If it\'s your own server and uses a self-signed or private certificate, you can allow it here.';
+
+  @override
   String get settingsPrivacyAndSafetySection => 'PRIVACIA DHE SIGURIA';
 
   @override

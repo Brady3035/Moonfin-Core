@@ -9920,6 +9920,10 @@ class AppLocalizationsId extends AppLocalizations {
       'Percayai server yang menggunakan sertifikat TLS yang ditandatangani sendiri atau dari CA privat. Aktifkan hanya untuk server yang Anda kendalikan. Opsi ini menonaktifkan validasi sertifikat untuk semua koneksi.';
 
   @override
+  String get untrustedServerCertificate =>
+      'This server\'s certificate isn\'t trusted. If it\'s your own server and uses a self-signed or private certificate, you can allow it here.';
+
+  @override
   String get settingsPrivacyAndSafetySection => 'PRIVASI & KEAMANAN';
 
   @override

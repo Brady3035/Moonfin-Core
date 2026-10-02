@@ -9880,6 +9880,10 @@ class AppLocalizationsPa extends AppLocalizations {
       'ਸਵੈ-ਹਸਤਾਖਰਿਤ ਜਾਂ ਪ੍ਰਾਈਵੇਟ-CA TLS ਸਰਟੀਫਿਕੇਟ ਵਰਤਣ ਵਾਲੇ ਸਰਵਰਾਂ \'ਤੇ ਭਰੋਸਾ ਕਰੋ। ਸਿਰਫ ਉਹਨਾਂ ਸਰਵਰਾਂ ਲਈ ਸਮਰੱਥ ਕਰੋ ਜਿਨ੍ਹਾਂ ਨੂੰ ਤੁਸੀਂ ਕੰਟਰੋਲ ਕਰਦੇ ਹੋ। ਇਹ ਸਾਰੇ ਕਨੈਕਸ਼ਨਾਂ ਲਈ ਸਰਟੀਫਿਕੇਟ ਪ੍ਰਮਾਣਿਕਤਾ ਅਯੋਗ ਕਰਦਾ ਹੈ।';
 
   @override
+  String get untrustedServerCertificate =>
+      'This server\'s certificate isn\'t trusted. If it\'s your own server and uses a self-signed or private certificate, you can allow it here.';
+
+  @override
   String get settingsPrivacyAndSafetySection => 'ਗੋਪਨੀਯਤਾ ਅਤੇ ਸੁਰੱਖਿਆ';
 
   @override

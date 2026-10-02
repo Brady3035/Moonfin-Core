@@ -9856,6 +9856,10 @@ class AppLocalizationsTh extends AppLocalizations {
       'เชื่อถือเซิร์ฟเวอร์ที่ใช้ใบรับรอง TLS แบบลงนามด้วยตนเองหรือจาก CA ส่วนตัว เปิดใช้เฉพาะกับเซิร์ฟเวอร์ที่คุณควบคุมเท่านั้น การตั้งค่านี้จะปิดการตรวจสอบใบรับรองสำหรับทุกการเชื่อมต่อ';
 
   @override
+  String get untrustedServerCertificate =>
+      'This server\'s certificate isn\'t trusted. If it\'s your own server and uses a self-signed or private certificate, you can allow it here.';
+
+  @override
   String get settingsPrivacyAndSafetySection => 'ความเป็นส่วนตัวและความปลอดภัย';
 
   @override

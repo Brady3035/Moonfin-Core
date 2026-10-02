@@ -9586,6 +9586,10 @@ class AppLocalizationsZh extends AppLocalizations {
       '信任使用自签名或私有 CA TLS 证书的服务器。仅对您控制的服务器启用。这会禁用所有连接的证书验证。';
 
   @override
+  String get untrustedServerCertificate =>
+      'This server\'s certificate isn\'t trusted. If it\'s your own server and uses a self-signed or private certificate, you can allow it here.';
+
+  @override
   String get settingsPrivacyAndSafetySection => '隐私与安全';
 
   @override

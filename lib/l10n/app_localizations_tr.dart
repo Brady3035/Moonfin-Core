@@ -9924,6 +9924,10 @@ class AppLocalizationsTr extends AppLocalizations {
       'Kendinden imzalı veya özel CA (Sertifika Yetkilisi) TLS sertifikaları kullanan sunuculara güvenin. Bunu yalnızca kontrolünüz altındaki sunucular için etkinleştirin. Bu işlem, tüm bağlantılar için sertifika doğrulamasını devre dışı bırakır.';
 
   @override
+  String get untrustedServerCertificate =>
+      'This server\'s certificate isn\'t trusted. If it\'s your own server and uses a self-signed or private certificate, you can allow it here.';
+
+  @override
   String get settingsPrivacyAndSafetySection => 'GİZLİLİK & GÜVENLİK';
 
   @override

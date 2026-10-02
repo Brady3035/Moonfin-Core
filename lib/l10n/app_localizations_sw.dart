@@ -9981,6 +9981,10 @@ class AppLocalizationsSw extends AppLocalizations {
       'Amini seva zinazotumia vyeti vya TLS vilivyojitia saini au vya CA binafsi. Washa kwa seva unazodhibiti pekee. Hii huzima uthibitishaji wa vyeti kwa miunganisho yote.';
 
   @override
+  String get untrustedServerCertificate =>
+      'This server\'s certificate isn\'t trusted. If it\'s your own server and uses a self-signed or private certificate, you can allow it here.';
+
+  @override
   String get settingsPrivacyAndSafetySection => 'FARAGHA NA USALAMA';
 
   @override

@@ -9857,6 +9857,10 @@ class AppLocalizationsFa extends AppLocalizations {
       'به سرورهایی که از گواهی‌های TLS خودامضا یا CA خصوصی استفاده می‌کنند اعتماد کنید. فقط برای سرورهایی که خودتان کنترل می‌کنید فعال کنید. این کار اعتبارسنجی گواهی را برای همه اتصال‌ها غیرفعال می‌کند.';
 
   @override
+  String get untrustedServerCertificate =>
+      'This server\'s certificate isn\'t trusted. If it\'s your own server and uses a self-signed or private certificate, you can allow it here.';
+
+  @override
   String get settingsPrivacyAndSafetySection => 'حریم خصوصی و ایمنی';
 
   @override

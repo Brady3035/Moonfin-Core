@@ -10033,6 +10033,10 @@ class AppLocalizationsGl extends AppLocalizations {
       'Confía nos servidores que usan certificados TLS autoasinados ou dunha CA privada. Actívao só para os servidores que controles. Isto desactiva a validación de certificados en todas as conexións.';
 
   @override
+  String get untrustedServerCertificate =>
+      'This server\'s certificate isn\'t trusted. If it\'s your own server and uses a self-signed or private certificate, you can allow it here.';
+
+  @override
   String get settingsPrivacyAndSafetySection => 'PRIVACIDADE E SEGURIDADE';
 
   @override

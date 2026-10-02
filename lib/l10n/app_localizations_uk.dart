@@ -9983,6 +9983,10 @@ class AppLocalizationsUk extends AppLocalizations {
       'Довіряти серверам із самопідписаними сертифікатами TLS або сертифікатами приватного ЦС. Вмикайте лише для серверів, які ви контролюєте. Це вимикає перевірку сертифікатів для всіх підключень.';
 
   @override
+  String get untrustedServerCertificate =>
+      'This server\'s certificate isn\'t trusted. If it\'s your own server and uses a self-signed or private certificate, you can allow it here.';
+
+  @override
   String get settingsPrivacyAndSafetySection => 'КОНФІДЕНЦІЙНІСТЬ ТА БЕЗПЕКА';
 
   @override

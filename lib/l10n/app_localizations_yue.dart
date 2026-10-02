@@ -9624,6 +9624,10 @@ class AppLocalizationsYue extends AppLocalizations {
       '信任使用自簽或者私人 CA TLS 憑證嘅伺服器。淨係喺你自己控制嘅伺服器先好開。呢個會停用所有連線嘅憑證驗證。';
 
   @override
+  String get untrustedServerCertificate =>
+      'This server\'s certificate isn\'t trusted. If it\'s your own server and uses a self-signed or private certificate, you can allow it here.';
+
+  @override
   String get settingsPrivacyAndSafetySection => '隱私與安全';
 
   @override

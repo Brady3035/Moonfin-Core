@@ -9918,6 +9918,10 @@ class AppLocalizationsAf extends AppLocalizations {
       'Vertrou bedieners wat selfondertekende of privaat-CA TLS-sertifikate gebruik. Aktiveer dit slegs vir bedieners wat jy self beheer. Dit skakel sertifikaatvalidering vir alle verbindings af.';
 
   @override
+  String get untrustedServerCertificate =>
+      'This server\'s certificate isn\'t trusted. If it\'s your own server and uses a self-signed or private certificate, you can allow it here.';
+
+  @override
   String get settingsPrivacyAndSafetySection => 'PRIVAATHEID EN VEILIGHEID';
 
   @override

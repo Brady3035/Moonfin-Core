@@ -9969,6 +9969,10 @@ class AppLocalizationsSk extends AppLocalizations {
       'Dôverovať serverom s vlastnoručne podpísanými certifikátmi TLS alebo s certifikátmi zo súkromnej certifikačnej autority. Zapnite len pre servery, ktoré spravujete. Vypne sa tým overovanie certifikátov pre všetky pripojenia.';
 
   @override
+  String get untrustedServerCertificate =>
+      'This server\'s certificate isn\'t trusted. If it\'s your own server and uses a self-signed or private certificate, you can allow it here.';
+
+  @override
   String get settingsPrivacyAndSafetySection => 'SÚKROMIE A BEZPEČNOSŤ';
 
   @override

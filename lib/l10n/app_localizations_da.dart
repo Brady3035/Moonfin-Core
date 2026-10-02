@@ -9909,6 +9909,10 @@ class AppLocalizationsDa extends AppLocalizations {
       'Stol på servere, der bruger selvsignerede TLS-certifikater eller certifikater fra en privat CA. Aktivér kun for servere, du selv kontrollerer. Dette deaktiverer certifikatvalidering for alle forbindelser.';
 
   @override
+  String get untrustedServerCertificate =>
+      'This server\'s certificate isn\'t trusted. If it\'s your own server and uses a self-signed or private certificate, you can allow it here.';
+
+  @override
   String get settingsPrivacyAndSafetySection => 'FORTROLIGHED OG SIKKERHED';
 
   @override

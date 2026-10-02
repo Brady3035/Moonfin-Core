@@ -9953,6 +9953,10 @@ class AppLocalizationsKk extends AppLocalizations {
       'Өздігінен қол қойылған немесе жеке ЦС берген TLS сертификаттарын пайдаланатын серверлерге сену. Тек өзіңіз басқаратын серверлер үшін қосыңыз. Бұл барлық қосылым үшін сертификатты тексеруді өшіреді.';
 
   @override
+  String get untrustedServerCertificate =>
+      'This server\'s certificate isn\'t trusted. If it\'s your own server and uses a self-signed or private certificate, you can allow it here.';
+
+  @override
   String get settingsPrivacyAndSafetySection => 'ҚҰПИЯЛЫҚ ЖӘНЕ ҚАУІПСІЗДІК';
 
   @override

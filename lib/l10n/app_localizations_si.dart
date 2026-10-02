@@ -9903,6 +9903,10 @@ class AppLocalizationsSi extends AppLocalizations {
       'ස්වයං-අත්සන් කළ හෝ පෞද්ගලික-CA TLS සහතික භාවිත කරන සේවාදායක විශ්වාස කරන්න. ඔබ පාලනය කරන සේවාදායක සඳහා පමණක් සබල කරන්න. මෙය සියලු සම්බන්ධතා සඳහා සහතික වලංගුකරණය අබල කරයි.';
 
   @override
+  String get untrustedServerCertificate =>
+      'This server\'s certificate isn\'t trusted. If it\'s your own server and uses a self-signed or private certificate, you can allow it here.';
+
+  @override
   String get settingsPrivacyAndSafetySection => 'පෞද්ගලිකත්වය සහ ආරක්ෂාව';
 
   @override

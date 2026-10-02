@@ -9657,6 +9657,10 @@ class AppLocalizationsKo extends AppLocalizations {
       '자체 서명 또는 사설 CA TLS 인증서를 사용하는 서버를 신뢰합니다. 직접 관리하는 서버에만 사용하세요. 이 설정을 켜면 모든 연결에서 인증서 검증이 해제됩니다.';
 
   @override
+  String get untrustedServerCertificate =>
+      'This server\'s certificate isn\'t trusted. If it\'s your own server and uses a self-signed or private certificate, you can allow it here.';
+
+  @override
   String get settingsPrivacyAndSafetySection => '개인정보 보호 및 안전';
 
   @override

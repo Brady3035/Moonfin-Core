@@ -9974,6 +9974,10 @@ class AppLocalizationsTe extends AppLocalizations {
       'సెల్ఫ్-సైన్డ్ లేదా ప్రైవేట్-CA TLS సర్టిఫికేట్‌లను ఉపయోగించే సర్వర్‌లను విశ్వసించండి. మీరు నియంత్రించే సర్వర్‌లకు మాత్రమే ప్రారంభించండి. ఇది అన్ని కనెక్షన్‌లకు సర్టిఫికేట్ ధ్రువీకరణను నిలిపివేస్తుంది.';
 
   @override
+  String get untrustedServerCertificate =>
+      'This server\'s certificate isn\'t trusted. If it\'s your own server and uses a self-signed or private certificate, you can allow it here.';
+
+  @override
   String get settingsPrivacyAndSafetySection => 'గోప్యత & భద్రత';
 
   @override

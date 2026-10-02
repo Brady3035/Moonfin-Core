@@ -10007,6 +10007,10 @@ class AppLocalizationsTl extends AppLocalizations {
       'Pagkatiwalaan ang mga server na gumagamit ng self-signed o private-CA na TLS certificate. I-enable lang para sa mga server na kontrolado mo. Ide-disable nito ang certificate validation para sa lahat ng koneksyon.';
 
   @override
+  String get untrustedServerCertificate =>
+      'This server\'s certificate isn\'t trusted. If it\'s your own server and uses a self-signed or private certificate, you can allow it here.';
+
+  @override
   String get settingsPrivacyAndSafetySection => 'PRIVACY at KALIGTASAN';
 
   @override

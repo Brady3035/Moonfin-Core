@@ -9978,6 +9978,10 @@ class AppLocalizationsMk extends AppLocalizations {
       'Верувај им на серверите што користат самопотпишани TLS сертификати или сертификати од приватен CA. Овозможете само за сервери што ги контролирате. Ова ја оневозможува проверката на сертификатите за сите врски.';
 
   @override
+  String get untrustedServerCertificate =>
+      'This server\'s certificate isn\'t trusted. If it\'s your own server and uses a self-signed or private certificate, you can allow it here.';
+
+  @override
   String get settingsPrivacyAndSafetySection => 'ПРИВАТНОСТ И БЕЗБЕДНОСТ';
 
   @override

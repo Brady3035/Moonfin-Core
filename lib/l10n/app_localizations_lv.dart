@@ -9961,6 +9961,10 @@ class AppLocalizationsLv extends AppLocalizations {
       'Uzticēties serveriem, kas izmanto pašparakstītus vai privātas CA TLS sertifikātus. Iespējojiet tikai saviem serveriem. Tas atspējo sertifikātu pārbaudi visiem savienojumiem.';
 
   @override
+  String get untrustedServerCertificate =>
+      'This server\'s certificate isn\'t trusted. If it\'s your own server and uses a self-signed or private certificate, you can allow it here.';
+
+  @override
   String get settingsPrivacyAndSafetySection => 'PRIVĀTUMS UN DROŠĪBA';
 
   @override

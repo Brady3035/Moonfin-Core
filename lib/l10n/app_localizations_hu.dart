@@ -9995,6 +9995,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Bízz meg az önaláírt vagy privát hitelesítésszolgáltatótól (CA) származó TLS-tanúsítványokat használó szerverekben. Csak az általad felügyelt szervereknél engedélyezd. Ez letiltja a tanúsítványok ellenőrzését minden kapcsolatnál.';
 
   @override
+  String get untrustedServerCertificate =>
+      'This server\'s certificate isn\'t trusted. If it\'s your own server and uses a self-signed or private certificate, you can allow it here.';
+
+  @override
   String get settingsPrivacyAndSafetySection => 'ADATVÉDELEM ÉS BIZTONSÁG';
 
   @override

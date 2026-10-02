@@ -9681,6 +9681,10 @@ class AppLocalizationsJa extends AppLocalizations {
       '自己署名またはプライベート CA の TLS 証明書を使うサーバーを信頼します。ご自身が管理するサーバーでのみ有効にしてください。この設定はすべての接続で証明書の検証を無効にします。';
 
   @override
+  String get untrustedServerCertificate =>
+      'This server\'s certificate isn\'t trusted. If it\'s your own server and uses a self-signed or private certificate, you can allow it here.';
+
+  @override
   String get settingsPrivacyAndSafetySection => 'プライバシーと安全性';
 
   @override

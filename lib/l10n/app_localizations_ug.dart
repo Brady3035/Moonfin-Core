@@ -9940,6 +9940,10 @@ class AppLocalizationsUg extends AppLocalizations {
       'ئۆزى ئىمزالانغان ياكى شەخسىي CA TLS گۇۋاھنامىسى ئىشلىتىدىغان مۇلازىمېتىرلارغا ئىشىنىدۇ. پەقەت ئۆزىڭىز باشقۇرىدىغان مۇلازىمېتىرلار ئۈچۈنلا قوزغىتىڭ. بۇ بارلىق ئۇلىنىشلاردا گۇۋاھنامە دەلىللەشنى تاقايدۇ.';
 
   @override
+  String get untrustedServerCertificate =>
+      'This server\'s certificate isn\'t trusted. If it\'s your own server and uses a self-signed or private certificate, you can allow it here.';
+
+  @override
   String get settingsPrivacyAndSafetySection => 'شەخسىيەت ۋە بىخەتەرلىك';
 
   @override

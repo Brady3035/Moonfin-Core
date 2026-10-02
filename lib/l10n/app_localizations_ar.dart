@@ -9898,6 +9898,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'الوثوق بالخوادم التي تستخدم شهادات TLS موقّعة ذاتيًا أو صادرة عن مرجع خاص. فعّل هذا الخيار للخوادم التي تتحكم بها فقط. يؤدي ذلك إلى تعطيل التحقق من الشهادات لجميع الاتصالات.';
 
   @override
+  String get untrustedServerCertificate =>
+      'This server\'s certificate isn\'t trusted. If it\'s your own server and uses a self-signed or private certificate, you can allow it here.';
+
+  @override
   String get settingsPrivacyAndSafetySection => 'الخصوصية والأمان';
 
   @override

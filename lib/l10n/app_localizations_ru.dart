@@ -9982,6 +9982,10 @@ class AppLocalizationsRu extends AppLocalizations {
       'Доверять серверам с самоподписанными сертификатами TLS или сертификатами частного центра. Включайте только для своих серверов: проверка сертификатов отключится для всех подключений.';
 
   @override
+  String get untrustedServerCertificate =>
+      'This server\'s certificate isn\'t trusted. If it\'s your own server and uses a self-signed or private certificate, you can allow it here.';
+
+  @override
   String get settingsPrivacyAndSafetySection =>
       'КОНФИДЕНЦИАЛЬНОСТЬ И БЕЗОПАСНОСТЬ';
 

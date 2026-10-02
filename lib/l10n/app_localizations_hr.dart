@@ -10127,6 +10127,10 @@ class AppLocalizationsHr extends AppLocalizations {
       'Vjeruj poslužiteljima koji koriste samopotpisane certifikate ili certifikate privatnog CA-a. Omogućite samo za poslužitelje koje kontrolirate. Ovime se onemogućuje provjera certifikata za sve veze.';
 
   @override
+  String get untrustedServerCertificate =>
+      'This server\'s certificate isn\'t trusted. If it\'s your own server and uses a self-signed or private certificate, you can allow it here.';
+
+  @override
   String get settingsPrivacyAndSafetySection => 'PRIVATNOST I SIGURNOST';
 
   @override

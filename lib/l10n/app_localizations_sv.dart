@@ -9923,6 +9923,10 @@ class AppLocalizationsSv extends AppLocalizations {
       'Lita på servrar som använder självsignerade TLS-certifikat eller certifikat från en privat CA. Aktivera bara för servrar du själv styr. Det här inaktiverar certifikatvalidering för alla anslutningar.';
 
   @override
+  String get untrustedServerCertificate =>
+      'This server\'s certificate isn\'t trusted. If it\'s your own server and uses a self-signed or private certificate, you can allow it here.';
+
+  @override
   String get settingsPrivacyAndSafetySection => 'SEKRETESS OCH SÄKERHET';
 
   @override

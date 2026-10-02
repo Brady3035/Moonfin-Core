@@ -11,7 +11,6 @@ import '../data/models/series_track_preference.dart';
 import '../playback/audio_capability_profile.dart';
 import '../util/device_performance.dart';
 import '../util/idiom/app_ui_idiom.dart';
-import '../util/insecure_certificates.dart';
 import '../util/language_matching.dart';
 import '../util/platform_detection.dart';
 import 'home_section_config.dart';
@@ -57,14 +56,6 @@ class UserPreferences extends ChangeNotifier {
     _enforceMediaQueuingAlwaysOn();
     _seedClockFormatFromSystem();
     _migrateScreensaverPreferences();
-    _syncInsecureCertificateFlag();
-  }
-
-  // Prime the native bad-certificate override with the stored opt-in so the
-  // choice survives restarts. The toggle keeps [gAllowSelfSignedCertificates]
-  // in sync while the app runs; this covers the value at launch.
-  void _syncInsecureCertificateFlag() {
-    gAllowSelfSignedCertificates = get(allowSelfSignedCerts);
   }
 
   // Carry over the pre-rename jellyseerr* preference keys to their seerr* names.

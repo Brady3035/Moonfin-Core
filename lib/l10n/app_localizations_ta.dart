@@ -9981,6 +9981,10 @@ class AppLocalizationsTa extends AppLocalizations {
       'சுய-கையொப்பமிட்ட அல்லது தனிப்பட்ட-CA TLS சான்றிதழ்களைப் பயன்படுத்தும் சர்வர்களை நம்பும். நீங்கள் கட்டுப்படுத்தும் சர்வர்களுக்கு மட்டும் இயக்கவும். இது எல்லா இணைப்புகளுக்கும் சான்றிதழ் சரிபார்ப்பை முடக்கும்.';
 
   @override
+  String get untrustedServerCertificate =>
+      'This server\'s certificate isn\'t trusted. If it\'s your own server and uses a self-signed or private certificate, you can allow it here.';
+
+  @override
   String get settingsPrivacyAndSafetySection => 'தனியுரிமை & பாதுகாப்பு';
 
   @override

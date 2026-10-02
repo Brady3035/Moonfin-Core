@@ -10035,6 +10035,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Faire confiance aux serveurs utilisant des certificats TLS auto-signés ou émis par une autorité privée. N\'activez cette option que pour les serveurs que vous contrôlez. Elle désactive la validation des certificats pour toutes les connexions.';
 
   @override
+  String get untrustedServerCertificate =>
+      'This server\'s certificate isn\'t trusted. If it\'s your own server and uses a self-signed or private certificate, you can allow it here.';
+
+  @override
   String get settingsPrivacyAndSafetySection => 'CONFIDENTIALITÉ ET SÉCURITÉ';
 
   @override

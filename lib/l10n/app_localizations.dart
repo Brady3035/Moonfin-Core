@@ -17548,6 +17548,12 @@ abstract class AppLocalizations {
   /// **'Trust servers using self-signed or private-CA TLS certificates. Only enable for servers you control. This disables certificate validation for all connections.'**
   String get settingsAllowSelfSignedCertsSubtitle;
 
+  /// Shown on the sign-in screens when a server's TLS certificate is rejected, above a button that turns on Allow self-signed certificates
+  ///
+  /// In en, this message translates to:
+  /// **'This server\'s certificate isn\'t trusted. If it\'s your own server and uses a self-signed or private certificate, you can allow it here.'**
+  String get untrustedServerCertificate;
+
   /// No description provided for @settingsPrivacyAndSafetySection.
   ///
   /// In en, this message translates to:

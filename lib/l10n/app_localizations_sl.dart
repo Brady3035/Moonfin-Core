@@ -9964,6 +9964,10 @@ class AppLocalizationsSl extends AppLocalizations {
       'Zaupaj strežnikom s samopodpisanimi potrdili TLS ali potrdili zasebnega overitelja. Omogočite samo za strežnike, ki jih upravljate sami. S tem onemogočite preverjanje potrdil za vse povezave.';
 
   @override
+  String get untrustedServerCertificate =>
+      'This server\'s certificate isn\'t trusted. If it\'s your own server and uses a self-signed or private certificate, you can allow it here.';
+
+  @override
   String get settingsPrivacyAndSafetySection => 'ZASEBNOST IN VARNOST';
 
   @override

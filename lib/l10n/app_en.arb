@@ -9705,6 +9705,10 @@
   "@settingsAllowSelfSignedCertsSubtitle": {
     "description": "Description for the allow self-signed certificates setting"
   },
+  "untrustedServerCertificate": "This server's certificate isn't trusted. If it's your own server and uses a self-signed or private certificate, you can allow it here.",
+  "@untrustedServerCertificate": {
+    "description": "Shown on the sign-in screens when a server's TLS certificate is rejected, above a button that turns on Allow self-signed certificates"
+  },
   "settingsPrivacyAndSafetySection": "PRIVACY & SAFETY",
   "itemBlockedByParentalControls": "This isn't available",
   "@itemBlockedByParentalControls": {

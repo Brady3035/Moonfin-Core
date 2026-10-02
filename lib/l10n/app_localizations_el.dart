@@ -10046,6 +10046,10 @@ class AppLocalizationsEl extends AppLocalizations {
       'Εμπιστοσύνη σε διακομιστές που χρησιμοποιούν αυτο-υπογεγραμμένα πιστοποιητικά TLS ή πιστοποιητικά ιδιωτικής CA. Ενεργοποιήστε το μόνο για διακομιστές που ελέγχετε εσείς. Απενεργοποιεί την επαλήθευση πιστοποιητικών για όλες τις συνδέσεις.';
 
   @override
+  String get untrustedServerCertificate =>
+      'This server\'s certificate isn\'t trusted. If it\'s your own server and uses a self-signed or private certificate, you can allow it here.';
+
+  @override
   String get settingsPrivacyAndSafetySection => 'ΑΠΟΡΡΗΤΟ ΚΑΙ ΑΣΦΑΛΕΙΑ';
 
   @override

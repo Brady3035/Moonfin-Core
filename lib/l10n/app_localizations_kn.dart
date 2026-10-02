@@ -9973,6 +9973,10 @@ class AppLocalizationsKn extends AppLocalizations {
       'ಸ್ವಯಂ-ಸಹಿ ಮಾಡಿದ ಅಥವಾ ಖಾಸಗಿ-CA TLS ಪ್ರಮಾಣಪತ್ರಗಳನ್ನು ಬಳಸುವ ಸರ್ವರ್‌ಗಳನ್ನು ನಂಬಿರಿ. ನೀವು ನಿಯಂತ್ರಿಸುವ ಸರ್ವರ್‌ಗಳಿಗೆ ಮಾತ್ರ ಸಕ್ರಿಯಗೊಳಿಸಿ. ಇದು ಎಲ್ಲಾ ಸಂಪರ್ಕಗಳಿಗೆ ಪ್ರಮಾಣಪತ್ರ ಮೌಲ್ಯೀಕರಣವನ್ನು ನಿಷ್ಕ್ರಿಯಗೊಳಿಸುತ್ತದೆ.';
 
   @override
+  String get untrustedServerCertificate =>
+      'This server\'s certificate isn\'t trusted. If it\'s your own server and uses a self-signed or private certificate, you can allow it here.';
+
+  @override
   String get settingsPrivacyAndSafetySection => 'ಗೌಪ್ಯತೆ ಮತ್ತು ಸುರಕ್ಷತೆ';
 
   @override

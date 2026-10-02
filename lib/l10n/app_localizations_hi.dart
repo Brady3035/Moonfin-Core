@@ -9888,6 +9888,10 @@ class AppLocalizationsHi extends AppLocalizations {
       'सेल्फ़-साइन्ड या निजी-CA TLS प्रमाणपत्र वाले सर्वरों पर भरोसा करें। इसे केवल अपने नियंत्रण वाले सर्वरों के लिए चालू करें। इससे सभी कनेक्शनों के लिए प्रमाणपत्र सत्यापन बंद हो जाता है।';
 
   @override
+  String get untrustedServerCertificate =>
+      'This server\'s certificate isn\'t trusted. If it\'s your own server and uses a self-signed or private certificate, you can allow it here.';
+
+  @override
   String get settingsPrivacyAndSafetySection => 'गोपनीयता एवं सुरक्षा';
 
   @override

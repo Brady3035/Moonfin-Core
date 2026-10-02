@@ -10018,6 +10018,10 @@ class AppLocalizationsMl extends AppLocalizations {
       'സ്വയം-സൈൻ ചെയ്ത അല്ലെങ്കിൽ പ്രൈവറ്റ്-CA TLS സർട്ടിഫിക്കറ്റുകൾ ഉപയോഗിക്കുന്ന സെർവറുകളെ വിശ്വസിക്കുക. നിങ്ങൾ നിയന്ത്രിക്കുന്ന സെർവറുകൾക്ക് മാത്രം പ്രവർത്തനക്ഷമമാക്കുക. ഇത് എല്ലാ കണക്ഷനുകൾക്കുമുള്ള സർട്ടിഫിക്കറ്റ് മൂല്യനിർണ്ണയം പ്രവർത്തനരഹിതമാക്കുന്നു.';
 
   @override
+  String get untrustedServerCertificate =>
+      'This server\'s certificate isn\'t trusted. If it\'s your own server and uses a self-signed or private certificate, you can allow it here.';
+
+  @override
   String get settingsPrivacyAndSafetySection => 'സ്വകാര്യതയും സുരക്ഷയും';
 
   @override

@@ -9959,6 +9959,10 @@ class AppLocalizationsBe extends AppLocalizations {
       'Давяраць серверам з самападпісанымі сертыфікатамі TLS або сертыфікатамі прыватнага ЦС. Уключайце толькі для сервераў, якімі вы кіруеце. Гэта адключае праверку сертыфікатаў для ўсіх злучэнняў.';
 
   @override
+  String get untrustedServerCertificate =>
+      'This server\'s certificate isn\'t trusted. If it\'s your own server and uses a self-signed or private certificate, you can allow it here.';
+
+  @override
   String get settingsPrivacyAndSafetySection => 'КАНФІДЭНЦЫЯЛЬНАСЦЬ І БЯСПЕКА';
 
   @override

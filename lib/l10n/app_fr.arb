@@ -5862,7 +5862,7 @@
     "adminTaskTriggerEvery12Hours": "Toutes les 12 heures",
     "adminTaskTriggerEvery24Hours": "Toutes les 24 heures",
     "adminTaskTriggerEvery2Days": "Tous les 2 jours",
-    "adminTaskTriggerHours": "{count, plural, one{1 heure} other{{count} heures}}",
+    "adminTaskTriggerHours": "{count, plural, one{{count} heure} other{{count} heures}}",
     "@adminTaskTriggerHours": {
         "placeholders": {
             "count": {
@@ -7095,8 +7095,8 @@
     "useExternalPlayer": "Toujours utiliser un lecteur externe",
     "useExternalPlayerSubtitle": "Ouvrez la lecture vidéo dans votre application externe sélectionnée sur Android TV.",
     "automaticQueuing": "File d'attente automatique",
-    "preferSdhSubtitles": "Préférer les sous-titres SDH",
-    "preferSdhSubtitlesSubtitle": "Donnez la priorité aux pistes de sous-titres SDH/CC lors de la sélection automatique.",
+    "preferSdhSubtitles": "Préférer les sous-titres SME",
+    "preferSdhSubtitlesSubtitle": "Donnez la priorité aux pistes de sous-titres SME/CC lors de la sélection automatique.",
     "webDiagnostics": "Diagnostic Web",
     "webDiagnosticsTitle": "Moonfin Diagnostic Web",
     "webDiagnosticsIntro": "Utilisez cette page pour diagnostiquer les problèmes de connectivité du navigateur (CORS, contenu mixte et paramètres de découverte).",
@@ -7776,7 +7776,7 @@
     "@libraryWriteAccessHowToFix": {
         "description": "Section header for write access troubleshooting"
     },
-    "libraryWriteAccessFixSteps": "1. Accordez les permissions d'écriture à l'utilisateur du service Jellyfin (par exemple, jellyfin ou le PUID/PGID Docker) sur les dossiers de votre bibliothèque multimédia, côté serveur.\n\n2. Ou, dans le tableau de bord Jellyfin → Bibliothèques, modifiez cette bibliothèque et désactivez « Enregistrer les illustrations dans les dossiers multimédias » pour stocker les visuels dans la base de données interne de Jellyfin.",
+    "libraryWriteAccessFixSteps": "1. Accordez les permissions d'écriture à l'utilisateur du service Jellyfin (par exemple, jellyfin ou le PUID/PGID Docker) sur les dossiers de votre bibliothèque multimédia, côté serveur.\n\n2. Ou, dans le tableau de bord Jellyfin (Bibliothèques), modifiez cette bibliothèque et désactivez « Enregistrer les visuels dans les dossiers multimédias » pour stocker les visuels dans la base de données interne de Jellyfin.",
     "@libraryWriteAccessFixSteps": {
         "description": "Troubleshooting steps for write access issues"
     },
@@ -7796,7 +7796,7 @@
             }
         }
     },
-    "libraryWriteAccessReactiveBody": "Il semble que Jellyfin n'ait pas réussi à mettre à jour le visuel. Votre bibliothèque est configurée pour enregistrer les visuels directement dans les dossiers multimédias (l'option « Enregistrer les illustrations dans les dossiers multimédias » est activée). Cette erreur survient généralement lorsque le serveur Jellyfin n'a pas la permission d'écrire dans vos répertoires multimédias.",
+    "libraryWriteAccessReactiveBody": "Il semble que Jellyfin n'ait pas réussi à mettre à jour le visuel. Votre bibliothèque est configurée pour enregistrer les visuels directement dans les dossiers multimédias (l'option « Enregistrer les visuels dans les dossiers multimédias » est activée). Cette erreur survient généralement lorsque le serveur Jellyfin n'a pas la permission d'écrire dans vos répertoires multimédias.",
     "@libraryWriteAccessReactiveBody": {
         "description": "Reactive error warning message when artwork update fails"
     },
@@ -10052,7 +10052,7 @@
     "@adminPluginsNoneRequireRestart": {
         "description": "Empty state for the installed-plugin filter showing changes that require a server restart"
     },
-    "emulatorCoreResetSettings": "Réinitialiser les réglages {system} aux valeurs par défaut",
+    "emulatorCoreResetSettings": "Réinitialiser les paramètres {system} aux valeurs par défaut",
     "@emulatorCoreResetSettings": {
         "description": "Semantic label for the button that resets one core's saved emulator settings",
         "placeholders": {
@@ -10061,11 +10061,11 @@
             }
         }
     },
-    "emulatorCoreSettingsReset": "Réglages réinitialisés aux valeurs par défaut.",
+    "emulatorCoreSettingsReset": "Paramètres réinitialisés aux valeurs par défaut.",
     "@emulatorCoreSettingsReset": {
         "description": "Snackbar shown after resetting a core's saved emulator settings"
     },
-    "emulatorCoreResetSettingsFailed": "Impossible de réinitialiser les réglages. Vérifiez votre connexion et réessayez.",
+    "emulatorCoreResetSettingsFailed": "Impossible de réinitialiser les paramètres. Vérifiez votre connexion et réessayez.",
     "@emulatorCoreResetSettingsFailed": {
         "description": "Snackbar shown when resetting a core's saved emulator settings fails"
     },
@@ -10930,11 +10930,11 @@
     "@detailMetadata": {
         "description": "Settings screen for choosing and reordering details screen metadata items"
     },
-    "detailMetadataDescription": "Choisissez les métadonnées affichées sur la fiche et leur ordre",
+    "detailMetadataDescription": "Choisissez les métadonnées affichées sur l'écran de détails et leur ordre",
     "@detailMetadataDescription": {
         "description": "Subtitle for the details metadata settings tile"
     },
-    "detailMetadataSectionDescription": "Activez ou désactivez les métadonnées et organisez leur ordre d'affichage sur la fiche. Chaque type d'appareil conserve sa propre liste.",
+    "detailMetadataSectionDescription": "Activez ou désactivez les métadonnées et organisez leur ordre d'affichage sur l'écran de détails. Chaque type d'appareil conserve sa propre liste.",
     "@detailMetadataSectionDescription": {
         "description": "Explains how to customize and reorder details screen metadata items"
     },
@@ -11093,7 +11093,7 @@
     "@showSeerrAvailabilityBadges": {
         "description": "Setting title for showing Seerr availability badges on media details pages"
     },
-    "showSeerrAvailabilityBadgesDescription": "Affiche les badges de disponibilité des saisons sur les fiches des médias",
+    "showSeerrAvailabilityBadgesDescription": "Affiche les badges de disponibilité des saisons sur les écrans de détails des médias",
     "@showSeerrAvailabilityBadgesDescription": {
         "description": "Setting description for showing Seerr availability badges on media details pages"
     },
@@ -11210,9 +11210,9 @@
     "transcodeResolutionHint": "Astuce : augmentez « Résolution maximum » dans les paramètres de lecture pour autoriser la diffusion directe.",
     "transcodeVideoRangeNotSupported": "La plage dynamique de la vidéo (Dolby Vision, HDR…) n'est pas prise en charge par cet écran.",
     "transcodeDolbyVisionProfile7ElDisabled": "La lecture directe de la couche d'amélioration Dolby Vision Profil 7 est désactivée.",
-    "transcodeDolbyVisionProfile7ElHint": "Astuce : activez « Lecture directe Dolby Vision Profil 7 » dans les paramètres de lecture si votre écran le permet.",
+    "transcodeDolbyVisionProfile7ElHint": "Astuce : activez « Dolby Vision Profile 7 Lecture directe » dans les paramètres de lecture si votre écran le permet.",
     "transcodeDolbyVisionFallbackPreferenceTranscode": "Vos paramètres privilégient le transcodage comme solution secondaire pour le Dolby Vision.",
-    "transcodeDolbyVisionFallbackHint": "Astuce : réglez « Dolby Vision secondaire » sur « Lire en HDR10 » dans les paramètres de lecture pour éviter le transcodage.",
+    "transcodeDolbyVisionFallbackHint": "Astuce : réglez « Solution de repli Dolby Vision » sur « Lire en HDR10 » dans les paramètres de lecture pour éviter le transcodage.",
     "transcodeDisplayReportsNoHdr": "L'écran ne déclare aucune prise en charge du HDR ni du Dolby Vision.",
     "transcodeDisplayLacksHdr10ForFallback": "L'écran ne gère pas le HDR10, nécessaire au repli Dolby Vision.",
     "transcodeAudioSampleRateNotSupported": "La fréquence d'échantillonnage audio n'est pas prise en charge.",
@@ -11737,5 +11737,260 @@
     "activeDownloads": "Téléchargements en cours",
     "@activeDownloads": {
         "description": "Tab title for downloads that are transferring or queued"
+    },
+    "uiScaleGreatGrandparents": "Arrière-grand-mère",
+    "@uiScaleGreatGrandparents": {
+        "description": "UI scaling option above Grandparents"
+    },
+    "playbackStreamLost": "La lecture s'est interrompue et n'a pas pu reprendre.",
+    "@playbackStreamLost": {
+        "description": "Shown in place of an internal sentinel error code when playback gives up trying to recover a stalled or starved stream"
+    },
+    "liveReconnecting": "Reconnexion… ({attempt} sur {total})",
+    "@liveReconnecting": {
+        "description": "Overlay shown while a live channel's bounded recovery is retrying",
+        "placeholders": {
+            "attempt": {
+                "type": "int"
+            },
+            "total": {
+                "type": "int"
+            }
+        }
+    },
+    "savedMediaCount": "{count, plural, one{{count} élément} other{{count} éléments}}",
+    "@savedMediaCount": {
+        "description": "How many downloads the saved media list holds, shown beside the total size",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "savedMediaSelectItems": "Sélectionner des éléments",
+    "@savedMediaSelectItems": {
+        "description": "Overflow menu entry that turns on multi-select in the saved media list"
+    },
+    "savedMediaNoDownloads": "Aucun téléchargement pour l'instant",
+    "@savedMediaNoDownloads": {
+        "description": "Empty state title when no downloads are on the device"
+    },
+    "savedMediaNoDownloadsDetail": "Vos téléchargements apparaissent ici et se lisent sans connexion.",
+    "@savedMediaNoDownloadsDetail": {
+        "description": "Empty state body when no downloads are on the device"
+    },
+    "savedMediaNoActiveDownloads": "Aucun téléchargement en cours",
+    "@savedMediaNoActiveDownloads": {
+        "description": "Empty state for the active downloads tab"
+    },
+    "savedMediaNoResults": "Aucun téléchargement ne correspond à cette recherche",
+    "@savedMediaNoResults": {
+        "description": "Empty state when a search over saved media matches nothing"
+    },
+    "savedMediaPlayFromStart": "Lire depuis le début",
+    "@savedMediaPlayFromStart": {
+        "description": "Row menu action that restarts a partly watched download from the beginning"
+    },
+    "savedMediaGoToDetails": "Voir les détails",
+    "@savedMediaGoToDetails": {
+        "description": "Row menu action that opens the item's detail screen"
+    },
+    "savedMediaDeleteDownload": "Supprimer le téléchargement",
+    "@savedMediaDeleteDownload": {
+        "description": "Row menu action that removes one downloaded file from the device"
+    },
+    "savedMediaDeleteSeason": "Supprimer {season}",
+    "@savedMediaDeleteSeason": {
+        "description": "Menu action that removes every saved episode of one season",
+        "placeholders": {
+            "season": {
+                "type": "String"
+            }
+        }
+    },
+    "savedMediaOpenShow": "Ouvrir la série",
+    "@savedMediaOpenShow": {
+        "description": "Row menu action that opens a saved show's seasons and episodes"
+    },
+    "savedMediaPlayNextUnwatched": "Lire le prochain épisode non vu",
+    "@savedMediaPlayNextUnwatched": {
+        "description": "Row menu action that plays the earliest unwatched saved episode of a show"
+    },
+    "savedMediaRead": "Lire",
+    "@savedMediaRead": {
+        "description": "Row menu action that opens a downloaded book in the reader"
+    },
+    "savedMediaCancelDownload": "Annuler le téléchargement",
+    "@savedMediaCancelDownload": {
+        "description": "Row menu action that stops a running or queued transfer"
+    },
+    "sortBySize": "Taille",
+    "@sortBySize": {
+        "description": "Sort option: largest download first"
+    },
+    "savedMediaDeleteEpisodes": "{count, plural, one{Supprimer {count} épisode} other{Supprimer {count} épisodes}}",
+    "@savedMediaDeleteEpisodes": {
+        "description": "Menu action that removes every saved episode of one series",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "sortByName": "Nom",
+    "@sortByName": {
+        "description": "Sort option: alphabetical by title"
+    },
+    "sortByDateAdded": "Date d'ajout",
+    "@sortByDateAdded": {
+        "description": "Sort option: most recently downloaded first"
+    },
+    "showChapterMarkers": "Repères de chapitre",
+    "@showChapterMarkers": {
+        "description": "Setting label for drawing a mark per chapter on the player seek bar"
+    },
+    "showChapterMarkersDescription": "Marque le début de chaque chapitre sur la barre de progression",
+    "@showChapterMarkersDescription": {
+        "description": "Description for the chapter marks setting"
+    },
+    "detailSections": "Sections",
+    "@detailSections": {
+        "description": "Settings tile title for switching Details screen sections on and off"
+    },
+    "detailSectionsDescription": "Choisissez les parties de l'écran de détails à afficher",
+    "@detailSectionsDescription": {
+        "description": "Settings tile subtitle for the Details screen sections list"
+    },
+    "detailSectionsScreenDescription": "Seules les sections compatibles avec le style d'écran de détails actuel sont listées. En masquer une la masque dans tous les styles qui la proposent.",
+    "@detailSectionsScreenDescription": {
+        "description": "Explanatory text at the top of the Details screen sections list"
+    },
+    "detailSectionGroupHeader": "En-tête",
+    "@detailSectionGroupHeader": {
+        "description": "Group heading for the title area of the Details screen"
+    },
+    "detailSectionGroupSections": "Sections",
+    "@detailSectionGroupSections": {
+        "description": "Group heading for the rows, tabs and cards of the Details screen"
+    },
+    "detailSectionGroupPerson": "Pages des personnes",
+    "@detailSectionGroupPerson": {
+        "description": "Group heading for sections only shown on a person's Details screen"
+    },
+    "detailSectionGroupCollection": "Pages de collection",
+    "@detailSectionGroupCollection": {
+        "description": "Group heading for sections only shown on a collection's Details screen"
+    },
+    "detailSectionGroupOther": "Autres",
+    "@detailSectionGroupOther": {
+        "description": "Group heading for Details screen sections that fit no other group"
+    },
+    "detailSectionLogo": "Logo",
+    "@detailSectionLogo": {
+        "description": "Details screen section: the title logo artwork"
+    },
+    "detailSectionLogoSubtitle": "Affiche le titre en texte lorsque l'option est désactivée",
+    "@detailSectionLogoSubtitle": {
+        "description": "Subtitle for the logo section switch"
+    },
+    "detailSectionTagline": "Accroche",
+    "@detailSectionTagline": {
+        "description": "Details screen section: the short tagline under the title"
+    },
+    "detailSectionPoster": "Affiche",
+    "@detailSectionPoster": {
+        "description": "Details screen section: the poster image beside the title"
+    },
+    "detailSectionVersionBadge": "Badge de version",
+    "@detailSectionVersionBadge": {
+        "description": "Details screen section: the badge shown when an item has more than one version"
+    },
+    "detailSectionUpNext": "Prochain épisode",
+    "@detailSectionUpNext": {
+        "description": "Details screen section: the next up or next episode card"
+    },
+    "detailSectionLyrics": "Paroles",
+    "@detailSectionLyrics": {
+        "description": "Details screen section: the lyrics panel for songs"
+    },
+    "detailSectionCast": "Distribution",
+    "@detailSectionCast": {
+        "description": "Details screen section: the cast row, tab or card"
+    },
+    "detailSectionCastSubtitle": "Également sur les pages de collection",
+    "@detailSectionCastSubtitle": {
+        "description": "Subtitle for the cast section switch"
+    },
+    "detailSectionCrew": "Réalisation et scénario",
+    "@detailSectionCrew": {
+        "description": "Details screen section: directors and writers"
+    },
+    "detailSectionStudios": "Studios",
+    "@detailSectionStudios": {
+        "description": "Details screen section: studios and networks"
+    },
+    "detailSectionChapters": "Chapitres",
+    "@detailSectionChapters": {
+        "description": "Details screen section: chapters"
+    },
+    "detailSectionExtras": "Bonus",
+    "@detailSectionExtras": {
+        "description": "Details screen section: trailers, featurettes and other extras"
+    },
+    "detailSectionCollections": "Collections",
+    "@detailSectionCollections": {
+        "description": "Details screen section: the collections an item belongs to"
+    },
+    "detailSectionMoreLikeThis": "Titres similaires",
+    "@detailSectionMoreLikeThis": {
+        "description": "Details screen section: similar items from the library"
+    },
+    "detailSectionMoreLikeThisSubtitle": "Également les albums et artistes similaires",
+    "@detailSectionMoreLikeThisSubtitle": {
+        "description": "Subtitle for the More Like This section switch"
+    },
+    "detailSectionMoreEpisodes": "Autres épisodes",
+    "@detailSectionMoreEpisodes": {
+        "description": "Details screen section: the other episodes of a show on an episode's page"
+    },
+    "detailSectionMoreEpisodesSubtitle": "Sur les pages d'épisode",
+    "@detailSectionMoreEpisodesSubtitle": {
+        "description": "Subtitle for the More episodes section switch"
+    },
+    "detailSectionMediaInfo": "Informations du média",
+    "@detailSectionMediaInfo": {
+        "description": "Details screen section: file, stream and Direct Play details"
+    },
+    "detailSectionMediaInfoSubtitle": "Fichier, pistes et vérification de la lecture directe",
+    "@detailSectionMediaInfoSubtitle": {
+        "description": "Subtitle for the media info section switch"
+    },
+    "detailSectionSeerrGenresTags": "Genres et tags",
+    "@detailSectionSeerrGenresTags": {
+        "description": "Details screen Seerr section: genre and keyword chips"
+    },
+    "detailSectionSeerrStats": "Statistiques",
+    "@detailSectionSeerrStats": {
+        "description": "Details screen Seerr section: TMDB score, status, budget and revenue"
+    },
+    "detailSectionSeerrRecommendations": "Recommandations",
+    "@detailSectionSeerrRecommendations": {
+        "description": "Details screen Seerr section: recommended titles"
+    },
+    "detailSectionSeerrSimilar": "Titres similaires",
+    "@detailSectionSeerrSimilar": {
+        "description": "Details screen Seerr section: similar titles"
+    },
+    "detailSectionSeerrCollection": "Bannière de collection",
+    "@detailSectionSeerrCollection": {
+        "description": "Details screen Seerr section: the banner for the collection a movie is part of"
+    },
+    "detailSectionSeerrPersonAppearances": "Apparitions",
+    "@detailSectionSeerrPersonAppearances": {
+        "description": "Details screen Seerr section: a person's appearances"
+    },
+    "detailSectionSeerrPersonCrew": "Équipe technique",
+    "@detailSectionSeerrPersonCrew": {
+        "description": "Details screen Seerr section: a person's crew credits"
     }
 }

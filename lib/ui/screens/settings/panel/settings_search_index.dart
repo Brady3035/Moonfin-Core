@@ -1217,7 +1217,20 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
     ),
 
     seasonal.screen(
-      keywords: ['snow', 'fireworks', 'confetti', 'leaves', 'holiday'],
+      keywords: [
+        'snow',
+        'christmas',
+        'fireworks',
+        'confetti',
+        'petals',
+        'spring',
+        'fireflies',
+        'summer',
+        'leaves',
+        'halloween',
+        'bats',
+        'holiday',
+      ],
     ),
     seasonal.leaf(
       'seasonalDensity',

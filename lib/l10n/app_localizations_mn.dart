@@ -3117,6 +3117,18 @@ class AppLocalizationsMn extends AppLocalizations {
   String get fallingLeaves => 'Унаж буй навчис';
 
   @override
+  String get seasonalChristmas => 'Christmas';
+
+  @override
+  String get seasonalPetals => 'Spring Petals';
+
+  @override
+  String get seasonalFireflies => 'Fireflies';
+
+  @override
+  String get seasonalHalloween => 'Halloween';
+
+  @override
   String get seasonalDensity => 'Density';
 
   @override

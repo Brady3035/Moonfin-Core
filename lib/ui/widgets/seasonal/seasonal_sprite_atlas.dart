@@ -4,12 +4,14 @@ import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
 
+import 'seasonal_artwork.dart';
 import 'seasonal_simulation.dart';
 
-/// Every seasonal sprite drawn once, in white, into one image.
+/// Every seasonal sprite drawn once into one image.
 ///
 /// A frame is then a single drawRawAtlas call, with each particle's color tinting its
-/// sprite through BlendMode.modulate.
+/// sprite through BlendMode.modulate. White sprites take any color, and full-color
+/// artwork is tinted white so it keeps its own.
 class SeasonalSpriteAtlas {
   SeasonalSpriteAtlas._(this.image, this.sheet);
 
@@ -95,30 +97,163 @@ class SeasonalSpriteAtlas {
         _leafOval(canvas);
       case SeasonalSprite.leafMaple:
         _leafMaple(canvas);
-      default:
-        final frame = sprite >= SeasonalSprite.confettiDisc
-            ? sprite - SeasonalSprite.confettiDisc
-            : sprite - SeasonalSprite.confettiStrip;
-        final squash = math.max(
-          0.12,
-          frame / (SeasonalSprite.flipFrames - 1),
+      case SeasonalSprite.bauble:
+        _bauble(canvas);
+      case SeasonalSprite.star:
+        canvas.drawPath(
+          _starPath(_center, 14, 6),
+          Paint()..color = _white,
         );
-        final paint = Paint()..color = _white;
-        if (sprite >= SeasonalSprite.confettiDisc) {
-          canvas.drawOval(
-            Rect.fromCenter(center: _center, width: 14, height: 14 * squash),
-            paint,
-          );
+      case SeasonalSprite.blossom:
+        SeasonalArtwork.cherryBlossom.paint(canvas, _logicalCell);
+      case SeasonalSprite.bee:
+        SeasonalArtwork.bee.paint(canvas, _logicalCell);
+      case SeasonalSprite.ghost:
+        SeasonalArtwork.ghost.paint(canvas, _logicalCell);
+      case SeasonalSprite.candy:
+        SeasonalArtwork.candy.paint(canvas, _logicalCell);
+      default:
+        if (sprite >= SeasonalSprite.bat) {
+          _bat(canvas, sprite - SeasonalSprite.bat);
         } else {
-          canvas.drawRRect(
-            RRect.fromRectAndRadius(
-              Rect.fromCenter(center: _center, width: 22, height: 12 * squash),
-              const Radius.circular(1.5),
-            ),
-            paint,
-          );
+          _flipFrame(canvas, sprite);
         }
     }
+  }
+
+  /// One frame of confetti or a petal turning over.
+  static void _flipFrame(Canvas canvas, int sprite) {
+    final base = sprite >= SeasonalSprite.petal
+        ? SeasonalSprite.petal
+        : sprite >= SeasonalSprite.confettiDisc
+        ? SeasonalSprite.confettiDisc
+        : SeasonalSprite.confettiStrip;
+    final squash = math.max(
+      0.12,
+      (sprite - base) / (SeasonalSprite.flipFrames - 1),
+    );
+    final paint = Paint()..color = _white;
+    switch (base) {
+      case SeasonalSprite.confettiDisc:
+        canvas.drawOval(
+          Rect.fromCenter(center: _center, width: 14, height: 14 * squash),
+          paint,
+        );
+      case SeasonalSprite.confettiStrip:
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(
+            Rect.fromCenter(center: _center, width: 22, height: 12 * squash),
+            const Radius.circular(1.5),
+          ),
+          paint,
+        );
+      default:
+        // A cherry blossom petal, notched at the tip and a little darker at its base.
+        final petal = Path()
+          ..moveTo(16, 29)
+          ..cubicTo(6, 23, 5, 9, 12, 4)
+          ..quadraticBezierTo(14, 6.5, 16, 7)
+          ..quadraticBezierTo(18, 6.5, 20, 4)
+          ..cubicTo(27, 9, 26, 23, 16, 29)
+          ..close();
+        canvas.save();
+        canvas.translate(16, 16);
+        canvas.scale(squash, 1);
+        canvas.translate(-16, -16);
+        canvas.drawPath(
+          petal,
+          Paint()
+            ..shader = ui.Gradient.linear(
+              const Offset(16, 6),
+              const Offset(16, 29),
+              const [_white, Color(0xFFD8D8D8)],
+            ),
+        );
+        canvas.restore();
+    }
+  }
+
+  static void _bauble(Canvas canvas) {
+    const metal = Color(0xFF9A9A9A);
+    canvas.drawCircle(
+      const Offset(16, 3.6),
+      1.6,
+      Paint()
+        ..color = metal
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 0.9,
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        const Rect.fromLTWH(13, 5, 6, 4),
+        const Radius.circular(1),
+      ),
+      Paint()..color = metal,
+    );
+    canvas.drawCircle(
+      const Offset(16, 18.5),
+      10,
+      Paint()..color = const Color(0xFFDADADA),
+    );
+    canvas.drawOval(
+      Rect.fromCenter(center: const Offset(12.5, 14.5), width: 5, height: 3.5),
+      Paint()..color = _white,
+    );
+  }
+
+  /// A bat seen from the front, with its wings up, level or down.
+  static void _bat(Canvas canvas, int frame) {
+    final paint = Paint()..color = _white;
+    final tipY = const [6.0, 14.0, 22.0][frame];
+    canvas.drawOval(
+      Rect.fromCenter(center: const Offset(16, 17), width: 5, height: 9),
+      paint,
+    );
+    canvas.drawCircle(const Offset(16, 12), 2.8, paint);
+    final ears = Path()
+      ..moveTo(14, 11)
+      ..lineTo(13.6, 7.6)
+      ..lineTo(15.4, 10.2)
+      ..close()
+      ..moveTo(18, 11)
+      ..lineTo(18.4, 7.6)
+      ..lineTo(16.6, 10.2)
+      ..close();
+    canvas.drawPath(ears, paint);
+    for (final side in const [-1.0, 1.0]) {
+      final shoulder = Offset(16 + side * 2, 13.5);
+      final tip = Offset(16 + side * 14, tipY);
+      final hip = Offset(16 + side * 2.5, 19);
+      final wing = Path()
+        ..moveTo(shoulder.dx, shoulder.dy)
+        ..lineTo(tip.dx, tip.dy);
+      // Three scallops along the trailing edge.
+      var from = tip;
+      for (var k = 1; k <= 3; k++) {
+        final to = Offset.lerp(tip, hip, k / 3)!;
+        final notch = Offset.lerp(from, to, 0.5)! + const Offset(0, -2.5);
+        wing.quadraticBezierTo(notch.dx, notch.dy, to.dx, to.dy);
+        from = to;
+      }
+      wing.close();
+      canvas.drawPath(wing, paint);
+    }
+  }
+
+  static Path _starPath(Offset center, double outer, double inner) {
+    final path = Path();
+    for (var k = 0; k < 10; k++) {
+      final angle = -math.pi / 2 + k * math.pi / 5;
+      final point =
+          center +
+          Offset(math.cos(angle), math.sin(angle)) * (k.isEven ? outer : inner);
+      if (k == 0) {
+        path.moveTo(point.dx, point.dy);
+      } else {
+        path.lineTo(point.dx, point.dy);
+      }
+    }
+    return path..close();
   }
 
   static void _radial(Canvas canvas, List<(double, double)> stops) {
@@ -184,19 +319,7 @@ class SeasonalSpriteAtlas {
 
   static void _leafMaple(Canvas canvas) {
     const lobeCenter = Offset(16, 15);
-    final body = Path();
-    for (var k = 0; k < 10; k++) {
-      final angle = -math.pi / 2 + k * math.pi / 5;
-      final radius = k.isEven ? 14.0 : 6.0;
-      final point =
-          lobeCenter + Offset(math.cos(angle), math.sin(angle)) * radius;
-      if (k == 0) {
-        body.moveTo(point.dx, point.dy);
-      } else {
-        body.lineTo(point.dx, point.dy);
-      }
-    }
-    body.close();
+    final body = _starPath(lobeCenter, 14, 6);
     // A fill plus a round-joined stroke of the same color softens the star into lobes.
     canvas.drawPath(body, Paint()..color = _white);
     canvas.drawPath(

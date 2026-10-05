@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
 import 'package:moonfin/ui/screensaver/screensaver_controller.dart';
 import 'package:moonfin/ui/widgets/seasonal/seasonal_effects.dart';
+import 'package:moonfin/ui/widgets/seasonal/seasonal_simulation.dart';
 import 'package:moonfin/ui/widgets/seasonal/seasonal_sprite_atlas.dart';
 
 class _Screensaver extends Fake implements ScreensaverController {
@@ -63,7 +64,7 @@ void main() {
   tearDown(() => GetIt.instance.reset());
 
   group('draws nothing and asks for no frames', () {
-    for (final value in ['none', 'bogus', 'spring']) {
+    for (final value in ['none', 'bogus', 'aurora']) {
       testWidgets('for $value', (tester) async {
         await tester.pumpWidget(_host(value));
         expect(find.byType(SeasonalEffectsLayer), findsNothing);
@@ -103,7 +104,7 @@ void main() {
     expect(await _keepsDrawing(tester), isTrue);
   });
 
-  testWidgets("maps Smart-TV's old winter onto snow", (tester) async {
+  testWidgets("maps an older client's winter onto snow", (tester) async {
     await tester.pumpWidget(_host('winter'));
     final layer = tester.widget<SeasonalEffectsLayer>(
       find.byType(SeasonalEffectsLayer),
@@ -138,12 +139,12 @@ void main() {
   });
 
   testWidgets('every effect paints frames without errors', (tester) async {
-    for (final effect in ['snow', 'fireworks', 'confetti', 'leaves']) {
-      await tester.pumpWidget(_host(effect));
+    for (final effect in SeasonalEffect.values) {
+      await tester.pumpWidget(_host(effect.name));
       for (var i = 0; i < 30; i++) {
         await tester.pump(const Duration(milliseconds: 16));
       }
-      expect(tester.takeException(), isNull, reason: effect);
+      expect(tester.takeException(), isNull, reason: effect.name);
     }
     await tester.pumpWidget(const SizedBox.shrink());
     expect(await _keepsDrawing(tester), isFalse);

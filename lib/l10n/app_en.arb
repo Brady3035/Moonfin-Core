@@ -4219,6 +4219,22 @@
   "@fallingLeaves": {
     "description": "Seasonal effect: falling leaves"
   },
+  "seasonalChristmas": "Christmas",
+  "@seasonalChristmas": {
+    "description": "Seasonal effect: snow with falling baubles and stars"
+  },
+  "seasonalPetals": "Spring Petals",
+  "@seasonalPetals": {
+    "description": "Seasonal effect: falling cherry blossoms and petals with bees flying by"
+  },
+  "seasonalFireflies": "Fireflies",
+  "@seasonalFireflies": {
+    "description": "Seasonal effect: glowing fireflies for summer"
+  },
+  "seasonalHalloween": "Halloween",
+  "@seasonalHalloween": {
+    "description": "Seasonal effect: bats, ghosts, candy and orange and purple leaves"
+  },
   "seasonalDensity": "Density",
   "@seasonalDensity": {
     "description": "Setting for how many seasonal effect particles are on screen at once"

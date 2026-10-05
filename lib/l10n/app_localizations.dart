@@ -5422,6 +5422,30 @@ abstract class AppLocalizations {
   /// **'Falling Leaves'**
   String get fallingLeaves;
 
+  /// Seasonal effect: snow with falling baubles and stars
+  ///
+  /// In en, this message translates to:
+  /// **'Christmas'**
+  String get seasonalChristmas;
+
+  /// Seasonal effect: falling cherry blossoms and petals with bees flying by
+  ///
+  /// In en, this message translates to:
+  /// **'Spring Petals'**
+  String get seasonalPetals;
+
+  /// Seasonal effect: glowing fireflies for summer
+  ///
+  /// In en, this message translates to:
+  /// **'Fireflies'**
+  String get seasonalFireflies;
+
+  /// Seasonal effect: bats, ghosts, candy and orange and purple leaves
+  ///
+  /// In en, this message translates to:
+  /// **'Halloween'**
+  String get seasonalHalloween;
+
   /// Setting for how many seasonal effect particles are on screen at once
   ///
   /// In en, this message translates to:

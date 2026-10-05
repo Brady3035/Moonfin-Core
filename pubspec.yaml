@@ -72,6 +72,8 @@ dependencies:
   # client of its own. Keep in step with what flutter_cache_manager resolves.
   http: ^1.6.0
   flutter_svg: ^2.2.1
+  # Parses the seasonal effects' artwork into paths for the sprite atlas.
+  path_parsing: ^1.1.0
 
   # Crypto
   crypto: ^3.0.6

@@ -16,6 +16,29 @@ SeasonalSimulation _sim(
     SeasonalSimulation(effect, density, random: math.Random(seed))
       ..resize(_width, _height);
 
+int _fallCount(SeasonalSimulation sim) =>
+    sim.debugParticles.where((p) => p.kind == SeasonalParticleKind.fall).length;
+
+/// A sheet whose every cell starts at its own index, so a written rect names its sprite.
+final _taggedSheet = SeasonalSpriteSheet(
+  rects: Float32List.fromList([
+    for (var i = 0; i < SeasonalSprite.count; i++) ...[i.toDouble(), 0, i + 1.0, 1],
+  ]),
+  cellSize: 64,
+);
+
+/// The sprites a frame draws.
+Set<int> _spritesDrawn(SeasonalSimulation sim) {
+  final rects = Float32List(sim.outputCapacity * 4);
+  final n = sim.write(
+    _taggedSheet,
+    Float32List(sim.outputCapacity * 4),
+    rects,
+    Int32List(sim.outputCapacity),
+  );
+  return {for (var i = 0; i < n; i++) rects[i * 4].round()};
+}
+
 void _run(SeasonalSimulation sim, double seconds, double dt, [void Function()? each]) {
   final steps = (seconds / dt).round();
   for (var i = 0; i < steps; i++) {
@@ -109,25 +132,100 @@ void main() {
       SeasonalEffect.snow,
       SeasonalEffect.leaves,
       SeasonalEffect.confetti,
+      SeasonalEffect.christmas,
+      SeasonalEffect.petals,
+      SeasonalEffect.halloween,
     ]) {
       for (final density in SeasonalDensity.values) {
         test('${effect.name} at ${density.name} starts full and stays near its target', () {
           final sim = _sim(effect, density);
-          expect(sim.count, sim.targetCount);
-          final ys = sim.debugParticles.map((p) => p.y).toList();
+          expect(_fallCount(sim), sim.targetCount);
+          final ys = sim.debugParticles
+              .where((p) => p.kind == SeasonalParticleKind.fall)
+              .map((p) => p.y)
+              .toList();
           expect(ys.reduce(math.min), lessThan(_height * 0.2));
           expect(ys.reduce(math.max), greaterThan(_height * 0.8));
 
           var total = 0;
           var frames = 0;
           _run(sim, 30, 1 / 60, () {
-            total += sim.count;
+            total += _fallCount(sim);
             frames++;
           });
           expect(total / frames, closeTo(sim.targetCount, sim.targetCount * 0.15));
         });
       }
     }
+
+    test('fireflies hold their number and stay near where they started', () {
+      final sim = _sim(SeasonalEffect.fireflies, SeasonalDensity.normal);
+      expect(sim.count, sim.targetCount);
+      final start = {for (final p in sim.debugParticles) p.id: (p.x, p.y)};
+      var total = 0;
+      var frames = 0;
+      _run(sim, 30, 1 / 60, () {
+        total += sim.count;
+        frames++;
+        for (final p in sim.debugParticles) {
+          expect(p.kind, SeasonalParticleKind.firefly);
+          final origin = start[p.id];
+          if (origin == null) continue;
+          expect((p.x - origin.$1).abs(), lessThan(200), reason: 'firefly ${p.id} x');
+          expect((p.y - origin.$2).abs(), lessThan(200), reason: 'firefly ${p.id} y');
+        }
+      });
+      expect(total / frames, closeTo(sim.targetCount, sim.targetCount * 0.2));
+    });
+
+    for (final effect in [SeasonalEffect.halloween, SeasonalEffect.petals]) {
+      test('${effect.name} keeps a few flyers crossing the screen', () {
+        final sim = _sim(effect, SeasonalDensity.heavy);
+        final firstSeen = <int, double>{};
+        final lastSeen = <int, double>{};
+        var most = 0;
+        _run(sim, 60, 1 / 60, () {
+          final flyers = sim.debugParticles.where((p) => p.kind == SeasonalParticleKind.flyer).toList();
+          most = math.max(most, flyers.length);
+          expect(flyers.length, lessThanOrEqualTo(sim.flyerCapacity));
+          for (final flyer in flyers) {
+            firstSeen.putIfAbsent(flyer.id, () => flyer.x);
+            lastSeen[flyer.id] = flyer.x;
+          }
+        });
+        expect(most, greaterThan(1));
+        final crossed = firstSeen.keys.where((id) => (lastSeen[id]! - firstSeen[id]!).abs() > _width * 0.8);
+        expect(crossed, isNotEmpty);
+      });
+    }
+
+    test('bees face the way they fly', () {
+      final sim = _sim(SeasonalEffect.petals, SeasonalDensity.heavy);
+      final lastX = <int, double>{};
+      var checked = 0;
+      _run(sim, 20, 1 / 30, () {
+        for (final bee in sim.debugParticles.where((p) => p.sprite == SeasonalSprite.bee)) {
+          final previous = lastX[bee.id];
+          lastX[bee.id] = bee.x;
+          if (previous == null) continue;
+          // Drawn head up, so facing right is a quarter turn clockwise.
+          expect(math.sin(bee.rotation).sign, (bee.x - previous).sign, reason: 'bee ${bee.id}');
+          checked++;
+        }
+      });
+      expect(checked, greaterThan(0));
+    });
+
+    test('only spring and halloween have flyers', () {
+      for (final effect in SeasonalEffect.values) {
+        final flyers = _sim(effect, SeasonalDensity.heavy).flyerCapacity;
+        if (effect == SeasonalEffect.petals || effect == SeasonalEffect.halloween) {
+          expect(flyers, greaterThan(0), reason: effect.name);
+        } else {
+          expect(flyers, 0, reason: effect.name);
+        }
+      }
+    });
 
     test('density scales the falling effects', () {
       expect(_sim(SeasonalEffect.snow, SeasonalDensity.light).targetCount, 27);
@@ -176,13 +274,53 @@ void main() {
       expect(n, greaterThan(sim.count));
       expect(n, lessThanOrEqualTo(sim.outputCapacity));
     });
+
+    final petalFrames = {
+      for (var f = 0; f < SeasonalSprite.flipFrames; f++) SeasonalSprite.petal + f,
+    };
+    final batFrames = {
+      for (var f = 0; f < SeasonalSprite.batFrames; f++) SeasonalSprite.bat + f,
+    };
+
+    test('christmas mixes baubles and stars into the snow', () {
+      final sim = _sim(SeasonalEffect.christmas, SeasonalDensity.heavy);
+      final drawn = _spritesDrawn(sim);
+      expect(drawn, containsAll([SeasonalSprite.bauble, SeasonalSprite.star]));
+      expect(drawn.intersection({SeasonalSprite.softDot, SeasonalSprite.flake}), isNotEmpty);
+    });
+
+    test('spring turns petals over, drops whole blossoms and sends bees across', () {
+      final sim = _sim(SeasonalEffect.petals, SeasonalDensity.heavy);
+      final seen = <int>{};
+      _run(sim, 2, 1 / 30, () => seen.addAll(_spritesDrawn(sim)));
+      expect(seen.difference({...petalFrames, SeasonalSprite.blossom, SeasonalSprite.bee}), isEmpty);
+      expect(seen.intersection(petalFrames).length, greaterThan(3));
+      expect(seen, containsAll([SeasonalSprite.blossom, SeasonalSprite.bee]));
+    });
+
+    test('fireflies glow with the soft sprite only', () {
+      final sim = _sim(SeasonalEffect.fireflies, SeasonalDensity.normal);
+      expect(_spritesDrawn(sim), {SeasonalSprite.glow});
+    });
+
+    test('halloween flaps its bats over candy and leaves, with the odd ghost', () {
+      final seen = <int>{};
+      for (final seed in [1, 2, 3]) {
+        final sim = _sim(SeasonalEffect.halloween, SeasonalDensity.heavy, seed: seed);
+        _run(sim, 20, 1 / 30, () => seen.addAll(_spritesDrawn(sim)));
+      }
+      expect(seen, containsAll([...batFrames, SeasonalSprite.ghost, SeasonalSprite.candy]));
+      expect(seen.intersection({SeasonalSprite.leafOval, SeasonalSprite.leafMaple}), isNotEmpty);
+    });
   });
 
   group('preference values', () {
-    test("Smart-TV's old names map onto this set", () {
+    test("older clients' names map onto this set", () {
       expect(UserPreferences.normalizeSeasonalSurprise('winter'), 'snow');
       expect(UserPreferences.normalizeSeasonalSurprise('fall'), 'leaves');
-      expect(UserPreferences.normalizeSeasonalSurprise('halloween'), 'none');
+      expect(UserPreferences.normalizeSeasonalSurprise('spring'), 'petals');
+      expect(UserPreferences.normalizeSeasonalSurprise('summer'), 'fireflies');
+      expect(UserPreferences.normalizeSeasonalSurprise('halloween'), 'halloween');
       expect(UserPreferences.normalizeSeasonalSurprise('Snow'), 'snow');
       expect(UserPreferences.normalizeSeasonalSurprise('aurora'), 'none');
       expect(UserPreferences.parseSeasonalSurprise('aurora'), isNull);

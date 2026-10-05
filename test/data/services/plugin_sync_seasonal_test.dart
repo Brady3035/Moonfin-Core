@@ -114,7 +114,7 @@ void main() {
     expect(density(), 'heavy');
   });
 
-  test("Smart-TV's old winter and fall are stored as snow and leaves", () async {
+  test("older clients' winter and fall are stored as snow and leaves", () async {
     await pull({'seasonalSurprise': 'winter'});
     expect(effect(), 'snow');
 
@@ -122,12 +122,19 @@ void main() {
     expect(effect(), 'leaves');
   });
 
-  test("Smart-TV's dropped effects turn the effect off", () async {
-    await prefs.set(UserPreferences.seasonalSurprise, 'confetti');
+  test("older clients' spring and summer are stored as petals and fireflies", () async {
+    await pull({'seasonalSurprise': 'spring'});
+    expect(effect(), 'petals');
 
-    await pull({'seasonalSurprise': 'halloween'});
+    await pull({'seasonalSurprise': 'summer'});
+    expect(effect(), 'fireflies');
+  });
 
-    expect(effect(), 'none');
+  test('the newer effects are stored as sent', () async {
+    for (final value in ['christmas', 'petals', 'fireflies', 'halloween']) {
+      await pull({'seasonalSurprise': value});
+      expect(effect(), value);
+    }
   });
 
   test('a value this client does not know keeps the local choice', () async {

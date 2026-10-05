@@ -3115,6 +3115,18 @@ class AppLocalizationsPa extends AppLocalizations {
   String get fallingLeaves => 'ਡਿੱਗਦੇ ਪੱਤੇ';
 
   @override
+  String get seasonalChristmas => 'Christmas';
+
+  @override
+  String get seasonalPetals => 'Spring Petals';
+
+  @override
+  String get seasonalFireflies => 'Fireflies';
+
+  @override
+  String get seasonalHalloween => 'Halloween';
+
+  @override
   String get seasonalDensity => 'Density';
 
   @override

@@ -43,22 +43,28 @@ class UserPreferences extends ChangeNotifier {
   static const seasonalFireworks = 'fireworks';
   static const seasonalConfetti = 'confetti';
   static const seasonalLeaves = 'leaves';
+  static const seasonalChristmas = 'christmas';
+  static const seasonalPetals = 'petals';
+  static const seasonalFireflies = 'fireflies';
+  static const seasonalHalloween = 'halloween';
   static const seasonalSurpriseValues = <String>{
     seasonalNone,
     seasonalSnow,
     seasonalFireworks,
     seasonalConfetti,
     seasonalLeaves,
+    seasonalChristmas,
+    seasonalPetals,
+    seasonalFireflies,
+    seasonalHalloween,
   };
 
-  // Smart-TV used its own names before it matched this set, and it pushed them into
-  // users' tv profiles. Its spring, summer and halloween effects were dropped.
+  // The original Android TV client and older Smart-TV builds sync these names.
   static const _legacySeasonalSurprise = <String, String>{
     'winter': seasonalSnow,
     'fall': seasonalLeaves,
-    'spring': seasonalNone,
-    'summer': seasonalNone,
-    'halloween': seasonalNone,
+    'spring': seasonalPetals,
+    'summer': seasonalFireflies,
   };
 
   static const seasonalDensityLight = 'light';

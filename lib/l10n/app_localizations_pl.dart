@@ -14029,6 +14029,22 @@ class AppLocalizationsPl extends AppLocalizations {
       'Określa, jak daleko przesuwa się zaznaczenie po każdym przesunięciu po gładziku Siri Remote';
 
   @override
+  String get appleTvHomeScreen => 'Apple TV home screen';
+
+  @override
+  String get topShelf => 'Top Shelf';
+
+  @override
+  String get topShelfDescription =>
+      'What the Apple TV home screen shows above the Moonfin icon when it is selected. This setting stays on this device.';
+
+  @override
+  String get topShelfLatestMedia => 'Latest media';
+
+  @override
+  String get topShelfAppBanner => 'Moonfin banner';
+
+  @override
   String get keepVideoClearOfDynamicIsland =>
       'Nie zasłaniaj wideo przez Dynamic Island';
 

@@ -1437,6 +1437,15 @@ class UserPreferences extends ChangeNotifier {
     values: SiriRemoteSwipeSensitivity.values,
   );
 
+  /// What the Apple TV Top Shelf shows above the app icon. The shelf is on the
+  /// Apple TV home screen whoever is signed in, so this belongs to the device
+  /// and is neither synced nor scoped to an account.
+  static final topShelfContent = EnumPreference(
+    key: 'pref_top_shelf_content',
+    defaultValue: TopShelfContent.latestMedia,
+    values: TopShelfContent.values,
+  );
+
   static final visualTheme = EnumPreference(
     key: 'app_theme_id',
     defaultValue: PlatformDetection.isApple || PlatformDetection.isAppleTV

@@ -23915,6 +23915,36 @@ abstract class AppLocalizations {
   /// **'How far focus moves for each swipe on the Siri Remote touchpad'**
   String get siriRemoteSwipeSensitivityDescription;
 
+  /// Section header in Home Screen settings for options that affect the tvOS home screen outside the app
+  ///
+  /// In en, this message translates to:
+  /// **'Apple TV home screen'**
+  String get appleTvHomeScreen;
+
+  /// Apple TV settings label for what the tvOS home screen shows above the Moonfin icon. Top Shelf is Apple's name for that area
+  ///
+  /// In en, this message translates to:
+  /// **'Top Shelf'**
+  String get topShelf;
+
+  /// Apple TV settings subtitle for the Top Shelf option
+  ///
+  /// In en, this message translates to:
+  /// **'What the Apple TV home screen shows above the Moonfin icon when it is selected. This setting stays on this device.'**
+  String get topShelfDescription;
+
+  /// Top Shelf option that shows a carousel of the newest items from the home screen's Latest rows
+  ///
+  /// In en, this message translates to:
+  /// **'Latest media'**
+  String get topShelfLatestMedia;
+
+  /// Top Shelf option that shows only the static Moonfin logo banner, nothing from the library
+  ///
+  /// In en, this message translates to:
+  /// **'Moonfin banner'**
+  String get topShelfAppBanner;
+
   /// iPhone playback setting that holds the picture back from the camera housing in landscape
   ///
   /// In en, this message translates to:

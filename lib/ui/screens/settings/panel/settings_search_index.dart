@@ -959,6 +959,13 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
       'gap',
     ]),
     home.leaf('poster_size', l10n.cardSize, keywords: ['poster size']),
+    if (PlatformDetection.isAppleTV)
+      home.leaf(
+        'pref_top_shelf_content',
+        l10n.topShelf,
+        subtitle: l10n.topShelfDescription,
+        keywords: ['apple tv', 'top shelf', 'banner', 'latest', 'launcher'],
+      ),
     homeSections.screen(keywords: [
       'reorder rows',
       'toggle rows',

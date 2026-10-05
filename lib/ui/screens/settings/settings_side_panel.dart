@@ -19,6 +19,7 @@ import '../../../data/services/achievements_service.dart';
 import '../../../data/services/auto_download_service.dart';
 import '../../../data/services/plugin_sync_service.dart';
 import '../../../data/services/custom_external_lists_service.dart';
+import '../../../data/services/topshelf_service.dart';
 import '../../../data/models/media_segment.dart';
 import '../../../data/utils/media_segment_actions.dart';
 import '../../../data/repositories/seerr_repository.dart';

@@ -13819,6 +13819,22 @@ class AppLocalizationsRo extends AppLocalizations {
       'Cât se mută focalizarea la fiecare glisare pe touchpadul telecomenzii Siri Remote';
 
   @override
+  String get appleTvHomeScreen => 'Apple TV home screen';
+
+  @override
+  String get topShelf => 'Top Shelf';
+
+  @override
+  String get topShelfDescription =>
+      'What the Apple TV home screen shows above the Moonfin icon when it is selected. This setting stays on this device.';
+
+  @override
+  String get topShelfLatestMedia => 'Latest media';
+
+  @override
+  String get topShelfAppBanner => 'Moonfin banner';
+
+  @override
   String get keepVideoClearOfDynamicIsland =>
       'Ține videoclipul departe de Dynamic Island';
 

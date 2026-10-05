@@ -3133,6 +3133,18 @@ class AppLocalizationsEs extends AppLocalizations {
   String get fallingLeaves => 'Hojas cayendo';
 
   @override
+  String get seasonalDensity => 'Density';
+
+  @override
+  String get seasonalDensityLight => 'Light';
+
+  @override
+  String get seasonalDensityNormal => 'Normal';
+
+  @override
+  String get seasonalDensityHeavy => 'Heavy';
+
+  @override
   String get themeMusic => 'Música de tema';
 
   @override

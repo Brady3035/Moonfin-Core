@@ -3143,6 +3143,18 @@ class AppLocalizationsCy extends AppLocalizations {
   String get fallingLeaves => 'Dail yn Cwympo';
 
   @override
+  String get seasonalDensity => 'Density';
+
+  @override
+  String get seasonalDensityLight => 'Light';
+
+  @override
+  String get seasonalDensityNormal => 'Normal';
+
+  @override
+  String get seasonalDensityHeavy => 'Heavy';
+
+  @override
   String get themeMusic => 'Cerddoriaeth Thema';
 
   @override

@@ -5422,6 +5422,30 @@ abstract class AppLocalizations {
   /// **'Falling Leaves'**
   String get fallingLeaves;
 
+  /// Setting for how many seasonal effect particles are on screen at once
+  ///
+  /// In en, this message translates to:
+  /// **'Density'**
+  String get seasonalDensity;
+
+  /// Seasonal effect density: fewest particles
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get seasonalDensityLight;
+
+  /// Seasonal effect density: the default amount
+  ///
+  /// In en, this message translates to:
+  /// **'Normal'**
+  String get seasonalDensityNormal;
+
+  /// Seasonal effect density: most particles
+  ///
+  /// In en, this message translates to:
+  /// **'Heavy'**
+  String get seasonalDensityHeavy;
+
   /// Setting for theme music
   ///
   /// In en, this message translates to:

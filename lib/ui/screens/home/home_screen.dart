@@ -53,6 +53,7 @@ import '../../widgets/focus/locked_focus_row.dart';
 import '../../../util/focus/dpad_keys.dart';
 import '../../../util/focus/input_mode_tracker.dart';
 import '../../../util/artwork_request_size.dart';
+import '../../../util/device_performance.dart';
 import '../../../util/platform_detection.dart';
 import '../../../util/server_url.dart';
 import '../../navigation/app_router.dart';
@@ -71,7 +72,7 @@ import '../../widgets/selector_builder.dart';
 import '../../widgets/bottom_nav/bottom_navbar.dart';
 import '../../widgets/navigation_layout.dart';
 import '../../widgets/responsive_layout.dart';
-import '../../widgets/seasonal_effects.dart';
+import '../../widgets/seasonal/seasonal_effects.dart';
 import '../../widgets/settings/settings_panel.dart';
 import '../../widgets/top_toolbar.dart';
 import '../../navigation/home_refresh_bus.dart';
@@ -518,7 +519,9 @@ class _HomeShellState extends State<_HomeShell>
     final blurAmount = _userPrefs
         .get(UserPreferences.browsingBackgroundBlurAmount)
         .toDouble();
-    final seasonalEffect = _userPrefs.get(UserPreferences.seasonalSurprise);
+    final seasonalEffect = UserPreferences.normalizeSeasonalSurprise(
+      _userPrefs.get(UserPreferences.seasonalSurprise),
+    );
     final mediaBarMode = UserPreferences.normalizeMediaBarMode(
       _userPrefs.get(UserPreferences.mediaBarMode),
     );
@@ -571,8 +574,16 @@ class _HomeShellState extends State<_HomeShell>
                     },
                   ),
                 ),
-                if (seasonalEffect != 'none')
-                  Positioned.fill(child: SeasonalEffects(effect: seasonalEffect)),
+                if (seasonalEffect != UserPreferences.seasonalNone)
+                  Positioned.fill(
+                    child: SeasonalEffectsHost(
+                      effect: seasonalEffect,
+                      density: _userPrefs.get(UserPreferences.seasonalDensity),
+                      reducedFrameRate:
+                          _userPrefs.resolveDevicePerformanceTier() ==
+                          DevicePerformanceTier.reduced,
+                    ),
+                  ),
               ],
             ),
           ),

@@ -1642,7 +1642,8 @@ class PluginSyncService extends ChangeNotifier {
       case SyncCodec.textAsInt:
         _applyInt(data, field.serverKey, field.pref);
       case SyncCodec.text:
-        _applyString(data, field.serverKey, field.pref);
+        _applyString(data, field.serverKey, field.pref,
+            normalize: field.normalize);
       case SyncCodec.enumName:
         _applyString(data, field.serverKey, field.pref,
             enumValues: field.enumValues);
@@ -1811,9 +1812,14 @@ class PluginSyncService extends ChangeNotifier {
     Preference<T> pref, {
     List<Enum>? enumValues,
     bool intFromString = false,
+    String? Function(String value)? normalize,
   }) {
-    final value = data[serverKey];
+    var value = data[serverKey];
     if (value == null) return;
+    if (normalize != null && value is String) {
+      value = normalize(value);
+      if (value == null) return;
+    }
 
     final effective = _prefs.getEffectivePreference(pref);
 

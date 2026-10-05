@@ -226,6 +226,7 @@ void main() {
     'screensaverRequireRating',
     'screensaverSize',
     'screensaverTimeout',
+    'seasonalDensity',
     'seasonalSurprise',
     'seerrBlockNsfw',
     'seerrEnabled',

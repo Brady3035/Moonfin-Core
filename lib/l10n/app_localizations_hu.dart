@@ -3132,6 +3132,18 @@ class AppLocalizationsHu extends AppLocalizations {
   String get fallingLeaves => 'Lehulló levelek';
 
   @override
+  String get seasonalDensity => 'Density';
+
+  @override
+  String get seasonalDensityLight => 'Light';
+
+  @override
+  String get seasonalDensityNormal => 'Normal';
+
+  @override
+  String get seasonalDensityHeavy => 'Heavy';
+
+  @override
   String get themeMusic => 'Témazene';
 
   @override

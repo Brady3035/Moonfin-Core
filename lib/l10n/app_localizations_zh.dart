@@ -3051,6 +3051,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get fallingLeaves => '落叶';
 
   @override
+  String get seasonalDensity => 'Density';
+
+  @override
+  String get seasonalDensityLight => 'Light';
+
+  @override
+  String get seasonalDensityNormal => 'Normal';
+
+  @override
+  String get seasonalDensityHeavy => 'Heavy';
+
+  @override
   String get themeMusic => '主题音乐';
 
   @override

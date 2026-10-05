@@ -4219,6 +4219,22 @@
   "@fallingLeaves": {
     "description": "Seasonal effect: falling leaves"
   },
+  "seasonalDensity": "Density",
+  "@seasonalDensity": {
+    "description": "Setting for how many seasonal effect particles are on screen at once"
+  },
+  "seasonalDensityLight": "Light",
+  "@seasonalDensityLight": {
+    "description": "Seasonal effect density: fewest particles"
+  },
+  "seasonalDensityNormal": "Normal",
+  "@seasonalDensityNormal": {
+    "description": "Seasonal effect density: the default amount"
+  },
+  "seasonalDensityHeavy": "Heavy",
+  "@seasonalDensityHeavy": {
+    "description": "Seasonal effect density: most particles"
+  },
   "themeMusic": "Theme Music",
   "@themeMusic": {
     "description": "Setting for theme music"

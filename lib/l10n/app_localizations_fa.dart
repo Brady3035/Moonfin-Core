@@ -3105,6 +3105,18 @@ class AppLocalizationsFa extends AppLocalizations {
   String get fallingLeaves => 'ریزش برگها';
 
   @override
+  String get seasonalDensity => 'Density';
+
+  @override
+  String get seasonalDensityLight => 'Light';
+
+  @override
+  String get seasonalDensityNormal => 'Normal';
+
+  @override
+  String get seasonalDensityHeavy => 'Heavy';
+
+  @override
   String get themeMusic => 'موسیقی تم';
 
   @override

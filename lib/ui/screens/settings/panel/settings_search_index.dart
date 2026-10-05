@@ -1216,7 +1216,14 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
       keywords: ['mute'],
     ),
 
-    seasonal.screen(keywords: ['snow', 'fireworks', 'confetti', 'holiday']),
+    seasonal.screen(
+      keywords: ['snow', 'fireworks', 'confetti', 'leaves', 'holiday'],
+    ),
+    seasonal.leaf(
+      'seasonalDensity',
+      l10n.seasonalDensity,
+      keywords: ['particles', 'amount', 'light', 'heavy'],
+    ),
     themeMusic.screen(keywords: ['soundtrack']),
     themeMusic.leaf(
       'themeMusicEnabled',

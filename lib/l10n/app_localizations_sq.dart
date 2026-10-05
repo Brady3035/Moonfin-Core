@@ -3135,6 +3135,18 @@ class AppLocalizationsSq extends AppLocalizations {
   String get fallingLeaves => 'Gjethet që bien';
 
   @override
+  String get seasonalDensity => 'Density';
+
+  @override
+  String get seasonalDensityLight => 'Light';
+
+  @override
+  String get seasonalDensityNormal => 'Normal';
+
+  @override
+  String get seasonalDensityHeavy => 'Heavy';
+
+  @override
   String get themeMusic => 'Muzikë me temë';
 
   @override

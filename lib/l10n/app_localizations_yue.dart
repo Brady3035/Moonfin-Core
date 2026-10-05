@@ -3061,6 +3061,18 @@ class AppLocalizationsYue extends AppLocalizations {
   String get fallingLeaves => '落葉';
 
   @override
+  String get seasonalDensity => 'Density';
+
+  @override
+  String get seasonalDensityLight => 'Light';
+
+  @override
+  String get seasonalDensityNormal => 'Normal';
+
+  @override
+  String get seasonalDensityHeavy => 'Heavy';
+
+  @override
   String get themeMusic => '主題音樂';
 
   @override

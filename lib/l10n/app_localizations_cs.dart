@@ -3132,6 +3132,18 @@ class AppLocalizationsCs extends AppLocalizations {
   String get fallingLeaves => 'Padající listí';
 
   @override
+  String get seasonalDensity => 'Density';
+
+  @override
+  String get seasonalDensityLight => 'Light';
+
+  @override
+  String get seasonalDensityNormal => 'Normal';
+
+  @override
+  String get seasonalDensityHeavy => 'Heavy';
+
+  @override
   String get themeMusic => 'Téma Hudba';
 
   @override

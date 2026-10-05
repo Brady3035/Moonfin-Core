@@ -38,6 +38,38 @@ class UserPreferences extends ChangeNotifier {
     mediaBarModeOff,
   };
 
+  static const seasonalNone = 'none';
+  static const seasonalSnow = 'snow';
+  static const seasonalFireworks = 'fireworks';
+  static const seasonalConfetti = 'confetti';
+  static const seasonalLeaves = 'leaves';
+  static const seasonalSurpriseValues = <String>{
+    seasonalNone,
+    seasonalSnow,
+    seasonalFireworks,
+    seasonalConfetti,
+    seasonalLeaves,
+  };
+
+  // Smart-TV used its own names before it matched this set, and it pushed them into
+  // users' tv profiles. Its spring, summer and halloween effects were dropped.
+  static const _legacySeasonalSurprise = <String, String>{
+    'winter': seasonalSnow,
+    'fall': seasonalLeaves,
+    'spring': seasonalNone,
+    'summer': seasonalNone,
+    'halloween': seasonalNone,
+  };
+
+  static const seasonalDensityLight = 'light';
+  static const seasonalDensityNormal = 'normal';
+  static const seasonalDensityHeavy = 'heavy';
+  static const seasonalDensityValues = <String>{
+    seasonalDensityLight,
+    seasonalDensityNormal,
+    seasonalDensityHeavy,
+  };
+
   // Where the bar draws its titles from. Every source still passes through the
   // library, collection, content type and genre filters, and still picks its
   // slides at random out of what comes back.
@@ -525,6 +557,7 @@ class UserPreferences extends ChangeNotifier {
     'pref_merge_recent_rows_by_type',
     'enable_folder_view',
     'seasonal_surprise',
+    'seasonal_density',
     'mediaBarEnabled',
     'mediaBarMode',
     'mediaBarContentType',
@@ -943,6 +976,25 @@ class UserPreferences extends ChangeNotifier {
     }
     return mediaBarModeMoonfin;
   }
+
+  /// The effect a synced or stored value stands for, or null when this client doesn't know
+  /// the value, so a sync can leave the local choice alone.
+  static String? parseSeasonalSurprise(String? value) {
+    final normalized = (value ?? '').trim().toLowerCase();
+    if (seasonalSurpriseValues.contains(normalized)) return normalized;
+    return _legacySeasonalSurprise[normalized];
+  }
+
+  static String normalizeSeasonalSurprise(String? value) =>
+      parseSeasonalSurprise(value) ?? seasonalNone;
+
+  static String? parseSeasonalDensity(String? value) {
+    final normalized = (value ?? '').trim().toLowerCase();
+    return seasonalDensityValues.contains(normalized) ? normalized : null;
+  }
+
+  static String normalizeSeasonalDensity(String? value) =>
+      parseSeasonalDensity(value) ?? seasonalDensityNormal;
 
   static bool isMediaBarModeEnabled(String? mode) {
     return normalizeMediaBarMode(mode) != mediaBarModeOff;
@@ -3010,7 +3062,12 @@ class UserPreferences extends ChangeNotifier {
 
   static final seasonalSurprise = Preference(
     key: 'seasonal_surprise',
-    defaultValue: 'none',
+    defaultValue: seasonalNone,
+  );
+
+  static final seasonalDensity = Preference(
+    key: 'seasonal_density',
+    defaultValue: seasonalDensityNormal,
   );
 
   static final loadingAnimationImage = EnumPreference(

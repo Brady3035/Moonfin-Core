@@ -32,6 +32,8 @@ String seasonalHolidayTitle(String holiday, AppLocalizations l10n) =>
       'halloween' => l10n.holidayHalloween,
       'thanksgiving' => l10n.holidayThanksgiving,
       'christmas' => l10n.holidayChristmas,
+      'lunarNewYear' => l10n.holidayLunarNewYear,
+      'diwali' => l10n.holidayDiwali,
       _ => l10n.seasonalRow,
     };
 

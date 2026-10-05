@@ -3205,6 +3205,12 @@ class AppLocalizationsTe extends AppLocalizations {
   String get holidayChristmas => 'Christmas Movies';
 
   @override
+  String get holidayLunarNewYear => 'Lunar New Year';
+
+  @override
+  String get holidayDiwali => 'Diwali';
+
+  @override
   String get themeMusic => 'థీమ్ సంగీతం';
 
   @override

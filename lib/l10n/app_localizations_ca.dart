@@ -3231,6 +3231,12 @@ class AppLocalizationsCa extends AppLocalizations {
   String get holidayChristmas => 'Christmas Movies';
 
   @override
+  String get holidayLunarNewYear => 'Lunar New Year';
+
+  @override
+  String get holidayDiwali => 'Diwali';
+
+  @override
   String get themeMusic => 'Tema Música';
 
   @override

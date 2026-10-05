@@ -4319,6 +4319,14 @@
   "@holidayChristmas": {
     "description": "Seasonal row title for Christmas"
   },
+  "holidayLunarNewYear": "Lunar New Year",
+  "@holidayLunarNewYear": {
+    "description": "Seasonal row title for Lunar New Year"
+  },
+  "holidayDiwali": "Diwali",
+  "@holidayDiwali": {
+    "description": "Seasonal row title for Diwali"
+  },
   "themeMusic": "Theme Music",
   "@themeMusic": {
     "description": "Setting for theme music"

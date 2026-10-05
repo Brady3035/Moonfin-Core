@@ -3172,6 +3172,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get seasonalDensityHeavy => 'Heavy';
 
   @override
+  String get holidayLunarNewYear => 'Lunar New Year';
+
+  @override
+  String get holidayDiwali => 'Diwali';
+
+  @override
   String get seasonalRow => 'Seasonal Row';
 
   @override

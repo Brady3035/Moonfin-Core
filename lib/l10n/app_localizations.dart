@@ -5572,6 +5572,18 @@ abstract class AppLocalizations {
   /// **'Christmas Movies'**
   String get holidayChristmas;
 
+  /// Seasonal row title for Lunar New Year
+  ///
+  /// In en, this message translates to:
+  /// **'Lunar New Year'**
+  String get holidayLunarNewYear;
+
+  /// Seasonal row title for Diwali
+  ///
+  /// In en, this message translates to:
+  /// **'Diwali'**
+  String get holidayDiwali;
+
   /// Setting for theme music
   ///
   /// In en, this message translates to:

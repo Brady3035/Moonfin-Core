@@ -96,6 +96,8 @@ class UserPreferences extends ChangeNotifier {
     'halloween',
     'thanksgiving',
     'christmas',
+    'lunarNewYear',
+    'diwali',
   ];
 
   // Where the bar draws its titles from. Every source still passes through the

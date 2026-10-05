@@ -13283,5 +13283,37 @@
     "untrustedServerCertificate": "Tämän palvelimen varmennetta ei pidetä luotettavana. Jos kyseessä on oma palvelimesi ja se käyttää itse allekirjoitettua tai yksityistä varmennetta, voit sallia sen tässä.",
     "@untrustedServerCertificate": {
         "description": "Shown on the sign-in screens when a server's TLS certificate is rejected, above a button that turns on Allow self-signed certificates"
+    },
+    "seasonalChristmas": "Joulu",
+    "@seasonalChristmas": {
+        "description": "Seasonal effect: snow with falling baubles and stars"
+    },
+    "seasonalPetals": "Kevään Versot",
+    "@seasonalPetals": {
+        "description": "Seasonal effect: falling cherry blossoms and petals with bees flying by"
+    },
+    "seasonalFireflies": "Tulikärpäset",
+    "@seasonalFireflies": {
+        "description": "Seasonal effect: glowing fireflies for summer"
+    },
+    "seasonalHalloween": "Halloween",
+    "@seasonalHalloween": {
+        "description": "Seasonal effect: bats, ghosts, candy and orange and purple leaves"
+    },
+    "seasonalDensity": "Tiheys",
+    "@seasonalDensity": {
+        "description": "Setting for how many seasonal effect particles are on screen at once"
+    },
+    "seasonalDensityLight": "Kevyt",
+    "@seasonalDensityLight": {
+        "description": "Seasonal effect density: fewest particles"
+    },
+    "seasonalDensityNormal": "Normaali",
+    "@seasonalDensityNormal": {
+        "description": "Seasonal effect density: the default amount"
+    },
+    "seasonalDensityHeavy": "Painava",
+    "@seasonalDensityHeavy": {
+        "description": "Seasonal effect density: most particles"
     }
 }

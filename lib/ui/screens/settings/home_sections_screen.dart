@@ -673,6 +673,10 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen>
     final hiddenByTmdb =
         _isTmdbSectionType(section.type) &&
         (!showTmdbRows || !_isTmdbRowEnabled(section.type));
+    final hiddenBySeasonal =
+        section.type == HomeSectionType.seasonal &&
+        (!GetIt.instance<PluginSyncService>().pluginAvailable ||
+            !_prefs.get(UserPreferences.seasonalRowEnabled));
 
     final showAudioRows = _prefs.get(UserPreferences.displayAudioRows);
     final hiddenByAudio = !showAudioRows && _isAudioSectionType(section.type);
@@ -700,6 +704,7 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen>
         hiddenBySeerr ||
         hiddenByImdb ||
         hiddenByTmdb ||
+        hiddenBySeasonal ||
         hiddenByAudio ||
         hiddenBySinceYouWatched ||
         hiddenByRewatch;
@@ -737,10 +742,9 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen>
     _sections = all.where((s) => s.type != HomeSectionType.mediaBar).toList()
       ..sort((a, b) => a.order.compareTo(b.order));
     for (var i = 0; i < _sections.length; i++) {
-      if (_isImdbSectionType(_sections[i].type)) {
-        _sections[i] = _sections[i].copyWith(
-          enabled: _isImdbRowEnabled(_sections[i].type),
-        );
+      final toggle = _toggleAuthoritativeEnabled(_sections[i].type);
+      if (toggle != null) {
+        _sections[i] = _sections[i].copyWith(enabled: toggle);
       }
     }
     final addedBuiltins = _ensureBuiltinSectionsPresent();
@@ -790,14 +794,25 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen>
     if (!mounted) return;
     var changed = false;
     for (var i = 0; i < _sections.length; i++) {
-      if (!_isImdbSectionType(_sections[i].type)) continue;
-      final enabled = _isImdbRowEnabled(_sections[i].type);
+      final enabled = _toggleAuthoritativeEnabled(_sections[i].type);
+      if (enabled == null) continue;
       if (_sections[i].enabled != enabled) {
         _sections[i] = _sections[i].copyWith(enabled: enabled);
         changed = true;
       }
     }
     if (changed) setState(() {});
+  }
+
+  /// The rows whose own toggle outranks the saved layout: the IMDb rows and the
+  /// seasonal row, both switched on from the External Lists screen. Null for
+  /// every other type.
+  bool? _toggleAuthoritativeEnabled(HomeSectionType type) {
+    if (_isImdbSectionType(type)) return _isImdbRowEnabled(type);
+    if (type == HomeSectionType.seasonal) {
+      return _prefs.get(UserPreferences.seasonalRowEnabled);
+    }
+    return null;
   }
 
   bool _ensureBuiltinSectionsPresent() {
@@ -817,7 +832,7 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen>
       _addSection(
         HomeSectionConfig(
           type: type,
-          enabled: _isImdbSectionType(type) ? _isImdbRowEnabled(type) : false,
+          enabled: _toggleAuthoritativeEnabled(type) ?? false,
           order: nextOrder++,
         ),
       );
@@ -1339,6 +1354,7 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen>
         HomeSectionType.imdbTopEnglishMovies =>
           UserPreferences.imdbTopEnglishMoviesEnabled,
         HomeSectionType.rewatch => UserPreferences.displayRewatchRow,
+        HomeSectionType.seasonal => UserPreferences.seasonalRowEnabled,
         HomeSectionType.sinceYouWatched1 =>
           UserPreferences.sinceYouWatched1Enabled,
         HomeSectionType.sinceYouWatched2 =>
@@ -1684,6 +1700,7 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen>
         HomeSectionType.sinceYouWatched4 => 'Since You Watched Row 4',
         HomeSectionType.sinceYouWatched5 => 'Since You Watched Row 5',
         HomeSectionType.rewatch => 'Rewatch',
+        HomeSectionType.seasonal => l10n.seasonalRow,
         HomeSectionType.none => l10n.none,
       };
 

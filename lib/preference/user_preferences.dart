@@ -76,6 +76,28 @@ class UserPreferences extends ChangeNotifier {
     seasonalDensityHeavy,
   };
 
+  // The seasonal row follows the viewer's country. Automatic reads it from the device, and
+  // the list only names the countries Moonbase tells apart.
+  static const seasonalRowCountryAuto = 'auto';
+  static const seasonalRowCountryOther = 'other';
+  static const seasonalRowCountryOptions = <String>[
+    seasonalRowCountryAuto,
+    'US',
+    'CA',
+    seasonalRowCountryOther,
+  ];
+
+  /// The holidays Moonbase can build the row for, in the order it tries them.
+  static const seasonalHolidayIds = <String>[
+    'newYear',
+    'valentines',
+    'easter',
+    'pride',
+    'halloween',
+    'thanksgiving',
+    'christmas',
+  ];
+
   // Where the bar draws its titles from. Every source still passes through the
   // library, collection, content type and genre filters, and still picks its
   // slides at random out of what comes back.
@@ -564,6 +586,9 @@ class UserPreferences extends ChangeNotifier {
     'enable_folder_view',
     'seasonal_surprise',
     'seasonal_density',
+    'seasonal_row_enabled',
+    'seasonal_row_country',
+    'seasonal_row_hidden_holidays',
     'mediaBarEnabled',
     'mediaBarMode',
     'mediaBarContentType',
@@ -1001,6 +1026,26 @@ class UserPreferences extends ChangeNotifier {
 
   static String normalizeSeasonalDensity(String? value) =>
       parseSeasonalDensity(value) ?? seasonalDensityNormal;
+
+  /// Automatic, Other, or an ISO alpha-2 code upper-cased. Anything else is unknown.
+  static String? parseSeasonalRowCountry(String? value) {
+    final lower = (value ?? '').trim().toLowerCase();
+    if (lower == seasonalRowCountryAuto || lower == seasonalRowCountryOther) {
+      return lower;
+    }
+    return parseCountryCode(value);
+  }
+
+  /// [value] upper-cased when it is a two letter country code, else null.
+  static String? parseCountryCode(String? value) {
+    final trimmed = (value ?? '').trim();
+    final isCode = trimmed.length == 2 &&
+        trimmed.codeUnits.every((c) => (c >= 65 && c <= 90) || (c >= 97 && c <= 122));
+    return isCode ? trimmed.toUpperCase() : null;
+  }
+
+  static Set<String> parseSeasonalRowHiddenHolidays(String value) =>
+      value.split(',').map((h) => h.trim()).where((h) => h.isNotEmpty).toSet();
 
   static bool isMediaBarModeEnabled(String? mode) {
     return normalizeMediaBarMode(mode) != mediaBarModeOff;
@@ -3074,6 +3119,22 @@ class UserPreferences extends ChangeNotifier {
   static final seasonalDensity = Preference(
     key: 'seasonal_density',
     defaultValue: seasonalDensityNormal,
+  );
+
+  static final seasonalRowEnabled = Preference(
+    key: 'seasonal_row_enabled',
+    defaultValue: false,
+  );
+
+  static final seasonalRowCountry = Preference(
+    key: 'seasonal_row_country',
+    defaultValue: seasonalRowCountryAuto,
+  );
+
+  /// Holiday ids the viewer switched off, comma separated.
+  static final seasonalRowHiddenHolidays = Preference(
+    key: 'seasonal_row_hidden_holidays',
+    defaultValue: '',
   );
 
   static final loadingAnimationImage = EnumPreference(

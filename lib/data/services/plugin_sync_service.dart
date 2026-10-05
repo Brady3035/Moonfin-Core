@@ -1093,6 +1093,31 @@ class PluginSyncService extends ChangeNotifier {
     return null;
   }
 
+  /// The seasonal Home row Moonbase built for this user. [country] is the
+  /// viewer's two letter code, ZZ for "other", or null to let the server fall
+  /// back to its own.
+  Future<Map<String, dynamic>?> fetchSeasonalRow(
+    MediaServerClient client, {
+    String? country,
+  }) async {
+    final headers = _authHeaders(client);
+    if (headers == null) return null;
+
+    try {
+      final response = await _dio.get(
+        '${client.baseUrl}/Moonfin/Seasonal/Row',
+        queryParameters: {'country': ?country},
+        options: Options(headers: headers),
+      );
+      if (response.data is Map<String, dynamic>) {
+        return response.data as Map<String, dynamic>;
+      }
+    } catch (e) {
+      debugPrint('[PluginSyncService] fetchSeasonalRow failed: $e');
+    }
+    return null;
+  }
+
   Future<dynamic> _fetchThemesPayload(MediaServerClient client) async {
     final headers = _authHeaders(client);
     if (headers == null) return null;
@@ -1578,6 +1603,13 @@ class PluginSyncService extends ChangeNotifier {
         );
         continue;
       }
+      if (type == prefs.HomeSectionType.seasonal) {
+        final localEnabled = _prefs.get(UserPreferences.seasonalRowEnabled);
+        sections.add(
+          HomeSectionConfig(type: type, enabled: localEnabled, order: order++),
+        );
+        continue;
+      }
       sections.add(
         HomeSectionConfig(type: type, enabled: false, order: order++),
       );
@@ -1598,6 +1630,8 @@ class PluginSyncService extends ChangeNotifier {
   /// disabled rather than being re-derived from a toggle preference that
   /// defaults to on. The preferences stay untouched because the profile's own
   /// synced fields already set them, and writing false would push that back.
+  /// The seasonal row is the exception: a layout that leaves it out still
+  /// travels with its synced toggle, so the toggle decides.
   int _appendDisabledBuiltinSections(
     List<HomeSectionConfig> sections,
     int order,
@@ -1607,8 +1641,10 @@ class PluginSyncService extends ChangeNotifier {
       if (type == prefs.HomeSectionType.none || present.contains(type)) {
         continue;
       }
+      final enabled = type == prefs.HomeSectionType.seasonal &&
+          _prefs.get(UserPreferences.seasonalRowEnabled);
       sections.add(
-        HomeSectionConfig(type: type, enabled: false, order: order++),
+        HomeSectionConfig(type: type, enabled: enabled, order: order++),
       );
     }
     return order;
@@ -2058,6 +2094,7 @@ class PluginSyncService extends ChangeNotifier {
       prefs.HomeSectionType.sonarrCalendar =>
         UserPreferences.enableSonarrCalendar,
       prefs.HomeSectionType.rewatch => UserPreferences.displayRewatchRow,
+      prefs.HomeSectionType.seasonal => UserPreferences.seasonalRowEnabled,
       prefs.HomeSectionType.sinceYouWatched1 =>
         UserPreferences.sinceYouWatched1Enabled,
       prefs.HomeSectionType.sinceYouWatched2 =>

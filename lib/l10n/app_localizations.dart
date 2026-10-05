@@ -5470,6 +5470,108 @@ abstract class AppLocalizations {
   /// **'Heavy'**
   String get seasonalDensityHeavy;
 
+  /// Name of the Home row that shows holiday movies
+  ///
+  /// In en, this message translates to:
+  /// **'Seasonal Row'**
+  String get seasonalRow;
+
+  /// Explains the seasonal Home row setting
+  ///
+  /// In en, this message translates to:
+  /// **'Show a row of holiday movies from your library, with Seerr suggestions when available.'**
+  String get seasonalRowDescription;
+
+  /// Source label shown under the seasonal row's title
+  ///
+  /// In en, this message translates to:
+  /// **'Seasonal'**
+  String get seasonalRowSubtitle;
+
+  /// Setting for which country's holidays the seasonal row follows
+  ///
+  /// In en, this message translates to:
+  /// **'Country'**
+  String get seasonalRowCountry;
+
+  /// Country option that reads the country from the device
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic'**
+  String get seasonalRowCountryAuto;
+
+  /// Country name
+  ///
+  /// In en, this message translates to:
+  /// **'United States'**
+  String get countryUnitedStates;
+
+  /// Country name
+  ///
+  /// In en, this message translates to:
+  /// **'Canada'**
+  String get countryCanada;
+
+  /// Country option for a country the seasonal row does not list
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get seasonalRowCountryOther;
+
+  /// Heading for the list of holidays the seasonal row can show
+  ///
+  /// In en, this message translates to:
+  /// **'Holidays'**
+  String get seasonalRowHolidays;
+
+  /// Hint under the holiday checklist
+  ///
+  /// In en, this message translates to:
+  /// **'Untick a holiday to hide its row.'**
+  String get seasonalRowHolidaysHint;
+
+  /// Seasonal row title for New Year's
+  ///
+  /// In en, this message translates to:
+  /// **'New Year\'s'**
+  String get holidayNewYear;
+
+  /// Seasonal row title for Valentine's Day
+  ///
+  /// In en, this message translates to:
+  /// **'Valentine\'s Day'**
+  String get holidayValentines;
+
+  /// Seasonal row title for Easter
+  ///
+  /// In en, this message translates to:
+  /// **'Easter'**
+  String get holidayEaster;
+
+  /// Seasonal row title for Pride month
+  ///
+  /// In en, this message translates to:
+  /// **'Pride'**
+  String get holidayPride;
+
+  /// Seasonal row title for Halloween
+  ///
+  /// In en, this message translates to:
+  /// **'Halloween'**
+  String get holidayHalloween;
+
+  /// Seasonal row title for Thanksgiving
+  ///
+  /// In en, this message translates to:
+  /// **'Thanksgiving'**
+  String get holidayThanksgiving;
+
+  /// Seasonal row title for Christmas
+  ///
+  /// In en, this message translates to:
+  /// **'Christmas Movies'**
+  String get holidayChristmas;
+
   /// Setting for theme music
   ///
   /// In en, this message translates to:

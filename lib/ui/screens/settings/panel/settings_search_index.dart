@@ -117,6 +117,7 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
 }) {
   final seerrAvailable = GetIt.instance<PluginSyncService>().seerrAvailable;
   final tmdbAvailable = GetIt.instance<PluginSyncService>().tmdbAvailable;
+  final pluginAvailable = GetIt.instance<PluginSyncService>().pluginAvailable;
   final friendsAvailable =
       GetIt.instance<AchievementsService>().socialAvailable;
 
@@ -295,6 +296,12 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
     path: [l10n.integrations, l10n.externalLists, 'IMDb Lists'],
     icon: Icons.list_alt,
     open: () => push(const _ImdbListsScreen()),
+  );
+  final seasonalRow = _SearchSection(
+    slug: 'seasonal-row',
+    path: [l10n.integrations, l10n.externalLists, l10n.seasonalRow],
+    icon: Icons.celebration_outlined,
+    open: () => push(const _SeasonalRowScreen()),
   );
   final tmdbLists = _SearchSection(
     slug: 'tmdb',
@@ -1008,6 +1015,12 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
       keywords: ['recommendations'],
     ),
     rowImages.screen(keywords: ['poster', 'thumbnail', 'banner']),
+    if (pluginAvailable) ...[
+      seasonalRow.screen(keywords: ['holiday', 'christmas', 'halloween', 'seasonal']),
+      seasonalRow.leaf('seasonal_row_enabled', l10n.seasonalRow, subtitle: l10n.seasonalRowDescription),
+      seasonalRow.leaf('seasonal_row_country', l10n.seasonalRowCountry),
+      seasonalRow.leaf('seasonal_row_hidden_holidays', l10n.seasonalRowHolidays),
+    ],
     if (seerrAvailable) ...[
       externalLists.screen(keywords: [
         'external home rows',

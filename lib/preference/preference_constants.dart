@@ -466,6 +466,7 @@ enum HomeSectionType {
   sinceYouWatched4('sinceyouwatched4'),
   sinceYouWatched5('sinceyouwatched5'),
   rewatch('rewatch'),
+  seasonal('seasonal'),
   none('none');
 
   const HomeSectionType(this.serializedName);

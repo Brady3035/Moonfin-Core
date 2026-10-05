@@ -4251,6 +4251,74 @@
   "@seasonalDensityHeavy": {
     "description": "Seasonal effect density: most particles"
   },
+  "seasonalRow": "Seasonal Row",
+  "@seasonalRow": {
+    "description": "Name of the Home row that shows holiday movies"
+  },
+  "seasonalRowDescription": "Show a row of holiday movies from your library, with Seerr suggestions when available.",
+  "@seasonalRowDescription": {
+    "description": "Explains the seasonal Home row setting"
+  },
+  "seasonalRowSubtitle": "Seasonal",
+  "@seasonalRowSubtitle": {
+    "description": "Source label shown under the seasonal row's title"
+  },
+  "seasonalRowCountry": "Country",
+  "@seasonalRowCountry": {
+    "description": "Setting for which country's holidays the seasonal row follows"
+  },
+  "seasonalRowCountryAuto": "Automatic",
+  "@seasonalRowCountryAuto": {
+    "description": "Country option that reads the country from the device"
+  },
+  "countryUnitedStates": "United States",
+  "@countryUnitedStates": {
+    "description": "Country name"
+  },
+  "countryCanada": "Canada",
+  "@countryCanada": {
+    "description": "Country name"
+  },
+  "seasonalRowCountryOther": "Other",
+  "@seasonalRowCountryOther": {
+    "description": "Country option for a country the seasonal row does not list"
+  },
+  "seasonalRowHolidays": "Holidays",
+  "@seasonalRowHolidays": {
+    "description": "Heading for the list of holidays the seasonal row can show"
+  },
+  "seasonalRowHolidaysHint": "Untick a holiday to hide its row.",
+  "@seasonalRowHolidaysHint": {
+    "description": "Hint under the holiday checklist"
+  },
+  "holidayNewYear": "New Year's",
+  "@holidayNewYear": {
+    "description": "Seasonal row title for New Year's"
+  },
+  "holidayValentines": "Valentine's Day",
+  "@holidayValentines": {
+    "description": "Seasonal row title for Valentine's Day"
+  },
+  "holidayEaster": "Easter",
+  "@holidayEaster": {
+    "description": "Seasonal row title for Easter"
+  },
+  "holidayPride": "Pride",
+  "@holidayPride": {
+    "description": "Seasonal row title for Pride month"
+  },
+  "holidayHalloween": "Halloween",
+  "@holidayHalloween": {
+    "description": "Seasonal row title for Halloween"
+  },
+  "holidayThanksgiving": "Thanksgiving",
+  "@holidayThanksgiving": {
+    "description": "Seasonal row title for Thanksgiving"
+  },
+  "holidayChristmas": "Christmas Movies",
+  "@holidayChristmas": {
+    "description": "Seasonal row title for Christmas"
+  },
   "themeMusic": "Theme Music",
   "@themeMusic": {
     "description": "Setting for theme music"

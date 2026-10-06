@@ -2124,6 +2124,9 @@ class AppLocalizationsRo extends AppLocalizations {
   String get shortcutMpvStats => 'Statistici mpv activate sau dezactivate';
 
   @override
+  String get shortcutRecropBlackBars => 'Recrop black bars';
+
+  @override
   String get shortcutLeaveFullscreenOrStop =>
       'Ieși din ecranul complet sau oprește dacă nu ești în ecran complet';
 
@@ -3330,6 +3333,22 @@ class AppLocalizationsRo extends AppLocalizations {
   @override
   String get settingsCropBlackBarsDescription =>
       'Detectează barele letterbox încorporate în video, le decupează, apoi umple ecranul.';
+
+  @override
+  String get cropBlackBarsRecropInterval => 'Recrop interval';
+
+  @override
+  String get cropBlackBarsOnce => 'Once at start';
+
+  @override
+  String get cropBlackBarsEverySecond => 'Every second';
+
+  @override
+  String get settingsCropBlackBarsIntervalDescription =>
+      'Follow aspect ratio changes during playback.';
+
+  @override
+  String get playerRecroppingBlackBars => 'Recropping black bars';
 
   @override
   String get stretch => 'Întinde';

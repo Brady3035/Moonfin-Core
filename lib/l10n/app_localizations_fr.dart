@@ -2112,6 +2112,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get shortcutMpvStats => 'Activer ou désactiver les statistiques mpv';
 
   @override
+  String get shortcutRecropBlackBars => 'Recrop black bars';
+
+  @override
   String get shortcutLeaveFullscreenOrStop =>
       'Quitter le plein écran, ou arrêter la lecture si déjà quitté';
 
@@ -3319,6 +3322,22 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settingsCropBlackBarsDescription =>
       'Détecte les bandes noires encodées dans l\'image, les rogne, puis remplit l\'écran.';
+
+  @override
+  String get cropBlackBarsRecropInterval => 'Recrop interval';
+
+  @override
+  String get cropBlackBarsOnce => 'Once at start';
+
+  @override
+  String get cropBlackBarsEverySecond => 'Every second';
+
+  @override
+  String get settingsCropBlackBarsIntervalDescription =>
+      'Follow aspect ratio changes during playback.';
+
+  @override
+  String get playerRecroppingBlackBars => 'Recropping black bars';
 
   @override
   String get stretch => 'Étirer';

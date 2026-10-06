@@ -1317,14 +1317,18 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
         subtitle: l10n.keepVideoClearOfDynamicIslandDescription,
         keywords: ['notch', 'dynamic island', 'camera', 'safe area'],
       ),
-    if (letterboxCropSettingVisible())
-      video.leaf('crop_black_bars', l10n.cropBlackBars, keywords: [
-        'letterbox',
-        'cropdetect',
-        'black bars',
-        'mpv',
-        'android',
-      ]),
+    if (letterboxCropSettingVisible()) ...[
+      video.leaf(
+        'crop_black_bars',
+        l10n.cropBlackBars,
+        keywords: ['letterbox', 'cropdetect', 'black bars', 'mpv', 'android'],
+      ),
+      video.leaf(
+        'crop_black_bars_interval_seconds',
+        l10n.cropBlackBarsRecropInterval,
+        keywords: ['letterbox', 'dynamic crop', 'aspect ratio', 'imax'],
+      ),
+    ],
     playbackTime.screen(keywords: [
       'time left',
       'time remaining',

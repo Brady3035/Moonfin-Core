@@ -2114,6 +2114,9 @@ class AppLocalizationsCa extends AppLocalizations {
   String get shortcutMpvStats => 'Activa o desactiva les estadístiques de mpv';
 
   @override
+  String get shortcutRecropBlackBars => 'Recrop black bars';
+
+  @override
   String get shortcutLeaveFullscreenOrStop =>
       'Surt de la pantalla completa; si no hi ets, atura la reproducció';
 
@@ -3323,6 +3326,22 @@ class AppLocalizationsCa extends AppLocalizations {
   @override
   String get settingsCropBlackBarsDescription =>
       'Detecta les bandes negres codificades, retalla-les i omple la pantalla.';
+
+  @override
+  String get cropBlackBarsRecropInterval => 'Recrop interval';
+
+  @override
+  String get cropBlackBarsOnce => 'Once at start';
+
+  @override
+  String get cropBlackBarsEverySecond => 'Every second';
+
+  @override
+  String get settingsCropBlackBarsIntervalDescription =>
+      'Follow aspect ratio changes during playback.';
+
+  @override
+  String get playerRecroppingBlackBars => 'Recropping black bars';
 
   @override
   String get stretch => 'Estirar';

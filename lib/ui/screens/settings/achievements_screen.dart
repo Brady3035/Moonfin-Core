@@ -1,3 +1,16 @@
+import 'dart:async';
+
+import 'package:custom_tv_text_field/custom_tv_text_field.dart';
+import 'package:emoji_picker_flutter/emoji_picker_flutter.dart'
+    show
+        BottomActionBarConfig,
+        CategoryViewConfig,
+        Config,
+        EmojiPicker,
+        EmojiViewConfig,
+        SearchViewConfig,
+        SkinToneConfig;
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get_it/get_it.dart';
@@ -7,8 +20,11 @@ import 'package:server_core/server_core.dart';
 import '../../../data/models/achievement_models.dart';
 import '../../../data/services/achievements_service.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../preference/user_preferences.dart';
 import '../../../util/achievement_icons.dart';
 import '../../../util/focus/dpad_keys.dart';
+import '../../../util/focus/input_mode_tracker.dart';
+import '../../../util/image_mime.dart';
 import '../../../util/relative_time_label.dart';
 import '../../../util/platform_detection.dart';
 import '../../navigation/destinations.dart';
@@ -21,13 +37,16 @@ import '../../widgets/settings/preference_tiles.dart';
 import '../../widgets/settings/settings_panel.dart';
 import '../../widgets/settings/settings_section_header.dart';
 import '../../widgets/sliding_pill_tabs.dart';
+import '../../widgets/unread_badge.dart';
 import 'settings_app_bar.dart';
+
+part 'achievements_friends.dart';
+part 'achievements_chat.dart';
 
 /// Shows what the Achievement Badges plugin has recorded for the signed-in
 /// user.
 ///
-/// Read-only. The plugin's shop, power-ups, friends and messaging all need
-/// write calls and a lot more UI than this.
+/// Friends and chat live in their own part files, behind [FriendsScreen].
 class AchievementsScreen extends StatefulWidget {
   const AchievementsScreen({super.key});
 
@@ -77,7 +96,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
     return RefreshIndicator(
       onRefresh: reload,
       child: ListView(
-        padding: _listPadding,
+        padding: _listPadding(context),
         children: [
           if (overview.rank != null || overview.summary != null)
             _RankHeader(
@@ -89,6 +108,8 @@ class _AchievementsScreenState extends State<AchievementsScreen>
             _ShowcaseStrip(badges: overview.equipped),
           adaptiveListSection(
             children: [
+              if (GetIt.instance<AchievementsService>().unlockToastsAvailable)
+                const _UnlockToastsTile(),
               DpadListTile(
                 autofocus: true,
                 useSettingsIconShell: true,
@@ -128,6 +149,16 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                   subtitle: Text(l10n.achievementsActivitySubtitle),
                   onTap: () =>
                       context.pushSettingsScreen(const _ActivityScreen()),
+                ),
+              if (GetIt.instance<AchievementsService>().socialAvailable)
+                DpadListTile(
+                  useSettingsIconShell: true,
+                  leading: const Icon(Icons.people_alt),
+                  trailing: const Icon(Icons.chevron_right),
+                  title: Text(l10n.friends),
+                  subtitle: Text(l10n.friendsSubtitle),
+                  onTap: () =>
+                      context.pushSettingsScreen(const FriendsScreen()),
                 ),
               if (overview.leaderboardEnabled)
                 DpadListTile(
@@ -209,9 +240,69 @@ class _AchievementsScreenState extends State<AchievementsScreen>
   }
 }
 
+/// The plugin's own unlock notification switch, which jellyfin-web follows
+/// too, so flipping it here changes it for every client the user signs in on.
+class _UnlockToastsTile extends StatefulWidget {
+  const _UnlockToastsTile();
+
+  @override
+  State<_UnlockToastsTile> createState() => _UnlockToastsTileState();
+}
+
+class _UnlockToastsTileState extends State<_UnlockToastsTile> {
+  final _service = GetIt.instance<AchievementsService>();
+  late bool? _enabled = _service.unlockToastsEnabled;
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_load());
+  }
+
+  Future<void> _load() async {
+    final client = _client();
+    if (client == null) return;
+    final settings = await _service.fetchUnlockToastSettings(client);
+    if (settings != null && mounted) {
+      setState(() => _enabled = settings.enabled);
+    }
+  }
+
+  Future<void> _set(bool value) async {
+    final client = _client();
+    final before = _enabled;
+    if (client == null) return;
+
+    setState(() => _enabled = value);
+    final saved = await _service.saveUnlockToasts(client, value);
+    if (saved || !mounted) return;
+    setState(() => _enabled = before);
+    _say(context, AppLocalizations.of(context).friendsSaveFailed);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final enabled = _enabled;
+    return DpadSwitchListTile(
+      useSettingsIconShell: true,
+      secondary: const Icon(Icons.notifications_active),
+      title: Text(l10n.achievementsUnlockToasts),
+      subtitle: Text(l10n.achievementsUnlockToastsSubtitle),
+      // Held until the plugin says which way it is, so it can't flip the
+      // wrong way.
+      enabled: enabled != null,
+      value: enabled ?? false,
+      onChanged: _set,
+    );
+  }
+}
+
 /// A remote needs room to bring the last row clear of the overscan edge.
-EdgeInsets get _listPadding =>
-    EdgeInsets.only(bottom: PlatformDetection.isTV ? 96 : 24);
+EdgeInsets _listPadding(BuildContext context) => EdgeInsets.only(
+  bottom:
+      (PlatformDetection.isTV ? 96 : 24) + MediaQuery.paddingOf(context).bottom,
+);
 
 /// The signed-in client, or null if the session ended while the panel was open.
 MediaServerClient? _client() => GetIt.instance.isRegistered<MediaServerClient>()
@@ -221,10 +312,15 @@ MediaServerClient? _client() => GetIt.instance.isRegistered<MediaServerClient>()
 /// One shell for every screen here: the settings typography, the settings app
 /// bar, and a focus scope the remote can't wander out of.
 class _AchievementsScaffold extends StatefulWidget {
-  const _AchievementsScaffold({required this.title, required this.builder});
+  const _AchievementsScaffold({
+    required this.title,
+    required this.builder,
+    this.actions,
+  });
 
   final String title;
   final WidgetBuilder builder;
+  final List<Widget>? actions;
 
   @override
   State<_AchievementsScaffold> createState() => _AchievementsScaffoldState();
@@ -247,7 +343,19 @@ class _AchievementsScaffoldState extends State<_AchievementsScaffold> {
     context,
     Builder(
       builder: (context) => Scaffold(
-        appBar: buildSettingsAppBar(context, Text(widget.title)),
+        appBar: buildSettingsAppBar(
+          context,
+          Text(widget.title),
+          actions: widget.actions,
+          // First in the side panel, as when opened from the nav bar or a
+          // chat banner, there is nothing to go back to, so back closes it.
+          leading: Navigator.of(context).canPop()
+              ? null
+              : BackButton(
+                  onPressed: () =>
+                      Navigator.of(context, rootNavigator: true).pop(),
+                ),
+        ),
         body: FocusScope(
           node: _scope,
           autofocus: true,
@@ -413,8 +521,9 @@ String _powerUpBody(AppLocalizations l10n, String type) => switch (type) {
   _ => '',
 };
 
-/// Asks before spending something the user only gets so many of.
-Future<bool> _confirmSpend(
+/// Asks before spending something the user only gets so many of, or before a
+/// change that can't be undone.
+Future<bool> _confirm(
   BuildContext context, {
   required String title,
   required String body,
@@ -873,7 +982,7 @@ class _BadgeListScreenState extends State<_BadgeListScreen> {
     return _AchievementsScaffold(
       title: l10n.achievementsBadges,
       builder: (context) => ListView(
-        padding: _listPadding,
+        padding: _listPadding(context),
         children: [
           _TabStrip(
             labels: [
@@ -1121,7 +1230,7 @@ class _BadgeChaseScreenState extends State<_BadgeChaseScreen>
     final items = chase?.items ?? const <ChaseItem>[];
 
     return ListView(
-      padding: _listPadding,
+      padding: _listPadding(context),
       children: [
         if (badge.description.isNotEmpty && !badge.descriptionHidden)
           Padding(
@@ -1197,7 +1306,7 @@ class _LoadoutScreenState extends State<_LoadoutScreen>
     final client = _client();
     if (client == null || _busy) return;
 
-    final go = await _confirmSpend(
+    final go = await _confirm(
       context,
       title: l10n.achievementsUsePowerUp,
       body: l10n.achievementsUsePowerUpBody,
@@ -1249,7 +1358,7 @@ class _LoadoutScreenState extends State<_LoadoutScreen>
     }
 
     return ListView(
-      padding: _listPadding,
+      padding: _listPadding(context),
       children: [
         _ScoreBank(state.bank),
         SettingsSectionHeader(l10n.achievementsPowerUps),
@@ -1334,7 +1443,7 @@ class _AppearanceScreenState extends State<_AppearanceScreen>
     final worn = _worn;
     if (client == null || worn == null || _busy) return;
 
-    final go = await _confirmSpend(
+    final go = await _confirm(
       context,
       title: l10n.achievementsBuyConfirm,
       body: l10n.achievementsBuyConfirmBody,
@@ -1390,7 +1499,7 @@ class _AppearanceScreenState extends State<_AppearanceScreen>
     }
 
     return ListView(
-      padding: _listPadding,
+      padding: _listPadding(context),
       children: [
         _TabStrip(
           labels: [l10n.achievementsAvatars, l10n.achievementsTitles],
@@ -1623,7 +1732,7 @@ class _StatsScreenState extends State<_StatsScreen>
   Widget _buildBody(BuildContext context, AppLocalizations l10n) {
     final server = _stats.server;
     return ListView(
-      padding: _listPadding,
+      padding: _listPadding(context),
       children: [
         for (final group in _statGroups(l10n))
           ..._section(group.header, [
@@ -1817,7 +1926,7 @@ class _ActivityScreenState extends State<_ActivityScreen>
           );
         }
         return ListView(
-          padding: _listPadding,
+          padding: _listPadding(context),
           children: [
             adaptiveListSection(
               children: [
@@ -1898,7 +2007,7 @@ class _ShopScreenState extends State<_ShopScreen>
     final client = _client();
     if (client == null || _busy) return;
 
-    final go = await _confirmSpend(
+    final go = await _confirm(
       context,
       title: l10n.achievementsBuyConfirm,
       body: l10n.achievementsBuyConfirmBody,
@@ -1937,7 +2046,7 @@ class _ShopScreenState extends State<_ShopScreen>
 
   Widget _buildBody(BuildContext context, AppLocalizations l10n) {
     return ListView(
-      padding: _listPadding,
+      padding: _listPadding(context),
       children: [
         _ScoreBank(_bank),
         if (_items.isEmpty)
@@ -2080,7 +2189,7 @@ class _QuestsScreenState extends State<_QuestsScreen> {
   Future<void> _reroll(AppLocalizations l10n, {required bool weekly}) async {
     final client = _client();
     if (client == null || _rerolling) return;
-    final go = await _confirmSpend(
+    final go = await _confirm(
       context,
       title: l10n.achievementsRerollConfirm,
       body: l10n.achievementsRerollConfirmBody,
@@ -2154,7 +2263,7 @@ class _QuestsScreenState extends State<_QuestsScreen> {
     return _AchievementsScaffold(
       title: l10n.achievementsQuests,
       builder: (context) => ListView(
-        padding: _listPadding,
+        padding: _listPadding(context),
         children: [
           if (_quests.daily.isNotEmpty) ...[
             SettingsSectionHeader(l10n.achievementsDailyQuests),
@@ -2298,7 +2407,7 @@ class _LeaderboardScreenState extends State<_LeaderboardScreen> {
     return _AchievementsScaffold(
       title: l10n.achievementsLeaderboard,
       builder: (context) => ListView(
-        padding: _listPadding,
+        padding: _listPadding(context),
         children: [
           _TabStrip(
             labels: [for (final category in _categories) _label(l10n, category)],
@@ -2434,7 +2543,7 @@ class _RecapScreenState extends State<_RecapScreen> {
     return _AchievementsScaffold(
       title: l10n.achievementsRecap,
       builder: (context) => ListView(
-        padding: _listPadding,
+        padding: _listPadding(context),
         children: [
           _TabStrip(
             labels: [for (final period in _periods) _label(l10n, period)],
@@ -2541,7 +2650,7 @@ class _LibraryCompletionScreen extends StatelessWidget {
     return _AchievementsScaffold(
       title: l10n.achievementsLibraryCompletion,
       builder: (context) => ListView(
-        padding: _listPadding,
+        padding: _listPadding(context),
         children: [
           adaptiveListSection(
             children: [

@@ -74,7 +74,7 @@
     "@whosWatching": {
         "description": "Server user selection heading"
     },
-    "addUser": "Lisää käyttäjä",
+    "addUser": "Lisää Käyttäjä",
     "@addUser": {
         "description": "Button to add a new user on the server screen"
     },
@@ -91,7 +91,7 @@
             }
         }
     },
-    "savedServers": "Tallennetut palvelimet",
+    "savedServers": "Tallennetut Palvelimet",
     "@savedServers": {
         "description": "Section heading for previously saved servers"
     },
@@ -103,7 +103,7 @@
     "@noneFound": {
         "description": "Shown when no servers are discovered on the network"
     },
-    "unableToConnectToServer": "Ei voida muodostaa yhteyttä palvelimeen",
+    "unableToConnectToServer": "Yhteyttä palvelimeen ei voitu muodostaa",
     "@unableToConnectToServer": {
         "description": "Error when a server connection attempt fails"
     },
@@ -111,7 +111,7 @@
     "@addServer": {
         "description": "Button to manually add a server address"
     },
-    "embyConnect": "Yhdistä Emby",
+    "embyConnect": "Emby Yhteys",
     "@embyConnect": {
         "description": "Emby Connect sign-in option label"
     },
@@ -152,11 +152,11 @@
     "@connect": {
         "description": "Button to initiate connection to a server"
     },
-    "secureStorageUnavailable": "Suojattua Tallennustilaa ei ole Käytettävissä",
+    "secureStorageUnavailable": "Turvallista tallennustilaa ei ole käytettävissä",
     "@secureStorageUnavailable": {
         "description": "Dialog title when system keyring is inaccessible"
     },
-    "secureStorageUnavailableMessage": "Moonfin ei voinut käyttää järjestelmän avainketjua . Kirjautuminen voi jatkua, mutta suojattu tunnuksen tallennus ei välttämättä ole käytettävissä, ennen kuin avainketju on avattu.",
+    "secureStorageUnavailableMessage": "Moonfin ei voinut käyttää järjestelmän avainketjua. \tVoit kirjautua, mutta suojatun tunnuksen tallennus ei välttämättä ole käytettävissä, ennen kuin avainketju on avattu.",
     "@secureStorageUnavailableMessage": {
         "description": "Explanation when secure storage is not available"
     },
@@ -208,7 +208,7 @@
     "@noLinkedServers": {
         "description": "Error when Emby Connect account has no linked servers"
     },
-    "invalidEmbyConnectCredentials": "Virheelliset Emby Connect -tunnistetiedot",
+    "invalidEmbyConnectCredentials": "Virheelliset Emby Connect -tiedot",
     "@invalidEmbyConnectCredentials": {
         "description": "Error when Emby Connect auth response is invalid"
     },
@@ -216,15 +216,15 @@
     "@invalidEmbyConnectLogin": {
         "description": "Error for wrong Emby Connect credentials"
     },
-    "embyConnectExchangeNotSupported": "Palvelin ei tue Emby Connect -vaihtoa",
+    "embyConnectExchangeNotSupported": "Palvelin ei tue Emby Connect -tiedonsiirtoa",
     "@embyConnectExchangeNotSupported": {
         "description": "Error when server lacks Emby Connect exchange endpoint"
     },
-    "embyConnectNetworkError": "Verkkovirhe otettaessa yhteyttä Emby Connectiin tai valittuun palvelimeen",
+    "embyConnectNetworkError": "Verkkovirhe yhteyden muodostamisessa Emby Connectiin tai valittuun palvelimeen",
     "@embyConnectNetworkError": {
         "description": "Generic network error during Emby Connect flow"
     },
-    "loadingLinkedServers": "Ladataan linkitettyjä palvelimia...",
+    "loadingLinkedServers": "Lataa linkitettyjä palvelimia...",
     "@loadingLinkedServers": {
         "description": "Status text while fetching Emby Connect server list"
     },
@@ -232,11 +232,11 @@
     "@connectingToServerEllipsis": {
         "description": "Status text while connecting to a selected server"
     },
-    "noReachableAddress": "Yhteysosoitetta ei ole annettu",
+    "noReachableAddress": "Käytettävissä olevaa osoitetta ei ole annettu",
     "@noReachableAddress": {
         "description": "Shown when a discovered server has no usable address"
     },
-    "invalidServerExchangeResponse": "Virheellinen vastaus palvelimen vaihdon päätepisteestä",
+    "invalidServerExchangeResponse": "Virheellinen vastaus Exchange-palvelimen päätelaitteelta",
     "@invalidServerExchangeResponse": {
         "description": "Error when server exchange returns invalid data"
     },
@@ -265,11 +265,11 @@
     "@noHomeRowsLoaded": {
         "description": "Heading when home screen has no rows to display"
     },
-    "noHomeRowsHint": "Yritä päivittää tai vähentää aktiivisia kotiosioita.",
+    "noHomeRowsHint": "Yritä päivittää tai vähentää aktiivisia osioita etusivulla.",
     "@noHomeRowsHint": {
         "description": "Hint text below the no-home-rows heading"
     },
-    "retryHomeRows": "Yritä kotirivejä uudelleen",
+    "retryHomeRows": "Yritä Ladata Kotirivit Uudelleen",
     "@retryHomeRows": {
         "description": "Button to retry loading home rows after failure"
     },
@@ -281,7 +281,7 @@
     "@recordings": {
         "description": "Live TV recordings button label"
     },
-    "schedule": "Ajoittaa",
+    "schedule": "Ajastus",
     "@schedule": {
         "description": "Live TV schedule button label"
     },
@@ -524,7 +524,7 @@
             }
         }
     },
-    "discoverySubjects": "Löytöaiheet",
+    "discoverySubjects": "Tutustu ja Löydä",
     "@discoverySubjects": {
         "description": "Title for the book discovery subject picker panel"
     },
@@ -544,15 +544,15 @@
     "@scanWithYourPhone": {
         "description": "Instruction shown above a QR code"
     },
-    "audiobookGenres": "Äänikirjan tyylilajit",
+    "audiobookGenres": "Äänikirjan Genret",
     "@audiobookGenres": {
         "description": "Title for audiobook genre picker panel"
     },
-    "pickAudiobookGenres": "Valitse äänikirja Discoverissa näytettävät tyylilajit.",
+    "pickAudiobookGenres": "Valitse, mitkä genret haluat näyttää Audiobook Discover -osiossa.",
     "@pickAudiobookGenres": {
         "description": "Instruction text in audiobook genre picker"
     },
-    "discoverAudiobooks": "Tutustu äänikirjoihin",
+    "discoverAudiobooks": "Tutustu Äänikirjoihin",
     "@discoverAudiobooks": {
         "description": "Section title for audiobook discovery"
     },
@@ -1743,7 +1743,7 @@
             }
         }
     },
-    "auto": "Automaattinen",
+    "auto": "Auto",
     "@auto": {
         "description": "Label for automatic bitrate selection"
     },
@@ -2726,11 +2726,11 @@
     "@seriesThumbnailsDescription": {
         "description": "Description for series thumbnails setting"
     },
-    "homeRowInfoOverlay": "Kotirivin tiedot peittokuva",
+    "homeRowInfoOverlay": "Etusivu rivin info tietopaneeli",
     "@homeRowInfoOverlay": {
         "description": "Setting for home row info overlay"
     },
-    "showTitleMetadataOnHomeRows": "Näytä otsikko ja metatiedot, kun selaat kotirivejä",
+    "showTitleMetadataOnHomeRows": "Näytä otsikko ja metatiedot selatessa rivejä",
     "@showTitleMetadataOnHomeRows": {
         "description": "Description for home row info overlay"
     },
@@ -2787,7 +2787,7 @@
             }
         }
     },
-    "themeMusicOnHomeRows": "Teemamusiikki kotiriveillä",
+    "themeMusicOnHomeRows": "Tunnusmusiikki selatessa",
     "@themeMusicOnHomeRows": {
         "description": "Setting for theme music on home rows"
     },
@@ -3404,23 +3404,23 @@
     "@showShuffleButton": {
         "description": "Setting for showing shuffle button"
     },
-    "showGenresButton": "Näytä genret -painike",
+    "showGenresButton": "Näytä Genret Painike",
     "@showGenresButton": {
         "description": "Setting for showing genres button"
     },
-    "showFavoritesButton": "Näytä suosikit-painike",
+    "showFavoritesButton": "Näytä Suosikit Painike",
     "@showFavoritesButton": {
         "description": "Setting for showing favorites button"
     },
-    "showLibrariesInToolbar": "Näytä kirjastot työkalupalkissa",
+    "showLibrariesInToolbar": "Näytä Kirjastot Työkalupalkissa",
     "@showLibrariesInToolbar": {
         "description": "Setting for showing libraries in toolbar"
     },
-    "navbarOpacity": "Navbarin läpinäkyvyys",
+    "navbarOpacity": "Navbarin Läpinäkyvyys",
     "@navbarOpacity": {
         "description": "Setting for navbar opacity"
     },
-    "navbarColor": "Navipalkin väri",
+    "navbarColor": "Navipalkin Väri",
     "@navbarColor": {
         "description": "Setting for navbar color"
     },
@@ -3532,7 +3532,7 @@
     "@sourceCollections": {
         "description": "Setting for source collections"
     },
-    "excludedGenres": "Poissuljetut genret",
+    "excludedGenres": "Poissuljetut Genret",
     "@excludedGenres": {
         "description": "Setting for excluded genres"
     },
@@ -3685,7 +3685,7 @@
     "@liveTV": {
         "description": "Home section: live TV"
     },
-    "homeSections": "Kotisivut",
+    "homeSections": "Kotiosiot",
     "@homeSections": {
         "description": "Settings title for home sections"
     },
@@ -3693,7 +3693,7 @@
     "@resetToDefaults": {
         "description": "Tooltip for reset to defaults button"
     },
-    "homeRowPosterSize": "Kotirivin julisteen koko",
+    "homeRowPosterSize": "Etusivu Rivin julisteen koko",
     "@homeRowPosterSize": {
         "description": "Setting for home row poster size"
     },
@@ -3701,7 +3701,7 @@
     "@perRowImageTypeSelection": {
         "description": "Setting for per-row image type selection"
     },
-    "configureImageTypeForEachRow": "Määritä kuvatyyppi kullekin käytössä olevalle kotiriville",
+    "configureImageTypeForEachRow": "Määritä kuvatyyppi kullekin käytössä olevalle etusivu riville",
     "@configureImageTypeForEachRow": {
         "description": "Description for per-row image type selection"
     },
@@ -3891,7 +3891,7 @@
     "@trakt": {
         "description": "Rating source: Trakt"
     },
-    "letterboxd": "Kirjelaatikkod",
+    "letterboxd": "Letterboxd",
     "@letterboxd": {
         "description": "Rating source: Letterboxd"
     },
@@ -4007,7 +4007,7 @@
     "@recentRequests": {
         "description": "Seerr row: recent requests"
     },
-    "recentlyAdded": "Äskettäin lisätty",
+    "recentlyAdded": "Äskettäin lisätyt",
     "@recentlyAdded": {
         "description": "Seerr row: recently added"
     },
@@ -4035,7 +4035,7 @@
     "@popularSeries": {
         "description": "Seerr row: popular series"
     },
-    "seriesGenres": "Sarjan genret",
+    "seriesGenres": "Sarjojen Genret",
     "@seriesGenres": {
         "description": "Seerr row: series genres"
     },
@@ -4223,7 +4223,7 @@
     "@navbarStyleToolbarAppearance": {
         "description": "Navigation settings subtitle"
     },
-    "reorderToggleHomeRows": "Järjestä uudelleen ja vaihda sekä kirjastopohjaisten että ulkoisten kotirivien järjestystä",
+    "reorderToggleHomeRows": "Järjestä uudelleen ja vaihda sekä kirjastopohjaisten että ulkoisten sivurivien järjestystä",
     "@reorderToggleHomeRows": {
         "description": "Home sections settings subtitle"
     },
@@ -4289,7 +4289,7 @@
     "@request": {
         "description": "Button to submit a media request"
     },
-    "cancelRequest": "Keskeytä pyyntö",
+    "cancelRequest": "Peruuta Pyyntö",
     "@cancelRequest": {
         "description": "Button/dialog title to cancel a media request"
     },
@@ -4495,7 +4495,7 @@
     "@revenueLabel": {
         "description": "Stat label for revenue"
     },
-    "runtimeLabel": "Suoritusaika",
+    "runtimeLabel": "Kesto",
     "@runtimeLabel": {
         "description": "Stat label for runtime"
     },
@@ -4628,7 +4628,7 @@
     "analyticsVideoCodecs": "Videokoodekit",
     "analyticsAudioCodecs": "Äänikoodekit",
     "analyticsContainers": "Säiliöt",
-    "analyticsTopGenres": "Suosituimmat genret",
+    "analyticsTopGenres": "Suosituimmat Genret",
     "analyticsReleaseYears": "Julkaisuvuodet",
     "analyticsContentRatings": "Sisällön luokitukset",
     "analyticsRuntimeBuckets": "Ajonaikaiset kauhat",
@@ -6514,7 +6514,7 @@
     "settingsAccountSecurity": "Tili ja suojaus",
     "settingsAccountSecuritySubtitle": "Todennus, PIN-koodi ja lapsilukko",
     "settingsPersonalization": "Personointi",
-    "settingsPersonalizationSubtitle": "Teema, navigointi, kotirivit ja kirjaston näkyvyys",
+    "settingsPersonalizationSubtitle": "Teema, navigointi, etusivun rivit, ja kirjaston näkyvyys",
     "settingsDynamicContent": "Dynaaminen sisältö",
     "settingsDynamicContentSubtitle": "Mediapalkki ja visuaaliset peittokuvat",
     "settingsPlaybackSyncplay": "Toisto ja SyncPlay",
@@ -6734,7 +6734,7 @@
     "@seconds": {
         "description": "Time unit label in seconds"
     },
-    "localPreviews": "Paikalliset esikatselut",
+    "localPreviews": "Paikalliset Esikatselut",
     "@localPreviews": {
         "description": "Local previews settings screen title"
     },
@@ -7065,10 +7065,10 @@
     "collectionsRowSorting": "Kokoelmat rivien lajittelu",
     "collectionsRowSortingDescription": "Lajittele kokoelmien rivit lisäyspäivän, julkaisupäivän, aakkosjärjestyksen ja muiden mukaan.",
     "displayGenresRows": "Näytä lajityypit rivit",
-    "displayGenresRowsSubtitle": "Näytä Genres-rivit Koti-osioissa.",
-    "genresRowSorting": "Genret rivilajittelu",
+    "displayGenresRowsSubtitle": "Näytä Genre rivit Kotiosioissa.",
+    "genresRowSorting": "Genret Rivilajittelu",
     "genresRowSortingDescription": "Lajittele Genres-rivit lisäyspäivän, julkaisupäivän, aakkosjärjestyksen ja muiden mukaan.",
-    "genresRowItems": "Genret rivikohdat",
+    "genresRowItems": "Kohteet Genre rivillä",
     "genresRowItemsDescription": "Näytä elokuvat, sarjat tai molemmat lajityypit-riveillä.",
     "appearance": "Ulkoasu",
     "cardSize": "Kortin koko",
@@ -7231,7 +7231,7 @@
     "adminDrawerSectionLiveTv": "Live-TV",
     "homeVideos": "Kotivideot",
     "mixedContent": "Sekoitettu sisältö",
-    "homeVideosAndPhotos": "Kotivideot ja valokuvat",
+    "homeVideosAndPhotos": "Kotivideot & Valokuvat",
     "mixedMoviesAndShows": "Sekalaiset elokuvat ja ohjelmat",
     "intelQuickSync": "Intel Quick Sync",
     "rockchipMpp": "Rockchip MPP",
@@ -7303,8 +7303,8 @@
     "loadingShuffle": "Ladataan satunnaistoistoa...",
     "libraryShuffleLabel": "KIRJASTON SEKOITUS",
     "randomShuffleLabel": "SATUNNAINEN SEKOITUS",
-    "genresShuffleLabel": "GENREJEN SEKOITUS",
-    "autoHdrSwitching": "Automaattinen HDR-vaihto",
+    "genresShuffleLabel": "GENRE SEKOITUS",
+    "autoHdrSwitching": "Automaattinen HDR Kytkentä",
     "autoHdrSwitchingDescription": "Ota HDR automaattisesti käyttöön HDR-videon toistoa varten ja palauta näyttötila poistuessasi.",
     "whenFullscreen": "Kun koko näyttö",
     "transcodingLimits": "Transkoodausrajat",
@@ -7337,7 +7337,7 @@
     "@detailScreenStyleMoonfin": {
         "description": "Detail screen style option: the classic centered layout"
     },
-    "detailScreenStyleModern": "Moderni",
+    "detailScreenStyleModern": "Modern",
     "@detailScreenStyleModern": {
         "description": "Detail screen style option: the responsive cinematic layout"
     },
@@ -7345,7 +7345,7 @@
     "@expandedTabs": {
         "description": "Label for the detail screen expanded tabs setting"
     },
-    "expandedTabsSubtitle": "Näytä välilehden sisältö automaattisesti välilehtiä selatessasi. Poista käytöstä, jos haluat avata ja sulkea jokaisen välilehden itse.",
+    "expandedTabsSubtitle": "Näytä välilehden sisältö automaattisesti välilehtiä selatessasi. \tPoista käytöstä, jos haluat avata ja sulkea jokaisen välilehden itse.",
     "@expandedTabsSubtitle": {
         "description": "Explanation under the expanded tabs setting"
     },
@@ -7409,7 +7409,7 @@
     "@glassQualitySubtitle": {
         "description": "Explanation under the glass quality setting"
     },
-    "glassQualityAuto": "Automaattinen",
+    "glassQualityAuto": "Auto",
     "@glassQualityAuto": {
         "description": "Glass quality option: per-device default"
     },
@@ -7481,7 +7481,7 @@
     "@gameHoldToOpenMenu": {
         "description": "Hint shown while holding the gamepad combo to open the in-game menu"
     },
-    "gamePlaybackUnsupported": "Pelaamista ei vielä tueta tällä laitteella.",
+    "gamePlaybackUnsupported": "Peliä ei vielä tueta tällä laitteella.",
     "@gamePlaybackUnsupported": {
         "description": "Shown when the device cannot run the retro-game emulator"
     },
@@ -7858,11 +7858,11 @@
     },
     "reportDownloadsActivity": "Näytä lataukset palvelimella",
     "reportDownloadsActivitySubtitle": "Anna palvelimen ylläpitäjän nähdä transkoodatut lataukset hallintapaneelissa",
-    "navbarAlwaysExpanded": "Näytä navigointipalkin tekstit aina",
+    "navbarAlwaysExpanded": "Näytä Navigointipalkin tekstit aina",
     "@navbarAlwaysExpanded": {
         "description": "Setting to keep every top navbar heading's text label visible at all times, tvOS-style"
     },
-    "showSeerrButton": "Näytä Seerr-painike",
+    "showSeerrButton": "Näytä Seerr Painike",
     "@showSeerrButton": {
         "description": "Setting for showing Seerr button"
     },
@@ -8387,7 +8387,7 @@
     "adminTunerReadAtNativeFramerate": "Lue syöte natiivilla kuvataajuudella",
     "adminEditProvider": "Muokkaa tarjoajaa",
     "adminProviderXmltv": "XMLTV",
-    "adminProviderSchedulesDirect": "Schedules Direct",
+    "adminProviderSchedulesDirect": "Ohjelmatietopalvelu",
     "adminXmltvPath": "Tiedosto tai URL",
     "adminXmltvMoviePrefix": "Elokuvien etuliite",
     "adminXmltvMovieCategories": "Elokuvakategoriat",
@@ -8475,7 +8475,7 @@
     "adminPlaybackDownmixBoost": "Äänen alasmiksauksen korostus",
     "adminPlaybackDownmixAlgorithm": "Stereoalasmiksauksen algoritmi",
     "adminPlaybackMaxMuxingQueue": "Muksausjonon enimmäiskoko",
-    "adminPlaybackAutoOption": "Automaattinen",
+    "adminPlaybackAutoOption": "Auto",
     "adminRunningTasks": "Käynnissä olevat tehtävät",
     "adminNetworkingPublicHttpPort": "Julkinen HTTP-portti",
     "adminNetworkingRequireHttps": "Vaadi HTTPS",
@@ -8594,10 +8594,10 @@
             }
         }
     },
-    "homeRowDisplay": "Aloitusnäytön rivien näyttö",
-    "homeRowSections": "Aloitusnäytön riviosiot",
-    "homeRowToggles": "Aloitusnäytön rivivalinnat",
-    "homeRowTogglesSubtitle": "Ota käyttöön tai poista käytöstä kirjastopohjaiset aloitusnäytön riviluokat",
+    "homeRowDisplay": "Kotirivien Näyttö",
+    "homeRowSections": "Kotirivien Osiot",
+    "homeRowToggles": "Kotirivien Säätimet",
+    "homeRowTogglesSubtitle": "Ota käyttöön tai poista käytöstä kirjastopohjaiset kotirivi kategoriat",
     "homeRowTogglesDescription": "Ota alla olevat valinnat käyttöön, niin rivit näkyvät aloitusnäytön osioissa.",
     "displayPlaylistsRows": "Näytä soittolistarivit",
     "displayPlaylistsRowsSubtitle": "Näytä soittolistarivit aloitusnäytön osioissa.",
@@ -9191,7 +9191,7 @@
     "@mergeRecentRowsByType": {
         "description": "Setting for merging recently added and recently released libraries by media type"
     },
-    "mergeRecentRowsByTypeDescription": "Yhdistä saman tyyppiset erilliset kirjastot ”Äskettäin lisätty” ja ”Äskettäin julkaistu” -aloitussarjoihin.",
+    "mergeRecentRowsByTypeDescription": "Yhdistä saman tyyppiset erilliset kirjastot ”Äskettäin lisätyt” ja ”Äskettäin julkaistut” -aloitussarjoihin.",
     "@mergeRecentRowsByTypeDescription": {
         "description": "Description for merging recent home rows by media type"
     },
@@ -9224,11 +9224,11 @@
             }
         }
     },
-    "homeRowsPadding": "Kotirivin täytöt",
+    "homeRowsPadding": "Etusivu rivien täyttö",
     "@homeRowsPadding": {
         "description": "Title for home rows padding setting"
     },
-    "homeRowsPaddingDescription": "Mukauta kotirivien välistä etäisyyttä",
+    "homeRowsPaddingDescription": "Mukauta etusivu rivien täytön välistä etäisyyttä",
     "@homeRowsPaddingDescription": {
         "description": "Description for home rows padding setting"
     },
@@ -9236,11 +9236,11 @@
     "@tags": {
         "description": "Heading for the keyword tags a title is filed under"
     },
-    "genresAndTags": "Genret ja tunnisteet",
+    "genresAndTags": "Genret ja Tunnisteet",
     "@genresAndTags": {
         "description": "Button and dialog title for browsing a title's genres, networks and tags"
     },
-    "yourWatchlist": "Aktiivilistallasi",
+    "yourWatchlist": "Katselulistallasi",
     "@yourWatchlist": {
         "description": "Seerr row: watchlist"
     },
@@ -9264,7 +9264,7 @@
     "@requested4k": {
         "description": "Disabled label shown when a 4K request already exists and the user cannot cancel it"
     },
-    "cancelRequest4k": "Keskeytä 4K-pyyntö",
+    "cancelRequest4k": "Peruuta 4K-pyyntö",
     "@cancelRequest4k": {
         "description": "Button/dialog title to cancel a 4K media request"
     },
@@ -9372,7 +9372,7 @@
     "collectionsRowSortOrderDescription": "Lajittele Kokoelmat-taulukon rivit nousevaan tai laskevaan järjestykseen.",
     "collectionsRowShowEpisodes": "Näytä yksittäiset jaksot",
     "collectionsRowShowEpisodesSubtitle": "Laajenna TV-sarjoja, jotta jokainen jakso näkyy erikseen.",
-    "genresRowSortOrderDescription": "Lajittele ”Genret”-rivit nousevaan tai laskevaan järjestykseen.",
+    "genresRowSortOrderDescription": "Lajittele Genre rivit nousevaan tai laskevaan järjestykseen.",
     "personalRatingStars": "5 tähteä",
     "@personalRatingStars": {
         "description": "Personal rating style using a five-star scale."
@@ -9525,7 +9525,7 @@
     "@recentlyReleasedSeriesType": {
         "description": "Setting for sorting series in recently released series row"
     },
-    "recentlyReleasedSeriesTypeDescription": "Lajittele äskettäin julkaistujen sarjojen kotirivit sarjan, uusimman kauden tai uusimman jakson esityspäivän mukaan",
+    "recentlyReleasedSeriesTypeDescription": "Lajittele äskettäin julkaistujen sarjojen rivi, uusimman kauden tai uusimman jakson esityspäivän mukaan",
     "@recentlyReleasedSeriesTypeDescription": {
         "description": "Description for recently released series type setting"
     },
@@ -9626,7 +9626,7 @@
         }
     },
     "displayStudiosRows": "Display Studio -rivi",
-    "displayStudiosRowsSubtitle": "Näytä Studio-rivi Koti-osiossa.",
+    "displayStudiosRowsSubtitle": "Näytä Studiorivi Kotiosiossa.",
     "studiosRowSorting": "Studio Row -lajittelu",
     "studiosRowSortingDescription": "”Studio row” -nimiset, äskettäin lisätyt ja paljon muuta.",
     "studiosRowSortOrderDescription": "Valitse lajittelujärjestys: nouseva tai laskeva.",
@@ -10149,7 +10149,7 @@
     "@trickplayModeFull": {
         "description": "Trickplay mode option: temporarily replaces the video with the trickplay image while scrubbing"
     },
-    "trickplaySettingsPreviewHint": "Vedä liukusäädintä nähdäksesi esikatselun liu’uttamisesta",
+    "trickplaySettingsPreviewHint": "Vedä liukusäädintä nähdäksesi esikatselun",
     "@trickplaySettingsPreviewHint": {
         "description": "Hint shown below the live trickplay settings preview"
     },
@@ -10281,7 +10281,7 @@
     "@nativeHdrOutputDescription": {
         "description": "Settings description for native HDR output"
     },
-    "loadingAnimation": "Ladataan Animaatiota",
+    "loadingAnimation": "Latausanimaatio",
     "@loadingAnimation": {
         "description": "Setting title for custom loading animation"
     },
@@ -10562,7 +10562,7 @@
             }
         }
     },
-    "showDownloadsButton": "Näytä latauspainike",
+    "showDownloadsButton": "Näytä Latauspainike",
     "@showDownloadsButton": {
         "description": "Setting for showing downloads button"
     },
@@ -10585,7 +10585,7 @@
     "settingsRedetectDisplay": "Näytä uudelleen-toiminto",
     "settingsRedetectDisplayDescription": "Kysy televisiolta uudelleen, mitä HDR-formaatteja se tukee. Käytä tätä, jos Dolby Vision- tai HDR10-sisältöjä transkoodataan sen jälkeen, kun televisio tai vastaanotin on kytketty päälle myöhään.",
     "settingsDisplayIsSdr": "Televisiossani ei ole HDR-tukea",
-    "settingsDisplayIsSdrDescription": "Älä muistuta tämän näytön HDR-tukea. Käytä tätä vain, jos tunnistustoiminto ilmoittaa jatkuvasti HDR:stä, jota televisio ei todellisuudessa pysty näyttämään.",
+    "settingsDisplayIsSdrDescription": "Älä muistuta tämän näytön HDR-tukea.",
     "settingsDisplayRedetected": "Näyttö tunnistettu uudelleen: {formats}",
     "@settingsDisplayRedetected": {
         "placeholders": {
@@ -10932,7 +10932,7 @@
             }
         }
     },
-    "trickplayPauseWhileScrubbing": "Tauko Kelauksen Ajaksi",
+    "trickplayPauseWhileScrubbing": "Tauko Skrubbauksen Ajaksi",
     "@trickplayPauseWhileScrubbing": {
         "description": "Setting for whether seeking pauses playback so the trickplay preview holds still"
     },
@@ -11321,7 +11321,7 @@
     "@shortcutResetZoom": {
         "description": "Reader shortcut action"
     },
-    "showLiveTvButton": "Näytä Live TV -painike",
+    "showLiveTvButton": "Näytä Live TV Painike",
     "@showLiveTvButton": {
         "description": "Setting for showing live TV button"
     },
@@ -11616,11 +11616,11 @@
     "@animeMarkerMixed": {
         "description": "Badge on an anime episode that mixes source material with filler, so it still contains story"
     },
-    "animeMarkerAnimeCanon": "Anime Canon",
+    "animeMarkerAnimeCanon": "Animen kaanon",
     "@animeMarkerAnimeCanon": {
         "description": "Badge on an anime episode that is not in the source manga but is part of the anime's own continuity"
     },
-    "animeMarkerMangaCanon": "Manga Canon",
+    "animeMarkerMangaCanon": "Manga Kaanon",
     "@animeMarkerMangaCanon": {
         "description": "Badge on an anime episode adapted from the source manga"
     },
@@ -11643,15 +11643,6 @@
     "animeMarkerRecap": "Yhteenveto",
     "@animeMarkerRecap": {
         "description": "Badge on an anime episode that recaps earlier episodes"
-    },
-    "subtitleDelayAuto": "Auto {value}",
-    "@subtitleDelayAuto": {
-        "description": "Read-only line under the subtitle delay showing a correction the player applied on its own, value is a formatted delay like +2000 ms",
-        "placeholders": {
-            "value": {
-                "type": "String"
-            }
-        }
     },
     "noProgramData": "Ohjelmatietoja ei ole",
     "@noProgramData": {
@@ -12255,7 +12246,7 @@
     "@achievementsStatLibraries": {
         "description": "Counter label"
     },
-    "achievementsStatGenres": "Genret katsotut",
+    "achievementsStatGenres": "Katsotut Genret",
     "@achievementsStatGenres": {
         "description": "Counter label"
     },
@@ -12363,7 +12354,7 @@
     "@achievementsDoubleCreditBody": {
         "description": "What the Double Credit power-up does"
     },
-    "achievementsStreakFreeze": "Streak Freeze",
+    "achievementsStreakFreeze": "Katselusarjan suojaus",
     "@achievementsStreakFreeze": {
         "description": "Power-up that protects a watch streak"
     },
@@ -12454,7 +12445,7 @@
     "@setupDetailMinimalistHint": {
         "description": "What the minimalist detail screen style gives you"
     },
-    "guideRepeatBadge": "Toista",
+    "guideRepeatBadge": "Jatkuva",
     "@guideRepeatBadge": {
         "description": "Short badge label shown on a rerun in the guide hero band"
     },
@@ -12498,7 +12489,7 @@
     "@magenta": {
         "description": "Color: magenta"
     },
-    "requestedByLabel": "Pyynnön esittäjä",
+    "requestedByLabel": "Pyytäjän nimi",
     "@requestedByLabel": {
         "description": "Label above the name of whoever requested media, where the name sits on its own line"
     },
@@ -12513,5 +12504,816 @@
     "uiScaleGrandparents": "Isovanhemmat",
     "@uiScaleGrandparents": {
         "description": "UI scaling option above extra large"
+    },
+    "playbackStreamLost": "Toisto keskeytyi, eikä sitä voitu jatkaa.",
+    "@playbackStreamLost": {
+        "description": "Shown in place of an internal sentinel error code when playback gives up trying to recover a stalled or starved stream"
+    },
+    "liveReconnecting": "Yhdistetään uudelleen… ({attempt} of {total})",
+    "@liveReconnecting": {
+        "description": "Overlay shown while a live channel's bounded recovery is retrying",
+        "placeholders": {
+            "attempt": {
+                "type": "int"
+            },
+            "total": {
+                "type": "int"
+            }
+        }
+    },
+    "setupPlaybackLanguages": "Toistokielet",
+    "@setupPlaybackLanguages": {
+        "description": "Heading of the optional audio and subtitle language section on the last setup wizard screen"
+    },
+    "setupOptional": "Valinnainen",
+    "@setupOptional": {
+        "description": "Tag beside an optional section in the setup wizard"
+    },
+    "setupNavbarStyleQuestion": "Miltä alareunan palkin pitäisi näyttää?",
+    "@setupNavbarStyleQuestion": {
+        "description": "Setup question asking which style the bottom navigation bar should use"
+    },
+    "setupNavbarStyleDockHint": "Kelluva painike, jonka jokaisen välilehden alla on merkintöjä.",
+    "@setupNavbarStyleDockHint": {
+        "description": "What the Dock bottom bar style gives you"
+    },
+    "setupNavbarStyleSplitHint": "Hakutoiminnolle tulee oma painike, ja hakupalkki kutistuu, kun vierität sivua.",
+    "@setupNavbarStyleSplitHint": {
+        "description": "What the Split bottom bar style gives you"
+    },
+    "setupNavbarStyleStripHint": "Alareunassa oleva koko sivun levyinen palkki.",
+    "@setupNavbarStyleStripHint": {
+        "description": "What the Strip bottom bar style gives you"
+    },
+    "bottomNavbarStyle": "Alaosan palkin tyyli",
+    "@bottomNavbarStyle": {
+        "description": "Settings title for choosing how the mobile bottom navigation bar looks"
+    },
+    "bottomNavbarStyleDock": "Telakka",
+    "@bottomNavbarStyleDock": {
+        "description": "Bottom bar style: a floating pill with labelled tabs"
+    },
+    "bottomNavbarStyleSplit": "Jaettu",
+    "@bottomNavbarStyleSplit": {
+        "description": "Bottom bar style: tabs in one capsule with search as its own round button"
+    },
+    "bottomNavbarStyleStrip": "Nauha",
+    "@bottomNavbarStyleStrip": {
+        "description": "Bottom bar style: a full-width bar along the bottom edge"
+    },
+    "bottomNavbarTabs": "Alareunan välilehdet",
+    "@bottomNavbarTabs": {
+        "description": "Settings title for choosing which tabs sit on the mobile bottom navigation bar"
+    },
+    "bottomNavbarTabsDescription": "Voit kiinnittää enintään 3 välilehteä Home ja You välilehtien väliin. Kaikki muu löytyy alareunan navigointipalkista.",
+    "@bottomNavbarTabsDescription": {
+        "description": "Explains the bottom bar tabs screen"
+    },
+    "bottomNavbarTabsAutomatic": "Automaattinen",
+    "@bottomNavbarTabsAutomatic": {
+        "description": "Shown when the bottom bar tabs are picked from the navigation button settings"
+    },
+    "bottomNavbarTabsPinned": "Kiinnitetty",
+    "@bottomNavbarTabsPinned": {
+        "description": "Section header for the tabs pinned to the bottom bar"
+    },
+    "bottomNavbarTabsAvailable": "Saatavilla",
+    "@bottomNavbarTabsAvailable": {
+        "description": "Section header for tabs that can be pinned to the bottom bar"
+    },
+    "bottomNavbarTabsReset": "Palauta automaattitilaan",
+    "@bottomNavbarTabsReset": {
+        "description": "Action that clears the pinned bottom bar tabs so they are picked automatically again"
+    },
+    "bottomNavbarTabsLimit": "Voit kiinnittää enintään 3 välilehteä. Poista yksi, jotta voit kiinnittää toisen.",
+    "@bottomNavbarTabsLimit": {
+        "description": "Hint shown when the maximum number of bottom bar tabs is already pinned"
+    },
+    "bottomNavbarTabTurnedOff": "Poistettu käytöstä Painikkeet kohdasta",
+    "@bottomNavbarTabTurnedOff": {
+        "description": "Hint on a bottom bar tab that can't be pinned because its navigation button setting is off"
+    },
+    "bottomNavbarSplitSearchNote": "Split tyylissä Haku toiminnolla on aina oma painikkeensa.",
+    "@bottomNavbarSplitSearchNote": {
+        "description": "Note on the bottom bar tabs screen about the Split style"
+    },
+    "bottomNavbarButtonsNote": "Nämä määrittävät, mitä alareunan navigointipalkissa näkyy ja mitkä välilehdet voit kiinnittää alareunan palkkiin. Palkissa jo olevat välilehdet eivät näy tässä luettelossa.",
+    "@bottomNavbarButtonsNote": {
+        "description": "Note under the navigation buttons section while the bottom bar is in use"
+    },
+    "navYou": "You",
+    "@navYou": {
+        "description": "Bottom bar tab that opens the user's own menu with their profile, extra destinations and settings"
+    },
+    "uiScaleGreatGrandparents": "Isoisovanhemmat",
+    "@uiScaleGreatGrandparents": {
+        "description": "UI scaling option above Grandparents"
+    },
+    "trackActionViewDetails": "Katso tiedot",
+    "achievementsUnlockToasts": "Avaa ilmoitukset",
+    "@achievementsUnlockToasts": {
+        "description": "Switch that shows a notification when the user unlocks a badge"
+    },
+    "achievementsUnlockToastsSubtitle": "Näytä ilmoitus, kun avaat merkin",
+    "@achievementsUnlockToastsSubtitle": {
+        "description": "Subtitle of the unlock notifications switch"
+    },
+    "achievementsUnlockedNotification": "Saavutus avattu",
+    "@achievementsUnlockedNotification": {
+        "description": "Title of the notification for one newly unlocked badge"
+    },
+    "achievementsUnlockedCount": "{count, plural, one{{count} saavutus avattu} other{{count} saavutusta avattu}}",
+    "@achievementsUnlockedCount": {
+        "description": "Title of the notification for several badges unlocked at once",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "achievementsUnlockedMore": "+{count} lisää",
+    "@achievementsUnlockedMore": {
+        "description": "Follows the first few badge names when more were unlocked at once",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "friends": "Ystävät",
+    "@friends": {
+        "description": "Title of the friends panel from the Achievement Badges plugin"
+    },
+    "friendsSubtitle": "Katso, ketkä ovat verkossa, ja keskustele tämän palvelimen käyttäjien kanssa",
+    "@friendsSubtitle": {
+        "description": "Subtitle of the Friends entry"
+    },
+    "friendsShowButton": "Näytä ystävät -painike",
+    "@friendsShowButton": {
+        "description": "Navigation setting that adds a Friends button"
+    },
+    "friendsShowButtonSubtitle": "Ystävät ja chat Achievement Badges -laajennuksesta",
+    "@friendsShowButtonSubtitle": {
+        "description": "Subtitle of the setting that adds a Friends button"
+    },
+    "friendsMessages": "Viestit",
+    "@friendsMessages": {
+        "description": "Entry that opens the list of chats"
+    },
+    "friendsUnreadCount": "{count, plural, =0{Ei lukemattomia viestejä} =1{1 lukematon viesti} other{{count} lukematonta viestiä}}",
+    "@friendsUnreadCount": {
+        "description": "How many chat messages are unread",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "friendsRequests": "Kaveripyynnöt",
+    "@friendsRequests": {
+        "description": "Entry that opens pending friend requests"
+    },
+    "friendsRequestCount": "{count, plural, =0{Ei ketään odottamassa} =1{1 odottaa sinua} other{{count} odottaa sinua}}",
+    "@friendsRequestCount": {
+        "description": "How many friend requests wait for an answer",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "friendsAdd": "Lisää kavereita",
+    "@friendsAdd": {
+        "description": "Entry that opens the people search"
+    },
+    "friendsAddSubtitle": "Etsi käyttäjiä tältä palvelimelta",
+    "@friendsAddSubtitle": {
+        "description": "Subtitle of the Add friends entry"
+    },
+    "friendsPrivacy": "Tietosuoja",
+    "@friendsPrivacy": {
+        "description": "Entry that opens the friends privacy settings"
+    },
+    "friendsPrivacySubtitle": "Mitä ystäväsi voivat nähdä",
+    "@friendsPrivacySubtitle": {
+        "description": "Subtitle of the friends Privacy entry"
+    },
+    "friendsOnline": "Online",
+    "@friendsOnline": {
+        "description": "Section header and status for friends who are online"
+    },
+    "friendsOffline": "Offline",
+    "@friendsOffline": {
+        "description": "Section header and status for friends who are offline"
+    },
+    "friendsNone": "Ei vielä kavereita. Lisää ihmisiä tältä palvelimelta, jotta näet heidät täällä.",
+    "@friendsNone": {
+        "description": "Shown when the friends list is empty"
+    },
+    "friendsWatching": "Katselen {title}",
+    "@friendsWatching": {
+        "description": "Status line of a friend who is playing something",
+        "placeholders": {
+            "title": {
+                "type": "String"
+            }
+        }
+    },
+    "friendsLastWatched": "Viimeksi katsottu {title}",
+    "@friendsLastWatched": {
+        "description": "Status line of an offline friend with the last thing they played",
+        "placeholders": {
+            "title": {
+                "type": "String"
+            }
+        }
+    },
+    "friendsLastSeen": "Viimeksi nähty {time}",
+    "@friendsLastSeen": {
+        "description": "Status line of an offline friend, with a relative time such as 5m ago",
+        "placeholders": {
+            "time": {
+                "type": "String"
+            }
+        }
+    },
+    "friendsLoadFailed": "Tätä ei voitu ladata. Tarkista verkkoyhteytesi ja yritä uudelleen.",
+    "@friendsLoadFailed": {
+        "description": "Shown when a friends or chat screen fails to load"
+    },
+    "friendsActionFailed": "Se ei onnistunut. Yritä uudelleen hetken kuluttua.",
+    "@friendsActionFailed": {
+        "description": "Shown when a friends or chat action fails without a reason from the server"
+    },
+    "friendsIncoming": "Odotan sinua",
+    "@friendsIncoming": {
+        "description": "Section header for friend requests others sent"
+    },
+    "friendsOutgoing": "Lähetetyt kaveripyynnöt",
+    "@friendsOutgoing": {
+        "description": "Section header for friend requests the user sent"
+    },
+    "friendsNoRequests": "Ei kaveripyyntöjä.",
+    "@friendsNoRequests": {
+        "description": "Shown when there are no pending friend requests"
+    },
+    "friendsAccept": "Hyväksy",
+    "@friendsAccept": {
+        "description": "Accept a friend request"
+    },
+    "friendsDecline": "Kieltäydy",
+    "@friendsDecline": {
+        "description": "Decline a friend request"
+    },
+    "friendsCancelRequest": "Peruuta pyyntö",
+    "@friendsCancelRequest": {
+        "description": "Take back a friend request the user sent"
+    },
+    "friendsRequestFrom": "{name} lähetti kaveripyynnön",
+    "@friendsRequestFrom": {
+        "description": "Title of the dialog answering a friend request",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "friendsCancelRequestBody": "Haluatko peruuttaa pyynnön, jonka lähetit {name}:lle?",
+    "@friendsCancelRequestBody": {
+        "description": "Body of the dialog cancelling a sent friend request",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "friendsSearchHint": "Hae henkilöitä",
+    "@friendsSearchHint": {
+        "description": "Hint of the people search field"
+    },
+    "friendsNoMatches": "Kukaan ei vastaa tuota nimeä.",
+    "@friendsNoMatches": {
+        "description": "Shown when the people search finds nobody"
+    },
+    "friendsRequestSent": "Pyyntö lähetetty {name}:lle",
+    "@friendsRequestSent": {
+        "description": "Shown after sending a friend request",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "friendsSendRequest": "Lisää kaveriksi",
+    "@friendsSendRequest": {
+        "description": "Action that sends a friend request to someone"
+    },
+    "friendsSendMessage": "Lähetä viesti",
+    "@friendsSendMessage": {
+        "description": "Action that opens a chat with a friend"
+    },
+    "friendsOpenItem": "Avaa {title}",
+    "@friendsOpenItem": {
+        "description": "Action that opens what a friend is watching",
+        "placeholders": {
+            "title": {
+                "type": "String"
+            }
+        }
+    },
+    "friendsRemove": "Poista kaveri",
+    "@friendsRemove": {
+        "description": "Action that removes a friend"
+    },
+    "friendsRemoveBody": "Haluatko poistaa {name} kaveriluettelostasi? Voit lisätä hänet uudelleen myöhemmin.",
+    "@friendsRemoveBody": {
+        "description": "Body of the dialog removing a friend",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "friendsBlock": "Estä",
+    "@friendsBlock": {
+        "description": "Action that blocks a user from messaging"
+    },
+    "friendsUnblock": "Poista esto",
+    "@friendsUnblock": {
+        "description": "Action that unblocks a user"
+    },
+    "friendsBlockBody": "Estätkö {name}:n? Kumpikaan teistä ei voi lähettää viestejä suoraan toiselle. Yhteiset ryhmäkeskustelunne pysyvät auki.",
+    "@friendsBlockBody": {
+        "description": "Body of the dialog blocking a user",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "friendsUnblockBody": "Poistetaanko {name}:n esto?",
+    "@friendsUnblockBody": {
+        "description": "Body of the dialog unblocking a user",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "friendsBlocked": "Estetyt käyttäjät",
+    "@friendsBlocked": {
+        "description": "Section header listing blocked users"
+    },
+    "friendsProfileHidden": "{name} on asettanut profiilinsa yksityiseksi.",
+    "@friendsProfileHidden": {
+        "description": "Shown when another user hides their profile",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "friendsAppearOffline": "Näytä offline-tilassa",
+    "@friendsAppearOffline": {
+        "description": "Privacy setting that always shows the user as offline"
+    },
+    "friendsAppearOfflineSubtitle": "Ystävät näkevät sinut aina offline-tilassa",
+    "@friendsAppearOfflineSubtitle": {
+        "description": "Subtitle of the Appear offline setting"
+    },
+    "friendsHideNowPlaying": "Piilota katsomani sisältö",
+    "@friendsHideNowPlaying": {
+        "description": "Privacy setting that hides what is playing"
+    },
+    "friendsHideNowPlayingSubtitle": "Kaverit näkevät sinut edelleen verkossa, mutta eivät näe, mitä olet katsomassa",
+    "@friendsHideNowPlayingSubtitle": {
+        "description": "Subtitle of the Hide what I am watching setting"
+    },
+    "friendsHideLastWatched": "Piilota viimeksi katsomani",
+    "@friendsHideLastWatched": {
+        "description": "Privacy setting that hides the last played item while offline"
+    },
+    "friendsHideLastWatchedSubtitle": "Kaverit eivät näe, mitä katsoit viimeksi, kun olet offline-tilassa",
+    "@friendsHideLastWatchedSubtitle": {
+        "description": "Subtitle of the Hide my last watched setting"
+    },
+    "friendsMessageNotifications": "Viestihälytykset",
+    "@friendsMessageNotifications": {
+        "description": "Setting that shows a banner for new chat messages"
+    },
+    "friendsMessageNotificationsSubtitle": "Näytä banneri, kun kaverit lähettää sinulle viestin",
+    "@friendsMessageNotificationsSubtitle": {
+        "description": "Subtitle of the Message notifications setting"
+    },
+    "friendsMuteDuringPlayback": "Mykistä toiston aikana",
+    "@friendsMuteDuringPlayback": {
+        "description": "Setting that hides new message banners while a video or game plays"
+    },
+    "friendsMuteDuringPlaybackSubtitle": "Videon tai pelin toiston aikana ei näytetä viestibannereita",
+    "@friendsMuteDuringPlaybackSubtitle": {
+        "description": "Subtitle of the Mute during playback setting"
+    },
+    "friendsSaveFailed": "Asetuksia ei voitu tallentaa.",
+    "@friendsSaveFailed": {
+        "description": "Shown when the friends privacy settings fail to save"
+    },
+    "chatNew": "Uusi viesti",
+    "@chatNew": {
+        "description": "Entry that starts a chat with one friend"
+    },
+    "chatNewSubtitle": "Aloita keskustelu kaverin kanssa",
+    "@chatNewSubtitle": {
+        "description": "Subtitle of the New message entry"
+    },
+    "chatNewGroup": "Uusi ryhmä",
+    "@chatNewGroup": {
+        "description": "Entry that creates a group chat"
+    },
+    "chatNewGroupSubtitle": "Keskustele kavereiden kanssa samanaikaisesti",
+    "@chatNewGroupSubtitle": {
+        "description": "Subtitle of the New group entry"
+    },
+    "chatNone": "Vielä ei ole viestejä.",
+    "@chatNone": {
+        "description": "Shown when there are no chats or no messages in a chat"
+    },
+    "chatYou": "You",
+    "@chatYou": {
+        "description": "Stands for the signed-in user in chats and member lists"
+    },
+    "chatYouSaid": "Sinä: {text}",
+    "@chatYouSaid": {
+        "description": "Preview of the last chat message when the user sent it",
+        "placeholders": {
+            "text": {
+                "type": "String"
+            }
+        }
+    },
+    "chatPhoto": "Kuva",
+    "@chatPhoto": {
+        "description": "Preview of a chat message that is an image"
+    },
+    "chatEmoji": "Emoji",
+    "@chatEmoji": {
+        "description": "Button that opens the emoji picker in a chat"
+    },
+    "chatEmojiSearch": "Hae emojeja",
+    "@chatEmojiSearch": {
+        "description": "Hint of the search field in the emoji picker"
+    },
+    "chatNoRecentEmoji": "Ei tuoreita emojeja",
+    "@chatNoRecentEmoji": {
+        "description": "Shown in the emoji picker's recent tab before any emoji was used"
+    },
+    "chatViewPhoto": "Katso kuva",
+    "@chatViewPhoto": {
+        "description": "Action that opens a photo sent in a chat at full size"
+    },
+    "chatHint": "Kirjoita viesti",
+    "@chatHint": {
+        "description": "Hint of the chat message field"
+    },
+    "chatAttach": "Lähetä kuva",
+    "@chatAttach": {
+        "description": "Button that picks an image to send in a chat"
+    },
+    "chatEdited": "muokattu",
+    "@chatEdited": {
+        "description": "Marks a chat message that was changed after sending"
+    },
+    "chatSeen": "Nähty",
+    "@chatSeen": {
+        "description": "Read receipt on a sent chat message"
+    },
+    "chatSent": "Lähetetty",
+    "@chatSent": {
+        "description": "Delivery mark on a sent chat message nobody has read yet"
+    },
+    "chatEditing": "Viestin muokkaaminen",
+    "@chatEditing": {
+        "description": "Banner above the chat field while changing a sent message"
+    },
+    "chatMessageOptions": "Viestin asetukset",
+    "@chatMessageOptions": {
+        "description": "Title of the dialog with actions for a chat message"
+    },
+    "chatDeleteBody": "Poistetaanko tämä viesti kaikilta?",
+    "@chatDeleteBody": {
+        "description": "Body of the dialog deleting a chat message"
+    },
+    "chatClear": "Poista keskustelu",
+    "@chatClear": {
+        "description": "Action that deletes every message in a chat"
+    },
+    "chatClearBody": "Poistetaanko kaikki tämän keskustelun viestit kaikilta osallistujilta?",
+    "@chatClearBody": {
+        "description": "Body of the dialog clearing a chat"
+    },
+    "chatGroupInfo": "Ryhmätiedot",
+    "@chatGroupInfo": {
+        "description": "Screen and action with a group chat name and members"
+    },
+    "chatGroupName": "Ryhmän nimi",
+    "@chatGroupName": {
+        "description": "Label of the group chat name field"
+    },
+    "chatMemberCount": "{count, plural, =1{1 member} other{{count} members}}",
+    "@chatMemberCount": {
+        "description": "How many people are in a group chat",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "chatOwner": "Omistaja",
+    "@chatOwner": {
+        "description": "Marks the person who created a group chat"
+    },
+    "chatAdmin": "Järjestelmänvalvoja",
+    "@chatAdmin": {
+        "description": "Marks a group chat admin"
+    },
+    "chatMakeAdmin": "Määritä järjestelmänvalvoja",
+    "@chatMakeAdmin": {
+        "description": "Action that makes a group member an admin"
+    },
+    "chatRemoveAdmin": "Poista järjestelmänvalvoja",
+    "@chatRemoveAdmin": {
+        "description": "Action that takes admin away from a group member"
+    },
+    "chatRemoveMember": "Poista ryhmästä",
+    "@chatRemoveMember": {
+        "description": "Action that removes someone from a group chat"
+    },
+    "chatAddMember": "Lisää henkilöitä",
+    "@chatAddMember": {
+        "description": "Action that adds friends to a group chat"
+    },
+    "chatNobodyToAdd": "Lisättävää ei ole.",
+    "@chatNobodyToAdd": {
+        "description": "Shown when every friend is already in the group"
+    },
+    "chatLeave": "Poistu ryhmästä",
+    "@chatLeave": {
+        "description": "Action that leaves a group chat"
+    },
+    "chatLeaveBody": "Haluatko poistua tästä ryhmästä? Joku joutuu lisäämään sinut takaisin, jotta voit liittyä ryhmään uudelleen.",
+    "@chatLeaveBody": {
+        "description": "Body of the dialog leaving a group chat"
+    },
+    "chatCreate": "Luo ryhmä",
+    "@chatCreate": {
+        "description": "Button that creates a group chat"
+    },
+    "chatPickMembers": "Valitse vähintään kaksi kaveria",
+    "@chatPickMembers": {
+        "description": "Hint on the new group screen"
+    },
+    "chatNewMessageFrom": "Uusi viesti lähettäjältä {name}",
+    "@chatNewMessageFrom": {
+        "description": "Title of the banner for a new chat message",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "chatImageTooLarge": "Kuvan koko on yli 8 Mt.",
+    "@chatImageTooLarge": {
+        "description": "Shown when a picked chat image is too big"
+    },
+    "chatImageUnsupported": "Vain PNG-, JPEG-, GIF- ja WebP-kuvia voidaan lähettää.",
+    "@chatImageUnsupported": {
+        "description": "Shown when a picked chat image has an unsupported type"
+    },
+    "detailSections": "Osat",
+    "@detailSections": {
+        "description": "Settings tile title for switching Details screen sections on and off"
+    },
+    "detailSectionsDescription": "Valitse, mitkä osat Tiedot-näytöstä haluat näyttää",
+    "@detailSectionsDescription": {
+        "description": "Settings tile subtitle for the Details screen sections list"
+    },
+    "detailSectionsScreenDescription": "Luettelossa näkyvät vain ne osiot, jotka nykyisessä ”Tiedot”-näytön tyylissä voidaan näyttää. Yhden osion piilottaminen piilottaa sen kaikissa tyyleissä, joissa se esiintyy.",
+    "@detailSectionsScreenDescription": {
+        "description": "Explanatory text at the top of the Details screen sections list"
+    },
+    "detailSectionGroupHeader": "Otsikko",
+    "@detailSectionGroupHeader": {
+        "description": "Group heading for the title area of the Details screen"
+    },
+    "detailSectionGroupSections": "Osat",
+    "@detailSectionGroupSections": {
+        "description": "Group heading for the rows, tabs and cards of the Details screen"
+    },
+    "detailSectionGroupPerson": "Henkilösivut",
+    "@detailSectionGroupPerson": {
+        "description": "Group heading for sections only shown on a person's Details screen"
+    },
+    "detailSectionGroupCollection": "Kokoelmasivut",
+    "@detailSectionGroupCollection": {
+        "description": "Group heading for sections only shown on a collection's Details screen"
+    },
+    "detailSectionGroupOther": "Muut",
+    "@detailSectionGroupOther": {
+        "description": "Group heading for Details screen sections that fit no other group"
+    },
+    "detailSectionLogo": "Logo",
+    "@detailSectionLogo": {
+        "description": "Details screen section: the title logo artwork"
+    },
+    "detailSectionLogoSubtitle": "Näyttää otsikon tekstinä, kun laite on pois päältä",
+    "@detailSectionLogoSubtitle": {
+        "description": "Subtitle for the logo section switch"
+    },
+    "detailSectionTagline": "Slogan",
+    "@detailSectionTagline": {
+        "description": "Details screen section: the short tagline under the title"
+    },
+    "detailSectionPoster": "Juliste",
+    "@detailSectionPoster": {
+        "description": "Details screen section: the poster image beside the title"
+    },
+    "detailSectionVersionBadge": "Versiotunnus",
+    "@detailSectionVersionBadge": {
+        "description": "Details screen section: the badge shown when an item has more than one version"
+    },
+    "detailSectionUpNext": "Seuraavaksi",
+    "@detailSectionUpNext": {
+        "description": "Details screen section: the next up or next episode card"
+    },
+    "detailSectionLyrics": "Sanoitukset",
+    "@detailSectionLyrics": {
+        "description": "Details screen section: the lyrics panel for songs"
+    },
+    "detailSectionCast": "Näyttelijät",
+    "@detailSectionCast": {
+        "description": "Details screen section: the cast row, tab or card"
+    },
+    "detailSectionCastSubtitle": "Myös kokoelmasivuilla",
+    "@detailSectionCastSubtitle": {
+        "description": "Subtitle for the cast section switch"
+    },
+    "detailSectionCrew": "Ohjaajat & Käsikirjoittajat",
+    "@detailSectionCrew": {
+        "description": "Details screen section: directors and writers"
+    },
+    "detailSectionStudios": "Studiot",
+    "@detailSectionStudios": {
+        "description": "Details screen section: studios and networks"
+    },
+    "detailSectionChapters": "Luvut",
+    "@detailSectionChapters": {
+        "description": "Details screen section: chapters"
+    },
+    "detailSectionExtras": "Extrat",
+    "@detailSectionExtras": {
+        "description": "Details screen section: trailers, featurettes and other extras"
+    },
+    "detailSectionCollections": "Kokoelmat",
+    "@detailSectionCollections": {
+        "description": "Details screen section: the collections an item belongs to"
+    },
+    "detailSectionMoreLikeThis": "Lisää samanlaisia",
+    "@detailSectionMoreLikeThis": {
+        "description": "Details screen section: similar items from the library"
+    },
+    "detailSectionMoreLikeThisSubtitle": "Myös vastaavia albumeita ja artisteja",
+    "@detailSectionMoreLikeThisSubtitle": {
+        "description": "Subtitle for the More Like This section switch"
+    },
+    "detailSectionMoreEpisodes": "Lisää jaksoja",
+    "@detailSectionMoreEpisodes": {
+        "description": "Details screen section: the other episodes of a show on an episode's page"
+    },
+    "detailSectionMoreEpisodesSubtitle": "Jaksosivuilla",
+    "@detailSectionMoreEpisodesSubtitle": {
+        "description": "Subtitle for the More episodes section switch"
+    },
+    "detailSectionMediaInfo": "Media info",
+    "@detailSectionMediaInfo": {
+        "description": "Details screen section: file, stream and Direct Play details"
+    },
+    "detailSectionMediaInfoSubtitle": "Tiedostojen, suoratoistojen ja Direct Play -toiminnon tarkistus",
+    "@detailSectionMediaInfoSubtitle": {
+        "description": "Subtitle for the media info section switch"
+    },
+    "detailSectionSeerrGenresTags": "Genret & Tunnisteet",
+    "@detailSectionSeerrGenresTags": {
+        "description": "Details screen Seerr section: genre and keyword chips"
+    },
+    "detailSectionSeerrStats": "Tilastot",
+    "@detailSectionSeerrStats": {
+        "description": "Details screen Seerr section: TMDB score, status, budget and revenue"
+    },
+    "detailSectionSeerrRecommendations": "Suositukset",
+    "@detailSectionSeerrRecommendations": {
+        "description": "Details screen Seerr section: recommended titles"
+    },
+    "detailSectionSeerrSimilar": "Samankaltaisia nimikkeitä",
+    "@detailSectionSeerrSimilar": {
+        "description": "Details screen Seerr section: similar titles"
+    },
+    "detailSectionSeerrCollection": "Kokoelman banneri",
+    "@detailSectionSeerrCollection": {
+        "description": "Details screen Seerr section: the banner for the collection a movie is part of"
+    },
+    "detailSectionSeerrPersonAppearances": "Esiintymiset",
+    "@detailSectionSeerrPersonAppearances": {
+        "description": "Details screen Seerr section: a person's appearances"
+    },
+    "detailSectionSeerrPersonCrew": "Tuotantoryhmä",
+    "@detailSectionSeerrPersonCrew": {
+        "description": "Details screen Seerr section: a person's crew credits"
+    },
+    "detailSectionPersonPagesSubtitle": "Henkilösivuilla",
+    "@detailSectionPersonPagesSubtitle": {
+        "description": "Subtitle for Seerr sections only shown on a person's Details screen"
+    },
+    "detailSectionBiography": "Elämäkerta",
+    "@detailSectionBiography": {
+        "description": "Details screen section: a person's biography"
+    },
+    "detailSectionBirthplace": "Syntymäpaikka",
+    "@detailSectionBirthplace": {
+        "description": "Details screen section: a person's place of birth"
+    },
+    "detailSectionGuestAppearances": "Vierailut",
+    "@detailSectionGuestAppearances": {
+        "description": "Details screen section: a person's guest appearances"
+    },
+    "detailSectionMusicVideos": "Musiikkivideot",
+    "@detailSectionMusicVideos": {
+        "description": "Details screen section: a person's music videos"
+    },
+    "detailSectionPlaylistOrder": "Soittolistan järjestys",
+    "@detailSectionPlaylistOrder": {
+        "description": "Details screen section: a collection's playlist order"
+    },
+    "detailSectionBookGenres": "Kirjagenret",
+    "@detailSectionBookGenres": {
+        "description": "Details screen section: the genre chips on a book's page"
+    },
+    "detailSectionPhotoExif": "Kuvan tiedot",
+    "@detailSectionPhotoExif": {
+        "description": "Details screen section: camera and image details on a photo's page"
+    },
+    "libraryOrder": "Kirjasto Järjestys",
+    "@libraryOrder": {
+        "description": "Title of the settings screen that reorders the user's libraries"
+    },
+    "libraryOrderSubtitle": "Valitse kirjastojen järjestys",
+    "@libraryOrderSubtitle": {
+        "description": "Subtitle of the Library Order entry in the libraries settings"
+    },
+    "libraryOrderDescription": "Kirjastosi näkyvät tässä järjestyksessä kohdassa ”Omat mediat”, äskettäin lisättyjen rivien joukossa sekä navigointipalkissa. Järjestys tallennetaan palvelintilillesi, joten myös muut sovellukset, joihin kirjaudut sisään, käyttävät sitä.",
+    "@libraryOrderDescription": {
+        "description": "Explanation shown at the top of the Library Order settings screen"
+    },
+    "libraryOrderTvHint": "Paina vasenta tai oikeaa nuolinäppäintä siirtääksesi korostettua kirjastoa.",
+    "@libraryOrderTvHint": {
+        "description": "Remote control hint on the Library Order settings screen"
+    },
+    "libraryOrderSaveFailed": "Kirjaston järjestystä ei voitu tallentaa",
+    "@libraryOrderSaveFailed": {
+        "description": "Error shown when saving the library order to the server fails"
+    },
+    "untrustedServerCertificate": "Tämän palvelimen varmennetta ei pidetä luotettavana. Jos kyseessä on oma palvelimesi ja se käyttää itse allekirjoitettua tai yksityistä varmennetta, voit sallia sen tässä.",
+    "@untrustedServerCertificate": {
+        "description": "Shown on the sign-in screens when a server's TLS certificate is rejected, above a button that turns on Allow self-signed certificates"
+    },
+    "seasonalChristmas": "Joulu",
+    "@seasonalChristmas": {
+        "description": "Seasonal effect: snow with falling baubles and stars"
+    },
+    "seasonalPetals": "Kevään Versot",
+    "@seasonalPetals": {
+        "description": "Seasonal effect: falling cherry blossoms and petals with bees flying by"
+    },
+    "seasonalFireflies": "Tulikärpäset",
+    "@seasonalFireflies": {
+        "description": "Seasonal effect: glowing fireflies for summer"
+    },
+    "seasonalHalloween": "Halloween",
+    "@seasonalHalloween": {
+        "description": "Seasonal effect: bats, ghosts, candy and orange and purple leaves"
+    },
+    "seasonalDensity": "Tiheys",
+    "@seasonalDensity": {
+        "description": "Setting for how many seasonal effect particles are on screen at once"
+    },
+    "seasonalDensityLight": "Kevyt",
+    "@seasonalDensityLight": {
+        "description": "Seasonal effect density: fewest particles"
+    },
+    "seasonalDensityNormal": "Normaali",
+    "@seasonalDensityNormal": {
+        "description": "Seasonal effect density: the default amount"
+    },
+    "seasonalDensityHeavy": "Painava",
+    "@seasonalDensityHeavy": {
+        "description": "Seasonal effect density: most particles"
     }
 }

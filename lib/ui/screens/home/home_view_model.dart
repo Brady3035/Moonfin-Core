@@ -38,7 +38,10 @@ import '../../../preference/seerr_preferences.dart';
 import '../../../data/viewmodels/seerr_discover_view_model.dart';
 import '../../widgets/seerr/seerr_shortcuts.dart';
 import '../../../data/services/custom_external_lists_service.dart';
+import '../../../data/utils/blocked_ratings.dart';
+import '../../../util/seasonal_country.dart';
 import '../../../util/seerr_genre_art.dart';
+import '../../util/home_row_title_localizer.dart';
 
 class HomeViewModel extends ChangeNotifier {
   /// Cards in a merged row, matching what a single library row shows.
@@ -73,6 +76,11 @@ class HomeViewModel extends ChangeNotifier {
   bool _reloadRequestedWhileLoading = false;
   bool _pendingReloadPreserveExisting = true;
   bool _pendingReloadForceRefresh = false;
+
+  /// The last seasonal answer, kept for the session so every Home reload doesn't
+  /// ask Moonbase again. The daily refresh clears it, which is when the server's
+  /// shuffle changes too.
+  Map<String, dynamic>? _seasonalMemo;
 
   String get _serverId => _client.baseUrl;
   MediaBarViewModel get mediaBarViewModel => _mediaBarViewModel;
@@ -133,6 +141,11 @@ class HomeViewModel extends ChangeNotifier {
     return '$_serverId|$userId|$sections|$multiServer|$merge|$blocked|offline:$offline|fields:$shape';
   }
 
+  /// Called again when the resume and next up rows refresh on their own, or
+  /// the next cold start paints the ones from before the last episode
+  /// finished.
+  void _saveRowCache() => unawaited(_cacheStore.write(_homeCacheKey(), _rows));
+
   static bool _isFavoriteSectionType(HomeSectionType type) {
     return switch (type) {
       HomeSectionType.favoriteMovies ||
@@ -179,7 +192,8 @@ class HomeViewModel extends ChangeNotifier {
       HomeSectionType.playlists ||
       HomeSectionType.audioPlaylists ||
       HomeSectionType.radarrCalendar ||
-      HomeSectionType.sonarrCalendar =>
+      HomeSectionType.sonarrCalendar ||
+      HomeSectionType.seasonal =>
         false,
       final t when _isSeerrSectionType(t) || _isTmdbSectionType(t) => false,
       _ => true,
@@ -425,6 +439,8 @@ class HomeViewModel extends ChangeNotifier {
       final sinceYouWatchedNum = _prefs.get(UserPreferences.sinceYouWatchedNumRows).value;
       final showRewatch = _prefs.get(UserPreferences.displayRewatchRow);
       final showStudiosRows = _prefs.get(UserPreferences.displayStudiosRows);
+      final showSeasonal = GetIt.instance<PluginSyncService>().pluginAvailable &&
+          _prefs.get(UserPreferences.seasonalRowEnabled);
 
       final offline = _isOffline;
       final visibleConfigsRaw = configs
@@ -458,7 +474,8 @@ class HomeViewModel extends ChangeNotifier {
                 (c.type != HomeSectionType.radarrCalendar || _prefs.get(UserPreferences.enableRadarrCalendar)) &&
                 (c.type != HomeSectionType.sonarrCalendar || _prefs.get(UserPreferences.enableSonarrCalendar)) &&
                 (c.type.sinceYouWatchedRow == 0 || (showSinceYouWatched && c.type.sinceYouWatchedRow <= sinceYouWatchedNum)) &&
-                (c.type != HomeSectionType.rewatch || showRewatch),
+                (c.type != HomeSectionType.rewatch || showRewatch) &&
+                (c.type != HomeSectionType.seasonal || showSeasonal),
           )
           .toList(growable: false);
 
@@ -628,20 +645,22 @@ class HomeViewModel extends ChangeNotifier {
         notifyListeners();
       }
 
+      // The merged row is the one a viewer checks first, so it doesn't wait
+      // behind every other section while its cached copy sits on screen.
+      if (showMergedResume) {
+        unawaited(_loadResumeAndNextUpInBackground());
+      }
+
       await mapBounded<HomeSectionConfig, void>(
         nonResumeEffectiveConfigs,
         3,
         (cfg) => loadConfigItem(cfg),
       );
 
-      unawaited(_cacheStore.write(_homeCacheKey(), _rows));
+      _saveRowCache();
       _topShelf.update(_rows);
       _watchNext.update(_rows);
       _tvChannels.update();
-
-      if (showMergedResume) {
-        unawaited(_loadResumeAndNextUpInBackground());
-      }
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -839,6 +858,8 @@ class HomeViewModel extends ChangeNotifier {
         return row.id == 'radarr_calendar';
       case HomeSectionType.sonarrCalendar:
         return row.id == 'sonarr_calendar';
+      case HomeSectionType.seasonal:
+        return row.id == 'seasonal';
       case HomeSectionType.mediaBar:
       case HomeSectionType.recentlyReleased:
         return row.rowType == HomeRowType.recentlyReleased;
@@ -904,6 +925,7 @@ class HomeViewModel extends ChangeNotifier {
     } finally {
       _bgResumeRefreshInFlight = false;
     }
+    _saveRowCache();
     _topShelf.update(_rows);
     _watchNext.update(_rows);
     _tvChannels.update();
@@ -1148,6 +1170,8 @@ class HomeViewModel extends ChangeNotifier {
         return const {'radarrCalendar'};
       case HomeSectionType.sonarrCalendar:
         return const {'sonarrCalendar'};
+      case HomeSectionType.seasonal:
+        return const {'seasonal'};
       case HomeSectionType.sinceYouWatched1:
         return const {'sinceYouWatched1'};
       case HomeSectionType.sinceYouWatched2:
@@ -1556,6 +1580,8 @@ class HomeViewModel extends ChangeNotifier {
         return _loadTmdbChartRow(HomeSectionType.tmdbTrendingAllWeekly, 'Trending All (Weekly)', 'tmdb_trending_all_weekly');
       case HomeSectionType.recentlyReleased:
         return _loadRecentlyReleasedRow();
+      case HomeSectionType.seasonal:
+        return _loadSeasonalRow(l10n, forceRefresh: forceRefresh);
       case HomeSectionType.sinceYouWatched1:
       case HomeSectionType.sinceYouWatched2:
       case HomeSectionType.sinceYouWatched3:
@@ -2057,6 +2083,13 @@ class HomeViewModel extends ChangeNotifier {
           rowType: HomeRowType.pluginDynamic,
           isLoading: true,
         );
+      case HomeSectionType.seasonal:
+        return HomeRow(
+          id: 'seasonal',
+          title: l10n.seasonalRow,
+          rowType: HomeRowType.pluginDynamic,
+          isLoading: true,
+        );
       case HomeSectionType.liveTv:
       case HomeSectionType.activeRecordings:
       case HomeSectionType.mediaBar:
@@ -2259,6 +2292,7 @@ class HomeViewModel extends ChangeNotifier {
       );
     }
     notifyListeners();
+    _saveRowCache();
     _watchNext.update(_rows);
     _tvChannels.update();
   }
@@ -2839,6 +2873,7 @@ class HomeViewModel extends ChangeNotifier {
             'BackdropPath': item.backdropUrl ?? item.posterUrl ?? '',
             'ProductionYear': item.year,
             'SeerrMediaType': item.type == 'Series' ? 'tv' : 'movie',
+            'OfficialRating': item.officialRating,
             'ProviderIds': {
               if (item.imdbId.isNotEmpty) 'Imdb': item.imdbId,
               if (item.tmdbId.isNotEmpty) 'Tmdb': item.tmdbId,
@@ -2852,7 +2887,7 @@ class HomeViewModel extends ChangeNotifier {
           id: rowId,
           title: title,
           rowType: HomeRowType.pluginDynamic,
-          items: aggregatedItems,
+          items: withoutUnratedOrBlockedItems(aggregatedItems),
         )
       ];
     } catch (e) {
@@ -2904,6 +2939,7 @@ class HomeViewModel extends ChangeNotifier {
             'BackdropPath': item.backdropUrl ?? item.posterUrl ?? '',
             'ProductionYear': item.year,
             'SeerrMediaType': item.type == 'Series' ? 'tv' : 'movie',
+            'OfficialRating': item.officialRating,
             'ProviderIds': {
               if (item.imdbId.isNotEmpty) 'Imdb': item.imdbId,
               if (item.tmdbId.isNotEmpty) 'Tmdb': item.tmdbId,
@@ -2917,13 +2953,119 @@ class HomeViewModel extends ChangeNotifier {
           id: rowId,
           title: title,
           rowType: HomeRowType.pluginDynamic,
-          items: aggregatedItems,
+          items: withoutUnratedOrBlockedItems(aggregatedItems),
         )
       ];
     } catch (e) {
       debugPrint('[TmdbChartRow] Failed to load TMDB chart row $sectionType: $e');
       return const [];
     }
+  }
+
+  Future<List<HomeRow>> _loadSeasonalRow(
+    AppLocalizations l10n, {
+    bool forceRefresh = false,
+  }) async {
+    try {
+      if (forceRefresh) _seasonalMemo = null;
+      final sync = GetIt.instance<PluginSyncService>();
+      var body = _seasonalMemo;
+      if (body == null) {
+        final country = seasonalCountryParam(
+          _prefs.get(UserPreferences.seasonalRowCountry),
+          deviceCountry: deviceCountryCode(),
+        );
+        body = await sync.fetchSeasonalRow(_client, country: country);
+        if (body == null) return const [];
+        _seasonalMemo = body;
+      }
+
+      final mapped = mapSeasonalResponse(
+        body,
+        serverId: _serverId,
+        hiddenHolidays: UserPreferences.parseSeasonalRowHiddenHolidays(
+          _prefs.get(UserPreferences.seasonalRowHiddenHolidays),
+        ),
+      );
+      if (mapped == null) return const [];
+
+      // Suggestions are Seerr cards, so a device with Seerr switched off keeps
+      // them out even though the server was happy to send them.
+      final items = [
+        ...withoutBlockedItems(mapped.owned),
+        if (sync.seerrAvailable) ...withoutUnratedOrBlockedItems(mapped.suggestions),
+      ];
+      if (items.isEmpty) return const [];
+
+      return [
+        HomeRow(
+          id: 'seasonal',
+          title: seasonalHolidayTitle(mapped.holiday, l10n),
+          rowType: HomeRowType.pluginDynamic,
+          items: items,
+        ),
+      ];
+    } catch (e) {
+      debugPrint('[SeasonalRow] Failed to load the seasonal row: $e');
+      return const [];
+    }
+  }
+
+  /// The parts of a seasonal answer Home can show, or null when the viewer hid
+  /// the holiday, there is no holiday, or nothing came back for it.
+  @visibleForTesting
+  static SeasonalRowData? mapSeasonalResponse(
+    Map<String, dynamic> body, {
+    required String serverId,
+    required Set<String> hiddenHolidays,
+  }) {
+    final holiday = body['holiday'] as String?;
+    if (holiday == null || holiday.isEmpty || hiddenHolidays.contains(holiday)) {
+      return null;
+    }
+
+    final owned = <AggregatedItem>[];
+    for (final raw in (body['items'] as List? ?? const [])) {
+      if (raw is! Map) continue;
+      final data = Map<String, dynamic>.from(raw);
+      final id = data['Id']?.toString();
+      if (id == null || id.isEmpty) continue;
+      owned.add(AggregatedItem(id: id, serverId: serverId, rawData: data));
+    }
+
+    final suggestions = <AggregatedItem>[];
+    for (final raw in (body['suggestions'] as List? ?? const [])) {
+      if (raw is! Map) continue;
+      final providerIds = raw['providerIds'];
+      final tmdbId = (providerIds is Map ? providerIds['Tmdb'] : null)?.toString() ?? raw['id']?.toString() ?? '';
+      final imdbId = (providerIds is Map ? providerIds['Imdb'] : null)?.toString() ?? '';
+      if (tmdbId.isEmpty && imdbId.isEmpty) continue;
+      final poster = raw['posterUrl'] as String?;
+      suggestions.add(AggregatedItem(
+        id: tmdbId.isNotEmpty ? tmdbId : imdbId,
+        serverId: 'seerr',
+        rawData: {
+          'Name': raw['name'] ?? '',
+          'Type': 'Movie',
+          'Overview': raw['overview'] ?? '',
+          'PosterPath': poster ?? '',
+          'BackdropPath': raw['backdropUrl'] ?? poster ?? '',
+          'ProductionYear': raw['productionYear'],
+          'CommunityRating': raw['rating'],
+          'Genres': raw['genres'],
+          'RunTimeTicks': raw['runTimeTicks'],
+          'SeerrMediaType': 'movie',
+          'OfficialRating': raw['officialRating'],
+          'ProviderIds': {
+            if (imdbId.isNotEmpty) 'Imdb': imdbId,
+            if (tmdbId.isNotEmpty) 'Tmdb': tmdbId,
+          },
+        },
+      ));
+    }
+
+    if (owned.isEmpty && suggestions.isEmpty) return null;
+    return SeasonalRowData(holiday: holiday, owned: owned, suggestions: suggestions);
   }
 
   String _tmdbChartTypeForSection(HomeSectionType sectionType) {
@@ -3613,6 +3755,7 @@ class HomeViewModel extends ChangeNotifier {
     debugPrint('[DailyRefresh] Day changed or first run. Triggering background cache refresh of enabled lists...');
 
     await _prefs.set(UserPreferences.lastExternalRowsRefreshTime, now.millisecondsSinceEpoch);
+    _seasonalMemo = null;
 
     unawaited(() async {
       try {
@@ -3653,4 +3796,17 @@ class _CalendarItemWithDate {
   final AggregatedItem item;
   final DateTime date;
   _CalendarItemWithDate({required this.item, required this.date});
+}
+
+/// A seasonal answer from Moonbase, mapped to Home items. Owned movies belong
+/// to this server and play, suggestions are Seerr cards.
+class SeasonalRowData {
+  final String holiday;
+  final List<AggregatedItem> owned;
+  final List<AggregatedItem> suggestions;
+  const SeasonalRowData({
+    required this.holiday,
+    required this.owned,
+    required this.suggestions,
+  });
 }

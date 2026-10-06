@@ -3,6 +3,7 @@ import 'package:jellyfin_preference/jellyfin_preference.dart';
 import 'package:moonfin/data/services/log_service.dart';
 import 'package:moonfin/data/services/media_server_client_factory.dart';
 import 'package:moonfin/preference/user_preferences.dart';
+import 'package:moonfin/util/platform_detection.dart';
 import 'package:server_core/server_core.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -88,6 +89,24 @@ void main() {
       );
     });
 
+    test('keeps the endpoint of a URL given as a labelled value', () {
+      logs.clear();
+      logs.logCrash(
+        'Uncaught: HttpException',
+        'HttpException: Invalid statusCode: 500, uri = '
+            'https://my-server.com/Items/abc/Images/Primary'
+            '?maxWidth=420&api_key=deadbeefcafe',
+      );
+      final error = logs.entries.single.error!;
+      expect(
+        error,
+        contains('uri = https://[REDACTED]/Items/abc/Images/Primary'),
+      );
+      expect(error, contains('api_key=[REDACTED]'));
+      expect(error, isNot(contains('my-server.com')));
+      expect(error, isNot(contains('deadbeefcafe')));
+    });
+
     test('redacts a credential left in a query string', () {
       assertRedacted(
         'GET https://my-server.com/Videos/abc/stream?MediaSourceId=abc'
@@ -156,7 +175,7 @@ void main() {
     test('handles multiple field replacements and case sensitivity', () {
       assertRedacted(
         'SERVER: 1.1.1.1, ORIGIN: https://moonfin.io',
-        'SERVER: [REDACTED], ORIGIN: [REDACTED]',
+        'SERVER: [REDACTED], ORIGIN: https://[REDACTED]',
       );
       assertRedacted(
         'host: a.com and ip: 1.2.3.4',
@@ -225,6 +244,22 @@ void main() {
       expect(text, contains('INFO  [general] routine event'));
       expect(text, contains('ERROR [general] Uncaught: boom'));
       expect(text, contains('└─ stack trace'));
+    });
+
+    test('includes the system uptime only once it is known', () async {
+      final logs = await _service(loggingEnabled: true);
+      addTearDown(() => PlatformDetection.setSystemUptime(null));
+
+      PlatformDetection.setSystemUptime(null);
+      expect(logs.exportText(), isNot(contains('System uptime')));
+
+      PlatformDetection.setSystemUptime(
+        const Duration(days: 25, hours: 3, minutes: 7).inMilliseconds,
+      );
+      expect(
+        logs.exportText(),
+        matches(RegExp(r'System uptime: 25d 3h 7m \(21712\d{5} ms\)')),
+      );
     });
 
     test('can be bounded to the newest entries', () async {

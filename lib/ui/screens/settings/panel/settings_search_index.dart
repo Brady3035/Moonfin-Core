@@ -117,6 +117,9 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
 }) {
   final seerrAvailable = GetIt.instance<PluginSyncService>().seerrAvailable;
   final tmdbAvailable = GetIt.instance<PluginSyncService>().tmdbAvailable;
+  final pluginAvailable = GetIt.instance<PluginSyncService>().pluginAvailable;
+  final friendsAvailable =
+      GetIt.instance<AchievementsService>().socialAvailable;
 
   final account = _SearchSection(
     slug: 'account',
@@ -222,11 +225,31 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
     icon: Icons.view_headline_outlined,
     open: () => push(const _DetailMetadataScreen()),
   );
+  final detailSections = _SearchSection(
+    slug: 'detail-sections',
+    path: [
+      l10n.settingsPersonalization,
+      l10n.settingsDetailsScreen,
+      l10n.detailSections,
+    ],
+    icon: Icons.dashboard_customize_outlined,
+    open: () => push(const _DetailSectionsScreen()),
+  );
   final navigation = _SearchSection(
     slug: 'navigation',
     path: [l10n.settingsPersonalization, l10n.navigation],
     icon: Icons.navigation,
     open: () => push(const _NavigationCategoryScreen()),
+  );
+  final bottomNavTabs = _SearchSection(
+    slug: 'bottom-nav-tabs',
+    path: [
+      l10n.settingsPersonalization,
+      l10n.navigation,
+      l10n.bottomNavbarTabs,
+    ],
+    icon: Icons.push_pin_outlined,
+    open: () => push(const _BottomNavTabsScreen()),
   );
   final screensaver = _SearchSection(
     slug: 'screensaver',
@@ -274,6 +297,12 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
     icon: Icons.list_alt,
     open: () => push(const _ImdbListsScreen()),
   );
+  final seasonalRow = _SearchSection(
+    slug: 'seasonal-row',
+    path: [l10n.integrations, l10n.externalLists, l10n.seasonalRow],
+    icon: Icons.celebration_outlined,
+    open: () => push(const _SeasonalRowScreen()),
+  );
   final tmdbLists = _SearchSection(
     slug: 'tmdb',
     path: [l10n.integrations, l10n.externalLists, 'TMDB Lists'],
@@ -313,6 +342,12 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
     ],
     icon: Icons.visibility,
     open: () => push(const LibraryVisibilityScreen()),
+  );
+  final libraryOrder = _SearchSection(
+    slug: 'library-order',
+    path: [l10n.settingsPersonalization, l10n.libraries, l10n.libraryOrder],
+    icon: Icons.swap_vert,
+    open: () => push(const LibraryOrderScreen()),
   );
   final mediaBar = _SearchSection(
     slug: 'media-bar',
@@ -740,40 +775,71 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
       l10n.recommendationsApplyParentalRatingCap,
       subtitle: l10n.recommendationsApplyParentalRatingCapSubtitle,
     ),
-    detailButtons.screen(
-      keywords: [
-        'action buttons',
-        'hide',
-        'reorder',
-        'shuffle',
-        'trailer',
-        'favorite',
-        'playlist',
-      ],
-    ),
-    detailMetadata.screen(
-      keywords: [
-        'metadata',
-        'release date',
-        'upcoming',
-        'air date',
-        'year',
-        'parental rating',
-        'runtime',
-        'seasons',
-        'status',
-        'genres',
-        'seerr',
-        'reorder',
-      ],
-    ),
+    detailButtons.screen(keywords: [
+      'action buttons',
+      'hide',
+      'reorder',
+      'shuffle',
+      'trailer',
+      'favorite',
+      'playlist',
+    ]),
+    detailMetadata.screen(keywords: [
+      'metadata',
+      'release date',
+      'upcoming',
+      'air date',
+      'year',
+      'parental rating',
+      'runtime',
+      'seasons',
+      'status',
+      'genres',
+      'seerr',
+      'reorder',
+    ]),
+    detailSections.screen(keywords: [
+      'sections',
+      'hide',
+      'logo',
+      'tagline',
+      'cast',
+      'crew',
+      'studios',
+      'chapters',
+      'extras',
+      'collections',
+      'similar',
+      'more like this',
+      'episodes',
+      'media info',
+      'seerr',
+      'recommendations',
+      'biography',
+    ]),
 
     navigation.screen(keywords: ['navbar', 'toolbar', 'sidebar']),
-    navigation.leaf(
-      'pref_navbar_position',
-      l10n.navigationStyle,
-      keywords: ['navbar position', 'top', 'left', 'bottom'],
-    ),
+    navigation.leaf('pref_navbar_position', l10n.navigationStyle, keywords: [
+      'navbar position',
+      'top',
+      'left',
+      'bottom',
+    ]),
+    // Device gate only: the entries stay findable while another position is
+    // picked, like every other setting here.
+    if (NavigationLayout.allowBottomNavbar) ...[
+      navigation.leaf(
+        'pref_bottom_navbar_style',
+        l10n.bottomNavbarStyle,
+        keywords: ['dock', 'split', 'strip', 'bottom bar', 'tab bar'],
+      ),
+      bottomNavTabs.screen(keywords: [
+        'pin',
+        'tabs',
+        'bottom bar',
+        'reorder',
+      ]),
+    ],
     navigation.leaf('navbarColor', l10n.navbarColor),
     navigation.leaf(
       'navbarOpacity',
@@ -830,6 +896,13 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
         l10n.showSeerrButton,
         subtitle: l10n.settingsShowSeerrButtonInNavigation,
         keywords: ['requests'],
+      ),
+    if (friendsAvailable)
+      navigation.leaf(
+        'pref_show_friends_button',
+        l10n.friendsShowButton,
+        subtitle: l10n.friendsShowButtonSubtitle,
+        keywords: ['chat', 'messages', 'achievements'],
       ),
 
     if (PlatformDetection.isTV) ...[
@@ -905,27 +978,30 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
       keywords: ['spacing', 'gap'],
     ),
     home.leaf('poster_size', l10n.cardSize, keywords: ['poster size']),
-    homeSections.screen(
-      keywords: [
-        'reorder rows',
-        'toggle rows',
-        'hide rows',
-        'continue watching',
-        'next up',
-        'recently added',
-      ],
-    ),
-    rowToggles.screen(
-      keywords: [
-        'audio rows',
-        'collections',
-        'favorites',
-        'genres',
-        'playlists',
-        'rewatch',
-        'since you watched',
-      ],
-    ),
+    if (PlatformDetection.isAppleTV)
+      home.leaf(
+        'pref_top_shelf_content',
+        l10n.topShelf,
+        subtitle: l10n.topShelfDescription,
+        keywords: ['apple tv', 'top shelf', 'banner', 'latest', 'launcher'],
+      ),
+    homeSections.screen(keywords: [
+      'reorder rows',
+      'toggle rows',
+      'hide rows',
+      'continue watching',
+      'next up',
+      'recently added',
+    ]),
+    rowToggles.screen(keywords: [
+      'audio rows',
+      'collections',
+      'favorites',
+      'genres',
+      'playlists',
+      'rewatch',
+      'since you watched',
+    ]),
     rowToggles.leaf(
       'pref_display_audio_rows',
       l10n.displayAudioRows,
@@ -965,6 +1041,12 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
       keywords: ['recommendations'],
     ),
     rowImages.screen(keywords: ['poster', 'thumbnail', 'banner']),
+    if (pluginAvailable) ...[
+      seasonalRow.screen(keywords: ['holiday', 'christmas', 'halloween', 'seasonal']),
+      seasonalRow.leaf('seasonal_row_enabled', l10n.seasonalRow, subtitle: l10n.seasonalRowDescription),
+      seasonalRow.leaf('seasonal_row_country', l10n.seasonalRowCountry),
+      seasonalRow.leaf('seasonal_row_hidden_holidays', l10n.seasonalRowHolidays),
+    ],
     if (seerrAvailable) ...[
       externalLists.screen(
         keywords: ['external home rows', 'imdb', 'tmdb', 'letterboxd'],
@@ -1066,9 +1148,17 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
     ],
 
     libraries.screen(keywords: ['media folders']),
-    libraryVisibility.screen(
-      keywords: ['hide library', 'show in navigation', 'latest media'],
-    ),
+    libraryVisibility.screen(keywords: [
+      'hide library',
+      'show in navigation',
+      'latest media',
+    ]),
+    libraryOrder.screen(keywords: [
+      'reorder libraries',
+      'sort libraries',
+      'my media',
+      'navbar',
+    ]),
     libraries.leaf(
       'enable_multi_server_libraries',
       l10n.multiServerLibraries,
@@ -1162,7 +1252,27 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
       keywords: ['mute'],
     ),
 
-    seasonal.screen(keywords: ['snow', 'fireworks', 'confetti', 'holiday']),
+    seasonal.screen(
+      keywords: [
+        'snow',
+        'christmas',
+        'fireworks',
+        'confetti',
+        'petals',
+        'spring',
+        'fireflies',
+        'summer',
+        'leaves',
+        'halloween',
+        'bats',
+        'holiday',
+      ],
+    ),
+    seasonal.leaf(
+      'seasonalDensity',
+      l10n.seasonalDensity,
+      keywords: ['particles', 'amount', 'light', 'heavy'],
+    ),
     themeMusic.screen(keywords: ['soundtrack']),
     themeMusic.leaf(
       'themeMusicEnabled',

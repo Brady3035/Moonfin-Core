@@ -1,11 +1,11 @@
 name: moonfin
 description: "Moonfin - Jellyfin & Emby media client for mobile, tablet, and desktop"
 publish_to: 'none'
-version: 2.6.0+30000153
+version: 2.7.0+30000154
 
 moonfin:
-  android_tv_version: 2.6.0
-  android_tv_build_number: 2000019
+  android_tv_version: 2.7.0
+  android_tv_build_number: 2000021
   beta: false
   beta_number: 1
 
@@ -58,7 +58,11 @@ dependencies:
   media_kit_libs_linux: 1.2.1
 
   # Image Loading
-  cached_network_image: ^3.4.1
+  # Vendored fork of cached_network_image 3.4.1 that skips decoding an image
+  # again once it's been shown, since that second decode painted blank on
+  # Firefox web. See packages/cached_network_image_fork/pubspec.yaml.
+  cached_network_image:
+    path: packages/cached_network_image_fork
   flutter_cache_manager: ^3.4.1
   # Direct because the image cache index stamps its entries with clock.now(),
   # the same clock the cache manager reads, so a test can drive both. Keep in
@@ -68,6 +72,8 @@ dependencies:
   # client of its own. Keep in step with what flutter_cache_manager resolves.
   http: ^1.6.0
   flutter_svg: ^2.2.1
+  # Parses the seasonal effects' artwork into paths for the sprite atlas.
+  path_parsing: ^1.1.0
 
   # Crypto
   crypto: ^3.0.6
@@ -134,6 +140,7 @@ dependencies:
     path: packages/moonfin_native_video
   url_launcher: ^6.3.2
   file_picker: ^11.0.2
+  emoji_picker_flutter: ^4.5.4
   webview_flutter: ^4.13.1
   flutter_inappwebview: ^6.1.5
   webview_win_floating: ^3.0.3
@@ -303,11 +310,14 @@ flutter:
       fonts:
         - asset: assets/fonts/PressStart2P-Regular.ttf
 
+# The identity has to match Partner Center's Product identity page or the Store
+# rejects the upload.
 msix_config:
   display_name: Moonfin
   publisher_display_name: Moonfin
-  identity_name: com.moonfin.app
-  msix_version: 2.6.0.0
+  identity_name: Moonfin.Moonfin
+  publisher: CN=4E670673-D47F-4792-94F7-65B4918F6E4C
   logo_path: assets/icons/app_icon.png
-  capabilities: internetClient, internetClientServer
+  capabilities: internetClient, internetClientServer, privateNetworkClientServer
   languages: en-us
+  protocol_activation: moonfin

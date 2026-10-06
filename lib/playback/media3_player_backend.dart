@@ -111,7 +111,7 @@ class Media3PlayerBackend extends PlayerBackend {
   double _volume = 100.0;
   double _audioDelaySeconds = 0.0;
   double _subtitleDelaySeconds = 0.0;
-  double _subtitleAutoOffsetSeconds = 0.0;
+  int? _subtitleDelaySessionId;
   int _volumeBoostLevel = 0;
   bool _skipSilenceEnabled = false;
   RepeatMode _repeatMode = RepeatMode.none;
@@ -158,6 +158,7 @@ class Media3PlayerBackend extends PlayerBackend {
   int _bufferingNudgedAtMs = 0;
   bool _bufferingFailed = false;
   bool _sourceIsLive = false;
+  bool? _playWhenReady;
   String? _lastFrameRateLine;
 
   final _positionStream = StreamController<Duration>.broadcast();
@@ -167,7 +168,6 @@ class Media3PlayerBackend extends PlayerBackend {
   final _bufferingStream = StreamController<bool>.broadcast();
   final _completedStream = StreamController<bool>.broadcast();
   final _errorStream = StreamController<Map<String, dynamic>>.broadcast();
-  final _subtitleAutoOffsetStream = StreamController<double>.broadcast();
 
   int get volumeBoostLevel => _volumeBoostLevel;
 
@@ -175,11 +175,9 @@ class Media3PlayerBackend extends PlayerBackend {
   Stream<Map<String, dynamic>> get errorStream => _errorStream.stream;
 
   @override
-  double get subtitleAutoOffsetSeconds => _subtitleAutoOffsetSeconds;
+  bool? get playWhenReady => _playWhenReady;
 
-  @override
-  Stream<double> get subtitleAutoOffsetStream =>
-      _subtitleAutoOffsetStream.stream;
+  double get subtitleDelaySeconds => _subtitleDelaySeconds;
 
   Future<T?> _invoke<T>(String method, [dynamic arguments]) async {
     if (_disposed) return null;
@@ -224,6 +222,20 @@ class Media3PlayerBackend extends PlayerBackend {
         _buffer = Duration(milliseconds: _toInt(map['bufferedMs']));
         _isPlaying = _toBool(map['isPlaying']);
         _isBuffering = _toBool(map['isBuffering']);
+        // The player's own intent, which isPlaying folds away. Absent from an
+        // older native side, so it stays null rather than guessing false.
+        _playWhenReady = map.containsKey('playWhenReady')
+            ? _toBool(map['playWhenReady'])
+            : null;
+        // The rate the player actually settled on, which is not always the one
+        // that was asked for: bitstreamed audio cannot be time stretched, so
+        // the audio sink resets a non-1.0 speed back to 1.0 within a frame or
+        // two. Reading it back keeps the UI and the position estimate honest
+        // instead of reporting a speed that is not happening.
+        final reportedSpeed = (map['playbackSpeed'] as num?)?.toDouble();
+        if (reportedSpeed != null && reportedSpeed > 0) {
+          _playbackSpeed = reportedSpeed;
+        }
         if (_isPlaying != wasPlaying || _isBuffering != wasBuffering) {
           _diag(
             'Media3 state: playing=$_isPlaying buffering=$_isBuffering '
@@ -272,7 +284,35 @@ class Media3PlayerBackend extends PlayerBackend {
         }
       case 'completed':
         _completed = _toBool(map['completed']);
+        if (_completed) {
+          // A live source has no end, so what the player thought the window
+          // was is the thing worth knowing when it reports one anyway.
+          _diag(
+            'Media3 reported end of stream: live=${map['isLive']} '
+            'windowIsLive=${map['windowIsLive']} '
+            'windowIsDynamic=${map['windowIsDynamic']} '
+            'liveOffset=${map['liveOffsetMs']}ms '
+            'source=${map['sourceMimeType'] ?? 'unknown'} '
+            'duration=${map['durationMs']}ms '
+            'position=${map['positionMs']}ms '
+            'buffered=${map['bufferedPositionMs']}ms '
+            'loading=${map['isLoading']} '
+            'playWhenReady=${map['playWhenReady']}',
+            level: _sourceIsLive ? LogLevel.warning : LogLevel.debug,
+          );
+        }
         _completedStream.add(_completed);
+      case 'liveEdgeResumed':
+        _completed = false;
+        _diag(
+          'Media3 resumed a live source: seekedToEdge=${map['seekedToEdge']} '
+          'windowIsLive=${map['windowIsLive']} '
+          'windowIsDynamic=${map['windowIsDynamic']} '
+          'position=${map['positionMs']}ms '
+          'buffered=${map['bufferedPositionMs']}ms',
+          level: LogLevel.info,
+        );
+        _completedStream.add(false);
       case 'subtitleRendererModeChanged':
         _requestedSubtitleRendererMode = _modeFromWire(map['requestedMode']);
       case 'viewReady':
@@ -315,7 +355,6 @@ class Media3PlayerBackend extends PlayerBackend {
       case 'syncDelays':
         _audioDelaySeconds = _toInt(map['audioDelayMs']) / 1000.0;
         _subtitleDelaySeconds = _toInt(map['subtitleDelayMs']) / 1000.0;
-        _setSubtitleAutoOffset(_toInt(map['subtitleAutoOffsetMs']));
       case 'volumeBoost':
         _volumeBoostLevel = (_toInt(map['level']).clamp(0, 10)).toInt();
       case 'repeatModeChanged':
@@ -378,6 +417,13 @@ class Media3PlayerBackend extends PlayerBackend {
         _diag(
           'Media3: bitstream audio went silent (${map['reason']}), '
           'rebuilding the track in place at ${_toInt(map['positionMs'])}ms',
+          level: LogLevel.warning,
+        );
+      case 'resumeWedgeRecovery':
+        _diag(
+          'Media3: resume stuck buffering with '
+          '${_toInt(map['bufferedAheadMs'])}ms loaded ahead, preparing the '
+          'source again at ${_toInt(map['positionMs'])}ms',
           level: LogLevel.warning,
         );
       case 'audioClockRecovery':
@@ -675,21 +721,6 @@ class Media3PlayerBackend extends PlayerBackend {
       default:
         return 'Media3 HLS: requesting segment ${_toInt(map['index'])}';
     }
-  }
-
-  void _setSubtitleAutoOffset(int offsetMs) {
-    final seconds = offsetMs / 1000.0;
-    if (seconds == _subtitleAutoOffsetSeconds) return;
-    _subtitleAutoOffsetSeconds = seconds;
-    if (offsetMs == 0) {
-      _diag('Media3: subtitle auto offset cleared');
-    } else {
-      final sign = offsetMs > 0 ? '+' : '';
-      _diag(
-        'Media3: subtitle auto offset $sign${offsetMs}ms (HLS timestamp adjuster)',
-      );
-    }
-    _subtitleAutoOffsetStream.add(seconds);
   }
 
   void _diag(String message, {LogLevel level = LogLevel.debug}) {
@@ -1042,7 +1073,14 @@ class Media3PlayerBackend extends PlayerBackend {
     });
     _lastFrameRateLine = null;
     _sourceIsLive = payload['isLive'] == true;
-    _setSubtitleAutoOffset(0);
+    // Reset for a new viewing session, but keep the adjustment when the
+    // same session changes quality or restores playback after backgrounding.
+    final subtitleDelaySessionId = payload['subtitleDelaySessionId'] as int?;
+    if (subtitleDelaySessionId == null ||
+        subtitleDelaySessionId != _subtitleDelaySessionId) {
+      _subtitleDelaySeconds = 0.0;
+    }
+    _subtitleDelaySessionId = subtitleDelaySessionId;
     await _invoke<void>('setSource', {
       'url': url,
       'headers': headers,
@@ -1059,6 +1097,7 @@ class Media3PlayerBackend extends PlayerBackend {
       'skipSilenceEnabled': _skipSilenceEnabled,
       'preferredAudioLanguage': preferredAudioLanguage,
       'preferredTextLanguage': preferredSubtitleLanguage,
+      'externalSubtitles': payload['externalSubtitles'] ?? const [],
       if (payload['audioTrackOrdinal'] is int)
         'audioTrackOrdinal': payload['audioTrackOrdinal'],
       'selectUndeterminedTextLanguage': false,
@@ -1079,10 +1118,6 @@ class Media3PlayerBackend extends PlayerBackend {
     await _invoke<void>('setAudioDelay', {
       'seconds': _audioDelaySeconds,
       'delayMs': (_audioDelaySeconds * 1000).round(),
-    });
-    await _invoke<void>('setSubtitleDelay', {
-      'seconds': _subtitleDelaySeconds,
-      'delayMs': (_subtitleDelaySeconds * 1000).round(),
     });
     await _invoke<void>('setSubtitleRendererMode', {
       'mode': _modeToWire(_requestedSubtitleRendererMode),
@@ -1109,6 +1144,14 @@ class Media3PlayerBackend extends PlayerBackend {
   @override
   Future<void> pause() async {
     await _invoke<void>('pause');
+  }
+
+  @override
+  Future<bool> resumeLiveEdge() async {
+    if (!_sourceIsLive) return false;
+    _diag('Media3: resuming the live edge after the source ran out');
+    await _invoke<void>('resumeLive');
+    return true;
   }
 
   @override
@@ -1208,6 +1251,7 @@ class Media3PlayerBackend extends PlayerBackend {
       pgsDirectPlay:
           _prefs.get(UserPreferences.pgsDirectPlay) && canRenderBitmapSubtitles,
       assDirectPlay: _prefs.get(UserPreferences.assDirectPlay),
+      supportsExternalPgsSubtitles: true,
       supportsAvc: PlatformDetection.supportsAvc,
       supportsAvcHigh10: PlatformDetection.supportsAvcHigh10,
       avcMainLevel: PlatformDetection.avcMainLevel,
@@ -1531,7 +1575,6 @@ class Media3PlayerBackend extends PlayerBackend {
     _bufferingStream.close();
     _completedStream.close();
     _errorStream.close();
-    _subtitleAutoOffsetStream.close();
     _tracksChangedController.close();
   }
 }

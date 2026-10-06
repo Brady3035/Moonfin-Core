@@ -947,6 +947,10 @@
   "@uiScaleGrandparents": {
     "description": "UI scaling option above extra large"
   },
+  "uiScaleGreatGrandparents": "Great-Grandparents",
+  "@uiScaleGreatGrandparents": {
+    "description": "UI scaling option above Grandparents"
+  },
   "scrollDirection": "Scroll Direction",
   "@scrollDirection": {
     "description": "Section header for scroll direction selection in library display settings"
@@ -2608,15 +2612,6 @@
   "@subtitleDelay": {
     "description": "Title for subtitle delay adjuster"
   },
-  "subtitleDelayAuto": "Auto {value}",
-  "@subtitleDelayAuto": {
-    "description": "Read-only line under the subtitle delay showing a correction the player applied on its own, value is a formatted delay like +2000 ms",
-    "placeholders": {
-      "value": {
-        "type": "String"
-      }
-    }
-  },
   "reset": "Reset",
   "@reset": {
     "description": "Button label to reset a value"
@@ -3380,6 +3375,22 @@
     "placeholders": {
       "name": {
         "type": "String"
+      }
+    }
+  },
+  "playbackStreamLost": "Playback stopped and could not be recovered.",
+  "@playbackStreamLost": {
+    "description": "Shown in place of an internal sentinel error code when playback gives up trying to recover a stalled or starved stream"
+  },
+  "liveReconnecting": "Reconnecting… ({attempt} of {total})",
+  "@liveReconnecting": {
+    "description": "Overlay shown while a live channel's bounded recovery is retrying",
+    "placeholders": {
+      "attempt": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
       }
     }
   },
@@ -4212,6 +4223,114 @@
   "@fallingLeaves": {
     "description": "Seasonal effect: falling leaves"
   },
+  "seasonalChristmas": "Christmas",
+  "@seasonalChristmas": {
+    "description": "Seasonal effect: snow with falling baubles and stars"
+  },
+  "seasonalPetals": "Spring Petals",
+  "@seasonalPetals": {
+    "description": "Seasonal effect: falling cherry blossoms and petals with bees flying by"
+  },
+  "seasonalFireflies": "Fireflies",
+  "@seasonalFireflies": {
+    "description": "Seasonal effect: glowing fireflies for summer"
+  },
+  "seasonalHalloween": "Halloween",
+  "@seasonalHalloween": {
+    "description": "Seasonal effect: bats, ghosts, candy and orange and purple leaves"
+  },
+  "seasonalDensity": "Density",
+  "@seasonalDensity": {
+    "description": "Setting for how many seasonal effect particles are on screen at once"
+  },
+  "seasonalDensityLight": "Light",
+  "@seasonalDensityLight": {
+    "description": "Seasonal effect density: fewest particles"
+  },
+  "seasonalDensityNormal": "Normal",
+  "@seasonalDensityNormal": {
+    "description": "Seasonal effect density: the default amount"
+  },
+  "seasonalDensityHeavy": "Heavy",
+  "@seasonalDensityHeavy": {
+    "description": "Seasonal effect density: most particles"
+  },
+  "seasonalRow": "Seasonal Row",
+  "@seasonalRow": {
+    "description": "Name of the Home row that shows holiday movies"
+  },
+  "seasonalRowDescription": "Show a row of holiday movies from your library, with Seerr suggestions when available.",
+  "@seasonalRowDescription": {
+    "description": "Explains the seasonal Home row setting"
+  },
+  "seasonalRowSubtitle": "Seasonal",
+  "@seasonalRowSubtitle": {
+    "description": "Source label shown under the seasonal row's title"
+  },
+  "seasonalRowCountry": "Country",
+  "@seasonalRowCountry": {
+    "description": "Setting for which country's holidays the seasonal row follows"
+  },
+  "seasonalRowCountryAuto": "Automatic",
+  "@seasonalRowCountryAuto": {
+    "description": "Country option that reads the country from the device"
+  },
+  "countryUnitedStates": "United States",
+  "@countryUnitedStates": {
+    "description": "Country name"
+  },
+  "countryCanada": "Canada",
+  "@countryCanada": {
+    "description": "Country name"
+  },
+  "seasonalRowCountryOther": "Other",
+  "@seasonalRowCountryOther": {
+    "description": "Country option for a country the seasonal row does not list"
+  },
+  "seasonalRowHolidays": "Holidays",
+  "@seasonalRowHolidays": {
+    "description": "Heading for the list of holidays the seasonal row can show"
+  },
+  "seasonalRowHolidaysHint": "Untick a holiday to hide its row.",
+  "@seasonalRowHolidaysHint": {
+    "description": "Hint under the holiday checklist"
+  },
+  "holidayNewYear": "New Year's",
+  "@holidayNewYear": {
+    "description": "Seasonal row title for New Year's"
+  },
+  "holidayValentines": "Valentine's Day",
+  "@holidayValentines": {
+    "description": "Seasonal row title for Valentine's Day"
+  },
+  "holidayEaster": "Easter",
+  "@holidayEaster": {
+    "description": "Seasonal row title for Easter"
+  },
+  "holidayPride": "Pride",
+  "@holidayPride": {
+    "description": "Seasonal row title for Pride month"
+  },
+  "holidayHalloween": "Halloween",
+  "@holidayHalloween": {
+    "description": "Seasonal row title for Halloween"
+  },
+  "holidayThanksgiving": "Thanksgiving",
+  "@holidayThanksgiving": {
+    "description": "Seasonal row title for Thanksgiving"
+  },
+  "holidayChristmas": "Christmas Movies",
+  "@holidayChristmas": {
+    "description": "Seasonal row title for Christmas"
+  },
+  "holidayLunarNewYear": "Lunar New Year",
+  "@holidayLunarNewYear": {
+    "description": "Seasonal row title for Lunar New Year"
+  },
+  "holidayDiwali": "Diwali",
+  "@holidayDiwali": {
+    "description": "Seasonal row title for Diwali"
+  },
   "themeMusic": "Theme Music",
   "@themeMusic": {
     "description": "Setting for theme music"
@@ -4549,6 +4668,178 @@
   "detailMetadataUpcomingEpisodeDateSubtitle": "Uses Sonarr and TMDB to show upcoming release dates",
   "@detailMetadataUpcomingEpisodeDateSubtitle": {
     "description": "Subtitle describing data sources for upcoming episode air dates in metadata row"
+  },
+  "detailSections": "Sections",
+  "@detailSections": {
+    "description": "Settings tile title for switching Details screen sections on and off"
+  },
+  "detailSectionsDescription": "Choose which parts of the Details screen to show",
+  "@detailSectionsDescription": {
+    "description": "Settings tile subtitle for the Details screen sections list"
+  },
+  "detailSectionsScreenDescription": "Only the sections the current Details screen style can show are listed. Hiding one hides it in every style that has it.",
+  "@detailSectionsScreenDescription": {
+    "description": "Explanatory text at the top of the Details screen sections list"
+  },
+  "detailSectionGroupHeader": "Header",
+  "@detailSectionGroupHeader": {
+    "description": "Group heading for the title area of the Details screen"
+  },
+  "detailSectionGroupSections": "Sections",
+  "@detailSectionGroupSections": {
+    "description": "Group heading for the rows, tabs and cards of the Details screen"
+  },
+  "detailSectionGroupPerson": "Person pages",
+  "@detailSectionGroupPerson": {
+    "description": "Group heading for sections only shown on a person's Details screen"
+  },
+  "detailSectionGroupCollection": "Collection pages",
+  "@detailSectionGroupCollection": {
+    "description": "Group heading for sections only shown on a collection's Details screen"
+  },
+  "detailSectionGroupOther": "Other",
+  "@detailSectionGroupOther": {
+    "description": "Group heading for Details screen sections that fit no other group"
+  },
+  "detailSectionLogo": "Logo",
+  "@detailSectionLogo": {
+    "description": "Details screen section: the title logo artwork"
+  },
+  "detailSectionLogoSubtitle": "Shows the title as text when off",
+  "@detailSectionLogoSubtitle": {
+    "description": "Subtitle for the logo section switch"
+  },
+  "detailSectionTagline": "Tagline",
+  "@detailSectionTagline": {
+    "description": "Details screen section: the short tagline under the title"
+  },
+  "detailSectionPoster": "Poster",
+  "@detailSectionPoster": {
+    "description": "Details screen section: the poster image beside the title"
+  },
+  "detailSectionVersionBadge": "Version badge",
+  "@detailSectionVersionBadge": {
+    "description": "Details screen section: the badge shown when an item has more than one version"
+  },
+  "detailSectionUpNext": "Next Up",
+  "@detailSectionUpNext": {
+    "description": "Details screen section: the next up or next episode card"
+  },
+  "detailSectionLyrics": "Lyrics",
+  "@detailSectionLyrics": {
+    "description": "Details screen section: the lyrics panel for songs"
+  },
+  "detailSectionCast": "Cast",
+  "@detailSectionCast": {
+    "description": "Details screen section: the cast row, tab or card"
+  },
+  "detailSectionCastSubtitle": "Also on collection pages",
+  "@detailSectionCastSubtitle": {
+    "description": "Subtitle for the cast section switch"
+  },
+  "detailSectionCrew": "Directors & writers",
+  "@detailSectionCrew": {
+    "description": "Details screen section: directors and writers"
+  },
+  "detailSectionStudios": "Studios",
+  "@detailSectionStudios": {
+    "description": "Details screen section: studios and networks"
+  },
+  "detailSectionChapters": "Chapters",
+  "@detailSectionChapters": {
+    "description": "Details screen section: chapters"
+  },
+  "detailSectionExtras": "Extras",
+  "@detailSectionExtras": {
+    "description": "Details screen section: trailers, featurettes and other extras"
+  },
+  "detailSectionCollections": "Collections",
+  "@detailSectionCollections": {
+    "description": "Details screen section: the collections an item belongs to"
+  },
+  "detailSectionMoreLikeThis": "More Like This",
+  "@detailSectionMoreLikeThis": {
+    "description": "Details screen section: similar items from the library"
+  },
+  "detailSectionMoreLikeThisSubtitle": "Also similar albums and artists",
+  "@detailSectionMoreLikeThisSubtitle": {
+    "description": "Subtitle for the More Like This section switch"
+  },
+  "detailSectionMoreEpisodes": "More episodes",
+  "@detailSectionMoreEpisodes": {
+    "description": "Details screen section: the other episodes of a show on an episode's page"
+  },
+  "detailSectionMoreEpisodesSubtitle": "On episode pages",
+  "@detailSectionMoreEpisodesSubtitle": {
+    "description": "Subtitle for the More episodes section switch"
+  },
+  "detailSectionMediaInfo": "Media info",
+  "@detailSectionMediaInfo": {
+    "description": "Details screen section: file, stream and Direct Play details"
+  },
+  "detailSectionMediaInfoSubtitle": "File, streams and Direct Play check",
+  "@detailSectionMediaInfoSubtitle": {
+    "description": "Subtitle for the media info section switch"
+  },
+  "detailSectionSeerrGenresTags": "Genres & tags",
+  "@detailSectionSeerrGenresTags": {
+    "description": "Details screen Seerr section: genre and keyword chips"
+  },
+  "detailSectionSeerrStats": "Stats",
+  "@detailSectionSeerrStats": {
+    "description": "Details screen Seerr section: TMDB score, status, budget and revenue"
+  },
+  "detailSectionSeerrRecommendations": "Recommendations",
+  "@detailSectionSeerrRecommendations": {
+    "description": "Details screen Seerr section: recommended titles"
+  },
+  "detailSectionSeerrSimilar": "Similar titles",
+  "@detailSectionSeerrSimilar": {
+    "description": "Details screen Seerr section: similar titles"
+  },
+  "detailSectionSeerrCollection": "Collection banner",
+  "@detailSectionSeerrCollection": {
+    "description": "Details screen Seerr section: the banner for the collection a movie is part of"
+  },
+  "detailSectionSeerrPersonAppearances": "Appearances",
+  "@detailSectionSeerrPersonAppearances": {
+    "description": "Details screen Seerr section: a person's appearances"
+  },
+  "detailSectionSeerrPersonCrew": "Crew credits",
+  "@detailSectionSeerrPersonCrew": {
+    "description": "Details screen Seerr section: a person's crew credits"
+  },
+  "detailSectionPersonPagesSubtitle": "On person pages",
+  "@detailSectionPersonPagesSubtitle": {
+    "description": "Subtitle for Seerr sections only shown on a person's Details screen"
+  },
+  "detailSectionBiography": "Biography",
+  "@detailSectionBiography": {
+    "description": "Details screen section: a person's biography"
+  },
+  "detailSectionBirthplace": "Birthplace",
+  "@detailSectionBirthplace": {
+    "description": "Details screen section: a person's place of birth"
+  },
+  "detailSectionGuestAppearances": "Guest appearances",
+  "@detailSectionGuestAppearances": {
+    "description": "Details screen section: a person's guest appearances"
+  },
+  "detailSectionMusicVideos": "Music videos",
+  "@detailSectionMusicVideos": {
+    "description": "Details screen section: a person's music videos"
+  },
+  "detailSectionPlaylistOrder": "Playlist order",
+  "@detailSectionPlaylistOrder": {
+    "description": "Details screen section: a collection's playlist order"
+  },
+  "detailSectionBookGenres": "Book genres",
+  "@detailSectionBookGenres": {
+    "description": "Details screen section: the genre chips on a book's page"
+  },
+  "detailSectionPhotoExif": "Photo details",
+  "@detailSectionPhotoExif": {
+    "description": "Details screen section: camera and image details on a photo's page"
   },
   "upcomingEpisodeNext": "Next: {date} (S{season}:E{episode})",
   "@upcomingEpisodeNext": {
@@ -5689,6 +5980,26 @@
   "showInLatestMedia": "Show in recently added/released media",
   "@showInLatestMedia": {
     "description": "Toggle for showing library in recently added/released media"
+  },
+  "libraryOrder": "Library Order",
+  "@libraryOrder": {
+    "description": "Title of the settings screen that reorders the user's libraries"
+  },
+  "libraryOrderSubtitle": "Choose the order of your libraries",
+  "@libraryOrderSubtitle": {
+    "description": "Subtitle of the Library Order entry in the libraries settings"
+  },
+  "libraryOrderDescription": "Your libraries appear in this order on My Media, the recently added rows and the navigation bar. The order is saved to your server account, so other apps you sign in to use it too.",
+  "@libraryOrderDescription": {
+    "description": "Explanation shown at the top of the Library Order settings screen"
+  },
+  "libraryOrderTvHint": "Press left or right to move the highlighted library.",
+  "@libraryOrderTvHint": {
+    "description": "Remote control hint on the Library Order settings screen"
+  },
+  "libraryOrderSaveFailed": "Couldn't save the library order",
+  "@libraryOrderSaveFailed": {
+    "description": "Error shown when saving the library order to the server fails"
   },
   "sourceLibraries": "Source Libraries",
   "@sourceLibraries": {
@@ -9329,6 +9640,7 @@
   "noRemoteDevicesIos": "No remote playback devices available.\n\nOn iOS, AirPlay targets may be unavailable in the simulator.",
 
   "trackActionPlayNext": "Play Next",
+  "trackActionViewDetails": "View Details",
   "trackActionAddToQueue": "Add to Queue",
   "trackActionAddToPlaylist": "Add to Playlist",
   "trackActionCancelDownload": "Cancel Download",
@@ -9524,6 +9836,10 @@
   "settingsAllowSelfSignedCertsSubtitle": "Trust servers using self-signed or private-CA TLS certificates. Only enable for servers you control. This disables certificate validation for all connections.",
   "@settingsAllowSelfSignedCertsSubtitle": {
     "description": "Description for the allow self-signed certificates setting"
+  },
+  "untrustedServerCertificate": "This server's certificate isn't trusted. If it's your own server and uses a self-signed or private certificate, you can allow it here.",
+  "@untrustedServerCertificate": {
+    "description": "Shown on the sign-in screens when a server's TLS certificate is rejected, above a button that turns on Allow self-signed certificates"
   },
   "settingsPrivacyAndSafetySection": "PRIVACY & SAFETY",
   "itemBlockedByParentalControls": "This isn't available",
@@ -10179,6 +10495,36 @@
       }
     }
   },
+  "achievementsUnlockToasts": "Unlock notifications",
+  "@achievementsUnlockToasts": {
+    "description": "Switch that shows a notification when the user unlocks a badge"
+  },
+  "achievementsUnlockToastsSubtitle": "Show a notification when you unlock a badge",
+  "@achievementsUnlockToastsSubtitle": {
+    "description": "Subtitle of the unlock notifications switch"
+  },
+  "achievementsUnlockedNotification": "Achievement unlocked",
+  "@achievementsUnlockedNotification": {
+    "description": "Title of the notification for one newly unlocked badge"
+  },
+  "achievementsUnlockedCount": "{count, plural, one{{count} achievement unlocked} other{{count} achievements unlocked}}",
+  "@achievementsUnlockedCount": {
+    "description": "Title of the notification for several badges unlocked at once",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "achievementsUnlockedMore": "+{count} more",
+  "@achievementsUnlockedMore": {
+    "description": "Follows the first few badge names when more were unlocked at once",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "achievementsQuests": "Quests",
   "@achievementsQuests": {
     "description": "Quests section title"
@@ -10710,6 +11056,454 @@
   "achievementsLoadFailed": "Could not load your achievements.",
   "@achievementsLoadFailed": {
     "description": "Shown when the Achievement Badges plugin data fails to load"
+  },
+  "friends": "Friends",
+  "@friends": {
+    "description": "Title of the friends panel from the Achievement Badges plugin"
+  },
+  "friendsSubtitle": "See who's online and chat with people on this server",
+  "@friendsSubtitle": {
+    "description": "Subtitle of the Friends entry"
+  },
+  "friendsShowButton": "Show friends button",
+  "@friendsShowButton": {
+    "description": "Navigation setting that adds a Friends button"
+  },
+  "friendsShowButtonSubtitle": "Friends and chat from the Achievement Badges plugin",
+  "@friendsShowButtonSubtitle": {
+    "description": "Subtitle of the setting that adds a Friends button"
+  },
+  "friendsMessages": "Messages",
+  "@friendsMessages": {
+    "description": "Entry that opens the list of chats"
+  },
+  "friendsUnreadCount": "{count, plural, =0{No unread messages} =1{1 unread message} other{{count} unread messages}}",
+  "@friendsUnreadCount": {
+    "description": "How many chat messages are unread",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "friendsRequests": "Friend requests",
+  "@friendsRequests": {
+    "description": "Entry that opens pending friend requests"
+  },
+  "friendsRequestCount": "{count, plural, =0{Nothing waiting} =1{1 waiting for you} other{{count} waiting for you}}",
+  "@friendsRequestCount": {
+    "description": "How many friend requests wait for an answer",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "friendsAdd": "Add friends",
+  "@friendsAdd": {
+    "description": "Entry that opens the people search"
+  },
+  "friendsAddSubtitle": "Find people on this server",
+  "@friendsAddSubtitle": {
+    "description": "Subtitle of the Add friends entry"
+  },
+  "friendsPrivacy": "Privacy",
+  "@friendsPrivacy": {
+    "description": "Entry that opens the friends privacy settings"
+  },
+  "friendsPrivacySubtitle": "What your friends can see",
+  "@friendsPrivacySubtitle": {
+    "description": "Subtitle of the friends Privacy entry"
+  },
+  "friendsOnline": "Online",
+  "@friendsOnline": {
+    "description": "Section header and status for friends who are online"
+  },
+  "friendsOffline": "Offline",
+  "@friendsOffline": {
+    "description": "Section header and status for friends who are offline"
+  },
+  "friendsNone": "No friends yet. Add people from this server to see them here.",
+  "@friendsNone": {
+    "description": "Shown when the friends list is empty"
+  },
+  "friendsWatching": "Watching {title}",
+  "@friendsWatching": {
+    "description": "Status line of a friend who is playing something",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "friendsLastWatched": "Last watched {title}",
+  "@friendsLastWatched": {
+    "description": "Status line of an offline friend with the last thing they played",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "friendsLastSeen": "Last seen {time}",
+  "@friendsLastSeen": {
+    "description": "Status line of an offline friend, with a relative time such as 5m ago",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "friendsLoadFailed": "Could not load this. Check your connection and try again.",
+  "@friendsLoadFailed": {
+    "description": "Shown when a friends or chat screen fails to load"
+  },
+  "friendsActionFailed": "That didn't work. Try again in a moment.",
+  "@friendsActionFailed": {
+    "description": "Shown when a friends or chat action fails without a reason from the server"
+  },
+  "friendsIncoming": "Waiting for you",
+  "@friendsIncoming": {
+    "description": "Section header for friend requests others sent"
+  },
+  "friendsOutgoing": "Sent by you",
+  "@friendsOutgoing": {
+    "description": "Section header for friend requests the user sent"
+  },
+  "friendsNoRequests": "No friend requests.",
+  "@friendsNoRequests": {
+    "description": "Shown when there are no pending friend requests"
+  },
+  "friendsAccept": "Accept",
+  "@friendsAccept": {
+    "description": "Accept a friend request"
+  },
+  "friendsDecline": "Decline",
+  "@friendsDecline": {
+    "description": "Decline a friend request"
+  },
+  "friendsCancelRequest": "Cancel request",
+  "@friendsCancelRequest": {
+    "description": "Take back a friend request the user sent"
+  },
+  "friendsRequestFrom": "{name} wants to be friends",
+  "@friendsRequestFrom": {
+    "description": "Title of the dialog answering a friend request",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "friendsCancelRequestBody": "Take back the request you sent to {name}?",
+  "@friendsCancelRequestBody": {
+    "description": "Body of the dialog cancelling a sent friend request",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "friendsSearchHint": "Search people",
+  "@friendsSearchHint": {
+    "description": "Hint of the people search field"
+  },
+  "friendsNoMatches": "No one matches that name.",
+  "@friendsNoMatches": {
+    "description": "Shown when the people search finds nobody"
+  },
+  "friendsRequestSent": "Request sent to {name}",
+  "@friendsRequestSent": {
+    "description": "Shown after sending a friend request",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "friendsSendRequest": "Add as friend",
+  "@friendsSendRequest": {
+    "description": "Action that sends a friend request to someone"
+  },
+  "friendsSendMessage": "Send message",
+  "@friendsSendMessage": {
+    "description": "Action that opens a chat with a friend"
+  },
+  "friendsOpenItem": "Open {title}",
+  "@friendsOpenItem": {
+    "description": "Action that opens what a friend is watching",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "friendsRemove": "Remove friend",
+  "@friendsRemove": {
+    "description": "Action that removes a friend"
+  },
+  "friendsRemoveBody": "Remove {name} from your friends? You can add them again later.",
+  "@friendsRemoveBody": {
+    "description": "Body of the dialog removing a friend",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "friendsBlock": "Block",
+  "@friendsBlock": {
+    "description": "Action that blocks a user from messaging"
+  },
+  "friendsUnblock": "Unblock",
+  "@friendsUnblock": {
+    "description": "Action that unblocks a user"
+  },
+  "friendsBlockBody": "Block {name}? Neither of you will be able to message the other directly. Group chats you share stay open.",
+  "@friendsBlockBody": {
+    "description": "Body of the dialog blocking a user",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "friendsUnblockBody": "Unblock {name}?",
+  "@friendsUnblockBody": {
+    "description": "Body of the dialog unblocking a user",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "friendsBlocked": "Blocked users",
+  "@friendsBlocked": {
+    "description": "Section header listing blocked users"
+  },
+  "friendsProfileHidden": "{name} keeps their profile private.",
+  "@friendsProfileHidden": {
+    "description": "Shown when another user hides their profile",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "friendsAppearOffline": "Appear offline",
+  "@friendsAppearOffline": {
+    "description": "Privacy setting that always shows the user as offline"
+  },
+  "friendsAppearOfflineSubtitle": "Friends always see you as offline",
+  "@friendsAppearOfflineSubtitle": {
+    "description": "Subtitle of the Appear offline setting"
+  },
+  "friendsHideNowPlaying": "Hide what I'm watching",
+  "@friendsHideNowPlaying": {
+    "description": "Privacy setting that hides what is playing"
+  },
+  "friendsHideNowPlayingSubtitle": "Friends still see you online, but not what's playing",
+  "@friendsHideNowPlayingSubtitle": {
+    "description": "Subtitle of the Hide what I am watching setting"
+  },
+  "friendsHideLastWatched": "Hide my last watched",
+  "@friendsHideLastWatched": {
+    "description": "Privacy setting that hides the last played item while offline"
+  },
+  "friendsHideLastWatchedSubtitle": "Friends won't see what you watched last while you're offline",
+  "@friendsHideLastWatchedSubtitle": {
+    "description": "Subtitle of the Hide my last watched setting"
+  },
+  "friendsMessageNotifications": "Message notifications",
+  "@friendsMessageNotifications": {
+    "description": "Setting that shows a banner for new chat messages"
+  },
+  "friendsMessageNotificationsSubtitle": "Show a banner when a friend messages you",
+  "@friendsMessageNotificationsSubtitle": {
+    "description": "Subtitle of the Message notifications setting"
+  },
+  "friendsMuteDuringPlayback": "Mute during playback",
+  "@friendsMuteDuringPlayback": {
+    "description": "Setting that hides new message banners while a video or game plays"
+  },
+  "friendsMuteDuringPlaybackSubtitle": "No message banners while a video or game is playing",
+  "@friendsMuteDuringPlaybackSubtitle": {
+    "description": "Subtitle of the Mute during playback setting"
+  },
+  "friendsSaveFailed": "Could not save your settings.",
+  "@friendsSaveFailed": {
+    "description": "Shown when the friends privacy settings fail to save"
+  },
+  "chatNew": "New message",
+  "@chatNew": {
+    "description": "Entry that starts a chat with one friend"
+  },
+  "chatNewSubtitle": "Start a chat with a friend",
+  "@chatNewSubtitle": {
+    "description": "Subtitle of the New message entry"
+  },
+  "chatNewGroup": "New group",
+  "@chatNewGroup": {
+    "description": "Entry that creates a group chat"
+  },
+  "chatNewGroupSubtitle": "Chat with several friends at once",
+  "@chatNewGroupSubtitle": {
+    "description": "Subtitle of the New group entry"
+  },
+  "chatNone": "No messages yet.",
+  "@chatNone": {
+    "description": "Shown when there are no chats or no messages in a chat"
+  },
+  "chatYou": "You",
+  "@chatYou": {
+    "description": "Stands for the signed-in user in chats and member lists"
+  },
+  "chatYouSaid": "You: {text}",
+  "@chatYouSaid": {
+    "description": "Preview of the last chat message when the user sent it",
+    "placeholders": {
+      "text": {
+        "type": "String"
+      }
+    }
+  },
+  "chatPhoto": "Photo",
+  "@chatPhoto": {
+    "description": "Preview of a chat message that is an image"
+  },
+  "chatEmoji": "Emoji",
+  "@chatEmoji": {
+    "description": "Button that opens the emoji picker in a chat"
+  },
+  "chatEmojiSearch": "Search emoji",
+  "@chatEmojiSearch": {
+    "description": "Hint of the search field in the emoji picker"
+  },
+  "chatNoRecentEmoji": "No recent emoji",
+  "@chatNoRecentEmoji": {
+    "description": "Shown in the emoji picker's recent tab before any emoji was used"
+  },
+  "chatViewPhoto": "View photo",
+  "@chatViewPhoto": {
+    "description": "Action that opens a photo sent in a chat at full size"
+  },
+  "chatHint": "Write a message",
+  "@chatHint": {
+    "description": "Hint of the chat message field"
+  },
+  "chatAttach": "Send a photo",
+  "@chatAttach": {
+    "description": "Button that picks an image to send in a chat"
+  },
+  "chatEdited": "edited",
+  "@chatEdited": {
+    "description": "Marks a chat message that was changed after sending"
+  },
+  "chatSeen": "Seen",
+  "@chatSeen": {
+    "description": "Read receipt on a sent chat message"
+  },
+  "chatSent": "Sent",
+  "@chatSent": {
+    "description": "Delivery mark on a sent chat message nobody has read yet"
+  },
+  "chatEditing": "Editing message",
+  "@chatEditing": {
+    "description": "Banner above the chat field while changing a sent message"
+  },
+  "chatMessageOptions": "Message options",
+  "@chatMessageOptions": {
+    "description": "Title of the dialog with actions for a chat message"
+  },
+  "chatDeleteBody": "Delete this message for everyone?",
+  "@chatDeleteBody": {
+    "description": "Body of the dialog deleting a chat message"
+  },
+  "chatClear": "Clear conversation",
+  "@chatClear": {
+    "description": "Action that deletes every message in a chat"
+  },
+  "chatClearBody": "Delete every message in this chat for everyone in it?",
+  "@chatClearBody": {
+    "description": "Body of the dialog clearing a chat"
+  },
+  "chatGroupInfo": "Group info",
+  "@chatGroupInfo": {
+    "description": "Screen and action with a group chat name and members"
+  },
+  "chatGroupName": "Group name",
+  "@chatGroupName": {
+    "description": "Label of the group chat name field"
+  },
+  "chatMemberCount": "{count, plural, =1{1 member} other{{count} members}}",
+  "@chatMemberCount": {
+    "description": "How many people are in a group chat",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "chatOwner": "Owner",
+  "@chatOwner": {
+    "description": "Marks the person who created a group chat"
+  },
+  "chatAdmin": "Admin",
+  "@chatAdmin": {
+    "description": "Marks a group chat admin"
+  },
+  "chatMakeAdmin": "Make admin",
+  "@chatMakeAdmin": {
+    "description": "Action that makes a group member an admin"
+  },
+  "chatRemoveAdmin": "Remove admin",
+  "@chatRemoveAdmin": {
+    "description": "Action that takes admin away from a group member"
+  },
+  "chatRemoveMember": "Remove from group",
+  "@chatRemoveMember": {
+    "description": "Action that removes someone from a group chat"
+  },
+  "chatAddMember": "Add people",
+  "@chatAddMember": {
+    "description": "Action that adds friends to a group chat"
+  },
+  "chatNobodyToAdd": "No one left to add.",
+  "@chatNobodyToAdd": {
+    "description": "Shown when every friend is already in the group"
+  },
+  "chatLeave": "Leave group",
+  "@chatLeave": {
+    "description": "Action that leaves a group chat"
+  },
+  "chatLeaveBody": "Leave this group? Someone will have to add you back to rejoin.",
+  "@chatLeaveBody": {
+    "description": "Body of the dialog leaving a group chat"
+  },
+  "chatCreate": "Create group",
+  "@chatCreate": {
+    "description": "Button that creates a group chat"
+  },
+  "chatPickMembers": "Pick at least two friends",
+  "@chatPickMembers": {
+    "description": "Hint on the new group screen"
+  },
+  "chatNewMessageFrom": "New message from {name}",
+  "@chatNewMessageFrom": {
+    "description": "Title of the banner for a new chat message",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "chatImageTooLarge": "That image is over 8 MB.",
+  "@chatImageTooLarge": {
+    "description": "Shown when a picked chat image is too big"
+  },
+  "chatImageUnsupported": "Only PNG, JPEG, GIF and WebP images can be sent.",
+  "@chatImageUnsupported": {
+    "description": "Shown when a picked chat image has an unsupported type"
   },
   "embeddedBrowserNotAvailable": "Embedded browser is not available on this platform.",
   "adminRestartServerConfirmation": "Are you sure you want to restart the server?",
@@ -11642,6 +12436,14 @@
   "@setupTourQuestion": {
     "description": "Heading of the final setup wizard screen"
   },
+  "setupPlaybackLanguages": "Playback languages",
+  "@setupPlaybackLanguages": {
+    "description": "Heading of the optional audio and subtitle language section on the last setup wizard screen"
+  },
+  "setupOptional": "Optional",
+  "@setupOptional": {
+    "description": "Tag beside an optional section in the setup wizard"
+  },
   "setupStyleClassic": "Classic",
   "@setupStyleClassic": {
     "description": "Name of the original layout, offered in the setup wizard"
@@ -11689,6 +12491,22 @@
   "setupDetailMinimalistHint": "Artwork, one play button and the episodes.",
   "@setupDetailMinimalistHint": {
     "description": "What the minimalist detail screen style gives you"
+  },
+  "setupNavbarStyleQuestion": "How should the bottom bar look?",
+  "@setupNavbarStyleQuestion": {
+    "description": "Setup question asking which style the bottom navigation bar should use"
+  },
+  "setupNavbarStyleDockHint": "A floating pill with labels under every tab.",
+  "@setupNavbarStyleDockHint": {
+    "description": "What the Dock bottom bar style gives you"
+  },
+  "setupNavbarStyleSplitHint": "Search gets its own button, and the bar shrinks while you scroll.",
+  "@setupNavbarStyleSplitHint": {
+    "description": "What the Split bottom bar style gives you"
+  },
+  "setupNavbarStyleStripHint": "A full-width bar along the bottom edge.",
+  "@setupNavbarStyleStripHint": {
+    "description": "What the Strip bottom bar style gives you"
   },
   "setupPickALook": "Pick a look",
   "@setupPickALook": {
@@ -12156,6 +12974,26 @@
   "@siriRemoteSwipeSensitivityDescription": {
     "description": "Apple TV settings subtitle for the Siri Remote touchpad swipe sensitivity option"
   },
+  "appleTvHomeScreen": "Apple TV home screen",
+  "@appleTvHomeScreen": {
+    "description": "Section header in Home Screen settings for options that affect the tvOS home screen outside the app"
+  },
+  "topShelf": "Top Shelf",
+  "@topShelf": {
+    "description": "Apple TV settings label for what the tvOS home screen shows above the Moonfin icon. Top Shelf is Apple's name for that area"
+  },
+  "topShelfDescription": "What the Apple TV home screen shows above the Moonfin icon when it is selected. This setting stays on this device.",
+  "@topShelfDescription": {
+    "description": "Apple TV settings subtitle for the Top Shelf option"
+  },
+  "topShelfLatestMedia": "Latest media",
+  "@topShelfLatestMedia": {
+    "description": "Top Shelf option that shows a carousel of the newest items from the home screen's Latest rows"
+  },
+  "topShelfAppBanner": "Moonfin banner",
+  "@topShelfAppBanner": {
+    "description": "Top Shelf option that shows only the static Moonfin logo banner, nothing from the library"
+  },
   "keepVideoClearOfDynamicIsland": "Keep video clear of the Dynamic Island",
   "@keepVideoClearOfDynamicIsland": {
     "description": "iPhone playback setting that holds the picture back from the camera housing in landscape"
@@ -12163,5 +13001,65 @@
   "keepVideoClearOfDynamicIslandDescription": "In landscape the camera housing covers one edge of the screen. This holds the picture back from it, which only changes anything for video wide enough to reach that far.",
   "@keepVideoClearOfDynamicIslandDescription": {
     "description": "Description for the iPhone setting that keeps video clear of the Dynamic Island"
+  },
+  "bottomNavbarStyle": "Bottom Bar Style",
+  "@bottomNavbarStyle": {
+    "description": "Settings title for choosing how the mobile bottom navigation bar looks"
+  },
+  "bottomNavbarStyleDock": "Dock",
+  "@bottomNavbarStyleDock": {
+    "description": "Bottom bar style: a floating pill with labelled tabs"
+  },
+  "bottomNavbarStyleSplit": "Split",
+  "@bottomNavbarStyleSplit": {
+    "description": "Bottom bar style: tabs in one capsule with search as its own round button"
+  },
+  "bottomNavbarStyleStrip": "Strip",
+  "@bottomNavbarStyleStrip": {
+    "description": "Bottom bar style: a full-width bar along the bottom edge"
+  },
+  "bottomNavbarTabs": "Bottom Bar Tabs",
+  "@bottomNavbarTabs": {
+    "description": "Settings title for choosing which tabs sit on the mobile bottom navigation bar"
+  },
+  "bottomNavbarTabsDescription": "Pin up to 3 tabs between Home and You. Everything else is in the bottom navbar hub.",
+  "@bottomNavbarTabsDescription": {
+    "description": "Explains the bottom bar tabs screen"
+  },
+  "bottomNavbarTabsAutomatic": "Automatic",
+  "@bottomNavbarTabsAutomatic": {
+    "description": "Shown when the bottom bar tabs are picked from the navigation button settings"
+  },
+  "bottomNavbarTabsPinned": "Pinned",
+  "@bottomNavbarTabsPinned": {
+    "description": "Section header for the tabs pinned to the bottom bar"
+  },
+  "bottomNavbarTabsAvailable": "Available",
+  "@bottomNavbarTabsAvailable": {
+    "description": "Section header for tabs that can be pinned to the bottom bar"
+  },
+  "bottomNavbarTabsReset": "Reset to Automatic",
+  "@bottomNavbarTabsReset": {
+    "description": "Action that clears the pinned bottom bar tabs so they are picked automatically again"
+  },
+  "bottomNavbarTabsLimit": "You can pin up to 3 tabs. Remove one to pin another.",
+  "@bottomNavbarTabsLimit": {
+    "description": "Hint shown when the maximum number of bottom bar tabs is already pinned"
+  },
+  "bottomNavbarTabTurnedOff": "Turned off under Buttons",
+  "@bottomNavbarTabTurnedOff": {
+    "description": "Hint on a bottom bar tab that can't be pinned because its navigation button setting is off"
+  },
+  "bottomNavbarSplitSearchNote": "In the Split style, Search always has its own button.",
+  "@bottomNavbarSplitSearchNote": {
+    "description": "Note on the bottom bar tabs screen about the Split style"
+  },
+  "bottomNavbarButtonsNote": "These decide what shows in the bottom navbar hub and which tabs you can pin to the bottom bar. Tabs already on the bar aren't listed here.",
+  "@bottomNavbarButtonsNote": {
+    "description": "Note under the navigation buttons section while the bottom bar is in use"
+  },
+  "navYou": "You",
+  "@navYou": {
+    "description": "Bottom bar tab that opens the user's own menu with their profile, extra destinations and settings"
   }
 }

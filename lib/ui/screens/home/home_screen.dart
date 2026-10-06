@@ -33,6 +33,7 @@ import '../../../data/services/media_server_client_factory.dart';
 import '../../../data/services/plugin_sync_service.dart';
 import '../../../data/services/user_data_sync.dart';
 import '../../../data/services/connectivity_service.dart';
+import '../../../data/services/log_service.dart';
 import '../../../data/utils/media_type_badges.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../playback/appletv_preview_player.dart';
@@ -50,7 +51,9 @@ import '../../../util/global_shortcut_focus.dart';
 import '../../widgets/focus/context_menu_sheet.dart';
 import '../../widgets/focus/locked_focus_row.dart';
 import '../../../util/focus/dpad_keys.dart';
+import '../../../util/focus/input_mode_tracker.dart';
 import '../../../util/artwork_request_size.dart';
+import '../../../util/device_performance.dart';
 import '../../../util/platform_detection.dart';
 import '../../../util/server_url.dart';
 import '../../navigation/app_router.dart';
@@ -66,10 +69,10 @@ import '../../widgets/mediabar/banner_media_bar.dart';
 import '../../widgets/image_source.dart';
 import '../../widgets/media_card.dart';
 import '../../widgets/selector_builder.dart';
-import '../../widgets/mobile_bottom_nav_bar.dart';
+import '../../widgets/bottom_nav/bottom_navbar.dart';
 import '../../widgets/navigation_layout.dart';
 import '../../widgets/responsive_layout.dart';
-import '../../widgets/seasonal_effects.dart';
+import '../../widgets/seasonal/seasonal_effects.dart';
 import '../../widgets/settings/settings_panel.dart';
 import '../../widgets/top_toolbar.dart';
 import '../../navigation/home_refresh_bus.dart';
@@ -104,6 +107,9 @@ double _focusHeadroom(double imageHeight, bool cardExpansion) =>
 ///
 /// The focused row must remain complete: it is the user's active navigation
 /// target, and clipping its artwork can leave only the card metadata visible.
+/// [isFocused] means the row holds focus. A mouse scroll makes the row nearest
+/// the top the active one without focusing it, so that row still passes
+/// behind the info area like the rest.
 @visibleForTesting
 double classicHomeRowOverlayClipTop({
   required bool isFocused,
@@ -513,7 +519,9 @@ class _HomeShellState extends State<_HomeShell>
     final blurAmount = _userPrefs
         .get(UserPreferences.browsingBackgroundBlurAmount)
         .toDouble();
-    final seasonalEffect = _userPrefs.get(UserPreferences.seasonalSurprise);
+    final seasonalEffect = UserPreferences.normalizeSeasonalSurprise(
+      _userPrefs.get(UserPreferences.seasonalSurprise),
+    );
     final mediaBarMode = UserPreferences.normalizeMediaBarMode(
       _userPrefs.get(UserPreferences.mediaBarMode),
     );
@@ -566,8 +574,16 @@ class _HomeShellState extends State<_HomeShell>
                     },
                   ),
                 ),
-                if (seasonalEffect != 'none')
-                  Positioned.fill(child: SeasonalEffects(effect: seasonalEffect)),
+                if (seasonalEffect != UserPreferences.seasonalNone)
+                  Positioned.fill(
+                    child: SeasonalEffectsHost(
+                      effect: seasonalEffect,
+                      density: _userPrefs.get(UserPreferences.seasonalDensity),
+                      reducedFrameRate:
+                          _userPrefs.resolveDevicePerformanceTier() ==
+                          DevicePerformanceTier.reduced,
+                    ),
+                  ),
               ],
             ),
           ),
@@ -772,6 +788,7 @@ class _ContentRowsState extends State<_ContentRows>
   int _layoutPrefsVersion = 0;
   Type? _lastMediaBarStateRuntime;
   int _lastMediaBarItemCount = 0;
+  bool _wasEmpty = false;
   // Cache for non-focused row image URLs (independent of focus state). Cleared
   // with the extent cache on data/pref/scale change, and size-capped.
   final Map<String, String?> _rowImageUrlCache = {};
@@ -838,7 +855,6 @@ class _ContentRowsState extends State<_ContentRows>
   bool _initialFocusResolved = false;
   bool _hasEverFocusedHomeContent = false;
   String? _lastObservedPath;
-  bool _suppressNextRowPreviewFromMediaBar = false;
   bool _forceRevealOnNextRowFocusFromMediaBar = false;
   DateTime? _lastScrollTime;
   DateTime? _lastMouseWheelTime;
@@ -1011,12 +1027,7 @@ class _ContentRowsState extends State<_ContentRows>
 
   /// Height of the navbar the rows scroll behind, or zero when it is not
   /// along the bottom.
-  double _bottomNavbarInset() {
-    if (!NavigationLayout.allowBottomNavbar) return 0.0;
-    final position = widget.prefs.get(UserPreferences.navbarPosition);
-    if (position != NavbarPosition.bottom) return 0.0;
-    return MobileBottomNavBar.heightFor(context);
-  }
+  double _bottomNavbarInset() => BottomNavInsetScope.maybeOf(context) ?? 0.0;
 
   List<double> _rowTargetOffsetsForScroll({required bool fullScreenRows}) {
     final maxScrollExtent = _scrollController.hasClients
@@ -1267,9 +1278,22 @@ class _ContentRowsState extends State<_ContentRows>
     }
   }
 
+  /// The backdrop and theme music belong to the last focused item, and would
+  /// stay up behind the empty message once every row is gone, as when the
+  /// libraries they came from were deleted.
+  void _clearSelectionOnceEmpty() {
+    final empty =
+        !widget.viewModel.isLoading &&
+        widget.viewModel.rows.isEmpty &&
+        !_isMediaBarIncluded();
+    if (empty && !_wasEmpty) widget.onItemSelected(null);
+    _wasEmpty = empty;
+  }
+
   void _onViewModelChanged() {
     _invalidateStaticRowHeightCache();
     _updateOffsets();
+    _clearSelectionOnceEmpty();
     if (mounted) setState(() {});
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -1294,6 +1318,7 @@ class _ContentRowsState extends State<_ContentRows>
     final barFocusDetaching =
         !_isMediaBarIncluded() && _mediaBarFocusNode.hasFocus;
     _updateOffsets();
+    _clearSelectionOnceEmpty();
     setState(() {});
     if (barFocusDetaching) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -1598,9 +1623,11 @@ class _ContentRowsState extends State<_ContentRows>
       _finishSharedPreview();
     }
 
+    // Chrome focus is checked when the delay runs out, not here. A row reports
+    // its new focus before the chrome state catches up, so the first card
+    // entered from the toolbar would still see the toolbar's state.
     if (!widget.prefs.get(UserPreferences.episodePreviewEnabled) ||
         !_supportsEpisodePreview(item) ||
-        _chromeFocusActive ||
         _mainPlaybackActive) {
       return;
     }
@@ -1771,6 +1798,16 @@ class _ContentRowsState extends State<_ContentRows>
       );
       final previewVolume = kIsWeb ? 0.0 : (previewAudioEnabled ? 100.0 : 0.0);
       final useMedia3 = _useMedia3InlinePreview();
+      final backend = useMedia3
+          ? 'Media3'
+          : PlatformDetection.useApplePreviewPlayer
+          ? 'AVPlayer'
+          : 'media_kit';
+      final sourceProtocol = target.mediaSources.firstOrNull?['Protocol'];
+      _logPreview(
+        'item ${target.id}, ${sourceProtocol ?? 'unknown'} source, start at '
+        '${seekPosition.inSeconds}s on $backend, $previewUrl',
+      );
       await _audioArbiter.acquire(AudioProducer.inlinePreview);
 
       if (!_isPreviewRequestActive(requestId, previewKey)) {
@@ -1846,6 +1883,7 @@ class _ContentRowsState extends State<_ContentRows>
       }
       _previewStopTimer = Timer(const Duration(seconds: 30), () {
         if (requestId == _previewRequestId && _activePreviewKey == previewKey) {
+          _logPreview('stopping at the 30 second limit');
           _finishSharedPreview();
         }
       });
@@ -1853,11 +1891,20 @@ class _ContentRowsState extends State<_ContentRows>
       if (_isPreviewRequestActive(requestId, previewKey)) {
         _previewReady = true;
       }
-    } catch (_) {
+    } catch (e) {
       if (_isPreviewRequestActive(requestId, previewKey)) {
+        _logPreview('could not start', error: e);
         _finishSharedPreview();
       }
     }
+  }
+
+  void _logPreview(String message, {Object? error}) {
+    if (!GetIt.instance.isRegistered<LogService>()) return;
+    GetIt.instance<LogService>().playback(
+      'Home preview: $message',
+      error: error,
+    );
   }
 
   AppleTvPreviewPlayer _ensureAppleTvSharedPreviewPlayer() {
@@ -2463,7 +2510,6 @@ class _ContentRowsState extends State<_ContentRows>
       return;
     }
     _finishSharedPreview(releaseResources: true);
-    _suppressNextRowPreviewFromMediaBar = true;
     _forceRevealOnNextRowFocusFromMediaBar = true;
     final isBanner = _isBannerMode();
     if (mounted &&
@@ -2502,7 +2548,6 @@ class _ContentRowsState extends State<_ContentRows>
     widget.onItemSelected(item);
     unawaited(_revealAndScrollToPinnedInfo(ignoreScrollCooldown: forceReveal));
     _finishSharedPreview();
-    _suppressNextRowPreviewFromMediaBar = false;
   }
 
   Future<void> _moveFocusFromRowsToMediaBar() async {
@@ -3998,7 +4043,7 @@ class _ContentRowsState extends State<_ContentRows>
         viewportHeight: _scrollController.position.viewportDimension,
         overlayBottom: overlayBottom,
         classicClipTop: classicHomeRowOverlayClipTop(
-          isFocused: isFocusedRow,
+          isFocused: _rowStateOf(rowIndex)?.hasFocusedItem ?? false,
           rowViewportTop: rowViewportTop,
           rowExtent: rowExtent,
           overlayBottom: overlayBottom,
@@ -4048,6 +4093,7 @@ class _ContentRowsState extends State<_ContentRows>
     if (row.id.startsWith('seerr_')) return l10n.seerrDiscoveryRows;
     if (row.id.startsWith('tmdb_')) return 'TMDB Lists';
     if (row.id.startsWith('imdb_')) return 'IMDb List';
+    if (row.id == 'seasonal') return l10n.seasonalRowSubtitle;
 
     final config = widget.prefs.homeSectionsConfig.firstWhereOrNull((c) => c.stableId == row.id);
     if (config != null && config.pluginSource == HomeSectionPluginSource.custom) {
@@ -4932,11 +4978,6 @@ class _ContentRowsState extends State<_ContentRows>
           unawaited(
             _revealAndScrollToPinnedInfo(ignoreScrollCooldown: forceReveal),
           );
-          if (_suppressNextRowPreviewFromMediaBar) {
-            _suppressNextRowPreviewFromMediaBar = false;
-            _finishSharedPreview();
-            return;
-          }
           final canPreview = _supportsEpisodePreview(item);
           if (!PlatformDetection.useMobileUi && canPreview) {
             _schedulePreview(item, delay: _previewStartDelay, rowIndex: rowIndex);
@@ -4976,7 +5017,8 @@ class _ContentRowsState extends State<_ContentRows>
           ).clamp(1.0, 2.0);
           final imageApi = widget.viewModel.imageApiForServer(item.serverId);
           final previewKey = _previewKeyFor(item, rowIndex);
-          final isV2MobileTouch = isRowsV2 && PlatformDetection.useMobileUi;
+          final isV2MobileTouch = isRowsV2 && PlatformDetection.useMobileUi &&
+              InputModeTracker.of(ctx) == InputMode.pointer;
           final delayExpansion =
               prefs.get(UserPreferences.delayCardExpansionOnRapidScroll);
           return SelectorBuilder<bool>(
@@ -4986,7 +5028,7 @@ class _ContentRowsState extends State<_ContentRows>
               isFocused: isFocused,
               isRowsV2: isRowsV2,
               isV2MobileTouch: isV2MobileTouch,
-              delayExpansion: delayExpansion,
+              delayExpansion: delayExpansion && !PlatformDetection.useMobileUi,
             ),
             builder: (ctx, effectiveV2Focused) {
           late final double ar;

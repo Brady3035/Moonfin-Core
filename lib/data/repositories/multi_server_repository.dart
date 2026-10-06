@@ -21,6 +21,7 @@ import '../utils/latest_media_row_normalizer.dart';
 import '../utils/next_up_cutoff.dart';
 import '../utils/next_up_enrichment.dart';
 import '../utils/playlist_utils.dart';
+import 'search_repository.dart';
 import 'user_views_repository.dart';
 import '../../l10n/app_localizations.dart';
 import '../../l10n/current_app_localizations.dart';
@@ -263,7 +264,7 @@ class MultiServerRepository {
     final results = await _gatherPerServer(
       sessions,
       (session) async {
-        final response = await session.client.itemsApi.getNextUp(
+        final request = session.client.itemsApi.getNextUp(
           limit: perServer,
           fields: _fields,
           enableImageTypes: _imageTypes,
@@ -271,10 +272,13 @@ class MultiServerRepository {
           enableResumable: false,
           nextUpDateCutoff: nextUpDateCutoff,
         );
+        final recentlyPlayed = fetchSeriesLastPlayed(session.client);
+        final response = await request;
         final parsed = _parseItems(response, session.server.id);
         return await _enrichNextUpItemsWithSeriesLastPlayed(
           parsed,
           session.client,
+          recentlyPlayed,
         );
       },
       label: 'next up',
@@ -1252,6 +1256,28 @@ class MultiServerRepository {
     return results;
   }
 
+  /// Runs [search] against every signed-in server through that server's own
+  /// client, and tags each result with the server it came from so its artwork
+  /// and details load from there.
+  Future<List<List<AggregatedItem>>> searchEachServer(
+    Future<List<AggregatedItem>> Function(SearchRepository repository) search, {
+    required String label,
+  }) async {
+    final sessions = await getLoggedInServers();
+    return _gatherPerServer(
+      sessions,
+      (session) async => [
+        for (final item in await search(SearchRepository(session.client)))
+          AggregatedItem(
+            id: item.id,
+            serverId: session.server.id,
+            rawData: item.rawData,
+          ),
+      ],
+      label: label,
+    );
+  }
+
   Future<List<AggregatedItem>> _buildBrowsableGenresForSession(
     ServerUserSession session,
     Map<String, dynamic> response, {
@@ -1262,12 +1288,10 @@ class MultiServerRepository {
         .whereType<Map>()
         .map((item) => item.cast<String, dynamic>())
         .where(
-          (genre) =>
-              browsableGenreCount(
-                genre,
-                normalizedItemTypes: includeItemTypes,
-              ) >
-              0,
+          (genre) => mayHaveBrowsableItems(
+            genre,
+            normalizedItemTypes: includeItemTypes,
+          ),
         )
         .toList(growable: false);
 
@@ -1445,5 +1469,6 @@ class MultiServerRepository {
   Future<List<AggregatedItem>> _enrichNextUpItemsWithSeriesLastPlayed(
     List<AggregatedItem> items,
     MediaServerClient client,
-  ) => enrichNextUpItemsWithSeriesLastPlayed(items, client);
+    Future<Map<String, String>?> recentlyPlayed,
+  ) => enrichNextUpItemsWithSeriesLastPlayed(items, client, recentlyPlayed);
 }

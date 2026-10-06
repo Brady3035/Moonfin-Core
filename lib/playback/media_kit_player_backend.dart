@@ -2524,11 +2524,11 @@ class MediaKitPlayerBackend extends PlayerBackend {
     }
     final backgroundColor = _lastBackgroundColor;
     if (backgroundColor != null) {
-      await _nativeSetProperty(
-        native,
-        'sub-back-color',
-        _argbToMpvColor(backgroundColor),
-      );
+      for (final entry in subtitleBackgroundMpvProperties(
+        backgroundColor,
+      ).entries) {
+        await _nativeSetProperty(native, entry.key, entry.value);
+      }
     }
     final strokeColor = _lastStrokeColor;
     if (strokeColor != null) {
@@ -2594,6 +2594,19 @@ class MediaKitPlayerBackend extends PlayerBackend {
         '${r.toRadixString(16).padLeft(2, '0')}'
         '${g.toRadixString(16).padLeft(2, '0')}'
         '${b.toRadixString(16).padLeft(2, '0')}';
+  }
+
+  /// mpv uses sub-back-color for a shadow until a background box is selected.
+  /// Reset both style and padding when the background becomes transparent.
+  static Map<String, String> subtitleBackgroundMpvProperties(int color) {
+    final hasBackground = ((color >> 24) & 0xff) != 0;
+    return {
+      'sub-back-color': _argbToMpvColor(color),
+      'sub-border-style': hasBackground
+          ? 'background-box'
+          : 'outline-and-shadow',
+      'sub-shadow-offset': hasBackground ? '4' : '0',
+    };
   }
 
   Stream<T> _mergeWithStale<T>(Stream<T> source, T Function() getValue) {

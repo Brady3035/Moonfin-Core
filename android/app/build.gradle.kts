@@ -187,13 +187,13 @@ flutter {
 }
 
 dependencies {
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.json:json:20240303")
-    implementation("com.google.android.gms:play-services-cast-framework:22.0.0")
+    implementation("com.google.android.gms:play-services-cast-framework:22.3.1")
     implementation("eu.simonbinder:sqlite3-native-library:3.52.0")
     implementation("androidx.tvprovider:tvprovider:1.1.0")
-    implementation("androidx.work:work-runtime-ktx:2.10.1")
+    implementation("androidx.work:work-runtime-ktx:2.12.0")
 }
 
 val flutterApkOutputDir = layout.buildDirectory.dir("app/outputs/flutter-apk")

@@ -21,7 +21,8 @@ StreamResolutionResult _resolution(List<Map<String, dynamic>> streams) =>
       mediaStreams: streams,
     );
 
-/// Runs [body] with a real BuildContext, which the config needs for the screen height.
+/// Runs [body] with a real BuildContext, which the config needs for the
+/// screen height.
 Future<void> _withContext(
   WidgetTester tester,
   void Function(BuildContext context) body,
@@ -41,6 +42,10 @@ Future<void> _withContext(
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
+  // Desktop never shows the text view, since mpv draws its own subtitles
+  // there, so the visibility cases run as Android.
+  final android = TargetPlatformVariant.only(TargetPlatform.android);
+
   // Both players draw their subtitles through this.
   testWidgets('a text subtitle is drawn by the subtitle view', (tester) async {
     final prefs = await _prefs();
@@ -55,7 +60,7 @@ void main() {
       );
       expect(config.visible, isTrue);
     });
-  });
+  }, variant: android);
 
   // ASS and PGS paint themselves, so the text view would draw them twice.
   testWidgets('a self-rendering subtitle hides the subtitle view', (
@@ -75,7 +80,7 @@ void main() {
         expect(config.visible, isFalse, reason: codec);
       }
     });
-  });
+  }, variant: android);
 
   testWidgets('no selected subtitle leaves the view available', (tester) async {
     final prefs = await _prefs();
@@ -90,7 +95,7 @@ void main() {
       );
       expect(config.visible, isTrue);
     });
-  });
+  }, variant: android);
 
   // A live channel's first tune has no stream list.
   testWidgets('an unresolved stream still yields a config', (tester) async {
@@ -105,5 +110,5 @@ void main() {
       expect(config.visible, isTrue);
       expect(config.style.fontSize, greaterThan(0));
     });
-  });
+  }, variant: android);
 }

@@ -3,14 +3,13 @@ import 'package:media_kit_video/media_kit_video.dart';
 import 'package:playback_core/playback_core.dart';
 
 import '../preference/user_preferences.dart';
-import '../ui/widgets/subtitle_preview.dart';
 import '../util/platform_detection.dart';
 import '../util/subtitle_track_logic.dart';
 import 'subtitle_style.dart';
 
-/// How media_kit draws the subtitles it renders itself, for both the on-demand and live-TV players.
-///
-/// ASS and PGS subtitles paint themselves, so the text view stays hidden for them.
+/// How media_kit draws the subtitles it renders itself, for both the on
+/// demand and live TV players. ASS and PGS subtitles paint themselves, so
+/// the text view stays hidden for them.
 SubtitleViewConfiguration buildSubtitleViewConfiguration({
   required BuildContext context,
   required UserPreferences prefs,
@@ -62,4 +61,22 @@ SubtitleViewConfiguration buildSubtitleViewConfiguration({
     textAlign: TextAlign.center,
     padding: EdgeInsets.fromLTRB(16.0, 0.0, 16.0, bottomPadding),
   );
+}
+
+/// 8-direction scaled shadow ring approximating a text stroke. Width scales
+/// with [fontSize] so the outline stays visible at large sizes and extends
+/// past any [TextStyle.backgroundColor] rectangle behind the glyph.
+List<Shadow>? subtitleStrokeShadows(Color strokeColor, double fontSize) {
+  if (strokeColor.a <= 0) return null;
+  final w = (fontSize / 16.0).clamp(1.0, 3.0);
+  return <Shadow>[
+    Shadow(offset: Offset(-w, -w), color: strokeColor),
+    Shadow(offset: Offset(0, -w), color: strokeColor),
+    Shadow(offset: Offset(w, -w), color: strokeColor),
+    Shadow(offset: Offset(-w, 0), color: strokeColor),
+    Shadow(offset: Offset(w, 0), color: strokeColor),
+    Shadow(offset: Offset(-w, w), color: strokeColor),
+    Shadow(offset: Offset(0, w), color: strokeColor),
+    Shadow(offset: Offset(w, w), color: strokeColor),
+  ];
 }

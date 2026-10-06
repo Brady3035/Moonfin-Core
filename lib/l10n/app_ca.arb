@@ -13279,5 +13279,41 @@
     "untrustedServerCertificate": "No es confia en el certificat d'aquest servidor. Si és el teu propi servidor i fa servir un certificat autosignat o privat, pots permetre'l aquí.",
     "@untrustedServerCertificate": {
         "description": "Shown on the sign-in screens when a server's TLS certificate is rejected, above a button that turns on Allow self-signed certificates"
+    },
+    "seasonalChristmas": "Nadal",
+    "@seasonalChristmas": {
+        "description": "Seasonal effect: snow with falling baubles and stars"
+    },
+    "seasonalHalloween": "Halloween",
+    "@seasonalHalloween": {
+        "description": "Seasonal effect: bats, ghosts, candy and orange and purple leaves"
+    },
+    "seasonalDensity": "Densitat",
+    "@seasonalDensity": {
+        "description": "Setting for how many seasonal effect particles are on screen at once"
+    },
+    "seasonalDensityLight": "Lleuger",
+    "@seasonalDensityLight": {
+        "description": "Seasonal effect density: fewest particles"
+    },
+    "seasonalDensityNormal": "Normal",
+    "@seasonalDensityNormal": {
+        "description": "Seasonal effect density: the default amount"
+    },
+    "countryUnitedStates": "Estats Units",
+    "@countryUnitedStates": {
+        "description": "Country name"
+    },
+    "countryCanada": "Canada",
+    "@countryCanada": {
+        "description": "Country name"
+    },
+    "seasonalRowCountryOther": "Altres",
+    "@seasonalRowCountryOther": {
+        "description": "Country option for a country the seasonal row does not list"
+    },
+    "holidayNewYear": "Any nou",
+    "@holidayNewYear": {
+        "description": "Seasonal row title for New Year's"
     }
 }

@@ -45,7 +45,7 @@ void main() {
     expect(url, isNotNull);
     expect(url, contains('album-1'));
     expect(url, isNot(contains('track-1')));
-    expect(url, contains('120'));
+    expect(url, contains('maxHeight=120'));
   });
 
   test('a track with no album art falls back to its own picture', () {
@@ -60,7 +60,7 @@ void main() {
     );
 
     expect(url, contains('track-2'));
-    expect(url, contains('300'));
+    expect(url, contains('maxHeight=300'));
   });
 
   // Only music shows the album cover, even when other items carry an album id.
@@ -100,8 +100,8 @@ void main() {
     });
 
     expect(audioArtUrl(item, clientFactory: factory, maxHeight: 120),
-        contains('120'));
+        contains('maxHeight=120'));
     expect(audioArtUrl(item, clientFactory: factory, maxHeight: 600),
-        contains('600'));
+        contains('maxHeight=600'));
   });
 }

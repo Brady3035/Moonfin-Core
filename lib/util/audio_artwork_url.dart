@@ -4,9 +4,8 @@ import 'package:server_core/server_core.dart';
 import '../data/models/aggregated_item.dart';
 import '../data/services/media_server_client_factory.dart';
 
-/// The playing track's artwork: the album cover for music, its own picture otherwise.
-///
-/// Returns null when there's no artwork or its server can't be reached.
+/// The playing track's artwork: the album cover for music, its own picture
+/// otherwise. Null when there's no artwork or its server can't be reached.
 String? audioArtUrl(
   AggregatedItem item, {
   required MediaServerClientFactory clientFactory,
@@ -22,8 +21,11 @@ String? audioArtUrl(
           .getPrimaryImageUrl(albumId, maxHeight: maxHeight, tag: albumTag);
     }
     if (item.primaryImageTag != null) {
-      return client.imageApi
-          .getPrimaryImageUrl(item.id, maxHeight: maxHeight, tag: item.primaryImageTag);
+      return client.imageApi.getPrimaryImageUrl(
+        item.id,
+        maxHeight: maxHeight,
+        tag: item.primaryImageTag,
+      );
     }
   } catch (_) {}
   return null;

@@ -45,6 +45,7 @@ import 'shuffle_overlay.dart';
 import 'user_menu_dialog.dart';
 
 import 'offline_aware_image.dart';
+import 'paced_network_image.dart';
 import 'package:playback_core/playback_core.dart';
 import '../../data/models/aggregated_item.dart';
 import '../../data/services/media_server_client_factory.dart';
@@ -930,16 +931,21 @@ class _TopToolbarState extends State<TopToolbar> with RouteAware {
             ),
             child: ClipOval(
               child: _userImageUrl != null
-                  ? Image.network(
-                      _userImageUrl!,
-                      headers: serverImageHeaders,
+                  ? Image(
+                      image: ResizeImage.resizeIfNeeded(
+                        ArtworkDecode.widthFor(
+                          avatarSize,
+                          MediaQuery.devicePixelRatioOf(context),
+                        ),
+                        null,
+                        PacedNetworkImage(
+                          _userImageUrl!,
+                          headers: serverImageHeaders,
+                        ),
+                      ),
                       fit: BoxFit.cover,
                       width: avatarSize,
                       height: avatarSize,
-                      cacheWidth: ArtworkDecode.widthFor(
-                        avatarSize,
-                        MediaQuery.devicePixelRatioOf(context),
-                      ),
                       errorBuilder: (_, _, _) => _avatarFallback(),
                     )
                   : _avatarFallback(),

@@ -12,6 +12,7 @@ import 'package:server_core/server_core.dart';
 
 import '../../data/repositories/seerr_repository.dart';
 import 'server_messages_service.dart';
+import 'settings_stream_transport.dart';
 import 'storage_path_service.dart';
 import 'synced_fields.dart';
 import '../../ui/widgets/navigation_layout.dart';
@@ -89,14 +90,18 @@ class PluginSyncService extends ChangeNotifier {
   bool _clientLogSupported = false;
   bool get clientLogSupported => _pluginAvailable && _clientLogSupported;
   String? _activeThemeCacheServerId;
-  void Function(
-    String title,
-    String body,
-    String route, {
-    String? requestId,
-    bool isRequest,
-  })?
-  onSeerrNotification;
+
+  final _seerrNotifications =
+      StreamController<SeerrNotificationEvent>.broadcast();
+
+  /// Seerr notifications the plugin pushed. Each listener holds its own
+  /// subscription, so one going away never silences another.
+  Stream<SeerrNotificationEvent> get seerrNotifications =>
+      _seerrNotifications.stream;
+
+  /// The server writes a heartbeat after 30 seconds without events, so a
+  /// stream quiet for this long has missed more than one and counts as dead.
+  static const Duration _settingsStreamIdleTimeout = Duration(seconds: 75);
   CancelToken? _settingsStreamCancelToken;
   StreamSubscription<String>? _settingsStreamSubscription;
   bool _settingsStreamReconnectPending = false;
@@ -527,16 +532,17 @@ class PluginSyncService extends ChangeNotifier {
       final route = _eventValue(parsed, 'route');
       final kind = _eventValue(parsed, 'kind');
       final requestIdRaw = _eventValue(parsed, 'requestId');
-      final requestId = requestIdRaw is String ? requestIdRaw : null;
-      if (route is String && route.trim().isNotEmpty) {
-        onSeerrNotification?.call(
-          title is String ? title : '',
-          body is String ? body : '',
-          route.trim(),
-          requestId: requestId,
+      // A summary of several library additions has no single page to open,
+      // so an empty route still comes through.
+      _seerrNotifications.add(
+        SeerrNotificationEvent(
+          title: title is String ? title : '',
+          body: body is String ? body : '',
+          route: route is String ? route.trim() : '',
+          requestId: requestIdRaw is String ? requestIdRaw : null,
           isRequest: kind == 'request',
-        );
-      }
+        ),
+      );
       return;
     }
 
@@ -584,13 +590,12 @@ class PluginSyncService extends ChangeNotifier {
     _settingsStreamCancelToken = cancelToken;
 
     try {
-      final response = await _dio.get<ResponseBody>(
+      final body = await openSettingsStream(
+        _dio,
         '${client.baseUrl}/Moonfin/Settings/Stream',
-        options: Options(headers: headers, responseType: ResponseType.stream),
+        headers: headers,
         cancelToken: cancelToken,
-      );
-
-      final body = response.data;
+      ).timeout(_settingsStreamIdleTimeout);
       if (body == null) {
         if (!cancelToken.isCancelled) {
           _scheduleSettingsStreamReconnect(client);
@@ -600,8 +605,10 @@ class PluginSyncService extends ChangeNotifier {
 
       _settingsStreamReconnectAttempt = 0;
 
-      _settingsStreamSubscription = body.stream
-          .cast<List<int>>()
+      // A timeout arrives as an error, which reconnects straight away rather
+      // than waiting on a dead connection to finish closing.
+      _settingsStreamSubscription = body
+          .timeout(_settingsStreamIdleTimeout)
           .transform(utf8.decoder)
           .transform(const LineSplitter())
           .listen(
@@ -1082,6 +1089,31 @@ class PluginSyncService extends ChangeNotifier {
       }
     } catch (e) {
       debugPrint('[PluginSyncService] fetchSimilarItems failed: $e');
+    }
+    return null;
+  }
+
+  /// The seasonal Home row Moonbase built for this user. [country] is the
+  /// viewer's two letter code, ZZ for "other", or null to let the server fall
+  /// back to its own.
+  Future<Map<String, dynamic>?> fetchSeasonalRow(
+    MediaServerClient client, {
+    String? country,
+  }) async {
+    final headers = _authHeaders(client);
+    if (headers == null) return null;
+
+    try {
+      final response = await _dio.get(
+        '${client.baseUrl}/Moonfin/Seasonal/Row',
+        queryParameters: {'country': ?country},
+        options: Options(headers: headers),
+      );
+      if (response.data is Map<String, dynamic>) {
+        return response.data as Map<String, dynamic>;
+      }
+    } catch (e) {
+      debugPrint('[PluginSyncService] fetchSeasonalRow failed: $e');
     }
     return null;
   }
@@ -1571,6 +1603,13 @@ class PluginSyncService extends ChangeNotifier {
         );
         continue;
       }
+      if (type == prefs.HomeSectionType.seasonal) {
+        final localEnabled = _prefs.get(UserPreferences.seasonalRowEnabled);
+        sections.add(
+          HomeSectionConfig(type: type, enabled: localEnabled, order: order++),
+        );
+        continue;
+      }
       sections.add(
         HomeSectionConfig(type: type, enabled: false, order: order++),
       );
@@ -1591,6 +1630,8 @@ class PluginSyncService extends ChangeNotifier {
   /// disabled rather than being re-derived from a toggle preference that
   /// defaults to on. The preferences stay untouched because the profile's own
   /// synced fields already set them, and writing false would push that back.
+  /// The seasonal row is the exception: a layout that leaves it out still
+  /// travels with its synced toggle, so the toggle decides.
   int _appendDisabledBuiltinSections(
     List<HomeSectionConfig> sections,
     int order,
@@ -1600,8 +1641,10 @@ class PluginSyncService extends ChangeNotifier {
       if (type == prefs.HomeSectionType.none || present.contains(type)) {
         continue;
       }
+      final enabled = type == prefs.HomeSectionType.seasonal &&
+          _prefs.get(UserPreferences.seasonalRowEnabled);
       sections.add(
-        HomeSectionConfig(type: type, enabled: false, order: order++),
+        HomeSectionConfig(type: type, enabled: enabled, order: order++),
       );
     }
     return order;
@@ -1635,7 +1678,8 @@ class PluginSyncService extends ChangeNotifier {
       case SyncCodec.textAsInt:
         _applyInt(data, field.serverKey, field.pref);
       case SyncCodec.text:
-        _applyString(data, field.serverKey, field.pref);
+        _applyString(data, field.serverKey, field.pref,
+            normalize: field.normalize);
       case SyncCodec.enumName:
         _applyString(data, field.serverKey, field.pref,
             enumValues: field.enumValues);
@@ -1804,9 +1848,14 @@ class PluginSyncService extends ChangeNotifier {
     Preference<T> pref, {
     List<Enum>? enumValues,
     bool intFromString = false,
+    String? Function(String value)? normalize,
   }) {
-    final value = data[serverKey];
+    var value = data[serverKey];
     if (value == null) return;
+    if (normalize != null && value is String) {
+      value = normalize(value);
+      if (value == null) return;
+    }
 
     final effective = _prefs.getEffectivePreference(pref);
 
@@ -2045,6 +2094,7 @@ class PluginSyncService extends ChangeNotifier {
       prefs.HomeSectionType.sonarrCalendar =>
         UserPreferences.enableSonarrCalendar,
       prefs.HomeSectionType.rewatch => UserPreferences.displayRewatchRow,
+      prefs.HomeSectionType.seasonal => UserPreferences.seasonalRowEnabled,
       prefs.HomeSectionType.sinceYouWatched1 =>
         UserPreferences.sinceYouWatched1Enabled,
       prefs.HomeSectionType.sinceYouWatched2 =>
@@ -2065,6 +2115,26 @@ class PluginSyncService extends ChangeNotifier {
     _pushDebounceTimer?.cancel();
     _syncRetryTimer?.cancel();
     _stopSettingsStream();
+    unawaited(_seerrNotifications.close());
     super.dispose();
   }
+}
+
+/// A Seerr notification the plugin pushed to this user.
+class SeerrNotificationEvent {
+  const SeerrNotificationEvent({
+    required this.title,
+    required this.body,
+    required this.route,
+    this.requestId,
+    this.isRequest = false,
+  });
+
+  final String title;
+  final String body;
+
+  /// Where a tap goes, or empty when there's nowhere to go.
+  final String route;
+  final String? requestId;
+  final bool isRequest;
 }

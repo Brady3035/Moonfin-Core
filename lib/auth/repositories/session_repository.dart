@@ -32,6 +32,7 @@ import '../../data/services/carplay_service.dart';
 import '../../data/services/cast/cast_service.dart';
 import '../../data/services/crash_report_service.dart';
 import '../../data/services/download_notification_service.dart';
+import '../../data/services/topshelf_service.dart';
 import '../../data/services/tv_channels_service.dart';
 import '../../data/services/watch_next_service.dart';
 import '../../data/services/media_server_client_factory.dart';
@@ -421,7 +422,7 @@ class SessionRepository {
       final achievements = GetIt.instance<AchievementsService>();
       unawaited(
         achievements.refreshAvailability(client).then((available) {
-          if (available) achievements.startSocialPolling(client);
+          if (available) achievements.startPolling(client);
         }),
       );
     }
@@ -618,6 +619,7 @@ class SessionRepository {
         WatchNextService().clear();
         WatchNextService().cancelPeriodicRefresh();
         TvChannelsService().clear();
+        TopShelfService().clear();
       }
       if (GetIt.instance.isRegistered<MoonfinAudioHandler>()) {
         GetIt.instance<MoonfinAudioHandler>().notifyChildrenChanged();

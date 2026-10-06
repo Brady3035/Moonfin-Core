@@ -30,8 +30,9 @@ class AchievementsService extends ChangeNotifier {
   static const String _root = 'Plugins/AchievementBadges';
 
   /// The plugin gives each user 60 requests a minute across all of its routes,
-  /// so a panel load costs roughly a sixth of that. Only the friends badge and
-  /// an open chat poll, and both stop while the app is in the background.
+  /// so a panel load costs roughly a sixth of that. Only the friends badge,
+  /// unlock notifications and an open chat poll, and all of them stop while
+  /// the app is in the background.
   final Dio _dio;
 
   AchievementsService({@visibleForTesting Dio? dio})
@@ -56,9 +57,14 @@ class AchievementsService extends ChangeNotifier {
   bool _privacyMode = false;
   bool _friendsEnabled = true;
   bool _friendsSimpleMode = false;
+  bool _unlockToastsEnabled = false;
 
   /// Whether the friends list and chat are on for this server.
   bool get socialAvailable => _available && _friendsEnabled;
+
+  /// Whether the admin left the plugin's unlock notifications on. Nothing
+  /// about them is offered when they're off.
+  bool get unlockToastsAvailable => _available && _unlockToastsEnabled;
 
   /// The admin made everyone a friend, so there are no requests to send.
   bool get friendsSimpleMode => _friendsSimpleMode;
@@ -92,8 +98,10 @@ class AchievementsService extends ChangeNotifier {
     _privacyMode = false;
     _friendsEnabled = true;
     _friendsSimpleMode = false;
+    _unlockToastsEnabled = false;
     _catalog = null;
     _clearSocial();
+    _clearUnlocks();
     if (!_available) return;
     debugPrint('[AchievementsService] cleared, the entry is hidden again');
     _available = false;
@@ -138,6 +146,12 @@ class AchievementsService extends ChangeNotifier {
     _privacyMode = config['ForcePrivacyMode'] == true;
     _friendsEnabled = config['FriendsEnabled'] != false;
     _friendsSimpleMode = config['FriendsSimpleMode'] == true;
+
+    // A plugin build without this route leaves the notifications off rather
+    // than polling for unlocks it can't serve.
+    final features = await _getMap(client, 'admin/ui-features');
+    _unlockToastsEnabled =
+        features != null && features['EnableUnlockToasts'] != false;
     return true;
   }
 
@@ -587,7 +601,7 @@ class AchievementsService extends ChangeNotifier {
 
   @override
   void dispose() {
-    _socialTimer?.cancel();
+    _pollTimer?.cancel();
     _lifecycle?.dispose();
     unawaited(_incoming.close());
     _dio.close(force: true);
@@ -612,11 +626,12 @@ class AchievementsService extends ChangeNotifier {
 
   // ---------- Friends and chat ----------
 
-  /// How often the friends badge is refreshed. Each refresh is two small reads,
-  /// well inside the plugin's 60 requests a minute.
-  static const Duration socialPollInterval = Duration(seconds: 30);
+  /// How often the friends badge and unlock notifications are refreshed. Each
+  /// refresh is up to three small reads, well inside the plugin's 60 requests
+  /// a minute.
+  static const Duration pollInterval = Duration(seconds: 30);
 
-  Timer? _socialTimer;
+  Timer? _pollTimer;
   FriendsList? _friends;
   List<ChatThread> _threads = const [];
 
@@ -625,9 +640,9 @@ class AchievementsService extends ChangeNotifier {
   Map<String, ChatThread>? _seenThreads;
   bool _messageNotifications = true;
 
-  /// The client the badge refreshes with, kept so a return from the
-  /// background can pick the refreshes back up.
-  MediaServerClient? _socialClient;
+  /// The client the refreshes run with, kept so a return from the background
+  /// can pick them back up.
+  MediaServerClient? _pollClient;
   AppLifecycleListener? _lifecycle;
 
   final _incoming = StreamController<ChatThread>.broadcast();
@@ -653,11 +668,11 @@ class AchievementsService extends ChangeNotifier {
   String? openConversationId;
 
   void _clearSocial() {
-    _socialTimer?.cancel();
-    _socialTimer = null;
+    _pollTimer?.cancel();
+    _pollTimer = null;
     _lifecycle?.dispose();
     _lifecycle = null;
-    _socialClient = null;
+    _pollClient = null;
     _friends = null;
     _threads = const [];
     _seenThreads = null;
@@ -665,39 +680,42 @@ class AchievementsService extends ChangeNotifier {
     openConversationId = null;
   }
 
-  /// Keeps the friends badge current until [reset] ends the session.
+  bool get _anythingToPoll => socialAvailable || unlockToastsAvailable;
+
+  /// Keeps the friends badge and unlock notifications current until [reset]
+  /// ends the session.
   ///
   /// The refreshes stop while the app is in the background and pick up again,
   /// with one straight away, when it comes back.
-  void startSocialPolling(MediaServerClient client) {
-    if (!socialAvailable) return;
-    _socialClient = client;
+  void startPolling(MediaServerClient client) {
+    if (!_anythingToPoll) return;
+    _pollClient = client;
     _lifecycle ??= AppLifecycleListener(onStateChange: _onLifecycleChanged);
-    unawaited(_loadNotificationSetting(client));
-    _resumeSocialPolling();
+    if (socialAvailable) unawaited(_loadNotificationSetting(client));
+    _resumePolling();
   }
 
-  void _resumeSocialPolling() {
-    final client = _socialClient;
-    if (client == null || !socialAvailable) return;
-    _socialTimer?.cancel();
-    unawaited(refreshSocial(client));
-    _socialTimer = Timer.periodic(
-      socialPollInterval,
-      (_) => refreshSocial(client),
-    );
+  void _resumePolling() {
+    final client = _pollClient;
+    if (client == null || !_anythingToPoll) return;
+    _pollTimer?.cancel();
+    unawaited(_poll(client));
+    _pollTimer = Timer.periodic(pollInterval, (_) => _poll(client));
   }
+
+  Future<void> _poll(MediaServerClient client) =>
+      Future.wait([refreshSocial(client), refreshUnlocks(client)]);
 
   /// Only a hidden or paused app stops. An inactive one is still on screen,
   /// like a desktop window without focus.
   void _onLifecycleChanged(AppLifecycleState state) {
     switch (state) {
       case AppLifecycleState.resumed:
-        if (_socialTimer == null) _resumeSocialPolling();
+        if (_pollTimer == null) _resumePolling();
       case AppLifecycleState.hidden:
       case AppLifecycleState.paused:
-        _socialTimer?.cancel();
-        _socialTimer = null;
+        _pollTimer?.cancel();
+        _pollTimer = null;
       case AppLifecycleState.inactive:
       case AppLifecycleState.detached:
         break;
@@ -705,7 +723,7 @@ class AchievementsService extends ChangeNotifier {
   }
 
   @visibleForTesting
-  bool get socialPolling => _socialTimer != null;
+  bool get polling => _pollTimer != null;
 
   Future<void> _loadNotificationSetting(MediaServerClient client) async {
     final privacy = await fetchSocialPrivacy(client);
@@ -750,6 +768,138 @@ class AchievementsService extends ChangeNotifier {
     final was = before.lastAt;
     return thread.unreadCount > before.unreadCount ||
         (at != null && was != null && at.isAfter(was));
+  }
+
+  // ---------- Unlock notifications ----------
+
+  /// How long the plugin's notification settings are trusted before being
+  /// read again, the same as jellyfin-web, so a change made there lands here.
+  static const Duration _unlockSettingsMaxAge = Duration(minutes: 5);
+
+  UnlockToastSettings? _unlockSettings;
+  DateTime? _unlockSettingsReadAt;
+
+  /// The server's clock from the last read, handed back as the next cutoff so
+  /// a device clock that is off can't skip or repeat unlocks. Null until the
+  /// first read, which only records it.
+  String? _unlockCursor;
+
+  /// Unlocks already passed on, by badge id and unlock time.
+  final _shownUnlocks = <String>{};
+  final _unlocks = StreamController<AchievementUnlocks>.broadcast();
+
+  /// Badges unlocked since the last read that the user wants to hear about.
+  Stream<AchievementUnlocks> get unlocks => _unlocks.stream;
+
+  /// Whether the user has unlock notifications on, or null before the first
+  /// read of their plugin settings.
+  bool? get unlockToastsEnabled => _unlockSettings?.enabled;
+
+  @visibleForTesting
+  void expireUnlockSettings() => _unlockSettingsReadAt = null;
+
+  void _clearUnlocks() {
+    _unlockSettings = null;
+    _unlockSettingsReadAt = null;
+    _unlockCursor = null;
+    _shownUnlocks.clear();
+  }
+
+  Future<UnlockToastSettings?> fetchUnlockToastSettings(
+    MediaServerClient client,
+  ) async {
+    final userId = client.userId;
+    if (userId == null || userId.isEmpty) return null;
+
+    final json = await _getMap(client, 'users/$userId/preferences');
+    if (json == null) return null;
+    _unlockSettings = UnlockToastSettings.fromJson(json);
+    _unlockSettingsReadAt = DateTime.now();
+    return _unlockSettings;
+  }
+
+  /// Turns the plugin's unlock notifications on or off for this user, which
+  /// jellyfin-web follows too. The plugin replaces its whole preferences
+  /// object on save, so this writes over a fresh copy of it.
+  Future<bool> saveUnlockToasts(MediaServerClient client, bool enabled) async {
+    final userId = client.userId;
+    if (userId == null || userId.isEmpty) return false;
+
+    final current = await _getMap(client, 'users/$userId/preferences');
+    if (current == null) return false;
+    final next = {...current, 'EnableUnlockToasts': enabled};
+    final written = await _post(
+      client,
+      'users/$userId/preferences',
+      refusedWith: 400,
+      body: next,
+    );
+    if (written.body == null) return false;
+    _unlockSettings = UnlockToastSettings.fromJson(next);
+    _unlockSettingsReadAt = DateTime.now();
+    return true;
+  }
+
+  /// Reads the badges unlocked since the last read and passes on the ones the
+  /// user's plugin settings want shown.
+  ///
+  /// The first read only records the server's clock, so badges earned before
+  /// the app started don't all pop up at once.
+  Future<void> refreshUnlocks(MediaServerClient client) async {
+    if (!unlockToastsAvailable) return;
+    final userId = client.userId;
+    if (userId == null || userId.isEmpty) return;
+
+    var settings = _unlockSettings;
+    final readAt = _unlockSettingsReadAt;
+    if (readAt == null ||
+        DateTime.now().difference(readAt) >= _unlockSettingsMaxAge) {
+      // A failed read keeps the last settings rather than dropping the cursor
+      // and every unlock earned before the next good read.
+      settings = await fetchUnlockToastSettings(client) ?? settings;
+    }
+    if (settings == null) return;
+    if (!settings.enabled) {
+      // Turning them back on starts from then, not from before they were off.
+      _unlockCursor = null;
+      return;
+    }
+
+    final cursor = _unlockCursor;
+    final json = await _getMap(
+      client,
+      'users/$userId/unlocks-since',
+      query: {
+        'since': cursor ?? DateTime.now().toUtc().toIso8601String(),
+        // Lets the plugin hold back unlocks earned on another device when the
+        // user only wants them where they happened.
+        'deviceId': client.deviceInfo.id,
+      },
+    );
+    if (json == null) return;
+    final now = json['Now'];
+    if (now is String && now.isNotEmpty) _unlockCursor = now;
+    if (cursor == null) return;
+
+    final badges = <AchievementBadge>[];
+    final rows = json['Badges'];
+    for (final row in rows is List ? rows : const <dynamic>[]) {
+      if (row is! Map<String, dynamic>) continue;
+      if (!_shownUnlocks.add('${row['Id']}|${row['UnlockedAt']}')) continue;
+      final badge = AchievementBadge.fromJson(row);
+      if (settings.allows(badge.rarity)) badges.add(badge);
+    }
+    while (_shownUnlocks.length > 400) {
+      _shownUnlocks.remove(_shownUnlocks.first);
+    }
+    if (badges.isEmpty) return;
+    _unlocks.add(
+      AchievementUnlocks(
+        badges: badges,
+        grouped: settings.grouped,
+        muteDuringPlayback: settings.muteDuringPlayback,
+      ),
+    );
   }
 
   /// A name for [userId] from whatever was read last, for group members the

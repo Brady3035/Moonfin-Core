@@ -289,6 +289,19 @@ class AchievementPluginAdapter implements HttpClientAdapter {
     return null;
   }
 
+  /// The admin switch for the plugin's unlock notifications.
+  bool unlockToastsEnabled = true;
+
+  /// Badges the unlock feed serves, and the server clock it reports with them.
+  final List<Map<String, dynamic>> unlocks = [];
+  String serverNow = '2026-09-30T12:00:00.000+00:00';
+
+  /// The query of every unlock feed read.
+  final List<Map<String, String>> unlockReads = [];
+
+  /// Set to make reading the preferences fail.
+  bool preferencesFailing = false;
+
   /// The plugin's admin switches.
   bool leaderboardEnabled = true;
   bool questsEnabled = true;
@@ -436,6 +449,11 @@ class AchievementPluginAdapter implements HttpClientAdapter {
     if (pluginMissing) {
       return ResponseBody.fromString('', 404);
     }
+    if (preferencesFailing &&
+        options.method == 'GET' &&
+        path.endsWith('/preferences')) {
+      return ResponseBody.fromString('', 500);
+    }
 
     if (path.endsWith('/attachments/att-1')) {
       return ResponseBody.fromBytes(onePixelPng, 200);
@@ -452,6 +470,25 @@ class AchievementPluginAdapter implements HttpClientAdapter {
         'ForcePrivacyMode': forcePrivacyMode,
         'FriendsEnabled': friendsEnabled,
         'FriendsSimpleMode': friendsSimpleMode,
+      };
+    } else if (path.endsWith('/admin/ui-features')) {
+      body = {
+        'EnableUnlockToasts': unlockToastsEnabled,
+        'EnableHomeWidget': true,
+        'EnableItemDetailRibbon': false,
+      };
+    } else if (path.endsWith('/unlocks-since')) {
+      final query = options.uri.queryParameters;
+      unlockReads.add(query);
+      final since = DateTime.tryParse(query['since'] ?? '');
+      body = {
+        'Now': serverNow,
+        'Badges': [
+          for (final badge in unlocks)
+            if (since == null ||
+                DateTime.parse(badge['UnlockedAt'] as String).isAfter(since))
+              badge,
+        ],
       };
     } else if (path.endsWith('/records')) {
       body = {

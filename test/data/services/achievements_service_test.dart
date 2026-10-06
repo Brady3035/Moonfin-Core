@@ -652,6 +652,135 @@ void main() {
     });
   });
 
+  group('unlock notifications', () {
+    Map<String, dynamic> badge(
+      String id,
+      String unlockedAt, {
+      String rarity = 'Common',
+    }) => {
+      'Id': id,
+      'Title': id,
+      'Description': '',
+      'Icon': 'bolt',
+      'Category': 'Watching',
+      'Rarity': rarity,
+      'Unlocked': true,
+      'UnlockedAt': unlockedAt,
+      'CurrentValue': 1,
+      'TargetValue': 1,
+    };
+
+    Future<List<AchievementUnlocks>> read(int times) async {
+      final heard = <AchievementUnlocks>[];
+      final sub = service.unlocks.listen(heard.add);
+      for (var i = 0; i < times; i++) {
+        await service.refreshUnlocks(client);
+      }
+      await pumpEventQueue();
+      await sub.cancel();
+      return heard;
+    }
+
+    test('the admin switch decides whether they are offered', () async {
+      await service.refreshAvailability(client);
+      expect(service.unlockToastsAvailable, isTrue);
+
+      adapter.unlockToastsEnabled = false;
+      await service.refreshAvailability(client);
+      expect(service.unlockToastsAvailable, isFalse);
+    });
+
+    test('the first read only records the server clock', () async {
+      adapter.unlocks.add(badge('old', '2026-09-30T11:00:00.000+00:00'));
+      await service.refreshAvailability(client);
+
+      expect(await read(1), isEmpty);
+      expect(adapter.unlockReads.single['deviceId'], 'dev1');
+
+      adapter.unlocks.insert(
+        0,
+        badge('fresh', '2026-09-30T12:05:00.000+00:00', rarity: 'Epic'),
+      );
+      adapter.serverNow = '2026-09-30T12:06:00.000+00:00';
+      final heard = await read(1);
+
+      expect(heard.single.badges.single.id, 'fresh');
+      expect(
+        adapter.unlockReads.last['since'],
+        '2026-09-30T12:00:00.000+00:00',
+      );
+    });
+
+    test('an unlock is passed on once', () async {
+      await service.refreshAvailability(client);
+      await read(1);
+      adapter.unlocks.add(badge('fresh', '2026-09-30T12:05:00.000+00:00'));
+
+      // The clock hasn't moved, so both reads see the same unlock.
+      final heard = await read(2);
+
+      expect(heard, hasLength(1));
+    });
+
+    test('badges under the minimum rarity are left out', () async {
+      adapter.preferences['MinimumToastRarity'] = 'epic';
+      await service.refreshAvailability(client);
+      await read(1);
+      adapter.unlocks.addAll([
+        badge('rare', '2026-09-30T12:05:00.000+00:00', rarity: 'Rare'),
+        badge('legend', '2026-09-30T12:06:00.000+00:00', rarity: 'Legendary'),
+      ]);
+
+      final heard = await read(1);
+
+      expect(heard.single.badges.map((b) => b.id), ['legend']);
+    });
+
+    test('a failed settings read keeps the unlocks coming', () async {
+      await service.refreshAvailability(client);
+      await read(1);
+      adapter.preferencesFailing = true;
+      service.expireUnlockSettings();
+      adapter.unlocks.add(badge('fresh', '2026-09-30T12:05:00.000+00:00'));
+
+      final heard = await read(1);
+
+      expect(heard.single.badges.single.id, 'fresh');
+    });
+
+    test('turned off, the feed is never asked', () async {
+      adapter.preferences['EnableUnlockToasts'] = false;
+      await service.refreshAvailability(client);
+
+      expect(await read(2), isEmpty);
+      expect(adapter.unlockReads, isEmpty);
+    });
+
+    test('grouping and the playback mute come from the plugin', () async {
+      adapter.preferences['UnlockToastGrouping'] = 'individual';
+      adapter.preferences['MuteToastsDuringPlayback'] = true;
+      await service.refreshAvailability(client);
+      await read(1);
+      adapter.unlocks.add(badge('fresh', '2026-09-30T12:05:00.000+00:00'));
+
+      final unlocks = (await read(1)).single;
+
+      expect(unlocks.grouped, isFalse);
+      expect(unlocks.muteDuringPlayback, isTrue);
+    });
+
+    test('saving keeps the plugin settings it does not own', () async {
+      await service.refreshAvailability(client);
+
+      expect(await service.saveUnlockToasts(client, false), isTrue);
+
+      expect(adapter.preferences['EnableUnlockToasts'], isFalse);
+      expect(adapter.preferences['Language'], 'fr');
+      expect(adapter.preferences['MessageNotifications'], isTrue);
+      expect(service.unlockToastsEnabled, isFalse);
+    });
+  });
+
   group('background', () {
     tearDown(() => service.reset());
 
@@ -659,16 +788,16 @@ void main() {
       final binding = TestWidgetsFlutterBinding.instance;
       binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
       await service.refreshAvailability(client);
-      service.startSocialPolling(client);
-      expect(service.socialPolling, isTrue);
+      service.startPolling(client);
+      expect(service.polling, isTrue);
 
       // A desktop window without focus is still on screen.
       binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
-      expect(service.socialPolling, isTrue);
+      expect(service.polling, isTrue);
 
       binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
       binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
-      expect(service.socialPolling, isFalse);
+      expect(service.polling, isFalse);
 
       adapter.requests.clear();
       binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
@@ -676,7 +805,7 @@ void main() {
       binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
       await pumpEventQueue();
 
-      expect(service.socialPolling, isTrue);
+      expect(service.polling, isTrue);
       expect(
         adapter.requests,
         contains('GET /Plugins/AchievementBadges/users/user1/friends'),

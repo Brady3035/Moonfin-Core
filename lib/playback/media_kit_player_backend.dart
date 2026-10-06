@@ -18,6 +18,8 @@ import 'hdr_output_controller.dart';
 import 'known_defects.dart';
 import 'letterbox_croppers.dart';
 import 'mpv_letterbox_crop.dart';
+import 'mpv_frame_sample.dart';
+import 'mpv_frame_sampler.dart';
 import 'server_transcode_capabilities.dart';
 
 class _ParsedMpvConfCacheEntry {
@@ -194,6 +196,8 @@ class MediaKitPlayerBackend extends PlayerBackend {
   bool _audioPassthroughApplyQueued = false;
   bool _isDisposed = false;
   late final MpvLetterboxCropper _letterboxCropper;
+  late final _MediaKitLetterboxHost _letterboxHost;
+  StreamSubscription<MpvCropGeometry?>? _letterboxGeometrySub;
   String? _appliedCustomMpvConfPath;
   DateTime? _appliedCustomMpvConfMtime;
   static final Map<String, _ParsedMpvConfCacheEntry> _parsedMpvConfCache =
@@ -228,6 +232,26 @@ class MediaKitPlayerBackend extends PlayerBackend {
   // The viewer asked for no subtitles. Held here so the deferred visibility
   // pass can tell a fresh source apart from a choice it must not undo.
   bool _subtitlesDisabled = false;
+
+  // Bumped by every subtitle choice and every new or stopped source, so a
+  // selection or retry still waiting on mpv can tell it was replaced.
+  int _subtitleSelectionGeneration = 0;
+  // Every external subtitle sub-added, with its title and language for a
+  // retry. It's kept after its source ends, so a late failure from a previous
+  // source still reads as a subtitle error rather than a video error.
+  final _externalSubtitles = <String, ({String? title, String? language})>{};
+  final _externalSubtitleLoads = <String, Future<void>>{};
+
+  static const _externalSubtitleRetries = 5;
+  static const _externalSubtitleRetryDelay = Duration(seconds: 10);
+
+  void _resetSubtitleState() {
+    _subtitleSelectionGeneration++;
+    _externalSubtitleLoads.clear();
+  }
+
+  bool _isLatestSubtitleSelection(int generation) =>
+      !_isDisposed && generation == _subtitleSelectionGeneration;
 
   // Captions mpv found inside the video, cached from the async track-list
   // property so the sync getter can serve them. An EmbeddedCaptionTrack id is
@@ -424,10 +448,19 @@ class MediaKitPlayerBackend extends PlayerBackend {
     this._onNativeHandleReady,
     this._hwDecodingEnabled,
   ) {
+    _letterboxHost = _MediaKitLetterboxHost(this);
     _letterboxCropper = MpvLetterboxCropper(
-      _MediaKitLetterboxHost(this),
+      _letterboxHost,
       supported: letterboxCropAvailable(),
     );
+    // The desktop texture keeps the source size under video-crop, so mpv
+    // letterboxes the cropped picture inside it and the bars come back.
+    // Sizing the texture to the crop lets the picture fit any window.
+    if (!PlatformDetection.useNativeVideoSurface) {
+      _letterboxGeometrySub = _letterboxCropper.geometryStream.listen(
+        (geometry) => unawaited(_sizeTextureToCrop(geometry)),
+      );
+    }
     _prefs.addListener(_onPreferencesChanged);
     _ccTracksSub = _player.stream.tracks.listen(
       (_) => unawaited(_refreshEmbeddedCaptionTracks()),
@@ -659,6 +692,7 @@ class MediaKitPlayerBackend extends PlayerBackend {
         : payload['url']?.toString() ?? '';
     if (url.isEmpty) return;
 
+    _resetSubtitleState();
     final media = Media(url);
     _currentUrl = media.uri;
     _isStale = true;
@@ -694,9 +728,7 @@ class MediaKitPlayerBackend extends PlayerBackend {
     }
     await _maybeEngageNativeHdr();
     unawaited(() async {
-      await _letterboxCropper.setEnabled(
-        _prefs.get(UserPreferences.cropBlackBars),
-      );
+      await _configureLetterboxCropper();
       await _letterboxCropper.onSourceOpened(media.uri);
     }());
   }
@@ -1358,14 +1390,33 @@ class MediaKitPlayerBackend extends PlayerBackend {
     } catch (_) {}
   }
 
+  Future<void> _sizeTextureToCrop(MpvCropGeometry? geometry) async {
+    final controller = _videoController;
+    if (controller == null || _isDisposed) return;
+    try {
+      await controller.setSize(
+        width: geometry?.rect.w,
+        height: geometry?.rect.h,
+      );
+    } catch (_) {
+      // The controller can be torn down while a resize is in flight.
+    }
+  }
+
+  Future<void> _configureLetterboxCropper() async {
+    final seconds = _prefs.get(UserPreferences.cropBlackBarsIntervalSeconds);
+    await _letterboxCropper.setRecropInterval(Duration(seconds: seconds));
+    await _letterboxCropper.setEnabled(
+      _prefs.get(UserPreferences.cropBlackBars),
+    );
+  }
+
   void _onPreferencesChanged() {
     if (_isDisposed) {
       return;
     }
 
-    unawaited(
-      _letterboxCropper.setEnabled(_prefs.get(UserPreferences.cropBlackBars)),
-    );
+    unawaited(_configureLetterboxCropper());
 
     if (_audioPassthroughApplyInProgress) {
       _audioPassthroughApplyQueued = true;
@@ -1854,6 +1905,7 @@ class MediaKitPlayerBackend extends PlayerBackend {
 
   @override
   Future<void> stop() async {
+    _resetSubtitleState();
     _isStale = true;
     await _player.stop();
   }
@@ -1958,10 +2010,58 @@ class MediaKitPlayerBackend extends PlayerBackend {
     return false;
   }
 
+  /// mpv 0.41 logs these when the frame sampler's software screenshot meets
+  /// a frame libswscale can't read. Playback is fine, so they're dropped
+  /// while a sample is in flight. At any other time they're real errors.
+  bool _isScreenshotScalerNoise(String message) {
+    if (!_letterboxHost.sampledRecently) return false;
+    final lower = message.toLowerCase();
+    return lower.contains('libswscale initialization failed') ||
+        lower.contains('not supported by libswscale');
+  }
+
+  // A subtitle that fails to load leaves the video playing, so it's reported
+  // apart from video errors and the manager only logs it.
+  Map<String, dynamic> _errorEvent(String message) {
+    final subtitleUrl = externalSubtitleInError(
+      message,
+      _externalSubtitles.keys,
+    );
+    if (subtitleUrl == null) return {'event': 'error', 'message': message};
+    return {
+      'event': 'subtitleError',
+      'message':
+          'Could not load subtitle file: ${subtitleUrl.split('?').first}',
+    };
+  }
+
+  // mpv names the failed file in its error, sometimes decoded, so the match
+  // uses the URL without its query.
+  @visibleForTesting
+  static String? externalSubtitleInError(
+    String message,
+    Iterable<String> subtitleUrls,
+  ) {
+    for (final url in subtitleUrls) {
+      final withoutQuery = url.split('?').first;
+      if (withoutQuery.isEmpty) continue;
+      if (message.contains(withoutQuery)) return url;
+      try {
+        if (message.contains(Uri.decodeFull(withoutQuery))) return url;
+      } catch (_) {
+        // A % that isn't a valid escape, like one in a local filename.
+      }
+    }
+    return null;
+  }
+
   @override
   Stream<Map<String, dynamic>>? get errorStream => _player.stream.error
-      .where((err) => !_isTransientReconnectError(err))
-      .map((err) => <String, dynamic>{'event': 'error', 'message': err});
+      .where(
+        (err) =>
+            !_isTransientReconnectError(err) && !_isScreenshotScalerNoise(err),
+      )
+      .map(_errorEvent);
 
   @override
   Future<void> setPlaybackSpeed(double speed) async {
@@ -2071,103 +2171,146 @@ class MediaKitPlayerBackend extends PlayerBackend {
     String? externalSubtitleUrl,
   }) async {
     if (mpvTrackId < 1) return;
+    final generation = ++_subtitleSelectionGeneration;
+    bool isCurrentSelection() => _isLatestSubtitleSelection(generation);
     _subtitlesDisabled = false;
     try {
       final native = _player.platform as NativePlayer;
       final trackListBefore = await _tryNativeGetProperty(native, 'track-list');
+      if (!isCurrentSelection()) return;
       // The CC track mpv creates from in-video captions has no server stream,
       // so it must not shift the positions this mapping hands out.
       final subEntries = _extractTrackEntries(
         trackListBefore,
         type: 'sub',
       ).where((e) => !_isClosedCaptionCodec(e.codec)).toList();
-      final subtitleIds = subEntries.map((e) => e.id).toList();
 
       // Resolve the 1-based position to a real mpv sid. External tracks are
       // matched by the URL they were sub-added from, so a scrambled add order
       // (external added before a slow embedded demux finished) can't select
       // the wrong track. Embedded positions count only demuxed tracks for the
       // same reason.
-      String? resolvedSid;
-      if (isExternalSubtitle && externalSubtitleUrl != null) {
-        for (final entry in subEntries) {
-          if (entry.external &&
-              _externalFilenameMatches(
-                entry.externalFilename,
-                externalSubtitleUrl,
-              )) {
-            resolvedSid = entry.id.toString();
-            break;
-          }
-        }
-        // If the URL match missed, pick among external tracks only, using the
-        // live demuxed embedded count so a miscounted ordinal can't shift into
-        // or across embedded tracks.
-        if (resolvedSid == null) {
-          final liveEmbedded = subEntries.where((e) => !e.external).length;
-          final externals = subEntries.where((e) => e.external).toList();
-          final externalPos = mpvTrackId - 1 - liveEmbedded;
-          if (externalPos >= 0 && externalPos < externals.length) {
-            resolvedSid = externals[externalPos].id.toString();
-          }
-        }
-      } else if (!isExternalSubtitle) {
+      final String? sidToApply;
+      if (isExternalSubtitle) {
+        sidToApply = externalSubtitleUrl == null
+            ? null
+            : _externalSubtitleSid(trackListBefore, externalSubtitleUrl);
+      } else {
         final embedded = subEntries.where((e) => !e.external).toList();
-        if (mpvTrackId <= embedded.length) {
-          resolvedSid = embedded[mpvTrackId - 1].id.toString();
-        }
+        sidToApply = mpvTrackId <= embedded.length
+            ? embedded[mpvTrackId - 1].id.toString()
+            : null;
       }
-      final sidToApply =
-          resolvedSid ??
-          ((mpvTrackId <= subtitleIds.length)
-              ? subtitleIds[mpvTrackId - 1].toString()
-              : mpvTrackId.toString());
-      final subtitleTracks = _player.state.tracks.subtitle;
-      final playableSubtitleTracks = subtitleTracks
-          .where((t) => t.id != 'auto' && t.id != 'no' && !_isCcSid(t.id))
-          .toList();
+      // A track that isn't there stays off. Falling back to a list position
+      // can land on another language.
+      if (sidToApply == null) {
+        await _player.setSubtitleTrack(SubtitleTrack.no());
+        if (!isCurrentSelection()) return;
+        await _nativeSetProperty(native, 'sid', 'no');
+        if (!isCurrentSelection()) return;
+        await _nativeSetProperty(native, 'secondary-sid', 'no');
+        if (!isCurrentSelection()) return;
+        if (isExternalSubtitle && externalSubtitleUrl != null) {
+          unawaited(
+            _retryExternalSubtitle(
+              externalSubtitleUrl,
+              isCurrentSelection: isCurrentSelection,
+              selectTrack: () => setSubtitleTrack(
+                mpvTrackId,
+                isBitmapSubtitle: isBitmapSubtitle,
+                subtitleCodec: subtitleCodec,
+                isExternalSubtitle: true,
+                externalSubtitleUrl: externalSubtitleUrl,
+              ),
+            ),
+          );
+        }
+        return;
+      }
 
+      // media_kit's own track list can lag behind mpv's, so a track it
+      // doesn't know yet is selected by the sid mpv reported.
+      final target =
+          _player.state.tracks.subtitle
+              .where((t) => t.id == sidToApply)
+              .firstOrNull ??
+          SubtitleTrack(sidToApply, null, null);
+      await _player.setSubtitleTrack(target);
+      if (!isCurrentSelection()) return;
       var sidAfter = await _tryNativeGetProperty(native, 'sid');
-
-      SubtitleTrack? target;
-      for (final t in playableSubtitleTracks) {
-        if (t.id == sidToApply) {
-          target = t;
-          break;
-        }
-      }
-      target ??= (mpvTrackId <= playableSubtitleTracks.length && mpvTrackId > 0)
-          ? playableSubtitleTracks[mpvTrackId - 1]
-          : null;
-      if (target != null) {
-        await _player.setSubtitleTrack(target);
-        sidAfter = await _tryNativeGetProperty(native, 'sid');
-      }
+      if (!isCurrentSelection()) return;
 
       if (sidAfter != sidToApply) {
         await _nativeSetProperty(native, 'sid', sidToApply);
+        if (!isCurrentSelection()) return;
         sidAfter = await _tryNativeGetProperty(native, 'sid');
+        if (!isCurrentSelection()) return;
       }
       if (sidAfter != sidToApply) {
         await _nativeCommand(native, ['set_property', 'sid', sidToApply]);
+        if (!isCurrentSelection()) return;
         sidAfter = await _tryNativeGetProperty(native, 'sid');
+        if (!isCurrentSelection()) return;
       }
 
       await _nativeSetProperty(native, 'secondary-sid', 'no');
+      if (!isCurrentSelection()) return;
 
       // Moonfin never shows a Flutter subtitle overlay (media_kit disables its
       // SubtitleView when libass is on, and it stays hidden otherwise), so mpv
       // has to draw every subtitle including plain text like SRT and VTT.
       await _nativeSetProperty(native, 'sub-visibility', 'yes');
+      if (!isCurrentSelection()) return;
       await _nativeSetProperty(native, 'sub-ass', 'yes');
+      if (!isCurrentSelection()) return;
       await _applyAssOverrideMode();
       _subtitleDebug(
         'set track=$mpvTrackId sid_requested=$sidToApply sid_after=$sidAfter '
         'codec=$subtitleCodec external=$isExternalSubtitle '
-        'bitmap=$isBitmapSubtitle mpv_sub_tracks=${subtitleIds.length}',
+        'bitmap=$isBitmapSubtitle mpv_sub_tracks=${subEntries.length}',
       );
     } catch (e) {
       _subtitleDebug('set track=$mpvTrackId threw: $e');
+    }
+  }
+
+  static String? _externalSubtitleSid(String? trackList, String url) {
+    for (final entry in _extractTrackEntries(trackList, type: 'sub')) {
+      if (entry.external &&
+          _externalFilenameMatches(entry.externalFilename, url)) {
+        return entry.id.toString();
+      }
+    }
+    return null;
+  }
+
+  // Jellyfin can still be extracting a subtitle when mpv gives up on it, so
+  // the selected one is added again a few times while it stays selected.
+  Future<void> _retryExternalSubtitle(
+    String url, {
+    required bool Function() isCurrentSelection,
+    required Future<void> Function() selectTrack,
+  }) async {
+    final scheme = Uri.tryParse(url)?.scheme;
+    if (!_externalSubtitles.containsKey(url) ||
+        (scheme != 'http' && scheme != 'https')) {
+      return;
+    }
+    final native = _player.platform as NativePlayer;
+    var retries = 0;
+    while (true) {
+      await _externalSubtitleLoads[url];
+      if (!isCurrentSelection()) return;
+      final tracks = await _tryNativeGetProperty(native, 'track-list');
+      if (!isCurrentSelection()) return;
+      if (_externalSubtitleSid(tracks, url) != null) {
+        await selectTrack();
+        return;
+      }
+      if (retries++ == _externalSubtitleRetries) return;
+      await Future<void>.delayed(_externalSubtitleRetryDelay);
+      if (!isCurrentSelection()) return;
+      await _addExternalSubtitle(url);
     }
   }
 
@@ -2214,24 +2357,32 @@ class MediaKitPlayerBackend extends PlayerBackend {
   @override
   Future<void> setEmbeddedCaptionTrack(int id) async {
     if (id <= 0 || id > _ccTrackSids.length) return;
+    final generation = ++_subtitleSelectionGeneration;
     _subtitlesDisabled = false;
     final platform = _player.platform;
     if (platform is! NativePlayer) return;
     final sid = _ccTrackSids[id - 1].toString();
     await _nativeSetProperty(platform, 'sid', sid);
+    if (!_isLatestSubtitleSelection(generation)) return;
     await _nativeSetProperty(platform, 'secondary-sid', 'no');
+    if (!_isLatestSubtitleSelection(generation)) return;
     await _nativeSetProperty(platform, 'sub-visibility', 'yes');
+    if (!_isLatestSubtitleSelection(generation)) return;
     await _nativeSetProperty(platform, 'sub-ass', 'yes');
   }
 
   @override
   Future<void> disableSubtitleTrack() async {
+    final generation = ++_subtitleSelectionGeneration;
     _subtitlesDisabled = true;
     await _player.setSubtitleTrack(SubtitleTrack.no());
+    if (!_isLatestSubtitleSelection(generation)) return;
     try {
       final native = _player.platform as NativePlayer;
       await _nativeSetProperty(native, 'sid', 'no');
+      if (!_isLatestSubtitleSelection(generation)) return;
       await _nativeSetProperty(native, 'secondary-sid', 'no');
+      if (!_isLatestSubtitleSelection(generation)) return;
       await _nativeSetProperty(native, 'sub-visibility', 'no');
     } catch (_) {}
   }
@@ -2307,18 +2458,33 @@ class MediaKitPlayerBackend extends PlayerBackend {
     String? language,
     String? codec,
   }) async {
-    final native = _player.platform as NativePlayer;
-    await _nativeCommand(native, [
-      'sub-add',
-      url,
-      'auto',
-      title ?? 'external',
-      language ?? '',
-    ]);
+    _externalSubtitles[url] = (title: title, language: language);
+    await _addExternalSubtitle(url);
     _subtitleDebug(
       'sub-add title=$title lang=$language codec=$codec '
       'mpv_sub_tracks=${_realSubtitleTrackCount(_player.state.tracks.subtitle)}',
     );
+  }
+
+  // The retry and the first add can overlap, so a URL that is still being
+  // added is waited on rather than added again.
+  Future<void> _addExternalSubtitle(String url) {
+    final pending = _externalSubtitleLoads[url];
+    if (pending != null) return pending;
+    final subtitle = _externalSubtitles[url];
+    final load = _nativeCommand(_player.platform as NativePlayer, [
+      'sub-add',
+      url,
+      'auto',
+      subtitle?.title ?? 'external',
+      subtitle?.language ?? '',
+    ]);
+    _externalSubtitleLoads[url] = load;
+    return load.whenComplete(() {
+      if (identical(_externalSubtitleLoads[url], load)) {
+        _externalSubtitleLoads.remove(url);
+      }
+    });
   }
 
   int? _lastTextColor;
@@ -2459,6 +2625,7 @@ class MediaKitPlayerBackend extends PlayerBackend {
   @override
   void dispose() {
     _isDisposed = true;
+    _letterboxGeometrySub?.cancel();
     _letterboxCropper.cancel();
     _prefs.removeListener(_onPreferencesChanged);
     _ccTracksSub?.cancel();
@@ -2468,8 +2635,35 @@ class MediaKitPlayerBackend extends PlayerBackend {
   }
 }
 
-class _MediaKitLetterboxHost implements MpvLetterboxHost {
+class _MediaKitLetterboxHost implements MpvLetterboxHost, MpvFrameSampleHost {
   _MediaKitLetterboxHost(this._backend);
+
+  final _frameSampler = MpvFrameSampler();
+  bool _sampling = false;
+  DateTime? _sampleEnded;
+
+  /// A capture is running or just finished. mpv reports a scaler failure a
+  /// moment after the shot, so the window runs past the capture.
+  bool get sampledRecently {
+    if (_sampling) return true;
+    final ended = _sampleEnded;
+    return ended != null &&
+        DateTime.now().difference(ended) < const Duration(seconds: 2);
+  }
+
+  @override
+  Future<MpvFrameSample?> sampleFrame(int width, int height) async {
+    if (_backend._isDisposed) return null;
+    final handle = await _backend._player.handle;
+    if (_backend._isDisposed) return null;
+    _sampling = true;
+    try {
+      return await _frameSampler.capture(handle, width, height);
+    } finally {
+      _sampling = false;
+      _sampleEnded = DateTime.now();
+    }
+  }
 
   final MediaKitPlayerBackend _backend;
 

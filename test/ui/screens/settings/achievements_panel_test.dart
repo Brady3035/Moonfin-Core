@@ -23,11 +23,13 @@ void main() {
     bool leaderboardEnabled = true,
     bool forcePrivacyMode = false,
     int equippedCount = 1,
+    bool unlockToastsEnabled = true,
   }) async {
     adapter = AchievementPluginAdapter()
       ..leaderboardEnabled = leaderboardEnabled
       ..forcePrivacyMode = forcePrivacyMode
-      ..equippedCount = equippedCount;
+      ..equippedCount = equippedCount
+      ..unlockToastsEnabled = unlockToastsEnabled;
     final dio = Dio()..httpClientAdapter = adapter;
     final service = AchievementsService(dio: dio);
     final client = buildAchievementClient();
@@ -83,6 +85,24 @@ void main() {
       expect(find.text('Leaderboard'), findsOneWidget);
       expect(find.text('Recap'), findsOneWidget);
       expect(find.text('2 libraries'), findsOneWidget);
+    });
+
+    testWidgets('the unlock notifications switch sits above the badges', (
+      tester,
+    ) async {
+      await pumpPanel(tester);
+      final toggle = find.text('Unlock notifications');
+
+      expect(
+        tester.getTopLeft(toggle).dy,
+        lessThan(tester.getTopLeft(find.text('Badges')).dy),
+      );
+
+      await tester.tap(toggle);
+      await tester.pumpAndSettle();
+
+      expect(adapter.preferences['EnableUnlockToasts'], isFalse);
+      expect(adapter.preferences['Language'], 'fr');
     });
 
     testWidgets('a masked secret badge isn\'t spoiled in the list', (
@@ -281,6 +301,8 @@ void main() {
       tester,
     ) async {
       await pumpPanel(tester);
+      await tester.ensureVisible(find.text('Activity'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Activity'));
       await tester.pumpAndSettle();
 
@@ -452,6 +474,17 @@ void main() {
 
       expect(find.text('Could not load your achievements.'), findsOneWidget);
       expect(find.text('Retry'), findsOneWidget);
+    });
+  });
+
+  group('with unlock notifications off for the server', () {
+    setUp(() => arrange(unlockToastsEnabled: false));
+
+    testWidgets('the switch isn\'t offered', (tester) async {
+      await pumpPanel(tester);
+
+      expect(find.text('Unlock notifications'), findsNothing);
+      expect(find.text('Badges'), findsOneWidget);
     });
   });
 

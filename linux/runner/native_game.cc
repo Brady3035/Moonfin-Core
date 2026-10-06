@@ -141,7 +141,14 @@ static gboolean moonfin_game_texture_copy_pixels(
   return TRUE;
 }
 
+// This only chains up, but it's what reads the parent_class G_DEFINE_TYPE
+// declares. Newer clang fails the -Werror build when nothing does.
+static void moonfin_game_texture_dispose(GObject* object) {
+  G_OBJECT_CLASS(moonfin_game_texture_parent_class)->dispose(object);
+}
+
 static void moonfin_game_texture_class_init(MoonfinGameTextureClass* klass) {
+  G_OBJECT_CLASS(klass)->dispose = moonfin_game_texture_dispose;
   FL_PIXEL_BUFFER_TEXTURE_CLASS(klass)->copy_pixels =
       moonfin_game_texture_copy_pixels;
 }

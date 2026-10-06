@@ -1155,6 +1155,64 @@ class SocialPrivacy {
   }
 }
 
+/// The plugin's own unlock notification settings for the user, the ones
+/// jellyfin-web follows too.
+class UnlockToastSettings {
+  const UnlockToastSettings({
+    required this.enabled,
+    required this.minimumRarity,
+    required this.grouped,
+    required this.muteDuringPlayback,
+  });
+
+  final bool enabled;
+
+  /// all, rare, epic or legendary.
+  final String minimumRarity;
+
+  /// One notification for everything a read turned up, rather than one each.
+  final bool grouped;
+  final bool muteDuringPlayback;
+
+  factory UnlockToastSettings.fromJson(Map<String, dynamic> json) {
+    final minimum = _asString(json['MinimumToastRarity']).trim().toLowerCase();
+    return UnlockToastSettings(
+      enabled: json['EnableUnlockToasts'] != false,
+      minimumRarity: minimum.isEmpty ? 'all' : minimum,
+      grouped: json['UnlockToastGrouping'] != 'individual',
+      muteDuringPlayback: _asBool(json['MuteToastsDuringPlayback']),
+    );
+  }
+
+  /// Whether a badge of [rarity] clears the minimum, ranked the way the
+  /// plugin ranks them.
+  bool allows(String rarity) =>
+      minimumRarity == 'all' ||
+      _rarityRank(rarity) >= _rarityRank(minimumRarity);
+}
+
+int _rarityRank(String rarity) => switch (rarity.trim().toLowerCase()) {
+  'uncommon' => 1,
+  'rare' => 2,
+  'epic' => 3,
+  'legendary' => 4,
+  'mythic' => 5,
+  _ => 0,
+};
+
+/// Badges one read turned up, and how the user wants to hear about them.
+class AchievementUnlocks {
+  const AchievementUnlocks({
+    required this.badges,
+    required this.grouped,
+    required this.muteDuringPlayback,
+  });
+
+  final List<AchievementBadge> badges;
+  final bool grouped;
+  final bool muteDuringPlayback;
+}
+
 /// One entry of the messages list. Unlike the rest of the plugin, the chat
 /// payloads use camelCase names.
 class ChatThread {

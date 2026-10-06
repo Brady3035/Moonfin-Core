@@ -9,6 +9,7 @@ import 'package:server_core/server_core.dart' hide ImageType;
 import '../../../data/models/aggregated_item.dart';
 import '../../../auth/repositories/user_repository.dart';
 import '../../../data/services/background_service.dart';
+import '../../../data/services/log_service.dart';
 import '../../../data/utils/genre_browse_utils.dart';
 import '../../../preference/preference_constants.dart';
 import '../../../preference/user_preferences.dart';
@@ -133,46 +134,16 @@ class _LibraryGenresScreenState extends State<LibraryGenresScreen> {
         );
       }).where((genre) {
         if (_collectionType == 'music') return true;
-        return genre.itemCount > 0;
+        return genre.itemCount > 0 || !genreReportsCounts(genre.data);
       }).toList();
 
       _genres = temp.map((x) {
         final data = x.data;
-        final primaryTag = data['PrimaryImageTag'] as String?;
-        final imageTags = data['ImageTags'] as Map?;
-        final primaryAr = data['PrimaryImageAspectRatio'] as num?;
-        final backdropTags = data['BackdropImageTags'] as List?;
-
-        final customThumb = imageTags?['Thumb'] as String?;
-        final hasCustomArtwork = (primaryTag != null && primaryAr != null && primaryAr < 1.0) ||
-            (customThumb != null && customThumb.isNotEmpty);
-
-        String? imageUrl;
-        String? backdropUrl;
-
-        if (hasCustomArtwork) {
-          if (customThumb != null && customThumb.isNotEmpty) {
-            imageUrl = _client.imageApi.getThumbImageUrl(
-              data['Id']?.toString() ?? '',
-              tag: customThumb,
-              maxWidth: _genreCardRequestMaxWidth(),
-            );
-          } else if (primaryTag != null) {
-            imageUrl = _client.imageApi.getPrimaryImageUrl(
-              data['Id']?.toString() ?? '',
-              tag: primaryTag,
-              maxWidth: _genreCardRequestMaxWidth(),
-            );
-          }
-
-          if (backdropTags != null && backdropTags.isNotEmpty) {
-            backdropUrl = _client.imageApi.getBackdropImageUrl(
-              data['Id']?.toString() ?? '',
-              tag: backdropTags.first.toString(),
-              maxWidth: 960,
-            );
-          }
-        }
+        final (imageUrl, backdropUrl, hasOwnArtwork) = resolveGenreOwnArtwork(
+          genreData: data,
+          imageApi: _client.imageApi,
+          maxWidth: _genreCardRequestMaxWidth(),
+        );
 
         return GenreCardData(
           id: data['Id']?.toString() ?? '',
@@ -180,10 +151,21 @@ class _LibraryGenresScreenState extends State<LibraryGenresScreen> {
           itemCount: x.itemCount,
           imageUrl: imageUrl,
           backdropUrl: backdropUrl,
-          isGenreFallback: !hasCustomArtwork,
+          isGenreFallback: !hasOwnArtwork,
         );
       }).toList();
-    } catch (_) {}
+    } catch (e) {
+      // The empty state looks the same as a library with no genres, so a
+      // refused request is logged.
+      if (GetIt.instance.isRegistered<LogService>()) {
+        GetIt.instance<LogService>().log(
+          LogCategory.network,
+          'Loading genres failed',
+          level: LogLevel.warning,
+          error: e,
+        );
+      }
+    }
 
     if (token != _loadToken) return;
     _isLoading = false;
@@ -197,15 +179,17 @@ class _LibraryGenresScreenState extends State<LibraryGenresScreen> {
     final groupCollections = _lastGroupCollections;
     final isVideo = includeType == 'Movie' || includeType == 'Series';
 
-    // A genre with its own artwork already has an exact count, so it only needs
-    // a query when grouping changes what that count means. Music tiles always
-    // need one, since they take their picture from the first album.
+    // A genre with its own artwork only needs a query when grouping changes
+    // what its count means, or when the server sent no count at all. Music
+    // tiles always need one, since they take their picture from the first
+    // album.
     final needsWork = _genres
         .where(
           (genre) =>
               _collectionType == 'music' ||
               genre.isGenreFallback ||
-              (groupCollections && isVideo),
+              (groupCollections && isVideo) ||
+              genre.itemCount == 0,
         )
         .toList();
 

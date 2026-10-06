@@ -102,6 +102,14 @@ enum NavbarPosition {
   bottom,
 }
 
+/// How the mobile bottom navbar is drawn. Only read while [NavbarPosition.bottom]
+/// is in effect, which is phones and tablets only.
+enum BottomNavbarStyle {
+  dock,
+  split,
+  strip,
+}
+
 enum NextUpBehavior {
   extended,
   minimal,
@@ -135,7 +143,9 @@ enum DesktopUiScale {
   small(0.9),
   medium(1.0),
   large(1.15),
-  extraLarge(1.3);
+  extraLarge(1.3),
+  grandparents(1.45),
+  greatGrandparents(1.6);
 
   const DesktopUiScale(this.scaleFactor);
   final double scaleFactor;
@@ -153,6 +163,16 @@ enum SiriRemoteSwipeSensitivity {
 
   final double firstStepTravel;
   final double stepTravel;
+}
+
+/// What the Apple TV home screen shows above the Moonfin icon.
+enum TopShelfContent {
+  /// A carousel of the newest items from the home's Latest rows.
+  latestMedia,
+
+  /// The static Moonfin banner from the brand assets, with nothing from the
+  /// library on it.
+  appBanner,
 }
 
 enum RefreshRateSwitchingBehavior {
@@ -456,6 +476,7 @@ enum HomeSectionType {
   sinceYouWatched4('sinceyouwatched4'),
   sinceYouWatched5('sinceyouwatched5'),
   rewatch('rewatch'),
+  seasonal('seasonal'),
   none('none');
 
   const HomeSectionType(this.serializedName);
@@ -545,8 +566,12 @@ enum LibrarySortBy {
       return const [
         name,
         dateAdded,
+        premiereDate,
+        rating,
         datePlayed,
         playCount,
+        criticRating,
+        communityRating,
         runtime,
         random,
         foldersFirst,

@@ -74,12 +74,13 @@ abstract class PlayerBackend {
   Stream<bool> get completedStream;
   Stream<Map<String, dynamic>>? get errorStream => null;
 
-  /// A correction the backend applies to sideloaded subtitles on its own,
-  /// in seconds, positive meaning later. It sits on top of the delay the
-  /// user set and is shown next to it, never added into it. Only a backend
-  /// that measures one provides it.
-  double get subtitleAutoOffsetSeconds => 0.0;
-  Stream<double>? get subtitleAutoOffsetStream => null;
+  /// Whether the player has been told to play. Null on engines that don't
+  /// expose their own intent, and callers then fall back to "not playing".
+  ///
+  /// This exists because `isPlaying` is derived: a viewer pause, a starved
+  /// stream and a transient audio focus loss all read as not playing. Only a
+  /// starved stream leaves this true.
+  bool? get playWhenReady => null;
 
   Map<String, dynamic> getDeviceProfile({bool useProgressiveTranscode = false});
 
@@ -153,6 +154,14 @@ abstract class PlayerBackend {
   /// through [disableSubtitleTrack], the same as any other subtitle.
   Future<void> setEmbeddedCaptionTrack(int id) async {}
 
+  /// Picks a live stream back up after the player ran out of media, returning
+  /// whether it could. A live source has no end, so reaching one means the
+  /// source starved, and the cheapest answer is to re-open it where the stream
+  /// is now rather than tear the server session down. False means the engine
+  /// did nothing, and the caller must escalate rather than wait for a recovery
+  /// that is never coming.
+  Future<bool> resumeLiveEdge() async => false;
+
   /// Fires when the player's own track list changes. Captions carried inside
   /// the video turn up part way through playback, so a menu built when the
   /// stream started has to be rebuilt when this fires.
@@ -180,8 +189,8 @@ abstract class PlayerBackend {
 
   /// Detect encoded letterbox and crop it. Cover-zoom is not this.
   ///
-  /// Desktop libmpv ships a cropper. Media3 / Aether / Tizen / HTML return
-  /// [UnsupportedLetterboxCropper] until they implement [LetterboxCropper].
+  /// Desktop libmpv and Android Media3 ship a cropper. Aether / Tizen / HTML
+  /// return [UnsupportedLetterboxCropper] until they implement [LetterboxCropper].
   LetterboxCropper get letterboxCropper => const UnsupportedLetterboxCropper();
 
   bool get supportsLetterboxCrop => letterboxCropper.isSupported;

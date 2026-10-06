@@ -224,11 +224,13 @@ class RowDataSource {
   }
 
   Future<HomeRow> loadNextUp(String serverId, {int? startIndex}) async {
-    final response = await _getNextUpWithFallback(
+    final request = _getNextUpWithFallback(
       startIndex: startIndex,
       limit: _defaultLimit,
       enableResumable: false,
     );
+    final recentlyPlayed = fetchSeriesLastPlayed(_client);
+    final response = await request;
     final row = _buildRow(
       id: 'nextUp',
       title: _l10n.nextUp,
@@ -238,6 +240,7 @@ class RowDataSource {
     );
     final enrichedItems = await _enrichNextUpItemsWithSeriesLastPlayed(
       row.items,
+      recentlyPlayed,
     );
     return row.copyWith(items: enrichedItems);
   }
@@ -257,7 +260,9 @@ class RowDataSource {
   }
 
   Future<HomeRow> loadNextUpRelaxed(String serverId) async {
-    final response = await getNextUpRelaxed(limit: _defaultLimit);
+    final request = getNextUpRelaxed(limit: _defaultLimit);
+    final recentlyPlayed = fetchSeriesLastPlayed(_client);
+    final response = await request;
     final row = _buildRow(
       id: 'nextUp',
       title: _l10n.nextUp,
@@ -267,6 +272,7 @@ class RowDataSource {
     );
     final enrichedItems = await _enrichNextUpItemsWithSeriesLastPlayed(
       row.items,
+      recentlyPlayed,
     );
     return row.copyWith(items: enrichedItems);
   }
@@ -309,14 +315,32 @@ class RowDataSource {
     List<String> includeItemTypes, {
     int limit = _defaultLimit,
   }) async {
+    final isTv =
+        includeItemTypes.contains('Series') ||
+        includeItemTypes.contains('Episode');
+    final fetchLimit = isTv
+        ? latestMediaFetchLimitForCollection(
+            'tvshows',
+            defaultLimit: limit,
+            maxLimit: _maxItems,
+          )
+        : limit;
     final response = await _client.itemsApi.getLatestItems(
       includeItemTypes: includeItemTypes,
-      limit: limit,
+      limit: fetchLimit,
       fields: _fields,
       enableImageTypes: _imageTypes,
       imageTypeLimit: _imageTypeLimit,
     );
-    return _parseItems(response, serverId);
+    final items = _parseItems(response, serverId);
+    if (isTv) {
+      return normalizeLatestMediaItems(
+        items,
+        collectionType: 'tvshows',
+        limit: limit,
+      );
+    }
+    return items;
   }
 
   /// Recently released items of [includeItemTypes] across every library, the
@@ -671,12 +695,10 @@ class RowDataSource {
         .whereType<Map>()
         .map((item) => item.cast<String, dynamic>())
         .where(
-          (genre) =>
-              browsableGenreCount(
-                genre,
-                normalizedItemTypes: includeItemTypes,
-              ) >
-              0,
+          (genre) => mayHaveBrowsableItems(
+            genre,
+            normalizedItemTypes: includeItemTypes,
+          ),
         )
         .toList(growable: false);
 
@@ -1026,10 +1048,12 @@ class RowDataSource {
   }
 
   Future<HomeRow> loadLibraryNextUp(String parentId, String serverId) async {
-    final response = await _getNextUpWithFallback(
+    final request = _getNextUpWithFallback(
       parentId: parentId,
       limit: _defaultLimit,
     );
+    final recentlyPlayed = fetchSeriesLastPlayed(_client);
+    final response = await request;
     final row = _buildRow(
       id: 'nextUp_$parentId',
       title: _l10n.nextUp,
@@ -1039,6 +1063,7 @@ class RowDataSource {
     );
     final enrichedItems = await _enrichNextUpItemsWithSeriesLastPlayed(
       row.items,
+      recentlyPlayed,
     );
     return row.copyWith(items: enrichedItems);
   }
@@ -2263,6 +2288,7 @@ class RowDataSource {
                 'SeerrMediaType': item.type == 'Series' ? 'tv' : 'movie',
                 'UserRating': item.userRating ?? '',
                 'ShowUserRatings': showUserRatings,
+                'OfficialRating': item.officialRating,
                 'ProviderIds': {
                   if (item.imdbId.isNotEmpty) 'Imdb': item.imdbId,
                   if (item.tmdbId.isNotEmpty) 'Tmdb': item.tmdbId,
@@ -2274,7 +2300,7 @@ class RowDataSource {
             id: rowId,
             title: title,
             rowType: HomeRowType.pluginDynamic,
-            items: aggregatedItems,
+            items: withoutUnratedOrBlockedItems(aggregatedItems),
           );
         } catch (e) {
           debugPrint('[RowDataSource] Failed to load custom dynamic section: $e');
@@ -2438,7 +2464,8 @@ class RowDataSource {
 
   Future<List<AggregatedItem>> _enrichNextUpItemsWithSeriesLastPlayed(
     List<AggregatedItem> items,
-  ) => enrichNextUpItemsWithSeriesLastPlayed(items, _client);
+    Future<Map<String, String>?> recentlyPlayed,
+  ) => enrichNextUpItemsWithSeriesLastPlayed(items, _client, recentlyPlayed);
 
   (String, String) _resolveAudioSort(String? sortOpt, String itemType) {
     if (sortOpt == 'release_year' &&

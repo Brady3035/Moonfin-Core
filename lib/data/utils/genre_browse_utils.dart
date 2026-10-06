@@ -45,6 +45,28 @@ List<String> normalizeBrowsableGenreItemTypes(List<String>? includeItemTypes) {
   return normalized;
 }
 
+/// Whether the genres endpoint said how many items a genre holds. Emby never
+/// does, so a genre from it has to be counted with its own item query.
+bool genreReportsCounts(Map<String, dynamic> genreData) => const [
+  'ChildCount',
+  'MovieCount',
+  'SeriesCount',
+  'SongCount',
+  'AlbumCount',
+  'ArtistCount',
+  'MusicVideoCount',
+].any((field) => genreData[field] != null);
+
+/// Whether a genre can still be listed. A count of zero rules it out, and a
+/// genre with no counts at all stays until its own item query answers.
+bool mayHaveBrowsableItems(
+  Map<String, dynamic> genreData, {
+  required List<String> normalizedItemTypes,
+}) =>
+    !genreReportsCounts(genreData) ||
+    browsableGenreCount(genreData, normalizedItemTypes: normalizedItemTypes) >
+        0;
+
 int browsableGenreCount(
   Map<String, dynamic> genreData, {
   List<String>? includeItemTypes,
@@ -244,4 +266,56 @@ resolveGenreFallbackArtwork({
   }
 
   return (tileUrl, backdropUrl ?? tileUrl, selectedItem?['Id']?.toString());
+}
+
+/// The tile and backdrop art a genre carries itself. A Thumb or a portrait
+/// Primary counts, and callers fall back to [resolveGenreFallbackArtwork]
+/// when [hasOwnArtwork] is false.
+(String? imageUrl, String? backdropUrl, bool hasOwnArtwork)
+resolveGenreOwnArtwork({
+  required Map<String, dynamic> genreData,
+  required ImageApi imageApi,
+  required int maxWidth,
+}) {
+  final primaryTag = genreData['PrimaryImageTag'] as String?;
+  final imageTags = genreData['ImageTags'] as Map?;
+  final primaryAr = genreData['PrimaryImageAspectRatio'] as num?;
+  final backdropTags = genreData['BackdropImageTags'] as List?;
+
+  final customThumb = imageTags?['Thumb'] as String?;
+  final hasOwnArtwork =
+      (primaryTag != null && primaryAr != null && primaryAr < 1.0) ||
+      (customThumb != null && customThumb.isNotEmpty);
+
+  if (!hasOwnArtwork) {
+    return (null, null, false);
+  }
+
+  final genreId = genreData['Id']?.toString() ?? '';
+
+  String? imageUrl;
+  if (customThumb != null && customThumb.isNotEmpty) {
+    imageUrl = imageApi.getThumbImageUrl(
+      genreId,
+      tag: customThumb,
+      maxWidth: maxWidth,
+    );
+  } else if (primaryTag != null) {
+    imageUrl = imageApi.getPrimaryImageUrl(
+      genreId,
+      tag: primaryTag,
+      maxWidth: maxWidth,
+    );
+  }
+
+  String? backdropUrl;
+  if (backdropTags != null && backdropTags.isNotEmpty) {
+    backdropUrl = imageApi.getBackdropImageUrl(
+      genreId,
+      tag: backdropTags.first.toString(),
+      maxWidth: 960,
+    );
+  }
+
+  return (imageUrl, backdropUrl, true);
 }

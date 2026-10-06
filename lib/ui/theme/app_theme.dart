@@ -83,9 +83,16 @@ class AppTheme {
       },
       brightness: Brightness.dark,
       fontFamily: spec.fontFamily,
-      // The pixel font (Press Start 2P) is Latin-only; fall back to NotoSans so
-      // CJK/Arabic/etc. glyphs still render.
-      fontFamilyFallback: pixel ? const ['NotoSans'] : null,
+      // Roboto stops at about 900 codepoints and the pixel font at fewer, so
+      // NotoSans stands behind every theme for the wider Latin, Greek and
+      // Cyrillic a title can carry. The emoji fonts come after it, one per
+      // platform, since an emoji typed next to text otherwise shows as a box.
+      fontFamilyFallback: const [
+        'NotoSans',
+        'Apple Color Emoji',
+        'Segoe UI Emoji',
+        'Noto Color Emoji',
+      ],
       colorScheme: ColorScheme.dark(
         primary: c.accent,
         secondary: JellyfinTokens.colors.secondary,

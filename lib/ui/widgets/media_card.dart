@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_tvos/flutter_tvos.dart'
@@ -22,11 +20,16 @@ import 'seerr/seerr_status_dot.dart';
 import '../mixins/focus_state_mixin.dart';
 
 class MediaCard extends StatefulWidget {
-  /// How much a focused card grows. The scale is centered, so a card paints
-  /// half the extra size past each edge of its cell, and a layout that packs
-  /// cards against a clip boundary or each other has to leave that much room
-  /// or the focused card loses its edges.
-  static double get focusScale => PlatformDetection.isAppleTV ? 1.12 : 1.05;
+  /// How much a focused card grows. A card with a title grows from the bottom
+  /// of its artwork, so all of the extra height lands above it and half the
+  /// extra width past each side. One without a title grows about its center.
+  /// A layout that packs cards against a clip boundary or each other has to
+  /// leave that much room or the focused card loses its edges.
+  ///
+  /// A television gets the larger pop because it's read from across a room.
+  /// Every television lays out on the same canvas, so which television it is
+  /// doesn't come into it.
+  static double get focusScale => PlatformDetection.isTV ? 1.12 : 1.05;
 
   /// How much room to leave beside a card of [extent] so a focused one keeps
   /// its edges.
@@ -36,7 +39,7 @@ class MediaCard extends StatefulWidget {
   /// by the same fraction of a much larger number, so a gap that suits a
   /// poster does not suit a banner.
   static double focusGap(double extent, {double minimum = 12.0}) =>
-      math.max(minimum, extent * (focusScale - 1) / 2);
+      minimum + (extent * (focusScale - 1) / 2);
 
   /// The widest decode a card of this shape ever holds, in physical pixels.
   ///
@@ -45,6 +48,39 @@ class MediaCard extends StatefulWidget {
   /// card decodes the image a second time.
   static int decodeMaxWidthFor(double aspectRatio) =>
       aspectRatio > 1.2 ? 960 : 640;
+
+  static const double _labelGap = 6;
+
+  static TextStyle _labelBaseStyle(BuildContext context) =>
+      Theme.of(context).textTheme.bodySmall ?? const TextStyle(fontSize: 12);
+
+  static double _titleFontSize(TextStyle base) => (base.fontSize ?? 12) + 1.0;
+
+  static double _lineHeight(TextScaler scaler, TextStyle style) =>
+      (scaler.scale(style.fontSize ?? 12) * (style.height ?? 1.2)) + 2;
+
+  /// How tall a titled card of [width] lays out, so a row can fit the cards it
+  /// holds. Assumes a card that isn't a banner and takes its subtitle as a
+  /// plain string.
+  ///
+  /// Focus growth isn't counted, since a titled card grows upward from the
+  /// bottom of its artwork and its bottom edge stays put.
+  static double layoutHeight(
+    BuildContext context, {
+    required double width,
+    required double aspectRatio,
+    bool hasSubtitle = false,
+  }) {
+    final scaler = MediaQuery.textScalerOf(context);
+    final base = _labelBaseStyle(context);
+    var height = width / aspectRatio + _labelGap;
+    height += _lineHeight(
+      scaler,
+      base.copyWith(fontSize: _titleFontSize(base)),
+    );
+    if (hasSubtitle) height += _lineHeight(scaler, base);
+    return height;
+  }
 
   final String? title;
   final String? subtitle;
@@ -301,8 +337,7 @@ class _MediaCardState extends State<MediaCard> with FocusStateMixin {
   @override
   Widget build(BuildContext context) {
     final isNeon = ThemeRegistry.active.id == ThemeRegistry.neonPulseId;
-    final baseTextStyle =
-        Theme.of(context).textTheme.bodySmall ?? const TextStyle(fontSize: 12);
+    final baseTextStyle = MediaCard._labelBaseStyle(context);
     final subtitleColor =
         widget.subtitleColor ??
         (isNeon
@@ -313,7 +348,7 @@ class _MediaCardState extends State<MediaCard> with FocusStateMixin {
           widget.titleColor ??
           (isNeon ? AppColorScheme.accent : AppColorScheme.onSurface),
       fontWeight: FontWeight.bold,
-      fontSize: (baseTextStyle.fontSize ?? 12) + 1.0,
+      fontSize: MediaCard._titleFontSize(baseTextStyle),
       shadows: const [Shadow(blurRadius: 4, color: Colors.black54)],
     );
     final subtitleStyle = baseTextStyle.copyWith(
@@ -321,15 +356,8 @@ class _MediaCardState extends State<MediaCard> with FocusStateMixin {
       shadows: const [Shadow(blurRadius: 4, color: Colors.black54)],
     );
     final textScaler = MediaQuery.textScalerOf(context);
-
-    double lineHeightFor(TextStyle style) {
-      final fontSize = style.fontSize ?? 12;
-      final height = style.height ?? 1.2;
-      return (textScaler.scale(fontSize) * height) + 2;
-    }
-
-    final titleLineHeight = lineHeightFor(titleStyle);
-    final subtitleLineHeight = lineHeightFor(subtitleStyle);
+    final titleLineHeight = MediaCard._lineHeight(textScaler, titleStyle);
+    final subtitleLineHeight = MediaCard._lineHeight(textScaler, subtitleStyle);
     final externallyDriven = widget.externalIsFocused != null;
     final hasNodeFocus = widget.focusNode?.hasFocus ?? false;
     final effectiveFocused = externallyDriven
@@ -353,24 +381,27 @@ class _MediaCardState extends State<MediaCard> with FocusStateMixin {
           ? null
           : () => widget.onLongPress!(),
       child: RepaintBoundary(
-        child: _withTvParallax(
-          active: cardActive,
-          child: AnimatedScale(
-            scale: cardActive ? MediaCard.focusScale : 1.0,
-            duration: navigationAnimationDuration,
-            curve: PlatformDetection.isAppleTV
-                ? Curves.easeOutCubic
-                : Curves.linear,
-            child: LayoutBuilder(
-              builder: (context, cardConstraints) {
-                final cardWidth = cardConstraints.maxWidth.isFinite
-                    ? cardConstraints.maxWidth
-                    : (widget.width.isFinite ? widget.width : 150.0);
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _CardImage(
+        child: LayoutBuilder(
+          builder: (context, cardConstraints) {
+            final cardWidth = cardConstraints.maxWidth.isFinite
+                ? cardConstraints.maxWidth
+                : (widget.width.isFinite ? widget.width : 150.0);
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _withTvParallax(
+                  active: cardActive,
+                  child: AnimatedScale(
+                    scale: cardActive ? MediaCard.focusScale : 1.0,
+                    duration: navigationAnimationDuration,
+                    curve: PlatformDetection.isAppleTV
+                        ? Curves.easeOutCubic
+                        : Curves.linear,
+                    alignment: widget.title != null
+                        ? Alignment.bottomCenter
+                        : Alignment.center,
+                    child: _CardImage(
                       imageUrl: widget.imageUrl,
                       title: widget.title,
                       aspectRatio: widget.aspectRatio,
@@ -393,68 +424,68 @@ class _MediaCardState extends State<MediaCard> with FocusStateMixin {
                       animeMarkerItemId: widget.animeMarkerItemId,
                       isGenreFallback: widget.isGenreFallback,
                     ),
-                    if (widget.isBanner) ...[
-                      if (widget.title != null) ...[
-                        const SizedBox(height: 6),
-                        SizedBox(
-                          height: titleLineHeight,
-                          width: cardWidth,
-                          child: _bannerLabel(
-                            titleStyle: titleStyle,
-                            subtitleStyle: subtitleStyle,
-                            showMarquee: showMarquee,
-                          ),
-                        ),
-                      ],
-                      if (widget.subtitleWidget != null) ...[
-                        SizedBox(height: widget.title != null ? 2 : 6),
-                        widget.subtitleWidget!,
-                      ],
-                    ] else ...[
-                      if (widget.title != null) ...[
-                        const SizedBox(height: 6),
-                        SizedBox(
-                          height: titleLineHeight,
-                          width: cardWidth,
-                          child: showMarquee
-                              ? MarqueeText(
-                                  text: widget.title!,
-                                  style: titleStyle,
-                                )
-                              : Text(
-                                  widget.title!,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: titleStyle,
-                                ),
-                        ),
-                      ],
-                      if (widget.subtitleWidget != null) ...[
-                        SizedBox(height: widget.title != null ? 2 : 6),
-                        widget.subtitleWidget!,
-                      ] else if (widget.subtitle != null &&
-                          widget.subtitle!.isNotEmpty)
-                        SizedBox(
-                          height: subtitleLineHeight,
-                          width: cardWidth,
-                          child: showMarquee
-                              ? MarqueeText(
-                                  text: widget.subtitle!,
-                                  style: subtitleStyle,
-                                )
-                              : Text(
-                                  widget.subtitle!,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: subtitleStyle,
-                                ),
-                        ),
-                    ],
+                  ),
+                ),
+                if (widget.isBanner) ...[
+                  if (widget.title != null) ...[
+                    const SizedBox(height: MediaCard._labelGap),
+                    SizedBox(
+                      height: titleLineHeight,
+                      width: cardWidth,
+                      child: _bannerLabel(
+                        titleStyle: titleStyle,
+                        subtitleStyle: subtitleStyle,
+                        showMarquee: showMarquee,
+                      ),
+                    ),
                   ],
-                );
-              },
-            ),
-          ),
+                  if (widget.subtitleWidget != null) ...[
+                    SizedBox(height: widget.title != null ? 2 : 6),
+                    widget.subtitleWidget!,
+                  ],
+                ] else ...[
+                  if (widget.title != null) ...[
+                    const SizedBox(height: MediaCard._labelGap),
+                    SizedBox(
+                      height: titleLineHeight,
+                      width: cardWidth,
+                      child: showMarquee
+                          ? MarqueeText(
+                              text: widget.title!,
+                              style: titleStyle,
+                            )
+                          : Text(
+                              widget.title!,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: titleStyle,
+                            ),
+                    ),
+                  ],
+                  if (widget.subtitleWidget != null) ...[
+                    SizedBox(height: widget.title != null ? 2 : 6),
+                    widget.subtitleWidget!,
+                  ] else if (widget.subtitle != null &&
+                      widget.subtitle!.isNotEmpty)
+                    SizedBox(
+                      height: subtitleLineHeight,
+                      width: cardWidth,
+                      child: showMarquee
+                          ? MarqueeText(
+                              text: widget.subtitle!,
+                              style: subtitleStyle,
+                            )
+                          : Text(
+                              widget.subtitle!,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: subtitleStyle,
+                            ),
+                    ),
+                ],
+              ],
+            );
+          },
         ),
       ),
     );

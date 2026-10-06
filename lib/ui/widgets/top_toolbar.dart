@@ -14,6 +14,7 @@ import '../../auth/repositories/user_repository.dart';
 import '../../data/models/aggregated_library.dart';
 import '../../data/repositories/multi_server_repository.dart';
 import '../../data/repositories/user_views_repository.dart';
+import '../../data/services/achievements_service.dart';
 import '../../data/services/library_scope_service.dart';
 import '../../data/services/plugin_sync_service.dart';
 import '../../preference/preference_constants.dart';
@@ -27,7 +28,10 @@ import '../../util/platform_detection.dart';
 import '../navigation/destinations.dart';
 import '../navigation/home_refresh_bus.dart';
 import '../navigation/route_lifecycle_observer.dart';
+import 'downloads_nav_slot.dart';
+import 'friends_nav_slot.dart';
 import 'expandable_icon_button.dart';
+import 'marquee_text.dart';
 import 'overlay_sheet.dart';
 import 'navigation_layout.dart';
 import 'settings/settings_panel.dart';
@@ -41,6 +45,7 @@ import 'shuffle_overlay.dart';
 import 'user_menu_dialog.dart';
 
 import 'offline_aware_image.dart';
+import 'paced_network_image.dart';
 import 'package:playback_core/playback_core.dart';
 import '../../data/models/aggregated_item.dart';
 import '../../data/services/media_server_client_factory.dart';
@@ -60,6 +65,7 @@ const _kPillRadius = 36.0;
 const _kButtonSpacing = 12.0;
 const _kButtonSpacingMobile = 8.0;
 const _kButtonSpacingTV = 2.0;
+const _kMusicBarTitleMaxWidth = 280.0;
 
 class TopToolbar extends StatefulWidget {
   final String? activeRoute;
@@ -119,6 +125,7 @@ class _TopToolbarState extends State<TopToolbar> with RouteAware {
   final _serverMessagesFocus = FocusNode(
     debugLabel: 'TopToolbarServerMessages',
   );
+  final _friendsFocus = FocusNode(debugLabel: 'TopToolbarFriends');
   final _inlineLibrariesTriggerFocus = FocusNode(
     debugLabel: 'TopToolbarInlineLibrariesTrigger',
   );
@@ -136,6 +143,7 @@ class _TopToolbarState extends State<TopToolbar> with RouteAware {
   // Tracked per instance so only the toolbar that actually held focus
   // clears the shared isFocusedNotifier on dispose.
   bool _toolbarHadFocus = false;
+  bool _friendsAvailable = FriendsNavSlot.isAvailable();
   List<AggregatedLibrary> _libraries = [];
   Timer? _clockTimer;
   Timer? _librariesReloadDebounce;
@@ -177,6 +185,9 @@ class _TopToolbarState extends State<TopToolbar> with RouteAware {
     _prefs.addListener(_onPrefsChanged);
     _viewsRepo.addListener(_onUserViewsChanged);
     GetIt.instance<PluginSyncService>().addListener(_onPrefsChanged);
+    if (GetIt.instance.isRegistered<AchievementsService>()) {
+      GetIt.instance<AchievementsService>().addListener(_onAchievementsChanged);
+    }
     _loadLibraries();
     final manager = GetIt.instance<PlaybackManager>();
     _playSub = manager.state.playingStream.listen((_) {
@@ -244,6 +255,7 @@ class _TopToolbarState extends State<TopToolbar> with RouteAware {
     _homeFocus.dispose();
     _settingsFocus.dispose();
     _serverMessagesFocus.dispose();
+    _friendsFocus.dispose();
     _inlineLibrariesTriggerFocus.dispose();
     _musicBarFocusNode.dispose();
     _userSub?.cancel();
@@ -252,6 +264,11 @@ class _TopToolbarState extends State<TopToolbar> with RouteAware {
     } catch (_) {}
     try {
       GetIt.instance<PluginSyncService>().removeListener(_onPrefsChanged);
+    } catch (_) {}
+    try {
+      GetIt.instance<AchievementsService>().removeListener(
+        _onAchievementsChanged,
+      );
     } catch (_) {}
     _prefs.removeListener(_onPrefsChanged);
     _currentTime.dispose();
@@ -287,6 +304,14 @@ class _TopToolbarState extends State<TopToolbar> with RouteAware {
   void _onUserViewsChanged() {
     if (!mounted) return;
     _scheduleLibrariesReload();
+  }
+
+  /// The service also notifies on every badge refresh, which the slot redraws
+  /// by itself, so the bar only rebuilds when the button comes or goes.
+  void _onAchievementsChanged() {
+    final available = FriendsNavSlot.isAvailable();
+    if (!mounted || available == _friendsAvailable) return;
+    setState(() => _friendsAvailable = available);
   }
 
   // Collapses a burst of change notifications, like the settings sync
@@ -405,13 +430,7 @@ class _TopToolbarState extends State<TopToolbar> with RouteAware {
   }
 
   void _restoreFocusBelowToolbar() {
-    final playBtnNode = NavigationLayout.focusDetailsPlayButtonNotifier.value;
-    if (playBtnNode != null &&
-        playBtnNode.context != null &&
-        playBtnNode.canRequestFocus) {
-      playBtnNode.requestFocus();
-      return;
-    }
+    if (NavigationLayout.focusDetailsPlayButton()) return;
     final focusContent = NavigationLayout.focusContentFromNavbarNotifier.value;
     if (focusContent != null && widget.activeRoute == Destinations.home) {
       focusContent();
@@ -501,8 +520,44 @@ class _TopToolbarState extends State<TopToolbar> with RouteAware {
     }
   }
 
-  bool _moveWithinToolbar(TraversalDirection direction) {
-    final primary = FocusManager.instance.primaryFocus;
+  /// Where focus goes on leaving the far end of the inline libraries.
+  ///
+  /// The row has collapsed by now, so its buttons are gone and the trigger is
+  /// what sits in their place. Stepping from there lands on whatever is next,
+  /// which is downloads or server messages before it reaches settings.
+  void _focusAfterInlineLibraries() {
+    final moved = _moveWithinToolbar(
+      TraversalDirection.right,
+      from: _inlineLibrariesTriggerFocus,
+    );
+    if (!moved) _settingsFocus.requestFocus();
+  }
+
+  /// Renders nothing while there is nothing saved.
+  Widget _buildDownloadsButton({
+    required Color? navColor,
+    required bool alwaysExpanded,
+    required String label,
+  }) {
+    return DownloadsNavSlot(
+      builder: (context) => ExpandableIconButton(
+        key: const ValueKey('toolbar-downloads'),
+        forceExpanded: alwaysExpanded,
+        icon: Icons.download_for_offline,
+        label: label,
+        baseColor: navColor,
+        onPressed: () => showDownloadsDialog(context),
+      ),
+    );
+  }
+
+  /// Moves focus one button along the toolbar, in painted order.
+  ///
+  /// [from] names where to step from when focus hasn't landed there yet. A
+  /// request applies a microtask later, so a caller that has just moved focus
+  /// can't rely on the primary node having caught up.
+  bool _moveWithinToolbar(TraversalDirection direction, {FocusNode? from}) {
+    final primary = from ?? FocusManager.instance.primaryFocus;
     if (primary == null || !_isInsideToolbar(primary)) return false;
 
     final insideMusicBar = _isDescendantOf(primary, _musicBarFocusNode);
@@ -876,16 +931,21 @@ class _TopToolbarState extends State<TopToolbar> with RouteAware {
             ),
             child: ClipOval(
               child: _userImageUrl != null
-                  ? Image.network(
-                      _userImageUrl!,
-                      headers: serverImageHeaders,
+                  ? Image(
+                      image: ResizeImage.resizeIfNeeded(
+                        ArtworkDecode.widthFor(
+                          avatarSize,
+                          MediaQuery.devicePixelRatioOf(context),
+                        ),
+                        null,
+                        PacedNetworkImage(
+                          _userImageUrl!,
+                          headers: serverImageHeaders,
+                        ),
+                      ),
                       fit: BoxFit.cover,
                       width: avatarSize,
                       height: avatarSize,
-                      cacheWidth: ArtworkDecode.widthFor(
-                        avatarSize,
-                        MediaQuery.devicePixelRatioOf(context),
-                      ),
                       errorBuilder: (_, _, _) => _avatarFallback(),
                     )
                   : _avatarFallback(),
@@ -1150,20 +1210,27 @@ class _TopToolbarState extends State<TopToolbar> with RouteAware {
                 ),
               ],
               _gap(),
-              if (_prefs.get(UserPreferences.showDownloadsButton) &&
-                PlatformDetection.supportsOfflineDownloads &&
-                !PlatformDetection.isWeb)
+              if (DownloadsNavSlot.isOffered())
                 _orderButton(
                   order: 97,
-                  child: ExpandableIconButton(
-                    key: const ValueKey('toolbar-downloads'),
-                    forceExpanded: alwaysExpanded,
-                    icon: Icons.download_for_offline,
+                  // The slot is taken here rather than inside the builder, so
+                  // the icons after it keep their colour whether or not
+                  // anything is saved to show.
+                  child: _buildDownloadsButton(
+                    navColor: nextNavColor(),
+                    alwaysExpanded: alwaysExpanded,
                     label: l10n.savedMedia,
-                    baseColor: nextNavColor(),
-                    onPressed: () {
-                      showDownloadsDialog(context);
-                    },
+                  ),
+                ),
+              if (FriendsNavSlot.isOffered() && _friendsAvailable)
+                _orderButton(
+                  order: 97.5,
+                  // Only taken where the plugin has friends on, so on every
+                  // other server the icons after it keep their color.
+                  child: _buildFriendsButton(
+                    navColor: nextNavColor(),
+                    alwaysExpanded: alwaysExpanded,
+                    label: l10n.friends,
                   ),
                 ),
               if (_prefs.get(UserPreferences.showServerMessagesButton))
@@ -1206,7 +1273,14 @@ class _TopToolbarState extends State<TopToolbar> with RouteAware {
                         useInlineLibraries &&
                         showLibraries &&
                         navLibraries.isNotEmpty) {
-                      _inlineLibrariesTriggerFocus.requestFocus();
+                      // Step onto whatever is actually alongside first, since
+                      // downloads and server messages both sit between the
+                      // libraries and here. Jumping to the trigger is the
+                      // fallback for when nothing does, which is what keeps
+                      // the inline libraries reachable from the end of the row.
+                      if (!_moveWithinToolbar(TraversalDirection.left)) {
+                        _inlineLibrariesTriggerFocus.requestFocus();
+                      }
                       return KeyEventResult.handled;
                     }
                     return KeyEventResult.ignored;
@@ -1296,7 +1370,7 @@ class _TopToolbarState extends State<TopToolbar> with RouteAware {
       iconColor: iconColor,
       alwaysExpanded: alwaysExpanded,
       triggerFocusNode: _inlineLibrariesTriggerFocus,
-      nextFocusNode: _settingsFocus,
+      onExitForward: _focusAfterInlineLibraries,
       onLibraryTap: (lib) {
         context.navigateTopLevel(
           libraryRoute(
@@ -1322,6 +1396,9 @@ class _TopToolbarState extends State<TopToolbar> with RouteAware {
     return ServerMessagesNavSlot(
       builder: (context, unread) => Row(
         mainAxisSize: MainAxisSize.min,
+        // Stretch like the bare buttons, or the hover pill stops short of the
+        // bar's height.
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           ExpandableIconButton(
             key: const ValueKey('toolbar_server_messages'),
@@ -1334,6 +1411,39 @@ class _TopToolbarState extends State<TopToolbar> with RouteAware {
             onPressed: () async {
               await showServerMessagesDialog(context);
               if (mounted) _serverMessagesFocus.requestFocus();
+            },
+          ),
+          _gap(),
+        ],
+      ),
+    );
+  }
+
+  /// The friends button, or nothing when the server has no friends feature.
+  /// The gap to the next button travels with it, like the messages button.
+  Widget _buildFriendsButton({
+    required Color? navColor,
+    required bool alwaysExpanded,
+    required String label,
+  }) {
+    return FriendsNavSlot(
+      builder: (context, badge) => Row(
+        mainAxisSize: MainAxisSize.min,
+        // Stretch like the bare buttons, or the hover pill stops short of the
+        // bar's height.
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          ExpandableIconButton(
+            key: const ValueKey('toolbar_friends'),
+            forceExpanded: alwaysExpanded,
+            icon: Icons.people_alt_rounded,
+            label: label,
+            baseColor: navColor,
+            badgeCount: badge,
+            focusNode: _friendsFocus,
+            onPressed: () async {
+              await FriendsNavSlot.open(context);
+              if (mounted) _friendsFocus.requestFocus();
             },
           ),
           _gap(),
@@ -1414,7 +1524,9 @@ class _AndroidTvExpandableLibrariesButton extends StatefulWidget {
   final Color? iconColor;
   final bool alwaysExpanded;
   final FocusNode? triggerFocusNode;
-  final FocusNode? nextFocusNode;
+
+  /// Called when focus leaves the far end of the row, once it has collapsed.
+  final VoidCallback? onExitForward;
   final ValueChanged<AggregatedLibrary> onLibraryTap;
 
   const _AndroidTvExpandableLibrariesButton({
@@ -1425,7 +1537,7 @@ class _AndroidTvExpandableLibrariesButton extends StatefulWidget {
     this.iconColor,
     this.alwaysExpanded = false,
     this.triggerFocusNode,
-    this.nextFocusNode,
+    this.onExitForward,
     required this.onLibraryTap,
   });
 
@@ -1516,9 +1628,9 @@ class _AndroidTvExpandableLibrariesButtonState
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      final next = widget.nextFocusNode;
-      if (next != null && next.canRequestFocus) {
-        next.requestFocus();
+      final exit = widget.onExitForward;
+      if (exit != null) {
+        exit();
         return;
       }
       FocusScope.of(context).nextFocus();
@@ -1956,7 +2068,10 @@ class _LibrariesDropdownState extends State<_LibrariesDropdown> {
 
   // The dropdown is an overlay entry rather than a route, so nothing pops it on
   // back. Registering it lets the key close it instead of leaving the page.
-  void _closeFromBack() => _hideDropdown(focusButton: true);
+  bool _closeFromBack() {
+    _hideDropdown(focusButton: true);
+    return true;
+  }
 
   double _calculateMenuWidth(BuildContext context, double screenWidth) {
     final baseStyle = (Theme.of(context).textTheme.bodyMedium ??
@@ -2473,6 +2588,17 @@ class _TopMusicBarState extends State<TopMusicBar> {
     final displayText = artist.isNotEmpty
         ? '${item.name} - $artist'
         : item.name;
+    final titleStyle = TextStyle(
+      color: AppColorScheme.onSurface,
+      fontSize: 13,
+      fontWeight: FontWeight.w600,
+    );
+    // The text already grows with the UI scale, so the cap on it does too.
+    final titleMaxWidth =
+        _kMusicBarTitleMaxWidth *
+        GetIt.instance<UserPreferences>()
+            .get(UserPreferences.desktopUiScale)
+            .scaleFactor;
     final isNeon = ThemeRegistry.active.id == ThemeRegistry.neonPulseId;
 
     return Center(
@@ -2549,16 +2675,22 @@ class _TopMusicBarState extends State<TopMusicBar> {
                                         )
                                       : Colors.transparent,
                                 ),
-                                child: Text(
-                                  displayText,
-                                  style: TextStyle(
-                                    color: AppColorScheme.onSurface,
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
+                                child: PlatformDetection.useMobileUi
+                                    ? Text(
+                                        displayText,
+                                        style: titleStyle,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      )
+                                    : ConstrainedBox(
+                                        constraints: BoxConstraints(
+                                          maxWidth: titleMaxWidth,
+                                        ),
+                                        child: MarqueeText(
+                                          text: displayText,
+                                          style: titleStyle,
+                                        ),
+                                      ),
                               ),
                             ),
                           );

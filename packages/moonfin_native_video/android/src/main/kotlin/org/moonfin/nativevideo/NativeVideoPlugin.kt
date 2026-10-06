@@ -26,6 +26,7 @@ class NativeVideoPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, EventC
 
     override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         applicationContext = binding.applicationContext
+        Media3Bridge.onPluginAttached(binding.applicationContext)
 
         binding.platformViewRegistry.registerViewFactory(
             "moonfin/native_video",
@@ -105,6 +106,7 @@ class NativeVideoPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, EventC
 
         applicationContext = null
 
+        Media3Bridge.onPluginDetached(this, registeredSink)
         Media3Bridge.clearEventSink(registeredSink)
         registeredSink = null
 
@@ -113,7 +115,7 @@ class NativeVideoPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, EventC
     }
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
-        Media3Bridge.handleMethodCall(call, result)
+        Media3Bridge.handleMethodCall(call, result, this)
     }
 
     override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
@@ -164,7 +166,9 @@ private class NativeVideoFactory(
 ) : PlatformViewFactory(StandardMessageCodec.INSTANCE) {
 
     override fun create(context: Context, viewId: Int, args: Any?): PlatformView {
-        return NativeVideoView(context, messenger, viewId)
+        return NativeVideoView(context, messenger, viewId).also {
+            it.leaveCensus = PlatformViewCensus.join("mpv")
+        }
     }
 }
 
@@ -172,6 +176,8 @@ private class Media3VideoFactory : PlatformViewFactory(StandardMessageCodec.INST
 
     override fun create(context: Context, viewId: Int, args: Any?): PlatformView {
         val role = (args as? Map<*, *>)?.get("role") as? String ?: "main"
-        return Media3VideoView(context, viewId, role)
+        return Media3VideoView(context, viewId, role).also {
+            it.leaveCensus = PlatformViewCensus.join("media3-$role")
+        }
     }
 }

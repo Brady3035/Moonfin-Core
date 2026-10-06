@@ -20,6 +20,9 @@ class ImdbExternalListItem {
   final double? rating;
   final String? userRating;
 
+  /// The certification Moonbase looked up on TMDB, or null when it has none.
+  final String? officialRating;
+
   ImdbExternalListItem({
     required this.imdbId,
     this.tmdbId = '',
@@ -31,6 +34,7 @@ class ImdbExternalListItem {
     this.popularity,
     this.rating,
     this.userRating,
+    this.officialRating,
   });
 
   Map<String, dynamic> toJson() => {
@@ -44,6 +48,7 @@ class ImdbExternalListItem {
         'popularity': popularity,
         'rating': rating,
         'userRating': userRating,
+        'officialRating': officialRating,
       };
 
   factory ImdbExternalListItem.fromJson(Map<String, dynamic> json) =>
@@ -58,13 +63,14 @@ class ImdbExternalListItem {
         popularity: (json['popularity'] as num?)?.toDouble(),
         rating: (json['rating'] as num?)?.toDouble(),
         userRating: json['userRating'] as String?,
+        officialRating: json['officialRating'] as String?,
       );
 }
 
 class CustomExternalListsService {
   final Dio _dio = Dio(BaseOptions(
     connectTimeout: const Duration(seconds: 15),
-    receiveTimeout: const Duration(seconds: 15),
+    receiveTimeout: const Duration(seconds: 45),
   ));
 
   CustomExternalListsService();
@@ -99,7 +105,11 @@ class CustomExternalListsService {
     }
   }
 
-  Future<List<ImdbExternalListItem>> fetchCustomRow(HomeSectionConfig config, {bool forceRefresh = false}) async {
+  Future<List<ImdbExternalListItem>> fetchCustomRow(
+    HomeSectionConfig config, {
+    bool forceRefresh = false,
+    bool throwOnError = false,
+  }) async {
     final sectionId = config.pluginSection;
     if (sectionId == null || sectionId.isEmpty) return [];
 
@@ -181,6 +191,7 @@ class CustomExternalListsService {
         final year = (rawItem['productionYear'] ?? rawItem['ProductionYear'] ?? rawItem['year'] ?? rawItem['Year']) as int?;
         final itemType = (rawItem['type'] ?? rawItem['Type']) as String? ?? 'Movie';
         final userRating = (rawItem['userRating'] ?? rawItem['UserRating']) as String?;
+        final officialRating = (rawItem['officialRating'] ?? rawItem['OfficialRating']) as String?;
         // The popularity and rating sort options rely on these two fields.
         final rating =
             ((rawItem['rating'] ?? rawItem['Rating']) as num?)?.toDouble();
@@ -200,6 +211,7 @@ class CustomExternalListsService {
             userRating: userRating,
             rating: rating,
             popularity: popularity,
+            officialRating: officialRating,
           ));
         }
       }
@@ -210,6 +222,7 @@ class CustomExternalListsService {
 
       return _applySorting(items, config);
     } catch (e) {
+      if (throwOnError) rethrow;
       debugPrint('[CustomService] Fetch failed from server. Falling back to local cache: $e');
       return loadCustomRowFromCache(config);
     }
@@ -259,7 +272,8 @@ class CustomExternalListsService {
         final items = decoded
             .map((item) => ImdbExternalListItem.fromJson(item as Map<String, dynamic>))
             .toList();
-        final hasOldCache = decoded.any((item) => item is Map && !item.containsKey('backdropUrl'));
+        final hasOldCache = decoded.any((item) =>
+            item is Map && (!item.containsKey('backdropUrl') || !item.containsKey('officialRating')));
         final hasBuggyCache = items.any((item) => item.imdbId.isEmpty && item.tmdbId.isEmpty);
         if (hasOldCache || hasBuggyCache) {
           debugPrint('[CustomService] Invalid or buggy custom row cache detected, invalidating...');

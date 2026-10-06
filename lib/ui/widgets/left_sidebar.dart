@@ -13,6 +13,7 @@ import '../../auth/repositories/user_repository.dart';
 import '../../data/models/aggregated_library.dart';
 import '../../data/repositories/multi_server_repository.dart';
 import '../../data/repositories/user_views_repository.dart';
+import '../../data/services/achievements_service.dart';
 import '../../data/services/library_scope_service.dart';
 import '../../data/services/plugin_sync_service.dart';
 import '../../preference/preference_constants.dart';
@@ -31,6 +32,8 @@ import '../navigation/route_lifecycle_observer.dart';
 import 'navigation_layout.dart';
 import 'settings/settings_panel.dart';
 import '../screens/downloads/downloads_panel.dart';
+import 'downloads_nav_slot.dart';
+import 'friends_nav_slot.dart';
 import '../screens/syncplay/syncplay_screen.dart';
 import '../screens/settings/settings_side_panel.dart';
 import 'seerr_icons.dart';
@@ -45,6 +48,7 @@ import '../../data/models/aggregated_item.dart';
 import '../../data/services/media_server_client_factory.dart';
 import '../navigation/app_router.dart';
 import 'offline_aware_image.dart';
+import 'paced_network_image.dart';
 import 'adaptive/sf_symbol.dart';
 
 const _kExpandedWidthDesktop = 240.0;
@@ -87,6 +91,7 @@ class _LeftSidebarState extends State<LeftSidebar> with RouteAware {
   final _serverMessagesFocusNode = FocusNode(
     debugLabel: 'LeftSidebarServerMessages',
   );
+  final _friendsFocusNode = FocusNode(debugLabel: 'LeftSidebarFriends');
   final _profileFocusNode = FocusNode(debugLabel: 'LeftSidebarProfile');
   final _musicCardFocusNode = FocusNode(debugLabel: 'SidebarMusicCard');
   late final VoidCallback _focusNavbarCallback;
@@ -105,6 +110,7 @@ class _LeftSidebarState extends State<LeftSidebar> with RouteAware {
   // where a stale value from another route's sidebar would break focus-gain
   // detection and leave focus stuck in a collapsed rail.
   bool _sidebarHadFocus = false;
+  bool _friendsAvailable = FriendsNavSlot.isAvailable();
   Timer? _clockTimer;
   Timer? _labelTimer;
   Timer? _focusExpandGateTimer;
@@ -162,6 +168,9 @@ class _LeftSidebarState extends State<LeftSidebar> with RouteAware {
     _prefs.addListener(_onPrefsChanged);
     _viewsRepo.addListener(_onUserViewsChanged);
     GetIt.instance<PluginSyncService>().addListener(_onPrefsChanged);
+    if (GetIt.instance.isRegistered<AchievementsService>()) {
+      GetIt.instance<AchievementsService>().addListener(_onAchievementsChanged);
+    }
     _loadLibraries();
     FocusManager.instance.addListener(_trackPreviousFocus);
     if (PlatformDetection.isTV || (PlatformDetection.isDesktop || (PlatformDetection.isWeb && !PlatformDetection.useMobileUi))) {
@@ -230,6 +239,7 @@ class _LeftSidebarState extends State<LeftSidebar> with RouteAware {
     _homeFocusNode.dispose();
     _settingsFocusNode.dispose();
     _serverMessagesFocusNode.dispose();
+    _friendsFocusNode.dispose();
     _profileFocusNode.dispose();
     _musicCardFocusNode.dispose();
     _sidebarFocus.dispose();
@@ -240,6 +250,11 @@ class _LeftSidebarState extends State<LeftSidebar> with RouteAware {
     } catch (_) {}
     try {
       GetIt.instance<PluginSyncService>().removeListener(_onPrefsChanged);
+    } catch (_) {}
+    try {
+      GetIt.instance<AchievementsService>().removeListener(
+        _onAchievementsChanged,
+      );
     } catch (_) {}
     _prefs.removeListener(_onPrefsChanged);
     _currentTime.dispose();
@@ -261,6 +276,14 @@ class _LeftSidebarState extends State<LeftSidebar> with RouteAware {
   void _onUserViewsChanged() {
     if (!mounted) return;
     _scheduleLibrariesReload();
+  }
+
+  /// The service also notifies on every badge refresh, which the slot redraws
+  /// by itself, so the sidebar only rebuilds when the row comes or goes.
+  void _onAchievementsChanged() {
+    final available = FriendsNavSlot.isAvailable();
+    if (!mounted || available == _friendsAvailable) return;
+    setState(() => _friendsAvailable = available);
   }
 
   // Collapses a burst of change notifications, like the settings sync
@@ -501,6 +524,7 @@ class _LeftSidebarState extends State<LeftSidebar> with RouteAware {
   }
 
   void _restoreFocusOutsideSidebar() {
+    if (NavigationLayout.focusDetailsPlayButton()) return;
     final previous = _previousFocus;
     if (previous != null && _isLaidOutFocusNode(previous)) {
       previous.requestFocus();
@@ -817,6 +841,27 @@ class _LeftSidebarState extends State<LeftSidebar> with RouteAware {
     );
   }
 
+  /// The downloads row, or nothing while there is nothing saved. The nav
+  /// colour is passed in so the caller decides which palette slot it takes.
+  Widget _downloadsSidebarItem({
+    required Color? navColor,
+    required String label,
+  }) {
+    return DownloadsNavSlot(
+      builder: (context) => _SidebarItem(
+        key: const ValueKey('sidebar-downloads'),
+        icon: Icons.download_for_offline,
+        label: label,
+        baseColor: navColor,
+        showLabel: _showLabels,
+        onPressed: () {
+          _onNavigate();
+          showDownloadsDialog(context);
+        },
+      ),
+    );
+  }
+
   /// The messages row, or nothing when there is nothing to show. The nav colour
   /// is passed in so the caller decides which palette slot it takes.
   Widget _serverMessagesSidebarItem({
@@ -838,6 +883,31 @@ class _LeftSidebarState extends State<LeftSidebar> with RouteAware {
           if (!mounted) return;
           _markNavigationAwayFromSidebar();
           _serverMessagesFocusNode.requestFocus();
+        },
+      ),
+    );
+  }
+
+  /// The friends row, or nothing when the server has no friends feature.
+  Widget _friendsSidebarItem({
+    required Color? navColor,
+    required String label,
+  }) {
+    return FriendsNavSlot(
+      builder: (context, badge) => _SidebarItem(
+        key: const ValueKey('sidebar-friends'),
+        icon: Icons.people_alt_rounded,
+        label: label,
+        baseColor: navColor,
+        badgeCount: badge,
+        focusNode: _friendsFocusNode,
+        showLabel: _showLabels,
+        onPressed: () async {
+          _onNavigate();
+          await FriendsNavSlot.open(context);
+          if (!mounted) return;
+          _markNavigationAwayFromSidebar();
+          _friendsFocusNode.requestFocus();
         },
       ),
     );
@@ -1115,19 +1185,20 @@ class _LeftSidebarState extends State<LeftSidebar> with RouteAware {
                         : const SizedBox.shrink(),
                   ),
                 ],
-                if (_prefs.get(UserPreferences.showDownloadsButton) &&
-                    PlatformDetection.supportsOfflineDownloads &&
-                    !PlatformDetection.isWeb)
-                  _SidebarItem(
-                    key: const ValueKey('sidebar-downloads'),
-                    icon: Icons.download_for_offline,
+                // The slot is taken here rather than inside the builder, so
+                // the rows below keep their colour whether or not anything is
+                // saved right now.
+                if (DownloadsNavSlot.isOffered())
+                  _downloadsSidebarItem(
+                    navColor: nextMainSidebarColor(),
                     label: l10n.savedMedia,
-                    baseColor: nextMainSidebarColor(),
-                    showLabel: _showLabels,
-                    onPressed: () {
-                      _onNavigate();
-                      showDownloadsDialog(context);
-                    },
+                  ),
+                // Only taken where the plugin has friends on, so on every
+                // other server the rows after it keep their color.
+                if (FriendsNavSlot.isOffered() && _friendsAvailable)
+                  _friendsSidebarItem(
+                    navColor: nextMainSidebarColor(),
+                    label: l10n.friends,
                   ),
                 // The slot is taken here rather than inside the builder, so the
                 // settings row keeps its colour whether or not there are any
@@ -1257,18 +1328,23 @@ class _LeftSidebarState extends State<LeftSidebar> with RouteAware {
       ),
       child: ClipOval(
         child: _userImageUrl != null
-            ? Image.network(
-                _userImageUrl!,
-                headers: serverImageHeaders,
+            ? Image(
+                // The server sends the avatar at its stored size, so decode
+                // at the painted size instead of a full bitmap per user.
+                image: ResizeImage.resizeIfNeeded(
+                  ArtworkDecode.widthFor(
+                    40,
+                    MediaQuery.devicePixelRatioOf(context),
+                  ),
+                  null,
+                  PacedNetworkImage(
+                    _userImageUrl!,
+                    headers: serverImageHeaders,
+                  ),
+                ),
                 fit: BoxFit.cover,
                 width: 40,
                 height: 40,
-                // The server sends the avatar at its stored size, so decode
-                // at the painted size instead of a full bitmap per user.
-                cacheWidth: ArtworkDecode.widthFor(
-                  40,
-                  MediaQuery.devicePixelRatioOf(context),
-                ),
                 errorBuilder: (_, _, _) => fallback,
               )
             : fallback,

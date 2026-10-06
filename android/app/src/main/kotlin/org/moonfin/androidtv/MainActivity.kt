@@ -56,6 +56,7 @@ import io.flutter.embedding.engine.FlutterEngineCache
 import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodChannel
 import java.io.ByteArrayOutputStream
+import kotlin.concurrent.thread
 
 import android.hardware.input.InputManager
 import org.flame_engine.gamepads_android.GamepadsCompatibleActivity
@@ -337,6 +338,9 @@ class MainActivity : AudioServiceActivity(), GamepadsCompatibleActivity {
         if (cached === engineHandedToActivity || AudioServiceState.isPlaying()) return
         cache.remove(id)
         cached.destroy()
+        // The next engine is built synchronously in super.onCreate, so no car
+        // call can land between this and its attach.
+        AudioServiceState.markFlutterNotReady()
     }
 
     // Null travels back to Dart as "ask again" rather than as "not a TV".
@@ -378,11 +382,22 @@ class MainActivity : AudioServiceActivity(), GamepadsCompatibleActivity {
             DeviceStorageHelper.CHANNEL,
         ).setMethodCallHandler(DeviceStorageHelper())
 
+        val exitHistory = ProcessExitHistory.get(this)
         MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
             PLATFORM_CHANNEL,
         ).setMethodCallHandler { call, result ->
             when (call.method) {
+                // Reading a crash record can mean parsing its tombstone, so it
+                // stays off the main thread.
+                "previousExits" -> thread(name = "moonfin-exit-history") {
+                    val exits = exitHistory.takeUnreportedExits()
+                    handler.post { result.success(exits) }
+                }
+                "setProcessState" -> {
+                    exitHistory.setAppState(call.argument<String>("state") ?: "")
+                    result.success(null)
+                }
                 "isTvDevice" -> {
                     result.success(isTvDevice())
                 }
@@ -394,6 +409,7 @@ class MainActivity : AudioServiceActivity(), GamepadsCompatibleActivity {
                     result.success(DisplayCapabilities.query(this, trigger))
                 }
                 "buildFingerprint" -> result.success(Build.FINGERPRINT)
+                "uptimeMillis" -> result.success(SystemClock.uptimeMillis())
                 "dolbyVisionCodecCapabilities" -> {
                     result.success(MediaCodecCapabilities.queryDolbyVisionCapabilities())
                 }
@@ -983,7 +999,12 @@ class MainActivity : AudioServiceActivity(), GamepadsCompatibleActivity {
 
     override fun onUserLeaveHint() {
         super.onUserLeaveHint()
-        requestEnterPiPIfEligible()
+        // A dream or a call taking the foreground never reaches here, which
+        // is what separates walking away from the screensaver coming on. PiP
+        // keeps the player on screen, so that is not walking away either.
+        if (!requestEnterPiPIfEligible()) {
+            methodChannel?.invokeMethod("onUserLeftApp", null)
+        }
     }
 
     override fun onPictureInPictureRequested(): Boolean {

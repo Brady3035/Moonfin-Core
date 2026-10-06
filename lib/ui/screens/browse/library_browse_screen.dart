@@ -20,10 +20,12 @@ import '../../../data/viewmodels/library_browse_view_model.dart';
 import '../../../preference/preference_constants.dart';
 import '../../../preference/user_preferences.dart';
 import '../../../ui/mixins/focus_state_mixin.dart';
+import '../../../util/accent_folding.dart';
 import '../../../util/artwork_request_size.dart';
 import '../home/home_row_prefetch.dart';
 import '../../../util/focus/dpad_keys.dart';
 import '../../../util/focus/grid_focus_node_mixin.dart';
+import '../../../util/focus/grid_section_target.dart';
 import '../../../util/platform_detection.dart';
 import '../../navigation/destinations.dart';
 import '../../navigation/route_lifecycle_observer.dart';
@@ -1193,23 +1195,25 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen>
             crossAxisCount;
         final ar = _gridBaseAspectRatio();
         final desktopTextScale = MediaQuery.textScalerOf(context).scale(1.0);
-        final textHeight = (_hasSubtitles ? 46.0 : 26.0) * desktopTextScale;
-        final cellHeight = cellWidth / ar + textHeight;
+        final textHeight = (_hasSubtitles ? 50.0 : 26.0) * desktopTextScale;
+        final imageHeight = cellWidth / ar;
+        final cellHeight = imageHeight + textHeight;
         final childAspectRatio = cellWidth / cellHeight;
-        // A focused card grows about its center and paints past its cell, so
-        // the viewport clips the top row and the row below covers the title
-        // under the row above it. The grid reserves that much room instead.
-        // Mobile keeps its layout, since a touch press only scales while the
-        // finger is down.
-        final focusOverhang = isMobile
-            ? 0.0
-            : MediaCard.focusGap(cellHeight, minimum: 0.0);
-        final rowSpacing = math.max(8.0, focusOverhang);
+        // Artwork scales upward from the bottomCenter anchor, so reserve the full
+        // upward growth in top padding and row spacing so focused cards clear
+        // the filter header and previous row metadata lines.
+        final upwardGrowth = cardFocusExpansion && !isMobile
+            ? (imageHeight * (MediaCard.focusScale - 1))
+            : 0.0;
+        final baseRowSpacing = 16.0;
+        final rowSpacing = baseRowSpacing + upwardGrowth;
+        final baseTopPadding = 18.0;
+        final topPadding = baseTopPadding + upwardGrowth;
         _gridGeometry = (
           perLine: crossAxisCount,
           lineExtent: cellHeight,
           lineSpacing: rowSpacing,
-          leadingPad: 8 + focusOverhang,
+          leadingPad: topPadding,
         );
 
         final focusColor = _vm.isFilterBrowse
@@ -1231,11 +1235,19 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen>
 
         if (_vm.isPlaylistBrowse && _vm.groupByType) {
           final groupedMap = _vm.groupedPlaylists;
+          final groupEntries = groupedMap.entries.toList();
+          final sectionLengths = [
+            for (final entry in groupEntries) entry.value.length,
+          ];
           final slivers = <Widget>[];
 
-          groupedMap.forEach((categoryKey, categoryItems) {
+          for (var s = 0; s < groupEntries.length; s++) {
+            final categoryKey = groupEntries[s].key;
+            final categoryItems = groupEntries[s].value;
+
             final categoryTitle = switch (categoryKey) {
               'Video' => l10n.videoPlaylistsSection,
+              'MusicVideo' => l10n.musicVideoPlaylistsSection,
               'Audio' => l10n.audioPlaylistsSection,
               'AudioBook' => l10n.audiobookPlaylistsSection,
               'Book' => l10n.bookPlaylistsSection,
@@ -1261,7 +1273,7 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen>
 
             slivers.add(
               SliverPadding(
-                padding: EdgeInsets.fromLTRB(gridPadding, 0, gridPadding, 16),
+                padding: EdgeInsets.fromLTRB(gridPadding, topPadding, gridPadding, 16),
                 sliver: SliverGrid(
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: crossAxisCount,
@@ -1273,6 +1285,31 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen>
                     (context, index) {
                       final item = categoryItems[index];
                       final itemAspectRatio = _itemAspectRatio(item);
+
+                      GridSectionCell? cell({required bool down}) =>
+                          gridSectionTarget(
+                            sectionLengths: sectionLengths,
+                            crossAxisCount: crossAxisCount,
+                            section: s,
+                            index: index,
+                            down: down,
+                          );
+                      VoidCallback? focusCell(GridSectionCell? target) {
+                        if (target == null) return null;
+                        final cards = groupEntries[target.section].value;
+                        final node = indexInItems[cards[target.index].id];
+                        if (node == null) return null;
+                        return () => getGridItemFocusNode(node).requestFocus();
+                      }
+
+                      final upCell = cell(down: false);
+                      final onTvUp = upCell == null
+                          ? _focusAboveGrid
+                          : focusCell(upCell);
+                      // Nothing below leaves the bottom edge to the pagination
+                      // the card falls through to.
+                      final onTvDown = focusCell(cell(down: true));
+
                       return _buildGridCard(
                         item: item,
                         index: indexInItems[item.id] ?? index,
@@ -1285,6 +1322,8 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen>
                         isNeon: isNeon,
                         watchedBehavior: watchedBehavior,
                         isMobile: isMobile,
+                        onTvUp: onTvUp,
+                        onTvDown: onTvDown,
                       );
                     },
                     childCount: categoryItems.length,
@@ -1292,7 +1331,7 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen>
                 ),
               ),
             );
-          });
+          }
 
           if (_vm.loadingMore) {
             slivers.add(
@@ -1309,6 +1348,10 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen>
 
           return CustomScrollView(
             controller: _scrollController,
+            scrollCacheExtent: _gridScrollCacheExtent(
+              cellExtent: cellHeight,
+              spacing: rowSpacing,
+            ),
             slivers: slivers,
           );
         }
@@ -1326,9 +1369,9 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen>
             SliverPadding(
               padding: EdgeInsets.fromLTRB(
                 gridPadding,
-                8 + focusOverhang,
+                topPadding,
                 gridPadding,
-                math.max(16.0, focusOverhang),
+                math.max(16.0, upwardGrowth),
               ),
               sliver: SliverGrid(
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -1386,6 +1429,16 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen>
     );
   }
 
+  /// The alphabet bar sits directly above the grid, so it takes focus from the
+  /// top row, and the header button covers a page that shows no bar.
+  void _focusAboveGrid() {
+    if (_allLetterFocusNode.context != null) {
+      _allLetterFocusNode.requestFocus();
+    } else {
+      _homeButtonFocusNode.requestFocus();
+    }
+  }
+
   /// [index] keys the focus node and is the card's place in the full item list,
   /// so it stays put as more pages arrive. [positionInSection] and
   /// [sectionCount] describe the grid it's drawn in, which is one category once
@@ -1408,6 +1461,8 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen>
     required bool isMobile,
     VoidCallback? onCardFocused,
     bool paginateOnEdge = true,
+    VoidCallback? onTvUp,
+    VoidCallback? onTvDown,
   }) {
     // Section headers throw off the uniform row maths in _scrollToGridRow, so a
     // grouped card asks the viewport to reveal it and needs its own context.
@@ -1458,9 +1513,20 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen>
         onKeyEvent: (_, event) {
           if (PlatformDetection.isTV &&
               event.isActionable &&
-              event.logicalKey.isUpKey &&
-              positionInSection < crossAxisCount) {
-            _homeButtonFocusNode.requestFocus();
+              event.logicalKey.isUpKey) {
+            if (onTvUp != null) {
+              onTvUp();
+              return KeyEventResult.handled;
+            } else if (positionInSection < crossAxisCount) {
+              _homeButtonFocusNode.requestFocus();
+              return KeyEventResult.handled;
+            }
+          }
+          if (PlatformDetection.isTV &&
+              event.isActionable &&
+              event.logicalKey.isDownKey &&
+              onTvDown != null) {
+            onTvDown();
             return KeyEventResult.handled;
           }
           if (PlatformDetection.isTV &&
@@ -2400,6 +2466,13 @@ class _FilterSortDialogState extends State<_FilterSortDialog> {
   /// closed as a heading until they are asked for.
   String? _expandedSection = 'sort';
 
+  /// Shorter lists are quicker to scroll through than to search.
+  static const _searchableMinimum = 10;
+
+  final _headingFocus = <String, FocusNode>{};
+  final _searchController = TextEditingController();
+  final _searchFocus = FocusNode();
+
   @override
   void initState() {
     super.initState();
@@ -2410,8 +2483,16 @@ class _FilterSortDialogState extends State<_FilterSortDialog> {
   @override
   void dispose() {
     widget.vm.removeListener(_rebuild);
+    for (final node in _headingFocus.values) {
+      node.dispose();
+    }
+    _searchController.dispose();
+    _searchFocus.dispose();
     super.dispose();
   }
+
+  FocusNode _headingNode(String key) =>
+      _headingFocus.putIfAbsent(key, FocusNode.new);
 
   void _rebuild() {
     if (mounted) setState(() {});
@@ -2513,9 +2594,11 @@ class _FilterSortDialogState extends State<_FilterSortDialog> {
           label: title,
           summary: summary,
           expanded: expanded,
-          onTap: () => setState(() {
-            _expandedSection = expanded ? null : key;
-          }),
+          focusNode: _headingNode(key),
+          onTap: () {
+            _searchController.clear();
+            setState(() => _expandedSection = expanded ? null : key);
+          },
           sectionColor: sectionColor,
           accent: accent,
         ),
@@ -2523,9 +2606,23 @@ class _FilterSortDialogState extends State<_FilterSortDialog> {
       ];
     }
 
+    // The tile goes away once its group is empty, so focus moves to the
+    // heading first rather than being left on nothing.
+    Widget clearGroupTile(String key, LibraryFilterGroup group) =>
+        _DialogActionTile(
+          label: l10n.clear,
+          icon: Icons.filter_alt_off,
+          onTap: () {
+            _headingNode(key).requestFocus();
+            unawaited(vm.clearFilterGroup(group));
+          },
+          accent: accent,
+        );
+
     List<Widget> facetSection({
       required String key,
       required String title,
+      required LibraryFilterGroup group,
       required List<String> values,
       required Set<String> selected,
       required Future<void> Function(String) onToggle,
@@ -2536,16 +2633,46 @@ class _FilterSortDialogState extends State<_FilterSortDialog> {
         key: key,
         title: title,
         summary: countSummary(values.where(selected.contains).length),
-        body: () => [
-          for (final value in values)
-            _DialogCheckboxTile(
-              label: labels[value] ?? value,
-              checked: selected.contains(value),
-              onTap: () => onToggle(value),
-              accent: accent,
-              onSurface: onSurface,
-            ),
-        ],
+        body: () {
+          final query = foldForSearch(_searchController.text.trim());
+          final shown = query.isEmpty
+              ? values
+              : values
+                    .where((v) => foldForSearch(labels[v] ?? v).contains(query))
+                    .toList();
+          return [
+            if (selected.isNotEmpty) clearGroupTile(key, group),
+            if (values.length >= _searchableMinimum)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 4, 24, 8),
+                child: LocalSearchField(
+                  controller: _searchController,
+                  focusNode: _searchFocus,
+                  hint: title,
+                  onChanged: (_) => setState(() {}),
+                ),
+              ),
+            for (final value in shown)
+              _DialogCheckboxTile(
+                label: labels[value] ?? value,
+                checked: selected.contains(value),
+                onTap: () => onToggle(value),
+                accent: accent,
+                onSurface: onSurface,
+              ),
+            if (shown.isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
+                child: Text(
+                  l10n.noResults,
+                  style: TextStyle(fontSize: 15, color: sectionColor),
+                ),
+              ),
+          ];
+        },
       );
     }
 
@@ -2697,6 +2824,8 @@ class _FilterSortDialogState extends State<_FilterSortDialog> {
                 title: l10n.features,
                 summary: countSummary(vm.featureFilters.length),
                 body: () => [
+                  if (vm.featureFilters.isNotEmpty)
+                    clearGroupTile('features', LibraryFilterGroup.features),
                   for (final option in LibraryFeatureFilter.values)
                     _DialogCheckboxTile(
                       label: featureLabel(option),
@@ -2712,6 +2841,8 @@ class _FilterSortDialogState extends State<_FilterSortDialog> {
                 title: l10n.quality,
                 summary: countSummary(vm.videoQualityFilters.length),
                 body: () => [
+                  if (vm.videoQualityFilters.isNotEmpty)
+                    clearGroupTile('quality', LibraryFilterGroup.quality),
                   for (final option in LibraryVideoQualityFilter.values)
                     if (option != LibraryVideoQualityFilter.uhd ||
                         vm.supportsUhdFilter)
@@ -2729,6 +2860,8 @@ class _FilterSortDialogState extends State<_FilterSortDialog> {
                 title: l10n.source,
                 summary: countSummary(vm.videoSourceFilters.length),
                 body: () => [
+                  if (vm.videoSourceFilters.isNotEmpty)
+                    clearGroupTile('source', LibraryFilterGroup.source),
                   for (final option in LibraryVideoSourceFilter.values)
                     _DialogCheckboxTile(
                       label: option.displayName,
@@ -2742,6 +2875,7 @@ class _FilterSortDialogState extends State<_FilterSortDialog> {
             ],
             ...facetSection(
               key: 'genres',
+              group: LibraryFilterGroup.genres,
               title: l10n.genres,
               values: vm.facetValues.genres,
               selected: vm.genreFilters,
@@ -2749,6 +2883,7 @@ class _FilterSortDialogState extends State<_FilterSortDialog> {
             ),
             ...facetSection(
               key: 'ratings',
+              group: LibraryFilterGroup.ratings,
               title: l10n.groupByParentalRating,
               values: vm.facetValues.officialRatings,
               selected: vm.officialRatingFilters,
@@ -2756,6 +2891,7 @@ class _FilterSortDialogState extends State<_FilterSortDialog> {
             ),
             ...facetSection(
               key: 'tags',
+              group: LibraryFilterGroup.tags,
               title: l10n.tags,
               values: vm.facetValues.tags,
               selected: vm.tagFilters,
@@ -2763,6 +2899,7 @@ class _FilterSortDialogState extends State<_FilterSortDialog> {
             ),
             ...facetSection(
               key: 'years',
+              group: LibraryFilterGroup.years,
               title: l10n.years,
               values: vm.facetValues.years.map((e) => e.toString()).toList(),
               selected: vm.yearFilters,
@@ -2770,6 +2907,7 @@ class _FilterSortDialogState extends State<_FilterSortDialog> {
             ),
             ...facetSection(
               key: 'audio',
+              group: LibraryFilterGroup.audioLanguages,
               title: l10n.audioLanguage,
               values: vm.facetValues.audioLanguages
                   .map((e) => e.value)
@@ -2782,6 +2920,7 @@ class _FilterSortDialogState extends State<_FilterSortDialog> {
             ),
             ...facetSection(
               key: 'subtitles',
+              group: LibraryFilterGroup.subtitleLanguages,
               title: l10n.subtitleLanguage,
               values: vm.facetValues.subtitleLanguages
                   .map((e) => e.value)
@@ -3030,6 +3169,7 @@ class _DialogExpanderTile extends StatefulWidget {
   final String label;
   final String? summary;
   final bool expanded;
+  final FocusNode? focusNode;
   final VoidCallback onTap;
   final Color sectionColor;
   final Color accent;
@@ -3038,6 +3178,7 @@ class _DialogExpanderTile extends StatefulWidget {
     required this.label,
     required this.summary,
     required this.expanded,
+    this.focusNode,
     required this.onTap,
     required this.sectionColor,
     required this.accent,
@@ -3060,6 +3201,7 @@ class _DialogExpanderTileState extends State<_DialogExpanderTile>
       onEnter: (_) => setHovered(true),
       onExit: (_) => setHovered(false),
       child: Focus(
+        focusNode: widget.focusNode,
         onFocusChange: (f) => setFocused(f),
         onKeyEvent: (_, event) {
           if (isActivateKey(event)) {
@@ -3334,6 +3476,7 @@ class _SettingsDialogState extends State<_SettingsDialog> {
               ),
               for (final typeOption in [
                 ('Video', l10n.playlistTypeVideo),
+                ('MusicVideo', l10n.playlistTypeMusicVideo),
                 ('Audio', l10n.playlistTypeAudio),
                 ('AudioBook', l10n.playlistTypeAudiobook),
                 ('Book', l10n.playlistTypeBook),

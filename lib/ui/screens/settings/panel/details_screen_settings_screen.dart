@@ -23,7 +23,9 @@ class _DetailsScreenSettingsScreenState
 
   @override
   Widget build(BuildContext context) {
-    final bottomPad = PlatformDetection.isTV ? 96.0 : 24.0;
+    final bottomPad =
+        (PlatformDetection.isTV ? 96.0 : 24.0) +
+        MediaQuery.paddingOf(context).bottom;
     final l10n = AppLocalizations.of(context);
     final prefs = GetIt.instance<UserPreferences>();
     return Scaffold(
@@ -39,6 +41,7 @@ class _DetailsScreenSettingsScreenState
               adaptiveListSection(
                 children: [
                   EnumPreferenceTile<DetailScreenStyle>(
+                    key: const ValueKey('pref_detail_screen_style'),
                     autofocus: true,
                     preference: UserPreferences.detailScreenStyle,
                     title: l10n.detailScreenStyle,
@@ -133,6 +136,14 @@ class _DetailsScreenSettingsScreenState
                     subtitle: Text(l10n.detailMetadataDescription),
                     onTap: () => context.pushSettingsScreen(
                       const _DetailMetadataScreen(),
+                    ),
+                  ),
+                  _TvSettingsListTile(
+                    leading: const Icon(Icons.dashboard_customize_outlined),
+                    title: Text(l10n.detailSections),
+                    subtitle: Text(l10n.detailSectionsDescription),
+                    onTap: () => context.pushSettingsScreen(
+                      const _DetailSectionsScreen(),
                     ),
                   ),
                   if (prefs.get(UserPreferences.detailScreenStyle) == DetailScreenStyle.modern)

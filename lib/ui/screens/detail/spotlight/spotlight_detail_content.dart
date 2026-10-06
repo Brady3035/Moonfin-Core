@@ -1,6 +1,5 @@
 import 'dart:async' show unawaited;
 import 'dart:math' as math;
-import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -17,6 +16,7 @@ import '../../../../data/services/seerr/seerr_api_models.dart';
 import '../../../../data/viewmodels/item_detail_view_model.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../preference/detail_metadata_layout.dart';
+import '../../../../preference/detail_section_layout.dart';
 import '../../../../preference/preference_constants.dart';
 import '../../../../preference/user_preferences.dart';
 import '../upcoming_episode_badge.dart';
@@ -25,6 +25,7 @@ import '../../../../util/seerr_credits.dart';
 import '../../../../util/platform_detection.dart';
 import '../../../navigation/destinations.dart';
 import '../../../navigation/playback_launcher.dart';
+import '../../../widgets/focus/can_claim_initial_focus.dart';
 import '../../../widgets/logo_view.dart';
 import '../../../widgets/navigation_layout.dart';
 import '../../../widgets/offline_aware_image.dart';
@@ -112,10 +113,94 @@ class _SpotlightDetailContentState extends State<SpotlightDetailContent> {
   List<SeerrDiscoverItem> _seerrCrewCredits = const [];
   String? _seerrLoadedForItemId;
 
+  String? _personBackdropUrl;
+  String? _personBackdropKey;
+  String? _personBackdropForItemId;
+  int _personBackdropCreditCount = -1;
+  Map<String, String?> _personCardBackdrops = const {};
+
   ItemDetailViewModel get _vm => widget.viewModel;
+
+  bool get _seerrAvailable =>
+      GetIt.instance.isRegistered<PluginSyncService>() &&
+      GetIt.instance<PluginSyncService>().seerrAvailable;
 
   double get _desktopScale =>
       widget.prefs.get(UserPreferences.desktopUiScale).scaleFactor;
+
+  void _resetPersonBackdrop() {
+    _personBackdropForItemId = null;
+    _personBackdropUrl = null;
+    _personBackdropKey = null;
+    _personBackdropCreditCount = -1;
+    _personCardBackdrops = const {};
+  }
+
+  void _selectPersonBackdrop({bool notify = true}) {
+    final item = _vm.item;
+    if (item == null || item.type != 'Person') return;
+    final isNewPerson = _personBackdropForItemId != item.id;
+    final creditCount = _seerrAppearances.length + _seerrCrewCredits.length;
+    if (!isNewPerson &&
+        _personBackdropUrl != null &&
+        _personBackdropCreditCount == creditCount) {
+      return;
+    }
+
+    final localCandidates = collectPersonLocalBackdrops(_vm);
+    final appearancesCandidates =
+        collectPersonSeerrBackdrops(_seerrAppearances);
+    final crewCandidates = collectPersonSeerrBackdrops(_seerrCrewCredits);
+    final allCandidates = [
+      ...localCandidates,
+      ...appearancesCandidates,
+      ...crewCandidates,
+    ];
+
+    if (allCandidates.isEmpty) return;
+
+    final rng = math.Random();
+    final String? mainUrl;
+    final String? mainKey;
+    if (!isNewPerson && _personBackdropUrl != null && _personBackdropKey != null) {
+      mainUrl = _personBackdropUrl;
+      mainKey = _personBackdropKey;
+    } else {
+      final chosen = allCandidates[rng.nextInt(allCandidates.length)];
+      mainUrl = chosen.fullUrl;
+      mainKey = chosen.key;
+    }
+
+    final picked = personCardBackdropsFor(
+      local: localCandidates,
+      appearances: appearancesCandidates,
+      crew: crewCandidates,
+      mainBackdropKey: mainKey,
+      random: rng,
+    );
+    // A card that already has a picture keeps it, or it would change under
+    // the viewer when the credits land.
+    final cardBackdrops = <String, String?>{
+      for (final entry in picked.entries)
+        entry.key: isNewPerson
+            ? entry.value
+            : (_personCardBackdrops[entry.key] ?? entry.value),
+    };
+
+    void apply() {
+      _personBackdropUrl = mainUrl;
+      _personBackdropKey = mainKey;
+      _personBackdropForItemId = item.id;
+      _personBackdropCreditCount = creditCount;
+      _personCardBackdrops = cardBackdrops;
+    }
+
+    if (notify) {
+      setState(apply);
+    } else {
+      apply();
+    }
+  }
 
   @override
   void initState() {
@@ -128,7 +213,12 @@ class _SpotlightDetailContentState extends State<SpotlightDetailContent> {
           widget.initialFocusNode;
     }
     unawaited(_loadStudioLogos());
-    unawaited(_loadSeerrAppearances());
+    unawaited(
+      _loadSeerrAppearances().then((_) {
+        if (mounted) _selectPersonBackdrop();
+      }),
+    );
+    _selectPersonBackdrop(notify: false);
   }
 
   @override
@@ -137,11 +227,14 @@ class _SpotlightDetailContentState extends State<SpotlightDetailContent> {
     if (widget.viewModel != oldWidget.viewModel) {
       oldWidget.viewModel.removeListener(_onViewModelChanged);
       _vm.addListener(_onViewModelChanged);
+      _resetPersonBackdrop();
+      _selectPersonBackdrop();
     }
     if (widget.initialFocusNode != oldWidget.initialFocusNode &&
         PlatformDetection.isTV) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) widget.initialFocusNode?.requestFocus();
+        if (!mounted || !canClaimInitialFocus(context)) return;
+        widget.initialFocusNode?.requestFocus();
       });
       NavigationLayout.focusDetailsPlayButtonNotifier.value =
           widget.initialFocusNode;
@@ -152,8 +245,19 @@ class _SpotlightDetailContentState extends State<SpotlightDetailContent> {
   /// or fills it in. Rebuilds come from the ListenableBuilder in build.
   void _onViewModelChanged() {
     if (!mounted) return;
+    final item = _vm.item;
+    if (item != null &&
+        item.type == 'Person' &&
+        item.id != _personBackdropForItemId) {
+      _resetPersonBackdrop();
+    }
+    _selectPersonBackdrop();
     unawaited(_loadStudioLogos());
-    unawaited(_loadSeerrAppearances());
+    unawaited(
+      _loadSeerrAppearances().then((_) {
+        if (mounted) _selectPersonBackdrop();
+      }),
+    );
   }
 
   @override
@@ -225,6 +329,7 @@ class _SpotlightDetailContentState extends State<SpotlightDetailContent> {
         _seerrAppearances = groupSeerrCredits(credits.cast, isCrew: false);
         _seerrCrewCredits = groupSeerrCredits(credits.crew, isCrew: true);
       });
+      _selectPersonBackdrop();
     } catch (_) {
       // Seerr credits are an extra. The filmography card falls back to the
       // library lists when the lookup fails.
@@ -263,7 +368,14 @@ class _SpotlightDetailContentState extends State<SpotlightDetailContent> {
             ),
           );
         } else {
-          context.push(Destinations.item(entry.id, serverId: entry.serverId));
+          context.push(
+            Destinations.itemOrPhoto(
+              entry.id,
+              serverId: entry.serverId,
+              type: entry.type,
+              channelId: entry.channelId,
+            ),
+          );
         }
       }),
       openPerson: (personId) => _closeModalThen(() {
@@ -399,6 +511,9 @@ class _SpotlightDetailContentState extends State<SpotlightDetailContent> {
             seerrAppearances: _seerrAppearances,
             seerrCrewCredits: _seerrCrewCredits,
             fallbackImageUrl: _cardFallbackImageUrl(item),
+            mainBackdropKey: _personBackdropKey,
+            seerrAvailable: _seerrAvailable,
+            personCardBackdrops: _personCardBackdrops,
           )
         : null;
     final card = current ?? opened;
@@ -425,15 +540,14 @@ class _SpotlightDetailContentState extends State<SpotlightDetailContent> {
             tag: item.backdropImageTags.first,
           )
         : null;
-    final url =
-        backdropUrl ??
-        itemBackdrop ??
-        (item?.type == 'Person' ? _personProfileUrl(item!) : null);
+    final url = item?.type == 'Person'
+        ? _personBackdropUrl
+        : (backdropUrl ?? itemBackdrop);
     final blurAmount = widget.prefs
         .get(UserPreferences.detailsBackgroundBlurAmount)
         .toDouble();
     final opacityFactor = blurAmount / 25.0;
-    final maxAlpha = item?.type == 'Person' ? 0.40 : 0.80;
+    const maxAlpha = 0.80;
     final alpha = opacityFactor * maxAlpha;
     final gradientScale = 0.3 + 0.7 * opacityFactor;
 
@@ -452,20 +566,6 @@ class _SpotlightDetailContentState extends State<SpotlightDetailContent> {
             priority: ImageFetchPriority.high,
             errorWidget: (context, url, error) => const SizedBox.shrink(),
           ),
-          if (item?.type == 'Person')
-            Positioned.fill(
-              child: GlassSettings.blursBackdrop
-                  ? BackdropFilter(
-                      filter: ImageFilter.blur(
-                        sigmaX: GlassSettings.capSigma(12),
-                        sigmaY: GlassSettings.capSigma(12),
-                      ),
-                      child: Container(
-                        color: Colors.black.withValues(alpha: 0.2),
-                      ),
-                    )
-                  : Container(color: Colors.black.withValues(alpha: 0.35)),
-            ),
           ColoredBox(color: Colors.black.withValues(alpha: alpha)),
         ],
         if (landscape) ...[
@@ -563,12 +663,19 @@ class _SpotlightDetailContentState extends State<SpotlightDetailContent> {
     );
   }
 
-  Widget _buildTitleOrLogo(BuildContext context, AggregatedItem item) {
+  /// With [showLogo] off this draws what an item with no logo gets: the
+  /// title, and on an episode the show's name above it.
+  Widget _buildTitleOrLogo(
+    BuildContext context,
+    AggregatedItem item, {
+    required bool showLogo,
+  }) {
     final textTheme = Theme.of(context).textTheme;
     final logoScaleFactor = _desktopScale > 1.1 ? 0.70 : 1.0;
     final isEpisode = item.type == 'Episode';
-    final logoTag =
-        item.logoImageTag ?? (isEpisode ? item.seriesLogoImageTag : null);
+    final logoTag = showLogo
+        ? item.logoImageTag ?? (isEpisode ? item.seriesLogoImageTag : null)
+        : null;
     final logoId = logoTag != null
         ? (item.logoImageTag != null ? item.id : item.seriesId)
         : null;
@@ -896,6 +1003,7 @@ class _SpotlightDetailContentState extends State<SpotlightDetailContent> {
   ) {
     final overview = cleanOverview(item.overview?.trim());
     final isPerson = item.type == 'Person';
+    final visibility = DetailSectionVisibility.of(widget.prefs);
     final selectedSource = selectedMediaSourceForItem(
       item,
       widget.selectedMediaSourceId,
@@ -909,16 +1017,20 @@ class _SpotlightDetailContentState extends State<SpotlightDetailContent> {
         !isPerson &&
         (_vm.ratings.isNotEmpty ||
             item.communityRating != null ||
-            item.criticRating != null);
+            item.criticRating != null ||
+            item.personalRating != null);
     final showOverview =
         overview.isNotEmpty &&
+        (!isPerson || visibility.shows(DetailSection.biography)) &&
         !hidesMediaDescription(
           itemType: item.type,
           hideMediaDescription: widget.prefs.get(
             UserPreferences.hideDetailsMediaDescription,
           ),
         );
-    final tagline = isPerson ? null : _buildTagline(context, item);
+    final tagline = isPerson || !visibility.shows(DetailSection.tagline)
+        ? null
+        : _buildTagline(context, item);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -928,7 +1040,11 @@ class _SpotlightDetailContentState extends State<SpotlightDetailContent> {
         if (isPerson)
           _buildPersonHeader(context, item)
         else
-          _buildTitleOrLogo(context, item),
+          _buildTitleOrLogo(
+            context,
+            item,
+            showLogo: visibility.shows(DetailSection.logo),
+          ),
         const SizedBox(height: 8),
         if (!isPerson) _metadataRow(context, item, selectedSource),
         if (techRow != null) ...[const SizedBox(height: 8), techRow],
@@ -1014,6 +1130,9 @@ class _SpotlightDetailContentState extends State<SpotlightDetailContent> {
       seerrAppearances: _seerrAppearances,
       seerrCrewCredits: _seerrCrewCredits,
       fallbackImageUrl: _cardFallbackImageUrl(item),
+      mainBackdropKey: _personBackdropKey,
+      seerrAvailable: _seerrAvailable,
+      personCardBackdrops: _personCardBackdrops,
     );
     for (final card in cards) {
       _cardFocusNodes.putIfAbsent(

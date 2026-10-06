@@ -155,7 +155,8 @@ class _LibraryGenresScreenState extends State<LibraryGenresScreen> {
         );
       }).toList();
     } catch (e) {
-      // Logged, since the empty state looks the same as a library with no genres.
+      // The empty state looks the same as a library with no genres, so a
+      // refused request is logged.
       if (GetIt.instance.isRegistered<LogService>()) {
         GetIt.instance<LogService>().log(
           LogCategory.network,

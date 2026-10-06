@@ -268,10 +268,9 @@ resolveGenreFallbackArtwork({
   return (tileUrl, backdropUrl ?? tileUrl, selectedItem?['Id']?.toString());
 }
 
-/// The tile and backdrop art a genre carries itself; callers fall back to
-/// [resolveGenreFallbackArtwork] when [hasOwnArtwork] is false.
-///
-/// A landscape Primary is one the server took from an item inside, so only a portrait one counts.
+/// The tile and backdrop art a genre carries itself. A Thumb or a portrait
+/// Primary counts, and callers fall back to [resolveGenreFallbackArtwork]
+/// when [hasOwnArtwork] is false.
 (String? imageUrl, String? backdropUrl, bool hasOwnArtwork)
 resolveGenreOwnArtwork({
   required Map<String, dynamic> genreData,

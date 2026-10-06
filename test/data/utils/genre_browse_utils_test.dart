@@ -153,7 +153,8 @@ void main() {
       expect(
         mayHaveBrowsableItems(movies, normalizedItemTypes: videoTypes),
         isTrue,
-      );    });
+      );
+    });
   });
 
   // A grid of genres wants a different picture on each tile, which means

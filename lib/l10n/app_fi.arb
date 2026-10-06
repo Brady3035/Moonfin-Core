@@ -13315,5 +13315,101 @@
     "seasonalDensityHeavy": "Painava",
     "@seasonalDensityHeavy": {
         "description": "Seasonal effect density: most particles"
+    },
+    "seasonalRow": "Lomateema rivi",
+    "@seasonalRow": {
+        "description": "Name of the Home row that shows holiday movies"
+    },
+    "seasonalRowDescription": "Näytä kirjastostasi lomateemaisia elokuvia, mukaan lukien Seerrin suositukset, jos niitä on saatavilla.",
+    "@seasonalRowDescription": {
+        "description": "Explains the seasonal Home row setting"
+    },
+    "seasonalRowSubtitle": "Kausiluonteinen",
+    "@seasonalRowSubtitle": {
+        "description": "Source label shown under the seasonal row's title"
+    },
+    "seasonalRowCountry": "Maa",
+    "@seasonalRowCountry": {
+        "description": "Setting for which country's holidays the seasonal row follows"
+    },
+    "seasonalRowCountryAuto": "Automaattinen",
+    "@seasonalRowCountryAuto": {
+        "description": "Country option that reads the country from the device"
+    },
+    "countryUnitedStates": "Yhdysvallat",
+    "@countryUnitedStates": {
+        "description": "Country name"
+    },
+    "countryCanada": "Kanada",
+    "@countryCanada": {
+        "description": "Country name"
+    },
+    "seasonalRowCountryOther": "Muu",
+    "@seasonalRowCountryOther": {
+        "description": "Country option for a country the seasonal row does not list"
+    },
+    "seasonalRowHolidays": "Lomat",
+    "@seasonalRowHolidays": {
+        "description": "Heading for the list of holidays the seasonal row can show"
+    },
+    "seasonalRowHolidaysHint": "Poista lomapäivän valinta, jotta sen rivi piilotetaan.",
+    "@seasonalRowHolidaysHint": {
+        "description": "Hint under the holiday checklist"
+    },
+    "holidayNewYear": "Uusivuosi",
+    "@holidayNewYear": {
+        "description": "Seasonal row title for New Year's"
+    },
+    "holidayValentines": "Ystävänpäivä",
+    "@holidayValentines": {
+        "description": "Seasonal row title for Valentine's Day"
+    },
+    "holidayEaster": "Pääsiäinen",
+    "@holidayEaster": {
+        "description": "Seasonal row title for Easter"
+    },
+    "holidayPride": "Pride",
+    "@holidayPride": {
+        "description": "Seasonal row title for Pride month"
+    },
+    "holidayHalloween": "Halloween",
+    "@holidayHalloween": {
+        "description": "Seasonal row title for Halloween"
+    },
+    "holidayThanksgiving": "Kiitospäivä",
+    "@holidayThanksgiving": {
+        "description": "Seasonal row title for Thanksgiving"
+    },
+    "holidayChristmas": "Jouluelokuvat",
+    "@holidayChristmas": {
+        "description": "Seasonal row title for Christmas"
+    },
+    "holidayLunarNewYear": "Lunar Uusi Vuosi",
+    "@holidayLunarNewYear": {
+        "description": "Seasonal row title for Lunar New Year"
+    },
+    "holidayDiwali": "Valofestivaali",
+    "@holidayDiwali": {
+        "description": "Seasonal row title for Diwali"
+    },
+    "appleTvHomeScreen": "Apple TV:n aloitusnäyttö",
+    "@appleTvHomeScreen": {
+        "description": "Section header in Home Screen settings for options that affect the tvOS home screen outside the app"
+    },
+    "topShelf": "Ylähylly",
+    "@topShelf": {
+        "description": "Apple TV settings label for what the tvOS home screen shows above the Moonfin icon. Top Shelf is Apple's name for that area"
+    },
+    "topShelfDescription": "Se, mitä Apple TV:n aloitusnäytössä näkyy Moonfin-kuvakkeen yläpuolella, kun se on valittuna. Tämä asetus säilyy tällä laitteella.",
+    "@topShelfDescription": {
+        "description": "Apple TV settings subtitle for the Top Shelf option"
+    },
+    "topShelfLatestMedia": "Uusimmat mediat",
+    "@topShelfLatestMedia": {
+        "description": "Top Shelf option that shows a carousel of the newest items from the home screen's Latest rows"
+    },
+    "topShelfAppBanner": "Moonfin-banneri",
+    "@topShelfAppBanner": {
+        "description": "Top Shelf option that shows only the static Moonfin logo banner, nothing from the library"
     }
 }

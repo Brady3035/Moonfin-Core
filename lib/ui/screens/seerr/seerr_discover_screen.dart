@@ -18,6 +18,7 @@ import '../../../util/platform_detection.dart';
 import '../../navigation/destinations.dart';
 import '../../widgets/adaptive/adaptive_glass.dart';
 import '../../widgets/media_card.dart';
+import '../../widgets/bottom_nav/bottom_navbar.dart';
 import '../../widgets/navigation_layout.dart';
 import '../../widgets/fullscreen_backdrop_switcher.dart';
 import '../../../l10n/app_localizations.dart';
@@ -461,87 +462,90 @@ class _SeerrDiscoverScreenState extends State<SeerrDiscoverScreen> {
       }
     }
 
-    return ListView.builder(
-      controller: _scrollController,
-      padding: EdgeInsets.only(left: rowLeftInset, bottom: 32),
-      itemCount: rows.length,
-      scrollCacheExtent: const ScrollCacheExtent.pixels(600.0),
-      itemBuilder: (context, index) {
-        final row = rows[index];
-        if (!row.isLoading && !_rowHasFocusableContent(row)) {
-          return const SizedBox.shrink();
-        }
-        final isFirstFocusableRow = index == _firstFocusableVisibleIndex;
-        final autofocusRow = isFirstFocusableRow && _wantsInitialFocus;
-        final firstNode = autofocusRow ? _initialFocusNode : null;
-        Widget rowWidget;
-        if (row.isShortcutsRow) {
-          rowWidget = _buildShortcutsRow(
-            row,
-            index,
-            autofocusFirst: autofocusRow,
-            firstFocusNode: firstNode,
-          );
-        } else if (row.isGenreRow) {
-          rowWidget = _buildGenreRow(
-            row,
-            index,
-            isFirstVisibleRow: isFirstFocusableRow,
-            autofocusFirst: autofocusRow,
-            firstFocusNode: firstNode,
-          );
-        } else if (row.isNetworkRow) {
-          rowWidget = _buildNetworkRow(
-            row,
-            index,
-            isFirstVisibleRow: isFirstFocusableRow,
-            autofocusFirst: autofocusRow,
-            firstFocusNode: firstNode,
-          );
-        } else if (row.isStudioRow) {
-          rowWidget = _buildStudioRow(
-            row,
-            index,
-            isFirstVisibleRow: isFirstFocusableRow,
-            autofocusFirst: autofocusRow,
-            firstFocusNode: firstNode,
-          );
-        } else {
-          rowWidget = _buildMediaRow(
-            row,
-            index,
-            isFirstVisibleRow: isFirstFocusableRow,
-            autofocusFirst: autofocusRow,
-            firstFocusNode: firstNode,
-          );
-        }
-        return Builder(
-          builder: (rowContext) => Focus(
-            skipTraversal: true,
-            onFocusChange: (hasFocus) {
-              if (hasFocus) {
-                if (index == _firstFocusableVisibleIndex) {
-                  if (_scrollController.hasClients) {
-                    _scrollController.animateTo(
-                      0.0,
+    return BottomNavPadded(
+      fallback: 32,
+      builder: (context, bottom) => ListView.builder(
+        controller: _scrollController,
+        padding: EdgeInsets.only(left: rowLeftInset, bottom: bottom),
+        itemCount: rows.length,
+        scrollCacheExtent: const ScrollCacheExtent.pixels(600.0),
+        itemBuilder: (context, index) {
+          final row = rows[index];
+          if (!row.isLoading && !_rowHasFocusableContent(row)) {
+            return const SizedBox.shrink();
+          }
+          final isFirstFocusableRow = index == _firstFocusableVisibleIndex;
+          final autofocusRow = isFirstFocusableRow && _wantsInitialFocus;
+          final firstNode = autofocusRow ? _initialFocusNode : null;
+          Widget rowWidget;
+          if (row.isShortcutsRow) {
+            rowWidget = _buildShortcutsRow(
+              row,
+              index,
+              autofocusFirst: autofocusRow,
+              firstFocusNode: firstNode,
+            );
+          } else if (row.isGenreRow) {
+            rowWidget = _buildGenreRow(
+              row,
+              index,
+              isFirstVisibleRow: isFirstFocusableRow,
+              autofocusFirst: autofocusRow,
+              firstFocusNode: firstNode,
+            );
+          } else if (row.isNetworkRow) {
+            rowWidget = _buildNetworkRow(
+              row,
+              index,
+              isFirstVisibleRow: isFirstFocusableRow,
+              autofocusFirst: autofocusRow,
+              firstFocusNode: firstNode,
+            );
+          } else if (row.isStudioRow) {
+            rowWidget = _buildStudioRow(
+              row,
+              index,
+              isFirstVisibleRow: isFirstFocusableRow,
+              autofocusFirst: autofocusRow,
+              firstFocusNode: firstNode,
+            );
+          } else {
+            rowWidget = _buildMediaRow(
+              row,
+              index,
+              isFirstVisibleRow: isFirstFocusableRow,
+              autofocusFirst: autofocusRow,
+              firstFocusNode: firstNode,
+            );
+          }
+          return Builder(
+            builder: (rowContext) => Focus(
+              skipTraversal: true,
+              onFocusChange: (hasFocus) {
+                if (hasFocus) {
+                  if (index == _firstFocusableVisibleIndex) {
+                    if (_scrollController.hasClients) {
+                      _scrollController.animateTo(
+                        0.0,
+                        duration: const Duration(milliseconds: 240),
+                        curve: Curves.easeInOut,
+                      );
+                    }
+                  } else {
+                    Scrollable.ensureVisible(
+                      rowContext,
+                      alignment: 0.0,
                       duration: const Duration(milliseconds: 240),
                       curve: Curves.easeInOut,
                     );
                   }
-                } else {
-                  Scrollable.ensureVisible(
-                    rowContext,
-                    alignment: 0.0,
-                    duration: const Duration(milliseconds: 240),
-                    curve: Curves.easeInOut,
-                  );
                 }
-              }
-            },
-            child: rowWidget,
-          ),
-        );
-      },
+              },
+              child: rowWidget,
+            ),
+          );
+        },
+      ),
     );
   }
 
@@ -620,6 +624,15 @@ class _SeerrDiscoverScreenState extends State<SeerrDiscoverScreen> {
         .get(UserPreferences.desktopUiScale)
         .scaleFactor;
 
+    final upwardGrowth = cardExpansion && !PlatformDetection.useMobileUi
+        ? (195.0 * (MediaCard.focusScale - 1.0))
+        : 0.0;
+    final itemSpacing = cardExpansion && !PlatformDetection.useMobileUi
+        ? MediaCard.focusGap(130.0, minimum: 12.0 * desktopScale)
+        : 12.0 * desktopScale;
+    final rowHeight = (260.0 * desktopScale) + upwardGrowth;
+    final topPadding = (5.0 * desktopScale) + upwardGrowth;
+
     final focusKey = _getRowKey(rowIndex);
     final child = NotificationListener<ScrollNotification>(
       onNotification: (notification) {
@@ -637,12 +650,12 @@ class _SeerrDiscoverScreenState extends State<SeerrDiscoverScreen> {
         hubKey: 'seerr_discover_media_${rowIndex}_${row.type.name}',
         controller: _getRowScroll(rowIndex),
         itemExtent: 130,
-        itemSpacing: 12 * desktopScale,
-        height: 260 * desktopScale,
+        itemSpacing: itemSpacing,
+        height: rowHeight,
         clipBehavior: Clip.none,
         padding: EdgeInsets.fromLTRB(
           20 * desktopScale,
-          5 * desktopScale,
+          topPadding,
           20 * desktopScale,
           5 * desktopScale,
         ),
@@ -687,7 +700,7 @@ class _SeerrDiscoverScreenState extends State<SeerrDiscoverScreen> {
 
     return _buildRowContainer(
       type: row.type,
-      rowHeight: 260,
+      rowHeight: 260.0 + (upwardGrowth / desktopScale),
       isLoading: row.isLoading && row.items.isEmpty,
       hasItems: row.items.isNotEmpty,
       scrollController: _getRowScroll(rowIndex),

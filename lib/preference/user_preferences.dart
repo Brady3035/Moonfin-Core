@@ -11,7 +11,6 @@ import '../data/models/series_track_preference.dart';
 import '../playback/audio_capability_profile.dart';
 import '../util/device_performance.dart';
 import '../util/idiom/app_ui_idiom.dart';
-import '../util/insecure_certificates.dart';
 import '../util/language_matching.dart';
 import '../util/platform_detection.dart';
 import 'home_section_config.dart';
@@ -39,6 +38,68 @@ class UserPreferences extends ChangeNotifier {
     mediaBarModeOff,
   };
 
+  static const seasonalNone = 'none';
+  static const seasonalSnow = 'snow';
+  static const seasonalFireworks = 'fireworks';
+  static const seasonalConfetti = 'confetti';
+  static const seasonalLeaves = 'leaves';
+  static const seasonalChristmas = 'christmas';
+  static const seasonalPetals = 'petals';
+  static const seasonalFireflies = 'fireflies';
+  static const seasonalHalloween = 'halloween';
+  static const seasonalSurpriseValues = <String>{
+    seasonalNone,
+    seasonalSnow,
+    seasonalFireworks,
+    seasonalConfetti,
+    seasonalLeaves,
+    seasonalChristmas,
+    seasonalPetals,
+    seasonalFireflies,
+    seasonalHalloween,
+  };
+
+  // The original Android TV client and older Smart-TV builds sync these names.
+  static const _legacySeasonalSurprise = <String, String>{
+    'winter': seasonalSnow,
+    'fall': seasonalLeaves,
+    'spring': seasonalPetals,
+    'summer': seasonalFireflies,
+  };
+
+  static const seasonalDensityLight = 'light';
+  static const seasonalDensityNormal = 'normal';
+  static const seasonalDensityHeavy = 'heavy';
+  static const seasonalDensityValues = <String>{
+    seasonalDensityLight,
+    seasonalDensityNormal,
+    seasonalDensityHeavy,
+  };
+
+  // The seasonal row follows the viewer's country. Automatic reads it from the device, and
+  // the list only names the countries Moonbase tells apart.
+  static const seasonalRowCountryAuto = 'auto';
+  static const seasonalRowCountryOther = 'other';
+  static const seasonalRowCountryOptions = <String>[
+    seasonalRowCountryAuto,
+    'US',
+    'CA',
+    seasonalRowCountryOther,
+  ];
+
+  /// The holidays Moonbase can build the row for, in the order it tries them.
+  static const seasonalHolidayIds = <String>[
+    'newYear',
+    'valentines',
+    'easter',
+    'pride',
+    'halloween',
+    'thanksgiving',
+    'christmas',
+    'lunarNewYear',
+    'diwali',
+  ];
+
   // Where the bar draws its titles from. Every source still passes through the
   // library, collection, content type and genre filters, and still picks its
   // slides at random out of what comes back.
@@ -57,14 +118,6 @@ class UserPreferences extends ChangeNotifier {
     _enforceMediaQueuingAlwaysOn();
     _seedClockFormatFromSystem();
     _migrateScreensaverPreferences();
-    _syncInsecureCertificateFlag();
-  }
-
-  // Prime the native bad-certificate override with the stored opt-in so the
-  // choice survives restarts. The toggle keeps [gAllowSelfSignedCertificates]
-  // in sync while the app runs; this covers the value at launch.
-  void _syncInsecureCertificateFlag() {
-    gAllowSelfSignedCertificates = get(allowSelfSignedCerts);
   }
 
   // Carry over the pre-rename jellyseerr* preference keys to their seerr* names.
@@ -321,6 +374,9 @@ class UserPreferences extends ChangeNotifier {
     'hiddenDetailMetadataDesktop',
     'hiddenDetailMetadataMobile',
     'hiddenDetailMetadataTv',
+    'hiddenDetailSectionsDesktop',
+    'hiddenDetailSectionsMobile',
+    'hiddenDetailSectionsTv',
     'hiddenOsdButtonsDesktop',
     'hiddenOsdButtonsMobile',
     'hiddenOsdButtonsTv',
@@ -384,6 +440,7 @@ class UserPreferences extends ChangeNotifier {
     'pref_studios_row_sort_by',
     'pref_studios_row_sort_order',
     'pref_syncplay_enabled',
+    'showChapterMarkers',
     'showDescriptionOnPause',
     'since_you_watched_1_enabled',
     'since_you_watched_2_enabled',
@@ -451,6 +508,7 @@ class UserPreferences extends ChangeNotifier {
     'pref_show_seerr_button',
     'pref_show_seerr_availability_badges',
     'pref_show_server_messages_button',
+    'pref_show_friends_button',
     'pref_show_book_discover_tab',
     'pref_show_media_details_on_library_page',
     'pref_use_detailed_sub_headings',
@@ -493,6 +551,8 @@ class UserPreferences extends ChangeNotifier {
     'blocked_ratings',
     'blocked_series_ids',
     'pref_navbar_position',
+    'pref_bottom_navbar_style',
+    'pref_bottom_navbar_tabs',
     'focus_color',
     'pref_watched_indicator_behavior',
     'pref_card_focus_expansion',
@@ -527,6 +587,10 @@ class UserPreferences extends ChangeNotifier {
     'pref_merge_recent_rows_by_type',
     'enable_folder_view',
     'seasonal_surprise',
+    'seasonal_density',
+    'seasonal_row_enabled',
+    'seasonal_row_country',
+    'seasonal_row_hidden_holidays',
     'mediaBarEnabled',
     'mediaBarMode',
     'mediaBarContentType',
@@ -946,6 +1010,45 @@ class UserPreferences extends ChangeNotifier {
     return mediaBarModeMoonfin;
   }
 
+  /// The effect a synced or stored value stands for, or null when this client doesn't know
+  /// the value, so a sync can leave the local choice alone.
+  static String? parseSeasonalSurprise(String? value) {
+    final normalized = (value ?? '').trim().toLowerCase();
+    if (seasonalSurpriseValues.contains(normalized)) return normalized;
+    return _legacySeasonalSurprise[normalized];
+  }
+
+  static String normalizeSeasonalSurprise(String? value) =>
+      parseSeasonalSurprise(value) ?? seasonalNone;
+
+  static String? parseSeasonalDensity(String? value) {
+    final normalized = (value ?? '').trim().toLowerCase();
+    return seasonalDensityValues.contains(normalized) ? normalized : null;
+  }
+
+  static String normalizeSeasonalDensity(String? value) =>
+      parseSeasonalDensity(value) ?? seasonalDensityNormal;
+
+  /// Automatic, Other, or an ISO alpha-2 code upper-cased. Anything else is unknown.
+  static String? parseSeasonalRowCountry(String? value) {
+    final lower = (value ?? '').trim().toLowerCase();
+    if (lower == seasonalRowCountryAuto || lower == seasonalRowCountryOther) {
+      return lower;
+    }
+    return parseCountryCode(value);
+  }
+
+  /// [value] upper-cased when it is a two letter country code, else null.
+  static String? parseCountryCode(String? value) {
+    final trimmed = (value ?? '').trim();
+    final isCode = trimmed.length == 2 &&
+        trimmed.codeUnits.every((c) => (c >= 65 && c <= 90) || (c >= 97 && c <= 122));
+    return isCode ? trimmed.toUpperCase() : null;
+  }
+
+  static Set<String> parseSeasonalRowHiddenHolidays(String value) =>
+      value.split(',').map((h) => h.trim()).where((h) => h.isNotEmpty).toSet();
+
   static bool isMediaBarModeEnabled(String? mode) {
     return normalizeMediaBarMode(mode) != mediaBarModeOff;
   }
@@ -1336,6 +1439,15 @@ class UserPreferences extends ChangeNotifier {
     values: SiriRemoteSwipeSensitivity.values,
   );
 
+  /// What the Apple TV Top Shelf shows above the app icon. The shelf is on the
+  /// Apple TV home screen whoever is signed in, so this belongs to the device
+  /// and is neither synced nor scoped to an account.
+  static final topShelfContent = EnumPreference(
+    key: 'pref_top_shelf_content',
+    defaultValue: TopShelfContent.latestMedia,
+    values: TopShelfContent.values,
+  );
+
   static final visualTheme = EnumPreference(
     key: 'app_theme_id',
     defaultValue: PlatformDetection.isApple || PlatformDetection.isAppleTV
@@ -1522,6 +1634,16 @@ class UserPreferences extends ChangeNotifier {
   bool get effectiveDetailUseSeriesThumbnails =>
       get(kidsModeEnabled) ? false : get(detailUseSeriesThumbnails);
 
+  /// Kids Mode lands on the Minimalist screen, where a score means little
+  /// to a child and the row carries outside branding.
+  bool get effectiveShowDetailRatings => !get(kidsModeEnabled);
+
+  /// Kids Mode shows the two as one row whatever the account chose for itself.
+  /// Apart they read as two separate places to carry on from, which is a
+  /// distinction that means nothing to a child.
+  bool get effectiveMergeContinueWatchingNextUp =>
+      get(kidsModeEnabled) || get(mergeContinueWatchingNextUp);
+
   /// The online source is an outside catalog no parental rating reaches, so
   /// Kids Mode keeps recommendations inside the server's own library.
   RecommendationSystemSource get effectiveRecommendationSystemSource =>
@@ -1582,7 +1704,7 @@ class UserPreferences extends ChangeNotifier {
 
   static final showLiveTvButton = Preference(
     key: 'pref_show_live_tv_button',
-    defaultValue: true,
+    defaultValue: false,
   );
 
   static final showDownloadsButton = Preference(
@@ -1627,6 +1749,20 @@ class UserPreferences extends ChangeNotifier {
     defaultValue: false,
   );
 
+  /// Off by default. Friends and chat stay reachable from the achievements
+  /// screen, so this only adds a shortcut for people who use them.
+  static final showFriendsButton = Preference(
+    key: 'pref_show_friends_button',
+    defaultValue: false,
+  );
+
+  /// On by default, since a chat banner over a film is rarely wanted. Kept on
+  /// the device rather than in the plugin, whose own setting defaults to off.
+  static final muteChatBannersDuringPlayback = Preference(
+    key: 'pref_mute_chat_banners_during_playback',
+    defaultValue: true,
+  );
+
   /// On by default, so a server without Moonbase keeps the tab. An admin can
   /// set a different default in the Moonbase default settings.
   static final showBookDiscoverTab = Preference(
@@ -1643,6 +1779,21 @@ class UserPreferences extends ChangeNotifier {
     key: 'pref_navbar_position',
     defaultValue: NavbarPosition.top,
     values: NavbarPosition.values,
+  );
+
+  // Anyone on the bottom navbar before these styles has nothing stored here,
+  // so they land on Dock. That's the whole migration.
+  static final bottomNavbarStyle = EnumPreference(
+    key: 'pref_bottom_navbar_style',
+    defaultValue: BottomNavbarStyle.dock,
+    values: BottomNavbarStyle.values,
+  );
+
+  /// Comma separated [BottomNavTab] names pinned between Home and You. Empty
+  /// means automatic, resolved from the nav button toggles.
+  static final bottomNavbarTabs = Preference(
+    key: 'pref_bottom_navbar_tabs',
+    defaultValue: '',
   );
 
   static final shuffleContentType = Preference(
@@ -1920,12 +2071,21 @@ class UserPreferences extends ChangeNotifier {
     defaultValue: false,
   );
 
-  /// One-shot encoded-letterbox crop. libmpv on Linux/Windows; Media3
-  /// (and libmpv if selected) on Android phone and TV. Hidden on iOS,
-  /// macOS, web, and tvOS.
+  /// One-shot encoded-letterbox crop at start. libmpv on Linux/Windows;
+  /// Media3 (and libmpv if selected) on Android phone and TV. Hidden on
+  /// iOS, macOS, web, and tvOS. [cropBlackBarsIntervalSeconds] keeps scanning.
   static final cropBlackBars = Preference(
     key: 'crop_black_bars',
     defaultValue: false,
+  );
+
+  /// Seconds between recrops while [cropBlackBars] is on. `0` is once at
+  /// start. `1` / `5` / `10` keep scanning where playback can afford it.
+  /// 4K software/copy-back decode and decoder-mode switches use one scan to
+  /// avoid frame drops. Repeated scans also stop if they begin dropping frames.
+  static final cropBlackBarsIntervalSeconds = Preference<int>(
+    key: 'crop_black_bars_interval_seconds',
+    defaultValue: 0,
   );
 
   static final desktopScrollWheelAction = EnumPreference(
@@ -2324,6 +2484,10 @@ class UserPreferences extends ChangeNotifier {
     key: 'osdLockEnabled',
     defaultValue: false,
   );
+  static final showChapterMarkers = Preference(
+    key: 'showChapterMarkers',
+    defaultValue: false,
+  );
   static final playerSwipeGestures = Preference(
     key: 'playerSwipeGestures',
     defaultValue: true,
@@ -2390,6 +2554,18 @@ class UserPreferences extends ChangeNotifier {
   );
   static final hiddenDetailMetadataDesktop = Preference(
     key: 'hiddenDetailMetadataDesktop',
+    defaultValue: '',
+  );
+  static final hiddenDetailSectionsTv = Preference(
+    key: 'hiddenDetailSectionsTv',
+    defaultValue: '',
+  );
+  static final hiddenDetailSectionsMobile = Preference(
+    key: 'hiddenDetailSectionsMobile',
+    defaultValue: '',
+  );
+  static final hiddenDetailSectionsDesktop = Preference(
+    key: 'hiddenDetailSectionsDesktop',
     defaultValue: '',
   );
   static final hiddenOsdButtonsTv = Preference(
@@ -2699,6 +2875,27 @@ class UserPreferences extends ChangeNotifier {
     defaultValue: false,
   );
 
+  /// Every TMDB home section, against the preference that turns it on.
+  static final Map<HomeSectionType, Preference<bool>> tmdbSectionEnabled = {
+    HomeSectionType.tmdbPopularMovies: tmdbPopularMoviesEnabled,
+    HomeSectionType.tmdbTopRatedMovies: tmdbTopRatedMoviesEnabled,
+    HomeSectionType.tmdbNowPlayingMovies: tmdbNowPlayingMoviesEnabled,
+    HomeSectionType.tmdbUpcomingMovies: tmdbUpcomingMoviesEnabled,
+    HomeSectionType.tmdbPopularTv: tmdbPopularTvEnabled,
+    HomeSectionType.tmdbTopRatedTv: tmdbTopRatedTvEnabled,
+    HomeSectionType.tmdbAiringTodayTv: tmdbAiringTodayTvEnabled,
+    HomeSectionType.tmdbOnTheAirTv: tmdbOnTheAirTvEnabled,
+    HomeSectionType.tmdbTrendingMovieDaily: tmdbTrendingMovieDailyEnabled,
+    HomeSectionType.tmdbTrendingMovieWeekly: tmdbTrendingMovieWeeklyEnabled,
+    HomeSectionType.tmdbTrendingTvDaily: tmdbTrendingTvDailyEnabled,
+    HomeSectionType.tmdbTrendingTvWeekly: tmdbTrendingTvWeeklyEnabled,
+    HomeSectionType.tmdbTrendingAllWeekly: tmdbTrendingAllWeeklyEnabled,
+  };
+
+  /// Whether [type] is one of the TMDB sections.
+  static bool isTmdbSectionType(HomeSectionType type) =>
+      tmdbSectionEnabled.containsKey(type);
+
   static final enableRadarrCalendar = Preference(
     key: 'enable_radarr_calendar',
     defaultValue: false,
@@ -2785,18 +2982,26 @@ class UserPreferences extends ChangeNotifier {
     );
   }
 
-  /// The only rows Kids Mode leaves standing: the way into the libraries, and
-  /// what arrived in them lately.
+  /// The only rows Kids Mode leaves standing: the way into the libraries, what
+  /// arrived in them lately, and what is part way through being watched.
+  ///
+  /// My Media rather than its small variant, since artwork is what a child
+  /// picks a library by.
   ///
   /// An allow list rather than a block list, so a row added later stays hidden
   /// until someone decides a child should see it. Everything else pulls from
-  /// somewhere this mode can't vouch for, whether that's a request queue, an
-  /// outside catalog no parental rating reaches, or the watch history of
-  /// whoever used the account last.
+  /// somewhere this mode can't vouch for, whether that's a request queue or an
+  /// outside catalog no parental rating reaches.
+  ///
+  /// Carrying on with something is worth the caveat it brings: these two read
+  /// the account's own history, so anything an adult started on the same
+  /// account turns up here too. Blocked ratings are what hold that back, and
+  /// they're set apart from this mode.
   static const _kidsModeAllowedSections = <HomeSectionType>{
     HomeSectionType.libraryTilesSmall,
-    HomeSectionType.libraryButtons,
     HomeSectionType.latestMedia,
+    HomeSectionType.resume,
+    HomeSectionType.nextUp,
   };
 
   /// Applied on read rather than by rewriting the saved config, so turning
@@ -2814,23 +3019,26 @@ class UserPreferences extends ChangeNotifier {
         .toList();
 
     // Kids Mode drops the libraries entry from the navbar, so My Media has to
-    // be on the home screen or there's no way into a library at all.
-    final hasLibraries = kept.any(
-      (c) =>
-          c.type == HomeSectionType.libraryTilesSmall ||
-          c.type == HomeSectionType.libraryButtons,
-    );
-    if (!hasLibraries) {
-      kept.insert(
-        0,
+    // be on the home screen or there's no way into a library at all. It leads
+    // rather than sitting wherever the account had it, since everything else
+    // here is something to carry on with and the way in belongs above those.
+    final libraries = kept
+        .where((c) => c.type == HomeSectionType.libraryTilesSmall)
+        .toList();
+    final rest = kept
+        .where((c) => c.type != HomeSectionType.libraryTilesSmall)
+        .toList();
+    return [
+      if (libraries.isEmpty)
         const HomeSectionConfig(
           type: HomeSectionType.libraryTilesSmall,
           enabled: true,
           order: -1,
-        ),
-      );
-    }
-    return kept;
+        )
+      else
+        ...libraries,
+      ...rest,
+    ];
   }
 
   static final themeMusicEnabled = Preference(
@@ -2946,7 +3154,28 @@ class UserPreferences extends ChangeNotifier {
 
   static final seasonalSurprise = Preference(
     key: 'seasonal_surprise',
-    defaultValue: 'none',
+    defaultValue: seasonalNone,
+  );
+
+  static final seasonalDensity = Preference(
+    key: 'seasonal_density',
+    defaultValue: seasonalDensityNormal,
+  );
+
+  static final seasonalRowEnabled = Preference(
+    key: 'seasonal_row_enabled',
+    defaultValue: false,
+  );
+
+  static final seasonalRowCountry = Preference(
+    key: 'seasonal_row_country',
+    defaultValue: seasonalRowCountryAuto,
+  );
+
+  /// Holiday ids the viewer switched off, comma separated.
+  static final seasonalRowHiddenHolidays = Preference(
+    key: 'seasonal_row_hidden_holidays',
+    defaultValue: '',
   );
 
   static final loadingAnimationImage = EnumPreference(

@@ -38,7 +38,6 @@ import 'data/services/theme_store_service.dart';
 import 'di/injection.dart';
 import 'playback/appletv_audio_now_playing_feeder.dart';
 import 'playback/appletv_backend.dart';
-import 'playback/audio_capability_profile.dart';
 import 'playback/audio_capability_probe.dart';
 import 'playback/audio_handler.dart';
 import 'playback/codec_caps_repair.dart';
@@ -57,7 +56,10 @@ import 'util/http_overrides_stub.dart'
     if (dart.library.io) 'util/http_overrides_io.dart';
 import 'util/game_core_licenses.dart';
 import 'util/device_performance.dart';
+import 'ui/navigation/app_router.dart';
+import 'ui/screensaver/screensaver_controller.dart';
 import 'util/platform_detection.dart';
+import 'util/process_exit_reporter.dart';
 import 'util/system_ui.dart';
 import 'util/tv_image_cache_stub.dart'
     if (dart.library.io) 'util/tv_image_cache_io.dart';
@@ -134,6 +136,24 @@ void _configureImageCache() {
   apply(600, 256 << 20);
 }
 
+/// The TV builds draw with Skia, which sizes its GPU cache from the screen, and
+/// Impeller builds ignore this call. It waits for the first frame so the view
+/// has its real size.
+void _capSkiaCache() {
+  if (!PlatformDetection.isAndroid) return;
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    final size = WidgetsBinding.instance.platformDispatcher.implicitView
+        ?.physicalSize;
+    final cap = size == null ? null : skiaCacheCapFor(size.width * size.height);
+    if (cap == null) return;
+    unawaited(
+      SystemChannels.skia
+          .invokeMethod<void>('Skia.setResourceCacheMaxBytes', cap)
+          .catchError((_) {}),
+    );
+  });
+}
+
 Timer? _crashFlushDebounce;
 
 /// Routes uncaught Dart errors into the diagnostic buffer and the pending
@@ -176,6 +196,26 @@ void _captureCrash(Object error, StackTrace? stack) {
   } catch (_) {
     // The crash handler must never become a second crash.
   }
+}
+
+void _startProcessExitReporter() {
+  final reporter = ProcessExitReporter(
+    GetIt.instance<LogService>(),
+    GetIt.instance<CrashReportService>(),
+  );
+  unawaited(reporter.reportPreviousExits());
+  reporter.watch(
+    routeChanges: appRouter.routerDelegate,
+    // A player is pushed over the tab that opened it, so the last match is
+    // what's on screen.
+    currentRoute: () {
+      final matches = appRouter.routerDelegate.currentConfiguration.matches;
+      return matches.isEmpty ? '' : matches.last.matchedLocation;
+    },
+    screensaverVisible: PlatformDetection.isTV
+        ? GetIt.instance<ScreensaverController>().visible
+        : null,
+  );
 }
 
 Future<void> _restoreWindowGeometry() async {
@@ -457,6 +497,19 @@ Future<void> _cacheCodecCaps(
     caps,
     build: build,
   );
+}
+
+/// Some Amlogic and MediaTek audio drivers misbehave once a device has been up
+/// for a long time, so the diagnostic report says how long that's been.
+Future<void> _detectAndSetSystemUptime() async {
+  if (!PlatformDetection.isAndroid) return;
+  try {
+    const channel = MethodChannel('org.moonfin.androidtv/platform');
+    final uptimeMs = await channel
+        .invokeMethod<int>('uptimeMillis')
+        .timeout(const Duration(seconds: 2));
+    if (uptimeMs != null) PlatformDetection.setSystemUptime(uptimeMs);
+  } catch (_) {}
 }
 
 Future<void> _detectAndSetCodecCapabilities() async {
@@ -843,6 +896,7 @@ void main() async {
     _detectAndSetDisplayCapabilities(),
     _detectAndSetCodecCapabilities(),
     _detectAndSetDeviceMemory(),
+    _detectAndSetSystemUptime(),
   ]);
 
   if (PlatformDetection.isAppleTV) {
@@ -853,6 +907,7 @@ void main() async {
   }
 
   _configureImageCache();
+  _capSkiaCache();
   await configureImageDiskCache(tier: _resolvedTier());
 
   // On Linux the GTK font pipeline loads fonts asynchronously. The first frame
@@ -877,6 +932,7 @@ void main() async {
 
   await configureDependencies();
   _installCrashHandlers();
+  if (PlatformDetection.isAndroid) _startProcessExitReporter();
   // When the system runs the auto-download refresh task against this
   // engine, the native side retries its call until this handler is bound.
   if (AutoDownloadService.isSupportedPlatform) {

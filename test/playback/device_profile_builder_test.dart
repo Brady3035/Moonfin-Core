@@ -279,6 +279,40 @@ List<String> _videoTranscodingVideoCodecs(Map<String, dynamic> profile) {
       .toList(growable: false);
 }
 
+({String width, String height})? _resolutionCap(
+  Map<String, dynamic> profile,
+  String codec,
+) {
+  final codecProfiles = profile['CodecProfiles'] as List<dynamic>? ?? const [];
+  for (final rawProfile in codecProfiles) {
+    final codecProfile = rawProfile as Map<dynamic, dynamic>;
+    final codecs = codecProfile['Codec']?.toString().split(',') ?? const [];
+    if (codecProfile['Type'] != 'Video' || !codecs.contains(codec)) {
+      continue;
+    }
+
+    String? width;
+    String? height;
+    final conditions = codecProfile['Conditions'] as List<dynamic>? ?? const [];
+    for (final rawCondition in conditions) {
+      final condition = rawCondition as Map<dynamic, dynamic>;
+      if (condition['Condition'] != 'LessThanEqual') {
+        continue;
+      }
+      if (condition['Property'] == 'Width') {
+        width = condition['Value']?.toString();
+      }
+      if (condition['Property'] == 'Height') {
+        height = condition['Value']?.toString();
+      }
+    }
+    if (width != null && height != null) {
+      return (width: width, height: height);
+    }
+  }
+  return null;
+}
+
 Set<String> _videoDirectPlayVideoCodecs(Map<String, dynamic> profile) {
   final directPlayProfiles =
       profile['DirectPlayProfiles'] as List<dynamic>? ?? const [];
@@ -466,7 +500,7 @@ void main() {
   group('DeviceProfileBuilder bridged audio sample rate', () {
     test('a player that bridges audio caps the codecs it has to re-encode', () {
       final cap = _sampleRateCap(
-        DeviceProfileBuilder.build(universalAudioDecode: true),
+        DeviceProfileBuilder.build(bridgesAudioToEac3: true),
       );
 
       expect(cap, isNotNull);
@@ -479,7 +513,7 @@ void main() {
 
     test('codecs the container carries untouched are left alone', () {
       final cap = _sampleRateCap(
-        DeviceProfileBuilder.build(universalAudioDecode: true),
+        DeviceProfileBuilder.build(bridgesAudioToEac3: true),
       );
 
       // These are stream copied, so their rate never reaches an encoder and
@@ -489,8 +523,11 @@ void main() {
       }
     });
 
-    test('a player that decodes natively gets no cap', () {
-      expect(_sampleRateCap(DeviceProfileBuilder.build()), isNull);
+    test('a player that decodes every codec itself gets no cap', () {
+      expect(
+        _sampleRateCap(DeviceProfileBuilder.build(universalAudioDecode: true)),
+        isNull,
+      );
     });
   });
 
@@ -1040,6 +1077,34 @@ void main() {
       expect(_subtitleMethodsFor(profile, 'vtt'), contains('Embed'));
       expect(_subtitleMethodsFor(profile, 'srt'), contains('Embed'));
     });
+
+    test("PGS isn't offered as a file unless the player reads .sup", () {
+      final profile = DeviceProfileBuilder.build();
+
+      expect(_subtitleMethodsFor(profile, 'pgssub'), {'Embed', 'Encode'});
+    });
+
+    test('a player that reads .sup files is offered PGS as a file', () {
+      final profile = DeviceProfileBuilder.build(
+        supportsExternalPgsSubtitles: true,
+      );
+
+      expect(_subtitleMethodsFor(profile, 'pgssub'), {
+        'Embed',
+        'External',
+        'Encode',
+      });
+      expect(_subtitleMethodsFor(profile, 'pgs'), contains('External'));
+    });
+
+    test('turning PGS direct play off burns every PGS track in', () {
+      final profile = DeviceProfileBuilder.build(
+        pgsDirectPlay: false,
+        supportsExternalPgsSubtitles: true,
+      );
+
+      expect(_subtitleMethodsFor(profile, 'pgssub'), {'Encode'});
+    });
   });
 
   group('DeviceProfileBuilder stereo AAC fallback', () {
@@ -1417,6 +1482,45 @@ void main() {
       expect(_videoAudioChannelsConditionValue(profile), '8');
     });
 
+    test(
+      'downmix gets the stereo offer when the player can\'t downmix on its own',
+      () {
+        final profile = DeviceProfileBuilder.build(
+          downmixToStereo: true,
+          universalAudioDecode: true,
+          appliesDownmixToStereo: false,
+        );
+
+        expect(
+          _videoDirectPlayAudioCodecs(profile),
+          equals(<String>{'aac', 'mp2', 'mp3'}),
+        );
+        expect(_stereoAacFallbackProfile(profile), isNotNull);
+        final channels = _transcodingMaxAudioChannels(profile);
+        expect(channels, isNotEmpty);
+        expect(channels, everyElement('2'));
+      },
+    );
+
+    test('a detected 2ch route still direct plays everything when the player '
+        'can\'t downmix on its own', () {
+      final profile = DeviceProfileBuilder.build(
+        audioCapabilityProfile: _capabilityProfile(
+          maxPcmChannels: 2,
+          activeRouteType: AudioRouteType.speaker,
+        ),
+        universalAudioDecode: true,
+        appliesDownmixToStereo: false,
+      );
+
+      expect(
+        _videoDirectPlayAudioCodecs(profile),
+        containsAll(<String>['aac', 'ac3', 'eac3', 'dts', 'truehd', 'flac']),
+      );
+      expect(_stereoAacFallbackProfile(profile), isNull);
+      expect(_transcodingMaxAudioChannels(profile), isEmpty);
+    });
+
     test('an explicit stereo channel cap also caps the transcode target', () {
       final profile = DeviceProfileBuilder.build(
         maxAudioChannels: 2,
@@ -1680,6 +1784,57 @@ void main() {
       );
 
       expect(_h264ApplyProfiles(profile), isEmpty);
+    });
+  });
+
+  group('DeviceProfileBuilder max resolution', () {
+    const capped = (width: '1920', height: '1080');
+    final backends = <String, Map<String, dynamic> Function()>{
+      'Media3 and mpv': () => DeviceProfileBuilder.build(
+        maxResolution: MaxVideoResolution.res1080p,
+        universalAudioDecode: true,
+      ),
+      'AetherEngine on iOS, macOS and tvOS': () => DeviceProfileBuilder.build(
+        maxResolution: MaxVideoResolution.res1080p,
+        universalAudioDecode: true,
+        appliesDownmixToStereo: false,
+        bridgesAudioToEac3: true,
+        hevcRequiresFmp4Hls: true,
+        hlsAudioForAvFoundation: true,
+      ),
+      'external players': () => DeviceProfileBuilder.build(
+        maxResolution: MaxVideoResolution.res1080p,
+        universalAudioDecode: true,
+        applyKnownDeviceDefects: false,
+        maxResolutionAvcWidth: 4096,
+        maxResolutionAvcHeight: 2160,
+        maxResolutionHevcWidth: 4096,
+        maxResolutionHevcHeight: 2160,
+        maxResolutionAv1Width: 4096,
+        maxResolutionAv1Height: 2160,
+        maxResolutionVc1Width: 4096,
+        maxResolutionVc1Height: 2160,
+      ),
+    };
+
+    for (final MapEntry(key: name, value: build) in backends.entries) {
+      test('caps every direct play codec on $name', () {
+        final profile = build();
+        final codecs = _videoDirectPlayVideoCodecs(profile);
+
+        expect(codecs, contains('vp9'));
+        for (final codec in codecs) {
+          expect(_resolutionCap(profile, codec), capped, reason: codec);
+        }
+      });
+    }
+
+    test('Auto leaves codecs without a probed size uncapped', () {
+      final profile = DeviceProfileBuilder.build();
+
+      for (final codec in const ['mpeg', 'mpeg2video', 'mpeg4', 'vp8', 'vp9']) {
+        expect(_resolutionCap(profile, codec), isNull, reason: codec);
+      }
     });
   });
 }

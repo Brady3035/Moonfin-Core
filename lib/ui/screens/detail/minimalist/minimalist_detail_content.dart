@@ -1,22 +1,28 @@
+import 'dart:math' as math;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:moonfin_design/moonfin_design.dart';
 
 import '../../../../data/models/aggregated_item.dart';
 import '../../../../data/viewmodels/item_detail_view_model.dart';
+import '../../../../preference/detail_section_layout.dart';
 import '../../../../preference/user_preferences.dart';
 import '../../../widgets/fullscreen_backdrop_switcher.dart';
 import '../../../widgets/logo_view.dart';
 import '../../../widgets/offline_aware_image.dart';
+import '../../../widgets/rating_display.dart';
 import '../detail_layout_metrics.dart';
 import '../item_detail_screen.dart';
+import '../modern/modern_detail_content.dart';
 import '../spotlight/spotlight_detail_content.dart';
 import 'minimalist_landscape_layout.dart';
 import 'minimalist_portrait_layout.dart';
 import 'widgets/minimalist_episodes_section.dart';
 
-/// The item types Minimalist draws. Everything else falls through to Spotlight,
-/// which already knows how to render a person, an album or a playlist.
+/// The item types Minimalist draws. A playlist goes to Modern, and everything
+/// else falls through to Spotlight, which already knows how to render a person
+/// or an album.
 const _minimalistTypes = {
   'Movie',
   'Series',
@@ -77,6 +83,19 @@ class _MinimalistDetailContentState extends State<MinimalistDetailContent> {
     if (item == null) return const SizedBox.shrink();
 
     if (!_minimalistTypes.contains(item.type)) {
+      if (detailFallsBackToModern(item.type)) {
+        return ModernDetailContent(
+          viewModel: _vm,
+          prefs: widget.prefs,
+          backdropUrl: widget.backdropUrl,
+          selectedMediaSourceId: widget.selectedMediaSourceId,
+          onSelectedMediaSourceChanged: widget.onSelectedMediaSourceChanged,
+          initialFocusNode: widget.initialFocusNode,
+          autoPlay: widget.autoPlay,
+          actionsExpanded: widget.actionsExpanded,
+          onActionsExpandedChanged: widget.onActionsExpandedChanged,
+        );
+      }
       return SpotlightDetailContent(
         viewModel: _vm,
         prefs: widget.prefs,
@@ -91,9 +110,13 @@ class _MinimalistDetailContentState extends State<MinimalistDetailContent> {
     }
 
     final landscape = detailUsesLandscapeLayout(context);
-    final branding = _buildBranding(item, landscape);
+    final branding = _buildBranding(context, item, landscape);
     final actions = _buildActions(landscape);
-    final episodes = _buildEpisodes(item, landscape);
+    final ratings = RatingsRow.forDetailScreen(
+      item: item,
+      extraRatings: _vm.ratings,
+      prefs: widget.prefs,
+    );
 
     return Stack(
       fit: StackFit.expand,
@@ -103,14 +126,19 @@ class _MinimalistDetailContentState extends State<MinimalistDetailContent> {
           MinimalistLandscapeLayout(
             branding: branding,
             actions: actions,
-            episodes: episodes,
+            ratings: ratings,
+            episodes: _hasEpisodes(item)
+                ? (maxHeight) =>
+                      _buildEpisodes(item, landscape, maxHeight: maxHeight)!
+                : null,
             aside: _buildEpisodeStill(context, item),
           )
         else
           MinimalistPortraitLayout(
             branding: branding,
             actions: actions,
-            episodes: episodes,
+            ratings: ratings,
+            episodes: _buildEpisodes(item, landscape),
             compact: detailIsCompact(context),
           ),
       ],
@@ -167,23 +195,35 @@ class _MinimalistDetailContentState extends State<MinimalistDetailContent> {
   }
 
   /// The show's own logo where the title would go, falling back to text when
-  /// the server has no logo to give.
+  /// the server has no logo to give or the viewer switched logos off.
   ///
   /// On an episode the logo names the show and the episode's own name sits
   /// under it, so the artwork still says what you're in while the line below
   /// says which part of it.
-  Widget _buildBranding(AggregatedItem item, bool landscape) {
+  Widget _buildBranding(
+    BuildContext context,
+    AggregatedItem item,
+    bool landscape,
+  ) {
     final isEpisode = item.type == 'Episode';
     final isEpisodeOrSeason = isEpisode || item.type == 'Season';
-    final logoTag =
-        item.logoImageTag ??
-        (isEpisodeOrSeason ? item.seriesLogoImageTag : null);
+    final showLogo = DetailSectionVisibility.of(
+      widget.prefs,
+    ).shows(DetailSection.logo);
+    final logoTag = showLogo
+        ? item.logoImageTag ??
+              (isEpisodeOrSeason ? item.seriesLogoImageTag : null)
+        : null;
     final logoId = logoTag == null
         ? null
         : (item.logoImageTag != null ? item.id : item.seriesId);
 
     final maxWidth = landscape ? 340.0 : 220.0;
-    final maxHeight = landscape ? 160.0 : 110.0;
+    // A share of the screen on a short canvas, where a flat 160 is nearly a
+    // third of it and crowds out the rail below.
+    final maxHeight = landscape
+        ? math.min(160.0, MediaQuery.sizeOf(context).height * 0.21)
+        : 110.0;
 
     final Widget showMark;
     if (logoTag != null && logoId != null && logoId.isNotEmpty) {
@@ -329,15 +369,22 @@ class _MinimalistDetailContentState extends State<MinimalistDetailContent> {
     );
   }
 
-  Widget? _buildEpisodes(AggregatedItem item, bool landscape) {
-    // An episode carries the pickers as well, so arriving on one still leaves
-    // the rest of the show a press away.
-    const withEpisodes = {'Series', 'Season', 'Episode'};
-    if (!withEpisodes.contains(item.type)) return null;
+  /// An episode carries the pickers as well, so arriving on one still leaves
+  /// the rest of the show a press away.
+  static bool _hasEpisodes(AggregatedItem item) =>
+      const {'Series', 'Season', 'Episode'}.contains(item.type);
+
+  Widget? _buildEpisodes(
+    AggregatedItem item,
+    bool landscape, {
+    double? maxHeight,
+  }) {
+    if (!_hasEpisodes(item)) return null;
     return MinimalistEpisodesSection(
       viewModel: _vm,
       prefs: widget.prefs,
-      cardWidth: landscape ? 266 : 150,
+      landscape: landscape,
+      maxHeight: maxHeight,
       episodesFocusNode: _episodesFocusNode,
       onVerticalNavigation: (isUp) {
         if (isUp) {

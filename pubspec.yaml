@@ -1,11 +1,13 @@
 name: moonfin
 description: "Moonfin - Jellyfin & Emby media client for mobile, tablet, and desktop"
 publish_to: 'none'
-version: 2.5.1+30000149
+version: 2.7.0+30000154
 
 moonfin:
-  android_tv_version: 2.5.1
-  android_tv_build_number: 2000016
+  android_tv_version: 2.7.0
+  android_tv_build_number: 2000021
+  beta: false
+  beta_number: 1
 
 environment:
   sdk: ">=3.13.0 <4.0.0"
@@ -44,6 +46,8 @@ dependencies:
   sqlite3: ^2.7.0
 
   # Media Playback (Android, desktop and web. Apple runs on AetherEngine)
+  # mpv_frame_sampler_native.dart imports media_kit's NativeLibrary and libmpv
+  # bindings from src/, so check that file when moving this pin.
   media_kit: 1.2.6
   media_kit_video: 2.0.1
   # media_kit_libs_video would pull in the Apple libs packages, and
@@ -56,7 +60,11 @@ dependencies:
   media_kit_libs_linux: 1.2.1
 
   # Image Loading
-  cached_network_image: ^3.4.1
+  # Vendored fork of cached_network_image 3.4.1 that skips decoding an image
+  # again once it's been shown, since that second decode painted blank on
+  # Firefox web. See packages/cached_network_image_fork/pubspec.yaml.
+  cached_network_image:
+    path: packages/cached_network_image_fork
   flutter_cache_manager: ^3.4.1
   # Direct because the image cache index stamps its entries with clock.now(),
   # the same clock the cache manager reads, so a test can drive both. Keep in
@@ -66,6 +74,8 @@ dependencies:
   # client of its own. Keep in step with what flutter_cache_manager resolves.
   http: ^1.6.0
   flutter_svg: ^2.2.1
+  # Parses the seasonal effects' artwork into paths for the sprite atlas.
+  path_parsing: ^1.1.0
 
   # Crypto
   crypto: ^3.0.6
@@ -132,6 +142,7 @@ dependencies:
     path: packages/moonfin_native_video
   url_launcher: ^6.3.2
   file_picker: ^11.0.2
+  emoji_picker_flutter: ^4.5.4
   webview_flutter: ^4.13.1
   flutter_inappwebview: ^6.1.5
   webview_win_floating: ^3.0.3
@@ -141,7 +152,7 @@ dependencies:
   pdfrx: ^2.6.1
   flutter_widget_from_html_core: ^0.16.1
   # Vendored fork of kindle_unpack 0.1.1 (MOBI/AZW/AZW3 -> EPUB), patched to
-  # build against archive 4.x. See packages/kindle_unpack and the patch note.
+  # build against archive 4.x. See packages/kindle_unpack/pubspec.yaml.
   kindle_unpack:
     path: packages/kindle_unpack
   archive: ^4.2.0
@@ -210,25 +221,29 @@ dependency_overrides:
       ref: 43368ec394dcce7795707358b751a748c1fdc610
   # Vendored 0.6.0 with a Windows texture_bridge.cc fix for scroll/resize and
   # tab-switch crashes (null-visual guard + WGC Recreate moved off the
-  # capture-thread mutex). The delta is recorded in
-  # patches/flutter_inappwebview_windows-0.6.0-texture_bridge.patch; on upgrade,
-  # re-vendor the matching version and re-apply that patch.
+  # capture-thread mutex). Both changed sites carry their reasoning inline in
+  # packages/flutter_inappwebview_windows/windows/custom_platform_view/
+  # texture_bridge.cc. On upgrade, re-vendor the matching version and diff that
+  # file against the pub.dev release to carry the fix forward.
   flutter_inappwebview_windows:
     path: packages/flutter_inappwebview_windows
   # Vendored 0.1.2 that degrades instead of throwing from its detached input
   # thread, which aborted the app at startup when /dev/input was missing or
-  # could not be watched. The delta is recorded in
-  # patches/gamepads_linux-0.1.2-no-abort-on-input-errors.patch. On upgrade,
-  # re-vendor the matching version and re-apply that patch.
+  # could not be watched. The changed sites carry their reasoning inline in
+  # packages/gamepads_linux/linux/connection_listener.cc. Upstream 0.1.3 still
+  # throws, so on upgrade re-vendor the matching version and diff that file
+  # against the pub.dev release to carry the fix forward.
   gamepads_linux:
     path: packages/gamepads_linux
   # Fork of 9.6.0 whose desktop finalize renames the staged download onto its
   # destination instead of copying it, falling back to copy across volumes.
   # With staging configured onto the destination volume this makes completion
   # instant instead of a full second copy of the file. Also widens the
-  # connectivity_plus bound to allow the v7 the app already uses. The delta is
-  # recorded in patches/background_downloader-9.6.0-desktop-rename-finalize.patch.
-  # Meant to go upstream, so drop this once a published version carries it.
+  # connectivity_plus bound to allow the v7 the app already uses, which 9.6.1
+  # took upstream, so re-basing the fork past it drops that half. The delta is
+  # the fork's own commit at the pinned ref. Upstream 9.6.2 still copies, so
+  # this is meant to go upstream: drop the fork once a published version
+  # carries the rename.
   background_downloader:
     git:
       url: https://github.com/RadicalMuffinMan/background_downloader.git
@@ -259,6 +274,9 @@ flutter:
   uses-material-design: true
 
   assets:
+    # Bundled so AppBeta can read the beta flag back at runtime, which keeps
+    # pubspec the one place the beta number is written.
+    - pubspec.yaml
     - assets/images/
     - assets/icons/
     - assets/icons/ratings/
@@ -267,6 +285,16 @@ flutter:
     - assets/licenses/cores/
 
   fonts:
+    # The web engine fetches Roboto from fonts.gstatic.com unless it finds a
+    # family of that name here. Material typography asks for Roboto, so this
+    # is the font nearly all of the UI renders in.
+    - family: Roboto
+      fonts:
+        - asset: assets/fonts/Roboto-Regular.ttf
+        - asset: assets/fonts/Roboto-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Roboto-Bold.ttf
+          weight: 700
     - family: NeonPulseDisplay
       fonts:
         - asset: assets/fonts/Orbitron-Regular.ttf
@@ -284,11 +312,14 @@ flutter:
       fonts:
         - asset: assets/fonts/PressStart2P-Regular.ttf
 
+# The identity has to match Partner Center's Product identity page or the Store
+# rejects the upload.
 msix_config:
   display_name: Moonfin
   publisher_display_name: Moonfin
-  identity_name: com.moonfin.app
-  msix_version: 2.5.1.0
+  identity_name: Moonfin.Moonfin
+  publisher: CN=4E670673-D47F-4792-94F7-65B4918F6E4C
   logo_path: assets/icons/app_icon.png
-  capabilities: internetClient, internetClientServer
+  capabilities: internetClient, internetClientServer, privateNetworkClientServer
   languages: en-us
+  protocol_activation: moonfin

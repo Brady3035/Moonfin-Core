@@ -7,21 +7,27 @@ import '../../../../../data/viewmodels/item_detail_view_model.dart';
 import '../../../../../data/viewmodels/seerr_media_detail_view_model.dart';
 import '../../../../../l10n/app_localizations.dart';
 import '../../../../../preference/detail_metadata_layout.dart';
+import '../../../../../preference/detail_section_layout.dart';
 import '../../../../../preference/user_preferences.dart';
 import '../../../../../util/overview_text.dart';
 import '../../../../../util/playback_time_label.dart';
 import '../../../../widgets/logo_view.dart';
 import '../../../../widgets/navigation_layout.dart';
 import '../../../../widgets/offline_aware_image.dart';
+import '../../../../widgets/rating_display.dart';
 import '../../../../widgets/seerr/seerr_item_status.dart';
 import '../../../../widgets/seerr/seerr_status_dot.dart';
 import '../../../../widgets/seerr/seerr_status_pill.dart';
+import '../../detail_layout_metrics.dart';
 import '../../item_detail_screen.dart';
 
 class NouveauHero extends StatefulWidget {
   final AggregatedItem item;
   final ItemDetailViewModel viewModel;
   final UserPreferences prefs;
+
+  /// A hidden logo falls back to the title text.
+  final DetailSectionVisibility visibility;
   final String? selectedMediaSourceId;
   final ValueChanged<String?> onSelectedMediaSourceChanged;
   final FocusNode? initialFocusNode;
@@ -36,6 +42,7 @@ class NouveauHero extends StatefulWidget {
     required this.item,
     required this.viewModel,
     required this.prefs,
+    this.visibility = DetailSectionVisibility.all,
     required this.selectedMediaSourceId,
     required this.onSelectedMediaSourceChanged,
     required this.initialFocusNode,
@@ -270,6 +277,12 @@ class NouveauHeroState extends State<NouveauHero> {
 
     final metadata = _metadataContent(context, item, scale);
 
+    final ratingsRow = RatingsRow.forDetailScreen(
+      item: item,
+      extraRatings: widget.viewModel.ratings,
+      prefs: widget.prefs,
+    );
+
     final technicalDetails = _technicalDetailsContent(item, scale);
 
     final showStatus = !hiddenMetadata.contains(DetailMetadataItem.status.id);
@@ -312,6 +325,16 @@ class NouveauHeroState extends State<NouveauHero> {
         ? heroMaxWidth
         : (heroMaxWidth * 0.90).clamp(490.0, 590.0);
 
+    // Badges are not prose, so they run past the reading measure. The
+    // landscape hero owns the full width, with the backdrop behind it rather
+    // than artwork beside it.
+    final ratingsMaxWidth = isPhonePortrait
+        ? size.width
+        : (size.width - nouveauHorizontalInset(size) * 2).clamp(
+            heroMaxWidth,
+            double.infinity,
+          );
+
     final logoMaxWidth = isPhonePortrait
         ? (size.width - 40) * 0.72
         : isCompact
@@ -338,7 +361,10 @@ class NouveauHeroState extends State<NouveauHero> {
       letterSpacing: -0.10,
     );
 
-    final logoUrl = logoTag != null && logoId != null
+    final logoUrl =
+        widget.visibility.shows(DetailSection.logo) &&
+            logoTag != null &&
+            logoId != null
         ? viewModel.imageApi.getLogoImageUrl(
             logoId,
             maxWidth: logoMaxWidth.round(),
@@ -421,6 +447,7 @@ class NouveauHeroState extends State<NouveauHero> {
                   context: context,
                   branding: branding,
                   metadata: metadata,
+                  ratingsRow: ratingsRow,
                   status: status,
                   upcomingText: upcomingText,
                   seerrPills: seerrPills,
@@ -441,6 +468,7 @@ class NouveauHeroState extends State<NouveauHero> {
                 context: context,
                 branding: branding,
                 metadata: metadata,
+                ratingsRow: ratingsRow,
                 status: status,
                 upcomingText: upcomingText,
                 seerrPills: seerrPills,
@@ -453,6 +481,7 @@ class NouveauHeroState extends State<NouveauHero> {
                 hideOverview: hideOverview,
                 descriptionMaxWidth: descriptionMaxWidth,
                 heroMaxWidth: heroMaxWidth,
+                ratingsMaxWidth: ratingsMaxWidth,
                 overviewStyle: overviewStyle,
                 technicalDetails: technicalDetails,
                 actions: actions,
@@ -466,6 +495,7 @@ class NouveauHeroState extends State<NouveauHero> {
     required BuildContext context,
     required Widget branding,
     required List<Widget> metadata,
+    required Widget? ratingsRow,
     required String? status,
     required String? upcomingText,
     required List<Widget> seerrPills,
@@ -529,6 +559,11 @@ class NouveauHeroState extends State<NouveauHero> {
             children: metadata,
           ),
 
+        if (ratingsRow != null) ...[
+          const SizedBox(height: 12),
+          ratingsRow,
+        ],
+
         if (technicalDetails.isNotEmpty) ...[
           const SizedBox(height: 14),
           Wrap(
@@ -564,6 +599,7 @@ class NouveauHeroState extends State<NouveauHero> {
     required BuildContext context,
     required Widget branding,
     required List<Widget> metadata,
+    required Widget? ratingsRow,
     required String? status,
     required String? upcomingText,
     required List<Widget> seerrPills,
@@ -576,6 +612,7 @@ class NouveauHeroState extends State<NouveauHero> {
     required bool hideOverview,
     required double descriptionMaxWidth,
     required double heroMaxWidth,
+    required double ratingsMaxWidth,
     required TextStyle overviewStyle,
     required List<Widget> technicalDetails,
     required Widget actions,
@@ -631,6 +668,16 @@ class NouveauHeroState extends State<NouveauHero> {
               children: metadata,
             ),
 
+        ],
+      ),
+    );
+
+    final belowRatings = ConstrainedBox(
+      constraints: BoxConstraints(maxWidth: heroMaxWidth),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
           if (technicalDetails.isNotEmpty) ...[
             SizedBox(height: (15.0 * scale).clamp(13.0, 17.0)),
             Wrap(
@@ -663,6 +710,14 @@ class NouveauHeroState extends State<NouveauHero> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         textContent,
+        if (ratingsRow != null) ...[
+          SizedBox(height: (13.0 * scale).clamp(11.0, 15.0)),
+          ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: ratingsMaxWidth),
+            child: ratingsRow,
+          ),
+        ],
+        belowRatings,
         SizedBox(height: (36.0 * scale).clamp(30.0, 38.0)),
         actions,
       ],
@@ -752,22 +807,6 @@ class NouveauHeroState extends State<NouveauHero> {
       'ended' => 'ended',
       _ => null,
     };
-  }
-
-  double? _validCommunityRating(double? rating) {
-    if (rating == null || !rating.isFinite || rating <= 0 || rating > 10) {
-      return null;
-    }
-
-    return rating;
-  }
-
-  double? _validCriticRating(num? rating) {
-    if (rating == null || !rating.isFinite || rating <= 0 || rating > 100) {
-      return null;
-    }
-
-    return rating.toDouble();
   }
 
   Duration? _seasonRuntime() {
@@ -912,22 +951,6 @@ class NouveauHeroState extends State<NouveauHero> {
       }
     }
 
-    final communityRating = _validCommunityRating(item.communityRating);
-
-    if (communityRating != null) {
-      addSeparator();
-
-      values.add(_inlineCommunityRating(communityRating, style, scale));
-    }
-
-    final criticRating = _validCriticRating(item.criticRating);
-
-    if (criticRating != null) {
-      addSeparator();
-
-      values.add(_inlineCriticRating(criticRating, style, scale));
-    }
-
     return values;
   }
 
@@ -1003,36 +1026,6 @@ class NouveauHeroState extends State<NouveauHero> {
           ],
         ),
       ),
-    );
-  }
-
-  Widget _inlineCommunityRating(double rating, TextStyle style, double scale) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(
-          Icons.star_rounded,
-          size: (17.0 * scale).clamp(15.0, 18.0),
-          color: Colors.amber,
-        ),
-        SizedBox(width: (3.0 * scale).clamp(2.5, 3.5)),
-        Text(rating.toStringAsFixed(1), style: style),
-      ],
-    );
-  }
-
-  Widget _inlineCriticRating(double rating, TextStyle style, double scale) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(
-          Icons.reviews_rounded,
-          size: (16.0 * scale).clamp(14.0, 17.0),
-          color: AppColorScheme.onSurface.withValues(alpha: 0.72),
-        ),
-        SizedBox(width: (3.0 * scale).clamp(2.5, 3.5)),
-        Text('${rating.round()}%', style: style),
-      ],
     );
   }
 

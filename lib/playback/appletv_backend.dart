@@ -58,6 +58,7 @@ class AppleTvBackend implements PlayerBackend {
   bool? _engineLogForwarding;
   EngineTrust? _trust;
   bool _playerPresented = false;
+  bool _audioOnly = false;
   Timer? _audioDelayDebounce;
 
   final _positionStream = StreamController<Duration>.broadcast();
@@ -102,6 +103,7 @@ class AppleTvBackend implements PlayerBackend {
   Future<void> _ensurePlayerPresented({bool audioOnly = false}) async {
     if (_disposed || _playerPresented) return;
     _playerPresented = true;
+    _audioOnly = audioOnly;
     await _invoke<void>('present', {'audioOnly': audioOnly});
   }
 
@@ -112,6 +114,11 @@ class AppleTvBackend implements PlayerBackend {
   }
 
   Future<void> dismissPlayer() => _dismissPlayer();
+
+  bool get isPlayerPresented => _playerPresented && !_audioOnly;
+
+  Future<void> sendRemoteNavigation(String command) =>
+      _invoke<void>('remoteNavigation', {'command': command});
 
   void _handleEvent(dynamic event) {
     if (_disposed || event is! Map) return;
@@ -316,6 +323,7 @@ class AppleTvBackend implements PlayerBackend {
       'videoCodec': payload['videoCodec']?.toString(),
       'videoDvProfile': payload['videoDvProfile'],
       'dolbyVisionBaseLayerOnly': needsBaseLayerOnlyForDolbyVisionAv1(payload),
+      'externalSubtitles': payload['externalSubtitles'] ?? const [],
       'videoFrameRate': payload['videoFrameRate'],
       'videoWidth': payload['videoWidth'],
       'videoHeight': payload['videoHeight'],
@@ -356,6 +364,14 @@ class AppleTvBackend implements PlayerBackend {
   Future<void> pause() async {
     await _invoke<void>('pause');
   }
+
+  // Implements rather than extends, so the interface default is not inherited.
+  @override
+  bool? get playWhenReady => null;
+
+  // No way to re-open a live source in place, so the manager escalates.
+  @override
+  Future<bool> resumeLiveEdge() async => false;
 
   @override
   Future<void> stop() async {
@@ -405,12 +421,6 @@ class AppleTvBackend implements PlayerBackend {
   Stream<bool> get bufferingStream => _bufferingStream.stream;
 
   @override
-  double get subtitleAutoOffsetSeconds => 0.0;
-
-  @override
-  Stream<double>? get subtitleAutoOffsetStream => null;
-
-  @override
   Stream<bool> get completedStream => _completedStream.stream;
 
   @override
@@ -435,6 +445,8 @@ class AppleTvBackend implements PlayerBackend {
       // Vorbis/PCM are bridged to EAC3 or FLAC on-device, so stereo routes
       // never need a server-side audio transcode.
       universalAudioDecode: true,
+      appliesDownmixToStereo: false,
+      bridgesAudioToEac3: true,
       maxResolution: maxResolution,
       pgsDirectPlay: _prefs.get(UserPreferences.pgsDirectPlay),
       assDirectPlay: _prefs.get(UserPreferences.assDirectPlay),
@@ -491,6 +503,10 @@ class AppleTvBackend implements PlayerBackend {
     required String topTitle,
     required String topSubtitle,
     required List<Map<String, dynamic>> chapters,
+    // Gates the marks alone. The chapter list still travels in full, since
+    // the chapters button and its menu read the same array. Off by default
+    // to match the preference.
+    bool showChapterMarkers = false,
     required bool hasPrevious,
     required bool hasNext,
     required int skipForwardMs,
@@ -519,6 +535,7 @@ class AppleTvBackend implements PlayerBackend {
       'topTitle': topTitle,
       'topSubtitle': topSubtitle,
       'chapters': chapters,
+      'showChapterMarkers': showChapterMarkers,
       'hasPrevious': hasPrevious,
       'hasNext': hasNext,
       'skipForwardMs': skipForwardMs,
@@ -719,8 +736,12 @@ class AppleTvBackend implements PlayerBackend {
 
   @override
   Future<void> setVolume(double volume) async {
-    _volume = volume.clamp(0.0, 100.0);
-    await _invoke<void>('setVolume', {'volume': _volume});
+    if (_disposed) throw StateError('Player is disposed');
+    final value = volume.clamp(0.0, 100.0);
+    // Unlike fire-and-forget player commands, report volume only after the
+    // native setter succeeds. Keep failures visible to the session receiver.
+    await _control.invokeMethod<void>('setVolume', {'volume': value});
+    _volume = value;
   }
 
   @override

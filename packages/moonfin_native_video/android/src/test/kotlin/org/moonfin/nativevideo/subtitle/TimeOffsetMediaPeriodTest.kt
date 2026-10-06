@@ -7,8 +7,10 @@ import androidx.media3.decoder.DecoderInputBuffer
 import androidx.media3.exoplayer.FormatHolder
 import androidx.media3.exoplayer.LoadingInfo
 import androidx.media3.exoplayer.SeekParameters
+import androidx.media3.exoplayer.source.CompositeSequenceableLoader
 import androidx.media3.exoplayer.source.MediaPeriod
 import androidx.media3.exoplayer.source.SampleStream
+import androidx.media3.exoplayer.source.SequenceableLoader
 import androidx.media3.exoplayer.source.TrackGroupArray
 import androidx.media3.exoplayer.source.chunk.MediaChunk
 import androidx.media3.exoplayer.source.chunk.MediaChunkIterator
@@ -55,6 +57,7 @@ class TimeOffsetMediaPeriodTest {
         var discontinuityUs = C.TIME_UNSET
         var bufferedUs = 0L
         var nextLoadUs = 0L
+        var loading = false
 
         override fun prepare(callback: MediaPeriod.Callback, positionUs: Long) {
             this.callback = callback
@@ -83,7 +86,11 @@ class TimeOffsetMediaPeriodTest {
             discardedAtUs = positionUs
         }
 
-        override fun readDiscontinuity(): Long = discontinuityUs
+        override fun readDiscontinuity(): Long {
+            val result = discontinuityUs
+            discontinuityUs = C.TIME_UNSET
+            return result
+        }
 
         override fun seekToUs(positionUs: Long): Long {
             soughtToUs = positionUs
@@ -96,12 +103,13 @@ class TimeOffsetMediaPeriodTest {
 
         override fun getNextLoadPositionUs(): Long = nextLoadUs
 
+        // Like a real period, one already loading has nothing more to start.
         override fun continueLoading(loadingInfo: LoadingInfo): Boolean {
             loadingPositionUs = loadingInfo.playbackPositionUs
-            return true
+            return !loading
         }
 
-        override fun isLoading(): Boolean = false
+        override fun isLoading(): Boolean = loading
 
         override fun reevaluateBuffer(positionUs: Long) {
             reevaluatedAtUs = positionUs
@@ -170,10 +178,17 @@ class TimeOffsetMediaPeriodTest {
         assertEquals(3_000_000L, child.loadingPositionUs)
         child.bufferedUs = 7_000_000L
         child.nextLoadUs = 8_000_000L
-        child.discontinuityUs = 1_000_000L
         assertEquals(9_000_000L, period.bufferedPositionUs)
         assertEquals(10_000_000L, period.nextLoadPositionUs)
-        assertEquals(3_000_000L, period.readDiscontinuity())
+    }
+
+    @Test
+    fun `a subtitle file starting over after a failed download never moves the video`() {
+        val child = FakePeriod(emptyList())
+        val period = TimeOffsetMediaPeriod(child, 2_000_000L)
+        child.discontinuityUs = 0L
+        assertEquals(C.TIME_UNSET, period.readDiscontinuity())
+        assertEquals(C.TIME_UNSET, child.discontinuityUs)
     }
 
     @Test
@@ -182,11 +197,50 @@ class TimeOffsetMediaPeriodTest {
         val period = TimeOffsetMediaPeriod(child, 2_000_000L)
         child.bufferedUs = C.TIME_END_OF_SOURCE
         child.nextLoadUs = C.TIME_END_OF_SOURCE
-        child.discontinuityUs = C.TIME_UNSET
         assertEquals(C.TIME_END_OF_SOURCE, period.bufferedPositionUs)
         assertEquals(C.TIME_END_OF_SOURCE, period.nextLoadPositionUs)
-        assertEquals(C.TIME_UNSET, period.readDiscontinuity())
         assertEquals(C.TIME_END_OF_SOURCE, period.setEndPositionUs(C.TIME_END_OF_SOURCE))
+    }
+
+    @Test
+    fun `a subtitle file still on its way reports no load position`() {
+        val child = FakePeriod(emptyList())
+        val period = TimeOffsetMediaPeriod(child, 2_000_000L)
+        child.nextLoadUs = 3_800_000L
+        child.loading = true
+        assertEquals(C.TIME_END_OF_SOURCE, period.nextLoadPositionUs)
+        child.loading = false
+        assertEquals(5_800_000L, period.nextLoadPositionUs)
+    }
+
+    // One video segment loaded to 6s, the selected subtitle still waiting on
+    // the server from 3.8s, and the playhead stopped just short of the end of
+    // the video it has.
+    @Test
+    fun `a slow subtitle file doesn't stop the video loading`() {
+        val video = object : SequenceableLoader {
+            var asked = false
+            override fun getBufferedPositionUs(): Long = 6_000_000L
+            override fun getNextLoadPositionUs(): Long = 6_000_000L
+            override fun continueLoading(loadingInfo: LoadingInfo): Boolean {
+                asked = true
+                return false
+            }
+            override fun isLoading(): Boolean = false
+            override fun reevaluateBuffer(positionUs: Long) {}
+        }
+        val subtitleFile = FakePeriod(emptyList()).apply {
+            nextLoadUs = 3_800_000L
+            loading = true
+        }
+        val loader = CompositeSequenceableLoader(
+            listOf(video, TimeOffsetMediaPeriod(subtitleFile, 0L)),
+            listOf(listOf(C.TRACK_TYPE_VIDEO), listOf(C.TRACK_TYPE_TEXT)),
+        )
+
+        loader.continueLoading(LoadingInfo.Builder().setPlaybackPositionUs(5_900_000L).build())
+
+        assertTrue(video.asked)
     }
 
     @Test

@@ -25,13 +25,13 @@ class AppLocalizationsCa extends AppLocalizations {
   String get animeMarkerMangaCanon => 'Cànon manga';
 
   @override
-  String get animeMarkerSubbed => 'Subtitulat';
+  String get animeMarkerSubbed => 'Sub';
 
   @override
-  String get animeMarkerDubbed => 'Doblat';
+  String get animeMarkerDubbed => 'Dub';
 
   @override
-  String get animeMarkerSubbedAndDubbed => 'Subtitulat/Doblat';
+  String get animeMarkerSubbedAndDubbed => 'Sub/Dub';
 
   @override
   String get animeMarkerPending => 'Pendent';
@@ -173,7 +173,7 @@ class AppLocalizationsCa extends AppLocalizations {
 
   @override
   String get detailScreenStyleSubtitle =>
-      'Clàssic és la disposició original centrada de Moonfin. Modern és una disposició cinematogràfica adaptativa. Spotlight és una disposició centrada en la imatge principal amb targetes de contingut emergents. Nouveau és una disposició a pantalla completa amb les seccions apilades al llarg de la pàgina.';
+      'Clàssic és la disposició original centrada de moonfin. Modern és una disposició cinematogràfica adaptativa. Spotlight és una disposició que posa la il·lustració al davant, amb targetes de contingut emergents. Nouveau és una disposició a pantalla completa amb les seccions apilades al llarg de la pàgina. Minimalista és la il·lustració, un botó de reproducció i els episodis.';
 
   @override
   String get detailScreenStyleMoonfin => 'Clàssic';
@@ -389,7 +389,7 @@ class AppLocalizationsCa extends AppLocalizations {
   String get detailScreenStyleNouveau => 'Nouveau';
 
   @override
-  String get detailScreenStyleMinimalist => 'Minimalist';
+  String get detailScreenStyleMinimalist => 'Minimalista';
 
   @override
   String get expandedTabs => 'Pestanyes desplegades';
@@ -799,6 +799,12 @@ class AppLocalizationsCa extends AppLocalizations {
   String get extraLarge => 'Extragran';
 
   @override
+  String get uiScaleGrandparents => 'Per als avis';
+
+  @override
+  String get uiScaleGreatGrandparents => 'Per als besavis';
+
+  @override
   String get scrollDirection => 'Direcció de desplaçament';
 
   @override
@@ -1073,7 +1079,7 @@ class AppLocalizationsCa extends AppLocalizations {
   String get unread => 'Sense llegir';
 
   @override
-  String get unwatched => 'No vist';
+  String get unwatched => 'Sense veure';
 
   @override
   String get seriesStatus => 'Estat de la sèrie';
@@ -1968,11 +1974,6 @@ class AppLocalizationsCa extends AppLocalizations {
   String get subtitleDelay => 'Retard dels subtítols';
 
   @override
-  String subtitleDelayAuto(String value) {
-    return 'Auto $value';
-  }
-
-  @override
   String get reset => 'Restableix';
 
   @override
@@ -2111,6 +2112,9 @@ class AppLocalizationsCa extends AppLocalizations {
 
   @override
   String get shortcutMpvStats => 'Activa o desactiva les estadístiques de mpv';
+
+  @override
+  String get shortcutRecropBlackBars => 'Recrop black bars';
 
   @override
   String get shortcutLeaveFullscreenOrStop =>
@@ -2428,7 +2432,7 @@ class AppLocalizationsCa extends AppLocalizations {
   String get premiere => 'Estrena';
 
   @override
-  String get guideRepeatBadge => 'Repeat';
+  String get guideRepeatBadge => 'Repetiu';
 
   @override
   String get guideTimeline => 'Cronologia de la guia';
@@ -2528,6 +2532,15 @@ class AppLocalizationsCa extends AppLocalizations {
   @override
   String failedToPlayChannel(String name) {
     return 'No s\'ha pogut reproduir $name';
+  }
+
+  @override
+  String get playbackStreamLost =>
+      'La reproducció s\'ha aturat i no s\'ha pogut recuperar.';
+
+  @override
+  String liveReconnecting(int attempt, int total) {
+    return 'S\'està reconnectant… ($attempt de $total)';
   }
 
   @override
@@ -3145,6 +3158,88 @@ class AppLocalizationsCa extends AppLocalizations {
   String get fallingLeaves => 'Fulles que cauen';
 
   @override
+  String get seasonalChristmas => 'Christmas';
+
+  @override
+  String get seasonalPetals => 'Spring Petals';
+
+  @override
+  String get seasonalFireflies => 'Fireflies';
+
+  @override
+  String get seasonalHalloween => 'Halloween';
+
+  @override
+  String get seasonalDensity => 'Density';
+
+  @override
+  String get seasonalDensityLight => 'Light';
+
+  @override
+  String get seasonalDensityNormal => 'Normal';
+
+  @override
+  String get seasonalDensityHeavy => 'Heavy';
+
+  @override
+  String get seasonalRow => 'Seasonal Row';
+
+  @override
+  String get seasonalRowDescription =>
+      'Show a row of holiday movies from your library, with Seerr suggestions when available.';
+
+  @override
+  String get seasonalRowSubtitle => 'Seasonal';
+
+  @override
+  String get seasonalRowCountry => 'Country';
+
+  @override
+  String get seasonalRowCountryAuto => 'Automatic';
+
+  @override
+  String get countryUnitedStates => 'United States';
+
+  @override
+  String get countryCanada => 'Canada';
+
+  @override
+  String get seasonalRowCountryOther => 'Other';
+
+  @override
+  String get seasonalRowHolidays => 'Holidays';
+
+  @override
+  String get seasonalRowHolidaysHint => 'Untick a holiday to hide its row.';
+
+  @override
+  String get holidayNewYear => 'New Year\'s';
+
+  @override
+  String get holidayValentines => 'Valentine\'s Day';
+
+  @override
+  String get holidayEaster => 'Easter';
+
+  @override
+  String get holidayPride => 'Pride';
+
+  @override
+  String get holidayHalloween => 'Halloween';
+
+  @override
+  String get holidayThanksgiving => 'Thanksgiving';
+
+  @override
+  String get holidayChristmas => 'Christmas Movies';
+
+  @override
+  String get holidayLunarNewYear => 'Lunar New Year';
+
+  @override
+  String get holidayDiwali => 'Diwali';
+
+  @override
   String get themeMusic => 'Tema Música';
 
   @override
@@ -3233,6 +3328,22 @@ class AppLocalizationsCa extends AppLocalizations {
       'Detecta les bandes negres codificades, retalla-les i omple la pantalla.';
 
   @override
+  String get cropBlackBarsRecropInterval => 'Recrop interval';
+
+  @override
+  String get cropBlackBarsOnce => 'Once at start';
+
+  @override
+  String get cropBlackBarsEverySecond => 'Every second';
+
+  @override
+  String get settingsCropBlackBarsIntervalDescription =>
+      'Follow aspect ratio changes during playback.';
+
+  @override
+  String get playerRecroppingBlackBars => 'Recropping black bars';
+
+  @override
   String get stretch => 'Estirar';
 
   @override
@@ -3300,6 +3411,13 @@ class AppLocalizationsCa extends AppLocalizations {
   @override
   String get dimVideoShowOverview =>
       'Atenua el vídeo i mostra el text general mentre estàs en pausa';
+
+  @override
+  String get showChapterMarkers => 'Marques de capítol';
+
+  @override
+  String get showChapterMarkersDescription =>
+      'Marca on comença cada capítol a la barra de progrés';
 
   @override
   String get osdLockButton => 'Botó de bloqueig OSD';
@@ -3395,6 +3513,140 @@ class AppLocalizationsCa extends AppLocalizations {
   @override
   String get detailMetadataUpcomingEpisodeDateSubtitle =>
       'Fa servir Sonarr i TMDB per mostrar les pròximes dates d\'estrena';
+
+  @override
+  String get detailSections => 'Seccions';
+
+  @override
+  String get detailSectionsDescription =>
+      'Tria quines parts de la pantalla de detalls es mostren';
+
+  @override
+  String get detailSectionsScreenDescription =>
+      'Només es mostren les seccions que pot mostrar l\'estil actual de la pantalla de detalls. Si n\'amagues una, s\'amaga en tots els estils que la tenen.';
+
+  @override
+  String get detailSectionGroupHeader => 'Capçalera';
+
+  @override
+  String get detailSectionGroupSections => 'Seccions';
+
+  @override
+  String get detailSectionGroupPerson => 'Pàgines de persones';
+
+  @override
+  String get detailSectionGroupCollection => 'Pàgines de col·leccions';
+
+  @override
+  String get detailSectionGroupOther => 'Altres';
+
+  @override
+  String get detailSectionLogo => 'Logotip';
+
+  @override
+  String get detailSectionLogoSubtitle =>
+      'Mostra el títol com a text quan està desactivat';
+
+  @override
+  String get detailSectionTagline => 'Eslogan';
+
+  @override
+  String get detailSectionPoster => 'Pòster';
+
+  @override
+  String get detailSectionVersionBadge => 'Insígnia de versió';
+
+  @override
+  String get detailSectionUpNext => 'Següent';
+
+  @override
+  String get detailSectionLyrics => 'Lletres';
+
+  @override
+  String get detailSectionCast => 'Repartiment';
+
+  @override
+  String get detailSectionCastSubtitle => 'També a les pàgines de col·leccions';
+
+  @override
+  String get detailSectionCrew => 'Direcció i guió';
+
+  @override
+  String get detailSectionStudios => 'Estudis';
+
+  @override
+  String get detailSectionChapters => 'Capítols';
+
+  @override
+  String get detailSectionExtras => 'Extres';
+
+  @override
+  String get detailSectionCollections => 'Col·leccions';
+
+  @override
+  String get detailSectionMoreLikeThis => 'Més així';
+
+  @override
+  String get detailSectionMoreLikeThisSubtitle =>
+      'També àlbums i artistes similars';
+
+  @override
+  String get detailSectionMoreEpisodes => 'Més episodis';
+
+  @override
+  String get detailSectionMoreEpisodesSubtitle => 'A les pàgines d\'episodis';
+
+  @override
+  String get detailSectionMediaInfo => 'Informació multimèdia';
+
+  @override
+  String get detailSectionMediaInfoSubtitle =>
+      'Fitxer, fluxos i comprovació de reproducció nativa';
+
+  @override
+  String get detailSectionSeerrGenresTags => 'Gèneres i etiquetes';
+
+  @override
+  String get detailSectionSeerrStats => 'Estadístiques';
+
+  @override
+  String get detailSectionSeerrRecommendations => 'Recomanacions';
+
+  @override
+  String get detailSectionSeerrSimilar => 'Títols similars';
+
+  @override
+  String get detailSectionSeerrCollection => 'Bàner de la col·lecció';
+
+  @override
+  String get detailSectionSeerrPersonAppearances => 'Aparicions';
+
+  @override
+  String get detailSectionSeerrPersonCrew => 'Crèdits d\'equip tècnic';
+
+  @override
+  String get detailSectionPersonPagesSubtitle => 'A les pàgines de persones';
+
+  @override
+  String get detailSectionBiography => 'Biografia';
+
+  @override
+  String get detailSectionBirthplace => 'Lloc de naixement';
+
+  @override
+  String get detailSectionGuestAppearances => 'Aparicions de convidats';
+
+  @override
+  String get detailSectionMusicVideos => 'Vídeos musicals';
+
+  @override
+  String get detailSectionPlaylistOrder => 'Ordre de la llista de reproducció';
+
+  @override
+  String get detailSectionBookGenres => 'Gèneres de llibres';
+
+  @override
+  String get detailSectionPhotoExif => 'Detalls de la foto';
 
   @override
   String upcomingEpisodeNext(String date, int season, int episode) {
@@ -3978,6 +4230,21 @@ class AppLocalizationsCa extends AppLocalizations {
   String get semiTransparentBlack => 'Negre semitransparent';
 
   @override
+  String get semiTransparentWhite => 'Blanc semitransparent';
+
+  @override
+  String get lightGray => 'Gris clar';
+
+  @override
+  String get darkGray => 'Gris fosc';
+
+  @override
+  String get blue => 'Blau';
+
+  @override
+  String get magenta => 'Magenta';
+
+  @override
   String get global => 'Global';
 
   @override
@@ -4317,6 +4584,24 @@ class AppLocalizationsCa extends AppLocalizations {
   @override
   String get showInLatestMedia =>
       'Mostra a contingut afegit/estrenat recentment';
+
+  @override
+  String get libraryOrder => 'Ordre de les biblioteques';
+
+  @override
+  String get libraryOrderSubtitle => 'Tria l\'ordre de les teves biblioteques';
+
+  @override
+  String get libraryOrderDescription =>
+      'Les teves biblioteques apareixen en aquest ordre a «La meva biblioteca», a les files d\'afegits recentment i a la barra de navegació. L\'ordre es desa al teu compte del servidor, de manera que també el fan servir les altres aplicacions on iniciïs la sessió.';
+
+  @override
+  String get libraryOrderTvHint =>
+      'Prem esquerra o dreta per moure la biblioteca seleccionada.';
+
+  @override
+  String get libraryOrderSaveFailed =>
+      'No s\'ha pogut desar l\'ordre de les biblioteques';
 
   @override
   String get sourceLibraries => 'Biblioteques font';
@@ -5184,6 +5469,9 @@ class AppLocalizationsCa extends AppLocalizations {
 
   @override
   String get playInMoonfin => 'Reprodueix a Moonfin';
+
+  @override
+  String get requestedByLabel => 'Sol·licitat per';
 
   @override
   String requestedByName(String name) {
@@ -9474,24 +9762,25 @@ class AppLocalizationsCa extends AppLocalizations {
   }
 
   @override
-  String get kidsMode => 'Kids Mode';
+  String get kidsMode => 'Mode infantil';
 
   @override
   String get kidsModeSubtitle =>
-      'Simplify the app and lock the way out with a PIN';
+      'Simplifica l\'aplicació i bloqueja la sortida amb un PIN';
 
   @override
-  String get kidsModeExit => 'Exit Kids Mode';
+  String get kidsModeExit => 'Surt del mode infantil';
 
   @override
-  String get kidsModeExitSubtitle => 'Enter your PIN to restore the full app';
+  String get kidsModeExitSubtitle =>
+      'Introdueix el PIN per recuperar l\'aplicació completa';
 
   @override
   String get pinIncorrect => 'PIN incorrecte';
 
   @override
   String pinTryAgainIn(String wait) {
-    return 'Too many attempts. Try again in $wait.';
+    return 'Massa intents. Torna-ho a provar d\'aquí a $wait.';
   }
 
   @override
@@ -9592,6 +9881,9 @@ class AppLocalizationsCa extends AppLocalizations {
 
   @override
   String get trackActionPlayNext => 'Reproduir a continuació';
+
+  @override
+  String get trackActionViewDetails => 'Veure detalls';
 
   @override
   String get trackActionAddToQueue => 'Afegeix a la cua';
@@ -9880,17 +10172,22 @@ class AppLocalizationsCa extends AppLocalizations {
       'Confia en els servidors que utilitzen certificats TLS autosignats o d\'una CA privada. Activa-ho només per als servidors que controlis. Això desactiva la validació de certificats per a totes les connexions.';
 
   @override
+  String get untrustedServerCertificate =>
+      'No es confia en el certificat d\'aquest servidor. Si és el teu propi servidor i fa servir un certificat autosignat o privat, pots permetre\'l aquí.';
+
+  @override
   String get settingsPrivacyAndSafetySection => 'PRIVACITAT I SEGURETAT';
 
   @override
-  String get itemBlockedByParentalControls => 'This isn\'t available';
+  String get itemBlockedByParentalControls => 'Això no està disponible';
 
   @override
   String get blockedRatingsCeilingHint =>
-      'Blocking a rating also blocks everything stronger than it.';
+      'Bloquejar una classificació també bloqueja totes les superiors.';
 
   @override
-  String get blockedRatingsUnrankedSection => 'Only blocks itself';
+  String get blockedRatingsUnrankedSection =>
+      'Bloqueja només aquesta classificació';
 
   @override
   String get settingsBlockedRatings => 'Classificacions bloquejades';
@@ -11156,93 +11453,119 @@ class AppLocalizationsCa extends AppLocalizations {
   String get openInBrowser => 'Obre al navegador';
 
   @override
-  String get achievementBadges => 'Achievement Badges';
+  String get achievementBadges => 'Insígnies de fites';
 
   @override
   String get achievementBadgesSubtitle =>
-      'Badges, ranks and quests earned from what you watch';
+      'Insígnies, rangs i missions que guanyes pel que mires';
 
   @override
-  String get achievementsBadges => 'Badges';
+  String get achievementsBadges => 'Insígnies';
 
   @override
   String achievementsBadgeCount(int unlocked, int total) {
-    return '$unlocked of $total badges';
+    return '$unlocked de $total insígnies';
   }
 
   @override
-  String get achievementsQuests => 'Quests';
+  String get achievementsUnlockToasts => 'Notificacions de desbloqueig';
+
+  @override
+  String get achievementsUnlockToastsSubtitle =>
+      'Mostra una notificació quan desbloquegis una insígnia';
+
+  @override
+  String get achievementsUnlockedNotification => 'Fita desbloquejada';
+
+  @override
+  String achievementsUnlockedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fites desbloquejades',
+      one: '$count fita desbloquejada',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String achievementsUnlockedMore(int count) {
+    return '+$count més';
+  }
+
+  @override
+  String get achievementsQuests => 'Missions';
 
   @override
   String achievementsQuestCount(int count) {
-    return '$count completed';
+    return '$count completades';
   }
 
   @override
-  String get achievementsLeaderboard => 'Leaderboard';
+  String get achievementsLeaderboard => 'Classificació';
 
   @override
   String get achievementsLeaderboardSubtitle =>
-      'How you compare with other users on this server';
+      'Com et compares amb els altres usuaris d\'aquest servidor';
 
   @override
-  String get achievementsRecap => 'Recap';
+  String get achievementsRecap => 'Resum';
 
   @override
-  String get achievementsRecapSubtitle => 'What you watched recently';
+  String get achievementsRecapSubtitle => 'Què has vist darrerament';
 
   @override
-  String get achievementsLibraryCompletion => 'Library completion';
+  String get achievementsLibraryCompletion => 'Progrés de les biblioteques';
 
   @override
   String achievementsLibraryCount(int count) {
-    return '$count libraries';
+    return '$count biblioteques';
   }
 
   @override
   String achievementsScore(int score) {
-    return '$score points';
+    return '$score punts';
   }
 
   @override
-  String get achievementsScoreLabel => 'Score';
+  String get achievementsScoreLabel => 'Puntuació';
 
   @override
-  String get achievementsTopRank => 'Top rank reached';
+  String get achievementsTopRank => 'Has arribat al rang màxim';
 
   @override
   String achievementsPointsToNextRank(int points, String tier) {
-    return '$points points to $tier';
+    return '$points punts per a $tier';
   }
 
   @override
   String achievementsCurrentStreak(int days) {
-    return '$days day streak';
+    return 'Ratxa de $days dies';
   }
 
   @override
   String achievementsBestStreak(int days) {
-    return 'Best: $days days';
+    return 'Millor: $days dies';
   }
 
   @override
-  String get achievementsShowcase => 'Showcase';
+  String get achievementsShowcase => 'Vitrina';
 
   @override
-  String get achievementsUnlocked => 'Unlocked';
+  String get achievementsUnlocked => 'Desbloquejades';
 
   @override
-  String get achievementsLocked => 'Locked';
+  String get achievementsLocked => 'Bloquejades';
 
   @override
-  String get achievementsNothingHere => 'Nothing here yet.';
+  String get achievementsNothingHere => 'Encara no hi ha res aquí.';
 
   @override
-  String get achievementsHiddenBadge => 'Hidden achievement';
+  String get achievementsHiddenBadge => 'Fita oculta';
 
   @override
   String achievementsUnlockedOn(String date) {
-    return 'Unlocked $date';
+    return 'Desbloquejada el $date';
   }
 
   @override
@@ -11251,10 +11574,10 @@ class AppLocalizationsCa extends AppLocalizations {
   }
 
   @override
-  String get achievementsDailyQuests => 'Daily';
+  String get achievementsDailyQuests => 'Diàriament';
 
   @override
-  String get achievementsWeeklyQuests => 'Weekly';
+  String get achievementsWeeklyQuests => 'Setmanalment';
 
   @override
   String achievementsQuestReward(int points) {
@@ -11262,200 +11585,203 @@ class AppLocalizationsCa extends AppLocalizations {
   }
 
   @override
-  String get achievementsRerollDaily => 'Reroll daily quests';
+  String get achievementsRerollDaily => 'Canvia les missions diàries';
 
   @override
-  String get achievementsRerollWeekly => 'Reroll weekly quests';
+  String get achievementsRerollWeekly => 'Canvia les missions setmanals';
 
   @override
-  String get achievementsRerollOffer => 'Swap this set for a different one';
+  String get achievementsRerollOffer => 'Canvia aquest conjunt per un altre';
 
   @override
   String get achievementsRerollSpentDaily =>
-      'Used today, comes back at midnight UTC';
+      'Ja utilitzat avui; torna a mitjanit UTC';
 
   @override
   String get achievementsRerollSpentWeekly =>
-      'Used this week, comes back Monday UTC';
+      'Ja utilitzat aquesta setmana; torna dilluns UTC';
 
   @override
-  String get achievementsRerollConfirm => 'Reroll these quests?';
+  String get achievementsRerollConfirm => 'Vols canviar aquestes missions?';
 
   @override
   String get achievementsRerollConfirmBody =>
-      'You get one daily and one weekly reroll, and this spends it.';
+      'Tens un canvi diari i un de setmanal, i això te\'l gasta.';
 
   @override
-  String get achievementsRerollFailed => 'Could not reroll those quests.';
+  String get achievementsRerollFailed =>
+      'No s\'han pogut canviar aquestes missions.';
 
   @override
-  String get achievementsSuggested => 'Suggested items to watch';
+  String get achievementsSuggested => 'Elements suggerits per mirar';
 
   @override
-  String get achievementsNoSuggestions => 'Nothing to suggest for this badge.';
+  String get achievementsNoSuggestions =>
+      'No hi ha res a suggerir per a aquesta insígnia.';
 
   @override
-  String get achievementsProgressLabel => 'Progress';
+  String get achievementsProgressLabel => 'Progrés';
 
   @override
-  String get achievementsLoadout => 'Loadout';
+  String get achievementsLoadout => 'Equipament';
 
   @override
   String get achievementsLoadoutSubtitle =>
-      'Score to spend and the boosts you hold';
+      'Punts per gastar i els potenciadors que tens';
 
   @override
-  String get achievementsAppearance => 'Appearance';
+  String get achievementsAppearance => 'Aparença';
 
   @override
   String get achievementsAppearanceSubtitle =>
-      'The avatar and title on your profile';
+      'L\'avatar i el títol del teu perfil';
 
   @override
   String get achievementsAvatars => 'Avatars';
 
   @override
-  String get achievementsTitles => 'Titles';
+  String get achievementsTitles => 'Títols';
 
   @override
-  String get achievementsEquipped => 'Equipped';
+  String get achievementsEquipped => 'Equipat';
 
   @override
-  String get achievementsOwned => 'Owned';
+  String get achievementsOwned => 'Adquirit';
 
   @override
   String achievementsEarnedAt(int score) {
-    return 'Earned at $score lifetime score';
+    return 'S\'aconsegueix amb $score punts acumulats';
   }
 
   @override
   String get achievementsAppearanceEmpty =>
-      'This server has no avatars or titles to wear.';
+      'Aquest servidor no té cap avatar ni títol per portar.';
 
   @override
   String get achievementsAppearanceFailed =>
-      'Could not change how the profile looks.';
+      'No s\'ha pogut canviar l\'aspecte del perfil.';
 
   @override
-  String get achievementsPowerUps => 'Power-ups';
+  String get achievementsPowerUps => 'Potenciadors';
 
   @override
-  String get achievementsStats => 'Stats';
+  String get achievementsStats => 'Estadístiques';
 
   @override
   String get achievementsStatsSubtitle =>
-      'Your records and how the server is doing';
+      'Els teus rècords i com va el servidor';
 
   @override
-  String get achievementsStatsWatched => 'Watched';
+  String get achievementsStatsWatched => 'Vist';
 
   @override
-  String get achievementsStatsBests => 'Bests';
+  String get achievementsStatsBests => 'Rècords';
 
   @override
-  String get achievementsStatsHabits => 'Habits';
+  String get achievementsStatsHabits => 'Hàbits';
 
   @override
-  String get achievementsStatsVariety => 'Variety';
+  String get achievementsStatsVariety => 'Varietat';
 
   @override
-  String get achievementsStatsServer => 'This server';
+  String get achievementsStatsServer => 'Aquest servidor';
 
   @override
-  String get achievementsStatsClock => 'When you watch';
+  String get achievementsStatsClock => 'Quan mires';
 
   @override
-  String get achievementsStatItems => 'Items watched';
+  String get achievementsStatItems => 'Elements vistos';
 
   @override
-  String get achievementsStatMovies => 'Films watched';
+  String get achievementsStatMovies => 'Pel·lícules vistes';
 
   @override
-  String get achievementsStatSeries => 'Series finished';
+  String get achievementsStatSeries => 'Sèries acabades';
 
   @override
-  String get achievementsStatHours => 'Hours watched';
+  String get achievementsStatHours => 'Hores vistes';
 
   @override
-  String get achievementsStatDays => 'Days watched';
+  String get achievementsStatDays => 'Dies de visionat';
 
   @override
-  String get achievementsStatRewatches => 'Rewatches';
+  String get achievementsStatRewatches => 'Revisionats';
 
   @override
-  String get achievementsStatBestWatchStreak => 'Best watch streak';
+  String get achievementsStatBestWatchStreak => 'Millor ratxa de visionat';
 
   @override
-  String get achievementsStatBestLoginStreak => 'Best login streak';
+  String get achievementsStatBestLoginStreak =>
+      'Millor ratxa d\'inicis de sessió';
 
   @override
-  String get achievementsStatMostEpisodes => 'Most episodes in a day';
+  String get achievementsStatMostEpisodes => 'Més episodis en un dia';
 
   @override
-  String get achievementsStatMostMovies => 'Most films in a day';
+  String get achievementsStatMostMovies => 'Més pel·lícules en un dia';
 
   @override
-  String get achievementsStatLongestItem => 'Longest single item';
+  String get achievementsStatLongestItem => 'Element més llarg';
 
   @override
-  String get achievementsStatBestCombo => 'Best combo';
+  String get achievementsStatBestCombo => 'Millor combo';
 
   @override
-  String get achievementsStatLateNight => 'Late night sessions';
+  String get achievementsStatLateNight => 'Sessions de nit';
 
   @override
-  String get achievementsStatEarlyMorning => 'Early morning sessions';
+  String get achievementsStatEarlyMorning => 'Sessions de bon matí';
 
   @override
-  String get achievementsStatWeekend => 'Weekend sessions';
+  String get achievementsStatWeekend => 'Sessions de cap de setmana';
 
   @override
-  String get achievementsStatDaysSignedIn => 'Days signed in';
+  String get achievementsStatDaysSignedIn => 'Dies amb sessió iniciada';
 
   @override
-  String get achievementsStatLibraries => 'Libraries visited';
+  String get achievementsStatLibraries => 'Biblioteques visitades';
 
   @override
-  String get achievementsStatGenres => 'Genres watched';
+  String get achievementsStatGenres => 'Gèneres vistos';
 
   @override
-  String get achievementsStatDecades => 'Decades watched';
+  String get achievementsStatDecades => 'Dècades vistes';
 
   @override
-  String get achievementsStatCountries => 'Countries watched';
+  String get achievementsStatCountries => 'Països vistos';
 
   @override
-  String get achievementsStatLanguages => 'Languages watched';
+  String get achievementsStatLanguages => 'Idiomes vistos';
 
   @override
-  String get achievementsStatUsers => 'Users';
+  String get achievementsStatUsers => 'Usuaris';
 
   @override
-  String get achievementsStatBadgesUnlocked => 'Badges unlocked';
+  String get achievementsStatBadgesUnlocked => 'Insígnies desbloquejades';
 
   @override
-  String get achievementsStatScoreEarned => 'Score earned';
+  String get achievementsStatScoreEarned => 'Punts aconseguits';
 
   @override
-  String get achievementsStatCommonBadge => 'Most common badge';
+  String get achievementsStatCommonBadge => 'Insígnia més comuna';
 
   @override
-  String get achievementsActivity => 'Activity';
+  String get achievementsActivity => 'Activitat';
 
   @override
   String get achievementsActivitySubtitle =>
-      'What the server has unlocked lately';
+      'Què ha desbloquejat el servidor darrerament';
 
   @override
   String achievementsActivityUnlocked(String user, String badge) {
-    return '$user unlocked $badge';
+    return '$user ha desbloquejat $badge';
   }
 
   @override
-  String get achievementsShop => 'Shop';
+  String get achievementsShop => 'Botiga';
 
   @override
-  String get achievementsShopSubtitle => 'Spend score on more boosts';
+  String get achievementsShopSubtitle => 'Gasta punts en més potenciadors';
 
   @override
   String achievementsShopPack(String name, int count) {
@@ -11463,100 +11789,443 @@ class AppLocalizationsCa extends AppLocalizations {
   }
 
   @override
-  String get achievementsShopEmpty => 'Nothing for sale right now.';
+  String get achievementsShopEmpty => 'Ara mateix no hi ha res a la venda.';
 
   @override
-  String get achievementsBuyConfirm => 'Buy this?';
+  String get achievementsBuyConfirm => 'Vols comprar-ho?';
 
   @override
   String get achievementsBuyConfirmBody =>
-      'It comes straight out of your score bank.';
+      'Surt directament de la teva reserva de punts.';
 
   @override
-  String get achievementsBuyFailed => 'Could not buy that.';
+  String get achievementsBuyFailed => 'No s\'ha pogut comprar.';
 
   @override
-  String get achievementsScoreBank => 'Score bank';
+  String get achievementsScoreBank => 'Reserva de punts';
 
   @override
-  String get achievementsBoost => 'XP Boost';
+  String get achievementsBoost => 'Impuls d\'XP';
 
   @override
   String get achievementsBoostBody =>
-      'Doubles score for an hour. Using it again restarts the hour.';
+      'Duplica la puntuació durant una hora. Si el tornes a utilitzar, l\'hora torna a començar.';
 
   @override
-  String get achievementsDoubleCredit => 'Double Credit';
+  String get achievementsDoubleCredit => 'Doble recompte';
 
   @override
   String get achievementsDoubleCreditBody =>
-      'The next thing you finish counts twice towards badges.';
+      'El següent que acabis compta doble per a les insígnies.';
 
   @override
-  String get achievementsStreakFreeze => 'Streak Freeze';
+  String get achievementsStreakFreeze => 'Congelació de ratxa';
 
   @override
   String get achievementsStreakFreezeBody =>
-      'Covers one missed day. Only one can be banked.';
+      'Cobreix un dia que hagis perdut. Només en pots guardar un.';
 
   @override
   String achievementsPowerUpHeld(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count held',
-      one: '1 held',
-      zero: 'None held',
+      other: '$count disponibles',
+      one: '1 disponible',
+      zero: 'Cap disponible',
     );
     return '$_temp0';
   }
 
   @override
-  String get achievementsPowerUpActive => 'Running now';
+  String get achievementsPowerUpActive => 'Actiu ara';
 
   @override
-  String get achievementsUsePowerUp => 'Use this power-up?';
+  String get achievementsUsePowerUp => 'Vols utilitzar aquest potenciador?';
 
   @override
   String get achievementsUsePowerUpBody =>
-      'It\'s spent as soon as you confirm.';
+      'Es gasta tan bon punt ho confirmis.';
 
   @override
-  String get achievementsPowerUpFailed => 'Could not use that power-up.';
+  String get achievementsPowerUpFailed =>
+      'No s\'ha pogut utilitzar aquest potenciador.';
 
   @override
-  String get achievementsHours => 'Hours';
+  String get achievementsHours => 'Hores';
 
   @override
-  String get achievementsStreak => 'Streak';
+  String get achievementsStreak => 'Ratxa';
 
   @override
-  String get achievementsPeriodWeek => 'Week';
+  String get achievementsPeriodWeek => 'Setmana';
 
   @override
-  String get achievementsPeriodMonth => 'Month';
+  String get achievementsPeriodMonth => 'Mes';
 
   @override
-  String get achievementsPeriodYear => 'Year';
+  String get achievementsPeriodYear => 'Any';
 
   @override
   String achievementsDaysWatched(int count) {
-    return '$count days watched';
+    return '$count dies de visionat';
   }
 
   @override
   String achievementsBadgesEarned(int count) {
-    return '$count badges earned';
+    return '$count insígnies aconseguides';
   }
 
   @override
-  String get achievementsTopDirectors => 'Top directors';
+  String get achievementsTopDirectors => 'Directors més vistos';
 
   @override
-  String get achievementsTopActors => 'Top actors';
+  String get achievementsTopActors => 'Actors més vistos';
 
   @override
-  String get achievementsLoadFailed => 'Could not load your achievements.';
+  String get achievementsLoadFailed =>
+      'No s\'han pogut carregar les teves fites.';
+
+  @override
+  String get friends => 'Amics';
+
+  @override
+  String get friendsSubtitle =>
+      'Mira qui està en línia i xateja amb la gent d\'aquest servidor';
+
+  @override
+  String get friendsShowButton => 'Mostra el botó d\'amics';
+
+  @override
+  String get friendsShowButtonSubtitle =>
+      'Amics i xat del connector Insígnies de fites';
+
+  @override
+  String get friendsMessages => 'Missatges';
+
+  @override
+  String friendsUnreadCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count missatges sense llegir',
+      one: '1 missatge sense llegir',
+      zero: 'Cap missatge sense llegir',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get friendsRequests => 'Sol·licituds d\'amistat';
+
+  @override
+  String friendsRequestCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count t\'estan esperant',
+      one: '1 t\'està esperant',
+      zero: 'No hi ha res pendent',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get friendsAdd => 'Afegeix amics';
+
+  @override
+  String get friendsAddSubtitle => 'Troba gent d\'aquest servidor';
+
+  @override
+  String get friendsPrivacy => 'Privadesa';
+
+  @override
+  String get friendsPrivacySubtitle => 'Què poden veure els teus amics';
+
+  @override
+  String get friendsOnline => 'En línia';
+
+  @override
+  String get friendsOffline => 'Fora de línia';
+
+  @override
+  String get friendsNone =>
+      'Encara no tens amics. Afegeix gent d\'aquest servidor per veure-la aquí.';
+
+  @override
+  String friendsWatching(String title) {
+    return 'Veient $title';
+  }
+
+  @override
+  String friendsLastWatched(String title) {
+    return 'Últim vist: $title';
+  }
+
+  @override
+  String friendsLastSeen(String time) {
+    return 'Última connexió $time';
+  }
+
+  @override
+  String get friendsLoadFailed =>
+      'No s\'ha pogut carregar. Comprova la connexió i torna-ho a provar.';
+
+  @override
+  String get friendsActionFailed =>
+      'No ha funcionat. Torna-ho a provar d\'aquí a un moment.';
+
+  @override
+  String get friendsIncoming => 'Pendents de la teva resposta';
+
+  @override
+  String get friendsOutgoing => 'Enviades per tu';
+
+  @override
+  String get friendsNoRequests => 'No hi ha sol·licituds d\'amistat.';
+
+  @override
+  String get friendsAccept => 'Accepta';
+
+  @override
+  String get friendsDecline => 'Declinar';
+
+  @override
+  String get friendsCancelRequest => 'Cancel·la la sol·licitud';
+
+  @override
+  String friendsRequestFrom(String name) {
+    return '$name t\'ha enviat una sol·licitud d\'amistat';
+  }
+
+  @override
+  String friendsCancelRequestBody(String name) {
+    return 'Vols retirar la sol·licitud que has enviat a $name?';
+  }
+
+  @override
+  String get friendsSearchHint => 'Cerca persones';
+
+  @override
+  String get friendsNoMatches => 'Ningú no coincideix amb aquest nom.';
+
+  @override
+  String friendsRequestSent(String name) {
+    return 'S\'ha enviat la sol·licitud a $name';
+  }
+
+  @override
+  String get friendsSendRequest => 'Afegeix com a amic';
+
+  @override
+  String get friendsSendMessage => 'Enviar missatge';
+
+  @override
+  String friendsOpenItem(String title) {
+    return 'Obre $title';
+  }
+
+  @override
+  String get friendsRemove => 'Elimina dels amics';
+
+  @override
+  String friendsRemoveBody(String name) {
+    return 'Vols eliminar $name dels teus amics? Més endavant podràs tornar a afegir aquesta persona.';
+  }
+
+  @override
+  String get friendsBlock => 'Bloqueja';
+
+  @override
+  String get friendsUnblock => 'Desbloqueja';
+
+  @override
+  String friendsBlockBody(String name) {
+    return 'Vols bloquejar $name? Cap de vosaltres no podrà enviar missatges directes a l\'altre. Els xats de grup que compartiu continuaran oberts.';
+  }
+
+  @override
+  String friendsUnblockBody(String name) {
+    return 'Vols desbloquejar $name?';
+  }
+
+  @override
+  String get friendsBlocked => 'Usuaris bloquejats';
+
+  @override
+  String friendsProfileHidden(String name) {
+    return '$name té el perfil privat.';
+  }
+
+  @override
+  String get friendsAppearOffline => 'Mostra\'m fora de línia';
+
+  @override
+  String get friendsAppearOfflineSubtitle =>
+      'Els amics sempre et veuran fora de línia';
+
+  @override
+  String get friendsHideNowPlaying => 'Amaga el que estic veient';
+
+  @override
+  String get friendsHideNowPlayingSubtitle =>
+      'Els amics et continuaran veient en línia, però no què s\'està reproduint';
+
+  @override
+  String get friendsHideLastWatched => 'Amaga el meu últim visionat';
+
+  @override
+  String get friendsHideLastWatchedSubtitle =>
+      'Els amics no veuran què vas veure per última vegada mentre estiguis fora de línia';
+
+  @override
+  String get friendsMessageNotifications => 'Notificacions de missatges';
+
+  @override
+  String get friendsMessageNotificationsSubtitle =>
+      'Mostra un bàner quan un amic t\'enviï un missatge';
+
+  @override
+  String get friendsMuteDuringPlayback => 'Silencia durant la reproducció';
+
+  @override
+  String get friendsMuteDuringPlaybackSubtitle =>
+      'Cap bàner de missatges mentre es reprodueix un vídeo o un joc';
+
+  @override
+  String get friendsSaveFailed => 'No s\'ha pogut desar la configuració.';
+
+  @override
+  String get chatNew => 'Missatge nou';
+
+  @override
+  String get chatNewSubtitle => 'Comença un xat amb un amic';
+
+  @override
+  String get chatNewGroup => 'Grup nou';
+
+  @override
+  String get chatNewGroupSubtitle => 'Xateja amb diversos amics alhora';
+
+  @override
+  String get chatNone => 'Encara no hi ha missatges.';
+
+  @override
+  String get chatYou => 'Tu';
+
+  @override
+  String chatYouSaid(String text) {
+    return 'Tu: $text';
+  }
+
+  @override
+  String get chatPhoto => 'Foto';
+
+  @override
+  String get chatEmoji => 'Emoji';
+
+  @override
+  String get chatEmojiSearch => 'Cerca emojis';
+
+  @override
+  String get chatNoRecentEmoji => 'No hi ha emojis recents';
+
+  @override
+  String get chatViewPhoto => 'Mostra la foto';
+
+  @override
+  String get chatHint => 'Escriu un missatge';
+
+  @override
+  String get chatAttach => 'Envia una foto';
+
+  @override
+  String get chatEdited => 'editat';
+
+  @override
+  String get chatSeen => 'Llegit';
+
+  @override
+  String get chatSent => 'Enviat';
+
+  @override
+  String get chatEditing => 'S\'està editant el missatge';
+
+  @override
+  String get chatMessageOptions => 'Opcions del missatge';
+
+  @override
+  String get chatDeleteBody => 'Vols suprimir aquest missatge per a tothom?';
+
+  @override
+  String get chatClear => 'Buida la conversa';
+
+  @override
+  String get chatClearBody =>
+      'Vols suprimir tots els missatges d\'aquest xat per a tots els participants?';
+
+  @override
+  String get chatGroupInfo => 'Informació del grup';
+
+  @override
+  String get chatGroupName => 'Nom del grup';
+
+  @override
+  String chatMemberCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count membres',
+      one: '1 membre',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get chatOwner => 'Propietari';
+
+  @override
+  String get chatAdmin => 'Admin';
+
+  @override
+  String get chatMakeAdmin => 'Fes administrador';
+
+  @override
+  String get chatRemoveAdmin => 'Retira els permisos d\'administrador';
+
+  @override
+  String get chatRemoveMember => 'Elimina del grup';
+
+  @override
+  String get chatAddMember => 'Afegeix persones';
+
+  @override
+  String get chatNobodyToAdd => 'No queda ningú per afegir.';
+
+  @override
+  String get chatLeave => 'Abandonar el grup';
+
+  @override
+  String get chatLeaveBody =>
+      'Vols abandonar aquest grup? Algú t\'hi haurà de tornar a afegir perquè hi puguis tornar.';
+
+  @override
+  String get chatCreate => 'Crear grup';
+
+  @override
+  String get chatPickMembers => 'Tria almenys dos amics';
+
+  @override
+  String chatNewMessageFrom(String name) {
+    return 'Missatge nou de $name';
+  }
+
+  @override
+  String get chatImageTooLarge => 'Aquesta imatge supera els 8 MB.';
+
+  @override
+  String get chatImageUnsupported =>
+      'Només es poden enviar imatges PNG, JPEG, GIF i WebP.';
 
   @override
   String get embeddedBrowserNotAvailable =>
@@ -12514,6 +13183,9 @@ class AppLocalizationsCa extends AppLocalizations {
   String get playlistTypeVideo => 'Vídeo';
 
   @override
+  String get playlistTypeMusicVideo => 'Vídeo musical';
+
+  @override
   String get playlistTypeAudio => 'Àudio (Música)';
 
   @override
@@ -12530,6 +13202,10 @@ class AppLocalizationsCa extends AppLocalizations {
 
   @override
   String get videoPlaylistsSection => 'Llistes de reproducció de vídeo';
+
+  @override
+  String get musicVideoPlaylistsSection =>
+      'Llistes de reproducció de vídeos musicals';
 
   @override
   String get audioPlaylistsSection => 'Llistes de reproducció de música';
@@ -12791,6 +13467,12 @@ class AppLocalizationsCa extends AppLocalizations {
       'Ja està tot a punt. Aquí tens què més hi ha.';
 
   @override
+  String get setupPlaybackLanguages => 'Idiomes de reproducció';
+
+  @override
+  String get setupOptional => 'Opcional';
+
+  @override
   String get setupStyleClassic => 'Clàssic';
 
   @override
@@ -12825,11 +13507,27 @@ class AppLocalizationsCa extends AppLocalizations {
       'A pantalla completa, amb les seccions apilades en lloc de pestanyes.';
 
   @override
-  String get setupStyleMinimalist => 'Minimalist';
+  String get setupStyleMinimalist => 'Minimalista';
 
   @override
   String get setupDetailMinimalistHint =>
-      'Artwork, one play button and the episodes.';
+      'La il·lustració, un botó de reproducció i els episodis.';
+
+  @override
+  String get setupNavbarStyleQuestion =>
+      'Quin aspecte ha de tenir la barra inferior?';
+
+  @override
+  String get setupNavbarStyleDockHint =>
+      'Una càpsula flotant amb etiquetes sota cada pestanya.';
+
+  @override
+  String get setupNavbarStyleSplitHint =>
+      'La cerca té el seu propi botó i la barra s\'encongeix mentre et desplaces.';
+
+  @override
+  String get setupNavbarStyleStripHint =>
+      'Una barra d\'amplada completa al llarg de la vora inferior.';
 
   @override
   String get setupPickALook => 'Tria un aspecte';
@@ -13194,10 +13892,75 @@ class AppLocalizationsCa extends AppLocalizations {
       'Fins on es mou el focus amb cada lliscament al panell tàctil del Siri Remote';
 
   @override
+  String get appleTvHomeScreen => 'Apple TV home screen';
+
+  @override
+  String get topShelf => 'Top Shelf';
+
+  @override
+  String get topShelfDescription =>
+      'What the Apple TV home screen shows above the Moonfin icon when it is selected. This setting stays on this device.';
+
+  @override
+  String get topShelfLatestMedia => 'Latest media';
+
+  @override
+  String get topShelfAppBanner => 'Moonfin banner';
+
+  @override
   String get keepVideoClearOfDynamicIsland =>
-      'Keep video clear of the Dynamic Island';
+      'Mantén el vídeo apartat de la Dynamic Island';
 
   @override
   String get keepVideoClearOfDynamicIslandDescription =>
-      'In landscape the camera housing covers one edge of the screen. This holds the picture back from it, which only changes anything for video wide enough to reach that far.';
+      'En horitzontal, l\'allotjament de la càmera tapa una vora de la pantalla. Això manté la imatge apartada, cosa que només té efecte en vídeos prou amples per arribar-hi.';
+
+  @override
+  String get bottomNavbarStyle => 'Estil de la barra inferior';
+
+  @override
+  String get bottomNavbarStyleDock => 'Dock';
+
+  @override
+  String get bottomNavbarStyleSplit => 'Dividida';
+
+  @override
+  String get bottomNavbarStyleStrip => 'Franja';
+
+  @override
+  String get bottomNavbarTabs => 'Pestanyes de la barra inferior';
+
+  @override
+  String get bottomNavbarTabsDescription =>
+      'Fixa fins a 3 pestanyes entre Inici i Tu. Tota la resta és al centre de la barra inferior.';
+
+  @override
+  String get bottomNavbarTabsAutomatic => 'Automàtic';
+
+  @override
+  String get bottomNavbarTabsPinned => 'Fixades';
+
+  @override
+  String get bottomNavbarTabsAvailable => 'Disponibles';
+
+  @override
+  String get bottomNavbarTabsReset => 'Restableix a automàtic';
+
+  @override
+  String get bottomNavbarTabsLimit =>
+      'Pots fixar fins a 3 pestanyes. Treu-ne una per fixar-ne una altra.';
+
+  @override
+  String get bottomNavbarTabTurnedOff => 'Desactivada a «Botons»';
+
+  @override
+  String get bottomNavbarSplitSearchNote =>
+      'A l\'estil «Dividida», la cerca sempre té el seu propi botó.';
+
+  @override
+  String get bottomNavbarButtonsNote =>
+      'Aquests botons decideixen què es mostra al centre de la barra inferior i quines pestanyes pots fixar a la barra inferior. Les pestanyes que ja són a la barra no s\'hi mostren.';
+
+  @override
+  String get navYou => 'Tu';
 }

@@ -53,6 +53,7 @@ class SyncedField {
     this.enumValues,
     this.receiveOnly = false,
     this.fallbackInt,
+    this.normalize,
   });
 
   /// Key used in the profile JSON. It often differs from the local preference name.
@@ -72,6 +73,11 @@ class SyncedField {
 
   /// Used by [SyncCodec.textAsInt] when the stored string won't parse.
   final int? fallbackInt;
+
+  /// Maps an incoming [SyncCodec.text] value to the stored one. Returning null skips the
+  /// value and keeps what is stored, for a value another client wrote that this one doesn't
+  /// know.
+  final String? Function(String value)? normalize;
 }
 
 /// Every field carried through the generic sync path.
@@ -89,6 +95,8 @@ final List<SyncedField> syncedFields = <SyncedField>[
   SyncedField('customThemeId', UserPreferences.customThemeId, SyncCodec.text),
   SyncedField('oledMode', UserPreferences.oledMode, SyncCodec.enumName, enumValues: prefs.OledMode.values),
   SyncedField('navbarPosition', UserPreferences.navbarPosition, SyncCodec.enumName, enumValues: NavigationLayout.availableNavbarPositions),
+  SyncedField('bottomNavbarStyle', UserPreferences.bottomNavbarStyle, SyncCodec.enumName, enumValues: prefs.BottomNavbarStyle.values),
+  SyncedField('bottomNavbarTabs', UserPreferences.bottomNavbarTabs, SyncCodec.csvList),
   SyncedField('focusColor', UserPreferences.focusColor, SyncCodec.enumName, enumValues: prefs.AppTheme.values),
   SyncedField('watchedIndicator', UserPreferences.watchedIndicatorBehavior, SyncCodec.enumName, enumValues: prefs.WatchedIndicatorBehavior.values),
   SyncedField('cardFocusExpansion', UserPreferences.cardFocusExpansion, SyncCodec.boolean),
@@ -142,6 +150,7 @@ final List<SyncedField> syncedFields = <SyncedField>[
   SyncedField('showLiveTvButton', UserPreferences.showLiveTvButton, SyncCodec.boolean),
   SyncedField('showSyncPlayButton', UserPreferences.showSyncPlayButton, SyncCodec.boolean),
   SyncedField('showDownloadsButton', UserPreferences.showDownloadsButton, SyncCodec.boolean),
+  SyncedField('showFriendsButton', UserPreferences.showFriendsButton, SyncCodec.boolean),
   SyncedField('showLibrariesInToolbar', UserPreferences.showLibrariesInToolbar, SyncCodec.boolean),
   SyncedField('shuffleContentType', UserPreferences.shuffleContentType, SyncCodec.text),
   SyncedField('mergeContinueWatchingNextUp', UserPreferences.mergeContinueWatchingNextUp, SyncCodec.boolean),
@@ -149,7 +158,11 @@ final List<SyncedField> syncedFields = <SyncedField>[
   SyncedField('nextUpMaxDays', UserPreferences.nextUpMaxDays, SyncCodec.integer),
   SyncedField('enableMultiServerLibraries', UserPreferences.enableMultiServerLibraries, SyncCodec.boolean),
   SyncedField('enableFolderView', UserPreferences.enableFolderView, SyncCodec.boolean),
-  SyncedField('seasonalSurprise', UserPreferences.seasonalSurprise, SyncCodec.text),
+  SyncedField('seasonalSurprise', UserPreferences.seasonalSurprise, SyncCodec.text, normalize: UserPreferences.parseSeasonalSurprise),
+  SyncedField('seasonalDensity', UserPreferences.seasonalDensity, SyncCodec.text, normalize: UserPreferences.parseSeasonalDensity),
+  SyncedField('seasonalRowEnabled', UserPreferences.seasonalRowEnabled, SyncCodec.boolean),
+  SyncedField('seasonalRowCountry', UserPreferences.seasonalRowCountry, SyncCodec.text, normalize: UserPreferences.parseSeasonalRowCountry),
+  SyncedField('seasonalRowHiddenHolidays', UserPreferences.seasonalRowHiddenHolidays, SyncCodec.csvList),
   SyncedField('mediaBarItemCount', UserPreferences.mediaBarItemCount, SyncCodec.textAsInt, fallbackInt: 10),
   SyncedField('mediaBarSourceType', UserPreferences.mediaBarSourceType, SyncCodec.text),
   SyncedField('mediaBarOpacity', UserPreferences.mediaBarOverlayOpacity, SyncCodec.integer),
@@ -258,6 +271,7 @@ final List<SyncedField> syncedFields = <SyncedField>[
   SyncedField('nextUpBehavior', UserPreferences.nextUpBehavior, SyncCodec.enumName, enumValues: prefs.NextUpBehavior.values),
   SyncedField('nextUpTimeout', UserPreferences.nextUpTimeout, SyncCodec.integer),
   SyncedField('osdLockEnabled', UserPreferences.osdLockEnabled, SyncCodec.boolean),
+  SyncedField('showChapterMarkers', UserPreferences.showChapterMarkers, SyncCodec.boolean),
   SyncedField('playerSwipeGestures', UserPreferences.playerSwipeGestures, SyncCodec.boolean),
   SyncedField('detailButtonOrderTv', UserPreferences.detailButtonOrderTv, SyncCodec.csvList),
   SyncedField('detailButtonOrderMobile', UserPreferences.detailButtonOrderMobile, SyncCodec.csvList),
@@ -274,6 +288,9 @@ final List<SyncedField> syncedFields = <SyncedField>[
   SyncedField('hiddenDetailMetadataTv', UserPreferences.hiddenDetailMetadataTv, SyncCodec.csvList),
   SyncedField('hiddenDetailMetadataMobile', UserPreferences.hiddenDetailMetadataMobile, SyncCodec.csvList),
   SyncedField('hiddenDetailMetadataDesktop', UserPreferences.hiddenDetailMetadataDesktop, SyncCodec.csvList),
+  SyncedField('hiddenDetailSectionsTv', UserPreferences.hiddenDetailSectionsTv, SyncCodec.csvList),
+  SyncedField('hiddenDetailSectionsMobile', UserPreferences.hiddenDetailSectionsMobile, SyncCodec.csvList),
+  SyncedField('hiddenDetailSectionsDesktop', UserPreferences.hiddenDetailSectionsDesktop, SyncCodec.csvList),
   SyncedField('hiddenOsdButtonsTv', UserPreferences.hiddenOsdButtonsTv, SyncCodec.csvList),
   SyncedField('hiddenOsdButtonsMobile', UserPreferences.hiddenOsdButtonsMobile, SyncCodec.csvList),
   SyncedField('hiddenOsdButtonsDesktop', UserPreferences.hiddenOsdButtonsDesktop, SyncCodec.csvList),

@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 
+import '../../../widgets/bottom_nav/bottom_navbar.dart';
+
 /// Phone and tablet: the artwork runs edge to edge and the content is anchored
 /// to the bottom over it, the way a modern detail screen reads.
 class MinimalistPortraitLayout extends StatelessWidget {
   final Widget branding;
   final Widget actions;
+
+  final Widget? ratings;
   final Widget? episodes;
 
   /// Phone rather than tablet. Tablets have the height for more breathing
@@ -15,6 +19,7 @@ class MinimalistPortraitLayout extends StatelessWidget {
     super.key,
     required this.branding,
     required this.actions,
+    this.ratings,
     this.episodes,
     this.compact = false,
   });
@@ -23,18 +28,23 @@ class MinimalistPortraitLayout extends StatelessWidget {
   Widget build(BuildContext context) {
     final gap = compact ? 20.0 : 28.0;
     return SafeArea(
+      bottom: false,
       child: Padding(
         padding: EdgeInsets.fromLTRB(
           compact ? 20 : 36,
           24,
           compact ? 20 : 36,
-          compact ? 24 : 36,
+          (compact ? 24 : 36) + bottomContentInset(context),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Spacer(),
             branding,
+            if (ratings != null) ...[
+              SizedBox(height: compact ? 10 : 14),
+              ratings!,
+            ],
             SizedBox(height: gap),
             actions,
             if (episodes != null) ...[

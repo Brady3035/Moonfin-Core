@@ -173,7 +173,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get detailScreenStyleSubtitle =>
-      'Klasik, orijinal ortalanmış Moonfin düzenidir. Modern ise duyarlı sinematik bir düzendir.';
+      'Klasik, orijinal ortalanmış Moonfin düzenidir. Modern, duyarlı sinematik bir düzendir. Spotlight, açılır içerik kartlarına sahip, ana görsel odaklı bir düzendir. Nouveau, bölümlerin sayfa boyunca alt alta sıralandığı tam ekran bir düzendir. Minimalist ise sadece kapak görselinden, tek bir oynatma butonundan ve bölümlerden oluşur.';
 
   @override
   String get detailScreenStyleMoonfin => 'Klasik';
@@ -185,48 +185,48 @@ class AppLocalizationsTr extends AppLocalizations {
   String get detailScreenStyleSpotlight => 'Spotlight';
 
   @override
-  String get spotlightMoreActions => 'More Actions';
+  String get spotlightMoreActions => 'Daha Fazla İşlem';
 
   @override
-  String get spotlightCastCrewStudios => 'Cast, Crew, and Studios';
+  String get spotlightCastCrewStudios => 'Oyuncular, Ekip ve Stüdyolar';
 
   @override
-  String get spotlightChaptersExtras => 'Chapters and Extras';
+  String get spotlightChaptersExtras => 'Bölümler ve Ekstralar';
 
   @override
-  String get spotlightSimilarRecommendations => 'Similar and Recommendations';
+  String get spotlightSimilarRecommendations => 'Benzerler ve Öneriler';
 
   @override
-  String get spotlightSeasonsEpisodes => 'Seasons and Episodes';
+  String get spotlightSeasonsEpisodes => 'Sezonlar ve Bölümler';
 
   @override
-  String get spotlightMoreEpisodes => 'More Episodes';
+  String get spotlightMoreEpisodes => 'Daha Fazla Bölümler';
 
   @override
-  String get spotlightFilmography => 'Filmography';
+  String get spotlightFilmography => 'Filmografi';
 
   @override
-  String get spotlightCollectionsCard => 'Collections';
+  String get spotlightCollectionsCard => 'Koleksiyonlar';
 
   @override
-  String get spotlightPlaylistOrder => 'Playlist Order';
+  String get spotlightPlaylistOrder => 'Oynatma Listesi Sırası';
 
   @override
-  String get spotlightMoviesAndShows => 'Movies & Shows';
+  String get spotlightMoviesAndShows => 'Filmler & Diziler';
 
   @override
-  String get spotlightSimilarSeerr => 'Similar (Seerr)';
+  String get spotlightSimilarSeerr => 'Benzerleri (Seerr)';
 
   @override
-  String get spotlightRecommendationsSeerr => 'Recommendations (Seerr)';
+  String get spotlightRecommendationsSeerr => 'Öneriler (Seerr)';
 
   @override
   String spotlightPeopleCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count people',
-      one: '1 person',
+      other: '$count kişi',
+      one: '1 kişi',
     );
     return '$_temp0';
   }
@@ -236,8 +236,8 @@ class AppLocalizationsTr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count facts',
-      one: '1 fact',
+      other: '$count bilgi',
+      one: '1 bilgi',
     );
     return '$_temp0';
   }
@@ -247,8 +247,8 @@ class AppLocalizationsTr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count tags',
-      one: '1 tag',
+      other: '$count etiket',
+      one: '1 etiket',
     );
     return '$_temp0';
   }
@@ -258,8 +258,8 @@ class AppLocalizationsTr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count studios',
-      one: '1 studio',
+      other: '$count stüdyo',
+      one: '1 stüdyo',
     );
     return '$_temp0';
   }
@@ -269,8 +269,8 @@ class AppLocalizationsTr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count chapters',
-      one: '1 chapter',
+      other: '$count bölüm',
+      one: '1 bölüm',
     );
     return '$_temp0';
   }
@@ -280,8 +280,8 @@ class AppLocalizationsTr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count extras',
-      one: '1 extra',
+      other: '$count ekstra',
+      one: '1 ekstra',
     );
     return '$_temp0';
   }
@@ -291,8 +291,8 @@ class AppLocalizationsTr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count seasons',
-      one: '1 season',
+      other: '$count sezon',
+      one: '1 sezon',
     );
     return '$_temp0';
   }
@@ -302,8 +302,8 @@ class AppLocalizationsTr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count episodes',
-      one: '1 episode',
+      other: '$count bölüm',
+      one: '1 bölüm',
     );
     return '$_temp0';
   }
@@ -313,8 +313,8 @@ class AppLocalizationsTr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count movies',
-      one: '1 movie',
+      other: '$count film',
+      one: '1 film',
     );
     return '$_temp0';
   }
@@ -324,8 +324,8 @@ class AppLocalizationsTr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count shows',
-      one: '1 show',
+      other: '$count dizi',
+      one: '1 dizi',
     );
     return '$_temp0';
   }
@@ -335,8 +335,8 @@ class AppLocalizationsTr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count tracks',
-      one: '1 track',
+      other: '$count parça',
+      one: '1 parça',
     );
     return '$_temp0';
   }
@@ -346,8 +346,8 @@ class AppLocalizationsTr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count items',
-      one: '1 item',
+      other: '$count öğe',
+      one: '1 öğe',
     );
     return '$_temp0';
   }
@@ -357,8 +357,8 @@ class AppLocalizationsTr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count albums',
-      one: '1 album',
+      other: '$count albüm',
+      one: '1 albüm',
     );
     return '$_temp0';
   }
@@ -368,8 +368,8 @@ class AppLocalizationsTr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count collections',
-      one: '1 collection',
+      other: '$count koleksiyon',
+      one: '1 koleksiyon',
     );
     return '$_temp0';
   }
@@ -379,8 +379,8 @@ class AppLocalizationsTr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count titles',
-      one: '1 title',
+      other: '$count başlık',
+      one: '1 başlık',
     );
     return '$_temp0';
   }
@@ -410,13 +410,13 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get recommendationSystemSubtitle =>
-      'Moonfin Önerileri yerel kütüphane algoritmasını veya çevrimiçi TMDb Benzerlik Metriklerini kullanın. Not: Çevrimiçi öneriler Seerr entegrasyonu gerektirir.';
+      'Moonfin Önerileri yerel kütüphane algoritmasını, Jellyfin Önerileri sunucu motorunu veya çevrimiçi TMDb Benzerlik Metriklerini kullanın. Not: Çevrimiçi öneriler Seerr entegrasyonu gerektirir.';
 
   @override
   String get recommendationSystemMoonfin => 'Moonfin Önerileri';
 
   @override
-  String get recommendationSystemJellyfin => 'Jellyfin Recommends';
+  String get recommendationSystemJellyfin => 'Jellyfin Önerileri';
 
   @override
   String get recommendationSystemTmdb => 'TMDb Benzerliği';
@@ -794,6 +794,12 @@ class AppLocalizationsTr extends AppLocalizations {
   String get extraLarge => 'Ekstra Büyük';
 
   @override
+  String get uiScaleGrandparents => 'Yaşlılar İçin';
+
+  @override
+  String get uiScaleGreatGrandparents => 'Çok Yaşlılar İçin';
+
+  @override
   String get scrollDirection => 'Kaydırma Yönü';
 
   @override
@@ -1085,10 +1091,10 @@ class AppLocalizationsTr extends AppLocalizations {
   String get latestAudiobooks => 'Son Eklenen Sesli Kitaplar';
 
   @override
-  String get latestComics => 'Latest Comics';
+  String get latestComics => 'Son Eklenen Çizgi Romanlar';
 
   @override
-  String get comics => 'Comics';
+  String get comics => 'Çizgi Romanlar';
 
   @override
   String bookSeriesItemCount(int count) {
@@ -1108,14 +1114,14 @@ class AppLocalizationsTr extends AppLocalizations {
   String get bookFormatAudiobook => 'Sesli Kitap';
 
   @override
-  String get bookFormatComic => 'Comic';
+  String get bookFormatComic => 'Çizgi Roman';
 
   @override
   String get noBooksFound => 'Bu yazara ait kitap bulunamadı.';
 
   @override
   String get noBooksFoundDescription =>
-      'This library does not contain any books, audiobooks, or comics yet.';
+      'Bu kitaplıkta henüz hiçbir kitap, sesli kitap veya çizgi roman bulunmuyor.';
 
   @override
   String bookPercentRead(int percent) {
@@ -1430,8 +1436,8 @@ class AppLocalizationsTr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count more queued',
-      one: '1 more queued',
+      other: '$count öğe daha sıraya eklendi',
+      one: '1 öğe daha sıraya eklendi',
     );
     return '$_temp0';
   }
@@ -1598,29 +1604,29 @@ class AppLocalizationsTr extends AppLocalizations {
   String get noEpisodesLoaded => 'Hiçbir bölüm yüklenmedi';
 
   @override
-  String get downloadScopeTitle => 'What to download';
+  String get downloadScopeTitle => 'İndirilecekler';
 
   @override
-  String get downloadAllEpisodes => 'All episodes';
+  String get downloadAllEpisodes => 'Tüm bölümler';
 
   @override
-  String get downloadUnwatchedEpisodes => 'All unwatched episodes';
+  String get downloadUnwatchedEpisodes => 'Tüm izlenmemiş bölümler';
 
   @override
-  String get downloadAllMovies => 'All movies';
+  String get downloadAllMovies => 'Tüm filmler';
 
   @override
-  String get downloadUnwatchedMovies => 'All unwatched movies';
+  String get downloadUnwatchedMovies => 'Tüm izlenmemiş filmler';
 
   @override
-  String get downloadScopeLoading => 'Loading items...';
+  String get downloadScopeLoading => 'Öğeler yükleniyor...';
 
   @override
-  String get downloadScopeLoadFailed => 'Could not load items to download';
+  String get downloadScopeLoadFailed => 'İndirilecek öğeler yüklenemedi';
 
   @override
   String downloadEstimateTotal(String size) {
-    return '~$size total';
+    return 'Toplam ~$size';
   }
 
   @override
@@ -1635,12 +1641,12 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String downloadSizeTotal(String size) {
-    return '$size total';
+    return 'Toplam $size';
   }
 
   @override
   String downloadEstimateUnknownCount(int count) {
-    return '$count unknown';
+    return '$count bilinmeyen';
   }
 
   @override
@@ -1950,11 +1956,6 @@ class AppLocalizationsTr extends AppLocalizations {
   String get subtitleDelay => 'Altyazı Gecikmesi';
 
   @override
-  String subtitleDelayAuto(String value) {
-    return 'Auto $value';
-  }
-
-  @override
   String get reset => 'Sıfırla';
 
   @override
@@ -1970,38 +1971,38 @@ class AppLocalizationsTr extends AppLocalizations {
   String get hideMpvStats => 'MPV İstatistiklerini Gizle (Shift+I)';
 
   @override
-  String get keyboardShortcutsTitle => 'Keyboard shortcuts';
+  String get keyboardShortcutsTitle => 'Klavye kısayolları';
 
   @override
   String get keyboardShortcutsSubtitle =>
-      'Keys for the app, video player and reader';
+      'Uygulama, video oynatıcı ve okuyucu için kısayollar';
 
   @override
   String get keyboardShortcutsPlayerHint =>
-      'Press ? or F1 while a video plays to see this list without leaving the player.';
+      'Video oynatılırken oynatıcıdan çıkmadan bu listeyi görmek için ? veya F1 tuşuna basın.';
 
   @override
-  String get keyboardShortcutsSectionApp => 'Everywhere';
+  String get keyboardShortcutsSectionApp => 'Her Yerde';
 
   @override
-  String get keyboardShortcutsSectionAppScope => 'On any screen';
+  String get keyboardShortcutsSectionAppScope => 'Herhangi bir ekranda';
 
   @override
-  String get keyboardShortcutsSectionPlayer => 'Video player';
+  String get keyboardShortcutsSectionPlayer => 'Video Oynatıcı';
 
   @override
   String get keyboardShortcutsSectionPlayerScope =>
-      'While a video is open, playing or paused';
+      'Bir video açık, oynatılıyor veya duraklatılmışken';
 
   @override
-  String get keyboardShortcutsSectionReader => 'Book and comic reader';
+  String get keyboardShortcutsSectionReader => 'Kitap ve çizgi roman okuyucusu';
 
   @override
   String get keyboardShortcutsSectionReaderScope =>
-      'While reading a book or comic';
+      'Kitap ve çizgi roman okuyucusundayken';
 
   @override
-  String get keyNameArrowKeys => 'Arrow keys';
+  String get keyNameArrowKeys => 'Yön tuşları';
 
   @override
   String get keyNameSpace => 'Space';
@@ -2037,96 +2038,100 @@ class AppLocalizationsTr extends AppLocalizations {
   String get keyNameAlt => 'Alt';
 
   @override
-  String get keyNameScrollWheel => 'Scroll wheel';
+  String get keyNameScrollWheel => 'Fare tekerleği';
 
   @override
-  String get shortcutMoveFocus => 'Move between items';
+  String get shortcutMoveFocus => 'Öğeler arasında gezin';
 
   @override
-  String get shortcutActivate => 'Open the selected item';
+  String get shortcutActivate => 'Seçili öğeyi aç';
 
   @override
-  String get shortcutGoBack => 'Go back';
+  String get shortcutGoBack => 'Geri git';
 
   @override
-  String get shortcutToggleFullscreen => 'Fullscreen on or off';
+  String get shortcutToggleFullscreen => 'Tam ekranı aç yada kapat';
 
   @override
-  String get shortcutQuit => 'Quit Moonfin';
+  String get shortcutQuit => 'Moonfin\'den çık';
 
   @override
-  String get shortcutPlayPause => 'Play or pause';
+  String get shortcutPlayPause => 'Oynat veya duraklat';
 
   @override
   String get shortcutShowControlsOrPlayPause =>
-      'Show controls, or play/pause if shown';
+      'Kontrolleri göster veya açıksa oynat/duraklat';
 
   @override
-  String get shortcutSeekBack => 'Seek back (hold for bigger jumps)';
+  String get shortcutSeekBack => 'Geri sar (büyük atlamalar için basılı tut)';
 
   @override
-  String get shortcutSeekForward => 'Seek forward (hold for bigger jumps)';
+  String get shortcutSeekForward =>
+      'İleri sar (büyük atlamalar için basılı tut)';
 
   @override
-  String get shortcutVolumeUp => 'Volume up';
+  String get shortcutVolumeUp => 'Sesi yükselt';
 
   @override
-  String get shortcutVolumeDown => 'Volume down';
+  String get shortcutVolumeDown => 'Sesi alçalt';
 
   @override
-  String get shortcutMute => 'Mute or unmute';
+  String get shortcutMute => 'Sesi kapat yada sesi aç';
 
   @override
-  String get shortcutToggleSubtitles => 'Subtitles on or off';
+  String get shortcutToggleSubtitles => 'Altyazıyı aç yada kapat';
 
   @override
-  String get shortcutSlower => 'Slow down';
+  String get shortcutSlower => 'Yavaşlat';
 
   @override
-  String get shortcutFaster => 'Speed up';
+  String get shortcutFaster => 'Hızlandır';
 
   @override
-  String get shortcutPlaybackInfo => 'Show playback information';
+  String get shortcutPlaybackInfo => 'Oynatma bilgilerini göster';
 
   @override
-  String get shortcutMpvStats => 'mpv statistics on or off';
+  String get shortcutMpvStats => 'mpv istatistiklerini aç yada kapat';
+
+  @override
+  String get shortcutRecropBlackBars => 'Recrop black bars';
 
   @override
   String get shortcutLeaveFullscreenOrStop =>
-      'Exit fullscreen, or stop if not fullscreen';
+      'Tam ekrandan çık veya tam ekranda değilse durdur';
 
   @override
-  String get shortcutStopPlayback => 'Stop playback';
+  String get shortcutStopPlayback => 'Oynatmayı durdur';
 
   @override
-  String get shortcutNextItem => 'Next item';
+  String get shortcutNextItem => 'Sonraki öğe';
 
   @override
-  String get shortcutPreviousItem => 'Previous item';
+  String get shortcutPreviousItem => 'Önceki öğe';
 
   @override
-  String get shortcutShowShortcuts => 'Show this list';
+  String get shortcutShowShortcuts => 'Bu listeyi göster';
 
   @override
-  String get shortcutNextPage => 'Next page';
+  String get shortcutNextPage => 'Sonraki sayfa';
 
   @override
-  String get shortcutPreviousPage => 'Previous page';
+  String get shortcutPreviousPage => 'Önceki sayfa';
 
   @override
-  String get shortcutScrollPage => 'Scroll the page (ebooks)';
+  String get shortcutScrollPage => 'Sayfayı kaydır (e-kitaplar)';
 
   @override
-  String get shortcutFirstPage => 'First page, or start of chapter';
+  String get shortcutFirstPage => 'İlk sayfa veya bölüm başı';
 
   @override
-  String get shortcutLastPage => 'Last page, or end of chapter';
+  String get shortcutLastPage => 'Son sayfa veya bölüm sonu';
 
   @override
-  String get shortcutZoom => 'Zoom in or out (comics)';
+  String get shortcutZoom => 'Yakınlaştır veya uzaklaştır (çizgi romanlar)';
 
   @override
-  String get shortcutResetZoom => 'Reset zoom (comics)';
+  String get shortcutResetZoom => 'Yakınlaştırmayı sıfırla (çizgi romanlar)';
 
   @override
   String get playback => 'Oynatma';
@@ -2402,7 +2407,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get premiere => 'Prömiyer';
 
   @override
-  String get guideRepeatBadge => 'Repeat';
+  String get guideRepeatBadge => 'Tekrar';
 
   @override
   String get guideTimeline => 'Kılavuz Zaman Çizelgesi';
@@ -2416,7 +2421,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get noChannelsFound => 'Hiçbir kanal bulunamadı';
 
   @override
-  String get noProgramData => 'No program data';
+  String get noProgramData => 'Program verisi yok';
 
   @override
   String get liveBadge => 'CANLI';
@@ -2490,7 +2495,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get watch => 'İzle';
 
   @override
-  String get watchChannelLive => 'Watch channel live';
+  String get watchChannelLive => 'Kanalı canlı izle';
 
   @override
   String get close => 'Kapat';
@@ -2498,6 +2503,14 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String failedToPlayChannel(String name) {
     return '$name oynatılamadı';
+  }
+
+  @override
+  String get playbackStreamLost => 'Oynatma durdu ve kurtarılamadı.';
+
+  @override
+  String liveReconnecting(int attempt, int total) {
+    return 'Yeniden bağlanılıyor… ($attempt/$total)';
   }
 
   @override
@@ -2584,7 +2597,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get localAccount => 'Yerel';
 
   @override
-  String get savedMedia => 'Kayıtlı Medya';
+  String get savedMedia => 'İndirilenler';
 
   @override
   String get tvShows => 'Diziler';
@@ -2716,52 +2729,52 @@ class AppLocalizationsTr extends AppLocalizations {
   String get downloadedItems => 'İndirilen Öğeler';
 
   @override
-  String get activeDownloads => 'Active Downloads';
+  String get activeDownloads => 'Aktif İndirilenler';
 
   @override
   String savedMediaCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count items',
-      one: '1 item',
+      other: '$count öğe',
+      one: '1 öğe',
     );
     return '$_temp0';
   }
 
   @override
   String savedMediaOfLimit(String used, String limit) {
-    return '$used of $limit';
+    return '$used / $limit';
   }
 
   @override
-  String get savedMediaSelectItems => 'Select items';
+  String get savedMediaSelectItems => 'Seçili öğeler';
 
   @override
-  String get savedMediaNoDownloads => 'Nothing saved yet';
+  String get savedMediaNoDownloads => 'Henüz kaydedilen yok';
 
   @override
   String get savedMediaNoDownloadsDetail =>
-      'Downloads you start appear here and play without a connection.';
+      'Başlattığınız indirmeler burada görünür ve internet bağlantısı olmadan oynatılabilir.';
 
   @override
-  String get savedMediaNoActiveDownloads => 'Nothing downloading right now';
+  String get savedMediaNoActiveDownloads => 'Şu anda hiçbir şey indirilmiyor';
 
   @override
-  String get savedMediaNoResults => 'No downloads match that search';
+  String get savedMediaNoResults => 'Bu aramayla eşleşen indirme yok';
 
   @override
-  String get savedMediaPlayFromStart => 'Play from start';
+  String get savedMediaPlayFromStart => 'Baştan başlat';
 
   @override
-  String get savedMediaGoToDetails => 'Go to details';
+  String get savedMediaGoToDetails => 'Detaylara git';
 
   @override
-  String get savedMediaDeleteDownload => 'Delete download';
+  String get savedMediaDeleteDownload => 'İndirmeyi sil';
 
   @override
   String savedMediaDeleteSeason(String season) {
-    return 'Delete $season';
+    return '$season Sil';
   }
 
   @override
@@ -2769,32 +2782,32 @@ class AppLocalizationsTr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Delete $count episodes',
-      one: 'Delete 1 episode',
+      other: '$count bölüm sil',
+      one: '1 bölüm sil',
     );
     return '$_temp0';
   }
 
   @override
-  String get savedMediaOpenShow => 'Open show';
+  String get savedMediaOpenShow => 'Diziyi aç';
 
   @override
-  String get savedMediaPlayNextUnwatched => 'Play next unwatched';
+  String get savedMediaPlayNextUnwatched => 'Sonraki izlenmemiş bölümü oynat';
 
   @override
-  String get savedMediaRead => 'Read';
+  String get savedMediaRead => 'Oku';
 
   @override
-  String get savedMediaCancelDownload => 'Cancel download';
+  String get savedMediaCancelDownload => 'İndirmeyi iptal et';
 
   @override
-  String get sortBySize => 'Size';
+  String get sortBySize => 'Boyut';
 
   @override
-  String get sortByName => 'Name';
+  String get sortByName => 'İsim';
 
   @override
-  String get sortByDateAdded => 'Date added';
+  String get sortByDateAdded => 'Eklenme tarihi';
 
   @override
   String get storageLimit => 'Depolama Sınırı';
@@ -2992,104 +3005,104 @@ class AppLocalizationsTr extends AppLocalizations {
       'Görsel efektler ve mevsimsel dekorasyonlar';
 
   @override
-  String get loadingAnimation => 'Loading Animation';
+  String get loadingAnimation => 'Yüklenme Animasyonu';
 
   @override
   String get loadingAnimationDescription =>
-      'Customize the loading animations used throughout Moonfin';
+      'Moonfin genelinde kullanılan yükleme animasyonlarını özelleştir';
 
   @override
-  String get loadingAnimationConfiguration => 'Loading Animation Configuration';
+  String get loadingAnimationConfiguration => 'Yüklenme Animasyonu Ayarları';
 
   @override
-  String get loadingAnimationImage => 'Image';
+  String get loadingAnimationImage => 'Resim';
 
   @override
   String get loadingAnimationImageMoonfinLogo => 'Moonfin Logo';
 
   @override
-  String get loadingAnimationImageSpinner => 'Spinner';
+  String get loadingAnimationImageSpinner => 'Yükleme çarkı';
 
   @override
-  String get loadingAnimationImageRunner => 'Runner';
+  String get loadingAnimationImageRunner => 'Kayan çizgi';
 
   @override
-  String get loadingAnimationImageMoonPhases => 'Moon Phases';
+  String get loadingAnimationImageMoonPhases => 'Ay Evreleri';
 
   @override
-  String get loadingAnimationImageMoonfinPhases => 'Moonfin Phases';
+  String get loadingAnimationImageMoonfinPhases => 'Moonfin Evreleri';
 
   @override
-  String get loadingAnimationImageNeonfinPhases => 'Neonfin Phases';
+  String get loadingAnimationImageNeonfinPhases => 'Neonfin Evreleri';
 
   @override
-  String get loadingAnimationSize => 'Animation Size';
+  String get loadingAnimationSize => 'Animasyon Boyutu';
 
   @override
-  String get loadingAnimationSizeThumbnail => 'Thumbnail';
+  String get loadingAnimationSizeThumbnail => 'Küçük Resim';
 
   @override
-  String get loadingAnimationSizeSmall => 'Small';
+  String get loadingAnimationSizeSmall => 'Küçük';
 
   @override
-  String get loadingAnimationSizeMedium => 'Medium';
+  String get loadingAnimationSizeMedium => 'Orta';
 
   @override
-  String get loadingAnimationSizeLarge => 'Large';
+  String get loadingAnimationSizeLarge => 'Büyük';
 
   @override
-  String get loadingAnimationPosition => 'Animation Position';
+  String get loadingAnimationPosition => 'Animasyon Konumu';
 
   @override
-  String get loadingAnimationPositionTopLeft => 'Top-Left';
+  String get loadingAnimationPositionTopLeft => 'Üst Sol';
 
   @override
-  String get loadingAnimationPositionTopCenter => 'Top-Center';
+  String get loadingAnimationPositionTopCenter => 'Üst Orta';
 
   @override
-  String get loadingAnimationPositionTopRight => 'Top-Right';
+  String get loadingAnimationPositionTopRight => 'Üst Sağ';
 
   @override
-  String get loadingAnimationPositionMiddleLeft => 'Middle-Left';
+  String get loadingAnimationPositionMiddleLeft => 'Orta Sol';
 
   @override
-  String get loadingAnimationPositionMiddle => 'Middle';
+  String get loadingAnimationPositionMiddle => 'Orta';
 
   @override
-  String get loadingAnimationPositionMiddleRight => 'Middle-Right';
+  String get loadingAnimationPositionMiddleRight => 'Orta Sağ';
 
   @override
-  String get loadingAnimationPositionBottomLeft => 'Bottom-Left';
+  String get loadingAnimationPositionBottomLeft => 'Alt Sol';
 
   @override
-  String get loadingAnimationPositionBottomCenter => 'Bottom-Center';
+  String get loadingAnimationPositionBottomCenter => 'Alt Orta';
 
   @override
-  String get loadingAnimationPositionBottomRight => 'Bottom-Right';
+  String get loadingAnimationPositionBottomRight => 'Alt Sağ';
 
   @override
-  String get loadingAnimationPositionBouncing => 'Bouncing';
+  String get loadingAnimationPositionBouncing => 'Zıplayan';
 
   @override
-  String get loadingAnimationSpeed => 'Animation Speed';
+  String get loadingAnimationSpeed => 'Animasyon Hızı';
 
   @override
-  String get loadingAnimationSpeedSlow => 'Slow';
+  String get loadingAnimationSpeedSlow => 'Yavaş';
 
   @override
-  String get loadingAnimationSpeedModerate => 'Moderate';
+  String get loadingAnimationSpeedModerate => 'Orta';
 
   @override
-  String get loadingAnimationSpeedFast => 'Fast';
+  String get loadingAnimationSpeedFast => 'Hızlı';
 
   @override
   String get loadingAnimationSpeedUltra => 'Ultra';
 
   @override
-  String get showLoadingAnimationText => 'Show Text?';
+  String get showLoadingAnimationText => 'Yazı Gözüksün Mü?';
 
   @override
-  String get loadingAnimationPreview => 'Preview';
+  String get loadingAnimationPreview => 'Önizleme';
 
   @override
   String get snow => 'Kar';
@@ -3102,6 +3115,88 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get fallingLeaves => 'Düşen Yapraklar';
+
+  @override
+  String get seasonalChristmas => 'Christmas';
+
+  @override
+  String get seasonalPetals => 'Spring Petals';
+
+  @override
+  String get seasonalFireflies => 'Fireflies';
+
+  @override
+  String get seasonalHalloween => 'Halloween';
+
+  @override
+  String get seasonalDensity => 'Density';
+
+  @override
+  String get seasonalDensityLight => 'Light';
+
+  @override
+  String get seasonalDensityNormal => 'Normal';
+
+  @override
+  String get seasonalDensityHeavy => 'Heavy';
+
+  @override
+  String get seasonalRow => 'Seasonal Row';
+
+  @override
+  String get seasonalRowDescription =>
+      'Show a row of holiday movies from your library, with Seerr suggestions when available.';
+
+  @override
+  String get seasonalRowSubtitle => 'Seasonal';
+
+  @override
+  String get seasonalRowCountry => 'Country';
+
+  @override
+  String get seasonalRowCountryAuto => 'Automatic';
+
+  @override
+  String get countryUnitedStates => 'United States';
+
+  @override
+  String get countryCanada => 'Canada';
+
+  @override
+  String get seasonalRowCountryOther => 'Other';
+
+  @override
+  String get seasonalRowHolidays => 'Holidays';
+
+  @override
+  String get seasonalRowHolidaysHint => 'Untick a holiday to hide its row.';
+
+  @override
+  String get holidayNewYear => 'New Year\'s';
+
+  @override
+  String get holidayValentines => 'Valentine\'s Day';
+
+  @override
+  String get holidayEaster => 'Easter';
+
+  @override
+  String get holidayPride => 'Pride';
+
+  @override
+  String get holidayHalloween => 'Halloween';
+
+  @override
+  String get holidayThanksgiving => 'Thanksgiving';
+
+  @override
+  String get holidayChristmas => 'Christmas Movies';
+
+  @override
+  String get holidayLunarNewYear => 'Lunar New Year';
+
+  @override
+  String get holidayDiwali => 'Diwali';
 
   @override
   String get themeMusic => 'Tema Müziği';
@@ -3184,11 +3279,27 @@ class AppLocalizationsTr extends AppLocalizations {
   String get autoCrop => 'Otomatik Kırp';
 
   @override
-  String get cropBlackBars => 'Crop black bars';
+  String get cropBlackBars => 'Siyah bantları kırp';
 
   @override
   String get settingsCropBlackBarsDescription =>
-      'Detect encoded letterbox bars, crop them, then fill the screen.';
+      'Kodlanmış siyah bantları tespit et, kırp ve ekranı doldur.';
+
+  @override
+  String get cropBlackBarsRecropInterval => 'Recrop interval';
+
+  @override
+  String get cropBlackBarsOnce => 'Once at start';
+
+  @override
+  String get cropBlackBarsEverySecond => 'Every second';
+
+  @override
+  String get settingsCropBlackBarsIntervalDescription =>
+      'Follow aspect ratio changes during playback.';
+
+  @override
+  String get playerRecroppingBlackBars => 'Recropping black bars';
 
   @override
   String get stretch => 'Uzat';
@@ -3245,11 +3356,11 @@ class AppLocalizationsTr extends AppLocalizations {
       'Ortada sabit kalmak yerine, sarma yaparken arama çubuğu boyunca slaytları önizle';
 
   @override
-  String get trickplayPauseWhileScrubbing => 'Pause While Scrubbing';
+  String get trickplayPauseWhileScrubbing => 'Kaydırırken duraklat';
 
   @override
   String get trickplayPauseWhileScrubbingSubtitle =>
-      'Playback pauses while you seek and resumes when you press play. Turn this off to keep playing and jump straight to the new spot';
+      'Kaydırma sırasında oynatma duraklatılır ve oynat tuşuna bastığınızda devam eder. Oynatmayı kesmeden doğrudan yeni konuma atlamak için bu ayarı kapatın';
 
   @override
   String get showDescriptionOnPause => 'Duraklatıldığında Açıklamayı Göster';
@@ -3257,6 +3368,13 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get dimVideoShowOverview =>
       'Duraklatıldığında videoyu karart ve özet metnini göster';
+
+  @override
+  String get showChapterMarkers => 'Bölüm İşaretleri';
+
+  @override
+  String get showChapterMarkersDescription =>
+      'İlerleme çubuğunda bölüm başlangıçlarını işaretle';
 
   @override
   String get osdLockButton => 'Ekran Kilidi Butonu';
@@ -3294,75 +3412,208 @@ class AppLocalizationsTr extends AppLocalizations {
       'Oynat her zaman ilk sıradadır ve kilitli düğmeler her zaman gösterilir. Geri kalan her şey size kalmıştır ve her cihaz türü kendi listesini ayrı tutar.';
 
   @override
-  String get actionButtonsOnScreen => 'Action Buttons on Screen';
+  String get actionButtonsOnScreen => 'Ekrandaki eylem düğmeleri';
 
   @override
   String get actionButtonsOnScreenDescription =>
-      'Customize how many action buttons appear before folding into the More Actions menu.';
+      'Diğer Eylemler menüsüne taşınmadan önce kaç eylem düğmesinin gösterileceğini belirleyin.';
 
   @override
-  String get actionButtonsOnScreenAuto => 'Auto (Theme Default)';
+  String get actionButtonsOnScreenAuto => 'Otomatik (Tema Varsayılanı)';
 
   @override
-  String get actionButtonsOnScreenPlayOnly => '1 (Play only)';
+  String get actionButtonsOnScreenPlayOnly => '1 (Sadece Oynat)';
 
   @override
-  String get actionButtonsOnScreenAll => 'All (Horizontal Scroll)';
+  String get actionButtonsOnScreenAll => 'Tümü (Yatay Kaydırma)';
 
   @override
-  String get detailMetadata => 'Metadata Row';
+  String get detailMetadata => 'Meta Veri Satırı';
 
   @override
   String get detailMetadataDescription =>
-      'Choose and reorder what metadata the details screen shows';
+      'Detaylar ekranında gösterilecek meta verileri seçin ve sıralayın';
 
   @override
   String get detailMetadataSectionDescription =>
-      'Turn metadata items on or off, and arrange the order they appear on the details screen. Each kind of device keeps its own list.';
+      'Meta veri öğelerini açıp kapatın ve detaylar ekranındaki görünüm sırasını düzenleyin. Her cihaz türü kendi listesini ayrı tutar.';
 
   @override
-  String get detailMetadataYear => 'Release Year';
+  String get detailMetadataYear => 'Yayın Yılı';
 
   @override
-  String get detailMetadataParentalRating => 'Parental Rating';
+  String get detailMetadataParentalRating => 'Yaş Sınırı';
 
   @override
-  String get detailMetadataRuntimeAndSeasons => 'Runtime & Seasons';
+  String get detailMetadataRuntimeAndSeasons => 'Süre & Sezonlar';
 
   @override
-  String get detailMetadataStatus => 'Series Status';
+  String get detailMetadataStatus => 'Dizi Durumu';
 
   @override
   String get detailMetadataStatusSubtitle =>
-      'Shows whether the series is continuing, ended, or returning';
+      'Dizinin devam ettiğini, sona erdiğini veya geri döneceğini gösterir';
 
   @override
-  String get detailMetadataGenres => 'Genres';
+  String get detailMetadataGenres => 'Türler';
 
   @override
-  String get detailMetadataSeerrAvailability => 'Seerr Availability';
+  String get detailMetadataSeerrAvailability => 'Seerr Durumu';
 
   @override
   String get detailMetadataSeerrAvailabilitySubtitle =>
-      'Shows request and media availability status from Seerr';
+      'Seerr üzerindeki talep ve medya durumunu gösterir';
 
   @override
-  String get detailMetadataUpcomingEpisodeDate => 'Upcoming Episodes';
+  String get detailMetadataUpcomingEpisodeDate => 'Gelecek Bölümler';
 
   @override
   String get detailMetadataUpcomingEpisodeDateSubtitle =>
-      'Uses Sonarr and TMDB to show upcoming release dates';
+      'Sonarr ve TMDB kullanarak gelecek yayın tarihlerini gösterir';
+
+  @override
+  String get detailSections => 'Sections';
+
+  @override
+  String get detailSectionsDescription =>
+      'Choose which parts of the Details screen to show';
+
+  @override
+  String get detailSectionsScreenDescription =>
+      'Only the sections the current Details screen style can show are listed. Hiding one hides it in every style that has it.';
+
+  @override
+  String get detailSectionGroupHeader => 'Header';
+
+  @override
+  String get detailSectionGroupSections => 'Sections';
+
+  @override
+  String get detailSectionGroupPerson => 'Person pages';
+
+  @override
+  String get detailSectionGroupCollection => 'Collection pages';
+
+  @override
+  String get detailSectionGroupOther => 'Other';
+
+  @override
+  String get detailSectionLogo => 'Logo';
+
+  @override
+  String get detailSectionLogoSubtitle => 'Shows the title as text when off';
+
+  @override
+  String get detailSectionTagline => 'Tagline';
+
+  @override
+  String get detailSectionPoster => 'Poster';
+
+  @override
+  String get detailSectionVersionBadge => 'Version badge';
+
+  @override
+  String get detailSectionUpNext => 'Next Up';
+
+  @override
+  String get detailSectionLyrics => 'Lyrics';
+
+  @override
+  String get detailSectionCast => 'Cast';
+
+  @override
+  String get detailSectionCastSubtitle => 'Also on collection pages';
+
+  @override
+  String get detailSectionCrew => 'Directors & writers';
+
+  @override
+  String get detailSectionStudios => 'Studios';
+
+  @override
+  String get detailSectionChapters => 'Chapters';
+
+  @override
+  String get detailSectionExtras => 'Extras';
+
+  @override
+  String get detailSectionCollections => 'Collections';
+
+  @override
+  String get detailSectionMoreLikeThis => 'More Like This';
+
+  @override
+  String get detailSectionMoreLikeThisSubtitle =>
+      'Also similar albums and artists';
+
+  @override
+  String get detailSectionMoreEpisodes => 'More episodes';
+
+  @override
+  String get detailSectionMoreEpisodesSubtitle => 'On episode pages';
+
+  @override
+  String get detailSectionMediaInfo => 'Media info';
+
+  @override
+  String get detailSectionMediaInfoSubtitle =>
+      'File, streams and Direct Play check';
+
+  @override
+  String get detailSectionSeerrGenresTags => 'Genres & tags';
+
+  @override
+  String get detailSectionSeerrStats => 'Stats';
+
+  @override
+  String get detailSectionSeerrRecommendations => 'Recommendations';
+
+  @override
+  String get detailSectionSeerrSimilar => 'Similar titles';
+
+  @override
+  String get detailSectionSeerrCollection => 'Collection banner';
+
+  @override
+  String get detailSectionSeerrPersonAppearances => 'Appearances';
+
+  @override
+  String get detailSectionSeerrPersonCrew => 'Crew credits';
+
+  @override
+  String get detailSectionPersonPagesSubtitle => 'On person pages';
+
+  @override
+  String get detailSectionBiography => 'Biography';
+
+  @override
+  String get detailSectionBirthplace => 'Birthplace';
+
+  @override
+  String get detailSectionGuestAppearances => 'Guest appearances';
+
+  @override
+  String get detailSectionMusicVideos => 'Music videos';
+
+  @override
+  String get detailSectionPlaylistOrder => 'Playlist order';
+
+  @override
+  String get detailSectionBookGenres => 'Book genres';
+
+  @override
+  String get detailSectionPhotoExif => 'Photo details';
 
   @override
   String upcomingEpisodeNext(String date, int season, int episode) {
-    return 'Next: $date (S$season:E$episode)';
+    return 'Sonraki: $date (S$season:E$episode)';
   }
 
   @override
-  String get upcomingEpisodeToday => 'Today';
+  String get upcomingEpisodeToday => 'Bugün';
 
   @override
-  String get upcomingEpisodeTomorrow => 'Tomorrow';
+  String get upcomingEpisodeTomorrow => 'Yarın';
 
   @override
   String get moveUp => 'Yukarı Taşı';
@@ -3600,21 +3851,23 @@ class AppLocalizationsTr extends AppLocalizations {
       'Manuel (aşağıdaki formatları seçin)';
 
   @override
-  String get settingsAudioPassthroughOutput => 'Passthrough output';
+  String get settingsAudioPassthroughOutput =>
+      'Doğrudan Geçiş (Passthrough) çıkışı';
 
   @override
   String get settingsAudioPassthroughOutputDescription =>
-      'Who packs bitstreams for the HDMI link. Try the app packer if passthrough is silent or glitchy on this device.';
+      'HDMI bağlantısı için bit akışlarını kimin paketleyeceğini belirleyin. Bu cihazda doğrudan geçiş (passthrough) sırasında ses gelmiyorsa veya kesilmeler oluyorsa uygulama paketleyicisini deneyin.';
 
   @override
   String get settingsAudioPassthroughOutputPlatform =>
-      'Automatic, system packer (AudioTrack RAW)';
+      'Otomatik, sistem paketleyicisi (AudioTrack RAW)';
 
   @override
-  String get settingsAudioPassthroughOutputIec => 'App packer (AudioTrack IEC)';
+  String get settingsAudioPassthroughOutputIec =>
+      'Uygulama paketleyicisi (AudioTrack IEC)';
 
   @override
-  String get settingsAudioPassthroughOutputIecLabel => 'App (IEC)';
+  String get settingsAudioPassthroughOutputIecLabel => 'Uygulama (IEC)';
 
   @override
   String get settingsDownmixToStereoDescription =>
@@ -3936,6 +4189,21 @@ class AppLocalizationsTr extends AppLocalizations {
   String get semiTransparentBlack => 'Yarı şeffaf Siyah';
 
   @override
+  String get semiTransparentWhite => 'Yarı şeffaf Beyaz';
+
+  @override
+  String get lightGray => 'Açık Gri';
+
+  @override
+  String get darkGray => 'Koyu Gri';
+
+  @override
+  String get blue => 'Mavi';
+
+  @override
+  String get magenta => 'Macenta';
+
+  @override
   String get global => 'Evrensel';
 
   @override
@@ -4147,10 +4415,10 @@ class AppLocalizationsTr extends AppLocalizations {
   String get showFavoritesButton => 'Favoriler Butonunu Göster';
 
   @override
-  String get showLiveTvButton => 'Show Live TV Button';
+  String get showLiveTvButton => 'Canlı TV Butonunu Göster';
 
   @override
-  String get showDownloadsButton => 'Show Downloads Button';
+  String get showDownloadsButton => 'İndirilenler Butonunu Göster';
 
   @override
   String get showLibrariesInToolbar => 'Kitaplıkları Araç Çubuğunda Göster';
@@ -4272,6 +4540,23 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get showInLatestMedia => 'Son eklenen/yayınlanan medyalarda göster';
+
+  @override
+  String get libraryOrder => 'Library Order';
+
+  @override
+  String get libraryOrderSubtitle => 'Choose the order of your libraries';
+
+  @override
+  String get libraryOrderDescription =>
+      'Your libraries appear in this order on My Media, the recently added rows and the navigation bar. The order is saved to your server account, so other apps you sign in to use it too.';
+
+  @override
+  String get libraryOrderTvHint =>
+      'Press left or right to move the highlighted library.';
+
+  @override
+  String get libraryOrderSaveFailed => 'Couldn\'t save the library order';
 
   @override
   String get sourceLibraries => 'Kaynak Kütüphaneler';
@@ -4637,25 +4922,25 @@ class AppLocalizationsTr extends AppLocalizations {
   String get clockModeBouncing => 'Zıplayan';
 
   @override
-  String get screensaverGeneralSettings => 'General Settings';
+  String get screensaverGeneralSettings => 'Genel Ayarlar';
 
   @override
-  String get screensaverVisualComponents => 'Visual Components';
+  String get screensaverVisualComponents => 'Görsel Bileşenler';
 
   @override
-  String get screensaverLibraryContent => 'Library Content';
+  String get screensaverLibraryContent => 'Kütüphane İçeriği';
 
   @override
-  String get screensaverBackdrop => 'Backdrop';
+  String get screensaverBackdrop => 'Arka Plan';
 
   @override
-  String get screensaverBackdropBlack => 'Black';
+  String get screensaverBackdropBlack => 'Siyah';
 
   @override
   String get screensaverBackdropMoonfin => 'Moonfin';
 
   @override
-  String get screensaverBackdropCalm => 'Calm';
+  String get screensaverBackdropCalm => 'Sakin';
 
   @override
   String get screensaverBackdropNeonPulse => 'Neon Pulse';
@@ -4664,25 +4949,25 @@ class AppLocalizationsTr extends AppLocalizations {
   String get screensaverBackdropAurora => 'Aurora';
 
   @override
-  String get screensaverAdditionalComponent => 'Additional Component';
+  String get screensaverAdditionalComponent => 'Ek Bileşen';
 
   @override
   String get screensaverComponentMoonfinLogo => 'Moonfin Logo';
 
   @override
-  String get screensaverComponentRunner => 'Runner';
+  String get screensaverComponentRunner => 'Kayan Yazı';
 
   @override
-  String get screensaverComponentMovement => 'Component Movement';
+  String get screensaverComponentMovement => 'Bileşen Hareketi';
 
   @override
-  String get screensaverComponentPosition => 'Component Position';
+  String get screensaverComponentPosition => 'Bileşen Pozisyonu';
 
   @override
-  String get screensaverComponentSize => 'Component Size';
+  String get screensaverComponentSize => 'Bileşen Boyutu';
 
   @override
-  String get screensaverSourceLibrariesDefault => 'All (Default)';
+  String get screensaverSourceLibrariesDefault => 'Tümü (Varsayılan)';
 
   @override
   String get rottenTomatoesCritics => 'Rotten Tomatoes (Eleştirmenler)';
@@ -4860,18 +5145,18 @@ class AppLocalizationsTr extends AppLocalizations {
       'Sonuçlardaki yetişkinlere uygun içeriği gizle';
 
   @override
-  String get showMissingCollectionItems => 'Show Missing Collection Items';
+  String get showMissingCollectionItems => 'Eksik Koleksiyon Öğelerini Göster';
 
   @override
   String get showMissingCollectionItemsDesc =>
-      'Include missing items on Collection pages';
+      'Eksik öğeleri Koleksiyon sayfalarına dahil et';
 
   @override
-  String get showSeerrAvailabilityBadges => 'Show Seerr Availability Badges';
+  String get showSeerrAvailabilityBadges => 'Seerr Durum Rozetlerini Göster';
 
   @override
   String get showSeerrAvailabilityBadgesDescription =>
-      'Show season availability badges on media details pages';
+      'Medya detay sayfalarında sezon durum rozetlerini göster';
 
   @override
   String get seerrNotificationsSection => 'Bildirimler';
@@ -5128,6 +5413,9 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get playInMoonfin => 'Moonfin\'da oynat';
+
+  @override
+  String get requestedByLabel => 'Talep Eden';
 
   @override
   String requestedByName(String name) {
@@ -8994,7 +9282,7 @@ class AppLocalizationsTr extends AppLocalizations {
       'Yavaş yanıt uyarılarını etkinleştir';
 
   @override
-  String get adminGeneralQuickConnect => 'Quick Connect\'i Etkinleştir';
+  String get adminGeneralQuickConnect => 'Hızlı Bağlantıyı Etkinleştir';
 
   @override
   String get adminGeneralSectionServer => 'Sunucu';
@@ -9258,7 +9546,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get offlineSwitchServer => 'Sunucuyu Değiştir';
 
   @override
-  String get offlineSavedMedia => 'Kayıtlı Medya';
+  String get offlineSavedMedia => 'İndirilenler';
 
   @override
   String get offlineBannerTitle => 'Çevrimdışısın';
@@ -9338,24 +9626,25 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String get kidsMode => 'Kids Mode';
+  String get kidsMode => 'Çocuk Modu';
 
   @override
   String get kidsModeSubtitle =>
-      'Simplify the app and lock the way out with a PIN';
+      'Uygulamayı sadeleştir ve çıkışı PIN ile kilitle';
 
   @override
-  String get kidsModeExit => 'Exit Kids Mode';
+  String get kidsModeExit => 'Çocuk Modundan Çık';
 
   @override
-  String get kidsModeExitSubtitle => 'Enter your PIN to restore the full app';
+  String get kidsModeExitSubtitle =>
+      'Tam uygulamaya dönmek için PIN\'inizi girin';
 
   @override
   String get pinIncorrect => 'Yanlış PIN';
 
   @override
   String pinTryAgainIn(String wait) {
-    return 'Too many attempts. Try again in $wait.';
+    return 'Çok fazla deneme. $wait sonra tekrar deneyin.';
   }
 
   @override
@@ -9371,35 +9660,35 @@ class AppLocalizationsTr extends AppLocalizations {
   String get pinBackspace => 'Geri tuşu';
 
   @override
-  String get quickConnectAuthorized => 'Quick Connect isteği onaylandı.';
+  String get quickConnectAuthorized => 'Hızlı Bağlantı isteği onaylandı.';
 
   @override
   String get quickConnectInvalidOrExpired =>
-      'Quick Connect kodu geçersiz veya süresi dolmuş.';
+      'Hızlı Bağlantı kodu geçersiz veya süresi dolmuş.';
 
   @override
   String get quickConnectNotSupported =>
-      'Quick Connect bu sunucuda desteklenmiyor.';
+      'Hızlı Bağlantı bu sunucuda desteklenmiyor.';
 
   @override
   String get quickConnectAuthorizeFailed =>
-      'Quick Connect kodu yetkilendirilemedi.';
+      'Hızlı Bağlantı kodu yetkilendirilemedi.';
 
   @override
   String get quickConnectDisabled =>
-      'Quick Connect bu sunucuda devre dışı bırakıldı.';
+      'Hızlı Bağlantı bu sunucuda devre dışı bırakıldı.';
 
   @override
   String get quickConnectForbidden =>
-      'Hesabınız bu Quick Connect isteğine yetki veremez.';
+      'Hesabınız bu Hızlı Bağlantı isteğine yetki veremez.';
 
   @override
   String get quickConnectNotFound =>
-      'Quick Connect kodu bulunamadı. Yeni bir kod deneyin.';
+      'Hızlı Bağlantı kodu bulunamadı. Yeni bir kod deneyin.';
 
   @override
   String quickConnectFailedWithMessage(String message) {
-    return 'Quick Connect başarısız oldu: $message';
+    return 'Hızlı Bağlantı başarısız oldu: $message';
   }
 
   @override
@@ -9451,6 +9740,9 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get trackActionPlayNext => 'Sonrakini Oynat';
+
+  @override
+  String get trackActionViewDetails => 'View Details';
 
   @override
   String get trackActionAddToQueue => 'Kuyruğa Ekle';
@@ -9660,15 +9952,15 @@ class AppLocalizationsTr extends AppLocalizations {
   String get contextMenuAddToCollection => 'Koleksiyona ekle';
 
   @override
-  String get contextMenuRemoveFromCollection => 'Remove from Collection';
+  String get contextMenuRemoveFromCollection => 'Koleksiyondan Sil';
 
   @override
   String removeFromCollectionConfirm(String item, String collection) {
-    return 'Remove $item from $collection? The item stays in your library.';
+    return '$item öğesi $collection koleksiyonundan kaldırılsın mı? Öğe kütüphanenizde kalır.';
   }
 
   @override
-  String get removeFromCollectionFailed => 'Failed to remove from collection';
+  String get removeFromCollectionFailed => 'Koleksiyondan kaldırılamadı';
 
   @override
   String get settingsAdministrationSubtitle => 'Sunucu yönetim paneline erişin';
@@ -9733,17 +10025,21 @@ class AppLocalizationsTr extends AppLocalizations {
       'Kendinden imzalı veya özel CA (Sertifika Yetkilisi) TLS sertifikaları kullanan sunuculara güvenin. Bunu yalnızca kontrolünüz altındaki sunucular için etkinleştirin. Bu işlem, tüm bağlantılar için sertifika doğrulamasını devre dışı bırakır.';
 
   @override
+  String get untrustedServerCertificate =>
+      'This server\'s certificate isn\'t trusted. If it\'s your own server and uses a self-signed or private certificate, you can allow it here.';
+
+  @override
   String get settingsPrivacyAndSafetySection => 'GİZLİLİK & GÜVENLİK';
 
   @override
-  String get itemBlockedByParentalControls => 'This isn\'t available';
+  String get itemBlockedByParentalControls => 'Bu öğe mevcut değil';
 
   @override
   String get blockedRatingsCeilingHint =>
-      'Blocking a rating also blocks everything stronger than it.';
+      'Bir derecelendirmeyi engellemek, ondan daha yüksek olanları da engeller.';
 
   @override
-  String get blockedRatingsUnrankedSection => 'Only blocks itself';
+  String get blockedRatingsUnrankedSection => 'Sadece kendini engeller';
 
   @override
   String get settingsBlockedRatings => 'Engellenen Derecelendirmeler';
@@ -9794,7 +10090,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get settingsShowLiveTvButtonInNavigation =>
-      'Show the Live TV button in the navigation bar when the server has a Live TV library';
+      'Sunucuda Canlı TV kütüphanesi varsa gezinme çubuğunda Canlı TV düğmesini göster';
 
   @override
   String get settingsShowLibrariesButtonInNavigation =>
@@ -11004,6 +11300,32 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
+  String get achievementsUnlockToasts => 'Unlock notifications';
+
+  @override
+  String get achievementsUnlockToastsSubtitle =>
+      'Show a notification when you unlock a badge';
+
+  @override
+  String get achievementsUnlockedNotification => 'Achievement unlocked';
+
+  @override
+  String achievementsUnlockedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count achievements unlocked',
+      one: '$count achievement unlocked',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String achievementsUnlockedMore(int count) {
+    return '+$count more';
+  }
+
+  @override
   String get achievementsQuests => 'Quests';
 
   @override
@@ -11390,6 +11712,346 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get achievementsLoadFailed => 'Could not load your achievements.';
+
+  @override
+  String get friends => 'Friends';
+
+  @override
+  String get friendsSubtitle =>
+      'See who\'s online and chat with people on this server';
+
+  @override
+  String get friendsShowButton => 'Show friends button';
+
+  @override
+  String get friendsShowButtonSubtitle =>
+      'Friends and chat from the Achievement Badges plugin';
+
+  @override
+  String get friendsMessages => 'Messages';
+
+  @override
+  String friendsUnreadCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count unread messages',
+      one: '1 unread message',
+      zero: 'No unread messages',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get friendsRequests => 'Friend requests';
+
+  @override
+  String friendsRequestCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count waiting for you',
+      one: '1 waiting for you',
+      zero: 'Nothing waiting',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get friendsAdd => 'Add friends';
+
+  @override
+  String get friendsAddSubtitle => 'Find people on this server';
+
+  @override
+  String get friendsPrivacy => 'Privacy';
+
+  @override
+  String get friendsPrivacySubtitle => 'What your friends can see';
+
+  @override
+  String get friendsOnline => 'Online';
+
+  @override
+  String get friendsOffline => 'Offline';
+
+  @override
+  String get friendsNone =>
+      'No friends yet. Add people from this server to see them here.';
+
+  @override
+  String friendsWatching(String title) {
+    return 'Watching $title';
+  }
+
+  @override
+  String friendsLastWatched(String title) {
+    return 'Last watched $title';
+  }
+
+  @override
+  String friendsLastSeen(String time) {
+    return 'Last seen $time';
+  }
+
+  @override
+  String get friendsLoadFailed =>
+      'Could not load this. Check your connection and try again.';
+
+  @override
+  String get friendsActionFailed => 'That didn\'t work. Try again in a moment.';
+
+  @override
+  String get friendsIncoming => 'Waiting for you';
+
+  @override
+  String get friendsOutgoing => 'Sent by you';
+
+  @override
+  String get friendsNoRequests => 'No friend requests.';
+
+  @override
+  String get friendsAccept => 'Accept';
+
+  @override
+  String get friendsDecline => 'Decline';
+
+  @override
+  String get friendsCancelRequest => 'Cancel request';
+
+  @override
+  String friendsRequestFrom(String name) {
+    return '$name wants to be friends';
+  }
+
+  @override
+  String friendsCancelRequestBody(String name) {
+    return 'Take back the request you sent to $name?';
+  }
+
+  @override
+  String get friendsSearchHint => 'Search people';
+
+  @override
+  String get friendsNoMatches => 'No one matches that name.';
+
+  @override
+  String friendsRequestSent(String name) {
+    return 'Request sent to $name';
+  }
+
+  @override
+  String get friendsSendRequest => 'Add as friend';
+
+  @override
+  String get friendsSendMessage => 'Send message';
+
+  @override
+  String friendsOpenItem(String title) {
+    return 'Open $title';
+  }
+
+  @override
+  String get friendsRemove => 'Remove friend';
+
+  @override
+  String friendsRemoveBody(String name) {
+    return 'Remove $name from your friends? You can add them again later.';
+  }
+
+  @override
+  String get friendsBlock => 'Block';
+
+  @override
+  String get friendsUnblock => 'Unblock';
+
+  @override
+  String friendsBlockBody(String name) {
+    return 'Block $name? Neither of you will be able to message the other directly. Group chats you share stay open.';
+  }
+
+  @override
+  String friendsUnblockBody(String name) {
+    return 'Unblock $name?';
+  }
+
+  @override
+  String get friendsBlocked => 'Blocked users';
+
+  @override
+  String friendsProfileHidden(String name) {
+    return '$name keeps their profile private.';
+  }
+
+  @override
+  String get friendsAppearOffline => 'Appear offline';
+
+  @override
+  String get friendsAppearOfflineSubtitle =>
+      'Friends always see you as offline';
+
+  @override
+  String get friendsHideNowPlaying => 'Hide what I\'m watching';
+
+  @override
+  String get friendsHideNowPlayingSubtitle =>
+      'Friends still see you online, but not what\'s playing';
+
+  @override
+  String get friendsHideLastWatched => 'Hide my last watched';
+
+  @override
+  String get friendsHideLastWatchedSubtitle =>
+      'Friends won\'t see what you watched last while you\'re offline';
+
+  @override
+  String get friendsMessageNotifications => 'Message notifications';
+
+  @override
+  String get friendsMessageNotificationsSubtitle =>
+      'Show a banner when a friend messages you';
+
+  @override
+  String get friendsMuteDuringPlayback => 'Mute during playback';
+
+  @override
+  String get friendsMuteDuringPlaybackSubtitle =>
+      'No message banners while a video or game is playing';
+
+  @override
+  String get friendsSaveFailed => 'Could not save your settings.';
+
+  @override
+  String get chatNew => 'New message';
+
+  @override
+  String get chatNewSubtitle => 'Start a chat with a friend';
+
+  @override
+  String get chatNewGroup => 'New group';
+
+  @override
+  String get chatNewGroupSubtitle => 'Chat with several friends at once';
+
+  @override
+  String get chatNone => 'No messages yet.';
+
+  @override
+  String get chatYou => 'You';
+
+  @override
+  String chatYouSaid(String text) {
+    return 'You: $text';
+  }
+
+  @override
+  String get chatPhoto => 'Photo';
+
+  @override
+  String get chatEmoji => 'Emoji';
+
+  @override
+  String get chatEmojiSearch => 'Search emoji';
+
+  @override
+  String get chatNoRecentEmoji => 'No recent emoji';
+
+  @override
+  String get chatViewPhoto => 'View photo';
+
+  @override
+  String get chatHint => 'Write a message';
+
+  @override
+  String get chatAttach => 'Send a photo';
+
+  @override
+  String get chatEdited => 'edited';
+
+  @override
+  String get chatSeen => 'Seen';
+
+  @override
+  String get chatSent => 'Sent';
+
+  @override
+  String get chatEditing => 'Editing message';
+
+  @override
+  String get chatMessageOptions => 'Message options';
+
+  @override
+  String get chatDeleteBody => 'Delete this message for everyone?';
+
+  @override
+  String get chatClear => 'Clear conversation';
+
+  @override
+  String get chatClearBody =>
+      'Delete every message in this chat for everyone in it?';
+
+  @override
+  String get chatGroupInfo => 'Group info';
+
+  @override
+  String get chatGroupName => 'Group name';
+
+  @override
+  String chatMemberCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count members',
+      one: '1 member',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get chatOwner => 'Owner';
+
+  @override
+  String get chatAdmin => 'Admin';
+
+  @override
+  String get chatMakeAdmin => 'Make admin';
+
+  @override
+  String get chatRemoveAdmin => 'Remove admin';
+
+  @override
+  String get chatRemoveMember => 'Remove from group';
+
+  @override
+  String get chatAddMember => 'Add people';
+
+  @override
+  String get chatNobodyToAdd => 'No one left to add.';
+
+  @override
+  String get chatLeave => 'Leave group';
+
+  @override
+  String get chatLeaveBody =>
+      'Leave this group? Someone will have to add you back to rejoin.';
+
+  @override
+  String get chatCreate => 'Create group';
+
+  @override
+  String get chatPickMembers => 'Pick at least two friends';
+
+  @override
+  String chatNewMessageFrom(String name) {
+    return 'New message from $name';
+  }
+
+  @override
+  String get chatImageTooLarge => 'That image is over 8 MB.';
+
+  @override
+  String get chatImageUnsupported =>
+      'Only PNG, JPEG, GIF and WebP images can be sent.';
 
   @override
   String get embeddedBrowserNotAvailable =>
@@ -12338,6 +13000,9 @@ class AppLocalizationsTr extends AppLocalizations {
   String get playlistTypeVideo => 'Video';
 
   @override
+  String get playlistTypeMusicVideo => 'Music Video';
+
+  @override
   String get playlistTypeAudio => 'Ses (Müzik)';
 
   @override
@@ -12354,6 +13019,9 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get videoPlaylistsSection => 'Video Oynatma Listeleri';
+
+  @override
+  String get musicVideoPlaylistsSection => 'Music Video Playlists';
 
   @override
   String get audioPlaylistsSection => 'Ses Oynatma Listesi';
@@ -12612,6 +13280,12 @@ class AppLocalizationsTr extends AppLocalizations {
       'Hazırsınız. İşte burada yer alan diğer şeyler.';
 
   @override
+  String get setupPlaybackLanguages => 'Playback languages';
+
+  @override
+  String get setupOptional => 'Optional';
+
+  @override
   String get setupStyleClassic => 'Klasik';
 
   @override
@@ -12653,6 +13327,21 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get setupDetailMinimalistHint =>
       'Artwork, one play button and the episodes.';
+
+  @override
+  String get setupNavbarStyleQuestion => 'How should the bottom bar look?';
+
+  @override
+  String get setupNavbarStyleDockHint =>
+      'A floating pill with labels under every tab.';
+
+  @override
+  String get setupNavbarStyleSplitHint =>
+      'Search gets its own button, and the bar shrinks while you scroll.';
+
+  @override
+  String get setupNavbarStyleStripHint =>
+      'A full-width bar along the bottom edge.';
 
   @override
   String get setupPickALook => 'Bir görünüm seçin';
@@ -13011,10 +13700,75 @@ class AppLocalizationsTr extends AppLocalizations {
       'How far focus moves for each swipe on the Siri Remote touchpad';
 
   @override
+  String get appleTvHomeScreen => 'Apple TV home screen';
+
+  @override
+  String get topShelf => 'Top Shelf';
+
+  @override
+  String get topShelfDescription =>
+      'What the Apple TV home screen shows above the Moonfin icon when it is selected. This setting stays on this device.';
+
+  @override
+  String get topShelfLatestMedia => 'Latest media';
+
+  @override
+  String get topShelfAppBanner => 'Moonfin banner';
+
+  @override
   String get keepVideoClearOfDynamicIsland =>
       'Keep video clear of the Dynamic Island';
 
   @override
   String get keepVideoClearOfDynamicIslandDescription =>
       'In landscape the camera housing covers one edge of the screen. This holds the picture back from it, which only changes anything for video wide enough to reach that far.';
+
+  @override
+  String get bottomNavbarStyle => 'Bottom Bar Style';
+
+  @override
+  String get bottomNavbarStyleDock => 'Dock';
+
+  @override
+  String get bottomNavbarStyleSplit => 'Split';
+
+  @override
+  String get bottomNavbarStyleStrip => 'Strip';
+
+  @override
+  String get bottomNavbarTabs => 'Bottom Bar Tabs';
+
+  @override
+  String get bottomNavbarTabsDescription =>
+      'Pin up to 3 tabs between Home and You. Everything else is in the bottom navbar hub.';
+
+  @override
+  String get bottomNavbarTabsAutomatic => 'Automatic';
+
+  @override
+  String get bottomNavbarTabsPinned => 'Pinned';
+
+  @override
+  String get bottomNavbarTabsAvailable => 'Available';
+
+  @override
+  String get bottomNavbarTabsReset => 'Reset to Automatic';
+
+  @override
+  String get bottomNavbarTabsLimit =>
+      'You can pin up to 3 tabs. Remove one to pin another.';
+
+  @override
+  String get bottomNavbarTabTurnedOff => 'Turned off under Buttons';
+
+  @override
+  String get bottomNavbarSplitSearchNote =>
+      'In the Split style, Search always has its own button.';
+
+  @override
+  String get bottomNavbarButtonsNote =>
+      'These decide what shows in the bottom navbar hub and which tabs you can pin to the bottom bar. Tabs already on the bar aren\'t listed here.';
+
+  @override
+  String get navYou => 'You';
 }

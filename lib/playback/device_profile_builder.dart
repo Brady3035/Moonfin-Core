@@ -124,15 +124,21 @@ class DeviceProfileBuilder {
     bool dtsCorePassthroughEnabled = false,
     bool trueHdPassthroughEnabled = false,
     int maxAudioChannels = 0,
-    // Deterministic local stereo downmix. Universal-decode players keep their
-    // full direct-play advertisement and downmix after decoding, so this only
-    // shapes the transcode fallback codec, not what direct plays.
+    // A universal-decode player that downmixes on its own keeps its full
+    // direct-play list, so for it this only changes the transcode fallback
+    // codec.
     bool downmixToStereo = false,
     // The player decodes every advertised audio codec in software (FFmpeg),
     // so nothing about the output route can force a server transcode: every
     // codec direct plays and the player decodes, bitstreams or downmixes it
     // locally. Detection never subtracts from the advertised list.
     bool universalAudioDecode = false,
+    // False for a universal-decode player that can't downmix on its own, so
+    // downmixToStereo gets it the stereo offer and the server sends stereo.
+    bool appliesDownmixToStereo = true,
+    // The player re-encodes the codecs its container can't carry to EAC3 on
+    // the device, and that encoder won't open above 48 kHz.
+    bool bridgesAudioToEac3 = false,
     bool playerDecodesTrueHd = true,
     // Whether the player can decode a stereo TrueHD track. One that can't asks
     // the server for surround TrueHD only, so the rest transcodes instead of
@@ -143,6 +149,7 @@ class DeviceProfileBuilder {
     bool assDirectPlay = true,
     bool supportsEmbeddedSubtitles = true,
     bool supportsExternalTextSubtitles = true,
+    bool supportsExternalPgsSubtitles = false,
     bool supportsAvc = false,
     bool supportsAvcHigh10 = false,
     int avcMainLevel = 0,
@@ -276,9 +283,11 @@ class DeviceProfileBuilder {
     final advertisedMaxChannels = maxAudioChannels > 0
         ? maxAudioChannels
         : (universalAudioDecode ? 8 : effectiveMaxChannels);
-    final limitStereoDirectPlay = forceStereo && !universalAudioDecode;
-    // Transcode-target channel cap. A universal-decode player in stereo mode
-    // delivers stereo by downmixing locally, so its transcodes stay uncapped
+    final limitStereoDirectPlay = universalAudioDecode
+        ? downmixToStereo && !appliesDownmixToStereo
+        : forceStereo;
+    // Transcode-target channel cap. A universal-decode player that downmixes
+    // on its own delivers stereo itself, so its transcodes stay uncapped
     // (a video-forced transcode would otherwise collapse to 2ch and
     // contradict the 8ch direct-play advertisement). An explicit user cap of
     // 1-2 channels is a stated intent and stays honored end to end.
@@ -436,7 +445,7 @@ class DeviceProfileBuilder {
     final codecProfiles = _codecProfiles(
       maxAudioChannels: advertisedMaxChannels,
       passthroughAudioCodecs: passthroughAudioCodecs,
-      universalAudioDecode: universalAudioDecode,
+      bridgesAudioToEac3: bridgesAudioToEac3,
       playerDecodesStereoTrueHd: playerDecodesStereoTrueHd,
       forceStereo: limitStereoDirectPlay,
       maxResolution: maxResolution,
@@ -492,6 +501,7 @@ class DeviceProfileBuilder {
         assDirectPlay: assDirectPlay,
         supportsEmbeddedSubtitles: supportsEmbeddedSubtitles,
         supportsExternalTextSubtitles: supportsExternalTextSubtitles,
+        supportsExternalPgsSubtitles: supportsExternalPgsSubtitles,
       ),
     };
   }
@@ -1056,7 +1066,7 @@ class DeviceProfileBuilder {
   static List<Map<String, dynamic>> _codecProfiles({
     required int maxAudioChannels,
     required Set<String> passthroughAudioCodecs,
-    required bool universalAudioDecode,
+    required bool bridgesAudioToEac3,
     required bool playerDecodesStereoTrueHd,
     required bool forceStereo,
     required MaxVideoResolution maxResolution,
@@ -1374,6 +1384,15 @@ class DeviceProfileBuilder {
       detectedWidth: maxResolutionVc1Width,
       detectedHeight: maxResolutionVc1Height,
     );
+    // Nothing probes a decoder size for the rest of the direct play codecs,
+    // so the viewer's Max Resolution is the only cap they get.
+    _addResolutionProfile(
+      profiles: profiles,
+      codec: 'mpeg,mpeg2video,mpeg4,vp8,vp9',
+      maxResolution: maxResolution,
+      detectedWidth: 0,
+      detectedHeight: 0,
+    );
 
     final unsupportedRangeTypesAv1 = <String>{};
     if (!supportsAv1DolbyVision) {
@@ -1544,7 +1563,7 @@ class DeviceProfileBuilder {
     // Past the bridge encoder's ceiling it refuses to open and the player has
     // nothing left to fall back to, so the track direct plays as silence.
     // Saying so here is what gets the server to re-encode it instead.
-    if (universalAudioDecode) {
+    if (bridgesAudioToEac3) {
       profiles.add(
         _codecProfile(
           type: 'VideoAudio',
@@ -1748,11 +1767,15 @@ class DeviceProfileBuilder {
   /// formats included, so a player that can't read them leaves the server to
   /// burn them in. [supportsExternalTextSubtitles] is narrower and only covers
   /// the plain text formats, which is why ass and ssa still offer External.
+  /// [supportsExternalPgsSubtitles] also offers PGS as External, for a player
+  /// that reads a whole .sup file. The playback manager takes that offer back
+  /// whenever the picked track is an embedded PGS one.
   static List<Map<String, dynamic>> _subtitleProfiles({
     required bool pgsDirectPlay,
     required bool assDirectPlay,
     bool supportsEmbeddedSubtitles = true,
     bool supportsExternalTextSubtitles = true,
+    bool supportsExternalPgsSubtitles = false,
   }) {
     final profiles = <Map<String, dynamic>>[];
 
@@ -1787,6 +1810,9 @@ class DeviceProfileBuilder {
     for (final format in const <String>['pgs', 'pgssub']) {
       if (pgsDirectPlay && supportsEmbeddedSubtitles) {
         add(format, 'Embed');
+      }
+      if (pgsDirectPlay && supportsExternalPgsSubtitles) {
+        add(format, 'External');
       }
       add(format, 'Encode');
     }

@@ -20,6 +20,10 @@ class _FakeImageApi implements ImageApi {
   }) => 'backdrop:$itemId';
 
   @override
+  String getThumbImageUrl(String itemId, {int? maxWidth, String? tag}) =>
+      'thumb:$itemId';
+
+  @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
@@ -46,6 +50,109 @@ void main() {
       expect(
         browsableGenreCount(rock, normalizedItemTypes: const ['MusicAlbum']),
         12,
+      );
+    });
+  });
+
+  // Both genre screens read a genre's own art through this.
+  group("a genre's own artwork", () {
+    test('takes a Thumb ahead of a Primary', () {
+      final genre = <String, dynamic>{
+        'Id': 'g1',
+        'PrimaryImageTag': 'p1',
+        'PrimaryImageAspectRatio': 0.66,
+        'ImageTags': {'Thumb': 't1'},
+      };
+
+      final (imageUrl, backdropUrl, hasOwnArtwork) = resolveGenreOwnArtwork(
+        genreData: genre,
+        imageApi: _FakeImageApi(),
+        maxWidth: 400,
+      );
+
+      expect(hasOwnArtwork, isTrue);
+      expect(imageUrl, 'thumb:g1');
+      expect(backdropUrl, isNull);
+    });
+
+    test('takes a portrait Primary when there is no Thumb', () {
+      final genre = <String, dynamic>{
+        'Id': 'g2',
+        'PrimaryImageTag': 'p1',
+        'PrimaryImageAspectRatio': 0.66,
+        'BackdropImageTags': ['b1'],
+      };
+
+      final (imageUrl, backdropUrl, hasOwnArtwork) = resolveGenreOwnArtwork(
+        genreData: genre,
+        imageApi: _FakeImageApi(),
+        maxWidth: 400,
+      );
+
+      expect(hasOwnArtwork, isTrue);
+      expect(imageUrl, 'primary:g2');
+      expect(backdropUrl, 'backdrop:g2');
+    });
+
+    // A landscape Primary comes from an item inside the genre.
+    test('leaves a landscape Primary to the fallback', () {
+      final genre = <String, dynamic>{
+        'Id': 'g3',
+        'PrimaryImageTag': 'p1',
+        'PrimaryImageAspectRatio': 1.78,
+        'BackdropImageTags': ['b1'],
+      };
+
+      final (imageUrl, backdropUrl, hasOwnArtwork) = resolveGenreOwnArtwork(
+        genreData: genre,
+        imageApi: _FakeImageApi(),
+        maxWidth: 400,
+      );
+
+      expect(hasOwnArtwork, isFalse);
+      expect(imageUrl, isNull);
+      expect(backdropUrl, isNull);
+    });
+
+    test('reports no artwork for a genre carrying none', () {
+      final (_, _, hasOwnArtwork) = resolveGenreOwnArtwork(
+        genreData: <String, dynamic>{'Id': 'g4', 'Name': 'Rock'},
+        imageApi: _FakeImageApi(),
+        maxWidth: 400,
+      );
+
+      expect(hasOwnArtwork, isFalse);
+    });
+  });
+
+  // Verified against Emby 4.10.0.40, which sends a genre's name and art but
+  // never a count, whatever fields are asked for.
+  group('a genre the server sent no count for', () {
+    const emby = {'Id': 'g1', 'Name': 'Fantasy', 'Type': 'Genre'};
+    const videoTypes = ['Movie', 'Series'];
+
+    test('is kept for its own item query to count', () {
+      expect(genreReportsCounts(emby), isFalse);
+      expect(
+        mayHaveBrowsableItems(emby, normalizedItemTypes: videoTypes),
+        isTrue,
+      );
+    });
+
+    test('is dropped once a count says it holds nothing', () {
+      const empty = {'Id': 'g2', 'MovieCount': 0, 'SeriesCount': 0};
+      expect(genreReportsCounts(empty), isTrue);
+      expect(
+        mayHaveBrowsableItems(empty, normalizedItemTypes: videoTypes),
+        isFalse,
+      );
+    });
+
+    test('is kept when a count says it holds something', () {
+      const movies = {'Id': 'g3', 'MovieCount': 4};
+      expect(
+        mayHaveBrowsableItems(movies, normalizedItemTypes: videoTypes),
+        isTrue,
       );
     });
   });

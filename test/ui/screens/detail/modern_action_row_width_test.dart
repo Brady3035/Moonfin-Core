@@ -43,6 +43,14 @@ void main() {
     expect(worstWidth(5), 442);
   });
 
+  // The spacing comes in already scaled, so only the buttons grow here.
+  test('the same row at the extra large UI scale asks for 565', () {
+    expect(
+      DetailActionButtonsState.modernRowWorstWidth(5, spacing, 140, scale: 1.3),
+      closeTo(565, 0.001),
+    );
+  });
+
   // Play only ever rests while a circle is grown, so how wide its label makes
   // it cannot change what the row needs.
   test('the Play label does not change a row that has circles', () {

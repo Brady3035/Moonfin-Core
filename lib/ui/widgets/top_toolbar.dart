@@ -20,6 +20,7 @@ import '../../data/services/plugin_sync_service.dart';
 import '../../preference/preference_constants.dart';
 import '../../preference/seerr_preferences.dart';
 import '../../preference/user_preferences.dart';
+import '../../util/audio_artwork_url.dart';
 import '../../util/clock_format.dart';
 import '../../util/game_library.dart';
 import '../../util/live_tv_library.dart';
@@ -45,6 +46,7 @@ import 'shuffle_overlay.dart';
 import 'user_menu_dialog.dart';
 
 import 'offline_aware_image.dart';
+import 'paced_network_image.dart';
 import 'package:playback_core/playback_core.dart';
 import '../../data/models/aggregated_item.dart';
 import '../../data/services/media_server_client_factory.dart';
@@ -930,16 +932,21 @@ class _TopToolbarState extends State<TopToolbar> with RouteAware {
             ),
             child: ClipOval(
               child: _userImageUrl != null
-                  ? Image.network(
-                      _userImageUrl!,
-                      headers: serverImageHeaders,
+                  ? Image(
+                      image: ResizeImage.resizeIfNeeded(
+                        ArtworkDecode.widthFor(
+                          avatarSize,
+                          MediaQuery.devicePixelRatioOf(context),
+                        ),
+                        null,
+                        PacedNetworkImage(
+                          _userImageUrl!,
+                          headers: serverImageHeaders,
+                        ),
+                      ),
                       fit: BoxFit.cover,
                       width: avatarSize,
                       height: avatarSize,
-                      cacheWidth: ArtworkDecode.widthFor(
-                        avatarSize,
-                        MediaQuery.devicePixelRatioOf(context),
-                      ),
                       errorBuilder: (_, _, _) => _avatarFallback(),
                     )
                   : _avatarFallback(),
@@ -2455,30 +2462,8 @@ class _TopMusicBarState extends State<TopMusicBar> {
     return raw is AggregatedItem ? raw : null;
   }
 
-  String? _artUrl(AggregatedItem item) {
-    try {
-      final client =
-          _clientFactory.getClientIfExists(item.serverId) ??
-          GetIt.instance<MediaServerClient>();
-      final albumTag = item.albumPrimaryImageTag;
-      final albumId = item.albumId;
-      if (item.type == 'Audio' && albumTag != null && albumId != null) {
-        return client.imageApi.getPrimaryImageUrl(
-          albumId,
-          maxHeight: 120,
-          tag: albumTag,
-        );
-      }
-      if (item.primaryImageTag != null) {
-        return client.imageApi.getPrimaryImageUrl(
-          item.id,
-          maxHeight: 120,
-          tag: item.primaryImageTag,
-        );
-      }
-    } catch (_) {}
-    return null;
-  }
+  String? _artUrl(AggregatedItem item) =>
+      audioArtUrl(item, clientFactory: _clientFactory, maxHeight: 120);
 
   Widget _buildBarButton({
     required IconData icon,

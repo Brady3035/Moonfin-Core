@@ -3,6 +3,7 @@ import 'package:moonfin_design/moonfin_design.dart';
 import 'package:server_core/server_core.dart';
 
 import '../image_source.dart';
+import '../paced_network_image.dart';
 import '../unread_badge.dart';
 import 'bottom_nav_metrics.dart';
 
@@ -148,14 +149,16 @@ class BottomNavAvatar extends StatelessWidget {
         clipBehavior: AppColorScheme.isPixel ? Clip.none : Clip.antiAlias,
         child: url == null
             ? fallback
-            : Image.network(
-                url,
-                headers: serverImageHeaders,
-                fit: BoxFit.cover,
-                cacheWidth: ArtworkDecode.widthFor(
-                  size,
-                  MediaQuery.devicePixelRatioOf(context),
+            : Image(
+                image: ResizeImage.resizeIfNeeded(
+                  ArtworkDecode.widthFor(
+                    size,
+                    MediaQuery.devicePixelRatioOf(context),
+                  ),
+                  null,
+                  PacedNetworkImage(url, headers: serverImageHeaders),
                 ),
+                fit: BoxFit.cover,
                 errorBuilder: (_, _, _) => fallback,
               ),
       ),

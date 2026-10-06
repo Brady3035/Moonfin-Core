@@ -701,6 +701,11 @@ class _GlobalShortcutScopeState extends State<_GlobalShortcutScope>
   }
 
   bool _onHardwareKeyEvent(KeyEvent event) {
+    // This runs before anything can mark the press, so it only clears a mark
+    // an earlier press left behind.
+    if (event is KeyDownEvent && event.logicalKey.isBackKey) {
+      DialogBackSuppressor.newBackPress();
+    }
     if (PlatformDetection.isTV &&
         _screensaverController.handleKeyEvent(event)) {
       return true;
@@ -1028,6 +1033,7 @@ class _ConnectivityListenerState extends ConsumerState<_ConnectivityListener>
   StreamSubscription<String>? _downloadErrorSub;
   StreamSubscription<ChatThread>? _chatMessageSub;
   StreamSubscription<AchievementUnlocks>? _unlockSub;
+  StreamSubscription<SeerrNotificationEvent>? _seerrNotificationSub;
 
   @override
   void initState() {
@@ -1036,20 +1042,20 @@ class _ConnectivityListenerState extends ConsumerState<_ConnectivityListener>
     ref.read(syncPlayRuntimeCoordinatorProvider);
     final manager = ref.read(syncPlayManagerProvider);
     _syncPlayEventsSub = manager.uiEvents.listen(_handleSyncPlayEvent);
-    if (GetIt.instance.isRegistered<PluginSyncService>()) {
-      if (GetIt.instance.isRegistered<SeerrNotificationService>()) {
-        final notificationService =
-            GetIt.instance<SeerrNotificationService>();
-        GetIt.instance<PluginSyncService>().onSeerrNotification =
-            (title, body, route, {requestId, isRequest = false}) =>
-                notificationService.show(
-                  title,
-                  body,
-                  route,
-                  requestId: requestId,
-                  isRequest: isRequest,
-                );
-      }
+    if (GetIt.instance.isRegistered<PluginSyncService>() &&
+        GetIt.instance.isRegistered<SeerrNotificationService>()) {
+      final notificationService = GetIt.instance<SeerrNotificationService>();
+      _seerrNotificationSub = GetIt.instance<PluginSyncService>()
+          .seerrNotifications
+          .listen(
+            (event) => notificationService.show(
+              event.title,
+              event.body,
+              event.route,
+              requestId: event.requestId,
+              isRequest: event.isRequest,
+            ),
+          );
     }
     if (GetIt.instance.isRegistered<ServerMessagesService>()) {
       GetIt.instance<ServerMessagesService>().addListener(
@@ -1077,9 +1083,7 @@ class _ConnectivityListenerState extends ConsumerState<_ConnectivityListener>
     _downloadErrorSub?.cancel();
     _chatMessageSub?.cancel();
     _unlockSub?.cancel();
-    if (GetIt.instance.isRegistered<PluginSyncService>()) {
-      GetIt.instance<PluginSyncService>().onSeerrNotification = null;
-    }
+    _seerrNotificationSub?.cancel();
     if (GetIt.instance.isRegistered<ServerMessagesService>()) {
       GetIt.instance<ServerMessagesService>().removeListener(
         _handleServerMessagesChanged,

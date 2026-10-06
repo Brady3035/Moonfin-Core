@@ -335,8 +335,9 @@ class EmbyItemsApi implements ItemsApi {
     int? imageTypeLimit,
     bool recursive = false,
   }) async {
+    final userId = _getUserId();
     final response = await _dio.get(
-      '/Items',
+      '/Users/$userId/Items',
       queryParameters: {
         if (parentId != null) 'ParentId': parentId,
         if (recursive) 'Recursive': true,
@@ -351,14 +352,7 @@ class EmbyItemsApi implements ItemsApi {
         'MaxPremiereDate': DateTime.now().toUtc().toIso8601String(),
       },
     );
-
-    // /Items/Latest returns a bare array, so normalize it into the
-    // same shape as /Items so all callers stay unchanged.
-    final data = response.data;
-    if (data is List) {
-      return {'Items': data, 'TotalRecordCount': data.length};
-    }
-    return data as Map<String, dynamic>;
+    return response.data as Map<String, dynamic>;
   }
 
   @override

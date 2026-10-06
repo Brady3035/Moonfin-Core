@@ -12,6 +12,7 @@ import '../../../../../preference/user_preferences.dart';
 import '../../../../../util/detail_playback_info.dart';
 import '../../../../../util/detail_track_highlight.dart';
 import '../../../../../util/direct_play_reasons_formatter.dart';
+import '../../../../../util/media_source_summary.dart';
 import '../../../../widgets/focus/focusable_wrapper.dart';
 
 /// Modal section content displaying file information, video/audio/subtitle
@@ -77,12 +78,7 @@ class _SpotlightFileDetailsSectionState
     });
 
     try {
-      final rawStreams =
-          (widget.mediaSource['MediaStreams'] as List?)
-              ?.whereType<Map>()
-              .map((e) => e.cast<String, dynamic>())
-              .toList() ??
-          [];
+      final rawStreams = mediaSourceStreams(widget.mediaSource);
       final audioStreams =
           rawStreams.where((s) => s['Type'] == 'Audio').toList();
       final subtitleStreams =
@@ -138,11 +134,6 @@ class _SpotlightFileDetailsSectionState
     }
   }
 
-  String _formatLang(String? code) {
-    if (code == null || code.isEmpty) return 'Unknown';
-    return code.toUpperCase();
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -150,18 +141,9 @@ class _SpotlightFileDetailsSectionState
     final textTheme = theme.textTheme;
 
     // File name and Size
-    final sizeBytes = widget.mediaSource['Size'] as int? ?? 0;
-    final String formattedSize;
-    if (sizeBytes > 0) {
-      final double mb = sizeBytes / (1024 * 1024);
-      if (mb > 999) {
-        formattedSize = '${(mb / 1024).toStringAsFixed(2)} GB';
-      } else {
-        formattedSize = '${mb.toStringAsFixed(0)} MB';
-      }
-    } else {
-      formattedSize = 'Unknown Size';
-    }
+    final formattedSize =
+        formatMediaSourceSize(widget.mediaSource['Size'] as int? ?? 0) ??
+        l10n.unknown;
 
     final String path = widget.mediaSource['Path'] as String? ?? '';
     final String rawFileName = path.split('/').last.split('\\').last;
@@ -169,7 +151,8 @@ class _SpotlightFileDetailsSectionState
         ? rawFileName
         : (widget.mediaSource['Name'] as String? ?? widget.item.name);
     final String container =
-        widget.mediaSource['Container']?.toString().toUpperCase() ?? 'UNKNOWN';
+        widget.mediaSource['Container']?.toString().toUpperCase() ??
+        l10n.unknown;
     final DateTime? addedOn = widget.item.dateCreated?.toLocal();
     final String? addedLabel = addedOn == null
         ? null
@@ -178,58 +161,16 @@ class _SpotlightFileDetailsSectionState
           ).format(addedOn);
 
     // Parse streams
-    final List<Map<String, dynamic>> rawStreams =
-        (widget.mediaSource['MediaStreams'] as List?)
-            ?.whereType<Map>()
-            .map((e) => e.cast<String, dynamic>())
-            .toList() ??
-        [];
+    final rawStreams = mediaSourceStreams(widget.mediaSource);
 
     final videoStreams = rawStreams.where((s) => s['Type'] == 'Video').toList();
     final audioStreams = rawStreams.where((s) => s['Type'] == 'Audio').toList();
     final subtitleStreams =
         rawStreams.where((s) => s['Type'] == 'Subtitle').toList();
 
-    // Video "Greatest Hits"
-    final List<String> videoDetails = [];
-    if (videoStreams.isNotEmpty) {
-      final v = videoStreams.first;
-      final codec = v['Codec']?.toString().toUpperCase() ?? 'Unknown Codec';
-      final profile = v['Profile']?.toString();
-      final width = v['Width']?.toString();
-      final height = v['Height']?.toString();
-      final frameRate = v['RealFrameRate'] ?? v['AverageFrameRate'];
-      final bitDepth = v['BitDepth'] as int?;
-      final videoRange = v['VideoRange']?.toString();
-      final videoRangeType = v['VideoRangeType']?.toString();
-
-      var videoStr = codec;
-      if (profile != null && profile.isNotEmpty) videoStr += ' ($profile)';
-      videoDetails.add(videoStr);
-
-      if (width != null && height != null) {
-        videoDetails.add('$width x $height');
-      }
-
-      if (frameRate != null) {
-        final fr = double.tryParse(frameRate.toString());
-        if (fr != null) {
-          videoDetails.add('${fr.toStringAsFixed(3)} fps');
-        }
-      }
-
-      if (bitDepth != null) {
-        videoDetails.add('$bitDepth-bit');
-      }
-
-      if (videoRange != null && videoRange.isNotEmpty) {
-        var rangeStr = videoRange;
-        if (videoRangeType != null && videoRangeType.isNotEmpty) {
-          rangeStr += ' ($videoRangeType)';
-        }
-        videoDetails.add(rangeStr);
-      }
-    }
+    final videoDetails = videoStreams.isEmpty
+        ? const <String>[]
+        : videoStreamSummary(videoStreams.first, unknownCodec: l10n.unknown);
 
     final manager =
         GetIt.instance.isRegistered<PlaybackManager>()
@@ -307,7 +248,7 @@ class _SpotlightFileDetailsSectionState
         const SizedBox(height: 24),
         if (videoDetails.isNotEmpty) ...[
           _buildInfoRow(
-            'Video',
+            l10n.video,
             Text(
               videoDetails.join('  •  '),
               style: textTheme.bodyMedium?.copyWith(
@@ -338,7 +279,10 @@ class _SpotlightFileDetailsSectionState
                         final title =
                             a['DisplayTitle'] ??
                             a['Codec']?.toString().toUpperCase();
-                        final lang = _formatLang(a['Language']);
+                        final lang = streamLanguageLabel(
+                          a['Language'],
+                          unknown: l10n.unknown,
+                        );
                         final isDefault =
                             a['IsDefault'] == true
                                 ? ' [${l10n.defaultLabel}]'
@@ -426,7 +370,10 @@ class _SpotlightFileDetailsSectionState
                         final title =
                             s['DisplayTitle'] ??
                             s['Codec']?.toString().toUpperCase();
-                        final lang = _formatLang(s['Language']);
+                        final lang = streamLanguageLabel(
+                          s['Language'],
+                          unknown: l10n.unknown,
+                        );
                         final isDefault =
                             s['IsDefault'] == true
                                 ? ' [${l10n.defaultLabel}]'
@@ -621,11 +568,7 @@ class _SpotlightFileDetailsSectionState
     final mediaStreams =
         source.mediaStreams.isNotEmpty
             ? source.mediaStreams
-            : (widget.mediaSource['MediaStreams'] as List?)
-                    ?.whereType<Map>()
-                    .map((e) => e.cast<String, dynamic>())
-                    .toList() ??
-                const [];
+            : mediaSourceStreams(widget.mediaSource);
 
     final clientDvReason = checkClientDolbyVisionTranscodeReason(
       mediaStreams,

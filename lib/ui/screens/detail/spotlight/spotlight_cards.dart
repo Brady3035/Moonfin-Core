@@ -10,6 +10,7 @@ import '../../../../data/viewmodels/seerr_media_detail_view_model.dart'
 import '../../../../l10n/app_localizations.dart';
 import '../../../../preference/detail_section_layout.dart';
 import '../../../../preference/user_preferences.dart';
+import '../../../../util/media_source_summary.dart';
 import '../../../widgets/seerr/seerr_collection_banner.dart';
 import '../../../widgets/seerr/seerr_item_chips.dart';
 import '../../../widgets/seerr/seerr_item_status.dart'
@@ -484,31 +485,21 @@ class _SpotlightCardsBuilder {
   }
 
   SpotlightCardSpec? _fileDetailsCard() {
+    if (!_shows(DetailSection.mediaInfo)) return null;
     final mediaSource = selectedMediaSourceForItem(item, selectedMediaSourceId);
     if (mediaSource == null) return null;
 
-    final sizeBytes = mediaSource['Size'] as int? ?? 0;
-    final String formattedSize;
-    if (sizeBytes > 0) {
-      final double mb = sizeBytes / (1024 * 1024);
-      if (mb > 999) {
-        formattedSize = '${(mb / 1024).toStringAsFixed(2)} GB';
-      } else {
-        formattedSize = '${mb.toStringAsFixed(0)} MB';
-      }
-    } else {
-      formattedSize = '';
-    }
-
+    final formattedSize =
+        formatMediaSourceSize(mediaSource['Size'] as int? ?? 0);
     final String container =
         mediaSource['Container']?.toString().toUpperCase() ?? '';
 
     final subtitle = [
       if (container.isNotEmpty) container,
-      if (formattedSize.isNotEmpty) formattedSize,
+      ?formattedSize,
     ].join(' · ');
 
-    final imageUrl = _fileDetailsImage() ?? fallbackImageUrl;
+    final imageUrl = _fileDetailsImage();
 
     return SpotlightCardSpec(
       id: 'file_details',

@@ -675,6 +675,7 @@ class _SpotlightDetailContentState extends State<SpotlightDetailContent> {
     AggregatedItem item,
     Map<String, dynamic>? selectedSource, {
     required bool showLogo,
+    required bool showVersionBadge,
   }) {
     final textTheme = Theme.of(context).textTheme;
     final logoScaleFactor = _desktopScale > 1.1 ? 0.70 : 1.0;
@@ -693,7 +694,9 @@ class _SpotlightDetailContentState extends State<SpotlightDetailContent> {
     );
 
     Widget versionBadge() {
-      final versionName = selectedSource?['Name'] as String? ?? 'Default';
+      final versionName =
+          selectedSource?['Name'] as String? ??
+          AppLocalizations.of(context).defaultLabel;
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         decoration: BoxDecoration(
@@ -716,7 +719,8 @@ class _SpotlightDetailContentState extends State<SpotlightDetailContent> {
       );
     }
 
-    final hasMultipleVersions = item.mediaSources.length > 1;
+    final hasMultipleVersions =
+        showVersionBadge && item.mediaSources.length > 1;
 
     if (isEpisode) {
       final seriesLogoHeight = (_landscape ? 90.0 : 64.0) * logoScaleFactor;
@@ -1139,6 +1143,7 @@ class _SpotlightDetailContentState extends State<SpotlightDetailContent> {
             item,
             selectedSource,
             showLogo: visibility.shows(DetailSection.logo),
+            showVersionBadge: visibility.shows(DetailSection.versionBadge),
           ),
         const SizedBox(height: 8),
         if (!isPerson) _metadataRow(context, item, selectedSource),

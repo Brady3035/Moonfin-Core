@@ -1064,6 +1064,21 @@ void main() {
     );
   });
 
+  test('hiding media info drops the file details card', () async {
+    final movie = _item('Movie', {
+      'MediaSources': [
+        {'Id': 'src-1', 'Container': 'mkv'},
+      ],
+    });
+    expect(cardsFor(movie).map((c) => c.id), contains('file_details'));
+
+    await hide('mediaInfo');
+    expect(
+      cardsFor(movie).map((c) => c.id),
+      isNot(contains('file_details')),
+    );
+  });
+
   test('file details card picks distinct backdrop tag when available', () {
     final movie = _item('Movie', {
       'BackdropImageTags': ['tag0', 'tag1', 'tag2'],

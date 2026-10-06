@@ -9,6 +9,7 @@ import 'package:moonfin/data/repositories/offline_repository.dart';
 import 'package:moonfin/data/services/plugin_sync_service.dart';
 import 'package:moonfin/data/viewmodels/item_detail_view_model.dart';
 import 'package:moonfin/l10n/app_localizations.dart';
+import 'package:moonfin/preference/detail_section_layout.dart';
 import 'package:moonfin/preference/preference_constants.dart';
 import 'package:moonfin/preference/seerr_preferences.dart';
 import 'package:moonfin/preference/user_preferences.dart';
@@ -35,6 +36,20 @@ class _OfflineRepository extends Mock implements OfflineRepository {}
 class _PlaybackManager extends Mock implements PlaybackManager {}
 
 class _QueueService extends Mock implements QueueService {}
+
+AggregatedItem _alien3() => AggregatedItem(
+  id: 'movie-alien-3',
+  serverId: 'server-1',
+  rawData: {
+    'Id': 'movie-alien-3',
+    'Name': 'Alien 3',
+    'Type': 'Movie',
+    'MediaSources': [
+      {'Id': 'src-theatrical', 'Name': 'Theatrical Cut'},
+      {'Id': 'src-assembly', 'Name': 'Assembly Cut'},
+    ],
+  },
+);
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -198,19 +213,7 @@ void main() {
   testWidgets('movie with multiple versions renders version badge', (
     tester,
   ) async {
-    final movie = AggregatedItem(
-      id: 'movie-alien-3',
-      serverId: 'server-1',
-      rawData: {
-        'Id': 'movie-alien-3',
-        'Name': 'Alien 3',
-        'Type': 'Movie',
-        'MediaSources': [
-          {'Id': 'src-theatrical', 'Name': 'Theatrical Cut'},
-          {'Id': 'src-assembly', 'Name': 'Assembly Cut'},
-        ],
-      },
-    );
+    final movie = _alien3();
     when(() => vm.item).thenReturn(movie);
 
     await tester.pumpWidget(
@@ -219,6 +222,21 @@ void main() {
     await tester.pump();
 
     expect(find.text('Assembly Cut'), findsOneWidget);
+  });
+
+  testWidgets('a hidden version badge section leaves the badge out', (
+    tester,
+  ) async {
+    final movie = _alien3();
+    when(() => vm.item).thenReturn(movie);
+    await prefs.set(detailSectionLayout.hiddenPreference, 'versionBadge');
+
+    await tester.pumpWidget(
+      buildWidget(selectedMediaSourceId: 'src-assembly'),
+    );
+    await tester.pump();
+
+    expect(find.text('Assembly Cut'), findsNothing);
   });
 
   testWidgets('movie with single version does not render version badge', (

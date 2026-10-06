@@ -229,7 +229,6 @@ class MpvLetterboxCropper extends LetterboxCropper {
     this.autoDelay = MpvLetterboxCrop.autoDelay,
     this.detectDuration = MpvLetterboxCrop.detectDuration,
     this.windowboxGap = LetterboxCrop.windowboxGap,
-    this.managePanscan = true,
     LetterboxCropStabilizer? stabilizer,
   }) : _supported = supported,
        _stabilizer = stabilizer ?? LetterboxCropStabilizer();
@@ -247,10 +246,6 @@ class MpvLetterboxCropper extends LetterboxCropper {
   final Duration autoDelay;
   final Duration detectDuration;
   final Duration windowboxGap;
-
-  /// Set `panscan` to fill the frame. Off where the video view already owns
-  /// `panscan` (Android native surface) and follows [fillsFrame] instead.
-  final bool managePanscan;
 
   int _generation = 0;
   String? _hwdecBackup;
@@ -278,8 +273,8 @@ class MpvLetterboxCropper extends LetterboxCropper {
 
   Stream<MpvCropGeometry?> get geometryStream => _geometryController.stream;
 
-  /// The applied crop is wider than the source frame, so fit would paint the
-  /// removed bars back. The picture has to be zoomed to fill.
+  /// The applied crop is wider than its source, so a 16:9 display shows
+  /// bars again under fit and the picture has to be zoomed to fill it.
   bool get fillsFrame {
     final geometry = _geometry;
     if (!_applied || geometry == null) return false;
@@ -933,20 +928,7 @@ class MpvLetterboxCropper extends LetterboxCropper {
     }
     _setGeometry(MpvCropGeometry(rect, source.$1, source.$2));
     _setApplied(true);
-    await _syncPanscan();
     return true;
-  }
-
-  /// The rendered frame stays the source size. Fit then paints the removed
-  /// bars back into that frame, which is why a 16:9 screen still shows them.
-  /// Fill the frame when the cropped picture is wider than the source.
-  Future<void> _syncPanscan() => _setPanscan(fillsFrame ? '1' : '0');
-
-  /// Not cached: the video view can also write `panscan`, so a remembered
-  /// value goes stale.
-  Future<void> _setPanscan(String value) async {
-    if (!managePanscan) return;
-    await _host.setProperty('panscan', value);
   }
 
   Future<void> _clearVideoCrop() async {
@@ -959,7 +941,6 @@ class MpvLetterboxCropper extends LetterboxCropper {
     await _host.command(['set', 'file-local-options/video-crop', '']);
     await _restoreSubtitlePosition();
     _setGeometry(null);
-    await _setPanscan('0');
   }
 
   void _setGeometry(MpvCropGeometry? geometry) {

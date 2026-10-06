@@ -196,6 +196,8 @@ class MediaKitPlayerBackend extends PlayerBackend {
   bool _audioPassthroughApplyQueued = false;
   bool _isDisposed = false;
   late final MpvLetterboxCropper _letterboxCropper;
+  late final _MediaKitLetterboxHost _letterboxHost;
+  StreamSubscription<MpvCropGeometry?>? _letterboxGeometrySub;
   String? _appliedCustomMpvConfPath;
   DateTime? _appliedCustomMpvConfMtime;
   static final Map<String, _ParsedMpvConfCacheEntry> _parsedMpvConfCache =
@@ -446,12 +448,19 @@ class MediaKitPlayerBackend extends PlayerBackend {
     this._onNativeHandleReady,
     this._hwDecodingEnabled,
   ) {
+    _letterboxHost = _MediaKitLetterboxHost(this);
     _letterboxCropper = MpvLetterboxCropper(
-      _MediaKitLetterboxHost(this),
+      _letterboxHost,
       supported: letterboxCropAvailable(),
-      // NativeVideoView sets panscan from the zoom mode on every surface.
-      managePanscan: !PlatformDetection.useNativeVideoSurface,
     );
+    // The desktop texture keeps the source size under video-crop, so mpv
+    // letterboxes the cropped picture inside it and the bars come back.
+    // Sizing the texture to the crop lets the picture fit any window.
+    if (!PlatformDetection.useNativeVideoSurface) {
+      _letterboxGeometrySub = _letterboxCropper.geometryStream.listen(
+        (geometry) => unawaited(_sizeTextureToCrop(geometry)),
+      );
+    }
     _prefs.addListener(_onPreferencesChanged);
     _ccTracksSub = _player.stream.tracks.listen(
       (_) => unawaited(_refreshEmbeddedCaptionTracks()),
@@ -1381,6 +1390,19 @@ class MediaKitPlayerBackend extends PlayerBackend {
     } catch (_) {}
   }
 
+  Future<void> _sizeTextureToCrop(MpvCropGeometry? geometry) async {
+    final controller = _videoController;
+    if (controller == null || _isDisposed) return;
+    try {
+      await controller.setSize(
+        width: geometry?.rect.w,
+        height: geometry?.rect.h,
+      );
+    } catch (_) {
+      // The controller can be torn down while a resize is in flight.
+    }
+  }
+
   Future<void> _configureLetterboxCropper() async {
     final seconds = _prefs.get(UserPreferences.cropBlackBarsIntervalSeconds);
     await _letterboxCropper.setRecropInterval(Duration(seconds: seconds));
@@ -1805,9 +1827,9 @@ class MediaKitPlayerBackend extends PlayerBackend {
     if (_player.platform is! NativePlayer) return;
     try {
       final native = _player.platform as NativePlayer;
-      final fontsDirPath = ((await (native as dynamic).getProperty(
-        'sub-fonts-dir',
-      )) as String).trim();
+      final fontsDirPath =
+          ((await (native as dynamic).getProperty('sub-fonts-dir')) as String)
+              .trim();
       if (fontsDirPath.isEmpty) return;
       final fontsDir = Directory(fontsDirPath);
       if (!await fontsDir.exists()) return;
@@ -1988,10 +2010,11 @@ class MediaKitPlayerBackend extends PlayerBackend {
     return false;
   }
 
-  /// mpv 0.41 logs these when a software screenshot meets an nvdec frame.
-  /// Playback is fine; surfacing them marks the session failed and snacks
-  /// the text onto the player.
-  static bool _isScreenshotScalerNoise(String message) {
+  /// mpv 0.41 logs these when the frame sampler's software screenshot meets
+  /// a frame libswscale can't read. Playback is fine, so they're dropped
+  /// while a sample is in flight. At any other time they're real errors.
+  bool _isScreenshotScalerNoise(String message) {
+    if (!_letterboxHost.sampledRecently) return false;
     final lower = message.toLowerCase();
     return lower.contains('libswscale initialization failed') ||
         lower.contains('not supported by libswscale');
@@ -2602,6 +2625,7 @@ class MediaKitPlayerBackend extends PlayerBackend {
   @override
   void dispose() {
     _isDisposed = true;
+    _letterboxGeometrySub?.cancel();
     _letterboxCropper.cancel();
     _prefs.removeListener(_onPreferencesChanged);
     _ccTracksSub?.cancel();
@@ -2615,13 +2639,30 @@ class _MediaKitLetterboxHost implements MpvLetterboxHost, MpvFrameSampleHost {
   _MediaKitLetterboxHost(this._backend);
 
   final _frameSampler = MpvFrameSampler();
+  bool _sampling = false;
+  DateTime? _sampleEnded;
+
+  /// A capture is running or just finished. mpv reports a scaler failure a
+  /// moment after the shot, so the window runs past the capture.
+  bool get sampledRecently {
+    if (_sampling) return true;
+    final ended = _sampleEnded;
+    return ended != null &&
+        DateTime.now().difference(ended) < const Duration(seconds: 2);
+  }
 
   @override
   Future<MpvFrameSample?> sampleFrame(int width, int height) async {
     if (_backend._isDisposed) return null;
     final handle = await _backend._player.handle;
     if (_backend._isDisposed) return null;
-    return _frameSampler.capture(handle, width, height);
+    _sampling = true;
+    try {
+      return await _frameSampler.capture(handle, width, height);
+    } finally {
+      _sampling = false;
+      _sampleEnded = DateTime.now();
+    }
   }
 
   final MediaKitPlayerBackend _backend;

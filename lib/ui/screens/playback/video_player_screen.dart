@@ -1210,8 +1210,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
     }
     _lastCastErrorAt = now;
     _lastCastErrorMessage = message;
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   void _showThrottledPlaybackError(String message) {
@@ -1231,8 +1232,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
 
     _lastPlaybackErrorAt = now;
     _lastPlaybackErrorMessage = normalized;
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(normalized)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(normalized)));
   }
 
   void _showBringupFailureIfAny(PlaybackBringupState state) {
@@ -4174,12 +4176,13 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
                               _nextUpItem!.primaryImageTag != null &&
                                   _prefs.get(UserPreferences.nextUpBehavior) !=
                                       NextUpBehavior.minimal
-                              ? _clientForItem(_nextUpItem!).imageApi
-                                    .getPrimaryImageUrl(
-                                      _nextUpItem!.id,
-                                      maxWidth: 400,
-                                      tag: _nextUpItem!.primaryImageTag,
-                                    )
+                              ? _clientForItem(
+                                  _nextUpItem!,
+                                ).imageApi.getPrimaryImageUrl(
+                                  _nextUpItem!.id,
+                                  maxWidth: 400,
+                                  tag: _nextUpItem!.primaryImageTag,
+                                )
                               : null,
                           timeoutMs: _prefs.get(UserPreferences.nextUpTimeout),
                           onPlayNext: _handleNextUpPlay,
@@ -4330,9 +4333,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
       return Positioned.fill(
         child: NativeVideoView(
           player: mediaKitBackend.player,
-          zoomMode: _nativeZoomMode(
-            _mpvCropFillsFrame ? ZoomMode.autoCrop : _effectiveZoomMode,
-          ),
+          zoomMode: _nativeZoomMode(_effectiveZoomMode),
           fill: Colors.black,
           videoOutput: selectedVo,
           hardwareDecodingEnabled: hwDecodingEnabled,
@@ -4469,7 +4470,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
                   alignment: pos.alignment,
                   child: Padding(
                     padding: pos.safePadding,
-                    child: PlayerLoadingOverlay(label: _streamLoadingLabel),
+                    child: PlayerLoadingOverlay(
+                      label: _streamLoadingLabel,
+                    ),
                   ),
                 ),
         );
@@ -4850,8 +4853,11 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
       return null;
     }
 
-    return _clientForQueueItem(item).imageApi
-        .getLogoImageUrl(normalizedItemId, maxWidth: 420, tag: normalizedTag);
+    return _clientForQueueItem(item).imageApi.getLogoImageUrl(
+      normalizedItemId,
+      maxWidth: 420,
+      tag: normalizedTag,
+    );
   }
 
   String? _artworkUrlForQueueItem(dynamic item) {
@@ -7303,15 +7309,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
       _prefs.get(UserPreferences.cropBlackBars) &&
       (_activeBackend?.supportsLetterboxCrop ?? false);
 
-  /// The native Android TV surface owns mpv `panscan`, so it must zoom
-  /// exactly when the cropper would.
-  bool get _mpvCropFillsFrame {
-    final cropper = _activeMediaKitBackend?.letterboxCropper;
-    return _letterboxCropApplied &&
-        cropper is MpvLetterboxCropper &&
-        cropper.fillsFrame;
-  }
-
   void _listenToLetterboxCropState(PlayerBackend? backend) {
     _letterboxCropAppliedSub?.cancel();
     _letterboxCropGeometrySub?.cancel();
@@ -7332,16 +7329,19 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
     }
   }
 
-  /// Nothing cropped: the user's zoom mode. mpv crops keep the cropped shape
-  /// with fit and fill through `panscan`; Media3 zooms into its crop.
+  /// Nothing cropped: the user's zoom mode. A fullscreen display covers an
+  /// mpv crop that is wider than its source, since fit would show bars again
+  /// on a 16:9 screen. A window and a narrower crop keep the whole picture.
+  /// Media3 zooms into its crop.
   ZoomMode get _effectiveZoomMode {
-    if (_letterboxCropApplied) {
-      if (_activeMediaKitBackend != null) return ZoomMode.fit;
-      if (!PlatformDetection.useDesktopUi || _isDesktopFullscreen) {
-        return ZoomMode.autoCrop;
-      }
+    if (!_letterboxCropApplied) return _zoomMode;
+    final fullscreen =
+        !PlatformDetection.useDesktopUi || _isDesktopFullscreen;
+    final cropper = _activeMediaKitBackend?.letterboxCropper;
+    if (cropper is MpvLetterboxCropper) {
+      return fullscreen && cropper.fillsFrame ? ZoomMode.autoCrop : ZoomMode.fit;
     }
-    return _zoomMode;
+    return fullscreen ? ZoomMode.autoCrop : _zoomMode;
   }
 
   String? _recropShortcutLabel(AppLocalizations l10n) {
@@ -7848,9 +7848,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
         CastTargetKind.dlna => 'DLNA',
         _ => l10n.cast,
       };
-      _showThrottledCastError(
-        l10n.castActionFailed(label, describeError(e, l10n)),
-      );
+      _showThrottledCastError(l10n.castActionFailed(label, describeError(e, l10n)));
     }
   }
 

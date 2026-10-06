@@ -4457,7 +4457,7 @@
   "@cropBlackBarsEverySecond": {
     "description": "Letterbox recrop interval: scan about once a second"
   },
-  "settingsCropBlackBarsIntervalDescription": "Follow aspect-ratio changes during playback. Uses a copy-back decoder while scanning.",
+  "settingsCropBlackBarsIntervalDescription": "Follow aspect ratio changes during playback.",
   "@settingsCropBlackBarsIntervalDescription": {
     "description": "Description for the letterbox recrop-interval setting"
   },

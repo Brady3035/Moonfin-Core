@@ -339,6 +339,9 @@ class Media3LetterboxCropper extends LetterboxCropper {
   }
 
   Future<void> _runContinuous(int generation) async {
+    // A PixelCopy of a 4K surface isn't free on a TV box, so a slow read
+    // stretches the gap to keep capture under about 5% of playback time.
+    var gap = _recropInterval;
     while (_isCurrent(generation) && _enabled && _continuous) {
       if (_host.isPlaying != true) {
         if (!await _waitWhileCurrent(generation, untilPlaying: true)) {
@@ -346,24 +349,29 @@ class Media3LetterboxCropper extends LetterboxCropper {
         }
       }
       final before = _host.position;
-      if (!await _delay(generation, _recropInterval)) return;
+      if (!await _delay(generation, gap)) return;
       if (!_enabled || !_continuous || !_isCurrent(generation)) return;
       if (_host.isPlaying != true) continue;
 
       if (LetterboxCrop.seeked(
         before: before,
         after: _host.position,
-        elapsed: _recropInterval,
+        elapsed: gap,
         speed: _host.playbackSpeed,
       )) {
         _stabilizer.resetCandidate();
       }
 
+      final watch = Stopwatch()..start();
       final sample = await _host.detectLetterbox().timeout(
         Media3LetterboxCrop.detectTimeout,
         onTimeout: () => null,
       );
       if (!_isCurrent(generation)) return;
+      final paced = Duration(
+        milliseconds: (watch.elapsedMilliseconds * 20).clamp(0, 10000),
+      );
+      gap = paced > _recropInterval ? paced : _recropInterval;
 
       final decision = _stabilizer.observe(
         width: sample?['w'],

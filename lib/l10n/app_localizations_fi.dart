@@ -3315,7 +3315,7 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get settingsCropBlackBarsIntervalDescription =>
-      'Follow aspect-ratio changes during playback. Uses a copy-back decoder while scanning.';
+      'Follow aspect ratio changes during playback.';
 
   @override
   String get playerRecroppingBlackBars => 'Recropping black bars';

@@ -3112,7 +3112,10 @@ class UserPreferences extends ChangeNotifier {
   /// kept out of the synced fields so a new device asks rather than inheriting
   /// somebody else's answer.
   static Preference<int> setupWizardVersionForServer(String serverKey) =>
-      Preference(key: 'pref_setup_wizard_version_$serverKey', defaultValue: 0);
+      Preference(
+        key: 'pref_setup_wizard_version_$serverKey',
+        defaultValue: 0,
+      );
 
   /// Bumped only when a release adds a step that earns its place. Everything
   /// already answered stays answered.
@@ -3339,12 +3342,13 @@ class UserPreferences extends ChangeNotifier {
     values: LibraryScrollDirection.values,
   );
 
-  static EnumPreference<LibraryGroupBy> libraryGroupBy(String libraryId) =>
-      EnumPreference(
-        key: 'library_group_by_$libraryId',
-        defaultValue: LibraryGroupBy.none,
-        values: LibraryGroupBy.values,
-      );
+  static EnumPreference<LibraryGroupBy> libraryGroupBy(
+    String libraryId,
+  ) => EnumPreference(
+    key: 'library_group_by_$libraryId',
+    defaultValue: LibraryGroupBy.none,
+    values: LibraryGroupBy.values,
+  );
 
   static final allGenresImageType = EnumPreference(
     key: 'all_genres_image_type',
@@ -3596,10 +3600,7 @@ class UserPreferences extends ChangeNotifier {
     return SeriesTrackPreference.fromRawString(raw);
   }
 
-  Future<void> setSeriesAudioPreference(
-    String seriesId,
-    SeriesTrackPreference pref,
-  ) async {
+  Future<void> setSeriesAudioPreference(String seriesId, SeriesTrackPreference pref) async {
     final key = Preference(
       key: 'pref_series_audio_lang_$seriesId',
       defaultValue: '',

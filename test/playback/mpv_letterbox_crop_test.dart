@@ -738,50 +738,6 @@ void main() {
       });
     });
 
-    test('panscan is rewritten after the video view reset it', () {
-      fakeAsync((async) {
-        final host = _MpvDetectHost();
-        final cropper = MpvLetterboxCropper(
-          host,
-          supported: true,
-          autoDelay: Duration.zero,
-          detectDuration: Duration.zero,
-        );
-        cropper.setEnabled(true);
-        async.flushMicrotasks();
-        expect(host.setProperties['panscan'], '1');
-        expect(cropper.fillsFrame, isTrue);
-
-        host.setProperties['panscan'] = '0.0';
-        host.lavfi = {'w': '1920', 'h': '800', 'x': '0', 'y': '140'};
-        cropper.recrop();
-        async.flushMicrotasks();
-        expect(host.setProperties['panscan'], '1');
-        cropper.cancel();
-        async.flushMicrotasks();
-      });
-    });
-
-    test('leaves panscan alone when the video view owns it', () {
-      fakeAsync((async) {
-        final host = _MpvDetectHost();
-        final cropper = MpvLetterboxCropper(
-          host,
-          supported: true,
-          autoDelay: Duration.zero,
-          detectDuration: Duration.zero,
-          managePanscan: false,
-        );
-        cropper.setEnabled(true);
-        async.flushMicrotasks();
-        expect(cropper.isApplied, isTrue);
-        expect(cropper.fillsFrame, isTrue);
-        expect(host.setProperties.containsKey('panscan'), isFalse);
-        cropper.cancel();
-        async.flushMicrotasks();
-      });
-    });
-
     test('every-second mode applies after two samples', () {
       fakeAsync((async) {
         final host = _MpvDetectHost();

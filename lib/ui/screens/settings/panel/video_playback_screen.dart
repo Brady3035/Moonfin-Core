@@ -539,8 +539,9 @@ class _ExternalPlayerAppPickerTileState
                   AppLocalizations.of(dialogContext).settingsAskEachTime,
                 ),
                 subtitle: Text(
-                  AppLocalizations.of(dialogContext)
-                      .externalPlayerAskEachTimeSubtitle,
+                  AppLocalizations.of(
+                    dialogContext,
+                  ).externalPlayerAskEachTimeSubtitle,
                 ),
                 trailing: normalizedCurrent.isEmpty
                     ? const Icon(Icons.check)

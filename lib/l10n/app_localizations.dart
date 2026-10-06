@@ -5767,7 +5767,7 @@ abstract class AppLocalizations {
   /// Description for the letterbox recrop-interval setting
   ///
   /// In en, this message translates to:
-  /// **'Follow aspect-ratio changes during playback. Uses a copy-back decoder while scanning.'**
+  /// **'Follow aspect ratio changes during playback.'**
   String get settingsCropBlackBarsIntervalDescription;
 
   /// Toast when the player re-runs letterbox crop detection

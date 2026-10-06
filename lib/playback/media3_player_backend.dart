@@ -523,9 +523,8 @@ class Media3PlayerBackend extends PlayerBackend {
           '@${applied.toStringAsFixed(3)} for $content '
           '($behavior, mode ${_toInt(map['appliedDisplayModeId'])})';
     } else {
-      final modes = (map['supportedModes'] as List<dynamic>? ?? const []).join(
-        ', ',
-      );
+      final modes = (map['supportedModes'] as List<dynamic>? ?? const [])
+          .join(', ');
       line =
           'Media3: no display mode fits $content ($behavior'
           '${modes.isEmpty ? '' : ', display offers $modes'})';

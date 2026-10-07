@@ -3179,7 +3179,7 @@ class AppLocalizationsCa extends AppLocalizations {
   String get fallingLeaves => 'Fulles que cauen';
 
   @override
-  String get seasonalChristmas => 'Christmas';
+  String get seasonalChristmas => 'Nadal';
 
   @override
   String get seasonalPetals => 'Spring Petals';
@@ -3191,10 +3191,10 @@ class AppLocalizationsCa extends AppLocalizations {
   String get seasonalHalloween => 'Halloween';
 
   @override
-  String get seasonalDensity => 'Density';
+  String get seasonalDensity => 'Densitat';
 
   @override
-  String get seasonalDensityLight => 'Light';
+  String get seasonalDensityLight => 'Lleuger';
 
   @override
   String get seasonalDensityNormal => 'Normal';
@@ -3219,13 +3219,13 @@ class AppLocalizationsCa extends AppLocalizations {
   String get seasonalRowCountryAuto => 'Automatic';
 
   @override
-  String get countryUnitedStates => 'United States';
+  String get countryUnitedStates => 'Estats Units';
 
   @override
   String get countryCanada => 'Canada';
 
   @override
-  String get seasonalRowCountryOther => 'Other';
+  String get seasonalRowCountryOther => 'Altres';
 
   @override
   String get seasonalRowHolidays => 'Holidays';
@@ -3234,7 +3234,7 @@ class AppLocalizationsCa extends AppLocalizations {
   String get seasonalRowHolidaysHint => 'Untick a holiday to hide its row.';
 
   @override
-  String get holidayNewYear => 'New Year\'s';
+  String get holidayNewYear => 'Any nou';
 
   @override
   String get holidayValentines => 'Valentine\'s Day';

@@ -3181,44 +3181,45 @@ class AppLocalizationsFi extends AppLocalizations {
   String get seasonalDensityHeavy => 'Painava';
 
   @override
-  String get seasonalRow => 'Seasonal Row';
+  String get seasonalRow => 'Lomateema rivi';
 
   @override
   String get seasonalRowDescription =>
-      'Show a row of holiday movies from your library, with Seerr suggestions when available.';
+      'Näytä kirjastostasi lomateemaisia elokuvia, mukaan lukien Seerrin suositukset, jos niitä on saatavilla.';
 
   @override
-  String get seasonalRowSubtitle => 'Seasonal';
+  String get seasonalRowSubtitle => 'Kausiluonteinen';
 
   @override
-  String get seasonalRowCountry => 'Country';
+  String get seasonalRowCountry => 'Maa';
 
   @override
-  String get seasonalRowCountryAuto => 'Automatic';
+  String get seasonalRowCountryAuto => 'Automaattinen';
 
   @override
-  String get countryUnitedStates => 'United States';
+  String get countryUnitedStates => 'Yhdysvallat';
 
   @override
-  String get countryCanada => 'Canada';
+  String get countryCanada => 'Kanada';
 
   @override
-  String get seasonalRowCountryOther => 'Other';
+  String get seasonalRowCountryOther => 'Muu';
 
   @override
-  String get seasonalRowHolidays => 'Holidays';
+  String get seasonalRowHolidays => 'Lomat';
 
   @override
-  String get seasonalRowHolidaysHint => 'Untick a holiday to hide its row.';
+  String get seasonalRowHolidaysHint =>
+      'Poista lomapäivän valinta, jotta sen rivi piilotetaan.';
 
   @override
-  String get holidayNewYear => 'New Year\'s';
+  String get holidayNewYear => 'Uusivuosi';
 
   @override
-  String get holidayValentines => 'Valentine\'s Day';
+  String get holidayValentines => 'Ystävänpäivä';
 
   @override
-  String get holidayEaster => 'Easter';
+  String get holidayEaster => 'Pääsiäinen';
 
   @override
   String get holidayPride => 'Pride';
@@ -3227,16 +3228,16 @@ class AppLocalizationsFi extends AppLocalizations {
   String get holidayHalloween => 'Halloween';
 
   @override
-  String get holidayThanksgiving => 'Thanksgiving';
+  String get holidayThanksgiving => 'Kiitospäivä';
 
   @override
-  String get holidayChristmas => 'Christmas Movies';
+  String get holidayChristmas => 'Jouluelokuvat';
 
   @override
-  String get holidayLunarNewYear => 'Lunar New Year';
+  String get holidayLunarNewYear => 'Lunar Uusi Vuosi';
 
   @override
-  String get holidayDiwali => 'Diwali';
+  String get holidayDiwali => 'Valofestivaali';
 
   @override
   String get themeMusic => 'Teema Musiikki';
@@ -13793,20 +13794,20 @@ class AppLocalizationsFi extends AppLocalizations {
       'Kuinka paljon tarkennus siirtyy jokaisen Siri Remote -kaukosäätimen kosketuslevyllä tehdyn pyyhkäisyn yhteydessä';
 
   @override
-  String get appleTvHomeScreen => 'Apple TV home screen';
+  String get appleTvHomeScreen => 'Apple TV:n aloitusnäyttö';
 
   @override
-  String get topShelf => 'Top Shelf';
+  String get topShelf => 'Ylähylly';
 
   @override
   String get topShelfDescription =>
-      'What the Apple TV home screen shows above the Moonfin icon when it is selected. This setting stays on this device.';
+      'Se, mitä Apple TV:n aloitusnäytössä näkyy Moonfin-kuvakkeen yläpuolella, kun se on valittuna. Tämä asetus säilyy tällä laitteella.';
 
   @override
-  String get topShelfLatestMedia => 'Latest media';
+  String get topShelfLatestMedia => 'Uusimmat mediat';
 
   @override
-  String get topShelfAppBanner => 'Moonfin banner';
+  String get topShelfAppBanner => 'Moonfin-banneri';
 
   @override
   String get keepVideoClearOfDynamicIsland =>

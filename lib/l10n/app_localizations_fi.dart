@@ -2487,21 +2487,21 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String nextSeriesRecording(String dateTime) {
-    return 'Seuraava sarjan tallennus: $dateTime';
+    return 'Next series recording: $dateTime';
   }
 
   @override
   String get noUpcomingSeriesRecording =>
-      'Sarjan tallennus on ajoitettu, mutta ohjelmaoppaassa ei näy tulevia jaksoja';
+      'Series recording is scheduled, but the guide has no upcoming episodes';
 
   @override
-  String get recordCurrentEpisode => 'Tallenna tämä jakso';
+  String get recordCurrentEpisode => 'Record This Episode';
 
   @override
-  String get recordCurrentProgram => 'Tallenna tämä ohjelma';
+  String get recordCurrentProgram => 'Record This Program';
 
   @override
-  String get cancelCurrentRecording => 'Peruuta tämä tallennus';
+  String get cancelCurrentRecording => 'Cancel This Recording';
 
   @override
   String get cancelRecordingAction => 'Keskeytä tallennus';
@@ -13504,17 +13504,17 @@ class AppLocalizationsFi extends AppLocalizations {
   }
 
   @override
-  String get smartDownloadsSection => 'Älykkäät lataukset';
+  String get smartDownloadsSection => 'Smart downloads';
 
   @override
-  String get smartDownloadsEnable => 'Lataa seuraavat jaksot';
+  String get smartDownloadsEnable => 'Download next episodes';
 
   @override
   String get smartDownloadsEnableSubtitle =>
-      'Kun olet katsonut jakson loppuun millä tahansa laitteella, Moonfin lataa seuraavat jaksot. Ladatut jaksot poistetaan, kun ne on katsottu.';
+      'When you finish an episode on any device, Moonfin downloads the next ones. Downloaded episodes are deleted once watched.';
 
   @override
-  String get smartDownloadsKeepReady => 'Lataa tallennettavat jaksot';
+  String get smartDownloadsKeepReady => 'Episodes to keep downloaded';
 
   @override
   String smartDownloadsKeepReadySubtitle(int count) {
@@ -13529,7 +13529,7 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get smartDownloadsKeepReadyLowered =>
-      'Jo ladatut jaksot säilyvät laitteellasi. Uusi määrä koskee tulevia latauksia.';
+      'Episodes already downloaded stay on your device. The new number applies to future downloads.';
 
   @override
   String get autoDownloadSection => 'Automaattiset lataukset';

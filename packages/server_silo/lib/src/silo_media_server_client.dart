@@ -1,10 +1,13 @@
 import 'package:dio/dio.dart';
 import 'package:server_core/server_core.dart';
 
+import 'api/silo_auth_api.dart';
 import 'api/silo_instant_mix_api.dart';
 import 'api/silo_live_tv_api.dart';
 import 'api/silo_pending_api.dart';
+import 'api/silo_profiles_api.dart';
 import 'api/silo_system_api.dart';
+import 'api/silo_users_api.dart';
 import 'silo_session.dart';
 import 'silo_session_interceptor.dart';
 
@@ -194,12 +197,23 @@ class SiloMediaServerClient extends MediaServerClient
     profileToken: _profileToken,
   );
 
-  // Sign-in and the household profile API arrive in the next step.
   @override
-  final AuthApi authApi = SiloPendingAuthApi();
+  late final AuthApi authApi = SiloAuthApi(
+    _authDio,
+    session,
+    deviceInfo: deviceInfo,
+    serverId: serverId,
+  );
+
+  /// Household profiles of the signed-in account (Silo only).
+  late final SiloProfilesApi profilesApi = SiloProfilesApi(_dio);
 
   @override
-  final UsersApi usersApi = SiloPendingUsersApi();
+  late final UsersApi usersApi = SiloUsersApi(
+    _dio,
+    profileId: () => _profileId,
+    serverId: serverId,
+  );
 
   @override
   late final SystemApi systemApi = SiloSystemApi(_dio);

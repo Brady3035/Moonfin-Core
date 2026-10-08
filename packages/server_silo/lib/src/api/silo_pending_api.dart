@@ -31,20 +31,6 @@ abstract class _Pending {
 
 
 
-class SiloPendingAuthApi extends _Pending implements AuthApi {
-  @override
-  String get _api => 'AuthApi';
-  @override
-  String get _step => '§4 (step 3: sign-in and profiles)';
-}
-
-class SiloPendingUsersApi extends _Pending implements UsersApi {
-  @override
-  String get _api => 'UsersApi';
-  @override
-  String get _step => '§4 (step 3: sign-in and profiles)';
-}
-
 class SiloPendingItemsApi extends _Pending implements ItemsApi {
   @override
   String get _api => 'ItemsApi';

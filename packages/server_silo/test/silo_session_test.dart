@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
@@ -247,6 +248,102 @@ void main() {
 
       expect(refreshed, isFalse);
       expect(client.session.accessToken, 'other-access');
+    });
+  });
+
+  group('redispatch after an identity change', () {
+    test('a redirect that arrives after a profile switch is not followed',
+        () async {
+      late SiloMediaServerClient client;
+      final adapter = _Adapter((o) async {
+        switch (o.uri.path) {
+          case '/api/v2/system/info':
+            return _json({'server_version': 'x', 'api_major': 2});
+          case '/api/v2/account/me':
+            client.profileId = 'profile-2';
+            return _redirect('/silo/api/v2/account/me');
+          case '/silo/api/v2/account/me':
+            return _json(_account);
+        }
+        return _json({}, 404);
+      });
+      client = _client(adapter);
+      client.profileId = 'profile-1';
+
+      await expectLater(
+        client.systemApi.getSystemInfo(),
+        throwsA(isA<DioException>()),
+      );
+      expect(_paths(adapter, '/silo/api/v2/account/me'), isEmpty);
+    });
+
+    test('a redirect that arrives after sign-out is not followed', () async {
+      late SiloMediaServerClient client;
+      final adapter = _Adapter((o) async {
+        switch (o.uri.path) {
+          case '/api/v2/system/info':
+            return _json({'server_version': 'x', 'api_major': 2});
+          case '/api/v2/account/me':
+            client.session.clear();
+            return _redirect('/silo/api/v2/account/me');
+          case '/silo/api/v2/account/me':
+            return _json(_account);
+        }
+        return _json({}, 404);
+      });
+      client = _client(adapter);
+
+      await expectLater(
+        client.systemApi.getSystemInfo(),
+        throwsA(isA<DioException>()),
+      );
+      expect(_paths(adapter, '/silo/api/v2/account/me'), isEmpty);
+    });
+
+    test('a dead-connection retry after a profile switch is not sent',
+        () async {
+      late SiloMediaServerClient client;
+      final adapter = _Adapter((o) async {
+        switch (o.uri.path) {
+          case '/api/v2/system/info':
+            return _json({'server_version': 'x', 'api_major': 2});
+          case '/api/v2/account/me':
+            client.profileId = 'profile-2';
+            throw const SocketException('Connection reset by peer');
+        }
+        return _json({}, 404);
+      });
+      client = _client(adapter);
+      client.profileId = 'profile-1';
+
+      await expectLater(
+        client.systemApi.getSystemInfo(),
+        throwsA(isA<DioException>()),
+      );
+      expect(_paths(adapter, '/api/v2/account/me'), hasLength(1));
+    });
+
+    test('a dead-connection retry with no identity change is still sent',
+        () async {
+      var attempts = 0;
+      final adapter = _Adapter((o) async {
+        switch (o.uri.path) {
+          case '/api/v2/system/info':
+            return _json({'server_version': 'x', 'api_major': 2});
+          case '/api/v2/account/me':
+            if (attempts++ == 0) {
+              throw const SocketException('Connection reset by peer');
+            }
+            return _json(_account);
+        }
+        return _json({}, 404);
+      });
+      final client = _client(adapter);
+
+      final info = await client.systemApi.getSystemInfo();
+
+      expect((info['SiloAccount'] as Map)['username'], 'testuser');
+      expect(_paths(adapter, '/api/v2/account/me'), hasLength(2));
     });
   });
 

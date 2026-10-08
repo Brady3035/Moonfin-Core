@@ -10,9 +10,9 @@ import 'silo_session.dart';
 /// checks, device sign-in) are never replayed.
 ///
 /// Each request is stamped with the session's [SiloSession.identity] when it
-/// is first sent. A request that waited on a refresh is only sent, and a
-/// failed request is only refreshed and replayed, while that identity is
-/// still current, so a reply that arrives after a sign-out,
+/// is first sent. Any later dispatch of the same request (a refresh replay, a
+/// followed redirect, a retry after a dead connection, or the send after
+/// waiting on a refresh) only goes out while that identity is still current, so a reply that arrives after a sign-out,
 /// sign-in or profile switch fails instead of being retried as the new user.
 ///
 /// Refreshes go out on [_authDio], a client without this interceptor: sending
@@ -36,9 +36,12 @@ class SiloSessionInterceptor extends Interceptor {
     RequestOptions options,
     RequestInterceptorHandler handler,
   ) async {
-    // A replay keeps the stamp of its first attempt.
-    options.extra.putIfAbsent(_identityExtra, () => _session.identity);
-    if (options.extra[_retriedExtra] == true && !_isCurrent(options)) {
+    // The first dispatch stamps the request. Every redispatch (refresh
+    // replay, redirect, connection retry) carries the stamp in `extra` and
+    // comes back through here, so all of them are held to the same identity.
+    if (!options.extra.containsKey(_identityExtra)) {
+      options.extra[_identityExtra] = _session.identity;
+    } else if (!_isCurrent(options)) {
       return handler.reject(_identityChanged(options));
     }
     final skip = options.extra[siloNoRefreshExtra] == true ||

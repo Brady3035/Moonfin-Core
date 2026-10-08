@@ -25,7 +25,9 @@ silo() { # silo <name> <path>
   if [[ -n "${SILO_TOKEN:-}" ]]; then hdr+=(-H "Authorization: Bearer $SILO_TOKEN"); fi
   if [[ -n "${SILO_PROFILE_ID:-}" ]]; then hdr+=(-H "X-Profile-Id: $SILO_PROFILE_ID"); fi
   local code
-  code=$(curl -sS -m 30 "${hdr[@]}" -H "X-Silo-Client: moonfin-probe" \
+  # ${hdr[@]+...} expands to nothing for an empty array; a plain "${hdr[@]}"
+  # trips `set -u` on bash before 4.4, which is what macOS ships.
+  code=$(curl -sS -m 30 ${hdr[@]+"${hdr[@]}"} -H "X-Silo-Client: moonfin-probe" \
     -o "$OUT/silo/$1.json" -w '%{http_code}' "$SILO_URL/api/v2$2")
   printf '%-34s %s  %s\n' "$1" "$code" "$2"
 }

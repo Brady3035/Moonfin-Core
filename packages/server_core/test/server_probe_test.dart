@@ -297,7 +297,21 @@ void main() {
 
   group('ServerType', () {
     test('detects Silo from a product name', () {
-      expect(ServerType.detect('Silo', '4e371f4c'), ServerType.silo);
+      expect(
+        ServerType.detect('Silo', '4e371f4c', allowSilo: true),
+        ServerType.silo,
+      );
+    });
+
+    test('ignores a Silo product name while support is off', () {
+      expect(
+        ServerType.detect('Silo', '4e371f4c', allowSilo: false),
+        ServerType.jellyfin,
+      );
+      expect(
+        ServerType.detect('Emby Server', '4.10.1.0', allowSilo: false),
+        ServerType.emby,
+      );
     });
 
     test('uses the token query param Silo media requests accept', () {

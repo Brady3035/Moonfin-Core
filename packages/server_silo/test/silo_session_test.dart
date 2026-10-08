@@ -149,6 +149,76 @@ void main() {
       expect(_paths(adapter, '/api/v2/account/me'), hasLength(1));
     });
 
+    test('a request waiting on an early refresh is not sent if the profile '
+        'changes meanwhile', () async {
+      late SiloMediaServerClient client;
+      final adapter = _Adapter((o) async {
+        switch (o.uri.path) {
+          case '/api/v2/system/info':
+            return _json({'server_version': 'x', 'api_major': 2});
+          case '/api/v2/auth/refresh':
+            client.profileId = 'profile-2';
+            return _json({
+              'access_token': 'new-access',
+              'refresh_token': 'refresh-2',
+              'expires_in': 3600,
+            });
+          case '/api/v2/account/me':
+            return _json(_account);
+        }
+        return _json({}, 404);
+      });
+      client = _client(adapter);
+      // Close enough to expiry that the request refreshes before it is sent.
+      client.session.setTokens(
+        SiloTokens(
+          accessToken: 'old-access',
+          refreshToken: 'refresh-1',
+          expiresAt: DateTime.now().toUtc().add(const Duration(seconds: 30)),
+          lifetime: const Duration(hours: 1),
+        ),
+      );
+      client.profileId = 'profile-1';
+
+      await expectLater(
+        client.systemApi.getSystemInfo(),
+        throwsA(isA<DioException>()),
+      );
+      expect(_paths(adapter, '/api/v2/account/me'), isEmpty);
+    });
+
+    test('an early refresh with no identity change still sends the request',
+        () async {
+      final adapter = _Adapter((o) async {
+        switch (o.uri.path) {
+          case '/api/v2/system/info':
+            return _json({'server_version': 'x', 'api_major': 2});
+          case '/api/v2/auth/refresh':
+            return _json({
+              'access_token': 'new-access',
+              'refresh_token': 'refresh-2',
+              'expires_in': 3600,
+            });
+          case '/api/v2/account/me':
+            return _json(_account);
+        }
+        return _json({}, 404);
+      });
+      final client = _client(adapter);
+      client.session.setTokens(
+        SiloTokens(
+          accessToken: 'old-access',
+          refreshToken: 'refresh-1',
+          expiresAt: DateTime.now().toUtc().add(const Duration(seconds: 30)),
+          lifetime: const Duration(hours: 1),
+        ),
+      );
+
+      await client.systemApi.getSystemInfo();
+
+      expect(_paths(adapter, '/api/v2/account/me'), ['Bearer new-access']);
+    });
+
     test('a refresh that finishes after a new sign-in reports no success',
         () async {
       late SiloMediaServerClient client;

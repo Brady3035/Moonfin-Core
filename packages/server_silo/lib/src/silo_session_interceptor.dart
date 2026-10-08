@@ -10,8 +10,9 @@ import 'silo_session.dart';
 /// checks, device sign-in) are never replayed.
 ///
 /// Each request is stamped with the session's [SiloSession.identity] when it
-/// is first sent. A failed request is only refreshed and replayed while that
-/// identity is still current, so a reply that arrives after a sign-out,
+/// is first sent. A request that waited on a refresh is only sent, and a
+/// failed request is only refreshed and replayed, while that identity is
+/// still current, so a reply that arrives after a sign-out,
 /// sign-in or profile switch fails instead of being retried as the new user.
 ///
 /// Refreshes go out on [_authDio], a client without this interceptor: sending
@@ -44,6 +45,11 @@ class SiloSessionInterceptor extends Interceptor {
         options.extra[siloNoAuthExtra] == true;
     if (!skip && _session.needsRefresh) {
       await _session.refresh(_authDio);
+      // The login or profile may have changed while this request waited;
+      // sending it now would act as whoever took over.
+      if (!_isCurrent(options)) {
+        return handler.reject(_identityChanged(options));
+      }
     }
     handler.next(options);
   }
@@ -84,6 +90,6 @@ class SiloSessionInterceptor extends Interceptor {
         requestOptions: options,
         type: DioExceptionType.cancel,
         error: 'The Silo login or profile changed before this request was '
-            'retried',
+            'sent',
       );
 }

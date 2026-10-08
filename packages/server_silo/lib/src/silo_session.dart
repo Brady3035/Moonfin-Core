@@ -97,6 +97,17 @@ class SiloSession {
 
   SiloTokens? _tokens;
   Future<bool>? _refreshing;
+  int _identity = 0;
+
+  /// Changes whenever the login or profile that requests act for changes
+  /// (sign-in, a stored session restored, sign-out, a profile switch), but not
+  /// when a refresh renews the same login. A request is only refreshed and
+  /// replayed while this still matches the value it was sent under, so a
+  /// late reply can never be retried as someone else.
+  int get identity => _identity;
+
+  /// Marks that requests now act for a different login or profile.
+  void identityChanged() => _identity++;
 
   /// Called with the new pair after every successful refresh.
   void Function(SiloTokens tokens)? onTokensChanged;
@@ -112,6 +123,7 @@ class SiloSession {
   /// and when restoring a stored session.
   void setTokens(SiloTokens? tokens) {
     _tokens = tokens;
+    _identity++;
   }
 
   /// Sets only the access token, as the generic client API does. Keeps the
@@ -119,10 +131,12 @@ class SiloSession {
   /// else is a bare token (for example a personal API key) with no refresh.
   void setAccessToken(String? token) {
     if (token == null || token.isEmpty) {
+      if (_tokens != null) _identity++;
       _tokens = null;
       return;
     }
     if (_tokens?.accessToken == token) return;
+    _identity++;
     _tokens = SiloTokens(
       accessToken: token,
       refreshToken: '',
@@ -143,6 +157,7 @@ class SiloSession {
 
   Future<bool> _refresh(Dio dio) async {
     final current = _tokens;
+    final identity = _identity;
     if (current == null || current.refreshToken.isEmpty) return false;
     try {
       final response = await dio.post<dynamic>(
@@ -154,15 +169,17 @@ class SiloSession {
       if (data == null) return false;
       final next = SiloTokens.fromResponse(data, now: _clock());
       if (next.accessToken.isEmpty) return false;
-      // A refresh that lost a race with a sign-out must not resurrect it.
-      if (!identical(_tokens, current)) return _tokens != null;
+      // A refresh that lost a race with a sign-out or a new login must not
+      // resurrect the old one, nor report success on the new one's behalf.
+      if (_identity != identity || !identical(_tokens, current)) return false;
       _tokens = next;
       onTokensChanged?.call(next);
       return true;
     } on DioException catch (e) {
       if (e.response?.statusCode == 401) {
-        if (identical(_tokens, current)) {
+        if (_identity == identity && identical(_tokens, current)) {
           _tokens = null;
+          _identity++;
           onSessionEnded?.call(SiloSessionEnd.expired);
         }
         return false;
@@ -175,6 +192,7 @@ class SiloSession {
   /// Forgets the tokens after a deliberate sign-out.
   void clear() {
     _tokens = null;
+    _identity++;
   }
 }
 

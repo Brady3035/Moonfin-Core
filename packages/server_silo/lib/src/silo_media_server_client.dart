@@ -80,11 +80,13 @@ class SiloMediaServerClient extends MediaServerClient
   }
 
   void _setupInterceptors() {
-    _dio.interceptors.add(redirectInterceptor(_dio));
+    _dio.interceptors.add(redirectInterceptor(_dio, sameOriginOnly: true));
     // Refresh first, so the header interceptor below reads the new token.
     _dio.interceptors.add(SiloSessionInterceptor(_dio, _authDio, session));
     _dio.interceptors.add(_headersAndLogging());
-    _authDio.interceptors.add(redirectInterceptor(_authDio));
+    _authDio.interceptors.add(
+      redirectInterceptor(_authDio, sameOriginOnly: true),
+    );
     _authDio.interceptors.add(_headersAndLogging());
   }
 
@@ -168,13 +170,21 @@ class SiloMediaServerClient extends MediaServerClient
   String? get profileId => _profileId;
 
   @override
-  set profileId(String? id) => _profileId = id;
+  set profileId(String? id) {
+    if (id == _profileId) return;
+    _profileId = id;
+    session.identityChanged();
+  }
 
   @override
   String? get profileToken => _profileToken;
 
   @override
-  set profileToken(String? token) => _profileToken = token;
+  set profileToken(String? token) {
+    if (token == _profileToken) return;
+    _profileToken = token;
+    session.identityChanged();
+  }
 
   @override
   Map<String, String> authHeaders() => buildSiloRequestHeaders(

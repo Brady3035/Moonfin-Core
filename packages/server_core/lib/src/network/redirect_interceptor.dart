@@ -3,7 +3,13 @@ import 'package:dio/dio.dart';
 /// Interceptor that follows HTTP redirects (301, 302, 307, 308) for all
 /// request methods including POST/PUT, which Dart's HttpClient does not
 /// follow automatically.
-Interceptor redirectInterceptor(Dio dio) {
+///
+/// The redirected request is sent again with its headers and body, so with
+/// [sameOriginOnly] a redirect is only followed to the same host and port
+/// (or from `http` to `https` on the same host). Anything else is returned to
+/// the caller as the original error, so credentials in headers or the body
+/// never reach another origin.
+Interceptor redirectInterceptor(Dio dio, {bool sameOriginOnly = false}) {
   return InterceptorsWrapper(
     onError: (error, handler) async {
       final statusCode = error.response?.statusCode;
@@ -18,6 +24,10 @@ Interceptor redirectInterceptor(Dio dio) {
         final location = error.response?.headers.value('location');
         if (location != null && location.isNotEmpty) {
           final redirectUri = error.requestOptions.uri.resolve(location);
+          if (sameOriginOnly &&
+              !isSameOriginRedirect(error.requestOptions.uri, redirectUri)) {
+            return handler.next(error);
+          }
           try {
             final response = await dio.request(
               redirectUri.toString(),
@@ -41,4 +51,12 @@ Interceptor redirectInterceptor(Dio dio) {
       handler.next(error);
     },
   );
+}
+
+/// Whether a redirect from [from] to [to] stays on the same origin: same host
+/// and port and scheme, or an upgrade from `http` to `https` on the same host.
+bool isSameOriginRedirect(Uri from, Uri to) {
+  if (from.host.toLowerCase() != to.host.toLowerCase()) return false;
+  if (from.scheme == to.scheme) return from.port == to.port;
+  return from.scheme == 'http' && to.scheme == 'https';
 }

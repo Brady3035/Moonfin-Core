@@ -5,8 +5,9 @@ import 'package:dio/dio.dart';
 /// follow automatically.
 ///
 /// The redirected request is sent again with its headers and body, so with
-/// [sameOriginOnly] a redirect is only followed to the same host and port
-/// (or from `http` to `https` on the same host). Anything else is returned to
+/// [sameOriginOnly] a redirect is only followed to the same host and port, or
+/// as an `http` to `https` upgrade on the same host (see
+/// [isSameOriginRedirect]). Anything else is returned to
 /// the caller as the original error, so credentials in headers or the body
 /// never reach another origin.
 Interceptor redirectInterceptor(Dio dio, {bool sameOriginOnly = false}) {
@@ -53,10 +54,15 @@ Interceptor redirectInterceptor(Dio dio, {bool sameOriginOnly = false}) {
   );
 }
 
-/// Whether a redirect from [from] to [to] stays on the same origin: same host
-/// and port and scheme, or an upgrade from `http` to `https` on the same host.
+/// Whether a redirect from [from] to [to] stays on the same origin: same
+/// host, scheme and port, or an upgrade from `http` to `https` on the same
+/// host. An upgrade may come from any port (a server on `:8080` sending people
+/// to its HTTPS address is normal) but must land on the default HTTPS port or
+/// on the port it came from; any other port on the host could be a different
+/// service.
 bool isSameOriginRedirect(Uri from, Uri to) {
   if (from.host.toLowerCase() != to.host.toLowerCase()) return false;
   if (from.scheme == to.scheme) return from.port == to.port;
-  return from.scheme == 'http' && to.scheme == 'https';
+  if (from.scheme != 'http' || to.scheme != 'https') return false;
+  return to.port == 443 || to.port == from.port;
 }

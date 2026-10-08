@@ -245,8 +245,24 @@ void main() {
     final from = Uri.parse('http://silo.test:8080/a');
     expect(isSameOriginRedirect(from, Uri.parse('http://silo.test:8080/b')),
         isTrue);
+    // An upgrade from a nondefault HTTP port to the default HTTPS port.
     expect(isSameOriginRedirect(from, Uri.parse('https://silo.test/b')),
         isTrue);
+    expect(isSameOriginRedirect(from, Uri.parse('https://silo.test:443/b')),
+        isTrue);
+    // TLS on the same port is the same listener.
+    expect(isSameOriginRedirect(from, Uri.parse('https://silo.test:8080/b')),
+        isTrue);
+    // Any other HTTPS port on the host may be another service.
+    expect(isSameOriginRedirect(from, Uri.parse('https://silo.test:9443/b')),
+        isFalse);
+    expect(
+      isSameOriginRedirect(
+        Uri.parse('http://silo.test/a'),
+        Uri.parse('https://silo.test:8443/b'),
+      ),
+      isFalse,
+    );
     expect(isSameOriginRedirect(from, Uri.parse('http://silo.test:9090/b')),
         isFalse);
     expect(isSameOriginRedirect(from, Uri.parse('http://other.test:8080/b')),

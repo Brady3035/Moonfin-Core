@@ -194,7 +194,7 @@ class AppLocalizationsCa extends AppLocalizations {
   String get spotlightChaptersExtras => 'Capítols i extres';
 
   @override
-  String get spotlightFileDetails => 'File Details';
+  String get spotlightFileDetails => 'Detalls del fitxer';
 
   @override
   String get spotlightSimilarRecommendations => 'Similars i recomanacions';
@@ -2117,7 +2117,7 @@ class AppLocalizationsCa extends AppLocalizations {
   String get shortcutMpvStats => 'Activa o desactiva les estadístiques de mpv';
 
   @override
-  String get shortcutRecropBlackBars => 'Recrop black bars';
+  String get shortcutRecropBlackBars => 'Torna a retallar les bandes negres';
 
   @override
   String get shortcutLeaveFullscreenOrStop =>
@@ -3182,10 +3182,10 @@ class AppLocalizationsCa extends AppLocalizations {
   String get seasonalChristmas => 'Nadal';
 
   @override
-  String get seasonalPetals => 'Spring Petals';
+  String get seasonalPetals => 'Pètals de primavera';
 
   @override
-  String get seasonalFireflies => 'Fireflies';
+  String get seasonalFireflies => 'Cuques de llum';
 
   @override
   String get seasonalHalloween => 'Halloween';
@@ -3200,23 +3200,23 @@ class AppLocalizationsCa extends AppLocalizations {
   String get seasonalDensityNormal => 'Normal';
 
   @override
-  String get seasonalDensityHeavy => 'Heavy';
+  String get seasonalDensityHeavy => 'Intens';
 
   @override
-  String get seasonalRow => 'Seasonal Row';
+  String get seasonalRow => 'Fila de temporada';
 
   @override
   String get seasonalRowDescription =>
-      'Show a row of holiday movies from your library, with Seerr suggestions when available.';
+      'Mostra una fila de pel·lícules de festivitats de la teva biblioteca, amb suggeriments de Seerr quan n\'hi hagi.';
 
   @override
-  String get seasonalRowSubtitle => 'Seasonal';
+  String get seasonalRowSubtitle => 'De temporada';
 
   @override
-  String get seasonalRowCountry => 'Country';
+  String get seasonalRowCountry => 'País';
 
   @override
-  String get seasonalRowCountryAuto => 'Automatic';
+  String get seasonalRowCountryAuto => 'Automàtic';
 
   @override
   String get countryUnitedStates => 'Estats Units';
@@ -3228,34 +3228,35 @@ class AppLocalizationsCa extends AppLocalizations {
   String get seasonalRowCountryOther => 'Altres';
 
   @override
-  String get seasonalRowHolidays => 'Holidays';
+  String get seasonalRowHolidays => 'Festivitats';
 
   @override
-  String get seasonalRowHolidaysHint => 'Untick a holiday to hide its row.';
+  String get seasonalRowHolidaysHint =>
+      'Desmarca una festivitat per amagar-ne la fila.';
 
   @override
   String get holidayNewYear => 'Any nou';
 
   @override
-  String get holidayValentines => 'Valentine\'s Day';
+  String get holidayValentines => 'Sant Valentí';
 
   @override
-  String get holidayEaster => 'Easter';
+  String get holidayEaster => 'Pasqua';
 
   @override
-  String get holidayPride => 'Pride';
+  String get holidayPride => 'Orgull';
 
   @override
   String get holidayHalloween => 'Halloween';
 
   @override
-  String get holidayThanksgiving => 'Thanksgiving';
+  String get holidayThanksgiving => 'Acció de Gràcies';
 
   @override
-  String get holidayChristmas => 'Christmas Movies';
+  String get holidayChristmas => 'Pel·lícules de Nadal';
 
   @override
-  String get holidayLunarNewYear => 'Lunar New Year';
+  String get holidayLunarNewYear => 'Any Nou Lunar';
 
   @override
   String get holidayDiwali => 'Diwali';
@@ -3346,23 +3347,24 @@ class AppLocalizationsCa extends AppLocalizations {
 
   @override
   String get settingsCropBlackBarsDescription =>
-      'Detecta les bandes negres codificades, retalla-les i omple la pantalla.';
+      'Detecta les bandes negres codificades quan comença la reproducció, retalla-les i omple la pantalla. Torna-les a retallar des del botó de zoom del reproductor.';
 
   @override
-  String get cropBlackBarsRecropInterval => 'Recrop interval';
+  String get cropBlackBarsRecropInterval => 'Interval per tornar a retallar';
 
   @override
-  String get cropBlackBarsOnce => 'Once at start';
+  String get cropBlackBarsOnce => 'Un cop a l\'inici';
 
   @override
-  String get cropBlackBarsEverySecond => 'Every second';
+  String get cropBlackBarsEverySecond => 'Cada segon';
 
   @override
   String get settingsCropBlackBarsIntervalDescription =>
-      'Follow aspect ratio changes during playback.';
+      'Segueix els canvis de relació d\'aspecte durant la reproducció.';
 
   @override
-  String get playerRecroppingBlackBars => 'Recropping black bars';
+  String get playerRecroppingBlackBars =>
+      'S\'estan tornant a retallar les bandes negres';
 
   @override
   String get stretch => 'Estirar';
@@ -5061,7 +5063,7 @@ class AppLocalizationsCa extends AppLocalizations {
   String get trakt => 'Trakt';
 
   @override
-  String get letterboxd => 'Bústia d';
+  String get letterboxd => 'Letterboxd';
 
   @override
   String get myAnimeList => 'MyAnimeList';
@@ -5192,7 +5194,7 @@ class AppLocalizationsCa extends AppLocalizations {
   String get seerrDiscoveryRows => 'Fileres de descoberta Seerr';
 
   @override
-  String get seerrDiscoverSliders => 'Seerr Discover Sliders';
+  String get seerrDiscoverSliders => 'Carrusels de Descobreix de Seerr';
 
   @override
   String get yourWatchlist => 'La teva llista de seguiment';
@@ -13944,20 +13946,20 @@ class AppLocalizationsCa extends AppLocalizations {
       'Fins on es mou el focus amb cada lliscament al panell tàctil del Siri Remote';
 
   @override
-  String get appleTvHomeScreen => 'Apple TV home screen';
+  String get appleTvHomeScreen => 'Pantalla d\'inici de l\'Apple TV';
 
   @override
   String get topShelf => 'Top Shelf';
 
   @override
   String get topShelfDescription =>
-      'What the Apple TV home screen shows above the Moonfin icon when it is selected. This setting stays on this device.';
+      'El que mostra la pantalla d\'inici de l\'Apple TV a sobre de la icona de Moonfin quan està seleccionada. Aquesta configuració només es desa en aquest dispositiu.';
 
   @override
-  String get topShelfLatestMedia => 'Latest media';
+  String get topShelfLatestMedia => 'Contingut més recent';
 
   @override
-  String get topShelfAppBanner => 'Moonfin banner';
+  String get topShelfAppBanner => 'Bàner de Moonfin';
 
   @override
   String get keepVideoClearOfDynamicIsland =>

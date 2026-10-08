@@ -197,7 +197,7 @@ class AppLocalizationsFi extends AppLocalizations {
   String get spotlightChaptersExtras => 'Kappaleet ja Lisämateriaalit';
 
   @override
-  String get spotlightFileDetails => 'File Details';
+  String get spotlightFileDetails => 'Tiedoston tiedot';
 
   @override
   String get spotlightSimilarRecommendations => 'Samankaltaiset ja Suositukset';
@@ -2106,7 +2106,7 @@ class AppLocalizationsFi extends AppLocalizations {
       'mpv-tilastojen käyttöönotto tai poistaminen käytöstä';
 
   @override
-  String get shortcutRecropBlackBars => 'Recrop black bars';
+  String get shortcutRecropBlackBars => 'Leikkaa mustat palkit';
 
   @override
   String get shortcutLeaveFullscreenOrStop =>
@@ -3327,20 +3327,20 @@ class AppLocalizationsFi extends AppLocalizations {
       'Tunnista koodatut letterbox-palkit, rajaa ne pois ja täytä sitten näyttö.';
 
   @override
-  String get cropBlackBarsRecropInterval => 'Recrop interval';
+  String get cropBlackBarsRecropInterval => 'Uudelleen leikkaus väli';
 
   @override
-  String get cropBlackBarsOnce => 'Once at start';
+  String get cropBlackBarsOnce => 'Kun olet aloittanut';
 
   @override
-  String get cropBlackBarsEverySecond => 'Every second';
+  String get cropBlackBarsEverySecond => 'Joka sekunti';
 
   @override
   String get settingsCropBlackBarsIntervalDescription =>
-      'Follow aspect ratio changes during playback.';
+      'Seuraa kuvasuhteen muutoksia toiston aikana.';
 
   @override
-  String get playerRecroppingBlackBars => 'Recropping black bars';
+  String get playerRecroppingBlackBars => 'Mustien palkkien uudelleenrajaus';
 
   @override
   String get stretch => 'Venytä';
@@ -5159,7 +5159,7 @@ class AppLocalizationsFi extends AppLocalizations {
   String get seerrDiscoveryRows => 'Seerr Suositusrivit';
 
   @override
-  String get seerrDiscoverSliders => 'Seerr Discover Sliders';
+  String get seerrDiscoverSliders => 'Seerr Discover liukusäätimet';
 
   @override
   String get yourWatchlist => 'Katselulistallasi';

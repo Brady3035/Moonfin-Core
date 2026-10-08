@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
-
+import 'package:server_core/server_core.dart';
 
 /// One Silo login: the access/refresh token pair of an account.
 ///
@@ -150,12 +150,9 @@ class SiloSession {
         data: {'refresh_token': current.refreshToken},
         options: Options(extra: const {siloNoAuthExtra: true, siloNoRefreshExtra: true}),
       );
-      final data = response.data;
-      if (data is! Map) return false;
-      final next = SiloTokens.fromResponse(
-        Map<String, dynamic>.from(data),
-        now: _clock(),
-      );
+      final data = asJsonMap(response.data);
+      if (data == null) return false;
+      final next = SiloTokens.fromResponse(data, now: _clock());
       if (next.accessToken.isEmpty) return false;
       // A refresh that lost a race with a sign-out must not resurrect it.
       if (!identical(_tokens, current)) return _tokens != null;

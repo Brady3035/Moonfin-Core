@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:server_core/server_core.dart';
 
 /// An RFC 9457 Problem Details body from Silo's `/api/v2`.
 ///
@@ -31,8 +32,9 @@ class SiloProblem {
     return path.lastWhere((s) => s.isNotEmpty, orElse: () => t);
   }
 
-  static SiloProblem? fromJson(Object? data) {
-    if (data is! Map) return null;
+  static SiloProblem? fromJson(Object? body) {
+    final data = asJsonMap(body);
+    if (data == null) return null;
     final type = data['type'];
     final title = data['title'];
     if (type is! String && title is! String) return null;

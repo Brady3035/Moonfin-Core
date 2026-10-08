@@ -58,9 +58,9 @@ class SiloSystemApi implements SystemApi {
     }
   }
 
-  static Map<String, dynamic> _asMap(Object? data) {
-    if (data is Map<String, dynamic>) return data;
-    if (data is Map) return data.map((k, v) => MapEntry(k.toString(), v));
-    throw FormatException('Expected a JSON object from Silo, got ${data.runtimeType}');
-  }
+  static Map<String, dynamic> _asMap(Object? data) =>
+      asJsonMap(data) ??
+      (throw FormatException(
+        'Expected a JSON object from Silo, got ${data.runtimeType}',
+      ));
 }

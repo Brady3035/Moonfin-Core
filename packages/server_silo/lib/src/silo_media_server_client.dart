@@ -126,7 +126,7 @@ class SiloMediaServerClient extends MediaServerClient
     if (cached != null) return cached;
     try {
       final response = await _authDio.get<dynamic>('/api/v2/system/identity');
-      final id = (response.data as Map?)?['server_id'] as String?;
+      final id = asJsonMap(response.data)?['server_id'] as String?;
       if (id != null && id.isNotEmpty) _serverId = id;
       return id;
     } catch (_) {

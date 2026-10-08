@@ -91,7 +91,7 @@ Future<ServerProbeResult?> _probeSilo(Dio dio, String baseUrl) async {
       await _getFollowingRedirects(dio, '$baseUrl$siloSystemInfoPath');
   if (!_isSuccess(response)) return null;
 
-  final systemInfo = _asJsonMap(response.data);
+  final systemInfo = asJsonMap(response.data);
   if (!isSiloSystemInfo(systemInfo)) return null;
 
   final resolvedBaseUrl = _stripSuffix(requestUrl, siloSystemInfoPath);
@@ -152,7 +152,7 @@ Future<Map<String, dynamic>?> _tryGetJson(Dio dio, String url) async {
   try {
     final response = await dio.get<dynamic>(url);
     if (!_isSuccess(response)) return null;
-    return _asJsonMap(response.data);
+    return asJsonMap(response.data);
   } catch (_) {
     return null;
   }
@@ -167,7 +167,7 @@ Future<ServerProbeResult?> _probePath(
       await _getFollowingRedirects(dio, '$baseUrl$endpointPath');
   if (!_isSuccess(response)) return null;
 
-  final data = _asJsonMap(response.data);
+  final data = asJsonMap(response.data);
   if (data == null) return null;
 
   return ServerProbeResult(
@@ -219,7 +219,12 @@ String _stripSuffix(String requestUrl, String suffix) {
   return '${uri.scheme}://${uri.authority}$basePath';
 }
 
-Map<String, dynamic>? _asJsonMap(Object? data) {
+/// A response body as a JSON object, or null when it isn't one.
+///
+/// Dio leaves the body as a raw string when the content type is missing or
+/// not JSON (`text/plain`, some proxies), so string bodies are decoded here
+/// rather than failing a cast.
+Map<String, dynamic>? asJsonMap(Object? data) {
   if (data is Map<String, dynamic>) return data;
   if (data is Map) return data.map((k, v) => MapEntry(k.toString(), v));
   if (data is String) {

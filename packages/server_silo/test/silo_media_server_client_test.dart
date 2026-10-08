@@ -7,6 +7,12 @@ import 'package:server_core/server_core.dart';
 import 'package:server_silo/server_silo.dart';
 import 'package:test/test.dart';
 
+/// A body sent as `text/plain`, which Dio hands over as a raw string.
+class _PlainText {
+  const _PlainText(this.body);
+  final String body;
+}
+
 /// Answers from the captured fixtures and records every request.
 class _FixtureAdapter implements HttpClientAdapter {
   _FixtureAdapter(this.routes);
@@ -24,6 +30,15 @@ class _FixtureAdapter implements HttpClientAdapter {
     final body = routes[options.uri.path];
     if (body == null) return ResponseBody.fromString('{"status":404}', 404);
     if (body is int) return ResponseBody.fromString('', body);
+    if (body is _PlainText) {
+      return ResponseBody.fromString(
+        body.body,
+        200,
+        headers: {
+          Headers.contentTypeHeader: ['text/plain; charset=utf-8'],
+        },
+      );
+    }
     return ResponseBody.fromString(
       body is String ? body : jsonEncode(body),
       200,
@@ -199,6 +214,35 @@ void main() {
     test('ping is false when the server does not answer', () async {
       final (client, _) = _client({});
       expect(await client.systemApi.ping(), isFalse);
+    });
+
+    test('server id survives a JSON body sent as plain text', () async {
+      final (client, _) = _client({
+        '/api/v2/system/identity': _PlainText(_fixture('system_identity')),
+      });
+
+      expect(await client.serverId(), '7b72fbd5-e741-48f0-9d05-b438990f3a7e');
+    });
+
+    test('public info survives JSON bodies sent as plain text', () async {
+      final (client, _) = _client({
+        for (final e in _publicRoutes.entries)
+          e.key: _PlainText(e.value as String),
+      });
+
+      final info = await client.systemApi.getPublicSystemInfo();
+
+      expect(info['Id'], '7b72fbd5-e741-48f0-9d05-b438990f3a7e');
+      expect(info['Version'], '4e371f4c');
+      expect(info['LoginDisclaimer'], 'Sign in with an existing account.');
+    });
+
+    test('a problem body sent as plain text is still read', () {
+      final problem = SiloProblem.fromJson(
+        '{"type":"https://silo.dev/problems/invalid_token","title":"Invalid"}',
+      );
+
+      expect(problem?.code, 'invalid_token');
     });
   });
 

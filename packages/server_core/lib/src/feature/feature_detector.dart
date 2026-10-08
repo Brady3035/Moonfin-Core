@@ -29,9 +29,11 @@ class FeatureDetector {
   /// Silo through its file markers.
   bool get supportsSkipSegments => true;
 
-  /// Code-based sign-in from another device: Jellyfin QuickConnect, and Silo
-  /// device sign-in behind the same AuthApi calls.
-  bool get supportsQuickConnect => _isJellyfin || _isSilo;
+  /// Code-based sign-in from another device (Jellyfin QuickConnect). Silo's
+  /// device sign-in maps onto the same calls but is enabled with Silo
+  /// sign-in, not before: until then the sign-in screen would offer a button
+  /// that can only fail.
+  bool get supportsQuickConnect => _isJellyfin;
   bool get supportsClientLog => _isJellyfin;
 
   bool get supportsBifTrickplay => _isEmby;

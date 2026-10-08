@@ -35,7 +35,8 @@ void main() {
     expect(silo.supportsMediaSegments, isTrue);
     expect(silo.supportsSkipSegments, isTrue);
     expect(silo.supportsProfiles, isTrue);
-    expect(silo.supportsQuickConnect, isTrue);
+    // Comes on with Silo sign-in.
+    expect(silo.supportsQuickConnect, isFalse);
 
     expect(silo.supportsSyncPlay, isFalse);
     expect(silo.supportsBifTrickplay, isFalse);

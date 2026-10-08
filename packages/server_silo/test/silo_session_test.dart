@@ -85,6 +85,9 @@ SiloMediaServerClient _client(_Adapter adapter) {
   return client;
 }
 
+Dio _rawDio(_Adapter adapter) =>
+    Dio(BaseOptions(baseUrl: 'https://silo.test'))..httpClientAdapter = adapter;
+
 Iterable<String> _paths(_Adapter a, String path) =>
     a.sent.where((s) => s.uri.path == path).map((s) => s.bearer ?? '');
 
@@ -344,6 +347,106 @@ void main() {
 
       expect((info['SiloAccount'] as Map)['username'], 'testuser');
       expect(_paths(adapter, '/api/v2/account/me'), hasLength(2));
+    });
+  });
+
+  group('profile proof belongs to its login', () {
+    SiloMediaServerClient withProfile() {
+      final client = _client(_Adapter((o) async => _json({}, 404)));
+      client.profileId = 'profile-1';
+      client.profileToken = 'pin-proof';
+      return client;
+    }
+
+    test('sign-out drops the profile and its PIN proof', () {
+      final client = withProfile();
+
+      client.session.clear();
+
+      expect(client.profileId, isNull);
+      expect(client.profileToken, isNull);
+      expect(client.authHeaders().keys, isNot(contains('X-Profile-Token')));
+    });
+
+    test('a new login drops the previous profile and PIN proof', () {
+      final client = withProfile();
+
+      client.session.setTokens(
+        SiloTokens(
+          accessToken: 'other-access',
+          refreshToken: 'other-refresh',
+          expiresAt: DateTime.now().toUtc().add(const Duration(hours: 1)),
+          lifetime: const Duration(hours: 1),
+        ),
+      );
+
+      expect(client.profileId, isNull);
+      expect(client.profileToken, isNull);
+    });
+
+    test('a refused refresh drops the profile and its PIN proof', () async {
+      late SiloMediaServerClient client;
+      final adapter = _Adapter((o) async => _expired());
+      client = _client(adapter);
+      client.profileId = 'profile-1';
+      client.profileToken = 'pin-proof';
+
+      expect(await client.session.refresh(_rawDio(adapter)), isFalse);
+      expect(client.profileId, isNull);
+      expect(client.profileToken, isNull);
+    });
+
+    test('a refresh of the same login keeps the profile', () async {
+      final adapter = _Adapter((o) async => _json({
+        'access_token': 'new-access',
+        'refresh_token': 'refresh-2',
+        'expires_in': 3600,
+      }));
+      final client = _client(adapter);
+      client.profileId = 'profile-1';
+      client.profileToken = 'pin-proof';
+
+      expect(await client.session.refresh(_rawDio(adapter)), isTrue);
+      expect(client.profileId, 'profile-1');
+      expect(client.profileToken, 'pin-proof');
+    });
+  });
+
+  group('refresh failures settle cleanly', () {
+    test('a malformed refresh answer fails without throwing and keeps the '
+        'login', () async {
+      final adapter = _Adapter((o) async => _json({
+        'access_token': 'new-access',
+        'refresh_token': 'refresh-2',
+        'expires_in': 'soon',
+      }));
+      final client = _client(adapter);
+
+      expect(await client.session.refresh(_rawDio(adapter)), isFalse);
+      expect(client.session.accessToken, 'old-access');
+    });
+
+    test('a failing token-save callback still completes the refresh',
+        () async {
+      final adapter = _Adapter((o) async => _json({
+        'access_token': 'new-access',
+        'refresh_token': 'refresh-2',
+        'expires_in': 3600,
+      }));
+      final client = _client(adapter);
+      client.session.onTokensChanged = (_) => throw StateError('disk full');
+
+      expect(await client.session.refresh(_rawDio(adapter)), isTrue);
+      expect(client.session.accessToken, 'new-access');
+    });
+
+    test('a failing session-ended callback does not throw', () async {
+      final adapter = _Adapter((o) async => _expired());
+      final client = _client(adapter);
+      client.session.onSessionEnded = (_) => throw StateError('boom');
+
+      expect(await client.session.refresh(_rawDio(adapter)), isFalse);
+      expect(client.session.accessToken, isNull);
     });
   });
 

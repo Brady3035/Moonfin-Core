@@ -45,6 +45,13 @@ class SiloMediaServerClient extends MediaServerClient
        _authDio = _newDio(baseUrl),
        session = SiloSession(clock: clock) {
     _baseUrl = baseUrl;
+    // The profile selection and its PIN proof belong to the login they were
+    // made under, so they go when that login is replaced or ends. Callers
+    // pick a profile after setting tokens.
+    session.addAccountChangedListener(() {
+      _profileId = null;
+      _profileToken = null;
+    });
     for (final dio in [_dio, _authDio]) {
       configureServerDio(dio);
       if (httpClientAdapter != null) dio.httpClientAdapter = httpClientAdapter;

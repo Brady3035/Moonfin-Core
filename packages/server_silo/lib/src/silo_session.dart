@@ -109,6 +109,23 @@ class SiloSession {
   /// Marks that requests now act for a different login or profile.
   void identityChanged() => _identity++;
 
+  final _accountListeners = <void Function()>[];
+
+  /// Calls [listener] whenever the login itself is replaced or ends: new
+  /// tokens set, a bare token set or removed, sign-out, or a refused refresh.
+  /// A refresh that renews the same login does not call it. The client uses
+  /// this to drop the profile selection and PIN proof, which belong to the
+  /// login they were made under.
+  void addAccountChangedListener(void Function() listener) =>
+      _accountListeners.add(listener);
+
+  void _accountChanged() {
+    _identity++;
+    for (final listener in List.of(_accountListeners)) {
+      listener();
+    }
+  }
+
   /// Called with the new pair after every successful refresh.
   void Function(SiloTokens tokens)? onTokensChanged;
 
@@ -123,7 +140,7 @@ class SiloSession {
   /// and when restoring a stored session.
   void setTokens(SiloTokens? tokens) {
     _tokens = tokens;
-    _identity++;
+    _accountChanged();
   }
 
   /// Sets only the access token, as the generic client API does. Keeps the
@@ -131,18 +148,19 @@ class SiloSession {
   /// else is a bare token (for example a personal API key) with no refresh.
   void setAccessToken(String? token) {
     if (token == null || token.isEmpty) {
-      if (_tokens != null) _identity++;
+      final had = _tokens != null;
       _tokens = null;
+      if (had) _accountChanged();
       return;
     }
     if (_tokens?.accessToken == token) return;
-    _identity++;
     _tokens = SiloTokens(
       accessToken: token,
       refreshToken: '',
       expiresAt: DateTime.utc(9999),
       lifetime: Duration.zero,
     );
+    _accountChanged();
   }
 
   bool get canRefresh => (_tokens?.refreshToken.isNotEmpty ?? false);
@@ -167,20 +185,38 @@ class SiloSession {
       );
       final data = asJsonMap(response.data);
       if (data == null) return false;
-      final next = SiloTokens.fromResponse(data, now: _clock());
+      final SiloTokens next;
+      try {
+        next = SiloTokens.fromResponse(data, now: _clock());
+      } catch (_) {
+        // A malformed answer says nothing about whether the login is still
+        // good, so keep it, like a 503, and let the caller fail this request.
+        return false;
+      }
       if (next.accessToken.isEmpty) return false;
       // A refresh that lost a race with a sign-out or a new login must not
       // resurrect the old one, nor report success on the new one's behalf.
       if (_identity != identity || !identical(_tokens, current)) return false;
       _tokens = next;
-      onTokensChanged?.call(next);
+      try {
+        onTokensChanged?.call(next);
+      } catch (_) {
+        // Saving the new pair failed. The session in memory is renewed and
+        // waiting requests can go ahead; the stored pair is the old one, so
+        // the next cold start meets a refused refresh and signs in again.
+      }
       return true;
     } on DioException catch (e) {
       if (e.response?.statusCode == 401) {
         if (_identity == identity && identical(_tokens, current)) {
           _tokens = null;
-          _identity++;
-          onSessionEnded?.call(SiloSessionEnd.expired);
+          _accountChanged();
+          try {
+            onSessionEnded?.call(SiloSessionEnd.expired);
+          } catch (_) {
+            // The session is already over here; a failing listener must not
+            // turn that into an error for every request waiting on it.
+          }
         }
         return false;
       }
@@ -192,7 +228,7 @@ class SiloSession {
   /// Forgets the tokens after a deliberate sign-out.
   void clear() {
     _tokens = null;
-    _identity++;
+    _accountChanged();
   }
 }
 

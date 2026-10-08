@@ -1220,13 +1220,26 @@ command: moonfin
 
 finish-args:
   - --share=network
+  - --share=ipc
   - --socket=fallback-x11
   - --socket=wayland
-  - --device=dri
+  # GPU and gamepads. --device=input is narrower, but the Ubuntu flatpak-builder
+  # in CI is too old to build it.
+  - --device=all
   - --socket=pulseaudio
-  - --socket=session-bus
+  # MPRIS media controls
+  - --own-name=org.mpris.MediaPlayer2.moonfin
+  # Saved logins (flutter_secure_storage via libsecret)
+  - --talk-name=org.freedesktop.secrets
+  # Keep the screen awake during playback (wakelock_plus)
+  - --talk-name=org.freedesktop.ScreenSaver
+  # Desktop notifications (flutter_local_notifications)
+  - --talk-name=org.freedesktop.Notifications
+  # Online/offline detection (connectivity_plus)
   - --system-talk-name=org.freedesktop.NetworkManager
-  - --filesystem=home
+  # Earlier builds kept the offline database here. It's read once to copy it
+  # into the app's own data folder.
+  - --filesystem=xdg-documents/Moonfin:ro
 
 modules:
   - name: appstream-compose-shim
@@ -1293,7 +1306,14 @@ modules:
           return 1
         }
 
-        missing_libs="\$(ldd /app/moonfin/moonfin 2>/dev/null | awk '/not found/ {print \$1}' | sort -u || true)"
+        ldd_output="\$(ldd /app/moonfin/moonfin 2>/dev/null || true)"
+
+        # Only "libfoo.so => not found" lines name a missing library. Symbol
+        # version lines start with the binary path, so matching bare "not found"
+        # reports the binary itself as missing.
+        missing_libs="\$(printf '%s\\n' "\$ldd_output" | awk '\$2 == "=>" && \$3 == "not" && \$4 == "found" {print \$1}' | sort -u)"
+        version_errors="\$(printf '%s\\n' "\$ldd_output" | grep -F 'not found' | grep -v ' => ' || true)"
+
         if ! resolve_exact_lib libsqlite3.so; then
           missing_libs="\$(printf '%s\\n%s\\n' "\$missing_libs" "libsqlite3.so" | awk 'NF' | sort -u)"
         fi
@@ -1302,6 +1322,15 @@ modules:
           echo "Moonfin cannot start. Missing shared libraries:" >&2
           printf '  - %s\\n' \$missing_libs >&2
           echo "Install the missing libraries in the runtime and retry." >&2
+          exit 127
+        fi
+
+        if [ -n "\$version_errors" ]; then
+          echo "Moonfin cannot start. A library the Flatpak runtime provides is missing" >&2
+          echo "symbols this build needs:" >&2
+          printf '%s\\n' "\$version_errors" >&2
+          echo "The bundled libraries were built against a newer system than the runtime." >&2
+          echo "Please report this output." >&2
           exit 127
         fi
 

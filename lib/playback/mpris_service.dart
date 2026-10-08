@@ -9,6 +9,7 @@ import 'package:server_core/server_core.dart';
 import '../data/models/aggregated_item.dart';
 import '../data/services/media_server_client_factory.dart';
 import '../util/audio_artwork_url.dart';
+import '../util/platform_detection.dart';
 import 'car_artwork.dart';
 
 const _busName = 'org.mpris.MediaPlayer2.moonfin';
@@ -373,7 +374,10 @@ class _MprisPlayer extends DBusObject {
       case 'Identity':
         return const DBusString('Moonfin');
       case 'DesktopEntry':
-        return const DBusString('org.moonfin.linux');
+        // Flatpak names the desktop entry after the ID it was installed under.
+        return DBusString(
+          PlatformDetection.flatpakAppId ?? 'org.moonfin.linux',
+        );
       case 'SupportedUriSchemes':
         return DBusArray.string(const []);
       case 'SupportedMimeTypes':

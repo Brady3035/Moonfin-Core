@@ -298,7 +298,8 @@ class MediaKitPlayerBackend extends PlayerBackend {
     if (native is! NativePlayer) return false;
 
     try {
-      await native.observeProperty('core-idle', (value) async {
+      final dynamic dyn = native;
+      await dyn.observeProperty('core-idle', (String value) async {
         if (value == 'no') _releaseLiveStartupGate();
       });
       return true;

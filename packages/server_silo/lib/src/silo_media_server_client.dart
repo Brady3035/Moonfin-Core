@@ -4,6 +4,7 @@ import 'package:server_core/server_core.dart';
 import 'api/silo_instant_mix_api.dart';
 import 'api/silo_live_tv_api.dart';
 import 'api/silo_pending_api.dart';
+import 'api/silo_system_api.dart';
 import 'silo_problem.dart';
 
 /// Moonfin's client for a Silo server, speaking Silo's native `/api/v2`.
@@ -155,7 +156,7 @@ class SiloMediaServerClient extends MediaServerClient {
   final UsersApi usersApi = const SiloPendingUsersApi();
 
   @override
-  final SystemApi systemApi = const SiloPendingSystemApi();
+  late final SystemApi systemApi = SiloSystemApi(_dio);
 
   @override
   final ItemsApi itemsApi = const SiloPendingItemsApi();

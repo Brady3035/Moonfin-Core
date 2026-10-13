@@ -85,13 +85,6 @@ void main() {
       );
     });
 
-    test('system info', () {
-      expect(
-        () => client.systemApi.getPublicSystemInfo(),
-        pending('SystemApi', 'getPublicSystemInfo', '1.6'),
-      );
-    });
-
     test('libraries', () {
       expect(
         () => client.userViewsApi.getUserViews(),

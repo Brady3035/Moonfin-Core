@@ -113,7 +113,7 @@ The Silo contract Moonfin builds against is now the exact OpenAPI document serve
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 0.2 |
+| ☑ Done | `e845ac2` | 0.2 |
 
 **Goal.** A script that signs in, lists profiles and saves scrubbed responses for each endpoint the plan uses, so fixtures can be refreshed after every Silo upgrade.
 
@@ -173,7 +173,7 @@ Cast and crew names, titles and external artwork URLs (TMDB, TVDB) are kept: the
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-13 | Claude (workspace on your Mac, bash 5) | 4b2e921c+dirty | Pass | `--public --contract`: all 200, re-pinned file byte-identical to the committed one; no-credentials run stops with a clear message; bad token stops at profiles with "no profile found"; scrubbed files contain no hostname. Signed-in run not done (needs your password). |
-| | | | | |
+| 2026-10-13 | macOS (`/bin/bash` 3.2) | 4b2e921c+dirty | Pass with 2 findings | Signed-in run: 35 of 40 requests 200, signed out at the end; scrubbed files clean on real data. **Finding 1:** `--contract` rewrote the snapshot with different bytes (same content): BSD gzip on macOS compresses differently from GNU gzip. **Finding 2:** the Young Justice defaults 404: Silo now ids that show by IMDb (`episode-imdb-…`), not TVDB. Both fixed in step 0.4. |
 
 ---
 
@@ -182,7 +182,7 @@ Cast and crew names, titles and external artwork URLs (TMDB, TVDB) are kept: the
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 0.3 |
 
 **Goal.** Save the same titles from both servers (a movie, a two-version movie, a series → season → episode, an episode with markers and trickplay, a PIN profile, the library list). The Emby side is the target shape the mappers must produce.
 
@@ -208,23 +208,47 @@ Cast and crew names, titles and external artwork URLs (TMDB, TVDB) are kept: the
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+**What was captured.** 44 Silo and 11 Emby responses, written to `packages/server_silo/test/fixtures/silo/` and `.../emby/` (file names are the probe script's, so a refresh is a copy over the top). Four titles were sampled on both servers; the fixtures README lists them with both ids. Long lists were trimmed (home section items, season episodes, filter studios/countries/languages) while the total counts were left intact, giving about 540 KB in all.
+
+**Privacy check on the real output** (before copying): no hostname, no unscrubbed `sig`/`st`/`exp`/`token`/`api_key` values, no token or password values, no email except `user@example.invalid`, no absolute file paths, no IPs, profile name "Profile 1", username "user". Emby library names (Movies, TV shows, Audio books) and cast names are kept.
+
+**Facts the mapper steps will need** (checked across the pairs):
+
+- The Salt Path has 2 versions on Silo (`4602` 1080p, `4603` 2160p) but 3 media sources on Emby (one named "4kversion"). Version-count golden tests must compare per file, not by count.
+- xXx has no `thumb_url`/`banner_url` on Silo, so the backdrop fallback in 5.4 is exercised by real data.
+- Silo episodes carry no `year`; Emby gives `ProductionYear` 2010. The mapper derives it from `air_date`.
+- Emby still numbers streams audio 0, video 1, subtitles 2–3 for xXx, and Silo's `/watch` audio tracks still carry no container index, which confirms the three-way track map in 5.8.
+- Home has six sections (continue watching, hidden gems, trending, seasonal, recently added ×2) with their items embedded, and **no `next_up` section** even with a TV library.
+- Season ids follow the provider too: `season-imdb-tt1641384-1`.
+
+**Script changes made while capturing** (found testing 0.3 on the Mac):
+
+- **Stable snapshot on every OS.** `--contract` now keeps the existing `openapi-<build>.json.gz` when its uncompressed content already matches `contract_digest`, and writes new snapshots with Python's `gzip.compress(…, mtime=0)` instead of the `gzip` command. macOS's BSD gzip and Linux's GNU gzip produce different bytes for the same input, which showed up as a spurious change in `git status`.
+- **Silo ids are derived from the Emby item, not hard-coded.** Silo builds content ids from whichever provider it matched (`movie-imdb-tt0295701`, `episode-imdb-<series imdb>-<season>-<episode>`), and the TV library switched from TVDB to IMDb ids between Oct 7 and Oct 13, so the old defaults 404'd. When `SILO_MOVIE`/`SILO_MOVIE_MULTI`/`SILO_SERIES`/`SILO_EPISODE` are unset, the script reads the Emby item's `ProviderIds`, builds the candidates in order IMDb → TMDB → TVDB and uses the first one Silo's catalog answers. That also guarantees the Silo and Emby samples are the same title.
+- **Less Emby setup.** `EMBY_SERIES` defaults to the episode's `SeriesId`; `EMBY_USER_ID` defaults to `EMBY_USERNAME`'s id or the first admin (the user list is used for that and not saved). An episode `PlaybackInfo` and the multi-version movie's `/watch` are now sampled too.
+- **Home section items.** `/home/sections` lists sections under `sections`, not `items`, so the per-section request was skipped; fixed. (The sections embed their items, so no fixture was lost.)
+
+**Finding for the app design:** Silo content ids are not permanent; they change when a library is rematched to a different provider. Anything Moonfin persists by Silo id (offline downloads, cached rows, deep links) has to cope with an id disappearing. Silo exposes `/api/v2/libraries/stale-ids` for this; it is noted for phases 6 and 15.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- None (data only). The fixtures are used by the mapper tests from step 5.1 on.
 
 **Manual test plan**
 
 - The Salt Path two-version sample is included (missing from the Oct 7 capture).
+- Skim a few files in `packages/server_silo/test/fixtures/silo/` and `emby/` for anything private I missed (names of household members, your hostname, paths).
+- `git status` shows only `packages/server_silo/test/fixtures/**`, `scripts/silo_probe.sh` and `docs/silo/**`.
+- Optional: re-run the capture command once more and check the `home_section_items` line now appears in the summary.
 - Compare with Emby: `/Items/{id}`, `/Shows/{id}/Seasons`, `/Shows/{id}/Episodes`, `/Items/{id}/PlaybackInfo` for the same titles.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-13 | macOS (Brady's run) + Claude review | Silo 4b2e921c+dirty, Emby 4.10.1.0 | Pass | 59 requests, all 200; all four titles resolved on Silo from the Emby ids; privacy check clean. Gaps: no PIN profile, no trickplay item. |
 | | | | | |
 
 ---

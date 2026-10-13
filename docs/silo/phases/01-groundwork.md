@@ -13,7 +13,7 @@ Make Silo a server type the code knows about. Jellyfin and Emby users see no cha
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 0.4 |
+| ☑ Done | `5194df8` | 0.4 |
 
 **Goal.** Add the enum value, `productName`, `tokenQueryParam` (`token`), and Silo detection in `detect()`. Fix each exhaustive `switch` the compiler flags with a safe default.
 
@@ -65,7 +65,7 @@ The throws are unreachable: every other switch needs a `MediaServerClient`, and 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-13 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | `dart analyze` on the app and core packages: 0 errors, 0 warnings (same as before). Tests: server_core 50/50, app 4,272 passed, 1 skipped, 0 failed. |
-| | | | | |
+| 2026-10-13 | macOS | — | Pass | Brady: app runs, Emby playback works |
 
 ---
 
@@ -74,7 +74,7 @@ The throws are unreachable: every other switch needs a `MediaServerClient`, and 
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 1.1 |
 
 **Goal.** Add `supportsLiveTv`, `supportsMusic`, `supportsPlaylists`, `supportsInstantMix`, `supportsAdmin`, `supportsMoonfinPlugin` and `supportsProfiles`, and decide each existing flag for Silo. Nothing reads the new flags yet.
 
@@ -82,26 +82,48 @@ The throws are unreachable: every other switch needs a `MediaServerClient`, and 
 
 - `packages/server_core/lib/src/feature/feature_detector.dart`
 
-**Earlier work to port:** silo-1
+**Earlier work to port:** silo-1 `feature_detector.dart` and its test (changed: Silo flags start off until implemented)
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+`FeatureDetector` (`packages/server_core/lib/src/feature/feature_detector.dart`) is how the UI asks "can this server do X?" before showing a button, row or tab. This step teaches it about Silo and adds the flags phase 4 needs to hide what Silo doesn't have. **No code reads the new flags yet**, and every existing flag returns exactly what it did before for Jellyfin and Emby.
+
+**Rule for Silo: a flag says what Moonfin can do with the server today, not what Silo can do.** A feature Silo offers but Moonfin hasn't implemented stays `false` and is switched on by the step that implements it. Otherwise the first playable build (phase 10) would turn on trickplay and skip-intro calls that don't exist yet. (The first-pass branch declared them `true` up front; this is the main difference from the ported code.)
+
+| Flag | Jellyfin | Emby | Silo | Silo note |
+|---|---|---|---|---|
+| `supportsLiveTv` *(new)* | ✓ | ✓ | ✗ | Never: Silo has no Live TV/DVR by design |
+| `supportsMusic` *(new)* | ✓ | ✓ | ✗ | Never: no music libraries |
+| `supportsPlaylists` *(new)* | ✓ | ✓ | ✗ | Never: personal collections are the nearest thing |
+| `supportsInstantMix` *(new)* | ✓ | ✓ | ✗ | Never |
+| `supportsAdmin` *(new)* | ✓ | ✓ | ✗ | Never: Silo is administered in its own web app |
+| `supportsMoonfinPlugin` *(new)* | ✓ | ✓ | ✗ | Never: the `/Moonfin/*` plugin is Jellyfin/Emby only |
+| `supportsProfiles` *(new)* | ✗ | ✗ | ✗ | On with profile sign-in (phase 3) |
+| `supportsTrickplay` | ✓ | ✗ | ✗ | On in 11.2 |
+| `supportsMediaSegments` | ✓ | ✗ | ✗ | On in 11.1 |
+| `supportsSkipSegments` | ✓ | ✓ | ✗ | On in 11.1 |
+| `supportsQuickConnect` | ✓ | ✗ | ✗ | On in 14.3 (Silo device sign-in) |
+| `supportsClientLog` | ✓ | ✗ | ✗ | Optional, 13.5 |
+| `supportsSyncPlay`, `supportsLyrics`, `supportsBifTrickplay` | as before | as before | ✗ | Never |
+| `supportsJellyseerr` | ✓ | ✓ | ✓ | Direct Seerr works without the Moonfin plugin (4.9) |
+
+`supportsAdmin` is `true` for Emby to match today's behaviour (the admin panel's own Jellyfin-only checks are untouched); it only exists so phase 4 can hide the entry for Silo.
 
 ### Testing
 
 **Automated tests**
 
-- `feature_detector_test.dart`: one assertion per flag per server type
+- `packages/server_core/test/feature_detector_test.dart` (new, 6 tests): every existing flag unchanged for Jellyfin and Emby; new flags on for both; the "never" flags off for Silo; the "not yet" flags off for Silo, each tagged with the step that turns it on; Seerr stays available.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+- No visible change. Optional: launch the app and play something on Emby with skip-intro to confirm the skip button still appears (`supportsSkipSegments` was rewritten).
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-13 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | server_core 56/56; app tests that use the detector (media segment service, Apple TV prompt controller) 40/40; analyzer 0 errors/warnings |
 | | | | | |
 
 ---

@@ -91,7 +91,7 @@ _Fill in when the step is built: what the code does, the main classes and why it
 |---|---|---|
 | ☐ Not started | — | previous step |
 
-**Goal.** Id, Name, SortName, Type, Overview, Genres, Studios, years and dates, OfficialRating, Community/Critic rating, RunTimeTicks, ProviderIds, DateCreated, Status; original payload kept under `_silo`.
+**Goal.** Id, Name, SortName, Type, Overview, Genres, Studios, years and dates, OfficialRating, Community/Critic rating, RunTimeTicks, ProviderIds, DateCreated, Status; `backdrop_urls` → every `BackdropImageTags` entry; original payload kept under `_silo`.
 
 **Where in Moonfin**
 
@@ -126,7 +126,7 @@ _Fill in when the step is built: what the code does, the main classes and why it
 |---|---|---|
 | ☐ Not started | — | previous step |
 
-**Goal.** SeriesId/Name, SeasonId (both id forms), Index numbers, ChildCount, and the Parent*/Series* image fields filled from the series' slots (Silo has no Thumb or Banner: Thumb ← backdrop).
+**Goal.** SeriesId/Name, SeasonId (both id forms), Index numbers, ChildCount, and the Parent*/Series* image fields filled from the series' slots. Since build `4b2e921c` movie and series detail carry `thumb_url` and `banner_url` (when `images/capabilities.extended_item_artwork` is true): use them, and fall back to the backdrop only when they're missing. Use `*_is_episode_still` so an episode still never becomes a series poster.
 
 **Where in Moonfin**
 

@@ -796,6 +796,7 @@ void setActiveStreamResolver(MediaServerClient client) {
       final p = EmbyPlugin(client);
       return (p.createStreamResolver(), p.createPlaySessionService());
     }(),
+    ServerType.silo => throw UnsupportedError('Silo servers are not supported yet'),
   };
 
   // Local-first: completed downloads play from disk instead of streaming,

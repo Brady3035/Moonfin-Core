@@ -27,6 +27,7 @@ abstract class ServerWebSocketClient {
     return switch (client.serverType) {
       ServerType.jellyfin => JellyfinWebSocketClient(client),
       ServerType.emby => EmbyWebSocketClient(client),
+      ServerType.silo => throw UnsupportedError('Silo servers are not supported yet'),
     };
   }
 }

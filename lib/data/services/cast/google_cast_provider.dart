@@ -44,6 +44,7 @@ class GoogleCastProvider implements CastProvider, CastTransportControls {
     return switch (client.serverType) {
       ServerType.jellyfin => JellyfinPlugin(client).createStreamResolver(),
       ServerType.emby => EmbyPlugin(client).createStreamResolver(),
+      ServerType.silo => throw UnsupportedError('Silo servers are not supported yet'),
     };
   }
 

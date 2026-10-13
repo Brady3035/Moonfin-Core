@@ -38,7 +38,7 @@ Status key: ☐ not started · ◐ in progress · ☑ done and tested · ⊘ ski
 - [x] **1.2** [Silo capabilities in `FeatureDetector`](phases/01-groundwork.md#step-1-2) · ↺ port
 - [x] **1.3** [Silo request headers](phases/01-groundwork.md#step-1-3) · ↺ port
 - [x] **1.4** [`server_silo` package skeleton](phases/01-groundwork.md#step-1-4) · ↺ port
-- [ ] **1.5** [Silo error responses (Problem Details)](phases/01-groundwork.md#step-1-5) · ↺ port
+- [x] **1.5** [Silo error responses (Problem Details)](phases/01-groundwork.md#step-1-5) · ↺ port
 - [ ] **1.6** [`SiloSystemApi`](phases/01-groundwork.md#step-1-6) · ↺ port
 - [ ] **1.7** [`playback_silo` package skeleton](phases/01-groundwork.md#step-1-7) · ↺ port
 - [ ] **1.8** [Wire Silo into the app's factories](phases/01-groundwork.md#step-1-8) · ↺ port

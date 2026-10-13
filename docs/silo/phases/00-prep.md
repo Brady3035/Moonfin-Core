@@ -70,7 +70,7 @@ The Silo contract Moonfin builds against is now the exact OpenAPI document serve
 
 - `packages/server_silo/test/fixtures/openapi-4b2e921c.json.gz` is `GET /api/v2/openapi.json` from build `4b2e921c+dirty` (`api_major` 2), gzipped with `gzip -9 -n` so the archive is byte-stable.
 - Silo's `contract_digest` is the SHA-256 of that document (the server also sends it as the `ETag`). The uncompressed snapshot hashes to `12ea11dd…960a`, the same value `/system/info` reports, so the file provably matches the server.
-- `packages/server_silo/test/fixtures/README.md` records the build, digest, date and size, and explains how to verify and refresh it. The `server_silo` package itself doesn't exist yet on this branch (step 1.4); the fixtures folder is created first so the contract is pinned before any code is written against it.
+- `packages/server_silo/test/fixtures/README.md` records the build, digest, date and size, and explains how to verify and refresh it. The `server_silo` package itself doesn't exist yet on this branch (step 1.4, the package skeleton); the fixtures folder is created first so the contract is pinned before any code is written against it.
 - The server id from `/system/identity` is unchanged (`7b72fbd5…`), so servers saved during the first pass stay valid.
 
 **What changed since `4e371f4c`** (822 → 849 viewer-facing operations, 1,122 → 1,170 schemas, nothing removed). Compared over the 424 schemas reachable from endpoints in the plan:

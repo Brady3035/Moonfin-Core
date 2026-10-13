@@ -33,18 +33,18 @@ Silo becomes the third value of `ServerType`, the enum every layer of Moonfin us
 - `ServerType.silo` is added after `jellyfin` and `emby`. Saved servers store the enum by `name` (`lib/auth/models/server.dart`), so existing entries are unaffected and `"silo"` round-trips.
 - `tokenQueryParam` becomes a `switch` and returns `token` for Silo. Silo accepts the access token as `?token=` only on media requests that can't send headers (stream and subtitle URLs). Most Silo URLs are already signed and must not get a token, so the callers that append it (`lib/util/server_url.dart`, casting, theme music…) get a per-URL Silo rule in later steps rather than here.
 - New `productName` (`Jellyfin` / `Emby` / `Silo`) for user-facing text such as the add-server error (step 1.17).
-- `detect()` checks for "silo" in the product name before the Jellyfin and Emby checks. Silo's **Jellyfin-compatible** listener (port 8096) reports `ProductName: "Jellyfin Server"`, so a server added on that port is still a Jellyfin server; only the native API is Silo. The native API isn't probed until step 1.4.
+- `detect()` checks for "silo" in the product name before the Jellyfin and Emby checks. Silo's **Jellyfin-compatible** listener (port 8096) reports `ProductName: "Jellyfin Server"`, so a server added on that port is still a Jellyfin server; only the native API is Silo. The native API isn't probed until step 1.9.
 
 **The eight exhaustive `switch`es the compiler flagged.** Dart refuses to compile a `switch` over an enum that misses a value, which is how every place needing Silo handling was found:
 
 | Where | Silo case in this step | Replaced in |
 |---|---|---|
-| `media_server_client_factory.dart` `_createRawClient` | throws `UnsupportedError('Silo servers are not supported yet')` | 1.9 (`SiloMediaServerClient`, built in 1.5) |
-| `playback_module.dart`, `media_bar.dart`, the AirPlay, DLNA and Google Cast providers (stream resolver) | same throw | 1.9 (`playback_silo` plugin, built in 1.8) |
-| `socket_handler.dart` (websocket client) | same throw | 1.9 (idle Silo socket), 13.2 (events socket) |
+| `media_server_client_factory.dart` `_createRawClient` | throws `UnsupportedError('Silo servers are not supported yet')` | 1.8 (`SiloMediaServerClient`, built in 1.4) |
+| `playback_module.dart`, `media_bar.dart`, the AirPlay, DLNA and Google Cast providers (stream resolver) | same throw | 1.8 (`playback_silo` plugin, built in 1.7) |
+| `socket_handler.dart` (websocket client) | same throw | 1.8 (idle Silo socket), 13.2 (events socket) |
 | `server_type_icon.dart` | generic `Icons.dns_outlined` glyph | 1.11 (Silo icon) |
 
-The throws are unreachable: every other switch needs a `MediaServerClient`, and the factory is the only way to get one, so a Silo client can't exist until 1.9. Nothing produces a Silo `Server` in the first place (the probe only reads `/System/Info/Public`, which Silo's native site answers with HTML). The icon is the exception because a widget must never throw: server lists render it for any saved entry.
+The throws are unreachable: every other switch needs a `MediaServerClient`, and the factory is the only way to get one, so a Silo client can't exist until 1.8. Nothing produces a Silo `Server` in the first place (the probe only reads `/System/Info/Public`, which Silo's native site answers with HTML). The icon is the exception because a widget must never throw: server lists render it for any saved entry.
 
 ### Testing
 
@@ -133,7 +133,7 @@ The throws are unreachable: every other switch needs a `MediaServerClient`, and 
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 1.2 |
+| ☑ Done | `7a57ef5` | 1.2 |
 
 **Goal.** `buildSiloRequestHeaders()`: `Authorization: Bearer`, `X-Profile-Id`, `X-Profile-Token`, `X-Silo-Device-Id/-Name/-Platform`, `X-Silo-Client(-Version)`, sanitised and length-clamped (a bad device id gets a 422).
 
@@ -145,7 +145,7 @@ The throws are unreachable: every other switch needs a `MediaServerClient`, and 
 
 ### How it works
 
-Jellyfin and Emby take one `Authorization: MediaBrowser Client=…, Device=…, Token=…` header. Silo splits the same information over several headers, so `packages/server_core/lib/src/network/auth_header.dart` gains `buildSiloRequestHeaders()` next to the existing `buildServerAuthorizationHeader()` (which is unchanged). Nothing calls it yet; the Silo client (1.5) sends its result on every request.
+Jellyfin and Emby take one `Authorization: MediaBrowser Client=…, Device=…, Token=…` header. Silo splits the same information over several headers, so `packages/server_core/lib/src/network/auth_header.dart` gains `buildSiloRequestHeaders()` next to the existing `buildServerAuthorizationHeader()` (which is unchanged). Nothing calls it yet; the Silo client (1.4) sends its result on every request.
 
 | Header | Value | Sent when |
 |---|---|---|
@@ -161,7 +161,7 @@ Jellyfin and Emby take one `Authorization: MediaBrowser Client=…, Device=…, 
 
 **Device id validation (found on the live server, not in the OpenAPI document).** The contract only says `maxLength: 128`, but build `4b2e921c` answers `422 validation_failed` with *"X-Silo-Device-Id must be a single device identifier: letters, digits, '.', '_', ':' or '-', with no comma or interior whitespace"*. Checked on 2026-10-13 with a sign-in for a non-existent user: `moonfin-test.1:2_3` → 401 (header accepted), `tv box/01 {x}` and `Brady’s-tv` → 422. `siloDeviceId()` therefore drops every other character and clamps to 128; if nothing is left, the header is omitted rather than sent empty. Moonfin's ids are UUID v4s, which already qualify, so in practice this only guards odd legacy or test ids.
 
-**`platform` is a parameter, not a `DeviceInfo` field.** `DeviceInfo` is shared by every backend and built in `lib/di/injection.dart`; adding a field would touch all of them and every test fake. `server_core` can't import Flutter's platform detection, so the Silo client passes the platform name in (step 1.5).
+**`platform` is a parameter, not a `DeviceInfo` field.** `DeviceInfo` is shared by every backend and built in `lib/di/injection.dart`; adding a field would touch all of them and every test fake. `server_core` can't import Flutter's platform detection, so the Silo client passes the platform name in (step 1.4).
 
 **Values are sanitised like the Jellyfin header** (ASCII only, no quotes, commas or control characters) because HTTP header values must be ASCII; `Brady’s Apple TV` becomes `Brady s Apple TV`.
 
@@ -181,62 +181,16 @@ Jellyfin and Emby take one `Authorization: MediaBrowser Client=…, Device=…, 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-13 | Linux (Claude workspace, Flutter 3.47.2) | 4b2e921c+dirty | Pass | server_core 66/66; `dart analyze` clean for server_core and the app; device-id rule checked live (401 for a valid id, 422 for refused characters) |
-| | | | | |
+| 2026-10-13 | macOS | — | Pass | Brady reviewed; no app-visible change |
 
 ---
 
 <a id="step-1-4"></a>
-## 1.4 Detect Silo in the server probe
+## 1.4 `server_silo` package skeleton
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
-
-**Goal.** Try `/api/v2/system/info` before the Jellyfin and Emby paths, then build `Id`/`ServerName`/`Version` from identity, branding and setup. Reject the HTML 200 that the native host returns for `/System/Info/Public`.
-
-**Silo v2 endpoints**
-
-- `GET /system/info`
-- `GET /system/identity`
-- `GET /theme/branding`
-- `GET /system/setup`
-
-**Where in Moonfin**
-
-- `packages/server_core/lib/src/network/server_probe.dart`
-
-**Earlier work to port:** silo-1
-
-### How it works
-
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
-
-### Testing
-
-**Automated tests**
-
-- `server_probe_test.dart`: Silo detected; HTML 200 rejected; sub-path base URL kept; Jellyfin-compat port still detected as Jellyfin
-
-**Manual test plan**
-
-- Add `silo.snowystreams.com`. The server tile shows your Silo server name.
-- Store the **v2** identity id, not the v1 health id.
-- Compare with Emby: Add your Emby server again and confirm it is still detected as Emby.
-
-**Results**
-
-| Date | Platform | Server build | Result | Notes |
-|---|---|---|---|---|
-| | | | | |
-
----
-
-<a id="step-1-5"></a>
-## 1.5 `server_silo` package skeleton
-
-| Status | Commit | Depends on |
-|---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 1.3 |
 
 **Goal.** Create the package, `SiloMediaServerClient` (Dio set up like Emby, Silo headers on every request), and placeholder APIs that throw a readable `SiloNotImplementedError` naming the step that replaces them. Live TV and Instant Mix are permanently empty.
 
@@ -246,32 +200,66 @@ _Fill in when the step is built: what the code does, the main classes and why it
 - `pubspec.yaml`
 - `pubspec.lock`
 
-**Earlier work to port:** silo-1
+**Earlier work to port:** silo-1 package (reduced to the skeleton; session, refresh and Problem Details split out to their own steps; placeholders renumbered to the current roadmap)
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+A new package, `packages/server_silo`, holds Moonfin's Silo backend, mirroring `server_emby` and `server_jellyfin`. This step creates the package and its client with every API stubbed. Nothing in the app uses it yet (the factory is wired in 1.8), and the app's `pubspec.yaml` doesn't list it yet either.
+
+**Files**
+
+| File | What it is |
+|---|---|
+| `pubspec.yaml` | Depends on `server_core` and `dio` only (the first-pass package also pulled in `logger`, which nothing used). |
+| `lib/server_silo.dart` | Public exports: the client, the Live TV and Instant Mix classes, `SiloNotImplementedError`. |
+| `lib/src/silo_media_server_client.dart` | `SiloMediaServerClient extends MediaServerClient`. |
+| `lib/src/api/silo_pending_api.dart` | Placeholders for the APIs not translated yet. |
+| `lib/src/api/silo_live_tv_api.dart`, `silo_instant_mix_api.dart` | Permanent empty implementations. |
+
+**`SiloMediaServerClient`** is built like `EmbyMediaServerClient`: one Dio with the same timeouts (8 s connect, 3 min receive), `configureServerDio` for certificates and the user agent, the shared redirect interceptor, and the same request logging (progress pings thinned to one in twelve; the Silo path is `/api/v2/playback/<session>/progress`). The difference is the header interceptor: instead of one `Authorization: Emby …` header it adds `buildSiloRequestHeaders()` from step 1.3 on every request. Besides the usual `accessToken` and `userId` it holds `profileId` and `profileToken` (Silo's household profile and PIN proof) and a `platform` string the app supplies for `X-Silo-Device-Platform`. An optional `httpClientAdapter` lets tests answer requests from fixtures.
+
+On Silo, Moonfin's "user" is a household profile (decision D1), so `userId` and `profileId` normally hold the same id. They stay separate fields because an account signs in before a profile is chosen.
+
+**Placeholders.** Each not-yet-translated API is a small class that implements the real interface and answers *every* member with `SiloNotImplementedError("Silo ItemsApi.getItems is not implemented yet (roadmap step 6.5)")`, through `noSuchMethod`, so a 40-method interface doesn't need 40 stubs. A call that arrives too early becomes a readable error naming the step that fixes it, not a crash. Each placeholder is deleted by its step:
+
+| API | Replaced in |
+|---|---|
+| `SystemApi` | 1.6 |
+| `AuthApi` | 2.3 |
+| `UsersApi` | 2.7 |
+| `SessionApi` | phase 3 (sign-in reports capabilities) and 13.6 |
+| `UserViewsApi` | 6.4 |
+| `ItemsApi` | 6.5 onward |
+| `UserLibraryApi` | 6.6 and phase 9 |
+| `DisplayPreferencesApi` | 6.19 |
+| `PlaybackApi` | 6.18 and 10.6 |
+| `ImageApi` | 6.1. It returns `''` instead of throwing, because image URLs are built synchronously while widgets render; an empty URL shows the placeholder art. |
+
+**Permanent answers.** Live TV reads return an empty `{Items: [], TotalRecordCount: 0}` and writes fail with `UnsupportedError` (Silo has no Live TV by design); Instant Mix is always empty. They return empty rather than throwing so shared rows simply render nothing. The admin getters throw `UnsupportedError` (Silo is administered in its own web app; `FeatureDetector.supportsAdmin` hides the panel). Trickplay, SyncPlay, client-log and games APIs are left at the base class's `null`.
+
+**Left for later steps:** token refresh (2.1–2.2), stricter same-origin redirects (1.14), the shared `serverAuthHeaders()` interface (1.12), Problem Details errors (1.5). The first-pass client had all of these in one file.
 
 ### Testing
 
 **Automated tests**
 
-- `silo_media_server_client_test.dart`: headers present; placeholders name their step
+- `packages/server_silo/test/silo_media_server_client_test.dart` (new, 13 tests): server type and base URL; headers before sign-in and as token/profile change; each placeholder throws `SiloNotImplementedError` with its API, member and step; image URLs empty; Live TV and Instant Mix empty, Live TV writes and admin refused; optional APIs null. (Headers on the wire are tested in 1.6, the first step with a real request.)
 
 **Manual test plan**
 
-- _Write the checks before testing._
+- No app change. Optional: `cd packages/server_silo && flutter pub get && flutter test` on the Mac (13 tests).
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-13 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | server_silo 13/13; `dart analyze` clean; `dart format` applied |
 | | | | | |
 
 ---
 
-<a id="step-1-6"></a>
-## 1.6 Silo error responses (Problem Details)
+<a id="step-1-5"></a>
+## 1.5 Silo error responses (Problem Details)
 
 | Status | Commit | Depends on |
 |---|---|---|
@@ -307,8 +295,8 @@ _Fill in when the step is built: what the code does, the main classes and why it
 
 ---
 
-<a id="step-1-7"></a>
-## 1.7 `SiloSystemApi`
+<a id="step-1-6"></a>
+## 1.6 `SiloSystemApi`
 
 | Status | Commit | Depends on |
 |---|---|---|
@@ -351,8 +339,8 @@ _Fill in when the step is built: what the code does, the main classes and why it
 
 ---
 
-<a id="step-1-8"></a>
-## 1.8 `playback_silo` package skeleton
+<a id="step-1-7"></a>
+## 1.7 `playback_silo` package skeleton
 
 | Status | Commit | Depends on |
 |---|---|---|
@@ -388,8 +376,8 @@ _Fill in when the step is built: what the code does, the main classes and why it
 
 ---
 
-<a id="step-1-9"></a>
-## 1.9 Wire Silo into the app's factories
+<a id="step-1-8"></a>
+## 1.8 Wire Silo into the app's factories
 
 | Status | Commit | Depends on |
 |---|---|---|
@@ -420,6 +408,54 @@ _Fill in when the step is built: what the code does, the main classes and why it
 **Manual test plan**
 
 - Adding the Silo server no longer crashes at the factory.
+
+**Results**
+
+| Date | Platform | Server build | Result | Notes |
+|---|---|---|---|---|
+| | | | | |
+
+---
+
+<a id="step-1-9"></a>
+## 1.9 Detect Silo in the server probe
+
+| Status | Commit | Depends on |
+|---|---|---|
+| ☐ Not started | — | 1.8 |
+
+**Goal.** Try `/api/v2/system/info` before the Jellyfin and Emby paths, then build `Id`/`ServerName`/`Version` from identity, branding and setup. Reject the HTML 200 that the native host returns for `/System/Info/Public`.
+
+**Why it comes after 1.8** (moved from 1.4 on 2026-10-13): with no build flag, recognising Silo saves a Silo server and opens its sign-in screen, which asks the client factory for a client straight away. Before 1.8 that factory refuses Silo, so the screen would hang on its spinner. Probing last means the step that makes Silo addable also lands on a working (if not yet able to sign in) screen.
+
+**Silo v2 endpoints**
+
+- `GET /system/info`
+- `GET /system/identity`
+- `GET /theme/branding`
+- `GET /system/setup`
+
+**Where in Moonfin**
+
+- `packages/server_core/lib/src/network/server_probe.dart`
+
+**Earlier work to port:** silo-1
+
+### How it works
+
+_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+
+### Testing
+
+**Automated tests**
+
+- `server_probe_test.dart`: Silo detected; HTML 200 rejected; sub-path base URL kept; Jellyfin-compat port still detected as Jellyfin
+
+**Manual test plan**
+
+- Add `silo.snowystreams.com`. The server tile shows your Silo server name.
+- Store the **v2** identity id, not the v1 health id.
+- Compare with Emby: Add your Emby server again and confirm it is still detected as Emby.
 
 **Results**
 

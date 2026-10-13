@@ -74,7 +74,7 @@ The throws are unreachable: every other switch needs a `MediaServerClient`, and 
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 1.1 |
+| ☑ Done | `05275d8` | 1.1 |
 
 **Goal.** Add `supportsLiveTv`, `supportsMusic`, `supportsPlaylists`, `supportsInstantMix`, `supportsAdmin`, `supportsMoonfinPlugin` and `supportsProfiles`, and decide each existing flag for Silo. Nothing reads the new flags yet.
 
@@ -124,7 +124,7 @@ The throws are unreachable: every other switch needs a `MediaServerClient`, and 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-13 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | server_core 56/56; app tests that use the detector (media segment service, Apple TV prompt controller) 40/40; analyzer 0 errors/warnings |
-| | | | | |
+| 2026-10-13 | macOS | — | Pass | Brady: skip intro still works on Emby |
 
 ---
 
@@ -133,7 +133,7 @@ The throws are unreachable: every other switch needs a `MediaServerClient`, and 
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 1.2 |
 
 **Goal.** `buildSiloRequestHeaders()`: `Authorization: Bearer`, `X-Profile-Id`, `X-Profile-Token`, `X-Silo-Device-Id/-Name/-Platform`, `X-Silo-Client(-Version)`, sanitised and length-clamped (a bad device id gets a 422).
 
@@ -141,26 +141,46 @@ The throws are unreachable: every other switch needs a `MediaServerClient`, and 
 
 - `packages/server_core/lib/src/network/auth_header.dart`
 
-**Earlier work to port:** silo-1
+**Earlier work to port:** silo-1 `buildSiloRequestHeaders` (added: `X-Silo-Device-Platform`, empty-value handling, public `siloDeviceId`; the 422 rule re-verified live)
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+Jellyfin and Emby take one `Authorization: MediaBrowser Client=…, Device=…, Token=…` header. Silo splits the same information over several headers, so `packages/server_core/lib/src/network/auth_header.dart` gains `buildSiloRequestHeaders()` next to the existing `buildServerAuthorizationHeader()` (which is unchanged). Nothing calls it yet; the Silo client (1.5) sends its result on every request.
+
+| Header | Value | Sent when |
+|---|---|---|
+| `Authorization` | `Bearer <access token>` | signed in |
+| `X-Profile-Id` | the selected household profile | a profile is selected (most viewer routes require it) |
+| `X-Profile-Token` | proof from `verify-pin` | a PIN-locked profile is unlocked |
+| `X-Silo-Device-Id` | `DeviceInfo.id` (Moonfin's per-install UUID) | always |
+| `X-Silo-Device-Name` | `DeviceInfo.name`, max 120 chars | always |
+| `X-Silo-Device-Platform` | e.g. `macOS`, `tvOS`, `Android TV`, max 40 chars | when the caller passes `platform` |
+| `X-Silo-Client` / `-Version` | `DeviceInfo.appName` / `appVersion` (e.g. `Moonfin for macOS`, `2.7.0`) | always |
+
+**Why the device headers go on every request, not only at sign-in.** Silo records the device in its registry at sign-in and playback start, and its catalog and settings routes use `X-Silo-Device-Id` to pick device-scoped playback preferences ("absent resolves the profile's preferences"). Sending it everywhere keeps those preferences per device, like Silo's own apps.
+
+**Device id validation (found on the live server, not in the OpenAPI document).** The contract only says `maxLength: 128`, but build `4b2e921c` answers `422 validation_failed` with *"X-Silo-Device-Id must be a single device identifier: letters, digits, '.', '_', ':' or '-', with no comma or interior whitespace"*. Checked on 2026-10-13 with a sign-in for a non-existent user: `moonfin-test.1:2_3` → 401 (header accepted), `tv box/01 {x}` and `Brady’s-tv` → 422. `siloDeviceId()` therefore drops every other character and clamps to 128; if nothing is left, the header is omitted rather than sent empty. Moonfin's ids are UUID v4s, which already qualify, so in practice this only guards odd legacy or test ids.
+
+**`platform` is a parameter, not a `DeviceInfo` field.** `DeviceInfo` is shared by every backend and built in `lib/di/injection.dart`; adding a field would touch all of them and every test fake. `server_core` can't import Flutter's platform detection, so the Silo client passes the platform name in (step 1.5).
+
+**Values are sanitised like the Jellyfin header** (ASCII only, no quotes, commas or control characters) because HTTP header values must be ASCII; `Brady’s Apple TV` becomes `Brady s Apple TV`.
 
 ### Testing
 
 **Automated tests**
 
-- `auth_header_test.dart`: sanitising, clamping, device-id character set
+- `packages/server_core/test/auth_header_test.dart` (new, 10 tests): full header set; missing and empty values left out; name and platform clamps; UUID kept; refused characters dropped (with the live 422 examples); 128 clamp; no header when nothing usable is left; the Jellyfin/Emby header string unchanged.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+- Nothing to see in the app (no caller yet). Optional: read the test file; each case is a rule from the table above.
+- Optional, on the Mac: `curl -s -X POST https://silo.snowystreams.com/api/v2/auth/login -H 'Content-Type: application/json' -H 'X-Silo-Device-Id: tv box' --data '{"username":"nobody","password":"x"}'` returns the 422 quoted above.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-13 | Linux (Claude workspace, Flutter 3.47.2) | 4b2e921c+dirty | Pass | server_core 66/66; `dart analyze` clean for server_core and the app; device-id rule checked live (401 for a valid id, 422 for refused characters) |
 | | | | | |
 
 ---

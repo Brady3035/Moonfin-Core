@@ -35,7 +35,7 @@ Status key: ☐ not started · ◐ in progress · ☑ done and tested · ⊘ ski
 ## 1. [Groundwork](phases/01-groundwork.md)
 
 - [x] **1.1** [`ServerType.silo`](phases/01-groundwork.md#step-1-1) · ↺ port
-- [ ] **1.2** [Silo capabilities in `FeatureDetector`](phases/01-groundwork.md#step-1-2) · ↺ port
+- [x] **1.2** [Silo capabilities in `FeatureDetector`](phases/01-groundwork.md#step-1-2) · ↺ port
 - [ ] **1.3** [Silo request headers](phases/01-groundwork.md#step-1-3) · ↺ port
 - [ ] **1.4** [Detect Silo in the server probe](phases/01-groundwork.md#step-1-4) · ↺ port
 - [ ] **1.5** [`server_silo` package skeleton](phases/01-groundwork.md#step-1-5) · ↺ port

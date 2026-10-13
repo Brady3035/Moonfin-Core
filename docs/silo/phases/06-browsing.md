@@ -15,7 +15,7 @@ Libraries, grids and detail pages. Each step replaces one placeholder method wit
 |---|---|---|
 | ☐ Not started | — | previous step |
 
-**Goal.** `getPrimary/Backdrop/Logo/Thumb/BannerImageUrl` and user avatars from the registry; user menu avatar goes through `imageApi`.
+**Goal.** `getPrimary/Backdrop/Logo/Thumb/BannerImageUrl` and user avatars from the registry (Thumb and Banner use Silo's own art when the item has it, otherwise the backdrop); user menu avatar goes through `imageApi`.
 
 **Where in Moonfin**
 

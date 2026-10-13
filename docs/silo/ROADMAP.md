@@ -36,13 +36,13 @@ Status key: ☐ not started · ◐ in progress · ☑ done and tested · ⊘ ski
 
 - [x] **1.1** [`ServerType.silo`](phases/01-groundwork.md#step-1-1) · ↺ port
 - [x] **1.2** [Silo capabilities in `FeatureDetector`](phases/01-groundwork.md#step-1-2) · ↺ port
-- [ ] **1.3** [Silo request headers](phases/01-groundwork.md#step-1-3) · ↺ port
-- [ ] **1.4** [Detect Silo in the server probe](phases/01-groundwork.md#step-1-4) · ↺ port
-- [ ] **1.5** [`server_silo` package skeleton](phases/01-groundwork.md#step-1-5) · ↺ port
-- [ ] **1.6** [Silo error responses (Problem Details)](phases/01-groundwork.md#step-1-6) · ↺ port
-- [ ] **1.7** [`SiloSystemApi`](phases/01-groundwork.md#step-1-7) · ↺ port
-- [ ] **1.8** [`playback_silo` package skeleton](phases/01-groundwork.md#step-1-8) · ↺ port
-- [ ] **1.9** [Wire Silo into the app's factories](phases/01-groundwork.md#step-1-9) · ↺ port
+- [x] **1.3** [Silo request headers](phases/01-groundwork.md#step-1-3) · ↺ port
+- [ ] **1.4** [`server_silo` package skeleton](phases/01-groundwork.md#step-1-4) · ↺ port
+- [ ] **1.5** [Silo error responses (Problem Details)](phases/01-groundwork.md#step-1-5) · ↺ port
+- [ ] **1.6** [`SiloSystemApi`](phases/01-groundwork.md#step-1-6) · ↺ port
+- [ ] **1.7** [`playback_silo` package skeleton](phases/01-groundwork.md#step-1-7) · ↺ port
+- [ ] **1.8** [Wire Silo into the app's factories](phases/01-groundwork.md#step-1-8) · ↺ port
+- [ ] **1.9** [Detect Silo in the server probe](phases/01-groundwork.md#step-1-9) · ↺ port
 - [ ] **1.10** [Add the Silo packages to CI](phases/01-groundwork.md#step-1-10)
 - [ ] **1.11** [Silo server icon](phases/01-groundwork.md#step-1-11) · ↺ port
 - [ ] **1.12** [Shared auth headers for hand-built requests](phases/01-groundwork.md#step-1-12) · ↺ port

@@ -4,6 +4,7 @@ import 'package:server_core/server_core.dart';
 import 'api/silo_instant_mix_api.dart';
 import 'api/silo_live_tv_api.dart';
 import 'api/silo_pending_api.dart';
+import 'silo_problem.dart';
 
 /// Moonfin's client for a Silo server, speaking Silo's native `/api/v2`.
 ///
@@ -89,6 +90,9 @@ class SiloMediaServerClient extends MediaServerClient {
 
   void _setupInterceptors() {
     _dio.interceptors.add(redirectInterceptor(_dio));
+    // Added before the logger so a failure is logged with Silo's problem code
+    // and text (error interceptors run in the order they were added).
+    _dio.interceptors.add(siloProblemInterceptor());
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) {

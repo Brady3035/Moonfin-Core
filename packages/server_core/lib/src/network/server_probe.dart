@@ -1,8 +1,7 @@
-import 'dart:convert';
-
 import 'package:dio/dio.dart';
 
 import '../models/server_type.dart';
+import 'json_body.dart';
 
 /// Result of probing a base URL for a Jellyfin/Emby server.
 class ServerProbeResult {
@@ -75,7 +74,7 @@ Future<ServerProbeResult?> _probePath(
   final status = response.statusCode ?? 0;
   if (status < 200 || status >= 300) return null;
 
-  final data = _asJsonMap(response.data);
+  final data = asJsonMap(response.data);
   if (data == null) return null;
 
   return ServerProbeResult(
@@ -101,17 +100,4 @@ String _resolveBaseUrl(String requestUrl) {
     basePath = basePath.substring(0, basePath.length - 1);
   }
   return '${uri.scheme}://${uri.authority}$basePath';
-}
-
-Map<String, dynamic>? _asJsonMap(Object? data) {
-  if (data is Map<String, dynamic>) return data;
-  if (data is Map) return data.map((k, v) => MapEntry(k.toString(), v));
-  if (data is String) {
-    try {
-      final decoded = jsonDecode(data);
-      if (decoded is Map<String, dynamic>) return decoded;
-      if (decoded is Map) return decoded.map((k, v) => MapEntry(k.toString(), v));
-    } catch (_) {}
-  }
-  return null;
 }

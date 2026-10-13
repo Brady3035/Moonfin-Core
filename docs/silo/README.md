@@ -21,7 +21,7 @@ This folder documents adding [Silo Media Server](https://github.com/Silo-Server/
 1. Claude marks the step ◐ in its phase file and builds it. Only that step's change is in the working tree.
 2. Claude runs the automated tests in a private copy of the repo (see below) and fills in **How it works**.
 3. Brady runs the step's manual test plan on the Mac against the Silo server, comparing with Emby where the step says so, and the results go in the **Results** table.
-4. Brady commits once the step passes, titled `silo(<id>): <title>` (for example `silo(1.4): Detect Silo in the server probe`), with the step's doc update in the same commit.
+4. Brady commits once the step passes, titled `silo(<id>): <title>` (for example `silo(1.9): Detect Silo in the server probe`), with the step's doc update in the same commit.
 5. The commit hash goes in the step's table and the box gets ticked in ROADMAP.md (done at the start of the next step, so it lands in the next commit).
 
 ## Running and testing

@@ -190,7 +190,7 @@ Jellyfin and Emby take one `Authorization: MediaBrowser Client=…, Device=…, 
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 1.3 |
+| ☑ Done | `7f25317` | 1.3 |
 
 **Goal.** Create the package, `SiloMediaServerClient` (Dio set up like Emby, Silo headers on every request), and placeholder APIs that throw a readable `SiloNotImplementedError` naming the step that replaces them. Live TV and Instant Mix are permanently empty.
 
@@ -254,7 +254,7 @@ On Silo, Moonfin's "user" is a household profile (decision D1), so `userId` and 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-13 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | server_silo 13/13; `dart analyze` clean; `dart format` applied |
-| | | | | |
+| 2026-10-13 | macOS | — | Pass | Brady committed after review |
 
 ---
 
@@ -263,7 +263,7 @@ On Silo, Moonfin's "user" is a household profile (decision D1), so `userId` and 
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 1.4 |
 
 **Goal.** Parse RFC 7807 Problem Details into `SiloApiException(code, status, detail, retryAfter)`, including bodies served as `text/plain`.
 
@@ -271,26 +271,43 @@ On Silo, Moonfin's "user" is a household profile (decision D1), so `userId` and 
 
 - `packages/server_silo/lib/src/silo_problem.dart`
 
-**Earlier work to port:** silo-1
+**Earlier work to port:** silo-2 `silo_problem.dart` and silo-1 "parse Silo JSON bodies sent as plain text" (extended, see below)
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+Every Silo error comes back as an RFC 9457 *Problem Details* JSON body. Its `type` URI ends in a stable code (`invalid_token`, `validation_failed`, `token_refresh_required`, `session_expired`…), `detail` is text meant for people, `instance` identifies the request in Silo's logs, and validation failures list each bad field in `errors`. This step teaches the Silo client to read them, so failures are readable in logs and in the UI, and later steps (token refresh in 2.2, PIN lockout in 2.6, unplayable media in 10.8) can branch on the code.
+
+**`packages/server_silo/lib/src/silo_problem.dart`**
+
+- `SiloProblem.fromJson(body)` parses a problem from a map **or a string**. Silo sometimes serves problem JSON as `text/plain`, which Dio leaves undecoded. It returns null for anything that isn't a problem (no body, HTML from a proxy, ordinary JSON), and tolerates wrongly typed fields rather than throwing while handling an error.
+- `code` is the last path segment of `type`; code that reacts to an error checks this, never the human `title`/`detail`. `message` is the text to show (detail, else title). `errors` holds `SiloProblemError(location, code, detail)` entries such as `header.x-silo-device-id / invalid`.
+- `SiloProblem.of(e)` / `codeOf(e)` read the problem from a `DioException`.
+- `SiloProblem.retryAfter(e)` reads `Retry-After` (Silo sends it with `429` and `503`) as seconds or an HTTP date. `dart:io`'s `HttpDate` isn't available on the web build, so a small IMF-fixdate parser is used instead.
+- `toString()` gives one line: `Silo 401 invalid_token: Invalid username or password.`, plus `[location code: detail]` per field error.
+
+**`siloProblemInterceptor()`**, added to the client's Dio right after the redirect interceptor, so **before** the logging interceptor (Dio runs error interceptors in the order they were added). For a failed response with a problem body it puts the `SiloProblem` in `DioException.error` and its one-line text in `DioException.message`. The log line and anything in the app that shows `e.message` then read Silo's own explanation instead of Dio's generic "bad response". Network errors and non-problem bodies pass through unchanged.
+
+**`asJsonMap` moved to `server_core`.** The server probe already had a private helper that decodes JSON sent as text. It now lives in `packages/server_core/lib/src/network/json_body.dart` as the public `asJsonMap`, used by both the probe and `SiloProblem`, so there's one implementation. The probe's behaviour is unchanged (its existing tests pass).
+
+**Changed from the first pass:** the silo-2 `SiloProblem` was parse-only and returned `Retry-After` as integer seconds; this version adds the interceptor, `message`, a readable `toString`, tolerant field parsing and HTTP-date support.
 
 ### Testing
 
 **Automated tests**
 
-- Problem body parsed; plain-text JSON parsed; non-JSON body falls back to status text
+- `packages/server_silo/test/silo_problem_test.dart` (new, 13 tests): the real 401 and 422 bodies captured from your server in step 1.3; problem sent as text; non-problems (HTML, plain JSON, arrays) ignored; wrongly typed fields tolerated; `code` extraction; one-line text; the interceptor attaches the problem (JSON and `text/plain`) and leaves HTML and network errors alone; `Retry-After` as seconds, as an HTTP date (future and past), missing and unreadable.
+- `packages/server_core/test/json_body_test.dart` (new, 3 tests): `asJsonMap` for maps, JSON text and non-objects.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+- No app change. Optional: `flutter test` in `packages/server_silo` (26 tests) and `packages/server_core` (69 tests).
+- Jellyfin/Emby: add a server by address once to confirm the probe still works (its JSON helper moved).
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-13 | Linux (Claude workspace, Flutter 3.47.2) | 4b2e921c+dirty (captured bodies) | Pass | server_silo 26/26, server_core 69/69, app analyzer 0 errors/warnings |
 | | | | | |
 
 ---

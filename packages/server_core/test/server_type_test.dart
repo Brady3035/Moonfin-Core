@@ -28,6 +28,6 @@ void main() {
   });
 
   test('productName per server type', () {
-    expect(ServerType.values.map((t) => t.productName), ['Jellyfin', 'Emby', 'Silo']);
+    expect(ServerType.values.map((t) => t.productName), ['Jellyfin', 'Emby', 'Plex', 'Silo']);
   });
 }

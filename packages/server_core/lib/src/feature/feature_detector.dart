@@ -1,5 +1,11 @@
 import '../models/server_type.dart';
 
+/// What Moonfin can do with a given server.
+///
+/// For Silo a flag is true only once Moonfin's Silo backend implements the
+/// feature. Features Silo has but Moonfin doesn't support yet stay false and
+/// are switched on by the change that adds them (see docs/silo/ROADMAP.md);
+/// features Silo never offers stay false for good.
 class FeatureDetector {
   final ServerType serverType;
   final String serverVersion;
@@ -9,17 +15,21 @@ class FeatureDetector {
     required this.serverVersion,
   });
 
-  bool get supportsSyncPlay => serverType == ServerType.jellyfin;
-  bool get supportsTrickplay => serverType == ServerType.jellyfin;
-  bool get supportsLyrics => serverType == ServerType.jellyfin;
-  bool get supportsMediaSegments => serverType == ServerType.jellyfin;
+  bool get _isJellyfin => serverType == ServerType.jellyfin;
+  bool get _isEmby => serverType == ServerType.emby;
+  bool get _isSilo => serverType == ServerType.silo;
 
-  /// Every server can surface intro and credits segments for skip overlays,
-  /// Jellyfin through the MediaSegments API, Emby through chapter markers and
-  /// Plex through its own markers.
-  bool get supportsSkipSegments => true;
+  bool get supportsSyncPlay => _isJellyfin;
+  bool get supportsTrickplay => _isJellyfin;
+  bool get supportsLyrics => _isJellyfin;
+  bool get supportsMediaSegments => _isJellyfin;
 
-  bool get supportsQuickConnect => serverType == ServerType.jellyfin;
+  /// Jellyfin, Emby and Plex can surface intro and credits segments for skip
+  /// overlays, Jellyfin through the MediaSegments API, Emby through chapter
+  /// markers and Plex through its own markers.
+  bool get supportsSkipSegments => !_isSilo;
+
+  bool get supportsQuickConnect => _isJellyfin;
 
   /// Whether jellyfin-web opens its Quick Connect page from a link with the
   /// code already filled in. That page arrived in 10.9, and older servers
@@ -27,9 +37,9 @@ class FeatureDetector {
   bool get supportsQuickConnectWebLink =>
       supportsQuickConnect && _versionAtLeast(10, 9);
 
-  bool get supportsClientLog => serverType == ServerType.jellyfin;
+  bool get supportsClientLog => _isJellyfin;
 
-  bool get supportsBifTrickplay => serverType == ServerType.emby;
+  bool get supportsBifTrickplay => _isEmby;
   bool get supportsJellyseerr => true;
 
   /// A version that doesn't parse counts as recent enough, since the
@@ -43,4 +53,29 @@ class FeatureDetector {
     return serverMajor > major ||
         (serverMajor == major && serverMinor >= minor);
   }
+
+  /// Live TV, DVR and the guide. Silo has none of these by design.
+  bool get supportsLiveTv => !_isSilo;
+
+  /// Music libraries, artists, albums and lyrics. Silo has no music.
+  bool get supportsMusic => !_isSilo;
+
+  /// Playlists. Silo has none; its personal collections are the nearest thing.
+  bool get supportsPlaylists => !_isSilo;
+
+  /// Instant mix. Silo has no equivalent.
+  bool get supportsInstantMix => !_isSilo;
+
+  /// Moonfin's admin panel, which speaks the Jellyfin and Emby admin APIs.
+  /// Silo is administered from its own web app.
+  bool get supportsAdmin => _isJellyfin || _isEmby;
+
+  /// The Moonfin server plugin (`/Moonfin/*`: settings sync, Seerr proxy,
+  /// TMDB and MDBList proxies, bookmarks, anime markers...). It exists for
+  /// Jellyfin and Emby only.
+  bool get supportsMoonfinPlugin => _isJellyfin || _isEmby;
+
+  /// Household profiles chosen per request (Silo's `X-Profile-Id`). Switched
+  /// on for Silo with profile sign-in.
+  bool get supportsProfiles => false;
 }

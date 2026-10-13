@@ -804,6 +804,7 @@ void setActiveStreamResolver(MediaServerClient client) {
       PlexMediaStreamResolver(client),
       PlexPlaySessionService(client),
     ),
+    ServerType.silo => throw UnsupportedError('Silo servers are not supported yet'),
   };
 
   // Local-first: completed downloads play from disk instead of streaming,

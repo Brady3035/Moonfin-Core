@@ -31,6 +31,7 @@ abstract class ServerWebSocketClient {
       ServerType.jellyfin => JellyfinWebSocketClient(client),
       ServerType.emby => EmbyWebSocketClient(client),
       ServerType.plex => PlexWebSocketClient(client),
+      ServerType.silo => throw UnsupportedError('Silo servers are not supported yet'),
     };
   }
 }

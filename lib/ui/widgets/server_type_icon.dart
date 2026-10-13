@@ -17,14 +17,17 @@ class ServerTypeIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final effectiveColor = color ?? AppColorScheme.onSurface;
-    return CustomPaint(
-      size: Size.square(size),
-      painter: switch (serverType) {
-        ServerType.jellyfin => _JellyfinLogoPainter(effectiveColor),
-        ServerType.emby => _EmbyLogoPainter(effectiveColor),
-        ServerType.plex => _PlexLogoPainter(effectiveColor),
-      },
-    );
+    final painter = switch (serverType) {
+      ServerType.jellyfin => _JellyfinLogoPainter(effectiveColor),
+      ServerType.emby => _EmbyLogoPainter(effectiveColor),
+      ServerType.plex => _PlexLogoPainter(effectiveColor),
+      ServerType.silo => null,
+    };
+    if (painter == null) {
+      // Generic server glyph until Silo gets its own icon.
+      return Icon(Icons.dns_outlined, size: size, color: effectiveColor);
+    }
+    return CustomPaint(size: Size.square(size), painter: painter);
   }
 }
 

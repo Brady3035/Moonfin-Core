@@ -1,0 +1,34 @@
+# Silo support decisions
+
+[← README](README.md)
+
+## Decided
+
+### D1. A Silo household profile is a Moonfin user (2026-10-08)
+Each profile shows as its own user, so the existing user switcher, per-user settings, offline data and "last user" work per household member. Profiles of one account share one token pair. Rules for sign-out, refresh, multi-server rows and PINs are in [reference §4.2.1](reference/design-2026-10-08.md#421-design-note-households-inside-moonfins-multi-server-model).
+
+### D4. Native `/api/v2` only (2026-10-13)
+Silo's `/api/v1` is a frozen alpha and its Jellyfin-compat listener is a different product path. Silo's `server_version` is a git hash, so compatibility is checked with `api_major` and the `contract_digest` is logged.
+
+### D5. One step per commit, docs in the same commit (2026-10-13)
+Each roadmap step is one commit titled `silo(<id>): <title>` and includes its own doc update.
+
+### D0. Port the earlier branches, split finer (2026-10-13)
+The code on `silo-1-groundwork`, `silo-2-signin-api` and the `Add_silo` stash is rebuilt on `Silo-Support` one roadmap step per commit (steps marked ↺). Each ported step is re-reviewed, re-tested against the current server build and documented like a new step.
+
+### D8. No build flag; develop on the fork (2026-10-13)
+Silo isn't hidden behind `MOONFIN_SILO`/`siloSupportEnabled`. The work lives on Brady's fork until it is proposed upstream, so the flag (and its step) is dropped, and the flag is stripped from code ported from the earlier branches. If the maintainers want the work merged in pieces before it can play, a flag can be added back as one commit at that point.
+
+## Open
+
+### D2. Artwork when nothing is registered for an item
+Cold start, deep links and offline can ask for an image the registry has never seen. Options: a resolver image provider that fetches the item and then loads its artwork (artwork always appears, more code in `cached_network_image_fork`), or an empty URL and the placeholder (simple, but artwork is missing until the item is loaded again). Needed by step 6.3.
+
+### D3. Where display preferences live
+Silo has a generic per-user settings store (`/settings/values/{key}`). Options: store Moonfin's per-library view settings there under a `moonfin.` key (if Silo's settings contract allows client keys), or keep them local only. Needed by step 6.19.
+
+### D6. Track changes: replan or stop and restart
+Replan keeps the session and is faster; stop + start is simpler. Replan is needed anyway for far seeks on progressive remux (step 10.12), so the plan uses replan for tracks too.
+
+### D7. Thumbhash placeholders
+Silo sends `*_thumbhash` for artwork. Moonfin doesn't show blur placeholders today. Ignore for now; revisit after phase 6.

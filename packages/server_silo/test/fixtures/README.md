@@ -28,10 +28,15 @@ checks `api_major` and logs the digest.
 
 ## Refreshing after a Silo upgrade
 
-Re-download the document, gzip it with `gzip -9 -n` (so the archive doesn't
-change when the content doesn't), rename it after the new build, delete the old
-file, and update the table above. `scripts/silo_probe.sh` (roadmap step 0.3)
-will do this along with the JSON samples.
+```sh
+SILO_URL=https://<silo-host> scripts/silo_probe.sh --public --contract
+```
+
+This downloads the document, checks it against the server's `contract_digest`,
+writes `openapi-<build>.json.gz` here with `gzip -9 -n` (so unchanged content
+gives an identical file), removes the previous snapshot and prints the values
+for the table above. Run it without `--public` (with `SILO_USERNAME`) to sample
+the signed-in endpoints too; see `scripts/silo_probe.sh --help`.
 
 ## Samples
 

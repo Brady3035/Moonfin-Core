@@ -40,6 +40,37 @@ the signed-in endpoints too; see `scripts/silo_probe.sh --help`.
 
 ## Samples
 
-`silo/` (native `/api/v2` responses) and `emby/` (the same titles from Emby,
-the shape the mappers must produce) are added in roadmap step 0.4. Signed query
-parameters (`sig`, `st`, `exp`), tokens and server file paths are scrubbed.
+Captured 2026-10-13 with `scripts/silo_probe.sh` from the test servers (Silo
+`4b2e921c+dirty`, Emby `4.10.1.0`), then trimmed. File names are the probe
+script's, so a refresh is a copy over the top.
+
+Each title was sampled on both servers; the Silo ids were worked out from the
+Emby items' provider ids, so every pair is the same title:
+
+| Title | Silo content id | Emby item id | Why it's here |
+|---|---|---|---|
+| xXx (2002) | `movie-imdb-tt0295701` | `633614` | Plain movie: detail, versions, `/watch`, markers (none), similar, one cast member. No thumb/banner art. |
+| The Salt Path (2025) | `movie-imdb-tt27766440` | `691242` | Two versions on Silo (1080p x264, 2160p HEVC); Emby lists three sources. |
+| Young Justice | `series-imdb-tt1641384` | `648654` | Series → seasons → season 1 episodes. |
+| Young Justice S01E01 | `episode-imdb-tt1641384-1-1` | `659237` | Episode with an intro marker. No trickplay yet. |
+
+`silo/` also holds the public system endpoints, sign-in, account and profile
+(one profile, no PIN), every capability document the roadmap reads, user
+libraries, home layout and sections, a library page, filters, letters, search,
+progress, favorites and collections (empty). `emby/` holds the views, items,
+`PlaybackInfo`, seasons and episodes for the same titles: the shape the mappers
+must produce.
+
+**Trimmed** to keep the files small (counts such as `total_count` and
+`TotalRecordCount` still give the original size):
+`silo/home_sections.json` items per section → 3; `silo/season_episodes.json`
+and `emby/season_episodes.json` → first 3 episodes; `silo/catalog_filters.json`
+studios → 20, countries and original languages → 10.
+
+**Scrubbed** by the probe script (see its header): tokens, URL signatures, email,
+IPs, file paths cut to the file name, profile names and the username replaced,
+hosts replaced with `silo.example` / `emby.example`.
+
+**Not captured yet:** a PIN-locked profile (needed by step 3.6) and an item with
+trickplay (needed by steps 5.11 and 11.2). Re-run the script with
+`SILO_PROFILE_ID` / `SILO_EPISODE` when those steps start.

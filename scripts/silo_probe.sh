@@ -14,14 +14,22 @@
 #   SILO_TOKEN         or reuse an existing access token instead (left signed in)
 #   SILO_PROFILE_ID    profile to act as (default: the account's primary profile)
 #   SILO_PROFILE_PIN   PIN for that profile, prompted for when it has one
-#   SILO_MOVIE         movie content id        (default movie-imdb-tt0295701)
-#   SILO_MOVIE_MULTI   movie with two or more versions (skipped when unset)
-#   SILO_SERIES        series content id       (default series-tvdb-192061)
-#   SILO_EPISODE       episode with markers/trickplay (default episode-tvdb-192061-1-1)
+#   SILO_MOVIE         a movie
+#   SILO_MOVIE_MULTI   a movie with two or more versions
+#   SILO_SERIES        a series
+#   SILO_EPISODE       an episode with markers/trickplay
+#                      Silo content ids. When unset, each is worked out from the
+#                      matching Emby item's IMDb/TMDB/TVDB ids (Silo builds its
+#                      ids from them, e.g. movie-imdb-tt0295701), so both
+#                      servers are sampled for the same title. Titles with no id
+#                      either way are skipped.
 #
 # Emby settings (optional; the same titles, for the target shape):
-#   EMBY_URL EMBY_TOKEN EMBY_USER_ID
-#   EMBY_MOVIE EMBY_MOVIE_MULTI EMBY_SERIES EMBY_EPISODE   Emby item ids
+#   EMBY_URL           e.g. https://emby.example.com
+#   EMBY_TOKEN         an API key (Emby dashboard > Advanced > API Keys)
+#   EMBY_USER_ID       user to read as (default: EMBY_USERNAME's id, else the first admin)
+#   EMBY_MOVIE EMBY_MOVIE_MULTI EMBY_EPISODE   Emby item ids
+#   EMBY_SERIES        default: the series of EMBY_EPISODE
 #
 # Output: build/silo-probe/<time>/raw/ holds the responses as received (they
 # contain signed URLs and file paths, keep them local); .../scrubbed/ holds
@@ -38,7 +46,7 @@ for arg in "$@"; do
   case "$arg" in
     --contract) MODE_CONTRACT=1 ;;
     --public) MODE_PUBLIC=1 ;;
-    -h|--help) sed -n '2,33p' "$0"; exit 0 ;;
+    -h|--help) sed -n '2,41p' "$0"; exit 0 ;;
     *) echo "unknown option: $arg (see --help)" >&2; exit 2 ;;
   esac
 done
@@ -46,10 +54,10 @@ done
 : "${SILO_URL:?set SILO_URL, e.g. SILO_URL=https://silo.example.com}"
 SILO_URL="${SILO_URL%/}"
 SILO_URL="${SILO_URL%/api/v2}"
-MOVIE="${SILO_MOVIE:-movie-imdb-tt0295701}"
+MOVIE="${SILO_MOVIE:-}"
 MOVIE_MULTI="${SILO_MOVIE_MULTI:-}"
-SERIES="${SILO_SERIES:-series-tvdb-192061}"
-EPISODE="${SILO_EPISODE:-episode-tvdb-192061-1-1}"
+SERIES="${SILO_SERIES:-}"
+EPISODE="${SILO_EPISODE:-}"
 
 for tool in curl python3; do
   command -v "$tool" >/dev/null || { echo "$tool is required" >&2; exit 1; }
@@ -65,7 +73,7 @@ FAILED=0
 
 HELPER="$(mktemp "${TMPDIR:-/tmp}/silo_probe.XXXXXX")"
 cat > "$HELPER" <<'PY'
-import hashlib, json, os, re, sys
+import gzip, hashlib, json, os, re, sys
 from urllib.parse import urlsplit, urlunsplit, parse_qsl, urlencode
 
 def load(path):
@@ -156,6 +164,46 @@ def main():
     elif cmd == 'sha256':
         with open(sys.argv[2], 'rb') as f:
             print(hashlib.sha256(f.read()).hexdigest())
+    elif cmd == 'gunzip-sha256':
+        with gzip.open(sys.argv[2], 'rb') as f:
+            print(hashlib.sha256(f.read()).hexdigest())
+    elif cmd == 'gzip':
+        # Python's gzip with mtime=0 gives the same bytes on macOS and Linux,
+        # unlike the gzip command (BSD and GNU compress differently).
+        with open(sys.argv[2], 'rb') as f:
+            data = f.read()
+        with open(sys.argv[3], 'wb') as f:
+            f.write(gzip.compress(data, compresslevel=9, mtime=0))
+    elif cmd == 'emby-user':
+        # emby-user <users.json> <name>: id of the named user, else the first admin
+        users = load(sys.argv[2]) or []
+        name = sys.argv[3].lower()
+        pick = next((u for u in users if name and (u.get('Name') or '').lower() == name), None)
+        pick = pick or next((u for u in users if (u.get('Policy') or {}).get('IsAdministrator')), None)
+        print(pick.get('Id', '') if pick else '')
+    elif cmd == 'candidates':
+        # candidates <movie|series|episode> <emby item.json> [<emby series.json>]:
+        # the Silo content ids this title could have, most likely first
+        kind = sys.argv[2]
+        try:
+            item = load(sys.argv[3])
+        except Exception:
+            return
+        ids_of = lambda x: {k.lower(): v for k, v in ((x or {}).get('ProviderIds') or {}).items() if v}
+        order = ('imdb', 'tmdb', 'tvdb')
+        if kind == 'episode':
+            try:
+                series = load(sys.argv[4])
+            except Exception:
+                return
+            season, number = item.get('ParentIndexNumber'), item.get('IndexNumber')
+            if season is None or number is None:
+                return
+            ids = ids_of(series)
+            print(' '.join('episode-%s-%s-%s-%s' % (p, ids[p], season, number) for p in order if p in ids))
+        else:
+            ids = ids_of(item)
+            print(' '.join('%s-%s-%s' % (kind, p, ids[p]) for p in order if p in ids))
     elif cmd == 'scrub':
         src, dst, silo_host, emby_host = sys.argv[2:6]
         hosts = [(silo_host, 'silo.example'), (emby_host, 'emby.example')]
@@ -222,6 +270,19 @@ silo() {
   record "$name" "$code" "$method $path"
 }
 
+# resolve_silo "<id> <id> ...": the first candidate Silo's catalog knows, or nothing
+resolve_silo() {
+  local id code
+  for id in $1; do
+    code=$(curl -sS -m 30 -o /dev/null -w '%{http_code}' \
+      -H "Authorization: Bearer $ACCESS_TOKEN" -H "X-Profile-Id: $PROFILE_ID" \
+      ${PROFILE_TOKEN:+-H "X-Profile-Token: $PROFILE_TOKEN"} \
+      "$SILO_URL/api/v2/catalog/items/$id" || echo 000)
+    if [ "$code" = 200 ]; then echo "$id"; return 0; fi
+  done
+  return 0
+}
+
 # emby <name> <path>
 emby() {
   local code
@@ -254,12 +315,54 @@ if [ "$MODE_CONTRACT" = 1 ]; then
     FIX="$REPO/packages/server_silo/test/fixtures"
     SHORT="${BUILD%%+*}"
     mkdir -p "$FIX"
+    TARGET="$FIX/openapi-$SHORT.json.gz"
     for old in "$FIX"/openapi-*.json.gz; do
-      if [ -e "$old" ] && [ "$old" != "$FIX/openapi-$SHORT.json.gz" ]; then rm -f "$old"; echo "   removed $(basename "$old")"; fi
+      if [ -e "$old" ] && [ "$old" != "$TARGET" ]; then rm -f "$old"; echo "   removed $(basename "$old")"; fi
     done
-    gzip -9 -n -c "$SPEC" > "$FIX/openapi-$SHORT.json.gz"
-    echo "   wrote packages/server_silo/test/fixtures/openapi-$SHORT.json.gz (digest verified)"
+    if [ -e "$TARGET" ] && [ "$(helper gunzip-sha256 "$TARGET")" = "$DIGEST" ]; then
+      echo "   kept packages/server_silo/test/fixtures/openapi-$SHORT.json.gz (already this contract)"
+    else
+      helper gzip "$SPEC" "$TARGET"
+      echo "   wrote packages/server_silo/test/fixtures/openapi-$SHORT.json.gz (digest verified)"
+    fi
     echo "   update the table in packages/server_silo/test/fixtures/README.md: build $BUILD, digest $DIGEST, date $(date +%Y-%m-%d)"
+  fi
+fi
+
+if [ -n "${EMBY_URL:-}" ]; then
+  echo "== Emby ($EMBY_URL)"
+  emby system_info_public /System/Info/Public
+  U="${EMBY_USER_ID:-}"
+  if [ -n "${EMBY_TOKEN:-}" ] && [ -z "$U" ]; then
+    emby users /Users
+    U="$(helper emby-user "$OUT/raw/emby/users.json" "${EMBY_USERNAME:-}")"
+    rm -f "$OUT/raw/emby/users.json"
+    echo "   reading as Emby user $U"
+  fi
+  if [ -n "${EMBY_TOKEN:-}" ] && [ -n "$U" ]; then
+    F="Fields=Overview,Genres,People,Studios,ProviderIds,MediaSources,MediaStreams,Chapters,Path,Taglines,RemoteTrailers,ProductionLocations,PrimaryImageAspectRatio,DateCreated"
+    emby user_views "/Users/$U/Views"
+    if [ -n "${EMBY_MOVIE:-}" ]; then
+      emby item_movie "/Users/$U/Items/$EMBY_MOVIE"
+      emby playback_info_movie "/Items/$EMBY_MOVIE/PlaybackInfo?UserId=$U"
+    fi
+    if [ -n "${EMBY_MOVIE_MULTI:-}" ]; then
+      emby item_movie_multi "/Users/$U/Items/$EMBY_MOVIE_MULTI"
+      emby playback_info_movie_multi "/Items/$EMBY_MOVIE_MULTI/PlaybackInfo?UserId=$U"
+    fi
+    if [ -n "${EMBY_EPISODE:-}" ]; then
+      emby item_episode "/Users/$U/Items/$EMBY_EPISODE"
+      emby playback_info_episode "/Items/$EMBY_EPISODE/PlaybackInfo?UserId=$U"
+      if [ -z "${EMBY_SERIES:-}" ]; then EMBY_SERIES="$(helper get "$OUT/raw/emby/item_episode.json" SeriesId)"; fi
+    fi
+    if [ -n "${EMBY_SERIES:-}" ]; then
+      emby item_series "/Users/$U/Items/$EMBY_SERIES"
+      emby series_seasons "/Shows/$EMBY_SERIES/Seasons?UserId=$U&$F"
+      ESEASON="$(helper first "$OUT/raw/emby/series_seasons.json" Items Id)"
+      if [ -n "$ESEASON" ]; then emby season_episodes "/Shows/$EMBY_SERIES/Episodes?UserId=$U&SeasonId=$ESEASON&$F"; fi
+    fi
+  else
+    echo "   (set EMBY_TOKEN to sample the signed-in Emby endpoints)"
   fi
 fi
 
@@ -332,58 +435,42 @@ EOF
   silo collections /collections
 
   echo "== Silo titles"
-  silo catalog_item_movie "/catalog/items/$MOVIE"
-  silo catalog_versions_movie "/catalog/items/$MOVIE/versions"
-  silo watch_movie "/watch/$MOVIE"
-  silo markers_movie "/markers/items/$MOVIE"
-  silo similar_movie "/recommendations/similar/$MOVIE?limit=5"
-  PERSON="$(helper first "$OUT/raw/silo/catalog_item_movie.json" cast person_id)"
-  if [ -n "$PERSON" ]; then silo person "/catalog/people/$PERSON"; fi
+  ER="$OUT/raw/emby"
+  if [ -z "$MOVIE" ]; then MOVIE="$(resolve_silo "$(helper candidates movie "$ER/item_movie.json")")"; fi
+  if [ -z "$MOVIE_MULTI" ]; then MOVIE_MULTI="$(resolve_silo "$(helper candidates movie "$ER/item_movie_multi.json")")"; fi
+  if [ -z "$SERIES" ]; then SERIES="$(resolve_silo "$(helper candidates series "$ER/item_series.json")")"; fi
+  if [ -z "$EPISODE" ]; then EPISODE="$(resolve_silo "$(helper candidates episode "$ER/item_episode.json" "$ER/item_series.json")")"; fi
+  echo "   movie=${MOVIE:-none} movie_multi=${MOVIE_MULTI:-none} series=${SERIES:-none} episode=${EPISODE:-none}" | tee -a "$SUMMARY"
+  if [ -n "$MOVIE" ]; then
+    silo catalog_item_movie "/catalog/items/$MOVIE"
+    silo catalog_versions_movie "/catalog/items/$MOVIE/versions"
+    silo watch_movie "/watch/$MOVIE"
+    silo markers_movie "/markers/items/$MOVIE"
+    silo similar_movie "/recommendations/similar/$MOVIE?limit=5"
+    PERSON="$(helper first "$OUT/raw/silo/catalog_item_movie.json" cast person_id)"
+    if [ -n "$PERSON" ]; then silo person "/catalog/people/$PERSON"; fi
+  fi
   if [ -n "$MOVIE_MULTI" ]; then
     silo catalog_item_movie_multi "/catalog/items/$MOVIE_MULTI"
     silo catalog_versions_movie_multi "/catalog/items/$MOVIE_MULTI/versions"
-  else
-    echo "   (set SILO_MOVIE_MULTI to sample a movie with several versions)"
+    silo watch_movie_multi "/watch/$MOVIE_MULTI"
   fi
-  silo catalog_item_series "/catalog/items/$SERIES"
-  silo series_seasons "/catalog/series/$SERIES/seasons?include_artwork=true"
-  SEASON="$(helper first "$OUT/raw/silo/series_seasons.json" items content_id)"
-  if [ -n "$SEASON" ]; then silo season_episodes "/catalog/items/$SEASON/episodes"; fi
-  silo catalog_item_episode "/catalog/items/$EPISODE"
-  silo watch_episode "/watch/$EPISODE"
-  silo markers_episode "/markers/items/$EPISODE"
-  TRICK_FILE="$(helper first "$OUT/raw/silo/watch_episode.json" versions file_id trickplay_available)"
-  if [ -n "$TRICK_FILE" ]; then
-    silo watch_trickplay_episode "/watch/$EPISODE/trickplay?file_id=$TRICK_FILE"
-  else
-    echo "   (no version of $EPISODE has trickplay yet)"
+  if [ -n "$SERIES" ]; then
+    silo catalog_item_series "/catalog/items/$SERIES"
+    silo series_seasons "/catalog/series/$SERIES/seasons?include_artwork=true"
+    SEASON="$(helper first "$OUT/raw/silo/series_seasons.json" items content_id)"
+    if [ -n "$SEASON" ]; then silo season_episodes "/catalog/items/$SEASON/episodes"; fi
   fi
-fi
-
-if [ -n "${EMBY_URL:-}" ]; then
-  echo "== Emby ($EMBY_URL)"
-  emby system_info_public /System/Info/Public
-  if [ -n "${EMBY_TOKEN:-}" ] && [ -n "${EMBY_USER_ID:-}" ]; then
-    U="$EMBY_USER_ID"
-    F="Fields=Overview,Genres,People,Studios,ProviderIds,MediaSources,MediaStreams,Chapters,Path,Taglines,RemoteTrailers,ProductionLocations,PrimaryImageAspectRatio,DateCreated"
-    emby user_views "/Users/$U/Views"
-    if [ -n "${EMBY_MOVIE:-}" ]; then
-      emby item_movie "/Users/$U/Items/$EMBY_MOVIE"
-      emby playback_info_movie "/Items/$EMBY_MOVIE/PlaybackInfo?UserId=$U"
+  if [ -n "$EPISODE" ]; then
+    silo catalog_item_episode "/catalog/items/$EPISODE"
+    silo watch_episode "/watch/$EPISODE"
+    silo markers_episode "/markers/items/$EPISODE"
+    TRICK_FILE="$(helper first "$OUT/raw/silo/watch_episode.json" versions file_id trickplay_available)"
+    if [ -n "$TRICK_FILE" ]; then
+      silo watch_trickplay_episode "/watch/$EPISODE/trickplay?file_id=$TRICK_FILE"
+    else
+      echo "   (no version of $EPISODE has trickplay yet)"
     fi
-    if [ -n "${EMBY_MOVIE_MULTI:-}" ]; then
-      emby item_movie_multi "/Users/$U/Items/$EMBY_MOVIE_MULTI"
-      emby playback_info_movie_multi "/Items/$EMBY_MOVIE_MULTI/PlaybackInfo?UserId=$U"
-    fi
-    if [ -n "${EMBY_SERIES:-}" ]; then
-      emby item_series "/Users/$U/Items/$EMBY_SERIES"
-      emby series_seasons "/Shows/$EMBY_SERIES/Seasons?UserId=$U&$F"
-      ESEASON="$(helper first "$OUT/raw/emby/series_seasons.json" Items Id)"
-      if [ -n "$ESEASON" ]; then emby season_episodes "/Shows/$EMBY_SERIES/Episodes?UserId=$U&SeasonId=$ESEASON&$F"; fi
-    fi
-    if [ -n "${EMBY_EPISODE:-}" ]; then emby item_episode "/Users/$U/Items/$EMBY_EPISODE"; fi
-  else
-    echo "   (set EMBY_TOKEN and EMBY_USER_ID for the signed-in Emby samples)"
   fi
 fi
 

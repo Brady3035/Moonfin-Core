@@ -139,6 +139,10 @@ class MediaServerClientFactory {
           baseUrl: baseUrl,
           deviceInfo: deviceInfo,
         );
+      case ServerType.silo:
+        // Nothing can produce a Silo server until the probe learns Silo's
+        // native API, so this only guards against a stray saved entry.
+        throw UnsupportedError('Silo servers are not supported yet');
     }
   }
 

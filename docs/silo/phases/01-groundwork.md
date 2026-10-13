@@ -13,35 +13,58 @@ Make Silo a server type the code knows about. Jellyfin and Emby users see no cha
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 0.4 |
 
 **Goal.** Add the enum value, `productName`, `tokenQueryParam` (`token`), and Silo detection in `detect()`. Fix each exhaustive `switch` the compiler flags with a safe default.
 
 **Where in Moonfin**
 
 - `packages/server_core/lib/src/models/server_type.dart`
-- `every `switch (serverType)` the compiler flags`
+- the 8 exhaustive `switch (serverType)` sites listed below
 
-**Earlier work to port:** silo-1
+**Earlier work to port:** silo-1 `server_type.dart` (without the build flag: `detect()` no longer takes `allowSilo`)
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+Silo becomes the third value of `ServerType`, the enum every layer of Moonfin uses to pick a backend. This step adds the value and keeps the app compiling and behaving exactly as before; nothing can create a Silo server yet.
+
+**`packages/server_core/lib/src/models/server_type.dart`**
+
+- `ServerType.silo` is added after `jellyfin` and `emby`. Saved servers store the enum by `name` (`lib/auth/models/server.dart`), so existing entries are unaffected and `"silo"` round-trips.
+- `tokenQueryParam` becomes a `switch` and returns `token` for Silo. Silo accepts the access token as `?token=` only on media requests that can't send headers (stream and subtitle URLs). Most Silo URLs are already signed and must not get a token, so the callers that append it (`lib/util/server_url.dart`, casting, theme music…) get a per-URL Silo rule in later steps rather than here.
+- New `productName` (`Jellyfin` / `Emby` / `Silo`) for user-facing text such as the add-server error (step 1.17).
+- `detect()` checks for "silo" in the product name before the Jellyfin and Emby checks. Silo's **Jellyfin-compatible** listener (port 8096) reports `ProductName: "Jellyfin Server"`, so a server added on that port is still a Jellyfin server; only the native API is Silo. The native API isn't probed until step 1.4.
+
+**The eight exhaustive `switch`es the compiler flagged.** Dart refuses to compile a `switch` over an enum that misses a value, which is how every place needing Silo handling was found:
+
+| Where | Silo case in this step | Replaced in |
+|---|---|---|
+| `media_server_client_factory.dart` `_createRawClient` | throws `UnsupportedError('Silo servers are not supported yet')` | 1.9 (`SiloMediaServerClient`, built in 1.5) |
+| `playback_module.dart`, `media_bar.dart`, the AirPlay, DLNA and Google Cast providers (stream resolver) | same throw | 1.9 (`playback_silo` plugin, built in 1.8) |
+| `socket_handler.dart` (websocket client) | same throw | 1.9 (idle Silo socket), 13.2 (events socket) |
+| `server_type_icon.dart` | generic `Icons.dns_outlined` glyph | 1.11 (Silo icon) |
+
+The throws are unreachable: every other switch needs a `MediaServerClient`, and the factory is the only way to get one, so a Silo client can't exist until 1.9. Nothing produces a Silo `Server` in the first place (the probe only reads `/System/Info/Public`, which Silo's native site answers with HTML). The icon is the exception because a widget must never throw: server lists render it for any saved entry.
 
 ### Testing
 
 **Automated tests**
 
-- `server_models_test.dart`: detect() returns silo for a Silo product name
+- `packages/server_core/test/server_type_test.dart` (new): Silo product names detected; "Jellyfin Server" (Silo's compat listener) stays Jellyfin; Emby and Jellyfin rules unchanged; `tokenQueryParam` and `productName` per type.
+- `test/server_model_test.dart`: a saved Silo server round-trips its type.
+- `test/ui/widgets/server_type_icon_test.dart` (new): every server type renders without throwing; Silo shows the generic glyph.
 
 **Manual test plan**
 
-- Existing Jellyfin and Emby servers still sign in and play.
+- `flutter run -d macos`: the app starts; the server list shows your Jellyfin/Emby servers with their usual icons.
+- Sign in to Emby, open a movie, play it for a few seconds, stop. Same on a Jellyfin server if you have one.
+- Cast or AirPlay menu still lists targets for an Emby item (the resolver switch changed there).
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-13 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | `dart analyze` on the app and core packages: 0 errors, 0 warnings (same as before). Tests: server_core 50/50, app 4,272 passed, 1 skipped, 0 failed. |
 | | | | | |
 
 ---

@@ -1839,6 +1839,7 @@ class _MediaBarState extends State<MediaBar>
       ServerType.jellyfin => JellyfinPlugin(client).createStreamResolver(),
       ServerType.emby => EmbyPlugin(client).createStreamResolver(),
       ServerType.plex => PlexMediaStreamResolver(client),
+      ServerType.silo => throw UnsupportedError('Silo servers are not supported yet'),
     };
   }
 

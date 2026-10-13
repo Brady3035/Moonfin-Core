@@ -182,7 +182,7 @@ Cast and crew names, titles and external artwork URLs (TMDB, TVDB) are kept: the
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 0.3 |
+| ☑ Done | `1ee2d09` | 0.3 |
 
 **Goal.** Save the same titles from both servers (a movie, a two-version movie, a series → season → episode, an episode with markers and trickplay, a PIN profile, the library list). The Emby side is the target shape the mappers must produce.
 

@@ -1,0 +1,14 @@
+{
+ "window_cursor": "eyJ2IjoxLCJwIjp7ImEiOnsic2VhcmNoIjp7InByb3ZpZGVyIjoicG9zdGdyZXMiLCJjb25maWciOiJwb3N0Z3Jlcy1yZWxldmFuY2UtdjEiLCJwb3N0Z3JlcyI6eyJtb2RlIjoiZnRzIn19LCJrZXlzIjpudWxsLCJjb25zdW1lZCI6MH0sIm8iOjB9fQ.wG2Z0i0gh8BHz5TW5jN8GHIf6mFLGuHy98uiEhx5GWs",
+ "items": [],
+ "page": {
+  "has_more": false
+ },
+ "total": 0,
+ "total_exact": true,
+ "search_diagnostics": {
+  "provider": "postgres",
+  "mode": "keyword",
+  "semantic_used": false
+ }
+}

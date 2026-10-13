@@ -48,7 +48,7 @@ Docs only. `docs/silo/README.md` explains the approach and workflow, `ROADMAP.md
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 0.1 |
+| ☑ Done | `81085c4` | 0.1 |
 
 **Goal.** Replace the `4e371f4c` OpenAPI snapshot with the one from the server you run, and record the version, `api_major` and `contract_digest`.
 
@@ -104,7 +104,7 @@ The Silo contract Moonfin builds against is now the exact OpenAPI document serve
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-13 | Claude (workspace on your Mac) | 4b2e921c+dirty | Pass | Digest of the snapshot = served `contract_digest` = `ETag` |
-| | | | | |
+| 2026-10-13 | macOS | 4b2e921c+dirty | Pass | Brady verified the digest and committed |
 
 ---
 
@@ -113,7 +113,7 @@ The Silo contract Moonfin builds against is now the exact OpenAPI document serve
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 0.2 |
 
 **Goal.** A script that signs in, lists profiles and saves scrubbed responses for each endpoint the plan uses, so fixtures can be refreshed after every Silo upgrade.
 
@@ -121,26 +121,58 @@ The Silo contract Moonfin builds against is now the exact OpenAPI document serve
 
 - `scripts/silo_probe.sh`
 
-**Earlier work to port:** silo-1 `scripts/silo_probe.sh`
+**Earlier work to port:** silo-1 `scripts/silo_probe.sh` (extended: password sign-in with sign-out, profile PIN, contract re-pinning, Emby target fetches, automatic scrubbing)
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+`scripts/silo_probe.sh` is a developer tool, not part of the app. It collects the real server responses that the Silo mappers and tests are written against, and re-pins the API contract after a Silo upgrade. It needs only bash 3.2 (macOS's default), curl and python3.
+
+**What it does, in order**
+
+1. Reads the four public endpoints (`/system/info`, `/system/identity`, `/system/setup`, `/theme/branding`) and prints the build, `api_major` and `contract_digest`.
+2. With `--contract`: downloads `/openapi.json`, checks its SHA-256 equals `contract_digest`, and only then writes `packages/server_silo/test/fixtures/openapi-<build>.json.gz` (`gzip -9 -n`, so unchanged content gives an identical file) and removes the previous build's snapshot. It prints the values for the fixtures README table.
+3. Signs in (unless `--public`): `SILO_USERNAME` with the password prompted for (never put on the command line; the request body goes to curl on stdin so it never appears in `ps`), or an existing `SILO_TOKEN`. A session it opened is signed out on exit, even after an error (`trap … EXIT`).
+4. Picks a profile (`SILO_PROFILE_ID`, else the primary one) and, if it has a PIN, checks it via `verify-pin` and sends `X-Profile-Token` from then on, which is the same header flow the app will use.
+5. Samples the endpoints the roadmap uses: capabilities (playback, images, search, home, events, downloads, ratings, trailers, themes, collections, device login, diagnostics), libraries, home layout/sections, a library page, filters, letters, search, progress, favorites, collections, then a movie (detail, versions, `/watch`, markers, similar, one cast member), an optional multi-version movie, a series → first season → its episodes, and an episode's `/watch`, markers and trickplay (the `file_id` is taken from the first version with `trickplay_available`).
+6. Optionally fetches the same titles from Emby (`EMBY_URL`, `EMBY_TOKEN`, `EMBY_USER_ID` and item ids): views, items, `PlaybackInfo`, seasons and episodes. These are the target shape the mappers must produce.
+7. Writes everything to `build/silo-probe/<time>/raw/` (gitignored, keep local) and a scrubbed copy to `.../scrubbed/`, plus `summary.txt` with each request's status. It exits 1 if any request didn't return 2xx.
+
+**Scrubbing rules** (an embedded Python helper, so the shell stays bash 3.2-safe):
+
+| What | Becomes |
+|---|---|
+| Values under `access_token`, `refresh_token`, `profile_token`, `device_code`, `password`, `token`, `secret`, `api_key`, `ticket` | `SCRUBBED` |
+| URL query values `sig`, `st`, `exp`, `token`, `api_key`, S3/CloudFront signature params | `SCRUBBED` (the path is kept, because image tags are derived from it) |
+| `email` | `user@example.invalid` |
+| IP fields (`ip`, `remote_ip`, `last_ip`, …) | `203.0.113.1` (documentation range) |
+| `path`, `*_path`, `*_paths` (except `/api/...` paths) | file or folder name only |
+| Profile `name` and account `username` in `profiles`, `account_me`, `auth_login` | `Profile 1`, `Profile 2`…, `user` (household members' names stay private) |
+| The Silo and Emby hostnames anywhere in a string | `silo.example` / `emby.example` |
+
+Cast and crew names, titles and external artwork URLs (TMDB, TVDB) are kept: they are public and the mapper tests need them. A response that isn't JSON (an error page) is left out of the scrubbed set.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `bash -n` and ShellCheck: clean.
+- Scrubber run on a hand-made response containing every rule above: all secrets, signatures, emails, IPs, paths and profile names replaced; cast names and TMDB URLs kept; a non-JSON body skipped.
 
 **Manual test plan**
 
-- Run it on the Mac against your server. Tokens, `sig`/`st` query values and file paths come out scrubbed.
+- `scripts/silo_probe.sh --help` prints the usage.
+- `SILO_URL=https://silo.snowystreams.com scripts/silo_probe.sh --public --contract`: four public endpoints 200, digest verified, and `git status` shows **no change** to `openapi-4b2e921c.json.gz` (same content gives the same file).
+- `SILO_URL=https://silo.snowystreams.com SILO_USERNAME=<you> scripts/silo_probe.sh`: prompts for the password (not echoed), lists every endpoint with its status, prints "signed out of Silo (204)" at the end. Check the session is gone in Silo web (account → sessions).
+- Try it with a PIN profile: `SILO_PROFILE_ID=<id>`; it asks for the PIN.
+- Open a few files in `build/silo-probe/<time>/scrubbed/silo/`: no tokens, `sig=`/`st=` values, your hostname, email, full file paths or family names.
+- Run it with macOS's own bash to prove 3.2 compatibility: `/bin/bash scripts/silo_probe.sh --public`.
+- Optional: add `EMBY_URL`, `EMBY_TOKEN`, `EMBY_USER_ID` and `EMBY_MOVIE` and check the Emby files appear.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-13 | Claude (workspace on your Mac, bash 5) | 4b2e921c+dirty | Pass | `--public --contract`: all 200, re-pinned file byte-identical to the committed one; no-credentials run stops with a clear message; bad token stops at profiles with "no profile found"; scrubbed files contain no hostname. Signed-in run not done (needs your password). |
 | | | | | |
 
 ---

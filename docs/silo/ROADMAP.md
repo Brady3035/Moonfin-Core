@@ -28,7 +28,7 @@ Status key: ☐ not started · ◐ in progress · ☑ done and tested · ⊘ ski
 ## 0. [Preparation](phases/00-prep.md)
 
 - [x] **0.1** [Add the Silo support docs](phases/00-prep.md#step-0-1)
-- [ ] **0.2** [Pin the Silo v2 contract for build 4b2e921c](phases/00-prep.md#step-0-2) · ↺ port
+- [x] **0.2** [Pin the Silo v2 contract for build 4b2e921c](phases/00-prep.md#step-0-2) · ↺ port
 - [ ] **0.3** [Probe script for refreshing fixtures](phases/00-prep.md#step-0-3) · ↺ port
 - [ ] **0.4** [Capture Silo and Emby fixture pairs](phases/00-prep.md#step-0-4) · ↺ port
 

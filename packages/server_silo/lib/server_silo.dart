@@ -5,6 +5,7 @@
 library;
 
 export 'src/silo_media_server_client.dart';
+export 'src/api/silo_system_api.dart';
 export 'src/api/silo_live_tv_api.dart';
 export 'src/api/silo_instant_mix_api.dart';
 export 'src/api/silo_pending_api.dart' show SiloNotImplementedError;

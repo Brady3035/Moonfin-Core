@@ -263,7 +263,7 @@ On Silo, Moonfin's "user" is a household profile (decision D1), so `userId` and 
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 1.4 |
+| ☑ Done | `af10e59` | 1.4 |
 
 **Goal.** Parse RFC 7807 Problem Details into `SiloApiException(code, status, detail, retryAfter)`, including bodies served as `text/plain`.
 
@@ -308,7 +308,7 @@ Every Silo error comes back as an RFC 9457 *Problem Details* JSON body. Its `typ
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-13 | Linux (Claude workspace, Flutter 3.47.2) | 4b2e921c+dirty (captured bodies) | Pass | server_silo 26/26, server_core 69/69, app analyzer 0 errors/warnings |
-| | | | | |
+| 2026-10-13 | macOS | — | Pass | Brady: adding a server still works |
 
 ---
 
@@ -317,7 +317,7 @@ Every Silo error comes back as an RFC 9457 *Problem Details* JSON body. Its `typ
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 1.5 |
 
 **Goal.** Public info, system info and ping, returned in the shape the app already reads.
 
@@ -332,26 +332,51 @@ Every Silo error comes back as an RFC 9457 *Problem Details* JSON body. Its `typ
 
 - `packages/server_silo/lib/src/api/silo_system_api.dart`
 
-**Earlier work to port:** silo-1
+**Earlier work to port:** silo-1 `silo_system_api.dart` and the shaping function from its probe (setup now reads `wizard_completed` first; blank branding handled)
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+The Silo client's first real API, replacing the `SystemApi` placeholder. Jellyfin's `PublicSystemInfo` comes from one call; Silo spreads the same facts over four public endpoints, so they are fetched together and folded into the Jellyfin keys the app reads.
+
+| Jellyfin key | Silo source (captured value) |
+|---|---|
+| `Id` | `/system/identity` → `server_id` (`7b72fbd5-…`; the v2 identity, never v1's) |
+| `ServerName` | `/theme/branding` → `server_name` (`Silo`), else "Silo" |
+| `Version` | `/system/info` → `server_version` (`4b2e921c+dirty`, a git hash: shown, never parsed) |
+| `ProductName` | always `Silo` |
+| `StartupWizardCompleted` | `/system/setup` → `wizard_completed`, else `!needs_setup`, else true |
+| `LoginDisclaimer` | `/theme/branding` → `login_subtitle` ("Sign in with an existing account."), shown on the login screen |
+| `SiloApiMajor`, `SiloContractDigest` | `/system/info`, for compatibility checks and logs |
+
+**Where the mapping lives:** `packages/server_core/lib/src/network/silo_public_info.dart` (`siloPublicInfoToJellyfinShape`, `isSiloSystemInfo`, `siloSystemInfoPath`). It sits in `server_core`, not `server_silo`, because the server probe (step 1.9) has to build the same shape from the same endpoints and `server_core` can't depend on `server_silo`. One function, used by both.
+
+**`packages/server_silo/lib/src/api/silo_system_api.dart`**
+
+- `getPublicSystemInfo()` fetches the four endpoints in parallel. `/system/info` decides success and must look like Silo (`api_major` + `server_version`), otherwise a `FormatException`; identity, branding and setup are best effort and simply left out if they fail, since they only decorate a server already known to be Silo.
+- `getSystemInfo()` adds `GET /account/me` as `SiloAccount`. Jellyfin's `/System/Info` needs a valid session, so this deliberately does too: a missing or revoked login fails with Silo's 401 problem (thanks to step 1.5 the error reads "Silo 401 authentication_required: …").
+- `ping()` uses `/system/identity`: Silo has no ping route, and identity is public, tiny and served by every API node.
+
+In the app today only the admin dashboard calls `SystemApi`, which Silo users can't reach (`supportsAdmin` is false), and the connectivity check still hard-codes `/System/Ping` (fixed in 13.1). So this step mostly provides the shared mapping and the first tested request path.
+
+**Test helper:** `packages/server_silo/test/fixture_server.dart` is a fake Silo server. It answers each path from the captured fixtures (unknown paths get a Silo-style 404 problem) and records every request, which lets tests check the headers the client really puts on the wire. Later API steps reuse it.
 
 ### Testing
 
 **Automated tests**
 
-- fixture → `{Id, ServerName, Version, ProductName: 'Silo'}`
+- `packages/server_core/test/silo_public_info_test.dart` (new, 6 tests): Silo detection; the full mapping from the captured responses; system info alone; setup precedence; blank and custom server names.
+- `packages/server_silo/test/silo_system_api_test.dart` (new, 10 tests): public info from the captured fixtures through the real client; cosmetic endpoints failing; a Jellyfin body and an HTML page at `/system/info` rejected; `getSystemInfo` with and without a token (401 problem text); `ping` true/false; **headers on the wire** before and after sign-in.
+- The `SystemApi` placeholder and its test are removed.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+- No app change. Optional: `flutter test` in `packages/server_silo` (35) and `packages/server_core` (75).
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-13 | Linux (Claude workspace, Flutter 3.47.2) | 4b2e921c+dirty (fixtures) | Pass | server_silo 35/35, server_core 75/75, app analyzer 0 errors/warnings |
 | | | | | |
 
 ---

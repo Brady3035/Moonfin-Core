@@ -54,6 +54,16 @@ void main() {
       expect(client.requestHeaders['X-Profile-Id'], 'p1');
     });
 
+    test('authHeaders, for requests outside the client, match', () {
+      final client = newClient()
+        ..accessToken = 'tok'
+        ..profileId = 'p1';
+      expect(client, isA<ProfileAwareClient>());
+      expect(client.authHeaders(), client.requestHeaders);
+      expect(serverAuthHeaders(client)['Authorization'], 'Bearer tok');
+      expect(clientProfileId(client), 'p1');
+    });
+
     test('accessToken and userId round-trip like the other clients', () {
       final client = newClient()
         ..accessToken = 'tok'

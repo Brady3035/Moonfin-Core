@@ -21,7 +21,8 @@ import 'silo_problem.dart';
 /// Most APIs are placeholders that throw [SiloNotImplementedError] naming the
 /// roadmap step that replaces them. Live TV and Instant Mix are permanently
 /// empty: Silo has neither.
-class SiloMediaServerClient extends MediaServerClient {
+class SiloMediaServerClient extends MediaServerClient
+    implements ProfileAwareClient {
   final Dio _dio;
 
   @override
@@ -59,9 +60,11 @@ class SiloMediaServerClient extends MediaServerClient {
   String? _userId;
 
   /// The household profile requests act as (`X-Profile-Id`).
+  @override
   String? profileId;
 
   /// Proof that a PIN-locked profile was unlocked (`X-Profile-Token`).
+  @override
   String? profileToken;
 
   // Progress goes out every few seconds and would fill the report inside an
@@ -88,6 +91,11 @@ class SiloMediaServerClient extends MediaServerClient {
     profileId: profileId,
     profileToken: profileToken,
   );
+
+  /// The same headers as [requestHeaders], for requests made outside this
+  /// client's own HTTP stack (see [serverAuthHeaders]).
+  @override
+  Map<String, String> authHeaders() => requestHeaders;
 
   void _setupInterceptors() {
     _dio.interceptors.add(redirectInterceptor(_dio));

@@ -104,15 +104,7 @@ class AutoBitrateService {
         connectTimeout: _requestTimeout,
         // Newer Jellyfin rejects a bare X-Emby-Token, so send the same
         // Authorization header the server clients use.
-        headers: {
-          'Authorization': buildServerAuthorizationHeader(
-            scheme: client.serverType == ServerType.emby
-                ? 'Emby'
-                : 'MediaBrowser',
-            deviceInfo: client.deviceInfo,
-            accessToken: client.accessToken,
-          ),
-        },
+        headers: serverAuthHeaders(client),
       ),
     );
 

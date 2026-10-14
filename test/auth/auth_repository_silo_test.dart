@@ -297,13 +297,13 @@ void main() {
     expect(store.getSiloAccountIds('s1'), isEmpty);
   });
 
-  test('a PIN-locked main profile fails and ends the new login', () async {
+  test('a PIN-locked main profile says so and ends the new login', () async {
     silo.mainHasPin = true;
 
     final state = await signIn();
 
-    expect(state, isA<ApiClientError>());
-    expect((state as ApiClientError).error, contains('locked with a PIN'));
+    expect(state, isA<SiloMainProfileLocked>());
+    expect((state as SiloMainProfileLocked).profileName, 'Brady');
     expect(silo.paths.last, '/api/v2/auth/logout');
     expect(client.session.tokens, isNull);
     expect(store.getUsers('s1'), isEmpty);
@@ -455,6 +455,17 @@ void main() {
         expect(store.getSiloAccountIds('s1'), isEmpty);
       },
     );
+
+    test('a PIN-locked main profile after the change says so too', () async {
+      silo.mainHasPin = true;
+      await signIn();
+
+      final state = await repo.changeRequiredSiloPassword('brand new pass');
+
+      expect(state, isA<SiloMainProfileLocked>());
+      expect(silo.paths.last, '/api/v2/auth/logout');
+      expect(store.getUsers('s1'), isEmpty);
+    });
 
     test('a new sign-in ends a change left waiting', () async {
       await signIn();

@@ -359,6 +359,15 @@ class AuthRepository {
     try {
       await silo.useMainProfile();
       profileUser = await client.usersApi.getCurrentUser();
+    } on SiloMainProfileLockedError catch (e) {
+      // Not a failure to log: the account is set up this way. The login is
+      // useless without the PIN, so it is ended.
+      try {
+        await client.authApi.logout();
+      } catch (_) {}
+      final state = SiloMainProfileLocked(profileName: e.profile.name);
+      _stateController.add(state);
+      return state;
     } catch (e) {
       _logger.e('Silo sign-in could not use the main profile', error: e);
       try {

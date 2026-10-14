@@ -17,6 +17,7 @@ import 'package:moonfin_native_video/moonfin_native_video.dart';
 import 'package:logger/logger.dart';
 import 'package:playback_core/playback_core.dart';
 import 'package:playback_emby/playback_emby.dart';
+import 'package:playback_silo/playback_silo.dart';
 import 'package:playback_jellyfin/playback_jellyfin.dart';
 import 'package:playback_plex/playback_plex.dart';
 import 'package:server_core/server_core.dart';
@@ -1839,7 +1840,7 @@ class _MediaBarState extends State<MediaBar>
       ServerType.jellyfin => JellyfinPlugin(client).createStreamResolver(),
       ServerType.emby => EmbyPlugin(client).createStreamResolver(),
       ServerType.plex => PlexMediaStreamResolver(client),
-      ServerType.silo => throw UnsupportedError('Silo servers are not supported yet'),
+      ServerType.silo => SiloPlugin(client).createStreamResolver(),
     };
   }
 

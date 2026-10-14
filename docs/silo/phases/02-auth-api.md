@@ -2,9 +2,9 @@
 
 [← Roadmap](../ROADMAP.md)
 
-Sessions, sign-in and profiles inside `server_silo`. Still no UI changes; everything is unit-tested against fixtures.
+Sessions and sign-in inside `server_silo`. Until the optional profiles phase (18), Moonfin acts as the account's **main profile** (decision D9). Still no UI changes; everything is unit-tested against fixtures.
 
-**Phase done when:** `server_silo` can sign in, refresh, list profiles, check a PIN and describe the current user, all covered by tests.
+**Phase done when:** `server_silo` can sign in, refresh, sign out, find the account's main profile and describe the current user, all covered by tests.
 
 ---
 
@@ -141,7 +141,7 @@ Step 2.1 gave the client a token pair that *can* be refreshed. This step decides
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 2.2 |
+| ☑ Done | `83bd066` | 2.2 |
 
 **Goal.** `authenticateByName` → `POST /auth/login` with device headers, translated to the Jellyfin `AuthenticationResult` shape plus the Silo token data.
 
@@ -168,7 +168,7 @@ Jellyfin's `AuthenticateByName` returns one long-lived token and the user. Silo'
 - On success:
   - the pair becomes the client's session (`SiloSession.setTokens`). That is a new login, so any earlier login's profile and PIN proof are dropped (2.1's rule);
   - the result is `AccessToken`, `User` (the account translated to a Jellyfin `UserDto`), `SiloTokens` (the pair as JSON, for the app to store in step 3.2) and `SiloPasswordChangeRequired`.
-- **`SiloPasswordChangeRequired`** is true when the account holds a temporary password. Until it is changed, Silo lets the session only read the account, change the password and sign out; everything else answers `403 password_change_required`. The app reacts to it in step 3.11.
+- **`SiloPasswordChangeRequired`** is true when the account holds a temporary password. Until it is changed, Silo lets the session only read the account, change the password and sign out; everything else answers `403 password_change_required`. The app reacts to it in step 3.6.
 - An answer without both tokens or without an account id is a `FormatException`, and the current session is left untouched. A failed sign-in (wrong password, validation error) also leaves the current session as it was.
 - Errors are Dio errors whose message is Silo's problem text from 1.5 (for example `Silo 401 invalid_token: Invalid username or password.`, or the field errors of a `422`). The app's auth repository already turns a 401 into "Invalid username or password"; nicer messages for other errors come with the login screen work in 3.3.
 - The other `AuthApi` members throw `SiloNotImplementedError` naming their step: `logout` → 2.4, the QuickConnect methods → phase 14 (Silo device sign-in).
@@ -176,7 +176,7 @@ Jellyfin's `AuthenticateByName` returns one long-lived token and the user. Silo'
 **`packages/server_silo/lib/src/mappers/silo_user_mapper.dart`** (new)
 
 - `siloAccountToUserDto(account)`: `Id` and `Name` from the account id and username, `SiloAccountId` and the raw `SiloAccount` alongside. Silo has no per-user policy object, only a server-wide `role` and `download_allowed`, so the policy is `IsAdministrator` (role `admin`), `EnableContentDownloading`, and `EnableCollectionManagement` (always true; personal collections are open to every Silo account). Other policy flags read as their defaults.
-- **For now the Moonfin user is the account.** Per decision D1 it becomes the household profile in 2.7 and phase 3, so a Silo user signed in during phase 2 will be stored under the account id and should be removed once phase 3 lands.
+- **For now the Moonfin user is the account.** From step 3.3 the stored user is the account's main profile (decision D9; 2.6 maps it), so a Silo user signed in during phase 2 is stored under the account id and should be removed once phase 3 lands.
 
 **Smaller changes**
 
@@ -202,9 +202,9 @@ Jellyfin's `AuthenticateByName` returns one long-lived token and the user. Silo'
 
 1. Add the Silo server (or pick it) and sign in with a **wrong password**. Expected: "Invalid username or password", and the app stays on the login screen.
 2. Sign in with the right password. Expected: sign-in succeeds and the app leaves the login screen. Home and libraries are still empty or show "not implemented yet" errors (those are phases 5 and 6). In the log: `→ POST …/api/v2/auth/login` then `← 200`.
-3. Optional: sign in with an account that has a temporary password. Expected: sign-in still succeeds (the app ignores the flag until 3.11).
+3. Optional: sign in with an account that has a temporary password. Expected: sign-in still succeeds (the app ignores the flag until 3.6).
 4. Regression: sign in to Emby and play something.
-5. Afterwards, remove the Silo user from the user list. Phase 3 stores Silo users differently, and the session isn't saved across restarts yet (3.9).
+5. Afterwards, remove the Silo user from the user list. Phase 3 stores Silo users differently, and the session isn't saved across restarts yet (3.4).
 
 **Results**
 
@@ -257,13 +257,13 @@ _Fill in when the step is built: what the code does, the main classes and why it
 ---
 
 <a id="step-2-5"></a>
-## 2.5 List household profiles
+## 2.5 Use the account's main profile
 
 | Status | Commit | Depends on |
 |---|---|---|
 | ☐ Not started | — | previous step |
 
-**Goal.** `SiloProfilesApi.list()`.
+**Goal.** Find the account's primary profile (`is_primary`) with `GET /profiles` and send its `X-Profile-Id` on every request. Silo keeps watch progress, favourites and home rows per profile, and refuses requests without the header once any profile on the account has a PIN or restrictions. If the main profile has a PIN, fail with a typed error the app can explain (PIN entry comes with the optional profiles phase, 18.4).
 
 **Silo v2 endpoints**
 
@@ -273,7 +273,7 @@ _Fill in when the step is built: what the code does, the main classes and why it
 
 - `packages/server_silo/lib/src/api/silo_profiles_api.dart`
 
-**Earlier work to port:** silo-2
+**Earlier work to port:** silo-2 (the list part)
 
 ### How it works
 
@@ -283,7 +283,7 @@ _Fill in when the step is built: what the code does, the main classes and why it
 
 **Automated tests**
 
-- fixture `profiles.json` parsed; PIN flag read
+- fixture `profiles.json` parsed; the primary profile chosen even when it is not first; a main profile with a PIN gives the typed error; no primary profile gives a readable error
 
 **Manual test plan**
 
@@ -298,54 +298,13 @@ _Fill in when the step is built: what the code does, the main classes and why it
 ---
 
 <a id="step-2-6"></a>
-## 2.6 Profile PIN check
+## 2.6 Current user (account + main profile → user)
 
 | Status | Commit | Depends on |
 |---|---|---|
 | ☐ Not started | — | previous step |
 
-**Goal.** `verify-pin` → profile token with expiry; 429 lockout with `Retry-After`, not retried automatically.
-
-**Silo v2 endpoints**
-
-- `POST /profiles/{id}/verify-pin`
-
-**Where in Moonfin**
-
-- `packages/server_silo/lib/src/api/silo_profiles_api.dart`
-
-**Earlier work to port:** silo-2
-
-### How it works
-
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
-
-### Testing
-
-**Automated tests**
-
-- correct PIN; wrong PIN; lockout
-
-**Manual test plan**
-
-- _Write the checks before testing._
-
-**Results**
-
-| Date | Platform | Server build | Result | Notes |
-|---|---|---|---|---|
-| | | | | |
-
----
-
-<a id="step-2-7"></a>
-## 2.7 Current user (account + profile → user)
-
-| Status | Commit | Depends on |
-|---|---|---|
-| ☐ Not started | — | previous step |
-
-**Goal.** `SiloUsersApi.getCurrentUser` and the user mapper: profile id as the Moonfin user id, admin/download permissions from the account.
+**Goal.** `SiloUsersApi.getCurrentUser` and the user mapper: the main profile's id as the Moonfin user id (so the optional profiles phase adds the other profiles as users without migrating anyone), name from the profile, admin/download permissions from the account.
 
 **Silo v2 endpoints**
 
@@ -381,14 +340,14 @@ _Fill in when the step is built: what the code does, the main classes and why it
 
 ---
 
-<a id="step-2-8"></a>
-## 2.8 User playback settings
+<a id="step-2-7"></a>
+## 2.7 User playback settings
 
 | Status | Commit | Depends on |
 |---|---|---|
 | ☐ Not started | — | previous step |
 
-**Goal.** Read and save subtitle language/mode, audio language and autoplay-next through the profile; keep Jellyfin-only fields local.
+**Goal.** Read and save subtitle language/mode, audio language and autoplay-next through the main profile; keep Jellyfin-only fields local.
 
 **Silo v2 endpoints**
 

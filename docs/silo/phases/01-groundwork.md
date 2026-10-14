@@ -98,7 +98,7 @@ The throws are unreachable: every other switch needs a `MediaServerClient`, and 
 | `supportsInstantMix` *(new)* | ✓ | ✓ | ✗ | Never |
 | `supportsAdmin` *(new)* | ✓ | ✓ | ✗ | Never: Silo is administered in its own web app |
 | `supportsMoonfinPlugin` *(new)* | ✓ | ✓ | ✗ | Never: the `/Moonfin/*` plugin is Jellyfin/Emby only |
-| `supportsProfiles` *(new)* | ✗ | ✗ | ✗ | On with profile sign-in (phase 3) |
+| `supportsProfiles` *(new)* | ✗ | ✗ | ✗ | On with the optional profiles phase (18.8) |
 | `supportsTrickplay` | ✓ | ✗ | ✗ | On in 11.2 |
 | `supportsMediaSegments` | ✓ | ✗ | ✗ | On in 11.1 |
 | `supportsSkipSegments` | ✓ | ✓ | ✗ | On in 11.1 |
@@ -226,7 +226,7 @@ On Silo, Moonfin's "user" is a household profile (decision D1), so `userId` and 
 |---|---|
 | `SystemApi` | 1.6 |
 | `AuthApi` | 2.3 |
-| `UsersApi` | 2.7 |
+| `UsersApi` | 2.6 |
 | `SessionApi` | phase 3 (sign-in reports capabilities) and 13.6 |
 | `UserViewsApi` | 6.4 |
 | `ItemsApi` | 6.5 onward |
@@ -275,7 +275,7 @@ On Silo, Moonfin's "user" is a household profile (decision D1), so `userId` and 
 
 ### How it works
 
-Every Silo error comes back as an RFC 9457 *Problem Details* JSON body. Its `type` URI ends in a stable code (`invalid_token`, `validation_failed`, `token_refresh_required`, `session_expired`…), `detail` is text meant for people, `instance` identifies the request in Silo's logs, and validation failures list each bad field in `errors`. This step teaches the Silo client to read them, so failures are readable in logs and in the UI, and later steps (token refresh in 2.2, PIN lockout in 2.6, unplayable media in 10.8) can branch on the code.
+Every Silo error comes back as an RFC 9457 *Problem Details* JSON body. Its `type` URI ends in a stable code (`invalid_token`, `validation_failed`, `token_refresh_required`, `session_expired`…), `detail` is text meant for people, `instance` identifies the request in Silo's logs, and validation failures list each bad field in `errors`. This step teaches the Silo client to read them, so failures are readable in logs and in the UI, and later steps (token refresh in 2.2, PIN lockout in 18.1, unplayable media in 10.8) can branch on the code.
 
 **`packages/server_silo/lib/src/silo_problem.dart`**
 

@@ -1,12 +1,12 @@
-/// Translates Silo accounts (and, from step 2.7, household profiles) into
+/// Translates Silo accounts (and, from step 2.6, their main profile) into
 /// Jellyfin `UserDto` maps, so Moonfin's user models read them unchanged.
 library;
 
 /// Key on a translated user carrying the owning Silo account's id.
 ///
-/// Until step 2.7 the translated user *is* the account; from then on Moonfin's
-/// user is a household profile and this ties it back to the account that owns
-/// the login (decision D1).
+/// Until step 2.6 the translated user *is* the account; from then on Moonfin's
+/// user is the account's main profile (decision D9; every profile with the
+/// optional phase 18) and this ties it back to the account that owns the login.
 const siloAccountIdKey = 'SiloAccountId';
 
 /// Key on a translated user carrying the untranslated Silo `Account`.

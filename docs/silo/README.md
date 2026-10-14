@@ -14,6 +14,7 @@ This folder documents adding [Silo Media Server](https://github.com/Silo-Server/
 - **Silo is a new backend, not a fork of the UI.** New packages `packages/server_silo` and `packages/playback_silo` mirror `server_emby`/`playback_emby`. The Silo client translates every Silo response into the Jellyfin/Emby `BaseItemDto` shape the app already reads, so screens and view models stay unchanged.
 - **Developed on a fork, no build flag.** Silo is a normal server type in Brady's fork from step 1.1 on. Every commit must build and leave Jellyfin and Emby untouched.
 - **Three things have no Jellyfin equivalent** and get their own design: signed artwork URLs (image registry, 5.2), cursor pagination (5.12), and server-decided playback plans (phase 10).
+- **Household profiles come last, as an optional phase (18).** Until then Moonfin acts as the account's main profile (decision D9).
 - **Out of scope** (Silo doesn't have them): Live TV/DVR, music, playlists, SyncPlay, Jellyfin admin, and the Moonfin server plugin features. Phase 4 hides their entry points.
 
 ## Workflow for each step

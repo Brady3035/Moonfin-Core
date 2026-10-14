@@ -589,7 +589,7 @@ Within each kind the order is Silo's, so the player's per-kind track numbers sta
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 5.8 |
+| ☑ Done | — | 5.8 |
 
 **Goal.** Version chapters → `Chapters` (StartPositionTicks, Name, image tag when a thumbnail exists).
 
@@ -636,6 +636,7 @@ Each Silo version lists its chapters (`VersionChapter`: `index`, `title`, `start
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | chapter tests 10/10; `server_silo` 267/267; analyzer: no issues |
+| 2026-10-14 | macOS | `4b2e921c` | Pass | full `flutter test` before committing |
 | | | | | |
 
 ---
@@ -645,32 +646,57 @@ Each Silo version lists its chapters (`VersionChapter`: `index`, `title`, `start
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 5.9 |
 
 **Goal.** Marker segments → `MediaSegmentDto[]` (intro, credits→Outro, recap, preview), every occurrence.
 
 **Where in Moonfin**
 
-- `silo_marker_mapper.dart`
+- `packages/server_silo/lib/src/mappers/silo_marker_mapper.dart` (new)
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+Silo detects or imports **markers** per file: intro, credits, recap and preview. Moonfin's skip button and segment actions (`MediaSegmentService`) read Jellyfin's media segments from `ItemsApi.getMediaSegments`: `{Id, ItemId, Type, StartTicks, EndTicks}`. `siloMarkersToMediaSegments(markers, itemId:)` makes those. It accepts anything that carries one file's markers: the `FileMarkers` answer of `GET /markers/files/{id}` or `/markers/items/{id}`, or a version from `/watch` or an item detail.
+
+| Silo kind | Jellyfin `Type` |
+|---|---|
+| `intro` | `Intro` |
+| `credits` | `Outro` |
+| `recap` | `Recap` |
+| `preview` | `Preview` |
+
+**Every occurrence.** `marker_segments` lists all of them in time order. An episode can have a recap, an intro, and a second intro after a cold open. It is used whenever Silo sends it. Older answers and catalog versions only have one segment per kind (`intro`, `credits`…), either as `MarkerSegment` (`start_seconds`/`end_seconds`) or `Marker` (`start`/`end`); those are the fallback.
+
+**Rules.**
+
+- **Missing end:** a segment without an end runs to the end of the file when the caller passes its length (Silo defaults credits and previews to the end). Otherwise it is dropped rather than guessed.
+- **Dropped:** empty, inverted, repeated and unknown segments.
+- **Clamped:** a negative start begins at 0.
+- **Order:** segments are sorted by start.
+- **Ids:** each occurrence gets its own `Id` (`silo-intro-<item>-0`, `-1`…), because Moonfin tells segments apart by id when deciding whether it already skipped one.
+
+**Not switched on yet.** `FeatureDetector.supportsSkipSegments` and `supportsMediaSegments` stay off for Silo until 11.1 wires `getMediaSegments` to Silo's markers (phase 1 rule: a flag turns on with the step that makes it work).
 
 ### Testing
 
-**Automated tests**
+**Automated tests** (`packages/server_silo/test/silo_marker_mapper_test.dart`, new, 8 tests)
 
-- _None planned; add any that were written._
+- Golden:
+  - Young Justice 1x01 (`markers_episode.json`) gives one intro at 248.0–268.3 s. Emby marks the same intro with chapter markers, and its detector lands within 2 seconds of Silo's.
+  - The `/watch` version gives the same.
+  - xXx has no markers.
+- Rules: every occurrence in start order with distinct ids; the single fields as fallback (both shapes); a missing end with and without the run time; empty, inverted, repeated and unknown segments dropped; negative starts.
+- `server_silo`: 275/275.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+- Nothing to check by hand until 11.1 shows the skip-intro button. Regression: full `flutter test`.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | marker tests 8/8; `server_silo` 275/275; analyzer: no issues |
 | | | | | |
 
 ---

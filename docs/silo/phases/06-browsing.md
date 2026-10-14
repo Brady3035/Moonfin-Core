@@ -13,7 +13,7 @@ Libraries, grids and detail pages. Each step replaces one placeholder method wit
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 5.13 |
+| ☑ Done | — | 5.13 |
 
 **Goal.** `getPrimary/Backdrop/Logo/Thumb/BannerImageUrl` and user avatars from the registry (Thumb and Banner use Silo's own art when the item has it, otherwise the backdrop); user menu avatar goes through `imageApi`.
 
@@ -75,6 +75,7 @@ The client owns the registry (`SiloMediaServerClient.images`), so the items API 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | image API tests 10/10, users 2 new; `server_silo` 323/323; analyzer: no issues |
+| 2026-10-14 | macOS | `4b2e921c` | Pass | full `flutter test` before committing |
 | | | | | |
 
 ---
@@ -84,32 +85,56 @@ The client owns the registry (`SiloMediaServerClient.images`), so the items API 
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 6.1 |
 
 **Goal.** Pass a path-only `cacheKey` so the signed query rotating every day doesn't re-download every image.
 
 **Where in Moonfin**
 
-- `packages/cached_network_image_fork/**`
+- `packages/cached_network_image_fork/` (`CachedNetworkImageProvider.cacheKeyFor`)
+- `packages/server_silo/lib/src/silo_image_cache_key.dart` (new)
+- `lib/util/silo_image_hooks.dart` (new), installed from `lib/main.dart`
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+**The problem.** Silo signs every artwork URL with a query that rotates: `…/poster/w500.f6c3….webp?exp=…&sig=…`. Moonfin's image cache (the vendored `cached_network_image`) keys memory and disk entries by the whole URL. Each new signature would therefore look like a new image: downloaded again, decoded again, cached twice.
+
+**The fork hook.** The vendored provider gets one static hook, `CachedNetworkImageProvider.cacheKeyFor`. When a provider is built without an explicit `cacheKey`, the hook may name one for its URL. That key is used for the disk cache (the cache manager's `key`) and for the provider's equality, which is the memory cache's key. Unset, or returning null, everything behaves as before. `CachedNetworkImage.evictFromCache` uses the same key, so evicting still finds the entry. The fork's `pubspec.yaml` notes the change.
+
+**The key.** `siloImageCacheKey(url)` returns `silo-artwork:<scheme://host/path>` for a URL under `/api/v2/artwork/` with a signed query (`sig=` or `exp=`), and null for anything else. The path names the picture (it carries a content hash), so:
+
+- the same picture is one cache entry whatever its signature;
+- a changed picture has a new path, so a new entry;
+- another server, or the same path on another host, never collides;
+- TMDB/TVDB photos, Emby and Jellyfin URLs keep their usual key, the URL.
+
+**Wiring.** `installSiloImageHooks()` (app side) sets the hook at startup, right after the in-memory image cache is configured. The fork stays server-agnostic: it knows nothing about Silo, only that a key can be supplied.
+
+**Stale entries.** When a cached file goes stale (14 days), the cache manager downloads it again from the URL the widget now holds, which carries a fresh signature.
+
+**Known limit.** A library poster's path has no content hash (open item from 5.7), so a replaced library poster keeps its cache entry until it goes stale.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `packages/server_silo/test/silo_image_cache_key_test.dart` (new, 3): one key across signatures; different pictures and hosts differ; unsigned, foreign and non-artwork URLs get none.
+- `test/util/silo_image_hooks_test.dart` (new, 3, app):
+  - without the hooks a new signature is a new provider;
+  - with them the two are one cache entry (equal, same hash);
+  - Emby URLs and explicit `cacheKey`s are untouched.
+- `server_silo`: 326/326.
 
 **Manual test plan**
 
-- Cold start the next day: artwork shows from cache.
+- Browse a Silo library, quit Moonfin, and open it again the next day (or after Silo's signatures rotate). The artwork shows at once from the cache. Silo's request log shows no new `/api/v2/artwork/` downloads for posters already seen.
+- Emby artwork caching is unchanged: browse an Emby library, restart, artwork shows from cache.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | cache key 3/3, hooks 3/3; `server_silo` 326/326; analyzer: no issues |
 | | | | | |
 
 ---

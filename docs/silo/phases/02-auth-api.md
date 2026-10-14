@@ -220,7 +220,7 @@ Jellyfin's `AuthenticateByName` returns one long-lived token and the user. Silo'
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 2.3 |
+| ☑ Done | `379c378` | 2.3 |
 
 **Goal.** `logout` → `POST /auth/logout`.
 
@@ -291,7 +291,7 @@ Jellyfin's `/Sessions/Logout` just invalidates the one token. On Silo, signing o
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 2.4 |
 
 **Goal.** Find the account's primary profile (`is_primary`) with `GET /profiles` and send its `X-Profile-Id` on every request. Silo keeps watch progress, favourites and home rows per profile, and refuses requests without the header once any profile on the account has a PIN or restrictions. If the main profile has a PIN, fail with a typed error the app can explain (PIN entry comes with the optional profiles phase, 18.4).
 
@@ -302,27 +302,53 @@ Jellyfin's `/Sessions/Logout` just invalidates the one token. On Silo, signing o
 **Where in Moonfin**
 
 - `packages/server_silo/lib/src/api/silo_profiles_api.dart`
+- `packages/server_silo/lib/src/silo_media_server_client.dart`
 
 **Earlier work to port:** silo-2 (the list part)
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+Jellyfin and Emby have one user per login. A Silo login belongs to an **account**, and the account's data (watch progress, favourites, home rows, playback settings) belongs to its **household profiles**. Requests pick a profile with `X-Profile-Id`; the contract describes per-viewer data as "absent without a profile", and 28 operations refuse a request without the header once any profile on the account has a PIN or restrictions. So even though choosing between profiles is deferred to the optional phase 18 (decision D9), Moonfin has to act as *some* profile. It acts as the account's **main profile** (`is_primary`), which every account has.
+
+**`packages/server_silo/lib/src/api/silo_profiles_api.dart`** (new)
+
+- `SiloProfile`: `id`, `name`, `isPrimary`, `hasPin`, `isChild`, plus the full JSON for the user and settings mappers in 2.6 and 2.7.
+- `SiloProfilesApi.list()`: `GET /api/v2/profiles` (the list is unpaginated). Entries without an id are skipped; a body without an `items` list is a `FormatException`.
+- `SiloProfilesApi.mainProfile()`: the primary profile, wherever it sits in the list.
+  - If it has a PIN, it throws `SiloMainProfileLockedError`. Acting as a locked profile needs a PIN proof (`X-Profile-Token`), and PIN entry comes with 18.4. Step 3.7 turns this error into a clear message on the login screen.
+  - If no profile is primary, it throws a `StateError` with the count. Every account has one, so this would mean a broken answer.
+- It isn't a Moonfin interface: Jellyfin and Emby have nothing like it, so only the app's Silo sign-in (3.3) will call it.
+
+**`SiloMediaServerClient` changes**
+
+- `profilesApi` exposes the API above.
+- `useMainProfile()` lists the profiles, picks the main one, and sets `profileId`, so every later request carries its `X-Profile-Id` (the header builder from 1.3 already sends it when set). It first clears any old profile and PIN proof: a stale id, for example a profile deleted on the web, would get the listing itself refused. Changing the profile bumps the session identity (2.1), so requests in flight for the old profile aren't replayed for the new one.
+- If the main profile is locked, the error propagates and the client is left without a profile.
+
+Nothing in the app calls this yet; sign-in from the login screen uses it in 3.3.
 
 ### Testing
 
 **Automated tests**
 
-- fixture `profiles.json` parsed; the primary profile chosen even when it is not first; a main profile with a PIN gives the typed error; no primary profile gives a readable error
+- `packages/server_silo/test/silo_profiles_api_test.dart` (new, 8 tests):
+  - the captured `profiles.json` parses (id, name, flags, raw settings);
+  - PIN and child flags; entries without an id skipped; a non-list answer rejected;
+  - `useMainProfile` picks the primary profile when it isn't first, and later requests carry its `X-Profile-Id`;
+  - the listing goes out without a stale profile or PIN proof, and the old proof is dropped;
+  - a PIN-locked main profile gives `SiloMainProfileLockedError` and selects nothing;
+  - no primary profile is a readable error;
+  - selecting the profile changes the session identity.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+- No app change. `cd packages/server_silo && flutter test` (97 tests).
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-13 | Linux (Claude workspace, Flutter 3.47.2) | 4b2e921c (captured `profiles.json`) | Pass | server_silo 97/97; analyzer clean |
 | | | | | |
 
 ---

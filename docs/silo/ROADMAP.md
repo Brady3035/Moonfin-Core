@@ -77,7 +77,7 @@ Status key: ☐ not started · ◐ in progress · ☑ done and tested · ⊘ ski
 
 - [x] **4.1** [Hide Live TV](phases/04-gating.md#step-4-1)
 - [x] **4.2** [Hide music, instant mix and lyrics](phases/04-gating.md#step-4-2)
-- [ ] **4.3** [Hide playlists](phases/04-gating.md#step-4-3)
+- [x] **4.3** [Hide playlists](phases/04-gating.md#step-4-3)
 - [ ] **4.4** [Hide SyncPlay and remote control](phases/04-gating.md#step-4-4)
 - [ ] **4.5** [Hide the admin panel](phases/04-gating.md#step-4-5)
 - [ ] **4.6** [Gate Moonfin-plugin services: settings sync, messages, themes](phases/04-gating.md#step-4-6)

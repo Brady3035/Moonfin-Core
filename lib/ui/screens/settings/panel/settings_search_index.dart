@@ -118,6 +118,7 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
   final seerrAvailable = GetIt.instance<PluginSyncService>().seerrAvailable;
   final tmdbAvailable = GetIt.instance<PluginSyncService>().tmdbAvailable;
   final pluginAvailable = GetIt.instance<PluginSyncService>().pluginAvailable;
+  final liveTvOnAnyServer = liveTvOnAnySignedInServer();
   final friendsAvailable =
       GetIt.instance<AchievementsService>().socialAvailable;
 
@@ -841,12 +842,13 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
       l10n.showFavoritesButton,
       subtitle: l10n.settingsShowFavoritesButtonInNavigation,
     ),
-    navigation.leaf(
-      'pref_show_live_tv_button',
-      l10n.showLiveTvButton,
-      subtitle: l10n.settingsShowLiveTvButtonInNavigation,
-      keywords: ['guide', 'channels'],
-    ),
+    if (liveTvOnAnyServer)
+      navigation.leaf(
+        'pref_show_live_tv_button',
+        l10n.showLiveTvButton,
+        subtitle: l10n.settingsShowLiveTvButtonInNavigation,
+        keywords: ['guide', 'channels'],
+      ),
     navigation.leaf(
       'pref_show_libraries_in_toolbar',
       l10n.showLibrariesInToolbar,
@@ -1489,12 +1491,13 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
       '1080p',
       'transcode',
     ]),
-    quality.leaf(
-      'pref_live_direct',
-      l10n.settingsLiveTvDirect,
-      subtitle: l10n.settingsLiveTvDirectSubtitle,
-      keywords: ['live tv'],
-    ),
+    if (liveTvOnAnyServer)
+      quality.leaf(
+        'pref_live_direct',
+        l10n.settingsLiveTvDirect,
+        subtitle: l10n.settingsLiveTvDirectSubtitle,
+        keywords: ['live tv'],
+      ),
     if (PlatformDetection.isAndroid)
       quality.leaf(
         'playback_engine_preference',

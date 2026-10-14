@@ -50,6 +50,7 @@ class _NavigationCategoryScreenState extends State<_NavigationCategoryScreen> {
     final seerrEnabledOnAccount = GetIt.instance<SeerrPreferences>().enabled;
     final availableNavbarPositions = NavigationLayout.availableNavbarPositions;
     final prefs = GetIt.instance<UserPreferences>();
+    final liveTvOnAnyServer = liveTvOnAnySignedInServer();
     final currentNavbarPosition = prefs.get(UserPreferences.navbarPosition);
     if (!NavigationLayout.allowBottomNavbar &&
         currentNavbarPosition == NavbarPosition.bottom &&
@@ -202,7 +203,7 @@ class _NavigationCategoryScreenState extends State<_NavigationCategoryScreen> {
                       icon: Icons.favorite,
                       onChanged: _pushPersonalizationSync,
                     ),
-                  if (!onBar.contains(BottomNavTab.liveTv))
+                  if (liveTvOnAnyServer && !onBar.contains(BottomNavTab.liveTv))
                     SwitchPreferenceTile(
                       key: const ValueKey(BottomNavTab.liveTv),
                       preference: UserPreferences.showLiveTvButton,

@@ -3,10 +3,12 @@ import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:logger/logger.dart';
 import 'package:server_core/server_core.dart';
+import 'package:server_silo/server_silo.dart';
 
 import '../../util/network_errors.dart';
 import '../models/login_state.dart';
 import '../models/user.dart';
+import '../services/silo_token_storage.dart';
 import '../store/authentication_store.dart';
 import '../store/authentication_preferences.dart';
 import 'session_repository.dart';
@@ -20,6 +22,8 @@ class AuthRepository {
   final _logger = Logger();
 
   final _stateController = StreamController<LoginState>.broadcast();
+
+  late final SiloTokenStorage _siloTokens = SiloTokenStorage(_authStore);
 
   AuthRepository(
     this._authStore,
@@ -42,6 +46,15 @@ class AuthRepository {
         username,
         password,
       );
+      final silo = siloClientOf(client);
+      if (silo != null) {
+        return await _handleSiloSignIn(
+          result: result,
+          client: client,
+          silo: silo,
+          serverId: serverId,
+        );
+      }
       return _handleAuthResult(
         result: result,
         client: client,
@@ -133,6 +146,79 @@ class AuthRepository {
     _userRepository.setCurrentUser(user);
 
     final state = Authenticated(userId: userId, serverId: serverId);
+    _stateController.add(state);
+    return state;
+  }
+
+  /// A Silo sign-in opens the **account**; the Moonfin user is the account's
+  /// main profile (decision D9). So after the password is accepted this
+  /// picks the main profile, describes it as the user, stores the account's
+  /// token pair (3.2) and keeps saving it on every refresh.
+  ///
+  /// If anything after the password fails (the main profile is PIN-locked,
+  /// the network drops), the new login is ended on Silo too, so no session
+  /// is left open that the app no longer knows about.
+  Future<LoginState> _handleSiloSignIn({
+    required Map<String, dynamic> result,
+    required MediaServerClient client,
+    required SiloMediaServerClient silo,
+    required String serverId,
+  }) async {
+    final tokens = SiloTokens.fromJson(
+      result[SiloAuthApi.siloTokensKey] as Map<String, dynamic>?,
+    );
+    final accountId =
+        (result['User'] as Map<String, dynamic>?)?[siloAccountIdKey] as String?;
+    if (tokens == null || accountId == null) {
+      const state = ApiClientError(error: 'Invalid auth response');
+      _stateController.add(state);
+      return state;
+    }
+
+    final ServerUser profileUser;
+    try {
+      await silo.useMainProfile();
+      profileUser = await client.usersApi.getCurrentUser();
+    } catch (e) {
+      _logger.e('Silo sign-in could not use the main profile', error: e);
+      try {
+        await client.authApi.logout();
+      } catch (_) {}
+      final state = e is DioException
+          ? _handleDioError(e)
+          : ApiClientError(error: e.toString(), errorType: 'exception');
+      if (e is! DioException) _stateController.add(state);
+      return state;
+    }
+
+    final policy = profileUser.policy;
+    final user = PrivateUser(
+      id: profileUser.id,
+      name: (profileUser.name ?? '').trim().isNotEmpty
+          ? profileUser.name!.trim()
+          : (result['User'] as Map<String, dynamic>?)?['Name'] as String? ?? '',
+      serverId: serverId,
+      // Kept for the code that checks a stored user has a token; the session
+      // itself restores from the stored pair (3.4).
+      accessToken: tokens.accessToken,
+      lastUsed: DateTime.now(),
+      imageTag: profileUser.primaryImageTag,
+      isAdministrator: policy?.isAdministrator ?? false,
+      canDownload: policy?.enableContentDownloading ?? false,
+      canManageSubtitles: policy?.canFetchRemoteSubtitles ?? false,
+      canManageCollections: policy?.enableCollectionManagement ?? false,
+      siloAccountId: accountId,
+    );
+
+    client.userId = user.id;
+    await _siloTokens.save(serverId, accountId, tokens);
+    _siloTokens.bind(client: silo, serverId: serverId, accountId: accountId);
+    await _authStore.putUser(user);
+    await _authPrefs.setLastServerId(serverId);
+    await _authPrefs.setLastUserId(user.id);
+    _userRepository.setCurrentUser(user);
+
+    final state = Authenticated(userId: user.id, serverId: serverId);
     _stateController.add(state);
     return state;
   }

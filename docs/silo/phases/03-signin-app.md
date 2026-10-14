@@ -70,7 +70,7 @@ Nothing sets it yet; 3.3 does at sign-in. The PIN fields from the earlier stash 
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 3.1 |
+| ☑ Done | `0db88e5` | 3.1 |
 
 **Goal.** Store the token pair with the user, keyed by (server, account), and save refreshed tokens through the session callback.
 
@@ -128,35 +128,64 @@ Nothing calls these yet: 3.3 saves and binds at sign-in, 3.4 reads at start-up.
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 3.2 |
 
 **Goal.** The auth repository's Silo branch: sign in, find the main profile (2.5), store the user under the main profile's id with its tokens, and set the client's profile.
 
 **Where in Moonfin**
 
 - `lib/auth/repositories/auth_repository.dart`
-- `lib/ui/screens/auth/login_screen.dart`
 
-**Earlier work to port:** stash
+**Earlier work to port:** stash (the sign-in branch; its household and profile-choice parts go to phase 18)
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+The login screen already calls `AuthRepository.authenticate`, which since 2.3 reaches Silo's sign-in. Until now the generic path then stored the **account** as the user, with only the access token. This step adds the Silo branch that phase 2 prepared for.
+
+**`AuthRepository._handleSiloSignIn`** (`lib/auth/repositories/auth_repository.dart`). When the client is a Silo client (`siloClientOf`, which looks inside the offline wrapper), after the password is accepted:
+
+1. **Act as the main profile:** `useMainProfile()` (2.5). From here on every request carries its `X-Profile-Id`.
+2. **Describe it as the user:** `usersApi.getCurrentUser()` (2.6) gives the main profile's id and name, plus the permissions derived from the account.
+3. **Store the account's token pair** under (server, account) and **bind** the session so every refresh saves the rotated pair (3.2).
+4. **Store the user** as a `PrivateUser` with the main profile's id, `siloAccountId` (3.1) and the permission flags. It also keeps the current access token in `accessToken`, because existing code (multi-server rows, the session switch) checks that a stored user has one. Restoring the session after a restart uses the stored pair instead (3.4).
+5. Remember it as the last server and user, set it current, and answer `Authenticated`. The login screen then switches the session exactly as for Jellyfin and Emby. It reuses the same client from the client factory, so the profile and token pair set here carry over.
+
+**If anything after the password fails** (the main profile is PIN-locked, the network drops, a 5xx), the new login is **ended on Silo too** (`logout`, 2.4), so no session is left open that the app has no record of. Nothing is stored, and the error goes back to the login screen as before: a Dio error through the existing error mapping, anything else as its text. The PIN-locked case shows the error's text for now; 3.7 gives it a proper message.
+
+Wrong password needed no change: Silo's 401 already reads "Invalid username or password" (2.3).
+
+Sign-out needed no change either: `logout` revokes the session (2.4), and removing the user removes the account's tokens with it (3.2).
+
+**Not yet:**
+- **After a relaunch the client doesn't act as the main profile, and holds the access token without its refresh token.** Restoring both from the store is 3.4. Until then a relaunch works for up to an hour, but requests that need the profile (user settings) fail.
+- **The 2.7 library check moves to step 6.4.** It was planned to run after this step, but the library settings screens also need the library list (`UserViewsApi`), which arrives in 6.4.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `test/auth/auth_repository_silo_test.dart` (new, 7 tests, a real `SiloMediaServerClient` against a small fake Silo):
+  - signs in as the main profile: the stored user has the profile's id and name, the account id, token and permissions; last server/user and current user are set;
+  - the client acts as the main profile (`profileId`, `userId`, token);
+  - the account's pair is stored, and a refresh replaces it;
+  - a wrong password gives "Invalid username or password" and stores nothing;
+  - a PIN-locked main profile fails, ends the new login on Silo (`/auth/logout`), clears the session and stores nothing;
+  - a 503 while picking the profile does the same and keeps the status code;
+  - signing in twice leaves one user and one token record.
 
-**Manual test plan**
+**Manual test plan** (macOS, Silo server; Emby for the regression)
 
-- Sign in with your account; wrong password shows Silo's message.
+1. In the user list, remove the Silo user left from phase 2 (it was stored under the account id).
+2. Sign in with a wrong password. Expected: "Invalid username or password".
+3. Sign in properly. Expected: you land on Home (still empty; that's phase 6/8). The user shown is your **main profile's name**. The log shows `POST /auth/login`, then `GET /profiles`, then `GET /account/me` and `GET /profiles`, all 2xx.
+4. Sign out. Expected: back to the login screen, and the Moonfin session is gone from Silo's sessions page.
+5. Regression: sign in and out on Emby.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-13 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | `test/auth` 105/105; analyzer: no new issues |
 | | | | | |
 
 ---

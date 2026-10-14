@@ -805,7 +805,7 @@ The server probe follows redirects with its own loop rather than this intercepto
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 1.14 |
+| ☑ Done | `fb568fc` | 1.14 |
 
 **Goal.** Silo has no `/Users/Public`. Return an empty list so the login screen goes straight to username and password.
 
@@ -841,7 +841,7 @@ The change is one early return: for a Silo server the method returns an empty li
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-13 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | New tests 2/2, analyzer clean. App suite left to Brady. |
-| | | | | |
+| 2026-10-13 | macOS | — | Pass | Brady: tests and manual checks |
 
 ---
 
@@ -850,35 +850,50 @@ The change is one early return: for a Silo server the method returns an empty li
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 1.15 |
 
 **Goal.** The `/Moonfin/*` plugin doesn't exist on Silo, so don't call it.
 
 **Where in Moonfin**
 
-- `lib/auth/repositories/session_repository.dart`
 - `lib/data/services/plugin_sync_service.dart`
 
-**Earlier work to port:** silo-1
+**Earlier work to port:** silo-1 skipped `syncOnLogin` in `SessionRepository`; replaced by a guard inside the service (see below)
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+After sign-in, `SessionRepository` runs three things that talk to the Moonfin server plugin (`/Moonfin/*`): `PluginSyncService.syncOnLogin` (settings, themes, home rows, server messages), push-notification enrollment (`pushNotificationPrefs` and the FCM registration), and `configureSeerr` (the plugin's Seerr proxy). Silo never has that plugin.
+
+**Why not just skip `syncOnLogin` for Silo** (the first-pass approach): push enrollment and Seerr decide by the service's own `_pluginAvailable` flag, and server messages by their own `_supported` flag. Both are set only by a plugin ping. After a session on a Jellyfin/Emby server *with* the plugin, they'd still be `true` when you switched to Silo, and those calls would go out to Silo anyway. `configureSeerr` would even retry its ping four times over ~19 s.
+
+**The change, in one place:** `_refreshAvailabilityStatus` in `lib/data/services/plugin_sync_service.dart` is the choke point every plugin check goes through (`syncOnLogin`, `refreshAvailability`, `configureSeerr`). It now asks `FeatureDetector.supportsMoonfinPlugin` (the flag added in 1.2) first. On a server without the plugin it skips the ping, resets the plugin state as it already did, clears the server-messages flag, turns off local Seerr, and answers **unavailable**. Every caller then takes the path it already takes for an Emby server without the plugin:
+
+- `syncOnLogin` marks the server initialised and applies the default home rows (no settings sync, no theme download, no settings stream);
+- `pushNotificationPrefs` and the FCM enrollment see no plugin and return;
+- `configureSeerr` returns false on its first check, with no retries. Direct Seerr for Silo users is step 4.9.
+
+`SessionRepository` is unchanged. Jellyfin and Emby are unchanged too (`supportsMoonfinPlugin` is true for both, and their code path is identical).
+
+**Test fakes:** the service now reads `client.serverType`, which six existing plugin-sync tests hadn't stubbed on their mock client (mocktail returns null for an unstubbed getter). Each gained one line, `when(() => client.serverType).thenReturn(ServerType.jellyfin)`, matching what those tests already assumed; no assertions changed.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `test/data/services/plugin_sync_silo_test.dart` (new, 3 tests): a Silo server is never pinged and reads as having no plugin; after a Jellyfin session **with** the plugin, `syncOnLogin` and `pushNotificationPrefs` on Silo send nothing to `/Moonfin/*` and the plugin reads unavailable; Jellyfin still pings (control).
+- Six existing plugin-sync tests gained the `serverType` stub. Every test that builds a `PluginSyncService` passes: 178 tests across 23 files.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+- Sign in to Emby (plugin or not), then open your Silo server: with the network log on, no `/Moonfin/` request goes to the Silo host.
+- Back on Emby: settings sync, themes and Seerr behave as before.
+- Full app suite on the Mac.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-13 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | 178/178 plugin-sync-related tests; analyzer 0 errors/warnings in lib and test. Full suite left to Brady. |
 | | | | | |
 
 ---

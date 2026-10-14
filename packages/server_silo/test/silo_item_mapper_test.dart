@@ -457,4 +457,135 @@ void main() {
       expect(siloTypeOfId('podcast-1'), isNull);
     });
   });
+
+  group('user data: golden against Emby (5.5)', () {
+    test('movie, series and episode match Emby exactly', () {
+      for (final (silo, emby) in [
+        ('silo/catalog_item_movie.json', 'emby/item_movie.json'),
+        ('silo/catalog_item_series.json', 'emby/item_series.json'),
+        ('silo/catalog_item_episode.json', 'emby/item_episode.json'),
+      ]) {
+        expect(map(silo)['UserData'], _json(emby)['UserData'], reason: silo);
+      }
+    });
+
+    test('seasons and episodes from the lists match Emby', () {
+      const ref = SiloSeriesRef(id: 'series-imdb-tt1641384');
+      final season = siloItemToBaseItemDto(
+        (_json('silo/series_seasons.json')['items'] as List).first
+            as Map<String, dynamic>,
+        series: ref,
+      )!;
+      final embySeason =
+          (_json('emby/series_seasons.json')['Items'] as List).first
+              as Map<String, dynamic>;
+      expect(season['UserData'], embySeason['UserData']);
+
+      final episode = siloItemToBaseItemDto(
+        (_json('silo/season_episodes.json')['items'] as List).first
+            as Map<String, dynamic>,
+        series: ref,
+      )!;
+      final embyEpisode =
+          (_json('emby/season_episodes.json')['Items'] as List).first
+              as Map<String, dynamic>;
+      expect(episode['UserData'], embyEpisode['UserData']);
+    });
+  });
+
+  group('user data rules', () {
+    Map<String, dynamic> userData(Map<String, dynamic> extra) =>
+        siloItemToBaseItemDto({
+              'type': 'movie',
+              'content_id': 'm',
+              ...extra,
+            })!['UserData']
+            as Map<String, dynamic>;
+
+    test('nothing said means unplayed at 0', () {
+      expect(userData({}), {
+        'PlaybackPositionTicks': 0,
+        'PlayCount': 0,
+        'IsFavorite': false,
+        'Played': false,
+      });
+    });
+
+    test('favourite and played from user_state', () {
+      final ud = userData({
+        'user_state': {
+          'played': true,
+          'is_favorite': true,
+          'in_watchlist': true,
+        },
+      });
+      expect(ud['Played'], isTrue);
+      expect(ud['PlayCount'], 1);
+      expect(ud['IsFavorite'], isTrue);
+    });
+
+    test('a resume position with its percentage', () {
+      final ud = userData({
+        'user_data': {
+          'position_seconds': 600,
+          'duration_seconds': 2400,
+          'is_in_progress': true,
+          'played': false,
+        },
+        'progress_updated_at': '2026-10-09T01:54:33.000Z',
+      });
+      expect(ud['PlaybackPositionTicks'], secondsToTicks(600));
+      expect(ud['PlayedPercentage'], 25);
+      expect(ud['Played'], isFalse);
+      expect(ud['LastPlayedDate'], '2026-10-09T01:54:33.0000000Z');
+    });
+
+    test('a played item has no resume position', () {
+      final ud = userData({
+        'user_data': {'position_seconds': 600, 'duration_seconds': 2400},
+        'user_state': {'played': true},
+      });
+      expect(ud['PlaybackPositionTicks'], 0);
+      expect(ud.containsKey('PlayedPercentage'), isFalse);
+    });
+
+    test('unplayed counts only on series and seasons', () {
+      expect(
+        userData({
+          'user_data': {'unplayed_count': 3},
+        }),
+        isNot(contains('UnplayedItemCount')),
+      );
+      final series = siloItemToBaseItemDto({
+        'type': 'series',
+        'content_id': 's',
+        'user_data': {'unplayed_count': 3},
+      })!;
+      expect(series['UserData']['UnplayedItemCount'], 3);
+    });
+
+    test('a progress list entry from the fixture', () {
+      final entry =
+          (_json('silo/progress_in_progress.json')['items'] as List).first
+              as Map<String, dynamic>;
+      final ud = siloProgressToUserData(entry);
+      expect(ud['PlaybackPositionTicks'], secondsToTicks(582.083306));
+      expect(ud['PlayedPercentage'], closeTo(582.083306 / 2832.25 * 100, 1e-9));
+      expect(ud['Played'], isFalse);
+      expect(ud['PlayCount'], 0);
+      expect(ud['LastPlayedDate'], '2026-10-09T01:54:33.0000000Z');
+    });
+
+    test('a completed progress entry is played, at 0', () {
+      final ud = siloProgressToUserData({
+        'position_seconds': 2800,
+        'duration_seconds': 2832,
+        'completed': true,
+      });
+      expect(ud['Played'], isTrue);
+      expect(ud['PlayCount'], 1);
+      expect(ud['PlaybackPositionTicks'], 0);
+      expect(ud.containsKey('PlayedPercentage'), isFalse);
+    });
+  });
 }

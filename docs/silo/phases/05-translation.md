@@ -225,7 +225,7 @@ Without a registry the item has no image tags. A type with no Jellyfin equivalen
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 5.3 |
+| ☑ Done | `d392f0b` | 5.3 |
 
 **Goal.** SeriesId/Name, SeasonId (both id forms), Index numbers, ChildCount, and the Parent*/Series* image fields filled from the series' slots. Since build `4b2e921c` movie and series detail carry `thumb_url` and `banner_url` (when `images/capabilities.extended_item_artwork` is true): use them, and fall back to the backdrop only when they're missing. Use `*_is_episode_still` so an episode still never becomes a series poster.
 
@@ -287,6 +287,7 @@ Without a registry the item has no image tags. A type with no Jellyfin equivalen
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | mapper tests 30/30; `server_silo` 198/198; analyzer: no issues |
+| 2026-10-14 | macOS | `4b2e921c` | Pass | full `flutter test` before committing |
 | | | | | |
 
 ---
@@ -296,32 +297,53 @@ Without a registry the item has no image tags. A type with no Jellyfin equivalen
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 5.4 |
 
 **Goal.** Favorite, Played, PlaybackPositionTicks, PlayedPercentage, UnplayedItemCount, PlayCount, LastPlayedDate. A missing `user_data` means unplayed at 0.
 
 **Where in Moonfin**
 
-- `silo_item_mapper.dart`
+- `packages/server_silo/lib/src/mappers/silo_item_mapper.dart`
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+Silo keeps the viewer's state in two places, and the mapper merges them into Jellyfin's `UserData`:
+
+- `user_state`, on every catalog item: `played`, `is_favorite`, `in_watchlist` (Jellyfin has no watchlist field; phase 9 decides what to do with it);
+- `user_data` (`WatchUserData`), on series, seasons and watch answers: `position_seconds`, `duration_seconds`, `is_in_progress`, `unplayed_count`, `watched_count`, `played`.
+
+| Jellyfin | From | Notes |
+|---|---|---|
+| `Played` | `user_state.played` or `user_data.played` | |
+| `IsFavorite` | `user_state.is_favorite` | |
+| `PlaybackPositionTicks` | `user_data.position_seconds` | 0 when played, or nothing is said. |
+| `PlayedPercentage` | position ÷ `duration_seconds` | Only with a position and a length; capped at 100. |
+| `PlayCount` | `played` | 1 or 0: Silo knows *whether* it was watched, not how often. |
+| `UnplayedItemCount` | `user_data.unplayed_count` | Series and seasons only, as on Emby. |
+| `LastPlayedDate` | `progress_updated_at` | When Silo sends it. |
+
+Whatever neither part says means **unplayed at position 0**: exactly the `UserData` Emby sends for an untouched item.
+
+**Progress list entries.** Silo's Continue watching list (`GET /progress`) returns `ProgressEntry` items (`media_item_id`, `position_seconds`, `duration_seconds`, `completed`, `updated_at`), not catalog items. `siloProgressToUserData(entry)` turns one into `UserData` the same way, so the Continue watching rows (phase 8) can merge it into the items they show. A completed entry is played, at position 0.
 
 ### Testing
 
-**Automated tests**
+**Automated tests** (`packages/server_silo/test/silo_item_mapper_test.dart`, 9 new, 39 in all)
 
-- _None planned; add any that were written._
+- Golden against **Brady's Emby server**: `UserData` is **identical** to Emby's for xXx, Young Justice (98 unplayed), episode 1x01, season 1 from the series list (26 unplayed) and episode 1 from the season list.
+- Rules: nothing said is unplayed at 0; played and favourite from `user_state`; a resume position with its percentage and last-played date; a played item has no resume position; unplayed counts only on series and seasons.
+- Progress list: the first real entry of the in-progress fixture (582 s of 2832 s, 20.6%); a completed entry is played at 0.
+- `server_silo`: 207/207.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+- Nothing to check by hand until phase 6 shows items (watched ticks, favourites) and phase 8 the Continue watching row. Regression: full `flutter test`.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | mapper tests 39/39; `server_silo` 207/207; analyzer: no issues |
 | | | | | |
 
 ---

@@ -15,9 +15,10 @@ const siloOriginalKey = '_silo';
 ///
 /// It maps the **core fields** (5.3): identity, names, text, genres and
 /// studios, dates, ratings, run time, provider ids, date added, status and
-/// the item's own artwork; and the **series links** (5.4): series, season and
-/// index fields, child counts and the parent artwork fields. User data (5.5),
-/// people (5.6) and media sources (5.8) are added by later steps.
+/// the item's own artwork; the **series links** (5.4): series, season and
+/// index fields, child counts and the parent artwork fields; and the
+/// **user data** (5.5). People (5.6) and media sources (5.8) are added by
+/// later steps.
 ///
 /// Artwork URLs are recorded in [images] (`SiloImageRegistry`), and their
 /// tags go in `ImageTags` and `BackdropImageTags`, the way Jellyfin reports
@@ -91,6 +92,7 @@ Map<String, dynamic>? siloItemToBaseItemDto(
     if (_dateAdded(item['versions']) case final added?) 'DateCreated': added,
     ..._imageFields(id, itemType.siloType, item, images),
     ..._seriesFields(id, itemType.siloType, item, images, series),
+    'UserData': _userData(itemType, item),
     siloOriginalKey: item,
   };
   return dto;
@@ -430,3 +432,75 @@ Map<String, dynamic> _parentArtwork(
 }
 
 int? _int(Object? value) => value is num ? value.toInt() : null;
+
+// --- user data -------------------------------------------------------------
+
+/// Jellyfin's `UserData` from Silo's two places for it:
+///
+/// - `user_state` on every catalog item: `played`, `is_favorite` (and
+///   `in_watchlist`, which Jellyfin has no field for);
+/// - `user_data` on series, seasons and watch answers: `position_seconds`,
+///   `duration_seconds`, `is_in_progress`, `unplayed_count`, `played`.
+///
+/// Either may be missing; what neither says means unplayed at position 0, the
+/// way Emby reports an untouched item. `UnplayedItemCount` is only for
+/// series and seasons, as on Emby.
+Map<String, dynamic> _userData(SiloItemType type, Map<String, dynamic> item) {
+  final state = asJsonMap(item['user_state']) ?? const <String, dynamic>{};
+  final data = asJsonMap(item['user_data']) ?? const <String, dynamic>{};
+  final played = state['played'] == true || data['played'] == true;
+  final position = data['position_seconds'];
+  final positionSeconds = position is num && position > 0 && !played
+      ? position
+      : 0;
+  final duration = data['duration_seconds'];
+  final unplayed = data['unplayed_count'];
+  final lastPlayed = _timestamp(item['progress_updated_at']);
+  return {
+    'PlaybackPositionTicks': secondsToTicks(positionSeconds),
+    if (_playedPercentage(positionSeconds, duration) case final pct?)
+      'PlayedPercentage': pct,
+    // Jellyfin counts plays; Silo only knows whether it was watched.
+    'PlayCount': played ? 1 : 0,
+    'IsFavorite': state['is_favorite'] == true,
+    'Played': played,
+    if (type.isFolder && unplayed is num) 'UnplayedItemCount': unplayed.toInt(),
+    if (lastPlayed != null) 'LastPlayedDate': lastPlayed,
+  };
+}
+
+/// Jellyfin's `UserData` for one entry of Silo's progress list
+/// (`ProgressEntry`: `position_seconds`, `duration_seconds`, `completed`,
+/// `updated_at`), which the Continue watching rows (phase 8) merge into the
+/// items they show.
+Map<String, dynamic> siloProgressToUserData(Map<String, dynamic> entry) {
+  final completed = entry['completed'] == true;
+  final position = entry['position_seconds'];
+  final positionSeconds = position is num && position > 0 && !completed
+      ? position
+      : 0;
+  final lastPlayed = _timestamp(entry['updated_at']);
+  return {
+    'PlaybackPositionTicks': secondsToTicks(positionSeconds),
+    if (_playedPercentage(positionSeconds, entry['duration_seconds'])
+        case final pct?)
+      'PlayedPercentage': pct,
+    'PlayCount': completed ? 1 : 0,
+    'Played': completed,
+    if (lastPlayed != null) 'LastPlayedDate': lastPlayed,
+  };
+}
+
+/// How far into the item [position] is, 0–100, or null when there is no
+/// position or no length to measure against.
+double? _playedPercentage(num position, Object? duration) {
+  if (position <= 0 || duration is! num || duration <= 0) return null;
+  final pct = position / duration * 100;
+  return pct > 100 ? 100 : pct;
+}
+
+/// A Silo timestamp in Jellyfin's format, or null.
+String? _timestamp(Object? value) {
+  final parsed = value is String ? DateTime.tryParse(value) : null;
+  return parsed == null ? null : _jellyfinDate(parsed.toUtc());
+}

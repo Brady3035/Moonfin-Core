@@ -7,6 +7,7 @@ import 'api/silo_auth_api.dart';
 import 'api/silo_pending_api.dart';
 import 'api/silo_profiles_api.dart';
 import 'api/silo_system_api.dart';
+import 'api/silo_users_api.dart';
 import 'silo_problem.dart';
 import 'silo_session.dart';
 import 'silo_session_interceptor.dart';
@@ -224,7 +225,11 @@ class SiloMediaServerClient extends MediaServerClient
   late final AuthApi authApi = SiloAuthApi(_dio, _authDio, session);
 
   @override
-  final UsersApi usersApi = const SiloPendingUsersApi();
+  late final UsersApi usersApi = SiloUsersApi(
+    _dio,
+    profilesApi,
+    () => _profileId,
+  );
 
   @override
   late final SystemApi systemApi = SiloSystemApi(_dio);

@@ -104,10 +104,10 @@ void main() {
       );
     });
 
-    test('current user', () {
+    test('user settings', () {
       expect(
-        () => client.usersApi.getCurrentUser(),
-        pending('UsersApi', 'getCurrentUser', '2.6'),
+        () => client.usersApi.getUserConfiguration(),
+        pending('UsersApi', 'getUserConfiguration', '2.7'),
       );
     });
   });

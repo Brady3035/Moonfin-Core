@@ -58,7 +58,7 @@ Status key: ☐ not started · ◐ in progress · ☑ done and tested · ⊘ ski
 - [x] **2.1** [Token pair and single-flight refresh (`SiloSession`)](phases/02-auth-api.md#step-2-1) · ↺ port
 - [x] **2.2** [Session interceptor](phases/02-auth-api.md#step-2-2) · ↺ port
 - [x] **2.3** [Password sign-in](phases/02-auth-api.md#step-2-3) · ↺ port
-- [ ] **2.4** [Sign out](phases/02-auth-api.md#step-2-4) · ↺ port
+- [x] **2.4** [Sign out](phases/02-auth-api.md#step-2-4) · ↺ port
 - [ ] **2.5** [Use the account's main profile](phases/02-auth-api.md#step-2-5) · ↺ port (list part)
 - [ ] **2.6** [Current user (account + main profile → user)](phases/02-auth-api.md#step-2-6) · ↺ port
 - [ ] **2.7** [User playback settings](phases/02-auth-api.md#step-2-7) · ↺ port

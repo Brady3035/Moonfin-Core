@@ -776,7 +776,7 @@ Moonfin reads Jellyfin's `Trickplay` item field, `{ <media source id>: { "<width
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 5.11 |
+| ☑ Done | — | 5.11 |
 
 **Goal.** Turn Moonfin's `startIndex/limit` into Silo cursors: first page plain; next page `next_cursor`; any other offset `window_cursor + seek`; `invalid_cursor` → reset once.
 
@@ -842,6 +842,7 @@ Moonfin reads Jellyfin's `Trickplay` item field, `{ <media source id>: { "<width
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | pager tests 20/20; `server_silo` 304/304; analyzer: no issues |
+| 2026-10-14 | macOS | `4b2e921c` | Pass | full `flutter test` before committing |
 | | | | | |
 
 ---
@@ -851,32 +852,53 @@ Moonfin reads Jellyfin's `Trickplay` item field, `{ <media source id>: { "<width
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 5.12 |
 
 **Goal.** Moonfin sort fields → Silo `sort` values (descending = `-field`); unknown → server default.
 
 **Where in Moonfin**
 
-- `silo_sort_map.dart`
+- `packages/server_silo/lib/src/mappers/silo_sort_map.dart` (new)
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+Moonfin asks for an order the Jellyfin way: `sortBy` as a comma-separated list of fields (`ProductionYear,SortName`), and `sortOrder` (`Ascending`/`Descending`). Silo takes one term, `sort=field`, or `-field` for descending. Its contract names these fields: `title`, `year`, `release_date`, `added_at`, `rating`, `runtime`, `random`. `siloSortFor(sortBy:, sortOrder:)` gives the `sort` value, or null to leave `sort` out:
+
+| Moonfin | Silo |
+|---|---|
+| `SortName`, `Name`, `SeriesSortName` | `title` |
+| `ProductionYear` | `year` |
+| `PremiereDate` | `release_date` |
+| `DateCreated`, `DateLastContentAdded` | `added_at` |
+| `CommunityRating` | `rating` |
+| `Runtime` | `runtime` |
+| `Random` | `random` (no direction) |
+
+**Rules.**
+
+- **First term only.** Only the **first** term of `sortBy` and `sortOrder` counts. When the first term has no Silo field, the answer is null rather than the next term. An episode list asked for in `ParentIndexNumber,IndexNumber,SortName` order must keep Silo's natural episode order, not be sorted by title.
+- **Unknown fields leave `sort` out.** Silo then applies the list's saved or default order, rather than risk an error for a field it doesn't know. `CriticRating`, `OfficialRating`, `DatePlayed` and `PlayCount` are among them. Silo's items carry `play_count` and `viewed_at` sort metrics, so it may accept them as sort fields. The contract doesn't say, so they are left out until a check against the server (6.5) shows they work. "Recently watched" rows don't need them: they read Silo's progress and history lists (phase 8).
+- **Reverse map.** `jellyfinSortForSilo('-added_at')` → `DateCreated`, `Descending`. It is for showing the order Silo applied (`effective_sort`) in Moonfin's sort menu.
 
 ### Testing
 
-**Automated tests**
+**Automated tests** (`packages/server_silo/test/silo_sort_map_test.dart`, new, 8 tests)
 
-- _None planned; add any that were written._
+- Every mapped field, both directions; no order; case; `random` without direction.
+- The first term only, and an unmapped first term leaving `sort` out (the episode order).
+- Fields with no Silo sort, and no input.
+- The reverse map, round-tripping every Silo field; unknown values.
+- `server_silo`: 312/312.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+- Nothing to check by hand until 6.5 sorts a library grid. Then, in 6.5: try Moonfin's sort menu entries on a Silo library and note any that Silo ignores. Regression: full `flutter test`.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | sort map tests 8/8; `server_silo` 312/312; analyzer: no issues |
 | | | | | |
 
 ---

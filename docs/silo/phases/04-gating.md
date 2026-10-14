@@ -365,7 +365,7 @@ Setup: only Silo signed in.
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 4.6 |
+| ☑ Done | `81dac12` | 4.6 |
 
 **Goal.** These proxies live in the plugin. Hide or skip their rows and badges on Silo.
 
@@ -413,6 +413,7 @@ Jellyfin and Emby are unchanged: on those servers the check is true, and the ser
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | guard test 2/2; detail, view model, repository and custom-list tests 517/517; analyzer: no new issues |
+| 2026-10-14 | macOS | `4b2e921c` | Pass | Brady tested before committing. Test 4 runs with 6.4 |
 | | | | | |
 
 ---
@@ -422,34 +423,45 @@ Jellyfin and Emby are unchanged: on those servers the check is true, and the ser
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 4.7 |
 
 **Goal.** Personal ratings store, audiobook bookmarks and notes go through the plugin.
 
 **Where in Moonfin**
 
-- `user_ratings_api.dart`
-- `audiobook_bookmarks_service.dart`
-- `audiobook_notes_service.dart`
+- `lib/data/services/user_ratings_api.dart`
+- `lib/data/services/audiobook_bookmarks_service.dart`
+- `lib/data/services/audiobook_notes_service.dart`
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+Same pattern as 4.7: each service asks `serverHasMoonfinPlugin(client)` before calling `/Moonfin/*`, and on Silo takes the path it already takes when it has no server to talk to.
+
+- **Personal ratings** (`fetchMyUserRatings`, `/Moonfin/UserRatings/Mine`): returns null, which callers already treat as "the sort by my rating isn't available". Silo has ratings of its own: step 9.3 maps them, and will give Silo its own route instead of this one.
+- **Audiobook bookmarks and notes** (`/Moonfin/Bookmarks/{id}` and `…/Notes`): both keep a local copy and sync it with the plugin. On Silo:
+  - `syncFromServer` returns at once, so the local copy is the only copy.
+  - Saving still writes locally and marks the item "not yet synced" (the existing dirty flag), then skips the push, exactly as it does when the server isn't loaded. Keeping the flag means a future Silo plugin (D10) would pick these edits up on its first sync.
+
+Bookmarks and notes belong to audiobooks, which Silo doesn't serve today; the gate makes sure a Silo item can never trigger the requests anyway.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `test/data/repositories/plugin_proxy_silo_guard_test.dart` now also covers the ratings fetch, and adding and syncing a bookmark and a note. On Silo there are no requests and the bookmark and note are kept on the device; on Emby they reach `/Moonfin/UserRatings/Mine`, `/Moonfin/Bookmarks/book-1` and `/Moonfin/Bookmarks/book-1/Notes`. 2/2.
+- `test/data` and `test/playback`: 1622/1622.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+1. **Emby unchanged:** sort a library by your rating; add a bookmark and a note to an audiobook and see them on another device (or after reinstalling), as before.
+2. **Silo:** nothing to see until Silo items load (phase 6). Optional: no `/Moonfin/` requests in Silo's request log.
+3. Regression: full `flutter test`.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | guard test 2/2; `test/data` + `test/playback` 1622/1622; analyzer: no new issues |
 | | | | | |
 
 ---

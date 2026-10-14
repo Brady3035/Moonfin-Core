@@ -619,6 +619,8 @@ class _LoginScreenState extends State<LoginScreen> {
           _finishLoginWithError(l10n.siloPasswordChangeUnavailable);
         case SiloPasswordChangedSignInAgain():
           _finishLoginWithError(l10n.siloPasswordChangedSignInAgain);
+        case SiloMainProfileLocked(:final profileName):
+          _finishLoginWithError(l10n.siloMainProfileLocked(profileName));
         default:
           _finishLoginWithError(l10n.loginFailed);
       }

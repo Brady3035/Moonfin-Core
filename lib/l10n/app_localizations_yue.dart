@@ -13473,6 +13473,11 @@ class AppLocalizationsYue extends AppLocalizations {
   @override
   String get siloPasswordChangedSignInAgain =>
       'Your password was changed. Sign in with the new password.';
+
+  @override
+  String siloMainProfileLocked(String name) {
+    return 'The main profile \"$name\" on this Silo account is locked with a PIN, and Moonfin can\'t open PIN-locked profiles yet. To sign in here, remove the PIN in Silo\'s web app.';
+  }
 }
 
 /// The translations for Yue Chinese Cantonese, as used in China (`yue_CN`).

@@ -323,7 +323,7 @@ A Silo login can end while Moonfin is running: someone signs the session out fro
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 3.5 |
+| ☑ Done | `90fbd75` | 3.5 |
 
 **Goal.** When sign-in returns `password_change_required`, show a change-password dialog, or at minimum a message pointing to Silo's web app.
 
@@ -402,6 +402,7 @@ Setup: in Silo's web app (admin), create a test user, or reset an existing test 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | `test/auth` 134/134; `server_silo` 130/130; analyzer: no new issues |
+| 2026-10-14 | macOS | `4b2e921c` | Pass | tests 1–4 pass. Test 5 (TV) not yet run: carried to step 12.1's test plan |
 | | | | | |
 
 ---
@@ -411,33 +412,52 @@ Setup: in Silo's web app (admin), create a test user, or reset an existing test 
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 3.6 |
 
 **Goal.** When the account's main profile is PIN-locked, sign-in stops with a clear message instead of a generic error: PIN entry comes with the optional profiles phase (18.4), which lifts this.
 
 **Where in Moonfin**
 
+- `lib/auth/models/login_state.dart`
 - `lib/auth/repositories/auth_repository.dart`
 - `lib/ui/screens/auth/login_screen.dart`
+- `lib/l10n/app_en.arb` and the regenerated `lib/l10n/app_localizations*.dart`
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+Moonfin signs in to Silo as the account's main profile (D9). A Silo profile can have a PIN, and a profile with one needs an `X-Profile-Token` from `POST /profiles/{id}/verify-pin` on every request. Moonfin has no PIN entry for Silo profiles until step 18.4, so a PIN on the main profile means it can't sign in. 2.5 already detects it: `useMainProfile` throws `SiloMainProfileLockedError`. Until now that surfaced as the error's English `toString()` in the generic error slot.
+
+- **Repository.** `_finishSiloSignIn` catches `SiloMainProfileLockedError` on its own: it ends the new login on Silo (as for any failure after the password, so no session is left open) and returns a new state, `SiloMainProfileLocked(profileName)`. It isn't logged as an error: the account is set up this way, nothing failed.
+- **Screen.** The login screen shows `siloMainProfileLocked`: the profile's name, that Moonfin can't open PIN-locked profiles yet, and that removing the PIN in Silo's web app lets the account sign in here.
+- **After a password change.** The 3.6 flow finishes through the same `_finishSiloSignIn`, so an account with both a temporary password and a PIN-locked main profile gets the same message after the change (the new password is kept).
+
+Only sign-in is covered. A PIN added in Silo's web app **after** Moonfin signed in is a different case: the stored session restores straight onto the main profile (3.4) without listing profiles, so it isn't noticed here. See the open item in `HANDOFF.md`.
 
 ### Testing
 
 **Automated tests**
 
-- the typed error from 2.5 becomes a readable login state
+- `test/auth/auth_repository_silo_test.dart`:
+  - the existing PIN test now expects `SiloMainProfileLocked` with the profile's name, the login ended and nothing stored;
+  - new: after a temporary-password change, a PIN-locked main profile gives the same state and ends the login.
 
 **Manual test plan**
 
-- Give the main profile a PIN in Silo's web app, sign in: the message explains it. Remove the PIN afterwards.
+1. In Silo's web app, give the test user's main profile a PIN. Sign in on Mac: the message names the profile and says to remove the PIN in Silo's web app. No error code or English exception text.
+2. Silo's sessions list shows no session left for Moonfin.
+3. Remove the PIN and sign in again: lands on Home.
+4. Regression: sign in and out on Silo and Emby; full `flutter test`.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | `test/auth` 135/135; analyzer: no new issues |
+| 2026-10-14 | macOS | `4b2e921c` | Pass | tests 1–4 pass. Observed: a session signed in before the PIN was added stayed signed in (the open item in `HANDOFF.md`; nothing makes requests after sign-in yet) |
+| | | | | |
+
+---
+---|---|---|---|
 | | | | | |
 
 ---

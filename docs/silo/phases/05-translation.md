@@ -707,7 +707,7 @@ Silo detects or imports **markers** per file: intro, credits, recap and preview.
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 5.10 |
+| ☑ Done | — | 5.10 |
 
 **Goal.** `/watch/{id}/trickplay` → Jellyfin `Trickplay` map, registering sheet URLs for `getTrickplayTileImageUrl`.
 
@@ -766,6 +766,7 @@ Moonfin reads Jellyfin's `Trickplay` item field, `{ <media source id>: { "<width
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | trickplay tests 9/9; `server_silo` 284/284; analyzer: no issues |
+| 2026-10-14 | macOS | `4b2e921c` | Pass | full `flutter test` before committing |
 | | | | | |
 
 ---
@@ -775,32 +776,72 @@ Moonfin reads Jellyfin's `Trickplay` item field, `{ <media source id>: { "<width
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 5.11 |
 
 **Goal.** Turn Moonfin's `startIndex/limit` into Silo cursors: first page plain; next page `next_cursor`; any other offset `window_cursor + seek`; `invalid_cursor` → reset once.
 
 **Where in Moonfin**
 
-- `packages/server_silo/lib/src/silo_pager.dart`
+- `packages/server_silo/lib/src/silo_pager.dart` (new)
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+**The mismatch.** Moonfin pages by offset: `getItems(startIndex: 150, limit: 50)`. Silo has no offset. Each list answer (`CatalogBrowseCollection` and its kin) carries:
+
+- `page.next_cursor` and `page.has_more`, for the page after it;
+- `window_cursor`, which, sent back with `seek=<offset>`, jumps anywhere in the same result;
+- `total` (an estimate unless `total_exact`).
+
+`limit` is at most 200.
+
+**The pager.** `SiloPager.page(signature:, startIndex:, limit:, fetch:)` remembers a query's cursors under its **signature** and picks the cheapest request:
+
+| Moonfin asks for | Request |
+|---|---|
+| `startIndex` 0 | plain (no cursor) |
+| where the last page ended | `cursor=<next_cursor>` (scrolling down a grid) |
+| any other offset | `cursor=<window_cursor>&seek=<startIndex>` (alphabet bar, a grid restored mid-way, going back) |
+| an offset, with no window cursor yet | the first page, then the jump |
+| at or past an exact total | nothing: an empty answer |
+
+**Rules.**
+
+- **Large limits:** a `limit` above 200 is filled with further `next_cursor` requests (450 → 200 + 200 + 50). No `limit` means one page of Silo's default size, 50.
+- **Signatures:** `siloPageSignature(path, params)` keys a query by its parameters, sorted, without the paging ones (`cursor`, `seek`, `limit`) and without null or empty values. So the same library, sort and filters share cursors, and different ones never do.
+- **Memory:** up to 32 queries are remembered, least recently used forgotten first. `clear()` forgets all of them, for a library change.
+- **Rejected cursors:** when Silo rejects a cursor (expired, or the server restarted), the query's state is dropped and the request starts over from the first page, **once**; a second rejection is passed on. `isSiloInvalidCursorError` decides what counts: a 400 or 422 whose problem code mentions a cursor (`invalid_cursor`…), or whose field errors point at `cursor` or `seek`. The contract doesn't list the exact code, so the check is deliberately broad.
+- **Totals:** `TotalRecordCount` is Silo's total, never less than what has been seen. An estimate is replaced by the real end once the last page arrives. Without any total it is what has been seen plus one while Silo says there is more, so the grid keeps asking.
+- **No window cursor:** for a result Silo gives no window cursor, an offset is reached by following next cursors in pages of 200.
+
+`fetch` is a callback, so the pager knows nothing about endpoints. The items API (6.5) wraps each list call in it. `SiloPage.fromJson` reads Silo's list answers.
 
 ### Testing
 
-**Automated tests**
+**Automated tests** (`packages/server_silo/test/silo_pager_test.dart`, new, 20 tests, against a fake Silo list that issues and checks cursors)
 
-- sequential pages; jump; invalid cursor recovery; limit clamps
+- Requests:
+  - first page, next pages, seeks forward and back;
+  - a jump before any first page;
+  - a 450 limit split into 200 + 200 + 50 and continued after;
+  - no limit; past an exact total with no request;
+  - signatures kept apart.
+- Invalid cursors: a server "restart" mid-scroll recovers with one restart; a second rejection is passed on; other errors aren't retried; which problems count.
+- Totals: an estimate corrected at the end; no total.
+- No window cursor: an offset reached by walking.
+- Cache: least recently used forgotten; `clear`.
+- Signatures: paging parameters, order and empty values ignored; list order kept.
+- Reading the library page fixture (5 items, 4611 exact, both cursors) and a last page.
+- `server_silo`: 304/304.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+- Nothing to check by hand until 6.5 scrolls a library grid. Regression: full `flutter test`.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | pager tests 20/20; `server_silo` 304/304; analyzer: no issues |
 | | | | | |
 
 ---

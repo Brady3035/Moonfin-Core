@@ -5,6 +5,11 @@ import 'package:server_silo/server_silo.dart';
 /// they are signed with a query that rotates, so they are cached by path
 /// ([siloImageCacheKey]) and the same picture isn't downloaded again every
 /// time its signature changes. Other URLs keep their usual key.
+///
+/// It also resolves the placeholder URLs a Silo client hands out for items
+/// it hasn't read yet (step 6.3, [SiloImageResolution]): the item is loaded
+/// and its real artwork downloaded. Ordinary URLs load without a detour.
 void installSiloImageHooks() {
   CachedNetworkImageProvider.cacheKeyFor = siloImageCacheKey;
+  CachedNetworkImageProvider.urlResolver = SiloImageResolution.resolve;
 }

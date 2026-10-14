@@ -105,14 +105,21 @@ void main() {
     });
   });
 
-  test('image URLs are empty instead of throwing', () {
-    final images = newClient().imageApi;
-    expect(
-      images.getPrimaryImageUrl('movie-imdb-tt0295701', maxWidth: 300),
-      '',
+  test('an image of an unseen item is a placeholder its client resolves', () {
+    final client = newClient();
+    final url = client.imageApi.getPrimaryImageUrl(
+      'movie-imdb-tt0295701',
+      maxWidth: 300,
     );
-    expect(images.getBackdropImageUrl('x'), '');
-    expect(images.getUserImageUrl('p1'), '');
+    expect(parseSiloImagePlaceholder(url)?.itemId, 'movie-imdb-tt0295701');
+    expect(client.imageResolver.owns(url), isTrue);
+    expect(SiloImageResolution.resolve(url), isNotNull);
+    client.dispose();
+    expect(
+      client.imageResolver.owns(url),
+      isTrue,
+      reason: 'still its URL, but no longer reachable app-wide',
+    );
   });
 
   group('permanently unsupported', () {

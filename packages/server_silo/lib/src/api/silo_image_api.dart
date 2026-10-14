@@ -1,6 +1,7 @@
 import 'package:server_core/server_core.dart';
 
 import '../silo_image_registry.dart';
+import '../silo_image_resolver.dart';
 
 /// Moonfin's `ImageApi` for a Silo server, answered from the image registry.
 ///
@@ -18,12 +19,21 @@ import '../silo_image_registry.dart';
 /// `image_size` (the items API asks for `medium` in lists and `large` on
 /// detail pages), and a signed URL can't be resized afterwards.
 ///
-/// When nothing is registered the answer is an empty URL, which Moonfin
-/// shows as its placeholder (registry misses are step 6.3).
+/// When nothing is registered (step 6.3, decision D2):
+///
+/// - for an item whose artwork was read, the image doesn't exist, and the
+///   answer is an empty URL, which Moonfin shows as its placeholder;
+/// - for an item never read this session (rows restored at startup, a deep
+///   link), a placeholder URL ([siloImagePlaceholderUrl]) that the image
+///   cache resolves by loading the item (`SiloImageResolver`).
 class SiloImageApi implements ImageApi {
-  SiloImageApi(this.registry);
+  SiloImageApi(this.registry, {this.baseUrl});
 
   final SiloImageRegistry registry;
+
+  /// The server's base URL for placeholder URLs; without it a miss is
+  /// always an empty URL.
+  final String Function()? baseUrl;
 
   String _lookup(
     String itemId,
@@ -35,7 +45,11 @@ class SiloImageApi implements ImageApi {
       final tagged = registry.urlForTag(tag);
       if (tagged != null) return tagged;
     }
-    return registry.urlFor(itemId, type, index: index) ?? '';
+    final url = registry.urlFor(itemId, type, index: index);
+    if (url != null) return url;
+    final base = baseUrl;
+    if (base == null || itemId.isEmpty || registry.knows(itemId)) return '';
+    return siloImagePlaceholderUrl(base(), itemId, type, index: index);
   }
 
   @override
@@ -64,7 +78,7 @@ class SiloImageApi implements ImageApi {
   String getBannerImageUrl(String itemId, {int? maxWidth, String? tag}) {
     final banner = _lookup(itemId, SiloImageType.banner, tag: tag);
     if (banner.isNotEmpty) return banner;
-    return _lookup(itemId, SiloImageType.backdrop);
+    return registry.urlFor(itemId, SiloImageType.backdrop) ?? '';
   }
 
   /// Silo's thumb, or the backdrop the mapper registered in its place.
@@ -72,7 +86,7 @@ class SiloImageApi implements ImageApi {
   String getThumbImageUrl(String itemId, {int? maxWidth, String? tag}) {
     final thumb = _lookup(itemId, SiloImageType.thumb, tag: tag);
     if (thumb.isNotEmpty) return thumb;
-    return _lookup(itemId, SiloImageType.backdrop);
+    return registry.urlFor(itemId, SiloImageType.backdrop) ?? '';
   }
 
   @override
@@ -98,5 +112,6 @@ class SiloImageApi implements ImageApi {
     String? mediaSourceId,
   }) => mediaSourceId == null
       ? ''
-      : _lookup(mediaSourceId, SiloImageType.trickplay, index: index);
+      : registry.urlFor(mediaSourceId, SiloImageType.trickplay, index: index) ??
+            '';
 }

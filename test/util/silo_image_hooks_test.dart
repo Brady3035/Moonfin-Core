@@ -6,7 +6,10 @@ const _poster =
     'https://silo.example/api/v2/artwork/tmdb/movies/7451/poster/w500.f6c3.webp';
 
 void main() {
-  tearDown(() => CachedNetworkImageProvider.cacheKeyFor = null);
+  tearDown(() {
+    CachedNetworkImageProvider.cacheKeyFor = null;
+    CachedNetworkImageProvider.urlResolver = null;
+  });
 
   test('without the hooks, a new signature is a new image', () {
     expect(
@@ -32,6 +35,17 @@ void main() {
     expect(
       CachedNetworkImageProvider('$_poster?sig=a', cacheKey: 'one'),
       isNot(CachedNetworkImageProvider('$_poster?sig=a', cacheKey: 'two')),
+    );
+  });
+
+  test('Silo placeholders are resolved; other URLs load directly (6.3)', () {
+    installSiloImageHooks();
+    final resolve = CachedNetworkImageProvider.urlResolver!;
+    expect(resolve('https://emby.example/a.jpg'), isNull);
+    expect(resolve('$_poster?sig=a'), isNull);
+    expect(
+      resolve('https://silo.example/api/v2/__moonfin/image?item=m&type=logo'),
+      isNotNull,
     );
   });
 }

@@ -91,8 +91,8 @@ String? resolveSiloImageUrl(String? url, String baseUrl) {
 /// `ImageApi` (step 6.1) calls [urlFor]. A newer URL for the same image
 /// replaces the older one, which keeps the signature fresh.
 ///
-/// What happens when an id was never registered (cold start, deep link) is
-/// decision D2, for step 6.3; until then [urlFor] answers null.
+/// An id never seen (cold start from cached rows, a deep link) is resolved
+/// by loading the item (step 6.3, `SiloImageResolver`).
 class SiloImageRegistry {
   SiloImageRegistry(this._baseUrl);
 
@@ -105,6 +105,9 @@ class SiloImageRegistry {
   /// item carries gets exactly that picture, even after the same slot was
   /// registered again at another size.
   final Map<String, String> _byTag = {};
+
+  /// Items, people and libraries whose artwork has been read (see [note]).
+  final Set<String> _known = {};
 
   static String _key(String itemId, SiloImageType type, int index) =>
       '$itemId|${type.name}|$index';
@@ -136,6 +139,14 @@ class SiloImageRegistry {
   String? tagFor(String itemId, SiloImageType type, {int index = 0}) =>
       _images[_key(itemId, type, index)]?.tag;
 
+  /// Records that [itemId]'s artwork fields were read, whether or not it had
+  /// any: an image missing for a known item is absent, not merely unseen, so
+  /// `ImageApi` answers with no URL instead of resolving it (step 6.3).
+  void note(String itemId) => _known.add(itemId);
+
+  /// Whether [note] was called for [itemId].
+  bool knows(String itemId) => _known.contains(itemId);
+
   /// The latest URL registered with [tag], or null.
   String? urlForTag(String tag) => _byTag[tag];
 
@@ -146,6 +157,7 @@ class SiloImageRegistry {
   void clear() {
     _images.clear();
     _byTag.clear();
+    _known.clear();
   }
 }
 

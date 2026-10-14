@@ -46,7 +46,6 @@ import 'shuffle_overlay.dart';
 import 'user_menu_dialog.dart';
 
 import 'offline_aware_image.dart';
-import 'paced_network_image.dart';
 import 'package:playback_core/playback_core.dart';
 import '../../data/models/aggregated_item.dart';
 import '../../data/services/media_server_client_factory.dart';
@@ -54,6 +53,7 @@ import '../../util/focus/dpad_keys.dart';
 import '../../util/focus/input_mode_tracker.dart';
 import '../navigation/app_router.dart';
 import 'adaptive/sf_symbol.dart';
+import 'user_avatar_image.dart';
 
 const _kToolbarHeightTV = 95.0;
 const _kToolbarHeightDesktop = 80.0;
@@ -931,25 +931,11 @@ class _TopToolbarState extends State<TopToolbar> with RouteAware {
                   : null,
             ),
             child: ClipOval(
-              child: _userImageUrl != null
-                  ? Image(
-                      image: ResizeImage.resizeIfNeeded(
-                        ArtworkDecode.widthFor(
-                          avatarSize,
-                          MediaQuery.devicePixelRatioOf(context),
-                        ),
-                        null,
-                        PacedNetworkImage(
-                          _userImageUrl!,
-                          headers: serverImageHeaders,
-                        ),
-                      ),
-                      fit: BoxFit.cover,
-                      width: avatarSize,
-                      height: avatarSize,
-                      errorBuilder: (_, _, _) => _avatarFallback(),
-                    )
-                  : _avatarFallback(),
+              child: UserAvatarImage(
+                url: _userImageUrl,
+                size: avatarSize,
+                fallback: _avatarFallback(),
+              ),
             ),
           ),
         ),

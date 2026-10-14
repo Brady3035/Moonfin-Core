@@ -103,13 +103,6 @@ void main() {
         pending('UserViewsApi', 'getUserViews', '6.4'),
       );
     });
-
-    test('user settings', () {
-      expect(
-        () => client.usersApi.getUserConfiguration(),
-        pending('UsersApi', 'getUserConfiguration', '2.7'),
-      );
-    });
   });
 
   test('image URLs are empty instead of throwing', () {

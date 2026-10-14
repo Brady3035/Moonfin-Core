@@ -60,8 +60,8 @@ Status key: ☐ not started · ◐ in progress · ☑ done and tested · ⊘ ski
 - [x] **2.3** [Password sign-in](phases/02-auth-api.md#step-2-3) · ↺ port
 - [x] **2.4** [Sign out](phases/02-auth-api.md#step-2-4) · ↺ port
 - [x] **2.5** [Use the account's main profile](phases/02-auth-api.md#step-2-5) · ↺ port (list part)
-- [ ] **2.6** [Current user (account + main profile → user)](phases/02-auth-api.md#step-2-6) · ↺ port
-- [ ] **2.7** [User playback settings](phases/02-auth-api.md#step-2-7) · ↺ port
+- [x] **2.6** [Current user (account + main profile → user)](phases/02-auth-api.md#step-2-6) · ↺ port
+- [ ] **2.7** [User configuration (library order, hidden libraries, playback keys)](phases/02-auth-api.md#step-2-7) · ↺ port
 
 ## 3. [Sign-in in the app](phases/03-signin-app.md)
 

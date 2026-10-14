@@ -358,7 +358,7 @@ Nothing in the app calls this yet; sign-in from the login screen uses it in 3.3.
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 2.5 |
+| ☑ Done | `435e04c` | 2.5 |
 
 **Goal.** `SiloUsersApi.getCurrentUser` and the user mapper: the main profile's id as the Moonfin user id (so the optional profiles phase adds the other profiles as users without migrating anyone), name from the profile, admin/download permissions from the account.
 
@@ -441,43 +441,85 @@ Moonfin reads the signed-in user through `UsersApi.getCurrentUser()`: when a sto
 ---
 
 <a id="step-2-7"></a>
-## 2.7 User playback settings
+## 2.7 User configuration (library order, hidden libraries, playback keys)
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 2.6 |
 
-**Goal.** Read and save subtitle language/mode, audio language and autoplay-next through the main profile; keep Jellyfin-only fields local.
+**Goal.** `getUserConfiguration`/`updateUserConfiguration` on Silo's settings store for the acting profile: library order and hidden libraries (what Moonfin reads from it), plus subtitle/audio language, subtitle mode and autoplay-next. Changed from the plan while building; see How it works.
 
 **Silo v2 endpoints**
 
 - `GET /settings/values/effective`
-- `PATCH /profiles/{id}`
+- `PUT /settings/values/{key}?scope=profile`
 
 **Where in Moonfin**
 
 - `packages/server_silo/lib/src/api/silo_users_api.dart`
+- `packages/server_silo/lib/src/mappers/silo_settings_mapper.dart`
 
 **Earlier work to port:** silo-2
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+**What changed from the plan.** The step was planned as "subtitle and audio language, subtitle mode and autoplay-next through the profile". While building it, two things came up:
+
+- **Moonfin doesn't read playback settings from `UserConfiguration`.** Subtitle mode, languages and autoplay are local Moonfin preferences (`UserPreferences`) on every server. What the app reads from the server's `UserConfiguration` is the **library order** (`OrderedViews`, library order screen), the **libraries hidden from My Media** (`MyMediaExcludes`, library settings screen and every views load), and **libraries left out of "Latest"** (`LatestItemsExcludes`, the multi-server home rows).
+- **Silo has a settings store with matching keys.** Its settings contract (`contracts/settings/v1/manifest.json`) defines `ui.library_order` and `ui.disabled_library_ids` at profile scope. Silo's own web app uses them for the same two things, so they're the right home, rather than a private Moonfin key or local storage.
+
+So this step implements `getUserConfiguration`/`updateUserConfiguration` on Silo's settings store. The library keys are the part the app uses today. The playback keys come along in the same request, so the configuration Moonfin sees is faithful if a later step starts reading it.
+
+**Mapping** (`packages/server_silo/lib/src/mappers/silo_settings_mapper.dart`)
+
+| Jellyfin `UserConfiguration` | Silo setting (profile scope) | Notes |
+|---|---|---|
+| `OrderedViews` | `ui.library_order` | Silo ids are positive integers; Moonfin's are strings. Libraries missing from the list sort after the listed ones (Silo's rule) |
+| `MyMediaExcludes` | `ui.disabled_library_ids` | The profile hiding a library from itself; not access control |
+| `EnableNextEpisodeAutoPlay` | `playback.auto_play_next` | |
+| `AudioLanguagePreference` / `SubtitleLanguagePreference` | `playback.audio_language` / `playback.subtitle_language` | Passed through as written. Silo uses language tags; Moonfin doesn't read these today |
+| `SubtitleMode` | `playback.subtitle_mode` + `playback.show_forced_subtitles` | `always`→Always, `off`+forced→OnlyForced, `off`→None, `auto`→Default. Writing Default/Smart keeps the current forced switch |
+| `LatestItemsExcludes`, `GroupedFolders`, remember/default-track switches | — | No Silo setting: read as empty/defaults, not saved |
+
+These ids only line up with Moonfin's library ids if the views from step 6.4 use Silo's library id (`"1"`, `"3"` in the captured `user_libraries.json`) as the view `Id`, which is the plan.
+
+**`SiloUsersApi`**
+
+- `getUserConfiguration()` makes one `GET /api/v2/settings/values/effective` with a `keys` parameter per key. Silo resolves each key for the acting profile **on this device**: device, library and series overrides take part, and missing keys come back as contract defaults.
+- `updateUserConfiguration(config)` writes **only the keys that changed** since the last read, each with `PUT /api/v2/settings/values/{key}?scope=profile` and body `{"value": …}`. The library screens pass the whole configuration back after changing one list, and rewriting every key would turn Silo's defaults into stored values. If there was no read for the acting profile yet, it reads first. If one write fails, the keys already written stay the new baseline, so a retry writes only what's still different.
+- Both need a profile: Silo's settings routes require `X-Profile-Id` and answer 422 without it, so they fail early with a `StateError` pointing at `useMainProfile()` (2.5).
+- **Known limits:**
+  - "Hide from Latest" doesn't persist on Silo; it has no such setting. Phase 8 (Home) decides whether to map it onto Silo's home layout or hide the toggle.
+  - Writes go to profile scope. If a playback key has a device, library or series override in Silo, that override still wins for this device. Silo's library keys only exist at profile scope, so they're unaffected.
+
+This also answers part of open decision D3: Moonfin's library order and hidden libraries live in Silo's settings store. Per-library view settings (step 6.19) are still open; Silo's `ui.library_page_state` (profile + device) is a candidate.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `packages/server_silo/test/silo_settings_mapper_test.dart` (new, 8 tests): every key mapped; Silo defaults; non-integer library ids dropped; subtitle mode both ways, any case, Default keeping the forced switch, round trip; configuration to Silo values (de-duplicated ids, trimmed languages, `none`→`off`/false).
+- `packages/server_silo/test/silo_user_configuration_test.dart` (new, 11 tests):
+  - the effective read: path, one `keys` parameter per key, profile and device headers;
+  - no profile gives a clear error with nothing sent; a malformed answer is an error;
+  - hiding a library writes only `ui.disabled_library_ids` with `scope=profile` and `{"value":[3]}`; reordering writes only `ui.library_order`;
+  - an unchanged configuration writes nothing; "Latest" exclusions write nothing and the stored forced switch survives;
+  - changing the subtitle mode writes mode and switch;
+  - an update without a read reads first;
+  - a failed write keeps what was saved, and the retry writes only the rest;
+  - a profile change re-reads that profile's settings.
+- `silo_media_server_client_test.dart`: the last `UsersApi` placeholder test is gone.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+- No visible app change yet: the library screens need a profile on the client, which sign-in sets from 3.3. `cd packages/server_silo && flutter test` (124 tests).
+- After 3.3 (recorded there): hide a library and reorder libraries in Moonfin's library settings, and check that Silo's web app shows the same.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-13 | Linux (Claude workspace, Flutter 3.47.2) | 4b2e921c (contract; settings manifest from silo-server `main`) | Pass | server_silo 124/124; analyzer clean |
 | | | | | |
 
 ---

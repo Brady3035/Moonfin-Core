@@ -903,7 +903,7 @@ After sign-in, `SessionRepository` runs three things that talk to the Moonfin se
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 1.16 |
+| ☑ Done | `3af2254` | 1.16 |
 
 **Goal.** Accept the `silo` type hint in web discovery, and name Silo in the add-server error.
 
@@ -942,6 +942,6 @@ Two small edits that finish making Silo a first-class server type in the add-ser
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-13 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | Repository tests 4/4; analyzer clean. Full suite left to Brady. |
-| | | | | |
+| 2026-10-13 | macOS | — | Pass | Brady: tests and manual checks |
 
 ---

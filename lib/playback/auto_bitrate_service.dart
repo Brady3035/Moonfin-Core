@@ -59,6 +59,10 @@ class AutoBitrateService {
     // The signed in server, since the newest client the factory made can be
     // another saved server's.
     final client = _clientFactory.clientForServerOrActive(null);
+    // Silo has no bandwidth test route, and its playback start takes the
+    // client's bandwidth as input and applies the server's own policy, so
+    // there is nothing to measure against.
+    if (client.serverType == ServerType.silo) return Future.value(null);
 
     final key = client.baseUrl;
     final cached = _cache[key];

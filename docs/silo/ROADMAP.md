@@ -45,7 +45,7 @@ Status key: ☐ not started · ◐ in progress · ☑ done and tested · ⊘ ski
 - [x] **1.9** [Detect Silo in the server probe](phases/01-groundwork.md#step-1-9) · ↺ port
 - [x] **1.10** [Add the Silo packages to CI](phases/01-groundwork.md#step-1-10)
 - [x] **1.11** [Silo server icon](phases/01-groundwork.md#step-1-11) · ↺ port
-- [ ] **1.12** [Shared auth headers for hand-built requests](phases/01-groundwork.md#step-1-12) · ↺ port
+- [x] **1.12** [Shared auth headers for hand-built requests](phases/01-groundwork.md#step-1-12) · ↺ port
 - [ ] **1.13** [Skip the bandwidth probe on Silo](phases/01-groundwork.md#step-1-13) · ↺ port
 - [ ] **1.14** [Safer redirects for Silo sessions](phases/01-groundwork.md#step-1-14) · ↺ port
 - [ ] **1.15** [No public user list on Silo](phases/01-groundwork.md#step-1-15) · ↺ port

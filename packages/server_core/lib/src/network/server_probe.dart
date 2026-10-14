@@ -2,10 +2,14 @@ import 'package:dio/dio.dart';
 
 import '../models/server_type.dart';
 import 'json_body.dart';
+import 'silo_public_info.dart';
 
-/// Result of probing a base URL for a Jellyfin/Emby server.
+/// Result of probing a base URL for a Jellyfin, Emby or Silo server.
 class ServerProbeResult {
-  /// The parsed `System/Info/Public` payload.
+  /// The public server info in Jellyfin's `System/Info/Public` shape (`Id`,
+  /// `ServerName`, `Version`, `ProductName`, ...). For Silo it is assembled
+  /// from the native `/api/v2` system and branding endpoints by
+  /// [siloPublicInfoToJellyfinShape].
   final Map<String, dynamic> info;
   final ServerType serverType;
 
@@ -28,8 +32,26 @@ const _publicInfoPaths = <String>[
   '/emby/System/Info/Public',
 ];
 
-/// Probes [baseUrl] for a Jellyfin/Emby server using the public-info endpoint,
-/// trying both the root and `/emby` paths. Returns null if no server answers.
+/// Failures that concern the host, not the path: every other path on the same
+/// address would fail the same way.
+const _hostLevelFailures = {
+  DioExceptionType.connectionError,
+  DioExceptionType.connectionTimeout,
+  DioExceptionType.badCertificate,
+};
+
+/// Probes [baseUrl] for a media server.
+///
+/// Silo's native API (`/api/v2/system/info`) is tried first. Silo also runs a
+/// Jellyfin-compatible listener, and its native host can answer
+/// `/System/Info/Public` with the web app's HTML, so checking for Silo first
+/// keeps a native Silo address from being taken for anything else. Then the
+/// Jellyfin/Emby public-info endpoint is tried at the root and under `/emby`.
+/// Returns null if no server answers.
+///
+/// When the first attempt fails at the connection level (refused, timed out,
+/// certificate rejected) the host is unreachable on every path, so that error
+/// is rethrown at once instead of waiting out the same failure per path.
 ///
 /// Relies on [dio]'s configuration (timeouts, cert handling, validateStatus).
 /// Rethrows the last [DioException] when every path failed at the network level
@@ -40,6 +62,13 @@ Future<ServerProbeResult?> probeServerPublicInfo(Dio dio, String baseUrl) async 
       : baseUrl;
 
   DioException? lastError;
+  try {
+    final silo = await _probeSilo(dio, base);
+    if (silo != null) return silo;
+  } on DioException catch (e) {
+    if (_hostLevelFailures.contains(e.type)) rethrow;
+    lastError = e;
+  }
   for (final path in _publicInfoPaths) {
     try {
       final result = await _probePath(dio, base, path);
@@ -52,12 +81,76 @@ Future<ServerProbeResult?> probeServerPublicInfo(Dio dio, String baseUrl) async 
   return null;
 }
 
+Future<ServerProbeResult?> _probeSilo(Dio dio, String baseUrl) async {
+  final (response, requestUrl) = await _getFollowingRedirects(
+    dio,
+    '$baseUrl$siloSystemInfoPath',
+  );
+  if (!_isSuccess(response)) return null;
+
+  final systemInfo = asJsonMap(response.data);
+  if (!isSiloSystemInfo(systemInfo)) return null;
+
+  final resolvedBaseUrl = _stripSuffix(requestUrl, siloSystemInfoPath);
+
+  // Identity, branding and setup are best effort: the server is already
+  // identified, and adding it must not fail because a cosmetic call did.
+  final extras = await Future.wait([
+    _tryGetJson(dio, '$resolvedBaseUrl/api/v2/system/identity'),
+    _tryGetJson(dio, '$resolvedBaseUrl/api/v2/theme/branding'),
+    _tryGetJson(dio, '$resolvedBaseUrl/api/v2/system/setup'),
+  ]);
+
+  return ServerProbeResult(
+    info: siloPublicInfoToJellyfinShape(
+      systemInfo: systemInfo!,
+      identity: extras[0],
+      branding: extras[1],
+      setup: extras[2],
+    ),
+    serverType: ServerType.silo,
+    resolvedBaseUrl: resolvedBaseUrl,
+  );
+}
+
+Future<Map<String, dynamic>?> _tryGetJson(Dio dio, String url) async {
+  try {
+    final response = await dio.get<dynamic>(url);
+    return _isSuccess(response) ? asJsonMap(response.data) : null;
+  } catch (_) {
+    return null;
+  }
+}
+
 Future<ServerProbeResult?> _probePath(
   Dio dio,
   String baseUrl,
   String endpointPath,
 ) async {
-  var requestUrl = '$baseUrl$endpointPath';
+  final (response, requestUrl) = await _getFollowingRedirects(
+    dio,
+    '$baseUrl$endpointPath',
+  );
+  if (!_isSuccess(response)) return null;
+
+  final data = asJsonMap(response.data);
+  if (data == null) return null;
+
+  return ServerProbeResult(
+    info: data,
+    serverType: ServerType.detect(
+      data['ProductName'] as String?,
+      data['Version'] as String?,
+    ),
+    resolvedBaseUrl: _stripSuffix(requestUrl, '/System/Info/Public'),
+  );
+}
+
+Future<(Response<dynamic>, String)> _getFollowingRedirects(
+  Dio dio,
+  String url,
+) async {
+  var requestUrl = url;
   var response = await dio.get<dynamic>(requestUrl);
 
   var redirects = 0;
@@ -70,27 +163,17 @@ Future<ServerProbeResult?> _probePath(
     response = await dio.get<dynamic>(requestUrl);
     redirects++;
   }
-
-  final status = response.statusCode ?? 0;
-  if (status < 200 || status >= 300) return null;
-
-  final data = asJsonMap(response.data);
-  if (data == null) return null;
-
-  return ServerProbeResult(
-    info: data,
-    serverType: ServerType.detect(
-      data['ProductName'] as String?,
-      data['Version'] as String?,
-    ),
-    resolvedBaseUrl: _resolveBaseUrl(requestUrl),
-  );
+  return (response, requestUrl);
 }
 
-// Strip only the `/System/Info/Public` endpoint suffix, keeping any base-path
-// prefix (e.g. the `/emby` of a reverse-proxied Emby) so later API calls hit it.
-String _resolveBaseUrl(String requestUrl) {
-  const suffix = '/System/Info/Public';
+bool _isSuccess(Response<dynamic> response) {
+  final status = response.statusCode ?? 0;
+  return status >= 200 && status < 300;
+}
+
+// Strip only the endpoint suffix, keeping any base-path prefix (e.g. the
+// `/emby` of a reverse-proxied Emby) so later API calls hit it.
+String _stripSuffix(String requestUrl, String suffix) {
   final uri = Uri.parse(requestUrl);
   var basePath = uri.path;
   if (basePath.toLowerCase().endsWith(suffix.toLowerCase())) {

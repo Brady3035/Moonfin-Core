@@ -42,6 +42,14 @@ ResponseBody _json(Map<String, dynamic> body) => ResponseBody.fromString(
   },
 );
 
+ResponseBody _html(String body) => ResponseBody.fromString(
+  body,
+  200,
+  headers: {
+    Headers.contentTypeHeader: ['text/html; charset=utf-8'],
+  },
+);
+
 ResponseBody _status(int code, {String? location}) => ResponseBody.fromString(
   '',
   code,
@@ -108,6 +116,171 @@ void main() {
         () => probeServerPublicInfo(dio, 'https://host'),
         throwsA(isA<DioException>()),
       );
+    });
+  });
+
+  group('probeServerPublicInfo on Silo', () {
+    // Silo 4b2e921c's public responses (fixtures in server_silo).
+    const systemInfo = {
+      'server_version': '4b2e921c+dirty',
+      'api_major': 2,
+      'contract_digest':
+          '12ea11dd8223e9426ab5376aad1116c150a674b432989b3cb4e5dbc9458b960a',
+    };
+
+    ResponseBody silo(Uri uri, {String prefix = ''}) {
+      final path = uri.path;
+      if (path == '$prefix/api/v2/system/info') return _json(systemInfo);
+      if (path == '$prefix/api/v2/system/identity') {
+        return _json({'server_id': '7b72fbd5-e741-48f0-9d05-b438990f3a7e'});
+      }
+      if (path == '$prefix/api/v2/theme/branding') {
+        return _json({
+          'server_name': 'Silo',
+          'login_subtitle': 'Sign in with an existing account.',
+          'storage_available': true,
+        });
+      }
+      if (path == '$prefix/api/v2/system/setup') {
+        return _json({'needs_setup': false, 'wizard_completed': true});
+      }
+      if (path == '$prefix/System/Info/Public') {
+        // The native host answers Jellyfin paths with the web app's HTML.
+        return _html('<!doctype html><html><title>Silo</title></html>');
+      }
+      return _status(404);
+    }
+
+    test('identifies Silo from the native system info', () async {
+      final requested = <String>[];
+      final dio = _dioWith((uri) {
+        requested.add(uri.path);
+        return silo(uri);
+      });
+
+      final result = await probeServerPublicInfo(dio, 'https://silo.host');
+
+      expect(result, isNotNull);
+      expect(result!.serverType, ServerType.silo);
+      expect(result.resolvedBaseUrl, 'https://silo.host');
+      expect(result.info['Id'], '7b72fbd5-e741-48f0-9d05-b438990f3a7e');
+      expect(result.info['ServerName'], 'Silo');
+      expect(result.info['Version'], '4b2e921c+dirty');
+      expect(result.info['ProductName'], 'Silo');
+      expect(result.info['StartupWizardCompleted'], isTrue);
+      expect(
+        result.info['LoginDisclaimer'],
+        'Sign in with an existing account.',
+      );
+      // Silo was found first, so the Jellyfin/Emby paths were never asked.
+      expect(requested.first, '/api/v2/system/info');
+      expect(requested, isNot(contains('/System/Info/Public')));
+    });
+
+    test('keeps a reverse-proxy path prefix', () async {
+      final dio = _dioWith((uri) => silo(uri, prefix: '/silo'));
+
+      final result = await probeServerPublicInfo(dio, 'https://host/silo/');
+
+      expect(result!.serverType, ServerType.silo);
+      expect(result.resolvedBaseUrl, 'https://host/silo');
+      expect(result.info['Id'], '7b72fbd5-e741-48f0-9d05-b438990f3a7e');
+    });
+
+    test('follows a redirect to the Silo host', () async {
+      final dio = _dioWith((uri) {
+        if (uri.host == 'old.host') {
+          return _status(301, location: 'https://silo.host${uri.path}');
+        }
+        return silo(uri);
+      });
+
+      final result = await probeServerPublicInfo(dio, 'https://old.host');
+
+      expect(result!.serverType, ServerType.silo);
+      expect(result.resolvedBaseUrl, 'https://silo.host');
+    });
+
+    test('still identifies Silo when the cosmetic endpoints fail', () async {
+      final dio = _dioWith(
+        (uri) => uri.path == '/api/v2/system/info'
+            ? _json(systemInfo)
+            : _status(500),
+      );
+
+      final result = await probeServerPublicInfo(dio, 'https://silo.host');
+
+      expect(result!.serverType, ServerType.silo);
+      expect(result.info['Id'], isNull);
+      expect(result.info['ServerName'], 'Silo');
+    });
+
+    test("Silo's Jellyfin-compatible port is still Jellyfin", () async {
+      // Port 8096 has no /api/v2 and reports "Jellyfin Server".
+      final dio = _dioWith((uri) {
+        if (uri.path == '/System/Info/Public') {
+          return _json({
+            'ProductName': 'Jellyfin Server',
+            'Version': '10.10.7',
+          });
+        }
+        return _status(404);
+      });
+
+      final result = await probeServerPublicInfo(dio, 'https://silo.host:8096');
+
+      expect(result!.serverType, ServerType.jellyfin);
+    });
+
+    test('an HTML page at /api/v2/system/info is not Silo', () async {
+      // A Jellyfin or Emby web client behind a catch-all proxy rule.
+      final dio = _dioWith((uri) {
+        if (uri.path == '/System/Info/Public') {
+          return _json({'ProductName': 'Emby Server', 'Version': '4.10.1.0'});
+        }
+        return _html('<!doctype html><html></html>');
+      });
+
+      final result = await probeServerPublicInfo(dio, 'https://emby.host');
+
+      expect(result!.serverType, ServerType.emby);
+    });
+
+    test('JSON that is not Silo system info is not Silo', () async {
+      final dio = _dioWith((uri) {
+        if (uri.path == '/api/v2/system/info') return _json({'status': 'ok'});
+        if (uri.path == '/System/Info/Public') {
+          return _json({'ProductName': 'Jellyfin Server'});
+        }
+        return _status(404);
+      });
+
+      final result = await probeServerPublicInfo(dio, 'https://host');
+
+      expect(result!.serverType, ServerType.jellyfin);
+    });
+
+    test('an unreachable host fails once instead of once per path', () async {
+      for (final type in [
+        DioExceptionType.connectionError,
+        DioExceptionType.connectionTimeout,
+        DioExceptionType.badCertificate,
+      ]) {
+        var calls = 0;
+        final dio = _dioWith((uri) {
+          calls++;
+          throw DioException(
+            requestOptions: RequestOptions(path: uri.toString()),
+            type: type,
+          );
+        });
+
+        await expectLater(
+          probeServerPublicInfo(dio, 'https://dead.host'),
+          throwsA(isA<DioException>().having((e) => e.type, 'type', type)),
+        );
+        expect(calls, 1, reason: '$type');
+      }
     });
   });
 }

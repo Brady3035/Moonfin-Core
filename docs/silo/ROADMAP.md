@@ -42,7 +42,7 @@ Status key: ☐ not started · ◐ in progress · ☑ done and tested · ⊘ ski
 - [x] **1.6** [`SiloSystemApi`](phases/01-groundwork.md#step-1-6) · ↺ port
 - [x] **1.7** [`playback_silo` package skeleton](phases/01-groundwork.md#step-1-7) · ↺ port
 - [x] **1.8** [Wire Silo into the app's factories](phases/01-groundwork.md#step-1-8) · ↺ port
-- [ ] **1.9** [Detect Silo in the server probe](phases/01-groundwork.md#step-1-9) · ↺ port
+- [x] **1.9** [Detect Silo in the server probe](phases/01-groundwork.md#step-1-9) · ↺ port
 - [ ] **1.10** [Add the Silo packages to CI](phases/01-groundwork.md#step-1-10)
 - [ ] **1.11** [Silo server icon](phases/01-groundwork.md#step-1-11) · ↺ port
 - [ ] **1.12** [Shared auth headers for hand-built requests](phases/01-groundwork.md#step-1-12) · ↺ port

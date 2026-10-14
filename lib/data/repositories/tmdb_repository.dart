@@ -4,6 +4,8 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:server_core/server_core.dart';
 
+import '../../util/signed_in_server_features.dart';
+
 /// A studio for the details screen: its name and, when the plugin has a cached
 /// logo, an authenticated URL to that logo image.
 typedef StudioCompany = ({String name, String? imageUrl});
@@ -25,6 +27,10 @@ class TmdbRepository {
   final _pendingCompanies = <String, Completer<List<StudioCompany>?>>{};
 
   TmdbRepository(this._client);
+
+  /// The TMDB proxy is part of the Moonfin plugin, which Silo never has: no
+  /// request, no URL.
+  bool get _hasPlugin => serverHasMoonfinPlugin(_client);
 
   /// Fetches the item's studios (TMDB production companies) from the Moonfin
   /// plugin, which caches the logos server-side. Returns null when the plugin
@@ -80,7 +86,7 @@ class TmdbRepository {
 
   String? _studioImageUrl(int companyId) {
     final token = _client.accessToken;
-    if (token == null) return null;
+    if (token == null || !_hasPlugin) return null;
     return '${_client.baseUrl}/Moonfin/Tmdb/StudioImage/$companyId?${_client.serverType.tokenQueryParam}=$token';
   }
 
@@ -89,7 +95,7 @@ class TmdbRepository {
   /// [tmdbId].
   String? thumbUrl({required String type, String? tmdbId, String? imdbId}) {
     final token = _client.accessToken;
-    if (token == null) return null;
+    if (token == null || !_hasPlugin) return null;
     final MapEntry<String, String> id;
     if (tmdbId != null && tmdbId.isNotEmpty) {
       id = MapEntry('tmdbId', tmdbId);
@@ -214,7 +220,7 @@ class TmdbRepository {
     Map<String, dynamic> query,
   ) async {
     final token = _client.accessToken;
-    if (token == null) return null;
+    if (token == null || !_hasPlugin) return null;
 
     final response = await _dio.get(
       '${_client.baseUrl}$path',

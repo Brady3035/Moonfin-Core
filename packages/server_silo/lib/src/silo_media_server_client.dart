@@ -6,6 +6,7 @@ import 'api/silo_live_tv_api.dart';
 import 'api/silo_pending_api.dart';
 import 'api/silo_system_api.dart';
 import 'silo_problem.dart';
+import 'silo_session.dart';
 
 /// Moonfin's client for a Silo server, speaking Silo's native `/api/v2`.
 ///
@@ -32,14 +33,19 @@ class SiloMediaServerClient extends MediaServerClient
   /// `Android TV`). Supplied by the app, which knows the platform.
   final String? platform;
 
+  /// Sign-in state: the account's token pair (see [SiloSession]).
+  final SiloSession session;
+
   /// [httpClientAdapter] replaces the network transport; tests use it to
-  /// answer from captured server responses.
+  /// answer from captured server responses. [clock] lets tests move time.
   SiloMediaServerClient({
     required String baseUrl,
     required this.deviceInfo,
     this.platform,
     HttpClientAdapter? httpClientAdapter,
-  }) : _dio = Dio(
+    DateTime Function()? clock,
+  }) : session = SiloSession(clock: clock),
+       _dio = Dio(
          BaseOptions(
            baseUrl: baseUrl,
            followRedirects: false,
@@ -50,22 +56,44 @@ class SiloMediaServerClient extends MediaServerClient
          ),
        ) {
     _baseUrl = baseUrl;
+    // The profile selection and its PIN proof belong to the login they were
+    // made under, so they go when that login is replaced or ends. Callers
+    // pick a profile after setting tokens.
+    session.addAccountChangedListener(() {
+      _profileId = null;
+      _profileToken = null;
+    });
     configureServerDio(_dio);
     if (httpClientAdapter != null) _dio.httpClientAdapter = httpClientAdapter;
     _setupInterceptors();
   }
 
   late String _baseUrl;
-  String? _accessToken;
   String? _userId;
+  String? _profileId;
+  String? _profileToken;
 
   /// The household profile requests act as (`X-Profile-Id`).
   @override
-  String? profileId;
+  String? get profileId => _profileId;
+
+  @override
+  set profileId(String? id) {
+    if (id == _profileId) return;
+    _profileId = id;
+    session.identityChanged();
+  }
 
   /// Proof that a PIN-locked profile was unlocked (`X-Profile-Token`).
   @override
-  String? profileToken;
+  String? get profileToken => _profileToken;
+
+  @override
+  set profileToken(String? token) {
+    if (token == _profileToken) return;
+    _profileToken = token;
+    session.identityChanged();
+  }
 
   // Progress goes out every few seconds and would fill the report inside an
   // hour, so only one answer a minute is kept. A ping that fails still goes
@@ -87,9 +115,9 @@ class SiloMediaServerClient extends MediaServerClient
   Map<String, String> get requestHeaders => buildSiloRequestHeaders(
     deviceInfo: deviceInfo,
     platform: platform,
-    accessToken: _accessToken,
-    profileId: profileId,
-    profileToken: profileToken,
+    accessToken: session.accessToken,
+    profileId: _profileId,
+    profileToken: _profileToken,
   );
 
   /// The same headers as [requestHeaders], for requests made outside this
@@ -107,7 +135,11 @@ class SiloMediaServerClient extends MediaServerClient
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) {
-          options.headers.addAll(requestHeaders);
+          final headers = requestHeaders;
+          if (options.extra[siloNoAuthExtra] == true) {
+            headers.remove('Authorization');
+          }
+          options.headers.addAll(headers);
           if (!_isProgressPing(options.uri)) {
             ServerLog.network('→ ${options.method} ${options.uri}');
           }
@@ -147,11 +179,14 @@ class SiloMediaServerClient extends MediaServerClient
     _dio.options.baseUrl = url;
   }
 
+  /// The account's current access token. Setting it from outside (the
+  /// generic sign-in path) keeps the refresh token when the value matches the
+  /// session's pair; restore a full pair with [SiloSession.setTokens].
   @override
-  String? get accessToken => _accessToken;
+  String? get accessToken => session.accessToken;
 
   @override
-  set accessToken(String? token) => _accessToken = token;
+  set accessToken(String? token) => session.setAccessToken(token);
 
   @override
   String? get userId => _userId;

@@ -138,7 +138,7 @@ void main() {
     expect(storage.read('s1', '9')?.refreshToken, 'refresh-2');
   });
 
-  test('a refused refresh saves nothing', () async {
+  test('a refused refresh forgets the stored pair', () async {
     final server = _RefreshServer()..refuse = true;
     final client = _silo(server);
     await storage.save('s1', '9', client.session.tokens!);
@@ -147,7 +147,8 @@ void main() {
     await client.refreshSession();
     await pumpEventQueue();
 
-    expect(storage.read('s1', '9')?.refreshToken, 'refresh-0');
+    // Silo refused it, so nothing should ever restore it again (3.5).
+    expect(storage.read('s1', '9'), isNull);
   });
 
   test('unbind stops saving', () async {

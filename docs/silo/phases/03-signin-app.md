@@ -195,7 +195,7 @@ Sign-out needed no change either: `logout` revokes the session (2.4), and removi
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 3.3 |
+| ☑ Done | `9c1345d` | 3.3 |
 
 **Goal.** Set token and profile on the client, refreshing first when the access token has expired.
 
@@ -255,7 +255,7 @@ When the app starts (or switches users), Moonfin hands each stored user's login 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-13 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | `test/auth` 112/112; session/multi-server related tests 232/232; analyzer: no errors |
-| | | | | |
+| 2026-10-14 | macOS (Brady) | 4b2e921c | Pass | Overnight relaunch (test 2) went well: stayed signed in. Tests 1, 3 and 4 run before committing. |
 
 ---
 
@@ -264,34 +264,56 @@ When the app starts (or switches users), Moonfin hands each stored user's login 
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 3.4 |
 
 **Goal.** When Silo refuses the refresh token, forget that Silo user and route to the login screen.
 
 **Where in Moonfin**
 
-- `lib/auth/services/silo_account_service.dart`
+- `lib/auth/services/silo_token_storage.dart`
+- `lib/auth/repositories/session_repository.dart`
 
 **Earlier work to port:** stash
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+A Silo login can end while Moonfin is running: someone signs the session out from Silo's sessions page, an admin revokes it, or the device sat idle past the refresh token's expiry. Silo then refuses the next refresh with a 401, and 2.1 ends the session (`onSessionEnded`). Before this step nothing listened. The session kept going with no tokens, and every request failed until the app was restarted. At start-up, 3.4 already covers it: the token check signs out.
+
+**`SiloTokenStorage.bind`** now also listens for the end of the session:
+- **Forgets the dead pair** (`removeSiloAccount`), so nothing restores a refresh token Silo has already refused (before, the next start would have tried it once more).
+- Calls an optional **`onEnded`**.
+
+**`SessionRepository`** passes `onEnded` when it restores the active session (3.4). `_onSiloLoginEnded` checks that the ended login is still the **active** session; a late callback for a session the person already left does nothing. It then does what a rejected token at start-up does:
+- `destroyCurrentSession(tokenKnownInvalid: true)`: removes the stored user, sends no logout with the dead token, and clears the active client;
+- opens the login screen with the server and the name filled in.
+
+**Keeping the handler.** The multi-server rows restore the active client again (3.4), without an `onEnded`. `restore` now keeps an existing binding for the same (server, account) when no `onEnded` is given, so that second restore doesn't silently remove the sign-out handling. A restore *with* `onEnded` (the session repository) always rebinds. The binding is tracked per session in an `Expando`.
+
+**Only a refused refresh does this.** A refresh that fails with a 503, a timeout or no network keeps the login (2.1), so a flaky connection never signs anyone out.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `test/auth/silo_session_restore_test.dart`, new group (5 tests):
+  - a refused refresh forgets the stored pair, clears the session and calls `onEnded` once;
+  - a later restore without `onEnded` (the multi-server rows) keeps the handler;
+  - a restore with a new `onEnded` replaces the old one;
+  - a 503 refresh ends nothing and keeps the stored pair;
+  - `unbind` stops the reporting.
+- `test/auth/silo_token_storage_test.dart`: the refused-refresh test now expects the stored pair to be forgotten.
+- `SessionRepository._onSiloLoginEnded` itself isn't unit-tested. Driving `switchCurrentSession` to an active session needs most of the app's services. It reuses the start-up path (`destroyCurrentSession(tokenKnownInvalid: true)` and the login route), which `session_dead_token_test.dart` covers.
 
 **Manual test plan**
 
-- Revoke the session from Silo's web UI (account → sessions); Moonfin returns to sign-in.
+- Nothing triggers it yet: at this stage Moonfin makes no requests after a session starts (Home and libraries are still placeholders), so a revoked login is only noticed at the next start (3.4, test 3). The live check is in step 6.4's test plan: revoke while browsing, open another library, and land on the login screen.
+- Regression: sign in and out on Silo and Emby; full `flutter test`.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | `test/auth` 117/117; analyzer: no new issues |
 | | | | | |
 
 ---

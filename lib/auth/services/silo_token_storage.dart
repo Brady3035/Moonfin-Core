@@ -42,19 +42,36 @@ class SiloTokenStorage {
   ///
   /// A failed save is swallowed: the session in memory is already renewed,
   /// and the worst case is a sign-in on the next start (2.1).
+  ///
+  /// When Silo refuses the refresh token (the login was revoked or has
+  /// expired), the dead pair is forgotten so nothing restores it again, and
+  /// [onEnded] runs: the session repository uses it to send the person back
+  /// to sign-in (3.5).
   void bind({
     required SiloMediaServerClient client,
     required String serverId,
     required String accountId,
+    void Function()? onEnded,
   }) {
     client.session.onTokensChanged = (tokens) {
       save(serverId, accountId, tokens).ignore();
     };
+    client.session.onSessionEnded = (_) {
+      _store.removeSiloAccount(serverId, accountId).ignore();
+      onEnded?.call();
+    };
+    _bindings[client.session] = '$serverId\u0000$accountId';
   }
+
+  /// Which (server, account) each session is bound to, so a repeated
+  /// [restore] can keep an existing binding and its [bind] `onEnded`.
+  static final _bindings = Expando<String>('silo binding');
 
   /// Stops saving refreshes from [client] (sign-out).
   void unbind(SiloMediaServerClient client) {
     client.session.onTokensChanged = null;
+    client.session.onSessionEnded = null;
+    _bindings[client.session] = null;
   }
 
   /// Puts a stored Silo [user]'s login on [client]: the account's token pair
@@ -75,7 +92,15 @@ class SiloTokenStorage {
   ///
   /// An expired access token is fine: the session interceptor (2.2) refreshes
   /// it before the first request.
-  bool restore({required MediaServerClient client, required PrivateUser user}) {
+  ///
+  /// [onEnded] is passed to [bind]. Without it, a client already bound to
+  /// this account keeps its binding, so the multi-server rows restoring the
+  /// active client don't drop the session repository's sign-out handling.
+  bool restore({
+    required MediaServerClient client,
+    required PrivateUser user,
+    void Function()? onEnded,
+  }) {
     final silo = siloClientOf(client);
     final accountId = user.siloAccountId;
     if (silo == null || accountId == null) return false;
@@ -92,7 +117,16 @@ class SiloTokenStorage {
     // The stored user is the account's main profile (decision D9).
     silo.profileId = user.id;
     silo.userId = user.id;
-    bind(client: silo, serverId: user.serverId, accountId: accountId);
+    final alreadyBound =
+        _bindings[silo.session] == '${user.serverId}\u0000$accountId';
+    if (onEnded != null || !alreadyBound) {
+      bind(
+        client: silo,
+        serverId: user.serverId,
+        accountId: accountId,
+        onEnded: onEnded,
+      );
+    }
     return true;
   }
 }

@@ -41,6 +41,7 @@ PrivateUser _user({String? account = '9', String token = 'access-old'}) =>
 /// Refresh hands out pair "new"; `/account/me` answers any bearer token.
 class _Silo implements HttpClientAdapter {
   final requests = <RequestOptions>[];
+  bool refuseRefresh = false;
 
   @override
   Future<ResponseBody> fetch(
@@ -49,6 +50,19 @@ class _Silo implements HttpClientAdapter {
     Future<void>? cancelFuture,
   ) async {
     requests.add(options);
+    if (refuseRefresh && options.uri.path == '/api/v2/auth/refresh') {
+      return ResponseBody.fromString(
+        jsonEncode({
+          'type': 'https://siloserver.org/docs/api/v2/problems/invalid_token',
+          'status': 401,
+          'detail': 'The refresh token is no longer valid.',
+        }),
+        401,
+        headers: {
+          Headers.contentTypeHeader: ['application/problem+json'],
+        },
+      );
+    }
     final body = switch (options.uri.path) {
       '/api/v2/auth/refresh' => {
         'access_token': 'access-new',
@@ -198,4 +212,101 @@ void main() {
     );
     expect(client.accessToken, isNull);
   });
+
+  group('a refused refresh (3.5)', () {
+    test('forgets the dead pair and reports the end', () async {
+      await storage.save('s1', '9', _pair('1'));
+      var ended = 0;
+      storage.restore(client: client, user: _user(), onEnded: () => ended++);
+      server.refuseRefresh = true;
+
+      await client.refreshSession();
+      await pumpEventQueue();
+
+      expect(ended, 1);
+      expect(storage.read('s1', '9'), isNull);
+      expect(client.session.tokens, isNull);
+    });
+
+    test('a later restore without onEnded keeps the handler', () async {
+      await storage.save('s1', '9', _pair('1'));
+      var ended = 0;
+      storage.restore(client: client, user: _user(), onEnded: () => ended++);
+      // The multi-server rows hand the active client its user again.
+      storage.restore(client: client, user: _user());
+      server.refuseRefresh = true;
+
+      await client.refreshSession();
+      await pumpEventQueue();
+
+      expect(ended, 1);
+    });
+
+    test('a restore with a new onEnded replaces the old one', () async {
+      await storage.save('s1', '9', _pair('1'));
+      final calls = <String>[];
+      storage.restore(
+        client: client,
+        user: _user(),
+        onEnded: () => calls.add('a'),
+      );
+      storage.restore(
+        client: client,
+        user: _user(),
+        onEnded: () => calls.add('b'),
+      );
+      server.refuseRefresh = true;
+
+      await client.refreshSession();
+      await pumpEventQueue();
+
+      expect(calls, ['b']);
+    });
+
+    test('a refresh that fails with 503 ends nothing', () async {
+      await storage.save('s1', '9', _pair('1'));
+      var ended = 0;
+      storage.restore(client: client, user: _user(), onEnded: () => ended++);
+      final unavailable = _Unavailable();
+      client = SiloMediaServerClient(
+        baseUrl: 'https://silo.example',
+        deviceInfo: _device,
+        httpClientAdapter: unavailable,
+        clock: () => _now,
+      );
+      storage.restore(client: client, user: _user(), onEnded: () => ended++);
+
+      await client.refreshSession();
+      await pumpEventQueue();
+
+      expect(ended, 0);
+      expect(storage.read('s1', '9')?.refreshToken, 'refresh-1');
+    });
+
+    test('unbind stops reporting', () async {
+      await storage.save('s1', '9', _pair('1'));
+      var ended = 0;
+      storage.restore(client: client, user: _user(), onEnded: () => ended++);
+      storage.unbind(client);
+      server.refuseRefresh = true;
+
+      await client.refreshSession();
+      await pumpEventQueue();
+
+      expect(ended, 0);
+    });
+  });
+}
+
+/// Answers everything with a 503.
+class _Unavailable implements HttpClientAdapter {
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<void>? cancelFuture,
+  ) async => ResponseBody.fromString('', 503);
+
+  @override
+  void close({bool force = false}) {}
 }

@@ -7,6 +7,7 @@ import 'api/silo_pending_api.dart';
 import 'api/silo_system_api.dart';
 import 'silo_problem.dart';
 import 'silo_session.dart';
+import 'silo_session_interceptor.dart';
 
 /// Moonfin's client for a Silo server, speaking Silo's native `/api/v2`.
 ///
@@ -25,6 +26,11 @@ import 'silo_session.dart';
 class SiloMediaServerClient extends MediaServerClient
     implements ProfileAwareClient {
   final Dio _dio;
+
+  /// Sends refreshes (and, from step 2.3, sign-in). It has the same headers,
+  /// error parsing and redirect rule as [_dio] but no session interceptor, so
+  /// a refresh never re-enters the request pipeline it is repairing.
+  final Dio _authDio;
 
   @override
   final DeviceInfo deviceInfo;
@@ -45,16 +51,8 @@ class SiloMediaServerClient extends MediaServerClient
     HttpClientAdapter? httpClientAdapter,
     DateTime Function()? clock,
   }) : session = SiloSession(clock: clock),
-       _dio = Dio(
-         BaseOptions(
-           baseUrl: baseUrl,
-           followRedirects: false,
-           // Only the connect. Waiting for a free slot happens before this
-           // starts, so it can stay short enough to give up on a hung host.
-           connectTimeout: const Duration(seconds: 8),
-           receiveTimeout: const Duration(minutes: 3),
-         ),
-       ) {
+       _dio = _newDio(baseUrl),
+       _authDio = _newDio(baseUrl) {
     _baseUrl = baseUrl;
     // The profile selection and its PIN proof belong to the login they were
     // made under, so they go when that login is replaced or ends. Callers
@@ -63,10 +61,23 @@ class SiloMediaServerClient extends MediaServerClient
       _profileId = null;
       _profileToken = null;
     });
-    configureServerDio(_dio);
-    if (httpClientAdapter != null) _dio.httpClientAdapter = httpClientAdapter;
+    for (final dio in [_dio, _authDio]) {
+      configureServerDio(dio);
+      if (httpClientAdapter != null) dio.httpClientAdapter = httpClientAdapter;
+    }
     _setupInterceptors();
   }
+
+  static Dio _newDio(String baseUrl) => Dio(
+    BaseOptions(
+      baseUrl: baseUrl,
+      followRedirects: false,
+      // Only the connect. Waiting for a free slot happens before this
+      // starts, so it can stay short enough to give up on a hung host.
+      connectTimeout: const Duration(seconds: 8),
+      receiveTimeout: const Duration(minutes: 3),
+    ),
+  );
 
   late String _baseUrl;
   String? _userId;
@@ -126,46 +137,58 @@ class SiloMediaServerClient extends MediaServerClient
   Map<String, String> authHeaders() => requestHeaders;
 
   void _setupInterceptors() {
-    // Requests carry the bearer token (and, at sign-in, the password), so
-    // redirects are only followed within the same origin.
-    _dio.interceptors.add(redirectInterceptor(_dio, sameOriginOnly: true));
-    // Added before the logger so a failure is logged with Silo's problem code
-    // and text (error interceptors run in the order they were added).
-    _dio.interceptors.add(siloProblemInterceptor());
-    _dio.interceptors.add(
-      InterceptorsWrapper(
-        onRequest: (options, handler) {
-          final headers = requestHeaders;
-          if (options.extra[siloNoAuthExtra] == true) {
-            headers.remove('Authorization');
-          }
-          options.headers.addAll(headers);
-          if (!_isProgressPing(options.uri)) {
-            ServerLog.network('→ ${options.method} ${options.uri}');
-          }
-          handler.next(options);
-        },
-        onResponse: (response, handler) {
-          final uri = response.requestOptions.uri;
-          if (!_isProgressPing(uri) || _progressPingIsDue()) {
-            ServerLog.network(
-              '← ${response.statusCode} ${response.requestOptions.method} $uri',
-            );
-          }
-          handler.next(response);
-        },
-        onError: (error, handler) {
-          ServerLog.network(
-            '✗ ${error.requestOptions.method} ${error.requestOptions.uri} '
-            '(${error.response?.statusCode ?? error.type.name})',
-            level: ServerLogLevel.error,
-            error: error.message ?? error.toString(),
-          );
-          handler.next(error);
-        },
-      ),
-    );
+    for (final dio in [_dio, _authDio]) {
+      // Requests carry the bearer token (and, at sign-in, the password), so
+      // redirects are only followed within the same origin.
+      dio.interceptors.add(redirectInterceptor(dio, sameOriginOnly: true));
+      // Added before the logger so a failure is logged with Silo's problem
+      // code and text (error interceptors run in the order they were added).
+      dio.interceptors.add(siloProblemInterceptor());
+      if (identical(dio, _dio)) {
+        // Before the header interceptor, so a refresh made before sending is
+        // in place when the bearer token is written into the request.
+        dio.interceptors.add(SiloSessionInterceptor(_dio, _authDio, session));
+      }
+      dio.interceptors.add(_headersAndLogging());
+    }
   }
+
+  InterceptorsWrapper _headersAndLogging() => InterceptorsWrapper(
+    onRequest: (options, handler) {
+      final headers = requestHeaders;
+      if (options.extra[siloNoAuthExtra] == true) {
+        headers.remove('Authorization');
+      }
+      options.headers.addAll(headers);
+      if (!_isProgressPing(options.uri)) {
+        ServerLog.network('→ ${options.method} ${options.uri}');
+      }
+      handler.next(options);
+    },
+    onResponse: (response, handler) {
+      final uri = response.requestOptions.uri;
+      if (!_isProgressPing(uri) || _progressPingIsDue()) {
+        ServerLog.network(
+          '← ${response.statusCode} ${response.requestOptions.method} $uri',
+        );
+      }
+      handler.next(response);
+    },
+    onError: (error, handler) {
+      ServerLog.network(
+        '✗ ${error.requestOptions.method} ${error.requestOptions.uri} '
+        '(${error.response?.statusCode ?? error.type.name})',
+        level: ServerLogLevel.error,
+        error: error.message ?? error.toString(),
+      );
+      handler.next(error);
+    },
+  );
+
+  /// Refreshes the session's tokens now, through the refresh client. The
+  /// interceptor does this on its own; this is for the app (phase 3) when it
+  /// restores a session whose access token has already expired.
+  Future<bool> refreshSession() => session.refresh(_authDio);
 
   @override
   ServerType get serverType => ServerType.silo;
@@ -177,6 +200,7 @@ class SiloMediaServerClient extends MediaServerClient
   set baseUrl(String url) {
     _baseUrl = url;
     _dio.options.baseUrl = url;
+    _authDio.options.baseUrl = url;
   }
 
   /// The account's current access token. Setting it from outside (the
@@ -272,5 +296,6 @@ class SiloMediaServerClient extends MediaServerClient
   @override
   void dispose() {
     _dio.close();
+    _authDio.close();
   }
 }

@@ -358,6 +358,7 @@ void main() {
           appVersion: '1',
         ),
         httpClientAdapter: server,
+        clock: () => _t0,
       )..session.setTokens(_pair('a1'));
       expect(await c.systemApi.ping(), isTrue);
       expect(server.requests.single.headers['Authorization'], 'Bearer a1');

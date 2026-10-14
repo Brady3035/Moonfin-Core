@@ -26531,6 +26531,78 @@ abstract class AppLocalizations {
   /// **'Controls, seeking, player buttons, and trick play'**
   String get playerSettingsSubtitle;
 
+  /// Title of the dialog shown after signing in to a Silo server with a temporary password
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a new password'**
+  String get siloPasswordChangeTitle;
+
+  /// Explanation in the Silo change-password dialog. The temporary password was set by the server's admin.
+  ///
+  /// In en, this message translates to:
+  /// **'This account has a temporary password. Choose a new one to finish signing in.'**
+  String get siloPasswordChangeMessage;
+
+  /// Field label in the Silo change-password dialog
+  ///
+  /// In en, this message translates to:
+  /// **'New password'**
+  String get siloPasswordChangeNew;
+
+  /// Field label in the Silo change-password dialog: the new password typed a second time
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm new password'**
+  String get siloPasswordChangeConfirm;
+
+  /// Button in the Silo change-password dialog that saves the new password and finishes signing in
+  ///
+  /// In en, this message translates to:
+  /// **'Change password'**
+  String get siloPasswordChangeSubmit;
+
+  /// Error in the Silo change-password dialog when the new password is shorter than the server allows
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Use at least 1 character} other{Use at least {count} characters}}'**
+  String siloPasswordChangeTooShort(int count);
+
+  /// Error in the Silo change-password dialog when the new password is longer than the server allows
+  ///
+  /// In en, this message translates to:
+  /// **'That password is too long'**
+  String get siloPasswordChangeTooLong;
+
+  /// Error in the Silo change-password dialog when the two new password fields differ
+  ///
+  /// In en, this message translates to:
+  /// **'The passwords don\'t match'**
+  String get siloPasswordChangeMismatch;
+
+  /// Error in the Silo change-password dialog when the new password equals the temporary one used to sign in
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a password different from the temporary one'**
+  String get siloPasswordChangeSameAsTemporary;
+
+  /// Error in the Silo change-password dialog when the request failed (network or server error)
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t change the password. Try again.'**
+  String get siloPasswordChangeFailed;
+
+  /// Sign-in error for a Silo account with a temporary password when the server has password changes switched off
+  ///
+  /// In en, this message translates to:
+  /// **'This account has a temporary password, and this server doesn\'t allow changing it here. Change it in Silo\'s web app, then sign in again.'**
+  String get siloPasswordChangeUnavailable;
+
+  /// Shown on the sign-in screen when the Silo password was changed but the session could not continue
+  ///
+  /// In en, this message translates to:
+  /// **'Your password was changed. Sign in with the new password.'**
+  String get siloPasswordChangedSignInAgain;
+
   /// Label for sorting playlist items by release date
   ///
   /// In en, this message translates to:

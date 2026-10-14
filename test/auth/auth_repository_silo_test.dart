@@ -50,14 +50,44 @@ const _account = {
   'password_change_required': false,
 };
 
-/// A small Silo: sign-in, profiles, account and sign-out.
+/// The routes a login holding a temporary password may call (Silo's
+/// `passwordChangeRoutes`); the others answer `403 password_change_required`.
+const _passwordChangeRoutes = {
+  '/api/v2/account/me',
+  '/api/v2/account/password/capability',
+  '/api/v2/account/password',
+  '/api/v2/auth/logout',
+};
+
+/// A small Silo: sign-in, profiles, account and sign-out, plus the
+/// temporary-password flow (3.6).
 class _Silo implements HttpClientAdapter {
   bool wrongPassword = false;
   bool mainHasPin = false;
   bool profilesFail = false;
+
+  /// The account holds a temporary password: logins it opens are restricted
+  /// until it is changed and the login refreshed.
+  bool temporaryPassword = false;
+  bool passwordChangesOff = false;
+  bool changeFails = false;
+  bool refreshFails = false;
+  final restrictedTokens = <String>{};
+  int _issued = 0;
   final requests = <RequestOptions>[];
 
   List<String> get paths => [for (final r in requests) r.uri.path];
+
+  Map<String, dynamic> _pair() {
+    _issued++;
+    final access = 'access-$_issued';
+    if (temporaryPassword) restrictedTokens.add(access);
+    return {
+      'access_token': access,
+      'refresh_token': 'refresh-$_issued',
+      'expires_in': 3600,
+    };
+  }
 
   @override
   Future<ResponseBody> fetch(
@@ -66,7 +96,20 @@ class _Silo implements HttpClientAdapter {
     Future<void>? cancelFuture,
   ) async {
     requests.add(options);
-    switch (options.uri.path) {
+    final path = options.uri.path;
+    final bearer = (options.headers['Authorization'] as String?)?.replaceFirst(
+      'Bearer ',
+      '',
+    );
+    if (restrictedTokens.contains(bearer) &&
+        !_passwordChangeRoutes.contains(path)) {
+      return _problem(
+        403,
+        'password_change_required',
+        'Change the temporary password first.',
+      );
+    }
+    switch (path) {
       case '/api/v2/auth/login':
         if (wrongPassword) {
           return _problem(
@@ -76,11 +119,41 @@ class _Silo implements HttpClientAdapter {
           );
         }
         return _json(200, {
-          'access_token': 'access-1',
-          'refresh_token': 'refresh-1',
-          'expires_in': 3600,
-          'user': _account,
+          ..._pair(),
+          'user': {..._account, 'password_change_required': temporaryPassword},
         });
+      case '/api/v2/auth/refresh':
+        if (refreshFails) return _problem(503, 'unavailable', 'Try again.');
+        return _json(200, _pair());
+      case '/api/v2/account/password/capability':
+        return _json(200, {
+          'requires_current_password': true,
+          'minimum_password_length': 8,
+          'maximum_password_bytes': 72,
+          'revision': 'r1',
+          'state': passwordChangesOff ? 'disabled' : 'available',
+          'allowed': !passwordChangesOff,
+        });
+      case '/api/v2/account/password':
+        if (changeFails) return _problem(503, 'unavailable', 'Try again.');
+        final body = options.data as Map<String, dynamic>;
+        if (body['new_password'] == body['current_password']) {
+          return _json(422, {
+            'type':
+                'https://siloserver.org/docs/api/v2/problems/validation_failed',
+            'status': 422,
+            'detail': 'The request did not pass validation; see errors.',
+            'errors': [
+              {
+                'location': 'body.new_password',
+                'code': 'invalid',
+                'detail': 'Choose a password different from the temporary one.',
+              },
+            ],
+          });
+        }
+        temporaryPassword = false;
+        return ResponseBody.fromString('', 204);
       case '/api/v2/profiles':
         if (profilesFail) return _problem(503, 'unavailable', 'Try again.');
         return _json(200, {
@@ -141,6 +214,7 @@ void main() {
   late _Users users;
   late _Silo silo;
   late SiloMediaServerClient client;
+  late AuthRepository repo;
 
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
@@ -154,15 +228,15 @@ void main() {
       deviceInfo: _device,
       httpClientAdapter: silo,
     );
+    repo = AuthRepository(store, prefs, _Sessions(), users);
   });
 
-  Future<LoginState> signIn() =>
-      AuthRepository(store, prefs, _Sessions(), users).authenticate(
-        client: client,
-        serverId: 's1',
-        username: 'brady',
-        password: 'secret',
-      );
+  Future<LoginState> signIn() => repo.authenticate(
+    client: client,
+    serverId: 's1',
+    username: 'brady',
+    password: 'secret',
+  );
 
   test('signs in as the main profile and stores it', () async {
     final state = await signIn();
@@ -253,5 +327,142 @@ void main() {
 
     expect(store.getUsers('s1'), hasLength(1));
     expect(store.getSiloAccountIds('s1'), ['9']);
+  });
+
+  group('temporary password (3.6)', () {
+    setUp(() => silo.temporaryPassword = true);
+
+    test('asks for a new password and keeps the login open, unsaved', () async {
+      final state = await signIn();
+
+      expect(state, isA<SiloPasswordChangeRequired>());
+      state as SiloPasswordChangeRequired;
+      expect(state.minimumLength, 8);
+      expect(state.maximumBytes, 72);
+      // No profile pick (Silo would refuse it) and no sign-out.
+      expect(silo.paths, [
+        '/api/v2/auth/login',
+        '/api/v2/account/password/capability',
+      ]);
+      expect(client.session.tokens?.accessToken, 'access-1');
+      expect(store.getUsers('s1'), isEmpty);
+      expect(store.getSiloAccountIds('s1'), isEmpty);
+    });
+
+    test(
+      'a new password lifts the restriction and finishes signing in',
+      () async {
+        await signIn();
+
+        final state = await repo.changeRequiredSiloPassword('brand new pass');
+
+        expect(state, isA<Authenticated>());
+        expect((state as Authenticated).userId, _mainId);
+        final change = silo.requests.firstWhere(
+          (r) => r.uri.path == '/api/v2/account/password',
+        );
+        // The password the person signed in with goes along as the current one.
+        expect(change.data, {
+          'current_password': 'secret',
+          'new_password': 'brand new pass',
+        });
+        expect(
+          silo.paths,
+          containsAllInOrder([
+            '/api/v2/account/password',
+            '/api/v2/auth/refresh',
+            '/api/v2/profiles',
+          ]),
+        );
+        // The renewed, unrestricted pair is the one stored and used.
+        expect(
+          SiloTokenStorage(store).read('s1', '9')?.refreshToken,
+          'refresh-2',
+        );
+        expect(store.getUser('s1', _mainId)?.accessToken, 'access-2');
+        expect(client.profileId, _mainId);
+      },
+    );
+
+    test(
+      'a refused new password keeps the login open for another try',
+      () async {
+        await signIn();
+
+        final refused = await repo.changeRequiredSiloPassword('secret');
+        expect(refused, isA<SiloPasswordChangeRejected>());
+        expect(
+          (refused as SiloPasswordChangeRejected).detail,
+          'Choose a password different from the temporary one.',
+        );
+        expect(silo.paths, isNot(contains('/api/v2/auth/logout')));
+
+        final state = await repo.changeRequiredSiloPassword('brand new pass');
+        expect(state, isA<Authenticated>());
+      },
+    );
+
+    test('a failed request keeps the login open too', () async {
+      await signIn();
+      silo.changeFails = true;
+
+      final failed = await repo.changeRequiredSiloPassword('brand new pass');
+      expect(failed, isA<SiloPasswordChangeRejected>());
+      expect((failed as SiloPasswordChangeRejected).detail, isNull);
+
+      silo.changeFails = false;
+      final state = await repo.changeRequiredSiloPassword('brand new pass');
+      expect(state, isA<Authenticated>());
+    });
+
+    test('cancelling ends the login on Silo', () async {
+      await signIn();
+
+      await repo.cancelRequiredSiloPasswordChange();
+
+      expect(silo.paths.last, '/api/v2/auth/logout');
+      expect(client.session.tokens, isNull);
+      expect(store.getUsers('s1'), isEmpty);
+      // Nothing is waiting any more.
+      expect(
+        await repo.changeRequiredSiloPassword('brand new pass'),
+        isA<RequireSignIn>(),
+      );
+    });
+
+    test('password changes switched off: ends the login and says so', () async {
+      silo.passwordChangesOff = true;
+
+      final state = await signIn();
+
+      expect(state, isA<SiloPasswordChangeUnavailable>());
+      expect(silo.paths.last, '/api/v2/auth/logout');
+      expect(client.session.tokens, isNull);
+      expect(store.getUsers('s1'), isEmpty);
+    });
+
+    test(
+      'changed but not renewed: ends the login, asks to sign in again',
+      () async {
+        await signIn();
+        silo.refreshFails = true;
+
+        final state = await repo.changeRequiredSiloPassword('brand new pass');
+
+        expect(state, isA<SiloPasswordChangedSignInAgain>());
+        expect(silo.paths.last, '/api/v2/auth/logout');
+        expect(store.getUsers('s1'), isEmpty);
+        expect(store.getSiloAccountIds('s1'), isEmpty);
+      },
+    );
+
+    test('a new sign-in ends a change left waiting', () async {
+      await signIn();
+      silo.requests.clear();
+
+      await signIn();
+
+      expect(silo.paths.take(2), ['/api/v2/auth/logout', '/api/v2/auth/login']);
+    });
   });
 }

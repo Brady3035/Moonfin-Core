@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:server_core/server_core.dart';
 
+import 'api/silo_account_api.dart';
 import 'api/silo_instant_mix_api.dart';
 import 'api/silo_live_tv_api.dart';
 import 'api/silo_auth_api.dart';
@@ -236,6 +237,10 @@ class SiloMediaServerClient extends MediaServerClient
 
   /// Silo's household profiles (no Moonfin interface; see [SiloProfilesApi]).
   late final SiloProfilesApi profilesApi = SiloProfilesApi(_dio);
+
+  /// The signed-in account's own password (no Moonfin interface; see
+  /// [SiloAccountApi]).
+  late final SiloAccountApi accountApi = SiloAccountApi(_dio);
 
   /// Finds the account's main profile and acts as it from now on: every
   /// request carries its `X-Profile-Id` (decision D9). Silo keeps progress,

@@ -5,6 +5,7 @@
 library;
 
 export 'src/silo_media_server_client.dart';
+export 'src/api/silo_account_api.dart';
 export 'src/api/silo_auth_api.dart';
 export 'src/api/silo_system_api.dart';
 export 'src/api/silo_users_api.dart';

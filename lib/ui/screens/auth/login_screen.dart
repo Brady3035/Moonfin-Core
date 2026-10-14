@@ -28,6 +28,7 @@ import '../../navigation/destinations.dart';
 import '../../widgets/allow_self_signed_dialog.dart';
 import '../../widgets/login_scaffold.dart';
 import '../../widgets/pin_entry_dialog.dart';
+import 'silo_password_change_dialog.dart';
 
 final _kAccent = AppColorScheme.accent;
 
@@ -527,7 +528,7 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      final result = await _authRepo.authenticate(
+      var result = await _authRepo.authenticate(
         client: _client!,
         serverId: _server!.id,
         username: username,
@@ -535,6 +536,30 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       if (!mounted) return;
+
+      if (result case SiloPasswordChangeRequired(
+        :final minimumLength,
+        :final maximumBytes,
+      )) {
+        final outcome = await SiloPasswordChangeDialog.show(
+          context,
+          minimumLength: minimumLength,
+          maximumBytes: maximumBytes,
+          temporaryPassword: _passwordController.text,
+          onSubmit: _authRepo.changeRequiredSiloPassword,
+          onCancel: _authRepo.cancelRequiredSiloPasswordChange,
+        );
+        if (!mounted) return;
+        if (outcome == null) {
+          // Cancelled: the login was ended; back to the form.
+          setState(() => _isLoading = false);
+          return;
+        }
+        // From here on the new password is the one that signs in (and the
+        // one handed on after sign-in, for Seerr).
+        _passwordController.text = outcome.newPassword;
+        result = outcome.state;
+      }
 
       final l10n = AppLocalizations.of(context);
       switch (result) {
@@ -590,6 +615,10 @@ class _LoginScreenState extends State<LoginScreen> {
           _finishLoginWithError(l10n.serverUnavailable);
         case UntrustedCertificate():
           _showUntrustedCertificate();
+        case SiloPasswordChangeUnavailable():
+          _finishLoginWithError(l10n.siloPasswordChangeUnavailable);
+        case SiloPasswordChangedSignInAgain():
+          _finishLoginWithError(l10n.siloPasswordChangedSignInAgain);
         default:
           _finishLoginWithError(l10n.loginFailed);
       }

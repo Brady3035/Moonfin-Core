@@ -24,6 +24,9 @@ class AuthRepository {
 
   late final SiloTokenStorage _siloTokens = SiloTokenStorage(_authStore);
 
+  /// A Silo login waiting for its temporary password to be replaced (3.6).
+  _PendingSiloPasswordChange? _pendingPasswordChange;
+
   AuthRepository(
     this._authStore,
     this._authPrefs,
@@ -39,6 +42,8 @@ class AuthRepository {
     required String username,
     required String password,
   }) async {
+    // A new attempt replaces a password change left unfinished.
+    await cancelRequiredSiloPasswordChange();
     _stateController.add(const Authenticating());
     try {
       final result = await client.authApi.authenticateByName(
@@ -52,6 +57,7 @@ class AuthRepository {
           client: client,
           silo: silo,
           serverId: serverId,
+          password: password,
         );
       }
       return _handleAuthResult(
@@ -155,11 +161,15 @@ class AuthRepository {
   /// If anything after the password fails (the main profile is PIN-locked,
   /// the network drops), the new login is ended on Silo too, so no session
   /// is left open that the app no longer knows about.
+  ///
+  /// A temporary password stops here instead: see
+  /// [_startRequiredPasswordChange].
   Future<LoginState> _handleSiloSignIn({
     required Map<String, dynamic> result,
     required MediaServerClient client,
     required SiloMediaServerClient silo,
     required String serverId,
+    required String password,
   }) async {
     final tokens = SiloTokens.fromJson(
       result[SiloAuthApi.siloTokensKey] as Map<String, dynamic>?,
@@ -172,6 +182,178 @@ class AuthRepository {
       return state;
     }
 
+    if (result[SiloAuthApi.siloPasswordChangeRequiredKey] == true) {
+      return _startRequiredPasswordChange(
+        _PendingSiloPasswordChange(
+          result: result,
+          client: client,
+          silo: silo,
+          serverId: serverId,
+          accountId: accountId,
+          currentPassword: password,
+        ),
+      );
+    }
+    return _finishSiloSignIn(
+      result: result,
+      client: client,
+      silo: silo,
+      serverId: serverId,
+      accountId: accountId,
+    );
+  }
+
+  /// The account holds a temporary password. Until it is replaced, Silo lets
+  /// this login read the account, change the password and sign out, and
+  /// answers everything else (picking the main profile included) with
+  /// `403 password_change_required`.
+  ///
+  /// So the login is kept open, unsaved, and the screen asks for a new
+  /// password ([SiloPasswordChangeRequired]). If Silo doesn't allow changing
+  /// it here, the login is ended and the screen points to Silo's web app.
+  Future<LoginState> _startRequiredPasswordChange(
+    _PendingSiloPasswordChange pending,
+  ) async {
+    final SiloPasswordCapability capability;
+    try {
+      capability = await pending.silo.accountApi.passwordCapability();
+    } catch (e) {
+      _logger.e('Silo password capability could not be read', error: e);
+      await _endSiloLogin(pending.client);
+      final state = e is DioException
+          ? _handleDioError(e)
+          : ApiClientError(error: e.toString(), errorType: 'exception');
+      if (e is! DioException) _stateController.add(state);
+      return state;
+    }
+
+    if (!capability.canChange) {
+      await _endSiloLogin(pending.client);
+      const state = SiloPasswordChangeUnavailable();
+      _stateController.add(state);
+      return state;
+    }
+
+    _pendingPasswordChange = pending;
+    final state = SiloPasswordChangeRequired(
+      minimumLength: capability.minimumLength,
+      maximumBytes: capability.maximumBytes,
+    );
+    _stateController.add(state);
+    return state;
+  }
+
+  /// Replaces the temporary password of the login [authenticate] left open
+  /// with [SiloPasswordChangeRequired], then finishes signing in.
+  ///
+  /// Silo needs the password in use with every change; that is the one the
+  /// person just signed in with, so they only type the new one.
+  ///
+  /// - [SiloPasswordChangeRejected]: the new password was refused, or the
+  ///   request failed (no network, `503`). The login stays open: try again.
+  /// - [SiloPasswordChangedSignInAgain]: the password changed but the login
+  ///   could not be renewed; it is ended.
+  /// - otherwise what a normal sign-in returns ([Authenticated], or the
+  ///   error that ended the login).
+  ///
+  /// After the change Silo signs out every **other** session of the account
+  /// (the temporary password may have been known to someone else). This one
+  /// is renewed: the refreshed tokens no longer carry the restriction.
+  Future<LoginState> changeRequiredSiloPassword(String newPassword) async {
+    final pending = _pendingPasswordChange;
+    if (pending == null) {
+      const state = RequireSignIn();
+      _stateController.add(state);
+      return state;
+    }
+
+    _stateController.add(const Authenticating());
+    try {
+      await pending.silo.accountApi.changePassword(
+        currentPassword: pending.currentPassword,
+        newPassword: newPassword,
+      );
+    } on SiloPasswordRejectedError catch (e) {
+      if (e.field == 'new_password') {
+        final state = SiloPasswordChangeRejected(detail: e.detail);
+        _stateController.add(state);
+        return state;
+      }
+      // The sign-in password no longer matches: it was changed elsewhere in
+      // the meantime. Start over.
+      _logger.w('Silo refused the current password during the change: $e');
+      return _abandonPasswordChange(pending);
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 401) {
+        // The login itself is gone (revoked, or the refresh was refused).
+        _logger.w('Silo login ended during the password change', error: e);
+        return _abandonPasswordChange(pending);
+      }
+      _logger.w('Silo password change failed', error: e);
+      const state = SiloPasswordChangeRejected();
+      _stateController.add(state);
+      return state;
+    }
+
+    _pendingPasswordChange = null;
+    // The access token still carries the restriction; a refresh reissues it
+    // from the account, which no longer holds a temporary password.
+    final renewed = await pending.silo.refreshSession().catchError(
+      (_) => false,
+    );
+    if (!renewed) {
+      await _endSiloLogin(pending.client);
+      const state = SiloPasswordChangedSignInAgain();
+      _stateController.add(state);
+      return state;
+    }
+    return _finishSiloSignIn(
+      result: pending.result,
+      client: pending.client,
+      silo: pending.silo,
+      serverId: pending.serverId,
+      accountId: pending.accountId,
+    );
+  }
+
+  /// Ends a login left open for a password change (the person cancelled the
+  /// dialog). Does nothing when none is waiting.
+  Future<void> cancelRequiredSiloPasswordChange() async {
+    final pending = _pendingPasswordChange;
+    if (pending == null) return;
+    _pendingPasswordChange = null;
+    await _endSiloLogin(pending.client);
+  }
+
+  Future<LoginState> _abandonPasswordChange(
+    _PendingSiloPasswordChange pending,
+  ) async {
+    _pendingPasswordChange = null;
+    await _endSiloLogin(pending.client);
+    const state = RequireSignIn();
+    _stateController.add(state);
+    return state;
+  }
+
+  /// Ends a Silo login on the server and the client, ignoring failures: the
+  /// client forgets the tokens either way (`SiloAuthApi.logout`).
+  Future<void> _endSiloLogin(MediaServerClient client) async {
+    try {
+      await client.authApi.logout();
+    } catch (_) {}
+  }
+
+  /// Picks the main profile, stores the user and the session's token pair,
+  /// and keeps saving the pair on every refresh. Reads the pair from the
+  /// session rather than the sign-in answer: after a password change (3.6)
+  /// it has been refreshed since.
+  Future<LoginState> _finishSiloSignIn({
+    required Map<String, dynamic> result,
+    required MediaServerClient client,
+    required SiloMediaServerClient silo,
+    required String serverId,
+    required String accountId,
+  }) async {
     final ServerUser profileUser;
     try {
       await silo.useMainProfile();
@@ -185,6 +367,14 @@ class AuthRepository {
           ? _handleDioError(e)
           : ApiClientError(error: e.toString(), errorType: 'exception');
       if (e is! DioException) _stateController.add(state);
+      return state;
+    }
+
+    final tokens = silo.session.tokens;
+    if (tokens == null) {
+      // Signed out while the profile was read.
+      const state = RequireSignIn();
+      _stateController.add(state);
       return state;
     }
 
@@ -284,4 +474,27 @@ class AuthRepository {
   void dispose() {
     _stateController.close();
   }
+}
+
+/// A Silo login that signed in with a temporary password, kept open (and
+/// unsaved) until the password is replaced or the change is cancelled.
+class _PendingSiloPasswordChange {
+  _PendingSiloPasswordChange({
+    required this.result,
+    required this.client,
+    required this.silo,
+    required this.serverId,
+    required this.accountId,
+    required this.currentPassword,
+  });
+
+  final Map<String, dynamic> result;
+  final MediaServerClient client;
+  final SiloMediaServerClient silo;
+  final String serverId;
+  final String accountId;
+
+  /// The temporary password the person signed in with. Silo asks for it with
+  /// the change. Held in memory only, for as long as the change is pending.
+  final String currentPassword;
 }

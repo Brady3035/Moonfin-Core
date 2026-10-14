@@ -13,7 +13,7 @@ Pure functions that turn Silo JSON into the Jellyfin/Emby `BaseItemDto` shape th
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 4.10 |
+| ☑ Done | `7770ba5` | 4.10 |
 
 **Goal.** Seconds ↔ ticks, opaque string IDs with synthetic `silo-genre:`/`silo-studio:` forms, and the Silo type → Jellyfin `Type`/`MediaType`/`IsFolder` table.
 
@@ -80,6 +80,7 @@ Podcasts have no Jellyfin type and no Moonfin screen, so they don't map; mappers
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | new tests 18/18; `server_silo` 148/148; analyzer: no issues |
+| 2026-10-14 | macOS | `4b2e921c` | Pass | full `flutter test` before committing |
 | | | | | |
 
 ---
@@ -89,7 +90,7 @@ Podcasts have no Jellyfin type and no Moonfin screen, so they don't map; mappers
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 5.1 |
 
 **Goal.** While mapping, record each artwork URL by item, image type and index, with a tag hashed from the URL **path** so the daily-rotating signature keeps the same tag. Relative URLs get the base URL; absolute (TMDB, TVDB, S3) pass through. Never append a token.
 
@@ -99,26 +100,52 @@ Podcasts have no Jellyfin type and no Moonfin screen, so they don't map; mappers
 
 **Where in Moonfin**
 
-- `packages/server_silo/lib/src/silo_image_registry.dart`
+- `packages/server_silo/lib/src/silo_image_registry.dart` (new)
+- `packages/server_silo/lib/src/api/silo_images_api.dart` (new)
+- `packages/server_silo/lib/src/silo_media_server_client.dart` (`imagesApi`)
+- `packages/server_silo/pubspec.yaml` (`crypto`, already used by the app)
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+**Why a registry.** Jellyfin builds an image URL from an item id (`/Items/{id}/Images/Primary`), and Moonfin's `ImageApi` asks exactly that: "the primary image of item X". Silo has no such route. Every item it returns carries ready, signed URLs (`poster_url`, `backdrop_url`, `logo_url`, `still_url`, people's `photo_url`). So the Silo client remembers each URL as it maps an item, and answers `ImageApi` from memory.
+
+**`SiloImageRegistry`:**
+- `register(itemId, type, url, index:)` stores the URL under (item, `SiloImageType`, index) and returns its **tag**, which the mappers (5.3 onwards) will put in `ImageTags`/`BackdropImageTags`. A newer URL for the same image replaces the older one, so the signature stays fresh.
+- `urlFor` / `tagFor` answer by the same key; `ImageApi` will use them in 6.1. An id that was never registered answers null. What to do then (cold start, deep links) is D2, for 6.3.
+- `clear()` for a sign-out or another server.
+- `SiloImageType` names the Jellyfin image types (`Primary`, `Backdrop`, `Logo`, `Banner`, `Thumb`, `Art`, `Disc`). Primary comes from `poster_url`, `still_url` or `photo_url` depending on the item.
+
+**Tags (`siloImageTag`).** Silo signs artwork URLs with a query that rotates daily (`?exp=…&sig=…`), while the path names the picture itself and carries a content hash (`poster/w500.f6c3….webp`). The tag is the first 16 hex digits of the SHA-1 of the **path**, so:
+- the same picture keeps the same tag every day, and image caches keyed by tag stay valid;
+- a changed picture gets a new tag;
+- the tag is taken from the URL **as Silo sent it**, before the server address is added, so the same poster reached over a LAN address and a public address shares one tag (a test caught this while building).
+
+**URLs (`resolveSiloImageUrl`).** Server paths (`/api/v2/artwork/…`) get the base URL in front, keeping any reverse-proxy sub-path. Absolute URLs (TMDB, TVDB, an S3 bucket) pass through, and `//host/…` takes the base URL's scheme. **No token is ever appended**: the URLs are already signed, and a token in an image URL would leak the session into caches and logs.
+
+**Sizes (`SiloImagesApi`, `SiloImageCapabilities`).** A registered URL is fixed at one size, so `ImageApi`'s `maxWidth` can't resize it afterwards. Silo picks the size per **request**: item-returning calls take `image_size` (`small`, `medium`, `large`, `original`), and `GET /images/capabilities` gives each bucket's width per artwork kind (poster 300/500/780, backdrop 300/1920/1920…). `sizeFor(kind, width)` picks the smallest bucket at least that wide, `original` when none is, and `medium` when no width is given. Later steps use it to choose `image_size` per screen (grid vs hero).
+
+Nothing calls the registry yet; 5.3's item mapper is the first.
 
 ### Testing
 
 **Automated tests**
 
-- tag stable across rotating query strings; size-bucket selection from the capability ladder
+- `packages/server_silo/test/silo_image_registry_test.dart` (new, 20 tests):
+  - tags: same across rotating signatures, different for a different picture, independent of the server address;
+  - URLs: base URL and proxy sub-path added, absolute and `//` URLs passed through, never a token;
+  - registry: per item, type and index, a fresher signature replaces the URL and keeps the tag, empty URLs ignored, every artwork URL in the movie fixture registers;
+  - sizes: the capability fixture parses; bucket choice for posters, backdrops and logos; `original` when wider; `medium` by default; fetched from `GET /images/capabilities`.
+- `server_silo`: 168/168.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+- Nothing to check by hand: no screen uses the registry until 6.1. Regression: full `flutter test`.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | new tests 20/20; `server_silo` 168/168; analyzer: no issues |
 | | | | | |
 
 ---

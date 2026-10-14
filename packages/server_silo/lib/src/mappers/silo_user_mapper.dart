@@ -1,12 +1,13 @@
-/// Translates Silo accounts (and, from step 2.6, their main profile) into
-/// Jellyfin `UserDto` maps, so Moonfin's user models read them unchanged.
+/// Translates Silo accounts and profiles into Jellyfin `UserDto` maps, so
+/// Moonfin's user models read them unchanged.
 library;
 
 /// Key on a translated user carrying the owning Silo account's id.
 ///
-/// Until step 2.6 the translated user *is* the account; from then on Moonfin's
-/// user is the account's main profile (decision D9; every profile with the
-/// optional phase 18) and this ties it back to the account that owns the login.
+/// Moonfin's user is a profile of the account: the main profile (decision D9),
+/// or any profile with the optional phase 18. This ties it back to the account
+/// that owns the login. (Right after sign-in, before a profile is chosen, the
+/// user is the account itself; see [siloAccountToUserDto].)
 const siloAccountIdKey = 'SiloAccountId';
 
 /// Key on a translated user carrying the untranslated Silo `Account`.
@@ -31,6 +32,56 @@ Map<String, dynamic> siloAccountToUserDto(Map<String, dynamic> account) {
       'EnableContentDownloading': account['download_allowed'] == true,
       // Personal collections are open to every Silo account.
       'EnableCollectionManagement': true,
+    },
+  };
+}
+
+/// Key on a translated user carrying the untranslated Silo profile.
+const siloProfileKey = 'SiloProfile';
+
+/// A Jellyfin `UserDto` for a Silo [profile] of [account]: the Moonfin user.
+///
+/// The id is the profile's, so each profile can be its own Moonfin user
+/// (phase 18) and the main profile keeps its id when that arrives.
+///
+/// Silo has no per-user policy object. What Moonfin reads is derived:
+/// - `IsAdministrator`: an `admin` account acting as its **primary** profile.
+///   Silo withholds administrator routes from secondary profiles.
+/// - `EnableContentDownloading`: the account's `download_allowed`.
+/// - `EnableCollectionManagement`, `EnableSubtitleDownloading`: true. Personal
+///   collections and subtitle search are open to every profile on Silo.
+/// - `EnableAllFolders`: always true. Silo enforces a profile's library
+///   restrictions itself, and its library ids aren't Moonfin's view ids until
+///   phase 6, so passing them on could hide libraries the profile may see.
+/// - `EnableLiveTvAccess`: false, Silo has no Live TV.
+Map<String, dynamic> siloProfileToUserDto({
+  required Map<String, dynamic> profile,
+  required Map<String, dynamic> account,
+}) {
+  final name = (profile['name'] as String?)?.trim();
+  final accountId = account['id']?.toString();
+  return {
+    'Id': profile['id']?.toString(),
+    'Name': (name != null && name.isNotEmpty)
+        ? name
+        : account['username'] as String? ?? '',
+    'HasPassword': true,
+    'HasConfiguredPassword': true,
+    siloAccountIdKey: accountId,
+    siloAccountKey: account,
+    siloProfileKey: profile,
+    'Policy': {
+      'IsAdministrator':
+          account['role'] == 'admin' && profile['is_primary'] == true,
+      'IsHidden': false,
+      'IsDisabled': false,
+      'EnableMediaPlayback': true,
+      'EnableContentDownloading': account['download_allowed'] == true,
+      'EnableCollectionManagement': true,
+      'EnableSubtitleDownloading': true,
+      'EnableAllFolders': true,
+      'EnableLiveTvAccess': false,
+      'EnableLiveTvManagement': false,
     },
   };
 }

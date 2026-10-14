@@ -1,12 +1,18 @@
 import 'package:dio/dio.dart';
 import 'package:server_core/server_core.dart';
 
+import '../../util/signed_in_server_features.dart';
+
 /// Everything the user has rated, item id to score out of 10, from the
 /// Moonfin server plugin. Null when the endpoint is unreachable or the plugin
 /// is not installed, which callers treat as the sort being unavailable.
 Future<Map<String, double>?> fetchMyUserRatings(MediaServerClient client) async {
   final token = client.accessToken;
-  if (token == null || token.isEmpty) return null;
+  // The store is the Moonfin plugin's, which Silo never has (Silo's own
+  // ratings arrive in step 9.3).
+  if (token == null || token.isEmpty || !serverHasMoonfinPlugin(client)) {
+    return null;
+  }
 
   final dio = Dio(
     BaseOptions(

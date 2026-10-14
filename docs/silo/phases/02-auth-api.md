@@ -513,7 +513,7 @@ This also answers part of open decision D3: Moonfin's library order and hidden l
 **Manual test plan**
 
 - No visible app change yet: the library screens need a profile on the client, which sign-in sets from 3.3. `cd packages/server_silo && flutter test` (124 tests).
-- After 3.3 (recorded there): hide a library and reorder libraries in Moonfin's library settings, and check that Silo's web app shows the same.
+- After 6.4 (recorded there; the library settings screens need sign-in from 3.3 and the library list from 6.4): hide a library and reorder libraries in Moonfin's library settings, and check that Silo's web app shows the same.
 
 **Results**
 

@@ -589,7 +589,7 @@ Within each kind the order is Silo's, so the player's per-kind track numbers sta
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | 5.8 |
+| ☑ Done | `b79ce1f` | 5.8 |
 
 **Goal.** Version chapters → `Chapters` (StartPositionTicks, Name, image tag when a thumbnail exists).
 
@@ -646,7 +646,7 @@ Each Silo version lists its chapters (`VersionChapter`: `index`, `title`, `start
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | 5.9 |
+| ☑ Done | `0604c44` | 5.9 |
 
 **Goal.** Marker segments → `MediaSegmentDto[]` (intro, credits→Outro, recap, preview), every occurrence.
 
@@ -707,7 +707,7 @@ Silo detects or imports **markers** per file: intro, credits, recap and preview.
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | 5.10 |
+| ☑ Done | `b07903c` | 5.10 |
 
 **Goal.** `/watch/{id}/trickplay` → Jellyfin `Trickplay` map, registering sheet URLs for `getTrickplayTileImageUrl`.
 
@@ -776,7 +776,7 @@ Moonfin reads Jellyfin's `Trickplay` item field, `{ <media source id>: { "<width
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | 5.11 |
+| ☑ Done | `d53c6c6` | 5.11 |
 
 **Goal.** Turn Moonfin's `startIndex/limit` into Silo cursors: first page plain; next page `next_cursor`; any other offset `window_cursor + seek`; `invalid_cursor` → reset once.
 
@@ -852,7 +852,7 @@ Moonfin reads Jellyfin's `Trickplay` item field, `{ <media source id>: { "<width
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 5.12 |
+| ☑ Done | `549c133` | 5.12 |
 
 **Goal.** Moonfin sort fields → Silo `sort` values (descending = `-field`); unknown → server default.
 
@@ -899,6 +899,7 @@ Moonfin asks for an order the Jellyfin way: `sortBy` as a comma-separated list o
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | sort map tests 8/8; `server_silo` 312/312; analyzer: no issues |
+| 2026-10-14 | macOS | `4b2e921c` | Pass | full `flutter test` before committing |
 | | | | | |
 
 ---

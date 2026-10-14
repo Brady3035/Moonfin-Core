@@ -19,6 +19,11 @@ enum ServerType {
   /// Emby has no Drop subtitle method and rejects a stream request naming it.
   bool get supportsSubtitleDrop => this != ServerType.emby;
 
+  /// Whether a user's avatar is at Jellyfin's `/Users/{id}/Images/Primary`
+  /// on this server. Silo's avatars come with the profile, so they are asked
+  /// for through the client's `ImageApi` instead.
+  bool get hasJellyfinUserImagePath => this != ServerType.silo;
+
   /// Display name of the server product.
   String get productName => switch (this) {
     ServerType.jellyfin => 'Jellyfin',

@@ -14,6 +14,7 @@ import '../../auth/repositories/server_repository.dart';
 import '../../auth/repositories/session_repository.dart';
 import '../../auth/repositories/user_repository.dart';
 import '../../auth/store/authentication_store.dart';
+import '../../data/services/media_server_client_factory.dart';
 import '../../l10n/app_localizations.dart';
 import '../../util/platform_detection.dart';
 import '../../util/pin_code_util.dart';
@@ -102,6 +103,19 @@ class _AccountDialogState extends State<_AccountDialog> {
   String? _avatarUrl(_StoredAccount account) {
     final apiKey = account.user.accessToken;
     if (apiKey.isEmpty) return null;
+
+    if (!account.server.serverType.hasJellyfinUserImagePath) {
+      // Silo: the avatar URL came with the profile; only that server's
+      // client knows it, and only once it has read the user.
+      final factory = GetIt.instance.isRegistered<MediaServerClientFactory>()
+          ? GetIt.instance<MediaServerClientFactory>()
+          : null;
+      final url = factory
+          ?.getClientIfExists(account.server.id)
+          ?.imageApi
+          .getUserImageUrl(account.user.id);
+      return url == null || url.isEmpty ? null : url;
+    }
 
     final base =
         '${account.server.address}/Users/${account.user.id}/Images/Primary?quality=90&maxHeight=180&${account.server.serverType.tokenQueryParam}=$apiKey';

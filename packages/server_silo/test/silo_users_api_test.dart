@@ -110,6 +110,42 @@ void main() {
       );
     });
 
+    test('a profile avatar is registered for ImageApi (6.1)', () async {
+      final server = FixtureServer({
+        '/api/v2/account/me': _account(),
+        '/api/v2/profiles': _profiles([
+          {
+            ..._kid,
+            'avatar': 'preset:fox',
+            'avatar_source': 'preset',
+            'avatar_url': '/avatars/presets/fox.png',
+          },
+        ]),
+      });
+      final client = _client(server, profile: 'kid');
+
+      final user = await client.usersApi.getCurrentUser();
+
+      expect(user.primaryImageTag, isNotNull);
+      expect(
+        client.imageApi.getUserImageUrl('kid'),
+        'https://silo.example/avatars/presets/fox.png',
+      );
+    });
+
+    test('no avatar, no tag and no URL', () async {
+      final server = FixtureServer({
+        '/api/v2/account/me': _account(),
+        '/api/v2/profiles': _profiles(),
+      });
+      final client = _client(server, profile: _mainId);
+
+      final user = await client.usersApi.getCurrentUser();
+
+      expect(user.primaryImageTag, isNull);
+      expect(client.imageApi.getUserImageUrl(_mainId), '');
+    });
+
     test('with no profile chosen yet, describes the main profile', () async {
       final server = FixtureServer({
         '/api/v2/account/me': _account(),

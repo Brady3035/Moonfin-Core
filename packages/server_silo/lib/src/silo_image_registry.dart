@@ -101,6 +101,11 @@ class SiloImageRegistry {
 
   final Map<String, _SiloImage> _images = {};
 
+  /// Every registered URL by its tag, so an image asked for with the tag an
+  /// item carries gets exactly that picture, even after the same slot was
+  /// registered again at another size.
+  final Map<String, String> _byTag = {};
+
   static String _key(String itemId, SiloImageType type, int index) =>
       '$itemId|${type.name}|$index';
 
@@ -118,6 +123,7 @@ class SiloImageRegistry {
     // picture reached at a LAN and a public address keeps one tag.
     final tag = siloImageTag(url!.trim());
     _images[_key(itemId, type, index)] = _SiloImage(resolved, tag);
+    _byTag[tag] = resolved;
     return tag;
   }
 
@@ -130,11 +136,17 @@ class SiloImageRegistry {
   String? tagFor(String itemId, SiloImageType type, {int index = 0}) =>
       _images[_key(itemId, type, index)]?.tag;
 
+  /// The latest URL registered with [tag], or null.
+  String? urlForTag(String tag) => _byTag[tag];
+
   /// How many images are registered.
   int get length => _images.length;
 
   /// Forgets everything, for a sign-out or a different server.
-  void clear() => _images.clear();
+  void clear() {
+    _images.clear();
+    _byTag.clear();
+  }
 }
 
 class _SiloImage {

@@ -169,6 +169,7 @@ class _HomeRowsImageTypeScreenState extends State<HomeRowsImageTypeScreen> {
     final l10n = AppLocalizations.of(context);
     final liveTvOnAnyServer = liveTvOnAnySignedInServer();
     final musicOnAnyServer = musicOnAnySignedInServer();
+    final playlistsOnAnyServer = playlistsOnAnySignedInServer();
     final enabledSections =
         _prefs.homeSectionsConfig
             .where(
@@ -181,7 +182,8 @@ class _HomeRowsImageTypeScreenState extends State<HomeRowsImageTypeScreen> {
                   (liveTvOnAnyServer ||
                       (c.type != HomeSectionType.liveTv &&
                           c.type != HomeSectionType.activeRecordings)) &&
-                  (musicOnAnyServer || !_musicTypes.contains(c.type)),
+                  (musicOnAnyServer || !_musicTypes.contains(c.type)) &&
+                  (playlistsOnAnyServer || c.type != HomeSectionType.playlists),
             )
             .toList()
           ..sort((a, b) => a.order.compareTo(b.order));

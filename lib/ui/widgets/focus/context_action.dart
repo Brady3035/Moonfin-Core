@@ -11,6 +11,7 @@ import '../../../data/models/aggregated_item.dart';
 import '../../../data/offline/connectivity_aware_media_server_client.dart';
 import '../../../data/offline/offline_catalog.dart';
 import '../../../data/repositories/item_mutation_repository.dart';
+import '../../../util/signed_in_server_features.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../util/error_message.dart';
 import '../../../preference/preference_constants.dart';
@@ -274,21 +275,24 @@ List<ItemContextAction> contextActionsFor(
       }
     }
 
-    actions.add(ItemContextAction(
-      icon: Icons.playlist_add,
-      label: l10n.addToPlaylist,
-      onSelect: () async {
-        if (!context.mounted) return;
-        final added = await AddToPlaylistDialog.show(
-          context,
-          itemIds: [item.id],
-          serverId: item.serverId,
-        );
-        if (added == true) {
-          onChanged?.call();
-        }
-      },
-    ));
+    // Not for an item from a server without playlists (Silo).
+    if (itemServerSupports(item.serverId, (f) => f.supportsPlaylists)) {
+      actions.add(ItemContextAction(
+        icon: Icons.playlist_add,
+        label: l10n.addToPlaylist,
+        onSelect: () async {
+          if (!context.mounted) return;
+          final added = await AddToPlaylistDialog.show(
+            context,
+            itemIds: [item.id],
+            serverId: item.serverId,
+          );
+          if (added == true) {
+            onChanged?.call();
+          }
+        },
+      ));
+    }
 
     if (isAdminUser) {
       actions.add(ItemContextAction(

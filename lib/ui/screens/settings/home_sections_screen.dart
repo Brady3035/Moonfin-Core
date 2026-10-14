@@ -113,6 +113,7 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen>
   /// Read once: who is signed in doesn't change while this screen is open.
   final bool _liveTvOnAnyServer = liveTvOnAnySignedInServer();
   final bool _musicOnAnyServer = musicOnAnySignedInServer();
+  final bool _playlistsOnAnyServer = playlistsOnAnySignedInServer();
 
   /// The disabled groups that are open, by [_getSectionCategory]. General
   /// starts open since it's short.
@@ -731,6 +732,10 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen>
     final hiddenByMusic =
         _isMusicSectionType(section.type) && !_musicOnAnyServer;
 
+    // And playlists.
+    final hiddenByPlaylistSupport =
+        section.type == HomeSectionType.playlists && !_playlistsOnAnyServer;
+
     return hiddenByFavorites ||
         hiddenByCollections ||
         hiddenByServer ||
@@ -746,7 +751,8 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen>
         hiddenByAudio ||
         hiddenBySinceYouWatched ||
         hiddenByRewatch ||
-        hiddenByMusic;
+        hiddenByMusic ||
+        hiddenByPlaylistSupport;
   }
 
   List<int> _visibleSectionIndices() {

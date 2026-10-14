@@ -17,8 +17,8 @@ const siloOriginalKey = '_silo';
 /// studios, dates, ratings, run time, provider ids, date added, status and
 /// the item's own artwork; the **series links** (5.4): series, season and
 /// index fields, child counts and the parent artwork fields; and the
-/// **user data** (5.5). People (5.6) and media sources (5.8) are added by
-/// later steps.
+/// **user data** (5.5); and **people** (5.6). Media sources (5.8) are added
+/// by a later step.
 ///
 /// Artwork URLs are recorded in [images] (`SiloImageRegistry`), and their
 /// tags go in `ImageTags` and `BackdropImageTags`, the way Jellyfin reports
@@ -93,6 +93,7 @@ Map<String, dynamic>? siloItemToBaseItemDto(
     ..._imageFields(id, itemType.siloType, item, images),
     ..._seriesFields(id, itemType.siloType, item, images, series),
     'UserData': _userData(itemType, item),
+    'People': _people(item, images),
     siloOriginalKey: item,
   };
   return dto;
@@ -503,4 +504,116 @@ double? _playedPercentage(num position, Object? duration) {
 String? _timestamp(Object? value) {
   final parsed = value is String ? DateTime.tryParse(value) : null;
   return parsed == null ? null : _jellyfinDate(parsed.toUtc());
+}
+
+// --- people ----------------------------------------------------------------
+
+/// Crew jobs → the person types Moonfin knows (Jellyfin's `PersonKind`), in
+/// the order crew is listed after the cast. Matched on lower-cased jobs;
+/// jobs that fit none (gaffer, casting…) are left out rather than shown under
+/// a type Moonfin can't name.
+const _crewKinds = <String, List<String>>{
+  'Creator': ['creator'],
+  'Director': ['director', 'co-director'],
+  'Writer': [
+    'writer',
+    'screenplay',
+    'story',
+    'teleplay',
+    'novel',
+    'author',
+    'characters',
+  ],
+  'Producer': [
+    'producer',
+    'executive producer',
+    'co-producer',
+    'co-executive producer',
+    'associate producer',
+  ],
+  'Composer': ['composer', 'original music composer', 'music'],
+  'Editor': ['editor'],
+};
+
+String? _crewKind(String job) {
+  final lower = job.toLowerCase();
+  for (final MapEntry(key: kind, value: jobs) in _crewKinds.entries) {
+    if (jobs.contains(lower)) return kind;
+  }
+  return null;
+}
+
+/// Jellyfin's `People`: the cast as `Actor`s in billing order, with their
+/// character as `Role`, then the crew grouped by kind (creators, directors,
+/// writers, producers, composers, editors). A crew `Role` is the job when it
+/// says more than the kind ("Executive Producer").
+///
+/// Each person's photo is recorded in [images] under the person's id, and
+/// its tag is the entry's `PrimaryImageTag`, so `ImageApi` can show it and
+/// the person page (phase 6) finds it too. A person listed twice with the
+/// same kind (a producer credited as producer and executive producer)
+/// appears once. Silo marks no guest stars: an episode's cast is the series
+/// regulars, all `Actor`s.
+List<Map<String, dynamic>> _people(
+  Map<String, dynamic> item,
+  SiloImageRegistry? images,
+) {
+  final people = <Map<String, dynamic>>[];
+  final seen = <String>{};
+
+  Map<String, dynamic>? entry(
+    Map<String, dynamic> credit,
+    String kind,
+    String? role,
+  ) {
+    final name = _text(credit['name']);
+    if (name == null) return null;
+    final id = siloIdOf(credit['person_id']);
+    if (!seen.add('${id ?? name}|$kind')) return null;
+    final tag = id == null
+        ? null
+        : images?.register(id, SiloImageType.primary, credit['photo_url']);
+    return {
+      'Name': name,
+      'Id': ?id,
+      'Role': ?role,
+      'Type': kind,
+      'PrimaryImageTag': ?tag,
+    };
+  }
+
+  final castList = [
+    for (final c in item['cast'] is List ? item['cast'] as List : const [])
+      ?asJsonMap(c),
+  ];
+  // By billing order, keeping Silo's order among equals (Dart's sort isn't
+  // stable on its own).
+  final cast = [for (final (i, c) in castList.indexed) (i, c)]
+    ..sort((a, b) {
+      final byOrder = _order(a.$2).compareTo(_order(b.$2));
+      return byOrder != 0 ? byOrder : a.$1.compareTo(b.$1);
+    });
+  for (final (_, c) in cast) {
+    if (entry(c, 'Actor', _text(c['character'])) case final p?) people.add(p);
+  }
+
+  final crew = [
+    for (final c in item['crew'] is List ? item['crew'] as List : const [])
+      ?asJsonMap(c),
+  ];
+  for (final kind in _crewKinds.keys) {
+    for (final c in crew) {
+      final job = _text(c['job']);
+      if (job == null || _crewKind(job) != kind) continue;
+      final role = job.toLowerCase() == kind.toLowerCase() ? null : job;
+      if (entry(c, kind, role) case final p?) people.add(p);
+    }
+  }
+  return people;
+}
+
+/// Billing order; credits without one go last, in the order Silo sent them.
+int _order(Map<String, dynamic> credit) {
+  final order = credit['order'];
+  return order is num ? order.toInt() : 1 << 30;
 }

@@ -297,7 +297,7 @@ Without a registry the item has no image tags. A type with no Jellyfin equivalen
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 5.4 |
+| ☑ Done | `05c2935` | 5.4 |
 
 **Goal.** Favorite, Played, PlaybackPositionTicks, PlayedPercentage, UnplayedItemCount, PlayCount, LastPlayedDate. A missing `user_data` means unplayed at 0.
 
@@ -344,6 +344,7 @@ Whatever neither part says means **unplayed at position 0**: exactly the `UserDa
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | mapper tests 39/39; `server_silo` 207/207; analyzer: no issues |
+| 2026-10-14 | macOS | `4b2e921c` | Pass | full `flutter test` before committing |
 | | | | | |
 
 ---
@@ -353,7 +354,7 @@ Whatever neither part says means **unplayed at position 0**: exactly the `UserDa
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 5.5 |
 
 **Goal.** Cast and crew to `People` with roles and photo tags through the registry.
 
@@ -363,22 +364,49 @@ Whatever neither part says means **unplayed at position 0**: exactly the `UserDa
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+Silo sends `cast` (`CastCredit`: `name`, `character`, `order`, `person_id`, `photo_url`) and `crew` (`CrewCredit`: `name`, `job`, `person_id`, `photo_url`) on item details. The mapper turns them into Jellyfin's `People` list, which Moonfin's cast row and person links read:
+
+| Jellyfin | From | Notes |
+|---|---|---|
+| `Name` | `name` | |
+| `Id` | `person_id` | Opens the person page (phase 6). |
+| `Role` | cast: `character`; crew: `job` | A crew role is left out when it only repeats the type ("Director"), as on Emby. |
+| `Type` | cast: `Actor`; crew: by job | See below. |
+| `PrimaryImageTag` | `photo_url` | Registered under the person's id as `Primary`, so `ImageApi` serves it. |
+
+**Order.** Cast first, in billing order (`order`; ties keep Silo's order, unnumbered last), then crew grouped by type: Creator, Director, Writer, Producer, Composer, Editor.
+
+**Crew jobs.** Matched case-insensitively:
+
+- Director: director, co-director.
+- Writer: writer, screenplay, story, teleplay, novel, author, characters.
+- Producer: producer, executive / co- / co-executive / associate producer.
+- Composer: composer, original music composer, music.
+- Jobs that fit none (gaffer, casting…) are left out rather than shown under a type Moonfin can't name.
+
+**Duplicates.** A person credited twice with the same type (producer and executive producer) appears once; one who both writes and directs appears under each.
+
+**Episodes.** Silo has no guest-star flag, so an episode's cast is the series regulars, all `Actor`s. Emby lists guest stars as `GuestStar`; Moonfin shows both in the same row, so only the guest names are missing.
 
 ### Testing
 
-**Automated tests**
+**Automated tests** (`packages/server_silo/test/silo_item_mapper_test.dart`, 8 new, 47 in all)
 
-- _None planned; add any that were written._
+- Golden against **Brady's Emby server** (xXx): the lead is Vin Diesel as Xander Cage on both. All 20 Silo actors are in Emby's 66, with the same characters. The director, Rob Cohen, matches, with no `Role`.
+- Crew comes after the cast, grouped by type; every photo is in the registry, and its tag is the entry's `PrimaryImageTag`.
+- Episode 1x01 of Young Justice: 21 actors and 2 creators.
+- Rules: billing order with stable ties and unnumbered entries last; job mapping and unknown jobs left out; dedupe by person and type; no people is an empty list; without a registry there are no tags.
+- `server_silo`: 215/215.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+- Nothing to check by hand until phase 6 shows the cast row and person pages. Regression: full `flutter test`.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | mapper tests 47/47; `server_silo` 215/215; analyzer: no issues |
 | | | | | |
 
 ---

@@ -565,7 +565,7 @@ The step that makes Silo reachable. When you add a server, `addServer` in `lib/a
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 1.9 |
+| ☑ Done | `956ed17` | 1.9 |
 
 **Goal.** Add `server_silo` and `playback_silo` to the package list in the build workflow so their analyzer and tests run on PRs.
 
@@ -594,6 +594,7 @@ The other playback packages aren't in the list (they have no tests of their own)
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-13 | macOS | — | Pass | Brady: both packages analyze and test clean locally |
 | | | | | |
 
 ---
@@ -603,7 +604,7 @@ The other playback packages aren't in the list (they have no tests of their own)
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 1.10 |
 
 **Goal.** A simple original glyph in `ServerTypeIcon` (not Silo's trademarked logo).
 
@@ -611,17 +612,21 @@ The other playback packages aren't in the list (they have no tests of their own)
 
 - `lib/ui/widgets/server_type_icon.dart`
 
-**Earlier work to port:** silo-1
+**Earlier work to port:** silo-1 `_SiloGlyphPainter` (as is; replaces the 1.1 placeholder)
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+`ServerTypeIcon` (`lib/ui/widgets/server_type_icon.dart`) draws each server type's mark with a `CustomPainter`, in the caller's colour, wherever servers are listed (server select, user menu, multi-server rows). Step 1.1 gave Silo a temporary Material `Icons.dns_outlined`; this step replaces it with `_SiloGlyphPainter` and goes back to a single `CustomPaint` for every type.
+
+**The glyph:** a domed cylinder (a grain silo) with three horizontal bands, on a 24×24 grid like Material icons. It's deliberately **not** the Silo project's logo, which is its own trademark; a generic shape avoids implying endorsement and needs no permission.
+
+**How the bands are drawn:** the body is filled inside `saveLayer`, then the three band lines are drawn with `BlendMode.clear`, which punches them out of the layer. The bands therefore show whatever is behind the icon (card, list tile, focus highlight) instead of a hard-coded background colour, so the icon looks right on light, dark, OLED and focused backgrounds. `shouldRepaint` only repaints on a colour change, like the Jellyfin and Emby painters.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `test/ui/widgets/server_type_icon_test.dart`: every server type still renders without throwing; the 1.1 placeholder test is replaced by one checking Silo now paints its own glyph (a `CustomPaint` at the requested size, no Material `Icon`).
 
 **Manual test plan**
 

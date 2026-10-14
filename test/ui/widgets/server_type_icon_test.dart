@@ -16,12 +16,24 @@ void main() {
     }
   });
 
-  testWidgets('Silo uses the generic server glyph for now', (tester) async {
+  testWidgets('Silo draws its own glyph, not a placeholder icon', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       const MaterialApp(
-        home: Center(child: ServerTypeIcon(serverType: ServerType.silo)),
+        home: Center(
+          child: ServerTypeIcon(serverType: ServerType.silo, size: 48),
+        ),
       ),
     );
-    expect(find.byIcon(Icons.dns_outlined), findsOneWidget);
+    expect(find.byType(Icon), findsNothing);
+    final paint = tester.widget<CustomPaint>(
+      find.descendant(
+        of: find.byType(ServerTypeIcon),
+        matching: find.byType(CustomPaint),
+      ),
+    );
+    expect(paint.size, const Size.square(48));
+    expect(paint.painter, isNotNull);
   });
 }

@@ -274,4 +274,125 @@ void main() {
       },
     );
   });
+
+  group('logout', () {
+    SiloTokens tokens({Duration left = const Duration(hours: 1)}) => SiloTokens(
+      accessToken: 'access-1',
+      refreshToken: 'refresh-1',
+      expiresAt: _now.add(left),
+      lifetime: const Duration(hours: 1),
+    );
+
+    ResponseBody noContent(RequestOptions _) =>
+        ResponseBody.fromString('', 204);
+
+    List<String> paths(FixtureServer server) => [
+      for (final r in server.requests) r.uri.path,
+    ];
+
+    test('revokes the session on Silo and signs out locally', () async {
+      final server = FixtureServer({'/api/v2/auth/logout': noContent});
+      final client = _client(server)
+        ..session.setTokens(tokens())
+        ..profileId = 'p1'
+        ..profileToken = 'proof';
+
+      await client.authApi.logout();
+
+      final logout = server.requests.single;
+      expect(logout.method, 'POST');
+      expect(logout.uri.path, '/api/v2/auth/logout');
+      expect(logout.headers['Authorization'], 'Bearer access-1');
+      expect(logout.headers['X-Profile-Id'], 'p1');
+      expect(client.session.tokens, isNull);
+      expect(client.accessToken, isNull);
+      expect(client.profileId, isNull);
+      expect(client.profileToken, isNull);
+    });
+
+    test(
+      'an expired access token is refreshed first so the logout lands',
+      () async {
+        final server = FixtureServer({
+          '/api/v2/auth/refresh': (_) => FixtureServer.json(
+            200,
+            jsonEncode({
+              'access_token': 'access-2',
+              'refresh_token': 'refresh-2',
+              'expires_in': 3600,
+            }),
+          ),
+          '/api/v2/auth/logout': (o) =>
+              o.headers['Authorization'] == 'Bearer access-2'
+              ? noContent(o)
+              : FixtureServer.problem(401, 'invalid_token', 'expired'),
+        });
+        final client = _client(server)
+          ..session.setTokens(tokens(left: const Duration(seconds: -5)));
+
+        await client.authApi.logout();
+
+        expect(paths(server), ['/api/v2/auth/refresh', '/api/v2/auth/logout']);
+        expect(client.session.tokens, isNull);
+      },
+    );
+
+    test(
+      'a 401 means the session is already gone and is not an error',
+      () async {
+        final server = FixtureServer({
+          '/api/v2/auth/logout': (_) =>
+              FixtureServer.problem(401, 'session_expired', 'Session ended.'),
+          // The interceptor tries a refresh first; Silo refuses it too.
+          '/api/v2/auth/refresh': (_) =>
+              FixtureServer.problem(401, 'invalid_token', 'Refresh refused.'),
+        });
+        final client = _client(server)..session.setTokens(tokens());
+
+        await client.authApi.logout();
+
+        expect(client.session.tokens, isNull);
+      },
+    );
+
+    test('a server failure still signs out locally and is reported', () async {
+      final server = FixtureServer({
+        '/api/v2/auth/logout': (_) =>
+            FixtureServer.problem(503, 'unavailable', 'Try again later.'),
+      });
+      final client = _client(server)..session.setTokens(tokens());
+
+      await expectLater(
+        client.authApi.logout(),
+        throwsA(
+          isA<DioException>().having(
+            (e) => e.response?.statusCode,
+            'status',
+            503,
+          ),
+        ),
+      );
+      expect(client.session.tokens, isNull);
+    });
+
+    test('nothing is sent when not signed in', () async {
+      final server = FixtureServer({'/api/v2/auth/logout': noContent});
+      final client = _client(server);
+
+      await client.authApi.logout();
+
+      expect(server.requests, isEmpty);
+      expect(client.session.tokens, isNull);
+    });
+
+    test('a bare token (no refresh token) is still revoked', () async {
+      final server = FixtureServer({'/api/v2/auth/logout': noContent});
+      final client = _client(server)..accessToken = 'api-key';
+
+      await client.authApi.logout();
+
+      expect(server.requests.single.headers['Authorization'], 'Bearer api-key');
+      expect(client.accessToken, isNull);
+    });
+  });
 }

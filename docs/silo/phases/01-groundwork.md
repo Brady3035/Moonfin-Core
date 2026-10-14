@@ -438,7 +438,7 @@ The first-pass package also depended on `logger`, which nothing used; it's dropp
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 1.7 |
+| ☑ Done | `c263071` | 1.7 |
 
 **Goal.** Client factory, playback module, media bar, the three cast providers and the websocket factory (idle Silo client).
 
@@ -491,7 +491,7 @@ This step connects the two Silo packages to the app. It replaces the seven `Unsu
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-13 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | App suite 4,274 passed, 1 skipped, 0 failed (4,272 before + 2 new); analyzer 0 errors/warnings; `pubspec.lock` diff adds only the two path packages |
-| | | | | |
+| 2026-10-13 | macOS | — | Pass | Brady: builds, Jellyfin/Emby unchanged |
 
 ---
 
@@ -500,7 +500,7 @@ This step connects the two Silo packages to the app. It replaces the seven `Unsu
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | 1.8 |
+| ◐ Ready for testing | — | 1.8 |
 
 **Goal.** Try `/api/v2/system/info` before the Jellyfin and Emby paths, then build `Id`/`ServerName`/`Version` from identity, branding and setup. Reject the HTML 200 that the native host returns for `/System/Info/Public`.
 
@@ -517,28 +517,45 @@ This step connects the two Silo packages to the app. It replaces the seven `Unsu
 
 - `packages/server_core/lib/src/network/server_probe.dart`
 
-**Earlier work to port:** silo-1
+**Earlier work to port:** silo-1 probe (without the `detectSilo` flag parameter; added: fast failure on host-level errors)
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+The step that makes Silo reachable. When you add a server, `addServer` in `lib/auth/repositories/server_repository.dart` builds a list of candidate URLs (schemes and default ports) and runs `probeServerPublicInfo` (`packages/server_core/lib/src/network/server_probe.dart`) on each until one answers. The probe now recognises Silo's native API.
+
+**Probe order for each candidate URL**
+
+1. `GET <base>/api/v2/system/info`. If the body is Silo's (`api_major` + `server_version`, checked by `isSiloSystemInfo` from 1.6), it's a Silo server. Identity, branding and setup are then fetched in parallel, best effort, and folded into the Jellyfin keys by `siloPublicInfoToJellyfinShape` (the same function `SiloSystemApi` uses), so `addServer` gets the `Id`, `ServerName`, `Version`, `LoginDisclaimer` and `StartupWizardCompleted` it already reads.
+2. Otherwise the existing Jellyfin/Emby paths, `/System/Info/Public` then `/emby/System/Info/Public`, exactly as before.
+
+**Why Silo goes first.** The native Silo host answers `/System/Info/Public` with its web app's HTML (seen behind your proxy), and Silo's Jellyfin-compatible listener answers it as "Jellyfin Server". Asking for `/api/v2/system/info` first means a native Silo address is recognised as Silo, while the compat port (no `/api/v2`) is still recognised as Jellyfin, as before. An HTML page or non-Silo JSON at `/api/v2/system/info` (a catch-all proxy rule in front of Jellyfin or Emby) is ignored and the old paths take over.
+
+**Cost for Jellyfin and Emby: one extra request.** Their probe now starts with a request that 404s. In exchange, **an unreachable address now fails faster than before**: a connection-level failure (refused, connect timeout, rejected certificate) applies to the whole host, so when the first attempt fails that way the probe rethrows it immediately instead of trying each path. Before this step a dead address waited out two attempts per candidate; now one. The error is the same `DioException` as before, so the "untrusted certificate" prompt in `addServer` still works. Other failures (404, a receive timeout) still fall through to the next path.
+
+**Shared plumbing.** Redirect following (up to 5 hops, `Location` resolved relative to the request) is factored into `_getFollowingRedirects` and used by both the Silo and Jellyfin/Emby paths; the base URL is cut at the endpoint suffix so a reverse-proxy prefix (`https://host/silo`) is kept.
+
+**What you get in the app now:** adding `silo.snowystreams.com` saves a server named from Silo's branding ("Silo"), shows the generic server glyph (Silo icon in 1.11), and opens the username/password screen with Silo's sign-in subtitle. No public user list appears: Silo has no `/Users/Public`, so the existing fallback returns an empty list (it logs an error until 1.15 skips the call). Pressing **Sign in** shows "Silo AuthApi.authenticateByName is not implemented yet (roadmap step 2.3)", which is expected until phase 2. The web build's server discovery uses the same probe, so it can find Silo too.
 
 ### Testing
 
 **Automated tests**
 
-- `server_probe_test.dart`: Silo detected; HTML 200 rejected; sub-path base URL kept; Jellyfin-compat port still detected as Jellyfin
+- `packages/server_core/test/server_probe_test.dart`, 8 new tests (the 4 existing ones unchanged): Silo identified from your server's responses, with the Jellyfin paths never asked; reverse-proxy prefix kept; redirect to the Silo host followed; cosmetic endpoints failing; Silo's compat port still Jellyfin; HTML at `/api/v2/system/info` (catch-all proxy) falls through to Emby; non-Silo JSON falls through to Jellyfin; an unreachable host makes exactly one request for connection errors, connect timeouts and bad certificates.
 
 **Manual test plan**
 
-- Add `silo.snowystreams.com`. The server tile shows your Silo server name.
-- Store the **v2** identity id, not the v1 health id.
-- Compare with Emby: Add your Emby server again and confirm it is still detected as Emby.
+- Add `silo.snowystreams.com`. It is accepted; the tile is named "Silo" with the generic server glyph.
+- Selecting it opens the username/password form with "Sign in with an existing account." No user list, no Quick Connect button.
+- Enter anything and press Sign in: the error names roadmap step 2.3. Nothing crashes, and you can go back.
+- Also try `https://silo.snowystreams.com/` with a trailing slash; it should resolve to the same server.
+- Compare with Emby: add your Emby server again (or a second time) and confirm it is still detected as Emby and signs in normally.
+- Add an address that doesn't exist (e.g. `nothing.invalid`): it fails with the usual message, and faster than before.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-13 | Linux (Claude workspace, Flutter 3.47.2) | 4b2e921c+dirty (captured responses) | Pass | server_core 83/83; app suite 4,274 passed, 1 skipped, 0 failed; analyzer 0 errors/warnings |
 | | | | | |
 
 ---

@@ -604,7 +604,7 @@ The other playback packages aren't in the list (they have no tests of their own)
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 1.10 |
+| ☑ Done | `bee9a63` | 1.10 |
 
 **Goal.** A simple original glyph in `ServerTypeIcon` (not Silo's trademarked logo).
 
@@ -636,7 +636,7 @@ The other playback packages aren't in the list (they have no tests of their own)
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
-| | | | | |
+| 2026-10-13 | macOS | — | Pass | Brady committed after review |
 
 ---
 
@@ -645,7 +645,7 @@ The other playback packages aren't in the list (they have no tests of their own)
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 1.11 |
 
 **Goal.** A `serverAuthHeaders()` helper (via a separate `ProfileAwareClient` interface so the test fakes stay untouched). Move the bitrate probe and retro-artwork transport onto it.
 
@@ -655,26 +655,50 @@ The other playback packages aren't in the list (they have no tests of their own)
 - `lib/playback/auto_bitrate_service.dart`
 - `lib/data/services/retro_artwork/retro_artwork_transport.dart`
 
-**Earlier work to port:** silo-1
+**Earlier work to port:** silo-1 `profile_aware_client.dart`, the wrapper forwarding and the two call sites (the bitrate-probe skip is split out to 1.13)
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+A few places in the app make HTTP requests outside the server client's own Dio and build the Jellyfin/Emby `Authorization` header by hand (`scheme: client.serverType == ServerType.emby ? 'Emby' : 'MediaBrowser'`). On Silo that header means nothing. This step gives them one helper that returns the right headers for any server.
+
+**`packages/server_core/lib/src/profile_aware_client.dart`**
+
+- `ProfileAwareClient`, an interface for clients with household profiles: `profileId`, `profileToken` and `authHeaders()`. It is **not** added to `MediaServerClient` itself: that abstract class is implemented by the Jellyfin and Emby clients and by ~90 test fakes, which would all have to change. A separate interface leaves them untouched.
+- `serverAuthHeaders(client)`: a `ProfileAwareClient` returns its own `authHeaders()`; every other client gets exactly the header the call sites built before (`MediaBrowser …` for Jellyfin, `Emby …` for Emby).
+- `clientProfileId(client)`: the profile id, or null on servers without profiles. Used from phase 3 on.
+
+**Who implements it**
+
+- `SiloMediaServerClient`: its existing `profileId`/`profileToken` fields become the interface members, and `authHeaders()` returns the same headers its own requests carry (bearer, profile, device, client; step 1.3).
+- `ConnectivityAwareMediaServerClient` (`lib/data/offline/`): the factory wraps every client in this offline-aware wrapper, so a `client is ProfileAwareClient` check would otherwise never see the Silo client inside. The wrapper forwards the profile members and `authHeaders()` to the wrapped client; for Jellyfin/Emby the profile reads null, writes are ignored, and the headers are the old ones.
+
+**Call sites switched to `serverAuthHeaders(client)`**
+
+- `lib/playback/auto_bitrate_service.dart`: the bandwidth probe request. (Skipping the probe on Silo entirely is step 1.13.)
+- `lib/data/services/retro_artwork/retro_artwork_transport.dart`: the retro-game artwork downloader.
+
+Behaviour for Jellyfin and Emby is identical: the helper builds the same header string from the same inputs, which the tests assert byte for byte.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `packages/server_core/test/profile_aware_client_test.dart` (new, 4 tests): Jellyfin header identical to `buildServerAuthorizationHeader(MediaBrowser)`; Emby header; a profile-aware client's own headers; `clientProfileId`.
+- `packages/server_silo/test/silo_media_server_client_test.dart`: new test, the Silo client is a `ProfileAwareClient` and `authHeaders()` equals its request headers.
+- `test/offline/connectivity_aware_profile_test.dart` (new, 2 tests): the offline wrapper forwards profile id, profile token and headers to a Silo client, and is inert (null profile, unchanged MediaBrowser header) for a Jellyfin client.
+- Existing tests for the bitrate service, the retro-artwork transport and data source, and the game screens pass unchanged.
 
 **Manual test plan**
 
-- Jellyfin and Emby: auto-bitrate still measures; retro artwork still loads.
+- Jellyfin and Emby: with the streaming quality on "Auto", play something and confirm playback picks a sensible quality (the bandwidth probe still authenticates).
+- If you have the Moonbase games plugin on Jellyfin: open the games library and confirm the artwork loads.
+- Full app suite on the Mac.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-13 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | server_core 87/87, server_silo 36/36, related app tests 61/61, analyzer 0 errors/warnings. Full app suite left to Brady. |
 | | | | | |
 
 ---

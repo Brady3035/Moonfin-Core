@@ -141,19 +141,11 @@ class AutoBitrateService {
         responseType: ResponseType.stream,
         receiveTimeout: _requestTimeout,
         connectTimeout: _requestTimeout,
+        // Newer Jellyfin rejects a bare X-Emby-Token, so send the same
+        // Authorization header the server clients use.
         headers: plex
             ? {'X-Plex-Token': ?client.accessToken}
-            : {
-                // Newer Jellyfin rejects a bare X-Emby-Token, so send the
-                // same Authorization header the server clients use.
-                'Authorization': buildServerAuthorizationHeader(
-                  scheme: client.serverType == ServerType.emby
-                      ? 'Emby'
-                      : 'MediaBrowser',
-                  deviceInfo: client.deviceInfo,
-                  accessToken: client.accessToken,
-                ),
-              },
+            : serverAuthHeaders(client),
       ),
     );
 

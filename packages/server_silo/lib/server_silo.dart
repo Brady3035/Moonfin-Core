@@ -15,4 +15,5 @@ export 'src/api/silo_profiles_api.dart';
 export 'src/silo_problem.dart';
 export 'src/silo_session.dart';
 export 'src/silo_session_interceptor.dart';
+export 'src/mappers/silo_settings_mapper.dart';
 export 'src/mappers/silo_user_mapper.dart';

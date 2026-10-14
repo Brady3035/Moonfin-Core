@@ -1,8 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:server_core/server_core.dart';
 
+import '../mappers/silo_settings_mapper.dart';
 import '../mappers/silo_user_mapper.dart';
-import 'silo_pending_api.dart';
 import 'silo_profiles_api.dart';
 
 /// Moonfin's `UsersApi` over Silo's account and profiles.
@@ -58,15 +58,119 @@ class SiloUsersApi implements UsersApi {
     );
   }
 
+  /// The settings Moonfin reads from a `UserConfiguration`, resolved by Silo
+  /// for the acting profile on this device (`GET /settings/values/effective`).
+  ///
+  /// What Moonfin uses today is the library order and the libraries hidden
+  /// from My Media (Silo's `ui.library_order` and `ui.disabled_library_ids`);
+  /// the playback keys come along in the same request. See
+  /// `silo_settings_mapper.dart` for the mapping.
   @override
-  Future<UserConfiguration> getUserConfiguration() =>
-      throw SiloNotImplementedError('UsersApi', 'getUserConfiguration', '2.7');
+  Future<UserConfiguration> getUserConfiguration() async {
+    final profileId = _requireProfile('getUserConfiguration');
+    final values = await _readSettings();
+    final config = UserConfiguration.fromJson(
+      siloSettingsToUserConfiguration(values),
+    );
+    _lastRead = (profileId: profileId, values: values, config: config);
+    return config;
+  }
 
+  /// Writes back the settings that changed since the last read, one
+  /// `PUT /settings/values/{key}?scope=profile` each.
+  ///
+  /// Only changed keys are written: the library settings screens pass the
+  /// whole configuration back after changing one list, and rewriting the
+  /// others would turn Silo's defaults into stored values. Keys with no Silo
+  /// equivalent (`LatestItemsExcludes`, `GroupedFolders`, the remember
+  /// switches) are not saved.
   @override
-  Future<void> updateUserConfiguration(UserConfiguration config) =>
-      throw SiloNotImplementedError(
-        'UsersApi',
-        'updateUserConfiguration',
-        '2.7',
+  Future<void> updateUserConfiguration(UserConfiguration config) async {
+    final profileId = _requireProfile('updateUserConfiguration');
+    var last = _lastRead;
+    if (last == null || last.profileId != profileId) {
+      await getUserConfiguration();
+      last = _lastRead!;
+    }
+    final before = _toSilo(last.config, last.values);
+    final after = _toSilo(config, last.values);
+    final written = Map<String, Object?>.of(last.values);
+    try {
+      for (final key in siloUserConfigurationKeys) {
+        if (_same(before[key], after[key])) continue;
+        await _dio.put<dynamic>(
+          '/api/v2/settings/values/${Uri.encodeComponent(key)}',
+          queryParameters: const {'scope': 'profile'},
+          data: {'value': after[key]},
+        );
+        written[key] = after[key];
+      }
+    } finally {
+      // What was saved is the new baseline, even if a later key failed.
+      final values = Map<String, Object?>.unmodifiable(written);
+      _lastRead = (
+        profileId: profileId,
+        values: values,
+        config: UserConfiguration.fromJson(
+          siloSettingsToUserConfiguration(values),
+        ),
       );
+    }
+  }
+
+  /// The last settings read or written, for the acting profile, so an update
+  /// writes only what changed.
+  ({String profileId, Map<String, Object?> values, UserConfiguration config})?
+  _lastRead;
+
+  Future<Map<String, Object?>> _readSettings() async {
+    final response = await _dio.get<dynamic>(
+      '/api/v2/settings/values/effective',
+      queryParameters: const {'keys': siloUserConfigurationKeys},
+      options: Options(listFormat: ListFormat.multi),
+    );
+    final items = asJsonMap(response.data)?['items'];
+    if (items is! List) {
+      throw FormatException(
+        'Expected settings from Silo, got ${response.data.runtimeType}',
+      );
+    }
+    return Map.unmodifiable({
+      for (final item in items)
+        if (asJsonMap(item) case final setting?)
+          if (setting['key'] case final String key) key: setting['value'],
+    });
+  }
+
+  /// The settings routes require `X-Profile-Id`; without one Silo answers
+  /// 422, so say why instead.
+  String _requireProfile(String member) =>
+      _profileId() ??
+      (throw StateError(
+        'Silo UsersApi.$member needs a profile; call useMainProfile() first',
+      ));
+
+  static Map<String, Object?> _toSilo(
+    UserConfiguration c,
+    Map<String, Object?> current,
+  ) => userConfigurationToSiloSettings(
+    orderedViews: c.orderedViews,
+    myMediaExcludes: c.myMediaExcludes,
+    enableNextEpisodeAutoPlay: c.enableNextEpisodeAutoPlay,
+    audioLanguagePreference: c.audioLanguagePreference,
+    subtitleLanguagePreference: c.subtitleLanguagePreference,
+    subtitleMode: c.subtitleMode,
+    current: current,
+  );
+
+  static bool _same(Object? a, Object? b) {
+    if (a is List && b is List) {
+      if (a.length != b.length) return false;
+      for (var i = 0; i < a.length; i++) {
+        if (a[i] != b[i]) return false;
+      }
+      return true;
+    }
+    return a == b;
+  }
 }

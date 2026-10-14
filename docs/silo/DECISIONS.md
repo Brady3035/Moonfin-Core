@@ -28,7 +28,7 @@ Profile support (picker, PINs, switching, one Moonfin user per profile) moves to
 Cold start, deep links and offline can ask for an image the registry has never seen. Options: a resolver image provider that fetches the item and then loads its artwork (artwork always appears, more code in `cached_network_image_fork`), or an empty URL and the placeholder (simple, but artwork is missing until the item is loaded again). Needed by step 6.3.
 
 ### D3. Where display preferences live
-Silo has a generic per-user settings store (`/settings/values/{key}`). Options: store Moonfin's per-library view settings there under a `moonfin.` key (if Silo's settings contract allows client keys), or keep them local only. Needed by step 6.19.
+Silo has a per-profile settings store (`/settings/values/{key}`), but it only accepts keys defined in its settings contract, so a private `moonfin.` key isn't possible. **Partly answered in 2.7 (2026-10-13):** library order and hidden libraries use Silo's own `ui.library_order` and `ui.disabled_library_ids`. Still open for step 6.19: per-library view settings in Silo's `ui.library_page_state` (profile + device), or local only. Also open, for phase 8: "hide from Latest" has no Silo setting.
 
 ### D6. Track changes: replan or stop and restart
 Replan keeps the session and is faster; stop + start is simpler. Replan is needed anyway for far seeks on progressive remux (step 10.12), so the plan uses replan for tracks too.

@@ -6,6 +6,8 @@ import 'package:server_core/server_core.dart';
 
 import '../../auth/models/server.dart';
 import '../../auth/repositories/session_repository.dart';
+import '../../auth/models/user.dart';
+import '../../auth/services/silo_token_storage.dart';
 import '../../auth/store/authentication_store.dart';
 import '../../auth/store/credential_store.dart';
 import '../../preference/preference_constants.dart';
@@ -105,6 +107,7 @@ class MultiServerRepository {
 
         String? userId;
         String? accessToken;
+        PrivateUser? chosenUser;
 
         if (server.id == activeServerId && _sessionRepo.activeUserId != null) {
           final activeUser = users
@@ -113,6 +116,7 @@ class MultiServerRepository {
           if (activeUser != null && activeUser.accessToken.isNotEmpty) {
             userId = activeUser.id;
             accessToken = activeUser.accessToken;
+            chosenUser = activeUser;
           }
         }
 
@@ -123,6 +127,7 @@ class MultiServerRepository {
             if (userToken.isNotEmpty) {
               userId = user.id;
               accessToken = userToken;
+              chosenUser = user;
               break;
             }
           }
@@ -137,7 +142,14 @@ class MultiServerRepository {
           serverType: server.serverType,
           baseUrl: server.address,
         );
-        client.accessToken = accessToken;
+        // A Silo profile restores its account's pair and profile; setting the
+        // stored access token would drop the active session's refresh token.
+        final restored =
+            chosenUser != null &&
+            SiloTokenStorage(
+              _authStore,
+            ).restore(client: client, user: chosenUser);
+        if (!restored) client.accessToken = accessToken;
         client.userId = userId;
 
         sessions.add(

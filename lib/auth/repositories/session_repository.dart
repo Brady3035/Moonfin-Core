@@ -36,6 +36,7 @@ import '../../data/services/topshelf_service.dart';
 import '../../data/services/tv_channels_service.dart';
 import '../../data/services/watch_next_service.dart';
 import '../../data/services/media_server_client_factory.dart';
+import '../services/silo_token_storage.dart';
 import '../../data/services/achievements_service.dart';
 import '../../data/services/plex_tv_service.dart';
 import '../../data/services/plugin_sync_service.dart';
@@ -292,7 +293,11 @@ class SessionRepository {
     // A client kept from an earlier session still has the old address.
     if (address != server.address) client.baseUrl = address;
 
-    client.accessToken = accessToken;
+    // A Silo profile restores its account's token pair and profile; the
+    // stored access token alone can't refresh (3.4).
+    if (!SiloTokenStorage(_authStore).restore(client: client, user: user)) {
+      client.accessToken = accessToken;
+    }
     client.userId = userId;
 
     // A stored token can be long dead, and everything past this point fires

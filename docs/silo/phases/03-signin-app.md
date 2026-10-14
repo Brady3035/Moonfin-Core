@@ -128,7 +128,7 @@ Nothing calls these yet: 3.3 saves and binds at sign-in, 3.4 reads at start-up.
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 3.2 |
+| ☑ Done | `5d55dd5` | 3.2 |
 
 **Goal.** The auth repository's Silo branch: sign in, find the main profile (2.5), store the user under the main profile's id with its tokens, and set the client's profile.
 
@@ -195,34 +195,66 @@ Sign-out needed no change either: `logout` revokes the session (2.4), and removi
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 3.3 |
 
 **Goal.** Set token and profile on the client, refreshing first when the access token has expired.
 
 **Where in Moonfin**
 
+- `lib/auth/services/silo_token_storage.dart`
 - `lib/auth/repositories/session_repository.dart`
+- `lib/data/repositories/multi_server_repository.dart`
+- `lib/playback/headless_session_bootstrap.dart`
 
 **Earlier work to port:** stash
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+When the app starts (or switches users), Moonfin hands each stored user's login to a client by setting `client.accessToken = user.accessToken`. That is all a Jellyfin or Emby session needs. A Silo session also needs its **refresh token** (to renew the short-lived access token) and its **profile** (`X-Profile-Id`). Neither survives in `accessToken`, so before this step a relaunch only worked until the stored access token expired, and requests that need a profile failed.
+
+**`SiloTokenStorage.restore(client, user)`** (`lib/auth/services/silo_token_storage.dart`). For a stored Silo user (`siloAccountId`, 3.1) on a Silo client:
+- puts the account's **stored token pair** on the session (3.2);
+- sets the **main profile** as `profileId` (the stored user's id is the main profile's, D9);
+- **binds** the session so later refreshes are saved;
+- returns true, so the caller skips the old token setter. For a Jellyfin/Emby user or client it returns false and nothing changes.
+
+**An expired access token isn't refreshed here.** The session interceptor (2.2) refreshes it before the first request goes out, once, however many requests start together. If Silo refuses the refresh (login revoked, or idle past the refresh token's expiry), the first request gets a 401. At start-up that is the token check the session repository already does: it signs out and returns to the login screen, as it does for a dead Jellyfin token. Handling a refused refresh later in a session is 3.5.
+
+**Never clobber a live session.** The same client is handed its user more than once: the multi-server rows reuse the active client. The `accessToken` setter with the stored access token would replace the live pair with a bare, possibly expired token, drop the refresh token and clear the profile (2.1). That's why every place that hands a stored login to a client now goes through `restore`. It also leaves a client alone when it already holds this account's current pair, compared by refresh token. Bound sessions save each refresh synchronously before anything else runs, so the stored pair is always the current one. Another login found on the client is replaced.
+
+**Call sites** (each a few lines):
+- `SessionRepository.switchCurrentSession`: start-up and user switching.
+- `MultiServerRepository`: the cross-server rows. It now remembers which stored user it picked.
+- `headless_session_bootstrap.dart`: Android Auto/CarPlay and background engines.
+
+**Fallback.** A Silo user stored without a pair (signed in before 3.2) gets its stored access token, as before, but now also its profile. It works until that token expires, then signs in again.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `test/auth/silo_session_restore_test.dart` (new, 7 tests):
+  - restores pair, profile, user id and binding;
+  - an expired pair is refreshed before the first request, the new pair is saved, and the profile is kept;
+  - restoring onto a client that already holds the current pair changes nothing (same identity);
+  - **after a refresh, restoring again keeps the refreshed pair** rather than the stale token on the stored user;
+  - another login on the client is replaced;
+  - no stored pair falls back to the stored access token;
+  - Jellyfin users and clients are not handled.
+- Existing tests for the session repository, multi-server rows and everything that builds them: 232 passed.
 
-**Manual test plan**
+**Manual test plan** (macOS, Silo server)
 
-- Quit and relaunch: still signed in. Leave it past token expiry and relaunch.
+1. Sign in to Silo, quit Moonfin, relaunch. Expected: signed in, no login screen, and the start-up user check (`GET /account/me`, `GET /profiles`) succeeds.
+2. Expired token: leave Moonfin closed for over an hour (or overnight), relaunch. Expected: still signed in, and the log shows `POST /auth/refresh` before the first other request.
+3. Revoked login: sign out of the Moonfin session from Silo's sessions page while Moonfin is closed, relaunch. Expected: Moonfin returns to the login screen.
+4. Regression: relaunch with Emby active.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-13 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | `test/auth` 112/112; session/multi-server related tests 232/232; analyzer: no errors |
 | | | | | |
 
 ---

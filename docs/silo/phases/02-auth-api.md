@@ -433,7 +433,10 @@ Moonfin reads the signed-in user through `UsersApi.getCurrentUser()`: when a sto
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-13 | Linux (Claude workspace, Flutter 3.47.2) | 4b2e921c (captured `account_me.json`, `profiles.json`) | Pass | server_silo 106/106; analyzer clean |
-| | | | | |
+| 2026-10-13 | macOS (Brady) | 4b2e921c | Pass | Signed in, relaunched, stayed signed in. Silo's sessions page showed "Active now" after sign-in but not after the relaunch: see note. |
+
+
+**Note from testing: "Active now" in Silo's sessions page.** Silo's web app shows "Active now" when the login session's `last_seen_at` is under two minutes old (`sessionLastSeen` in `web/src/lib/loginSessionDevice.ts`). The server updates it on every authenticated request, at most once a minute (`SessionLastSeenTracker`). At this stage Moonfin only makes the two current-user reads when a session starts. Everything else on Home is still a local placeholder, so two minutes after start-up the page shows "Last seen N min ago". That's expected; browsing (phase 6), realtime events (phase 13) and playback keep the session active.
 
 ---
 

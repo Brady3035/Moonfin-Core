@@ -3,6 +3,7 @@ import 'package:server_core/server_core.dart';
 import '../silo_image_registry.dart';
 import 'silo_ids.dart';
 import 'silo_item_types.dart';
+import 'silo_media_source_mapper.dart';
 import 'silo_ticks.dart';
 
 /// Key under which a mapped item keeps the Silo item it came from, so later
@@ -17,8 +18,9 @@ const siloOriginalKey = '_silo';
 /// studios, dates, ratings, run time, provider ids, date added, status and
 /// the item's own artwork; the **series links** (5.4): series, season and
 /// index fields, child counts and the parent artwork fields; and the
-/// **user data** (5.5); and **people** (5.6). Media sources (5.8) are added
-/// by a later step.
+/// **user data** (5.5); **people** (5.6); and the **media sources** (5.8):
+/// one `MediaSource` per file version, default first, with the default's
+/// streams also as the item's `MediaStreams`, the way Jellyfin sends them.
 ///
 /// Artwork URLs are recorded in [images] (`SiloImageRegistry`), and their
 /// tags go in `ImageTags` and `BackdropImageTags`, the way Jellyfin reports
@@ -96,6 +98,13 @@ Map<String, dynamic>? siloItemToBaseItemDto(
     'People': _people(item, images),
     siloOriginalKey: item,
   };
+  if (!itemType.isFolder) {
+    final sources = siloItemMediaSources(item, itemId: id);
+    if (sources.isNotEmpty) {
+      dto['MediaSources'] = sources;
+      dto['MediaStreams'] = sources.first['MediaStreams'];
+    }
+  }
   return dto;
 }
 

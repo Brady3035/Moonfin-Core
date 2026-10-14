@@ -645,7 +645,7 @@ The other playback packages aren't in the list (they have no tests of their own)
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 1.11 |
+| ☑ Done | `3330ef9` | 1.11 |
 
 **Goal.** A `serverAuthHeaders()` helper (via a separate `ProfileAwareClient` interface so the test fakes stay untouched). Move the bitrate probe and retro-artwork transport onto it.
 
@@ -699,7 +699,7 @@ Behaviour for Jellyfin and Emby is identical: the helper builds the same header 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-13 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | server_core 87/87, server_silo 36/36, related app tests 61/61, analyzer 0 errors/warnings. Full app suite left to Brady. |
-| | | | | |
+| 2026-10-13 | macOS | — | Pass | Brady: full suite and manual checks |
 
 ---
 
@@ -708,7 +708,7 @@ Behaviour for Jellyfin and Emby is identical: the helper builds the same header 
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 1.12 |
 
 **Goal.** Silo has no speed-test route. Skip the probe and leave the estimate to passive measurement.
 
@@ -716,26 +716,33 @@ Behaviour for Jellyfin and Emby is identical: the helper builds the same header 
 
 - `lib/playback/auto_bitrate_service.dart`
 
-**Earlier work to port:** silo-1
+**Earlier work to port:** silo-1 (the skip that was bundled with the shared-headers change)
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+`AutoBitrateService.measuredBpsForActiveServer()` (`lib/playback/auto_bitrate_service.dart`) measures the link before an "Auto" quality stream by downloading test payloads from Jellyfin/Emby's `/Playback/BitrateTest`, then caps the stream request at 80 % of the result. Silo has no such route, so on a Silo server the probe would only time out and delay playback.
+
+The change is one early return: when the active client is a Silo client the method returns `null`, which callers already treat as "no measurement" (the same answer as offline or no server). No request is made.
+
+**Why nothing is lost:** Silo plans the stream on the server. `POST /playback/start` accepts the client's own bandwidth estimate and cap (`bandwidth_estimate_kbps`, `bandwidth_cap_kbps`) and applies the server's bitrate policy itself. Feeding Moonfin's preferences and any passive estimate into those fields is part of the capabilities translator (step 10.3), not this probe.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `test/playback/auto_bitrate_silo_test.dart` (new, 2 tests): a Silo client pointed at a local HTTP server gets `null` and the server receives **no** request; a Jellyfin client pointed at the same server does reach it (control). The test deliberately avoids the Flutter test binding, which would replace `HttpClient` with a fake that never connects.
+- Existing `auto_bitrate_cap_test.dart` passes unchanged.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+- Nothing to see until Silo playback exists (phase 10). Jellyfin/Emby: Auto quality still measures (unchanged code path).
+- Full app suite on the Mac.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-13 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | New and existing bitrate tests 12/12; analyzer clean. Full suite left to Brady. |
 | | | | | |
 
 ---

@@ -486,7 +486,7 @@ Audiobooks keep their own type, as on Emby, rather than `books` as the design no
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 5.7 |
+| ☑ Done | `f2be8d0` | 5.7 |
 
 **Goal.** One MediaSource per file version. Build Jellyfin's single stream index space and store the map `index → {kind, ordinal, track_id}` (subtitles keep the container index; video then audio take the lowest free indices). HDR/DV range types.
 
@@ -579,6 +579,7 @@ Within each kind the order is Silo's, so the player's per-kind track numbers sta
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | media source tests 28/28; `server_silo` 257/257; analyzer: no issues |
+| 2026-10-14 | macOS | `4b2e921c` | Pass | full `flutter test` before committing |
 | | | | | |
 
 ---
@@ -588,32 +589,53 @@ Within each kind the order is Silo's, so the player's per-kind track numbers sta
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 5.8 |
 
 **Goal.** Version chapters → `Chapters` (StartPositionTicks, Name, image tag when a thumbnail exists).
 
 **Where in Moonfin**
 
-- `silo_item_mapper.dart`
+- `packages/server_silo/lib/src/mappers/silo_chapter_mapper.dart` (new)
+- `silo_item_mapper.dart`: items get `Chapters`.
+- `silo_image_registry.dart`: a `chapter` image type.
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+Each Silo version lists its chapters (`VersionChapter`: `index`, `title`, `start_seconds`, `end_seconds`, `thumbnail_url`). `siloChaptersToJellyfin(version)` turns them into Jellyfin's `Chapters`, which Moonfin's chapter row and the player's chapter list read:
+
+| Jellyfin | From | Notes |
+|---|---|---|
+| `StartPositionTicks` | `start_seconds` | Negative starts become 0. |
+| `Name` | `title` | The file's own names ("01", "Chapter 1"). Left out when empty; Moonfin then shows "Chapter n". |
+| `ImageTag` | `thumbnail_url` | See below. |
+| `MarkerType`, `ChapterIndex` | — | `Chapter`, and the place in the list, as Emby sends them. |
+
+- **Order:** chapters are listed in start order; chapters that start together keep Silo's order. Entries without a start are skipped.
+- **Which chapters:** the item gets the **default version's** chapters, as Jellyfin does. Season list entries get no `Chapters` field, because their lightweight files don't say. An item whose version simply has no chapters gets an empty list.
+- **Thumbnails:** a new image type `SiloImageType.chapter` records them in the image registry under the item id, at the chapter's place in the list. That place is the `index` Moonfin passes to `getChapterImageUrl`, which `SiloImageApi` will answer from the registry (6.1). The path carries a content hash, so the tag stays the same while the picture does.
+- **Markers:** Emby also lists intro markers among the chapters ("Intro Start", "Intro End"). Silo keeps them apart as marker segments, and Moonfin reads those as media segments (5.10). So only real chapters are listed.
 
 ### Testing
 
-**Automated tests**
+**Automated tests** (`packages/server_silo/test/silo_chapter_mapper_test.dart`, new, 10 tests)
 
-- _None planned; add any that were written._
+- Golden against **Brady's Emby server**:
+  - xXx: 16 chapters at exactly Emby's start times and indices.
+  - Young Justice 1x01: the same 6 names and times as Emby's real chapters, without Emby's two intro marks.
+  - `/watch` answers too.
+- Thumbnails: each chapter's tag is the registered one; 16 different tags; no thumbnail or no registry gives no tag.
+- Rules: start order with stable ties, skipped entries, empty names, negative starts, the default version's chapters (The Salt Path's 4K default has none), and no field on season list entries.
+- `server_silo`: 267/267.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+- Nothing to check by hand until 6.6 shows the chapter row. Regression: full `flutter test`.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | chapter tests 10/10; `server_silo` 267/267; analyzer: no issues |
 | | | | | |
 
 ---

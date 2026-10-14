@@ -2,6 +2,7 @@ import 'package:server_core/server_core.dart';
 
 import '../silo_image_registry.dart';
 import 'silo_ids.dart';
+import 'silo_chapter_mapper.dart';
 import 'silo_item_types.dart';
 import 'silo_media_source_mapper.dart';
 import 'silo_ticks.dart';
@@ -20,7 +21,8 @@ const siloOriginalKey = '_silo';
 /// index fields, child counts and the parent artwork fields; and the
 /// **user data** (5.5); **people** (5.6); and the **media sources** (5.8):
 /// one `MediaSource` per file version, default first, with the default's
-/// streams also as the item's `MediaStreams`, the way Jellyfin sends them.
+/// streams also as the item's `MediaStreams` and its chapters as `Chapters`
+/// (5.9), the way Jellyfin sends them.
 ///
 /// Artwork URLs are recorded in [images] (`SiloImageRegistry`), and their
 /// tags go in `ImageTags` and `BackdropImageTags`, the way Jellyfin reports
@@ -103,6 +105,17 @@ Map<String, dynamic>? siloItemToBaseItemDto(
     if (sources.isNotEmpty) {
       dto['MediaSources'] = sources;
       dto['MediaStreams'] = sources.first['MediaStreams'];
+      // The default version's chapters, as Jellyfin sends them. Season list
+      // files are not versions and say nothing about chapters, so the field
+      // is left out there rather than claim the episode has none.
+      if (asJsonMap(sources.first[siloOriginalKey]) case final version?
+          when item['versions'] is List) {
+        dto['Chapters'] = siloChaptersToJellyfin(
+          version,
+          itemId: id,
+          images: images,
+        );
+      }
     }
   }
   return dto;

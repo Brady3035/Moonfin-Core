@@ -850,7 +850,7 @@ The change is one early return: for a Silo server the method returns an empty li
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 1.15 |
+| ☑ Done | `6a1355a` | 1.15 |
 
 **Goal.** The `/Moonfin/*` plugin doesn't exist on Silo, so don't call it.
 
@@ -894,7 +894,7 @@ After sign-in, `SessionRepository` runs three things that talk to the Moonfin se
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-13 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | 178/178 plugin-sync-related tests; analyzer 0 errors/warnings in lib and test. Full suite left to Brady. |
-| | | | | |
+| 2026-10-13 | macOS | — | Pass | Brady: tests and manual checks |
 
 ---
 
@@ -903,7 +903,7 @@ After sign-in, `SessionRepository` runs three things that talk to the Moonfin se
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 1.16 |
 
 **Goal.** Accept the `silo` type hint in web discovery, and name Silo in the add-server error.
 
@@ -912,26 +912,36 @@ After sign-in, `SessionRepository` runs three things that talk to the Moonfin se
 - `lib/auth/services/server_discovery_service_web.dart`
 - `lib/auth/repositories/server_repository.dart`
 
-**Earlier work to port:** silo-1
+**Earlier work to port:** silo-1 (without the build-flag conditions)
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+Two small edits that finish making Silo a first-class server type in the add-server flow.
+
+- **Add-server error** (`lib/auth/repositories/server_repository.dart`): when an address answers but none of the probe paths look like a media server, the probe returns null and `_probeServer` throws a `FormatException`, which becomes the failure's `lastErrorMessage`. The text now reads *"No Jellyfin, Emby or Silo server at this address"*. (When several candidate URLs are tried, the failure keeps only the last candidate's error, so with a bare address the message shown may be a connection or TLS error from a later candidate instead; that is existing behaviour.)
+- **Web discovery hint** (`lib/auth/services/server_discovery_service_web.dart`): the web build can read a list of servers whose entries carry a `type`/`serverType` hint. `"silo"` is now recognised next to `"emby"` and `"jellyfin"`. Without a hint the entry still goes through `ServerType.detect`, which already recognises a "Silo" product name (step 1.1). The same file's subnet scan uses the probe, which recognises Silo since 1.9.
+
+**Phase 1 is complete with this step.** Silo is a server type end to end: it can be added, it has its own client, icon and headers, and it stays out of the Jellyfin/Emby-only machinery (public users, plugin sync, bandwidth probe, unsafe redirects). Signing in is phase 2.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `test/auth/server_repository_silo_test.dart` (new): `addServer` end to end against a local fake Silo server saves a Silo server with its branding name, version, address, sign-in subtitle and setup state. (A test of the new error text was dropped: the repository keeps only the last candidate's error, which for a plain-http test server is the https fallback's TLS failure.)
+- Existing `server_repository_idn_test.dart` passes.
+- The web discovery file compiles for web only and has no tests; covered by the analyzer.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+- Add an address that answers but isn't a media server, with an explicit `https://` and no fallback port, for example a plain website: the error details mention "Jellyfin, Emby or Silo".
+- Optional, web build: server discovery still lists your servers.
+- Full app suite on the Mac.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-13 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | Repository tests 4/4; analyzer clean. Full suite left to Brady. |
 | | | | | |
 
 ---

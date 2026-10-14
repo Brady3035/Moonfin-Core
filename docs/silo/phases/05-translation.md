@@ -646,7 +646,7 @@ Each Silo version lists its chapters (`VersionChapter`: `index`, `title`, `start
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 5.9 |
+| ☑ Done | — | 5.9 |
 
 **Goal.** Marker segments → `MediaSegmentDto[]` (intro, credits→Outro, recap, preview), every occurrence.
 
@@ -697,6 +697,7 @@ Silo detects or imports **markers** per file: intro, credits, recap and preview.
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | marker tests 8/8; `server_silo` 275/275; analyzer: no issues |
+| 2026-10-14 | macOS | `4b2e921c` | Pass | full `flutter test` before committing |
 | | | | | |
 
 ---
@@ -706,32 +707,65 @@ Silo detects or imports **markers** per file: intro, credits, recap and preview.
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 5.10 |
 
 **Goal.** `/watch/{id}/trickplay` → Jellyfin `Trickplay` map, registering sheet URLs for `getTrickplayTileImageUrl`.
 
 **Where in Moonfin**
 
-- `silo_trickplay_mapper.dart`
+- `packages/server_silo/lib/src/mappers/silo_trickplay_mapper.dart` (new)
+- `silo_image_registry.dart`: a `trickplay` image type.
+- `packages/server_silo/test/fixtures/silo/watch_trickplay_episode.json` (new, written by hand; see below).
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+Silo makes seek-bar previews per file. Version entries say whether a file has them (`trickplay_available` on `/watch`), and `GET /watch/{id}/trickplay` returns them (`WatchTrickplay`):
+
+- `thumbnail_width`, `thumbnail_height` in pixels;
+- `tile_columns` × `tile_rows` thumbnails per sheet;
+- `interval_ms` per thumbnail, and `thumbnail_count`;
+- `sheets[]` with signed JPEG URLs that expire at `expires_at`.
+
+Moonfin reads Jellyfin's `Trickplay` item field, `{ <media source id>: { "<width>": {…} } }`, into `TrickplayInfo`, and asks `ImageApi.getTrickplayTileImageUrl(itemId, width:, index:, mediaSourceId:)` for each sheet. `siloTrickplayToJellyfin(answer)` produces that field:
+
+| Jellyfin | From |
+|---|---|
+| outer key | `file_id` (the `MediaSource` id, 5.8) |
+| inner key | `thumbnail_width` (Silo serves one width per file) |
+| `Width`, `Height` | `thumbnail_width`, `thumbnail_height` |
+| `TileWidth`, `TileHeight` | `tile_columns`, `tile_rows` |
+| `Interval` | `interval_ms` |
+| `ThumbnailCount` | `thumbnail_count`, else every tile of every sheet |
+| `Bandwidth` | 0 (Silo gives no estimate) |
+| `SiloExpiresAt` | `expires_at` (Moonfin's reader ignores unknown keys) |
+
+**Layout.** Both servers lay thumbnails out the same way. Sheet *s* holds thumbnails *s × columns × rows* onward, left to right and top to bottom. So Moonfin's tile arithmetic works unchanged.
+
+**Sheet URLs.** Each sheet's URL is recorded in the image registry under the **file id**, as a new `SiloImageType.trickplay`, at its sheet index. `getTrickplayTileImageUrl` will answer from there (11.2). The URLs carry their own authorization and expire, so 11.2 reads the previews again after `SiloExpiresAt`; a fresher URL replaces the old one.
+
+**Answers it can't use.** Null without a file id, a size, a grid, an interval or sheets.
+
+**Not switched on yet.** `supportsTrickplay` stays off for Silo until 11.2 fetches the previews and merges this field into the item.
+
+**Sample.** No file on the test server had seek previews when this step was built, so `watch_trickplay_episode.json` was written from the schema. It uses the probe script's file name, so a real capture replaces it, and the tests read their expectations from the file. The fixtures README says so. Capture a real one before 11.2.
 
 ### Testing
 
-**Automated tests**
+**Automated tests** (`packages/server_silo/test/silo_trickplay_mapper_test.dart`, new, 9 tests)
 
-- _None planned; add any that were written._
+- Episode sample: keyed by file id then width; the entry has exactly the fields `TrickplayInfo` reads; every sheet is registered under the file id; Jellyfin's tile arithmetic puts the last thumbnail on the last sheet.
+- Rules: incomplete answers give null; a numeric file id; the count fallback; sheets without an index; fresh URLs replace old ones.
+- `server_silo`: 284/284.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+- Nothing to check by hand until 11.2 shows seek previews. Regression: full `flutter test`.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | trickplay tests 9/9; `server_silo` 284/284; analyzer: no issues |
 | | | | | |
 
 ---

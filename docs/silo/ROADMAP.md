@@ -50,7 +50,7 @@ Status key: ☐ not started · ◐ in progress · ☑ done and tested · ⊘ ski
 - [x] **1.14** [Safer redirects for Silo sessions](phases/01-groundwork.md#step-1-14) · ↺ port
 - [x] **1.15** [No public user list on Silo](phases/01-groundwork.md#step-1-15) · ↺ port
 - [x] **1.16** [Skip Moonfin plugin sync at sign-in for Silo](phases/01-groundwork.md#step-1-16) · ↺ port
-- [ ] **1.17** [Web discovery hint and add-server wording](phases/01-groundwork.md#step-1-17) · ↺ port
+- [x] **1.17** [Web discovery hint and add-server wording](phases/01-groundwork.md#step-1-17) · ↺ port
 
 ## 2. [Sign-in API (package only)](phases/02-auth-api.md)
 

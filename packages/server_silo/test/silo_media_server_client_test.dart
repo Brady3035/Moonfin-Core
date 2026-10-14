@@ -46,12 +46,14 @@ void main() {
       expect(client.requestHeaders['X-Profile-Id'], 'p1');
       expect(client.requestHeaders['X-Profile-Token'], 'pvt_1');
 
-      client
-        ..accessToken = null
-        ..profileToken = null;
-      expect(client.requestHeaders.keys, isNot(contains('Authorization')));
+      client.profileToken = null;
       expect(client.requestHeaders.keys, isNot(contains('X-Profile-Token')));
       expect(client.requestHeaders['X-Profile-Id'], 'p1');
+
+      // Signing out drops the profile too: it belongs to the login.
+      client.accessToken = null;
+      expect(client.requestHeaders.keys, isNot(contains('Authorization')));
+      expect(client.requestHeaders.keys, isNot(contains('X-Profile-Id')));
     });
 
     test('authHeaders, for requests outside the client, match', () {

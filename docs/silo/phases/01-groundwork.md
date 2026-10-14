@@ -752,7 +752,7 @@ The change is one early return: when the active client is a Silo client the meth
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 1.13 |
+| ☑ Done | `0a2b571` | 1.13 |
 
 **Goal.** Only follow same-origin redirects with credentials attached, and only upgrade http→https on 443 or the same port.
 
@@ -796,7 +796,7 @@ The server probe follows redirects with its own loop rather than this intercepto
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-13 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | server_core 94/94, server_silo 38/38, analyzers clean. App suite left to Brady. |
-| | | | | |
+| 2026-10-13 | macOS | — | Pass | Brady: package tests and full suite |
 
 ---
 
@@ -805,35 +805,42 @@ The server probe follows redirects with its own loop rather than this intercepto
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 1.14 |
 
 **Goal.** Silo has no `/Users/Public`. Return an empty list so the login screen goes straight to username and password.
 
 **Where in Moonfin**
 
 - `lib/auth/repositories/server_user_repository.dart`
-- `lib/ui/screens/auth/server_screen.dart`
 
-**Earlier work to port:** silo-1
+**Earlier work to port:** silo-1 (the repository early return only)
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+When you open a server, the server screen (`lib/ui/screens/auth/server_screen.dart`) merges the users already signed in on this device with the server's public user list, which `ServerUserRepository.getPublicServerUsers` (`lib/auth/repositories/server_user_repository.dart`) fetches from Jellyfin/Emby's `GET /Users/Public`. If the merged list is empty, the screen goes straight to the username/password form.
+
+Silo has no public user list: you sign in to an account, then choose a household profile (phase 3). Until now the call went out anyway, failed (Silo's native host answers it with HTML or a 404), and the repository logged *"Failed to fetch public users"* before returning an empty list.
+
+The change is one early return: for a Silo server the method returns an empty list without making a request. The screen behaves exactly as before (no users → sign-in form); only the wasted request and the error in the log are gone. Jellyfin and Emby are untouched.
+
+(The first-pass branch also changed `server_screen.dart`; that diff was a separate back-button fix and older code main has since replaced, so it isn't part of this step.)
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `test/auth/server_user_repository_silo_test.dart` (new, 2 tests) against a local HTTP server: a Silo server returns no users and sends **no** request; a Jellyfin server still fetches `/Users/Public` and lists the user (control).
 
 **Manual test plan**
 
-- Selecting the Silo server opens the username/password form.
+- Open your Silo server: it goes straight to the username/password form, as in 1.9, and the app log (Settings → logs, or the console) no longer shows "Failed to fetch public users".
+- Open your Emby server: its user tiles still appear.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-13 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | New tests 2/2, analyzer clean. App suite left to Brady. |
 | | | | | |
 
 ---

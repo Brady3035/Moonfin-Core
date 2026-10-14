@@ -13,7 +13,7 @@ Moonfin signs in to the Silo account and acts as its main profile (decision D9).
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 2.7 |
 
 **Goal.** `PrivateUser` gains `siloAccountId`, with backward-compatible JSON.
 
@@ -21,26 +21,46 @@ Moonfin signs in to the Silo account and acts as its main profile (decision D9).
 
 - `lib/auth/models/user.dart`
 
-**Earlier work to port:** stash `Add_silo`
+**Earlier work to port:** stash `Add_silo` (the account id only; its PIN fields go to phase 18)
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+Moonfin stores each signed-in user as a `PrivateUser` (`lib/auth/models/user.dart`), saved as JSON by `AuthenticationStore` under its server. On Silo the login belongs to an **account**, and the Moonfin user is one of the account's profiles: the main profile until the optional phase 18 (decision D9). The stored user needs to know which account it belongs to:
+- step 3.2 keys the stored token pair by (server, account);
+- phase 18 groups an account's profiles under one login.
+
+**`PrivateUser` changes**
+
+- `siloAccountId` (nullable) and `isSiloProfile`. Null means a Jellyfin or Emby user.
+- `toJson` writes `siloAccountId` **only when set**, so Jellyfin and Emby entries are stored exactly as before.
+- `fromJson` reads it if present. Entries saved by older builds have no such key and load unchanged. An empty or non-string value reads as none rather than throwing on a damaged entry.
+- `copyWith` carries it, so the existing permission refresh at session start (`SessionRepository`, which uses `copyWith`) keeps it.
+
+Nothing sets it yet; 3.3 does at sign-in. The PIN fields from the earlier stash (`siloHasPin`, profile token and expiry) are left out: they belong to profile PINs, now phase 18.
+
+**Also in this commit (plan only):** new step **9.7 Hide from Continue Watching and Next Up**. Moonfin's "Hide from Continue Watching" is a local, per-device list. Silo keeps the same thing on the server (`PUT/DELETE /home/dismissals/{surface}/{item_id}`), dropping a whole show from both rows until the profile watches it again. Raised by Brady after 2.7.
 
 ### Testing
 
 **Automated tests**
 
-- old JSON still loads; Silo fields round-trip
+- `test/auth/private_user_silo_test.dart` (new, 5 tests):
+  - a Silo user round-trips its account id;
+  - a Jellyfin/Emby user's JSON has exactly the old keys;
+  - an entry saved by an older build loads;
+  - empty or wrongly typed account ids read as none;
+  - `copyWith` keeps or replaces the account id.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+- No visible change. With an Emby user already signed in, update and relaunch. Expected: still signed in, same user (old entries load).
+- Full `flutter test`.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-13 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | new test 5/5; analyzer: no new issues in `lib/auth` |
 | | | | | |
 
 ---

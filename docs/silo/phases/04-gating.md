@@ -423,7 +423,7 @@ Jellyfin and Emby are unchanged: on those servers the check is true, and the ser
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 4.7 |
+| ☑ Done | `d21fd24` | 4.7 |
 
 **Goal.** Personal ratings store, audiobook bookmarks and notes go through the plugin.
 
@@ -462,42 +462,60 @@ Bookmarks and notes belong to audiobooks, which Silo doesn't serve today; the ga
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | guard test 2/2; `test/data` + `test/playback` 1622/1622; analyzer: no new issues |
+| 2026-10-14 | macOS | `4b2e921c` | Pass | Brady tested before committing |
 | | | | | |
 
 ---
 
 <a id="step-4-9"></a>
-## 4.9 Seerr: proxy mode off, direct mode allowed
+## 4.9 Seerr: off on Silo
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 4.8 |
 
-**Goal.** The plugin's Seerr proxy doesn't exist on Silo. Direct Seerr (your own Seerr URL and per-user login) can still work.
+**Goal.** ~~The plugin's Seerr proxy doesn't exist on Silo. Direct Seerr (your own Seerr URL and per-user login) can still work.~~ Replanned while building: Moonfin has **no direct Seerr mode**, so Seerr is off on Silo and its entry points are hidden. Brady chose not to add a direct mode.
 
 **Where in Moonfin**
 
-- `lib/data/services/seerr/seerr_http_client.dart`
-- `Seerr settings`
+- `packages/server_core/lib/src/feature/feature_detector.dart`
+- `lib/util/signed_in_server_features.dart`
+- `lib/ui/screens/settings/panel/services_screen.dart`
+- `lib/ui/screens/settings/settings_side_panel.dart`
+- `lib/ui/screens/settings/panel/settings_search_index.dart`
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+**No direct mode.** The plan assumed Moonfin could talk to Seerr directly. It can't: `SeerrHttpClient` sends every request to the Moonfin plugin's proxy (`/Moonfin/Seerr/Api/*`, `MoonfinProxyConfig`). `SeerrPreferences` still has `serverUrl`, `authMethod` and `apiKey`, but nothing reads them. Making Seerr work without the plugin would be a new feature (Seerr URL, Seerr's own sign-in, cookie session), and Brady decided against it. So on Silo there is no Seerr, and 1.2's `supportsJellyseerr ✓` for Silo was wrong.
+
+**Already off at runtime.** `PluginSyncService.seerrAvailable` needs `pluginAvailable`, which is never true on Silo (1.16), so Discover, request buttons and Seerr rows never show. `configureSeerr` (run after every sign-in) checks the plugin first and stops before any Seerr request.
+
+**This step:**
+- `FeatureDetector.supportsJellyseerr` is now false for Silo (Jellyfin and Emby unchanged). `feature_detector_test` says so.
+- New `seerrOnAnySignedInServer()`. **Settings › Integrations › Seerr** (the setup screen) and its settings search entry are hidden when no signed-in server could have Seerr, so they still show for Jellyfin and Emby with or without the plugin.
+- **Integrations** itself then has nothing to show with only Silo signed in: Achievements, its other entry, is a Jellyfin-only plugin feature. So the Integrations entry and its search entry are hidden when neither Seerr nor achievements are on offer. When Seerr is hidden, Achievements takes the initial focus.
+
+The background notification action (approve or decline a request from a notification) needs a Seerr push, which only the plugin sends, so it can't start from Silo.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `packages/server_core/test/feature_detector_test.dart`: Silo has no Seerr (94/94).
+- `test/util/signed_in_server_features_test.dart`: Seerr is off with Silo alone and on once Jellyfin is signed in.
+- Helper, preference, navigation and Seerr-related tests: 576/576.
 
 **Manual test plan**
 
-- Point Moonfin's direct Seerr setting at your Seerr; discovery rows load for a Silo user.
+1. **Only Silo signed in:** Settings has no Integrations entry; searching settings for "seerr" finds nothing; no Discover tab or request buttons.
+2. **Emby signed in as well:** Integrations and Seerr come back; with the plugin's Seerr set up, Discover and requests work as before.
+3. Regression: full `flutter test`.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | `server_core` 94/94; helper, preference, navigation and Seerr tests 576/576; analyzer: no new issues |
 | | | | | |
 
 ---

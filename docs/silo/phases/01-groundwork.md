@@ -105,7 +105,7 @@ The throws are unreachable: every other switch needs a `MediaServerClient`, and 
 | `supportsQuickConnect` | ✓ | ✗ | ✗ | On in 14.3 (Silo device sign-in) |
 | `supportsClientLog` | ✓ | ✗ | ✗ | Optional, 13.5 |
 | `supportsSyncPlay`, `supportsLyrics`, `supportsBifTrickplay` | as before | as before | ✗ | Never |
-| `supportsJellyseerr` | ✓ | ✓ | ✓ | Direct Seerr works without the Moonfin plugin (4.9) |
+| `supportsJellyseerr` | ✓ | ✓ | ✗ | Corrected in 4.9: Moonfin reaches Seerr only through the plugin's proxy, so Silo has none |
 
 `supportsAdmin` is `true` for Emby to match today's behaviour (the admin panel's own Jellyfin-only checks are untouched); it only exists so phase 4 can hide the entry for Silo.
 

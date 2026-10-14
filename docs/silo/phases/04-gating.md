@@ -310,7 +310,7 @@ Setup: sign in to Silo with an **admin** account.
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 4.5 |
+| ☑ Done | `bdba70e` | 4.5 |
 
 **Goal.** Return early from plugin sync, server messages and theme sync on Silo.
 
@@ -355,6 +355,7 @@ Setup: only Silo signed in.
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | helper, preference and navigation tests 169/169; analyzer: no new issues |
+| 2026-10-14 | macOS | `4b2e921c` | Pass | Brady tested before committing |
 | | | | | |
 
 ---
@@ -364,36 +365,54 @@ Setup: only Silo signed in.
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 4.6 |
 
 **Goal.** These proxies live in the plugin. Hide or skip their rows and badges on Silo.
 
 **Where in Moonfin**
 
-- `tmdb_repository.dart`
-- `mdblist_repository.dart`
-- `anime_marker_repository.dart`
-- `custom_external_lists_service.dart`
-- `upcoming_episode_service.dart`
+- `lib/util/signed_in_server_features.dart`
+- `lib/data/repositories/tmdb_repository.dart`
+- `lib/data/repositories/mdblist_repository.dart`
+- `lib/data/repositories/anime_marker_repository.dart`
+- `lib/data/services/custom_external_lists_service.dart`
+- `lib/data/services/upcoming_episode_service.dart`
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+**Settings were already gated.** The IMDb, TMDB, seasonal and custom row settings (and their search entries) sit inside `if (pluginAvailable)` blocks. `pluginAvailable` comes from the plugin ping, which never happens on Silo (1.16), so these settings never show for a Silo user.
+
+**The services weren't.** Each one calls `/Moonfin/*` with its own HTTP client, from detail screens, rating badges and home rows, without asking `pluginAvailable` first. On Silo these requests would just fail and be cached as "nothing", but they are wasted round trips to a server that can never answer. Each now returns early, before any request, when its client's server can't have the plugin. The check is `serverHasMoonfinPlugin(client)`, new in the helper file, which reads `FeatureDetector.supportsMoonfinPlugin`. Each early return reuses the path the service already takes when there is no access token, so waiting callers are completed the same way:
+- **TMDB** (`TmdbRepository`): episode and season ratings, production companies, and the studio-image and thumb URLs (null, so no image request either).
+- **MDBList** (`MdbListRepository.getRatings`): no ratings.
+- **Anime markers** (`AnimeMarkerRepository`): series markers and the batched item lookups.
+- **Custom rows** (`CustomExternalListsService`): falls back to the per-account cache, which is empty for a Silo account.
+- **Next-episode lookup** (`UpcomingEpisodeService`): skips the plugin's TMDB proxy. Seerr and the direct TMDB key still work (Seerr is 4.9).
+
+Jellyfin and Emby are unchanged: on those servers the check is true, and the services ask the plugin as before.
+
+**Switching it back on** is one flag: see D10.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `test/data/repositories/plugin_proxy_silo_guard_test.dart` (new, 2 tests). A local HTTP server counts requests: a Silo client asks TMDB, MDBList and anime markers and sends **nothing** (and gets no thumb URL). An Emby client making the same calls does reach `/Moonfin/Tmdb/EpisodeRating`, `/Moonfin/MdbList/Ratings` and `/Moonfin/AnimeMarkers/Series`, which proves the test would catch a stray request.
+- `test/custom_external_lists_service_test.dart`: its fake client now reports `ServerType.jellyfin`, which the new check reads. The test itself is unchanged.
+- Detail screen, view model, repository and custom-list tests: 517/517.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+1. **Emby unchanged:** with Emby active, MDBList/TMDB rating badges, anime markers (if configured) and custom rows show as before.
+2. **Silo:** nothing to see yet (Silo items arrive in phase 6). Optional: Silo's request log shows no `/Moonfin/` requests during a session.
+3. Regression: full `flutter test`.
+4. Deferred to 6.4 (needs Silo items): a Silo film's detail screen shows no MDBList/TMDB badges and no errors.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | guard test 2/2; detail, view model, repository and custom-list tests 517/517; analyzer: no new issues |
 | | | | | |
 
 ---

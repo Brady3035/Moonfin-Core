@@ -87,3 +87,12 @@ bool itemServerSupports(
 /// when no client is set up.
 bool activeServerSupports(bool Function(FeatureDetector features) feature) =>
     itemServerSupports(null, feature);
+
+/// Whether [client]'s server can have the Moonfin plugin
+/// ([FeatureDetector.supportsMoonfinPlugin]). Services that call `/Moonfin/*`
+/// directly check it before sending anything, so nothing is asked of a
+/// server that can never answer (Silo).
+bool serverHasMoonfinPlugin(MediaServerClient client) => FeatureDetector(
+  serverType: client.serverType,
+  serverVersion: '',
+).supportsMoonfinPlugin;

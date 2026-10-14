@@ -8,6 +8,7 @@ import 'package:server_core/server_core.dart';
 import '../../preference/user_preferences.dart';
 import '../models/upcoming_episode_info.dart';
 import '../repositories/seerr_repository.dart';
+import '../../util/signed_in_server_features.dart';
 import 'plugin_sync_service.dart';
 
 /// Service that resolves upcoming episode air dates for a TV series,
@@ -202,7 +203,8 @@ class UpcomingEpisodeService {
     if (GetIt.instance.isRegistered<MediaServerClient>()) {
       final client = GetIt.instance<MediaServerClient>();
       final token = client.accessToken;
-      if (token != null) {
+      // The TMDB proxy is part of the Moonfin plugin, which Silo never has.
+      if (token != null && serverHasMoonfinPlugin(client)) {
         try {
           final response = await _dio.get(
             '${client.baseUrl}/Moonfin/Tmdb/NextEpisode',

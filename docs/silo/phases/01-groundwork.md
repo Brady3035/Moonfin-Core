@@ -317,7 +317,7 @@ Every Silo error comes back as an RFC 9457 *Problem Details* JSON body. Its `typ
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 1.5 |
+| ☑ Done | `4361368` | 1.5 |
 
 **Goal.** Public info, system info and ping, returned in the shape the app already reads.
 
@@ -377,7 +377,7 @@ In the app today only the admin dashboard calls `SystemApi`, which Silo users ca
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-13 | Linux (Claude workspace, Flutter 3.47.2) | 4b2e921c+dirty (fixtures) | Pass | server_silo 35/35, server_core 75/75, app analyzer 0 errors/warnings |
-| | | | | |
+| 2026-10-13 | macOS | — | Pass | Brady committed after review |
 
 ---
 
@@ -386,7 +386,7 @@ In the app today only the admin dashboard calls `SystemApi`, which Silo users ca
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 1.6 |
 
 **Goal.** Plugin, a resolver that refuses with a clear "Silo playback isn't available yet" message, and a no-op session service.
 
@@ -394,26 +394,41 @@ In the app today only the admin dashboard calls `SystemApi`, which Silo users ca
 
 - `packages/playback_silo/**`
 
-**Earlier work to port:** silo-1
+**Earlier work to port:** silo-1 `playback_silo` (message constant added, unused `logger` dependency dropped, step references updated)
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+A new package, `packages/playback_silo`, mirroring `playback_emby`/`playback_jellyfin`. Moonfin's player asks a per-server *plugin* for two objects: a `MediaStreamResolver` (item → playable URL) and a `PlayerService` (start/progress/stop reports). This step provides Silo's versions as safe stubs so the app can be wired to them in 1.8; real playback is phase 10.
+
+| File | What it does now | Real version |
+|---|---|---|
+| `lib/src/silo_plugin.dart` | `SiloPlugin(client)` with `createStreamResolver()` and `createPlaySessionService()`, same shape as `EmbyPlugin` | stays |
+| `lib/src/silo_media_stream_resolver.dart` | `resolve()` returns a failed future with `UnsupportedError(siloPlaybackUnavailableMessage)`: *"Playback from Silo servers isn't available in this build yet."* | 10.6 (`POST /playback/start` → plan) |
+| `lib/src/silo_play_session_service.dart` | every report is a no-op that makes no request | 10.9 progress, 10.10 stop |
+
+**Why fail in `resolve` rather than earlier:** the player already turns a failed resolve into its error screen, so pressing Play on a Silo item (once browsing works) shows the message instead of crashing. The error is returned as a failed `Future` (not thrown synchronously) because callers handle resolve errors through the future.
+
+**Why the session service is silent:** a session only exists after `/playback/start` answers, which can't happen yet; sending progress or stop would hit routes that need a session id.
+
+**How Silo playback will differ** (recorded here for reviewers; designed in phase 10): Jellyfin and Emby use `PlaybackInfo` + a `DeviceProfile` and the client picks a URL. Silo decides on the server: the client posts codec *evidence* to `/playback/start` and gets one plan (delivery, signed stream URL, subtitles, timeline, `session_id`); progress is sequenced and the stop is idempotent with a `stop_id`. That's why the package is separate and why its pubspec depends only on `playback_core` and `server_core` (not on `server_silo`), like the other playback packages.
+
+The first-pass package also depended on `logger`, which nothing used; it's dropped.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `packages/playback_silo/test/silo_plugin_test.dart` (new, 3 tests): `resolve` fails with the message for any option combination; every session report completes without touching the client (the stub client fails the test on any call); the plugin builds both objects.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+- No app change. Optional: `cd packages/playback_silo && flutter pub get && flutter test` (3 tests).
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-13 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | playback_silo 3/3, `dart analyze` clean |
 | | | | | |
 
 ---

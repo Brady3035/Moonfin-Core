@@ -41,10 +41,6 @@ abstract class _Pending {
   }
 }
 
-class SiloPendingAuthApi extends _Pending implements AuthApi {
-  const SiloPendingAuthApi() : super('AuthApi', '2.3');
-}
-
 class SiloPendingUsersApi extends _Pending implements UsersApi {
   const SiloPendingUsersApi() : super('UsersApi', '2.7');
 }

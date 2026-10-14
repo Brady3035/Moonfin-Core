@@ -90,10 +90,17 @@ void main() {
           ),
     );
 
-    test('sign-in', () {
+    test('sign-out', () {
       expect(
-        () => client.authApi.authenticateByName('u', 'p'),
-        pending('AuthApi', 'authenticateByName', '2.3'),
+        () => client.authApi.logout(),
+        pending('AuthApi', 'logout', '2.4'),
+      );
+    });
+
+    test('sign in with a code', () {
+      expect(
+        () => client.authApi.initiateQuickConnect(),
+        pending('AuthApi', 'initiateQuickConnect', 'phase 14'),
       );
     });
 

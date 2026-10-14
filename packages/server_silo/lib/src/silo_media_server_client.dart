@@ -3,6 +3,7 @@ import 'package:server_core/server_core.dart';
 
 import 'api/silo_instant_mix_api.dart';
 import 'api/silo_live_tv_api.dart';
+import 'api/silo_auth_api.dart';
 import 'api/silo_pending_api.dart';
 import 'api/silo_system_api.dart';
 import 'silo_problem.dart';
@@ -219,7 +220,7 @@ class SiloMediaServerClient extends MediaServerClient
   set userId(String? id) => _userId = id;
 
   @override
-  final AuthApi authApi = const SiloPendingAuthApi();
+  late final AuthApi authApi = SiloAuthApi(_authDio, session);
 
   @override
   final UsersApi usersApi = const SiloPendingUsersApi();

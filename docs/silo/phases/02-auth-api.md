@@ -80,7 +80,7 @@ Jellyfin and Emby hand out one access token that lasts until you sign out. Silo 
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 2.1 |
+| ☑ Done | `2cb4fc5` | 2.1 |
 
 **Goal.** Refresh shortly before expiry, retry a 401 once after refreshing, and never replay login, refresh, device sign-in or PIN checks. Refreshes use a separate HTTP client so they can't deadlock.
 
@@ -141,7 +141,7 @@ Step 2.1 gave the client a token pair that *can* be refreshed. This step decides
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 2.2 |
 
 **Goal.** `authenticateByName` → `POST /auth/login` with device headers, translated to the Jellyfin `AuthenticationResult` shape plus the Silo token data.
 
@@ -152,27 +152,65 @@ Step 2.1 gave the client a token pair that *can* be refreshed. This step decides
 **Where in Moonfin**
 
 - `packages/server_silo/lib/src/api/silo_auth_api.dart`
+- `packages/server_silo/lib/src/mappers/silo_user_mapper.dart`
+- `packages/server_silo/lib/src/silo_media_server_client.dart`
 
 **Earlier work to port:** silo-2
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+Jellyfin's `AuthenticateByName` returns one long-lived token and the user. Silo's `POST /api/v2/auth/login` returns a `TokenPair`: an access token, a rotating refresh token, `expires_in` seconds and the signed-in `Account`. This step translates that into the `AuthenticationResult` map the app already reads, so the existing login screen signs in to Silo with no app change.
+
+**`packages/server_silo/lib/src/api/silo_auth_api.dart`** (`SiloAuthApi`, replaces `SiloPendingAuthApi`)
+
+- `authenticateByName(username, password)` posts `{username, password}` on the client's **sign-in Dio** (`_authDio` from 2.2, which has no session interceptor). It carries the device headers like every Silo request.
+- The request is flagged `siloNoAuthExtra`, so it carries no bearer token: the password is the credential, and a token left over from another login mustn't ride along. It is also flagged `siloNoRefreshExtra`, so it is never refreshed for or replayed. That matters because **Silo answers a wrong password with `401 invalid_token`**, the same code as an expired token (checked on the live server), and a replayed sign-in would count as a second attempt against Silo's rate limits.
+- On success:
+  - the pair becomes the client's session (`SiloSession.setTokens`). That is a new login, so any earlier login's profile and PIN proof are dropped (2.1's rule);
+  - the result is `AccessToken`, `User` (the account translated to a Jellyfin `UserDto`), `SiloTokens` (the pair as JSON, for the app to store in step 3.2) and `SiloPasswordChangeRequired`.
+- **`SiloPasswordChangeRequired`** is true when the account holds a temporary password. Until it is changed, Silo lets the session only read the account, change the password and sign out; everything else answers `403 password_change_required`. The app reacts to it in step 3.11.
+- An answer without both tokens or without an account id is a `FormatException`, and the current session is left untouched. A failed sign-in (wrong password, validation error) also leaves the current session as it was.
+- Errors are Dio errors whose message is Silo's problem text from 1.5 (for example `Silo 401 invalid_token: Invalid username or password.`, or the field errors of a `422`). The app's auth repository already turns a 401 into "Invalid username or password"; nicer messages for other errors come with the login screen work in 3.3.
+- The other `AuthApi` members throw `SiloNotImplementedError` naming their step: `logout` → 2.4, the QuickConnect methods → phase 14 (Silo device sign-in).
+
+**`packages/server_silo/lib/src/mappers/silo_user_mapper.dart`** (new)
+
+- `siloAccountToUserDto(account)`: `Id` and `Name` from the account id and username, `SiloAccountId` and the raw `SiloAccount` alongside. Silo has no per-user policy object, only a server-wide `role` and `download_allowed`, so the policy is `IsAdministrator` (role `admin`), `EnableContentDownloading`, and `EnableCollectionManagement` (always true; personal collections are open to every Silo account). Other policy flags read as their defaults.
+- **For now the Moonfin user is the account.** Per decision D1 it becomes the household profile in 2.7 and phase 3, so a Silo user signed in during phase 2 will be stored under the account id and should be removed once phase 3 lands.
+
+**Smaller changes**
+
+- `SiloSession.now` exposes the session clock so sign-in computes the expiry on the same clock as refreshes (tests move it).
+- `server_silo.dart` exports the auth API and the user mapper.
 
 ### Testing
 
 **Automated tests**
 
-- success; wrong password → readable error; `password_change_required` flagged
+- `packages/server_silo/test/silo_auth_api_test.dart` (new, 10 tests, built on the captured `auth_login.json`):
+  - the Jellyfin result shape, and the policy reading through Moonfin's `UserPolicy`;
+  - the token pair lands on the session with the right expiry and is returned as JSON;
+  - the request: method, body, device headers, no bearer token even when one is set;
+  - a new sign-in replaces the earlier login, bumps the identity and drops the profile and PIN proof;
+  - `password_change_required` is flagged;
+  - a wrong password (the live server's `401 invalid_token`) is a readable error, is not refreshed or retried, and keeps the current login;
+  - a `422` carries Silo's field errors;
+  - answers without a token pair or an account fail and change nothing.
+- `silo_media_server_client_test.dart`: the placeholder test now checks `logout` (2.4) and QuickConnect (phase 14) instead of sign-in.
 
-**Manual test plan**
+**Manual test plan** (macOS, Silo server; Emby for the regression)
 
-- _Write the checks before testing._
+1. Add the Silo server (or pick it) and sign in with a **wrong password**. Expected: "Invalid username or password", and the app stays on the login screen.
+2. Sign in with the right password. Expected: sign-in succeeds and the app leaves the login screen. Home and libraries are still empty or show "not implemented yet" errors (those are phases 5 and 6). In the log: `→ POST …/api/v2/auth/login` then `← 200`.
+3. Optional: sign in with an account that has a temporary password. Expected: sign-in still succeeds (the app ignores the flag until 3.11).
+4. Regression: sign in to Emby and play something.
+5. Afterwards, remove the Silo user from the user list. Phase 3 stores Silo users differently, and the session isn't saved across restarts yet (3.9).
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-13 | Linux (Claude workspace, Flutter 3.47.2) | 4b2e921c (wrong-password answer checked live) | Pass | server_silo 84/84; analyzer clean |
 | | | | | |
 
 ---

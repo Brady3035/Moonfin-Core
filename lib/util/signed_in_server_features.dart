@@ -77,3 +77,9 @@ bool itemServerSupports(
     FeatureDetector(serverType: client.serverType, serverVersion: ''),
   );
 }
+
+/// Whether the active server supports [feature], for actions that act on it
+/// (remote control lists the active server's sessions, say). Answers true
+/// when no client is set up.
+bool activeServerSupports(bool Function(FeatureDetector features) feature) =>
+    itemServerSupports(null, feature);

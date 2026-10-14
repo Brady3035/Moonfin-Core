@@ -173,6 +173,7 @@ _Fill in when the step is built: what the code does, the main classes and why it
 |---|---|---|
 | 3.6 test 5 | Android TV (and other TVs) | Sign in to Silo with a temporary password and change it with the remote: select opens the on-screen keyboard on each field of the dialog; down moves to the next field, then to "Change password". |
 | 4.1 test 3 | iOS or Android phone | With only Silo signed in, the bottom navbar tab picker doesn't offer Live TV; with Emby also signed in, it does. |
+| 4.4 test 4 | iOS or Android phone | The bottom-nav hub has no Remote control tile with Silo active, and has it with Emby active. |
 | 4.3 note | Android Auto / car | With Silo as the active server, the car media browser (Home, Music, Playlists tabs: all music) shows empty lists and no errors. |
 
 **Results**

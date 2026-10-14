@@ -18,6 +18,7 @@ import '../../l10n/app_localizations.dart';
 import '../../data/services/pin_guard.dart';
 import '../../data/services/server_pin_service.dart';
 import '../../util/platform_detection.dart';
+import '../../util/signed_in_server_features.dart';
 import '../navigation/destinations.dart';
 import 'adaptive/adaptive_dialog.dart';
 import '../screens/settings/settings_side_panel.dart';
@@ -252,6 +253,13 @@ class _AccountDialogState extends State<_AccountDialog> {
     final focusColor = Theme.of(context).colorScheme.primary;
     final activeIndex = _accounts.indexWhere(_isActive);
     final initialAccountFocusIndex = activeIndex >= 0 ? activeIndex : 0;
+    final quickConnectButton = _ActionButton(
+      label: l10n.quickConnect,
+      onPressed: _busy
+          ? null
+          : () => Navigator.of(context).pop(_AccountDialogAction.quickConnect),
+      focusColor: focusColor,
+    );
 
     return Dialog(
       backgroundColor: Colors.transparent,
@@ -409,27 +417,26 @@ class _AccountDialogState extends State<_AccountDialog> {
                 const SizedBox(height: 8),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: _buildPairedActionButtons(
-                    first: _ActionButton(
-                      label: l10n.quickConnect,
-                      onPressed: _busy
-                          ? null
-                          : () => Navigator.of(
-                              context,
-                            ).pop(_AccountDialogAction.quickConnect),
-                      focusColor: focusColor,
-                    ),
-                    second: _ActionButton(
-                      label: l10n.remoteControl,
-                      onPressed: _busy
-                          ? null
-                          : () {
-                              Navigator.of(context).pop();
-                              showRemoteControlDialog(context);
-                            },
-                      focusColor: focusColor,
-                    ),
-                  ),
+                  // Remote control drives the active server's other sessions;
+                  // without them (Silo) Quick Connect takes the whole row.
+                  child: activeServerSupports((f) => f.supportsRemoteControl)
+                      ? _buildPairedActionButtons(
+                          first: quickConnectButton,
+                          second: _ActionButton(
+                            label: l10n.remoteControl,
+                            onPressed: _busy
+                                ? null
+                                : () {
+                                    Navigator.of(context).pop();
+                                    showRemoteControlDialog(context);
+                                  },
+                            focusColor: focusColor,
+                          ),
+                        )
+                      : SizedBox(
+                          width: double.infinity,
+                          child: quickConnectButton,
+                        ),
                 ),
               ],
             ],

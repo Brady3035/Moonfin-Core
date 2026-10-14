@@ -65,6 +65,7 @@ void main() {
       expect(f.supportsInstantMix, isTrue, reason: '$type');
       expect(f.supportsAdmin, isTrue, reason: '$type');
       expect(f.supportsMoonfinPlugin, isTrue, reason: '$type');
+      expect(f.supportsRemoteControl, isTrue, reason: '$type');
       expect(f.supportsProfiles, isFalse, reason: '$type');
     }
   });
@@ -87,6 +88,7 @@ void main() {
     expect(f.supportsInstantMix, isFalse);
     expect(f.supportsAdmin, isFalse);
     expect(f.supportsMoonfinPlugin, isFalse);
+    expect(f.supportsRemoteControl, isFalse);
     expect(f.supportsSyncPlay, isFalse);
     expect(f.supportsBifTrickplay, isFalse);
   });

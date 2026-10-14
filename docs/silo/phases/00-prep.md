@@ -81,7 +81,7 @@ The Silo contract Moonfin builds against is now the exact OpenAPI document serve
 | `*_is_episode_still` flags on posters/backdrops | Lets the mapper avoid using an episode still as a series poster (5.4). |
 | `POST /catalog/letters` + `CatalogSearchCapabilities.letter_index` | Native alphabet jump, already planned as step 6.11; use `runs`, not `letters`, to compute positions. |
 | `GET /home/capabilities`, `HomeLayout` | Step 8.7 checks it before rendering server-curated sections. |
-| Profile tokens are now also invalidated when the profile's PIN changes | Steps 3.6/3.9: a rejected `X-Profile-Token` re-prompts for the PIN instead of signing out. |
+| Profile tokens are now also invalidated when the profile's PIN changes | Steps 18.4/3.4: a rejected `X-Profile-Token` re-prompts for the PIN instead of signing out. |
 | Device-login codes may be 6 digits for a Jellyfin Quick Connect request; new `jellyfin_quick_connect` capability and `approve-handoff` | Step 14.1/14.2: don't assume the 8-digit `4821-7730` format. |
 | `MarkerOccurrence` gains `thumbnail_url` | Optional preview image on the skip button (11.1). |
 | Personal collections drop `allowed_profile_ids`, add `contains`, `sync_cadence`, `poster_is_collage` | Step 9.5: `contains_item` can show "already in collection". |

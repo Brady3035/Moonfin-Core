@@ -4,7 +4,7 @@
 
 ## Decided
 
-### D1. A Silo household profile is a Moonfin user (2026-10-08)
+### D1. A Silo household profile is a Moonfin user (2026-10-08; deferred to phase 18 by D9)
 Each profile shows as its own user, so the existing user switcher, per-user settings, offline data and "last user" work per household member. Profiles of one account share one token pair. Rules for sign-out, refresh, multi-server rows and PINs are in [reference §4.2.1](reference/design-2026-10-08.md#421-design-note-households-inside-moonfins-multi-server-model).
 
 ### D4. Native `/api/v2` only (2026-10-13)
@@ -18,6 +18,9 @@ The code on `silo-1-groundwork`, `silo-2-signin-api` and the `Add_silo` stash is
 
 ### D8. No build flag; develop on the fork (2026-10-13)
 Silo isn't hidden behind `MOONFIN_SILO`/`siloSupportEnabled`. The work lives on Brady's fork until it is proposed upstream, so the flag (and its step) is dropped, and the flag is stripped from code ported from the earlier branches. If the maintainers want the work merged in pieces before it can play, a flag can be added back as one commit at that point.
+
+### D9. Household profiles are optional and come last (2026-10-13)
+Profile support (picker, PINs, switching, one Moonfin user per profile) moves to an optional phase 18, so the core client ships without it. Until then Moonfin signs in to the account and **acts as its main (primary) profile**: every request carries that profile's `X-Profile-Id`, because Silo keeps progress, favourites and home rows per profile and refuses requests without the header once any profile on the account has a PIN or restrictions. The Moonfin user id is the main profile's id, so phase 18 adds the other profiles as users without migrating anyone. A PIN-locked main profile can't sign in until 18.4; step 3.7 explains that instead of failing with a generic error.
 
 ## Open
 

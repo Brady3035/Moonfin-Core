@@ -1,10 +1,10 @@
-# Phase 3: Sign-in and household profiles in the app
+# Phase 3: Sign-in in the app
 
 [← Roadmap](../ROADMAP.md)
 
-Each Silo household profile is its own Moonfin user (decided Oct 8; see design reference §4.2.1). One account login = one token pair shared by its profiles.
+Moonfin signs in to the Silo account and acts as its main profile (decision D9). One Silo login is one Moonfin user. Choosing between household profiles, PINs and profile switching are the optional phase 18.
 
-**Phase done when:** You can sign in, pick a profile (with PIN if locked), switch profiles without re-entering the password, restart the app and stay signed in. Home is still empty until phase 5.
+**Phase done when:** You can sign in, restart the app and stay signed in, and a refused login sends you back to sign-in. Home is still empty until phase 5.
 
 ---
 
@@ -15,7 +15,7 @@ Each Silo household profile is its own Moonfin user (decided Oct 8; see design r
 |---|---|---|
 | ☐ Not started | — | previous step |
 
-**Goal.** `PrivateUser` gains `siloAccountId` and PIN state, with backward-compatible JSON.
+**Goal.** `PrivateUser` gains `siloAccountId`, with backward-compatible JSON.
 
 **Where in Moonfin**
 
@@ -46,13 +46,13 @@ _Fill in when the step is built: what the code does, the main classes and why it
 ---
 
 <a id="step-3-2"></a>
-## 3.2 One token record per Silo account
+## 3.2 Store the Silo token pair
 
 | Status | Commit | Depends on |
 |---|---|---|
 | ☐ Not started | — | previous step |
 
-**Goal.** Store the token pair keyed by (server, account), shared by its profiles, and save refreshed tokens through a callback.
+**Goal.** Store the token pair with the user, keyed by (server, account), and save refreshed tokens through the session callback.
 
 **Where in Moonfin**
 
@@ -68,7 +68,7 @@ _Fill in when the step is built: what the code does, the main classes and why it
 
 **Automated tests**
 
-- two accounts on one server don't overwrite each other; refresh updates every sibling profile
+- two accounts on one server don't overwrite each other; a refresh saves the rotated pair
 
 **Manual test plan**
 
@@ -89,7 +89,7 @@ _Fill in when the step is built: what the code does, the main classes and why it
 |---|---|---|
 | ☐ Not started | — | previous step |
 
-**Goal.** The auth repository's Silo branch: sign in, store tokens, set the client's profile.
+**Goal.** The auth repository's Silo branch: sign in, find the main profile (2.5), store the user under the main profile's id with its tokens, and set the client's profile.
 
 **Where in Moonfin**
 
@@ -121,200 +121,13 @@ _Fill in when the step is built: what the code does, the main classes and why it
 ---
 
 <a id="step-3-4"></a>
-## 3.4 Store the household as users
+## 3.4 Restore the session on app start
 
 | Status | Commit | Depends on |
 |---|---|---|
 | ☐ Not started | — | previous step |
 
-**Goal.** After sign-in, save every profile as a user, and continue straight in when there is only one unlocked profile.
-
-**Where in Moonfin**
-
-- `lib/auth/services/silo_account_service.dart`
-
-**Earlier work to port:** stash
-
-### How it works
-
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
-
-### Testing
-
-**Automated tests**
-
-- _None planned; add any that were written._
-
-**Manual test plan**
-
-- An account with one profile goes straight in.
-
-**Results**
-
-| Date | Platform | Server build | Result | Notes |
-|---|---|---|---|---|
-| | | | | |
-
----
-
-<a id="step-3-5"></a>
-## 3.5 "Who's watching" picker
-
-| Status | Commit | Depends on |
-|---|---|---|
-| ☐ Not started | — | previous step |
-
-**Goal.** Route to the server screen's user grid when there is a choice to make.
-
-**Where in Moonfin**
-
-- `lib/ui/screens/auth/server_screen.dart`
-
-**Earlier work to port:** stash
-
-### How it works
-
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
-
-### Testing
-
-**Automated tests**
-
-- _None planned; add any that were written._
-
-**Manual test plan**
-
-- Phone, desktop and TV (D-pad focus) layouts.
-
-**Results**
-
-| Date | Platform | Server build | Result | Notes |
-|---|---|---|---|---|
-| | | | | |
-
----
-
-<a id="step-3-6"></a>
-## 3.6 PIN entry for locked profiles
-
-| Status | Commit | Depends on |
-|---|---|---|
-| ☐ Not started | — | previous step |
-
-**Goal.** Free-text PIN dialog (Silo PINs are 1–72 characters), TV-focusable, showing the lockout time.
-
-**Where in Moonfin**
-
-- `lib/ui/screens/auth/silo_profile_unlock.dart`
-
-**Earlier work to port:** stash
-
-### How it works
-
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
-
-### Testing
-
-**Automated tests**
-
-- _None planned; add any that were written._
-
-**Manual test plan**
-
-- Correct PIN, wrong PIN, lockout message.
-
-**Results**
-
-| Date | Platform | Server build | Result | Notes |
-|---|---|---|---|---|
-| | | | | |
-
----
-
-<a id="step-3-7"></a>
-## 3.7 Switch profile without signing in again
-
-| Status | Commit | Depends on |
-|---|---|---|
-| ☐ Not started | — | previous step |
-
-**Goal.** Same client and tokens; swap `X-Profile-Id` and reload user-scoped state.
-
-**Where in Moonfin**
-
-- `lib/auth/services/silo_account_service.dart`
-- `lib/ui/widgets/user_menu_dialog.dart`
-
-**Earlier work to port:** stash
-
-### How it works
-
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
-
-### Testing
-
-**Automated tests**
-
-- _None planned; add any that were written._
-
-**Manual test plan**
-
-- Switch between two profiles; no password prompt; locked profile asks for PIN.
-
-**Results**
-
-| Date | Platform | Server build | Result | Notes |
-|---|---|---|---|---|
-| | | | | |
-
----
-
-<a id="step-3-8"></a>
-## 3.8 Sign out of one profile vs the account
-
-| Status | Commit | Depends on |
-|---|---|---|
-| ☐ Not started | — | previous step |
-
-**Goal.** Removing a profile only calls `logout` when it was the account's last profile on the device; add "Sign out of account" to remove all of them.
-
-**Where in Moonfin**
-
-- `lib/auth/repositories/session_repository.dart`
-- `lib/ui/widgets/user_menu_dialog.dart`
-
-**Earlier work to port:** stash (account sign-out was a known gap)
-
-### How it works
-
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
-
-### Testing
-
-**Automated tests**
-
-- _None planned; add any that were written._
-
-**Manual test plan**
-
-- Remove one profile: siblings still work. Remove the last: the server session ends.
-
-**Results**
-
-| Date | Platform | Server build | Result | Notes |
-|---|---|---|---|---|
-| | | | | |
-
----
-
-<a id="step-3-9"></a>
-## 3.9 Restore the session on app start
-
-| Status | Commit | Depends on |
-|---|---|---|
-| ☐ Not started | — | previous step |
-
-**Goal.** Set token and profile on the client, refreshing first when the access token has expired; auto-login only into profiles without a PIN or with an unexpired profile token.
+**Goal.** Set token and profile on the client, refreshing first when the access token has expired.
 
 **Where in Moonfin**
 
@@ -344,14 +157,14 @@ _Fill in when the step is built: what the code does, the main classes and why it
 
 ---
 
-<a id="step-3-10"></a>
-## 3.10 Refused refresh → back to sign-in
+<a id="step-3-5"></a>
+## 3.5 Refused refresh → back to sign-in
 
 | Status | Commit | Depends on |
 |---|---|---|
 | ☐ Not started | — | previous step |
 
-**Goal.** When Silo refuses the refresh token, forget that account's household and route to the login screen.
+**Goal.** When Silo refuses the refresh token, forget that Silo user and route to the login screen.
 
 **Where in Moonfin**
 
@@ -381,8 +194,8 @@ _Fill in when the step is built: what the code does, the main classes and why it
 
 ---
 
-<a id="step-3-11"></a>
-## 3.11 Password change required
+<a id="step-3-6"></a>
+## 3.6 Password change required
 
 | Status | Commit | Depends on |
 |---|---|---|
@@ -421,20 +234,19 @@ _Fill in when the step is built: what the code does, the main classes and why it
 
 ---
 
-<a id="step-3-12"></a>
-## 3.12 Which profile feeds cross-server rows
+<a id="step-3-7"></a>
+## 3.7 Main profile has a PIN
 
 | Status | Commit | Depends on |
 |---|---|---|
 | ☐ Not started | — | previous step |
 
-**Goal.** In the multi-server repository, use the active profile for the active server and the most recent unlocked profile for other Silo servers.
+**Goal.** When the account's main profile is PIN-locked, sign-in stops with a clear message instead of a generic error: PIN entry comes with the optional profiles phase (18.4), which lifts this.
 
 **Where in Moonfin**
 
-- `lib/data/repositories/multi_server_repository.dart`
-
-**Earlier work to port:** stash
+- `lib/auth/repositories/auth_repository.dart`
+- `lib/ui/screens/auth/login_screen.dart`
 
 ### How it works
 
@@ -444,11 +256,11 @@ _Fill in when the step is built: what the code does, the main classes and why it
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- the typed error from 2.5 becomes a readable login state
 
 **Manual test plan**
 
-- _Write the checks before testing._
+- Give the main profile a PIN in Silo's web app, sign in: the message explains it. Remove the PIN afterwards.
 
 **Results**
 
@@ -457,3 +269,4 @@ _Fill in when the step is built: what the code does, the main classes and why it
 | | | | | |
 
 ---
+

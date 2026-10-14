@@ -1,6 +1,6 @@
 # Silo support roadmap
 
-152 steps in 18 phases (9 optional). **One step = one commit.** Tick a box when the step is committed and tested, and put its commit hash in the phase file.
+154 steps in 19 phases (17 optional). **One step = one commit.** Tick a box when the step is committed and tested, and put its commit hash in the phase file.
 
 Status key: ☐ not started · ◐ in progress · ☑ done and tested · ⊘ skipped (say why in the phase file)
 
@@ -8,8 +8,8 @@ Status key: ☐ not started · ◐ in progress · ☑ done and tested · ⊘ ski
 |---|---|---|
 | [0. Preparation](phases/00-prep.md) | 4 | The OpenAPI snapshot and fixtures match the server you run, and the probe script refreshes them. |
 | [1. Groundwork](phases/01-groundwork.md) | 17 | Adding your Silo server is recognised as Silo and lands on a sign-in screen that can't sign in yet. Jellyfin and Emby behave exactly as before. |
-| [2. Sign-in API (package only)](phases/02-auth-api.md) | 8 | `server_silo` can sign in, refresh, list profiles, check a PIN and describe the current user, all covered by tests. |
-| [3. Sign-in and household profiles in the app](phases/03-signin-app.md) | 12 | You can sign in, pick a profile (with PIN if locked), switch profiles without re-entering the password, restart the app and stay signed in. Home is still empty until phase 5. |
+| [2. Sign-in API (package only)](phases/02-auth-api.md) | 7 | `server_silo` can sign in, refresh, sign out, find the account's main profile and describe the current user, all covered by tests. |
+| [3. Sign-in in the app](phases/03-signin-app.md) | 7 | You can sign in, restart the app and stay signed in, and a refused login sends you back to sign-in. Home is still empty until phase 5. |
 | [4. Hide what Silo doesn't have](phases/04-gating.md) | 10 | With a Silo user active, no menu, row, tab or button leads to an error caused by a missing feature. |
 | [5. Translation layer](phases/05-translation.md) | 13 | Every fixture maps to a BaseItemDto whose fields match the Emby fixture for the keys `AggregatedItem` reads. |
 | [6. Browsing](phases/06-browsing.md) | 19 | You can open each library, scroll a full grid with artwork, open a movie, a series, its seasons and episodes, and the detail screen looks like it does on Emby. |
@@ -24,6 +24,7 @@ Status key: ☐ not started · ◐ in progress · ☑ done and tested · ⊘ ski
 | [15. Downloads and offline](phases/15-downloads.md) | 7 | Download a movie and an episode, play them offline, and the progress syncs back. |
 | [16. Books and audiobooks (Silo beta)](phases/16-books.md) | 2 | An audiobook plays with chapters and resumes; an EPUB opens and keeps its place. |
 | [17. Polish and launch](phases/17-launch.md) | 6 | Silo appears in the README's supported-server table and passes the full regression run. |
+| [18. Household profiles (optional)](phases/18-profiles.md) | 8 | You can pick a profile (with PIN if locked), switch profiles without re-entering the password, and sign out of one profile or the whole account. |
 
 ## 0. [Preparation](phases/00-prep.md)
 
@@ -56,27 +57,21 @@ Status key: ☐ not started · ◐ in progress · ☑ done and tested · ⊘ ski
 
 - [x] **2.1** [Token pair and single-flight refresh (`SiloSession`)](phases/02-auth-api.md#step-2-1) · ↺ port
 - [x] **2.2** [Session interceptor](phases/02-auth-api.md#step-2-2) · ↺ port
-- [ ] **2.3** [Password sign-in](phases/02-auth-api.md#step-2-3) · ↺ port
+- [x] **2.3** [Password sign-in](phases/02-auth-api.md#step-2-3) · ↺ port
 - [ ] **2.4** [Sign out](phases/02-auth-api.md#step-2-4) · ↺ port
-- [ ] **2.5** [List household profiles](phases/02-auth-api.md#step-2-5) · ↺ port
-- [ ] **2.6** [Profile PIN check](phases/02-auth-api.md#step-2-6) · ↺ port
-- [ ] **2.7** [Current user (account + profile → user)](phases/02-auth-api.md#step-2-7) · ↺ port
-- [ ] **2.8** [User playback settings](phases/02-auth-api.md#step-2-8) · ↺ port
+- [ ] **2.5** [Use the account's main profile](phases/02-auth-api.md#step-2-5) · ↺ port (list part)
+- [ ] **2.6** [Current user (account + main profile → user)](phases/02-auth-api.md#step-2-6) · ↺ port
+- [ ] **2.7** [User playback settings](phases/02-auth-api.md#step-2-7) · ↺ port
 
-## 3. [Sign-in and household profiles in the app](phases/03-signin-app.md)
+## 3. [Sign-in in the app](phases/03-signin-app.md)
 
 - [ ] **3.1** [Silo fields on the stored user](phases/03-signin-app.md#step-3-1) · ↺ port
-- [ ] **3.2** [One token record per Silo account](phases/03-signin-app.md#step-3-2) · ↺ port
+- [ ] **3.2** [Store the Silo token pair](phases/03-signin-app.md#step-3-2) · ↺ port
 - [ ] **3.3** [Password sign-in from the login screen](phases/03-signin-app.md#step-3-3) · ↺ port
-- [ ] **3.4** [Store the household as users](phases/03-signin-app.md#step-3-4) · ↺ port
-- [ ] **3.5** ["Who's watching" picker](phases/03-signin-app.md#step-3-5) · ↺ port
-- [ ] **3.6** [PIN entry for locked profiles](phases/03-signin-app.md#step-3-6) · ↺ port
-- [ ] **3.7** [Switch profile without signing in again](phases/03-signin-app.md#step-3-7) · ↺ port
-- [ ] **3.8** [Sign out of one profile vs the account](phases/03-signin-app.md#step-3-8) · ↺ port
-- [ ] **3.9** [Restore the session on app start](phases/03-signin-app.md#step-3-9) · ↺ port
-- [ ] **3.10** [Refused refresh → back to sign-in](phases/03-signin-app.md#step-3-10) · ↺ port
-- [ ] **3.11** [Password change required](phases/03-signin-app.md#step-3-11)
-- [ ] **3.12** [Which profile feeds cross-server rows](phases/03-signin-app.md#step-3-12) · ↺ port
+- [ ] **3.4** [Restore the session on app start](phases/03-signin-app.md#step-3-4) · ↺ port
+- [ ] **3.5** [Refused refresh → back to sign-in](phases/03-signin-app.md#step-3-5) · ↺ port
+- [ ] **3.6** [Password change required](phases/03-signin-app.md#step-3-6)
+- [ ] **3.7** [Main profile has a PIN](phases/03-signin-app.md#step-3-7)
 
 ## 4. [Hide what Silo doesn't have](phases/04-gating.md)
 
@@ -230,5 +225,16 @@ Status key: ☐ not started · ◐ in progress · ☑ done and tested · ⊘ ski
 - [ ] **17.4** [Translations](phases/17-launch.md#step-17-4)
 - [ ] **17.5** [Full regression pass](phases/17-launch.md#step-17-5)
 - [ ] **17.6** [README and wiki](phases/17-launch.md#step-17-6)
+
+## 18. [Household profiles (optional)](phases/18-profiles.md)
+
+- [ ] **18.1** [Profile PIN check](phases/18-profiles.md#step-18-1) *(optional)* · ↺ port
+- [ ] **18.2** [Store the household as users](phases/18-profiles.md#step-18-2) *(optional)* · ↺ port
+- [ ] **18.3** ["Who's watching" picker](phases/18-profiles.md#step-18-3) *(optional)* · ↺ port
+- [ ] **18.4** [PIN entry for locked profiles](phases/18-profiles.md#step-18-4) *(optional)* · ↺ port
+- [ ] **18.5** [Switch profile without signing in again](phases/18-profiles.md#step-18-5) *(optional)* · ↺ port
+- [ ] **18.6** [Sign out of one profile vs the account](phases/18-profiles.md#step-18-6) *(optional)* · ↺ port
+- [ ] **18.7** [Which profile feeds cross-server rows](phases/18-profiles.md#step-18-7) *(optional)* · ↺ port
+- [ ] **18.8** [Turn on `supportsProfiles` for Silo](phases/18-profiles.md#step-18-8) *(optional)*
 
 ↺ port = code for this step already exists on `silo-1-groundwork`, `silo-2-signin-api` or the `Add_silo` stash and gets re-reviewed and re-tested rather than written from scratch.

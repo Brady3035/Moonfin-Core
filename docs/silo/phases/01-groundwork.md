@@ -386,7 +386,7 @@ In the app today only the admin dashboard calls `SystemApi`, which Silo users ca
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 1.6 |
+| ☑ Done | `12c3e7a` | 1.6 |
 
 **Goal.** Plugin, a resolver that refuses with a clear "Silo playback isn't available yet" message, and a no-op session service.
 
@@ -429,7 +429,7 @@ The first-pass package also depended on `logger`, which nothing used; it's dropp
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-13 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | playback_silo 3/3, `dart analyze` clean |
-| | | | | |
+| 2026-10-13 | macOS | — | Pass | Brady committed after review |
 
 ---
 
@@ -438,7 +438,7 @@ The first-pass package also depended on `logger`, which nothing used; it's dropp
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 1.7 |
 
 **Goal.** Client factory, playback module, media bar, the three cast providers and the websocket factory (idle Silo client).
 
@@ -450,26 +450,47 @@ The first-pass package also depended on `logger`, which nothing used; it's dropp
 - `lib/data/services/cast/*_provider.dart`
 - `lib/data/services/socket_handler.dart`
 
-**Earlier work to port:** silo-1
+**Earlier work to port:** silo-1 wiring (only the Silo lines; the branch also carried unrelated drift from an older main). Added the device-platform name.
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+This step connects the two Silo packages to the app. It replaces the seven `UnsupportedError('Silo servers are not supported yet')` stand-ins from step 1.1 with the real Silo objects. Users still see no change: the server probe doesn't recognise Silo until 1.9, so no Silo server can be added yet.
+
+| Where | Silo case now |
+|---|---|
+| `pubspec.yaml` / `pubspec.lock` | `server_silo` and `playback_silo` added as path dependencies, next to the Emby and Jellyfin ones |
+| `lib/data/services/media_server_client_factory.dart` | `SiloMediaServerClient(baseUrl, deviceInfo, platform: _siloDevicePlatform())` |
+| `lib/di/modules/playback_module.dart` (`setActiveStreamResolver`) | `SiloPlugin(client)` resolver and session service, wrapped by the same local-first/offline layers as the others |
+| `lib/ui/widgets/media_bar.dart`, the AirPlay, DLNA and Google Cast providers | `SiloPlugin(client).createStreamResolver()` |
+| `lib/data/services/socket_handler.dart` | `SiloWebSocketClient`, an idle socket (below) |
+
+**Device platform.** `_siloDevicePlatform()` in the factory names the platform for `X-Silo-Device-Platform` the same way `_clientName()` in `lib/di/injection.dart` names the app: `tvOS`, `Web`, `Android TV`, `Android`, `iOS`, `macOS`, `Windows`, `Linux`. It lives in the app because only the app can see `PlatformDetection` (step 1.3 explains why `server_core` takes it as a parameter).
+
+**`SiloWebSocketClient`** implements `ServerWebSocketClient` but never connects and never emits. Everything that listens for server pushes (user data changes, library updates, remote commands) simply hears nothing, which is safe. Silo's real-time channel is a different protocol: a ticketed `/api/v2/events/ws` socket with its own frames, built in step 13.2. A Jellyfin/Emby-style socket would 404 and reconnect forever.
+
+**What a Silo client can do after this step:** be created; answer `systemApi` (1.6); report Live TV and Instant Mix as empty; and refuse playback with the 1.7 message. Everything else raises the "not implemented yet (roadmap step X)" error from 1.4.
+
+**What still stops a user from reaching any of it:** the probe (1.9).
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `test/offline/media_server_client_factory_test.dart`: new test, the factory builds a `SiloMediaServerClient` for a Silo server with the platform and device headers filled in.
+- `test/data/services/silo_web_socket_client_test.dart` (new): `ServerWebSocketClient.forServer` gives a Silo client the idle socket; connect, retry and disconnect emit nothing.
+- Full app suite and analyzer (results below).
 
 **Manual test plan**
 
-- Adding the Silo server no longer crashes at the factory.
+- `flutter pub get` then `flutter run -d macos`: the app builds with the two new packages.
+- Jellyfin/Emby unchanged: sign in, play something, open the cast menu on an item.
+- Adding `silo.snowystreams.com` still fails as "not a Jellyfin or Emby server" (expected until 1.9).
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-13 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | App suite 4,274 passed, 1 skipped, 0 failed (4,272 before + 2 new); analyzer 0 errors/warnings; `pubspec.lock` diff adds only the two path packages |
 | | | | | |
 
 ---

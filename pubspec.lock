@@ -1441,6 +1441,13 @@ packages:
       relative: true
     source: path
     version: "0.1.0"
+  playback_silo:
+    dependency: "direct main"
+    description:
+      path: "packages/playback_silo"
+      relative: true
+    source: path
+    version: "0.1.0"
   plugin_platform_interface:
     dependency: "direct dev"
     description:
@@ -1689,6 +1696,13 @@ packages:
     dependency: "direct main"
     description:
       path: "packages/server_plex"
+      relative: true
+    source: path
+    version: "0.1.0"
+  server_silo:
+    dependency: "direct main"
+    description:
+      path: "packages/server_silo"
       relative: true
     source: path
     version: "0.1.0"

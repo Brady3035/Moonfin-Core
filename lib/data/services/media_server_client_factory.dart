@@ -4,7 +4,9 @@ import 'package:server_core/server_core.dart';
 import 'package:server_emby/server_emby.dart';
 import 'package:server_jellyfin/server_jellyfin.dart';
 import 'package:server_plex/server_plex.dart';
+import 'package:server_silo/server_silo.dart';
 
+import '../../util/platform_detection.dart';
 import '../../util/server_url.dart';
 import '../offline/connectivity_aware_media_server_client.dart';
 import '../offline/offline_catalog.dart';
@@ -140,9 +142,11 @@ class MediaServerClientFactory {
           deviceInfo: deviceInfo,
         );
       case ServerType.silo:
-        // Nothing can produce a Silo server until the probe learns Silo's
-        // native API, so this only guards against a stray saved entry.
-        throw UnsupportedError('Silo servers are not supported yet');
+        return SiloMediaServerClient(
+          baseUrl: baseUrl,
+          deviceInfo: deviceInfo,
+          platform: _siloDevicePlatform(),
+        );
     }
   }
 
@@ -156,4 +160,19 @@ class MediaServerClientFactory {
     }
     _clients.clear();
   }
+}
+
+/// The platform Silo records for this device (`X-Silo-Device-Platform`),
+/// named the same way as the client name in `lib/di/injection.dart`.
+String _siloDevicePlatform() {
+  if (PlatformDetection.isAppleTV) return 'tvOS';
+  if (PlatformDetection.isWeb) return 'Web';
+  if (PlatformDetection.isAndroid) {
+    return PlatformDetection.isTV ? 'Android TV' : 'Android';
+  }
+  if (PlatformDetection.isIOS) return 'iOS';
+  if (PlatformDetection.isMacOS) return 'macOS';
+  if (PlatformDetection.isWindows) return 'Windows';
+  if (PlatformDetection.isLinux) return 'Linux';
+  return 'Unknown';
 }

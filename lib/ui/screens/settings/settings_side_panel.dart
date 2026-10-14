@@ -303,11 +303,13 @@ class _SettingsSidePanelState extends ConsumerState<SettingsSidePanel> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final kidsMode = ref.watch(kidsModeProvider);
+    // Not for a server Moonfin can't administer (Silo has its own web app).
     final showAdmin =
         !kidsMode &&
         !PlatformDetection.isTV &&
         ref.watch(isAdminProvider) &&
-        adminServerSupported();
+        adminServerSupported() &&
+        activeServerSupports((f) => f.supportsAdmin);
     final enablePanelAutofocus = !PlatformDetection.useMobileUi;
 
     // Kids Mode leaves one entry standing. Hiding settings outright would

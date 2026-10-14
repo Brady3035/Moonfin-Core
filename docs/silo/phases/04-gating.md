@@ -208,7 +208,7 @@ Setup: only Silo signed in. (Silo items don't load until phase 6, so the per-ite
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 4.3 |
+| ☑ Done | `1e5e5ad` | 4.3 |
 
 **Goal.** SyncPlay menu and "control another device" (Silo's Watch Together is a different protocol).
 
@@ -251,6 +251,7 @@ The Quick Connect entry is untouched here: Silo's device sign-in arrives in phas
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | `server_core` 94/94; bottom-nav, helper and user-menu tests 52/52; analyzer: no new issues |
+| 2026-10-14 | macOS | `4b2e921c` | Pass | tests 1–3 and 5 pass. Test 4 (phone) deferred to 17.5 |
 | | | | | |
 
 ---
@@ -260,33 +261,45 @@ The Quick Connect entry is untouched here: Silo's device sign-in arrives in phas
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 4.4 |
 
 **Goal.** Admin entry points via `supportsAdmin` (Silo's admin lives in its web UI).
 
 **Where in Moonfin**
 
-- `lib/ui/screens/admin/*`
-- `detail admin actions`
+- `lib/ui/screens/settings/settings_side_panel.dart`
+- `lib/ui/navigation/app_router.dart`
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+A Silo account with the admin role maps to `isAdministrator` (2.6), so before this step a Silo admin saw "Administration" in settings. It opens Moonfin's admin panel, which speaks the Jellyfin and Emby admin APIs, and Silo's client has none (its admin APIs throw on purpose). Silo is administered from its own web app.
+
+- **Settings panel:** the Administration entry needs `activeServerSupports((f) => f.supportsAdmin)` as well as an admin user. `FeatureDetector.supportsAdmin` (1.2) is false only for Silo. Settings search reads the same `showAdmin`, so the Administration result goes too.
+- **Route guard:** `/admin…` redirects home unless the user is an administrator **and** the active server supports admin. This catches deep links and anything else that navigates there.
+- The check is on the **active** server because the panel administers the server you're signed in to; with Silo and Emby both signed in, switching to Emby brings Administration back.
+
+**Already Jellyfin-only:** the item admin actions (identify, edit metadata, change artwork, refresh metadata) check `ServerType.jellyfin` themselves (`detail_admin_actions.dart`, `context_action.dart`), so Silo never offered them.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- No new tests: `supportsAdmin` is covered by `feature_detector_test.dart` (1.2), and the route guard lives inside the router's redirect closure. Router, settings, helper and preference tests 242/242.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+Setup: sign in to Silo with an **admin** account.
+
+1. Settings shows no Administration entry, and searching settings for "administration" finds nothing.
+2. Opening `/admin` directly (for example from the web build's address bar) lands on Home.
+3. **Compare with Emby:** with an Emby admin active, Administration shows and opens the panel as before.
+4. Regression: full `flutter test`.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | router, settings, helper and preference tests 242/242; analyzer: no new issues |
 | | | | | |
 
 ---

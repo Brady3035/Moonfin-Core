@@ -150,6 +150,14 @@ part 'panel/settings_panel_tiles.dart';
 bool get _showThemeEditorEntry =>
     PlatformDetection.isWeb && webRuntimeConfig.pluginMode;
 
+/// Whether Integrations has anything to show: Seerr, which a signed-in server
+/// with the Moonfin plugin could offer, or achievements, which the active
+/// server's plugin answered for.
+bool get _integrationsOffered =>
+    seerrOnAnySignedInServer() ||
+    (GetIt.instance.isRegistered<AchievementsService>() &&
+        GetIt.instance<AchievementsService>().available);
+
 Uri _resolveThemeEditorUri() {
   final base = Uri.base;
   final path = base.path;
@@ -374,12 +382,16 @@ class _SettingsSidePanelState extends ConsumerState<SettingsSidePanel> {
                 onTap: () =>
                     context.pushSettingsScreen(const DownloadSettingsScreen()),
               ),
-            _PanelEntry(
-              icon: Icons.hub,
-              title: l10n.integrations,
-              subtitle: l10n.settingsServicesSubtitle,
-              onTap: () => context.pushSettingsScreen(const _ServicesScreen()),
-            ),
+            // Seerr and achievements both come from the Moonfin plugin; with
+            // neither on offer (only Silo signed in) the screen would be empty.
+            if (_integrationsOffered)
+              _PanelEntry(
+                icon: Icons.hub,
+                title: l10n.integrations,
+                subtitle: l10n.settingsServicesSubtitle,
+                onTap: () =>
+                    context.pushSettingsScreen(const _ServicesScreen()),
+              ),
             _PanelEntry(
               icon: Icons.info_outline,
               title: l10n.aboutTitle,

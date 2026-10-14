@@ -60,6 +60,10 @@ bool playlistsOnAnySignedInServer({AuthenticationStore? store}) =>
 bool moonfinPluginOnAnySignedInServer({AuthenticationStore? store}) =>
     anySignedInServerSupports((f) => f.supportsMoonfinPlugin, store: store);
 
+/// Seerr ([FeatureDetector.supportsJellyseerr]).
+bool seerrOnAnySignedInServer({AuthenticationStore? store}) =>
+    anySignedInServerSupports((f) => f.supportsJellyseerr, store: store);
+
 /// Whether the server an item came from supports [feature], for actions on
 /// that item ("Add to playlist" on a Silo film, say).
 ///

@@ -102,6 +102,14 @@ void main() {
       expect(moonfinPluginOnAnySignedInServer(store: store), isTrue);
     });
 
+    test('Seerr follows the same rule', () async {
+      await addServer('silo', ServerType.silo);
+      expect(seerrOnAnySignedInServer(store: store), isFalse);
+
+      await addServer('jellyfin', ServerType.jellyfin);
+      expect(seerrOnAnySignedInServer(store: store), isTrue);
+    });
+
     test('nobody signed in anywhere: on', () async {
       await addServer('silo', ServerType.silo, signedIn: false);
 

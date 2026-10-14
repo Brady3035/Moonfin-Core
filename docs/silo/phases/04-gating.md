@@ -261,7 +261,7 @@ The Quick Connect entry is untouched here: Silo's device sign-in arrives in phas
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 4.4 |
+| ☑ Done | `ff4ff05` | 4.4 |
 
 **Goal.** Admin entry points via `supportsAdmin` (Silo's admin lives in its web UI).
 
@@ -300,6 +300,7 @@ Setup: sign in to Silo with an **admin** account.
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | router, settings, helper and preference tests 242/242; analyzer: no new issues |
+| 2026-10-14 | macOS | `4b2e921c` | Pass | tests 1–4 pass |
 | | | | | |
 
 ---
@@ -309,35 +310,51 @@ Setup: sign in to Silo with an **admin** account.
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 4.5 |
 
 **Goal.** Return early from plugin sync, server messages and theme sync on Silo.
 
 **Where in Moonfin**
 
-- `plugin_sync_service.dart`
-- `server_messages_service.dart`
-- `theme_store_service.dart`
-- `settings_side_panel.dart`
+- `lib/util/signed_in_server_features.dart`
+- `lib/ui/screens/settings/panel/account_screen.dart`
+- `lib/ui/screens/settings/panel/navigation_category_screen.dart`
+- `lib/ui/screens/settings/panel/settings_search_index.dart`
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+**The early return already exists (1.16).** `PluginSyncService._refreshAvailabilityStatus` asks `FeatureDetector.supportsMoonfinPlugin` first. On Silo it sends no ping and leaves `pluginAvailable` false. It also marks server messages unsupported and switches the Seerr proxy off. Checking each service this step names:
+- **Settings sync:** profile pulls and pushes, the settings stream and the retry timer all require `pluginAvailable`, so on Silo the sign-in takes the "no plugin" path: default home rows, nothing pushed.
+- **Server messages:** `ServerMessagesService.refresh` fetches `/Moonfin/Messages` only when supported, so on Silo it shows the (empty) cache and makes no request.
+- **Themes:** server themes (`/Moonfin/Themes`) are fetched only when the plugin answered, and the `themesChanged` push arrives over the settings stream, which never starts on Silo. The local theme cache is read per server and is empty for Silo. The **theme store** downloads from GitHub, not from the server, so it works the same with Silo. The web **theme editor** entry exists only when the web app is itself hosted by the plugin (`webRuntimeConfig.pluginMode`), which never happens on Silo.
+
+So no service code changes. What a Silo user still saw were two settings that can do nothing without the plugin (as on a Jellyfin or Emby server without it):
+- **Account › Settings sync:** opens the plugin settings. Its refresh button says "plugin not detected".
+- **Navigation › Show server messages button.**
+
+Following 4.1's rule, both are hidden only when **no signed-in server** could have the plugin (`moonfinPluginOnAnySignedInServer()`). A Jellyfin or Emby user sees no change, with or without the plugin installed. Settings search drops the Settings sync screen likewise.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `test/util/signed_in_server_features_test.dart`: new test, the plugin is off with Silo alone and on once Emby is signed in. With `test/preference` and `test/ui/navigation`: 169/169.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+Setup: only Silo signed in.
+
+1. Account has no Settings sync entry; searching settings for "plugin" or "sync" doesn't offer it.
+2. Navigation has no "Show server messages" switch, and no server-messages button shows anywhere.
+3. Signing in to Silo is no slower than before and the log shows no `/Moonfin/` requests (optional: watch the server's request log).
+4. **Compare with Emby:** sign in to Emby as well; Settings sync and the server-messages switch come back, and settings sync works as before.
+5. Regression: full `flutter test`.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | helper, preference and navigation tests 169/169; analyzer: no new issues |
 | | | | | |
 
 ---

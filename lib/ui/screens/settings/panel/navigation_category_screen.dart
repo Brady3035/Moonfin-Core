@@ -260,13 +260,15 @@ class _NavigationCategoryScreenState extends State<_NavigationCategoryScreen> {
                       icon: Icons.download_for_offline,
                       onChanged: _pushPersonalizationSync,
                     ),
-                  SwitchPreferenceTile(
-                    preference: UserPreferences.showServerMessagesButton,
-                    title: l10n.serverMessagesShowButton,
-                    subtitle: l10n.serverMessagesShowButtonSubtitle,
-                    icon: Icons.info_outline_rounded,
-                    onChanged: _pushPersonalizationSync,
-                  ),
+                  // Server messages come from the Moonfin plugin.
+                  if (moonfinPluginOnAnySignedInServer())
+                    SwitchPreferenceTile(
+                      preference: UserPreferences.showServerMessagesButton,
+                      title: l10n.serverMessagesShowButton,
+                      subtitle: l10n.serverMessagesShowButtonSubtitle,
+                      icon: Icons.info_outline_rounded,
+                      onChanged: _pushPersonalizationSync,
+                    ),
                   // Only where the plugin has friends on, so nobody is offered
                   // a button that would never show.
                   if (GetIt.instance<AchievementsService>().socialAvailable)

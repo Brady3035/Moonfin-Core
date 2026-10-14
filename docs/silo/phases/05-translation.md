@@ -36,6 +36,7 @@ _Fill in when the step is built: what the code does, the main classes and why it
 **Manual test plan**
 
 - _Write the checks before testing._
+- Carried from 4.2 and 4.3: a query for **only** types Silo doesn't have (`MusicArtist`, `MusicAlbum`, `Audio`, `Playlist`, `TvChannel`, `mediaTypes=Audio`) must answer empty, not drop the filter and return films. Check on Home with only Silo signed in: no Continue listening, artist, album or playlist row fills with films or episodes.
 
 **Results**
 

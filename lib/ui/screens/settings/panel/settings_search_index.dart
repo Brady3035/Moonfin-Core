@@ -120,6 +120,7 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
   final pluginAvailable = GetIt.instance<PluginSyncService>().pluginAvailable;
   final liveTvOnAnyServer = liveTvOnAnySignedInServer();
   final musicOnAnyServer = musicOnAnySignedInServer();
+  final playlistsOnAnyServer = playlistsOnAnySignedInServer();
   final friendsAvailable =
       GetIt.instance<AchievementsService>().socialAvailable;
 
@@ -1005,11 +1006,12 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
       l10n.displayGenresRows,
       subtitle: l10n.displayGenresRowsSubtitle,
     ),
-    rowToggles.leaf(
-      'pref_display_playlists_rows',
-      l10n.displayPlaylistsRows,
-      subtitle: l10n.displayPlaylistsRowsSubtitle,
-    ),
+    if (playlistsOnAnyServer)
+      rowToggles.leaf(
+        'pref_display_playlists_rows',
+        l10n.displayPlaylistsRows,
+        subtitle: l10n.displayPlaylistsRowsSubtitle,
+      ),
     rowToggles.leaf(
       'pref_display_rewatch_row',
       'Display Rewatch Row',

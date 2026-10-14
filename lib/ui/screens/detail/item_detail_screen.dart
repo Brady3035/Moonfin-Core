@@ -123,6 +123,7 @@ import '../../../util/subtitle_track_logic.dart';
 import '../../../util/audio_track_logic.dart';
 import '../../../util/artwork_request_size.dart';
 import '../../../util/platform_detection.dart';
+import '../../../util/signed_in_server_features.dart';
 import 'detail_layout_metrics.dart';
 
 const _textShadows = [Shadow(blurRadius: 4, color: Colors.black54)];
@@ -6824,7 +6825,9 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
           isActive: _displayRatingLikes(item) != null,
           activeColor: Colors.amber,
         ),
-      if (!isBook && shows(DetailButton.playlist))
+      if (!isBook &&
+          shows(DetailButton.playlist) &&
+          itemServerSupports(item.serverId, (f) => f.supportsPlaylists))
         DetailButton.playlist: _DetailActionButton(
           label: l10n.addToPlaylist,
           icon: Icons.playlist_add,

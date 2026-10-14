@@ -1,7 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:moonfin/auth/models/server.dart';
 import 'package:moonfin/auth/models/user.dart';
+import 'package:get_it/get_it.dart';
 import 'package:moonfin/auth/store/authentication_store.dart';
+import 'package:moonfin/data/services/media_server_client_factory.dart';
 import 'package:moonfin/util/signed_in_server_features.dart';
 import 'package:server_core/server_core.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -96,6 +98,53 @@ void main() {
       await addServer('silo', ServerType.silo, signedIn: false);
 
       expect(liveTvOnAnySignedInServer(store: store), isTrue);
+    });
+  });
+
+  group('itemServerSupports', () {
+    const device = DeviceInfo(
+      id: 'device',
+      name: 'Device',
+      appName: 'Moonfin',
+      appVersion: '1.0.0',
+    );
+    final getIt = GetIt.instance;
+
+    setUp(() {
+      final factory = MediaServerClientFactory(deviceInfo: device);
+      factory.getClient(
+        serverId: 'silo',
+        serverType: ServerType.silo,
+        baseUrl: 'https://silo.example',
+      );
+      final emby = factory.getClient(
+        serverId: 'emby',
+        serverType: ServerType.emby,
+        baseUrl: 'https://emby.example',
+      );
+      getIt.registerSingleton<MediaServerClientFactory>(factory);
+      getIt.registerSingleton<MediaServerClient>(emby);
+    });
+
+    tearDown(() async => getIt.reset());
+
+    bool playlists(String? serverId) =>
+        itemServerSupports(serverId, (f) => f.supportsPlaylists);
+
+    test('a Silo item has no playlists, an Emby item does', () {
+      expect(playlists('silo'), isFalse);
+      expect(playlists('emby'), isTrue);
+    });
+
+    test('an item without a known server uses the active one', () {
+      expect(playlists(null), isTrue);
+      expect(playlists(''), isTrue);
+      expect(playlists('unknown'), isTrue);
+    });
+
+    test('with no client set up nothing is hidden', () async {
+      await getIt.reset();
+      expect(playlists('silo'), isTrue);
     });
   });
 }

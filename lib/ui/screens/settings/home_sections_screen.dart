@@ -105,6 +105,7 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen>
   /// Read once: who is signed in doesn't change while this screen is open.
   final bool _liveTvOnAnyServer = liveTvOnAnySignedInServer();
   final bool _musicOnAnyServer = musicOnAnySignedInServer();
+  final bool _playlistsOnAnyServer = playlistsOnAnySignedInServer();
 
   /// Seerr slider rows whose slider Seerr still has but this client can't
   /// show, so they stay in the layout without being offered.
@@ -680,6 +681,10 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen>
     final hiddenByMusic =
         _isMusicSectionType(section.type) && !_musicOnAnyServer;
 
+    // And playlists.
+    final hiddenByPlaylistSupport =
+        section.type == HomeSectionType.playlists && !_playlistsOnAnyServer;
+
     return hiddenByFavorites ||
         hiddenByCollections ||
         hiddenByGenres ||
@@ -692,7 +697,8 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen>
         hiddenBySinceYouWatched ||
         hiddenByRewatch ||
         hiddenByLiveTv ||
-        hiddenByMusic;
+        hiddenByMusic ||
+        hiddenByPlaylistSupport;
   }
 
   List<int> _visibleSectionIndices() {

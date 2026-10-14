@@ -2,6 +2,7 @@ import 'package:get_it/get_it.dart';
 import 'package:server_core/server_core.dart';
 
 import '../auth/store/authentication_store.dart';
+import '../data/services/media_server_client_factory.dart';
 
 /// Whether [feature] holds for at least one of [serverTypes].
 ///
@@ -50,3 +51,29 @@ bool liveTvOnAnySignedInServer({AuthenticationStore? store}) =>
 /// ([FeatureDetector.supportsMusic]).
 bool musicOnAnySignedInServer({AuthenticationStore? store}) =>
     anySignedInServerSupports((f) => f.supportsMusic, store: store);
+
+/// Playlists ([FeatureDetector.supportsPlaylists]).
+bool playlistsOnAnySignedInServer({AuthenticationStore? store}) =>
+    anySignedInServerSupports((f) => f.supportsPlaylists, store: store);
+
+/// Whether the server an item came from supports [feature], for actions on
+/// that item ("Add to playlist" on a Silo film, say).
+///
+/// Picks the server the way the item's actions do: the loaded client for
+/// [serverId], else the active one. Answers true when no client is set up.
+bool itemServerSupports(
+  String? serverId,
+  bool Function(FeatureDetector features) feature,
+) {
+  final getIt = GetIt.instance;
+  if (!getIt.isRegistered<MediaServerClient>() ||
+      !getIt.isRegistered<MediaServerClientFactory>()) {
+    return true;
+  }
+  final client = getIt<MediaServerClientFactory>().clientForServerOrActive(
+    serverId,
+  );
+  return feature(
+    FeatureDetector(serverType: client.serverType, serverVersion: ''),
+  );
+}

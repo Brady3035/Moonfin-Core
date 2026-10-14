@@ -84,7 +84,7 @@ Status key: ☐ not started · ◐ in progress · ☑ done and tested · ⊘ ski
 - [x] **4.7** [Gate Moonfin-plugin services: TMDB, MDBList, anime markers, custom lists](phases/04-gating.md#step-4-7)
 - [x] **4.8** [Gate Moonfin-plugin services: ratings, bookmarks, notes](phases/04-gating.md#step-4-8)
 - [x] **4.9** [Seerr: off on Silo](phases/04-gating.md#step-4-9)
-- [ ] **4.10** [Hide retro games](phases/04-gating.md#step-4-10)
+- [x] **4.10** [Hide retro games](phases/04-gating.md#step-4-10)
 
 ## 5. [Translation layer](phases/05-translation.md)
 

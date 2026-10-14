@@ -28,6 +28,7 @@ export 'src/mappers/silo_marker_mapper.dart';
 export 'src/mappers/silo_languages.dart';
 export 'src/mappers/silo_media_source_mapper.dart';
 export 'src/mappers/silo_settings_mapper.dart';
+export 'src/mappers/silo_sort_map.dart';
 export 'src/mappers/silo_ticks.dart';
 export 'src/mappers/silo_trickplay_mapper.dart';
 export 'src/mappers/silo_user_mapper.dart';

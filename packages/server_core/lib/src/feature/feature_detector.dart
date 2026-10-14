@@ -75,6 +75,11 @@ class FeatureDetector {
   /// Jellyfin and Emby only.
   bool get supportsMoonfinPlugin => _isJellyfin || _isEmby;
 
+  /// Remote control: listing the account's other sessions and sending them
+  /// play, pause and navigation commands (the Jellyfin/Emby Sessions API).
+  /// Silo has no equivalent; its Watch Together is a separate protocol.
+  bool get supportsRemoteControl => !_isSilo;
+
   /// Household profiles chosen per request (Silo's `X-Profile-Id`). Switched
   /// on for Silo with profile sign-in.
   bool get supportsProfiles => false;

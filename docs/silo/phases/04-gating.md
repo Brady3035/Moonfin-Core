@@ -148,7 +148,7 @@ Setup: only Silo signed in.
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 4.2 |
+| ☑ Done | `0462fe9` | 4.2 |
 
 **Goal.** "Add to playlist", playlist rows and screens via `supportsPlaylists`.
 
@@ -198,6 +198,7 @@ Setup: only Silo signed in. (Silo items don't load until phase 6, so the per-ite
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | helper tests 11/11; detail, context menu, preference and bottom-nav tests 289/289; analyzer: no new issues |
+| 2026-10-14 | macOS | `4b2e921c` | Pass | tests 1–3 pass. Test 4 (Silo film) runs with 6.4 |
 | | | | | |
 
 ---
@@ -207,33 +208,49 @@ Setup: only Silo signed in. (Silo items don't load until phase 6, so the per-ite
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 4.3 |
 
 **Goal.** SyncPlay menu and "control another device" (Silo's Watch Together is a different protocol).
 
 **Where in Moonfin**
 
-- `lib/syncplay/*`
-- `lib/ui/widgets/bottom_nav/*`
+- `packages/server_core/lib/src/feature/feature_detector.dart` (new flag)
+- `lib/util/signed_in_server_features.dart`
+- `lib/ui/widgets/bottom_nav/bottom_nav_model.dart`, `bottom_nav_controller.dart`
+- `lib/ui/widgets/user_menu_dialog.dart`
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+**SyncPlay: unchanged (Brady's call).** `SyncPlayManager.syncPlayServerSupported` is already Jellyfin-only, so the detail screen's "Watch with group" button and SyncPlay itself are off for Silo exactly as for Emby. The SyncPlay buttons in the sidebar, toolbar and bottom-nav hub follow only the user's settings. On Emby today they open the SyncPlay screen, which says the server doesn't support it, and Silo now gets the same. Hiding them whenever the active server lacks SyncPlay would also change Emby, so it was left as is.
+
+**Remote control: hidden for Silo.** "Remote control" lists the account's other sessions and sends them commands through the Sessions API (`SessionApi`). Silo has no such API, so on Silo the dialog would fail. It was offered everywhere, so this step:
+- adds `FeatureDetector.supportsRemoteControl`, false only for Silo (Jellyfin and Emby unchanged);
+- adds `activeServerSupports(feature)` to the helper file. It checks the **active** server, because the dialog drives the active server's sessions;
+- bottom-nav hub: the Remote control tile appears only when the active server supports it (`resolveHubTiles(remoteControl:)`, default true);
+- user menu (desktop layouts without the bottom navbar): when the active server lacks remote control, Quick Connect takes the whole row instead of sharing it with Remote control.
+
+The Quick Connect entry is untouched here: Silo's device sign-in arrives in phase 14 (14.3 enables the entry points).
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `packages/server_core/test/feature_detector_test.dart`: `supportsRemoteControl` is on for Jellyfin and Emby and off for Silo (94/94).
+- `test/ui/widgets/bottom_nav/bottom_nav_model_test.dart`: new test, no Remote control tile when the server lacks it. Bottom-nav, helper and user-menu tests 52/52.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+1. **Silo active, Mac (desktop layout):** the user menu shows Quick Connect across the whole row and no Remote control.
+2. **Emby active:** the user menu shows Quick Connect and Remote control side by side, and Remote control lists sessions as before.
+3. **SyncPlay unchanged:** with SyncPlay enabled in settings and Silo active, the SyncPlay button opens the screen saying the server doesn't support it, the same as on Emby.
+4. Deferred to 17.5 (phone): the bottom-nav hub has no Remote control tile with Silo active, and has it with Emby active.
+5. Regression: full `flutter test`.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | `server_core` 94/94; bottom-nav, helper and user-menu tests 52/52; analyzer: no new issues |
 | | | | | |
 
 ---

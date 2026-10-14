@@ -20,6 +20,7 @@ import '../../../preference/preference_constants.dart';
 import '../../../preference/user_preferences.dart';
 import '../../../util/game_library.dart';
 import '../../../util/live_tv_library.dart';
+import '../../../util/signed_in_server_features.dart';
 import '../downloads_nav_slot.dart';
 import '../friends_nav_slot.dart';
 import 'bottom_nav_model.dart';
@@ -135,6 +136,7 @@ class BottomNavController extends ChangeNotifier {
       syncPlay: syncPlay,
       quickConnect:
           _maybe<MediaServerClient>()?.serverType == ServerType.jellyfin,
+      remoteControl: activeServerSupports((f) => f.supportsRemoteControl),
       alsoOnBar: style == BottomNavbarStyle.split
           ? const {BottomNavTab.search}
           : const {},

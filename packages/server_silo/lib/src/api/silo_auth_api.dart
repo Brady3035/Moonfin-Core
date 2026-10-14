@@ -8,10 +8,10 @@ import 'silo_pending_api.dart';
 /// Sign-in against Silo's native auth routes, answered in the shapes
 /// Moonfin's auth flow reads.
 ///
-/// A Silo sign-in opens a session for the **account**; the household profile
-/// is chosen afterwards (steps 2.5 to 2.7). So [authenticateByName] answers
-/// with the account as `User` and puts the new token pair on the client's
-/// [SiloSession].
+/// A Silo sign-in opens a session for the **account**; Moonfin then acts as
+/// the account's main profile (step 2.5, decision D9). So [authenticateByName]
+/// answers with the account as `User` and puts the new token pair on the
+/// client's [SiloSession].
 class SiloAuthApi implements AuthApi {
   SiloAuthApi(this._authDio, this._session);
 
@@ -27,7 +27,7 @@ class SiloAuthApi implements AuthApi {
   /// Key in an authentication result that is `true` when the account holds a
   /// temporary password. Until it is changed, Silo only lets the session read
   /// the account, change the password and sign out; everything else answers
-  /// `403 password_change_required`. The app acts on it in step 3.11.
+  /// `403 password_change_required`. The app acts on it in step 3.6.
   static const siloPasswordChangeRequiredKey = 'SiloPasswordChangeRequired';
 
   @override

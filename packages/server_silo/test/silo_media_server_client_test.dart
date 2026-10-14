@@ -114,7 +114,7 @@ void main() {
     test('current user', () {
       expect(
         () => client.usersApi.getCurrentUser(),
-        pending('UsersApi', 'getCurrentUser', '2.7'),
+        pending('UsersApi', 'getCurrentUser', '2.6'),
       );
     });
   });

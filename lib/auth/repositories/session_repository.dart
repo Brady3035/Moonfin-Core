@@ -295,7 +295,11 @@ class SessionRepository {
 
     // A Silo profile restores its account's token pair and profile; the
     // stored access token alone can't refresh (3.4).
-    if (!SiloTokenStorage(_authStore).restore(client: client, user: user)) {
+    if (!SiloTokenStorage(_authStore).restore(
+      client: client,
+      user: user,
+      onEnded: () => _onSiloLoginEnded(serverId, userId, user.name),
+    )) {
       client.accessToken = accessToken;
     }
     client.userId = userId;
@@ -568,6 +572,24 @@ class SessionRepository {
       return true;
     }
     return false;
+  }
+
+  /// Silo refused to renew the login of [userId] on [serverId] (revoked from
+  /// Silo's sessions page, or idle past the refresh token's expiry). If that
+  /// is still the active session, sign out the way a rejected token at
+  /// start-up does, and open the login screen with the name filled in.
+  ///
+  /// Jellyfin and Emby have no equivalent signal mid-session; Silo's refused
+  /// refresh is unambiguous (2.1: only a 401 on the refresh ends a session).
+  void _onSiloLoginEnded(String serverId, String userId, String name) {
+    if (_activeServerId != serverId || _activeUserId != userId) return;
+    _logger.w('Silo refused to renew the login. Signing out.');
+    unawaited(() async {
+      await destroyCurrentSession(tokenKnownInvalid: true);
+      _router.go(
+        '${Destinations.login}?serverId=$serverId&username=${Uri.encodeComponent(name)}',
+      );
+    }());
   }
 
   /// [tokenKnownInvalid] is set when the server has already rejected the

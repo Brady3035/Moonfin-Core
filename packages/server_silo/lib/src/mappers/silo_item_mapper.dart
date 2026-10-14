@@ -13,24 +13,35 @@ const siloOriginalKey = '_silo';
 /// a list entry or a detail answer) in the Jellyfin `BaseItemDto` shape
 /// Moonfin reads.
 ///
-/// This step (5.3) maps the **core fields**: identity, names, text, genres
-/// and studios, dates, ratings, run time, provider ids, date added, status
-/// and the item's own artwork. Series/season/episode links (5.4), user data
-/// (5.5), people (5.6) and media sources (5.8) are added by later steps.
+/// It maps the **core fields** (5.3): identity, names, text, genres and
+/// studios, dates, ratings, run time, provider ids, date added, status and
+/// the item's own artwork; and the **series links** (5.4): series, season and
+/// index fields, child counts and the parent artwork fields. User data (5.5),
+/// people (5.6) and media sources (5.8) are added by later steps.
 ///
 /// Artwork URLs are recorded in [images] (`SiloImageRegistry`), and their
 /// tags go in `ImageTags` and `BackdropImageTags`, the way Jellyfin reports
-/// which images exist. Without a registry the item has no image tags.
+/// which images exist. The parent fields of a season or episode
+/// (`SeriesPrimaryImageTag`, `ParentBackdropImageTags`…) are read back from
+/// the registry, so they appear once the series itself has been mapped.
+/// Without a registry the item has no image tags.
+///
+/// Season and episode **list entries** carry no `type` and no series fields:
+/// the type then comes from [type] or the id's prefix (`season-…`), and the
+/// series from [series].
 ///
 /// Returns null for a type with no Jellyfin equivalent (podcasts) or an item
 /// without an id: callers drop it.
 Map<String, dynamic>? siloItemToBaseItemDto(
   Map<String, dynamic> item, {
   SiloImageRegistry? images,
+  String? type,
+  SiloSeriesRef? series,
 }) {
-  final type = siloItemTypeOf(item['type']);
   final id = siloIdOf(item['content_id'] ?? item['id']);
-  if (type == null || id == null) return null;
+  if (id == null) return null;
+  final itemType = siloItemTypeOf(item['type'] ?? type ?? siloTypeOfId(id));
+  if (itemType == null) return null;
 
   final name = _text(item['title']) ?? '';
   final premiere = _calendarDate(
@@ -51,9 +62,9 @@ Map<String, dynamic>? siloItemToBaseItemDto(
     'SortName': name,
     if (_text(item['original_title']) case final original?)
       'OriginalTitle': original,
-    'Type': type.jellyfinType,
-    if (type.mediaType != null) 'MediaType': type.mediaType,
-    'IsFolder': type.isFolder,
+    'Type': itemType.jellyfinType,
+    if (itemType.mediaType != null) 'MediaType': itemType.mediaType,
+    'IsFolder': itemType.isFolder,
     if (_text(item['overview']) case final overview?) 'Overview': overview,
     'Taglines': [?tagline],
     'Genres': genres,
@@ -78,10 +89,24 @@ Map<String, dynamic>? siloItemToBaseItemDto(
     if (_runTimeTicks(item) case final ticks?) 'RunTimeTicks': ticks,
     'ProviderIds': _providerIds(item),
     if (_dateAdded(item['versions']) case final added?) 'DateCreated': added,
-    ..._imageFields(id, item, images),
+    ..._imageFields(id, itemType.siloType, item, images),
+    ..._seriesFields(id, itemType.siloType, item, images, series),
     siloOriginalKey: item,
   };
   return dto;
+}
+
+/// The series a season or episode belongs to, for list entries that don't
+/// say: Silo lists a series' seasons and a season's episodes without
+/// repeating the series in every entry.
+class SiloSeriesRef {
+  const SiloSeriesRef({required this.id, this.name});
+
+  /// The series' `content_id` (`series-…`).
+  final String id;
+
+  /// The series' title.
+  final String? name;
 }
 
 // --- text and lists --------------------------------------------------------
@@ -212,29 +237,80 @@ Map<String, String> _providerIds(Map<String, dynamic> item) => {
 
 // --- artwork ---------------------------------------------------------------
 
-/// `ImageTags` (primary, logo) and `BackdropImageTags` for the item's own
-/// artwork. `backdrop_urls` lists every backdrop; older answers only have
-/// `backdrop_url`.
+/// `ImageTags` and `BackdropImageTags` for the item's own artwork.
+///
+/// - **Primary:** a movie's, series' or season's `poster_url`; an episode's
+///   still (`still_url` in a season list, or `poster_url` when
+///   `poster_is_episode_still` says it is one). When an episode's poster is
+///   its **series'** poster, it goes to the series, never to the episode.
+/// - **Backdrops:** every `backdrop_urls` entry (older answers only have
+///   `backdrop_url`). An episode's backdrop is usually the series' backdrop
+///   (`backdrop_is_episode_still: false`): it goes to the series too.
+/// - **Logo**, and for movies and series **Thumb** and **Banner**: Silo sends
+///   `thumb_url` and `banner_url` when `images/capabilities` says
+///   `extended_item_artwork`. Without a thumb, the first backdrop stands in,
+///   as a landscape image for Moonfin's thumb cards.
 Map<String, dynamic> _imageFields(
   String id,
+  String type,
   Map<String, dynamic> item,
   SiloImageRegistry? images,
 ) {
   if (images == null) {
     return {'ImageTags': <String, String>{}, 'BackdropImageTags': <String>[]};
   }
+  final isEpisode = type == 'episode';
+  final seriesId = siloIdOf(item['series_id']);
+
+  String? primaryUrl;
+  if (isEpisode) {
+    primaryUrl = _text(item['still_url']);
+    final poster = _text(item['poster_url']);
+    if (primaryUrl == null && poster != null) {
+      if (item['poster_is_episode_still'] != false) {
+        primaryUrl = poster;
+      } else if (seriesId != null) {
+        _registerIfMissing(images, seriesId, SiloImageType.primary, poster);
+      }
+    }
+  } else {
+    primaryUrl = _text(item['poster_url']);
+  }
+
+  final backdropUrls = _strings(item['backdrop_urls']);
+  var backdrops = backdropUrls.isNotEmpty
+      ? backdropUrls
+      : [?_text(item['backdrop_url'])];
+  if (isEpisode && item['backdrop_is_episode_still'] != true) {
+    // The series' backdrop, sent along with the episode.
+    if (seriesId != null && backdrops.isNotEmpty) {
+      _registerIfMissing(
+        images,
+        seriesId,
+        SiloImageType.backdrop,
+        backdrops.first,
+      );
+    }
+    backdrops = const [];
+  }
+
   final tags = <String, String>{
-    if (images.register(id, SiloImageType.primary, item['poster_url'])
-        case final tag?)
+    if (images.register(id, SiloImageType.primary, primaryUrl) case final tag?)
       SiloImageType.primary.jellyfinName: tag,
     if (images.register(id, SiloImageType.logo, item['logo_url'])
         case final tag?)
       SiloImageType.logo.jellyfinName: tag,
   };
-  final backdropUrls = _strings(item['backdrop_urls']);
-  final backdrops = backdropUrls.isNotEmpty
-      ? backdropUrls
-      : [?_text(item['backdrop_url'])];
+  if (type == 'movie' || type == 'series') {
+    final thumb = _text(item['thumb_url']) ?? backdrops.firstOrNull;
+    if (images.register(id, SiloImageType.thumb, thumb) case final tag?) {
+      tags[SiloImageType.thumb.jellyfinName] = tag;
+    }
+    if (images.register(id, SiloImageType.banner, item['banner_url'])
+        case final tag?) {
+      tags[SiloImageType.banner.jellyfinName] = tag;
+    }
+  }
   final backdropTags = <String>[
     for (var i = 0; i < backdrops.length; i++)
       if (images.register(id, SiloImageType.backdrop, backdrops[i], index: i)
@@ -244,8 +320,113 @@ Map<String, dynamic> _imageFields(
   return {
     'ImageTags': tags,
     'BackdropImageTags': backdropTags,
-    // Posters are 2:3; Moonfin sizes cards from this before the image loads.
-    if (tags.containsKey('Primary') && item['type'] != 'episode')
-      'PrimaryImageAspectRatio': 2 / 3,
+    // Moonfin sizes cards from this before the image loads: posters are 2:3,
+    // episode stills 16:9.
+    if (tags.containsKey('Primary'))
+      'PrimaryImageAspectRatio': isEpisode ? 16 / 9 : 2 / 3,
   };
 }
+
+/// Registers [url] for a series slot only when the series has none yet, so
+/// artwork borrowed from an episode never replaces the series' own.
+void _registerIfMissing(
+  SiloImageRegistry images,
+  String seriesId,
+  SiloImageType type,
+  String url,
+) {
+  if (images.urlFor(seriesId, type) == null) {
+    images.register(seriesId, type, url);
+  }
+}
+
+// --- series, seasons and episodes ------------------------------------------
+
+/// The links between a series, its seasons and its episodes, and the parent
+/// artwork Jellyfin repeats on each child.
+Map<String, dynamic> _seriesFields(
+  String id,
+  String type,
+  Map<String, dynamic> item,
+  SiloImageRegistry? images,
+  SiloSeriesRef? series,
+) {
+  switch (type) {
+    case 'series':
+      final seasons = item['season_count'];
+      return {if (seasons is num) 'ChildCount': seasons.toInt()};
+    case 'season':
+      final seriesId = siloIdOf(item['series_id']) ?? series?.id;
+      final number = _int(item['season_number']);
+      final episodes = item['episode_count'];
+      return {
+        if (number != null) 'IndexNumber': number,
+        if (episodes is num) 'ChildCount': episodes.toInt(),
+        if (seriesId != null) ...{
+          'SeriesId': seriesId,
+          'ParentId': seriesId,
+          if (_text(item['series_title']) ?? series?.name case final name?)
+            'SeriesName': name,
+          ..._parentArtwork(seriesId, images),
+        },
+      };
+    case 'episode':
+      final seriesId = siloIdOf(item['series_id']) ?? series?.id;
+      final season = _int(item['season_number']);
+      final number = _int(item['episode_number']);
+      final seasonId = seriesId != null && season != null
+          ? siloSeasonId(seriesId, season)
+          : null;
+      return {
+        if (number != null) 'IndexNumber': number,
+        if (season != null) ...{
+          'ParentIndexNumber': season,
+          'SeasonName': season == 0 ? 'Specials' : 'Season $season',
+        },
+        if (seasonId != null) ...{'SeasonId': seasonId, 'ParentId': seasonId},
+        if (seriesId != null) ...{
+          'SeriesId': seriesId,
+          if (_text(item['series_title']) ?? series?.name case final name?)
+            'SeriesName': name,
+          ..._parentArtwork(seriesId, images),
+        },
+      };
+  }
+  return const {};
+}
+
+/// The series artwork Jellyfin repeats on a season or episode, from what the
+/// registry holds for [seriesId].
+Map<String, dynamic> _parentArtwork(
+  String seriesId,
+  SiloImageRegistry? images,
+) {
+  if (images == null) return const {};
+  final primary = images.tagFor(seriesId, SiloImageType.primary);
+  final logo = images.tagFor(seriesId, SiloImageType.logo);
+  final thumb = images.tagFor(seriesId, SiloImageType.thumb);
+  final backdrops = <String>[];
+  for (var i = 0; ; i++) {
+    final tag = images.tagFor(seriesId, SiloImageType.backdrop, index: i);
+    if (tag == null) break;
+    backdrops.add(tag);
+  }
+  return {
+    if (primary != null) 'SeriesPrimaryImageTag': primary,
+    if (logo != null) ...{
+      'ParentLogoItemId': seriesId,
+      'ParentLogoImageTag': logo,
+    },
+    if (thumb != null) ...{
+      'ParentThumbItemId': seriesId,
+      'ParentThumbImageTag': thumb,
+      'SeriesThumbImageTag': thumb,
+    },
+    if (backdrops.isNotEmpty) ...{
+      'ParentBackdropItemId': seriesId,
+      'ParentBackdropImageTags': backdrops,
+    },
+  };
+}
+
+int? _int(Object? value) => value is num ? value.toInt() : null;

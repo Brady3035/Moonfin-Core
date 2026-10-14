@@ -253,6 +253,23 @@ class PluginSyncService extends ChangeNotifier {
   ) async {
     resetState(notify: false, stopStream: false);
 
+    // Silo never has the Moonfin plugin, so there is nothing to ping. Every
+    // caller then takes the path it takes for a server without the plugin:
+    // default home rows, no Seerr proxy, no plugin push enrollment. The
+    // messages flag is cleared too, since only a ping would otherwise reset
+    // it after a session on a server that had the plugin.
+    final features = FeatureDetector(
+      serverType: client.serverType,
+      serverVersion: '',
+    );
+    if (!features.supportsMoonfinPlugin) {
+      _stopSettingsStream();
+      _messages?.setSupported(false);
+      _setLocalSeerrEnabled(false);
+      notifyListeners();
+      return _PluginAvailabilityStatus.unavailable;
+    }
+
     try {
       final pingResult = await _ping(client);
       if (pingResult == null) {

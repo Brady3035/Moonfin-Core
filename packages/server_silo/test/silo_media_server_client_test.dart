@@ -90,13 +90,6 @@ void main() {
           ),
     );
 
-    test('sign-out', () {
-      expect(
-        () => client.authApi.logout(),
-        pending('AuthApi', 'logout', '2.4'),
-      );
-    });
-
     test('sign in with a code', () {
       expect(
         () => client.authApi.initiateQuickConnect(),

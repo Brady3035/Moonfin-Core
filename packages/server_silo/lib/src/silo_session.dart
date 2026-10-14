@@ -173,10 +173,10 @@ class SiloSession {
   /// Whether a refresh token is held.
   bool get canRefresh => _tokens?.refreshToken.isNotEmpty ?? false;
 
-  /// Whether the access token is close enough to expiry to refresh first.
   /// The current time on this session's clock (tests move it).
   DateTime get now => _clock();
 
+  /// Whether the access token is close enough to expiry to refresh first.
   bool get needsRefresh => _tokens?.needsRefresh(_clock()) ?? false;
 
   /// Refreshes the pair through [dio], which must not itself refresh (the

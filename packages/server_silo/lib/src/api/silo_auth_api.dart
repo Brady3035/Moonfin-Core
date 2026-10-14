@@ -13,7 +13,10 @@ import 'silo_pending_api.dart';
 /// answers with the account as `User` and puts the new token pair on the
 /// client's [SiloSession].
 class SiloAuthApi implements AuthApi {
-  SiloAuthApi(this._authDio, this._session);
+  SiloAuthApi(this._dio, this._authDio, this._session);
+
+  /// The client's main Dio, with the session interceptor.
+  final Dio _dio;
 
   /// The client's sign-in Dio: same headers and error parsing as the main one,
   /// but without the session interceptor (see `SiloSessionInterceptor`).
@@ -78,9 +81,33 @@ class SiloAuthApi implements AuthApi {
     };
   }
 
+  /// Ends the login on Silo and on this client.
+  ///
+  /// `POST /auth/logout` revokes the session server-side, which also kills
+  /// its refresh token; only dropping the tokens locally would leave that
+  /// refresh token valid on the server until it expires. The request goes
+  /// through the main Dio, so an access token that has expired is refreshed
+  /// first and the logout replayed once: Silo marks logout as naturally
+  /// idempotent, so a replay is safe.
+  ///
+  /// The client is signed out locally whatever the server answers. A `401`
+  /// means the session is already gone and counts as success; any other
+  /// failure (no network, `503`) is rethrown after the local sign-out so the
+  /// caller can log it.
   @override
-  Future<void> logout() =>
-      throw SiloNotImplementedError('AuthApi', 'logout', '2.4');
+  Future<void> logout() async {
+    if (_session.tokens == null) {
+      _session.clear();
+      return;
+    }
+    try {
+      await _dio.post<dynamic>('/api/v2/auth/logout');
+    } on DioException catch (e) {
+      if (e.response?.statusCode != 401) rethrow;
+    } finally {
+      _session.clear();
+    }
+  }
 
   @override
   Future<Map<String, dynamic>> initiateQuickConnect() =>

@@ -156,7 +156,7 @@ Nothing calls the registry yet; 5.3's item mapper is the first.
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 5.2 |
+| ☑ Done | `4759d72` | 5.2 |
 
 **Goal.** Id, Name, SortName, Type, Overview, Genres, Studios, years and dates, OfficialRating, Community/Critic rating, RunTimeTicks, ProviderIds, DateCreated, Status; `backdrop_urls` → every `BackdropImageTags` entry; original payload kept under `_silo`.
 
@@ -187,7 +187,7 @@ Nothing calls the registry yet; 5.3's item mapper is the first.
 | `ProviderIds` | `imdb_id`, `tmdb_id`, `tvdb_id` | `Imdb`, `Tmdb`, `Tvdb`. |
 | `DateCreated` | earliest `versions[].added_at` | Silo dates the files, not the item. |
 | `ImageTags`, `BackdropImageTags` | `poster_url`, `logo_url`, `backdrop_urls` (or `backdrop_url`) | Each URL is registered in the 5.2 registry and its tag goes here; every backdrop gets its own index. |
-| `PrimaryImageAspectRatio` | | 2/3 when there is a poster (not for an episode's still). |
+| `PrimaryImageAspectRatio` | | 2/3 when there is a poster; 16/9 for an episode's still (since 5.4). |
 | `_silo` | the whole item | For later steps and debugging. |
 
 Without a registry the item has no image tags. A type with no Jellyfin equivalent (podcasts) or an item without an id gives null, and the caller drops it.
@@ -215,6 +215,7 @@ Without a registry the item has no image tags. A type with no Jellyfin equivalen
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | new tests 19/19; `server_silo` 187/187; analyzer: no issues |
+| 2026-10-14 | macOS | `4b2e921c` | Pass | full `flutter test` before committing |
 | | | | | |
 
 ---
@@ -224,32 +225,68 @@ Without a registry the item has no image tags. A type with no Jellyfin equivalen
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 5.3 |
 
 **Goal.** SeriesId/Name, SeasonId (both id forms), Index numbers, ChildCount, and the Parent*/Series* image fields filled from the series' slots. Since build `4b2e921c` movie and series detail carry `thumb_url` and `banner_url` (when `images/capabilities.extended_item_artwork` is true): use them, and fall back to the backdrop only when they're missing. Use `*_is_episode_still` so an episode still never becomes a series poster.
 
 **Where in Moonfin**
 
-- `silo_item_mapper.dart`
+- `packages/server_silo/lib/src/mappers/silo_item_mapper.dart`
+- `packages/server_silo/lib/src/mappers/silo_ids.dart`
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+**List entries.** Silo lists a series' seasons (`series_seasons`) and a season's episodes (`season_episodes`) without a `type` and without repeating the series in each entry. So `siloItemToBaseItemDto` takes an optional `type`, falls back to the id's prefix (`season-…`, `episode-…`: `siloTypeOfId`), and takes the series from a `SiloSeriesRef(id, name)` when the entry doesn't say.
+
+**Season ids, both forms.** Silo names seasons after their series: `series-imdb-tt1641384` has `season-imdb-tt1641384-1`, `-2`… An episode's detail carries `series_id` and `season_number` but no season id:
+- `siloSeasonId(seriesId, n)` builds the id, to fill `SeasonId`;
+- `parseSiloSeasonId` reads it back into series and number, which phase 6 needs when Moonfin asks for a season's episodes by `SeasonId`.
+
+**Fields:**
+
+| | Series | Season | Episode |
+|---|---|---|---|
+| `IndexNumber` | | `season_number` | `episode_number` |
+| `ParentIndexNumber` | | | `season_number` |
+| `ChildCount` | `season_count` | `episode_count` | |
+| `SeriesId`, `SeriesName` | | series | `series_id`, `series_title` (or the ref) |
+| `SeasonId`, `SeasonName` | | | built id; `Season N`, or `Specials` for season 0 |
+| `ParentId` | | the series | the season |
+| `SeriesPrimaryImageTag`, `ParentLogo*`, `ParentThumb*` / `SeriesThumbImageTag`, `ParentBackdrop*` | | from the series | from the series |
+
+**Parent artwork comes from the registry.** Jellyfin repeats the series' artwork tags on every season and episode. Rather than needing the series alongside each child, the mapper reads what the 5.2 registry holds for the series id. Moonfin opens a series before its seasons and episodes, so it's there; when it isn't, the fields are simply absent, as on a Jellyfin item without that artwork.
+
+**Episode artwork rules (`*_is_episode_still`):**
+- The episode's own image is its still: `still_url` in a season list, or `poster_url` when `poster_is_episode_still` is true. A `poster_url` that is really the series' poster (`false`) is **never** the episode's image. It goes to the series slot, and the episode points at it through `SeriesPrimaryImageTag`.
+- An episode's `backdrop_url` is normally the series' backdrop (`backdrop_is_episode_still: false`). It goes to the series too, and the episode has no backdrop of its own, matching Emby.
+- Borrowed artwork only fills an **empty** series slot; it never replaces the series' own.
+- An episode still is 16:9 (`PrimaryImageAspectRatio`), as Emby reports.
+
+**Thumb and banner.** Movies and series take `thumb_url` and `banner_url` when Silo sends them (`extended_item_artwork`). Without a thumb, the first backdrop stands in as the landscape image Moonfin's thumb cards use. There is no fallback for a missing banner.
 
 ### Testing
 
-**Automated tests**
+**Automated tests** (`packages/server_silo/test/silo_item_mapper_test.dart`, 11 new and 1 updated, 30 in all)
 
-- _None planned; add any that were written._
+- Golden against **Young Justice on Brady's Emby server**, with the series mapped first:
+  - the series counts 4 seasons, as on Emby; its thumb is its first backdrop;
+  - the season list: names, numbers, ids, 26 episodes in season 1, series links, and the **same set** of parent artwork fields Emby fills, with values equal to the series' own tags;
+  - the episode detail: index, season index, series and season names match Emby; series and season ids; the same parent artwork fields as Emby; its image is the still, and its backdrop stays with the series (no own backdrop, like Emby);
+  - the season's episode list: all 26 titles and numbers match Emby, in order.
+- Artwork rules: a series poster sent with an episode goes to the series and never becomes the episode's image; borrowed artwork never replaces the series' own; season 0 is Specials.
+- Season ids: built and parsed back (including season 0 and `tmdb` keys); non-season ids rejected; type from the id prefix.
+- Updated from 5.3: an episode still now has a 16:9 aspect ratio, matching Emby.
+- `server_silo`: 198/198.
 
 **Manual test plan**
 
-- Compare with Emby: Golden test against the Young Justice series/season/episode fixtures.
+- Nothing to check by hand until phase 6 shows series and episodes. Regression: full `flutter test`.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | mapper tests 30/30; `server_silo` 198/198; analyzer: no issues |
 | | | | | |
 
 ---

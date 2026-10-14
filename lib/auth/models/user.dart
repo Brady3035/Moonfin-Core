@@ -38,6 +38,15 @@ class PrivateUser extends User {
   @override
   final bool canManageLiveTv;
 
+  /// On Silo, the account this user belongs to. A Silo login belongs to an
+  /// account, and the Moonfin user is one of its household profiles (the main
+  /// profile until the optional profiles phase; decision D9). Step 3.2 keys
+  /// the stored tokens by it. Null on Jellyfin and Emby.
+  final String? siloAccountId;
+
+  /// Whether this is a Silo profile rather than a Jellyfin or Emby user.
+  bool get isSiloProfile => siloAccountId != null;
+
   const PrivateUser({
     required this.id,
     required this.name,
@@ -51,6 +60,7 @@ class PrivateUser extends User {
     this.canManageSubtitles = false,
     this.canManageCollections = false,
     this.canManageLiveTv = false,
+    this.siloAccountId,
   });
 
   Map<String, dynamic> toJson() => {
@@ -64,6 +74,9 @@ class PrivateUser extends User {
         'canManageSubtitles': canManageSubtitles,
         'canManageCollections': canManageCollections,
         'canManageLiveTv': canManageLiveTv,
+        // Only written for Silo users, so Jellyfin and Emby entries are
+        // exactly what they were.
+        if (siloAccountId != null) 'siloAccountId': siloAccountId,
       };
 
   factory PrivateUser.fromJson(
@@ -85,8 +98,12 @@ class PrivateUser extends User {
       canManageSubtitles: json['canManageSubtitles'] as bool? ?? false,
       canManageCollections: json['canManageCollections'] as bool? ?? false,
       canManageLiveTv: json['canManageLiveTv'] as bool? ?? false,
+      siloAccountId: _nonEmpty(json['siloAccountId']),
     );
   }
+
+  static String? _nonEmpty(Object? value) =>
+      value is String && value.isNotEmpty ? value : null;
 
   PrivateUser copyWith({
     String? id,
@@ -101,6 +118,7 @@ class PrivateUser extends User {
     bool? canManageSubtitles,
     bool? canManageCollections,
     bool? canManageLiveTv,
+    String? siloAccountId,
   }) {
     return PrivateUser(
       id: id ?? this.id,
@@ -115,6 +133,7 @@ class PrivateUser extends User {
       canManageSubtitles: canManageSubtitles ?? this.canManageSubtitles,
       canManageCollections: canManageCollections ?? this.canManageCollections,
       canManageLiveTv: canManageLiveTv ?? this.canManageLiveTv,
+      siloAccountId: siloAccountId ?? this.siloAccountId,
     );
   }
 }

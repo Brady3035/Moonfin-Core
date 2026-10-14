@@ -445,7 +445,7 @@ Moonfin reads the signed-in user through `UsersApi.getCurrentUser()`: when a sto
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 2.6 |
+| ☑ Done | `4e6b1dc` | 2.6 |
 
 **Goal.** `getUserConfiguration`/`updateUserConfiguration` on Silo's settings store for the acting profile: library order and hidden libraries (what Moonfin reads from it), plus subtitle/audio language, subtitle mode and autoplay-next. Changed from the plan while building; see How it works.
 

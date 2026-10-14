@@ -500,7 +500,7 @@ This step connects the two Silo packages to the app. It replaces the seven `Unsu
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 1.8 |
+| ☑ Done | `3ce09fa` | 1.8 |
 
 **Goal.** Try `/api/v2/system/info` before the Jellyfin and Emby paths, then build `Id`/`ServerName`/`Version` from identity, branding and setup. Reject the HTML 200 that the native host returns for `/System/Info/Public`.
 
@@ -556,7 +556,7 @@ The step that makes Silo reachable. When you add a server, `addServer` in `lib/a
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-13 | Linux (Claude workspace, Flutter 3.47.2) | 4b2e921c+dirty (captured responses) | Pass | server_core 83/83; app suite 4,274 passed, 1 skipped, 0 failed; analyzer 0 errors/warnings |
-| | | | | |
+| 2026-10-13 | macOS | 4b2e921c+dirty | Pass | Brady: Silo added and opens the sign-in form; sign-in shows the step 2.3 message; Emby still detected; bad address fails fast |
 
 ---
 
@@ -565,7 +565,7 @@ The step that makes Silo reachable. When you add a server, `addServer` in `lib/a
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 1.9 |
 
 **Goal.** Add `server_silo` and `playback_silo` to the package list in the build workflow so their analyzer and tests run on PRs.
 
@@ -575,7 +575,9 @@ The step that makes Silo reachable. When you add a server, `addServer` in `lib/a
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+The build workflow's test job (`.github/workflows/build.yml`, "Run analyzer and tests") loops over a fixed list of packages: for each it runs `flutter pub get`, collects `dart analyze` errors and runs `flutter test`. `server_silo` and `playback_silo` are added to that list, so their analyzer errors gate PRs and their tests run in CI like the Jellyfin and Emby packages'.
+
+The other playback packages aren't in the list (they have no tests of their own); `playback_silo` is, because it has a test file. The app-level tests that touch Silo (`test/...`) already run in the job's root `flutter test`.
 
 ### Testing
 
@@ -585,7 +587,8 @@ _Fill in when the step is built: what the code does, the main classes and why it
 
 **Manual test plan**
 
-- _Write the checks before testing._
+- Locally, the same loop the job runs: `for p in server_silo playback_silo; do (cd packages/$p && flutter pub get && dart analyze && flutter test); done`
+- After pushing the branch, the "Run analyzer and tests" job on your fork lists `pkg-server_silo` and `pkg-playback_silo` results (if Actions are enabled on the fork).
 
 **Results**
 

@@ -123,6 +123,8 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
   final playlistsOnAnyServer = playlistsOnAnySignedInServer();
   final moonfinPluginOnAnyServer = moonfinPluginOnAnySignedInServer();
   final seerrOnAnyServer = seerrOnAnySignedInServer();
+  // Retro games come from the Moonfin plugin's game libraries.
+  final gamesOnAnyServer = moonfinPluginOnAnySignedInServer();
   final friendsAvailable =
       GetIt.instance<AchievementsService>().socialAvailable;
 
@@ -1854,7 +1856,7 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
       ),
     ],
 
-    if (canToggleGameBackend)
+    if (canToggleGameBackend && gamesOnAnyServer)
       playback.leaf(
         'pref_use_native_emulator',
         l10n.useNativeEmulator,
@@ -1868,7 +1870,7 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
         subtitle: l10n.gameOrientationSubtitle,
         keywords: ['rotate', 'landscape', 'portrait', 'games'],
       ),
-    if (supportsCoreDownloads && usesNativeGameBackend)
+    if (supportsCoreDownloads && usesNativeGameBackend && gamesOnAnyServer)
       emulatorCores.screen(keywords: ['retroarch', 'games', 'systems']),
     if (usesNativeGameBackend)
       downloadedGames.screen(keywords: ['roms', 'storage']),

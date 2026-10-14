@@ -472,7 +472,7 @@ Bookmarks and notes belong to audiobooks, which Silo doesn't serve today; the ga
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 4.8 |
+| ☑ Done | `3184b09` | 4.8 |
 
 **Goal.** ~~The plugin's Seerr proxy doesn't exist on Silo. Direct Seerr (your own Seerr URL and per-user login) can still work.~~ Replanned while building: Moonfin has **no direct Seerr mode**, so Seerr is off on Silo and its entry points are hidden. Brady chose not to add a direct mode.
 
@@ -516,6 +516,7 @@ The background notification action (approve or decline a request from a notifica
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | `server_core` 94/94; helper, preference, navigation and Seerr tests 576/576; analyzer: no new issues |
+| 2026-10-14 | macOS | `4b2e921c` | Pass | Brady tested before committing |
 | | | | | |
 
 ---
@@ -525,32 +526,41 @@ The background notification action (approve or decline a request from a notifica
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 4.9 |
 
 **Goal.** Moonbase games need the Jellyfin plugin.
 
 **Where in Moonfin**
 
-- `games screens and nav`
+- `lib/ui/screens/settings/panel/playback_category_screen.dart`
+- `lib/ui/screens/settings/panel/settings_search_index.dart`
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+**Games are already off on Silo.** A library opens the games browser only when `isGameLibrary` says so. That trusts the list the Moonbase plugin reports through `client.gamesApi` (`GameLibraryRegistry`), and otherwise a name match on a *Mixed Content* library. Silo's client has no `gamesApi`: it keeps the base client's null, and `silo_media_server_client_test` checks this. Silo's libraries are only `movies` and `series`, which the fallback never matches. So no game library, tile, nav entry or games route can appear for Silo, and nothing asks Silo for games.
+
+**Settings:** Playback › Games offered its switches based on the platform alone. Following 4.1's rule, when no signed-in server could have the plugin (`moonfinPluginOnAnySignedInServer()`):
+- the **native emulator** switch and **Emulator cores** are hidden, along with their settings search entries;
+- **Downloaded games** stays, because it manages ROMs already saved on this device, which may have come from another server;
+- the Games header shows only when something under it does.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- Existing: `silo_media_server_client_test` (no `gamesApi` on Silo); game-library, games-screen, preference and helper tests 229/229.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+1. **Only Silo signed in:** Playback has no Games section (unless games were downloaded before with the native emulator on, then only Downloaded games shows); searching settings for "emulator" finds nothing.
+2. **Jellyfin with the plugin's games signed in as well:** the Games section comes back and a game library opens the games browser as before.
+3. Regression: full `flutter test`.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | game, games-screen, preference and helper tests 229/229; analyzer: no new issues |
 | | | | | |
 
 ---

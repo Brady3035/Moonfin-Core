@@ -90,7 +90,7 @@ Podcasts have no Jellyfin type and no Moonfin screen, so they don't map; mappers
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 5.1 |
+| ☑ Done | `cb59241` | 5.1 |
 
 **Goal.** While mapping, record each artwork URL by item, image type and index, with a tag hashed from the URL **path** so the daily-rotating signature keeps the same tag. Relative URLs get the base URL; absolute (TMDB, TVDB, S3) pass through. Never append a token.
 
@@ -146,6 +146,7 @@ Nothing calls the registry yet; 5.3's item mapper is the first.
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | new tests 20/20; `server_silo` 168/168; analyzer: no issues |
+| 2026-10-14 | macOS | `4b2e921c` | Pass | full `flutter test` before committing |
 | | | | | |
 
 ---
@@ -155,32 +156,65 @@ Nothing calls the registry yet; 5.3's item mapper is the first.
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 5.2 |
 
 **Goal.** Id, Name, SortName, Type, Overview, Genres, Studios, years and dates, OfficialRating, Community/Critic rating, RunTimeTicks, ProviderIds, DateCreated, Status; `backdrop_urls` → every `BackdropImageTags` entry; original payload kept under `_silo`.
 
 **Where in Moonfin**
 
-- `packages/server_silo/lib/src/mappers/silo_item_mapper.dart`
+- `packages/server_silo/lib/src/mappers/silo_item_mapper.dart` (new)
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+`siloItemToBaseItemDto(item, images:)` turns one Silo `CatalogItem` (a list entry or a detail answer) into the Jellyfin `BaseItemDto` map Moonfin reads. It is a pure function. Later steps add series links (5.4), user data (5.5), people (5.6) and media sources (5.8) to the same map.
+
+| Jellyfin | From Silo | Notes |
+|---|---|---|
+| `Id` | `content_id` | Unchanged (5.1). |
+| `Name`, `SortName` | `title` | Silo has no sort title; Jellyfin also falls back to the name. |
+| `OriginalTitle`, `Overview` | `original_title`, `overview` | |
+| `Taglines` | `tagline` | As a one-element list, or empty. |
+| `Type`, `MediaType`, `IsFolder` | `type` | The 5.1 table. |
+| `Genres`, `GenreItems` | `genres` | `GenreItems` carry synthetic ids (`silo-genre:Action`). |
+| `Studios` | `networks` then `studios` | Emby lists a series' networks among its studios, so the mapper does too, without repeats. Ids are synthetic (`silo-studio:…`). |
+| `ProductionYear` | `year` | Else the year of the date below (episodes have no `year`). |
+| `PremiereDate` | `release_date`, `first_air_date` or `air_date` | Silo sends a calendar date; written as midnight UTC in Jellyfin's format. |
+| `Status`, `EndDate` | `show_status`, `last_air_date` | `ended`/`canceled` → `Ended` (with `EndDate`), returning/in production → `Continuing`, anything else left out. |
+| `OfficialRating` | `content_rating` | |
+| `CommunityRating` | `rating_tmdb` | Out of 10, one decimal. |
+| `CriticRating` | `ratings[]` with source `rt_critic` | Only when a metadata plugin provides one, rounded to a whole percent. |
+| `RunTimeTicks` | first `versions[].duration` (s), else `runtime` (min) | The file's exact length, as Emby reports; `runtime: 0` means unknown. |
+| `ProviderIds` | `imdb_id`, `tmdb_id`, `tvdb_id` | `Imdb`, `Tmdb`, `Tvdb`. |
+| `DateCreated` | earliest `versions[].added_at` | Silo dates the files, not the item. |
+| `ImageTags`, `BackdropImageTags` | `poster_url`, `logo_url`, `backdrop_urls` (or `backdrop_url`) | Each URL is registered in the 5.2 registry and its tag goes here; every backdrop gets its own index. |
+| `PrimaryImageAspectRatio` | | 2/3 when there is a poster (not for an episode's still). |
+| `_silo` | the whole item | For later steps and debugging. |
+
+Without a registry the item has no image tags. A type with no Jellyfin equivalent (podcasts) or an item without an id gives null, and the caller drops it.
+
+**Left for other steps:** series/season/episode links and parent artwork (5.4), `UserData` (5.5), `People` (5.6), `MediaSources`/`MediaStreams` (5.8), chapters (5.9), trailers. `ProductionLocations` isn't mapped: Silo sends country codes (`US`), Emby full names, and nothing on the roadmap shows them yet.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `packages/server_silo/test/silo_item_mapper_test.dart` (new, 19 tests). These are golden comparisons against the **same titles on Brady's Emby server**:
+  - **xXx (movie):** name, sort and original title, type, overview, tagline, rating, provider ids, year, premiere day, run time within a second of Emby's, the same number of backdrops, primary and logo registered (URL and tag agree), the Silo item kept;
+  - **Young Justice (series):** name, type, year, status `Ended`, premiere and end day, rating, networks and studios;
+  - **episode 1x01:** name, type, year, air day, run time.
+  - The servers take metadata from different sources, so genres and studios are compared as "everything Emby has is there": Silo adds Drama to xXx and DC to Young Justice.
+  - Edge cases: podcasts and items without an id are dropped; a bare list entry maps with what it has; no registry means no tags; a `rt_critic` score; the series status words.
+- `server_silo`: 187/187.
 
 **Manual test plan**
 
-- Compare with Emby: Golden test against `emby/item_movie_*.json`.
+- Nothing to check by hand: no screen uses the mapper until phase 6. Regression: full `flutter test`.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | new tests 19/19; `server_silo` 187/187; analyzer: no issues |
 | | | | | |
 
 ---

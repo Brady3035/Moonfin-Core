@@ -27,7 +27,7 @@ import 'overlay_sheet.dart';
 import 'pin_entry_dialog.dart';
 import 'remote_control_dialog.dart';
 import 'settings/settings_panel.dart';
-import 'image_source.dart';
+import 'user_avatar_image.dart';
 
 enum _AccountDialogAction { quickConnect }
 
@@ -807,7 +807,6 @@ class _AccountCard extends StatefulWidget {
 class _AccountCardState extends State<_AccountCard> {
   final _focusNode = FocusNode();
   bool _focused = false;
-  bool _avatarFailed = false;
 
   @override
   void initState() {
@@ -815,14 +814,6 @@ class _AccountCardState extends State<_AccountCard> {
     _focusNode.addListener(() {
       if (mounted) setState(() => _focused = _focusNode.hasFocus);
     });
-  }
-
-  @override
-  void didUpdateWidget(covariant _AccountCard oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.avatarUrl != widget.avatarUrl) {
-      _avatarFailed = false;
-    }
   }
 
   @override
@@ -881,36 +872,15 @@ class _AccountCardState extends State<_AccountCard> {
                       color: AppColorScheme.surfaceVariant,
                     ),
                     child: ClipOval(
-                      child: _avatarFailed || widget.avatarUrl == null
-                          ? Icon(
-                              Icons.person,
-                              color: AppColorScheme.onSurface.withValues(alpha: 0.55),
-                              size: 68,
-                            )
-                          : Image.network(
-                              widget.avatarUrl!,
-                              headers: serverImageHeaders,
-                              fit: BoxFit.cover,
-                              cacheWidth: ArtworkDecode.widthFor(
-                                68,
-                                MediaQuery.devicePixelRatioOf(context),
-                              ),
-                              errorBuilder: (_, _, _) {
-                                if (!_avatarFailed) {
-                                  WidgetsBinding.instance
-                                      .addPostFrameCallback((_) {
-                                        if (mounted) {
-                                          setState(() => _avatarFailed = true);
-                                        }
-                                      });
-                                }
-                                return Icon(
-                                  Icons.person,
-                                  color: AppColorScheme.onSurface.withValues(alpha: 0.55),
-                                  size: 68,
-                                );
-                              },
-                            ),
+                      child: UserAvatarImage(
+                        url: widget.avatarUrl,
+                        size: 130,
+                        fallback: Icon(
+                          Icons.person,
+                          color: AppColorScheme.onSurface.withValues(alpha: 0.55),
+                          size: 68,
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 12),

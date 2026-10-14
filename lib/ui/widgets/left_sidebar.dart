@@ -49,8 +49,8 @@ import '../../data/models/aggregated_item.dart';
 import '../../data/services/media_server_client_factory.dart';
 import '../navigation/app_router.dart';
 import 'offline_aware_image.dart';
-import 'paced_network_image.dart';
 import 'adaptive/sf_symbol.dart';
+import 'user_avatar_image.dart';
 
 const _kExpandedWidthDesktop = 240.0;
 const _kExpandedWidthMobile = 260.0;
@@ -1328,27 +1328,12 @@ class _LeftSidebarState extends State<LeftSidebar> with RouteAware {
         ),
       ),
       child: ClipOval(
-        child: _userImageUrl != null
-            ? Image(
-                // The server sends the avatar at its stored size, so decode
-                // at the painted size instead of a full bitmap per user.
-                image: ResizeImage.resizeIfNeeded(
-                  ArtworkDecode.widthFor(
-                    40,
-                    MediaQuery.devicePixelRatioOf(context),
-                  ),
-                  null,
-                  PacedNetworkImage(
-                    _userImageUrl!,
-                    headers: serverImageHeaders,
-                  ),
-                ),
-                fit: BoxFit.cover,
-                width: 40,
-                height: 40,
-                errorBuilder: (_, _, _) => fallback,
-              )
-            : fallback,
+        // Decoded at the painted size, SVG presets drawn as vectors.
+        child: UserAvatarImage(
+          url: _userImageUrl,
+          size: 40,
+          fallback: fallback,
+        ),
       ),
     );
 

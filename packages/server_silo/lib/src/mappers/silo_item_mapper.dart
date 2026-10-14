@@ -319,6 +319,7 @@ Map<String, dynamic> _imageFields(
     backdrops = const [];
   }
 
+  images.note(id);
   final tags = <String, String>{
     if (images.register(id, SiloImageType.primary, primaryUrl) case final tag?)
       SiloImageType.primary.jellyfinName: tag,
@@ -592,6 +593,7 @@ List<Map<String, dynamic>> _people(
     if (name == null) return null;
     final id = siloIdOf(credit['person_id']);
     if (!seen.add('${id ?? name}|$kind')) return null;
+    if (id != null) images?.note(id);
     final tag = id == null
         ? null
         : images?.register(id, SiloImageType.primary, credit['photo_url']);

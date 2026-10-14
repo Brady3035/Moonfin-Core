@@ -85,7 +85,7 @@ The client owns the registry (`SiloMediaServerClient.images`), so the items API 
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 6.1 |
+| ☑ Done | — | 6.1 |
 
 **Goal.** Pass a path-only `cacheKey` so the signed query rotating every day doesn't re-download every image.
 
@@ -135,6 +135,7 @@ The client owns the registry (`SiloMediaServerClient.images`), so the items API 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | cache key 3/3, hooks 3/3; `server_silo` 326/326; analyzer: no issues |
+| 2026-10-14 | macOS | `4b2e921c` | Pass | full `flutter test` before committing |
 | | | | | |
 
 ---
@@ -144,33 +145,85 @@ The client owns the registry (`SiloMediaServerClient.images`), so the items API 
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 6.2 |
 
 **Goal.** When nothing is registered for an item (cold start, deep link), follow the decision in DECISIONS.md D2 (resolver image provider or placeholder).
 
 **Where in Moonfin**
 
-- `silo_image_api.dart`
-- `cached_network_image_fork`
+- `packages/server_silo/lib/src/silo_image_resolver.dart` (new): placeholder URLs, `SiloImageResolver`, `SiloImageResolution`.
+- `packages/server_silo/lib/src/api/silo_image_api.dart`: hands out placeholders for unseen items.
+- `packages/server_silo/lib/src/silo_image_registry.dart`, mappers: which items were read (`note`/`knows`).
+- `packages/server_silo/lib/src/silo_media_server_client.dart`: owns the resolver and loads artwork.
+- `packages/cached_network_image_fork/` (`CachedNetworkImageProvider.urlResolver`)
+- `lib/util/silo_image_hooks.dart`
+- `lib/ui/widgets/user_avatar_image.dart` (new), used by `user_menu_dialog.dart`, `top_toolbar.dart`, `left_sidebar.dart` and `bottom_nav/bottom_nav_tab.dart`.
+- `docs/silo/DECISIONS.md`: D2 decided.
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+**The problem.** `ImageApi` is synchronous and asks by item id only. Silo has no image URL that can be built from an id: artwork comes signed, inside the item. So an image of an item this session hasn't read has no URL. That happens with rows restored from a cache at startup, a deep link, or a parent id (series of an episode, a person on a cached page).
+
+**Decision D2: resolve by loading the item.** Brady chose this over a plain placeholder, so artwork always appears.
+
+1. **Known or not.** The mappers now `note` every item, person and library whose artwork fields they read, whether or not it had any. A missing image of a **known** item doesn't exist, and the answer stays an empty URL (Moonfin's placeholder art), with no request. A logo request for a film with no logo costs nothing.
+2. **Placeholder URL.** For an item **never read**, `SiloImageApi` returns a placeholder URL instead: `<server>/api/v2/__moonfin/image?item=<id>&type=<type>[&index=<n>]`. It is an ordinary-looking `https` URL, so every widget treats it like any image.
+3. **The image cache resolves it.** The vendored `cached_network_image` gets a second static hook, `urlResolver`. Before downloading, the provider asks the hook about its URL. For an ordinary URL the hook answers `null` synchronously and the image loads as before, with no extra hop. For a placeholder it answers a future of the real URL. The download then uses that URL, keyed (6.2) by the real picture, so a picture already on disk is reused. A future that gives `null` fails the load like a missing image, **without a request**.
+4. **The app wires it.** `installSiloImageHooks()` sets `urlResolver = SiloImageResolution.resolve`. That entry point finds the Silo client the URL belongs to (by base URL; each client registers its resolver while it exists and unregisters on dispose) and calls its `SiloImageResolver`.
+5. **Loading.** The resolver checks the registry first. Otherwise it loads what Silo has on the id through the client (`_loadArtwork`), which registers the artwork:
+   - a catalog id (`movie-…`, `series-…`, `season-…`, `episode-…`): `GET /catalog/items/{id}?image_size=large`, mapped as usual;
+   - otherwise the library list (library posters). If that doesn't know the id: the profile list for a UUID (avatars), or `GET /catalog/people/{id}` (person photos).
+
+**Guards.**
+
+- Concurrent requests for one item share one load. A poster, backdrop and logo of the same unseen film load it once.
+- An item that failed to load, or turned out to have no such image, isn't tried again for 10 minutes, so a grid of missing art doesn't hammer the server.
+- The thumb and banner fallbacks to the backdrop (6.1) apply after loading too.
+
+Trickplay sheets are never placeholders; step 11.2 fetches them.
+
+**Avatars** (found in Brady's first test of 6.1–6.3: his Silo avatar didn't show). The avatar widgets didn't go through the image cache's provider, and Silo's preset avatars are **SVG**: its bundled set (`/profile-avatars/<id>.svg`) or DiceBear (`https://api.dicebear.com/9.x/<style>/svg?seed=…`). Flutter's bitmap decoders can't draw SVG; only uploaded avatars are bitmaps (`w256.webp`). The new `UserAvatarImage` widget:
+
+- resolves a placeholder URL through the same `urlResolver` hook before loading;
+- draws an SVG avatar with `flutter_svg` (already a dependency);
+- loads anything else as before (`PacedNetworkImage`, decoded at the painted size).
+
+The user menu, top toolbar, left sidebar and mobile bottom bar use it. For Jellyfin and Emby avatars only the user menu changes: it used `Image.network`, and now uses the same bitmap path as the toolbar.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `packages/server_silo/test/silo_image_resolver_test.dart` (new, 13 tests):
+  - placeholder URLs round-trip; ordinary URLs aren't placeholders and resolve to null synchronously;
+  - placeholders are handed out only for unseen items (a known item without a logo gets an empty URL);
+  - through the client: a catalog item loaded **once** at `large` for poster and logo together; a library poster; a person; a profile avatar;
+  - a failed load gives null and isn't retried; an item without the image gives null; a disposed client's placeholders give null;
+  - the retry wait; a resolver owns only its own server's placeholders.
+- `silo_media_server_client_test.dart`: the old "image URLs are empty" test now checks an unseen item gets a placeholder its client resolves.
+- `test/util/silo_image_hooks_test.dart`: 1 new, placeholders are resolved and other URLs load directly.
+- `test/widgets/user_avatar_image_test.dart` (new, 6):
+  - which URLs are SVG (Silo presets, DiceBear) and which are bitmaps;
+  - no URL shows the fallback; a bitmap avatar is an `Image`;
+  - a placeholder is resolved before loading; one with nothing behind it stays the fallback.
+  - (Drawing a real SVG needs the network, so that path is checked by hand.)
+- `server_silo`: 339/339.
+
+A self-wait was caught by these tests: a `whenComplete` callback returning the removed future made the load wait on itself. It now uses a block body.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+- **Avatar:** a Silo profile with an avatar shows it in the user menu, the top toolbar (or left sidebar, depending on the navigation style) and the mobile bottom bar. Try a preset (SVG) and an uploaded photo; with none, the initial shows. Emby avatars still show everywhere.
+- With Silo artwork showing, quit Moonfin and start it again. Any Silo row or page restored before its items are fetched again shows its artwork after a moment, not blank cards.
+- Open a Silo episode's detail page straight after a cold start (or from a cached Continue Watching row once phase 8 lands): the series logo and backdrop appear.
+- A Silo film without a logo shows its title text, and Silo's request log shows no repeated requests for it.
+- Turn Silo off (or disconnect) and open a Silo page: placeholders, no flood of retries in the log; turn it back on and the art appears within ten minutes or on the next load.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | resolver 13/13, hooks 4/4; `server_silo` 339/339; analyzer: no issues in changed files |
 | | | | | |
 
 ---

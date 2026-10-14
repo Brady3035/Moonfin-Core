@@ -56,6 +56,10 @@ bool musicOnAnySignedInServer({AuthenticationStore? store}) =>
 bool playlistsOnAnySignedInServer({AuthenticationStore? store}) =>
     anySignedInServerSupports((f) => f.supportsPlaylists, store: store);
 
+/// The Moonfin server plugin ([FeatureDetector.supportsMoonfinPlugin]).
+bool moonfinPluginOnAnySignedInServer({AuthenticationStore? store}) =>
+    anySignedInServerSupports((f) => f.supportsMoonfinPlugin, store: store);
+
 /// Whether the server an item came from supports [feature], for actions on
 /// that item ("Add to playlist" on a Silo film, say).
 ///

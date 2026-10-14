@@ -93,7 +93,7 @@ Status key: ☐ not started · ◐ in progress · ☑ done and tested · ⊘ ski
 - [x] **5.3** [Item mapper: core fields](phases/05-translation.md#step-5-3)
 - [x] **5.4** [Item mapper: series, seasons and episodes](phases/05-translation.md#step-5-4)
 - [x] **5.5** [Item mapper: user data](phases/05-translation.md#step-5-5)
-- [ ] **5.6** [Item mapper: people](phases/05-translation.md#step-5-6)
+- [x] **5.6** [Item mapper: people](phases/05-translation.md#step-5-6)
 - [ ] **5.7** [Library mapper](phases/05-translation.md#step-5-7)
 - [ ] **5.8** [Versions and streams → MediaSources/MediaStreams](phases/05-translation.md#step-5-8)
 - [ ] **5.9** [Chapters mapper](phases/05-translation.md#step-5-9)

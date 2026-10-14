@@ -354,7 +354,7 @@ Whatever neither part says means **unplayed at position 0**: exactly the `UserDa
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 5.5 |
+| ☑ Done | `1bacabf` | 5.5 |
 
 **Goal.** Cast and crew to `People` with roles and photo tags through the registry.
 
@@ -407,6 +407,7 @@ Silo sends `cast` (`CastCredit`: `name`, `character`, `order`, `person_id`, `pho
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | mapper tests 47/47; `server_silo` 215/215; analyzer: no issues |
+| 2026-10-14 | macOS | `4b2e921c` | Pass | full `flutter test` before committing |
 | | | | | |
 
 ---
@@ -416,32 +417,65 @@ Silo sends `cast` (`CastCredit`: `name`, `character`, `order`, `person_id`, `pho
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 5.6 |
 
 **Goal.** User libraries to `CollectionFolder` with `CollectionType` (movies, tvshows, books, mixed).
 
 **Where in Moonfin**
 
-- `silo_library_mapper.dart`
+- `packages/server_silo/lib/src/mappers/silo_library_mapper.dart` (new)
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+Silo lists the profile's libraries with `GET /user/libraries`. Each entry is a `UserLibrary`: `id`, `name`, `type`, `sort_order` and a signed `poster_url`. `siloLibraryToCollectionFolder` turns one into the `CollectionFolder` Moonfin reads from `getUserViews` (wired in 6.4):
+
+| Jellyfin | From | Notes |
+|---|---|---|
+| `Id` | `id` | Unchanged: library order and hidden libraries are stored in Silo's settings by this id (2.7). |
+| `Name`, `SortName` | `name` | |
+| `Type`, `IsFolder` | — | `CollectionFolder`, true. |
+| `CollectionType` | `type` | See below. |
+| `ImageTags.Primary` | `poster_url` | Registered under the library id. |
+| `UserData` | — | Unplayed, not a favourite: the same empty `UserData` Emby sends. |
+
+**Collection types.** Moonfin picks the screen a library opens in, and its icon, from `CollectionType`:
+
+| Silo `type` | `CollectionType` | Opens in |
+|---|---|---|
+| `movies` | `movies` | library grid |
+| `series` | `tvshows` | library grid |
+| `mixed` | none, as on Jellyfin | library grid |
+| `audiobooks` | `audiobooks` | book screens |
+| `ebooks` | `books` | book screens |
+| `podcasts`, `manga` | no entry | — |
+
+Audiobooks keep their own type, as on Emby, rather than `books` as the design notes said: Moonfin's book screens tell an audiobook library from an ebook one by it.
+
+**Which libraries show.** `siloLibrariesToUserViews` maps the whole list. It keeps only types Moonfin can open today: movies, series and mixed. Book libraries join when the optional books phase (16) can open their items. Until then they would open onto an empty grid. Podcasts and manga have no Moonfin screen (open item). The list is ordered by `sort_order`; equal or missing positions keep Silo's order, unnumbered ones last.
+
+**Known limits.**
+
+- A library poster's path has no content hash (`library-posters/1.png`), so its tag doesn't change when an admin uploads a new poster. Moonfin may show the old one until its image cache expires (open item).
+- Moonfin treats a library with no collection type and a name like "Games" as a games library. A Silo mixed library named that way would open the games browser. Checked in 6.4.
 
 ### Testing
 
-**Automated tests**
+**Automated tests** (`packages/server_silo/test/silo_library_mapper_test.dart`, new, 14 tests)
 
-- _None planned; add any that were written._
+- Golden against **Brady's Emby server**: Movies and TV Shows come out in order with Emby's collection types (`movies`, `tvshows`). `Type`, `IsFolder` and `UserData` are identical to Emby's. Each poster is registered under its library.
+- Collection types for every Silo type; mixed has none; podcasts, manga and unknown types don't map; a numeric id becomes a string; no poster gives no tag.
+- User views: only openable types are kept (books once supported); `sort_order` with stable ties and unnumbered entries last; junk entries are skipped.
+- `server_silo`: 229/229.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+- Nothing to check by hand until 6.4 shows the libraries. Regression: full `flutter test`.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | library mapper tests 14/14; `server_silo` 229/229; analyzer: no issues |
 | | | | | |
 
 ---

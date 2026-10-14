@@ -37,6 +37,17 @@ class CachedNetworkImageProvider
   /// The default cache manager used for image caching.
   static BaseCacheManager defaultCacheManager = DefaultCacheManager();
 
+  /// Moonfin: the cache key for a [url] given no [cacheKey], or null to key
+  /// by the URL itself. A server whose image URLs carry a signature that
+  /// rotates (Silo's `?exp=…&sig=…`) keys them by their path instead, so the
+  /// same picture is found in the memory and disk caches whatever its
+  /// signature.
+  static String? Function(String url)? cacheKeyFor;
+
+  /// The key this provider caches under.
+  String? get _diskKey => cacheKey ?? cacheKeyFor?.call(url);
+  String get _effectiveKey => _diskKey ?? url;
+
   /// Web url of the image to load
   final String url;
 
@@ -110,7 +121,7 @@ class CachedNetworkImageProvider
     assert(key == this);
     return ImageLoader().loadBufferAsync(
       url,
-      cacheKey,
+      _diskKey,
       chunkEvents,
       decode,
       cacheManager ?? defaultCacheManager,
@@ -160,7 +171,7 @@ class CachedNetworkImageProvider
     assert(key == this);
     return ImageLoader().loadImageAsync(
       url,
-      cacheKey,
+      _diskKey,
       chunkEvents,
       decode,
       cacheManager ?? defaultCacheManager,
@@ -175,7 +186,7 @@ class CachedNetworkImageProvider
   @override
   bool operator ==(Object other) {
     if (other is CachedNetworkImageProvider) {
-      return ((cacheKey ?? url) == (other.cacheKey ?? other.url)) &&
+      return _effectiveKey == other._effectiveKey &&
           scale == other.scale &&
           maxHeight == other.maxHeight &&
           maxWidth == other.maxWidth;
@@ -184,7 +195,7 @@ class CachedNetworkImageProvider
   }
 
   @override
-  int get hashCode => Object.hash(cacheKey ?? url, scale, maxHeight, maxWidth);
+  int get hashCode => Object.hash(_effectiveKey, scale, maxHeight, maxWidth);
 
   @override
   String toString() => 'CachedNetworkImageProvider("$url", scale: $scale)';

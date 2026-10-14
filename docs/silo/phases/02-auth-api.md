@@ -291,7 +291,7 @@ Jellyfin's `/Sessions/Logout` just invalidates the one token. On Silo, signing o
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 2.4 |
+| ☑ Done | `99f95c0` | 2.4 |
 
 **Goal.** Find the account's primary profile (`is_primary`) with `GET /profiles` and send its `X-Profile-Id` on every request. Silo keeps watch progress, favourites and home rows per profile, and refuses requests without the header once any profile on the account has a PIN or restrictions. If the main profile has a PIN, fail with a typed error the app can explain (PIN entry comes with the optional profiles phase, 18.4).
 
@@ -358,7 +358,7 @@ Nothing in the app calls this yet; sign-in from the login screen uses it in 3.3.
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 2.5 |
 
 **Goal.** `SiloUsersApi.getCurrentUser` and the user mapper: the main profile's id as the Moonfin user id (so the optional profiles phase adds the other profiles as users without migrating anyone), name from the profile, admin/download permissions from the account.
 
@@ -371,27 +371,68 @@ Nothing in the app calls this yet; sign-in from the login screen uses it in 3.3.
 
 - `packages/server_silo/lib/src/api/silo_users_api.dart`
 - `packages/server_silo/lib/src/mappers/silo_user_mapper.dart`
+- `packages/server_silo/lib/src/silo_media_server_client.dart`
 
 **Earlier work to port:** silo-2
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+Moonfin reads the signed-in user through `UsersApi.getCurrentUser()`: when a stored session is restored (a rejected token there signs out), when a session starts (to refresh the admin, download, subtitle and collection rights it keeps on the stored user), when signing in from saved credentials, and in the library-scope service (`EnableAllFolders`/`EnabledFolders`). Jellyfin and Emby answer from `/Users/{id}`. Silo splits that information between the **account** (role, download right) and the **profile** (name, PIN, restrictions, settings).
+
+**`packages/server_silo/lib/src/api/silo_users_api.dart`** (`SiloUsersApi`, replaces `SiloPendingUsersApi`)
+
+- `getCurrentUser()` reads `GET /account/me` and `GET /profiles` at the same time and maps the account with the profile the client acts as (`X-Profile-Id`, set by 2.5's `useMainProfile`). With no profile chosen yet it describes the main profile, the one the client will act as.
+- Failures stay plain Dio errors: the two reads are awaited one by one rather than with a record's `.wait`, which would wrap them in a `ParallelWaitError`. That matters because the app signs out only on a `DioException` with status 401.
+- A chosen profile that no longer exists (deleted on the web) is a `StateError`, not a 401, so it is reported rather than signing the user out.
+- `getUserConfiguration`/`updateUserConfiguration` still throw `SiloNotImplementedError` naming 2.7.
+
+**`packages/server_silo/lib/src/mappers/silo_user_mapper.dart`**: `siloProfileToUserDto(profile, account)`
+
+- `Id` is the **profile** id. With the main profile as the Moonfin user (D9), the optional profiles phase can add the other profiles as users and the main one keeps its id.
+- `Name` is the profile name, falling back to the username when blank.
+- Silo has no per-user policy object, so the policy is derived:
+
+  | Moonfin reads | From | Why |
+  |---|---|---|
+  | `IsAdministrator` | account `role == admin` **and** the primary profile | Silo withholds administrator routes from secondary profiles |
+  | `EnableContentDownloading` | account `download_allowed` | |
+  | `EnableCollectionManagement` | always true | personal collections are open to every Silo profile |
+  | `EnableSubtitleDownloading` | always true | subtitle search and download are profile-scoped routes, open to every profile |
+  | `EnableAllFolders` | always true | Silo enforces a profile's library restrictions itself, and its library ids aren't Moonfin's view ids until phase 6. Passing them on could hide libraries the profile may see |
+  | `EnableLiveTvAccess`/`Management` | false | Silo has no Live TV |
+  | `EnableMediaPlayback` | true | |
+
+- The raw account and profile ride along under `SiloAccount` and `SiloProfile` for 2.7 and phase 3.
+
+**App effect.** None of the callers above needed changes. After a Silo sign-in, starting the session now reads the user instead of logging a "not implemented" error.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `packages/server_silo/test/silo_users_api_test.dart` (new, 9 tests):
+  - the captured account and main profile map to id, name and the full policy table above;
+  - the profile the client acts as is described; a secondary profile of an admin account isn't an administrator;
+  - with no profile chosen, the main profile is described;
+  - a non-admin account without downloads;
+  - a blank profile name falls back to the username;
+  - raw account and profile ride along;
+  - a deleted profile is a readable `StateError`;
+  - a rejected token surfaces as a plain 401 `DioException` (this caught the `ParallelWaitError` problem);
+  - both reads carry the profile header.
+- `silo_media_server_client_test.dart`: the placeholder test now checks `getUserConfiguration` (2.7).
 
-**Manual test plan**
+**Manual test plan** (macOS, Silo server)
 
-- Compare with Emby: Compare the mapped user with Emby's `/Users/{id}` for the fields Moonfin reads (`Policy`, `Configuration`).
+1. Sign in to Silo. Expected in the log: `→ GET …/api/v2/account/me` and `→ GET …/api/v2/profiles`, both `← 200`, and no "UsersApi … not implemented" error.
+2. Quit and relaunch with the Silo user active (within the hour, since restoring the session properly is 3.4). Expected: the same two reads at start-up, no sign-out.
+3. Regression: same on Emby.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-13 | Linux (Claude workspace, Flutter 3.47.2) | 4b2e921c (captured `account_me.json`, `profiles.json`) | Pass | server_silo 106/106; analyzer clean |
 | | | | | |
 
 ---

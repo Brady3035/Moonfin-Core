@@ -65,7 +65,7 @@ Status key: ☐ not started · ◐ in progress · ☑ done and tested · ⊘ ski
 
 ## 3. [Sign-in in the app](phases/03-signin-app.md)
 
-- [ ] **3.1** [Silo fields on the stored user](phases/03-signin-app.md#step-3-1) · ↺ port
+- [x] **3.1** [Silo fields on the stored user](phases/03-signin-app.md#step-3-1) · ↺ port
 - [ ] **3.2** [Store the Silo token pair](phases/03-signin-app.md#step-3-2) · ↺ port
 - [ ] **3.3** [Password sign-in from the login screen](phases/03-signin-app.md#step-3-3) · ↺ port
 - [ ] **3.4** [Restore the session on app start](phases/03-signin-app.md#step-3-4) · ↺ port

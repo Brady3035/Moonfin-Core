@@ -13,7 +13,7 @@ Moonfin signs in to the Silo account and acts as its main profile (decision D9).
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 2.7 |
+| ☑ Done | `bf49b64` | 2.7 |
 
 **Goal.** `PrivateUser` gains `siloAccountId`, with backward-compatible JSON.
 
@@ -70,34 +70,55 @@ Nothing sets it yet; 3.3 does at sign-in. The PIN fields from the earlier stash 
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 3.1 |
 
 **Goal.** Store the token pair with the user, keyed by (server, account), and save refreshed tokens through the session callback.
 
 **Where in Moonfin**
 
 - `lib/auth/store/authentication_store.dart`
+- `lib/auth/services/silo_token_storage.dart`
 
 **Earlier work to port:** silo-1/stash
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+Jellyfin and Emby hand out a token that lasts until sign-out, which Moonfin stores on the user (`PrivateUser.accessToken`, in `AuthenticationStore`'s shared preferences). Silo's login is a **pair** with a refresh token that **rotates**: every refresh returns a new refresh token and the old one stops working (2.1). So the stored copy has to be replaced every time the session refreshes, or the next app start presents a dead refresh token and has to sign in again.
+
+**`AuthenticationStore`** (`lib/auth/store/authentication_store.dart`)
+
+- Each server's entry gains `siloAccounts`: account id → `{"tokens": <SiloTokens JSON>}`. It's keyed by (server, account), not by user, because the login belongs to the account. Today each account has one Moonfin user (its main profile, D9); with the optional phase 18 its profiles will share this one record.
+- `getSiloTokens`, `putSiloTokens`, `getSiloAccountIds`, `removeSiloAccount`.
+- **`putServer` keeps `siloAccounts`.** It already kept `users` when a server is edited (renamed, address changed). Without this, editing a Silo server would silently sign its accounts out at the next start.
+- **`removeUser` drops the account's tokens with its last user** on that server. Sign-out (`SessionRepository`) removes the user, so a signed-out Silo login leaves no refresh token behind. A Jellyfin/Emby user, or a user whose account still has another user, leaves the record alone.
+- Storage is the same place Moonfin keeps every other access token. Moonfin has a secure `CredentialStore`, but the current sign-in code only reads it as a legacy fallback and never writes to it. Moving tokens there (for all servers) would be an upstream discussion, not part of Silo support.
+
+**`SiloTokenStorage`** (`lib/auth/services/silo_token_storage.dart`, new)
+
+- `read`/`save` convert between `SiloTokens` and the store.
+- `bind(client, serverId, accountId)` sets the session's `onTokensChanged` (2.1) so **every refreshed pair is saved** under that account. Rebinding replaces the earlier binding; `unbind` stops it. A failed save is swallowed: the session in memory is already renewed, and the worst case is a sign-in at the next start.
+- `siloClientOf(client)` finds the Silo client inside the offline-aware wrapper the client factory puts around every client.
+
+Nothing calls these yet: 3.3 saves and binds at sign-in, 3.4 reads at start-up.
 
 ### Testing
 
 **Automated tests**
 
-- two accounts on one server don't overwrite each other; a refresh saves the rotated pair
+- `test/auth/authentication_store_silo_test.dart` (new, 8 tests): pairs per (server, account); a refresh replaces the pair; survives a restart; editing the server keeps accounts and users; the last user's removal removes the tokens; tokens stay while another user of the account remains; removing a Jellyfin user touches no Silo account; `removeSiloAccount` forgets only the tokens.
+- `test/auth/silo_token_storage_test.dart` (new, 6 tests): `siloClientOf` for Silo and Jellyfin; save/read round trip; every refresh through a real `SiloMediaServerClient` replaces the stored pair; a refused refresh saves nothing; `unbind`; rebinding to another account.
+- Every existing test that uses `AuthenticationStore` still passes (114 tests in those files).
 
 **Manual test plan**
 
-- _Write the checks before testing._
+- No visible change. Regression: rename your Emby server (or edit its address) and relaunch; still signed in.
+- Full `flutter test`.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-13 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | `test/auth` 98/98, store-related tests 114/114; analyzer: no new issues |
 | | | | | |
 
 ---

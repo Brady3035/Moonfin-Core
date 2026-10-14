@@ -13955,6 +13955,59 @@
   "@playerSettingsSubtitle": {
     "description": "Subtitle for the Player entry on the Playback settings screen"
   },
+  "siloPasswordChangeTitle": "Choose a new password",
+  "@siloPasswordChangeTitle": {
+    "description": "Title of the dialog shown after signing in to a Silo server with a temporary password"
+  },
+  "siloPasswordChangeMessage": "This account has a temporary password. Choose a new one to finish signing in.",
+  "@siloPasswordChangeMessage": {
+    "description": "Explanation in the Silo change-password dialog. The temporary password was set by the server's admin."
+  },
+  "siloPasswordChangeNew": "New password",
+  "@siloPasswordChangeNew": {
+    "description": "Field label in the Silo change-password dialog"
+  },
+  "siloPasswordChangeConfirm": "Confirm new password",
+  "@siloPasswordChangeConfirm": {
+    "description": "Field label in the Silo change-password dialog: the new password typed a second time"
+  },
+  "siloPasswordChangeSubmit": "Change password",
+  "@siloPasswordChangeSubmit": {
+    "description": "Button in the Silo change-password dialog that saves the new password and finishes signing in"
+  },
+  "siloPasswordChangeTooShort": "{count, plural, =1{Use at least 1 character} other{Use at least {count} characters}}",
+  "@siloPasswordChangeTooShort": {
+    "description": "Error in the Silo change-password dialog when the new password is shorter than the server allows",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "siloPasswordChangeTooLong": "That password is too long",
+  "@siloPasswordChangeTooLong": {
+    "description": "Error in the Silo change-password dialog when the new password is longer than the server allows"
+  },
+  "siloPasswordChangeMismatch": "The passwords don't match",
+  "@siloPasswordChangeMismatch": {
+    "description": "Error in the Silo change-password dialog when the two new password fields differ"
+  },
+  "siloPasswordChangeSameAsTemporary": "Choose a password different from the temporary one",
+  "@siloPasswordChangeSameAsTemporary": {
+    "description": "Error in the Silo change-password dialog when the new password equals the temporary one used to sign in"
+  },
+  "siloPasswordChangeFailed": "Couldn't change the password. Try again.",
+  "@siloPasswordChangeFailed": {
+    "description": "Error in the Silo change-password dialog when the request failed (network or server error)"
+  },
+  "siloPasswordChangeUnavailable": "This account has a temporary password, and this server doesn't allow changing it here. Change it in Silo's web app, then sign in again.",
+  "@siloPasswordChangeUnavailable": {
+    "description": "Sign-in error for a Silo account with a temporary password when the server has password changes switched off"
+  },
+  "siloPasswordChangedSignInAgain": "Your password was changed. Sign in with the new password.",
+  "@siloPasswordChangedSignInAgain": {
+    "description": "Shown on the sign-in screen when the Silo password was changed but the session could not continue"
+  },
   "playlistSortReleaseDate": "Release Date",
   "@playlistSortReleaseDate": {
     "description": "Label for sorting playlist items by release date"

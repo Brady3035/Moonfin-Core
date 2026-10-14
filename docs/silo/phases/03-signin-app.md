@@ -264,7 +264,7 @@ When the app starts (or switches users), Moonfin hands each stored user's login 
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 3.4 |
+| ☑ Done | `aed50d1` | 3.4 |
 
 **Goal.** When Silo refuses the refresh token, forget that Silo user and route to the login screen.
 
@@ -323,7 +323,7 @@ A Silo login can end while Moonfin is running: someone signs the session out fro
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 3.5 |
 
 **Goal.** When sign-in returns `password_change_required`, show a change-password dialog, or at minimum a message pointing to Silo's web app.
 
@@ -331,29 +331,77 @@ A Silo login can end while Moonfin is running: someone signs the session out fro
 
 - `GET /account/password/capability`
 - `POST /account/password`
+- `POST /auth/refresh` (after the change)
 
 **Where in Moonfin**
 
+- `packages/server_silo/lib/src/api/silo_account_api.dart` (new)
+- `lib/auth/repositories/auth_repository.dart`
+- `lib/auth/models/login_state.dart`
+- `lib/ui/screens/auth/silo_password_change_dialog.dart` (new)
 - `lib/ui/screens/auth/login_screen.dart`
+- `lib/l10n/app_en.arb` and the regenerated `lib/l10n/app_localizations*.dart`
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+An admin can create a Silo account, or reset its password, with a **temporary password**. Signing in with it works, but the login is restricted: until the password is replaced Silo only answers `GET /account/me`, `GET /account/password/capability`, `POST /account/password` and `POST /auth/logout`, and everything else gets `403 password_change_required`. That includes listing profiles, so before this step the sign-in failed at "use the main profile" (2.5) with a generic error. Sign-in reports the flag as `SiloPasswordChangeRequired` (2.3).
+
+**Silo client.** `SiloAccountApi` (`client.accountApi`, like `profilesApi` a Silo-only API with no Moonfin interface):
+- `passwordCapability()` reads whether this login may change the password (`allowed`, `state`) and the limits: at least `minimum_password_length` characters, at most `maximum_password_bytes` UTF-8 bytes (bcrypt's 72).
+- `changePassword(currentPassword, newPassword)` posts both. A `422 validation_failed` naming `body.new_password` or `body.current_password` becomes a `SiloPasswordRejectedError` with Silo's text; other failures stay `DioException`s.
+
+**Repository.** `_handleSiloSignIn` now checks the flag before picking the profile:
+- **Flag set:** it reads the capability. If Silo doesn't allow the change here (password changes switched off), it ends the login and returns `SiloPasswordChangeUnavailable`. Otherwise it keeps the login open **in memory only** (nothing stored, no token binding) and returns `SiloPasswordChangeRequired` with the limits.
+- `changeRequiredSiloPassword(newPassword)` sends the change. Silo always wants the current password with it; that is the temporary one the person just typed, so the dialog asks only for the new one (Brady's call). Then:
+  - **refused new password:** `SiloPasswordChangeRejected(detail)`, login kept, try again;
+  - **request failed** (no network, `503`, `429`): `SiloPasswordChangeRejected()` with no detail, login kept;
+  - **login gone** (`401`), or the current password no longer matches: the login is ended, `RequireSignIn`;
+  - **changed:** a refresh (`POST /auth/refresh`) reissues the tokens from the account, which no longer holds a temporary password, so the restriction is gone. Sign-in then finishes exactly as before (`_finishSiloSignIn`: main profile, user, stored pair). The pair stored is the session's renewed one, not the pair sign-in returned.
+  - **changed but the refresh failed:** the new password is in place but the login is still restricted. It is ended and the screen says to sign in with the new password (`SiloPasswordChangedSignInAgain`).
+- `cancelRequiredSiloPasswordChange()` ends the waiting login on Silo. A new `authenticate` call does the same first, so an abandoned change never leaves a session open.
+
+Replacing a temporary password makes **Silo sign out every other session of the account** (someone else may have known the temporary password). The login that made the change continues.
+
+**Login screen.** When `authenticate` returns `SiloPasswordChangeRequired`, the screen opens `SiloPasswordChangeDialog`:
+- two fields (new, confirm) plus Cancel and "Change password". On TV each field is a `CustomTVTextField` that opens the on-screen keyboard on select and moves focus on up and down, like the playlist name dialog.
+- it checks the common mistakes first, with translated messages: too short, too long, same as the temporary password, the two fields differ (`checkSiloNewPassword`, same rules as Silo: minimum in characters, maximum in bytes). Silo's own text is shown only for a refusal the app didn't foresee.
+- while the change is in flight the dialog can't be closed (it would end the login under it).
+- Cancel or Back ends the login and returns to the form.
+- Any other answer closes the dialog, and the screen's normal `switch` handles it. After a change the password field holds the **new** password, so the post-sign-in steps (the Seerr sign-in uses the typed password) and a retry after `SiloPasswordChangedSignInAgain` use it.
+
+**Strings.** The first Silo step with new UI text. Keys are prefixed `siloPasswordChange`, added to `app_en.arb`, and the generated `app_localizations*.dart` files are committed as upstream does (English fallbacks in every language). The branch's generated `ca`, `fi` and `pt` files are behind their `.arb` files (Weblate translations never regenerated); regenerating them would add about 7,000 unrelated lines, so those three get only the new getters.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `packages/server_silo/test/silo_account_api_test.dart` (new, 6 tests): capability parsing and `canChange`; the change body and `204`; a refused new or current password becomes `SiloPasswordRejectedError`; other failures stay `DioException`s.
+- `test/auth/auth_repository_silo_test.dart`, new group (8 tests), with a fake Silo that restricts a temporary password's tokens the way Silo does:
+  - sign-in asks for a new password, picks no profile, stores nothing and keeps the login;
+  - a change sends the sign-in password as the current one, refreshes, then finishes signing in with the renewed pair stored;
+  - a refused password, then a failed request, each keep the login for another try;
+  - cancelling ends the login, after which nothing is waiting;
+  - password changes switched off ends the login with `SiloPasswordChangeUnavailable`;
+  - a failed refresh after the change ends the login with `SiloPasswordChangedSignInAgain`;
+  - a new sign-in ends a change left waiting.
+- `test/auth/silo_password_change_dialog_test.dart` (new, 9 tests): the local checks (characters vs bytes, temporary password, mismatch), and the dialog: a mistake sends nothing, a refusal keeps it open with the reason, any other answer closes it with the new password, Cancel ends the login.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+Setup: in Silo's web app (admin), create a test user, or reset an existing test user's password, so it holds a temporary password. Do it again before each test that changes the password.
+
+1. **Change it.** Sign in to Silo as that user on Mac: the dialog opens. Type a short password: "Use at least 8 characters". Type two different ones: "The passwords don't match". Type the temporary password: the "different from the temporary one" message. Then a valid one: lands on Home, as the main profile.
+2. **It stuck.** Sign out and sign in with the new password: no dialog.
+3. **Other sessions end.** Reset the password, sign in to Silo's web app as that user with it and leave the page open (it will ask for a new password too), then change the password in Moonfin: the web app session is signed out.
+4. **Cancel.** Reset the password, sign in, press Cancel: back on the form, no error. In Silo's sessions list, no session left for Moonfin.
+5. **TV.** On Android TV (or the Roku client later), test 1 with the remote: select opens the keyboard on each field, down moves to the next field and the button.
+6. **Regression:** sign in and out on Silo (normal password) and Emby; full `flutter test`.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | `test/auth` 134/134; `server_silo` 130/130; analyzer: no new issues |
 | | | | | |
 
 ---

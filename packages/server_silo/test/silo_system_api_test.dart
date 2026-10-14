@@ -163,4 +163,36 @@ void main() {
       expect(headers['X-Profile-Id'], 'eaddd2dc-4b4e-47e8-b0e2-8729dff5dc63');
     });
   });
+
+  group('redirects', () {
+    test('a redirect to another site is not followed', () async {
+      final server = FixtureServer({
+        '/api/v2/system/identity': (_) => ResponseBody.fromString(
+          '',
+          302,
+          headers: {
+            'location': ['https://elsewhere.example/api/v2/system/identity'],
+          },
+        ),
+      });
+      expect(await _client(server).systemApi.ping(), isFalse);
+      expect(server.requests, hasLength(1));
+    });
+
+    test('a redirect within the same server is followed', () async {
+      final server = FixtureServer({
+        '/api/v2/system/identity': (o) => o.uri.queryParameters['moved'] == '1'
+            ? FixtureServer.file('silo/system_identity.json')(o)
+            : ResponseBody.fromString(
+                '',
+                302,
+                headers: {
+                  'location': ['/api/v2/system/identity?moved=1'],
+                },
+              ),
+      });
+      expect(await _client(server).systemApi.ping(), isTrue);
+      expect(server.requests, hasLength(2));
+    });
+  });
 }

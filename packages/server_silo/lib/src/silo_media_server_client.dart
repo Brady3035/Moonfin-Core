@@ -98,7 +98,9 @@ class SiloMediaServerClient extends MediaServerClient
   Map<String, String> authHeaders() => requestHeaders;
 
   void _setupInterceptors() {
-    _dio.interceptors.add(redirectInterceptor(_dio));
+    // Requests carry the bearer token (and, at sign-in, the password), so
+    // redirects are only followed within the same origin.
+    _dio.interceptors.add(redirectInterceptor(_dio, sameOriginOnly: true));
     // Added before the logger so a failure is logged with Silo's problem code
     // and text (error interceptors run in the order they were added).
     _dio.interceptors.add(siloProblemInterceptor());

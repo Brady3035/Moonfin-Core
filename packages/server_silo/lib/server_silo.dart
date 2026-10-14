@@ -15,6 +15,7 @@ export 'src/api/silo_instant_mix_api.dart';
 export 'src/api/silo_pending_api.dart' show SiloNotImplementedError;
 export 'src/api/silo_profiles_api.dart';
 export 'src/silo_image_registry.dart';
+export 'src/silo_pager.dart';
 export 'src/silo_problem.dart';
 export 'src/silo_session.dart';
 export 'src/silo_session_interceptor.dart';

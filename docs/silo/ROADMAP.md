@@ -1,6 +1,6 @@
 # Silo support roadmap
 
-154 steps in 19 phases (17 optional). **One step = one commit.** Tick a box when the step is committed and tested, and put its commit hash in the phase file.
+155 steps in 19 phases (17 optional). **One step = one commit.** Tick a box when the step is committed and tested, and put its commit hash in the phase file.
 
 Status key: ☐ not started · ◐ in progress · ☑ done and tested · ⊘ skipped (say why in the phase file)
 
@@ -15,7 +15,7 @@ Status key: ☐ not started · ◐ in progress · ☑ done and tested · ⊘ ski
 | [6. Browsing](phases/06-browsing.md) | 19 | You can open each library, scroll a full grid with artwork, open a movie, a series, its seasons and episodes, and the detail screen looks like it does on Emby. |
 | [7. Search](phases/07-search.md) | 2 | Search returns movies, series, episodes and people like it does on Emby. |
 | [8. Home screen](phases/08-home.md) | 7 | Home looks like it does on Emby for the same account, minus the rows Silo can't provide. |
-| [9. User actions](phases/09-user-actions.md) | 6 | Each action shows the same result in Silo's web UI. |
+| [9. User actions](phases/09-user-actions.md) | 7 | Each action shows the same result in Silo's web UI. |
 | [10. Playback (first backend: media_kit on macOS)](phases/10-playback.md) | 16 | On the Mac: play, pause, seek anywhere, resume, stop, and see the right position in Silo afterwards. Same files compared on Emby. |
 | [11. Player features](phases/11-player-features.md) | 7 | Skip intro, trickplay, chapters and up-next behave as they do on Emby/Jellyfin. |
 | [12. Other platforms and casting](phases/12-platforms.md) | 7 | Plays on every platform you own (Android TV, Fire TV, iOS, Apple TV, web) and casts. |
@@ -61,7 +61,7 @@ Status key: ☐ not started · ◐ in progress · ☑ done and tested · ⊘ ski
 - [x] **2.4** [Sign out](phases/02-auth-api.md#step-2-4) · ↺ port
 - [x] **2.5** [Use the account's main profile](phases/02-auth-api.md#step-2-5) · ↺ port (list part)
 - [x] **2.6** [Current user (account + main profile → user)](phases/02-auth-api.md#step-2-6) · ↺ port
-- [ ] **2.7** [User configuration (library order, hidden libraries, playback keys)](phases/02-auth-api.md#step-2-7) · ↺ port
+- [x] **2.7** [User configuration (library order, hidden libraries, playback keys)](phases/02-auth-api.md#step-2-7) · ↺ port
 
 ## 3. [Sign-in in the app](phases/03-signin-app.md)
 
@@ -147,6 +147,7 @@ Status key: ☐ not started · ◐ in progress · ☑ done and tested · ⊘ ski
 - [ ] **9.4** [Refresh rows after a change](phases/09-user-actions.md#step-9-4)
 - [ ] **9.5** [Personal collections: create, add, remove](phases/09-user-actions.md#step-9-5)
 - [ ] **9.6** [Watchlist](phases/09-user-actions.md#step-9-6) *(optional)*
+- [ ] **9.7** [Hide from Continue Watching and Next Up](phases/09-user-actions.md#step-9-7)
 
 ## 10. [Playback (first backend: media_kit on macOS)](phases/10-playback.md)
 

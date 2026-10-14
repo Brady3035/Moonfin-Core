@@ -74,3 +74,9 @@ hosts replaced with `silo.example` / `emby.example`.
 **Not captured yet:** a PIN-locked profile (needed by step 3.6) and an item with
 trickplay (needed by steps 5.11 and 11.2). Re-run the script with
 `SILO_PROFILE_ID` / `SILO_EPISODE` when those steps start.
+
+**Written by hand:** `silo/watch_trickplay_episode.json` was built from the
+`WatchTrickplay` schema at step 5.11, because no file on the test server had
+seek previews yet. It has the probe script's file name, so a real capture
+replaces it; the 5.11 tests read their expectations from the file, so they
+still apply. Capture one before step 11.2.

@@ -97,7 +97,7 @@ Status key: ☐ not started · ◐ in progress · ☑ done and tested · ⊘ ski
 - [x] **5.7** [Library mapper](phases/05-translation.md#step-5-7)
 - [x] **5.8** [Versions and streams → MediaSources/MediaStreams](phases/05-translation.md#step-5-8)
 - [x] **5.9** [Chapters mapper](phases/05-translation.md#step-5-9)
-- [ ] **5.10** [Markers mapper](phases/05-translation.md#step-5-10)
+- [x] **5.10** [Markers mapper](phases/05-translation.md#step-5-10)
 - [ ] **5.11** [Trickplay mapper](phases/05-translation.md#step-5-11)
 - [ ] **5.12** [Cursor pager](phases/05-translation.md#step-5-12)
 - [ ] **5.13** [Sort map](phases/05-translation.md#step-5-13)

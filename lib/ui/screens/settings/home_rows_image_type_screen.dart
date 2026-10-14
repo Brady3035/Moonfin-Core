@@ -13,6 +13,7 @@ import '../../widgets/adaptive/adaptive_list_section.dart';
 import '../../widgets/overlay_sheet.dart';
 import '../../widgets/settings/clean_settings_typography.dart';
 import '../../widgets/settings/preference_tiles.dart';
+import '../../../util/signed_in_server_features.dart';
 import 'settings_app_bar.dart';
 import '../../widgets/focus/request_initial_focus.dart';
 
@@ -154,6 +155,7 @@ class _HomeRowsImageTypeScreenState extends State<HomeRowsImageTypeScreen> {
 
   Widget _buildContent(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final liveTvOnAnyServer = liveTvOnAnySignedInServer();
     final enabledSections =
         _prefs.homeSectionsConfig
             .where(
@@ -162,7 +164,10 @@ class _HomeRowsImageTypeScreenState extends State<HomeRowsImageTypeScreen> {
                   c.type != HomeSectionType.none &&
                   c.type != HomeSectionType.mediaBar &&
                   c.type != HomeSectionType.resumeAudio &&
-                  c.type != HomeSectionType.libraryButtons,
+                  c.type != HomeSectionType.libraryButtons &&
+                  (liveTvOnAnyServer ||
+                      (c.type != HomeSectionType.liveTv &&
+                          c.type != HomeSectionType.activeRecordings)),
             )
             .toList()
           ..sort((a, b) => a.order.compareTo(b.order));

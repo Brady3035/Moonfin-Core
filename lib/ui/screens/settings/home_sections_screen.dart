@@ -27,6 +27,7 @@ import '../../widgets/skeleton/skeleton_shimmer.dart';
 import '../../widgets/settings/clean_settings_typography.dart';
 import '../../widgets/settings/preference_tiles.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../util/signed_in_server_features.dart';
 import 'settings_app_bar.dart';
 
 const double _kHomeSectionTileRadius = 16;
@@ -100,6 +101,9 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen>
   bool _showOverlay = true;
 
   final Set<String> _emptySectionIds = {};
+
+  /// Read once: who is signed in doesn't change while this screen is open.
+  final bool _liveTvOnAnyServer = liveTvOnAnySignedInServer();
 
   /// Seerr slider rows whose slider Seerr still has but this client can't
   /// show, so they stay in the layout without being offered.
@@ -652,6 +656,13 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen>
     final hiddenByRewatch =
         section.type == HomeSectionType.rewatch && !showRewatch;
 
+    // Every signed-in server lacks Live TV (all Silo, say): its rows could
+    // never show anything.
+    final hiddenByLiveTv =
+        (section.type == HomeSectionType.liveTv ||
+            section.type == HomeSectionType.activeRecordings) &&
+        !_liveTvOnAnyServer;
+
     return hiddenByFavorites ||
         hiddenByCollections ||
         hiddenByGenres ||
@@ -662,7 +673,8 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen>
         hiddenBySeasonal ||
         hiddenByAudio ||
         hiddenBySinceYouWatched ||
-        hiddenByRewatch;
+        hiddenByRewatch ||
+        hiddenByLiveTv;
   }
 
   List<int> _visibleSectionIndices() {

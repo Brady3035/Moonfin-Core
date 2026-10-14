@@ -442,7 +442,7 @@ Same pattern as 4.7: each service asks `serverHasMoonfinPlugin(client)` before c
   - `syncFromServer` returns at once, so the local copy is the only copy.
   - Saving still writes locally and marks the item "not yet synced" (the existing dirty flag), then skips the push, exactly as it does when the server isn't loaded. Keeping the flag means a future Silo plugin (D10) would pick these edits up on its first sync.
 
-Bookmarks and notes belong to audiobooks, which Silo doesn't serve today; the gate makes sure a Silo item can never trigger the requests anyway.
+Bookmarks and notes belong to audiobooks. Silo does have audiobooks (corrected at 5.1), but Moonfin opens them only once the optional books phase (16) lands, and their bookmarks and notes stay local on Silo either way.
 
 ### Testing
 
@@ -526,7 +526,7 @@ The background notification action (approve or decline a request from a notifica
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 4.9 |
+| ☑ Done | `a41827d` | 4.9 |
 
 **Goal.** Moonbase games need the Jellyfin plugin.
 
@@ -561,6 +561,7 @@ The background notification action (approve or decline a request from a notifica
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | game, games-screen, preference and helper tests 229/229; analyzer: no new issues |
+| 2026-10-14 | macOS | `4b2e921c` | Pass | Brady tested before committing |
 | | | | | |
 
 ---

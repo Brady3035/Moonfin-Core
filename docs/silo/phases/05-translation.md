@@ -13,35 +13,73 @@ Pure functions that turn Silo JSON into the Jellyfin/Emby `BaseItemDto` shape th
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 4.10 |
 
 **Goal.** Seconds ↔ ticks, opaque string IDs with synthetic `silo-genre:`/`silo-studio:` forms, and the Silo type → Jellyfin `Type`/`MediaType`/`IsFolder` table.
 
 **Where in Moonfin**
 
 - `packages/server_silo/lib/src/mappers/silo_ticks.dart`
-- `silo_ids.dart`
-- `silo_item_types.dart`
+- `packages/server_silo/lib/src/mappers/silo_ids.dart`
+- `packages/server_silo/lib/src/mappers/silo_item_types.dart`
+- `packages/server_silo/lib/server_silo.dart` (exports)
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+Three small sets of pure functions that every later mapper uses. Nothing calls them yet.
+
+**Time (`silo_ticks.dart`).** Jellyfin counts time in ticks of 100 ns (`RunTimeTicks`, `PlaybackPositionTicks`). Silo doesn't use a single unit:
+- **seconds** for most fields (`versions[].duration`, markers, playback positions);
+- **minutes** for an item's `runtime` (the xXx fixture says 124, while its file's `duration` is 7445 seconds);
+- **milliseconds** in progress sync (`position_ms`).
+
+So each helper names its unit (`secondsToTicks`, `minutesToTicks`, `millisecondsToTicks` and the reverse); there is no "Silo time" helper that guesses. The `…OrNull` forms take a raw JSON value and give null when it's missing. A `runtime` of 0 counts as unknown, which Jellyfin expresses by leaving `RunTimeTicks` out.
+
+**IDs (`silo_ids.dart`).** Moonfin treats ids as opaque strings, so Silo's pass through unchanged: content ids like `movie-imdb-tt0295701`, and person and library ids, which `siloIdOf` turns into strings when Silo sends numbers. Genres and studios are different: Jellyfin gives them ids and Moonfin opens their pages by id, but Silo only names them. So Moonfin makes `silo-genre:<name>` and `silo-studio:<name>`, with the name percent-encoded so any character round-trips. The Silo client will turn these back into name filters (phase 6).
+
+**Types (`silo_item_types.dart`).** Silo's `CatalogItem.type` is one of `movie, series, season, episode, audiobook, ebook, podcast, podcast_episode`. The table gives each the Jellyfin `Type`, `MediaType` and `IsFolder` that Emby sends for the same kind of item:
+
+| Silo | Type | MediaType | IsFolder |
+|---|---|---|---|
+| movie | Movie | Video | false |
+| series | Series | — | true |
+| season | Season | — | true |
+| episode | Episode | Video | false |
+| audiobook | AudioBook | Audio | false |
+| ebook | Book | Book | false |
+
+Podcasts have no Jellyfin type and no Moonfin screen, so they don't map; mappers will skip them. This is logged as an open item.
+
+**Reverse map for queries.** Moonfin asks for items in Jellyfin terms (`includeItemTypes=Movie,Series`, `mediaTypes=Audio`). `siloTypesForQuery` turns that into Silo types, with both parameters narrowing together as on Jellyfin, and limits the answer to the types Moonfin handles **today** (`siloSupportedTypes`: video). Audiobooks and ebooks join when phase 16 implements them, the same rule `FeatureDetector` follows. It answers:
+- **null**: no type filter;
+- **an empty set**: only types Silo can't serve here, such as music, playlists, channels, or audio before phase 16. The caller then returns an empty result **without a request**. This is the 4.2/4.3 requirement: dropping the filter instead would fill a "Continue listening" or "Albums" row with films;
+- otherwise, the Silo types to ask for.
+
+`siloCatalogScopeFor` picks the single `GET /catalog` `type` scope for a set (`movie`, `series`, `episode`, and `video` for movies with series), or null when one request can't cover it. Seasons are listed through their series.
+
+**Correction found while building:** Silo does serve audiobooks and ebooks. 4.8's note said otherwise and is fixed.
 
 ### Testing
 
 **Automated tests**
 
-- round-trips; every Silo type maps; reverse map for `includeItemTypes`
+- `packages/server_silo/test/silo_translation_helpers_test.dart` (new, 18 tests):
+  - ticks: each unit converts and round-trips; the movie fixture's 124-minute runtime and 7445-second file agree within a minute; missing values give null;
+  - ids: pass-through and numbers; genre and studio ids round-trip names with spaces, `&`, `:`, `/`, `%` and accents; the two kinds never mix up;
+  - types: every mappable type maps; podcasts and unknown types don't; `MediaType`/`IsFolder` match the Emby fixtures; the Silo fixtures use only mappable types;
+  - reverse map: no filter is null; music, playlist, channel and audio-only queries are empty; mixes keep what Silo has; types and media types narrow together; books open up when supported; catalog scopes.
+- `server_silo`: 148/148.
 
 **Manual test plan**
 
-- _Write the checks before testing._
-- Carried from 4.2 and 4.3: a query for **only** types Silo doesn't have (`MusicArtist`, `MusicAlbum`, `Audio`, `Playlist`, `TvChannel`, `mediaTypes=Audio`) must answer empty, not drop the filter and return films. Check on Home with only Silo signed in: no Continue listening, artist, album or playlist row fills with films or episodes.
+- Nothing to check by hand: no screen uses these yet (phase 5 is pure functions). The "types Silo lacks answer empty" check moves to 6.5's test plan, where queries first reach Silo.
+- Regression: full `flutter test`.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | new tests 18/18; `server_silo` 148/148; analyzer: no issues |
 | | | | | |
 
 ---

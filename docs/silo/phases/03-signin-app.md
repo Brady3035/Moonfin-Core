@@ -402,7 +402,7 @@ Setup: in Silo's web app (admin), create a test user, or reset an existing test 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | `test/auth` 134/134; `server_silo` 130/130; analyzer: no new issues |
-| 2026-10-14 | macOS | `4b2e921c` | Pass | tests 1–4 pass. Test 5 (TV) not yet run: carried to step 12.1's test plan |
+| 2026-10-14 | macOS | `4b2e921c` | Pass | tests 1–4 pass. Test 5 (TV) deferred to 17.5 |
 | | | | | |
 
 ---

@@ -167,6 +167,13 @@ _Fill in when the step is built: what the code does, the main classes and why it
 
 - _Write the checks before testing._
 
+**Deferred platform checks.** Checks that need a device other than the Mac are collected here and run in this pass (Brady's rule, 2026-10-14). Each step's own Results row says which test was deferred.
+
+| From | Platform | Check |
+|---|---|---|
+| 3.6 test 5 | Android TV (and other TVs) | Sign in to Silo with a temporary password and change it with the remote: select opens the on-screen keyboard on each field of the dialog; down moves to the next field, then to "Change password". |
+| 4.1 test 3 | iOS or Android phone | With only Silo signed in, the bottom navbar tab picker doesn't offer Live TV; with Emby also signed in, it does. |
+
 **Results**
 
 | Date | Platform | Server build | Result | Notes |

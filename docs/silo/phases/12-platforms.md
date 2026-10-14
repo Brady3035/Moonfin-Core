@@ -34,7 +34,6 @@ _Fill in when the step is built: what the code does, the main classes and why it
 **Manual test plan**
 
 - _Write the checks before testing._
-- Carried over from 3.6 (test 5): on Android TV, sign in to Silo with a temporary password and change it with the remote. Select opens the on-screen keyboard on each field of the dialog; down moves to the next field, then to "Change password".
 
 **Results**
 

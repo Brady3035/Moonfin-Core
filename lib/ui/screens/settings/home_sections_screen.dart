@@ -112,6 +112,7 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen>
 
   /// Read once: who is signed in doesn't change while this screen is open.
   final bool _liveTvOnAnyServer = liveTvOnAnySignedInServer();
+  final bool _musicOnAnyServer = musicOnAnySignedInServer();
 
   /// The disabled groups that are open, by [_getSectionCategory]. General
   /// starts open since it's short.
@@ -452,6 +453,18 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen>
         type == HomeSectionType.audioPlaylists;
   }
 
+  /// Every music section, the audio rows and the music favourites alike.
+  static bool _isMusicSectionType(HomeSectionType type) => const {
+    HomeSectionType.resumeAudio,
+    HomeSectionType.audioArtists,
+    HomeSectionType.audioAlbums,
+    HomeSectionType.audioPlaylists,
+    HomeSectionType.favoriteArtists,
+    HomeSectionType.favoriteMusicVideos,
+    HomeSectionType.favoriteAlbums,
+    HomeSectionType.favoriteSongs,
+  }.contains(type);
+
   bool _isSinceYouWatchedSectionType(HomeSectionType type) {
     return type == HomeSectionType.sinceYouWatched1 ||
         type == HomeSectionType.sinceYouWatched2 ||
@@ -713,6 +726,11 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen>
     final hiddenByRewatch =
         section.type == HomeSectionType.rewatch && !showRewatch;
 
+    // Every signed-in server lacks music (all Silo, say): its rows could never
+    // show anything.
+    final hiddenByMusic =
+        _isMusicSectionType(section.type) && !_musicOnAnyServer;
+
     return hiddenByFavorites ||
         hiddenByCollections ||
         hiddenByServer ||
@@ -727,7 +745,8 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen>
         hiddenBySeasonal ||
         hiddenByAudio ||
         hiddenBySinceYouWatched ||
-        hiddenByRewatch;
+        hiddenByRewatch ||
+        hiddenByMusic;
   }
 
   List<int> _visibleSectionIndices() {

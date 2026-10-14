@@ -84,6 +84,14 @@ void main() {
       expect(liveTvOnAnySignedInServer(store: store), isFalse);
     });
 
+    test('music follows the same rule', () async {
+      await addServer('silo', ServerType.silo);
+      expect(musicOnAnySignedInServer(store: store), isFalse);
+
+      await addServer('jellyfin', ServerType.jellyfin);
+      expect(musicOnAnySignedInServer(store: store), isTrue);
+    });
+
     test('nobody signed in anywhere: on', () async {
       await addServer('silo', ServerType.silo, signedIn: false);
 

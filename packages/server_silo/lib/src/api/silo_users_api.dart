@@ -63,6 +63,7 @@ class SiloUsersApi implements UsersApi {
     );
     // The avatar, when the profile has one to fetch (`avatar_url`: a preset
     // or an upload), under the profile id, which is the Moonfin user id.
+    images?.note(profile.id);
     final avatarTag = images?.register(
       profile.id,
       SiloImageType.primary,

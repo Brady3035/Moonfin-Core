@@ -48,6 +48,7 @@ Map<String, dynamic>? siloLibraryToCollectionFolder(
   final collectionType = siloCollectionTypes[type];
   final rawName = library['name'];
   final name = rawName is String ? rawName.trim() : '';
+  images?.note(id);
   final posterTag = images?.register(
     id,
     SiloImageType.primary,

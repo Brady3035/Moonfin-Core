@@ -11,7 +11,11 @@ import 'api/silo_pending_api.dart';
 import 'api/silo_profiles_api.dart';
 import 'api/silo_system_api.dart';
 import 'api/silo_users_api.dart';
+import 'mappers/silo_ids.dart';
+import 'mappers/silo_item_mapper.dart';
+import 'mappers/silo_library_mapper.dart';
 import 'silo_image_registry.dart';
+import 'silo_image_resolver.dart';
 import 'silo_problem.dart';
 import 'silo_session.dart';
 import 'silo_session_interceptor.dart';
@@ -73,6 +77,7 @@ class SiloMediaServerClient extends MediaServerClient
       if (httpClientAdapter != null) dio.httpClientAdapter = httpClientAdapter;
     }
     _setupInterceptors();
+    SiloImageResolution.register(imageResolver);
   }
 
   static Dio _newDio(String baseUrl) => Dio(
@@ -240,6 +245,59 @@ class SiloMediaServerClient extends MediaServerClient
   /// [SiloImageRegistry]); [imageApi] answers from it.
   late final SiloImageRegistry images = SiloImageRegistry(() => _baseUrl);
 
+  /// Resolves the placeholder URLs [imageApi] hands out for items not read
+  /// yet, by loading them (step 6.3).
+  late final SiloImageResolver imageResolver = SiloImageResolver(
+    registry: images,
+    baseUrl: () => _baseUrl,
+    load: _loadArtwork,
+  );
+
+  /// Reads what Silo has on [id] so its artwork is registered: a catalog
+  /// item by its content id; otherwise a library, a profile (avatars) or a
+  /// person, which have plain ids.
+  Future<void> _loadArtwork(String id) async {
+    if (siloTypeOfId(id) != null) {
+      final response = await _dio.get<dynamic>(
+        '/api/v2/catalog/items/${Uri.encodeComponent(id)}',
+        queryParameters: {'image_size': 'large'},
+      );
+      final item = asJsonMap(response.data);
+      if (item != null) siloItemToBaseItemDto(item, images: images);
+      return;
+    }
+    final libraries = await _dio.get<dynamic>('/api/v2/user/libraries');
+    final libraryItems = asJsonMap(libraries.data)?['items'];
+    if (libraryItems is List) {
+      siloLibrariesToUserViews(
+        libraryItems,
+        images: images,
+        supported: siloCollectionTypes.keys.toSet(),
+      );
+    }
+    if (images.knows(id)) return;
+    if (id.contains('-')) {
+      // Profile ids are UUIDs; person and library ids are numbers.
+      for (final profile in await profilesApi.list()) {
+        images.note(profile.id);
+        images.register(
+          profile.id,
+          SiloImageType.primary,
+          profile.json['avatar_url'] as String?,
+        );
+      }
+      return;
+    }
+    final person = await _dio.get<dynamic>(
+      '/api/v2/catalog/people/${Uri.encodeComponent(id)}',
+    );
+    final json = asJsonMap(person.data);
+    if (json != null) {
+      images.note(id);
+      images.register(id, SiloImageType.primary, json['photo_url'] as String?);
+    }
+  }
+
   @override
   late final SystemApi systemApi = SiloSystemApi(_dio);
 
@@ -291,7 +349,7 @@ class SiloMediaServerClient extends MediaServerClient
   final SessionApi sessionApi = const SiloPendingSessionApi();
 
   @override
-  late final ImageApi imageApi = SiloImageApi(images);
+  late final ImageApi imageApi = SiloImageApi(images, baseUrl: () => _baseUrl);
 
   @override
   final LiveTvApi liveTvApi = const SiloLiveTvApi();
@@ -339,6 +397,7 @@ class SiloMediaServerClient extends MediaServerClient
 
   @override
   void dispose() {
+    SiloImageResolution.unregister(imageResolver);
     _dio.close();
     _authDio.close();
   }

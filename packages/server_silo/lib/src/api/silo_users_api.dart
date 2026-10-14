@@ -3,6 +3,7 @@ import 'package:server_core/server_core.dart';
 
 import '../mappers/silo_settings_mapper.dart';
 import '../mappers/silo_user_mapper.dart';
+import '../silo_image_registry.dart';
 import 'silo_profiles_api.dart';
 
 /// Moonfin's `UsersApi` over Silo's account and profiles.
@@ -10,7 +11,10 @@ import 'silo_profiles_api.dart';
 /// The Moonfin user is the profile the client acts as (`X-Profile-Id`): the
 /// account's main profile until the optional profiles phase (decision D9).
 class SiloUsersApi implements UsersApi {
-  SiloUsersApi(this._dio, this._profiles, this._profileId);
+  SiloUsersApi(this._dio, this._profiles, this._profileId, {this.images});
+
+  /// Where the profile's avatar is recorded for `ImageApi.getUserImageUrl`.
+  final SiloImageRegistry? images;
 
   final Dio _dio;
   final SiloProfilesApi _profiles;
@@ -53,9 +57,19 @@ class SiloUsersApi implements UsersApi {
             : 'Silo profile $wanted no longer exists on this account',
       );
     }
-    return ServerUser.fromJson(
-      siloProfileToUserDto(profile: profile.json, account: accountJson),
+    final user = siloProfileToUserDto(
+      profile: profile.json,
+      account: accountJson,
     );
+    // The avatar, when the profile has one to fetch (`avatar_url`: a preset
+    // or an upload), under the profile id, which is the Moonfin user id.
+    final avatarTag = images?.register(
+      profile.id,
+      SiloImageType.primary,
+      profile.json['avatar_url'] as String?,
+    );
+    if (avatarTag != null) user['PrimaryImageTag'] = avatarTag;
+    return ServerUser.fromJson(user);
   }
 
   /// The settings Moonfin reads from a `UserConfiguration`, resolved by Silo

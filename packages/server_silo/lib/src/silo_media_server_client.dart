@@ -5,11 +5,13 @@ import 'api/silo_account_api.dart';
 import 'api/silo_instant_mix_api.dart';
 import 'api/silo_live_tv_api.dart';
 import 'api/silo_auth_api.dart';
+import 'api/silo_image_api.dart';
 import 'api/silo_images_api.dart';
 import 'api/silo_pending_api.dart';
 import 'api/silo_profiles_api.dart';
 import 'api/silo_system_api.dart';
 import 'api/silo_users_api.dart';
+import 'silo_image_registry.dart';
 import 'silo_problem.dart';
 import 'silo_session.dart';
 import 'silo_session_interceptor.dart';
@@ -231,7 +233,12 @@ class SiloMediaServerClient extends MediaServerClient
     _dio,
     profilesApi,
     () => _profileId,
+    images: images,
   );
+
+  /// The artwork URLs seen in Silo's answers, by item and image type (see
+  /// [SiloImageRegistry]); [imageApi] answers from it.
+  late final SiloImageRegistry images = SiloImageRegistry(() => _baseUrl);
 
   @override
   late final SystemApi systemApi = SiloSystemApi(_dio);
@@ -284,7 +291,7 @@ class SiloMediaServerClient extends MediaServerClient
   final SessionApi sessionApi = const SiloPendingSessionApi();
 
   @override
-  final ImageApi imageApi = const SiloPendingImageApi();
+  late final ImageApi imageApi = SiloImageApi(images);
 
   @override
   final LiveTvApi liveTvApi = const SiloLiveTvApi();

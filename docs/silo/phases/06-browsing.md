@@ -13,33 +13,68 @@ Libraries, grids and detail pages. Each step replaces one placeholder method wit
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 5.13 |
 
 **Goal.** `getPrimary/Backdrop/Logo/Thumb/BannerImageUrl` and user avatars from the registry (Thumb and Banner use Silo's own art when the item has it, otherwise the backdrop); user menu avatar goes through `imageApi`.
 
 **Where in Moonfin**
 
-- `packages/server_silo/lib/src/api/silo_image_api.dart`
+- `packages/server_silo/lib/src/api/silo_image_api.dart` (new)
+- `packages/server_silo/lib/src/silo_image_registry.dart`: URLs by tag.
+- `packages/server_silo/lib/src/silo_media_server_client.dart`: the client owns the registry (`images`) and answers `imageApi` from it.
+- `packages/server_silo/lib/src/api/silo_users_api.dart`: registers the profile avatar.
+- `packages/server_core/lib/src/models/server_type.dart`: `hasJellyfinUserImagePath`.
 - `lib/ui/widgets/user_menu_dialog.dart`
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+Jellyfin builds an image URL from an item id and an image type. Silo hands out ready, **signed** URLs inside each item, and the mappers (phase 5) record them in the client's `SiloImageRegistry` as they translate items. `SiloImageApi` answers every `ImageApi` call by looking a URL up, never building one:
+
+- **With a `tag`** (what an item's `ImageTags`, `BackdropImageTags` or a person's `PrimaryImageTag` carry): exactly the URL registered with that tag. The registry now keeps URLs by tag as well as by slot, so a grid (which asks Silo for `medium` artwork) and a detail page (`large`) each get the size their own request returned, even though both fill the same slot.
+- **Without one:** the latest URL for the item, type and index.
+- **Size arguments:** `maxWidth`/`maxHeight` are ignored. Silo chooses sizes per request with `image_size`, and a signed URL can't be resized afterwards.
+
+| `ImageApi` | Answer |
+|---|---|
+| `getPrimaryImageUrl` | poster, episode still, person photo, library poster |
+| `getBackdropImageUrl` | backdrop by index |
+| `getLogoImageUrl` | logo |
+| `getThumbImageUrl` | Silo's thumb, else the backdrop (the mapper already registers it in the thumb slot) |
+| `getBannerImageUrl` | Silo's banner, else the backdrop: Moonfin's banner cards are wide |
+| `getChapterImageUrl` | chapter thumbnail by index (5.9) |
+| `getUserImageUrl` | the profile avatar (below) |
+| `getTrickplayTileImageUrl` | a sheet registered under the `mediaSourceId` (5.11); empty without one |
+
+**No URL yet.** Nothing registered gives an empty URL, which Moonfin shows as its placeholder, as the old placeholder API did. Step 6.3 fills these misses.
+
+**Avatars.** Silo's profile has an `avatar_url` (a preset such as `/avatars/presets/fox.png`, or an upload). `getCurrentUser` registers it under the profile id, which is the Moonfin user id, and sets the user's `PrimaryImageTag`.
+
+The **user menu** used to build a Jellyfin URL (`/Users/{id}/Images/Primary`) for every server. It now asks the server's own client (`imageApi.getUserImageUrl`) when the server type has no Jellyfin user-image path (`ServerType.hasJellyfinUserImagePath`, false for Silo). With no client yet, or no avatar, it shows the initial as before. Jellyfin and Emby are unchanged.
+
+The client owns the registry (`SiloMediaServerClient.images`), so the items API (6.4 onward) and `imageApi` share it. `SiloPendingImageApi` is removed.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `packages/server_silo/test/silo_image_api_test.dart` (new, 10 tests):
+  - from the mapped xXx: every tag it carries gives its URL; the slot without a tag; thumb and banner fall back to the backdrop; chapters by index; a person's photo;
+  - tags pick the exact size when a grid and a detail URL share a slot;
+  - misses give empty URLs; trickplay needs the file id;
+  - the client's `imageApi` reads its registry.
+- `silo_users_api_test.dart`: 2 new, an avatar is registered (tag and URL); no avatar, no tag.
+- `server_silo`: 323/323.
 
-**Manual test plan**
+**Manual test plan** (needs the libraries and grids of 6.4 and 6.5, so run it with all of phase 6)
 
-- _Write the checks before testing._
+- Posters, backdrops and logos show on Silo grids and detail pages.
+- A Silo profile with an avatar (set one in Silo's web app) shows it in Moonfin's user menu; one without shows the initial. Emby accounts in the same menu are unchanged.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | image API tests 10/10, users 2 new; `server_silo` 323/323; analyzer: no issues |
 | | | | | |
 
 ---

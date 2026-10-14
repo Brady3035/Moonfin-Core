@@ -708,7 +708,7 @@ Behaviour for Jellyfin and Emby is identical: the helper builds the same header 
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 1.12 |
+| ☑ Done | `8385961` | 1.12 |
 
 **Goal.** Silo has no speed-test route. Skip the probe and leave the estimate to passive measurement.
 
@@ -743,7 +743,7 @@ The change is one early return: when the active client is a Silo client the meth
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-13 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | New and existing bitrate tests 12/12; analyzer clean. Full suite left to Brady. |
-| | | | | |
+| 2026-10-13 | macOS | — | Pass | Brady: full app suite |
 
 ---
 
@@ -752,7 +752,7 @@ The change is one early return: when the active client is a Silo client the meth
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 1.13 |
 
 **Goal.** Only follow same-origin redirects with credentials attached, and only upgrade http→https on 443 or the same port.
 
@@ -760,26 +760,42 @@ The change is one early return: when the active client is a Silo client the meth
 
 - `packages/server_core/lib/src/network/redirect_interceptor.dart`
 
-**Earlier work to port:** silo-1 (commits 08bb227, 59c87ef)
+**Earlier work to port:** silo-1 commits 08bb227 (same-origin redirects) and 59c87ef (limit upgrades to 443 or the same port), as is
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+Every Moonfin server client follows HTTP redirects with the shared `redirectInterceptor` (`packages/server_core/lib/src/network/redirect_interceptor.dart`), because Dart's `HttpClient` won't follow them for `POST`/`PUT`. It resends the request **with its headers and body** to wherever `Location` points. For Silo those headers carry the bearer token, and the sign-in body (phase 2) carries the password, so a redirect to another site would hand both over.
+
+**The change**
+
+- `redirectInterceptor(dio, {bool sameOriginOnly = false})`. With the option on, a redirect whose target fails `isSameOriginRedirect` isn't followed; the caller gets the original 3xx as an error, exactly as if no interceptor were installed.
+- `isSameOriginRedirect(from, to)`:
+  - same host (case-insensitive), same scheme and same port → follow;
+  - `http` → `https` on the same host → follow only if the target port is 443 or the port it came from (a server on `:8080` redirecting to its HTTPS address is normal; another port on that host could be a different service);
+  - anything else (another host or subdomain, another port, an `https` → `http` downgrade, another scheme) → don't follow.
+- `SiloMediaServerClient` installs the interceptor with `sameOriginOnly: true`.
+
+**Jellyfin and Emby are unchanged:** the option defaults to off and their clients don't pass it. (Whether to tighten them too is a separate question for the maintainers; it's out of scope here.)
+
+The server probe follows redirects with its own loop rather than this interceptor and sends no credentials, so a reverse proxy or domain move is still discovered when a server is added.
 
 ### Testing
 
 **Automated tests**
 
-- cross-origin redirect drops auth headers; http→https upgrade rules
+- `packages/server_core/test/redirect_interceptor_test.dart` (new, 7 tests): `isSameOriginRedirect` for same origin, other host/subdomain/port, upgrades to 443 / same port / other port, downgrades and other schemes; the interceptor follows a same-origin redirect with the request intact, refuses a cross-origin one when restricted (only one request made), and still follows anywhere when unrestricted (the Jellyfin/Emby behaviour).
+- `packages/server_silo/test/silo_system_api_test.dart`, 2 new tests through the real Silo client: a redirect to another site isn't followed, one within the server is.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+- Package tests: `server_core` (94) and `server_silo` (38).
+- Jellyfin/Emby: sign in and browse as usual (unchanged path). If one of your servers sits behind a redirect (e.g. `http://` → `https://`), sign in through that address once.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-13 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | server_core 94/94, server_silo 38/38, analyzers clean. App suite left to Brady. |
 | | | | | |
 
 ---

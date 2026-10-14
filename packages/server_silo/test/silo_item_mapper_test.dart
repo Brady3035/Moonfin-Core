@@ -588,4 +588,149 @@ void main() {
       expect(ud.containsKey('PlayedPercentage'), isFalse);
     });
   });
+
+  group('people: golden against Emby (5.6)', () {
+    List<Map<String, dynamic>> people(Map<String, dynamic> dto) =>
+        (dto['People'] as List).cast<Map<String, dynamic>>();
+
+    test('xXx: the cast in billing order, with characters, then crew', () {
+      final silo = people(map('silo/catalog_item_movie.json'));
+      final emby = people(_json('emby/item_movie.json'));
+
+      final lead = silo.first;
+      final embyLead = emby.first;
+      expect(lead['Name'], embyLead['Name']);
+      expect(lead['Role'], embyLead['Role']);
+      expect(lead['Type'], 'Actor');
+
+      // Silo's top 20 actors are all in Emby's longer list, with the same
+      // characters.
+      final embyActors = {
+        for (final p in emby)
+          if (p['Type'] == 'Actor') p['Name']: p['Role'],
+      };
+      final siloActors = silo.where((p) => p['Type'] == 'Actor').toList();
+      expect(siloActors, hasLength(20));
+      for (final a in siloActors) {
+        expect(
+          embyActors,
+          containsPair(a['Name'], a['Role']),
+          reason: a['Name'],
+        );
+      }
+
+      // The director, as on Emby.
+      final directors = silo.where((p) => p['Type'] == 'Director');
+      expect(
+        directors.map((p) => p['Name']),
+        emby.where((p) => p['Type'] == 'Director').map((p) => p['Name']),
+      );
+      expect(directors.first.containsKey('Role'), isFalse);
+    });
+
+    test('crew is grouped by kind after the cast', () {
+      final kinds = people(
+        map('silo/catalog_item_movie.json'),
+      ).map((p) => p['Type']).toList();
+      final firstCrew = kinds.indexWhere((k) => k != 'Actor');
+      expect(kinds.sublist(0, firstCrew), everyElement('Actor'));
+      expect(kinds.sublist(firstCrew).toSet(), {
+        'Director',
+        'Writer',
+        'Producer',
+      });
+      expect(kinds.indexOf('Director'), lessThan(kinds.indexOf('Writer')));
+      expect(kinds.indexOf('Writer'), lessThan(kinds.indexOf('Producer')));
+    });
+
+    test('each photo is registered under the person', () {
+      final lead = people(map('silo/catalog_item_movie.json')).first;
+      expect(lead['Id'], '146552272560604468');
+      expect(
+        lead['PrimaryImageTag'],
+        images.tagFor('146552272560604468', SiloImageType.primary),
+      );
+      expect(
+        images.urlFor('146552272560604468', SiloImageType.primary),
+        contains('/people/12835/profile/'),
+      );
+    });
+
+    test('an episode: the regulars as actors, and the creators', () {
+      final silo = people(map('silo/catalog_item_episode.json'));
+      expect(silo.where((p) => p['Type'] == 'Actor'), hasLength(21));
+      expect(silo.first['Name'], 'Jesse McCartney');
+      expect(silo.first['Role'], 'Dick Grayson / Robin / Nightwing');
+      expect(silo.where((p) => p['Type'] == 'Creator'), hasLength(2));
+      expect(silo.where((p) => p['Type'] == 'GuestStar'), isEmpty);
+    });
+
+    test('no people gives an empty list; no registry gives no tags', () {
+      expect(
+        siloItemToBaseItemDto({'type': 'movie', 'content_id': 'm'})!['People'],
+        isEmpty,
+      );
+      final bare = siloItemToBaseItemDto(
+        _json('silo/catalog_item_movie.json'),
+      )!;
+      expect(
+        (bare['People'] as List).first,
+        isNot(contains('PrimaryImageTag')),
+      );
+    });
+  });
+
+  group('people rules', () {
+    List<Map<String, dynamic>> people(Map<String, dynamic> item) =>
+        (siloItemToBaseItemDto({
+                  'type': 'movie',
+                  'content_id': 'm',
+                  ...item,
+                })!['People']
+                as List)
+            .cast<Map<String, dynamic>>();
+
+    test(
+      'billing order, keeping Silo order among equals and unordered last',
+      () {
+        final names = people({
+          'cast': [
+            {'name': 'C', 'order': 2},
+            {'name': 'X'},
+            {'name': 'A', 'order': 0},
+            {'name': 'Y'},
+            {'name': 'B', 'order': 1},
+          ],
+        }).map((p) => p['Name']);
+        expect(names, ['A', 'B', 'C', 'X', 'Y']);
+      },
+    );
+
+    test('jobs map to kinds; a job saying more is the role', () {
+      final crew = people({
+        'crew': [
+          {'name': 'P', 'person_id': '1', 'job': 'Executive Producer'},
+          {'name': 'S', 'person_id': '2', 'job': 'Screenplay'},
+          {'name': 'M', 'person_id': '3', 'job': 'Original Music Composer'},
+          {'name': 'G', 'person_id': '4', 'job': 'Gaffer'},
+        ],
+      });
+      expect(crew.map((p) => (p['Name'], p['Type'], p['Role'])), [
+        ('S', 'Writer', 'Screenplay'),
+        ('P', 'Producer', 'Executive Producer'),
+        ('M', 'Composer', 'Original Music Composer'),
+      ]);
+    });
+
+    test('one entry per person and kind', () {
+      final crew = people({
+        'crew': [
+          {'name': 'P', 'person_id': '1', 'job': 'Producer'},
+          {'name': 'P', 'person_id': '1', 'job': 'Executive Producer'},
+          {'name': 'P', 'person_id': '1', 'job': 'Director'},
+        ],
+      });
+      expect(crew.map((p) => p['Type']), ['Director', 'Producer']);
+    });
+  });
 }

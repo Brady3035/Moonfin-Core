@@ -82,8 +82,8 @@ Status key: ☐ not started · ◐ in progress · ☑ done and tested · ⊘ ski
 - [x] **4.5** [Hide the admin panel](phases/04-gating.md#step-4-5)
 - [x] **4.6** [Gate Moonfin-plugin services: settings sync, messages, themes](phases/04-gating.md#step-4-6)
 - [x] **4.7** [Gate Moonfin-plugin services: TMDB, MDBList, anime markers, custom lists](phases/04-gating.md#step-4-7)
-- [ ] **4.8** [Gate Moonfin-plugin services: ratings, bookmarks, notes](phases/04-gating.md#step-4-8)
-- [ ] **4.9** [Seerr: proxy mode off, direct mode allowed](phases/04-gating.md#step-4-9)
+- [x] **4.8** [Gate Moonfin-plugin services: ratings, bookmarks, notes](phases/04-gating.md#step-4-8)
+- [ ] **4.9** [Seerr: off on Silo](phases/04-gating.md#step-4-9)
 - [ ] **4.10** [Hide retro games](phases/04-gating.md#step-4-10)
 
 ## 5. [Translation layer](phases/05-translation.md)

@@ -32,7 +32,10 @@ class FeatureDetector {
   bool get supportsClientLog => _isJellyfin;
 
   bool get supportsBifTrickplay => _isEmby;
-  bool get supportsJellyseerr => true;
+  /// Seerr requests and discovery. Moonfin reaches Seerr only through the
+  /// Moonfin plugin's proxy (`/Moonfin/Seerr/*`), which Silo never has, so
+  /// there is no Seerr on Silo.
+  bool get supportsJellyseerr => !_isSilo;
 
   /// Live TV, DVR and the guide. Silo has none of these by design.
   bool get supportsLiveTv => !_isSilo;

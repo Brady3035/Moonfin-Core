@@ -70,7 +70,7 @@ void main() {
     expect(f.supportsProfiles, isFalse); // phase 3
   });
 
-  test('direct Seerr works without the Moonfin plugin, so Silo keeps it', () {
-    expect(_for(ServerType.silo).supportsJellyseerr, isTrue);
+  test('Seerr goes through the Moonfin plugin, so Silo has none', () {
+    expect(_for(ServerType.silo).supportsJellyseerr, isFalse);
   });
 }

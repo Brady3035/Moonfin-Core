@@ -122,6 +122,7 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
   final musicOnAnyServer = musicOnAnySignedInServer();
   final playlistsOnAnyServer = playlistsOnAnySignedInServer();
   final moonfinPluginOnAnyServer = moonfinPluginOnAnySignedInServer();
+  final seerrOnAnyServer = seerrOnAnySignedInServer();
   final friendsAvailable =
       GetIt.instance<AchievementsService>().socialAvailable;
 
@@ -1800,7 +1801,8 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
         keywords: ['mpv config'],
       ),
 
-    services.screen(keywords: ['seerr', 'achievements', 'services']),
+    if (_integrationsOffered)
+      services.screen(keywords: ['seerr', 'achievements', 'services']),
     if (moonfinPluginOnAnyServer)
       settingsSync.screen(
         keywords: ['moonbase', 'plugin', 'server sync', 'status', 'profile'],
@@ -1813,14 +1815,15 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
       'letterboxd',
       'reorder',
     ]),
-    seerr.screen(keywords: [
-      'requests',
-      'jellyseerr',
-      'overseerr',
-      'discover',
-      'nsfw',
-      'notifications',
-    ]),
+    if (seerrOnAnyServer)
+      seerr.screen(keywords: [
+        'requests',
+        'jellyseerr',
+        'overseerr',
+        'discover',
+        'nsfw',
+        'notifications',
+      ]),
 
     about.screen(keywords: ['version', 'update', 'discord', 'license']),
     if (PlatformDetection.useDesktopUi)

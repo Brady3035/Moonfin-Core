@@ -183,8 +183,11 @@ void main() {
       );
     });
 
-    test('an episode still is not given a poster aspect ratio', () {
-      expect(silo.containsKey('PrimaryImageAspectRatio'), isFalse);
+    test('an episode still is 16:9, as on Emby', () {
+      expect(
+        silo['PrimaryImageAspectRatio'],
+        closeTo(emby['PrimaryImageAspectRatio'] as num, 0.001),
+      );
     });
   });
 
@@ -244,6 +247,214 @@ void main() {
       expect(status('Returning Series'), 'Continuing');
       expect(status('in production'), 'Continuing');
       expect(status('rumoured'), isNull);
+    });
+  });
+
+  group('series links: golden against Young Justice on Emby (5.4)', () {
+    late Map<String, dynamic> series;
+
+    // The series is mapped first, as Moonfin opens it before its seasons, so
+    // the registry holds the artwork the children borrow.
+    setUp(() => series = map('silo/catalog_item_series.json'));
+
+    List<Map<String, dynamic>> siloList(String file) => [
+      for (final e in _json(file)['items'] as List) e as Map<String, dynamic>,
+    ];
+
+    test('a series counts its seasons', () {
+      expect(
+        series['ChildCount'],
+        _json('emby/item_series.json')['ChildCount'],
+      );
+    });
+
+    test('a series without a thumb uses its first backdrop', () {
+      expect(
+        series['ImageTags']['Thumb'],
+        (series['BackdropImageTags'] as List).first,
+      );
+    });
+
+    test('seasons from the series list', () {
+      const ref = SiloSeriesRef(
+        id: 'series-imdb-tt1641384',
+        name: 'Young Justice',
+      );
+      final silo = [
+        for (final e in siloList('silo/series_seasons.json'))
+          siloItemToBaseItemDto(e, images: images, series: ref)!,
+      ];
+      final emby = (_json('emby/series_seasons.json')['Items'] as List)
+          .cast<Map<String, dynamic>>();
+      expect(silo.map((s) => s['Name']), emby.map((s) => s['Name']));
+      expect(
+        silo.map((s) => s['IndexNumber']),
+        emby.map((s) => s['IndexNumber']),
+      );
+      final first = silo.first;
+      expect(first['Type'], 'Season');
+      expect(first['Id'], 'season-imdb-tt1641384-1');
+      expect(first['ChildCount'], 26);
+      expect(first['SeriesId'], 'series-imdb-tt1641384');
+      expect(first['ParentId'], 'series-imdb-tt1641384');
+      expect(first['SeriesName'], 'Young Justice');
+      expect(first['ImageTags'], contains('Primary'));
+      // The same parent artwork fields Emby fills.
+      for (final key in [
+        'SeriesPrimaryImageTag',
+        'ParentLogoImageTag',
+        'ParentThumbImageTag',
+        'ParentBackdropImageTags',
+      ]) {
+        expect(
+          first.containsKey(key),
+          emby.first.containsKey(key),
+          reason: key,
+        );
+      }
+      expect(first['SeriesPrimaryImageTag'], series['ImageTags']['Primary']);
+      expect(first['ParentBackdropImageTags'], series['BackdropImageTags']);
+    });
+
+    test('an episode detail links to its season and series', () {
+      final silo = map('silo/catalog_item_episode.json');
+      final emby = _json('emby/item_episode.json');
+      for (final key in [
+        'IndexNumber',
+        'ParentIndexNumber',
+        'SeriesName',
+        'SeasonName',
+      ]) {
+        expect(silo[key], emby[key], reason: key);
+      }
+      expect(silo['SeriesId'], 'series-imdb-tt1641384');
+      expect(silo['SeasonId'], 'season-imdb-tt1641384-1');
+      expect(silo['ParentId'], silo['SeasonId']);
+      for (final key in [
+        'SeriesPrimaryImageTag',
+        'ParentLogoImageTag',
+        'ParentThumbImageTag',
+        'ParentBackdropImageTags',
+      ]) {
+        expect(silo.containsKey(key), emby.containsKey(key), reason: key);
+      }
+      // Its own image is the still; its backdrop is the series' and stays
+      // with the series, as on Emby.
+      expect(silo['ImageTags'], contains('Primary'));
+      expect(silo['BackdropImageTags'], emby['BackdropImageTags']);
+      expect(
+        images.urlFor('episode-imdb-tt1641384-1-1', SiloImageType.primary),
+        contains('/episodes/1/still/'),
+      );
+    });
+
+    test('episodes from a season list', () {
+      const ref = SiloSeriesRef(
+        id: 'series-imdb-tt1641384',
+        name: 'Young Justice',
+      );
+      final silo = [
+        for (final e in siloList('silo/season_episodes.json'))
+          siloItemToBaseItemDto(e, images: images, series: ref)!,
+      ];
+      final emby = (_json('emby/season_episodes.json')['Items'] as List)
+          .cast<Map<String, dynamic>>();
+      expect(silo.length, emby.length);
+      expect(
+        silo.map((e) => e['IndexNumber']),
+        emby.map((e) => e['IndexNumber']),
+      );
+      expect(silo.map((e) => e['Name']), emby.map((e) => e['Name']));
+      expect(silo.first['Type'], 'Episode');
+      expect(silo.first['SeasonId'], 'season-imdb-tt1641384-1');
+      expect(silo.first['ImageTags'], contains('Primary'));
+    });
+  });
+
+  group('artwork rules for episodes', () {
+    test('a series poster sent with an episode never becomes its image', () {
+      final dto = siloItemToBaseItemDto({
+        'type': 'episode',
+        'content_id': 'episode-x-1-1',
+        'series_id': 'series-x',
+        'season_number': 1,
+        'episode_number': 1,
+        'poster_url': '/series-poster.webp',
+        'poster_is_episode_still': false,
+      }, images: images)!;
+      expect(dto['ImageTags'], isNot(contains('Primary')));
+      expect(dto.containsKey('PrimaryImageAspectRatio'), isFalse);
+      // It goes to the series instead, and the episode points at it.
+      expect(
+        images.urlFor('series-x', SiloImageType.primary),
+        'https://silo.example/series-poster.webp',
+      );
+      expect(
+        dto['SeriesPrimaryImageTag'],
+        images.tagFor('series-x', SiloImageType.primary),
+      );
+    });
+
+    test('borrowed artwork never replaces the series own', () {
+      siloItemToBaseItemDto({
+        'type': 'series',
+        'content_id': 'series-y',
+        'poster_url': '/own.webp',
+      }, images: images);
+      siloItemToBaseItemDto({
+        'type': 'episode',
+        'content_id': 'episode-y-1-1',
+        'series_id': 'series-y',
+        'poster_url': '/borrowed.webp',
+        'poster_is_episode_still': false,
+      }, images: images);
+      expect(
+        images.urlFor('series-y', SiloImageType.primary),
+        'https://silo.example/own.webp',
+      );
+    });
+
+    test('season 0 is Specials', () {
+      final dto = siloItemToBaseItemDto({
+        'type': 'episode',
+        'content_id': 'episode-z-0-1',
+        'series_id': 'series-z',
+        'season_number': 0,
+        'episode_number': 1,
+      })!;
+      expect(dto['SeasonName'], 'Specials');
+      expect(dto['SeasonId'], 'season-z-0');
+    });
+  });
+
+  group('season ids', () {
+    test('built from the series and parsed back', () {
+      expect(
+        siloSeasonId('series-imdb-tt1641384', 1),
+        'season-imdb-tt1641384-1',
+      );
+      expect(parseSiloSeasonId('season-imdb-tt1641384-12'), (
+        seriesId: 'series-imdb-tt1641384',
+        seasonNumber: 12,
+      ));
+      expect(parseSiloSeasonId('season-tmdb-1234-0'), (
+        seriesId: 'series-tmdb-1234',
+        seasonNumber: 0,
+      ));
+    });
+
+    test('anything else is not a season id', () {
+      expect(siloSeasonId('movie-imdb-tt1', 1), isNull);
+      expect(parseSiloSeasonId('series-imdb-tt1'), isNull);
+      expect(parseSiloSeasonId('season-x'), isNull);
+      expect(parseSiloSeasonId('season-x-one'), isNull);
+    });
+
+    test('a type from the id prefix', () {
+      expect(siloTypeOfId('season-imdb-tt1-1'), 'season');
+      expect(siloTypeOfId('episode-imdb-tt1-1-1'), 'episode');
+      expect(siloTypeOfId('146552272560604468'), isNull);
+      expect(siloTypeOfId('podcast-1'), isNull);
     });
   });
 }

@@ -412,7 +412,7 @@ Setup: in Silo's web app (admin), create a test user, or reset an existing test 
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 3.6 |
+| ☑ Done | `5f7a0fa` | 3.6 |
 
 **Goal.** When the account's main profile is PIN-locked, sign-in stops with a clear message instead of a generic error: PIN entry comes with the optional profiles phase (18.4), which lifts this.
 

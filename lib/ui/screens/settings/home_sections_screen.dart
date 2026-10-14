@@ -31,6 +31,7 @@ import '../../widgets/settings/clean_settings_typography.dart';
 import '../../widgets/settings/preference_tiles.dart';
 import '../../widgets/settings/settings_section_header.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../util/signed_in_server_features.dart';
 import 'settings_app_bar.dart';
 
 const double _kHomeSectionTileRadius = 16;
@@ -108,6 +109,9 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen>
   /// Turns false once the server answers with no Live TV channels, which hides
   /// the rows that need Live TV.
   bool _serverHasLiveTv = true;
+
+  /// Read once: who is signed in doesn't change while this screen is open.
+  final bool _liveTvOnAnyServer = liveTvOnAnySignedInServer();
 
   /// The disabled groups that are open, by [_getSectionCategory]. General
   /// starts open since it's short.
@@ -655,8 +659,10 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen>
     final hiddenByStudios =
         section.type == HomeSectionType.studios &&
         !_prefs.get(UserPreferences.displayStudiosRows);
+    // Also hidden when every signed-in server lacks Live TV (all Silo, say),
+    // since the rows could never show anything.
     final hiddenByLiveTv =
-        !_serverHasLiveTv &&
+        (!_serverHasLiveTv || !_liveTvOnAnyServer) &&
         (section.type == HomeSectionType.liveTv ||
             section.type == HomeSectionType.onNow ||
             section.type == HomeSectionType.activeRecordings);

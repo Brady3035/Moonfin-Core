@@ -13,34 +13,63 @@ Silo never serves Live TV, music, playlists, instant mix or Jellyfin admin, and 
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 3.7 |
 
 **Goal.** Tab, home rows and guide entry points via `supportsLiveTv`.
 
 **Where in Moonfin**
 
-- `lib/ui/widgets/bottom_nav/*`
-- `lib/data/services/row_data_source.dart`
-- `lib/ui/screens/livetv/*`
+- `lib/util/signed_in_server_features.dart` (new)
+- `lib/ui/screens/settings/home_sections_screen.dart`
+- `lib/ui/screens/settings/home_rows_image_type_screen.dart`
+- `lib/ui/screens/settings/settings_side_panel.dart` (import only) and its parts in `panel/`: `navigation_category_screen.dart`, `bottom_nav_tabs_screen.dart`, `quality_decoding_screen.dart`, `settings_search_index.dart`
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+**What was already hidden.** Checking every Live TV entry point with a Silo user showed that the tab, the sidebar and toolbar buttons and the home rows were already hidden, and that nothing errors:
+- the tab and the sidebar and toolbar buttons appear only when a server has a Live TV library (`isLiveTvLibrary`), and Silo never lists one;
+- the Live TV, On Now and Favourite channels home rows load only when the server has channels (`RowDataSource.hasLiveTvChannels`). `SiloLiveTvApi` (phase 1) answers every read with an empty list without touching the network, so they never appear;
+- with Silo and Emby both signed in, Emby's Live TV library brings the tab and rows back, which is right.
+
+So no screen or row needed gating. What a Silo-only user still saw was **settings that can do nothing**: "Show Live TV button", Live TV in the bottom navbar's tab picker, "Live TV direct play", the Live TV and Active recordings Home sections, their entries in Home rows image type, and the settings search results for these. Brady chose to hide those too.
+
+**When a setting is hidden.** These settings apply to every server, not to the one in use, so they are hidden only when **no signed-in server** supports Live TV. A new helper answers that:
+- `anySignedInServerSupports(feature)` reads the stored servers that have a signed-in user and asks `FeatureDetector` for each server type. It never touches the network.
+- With no signed-in server at all it answers true, so nothing is hidden before sign-in.
+- `liveTvOnAnySignedInServer()` is the Live TV case. Later phase 4 steps (music, playlists) will reuse the general form.
+
+**Where it applies:**
+- Navigation settings: the "Show Live TV button" switch.
+- Bottom navbar tabs: Live TV is no longer offered to pin. A Live TV pin synced from another device stays in the pinned list (marked off as before) so it can be removed.
+- Quality & decoding: "Live TV direct play".
+- Home sections: the Live TV and Active recordings sections join the screen's other visibility gates (`_isHiddenByRowVisibilityGates`). Their saved on/off state is untouched, so signing in to an Emby server later brings them back as they were.
+- Home rows image type: those two sections aren't listed.
+- Settings search: the two Live TV settings aren't indexed, so a search can't lead to a hidden setting.
+
+Kids Mode's own Live TV hiding is unchanged.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `test/util/signed_in_server_features_test.dart` (new, 7 tests): no servers hides nothing; Silo alone lacks Live TV; Silo plus Emby or Jellyfin has it; a server with no signed-in user doesn't count; nobody signed in anywhere hides nothing.
+- Existing: `test/preference` and `test/ui/widgets/bottom_nav` (117) still pass.
 
 **Manual test plan**
 
-- Compare with Emby: Emby still shows Live TV.
+Setup: sign out of Emby so only Silo is signed in (or use a fresh install signed in to Silo only).
+
+1. **No Live TV anywhere.** No Live TV tab, sidebar or toolbar button, and no Live TV row on Home.
+2. **Settings.** Navigation has no "Show Live TV button". Quality & decoding has no "Live TV direct play". Home sections has no Live TV or Active recordings. Searching settings for "live tv" finds neither setting.
+3. **Mobile bottom navbar** (iOS or Android phone, if handy): the tab picker doesn't offer Live TV.
+4. **Compare with Emby.** Sign in to Emby as well: all of the above come back, and Emby's Live TV tab and rows show as before. Sign out of Emby again: the settings disappear again.
+5. Regression: full `flutter test`.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | new test 7/7; `test/preference` + `test/ui/widgets/bottom_nav` 117/117; analyzer: no new issues |
 | | | | | |
 
 ---

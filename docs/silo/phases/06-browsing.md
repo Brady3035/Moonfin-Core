@@ -188,6 +188,7 @@ _Fill in when the step is built: what the code does, the main classes and why it
 **Manual test plan**
 
 - Scroll to the end of the largest library; total count is right.
+- Carried from 4.2, 4.3 and 5.1: a query for **only** types Silo can't serve (`MusicArtist`, `MusicAlbum`, `Audio`, `Playlist`, `TvChannel`, `mediaTypes=Audio`) answers empty and sends no request; `siloTypesForQuery` returns an empty set for it. Check on Home with only Silo signed in (once Home loads, phase 8): no Continue listening, artist, album or playlist row fills with films or episodes.
 
 **Results**
 

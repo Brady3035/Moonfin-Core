@@ -220,7 +220,7 @@ Jellyfin's `AuthenticateByName` returns one long-lived token and the user. Silo'
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 2.3 |
 
 **Goal.** `logout` → `POST /auth/logout`.
 
@@ -236,23 +236,53 @@ Jellyfin's `AuthenticateByName` returns one long-lived token and the user. Silo'
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+Jellyfin's `/Sessions/Logout` just invalidates the one token. On Silo, signing out has to end the **server-side login session**, because that is what keeps the refresh token alive. Dropping the tokens on the device alone would leave a refresh token that still works on the server until it expires.
+
+**`SiloAuthApi.logout()`** (`packages/server_silo/lib/src/api/silo_auth_api.dart`)
+
+- Sends `POST /api/v2/auth/logout` with the bearer token (and profile header, if any). Silo answers `204` and revokes the session.
+- It goes through the **main** Dio, unlike sign-in, so the session interceptor from 2.2 applies: an expired access token is refreshed first and the logout is replayed once. That is safe because Silo marks logout as naturally idempotent, and it means a device that sat idle past token expiry still revokes its session instead of failing with a 401.
+- **The client always signs out locally**, whatever the server answers (`finally`): tokens cleared, and with them the profile and PIN proof (2.1's rule).
+  - A `401` means the session is already gone (revoked from the web UI, or the refresh was refused). That counts as success.
+  - Any other failure (no network, `503`) is rethrown **after** the local sign-out, so the caller can log it. Both app callers (`AuthRepository.logout` and `SessionRepository`'s sign-out) already catch errors from `logout()` and carry on removing the user, as they do for Jellyfin and Emby.
+- Not signed in: nothing is sent.
+- A bare token set through `accessToken` (no refresh token) is revoked the same way.
+
+**Smaller changes**
+
+- `SiloAuthApi` now also takes the client's main Dio.
+- `silo_session.dart`: moved the `now` getter added in 2.3 above `needsRefresh`'s doc comment, which it had split from its getter.
+- The placeholder test for `logout` is gone, since the method is real now.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `packages/server_silo/test/silo_auth_api_test.dart`, new `logout` group (6 tests):
+  - revokes on Silo (method, path, bearer and profile headers) and clears tokens, profile and PIN proof;
+  - an expired access token is refreshed first, then the logout is sent with the new token;
+  - a `401` (with a refused refresh) is not an error and still signs out;
+  - a `503` signs out locally and is rethrown;
+  - nothing is sent when not signed in;
+  - a bare token is revoked too.
 
-**Manual test plan**
+**Manual test plan** (macOS, Silo server)
 
-- _Write the checks before testing._
+1. Sign in to Silo (2.3). In Silo's web app, open your account's sessions: a Moonfin session for this Mac is listed.
+2. In Moonfin, sign out from the user menu. Expected: back on the login screen. The log shows `→ POST …/api/v2/auth/logout` then `← 204`.
+3. Refresh the sessions page in Silo's web app. Expected: the Moonfin session is gone.
+4. Sign in again. Expected: works. Then revoke that session from Silo's web app and sign out in Moonfin. Expected: still back on the login screen with no error, and the log shows the 401.
+5. Regression: sign out of Emby and sign back in.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
-| | | | | |
+| 2026-10-13 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | server_silo 89/89; analyzer clean |
+| 2026-10-13 | macOS (Brady) | 4b2e921c | Pass | Session listed in Silo's account sessions as "Brady s Mac mini Mac16 10" and removed on sign-out; revoked-session sign-out and Emby regression fine. The name lost its apostrophe and comma to the shared header sanitiser (see note below). |
+
+
+**Note from testing.** Silo shows the device name from `X-Silo-Device-Name`. `buildSiloRequestHeaders` reuses the Jellyfin header sanitiser, which turns non-ASCII characters (macOS's curly ’) and commas into spaces, because commas break Jellyfin's quoted `Authorization` format. Silo's headers are plain values, so a Silo-specific sanitiser could keep commas and map typographic quotes to ASCII. Candidate polish step; not part of 2.4.
 
 ---
 

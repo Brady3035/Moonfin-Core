@@ -15,7 +15,12 @@ enum SiloImageType {
 
   /// Clear art.
   art('Art'),
-  disc('Disc');
+  disc('Disc'),
+
+  /// A chapter's `thumbnail_url`, kept per chapter by its index
+  /// (`getChapterImageUrl`). Not one of an item's `ImageTags`: the tag goes
+  /// in the chapter's own `ImageTag`.
+  chapter('Chapter');
 
   const SiloImageType(this.jellyfinName);
 

@@ -13,7 +13,7 @@ Silo never serves Live TV, music, playlists, instant mix or Jellyfin admin, and 
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 3.7 |
+| ☑ Done | `4645ebe` | 3.7 |
 
 **Goal.** Tab, home rows and guide entry points via `supportsLiveTv`.
 
@@ -70,6 +70,7 @@ Setup: sign out of Emby so only Silo is signed in (or use a fresh install signed
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | new test 7/7; `test/preference` + `test/ui/widgets/bottom_nav` 117/117; analyzer: no new issues |
+| 2026-10-14 | macOS | `4b2e921c` | Pass | tests 1, 2, 4, 5 pass. Test 3 (phone bottom navbar) deferred to 17.5 |
 | | | | | |
 
 ---
@@ -79,34 +80,64 @@ Setup: sign out of Emby so only Silo is signed in (or use a fresh install signed
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 4.1 |
 
 **Goal.** Music libraries, artist/album rows, instant mix actions, lyrics.
 
 **Where in Moonfin**
 
-- `context actions`
-- `row_data_source.dart`
-- `player lyrics toggle`
+- `lib/util/signed_in_server_features.dart`
+- `lib/ui/screens/settings/home_row_toggles_screen.dart`
+- `lib/ui/screens/settings/home_sections_screen.dart`
+- `lib/ui/screens/settings/home_rows_image_type_screen.dart`
+- `lib/ui/screens/settings/panel/detail_sections_screen.dart`
+- `lib/ui/screens/settings/panel/settings_search_index.dart`
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+Same approach as 4.1: check what is already hidden, then hide the settings that can do nothing.
+
+**Already hidden by data:**
+- **Music libraries.** Silo's libraries are only `movies` and `series`, so no music library ever appears.
+- **Instant mix.** It is offered only from the audio player, and Silo never plays audio. `SiloInstantMixApi` answers empty anyway.
+- **Lyrics.** The detail screen shows them only when an item has lyrics, and a Silo item never does. The player's lyrics view is part of the audio player.
+- **Music rows** (Continue listening, artists, albums, audio playlists, music favourites). These ask the items API for music types (`MusicArtist`, `MusicAlbum`, `Audio`, `mediaTypes=Audio`). For Silo that API is still a placeholder until phase 5. They stay empty as long as Silo's items translation answers a query for types Silo doesn't have with an empty result, instead of ignoring the filter. That belongs with 5.1's reverse type map (see the note in `HANDOFF.md`).
+
+**Hidden by this step**, when no signed-in server has music (`musicOnAnySignedInServer()`, the 4.1 helper with `FeatureDetector.supportsMusic`):
+- Home rows: the whole Audio group ("Display audio rows" and its sorting options).
+- Home sections: Continue listening, Artists, Albums, Audio playlists, and the music favourites (artists, albums, songs, music videos). Their saved on/off state is untouched.
+- Home rows image type: the same sections.
+- Detail sections: Lyrics.
+- Settings search: "Display audio rows".
+
+**Why `supportsMusic` and not `supportsLyrics`.** `supportsLyrics` is already false for Emby, so gating the Lyrics section on it would hide it for Emby users too. No music means no lyrics, so `supportsMusic` is the right test and Emby is unchanged.
+
+Audio *track* settings (passthrough, downmix, audio language) are about video soundtracks and stay.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `test/util/signed_in_server_features_test.dart`: one new test (music: off with Silo alone, on once Jellyfin is signed in), 8/8.
+- Existing: `test/preference` and `test/ui/widgets/bottom_nav` still pass.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+Setup: only Silo signed in.
+
+1. **Home rows** (Settings › Home): no Audio group.
+2. **Home sections:** no Continue listening, Artists, Albums, Audio playlists, or favourite artists, albums, songs or music videos.
+3. **Home rows image type:** none of those sections listed.
+4. **Detail sections** (classic detail style): no Lyrics.
+5. **Search settings** for "music" or "audio rows": no "Display audio rows".
+6. **Compare with Emby.** Sign in to Emby as well: all of the above come back, and Emby's music rows and lyrics show as before. Sign out of Emby: hidden again.
+7. Regression: full `flutter test`.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | helper tests 8/8; with `test/preference` and `test/ui/widgets/bottom_nav`: 165/165; analyzer: no new issues |
 | | | | | |
 
 ---

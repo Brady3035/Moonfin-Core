@@ -45,3 +45,8 @@ bool anySignedInServerSupports(
 /// Live TV, the guide and recordings ([FeatureDetector.supportsLiveTv]).
 bool liveTvOnAnySignedInServer({AuthenticationStore? store}) =>
     anySignedInServerSupports((f) => f.supportsLiveTv, store: store);
+
+/// Music: libraries, artists, albums, songs and their lyrics
+/// ([FeatureDetector.supportsMusic]).
+bool musicOnAnySignedInServer({AuthenticationStore? store}) =>
+    anySignedInServerSupports((f) => f.supportsMusic, store: store);

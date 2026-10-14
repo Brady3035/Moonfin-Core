@@ -20,7 +20,12 @@ enum SiloImageType {
   /// A chapter's `thumbnail_url`, kept per chapter by its index
   /// (`getChapterImageUrl`). Not one of an item's `ImageTags`: the tag goes
   /// in the chapter's own `ImageTag`.
-  chapter('Chapter');
+  chapter('Chapter'),
+
+  /// A trickplay sheet of `/watch/{id}/trickplay`, kept under the **file id**
+  /// by its sheet index (`getTrickplayTileImageUrl`). Sheet URLs carry their
+  /// own authorization and expire.
+  trickplay('Trickplay');
 
   const SiloImageType(this.jellyfinName);
 

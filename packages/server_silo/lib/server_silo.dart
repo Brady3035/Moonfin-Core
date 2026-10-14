@@ -22,6 +22,8 @@ export 'src/mappers/silo_ids.dart';
 export 'src/mappers/silo_item_mapper.dart';
 export 'src/mappers/silo_item_types.dart';
 export 'src/mappers/silo_library_mapper.dart';
+export 'src/mappers/silo_languages.dart';
+export 'src/mappers/silo_media_source_mapper.dart';
 export 'src/mappers/silo_settings_mapper.dart';
 export 'src/mappers/silo_ticks.dart';
 export 'src/mappers/silo_user_mapper.dart';

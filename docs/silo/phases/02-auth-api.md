@@ -13,7 +13,7 @@ Sessions, sign-in and profiles inside `server_silo`. Still no UI changes; everyt
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 1.17 |
+| ☑ Done | `1fc1c21` | 1.17 |
 
 **Goal.** Hold the access/refresh token pair and expiry. Refresh once even when many requests ask at the same time. End the session only when Silo refuses the refresh token, never on a 503 or a network error.
 
@@ -80,34 +80,58 @@ Jellyfin and Emby hand out one access token that lasts until you sign out. Silo 
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 2.1 |
 
 **Goal.** Refresh shortly before expiry, retry a 401 once after refreshing, and never replay login, refresh, device sign-in or PIN checks. Refreshes use a separate HTTP client so they can't deadlock.
 
 **Where in Moonfin**
 
 - `packages/server_silo/lib/src/silo_session_interceptor.dart`
+- `packages/server_silo/lib/src/silo_media_server_client.dart`
 
 **Earlier work to port:** silo-2 (commits 34b9b9b, b40b956, 717c21d)
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+Step 2.1 gave the client a token pair that *can* be refreshed. This step decides **when**: a Dio interceptor that sits in front of every Silo request. Jellyfin and Emby never need this, because their tokens don't expire.
+
+**`packages/server_silo/lib/src/silo_session_interceptor.dart`** (`SiloSessionInterceptor`)
+
+- **Early refresh (`onRequest`).** If the access token is due (`SiloSession.needsRefresh`: 4/5 of its life gone or under a minute left), the request waits for a refresh and then goes out with the new token. Because `refresh()` is single-flight, a screen that fires twenty requests at once triggers one refresh.
+- **Refresh and replay (`onError`).** A `401` on a request that carried a bearer token refreshes once and replays the request once. Silo uses several codes for a 401 (`invalid_token`, `token_refresh_required` after a role change, `session_expired`, `authentication_required`) and they can't be told apart before trying, so the interceptor always tries the refresh: a dead login refuses it, which ends the session through 2.1's `onSessionEnded`, and the original 401 is passed back to the caller.
+  - If another request already refreshed while this one was in flight (the token it sent is no longer the current one), it replays straight away without a second refresh.
+  - The replay is a **copy** of the request with the old `Authorization` removed and a `silo.retried` mark; the header interceptor writes the new token on it. A replay that gets a 401 again is returned as is, so there is never a loop.
+  - A `503` or network error during the refresh keeps the login (2.1's rule) and the request fails with its original error.
+- **Never replayed.** Requests marked `siloNoRefreshExtra` (sign-in, refresh, device sign-in, PIN checks, set from 2.3 on) or `siloNoAuthExtra` are never refreshed for, before or after. Replaying a password sign-in or a PIN attempt could count as a second attempt against Silo's rate limits, and a 401 there means "wrong credentials", not "stale token".
+- **Never replayed as someone else.** Each request is stamped with `SiloSession.identity` the first time it is sent. Every later dispatch of the same request comes back through `onRequest`: the refresh replay, a redirect followed by the redirect interceptor, the dead-connection retry from `configureServerDio`, and the send after waiting on an early refresh. Each one only goes out while the stamp still matches; otherwise it fails with a `cancel`-type `DioException`. So a reply that arrives after a sign-out, a new sign-in or a profile switch can't be retried with the new person's token or PIN proof.
+
+**`SiloMediaServerClient` changes**
+
+- A second Dio, `_authDio`, built by the same `_newDio()` with the same redirect rule, problem parser, headers and logging, but **without** the session interceptor. Refreshes go through it (`refreshSession()`), and step 2.3 sends sign-in through it. Sending a refresh through the main Dio would re-enter the interceptor that is waiting on it.
+- Interceptor order on the main Dio: same-origin redirects → Silo problems → session → headers and logging. The session interceptor runs before the header interceptor so a refresh made before sending is in place when the bearer token is written.
+- `baseUrl` and `dispose()` cover both Dio instances.
 
 ### Testing
 
 **Automated tests**
 
-- proactive refresh; one retry; non-replayable ops; identity-bound retries
+- `packages/server_silo/test/silo_session_interceptor_test.dart` (new, 17 tests, against `FixtureServer`):
+  - refresh and replay: a 401 refreshes once and replays once (the refresh carries no bearer token); a nearly expired token is refreshed before sending; three simultaneous 401s share one refresh and all three are replayed; a second 401 is not retried; a refused refresh ends the session and fails the request; a 503 refresh keeps the login; nothing is refreshed without a refresh token;
+  - never replayed as someone else: a profile switch during the refresh fails the request; a request waiting on an early refresh isn't sent if the profile changes; redirects arriving after a profile switch or a sign-out aren't followed; a dead-connection retry after a profile switch isn't sent, but one with no change still is;
+  - never refreshed for: no-refresh and no-auth requests get their 401 as is, and an expiring token isn't refreshed before them;
+  - `refreshSession()` refreshes on demand.
+- `silo_session_test.dart`: the client bearer-token test now fixes the clock, since an expired token would now be refreshed before sending.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+- No visible app change yet (sign-in arrives in 2.3). `cd packages/server_silo && flutter test` (73 tests).
+- Regression: sign in to Emby and play something, to check the shared `configureServerDio` path is untouched.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-13 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | server_silo 73/73; analyzer clean (package and app, no new warnings) |
 | | | | | |
 
 ---

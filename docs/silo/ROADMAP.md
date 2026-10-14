@@ -54,7 +54,7 @@ Status key: ☐ not started · ◐ in progress · ☑ done and tested · ⊘ ski
 
 ## 2. [Sign-in API (package only)](phases/02-auth-api.md)
 
-- [ ] **2.1** [Token pair and single-flight refresh (`SiloSession`)](phases/02-auth-api.md#step-2-1) · ↺ port
+- [x] **2.1** [Token pair and single-flight refresh (`SiloSession`)](phases/02-auth-api.md#step-2-1) · ↺ port
 - [ ] **2.2** [Session interceptor](phases/02-auth-api.md#step-2-2) · ↺ port
 - [ ] **2.3** [Password sign-in](phases/02-auth-api.md#step-2-3) · ↺ port
 - [ ] **2.4** [Sign out](phases/02-auth-api.md#step-2-4) · ↺ port

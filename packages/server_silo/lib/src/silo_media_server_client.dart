@@ -5,6 +5,7 @@ import 'api/silo_instant_mix_api.dart';
 import 'api/silo_live_tv_api.dart';
 import 'api/silo_auth_api.dart';
 import 'api/silo_pending_api.dart';
+import 'api/silo_profiles_api.dart';
 import 'api/silo_system_api.dart';
 import 'silo_problem.dart';
 import 'silo_session.dart';
@@ -227,6 +228,26 @@ class SiloMediaServerClient extends MediaServerClient
 
   @override
   late final SystemApi systemApi = SiloSystemApi(_dio);
+
+  /// Silo's household profiles (no Moonfin interface; see [SiloProfilesApi]).
+  late final SiloProfilesApi profilesApi = SiloProfilesApi(_dio);
+
+  /// Finds the account's main profile and acts as it from now on: every
+  /// request carries its `X-Profile-Id` (decision D9). Silo keeps progress,
+  /// favourites and home rows per profile, and refuses some requests without
+  /// the header once a profile on the account has a PIN or restrictions.
+  ///
+  /// Throws [SiloMainProfileLockedError] when the main profile has a PIN; the
+  /// client is then left without a profile.
+  Future<SiloProfile> useMainProfile() async {
+    // List without a profile: a stale id (say, a profile deleted on the web)
+    // would get the listing itself refused.
+    profileId = null;
+    profileToken = null;
+    final main = await profilesApi.mainProfile();
+    profileId = main.id;
+    return main;
+  }
 
   @override
   final ItemsApi itemsApi = const SiloPendingItemsApi();

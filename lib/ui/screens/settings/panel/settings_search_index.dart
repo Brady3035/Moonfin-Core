@@ -121,6 +121,7 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
   final liveTvOnAnyServer = liveTvOnAnySignedInServer();
   final musicOnAnyServer = musicOnAnySignedInServer();
   final playlistsOnAnyServer = playlistsOnAnySignedInServer();
+  final moonfinPluginOnAnyServer = moonfinPluginOnAnySignedInServer();
   final friendsAvailable =
       GetIt.instance<AchievementsService>().socialAvailable;
 
@@ -1800,9 +1801,10 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
       ),
 
     services.screen(keywords: ['seerr', 'achievements', 'services']),
-    settingsSync.screen(
-      keywords: ['moonbase', 'plugin', 'server sync', 'status', 'profile'],
-    ),
+    if (moonfinPluginOnAnyServer)
+      settingsSync.screen(
+        keywords: ['moonbase', 'plugin', 'server sync', 'status', 'profile'],
+      ),
     ratingSources.screen(keywords: [
       'rotten tomatoes',
       'imdb',

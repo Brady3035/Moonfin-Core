@@ -94,6 +94,14 @@ void main() {
       expect(musicOnAnySignedInServer(store: store), isTrue);
     });
 
+    test('the Moonfin plugin follows the same rule', () async {
+      await addServer('silo', ServerType.silo);
+      expect(moonfinPluginOnAnySignedInServer(store: store), isFalse);
+
+      await addServer('emby', ServerType.emby);
+      expect(moonfinPluginOnAnySignedInServer(store: store), isTrue);
+    });
+
     test('nobody signed in anywhere: on', () async {
       await addServer('silo', ServerType.silo, signedIn: false);
 

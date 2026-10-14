@@ -75,7 +75,7 @@ Status key: ☐ not started · ◐ in progress · ☑ done and tested · ⊘ ski
 
 ## 4. [Hide what Silo doesn't have](phases/04-gating.md)
 
-- [ ] **4.1** [Hide Live TV](phases/04-gating.md#step-4-1)
+- [x] **4.1** [Hide Live TV](phases/04-gating.md#step-4-1)
 - [ ] **4.2** [Hide music, instant mix and lyrics](phases/04-gating.md#step-4-2)
 - [ ] **4.3** [Hide playlists](phases/04-gating.md#step-4-3)
 - [ ] **4.4** [Hide SyncPlay and remote control](phases/04-gating.md#step-4-4)

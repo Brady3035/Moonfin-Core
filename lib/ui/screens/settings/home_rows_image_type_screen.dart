@@ -26,6 +26,17 @@ class HomeRowsImageTypeScreen extends StatefulWidget {
 }
 
 class _HomeRowsImageTypeScreenState extends State<HomeRowsImageTypeScreen> {
+  /// Music sections, left out when no signed-in server has music.
+  static const _musicTypes = {
+    HomeSectionType.audioArtists,
+    HomeSectionType.audioAlbums,
+    HomeSectionType.audioPlaylists,
+    HomeSectionType.favoriteArtists,
+    HomeSectionType.favoriteMusicVideos,
+    HomeSectionType.favoriteAlbums,
+    HomeSectionType.favoriteSongs,
+  };
+
   final _prefs = GetIt.instance<UserPreferences>();
   final _syncService = GetIt.instance<PluginSyncService>();
   bool _pickerOpen = false;
@@ -156,6 +167,7 @@ class _HomeRowsImageTypeScreenState extends State<HomeRowsImageTypeScreen> {
   Widget _buildContent(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final liveTvOnAnyServer = liveTvOnAnySignedInServer();
+    final musicOnAnyServer = musicOnAnySignedInServer();
     final enabledSections =
         _prefs.homeSectionsConfig
             .where(
@@ -167,7 +179,8 @@ class _HomeRowsImageTypeScreenState extends State<HomeRowsImageTypeScreen> {
                   c.type != HomeSectionType.libraryButtons &&
                   (liveTvOnAnyServer ||
                       (c.type != HomeSectionType.liveTv &&
-                          c.type != HomeSectionType.activeRecordings)),
+                          c.type != HomeSectionType.activeRecordings)) &&
+                  (musicOnAnyServer || !_musicTypes.contains(c.type)),
             )
             .toList()
           ..sort((a, b) => a.order.compareTo(b.order));

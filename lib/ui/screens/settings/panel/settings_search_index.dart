@@ -119,6 +119,7 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
   final tmdbAvailable = GetIt.instance<PluginSyncService>().tmdbAvailable;
   final pluginAvailable = GetIt.instance<PluginSyncService>().pluginAvailable;
   final liveTvOnAnyServer = liveTvOnAnySignedInServer();
+  final musicOnAnyServer = musicOnAnySignedInServer();
   final friendsAvailable =
       GetIt.instance<AchievementsService>().socialAvailable;
 
@@ -982,12 +983,13 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
       subtitle: l10n.mergeRecentRowsByTypeDescription,
       keywords: ['combine', 'homepage', 'rows', 'recent', 'released'],
     ),
-    rowToggles.leaf(
-      'pref_display_audio_rows',
-      l10n.displayAudioRows,
-      subtitle: l10n.displayAudioRowsSubtitle,
-      keywords: ['music'],
-    ),
+    if (musicOnAnyServer)
+      rowToggles.leaf(
+        'pref_display_audio_rows',
+        l10n.displayAudioRows,
+        subtitle: l10n.displayAudioRowsSubtitle,
+        keywords: ['music'],
+      ),
     rowToggles.leaf(
       'pref_display_collections_rows',
       l10n.displayCollectionsRows,

@@ -16,6 +16,9 @@ enum ServerType {
     ServerType.silo => 'token',
   };
 
+  /// Emby has no Drop subtitle method and rejects a stream request naming it.
+  bool get supportsSubtitleDrop => this != ServerType.emby;
+
   /// Display name of the server product.
   String get productName => switch (this) {
     ServerType.jellyfin => 'Jellyfin',

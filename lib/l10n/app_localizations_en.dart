@@ -3285,7 +3285,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fit => 'Fit';
 
   @override
-  String get autoCrop => 'Auto Crop';
+  String get autoCrop => 'Zoom to Fill';
 
   @override
   String get cropBlackBars => 'Crop Black Bars';
@@ -10198,7 +10198,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsPlayerZoomDescription =>
-      'How video should be scaled to fit the screen.';
+      'How video is scaled to the screen. Zoom to Fill enlarges the picture until it fills the screen and cuts off the edges. It doesn\'t detect black bars.';
 
   @override
   String get settingsPlaybackEngineAndroidTv => 'Playback Engine (Android TV)';
@@ -13727,6 +13727,38 @@ class AppLocalizationsEn extends AppLocalizations {
       'Controls, seeking, player buttons, and trick play';
 
   @override
+  String get playlistSortReleaseDate => 'Release Date';
+
+  @override
+  String get playlistSortCriticRating => 'Critic Rating';
+
+  @override
+  String get playlistSortRuntime => 'Runtime';
+
+  @override
+  String get playlistSortLastPlayed => 'Last Played';
+
+  @override
+  String get playlistSortPlayCount => 'Play Count';
+
+  @override
+  String get playlistSortRandom => 'Random';
+
+  @override
+  String playlistFilterActiveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count active',
+      one: '1 active',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get playlistNoMatchingTracks => 'No tracks match the active filters';
+
+  @override
   String get siloPasswordChangeTitle => 'Choose a new password';
 
   @override
@@ -16924,7 +16956,7 @@ class AppLocalizationsEnGb extends AppLocalizationsEn {
   String get fit => 'Fit';
 
   @override
-  String get autoCrop => 'Auto Crop';
+  String get autoCrop => 'Zoom to Fill';
 
   @override
   String get cropBlackBars => 'Crop black bars';
@@ -23591,7 +23623,7 @@ class AppLocalizationsEnGb extends AppLocalizationsEn {
 
   @override
   String get settingsPlayerZoomDescription =>
-      'How video should be scaled to fit the screen.';
+      'How video is scaled to the screen. Zoom to Fill enlarges the picture until it fills the screen and cuts off the edges. It doesn\'t detect black bars.';
 
   @override
   String get settingsPlaybackEngineAndroidTv => 'Playback Engine (Android TV)';

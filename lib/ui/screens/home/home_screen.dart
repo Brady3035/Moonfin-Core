@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:ui' as ui;
 
 import 'package:collection/collection.dart';
 import 'package:flutter/gestures.dart';
@@ -51,6 +50,7 @@ import '../../widgets/focus/context_menu_sheet.dart';
 import '../../widgets/focus/locked_focus_row.dart';
 import '../../../util/focus/dpad_keys.dart';
 import '../../../util/focus/input_mode_tracker.dart';
+import '../../../util/focus/scroll_utils.dart';
 import '../../../util/artwork_request_size.dart';
 import '../../../util/device_performance.dart';
 import '../../../util/platform_detection.dart';
@@ -697,23 +697,14 @@ class _Backdrop extends StatelessWidget {
     final maxWidth = targetPxWidth < 480
         ? 480
         : (targetPxWidth > 1280 ? 1280 : targetPxWidth);
-    final image = BoundedNetworkImage(
+    return BoundedNetworkImage(
       imageUrl: imageUrl,
       scale: blur > 0 ? 0.3 : 1.0,
       minWidth: 320,
       maxWidth: maxWidth,
+      blurSigma: blur > 0 ? GlassSettings.decorativeSigma(blur) : 0,
       priority: ImageFetchPriority.high,
       errorBuilder: (_, _, _) => const SizedBox.shrink(),
-    );
-    if (blur <= 0) return image;
-    final sigma = GlassSettings.decorativeSigma(blur);
-    return ImageFiltered(
-      imageFilter: ui.ImageFilter.blur(
-        sigmaX: sigma,
-        sigmaY: sigma,
-        tileMode: TileMode.decal,
-      ),
-      child: image,
     );
   }
 }
@@ -863,8 +854,11 @@ class _ContentRowsState extends State<_ContentRows>
   bool _forceRevealOnNextRowFocusFromMediaBar = false;
   DateTime? _lastScrollTime;
   DateTime? _lastMouseWheelTime;
-  DateTime? _lastVerticalNavAt;
   bool _verticalNavInFlight = false;
+  // Each vertical step bumps this, and only the latest step clears
+  // _verticalNavInFlight or finishes a media bar handoff. That way a press
+  // during a scroll takes over instead of being dropped.
+  int _verticalNavGeneration = 0;
   bool _windowHasFocus = true;
   bool _holdMediaBarWhileSidebarFocused = false;
 
@@ -948,8 +942,9 @@ class _ContentRowsState extends State<_ContentRows>
   static const _previewOpenTimeout = Duration(seconds: 10);
   static const _pinTransitionDistance = 96.0;
   static const _previewStartDelay = Duration(milliseconds: 1200);
-  static const _focusHandoffDuration = Duration(milliseconds: 220);
-  static const _focusHandoffCurve = Curves.easeInOutCubic;
+  static Duration get _focusHandoffDuration => navigationAnimationDuration;
+  // Ease out so the scroll starts moving as soon as the key is pressed.
+  static const _focusHandoffCurve = Curves.easeOutCubic;
   static const _mediaBarFadeDuration = Duration(milliseconds: 220);
   static const double _activeRowRecalcDistance = 48.0;
 
@@ -2058,7 +2053,8 @@ class _ContentRowsState extends State<_ContentRows>
       'maxHeight': '720',
       'audioBitRate': '96000',
       'audioChannels': '2',
-      'subtitleMethod': 'Drop',
+      // No subtitle index is asked for, so leaving Drop off burns nothing in.
+      if (client.serverType.supportsSubtitleDrop) 'subtitleMethod': 'Drop',
       if (kIsWeb) 'container': 'mp4',
       if (kIsWeb) 'TranscodingContainer': 'mp4',
       // The server copies this into the segment urls it writes and then refuses
@@ -2067,7 +2063,8 @@ class _ContentRowsState extends State<_ContentRows>
       if (startTicks > 0 && !usesHlsPreview) 'StartTimeTicks': '$startTicks',
       'MediaSourceId': ?mediaSourceId,
       'AudioStreamIndex': ?audioIndex?.toString(),
-      if (client.accessToken != null) 'ApiKey': client.accessToken!,
+      if (client.accessToken != null)
+        client.serverType.tokenQueryParam: client.accessToken!,
     };
 
     final normalizedBasePath = baseUri.path.endsWith('/')
@@ -2475,9 +2472,6 @@ class _ContentRowsState extends State<_ContentRows>
   }
 
   Future<void> _moveFocusFromMediaBarToRows() async {
-    if (_verticalNavInFlight || !_allowVerticalNavNow()) {
-      return;
-    }
     if (!_mediaBarFocusNode.hasFocus) {
       return;
     }
@@ -2488,34 +2482,15 @@ class _ContentRowsState extends State<_ContentRows>
     }
     _finishSharedPreview(releaseResources: true);
     _forceRevealOnNextRowFocusFromMediaBar = true;
-    final isBanner = _isBannerMode();
     if (mounted &&
         _mediaBarVisible &&
-        !isBanner &&
+        !_isBannerMode() &&
         !_isAyaMode() &&
         !_isBookshelfMode()) {
       _mediaBarVisible = false;
     }
-    if (!isBanner && _scrollController.hasClients) {
-      final offsetAdjustment = _desktopRowFocusTargetTop();
-      final target = (_mediaBarHeight() - offsetAdjustment).clamp(
-        0.0,
-        _scrollController.position.maxScrollExtent,
-      );
-      if (_scrollController.offset < target) {
-        _verticalNavInFlight = true;
-        try {
-          await _scrollController.animateTo(
-            target,
-            duration: _focusHandoffDuration,
-            curve: _focusHandoffCurve,
-          );
-        } finally {
-          _verticalNavInFlight = false;
-        }
-        if (!mounted) return;
-      }
-    }
+    // Focus moves right away and the row's own scroll clears the bar, so a
+    // second Down during the scroll isn't lost.
     await _focusAdjacentRowItem(widget.viewModel.rows, -1, 1);
   }
 
@@ -2528,12 +2503,10 @@ class _ContentRowsState extends State<_ContentRows>
   }
 
   Future<void> _moveFocusFromRowsToMediaBar() async {
-    if (_verticalNavInFlight) {
-      return;
-    }
     // This path scrolls to the top on its own, so drop the return anchor
     // rather than let the delayed realign pull back down.
     _returnScrollRowId = null;
+    final generation = ++_verticalNavGeneration;
     _verticalNavInFlight = true;
     try {
       _finishSharedPreview(releaseResources: true);
@@ -2554,6 +2527,12 @@ class _ContentRowsState extends State<_ContentRows>
         return;
       }
 
+      // Focus the bar before scrolling, so a quick Down comes back to the
+      // first row instead of skipping ahead from the row that still had focus.
+      if (_mediaBarFocusNode.context != null) {
+        _mediaBarFocusNode.requestFocus();
+      }
+
       if (_scrollController.hasClients && _scrollController.offset > 0) {
         await _scrollController.animateTo(
           0,
@@ -2562,7 +2541,11 @@ class _ContentRowsState extends State<_ContentRows>
         );
       }
 
-      if (!mounted) return;
+      if (!mounted ||
+          generation != _verticalNavGeneration ||
+          _mediaBarFocusNode.hasFocus) {
+        return;
+      }
 
       final navComplete = Completer<void>();
       late final VoidCallback focusListener;
@@ -2585,14 +2568,16 @@ class _ContentRowsState extends State<_ContentRows>
       );
       _mediaBarFocusNode.removeListener(focusListener);
 
-      if (mounted && !_mediaBarFocusNode.hasFocus) {
+      if (mounted &&
+          generation == _verticalNavGeneration &&
+          !_mediaBarFocusNode.hasFocus) {
         if (!_mediaBarVisible) {
           setState(() => _mediaBarVisible = true);
         }
         _requestMediaBarFocus(force: true);
       }
     } finally {
-      _verticalNavInFlight = false;
+      if (generation == _verticalNavGeneration) _verticalNavInFlight = false;
     }
   }
 
@@ -3216,134 +3201,124 @@ class _ContentRowsState extends State<_ContentRows>
     int fromRowIndex,
     int direction,
   ) async {
-    if (_verticalNavInFlight) return;
     // The user is moving rows, so the delayed realign on return must not
     // drag them back to the row they arrived on.
     _returnScrollRowId = null;
-    _verticalNavInFlight = true;
-    final maxRow = rows.length - 1;
     var target = fromRowIndex + direction;
-    try {
-      while (target >= 0 && target <= maxRow) {
-        final candidate = rows[target];
-        final hasItems = _rowHasFocusableItems(candidate);
-        if (hasItems) {
-          final targetState = _rowStateOf(target);
-          if (targetState != null) {
-            targetState.requestFocusAt(0);
-          } else {
-            _requestRowFocusFromMemory(target, preferredIndex: 0);
-          }
-
-          final navComplete = Completer<void>();
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (!mounted) {
-              if (!navComplete.isCompleted) navComplete.complete();
-              return;
-            }
-            final rowCtx = _rowContextOf(target);
-            if (rowCtx == null) {
-              if (!navComplete.isCompleted) navComplete.complete();
-              return;
-            }
-
-            final fullScreenRows =
-                !PlatformDetection.useMobileUi &&
-                widget.prefs.get(UserPreferences.fullScreenRows);
-            if (fullScreenRows && _scrollController.hasClients) {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (!mounted || !_scrollController.hasClients) {
-                  if (!navComplete.isCompleted) navComplete.complete();
-                  return;
-                }
-                final innerCtx = _rowContextOf(target);
-                if (innerCtx == null) {
-                  if (!navComplete.isCompleted) navComplete.complete();
-                  return;
-                }
-                final renderObj = innerCtx.findRenderObject();
-                if (renderObj is! RenderBox || !renderObj.hasSize) {
-                  if (!navComplete.isCompleted) navComplete.complete();
-                  return;
-                }
-                _scrollTvRowIntoOverlayBand(target).whenComplete(() {
-                  if (!navComplete.isCompleted) navComplete.complete();
-                });
-              });
-              return;
-            }
-
-
-            if (_scrollController.hasClients) {
-              final rowObj = _rowContainerKey(
-                target,
-              ).currentContext?.findRenderObject();
-              final viewportObj = context.findRenderObject();
-              if (rowObj is RenderBox &&
-                  rowObj.attached &&
-                  viewportObj is RenderBox &&
-                  viewportObj.attached) {
-                final rowTopInViewport = rowObj
-                    .localToGlobal(Offset.zero, ancestor: viewportObj)
-                    .dy;
-                final targetOffset =
-                    (_scrollController.offset +
-                            rowTopInViewport -
-                            _desktopRowFocusTargetTop())
-                        .clamp(0.0, _scrollController.position.maxScrollExtent);
-                _scrollController
-                    .animateTo(
-                      targetOffset,
-                      duration: _focusHandoffDuration,
-                      curve: _focusHandoffCurve,
-                    )
-                    .whenComplete(() {
-                      if (!navComplete.isCompleted) navComplete.complete();
-                    });
-                return;
-              }
-            }
-
-            Scrollable.ensureVisible(
-              rowCtx,
-              alignment: 0.12,
-              duration: _focusHandoffDuration,
-              curve: _focusHandoffCurve,
-            ).whenComplete(() {
-              if (!navComplete.isCompleted) navComplete.complete();
-            });
-          });
-          await navComplete.future.timeout(
-            const Duration(milliseconds: 450),
-            onTimeout: () {},
-          );
-          return;
-        }
-        target += direction;
-      }
-
+    while (target >= 0 &&
+        target < rows.length &&
+        !_rowHasFocusableItems(rows[target])) {
+      target += direction;
+    }
+    if (target < 0 || target >= rows.length) {
       if (direction < 0) {
         if (_isMediaBarIncluded()) {
-          _verticalNavInFlight = false;
           await _moveFocusFromRowsToMediaBar();
         } else {
+          // Focus leaves the rows, so a scroll the last step still has queued
+          // shouldn't pull the list back down.
+          _verticalNavGeneration++;
+          _verticalNavInFlight = false;
           _navigateFromMediaBarToNavbar();
         }
       }
-    } finally {
-      _verticalNavInFlight = false;
+      return;
     }
-  }
+    // A row the list hasn't built yet can't take focus. Returning before a new
+    // step starts leaves the last step's scroll running, and that scroll
+    // builds the row for the next press.
+    final targetState = _rowStateOf(target);
+    if (targetState == null) return;
 
-  bool _allowVerticalNavNow() {
-    final now = DateTime.now();
-    if (_lastVerticalNavAt != null &&
-        now.difference(_lastVerticalNavAt!) <
-            const Duration(milliseconds: 140)) {
-      return false;
+    final generation = ++_verticalNavGeneration;
+    _verticalNavInFlight = true;
+    try {
+      targetState.requestFocusAt(0);
+
+      final navComplete = Completer<void>();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || generation != _verticalNavGeneration) {
+          if (!navComplete.isCompleted) navComplete.complete();
+          return;
+        }
+        final rowCtx = _rowContextOf(target);
+        if (rowCtx == null) {
+          if (!navComplete.isCompleted) navComplete.complete();
+          return;
+        }
+
+        final fullScreenRows =
+            !PlatformDetection.useMobileUi &&
+            widget.prefs.get(UserPreferences.fullScreenRows);
+        if (fullScreenRows && _scrollController.hasClients) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted || !_scrollController.hasClients) {
+              if (!navComplete.isCompleted) navComplete.complete();
+              return;
+            }
+            final innerCtx = _rowContextOf(target);
+            if (innerCtx == null) {
+              if (!navComplete.isCompleted) navComplete.complete();
+              return;
+            }
+            final renderObj = innerCtx.findRenderObject();
+            if (renderObj is! RenderBox || !renderObj.hasSize) {
+              if (!navComplete.isCompleted) navComplete.complete();
+              return;
+            }
+            _scrollTvRowIntoOverlayBand(target).whenComplete(() {
+              if (!navComplete.isCompleted) navComplete.complete();
+            });
+          });
+          return;
+        }
+
+        if (_scrollController.hasClients) {
+          final rowObj = _rowContainerKey(
+            target,
+          ).currentContext?.findRenderObject();
+          final viewportObj = context.findRenderObject();
+          if (rowObj is RenderBox &&
+              rowObj.attached &&
+              viewportObj is RenderBox &&
+              viewportObj.attached) {
+            final rowTopInViewport = rowObj
+                .localToGlobal(Offset.zero, ancestor: viewportObj)
+                .dy;
+            final targetOffset =
+                (_scrollController.offset +
+                        rowTopInViewport -
+                        _desktopRowFocusTargetTop())
+                    .clamp(0.0, _scrollController.position.maxScrollExtent);
+            _scrollController
+                .animateTo(
+                  targetOffset,
+                  duration: _focusHandoffDuration,
+                  curve: _focusHandoffCurve,
+                )
+                .whenComplete(() {
+                  if (!navComplete.isCompleted) navComplete.complete();
+                });
+            return;
+          }
+        }
+
+        Scrollable.ensureVisible(
+          rowCtx,
+          alignment: 0.12,
+          duration: _focusHandoffDuration,
+          curve: _focusHandoffCurve,
+        ).whenComplete(() {
+          if (!navComplete.isCompleted) navComplete.complete();
+        });
+      });
+      await navComplete.future.timeout(
+        const Duration(milliseconds: 450),
+        onTimeout: () {},
+      );
+    } finally {
+      if (generation == _verticalNavGeneration) _verticalNavInFlight = false;
     }
-    _lastVerticalNavAt = now;
-    return true;
   }
 
   bool _onRowVerticalNavigation({
@@ -3352,7 +3327,6 @@ class _ContentRowsState extends State<_ContentRows>
     required bool isUp,
   }) {
     _markUserGesture();
-    if (!_allowVerticalNavNow()) return true;
     if (isUp) {
       if (rowIndex == 0) {
         if (_isMediaBarIncluded()) {

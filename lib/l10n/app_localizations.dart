@@ -5758,10 +5758,10 @@ abstract class AppLocalizations {
   /// **'Fit'**
   String get fit;
 
-  /// Zoom mode: auto crop
+  /// Zoom mode: scales the video to fill the screen and cuts off the edges. It doesn't detect or remove black bars.
   ///
   /// In en, this message translates to:
-  /// **'Auto Crop'**
+  /// **'Zoom to Fill'**
   String get autoCrop;
 
   /// Setting to detect and crop encoded letterbox/pillarbox bars
@@ -18181,7 +18181,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsPlayerZoomDescription.
   ///
   /// In en, this message translates to:
-  /// **'How video should be scaled to fit the screen.'**
+  /// **'How video is scaled to the screen. Zoom to Fill enlarges the picture until it fills the screen and cuts off the edges. It doesn\'t detect black bars.'**
   String get settingsPlayerZoomDescription;
 
   /// No description provided for @settingsPlaybackEngineAndroidTv.
@@ -24196,6 +24196,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Controls, seeking, player buttons, and trick play'**
   String get playerSettingsSubtitle;
+
+  /// Label for sorting playlist items by release date
+  ///
+  /// In en, this message translates to:
+  /// **'Release Date'**
+  String get playlistSortReleaseDate;
+
+  /// Label for sorting playlist items by critic rating
+  ///
+  /// In en, this message translates to:
+  /// **'Critic Rating'**
+  String get playlistSortCriticRating;
+
+  /// Label for sorting playlist items by runtime
+  ///
+  /// In en, this message translates to:
+  /// **'Runtime'**
+  String get playlistSortRuntime;
+
+  /// Label for sorting playlist items by last played date
+  ///
+  /// In en, this message translates to:
+  /// **'Last Played'**
+  String get playlistSortLastPlayed;
+
+  /// Label for sorting playlist items by play count
+  ///
+  /// In en, this message translates to:
+  /// **'Play Count'**
+  String get playlistSortPlayCount;
+
+  /// Label for sorting playlist items randomly
+  ///
+  /// In en, this message translates to:
+  /// **'Random'**
+  String get playlistSortRandom;
+
+  /// Indicator of how many filters are currently active on a playlist
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 active} other{{count} active}}'**
+  String playlistFilterActiveCount(int count);
+
+  /// Empty state message shown when playlist filters match no items
+  ///
+  /// In en, this message translates to:
+  /// **'No tracks match the active filters'**
+  String get playlistNoMatchingTracks;
 
   /// Title of the dialog shown after signing in to a Silo server with a temporary password
   ///

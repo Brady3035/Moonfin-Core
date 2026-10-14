@@ -57,6 +57,7 @@ import '../../../../data/services/seerr/seerr_api_models.dart';
 import '../../../../data/services/plugin_sync_service.dart';
 import '../../../../data/services/book_reader_service.dart';
 import '../detail_layout_metrics.dart';
+import '../playlist_sort_filter_bar.dart';
 import '../item_detail_screen.dart'
     show
         DetailActionButtons,
@@ -233,6 +234,31 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
   final FocusNode _similarFirstFocusNode = FocusNode(debugLabel: 'similarFirst');
   final FocusNode _gridFirstFocusNode = FocusNode(debugLabel: 'gridFirst');
   final FocusNode _collectionSortFocusNode = FocusNode(debugLabel: 'collectionSort');
+  LibrarySortBy _playlistSortBy = LibrarySortBy.playlistOrder;
+  SortDirection _playlistSortDirection = SortDirection.ascending;
+  PlayedStatusFilter _playlistPlayedFilter = PlayedStatusFilter.all;
+  bool _playlistFavoriteFilter = false;
+  String? _playlistMediaTypeFilter;
+  int? _playlistRandomSeed;
+  final FocusNode _playlistSortFocusNode =
+      FocusNode(debugLabel: 'modernPlaylistSort');
+  final FocusNode _playlistFilterFocusNode =
+      FocusNode(debugLabel: 'modernPlaylistFilter');
+  final FocusNode _playlistClearFiltersFocusNode =
+      FocusNode(debugLabel: 'modernPlaylistClearFilters');
+
+  List<AggregatedItem> get _displayedPlaylistTracks {
+    if (_vm.item?.type != 'Playlist') return _vm.tracks;
+    return sortAndFilterPlaylistTracks(
+      tracks: _vm.tracks,
+      sortBy: _playlistSortBy,
+      sortDirection: _playlistSortDirection,
+      playedFilter: _playlistPlayedFilter,
+      favoriteOnly: _playlistFavoriteFilter,
+      mediaTypeFilter: _playlistMediaTypeFilter,
+      randomSeed: _playlistRandomSeed,
+    );
+  }
   final FocusNode _moviesFirstFocusNode = FocusNode(debugLabel: 'moviesFirst');
   final FocusNode _seriesFirstFocusNode = FocusNode(debugLabel: 'seriesFirst');
   final FocusNode _otherFirstFocusNode = FocusNode(debugLabel: 'otherFirst');
@@ -538,9 +564,12 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
       if (event is KeyDownEvent) {
         if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
           if (_vm.playlistItems.isNotEmpty) {
-            final firstTrackId = _vm.playlistItems.first.id;
-            final firstNode = _trackFocusNodes.putIfAbsent(firstTrackId, () => FocusNode());
-            if (firstNode.canRequestFocus) {
+            final firstTrack = _vm.playlistItems.first;
+            final rawId = firstTrack.rawData['PlaylistItemId']?.toString();
+            final firstTrackId =
+                (rawId != null && rawId.isNotEmpty) ? rawId : firstTrack.id;
+            final firstNode = _trackFocusNodes[firstTrackId];
+            if (firstNode != null && firstNode.context?.mounted == true) {
               firstNode.requestFocus();
               return KeyEventResult.handled;
             }
@@ -582,6 +611,14 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
   @override
   void didUpdateWidget(ModernDetailContent oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (widget.viewModel.item?.id != oldWidget.viewModel.item?.id) {
+      _playlistSortBy = LibrarySortBy.playlistOrder;
+      _playlistSortDirection = SortDirection.ascending;
+      _playlistPlayedFilter = PlayedStatusFilter.all;
+      _playlistFavoriteFilter = false;
+      _playlistMediaTypeFilter = null;
+      _playlistRandomSeed = null;
+    }
     if (widget.initialFocusNode != oldWidget.initialFocusNode && PlatformDetection.isTV) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted || !canClaimInitialFocus(context)) return;
@@ -674,6 +711,9 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
     _similarFirstFocusNode.dispose();
     _gridFirstFocusNode.dispose();
     _collectionSortFocusNode.dispose();
+    _playlistSortFocusNode.dispose();
+    _playlistFilterFocusNode.dispose();
+    _playlistClearFiltersFocusNode.dispose();
     _moviesFirstFocusNode.dispose();
     _seriesFirstFocusNode.dispose();
     _otherFirstFocusNode.dispose();
@@ -3655,17 +3695,37 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
   }
 
   Widget _tracksTab(BuildContext context, AggregatedItem item) {
-    final canManagePlaylistTracks = item.type == 'Playlist' && _vm.canManagePlaylistTracks;
+    final l10n = AppLocalizations.of(context);
+    final isPlaylist = item.type == 'Playlist';
+    final availableMediaTypes = isPlaylist
+        ? _vm.tracks
+            .map((t) => t.type)
+            .whereType<String>()
+            .toSet()
+            .toList()
+        : const <String>[];
+
+    final displayedTracks = _displayedPlaylistTracks;
+
+    final isDefaultPlaylistOrder =
+        _playlistSortBy == LibrarySortBy.playlistOrder &&
+        _playlistSortDirection == SortDirection.ascending &&
+        _playlistPlayedFilter == PlayedStatusFilter.all &&
+        !_playlistFavoriteFilter &&
+        (_playlistMediaTypeFilter == null || _playlistMediaTypeFilter == 'all');
+
+    final canManagePlaylistTracks =
+        isPlaylist && _vm.canManagePlaylistTracks && isDefaultPlaylistOrder;
 
     final listWidget = DetailTrackList(
-      tracks: _vm.tracks,
+      tracks: displayedTracks,
       imageApi: _vm.imageApi,
       isAudiobook: _isAudiobook(item),
-      isPlaylist: item.type == 'Playlist',
+      isPlaylist: isPlaylist,
       groupByDisc: item.type == 'MusicAlbum',
       getFocusNode: (id) =>
           _trackFocusNodes.putIfAbsent(id, () => FocusNode()),
-      onPlayTrack: (index) => _playTrack(context, index),
+      onPlayTrack: (index) => _playTrack(context, index, displayedTracks),
       reorderable: canManagePlaylistTracks,
       onReorder: canManagePlaylistTracks
           ? (oldIndex, newIndex) {
@@ -3676,7 +3736,7 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
               _vm.reorderPlaylistTrack(oldIndex, target);
             }
           : null,
-      onRemoveFromPlaylist: canManagePlaylistTracks
+      onRemoveFromPlaylist: (isPlaylist && _vm.canManagePlaylistTracks)
           ? (track) => _vm.removeTrackFromPlaylist(track)
           : null,
       onMoveUp: canManagePlaylistTracks
@@ -3685,9 +3745,98 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
       onMoveDown: canManagePlaylistTracks
           ? (index) => _vm.reorderPlaylistTrack(index, index + 1)
           : null,
-      onFirstTrackUp: () => widget.initialFocusNode?.requestFocus(),
+      onFirstTrackUp: () {
+        if (isPlaylist) {
+          if (_playlistSortFocusNode.context?.mounted == true) {
+            _playlistSortFocusNode.requestFocus();
+            return;
+          }
+        }
+        widget.initialFocusNode?.requestFocus();
+      },
       onTrackFocused: widget.onBackdropItemFocused,
     );
+
+    Widget contentWidget;
+    if (isPlaylist && displayedTracks.isEmpty) {
+      contentWidget = Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.filter_list_off_rounded,
+                size: 40,
+                color: Colors.white38,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                l10n.playlistNoMatchingTracks,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Colors.white54,
+                    ),
+              ),
+              const SizedBox(height: 12),
+              Focus(
+                onKeyEvent: (node, event) {
+                  if (event is KeyDownEvent) {
+                    if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
+                      if (_playlistSortFocusNode.context?.mounted == true) {
+                        _playlistSortFocusNode.requestFocus();
+                        return KeyEventResult.handled;
+                      }
+                    }
+                    if (isActivateKey(event)) {
+                      setState(() {
+                        _playlistPlayedFilter = PlayedStatusFilter.all;
+                        _playlistFavoriteFilter = false;
+                        _playlistMediaTypeFilter = null;
+                      });
+                      if (_playlistSortFocusNode.context?.mounted == true) {
+                        _playlistSortFocusNode.requestFocus();
+                      }
+                      return KeyEventResult.handled;
+                    }
+                  }
+                  return KeyEventResult.ignored;
+                },
+                child: AnimatedBuilder(
+                  animation: _playlistClearFiltersFocusNode,
+                  builder: (context, _) {
+                    final isFocused = _playlistClearFiltersFocusNode.hasFocus;
+                    return TextButton(
+                      focusNode: _playlistClearFiltersFocusNode,
+                      style: TextButton.styleFrom(
+                        side: isFocused
+                            ? BorderSide(color: AppColorScheme.accent, width: 2)
+                            : null,
+                        backgroundColor: isFocused
+                            ? AppColorScheme.accent.withValues(alpha: 0.15)
+                            : null,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _playlistPlayedFilter = PlayedStatusFilter.all;
+                          _playlistFavoriteFilter = false;
+                          _playlistMediaTypeFilter = null;
+                        });
+                        if (_playlistSortFocusNode.context?.mounted == true) {
+                          _playlistSortFocusNode.requestFocus();
+                        }
+                      },
+                      child: Text(l10n.clearFilters),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    } else {
+      contentWidget = listWidget;
+    }
 
     return Focus(
       canRequestFocus: false,
@@ -3713,16 +3862,105 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
               alignment: Alignment.topLeft,
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 800),
-                child: listWidget,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (isPlaylist) ...[
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 12.0),
+                        child: PlaylistSortFilterBar(
+                          sortBy: _playlistSortBy,
+                          sortDirection: _playlistSortDirection,
+                          onSortChanged: (pair) {
+                            setState(() {
+                              _playlistSortBy = pair.$1;
+                              _playlistSortDirection = pair.$2;
+                              if (pair.$1 == LibrarySortBy.random) {
+                                _playlistRandomSeed =
+                                    DateTime.now().millisecondsSinceEpoch;
+                              }
+                            });
+                          },
+                          playedFilter: _playlistPlayedFilter,
+                          favoriteOnly: _playlistFavoriteFilter,
+                          mediaTypeFilter: _playlistMediaTypeFilter,
+                          availableMediaTypes: availableMediaTypes,
+                          onFilterChanged: (played, fav, mediaType) {
+                            setState(() {
+                              _playlistPlayedFilter = played;
+                              _playlistFavoriteFilter = fav;
+                              _playlistMediaTypeFilter = mediaType;
+                            });
+                          },
+                          onReset: () {
+                            setState(() {
+                              _playlistSortBy = LibrarySortBy.playlistOrder;
+                              _playlistSortDirection = SortDirection.ascending;
+                              _playlistPlayedFilter = PlayedStatusFilter.all;
+                              _playlistFavoriteFilter = false;
+                              _playlistMediaTypeFilter = null;
+                              _playlistRandomSeed = null;
+                            });
+                          },
+                          totalCount: _vm.tracks.length,
+                          filteredCount: displayedTracks.length,
+                          sortFocusNode: _playlistSortFocusNode,
+                          filterFocusNode: _playlistFilterFocusNode,
+                          onSortArrowUp: () =>
+                              widget.initialFocusNode?.requestFocus(),
+                          onSortArrowDown: () {
+                            if (displayedTracks.isNotEmpty) {
+                              final first = displayedTracks.first;
+                              final rawId =
+                                  first.rawData['PlaylistItemId']?.toString();
+                              final firstId = (rawId != null && rawId.isNotEmpty)
+                                  ? rawId
+                                  : first.id;
+                              final node = _trackFocusNodes[firstId];
+                              if (node != null && node.context?.mounted == true) {
+                                node.requestFocus();
+                              }
+                            } else if (_playlistClearFiltersFocusNode.context?.mounted == true) {
+                              _playlistClearFiltersFocusNode.requestFocus();
+                            }
+                          },
+                          onSortArrowLeft: () {
+                            NavigationLayout.focusNavbarNotifier.value?.call();
+                          },
+                          onFilterArrowUp: () =>
+                              widget.initialFocusNode?.requestFocus(),
+                          onFilterArrowDown: () {
+                            if (displayedTracks.isNotEmpty) {
+                              final first = displayedTracks.first;
+                              final rawId =
+                                  first.rawData['PlaylistItemId']?.toString();
+                              final firstId = (rawId != null && rawId.isNotEmpty)
+                                  ? rawId
+                                  : first.id;
+                              final node = _trackFocusNodes[firstId];
+                              if (node != null && node.context?.mounted == true) {
+                                node.requestFocus();
+                              }
+                            } else if (_playlistClearFiltersFocusNode.context?.mounted == true) {
+                              _playlistClearFiltersFocusNode.requestFocus();
+                            }
+                          },
+                        ),
+                      ),
+                    ],
+                    contentWidget,
+                  ],
+                ),
               ),
             )
           : listWidget,
     );
   }
 
-  Future<void> _playTrack(BuildContext context, int index) async {
+  Future<void> _playTrack(BuildContext context, int index, [List<AggregatedItem>? tracksOverride]) async {
     final manager = GetIt.instance<PlaybackManager>();
-    final isAudio = _vm.tracks.every(_isAudioItem);
+    final tracks = tracksOverride ?? _vm.tracks;
+    final isAudio = tracks.every(_isAudioItem);
     await launchPlayerWhilePreparing(
       context,
       manager: manager,
@@ -3732,7 +3970,7 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
       startPlayback: (launchSession) async {
         await runPlaybackStart(
           launchSession,
-          () => manager.playItems(_vm.tracks, startIndex: index),
+          () => manager.playItems(tracks, startIndex: index),
         );
         return true;
       },
@@ -4255,12 +4493,16 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
             child: DetailActionButtons(
               viewModel: _vm,
               itemId: item.id,
+              playlistTracksOverride:
+                  item.type == 'Playlist' ? _displayedPlaylistTracks : null,
               selectedMediaSourceId: widget.selectedMediaSourceId,
               onSelectedMediaSourceChanged: widget.onSelectedMediaSourceChanged,
               tvPlayFocusNode: widget.initialFocusNode,
-              downTarget: _vm.tracks.isNotEmpty
-                  ? _trackFocusNodes.putIfAbsent(_vm.tracks.first.id, () => FocusNode())
-                  : null,
+              downTarget: (item.type == 'Playlist' && _vm.tracks.isNotEmpty)
+                  ? _playlistSortFocusNode
+                  : (_vm.tracks.isNotEmpty
+                      ? _trackFocusNodes.putIfAbsent(_vm.tracks.first.id, () => FocusNode())
+                      : null),
               upTarget:
                   authorOrArtistName != null && authorOrArtistName.trim().isNotEmpty
                       ? _artistFocusNode
@@ -4484,6 +4726,8 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
           child: DetailActionButtons(
             viewModel: _vm,
             itemId: item.id,
+            playlistTracksOverride:
+                item.type == 'Playlist' ? _displayedPlaylistTracks : null,
             selectedMediaSourceId: widget.selectedMediaSourceId,
             onSelectedMediaSourceChanged: widget.onSelectedMediaSourceChanged,
             tvPlayFocusNode: widget.initialFocusNode,

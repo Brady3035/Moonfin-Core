@@ -228,6 +228,9 @@ enum WatchedIndicatorBehavior {
 
 enum ZoomMode {
   fit,
+
+  /// Shown as Zoom to Fill. The name stays autoCrop because it's the value
+  /// saved and synced to the server.
   autoCrop,
   stretch,
 }

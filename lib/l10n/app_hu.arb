@@ -6605,7 +6605,7 @@
     "settingsPreferServerTranscode": "Szerveroldali átkódolás előnyben részesítése",
     "settingsDolbyVisionProfile7DirectPlay": "Dolby Vision 7. profil közvetlen lejátszás",
     "settingsDolbyVisionProfile7DirectPlayDescription": "Azt szabályozza, hogy a Dolby Vision 7. profil bővítőrétegű adatfolyamai közvetlenül lejátszhatók-e.",
-    "settingsAutoAftkrtEnabled": "Automatikus (AFTKRT engedélyezve)",
+    "settingsAutoAftkrtEnabled": "Automatikus",
     "settingsEnabledOnThisDevice": "Engedélyezve ezen az eszközön",
     "settingsDisabledPreferTranscode": "Letiltva (inkább átkódolás)",
     "settingsResumeRewindDescription": "A lejátszás folytatásakor (a „Megtekintés folytatása” szakaszból vagy egy médiaelem oldaláról) hány másodpercet tekerjen vissza a lejátszó?",
@@ -8328,7 +8328,7 @@
     "@detailScreenStyleModern": {
         "description": "Detail screen style option: the responsive cinematic layout"
     },
-    "recommendationsApplyParentalRatingCap": "Alkalmazod a szülői korhatár-korlátot?",
+    "recommendationsApplyParentalRatingCap": "Értékelési limit alkalmazása a Javaslatokra",
     "@recommendationsApplyParentalRatingCap": {
         "description": "Label for the toggle that controls whether similar suggestions are capped by target media parental rating"
     },
@@ -8653,7 +8653,7 @@
     "navButtons": "Gombok",
     "rendering": "Renderelés",
     "mpvConfiguration": "MPV-konfiguráció",
-    "showTechnicalDetails": "Megjelenjenek a technikai részletek?",
+    "showTechnicalDetails": "Technikai részletek megjelenítése",
     "@showTechnicalDetails": {
         "description": "Label for the detail screen setting to show stream/codec technical details"
     },
@@ -8998,7 +8998,7 @@
     "adminPlaybackThrottleDelay": "Visszafogási késleltetés (másodperc)",
     "adminPlaybackEnableSubtitleExtraction": "Feliratok menet közbeni kinyerésének engedélyezése",
     "adminGeneralDisplayLanguage": "Előnyben részesített megjelenítési nyelv",
-    "hideBackdropsInLibraries": "Elrejted a háttérképeket böngészés közben?",
+    "hideBackdropsInLibraries": "Háttérképek elrejtése böngészés közben",
     "@hideBackdropsInLibraries": {
         "description": "Setting title to show/hide backdrops when browsing library pages"
     },
@@ -9042,7 +9042,7 @@
     "@detailScreenStyleSpotlight": {
         "description": "Detail screen style option: the hero-first layout with summary cards that open grid modals"
     },
-    "spotlightMoreActions": "További hatások",
+    "spotlightMoreActions": "További lehetőségek",
     "@spotlightMoreActions": {
         "description": "Tooltip/semantics of the spotlight ellipsis button and the title of the overflow actions menu it opens"
     },
@@ -9516,5 +9516,276 @@
     "setupDetailNouveauHint": "Teljesképernyő, fülek helyett rendezett szekciókkal.",
     "@setupDetailNouveauHint": {
         "description": "What the nouveau detail screen style gives you"
+    },
+    "spotlightFileDetails": "Fájl részletek",
+    "@spotlightFileDetails": {
+        "description": "Title of the spotlight summary card that opens the file details modal"
+    },
+    "fetchingSubtitles": "Feliratok keresése",
+    "@fetchingSubtitles": {
+        "description": "Playback status shown while the selected subtitle file is loading"
+    },
+    "keyboardShortcutsSubtitle": "Gyorsbillentyű az alkalmazáshoz, videólejátszóhoz és olvasóhoz",
+    "@keyboardShortcutsSubtitle": {
+        "description": "Subtitle of the About tile that opens the keyboard shortcut list"
+    },
+    "keyboardShortcutsPlayerHint": "A ? vagy F1 gomb lenyomásával megtekinteheted a listát a lejátszó elhagyása nélkül.",
+    "@keyboardShortcutsPlayerHint": {
+        "description": "Footnote on the keyboard shortcuts settings screen"
+    },
+    "keyboardShortcutsSectionApp": "Mindenhol",
+    "@keyboardShortcutsSectionApp": {
+        "description": "Keyboard shortcut section for keys that work on every screen"
+    },
+    "keyboardShortcutsSectionAppScope": "Bármely oldalon",
+    "@keyboardShortcutsSectionAppScope": {
+        "description": "Under the Everywhere section title: when those keys apply"
+    },
+    "keyboardShortcutsSectionPlayer": "Videólejátszó",
+    "@keyboardShortcutsSectionPlayer": {
+        "description": "Keyboard shortcut section for the video player"
+    },
+    "keyboardShortcutsSectionPlayerScope": "Amikor egy videó megtekintés alatt áll vagy szüneteltetett",
+    "@keyboardShortcutsSectionPlayerScope": {
+        "description": "Under the Video player section title: when those keys apply"
+    },
+    "keyboardShortcutsSectionReader": "Könyv és képregény olvasó",
+    "@keyboardShortcutsSectionReader": {
+        "description": "Keyboard shortcut section for the ebook and comic reader"
+    },
+    "keyboardShortcutsSectionReaderScope": "Amikor olvasol egy könyvet vagy képregényt",
+    "@keyboardShortcutsSectionReaderScope": {
+        "description": "Under the reader section title: when those keys apply"
+    },
+    "keyNameArrowKeys": "Nyilak",
+    "@keyNameArrowKeys": {
+        "description": "Key cap label standing for the four arrow keys"
+    },
+    "keyNameSpace": "Szóköz",
+    "@keyNameSpace": {
+        "description": "Key cap label for the space bar"
+    },
+    "keyNameEnter": "Enter",
+    "@keyNameEnter": {
+        "description": "Key cap label for the Enter key"
+    },
+    "keyNameEsc": "Esc",
+    "@keyNameEsc": {
+        "description": "Key cap label for the Escape key"
+    },
+    "keyNameBackspace": "Backspace",
+    "@keyNameBackspace": {
+        "description": "Key cap label for the Backspace key"
+    },
+    "keyNamePageUp": "Page Up",
+    "@keyNamePageUp": {
+        "description": "Key cap label for the Page Up key"
+    },
+    "keyNamePageDown": "Page Down",
+    "@keyNamePageDown": {
+        "description": "Key cap label for the Page Down key"
+    },
+    "keyNameHome": "Home",
+    "@keyNameHome": {
+        "description": "Key cap label for the Home key"
+    },
+    "keyNameEnd": "End",
+    "@keyNameEnd": {
+        "description": "Key cap label for the End key"
+    },
+    "keyNameShift": "Shift",
+    "@keyNameShift": {
+        "description": "Key cap label for the Shift modifier"
+    },
+    "keyNameCtrl": "Ctrl",
+    "@keyNameCtrl": {
+        "description": "Key cap label for the Control modifier"
+    },
+    "keyNameAlt": "Alt",
+    "@keyNameAlt": {
+        "description": "Key cap label for the Alt modifier"
+    },
+    "keyNameScrollWheel": "Görgetés",
+    "@keyNameScrollWheel": {
+        "description": "Key cap label standing for the mouse scroll wheel"
+    },
+    "shortcutMoveFocus": "Elemek közötti mozgás",
+    "@shortcutMoveFocus": {
+        "description": "What the arrow keys do outside the player"
+    },
+    "shortcutActivate": "Kiválasztott elem megnyitása",
+    "@shortcutActivate": {
+        "description": "What Enter does outside the player"
+    },
+    "shortcutGoBack": "Visszalépés",
+    "@shortcutGoBack": {
+        "description": "What Esc and Backspace do outside the player"
+    },
+    "shortcutToggleFullscreen": "Teljesképernyő be- vagy kikapcsolása",
+    "@shortcutToggleFullscreen": {
+        "description": "F11 and Alt+Enter anywhere, F in the player"
+    },
+    "shortcutQuit": "Kilépés a Moonfinből",
+    "@shortcutQuit": {
+        "description": "What Ctrl+Q does on desktop"
+    },
+    "shortcutPlayPause": "Lejátszás vagy szüneteltetés",
+    "@shortcutPlayPause": {
+        "description": "Player shortcut action"
+    },
+    "shortcutShowControlsOrPlayPause": "Irányítópanel megjelenítése vagy lejátszás/szüneteltetés ha már látható",
+    "@shortcutShowControlsOrPlayPause": {
+        "description": "What Enter does in the player"
+    },
+    "shortcutVolumeUp": "Hangerő fel",
+    "@shortcutVolumeUp": {
+        "description": "Player shortcut action"
+    },
+    "shortcutVolumeDown": "Hangerő le",
+    "@shortcutVolumeDown": {
+        "description": "Player shortcut action"
+    },
+    "shortcutMute": "Némítás vagy némítás megszüntetése",
+    "@shortcutMute": {
+        "description": "Player shortcut action"
+    },
+    "shortcutToggleSubtitles": "Feliratok be- vagy kikapcsolása",
+    "@shortcutToggleSubtitles": {
+        "description": "Player shortcut action"
+    },
+    "shortcutSlower": "Lelassítás",
+    "@shortcutSlower": {
+        "description": "Player shortcut action"
+    },
+    "shortcutFaster": "Felgyorsítás",
+    "@shortcutFaster": {
+        "description": "Player shortcut action"
+    },
+    "shortcutPlaybackInfo": "Lejátszási információ megjelenítése",
+    "@shortcutPlaybackInfo": {
+        "description": "Player shortcut action"
+    },
+    "shortcutMpvStats": "mpv statisztikák be- vagy kikapcsolása",
+    "@shortcutMpvStats": {
+        "description": "Player shortcut action, Windows only"
+    },
+    "shortcutRecropBlackBars": "Fekete sávok eltüntetése",
+    "@shortcutRecropBlackBars": {
+        "description": "Player shortcut to run letterbox crop detection now"
+    },
+    "shortcutLeaveFullscreenOrStop": "Teljesképernyő kikapcsolása vagy megállítás, ha teljesképernyős mód aktív",
+    "@shortcutLeaveFullscreenOrStop": {
+        "description": "What Esc does in the player"
+    },
+    "shortcutStopPlayback": "Lejátszás megállítása",
+    "@shortcutStopPlayback": {
+        "description": "Player shortcut action"
+    },
+    "shortcutNextItem": "Következő elem",
+    "@shortcutNextItem": {
+        "description": "Player shortcut action for the next-track media key"
+    },
+    "shortcutPreviousItem": "Előző elem",
+    "@shortcutPreviousItem": {
+        "description": "Player shortcut action for the previous-track media key"
+    },
+    "shortcutShowShortcuts": "Mutasd ezt a listát",
+    "@shortcutShowShortcuts": {
+        "description": "What ? and F1 do in the player"
+    },
+    "shortcutNextPage": "Következő oldal",
+    "@shortcutNextPage": {
+        "description": "Reader shortcut action"
+    },
+    "shortcutPreviousPage": "Előző oldal",
+    "@shortcutPreviousPage": {
+        "description": "Reader shortcut action"
+    },
+    "shortcutScrollPage": "Oldal görgetése (ebookok esetén)",
+    "@shortcutScrollPage": {
+        "description": "What the up and down arrows do in the ebook reader"
+    },
+    "shortcutFirstPage": "Első oldal vagy fejezet kezdete",
+    "@shortcutFirstPage": {
+        "description": "Reader shortcut action"
+    },
+    "shortcutLastPage": "Utolsó oldal vagy fejezet vége",
+    "@shortcutLastPage": {
+        "description": "Reader shortcut action"
+    },
+    "shortcutZoom": "Be- vagy kizoomolás (képregények esetén)",
+    "@shortcutZoom": {
+        "description": "Reader shortcut action"
+    },
+    "shortcutResetZoom": "Zoom visszaállítása (képregények esetén)",
+    "@shortcutResetZoom": {
+        "description": "Reader shortcut action"
+    },
+    "hdrOutput": "HDR kimenet",
+    "@hdrOutput": {
+        "description": "Stream info label for whether HDR is reaching the display untouched"
+    },
+    "hdrOutputActive": "Aktív — {format}",
+    "@hdrOutputActive": {
+        "description": "Stream info value when HDR passthrough is running, e.g. 'Active — HDR10 (PQ, BT.2020)'",
+        "placeholders": {
+            "format": {
+                "type": "String"
+            }
+        }
+    },
+    "hdrOutputActiveTonemapped": "Aktív — SDR tónustérképezés ehhez a képernyőhöz",
+    "@hdrOutputActiveTonemapped": {
+        "description": "Stream info value when native output is engaged but the window sits on a display without HDR, so the renderer is tone-mapping"
+    },
+    "hdrOutputContentSdr": "Inaktív — a tartalom SDR formátumú",
+    "@hdrOutputContentSdr": {
+        "description": "Stream info value when the title itself is not HDR"
+    },
+    "hdrOutputDisabled": "Inaktív — kikapcsolva a beállításokban",
+    "@hdrOutputDisabled": {
+        "description": "Stream info value when the video renderer setting keeps video inside the app"
+    },
+    "hdrOutputFailed": "Inakítv — nem sikerült elindítani, a rendszer a hagyományos feldolgozási útvonalat használja",
+    "@hdrOutputFailed": {
+        "description": "Stream info value when the native HDR window could not be created"
+    },
+    "videoRenderer": "Videómegjelenítő",
+    "@videoRenderer": {
+        "description": "Settings label for choosing where Windows draws video, in its own window or inside the app"
+    },
+    "videoRendererDescription": "A natív ablak biztosítja a legfolyamatosabb mozgásmegjelenítést, és a HDR-tartalmat módosítás nélkül továbbítja a kijelzőre. Ha problémát tapasztalsz a videólejátszás során, próbálj ki egy másik beállítást.",
+    "@videoRendererDescription": {
+        "description": "Settings description for the video renderer choice"
+    },
+    "videoRendererNativeWindow": "Natív ablak (ajánlott)",
+    "@videoRendererNativeWindow": {
+        "description": "Video renderer option that plays every title in its own window"
+    },
+    "videoRendererNativeHdrOnly": "Natív ablak csak a HDR tartalmaknál",
+    "@videoRendererNativeHdrOnly": {
+        "description": "Video renderer option that uses its own window for HDR titles and the in-app renderer for SDR"
+    },
+    "videoRendererInApp": "Alkalmazásbeli (hagyományos)",
+    "@videoRendererInApp": {
+        "description": "Video renderer option that draws every title inside the app and converts HDR to SDR"
+    },
+    "guideRepeatBadge": "Ismétlés",
+    "@guideRepeatBadge": {
+        "description": "Short badge label shown on a rerun in the guide hero band"
+    },
+    "noProgramData": "Nincs műsoradat",
+    "@noProgramData": {
+        "description": "Guide cell label for a real EPG schedule gap, not a genre-filtered program"
+    },
+    "nextSeriesRecording": "A sorozat következő felvétele: {dateTime}",
+    "@nextSeriesRecording": {
+        "description": "Next scheduled recording for the current series, shown in the Live TV recording dialog",
+        "placeholders": {
+            "dateTime": {
+                "type": "String",
+                "example": "Oct 5, 2026 · 8:00 PM"
+            }
+        }
     }
 }

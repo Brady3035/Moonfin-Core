@@ -7189,8 +7189,8 @@
     "adminMediaAnalyticsLoadFailed": "Media-analyysin lataaminen epäonnistui",
     "analyticsCombinedAcrossLibraries": "Yhdistetty analytiikka kaikista mediakirjastoista.",
     "analyticsTopArtists": "Huippuartistit",
-    "analyticsTopAuthors": "Parhaat kirjoittajat",
-    "analyticsTopContributors": "Ahkerat kirjoittajat",
+    "analyticsTopAuthors": "Huippukirjoittajat",
+    "analyticsTopContributors": "Parhaat Avustajat",
     "analyticsLibrariesCount": "{count, plural, =1{1 kirjasto} other{{count} kirjastoa}}",
     "@analyticsLibrariesCount": {
         "placeholders": {

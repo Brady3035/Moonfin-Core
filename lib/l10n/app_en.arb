@@ -4459,9 +4459,9 @@
   "@fit": {
     "description": "Zoom mode: fit"
   },
-  "autoCrop": "Auto Crop",
+  "autoCrop": "Zoom to Fill",
   "@autoCrop": {
-    "description": "Zoom mode: auto crop"
+    "description": "Zoom mode: scales the video to fill the screen and cuts off the edges. It doesn't detect or remove black bars."
   },
   "cropBlackBars": "Crop Black Bars",
   "@cropBlackBars": {
@@ -10034,7 +10034,7 @@
   "settingsDoNothing": "Do Nothing",
   "settingsMaxBitrateDescription": "Cap the streaming bitrate. Content above this threshold will be transcoded to fit.",
   "settingsMaxResolutionDescription": "Limit the maximum resolution the player will request. Higher-resolution content will be transcoded down.",
-  "settingsPlayerZoomDescription": "How video should be scaled to fit the screen.",
+  "settingsPlayerZoomDescription": "How video is scaled to the screen. Zoom to Fill enlarges the picture until it fills the screen and cuts off the edges. It doesn't detect black bars.",
   "settingsPlaybackEngineAndroidTv": "Playback Engine (Android TV)",
   "settingsPlaybackEngineAndroidTvDescription": "Choose the default playback engine on Android TV devices. Changes apply to the next playback session.",
   "settingsPlaybackEngineMedia3Recommended": "Media3 (recommended)",
@@ -13234,6 +13234,43 @@
   "playerSettingsSubtitle": "Controls, seeking, player buttons, and trick play",
   "@playerSettingsSubtitle": {
     "description": "Subtitle for the Player entry on the Playback settings screen"
+  },
+  "playlistSortReleaseDate": "Release Date",
+  "@playlistSortReleaseDate": {
+    "description": "Label for sorting playlist items by release date"
+  },
+  "playlistSortCriticRating": "Critic Rating",
+  "@playlistSortCriticRating": {
+    "description": "Label for sorting playlist items by critic rating"
+  },
+  "playlistSortRuntime": "Runtime",
+  "@playlistSortRuntime": {
+    "description": "Label for sorting playlist items by runtime"
+  },
+  "playlistSortLastPlayed": "Last Played",
+  "@playlistSortLastPlayed": {
+    "description": "Label for sorting playlist items by last played date"
+  },
+  "playlistSortPlayCount": "Play Count",
+  "@playlistSortPlayCount": {
+    "description": "Label for sorting playlist items by play count"
+  },
+  "playlistSortRandom": "Random",
+  "@playlistSortRandom": {
+    "description": "Label for sorting playlist items randomly"
+  },
+  "playlistFilterActiveCount": "{count, plural, =1{1 active} other{{count} active}}",
+  "@playlistFilterActiveCount": {
+    "description": "Indicator of how many filters are currently active on a playlist",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playlistNoMatchingTracks": "No tracks match the active filters",
+  "@playlistNoMatchingTracks": {
+    "description": "Empty state message shown when playlist filters match no items"
   },
   "siloPasswordChangeTitle": "Choose a new password",
   "@siloPasswordChangeTitle": {

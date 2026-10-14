@@ -417,7 +417,7 @@ Silo sends `cast` (`CastCredit`: `name`, `character`, `order`, `person_id`, `pho
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 5.6 |
+| ☑ Done | `326105b` | 5.6 |
 
 **Goal.** User libraries to `CollectionFolder` with `CollectionType` (movies, tvshows, books, mixed).
 
@@ -476,6 +476,7 @@ Audiobooks keep their own type, as on Emby, rather than `books` as the design no
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | library mapper tests 14/14; `server_silo` 229/229; analyzer: no issues |
+| 2026-10-14 | macOS | `4b2e921c` | Pass | full `flutter test` before committing |
 | | | | | |
 
 ---
@@ -485,32 +486,99 @@ Audiobooks keep their own type, as on Emby, rather than `books` as the design no
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 5.7 |
 
 **Goal.** One MediaSource per file version. Build Jellyfin's single stream index space and store the map `index → {kind, ordinal, track_id}` (subtitles keep the container index; video then audio take the lowest free indices). HDR/DV range types.
 
 **Where in Moonfin**
 
-- `silo_media_source_mapper.dart`
+- `packages/server_silo/lib/src/mappers/silo_media_source_mapper.dart` (new)
+- `packages/server_silo/lib/src/mappers/silo_languages.dart` (new): English language names for stream titles.
+- `packages/server_silo/lib/src/mappers/silo_item_mapper.dart`: items get `MediaSources` and `MediaStreams`.
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+Silo describes each file of a movie or episode as a **version** (`FileVersion`): `file_id`, container, size, bitrate in kbps, duration in seconds, and its `video_tracks`, `audio_tracks` and `subtitle_tracks`. Item details and `/watch` answers carry the full versions. Season lists carry a lightweight `files[]` per episode. Moonfin reads Jellyfin's `MediaSources`, each with `MediaStreams`.
+
+**Sources.** `siloItemMediaSources(item)` makes one `MediaSource` per version:
+
+| Jellyfin | From | Notes |
+|---|---|---|
+| `Id` | `file_id` | What Moonfin sends back as `mediaSourceId`. |
+| `ItemId` | the item's id | |
+| `Name` | file name without extension | What Emby and Jellyfin show in the version picker. Without a file name: edition and quality ("Extended 2160p HEVC DOVI"). |
+| `Path` | `file_path` | Only for viewers Silo shows paths to. |
+| `Container`, `Size` | `container`, `file_size` | |
+| `Bitrate` | `bitrate` × 1000 | Silo sends kbps. |
+| `RunTimeTicks` | `duration` or `duration_seconds` | Detail and `/watch` name it differently. |
+| `Type` | — | `Default` for the first, `Grouping` for the rest, as on Emby. |
+| `SupportsDirectPlay/DirectStream/Transcoding` | — | All true: Silo decides delivery when playback starts (phase 7). |
+| `DefaultAudioStreamIndex` | `effective_audio_track_index` | Else the track flagged default, else the first. |
+| `DefaultSubtitleStreamIndex` | the subtitle flagged default | Absent when none is. |
+
+The **default version comes first**: the first playback variant's `default_file_id`, which is what Silo's own player picks (the 4K file of The Salt Path). The item also gets the default version's streams as its own `MediaStreams`, as Jellyfin sends them. Series and items without files get neither field.
+
+**One index space.** Jellyfin numbers all of a file's streams in one list. Moonfin's track pickers and players work in that number. Silo numbers each kind on its own, and only subtitles carry the container index (`index` 2, 3…). So:
+
+1. Subtitles keep Silo's `index`.
+2. Video tracks, then audio tracks, take the lowest indices left (xXx: video 0, audio 1, subtitles 2 and 3).
+3. A subtitle with no index, or one already used, takes the next free index after them.
+
+Within each kind the order is Silo's, so the player's per-kind track numbers stay right. Emby numbers in container order (xXx has audio 0, video 1), so the golden tests compare streams by type, not by index.
+
+**Track map.** Each source keeps under `_siloTracks` which Silo track every index stands for: kind, ordinal within its kind, and a subtitle's container index. `siloTrackForStreamIndex(source, index)` gives it back, and `siloStreamIndexForTrack(source, kind, ordinal)` goes the other way. The resolver (phase 7) uses these to send `audio_track_index` and the subtitle ordinal, and to read back `selected_tracks`. The plan's `file:<id>:subtitle:<n>` ids are built there from the ordinal.
+
+**Streams.**
+
+- **Video:** codec, profile, level, size, aspect ratio, interlacing, frame rate (also `24000/1001` fractions), bit depth, pixel format, colour fields, Dolby Vision profile, level and compatibility, and bitrate (the file's when the track has none).
+- **Audio:** codec, profile, language, channels, `ChannelLayout` ("5.1(side)" → "5.1"; from the channel count without a layout), bitrate, sample rate.
+- **Subtitles:** codec, language, forced, hearing-impaired, default, external. `IsTextSubtitleStream` and `SupportsExternalStream` are false for image codecs (PGS, DVD, DVB).
+- **Titles:** `Title` is the track's own embedded title only. Silo's `title` falls back to ffprobe's codec name ("DCA (DTS Coherent Acoustics)") or the subtitle file name, which Emby doesn't show either.
+- **Display titles:** `DisplayTitle` follows Emby, so the pickers read the same: "English DTS 5.1 (Default)", "English (Forced SRT)", "English (SDH PGSSUB)", "4K HDR10 HEVC". A subtitle title that only repeats the language ("English (CC)") is left out, as Emby does. Language names come from a small table of common languages; other codes show in upper case.
+- **Delivery:** `DeliveryMethod` and `DeliveryUrl` are not set here. They come from the playback plan (phase 7).
+
+**HDR.** `VideoRangeType` uses Jellyfin's names (`SDR`, `HDR10`, `HDR10Plus`, `HLG`, `DOVI`, `DOVIWithHDR10`…), which Moonfin's HDR badge reads. Silo usually sends `video_range_type`; it is matched without regard to case or separators (`hdr10_plus`, `HDR10+`). Without it, the type is worked out as Jellyfin does:
+
+1. Dolby Vision from its profile and base-layer compatibility (1 or 6 → with HDR10, 2 → with SDR, 4 → with HLG).
+2. Otherwise `hdr10_plus` gives HDR10+.
+3. Otherwise the transfer function: PQ (`smpte2084`) is HDR10, `arib-std-b67` is HLG, anything else SDR.
+
+`VideoRange` is Silo's `video_range`, or `SDR`/`HDR` from the type.
+
+**Season list files.** A lightweight file has a resolution, codec, HDR flag and audio channel count. It becomes a source with a video stream at the resolution's nominal 16:9 size (1080p → 1920×1080, what the resolution badge reads) and an audio stream with its channels. Its track map is empty, so playback loads the full version first.
+
+**Known limits.**
+
+- Multi-part (`presentation_part_*`) and multi-episode files are listed as ordinary single sources for now. The fields stay in the version kept under `_silo`.
+- Emby marks a subtitle titled "SDH" as hearing-impaired; Silo marks it only if the file says so. The mapper keeps Silo's flag.
+- Languages stay as Silo sends them (`en`, `ro`). Moonfin's language matching already accepts two- and three-letter codes.
 
 ### Testing
 
-**Automated tests**
+**Automated tests** (`packages/server_silo/test/silo_media_source_mapper_test.dart`, new, 28 tests)
 
-- assert by type and ordinal (Emby orders audio first, so a straight golden diff can't work)
+- Golden against **Brady's Emby server**, xXx:
+  - name, path, size, container and flags are identical; bitrate and run time match to Silo's whole kbps and seconds;
+  - video, audio and subtitle streams match field by field, including Emby's display titles;
+  - indices are video 0, audio 1, subtitles 2 and 3, and the default audio index points at the audio stream;
+  - the track map goes both ways.
+- Golden, The Salt Path (two versions): the 4K default comes first. Each version matches the same file on Emby (Emby has a third WEB-DL file). HDR10 on 4K, SDR on 1080p; PGS is an image subtitle.
+- Golden, Young Justice 1x01: from `/watch`, the same indices and streams as Emby. From the season list, the badge fields match Emby's (1920×1080, HEVC).
+- Index space: gaps around subtitle indices; missing or repeated subtitle indices; default audio and subtitle rules.
+- Video range: Silo's spellings, derivation (DV with HDR10 or HLG, HDR10+, PQ, HLG, SDR), frame-rate fractions.
+- Labels: channel layouts, audio titles, language names, version names without a file name.
+- Items: a series and an item without versions get no `MediaSources`.
+- `server_silo`: 257/257.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+- Nothing to check by hand until 6.6 shows the detail page (version picker, quality badges, audio and subtitle lists) and phase 7 plays. Regression: full `flutter test`.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | media source tests 28/28; `server_silo` 257/257; analyzer: no issues |
 | | | | | |
 
 ---

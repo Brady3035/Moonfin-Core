@@ -146,6 +146,7 @@ _Fill in when the step is built: what the code does, the main classes and why it
 
 - From 3.5: with Moonfin open on a library, sign its session out from Silo's sessions page, then open another library. Expected: Moonfin returns to the login screen with your name filled in.
 - From 2.7: hide a library and reorder libraries in Moonfin's library settings; Silo's web app shows the same (`ui.disabled_library_ids`, `ui.library_order`). This needs the view `Id` to be Silo's library id.
+- From 4.3: with Silo and Emby signed in, a Silo film's detail screen and context menu have no Add to playlist; an Emby film's still do.
 - Compare with Emby: The library list and order match what Emby shows for the same libraries.
 
 **Results**

@@ -80,7 +80,7 @@ Setup: sign out of Emby so only Silo is signed in (or use a fresh install signed
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 4.1 |
+| ☑ Done | `d4cfe27` | 4.1 |
 
 **Goal.** Music libraries, artist/album rows, instant mix actions, lyrics.
 
@@ -138,6 +138,7 @@ Setup: only Silo signed in.
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | helper tests 8/8; with `test/preference` and `test/ui/widgets/bottom_nav`: 165/165; analyzer: no new issues |
+| 2026-10-14 | macOS | `4b2e921c` | Pass | Brady tested before committing. The music rows' type filter is checked in 5.1 |
 | | | | | |
 
 ---
@@ -147,33 +148,56 @@ Setup: only Silo signed in.
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 4.2 |
 
 **Goal.** "Add to playlist", playlist rows and screens via `supportsPlaylists`.
 
 **Where in Moonfin**
 
+- `lib/util/signed_in_server_features.dart`
 - `lib/ui/widgets/focus/context_action.dart`
-- `row_data_source.dart`
+- `lib/ui/screens/detail/detail_buttons.dart`
+- `lib/ui/screens/detail/item_detail_screen.dart`
+- `lib/ui/screens/settings/home_row_toggles_screen.dart`, `home_sections_screen.dart`, `home_rows_image_type_screen.dart`
+- `lib/ui/screens/settings/panel/settings_search_index.dart`
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+Unlike Live TV and music, playlists have an entry point on items Silo **does** have: "Add to playlist" sits on every film and episode, in the detail screen's buttons and in the item context menu. On a Silo item it would open the playlist dialog against Silo, which has no playlists. So this step gates per item as well as in settings.
+
+**Per item.** `itemServerSupports(serverId, feature)` (new, in the helper file) asks `FeatureDetector` about the server an item came from. It picks that server the same way the item's actions do (`MediaServerClientFactory.clientForServerOrActive`: the item's loaded server, else the active one), so it agrees with the server the dialog would have talked to. With nothing set up it answers true.
+- Context menu: "Add to playlist" is left out for an item whose server has no playlists.
+- Detail screen: the Add to playlist button likewise. With Silo and Emby signed in, an Emby film keeps the button and a Silo film doesn't.
+
+**Settings**, when no signed-in server has playlists (`playlistsOnAnySignedInServer()`):
+- Detail buttons: Add to playlist isn't offered (`DetailButton.isOffered`, which the detail screen also reads).
+- Home rows: the Playlists group ("Display playlists rows" and its sorting).
+- Home sections and Home rows image type: the Playlists section (Audio playlists went with music in 4.2).
+- Settings search: "Display playlists rows".
+
+**Already hidden by data:** playlist screens open only from a playlist, and Silo has none. The album and track "Add to playlist" actions belong to music. Playlist rows, like music rows, rely on Silo's items translation answering a `Playlist`-only query with nothing; that check is in 5.1's test plan. The Android media browser (car / Android Auto) is a music tree with its own Playlists tab; it catches failures and is listed in 17.5's deferred checks.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `test/util/signed_in_server_features_test.dart`: new group for `itemServerSupports` (3 tests): a Silo item has no playlists and an Emby item does; an unknown or missing server falls back to the active one; with no client set up nothing is hidden. 11/11.
+- Existing tests that cover the context menu, detail buttons and detail screen, plus `test/preference` and `test/ui/widgets/bottom_nav`: 289/289.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+Setup: only Silo signed in. (Silo items don't load until phase 6, so the per-item checks use Emby plus Silo.)
+
+1. **Settings:** Detail buttons doesn't offer Add to playlist. Home rows has no Playlists group. Home sections and Home rows image type have no Playlists. Searching settings for "playlists rows" finds nothing.
+2. **Compare with Emby:** sign in to Emby as well. All of the above come back; an Emby film's detail screen and context menu offer Add to playlist, and adding to a playlist works as before.
+3. Regression: full `flutter test`.
+4. Deferred to 6.4 (needs Silo items): with Silo and Emby signed in, a Silo film's detail screen and context menu have no Add to playlist.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | helper tests 11/11; detail, context menu, preference and bottom-nav tests 289/289; analyzer: no new issues |
 | | | | | |
 
 ---

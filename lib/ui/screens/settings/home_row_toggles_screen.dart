@@ -302,6 +302,7 @@ class _HomeRowTogglesScreenState extends State<HomeRowTogglesScreen> {
     final showAudioRows = _prefs.get(UserPreferences.displayAudioRows);
     // Not offered when no signed-in server has music (all Silo, say).
     final musicOnAnyServer = musicOnAnySignedInServer();
+    final playlistsOnAnyServer = playlistsOnAnySignedInServer();
     final showSinceYouWatchedRows = _prefs.get(UserPreferences.displaySinceYouWatchedRows);
     final sinceYouWatchedSource = _prefs.get(UserPreferences.sinceYouWatchedSource);
     final showRewatchRow = _prefs.get(UserPreferences.displayRewatchRow);
@@ -540,45 +541,47 @@ class _HomeRowTogglesScreenState extends State<HomeRowTogglesScreen> {
                 ],
               ),
 
-              _SectionHeader(l10n.playlists),
-              adaptiveListSection(
-                children: [
-                  SwitchPreferenceTile(
-                    preference: UserPreferences.displayPlaylistsRows,
-                    title: l10n.displayPlaylistsRows,
-                    subtitle: l10n.displayPlaylistsRowsSubtitle,
-                    icon: Icons.playlist_play,
-                    onChanged: _onPlaylistsRowsToggleChanged,
-                  ),
-                  if (showPlaylistsRows) ...[
-                    EnumPreferenceTile<LibrarySortBy>(
-                      preference: UserPreferences.playlistsRowSortBy,
-                      title: l10n.playlistsRowSorting,
-                      description: l10n.playlistsRowSortingDescription,
-                      icon: Icons.sort,
-                      labelOf: (v) => librarySortLabel(v, l10n),
-                      onChanged: _onPlaylistsSortChanged,
-                    ),
-                    EnumPreferenceTile<SortDirection>(
-                      preference: UserPreferences.playlistsRowSortOrder,
-                      title: l10n.sortOrder,
-                      description: l10n.playlistsRowSortOrderDescription,
-                      icon: Icons.swap_vert,
-                      labelOf: (v) => v == SortDirection.ascending
-                          ? l10n.ascending
-                          : l10n.descending,
-                      onChanged: _onPlaylistsSortChanged,
-                    ),
+              if (playlistsOnAnyServer) ...[
+                _SectionHeader(l10n.playlists),
+                adaptiveListSection(
+                  children: [
                     SwitchPreferenceTile(
-                      preference: UserPreferences.playlistsRowShowEpisodes,
-                      title: l10n.playlistsRowShowEpisodes,
-                      subtitle: l10n.playlistsRowShowEpisodesSubtitle,
-                      icon: Icons.video_library_outlined,
-                      onChanged: _onPlaylistsEpisodesChanged,
+                      preference: UserPreferences.displayPlaylistsRows,
+                      title: l10n.displayPlaylistsRows,
+                      subtitle: l10n.displayPlaylistsRowsSubtitle,
+                      icon: Icons.playlist_play,
+                      onChanged: _onPlaylistsRowsToggleChanged,
                     ),
+                    if (showPlaylistsRows) ...[
+                      EnumPreferenceTile<LibrarySortBy>(
+                        preference: UserPreferences.playlistsRowSortBy,
+                        title: l10n.playlistsRowSorting,
+                        description: l10n.playlistsRowSortingDescription,
+                        icon: Icons.sort,
+                        labelOf: (v) => librarySortLabel(v, l10n),
+                        onChanged: _onPlaylistsSortChanged,
+                      ),
+                      EnumPreferenceTile<SortDirection>(
+                        preference: UserPreferences.playlistsRowSortOrder,
+                        title: l10n.sortOrder,
+                        description: l10n.playlistsRowSortOrderDescription,
+                        icon: Icons.swap_vert,
+                        labelOf: (v) => v == SortDirection.ascending
+                            ? l10n.ascending
+                            : l10n.descending,
+                        onChanged: _onPlaylistsSortChanged,
+                      ),
+                      SwitchPreferenceTile(
+                        preference: UserPreferences.playlistsRowShowEpisodes,
+                        title: l10n.playlistsRowShowEpisodes,
+                        subtitle: l10n.playlistsRowShowEpisodesSubtitle,
+                        icon: Icons.video_library_outlined,
+                        onChanged: _onPlaylistsEpisodesChanged,
+                      ),
+                    ],
                   ],
-                ],
-              ),
+                ),
+              ],
 
               _SectionHeader('REWATCH'),
               adaptiveListSection(

@@ -1,10 +1,14 @@
 /// Moonfin's sort fields (Jellyfin `ItemSortBy`) and Silo's `sort` values.
 ///
-/// Silo sorts by one term, `field` or `-field` for descending. The fields
-/// its contract names are `title`, `year`, `release_date`, `added_at`,
-/// `rating`, `runtime` and `random`; those are mapped, and `date_viewed`
-/// (when the profile last watched it, Silo's per-profile sort) for
-/// Moonfin's `DatePlayed`. A Moonfin field
+/// Silo sorts by one term, `field` or `-field` for descending. Mapped:
+/// `title`, `year`, `release_date`, `added_at`, `rating`, `runtime`, and
+/// `date_viewed` (when the profile last watched it, Silo's per-profile
+/// sort) for Moonfin's `DatePlayed`.
+///
+/// Silo's contract also names `random`, but the catalog refuses it
+/// (`sort.field "random" is not supported`: random order exists only as a
+/// home section, "Surprise Me"). So `Random` maps to nothing here and the
+/// items API shuffles instead ([siloWantsRandom], found at 8.6). A Moonfin field
 /// with no Silo equivalent maps to nothing, and the request then leaves
 /// `sort` out so Silo applies the list's saved or default order, rather than
 /// risk an error for a field Silo doesn't know.
@@ -22,7 +26,6 @@ const Map<String, String> siloSortFields = {
   'datelastcontentadded': 'added_at',
   'communityrating': 'rating',
   'runtime': 'runtime',
-  'random': 'random',
   // Per profile: the title's last watch (5.13 follow-up, for Home's
   // recently watched rows).
   'dateplayed': 'date_viewed',
@@ -36,14 +39,13 @@ const Map<String, String> siloSortFields = {
 /// Silo equivalent the answer is null rather than the next term: an episode
 /// list asked for in `ParentIndexNumber,IndexNumber,SortName` order must
 /// keep Silo's natural episode order, not be sorted by title. `Descending`
-/// (the first of [sortOrder]'s terms) gives `-field`; `random` has no
-/// direction.
+/// (the first of [sortOrder]'s terms) gives `-field`. `Random` gives null
+/// ([siloWantsRandom]).
 String? siloSortFor({String? sortBy, String? sortOrder}) {
   final first = _firstTerm(sortBy);
   if (first == null) return null;
   final field = siloSortFields[first.toLowerCase()];
   if (field == null) return null;
-  if (field == 'random') return field;
   final descending = _firstTerm(sortOrder)?.toLowerCase() == 'descending';
   return descending ? '-$field' : field;
 }
@@ -71,6 +73,11 @@ const _jellyfinNames = {
   'random': 'Random',
   'date_viewed': 'DatePlayed',
 };
+
+/// Whether [sortBy]'s first term asks for a random order, which Silo's
+/// catalog can't sort by: the caller leaves `sort` out and shuffles.
+bool siloWantsRandom(String? sortBy) =>
+    _firstTerm(sortBy)?.toLowerCase() == 'random';
 
 String? _firstTerm(String? list) {
   if (list == null) return null;

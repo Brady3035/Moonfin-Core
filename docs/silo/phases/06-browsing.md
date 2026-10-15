@@ -387,7 +387,7 @@ Each item is mapped (phase 5) and its artwork registered, and the answer is Jell
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | 6.5 |
+| ☑ Done | `07d2f90` | 6.5 |
 
 **Goal.** Item detail with its versions in one call when available.
 
@@ -456,7 +456,7 @@ Each item is mapped (phase 5) and its artwork registered, and the answer is Jell
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | 6.6 |
+| ☑ Done | `213a996` | 6.6 |
 
 **Goal.** Series detail and `getSeasons`.
 
@@ -518,7 +518,7 @@ Each item is mapped (phase 5) and its artwork registered, and the answer is Jell
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | 6.7 |
+| ☑ Done | `4f2806d` | 6.7 |
 
 **Goal.** `getEpisodes(seasonId)` via `/catalog/items/{season_id}/episodes`; whole-series episodes when no season is given.
 
@@ -579,7 +579,7 @@ Episode entries carry no type and no series fields, so they are mapped as episod
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | 6.8 |
+| ☑ Done | `da66372` | 6.8 |
 
 **Goal.** Synthesise episode → season → series → library for breadcrumbs and back navigation.
 
@@ -634,7 +634,7 @@ Collections an item is in are added by 6.15.
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | 6.9 |
+| ☑ Done | `dedbfe9`, fix `31fa7c9` | 6.9 |
 
 **Goal.** `getQueryFilters` and genre, year and rating filters in `getItems`.
 
@@ -720,7 +720,7 @@ The groups are part of the query's cursor signature (5.12), so changing a filter
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | 6.10 |
+| ☑ Done | `d1c9e5d`, fix `506efa5` | 6.10 |
 
 **Goal.** Letter index and `nameStartsWith` through the new letters endpoint.
 
@@ -785,7 +785,7 @@ The groups are part of the query's cursor signature (5.12), so changing a filter
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | 6.11 |
+| ☑ Done | `0d42300` | 6.11 |
 
 **Goal.** Genre list as synthetic Genre items, and the genre's items.
 
@@ -834,7 +834,7 @@ Silo names genres but gives them no id, count or artwork. Moonfin opens a genre 
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | 6.12 |
+| ☑ Done | `1f1d297` | 6.12 |
 
 **Goal.** Same pattern as genres.
 
@@ -881,7 +881,7 @@ Same pattern as genres (6.12), with `silo-studio:<name>` ids and `Studio` items.
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | 6.13 |
+| ☑ Done | `c19b423` | 6.13 |
 
 **Goal.** Person detail and filmography.
 
@@ -944,7 +944,7 @@ Same pattern as genres (6.12), with `silo-studio:<name>` ids and `Studio` items.
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | 6.14 |
+| ☑ Done | `f937fed` | 6.14 |
 
 **Goal.** Personal and library collections as BoxSets, and their items.
 
@@ -1022,7 +1022,7 @@ Creating and changing personal collections is 9.5.
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | 6.15 |
+| ☑ Done | `a3551a5` | 6.15 |
 
 **Goal.** "More like this".
 
@@ -1065,7 +1065,7 @@ Creating and changing personal collections is 9.5.
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | 6.16 |
+| ☑ Done | `4b041cb`, fix `3ae4608` | 6.16 |
 
 **Goal.** Local trailers and special features from the item's extras.
 
@@ -1136,7 +1136,7 @@ An extra's `content_id` plays through Silo's usual watch flow, so playing one co
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | 6.17 |
+| ☑ Done | `acd3fbd` | 6.17 |
 
 **Goal.** `getPlaybackInfo` built from the versions mapping. It must never call `/playback/start`.
 
@@ -1191,7 +1191,7 @@ The rest of `PlaybackApi` (start, progress, stop, stream URLs) throws `SiloNotIm
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 6.18 |
+| ☑ Done | `65ec4f8` | 6.18 |
 
 **Goal.** Per-library view settings, stored as decided in DECISIONS.md D3.
 

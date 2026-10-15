@@ -63,6 +63,11 @@ class SiloItemsApi implements ItemsApi, LetterPositionApi {
   ///   languages) → Silo rule `groups` (6.10, `siloRuleGroups`). Silo has no
   ///   rule for the series status, so that filter reads the whole list once
   ///   and pages it here (`_clientFiltered`).
+  /// - `searchTerm` → `q` (7.1), ranked by Silo's relevance unless a sort is
+  ///   asked for. A search first reads [searchCapabilities]: none is sent
+  ///   when Silo says search isn't available to this profile, and the
+  ///   movies-series-episodes scope is used only when Silo offers it
+  ///   ([siloSearchScopeFor]).
   @override
   Future<Map<String, dynamic>> getItems({
     bool? serverWide,
@@ -151,7 +156,20 @@ class SiloItemsApi implements ItemsApi, LetterPositionApi {
 
     final types = siloTypesForQuery(includeItemTypes: includeItemTypes);
     if (types != null && types.isEmpty) return _empty(startIndex);
-    final scope = types == null ? null : siloCatalogScopeFor(types);
+
+    // A search (7.1): only when Silo lets this profile search, and with the
+    // scopes it says it has.
+    final searchText = _searchTextOf(searchTerm);
+    SiloSearchCapabilities? search;
+    if (searchText != null) {
+      search = await searchCapabilities();
+      if (!search.canSearch) return _empty(startIndex);
+    }
+    final scope = search != null
+        ? siloSearchScopeFor(types, withEpisodes: search.videoWithEpisodes)
+        : types == null
+        ? null
+        : siloCatalogScopeFor(types);
 
     final groups = siloRuleGroups(
       genres: [...?genres, ?genreParent],
@@ -184,6 +202,7 @@ class SiloItemsApi implements ItemsApi, LetterPositionApi {
         'library_id': ?collection.libraryId,
       },
       'library_id': ?libraryId,
+      'q': ?searchText,
       'type': ?scope,
       'sort': ?siloSortFor(sortBy: sortBy, sortOrder: sortOrder),
       if (groups.isNotEmpty) 'groups': jsonEncode(groups),
@@ -200,9 +219,10 @@ class SiloItemsApi implements ItemsApi, LetterPositionApi {
       if (!siloMatchesSeriesStatus(item, seriesStatus ?? const [])) {
         return false;
       }
-      // With no single Silo scope for the asked types, Silo is asked for
-      // everything and the rest are dropped here.
-      if (types != null && scope == null) return types.contains(silo);
+      // A scope can be wider than the asked types (no single scope for
+      // them, or a search's movies-series-episodes scope), so what wasn't
+      // asked for is dropped here.
+      if (types != null) return types.contains(silo);
       return siloSupportedTypes.contains(silo);
     }
 
@@ -212,6 +232,7 @@ class SiloItemsApi implements ItemsApi, LetterPositionApi {
       plainCatalog:
           personId == null &&
           collection == null &&
+          searchText == null &&
           params['name_prefix'] == null &&
           (seriesStatus == null || seriesStatus.isEmpty),
       libraryId: libraryId,
@@ -1134,6 +1155,53 @@ class SiloItemsApi implements ItemsApi, LetterPositionApi {
     return siloExtrasOf(detail, trailers: trailers, ownerId: itemId);
   }
 
+  // --- search (7.1) -------------------------------------------------------
+
+  /// The search text of a `searchTerm`, or null for none (blank).
+  static String? _searchTextOf(String? searchTerm) {
+    final text = searchTerm?.trim();
+    return text == null || text.isEmpty ? null : text;
+  }
+
+  static const _searchCapabilitiesTtl = Duration(minutes: 10);
+  ({DateTime at, Future<SiloSearchCapabilities> read})? _searchCapabilities;
+
+  /// What Silo says about search for this profile
+  /// (`GET /catalog/search/capabilities`, step 7.1), read once and kept for
+  /// [_searchCapabilitiesTtl].
+  ///
+  /// When the document can't be read (an error, an older server), searches
+  /// go ahead without the optional scopes ([SiloSearchCapabilities.unknown])
+  /// and it is read again next time.
+  Future<SiloSearchCapabilities> searchCapabilities() async {
+    final now = DateTime.now();
+    var entry = _searchCapabilities;
+    if (entry == null || now.difference(entry.at) > _searchCapabilitiesTtl) {
+      entry = (at: now, read: _readSearchCapabilities());
+      _searchCapabilities = entry;
+    }
+    try {
+      return await entry.read;
+    } catch (_) {
+      if (identical(_searchCapabilities, entry)) _searchCapabilities = null;
+      return SiloSearchCapabilities.unknown;
+    }
+  }
+
+  Future<SiloSearchCapabilities> _readSearchCapabilities() async {
+    final response = await _dio.get<dynamic>(
+      '/api/v2/catalog/search/capabilities',
+    );
+    final json = asJsonMap(response.data);
+    if (json == null) {
+      throw FormatException(
+        'Expected search capabilities from Silo, got '
+        '${response.data.runtimeType}',
+      );
+    }
+    return SiloSearchCapabilities.fromJson(json);
+  }
+
   // --- what Silo doesn't have ---------------------------------------------
 
   static const _emptyList = <String, dynamic>{
@@ -1257,4 +1325,59 @@ class SiloLetterIndex {
     }
     return null;
   }
+}
+
+/// What Silo's `GET /catalog/search/capabilities` says (step 7.1).
+class SiloSearchCapabilities {
+  const SiloSearchCapabilities({
+    required this.state,
+    required this.allowed,
+    this.videoWithEpisodes = false,
+    this.peopleMediaScope = false,
+    this.provider,
+    this.resultWindowLimit,
+  });
+
+  factory SiloSearchCapabilities.fromJson(Map<String, dynamic> json) {
+    final window = json['result_window_limit'];
+    final provider = json['provider'];
+    return SiloSearchCapabilities(
+      state: json['state'] is String ? json['state'] as String : '',
+      allowed: json['allowed'] == true,
+      videoWithEpisodes: json['video_with_episodes_scope'] == true,
+      peopleMediaScope: json['people_media_scope'] == true,
+      provider: provider is String ? provider : null,
+      resultWindowLimit: window is num ? window.toInt() : null,
+    );
+  }
+
+  /// Assumed when the document can't be read: search is tried, with no
+  /// optional scope.
+  static const unknown = SiloSearchCapabilities(
+    state: 'available',
+    allowed: true,
+  );
+
+  /// `available`, `disabled`, `not_configured` or `unsupported`.
+  final String state;
+
+  /// Whether this profile may search.
+  final bool allowed;
+
+  /// `type=video_with_episodes` on catalog searches (movies, series and
+  /// episodes in one ranked list), and as the people search's
+  /// `media_scope`.
+  final bool videoWithEpisodes;
+
+  /// People search takes `media_scope` (7.2).
+  final bool peopleMediaScope;
+
+  /// `postgres` or `meilisearch`.
+  final String? provider;
+
+  /// How far a Meilisearch result can be paged; null for PostgreSQL.
+  final int? resultWindowLimit;
+
+  /// Whether to send searches at all.
+  bool get canSearch => allowed && state == 'available';
 }

@@ -48,7 +48,7 @@ Docs only. `docs/silo/README.md` explains the approach and workflow, `ROADMAP.md
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | `81085c4` | 0.1 |
+| ☑ Done | `81085c4`, refresh — | 0.1 |
 
 **Goal.** Replace the `4e371f4c` OpenAPI snapshot with the one from the server you run, and record the version, `api_major` and `contract_digest`.
 
@@ -59,7 +59,7 @@ Docs only. `docs/silo/README.md` explains the approach and workflow, `ROADMAP.md
 
 **Where in Moonfin**
 
-- `packages/server_silo/test/fixtures/openapi-4b2e921c.json.gz`
+- `packages/server_silo/test/fixtures/openapi-4b2e921c.json.gz` (replaced by `openapi-bd9d59ea.json.gz` on 2026-10-15)
 - `packages/server_silo/test/fixtures/README.md`
 
 **Earlier work to port:** stash `Add_silo` fixtures README (rewritten for the new build; the old `4e371f4c` snapshot is not carried over)
@@ -87,6 +87,19 @@ The Silo contract Moonfin builds against is now the exact OpenAPI document serve
 | Personal collections drop `allowed_profile_ids`, add `contains`, `sync_cadence`, `poster_is_collage` | Step 9.5: `contains_item` can show "already in collection". |
 | New `POST /downloads/{id}/prepare`, `DownloadCapability.prepare_again` | Step 15.3. |
 
+**Refresh to `bd9d59ea` (2026-10-15, commit `silo(0.2): Pin contract bd9d59ea`).** The test server moved to build `bd9d59ea` during phase 7. `SILO_URL=https://silo.snowystreams.com scripts/silo_probe.sh --public --contract` wrote `openapi-bd9d59ea.json.gz` (digest `450e5c74…a870`, verified against `/system/info`) and removed the `4b2e921c` snapshot. The fixtures README table and `docs/silo/README.md` now name the new build. The four public responses are unchanged apart from `server_version` and `contract_digest`, and the server id is the same.
+
+What changed (697 → 701 paths, 1,170 → 1,174 schemas), read against everything phases 2–7 use (system, auth, account, profiles, settings, user libraries, catalog, people, search, watch, markers, artwork):
+
+| Change | Effect on the plan |
+|---|---|
+| Nothing removed or changed in an endpoint, parameter or response field Moonfin reads. Removed: `GET /theme/admin-css` and the branding capability's `overrides_available` (neither used). | None: no code change, `server_silo` passes unchanged. |
+| `Episode` gains `ratings` (IMDb and TMDB, the same `CatalogRating` shape as a title's) | Episodes could get `CommunityRating` like Emby's. The mapper reads `rating_tmdb` only, which episodes don't carry, so episodes still show no rating. Candidate follow-up for 5.4 (raised, not done here). |
+| Catalog cards, details, seasons and episodes gain `machine_translated_fields`; `pending_translation_language` is now on cards too (Home and library section cards) and explained as an on-view translation hint | Nothing to do: Moonfin shows the overview as sent. |
+| `WatchDetail` gains `poster_url`, `backdrop_url` (and thumbhashes) "for system media controls" | Phase 10/12: now-playing artwork can come straight from `/watch`. |
+| `PUT`/`DELETE /favorites/{item_id}` (and watchlist) are now `natural_idempotent` (were `non_retryable`) | Step 9.1 may retry them. |
+| Admin-only additions: profile limits (`max_profiles`), metadata translation jobs, recommendation embeddings reset, ignoring unmatched items | None (Moonfin has no Silo admin). |
+
 ### Testing
 
 **Automated tests**
@@ -105,6 +118,7 @@ The Silo contract Moonfin builds against is now the exact OpenAPI document serve
 |---|---|---|---|---|
 | 2026-10-13 | Claude (workspace on your Mac) | 4b2e921c+dirty | Pass | Digest of the snapshot = served `contract_digest` = `ETag` |
 | 2026-10-13 | macOS | 4b2e921c+dirty | Pass | Brady verified the digest and committed |
+| 2026-10-15 | Linux (Claude workspace, Flutter 3.47.2) | bd9d59ea | Pass | Refresh: digest of the new snapshot = served `contract_digest`; contract diff above; `server_silo` 449/449 unchanged |
 
 ---
 

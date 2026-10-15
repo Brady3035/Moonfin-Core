@@ -29,7 +29,7 @@ This folder documents adding [Silo Media Server](https://github.com/Silo-Server/
 
 - Run: `flutter run -d macos` (no extra defines needed).
 - Package tests: `cd packages/server_silo && flutter test` (same for `playback_silo`, `server_core`).
-- Test servers: Silo at `https://silo.snowystreams.com` (build `4b2e921c`, `api_major` 2 on 2026-10-13); Emby at `https://emby.snowystreams.com` for comparisons.
+- Test servers: Silo at `https://silo.snowystreams.com` (build `bd9d59ea`, `api_major` 2 on 2026-10-15; contract pinned at that build); Emby at `https://emby.snowystreams.com` for comparisons.
 - **Don't run `pub get` inside the working folder from the Linux VM.** It writes Linux paths into `.dart_tool/package_config.json` and breaks the Mac build until `flutter pub get` runs again. Analyse and test in a copy: `rsync -a --delete --exclude .dart_tool --exclude build --exclude .git ~/mnt/Moonfin-Core/ ~/work/moonfin/`.
 
 ## Upstream

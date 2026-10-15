@@ -380,7 +380,7 @@ In Silo's web app, favourite two films, a series and an episode (or use existing
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | `d6040bb` | 8.5 |
+| ☑ Done | `d6040bb`, fix — | 8.5 |
 
 **Goal.** Check the remaining row types in `row_data_source.dart` and fix any hand-built URL.
 
@@ -423,6 +423,11 @@ A name sort (`SortName` or `Name`, the rows' usual one) is applied to the merged
 
 This also widens the list Home settings offers when adding a collection row, and Moonfin's "add to collection" dialog, which lists collections the same way. Only personal collections can be changed; 9.5 has to keep the dialog to those.
 
+**Fixes after Brady's test (2026-10-15).**
+
+- *Genres row hidden:* every genre card's artwork query asks `sortBy: Random`, which Silo refuses; fixed in the sort map, `silo(5.13): Fix random sort` (see 5.13).
+- *Rewatch* (commit `silo(8.6): Fix Rewatch shows`): Rewatch turns a fully watched show into its first episode with `getItems(parentId: <series>, includeItemTypes: [Episode], recursive: true, limit: 1)`, and checks a show has nothing left with the same query and `filters: [IsUnplayed]`. On Silo a series as parent always listed its seasons, so the card became a season and the check never found the show finished. Now a series asked for episodes (and not seasons) gives its episodes: every season's, in Silo's order, `IsPlayed`/`IsUnplayed` applied, then sliced; the sort asked for is ignored, since the natural order is what "first episode" means. Its order by name in Brady's test was the missing `DatePlayed` mapping (the 5.13 follow-up wasn't applied yet); Rewatch's own setting can also make it *Random*.
+
 ### Testing
 
 **Automated tests**
@@ -433,6 +438,7 @@ This also widens the list Home settings offers when adding a collection row, and
   - ids and `ParentId` say where each came from; the total counts all of them.
 - `silo_items_api_collections_test.dart` (6.15) unchanged: a library's collections, a collection's titles.
 - `server_silo`: 486/486.
+- Fix (Rewatch): `packages/server_silo/test/silo_items_api_series_episodes_test.dart` (new, 3 tests): a series asked for episodes gives its first episode (not a season) and the count; `IsUnplayed`/`IsPlayed` applied; without episode types a series still lists its seasons. `server_silo` 496/496.
 
 **Manual test plan**
 
@@ -443,7 +449,7 @@ This also widens the list Home settings offers when adding a collection row, and
 5. **Genres row**: genres with artwork from their titles; opening one lists its titles.
 6. **Studios row**: studios and networks; opening one lists its titles.
 7. **My Media**: the library tiles and buttons as before.
-8. **Since You Watched / Rewatch** (if you use them): rows appear without errors, built from what you watched most recently (needs the 5.13 follow-up).
+8. **Since You Watched / Rewatch** (if you use them): rows appear without errors, built from what you watched most recently (needs the 5.13 follow-up). Rewatch shows episodes (a finished show's first episode), never a season card. With Rewatch's setting on *Random*, the order changes between loads.
 9. **Emby unchanged**.
 
 **Results**
@@ -452,6 +458,7 @@ This also widens the list Home settings offers when adding a collection row, and
 |---|---|---|---|---|
 | 2026-10-15 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | home collections 3/3; `server_silo` 486/486; analyzer: no issues |
 | 2026-10-15 | macOS | `bd9d59ea` | Fail | Brady: the Genres row doesn't show on Home once switched on (the per-genre rows are listed in Home settings); Studios and My Media pass; Rewatch looks sorted by name. Genres: Silo refuses `sort=random`, which each genre card's artwork query sends, so every genre was dropped; fixed in `silo(5.13): Fix random sort`. Rewatch: by name because `DatePlayed` wasn't mapped yet (`silo(5.13): Sort by date played` was not applied for this test), and its shows picked a season instead of an episode: fixed in `silo(8.6): Fix Rewatch shows` |
+| 2026-10-15 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | Rewatch fix: a series' episodes for episode queries; series episodes 3/3; `server_silo` 496/496; analyzer: no issues. Genres fix is in 5.13 |
 
 ---
 

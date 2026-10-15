@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:dio/dio.dart';
 import 'package:server_silo/server_silo.dart';
 import 'package:test/test.dart';
 
@@ -151,6 +152,79 @@ void main() {
         server,
       ).itemsApi.getItems(parentId: '3', seriesStatus: ['Ended']);
       expect((page['Items'] as List).map((i) => (i as Map)['Name']), ['A']);
+    });
+
+    test('series status pages the whole filtered list', () async {
+      // 450 series, every third still airing; Silo pages by cursor.
+      final server = FixtureServer({
+        '/api/v2/catalog': (RequestOptions o) {
+          final q = o.queryParameters;
+          final limit = int.parse('${q['limit']}');
+          final cursor = q['cursor'] as String?;
+          final start = cursor == null
+              ? 0
+              : cursor == 'w'
+              ? int.parse('${q['seek']}')
+              : int.parse(cursor.substring(2));
+          final end = start + limit > 450 ? 450 : start + limit;
+          return FixtureServer.json(
+            200,
+            jsonEncode({
+              'items': [
+                for (var i = start; i < end; i++)
+                  {
+                    'content_id': 'series-$i',
+                    'type': 'series',
+                    'title': 'Show $i',
+                    'show_status': i % 3 == 0 ? 'returning series' : 'ended',
+                  },
+              ],
+              'page': {
+                'has_more': end < 450,
+                if (end < 450) 'next_cursor': 'n:$end',
+              },
+              'window_cursor': 'w',
+              'total': 450,
+              'total_exact': true,
+            }),
+          );
+        },
+      });
+      final items = siloTestClient(server).itemsApi;
+      final first = await items.getItems(
+        parentId: '3',
+        seriesStatus: ['Continuing'],
+        startIndex: 0,
+        limit: 100,
+      );
+      expect(first['TotalRecordCount'], 150);
+      expect(first['Items'], hasLength(100));
+      final second = await items.getItems(
+        parentId: '3',
+        seriesStatus: ['Continuing'],
+        startIndex: 100,
+        limit: 100,
+      );
+      expect(second['Items'], hasLength(50));
+      expect((second['Items'] as List).first['Name'], 'Show 300');
+      final requests = server.requests.length;
+      expect(requests, greaterThan(0));
+      // The second page came from the list already read.
+      await items.getItems(
+        parentId: '3',
+        seriesStatus: ['Continuing'],
+        startIndex: 50,
+        limit: 10,
+      );
+      expect(server.requests.length, requests);
+      // Ended reads its own list.
+      final ended = await items.getItems(
+        parentId: '3',
+        seriesStatus: ['Ended'],
+        startIndex: 0,
+        limit: 10,
+      );
+      expect(ended['TotalRecordCount'], 300);
     });
   });
 }

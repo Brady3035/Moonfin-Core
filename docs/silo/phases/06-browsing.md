@@ -678,7 +678,7 @@ The groups are part of the query's cursor signature (5.12), so changing a filter
 **Not filterable on Silo.**
 
 - `Likes`/`Dislikes`, tags, trailers, extras, theme media, video types, `hasSubtitles` and 3D have no Silo rule and are left out.
-- Series status (`Continuing`/`Ended`) has no rule either. It is applied to each page, which can show fewer items per page than asked; the grid keeps loading as you scroll.
+- Series status (`Continuing`/`Ended`) has no rule either: Silo's `status` rule is the metadata match state, not the airing state. Each card carries `show_status`, so the filter is applied in Moonfin, but not page by page: a filtered page would come back short while the total still counted the whole library, and the grid would lose its place (Brady's first test: *Continuing* showed only the shows already loaded). With a series status asked for, the items API reads the whole list once (in chunks of 1,000), keeps the matching shows, and pages them from memory with an exact total. The list is kept for two minutes (four lists at most) so the grid's next pages need no request.
 
 **4K filter.** Moonfin offered its 4K option only on Jellyfin; Silo can filter by resolution, so `supportsUhdFilter` is now true for every server but Emby.
 
@@ -686,20 +686,21 @@ The groups are part of the query's cursor signature (5.12), so changing a filter
 
 **Automated tests**
 
-- `packages/server_silo/test/silo_filters_test.dart` (new, 7 tests):
+- `packages/server_silo/test/silo_filters_test.dart` (new, 8 tests):
   - the captured filter document: genres, ratings, no years, English named, `und` left out;
   - `getQueryFilters` sends `library_id` and `type`;
   - no groups when nothing applies; one group per filter with any-of values; played, favourite, quality and language rules;
   - `getItems` sends the groups as JSON, and different filters are different queries;
-  - the series status filter on a page.
+  - the series status filter on a page;
+  - series status over a 450-show library paged by cursor: exact total (150 continuing), full pages, later pages from memory, *Ended* read separately.
 - `test/data/viewmodels/library_browse_filters_test.dart` (existing) still passes.
-- `server_silo`: 382/382.
+- `server_silo`: 382/382 at 6.10; 415/415 with the fix (on top of 6.19).
 
 **Manual test plan**
 
 - In a Silo library's filter menu: genres, parental ratings and audio/subtitle languages list what the library holds; there is no year or tag section.
 - Each filter narrows the grid: a genre, two genres (either), a rating, watched / unwatched / in progress, favourites (none until favourites can be set in phase 9, or set some in Silo's web app), 4K and HD, an audio language. Combined filters narrow further.
-- Series status (continuing/ended) on a TV library narrows the shows.
+- Series status (continuing/ended) on a TV library narrows the shows. *Continuing* lists every airing show in the library, not only the ones on screen: scroll to the end and compare with Silo's web app.
 - Clearing filters brings back the whole library. Emby's filter menu is unchanged (no 4K option).
 
 **Results**
@@ -708,6 +709,8 @@ The groups are part of the query's cursor signature (5.12), so changing a filter
 |---|---|---|---|---|
 | 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | filters 7/7; `server_silo` 382/382; browse filter tests pass; analyzer: no issues |
 | 2026-10-14 | macOS | `4b2e921c` | Pass | full `flutter test` before committing |
+| 2026-10-14 | macOS | `4b2e921c` | Fail | Brady: every filter works except *Continuing*, which only matched shows already loaded; *Ended* looked right because most shows have ended |
+| 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | fix: whole-list series status; filters 8/8; `server_silo` 415/415; analyzer: no issues |
 | | | | | |
 
 ---

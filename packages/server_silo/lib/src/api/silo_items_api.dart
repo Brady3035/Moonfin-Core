@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
@@ -59,8 +60,9 @@ class SiloItemsApi implements ItemsApi {
   /// - `startIndex`/`limit` → cursors through the pager (5.12).
   ///
   /// - Filters (genres, years, ratings, played state, favourites, 4K/HD,
-  ///   languages) → Silo rule `groups` (6.10, `siloRuleGroups`); the series
-  ///   status filter is applied to each page, Silo having no rule for it.
+  ///   languages) → Silo rule `groups` (6.10, `siloRuleGroups`). Silo has no
+  ///   rule for the series status, so that filter reads the whole list once
+  ///   and pages it here (`_clientFiltered`).
   @override
   Future<Map<String, dynamic>> getItems({
     bool? serverWide,
@@ -204,6 +206,16 @@ class SiloItemsApi implements ItemsApi {
       return siloSupportedTypes.contains(silo);
     }
 
+    if (seriesStatus != null && seriesStatus.isNotEmpty) {
+      return _clientFiltered(
+        params,
+        filter: 'series_status=${seriesStatus.join(',')}',
+        keep: keep,
+        startIndex: startIndex,
+        limit: limit,
+        libraryId: libraryId,
+      );
+    }
     return _page(
       params,
       startIndex: startIndex,
@@ -223,7 +235,95 @@ class SiloItemsApi implements ItemsApi {
     String? libraryId,
   }) async {
     final start = startIndex ?? 0;
-    final result = await pager.page(
+    final result = await _fetch(params, start, limit);
+    return {
+      'Items': _mapPage(result.items, keep: keep, libraryId: libraryId),
+      'TotalRecordCount': result.totalRecordCount,
+      'StartIndex': start,
+    };
+  }
+
+  /// Lists filtered by something Silo has no rule for (the series status)
+  /// are read whole once, filtered here, and paged from memory, so the grid
+  /// gets full pages and an exact total. Filtering each page instead would
+  /// hand back short pages counted against the unfiltered total, and the
+  /// grid would lose its place (found testing 6.10).
+  ///
+  /// The filtered list is kept for [_filteredListTtl], for the grid's next
+  /// pages; [filter] names the client-side filter in the cache key.
+  Future<Map<String, dynamic>> _clientFiltered(
+    Map<String, Object?> params, {
+    required String filter,
+    required bool Function(Map<String, dynamic> item) keep,
+    int? startIndex,
+    int? limit,
+    String? libraryId,
+  }) async {
+    final key = '${siloPageSignature(_catalogPath, params)}#$filter';
+    final now = DateTime.now();
+    var entry = _filteredLists.remove(key);
+    if (entry == null || now.difference(entry.at) > _filteredListTtl) {
+      entry = (at: now, items: _readAll(params, keep, libraryId));
+    }
+    _filteredLists[key] = entry;
+    while (_filteredLists.length > _filteredListMax) {
+      _filteredLists.remove(_filteredLists.keys.first);
+    }
+    final List<Map<String, dynamic>> items;
+    try {
+      items = await entry.items;
+    } catch (_) {
+      _filteredLists.remove(key);
+      rethrow;
+    }
+    final start = (startIndex ?? 0).clamp(0, items.length);
+    final end = limit == null || limit <= 0
+        ? items.length
+        : (start + limit).clamp(start, items.length);
+    return {
+      'Items': [
+        for (final item in items.sublist(start, end))
+          Map<String, dynamic>.of(item),
+      ],
+      'TotalRecordCount': items.length,
+      'StartIndex': startIndex ?? 0,
+    };
+  }
+
+  static const _filteredListTtl = Duration(minutes: 2);
+  static const _filteredListMax = 4;
+  static const _readAllChunk = 1000;
+  final LinkedHashMap<
+    String,
+    ({DateTime at, Future<List<Map<String, dynamic>>> items})
+  >
+  _filteredLists = LinkedHashMap();
+
+  /// Every item of the query [params] that passes [keep].
+  Future<List<Map<String, dynamic>>> _readAll(
+    Map<String, Object?> params,
+    bool Function(Map<String, dynamic> item) keep,
+    String? libraryId,
+  ) async {
+    final all = <Map<String, dynamic>>[];
+    var offset = 0;
+    while (true) {
+      final result = await _fetch(params, offset, _readAllChunk);
+      all.addAll(_mapPage(result.items, keep: keep, libraryId: libraryId));
+      offset += result.items.length;
+      if (result.items.isEmpty || offset >= result.totalRecordCount) break;
+    }
+    return all;
+  }
+
+  /// Raw items [start] to [start] + [limit] of `GET /catalog` with [params],
+  /// through the pager.
+  Future<SiloPagedResult> _fetch(
+    Map<String, Object?> params,
+    int start,
+    int? limit,
+  ) {
+    return pager.page(
       signature: siloPageSignature(_catalogPath, params),
       startIndex: start,
       limit: limit,
@@ -248,9 +348,17 @@ class SiloItemsApi implements ItemsApi {
         return SiloPage.fromJson(json);
       },
     );
+  }
+
+  /// Silo catalog items as Jellyfin items, minus those [keep] refuses.
+  List<Map<String, dynamic>> _mapPage(
+    List<Map<String, dynamic>> raw, {
+    bool Function(Map<String, dynamic> item)? keep,
+    String? libraryId,
+  }) {
     final items = <Map<String, dynamic>>[];
-    for (final raw in result.items) {
-      final item = siloItemToBaseItemDto(raw, images: images);
+    for (final entry in raw) {
+      final item = siloItemToBaseItemDto(entry, images: images);
       if (item == null) continue;
       if (keep != null && !keep(item)) continue;
       _rememberSeries(item);
@@ -260,11 +368,7 @@ class SiloItemsApi implements ItemsApi {
       }
       items.add(item);
     }
-    return {
-      'Items': items,
-      'TotalRecordCount': result.totalRecordCount,
-      'StartIndex': start,
-    };
+    return items;
   }
 
   static Map<String, dynamic> _empty(int? startIndex) => {

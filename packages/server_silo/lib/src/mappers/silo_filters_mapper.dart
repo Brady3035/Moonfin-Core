@@ -1,5 +1,6 @@
 import 'package:server_core/server_core.dart';
 
+import 'silo_ids.dart';
 import 'silo_languages.dart';
 
 /// Silo's catalog filter document (`GET /catalog/filters`) as Moonfin's
@@ -44,7 +45,7 @@ Map<String, Object?>? _any(List<Map<String, Object?>> rules) =>
 ///
 /// | Moonfin | Silo rule |
 /// |---|---|
-/// | `genres` | `genre is` |
+/// | `genres`, genre ids (`silo-genre:`, 6.12) | `genre is` |
 /// | `years` | `year is` |
 /// | `officialRatings` | `content_rating is` |
 /// | `filters`: `IsPlayed` / `IsUnplayed` | `watched is true` / `false` |
@@ -58,6 +59,7 @@ Map<String, Object?>? _any(List<Map<String, Object?>> rules) =>
 /// extras, theme media, video types, `hasSubtitles`, 3D) are left out.
 List<Map<String, Object?>> siloRuleGroups({
   List<String>? genres,
+  List<String>? genreIds,
   List<int>? years,
   List<String>? officialRatings,
   List<String>? filters,
@@ -67,7 +69,10 @@ List<Map<String, Object?>> siloRuleGroups({
   List<String>? audioLanguages,
   List<String>? subtitleLanguages,
 }) {
-  final genreNames = {...?genres};
+  final genreNames = {
+    ...?genres,
+    for (final id in genreIds ?? const <String>[]) siloGenreNameOf(id) ?? id,
+  };
   final flags = {for (final f in filters ?? const <String>[]) f.toLowerCase()};
 
   final groups = <Map<String, Object?>?>[
@@ -111,3 +116,17 @@ bool siloMatchesSeriesStatus(Map<String, dynamic> item, List<String> wanted) {
   final status = item['Status'] as String?;
   return status != null && wanted.contains(status);
 }
+
+/// A genre, studio or network name as a Jellyfin item (`Genre` or `Studio`)
+/// with its synthetic id (5.1): Silo names them but gives them no id or
+/// artwork, so Moonfin's genre and studio cards fall back to artwork from
+/// their titles.
+Map<String, dynamic> siloNamedItem(String name, {required bool studio}) => {
+  'Id': studio ? siloStudioId(name) : siloGenreId(name),
+  'Name': name,
+  'SortName': name,
+  'Type': studio ? 'Studio' : 'Genre',
+  'IsFolder': true,
+  'ImageTags': const <String, String>{},
+  'BackdropImageTags': const <String>[],
+};

@@ -107,6 +107,8 @@ class SiloItemsApi implements ItemsApi {
   }) async {
     if (ids != null) return _byIds(ids, startIndex: startIndex, limit: limit);
     final libraryId = _libraryIdOf(parentId);
+    // A genre page (6.12): its synthetic id names the genre.
+    final genreParent = parentId == null ? null : siloGenreNameOf(parentId);
     // A series' children are its seasons, as on Jellyfin.
     if (parentId != null && siloTypeOfId(parentId) == 'series') {
       return getSeasons(parentId);
@@ -116,7 +118,7 @@ class SiloItemsApi implements ItemsApi {
       final series = parseSiloSeasonId(parentId)?.seriesId ?? parentId;
       return getEpisodes(series, seasonId: parentId);
     }
-    if (parentId != null && libraryId == null) {
+    if (parentId != null && libraryId == null && genreParent == null) {
       throw SiloNotImplementedError(
         'ItemsApi',
         'getItems(parentId: $parentId)',
@@ -129,7 +131,8 @@ class SiloItemsApi implements ItemsApi {
     final scope = types == null ? null : siloCatalogScopeFor(types);
 
     final groups = siloRuleGroups(
-      genres: genres,
+      genres: [...?genres, ?genreParent],
+      genreIds: genreIds,
       years: years,
       officialRatings: officialRatings,
       filters: filters,
@@ -263,6 +266,9 @@ class SiloItemsApi implements ItemsApi {
     final library = _libraryIdOf(itemId);
     if (library != null) return _library(library);
     if (siloTypeOfId(itemId) == 'season') return _season(itemId);
+    if (siloGenreNameOf(itemId) case final genre?) {
+      return siloNamedItem(genre, studio: false);
+    }
 
     final path = '/api/v2/catalog/items/${Uri.encodeComponent(itemId)}';
     final query = {
@@ -630,6 +636,57 @@ class SiloItemsApi implements ItemsApi {
     );
   }
 
+  // --- genres (6.12) -------------------------------------------------------
+
+  /// The genres of a library, or of the whole catalog, as Jellyfin `Genre`
+  /// items with synthetic ids (step 6.12), from `GET /catalog/filters`.
+  /// Silo lists genre names only: no counts and no artwork, so Moonfin
+  /// keeps every genre and builds its cards from the genre's titles.
+  /// `startIndex`/`limit` slice the list.
+  @override
+  Future<Map<String, dynamic>> getGenres({
+    String? parentId,
+    String? userId,
+    String? sortBy,
+    String? sortOrder,
+    int? startIndex,
+    int? limit,
+    bool? recursive,
+    String? fields,
+    List<String>? includeItemTypes,
+  }) async {
+    final values = await getQueryFilters(
+      parentId: parentId,
+      includeItemTypes: includeItemTypes,
+    );
+    return _namedList(
+      values.genres,
+      studio: false,
+      descending: sortOrder?.toLowerCase() == 'descending',
+      startIndex: startIndex,
+      limit: limit,
+    );
+  }
+
+  static Map<String, dynamic> _namedList(
+    Iterable<String> names, {
+    required bool studio,
+    bool descending = false,
+    int? startIndex,
+    int? limit,
+  }) {
+    final sorted = {...names}.toList()
+      ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+    final ordered = descending ? sorted.reversed.toList() : sorted;
+    final start = startIndex ?? 0;
+    final page = ordered.skip(start).take(limit ?? ordered.length);
+    return {
+      'Items': [for (final n in page) siloNamedItem(n, studio: studio)],
+      'TotalRecordCount': ordered.length,
+      'StartIndex': start,
+    };
+  }
+
   // --- what Silo doesn't have ---------------------------------------------
 
   static const _emptyList = <String, dynamic>{
@@ -687,7 +744,6 @@ class SiloItemsApi implements ItemsApi {
 
   /// The step that implements each method not implemented yet.
   static const _steps = {
-    'getGenres': '6.12',
     'getStudios': '6.13',
     'getSimilarItems': '6.16',
     'getLocalTrailers': '6.17',

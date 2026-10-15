@@ -912,6 +912,9 @@ Moonfin asks for an order the Jellyfin way: `sortBy` as a comma-separated list o
 
 **Shows have no last-played date or play count on Silo.** Silo records watches per episode, and its `date_viewed` and `plays` sorts look the history up by the row's own id, which for a show never has any. So a show grid sorted by either is in the default order. Raised with Silo (series rows should take their episodes' history).
 
+- **Last Played for shows** (commit `silo(5.13): Last played for shows`): Silo's watch history (`GET /catalog?source=history`) does list shows, most recently watched first (203 on the test server). A show grid sorted by `DatePlayed` therefore reads the query's shows whole (Silo's default order, filters applied) and the history, and ranks the watched shows by their place in the history, the rest after them; ascending is the reverse (never watched first, then the longest ago). It uses the series-status filter's read-once list (6.10), kept two minutes for paging; a TV library of 1,909 shows is 20 pages of 100 plus the history's 3. Films still use Silo's `date_viewed`.
+- **Play Count for shows** stays Silo's default order: there is no per-show count to read without walking every watched episode (7,295 on the test server). Waiting on Silo.
+
 **Fix at phase 8: `Random`** (commit `silo(5.13): Fix random sort`, found at 8.6). Silo's contract lists `random` among the sort fields, but the catalog refuses it: `random` isn't in the server's sort definitions (`querySortDefs`), so `GET /catalog?sort=random` answers `422 sort.field "random" is not supported`. Random order exists on Silo only as a home section ("Surprise Me"). Every `Random` query failed, and the Home Genres row, which picks each genre card's artwork with `sortBy: Random`, lost every genre and stayed hidden.
 
 - `Random` now maps to no Silo sort, and `siloWantsRandom(sortBy)` tells the items API to shuffle: `getItems` reads the list in Silo's default order and shuffles what it returns.
@@ -929,6 +932,7 @@ Moonfin asks for an order the Jellyfin way: `sortBy` as a comma-separated list o
 - The reverse map, round-tripping every Silo field; unknown values.
 - `server_silo`: 312/312.
 - Follow-up (date played): `DatePlayed` ↔ `date_viewed` in both directions; `silo_item_mapper_test.dart`: last played from `sort_metrics.viewed_at`, a resume card's own date winning. `server_silo` 491/491.
+- Shows by last played: `silo_items_api_shows_last_played_test.dart` (new, 3 tests): descending ranks the history's shows first and keeps the rest in Silo's order, the history's film ignored, no `sort` sent; ascending reversed; films still send `-date_viewed`. `server_silo` 499/499.
 - Shuffle whole: `silo_items_api_random_test.dart`: a random grid lists every title once and its first page reaches past the first hundred titles. `server_silo` 496/496.
 - Fix (random): the sort map test now expects no sort for `Random` and checks `siloWantsRandom`; `silo_items_api_random_test.dart` (new, 2 tests): no `sort` sent, 10 distinct titles drawn from the first 100, Silo's total; a grid paged in random order lists every title once. `server_silo` 493/493.
 
@@ -951,6 +955,7 @@ Moonfin asks for an order the Jellyfin way: `sortBy` as a comma-separated list o
 | 2026-10-15 | macOS | `bd9d59ea` | Fail | Brady, sorting a TV library: Premiere Date not right, Last Played and Play Count don't sort, Critic Rating doesn't sort, Runtime should be the episode length, Random barely changes the order. Checked on the live server (`build/silo_tv_sorts.py`): see the TV sort review |
 | 2026-10-15 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | rating sorts mapped to fields Silo accepts; sort map 8/8; `server_silo` 496/496; analyzer: no issues |
 | 2026-10-15 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | random grids shuffled whole; random 2/2; `server_silo` 496/496; analyzer: no issues |
+| 2026-10-15 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | shows by last played from the watch history; 3/3; `server_silo` 499/499; analyzer: no issues |
 | | | | | |
 
 ---

@@ -273,6 +273,34 @@ class SiloItemsApi
     );
     final random = siloWantsRandom(sortBy);
     final filtered = seriesStatus != null && seriesStatus.isNotEmpty;
+    // Shows by last played: Silo has no date for a show (5.13 TV review).
+    final sort = params['sort'] as String?;
+    if (scope == 'series' &&
+        (sort == 'date_viewed' || sort == '-date_viewed') &&
+        personId == null &&
+        collection == null &&
+        searchText == null &&
+        params['name_prefix'] == null) {
+      final listParams = Map<String, Object?>.of(params)..remove('sort');
+      final descending = sort == '-date_viewed';
+      return _clientFiltered(
+        listParams,
+        filter: [
+          if (filtered) 'series_status=${seriesStatus.join(',')}',
+          descending ? 'last_played_desc' : 'last_played_asc',
+        ].join('&'),
+        keep: keep,
+        startIndex: startIndex,
+        limit: limit,
+        libraryId: libraryId,
+        read: () => _showsByLastPlayed(
+          listParams,
+          keep: keep,
+          libraryId: libraryId,
+          descending: descending,
+        ),
+      );
+    }
     // A random grid is shuffled whole (a few random titles come from the
     // first hundred instead, [_shuffledPage]).
     final smallRandom =
@@ -335,6 +363,48 @@ class SiloItemsApi
     final items = [...(page['Items'] as List).cast<Map<String, dynamic>>()]
       ..shuffle(_random);
     return {...page, 'Items': items.take(limit ?? items.length).toList()};
+  }
+
+  /// A show grid by last played (5.13 TV review). Silo keeps watches per
+  /// episode, so its `date_viewed` sort leaves every show undated. Its watch
+  /// history (`source=history`) does list shows, most recently watched
+  /// first, so: the shows of the query (read whole, in Silo's default order,
+  /// filters applied) ranked by their place in the history, watched shows
+  /// first and the rest after them. Ascending is the reverse: never watched
+  /// first, then the longest ago.
+  Future<List<Map<String, dynamic>>> _showsByLastPlayed(
+    Map<String, Object?> params, {
+    required bool Function(Map<String, dynamic> item) keep,
+    required String? libraryId,
+    required bool descending,
+  }) async {
+    final lists = await Future.wait([
+      _readAll(params, keep, libraryId),
+      _readAll(
+        {
+          'source': 'history',
+          'library_id': ?libraryId,
+          'image_size': siloListImageSize,
+        },
+        (_) => true,
+        null,
+      ),
+    ]);
+    final rank = <String, int>{};
+    for (final item in lists[1]) {
+      rank.putIfAbsent(item['Id'] as String, () => rank.length);
+    }
+    final watched = [
+      for (final item in lists[0])
+        if (rank.containsKey(item['Id'])) item,
+    ]..sort((a, b) => rank[a['Id']]!.compareTo(rank[b['Id']]!));
+    final unwatched = [
+      for (final item in lists[0])
+        if (!rank.containsKey(item['Id'])) item,
+    ];
+    return descending
+        ? [...watched, ...unwatched]
+        : [...unwatched, ...watched.reversed];
   }
 
   static const _randomPool = 100;

@@ -1,5 +1,6 @@
 import 'dart:collection';
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:dio/dio.dart';
 import 'package:server_core/server_core.dart';
@@ -267,6 +268,15 @@ class SiloItemsApi
         libraryId: libraryId,
       );
     }
+    if (siloWantsRandom(sortBy)) {
+      return _shuffledPage(
+        params,
+        startIndex: startIndex,
+        limit: limit,
+        keep: keep,
+        libraryId: libraryId,
+      );
+    }
     return _page(
       params,
       startIndex: startIndex,
@@ -275,6 +285,40 @@ class SiloItemsApi
       libraryId: libraryId,
     );
   }
+
+  /// Items in random order (`sortBy: Random`). Silo's catalog refuses
+  /// `sort=random` (random order is only a home section there), so the list
+  /// is read in Silo's default order and shuffled here.
+  ///
+  /// A first request for fewer than a page (a genre card's artwork, a row
+  /// asking for a few random titles) draws from the first [_randomPool]
+  /// titles rather than only the first `limit`. Later pages are Silo's
+  /// default order, each shuffled, so a grid scrolled to the end lists every
+  /// title once. The total stays Silo's.
+  Future<Map<String, dynamic>> _shuffledPage(
+    Map<String, Object?> params, {
+    int? startIndex,
+    int? limit,
+    bool Function(Map<String, dynamic> item)? keep,
+    String? libraryId,
+  }) async {
+    final start = startIndex ?? 0;
+    final widen =
+        start == 0 && limit != null && limit > 0 && limit < _randomPool;
+    final page = await _page(
+      params,
+      startIndex: start,
+      limit: widen ? _randomPool : limit,
+      keep: keep,
+      libraryId: libraryId,
+    );
+    final items = [...(page['Items'] as List).cast<Map<String, dynamic>>()]
+      ..shuffle(_random);
+    return {...page, 'Items': widen ? items.take(limit).toList() : items};
+  }
+
+  static const _randomPool = 100;
+  static final _random = Random();
 
   /// One page of `GET /catalog` with [params], as Jellyfin's
   /// `{Items, TotalRecordCount, StartIndex}`.

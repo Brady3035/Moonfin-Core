@@ -863,7 +863,7 @@ Moonfin reads Jellyfin's `Trickplay` item field, `{ <media source id>: { "<width
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | `549c133` | 5.12 |
+| ☑ Done | `549c133`, date played — | 5.12 |
 
 **Goal.** Moonfin sort fields → Silo `sort` values (descending = `-field`); unknown → server default.
 
@@ -891,6 +891,14 @@ Moonfin asks for an order the Jellyfin way: `sortBy` as a comma-separated list o
 - **Unknown fields leave `sort` out.** Silo then applies the list's saved or default order, rather than risk an error for a field it doesn't know. `CriticRating`, `OfficialRating`, `DatePlayed` and `PlayCount` are among them. Silo's items carry `play_count` and `viewed_at` sort metrics, so it may accept them as sort fields. The contract doesn't say, so they are left out until a check against the server (6.5) shows they work. "Recently watched" rows don't need them: they read Silo's progress and history lists (phase 8).
 - **Reverse map.** `jellyfinSortForSilo('-added_at')` → `DateCreated`, `Descending`. It is for showing the order Silo applied (`effective_sort`) in Moonfin's sort menu.
 
+**Follow-up at phase 8: `DatePlayed` → `date_viewed`** (commit `silo(5.13): Sort by date played`, 2026-10-15). Home turned out to need the last-watched order: Rewatch and Since You Watched ask `getItems(filters: [IsPlayed], sortBy: DatePlayed)`, and Next Up dates each show by its last watched episode (`fetchSeriesLastPlayed`, the 100 most recently played episodes). Silo's catalog does sort by `date_viewed`, its per-profile "date viewed" (`internal/catalog/query_definition.go`, a personalized sort, allowed whenever a profile acts, which Moonfin always does), so:
+
+- `DatePlayed` now maps to `date_viewed` (`-date_viewed` descending), and back.
+- A card in a list sorted that way carries the date in `sort_metrics.viewed_at`. The item mapper (5.5) now reads it as `UserData.LastPlayedDate` when the card has no `progress_updated_at`. That is what Next Up's enrichment reads, so it finds most shows in that one list instead of reading each show (8.2), and multi-server rows can merge recently watched items by date.
+- Library grids' *Date played* sort now orders by Silo's date viewed too.
+
+`PlayCount` (Silo's `plays`), `CriticRating` and the rest stay unmapped until the full sort review with Brady.
+
 ### Testing
 
 **Automated tests** (`packages/server_silo/test/silo_sort_map_test.dart`, new, 8 tests)
@@ -900,9 +908,11 @@ Moonfin asks for an order the Jellyfin way: `sortBy` as a comma-separated list o
 - Fields with no Silo sort, and no input.
 - The reverse map, round-tripping every Silo field; unknown values.
 - `server_silo`: 312/312.
+- Follow-up (date played): `DatePlayed` ↔ `date_viewed` in both directions; `silo_item_mapper_test.dart`: last played from `sort_metrics.viewed_at`, a resume card's own date winning. `server_silo` 491/491.
 
 **Manual test plan**
 
+- Date played (follow-up): a library grid sorted by *Date played* lists the last watched title first; the Home checks are in 8.2 (Next Up order) and 8.6 (Rewatch, Since You Watched).
 - Nothing to check by hand until 6.5 sorts a library grid. Then, in 6.5: try Moonfin's sort menu entries on a Silo library and note any that Silo ignores. Regression: full `flutter test`.
 
 **Results**
@@ -911,6 +921,7 @@ Moonfin asks for an order the Jellyfin way: `sortBy` as a comma-separated list o
 |---|---|---|---|---|
 | 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | sort map tests 8/8; `server_silo` 312/312; analyzer: no issues |
 | 2026-10-14 | macOS | `4b2e921c` | Pass | full `flutter test` before committing |
+| 2026-10-15 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | date played follow-up (asked by Brady at phase 8): sort map 8/8, item mapper; `server_silo` 491/491; analyzer: no issues. Manual checks are in 8.2 and 8.6 |
 | | | | | |
 
 ---

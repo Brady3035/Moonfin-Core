@@ -132,7 +132,7 @@ Moonfin reads both from the page, through the same `SiloHomeSections` as 8.1: th
 
 **Not covered here:**
 
-- Moonfin then dates each next-up card by its show's last play (`enrichNextUpItemsWithSeriesLastPlayed`, used to merge rows across servers). It reads the 100 most recently played episodes with `sortBy: DatePlayed`, which the sort map doesn't map yet (open from 5.13), so on Silo it gets watched episodes in Silo's default order, and then reads each show not among them (`getItems(ids:)`, one request per show). The row is right, but that costs a request per show. Mapping `DatePlayed` to Silo's `date_viewed` would fix it; it is part of the sort review still to do with Brady.
+- Moonfin then dates each next-up card by its show's last play (`enrichNextUpItemsWithSeriesLastPlayed`, used to merge rows across servers). It reads the 100 most recently played episodes with `sortBy: DatePlayed`, and reads any show not among them one by one. `DatePlayed` maps to Silo's `date_viewed` since the 5.13 follow-up later in this batch, with the date from `sort_metrics.viewed_at`; before it, Silo answered in its default order and Moonfin read nearly every show separately.
 - Hiding a card from Next Up is 9.7.
 
 The fixture's next-up cards are the captured ones from 2026-10-13. Like Silo's, they carry no `progress_updated_at` (only in-progress cards do).
@@ -407,7 +407,7 @@ In Silo's web app, favourite two films, a series and an episode (or use existing
 | Studios | `getStudios` | 6.13 |
 | **Collections** | `getItems(includeItemTypes: [BoxSet], sortBy, limit: 20)`, per library when some are hidden | **fixed here**, below |
 | A collection row (added from Home settings) | `getItems(parentId: <collection>)`; "Playlist order" asks the Moonfin plugin, which Silo lacks (4.6), and falls back to the collection's order | 6.15 |
-| Since You Watched, Rewatch | `getItems(filters: [IsPlayed], sortBy: DatePlayed)` and `getSimilarItems` | Work, but `DatePlayed` isn't mapped yet (5.13 sort review), so "most recently watched" is Silo's default order, not by date |
+| Since You Watched, Rewatch | `getItems(filters: [IsPlayed], sortBy: DatePlayed)` and `getSimilarItems` | Work. `DatePlayed` maps to Silo's `date_viewed` with the 5.13 follow-up at the end of this batch; before it, "most recently watched" was Silo's default order |
 | Seasonal, IMDb/TMDB charts, Seerr, Radarr/Sonarr | Moonfin plugin or Seerr | Hidden on Silo (4.6–4.9) |
 | Live TV, playlists, music rows | | Hidden on Silo (4.1–4.3) |
 | Continue Reading/Listening (books) | | Phase 16; empty until then |
@@ -443,7 +443,7 @@ This also widens the list Home settings offers when adding a collection row, and
 5. **Genres row**: genres with artwork from their titles; opening one lists its titles.
 6. **Studios row**: studios and networks; opening one lists its titles.
 7. **My Media**: the library tiles and buttons as before.
-8. **Since You Watched / Rewatch** (if you use them): rows appear without errors; order isn't by watch date yet (sort review).
+8. **Since You Watched / Rewatch** (if you use them): rows appear without errors, built from what you watched most recently (needs the 5.13 follow-up).
 9. **Emby unchanged**.
 
 **Results**
@@ -460,7 +460,7 @@ This also widens the list Home settings offers when adding a collection row, and
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 8.6 |
+| ☑ Done | — | 8.6 |
 
 **Goal.** A new row kind that renders Silo's own home sections (recommended, trending…).
 

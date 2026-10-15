@@ -56,7 +56,7 @@ void main() {
     expect(page['TotalRecordCount'], 250);
   });
 
-  test('random pages of a grid hold every title once', () async {
+  test('a random grid is shuffled whole, every title once', () async {
     final api = siloTestClient(_server()).itemsApi;
     final seen = <String>[];
     for (var start = 0; start < 250; start += 100) {
@@ -72,5 +72,11 @@ void main() {
     }
     expect(seen, hasLength(250));
     expect(seen.toSet(), hasLength(250));
+    // The whole list is shuffled, not each page of Silo's name order: the
+    // first page reaches well past the first hundred titles.
+    expect(
+      seen.take(100).where((id) => int.parse(id.split('-').last) >= 100),
+      isNotEmpty,
+    );
   });
 }

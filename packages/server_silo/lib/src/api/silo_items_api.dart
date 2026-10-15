@@ -271,17 +271,31 @@ class SiloItemsApi
       scope: scope,
       groups: groups,
     );
-    if (seriesStatus != null && seriesStatus.isNotEmpty) {
+    final random = siloWantsRandom(sortBy);
+    final filtered = seriesStatus != null && seriesStatus.isNotEmpty;
+    // A random grid is shuffled whole (a few random titles come from the
+    // first hundred instead, [_shuffledPage]).
+    final smallRandom =
+        random &&
+        (startIndex ?? 0) == 0 &&
+        limit != null &&
+        limit > 0 &&
+        limit < _randomPool;
+    if (filtered || (random && !smallRandom)) {
       return _clientFiltered(
         params,
-        filter: 'series_status=${seriesStatus.join(',')}',
+        filter: [
+          if (filtered) 'series_status=${seriesStatus.join(',')}',
+          if (random) 'random',
+        ].join('&'),
         keep: keep,
         startIndex: startIndex,
         limit: limit,
         libraryId: libraryId,
+        shuffle: random,
       );
     }
-    if (siloWantsRandom(sortBy)) {
+    if (random) {
       return _shuffledPage(
         params,
         startIndex: startIndex,
@@ -299,15 +313,11 @@ class SiloItemsApi
     );
   }
 
-  /// Items in random order (`sortBy: Random`). Silo's catalog refuses
-  /// `sort=random` (random order is only a home section there), so the list
-  /// is read in Silo's default order and shuffled here.
-  ///
-  /// A first request for fewer than a page (a genre card's artwork, a row
-  /// asking for a few random titles) draws from the first [_randomPool]
-  /// titles rather than only the first `limit`. Later pages are Silo's
-  /// default order, each shuffled, so a grid scrolled to the end lists every
-  /// title once. The total stays Silo's.
+  /// A few titles in random order (`sortBy: Random` with a small `limit`:
+  /// a genre card's artwork, a row of random titles). Silo's catalog refuses
+  /// `sort=random`, so they are drawn from the first [_randomPool] titles of
+  /// Silo's default order. A random grid is shuffled whole instead
+  /// ([_clientFiltered] with `shuffle`).
   Future<Map<String, dynamic>> _shuffledPage(
     Map<String, Object?> params, {
     int? startIndex,
@@ -315,19 +325,16 @@ class SiloItemsApi
     bool Function(Map<String, dynamic> item)? keep,
     String? libraryId,
   }) async {
-    final start = startIndex ?? 0;
-    final widen =
-        start == 0 && limit != null && limit > 0 && limit < _randomPool;
     final page = await _page(
       params,
-      startIndex: start,
-      limit: widen ? _randomPool : limit,
+      startIndex: 0,
+      limit: _randomPool,
       keep: keep,
       libraryId: libraryId,
     );
     final items = [...(page['Items'] as List).cast<Map<String, dynamic>>()]
       ..shuffle(_random);
-    return {...page, 'Items': widen ? items.take(limit).toList() : items};
+    return {...page, 'Items': items.take(limit ?? items.length).toList()};
   }
 
   static const _randomPool = 100;
@@ -359,6 +366,10 @@ class SiloItemsApi
   ///
   /// The filtered list is kept for [_filteredListTtl], for the grid's next
   /// pages; [filter] names the client-side filter in the cache key.
+  ///
+  /// The same read-once list serves orders Silo can't give: [shuffle]
+  /// shuffles it once (a random grid, 5.13), and [read] replaces the plain
+  /// read (a show grid by last played, 5.13).
   Future<Map<String, dynamic>> _clientFiltered(
     Map<String, Object?> params, {
     required String filter,
@@ -366,12 +377,18 @@ class SiloItemsApi
     int? startIndex,
     int? limit,
     String? libraryId,
+    bool shuffle = false,
+    Future<List<Map<String, dynamic>>> Function()? read,
   }) async {
     final key = '${siloPageSignature(_catalogPath, params)}#$filter';
     final now = DateTime.now();
     var entry = _filteredLists.remove(key);
     if (entry == null || now.difference(entry.at) > _filteredListTtl) {
-      entry = (at: now, items: _readAll(params, keep, libraryId));
+      final list = read?.call() ?? _readAll(params, keep, libraryId);
+      entry = (
+        at: now,
+        items: shuffle ? list.then((l) => l..shuffle(_random)) : list,
+      );
     }
     _filteredLists[key] = entry;
     while (_filteredLists.length > _filteredListMax) {

@@ -144,6 +144,7 @@ class SiloItemsApi implements ItemsApi {
       'type': ?scope,
       'sort': ?siloSortFor(sortBy: sortBy, sortOrder: sortOrder),
       if (groups.isNotEmpty) 'groups': jsonEncode(groups),
+      'name_prefix': ?_namePrefix(nameStartsWith),
       'image_size': siloListImageSize,
     };
     final excluded = {
@@ -589,6 +590,46 @@ class SiloItemsApi implements ItemsApi {
         : siloFiltersToQueryFilterValues(json);
   }
 
+  // --- alphabet (6.11) -----------------------------------------------------
+
+  /// Jellyfin's `NameStartsWith` as Silo's `name_prefix` (step 6.11). Both
+  /// match the start of the sort title. Moonfin's `#` bucket (titles not
+  /// starting with a letter) has no prefix equivalent and is left out.
+  static String? _namePrefix(String? nameStartsWith) {
+    final prefix = nameStartsWith?.trim();
+    if (prefix == null || prefix.isEmpty || prefix == '#') return null;
+    return prefix;
+  }
+
+  /// Silo's letter index for a title-ordered list (`POST /catalog/letters`):
+  /// which letters have titles, how many, and where each starts. A position
+  /// sent as `seek` with the list's window cursor loads that letter's
+  /// window directly (5.12).
+  ///
+  /// Moonfin's jump bar walks pages until a letter appears, which works on
+  /// Silo unchanged; this is here for a jump bar that seeks instead.
+  Future<SiloLetterIndex> letters({
+    String? libraryId,
+    List<String>? includeItemTypes,
+    bool descending = false,
+  }) async {
+    final types = siloTypesForQuery(includeItemTypes: includeItemTypes);
+    final scope = types == null || types.isEmpty
+        ? null
+        : siloCatalogScopeFor(types);
+    final response = await _dio.post<dynamic>(
+      '/api/v2/catalog/letters',
+      data: {
+        'library_id': ?libraryId,
+        'type': ?scope,
+        'order': descending ? 'desc' : 'asc',
+      },
+    );
+    return SiloLetterIndex.fromJson(
+      asJsonMap(response.data) ?? const <String, dynamic>{},
+    );
+  }
+
   // --- what Silo doesn't have ---------------------------------------------
 
   static const _emptyList = <String, dynamic>{
@@ -678,5 +719,44 @@ class SiloItemsApi implements ItemsApi {
     final step = _steps[name];
     if (step != null) throw SiloNotImplementedError('ItemsApi', name, step);
     throw UnsupportedError('ItemsApi.$name is not supported on Silo');
+  }
+}
+
+/// Silo's letter index for a title-ordered list ([SiloItemsApi.letters]).
+class SiloLetterIndex {
+  const SiloLetterIndex({required this.total, required this.letters});
+
+  factory SiloLetterIndex.fromJson(Map<String, dynamic> json) {
+    final raw = json['letters'];
+    final total = json['total'];
+    return SiloLetterIndex(
+      total: total is num ? total.toInt() : 0,
+      letters: [
+        if (raw is List)
+          for (final entry in raw)
+            if (asJsonMap(entry) case final l?)
+              if (l['letter'] case final String letter)
+                (
+                  letter: letter,
+                  count: (l['count'] as num?)?.toInt() ?? 0,
+                  position: (l['position'] as num?)?.toInt() ?? 0,
+                ),
+      ],
+    );
+  }
+
+  /// Titles in the whole list.
+  final int total;
+
+  /// The letters with titles, in list order (`#` for anything else).
+  final List<({String letter, int count, int position})> letters;
+
+  /// Where [letter]'s titles start, or null when it has none.
+  int? positionOf(String letter) {
+    final upper = letter.toUpperCase();
+    for (final l in letters) {
+      if (l.letter.toUpperCase() == upper) return l.position;
+    }
+    return null;
   }
 }

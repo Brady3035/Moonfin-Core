@@ -113,3 +113,35 @@ String? siloTypeOfId(String id) {
     episodeNumber: int.parse(match.group(3)!),
   );
 }
+
+/// Prefix of a personal collection's id in Moonfin (6.15).
+const siloCollectionIdPrefix = 'silo-collection:';
+
+/// Prefix of a library collection's id in Moonfin (6.15).
+const siloLibraryCollectionIdPrefix = 'silo-libcollection:';
+
+/// Moonfin's id for Silo's personal collection [id]. Silo's collection ids
+/// are opaque strings that could look like anything, so collections get a
+/// prefix that tells them apart from titles, people and libraries.
+String siloCollectionId(String id) => '$siloCollectionIdPrefix$id';
+
+/// Moonfin's id for collection [id] of library [libraryId]; a library
+/// collection is read and paged through its library.
+String siloLibraryCollectionId(String libraryId, String id) =>
+    '$siloLibraryCollectionIdPrefix$libraryId:$id';
+
+/// What a collection id names: a personal collection (no library) or a
+/// library's collection; null when [id] isn't a collection id.
+({String id, String? libraryId})? parseSiloCollectionId(String id) {
+  if (id.startsWith(siloCollectionIdPrefix)) {
+    final rest = id.substring(siloCollectionIdPrefix.length);
+    return rest.isEmpty ? null : (id: rest, libraryId: null);
+  }
+  if (id.startsWith(siloLibraryCollectionIdPrefix)) {
+    final rest = id.substring(siloLibraryCollectionIdPrefix.length);
+    final colon = rest.indexOf(':');
+    if (colon <= 0 || colon == rest.length - 1) return null;
+    return (id: rest.substring(colon + 1), libraryId: rest.substring(0, colon));
+  }
+  return null;
+}

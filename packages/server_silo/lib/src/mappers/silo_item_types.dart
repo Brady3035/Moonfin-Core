@@ -162,3 +162,27 @@ String? siloCatalogScopeFor(Set<String> types) {
   }
   return null;
 }
+
+/// Silo's types for movies, series and episodes: what its search-only
+/// `video_with_episodes` scope covers.
+const Set<String> _siloVideoWithEpisodes = {'movie', 'series', 'episode'};
+
+/// The `type` scope of a catalog **search** (`q`) for [types] (step 7.1).
+///
+/// Silo lists episodes apart from films and series; only a text search can
+/// mix them, through the `video_with_episodes` scope. That scope is used
+/// when [withEpisodes] (the server's `video_with_episodes_scope`
+/// capability) and the search asks for episodes along with films or series,
+/// or for any type ([types] null) while Moonfin shows only video. Otherwise
+/// the scope is the browse one ([siloCatalogScopeFor]); with no type the
+/// search is unscoped and the caller keeps what it can show.
+String? siloSearchScopeFor(Set<String>? types, {required bool withEpisodes}) {
+  final wanted = types ?? siloSupportedTypes.difference({'season'});
+  if (withEpisodes &&
+      wanted.length > 1 &&
+      wanted.contains('episode') &&
+      _siloVideoWithEpisodes.containsAll(wanted)) {
+    return 'video_with_episodes';
+  }
+  return types == null ? null : siloCatalogScopeFor(types);
+}

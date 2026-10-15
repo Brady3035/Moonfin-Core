@@ -18,6 +18,9 @@
 #   SILO_MOVIE_MULTI   a movie with two or more versions
 #   SILO_SERIES        a series
 #   SILO_EPISODE       an episode with markers/trickplay
+#   SILO_SEARCH        search text for catalog_search (default: justice, which
+#                      finds Young Justice; "the" is a stop word for Silo's
+#                      PostgreSQL search and finds nothing)
 #                      Silo content ids. When unset, each is worked out from the
 #                      matching Emby item's IMDb/TMDB/TVDB ids (Silo builds its
 #                      ids from them, e.g. movie-imdb-tt0295701), so both
@@ -46,7 +49,7 @@ for arg in "$@"; do
   case "$arg" in
     --contract) MODE_CONTRACT=1 ;;
     --public) MODE_PUBLIC=1 ;;
-    -h|--help) sed -n '2,41p' "$0"; exit 0 ;;
+    -h|--help) sed -n '2,43p' "$0"; exit 0 ;;
     *) echo "unknown option: $arg (see --help)" >&2; exit 2 ;;
   esac
 done
@@ -429,7 +432,8 @@ EOF
     silo catalog_filters "/catalog/filters?library_id=$LIBRARY"
     silo catalog_letters /catalog/letters POST "{\"library_id\":\"$LIBRARY\"}"
   fi
-  silo catalog_search "/catalog?q=the&limit=5"
+  SEARCH="${SILO_SEARCH:-justice}"
+  silo catalog_search "/catalog?q=${SEARCH// /%20}&type=video_with_episodes&limit=5"
   silo progress_in_progress "/progress?status=in_progress&limit=5"
   silo favorites "/favorites?limit=5"
   silo collections /collections

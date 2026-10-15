@@ -111,7 +111,7 @@ Status key: ☐ not started · ◐ in progress · ☑ done and tested · ⊘ ski
 - [x] **6.5** [Library grid (`getItems` for a library)](phases/06-browsing.md#step-6-5)
 - [x] **6.6** [Movie detail (`getItem`)](phases/06-browsing.md#step-6-6)
 - [x] **6.7** [Series detail and seasons](phases/06-browsing.md#step-6-7)
-- [ ] **6.8** [Season episodes](phases/06-browsing.md#step-6-8)
+- [x] **6.8** [Season episodes](phases/06-browsing.md#step-6-8)
 - [ ] **6.9** [Ancestors](phases/06-browsing.md#step-6-9)
 - [ ] **6.10** [Library filters](phases/06-browsing.md#step-6-10)
 - [ ] **6.11** [Alphabet jump](phases/06-browsing.md#step-6-11)

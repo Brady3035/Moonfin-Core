@@ -7,6 +7,7 @@ import '../mappers/silo_item_mapper.dart';
 import '../mappers/silo_filters_mapper.dart';
 import '../mappers/silo_ids.dart';
 import '../mappers/silo_item_types.dart';
+import '../mappers/silo_person_mapper.dart';
 import '../mappers/silo_sort_map.dart';
 import '../silo_image_registry.dart';
 import '../silo_pager.dart';
@@ -152,7 +153,12 @@ class SiloItemsApi implements ItemsApi {
       audioLanguages: audioLanguages,
       subtitleLanguages: subtitleLanguages,
     );
+    // A person's titles (6.14): Silo pages one person at a time.
+    final personId = personIds == null || personIds.isEmpty
+        ? null
+        : personIds.first;
     final params = <String, Object?>{
+      if (personId != null) ...{'source': 'person', 'person_id': personId},
       'library_id': ?libraryId,
       'type': ?scope,
       'sort': ?siloSortFor(sortBy: sortBy, sortOrder: sortOrder),
@@ -274,7 +280,15 @@ class SiloItemsApi implements ItemsApi {
     String? fields,
   }) async {
     final library = _libraryIdOf(itemId);
-    if (library != null) return _library(library);
+    if (library != null) {
+      // Library and person ids are both numbers: a library the profile can
+      // see, else a person (6.14).
+      try {
+        return await _library(library);
+      } on StateError {
+        return _person(library);
+      }
+    }
     if (siloTypeOfId(itemId) == 'season') return _season(itemId);
     if (siloGenreNameOf(itemId) case final genre?) {
       return siloNamedItem(genre, studio: false);
@@ -744,6 +758,24 @@ class SiloItemsApi implements ItemsApi {
       startIndex: startIndex,
       limit: limit,
     );
+  }
+
+  // --- people (6.14) -------------------------------------------------------
+
+  /// A person's page (step 6.14): `GET /catalog/people/{id}` as a Jellyfin
+  /// `Person` item, its photo registered. Their titles are
+  /// `getItems(personIds: [id])`, which pages Silo's `source=person`.
+  Future<Map<String, dynamic>> _person(String personId) async {
+    final response = await _dio.get<dynamic>(
+      '/api/v2/catalog/people/${Uri.encodeComponent(personId)}',
+    );
+    final json = asJsonMap(response.data);
+    if (json == null) {
+      throw FormatException(
+        'Expected a person from Silo, got ${response.data.runtimeType}',
+      );
+    }
+    return siloPersonToBaseItemDto(json, images: images);
   }
 
   // --- what Silo doesn't have ---------------------------------------------

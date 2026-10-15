@@ -814,7 +814,7 @@ Silo names genres but gives them no id, count or artwork. Moonfin opens a genre 
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 6.12 |
+| ☑ Done | — | 6.12 |
 
 **Goal.** Same pattern as genres.
 
@@ -851,6 +851,7 @@ Same pattern as genres (6.12), with `silo-studio:<name>` ids and `Studio` items.
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | studios 3/3; `server_silo` 392/392; analyzer: no issues |
+| 2026-10-14 | macOS | `4b2e921c` | Pass | full `flutter test` before committing |
 | | | | | |
 
 ---
@@ -860,7 +861,7 @@ Same pattern as genres (6.12), with `silo-studio:<name>` ids and `Studio` items.
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 6.13 |
 
 **Goal.** Person detail and filmography.
 
@@ -871,26 +872,48 @@ Same pattern as genres (6.12), with `silo-studio:<name>` ids and `Studio` items.
 
 **Where in Moonfin**
 
-- `silo_items_api.dart`
+- `packages/server_silo/lib/src/mappers/silo_person_mapper.dart` (new)
+- `packages/server_silo/lib/src/api/silo_items_api.dart`
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+**A person's page.** `getItem(<person id>)` reads `GET /catalog/people/{id}`. `siloPersonToBaseItemDto` turns it into the Jellyfin `Person` item Moonfin's person page reads:
+
+| Jellyfin | Silo |
+|---|---|
+| `Overview` | `bio` |
+| `PremiereDate` / `EndDate` | `birth_date` / `death_date` (born, died) |
+| `ProductionLocations` | `[birthplace]` |
+| `ProviderIds` | `imdb_id`, `tmdb_id`, `tvdb_id` |
+| `ImageTags.Primary` | `photo_url`, registered under the person's id |
+| `ExternalUrls` | `homepage`, when there is one |
+
+**Library or person.** Silo's person ids and library ids are both plain numbers. `getItem` checks the libraries the profile can see first (cached, 6.4) and otherwise reads the id as a person.
+
+**Filmography.** `getItems(personIds: [id])` pages Silo's `source=person&person_id=…`, with the usual sort, type and paging. Silo pages one person at a time, so a list of several people uses the first. The person page asks for films, series, music videos and episodes; there is no single Silo scope for that mix, so everything is asked for and those types are kept (6.5).
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `packages/server_silo/test/silo_items_api_people_test.dart` (new, 4 tests):
+  - Vin Diesel's page: bio, birth date, birthplace, provider ids and registered photo;
+  - a library id still answers the library;
+  - filmography sends `source=person`, `person_id` and `sort=-release_date`, with no type for the mix;
+  - a death date.
+- `server_silo`: 396/396.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+- On a Silo film's detail page, open a cast member. Their page shows photo, biography, birth date and place, and their films and series on Silo, newest first.
+- **Compare with Emby:** the same person's page shows the same biography and dates.
+- A crew member (director) opens the same way.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | people 4/4; `server_silo` 396/396; analyzer: no issues |
 | | | | | |
 
 ---

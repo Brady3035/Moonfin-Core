@@ -101,7 +101,7 @@ Search for the same words on Silo and on Emby (same library on both):
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 7.1 |
+| ☑ Done | `290e1b9` | 7.1 |
 
 **Goal.** Person results.
 
@@ -127,7 +127,9 @@ On Silo `getPersons` (until now `SiloNotImplementedError` naming 7.2) calls `GET
 - **`limit`**: capped at Silo's 100; none leaves Silo's default (20). `fields` and `enableImageTypes` are ignored: Silo's person is always whole.
 - **Mapping**: each person goes through `siloPersonToBaseItemDto` (6.14), so a result is a Jellyfin `Person` with `ProviderIds` and its photo registered, and opening it shows the person page from 6.14 (photo, biography, filmography). Entries without an id are skipped. The total is the number returned (Silo's people search has no total).
 
-**Not covered here:** Moonfin's suggestion list asks `getItems` for `[Movie, Series, Person]`. Silo's catalog has no person items, so on Silo suggestions list titles only (compare with Emby). Adding the people search to suggestions would mean a Silo-specific second call from the app's `SearchRepository`, so it's left as it is unless Brady wants it. The same goes for the book author lookup in `item_detail_screen.dart` (`getItems(includeItemTypes: [Person])`), which comes with books in phase 16.
+**Ranking is Silo's.** Silo matches each word against word starts, as documented, but lists the matches by name: "vin" gives Alex Vincent, Allen Vincent… and Vin Diesel only once his last name is typed, and "chris" isn't led by people named Chris. Silo's web search behaves the same. This is an improvement to raise with Silo (rank exact word matches first), not something Moonfin reorders: it only sees the first page.
+
+**Not covered here:** Moonfin's suggestion list asks `getItems` for `[Movie, Series, Person]`. Silo's catalog has no person items, so on Silo suggestions list titles only. Adding the people search to suggestions would mean a Silo-specific second call from the app's `SearchRepository`; Brady decided to leave it (2026-10-15). The same goes for the book author lookup in `item_detail_screen.dart` (`getItems(includeItemTypes: [Person])`), which comes with books in phase 16.
 
 ### Testing
 
@@ -142,6 +144,7 @@ On Silo `getPersons` (until now `SiloNotImplementedError` naming 7.2) calls `GET
   - entries without an id skipped;
   - errors reach the caller (the view model drops the People group then).
 - `silo_items_api_library_test.dart`: `getPersons` no longer names a later step.
+- The step was built against a hand-written fixture; Brady's capture after testing (Silo `bd9d59ea`, "Vin") replaced it, and the first test now checks the real five people.
 - `server_silo`: 449/449. App search tests (view model, late people, multi-server, library jump search): 89/89.
 
 **Manual test plan**
@@ -161,6 +164,8 @@ Same searches on Silo and on Emby:
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-15 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | people search 7/7; `server_silo` 449/449; app search tests 89/89; analyzer: no issues |
+| 2026-10-15 | macOS | `bd9d59ea` | Pass | Brady: people listed, photos, person pages, Seerr person, Emby all pass. Silo note: "vin" doesn't bring up Vin Diesel until his last name is typed, and "chris" isn't led by people named Chris; Silo's web search does the same (raise with Silo, see How it works) |
+| 2026-10-15 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | real people capture; people search 7/7; `server_silo` 449/449; analyzer: no issues |
 | | | | | |
 
 ---

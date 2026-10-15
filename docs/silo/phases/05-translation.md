@@ -715,7 +715,7 @@ Silo detects or imports **markers** per file: intro, credits, recap and preview.
 
 - `packages/server_silo/lib/src/mappers/silo_trickplay_mapper.dart` (new)
 - `silo_image_registry.dart`: a `trickplay` image type.
-- `packages/server_silo/test/fixtures/silo/watch_trickplay_episode.json` (new, written by hand; see below).
+- `packages/server_silo/test/fixtures/silo/watch_trickplay_episode.json` (new, written by hand; replaced by a real capture on 2026-10-15, see below).
 
 ### How it works
 
@@ -747,7 +747,7 @@ Moonfin reads Jellyfin's `Trickplay` item field, `{ <media source id>: { "<width
 
 **Not switched on yet.** `supportsTrickplay` stays off for Silo until 11.2 fetches the previews and merges this field into the item.
 
-**Sample.** No file on the test server had seek previews when this step was built, so `watch_trickplay_episode.json` was written from the schema. It uses the probe script's file name, so a real capture replaces it, and the tests read their expectations from the file. The fixtures README says so. Capture a real one before 11.2.
+**Sample.** No file on the test server had seek previews when this step was built, so `watch_trickplay_episode.json` was written from the schema. Brady's probe run on 2026-10-15 (Silo `bd9d59ea`) captured a real one for Young Justice S01E01, which replaced it: 300 × 168 thumbnails, 10 × 8 per sheet, 136 thumbnails on two sheets. The tests read their expectations from the file and pass unchanged. One difference from the guess: real sheet URLs live under `/api/v2/artwork/trickplay/`, so the image cache keys them by path like other signed artwork (6.2), which 11.2 relies on.
 
 ### Testing
 
@@ -767,6 +767,7 @@ Moonfin reads Jellyfin's `Trickplay` item field, `{ <media source id>: { "<width
 |---|---|---|---|---|
 | 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | trickplay tests 9/9; `server_silo` 284/284; analyzer: no issues |
 | 2026-10-14 | macOS | `4b2e921c` | Pass | full `flutter test` before committing |
+| 2026-10-15 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | real capture (`bd9d59ea`): trickplay tests 9/9 unchanged; `server_silo` 449/449 |
 | | | | | |
 
 ---

@@ -97,10 +97,10 @@ void main() {
       );
     });
 
-    test('libraries', () {
+    test('display preferences', () {
       expect(
-        () => client.userViewsApi.getUserViews(),
-        pending('UserViewsApi', 'getUserViews', '6.4'),
+        () => client.displayPreferencesApi.getDisplayPreferences('1'),
+        pending('DisplayPreferencesApi', 'getDisplayPreferences', '6.19'),
       );
     });
   });

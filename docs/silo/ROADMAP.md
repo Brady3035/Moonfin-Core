@@ -106,7 +106,7 @@ Status key: ☐ not started · ◐ in progress · ☑ done and tested · ⊘ ski
 
 - [x] **6.1** [Image API on the registry](phases/06-browsing.md#step-6-1)
 - [x] **6.2** [Image cache keyed by path](phases/06-browsing.md#step-6-2)
-- [ ] **6.3** [Image registry misses](phases/06-browsing.md#step-6-3)
+- [x] **6.3** [Image registry misses](phases/06-browsing.md#step-6-3)
 - [ ] **6.4** [Libraries (`UserViewsApi`)](phases/06-browsing.md#step-6-4)
 - [ ] **6.5** [Library grid (`getItems` for a library)](phases/06-browsing.md#step-6-5)
 - [ ] **6.6** [Movie detail (`getItem`)](phases/06-browsing.md#step-6-6)

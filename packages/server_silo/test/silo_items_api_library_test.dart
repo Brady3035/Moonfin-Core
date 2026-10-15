@@ -162,9 +162,9 @@ void main() {
   test('later steps name themselves', () async {
     final api = siloTestClient(FixtureServer({})).itemsApi;
     expect(
-      () => api.getResumeItems(),
+      () => api.getNextUp(),
       throwsA(
-        isA<SiloNotImplementedError>().having((e) => e.step, 'step', '8.1'),
+        isA<SiloNotImplementedError>().having((e) => e.step, 'step', '8.2'),
       ),
     );
   });

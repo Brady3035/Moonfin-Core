@@ -478,7 +478,9 @@ int? _int(Object? value) => value is num ? value.toInt() : null;
 /// - `user_state` on every catalog item: `played`, `is_favorite` (and
 ///   `in_watchlist`, which Jellyfin has no field for);
 /// - `user_data` on series, seasons and watch answers: `position_seconds`,
-///   `duration_seconds`, `is_in_progress`, `unplayed_count`, `played`.
+///   `duration_seconds`, `is_in_progress`, `unplayed_count`, `played`;
+/// - `position_seconds` and `duration_seconds` on the card itself, on a
+///   Continue Watching card (8.1).
 ///
 /// Either may be missing; what neither says means unplayed at position 0, the
 /// way Emby reports an untouched item. `UnplayedItemCount` is only for
@@ -487,11 +489,11 @@ Map<String, dynamic> _userData(SiloItemType type, Map<String, dynamic> item) {
   final state = asJsonMap(item['user_state']) ?? const <String, dynamic>{};
   final data = asJsonMap(item['user_data']) ?? const <String, dynamic>{};
   final played = state['played'] == true || data['played'] == true;
-  final position = data['position_seconds'];
+  final position = data['position_seconds'] ?? item['position_seconds'];
   final positionSeconds = position is num && position > 0 && !played
       ? position
       : 0;
-  final duration = data['duration_seconds'];
+  final duration = data['duration_seconds'] ?? item['duration_seconds'];
   final unplayed = data['unplayed_count'];
   final lastPlayed = _timestamp(item['progress_updated_at']);
   return {

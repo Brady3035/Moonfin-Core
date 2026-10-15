@@ -48,7 +48,7 @@ Docs only. `docs/silo/README.md` explains the approach and workflow, `ROADMAP.md
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | `81085c4`, refresh — | 0.1 |
+| ☑ Done | `81085c4`, refresh `ac84f46` | 0.1 |
 
 **Goal.** Replace the `4e371f4c` OpenAPI snapshot with the one from the server you run, and record the version, `api_major` and `contract_digest`.
 

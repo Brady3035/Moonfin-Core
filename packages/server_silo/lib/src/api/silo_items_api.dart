@@ -1326,6 +1326,82 @@ class SiloItemsApi implements ItemsApi, LetterPositionApi {
     return _slice(items, startIndex: startIndex, limit: limit);
   }
 
+  /// Next Up (step 8.2): the next episode of each show the profile is
+  /// watching, or of one series.
+  ///
+  /// - **The row** (no `seriesId`): Silo works these out per profile and, by
+  ///   default, puts them in its Continue Watching section as
+  ///   `item_source: next_up` cards (its `ui.next_up_mode` setting
+  ///   `combined`); with the setting `separate` they come as a `next_up`
+  ///   section instead. Both are read from the page (8.1's sections, shared
+  ///   with that row), so either setting works, and a page with neither
+  ///   answers empty. A library `parentId` reads the library's page.
+  /// - **One series** (`seriesId`, the series page's "next up"): the series'
+  ///   `play_content_id`, the episode Silo's own Play button starts, when it
+  ///   is an episode not yet watched.
+  ///
+  /// `enableResumable: false` leaves out an episode already started (it is
+  /// in Continue Watching). `nextUpDateCutoff` is ignored: Silo decides
+  /// which shows are current. `startIndex`/`limit` slice the row.
+  @override
+  Future<Map<String, dynamic>> getNextUp({
+    String? seriesId,
+    String? parentId,
+    int? startIndex,
+    int? limit,
+    String? fields,
+    bool? enableResumable,
+    DateTime? nextUpDateCutoff,
+    String? enableImageTypes,
+    int? imageTypeLimit,
+  }) async {
+    bool keep(Map<String, dynamic> item) {
+      final data = item['UserData'] as Map?;
+      if (data?['Played'] == true) return false;
+      final position = data?['PlaybackPositionTicks'];
+      return enableResumable != false || position is! num || position <= 0;
+    }
+
+    if (seriesId != null) {
+      final episode = await _seriesNextEpisode(seriesId);
+      return _slice(
+        [if (episode != null && keep(episode)) episode],
+        startIndex: startIndex,
+        limit: limit,
+      );
+    }
+
+    final libraryId = _libraryIdOf(parentId);
+    if (parentId != null && libraryId == null) return _empty(startIndex);
+    final lists = await Future.wait([
+      homeSections.cardsOf('continue_watching', libraryId: libraryId),
+      homeSections.cardsOf('next_up', libraryId: libraryId),
+    ]);
+    final seen = <String>{};
+    final items = [
+      for (final card in [
+        for (final c in lists[0] ?? const <Map<String, dynamic>>[])
+          if (c['item_source'] == 'next_up') c,
+        ...?lists[1],
+      ])
+        if (card['type'] == 'episode' && seen.add(card['content_id'] as String))
+          if (siloItemToBaseItemDto(card, images: images) case final item?)
+            if (keep(item)) item,
+    ];
+    _rememberRow(items, libraryId);
+    return _slice(items, startIndex: startIndex, limit: limit);
+  }
+
+  /// The episode Silo would play next for [seriesId] (its
+  /// `play_content_id`), or null when it names none or not an episode.
+  Future<Map<String, dynamic>?> _seriesNextEpisode(String seriesId) async {
+    if (siloTypeOfId(seriesId) != 'series') return null;
+    final series = await getItem(seriesId);
+    final next = (series[siloOriginalKey] as Map?)?['play_content_id'];
+    if (next is! String || siloTypeOfId(next) != 'episode') return null;
+    return getItem(next);
+  }
+
   /// Continue Watching from the resume points (`GET /progress`), for a page
   /// with no Continue Watching section: each item read from the catalog, its
   /// `UserData` from the entry ([siloProgressToUserData]).
@@ -1454,7 +1530,6 @@ class SiloItemsApi implements ItemsApi, LetterPositionApi {
 
   /// The step that implements each method not implemented yet.
   static const _steps = {
-    'getNextUp': '8.2',
     'getLatestItems': '8.3',
     'getRecentlyReleasedItems': '8.4',
     'createCollection': '9.5',

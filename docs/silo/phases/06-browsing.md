@@ -1100,20 +1100,22 @@ Both come from the title's detail. Each extra is a video item (`siloExtraToBaseI
 
 An extra's `content_id` plays through Silo's usual watch flow, so playing one comes with phase 10. `getIntros` answers empty: Silo plays no intros before a title.
 
+**Local trailers wait for phase 10.** Moonfin's trailer button plays a local trailer before a YouTube one. On Brady's first test the button picked a title's local trailer file, opened the player, and nothing played, since Silo playback is phase 10. Until then `siloLocalTrailersPlayable` is false: `LocalTrailerCount` is 0 and `getLocalTrailers` answers empty, so the button opens the YouTube trailer, and a title with only a local trailer shows no trailer button. Step 10.6 sets it to true (noted there). The mapping itself (`siloExtrasOf`) is tested now. The other extras still show in the extras row.
+
 ### Testing
 
 **Automated tests**
 
 - `packages/server_silo/test/silo_extras_test.dart` (new, 3 tests):
   - xXx's YouTube trailer as Emby's `RemoteTrailers` URL, no local extras, no intros;
-  - local trailers and special features from extras: counts, order, `ExtraType`, run time, untitled extras named by id, entries without an id skipped;
+  - local trailers and special features from extras: counts, order, `ExtraType`, run time, untitled extras named by id, entries without an id skipped; local trailers hidden (count 0, none from `getLocalTrailers`) until phase 10;
   - remote trailer ordering and unknown sites.
-- `server_silo`: 408/408.
+- `server_silo`: 408/408 at 6.17; 422/422 with the fix (on top of 6.19).
 
 **Manual test plan**
 
-- A Silo film with a YouTube trailer shows the trailer button; it opens the trailer (as on Emby).
-- A title with local extras in its folder (`Trailers/`, `Featurettes/`, `Behind The Scenes/`… next to the file) shows them in its extras row with the right labels. Playing them comes with phase 10.
+- A Silo film with a YouTube trailer shows the trailer button; it opens and **plays** the YouTube trailer (as on Emby), also for a film that has a trailer file in its folder.
+- A title with local extras in its folder (`Featurettes/`, `Behind The Scenes/`… next to the file) shows them in its extras row with the right labels; local trailer files don't show until phase 10. Playing them comes with phase 10.
 - The media bar's trailer preview (if enabled) finds Silo trailers.
 
 **Results**
@@ -1122,6 +1124,8 @@ An extra's `content_id` plays through Silo's usual watch flow, so playing one co
 |---|---|---|---|---|
 | 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | extras 3/3; `server_silo` 408/408; analyzer: no issues |
 | 2026-10-14 | macOS | `4b2e921c` | Pass | full `flutter test` before committing |
+| 2026-10-14 | macOS | `4b2e921c` | Fail | Brady: the trailer button opened a player that played nothing (it picked the local trailer); media bar not testable without trailers |
+| 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | fix: local trailers hidden until phase 10; extras 3/3; `server_silo` 422/422; analyzer: no issues |
 | | | | | |
 
 ---

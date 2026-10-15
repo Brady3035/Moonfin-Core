@@ -78,9 +78,10 @@ Map<String, dynamic>? siloItemToBaseItemDto(
     // Remote trailers and the local extras' counts (6.17).
     'RemoteTrailers': siloRemoteTrailers(item['videos']),
     if (item['extras'] case final List extras) ...{
-      'LocalTrailerCount': extras
-          .where((e) => e is Map && isSiloTrailerKind(e['kind']))
-          .length,
+      // Local trailers stay hidden until Moonfin can play them (phase 10).
+      'LocalTrailerCount': siloLocalTrailersPlayable
+          ? extras.where((e) => e is Map && isSiloTrailerKind(e['kind'])).length
+          : 0,
       'SpecialFeatureCount': extras
           .where((e) => e is Map && !isSiloTrailerKind(e['kind']))
           .length,

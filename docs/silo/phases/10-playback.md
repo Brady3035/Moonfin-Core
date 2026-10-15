@@ -205,6 +205,7 @@ _Fill in when the step is built: what the code does, the main classes and why it
 **Where in Moonfin**
 
 - `silo_media_stream_resolver.dart`
+- `silo_extras_mapper.dart`: set `siloLocalTrailersPlayable` to true once an extra plays (added at 6.17), so local trailers come back to the trailer button and the extras' trailer count; check a title's local trailer plays from the trailer button.
 
 ### How it works
 

@@ -250,7 +250,7 @@ Moonfin builds a "Latest in <library>" row per library (`RowDataSource.loadLates
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 8.3 |
+| ☑ Done | — | 8.3 |
 
 **Goal.** Sorted by release date.
 
@@ -313,37 +313,60 @@ Turn on the "Recently released" home section (Settings → Home) if it isn't on.
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 8.4 |
 
 **Goal.** `source=favorites`.
 
 **Silo v2 endpoints**
 
-- `GET /favorites`
+- `GET /catalog?type=&groups=[favorited is true]&sort=` (in place since 6.10)
 
 **Where in Moonfin**
 
-- `silo_items_api.dart`
+- `packages/server_silo/lib/src/api/silo_items_api.dart`: favourite collections.
+- `packages/server_silo/test/silo_items_api_favorites_test.dart` (new).
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+Home's favourite rows (Favorite Movies, Series, Episodes, People…, `RowDataSource.loadFavorites`, and the per-library and multi-server ones) are ordinary item queries: `getItems(includeItemTypes: [Movie], isFavorite: true, sortBy: <the row's sort>, recursive: true, limit: 20)`, once for the whole server, or once per library when some libraries are hidden from Home.
+
+**Already served by the catalog.** Since 6.10, `isFavorite` becomes Silo's rule `favorited is true` on `GET /catalog`, with the type scope, sort and paging of any library query. Silo's rule matches the profile's favourites by content id, for films, series and episodes alike, so every video favourite row works without a Silo-specific path. The plan named Silo's `source=favorites` list (and `GET /favorites`); it was checked and not used:
+
+- it gives the same titles (both read the profile's favourites);
+- the library grid's Favourites filter and its alphabet jump (6.11) go through the same `getItems`, and the jump's letter index is computed for a plain catalog query with rule groups, which `source=favorites` isn't;
+- the rows always ask a sort, so the favourites list's own order (newest favourite first) wouldn't show anyway.
+
+**Fixed here: favourite collections.** A query for `BoxSet` lists collections (6.15) and ignored `isFavorite`, so a favourite-collections view would have listed every collection. Silo's favourites are titles only, so a favourites query for collections now answers empty, without a request.
+
+**Silo has no favourite people**, and no music: those rows (People, Artists, Albums, Songs, Music Videos) ask for types Silo can't list and answer empty without a request (5.1), so Home leaves them out.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `packages/server_silo/test/silo_items_api_favorites_test.dart` (new, 4 tests), on the captured favourites:
+  - films: `type=movie`, the `favorited` rule, the row's sort, no `source`; the captured series left out of a films row; every card a favourite;
+  - series and episodes: their scopes with the rule and sort;
+  - one library at a time (`library_id`) when some are hidden;
+  - people and collections: empty, no request.
+- `server_silo`: 483/483.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+In Silo's web app, favourite two films, a series and an episode (or use existing favourites). Turn on the favourite rows in Home settings.
+
+1. **Favorite Movies**, **Favorite Series**, **Favorite Episodes**: each lists what you favourited in Silo, in the row's sort. Compare with Emby's rows for favourites there.
+2. **Favorite People**: no row (Silo has none).
+3. **Hide a library** that holds a favourite film (Settings → Libraries → *Show in navigation* off): Favorite Movies drops it. Turn it back on.
+4. **Unfavourite a film in Silo**, reload Home: it leaves the row.
+5. **Library grid → Favourites filter** (6.10): still lists the same films; the alphabet jump works on it.
+6. **Emby unchanged**.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
-| | | | | |
+| 2026-10-15 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | favourites 4/4; `server_silo` 483/483; analyzer: no issues |
 
 ---
 

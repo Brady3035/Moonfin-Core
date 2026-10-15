@@ -36,22 +36,30 @@ void main() {
       'limit': '24',
       'media_scope': 'video_with_episodes',
     });
+    // Silo matches word starts and lists them by name, so "vin" brings
+    // Vincents before Vin Diesel (raised with Silo, 7.2).
     final people = (page['Items'] as List).cast<Map<String, dynamic>>();
-    expect(page['TotalRecordCount'], 2);
-    expect(people.map((p) => p['Name']), ['Vin Diesel', 'Vincent Martella']);
-    expect(people.map((p) => p['Type']), ['Person', 'Person']);
+    expect(page['TotalRecordCount'], 5);
+    expect(people.map((p) => p['Name']), [
+      'Alex Vincent',
+      'Allen Vincent',
+      'Altair Vincent',
+      'Anne Vince',
+      'Bernard Vincent',
+    ]);
+    expect(people.map((p) => p['Type']).toSet(), {'Person'});
 
-    final vin = people.first;
-    expect(vin['Id'], '146552272560604468');
-    expect((vin['ProviderIds'] as Map)['Tmdb'], '12835');
+    final alex = people.first;
+    expect(alex['Id'], '146552330928538932');
+    expect((alex['ProviderIds'] as Map)['Tmdb'], '65683');
     expect(
       client.imageApi.getPrimaryImageUrl(
-        vin['Id'] as String,
-        tag: (vin['ImageTags'] as Map)['Primary'] as String,
+        alex['Id'] as String,
+        tag: (alex['ImageTags'] as Map)['Primary'] as String,
       ),
-      contains('/people/12835/profile/'),
+      contains('/people/65683/profile/'),
     );
-    expect(people.last['ImageTags'], isEmpty, reason: 'no photo');
+    expect(people[2]['ImageTags'], isEmpty, reason: 'no photo');
   });
 
   test('media scope follows the capabilities', () async {

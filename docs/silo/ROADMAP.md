@@ -127,7 +127,7 @@ Status key: ☐ not started · ◐ in progress · ☑ done and tested · ⊘ ski
 ## 7. [Search](phases/07-search.md)
 
 - [x] **7.1** [Title search](phases/07-search.md#step-7-1)
-- [ ] **7.2** [People search](phases/07-search.md#step-7-2)
+- [x] **7.2** [People search](phases/07-search.md#step-7-2)
 
 ## 8. [Home screen](phases/08-home.md)
 

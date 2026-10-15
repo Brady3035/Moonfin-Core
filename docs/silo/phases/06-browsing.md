@@ -518,7 +518,7 @@ Each item is mapped (phase 5) and its artwork registered, and the answer is Jell
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 6.7 |
+| ☑ Done | — | 6.7 |
 
 **Goal.** `getEpisodes(seasonId)` via `/catalog/items/{season_id}/episodes`; whole-series episodes when no season is given.
 
@@ -569,6 +569,7 @@ Episode entries carry no type and no series fields, so they are mapped as episod
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | episodes 3 new; `server_silo` 371/371; analyzer: no issues |
+| 2026-10-14 | macOS | `4b2e921c` | Pass | full `flutter test` before committing |
 | | | | | |
 
 ---
@@ -578,32 +579,51 @@ Episode entries carry no type and no series fields, so they are mapped as episod
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 6.8 |
 
 **Goal.** Synthesise episode → season → series → library for breadcrumbs and back navigation.
 
 **Where in Moonfin**
 
-- `silo_items_api.dart`
+- `packages/server_silo/lib/src/api/silo_items_api.dart`
+- `packages/server_silo/lib/src/mappers/silo_ids.dart`: `parseSiloEpisodeId`.
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+Jellyfin's `getAncestors` lists an item's parents, nearest first. In Moonfin today one place reads it: the detail page, looking for the collections (`BoxSet`) an item belongs to. Silo has no ancestors call and needs none, because the parents are in the ids (5.4): `episode-<key>-<s>-<e>` → `season-<key>-<s>` → `series-<key>`. `parseSiloEpisodeId` reads an episode id like `parseSiloSeasonId` reads a season's.
+
+| Item | Ancestors |
+|---|---|
+| episode | season, series, library |
+| season | series, library |
+| film or series | library |
+
+- **Season names** are "Season <n>", or "Specials" for 0. **Series titles** are those read this session (6.7).
+- **The library** is the one the item, or its series, was listed in by a grid (6.6), named from the libraries list. It is left out when unknown, since Silo's item answers don't name it.
+- **No catalog request** is made.
+
+Collections an item is in are added by 6.15.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `packages/server_silo/test/silo_items_api_ancestors_test.dart` (new, 4 tests):
+  - episode ids parse;
+  - an episode gives season, series and library with no catalog request;
+  - a season of specials, a season, a film;
+  - nothing known gives no ancestors.
+- `server_silo`: 375/375.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+- Open an episode's and a film's detail page from a Silo grid: no errors in the log from the ancestors call. With collections (6.15), a film in a Silo collection shows that collection on its page.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | ancestors 4/4; `server_silo` 375/375; analyzer: no issues |
 | | | | | |
 
 ---

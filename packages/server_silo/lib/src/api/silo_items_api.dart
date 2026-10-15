@@ -476,6 +476,77 @@ class SiloItemsApi implements ItemsApi {
     ];
   }
 
+  // --- ancestors (6.9) -----------------------------------------------------
+
+  /// An item's parents, nearest first, as Jellyfin lists them: an episode's
+  /// season, series and library; a season's series and library; a film's or
+  /// series' library (step 6.9).
+  ///
+  /// Silo has no ancestors call, and needs none: the parents are in the ids
+  /// (`episode-<key>-<s>-<e>` → `season-<key>-<s>` → `series-<key>`, 5.4).
+  /// Names come from what this session has read (series titles, 6.7);
+  /// a season is named "Season <n>" ("Specials" for 0). The library is the
+  /// one the item, or its series, was listed in (6.6), and is left out when
+  /// unknown. No request is made.
+  @override
+  Future<List<Map<String, dynamic>>> getAncestors(String itemId) async {
+    String? seriesId;
+    final ancestors = <Map<String, dynamic>>[];
+    final episode = parseSiloEpisodeId(itemId);
+    final season = parseSiloSeasonId(itemId);
+    if (episode != null) {
+      seriesId = episode.seriesId;
+      final seasonId = siloSeasonId(seriesId, episode.seasonNumber);
+      if (seasonId != null) {
+        ancestors.add(_seasonStub(seasonId, episode.seasonNumber, seriesId));
+      }
+    } else if (season != null) {
+      seriesId = season.seriesId;
+    }
+    if (seriesId != null) {
+      ancestors.add({
+        'Id': seriesId,
+        'Name': _seriesNames[seriesId] ?? '',
+        'Type': 'Series',
+        'IsFolder': true,
+      });
+    }
+    final library =
+        _libraryOfItem[itemId] ??
+        (seriesId == null ? null : _libraryOfItem[seriesId]);
+    if (library != null) {
+      ancestors.add({
+        'Id': library,
+        'Name': await _libraryName(library),
+        'Type': 'CollectionFolder',
+        'IsFolder': true,
+      });
+    }
+    return ancestors;
+  }
+
+  Map<String, dynamic> _seasonStub(
+    String seasonId,
+    int number,
+    String seriesId,
+  ) => {
+    'Id': seasonId,
+    'Name': number == 0 ? 'Specials' : 'Season $number',
+    'Type': 'Season',
+    'IsFolder': true,
+    'IndexNumber': number,
+    'SeriesId': seriesId,
+    'SeriesName': ?_seriesNames[seriesId],
+  };
+
+  Future<String> _libraryName(String libraryId) async {
+    try {
+      return (await _library(libraryId))['Name'] as String? ?? '';
+    } catch (_) {
+      return '';
+    }
+  }
+
   // --- what Silo doesn't have ---------------------------------------------
 
   static const _emptyList = <String, dynamic>{
@@ -533,7 +604,6 @@ class SiloItemsApi implements ItemsApi {
 
   /// The step that implements each method not implemented yet.
   static const _steps = {
-    'getAncestors': '6.9',
     'getQueryFilters': '6.10',
     'getGenres': '6.12',
     'getStudios': '6.13',

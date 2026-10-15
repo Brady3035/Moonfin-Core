@@ -47,10 +47,6 @@ class SiloPendingDisplayPreferencesApi extends _Pending
     : super('DisplayPreferencesApi', '6.19');
 }
 
-class SiloPendingPlaybackApi extends _Pending implements PlaybackApi {
-  const SiloPendingPlaybackApi() : super('PlaybackApi', '6.18 and 10.6');
-}
-
 class SiloPendingSessionApi extends _Pending implements SessionApi {
   const SiloPendingSessionApi() : super('SessionApi', 'phase 3 and 13.6');
 }

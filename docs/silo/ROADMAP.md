@@ -120,7 +120,7 @@ Status key: ☐ not started · ◐ in progress · ☑ done and tested · ⊘ ski
 - [x] **6.14** [People](phases/06-browsing.md#step-6-14)
 - [x] **6.15** [Collections (browse)](phases/06-browsing.md#step-6-15)
 - [x] **6.16** [Similar items](phases/06-browsing.md#step-6-16)
-- [ ] **6.17** [Trailers and extras](phases/06-browsing.md#step-6-17)
+- [x] **6.17** [Trailers and extras](phases/06-browsing.md#step-6-17)
 - [ ] **6.18** [Detail-screen media info without starting playback](phases/06-browsing.md#step-6-18)
 - [ ] **6.19** [Display preferences](phases/06-browsing.md#step-6-19)
 

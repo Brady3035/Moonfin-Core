@@ -144,6 +144,8 @@ class SiloItemsApi implements ItemsApi, LetterPositionApi {
       if (favorites) return _empty(startIndex);
       return _collections(
         libraryId: libraryId,
+        sortBy: sortBy,
+        sortOrder: sortOrder,
         startIndex: startIndex,
         limit: limit,
       );
@@ -1087,16 +1089,33 @@ class SiloItemsApi implements ItemsApi, LetterPositionApi {
   }
 
   /// Collections as Jellyfin `BoxSet`s: a library's curated collections
-  /// (`GET /library/{id}/collections`) when [libraryId] is given, else the
-  /// profile's personal ones (`GET /collections`).
+  /// (`GET /library/{id}/collections`) when [libraryId] is given; else every
+  /// collection the profile can see (8.6), its personal ones
+  /// (`GET /collections`) and those of each library it shows, as Emby lists
+  /// every collection for Home's Collections row.
+  ///
+  /// Silo returns each list in its own order; a name sort is applied here
+  /// (the rows' usual `SortName`), any other sort keeps that order.
   Future<Map<String, dynamic>> _collections({
     String? libraryId,
+    String? sortBy,
+    String? sortOrder,
     int? startIndex,
     int? limit,
   }) async {
     final all = libraryId == null
-        ? await _personalCollections()
+        ? [...await _personalCollections(), ...await _everyLibraryCollections()]
         : await _libraryCollections(libraryId);
+    final first = sortBy?.split(',').first.trim().toLowerCase();
+    if (first == 'sortname' || first == 'name') {
+      int byName(Map<String, dynamic> a, Map<String, dynamic> b) =>
+          (a['Name'] as String? ?? '').toLowerCase().compareTo(
+            (b['Name'] as String? ?? '').toLowerCase(),
+          );
+      final descending =
+          sortOrder?.split(',').first.trim().toLowerCase() == 'descending';
+      all.sort(descending ? (a, b) => byName(b, a) : byName);
+    }
     final start = startIndex ?? 0;
     return {
       'Items': all.skip(start).take(limit ?? all.length).toList(),
@@ -1121,6 +1140,30 @@ class SiloItemsApi implements ItemsApi, LetterPositionApi {
               if (siloCollectionToBoxSet(json, images: images) case final box?)
                 box,
     ];
+  }
+
+  /// The curated collections of every library the profile shows (hidden
+  /// libraries left out, 6.4), read together. A library whose list can't be
+  /// read is skipped, and so is the lot when the library list can't be.
+  Future<List<Map<String, dynamic>>> _everyLibraryCollections() async {
+    Map<String, dynamic>? views;
+    try {
+      views = await userViews?.call().getUserViews();
+    } catch (_) {
+      return const [];
+    }
+    final ids = [
+      for (final view in (views?['Items'] as List?) ?? const [])
+        if (view is Map && view['Id'] is String) view['Id'] as String,
+    ];
+    final lists = await Future.wait([
+      for (final id in ids)
+        _libraryCollections(id).then<List<Map<String, dynamic>>>(
+          (list) => list,
+          onError: (Object _) => const <Map<String, dynamic>>[],
+        ),
+    ]);
+    return [for (final list in lists) ...list];
   }
 
   Future<List<Map<String, dynamic>>> _libraryCollections(

@@ -765,7 +765,7 @@ The groups are part of the query's cursor signature (5.12), so changing a filter
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 6.11 |
+| ☑ Done | — | 6.11 |
 
 **Goal.** Genre list as synthetic Genre items, and the genre's items.
 
@@ -804,6 +804,7 @@ Silo names genres but gives them no id, count or artwork. Moonfin opens a genre 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | genres 4/4; `server_silo` 389/389; analyzer: no issues |
+| 2026-10-14 | macOS | `4b2e921c` | Pass | full `flutter test` before committing |
 | | | | | |
 
 ---
@@ -813,32 +814,43 @@ Silo names genres but gives them no id, count or artwork. Moonfin opens a genre 
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 6.12 |
 
 **Goal.** Same pattern as genres.
 
 **Where in Moonfin**
 
-- `silo_items_api.dart`
+- `packages/server_silo/lib/src/api/silo_items_api.dart`
+- `packages/server_silo/lib/src/mappers/silo_filters_mapper.dart`: studios in `siloRuleGroups`.
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+Same pattern as genres (6.12), with `silo-studio:<name>` ids and `Studio` items. One difference: Moonfin shows a series' network as its studio (5.3 maps networks first), while Silo keeps studios and networks apart.
+
+- **`getStudios(parentId, …)`** reads `GET /catalog/filters` (with `skip_technical`, since only names are needed) and lists `networks` and `studios` together, each name once, sorted, sliced by `startIndex`/`limit`.
+- **A studio's titles.** `getItems(studios: [name])`, which the studio browse sends, a studio id among them, or a studio id as the `parentId`, becomes one group matching `studio is <name>` **or** `network is <name>`. So "HBO" finds HBO series and "Warner Bros." finds Warner films.
+- **`getItem(<studio id>)`** names it, with no request.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `packages/server_silo/test/silo_items_api_studios_test.dart` (new, 3 tests):
+  - studios and networks together, sorted, once each (`A24` is both); `library_id` and `skip_technical` sent;
+  - a studio's titles match the studio or the network, by name or by id as parent;
+  - `getItem` on a studio id.
+- `server_silo`: 392/392.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+- Click a studio on a Silo film's detail page, and a network on a series' page: the studio page lists that studio's titles (films by studio, series by network).
+- Home row settings that pick studios list Silo's studios and networks.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | studios 3/3; `server_silo` 392/392; analyzer: no issues |
 | | | | | |
 
 ---

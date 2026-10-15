@@ -717,7 +717,7 @@ The groups are part of the query's cursor signature (5.12), so changing a filter
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 6.10 |
+| ☑ Done | — | 6.10 |
 
 **Goal.** Letter index and `nameStartsWith` through the new letters endpoint.
 
@@ -755,6 +755,7 @@ The groups are part of the query's cursor signature (5.12), so changing a filter
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | alphabet 3/3; `server_silo` 385/385; analyzer: no issues |
+| 2026-10-14 | macOS | `4b2e921c` | Pass | full `flutter test` before committing |
 | | | | | |
 
 ---
@@ -764,32 +765,45 @@ The groups are part of the query's cursor signature (5.12), so changing a filter
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 6.11 |
 
 **Goal.** Genre list as synthetic Genre items, and the genre's items.
 
 **Where in Moonfin**
 
-- `silo_items_api.dart`
+- `packages/server_silo/lib/src/api/silo_items_api.dart`
+- `packages/server_silo/lib/src/mappers/silo_filters_mapper.dart`: `siloNamedItem`, genre ids in `siloRuleGroups`.
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+Silo names genres but gives them no id, count or artwork. Moonfin opens a genre page by id, so genres get the synthetic ids from 5.1: `silo-genre:<name>`, percent-encoded.
+
+- **`getGenres(parentId, …)`** reads the library's filter document (`getQueryFilters`, 6.10) and answers its genres as Jellyfin `Genre` items (`siloNamedItem`). They are sorted by name, ascending or descending, and `startIndex`/`limit` slice the list. With no counts, Moonfin keeps every genre (`genreReportsCounts`). With no artwork, the genre cards use art from the genre's titles, which Moonfin already does.
+- **A genre's titles.** `getItems(genreIds: [silo-genre:…])`, which the genre browse sends along with the library as `parentId`, becomes a `genre is <name>` rule (6.10). So does a genre id passed as the `parentId` itself, without a library.
+- **`getItem(<genre id>)`** answers the genre item with no request, for the genre page's title.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `packages/server_silo/test/silo_items_api_genres_test.dart` (new, 4 tests):
+  - a library's genres as `Genre` items with synthetic ids, from `library_id`'s filter document;
+  - descending order and slicing;
+  - a genre's titles by genre id (a name with `&` and spaces round-trips) or as the parent;
+  - `getItem` on a genre id names it with no request.
+- `server_silo`: 389/389.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+- A Silo movie or TV library's Genres view lists its genres. Cards show artwork from titles in that genre.
+- Open a genre: its titles show, only from that library, and sort and filter like a library grid.
+- The all-genres screen, and the genre pickers in home sections, media bar, screensaver and shuffle settings, list Silo genres.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | genres 4/4; `server_silo` 389/389; analyzer: no issues |
 | | | | | |
 
 ---

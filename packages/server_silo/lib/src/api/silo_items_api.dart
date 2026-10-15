@@ -558,8 +558,9 @@ class SiloItemsApi
   /// pages; [filter] names the client-side filter in the cache key.
   ///
   /// The same read-once list serves orders Silo can't give: [shuffle]
-  /// shuffles it once (a random grid, 5.13), and [read] replaces the plain
-  /// read (a show grid by last played, 5.13).
+  /// shuffles it (a random grid, 5.13; again whenever the grid reloads from
+  /// the top), and [read] replaces the plain read (a show grid by last
+  /// played, 5.13).
   Future<Map<String, dynamic>> _clientFiltered(
     Map<String, Object?> params, {
     required String filter,
@@ -578,6 +579,16 @@ class SiloItemsApi
       entry = (
         at: now,
         items: shuffle ? list.then((l) => l..shuffle(_random)) : list,
+      );
+    } else if (shuffle && (startIndex ?? 0) == 0) {
+      // A random grid loading from the top (Random picked again, which
+      // flips the direction and reloads; a refresh) gets a new order, as
+      // Jellyfin reshuffles every request. The list isn't read again; its
+      // later pages follow the new order.
+      final previous = entry.items;
+      entry = (
+        at: entry.at,
+        items: previous.then((l) => [...l]..shuffle(_random)),
       );
     }
     _filteredLists[key] = entry;

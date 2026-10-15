@@ -511,6 +511,23 @@ void main() {
       });
     });
 
+    test('last played from a list sorted by watch date', () {
+      // GET /catalog?sort=-date_viewed puts the date in sort_metrics.
+      final ud = userData({
+        'user_state': {'played': true},
+        'sort_metrics': {'viewed_at': '2026-10-12T21:04:05Z'},
+      });
+      expect(ud['LastPlayedDate'], '2026-10-12T21:04:05.0000000Z');
+      // A resume card's own date wins.
+      expect(
+        userData({
+          'progress_updated_at': '2026-10-14T08:00:00.000Z',
+          'sort_metrics': {'viewed_at': '2026-10-12T21:04:05Z'},
+        })['LastPlayedDate'],
+        '2026-10-14T08:00:00.0000000Z',
+      );
+    });
+
     test('favourite and played from user_state', () {
       final ud = userData({
         'user_state': {

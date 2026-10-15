@@ -2,7 +2,9 @@
 ///
 /// Silo sorts by one term, `field` or `-field` for descending. The fields
 /// its contract names are `title`, `year`, `release_date`, `added_at`,
-/// `rating`, `runtime` and `random`; only those are mapped. A Moonfin field
+/// `rating`, `runtime` and `random`; those are mapped, and `date_viewed`
+/// (when the profile last watched it, Silo's per-profile sort) for
+/// Moonfin's `DatePlayed`. A Moonfin field
 /// with no Silo equivalent maps to nothing, and the request then leaves
 /// `sort` out so Silo applies the list's saved or default order, rather than
 /// risk an error for a field Silo doesn't know.
@@ -21,6 +23,9 @@ const Map<String, String> siloSortFields = {
   'communityrating': 'rating',
   'runtime': 'runtime',
   'random': 'random',
+  // Per profile: the title's last watch (5.13 follow-up, for Home's
+  // recently watched rows).
+  'dateplayed': 'date_viewed',
 };
 
 /// Silo's `sort` value for Moonfin's [sortBy] and [sortOrder], or null to
@@ -64,6 +69,7 @@ const _jellyfinNames = {
   'rating': 'CommunityRating',
   'runtime': 'Runtime',
   'random': 'Random',
+  'date_viewed': 'DatePlayed',
 };
 
 String? _firstTerm(String? list) {

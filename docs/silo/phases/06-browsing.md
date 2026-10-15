@@ -1002,7 +1002,7 @@ Creating and changing personal collections is 9.5.
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 6.15 |
+| ☑ Done | — | 6.15 |
 
 **Goal.** "More like this".
 
@@ -1035,6 +1035,7 @@ Creating and changing personal collections is 9.5.
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | similar 2/2; `server_silo` 405/405; analyzer: no issues |
+| 2026-10-14 | macOS | `4b2e921c` | Pass | full `flutter test` before committing |
 | | | | | |
 
 ---
@@ -1044,32 +1045,63 @@ Creating and changing personal collections is 9.5.
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 6.16 |
 
 **Goal.** Local trailers and special features from the item's extras.
 
 **Where in Moonfin**
 
-- `silo_items_api.dart`
+- `packages/server_silo/lib/src/mappers/silo_extras_mapper.dart` (new)
+- `packages/server_silo/lib/src/mappers/silo_item_mapper.dart`: `RemoteTrailers`, extra counts.
+- `packages/server_silo/lib/src/api/silo_items_api.dart`
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+A Silo title's detail carries two kinds of supplemental video:
+
+- **`videos[]`:** remote videos from the metadata provider (YouTube trailers and the like: `kind`, `site`, `site_key`, `name`). The item mapper now turns them into Jellyfin's `RemoteTrailers` (`{Url, Name}`), trailers and teasers first. YouTube and Vimeo get their watch URLs; other sites are left out. xXx's trailer gives exactly Emby's URL.
+- **`extras[]`:** local extra files the scanner found beside the title (`content_id`, `kind`, `title`, `duration_seconds`, `file_id`). The mapper sets `LocalTrailerCount` (trailers and teasers) and `SpecialFeatureCount` (the rest) when the detail lists them.
+
+The items API answers:
+
+- `getLocalTrailers(id)`: the trailers and teasers;
+- `getSpecialFeatures(id)`: the others.
+
+Both come from the title's detail. Each extra is a video item (`siloExtraToBaseItemDto`) with Jellyfin's `ExtraType`:
+
+| Silo kind | `ExtraType` |
+|---|---|
+| `trailer`, `teaser` | `Trailer` |
+| `featurette` | `Featurette` |
+| `clip` | `Clip` |
+| `behind_the_scenes` | `BehindTheScenes` |
+| `bloopers` | `Short` |
+| `deleted_scene` | `DeletedScene` |
+| `other` | `Unknown` |
+
+An extra's `content_id` plays through Silo's usual watch flow, so playing one comes with phase 10. `getIntros` answers empty: Silo plays no intros before a title.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `packages/server_silo/test/silo_extras_test.dart` (new, 3 tests):
+  - xXx's YouTube trailer as Emby's `RemoteTrailers` URL, no local extras, no intros;
+  - local trailers and special features from extras: counts, order, `ExtraType`, run time, untitled extras named by id, entries without an id skipped;
+  - remote trailer ordering and unknown sites.
+- `server_silo`: 408/408.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+- A Silo film with a YouTube trailer shows the trailer button; it opens the trailer (as on Emby).
+- A title with local extras in its folder (`Trailers/`, `Featurettes/`, `Behind The Scenes/`… next to the file) shows them in its extras row with the right labels. Playing them comes with phase 10.
+- The media bar's trailer preview (if enabled) finds Silo trailers.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | extras 3/3; `server_silo` 408/408; analyzer: no issues |
 | | | | | |
 
 ---

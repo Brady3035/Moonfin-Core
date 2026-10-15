@@ -15,6 +15,14 @@ const Map<String, String> siloExtraTypes = {
   'other': 'Unknown',
 };
 
+/// Whether Moonfin can play Silo's local extras yet. They play through
+/// Silo's watch flow, which arrives with phase 10 (10.6). Until then a
+/// title's local trailers are left out (`LocalTrailerCount` 0, no
+/// `getLocalTrailers`), because Moonfin's trailer button plays a local
+/// trailer before a YouTube one and would open a player that plays nothing
+/// (found testing 6.17). Step 10.6 sets this to true.
+const bool siloLocalTrailersPlayable = false;
+
 /// Whether a Silo extra kind is a trailer (`trailer`, `teaser`).
 bool isSiloTrailerKind(Object? kind) => kind == 'trailer' || kind == 'teaser';
 
@@ -76,4 +84,25 @@ String? _videoUrl(Object? site, Object? key) {
     'vimeo' => 'https://vimeo.com/$k',
     _ => null,
   };
+}
+
+/// The local extras of a title's detail [item] (`extras[]`) as video items:
+/// its trailers and teasers when [trailers], else the other extras.
+List<Map<String, dynamic>> siloExtrasOf(
+  Map<String, dynamic> item, {
+  required bool trailers,
+  String? ownerId,
+}) {
+  final extras = item['extras'];
+  return [
+    if (extras is List)
+      for (final e in extras)
+        if (e is Map && isSiloTrailerKind(e['kind']) == trailers)
+          if (siloExtraToBaseItemDto(
+                e.cast<String, dynamic>(),
+                ownerId: ownerId,
+              )
+              case final extra?)
+            extra,
+  ];
 }

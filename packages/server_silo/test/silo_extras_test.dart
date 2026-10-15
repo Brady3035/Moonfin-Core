@@ -47,10 +47,17 @@ void main() {
     final api = siloTestClient(server).itemsApi;
 
     final item = await api.getItem(_id);
-    expect(item['LocalTrailerCount'], 2);
+    expect(siloLocalTrailersPlayable, isFalse);
+    expect(
+      item['LocalTrailerCount'],
+      0,
+      reason: 'hidden until phase 10 can play them',
+    );
     expect(item['SpecialFeatureCount'], 3);
+    expect(await api.getLocalTrailers(_id), isEmpty);
 
-    final trailers = await api.getLocalTrailers(_id);
+    // What getLocalTrailers will answer once they play.
+    final trailers = siloExtrasOf(detail, trailers: true, ownerId: _id);
     expect(trailers.map((t) => t['Name']), ['Trailer', 'Teaser']);
     expect(trailers.first['Type'], 'Trailer');
     expect(trailers.first['RunTimeTicks'], 1500000000);

@@ -13,7 +13,7 @@ Moonfin's own home rows, one row type per commit.
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | previous step |
+| ☑ Done | `8ce77ba` | previous step |
 
 **Goal.** From the `continue_watching` section, or `/progress?status=in_progress`.
 
@@ -87,6 +87,7 @@ Before testing, start a film and an episode on Silo (web app or Emby comparison 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-15 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | resume 9/9; `server_silo` 458/458; analyzer: no issues |
+| 2026-10-15 | macOS | `bd9d59ea` | Pass | Brady: all six checks pass |
 
 ---
 
@@ -95,7 +96,7 @@ Before testing, start a film and an episode on Silo (web app or Emby comparison 
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | 8.1 |
+| ☑ Done | `ac1d2cd` | 8.1 |
 
 **Goal.** Home `next_up` section (tolerate it being absent); per series via `play_content_id`.
 
@@ -167,6 +168,7 @@ Before testing: finish an episode of a show that has a next one (in Silo's web a
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-15 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | next up 9/9; `server_silo` 467/467; analyzer: no issues |
+| 2026-10-15 | macOS | `bd9d59ea` | Pass | Brady: all four checks pass |
 
 ---
 
@@ -175,7 +177,7 @@ Before testing: finish an episode of a show that has a next one (in Silo's web a
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | 8.2 |
+| ☑ Done | `8d162e6` | 8.2 |
 
 **Goal.** Recently added per library.
 
@@ -242,6 +244,7 @@ Moonfin builds a "Latest in <library>" row per library (`RowDataSource.loadLates
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-15 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | latest 7/7; `server_silo` 474/474; `server_core` 94/94; app analyzer: no errors or warnings. Watched titles follow Silo's `home.hide_watched_items` (Brady's choice, before testing) |
+| 2026-10-15 | macOS | `bd9d59ea` | Pass | Brady: all four checks pass |
 
 ---
 
@@ -250,7 +253,7 @@ Moonfin builds a "Latest in <library>" row per library (`RowDataSource.loadLates
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | 8.3 |
+| ☑ Done | `faae7a7` | 8.3 |
 
 **Goal.** Sorted by release date.
 
@@ -305,6 +308,7 @@ Turn on the "Recently released" home section (Settings → Home) if it isn't on.
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-15 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | recently released 5/5; `server_silo` 479/479; analyzer: no issues |
+| 2026-10-15 | macOS | `bd9d59ea` | Pass with note | Brady: checks 1–3 pass. The row stops at its first page (Moonfin's row size) for both films and shows, where other Home rows load more as you scroll: asked for paging, done in `silo(8.4): Page recently released` |
 
 ---
 
@@ -313,7 +317,7 @@ Turn on the "Recently released" home section (Settings → Home) if it isn't on.
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | 8.4 |
+| ☑ Done | `3c2447d` | 8.4 |
 
 **Goal.** `source=favorites`.
 
@@ -367,6 +371,7 @@ In Silo's web app, favourite two films, a series and an episode (or use existing
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-15 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | favourites 4/4; `server_silo` 483/483; analyzer: no issues |
+| 2026-10-15 | macOS | `bd9d59ea` | Pass | Brady: all four checks pass |
 
 ---
 
@@ -375,7 +380,7 @@ In Silo's web app, favourite two films, a series and an episode (or use existing
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 8.5 |
+| ☑ Done | `d6040bb` | 8.5 |
 
 **Goal.** Check the remaining row types in `row_data_source.dart` and fix any hand-built URL.
 
@@ -446,6 +451,7 @@ This also widens the list Home settings offers when adding a collection row, and
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-15 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | home collections 3/3; `server_silo` 486/486; analyzer: no issues |
+| 2026-10-15 | macOS | `bd9d59ea` | Fail | Brady: the Genres row doesn't show on Home once switched on (the per-genre rows are listed in Home settings); Studios and My Media pass; Rewatch looks sorted by name. Genres: Silo refuses `sort=random`, which each genre card's artwork query sends, so every genre was dropped; fixed in `silo(5.13): Fix random sort`. Rewatch: by name because `DatePlayed` wasn't mapped yet (`silo(5.13): Sort by date played` was not applied for this test), and its shows picked a season instead of an episode: fixed in `silo(8.6): Fix Rewatch shows` |
 
 ---
 
@@ -454,34 +460,66 @@ This also widens the list Home settings offers when adding a collection row, and
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 8.6 |
 
 **Goal.** A new row kind that renders Silo's own home sections (recommended, trending…).
 
 **Silo v2 endpoints**
 
-- `GET /home/capabilities`
 - `GET /home/layout`
-- `GET /home/sections`
+- `GET /home/sections/{id}/items`
+
+**Where in Moonfin**
+
+- `packages/server_core/lib/src/api/server_home_sections_api.dart` (new): `ServerHomeSectionsApi`, `ServerHomeSection`.
+- `packages/server_silo/lib/src/api/silo_items_api.dart`: implements it.
+- `lib/preference/home_section_config.dart`: `HomeSectionPluginSource.server`.
+- `lib/data/services/row_data_source.dart`: loads such a row.
+- `lib/ui/screens/settings/home_sections_screen.dart`: lists the server's rows in Home settings.
+- `lib/ui/screens/home/home_screen.dart`: the row's subtitle.
+- `lib/l10n/app_en.arb`: `siloServerRowSubtitle`.
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+Silo curates a home page per profile: Continue Watching, plus rows like Hidden Gems, Trending on Server, Seasonal Picks, Recently Added in each library, and any the admin or profile added (`GET /home/layout`, each row's cards from `GET /home/sections/{id}/items`). Moonfin builds its Home from its own row types, so these are offered as **extra rows the user can switch on**, the way Moonfin already offers each collection or genre as a row of its own.
+
+**A small optional interface.** `server_core` gets `ServerHomeSectionsApi`, which an `ItemsApi` may also implement (like `LetterPositionApi`, 6.11): `getServerHomeSections()` lists the server's rows (id, title, kind) and `getServerHomeSectionItems(id)` gives one row's items in Jellyfin's shape. The app checks `itemsApi is ServerHomeSectionsApi`; Jellyfin and Emby don't implement it and are untouched. This is an interface addition to raise upstream before the PR (README).
+
+**On Silo** (`SiloItemsApi`, through 8.1's `SiloHomeSections`):
+
+- the rows are the layout's sections in Silo's order, **without Continue Watching and Next Up**, which Moonfin builds itself (8.1, 8.2). A failed read throws, so the settings screen doesn't take it for "no rows";
+- a row's items are its cards, mapped like any catalog card, types Moonfin can't show left out, in Silo's order. Silo caps a section at its `item_limit`, so the row comes whole; a row no longer in the layout is empty. The layout is reused for a minute (8.1).
+
+**In the app:**
+
+- **Home settings** (`HomeSectionsScreen._refreshPluginSections`) reads the active server's rows next to the collections, genres and Seerr sliders it already discovers, and lists each as a `pluginDynamic` entry with source `server` (the row's id in `pluginSection`, its title in `pluginDisplayText`), **off** until the user turns it on, subtitled "From your server". Titles follow the server; a row the server no longer has is dropped; a failed read leaves the list as it was. Only the active server's entries are touched.
+- **Home** loads an enabled entry through `RowDataSource.loadDynamicSection`: the server's row, all items at once, as a plain item row (`HomeRowType.pluginDynamic`) with the same subtitle. Opening a card opens the title as anywhere else.
+- Entries are saved with the rest of the Home layout; a version of Moonfin without this source reads one back as a collection entry with no collection, which shows nothing.
+
+**New string:** `siloServerRowSubtitle` ("From your server"), added to `app_en.arb`; the generated localizations are regenerated, and the stale `ca`, `fi`, `pt` and `hu` files got only the new getter.
+
+**Not covered here:** Silo's featured sections, editing Silo's layout from Moonfin, and Continue Watching/Next Up as Silo-curated rows (Moonfin's own rows cover them).
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `packages/server_silo/test/silo_items_api_server_sections_test.dart` (new, 4 tests): the captured layout's rows without Continue Watching, with id and kind; a row's items in Silo's order (the layout read reused, `image_size=medium`); a row Silo no longer has is empty; a failed read is an error.
+- `test/data/services/row_data_source_server_sections_test.dart` (new, 3 tests): a `server` entry loads the server's row (items, server id, no paging); a server without the interface gives an empty row; the entry survives saving with its source and id.
+- `server_silo`: 490/490; app analyzer: no new issues.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+1. **Settings → Home sections** with Silo active: the list has Silo's rows (Hidden Gems, Trending on Server, Seasonal Picks, Recently Added in Movies / TV Shows…), each off, subtitled "From your server". No Continue Watching or Next Up among them.
+2. **Turn on Trending on Server**, go back to Home: the row shows Silo's cards in the order Silo's web home shows them; opening one opens the title.
+3. **Rename or remove a row in Silo's web app** (if your Silo lets the profile customise Home), reopen Home settings: the title follows, a removed row disappears.
+4. **Switch to Emby** with a Silo row on: Home settings lists no rows of Emby's own, and the Silo row adds nothing to Emby's Home (no empty row, no error).
+5. **Emby unchanged**.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
-| | | | | |
+| 2026-10-15 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | server sections 4/4; row data source 3/3; `server_silo` 490/490; app analyzer: no new issues |
 
 ---

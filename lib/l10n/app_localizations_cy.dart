@@ -13954,4 +13954,7 @@ class AppLocalizationsCy extends AppLocalizations {
   String siloMainProfileLocked(String name) {
     return 'The main profile \"$name\" on this Silo account is locked with a PIN, and Moonfin can\'t open PIN-locked profiles yet. To sign in here, remove the PIN in Silo\'s web app.';
   }
+
+  @override
+  String get siloServerRowSubtitle => 'From your server';
 }

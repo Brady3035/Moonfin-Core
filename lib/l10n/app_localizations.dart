@@ -24322,6 +24322,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The main profile \"{name}\" on this Silo account is locked with a PIN, and Moonfin can\'t open PIN-locked profiles yet. To sign in here, remove the PIN in Silo\'s web app.'**
   String siloMainProfileLocked(String name);
+
+  /// Subtitle of a Home row the media server curates itself (a Silo home section), on Home and in Home settings
+  ///
+  /// In en, this message translates to:
+  /// **'From your server'**
+  String get siloServerRowSubtitle;
 }
 
 class _AppLocalizationsDelegate

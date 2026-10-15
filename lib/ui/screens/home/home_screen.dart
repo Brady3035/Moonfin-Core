@@ -4034,6 +4034,11 @@ class _ContentRowsState extends State<_ContentRows>
     if (config != null && config.pluginSource == HomeSectionPluginSource.seerr) {
       return l10n.seerrDiscoveryRows;
     }
+    if (config != null &&
+        config.isPluginDynamic &&
+        config.pluginSource == HomeSectionPluginSource.server) {
+      return l10n.siloServerRowSubtitle;
+    }
     if (config != null && config.pluginSource == HomeSectionPluginSource.custom) {
       Map<String, dynamic> rowConfig = {};
       try {

@@ -2311,6 +2311,28 @@ class RowDataSource {
           );
         }
 
+      // A row the server curates itself (Silo's home sections, step 8.7).
+      // The server sends the whole row at once.
+      case HomeSectionPluginSource.server:
+        final api = _client.itemsApi;
+        if (api is! ServerHomeSectionsApi) {
+          return HomeRow(
+            id: rowId,
+            title: title,
+            rowType: HomeRowType.pluginDynamic,
+          );
+        }
+        final response = await (api as ServerHomeSectionsApi)
+            .getServerHomeSectionItems(section);
+        final items = _parseItems(response, serverId);
+        return HomeRow(
+          id: rowId,
+          title: title,
+          rowType: HomeRowType.pluginDynamic,
+          items: items,
+          totalCount: items.length,
+        );
+
       // Seerr sliders load through the Seerr repository on Home, since they
       // come from Seerr rather than from the media server.
       case HomeSectionPluginSource.seerr:

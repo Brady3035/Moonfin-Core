@@ -863,7 +863,7 @@ Moonfin reads Jellyfin's `Trickplay` item field, `{ <media source id>: { "<width
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | `549c133`, date played —, fix — | 5.12 |
+| ☑ Done | `549c133`, date played `065ffe5`, fix `5d50eb8`, TV sorts — | 5.12 |
 
 **Goal.** Moonfin sort fields → Silo `sort` values (descending = `-field`); unknown → server default.
 
@@ -899,6 +899,19 @@ Moonfin asks for an order the Jellyfin way: `sortBy` as a comma-separated list o
 
 `PlayCount` (Silo's `plays`), `CriticRating` and the rest stay unmapped until the full sort review with Brady.
 
+**TV sort review (2026-10-15, after Brady's test).** Every sort Moonfin's menu offers was run against the live server (`build/silo_tv_sorts.py`, Films 4,614 titles, TV 1,909 shows):
+
+| Moonfin | Silo before | Live result | Now |
+|---|---|---|---|
+| Community Rating | `rating` | **422**: the catalog refuses the contract's `rating` alias, so the grid failed | `rating_tmdb`, the rating cards show (commit `silo(5.13): Map rating sorts`) |
+| Critic Rating | none | `rating_rt_critic` works, but the server has no Rotten Tomatoes scores (needs a metadata plugin), so the order is the default | `rating_rt_critic` |
+| Rating (content rating) | none | `content_rating` sorts | `content_rating` |
+| Date Episode Added | `added_at` (when the show was first added) | `latest_episode_added` sorts shows by their newest episode file | `latest_episode_added` |
+| Play Count | none | films sort (`sort_metrics.play_count`); shows: every value empty | `plays` for films; shows: see below |
+| Last Played | `date_viewed` | films sort; shows: every value empty | films as before; shows: see below |
+
+**Shows have no last-played date or play count on Silo.** Silo records watches per episode, and its `date_viewed` and `plays` sorts look the history up by the row's own id, which for a show never has any. So a show grid sorted by either is in the default order. Raised with Silo (series rows should take their episodes' history).
+
 **Fix at phase 8: `Random`** (commit `silo(5.13): Fix random sort`, found at 8.6). Silo's contract lists `random` among the sort fields, but the catalog refuses it: `random` isn't in the server's sort definitions (`querySortDefs`), so `GET /catalog?sort=random` answers `422 sort.field "random" is not supported`. Random order exists on Silo only as a home section ("Surprise Me"). Every `Random` query failed, and the Home Genres row, which picks each genre card's artwork with `sortBy: Random`, lost every genre and stayed hidden.
 
 - `Random` now maps to no Silo sort, and `siloWantsRandom(sortBy)` tells the items API to shuffle: `getItems` reads the list in Silo's default order and shuffles what it returns.
@@ -932,6 +945,9 @@ Moonfin asks for an order the Jellyfin way: `sortBy` as a comma-separated list o
 | 2026-10-15 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | date played follow-up (asked by Brady at phase 8): sort map 8/8, item mapper; `server_silo` 491/491; analyzer: no issues. Manual checks are in 8.2 and 8.6 |
 | 2026-10-15 | macOS | `bd9d59ea` | Fail | found at 8.6: the Genres row stayed hidden; Silo refuses `sort=random` (422), which each genre card's artwork query sends |
 | 2026-10-15 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | random fix: shuffled in the items API, no `sort` sent; `server_silo` 493/493; analyzer: no issues |
+| 2026-10-15 | macOS | `bd9d59ea` | Pass | Brady, second round: Genres row and *Random* work, *Date played* on films works |
+| 2026-10-15 | macOS | `bd9d59ea` | Fail | Brady, sorting a TV library: Premiere Date not right, Last Played and Play Count don't sort, Critic Rating doesn't sort, Runtime should be the episode length, Random barely changes the order. Checked on the live server (`build/silo_tv_sorts.py`): see the TV sort review |
+| 2026-10-15 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | rating sorts mapped to fields Silo accepts; sort map 8/8; `server_silo` 496/496; analyzer: no issues |
 | | | | | |
 
 ---

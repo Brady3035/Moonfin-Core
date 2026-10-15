@@ -234,7 +234,7 @@ A self-wait was caught by these tests: a `whenComplete` callback returning the r
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 6.3 |
+| ☑ Done | — | 6.3 |
 
 **Goal.** `GET /user/libraries` with caching and `invalidateCache()`.
 
@@ -294,6 +294,7 @@ The settings request runs alongside the library request.
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | user views 9/9; `server_silo` 348/348; analyzer: no issues |
+| 2026-10-14 | macOS | `4b2e921c` | Pass | full `flutter test` before committing |
 | | | | | |
 
 ---
@@ -303,7 +304,7 @@ The settings request runs alongside the library request.
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 6.4 |
 
 **Goal.** Library id → `library_id`, type filter, sort, page through the cursor pager.
 
@@ -313,28 +314,69 @@ The settings request runs alongside the library request.
 
 **Where in Moonfin**
 
-- `silo_items_api.dart`
+- `packages/server_silo/lib/src/api/silo_items_api.dart` (new)
+- `packages/server_silo/lib/src/silo_media_server_client.dart`
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+`SiloItemsApi` is the client's `ItemsApi`. This step brings its first real method, `getItems` for a library grid (or the whole catalog), and the frame later steps fill in.
+
+**`getItems`.**
+
+| Moonfin | Silo `GET /catalog` |
+|---|---|
+| `parentId` = a library id | `library_id` (Silo's library ids are plain numbers; no parent = the whole catalog) |
+| `includeItemTypes` | `type` (5.1): `Movie` → `movie`, `Series` → `series`, both → `video`, `Episode` → `episode` |
+| `sortBy`, `sortOrder` | `sort` (5.13), first term only, unmapped → Silo's default order |
+| `startIndex`, `limit` | cursors through `SiloPager` (5.12): next page by `next_cursor`, a jump by `window_cursor` + `seek`, at most 200 per request |
+| — | `image_size=medium` (posters 500 px, backdrops 1920) |
+
+Each item is mapped (phase 5) and its artwork registered, and the answer is Jellyfin's `{Items, TotalRecordCount, StartIndex}`.
+
+**Types.**
+
+- Types Silo can't serve (`BoxSet`, `Playlist`, music, `TvChannel`) are dropped from the request. A query for **only** such types answers empty **without a request**, so a Continue listening, album or playlist row never fills with films (4.2, 4.3, 5.1).
+- `excludeItemTypes` is applied to what comes back.
+- Item types Moonfin can't open yet (audiobooks, ebooks until phase 16; podcasts) are dropped too.
+- A type mix with no single Silo scope (say movies with episodes) asks for everything and keeps the asked types.
+
+**Not yet.** Parents other than a library (series, seasons, genres, studios, collections, people) and `ids` throw `SiloNotImplementedError` naming their step. The grid's filter arguments (genres, years, ratings, favourites, played state, name prefix) are not applied until 6.10–6.11.
+
+**The rest of `ItemsApi`.**
+
+- Methods not implemented yet throw `SiloNotImplementedError` with their roadmap step (a table in the class, through `noSuchMethod`), as the old placeholder did.
+- Silo has no music or playlists, so `getPlaylists`, `getPlaylistItems`, `getArtists`, `getAlbumArtists` and `getLyrics` answer empty, like Live TV, so a shared row renders nothing.
+- Playlist changes and deleting media are refused with `UnsupportedError`.
+
+`SiloPendingItemsApi` is removed.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `packages/server_silo/test/silo_items_api_library_test.dart` (new, 8 tests):
+  - the captured library page: 5 items, total 4611, `library_id`, `type=movie`, `sort=title`, `image_size=medium`, artwork registered;
+  - TV and mixed libraries ask for `series`, `video`, or no type;
+  - sort direction;
+  - scrolling a 300-item library: first page, `next_cursor`, then a jump by window cursor + `seek`;
+  - only unservable types: empty, **no request**; excluded and unopenable types dropped;
+  - later steps name themselves; music and playlists answer empty, playlist changes refused.
+- `server_silo`: 356/356.
 
 **Manual test plan**
 
-- Scroll to the end of the largest library; total count is right.
-- Carried from 4.2, 4.3 and 5.1: a query for **only** types Silo can't serve (`MusicArtist`, `MusicAlbum`, `Audio`, `Playlist`, `TvChannel`, `mediaTypes=Audio`) answers empty and sends no request; `siloTypesForQuery` returns an empty set for it. Check on Home with only Silo signed in (once Home loads, phase 8): no Continue listening, artist, album or playlist row fills with films or episodes.
-- Carried from 5.12 and 5.13: jump with the alphabet bar and scroll back up (window cursor + seek); try every entry of Moonfin's sort menu on a Silo library, both directions. Fields 5.13 leaves unmapped (critic rating, date played, play count…) fall back to Silo's default order; note any that Silo could sort by, and whether `play_count` / `viewed_at` work as `sort` values.
+- Open each Silo library from the sidebar or toolbar: the grid fills with posters, the item count is right, and it scrolls smoothly to the end of the largest library. Compare the count with Silo's web app.
+- Change the sort (name, date added, release date, year, rating, runtime, random) in both directions. Each re-sorts.
+- Carried from 5.12 and 5.13: jump with the alphabet bar and scroll back up (window cursor + seek; the letter bar itself is 6.11). Try every entry of Moonfin's sort menu on a Silo library, both directions. Fields 5.13 leaves unmapped (critic rating, date played, play count…) fall back to Silo's default order. Note any that Silo could sort by, and whether `play_count` / `viewed_at` work as `sort` values.
+- Carried from 4.2, 4.3 and 5.1: with only Silo signed in, no Continue listening, artist, album or playlist row fills with films or episodes (rows that load once Home loads, phase 8).
+- Filters in the grid's filter menu don't apply yet (6.10). A film opens a detail page only from 6.6.
+- An Emby library grid is unchanged.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | library grid 8/8; `server_silo` 356/356; analyzer: no issues |
 | | | | | |
 
 ---

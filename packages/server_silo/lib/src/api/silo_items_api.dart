@@ -135,8 +135,13 @@ class SiloItemsApi implements ItemsApi, LetterPositionApi {
     final collection = parentId == null
         ? null
         : parseSiloCollectionId(parentId);
-    // The collections themselves, asked for as BoxSets (6.15).
+    // The collections themselves, asked for as BoxSets (6.15). Silo's
+    // favourites are titles only, so favourite collections are none (8.5).
     if (_asksForCollections(includeItemTypes)) {
+      final favorites =
+          isFavorite == true ||
+          (filters?.any((f) => f.toLowerCase() == 'isfavorite') ?? false);
+      if (favorites) return _empty(startIndex);
       return _collections(
         libraryId: libraryId,
         startIndex: startIndex,

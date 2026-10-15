@@ -13,7 +13,7 @@ Moonfin's own home rows, one row type per commit.
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | previous step |
+| ☑ Done | — | previous step |
 
 **Goal.** From the `continue_watching` section, or `/progress?status=in_progress`.
 
@@ -95,33 +95,78 @@ Before testing, start a film and an episode on Silo (web app or Emby comparison 
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 8.1 |
 
 **Goal.** Home `next_up` section (tolerate it being absent); per series via `play_content_id`.
 
+**Silo v2 endpoints**
+
+- `GET /home/layout`, `GET /home/sections/{id}/items` (and the library page's, as in 8.1)
+- `GET /catalog/items/{id}` (a series' `play_content_id`, then that episode)
+
 **Where in Moonfin**
 
-- `silo_items_api.dart (getNextUp)`
+- `packages/server_silo/lib/src/api/silo_items_api.dart`: `getNextUp`.
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+Moonfin asks `ItemsApi.getNextUp` in two places:
+
+- **the Next Up row** (`RowDataSource.loadNextUp` and the library and multi-server versions): no series, `enableResumable: false`, a date cutoff from the user's setting;
+- **a series page** (`ItemDetailViewModel._loadNextUp`): `seriesId`, `limit: 1`, for the "next up" episode card.
+
+**The row.** Silo works out each show's next episode per profile (the episode after the last one finished, skipping dismissed and dropped shows) and presents it according to the profile's `ui.next_up_mode` setting:
+
+- `combined` (Silo's default): inside the Continue Watching section, as cards with `item_source: next_up`. Silo keeps one card per show there, preferring an episode already started;
+- `separate`: as a section of its own, `section_type: next_up` (Silo's "On Deck").
+
+Moonfin reads both from the page, through the same `SiloHomeSections` as 8.1: the `next_up` cards of the Continue Watching sections first, then the cards of any `next_up` section, episodes only, without repeats. So the row works with either setting, and Continue Watching and Next Up share their reads when Home loads them together. A page with neither section gives an empty row. A library `parentId` reads that library's page, like 8.1.
+
+- Order is Silo's: most recently finished show first, as Emby's legacy Next Up.
+- `enableResumable: false` leaves out an episode already started (it is in Continue Watching). Silo's next-up cards are unstarted, so this rarely drops anything.
+- `nextUpDateCutoff` (Moonfin's "max age" for Next Up) is ignored: Silo decides when a show stops being current.
+- `startIndex`/`limit` slice the list.
+
+**A series' next episode.** A Silo series carries `play_content_id`, the episode its own Play button starts (Silo's resume, next-episode and first-episode logic). `getNextUp(seriesId:)` reads the series, then that episode (`getItem`, so it arrives with media sources like any episode page), and answers it unless it was already watched (`Played`, Silo's answer for a series finished) or, with `enableResumable: false`, already started. When the series names no episode, nothing.
+
+**Not covered here:**
+
+- Moonfin then dates each next-up card by its show's last play (`enrichNextUpItemsWithSeriesLastPlayed`, used to merge rows across servers). It reads the 100 most recently played episodes with `sortBy: DatePlayed`, which the sort map doesn't map yet (open from 5.13), so on Silo it gets watched episodes in Silo's default order, and then reads each show not among them (`getItems(ids:)`, one request per show). The row is right, but that costs a request per show. Mapping `DatePlayed` to Silo's `date_viewed` would fix it; it is part of the sort review still to do with Brady.
+- Hiding a card from Next Up is 9.7.
+
+The fixture's next-up cards are the captured ones from 2026-10-13. Like Silo's, they carry no `progress_updated_at` (only in-progress cards do).
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `packages/server_silo/test/silo_items_api_next_up_test.dart` (new, 9 tests):
+  - the row from the Continue Watching section's `next_up` cards, in Silo's order, with series fields and no position; the in-progress cards left out;
+  - Continue Watching and Next Up loading together read the layout and the section once;
+  - a separate `next_up` section is read, films in it left out;
+  - a page with neither section: empty, only the layout read;
+  - `enableResumable: false` drops a started episode;
+  - a library row reads the library page and remembers the library;
+  - one series: the series then its `play_content_id` episode, with media sources; nothing when that episode was watched; nothing (and no second request) when the series names none; nothing asked for a film id.
+- `silo_items_api_library_test.dart`: the not-implemented check now uses `getLatestItems` (8.3).
+- `server_silo`: 467/467.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+Before testing: finish an episode of a show that has a next one (in Silo's web app if playback in Moonfin isn't there yet), so it has a next episode.
+
+1. **Home → Next Up** lists that show's next episode, with series name and S/E, most recently watched show first. Compare with Emby's Next Up for the same account.
+2. **No duplicates with Continue Watching**: a show with a started episode appears in Continue Watching, not also in Next Up.
+3. **Silo's "Separate row" setting**: in Silo's web app set *Next up episodes* to *Separate row*, reopen Moonfin's Home: Next Up still lists the same episodes. Set it back.
+4. **Series page**: open that show in Moonfin: the next-up episode card names the right episode. A show never started shows its first episode; a show fully watched shows none.
+5. **Library page**: the TV library's Next Up row (if shown) lists only that library's shows.
+6. **Emby unchanged**.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
-| | | | | |
+| 2026-10-15 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | next up 9/9; `server_silo` 467/467; analyzer: no issues |
 
 ---
 

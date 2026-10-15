@@ -94,3 +94,22 @@ String? siloTypeOfId(String id) {
       ? prefix
       : null;
 }
+
+/// The series, season number and episode number inside an episode id
+/// (`episode-<key>-<season>-<episode>`, e.g. `episode-imdb-tt1641384-1-1`),
+/// or null when [episodeId] isn't one.
+({String seriesId, int seasonNumber, int episodeNumber})? parseSiloEpisodeId(
+  String episodeId,
+) {
+  const prefix = 'episode-';
+  if (!episodeId.startsWith(prefix)) return null;
+  final match = RegExp(
+    r'^(.+)-(\d+)-(\d+)$',
+  ).firstMatch(episodeId.substring(prefix.length));
+  if (match == null) return null;
+  return (
+    seriesId: 'series-${match.group(1)}',
+    seasonNumber: int.parse(match.group(2)!),
+    episodeNumber: int.parse(match.group(3)!),
+  );
+}

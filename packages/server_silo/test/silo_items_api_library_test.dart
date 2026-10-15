@@ -160,13 +160,9 @@ void main() {
   test('later steps name themselves', () async {
     final api = siloTestClient(FixtureServer({})).itemsApi;
     expect(
-      () => api.getItems(parentId: 'series-imdb-tt1'),
-      throwsA(isA<SiloNotImplementedError>()),
-    );
-    expect(
-      () => api.getSeasons('series-1'),
+      () => api.getPersons(searchTerm: 'vin'),
       throwsA(
-        isA<SiloNotImplementedError>().having((e) => e.step, 'step', '6.7'),
+        isA<SiloNotImplementedError>().having((e) => e.step, 'step', '7.2'),
       ),
     );
     expect(

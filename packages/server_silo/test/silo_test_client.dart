@@ -63,3 +63,7 @@ ResponseBody Function(RequestOptions) siloJson(Object body) =>
 /// The JSON of fixture `silo/<name>`.
 Map<String, dynamic> siloFixture(String name) =>
     jsonDecode(fixture('silo/$name')) as Map<String, dynamic>;
+
+/// The JSON of fixture `emby/<name>`.
+Map<String, dynamic> siloEmbyFixture(String name) =>
+    jsonDecode(fixture('emby/$name')) as Map<String, dynamic>;

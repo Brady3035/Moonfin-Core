@@ -77,35 +77,53 @@ class SiloPagedResult {
 ///
 /// Silo has no offset parameter. A first page returns a `next_cursor` for
 /// the page after it, and a `window_cursor` that, sent with `seek=<offset>`,
-/// jumps anywhere in the same result. The pager remembers both per query
-/// [signature] and picks the cheapest request:
+/// jumps anywhere in the same result.
 ///
-/// - `startIndex` 0: a plain first request;
-/// - `startIndex` where the last page ended: `cursor=next_cursor` (scrolling
-///   down a grid);
-/// - any other offset: `cursor=window_cursor&seek=startIndex` (the alphabet
-///   bar, a grid restored mid-way). With no window cursor yet, the first page
-///   is fetched to get one.
+/// **Silo signs every cursor over the whole query, `limit` included**: a
+/// cursor is only accepted with the same `limit` as the request that issued
+/// it (server `listCatalogItems`, `CursorScope.Filter`). Moonfin asks for
+/// pages of every size (75 first, 48 per scroll, hundreds for a jump), so
+/// the pager never passes those on. It asks Silo for pages of one fixed size,
+/// [pageSize], and serves Moonfin's ranges from what it fetched, keeping the
+/// pages it fetched last (found testing 6.11: requests that changed `limit`
+/// were refused as `invalid_cursor`).
 ///
-/// A `limit` above Silo's maximum is filled with further requests: by
-/// `seek` from the window cursor, [parallelRequests] at a time, when there is
-/// one; else by following `next_cursor`. An offset at or past an exact total answers empty without a
-/// request. When Silo rejects a cursor (it expired, or the server restarted)
-/// the remembered state is dropped and the request is made again from the
-/// start, once.
+/// Per query [signature] it remembers the window cursor, the next cursor and
+/// where it points, and the last pages, and picks the cheapest request:
+///
+/// - offset 0: a plain first request;
+/// - one page from where the last page ended: `cursor=next_cursor`;
+/// - anywhere else, or more than one page: `cursor=window_cursor&seek=`,
+///   up to [parallelRequests] pages at once. With no
+///   window cursor yet, the first page is fetched to get one; with none at
+///   all, next cursors are followed from the start.
+///
+/// An offset at or past an exact total answers empty without a request.
+/// When Silo rejects a cursor (it expired, or the server restarted) the
+/// remembered state is dropped and the request is made again from the start,
+/// once.
 class SiloPager {
   SiloPager({
     this.maxEntries = 32,
+    this.pageSize = 100,
     this.parallelRequests = 4,
+    this.keptPages = 8,
     bool Function(Object error)? isInvalidCursor,
-  }) : _isInvalidCursor = isInvalidCursor ?? isSiloInvalidCursorError;
+  }) : assert(pageSize > 0 && pageSize <= siloMaxPageSize),
+       _isInvalidCursor = isInvalidCursor ?? isSiloInvalidCursorError;
 
   /// How many query signatures are remembered; the least recently used is
   /// forgotten first.
   final int maxEntries;
 
+  /// The `limit` of every request to Silo.
+  final int pageSize;
+
   /// How many pages a large request fetches at once (by `seek`).
   final int parallelRequests;
+
+  /// How many fetched pages are kept per query to serve later ranges.
+  final int keptPages;
 
   final bool Function(Object error) _isInvalidCursor;
 
@@ -119,7 +137,7 @@ class SiloPager {
 
   /// Items [startIndex] to [startIndex] + [limit] of the query [signature]
   /// (see [siloPageSignature]), fetched with [fetch]. A null [limit] means
-  /// one page of Silo's default size.
+  /// one page of Silo's default size (50).
   Future<SiloPagedResult> page({
     required String signature,
     required int startIndex,
@@ -127,204 +145,176 @@ class SiloPager {
     required SiloPageFetch fetch,
   }) async {
     final start = startIndex < 0 ? 0 : startIndex;
+    final wanted = limit == null || limit <= 0 ? 50 : limit;
     try {
-      return await _page(signature, start, limit, fetch);
+      return await _page(signature, start, wanted, fetch);
     } catch (error) {
       if (!_isInvalidCursor(error)) rethrow;
       _states.remove(signature);
-      return _page(signature, start, limit, fetch);
+      return _page(signature, start, wanted, fetch);
     }
   }
 
   Future<SiloPagedResult> _page(
     String signature,
     int start,
-    int? limit,
+    int wanted,
     SiloPageFetch fetch,
   ) async {
-    final wanted = limit == null || limit <= 0 ? null : limit;
-    var state = _touch(signature);
-
-    if (state != null &&
-        state.totalExact &&
-        state.total != null &&
-        start >= state.total!) {
-      return SiloPagedResult(const [], state.total!);
-    }
-
-    final items = <Map<String, dynamic>>[];
-    SiloPage page;
-    int pageSize() => _pageSize(wanted, items.length);
-
-    if (start == 0) {
-      page = await fetch(limit: pageSize());
-      state = _remember(signature, page, 0);
-    } else if (state != null &&
-        state.nextStart == start &&
-        state.nextCursor != null) {
-      page = await fetch(cursor: state.nextCursor, limit: pageSize());
-      state = _remember(signature, page, start);
-    } else {
-      if (state?.windowCursor == null) {
-        final first = await fetch(limit: _pageSize(wanted, 0));
-        state = _remember(signature, first, 0);
-        if (state.totalExact && state.total != null && start >= state.total!) {
-          return SiloPagedResult(const [], state.total!);
-        }
-      }
-      final window = state!.windowCursor;
-      if (window == null) {
-        // Silo gave no window cursor: walk the next cursors instead.
-        return _walk(signature, start, wanted, fetch);
-      }
-      page = await fetch(cursor: window, seek: start, limit: pageSize());
-      state = _remember(signature, page, start);
-    }
-
-    items.addAll(page.items);
-    var pageEnd = start + page.items.length;
-    while (wanted != null &&
-        items.length < wanted &&
-        page.hasMore &&
-        page.nextCursor != null &&
-        page.items.isNotEmpty) {
-      final window = state!.windowCursor;
-      final left = wanted - items.length;
-      if (window != null && left > siloMaxPageSize) {
-        // More than one page still to go: seek to each from the window
-        // cursor, a few at a time, rather than one next cursor after
-        // another (6.11: a jump far down a large library).
-        final batch = <({int at, int limit})>[];
-        var at = pageEnd;
-        var asked = 0;
-        while (batch.length < parallelRequests && asked < left) {
-          if (state.totalExact && state.total != null && at >= state.total!) {
-            break;
-          }
-          final size = left - asked > siloMaxPageSize
-              ? siloMaxPageSize
-              : left - asked;
-          batch.add((at: at, limit: size));
-          at += size;
-          asked += size;
-        }
-        if (batch.isEmpty) break;
-        final pages = await Future.wait([
-          for (final b in batch)
-            fetch(cursor: window, seek: b.at, limit: b.limit),
-        ]);
-        var short = false;
-        for (var i = 0; i < pages.length; i++) {
-          page = pages[i];
-          items.addAll(page.items);
-          state = _remember(signature, page, pageEnd);
-          pageEnd += page.items.length;
-          if (page.items.length < batch[i].limit || !page.hasMore) {
-            short = true;
-            break;
-          }
-        }
-        if (short) break;
-        continue;
-      }
-      page = await fetch(cursor: page.nextCursor, limit: pageSize());
-      items.addAll(page.items);
-      state = _remember(signature, page, pageEnd);
-      pageEnd += page.items.length;
-    }
-    return SiloPagedResult(items, _total(state!, start + items.length, page));
-  }
-
-  /// Reaches [start] by following next cursors from the first page, for a
-  /// result Silo gives no window cursor for.
-  Future<SiloPagedResult> _walk(
-    String signature,
-    int start,
-    int? wanted,
-    SiloPageFetch fetch,
-  ) async {
-    var position = 0;
-    var page = await fetch(limit: siloMaxPageSize);
-    var state = _remember(signature, page, 0);
-    final items = <Map<String, dynamic>>[];
-    while (true) {
-      final end = position + page.items.length;
-      if (end > start) {
-        items.addAll(page.items.skip(start > position ? start - position : 0));
-      }
-      if ((wanted != null && items.length >= wanted) ||
-          !page.hasMore ||
-          page.nextCursor == null ||
-          page.items.isEmpty) {
-        break;
-      }
-      position = end;
-      page = await fetch(cursor: page.nextCursor, limit: siloMaxPageSize);
-      state = _remember(signature, page, position);
-    }
-    final kept = wanted == null || items.length <= wanted
-        ? items
-        : items.sublist(0, wanted);
-    return SiloPagedResult(kept, _total(state, start + kept.length, page));
-  }
-
-  int _pageSize(int? wanted, int have) {
-    if (wanted == null) return 50;
-    final left = wanted - have;
-    return left > siloMaxPageSize ? siloMaxPageSize : (left < 1 ? 1 : left);
-  }
-
-  _PagerState? _touch(String signature) {
-    final state = _states.remove(signature);
-    if (state != null) _states[signature] = state;
-    return state;
-  }
-
-  _PagerState _remember(String signature, SiloPage page, int pageStart) {
-    final old = _states.remove(signature);
-    final state = _PagerState(
-      windowCursor: page.windowCursor ?? old?.windowCursor,
-      nextCursor: page.hasMore ? page.nextCursor : null,
-      nextStart: pageStart + page.items.length,
-      total: page.total ?? old?.total,
-      totalExact: page.total != null
-          ? page.totalExact
-          : (old?.totalExact ?? false),
-    );
+    final state = _states.remove(signature) ?? _PagerState(keptPages);
     _states[signature] = state;
     while (_states.length > maxEntries) {
       _states.remove(_states.keys.first);
     }
-    return state;
+
+    final end = start + wanted;
+    final items = <Map<String, dynamic>>[];
+    var pos = start;
+    while (pos < end) {
+      if (state.knownEnd case final last? when pos >= last) break;
+
+      // What the kept pages already hold.
+      final kept = state.itemsAt(pos, end - pos);
+      if (kept.isNotEmpty) {
+        items.addAll(kept);
+        pos += kept.length;
+        continue;
+      }
+
+      if (pos == 0) {
+        state.add(0, await fetch(limit: pageSize));
+      } else if (state.nextStart == pos &&
+          state.nextCursor != null &&
+          (end - pos <= pageSize || state.windowCursor == null)) {
+        state.add(pos, await fetch(cursor: state.nextCursor, limit: pageSize));
+      } else if (state.windowCursor case final window?) {
+        await _seek(state, window, pos, end, fetch);
+      } else if (!state.started) {
+        // The first page brings the window cursor (and maybe the range).
+        state.add(0, await fetch(limit: pageSize));
+      } else if (state.nextCursor != null && state.nextStart < pos) {
+        // No window cursor: walk the next cursors forward.
+        final from = state.nextStart;
+        final walked = await fetch(cursor: state.nextCursor, limit: pageSize);
+        state.add(from, walked);
+        if (walked.items.isEmpty) {
+          state.knownEnd ??= from;
+          break;
+        }
+      } else if (pos < state.nextStart) {
+        // Behind the walk, with no way to seek: start over from the top.
+        _states[signature] = _PagerState(keptPages);
+        return _page(signature, start, wanted, fetch);
+      } else {
+        // Nothing left to follow.
+        state.knownEnd ??= pos;
+        break;
+      }
+      // A page that brought nothing for this offset, though Silo claims
+      // more, ends the range rather than asking again forever.
+      if (state.fetchedAt(pos) && state.itemsAt(pos, 1).isEmpty) {
+        state.knownEnd ??= pos;
+        break;
+      }
+    }
+    return SiloPagedResult(items, state.totalFor(start + items.length));
   }
 
-  /// The total for Moonfin: Silo's when it gives one, never less than what
-  /// has been seen; without one, what has been seen plus one more page when
-  /// Silo says there is more, so a grid keeps asking.
-  int _total(_PagerState state, int seenEnd, SiloPage last) {
-    final total = state.total;
-    if (total != null) {
-      if (!last.hasMore && !state.totalExact) return seenEnd;
-      return total < seenEnd ? seenEnd : total;
+  /// Fetches the pages from [pos] towards [end] by `seek`, a few at once.
+  Future<void> _seek(
+    _PagerState state,
+    String window,
+    int pos,
+    int end,
+    SiloPageFetch fetch,
+  ) async {
+    final offsets = <int>[];
+    for (
+      var at = pos;
+      at < end && offsets.length < parallelRequests;
+      at += pageSize
+    ) {
+      if (state.knownEnd case final last? when at >= last) break;
+      offsets.add(at);
     }
-    return last.hasMore ? seenEnd + 1 : seenEnd;
+    final pages = await Future.wait([
+      for (final at in offsets)
+        fetch(cursor: window, seek: at, limit: pageSize),
+    ]);
+    for (var i = 0; i < pages.length; i++) {
+      state.add(offsets[i], pages[i]);
+    }
   }
 }
 
+/// What the pager remembers about one query.
 class _PagerState {
-  const _PagerState({
-    required this.windowCursor,
-    required this.nextCursor,
-    required this.nextStart,
-    required this.total,
-    required this.totalExact,
-  });
+  _PagerState(this._keep);
 
-  final String? windowCursor;
-  final String? nextCursor;
-  final int nextStart;
-  final int? total;
-  final bool totalExact;
+  bool started = false;
+  String? windowCursor;
+  String? nextCursor;
+  int nextStart = 0;
+  int? total;
+  bool totalExact = false;
+
+  /// Where the result ends, once a page without more has been seen (or the
+  /// exact total says so).
+  int? knownEnd;
+
+  /// The pages fetched last, oldest first: start offset and items.
+  final List<({int start, List<Map<String, dynamic>> items})> pages = [];
+  final int _keep;
+
+  void add(int at, SiloPage page) {
+    started = true;
+    windowCursor = page.windowCursor ?? windowCursor;
+    if (page.total != null) {
+      total = page.total;
+      totalExact = page.totalExact;
+      if (page.totalExact) knownEnd = page.total;
+    }
+    final end = at + page.items.length;
+    // A short page alone doesn't end the list: only Silo saying so does.
+    if (!page.hasMore) knownEnd = end;
+    // The next cursor points past the furthest page seen.
+    if (end >= nextStart || nextCursor == null) {
+      nextCursor = page.hasMore ? page.nextCursor : null;
+      nextStart = end;
+    }
+    pages.removeWhere((p) => p.start == at);
+    pages.add((start: at, items: page.items));
+    while (pages.length > _keep) {
+      pages.removeAt(0);
+    }
+  }
+
+  /// Whether a kept page was fetched starting at [pos].
+  bool fetchedAt(int pos) => pages.any((p) => p.start == pos);
+
+  /// Up to [count] items from [pos] on, as far as one kept page reaches.
+  List<Map<String, dynamic>> itemsAt(int pos, int count) {
+    for (final p in pages.reversed) {
+      final offset = pos - p.start;
+      if (offset >= 0 && offset < p.items.length) {
+        final stop = offset + count < p.items.length
+            ? offset + count
+            : p.items.length;
+        return p.items.sublist(offset, stop);
+      }
+    }
+    return const [];
+  }
+
+  /// The total for Moonfin: Silo's exact total; else where the result was
+  /// seen to end; else Silo's estimate, never less than what was seen; with
+  /// nothing at all, what was seen plus one while there is more.
+  int totalFor(int seenEnd) {
+    if (total != null && totalExact) return total!;
+    if (knownEnd != null) return knownEnd!;
+    if (total != null) return total! < seenEnd ? seenEnd + 1 : total!;
+    return nextCursor != null ? seenEnd + 1 : seenEnd;
+  }
 }
 
 /// A stable key for one list query: its parameters, minus the paging ones

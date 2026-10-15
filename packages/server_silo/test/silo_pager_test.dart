@@ -7,7 +7,8 @@ import 'package:test/test.dart';
 import 'fixture_server.dart';
 
 /// A Silo list of [count] items, paged the way Silo pages: opaque next
-/// cursors, a window cursor, and `seek` from the window cursor.
+/// cursors, a window cursor, `seek` from the window cursor, and every cursor
+/// bound to the `limit` of the request that issued it, as Silo signs them.
 class _FakeList {
   _FakeList(this.count, {this.exact = true, this.withWindow = true});
 
@@ -35,7 +36,7 @@ class _FakeList {
       offset = 0;
     } else {
       final parts = cursor.split(':');
-      if (int.parse(parts[1]) != generation) {
+      if (int.parse(parts[1]) != generation || int.parse(parts.last) != limit) {
         throw _problem('invalid_cursor');
       }
       if (parts[0] == 'window') {
@@ -53,9 +54,9 @@ class _FakeList {
     final more = end < count;
     return SiloPage(
       items: items,
-      nextCursor: more ? 'next:$generation:$end' : null,
+      nextCursor: more ? 'next:$generation:$end:$limit' : null,
       hasMore: more,
-      windowCursor: withWindow ? 'window:$generation' : null,
+      windowCursor: withWindow ? 'window:$generation:$limit' : null,
       total: count,
       totalExact: exact,
     );
@@ -83,6 +84,10 @@ List<String> _ids(SiloPagedResult r) => [
   for (final i in r.items) i['content_id'] as String,
 ];
 
+List<String> _range(int from, int to) => [
+  for (var i = from; i < to; i++) 'item-$i',
+];
+
 void main() {
   late SiloPager pager;
 
@@ -101,98 +106,100 @@ void main() {
   );
 
   group('requests', () {
-    test('the first page is a plain request', () async {
-      final list = _FakeList(120);
-      final r = await page(list, 0, 50);
-      expect(_ids(r), [for (var i = 0; i < 50; i++) 'item-$i']);
-      expect(r.totalRecordCount, 120);
-      expect(list.calls, ['limit=50']);
+    test('every request to Silo has the same limit', () async {
+      final list = _FakeList(5000);
+      // A grid's pages, a jump far down, a scroll back up.
+      await page(list, 0, 75);
+      await page(list, 75, 48);
+      await page(list, 123, 300);
+      await page(list, 3500, 48);
+      await page(list, 40, 10);
+      expect(list.calls.map((c) => c.split('&').last).toSet(), {'limit=100'});
+    });
+
+    test(
+      'the first page is a plain request, trimmed to what was asked',
+      () async {
+        final list = _FakeList(120);
+        final r = await page(list, 0, 50);
+        expect(_ids(r), _range(0, 50));
+        expect(r.totalRecordCount, 120);
+        expect(list.calls, ['limit=100']);
+      },
+    );
+
+    test('what was fetched serves the next ranges without a request', () async {
+      final list = _FakeList(500);
+      await page(list, 0, 75);
+      final r = await page(list, 75, 20);
+      expect(_ids(r), _range(75, 95));
+      expect(list.calls, ['limit=100']);
     });
 
     test('the next page follows next_cursor', () async {
-      final list = _FakeList(120);
-      await page(list, 0, 50);
-      final r = await page(list, 50, 50);
-      expect(_ids(r).first, 'item-50');
-      expect(list.calls.last, 'cursor=next:1:50&limit=50');
-      final last = await page(list, 100, 50);
-      expect(last.items, hasLength(20));
-      expect(list.calls.last, 'cursor=next:1:100&limit=50');
+      final list = _FakeList(500);
+      await page(list, 0, 75);
+      final r = await page(list, 75, 48);
+      expect(_ids(r), _range(75, 123));
+      expect(list.calls, ['limit=100', 'cursor=next:1:100:100&limit=100']);
     });
 
     test('any other offset seeks from the window cursor', () async {
       final list = _FakeList(1000);
       await page(list, 0, 50);
       final r = await page(list, 700, 40);
-      expect(_ids(r).first, 'item-700');
-      expect(r.items, hasLength(40));
-      expect(list.calls.last, 'cursor=window:1&seek=700&limit=40');
-      // After a jump, scrolling on uses that page's next cursor.
+      expect(_ids(r), _range(700, 740));
+      expect(list.calls.last, 'cursor=window:1:100&seek=700&limit=100');
+      // Scrolling on from there is served by that page, then its next cursor.
       await page(list, 740, 40);
-      expect(list.calls.last, 'cursor=next:1:740&limit=40');
+      expect(list.calls, hasLength(2));
+      await page(list, 780, 40);
+      expect(list.calls.last, 'cursor=next:1:800:100&limit=100');
     });
 
     test('a jump before any first page fetches one for the window', () async {
       final list = _FakeList(1000);
       final r = await page(list, 300, 25);
-      expect(_ids(r).first, 'item-300');
-      expect(list.calls, ['limit=25', 'cursor=window:1&seek=300&limit=25']);
-    });
-
-    test('going back seeks too', () async {
-      final list = _FakeList(300);
-      await page(list, 0, 50);
-      await page(list, 50, 50);
-      final r = await page(list, 0, 50);
-      expect(_ids(r).first, 'item-0');
-      expect(list.calls.last, 'limit=50');
-      await page(list, 25, 50);
-      expect(list.calls.last, 'cursor=window:1&seek=25&limit=50');
-    });
-
-    test('a limit above Silo\'s maximum seeks the rest in parallel', () async {
-      final list = _FakeList(1000);
-      final r = await page(list, 0, 450);
-      expect(r.items, hasLength(450));
-      expect(_ids(r), [for (var i = 0; i < 450; i++) 'item-$i']);
+      expect(_ids(r), _range(300, 325));
       expect(list.calls, [
-        'limit=200',
-        'cursor=window:1&seek=200&limit=200',
-        'cursor=window:1&seek=400&limit=50',
+        'limit=100',
+        'cursor=window:1:100&seek=300&limit=100',
       ]);
-      // And the next page continues where the last request ended.
-      await page(list, 450, 10);
-      expect(list.calls.last, 'cursor=next:1:450&limit=10');
     });
 
-    test('a long fill goes in batches and stops at the end', () async {
+    test('going back is served from what was kept, or seeks', () async {
+      final list = _FakeList(3000);
+      await page(list, 0, 50);
+      await page(list, 2000, 50);
+      final calls = list.calls.length;
+      final r = await page(list, 10, 50);
+      expect(_ids(r), _range(10, 60));
+      expect(list.calls, hasLength(calls), reason: 'the first page is kept');
+    });
+
+    test('a large range seeks its pages in parallel batches', () async {
+      final list = _FakeList(5000);
+      await page(list, 0, 75);
+      final r = await page(list, 75, 3500);
+      expect(_ids(r), _range(75, 3575));
+      // Page 0 is kept; the rest are seeks of 100, four at a time.
+      final seeks = list.calls.where((c) => c.contains('seek=')).toList();
+      expect(seeks.first, 'cursor=window:1:100&seek=100&limit=100');
+      expect(seeks, hasLength(35));
+    });
+
+    test('a range past the end stops at the end', () async {
       final list = _FakeList(1500);
       final r = await page(list, 100, 2000);
-      expect(r.items, hasLength(1400));
-      expect(_ids(r).first, 'item-100');
-      expect(_ids(r).last, 'item-1499');
+      expect(_ids(r), _range(100, 1500));
       expect(r.totalRecordCount, 1500);
-      // First page, then seeks of 200 four at a time, none past the total.
-      expect(list.calls.where((c) => c.contains('seek=')), hasLength(7));
       expect(list.calls, isNot(contains(contains('seek=1500'))));
-    });
-
-    test('without a window cursor a long fill follows next cursors', () async {
-      final list = _FakeList(1000, withWindow: false);
-      final r = await page(list, 0, 450);
-      expect(_ids(r), [for (var i = 0; i < 450; i++) 'item-$i']);
-      expect(list.calls, [
-        'limit=200',
-        'cursor=next:1:200&limit=200',
-        'cursor=next:1:400&limit=50',
-      ]);
     });
 
     test('no limit is one page of Silo\'s default size', () async {
       final list = _FakeList(120);
       final r = await page(list, 0, null);
       expect(r.items, hasLength(50));
-      expect(list.calls, ['limit=50']);
     });
 
     test('past an exact total: empty, no request', () async {
@@ -207,24 +214,24 @@ void main() {
     test('queries are kept apart by signature', () async {
       final movies = _FakeList(500);
       final shows = _FakeList(500);
-      await page(movies, 0, 50, signature: 'movies');
-      await page(shows, 0, 50, signature: 'shows');
-      await page(movies, 50, 50, signature: 'movies');
-      expect(movies.calls.last, 'cursor=next:1:50&limit=50');
+      await page(movies, 0, 100, signature: 'movies');
+      await page(shows, 0, 100, signature: 'shows');
+      await page(movies, 100, 50, signature: 'movies');
+      expect(movies.calls.last, 'cursor=next:1:100:100&limit=100');
     });
   });
 
   group('invalid cursors', () {
     test('a rejected cursor starts over once', () async {
       final list = _FakeList(1000);
-      await page(list, 0, 50);
+      await page(list, 0, 100);
       list.generation = 2; // The server restarted; old cursors are refused.
-      final r = await page(list, 50, 50);
-      expect(_ids(r).first, 'item-50');
+      final r = await page(list, 100, 50);
+      expect(_ids(r), _range(100, 150));
       expect(list.calls.sublist(1), [
-        'cursor=next:1:50&limit=50',
-        'limit=50',
-        'cursor=window:2&seek=50&limit=50',
+        'cursor=next:1:100:100&limit=100',
+        'limit=100',
+        'cursor=next:2:100:100&limit=100',
       ]);
     });
 
@@ -300,7 +307,7 @@ void main() {
   });
 
   group('totals', () {
-    test('an estimate is replaced by what was seen at the end', () async {
+    test('an estimate is replaced by where the list was seen to end', () async {
       final list = _FakeList(120, exact: false);
       final r = await page(list, 100, 50);
       expect(r.items, hasLength(20));
@@ -308,7 +315,7 @@ void main() {
     });
 
     test('no total: seen plus one while there is more', () async {
-      final pager = SiloPager();
+      final pager = SiloPager(pageSize: 2);
       final r = await pager.page(
         signature: 'q',
         startIndex: 0,
@@ -330,19 +337,63 @@ void main() {
     test('an offset is reached by following next cursors', () async {
       final list = _FakeList(500, withWindow: false);
       final r = await page(list, 230, 20);
-      expect(_ids(r), [for (var i = 230; i < 250; i++) 'item-$i']);
+      expect(_ids(r), _range(230, 250));
       expect(list.calls, [
-        'limit=20',
-        'limit=200',
-        'cursor=next:1:200&limit=200',
+        'limit=100',
+        'cursor=next:1:100:100&limit=100',
+        'cursor=next:1:200:100&limit=100',
       ]);
+    });
+
+    test('behind the walk it starts over from the top', () async {
+      final list = _FakeList(2000, withWindow: false);
+      await page(list, 1500, 10);
+      final r = await page(list, 5, 10);
+      expect(_ids(r), _range(5, 15));
+    });
+  });
+
+  group('odd answers', () {
+    test('an empty page that claims more ends the range', () async {
+      var calls = 0;
+      final r = await pager.page(
+        signature: 'q',
+        startIndex: 0,
+        limit: 10,
+        fetch: ({cursor, seek, required limit}) async {
+          calls++;
+          return const SiloPage(items: [], nextCursor: 'n', hasMore: true);
+        },
+      );
+      expect(r.items, isEmpty);
+      expect(calls, 1);
+    });
+
+    test('more claimed with no cursor at all ends the range', () async {
+      var calls = 0;
+      final r = await pager.page(
+        signature: 'q',
+        startIndex: 150,
+        limit: 10,
+        fetch: ({cursor, seek, required limit}) async {
+          calls++;
+          return SiloPage(
+            items: [
+              for (var i = 0; i < limit; i++) {'i': i},
+            ],
+            hasMore: true,
+          );
+        },
+      );
+      expect(r.items, isEmpty);
+      expect(calls, 1);
     });
   });
 
   group('cache', () {
     test('the least recently used query is forgotten first', () async {
       final pager = SiloPager(maxEntries: 2);
-      final list = _FakeList(100);
+      final list = _FakeList(1000);
       for (final s in ['a', 'b', 'c']) {
         await pager.page(
           signature: s,
@@ -353,14 +404,14 @@ void main() {
       }
       expect(pager.length, 2);
       list.calls.clear();
-      // 'a' was forgotten: its next page starts over.
+      // 'a' was forgotten: even its first rows need a request again.
       await pager.page(
         signature: 'a',
         startIndex: 10,
         limit: 10,
         fetch: list.fetch,
       );
-      expect(list.calls.first, 'limit=10');
+      expect(list.calls.first, 'limit=100');
       pager.clear();
       expect(pager.length, 0);
     });

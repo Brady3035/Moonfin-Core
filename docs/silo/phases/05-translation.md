@@ -794,48 +794,56 @@ Moonfin reads Jellyfin's `Trickplay` item field, `{ <media source id>: { "<width
 
 `limit` is at most 200.
 
-**The pager.** `SiloPager.page(signature:, startIndex:, limit:, fetch:)` remembers a query's cursors under its **signature** and picks the cheapest request:
+**Cursors are bound to `limit`.** Silo signs each cursor over the whole query, `limit` included (server `listCatalogItems`: the cursor scope's filter carries `limit`). A `next_cursor` or `window_cursor` is only accepted with the **same** `limit` as the request that issued it; any other gets `invalid_cursor` ("belongs to a different query"). The first version of the pager passed Moonfin's limits through (75 for a first page, 48 per scroll, 300 for a jump), so most cursor requests were refused and recovered only through the one restart. It was found at 6.11, where Brady's timing run got `invalid_cursor` for a next page asked with a new limit, and the alphabet jump failed outright.
 
-| Moonfin asks for | Request |
+**The pager.** `SiloPager.page(signature:, startIndex:, limit:, fetch:)` asks Silo for pages of **one fixed size** (`pageSize`, 100) whatever Moonfin asks for, and serves Moonfin's range from the pages it has fetched. Per query **signature** it remembers the window cursor, the next cursor and where it points, where the result ends once known, and the last 8 pages fetched. For each part of the range not already held it picks the cheapest request:
+
+| Moonfin asks for | Request (always `limit=100`) |
 |---|---|
-| `startIndex` 0 | plain (no cursor) |
-| where the last page ended | `cursor=<next_cursor>` (scrolling down a grid) |
-| any other offset | `cursor=<window_cursor>&seek=<startIndex>` (alphabet bar, a grid restored mid-way, going back) |
-| an offset, with no window cursor yet | the first page, then the jump |
-| at or past an exact total | nothing: an empty answer |
+| part of a page already fetched | nothing: served from memory |
+| offset 0 | plain (no cursor) |
+| one page from where the last page ended | `cursor=<next_cursor>` (scrolling down a grid) |
+| any other offset, or more than one page | `cursor=<window_cursor>&seek=<offset>`, up to 4 pages at once (alphabet bar, a grid restored mid-way, going back) |
+| an offset, with no window cursor yet | the first page, then the seeks |
+| at or past the end | nothing: an empty answer |
 
 **Rules.**
 
-- **Large limits:** a `limit` above 200 is filled with further `next_cursor` requests (450 → 200 + 200 + 50). No `limit` means one page of Silo's default size, 50.
+- **Any limit:** Moonfin's `limit` only decides how much of the fetched pages is returned. A large one (a jump loading 3,500 titles) is 35 seeks of 100, four at a time. No `limit` means 50 items, Silo's default.
 - **Signatures:** `siloPageSignature(path, params)` keys a query by its parameters, sorted, without the paging ones (`cursor`, `seek`, `limit`) and without null or empty values. So the same library, sort and filters share cursors, and different ones never do.
 - **Memory:** up to 32 queries are remembered, least recently used forgotten first. `clear()` forgets all of them, for a library change.
-- **Rejected cursors:** when Silo rejects a cursor (expired, or the server restarted), the query's state is dropped and the request starts over from the first page, **once**; a second rejection is passed on. `isSiloInvalidCursorError` decides what counts: a 400 or 422 whose problem code mentions a cursor (`invalid_cursor`…), or whose field errors point at `cursor` or `seek`. The contract doesn't list the exact code, so the check is deliberately broad.
-- **Totals:** `TotalRecordCount` is Silo's total, never less than what has been seen. An estimate is replaced by the real end once the last page arrives. Without any total it is what has been seen plus one while Silo says there is more, so the grid keeps asking.
-- **No window cursor:** for a result Silo gives no window cursor, an offset is reached by following next cursors in pages of 200.
+- **Rejected cursors:** when Silo rejects a cursor (expired, or the server restarted), the query's state is dropped and the request starts over from the first page, **once**; a second rejection is passed on. `isSiloInvalidCursorError` decides what counts: a 400 or 422 whose problem code mentions a cursor (`invalid_cursor`…), or whose field errors point at `cursor` or `seek`.
+- **Totals:** `TotalRecordCount` is Silo's exact total when it gives one; otherwise where the result was seen to end (a page without more); otherwise Silo's estimate, never less than what has been seen; without any total, what has been seen plus one while Silo says there is more, so the grid keeps asking.
+- **End of the list:** only `has_more: false` or an exact total ends a result; a page shorter than asked does not. A page that brings nothing though Silo claims more, or more claimed with no cursor to follow, ends the range instead of asking again.
+- **No window cursor:** for a result Silo gives no window cursor, an offset is reached by following next cursors from the start; a range behind the walk starts it over.
 
 `fetch` is a callback, so the pager knows nothing about endpoints. The items API (6.5) wraps each list call in it. `SiloPage.fromJson` reads Silo's list answers.
 
 ### Testing
 
-**Automated tests** (`packages/server_silo/test/silo_pager_test.dart`, new, 20 tests, against a fake Silo list that issues and checks cursors)
+**Automated tests** (`packages/server_silo/test/silo_pager_test.dart`, new, against a fake Silo list that issues and checks cursors; since the fix the fake also refuses a cursor sent with a different `limit`, as Silo does: 26 tests)
 
 - Requests:
   - first page, next pages, seeks forward and back;
   - a jump before any first page;
-  - a 450 limit split into 200 + 200 + 50 and continued after;
+  - every request to Silo has the same limit, whatever Moonfin asks;
+  - ranges served from fetched pages without a request; going back served from what was kept;
+  - a 3,500-title range as 35 seeks; a range past the end stops at the end;
   - no limit; past an exact total with no request;
   - signatures kept apart.
 - Invalid cursors: a server "restart" mid-scroll recovers with one restart; a second rejection is passed on; other errors aren't retried; which problems count.
 - Totals: an estimate corrected at the end; no total.
 - No window cursor: an offset reached by walking.
+- Odd answers: an empty page that claims more, and more with no cursor, end the range.
 - Cache: least recently used forgotten; `clear`.
 - Signatures: paging parameters, order and empty values ignored; list order kept.
 - Reading the library page fixture (5 items, 4611 exact, both cursors) and a last page.
-- `server_silo`: 304/304.
+- `server_silo`: 304/304 at 5.12; 426/426 with the fix (on top of 6.19).
 
 **Manual test plan**
 
 - Nothing to check by hand until 6.5 scrolls a library grid. Regression: full `flutter test`.
+- With the fix: scroll a large Silo library from top to bottom without stalls or a reload from the top; jump to letters far down (6.11); go back up.
 
 **Results**
 
@@ -843,6 +851,8 @@ Moonfin reads Jellyfin's `Trickplay` item field, `{ <media source id>: { "<width
 |---|---|---|---|---|
 | 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | pager tests 20/20; `server_silo` 304/304; analyzer: no issues |
 | 2026-10-14 | macOS | `4b2e921c` | Pass | full `flutter test` before committing |
+| 2026-10-14 | macOS | `4b2e921c` | Fail | found at 6.11: Silo refused next and window cursors sent with a different `limit` (`invalid_cursor`); the alphabet jump failed |
+| 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | fix: one fixed page size per query, pages kept; pager 26/26; `server_silo` 426/426 |
 | | | | | |
 
 ---

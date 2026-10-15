@@ -80,3 +80,14 @@ trickplay (needed by steps 5.11 and 11.2). Re-run the script with
 seek previews yet. It has the probe script's file name, so a real capture
 replaces it; the 5.11 tests read their expectations from the file, so they
 still apply. Capture one before step 11.2.
+
+`silo/catalog_search.json` was rebuilt by hand at step 7.1: the 2026-10-13
+capture searched for "the", a stop word for Silo's PostgreSQL search, and held
+no items. It is a `type=video_with_episodes` search for "justice" in the
+`CatalogBrowseCollection` shape, made from the real Young Justice cards (the
+series and its first two episodes, with the card fields an episode carries in
+search: `type`, `series_id`, `series_title`, season and episode numbers) plus
+a podcast that Moonfin must drop. The probe now searches for `SILO_SEARCH`
+(default "justice") with that scope, so a re-run replaces it with a real one;
+the expected lists in `silo_items_api_search_test.dart` then follow the new
+file.

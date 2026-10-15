@@ -1,10 +1,121 @@
 {
- "window_cursor": "eyJ2IjoxLCJwIjp7ImEiOnsic2VhcmNoIjp7InByb3ZpZGVyIjoicG9zdGdyZXMiLCJjb25maWciOiJwb3N0Z3Jlcy1yZWxldmFuY2UtdjEiLCJwb3N0Z3JlcyI6eyJtb2RlIjoiZnRzIn19LCJrZXlzIjpudWxsLCJjb25zdW1lZCI6MH0sIm8iOjB9fQ.wG2Z0i0gh8BHz5TW5jN8GHIf6mFLGuHy98uiEhx5GWs",
- "items": [],
+ "window_cursor": "eyJ2IjoxLCJwIjp7ImEiOnsic2VhcmNoIjp7InByb3ZpZGVyIjoicG9zdGdyZXMifX19fQ.SCRUBBED",
+ "items": [
+  {
+   "content_id": "series-imdb-tt1641384",
+   "play_content_id": "episode-imdb-tt1641384-1-1",
+   "type": "series",
+   "title": "Young Justice",
+   "year": 2010,
+   "genres": [
+    "Science Fiction",
+    "Drama",
+    "Crime",
+    "Children",
+    "Animation",
+    "Adventure",
+    "Action",
+    "Romance"
+   ],
+   "networks": [
+    "Cartoon Network",
+    "DC Universe",
+    "HBO Max"
+   ],
+   "content_rating": "TV-PG",
+   "status": "",
+   "show_status": "ended",
+   "rating_tmdb": 8.4,
+   "overview": "Teenage superheroes strive to prove themselves as members of the Justice League.",
+   "last_air_date": "2022-06-09",
+   "poster_url": "/api/v2/artwork/tvdb/series/192061/poster/w500.649bc8718e7fa8565ff577683d36cb5dd119fbcb8f0bee2b764e4cf297f2d9ed.webp?exp=SCRUBBED&sig=SCRUBBED",
+   "poster_thumbhash": "ZBgSJQhZd3+ZuHdod4eImLaQJQqM",
+   "backdrop_url": "/api/v2/artwork/tvdb/series/192061/backdrop/w1920.32da695e99dbbd49c003d6acd4dacf662ab93c258d7189e6ed86cc0938434b10.webp?exp=SCRUBBED&sig=SCRUBBED",
+   "backdrop_thumbhash": "ywcKFIQGeXiNhniPhIm3gpAsCA==",
+   "logo_url": "/api/v2/artwork/tvdb/series/192061/logo/w500.c908c883e832388f9f82dc1450b747ad40b1ae11e17f6da3930a88f1a3ade4c7.webp?exp=SCRUBBED&sig=SCRUBBED",
+   "user_state": {
+    "played": false,
+    "is_favorite": false,
+    "in_watchlist": false
+   }
+  },
+  {
+   "content_id": "episode-imdb-tt1641384-1-1",
+   "play_content_id": "episode-imdb-tt1641384-1-1",
+   "type": "episode",
+   "title": "Independence Day",
+   "series_id": "series-imdb-tt1641384",
+   "series_title": "Young Justice",
+   "season_number": 1,
+   "episode_number": 1,
+   "runtime": 25,
+   "overview": "Robin, Aqualad, and Kid Flash break into Cadmus and find that it is being run by Genomorphs.",
+   "release_date": "2010-11-26",
+   "poster_url": "/api/v2/artwork/tvdb/series/192061/seasons/1/episodes/1/still/w300.4eab405ffd184791c20c933b5723058f120ff17a3915d44774a4349bc78ab1bf.webp?exp=SCRUBBED&sig=SCRUBBED",
+   "poster_is_episode_still": true,
+   "poster_thumbhash": "EhgKHIbe/Kg4VXaWd4o/NNA0BQ==",
+   "overlay_summary": {
+    "resolution": "1080p",
+    "audio": "EAC3",
+    "audio_channels": "Stereo",
+    "video_codec": "H.265",
+    "container": "MKV",
+    "aspect_ratio": "16:9",
+    "release_type": "HDTV",
+    "multi_sub": true
+   },
+   "user_state": {
+    "played": false,
+    "is_favorite": false,
+    "in_watchlist": false
+   }
+  },
+  {
+   "content_id": "episode-imdb-tt1641384-1-2",
+   "play_content_id": "episode-imdb-tt1641384-1-2",
+   "type": "episode",
+   "title": "Fireworks",
+   "series_id": "series-imdb-tt1641384",
+   "series_title": "Young Justice",
+   "season_number": 1,
+   "episode_number": 2,
+   "runtime": 25,
+   "overview": "The sidekicks find a clone of Superman known as Superboy. They free him from Cadmus' control, while battling Blockbuster.",
+   "release_date": "2010-11-26",
+   "poster_url": "/api/v2/artwork/tvdb/series/192061/seasons/1/episodes/2/still/w300.bf5fd03183a0524fb6cd86175edbad4ec48521e7c110e9bb94ff3c095b926ff3.webp?exp=SCRUBBED&sig=SCRUBBED",
+   "poster_is_episode_still": true,
+   "poster_thumbhash": "yPcJDIBXVwl1eHd2iHd4f2f6Zw==",
+   "overlay_summary": {
+    "resolution": "1080p",
+    "audio": "EAC3",
+    "audio_channels": "Stereo",
+    "video_codec": "H.265",
+    "container": "MKV",
+    "aspect_ratio": "16:9",
+    "release_type": "HDTV",
+    "multi_sub": true
+   },
+   "user_state": {
+    "played": false,
+    "is_favorite": false,
+    "in_watchlist": false
+   }
+  },
+  {
+   "content_id": "podcast-9",
+   "type": "podcast",
+   "title": "Justice Talk",
+   "user_state": {
+    "played": false,
+    "is_favorite": false,
+    "in_watchlist": false
+   }
+  }
+ ],
  "page": {
   "has_more": false
  },
- "total": 0,
+ "total": 4,
  "total_exact": true,
  "search_diagnostics": {
   "provider": "postgres",

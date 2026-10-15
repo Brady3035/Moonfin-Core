@@ -776,7 +776,7 @@ Moonfin reads Jellyfin's `Trickplay` item field, `{ <media source id>: { "<width
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | `d53c6c6` | 5.11 |
+| ☑ Done | `d53c6c6`, fix `8eb8242` | 5.11 |
 
 **Goal.** Turn Moonfin's `startIndex/limit` into Silo cursors: first page plain; next page `next_cursor`; any other offset `window_cursor + seek`; `invalid_cursor` → reset once.
 

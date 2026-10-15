@@ -175,7 +175,7 @@ Before testing: finish an episode of a show that has a next one (in Silo's web a
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 8.2 |
+| ☑ Done | — | 8.2 |
 
 **Goal.** Recently added per library.
 
@@ -250,33 +250,61 @@ Moonfin builds a "Latest in <library>" row per library (`RowDataSource.loadLates
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 8.3 |
 
 **Goal.** Sorted by release date.
 
+**Silo v2 endpoints**
+
+- `GET /catalog?library_id=&type=&sort=-release_date&groups=` (rule `release_date lt <tomorrow>`)
+- `GET /settings/values/effective?keys=home.hide_watched_items` (read in 8.3)
+
 **Where in Moonfin**
 
-- `silo_items_api.dart`
+- `packages/server_silo/lib/src/api/silo_items_api.dart`: `getRecentlyReleasedItems`; a clock for the date.
+- `packages/server_silo/lib/src/silo_media_server_client.dart`: passes the session's clock.
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+Moonfin's "Recently released in <library>" rows (`RowDataSource.loadRecentlyReleased`), the media bar's "recently released" source and the launcher's "upcoming" channel ask `ItemsApi.getRecentlyReleasedItems`. On Jellyfin and Emby that is `/Users/{id}/Items` sorted by `PremiereDate` descending with `MaxPremiereDate` now, so nothing announced for later shows. The row asks by type: films for a film library, and for a TV library series, seasons or episodes, as the user's "Recently released" setting says.
+
+On Silo it is one catalog page through the pager:
+
+- **`sort=-release_date`**: Silo's release date is a film's release, a series' first air date, an episode's air date (the same values Moonfin shows as `PremiereDate`).
+- **Released by today**: the rule `release_date lt <tomorrow>`, tomorrow in the device's time zone (Silo compares calendar dates; its date rules take `lt` but not `lte`). The client's clock is passed in so tests can fix the day.
+- **The kind**: from `includeItemTypes`, else from the library (as in 8.3). An episode stays an episode here; a season counts as its series, since the catalog doesn't list seasons. So the "season" choice in Moonfin's setting gives the same row as "series" on Silo.
+- **Watched titles: as on Silo**, like Latest (8.3): they stay unless the profile turned on *Hide watched items from Home*, which Silo applies to its Recently Released section too; then the rule `watched is false` joins the date rule. `limit` defaults to 20; the answer keeps Silo's total. `recursive` changes nothing, as the catalog lists a library's titles at every depth. Types Silo can't list and a parent that isn't a library answer empty without a request.
+
+**Not covered here:** Silo also has a `recently_released` home section with the same order; Moonfin keeps its own rows.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `packages/server_silo/test/silo_items_api_recently_released_test.dart` (new, 5 tests):
+  - a film library: `library_id`, `type=movie`, `sort=-release_date`, the rule with tomorrow's date from the test clock, `image_size`, one page of 100; films in Silo's order with their premiere dates and the library as parent;
+  - with *Hide watched items from Home* on, the watched rule joins the date rule;
+  - a TV library by setting: series → `series`, season → `series`, episode → `episode`, no types → the library's kind;
+  - across the server: `[Movie, Series]` → `video`, no library;
+  - types Silo lacks and a non-library parent: empty, no request.
+- `silo_items_api_library_test.dart`: the not-implemented check now uses `createCollection` (9.5).
+- `server_silo`: 479/479.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+Turn on the "Recently released" home section (Settings → Home) if it isn't on.
+
+1. **Recently released in Movies**: films newest release first, nothing with a future date. Compare with Emby's row for the same library.
+2. **Recently released in TV Shows** with the setting on *Series*: shows by first air date. On *Episode*: episodes by air date, today's at most. On *Season*: same as *Series* (Silo has no season listing).
+3. **A film releasing later** (if your library has one, e.g. a pre-release copy with a future date): not in the row.
+4. **Hide watched items** on in Silo's web app (as in 8.3): watched titles leave the row after a minute and a Home reload; off again, they return.
+5. **Emby unchanged**.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
-| | | | | |
+| 2026-10-15 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | recently released 5/5; `server_silo` 479/479; analyzer: no issues |
 
 ---
 

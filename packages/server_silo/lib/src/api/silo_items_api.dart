@@ -33,10 +33,19 @@ const siloDetailImageSize = 'large';
 /// or with an empty answer for what Silo doesn't have at all (music,
 /// playlists).
 class SiloItemsApi implements ItemsApi, LetterPositionApi {
-  SiloItemsApi(this._dio, {this.images, SiloPager? pager, this.userViews})
-    : pager = pager ?? SiloPager();
+  SiloItemsApi(
+    this._dio, {
+    this.images,
+    SiloPager? pager,
+    this.userViews,
+    DateTime Function()? clock,
+  }) : pager = pager ?? SiloPager(),
+       _clock = clock ?? DateTime.now;
 
   final Dio _dio;
+
+  /// The time, for date-bounded rows (8.4); tests move it.
+  final DateTime Function() _clock;
   final SiloImageRegistry? images;
 
   /// The client's library list, for library ids passed to [getItem].
@@ -1255,7 +1264,10 @@ class SiloItemsApi implements ItemsApi, LetterPositionApi {
 
   /// The sections of Silo's home and library pages, which the Continue
   /// Watching and Next Up rows read (8.1, 8.2).
-  late final SiloHomeSections homeSections = SiloHomeSections(_dio);
+  late final SiloHomeSections homeSections = SiloHomeSections(
+    _dio,
+    clock: _clock,
+  );
 
   /// What Continue Watching can hold: films and episodes. Audiobooks resume
   /// too on Silo, but Moonfin doesn't show them yet (phase 16).
@@ -1455,6 +1467,71 @@ class SiloItemsApi implements ItemsApi, LetterPositionApi {
     return {'Items': items, 'TotalRecordCount': items.length, 'StartIndex': 0};
   }
 
+  /// Recently released (step 8.4): titles by release date, newest first,
+  /// released by today, as Moonfin's `/Users/{id}/Items` query with
+  /// `SortBy=PremiereDate`, `MaxPremiereDate=now` does on Jellyfin and Emby.
+  ///
+  /// One catalog page through the pager, `sort=-release_date` with the rule
+  /// `release_date lt <tomorrow>` (Silo compares calendar dates; its
+  /// `release_date` is a film's release, a series' first air date, an
+  /// episode's air date). The kind comes from `includeItemTypes` (an episode
+  /// stays an episode here; a season, which the catalog doesn't list, counts
+  /// as its series), else from the library, as in Latest. Watched titles
+  /// stay unless the profile hides them from Silo's Home
+  /// ([_hidesWatchedOnHome]), as Silo's own Recently Released does.
+  /// `recursive` changes nothing: the catalog always lists a library's
+  /// titles at every depth.
+  @override
+  Future<Map<String, dynamic>> getRecentlyReleasedItems({
+    String? parentId,
+    List<String>? includeItemTypes,
+    int? limit,
+    String? fields,
+    String? enableImageTypes,
+    int? imageTypeLimit,
+    bool recursive = false,
+  }) async {
+    final libraryId = _libraryIdOf(parentId);
+    if (parentId != null && libraryId == null) return _empty(0);
+    final scope = await _newestRowScope(
+      libraryId: libraryId,
+      includeItemTypes: includeItemTypes,
+      episodesAsSeries: false,
+    );
+    if (scope == null) return _empty(0);
+    final today = _clock().toLocal();
+    final tomorrow = DateTime(today.year, today.month, today.day + 1);
+    final hideWatched = await _hidesWatchedOnHome();
+    return _page(
+      {
+        'library_id': ?libraryId,
+        'type': scope,
+        'sort': '-release_date',
+        'groups': jsonEncode([
+          {
+            'match': 'all',
+            'rules': [
+              {
+                'field': 'release_date',
+                'op': 'lt',
+                'value': _isoDate(tomorrow),
+              },
+            ],
+          },
+          if (hideWatched) ...siloRuleGroups(filters: const ['IsUnplayed']),
+        ]),
+        'image_size': siloListImageSize,
+      },
+      limit: limit == null || limit <= 0 ? 20 : limit,
+      libraryId: libraryId,
+    );
+  }
+
+  static String _isoDate(DateTime d) =>
+      '${d.year.toString().padLeft(4, '0')}-'
+      '${d.month.toString().padLeft(2, '0')}-'
+      '${d.day.toString().padLeft(2, '0')}';
+
   /// Silo's per-profile setting `home.hide_watched_items` ("Hide watched
   /// items from Home", off by default): when on, Silo leaves watched titles
   /// out of its ordinary Home sections, Recently Added and Recently Released
@@ -1464,7 +1541,7 @@ class SiloItemsApi implements ItemsApi, LetterPositionApi {
   /// be read counts as off, as Silo itself fails open, so nothing disappears
   /// because of an error.
   Future<bool> _hidesWatchedOnHome() async {
-    final now = DateTime.now();
+    final now = _clock();
     var entry = _hideWatched;
     if (entry == null || now.difference(entry.at) > _hideWatchedTtl) {
       entry = (at: now, read: _readHideWatched());
@@ -1661,7 +1738,6 @@ class SiloItemsApi implements ItemsApi, LetterPositionApi {
 
   /// The step that implements each method not implemented yet.
   static const _steps = {
-    'getRecentlyReleasedItems': '8.4',
     'createCollection': '9.5',
     'addToCollection': '9.5',
     'removeFromCollection': '9.5',

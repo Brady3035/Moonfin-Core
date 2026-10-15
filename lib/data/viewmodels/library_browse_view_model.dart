@@ -654,6 +654,21 @@ class LibraryBrowseViewModel extends ChangeNotifier {
     bool stillWanted() => !_disposed && _pageWalkGeneration == generation;
 
     try {
+      // A server with a letter index says where the letter starts, so
+      // everything up to it loads in one request instead of a walk of
+      // pages (Silo, step 6.11). The walk below still finishes the job.
+      final position = await _letterPosition(letter);
+      if (!stillWanted()) return false;
+      if (position != null && position >= _fetchedCount && hasMore) {
+        while (_loadingMore) {
+          await Future.delayed(const Duration(milliseconds: 30));
+          if (!stillWanted()) return false;
+        }
+        await loadMore(
+          pageSizeOverride: position - _fetchedCount + _pageSize,
+          notify: false,
+        );
+      }
       while (!hasPrefix() && hasMore) {
         if (!stillWanted()) return false;
         // A scroll triggered page may be in flight, and calling loadMore now
@@ -672,6 +687,23 @@ class LibraryBrowseViewModel extends ChangeNotifier {
       if (!_disposed) notifyListeners();
     }
     return hasPrefix();
+  }
+
+  /// Where [letter]'s titles start in this list, from a server that keeps
+  /// a letter index ([LetterPositionApi]); null for any other server or
+  /// when it can't say.
+  Future<int?> _letterPosition(String letter) async {
+    final api = _client.itemsApi;
+    final parentId = _effectiveParentId;
+    if (api is! LetterPositionApi || parentId == null) return null;
+    try {
+      return await (api as LetterPositionApi).letterPosition(
+        letter,
+        parentId: parentId,
+      );
+    } catch (_) {
+      return null;
+    }
   }
 
   Future<void> loadMore({int? pageSizeOverride, bool notify = true}) async {

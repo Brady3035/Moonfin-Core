@@ -387,7 +387,7 @@ Each item is mapped (phase 5) and its artwork registered, and the answer is Jell
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 6.5 |
+| ☑ Done | — | 6.5 |
 
 **Goal.** Item detail with its versions in one call when available.
 
@@ -446,6 +446,7 @@ Each item is mapped (phase 5) and its artwork registered, and the answer is Jell
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | detail 8/8; `server_silo` 364/364; analyzer: no issues |
+| 2026-10-14 | macOS | `4b2e921c` | Pass | full `flutter test` before committing |
 | | | | | |
 
 ---
@@ -455,7 +456,7 @@ Each item is mapped (phase 5) and its artwork registered, and the answer is Jell
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 6.6 |
 
 **Goal.** Series detail and `getSeasons`.
 
@@ -465,26 +466,48 @@ Each item is mapped (phase 5) and its artwork registered, and the answer is Jell
 
 **Where in Moonfin**
 
-- `silo_items_api.dart`
+- `packages/server_silo/lib/src/api/silo_items_api.dart`
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+**Series detail** is `getItem` (6.6). A series has no versions, so it is one request. Its `play_content_id`, season count, show status and unplayed count come through the mappers (5.3–5.5).
+
+**`getSeasons(seriesId)`** reads `GET /catalog/series/{id}/seasons?include_artwork=true&image_size=medium`. `include_artwork` is the parameter `images/capabilities` names (`season_list_artwork_param`) for season posters. Seasons come in Silo's order (specials first when the series has them, as on Emby). Season entries carry no `type` and no series fields, so each is mapped as a season of that series:
+
+- `SeriesId` and `SeasonId` links;
+- `IndexNumber` from `season_number`, `ChildCount` from `episode_count`;
+- `UserData` with `UnplayedItemCount`;
+- parent artwork fields from the series' registered artwork (5.4).
+
+**Series title.** Season and episode entries don't repeat the series title. The items API remembers titles of series it has read (detail or grid) and fills `SeriesName` from that.
+
+**Also routed here:**
+
+- `getItems(parentId: <series id>)` lists the seasons, as Jellyfin does for a series' children.
+- `getItem(<season id>)` (a season page) answers from the series' season list. The list carries everything a season page shows, while Silo's item endpoint is for titles. The series is found from the season id (`season-<key>-<n>` → `series-<key>`, 5.4); a season the list doesn't have is an error.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `packages/server_silo/test/silo_items_api_series_test.dart` (new, 4 tests):
+  - the captured Young Justice seasons match Emby's names and numbers; links, `SeriesName`, unplayed count and poster; `include_artwork` and `image_size` sent;
+  - a series as `parentId` lists its seasons;
+  - a season by id comes from its series' list; a missing season is an error.
+- `test/silo_test_client.dart`: `siloEmbyFixture`.
+- `server_silo`: 368/368.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+- Open a Silo series. The detail page shows its overview, cast, networks, status (Ended/Continuing) and backdrop and logo.
+- The seasons row shows every season with its poster and unwatched count. **Compare with Emby:** same seasons, same order.
+- Open a season: its page shows the season poster, the series' backdrop, and the episodes (episodes are 6.8).
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | seasons 4/4; `server_silo` 368/368; analyzer: no issues |
 | | | | | |
 
 ---

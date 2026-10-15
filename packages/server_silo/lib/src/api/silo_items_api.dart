@@ -103,6 +103,10 @@ class SiloItemsApi implements ItemsApi {
   }) async {
     if (ids != null) return _byIds(ids, startIndex: startIndex, limit: limit);
     final libraryId = _libraryIdOf(parentId);
+    // A series' children are its seasons, as on Jellyfin.
+    if (parentId != null && siloTypeOfId(parentId) == 'series') {
+      return getSeasons(parentId);
+    }
     if (parentId != null && libraryId == null) {
       throw SiloNotImplementedError(
         'ItemsApi',
@@ -183,6 +187,7 @@ class SiloItemsApi implements ItemsApi {
       final item = siloItemToBaseItemDto(raw, images: images);
       if (item == null) continue;
       if (keep != null && !keep(item)) continue;
+      _rememberSeries(item);
       if (libraryId != null) {
         _rememberLibrary(item['Id'] as String, libraryId);
         item['ParentId'] ??= libraryId;
@@ -232,6 +237,7 @@ class SiloItemsApi implements ItemsApi {
   }) async {
     final library = _libraryIdOf(itemId);
     if (library != null) return _library(library);
+    if (siloTypeOfId(itemId) == 'season') return _season(itemId);
 
     final path = '/api/v2/catalog/items/${Uri.encodeComponent(itemId)}';
     final query = {
@@ -258,6 +264,7 @@ class SiloItemsApi implements ItemsApi {
     if (item == null) {
       throw StateError('Silo item $itemId has a type Moonfin cannot show');
     }
+    _rememberSeries(item);
     return _withKnownLibrary(item);
   }
 
@@ -324,6 +331,76 @@ class SiloItemsApi implements ItemsApi {
     return item;
   }
 
+  // --- series and seasons (6.7) -------------------------------------------
+
+  /// Series titles seen in item answers, for the season and episode list
+  /// entries that don't repeat them (`SeriesName`).
+  final Map<String, String> _seriesNames = {};
+
+  void _rememberSeries(Map<String, dynamic> item) {
+    if (item['Type'] == 'Series' && item['Id'] is String) {
+      _seriesNames[item['Id'] as String] = item['Name'] as String? ?? '';
+    }
+  }
+
+  SiloSeriesRef _seriesRef(String seriesId) =>
+      SiloSeriesRef(id: seriesId, name: _seriesNames[seriesId]);
+
+  /// A series' seasons (step 6.7): `GET /catalog/series/{id}/seasons`, with
+  /// their posters (`include_artwork`), in Silo's order (specials first when
+  /// the series has them, as on Emby).
+  ///
+  /// Season entries carry no type and no series fields; they are mapped as
+  /// seasons of [seriesId], and the series' artwork fills their parent
+  /// fields once the series itself has been read (5.4).
+  @override
+  Future<Map<String, dynamic>> getSeasons(
+    String seriesId, {
+    String? fields,
+  }) async {
+    final response = await _dio.get<dynamic>(
+      '/api/v2/catalog/series/${Uri.encodeComponent(seriesId)}/seasons',
+      queryParameters: {
+        'image_size': siloListImageSize,
+        'include_artwork': true,
+      },
+    );
+    final raw = asJsonMap(response.data)?['items'];
+    final series = _seriesRef(seriesId);
+    final seasons = <Map<String, dynamic>>[
+      if (raw is List)
+        for (final entry in raw)
+          if (asJsonMap(entry) case final season?)
+            if (siloItemToBaseItemDto(
+                  season,
+                  images: images,
+                  type: 'season',
+                  series: series,
+                )
+                case final mapped?)
+              mapped,
+    ];
+    return {
+      'Items': seasons,
+      'TotalRecordCount': seasons.length,
+      'StartIndex': 0,
+    };
+  }
+
+  /// A season by id, from its series' season list: the list carries what a
+  /// season page shows, and Silo's item endpoint is for titles.
+  Future<Map<String, dynamic>> _season(String seasonId) async {
+    final parsed = parseSiloSeasonId(seasonId);
+    if (parsed == null) {
+      throw StateError('$seasonId is not a Silo season id');
+    }
+    final seasons = await getSeasons(parsed.seriesId);
+    for (final season in (seasons['Items'] as List).cast<Map>()) {
+      if (season['Id'] == seasonId) return season.cast<String, dynamic>();
+    }
+    throw StateError('Silo has no season $seasonId');
+  }
+
   // --- what Silo doesn't have ---------------------------------------------
 
   static const _emptyList = <String, dynamic>{
@@ -381,7 +458,6 @@ class SiloItemsApi implements ItemsApi {
 
   /// The step that implements each method not implemented yet.
   static const _steps = {
-    'getSeasons': '6.7',
     'getEpisodes': '6.8',
     'getAncestors': '6.9',
     'getQueryFilters': '6.10',

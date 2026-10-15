@@ -7,18 +7,18 @@ written against. See `docs/silo/` for the plan these belong to.
 
 | | |
 |---|---|
-| File | `openapi-4b2e921c.json.gz` (gzipped `GET /api/v2/openapi.json`, OpenAPI 3.1) |
-| Server build | `4b2e921c+dirty` (from `GET /api/v2/system/info` → `server_version`) |
+| File | `openapi-bd9d59ea.json.gz` (gzipped `GET /api/v2/openapi.json`, OpenAPI 3.1) |
+| Server build | `bd9d59ea` (from `GET /api/v2/system/info` → `server_version`) |
 | `api_major` | `2` |
-| `contract_digest` | `12ea11dd8223e9426ab5376aad1116c150a674b432989b3cb4e5dbc9458b960a` |
-| Captured | 2026-10-13 from the maintainer's test server |
-| Size | 697 paths, 1,170 component schemas |
+| `contract_digest` | `450e5c74096cbccb637b00cfcea0e2f50758447827a37b5fb9b5decf63fda870` |
+| Captured | 2026-10-15 from the maintainer's test server (replaces `4b2e921c+dirty` of 2026-10-13) |
+| Size | 701 paths, 1,174 component schemas |
 
 `contract_digest` is the SHA-256 of the uncompressed OpenAPI document (also
 served as its `ETag`), so this check proves the file matches the server:
 
 ```sh
-gunzip -c openapi-4b2e921c.json.gz | shasum -a 256
+gunzip -c openapi-bd9d59ea.json.gz | shasum -a 256
 curl -s https://<silo-host>/api/v2/system/info   # compare contract_digest
 ```
 
@@ -60,6 +60,11 @@ libraries, home layout and sections, a library page, filters, letters, search,
 progress, favorites and collections (empty). `emby/` holds the views, items,
 `PlaybackInfo`, seasons and episodes for the same titles: the shape the mappers
 must produce.
+
+The samples were captured from `4b2e921c+dirty`; the files noted below were
+recaptured from `bd9d59ea`. At the contract refresh (2026-10-15) the four public
+responses were unchanged apart from `server_version` and `contract_digest`, so
+`silo/system_info.json` keeps the build it was captured from (tests check it).
 
 **Trimmed** to keep the files small (counts such as `total_count` and
 `TotalRecordCount` still give the original size):

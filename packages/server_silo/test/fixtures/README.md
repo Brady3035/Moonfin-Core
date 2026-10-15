@@ -91,3 +91,8 @@ a podcast that Moonfin must drop. The probe now searches for `SILO_SEARCH`
 (default "justice") with that scope, so a re-run replaces it with a real one;
 the expected lists in `silo_items_api_search_test.dart` then follow the new
 file.
+
+`silo/people_search.json` was written by hand at step 7.2 (`PersonCollection`
+for "vin"): the real Vin Diesel person from `silo/person.json` with a shortened
+bio, and a second person without a photo. The probe now also captures a people
+search for the first word of the sampled cast member's name, which replaces it.

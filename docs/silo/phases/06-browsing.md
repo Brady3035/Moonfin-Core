@@ -924,7 +924,7 @@ Same pattern as genres (6.12), with `silo-studio:<name>` ids and `Studio` items.
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 6.14 |
+| ☑ Done | — | 6.14 |
 
 **Goal.** Personal and library collections as BoxSets, and their items.
 
@@ -992,6 +992,7 @@ Creating and changing personal collections is 9.5.
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | collections 7/7; `server_silo` 403/403; analyzer: no issues |
+| 2026-10-14 | macOS | `4b2e921c` | Pass | full `flutter test` before committing |
 | | | | | |
 
 ---
@@ -1001,7 +1002,7 @@ Creating and changing personal collections is 9.5.
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 6.15 |
 
 **Goal.** "More like this".
 
@@ -1011,26 +1012,29 @@ Creating and changing personal collections is 9.5.
 
 **Where in Moonfin**
 
-- `silo_items_api.dart`
+- `packages/server_silo/lib/src/api/silo_items_api.dart`
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+`getSimilarItems(id, limit:)` reads `GET /recommendations/similar/{id}?limit=…`, Silo's own recommendations for the title. Items are mapped like a grid's: artwork registered, series titles remembered. Types Moonfin can't open yet (audiobooks, ebooks) are left out. Moonfin's `bypass` (a cache-buster for Jellyfin's similar cache) has nothing to bypass on Silo.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `packages/server_silo/test/silo_items_api_similar_test.dart` (new, 2 tests): xXx's recommendations (first: xXx: State of the Union) with `limit` sent and artwork registered; unopenable types left out.
+- `server_silo`: 405/405.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+- A Silo film's and a series' detail page shows a "More like this" row with posters. **Compare with Emby:** similar titles (they come from different engines, so not the same list).
+- Opening one from the row opens its detail page.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | similar 2/2; `server_silo` 405/405; analyzer: no issues |
 | | | | | |
 
 ---

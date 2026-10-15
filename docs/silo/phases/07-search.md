@@ -13,7 +13,7 @@ Search screens on Silo.
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | `28b84a0` | previous step |
+| ☑ Done | `28b84a0`, fixture `618df11` | previous step |
 
 **Goal.** `searchTerm` → catalog `q`, honouring the search capabilities.
 
@@ -101,7 +101,7 @@ Search for the same words on Silo and on Emby (same library on both):
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | `290e1b9` | 7.1 |
+| ☑ Done | `290e1b9`, fixture `ada37e7` | 7.1 |
 
 **Goal.** Person results.
 

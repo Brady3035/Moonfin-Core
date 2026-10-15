@@ -14,6 +14,7 @@ import '../mappers/silo_person_mapper.dart';
 import '../mappers/silo_sort_map.dart';
 import '../silo_image_registry.dart';
 import '../silo_pager.dart';
+import 'silo_home_sections.dart';
 import 'silo_pending_api.dart';
 
 /// The artwork size Silo is asked for in lists (grids, rows): posters at
@@ -1250,6 +1251,152 @@ class SiloItemsApi implements ItemsApi, LetterPositionApi {
     return SiloSearchCapabilities.fromJson(json);
   }
 
+  // --- home rows (phase 8) -------------------------------------------------
+
+  /// The sections of Silo's home and library pages, which the Continue
+  /// Watching and Next Up rows read (8.1, 8.2).
+  late final SiloHomeSections homeSections = SiloHomeSections(_dio);
+
+  /// What Continue Watching can hold: films and episodes. Audiobooks resume
+  /// too on Silo, but Moonfin doesn't show them yet (phase 16).
+  static const _resumableTypes = {'movie', 'episode'};
+
+  /// Continue Watching (step 8.1): what the profile is part way through,
+  /// most recent first.
+  ///
+  /// Silo assembles this per profile as the `continue_watching` section of
+  /// its home page (or of a library's page, for a library `parentId`), so
+  /// the cards come from there: they carry the resume point
+  /// (`position_seconds`, `duration_seconds`), skip what the profile
+  /// dismissed from the row, and are in Silo's order. By default Silo also
+  /// puts each show's next episode in that section (`item_source: next_up`);
+  /// those are left for Next Up (8.2).
+  ///
+  /// A page without the section (the profile removed it in Silo's web app)
+  /// falls back to the resume points themselves, `GET /progress?status=
+  /// in_progress`, each item read from the catalog. That list doesn't know
+  /// about dismissals.
+  ///
+  /// `includeItemTypes`/`mediaTypes` narrow the row (Audio finds nothing,
+  /// with no request); `startIndex`/`limit` slice it; `fields` and the image
+  /// options are ignored, as Silo's cards are always whole.
+  @override
+  Future<Map<String, dynamic>> getResumeItems({
+    String? parentId,
+    List<String>? includeItemTypes,
+    String? mediaTypes,
+    int? startIndex,
+    int? limit,
+    String? fields,
+    String? enableImageTypes,
+    int? imageTypeLimit,
+  }) async {
+    final types =
+        siloTypesForQuery(
+          includeItemTypes: includeItemTypes,
+          mediaTypes: mediaTypes,
+          supported: _resumableTypes,
+        ) ??
+        _resumableTypes;
+    if (types.isEmpty) return _empty(startIndex);
+    final libraryId = _libraryIdOf(parentId);
+    // Silo resumes titles, not folders: only a library narrows the row.
+    if (parentId != null && libraryId == null) return _empty(startIndex);
+
+    final cards = await homeSections.cardsOf(
+      'continue_watching',
+      libraryId: libraryId,
+    );
+    final List<Map<String, dynamic>> items;
+    if (cards != null) {
+      items = [
+        for (final card in cards)
+          if (card['item_source'] != 'next_up' && types.contains(card['type']))
+            if (siloItemToBaseItemDto(card, images: images) case final item?)
+              item,
+      ];
+    } else {
+      items = await _resumeFromProgress(
+        libraryId: libraryId,
+        types: types,
+        wanted: (startIndex ?? 0) + (limit ?? 50),
+      );
+    }
+    _rememberRow(items, libraryId);
+    return _slice(items, startIndex: startIndex, limit: limit);
+  }
+
+  /// Continue Watching from the resume points (`GET /progress`), for a page
+  /// with no Continue Watching section: each item read from the catalog, its
+  /// `UserData` from the entry ([siloProgressToUserData]).
+  Future<List<Map<String, dynamic>>> _resumeFromProgress({
+    required String? libraryId,
+    required Set<String> types,
+    required int wanted,
+  }) async {
+    final response = await _dio.get<dynamic>(
+      '/api/v2/progress',
+      queryParameters: {
+        'status': 'in_progress',
+        'library_id': ?libraryId,
+        'limit': wanted.clamp(1, 200),
+      },
+    );
+    final raw = asJsonMap(response.data)?['items'];
+    final entries = <String, Map<String, dynamic>>{
+      if (raw is List)
+        for (final e in raw)
+          if (asJsonMap(e) case final entry?)
+            if (entry['media_item_id'] case final String id) id: entry,
+    };
+    final found = await _byIds(entries.keys.toList());
+    return [
+      for (final item in (found['Items'] as List).cast<Map<String, dynamic>>())
+        if (entries[item['Id']] case final entry?)
+          if (types.contains(
+            (item[siloOriginalKey] as Map?)?['type'] ??
+                siloTypeOfId(item['Id'] as String),
+          ))
+            {
+              ...item,
+              'UserData': {
+                ...?(item['UserData'] as Map?)?.cast<String, dynamic>(),
+                ...siloProgressToUserData(entry),
+              },
+            },
+    ];
+  }
+
+  /// Notes the series and, for a library's row, the library of a row's
+  /// items, as a grid page does (6.6, 6.9).
+  void _rememberRow(List<Map<String, dynamic>> items, String? libraryId) {
+    for (final item in items) {
+      _rememberSeries(item);
+      if (libraryId != null) {
+        _rememberLibrary(item['Id'] as String, libraryId);
+        item['ParentId'] ??= libraryId;
+      }
+    }
+  }
+
+  /// [items] from [startIndex], at most [limit] of them, as Jellyfin's
+  /// `{Items, TotalRecordCount, StartIndex}`.
+  static Map<String, dynamic> _slice(
+    List<Map<String, dynamic>> items, {
+    int? startIndex,
+    int? limit,
+  }) {
+    final start = (startIndex ?? 0).clamp(0, items.length);
+    final end = limit == null || limit <= 0
+        ? items.length
+        : (start + limit).clamp(start, items.length);
+    return {
+      'Items': items.sublist(start, end),
+      'TotalRecordCount': items.length,
+      'StartIndex': startIndex ?? 0,
+    };
+  }
+
   // --- what Silo doesn't have ---------------------------------------------
 
   static const _emptyList = <String, dynamic>{
@@ -1307,7 +1454,6 @@ class SiloItemsApi implements ItemsApi, LetterPositionApi {
 
   /// The step that implements each method not implemented yet.
   static const _steps = {
-    'getResumeItems': '8.1',
     'getNextUp': '8.2',
     'getLatestItems': '8.3',
     'getRecentlyReleasedItems': '8.4',

@@ -64,8 +64,10 @@ Map<String, dynamic>? siloItemToBaseItemDto(
   final dto = <String, dynamic>{
     'Id': id,
     'Name': name,
-    // Silo has no separate sort title; Jellyfin falls back to the name too.
-    'SortName': name,
+    // Silo orders titles by their sort title, which only the detail carries;
+    // cards get the default Silo derives (6.11), so the alphabet bar files
+    // "The Hobbit" under H, where Silo's list puts it.
+    'SortName': _text(item['sort_title']) ?? siloDefaultSortTitle(name) ?? name,
     if (_text(item['original_title']) case final original?)
       'OriginalTitle': original,
     'Type': itemType.jellyfinType,
@@ -651,4 +653,23 @@ List<Map<String, dynamic>> _people(
 int _order(Map<String, dynamic> credit) {
   final order = credit['order'];
   return order is num ? order.toInt() : 1 << 30;
+}
+
+/// Silo's default sort title for [title] (`titleutil.DeriveDefaultSortTitle`
+/// on the server): a leading English article (The, A, An) moves to the end
+/// after a comma, so "The Office" becomes "Office, The". Null when no
+/// article leads, or the title is the article alone.
+String? siloDefaultSortTitle(String title) {
+  final trimmed = title.trim();
+  final space = trimmed.indexOf(RegExp(r'\s'));
+  if (space < 0) return null;
+  final first = trimmed.substring(0, space);
+  final rest = trimmed.substring(space).trim();
+  if (rest.isEmpty) return null;
+  return switch (first.toLowerCase()) {
+    'the' => '$rest, The',
+    'a' => '$rest, A',
+    'an' => '$rest, An',
+    _ => null,
+  };
 }

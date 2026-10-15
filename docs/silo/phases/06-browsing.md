@@ -732,25 +732,39 @@ The groups are part of the query's cursor signature (5.12), so changing a filter
 **Where in Moonfin**
 
 - `packages/server_silo/lib/src/api/silo_items_api.dart`
+- `packages/server_silo/lib/src/silo_pager.dart`: large requests seek in parallel.
+- `packages/server_silo/lib/src/mappers/silo_item_mapper.dart`: `SortName` from Silo's sort title.
+- `packages/server_core/lib/src/api/letter_position_api.dart` (new): `LetterPositionApi`, an optional extra for an `ItemsApi`.
+- `lib/data/viewmodels/library_browse_view_model.dart`: `ensureItemsLoadedForPrefix` asks for the position first.
 
 ### How it works
 
 - **`nameStartsWith` → `name_prefix`.** Both match the start of the sort title ("The Hobbit" sorted as "Hobbit, The" is under H). Moonfin's `#` bucket (titles not starting with a letter) has no prefix equivalent, so a `#` or blank prefix sends none. The letter-bucket browse in Android Auto and CarPlay (`media_browse_service.dart`) uses this.
 - **The letter index.** `SiloItemsApi.letters(libraryId:, includeItemTypes:, descending:)` reads `POST /catalog/letters`. It answers the letters that have titles, each title's count, and its zero-based position in the title-ordered list (`SiloLetterIndex`, `positionOf`). A position sent as `seek` with the list's window cursor loads that letter's window directly (5.12).
-- **The jump bar.** Moonfin's library jump bar finds a letter by loading pages until one appears (`ensureItemsLoadedForPrefix`). That works on Silo unchanged: pages come through the cursor pager, 300 titles each. Seeking straight to a letter would need a grid that can hold a gap before the letter; today's grid keeps one contiguous list. So the index is offered for a jump bar that seeks, and not wired in. Brady can decide later whether that is worth a step.
+- **The jump bar.** Moonfin's library jump bar finds a letter by loading pages until one appears (`ensureItemsLoadedForPrefix`), 300 titles a page, and gives up after 15 seconds. The first version left that unchanged on Silo, and Brady's test showed it failing: a letter far down a 4,600-title library took about 30 requests one after another (Silo pages hold 200), so the jump timed out and only worked once the grid had already loaded that far. Now:
+  - **Position first.** `SiloItemsApi` implements `LetterPositionApi.letterPosition(letter, parentId:)`. It remembers, per parent, the last `getItems` query sorted by name (library, scope, rule groups, direction) and asks `/catalog/letters` with the same scope and groups. The view model loads from where it is to that position plus one page in **one** `loadMore`, then its usual walk finishes the job (dropped or hidden items can shift the count a little). The grid stays one contiguous list. Any other sort, a person's or collection's titles, a `name_prefix` query or a series-status filter (6.10) forgets the query, and the jump walks as before. Jellyfin and Emby don't implement the interface and are unchanged.
+  - **Parallel pages.** A request for more than one Silo page now seeks to each page from the window cursor, four at a time, instead of following `next_cursor` one by one (it still does that when Silo gives no window cursor). Reaching S in that library is about 5 rounds of requests instead of 30.
+- **Sort names.** Silo orders titles by their sort title, and its default moves a leading article to the end ("The Hobbit" → "Hobbit, The"; server `titleutil.DeriveDefaultSortTitle`). Cards don't carry `sort_title`, only the detail does, so the item mapper gives `SortName` the detail's `sort_title` when present and otherwise the same default (`siloDefaultSortTitle`). Moonfin's alphabet bar files titles by `SortName`, so "The Hobbit" is now under H where Silo's list puts it, rather than under T while sitting among the H titles. A sort title an admin set by hand shows on the detail only; such a title on a card may still file by its default.
 
 ### Testing
 
 **Automated tests**
 
-- `packages/server_silo/test/silo_items_api_alphabet_test.dart` (new, 3 tests):
+- `packages/server_silo/test/silo_items_api_alphabet_test.dart` (new, 8 tests):
   - `nameStartsWith` → `name_prefix`; `#` and blank send none;
-  - the captured letter index (4611 titles, `#` first, B at 347), sent as a POST with library, type and order.
-- `server_silo`: 385/385.
+  - the captured letter index (4611 titles, `#` first, B at 347), sent as a POST with library, type and order;
+  - `letterPosition` for the list on screen: same library, scope and genre group, ascending and descending; none for another sort, a series status, or no list (and no request);
+  - `siloDefaultSortTitle` (The/A/An, the article alone, "Theodore"); a card's default sort name, a detail's own `sort_title`.
+- `silo_pager_test.dart`: a fill above 200 seeks the rest in parallel; a long fill goes in batches of four and stops at the total; without a window cursor it follows next cursors.
+- `test/data/viewmodels/library_browse_search_test.dart`: 2 new, a server with a letter index reaches M in one request; with no position the walk runs as before.
+- `server_silo`: 385/385 at 6.11; 422/422 with the fix (on top of 6.19).
 
 **Manual test plan**
 
-- In a large Silo library sorted by name, tap letters in the jump bar: the grid lands on that letter (it may take a moment for letters far down). `#` lands on the first titles.
+- In a large Silo library sorted by name, tap letters far down the bar (S, W) straight after opening it, without scrolling: the grid lands on that letter within a few seconds. `#` lands on the first titles.
+- Titles starting with "The" or "A" sit under their second word, where Silo's web app shows them; tapping T lands on real T titles.
+- Sorted by name descending, a letter still lands right. Sorted by date added, the jump walks as on Emby.
+- Emby's jump bar is unchanged.
 - Android Auto / CarPlay letter buckets (deferred platform check, 17.5): a Silo library's letters list the right titles.
 
 **Results**
@@ -759,6 +773,8 @@ The groups are part of the query's cursor signature (5.12), so changing a filter
 |---|---|---|---|---|
 | 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | alphabet 3/3; `server_silo` 385/385; analyzer: no issues |
 | 2026-10-14 | macOS | `4b2e921c` | Pass | full `flutter test` before committing |
+| 2026-10-14 | macOS | `4b2e921c` | Fail | Brady: the jump only worked for letters already loaded by scrolling |
+| 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | fix: letter position, parallel pages, sort names; alphabet 8/8; `server_silo` 422/422, pager 22/22, browse search 16/16; analyzer: no new issues |
 | | | | | |
 
 ---

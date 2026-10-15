@@ -87,20 +87,25 @@ class SiloPagedResult {
 ///   bar, a grid restored mid-way). With no window cursor yet, the first page
 ///   is fetched to get one.
 ///
-/// A `limit` above Silo's maximum is filled with further `next_cursor`
-/// requests. An offset at or past an exact total answers empty without a
+/// A `limit` above Silo's maximum is filled with further requests: by
+/// `seek` from the window cursor, [parallelRequests] at a time, when there is
+/// one; else by following `next_cursor`. An offset at or past an exact total answers empty without a
 /// request. When Silo rejects a cursor (it expired, or the server restarted)
 /// the remembered state is dropped and the request is made again from the
 /// start, once.
 class SiloPager {
   SiloPager({
     this.maxEntries = 32,
+    this.parallelRequests = 4,
     bool Function(Object error)? isInvalidCursor,
   }) : _isInvalidCursor = isInvalidCursor ?? isSiloInvalidCursorError;
 
   /// How many query signatures are remembered; the least recently used is
   /// forgotten first.
   final int maxEntries;
+
+  /// How many pages a large request fetches at once (by `seek`).
+  final int parallelRequests;
 
   final bool Function(Object error) _isInvalidCursor;
 
@@ -183,6 +188,45 @@ class SiloPager {
         page.hasMore &&
         page.nextCursor != null &&
         page.items.isNotEmpty) {
+      final window = state!.windowCursor;
+      final left = wanted - items.length;
+      if (window != null && left > siloMaxPageSize) {
+        // More than one page still to go: seek to each from the window
+        // cursor, a few at a time, rather than one next cursor after
+        // another (6.11: a jump far down a large library).
+        final batch = <({int at, int limit})>[];
+        var at = pageEnd;
+        var asked = 0;
+        while (batch.length < parallelRequests && asked < left) {
+          if (state.totalExact && state.total != null && at >= state.total!) {
+            break;
+          }
+          final size = left - asked > siloMaxPageSize
+              ? siloMaxPageSize
+              : left - asked;
+          batch.add((at: at, limit: size));
+          at += size;
+          asked += size;
+        }
+        if (batch.isEmpty) break;
+        final pages = await Future.wait([
+          for (final b in batch)
+            fetch(cursor: window, seek: b.at, limit: b.limit),
+        ]);
+        var short = false;
+        for (var i = 0; i < pages.length; i++) {
+          page = pages[i];
+          items.addAll(page.items);
+          state = _remember(signature, page, pageEnd);
+          pageEnd += page.items.length;
+          if (page.items.length < batch[i].limit || !page.hasMore) {
+            short = true;
+            break;
+          }
+        }
+        if (short) break;
+        continue;
+      }
       page = await fetch(cursor: page.nextCursor, limit: pageSize());
       items.addAll(page.items);
       state = _remember(signature, page, pageEnd);

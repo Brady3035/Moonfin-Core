@@ -22,6 +22,7 @@ export 'src/api/auth_api.dart';
 export 'src/api/syncplay_api.dart';
 export 'src/api/item_fields.dart';
 export 'src/api/items_api.dart';
+export 'src/api/letter_position_api.dart';
 export 'src/api/playback_api.dart';
 export 'src/api/image_api.dart';
 export 'src/api/trickplay_api.dart';

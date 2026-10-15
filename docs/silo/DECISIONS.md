@@ -28,10 +28,10 @@ Phase 4 hides what Silo doesn't have without testing for Silo anywhere in the UI
 ### D2. Artwork when nothing is registered: resolve by loading the item (2026-10-14)
 Cold start, deep links and parent ids can ask for an image the registry has never seen, and Silo has no image URL that can be built from an id. Brady chose the **resolver**: `SiloImageApi` hands out a placeholder URL for an item not read this session, and the image cache (a small `urlResolver` hook in `cached_network_image_fork`) asks the Silo client to load that item, which registers its artwork, before downloading. Artwork always appears; an item read once is not loaded again, and missing art is not retried for ten minutes. Step 6.3.
 
-## Open
+### D3. Display preferences stay on the device (2026-10-14)
+Per-library view settings (image type, sort, view) are kept locally for Silo. Silo's per-profile settings store only takes keys from its own contract; the only comparable key, `ui.library_page_state`, is its web app's state for one profile on one device, so it would never sync anything. Moonfin already keeps these settings in its own preferences and only mirrors them to the server, so `SiloDisplayPreferencesApi` keeps the mirror in memory and sends nothing (step 6.19). Library order and hidden libraries do use Silo's settings (`ui.library_order`, `ui.disabled_library_ids`, step 2.7). Still open, for phase 8: "hide from Latest" has no Silo setting.
 
-### D3. Where display preferences live
-Silo has a per-profile settings store (`/settings/values/{key}`), but it only accepts keys defined in its settings contract, so a private `moonfin.` key isn't possible. **Partly answered in 2.7 (2026-10-13):** library order and hidden libraries use Silo's own `ui.library_order` and `ui.disabled_library_ids`. Still open for step 6.19: per-library view settings in Silo's `ui.library_page_state` (profile + device), or local only. Also open, for phase 8: "hide from Latest" has no Silo setting.
+## Open
 
 ### D6. Track changes: replan or stop and restart
 Replan keeps the session and is faster; stop + start is simpler. Replan is needed anyway for far seeks on progressive remux (step 10.12), so the plan uses replan for tracks too.

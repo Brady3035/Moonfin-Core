@@ -1112,7 +1112,7 @@ An extra's `content_id` plays through Silo's usual watch flow, so playing one co
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 6.17 |
+| ☑ Done | — | 6.17 |
 
 **Goal.** `getPlaybackInfo` built from the versions mapping. It must never call `/playback/start`.
 
@@ -1157,6 +1157,7 @@ The rest of `PlaybackApi` (start, progress, stop, stream URLs) throws `SiloNotIm
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | playback info 5/5; `server_silo` 413/413; analyzer: no issues |
+| 2026-10-14 | macOS | `4b2e921c` | Pass | full `flutter test` before committing |
 | | | | | |
 
 ---
@@ -1166,32 +1167,44 @@ The rest of `PlaybackApi` (start, progress, stop, stream URLs) throws `SiloNotIm
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 6.18 |
 
 **Goal.** Per-library view settings, stored as decided in DECISIONS.md D3.
 
 **Where in Moonfin**
 
-- `silo_display_preferences_api.dart`
+- `packages/server_silo/lib/src/api/silo_display_preferences_api.dart` (new)
+- `packages/server_silo/lib/src/silo_media_server_client.dart`
+- `docs/silo/DECISIONS.md`: D3 decided.
+- `docs/silo/phases/17-launch.md`: the car letter-bucket check from 6.11 added to the deferred platform checks.
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+**Decision D3 (Brady, 2026-10-14): local only.** Jellyfin and Emby store per-library view settings (`DisplayPreferences`) on the server. Silo's only comparable setting, `ui.library_page_state`, is its web app's own state for one profile on one device, so writing it would never sync anything across devices and would tie Moonfin to the web app's schema.
+
+Moonfin already keeps these settings in its own preferences: image type, sort and view per library. It only mirrors the image type to the server (`library_browse_view_model`: `_syncImageTypeToServer` / `FromServer`). So `SiloDisplayPreferencesApi` keeps that mirror in memory: a read answers what was saved this session (per id and client name, as on Jellyfin) or an empty set, a save stores it, and **nothing is sent to Silo**. Library view settings therefore persist per device exactly as Moonfin's local preferences do.
+
+`SiloPendingDisplayPreferencesApi` is removed. What remains pending is the session API (phase 3 and 13.6); the client test now checks that one.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `packages/server_silo/test/silo_display_preferences_test.dart` (new, 1 test): empty at first, saved prefs read back, separate per id and client name, no request to Silo.
+- `silo_media_server_client_test.dart`: the placeholder check now uses `SessionApi`.
+- `server_silo`: 414/414.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+- In a Silo library, change the image type (poster / thumb / banner), the sort and the view, leave and reopen the library, then restart Moonfin: the choices stick.
+- No errors in the log about display preferences, and Silo's request log shows no settings writes when changing them.
+- Emby libraries still sync their image type with the server as before.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | display prefs 1/1; `server_silo` 414/414; analyzer: no issues |
 | | | | | |
 
 ---

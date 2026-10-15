@@ -10,6 +10,7 @@ import 'api/silo_images_api.dart';
 import 'api/silo_pending_api.dart';
 import 'api/silo_profiles_api.dart';
 import 'api/silo_system_api.dart';
+import 'api/silo_user_views_api.dart';
 import 'api/silo_users_api.dart';
 import 'mappers/silo_ids.dart';
 import 'mappers/silo_item_mapper.dart';
@@ -239,6 +240,7 @@ class SiloMediaServerClient extends MediaServerClient
     profilesApi,
     () => _profileId,
     images: images,
+    onConfigurationUpdated: () => userViewsApi.invalidateCache(),
   );
 
   /// The artwork URLs seen in Silo's answers, by item and image type (see
@@ -333,7 +335,11 @@ class SiloMediaServerClient extends MediaServerClient
   final ItemsApi itemsApi = const SiloPendingItemsApi();
 
   @override
-  final UserViewsApi userViewsApi = const SiloPendingUserViewsApi();
+  late final SiloUserViewsApi userViewsApi = SiloUserViewsApi(
+    _dio,
+    usersApi: () => usersApi,
+    images: images,
+  );
 
   @override
   final UserLibraryApi userLibraryApi = const SiloPendingUserLibraryApi();

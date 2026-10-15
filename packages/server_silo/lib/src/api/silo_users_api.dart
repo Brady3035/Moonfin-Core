@@ -11,7 +11,16 @@ import 'silo_profiles_api.dart';
 /// The Moonfin user is the profile the client acts as (`X-Profile-Id`): the
 /// account's main profile until the optional profiles phase (decision D9).
 class SiloUsersApi implements UsersApi {
-  SiloUsersApi(this._dio, this._profiles, this._profileId, {this.images});
+  SiloUsersApi(
+    this._dio,
+    this._profiles,
+    this._profileId, {
+    this.images,
+    this.onConfigurationUpdated,
+  });
+
+  /// Called after settings were saved, so cached library lists are dropped.
+  final void Function()? onConfigurationUpdated;
 
   /// Where the profile's avatar is recorded for `ImageApi.getUserImageUrl`.
   final SiloImageRegistry? images;
@@ -121,6 +130,7 @@ class SiloUsersApi implements UsersApi {
         written[key] = after[key];
       }
     } finally {
+      onConfigurationUpdated?.call();
       // What was saved is the new baseline, even if a later key failed.
       final values = Map<String, Object?>.unmodifiable(written);
       _lastRead = (

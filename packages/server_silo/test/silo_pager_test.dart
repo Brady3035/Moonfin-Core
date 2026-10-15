@@ -150,19 +150,42 @@ void main() {
       expect(list.calls.last, 'cursor=window:1&seek=25&limit=50');
     });
 
-    test('a limit above Silo\'s maximum is filled with next cursors', () async {
+    test('a limit above Silo\'s maximum seeks the rest in parallel', () async {
       final list = _FakeList(1000);
       final r = await page(list, 0, 450);
       expect(r.items, hasLength(450));
-      expect(_ids(r).last, 'item-449');
+      expect(_ids(r), [for (var i = 0; i < 450; i++) 'item-$i']);
+      expect(list.calls, [
+        'limit=200',
+        'cursor=window:1&seek=200&limit=200',
+        'cursor=window:1&seek=400&limit=50',
+      ]);
+      // And the next page continues where the last request ended.
+      await page(list, 450, 10);
+      expect(list.calls.last, 'cursor=next:1:450&limit=10');
+    });
+
+    test('a long fill goes in batches and stops at the end', () async {
+      final list = _FakeList(1500);
+      final r = await page(list, 100, 2000);
+      expect(r.items, hasLength(1400));
+      expect(_ids(r).first, 'item-100');
+      expect(_ids(r).last, 'item-1499');
+      expect(r.totalRecordCount, 1500);
+      // First page, then seeks of 200 four at a time, none past the total.
+      expect(list.calls.where((c) => c.contains('seek=')), hasLength(7));
+      expect(list.calls, isNot(contains(contains('seek=1500'))));
+    });
+
+    test('without a window cursor a long fill follows next cursors', () async {
+      final list = _FakeList(1000, withWindow: false);
+      final r = await page(list, 0, 450);
+      expect(_ids(r), [for (var i = 0; i < 450; i++) 'item-$i']);
       expect(list.calls, [
         'limit=200',
         'cursor=next:1:200&limit=200',
         'cursor=next:1:400&limit=50',
       ]);
-      // And the next page continues where the last request ended.
-      await page(list, 450, 10);
-      expect(list.calls.last, 'cursor=next:1:450&limit=10');
     });
 
     test('no limit is one page of Silo\'s default size', () async {

@@ -31,7 +31,7 @@ const siloDetailImageSize = 'large';
 /// with [SiloNotImplementedError] naming their step (see [noSuchMethod]),
 /// or with an empty answer for what Silo doesn't have at all (music,
 /// playlists).
-class SiloItemsApi implements ItemsApi {
+class SiloItemsApi implements ItemsApi, LetterPositionApi {
   SiloItemsApi(this._dio, {this.images, SiloPager? pager, this.userViews})
     : pager = pager ?? SiloPager();
 
@@ -206,6 +206,18 @@ class SiloItemsApi implements ItemsApi {
       return siloSupportedTypes.contains(silo);
     }
 
+    _rememberTitleQuery(
+      parentId,
+      sort: params['sort'] as String?,
+      plainCatalog:
+          personId == null &&
+          collection == null &&
+          params['name_prefix'] == null &&
+          (seriesStatus == null || seriesStatus.isEmpty),
+      libraryId: libraryId,
+      scope: scope,
+      groups: groups,
+    );
     if (seriesStatus != null && seriesStatus.isNotEmpty) {
       return _clientFiltered(
         params,
@@ -766,13 +778,65 @@ class SiloItemsApi implements ItemsApi {
     return prefix;
   }
 
+  /// The last name-sorted catalog query read for each parent, for
+  /// [letterPosition]. Any other query for that parent forgets it.
+  final Map<
+    String,
+    ({
+      String? libraryId,
+      String? scope,
+      List<Map<String, Object?>> groups,
+      bool descending,
+    })
+  >
+  _titleQueries = {};
+
+  void _rememberTitleQuery(
+    String? parentId, {
+    required String? sort,
+    required bool plainCatalog,
+    required String? libraryId,
+    required String? scope,
+    required List<Map<String, Object?>> groups,
+  }) {
+    if (parentId == null) return;
+    if (!plainCatalog || (sort != 'title' && sort != '-title')) {
+      _titleQueries.remove(parentId);
+      return;
+    }
+    _titleQueries[parentId] = (
+      libraryId: libraryId,
+      scope: scope,
+      groups: groups,
+      descending: sort == '-title',
+    );
+  }
+
+  /// Where [letter]'s titles start in the list last read for [parentId]
+  /// (step 6.11), from Silo's letter index for the same library, scope and
+  /// filters. Null when that list wasn't sorted by name, or Silo files no
+  /// title under the letter. Positions count Silo's whole result, so the
+  /// app loads up to it and then finds the letter among what it has.
+  @override
+  Future<int?> letterPosition(String letter, {required String parentId}) async {
+    final query = _titleQueries[parentId];
+    if (query == null) return null;
+    final index = await _letterIndex(
+      libraryId: query.libraryId,
+      scope: query.scope,
+      groups: query.groups,
+      descending: query.descending,
+    );
+    return index.positionOf(letter);
+  }
+
   /// Silo's letter index for a title-ordered list (`POST /catalog/letters`):
   /// which letters have titles, how many, and where each starts. A position
   /// sent as `seek` with the list's window cursor loads that letter's
   /// window directly (5.12).
   ///
-  /// Moonfin's jump bar walks pages until a letter appears, which works on
-  /// Silo unchanged; this is here for a jump bar that seeks instead.
+  /// Moonfin's jump bar asks [letterPosition], which reads this for the
+  /// list on screen.
   Future<SiloLetterIndex> letters({
     String? libraryId,
     List<String>? includeItemTypes,
@@ -782,11 +846,26 @@ class SiloItemsApi implements ItemsApi {
     final scope = types == null || types.isEmpty
         ? null
         : siloCatalogScopeFor(types);
+    return _letterIndex(
+      libraryId: libraryId,
+      scope: scope,
+      groups: const [],
+      descending: descending,
+    );
+  }
+
+  Future<SiloLetterIndex> _letterIndex({
+    required String? libraryId,
+    required String? scope,
+    required List<Map<String, Object?>> groups,
+    required bool descending,
+  }) async {
     final response = await _dio.post<dynamic>(
       '/api/v2/catalog/letters',
       data: {
         'library_id': ?libraryId,
         'type': ?scope,
+        if (groups.isNotEmpty) 'groups': groups,
         'order': descending ? 'desc' : 'asc',
       },
     );

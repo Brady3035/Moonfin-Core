@@ -95,7 +95,7 @@ Before testing, start a film and an episode on Silo (web app or Emby comparison 
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 8.1 |
+| ☑ Done | — | 8.1 |
 
 **Goal.** Home `next_up` section (tolerate it being absent); per series via `play_content_id`.
 
@@ -175,38 +175,73 @@ Before testing: finish an episode of a show that has a next one (in Silo's web a
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 8.2 |
 
 **Goal.** Recently added per library.
 
 **Silo v2 endpoints**
 
-- `GET /recommendations/recently-added`
-- `GET /catalog?sort=-added_at`
+- `GET /catalog?library_id=&type=&sort=-added_at|-latest_episode_added&groups=`
+- `GET /user/libraries` (the library's kind, cached since 6.4)
+- `GET /settings/values/effective?keys=home.hide_watched_items`
 
 **Where in Moonfin**
 
-- `silo_items_api.dart (getLatestItems)`
+- `packages/server_silo/lib/src/api/silo_items_api.dart`: `getLatestItems`.
+- `packages/server_core/lib/src/feature/feature_detector.dart`: `supportsLatestItemsExcludes`.
+- `lib/ui/screens/settings/library_settings_screen.dart`: the "Show in Latest Media" switch.
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+Moonfin builds a "Latest in <library>" row per library (`RowDataSource.loadLatestMedia`) with `ItemsApi.getLatestItems(parentId: <library>, limit: …)`, Jellyfin's `/Users/{id}/Items/Latest`. The media bar and the Android TV launcher channels ask it across the server by type (`includeItemTypes: [Movie]` or `[Series]`/`[Episode]`). Jellyfin answers a bare list, which the Emby client wraps as `{Items, TotalRecordCount}`; Silo's answer has the same shape.
+
+**One catalog page, newest first.** Silo's Home has "Recently added" sections, but those are the profile's own rows (a library's can be removed), and `GET /recommendations/recently-added` covers a fixed window and isn't per library. The catalog is always there, so Latest is one catalog page through the pager (5.12):
+
+| Library (or asked types) | `type` | `sort` |
+|---|---|---|
+| Films (`movies`, `[Movie]`) | `movie` | `-added_at`: when the file arrived |
+| TV (`tvshows`, `[Series]`, `[Episode]`, `[Season]`) | `series` | `-latest_episode_added`: when the show's newest episode arrived |
+| Mixed, or a kind Moonfin doesn't know | `video` | `-added_at` |
+
+- **TV as shows.** Jellyfin groups a show's new episodes into the show, and Moonfin turns a TV library's Latest into series cards anyway (`normalizeLatestMediaItems`). Silo's `latest_episode_added` (the time the newest episode file arrived) puts a show with a new episode back at the front, so a TV row is the shows in that order. In a mixed library both kinds share one sort, so a series counts from when it was first added.
+- **Watched titles: as on Silo.** Silo has a per-profile setting, *Hide watched items from Home* (`home.hide_watched_items`, off by default); when on, Silo leaves watched titles out of its ordinary Home sections, Recently Added among them (featured, Continue Watching and watch-history sections keep them). Latest follows it: the setting is read from the profile's effective settings (once a minute, shared by every Latest row), and when on the query adds the rule `watched is false` (a show leaves once every episode is watched). Like Silo, a setting that can't be read counts as off, so nothing disappears because of an error. This differs from Emby, which hides watched titles from Latest by default (`HidePlayedInLatest`); Brady chose Silo's behaviour.
+- **The kind** comes from `includeItemTypes` when given, else from the library's `CollectionType` (the libraries list, cached 5 minutes since 6.4). Types Silo can't list (music…) answer empty with no request, and so does a `parentId` that isn't a library.
+- **Size.** `limit` defaults to Jellyfin's 20. TV rows ask for 80 (Moonfin asks four times the row for TV, to fill it after grouping); both fit the pager's one page of 100.
+
+**"Show in Latest Media" (open since 2.7, D3).** Moonfin's library settings let you hide a library from the Latest rows, kept on Jellyfin and Emby in the user's `LatestItemsExcludes`. Silo has no such setting and keeps none for a client (its settings store only takes its own keys), so on Silo the switch would flip and then come back. Like phase 4's gates (D10), the switch now asks a `FeatureDetector` flag, `supportsLatestItemsExcludes`, false for Silo: a Silo library shows only "Show in navigation". Every Silo library gets its Latest row; the Latest section as a whole can still be turned off in Home settings. See D11.
+
+**Not covered here:** Silo's Home groups new TV arrivals Plex-style (one episode alone, several as their show); Moonfin's Latest stays Jellyfin-style (shows).
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `packages/server_silo/test/silo_items_api_latest_test.dart` (new, 7 tests):
+  - a TV library: `library_id`, `type=series`, `sort=-latest_episode_added`, `image_size`, one page of 100; series cards with the library as `ParentId`, remembered for the ancestors;
+  - a film library: `type=movie`, `sort=-added_at`, no watched rule (the setting off), Jellyfin's default 20;
+  - `home.hide_watched_items` on: the `watched is false` rule; off: none; the setting read once for two rows;
+  - a setting that can't be read hides nothing;
+  - a mixed library: `type=video`, `-added_at`;
+  - across the server by type: `[Movie]` → `movie` without a library, `[Episode]` → `series`, `[Movie, Series]` → `video`;
+  - types Silo lacks and a non-library parent: empty, no request.
+- `packages/server_core/test/feature_detector_test.dart`: `supportsLatestItemsExcludes` on for Jellyfin and Emby, off for Silo.
+- `silo_items_api_library_test.dart`: the not-implemented check now uses `getRecentlyReleasedItems` (8.4).
+- `server_silo`: 474/474; `server_core`: 94/94; app analyzer: no errors or warnings.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+1. **Home → Latest Movies** (the Movies library's Latest row): newest films first, watched ones included (Silo's default). Compare with Silo's web "Recently Added in Movies" (Emby hides watched films here by default, so it may list fewer).
+2. **Latest TV Shows**: series cards, the show with the most recent new episode first. Compare with Emby (Emby may show a lone new episode's season or episode where Moonfin shows the show).
+3. **Hide watched items**: in Silo's web app turn on *Hide watched items from Home* (Settings → navigation), wait a minute, reload Moonfin's Home: watched films leave Latest Movies, and shows you finished leave Latest TV Shows. Turn it off again: they come back.
+4. **Library settings** (Settings → Libraries) with Silo active: each Silo library has only "Show in navigation", no "Show in Latest Media". With Emby active, both switches are there and work as before.
+5. **Media bar** set to "Latest" (Settings → Home → media bar source, if offered): it fills with recent Silo titles.
+6. **Emby unchanged**: Latest rows and the switch.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
-| | | | | |
+| 2026-10-15 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | latest 7/7; `server_silo` 474/474; `server_core` 94/94; app analyzer: no errors or warnings. Watched titles follow Silo's `home.hide_watched_items` (Brady's choice, before testing) |
 
 ---
 

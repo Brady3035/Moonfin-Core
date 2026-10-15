@@ -253,7 +253,7 @@ Moonfin builds a "Latest in <library>" row per library (`RowDataSource.loadLates
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | `faae7a7` | 8.3 |
+| ☑ Done | `faae7a7`, paging — | 8.3 |
 
 **Goal.** Sorted by release date.
 
@@ -280,6 +280,8 @@ On Silo it is one catalog page through the pager:
 
 **Not covered here:** Silo also has a `recently_released` home section with the same order; Moonfin keeps its own rows.
 
+**Paging (after Brady's test, commit `silo(8.4): Page recently released`).** The row stopped at its first page (Moonfin's row size, about 15–20) while Latest and the other rows load more as you scroll. That was Moonfin's own behaviour on every server: `RowDataSource.loadMore` had no case for `recentlyReleased` rows and handed the row back unchanged. It now grows a library's row the way Latest does, since `getRecentlyReleasedItems` takes no start index: it asks again for the shown count plus one page (TV libraries ask more, as at first load, so whole shows fill the row after grouping), with the same types (the library's kind, from the libraries list, and the TV setting), and keeps going until the list ends or reaches Moonfin's 100-item cap. On Silo each request is one catalog page through the pager. **This changes Jellyfin and Emby too**: their Recently Released rows now page as well. Merged rows (several libraries of one kind) still don't page, as for Latest.
+
 ### Testing
 
 **Automated tests**
@@ -292,6 +294,7 @@ On Silo it is one catalog page through the pager:
   - types Silo lacks and a non-library parent: empty, no request.
 - `silo_items_api_library_test.dart`: the not-implemented check now uses `createCollection` (9.5).
 - `server_silo`: 479/479.
+- Paging: `test/data/services/recently_released_paging_test.dart` (new, 2 tests): scrolling asks the library again for 30 with its types (`[Movie]`, recursive) and returns the longer list with more to come; a list that ends stops paging.
 
 **Manual test plan**
 
@@ -300,8 +303,9 @@ Turn on the "Recently released" home section (Settings → Home) if it isn't on.
 1. **Recently released in Movies**: films newest release first, nothing with a future date. Compare with Emby's row for the same library.
 2. **Recently released in TV Shows** with the setting on *Series*: shows by first air date. On *Episode*: episodes by air date, today's at most. On *Season*: same as *Series* (Silo has no season listing).
 3. **A film releasing later** (if your library has one, e.g. a pre-release copy with a future date): not in the row.
-4. **Hide watched items** on in Silo's web app (as in 8.3): watched titles leave the row after a minute and a Home reload; off again, they return.
-5. **Emby unchanged**.
+4. **Paging**: scroll Recently released in Movies (and TV Shows) to the end: more titles load, in the same order, until the library's releases run out (or 100). Same on Emby, which now pages too.
+5. **Hide watched items** on in Silo's web app (as in 8.3): watched titles leave the row after a minute and a Home reload; off again, they return.
+6. **Emby**: as before, apart from the paging in 4.
 
 **Results**
 
@@ -309,6 +313,7 @@ Turn on the "Recently released" home section (Settings → Home) if it isn't on.
 |---|---|---|---|---|
 | 2026-10-15 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | recently released 5/5; `server_silo` 479/479; analyzer: no issues |
 | 2026-10-15 | macOS | `bd9d59ea` | Pass with note | Brady: checks 1–3 pass. The row stops at its first page (Moonfin's row size) for both films and shows, where other Home rows load more as you scroll: asked for paging, done in `silo(8.4): Page recently released` |
+| 2026-10-15 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | paging: recently released paging 2/2, recently released scope tests pass; app analyzer: no new issues |
 
 ---
 

@@ -131,7 +131,7 @@ Status key: ☐ not started · ◐ in progress · ☑ done and tested · ⊘ ski
 
 ## 8. [Home screen](phases/08-home.md)
 
-- [ ] **8.1** [Continue Watching](phases/08-home.md#step-8-1)
+- [x] **8.1** [Continue Watching](phases/08-home.md#step-8-1)
 - [ ] **8.2** [Next Up](phases/08-home.md#step-8-2)
 - [ ] **8.3** [Latest per library](phases/08-home.md#step-8-3)
 - [ ] **8.4** [Recently released](phases/08-home.md#step-8-4)

@@ -108,7 +108,7 @@ Status key: ☐ not started · ◐ in progress · ☑ done and tested · ⊘ ski
 - [x] **6.2** [Image cache keyed by path](phases/06-browsing.md#step-6-2)
 - [x] **6.3** [Image registry misses](phases/06-browsing.md#step-6-3)
 - [x] **6.4** [Libraries (`UserViewsApi`)](phases/06-browsing.md#step-6-4)
-- [ ] **6.5** [Library grid (`getItems` for a library)](phases/06-browsing.md#step-6-5)
+- [x] **6.5** [Library grid (`getItems` for a library)](phases/06-browsing.md#step-6-5)
 - [ ] **6.6** [Movie detail (`getItem`)](phases/06-browsing.md#step-6-6)
 - [ ] **6.7** [Series detail and seasons](phases/06-browsing.md#step-6-7)
 - [ ] **6.8** [Season episodes](phases/06-browsing.md#step-6-8)

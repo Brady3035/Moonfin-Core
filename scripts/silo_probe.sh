@@ -452,7 +452,15 @@ EOF
     silo markers_movie "/markers/items/$MOVIE"
     silo similar_movie "/recommendations/similar/$MOVIE?limit=5"
     PERSON="$(helper first "$OUT/raw/silo/catalog_item_movie.json" cast person_id)"
-    if [ -n "$PERSON" ]; then silo person "/catalog/people/$PERSON"; fi
+    if [ -n "$PERSON" ]; then
+      silo person "/catalog/people/$PERSON"
+      # People search for the first word of that person's name.
+      PERSON_NAME="$(helper get "$OUT/raw/silo/person.json" name)"
+      PERSON_WORD="${PERSON_NAME%% *}"
+      if [ -n "$PERSON_WORD" ]; then
+        silo people_search "/catalog/people?q=$PERSON_WORD&media_scope=video_with_episodes&limit=5"
+      fi
+    fi
   fi
   if [ -n "$MOVIE_MULTI" ]; then
     silo catalog_item_movie_multi "/catalog/items/$MOVIE_MULTI"

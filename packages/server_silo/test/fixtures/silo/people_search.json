@@ -1,0 +1,21 @@
+{
+ "items": [
+  {
+   "id": "146552272560604468",
+   "name": "Vin Diesel",
+   "birth_date": "1967-07-18",
+   "birthplace": "Alameda County, California, USA",
+   "photo_url": "/api/v2/artwork/tmdb/people/12835/profile/w500.c95febeeed08a689cd62fd4fa8075391c5ddbc436c8497543896628156217a07.webp?exp=SCRUBBED&sig=SCRUBBED",
+   "photo_thumbhash": "0TgOHQYGlodnSJhoiHWZZwaIc4BI",
+   "tmdb_id": "12835",
+   "imdb_id": "nm0004874",
+   "tvdb_id": "310526",
+   "bio": "Mark Sinclair (born July 18, 1967), known professionally as Vin Diesel, is an American actor and film producer. One of t…"
+  },
+  {
+   "id": "5551234",
+   "name": "Vincent Martella",
+   "tmdb_id": "52119"
+  }
+ ]
+}

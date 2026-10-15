@@ -63,6 +63,12 @@ class FeatureDetector {
   /// Silo has no equivalent; its Watch Together is a separate protocol.
   bool get supportsRemoteControl => !_isSilo;
 
+  /// Hiding a library from the Latest rows (`UserConfiguration`'s
+  /// `LatestItemsExcludes`, "Show in Latest Media" in the library settings).
+  /// Silo has no such setting and keeps none for a client, so the switch
+  /// would not stick there; every Silo library gets a Latest row.
+  bool get supportsLatestItemsExcludes => !_isSilo;
+
   /// Household profiles chosen per request (Silo's `X-Profile-Id`). Switched
   /// on for Silo with profile sign-in.
   bool get supportsProfiles => false;

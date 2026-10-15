@@ -13,7 +13,7 @@ Search screens on Silo.
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | previous step |
+| ☑ Done | — | previous step |
 
 **Goal.** `searchTerm` → catalog `q`, honouring the search capabilities.
 
@@ -99,36 +99,66 @@ Search for the same words on Silo and on Emby (same library on both):
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 7.1 |
 
 **Goal.** Person results.
 
 **Silo v2 endpoints**
 
 - `GET /catalog/people?q=`
+- `GET /catalog/search/capabilities` (read in 7.1)
 
 **Where in Moonfin**
 
-- `silo_items_api.dart`
+- `packages/server_silo/lib/src/api/silo_items_api.dart`: `getPersons`.
+- `scripts/silo_probe.sh`, `packages/server_silo/test/fixtures/silo/people_search.json`.
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+People don't come back from Moonfin's item search on Jellyfin either: `SearchRepository.searchPeople` asks `ItemsApi.getPersons(searchTerm, limit: 24)` and the search screen fills its People group with the answer (waiting a moment for it, 10 seconds at most). The movie detail page also uses it to find the local person behind a Seerr cast member, by matching `ProviderIds.Tmdb`.
+
+On Silo `getPersons` (until now `SiloNotImplementedError` naming 7.2) calls `GET /catalog/people`:
+
+- **`q`**: the trimmed term. Silo matches each word against the start of a word of the name, ignoring case, and lists exact matches first. A blank term sends no `q` and lists the first people, as Jellyfin does.
+- **`media_scope`**: limits people to credits the profile can see in that scope. Moonfin shows video, so it asks `video_with_episodes` (films, series and episodes, so guest stars are found) when the capabilities have `video_with_episodes_scope`, else `video`, and nothing when they lack `people_media_scope`. Without a scope Silo would also return audiobook narrators and authors.
+- **The capabilities** gate it like 7.1: when search isn't available or allowed for the profile, the answer is empty and no request is made.
+- **`limit`**: capped at Silo's 100; none leaves Silo's default (20). `fields` and `enableImageTypes` are ignored: Silo's person is always whole.
+- **Mapping**: each person goes through `siloPersonToBaseItemDto` (6.14), so a result is a Jellyfin `Person` with `ProviderIds` and its photo registered, and opening it shows the person page from 6.14 (photo, biography, filmography). Entries without an id are skipped. The total is the number returned (Silo's people search has no total).
+
+**Not covered here:** Moonfin's suggestion list asks `getItems` for `[Movie, Series, Person]`. Silo's catalog has no person items, so on Silo suggestions list titles only (compare with Emby). Adding the people search to suggestions would mean a Silo-specific second call from the app's `SearchRepository`, so it's left as it is unless Brady wants it. The same goes for the book author lookup in `item_detail_screen.dart` (`getItems(includeItemTypes: [Person])`), which comes with books in phase 16.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `packages/server_silo/test/silo_items_api_people_search_test.dart` (new, 7 tests):
+  - people by name: `q` trimmed, `limit`, `media_scope=video_with_episodes`; names, `Person` type, TMDB id, registered photo, no photo for a person without one;
+  - `media_scope` from the capabilities (`video`, or none);
+  - `limit` capped at 100, or left out;
+  - a blank term sends no `q`;
+  - no request when search isn't allowed;
+  - entries without an id skipped;
+  - errors reach the caller (the view model drops the People group then).
+- `silo_items_api_library_test.dart`: `getPersons` no longer names a later step.
+- `server_silo`: 449/449. App search tests (view model, late people, multi-server, library jump search): 89/89.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+Same searches on Silo and on Emby:
+
+- **An actor's name** (e.g. "vin" or "Vin Diesel"): a People group with round photos; the exact name comes first. Compare with Emby's People group.
+- **A first name shared by several people** (e.g. "chris"): several people; only people with credits in films or series show.
+- **A guest star** known only from an episode: found on Silo (episodes scope).
+- **Open a person**: their page shows photo, biography and filmography (6.14); titles open.
+- **A title-only search** (e.g. "justice"): no People group, or people named Justice only.
+- **Seerr person** (if Seerr is set up): a person page opened from Seerr, for someone who is also on the Silo server, shows the local person's details and filmography (found through `ProviderIds.Tmdb`).
+- **Emby unchanged**: the People group on Emby as before.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-15 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | people search 7/7; `server_silo` 449/449; app search tests 89/89; analyzer: no issues |
 | | | | | |
 
 ---

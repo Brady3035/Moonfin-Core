@@ -1010,6 +1010,54 @@ class SiloItemsApi implements ItemsApi, LetterPositionApi {
     return siloPersonToBaseItemDto(json, images: images);
   }
 
+  /// People by name (step 7.2): `GET /catalog/people?q=`, Silo's people
+  /// search (each word must start a word of the name; exact matches first),
+  /// as Jellyfin `Person` items with their photos registered.
+  ///
+  /// - Credits are limited to what Moonfin shows (`media_scope`): films,
+  ///   series and episodes (`video_with_episodes`) when the search
+  ///   capabilities offer that scope, else films and series (`video`), and
+  ///   none when Silo takes no scope.
+  /// - Nothing is asked when the capabilities say search isn't available.
+  /// - `limit` is capped at Silo's 100; none asks Silo's default (20).
+  /// - A blank `searchTerm` lists the first people, as on Jellyfin.
+  /// - `fields` and `enableImageTypes` are ignored: a person always comes
+  ///   whole, photo included.
+  @override
+  Future<Map<String, dynamic>> getPersons({
+    required String searchTerm,
+    int? limit,
+    String? fields,
+    String? enableImageTypes,
+  }) async {
+    final search = await searchCapabilities();
+    if (!search.canSearch) return _empty(0);
+    final response = await _dio.get<dynamic>(
+      '/api/v2/catalog/people',
+      queryParameters: {
+        'q': ?_searchTextOf(searchTerm),
+        'limit': ?(limit == null || limit <= 0 ? null : limit.clamp(1, 100)),
+        if (search.peopleMediaScope)
+          'media_scope': search.videoWithEpisodes
+              ? 'video_with_episodes'
+              : 'video',
+      },
+    );
+    final raw = asJsonMap(response.data)?['items'];
+    final people = [
+      if (raw is List)
+        for (final entry in raw)
+          if (asJsonMap(entry) case final json?)
+            if (siloIdOf(json['id']) != null)
+              siloPersonToBaseItemDto(json, images: images),
+    ];
+    return {
+      'Items': people,
+      'TotalRecordCount': people.length,
+      'StartIndex': 0,
+    };
+  }
+
   // --- collections (6.15) -------------------------------------------------
 
   /// Whether a query asks for collections only: `BoxSet` and nothing else
@@ -1259,7 +1307,6 @@ class SiloItemsApi implements ItemsApi, LetterPositionApi {
 
   /// The step that implements each method not implemented yet.
   static const _steps = {
-    'getPersons': '7.2',
     'getResumeItems': '8.1',
     'getNextUp': '8.2',
     'getLatestItems': '8.3',
@@ -1369,7 +1416,7 @@ class SiloSearchCapabilities {
   /// `media_scope`.
   final bool videoWithEpisodes;
 
-  /// People search takes `media_scope` (7.2).
+  /// People search takes `media_scope` ([SiloItemsApi.getPersons], 7.2).
   final bool peopleMediaScope;
 
   /// `postgres` or `meilisearch`.

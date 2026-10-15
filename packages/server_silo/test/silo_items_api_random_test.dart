@@ -82,4 +82,31 @@ void main() {
       isNotEmpty,
     );
   });
+
+  test('loading the grid from the top again reshuffles it', () async {
+    final server = _server();
+    final api = siloTestClient(server).itemsApi;
+    Future<List<String>> page(int start, String order) async {
+      final p = await api.getItems(
+        parentId: '1',
+        sortBy: 'Random',
+        sortOrder: order,
+        startIndex: start,
+        limit: start == 0 ? 75 : 48,
+      );
+      return [
+        for (final i in (p['Items'] as List).cast<Map>()) i['Id'] as String,
+      ];
+    }
+
+    final first = await page(0, 'Ascending');
+    final reads = server.requests.length;
+    // Random picked again: the direction flips and the grid reloads.
+    final again = await page(0, 'Descending');
+    expect(again, isNot(first));
+    expect(server.requests, hasLength(reads), reason: 'the list is kept');
+    // The next page follows the new order: no title of its first page.
+    final next = await page(75, 'Descending');
+    expect(next.toSet().intersection(again.toSet()), isEmpty);
+  });
 }

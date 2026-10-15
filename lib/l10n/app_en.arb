@@ -13951,6 +13951,10 @@
       }
     }
   },
+  "siloServerRowSubtitle": "From your server",
+  "@siloServerRowSubtitle": {
+    "description": "Subtitle of a Home row the media server curates itself (a Silo home section), on Home and in Home settings"
+  },
   "playlistSortReleaseDate": "Release Date",
   "@playlistSortReleaseDate": {
     "description": "Label for sorting playlist items by release date"

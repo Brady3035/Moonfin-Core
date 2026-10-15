@@ -32,7 +32,8 @@ const siloDetailImageSize = 'large';
 /// with [SiloNotImplementedError] naming their step (see [noSuchMethod]),
 /// or with an empty answer for what Silo doesn't have at all (music,
 /// playlists).
-class SiloItemsApi implements ItemsApi, LetterPositionApi {
+class SiloItemsApi
+    implements ItemsApi, LetterPositionApi, ServerHomeSectionsApi {
   SiloItemsApi(
     this._dio, {
     this.images,
@@ -1460,6 +1461,56 @@ class SiloItemsApi implements ItemsApi, LetterPositionApi {
     final next = (series[siloOriginalKey] as Map?)?['play_content_id'];
     if (next is! String || siloTypeOfId(next) != 'episode') return null;
     return getItem(next);
+  }
+
+  /// Silo's own home rows (step 8.7): the sections of the profile's Silo
+  /// home page (`GET /home/layout`), for Moonfin to offer as extra rows.
+  ///
+  /// Continue Watching and Next Up are left out, as Moonfin builds those
+  /// rows itself from the same sections (8.1, 8.2). Errors reach the caller,
+  /// so a failed read isn't taken for a home with no rows.
+  @override
+  Future<List<ServerHomeSection>> getServerHomeSections() async {
+    final layout = await homeSections.layout();
+    return [
+      for (final s in layout)
+        if (!_moonfinOwnSections.contains(s.sectionType))
+          ServerHomeSection(
+            id: s.id,
+            title: s.title.isEmpty ? s.sectionType : s.title,
+            kind: s.sectionType,
+          ),
+    ];
+  }
+
+  /// Section types Moonfin builds its own rows from.
+  static const _moonfinOwnSections = {'continue_watching', 'next_up'};
+
+  /// One of Silo's home rows (8.7): the section's cards
+  /// (`GET /home/sections/{id}/items`) as Jellyfin items, in Silo's order,
+  /// types Moonfin can't show left out. A section no longer in the layout
+  /// answers empty. Silo caps a section at its `item_limit`, so the whole
+  /// row comes at once; `startIndex`/`limit` slice it.
+  @override
+  Future<Map<String, dynamic>> getServerHomeSectionItems(
+    String sectionId, {
+    int? startIndex,
+    int? limit,
+  }) async {
+    final layout = await homeSections.layout();
+    SiloSectionEntry? section;
+    for (final s in layout) {
+      if (s.id == sectionId) section = s;
+    }
+    if (section == null) return _empty(startIndex);
+    final cards = await homeSections.items(section);
+    final items = [
+      for (final card in cards)
+        if (siloSupportedTypes.contains(card['type']))
+          ?siloItemToBaseItemDto(card, images: images),
+    ];
+    _rememberRow(items, null);
+    return _slice(items, startIndex: startIndex, limit: limit);
   }
 
   /// Latest (step 8.3): the newest arrivals in a library, or across the

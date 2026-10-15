@@ -15226,6 +15226,9 @@ class AppLocalizationsEo extends AppLocalizations {
   }
 
   @override
+  String get siloServerRowSubtitle => 'From your server';
+
+  @override
   String get playlistSortReleaseDate => 'Release Date';
 
   @override

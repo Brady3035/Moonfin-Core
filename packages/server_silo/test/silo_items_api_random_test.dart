@@ -59,12 +59,15 @@ void main() {
   test('a random grid is shuffled whole, every title once', () async {
     final api = siloTestClient(_server()).itemsApi;
     final seen = <String>[];
-    for (var start = 0; start < 250; start += 100) {
+    // As the library grid pages: 75 first, then 48 at a time. Its first
+    // page is under a hundred but is still the grid's (found by Brady: only
+    // the first screen was random).
+    for (var start = 0; start < 250; start += start == 0 ? 75 : 48) {
       final page = await api.getItems(
         parentId: '1',
         sortBy: 'Random',
         startIndex: start,
-        limit: 100,
+        limit: start == 0 ? 75 : 48,
       );
       seen.addAll([
         for (final i in (page['Items'] as List).cast<Map>()) i['Id'] as String,
@@ -75,7 +78,7 @@ void main() {
     // The whole list is shuffled, not each page of Silo's name order: the
     // first page reaches well past the first hundred titles.
     expect(
-      seen.take(100).where((id) => int.parse(id.split('-').last) >= 100),
+      seen.take(75).where((id) => int.parse(id.split('-').last) >= 100),
       isNotEmpty,
     );
   });

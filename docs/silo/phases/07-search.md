@@ -13,7 +13,7 @@ Search screens on Silo.
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | previous step |
+| ☑ Done | `28b84a0` | previous step |
 
 **Goal.** `searchTerm` → catalog `q`, honouring the search capabilities.
 
@@ -50,7 +50,7 @@ On Silo:
 
 **Not covered here:** Silo's search has no seasons and no collections, so Moonfin's Seasons and Collections groups stay empty on Silo (Emby lists both). Collections are listed whole whatever the `searchTerm` (6.15); the add-to-collection dialog that searches them by name comes with 9.5.
 
-The old `silo/catalog_search.json` capture searched for "the", which Silo's PostgreSQL search treats as a stop word, so it held no items. The fixture is rebuilt by hand from the real Young Justice cards (see the fixtures README) and the probe now searches for `SILO_SEARCH` (default "justice") with `type=video_with_episodes`.
+The old `silo/catalog_search.json` capture searched for "the", which Silo's PostgreSQL search treats as a stop word, so it held no items. The probe now searches for `SILO_SEARCH` (default "justice") with `type=video_with_episodes`. The step was built against a hand-written fixture; Brady's capture after testing (Silo `bd9d59ea`: a film and four "Justice" episodes, 118 results) replaced it and confirmed the episode card fields (`series_id`, `series_title`, `season_number`, `episode_number`). The probe script is now executable (`chmod +x`); before, it had to be run with `bash`.
 
 ### Testing
 
@@ -69,7 +69,7 @@ The old `silo/catalog_search.json` capture searched for "the", which Silo's Post
   - a search inside a library: `library_id` and `q`, an asked-for sort kept, no letter position;
   - two searches page separately;
   - `siloSearchScopeFor` with and without the capability; the capabilities document.
-- `server_silo`: 442/442.
+- `server_silo`: 442/442; 449/449 with the real capture (on top of 7.2).
 
 **Manual test plan**
 
@@ -90,6 +90,8 @@ Search for the same words on Silo and on Emby (same library on both):
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-15 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | search 16/16; `server_silo` 442/442; analyzer: no issues |
+| 2026-10-15 | macOS | `bd9d59ea` | Pass | Brady: every check passed. "the" alone shows only people: Silo's title search drops the stop word, its people search matches names with a word starting "the" |
+| 2026-10-15 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | real search capture: search tests on the film and four episodes; `server_silo` 449/449; analyzer: no issues |
 | | | | | |
 
 ---

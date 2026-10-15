@@ -81,16 +81,12 @@ seek previews yet. It has the probe script's file name, so a real capture
 replaces it; the 5.11 tests read their expectations from the file, so they
 still apply. Capture one before step 11.2.
 
-`silo/catalog_search.json` was rebuilt by hand at step 7.1: the 2026-10-13
-capture searched for "the", a stop word for Silo's PostgreSQL search, and held
-no items. It is a `type=video_with_episodes` search for "justice" in the
-`CatalogBrowseCollection` shape, made from the real Young Justice cards (the
-series and its first two episodes, with the card fields an episode carries in
-search: `type`, `series_id`, `series_title`, season and episode numbers) plus
-a podcast that Moonfin must drop. The probe now searches for `SILO_SEARCH`
-(default "justice") with that scope, so a re-run replaces it with a real one;
-the expected lists in `silo_items_api_search_test.dart` then follow the new
-file.
+`silo/catalog_search.json` was recaptured on 2026-10-15 (Silo `bd9d59ea`):
+the 2026-10-13 capture searched for "the", a stop word for Silo's PostgreSQL
+search, and held no items. It is now the first 5 of 118 results of a
+`type=video_with_episodes` search for "justice" (`SILO_SEARCH`, the probe's
+default): one film and four episodes named "Justice". The expected lists in
+`silo_items_api_search_test.dart` follow this file.
 
 `silo/people_search.json` was written by hand at step 7.2 (`PersonCollection`
 for "vin"): the real Vin Diesel person from `silo/person.json` with a shortened

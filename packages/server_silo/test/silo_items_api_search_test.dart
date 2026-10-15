@@ -8,6 +8,28 @@ import 'silo_test_client.dart';
 const _capabilitiesPath = '/api/v2/catalog/search/capabilities';
 const _catalogPath = '/api/v2/catalog';
 
+/// The real "justice" capture (one film, four episodes of 118) as Silo's
+/// first page.
+Map<String, dynamic> get _capture => siloFixture('catalog_search.json');
+
+/// The capture as a whole result, with [extra] cards after it: a series and
+/// a podcast by default, for the type checks.
+ResponseBody Function(RequestOptions) _whole({
+  List<Map<String, Object?>> extra = const [
+    {'content_id': 'series-x', 'type': 'series', 'title': 'Justice Show'},
+    {'content_id': 'podcast-9', 'type': 'podcast', 'title': 'Justice Talk'},
+  ],
+}) {
+  final page = _capture;
+  final items = [...page['items'] as List, ...extra];
+  return siloJson({
+    ...page,
+    'items': items,
+    'page': {'has_more': false},
+    'total': items.length,
+  });
+}
+
 FixtureServer _server({
   ResponseBody Function(RequestOptions)? capabilities,
   ResponseBody Function(RequestOptions)? catalog,
@@ -16,7 +38,7 @@ FixtureServer _server({
   '/api/v2/settings/values/effective': siloEffectiveSettings({}),
   _capabilitiesPath:
       capabilities ?? FixtureServer.file('silo/search_capabilities.json'),
-  _catalogPath: catalog ?? FixtureServer.file('silo/catalog_search.json'),
+  _catalogPath: catalog ?? _whole(),
 });
 
 List<RequestOptions> _catalogRequests(FixtureServer server) => [
@@ -31,10 +53,12 @@ void main() {
   test(
     'the search screen: q, movies, series and episodes by relevance',
     () async {
-      final server = _server();
+      final server = _server(
+        catalog: FixtureServer.file('silo/catalog_search.json'),
+      );
       final page = await siloTestClient(
         server,
-      ).itemsApi.getItems(searchTerm: ' justice ', recursive: true, limit: 240);
+      ).itemsApi.getItems(searchTerm: ' justice ', recursive: true, limit: 5);
 
       final q = _catalogRequests(server).single.uri.queryParameters;
       expect(q['q'], 'justice');
@@ -42,15 +66,22 @@ void main() {
       expect(q, isNot(contains('sort')), reason: 'Silo ranks by relevance');
 
       final items = (page['Items'] as List).cast<Map<String, dynamic>>();
-      expect(items.map((i) => i['Type']), ['Series', 'Episode', 'Episode']);
-      expect(page['TotalRecordCount'], 4, reason: 'Silo\'s total');
+      expect(items.map((i) => i['Type']), [
+        'Movie',
+        'Episode',
+        'Episode',
+        'Episode',
+        'Episode',
+      ]);
+      expect(items.first['Name'], 'Seeking Justice');
+      expect(page['TotalRecordCount'], 118, reason: 'Silo\'s exact total');
       final episode = items[1];
-      expect(episode['Id'], 'episode-imdb-tt1641384-1-1');
-      expect(episode['Name'], 'Independence Day');
-      expect(episode['SeriesId'], 'series-imdb-tt1641384');
-      expect(episode['SeriesName'], 'Young Justice');
+      expect(episode['Id'], 'episode-imdb-tt0092455-1-8');
+      expect(episode['Name'], 'Justice');
+      expect(episode['SeriesId'], 'series-imdb-tt0092455');
+      expect(episode['SeriesName'], 'Star Trek: The Next Generation');
       expect(episode['ParentIndexNumber'], 1);
-      expect(episode['IndexNumber'], 1);
+      expect(episode['IndexNumber'], 8);
     },
   );
 
@@ -68,11 +99,14 @@ void main() {
     final page = await siloTestClient(server).itemsApi.getItems(
       searchTerm: 'jus',
       includeItemTypes: ['Movie', 'Series', 'Person'],
-      limit: 5,
+      limit: 20,
     );
     final q = _catalogRequests(server).single.uri.queryParameters;
     expect(q['type'], 'video');
-    expect((page['Items'] as List).map((i) => (i as Map)['Type']), ['Series']);
+    expect((page['Items'] as List).map((i) => (i as Map)['Type']), [
+      'Movie',
+      'Series',
+    ], reason: 'the episodes and the podcast are dropped');
   });
 
   test('one type per group, as the scoped search asks', () async {
@@ -86,7 +120,7 @@ void main() {
       _catalogRequests(server).last.uri.queryParameters['type'],
       'episode',
     );
-    expect(episodes['Items'], hasLength(2));
+    expect(episodes['Items'], hasLength(4));
 
     final mixed = await api.getItems(
       searchTerm: 'justice',
@@ -97,6 +131,9 @@ void main() {
       'video_with_episodes',
     );
     expect((mixed['Items'] as List).map((i) => (i as Map)['Type']), [
+      'Movie',
+      'Episode',
+      'Episode',
       'Episode',
       'Episode',
     ], reason: 'the series was not asked for');
@@ -117,9 +154,12 @@ void main() {
     final q = _catalogRequests(server).single.uri.queryParameters;
     expect(q, isNot(contains('type')));
     expect((page['Items'] as List).map((i) => (i as Map)['Type']), [
+      'Movie',
+      'Episode',
+      'Episode',
+      'Episode',
+      'Episode',
       'Series',
-      'Episode',
-      'Episode',
     ], reason: 'the podcast is dropped');
   });
 
@@ -146,7 +186,7 @@ void main() {
     );
     final api = siloTestClient(server).itemsApi;
     final page = await api.getItems(searchTerm: 'justice');
-    expect(page['Items'], hasLength(3));
+    expect(page['Items'], hasLength(6));
     expect(
       _catalogRequests(server).single.uri.queryParameters,
       isNot(contains('type')),

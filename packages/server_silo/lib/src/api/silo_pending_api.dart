@@ -41,10 +41,6 @@ abstract class _Pending {
   }
 }
 
-class SiloPendingUserLibraryApi extends _Pending implements UserLibraryApi {
-  const SiloPendingUserLibraryApi() : super('UserLibraryApi', '6.6 and 9.x');
-}
-
 class SiloPendingDisplayPreferencesApi extends _Pending
     implements DisplayPreferencesApi {
   const SiloPendingDisplayPreferencesApi()

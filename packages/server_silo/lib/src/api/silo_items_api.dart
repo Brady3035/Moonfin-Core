@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:server_core/server_core.dart';
 
 import '../mappers/silo_item_mapper.dart';
+import '../mappers/silo_ids.dart';
 import '../mappers/silo_item_types.dart';
 import '../mappers/silo_sort_map.dart';
 import '../silo_image_registry.dart';
@@ -24,11 +25,14 @@ const siloDetailImageSize = 'large';
 /// or with an empty answer for what Silo doesn't have at all (music,
 /// playlists).
 class SiloItemsApi implements ItemsApi {
-  SiloItemsApi(this._dio, {this.images, SiloPager? pager})
+  SiloItemsApi(this._dio, {this.images, SiloPager? pager, this.userViews})
     : pager = pager ?? SiloPager();
 
   final Dio _dio;
   final SiloImageRegistry? images;
+
+  /// The client's library list, for library ids passed to [getItem].
+  final UserViewsApi Function()? userViews;
 
   /// Remembers list cursors per query, so Moonfin's offset paging maps onto
   /// Silo's cursors (5.12).
@@ -97,8 +101,7 @@ class SiloItemsApi implements ItemsApi {
     bool? is4K,
     bool? is3D,
   }) async {
-    if (ids != null)
-      throw SiloNotImplementedError('ItemsApi', 'getItems(ids)', '6.6');
+    if (ids != null) return _byIds(ids, startIndex: startIndex, limit: limit);
     final libraryId = _libraryIdOf(parentId);
     if (parentId != null && libraryId == null) {
       throw SiloNotImplementedError(
@@ -131,7 +134,13 @@ class SiloItemsApi implements ItemsApi {
       return siloSupportedTypes.contains(silo);
     }
 
-    return _page(params, startIndex: startIndex, limit: limit, keep: keep);
+    return _page(
+      params,
+      startIndex: startIndex,
+      limit: limit,
+      keep: keep,
+      libraryId: libraryId,
+    );
   }
 
   /// One page of `GET /catalog` with [params], as Jellyfin's
@@ -141,6 +150,7 @@ class SiloItemsApi implements ItemsApi {
     int? startIndex,
     int? limit,
     bool Function(Map<String, dynamic> item)? keep,
+    String? libraryId,
   }) async {
     final start = startIndex ?? 0;
     final result = await pager.page(
@@ -173,6 +183,10 @@ class SiloItemsApi implements ItemsApi {
       final item = siloItemToBaseItemDto(raw, images: images);
       if (item == null) continue;
       if (keep != null && !keep(item)) continue;
+      if (libraryId != null) {
+        _rememberLibrary(item['Id'] as String, libraryId);
+        item['ParentId'] ??= libraryId;
+      }
       items.add(item);
     }
     return {
@@ -194,6 +208,120 @@ class SiloItemsApi implements ItemsApi {
     if (parentId == null) return null;
     final id = parentId.trim();
     return RegExp(r'^\d+$').hasMatch(id) ? id : null;
+  }
+
+  // --- single items (6.6) -------------------------------------------------
+
+  /// One item's page (step 6.6): `GET /catalog/items/{id}` at the detail
+  /// artwork size, with its file versions.
+  ///
+  /// Silo's detail answer embeds `versions` for playable items. When it
+  /// doesn't (an older server, a trimmed answer), they are read from
+  /// `/catalog/items/{id}/versions` and merged, so `MediaSources` are there
+  /// in either case. `mediaSourceId` is sent as `file_id`, which makes that
+  /// version the item's effective one.
+  ///
+  /// A library id answers the library's view from the libraries list.
+  /// `fields` is ignored: Silo has no field selection, and the detail
+  /// answer is always whole.
+  @override
+  Future<Map<String, dynamic>> getItem(
+    String itemId, {
+    String? mediaSourceId,
+    String? fields,
+  }) async {
+    final library = _libraryIdOf(itemId);
+    if (library != null) return _library(library);
+
+    final path = '/api/v2/catalog/items/${Uri.encodeComponent(itemId)}';
+    final query = {
+      'image_size': siloDetailImageSize,
+      'file_id': ?mediaSourceId,
+    };
+    final response = await _dio.get<dynamic>(path, queryParameters: query);
+    final json = asJsonMap(response.data);
+    if (json == null) {
+      throw FormatException(
+        'Expected an item from Silo, got ${response.data.runtimeType}',
+      );
+    }
+    final type = siloItemTypeOf(json['type'] ?? siloTypeOfId(itemId));
+    if (type != null && !type.isFolder && json['versions'] is! List) {
+      final versions = await _dio.get<dynamic>(
+        '$path/versions',
+        queryParameters: query,
+      );
+      final list = asJsonMap(versions.data)?['items'];
+      if (list is List) json['versions'] = list;
+    }
+    final item = siloItemToBaseItemDto(json, images: images);
+    if (item == null) {
+      throw StateError('Silo item $itemId has a type Moonfin cannot show');
+    }
+    return _withKnownLibrary(item);
+  }
+
+  Future<Map<String, dynamic>> _library(String libraryId) async {
+    final views = await userViews?.call().getUserViews(includeHidden: true);
+    final items = (views?['Items'] as List?) ?? const [];
+    for (final view in items) {
+      if (view is Map && view['Id'] == libraryId) {
+        return view.cast<String, dynamic>();
+      }
+    }
+    throw StateError('Silo library $libraryId is not visible to this profile');
+  }
+
+  /// Several items by id, in the order asked, six at a time. Silo has no
+  /// "these ids" list query; ids it doesn't know are left out.
+  Future<Map<String, dynamic>> _byIds(
+    List<String> ids, {
+    int? startIndex,
+    int? limit,
+  }) async {
+    final start = startIndex ?? 0;
+    final wanted = ids.skip(start).take(limit ?? ids.length).toList();
+    final found = <Map<String, dynamic>?>[];
+    for (var i = 0; i < wanted.length; i += 6) {
+      found.addAll(
+        await Future.wait([
+          for (final id in wanted.skip(i).take(6))
+            getItem(id).then<Map<String, dynamic>?>(
+              (item) => item,
+              onError: (Object _) => null,
+            ),
+        ]),
+      );
+    }
+    final items = found.whereType<Map<String, dynamic>>().toList();
+    return {
+      'Items': items,
+      'TotalRecordCount': ids.length,
+      'StartIndex': start,
+    };
+  }
+
+  /// Which library each item was last listed in. Silo's item answers don't
+  /// name their library, so the grid's `parentId` is remembered here for
+  /// `ParentId` and the ancestors (6.9).
+  final Map<String, String> _libraryOfItem = {};
+
+  void _rememberLibrary(String itemId, String libraryId) {
+    _libraryOfItem.remove(itemId);
+    _libraryOfItem[itemId] = libraryId;
+    if (_libraryOfItem.length > 5000) {
+      _libraryOfItem.remove(_libraryOfItem.keys.first);
+    }
+  }
+
+  /// The library [itemId] was listed in, if any.
+  String? libraryOf(String itemId) => _libraryOfItem[itemId];
+
+  Map<String, dynamic> _withKnownLibrary(Map<String, dynamic> item) {
+    final id = item['Id'] as String?;
+    final library = id == null ? null : _libraryOfItem[id];
+    if (library != null && item['ParentId'] == null) item['ParentId'] = library;
+    return item;
   }
 
   // --- what Silo doesn't have ---------------------------------------------
@@ -253,7 +381,6 @@ class SiloItemsApi implements ItemsApi {
 
   /// The step that implements each method not implemented yet.
   static const _steps = {
-    'getItem': '6.6',
     'getSeasons': '6.7',
     'getEpisodes': '6.8',
     'getAncestors': '6.9',

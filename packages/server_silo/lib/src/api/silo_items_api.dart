@@ -152,8 +152,21 @@ class SiloItemsApi
         limit: limit,
       );
     }
-    // A series' children are its seasons, as on Jellyfin.
+    // A series' children are its seasons, as on Jellyfin; asked for its
+    // episodes (Rewatch's first episode, its "anything unwatched?" check),
+    // they are the episodes (8.6 fix).
     if (parentId != null && siloTypeOfId(parentId) == 'series') {
+      final types = siloTypesForQuery(includeItemTypes: includeItemTypes);
+      if (types != null &&
+          types.contains('episode') &&
+          !types.contains('season')) {
+        return _seriesEpisodes(
+          parentId,
+          filters: filters,
+          startIndex: startIndex,
+          limit: limit,
+        );
+      }
       return getSeasons(parentId);
     }
     // And a season's are its episodes.
@@ -725,6 +738,38 @@ class SiloItemsApi
       'TotalRecordCount': episodes.length,
       'StartIndex': 0,
     };
+  }
+
+  /// A series' episodes for an item query with the series as parent and
+  /// episodes as the type: every season's, in Silo's order (season, then
+  /// episode), `IsPlayed`/`IsUnplayed` applied, then sliced. The sort asked
+  /// for is ignored: Moonfin asks this for "the first episode" or "any
+  /// unwatched one", and the natural order answers both.
+  Future<Map<String, dynamic>> _seriesEpisodes(
+    String seriesId, {
+    List<String>? filters,
+    int? startIndex,
+    int? limit,
+  }) async {
+    final flags = {
+      for (final f in filters ?? const <String>[]) f.toLowerCase(),
+    };
+    final all = (await getEpisodes(seriesId))['Items'] as List;
+    final episodes = [
+      for (final e in all.cast<Map<String, dynamic>>())
+        if (_matchesPlayedFilter(e, flags)) e,
+    ];
+    return _slice(episodes, startIndex: startIndex, limit: limit);
+  }
+
+  static bool _matchesPlayedFilter(
+    Map<String, dynamic> item,
+    Set<String> flags,
+  ) {
+    final played = (item['UserData'] as Map?)?['Played'] == true;
+    if (flags.contains('isplayed') && !played) return false;
+    if (flags.contains('isunplayed') && played) return false;
+    return true;
   }
 
   Future<List<Map<String, dynamic>>> _seasonEpisodes(

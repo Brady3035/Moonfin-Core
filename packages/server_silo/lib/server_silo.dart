@@ -26,6 +26,7 @@ export 'src/silo_problem.dart';
 export 'src/silo_session.dart';
 export 'src/silo_session_interceptor.dart';
 export 'src/mappers/silo_chapter_mapper.dart';
+export 'src/mappers/silo_filters_mapper.dart';
 export 'src/mappers/silo_ids.dart';
 export 'src/mappers/silo_item_mapper.dart';
 export 'src/mappers/silo_item_types.dart';

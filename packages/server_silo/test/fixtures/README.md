@@ -71,15 +71,14 @@ studios → 20, countries and original languages → 10.
 IPs, file paths cut to the file name, profile names and the username replaced,
 hosts replaced with `silo.example` / `emby.example`.
 
-**Not captured yet:** a PIN-locked profile (needed by step 3.6) and an item with
-trickplay (needed by steps 5.11 and 11.2). Re-run the script with
-`SILO_PROFILE_ID` / `SILO_EPISODE` when those steps start.
+**Not captured yet:** a PIN-locked profile (needed by step 3.6). Re-run the
+script with `SILO_PROFILE_ID` when that step starts.
 
-**Written by hand:** `silo/watch_trickplay_episode.json` was built from the
-`WatchTrickplay` schema at step 5.11, because no file on the test server had
-seek previews yet. It has the probe script's file name, so a real capture
-replaces it; the 5.11 tests read their expectations from the file, so they
-still apply. Capture one before step 11.2.
+`silo/watch_trickplay_episode.json` was built by hand from the
+`WatchTrickplay` schema at step 5.11, when no file had seek previews, and
+replaced by a real capture of Young Justice S01E01 on 2026-10-15 (Silo
+`bd9d59ea`): 300 × 168 thumbnails, 10 × 8 per sheet, 136 in two sheets, sheet
+URLs under `/api/v2/artwork/trickplay/`.
 
 `silo/catalog_search.json` was recaptured on 2026-10-15 (Silo `bd9d59ea`):
 the 2026-10-13 capture searched for "the", a stop word for Silo's PostgreSQL

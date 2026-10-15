@@ -313,7 +313,7 @@ Turn on the "Recently released" home section (Settings → Home) if it isn't on.
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 8.4 |
+| ☑ Done | — | 8.4 |
 
 **Goal.** `source=favorites`.
 
@@ -375,33 +375,77 @@ In Silo's web app, favourite two films, a series and an episode (or use existing
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 8.5 |
 
 **Goal.** Check the remaining row types in `row_data_source.dart` and fix any hand-built URL.
 
+**Silo v2 endpoints**
+
+- `GET /collections`, `GET /library/{id}/collections` (6.15)
+- `GET /user/libraries` (6.4)
+
 **Where in Moonfin**
 
-- `lib/data/services/row_data_source.dart`
+- `packages/server_silo/lib/src/api/silo_items_api.dart`: collections with no library.
+- `lib/data/services/row_data_source.dart`, `lib/ui/screens/home/home_view_model.dart`: checked, unchanged.
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+**The other rows, checked.** Every Home row Moonfin can show was traced to the `ItemsApi`/`UserViewsApi` calls it makes, with which arguments, and what Silo does with them now:
+
+| Row | Moonfin call | On Silo |
+|---|---|---|
+| Continue Watching, Next Up, Latest, Recently released, favourites | `getResumeItems`, `getNextUp`, `getLatestItems`, `getRecentlyReleasedItems`, `getItems(isFavorite)` | 8.1–8.5 |
+| My Media (library tiles and buttons) | `getUserViews` | 6.4 |
+| Genres | `getGenres`, then per genre `getItems(genreIds, sortBy: Random, limit: 10)` for its artwork | 6.12. Silo genres have no counts, so Moonfin keeps each genre and drops one only when its titles query is empty |
+| A genre row (added from Home settings) | `getItems(genreIds)` | 6.12 |
+| Studios | `getStudios` | 6.13 |
+| **Collections** | `getItems(includeItemTypes: [BoxSet], sortBy, limit: 20)`, per library when some are hidden | **fixed here**, below |
+| A collection row (added from Home settings) | `getItems(parentId: <collection>)`; "Playlist order" asks the Moonfin plugin, which Silo lacks (4.6), and falls back to the collection's order | 6.15 |
+| Since You Watched, Rewatch | `getItems(filters: [IsPlayed], sortBy: DatePlayed)` and `getSimilarItems` | Work, but `DatePlayed` isn't mapped yet (5.13 sort review), so "most recently watched" is Silo's default order, not by date |
+| Seasonal, IMDb/TMDB charts, Seerr, Radarr/Sonarr | Moonfin plugin or Seerr | Hidden on Silo (4.6–4.9) |
+| Live TV, playlists, music rows | | Hidden on Silo (4.1–4.3) |
+| Continue Reading/Listening (books) | | Phase 16; empty until then |
+
+**Hand-built URLs:** none left on Home. The only one near it, the account avatars in the user menu, already asks the Silo client for the avatar Silo sent (6.1). Artwork everywhere goes through the image API (6.1–6.3).
+
+**Fixed: the Collections row.** On Emby the row lists every collection the user can see. On Silo, `getItems([BoxSet])` with no library listed only the profile's personal collections (6.15), so a server whose collections are all curated per library (Silo's admin collections) showed an empty row. Now, with no library, it lists:
+
+- the personal collections (`GET /collections`), then
+- each visible library's curated collections (`GET /library/{id}/collections` for every library in the libraries list, which leaves out hidden ones, 6.4), read together. A library whose list can't be read is skipped, and so is the lot if the library list can't be.
+
+A name sort (`SortName` or `Name`, the rows' usual one) is applied to the merged list, either direction; another sort keeps Silo's order, personal first. Paging and the total cover the merged list. With a library as parent, nothing changes: that library's collections.
+
+This also widens the list Home settings offers when adding a collection row, and Moonfin's "add to collection" dialog, which lists collections the same way. Only personal collections can be changed; 9.5 has to keep the dialog to those.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `packages/server_silo/test/silo_items_api_home_collections_test.dart` (new, 3 tests):
+  - every collection, personal and each library's, by name in either direction; a library whose list fails is skipped;
+  - another sort keeps Silo's order, personal first;
+  - ids and `ParentId` say where each came from; the total counts all of them.
+- `silo_items_api_collections_test.dart` (6.15) unchanged: a library's collections, a collection's titles.
+- `server_silo`: 486/486.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+1. **Home → Collections** (turn the row on in Home settings): lists your personal Silo collections and the libraries' curated ones, by name. Compare with what Silo's web app lists.
+2. **Open a curated collection** from the row: its titles, sortable (6.15).
+3. **Home settings → add a collection row**: the picker lists the same collections; add a curated one and it shows on Home.
+4. **Hide a library** that has curated collections (*Show in navigation* off): its collections leave the Collections row. Turn it back on.
+5. **Genres row**: genres with artwork from their titles; opening one lists its titles.
+6. **Studios row**: studios and networks; opening one lists its titles.
+7. **My Media**: the library tiles and buttons as before.
+8. **Since You Watched / Rewatch** (if you use them): rows appear without errors; order isn't by watch date yet (sort review).
+9. **Emby unchanged**.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
-| | | | | |
+| 2026-10-15 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | home collections 3/3; `server_silo` 486/486; analyzer: no issues |
 
 ---
 

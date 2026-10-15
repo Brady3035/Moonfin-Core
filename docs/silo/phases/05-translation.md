@@ -917,6 +917,7 @@ Moonfin asks for an order the Jellyfin way: `sortBy` as a comma-separated list o
 - `Random` now maps to no Silo sort, and `siloWantsRandom(sortBy)` tells the items API to shuffle: `getItems` reads the list in Silo's default order and shuffles what it returns.
 - A first request for less than a page (a genre card's 10 titles, a row's few random titles) draws from the first 100 titles, so the pick isn't just the first few by name.
 - Later pages (a grid sorted Random) are Silo's default order, each page shuffled, so scrolling to the end still lists every title once. Totals are Silo's.
+- *Changed at the TV sort review* (commit `silo(5.13): Shuffle random grids whole`): shuffling each page kept the grid in name order by blocks, so the first screen was always the start of the alphabet ("random barely changes the order"). A random grid now reads the whole list once (as the series-status filter does, 6.10), shuffles it, and pages it from memory for two minutes, so the first screen draws from the whole library and scrolling still lists every title once. Reading a large library takes several requests (Films: 4,614 titles, 47 pages of 100, four at a time), once per two minutes. A few random titles (a genre card's artwork, under a page) still come from the first 100 titles, one request.
 
 ### Testing
 
@@ -928,6 +929,7 @@ Moonfin asks for an order the Jellyfin way: `sortBy` as a comma-separated list o
 - The reverse map, round-tripping every Silo field; unknown values.
 - `server_silo`: 312/312.
 - Follow-up (date played): `DatePlayed` ↔ `date_viewed` in both directions; `silo_item_mapper_test.dart`: last played from `sort_metrics.viewed_at`, a resume card's own date winning. `server_silo` 491/491.
+- Shuffle whole: `silo_items_api_random_test.dart`: a random grid lists every title once and its first page reaches past the first hundred titles. `server_silo` 496/496.
 - Fix (random): the sort map test now expects no sort for `Random` and checks `siloWantsRandom`; `silo_items_api_random_test.dart` (new, 2 tests): no `sort` sent, 10 distinct titles drawn from the first 100, Silo's total; a grid paged in random order lists every title once. `server_silo` 493/493.
 
 **Manual test plan**
@@ -948,6 +950,7 @@ Moonfin asks for an order the Jellyfin way: `sortBy` as a comma-separated list o
 | 2026-10-15 | macOS | `bd9d59ea` | Pass | Brady, second round: Genres row and *Random* work, *Date played* on films works |
 | 2026-10-15 | macOS | `bd9d59ea` | Fail | Brady, sorting a TV library: Premiere Date not right, Last Played and Play Count don't sort, Critic Rating doesn't sort, Runtime should be the episode length, Random barely changes the order. Checked on the live server (`build/silo_tv_sorts.py`): see the TV sort review |
 | 2026-10-15 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | rating sorts mapped to fields Silo accepts; sort map 8/8; `server_silo` 496/496; analyzer: no issues |
+| 2026-10-15 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | random grids shuffled whole; random 2/2; `server_silo` 496/496; analyzer: no issues |
 | | | | | |
 
 ---

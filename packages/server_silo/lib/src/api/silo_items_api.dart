@@ -332,6 +332,16 @@ class SiloItemsApi
         libraryId: libraryId,
       );
     }
+    if (sort == 'runtime') {
+      return _runtimeAscending(
+        params,
+        groups: groups,
+        startIndex: startIndex,
+        limit: limit,
+        keep: keep,
+        libraryId: libraryId,
+      );
+    }
     return _page(
       params,
       startIndex: startIndex,
@@ -340,6 +350,114 @@ class SiloItemsApi
       libraryId: libraryId,
     );
   }
+
+  /// Shortest first, with the titles that have no runtime last (5.13 TV
+  /// review). Silo's ascending `runtime` sort lists the titles without one
+  /// first (most shows on a server have none), so the grid opened on them.
+  /// Silo counts the titles with a runtime (`runtime gt 0`); the order is
+  /// rotated by the rest: Moonfin's index `i` is Silo's `nulls + i` for the
+  /// titles with a runtime, and `i - withRuntime` for those without. A count
+  /// Silo can't give leaves Silo's order.
+  Future<Map<String, dynamic>> _runtimeAscending(
+    Map<String, Object?> params, {
+    required List<Map<String, Object?>> groups,
+    int? startIndex,
+    int? limit,
+    bool Function(Map<String, dynamic> item)? keep,
+    String? libraryId,
+  }) async {
+    final start = startIndex ?? 0;
+    final int total;
+    final int withRuntime;
+    try {
+      final counts = await Future.wait([
+        _fetch(params, 0, 1).then((r) => r.totalRecordCount),
+        _withRuntimeCount(params, groups),
+      ]);
+      total = counts[0];
+      withRuntime = counts[1];
+    } on DioException {
+      return _page(
+        params,
+        startIndex: startIndex,
+        limit: limit,
+        keep: keep,
+        libraryId: libraryId,
+      );
+    }
+    final nulls = total - withRuntime;
+    if (nulls <= 0 || withRuntime <= 0) {
+      return _page(
+        params,
+        startIndex: startIndex,
+        limit: limit,
+        keep: keep,
+        libraryId: libraryId,
+      );
+    }
+    final end = limit == null || limit <= 0
+        ? total
+        : (start + limit).clamp(start, total);
+    final raw = <Map<String, dynamic>>[];
+    // Titles with a runtime: Silo's [nulls, total).
+    if (start < withRuntime) {
+      final n = min(end, withRuntime) - start;
+      final r = await _fetch(params, nulls + start, n);
+      raw.addAll(r.items.take(n));
+    }
+    // Then those without: Silo's [0, nulls).
+    if (end > withRuntime) {
+      final from = max(start, withRuntime) - withRuntime;
+      final n = end - withRuntime - from;
+      final r = await _fetch(params, from, n);
+      raw.addAll(r.items.take(n));
+    }
+    return {
+      'Items': _mapPage(raw, keep: keep, libraryId: libraryId),
+      'TotalRecordCount': total,
+      'StartIndex': start,
+    };
+  }
+
+  /// How many titles of the query [params] have a runtime, kept for
+  /// [_filteredListTtl].
+  Future<int> _withRuntimeCount(
+    Map<String, Object?> params,
+    List<Map<String, Object?>> groups,
+  ) {
+    final countParams = Map<String, Object?>.of(params)
+      ..remove('sort')
+      ..['groups'] = jsonEncode([
+        ...groups,
+        {
+          'match': 'all',
+          'rules': [
+            {'field': 'runtime', 'op': 'gt', 'value': 0},
+          ],
+        },
+      ]);
+    final key = siloPageSignature(_catalogPath, countParams);
+    final now = DateTime.now();
+    final cached = _runtimeCounts[key];
+    if (cached != null && now.difference(cached.at) <= _filteredListTtl) {
+      return cached.count;
+    }
+    final count = _fetch(countParams, 0, 1).then(
+      (r) => r.totalRecordCount,
+      onError: (Object e, StackTrace s) {
+        _runtimeCounts.remove(key);
+        Error.throwWithStackTrace(e, s);
+      },
+    );
+    _runtimeCounts[key] = (at: now, count: count);
+    while (_runtimeCounts.length > _filteredListMax) {
+      _runtimeCounts.remove(_runtimeCounts.keys.first);
+    }
+    return count;
+  }
+
+  final LinkedHashMap<String, ({DateTime at, Future<int> count})>
+  _runtimeCounts = LinkedHashMap();
 
   /// A few titles in random order (`sortBy: Random` with a small `limit`:
   /// a genre card's artwork, a row of random titles). Silo's catalog refuses

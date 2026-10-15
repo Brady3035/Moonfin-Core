@@ -889,6 +889,35 @@ class SiloItemsApi implements ItemsApi {
     throw StateError('Silo has no collection $collectionId for this profile');
   }
 
+  // --- similar (6.16) ------------------------------------------------------
+
+  /// "More like this" (step 6.16): `GET /recommendations/similar/{id}`,
+  /// Silo's own recommendations for the title, mapped like a grid.
+  /// `bypass` (Moonfin's cache-buster) has nothing to bypass on Silo.
+  @override
+  Future<Map<String, dynamic>> getSimilarItems(
+    String itemId, {
+    int? limit,
+    String? bypass,
+  }) async {
+    final response = await _dio.get<dynamic>(
+      '/api/v2/recommendations/similar/${Uri.encodeComponent(itemId)}',
+      queryParameters: {'limit': ?limit},
+    );
+    final raw = asJsonMap(response.data)?['items'];
+    final items = <Map<String, dynamic>>[
+      if (raw is List)
+        for (final entry in raw)
+          if (asJsonMap(entry) case final json?)
+            if (siloItemToBaseItemDto(json, images: images) case final item?)
+              if (siloSupportedTypes.contains(json['type'])) item,
+    ];
+    for (final item in items) {
+      _rememberSeries(item);
+    }
+    return {'Items': items, 'TotalRecordCount': items.length, 'StartIndex': 0};
+  }
+
   // --- what Silo doesn't have ---------------------------------------------
 
   static const _emptyList = <String, dynamic>{
@@ -946,7 +975,6 @@ class SiloItemsApi implements ItemsApi {
 
   /// The step that implements each method not implemented yet.
   static const _steps = {
-    'getSimilarItems': '6.16',
     'getLocalTrailers': '6.17',
     'getSpecialFeatures': '6.17',
     'getIntros': '6.17',

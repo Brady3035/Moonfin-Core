@@ -707,7 +707,7 @@ Silo detects or imports **markers** per file: intro, credits, recap and preview.
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | `b07903c` | 5.10 |
+| ☑ Done | `b07903c`, fixture `c7aa25b` | 5.10 |
 
 **Goal.** `/watch/{id}/trickplay` → Jellyfin `Trickplay` map, registering sheet URLs for `getTrickplayTileImageUrl`.
 

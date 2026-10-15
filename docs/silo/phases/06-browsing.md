@@ -579,7 +579,7 @@ Episode entries carry no type and no series fields, so they are mapped as episod
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 6.8 |
+| ☑ Done | — | 6.8 |
 
 **Goal.** Synthesise episode → season → series → library for breadcrumbs and back navigation.
 
@@ -624,6 +624,7 @@ Collections an item is in are added by 6.15.
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | ancestors 4/4; `server_silo` 375/375; analyzer: no issues |
+| 2026-10-14 | macOS | `4b2e921c` | Pass | full `flutter test` before committing |
 | | | | | |
 
 ---
@@ -633,38 +634,79 @@ Collections an item is in are added by 6.15.
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 6.9 |
 
 **Goal.** `getQueryFilters` and genre, year and rating filters in `getItems`.
 
 **Silo v2 endpoints**
 
 - `GET /catalog/filters`
+- `GET /catalog` with rule `groups`
 
 **Where in Moonfin**
 
-- `silo_items_api.dart`
-- `silo_filters_mapper.dart`
-- `lib/data/viewmodels/library_browse_view_model.dart`
+- `packages/server_silo/lib/src/api/silo_items_api.dart`
+- `packages/server_silo/lib/src/mappers/silo_filters_mapper.dart` (new)
+- `lib/data/viewmodels/library_browse_view_model.dart`: `supportsUhdFilter` true for Silo.
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+**Filter values.** `getQueryFilters(parentId, includeItemTypes)` reads `GET /catalog/filters?library_id=…&type=…`. `siloFiltersToQueryFilterValues` turns it into what the filter picker offers:
+
+- genres;
+- content ratings;
+- audio and subtitle languages from the files (`technical`), named in English (5.8). `und` is left out.
+
+Silo has **no year list and no tags**, so those sections stay hidden.
+
+**Filtering.** Silo filters a catalog list with **rule groups**: `groups` is a JSON array of `{match, rules: [{field, op, value}]}`, the vocabulary Silo's smart collections use, and groups combine with `match=all`. `siloRuleGroups` turns Moonfin's `getItems` filters into one group each, matching any of its values:
+
+| Moonfin | Silo rule |
+|---|---|
+| `genres` | `genre is` |
+| `years` | `year is` |
+| `officialRatings` | `content_rating is` |
+| `filters: IsPlayed` / `IsUnplayed` | `watched is true` / `false` |
+| `filters: IsResumable` | `in_progress is true` |
+| `filters: IsFavorite`, `isFavorite` | `favorited is true` |
+| `is4K` | `resolution is 2160p` (false: `is_not`) |
+| `isHd` | `resolution is 1080p` or `720p`; false: none of 2160p, 1080p, 720p |
+| `audioLanguages`, `subtitleLanguages` | `audio_language is`, `subtitle_language is` |
+
+The groups are part of the query's cursor signature (5.12), so changing a filter starts a fresh traversal.
+
+**Not filterable on Silo.**
+
+- `Likes`/`Dislikes`, tags, trailers, extras, theme media, video types, `hasSubtitles` and 3D have no Silo rule and are left out.
+- Series status (`Continuing`/`Ended`) has no rule either. It is applied to each page, which can show fewer items per page than asked; the grid keeps loading as you scroll.
+
+**4K filter.** Moonfin offered its 4K option only on Jellyfin; Silo can filter by resolution, so `supportsUhdFilter` is now true for every server but Emby.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `packages/server_silo/test/silo_filters_test.dart` (new, 7 tests):
+  - the captured filter document: genres, ratings, no years, English named, `und` left out;
+  - `getQueryFilters` sends `library_id` and `type`;
+  - no groups when nothing applies; one group per filter with any-of values; played, favourite, quality and language rules;
+  - `getItems` sends the groups as JSON, and different filters are different queries;
+  - the series status filter on a page.
+- `test/data/viewmodels/library_browse_filters_test.dart` (existing) still passes.
+- `server_silo`: 382/382.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+- In a Silo library's filter menu: genres, parental ratings and audio/subtitle languages list what the library holds; there is no year or tag section.
+- Each filter narrows the grid: a genre, two genres (either), a rating, watched / unwatched / in progress, favourites (none until favourites can be set in phase 9, or set some in Silo's web app), 4K and HD, an audio language. Combined filters narrow further.
+- Series status (continuing/ended) on a TV library narrows the shows.
+- Clearing filters brings back the whole library. Emby's filter menu is unchanged (no 4K option).
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | filters 7/7; `server_silo` 382/382; browse filter tests pass; analyzer: no issues |
 | | | | | |
 
 ---

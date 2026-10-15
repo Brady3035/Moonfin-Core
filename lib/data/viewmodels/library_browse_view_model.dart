@@ -1605,8 +1605,8 @@ class LibraryBrowseViewModel extends ChangeNotifier {
 
   /// Emby's items query takes no 4K flag and its series status holds only
   /// continuing and ended, so those two options stay out of the picker rather
-  /// than sitting there doing nothing.
-  bool get supportsUhdFilter => _client.serverType == ServerType.jellyfin;
+  /// than sitting there doing nothing. Silo filters 4K by resolution.
+  bool get supportsUhdFilter => _client.serverType != ServerType.emby;
 
   bool get supportsUnreleasedSeriesFilter =>
       _client.serverType == ServerType.jellyfin;

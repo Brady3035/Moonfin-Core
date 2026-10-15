@@ -1,7 +1,10 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:server_core/server_core.dart';
 
 import '../mappers/silo_item_mapper.dart';
+import '../mappers/silo_filters_mapper.dart';
 import '../mappers/silo_ids.dart';
 import '../mappers/silo_item_types.dart';
 import '../mappers/silo_sort_map.dart';
@@ -52,8 +55,9 @@ class SiloItemsApi implements ItemsApi {
   /// - `sortBy`/`sortOrder` → `sort` (5.13).
   /// - `startIndex`/`limit` → cursors through the pager (5.12).
   ///
-  /// Arguments the grid can send that a later step implements (filters,
-  /// genres, years, ratings, favourites, name prefix…) are not applied yet.
+  /// - Filters (genres, years, ratings, played state, favourites, 4K/HD,
+  ///   languages) → Silo rule `groups` (6.10, `siloRuleGroups`); the series
+  ///   status filter is applied to each page, Silo having no rule for it.
   @override
   Future<Map<String, dynamic>> getItems({
     bool? serverWide,
@@ -124,10 +128,22 @@ class SiloItemsApi implements ItemsApi {
     if (types != null && types.isEmpty) return _empty(startIndex);
     final scope = types == null ? null : siloCatalogScopeFor(types);
 
+    final groups = siloRuleGroups(
+      genres: genres,
+      years: years,
+      officialRatings: officialRatings,
+      filters: filters,
+      isFavorite: isFavorite,
+      is4K: is4K,
+      isHd: isHd,
+      audioLanguages: audioLanguages,
+      subtitleLanguages: subtitleLanguages,
+    );
     final params = <String, Object?>{
       'library_id': ?libraryId,
       'type': ?scope,
       'sort': ?siloSortFor(sortBy: sortBy, sortOrder: sortOrder),
+      if (groups.isNotEmpty) 'groups': jsonEncode(groups),
       'image_size': siloListImageSize,
     };
     final excluded = {
@@ -137,6 +153,9 @@ class SiloItemsApi implements ItemsApi {
       final silo = (item[siloOriginalKey] as Map?)?['type'] ?? item['Type'];
       final type = (item['Type'] as String? ?? '').toLowerCase();
       if (excluded.contains(type)) return false;
+      if (!siloMatchesSeriesStatus(item, seriesStatus ?? const [])) {
+        return false;
+      }
       // With no single Silo scope for the asked types, Silo is asked for
       // everything and the rest are dropped here.
       if (types != null && scope == null) return types.contains(silo);
@@ -547,6 +566,29 @@ class SiloItemsApi implements ItemsApi {
     }
   }
 
+  // --- filters (6.10) ------------------------------------------------------
+
+  /// The filter values a library holds (step 6.10): `GET /catalog/filters`
+  /// with its `library_id` and type scope.
+  @override
+  Future<QueryFilterValues> getQueryFilters({
+    String? parentId,
+    List<String>? includeItemTypes,
+  }) async {
+    final types = siloTypesForQuery(includeItemTypes: includeItemTypes);
+    final scope = types == null || types.isEmpty
+        ? null
+        : siloCatalogScopeFor(types);
+    final response = await _dio.get<dynamic>(
+      '/api/v2/catalog/filters',
+      queryParameters: {'library_id': ?_libraryIdOf(parentId), 'type': ?scope},
+    );
+    final json = asJsonMap(response.data);
+    return json == null
+        ? QueryFilterValues.empty
+        : siloFiltersToQueryFilterValues(json);
+  }
+
   // --- what Silo doesn't have ---------------------------------------------
 
   static const _emptyList = <String, dynamic>{
@@ -604,7 +646,6 @@ class SiloItemsApi implements ItemsApi {
 
   /// The step that implements each method not implemented yet.
   static const _steps = {
-    'getQueryFilters': '6.10',
     'getGenres': '6.12',
     'getStudios': '6.13',
     'getSimilarItems': '6.16',

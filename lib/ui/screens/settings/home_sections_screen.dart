@@ -955,10 +955,12 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen>
       final genresFuture = _fetchGenresForHomeSections();
       final playlistsFuture = _fetchPlaylistsForHomeSections();
       final seerrSlidersFuture = _fetchSeerrSlidersForHomeSections();
+      final serverSectionsFuture = _fetchServerSectionsForHomeSections();
       final discoveredCollections = await collectionsFuture;
       final discoveredGenres = await genresFuture;
       final discoveredPlaylists = await playlistsFuture;
       final discoveredSeerrSliders = await seerrSlidersFuture;
+      final discoveredServerSections = await serverSectionsFuture;
       if (!mounted) return;
       var changed = false;
       setState(() {
@@ -974,6 +976,8 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen>
         );
         final mergedSeerrSliderSections = discoveredSeerrSliders != null &&
             _mergeSeerrSliderSections(discoveredSeerrSliders);
+        final mergedServerSections = discoveredServerSections != null &&
+            _mergeServerSections(discoveredServerSections);
 
         final beforeIds = _sections.map((s) => s.stableId).toList();
         _sortSectionsEnabledAboveDisabled();
@@ -991,6 +995,7 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen>
             mergedGenreSections ||
             mergedPlaylistSections ||
             mergedSeerrSliderSections ||
+            mergedServerSections ||
             sortChanged;
         _rebuildFocusNodes();
       });
@@ -1398,6 +1403,64 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen>
   /// Every slider on Seerr's discover page. Null when Seerr can't be reached,
   /// so a failed read leaves the rows in place instead of reading as every
   /// slider having been deleted.
+  /// The rows the active server curates itself (Silo's home sections, step
+  /// 8.7), or null when it has none to offer or they couldn't be read, in
+  /// which case the rows already listed are left as they are.
+  Future<List<ServerHomeSection>?> _fetchServerSectionsForHomeSections() async {
+    try {
+      final api = GetIt.instance<MediaServerClient>().itemsApi;
+      if (api is! ServerHomeSectionsApi) return null;
+      return await (api as ServerHomeSectionsApi).getServerHomeSections();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Lists the server's own rows as entries the user can switch on (off
+  /// until then), keeps their titles current and drops the ones the server
+  /// no longer has. Only this server's entries are touched.
+  bool _mergeServerSections(List<ServerHomeSection> discovered) {
+    final serverId = GetIt.instance<MediaServerClient>().baseUrl;
+    var changed = false;
+
+    bool isOwn(HomeSectionConfig s) =>
+        s.isPluginDynamic &&
+        s.pluginSource == HomeSectionPluginSource.server &&
+        s.serverId == serverId;
+
+    final freshIds = <String>{};
+    var nextOrder = _sections.length;
+    for (final section in discovered) {
+      final cfg = HomeSectionConfig.pluginDynamic(
+        serverId: serverId,
+        pluginSection: section.id,
+        pluginDisplayText: section.title,
+        pluginSource: HomeSectionPluginSource.server,
+        enabled: false,
+        order: nextOrder++,
+      );
+      freshIds.add(cfg.stableId);
+      final idx = _sections.indexWhere((s) => s.stableId == cfg.stableId);
+      if (idx >= 0) {
+        if (_sections[idx].pluginDisplayText != section.title) {
+          _sections[idx] = _sections[idx].copyWith(
+            pluginDisplayText: section.title,
+          );
+          changed = true;
+        }
+      } else {
+        _addSection(cfg);
+        changed = true;
+      }
+    }
+
+    final before = _sections.length;
+    _sections.removeWhere((s) => isOwn(s) && !freshIds.contains(s.stableId));
+    if (_sections.length != before) changed = true;
+
+    return changed;
+  }
+
   Future<List<SeerrDiscoverSlider>?> _fetchSeerrSlidersForHomeSections() async {
     if (!GetIt.instance<PluginSyncService>().seerrAvailable) return null;
     try {
@@ -2901,6 +2964,8 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen>
       HomeSectionPluginSource.playlists => 'Playlists row',
       HomeSectionPluginSource.seerr =>
         AppLocalizations.of(context).seerrDiscoveryRows,
+      HomeSectionPluginSource.server =>
+        AppLocalizations.of(context).siloServerRowSubtitle,
       HomeSectionPluginSource.custom => (() {
         Map<String, dynamic> rowConfig = {};
         try {

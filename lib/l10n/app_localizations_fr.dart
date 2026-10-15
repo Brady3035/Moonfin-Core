@@ -15497,6 +15497,9 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get siloServerRowSubtitle => 'From your server';
+
+  @override
   String get playlistSortReleaseDate => 'Date de sortie';
 
   @override

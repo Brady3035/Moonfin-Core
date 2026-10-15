@@ -1,9 +1,10 @@
 /// Moonfin's sort fields (Jellyfin `ItemSortBy`) and Silo's `sort` values.
 ///
-/// Silo sorts by one term, `field` or `-field` for descending. Mapped:
-/// `title`, `year`, `release_date`, `added_at`, `rating`, `runtime`, and
-/// `date_viewed` (when the profile last watched it, Silo's per-profile
-/// sort) for Moonfin's `DatePlayed`.
+/// Silo sorts by one term, `field` or `-field` for descending. The fields
+/// come from the server's sort definitions (`querySortDefs` in
+/// `internal/catalog/query_definition.go`), checked against the live server
+/// at the 5.13 review: the contract's `rating` and `random` are refused.
+/// `date_viewed` and `plays` are per profile.
 ///
 /// Silo's contract also names `random`, but the catalog refuses it
 /// (`sort.field "random" is not supported`: random order exists only as a
@@ -22,13 +23,19 @@ const Map<String, String> siloSortFields = {
   'productionyear': 'year',
   'premieredate': 'release_date',
   'datecreated': 'added_at',
-  // A series' "last episode added"; Silo dates a series by when it changed.
-  'datelastcontentadded': 'added_at',
-  'communityrating': 'rating',
+  // "Date Episode Added": when a show's newest episode file arrived.
+  'datelastcontentadded': 'latest_episode_added',
+  // The rating Moonfin shows as a card's community rating (5.3). Silo's
+  // `rating` alias is refused by the catalog (422).
+  'communityrating': 'rating_tmdb',
+  // Rotten Tomatoes critics, when a metadata plugin provides it.
+  'criticrating': 'rating_rt_critic',
+  // Moonfin's "Rating" menu entry: the content rating (PG-13…).
+  'officialrating': 'content_rating',
   'runtime': 'runtime',
-  // Per profile: the title's last watch (5.13 follow-up, for Home's
-  // recently watched rows).
+  // Per profile: the title's last watch and its completed plays.
   'dateplayed': 'date_viewed',
+  'playcount': 'plays',
 };
 
 /// Silo's `sort` value for Moonfin's [sortBy] and [sortOrder], or null to
@@ -68,10 +75,14 @@ const _jellyfinNames = {
   'year': 'ProductionYear',
   'release_date': 'PremiereDate',
   'added_at': 'DateCreated',
-  'rating': 'CommunityRating',
+  'latest_episode_added': 'DateLastContentAdded',
+  'rating_tmdb': 'CommunityRating',
+  'rating_rt_critic': 'CriticRating',
+  'content_rating': 'OfficialRating',
   'runtime': 'Runtime',
   'random': 'Random',
   'date_viewed': 'DatePlayed',
+  'plays': 'PlayCount',
 };
 
 /// Whether [sortBy]'s first term asks for a random order, which Silo's

@@ -11,10 +11,13 @@ void main() {
         'ProductionYear': 'year',
         'PremiereDate': 'release_date',
         'DateCreated': 'added_at',
-        'DateLastContentAdded': 'added_at',
-        'CommunityRating': 'rating',
+        'DateLastContentAdded': 'latest_episode_added',
+        'CommunityRating': 'rating_tmdb',
+        'CriticRating': 'rating_rt_critic',
+        'OfficialRating': 'content_rating',
         'Runtime': 'runtime',
         'DatePlayed': 'date_viewed',
+        'PlayCount': 'plays',
       };
       for (final MapEntry(key: moonfin, value: silo) in expected.entries) {
         expect(
@@ -68,9 +71,6 @@ void main() {
 
     test('fields Silo has no sort for, and nothing', () {
       for (final field in [
-        'CriticRating',
-        'OfficialRating',
-        'PlayCount',
         'Album',
         'Artist',
         'StartDate',
@@ -104,6 +104,7 @@ void main() {
 
     test('unknown or empty gives null', () {
       expect(jellyfinSortForSilo('play_count'), isNull);
+      expect(jellyfinSortForSilo('rating'), isNull, reason: 'Silo refuses it');
       expect(jellyfinSortForSilo(''), isNull);
       expect(jellyfinSortForSilo(null), isNull);
     });

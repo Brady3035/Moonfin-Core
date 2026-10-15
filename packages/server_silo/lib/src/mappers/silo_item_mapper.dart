@@ -1,6 +1,7 @@
 import 'package:server_core/server_core.dart';
 
 import '../silo_image_registry.dart';
+import 'silo_extras_mapper.dart';
 import 'silo_ids.dart';
 import 'silo_chapter_mapper.dart';
 import 'silo_item_types.dart';
@@ -72,6 +73,16 @@ Map<String, dynamic>? siloItemToBaseItemDto(
     'IsFolder': itemType.isFolder,
     if (_text(item['overview']) case final overview?) 'Overview': overview,
     'Taglines': [?tagline],
+    // Remote trailers and the local extras' counts (6.17).
+    'RemoteTrailers': siloRemoteTrailers(item['videos']),
+    if (item['extras'] case final List extras) ...{
+      'LocalTrailerCount': extras
+          .where((e) => e is Map && isSiloTrailerKind(e['kind']))
+          .length,
+      'SpecialFeatureCount': extras
+          .where((e) => e is Map && !isSiloTrailerKind(e['kind']))
+          .length,
+    },
     'Genres': genres,
     'GenreItems': [
       for (final g in genres) {'Name': g, 'Id': siloGenreId(g)},

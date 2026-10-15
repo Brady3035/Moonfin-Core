@@ -5,6 +5,7 @@ import 'package:server_core/server_core.dart';
 
 import '../mappers/silo_item_mapper.dart';
 import '../mappers/silo_collection_mapper.dart';
+import '../mappers/silo_extras_mapper.dart';
 import '../mappers/silo_filters_mapper.dart';
 import '../mappers/silo_ids.dart';
 import '../mappers/silo_item_types.dart';
@@ -918,6 +919,43 @@ class SiloItemsApi implements ItemsApi {
     return {'Items': items, 'TotalRecordCount': items.length, 'StartIndex': 0};
   }
 
+  // --- trailers and extras (6.17) -----------------------------------------
+
+  /// The title's local trailers and teasers (step 6.17), from its detail's
+  /// `extras`. Remote (YouTube) trailers are the item's `RemoteTrailers`.
+  @override
+  Future<List<Map<String, dynamic>>> getLocalTrailers(String itemId) =>
+      _extras(itemId, trailers: true);
+
+  /// The title's other local extras: featurettes, clips, behind the scenes,
+  /// bloopers, deleted scenes.
+  @override
+  Future<List<Map<String, dynamic>>> getSpecialFeatures(String itemId) =>
+      _extras(itemId, trailers: false);
+
+  /// Silo plays no intros before a title.
+  @override
+  Future<List<Map<String, dynamic>>> getIntros(String itemId) async => const [];
+
+  Future<List<Map<String, dynamic>>> _extras(
+    String itemId, {
+    required bool trailers,
+  }) async {
+    final item = await getItem(itemId);
+    final extras = (item[siloOriginalKey] as Map?)?['extras'];
+    return [
+      if (extras is List)
+        for (final e in extras)
+          if (e is Map && isSiloTrailerKind(e['kind']) == trailers)
+            if (siloExtraToBaseItemDto(
+                  e.cast<String, dynamic>(),
+                  ownerId: itemId,
+                )
+                case final extra?)
+              extra,
+    ];
+  }
+
   // --- what Silo doesn't have ---------------------------------------------
 
   static const _emptyList = <String, dynamic>{
@@ -975,9 +1013,6 @@ class SiloItemsApi implements ItemsApi {
 
   /// The step that implements each method not implemented yet.
   static const _steps = {
-    'getLocalTrailers': '6.17',
-    'getSpecialFeatures': '6.17',
-    'getIntros': '6.17',
     'getPersons': '7.2',
     'getResumeItems': '8.1',
     'getNextUp': '8.2',

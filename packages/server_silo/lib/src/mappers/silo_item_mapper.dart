@@ -480,7 +480,9 @@ int? _int(Object? value) => value is num ? value.toInt() : null;
 /// - `user_data` on series, seasons and watch answers: `position_seconds`,
 ///   `duration_seconds`, `is_in_progress`, `unplayed_count`, `played`;
 /// - `position_seconds` and `duration_seconds` on the card itself, on a
-///   Continue Watching card (8.1).
+///   Continue Watching card (8.1);
+/// - the last watch as `progress_updated_at`, or `sort_metrics.viewed_at` on
+///   a card from a list sorted by watch date.
 ///
 /// Either may be missing; what neither says means unplayed at position 0, the
 /// way Emby reports an untouched item. `UnplayedItemCount` is only for
@@ -495,7 +497,11 @@ Map<String, dynamic> _userData(SiloItemType type, Map<String, dynamic> item) {
       : 0;
   final duration = data['duration_seconds'] ?? item['duration_seconds'];
   final unplayed = data['unplayed_count'];
-  final lastPlayed = _timestamp(item['progress_updated_at']);
+  // A card in a list sorted by watch date (`date_viewed`) carries the date in
+  // its `sort_metrics` (5.13 follow-up).
+  final lastPlayed =
+      _timestamp(item['progress_updated_at']) ??
+      _timestamp(asJsonMap(item['sort_metrics'])?['viewed_at']);
   return {
     'PlaybackPositionTicks': secondsToTicks(positionSeconds),
     if (_playedPercentage(positionSeconds, duration) case final pct?)

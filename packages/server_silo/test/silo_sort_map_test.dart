@@ -14,6 +14,7 @@ void main() {
         'DateLastContentAdded': 'added_at',
         'CommunityRating': 'rating',
         'Runtime': 'runtime',
+        'DatePlayed': 'date_viewed',
       };
       for (final MapEntry(key: moonfin, value: silo) in expected.entries) {
         expect(
@@ -64,7 +65,6 @@ void main() {
       for (final field in [
         'CriticRating',
         'OfficialRating',
-        'DatePlayed',
         'PlayCount',
         'Album',
         'Artist',
@@ -85,6 +85,10 @@ void main() {
       ));
       expect(jellyfinSortForSilo('-added_at'), (
         sortBy: 'DateCreated',
+        sortOrder: 'Descending',
+      ));
+      expect(jellyfinSortForSilo('-date_viewed'), (
+        sortBy: 'DatePlayed',
         sortOrder: 'Descending',
       ));
       for (final field in siloSortFields.values.toSet()) {

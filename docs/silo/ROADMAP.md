@@ -137,7 +137,7 @@ Status key: ☐ not started · ◐ in progress · ☑ done and tested · ⊘ ski
 - [x] **8.4** [Recently released](phases/08-home.md#step-8-4)
 - [x] **8.5** [Favorites row](phases/08-home.md#step-8-5)
 - [x] **8.6** [Collections and genre rows](phases/08-home.md#step-8-6)
-- [ ] **8.7** [Server-curated home sections](phases/08-home.md#step-8-7) *(optional)*
+- [x] **8.7** [Server-curated home sections](phases/08-home.md#step-8-7) *(optional)*
 
 ## 9. [User actions](phases/09-user-actions.md)
 

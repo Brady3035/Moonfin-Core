@@ -234,7 +234,7 @@ A self-wait was caught by these tests: a `whenComplete` callback returning the r
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | 6.3 |
+| ☑ Done | `cfff681` | 6.3 |
 
 **Goal.** `GET /user/libraries` with caching and `invalidateCache()`.
 
@@ -304,7 +304,7 @@ The settings request runs alongside the library request.
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 6.4 |
+| ☑ Done | `cc2b4f6` | 6.4 |
 
 **Goal.** Library id → `library_id`, type filter, sort, page through the cursor pager.
 
@@ -377,6 +377,7 @@ Each item is mapped (phase 5) and its artwork registered, and the answer is Jell
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | library grid 8/8; `server_silo` 356/356; analyzer: no issues |
+| 2026-10-14 | macOS | `4b2e921c` | Pass | full `flutter test` before committing |
 | | | | | |
 
 ---
@@ -386,7 +387,7 @@ Each item is mapped (phase 5) and its artwork registered, and the answer is Jell
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 6.5 |
 
 **Goal.** Item detail with its versions in one call when available.
 
@@ -397,26 +398,54 @@ Each item is mapped (phase 5) and its artwork registered, and the answer is Jell
 
 **Where in Moonfin**
 
-- `silo_items_api.dart`
+- `packages/server_silo/lib/src/api/silo_items_api.dart`: `getItem`, `getItems(ids)`.
+- `packages/server_silo/lib/src/api/silo_user_library_api.dart` (new)
+- `packages/server_silo/lib/src/silo_media_server_client.dart`
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+**`getItem(id)`** reads `GET /catalog/items/{id}?image_size=large` and maps it (phase 5): core fields, series links, user data, people, media sources, chapters. Artwork is registered at the detail size (posters 780 px), and the item's tags pick exactly those URLs (6.1).
+
+- **Versions.** Silo's detail answer embeds `versions` for playable items, so a movie or episode costs **one** request. When a playable item's answer has no `versions` (an older server, a trimmed answer), they are read from `/catalog/items/{id}/versions` and merged, so `MediaSources` are always there.
+- **`mediaSourceId`** is sent as `file_id`, which makes that version the item's effective one.
+- **A library id** (Moonfin asks for the library it is browsing) answers the library's view from the libraries list (6.4).
+- **`fields`** is ignored: Silo has no field selection, and its detail answer is always whole.
+
+**`ParentId`.** Silo's item answers don't name their library. The items API remembers which library each item was listed in by a grid (up to 5000 items, oldest forgotten first), sets `ParentId` on the grid's items and later on their detail, and offers `libraryOf(id)` for the ancestors (6.9).
+
+**`getItems(ids: …)`** reads each item with `getItem`, six at a time, in the order asked. Ids Silo doesn't know are left out. Silo has no "these ids" list query.
+
+**`UserLibraryApi`.** The new `SiloUserLibraryApi` answers `getItem` through the items API. Favourites, played state and ratings throw `SiloNotImplementedError` naming their phase 9 step. `supportsNumericUserRatings` is true (Silo rates 0–10). `SiloPendingUserLibraryApi` is removed.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `packages/server_silo/test/silo_items_api_detail_test.dart` (new, 8 tests):
+  - a movie in one request at `image_size=large`, with versions, people and registered artwork;
+  - versions fetched when the detail has none; a series has none to fetch;
+  - `mediaSourceId` → `file_id`;
+  - a library id answers its view; `UserLibraryApi.getItem` is the same, and favourites name 9.1;
+  - an item listed in a library knows its `ParentId`;
+  - `getItems(ids)` keeps the order and drops unknown ids.
+- `silo_items_api_library_test.dart`: "later steps name themselves" now checks `getSeasons` (6.7).
+- `server_silo`: 364/364.
 
 **Manual test plan**
 
-- Compare with Emby: Open the same movie on Emby: overview, cast, ratings, runtime, version badges.
+- Open a film from a Silo grid. The detail page shows title, year, rating, runtime, overview, genres, studios, cast with photos, backdrop and logo.
+- **Compare with Emby:** open the same film on Emby. Overview, cast, ratings, runtime and version badges (resolution, HDR, audio) match.
+- A film with two versions (The Salt Path) offers both in the version picker, 4K first. The audio and subtitle lists name the tracks like Emby ("English DTS 5.1 (Default)").
+- Chapters show with thumbnails where the file has them.
+- From 4.3: a Silo film's detail screen and context menu have no Add to playlist; an Emby film's still do.
+- From 4.7: a Silo film's detail screen shows no MDBList/TMDB rating badges and logs no errors; Silo's request log shows no `/Moonfin/` requests.
+- Favourite and watched buttons answer with an error until phase 9; Play until phase 10.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | detail 8/8; `server_silo` 364/364; analyzer: no issues |
 | | | | | |
 
 ---

@@ -164,9 +164,9 @@ void main() {
       throwsA(isA<SiloNotImplementedError>()),
     );
     expect(
-      () => api.getItem('movie-1'),
+      () => api.getSeasons('series-1'),
       throwsA(
-        isA<SiloNotImplementedError>().having((e) => e.step, 'step', '6.6'),
+        isA<SiloNotImplementedError>().having((e) => e.step, 'step', '6.7'),
       ),
     );
     expect(

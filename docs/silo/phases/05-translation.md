@@ -863,7 +863,7 @@ Moonfin reads Jellyfin's `Trickplay` item field, `{ <media source id>: { "<width
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | `549c133`, date played — | 5.12 |
+| ☑ Done | `549c133`, date played —, fix — | 5.12 |
 
 **Goal.** Moonfin sort fields → Silo `sort` values (descending = `-field`); unknown → server default.
 
@@ -899,6 +899,12 @@ Moonfin asks for an order the Jellyfin way: `sortBy` as a comma-separated list o
 
 `PlayCount` (Silo's `plays`), `CriticRating` and the rest stay unmapped until the full sort review with Brady.
 
+**Fix at phase 8: `Random`** (commit `silo(5.13): Fix random sort`, found at 8.6). Silo's contract lists `random` among the sort fields, but the catalog refuses it: `random` isn't in the server's sort definitions (`querySortDefs`), so `GET /catalog?sort=random` answers `422 sort.field "random" is not supported`. Random order exists on Silo only as a home section ("Surprise Me"). Every `Random` query failed, and the Home Genres row, which picks each genre card's artwork with `sortBy: Random`, lost every genre and stayed hidden.
+
+- `Random` now maps to no Silo sort, and `siloWantsRandom(sortBy)` tells the items API to shuffle: `getItems` reads the list in Silo's default order and shuffles what it returns.
+- A first request for less than a page (a genre card's 10 titles, a row's few random titles) draws from the first 100 titles, so the pick isn't just the first few by name.
+- Later pages (a grid sorted Random) are Silo's default order, each page shuffled, so scrolling to the end still lists every title once. Totals are Silo's.
+
 ### Testing
 
 **Automated tests** (`packages/server_silo/test/silo_sort_map_test.dart`, new, 8 tests)
@@ -909,9 +915,11 @@ Moonfin asks for an order the Jellyfin way: `sortBy` as a comma-separated list o
 - The reverse map, round-tripping every Silo field; unknown values.
 - `server_silo`: 312/312.
 - Follow-up (date played): `DatePlayed` ↔ `date_viewed` in both directions; `silo_item_mapper_test.dart`: last played from `sort_metrics.viewed_at`, a resume card's own date winning. `server_silo` 491/491.
+- Fix (random): the sort map test now expects no sort for `Random` and checks `siloWantsRandom`; `silo_items_api_random_test.dart` (new, 2 tests): no `sort` sent, 10 distinct titles drawn from the first 100, Silo's total; a grid paged in random order lists every title once. `server_silo` 493/493.
 
 **Manual test plan**
 
+- Random (fix): the Home Genres row shows, each genre card with artwork; a library grid sorted *Random* shows a different order each time and scrolls through every title.
 - Date played (follow-up): a library grid sorted by *Date played* lists the last watched title first; the Home checks are in 8.2 (Next Up order) and 8.6 (Rewatch, Since You Watched).
 - Nothing to check by hand until 6.5 sorts a library grid. Then, in 6.5: try Moonfin's sort menu entries on a Silo library and note any that Silo ignores. Regression: full `flutter test`.
 
@@ -922,6 +930,8 @@ Moonfin asks for an order the Jellyfin way: `sortBy` as a comma-separated list o
 | 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | sort map tests 8/8; `server_silo` 312/312; analyzer: no issues |
 | 2026-10-14 | macOS | `4b2e921c` | Pass | full `flutter test` before committing |
 | 2026-10-15 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | date played follow-up (asked by Brady at phase 8): sort map 8/8, item mapper; `server_silo` 491/491; analyzer: no issues. Manual checks are in 8.2 and 8.6 |
+| 2026-10-15 | macOS | `bd9d59ea` | Fail | found at 8.6: the Genres row stayed hidden; Silo refuses `sort=random` (422), which each genre card's artwork query sends |
+| 2026-10-15 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | random fix: shuffled in the items API, no `sort` sent; `server_silo` 493/493; analyzer: no issues |
 | | | | | |
 
 ---

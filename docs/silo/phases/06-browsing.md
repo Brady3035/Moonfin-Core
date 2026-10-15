@@ -13,7 +13,7 @@ Libraries, grids and detail pages. Each step replaces one placeholder method wit
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | 5.13 |
+| ☑ Done | `6292646` | 5.13 |
 
 **Goal.** `getPrimary/Backdrop/Logo/Thumb/BannerImageUrl` and user avatars from the registry (Thumb and Banner use Silo's own art when the item has it, otherwise the backdrop); user menu avatar goes through `imageApi`.
 
@@ -85,7 +85,7 @@ The client owns the registry (`SiloMediaServerClient.images`), so the items API 
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | 6.1 |
+| ☑ Done | `e8f063f` | 6.1 |
 
 **Goal.** Pass a path-only `cacheKey` so the signed query rotating every day doesn't re-download every image.
 
@@ -145,7 +145,7 @@ The client owns the registry (`SiloMediaServerClient.images`), so the items API 
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 6.2 |
+| ☑ Done | `b821d73` | 6.2 |
 
 **Goal.** When nothing is registered for an item (cold start, deep link), follow the decision in DECISIONS.md D2 (resolver image provider or placeholder).
 
@@ -224,6 +224,7 @@ A self-wait was caught by these tests: a `whenComplete` callback returning the r
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | resolver 13/13, hooks 4/4; `server_silo` 339/339; analyzer: no issues in changed files |
+| 2026-10-14 | macOS | `4b2e921c` | Pass | full `flutter test` before committing |
 | | | | | |
 
 ---
@@ -233,7 +234,7 @@ A self-wait was caught by these tests: a `whenComplete` callback returning the r
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 6.3 |
 
 **Goal.** `GET /user/libraries` with caching and `invalidateCache()`.
 
@@ -243,30 +244,56 @@ A self-wait was caught by these tests: a `whenComplete` callback returning the r
 
 **Where in Moonfin**
 
-- `silo_user_views_api.dart`
+- `packages/server_silo/lib/src/api/silo_user_views_api.dart` (new)
+- `packages/server_silo/lib/src/api/silo_users_api.dart`: `onConfigurationUpdated`.
+- `packages/server_silo/lib/src/silo_media_server_client.dart`
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+`SiloUserViewsApi.getUserViews` reads `GET /user/libraries` and maps it with the library mapper (5.7): `CollectionFolder` views with Silo's library ids, collection types and registered posters, openable types only (movies, series, mixed).
+
+**Order and hidden libraries.** Jellyfin and Emby apply the user's library order and hidden list (`OrderedViews`, `MyMediaExcludes`) on the server, and parts of Moonfin rely on that. Silo doesn't for a profile without library restrictions. Its contract says the list includes the libraries the profile hid itself, and "navigation should filter by the setting". So this class applies the profile's settings (2.7), read through `UsersApi.getUserConfiguration`:
+
+- `ui.library_order` orders the list; libraries it doesn't name follow in Silo's `sort_order`;
+- `ui.disabled_library_ids` is left out, unless `includeHidden` is set. Silo is then also asked with `include_hidden=true`, so a restricted profile gets its hidden libraries back too;
+- if the settings can't be read, the list comes back in Silo's order, unfiltered.
+
+The settings request runs alongside the library request.
+
+**Caching.** Answers are cached for five minutes per `includeHidden`, and concurrent callers share one request. `invalidateCache()` drops them. The users API now calls an `onConfigurationUpdated` callback after saving settings, and the client wires it to `invalidateCache`, as Emby does. Hiding or reordering a library in Moonfin's settings shows at once.
+
+`SiloPendingUserViewsApi` is removed.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `packages/server_silo/test/silo_user_views_api_test.dart` (new, 9 tests):
+  - the captured libraries come out as Emby lists them (Movies, TV Shows; `movies`, `tvshows`);
+  - podcasts are left out;
+  - the profile's order and hidden list apply; `includeHidden` keeps hidden ones and sends `include_hidden=true`, and without it the parameter isn't sent;
+  - unreadable settings give Silo's order;
+  - caching and shared requests; saving the hidden list drops the cache;
+  - posters are registered for `ImageApi`.
+- `test/silo_test_client.dart` (new): shared setup for the phase 6 API tests.
+- `silo_media_server_client_test.dart`: the placeholder check now uses `DisplayPreferencesApi` (6.19).
+- `server_silo`: 348/348.
 
 **Manual test plan**
 
+- Signed in to Silo, the libraries show in the sidebar or toolbar, on Home's library row and in the library list, with their posters. They match Silo's web app.
+- **Compare with Emby:** the library list and order match what Emby shows for the same libraries.
+- From 2.7: hide a library and reorder libraries in Moonfin's library settings. Moonfin updates at once, and Silo's web app shows the same (`ui.disabled_library_ids`, `ui.library_order`). Unhide it again.
 - From 3.5: with Moonfin open on a library, sign its session out from Silo's sessions page, then open another library. Expected: Moonfin returns to the login screen with your name filled in.
-- From 2.7: hide a library and reorder libraries in Moonfin's library settings; Silo's web app shows the same (`ui.disabled_library_ids`, `ui.library_order`). This needs the view `Id` to be Silo's library id.
-- From 4.3: with Silo and Emby signed in, a Silo film's detail screen and context menu have no Add to playlist; an Emby film's still do.
-- From 4.7: a Silo film's detail screen shows no MDBList/TMDB rating badges and logs no errors; Silo's request log shows no `/Moonfin/` requests.
-- Compare with Emby: The library list and order match what Emby shows for the same libraries.
+- A Silo library named like "Games" (if you have a mixed one) doesn't open the games browser (from 5.7).
+- From 4.3: with Silo and Emby signed in, a Silo film's detail screen and context menu have no Add to playlist; an Emby film's still do (needs 6.6).
+- From 4.7: a Silo film's detail screen shows no MDBList/TMDB rating badges and logs no errors; Silo's request log shows no `/Moonfin/` requests (needs 6.6).
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | user views 9/9; `server_silo` 348/348; analyzer: no issues |
 | | | | | |
 
 ---

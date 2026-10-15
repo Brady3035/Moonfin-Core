@@ -261,6 +261,11 @@ class SiloMediaServerClient extends MediaServerClient
   /// item by its content id; otherwise a library, a profile (avatars) or a
   /// person, which have plain ids.
   Future<void> _loadArtwork(String id) async {
+    if (parseSiloCollectionId(id) != null) {
+      // A collection's artwork comes with its list (6.15).
+      await itemsApi.getItem(id);
+      return;
+    }
     if (siloTypeOfId(id) != null) {
       final response = await _dio.get<dynamic>(
         '/api/v2/catalog/items/${Uri.encodeComponent(id)}',

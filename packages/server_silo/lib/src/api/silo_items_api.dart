@@ -302,10 +302,12 @@ class SiloItemsApi
       );
     }
     // A random grid is shuffled whole (a few random titles come from the
-    // first hundred instead, [_shuffledPage]).
+    // first hundred instead, [_shuffledPage]). A grid always sends
+    // `startIndex` (its first page is 75, under a hundred); rows and genre
+    // cards don't.
     final smallRandom =
         random &&
-        (startIndex ?? 0) == 0 &&
+        startIndex == null &&
         limit != null &&
         limit > 0 &&
         limit < _randomPool;
@@ -459,10 +461,10 @@ class SiloItemsApi
   final LinkedHashMap<String, ({DateTime at, Future<int> count})>
   _runtimeCounts = LinkedHashMap();
 
-  /// A few titles in random order (`sortBy: Random` with a small `limit`:
-  /// a genre card's artwork, a row of random titles). Silo's catalog refuses
-  /// `sort=random`, so they are drawn from the first [_randomPool] titles of
-  /// Silo's default order. A random grid is shuffled whole instead
+  /// A few titles in random order (`sortBy: Random` with a small `limit`
+  /// and no `startIndex`: a genre card's artwork, a row of random titles).
+  /// Silo's catalog refuses `sort=random`, so they are drawn from the first
+  /// [_randomPool] titles of Silo's default order. A random grid is shuffled whole instead
   /// ([_clientFiltered] with `shuffle`).
   Future<Map<String, dynamic>> _shuffledPage(
     Map<String, Object?> params, {

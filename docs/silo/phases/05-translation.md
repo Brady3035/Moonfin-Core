@@ -73,7 +73,7 @@ Podcasts have no Jellyfin type and no Moonfin screen, so they don't map; mappers
 **Manual test plan**
 
 - Nothing to check by hand: no screen uses these yet (phase 5 is pure functions). The "types Silo lacks answer empty" check moves to 6.5's test plan, where queries first reach Silo.
-- Regression: full `flutter test`.
+- Regression: full `flutter test` (Brady, on the Mac).
 
 **Results**
 
@@ -863,7 +863,7 @@ Moonfin reads Jellyfin's `Trickplay` item field, `{ <media source id>: { "<width
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | `549c133`, date played `065ffe5`, fix `5d50eb8`, TV sorts — | 5.12 |
+| ☑ Done | `549c133`, date played `065ffe5`, fix `5d50eb8`, TV sorts `51156ba` `e09bc78` `9009887` `d1d809e`, random grid fix — | 5.12 |
 
 **Goal.** Moonfin sort fields → Silo `sort` values (descending = `-field`); unknown → server default.
 
@@ -903,7 +903,7 @@ Moonfin asks for an order the Jellyfin way: `sortBy` as a comma-separated list o
 
 | Moonfin | Silo before | Live result | Now |
 |---|---|---|---|
-| Community Rating | `rating` | **422**: the catalog refuses the contract's `rating` alias, so the grid failed | `rating_tmdb`, the rating cards show (commit `silo(5.13): Map rating sorts`) |
+| Community Rating | `rating` | **422**: the catalog refuses the contract's `rating` alias, so the grid failed | `rating_tmdb`, the rating cards show (commit `silo(5.13): Map rating sorts`, `51156ba`) |
 | Critic Rating | none | `rating_rt_critic` works, but the server has no Rotten Tomatoes scores (needs a metadata plugin), so the order is the default | `rating_rt_critic` |
 | Rating (content rating) | none | `content_rating` sorts | `content_rating` |
 | Date Episode Added | `added_at` (when the show was first added) | `latest_episode_added` sorts shows by their newest episode file | `latest_episode_added` |
@@ -914,9 +914,10 @@ Moonfin asks for an order the Jellyfin way: `sortBy` as a comma-separated list o
 
 **Shows have no last-played date or play count on Silo.** Silo records watches per episode, and its `date_viewed` and `plays` sorts look the history up by the row's own id, which for a show never has any. So a show grid sorted by either is in the default order. Raised with Silo (series rows should take their episodes' history).
 
-- **Last Played for shows** (commit `silo(5.13): Last played for shows`): Silo's watch history (`GET /catalog?source=history`) does list shows, most recently watched first (203 on the test server). A show grid sorted by `DatePlayed` therefore reads the query's shows whole (Silo's default order, filters applied) and the history, and ranks the watched shows by their place in the history, the rest after them; ascending is the reverse (never watched first, then the longest ago). It uses the series-status filter's read-once list (6.10), kept two minutes for paging; a TV library of 1,909 shows is 20 pages of 100 plus the history's 3. Films still use Silo's `date_viewed`.
+- **Last Played for shows** (commit `silo(5.13): Last played for shows`, `9009887`): Silo's watch history (`GET /catalog?source=history`) does list shows, most recently watched first (203 on the test server). A show grid sorted by `DatePlayed` therefore reads the query's shows whole (Silo's default order, filters applied) and the history, and ranks the watched shows by their place in the history, the rest after them; ascending is the reverse (never watched first, then the longest ago). It uses the series-status filter's read-once list (6.10), kept two minutes for paging; a TV library of 1,909 shows is 20 pages of 100 plus the history's 3. Films still use Silo's `date_viewed`.
 - **Play Count for shows** stays Silo's default order: there is no per-show count to read without walking every watched episode (7,295 on the test server). Waiting on Silo.
-- **Runtime without a runtime last** (commit `silo(5.13): Runtime without a runtime last`): Silo's ascending `runtime` sort puts the titles with no runtime first (descending already puts them last), so a show grid sorted shortest first opened on 1,739 undated shows. The items API now asks Silo how many titles of the query have one (the same query with a `runtime gt 0` rule, one row, kept two minutes) and rotates the order: the titles with a runtime first, read from Silo's offset `nulls + i`, then the rest from offset 0. Paging and totals are unchanged; a page across the turn takes two reads. If Silo refuses the rule, Silo's order stays.
+- **Fix: random grids past the first screen** (commit `silo(5.13): Fix random grid paging`, found by Brady testing the TV sort batch: "Random for shows still only sorts the first page"). The library grid asks for 75 titles first, then 48 at a time. 75 is under a hundred, so its first page was taken for "a few random titles" and drawn from the first 100 titles by name, while the later pages came from the whole-list shuffle: the first screen was the start of the alphabet and the rest repeated or skipped titles. A grid always sends `startIndex` and rows and genre cards don't, so only a request without one is drawn from the first hundred now; every grid page comes from the same whole-list shuffle.
+- **Runtime without a runtime last** (commit `silo(5.13): Runtime without a runtime last`, `d1d809e`): Silo's ascending `runtime` sort puts the titles with no runtime first (descending already puts them last), so a show grid sorted shortest first opened on 1,739 undated shows. The items API now asks Silo how many titles of the query have one (the same query with a `runtime gt 0` rule, one row, kept two minutes) and rotates the order: the titles with a runtime first, read from Silo's offset `nulls + i`, then the rest from offset 0. Paging and totals are unchanged; a page across the turn takes two reads. If Silo refuses the rule, Silo's order stays.
 - **Runtime as the average episode length** (Brady's ask) needs Silo: a show's `runtime` is whatever its metadata gives, usually nothing. Working it out here would mean reading every episode of every show. Raised with Silo (series runtime from the average of its episodes).
 
 **Fix at phase 8: `Random`** (commit `silo(5.13): Fix random sort`, found at 8.6). Silo's contract lists `random` among the sort fields, but the catalog refuses it: `random` isn't in the server's sort definitions (`querySortDefs`), so `GET /catalog?sort=random` answers `422 sort.field "random" is not supported`. Random order exists on Silo only as a home section ("Surprise Me"). Every `Random` query failed, and the Home Genres row, which picks each genre card's artwork with `sortBy: Random`, lost every genre and stayed hidden.
@@ -924,7 +925,7 @@ Moonfin asks for an order the Jellyfin way: `sortBy` as a comma-separated list o
 - `Random` now maps to no Silo sort, and `siloWantsRandom(sortBy)` tells the items API to shuffle: `getItems` reads the list in Silo's default order and shuffles what it returns.
 - A first request for less than a page (a genre card's 10 titles, a row's few random titles) draws from the first 100 titles, so the pick isn't just the first few by name.
 - Later pages (a grid sorted Random) are Silo's default order, each page shuffled, so scrolling to the end still lists every title once. Totals are Silo's.
-- *Changed at the TV sort review* (commit `silo(5.13): Shuffle random grids whole`): shuffling each page kept the grid in name order by blocks, so the first screen was always the start of the alphabet ("random barely changes the order"). A random grid now reads the whole list once (as the series-status filter does, 6.10), shuffles it, and pages it from memory for two minutes, so the first screen draws from the whole library and scrolling still lists every title once. Reading a large library takes several requests (Films: 4,614 titles, 47 pages of 100, four at a time), once per two minutes. A few random titles (a genre card's artwork, under a page) still come from the first 100 titles, one request.
+- *Changed at the TV sort review* (commit `silo(5.13): Shuffle random grids whole`, `e09bc78`): shuffling each page kept the grid in name order by blocks, so the first screen was always the start of the alphabet ("random barely changes the order"). A random grid now reads the whole list once (as the series-status filter does, 6.10), shuffles it, and pages it from memory for two minutes, so the first screen draws from the whole library and scrolling still lists every title once. Reading a large library takes several requests (Films: 4,614 titles, 47 pages of 100, four at a time), once per two minutes. A few random titles (a genre card's artwork, under a page) still come from the first 100 titles, one request.
 
 ### Testing
 
@@ -939,12 +940,13 @@ Moonfin asks for an order the Jellyfin way: `sortBy` as a comma-separated list o
 - Shows by last played: `silo_items_api_shows_last_played_test.dart` (new, 3 tests): descending ranks the history's shows first and keeps the rest in Silo's order, the history's film ignored, no `sort` sent; ascending reversed; films still send `-date_viewed`. `server_silo` 499/499.
 - Runtime: `silo_items_api_runtime_test.dart` (new, 4 tests): ascending lists the titles with a runtime first and the rest after, the count query carrying the type, library and `runtime gt 0` rule; a page across the turn; descending sends `-runtime` alone; a refused count leaves Silo's order. `server_silo` 503/503.
 - Shuffle whole: `silo_items_api_random_test.dart`: a random grid lists every title once and its first page reaches past the first hundred titles. `server_silo` 496/496.
+- Fix (random grid paging): the grid test now pages as the library grid does (75, then 48 at a time; it failed before the fix with repeated titles). `server_silo` 503/503.
 - Fix (random): the sort map test now expects no sort for `Random` and checks `siloWantsRandom`; `silo_items_api_random_test.dart` (new, 2 tests): no `sort` sent, 10 distinct titles drawn from the first 100, Silo's total; a grid paged in random order lists every title once. `server_silo` 493/493.
 
 **Manual test plan**
 
 - Random (fix): the Home Genres row shows, each genre card with artwork; a library grid sorted *Random* shows a different order each time and scrolls through every title.
-- TV sort review: in a TV library, *Community Rating* sorts (no error); *Date Episode Added* puts the shows with the newest episodes first; *Last Played* descending lists the shows watched most recently first, ascending the never watched first; *Random* shows a different first screen each time, drawn from the whole alphabet; *Runtime* ascending starts with the shortest shows that have a runtime, the ones without one at the end (descending: longest first). *Play Count* and *Critic Rating* stay in the default order (no data on Silo for shows / no Rotten Tomatoes scores).
+- TV sort review: in a TV library, *Community Rating* sorts (no error); *Date Episode Added* puts the shows with the newest episodes first; *Last Played* descending lists the shows watched most recently first, ascending the never watched first; *Random* shows a different first screen each time, drawn from the whole alphabet, and scrolling keeps going in random order with no title twice; *Runtime* ascending starts with the shortest shows that have a runtime, the ones without one at the end (descending: longest first). *Play Count* and *Critic Rating* stay in the default order (no data on Silo for shows / no Rotten Tomatoes scores).
 - Date played (follow-up): a library grid sorted by *Date played* lists the last watched title first; the Home checks are in 8.2 (Next Up order) and 8.6 (Rewatch, Since You Watched).
 - Nothing to check by hand until 6.5 sorts a library grid. Then, in 6.5: try Moonfin's sort menu entries on a Silo library and note any that Silo ignores. Regression: full `flutter test`.
 
@@ -963,6 +965,8 @@ Moonfin asks for an order the Jellyfin way: `sortBy` as a comma-separated list o
 | 2026-10-15 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | random grids shuffled whole; random 2/2; `server_silo` 496/496; analyzer: no issues |
 | 2026-10-15 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | shows by last played from the watch history; 3/3; `server_silo` 499/499; analyzer: no issues |
 | 2026-10-15 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | runtime ascending with the titles without one last; 4/4; `server_silo` 503/503; analyzer: no issues |
+| 2026-10-15 | macOS | `bd9d59ea` | Fail | Brady, TV sort batch: *Random* on shows still only random on the first screen (the grid's first page of 75 drew from the first 100 titles) |
+| 2026-10-15 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | random grid paging fix; random 2/2 (paged 75 then 48); `server_silo` 503/503; analyzer: no issues. Full app suite left to Brady |
 | | | | | |
 
 ---

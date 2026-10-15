@@ -107,6 +107,11 @@ class SiloItemsApi implements ItemsApi {
     if (parentId != null && siloTypeOfId(parentId) == 'series') {
       return getSeasons(parentId);
     }
+    // And a season's are its episodes.
+    if (parentId != null && siloTypeOfId(parentId) == 'season') {
+      final series = parseSiloSeasonId(parentId)?.seriesId ?? parentId;
+      return getEpisodes(series, seasonId: parentId);
+    }
     if (parentId != null && libraryId == null) {
       throw SiloNotImplementedError(
         'ItemsApi',
@@ -401,6 +406,76 @@ class SiloItemsApi implements ItemsApi {
     throw StateError('Silo has no season $seasonId');
   }
 
+  // --- episodes (6.8) ------------------------------------------------------
+
+  /// A season's episodes, or every episode of the series (step 6.8).
+  ///
+  /// With a `seasonId`: `GET /catalog/items/{season_id}/episodes`, the call
+  /// Silo's own web app uses. Without one: every season's episodes in season
+  /// order, read four seasons at a time. Episode entries carry no type and
+  /// no series fields, so they are mapped as episodes of [seriesId]; each
+  /// carries a lightweight `MediaSources` entry from its `files` for the
+  /// quality badges (5.8).
+  @override
+  Future<Map<String, dynamic>> getEpisodes(
+    String seriesId, {
+    String? seasonId,
+    String? fields,
+  }) async {
+    final series = _seriesRef(
+      siloTypeOfId(seriesId) == 'series'
+          ? seriesId
+          : parseSiloSeasonId(seasonId ?? seriesId)?.seriesId ?? seriesId,
+    );
+    final List<Map<String, dynamic>> episodes;
+    if (seasonId != null || siloTypeOfId(seriesId) == 'season') {
+      episodes = await _seasonEpisodes(seasonId ?? seriesId, series);
+    } else {
+      final seasons = (await getSeasons(series.id))['Items'] as List;
+      final ids = [
+        for (final season in seasons.cast<Map>()) season['Id'] as String,
+      ];
+      episodes = [];
+      for (var i = 0; i < ids.length; i += 4) {
+        final batch = await Future.wait([
+          for (final id in ids.skip(i).take(4)) _seasonEpisodes(id, series),
+        ]);
+        for (final list in batch) {
+          episodes.addAll(list);
+        }
+      }
+    }
+    return {
+      'Items': episodes,
+      'TotalRecordCount': episodes.length,
+      'StartIndex': 0,
+    };
+  }
+
+  Future<List<Map<String, dynamic>>> _seasonEpisodes(
+    String seasonId,
+    SiloSeriesRef series,
+  ) async {
+    final response = await _dio.get<dynamic>(
+      '/api/v2/catalog/items/${Uri.encodeComponent(seasonId)}/episodes',
+      queryParameters: {'image_size': siloListImageSize},
+    );
+    final raw = asJsonMap(response.data)?['items'];
+    return [
+      if (raw is List)
+        for (final entry in raw)
+          if (asJsonMap(entry) case final episode?)
+            if (siloItemToBaseItemDto(
+                  episode,
+                  images: images,
+                  type: 'episode',
+                  series: series,
+                )
+                case final mapped?)
+              mapped,
+    ];
+  }
+
   // --- what Silo doesn't have ---------------------------------------------
 
   static const _emptyList = <String, dynamic>{
@@ -458,7 +533,6 @@ class SiloItemsApi implements ItemsApi {
 
   /// The step that implements each method not implemented yet.
   static const _steps = {
-    'getEpisodes': '6.8',
     'getAncestors': '6.9',
     'getQueryFilters': '6.10',
     'getGenres': '6.12',

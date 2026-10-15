@@ -456,7 +456,7 @@ Each item is mapped (phase 5) and its artwork registered, and the answer is Jell
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 6.6 |
+| ☑ Done | — | 6.6 |
 
 **Goal.** Series detail and `getSeasons`.
 
@@ -508,6 +508,7 @@ Each item is mapped (phase 5) and its artwork registered, and the answer is Jell
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | seasons 4/4; `server_silo` 368/368; analyzer: no issues |
+| 2026-10-14 | macOS | `4b2e921c` | Pass | full `flutter test` before committing |
 | | | | | |
 
 ---
@@ -517,7 +518,7 @@ Each item is mapped (phase 5) and its artwork registered, and the answer is Jell
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 6.7 |
 
 **Goal.** `getEpisodes(seasonId)` via `/catalog/items/{season_id}/episodes`; whole-series episodes when no season is given.
 
@@ -527,26 +528,47 @@ Each item is mapped (phase 5) and its artwork registered, and the answer is Jell
 
 **Where in Moonfin**
 
-- `silo_items_api.dart`
+- `packages/server_silo/lib/src/api/silo_items_api.dart`
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+**`getEpisodes(seriesId, seasonId:)`**:
+
+- **With a season:** `GET /catalog/items/{season_id}/episodes?image_size=medium`, the call Silo's own web app uses for a season page.
+- **Without one:** every season's episodes in season order, specials first when the series has them. The seasons come from `getSeasons`, and their episodes are read four seasons at a time.
+- A season id passed as `seriesId` is treated as the season, and the series is worked out from the season id.
+
+Episode entries carry no type and no series fields, so they are mapped as episodes of the series:
+
+- `SeriesId`, `SeasonId`, `ParentIndexNumber`, `IndexNumber`, and `SeriesName` (6.7);
+- the episode still, falling back to the series' artwork (5.4);
+- user data; a list entry without `user_data` is unplayed at 0 (5.5);
+- a lightweight `MediaSources` entry from `files[]`, enough for the resolution and HDR badges (5.8). The detail page reads the full versions with `getItem`.
+
+`getItems(parentId: <season id>)` lists the season's episodes too.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `silo_items_api_series_test.dart`, 3 new (7 in all):
+  - a season's episodes match Emby's names and numbers, with links, `SeriesName` and a media source, from the right endpoint;
+  - a season as `parentId`;
+  - a whole series: specials first, then season 1.
+- `server_silo`: 371/371.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+- Open a season of a Silo series: every episode shows with its still, number, title, runtime and overview. **Compare with Emby:** same episodes, same order.
+- The resolution badge (e.g. 1080p) shows on episode cards where Moonfin draws one.
+- Open an episode: its detail page shows the episode, the series' logo and backdrop, its cast (the series regulars), versions and chapters.
+- A series' "all episodes" views (the episode browser, the next/previous episode arrows on an episode page) step through every season.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | episodes 3 new; `server_silo` 371/371; analyzer: no issues |
 | | | | | |
 
 ---

@@ -634,7 +634,7 @@ Collections an item is in are added by 6.15.
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 6.9 |
+| ☑ Done | — | 6.9 |
 
 **Goal.** `getQueryFilters` and genre, year and rating filters in `getItems`.
 
@@ -707,6 +707,7 @@ The groups are part of the query's cursor signature (5.12), so changing a filter
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | filters 7/7; `server_silo` 382/382; browse filter tests pass; analyzer: no issues |
+| 2026-10-14 | macOS | `4b2e921c` | Pass | full `flutter test` before committing |
 | | | | | |
 
 ---
@@ -716,36 +717,44 @@ The groups are part of the query's cursor signature (5.12), so changing a filter
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 6.10 |
 
 **Goal.** Letter index and `nameStartsWith` through the new letters endpoint.
 
 **Silo v2 endpoints**
 
 - `POST /catalog/letters`
+- `GET /catalog?name_prefix=`
 
 **Where in Moonfin**
 
-- `silo_items_api.dart`
+- `packages/server_silo/lib/src/api/silo_items_api.dart`
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+- **`nameStartsWith` → `name_prefix`.** Both match the start of the sort title ("The Hobbit" sorted as "Hobbit, The" is under H). Moonfin's `#` bucket (titles not starting with a letter) has no prefix equivalent, so a `#` or blank prefix sends none. The letter-bucket browse in Android Auto and CarPlay (`media_browse_service.dart`) uses this.
+- **The letter index.** `SiloItemsApi.letters(libraryId:, includeItemTypes:, descending:)` reads `POST /catalog/letters`. It answers the letters that have titles, each title's count, and its zero-based position in the title-ordered list (`SiloLetterIndex`, `positionOf`). A position sent as `seek` with the list's window cursor loads that letter's window directly (5.12).
+- **The jump bar.** Moonfin's library jump bar finds a letter by loading pages until one appears (`ensureItemsLoadedForPrefix`). That works on Silo unchanged: pages come through the cursor pager, 300 titles each. Seeking straight to a letter would need a grid that can hold a gap before the letter; today's grid keeps one contiguous list. So the index is offered for a jump bar that seeks, and not wired in. Brady can decide later whether that is worth a step.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `packages/server_silo/test/silo_items_api_alphabet_test.dart` (new, 3 tests):
+  - `nameStartsWith` → `name_prefix`; `#` and blank send none;
+  - the captured letter index (4611 titles, `#` first, B at 347), sent as a POST with library, type and order.
+- `server_silo`: 385/385.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+- In a large Silo library sorted by name, tap letters in the jump bar: the grid lands on that letter (it may take a moment for letters far down). `#` lands on the first titles.
+- Android Auto / CarPlay letter buckets (deferred platform check, 17.5): a Silo library's letters list the right titles.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | alphabet 3/3; `server_silo` 385/385; analyzer: no issues |
 | | | | | |
 
 ---

@@ -67,7 +67,9 @@ void main() {
     expect(q['type'], 'movie');
     expect(q['sort'], 'title');
     expect(q['image_size'], 'medium');
-    expect(q['limit'], '5');
+    // Silo binds cursors to the limit, so the pager always asks for its
+    // fixed page size and trims (5.12).
+    expect(q['limit'], '100');
     // Artwork is ready for the grid.
     final id = items.first['Id'] as String;
     expect(client.imageApi.getPrimaryImageUrl(id), startsWith('https://'));

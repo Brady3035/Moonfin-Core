@@ -97,10 +97,10 @@ void main() {
       );
     });
 
-    test('display preferences', () {
+    test('sessions', () {
       expect(
-        () => client.displayPreferencesApi.getDisplayPreferences('1'),
-        pending('DisplayPreferencesApi', 'getDisplayPreferences', '6.19'),
+        () => client.sessionApi.getSessions(),
+        pending('SessionApi', 'getSessions', 'phase 3 and 13.6'),
       );
     });
   });

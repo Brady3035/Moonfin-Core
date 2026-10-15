@@ -41,12 +41,6 @@ abstract class _Pending {
   }
 }
 
-class SiloPendingDisplayPreferencesApi extends _Pending
-    implements DisplayPreferencesApi {
-  const SiloPendingDisplayPreferencesApi()
-    : super('DisplayPreferencesApi', '6.19');
-}
-
 class SiloPendingSessionApi extends _Pending implements SessionApi {
   const SiloPendingSessionApi() : super('SessionApi', 'phase 3 and 13.6');
 }

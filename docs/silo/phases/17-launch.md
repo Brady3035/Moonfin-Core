@@ -175,6 +175,7 @@ _Fill in when the step is built: what the code does, the main classes and why it
 | 4.1 test 3 | iOS or Android phone | With only Silo signed in, the bottom navbar tab picker doesn't offer Live TV; with Emby also signed in, it does. |
 | 4.4 test 4 | iOS or Android phone | The bottom-nav hub has no Remote control tile with Silo active, and has it with Emby active. |
 | 4.3 note | Android Auto / car | With Silo as the active server, the car media browser (Home, Music, Playlists tabs: all music) shows empty lists and no errors. |
+| 6.11 | Android Auto / CarPlay | A Silo library's letter buckets in the car browser list the titles starting with that letter (`name_prefix`). |
 
 **Results**
 

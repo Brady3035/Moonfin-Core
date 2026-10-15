@@ -253,7 +253,7 @@ Moonfin builds a "Latest in <library>" row per library (`RowDataSource.loadLates
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | `faae7a7`, paging — | 8.3 |
+| ☑ Done | `faae7a7`, paging `aa6e2c0` | 8.3 |
 
 **Goal.** Sorted by release date.
 
@@ -314,6 +314,7 @@ Turn on the "Recently released" home section (Settings → Home) if it isn't on.
 | 2026-10-15 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | recently released 5/5; `server_silo` 479/479; analyzer: no issues |
 | 2026-10-15 | macOS | `bd9d59ea` | Pass with note | Brady: checks 1–3 pass. The row stops at its first page (Moonfin's row size) for both films and shows, where other Home rows load more as you scroll: asked for paging, done in `silo(8.4): Page recently released` |
 | 2026-10-15 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | paging: recently released paging 2/2, recently released scope tests pass; app analyzer: no new issues |
+| 2026-10-15 | macOS | `bd9d59ea` | Pass | Brady, second round: paging works |
 
 ---
 
@@ -385,7 +386,7 @@ In Silo's web app, favourite two films, a series and an episode (or use existing
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | `d6040bb`, fix — | 8.5 |
+| ☑ Done | `d6040bb`, fix `0e3c616` | 8.5 |
 
 **Goal.** Check the remaining row types in `row_data_source.dart` and fix any hand-built URL.
 
@@ -464,6 +465,7 @@ This also widens the list Home settings offers when adding a collection row, and
 | 2026-10-15 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | home collections 3/3; `server_silo` 486/486; analyzer: no issues |
 | 2026-10-15 | macOS | `bd9d59ea` | Fail | Brady: the Genres row doesn't show on Home once switched on (the per-genre rows are listed in Home settings); Studios and My Media pass; Rewatch looks sorted by name. Genres: Silo refuses `sort=random`, which each genre card's artwork query sends, so every genre was dropped; fixed in `silo(5.13): Fix random sort`. Rewatch: by name because `DatePlayed` wasn't mapped yet (`silo(5.13): Sort by date played` was not applied for this test), and its shows picked a season instead of an episode: fixed in `silo(8.6): Fix Rewatch shows` |
 | 2026-10-15 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | Rewatch fix: a series' episodes for episode queries; series episodes 3/3; `server_silo` 496/496; analyzer: no issues. Genres fix is in 5.13 |
+| 2026-10-15 | macOS | `bd9d59ea` | Pass | Brady, second round: Genres row with artwork, Rewatch (recently watched and random), Since You Watched |
 
 ---
 
@@ -472,7 +474,7 @@ This also widens the list Home settings offers when adding a collection row, and
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | 8.6 |
+| ☑ Done | `fac588f` | 8.6 |
 
 **Goal.** A new row kind that renders Silo's own home sections (recommended, trending…).
 
@@ -533,5 +535,6 @@ Silo curates a home page per profile: Continue Watching, plus rows like Hidden G
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-15 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | server sections 4/4; row data source 3/3; `server_silo` 490/490; app analyzer: no new issues |
+| 2026-10-15 | macOS | `bd9d59ea` | Pass | Brady: Silo's rows listed in Home settings and shown on Home; Emby unaffected |
 
 ---

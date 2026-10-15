@@ -88,7 +88,7 @@ search, and held no items. It is now the first 5 of 118 results of a
 default): one film and four episodes named "Justice". The expected lists in
 `silo_items_api_search_test.dart` follow this file.
 
-`silo/people_search.json` was written by hand at step 7.2 (`PersonCollection`
-for "vin"): the real Vin Diesel person from `silo/person.json` with a shortened
-bio, and a second person without a photo. The probe now also captures a people
-search for the first word of the sampled cast member's name, which replaces it.
+`silo/people_search.json` is the people search the probe makes for the first
+word of the sampled cast member's name ("Vin", `media_scope=video_with_episodes`,
+5 people), captured 2026-10-15 (Silo `bd9d59ea`). It shows Silo's ranking:
+word-start matches by name, so Vincents come before Vin Diesel.

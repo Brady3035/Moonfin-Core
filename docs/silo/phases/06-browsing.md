@@ -1045,7 +1045,7 @@ Creating and changing personal collections is 9.5.
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 6.16 |
+| ☑ Done | — | 6.16 |
 
 **Goal.** Local trailers and special features from the item's extras.
 
@@ -1102,6 +1102,7 @@ An extra's `content_id` plays through Silo's usual watch flow, so playing one co
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | extras 3/3; `server_silo` 408/408; analyzer: no issues |
+| 2026-10-14 | macOS | `4b2e921c` | Pass | full `flutter test` before committing |
 | | | | | |
 
 ---
@@ -1111,33 +1112,51 @@ An extra's `content_id` plays through Silo's usual watch flow, so playing one co
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 6.17 |
 
 **Goal.** `getPlaybackInfo` built from the versions mapping. It must never call `/playback/start`.
 
 **Where in Moonfin**
 
-- `silo_playback_api.dart`
-- `lib/util/detail_playback_info.dart`
+- `packages/server_silo/lib/src/api/silo_playback_api.dart` (new)
+- `packages/server_silo/lib/src/silo_media_server_client.dart`
+- `lib/util/detail_playback_info.dart` (unchanged: it calls `getPlaybackInfo` with the device profile, which this step answers)
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+Moonfin's detail screen shows how a version would play ("Direct play: yes/no" and the reasons) by asking the server for `PlaybackInfo`, a dry run on Jellyfin and Emby. **Silo has no dry run.** Its only decision is `POST /playback/start`, which opens a session and may start a transcode, so it must never be called to fill a detail page.
+
+`SiloPlaybackApi.getPlaybackInfo` builds the answer from the item's versions instead:
+
+- **Sources.** `getItem` (6.6) gives the `MediaSources` (5.8). The one asked for (`MediaSourceId`) comes first, and the internal track map is left out. No playback request is made, and `PlaySessionId` is null.
+- **Direct play is an estimate** from the device profile the detail screen sends (`siloDirectPlayReasons`). A version plays directly when one video direct-play profile takes its container (`mkv` and `matroska` are the same), its video codec and the chosen audio track's codec (`AudioStreamIndex`, else the default track). Otherwise the closest profile names the reasons, as Jellyfin does: `ContainerNotSupported`, `VideoCodecNotSupported`, `AudioCodecNotSupported`. Moonfin's own reason builder adds its client-side checks (Dolby Vision, bitrate) as usual.
+- **Silo decides for real** when playback starts (phase 10), with its own codec evidence. The estimate can differ, for example a remux Silo can do where Jellyfin would transcode.
+
+The rest of `PlaybackApi` (start, progress, stop, stream URLs) throws `SiloNotImplementedError` naming its phase 10 step. `SiloPendingPlaybackApi` is removed.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `packages/server_silo/test/silo_playback_api_test.dart` (new, 5 tests):
+  - The Salt Path built from its versions, 4K first, all direct with a profile that takes them, no track map, **no `/playback` request**;
+  - the asked version comes first;
+  - reasons when the device can't play it directly, read back by Moonfin's own `PlaybackInfoResult` parser;
+  - container aliases, the chosen audio track, an empty profile;
+  - the rest of playback names phase 10.
+- `server_silo`: 413/413.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+- On a Silo film's detail page, the file details show "Direct play: Yes" for a file your Mac plays as is (e.g. H.264/AAC), and "No" with reasons for one it can't (e.g. a DTS track). Switching the audio track in the picker updates it.
+- Silo's request log shows **no** `/api/v2/playback/start` while browsing detail pages, and Silo's sessions page shows no session.
+- Pressing Play answers with an error until phase 10.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | playback info 5/5; `server_silo` 413/413; analyzer: no issues |
 | | | | | |
 
 ---

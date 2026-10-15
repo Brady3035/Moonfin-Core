@@ -10,6 +10,7 @@ import 'api/silo_auth_api.dart';
 import 'api/silo_image_api.dart';
 import 'api/silo_images_api.dart';
 import 'api/silo_pending_api.dart';
+import 'api/silo_playback_api.dart';
 import 'api/silo_profiles_api.dart';
 import 'api/silo_system_api.dart';
 import 'api/silo_user_views_api.dart';
@@ -360,7 +361,7 @@ class SiloMediaServerClient extends MediaServerClient
       const SiloPendingDisplayPreferencesApi();
 
   @override
-  final PlaybackApi playbackApi = const SiloPendingPlaybackApi();
+  late final PlaybackApi playbackApi = SiloPlaybackApi(itemsApi);
 
   @override
   final SessionApi sessionApi = const SiloPendingSessionApi();

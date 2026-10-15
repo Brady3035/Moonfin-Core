@@ -1106,9 +1106,13 @@ class SiloItemsApi implements ItemsApi, LetterPositionApi {
 
   /// The title's local trailers and teasers (step 6.17), from its detail's
   /// `extras`. Remote (YouTube) trailers are the item's `RemoteTrailers`.
+  /// None until Moonfin can play them ([siloLocalTrailersPlayable]), so the
+  /// trailer button opens the YouTube trailer instead.
   @override
-  Future<List<Map<String, dynamic>>> getLocalTrailers(String itemId) =>
-      _extras(itemId, trailers: true);
+  Future<List<Map<String, dynamic>>> getLocalTrailers(String itemId) async {
+    if (!siloLocalTrailersPlayable) return const [];
+    return _extras(itemId, trailers: true);
+  }
 
   /// The title's other local extras: featurettes, clips, behind the scenes,
   /// bloopers, deleted scenes.
@@ -1125,18 +1129,9 @@ class SiloItemsApi implements ItemsApi, LetterPositionApi {
     required bool trailers,
   }) async {
     final item = await getItem(itemId);
-    final extras = (item[siloOriginalKey] as Map?)?['extras'];
-    return [
-      if (extras is List)
-        for (final e in extras)
-          if (e is Map && isSiloTrailerKind(e['kind']) == trailers)
-            if (siloExtraToBaseItemDto(
-                  e.cast<String, dynamic>(),
-                  ownerId: itemId,
-                )
-                case final extra?)
-              extra,
-    ];
+    final detail = asJsonMap(item[siloOriginalKey]);
+    if (detail == null) return const [];
+    return siloExtrasOf(detail, trailers: trailers, ownerId: itemId);
   }
 
   // --- what Silo doesn't have ---------------------------------------------

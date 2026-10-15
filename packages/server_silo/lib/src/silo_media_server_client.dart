@@ -8,6 +8,7 @@ import 'api/silo_user_library_api.dart';
 import 'api/silo_live_tv_api.dart';
 import 'api/silo_auth_api.dart';
 import 'api/silo_image_api.dart';
+import 'api/silo_display_preferences_api.dart';
 import 'api/silo_images_api.dart';
 import 'api/silo_pending_api.dart';
 import 'api/silo_playback_api.dart';
@@ -358,7 +359,7 @@ class SiloMediaServerClient extends MediaServerClient
 
   @override
   final DisplayPreferencesApi displayPreferencesApi =
-      const SiloPendingDisplayPreferencesApi();
+      SiloDisplayPreferencesApi();
 
   @override
   late final PlaybackApi playbackApi = SiloPlaybackApi(itemsApi);

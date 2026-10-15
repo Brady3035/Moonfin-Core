@@ -46,6 +46,7 @@ Map<String, Object?>? _any(List<Map<String, Object?>> rules) =>
 /// | Moonfin | Silo rule |
 /// |---|---|
 /// | `genres`, genre ids (`silo-genre:`, 6.12) | `genre is` |
+/// | `studios`, studio ids (`silo-studio:`, 6.13) | `studio is` or `network is` |
 /// | `years` | `year is` |
 /// | `officialRatings` | `content_rating is` |
 /// | `filters`: `IsPlayed` / `IsUnplayed` | `watched is true` / `false` |
@@ -62,6 +63,8 @@ List<Map<String, Object?>> siloRuleGroups({
   List<String>? genreIds,
   List<int>? years,
   List<String>? officialRatings,
+  List<String>? studios,
+  List<String>? studioIds,
   List<String>? filters,
   bool? isFavorite,
   bool? is4K,
@@ -73,6 +76,12 @@ List<Map<String, Object?>> siloRuleGroups({
     ...?genres,
     for (final id in genreIds ?? const <String>[]) siloGenreNameOf(id) ?? id,
   };
+  // Moonfin's studio is a studio for films and a network for series; Silo
+  // keeps the two apart, so either matches.
+  final studioNames = {
+    ...?studios,
+    for (final id in studioIds ?? const <String>[]) siloStudioNameOf(id) ?? id,
+  };
   final flags = {for (final f in filters ?? const <String>[]) f.toLowerCase()};
 
   final groups = <Map<String, Object?>?>[
@@ -81,6 +90,12 @@ List<Map<String, Object?>> siloRuleGroups({
     _any([
       for (final r in officialRatings ?? const <String>[])
         _rule('content_rating', 'is', r),
+    ]),
+    _any([
+      for (final s in studioNames) ...[
+        _rule('studio', 'is', s),
+        _rule('network', 'is', s),
+      ],
     ]),
     if (flags.contains('isplayed')) _any([_rule('watched', 'is', true)]),
     if (flags.contains('isunplayed')) _any([_rule('watched', 'is', false)]),

@@ -117,7 +117,7 @@ Status key: ☐ not started · ◐ in progress · ☑ done and tested · ⊘ ski
 - [x] **6.11** [Alphabet jump](phases/06-browsing.md#step-6-11)
 - [x] **6.12** [Genres](phases/06-browsing.md#step-6-12)
 - [x] **6.13** [Studios and networks](phases/06-browsing.md#step-6-13)
-- [ ] **6.14** [People](phases/06-browsing.md#step-6-14)
+- [x] **6.14** [People](phases/06-browsing.md#step-6-14)
 - [ ] **6.15** [Collections (browse)](phases/06-browsing.md#step-6-15)
 - [ ] **6.16** [Similar items](phases/06-browsing.md#step-6-16)
 - [ ] **6.17** [Trailers and extras](phases/06-browsing.md#step-6-17)

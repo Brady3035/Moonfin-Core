@@ -121,6 +121,7 @@ void main() {
     expect(_catalog(server).last.uri.queryParameters['seek'], '250');
   });
 
+  // BoxSet alone lists collections (6.15), so it isn't among these.
   test('only types Silo can\'t serve: empty, no request', () async {
     final server = FixtureServer({'/api/v2/catalog': _library(3)});
     final api = siloTestClient(server).itemsApi;
@@ -128,7 +129,6 @@ void main() {
     for (final types in [
       ['MusicAlbum'],
       ['Playlist'],
-      ['BoxSet'],
       ['Audio', 'MusicArtist'],
       ['TvChannel'],
     ]) {

@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:server_core/server_core.dart';
 
 import '../mappers/silo_item_mapper.dart';
+import '../mappers/silo_collection_mapper.dart';
 import '../mappers/silo_filters_mapper.dart';
 import '../mappers/silo_ids.dart';
 import '../mappers/silo_item_types.dart';
@@ -112,6 +113,18 @@ class SiloItemsApi implements ItemsApi {
     final genreParent = parentId == null ? null : siloGenreNameOf(parentId);
     // And a studio or network page (6.13).
     final studioParent = parentId == null ? null : siloStudioNameOf(parentId);
+    // A collection's titles (6.15).
+    final collection = parentId == null
+        ? null
+        : parseSiloCollectionId(parentId);
+    // The collections themselves, asked for as BoxSets (6.15).
+    if (_asksForCollections(includeItemTypes)) {
+      return _collections(
+        libraryId: libraryId,
+        startIndex: startIndex,
+        limit: limit,
+      );
+    }
     // A series' children are its seasons, as on Jellyfin.
     if (parentId != null && siloTypeOfId(parentId) == 'series') {
       return getSeasons(parentId);
@@ -124,7 +137,8 @@ class SiloItemsApi implements ItemsApi {
     if (parentId != null &&
         libraryId == null &&
         genreParent == null &&
-        studioParent == null) {
+        studioParent == null &&
+        collection == null) {
       throw SiloNotImplementedError(
         'ItemsApi',
         'getItems(parentId: $parentId)',
@@ -159,6 +173,13 @@ class SiloItemsApi implements ItemsApi {
         : personIds.first;
     final params = <String, Object?>{
       if (personId != null) ...{'source': 'person', 'person_id': personId},
+      if (collection != null) ...{
+        'source': collection.libraryId == null
+            ? 'user_collection'
+            : 'library_collection',
+        'collection_id': collection.id,
+        'library_id': ?collection.libraryId,
+      },
       'library_id': ?libraryId,
       'type': ?scope,
       'sort': ?siloSortFor(sortBy: sortBy, sortOrder: sortOrder),
@@ -296,6 +317,7 @@ class SiloItemsApi implements ItemsApi {
     if (siloStudioNameOf(itemId) case final studio?) {
       return siloNamedItem(studio, studio: true);
     }
+    if (parseSiloCollectionId(itemId) != null) return _collection(itemId);
 
     final path = '/api/v2/catalog/items/${Uri.encodeComponent(itemId)}';
     final query = {
@@ -575,6 +597,11 @@ class SiloItemsApi implements ItemsApi {
         'IsFolder': true,
       });
     }
+    // The personal collections holding the item (6.15), which is what
+    // Moonfin's detail page looks for among the ancestors.
+    try {
+      ancestors.addAll(await _personalCollections(containing: itemId));
+    } catch (_) {}
     return ancestors;
   }
 
@@ -776,6 +803,90 @@ class SiloItemsApi implements ItemsApi {
       );
     }
     return siloPersonToBaseItemDto(json, images: images);
+  }
+
+  // --- collections (6.15) -------------------------------------------------
+
+  /// Whether a query asks for collections only: `BoxSet` and nothing else
+  /// Silo can list (a library grid that groups collections asks for
+  /// `Movie, BoxSet` and gets the films).
+  static bool _asksForCollections(List<String>? includeItemTypes) {
+    if (includeItemTypes == null) return false;
+    final lower = includeItemTypes.map((t) => t.toLowerCase()).toSet();
+    if (!lower.contains('boxset')) return false;
+    final others = siloTypesForQuery(includeItemTypes: includeItemTypes);
+    return others == null || others.isEmpty;
+  }
+
+  /// Collections as Jellyfin `BoxSet`s: a library's curated collections
+  /// (`GET /library/{id}/collections`) when [libraryId] is given, else the
+  /// profile's personal ones (`GET /collections`).
+  Future<Map<String, dynamic>> _collections({
+    String? libraryId,
+    int? startIndex,
+    int? limit,
+  }) async {
+    final all = libraryId == null
+        ? await _personalCollections()
+        : await _libraryCollections(libraryId);
+    final start = startIndex ?? 0;
+    return {
+      'Items': all.skip(start).take(limit ?? all.length).toList(),
+      'TotalRecordCount': all.length,
+      'StartIndex': start,
+    };
+  }
+
+  Future<List<Map<String, dynamic>>> _personalCollections({
+    String? containing,
+  }) async {
+    final response = await _dio.get<dynamic>(
+      '/api/v2/collections',
+      queryParameters: {'contains_item': ?containing},
+    );
+    final raw = asJsonMap(response.data)?['items'];
+    return [
+      if (raw is List)
+        for (final c in raw)
+          if (asJsonMap(c) case final json?)
+            if (containing == null || json['contains'] == true)
+              if (siloCollectionToBoxSet(json, images: images) case final box?)
+                box,
+    ];
+  }
+
+  Future<List<Map<String, dynamic>>> _libraryCollections(
+    String libraryId,
+  ) async {
+    final response = await _dio.get<dynamic>(
+      '/api/v2/library/${Uri.encodeComponent(libraryId)}/collections',
+    );
+    final raw = asJsonMap(response.data)?['collections'];
+    return [
+      if (raw is List)
+        for (final c in raw)
+          if (asJsonMap(c) case final json?)
+            if (siloCollectionToBoxSet(
+                  json,
+                  libraryId: libraryId,
+                  images: images,
+                )
+                case final box?)
+              box,
+    ];
+  }
+
+  /// A collection's page: found in its list (Silo has no single-collection
+  /// read for a viewer).
+  Future<Map<String, dynamic>> _collection(String collectionId) async {
+    final parsed = parseSiloCollectionId(collectionId)!;
+    final list = parsed.libraryId == null
+        ? await _personalCollections()
+        : await _libraryCollections(parsed.libraryId!);
+    for (final box in list) {
+      if (box['Id'] == collectionId) return box;
+    }
+    throw StateError('Silo has no collection $collectionId for this profile');
   }
 
   // --- what Silo doesn't have ---------------------------------------------

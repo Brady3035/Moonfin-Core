@@ -861,7 +861,7 @@ Same pattern as genres (6.12), with `silo-studio:<name>` ids and `Studio` items.
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 6.13 |
+| ☑ Done | — | 6.13 |
 
 **Goal.** Person detail and filmography.
 
@@ -914,6 +914,7 @@ Same pattern as genres (6.12), with `silo-studio:<name>` ids and `Studio` items.
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | people 4/4; `server_silo` 396/396; analyzer: no issues |
+| 2026-10-14 | macOS | `4b2e921c` | Pass | full `flutter test` before committing |
 | | | | | |
 
 ---
@@ -923,38 +924,74 @@ Same pattern as genres (6.12), with `silo-studio:<name>` ids and `Studio` items.
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | 6.14 |
 
 **Goal.** Personal and library collections as BoxSets, and their items.
 
 **Silo v2 endpoints**
 
-- `GET /collections`
-- `GET /collections/{id}/items`
+- `GET /collections` (and `?contains_item=`)
 - `GET /library/{id}/collections`
+- `GET /catalog?source=user_collection|library_collection&collection_id=`
 
 **Where in Moonfin**
 
-- `silo_items_api.dart`
+- `packages/server_silo/lib/src/mappers/silo_collection_mapper.dart` (new)
+- `packages/server_silo/lib/src/mappers/silo_ids.dart`: collection ids.
+- `packages/server_silo/lib/src/api/silo_items_api.dart`
+- `packages/server_silo/lib/src/silo_media_server_client.dart`: collection artwork for the resolver (6.3).
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+Silo has two kinds of collections:
+
+- **personal** ones, made by a profile (`GET /collections`), possibly shared within the household;
+- **library** ones, curated by the admin per library (`GET /library/{id}/collections`).
+
+Both become Jellyfin `BoxSet`s (`siloCollectionToBoxSet`):
+
+- name or title, description, `ChildCount` from `item_count`;
+- poster and (library ones) backdrop, registered;
+- `CollectionType: boxsets`, and `ParentId` for a library's.
+
+**Ids.** Silo's collection ids are opaque strings. So they get prefixes that tell them apart from titles, people and libraries: `silo-collection:<id>` for personal ones, `silo-libcollection:<library>:<id>` for a library's (it is read through its library). `parseSiloCollectionId` reads them back.
+
+**Where they show.**
+
+- `getItems(includeItemTypes: [BoxSet])` with a library as parent lists that library's collections; with no parent, the profile's personal ones. A grid that groups collections (`Movie, BoxSet`) still gets its films, since Silo has no "collapse into collections" listing.
+- **A collection's titles:** `getItems(parentId: <collection id>)` pages the catalog with `source=user_collection` or `library_collection` and `collection_id` (plus `library_id` for a library's). Sort, filters and the cursor pager apply as on a library grid.
+- **A collection's page:** `getItem(<collection id>)` finds it in its list; Silo has no single-collection read for a viewer.
+- **"In collection" on a title's page:** the ancestors (6.9) now add the personal collections holding the item, from `GET /collections?contains_item=<id>`. The detail page also scans the personal collections, a short list on Silo, for membership. Library collections can't be asked about membership, so they don't show there.
+- **Artwork after a cold start:** the 6.3 resolver loads a collection's artwork through its list.
+
+Creating and changing personal collections is 9.5.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `packages/server_silo/test/silo_items_api_collections_test.dart` (new, 7 tests):
+  - collection ids round-trip;
+  - personal collections as BoxSets with count, overview and registered poster;
+  - a library's collections with backdrop and `ParentId`;
+  - a grouping grid still gets its films;
+  - a collection's titles page through the catalog with the right source, id and library;
+  - a collection's page;
+  - ancestors list the personal collections holding the item (`contains_item`).
+- `silo_items_api_library_test.dart`: `BoxSet` alone now lists collections, so it left the "types Silo can't serve" check.
+- `server_silo`: 403/403.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+- Make a personal collection in Silo's web app with a few films. In Moonfin, it shows where Moonfin lists collections (collections view, a film's "in collection" section). Opening it lists its films, which sort and filter.
+- If your Silo libraries have curated collections (admin), they show for their library and open the same way.
+- A film in a personal collection shows that collection on its detail page.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-14 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | collections 7/7; `server_silo` 403/403; analyzer: no issues |
 | | | | | |
 
 ---

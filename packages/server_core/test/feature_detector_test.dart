@@ -66,6 +66,7 @@ void main() {
       expect(f.supportsAdmin, isTrue, reason: '$type');
       expect(f.supportsMoonfinPlugin, isTrue, reason: '$type');
       expect(f.supportsRemoteControl, isTrue, reason: '$type');
+      expect(f.supportsLatestItemsExcludes, isTrue, reason: '$type');
       expect(f.supportsProfiles, isFalse, reason: '$type');
     }
   });
@@ -91,6 +92,7 @@ void main() {
     expect(f.supportsRemoteControl, isFalse);
     expect(f.supportsSyncPlay, isFalse);
     expect(f.supportsBifTrickplay, isFalse);
+    expect(f.supportsLatestItemsExcludes, isFalse);
   });
 
   test('Silo features Moonfin does not implement yet are off', () {

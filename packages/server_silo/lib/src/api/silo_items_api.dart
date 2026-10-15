@@ -1402,6 +1402,137 @@ class SiloItemsApi implements ItemsApi, LetterPositionApi {
     return getItem(next);
   }
 
+  /// Latest (step 8.3): the newest arrivals in a library, or across the
+  /// server for the asked types, as Jellyfin's `/Items/Latest`.
+  ///
+  /// One catalog page through the pager (5.12), newest first:
+  ///
+  /// - films by `added_at`, when the file arrived;
+  /// - series by `latest_episode_added`, when their newest episode arrived,
+  ///   so a show with a new episode comes back to the front. Jellyfin groups
+  ///   a show's new episodes into the show the same way, and Moonfin turns a
+  ///   TV library's Latest into series cards anyway;
+  /// - a mixed library's films and series together by `added_at` (a series
+  ///   by when it was first added: Silo has one sort for both).
+  ///
+  /// The kind comes from `includeItemTypes` (episodes and seasons count as
+  /// their series), else from the library's `CollectionType`. Watched titles
+  /// stay unless the profile hides them from Silo's Home
+  /// ([_hidesWatchedOnHome]), as Silo's own Recently Added does. A
+  /// `parentId` that isn't a library answers empty. `limit` defaults to Jellyfin's 20; like Jellyfin, the answer is
+  /// one list, with no total beyond its length.
+  @override
+  Future<Map<String, dynamic>> getLatestItems({
+    String? parentId,
+    List<String>? includeItemTypes,
+    int? limit,
+    String? fields,
+    String? enableImageTypes,
+    int? imageTypeLimit,
+  }) async {
+    final libraryId = _libraryIdOf(parentId);
+    if (parentId != null && libraryId == null) return _empty(0);
+    final scope = await _newestRowScope(
+      libraryId: libraryId,
+      includeItemTypes: includeItemTypes,
+      episodesAsSeries: true,
+    );
+    if (scope == null) return _empty(0);
+    final hideWatched = await _hidesWatchedOnHome();
+    final page = await _page(
+      {
+        'library_id': ?libraryId,
+        'type': scope,
+        'sort': scope == 'series' ? '-latest_episode_added' : '-added_at',
+        if (hideWatched)
+          'groups': jsonEncode(siloRuleGroups(filters: const ['IsUnplayed'])),
+        'image_size': siloListImageSize,
+      },
+      limit: limit == null || limit <= 0 ? 20 : limit,
+      libraryId: libraryId,
+    );
+    final items = page['Items'] as List;
+    return {'Items': items, 'TotalRecordCount': items.length, 'StartIndex': 0};
+  }
+
+  /// Silo's per-profile setting `home.hide_watched_items` ("Hide watched
+  /// items from Home", off by default): when on, Silo leaves watched titles
+  /// out of its ordinary Home sections, Recently Added and Recently Released
+  /// among them, and Moonfin's matching rows do the same.
+  ///
+  /// Read from the effective settings once a minute. A setting that can't
+  /// be read counts as off, as Silo itself fails open, so nothing disappears
+  /// because of an error.
+  Future<bool> _hidesWatchedOnHome() async {
+    final now = DateTime.now();
+    var entry = _hideWatched;
+    if (entry == null || now.difference(entry.at) > _hideWatchedTtl) {
+      entry = (at: now, read: _readHideWatched());
+      _hideWatched = entry;
+    }
+    try {
+      return await entry.read;
+    } catch (_) {
+      if (identical(_hideWatched, entry)) _hideWatched = null;
+      return false;
+    }
+  }
+
+  static const _hideWatchedKey = 'home.hide_watched_items';
+  static const _hideWatchedTtl = Duration(minutes: 1);
+  ({DateTime at, Future<bool> read})? _hideWatched;
+
+  Future<bool> _readHideWatched() async {
+    final response = await _dio.get<dynamic>(
+      '/api/v2/settings/values/effective',
+      queryParameters: const {'keys': _hideWatchedKey},
+    );
+    final items = asJsonMap(response.data)?['items'];
+    if (items is! List) {
+      throw FormatException(
+        'Expected settings from Silo, got ${response.data.runtimeType}',
+      );
+    }
+    for (final item in items) {
+      final setting = asJsonMap(item);
+      if (setting?['key'] == _hideWatchedKey) return setting?['value'] == true;
+    }
+    return false;
+  }
+
+  /// The catalog `type` scope for a row of the newest titles (Latest 8.3,
+  /// Recently released 8.4): from [includeItemTypes] when given, else from
+  /// the library's kind (`movies` → `movie`, `tvshows` → `series`, mixed or
+  /// unknown → `video`). Null when the types are all ones Silo can't list.
+  ///
+  /// A season always counts as its series (the catalog doesn't list
+  /// seasons); an episode too when [episodesAsSeries].
+  Future<String?> _newestRowScope({
+    required String? libraryId,
+    required List<String>? includeItemTypes,
+    required bool episodesAsSeries,
+  }) async {
+    final types = siloTypesForQuery(includeItemTypes: includeItemTypes);
+    if (types != null) {
+      final listed = {
+        for (final t in types)
+          t == 'season' || (episodesAsSeries && t == 'episode') ? 'series' : t,
+      };
+      if (listed.isEmpty) return null;
+      return siloCatalogScopeFor(listed) ?? 'video';
+    }
+    if (libraryId == null) return 'video';
+    Object? collectionType;
+    try {
+      collectionType = (await _library(libraryId))['CollectionType'];
+    } catch (_) {}
+    return switch (collectionType) {
+      'movies' => 'movie',
+      'tvshows' => 'series',
+      _ => 'video',
+    };
+  }
+
   /// Continue Watching from the resume points (`GET /progress`), for a page
   /// with no Continue Watching section: each item read from the catalog, its
   /// `UserData` from the entry ([siloProgressToUserData]).
@@ -1530,7 +1661,6 @@ class SiloItemsApi implements ItemsApi, LetterPositionApi {
 
   /// The step that implements each method not implemented yet.
   static const _steps = {
-    'getLatestItems': '8.3',
     'getRecentlyReleasedItems': '8.4',
     'createCollection': '9.5',
     'addToCollection': '9.5',

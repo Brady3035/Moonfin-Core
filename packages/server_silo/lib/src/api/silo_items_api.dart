@@ -17,6 +17,7 @@ import '../silo_image_registry.dart';
 import '../silo_pager.dart';
 import 'silo_home_sections.dart';
 import 'silo_markers.dart';
+import 'silo_trickplay.dart';
 import 'silo_pending_api.dart';
 
 /// The artwork size Silo is asked for in lists (grids, rows): posters at
@@ -41,7 +42,8 @@ class SiloItemsApi
         ServerHomeSectionsApi,
         UserDataRefreshScope,
         EditableCollectionsApi,
-        HomeDismissalsApi {
+        HomeDismissalsApi,
+        TrickplayManifestApi {
   SiloItemsApi(
     this._dio, {
     this.images,
@@ -56,6 +58,13 @@ class SiloItemsApi
 
   /// Skip markers by file (11.1).
   late final SiloMarkers markers = SiloMarkers(_dio, clock: _clock);
+
+  /// Seek previews by file (11.2).
+  late final SiloTrickplay trickplay = SiloTrickplay(
+    _dio,
+    images: images,
+    clock: _clock,
+  );
 
   /// The time, for date-bounded rows (8.4); tests move it.
   final DateTime Function() _clock;
@@ -2413,6 +2422,14 @@ class SiloItemsApi
   @override
   Future<List<Map<String, dynamic>>> getMediaSegments(String itemId) =>
       markers.segmentsOf(itemId);
+
+  /// The seek previews of file [mediaSourceId] of [itemId] (step 11.2), as
+  /// Jellyfin's `Trickplay` field (see [SiloTrickplay]).
+  @override
+  Future<Map<String, dynamic>?> getTrickplayManifest(
+    String itemId, {
+    required String mediaSourceId,
+  }) => trickplay.manifest(itemId, mediaSourceId);
 
   /// Called by the Silo resolver when [itemId] starts playing [fileId], so
   /// the player's extras (markers…) come from that file.

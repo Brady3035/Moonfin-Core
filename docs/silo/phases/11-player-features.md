@@ -13,7 +13,7 @@ The extras around playback.
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | previous step |
+| ☑ Done | — | previous step |
 
 **Goal.** Markers through `getMediaSegments`.
 
@@ -76,37 +76,57 @@ In Moonfin's settings, *Skipping & Autoplay*: set *Intro Segments* to *Prompt Us
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | previous step |
 
 **Goal.** Fetch the trickplay manifest when `trickplay_available` is true; refresh after `expires_at`.
 
 **Silo v2 endpoints**
 
-- `GET /watch/{id}/trickplay`
+- `GET /watch/{id}/trickplay?file_id=`
 
 **Where in Moonfin**
 
-- `silo_items_api.dart`
-- `silo_image_api.dart`
+- `packages/server_core/lib/src/api/trickplay_manifest_api.dart` (new): `TrickplayManifestApi`, an optional `ItemsApi` extra
+- `packages/server_silo/lib/src/api/silo_trickplay.dart` (new): reads, keeps and refreshes a file's previews
+- `silo_items_api.dart`: implements `TrickplayManifestApi`
+- `silo_image_api.dart`, `silo_media_server_client.dart`: a sheet URL handed out refreshes previews that are due
+- `lib/data/utils/server_trickplay.dart` (new): `mergeServerTrickplay`
+- `video_player_screen.dart`, `video_mini_player.dart`, `appletv_player_host_screen.dart`: call it before reading the item's previews
+- `feature_detector.dart`: `supportsTrickplay` on for Silo
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+Moonfin's seek previews read Jellyfin's `Trickplay` item field (`TrickplayInfo.fromItemData`: thumbnail size, tiles per sheet, interval) and load each sheet through `ImageApi.getTrickplayTileImageUrl`. Silo doesn't put previews on its items; a player asks for the file it plays (`GET /watch/{id}/trickplay?file_id=`, `WatchTrickplay`). 5.11 already maps that answer to Jellyfin's field and records each sheet's signed URL in the image registry under the file id. This step reads it:
+
+- **A new optional interface**, `TrickplayManifestApi.getTrickplayManifest(itemId, mediaSourceId:)`, answers the `Trickplay` field for one file. The players call `mergeServerTrickplay` before reading the item's previews: when the server has the interface and the item has no entry for the playing file (`currentResolution.mediaSourceId`, Silo's effective file), the answer is merged into the item and read as Jellyfin's. Jellyfin and Emby don't have it, so nothing changes for them. It is a candidate for upstream with the other `server_core` extras.
+- **Silo's side** (`SiloTrickplay`): one read per file, kept until 2 minutes before `expires_at`. A file without previews (404) is remembered for 10 minutes, so a queue doesn't ask again on each return to an episode. A failed read isn't kept. Moonfin doesn't check `trickplay_available` first: the player only knows ids, and the answer for a file without previews is the same 404.
+- **Expiry.** Sheet URLs stop working at `expires_at`. A player keeps the grid it read, since that doesn't change, and asks the image API for a sheet URL whenever it shows or prefetches one. Each time, `SiloImageApi` tells `SiloTrickplay` which file it served (`onTrickplaySheet`); once the file's URLs are due, the previews are read again in the background (one read at a time), and the registry hands out the fresh URLs from then on. A sheet loaded earlier stays in the image cache, which keys signed artwork by path (6.2), so it isn't fetched again. A viewer who doesn't scrub at all past `expires_at` may see the first sheet they ask for afterwards fail once; the next ask has the new URL.
+- **Times** are media time: a thumbnail *i* covers `i × interval_ms` onward on the file's timeline, and the seek bar is in media time (10.1), so a resumed remux shows the right picture.
+- `supportsTrickplay` turns on for Silo (it isn't read anywhere today; kept true to what Silo now does).
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `packages/server_silo/test/silo_items_api_trickplay_test.dart` (new, 5 tests), on the captured Young Justice 1x01 previews (300 × 168, 10 × 8 per sheet, 136 thumbnails, interval 10 s): the answer in Jellyfin's shape and its sheet URLs from the image API; kept until 2 minutes before expiry, then read again; a sheet asked for once the URLs are due reads them again, once; a 404 is remembered for 10 minutes; a failed read isn't kept.
+- `test/data/utils/server_trickplay_test.dart` (new, 2 tests): the merged field gives a valid `TrickplayInfo` whose 14:00 tile is on sheet 1, served by the image API; an item with the file's entry isn't read again; no file id, nothing.
+- `server_core/test/feature_detector_test.dart`: `supportsTrickplay` on for Silo.
+- Existing trickplay tests (`test/data/models/trickplay_*`, 69) pass.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+- a. Play Young Justice 1x01 and scrub or hover the seek bar: thumbnails show and match the picture at that point (compare Emby's).
+- b. Seek with the arrow keys or the remote while the controls show: the preview follows.
+- c. Resume the episode part way through (a remux on your setup): previews still match the seek bar's time.
+- d. xXx (no previews on this server): the seek bar works with no thumbnails and no errors.
+- e. The mini player (minimise the player, if your build shows it on the Mac): its scrub preview shows thumbnails too.
+- f. Optional, long: leave the episode paused past the time its previews expire (shown in Silo's web app network log as `expires_at`, a few hours), then scrub: thumbnails still show (at most the first one may fail once).
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-17 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | trickplay 5/5; merge 2/2; trickplay model tests 69/69; `server_silo` 549/549; `server_core` 95/95; analyzer: no issues in the changed files |
 | | | | | |
 
 ---

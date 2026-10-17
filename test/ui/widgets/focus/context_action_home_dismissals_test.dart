@@ -38,18 +38,20 @@ class _DismissingItemsApi extends _ItemsApi implements HomeDismissalsApi {
   }
 }
 
-/// An episode part way through, of show `series-1`.
-AggregatedItem _episode() => const AggregatedItem(
-  id: 'ep-1',
-  serverId: 'server-1',
-  rawData: {
-    'Id': 'ep-1',
-    'Type': 'Episode',
-    'Name': 'Pilot',
-    'SeriesId': 'series-1',
-    'UserData': {'PlaybackPositionTicks': 6000000000, 'Played': false},
-  },
-);
+/// An episode part way through, of show `series-1`, as Home lists it: its
+/// server named by address, not by the user's server id.
+AggregatedItem _episode({String serverId = 'https://silo.example/'}) =>
+    AggregatedItem(
+      id: 'ep-1',
+      serverId: serverId,
+      rawData: {
+        'Id': 'ep-1',
+        'Type': 'Episode',
+        'Name': 'Pilot',
+        'SeriesId': 'series-1',
+        'UserData': {'PlaybackPositionTicks': 6000000000, 'Played': false},
+      },
+    );
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -66,6 +68,7 @@ void main() {
 
     client = _MockClient();
     when(() => client.serverType).thenReturn(ServerType.silo);
+    when(() => client.baseUrl).thenReturn('https://silo.example');
     mutations = _MockMutations();
     when(() => mutations.setPlayed(any(), isPlayed: any(named: 'isPlayed')))
         .thenAnswer((_) async {});
@@ -91,8 +94,9 @@ void main() {
   /// Picks the menu entry labelled by [label] for the episode.
   Future<void> select(
     WidgetTester tester,
-    String Function(AppLocalizations l10n) label,
-  ) async {
+    String Function(AppLocalizations l10n) label, {
+    AggregatedItem? item,
+  }) async {
     late List<ItemContextAction> actions;
     late AppLocalizations l10n;
     await tester.pumpWidget(
@@ -100,7 +104,7 @@ void main() {
         home: Builder(
           builder: (context) {
             l10n = AppLocalizations.of(context);
-            actions = contextActionsFor(context, _episode());
+            actions = contextActionsFor(context, item ?? _episode());
             return const SizedBox.shrink();
           },
         ),
@@ -137,6 +141,35 @@ void main() {
     expect(api.hidden, ['next_up ep-1']);
     expect(prefs.getHiddenNextUpSeries(), isEmpty);
     expect(prefs.getHiddenContinueWatchingItems(), isEmpty);
+  });
+
+  testWidgets('a card named by the user\'s server id counts too', (
+    tester,
+  ) async {
+    final api = _DismissingItemsApi();
+    when(() => client.itemsApi).thenReturn(api);
+
+    await select(
+      tester,
+      (l) => l.contextMenuHideFromContinueWatching,
+      item: _episode(serverId: 'server-1'),
+    );
+
+    expect(api.hidden, ['continue_watching ep-1']);
+  });
+
+  testWidgets('a card of another server: this device\'s list', (tester) async {
+    final api = _DismissingItemsApi();
+    when(() => client.itemsApi).thenReturn(api);
+
+    await select(
+      tester,
+      (l) => l.contextMenuHideFromContinueWatching,
+      item: _episode(serverId: 'https://other.example'),
+    );
+
+    expect(api.hidden, isEmpty);
+    expect(prefs.getHiddenContinueWatchingItems().keys, ['series-1']);
   });
 
   testWidgets('a refused hide falls back to this device, history kept', (

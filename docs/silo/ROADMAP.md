@@ -141,11 +141,11 @@ Status key: ☐ not started · ◐ in progress · ☑ done and tested · ⊘ ski
 
 ## 9. [User actions](phases/09-user-actions.md)
 
-- [ ] **9.1** [Favorite / unfavorite](phases/09-user-actions.md#step-9-1)
-- [ ] **9.2** [Mark played / unplayed](phases/09-user-actions.md#step-9-2)
-- [ ] **9.3** [Ratings](phases/09-user-actions.md#step-9-3)
-- [ ] **9.4** [Refresh rows after a change](phases/09-user-actions.md#step-9-4)
-- [ ] **9.5** [Personal collections: create, add, remove](phases/09-user-actions.md#step-9-5)
+- [x] **9.1** [Favorite / unfavorite](phases/09-user-actions.md#step-9-1)
+- [x] **9.2** [Mark played / unplayed](phases/09-user-actions.md#step-9-2)
+- [x] **9.3** [Ratings](phases/09-user-actions.md#step-9-3)
+- [x] **9.4** [Refresh rows after a change](phases/09-user-actions.md#step-9-4)
+- [x] **9.5** [Personal collections: create, add, remove](phases/09-user-actions.md#step-9-5)
 - [ ] **9.6** [Watchlist](phases/09-user-actions.md#step-9-6) *(optional; skipped, D12)*
 - [ ] **9.7** [Hide from Continue Watching and Next Up](phases/09-user-actions.md#step-9-7)
 

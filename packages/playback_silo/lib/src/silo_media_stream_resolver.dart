@@ -9,6 +9,7 @@ import 'silo_capabilities_translator.dart';
 import 'silo_plan_mapper.dart';
 import 'silo_playback_context.dart';
 import 'silo_playback_sessions.dart';
+import 'silo_subtitles.dart';
 
 /// Resolves a Silo item to a playable stream (step 10.6).
 ///
@@ -93,6 +94,11 @@ class SiloMediaStreamResolver implements MediaStreamResolver, StreamReplanner {
       'client_playback_context': context,
       'start_position': siloStartPosition(startTimeTicks),
       'audio_track_index': ?_audioOrdinal(file.source, audioStreamIndex),
+      // Off (-1) or no choice sends none, which plays without (10.14).
+      'subtitle_track_index': ?siloSubtitleCombinedIndex(
+        file.source,
+        subtitleStreamIndex,
+      ),
       'bandwidth_cap_kbps': ?_kbps(maxStreamingBitrate),
     };
 
@@ -267,7 +273,7 @@ class SiloMediaStreamResolver implements MediaStreamResolver, StreamReplanner {
   };
 
   /// The tracks a replan asks for: the plan's, and for a track change the
-  /// audio track Moonfin picked (step 10.13).
+  /// audio (step 10.13) and subtitle (10.14) Moonfin picked.
   ///
   /// Moonfin's stream index becomes Silo's identity through the version's
   /// track map (5.8): `file:<file id>:audio:<ordinal>` and the ordinal as
@@ -282,13 +288,33 @@ class SiloMediaStreamResolver implements MediaStreamResolver, StreamReplanner {
   ) {
     final tracks = _selectedTracks(session.plan);
     if (request.reason != ReplanReason.trackChange) return tracks;
+    final fileId = '${session.plan['effective_media_file_id']}';
     final audio = siloTrackIdentity(
       session.mediaSource,
       request.audioStreamIndex,
       SiloTrackKind.audio,
-      fileId: '${session.plan['effective_media_file_id']}',
+      fileId: fileId,
     );
     if (audio != null) tracks['audio'] = audio;
+    // Subtitles (10.14): -1 is off, which a track change says by leaving
+    // the subtitle out; an index Silo knows (the file's own, or a
+    // downloaded one from the plan) is named; anything else keeps the
+    // plan's.
+    final subtitle = request.subtitleStreamIndex;
+    if (subtitle == -1) {
+      tracks.remove('subtitle');
+    } else if (subtitle != null) {
+      final combined = siloSubtitleIndexByCombined(
+        session.plan,
+        session.mediaSource,
+      ).entries.where((e) => e.value == subtitle).map((e) => e.key);
+      if (combined.isNotEmpty) {
+        tracks['subtitle'] = {
+          'id': 'file:$fileId:subtitle:${combined.first}',
+          'index': combined.first,
+        };
+      }
+    }
     return tracks;
   }
 

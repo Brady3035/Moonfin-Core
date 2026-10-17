@@ -32,6 +32,56 @@ String siloPlanUrl(String baseUrl, String url) {
   return '$base${path.startsWith('/') ? '' : '/'}$path';
 }
 
+/// The account credentials a Silo media request needs (step 10.7).
+class SiloStreamAuth {
+  const SiloStreamAuth({
+    required this.accessToken,
+    this.profileId,
+    this.profileToken,
+  });
+
+  final String accessToken;
+  final String? profileId;
+  final String? profileToken;
+
+  /// The headers every media request carries: the bearer token and the
+  /// profile it plays as (with its PIN proof).
+  Map<String, String> get headers => {
+    'Authorization': 'Bearer $accessToken',
+    if (profileId case final id? when id.isNotEmpty) 'X-Profile-Id': id,
+    if (profileToken case final t? when t.isNotEmpty) 'X-Profile-Token': t,
+  };
+}
+
+/// Whether [url] is on the Silo server's own origin ([baseUrl]), the only
+/// place Moonfin sends the account's credentials. A proxy node's URL is
+/// signed and gets none.
+bool siloIsServerUrl(String url, String baseUrl) {
+  final a = Uri.tryParse(url);
+  final b = Uri.tryParse(baseUrl);
+  if (a == null || b == null) return false;
+  return a.scheme == b.scheme && a.host == b.host && a.port == b.port;
+}
+
+/// [url] with the account's token as `token=`, the media-element fallback
+/// Silo accepts on its `/api/v2/stream/` routes (the original file, a
+/// progressive remux, subtitle sidecars and their fonts) for a request that
+/// can't carry headers: a subtitle fetched by the player itself, a cast
+/// receiver. Nothing else gets one: HLS goes by headers (Silo copies a
+/// manifest's query onto every segment), and artwork is signed on its own.
+/// The rest of the query is kept byte for byte.
+String siloAuthorizeUrl(String url, String baseUrl, String accessToken) {
+  if (accessToken.isEmpty || !siloIsServerUrl(url, baseUrl)) return url;
+  final uri = Uri.parse(url);
+  if (!uri.path.contains('/api/v2/stream/')) return url;
+  if (uri.queryParameters.containsKey('token')) return url;
+  final token = 'token=${Uri.encodeQueryComponent(accessToken)}';
+  final fragment = url.indexOf('#');
+  final head = fragment < 0 ? url : url.substring(0, fragment);
+  final tail = fragment < 0 ? '' : url.substring(fragment);
+  return '$head${head.contains('?') ? '&' : '?'}$token$tail';
+}
+
 /// Silo's reasons for a plan that isn't the original, as Jellyfin's
 /// transcode reasons, which Moonfin's playback info shows. Silo's own text
 /// is informational (protocol §7.1–7.2); only the ones that say why are
@@ -87,12 +137,16 @@ const _warningReasons = {
 ///   Moonfin's index through the track map.
 /// - `sourceBitrate` from `source.bitrate_kbps`; the video range from the
 ///   file's video stream, else the recipe's.
+/// - With [auth] (10.7), a stream on the server's origin carries the
+///   account's headers on every request, `stream.headers` on top, and an
+///   `/api/v2/stream/` URL also carries `token=` ([siloAuthorizeUrl]).
 StreamResolutionResult siloPlanToResolution({
   required Map<String, dynamic> plan,
   required String sessionId,
   required String baseUrl,
   Map<String, dynamic>? mediaSource,
   bool directPlayRequested = true,
+  SiloStreamAuth? auth,
 }) {
   final stream = (plan['stream'] as Map?)?.cast<String, dynamic>() ?? const {};
   final timeline =
@@ -120,13 +174,18 @@ StreamResolutionResult siloPlanToResolution({
   }
   final offset = timeline['timeline_offset_seconds'];
   final bitrate = source['bitrate_kbps'];
-  final url = siloPlanUrl(baseUrl, '${stream['url'] ?? ''}');
+  final planUrl = siloPlanUrl(baseUrl, '${stream['url'] ?? ''}');
+  final onServer = siloIsServerUrl(planUrl, baseUrl);
+  final url = auth == null
+      ? planUrl
+      : siloAuthorizeUrl(planUrl, baseUrl, auth.accessToken);
 
   return StreamResolutionResult(
     streamUrl: url,
     mediaSourceId: '${plan['effective_media_file_id'] ?? mediaSource?['Id']}',
     playSessionId: sessionId,
     requestHeaders: {
+      if (auth != null && onServer) ...auth.headers,
       for (final e in ((stream['headers'] as Map?) ?? const {}).entries)
         '${e.key}': '${e.value}',
     },

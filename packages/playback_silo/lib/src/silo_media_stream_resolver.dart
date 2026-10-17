@@ -131,6 +131,7 @@ class SiloMediaStreamResolver implements MediaStreamResolver {
       baseUrl: client.baseUrl,
       mediaSource: source,
       directPlayRequested: enableDirectPlay,
+      auth: await _streamAuth(client),
     );
     _sessions.add(
       SiloPlaybackSession(
@@ -144,6 +145,31 @@ class SiloMediaStreamResolver implements MediaStreamResolver {
       )..resolution = resolution,
     );
     return resolution;
+  }
+
+  // --- stream authorisation (10.7) -------------------------------------------
+
+  /// The credentials a stream opened now carries for as long as it plays.
+  ///
+  /// The player can't change them once it has opened the stream, so a token
+  /// past half its life is refreshed first: the stream then keeps working
+  /// for at least half a token lifetime (Silo's is an hour). A failed
+  /// refresh keeps the current token, which the start just used.
+  Future<SiloStreamAuth> _streamAuth(SiloMediaServerClient client) async {
+    final tokens = client.session.tokens;
+    if (tokens != null && tokens.refreshToken.isNotEmpty) {
+      final left = tokens.expiresAt.difference(client.session.now.toUtc());
+      if (left < tokens.lifetime * 0.5) {
+        try {
+          await client.refreshSession();
+        } catch (_) {}
+      }
+    }
+    return SiloStreamAuth(
+      accessToken: client.session.accessToken ?? '',
+      profileId: client.profileId,
+      profileToken: client.profileToken,
+    );
   }
 
   // --- the start request ------------------------------------------------------

@@ -266,7 +266,7 @@ This server's capabilities (`silo/playback_capabilities.json`, captured at `bd9d
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | previous step |
+| ☑ Done | — | previous step |
 
 **Goal.** `POST /playback/start` → `StreamResolutionResult`; retry an interrupted request with the identical body.
 
@@ -348,33 +348,49 @@ Starting plays from 10.7 on (the media requests need the account's token); test 
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | previous step |
 
 **Goal.** Headers on every request (HLS segments and sidecars included); `token=` query only on `/api/v2/stream` URLs where headers can't be sent. Signed artwork never gets a token.
 
 **Where in Moonfin**
 
-- `silo_media_stream_resolver.dart`
-- `lib/util/server_url.dart`
+- `packages/playback_silo/lib/src/silo_plan_mapper.dart` (`SiloStreamAuth`, `siloAuthorizeUrl`, `siloIsServerUrl`)
+- `packages/playback_silo/lib/src/silo_media_stream_resolver.dart` (`_streamAuth`)
+- (`lib/util/server_url.dart`, named in the plan, needed no change: the player takes the URL and headers from the resolution as they are.)
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+Silo's media routes always need the account and the viewer (Playback API, "Delivery"): the plan's URLs carry a signed stream reference (`st`) that lets any replica rebuild the session, but not who is asking. A client sends its bearer token and profile as headers, or, where a media element can't send headers, the token as `token=`.
+
+`siloPlanToResolution` takes the credentials (`SiloStreamAuth`: access token, profile id, PIN proof) and, for a stream on the server's own origin:
+
+- `requestHeaders` are `Authorization: Bearer …`, `X-Profile-Id` (and `X-Profile-Token` for a PIN-unlocked profile), with `stream.headers` on top. Moonfin's backends send a stream's headers on every request they make for it, HLS playlists and segments included (AetherEngine and media_kit both take them at open).
+- **`token=`** is added only to Silo's `/api/v2/stream/` routes (`siloAuthorizeUrl`): the original file, a progressive remux, and (from 10.14) subtitle sidecars and font bundles. Those are the URLs fetched by something that may not send the player's headers (a subtitle loader, a cast receiver). HLS (`/api/v2/playback/transcode/…`) goes by headers only: Silo copies a playlist's query onto every segment URI, so a token there would ride on each segment for no gain. The rest of the query (`st`, `seek`, a sidecar's identity pins) stays byte for byte, and a URL that already has a `token` keeps it.
+- **A URL on another origin** (a proxy node, absolute in the plan) gets neither: the account's credentials never leave the server it signed in to. Moonfin doesn't opt into `authorized_media_origins_v1` (10.3), so Silo signs such URLs itself. **Artwork** never gets a token: its URLs are signed and cached by path (6.2).
+
+**How long it works.** The player can't change a stream's headers or URL once it has opened it. So before the stream is described the resolver refreshes an access token that is past half its life (`_streamAuth`): the stream then works for at least half a token lifetime, 30 minutes on this server (tokens last an hour). The start itself went through the session interceptor, which refreshes only in the last fifth of the life. A failed refresh keeps the current token.
+
+**Open (raise with Brady):** a stream that is still playing when its token expires: an HLS segment or a seek on a direct play fetched after that would be refused (`401`), since Silo checks the token on every media request. A film longer than the token's remaining life could stop there. Brady's test plan checks it below; if it fails, the fix is a follow-up step (replan to a fresh stream shortly before the token expires, which reopens it at the same position, or Silo accepting the `st` reference alone for a live session).
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `packages/playback_silo/test/silo_stream_auth_test.dart` (new, 6 tests): a remux on the server gets the bearer and profile headers and `token=` after its `seek` and `st`; HLS gets the headers and no token; a proxy node's URL gets neither; a token with 20 of its 60 minutes left is refreshed once before the stream is described and the new one is used; `siloAuthorizeUrl` adds the token only to `/api/v2/stream/` on the server's origin (not artwork, HLS or a proxy), keeps a token already there, encodes it.
+- `silo_start_test.dart`: the remux URL now ends with the token.
+- `playback_silo` 37/37; analyzer: no issues.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+- Play xXx (a remux on a stereo Mac: DTS → AAC) and The Salt Path (direct play): both play, seek and resume. The network log shows no `401` for `/api/v2/stream/…`.
+- Force a transcode (set a 4 Mbit/s ceiling in Moonfin's playback settings) and play a film: HLS plays past the first minutes (every segment is authorised).
+- **Token lifetime:** play something for more than 35 minutes (direct play, then once with the 4 Mbit/s ceiling for HLS), then seek. Note whether playback continues or fails with a `401` in the log: that decides the open item above.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-17 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | stream auth 6/6; `playback_silo` 37/37; analyzer: no issues |
 | | | | | |
 
 ---

@@ -91,8 +91,7 @@ class SiloMediaStreamResolver implements MediaStreamResolver {
       'metered': false,
       'client_capabilities': capabilities.clientCapabilities,
       'client_playback_context': context,
-      if (startTimeTicks != null && startTimeTicks > 0)
-        'start_position': ticksToSeconds(startTimeTicks),
+      'start_position': siloStartPosition(startTimeTicks),
       'audio_track_index': ?_audioOrdinal(file.source, audioStreamIndex),
       'bandwidth_cap_kbps': ?_kbps(maxStreamingBitrate),
     };
@@ -348,6 +347,21 @@ class _SiloFile {
 
   /// Every version Moonfin knows of the item.
   final List<Map<String, dynamic>> sources;
+}
+
+/// Where Silo should start (step 10.11), in seconds: always said.
+///
+/// Omitting `start_position` asks Silo to pick (its resume point for the
+/// item), but Moonfin always knows: its resume prompt, the Resume and Play
+/// buttons and the resume setting pass a position, and no position means
+/// the start (Play from the beginning, the next episode). So it is sent
+/// every time, `0` for the start, as the contract's "start over". A
+/// re-resolve passes the current position. Clamped to the contract's
+/// bounds (0 to a year).
+double siloStartPosition(int? startTimeTicks) {
+  if (startTimeTicks == null || startTimeTicks <= 0) return 0;
+  final seconds = ticksToSeconds(startTimeTicks);
+  return seconds > 31536000 ? 31536000 : seconds;
 }
 
 /// What the player shows when Silo decides not to play (step 10.8): Silo's

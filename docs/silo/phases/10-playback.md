@@ -509,7 +509,7 @@ Moonfin's own resume point for the item (`UserData`) still comes from Silo on th
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | previous step |
+| ☑ Done | — | previous step |
 
 **Goal.** `DELETE /playback/{sid}` with a stable `stop_id` and the final position, with retries.
 
@@ -565,32 +565,40 @@ Audiobooks, which keep their own position (`progress_persistence: client` and `/
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | previous step |
 
 **Goal.** Send `start_position` whenever Moonfin passes one; omit it only when Moonfin has no opinion.
 
 **Where in Moonfin**
 
-- `silo_media_stream_resolver.dart`
+- `packages/playback_silo/lib/src/silo_media_stream_resolver.dart` (`siloStartPosition`)
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+Silo treats a missing `start_position` as a request (protocol v3 §2.2, "Omission is a request, not a default"): it starts at the profile's saved resume point. `0` means start over; any other value starts exactly there. The plan's timeline is cut at that position before planning, so it matters which one Silo gets.
+
+Moonfin always has an opinion. Its resume prompt, the Resume and Play buttons and the resume setting pass a start position to `playItems`; no position means the start (Play from the beginning, the next episode, a trailer); a re-resolve passes the current position. The manager hands the resolver `startTimeTicks` only when the position is past zero, so "none" means "the start" here, never "you decide". If it were left out, *Play from beginning* on a film part way through would resume it on Silo.
+
+So `start_position` is now sent on every start (`siloStartPosition`): the position in seconds, `0` for the start, clamped to the contract's 0 to 31,536,000. 10.6 sent it only for a resume.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `packages/playback_silo/test/silo_start_test.dart` (2 more; the "no opinion" test now expects `start_position: 0`): `siloStartPosition` gives 0 for none, zero or negative, 600 and 600.5 for their ticks, and the contract's ceiling for an absurd value; a resume at 30:00 and then a start from the beginning send 1800 and 0.
+- `playback_silo` 55/55; analyzer: no issues.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+- A film part way through (Silo's web app shows its resume point): **Resume** starts there; **Play from the beginning** (or the resume prompt's *Start over*) starts at 0:00, on Silo as on Emby.
+- After starting over and watching a minute, stop: Silo's resume point is now about a minute in.
+- The next episode from the post-roll / Up Next starts where it does on Emby for the same episode (Moonfin decides, Silo follows).
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-17 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | start position 2/2; `playback_silo` 55/55; analyzer: no issues |
 | | | | | |
 
 ---

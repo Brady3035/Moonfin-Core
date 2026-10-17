@@ -1,6 +1,8 @@
 import 'package:playback_core/playback_core.dart';
 import 'package:server_core/server_core.dart';
 
+import 'silo_playback_context.dart';
+
 /// Resolves a Silo item to a playable stream.
 ///
 /// Silo has no `PlaybackInfo` negotiation: the client posts its codec
@@ -13,7 +15,15 @@ class SiloMediaStreamResolver implements MediaStreamResolver {
   // ignore: unused_field
   final MediaServerClient _client;
 
-  SiloMediaStreamResolver(this._client);
+  /// The device and its player, asked at each start (10.4).
+  // Used from 10.6 on.
+  // ignore: unused_field
+  final SiloPlaybackEnvironment Function() _environment;
+
+  SiloMediaStreamResolver(
+    this._client, {
+    SiloPlaybackEnvironment Function()? environment,
+  }) : _environment = environment ?? (() => const SiloPlaybackEnvironment());
 
   @override
   Future<StreamResolutionResult> resolve(

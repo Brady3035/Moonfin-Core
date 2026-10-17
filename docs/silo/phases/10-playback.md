@@ -266,7 +266,7 @@ This server's capabilities (`silo/playback_capabilities.json`, captured at `bd9d
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | previous step |
+| ☑ Done | —, fix — | previous step |
 
 **Goal.** `POST /playback/start` → `StreamResolutionResult`; retry an interrupted request with the identical body.
 
@@ -282,6 +282,7 @@ This server's capabilities (`silo/playback_capabilities.json`, captured at `bd9d
 - `packages/server_silo/lib/src/api/silo_playback_api.dart` (`startPlayback`, `isRetryableStartError`)
 - `silo_extras_mapper.dart`: `siloLocalTrailersPlayable` is now true (added at 6.17), so local trailers come back to the trailer button and the extras' trailer count.
 - `packages/playback_silo/pubspec.yaml`: depends on `server_silo` and `dio`
+- `lib/playback/silo_plugin_for.dart` (new at the fix): the app's `SiloPlugin`, built from the Silo client inside the app's wrapper
 
 ### How it works
 
@@ -313,6 +314,8 @@ This server's capabilities (`silo/playback_capabilities.json`, captured at `bd9d
 
 Local extras play now, so `siloLocalTrailersPlayable` is true: a title's local trailers count again (`LocalTrailerCount`) and come first on its trailer button, as on Jellyfin.
 
+**Fix at 10.6: nothing played in the app** (commit `silo(10.6): Fix playback with the app's wrapped client`, found by Brady). The app hands every server's client around wrapped in `ConnectivityAwareMediaServerClient` (offline browsing), and the playback module, the media bar's trailers and the three cast providers built `SiloPlugin` from that wrapper. The resolver calls Silo's playback API on the Silo client itself, so every start threw `Bad state: ConnectivityAwareMediaServerClient is not a Silo client` before any request; the session service would have reported nothing for the same reason. The package's tests built the plugin from a bare Silo client, so they never saw it. All five sites now build it through `siloPluginFor(client)`, which takes the client inside the wrapper (`siloClientOf`, already used for Silo's tokens); the resolver and the session service then share that one client, and with it one session registry.
+
 ### Testing
 
 **Automated tests**
@@ -324,6 +327,7 @@ Local extras play now, so `siloLocalTrailersPlayable` is true: a title's local t
 - `silo_plugin_test.dart`: the placeholder's refusal test is gone.
 - `server_silo/test/silo_extras_test.dart`: local trailers count and list.
 - `playback_silo` 31/31; `server_silo` 538/538; analyzer: no issues.
+- `test/playback/silo_plugin_for_test.dart` (new at the fix, 1 test): a Silo client wrapped as the app wraps it starts playback (capabilities, start) and its stop reaches Silo (`DELETE /playback/{session}`). Without the fix it fails with Brady's `Bad state`.
 
 **Manual test plan**
 
@@ -339,6 +343,8 @@ Starting plays from 10.7 on (the media requests need the account's token); test 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-17 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | start 14/14; `playback_silo` 31/31; `server_silo` 538/538; analyzer: no issues |
+| 2026-10-17 | macOS | — | Fail | Brady: nothing starts playing (test 2). `Bad state: ConnectivityAwareMediaServerClient is not a Silo client` from the resolver: the app's plugins got the wrapped client |
+| 2026-10-17 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | fix: the plugin takes the Silo client inside the wrapper at all five sites; `silo_plugin_for_test` 1/1 (fails without the fix), `connectivity_aware_profile_test` and `silo_token_storage_test` pass; `playback_silo` 83/83; analyzer: no new issues. Full app suite left to Brady |
 | | | | | |
 
 ---

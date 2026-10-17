@@ -34,6 +34,9 @@ Per-library view settings (image type, sort, view) are kept locally for Silo. Si
 ### D11. No "hide from Latest" on Silo (2026-10-15)
 Moonfin's library settings can hide a library from the Latest rows (`LatestItemsExcludes` on Jellyfin and Emby). Silo has no such setting and its settings store only takes its own keys, so the switch couldn't be kept. Keeping it on the device was the other option, but Moonfin reads this list from the server on every Home load and has no local copy to fall back on. So the switch is hidden for Silo libraries through a `FeatureDetector` flag (`supportsLatestItemsExcludes`, as in D10) and every Silo library has its Latest row; the Latest section as a whole can still be turned off. If Silo adds a setting, turning the flag on and mapping it in `silo_settings_mapper.dart` brings the switch back. Step 8.3.
 
+### D12. No watchlist action for Silo for now (2026-10-17)
+Step 9.6 (optional) would have added Silo's watchlist as a context action and row. Brady chose to skip it. A Silo watchlist row can already be switched on through 8.7's server rows when Silo's Home layout has one; adding and removing titles would need a new button and strings, since Moonfin's watchlist UI belongs to Seerr. Revisit if users ask for it. Step 9.6.
+
 ## Open
 
 ### D6. Track changes: replan or stop and restart

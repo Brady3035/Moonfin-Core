@@ -35,6 +35,7 @@ import '../../playback/media_kit_player_backend.dart';
 import '../../playback/media3_player_backend.dart';
 import '../../playback/offline_stream_resolver.dart';
 import '../../playback/playback_profile_diagnostics.dart';
+import '../../playback/silo_playback_environment.dart';
 import '../../playback/sleep_timer_controller.dart';
 import '../../platform/pip_service.dart';
 import '../../preference/preference_constants.dart';
@@ -798,7 +799,7 @@ void setActiveStreamResolver(MediaServerClient client) {
       return (p.createStreamResolver(), p.createPlaySessionService());
     }(),
     ServerType.silo => () {
-      final p = SiloPlugin(client);
+      final p = SiloPlugin(client, environment: siloPlaybackEnvironment);
       return (p.createStreamResolver(), p.createPlaySessionService());
     }(),
   };

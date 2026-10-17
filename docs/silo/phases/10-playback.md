@@ -117,7 +117,7 @@ A local file never replans (`isLocalMedia`). `LocalFirstMediaStreamResolver`, wh
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | previous step |
+| ☑ Done | — | previous step |
 
 **Goal.** Moonfin's DeviceProfile → Silo client codec capabilities with honest evidence tiers, validated against Silo's start-request schema.
 
@@ -170,32 +170,45 @@ Silo plans the route on the server (protocol v3 §1): the client says what it ca
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | previous step |
 
 **Goal.** App version, device, form factor, display HDR and audio outputs, deliverable routes.
 
 **Where in Moonfin**
 
-- `packages/playback_silo/lib/src/silo_playback_context.dart`
+- `packages/playback_silo/lib/src/silo_playback_context.dart` (new)
+- `packages/playback_silo/lib/src/silo_plugin.dart`, `silo_media_stream_resolver.dart` (take the environment)
+- `lib/playback/silo_playback_environment.dart` (new), `lib/di/modules/playback_module.dart`
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+Next to its codec evidence (10.3), a Silo start describes where it is playing: `client_playback_context` (protocol v3 §3–4) with the app version, the device, its form factor, the output (display HDR) and the delivery classes.
+
+- **`SiloPlaybackEnvironment`** (`playback_silo`) is what the app knows and the package can't: form factor (`tv`, `phone`, `tablet`, `desktop`, `web`; Silo uses it for its device quirks), platform, OS version, manufacturer, model, app build, the display's native HDR formats when the platform could ask, and the player's `SiloPlayerTraits` (10.3).
+- **`siloPlaybackContext(environment:, appVersion:, capabilities:)`** shapes it: `protocol_version` 3, `form_factor`, `app_version` (the client's `DeviceInfo.appVersion`), `app_build`, `device`, `output`, and `deliveries` from the translator. Values are trimmed and cut to Silo's bounds (32 for the platform, 64 for versions, 128 for the rest); an empty one is left out rather than sent blank.
+- **Output.** `output.hdr_details` is what can be shown *natively*: the decoder's formats the display also has. When the display couldn't be asked it is all off and `display.hdr_evidence` is `unknown`, which Silo reads as "claim no native HDR output" (and, with `display` present, it doesn't fall back to the decoder's formats either). A display that answered is sent as `exact`, its own formats as `hdr_types`; `hdr_details` never claims more than they do, which Silo would refuse. `output_context_id` is left out: Moonfin has no stable id for the output route, and Silo compares it for equality, so a made-up one would invalidate plans at random.
+- **The app** (`siloPlaybackEnvironment()`, `lib/playback/silo_playback_environment.dart`) builds it from `PlatformDetection`: form factor, platform, OS version, model (where the platform reports one), `Apple` as manufacturer on Apple platforms, and the main player's traits: **AetherEngine on macOS and iOS** (Moonfin's main player there; media_kit only plays trailers and theme music on the Mac) and libmpv on Windows and Linux, both `SiloPlayerTraits.aether`/`.mpv` (they pick any audio track, map an original's HDR to the screen themselves, draw embedded subtitles). The other backends (Media3, tvOS, web) send the defaults, which claim nothing beyond their profile, until phase 12. The display's HDR is left unknown: only Android TV can ask its display (`DisplayHdrProbe`). For an original file that costs nothing, since both players map HDR themselves; a remux of an HDR file is then tone-mapped by Silo (noted for phase 12).
+- `SiloPlugin(client, environment:)` takes the environment as a function, asked at every start, and hands it to the resolver; `playback_module.dart` passes `siloPlaybackEnvironment`. The other places that build a Silo resolver (cast, the media bar) get the defaults. The resolver uses it from 10.6.
+
+The roadmap called this phase "media_kit on macOS"; on the Mac it is in fact AetherEngine, and the translator, traits and test plans follow that.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `packages/playback_silo/test/silo_playback_context_test.dart` (new, 3 tests): a Mac whose display can't be asked (device fields, all-off `hdr_details`, `hdr_evidence: unknown`, the translator's deliveries); a display that answered (HDR10, HLG, Dolby Vision 5/7/8) gives `exact` with its formats and `hdr_details` limited to what the decoder also has (no profile 7, no HDR10+); blank values left out, over-long ones cut, a blank app version sent as `unknown`. Each context passes the contract check for `ClientPlaybackContextV3`.
+- `test/playback/silo_playback_environment_test.dart` (new, 3 tests): macOS is a desktop with Apple as manufacturer and AetherEngine's traits, display HDR unknown; Windows and Linux use libmpv's; Android (Media3, phase 12) claims nothing beyond its profile.
+- `playback_silo` 19/19.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+- Nothing to see yet; 10.6 sends the context. Its log line (`→ POST …/playback/start`) appears from then on.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-17 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | context 3/3; environment 3/3; `playback_silo` 19/19; analyzer: no issues |
 | | | | | |
 
 ---

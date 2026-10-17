@@ -22,12 +22,15 @@ class FeatureDetector {
   bool get supportsSyncPlay => _isJellyfin;
   bool get supportsTrickplay => _isJellyfin;
   bool get supportsLyrics => _isJellyfin;
-  bool get supportsMediaSegments => _isJellyfin;
 
-  /// Jellyfin, Emby and Plex can surface intro and credits segments for skip
-  /// overlays, Jellyfin through the MediaSegments API, Emby through chapter
-  /// markers and Plex through its own markers.
-  bool get supportsSkipSegments => !_isSilo;
+  /// Jellyfin's MediaSegments API; Silo answers it from its skip markers
+  /// (step 11.1).
+  bool get supportsMediaSegments => _isJellyfin || _isSilo;
+
+  /// Intro and credits segments for skip overlays: Jellyfin through the
+  /// MediaSegments API, Emby through chapter markers, Plex and Silo through
+  /// their own markers (11.1).
+  bool get supportsSkipSegments => true;
 
   bool get supportsQuickConnect => _isJellyfin;
 
@@ -40,6 +43,7 @@ class FeatureDetector {
   bool get supportsClientLog => _isJellyfin;
 
   bool get supportsBifTrickplay => _isEmby;
+
   /// Seerr requests and discovery. Moonfin reaches Seerr only through the
   /// Moonfin plugin's proxy (`/Moonfin/Seerr/*`), which Silo never has, so
   /// there is no Seerr on Silo.

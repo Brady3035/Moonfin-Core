@@ -176,6 +176,25 @@ void main() {
       expect(session.plan['plan_id'], startsWith('plan:'));
     });
 
+    test('the playing file is noted for its markers (11.1)', () async {
+      final server = SiloTestServer({
+        capabilitiesPath: SiloTestServer.file(
+          'silo/playback_capabilities.json',
+        ),
+        startPath: SiloTestServer.file('decision_remux.json', status: 201),
+        '/api/v2/markers/files/4598': SiloTestServer.file(
+          'silo/markers_movie.json',
+        ),
+      });
+      final client = siloTestClient(server);
+      await SiloPlugin(client).createStreamResolver().resolve(
+        siloTestItem('silo/watch_movie.json'),
+        deviceProfile: _profile,
+      );
+      expect(await client.itemsApi.getMediaSegments(_film), isEmpty);
+      expect(server.requests.last.uri.path, '/api/v2/markers/files/4598');
+    });
+
     test('the plan fixtures fit Silo\'s contract', () {
       for (final name in [
         'decision_remux.json',

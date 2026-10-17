@@ -256,24 +256,30 @@ void main() {
       );
     });
 
-    test('Silo\'s refusal to play reaches the player with its words', () async {
-      final server = _server(
-        start: SiloTestServer.file('decision_terminal.json', status: 201),
-      );
-      await expectLater(
-        _resolver(server).resolve(
-          siloTestItem('silo/watch_movie.json'),
-          deviceProfile: _profile,
-        ),
-        throwsA(
-          isA<StateError>().having(
-            (e) => e.message,
-            'message',
-            "This file can't be read. Replace it and scan the library again.",
+    test(
+      'Silo\'s refusal to play reaches the player with its words (10.8)',
+      () async {
+        final server = _server(
+          start: SiloTestServer.file('decision_terminal.json', status: 201),
+        );
+        await expectLater(
+          _resolver(server).resolve(
+            siloTestItem('silo/watch_movie.json'),
+            deviceProfile: _profile,
           ),
-        ),
-      );
-    });
+          throwsA(
+            isA<PlaybackRefusedException>()
+                .having(
+                  (e) => e.message,
+                  'message',
+                  "This file can't be read. Replace it and scan the library again.",
+                )
+                .having((e) => e.reason, 'reason', 'source_unreadable')
+                .having((e) => e.retryable, 'retryable', isFalse),
+          ),
+        );
+      },
+    );
 
     test('a server without playback plays nothing', () async {
       final server = _server(
@@ -291,9 +297,54 @@ void main() {
           siloTestItem('silo/watch_movie.json'),
           deviceProfile: _profile,
         ),
-        throwsA(isA<UnsupportedError>()),
+        throwsA(
+          isA<PlaybackRefusedException>().having(
+            (e) => e.message,
+            'message',
+            siloPlaybackUnavailableMessage,
+          ),
+        ),
       );
       expect(server.to(startPath), isEmpty);
+    });
+
+    test('a terminal without words names its reason', () {
+      final refusal = siloRefusal({
+        'outcome': 'adaptation_unavailable',
+        'terminal': {
+          'reason': 'source_metadata_incomplete',
+          'message': ' ',
+          'retryable': true,
+        },
+      });
+      expect(
+        refusal.message,
+        "Silo can't play this item (source_metadata_incomplete).",
+      );
+      expect(refusal.retryable, isTrue);
+    });
+
+    test('a server that wants a newer client says so', () async {
+      final server = _server(
+        start: SiloTestServer.problemRoute(
+          426,
+          'client_upgrade_required',
+          'Upgrade',
+        ),
+      );
+      await expectLater(
+        _resolver(server).resolve(
+          siloTestItem('silo/watch_movie.json'),
+          deviceProfile: _profile,
+        ),
+        throwsA(
+          isA<PlaybackRefusedException>().having(
+            (e) => e.message,
+            'message',
+            siloUpgradeRequiredMessage,
+          ),
+        ),
+      );
     });
   });
 }

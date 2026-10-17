@@ -348,7 +348,7 @@ Starting plays from 10.7 on (the media requests need the account's token); test 
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | previous step |
+| ☑ Done | — | previous step |
 
 **Goal.** Headers on every request (HLS segments and sidecars included); `token=` query only on `/api/v2/stream` URLs where headers can't be sent. Signed artwork never gets a token.
 
@@ -400,33 +400,47 @@ Silo's media routes always need the account and the viewer (Playback API, "Deliv
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | previous step |
 
 **Goal.** `adaptation_unavailable` → typed error showing Silo's message in the player.
 
 **Where in Moonfin**
 
-- `silo_media_stream_resolver.dart`
-- `player error UI`
+- `packages/playback_core/lib/src/playback_refused_exception.dart` (new), `playback_manager.dart`
+- `packages/playback_silo/lib/src/silo_media_stream_resolver.dart` (`siloRefusal`)
+- `lib/ui/navigation/playback_launcher.dart` (the player error path)
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+A start that Silo can't serve is not an HTTP error: it is a `201` decision with `outcome: adaptation_unavailable` and a `terminal` (`reason`, `message`, `retryable`; protocol v3 §7.3), for example `source_unreadable` (*"This file can't be read…"*), `source_metadata_incomplete` (not probed yet, retryable), `bitrate_policy_unavailable` (nothing fits the administrator's limit), `hdr_transcode_unsupported`. Silo writes `message` for the viewer.
+
+- **A typed refusal in `playback_core`:** `PlaybackRefusedException` (`message`, `reason`, `retryable`; `toString()` is the message). It is what any resolver throws when the server decided not to play, as opposed to failing.
+- **Silo** (`siloRefusal`) throws it with `terminal.message`, its reason and `retryable`; a terminal without words reads *"Silo can't play this item (reason)."*. Two more cases use it: capabilities that say playback isn't available on the server (*"Playback isn't available on this Silo server."*), and `426 client_upgrade_required`, which Silo answers a client whose protocol it no longer speaks (*"This Silo server needs a newer version of Moonfin to play."*). Other failures (a network error, a `5xx` after the retries) stay errors.
+- **The player shows it.** `PlaybackManager` turns a refusal from `resolve` into a failed bringup whose `error` is the message; the video player already shows a failed bringup's error as a snackbar (`_showBringupFailureIfAny`), on the app's messenger, so it stays up when the player closes. That covers a start from a detail page and the next episode starting inside the player alike.
+- **No crash.** The launcher (`launchPlayerWhilePreparing`) closes the player for a refusal, as for any start that didn't play, and answers `false` instead of rethrowing it, so it doesn't land in the uncaught-error handler and the crash report.
+
+Moonfin doesn't report the terminal back (`route-events`, optional diagnostics): left for later.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `packages/playback_silo/test/silo_start_test.dart` (2 more; the terminal and unavailable-server tests now expect the typed refusal): `source_unreadable` throws `PlaybackRefusedException` with Silo's message, reason and not retryable; a server without playback refuses with its message before any start; a terminal without words names its reason (retryable kept); a `426` says a newer Moonfin is needed.
+- `test/playback/playback_manager_refused_test.dart` (new, 1 test): a refused resolve fails the bringup with the server's words and opens nothing.
+- `test/ui/navigation/playback_launcher_test.dart` (1 more): a refused start closes the player and answers `false` instead of throwing.
+- `playback_silo` 39/39; analyzer: no new issues.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+- A file Silo can't read: on the server, copy a short text file to `Broken (2020)/Broken (2020).mkv` in a film library and scan (or use any file Silo's web app refuses to play). Play it in Moonfin: the player opens, closes, and a snackbar shows Silo's own message (the same words Silo's web app shows). Nothing in the crash report.
+- A film that plays: unchanged.
+- **Compare with Emby:** a file Emby can't play shows Moonfin's usual error there (no change).
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-17 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | refusal: Silo 4/4, manager 1/1, launcher 12/12; `playback_silo` 39/39; analyzer: no new issues |
 | | | | | |
 
 ---

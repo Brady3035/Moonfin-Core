@@ -3,6 +3,7 @@ import 'dart:async';
 import 'chapter_steps.dart';
 import 'media_stream_resolver.dart';
 import 'playback_arbiter.dart';
+import 'playback_refused_exception.dart';
 import 'player_backend.dart';
 import 'player_service.dart';
 import 'player_state.dart';
@@ -2605,7 +2606,24 @@ class PlaybackManager implements AudioOwnable {
       }
     }
 
-    var resolution = await resolve(maxBitrate);
+    StreamResolutionResult resolution;
+    try {
+      resolution = await resolve(maxBitrate);
+    } on PlaybackRefusedException catch (refusal) {
+      // The server's own words, which the player shows (step 10.8).
+      if (sessionToken == _playbackSessionToken) {
+        _setBringupState(
+          PlaybackBringupState(
+            phase: PlaybackBringupPhase.failed,
+            sessionToken: sessionToken,
+            itemId: itemId,
+            backend: _traceBackendName(_backend),
+            error: refusal.message,
+          ),
+        );
+      }
+      rethrow;
+    }
 
     if (sessionToken != _playbackSessionToken) {
       _cleanupPreemptedSession(item, resolution);

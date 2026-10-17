@@ -480,6 +480,17 @@ class ItemDetailViewModel extends ChangeNotifier {
   /// for on YouTube instead.
   bool get searchesYouTubeForTrailer => _client.serverType == ServerType.plex;
 
+  /// Whether this collection's cards offer "Remove from collection". A
+  /// server can limit editing to some collections (Silo: the profile's own
+  /// manual ones, step 9.5); otherwise any collection page offers it.
+  bool get canRemoveFromCollection {
+    final collection = _item;
+    if (collection == null || collection.type != 'BoxSet') return false;
+    final api = _client.itemsApi;
+    return api is! EditableCollectionsApi ||
+        (api as EditableCollectionsApi).canEditCollection(collection.rawData);
+  }
+
   bool _isRatingMutationInProgress = false;
   bool get isRatingMutationInProgress => _isRatingMutationInProgress;
 

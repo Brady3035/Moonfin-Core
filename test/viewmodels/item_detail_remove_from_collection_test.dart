@@ -17,6 +17,18 @@ class _Client extends Mock implements MediaServerClient {}
 
 class _ItemsApi extends Mock implements ItemsApi {}
 
+/// A server that lets the user edit only some collections (Silo, 9.5).
+class _EditableItemsApi extends _ItemsApi implements EditableCollectionsApi {
+  bool editable = false;
+  Map<String, dynamic>? asked;
+
+  @override
+  bool canEditCollection(Map<String, dynamic> collection) {
+    asked = collection;
+    return editable;
+  }
+}
+
 class _PluginSyncService extends Mock implements PluginSyncService {}
 
 void main() {
@@ -31,6 +43,35 @@ void main() {
     'Name': name,
     'ServerId': 'server-1',
   };
+
+  void stubCollection(_ItemsApi api) {
+    when(
+      () => api.getItem(
+        'boxset-1',
+        mediaSourceId: any(named: 'mediaSourceId'),
+      ),
+    ).thenAnswer(
+      (_) async => {'Id': 'boxset-1', 'Type': 'BoxSet', 'Name': 'Crossovers'},
+    );
+
+    when(
+      () => api.getItems(
+        parentId: 'boxset-1',
+        startIndex: 0,
+        limit: any(named: 'limit'),
+        fields: any(named: 'fields'),
+      ),
+    ).thenAnswer(
+      (_) async => {
+        'Items': [
+          member('a', 'Alpha'),
+          member('b', 'Beta'),
+          member('c', 'Gamma'),
+        ],
+        'TotalRecordCount': 3,
+      },
+    );
+  }
 
   setUp(() async {
     await GetIt.instance.reset();
@@ -47,33 +88,7 @@ void main() {
     itemsApi = _ItemsApi();
     when(() => client.itemsApi).thenReturn(itemsApi);
     when(() => client.baseUrl).thenReturn('http://server');
-
-    when(
-      () => itemsApi.getItem(
-        'boxset-1',
-        mediaSourceId: any(named: 'mediaSourceId'),
-      ),
-    ).thenAnswer(
-      (_) async => {'Id': 'boxset-1', 'Type': 'BoxSet', 'Name': 'Crossovers'},
-    );
-
-    when(
-      () => itemsApi.getItems(
-        parentId: 'boxset-1',
-        startIndex: 0,
-        limit: any(named: 'limit'),
-        fields: any(named: 'fields'),
-      ),
-    ).thenAnswer(
-      (_) async => {
-        'Items': [
-          member('a', 'Alpha'),
-          member('b', 'Beta'),
-          member('c', 'Gamma'),
-        ],
-        'TotalRecordCount': 3,
-      },
-    );
+    stubCollection(itemsApi);
   });
 
   tearDown(() => GetIt.instance.reset());
@@ -103,6 +118,26 @@ void main() {
     await vm.removeFromCollection(alpha);
 
     verify(() => itemsApi.removeFromCollection('boxset-1', ['a'])).called(1);
+  });
+
+  test('any collection page offers removal on a server without a rule',
+      () async {
+    final vm = await loadedVm();
+    expect(vm.canRemoveFromCollection, isTrue);
+  });
+
+  test('a server that limits editing decides per collection', () async {
+    final editable = _EditableItemsApi();
+    stubCollection(editable);
+    when(() => client.itemsApi).thenReturn(editable);
+    itemsApi = editable;
+
+    final vm = await loadedVm();
+    expect(vm.canRemoveFromCollection, isFalse);
+    expect(editable.asked?['Id'], 'boxset-1');
+
+    editable.editable = true;
+    expect(vm.canRemoveFromCollection, isTrue);
   });
 
   test('the card leaves the grid on success and the counts follow', () async {

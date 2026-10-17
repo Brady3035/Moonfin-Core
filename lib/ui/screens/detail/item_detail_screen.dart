@@ -3616,10 +3616,12 @@ class _DetailContentState extends State<_DetailContent> {
           if (!mounted) return;
           setState(() {});
         },
-        collectionRemoval: CollectionRemovalContext(
-          collectionName: viewModel.item?.name ?? '',
-          remove: viewModel.removeFromCollection,
-        ),
+        collectionRemoval: viewModel.canRemoveFromCollection
+            ? CollectionRemovalContext(
+                collectionName: viewModel.item?.name ?? '',
+                remove: viewModel.removeFromCollection,
+              )
+            : null,
       ),
     );
   }

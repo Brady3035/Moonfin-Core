@@ -17,6 +17,7 @@ import '../silo_image_registry.dart';
 import '../silo_pager.dart';
 import 'silo_home_sections.dart';
 import 'silo_markers.dart';
+import 'silo_shuffles.dart';
 import 'silo_themes.dart';
 import 'silo_track_preferences.dart';
 import 'silo_trickplay.dart';
@@ -47,7 +48,8 @@ class SiloItemsApi
         HomeDismissalsApi,
         TrickplayManifestApi,
         ThemeSongStreamApi,
-        SeriesTrackPreferencesApi {
+        SeriesTrackPreferencesApi,
+        ServerShuffleApi {
   SiloItemsApi(
     this._dio, {
     this.images,
@@ -63,6 +65,13 @@ class SiloItemsApi
 
   /// The server's base URL, for links Silo answers relative to it (11.5).
   final String Function()? baseUrl;
+
+  /// Shuffles (11.7).
+  late final SiloShuffles shuffles = SiloShuffles(
+    _dio,
+    images: images,
+    clock: _clock,
+  );
 
   /// Theme music (11.5).
   late final SiloThemes themes = SiloThemes(_dio, clock: _clock);
@@ -2486,6 +2495,21 @@ class SiloItemsApi
     markers.notePlayingFile(itemId, fileId, runTimeSeconds: runTimeSeconds);
     if (source != null) _playingSources[itemId] = source;
   }
+
+  /// Whether Silo shuffles [item] itself (11.7).
+  @override
+  Future<bool> canShuffle(Map<String, dynamic> item) =>
+      shuffles.canShuffle(item);
+
+  @override
+  Future<ServerShuffle> startShuffle(Map<String, dynamic> item) =>
+      shuffles.start(item);
+
+  @override
+  Future<ServerShuffle?> advanceShuffle(
+    String shuffleId, {
+    required String fromItemId,
+  }) => shuffles.advance(shuffleId, fromItemId);
 
   /// The series' remembered audio track (11.6).
   @override

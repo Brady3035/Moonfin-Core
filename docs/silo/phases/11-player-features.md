@@ -300,7 +300,7 @@ Setup: Silo finds a local theme as a file named `theme.<ext>` (`theme.mp3`) next
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | previous step |
+| ☑ Done | — | previous step |
 
 **Goal.** Sync Moonfin's per-series track choice with Silo's.
 
@@ -364,32 +364,54 @@ Use a show with two audio languages or several subtitle tracks (an anime with Ja
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | previous step |
 
 **Goal.** Silo's server-side shuffle for a series or library.
 
 **Silo v2 endpoints**
 
+- `GET /shuffles/capabilities`
 - `POST /shuffles`
+- `POST /shuffles/{id}/advance`
+
+**Where in Moonfin**
+
+- `packages/server_core/lib/src/api/server_shuffle_api.dart` (new): `ServerShuffleApi`, `ServerShuffle`
+- `packages/server_silo/lib/src/api/silo_shuffles.dart` (new): scopes, start, advance
+- `silo_items_api.dart`: implements `ServerShuffleApi`
+- `lib/playback/server_shuffle_queue.dart` (new): the running shuffle as a growing queue
+- `item_detail_screen.dart`: *Shuffle* starts the server's shuffle when there is one
+- `playback_module.dart`: the queue extension asks the shuffle for its next item
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+Moonfin's *Shuffle* button (on a show, season, collection or library page) loads every item and shuffles them on the device. Silo can shuffle itself: `POST /shuffles` over a scope (`series`, `season`, `library`, `library_collection`, `user_collection`) answers the item to play now and the one after it, and `POST /shuffles/{id}/advance` with the finished item moves it on and picks another. Silo plays every movie and episode of the scope once before any repeats, and the order carries on in its web app and on other devices.
+
+- **A new optional interface**, `ServerShuffleApi` (`canShuffle`, `startShuffle`, `advanceShuffle`). It is a candidate for upstream with the others.
+- **Silo's side** (`SiloShuffles`). A page's item becomes Silo's scope by its id: a show, a season, a library view (by type, since person ids are numbers too), a personal collection (`user_collection`) or a library's collection (`library_collection`). Only the kinds `GET /shuffles/capabilities` lists are used (kept 10 minutes; none unless `state` is `available`). The answer's cards are mapped like any catalog card. When `next` equals `current`, the scope has one item and there is no next. Starting isn't retry-safe (a repeat starts a second shuffle, which Silo cleans up later), so it goes once. Advancing is retry-safe: it only moves on from the item named.
+- **Moonfin's side** (`ServerShuffleQueue`). *Shuffle* first asks the server. When it shuffles that page, the queue is its two items (the first read in full, as before). When the second becomes the queue's last item, the playback module's queue extension (the same hook that moves an episode queue to the next season) asks the shuffle: it advances from the first and adds the item Silo picks next. Silo's current item is always the one Moonfin plays, and the queue grows by one each time. Only one shuffle is followed; starting another replaces it, and a queue that no longer ends in the shuffle's next item isn't extended. Without the interface, for a page Silo can't shuffle, or if starting fails, *Shuffle* works as before.
+- Skipping to the next item in the player moves the shuffle on too (the next item becomes the last one). Moonfin doesn't use `POST /shuffles/{id}/skip` (replace the next item without playing) or `DELETE`: Moonfin has no control for the first, and Silo removes abandoned shuffles itself.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `packages/server_silo/test/silo_items_api_shuffles_test.dart` (new, 6 tests): scopes for a show, a season, a library, both kinds of collection, none for a person or a film; only the kinds the capabilities list, read once, and none while shuffles are disabled; a start posts the scope and answers two Young Justice episodes with their series and season; one item has no next; an advance names the item that was current; a gone shuffle answers null.
+- `test/playback/server_shuffle_queue_test.dart` (new, 2 tests): a show's shuffle queues two, then grows one at a time, advancing from the item that was current each time, and not twice for the same item; a film isn't shuffled by the server.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+- a. On Young Justice's page press *Shuffle*: a random episode plays. The network log shows `POST …/shuffles` (not a read of every season).
+- b. Skip to the next item (or let it end): another random episode plays, and the log shows `POST …/shuffles/<id>/advance`. Keep going a few times: no episode repeats.
+- c. Shuffle a season, a movie library and a collection: each plays random items from it.
+- d. Start a shuffle of the same show in Silo's web app afterwards: it doesn't replay what Moonfin's shuffle just played (Silo remembers what each shuffle played; a new shuffle starts over, so this only shows for one shuffle). Optional.
+- e. Regression on Emby: *Shuffle* on a show plays a random episode as before.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-17 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | shuffles 6/6; shuffle queue 2/2; analyzer: no new issues |
 | | | | | |
 
 ---

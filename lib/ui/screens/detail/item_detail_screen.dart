@@ -116,6 +116,7 @@ import '../../widgets/overlay_sheet.dart';
 import '../../../playback/external_player_policy.dart';
 import '../../../playback/hdr_stream_capability.dart';
 import '../../../playback/known_defects.dart';
+import '../../../playback/server_shuffle_queue.dart';
 import '../../../syncplay/syncplay_manager.dart';
 import '../../../util/audio_labels.dart';
 import '../../../util/detail_trailer.dart';
@@ -9844,6 +9845,19 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
     );
   }
 
+  /// The first items of the server's own shuffle of [item], or null when
+  /// its server doesn't shuffle it (or starting one failed).
+  Future<List<AggregatedItem>?> _serverShuffleQueue(AggregatedItem item) async {
+    try {
+      return await ServerShuffleQueue.instance.start(
+        _clientForItem(item),
+        item,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<void> _shuffleInternal(
     BuildContext context,
     AggregatedItem item,
@@ -9856,13 +9870,21 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
       // the start is still wanted. Without one the context is all there is.
       bool launchGone() =>
           session == null ? !context.mounted : !session.isActive;
-      final queue = await _shuffleQueueForItem(item);
-      final playableQueue = queue
-          .where((e) => isEligibleNextEpisodeCandidate(e) || e.id == item.id)
-          .toList();
-      if (playableQueue.isEmpty || launchGone()) return null;
-
-      final shuffled = List<AggregatedItem>.from(playableQueue)..shuffle();
+      // A server that shuffles itself (Silo, 11.7) hands out the order;
+      // otherwise every item is loaded and shuffled here.
+      final serverShuffled = await _serverShuffleQueue(item);
+      if (launchGone()) return null;
+      final List<AggregatedItem> shuffled;
+      if (serverShuffled != null && serverShuffled.isNotEmpty) {
+        shuffled = List<AggregatedItem>.from(serverShuffled);
+      } else {
+        final queue = await _shuffleQueueForItem(item);
+        final playableQueue = queue
+            .where((e) => isEligibleNextEpisodeCandidate(e) || e.id == item.id)
+            .toList();
+        if (playableQueue.isEmpty || launchGone()) return null;
+        shuffled = List<AggregatedItem>.from(playableQueue)..shuffle();
+      }
       shuffled[0] = await _ensureHydrated(shuffled.first);
       if (launchGone()) return null;
       final isAudio = shuffled.every((queuedItem) {

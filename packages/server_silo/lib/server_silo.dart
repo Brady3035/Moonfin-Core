@@ -19,6 +19,7 @@ export 'src/api/silo_live_tv_api.dart';
 export 'src/api/silo_instant_mix_api.dart';
 export 'src/api/silo_items_api.dart';
 export 'src/api/silo_markers.dart';
+export 'src/api/silo_shuffles.dart';
 export 'src/api/silo_themes.dart';
 export 'src/api/silo_track_preferences.dart';
 export 'src/api/silo_trickplay.dart';

@@ -32,6 +32,11 @@ String siloPlanUrl(String baseUrl, String url) {
   return '$base${path.startsWith('/') ? '' : '/'}$path';
 }
 
+/// How long a paused progressive remux is kept by Silo before it closes the
+/// response (its stream stall window); a longer pause is resumed with a
+/// replan at the position, as Silo's web player does after a minute.
+const siloProgressiveIdleWindow = Duration(minutes: 1);
+
 /// The account credentials a Silo media request needs (step 10.7).
 class SiloStreamAuth {
   const SiloStreamAuth({
@@ -137,6 +142,8 @@ const _warningReasons = {
 ///   Moonfin's index through the track map.
 /// - `sourceBitrate` from `source.bitrate_kbps`; the video range from the
 ///   file's video stream, else the recipe's.
+/// - `seeksThroughServer` when `timeline.can_seek_anywhere` is false (a
+///   remux, 10.12), and `reopenAfterPause` for a progressive remux.
 /// - With [auth] (10.7), a stream on the server's origin carries the
 ///   account's headers on every request, `stream.headers` on top, and an
 ///   `/api/v2/stream/` URL also carries `token=` ([siloAuthorizeUrl]).
@@ -207,6 +214,13 @@ StreamResolutionResult siloPlanToResolution({
     timelineOffset: offset is num && offset > 0
         ? Duration(microseconds: (offset * 1000000).round())
         : Duration.zero,
+    // A remux is produced as it plays: every seek goes back to Silo (10.12).
+    seeksThroughServer: timeline['can_seek_anywhere'] == false,
+    // Silo closes a progressive remux that stops being read (a paused
+    // player's buffer fills), as its web player allows for after a minute.
+    reopenAfterPause: delivery == 'server_remux_progressive'
+        ? siloProgressiveIdleWindow
+        : null,
   );
 }
 

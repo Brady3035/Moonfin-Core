@@ -61,6 +61,17 @@ class SiloPlaybackSession {
   /// The stop on its way, so a second stop (the manager also asks to end a
   /// transcode) waits for it instead of sending another.
   Future<void>? stopping;
+
+  /// The client's id for the plan it is playing (`plan_attempt_id`), new
+  /// for each plan it adopts (10.12).
+  String planAttemptId = siloNewUuid();
+
+  /// Every `plan_attempt_key` that failed on this device, Silo's loop
+  /// guard for failure recovery: it won't hand one of them back.
+  final List<String> attemptedPlanKeys = [];
+
+  /// Failure recoveries so far (`attempt_count`, at most 8).
+  int recoveries = 0;
 }
 
 /// The Silo sessions of one client, by session id, shared by its resolver

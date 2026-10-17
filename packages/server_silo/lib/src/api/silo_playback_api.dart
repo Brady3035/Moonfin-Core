@@ -155,6 +155,36 @@ class SiloPlaybackApi implements PlaybackApi {
   static bool isRetryableStopError(Object error) =>
       isRetryableStartError(error);
 
+  // --- replan (10.12) ---------------------------------------------------------
+
+  /// `POST /api/v2/playback/{sessionId}/replan` with [body]
+  /// (`PlaybackReplanBody`), once. Answers a decision like a start: a new
+  /// plan for the same session, or a terminal. Silo is idempotent on
+  /// `replan_request_id` and the body, so a retry of the same request
+  /// ([isRetryableReplanError]) gets the same answer.
+  Future<Map<String, dynamic>> replanPlayback(
+    String sessionId,
+    Map<String, dynamic> body,
+  ) async {
+    final response = await _dio.post<dynamic>(
+      '/api/v2/playback/${Uri.encodeComponent(sessionId)}/replan',
+      data: body,
+      options: Options(sendTimeout: startTimeout, receiveTimeout: startTimeout),
+    );
+    return _decision(response.data);
+  }
+
+  /// Whether a failed replan may be sent again unchanged: no answer, `408`,
+  /// `429`, `5xx` (Silo's `503 replan_capacity_exhausted` among them, which
+  /// it answers before touching the session), or `409 replan_in_progress`
+  /// (the same request still holds the session's lease; once it finishes,
+  /// the same id replays its answer).
+  static bool isRetryableReplanError(Object error) =>
+      isRetryableStartError(error) ||
+      (error is DioException &&
+          error.response?.statusCode == 409 &&
+          SiloProblem.codeOf(error) == 'replan_in_progress');
+
   /// Whether [error] says the session is over: `404` (it expired, was
   /// stopped, or the server restarted) or `410 playback_session_ended` (an
   /// administrator ended it). Reporting on it stops.
@@ -163,6 +193,11 @@ class SiloPlaybackApi implements PlaybackApi {
     final status = error.response?.statusCode;
     return status == 404 || status == 410;
   }
+
+  /// Whether [error] is `410 playback_session_ended`: an administrator
+  /// ended the session, and the player must not start it again by itself.
+  static bool isEndedByServer(Object error) =>
+      error is DioException && error.response?.statusCode == 410;
 
   /// Whether [error] is `409 progress_conflict`: a sample with this
   /// sequence and different contents was already applied.

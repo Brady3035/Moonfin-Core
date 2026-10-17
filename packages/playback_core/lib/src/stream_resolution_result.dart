@@ -79,6 +79,19 @@ class StreamResolutionResult {
   /// timeline.
   final Duration timelineOffset;
 
+  /// The player can't seek this stream on its own: a seek goes to the server
+  /// as a replan (see [StreamReplanner]), which answers a stream starting
+  /// there. Silo's remuxes are produced as they play, so they have no bytes
+  /// past what is produced and no ranges to seek in. False for every
+  /// Jellyfin and Emby stream.
+  final bool seeksThroughServer;
+
+  /// How long the viewer can pause before the server drops the stream. A
+  /// longer pause is resumed by replanning at the position (as a seek)
+  /// rather than playing a stream the server has closed. Null when the
+  /// server keeps it.
+  final Duration? reopenAfterPause;
+
   const StreamResolutionResult({
     required this.streamUrl,
     required this.mediaSourceId,
@@ -102,6 +115,8 @@ class StreamResolutionResult {
     this.sourceBitrate,
     this.isLocalMedia = false,
     this.timelineOffset = Duration.zero,
+    this.seeksThroughServer = false,
+    this.reopenAfterPause,
   });
 
   /// What the server said it would send, read off the transcode URL.

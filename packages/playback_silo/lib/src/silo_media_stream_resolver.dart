@@ -16,7 +16,7 @@ import 'silo_playback_sessions.dart';
 /// (10.3, 10.4) to `POST /api/v2/playback/start` and receives one plan, which
 /// opens a session. The plan is the whole instruction: which delivery, the
 /// stream URL, the timeline, the tracks.
-class SiloMediaStreamResolver implements MediaStreamResolver {
+class SiloMediaStreamResolver implements MediaStreamResolver, StreamReplanner {
   SiloMediaStreamResolver(
     this._client, {
     SiloPlaybackEnvironment Function()? environment,
@@ -140,6 +140,185 @@ class SiloMediaStreamResolver implements MediaStreamResolver {
       )..resolution = resolution,
     );
     return resolution;
+  }
+
+  // --- replan (10.12) ---------------------------------------------------------
+
+  /// How long an interrupted replan is retried with the same request id.
+  static const replanRetryBudget = Duration(seconds: 30);
+
+  /// A stream Moonfin got from Silo whose session is live and still plays
+  /// it.
+  @override
+  bool canReplan(StreamResolutionResult current) {
+    final session = _sessions.sessionOf(current);
+    return session != null &&
+        !session.ended &&
+        identical(session.resolution, current);
+  }
+
+  /// A new plan for [current]'s session (`POST /playback/{sid}/replan`,
+  /// protocol v3 §6), for the [ReplanRequest.reason]:
+  ///
+  /// - `seek`: `seek_reanchor`, a remux reopened at the position (10.12);
+  /// - `trackChange`: `track_change` (10.13, 10.14);
+  /// - `qualityChange`: `quality_change` (10.15);
+  /// - `failure`: `failure_recovery`, with the failed plan's attempt key
+  ///   added to the keys Silo must not hand back.
+  ///
+  /// The request echoes the session's identity and the current plan
+  /// (`failed_plan_id`, `plan_attempt_key`, `selected_tracks` exactly as the
+  /// plan has them) and resends the start's capabilities and context.
+  /// Interrupted requests are resent with the same id; a terminal answer is
+  /// a [PlaybackRefusedException], as is a session an administrator ended
+  /// (`410`), which must not be started again. Other refusals (`404`: the
+  /// session expired or the server restarted) throw, and the manager starts
+  /// a new session.
+  @override
+  Future<StreamResolutionResult> replan(
+    dynamic mediaItem,
+    StreamResolutionResult current,
+    ReplanRequest request,
+  ) async {
+    final session = _sessions.sessionOf(current);
+    if (session == null || session.ended) {
+      throw StateError('No live Silo session for ${current.playSessionId}');
+    }
+    final client = _silo;
+    final plan = session.plan;
+    final failure = request.reason == ReplanReason.failure;
+    final key = plan['plan_attempt_key'];
+    if (failure && key is String && !session.attemptedPlanKeys.contains(key)) {
+      session.attemptedPlanKeys.add(key);
+      if (session.attemptedPlanKeys.length > 16) {
+        session.attemptedPlanKeys.removeAt(0);
+      }
+    }
+    if (failure) session.recoveries++;
+    final start = session.startBody;
+    final body = <String, dynamic>{
+      'protocol_version': 3,
+      'client_features': start['client_features'],
+      'operation': _operation(request.reason),
+      'playback_attempt_id': session.attemptId,
+      'replan_request_id': siloNewUuid(),
+      'failed_plan_id': plan['plan_id'],
+      'plan_attempt_id': session.planAttemptId,
+      'plan_attempt_key': key,
+      'attempted_plan_keys': [...session.attemptedPlanKeys],
+      'attempt_count': failure ? session.recoveries.clamp(1, 8) : 1,
+      'quality_preference': start['quality_preference'] ?? 'auto',
+      'position_seconds': siloStartPosition(
+        request.position.inMicroseconds * 10,
+      ),
+      'metered': start['metered'] ?? false,
+      'selected_tracks': _selectedTracks(plan),
+      'client_capabilities': start['client_capabilities'],
+      'client_playback_context': start['client_playback_context'],
+      'installation_id': session.installationId,
+      if (failure) 'failure': const {'classification': 'playback_error'},
+      'bandwidth_cap_kbps': ?start['bandwidth_cap_kbps'],
+    };
+
+    final Map<String, dynamic> decision;
+    try {
+      decision = await _replan(client.playbackApi, session.sessionId, body);
+    } catch (error) {
+      if (SiloPlaybackApi.isEndedByServer(error)) {
+        session.ended = true;
+        throw const PlaybackRefusedException(
+          siloEndedOnServerMessage,
+          reason: 'playback_session_ended',
+        );
+      }
+      if (SiloPlaybackApi.isSessionGone(error) ||
+          SiloPlaybackApi.isInstallationChanged(error)) {
+        session.ended = true;
+      }
+      rethrow;
+    }
+
+    final next = (decision['playback_plan'] as Map?)?.cast<String, dynamic>();
+    if (decision['outcome'] != 'playable' || next == null) {
+      throw siloRefusal(decision);
+    }
+    final source = await _replannedSource(session, next);
+    final resolution = siloPlanToResolution(
+      plan: next,
+      sessionId: session.sessionId,
+      baseUrl: client.baseUrl,
+      mediaSource: source,
+      directPlayRequested: request.enableDirectPlay,
+      auth: await _streamAuth(client),
+    );
+    session
+      ..plan = next
+      ..mediaSource = source
+      ..planAttemptId = siloNewUuid()
+      ..resolution = resolution;
+    return resolution;
+  }
+
+  static String _operation(ReplanReason reason) => switch (reason) {
+    ReplanReason.seek => 'seek_reanchor',
+    ReplanReason.trackChange => 'track_change',
+    ReplanReason.qualityChange => 'quality_change',
+    ReplanReason.failure => 'failure_recovery',
+  };
+
+  /// The plan's `selected_tracks`, byte for byte: a seek is checked against
+  /// them, and an absent subtitle would mean "off" to a track change.
+  static Map<String, dynamic> _selectedTracks(Map<String, dynamic> plan) {
+    final selected = plan['selected_tracks'];
+    if (selected is! Map) return {};
+    return {
+      for (final kind in const ['audio', 'subtitle'])
+        if (selected[kind] case final Map track)
+          kind: Map<String, dynamic>.from(track),
+    };
+  }
+
+  Future<Map<String, dynamic>> _replan(
+    SiloPlaybackApi api,
+    String sessionId,
+    Map<String, dynamic> body,
+  ) async {
+    final deadline = DateTime.now().add(replanRetryBudget);
+    var wait = const Duration(seconds: 1);
+    while (true) {
+      try {
+        return await api.replanPlayback(sessionId, body);
+      } catch (error) {
+        final left = deadline.difference(DateTime.now());
+        if (!SiloPlaybackApi.isRetryableReplanError(error) || left <= wait) {
+          rethrow;
+        }
+        await _sleep(wait);
+        wait = wait * 2 > const Duration(seconds: 8)
+            ? const Duration(seconds: 8)
+            : wait * 2;
+      }
+    }
+  }
+
+  /// The mapped source of the file a replanned plan plays: the session's,
+  /// unless Silo moved to another version.
+  Future<Map<String, dynamic>?> _replannedSource(
+    SiloPlaybackSession session,
+    Map<String, dynamic> plan,
+  ) async {
+    final known = session.mediaSource;
+    final effective = siloIdOf(plan['effective_media_file_id']);
+    if (effective == null || effective == '${known?['Id']}') return known;
+    try {
+      final detail = await _silo.itemsApi.getItem(
+        session.itemId,
+        mediaSourceId: effective,
+      );
+      return _pick(_sourcesOf(detail), effective) ?? known;
+    } catch (_) {
+      return known;
+    }
   }
 
   // --- stream authorisation (10.7) -------------------------------------------
@@ -381,6 +560,10 @@ PlaybackRefusedException siloRefusal(Map<String, dynamic> decision) {
     retryable: terminal?['retryable'] == true,
   );
 }
+
+/// Shown when an administrator ended the session (`410`): the player
+/// leaves playback and doesn't start it again by itself.
+const siloEndedOnServerMessage = 'Playback was ended on the Silo server.';
 
 /// Shown when the server has playback switched off for this account.
 const siloPlaybackUnavailableMessage =

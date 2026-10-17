@@ -515,10 +515,15 @@ class SiloItemsApi
   _runtimeCounts = LinkedHashMap();
 
   /// A few titles in random order (`sortBy: Random` with a small `limit`
-  /// and no `startIndex`: a genre card's artwork, a row of random titles).
-  /// Silo's catalog refuses `sort=random`, so they are drawn from the first
-  /// [_randomPool] titles of Silo's default order. A random grid is shuffled whole instead
-  /// ([_clientFiltered] with `shuffle`).
+  /// and no `startIndex`: a genre card's artwork, a row of random titles,
+  /// the shuffle picker). Silo's catalog refuses `sort=random`, so they are
+  /// drawn from pages of [_randomPool] titles picked at random across the
+  /// whole list (in Silo's default order): one page per five titles asked
+  /// for, at most [_randomPages], so a genre card's ten titles cost three
+  /// reads and the shuffle picker's few more. The first page is read for the
+  /// total either way; it joins the draw only when picked.
+  /// A random grid is shuffled whole instead ([_clientFiltered] with
+  /// `shuffle`).
   Future<Map<String, dynamic>> _shuffledPage(
     Map<String, Object?> params, {
     int? startIndex,
@@ -526,16 +531,35 @@ class SiloItemsApi
     bool Function(Map<String, dynamic> item)? keep,
     String? libraryId,
   }) async {
-    final page = await _page(
+    final first = await _page(
       params,
       startIndex: 0,
       limit: _randomPool,
       keep: keep,
       libraryId: libraryId,
     );
-    final items = [...(page['Items'] as List).cast<Map<String, dynamic>>()]
-      ..shuffle(_random);
-    return {...page, 'Items': items.take(limit ?? items.length).toList()};
+    final total = first['TotalRecordCount'] as int? ?? 0;
+    final pageCount = (total + _randomPool - 1) ~/ _randomPool;
+    final picked = ([for (var p = 0; p < pageCount; p++) p]..shuffle(_random))
+        .take(((limit ?? _randomPool) / 5).ceil().clamp(1, _randomPages))
+        .toList();
+    final pages = await Future.wait([
+      for (final p in picked)
+        p == 0
+            ? Future.value(first)
+            : _page(
+                params,
+                startIndex: p * _randomPool,
+                limit: _randomPool,
+                keep: keep,
+                libraryId: libraryId,
+              ),
+    ]);
+    final items = [
+      for (final page in pages.isEmpty ? [first] : pages)
+        ...(page['Items'] as List).cast<Map<String, dynamic>>(),
+    ]..shuffle(_random);
+    return {...first, 'Items': items.take(limit ?? items.length).toList()};
   }
 
   /// A show grid by last played (5.13 TV review). Silo keeps watches per
@@ -581,6 +605,7 @@ class SiloItemsApi
   }
 
   static const _randomPool = 100;
+  static const _randomPages = 4;
   static final _random = Random();
 
   /// One page of `GET /catalog` with [params], as Jellyfin's

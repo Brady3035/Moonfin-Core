@@ -136,7 +136,7 @@ Moonfin's seek previews read Jellyfin's `Trickplay` item field (`TrickplayInfo.f
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | previous step |
+| ☑ Done | — | previous step |
 
 **Goal.** Chapters in the player (menu, seek bar marks, previous/next chapter) and chapter thumbnails on the detail page, for the version that plays.
 
@@ -186,32 +186,50 @@ Chapter thumbnail URLs are signed like all Silo artwork (6.1); the image cache k
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | previous step |
 
 **Goal.** Queue from `getEpisodes`; Up Next card.
 
 **Where in Moonfin**
 
-- `playback queue`
+- No code change: the queue, the Up Next card and the move to the next season are Moonfin's own, over `getSeasons`/`getEpisodes` (6.7, 6.8)
+- `test/playback/silo_next_episode_test.dart` (new): checks Silo's answers give that logic what it needs
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+Moonfin builds an episode's queue itself and needs nothing Silo-specific for it:
+
+- **The queue.** Playing an episode queues its season (`getEpisodes(series, seasonId:)`, in episode order, `orderSeasonEpisodes`), keeping the episodes that can play (`isEligibleNextEpisodeCandidate`: not virtual or missing, aired, with a media source and a runtime). Silo's season list gives each episode its file (`files` → a media source, 5.8), `runtime`, `air_date`, numbers, and season and series ids that are the same ids `getSeasons` lists (`season-<key>-<n>`, 5.4).
+- **The next season.** At the end of the queue the playback module checks that the queue is one season of one show and that the last episode is that season's finale, then asks `getSeasons` for the lowest season number above it and queues its playable episodes.
+- **Up Next.** The card shows the queue's next episode at the credits segment (from Silo's markers since 11.1) or the configured time before the end, and autoplay starts it under Moonfin's settings (*Autoplay Next Episode*, *Next Up Display*, *Next Up Timeout*, *Replace Skip Outro with Next Up Display*).
+- **Playing it.** The next episode is a season list entry with lightweight files, so the resolver reads the episode once for its full version (10.6), and starts a new Silo session after the previous one is stopped (10.10). Silo then moves Next Up and Continue Watching on itself.
+
+Moonfin doesn't use a Silo "next episode" call: Silo's series cards carry `play_content_id` (8.x) for the Play button, but autoplay works on the queue, as on Jellyfin and Emby.
+
+Nothing was missing, so this step adds tests and the manual checks only.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `test/playback/silo_next_episode_test.dart` (new, 3 tests), on Young Justice's captured seasons and season 1 episodes (and the same three as season 2): season 1 queues in order with every episode playable, carrying its series, season and number and a media source; the queue is season-scoped and resolves to season 1; the last episode is the finale and not the second; the next season is season 2, whose episodes are playable; an episode before its air date isn't.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+With *Autoplay Next Episode* on:
+
+- a. Play Young Justice 1x01 from the episode list and seek near the end: the Up Next card shows 1x02 with its still and title; letting it count down plays 1x02, which starts from the beginning (not 1x01's position).
+- b. With *Replace Skip Outro with Next Up Display* on, the card appears at the credits marker (an episode Silo has credits for), and pressing it plays the next episode.
+- c. Finish the last episode of a season (seek near the end of a season finale): playback moves on to the next season's first episode.
+- d. Afterwards Silo's web app shows the finished episode watched, and Home's Next Up / Continue Watching show the next one (after Home reloads).
+- e. Turn *Autoplay Next Episode* off: the player stops at the end instead.
+- f. Compare a and c with the same show on Emby.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-17 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | next episode 3/3 |
 | | | | | |
 
 ---

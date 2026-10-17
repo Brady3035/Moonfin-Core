@@ -41,6 +41,18 @@ class SiloPlaybackSession {
   /// The stream Moonfin made of [plan]; a stop or progress report for an
   /// older one of this session is not this session's latest.
   StreamResolutionResult? resolution;
+
+  /// The last progress `sequence` used (10.9). Silo applies a sample only
+  /// when its sequence is higher than the last one it applied, so each
+  /// sample takes the next one.
+  int lastSequence = 0;
+
+  /// The next sequence for a sample.
+  int takeSequence() => ++lastSequence;
+
+  /// Over on Silo's side (stopped, expired, ended by an administrator, or
+  /// under another installation): nothing more is reported on it.
+  bool ended = false;
 }
 
 /// The Silo sessions of one client, by session id, shared by its resolver

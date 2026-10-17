@@ -218,7 +218,7 @@ The roadmap called this phase "media_kit on macOS"; on the Mac it is in fact Aet
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | previous step |
+| ☑ Done | — | previous step |
 
 **Goal.** Read and cache it from playback capabilities; refetch on `409 installation_changed`.
 
@@ -266,7 +266,7 @@ This server's capabilities (`silo/playback_capabilities.json`, captured at `bd9d
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | previous step |
 
 **Goal.** `POST /playback/start` → `StreamResolutionResult`; retry an interrupted request with the identical body.
 
@@ -276,27 +276,69 @@ This server's capabilities (`silo/playback_capabilities.json`, captured at `bd9d
 
 **Where in Moonfin**
 
-- `silo_media_stream_resolver.dart`
-- `silo_extras_mapper.dart`: set `siloLocalTrailersPlayable` to true once an extra plays (added at 6.17), so local trailers come back to the trailer button and the extras' trailer count; check a title's local trailer plays from the trailer button.
+- `packages/playback_silo/lib/src/silo_media_stream_resolver.dart`
+- `packages/playback_silo/lib/src/silo_plan_mapper.dart` (new): plan → `StreamResolutionResult`
+- `packages/playback_silo/lib/src/silo_playback_sessions.dart` (new): the sessions a client has open
+- `packages/server_silo/lib/src/api/silo_playback_api.dart` (`startPlayback`, `isRetryableStartError`)
+- `silo_extras_mapper.dart`: `siloLocalTrailersPlayable` is now true (added at 6.17), so local trailers come back to the trailer button and the extras' trailer count.
+- `packages/playback_silo/pubspec.yaml`: depends on `server_silo` and `dio`
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+`SiloMediaStreamResolver.resolve` replaces the placeholder that refused every Silo item. It asks Silo for one plan and turns it into the `StreamResolutionResult` Moonfin's player opens.
+
+**Which file.** The version Moonfin names (`mediaSourceId`), else the item's default (its first `MediaSource`, 5.8). When that source has no track map (a season list's episode carries only light `files`, a deep link carries no sources), the item is read again (`getItem`, which embeds full versions). A local extra has no catalog page of its own; it plays the `file_id` it carries (`_silo.file_id`, 6.17).
+
+**The request** (`PlaybackStartBody`, validated against the pinned contract in the tests):
+
+- `protocol_version` 3, `client_features`, `client_capabilities` and `client_playback_context` from the backend's device profile and the app's environment (10.3, 10.4);
+- `file_id`, `profile_id` (the profile the client acts as), `installation_id` (10.5), a fresh `playback_attempt_id` (a random UUID v4);
+- `quality_preference: auto` (Silo picks within any ceiling), `bandwidth_cap_kbps` from Moonfin's bitrate ceiling when there is one, `subtitle_fidelity_preference: compatible` (Moonfin draws ASS but can't fetch a sidecar's fonts), `metered: false`;
+- `start_position` in seconds when Moonfin passes a start (10.11 makes it explicit always), `audio_track_index` (Silo's audio ordinal, from Moonfin's index through the track map) when Moonfin picked one; without it Silo uses the series' or profile's preference.
+
+**Sending it.** `POST /api/v2/playback/start` answers `201` for every decision. An interrupted request (no answer, a timeout, `408`, `429`, `5xx`) is resent with the identical body, backing off 1, 2, 4, 8 s, within 60 s; each request may take 45 s (Silo can start a worker before it answers), as Silo's web player does. Silo is idempotent on the attempt id and body, so a resend after a lost answer replays the same session instead of opening a second. Any other `4xx` is final. A `409 installation_changed` reads the capabilities again and starts a new attempt once.
+
+**A refusal** (`outcome: adaptation_unavailable`) throws with Silo's own `terminal.message`; 10.8 makes it a typed error.
+
+**The plan → Moonfin** (`siloPlanToResolution`):
+
+- `streamUrl` from `stream.url`: an absolute URL (a proxy node) as it is, a path under the server's base URL; `/stream/…` or `/playback/transcode/…` without `/api/v2` is mapped there as the web player does. The query (`st`, `seek`) is kept byte for byte.
+- `playMethod` from `delivery`: `original_http` → direct play, `server_remux_progressive`/`server_remux_hls` → direct stream (a remux), `server_transcode_hls` → transcode.
+- `mediaSourceId` is `effective_media_file_id` (Silo can fall back to another version), `playSessionId` the session, `container` from `stream.container`, `timelineOffset` from `timeline.timeline_offset_seconds` (10.1; a remux cut at 9:53.4 for a resume at 10:00 plays from there).
+- `mediaStreams` are the effective file's streams in Moonfin's numbering (reading that version when Silo fell back to one Moonfin hasn't loaded); `selectedAudioStreamIndex` is Silo's chosen audio track (`selected_tracks.audio.index`) back as Moonfin's index.
+- `sourceBitrate` from `source.bitrate_kbps`; `videoRangeType` from the file's video stream, else the recipe; `transcodingReasons` from `decision_reason` and the degradation warnings, mapped to Jellyfin's reason names where one fits (`audio_adaptation` → `AudioCodecNotSupported`, `container_normalization` → `ContainerNotSupported`, the quality reasons → `ContainerBitrateExceedsLimit`…), none for the original.
+- `requestHeaders` are `stream.headers` (Silo sends none today); the account's credentials are added in 10.7, **so streams play from 10.7 on**.
+
+**The session** is kept (`SiloPlaybackSessions`, one per client, shared with the session service through the client): its id, attempt id, installation id, item, plan, start body and the mapped source, for progress, stop and replans (10.9–10.16).
+
+Local extras play now, so `siloLocalTrailersPlayable` is true: a title's local trailers count again (`LocalTrailerCount`) and come first on its trailer button, as on Jellyfin.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `packages/playback_silo/test/silo_start_test.dart` (new, 14 tests), against a fake Silo (`silo_test_server.dart`) and plan fixtures for this server's xXx file (`decision_remux.json`, `decision_original.json`, `decision_terminal.json`, which pass the contract's `PlaybackDecision` schema):
+  - the request: passes `PlaybackStartBody`; file `4598`, profile `p1`, the capabilities' installation id, a UUID v4 attempt id, `start_position` 600 for 10:00, Moonfin's audio stream 1 as Silo's audio track 0, a 20 Mbit/s ceiling as 20000 kbps, `X-Profile-Id` and the bearer token; nothing it has no opinion on; an item without versions is read first; an extra plays its `file_id`.
+  - the plan: a progressive remux gives an absolute URL with its `seek` and `st`, a direct stream of file `4598` in session `5d1b…`, a 9:53.4 offset, the file's streams with audio stream 1 selected, `AudioCodecNotSupported`; the original is a direct play with no offset or reasons; the session is kept.
+  - failures: a dropped request and a `503` are resent with the identical body (waits 1 s, 2 s); a `422` isn't; `409 installation_changed` reads the capabilities again and sends a new attempt id; a terminal refusal throws Silo's message; a server without playback starts nothing.
+- `silo_plugin_test.dart`: the placeholder's refusal test is gone.
+- `server_silo/test/silo_extras_test.dart`: local trailers count and list.
+- `playback_silo` 31/31; `server_silo` 538/538; analyzer: no issues.
 
 **Manual test plan**
 
-- Compare with Emby: Play the same file on Emby and note direct play vs transcode on each.
+Starting plays from 10.7 on (the media requests need the account's token); test these with the batch.
+
+- Play The Salt Path, xXx and an episode of Young Justice from their detail pages: each starts. The network log shows `→ GET …/playback/capabilities` (at most once a minute) and `→ POST …/playback/start` answered `201`.
+- **Compare with Emby** (same files): note direct play vs transcode on each (Moonfin's playback info, or Emby's dashboard); on Silo the playback info shows the play method from Silo's plan (direct play for the original, direct stream for a remux, transcode for HLS) and, for a remux, the reason (DTS → AAC on xXx with a stereo setup shows *Audio codec not supported*).
+- Resume a film part way through: it starts at the resume point and the seek bar shows the film's time, not the remux's (10.1).
+- A title with a local trailer (Silo's web app shows it under extras): Moonfin's trailer button plays the local trailer; the trailers count shows it.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-17 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | start 14/14; `playback_silo` 31/31; `server_silo` 538/538; analyzer: no issues |
 | | | | | |
 
 ---

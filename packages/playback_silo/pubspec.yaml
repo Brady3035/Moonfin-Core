@@ -11,6 +11,9 @@ dependencies:
     path: ../playback_core
   server_core:
     path: ../server_core
+  server_silo:
+    path: ../server_silo
+  dio: ^5.9.2
 
 dev_dependencies:
   test: ^1.25.0

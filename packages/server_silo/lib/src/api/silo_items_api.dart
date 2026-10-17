@@ -39,7 +39,8 @@ class SiloItemsApi
         LetterPositionApi,
         ServerHomeSectionsApi,
         UserDataRefreshScope,
-        EditableCollectionsApi {
+        EditableCollectionsApi,
+        HomeDismissalsApi {
   SiloItemsApi(
     this._dio, {
     this.images,
@@ -1810,6 +1811,76 @@ class SiloItemsApi
   static const _changedMax = 200;
   final LinkedHashMap<String, DateTime> _changedItems = LinkedHashMap();
   final LinkedHashMap<String, DateTime> _changedSeries = LinkedHashMap();
+
+  // --- hiding Home cards (9.7) ----------------------------------------------
+
+  /// `PUT /home/dismissals/continue_watching/{id}` with the card's
+  /// `progress_updated_at`, which Silo requires: the dismissal holds until
+  /// the item is played again. An episode drops its whole show from
+  /// Continue Watching and Next Up until any episode of it is played.
+  ///
+  /// A card from Continue Watching carries the time; one from elsewhere (a
+  /// library grid offers the action on anything part way through) is looked
+  /// up in Silo's Continue Watching. Throws [StateError] when Silo has no
+  /// resume point for it.
+  @override
+  Future<void> hideFromContinueWatching(Map<String, dynamic> item) async {
+    final id = _titleIdOf(item);
+    final stamp =
+        _progressUpdatedAt(item) ?? await _progressUpdatedAtFromHome(id);
+    if (stamp == null) {
+      throw StateError('Silo has no resume point for $id to hide');
+    }
+    await _dio.put<void>(
+      '/api/v2/home/dismissals/continue_watching/${Uri.encodeComponent(id)}',
+      data: {'progress_updated_at': stamp},
+    );
+    noteUserDataChanged(id);
+  }
+
+  /// `PUT /home/dismissals/next_up/{id}` with the episode's `series_id`,
+  /// which Silo requires; the show leaves Next Up and Continue Watching
+  /// until one of its episodes is played.
+  @override
+  Future<void> hideFromNextUp(Map<String, dynamic> item) async {
+    final id = _titleIdOf(item);
+    final series =
+        item['SeriesId'] as String? ?? parseSiloEpisodeId(id)?.seriesId;
+    if (series == null || series.isEmpty) {
+      throw StateError('$id is not an episode of a show');
+    }
+    await _dio.put<void>(
+      '/api/v2/home/dismissals/next_up/${Uri.encodeComponent(id)}',
+      data: {'series_id': series},
+    );
+    noteUserDataChanged(id);
+  }
+
+  static String _titleIdOf(Map<String, dynamic> item) {
+    final id = item['Id'];
+    if (id is! String || id.isEmpty) {
+      throw ArgumentError.value(item, 'item', 'has no Id');
+    }
+    return id;
+  }
+
+  /// The card's own `progress_updated_at` (a Continue Watching card, 8.1),
+  /// as Silo sent it: Silo compares it to the second.
+  static String? _progressUpdatedAt(Map<String, dynamic> item) {
+    final stamp = asJsonMap(item[siloOriginalKey])?['progress_updated_at'];
+    return stamp is String && stamp.isNotEmpty ? stamp : null;
+  }
+
+  Future<String?> _progressUpdatedAtFromHome(String id) async {
+    final cards = await homeSections.cardsOf('continue_watching') ?? const [];
+    for (final card in cards) {
+      if (card['content_id'] == id) {
+        final stamp = card['progress_updated_at'];
+        if (stamp is String && stamp.isNotEmpty) return stamp;
+      }
+    }
+    return null;
+  }
 
   late final SiloHomeSections homeSections = SiloHomeSections(
     _dio,

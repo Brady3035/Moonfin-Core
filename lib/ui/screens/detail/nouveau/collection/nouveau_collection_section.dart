@@ -585,10 +585,12 @@ class NouveauCollectionSectionState
     showContextMenu(
       context,
       item,
-      collectionRemoval: CollectionRemovalContext(
-        collectionName: _vm.item?.name ?? '',
-        remove: _vm.removeFromCollection,
-      ),
+      collectionRemoval: _vm.canRemoveFromCollection
+          ? CollectionRemovalContext(
+              collectionName: _vm.item?.name ?? '',
+              remove: _vm.removeFromCollection,
+            )
+          : null,
       onChanged: () {
         unawaited(_refreshCollectionAfterMutation());
       },

@@ -80,12 +80,14 @@ void main() {
       ]);
     });
 
-    test('nothing Moonfin has no opinion on', () async {
+    test('nothing Moonfin has no opinion on, and the start', () async {
       final server = _server();
       await _resolver(
         server,
       ).resolve(siloTestItem('silo/watch_movie.json'), deviceProfile: _profile);
       final body = server.bodies(startPath).single;
+      // From the start, said as such (10.11).
+      expect(body['start_position'], 0);
       expect(body, isNot(contains('audio_track_index')));
       expect(body, isNot(contains('bandwidth_cap_kbps')));
       expect(siloSchemaErrors('PlaybackStartBody', body), isEmpty);
@@ -345,6 +347,33 @@ void main() {
           ),
         ),
       );
+    });
+  });
+
+  group('resume or start over (10.11)', () {
+    test('the position Moonfin passes, or the start', () {
+      expect(siloStartPosition(null), 0);
+      expect(siloStartPosition(0), 0);
+      expect(siloStartPosition(6000000000), 600);
+      expect(siloStartPosition(6005000000), 600.5);
+      expect(siloStartPosition(-5), 0);
+      expect(siloStartPosition(400000000000000000), 31536000);
+    });
+
+    test('a resume and a start over both say where', () async {
+      final server = _server();
+      final resolver = _resolver(server);
+      final item = siloTestItem('silo/watch_movie.json');
+      await resolver.resolve(
+        item,
+        deviceProfile: _profile,
+        startTimeTicks: 18000000000,
+      );
+      await resolver.resolve(item, deviceProfile: _profile);
+      expect(server.bodies(startPath).map((b) => b['start_position']), [
+        1800,
+        0,
+      ]);
     });
   });
 }

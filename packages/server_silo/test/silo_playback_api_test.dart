@@ -26,6 +26,8 @@ FixtureServer _server() => FixtureServer({
 });
 
 void main() {
+  capabilitiesTests();
+
   test('built from the versions, never starting playback', () async {
     final server = _server();
     final info = await siloTestClient(server).playbackApi.getPlaybackInfo(
@@ -112,5 +114,103 @@ void main() {
         isA<SiloNotImplementedError>().having((e) => e.step, 'step', '10.6'),
       ),
     );
+  });
+}
+
+/// A signed-in client whose clock the test moves.
+({SiloMediaServerClient client, void Function(Duration) wait}) _clockedClient(
+  FixtureServer server,
+) {
+  var now = siloTestNow;
+  final client =
+      SiloMediaServerClient(
+          baseUrl: 'https://silo.example',
+          deviceInfo: siloTestDevice,
+          httpClientAdapter: server,
+          clock: () => now,
+        )
+        ..session.setTokens(
+          SiloTokens(
+            accessToken: 'access-1',
+            refreshToken: 'refresh-1',
+            expiresAt: now.add(const Duration(hours: 1)),
+            lifetime: const Duration(hours: 1),
+          ),
+        )
+        ..profileId = 'p1';
+  return (client: client, wait: (d) => now = now.add(d));
+}
+
+void capabilitiesTests() {
+  group('capabilities (10.5)', () {
+    FixtureServer server() => FixtureServer({
+      '/api/v2/playback/capabilities': FixtureServer.file(
+        'silo/playback_capabilities.json',
+      ),
+    });
+
+    test('the installation id, features and deliveries', () async {
+      final caps = await siloTestClient(server()).playbackApi.capabilities();
+      expect(caps.installationId, 'c621caf1-c95a-4626-a74f-bee7cf6b1402');
+      expect(caps.playable, isTrue);
+      expect(caps.protocolVersions, [3]);
+      expect(caps.has('sequenced_progress_v1'), isTrue);
+      expect(caps.has('fixed_media_file_v1'), isTrue);
+      expect(caps.deliveries, contains('server_transcode_hls'));
+    });
+
+    test('kept a minute, shared while being read, then read again', () async {
+      final s = server();
+      final c = _clockedClient(s);
+      final api = c.client.playbackApi;
+      await Future.wait([api.capabilities(), api.capabilities()]);
+      expect(s.requests, hasLength(1));
+      c.wait(const Duration(seconds: 59));
+      await api.capabilities();
+      expect(s.requests, hasLength(1));
+      c.wait(const Duration(seconds: 2));
+      await api.capabilities();
+      expect(s.requests, hasLength(2));
+      // A refresh, or forgetting them, reads now.
+      await api.capabilities(refresh: true);
+      api.forgetCapabilities();
+      await api.capabilities();
+      expect(s.requests, hasLength(4));
+      expect(s.requests.first.headers['X-Profile-Id'], 'p1');
+    });
+
+    test('a server without playback is not playable', () async {
+      final s = FixtureServer({
+        '/api/v2/playback/capabilities': siloJson({
+          'installation_id': 'c621caf1-c95a-4626-a74f-bee7cf6b1402',
+          'revision': 'r',
+          'state': 'not_configured',
+          'allowed': false,
+          'protocol_versions': [3],
+          'features': <String>[],
+          'deliveries': <String>[],
+        }),
+      });
+      final caps = await siloTestClient(s).playbackApi.capabilities();
+      expect(caps.playable, isFalse);
+    });
+
+    test('installation_changed is recognised', () async {
+      final s = FixtureServer({
+        '/api/v2/playback/capabilities': (_) => FixtureServer.problem(
+          409,
+          'installation_changed',
+          'The server installation changed.',
+        ),
+      });
+      Object? error;
+      try {
+        await siloTestClient(s).playbackApi.capabilities();
+      } catch (e) {
+        error = e;
+      }
+      expect(SiloPlaybackApi.isInstallationChanged(error!), isTrue);
+      expect(SiloPlaybackApi.isInstallationChanged(StateError('x')), isFalse);
+    });
   });
 }

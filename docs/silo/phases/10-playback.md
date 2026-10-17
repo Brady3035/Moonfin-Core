@@ -170,7 +170,7 @@ Silo plans the route on the server (protocol v3 §1): the client says what it ca
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | previous step |
+| ☑ Done | — | previous step |
 
 **Goal.** App version, device, form factor, display HDR and audio outputs, deliverable routes.
 
@@ -218,7 +218,7 @@ The roadmap called this phase "media_kit on macOS"; on the Mac it is in fact Aet
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | previous step |
 
 **Goal.** Read and cache it from playback capabilities; refetch on `409 installation_changed`.
 
@@ -228,26 +228,35 @@ The roadmap called this phase "media_kit on macOS"; on the Mac it is in fact Aet
 
 **Where in Moonfin**
 
-- `silo_media_stream_resolver.dart`
+- `packages/server_silo/lib/src/api/silo_playback_api.dart` (`capabilities`, `SiloPlaybackCapabilities`, `isInstallationChanged`)
+- `packages/server_silo/lib/src/silo_media_server_client.dart` (`playbackApi` is a `SiloPlaybackApi`)
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+Every playback mutation (start, progress, stop, replan, route events) carries the server's `installation_id`, the persisted UUID of that Silo installation, read from `GET /api/v2/playback/capabilities` (Playback API, "Capabilities"). A different value answers `409 installation_changed`: the server was reset or replaced, and the client reads the capabilities again and starts a new attempt.
+
+`SiloPlaybackApi.capabilities()` reads them and answers `SiloPlaybackCapabilities`: `installationId`, `revision`, `state`, `allowed`, `protocolVersions`, `features` and `deliveries`, with `playable` (state `available`, allowed, protocol 3 offered, an installation id) and `has(feature)`. The answer is kept for a minute (`capabilitiesLifetime`, as Silo's web player does) on the client's clock, and reads made while one is in flight share it. `capabilities(refresh: true)` reads now and `forgetCapabilities()` drops the kept one. `SiloPlaybackApi.isInstallationChanged(error)` recognises the `409` by its problem code, so the resolver (10.6) and the session service (10.9, 10.10) react to it the same way.
+
+`SiloPlaybackApi` now takes the client's Dio and clock, and `SiloMediaServerClient.playbackApi` is typed `SiloPlaybackApi`, so `playback_silo` can reach the wire calls this phase adds (the protocol itself lives there, not in `server_silo`). The request carries the usual Silo headers, `X-Profile-Id` included (the contract requires it here).
+
+This server's capabilities (`silo/playback_capabilities.json`, captured at `bd9d59ea`) list protocol 3, all four deliveries and the features the later steps rely on: `sequenced_progress_v1` (10.9), `fixed_media_file_v1` (10.16), `seek_reanchor_v1` (10.12), `embedded_subtitles_v1` (10.3).
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `packages/server_silo/test/silo_playback_api_test.dart` (4 more): the fixture's installation id, features and deliveries, playable; kept 59 s, read again after 61 s, shared while being read, read now on `refresh` and after `forgetCapabilities`, with `X-Profile-Id`; a `not_configured` server is not playable; a `409 installation_changed` is recognised, another error isn't.
+- `server_silo` 538/538; analyzer: no issues.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+- Nothing to see yet; the first start (10.6) reads the capabilities (`→ GET …/playback/capabilities` in the network log, once a minute at most).
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-17 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | capabilities 4/4; `server_silo` 538/538; analyzer: no issues |
 | | | | | |
 
 ---

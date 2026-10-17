@@ -364,7 +364,11 @@ class SiloMediaServerClient extends MediaServerClient
       SiloDisplayPreferencesApi();
 
   @override
-  late final PlaybackApi playbackApi = SiloPlaybackApi(itemsApi);
+  late final SiloPlaybackApi playbackApi = SiloPlaybackApi(
+    itemsApi,
+    _dio,
+    clock: () => session.now,
+  );
 
   @override
   final SessionApi sessionApi = const SiloPendingSessionApi();

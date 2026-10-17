@@ -220,7 +220,7 @@ Changes made on another device or in Silo's web app aren't seen this way; Jellyf
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | previous step |
+| ☑ Done | — | previous step |
 
 **Silo v2 endpoints**
 
@@ -317,38 +317,59 @@ _Fill in when the step is built: what the code does, the main classes and why it
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | 8.1, 8.2 |
+| ◐ Ready for testing | — | 8.1, 8.2 |
 
 **Goal.** On Silo, Moonfin's "Hide from Continue Watching" context action (today a local, per-device list in `UserPreferences`) uses Silo's dismissals, so the card is hidden in Silo's web app and on other devices too. Silo drops a dismissed episode's or series' whole show from both Continue Watching and Next Up until the profile watches it again, and "show again" undoes it. Moonfin's local list already unhides when the item is played, so the behaviour lines up.
 
 **Silo v2 endpoints**
 
 - `PUT /home/dismissals/{surface}/{item_id}` (`surface`: `continue_watching` or `next_up`)
-- `DELETE /home/dismissals/{surface}/{item_id}`
+- (`DELETE /home/dismissals/{surface}/{item_id}`: not used; Moonfin has no "show again")
 
 **Where in Moonfin**
 
 - `lib/ui/widgets/focus/context_action.dart`
-- `lib/preference/user_preferences.dart` (`hideFromContinueWatching`)
+- `silo_items_api.dart` (`hideFromContinueWatching`, `hideFromNextUp`)
+- `packages/server_core/lib/src/api/home_dismissals_api.dart` (new)
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+A new optional `server_core` interface, `HomeDismissalsApi`, is the server's own hide. The two context actions check for it (`itemsApi is HomeDismissalsApi`, only for an item of the signed-in server, and only when picked):
+
+- **With it (Silo):** the server hides the card, Home reloads (`refreshHomeRows`), and nothing is kept on the device. Silo now leaves the card out of Continue Watching and Next Up for this profile on every device and in its web app, and brings it back when the item is played again.
+- **Without it (Jellyfin, Emby):** as before, the device's list plus marking the item unwatched (which on those servers drops its resume point).
+- **If the server refuses:** the device's list hides it, so the tap still does what it says. The item is **not** marked unwatched on Silo: there that would erase its watch history (9.2), and Silo's dismissal is what drops the card.
+
+Silo's side (`SiloItemsApi`):
+
+- `hideFromContinueWatching` sends `PUT /home/dismissals/continue_watching/{id}` with `progress_updated_at`, which Silo requires and compares to the second (the dismissal lasts until the item is played again; an episode drops its whole show from both rows). A Continue Watching card carries the time Silo sent (`_silo.progress_updated_at`, 8.1); the action is also offered on any card part way through (a library grid, a show page), so for those the time is looked up in Silo's Continue Watching section. With no resume point there, it throws and the device's list takes over.
+- `hideFromNextUp` sends `PUT /home/dismissals/next_up/{id}` with the episode's `series_id` (from `SeriesId`, or the episode id).
+- Both are `natural_idempotent`, and both call `noteUserDataChanged` (9.4) so the reloaded rows read Silo again.
+
+Nothing in Moonfin shows hidden cards again, so `DELETE /home/dismissals` isn't used; Silo's web app can undo a hide.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `packages/server_silo/test/silo_items_api_dismissals_test.dart` (new, 6 tests): a Continue Watching card sends its own `progress_updated_at`; the same episode from elsewhere gets the time from Silo's section; an item Silo has no resume point for throws without a write; a Next Up card sends its `series_id`; a film can't be hidden from Next Up; Continue Watching is read again after a hide.
+- `test/ui/widgets/focus/context_action_home_dismissals_test.dart` (new, 4 tests): with a server hide, Continue Watching and Next Up use it and keep nothing on the device or mark anything unwatched; a refused hide falls back to the device's list without marking unwatched; a server without one behaves as before (the device's list and marked unwatched). The existing context action tests still pass (46 in `test/ui/widgets/focus/`).
+- `server_silo` 534/534, `server_core` 94/94; analyzer: no issues in the changed files.
 
 **Manual test plan**
 
-- Hide a show from Continue Watching in Moonfin; it disappears in Silo's web app. Watch it again; it comes back in both.
+- Continue Watching on Home: a film part way through → *Hide from Continue Watching*: it leaves Moonfin's row at once (Home reloads) and Silo's web app no longer shows it in Continue Watching. Play a few seconds of it: it's back in both.
+- An episode in Continue Watching → hide it: the whole show leaves Continue Watching and Next Up, in Moonfin and Silo's web app. Watch any episode of it: it comes back.
+- A Next Up episode → *Hide from Next Up*: the show leaves Next Up (and Continue Watching) in both.
+- From a library grid, open the menu on a film part way through → *Hide from Continue Watching*: it's hidden too (the resume time comes from Silo's row).
+- On a second device (or Silo's web app), the hidden cards stay hidden.
+- Undo a hide in Silo's web app: Moonfin shows the card again after Home reloads.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-16 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | dismissals 6/6; context action 4/4 (focus widgets 46/46); `server_silo` 534/534; `server_core` 94/94; analyzer: no issues. Full app suite left to Brady |
 | | | | | |
 
 ---

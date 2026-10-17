@@ -13,7 +13,7 @@ Things a user changes on an item. One action per commit.
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | previous step |
+| ☑ Done | — | previous step |
 
 **Silo v2 endpoints**
 
@@ -64,7 +64,7 @@ Things a user changes on an item. One action per commit.
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | previous step |
 
 **Goal.** Items, seasons and series.
 
@@ -78,22 +78,31 @@ Things a user changes on an item. One action per commit.
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+`SiloUserLibraryApi.markPlayed` sends `POST /api/v2/watched/{id}` and `unmarkPlayed` sends `DELETE`, as the acting profile. On Silo a film or episode marked watched has its resume point set to 0 (as Jellyfin does), and a season or show marks or clears every episode (server `MarkWatched`, `user_watch_progress`). Unmarking also hides the item's history up to now, which is what Silo's web app's "Mark unwatched" does. Season ids are Silo's own (`season-…`), so seasons need no translation. `ItemMutationRepository.setPlayed` already publishes `Played`, a cleared `PlayedPercentage` and position 0.
+
+- **Not retried.** Silo flags both `non_retryable`: a second send would add a second history entry or move the history cutoff. The Silo client has no automatic retry (only a `401` replay, for a request Silo refused before acting), so each call goes out once. Moonfin's offline queue (`sync_service.dart`) only replays a mark made while offline, which never reached the server.
+- Ids that aren't titles (collections, genres…) fail before a request, as in 9.1.
 
 ### Testing
 
-**Automated tests**
+**Automated tests** (`silo_user_library_api_test.dart`, 3 more)
 
-- _None planned; add any that were written._
+- A film and a season marked, a show unmarked: `POST`, `POST`, `DELETE` on `/watched/{id}`, in order, once each.
+- A 503 reaches the caller after one request (no retry).
+- A collection id throws `UnsupportedError`.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+- Mark an unwatched film watched in Moonfin (context menu); Silo's web app shows it watched. Mark it unwatched; Silo shows it unwatched.
+- A film part way through: mark it watched; it leaves Continue Watching (in Moonfin after Home reloads; see 9.4) and in Silo.
+- Mark a whole season watched from the season's menu: every episode shows watched in Moonfin and Silo; the show's unwatched count drops. Mark the show unwatched: every episode is unwatched again.
+- From an episode's menu, mark watched; the next episode becomes Next Up in Silo's web app.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-16 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | played state 3/3; `server_silo` 511/511; analyzer: no issues. Full app suite left to Brady |
 | | | | | |
 
 ---

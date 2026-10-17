@@ -7,7 +7,7 @@ import 'silo_pending_api.dart';
 
 /// Moonfin's `UserLibraryApi` on Silo. Reading an item (step 6.6) is the
 /// items API's `getItem`; the actions a user takes on an item are phase 9:
-/// favourites (9.1). Played state and ratings come with their steps and
+/// favourites (9.1) and played state (9.2). Ratings come with 9.3 and
 /// answer with [SiloNotImplementedError] until then.
 ///
 /// Every action acts for the profile the client acts as (`X-Profile-Id`),
@@ -38,6 +38,25 @@ class SiloUserLibraryApi implements UserLibraryApi {
   Future<void> unmarkFavorite(String itemId) =>
       _dio.delete<void>('/api/v2/favorites/${_titleId(itemId, 'favourite')}');
 
+  // --- played state (9.2) -------------------------------------------------
+
+  /// `POST /watched/{id}`: watched, its resume point cleared. A season or a
+  /// show marks every episode, as Jellyfin does.
+  ///
+  /// Silo flags this write `non_retryable`; the client sends it once (it has
+  /// no automatic retry), and Moonfin's offline queue only replays it after
+  /// the first attempt failed.
+  @override
+  Future<void> markPlayed(String itemId) =>
+      _dio.post<void>('/api/v2/watched/${_titleId(itemId, 'played state')}');
+
+  /// `DELETE /watched/{id}`: unwatched, and for a season or show every
+  /// episode. Silo also hides the item's history up to now, as its web app's
+  /// "Mark unwatched" does.
+  @override
+  Future<void> unmarkPlayed(String itemId) =>
+      _dio.delete<void>('/api/v2/watched/${_titleId(itemId, 'played state')}');
+
   /// [itemId] as the path segment of a per-title action. Silo keeps
   /// favourites (and played state and ratings) on catalog titles: films,
   /// shows, seasons and episodes, whose Moonfin ids are Silo's content ids.
@@ -62,8 +81,6 @@ class SiloUserLibraryApi implements UserLibraryApi {
   }
 
   static const _steps = {
-    'markPlayed': '9.2',
-    'unmarkPlayed': '9.2',
     'updateUserRating': '9.3',
     'updateNumericUserRating': '9.3',
     'deleteUserRating': '9.3',

@@ -53,6 +53,14 @@ class SiloPlaybackSession {
   /// Over on Silo's side (stopped, expired, ended by an administrator, or
   /// under another installation): nothing more is reported on it.
   bool ended = false;
+
+  /// The `stop_id` of this session's stop (10.10), minted once and sent on
+  /// every retry.
+  late final String stopId = siloNewUuid();
+
+  /// The stop on its way, so a second stop (the manager also asks to end a
+  /// transcode) waits for it instead of sending another.
+  Future<void>? stopping;
 }
 
 /// The Silo sessions of one client, by session id, shared by its resolver

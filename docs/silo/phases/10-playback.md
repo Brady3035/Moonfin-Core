@@ -13,7 +13,7 @@ Silo picks the route on the server from the client's codec evidence (`POST /play
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | previous step |
+| ☑ Done | `ba627bc9a` | previous step |
 
 **Goal.** Optional `timelineOffset` on `StreamResolutionResult` applied to progress, the seek bar and trickplay. Zero for Jellyfin and Emby.
 
@@ -53,6 +53,7 @@ The offset comes from the stream being played (`_currentResolution`, or the last
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-17 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | timeline offset 5/5; `test/playback/` 841/841; analyzer: no new issues (upstream infos only). Full app suite left to Brady |
+| 2026-10-17 | macOS | `bd9d59ea` | Pass | Brady: the phase 10 test list passed |
 | | | | | |
 
 ---
@@ -62,7 +63,7 @@ The offset comes from the stream being played (`_currentResolution`, or the last
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | previous step |
+| ☑ Done | `2e40f3dda` | previous step |
 
 **Goal.** Optional `replan()` on `MediaStreamResolver` and a `PlaybackManager` hook; other servers keep re-resolving.
 
@@ -108,6 +109,7 @@ A local file never replans (`isLocalMedia`). `LocalFirstMediaStreamResolver`, wh
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-17 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | replan 5/5; `test/playback/` 846/846; analyzer: no new issues. Full app suite left to Brady |
+| 2026-10-17 | macOS | `bd9d59ea` | Pass | Brady: the phase 10 test list passed |
 | | | | | |
 
 ---
@@ -117,7 +119,7 @@ A local file never replans (`isLocalMedia`). `LocalFirstMediaStreamResolver`, wh
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | previous step |
+| ☑ Done | `ea3e51070` | previous step |
 
 **Goal.** Moonfin's DeviceProfile → Silo client codec capabilities with honest evidence tiers, validated against Silo's start-request schema.
 
@@ -161,6 +163,7 @@ Silo plans the route on the server (protocol v3 §1): the client says what it ca
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-17 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | translator 13/13; `playback_silo` 16/16; analyzer: no issues |
+| 2026-10-17 | macOS | `bd9d59ea` | Pass | Brady: the phase 10 test list passed |
 | | | | | |
 
 ---
@@ -170,7 +173,7 @@ Silo plans the route on the server (protocol v3 §1): the client says what it ca
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | previous step |
+| ☑ Done | `ba741e376` | previous step |
 
 **Goal.** App version, device, form factor, display HDR and audio outputs, deliverable routes.
 
@@ -209,6 +212,7 @@ The roadmap called this phase "media_kit on macOS"; on the Mac it is in fact Aet
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-17 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | context 3/3; environment 3/3; `playback_silo` 19/19; analyzer: no issues |
+| 2026-10-17 | macOS | `bd9d59ea` | Pass | Brady: the phase 10 test list passed |
 | | | | | |
 
 ---
@@ -218,7 +222,7 @@ The roadmap called this phase "media_kit on macOS"; on the Mac it is in fact Aet
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | previous step |
+| ☑ Done | `a4525ae51` | previous step |
 
 **Goal.** Read and cache it from playback capabilities; refetch on `409 installation_changed`.
 
@@ -257,6 +261,7 @@ This server's capabilities (`silo/playback_capabilities.json`, captured at `bd9d
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-17 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | capabilities 4/4; `server_silo` 538/538; analyzer: no issues |
+| 2026-10-17 | macOS | `bd9d59ea` | Pass | Brady: the phase 10 test list passed |
 | | | | | |
 
 ---
@@ -266,7 +271,7 @@ This server's capabilities (`silo/playback_capabilities.json`, captured at `bd9d
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | —, fix — | previous step |
+| ☑ Done | `039e2e2f5`, fix `ec9a9c830` | previous step |
 
 **Goal.** `POST /playback/start` → `StreamResolutionResult`; retry an interrupted request with the identical body.
 
@@ -345,6 +350,7 @@ Starting plays from 10.7 on (the media requests need the account's token); test 
 | 2026-10-17 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | start 14/14; `playback_silo` 31/31; `server_silo` 538/538; analyzer: no issues |
 | 2026-10-17 | macOS | — | Fail | Brady: nothing starts playing (test 2). `Bad state: ConnectivityAwareMediaServerClient is not a Silo client` from the resolver: the app's plugins got the wrapped client |
 | 2026-10-17 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | fix: the plugin takes the Silo client inside the wrapper at all five sites; `silo_plugin_for_test` 1/1 (fails without the fix), `connectivity_aware_profile_test` and `silo_token_storage_test` pass; `playback_silo` 83/83; analyzer: no new issues. Full app suite left to Brady |
+| 2026-10-17 | macOS | `bd9d59ea` | Pass | Brady: after the fix every title plays as on Emby; resume and start over work. The local trailer button still does nothing (open, to revisit later) |
 | | | | | |
 
 ---
@@ -354,7 +360,7 @@ Starting plays from 10.7 on (the media requests need the account's token); test 
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | previous step |
+| ☑ Done | `5defdf4ad` | previous step |
 
 **Goal.** Headers on every request (HLS segments and sidecars included); `token=` query only on `/api/v2/stream` URLs where headers can't be sent. Signed artwork never gets a token.
 
@@ -397,6 +403,7 @@ Silo's media routes always need the account and the viewer (Playback API, "Deliv
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-17 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | stream auth 6/6; `playback_silo` 37/37; analyzer: no issues |
+| 2026-10-17 | macOS | `bd9d59ea` | Pass | Brady: the phase 10 test list passed |
 | | | | | |
 
 ---
@@ -406,7 +413,7 @@ Silo's media routes always need the account and the viewer (Playback API, "Deliv
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | previous step |
+| ☑ Done | `1c5cfdc07` | previous step |
 
 **Goal.** `adaptation_unavailable` → typed error showing Silo's message in the player.
 
@@ -447,6 +454,7 @@ Moonfin doesn't report the terminal back (`route-events`, optional diagnostics):
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-17 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | refusal: Silo 4/4, manager 1/1, launcher 12/12; `playback_silo` 39/39; analyzer: no new issues |
+| 2026-10-17 | macOS | `bd9d59ea` | Pass | Brady: the phase 10 test list passed |
 | | | | | |
 
 ---
@@ -456,7 +464,7 @@ Moonfin doesn't report the terminal back (`route-events`, optional diagnostics):
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | previous step |
+| ☑ Done | `5e3d0c366` | previous step |
 
 **Goal.** Sequenced progress samples; ignore `stale_sample`, bump on `409`, stop on `404`.
 
@@ -506,6 +514,7 @@ Moonfin's own resume point for the item (`UserData`) still comes from Silo on th
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-17 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | progress 8/8; `playback_silo` 47/47; analyzer: no issues |
+| 2026-10-17 | macOS | `bd9d59ea` | Pass | Brady: the phase 10 test list passed |
 | | | | | |
 
 ---
@@ -515,7 +524,7 @@ Moonfin's own resume point for the item (`UserData`) still comes from Silo on th
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | previous step |
+| ☑ Done | `53af116be` | previous step |
 
 **Goal.** `DELETE /playback/{sid}` with a stable `stop_id` and the final position, with retries.
 
@@ -562,6 +571,7 @@ Audiobooks, which keep their own position (`progress_persistence: client` and `/
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-17 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | stop 6/6; `playback_silo` 53/53; analyzer: no issues |
+| 2026-10-17 | macOS | `bd9d59ea` | Pass | Brady: the phase 10 test list passed |
 | | | | | |
 
 ---
@@ -571,7 +581,7 @@ Audiobooks, which keep their own position (`progress_persistence: client` and `/
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | previous step |
+| ☑ Done | `021e5e179` | previous step |
 
 **Goal.** Send `start_position` whenever Moonfin passes one; omit it only when Moonfin has no opinion.
 
@@ -605,6 +615,7 @@ So `start_position` is now sent on every start (`siloStartPosition`): the positi
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-17 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | start position 2/2; `playback_silo` 55/55; analyzer: no issues |
+| 2026-10-17 | macOS | `bd9d59ea` | Pass | Brady: the phase 10 test list passed |
 | | | | | |
 
 ---
@@ -614,7 +625,7 @@ So `start_position` is now sent on every start (`siloStartPosition`): the positi
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | previous step |
+| ☑ Done | `805fe87b8` | previous step |
 
 **Goal.** When `can_seek_anywhere` is false, replan on a far seek (needed for progressive remux).
 
@@ -670,6 +681,7 @@ A Silo remux is produced as it plays (protocol v3 §4–5). A progressive remux 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-17 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | replan 8/8; manager seek 6/6; `test/playback/` 856/856; `playback_silo` 63/63; analyzer: no new issues |
+| 2026-10-17 | macOS | `bd9d59ea` | Pass | Brady: the phase 10 test list passed |
 | | | | | |
 
 ---
@@ -679,7 +691,7 @@ A Silo remux is produced as it plays (protocol v3 §4–5). A progressive remux 
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | previous step |
+| ☑ Done | `c56e06970` | previous step |
 
 **Goal.** Via replan using the track map from 5.8.
 
@@ -716,6 +728,7 @@ Moonfin numbers every stream of a file in one index space (Jellyfin's `Index`); 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-17 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | audio switch 5/5; `playback_silo` 68/68; analyzer: no issues |
+| 2026-10-17 | macOS | `bd9d59ea` | Pass | Brady: the phase 10 test list passed |
 | | | | | |
 
 ---
@@ -725,7 +738,7 @@ Moonfin numbers every stream of a file in one index space (Jellyfin's `Index`); 
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | previous step |
+| ☑ Done | `f894d8a03` | previous step |
 
 **Goal.** Subtitle inventory → external subtitles, ASS font bundles; off = -1.
 
@@ -771,6 +784,7 @@ Moonfin numbers every stream of a file in one index space (Jellyfin's `Index`); 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-17 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | subtitles 7/7; `playback_silo` 75/75; analyzer: no issues |
+| 2026-10-17 | macOS | `bd9d59ea` | Pass | Brady: the phase 10 test list passed |
 | | | | | |
 
 ---
@@ -780,7 +794,7 @@ Moonfin numbers every stream of a file in one index space (Jellyfin's `Index`); 
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | previous step |
+| ☑ Done | `cb2c89c1b` | previous step |
 
 **Goal.** Via replan.
 
@@ -818,6 +832,7 @@ A quality change keeps the current route eligible (it is an intent, not a failur
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-17 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | quality 3/3; `playback_silo` 78/78; analyzer: no issues |
+| 2026-10-17 | macOS | `bd9d59ea` | Pass | Brady: the phase 10 test list passed |
 | | | | | |
 
 ---
@@ -827,7 +842,7 @@ A quality change keeps the current route eligible (it is an intent, not a failur
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | previous step |
+| ☑ Done | `1b39d75a1` | previous step |
 
 **Goal.** Explicit version choice sets `allow_alternate_versions: false`.
 
@@ -863,6 +878,7 @@ Silo may play another version than the one asked for: with alternate versions al
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-17 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | versions 5/5; `playback_silo` 83/83; analyzer: no issues |
+| 2026-10-17 | macOS | `bd9d59ea` | Pass | Brady: the phase 10 test list passed |
 | | | | | |
 
 ---

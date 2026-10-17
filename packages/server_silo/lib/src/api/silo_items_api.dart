@@ -16,6 +16,7 @@ import '../mappers/silo_sort_map.dart';
 import '../silo_image_registry.dart';
 import '../silo_pager.dart';
 import 'silo_home_sections.dart';
+import 'silo_markers.dart';
 import 'silo_pending_api.dart';
 
 /// The artwork size Silo is asked for in lists (grids, rows): posters at
@@ -52,6 +53,9 @@ class SiloItemsApi
        _clock = clock ?? DateTime.now;
 
   final Dio _dio;
+
+  /// Skip markers by file (11.1).
+  late final SiloMarkers markers = SiloMarkers(_dio, clock: _clock);
 
   /// The time, for date-bounded rows (8.4); tests move it.
   final DateTime Function() _clock;
@@ -2402,11 +2406,24 @@ class SiloItemsApi
   @override
   Future<Map<String, dynamic>> getLyrics(String itemId) async => const {};
 
+  // --- player features (phase 11) -----------------------------------------
+
+  /// The skip segments of [itemId] (step 11.1): Silo's markers of the file
+  /// that plays, as Jellyfin's `MediaSegmentDto`s (see [SiloMarkers]).
+  @override
+  Future<List<Map<String, dynamic>>> getMediaSegments(String itemId) =>
+      markers.segmentsOf(itemId);
+
+  /// Called by the Silo resolver when [itemId] starts playing [fileId], so
+  /// the player's extras (markers…) come from that file.
+  void notePlayingFile(String itemId, String fileId, {num? runTimeSeconds}) {
+    markers.notePlayingFile(itemId, fileId, runTimeSeconds: runTimeSeconds);
+  }
+
   // --- the rest, by roadmap step ------------------------------------------
 
   /// The step that implements each method not implemented yet.
   static const _steps = {
-    'getMediaSegments': '11.1',
     'getThemeMedia': '11.5',
     'searchRemoteSubtitles': '10.14',
     'downloadRemoteSubtitle': '10.14',

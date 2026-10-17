@@ -147,7 +147,7 @@ Status key: ☐ not started · ◐ in progress · ☑ done and tested · ⊘ ski
 - [x] **9.4** [Refresh rows after a change](phases/09-user-actions.md#step-9-4)
 - [x] **9.5** [Personal collections: create, add, remove](phases/09-user-actions.md#step-9-5)
 - [ ] **9.6** [Watchlist](phases/09-user-actions.md#step-9-6) *(optional; skipped, D12)*
-- [ ] **9.7** [Hide from Continue Watching and Next Up](phases/09-user-actions.md#step-9-7)
+- [x] **9.7** [Hide from Continue Watching and Next Up](phases/09-user-actions.md#step-9-7)
 
 ## 10. [Playback (first backend: media_kit on macOS)](phases/10-playback.md)
 

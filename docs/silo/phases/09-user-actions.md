@@ -306,7 +306,7 @@ Decided by Brady after the phase 9 batch was built (D12). What already works wit
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | `2100823`, fix — | 8.1, 8.2 |
+| ☑ Done | `2100823`, fix `53d2734` | 8.1, 8.2 |
 
 **Goal.** On Silo, Moonfin's "Hide from Continue Watching" context action (today a local, per-device list in `UserPreferences`) uses Silo's dismissals, so the card is hidden in Silo's web app and on other devices too. Silo drops a dismissed episode's or series' whole show from both Continue Watching and Next Up until the profile watches it again, and "show again" undoes it. Moonfin's local list already unhides when the item is played, so the behaviour lines up.
 
@@ -363,6 +363,7 @@ Nothing in Moonfin shows hidden cards again, so `DELETE /home/dismissals` isn't 
 | 2026-10-16 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | dismissals 6/6; context action 4/4 (focus widgets 46/46); `server_silo` 534/534; `server_core` 94/94; analyzer: no issues. Full app suite left to Brady |
 | 2026-10-17 | macOS | `bd9d59ea` | Fail | Brady: hiding a film from Continue Watching hid it but reset its progress (b, e); *Hide from Next Up* hid it in Moonfin, not in Silo (c); a, d, f, g passed. The menu never used Silo's hide on Home or grid cards (server id check) |
 | 2026-10-17 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | fix: a card's server is matched by address too; context action 6/6 (focus widgets 48/48); analyzer: no issues. Full app suite left to Brady |
+| 2026-10-17 | macOS | `bd9d59ea` | Pass | Brady: 9.7 a–g pass after the fix; progress kept, hidden in Silo's web app too |
 | | | | | |
 
 ---

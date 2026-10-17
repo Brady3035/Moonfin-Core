@@ -13,33 +13,46 @@ Silo picks the route on the server from the client's codec evidence (`POST /play
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | previous step |
 
 **Goal.** Optional `timelineOffset` on `StreamResolutionResult` applied to progress, the seek bar and trickplay. Zero for Jellyfin and Emby.
 
 **Where in Moonfin**
 
 - `packages/playback_core/lib/src/stream_resolution_result.dart`
-- `playback_manager.dart`
+- `packages/playback_core/lib/src/playback_manager.dart`
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+A server can hand the player a stream that doesn't start at the start of the file. Silo does this for its remuxes (protocol v3 §5): a progressive or HLS copy remux starts at the keyframe before the resume point, and the player counts from that cut. Its plan says so with `timeline.timeline_offset_seconds`, what to add to the player's position to get the source position. Jellyfin and Emby transcodes keep the source timeline, so for them this is always zero.
+
+`StreamResolutionResult.timelineOffset` (a `Duration`, default zero) carries it. `PlaybackManager` keeps everything it hands out on the media's timeline and converts only at the edge to the backend:
+
+- **From the player:** the position stream, `currentPlaybackPosition`, the position a re-resolve or a stop starts from, and the player's duration have the offset added (`_mediaPosition`). So `state.position` (the seek bar, chapters, trickplay, skip-intro, the progress reports and the stop report) and `state.duration` are media time.
+- **To the player:** the start position given to `play`, the resume seek after open (`_seekWhilePausedAndMaybeResume`), `seekTo` and the seek that restores the position after track selection have it taken off (`_playerPosition`); a target before the stream's start goes to the stream's start.
+- `notifyExternalSeek` (tvOS's native transport, which moves the player itself) gets a player position and turns it into a media one.
+- The end-of-file check in `_onTrackCompleted` compares the player's duration on the media timeline with the media position.
+
+The offset comes from the stream being played (`_currentResolution`, or the last one while a re-resolve tears it down). With an offset of zero every conversion is the identity, so nothing changes for Jellyfin, Emby or offline files. Silo sets it from 10.6 on.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `test/playback/playback_manager_timeline_offset_test.dart` (new, 5 tests): with a stream cut at 10 minutes, a resume at 10:50 starts the player at 0:50; a player position of 1:00 reads as 11:00 (`state.position` and `currentPlaybackPosition`) and a 110-minute player duration as 120; a seek to 15:00 goes to the player as 5:00, one before the cut as 0:00; the stop is reported at 11:00. With no offset, positions and seeks pass through unchanged.
+- `test/playback/` (the manager and backend tests): still pass.
 
 **Manual test plan**
 
-- Jellyfin and Emby playback unchanged.
+- Emby: play a film from the start and resume another part way through; the seek bar, seeking, skip-intro and the resume point Emby shows afterwards are as before (no Silo stream sets an offset until 10.6).
+- Jellyfin, if you have one to hand: the same.
+- Silo: covered by 10.6 and 10.12 (a resumed remux shows the right time on the seek bar).
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-17 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | timeline offset 5/5; `test/playback/` 841/841; analyzer: no new issues (upstream infos only). Full app suite left to Brady |
 | | | | | |
 
 ---

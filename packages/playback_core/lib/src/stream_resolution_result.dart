@@ -67,6 +67,18 @@ class StreamResolutionResult {
   /// store rather than a server stream URL.
   final bool isLocalMedia;
 
+  /// What to add to the player's position to get the position in the media.
+  ///
+  /// Zero when the stream starts at the start of the file, which is every
+  /// Jellyfin and Emby stream: their transcodes keep the source timeline. A
+  /// server can also cut a stream at the resume point (Silo's remuxes start
+  /// at the keyframe before it), and the player then counts from that cut.
+  /// The playback manager adds the offset to everything it reads from the
+  /// player (position, duration) and takes it off every seek, so progress
+  /// reports, the seek bar, chapters and trickplay stay on the media's own
+  /// timeline.
+  final Duration timelineOffset;
+
   const StreamResolutionResult({
     required this.streamUrl,
     required this.mediaSourceId,
@@ -89,6 +101,7 @@ class StreamResolutionResult {
     this.directPlayRequested,
     this.sourceBitrate,
     this.isLocalMedia = false,
+    this.timelineOffset = Duration.zero,
   });
 
   /// What the server said it would send, read off the transcode URL.

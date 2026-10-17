@@ -551,8 +551,33 @@ class PlaybackManager implements AudioOwnable {
     if (reportImmediately && generation != null) _reportProgress(generation);
   }
 
+  /// The current stream's [StreamResolutionResult.timelineOffset]: what the
+  /// player's position lags the media's by. Zero for every stream that
+  /// starts at the start of the file.
+  Duration get _timelineOffset =>
+      (_currentResolution ?? _lastPlaybackResolution)?.timelineOffset ??
+      Duration.zero;
+
+  /// A position the player reported, on the media's timeline.
+  Duration _mediaPosition(Duration playerPosition) =>
+      playerPosition + _timelineOffset;
+
+  /// A position on the media's timeline, as the player counts it. A position
+  /// before the stream's start is the stream's start.
+  Duration _playerPosition(Duration mediaPosition) {
+    final position = mediaPosition - _timelineOffset;
+    return position < Duration.zero ? Duration.zero : position;
+  }
+
+  /// The player's duration on the media's timeline, or zero while it has
+  /// none.
+  Duration get _backendMediaDuration {
+    final duration = _backend?.duration ?? Duration.zero;
+    return duration > Duration.zero ? _mediaPosition(duration) : duration;
+  }
+
   Duration get currentPlaybackPosition {
-    final backendPos = _backend?.position ?? Duration.zero;
+    final backendPos = _mediaPosition(_backend?.position ?? Duration.zero);
     return Duration(
       microseconds: [
         backendPos.inMicroseconds,
@@ -1240,8 +1265,9 @@ class PlaybackManager implements AudioOwnable {
     }
     _streamSubs.addAll([
       backend.positionStream.listen((pos) {
-        state.setPosition(pos);
-        if (pos > Duration.zero) _lastKnownPosition = pos;
+        final position = _mediaPosition(pos);
+        state.setPosition(position);
+        if (pos > Duration.zero) _lastKnownPosition = position;
         // A backend can refuse a speed it was given - bitstreamed audio cannot
         // be time stretched - so track what it actually settled on rather than
         // leaving the UI showing a rate that is not happening.
@@ -1250,7 +1276,10 @@ class PlaybackManager implements AudioOwnable {
           state.setPlaybackSpeed(actualSpeed);
         }
       }),
-      backend.durationStream.listen((dur) {
+      backend.durationStream.listen((playerDuration) {
+        final dur = playerDuration > Duration.zero
+            ? _mediaPosition(playerDuration)
+            : playerDuration;
         if (_itemKnownDuration > Duration.zero &&
             dur.inMilliseconds < _itemKnownDuration.inMilliseconds * 9 ~/ 10) {
           state.setDuration(_itemKnownDuration);
@@ -1401,7 +1430,7 @@ class PlaybackManager implements AudioOwnable {
     final pos = _lastKnownPosition > state.position
         ? _lastKnownPosition
         : state.position;
-    final backendDuration = _backend?.duration ?? Duration.zero;
+    final backendDuration = _backendMediaDuration;
     final effectiveDuration = _itemKnownDuration > Duration.zero
         ? _itemKnownDuration
         : (backendDuration > Duration.zero ? backendDuration : state.duration);
@@ -2774,7 +2803,9 @@ class PlaybackManager implements AudioOwnable {
       _liveResumedInPlace = false;
       await _backend!.play(
         backendMediaPayload,
-        startPosition: useNativeStart ? startPosition : Duration.zero,
+        startPosition: useNativeStart
+            ? _playerPosition(startPosition)
+            : Duration.zero,
       );
       if (sessionToken != _playbackSessionToken) {
         _cleanupPreemptedSession(item, resolution);
@@ -3203,9 +3234,10 @@ class PlaybackManager implements AudioOwnable {
   }
 
   Future<void> _seekWhilePausedAndMaybeResume(
-    Duration position, {
+    Duration mediaPosition, {
     bool resumeAfterSeek = true,
   }) async {
+    final position = _playerPosition(mediaPosition);
     for (var attempt = 0; attempt < 3; attempt++) {
       await _backend!.seekTo(position);
       if (await confirmSeekHeld(position, () => _backend!.position)) {
@@ -3248,14 +3280,15 @@ class PlaybackManager implements AudioOwnable {
   Future<void> seekTo(Duration position) async {
     if (await _maybeIntercept(TransportAction.seek, position: position)) return;
     _lastKnownPosition = position;
-    await _backend?.seekTo(position);
+    await _backend?.seekTo(_playerPosition(position));
   }
 
   /// A seek the player performed on its own, from a control the manager does
   /// not own (the native tvOS transport). The player has already moved, so
   /// only the interceptor sees it: whoever is coordinating playback, if
   /// anyone, gets the same notice a [seekTo] would have given.
-  Future<void> notifyExternalSeek(Duration position) async {
+  Future<void> notifyExternalSeek(Duration playerPosition) async {
+    final position = _mediaPosition(playerPosition);
     _lastKnownPosition = position;
     await _maybeIntercept(TransportAction.seek, position: position);
   }
@@ -3928,7 +3961,7 @@ class PlaybackManager implements AudioOwnable {
       'playMethod='
       '${(_currentResolution ?? _lastPlaybackResolution)?.playMethod.name ?? 'none'}',
     );
-    final backendPos = _backend?.position ?? Duration.zero;
+    final backendPos = _mediaPosition(_backend?.position ?? Duration.zero);
     // A re-resolve opens a brand new stream. For live that stream starts at
     // zero, so carrying the old playhead forward asks it to resume past its
     // own end and it reports completion the moment it is ready.
@@ -4063,10 +4096,12 @@ class PlaybackManager implements AudioOwnable {
     if (shouldRestore) {
       await Future.delayed(const Duration(milliseconds: 150));
       if (sessionToken != _playbackSessionToken) return;
-      final pos = _backend?.position ?? state.position;
+      final pos = _backend != null
+          ? _mediaPosition(_backend!.position)
+          : state.position;
       final regressedBy = restorePosition - pos;
       if (regressedBy > const Duration(seconds: 2)) {
-        await _backend?.seekTo(restorePosition);
+        await _backend?.seekTo(_playerPosition(restorePosition));
       }
     }
   }
@@ -4362,7 +4397,7 @@ class PlaybackManager implements AudioOwnable {
       final item = queueService.currentItem;
       final resolution = _currentResolution ?? _lastPlaybackResolution;
       final reportItem = item ?? _lastPlaybackItem;
-      final backendPos = _backend?.position ?? Duration.zero;
+      final backendPos = _mediaPosition(_backend?.position ?? Duration.zero);
       final pos = Duration(
         microseconds: [
           backendPos.inMicroseconds,

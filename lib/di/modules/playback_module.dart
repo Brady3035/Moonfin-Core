@@ -43,6 +43,7 @@ import '../../playback/media3_player_backend.dart';
 import '../../playback/offline_stream_resolver.dart';
 import '../../playback/playback_profile_diagnostics.dart';
 import '../../playback/silo_playback_environment.dart';
+import '../../playback/server_shuffle_queue.dart';
 import '../../playback/silo_plugin_for.dart';
 import '../../playback/sleep_timer_controller.dart';
 import '../../platform/pip_service.dart';
@@ -242,6 +243,9 @@ Future<List<dynamic>> _nextSeasonItemsProvider(
   int _,
 ) async {
   if (completedItem is! AggregatedItem) return const <dynamic>[];
+  // A server's shuffle (11.7) grows by the item it picks next.
+  final shuffled = await ServerShuffleQueue.instance.extend(completedItem);
+  if (shuffled != null) return shuffled;
   if (!_isEpisodeQueueItem(completedItem)) return const <dynamic>[];
 
   final seriesId = completedItem.seriesId;

@@ -32,6 +32,7 @@ export 'src/api/playback_api.dart';
 export 'src/api/image_api.dart';
 export 'src/api/trickplay_api.dart';
 export 'src/api/series_track_preferences_api.dart';
+export 'src/api/server_shuffle_api.dart';
 export 'src/api/theme_song_stream_api.dart';
 export 'src/api/trickplay_manifest_api.dart';
 export 'src/api/session_api.dart';

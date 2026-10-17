@@ -168,7 +168,7 @@ Silo's personal rating is whole stars, 1 to 5 (`RatingSet.rating`, server table 
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | previous step |
+| ☑ Done | — | previous step |
 
 **Goal.** Publish a local user-data change so rows update without a reload.
 
@@ -220,35 +220,58 @@ Changes made on another device or in Silo's web app aren't seen this way; Jellyf
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | previous step |
 
 **Silo v2 endpoints**
 
+- `GET /collections` (the profile's own and shared collections)
 - `POST /collections`
 - `PUT/DELETE /collections/{id}/items/{item_id}`
 
 **Where in Moonfin**
 
-- `silo_items_api.dart`
+- `silo_items_api.dart` (`createCollection`, `addToCollection`, `removeFromCollection`, `getEditableCollections`, `canEditCollection`)
+- `packages/server_core/lib/src/api/editable_collections_api.dart` (new)
+- `lib/ui/widgets/add_to_collection_dialog.dart`, `lib/data/viewmodels/item_detail_view_model.dart` (`canRemoveFromCollection`) and the three collection pages that build the removal entry (`item_detail_screen.dart`, `modern_detail_content.dart`, `nouveau_collection_section.dart`)
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+**Which collections can be edited.** Jellyfin lets a user with collection rights edit any collection, so Moonfin's "Add to collection" lists every `BoxSet` and every collection page offers "Remove from collection". On Silo a profile edits only **its own manual** collections: a library's collections are the administrator's, another profile's shared collection is read-only, and smart and imported ones (MDBList, TMDB, Trakt) fill themselves. That is the rule Silo's web app applies (`AddToCollectionDialog.tsx`: `collection_type === "manual"` and created by the acting profile), and since 8.6 `getItems([BoxSet])` lists all of them, so the dialog would have offered collections Silo refuses.
+
+A new optional `server_core` interface, `EditableCollectionsApi`, lets the app ask (`itemsApi is EditableCollectionsApi`, as with `LetterPositionApi`; Jellyfin and Emby don't implement it and behave as before):
+
+- `getEditableCollections()`: the add dialog lists these instead of every `BoxSet`. Silo's answer is `GET /collections` kept to the profile's own manual ones, by name. While the acting profile isn't known nothing is listed, as on Silo's web app.
+- `canEditCollection(collection)`: `ItemDetailViewModel.canRemoveFromCollection` asks it with the collection page's item, and the three collection pages only pass a `CollectionRemovalContext` (the "Remove from collection" entry) when it says yes. Silo checks the mapped collection's original (`_silo`): a personal id, `collection_type` `manual`, `creator_profile_id` the acting profile (`SiloItemsApi` now gets the client's profile id).
+
+**Writing.**
+
+- `createCollection` sends `POST /collections` with the name and `collection_type: manual` (private to the profile, Silo's default) and answers the new collection as a `BoxSet`, whose `Id` the dialog reads; given `itemIds`, it adds them. Silo marks this `non_retryable` (a repeat makes a second collection); it is sent once.
+- `addToCollection` sends `PUT /collections/{id}/items/{item_id}` with `{"position": 0}` per title, in turn, as Silo's web app does (a title already in the collection keeps its place). `removeFromCollection` sends `DELETE`. Silo has no batch change; the first refusal stops the rest.
+- A library collection's id (`silo-libcollection:`) is refused before any request.
+- Each change calls `noteUserDataChanged()` (9.4) so the collection's page reads Silo again.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `packages/server_silo/test/silo_items_api_collection_edit_test.dart` (new, 7 tests): only own manual collections are editable, by name (smart, imported and another profile's are not); a library collection never is; nothing while the profile is unknown; create sends the name and `manual` and adds the titles at position 0, answering `silo-collection:c7`; add and remove send one request per title in order; a 409 stops the rest; a library collection is refused without a request.
+- `silo_items_api_library_test.dart`: the not-implemented check moves to `getMediaSegments` (11.1).
+- `test/viewmodels/item_detail_remove_from_collection_test.dart` (2 more): a server without the interface offers removal on any collection page; one with it decides per collection, given the collection's item.
+- `server_silo` 528/528; analyzer: no errors or warnings in the changed app files (upstream's infos only).
 
 **Manual test plan**
 
-- _Write the checks before testing._
+- From a film's menu, *Add to collection*: the list shows only your own manual collections (not the library's collections from the Collections row, not smart or imported ones, not another profile's shared ones). Pick one; Silo's web app shows the film in it.
+- *Add to collection* → create "Test 9.5": Silo's web app shows a new private manual collection with the film in it.
+- Open your own collection in Moonfin; a card's menu offers *Remove from collection*; remove it: the card leaves, and Silo's web app agrees.
+- Open a library's collection (Home's Collections row) or another profile's shared one: card menus don't offer *Remove from collection*.
+- Switch profile: the dialog lists that profile's own collections.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-16 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | collection editing 7/7; removal view model 7/7 and context action tests; `server_silo` 528/528; analyzer: no new issues. Full app suite left to Brady |
 | | | | | |
 
 ---

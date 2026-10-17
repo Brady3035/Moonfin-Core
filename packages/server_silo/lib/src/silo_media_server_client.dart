@@ -345,6 +345,7 @@ class SiloMediaServerClient extends MediaServerClient
     _dio,
     images: images,
     userViews: () => userViewsApi,
+    profileId: () => _profileId,
     clock: () => session.now,
   );
 

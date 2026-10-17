@@ -38,12 +38,14 @@ class SiloItemsApi
         ItemsApi,
         LetterPositionApi,
         ServerHomeSectionsApi,
-        UserDataRefreshScope {
+        UserDataRefreshScope,
+        EditableCollectionsApi {
   SiloItemsApi(
     this._dio, {
     this.images,
     SiloPager? pager,
     this.userViews,
+    this.profileId,
     DateTime Function()? clock,
   }) : pager = pager ?? SiloPager(),
        _clock = clock ?? DateTime.now;
@@ -56,6 +58,10 @@ class SiloItemsApi
 
   /// The client's library list, for library ids passed to [getItem].
   final UserViewsApi Function()? userViews;
+
+  /// The profile requests act for, to tell its own collections from shared
+  /// ones (9.5).
+  final String? Function()? profileId;
 
   /// Remembers list cursors per query, so Moonfin's offset paging maps onto
   /// Silo's cursors (5.12).
@@ -1499,6 +1505,120 @@ class SiloItemsApi
     ];
   }
 
+  // --- editing personal collections (9.5) ----------------------------------
+
+  /// The profile's own manual collections, by name: the ones Silo lets it
+  /// add to and remove from (`GET /collections`, kept by
+  /// [canEditCollection]). As Silo's web app, nothing is listed while the
+  /// acting profile isn't known.
+  @override
+  Future<List<Map<String, dynamic>>> getEditableCollections() async {
+    final own = [
+      for (final box in await _personalCollections())
+        if (canEditCollection(box)) box,
+    ];
+    own.sort(
+      (a, b) => (a['Name'] as String? ?? '').toLowerCase().compareTo(
+        (b['Name'] as String? ?? '').toLowerCase(),
+      ),
+    );
+    return own;
+  }
+
+  /// Silo's rule, as its web app applies it: a personal collection
+  /// (`silo-collection:`) that is `manual` (smart and imported ones fill
+  /// themselves) and that the acting profile created. A library's
+  /// collections are the administrator's, and another profile's shared one
+  /// is read-only.
+  @override
+  bool canEditCollection(Map<String, dynamic> collection) {
+    final id = collection['Id'];
+    final parsed = id is String ? parseSiloCollectionId(id) : null;
+    if (parsed == null || parsed.libraryId != null) return false;
+    final silo = asJsonMap(collection[siloOriginalKey]);
+    final me = profileId?.call();
+    return silo != null &&
+        me != null &&
+        silo['collection_type'] == 'manual' &&
+        silo['creator_profile_id'] == me;
+  }
+
+  /// `POST /collections` with the name: a manual collection for the acting
+  /// profile, private to it (Silo's default), then [itemIds] added. Answers
+  /// the new collection as a `BoxSet` (the add-to-collection dialog reads its
+  /// `Id`).
+  ///
+  /// Not idempotent on Silo: a retry after a lost answer makes a second
+  /// collection, so it is sent once.
+  @override
+  Future<Map<String, dynamic>> createCollection({
+    required String name,
+    List<String>? itemIds,
+  }) async {
+    final response = await _dio.post<dynamic>(
+      '/api/v2/collections',
+      data: {'name': name.trim(), 'collection_type': 'manual'},
+    );
+    final json = asJsonMap(response.data);
+    final box = json == null
+        ? null
+        : siloCollectionToBoxSet(json, images: images);
+    if (box == null) {
+      throw FormatException(
+        'Expected the new collection from Silo, got '
+        '${response.data.runtimeType}',
+      );
+    }
+    noteUserDataChanged();
+    if (itemIds != null && itemIds.isNotEmpty) {
+      await addToCollection(box['Id'] as String, itemIds);
+    }
+    return box;
+  }
+
+  /// `PUT /collections/{id}/items/{item_id}` for each title, at position 0
+  /// as Silo's web app adds them. A title already there stays where it is.
+  @override
+  Future<void> addToCollection(String collectionId, List<String> itemIds) =>
+      _editCollection(collectionId, itemIds, (path) {
+        return _dio.put<void>(path, data: {'position': 0});
+      });
+
+  /// `DELETE /collections/{id}/items/{item_id}` for each title.
+  @override
+  Future<void> removeFromCollection(
+    String collectionId,
+    List<String> itemIds,
+  ) => _editCollection(collectionId, itemIds, _dio.delete<void>);
+
+  /// One request per title, in turn (Silo has no batch membership change),
+  /// stopping at the first Silo refuses. Only a personal collection can be
+  /// edited here: a library collection is refused before any request.
+  Future<void> _editCollection(
+    String collectionId,
+    List<String> itemIds,
+    Future<void> Function(String path) send,
+  ) async {
+    final parsed = parseSiloCollectionId(collectionId);
+    if (parsed == null || parsed.libraryId != null) {
+      throw UnsupportedError(
+        'Only your own collections can be changed on Silo; '
+        '$collectionId is a library\'s',
+      );
+    }
+    final collection = Uri.encodeComponent(parsed.id);
+    try {
+      for (final itemId in itemIds) {
+        await send(
+          '/api/v2/collections/$collection/items/'
+          '${Uri.encodeComponent(itemId)}',
+        );
+      }
+    } finally {
+      noteUserDataChanged();
+    }
+  }
+
   /// A collection's page: found in its list (Silo has no single-collection
   /// read for a viewer).
   Future<Map<String, dynamic>> _collection(String collectionId) async {
@@ -2215,9 +2335,6 @@ class SiloItemsApi
 
   /// The step that implements each method not implemented yet.
   static const _steps = {
-    'createCollection': '9.5',
-    'addToCollection': '9.5',
-    'removeFromCollection': '9.5',
     'getMediaSegments': '11.1',
     'getThemeMedia': '11.5',
     'searchRemoteSubtitles': '10.14',

@@ -131,6 +131,30 @@ class SiloPlaybackApi implements PlaybackApi {
     return asJsonMap(response.data) ?? const {};
   }
 
+  // --- stop (10.10) -----------------------------------------------------------
+
+  /// `DELETE /api/v2/playback/{sessionId}` with [body] (`PlaybackStopBody`:
+  /// `installation_id`, a `stop_id` the client keeps for every retry, and
+  /// the final sample's `sequence`, `position`, `is_paused`). The first stop
+  /// wins; every later one, with any stop id, replays its receipt
+  /// (`outcome: replayed`), so a retry is always safe.
+  Future<Map<String, dynamic>> stopPlayback(
+    String sessionId,
+    Map<String, dynamic> body,
+  ) async {
+    final response = await _dio.delete<dynamic>(
+      '/api/v2/playback/${Uri.encodeComponent(sessionId)}',
+      data: body,
+    );
+    return asJsonMap(response.data) ?? const {};
+  }
+
+  /// Whether a failed stop may be sent again: it got no answer, or Silo
+  /// asked for time (`408`, `429`, `5xx`). The start's rule
+  /// ([isRetryableStartError]).
+  static bool isRetryableStopError(Object error) =>
+      isRetryableStartError(error);
+
   /// Whether [error] says the session is over: `404` (it expired, was
   /// stopped, or the server restarted) or `410 playback_session_ended` (an
   /// administrator ended it). Reporting on it stops.

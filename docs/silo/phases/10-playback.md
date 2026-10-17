@@ -450,7 +450,7 @@ Moonfin doesn't report the terminal back (`route-events`, optional diagnostics):
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | previous step |
+| ☑ Done | — | previous step |
 
 **Goal.** Sequenced progress samples; ignore `stale_sample`, bump on `409`, stop on `404`.
 
@@ -509,7 +509,7 @@ Moonfin's own resume point for the item (`UserData`) still comes from Silo on th
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | previous step |
 
 **Goal.** `DELETE /playback/{sid}` with a stable `stop_id` and the final position, with retries.
 
@@ -519,26 +519,43 @@ Moonfin's own resume point for the item (`UserData`) still comes from Silo on th
 
 **Where in Moonfin**
 
-- `silo_play_session_service.dart`
+- `packages/playback_silo/lib/src/silo_play_session_service.dart` (`onPlaybackStop`, `stopTranscoding`)
+- `packages/playback_silo/lib/src/silo_playback_sessions.dart` (`stopId`, `stopping`)
+- `packages/server_silo/lib/src/api/silo_playback_api.dart` (`stopPlayback`)
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+A stop tells Silo the session is over: it stores the final position as the resume point, writes the watch history, stops the remux or transcode and refuses the stream's URL from then on (Playback API, "Progress and stop"). Without it all of that waits until the session expires (45 s to 30 min).
+
+`SiloPlaySessionService.onPlaybackStop` sends `DELETE /api/v2/playback/{session}` with `{installation_id, stop_id, sequence, position, is_paused}`:
+
+- **`stop_id`** is a UUID minted once per session (`SiloPlaybackSession.stopId`) and sent on every retry. Silo's first stop wins; any later one, with any id, replays the stored receipt (`outcome: replayed`), so retrying is always safe.
+- **The final sample** is the session's next sequence and the media position the manager reports (10.1), not paused. A session that never reported and is stopped at zero (one the manager dropped before it played, `_cleanupPreemptedSession`) sends **no** sample: a zero would overwrite the item's resume point. (`sequence` and `position` go together or not at all, as the contract asks.)
+- **Retries:** no answer, `408`, `429` or `5xx` resend the identical body, backing off 1, 2, 4, 8 s, for up to 30 s (Silo's web player allows the same). `404` or `410` mean the session had already ended. After the stop, sent or not, the session is marked ended and forgotten, so a late progress report or a second stop sends nothing.
+- **One stop per session.** On a re-resolve the manager asks for both the stop and the end of the transcode; `stopTranscoding` waits for the stop already on its way instead of sending a second (a transcode ends with its session on Silo), and a second `onPlaybackStop` shares the first.
+- **A stream a replan replaced** stops nothing: its session goes on under the new stream (10.12–10.16), which is the one stopped when playback ends.
+
+Audiobooks, which keep their own position (`progress_persistence: client` and `/sync/progress`), are phase 16.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `packages/playback_silo/test/silo_stop_test.dart` (new, 6 tests): after a sample, the stop is a `DELETE` with the installation id, a UUID stop id, sequence 2 and 600 s, passes `PlaybackStopBody`, and the session is forgotten (no more progress or stops); a dropped stop and a `503` are resent with the identical body (waits 1 s, 2 s); a `404` isn't retried; a stop, the transcode end and a second stop at once send one request; a session dropped before it played stops without a sample (and passes the contract); a stream replaced by a replan stops nothing.
+- `playback_silo` 53/53; analyzer: no issues.
 
 **Manual test plan**
 
-- Stop halfway; Silo web shows the resume point.
+- Stop halfway; Silo web shows the resume point (within a second of where you stopped).
+- Watch a film to the end (or seek to the last minute and let it finish): Silo's web app shows it watched and it leaves Continue Watching.
+- Stop a remux or transcode (xXx with a 4 Mbit/s ceiling): Silo's admin dashboard (Activity / sessions) shows the session gone at once, not after a minute.
+- Start a film, and before it shows a frame press back: the film's resume point in Silo's web app is unchanged.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-17 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | stop 6/6; `playback_silo` 53/53; analyzer: no issues |
 | | | | | |
 
 ---

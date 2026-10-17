@@ -122,13 +122,23 @@ Map<String, dynamic>? siloItemToBaseItemDto(
       // The default version's chapters, as Jellyfin sends them. Season list
       // files are not versions and say nothing about chapters, so the field
       // is left out there rather than claim the episode has none.
-      if (asJsonMap(sources.first[siloOriginalKey]) case final version?
-          when item['versions'] is List) {
-        dto['Chapters'] = siloChaptersToJellyfin(
-          version,
-          itemId: id,
-          images: images,
-        );
+      if (item['versions'] is List) {
+        // Each version also carries its own on its media source, so the
+        // player can show the chapters of the version that plays (11.3).
+        // The default's are registered last: its thumbnails are the ones an
+        // untagged lookup by index finds.
+        for (final source in sources.reversed) {
+          final version = asJsonMap(source[siloOriginalKey]);
+          if (version == null) continue;
+          source['Chapters'] = siloChaptersToJellyfin(
+            version,
+            itemId: id,
+            images: images,
+          );
+        }
+        if (asJsonMap(sources.first[siloOriginalKey]) != null) {
+          dto['Chapters'] = sources.first['Chapters'];
+        }
       }
     }
   }

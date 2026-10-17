@@ -62,7 +62,7 @@ The offset comes from the stream being played (`_currentResolution`, or the last
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | previous step |
+| ☑ Done | — | previous step |
 
 **Goal.** Optional `replan()` on `MediaStreamResolver` and a `PlaybackManager` hook; other servers keep re-resolving.
 
@@ -117,32 +117,50 @@ A local file never replans (`isLocalMedia`). `LocalFirstMediaStreamResolver`, wh
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | previous step |
 
 **Goal.** Moonfin's DeviceProfile → Silo client codec capabilities with honest evidence tiers, validated against Silo's start-request schema.
 
 **Where in Moonfin**
 
-- `packages/playback_silo/lib/src/silo_capabilities_translator.dart`
+- `packages/playback_silo/lib/src/silo_capabilities_translator.dart` (new)
+- `packages/playback_silo/test/silo_contract.dart` (new): checks a body against the pinned contract
+- `packages/playback_silo/test/fixtures/device_profile_mpv.json` (new): the libmpv backend's profile
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+Silo plans the route on the server (protocol v3 §1): the client says what it can play, not what it wants. A playback start carries `client_capabilities` (codec lists, HDR, a resolution ceiling, and how the client knows: the *evidence tier*), and per delivery class (`original_http`, `progressive`, `hls`) the containers, codecs, channel ceiling and subtitle handling it accepts. Every Moonfin backend already says all of that in the Jellyfin `DeviceProfile` it builds (`DeviceProfileBuilder`), so `siloCapabilitiesFromDeviceProfile(profile, traits:)` reads it rather than describing each backend twice. It answers `SiloClientCapabilities`: `clientCapabilities`, `deliveries` and the `clientFeatures` they rely on. Pure functions, no I/O.
+
+- **Evidence tier: `declared`** for video and audio. A profile is a statement, not a probe of the device's decoders; Silo then matches the flat codec lists only (§3). `video_decode[]` is left out rather than made up: on the strict tiers an entry with no bounds would claim every variant of a codec. A backend that enumerates its decoders (Media3, phase 12) can claim `exact` later. Passthrough needs `exact`, so none is claimed; the player still bitstreams locally what it receives.
+- **Codecs and containers** come from the video direct-play profiles. A codec the codec profiles rule out (Moonfin writes that as a `VideoProfile` that must equal `none`; MPEG-4 Part 2 on mpv) is dropped. `mkv` and `matroska` both go in, since Silo names Matroska files `mkv`.
+- **HDR** (`hdr_details`, and `hdr` when any of it is on) comes from the HEVC and AV1 range types the codec profiles don't rule out: HDR10, HLG, HDR10+, and Dolby Vision profile 5 (`DOVI`), 7 (`DOVI_WITH_EL`), 8 (`DOVI_WITH_HDR10`), 10 (AV1). This describes the decoder; the display is 10.4's.
+- **`max_resolution`**: the widest unconditional `Width` limit, as Silo's class (480p up to 854 wide … 4320p); none leaves it out.
+- **Deliveries.** `original_http`: the direct-play containers and codecs. `progressive`: the same codecs in Silo's remux containers (MP4, Matroska). `hls`: the decodable codecs among H.264, HEVC (in fMP4) and the HLS transcoding profiles' video codecs (Silo's HLS is a copy remux as often as a transcode, so not only the transcode targets; AV1 only where a profile names it, as AVFoundation's HLS may not take it) and those profiles' audio codecs; a profile without HLS transcoding has `supported_on_device: false` and a `failure_reason`. A channel limit below 6 on the audio codec profiles becomes `max_channels` on each class; a player that downmixes on its own (mpv, 8 channels) has none. `auth_header_refresh` is false: a stream's URL and headers are fixed once opened (10.7).
+- **Subtitles.** A file played whole draws its embedded tracks itself, so `original_http` attests native selection (`native_embedded`: Matroska, WebM, MP4/MOV; SRT, ASS/SSA, WebVTT, mov_text, PGS, DVD and DVB bitmaps; picked by the probed stream index, which is Moonfin's `Index`) and the client feature `embedded_subtitles_v1`. Without it Silo would extract an embedded PGS track or burn it in. Remuxes and HLS carry subtitles as sidecars Moonfin loads as external tracks: text and ASS yes, bitmap sidecars and font bundles no (Moonfin loads neither), so a bitmap there is burnt in, as on Emby.
+- **`SiloPlayerTraits`** says what the profile can't (the defaults claim none of it): whether the player maps an original's HDR/Dolby Vision to the screen itself (`client_managed_dynamic_range_v1` on `original_http`, only when it decodes HDR at all), picks any audio track of the file (`client_selected_audio_track_v1`), plays progressive and HLS, and draws embedded subtitles. `SiloPlayerTraits.aether` is AetherEngine (Moonfin's main player on macOS and iOS) and `SiloPlayerTraits.mpv` the libmpv backend (Windows, Linux): both have all of them. 10.4 supplies the traits from the app.
+
+`client_features` is `playback_plan_v3` and `embedded_subtitles_v1`. Not claimed: `header_authenticated_media_v1` (signed stream URLs are kept, 10.7), `subrip_sidecar_v1` (sidecars stay WebVTT), `plan_invalidated_v1` (needs the control socket, phase 13), `software_video_decode_v1` (only means something on the strict tiers).
 
 ### Testing
 
 **Automated tests**
 
-- one DeviceProfile sample per backend → expected JSON; schema validation
+- `packages/playback_silo/test/silo_capabilities_translator_test.dart` (new, 13 tests), on the libmpv backend's real profile (captured from `DeviceProfileBuilder.build` with that backend's settings) and a hand-made narrow one:
+  - mpv: `declared` evidence, its eight video codecs (MPEG-4 Part 2 left out), its audio codecs and containers, no `video_decode` or passthrough; HDR10, HLG, HDR10+ and Dolby Vision 5 and 8; `4320p`; all three classes, no channel ceiling; HLS takes H.264 and HEVC; the original carries both claims and native embedded subtitles (PGS by stream index); remuxes and HLS use sidecars without bitmaps or fonts.
+  - narrow device, default traits: AV1 ruled out by its profile is left out; no HDR, `1080p`, `max_channels` 2 on every class; no claims and no `embedded_subtitles_v1`; without an HLS profile `hls` is unsupported with a reason.
+  - a player without embedded subtitle rendering sends no `embedded_subtitles_v1` and no native attestations.
+  - every body passes `silo_contract.dart` against `ClientCodecCapabilitiesV3` and `DeliveryCapabilityV3` from the pinned contract (`bd9d59ea`): required fields, types, enums, bounds, and no field the contract doesn't have (Silo refuses unknown fields with 422). One test checks the validator refuses a missing and an unknown field.
+- `playback_silo`: 16/16.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+- Nothing to see yet: the translator is used by the playback start (10.6). Its effect is checked there (direct play of an HEVC/DTS Matroska file, an HDR10 file direct playing on an SDR Mac).
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-17 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | translator 13/13; `playback_silo` 16/16; analyzer: no issues |
 | | | | | |
 
 ---

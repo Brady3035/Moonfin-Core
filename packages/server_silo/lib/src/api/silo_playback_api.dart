@@ -70,6 +70,49 @@ class SiloPlaybackApi implements PlaybackApi {
     _capabilitiesAt = null;
   }
 
+  // --- start (10.6) -----------------------------------------------------------
+
+  /// How long one start request may take: Silo may start a remux or a
+  /// transcode before it answers (its web player allows 45 s too).
+  static const startTimeout = Duration(seconds: 45);
+
+  /// `POST /api/v2/playback/start` with [body] (`PlaybackStartBody`), once.
+  /// Answers Silo's decision (`PlaybackDecision`): a plan, or a terminal
+  /// refusal, both as `201`. The caller retries an interrupted start with
+  /// the identical body ([isRetryableStartError]); Silo replays the stored
+  /// decision for a repeated `playback_attempt_id` and body.
+  Future<Map<String, dynamic>> startPlayback(Map<String, dynamic> body) async {
+    final response = await _dio.post<dynamic>(
+      '/api/v2/playback/start',
+      data: body,
+      options: Options(sendTimeout: startTimeout, receiveTimeout: startTimeout),
+    );
+    return _decision(response.data);
+  }
+
+  static Map<String, dynamic> _decision(Object? data) {
+    final json = asJsonMap(data);
+    if (json == null) {
+      throw FormatException(
+        'Expected a playback decision from Silo, got ${data.runtimeType}',
+      );
+    }
+    return json;
+  }
+
+  /// Whether a failed start may be sent again unchanged: it never reached
+  /// Silo or got no answer (a timeout, a dropped connection), or Silo asked
+  /// for time (`408`, `429`, `5xx`). A refusal (any other `4xx`) is final.
+  static bool isRetryableStartError(Object error) {
+    if (error is! DioException) return false;
+    final status = error.response?.statusCode;
+    if (status == null) {
+      return error.type != DioExceptionType.cancel &&
+          error.type != DioExceptionType.badCertificate;
+    }
+    return status == 408 || status == 429 || status >= 500;
+  }
+
   /// Whether [error] is Silo's `409 installation_changed`: the request
   /// carried the installation id of a server that has since been reset or
   /// replaced. The capabilities are read again and a new attempt started.

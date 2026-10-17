@@ -47,16 +47,15 @@ void main() {
     final api = siloTestClient(server).itemsApi;
 
     final item = await api.getItem(_id);
-    expect(siloLocalTrailersPlayable, isFalse);
-    expect(
-      item['LocalTrailerCount'],
-      0,
-      reason: 'hidden until phase 10 can play them',
-    );
+    // They play since 10.6, so the trailer button offers them.
+    expect(siloLocalTrailersPlayable, isTrue);
+    expect(item['LocalTrailerCount'], 2);
     expect(item['SpecialFeatureCount'], 3);
-    expect(await api.getLocalTrailers(_id), isEmpty);
+    final local = await api.getLocalTrailers(_id);
+    expect(local.map((t) => t['Name']), ['Trailer', 'Teaser']);
+    // A trailer keeps the file it plays.
+    expect((local.first['_silo'] as Map)['file_id'], 7);
 
-    // What getLocalTrailers will answer once they play.
     final trailers = siloExtrasOf(detail, trailers: true, ownerId: _id);
     expect(trailers.map((t) => t['Name']), ['Trailer', 'Teaser']);
     expect(trailers.first['Type'], 'Trailer');

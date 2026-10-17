@@ -15,13 +15,12 @@ const Map<String, String> siloExtraTypes = {
   'other': 'Unknown',
 };
 
-/// Whether Moonfin can play Silo's local extras yet. They play through
-/// Silo's watch flow, which arrives with phase 10 (10.6). Until then a
-/// title's local trailers are left out (`LocalTrailerCount` 0, no
-/// `getLocalTrailers`), because Moonfin's trailer button plays a local
-/// trailer before a YouTube one and would open a player that plays nothing
-/// (found testing 6.17). Step 10.6 sets this to true.
-const bool siloLocalTrailersPlayable = false;
+/// Whether Moonfin can play Silo's local extras. They play like any title,
+/// by their `file_id` (step 10.6). Before that a title's local trailers were
+/// left out (`LocalTrailerCount` 0, no `getLocalTrailers`), because
+/// Moonfin's trailer button plays a local trailer before a YouTube one and
+/// would have opened a player that plays nothing (found testing 6.17).
+const bool siloLocalTrailersPlayable = true;
 
 /// Whether a Silo extra kind is a trailer (`trailer`, `teaser`).
 bool isSiloTrailerKind(Object? kind) => kind == 'trailer' || kind == 'teaser';

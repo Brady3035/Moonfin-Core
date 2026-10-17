@@ -1666,8 +1666,8 @@ class SiloItemsApi
 
   /// The title's local trailers and teasers (step 6.17), from its detail's
   /// `extras`. Remote (YouTube) trailers are the item's `RemoteTrailers`.
-  /// None until Moonfin can play them ([siloLocalTrailersPlayable]), so the
-  /// trailer button opens the YouTube trailer instead.
+  /// None while Moonfin can't play them ([siloLocalTrailersPlayable], true
+  /// since 10.6), so the trailer button opens the YouTube trailer instead.
   @override
   Future<List<Map<String, dynamic>>> getLocalTrailers(String itemId) async {
     if (!siloLocalTrailersPlayable) return const [];

@@ -19,6 +19,7 @@ import 'package:volume_controller/volume_controller.dart';
 import 'package:window_manager/window_manager.dart';
 
 import '../../../data/utils/chapter_markers.dart';
+import '../../../data/utils/server_trickplay.dart';
 import '../../../playback/subtitle_style.dart';
 import '../../../playback/subtitle_view_config.dart';
 import '../../../playback/system_volume.dart';
@@ -1973,6 +1974,14 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
       });
     }
 
+    if (rawData != null && itemId != null) {
+      await mergeServerTrickplay(
+        _clientForQueueItem(item),
+        itemId,
+        rawData,
+        mediaSourceId,
+      );
+    }
     var info = rawData == null
         ? null
         : TrickplayInfo.fromItemData(rawData, mediaSourceId: mediaSourceId);

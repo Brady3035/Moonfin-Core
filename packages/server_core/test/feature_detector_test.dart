@@ -98,7 +98,6 @@ void main() {
   test('Silo features Moonfin does not implement yet are off', () {
     // Each of these is switched on by the roadmap step that implements it.
     final f = _for(ServerType.silo);
-    expect(f.supportsTrickplay, isFalse); // 11.2
     expect(f.supportsQuickConnect, isFalse); // 14.3
     expect(f.supportsClientLog, isFalse); // 13.5
     expect(f.supportsProfiles, isFalse); // phase 3
@@ -108,6 +107,7 @@ void main() {
     final f = _for(ServerType.silo);
     expect(f.supportsMediaSegments, isTrue); // 11.1
     expect(f.supportsSkipSegments, isTrue); // 11.1
+    expect(f.supportsTrickplay, isTrue); // 11.2
   });
 
   test('Seerr goes through the Moonfin plugin, so Silo has none', () {

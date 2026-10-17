@@ -27,9 +27,13 @@ import '../silo_image_resolver.dart';
 ///   link), a placeholder URL ([siloImagePlaceholderUrl]) that the image
 ///   cache resolves by loading the item (`SiloImageResolver`).
 class SiloImageApi implements ImageApi {
-  SiloImageApi(this.registry, {this.baseUrl});
+  SiloImageApi(this.registry, {this.baseUrl, this.onTrickplaySheet});
 
   final SiloImageRegistry registry;
+
+  /// Told the file id whenever a trickplay sheet URL is handed out, so
+  /// previews whose URLs are about to expire are read again (11.2).
+  final void Function(String fileId)? onTrickplaySheet;
 
   /// The server's base URL for placeholder URLs; without it a miss is
   /// always an empty URL.
@@ -102,16 +106,22 @@ class SiloImageApi implements ImageApi {
   String getUserImageUrl(String userId) =>
       _lookup(userId, SiloImageType.primary);
 
-  /// A seek-preview sheet, registered under the file id (5.11); fetched in
-  /// step 11.2.
+  /// A seek-preview sheet, registered under the file id (5.11) when the
+  /// player read the file's previews (11.2).
   @override
   String getTrickplayTileImageUrl(
     String itemId, {
     required int width,
     required int index,
     String? mediaSourceId,
-  }) => mediaSourceId == null
-      ? ''
-      : registry.urlFor(mediaSourceId, SiloImageType.trickplay, index: index) ??
-            '';
+  }) {
+    if (mediaSourceId == null) return '';
+    onTrickplaySheet?.call(mediaSourceId);
+    return registry.urlFor(
+          mediaSourceId,
+          SiloImageType.trickplay,
+          index: index,
+        ) ??
+        '';
+  }
 }

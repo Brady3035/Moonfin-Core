@@ -374,7 +374,11 @@ class SiloMediaServerClient extends MediaServerClient
   final SessionApi sessionApi = const SiloPendingSessionApi();
 
   @override
-  late final ImageApi imageApi = SiloImageApi(images, baseUrl: () => _baseUrl);
+  late final ImageApi imageApi = SiloImageApi(
+    images,
+    baseUrl: () => _baseUrl,
+    onTrickplaySheet: (fileId) => itemsApi.trickplay.touch(fileId),
+  );
 
   @override
   final LiveTvApi liveTvApi = const SiloLiveTvApi();

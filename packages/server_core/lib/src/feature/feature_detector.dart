@@ -20,7 +20,9 @@ class FeatureDetector {
   bool get _isSilo => serverType == ServerType.silo;
 
   bool get supportsSyncPlay => _isJellyfin;
-  bool get supportsTrickplay => _isJellyfin;
+  /// Sprite-sheet seek previews (Jellyfin's `Trickplay`); Silo's are read
+  /// per file (`TrickplayManifestApi`, step 11.2).
+  bool get supportsTrickplay => _isJellyfin || _isSilo;
   bool get supportsLyrics => _isJellyfin;
 
   /// Jellyfin's MediaSegments API; Silo answers it from its skip markers

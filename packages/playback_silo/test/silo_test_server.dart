@@ -138,10 +138,15 @@ SiloMediaServerClient siloTestClient(SiloTestServer server) =>
 
 /// The Jellyfin-shaped item Moonfin plays, mapped from a `server_silo`
 /// fixture (`silo/watch_movie.json`…) the way the app gets it.
-Map<String, dynamic> siloTestItem(String fixture) => siloItemToBaseItemDto(
-  fixtureJson(fixture),
-  images: SiloImageRegistry(() => 'https://silo.example'),
-)!;
+Map<String, dynamic> siloTestItem(String fixture) =>
+    siloItemToBaseItemDtoForTest(fixtureJson(fixture));
+
+/// [json] (a Silo item) mapped the way the app gets it.
+Map<String, dynamic> siloItemToBaseItemDtoForTest(Map<String, dynamic> json) =>
+    siloItemToBaseItemDto(
+      json,
+      images: SiloImageRegistry(() => 'https://silo.example'),
+    )!;
 
 const capabilitiesPath = '/api/v2/playback/capabilities';
 const startPath = '/api/v2/playback/start';

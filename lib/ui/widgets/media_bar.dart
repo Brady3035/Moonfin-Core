@@ -17,7 +17,6 @@ import 'package:moonfin_native_video/moonfin_native_video.dart';
 import 'package:logger/logger.dart';
 import 'package:playback_core/playback_core.dart';
 import 'package:playback_emby/playback_emby.dart';
-import 'package:playback_silo/playback_silo.dart';
 import 'package:playback_jellyfin/playback_jellyfin.dart';
 import 'package:server_core/server_core.dart';
 
@@ -43,6 +42,7 @@ import '../../playback/appletv_preview_player.dart';
 import '../../playback/html_video_backend_profile.dart';
 import '../../playback/inline_preview_engine.dart';
 import '../../playback/media3_player_backend.dart';
+import '../../playback/silo_plugin_for.dart';
 import 'bounded_network_image.dart';
 import 'fullscreen_backdrop_switcher.dart';
 import 'navigation_layout.dart';
@@ -1832,7 +1832,7 @@ class _MediaBarState extends State<MediaBar>
     return switch (client.serverType) {
       ServerType.jellyfin => JellyfinPlugin(client).createStreamResolver(),
       ServerType.emby => EmbyPlugin(client).createStreamResolver(),
-      ServerType.silo => SiloPlugin(client).createStreamResolver(),
+      ServerType.silo => siloPluginFor(client).createStreamResolver(),
     };
   }
 

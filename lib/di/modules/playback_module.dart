@@ -3,7 +3,6 @@ import 'package:get_it/get_it.dart';
 import 'package:playback_core/playback_core.dart';
 import 'package:playback_jellyfin/playback_jellyfin.dart';
 import 'package:playback_emby/playback_emby.dart';
-import 'package:playback_silo/playback_silo.dart';
 import 'package:server_core/server_core.dart';
 
 import '../../data/models/aggregated_item.dart';
@@ -36,6 +35,7 @@ import '../../playback/media3_player_backend.dart';
 import '../../playback/offline_stream_resolver.dart';
 import '../../playback/playback_profile_diagnostics.dart';
 import '../../playback/silo_playback_environment.dart';
+import '../../playback/silo_plugin_for.dart';
 import '../../playback/sleep_timer_controller.dart';
 import '../../platform/pip_service.dart';
 import '../../preference/preference_constants.dart';
@@ -799,7 +799,7 @@ void setActiveStreamResolver(MediaServerClient client) {
       return (p.createStreamResolver(), p.createPlaySessionService());
     }(),
     ServerType.silo => () {
-      final p = SiloPlugin(client, environment: siloPlaybackEnvironment);
+      final p = siloPluginFor(client, environment: siloPlaybackEnvironment);
       return (p.createStreamResolver(), p.createPlaySessionService());
     }(),
   };

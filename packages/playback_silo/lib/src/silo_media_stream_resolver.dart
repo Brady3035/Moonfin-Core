@@ -212,7 +212,7 @@ class SiloMediaStreamResolver implements MediaStreamResolver, StreamReplanner {
         request.position.inMicroseconds * 10,
       ),
       'metered': start['metered'] ?? false,
-      'selected_tracks': _selectedTracks(plan),
+      'selected_tracks': _replanTracks(session, request),
       'client_capabilities': start['client_capabilities'],
       'client_playback_context': start['client_playback_context'],
       'installation_id': session.installationId,
@@ -265,6 +265,32 @@ class SiloMediaStreamResolver implements MediaStreamResolver, StreamReplanner {
     ReplanReason.qualityChange => 'quality_change',
     ReplanReason.failure => 'failure_recovery',
   };
+
+  /// The tracks a replan asks for: the plan's, and for a track change the
+  /// audio track Moonfin picked (step 10.13).
+  ///
+  /// Moonfin's stream index becomes Silo's identity through the version's
+  /// track map (5.8): `file:<file id>:audio:<ordinal>` and the ordinal as
+  /// `index`, which Silo checks agree. An index that is no audio track of
+  /// the file keeps the plan's. On the original file the player changes
+  /// track itself (the plan claims `client_selected_audio_track_v1`), so the
+  /// new plan is the same route; a remux or transcode carries only the
+  /// chosen track, so Silo makes a new stream with the new one.
+  Map<String, dynamic> _replanTracks(
+    SiloPlaybackSession session,
+    ReplanRequest request,
+  ) {
+    final tracks = _selectedTracks(session.plan);
+    if (request.reason != ReplanReason.trackChange) return tracks;
+    final audio = siloTrackIdentity(
+      session.mediaSource,
+      request.audioStreamIndex,
+      SiloTrackKind.audio,
+      fileId: '${session.plan['effective_media_file_id']}',
+    );
+    if (audio != null) tracks['audio'] = audio;
+    return tracks;
+  }
 
   /// The plan's `selected_tracks`, byte for byte: a seek is checked against
   /// them, and an absent subtitle would mean "off" to a track change.
@@ -526,6 +552,24 @@ class _SiloFile {
 
   /// Every version Moonfin knows of the item.
   final List<Map<String, dynamic>> sources;
+}
+
+/// Silo's identity for Moonfin's stream [index] of [kind] in a mapped
+/// [source] (`{id: file:<file>:<kind>:<ordinal>, index: <ordinal>}`), or
+/// null when the index is no such track of it.
+Map<String, dynamic>? siloTrackIdentity(
+  Map<String, dynamic>? source,
+  int? index,
+  SiloTrackKind kind, {
+  required String fileId,
+}) {
+  if (source == null || index == null || index < 0) return null;
+  final track = siloTrackForStreamIndex(source, index);
+  if (track == null || track.kind != kind) return null;
+  return {
+    'id': 'file:$fileId:${kind.name}:${track.ordinal}',
+    'index': track.ordinal,
+  };
 }
 
 /// Where Silo should start (step 10.11), in seconds: always said.

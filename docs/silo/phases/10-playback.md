@@ -608,7 +608,7 @@ So `start_position` is now sent on every start (`siloStartPosition`): the positi
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | previous step |
+| ☑ Done | — | previous step |
 
 **Goal.** When `can_seek_anywhere` is false, replan on a far seek (needed for progressive remux).
 
@@ -673,32 +673,43 @@ A Silo remux is produced as it plays (protocol v3 §4–5). A progressive remux 
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | previous step |
 
 **Goal.** Via replan using the track map from 5.8.
 
 **Where in Moonfin**
 
-- `silo_media_stream_resolver.dart`
+- `packages/playback_silo/lib/src/silo_media_stream_resolver.dart` (`_replanTracks`, `siloTrackIdentity`)
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+Moonfin numbers every stream of a file in one index space (Jellyfin's `Index`); Silo numbers each kind on its own and names a track `file:<file id>:audio:<ordinal>` (protocol v3 §8). The version mapper keeps the map between the two (5.8, `siloTracksKey`), so a track Moonfin picks can be named to Silo and the one Silo plays named back.
+
+- **At start** (10.6), the audio track Moonfin carries in (its own pick, the series' remembered one, or none) goes as `audio_track_index`. With none, Silo picks the series' preference, then the profile's audio language.
+- **Switching in the player.** `PlaybackManager.changeAudioTrack` re-resolves unless the backend can switch within a direct-played file (`supportsDirectPlayAudioSwitch`; AetherEngine can't, media_kit can). With Silo's resolver that re-resolve is a replan (10.2, 10.12) with reason `trackChange`, and `_replanTracks` turns the new index into Silo's identity: `selected_tracks.audio = {id: "file:4598:audio:1", index: 1}` (both given, as Silo checks they agree), operation `track_change`. The subtitle selection is the plan's, as it stands, so changing audio doesn't turn subtitles off (an absent subtitle means "off" to a track change).
+- **What Silo does with it.** On the original file the plan claims `client_selected_audio_track_v1` (10.3), so the route stays the original and the player opens the new track itself (the payload's audio index). A remux or transcode carries only the chosen track, so Silo builds a new stream with the new one, in the same session. A track Silo can't play on this route degrades as Silo decides (for example DTS → AAC).
+- **Back to Moonfin.** The new plan's `selected_tracks.audio.index` is mapped back to Moonfin's index (`selectedAudioStreamIndex`), so the track menu shows what Silo plays.
+- An index that is no audio track of the file keeps the plan's track. Only a track change touches the tracks: a seek or a quality change resends the plan's exactly.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `packages/playback_silo/test/silo_audio_switch_test.dart` (new, 5 tests), on xXx with a commentary track added (Moonfin streams: DTS 1, commentary 4): the mapping; picking stream 4 sends a `track_change` for `file:4598:audio:1` with index 1 (passes the contract) and maps Silo's answer back to stream 4; a subtitle index keeps the plan's audio; a seek doesn't change tracks; a start carrying stream 4 asks for audio track 1.
+- `playback_silo` 68/68; analyzer: no issues.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+- A film with two audio tracks (any with a commentary or a second language; Silo's web app lists them on its page):
+  - **direct play**: switch the track from the player's menu; the new track plays from where it was, after a short reload on the Mac (AetherEngine reopens the file);
+  - **remux or transcode** (a 4 Mbit/s ceiling, or a DTS film on stereo): switch it; playback continues at the same point on the new track, and Silo's dashboard shows the same session with the new audio.
+- **Compare with Emby:** the same switch on the same file behaves alike (a reload on transcodes, in place where the player can).
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-17 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | audio switch 5/5; `playback_silo` 68/68; analyzer: no issues |
 | | | | | |
 
 ---

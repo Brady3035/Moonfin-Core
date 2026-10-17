@@ -72,6 +72,11 @@ class SiloPlaybackSession {
 
   /// Failure recoveries so far (`attempt_count`, at most 8).
   int recoveries = 0;
+
+  /// The viewer's bitrate ceiling for this session, in kbps
+  /// (`bandwidth_cap_kbps`), sent on every replan so a seek keeps it; a
+  /// quality change replaces it (10.15). Null for none.
+  late int? bandwidthCapKbps = startBody['bandwidth_cap_kbps'] as int?;
 }
 
 /// The Silo sessions of one client, by session id, shared by its resolver

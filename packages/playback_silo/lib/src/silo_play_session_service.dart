@@ -9,11 +9,18 @@ import 'silo_playback_sessions.dart';
 /// Silo opens the session when `playback/start` answers (10.6), so starting
 /// reports nothing. Progress goes to `POST /api/v2/playback/{session}/progress`
 /// as sequenced samples (10.9); the stop is `DELETE /api/v2/playback/{session}`
-/// (10.10).
+/// with a stop id it keeps for every retry (10.10).
 class SiloPlaySessionService implements PlayerService {
-  SiloPlaySessionService(this._client);
+  SiloPlaySessionService(this._client, {Future<void> Function(Duration)? sleep})
+    : _sleep = sleep ?? Future<void>.delayed;
 
   final MediaServerClient _client;
+
+  /// Waits between stop retries; tests pass one that returns at once.
+  final Future<void> Function(Duration) _sleep;
+
+  /// How long a stop is retried, as Silo's web player does.
+  static const stopRetryBudget = Duration(seconds: 30);
 
   SiloPlaybackSessions get _sessions => SiloPlaybackSessions.of(_client);
 
@@ -102,20 +109,102 @@ class SiloPlaySessionService implements PlayerService {
     return false;
   }
 
+  /// Ends the session (step 10.10): `DELETE /api/v2/playback/{session}`
+  /// with the session's `stop_id` and the final sample (the next sequence,
+  /// the media position), so Silo stores the resume point and the history
+  /// entry, and frees its remux or transcode at once instead of when the
+  /// session expires.
+  ///
+  /// A stop that gets no answer, or a `408`, `429` or `5xx`, is sent again
+  /// (the identical body, backing off 1, 2, 4, 8 s) for up to 30 s. Silo
+  /// keeps the first stop and replays its receipt for any later one, so a
+  /// retry after a lost answer is safe. `404` or `410` mean the session had
+  /// already ended. Afterwards the session is forgotten.
+  ///
+  /// A stream a replan replaced has nothing to stop (its session goes on),
+  /// and a second stop for the session waits for the first.
   @override
   Future<void> onPlaybackStop(
     dynamic mediaItem,
     StreamResolutionResult resolution,
     Duration position, {
     bool releaseLiveStream = true,
-  }) async {}
+  }) {
+    final session = _sessions.sessionOf(resolution);
+    if (session == null) return Future.value();
+    final pending = session.stopping;
+    if (pending != null) return pending;
+    if (session.ended) {
+      _sessions.remove(session.sessionId);
+      return Future.value();
+    }
+    final current = session.resolution;
+    if (current != null && !identical(current, resolution)) {
+      return Future.value();
+    }
+    final api = _api;
+    if (api == null) return Future.value();
+    final stop = _stop(api, session, position);
+    session.stopping = stop;
+    return stop;
+  }
+
+  Future<void> _stop(
+    SiloPlaybackApi api,
+    SiloPlaybackSession session,
+    Duration position,
+  ) async {
+    // A session that never reported (one dropped before it played, which
+    // the manager stops at zero) sends no final sample: a zero would
+    // overwrite the item's resume point.
+    final sample = position > Duration.zero || session.lastSequence > 0;
+    final body = {
+      'installation_id': session.installationId,
+      'stop_id': session.stopId,
+      if (sample) ...{
+        'sequence': session.takeSequence(),
+        'position': siloSeconds(position),
+        'is_paused': false,
+      },
+    };
+    final deadline = DateTime.now().add(stopRetryBudget);
+    var wait = const Duration(seconds: 1);
+    try {
+      while (true) {
+        try {
+          await api.stopPlayback(session.sessionId, body);
+          return;
+        } catch (error) {
+          if (SiloPlaybackApi.isSessionGone(error)) return;
+          final left = deadline.difference(DateTime.now());
+          if (!SiloPlaybackApi.isRetryableStopError(error) || left <= wait) {
+            rethrow;
+          }
+          await _sleep(wait);
+          wait = wait * 2 > const Duration(seconds: 8)
+              ? const Duration(seconds: 8)
+              : wait * 2;
+        }
+      }
+    } finally {
+      // Ended either way: a stop Silo never got lets the session expire.
+      session.ended = true;
+      _sessions.remove(session.sessionId);
+    }
+  }
 
   /// Silo has no live TV.
   @override
   Future<void> closeLiveStream(String liveStreamId) async {}
 
+  /// The stop ends a remux or transcode too; this only makes sure one went
+  /// out (the manager asks for both on a re-resolve).
   @override
-  Future<void> stopTranscoding(StreamResolutionResult resolution) async {}
+  Future<void> stopTranscoding(StreamResolutionResult resolution) async {
+    final session = _sessions.sessionOf(resolution);
+    final pending = session?.stopping;
+    if (pending != null) await pending;
+  }
 
   @override
   void dispose() {}

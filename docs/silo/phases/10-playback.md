@@ -719,7 +719,7 @@ Moonfin numbers every stream of a file in one index space (Jellyfin's `Index`); 
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | previous step |
+| ☑ Done | — | previous step |
 
 **Goal.** Subtitle inventory → external subtitles, ASS font bundles; off = -1.
 
@@ -774,32 +774,44 @@ Moonfin numbers every stream of a file in one index space (Jellyfin's `Index`); 
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | previous step |
 
 **Goal.** Via replan.
 
 **Where in Moonfin**
 
-- `silo_media_stream_resolver.dart`
+- `packages/playback_silo/lib/src/silo_media_stream_resolver.dart`, `silo_playback_sessions.dart` (`bandwidthCapKbps`)
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+Moonfin's quality menu sets a bitrate ceiling (`PlaybackManager.changeBitrate(mbps)`; *Auto* / the maximum is none) and re-resolves; since 10.2 that is a replan with reason `qualityChange` and the new ceiling as `maxStreamingBitrate`. Silo's resolver sends it as a **`quality_change`** replan:
+
+- `bandwidth_cap_kbps` is the new ceiling (bits per second / 1000, within the contract's 100–1,000,000), or left out for none, which lifts an earlier one;
+- `quality_preference` stays `auto`: Silo picks the rung that fits the ceiling (protocol v3 §10: 80% of the cap earns a resolution class; a source over the cap is re-encoded, one under it is sent as it is). A quality change must name a preference, and `auto` with a cap is that intent. Silo's own menu of rungs (`available_qualities`, `1080p-high`…) isn't shown: Moonfin's menu is in Mbit/s, the same on every server.
+- The session remembers the ceiling (`SiloPlaybackSession.bandwidthCapKbps`, first from the start, which sends the playback setting's ceiling), and every later replan of the session (a seek, a track change) sends it, so a seek doesn't lift it.
+
+A quality change keeps the current route eligible (it is an intent, not a failure), so with no ceiling Silo goes back to the original or the remux it planned before. The answer is mapped as any plan: a transcode shows `ContainerBitrateExceedsLimit` from `quality_bandwidth_cap` / `bandwidth_cap_applied` in the playback info. The manager's request to force a transcode for a ceiling (`enableDirectPlay: false`) means nothing to Silo, which decides from the ceiling.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `packages/playback_silo/test/silo_quality_test.dart` (new, 3 tests): a 4 Mbit/s ceiling sends a `quality_change` with `auto` and 4000 kbps (passes the contract), and the answered HLS transcode maps to a transcode with `ContainerBitrateExceedsLimit`; a seek afterwards still sends 4000; a start with an 8 Mbit/s setting sends 8000, and a quality change to none sends no ceiling.
+- `playback_silo` 78/78; analyzer: no issues.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+- Direct play a 1080p film, then pick 4 Mbit/s in the player's quality menu: playback continues at the same point after a short load, as a transcode (playback info: transcode, bitrate limit); Silo's dashboard shows the same session now transcoding.
+- Seek: the ceiling holds (still a transcode).
+- Pick *Auto* (or the maximum): it goes back to direct play at the same point.
+- A 4K film (The Salt Path 2160p) with a 10 Mbit/s ceiling: Silo plays its 1080p version or a lower rung (its admin dashboard shows which).
+- **Compare with Emby:** the same choices on the same file.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-17 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | quality 3/3; `playback_silo` 78/78; analyzer: no issues |
 | | | | | |
 
 ---

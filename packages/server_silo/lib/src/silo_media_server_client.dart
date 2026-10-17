@@ -356,7 +356,7 @@ class SiloMediaServerClient extends MediaServerClient
   );
 
   @override
-  late final UserLibraryApi userLibraryApi = SiloUserLibraryApi(itemsApi);
+  late final UserLibraryApi userLibraryApi = SiloUserLibraryApi(itemsApi, _dio);
 
   @override
   final DisplayPreferencesApi displayPreferencesApi =

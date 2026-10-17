@@ -76,7 +76,7 @@ In Moonfin's settings, *Skipping & Autoplay*: set *Intro Segments* to *Prompt Us
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | previous step |
+| ☑ Done | — | previous step |
 
 **Goal.** Fetch the trickplay manifest when `trickplay_available` is true; refresh after `expires_at`.
 
@@ -136,30 +136,47 @@ Moonfin's seek previews read Jellyfin's `Trickplay` item field (`TrickplayInfo.f
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | previous step |
+
+**Goal.** Chapters in the player (menu, seek bar marks, previous/next chapter) and chapter thumbnails on the detail page, for the version that plays.
 
 **Where in Moonfin**
 
-- `silo_image_api.dart`
+- `packages/server_silo/lib/src/mappers/silo_item_mapper.dart`: every media source carries its version's `Chapters`
+- `lib/data/utils/chapter_markers.dart`: `chaptersForItem(…, mediaSourceId:)`, `itemChaptersForSource`
+- `video_player_screen.dart`, `appletv_player_host_screen.dart`: use the playing version's chapters
+- (`silo_image_api.dart`: unchanged; chapter thumbnails were wired in 5.9 and 6.1)
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+Most of this already worked before the step: 5.9 maps a version's chapters to Jellyfin's `Chapters` (names, start times, a thumbnail per chapter registered with its tag), the item carries its **default** version's, as Jellyfin does, and 6.1 serves the thumbnails (`getChapterImageUrl` by tag). The detail page's chapter row, the player's chapter menu, the seek bar marks and the previous/next chapter steps read them like Jellyfin's. What was missing is the version: Silo's versions are separate files with their own chapters (The Salt Path's 4K default has none, its 1080p file has 12), and Moonfin showed the default's whatever played.
+
+- **Silo's side.** Each media source now carries its own version's `Chapters` too, and the item's `Chapters` stay the default's. Thumbnails of every version are registered under the item with their own tags, so the detail page and the player find each by its tag. The default's are registered last, so a lookup by index without a tag still finds the default's.
+- **Moonfin's side.** `chaptersForItem` takes the playing version (`currentResolution.mediaSourceId`) and uses that media source's `Chapters` when it has them, otherwise the item's. Jellyfin and Emby don't send chapters on their media sources, so they keep the item's as before. The full player's menu, chapter button and marks use the playing version's, and are taken again when a replan or a version change plays another file. The tvOS host hands the same starts to the manager.
+- A title played from a row (no chapters on the item) still reads them once with the item (`fetchChapters`), and gets its default version's.
+
+Chapter thumbnail URLs are signed like all Silo artwork (6.1); the image cache keys them by path (6.2), so a thumbnail shown once stays shown.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `packages/server_silo/test/silo_chapter_mapper_test.dart` (11 tests, 1 new): The Salt Path's 1080p source carries its 12 chapters, the 4K default's none, the first 1080p thumbnail is found by its tag, and the item's chapters are the default's.
+- `test/data/utils/chapter_markers_test.dart` (2 new): the playing version's own chapters; the item's for no version, a version without its own, or an unknown one.
+- Existing chapter tests pass (`chapter_steps`, `chapter_transport`, `osd_buttons`: 18).
 
 **Manual test plan**
 
-- _Write the checks before testing._
+- a. xXx's detail page: the chapter row shows 16 chapters with thumbnails (compare Emby).
+- b. Play xXx: the seek bar shows the chapter marks (with the *Chapter Marks* setting on), the chapter button opens the list with names and times, and picking one seeks there; previous/next chapter (if your build maps them) step through them.
+- c. The Salt Path: pick the 1080p version on the detail page and play it: the chapter button shows its 12 chapters. Play the 4K default: no chapter button.
+- d. Resume xXx part way (a remux): the marks sit at the same places on the film's time, and picking a chapter seeks to it.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-17 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | chapters mapper 11/11; chapter markers 8/8; chapter steps/transport/OSD 18/18; `server_silo` 550/550; analyzer: no issues in the changed files |
 | | | | | |
 
 ---

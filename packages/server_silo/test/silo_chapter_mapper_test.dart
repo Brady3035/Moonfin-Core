@@ -151,6 +151,22 @@ void main() {
       expect(item['Chapters'], isEmpty);
     });
 
+    test('each version carries its own on its media source (11.3)', () {
+      final item = siloItemToBaseItemDto(
+        _json('silo/catalog_item_movie_multi.json'),
+        images: images,
+      )!;
+      final sources = (item['MediaSources'] as List).cast<Map>();
+      final byId = {for (final s in sources) '${s['Id']}': s['Chapters']};
+      expect(byId['4603'], isEmpty);
+      final hd = (byId['4602'] as List).cast<Map<String, dynamic>>();
+      expect(hd, hasLength(12));
+      // Their thumbnails are found by tag, whichever version they belong to.
+      final tag = hd.first['ImageTag'] as String;
+      expect(images.urlForTag(tag), contains('/chapter-images/4602/0-'));
+      expect(identical(item['Chapters'], sources.first['Chapters']), isTrue);
+    });
+
     test('season list entries carry no chapter field', () {
       final entry =
           (_json('silo/season_episodes.json')['items'] as List).first

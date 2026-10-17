@@ -191,6 +191,13 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
   /// Parsed chapters for the current item, held so the seek bar doesn't
   /// reparse them on every position tick.
   List<Map<String, dynamic>> _chapters = const [];
+
+  /// The file [_chapters] were taken from (11.3).
+  String? _chaptersMediaSourceId;
+
+  /// The raw chapters of the version that plays.
+  List<Map<String, dynamic>> _playingChapters(AggregatedItem item) =>
+      itemChaptersForSource(item, _manager.currentResolution?.mediaSourceId);
   final _chaptersFetchedItemIds = <String>{};
 
   PlayerBackend? get _activeBackend => _manager.backend;
@@ -1643,9 +1650,11 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
   /// manager, which steps previous and next through them before it steps
   /// through the queue. Runs per item, so one with none clears the last.
   void _applyChapters() {
+    _chaptersMediaSourceId = _manager.currentResolution?.mediaSourceId;
     _chapters = chaptersForItem(
       _queue.currentItem,
       _manager.currentOfflineMetadata,
+      mediaSourceId: _chaptersMediaSourceId,
     );
     _manager.setChapterStarts([
       for (final ms in chapterStartsMs(_chapters)) Duration(milliseconds: ms),
@@ -2028,6 +2037,14 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
     }
   }
 
+  /// A replan or a version change can play another file than the one the
+  /// chapters were taken from (11.3): take that file's.
+  void _refreshChaptersIfNeeded() {
+    final sourceId = _manager.currentResolution?.mediaSourceId;
+    if (sourceId == null || sourceId == _chaptersMediaSourceId) return;
+    setState(_applyChapters);
+  }
+
   void _refreshTrickplayIfNeeded() {
     final item = _queue.currentItem;
     if (_rawDataForQueueItem(item) == null) return;
@@ -2170,6 +2187,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
       _syncSubtitleActive();
     }
     _refreshTrickplayIfNeeded();
+    _refreshChaptersIfNeeded();
     _refreshCastPeopleIfNeeded();
     _handleTrickplayAmbientPrefetch(position);
     _syncAirPlayPlaybackState(position: position);
@@ -5662,7 +5680,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
             !_isPrerollQueueItem(item) &&
             ((_itemIdForQueueItem(item)?.isNotEmpty) ?? false);
         final isFavorite = canFavorite && _queueItemIsFavorite(item);
-        final hasChapters = item is AggregatedItem && item.chapters.isNotEmpty;
+        final hasChapters =
+            item is AggregatedItem && _playingChapters(item).isNotEmpty;
         final canBrowse = _canBrowseEpisodes(item);
         final hasCast = _hasCastCrew(item);
         final playbackStreams = _currentPlaybackMediaStreams();
@@ -7461,7 +7480,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
     final l10n = AppLocalizations.of(context);
     final item = _queue.currentItem;
     if (item is! AggregatedItem) return;
-    final chapters = item.chapters;
+    final chapters = _playingChapters(item);
     if (chapters.isEmpty) return;
     final options = List.generate(chapters.length, (i) {
       final ch = chapters[i];

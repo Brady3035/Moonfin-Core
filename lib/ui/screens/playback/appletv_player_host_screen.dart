@@ -915,6 +915,7 @@ class _AppleTvPlayerHostScreenState extends State<AppleTvPlayerHostScreen> {
   List<Map<String, dynamic>> _currentChapters() => chaptersForItem(
     _manager?.queueService.currentItem,
     _manager?.currentOfflineMetadata,
+    mediaSourceId: _manager?.currentResolution?.mediaSourceId,
   );
 
   /// Hands the current item's chapter starts to the manager, which steps

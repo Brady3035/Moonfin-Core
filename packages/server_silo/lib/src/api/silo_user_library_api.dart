@@ -3,12 +3,10 @@ import 'package:server_core/server_core.dart';
 
 import '../mappers/silo_ids.dart';
 import 'silo_items_api.dart';
-import 'silo_pending_api.dart';
 
 /// Moonfin's `UserLibraryApi` on Silo. Reading an item (step 6.6) is the
 /// items API's `getItem`; the actions a user takes on an item are phase 9:
-/// favourites (9.1) and played state (9.2). Ratings come with 9.3 and
-/// answer with [SiloNotImplementedError] until then.
+/// favourites (9.1), played state (9.2) and the profile's own rating (9.3).
 ///
 /// Every action acts for the profile the client acts as (`X-Profile-Id`),
 /// so each household profile keeps its own, as in Silo's web app.
@@ -21,7 +19,8 @@ class SiloUserLibraryApi implements UserLibraryApi {
   @override
   Future<Map<String, dynamic>> getItem(String itemId) => _items.getItem(itemId);
 
-  /// Silo rates on a 0–10 scale (phase 9.3).
+  /// Silo rates in whole stars, 1 to 5 (9.3), which Moonfin's star and
+  /// numeric rating styles can show; see [updateNumericUserRating].
   @override
   bool get supportsNumericUserRatings => true;
 
@@ -57,6 +56,36 @@ class SiloUserLibraryApi implements UserLibraryApi {
   Future<void> unmarkPlayed(String itemId) =>
       _dio.delete<void>('/api/v2/watched/${_titleId(itemId, 'played state')}');
 
+  // --- ratings (9.3) -------------------------------------------------------
+
+  /// A thumbs rating as stars: up is 5, down is 1. Silo has no likes, only
+  /// stars; read back, 5 shows as liked and 1 as disliked (Moonfin counts a
+  /// rating of 6.5 out of 10 or more as liked).
+  @override
+  Future<void> updateUserRating(String itemId, {required bool likes}) =>
+      _setStars(itemId, likes ? 5 : 1);
+
+  /// Moonfin's rating, 0 to 10, as Silo's whole stars: halved and rounded,
+  /// half a star up (3½ stars is 4), and at least 1 star, Silo's lowest.
+  @override
+  Future<void> updateNumericUserRating(
+    String itemId, {
+    required double rating,
+  }) => _setStars(itemId, siloStarsFromRating(rating));
+
+  /// `DELETE /ratings/{id}`; an item that wasn't rated succeeds.
+  @override
+  Future<void> deleteUserRating(String itemId) =>
+      _dio.delete<void>('/api/v2/ratings/${_titleId(itemId, 'rating')}');
+
+  /// `PUT /ratings/{id}` with `{"rating": stars}`, replacing any earlier
+  /// rating. `non_retryable` in the contract (a repeat moves the rating
+  /// time); sent once, as 9.2's writes.
+  Future<void> _setStars(String itemId, int stars) => _dio.put<void>(
+    '/api/v2/ratings/${_titleId(itemId, 'rating')}',
+    data: {'rating': stars},
+  );
+
   /// [itemId] as the path segment of a per-title action. Silo keeps
   /// favourites (and played state and ratings) on catalog titles: films,
   /// shows, seasons and episodes, whose Moonfin ids are Silo's content ids.
@@ -79,23 +108,8 @@ class SiloUserLibraryApi implements UserLibraryApi {
     }
     return Uri.encodeComponent(id);
   }
-
-  static const _steps = {
-    'updateUserRating': '9.3',
-    'updateNumericUserRating': '9.3',
-    'deleteUserRating': '9.3',
-  };
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) {
-    final name = invocation.memberName
-        .toString()
-        .replaceFirst('Symbol("', '')
-        .replaceFirst('")', '');
-    throw SiloNotImplementedError(
-      'UserLibraryApi',
-      name,
-      _steps[name] ?? 'phase 9',
-    );
-  }
 }
+
+/// Moonfin's personal rating (0 to 10) as Silo's whole stars (1 to 5).
+int siloStarsFromRating(double rating) =>
+    (rating / 2).round().clamp(1, 5).toInt();

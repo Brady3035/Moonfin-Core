@@ -673,7 +673,7 @@ A Silo remux is produced as it plays (protocol v3 §4–5). A progressive remux 
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | previous step |
+| ☑ Done | — | previous step |
 
 **Goal.** Via replan using the track map from 5.8.
 
@@ -719,32 +719,52 @@ Moonfin numbers every stream of a file in one index space (Jellyfin's `Index`); 
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | previous step |
 
 **Goal.** Subtitle inventory → external subtitles, ASS font bundles; off = -1.
 
 **Where in Moonfin**
 
-- `silo_media_stream_resolver.dart`
+- `packages/playback_silo/lib/src/silo_subtitles.dart` (new)
+- `packages/playback_silo/lib/src/silo_plan_mapper.dart`, `silo_media_stream_resolver.dart`
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+**Numbering.** Silo addresses a file's subtitles in one *combined* space (protocol v3 §8): its external sidecar files first, then the tracks embedded in the container, then downloaded subtitles, densely from 0 (`file:<file>:subtitle:<n>`); a client must never derive one by counting. Moonfin numbers them inside the file's stream index space (5.8: an embedded track keeps its container index, a sidecar takes a free one). Silo's version answer lists the embedded tracks first and the sidecars (`external: true`) after them (server `buildVersionSubtitleTracks`), so the combined index of a Moonfin stream is its place among the sidecars, or the sidecar count plus its place among the embedded tracks (`siloSubtitleOrder`, `siloSubtitleCombinedIndex`). Downloaded subtitles appear only in a plan's inventory; Moonfin gives them stream indices after the file's highest (`siloSubtitleIndexByCombined`).
+
+**Asking.** A start names the subtitle Moonfin carries in as `subtitle_track_index` (its combined index); subtitles off (`-1`) or no choice send none, which Silo plays without. A track change (10.13's replan) turns `-1` into no subtitle in `selected_tracks` (Silo's "off" for a track change), names a known index, and keeps the plan's selection for anything else (an audio change doesn't touch subtitles).
+
+**The plan → Moonfin** (`siloPlanSubtitles`, through `siloPlanToResolution`):
+
+- **Sidecars.** Every inventory entry with a URL becomes an `ExternalSubtitle` on Moonfin's index: sidecar files, downloaded subtitles and the embedded tracks Silo extracts; on the server with the account's token (10.7), format from the URL suffix (`.vtt`, `.ass`, `.srt`, part of Silo's contract). The playback manager already loads an embedded track's sidecar only when the stream doesn't carry the track (a remux or transcode), and shows it from the file otherwise (the original, with native selection, 10.3). Silo publishes every sidecar whatever the selection, so the whole menu works without a replan for text tracks.
+- **Bitmaps** (`.sup` PGS sidecars) are left out: Moonfin loads no external bitmap file, so picking an embedded PGS track on a remux makes the manager ask again (a replan), and Silo burns it in, as on Emby. On the original file it plays from the file.
+- **Downloaded subtitles** are added to `mediaStreams` as external text streams (language, label, forced, hearing impaired), so they appear in the menu.
+- **The selection** (`selectedSubtitleStreamIndex`): `subtitle.track_id` back to Moonfin's index, or `-1` when the mode is `off`. A track Silo burns in (`mode: burn_in`) is marked `DeliveryMethod: Encode` on this stream's copy of the streams, which is how Moonfin knows not to draw it a second time over the picture.
+
+**Not done:** an ASS track's font bundle (`font_bundle_url`): Moonfin's subtitle renderers take one file, so a sidecar ASS draws with the system's fonts (Silo was told `font_attachments: false` and fidelity `compatible`, 10.3, 10.6). An embedded ASS track on the original file uses its attached fonts.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `packages/playback_silo/test/silo_subtitles_test.dart` (new, 7 tests), on xXx with two embedded tracks (SubRip at stream 2, PGS at 3) before its sidecar (4), and a plan whose inventory adds a downloaded Spanish track: the combined order is 4, 2, 3 (and xXx's two sidecars 0 and 1); the downloaded track gets index 5; the text sidecars (not the PGS) become external subtitles on 4, 2 and 5 with the token and their identity pins; `off` selects -1; the downloaded track is a stream; a rendered track maps back (combined 1 → 2) and a burnt-in one (→ 3) is marked `Encode` on the copy only; a start names stream 3 as combined 2, and none for off (passes the contract); track changes send no subtitle for -1, combined 3 for the downloaded stream 5, and keep the plan's for none.
+- `playback_silo` 75/75; analyzer: no issues.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+- **xXx** (two external SRT files): the subtitle menu lists both; pick each, then *Off*. Each shows (or hides) at once, on direct play and on a remux.
+- **A film with embedded subtitles** (text and PGS if you have one; Silo's web app lists the tracks):
+  - direct play: every track shows, the PGS too, with no reload;
+  - remux or HLS (4 Mbit/s ceiling): text tracks show without a reload; picking the PGS track reloads once and the subtitle is burnt into the picture (and Moonfin draws no second copy); switching back to a text track or *Off* reloads and the burnt-in one is gone.
+- A title with a subtitle downloaded in Silo's web app (*Search subtitles*): it is in Moonfin's menu and shows.
+- Resume a film that had a subtitle on: it comes back with the same subtitle (Moonfin's remembered choice).
+- **Compare with Emby:** the same file's subtitles behave alike.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-17 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | subtitles 7/7; `playback_silo` 75/75; analyzer: no issues |
 | | | | | |
 
 ---

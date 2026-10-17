@@ -11,5 +11,6 @@ export 'src/silo_capabilities_translator.dart';
 export 'src/silo_playback_context.dart';
 export 'src/silo_plan_mapper.dart';
 export 'src/silo_playback_sessions.dart';
+export 'src/silo_subtitles.dart';
 export 'src/silo_media_stream_resolver.dart';
 export 'src/silo_play_session_service.dart';

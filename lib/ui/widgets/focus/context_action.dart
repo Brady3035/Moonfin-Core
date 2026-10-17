@@ -9,6 +9,7 @@ import '../../../auth/repositories/user_repository.dart';
 import '../../../data/models/aggregated_item.dart';
 import '../../../data/repositories/item_mutation_repository.dart';
 import '../../../util/signed_in_server_features.dart';
+import '../../../util/server_url.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../util/error_message.dart';
 import '../../../preference/user_preferences.dart';
@@ -86,8 +87,16 @@ List<ItemContextAction> contextActionsFor(
       client.serverType == ServerType.jellyfin && isAdminUser;
   // A server that hides Home cards itself (Silo, step 9.7) does it for this
   // item's server only. Read when a hide is picked, not for every menu.
+  // Cards name their server by its address (Home rows, grids, detail pages)
+  // or by the app's server id, so either counts (found testing 9.7: Home
+  // cards never matched the user's server id).
   HomeDismissalsApi? dismissals() {
-    if (!isSameServerItem) return null;
+    final ofThisServer = isStoredServer(
+      item.serverId,
+      serverId: currentUser?.serverId ?? '',
+      baseUrl: client.baseUrl,
+    );
+    if (!ofThisServer) return null;
     final api = client.itemsApi;
     return api is HomeDismissalsApi ? api as HomeDismissalsApi : null;
   }

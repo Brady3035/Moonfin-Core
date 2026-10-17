@@ -239,7 +239,7 @@ With *Autoplay Next Episode* on:
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | previous step |
+| ☑ Done | — | previous step |
 
 **Goal.** Moonfin's theme music on detail pages plays a title's local theme songs from Silo.
 
@@ -300,33 +300,61 @@ Setup: Silo finds a local theme as a file named `theme.<ext>` (`theme.mp3`) next
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | previous step |
 
 **Goal.** Sync Moonfin's per-series track choice with Silo's.
 
 **Silo v2 endpoints**
 
-- `/audio-prefs/{series_id}`
-- `/subtitle-prefs/{series_id}`
+- `GET/PUT /audio-prefs/{series_id}`
+- `GET/PUT /subtitle-prefs/{series_id}`
+- `GET /settings/values/effective?keys=&series_ids=`, `PUT /settings/values/{key}?scope=profile_series&series_id=` (`playback.subtitle_language`, `playback.subtitle_mode`)
+
+**Where in Moonfin**
+
+- `packages/server_core/lib/src/api/series_track_preferences_api.dart` (new): `SeriesTrackPreferencesApi`, `SeriesTrackChoice`
+- `packages/server_silo/lib/src/api/silo_track_preferences.dart` (new): reads and writes Silo's rows and series settings
+- `packages/server_silo/lib/src/mappers/silo_subtitle_order.dart` (new): the combined subtitle order, moved from `playback_silo` (10.14), which re-exports it
+- `silo_items_api.dart`: implements the interface; `notePlayingFile` also keeps the playing file's media source
+- `lib/data/services/series_track_sync.dart` (new): Silo's choice into the device's
+- `lib/data/viewmodels/item_detail_view_model.dart`: syncs on a show's, season's or episode's page
+- `lib/di/modules/playback_module.dart`: a choice made in the player is written through
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+Moonfin remembers a series' audio and subtitle choice on the device (`UserPreferences` series track preferences: language, track title, place among same-language tracks, or subtitles off). It picks the remembered track for every episode, and a choice in the player updates it. Silo remembers the same per profile and series: an audio row (Silo's track index, language, signature), a subtitle row (combined index or -1 for off, language, mode, signature), and two series-scope settings, `playback.subtitle_language` and `playback.subtitle_mode`. Silo's web player writes those settings with the row, and they outrank the row's language and mode. Silo also writes the audio row itself whenever a session starts or replans with an audio track (10.6, 10.13), and uses it when a start names none.
+
+A new optional interface, `SeriesTrackPreferencesApi`, reads and writes a series' choice. It is a candidate for upstream with the others.
+
+- **Moonfin → Silo.** When the viewer picks a track in the player, the device's preference is saved as before, and the choice is written to Silo too (best effort): audio as `PUT /audio-prefs` with Silo's track ordinal; subtitles as `PUT /subtitle-prefs` (combined index, language, mode `always`, signature) plus the two series settings, or for *Off* the row with -1 and mode `off`, the language setting cleared and the mode setting `off`. This is what Silo's web player writes. Track indices are Silo's, so the write uses the playing file's track map, which the resolver now hands to the items API with the playing file. A downloaded subtitle (one Silo numbers only inside a plan) isn't written, nor anything when no file was noted.
+- **Silo → Moonfin.** Opening a show's, season's or episode's page reads Silo's choice (`syncSeriesTrackChoices`): the audio row (language and track title), and the subtitle row with the series-scope settings on top (a profile-wide setting is not a series choice, so only `profile_series` values count). Silo's choice replaces the device's when it names another language, or turns subtitles off or on where the device's doesn't. A device choice in the same language is kept as it is, since it also knows which of two same-language tracks was picked. The page refreshes its track highlights when something changed.
+- **Why on the page.** The player picks tracks while a start is being prepared, synchronously, so Silo's choice has to be on the device before then. Every way into a show's episodes from its pages goes through one of these pages. An episode started straight from a Home card uses what the device already has, and Silo applies its own audio choice when the start names no track.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `packages/server_silo/test/silo_items_api_track_preferences_test.dart` (new, 10 tests):
+  - reading: an audio row's language and title; no choice for a 404 or track -1; the subtitle row with the series language setting on top (the request names both keys and the series); a newer language drops the row's label; off from the settings or the row; a profile-wide setting isn't a series choice.
+  - writing: xXx's audio stream 1 as Silo's track 0 with its signature; its forced English sidecar as combined index 0 with the two series settings; off writes -1, clears the language, mode `off`; nothing without a noted file or for a track Silo doesn't number.
+- `test/data/services/series_track_sync_test.dart` (new, 4 tests): Silo's choices fill an empty device (Japanese audio, subtitles off); another language replaces the device's; the same language (`en` and `eng`) keeps the device's track and its place; nothing on Silo changes nothing.
+- `playback_silo` 84/84 (the subtitle order tests run through the re-export); view model tests `test/viewmodels/` 76/76.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+Use a show with two audio languages or several subtitle tracks (an anime with Japanese and English audio is ideal).
+
+- a. In Moonfin play an episode, switch audio to Japanese and subtitles to English. In Silo's web app play another episode of the show: it starts in Japanese with English subtitles.
+- b. In Silo's web app pick English audio and subtitles off on an episode. In Moonfin open the show's page (or an episode's), then play an episode: English audio, no subtitles.
+- c. In Moonfin turn subtitles off on an episode: Silo's web app plays the next episode without subtitles.
+- d. A film is unaffected (no series): picking a track there writes nothing to Silo (network log).
+- e. Regression on Emby: the per-series choice still carries to the next episode as before.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-17 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | track preferences 10/10; sync 4/4; `server_silo` 566/566; `playback_silo` 84/84; view models 76/76; analyzer: no new issues |
 | | | | | |
 
 ---

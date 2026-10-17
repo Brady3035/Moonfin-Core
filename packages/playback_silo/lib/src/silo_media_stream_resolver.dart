@@ -151,12 +151,13 @@ class SiloMediaStreamResolver implements MediaStreamResolver, StreamReplanner {
         mediaSource: source,
       )..resolution = resolution,
     );
-    _notePlaying(client, itemId, resolution, file.source);
+    _notePlaying(client, itemId, resolution, source);
     return resolution;
   }
 
   /// Tells the items API which file [itemId] plays, so the player's extras
-  /// (skip markers, 11.1) come from that file.
+  /// (skip markers, 11.1) come from that file, and a series' track choice
+  /// is remembered with its track map (11.6).
   static void _notePlaying(
     SiloMediaServerClient client,
     String itemId,
@@ -170,6 +171,7 @@ class SiloMediaStreamResolver implements MediaStreamResolver, StreamReplanner {
       itemId,
       fileId,
       runTimeSeconds: ticks is num && ticks > 0 ? ticks / 10000000 : null,
+      source: source,
     );
   }
 

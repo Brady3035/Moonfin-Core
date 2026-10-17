@@ -15,6 +15,7 @@ import '../models/lyrics.dart';
 import '../models/tmdb_item_ref.dart';
 import '../services/blocked_content_gate.dart';
 import '../services/row_data_source.dart';
+import '../services/series_track_sync.dart';
 import '../repositories/item_mutation_repository.dart';
 import '../repositories/mdblist_repository.dart';
 import '../repositories/tmdb_repository.dart';
@@ -1026,6 +1027,21 @@ class ItemDetailViewModel extends ChangeNotifier {
     } catch (_) {}
   }
 
+  /// A series' track choice kept by the server (Silo, 11.6) into the
+  /// device's, before anything here plays.
+  Future<void> _syncSeriesTrackChoices() async {
+    final item = _item;
+    if (item == null) return;
+    final seriesId = item.type == 'Series' ? item.id : item.seriesId;
+    if (seriesId == null || seriesId.isEmpty) return;
+    final changed = await syncSeriesTrackChoices(
+      _client,
+      seriesId,
+      GetIt.instance<UserPreferences>(),
+    );
+    if (changed && !_isDisposed) notifyListeners();
+  }
+
   Future<void> _loadSecondary() async {
     final type = _item?.type;
     final futures = <Future>[];
@@ -1038,6 +1054,7 @@ class ItemDetailViewModel extends ChangeNotifier {
       futures.add(_loadPersonAccounts());
     } else if (type == 'Series') {
       unawaited(_loadReviews());
+      unawaited(_syncSeriesTrackChoices());
       futures.add(_loadRatings());
       futures.add(_loadSeasons());
       futures.add(_loadNextUp());
@@ -1046,10 +1063,12 @@ class ItemDetailViewModel extends ChangeNotifier {
       futures.add(_loadParentCollection());
       unawaited(_loadUpcomingEpisode());
     } else if (type == 'Season') {
+      unawaited(_syncSeriesTrackChoices());
       futures.add(_loadRatings());
       futures.add(_loadEpisodes());
       futures.add(_loadFeatures());
     } else if (type == 'Episode') {
+      unawaited(_syncSeriesTrackChoices());
       futures.add(_loadRatings());
       futures.add(_loadEpisodes());
       futures.add(_loadSimilar());

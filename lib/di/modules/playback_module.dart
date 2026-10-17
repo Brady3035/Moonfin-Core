@@ -324,6 +324,37 @@ Future<List<dynamic>> _nextSeasonItemsProvider(
   }
 }
 
+/// Writes a series' track choice through to a server that keeps one
+/// ([SeriesTrackPreferencesApi], Silo, step 11.6). Best effort: the device's
+/// own choice is already saved.
+void _rememberSeriesTrackOnServer(
+  dynamic item,
+  String seriesId,
+  int streamIndex, {
+  required bool subtitle,
+}) {
+  if (item is! AggregatedItem) return;
+  final Object? items;
+  try {
+    items = _resolveClientForServerId(item.serverId)?.itemsApi;
+  } catch (_) {
+    return;
+  }
+  if (items is! SeriesTrackPreferencesApi) return;
+  final write = subtitle
+      ? items.setSeriesSubtitleChoice(
+          seriesId,
+          itemId: item.id,
+          streamIndex: streamIndex,
+        )
+      : items.setSeriesAudioChoice(
+          seriesId,
+          itemId: item.id,
+          streamIndex: streamIndex,
+        );
+  write.catchError((Object _) {});
+}
+
 void registerPlaybackModule() {
   final pipService = PipService();
   _getIt.registerSingleton<PipService>(pipService);
@@ -474,6 +505,12 @@ void registerPlaybackModule() {
     // leaves nothing to recognise it by later, so the last choice stays.
     if (pref.isEmpty) return;
     _getIt<UserPreferences>().setSeriesSubtitlePreference(series.seriesId, pref);
+    _rememberSeriesTrackOnServer(
+      manager.queueService.currentItem,
+      series.seriesId,
+      index,
+      subtitle: true,
+    );
   };
   manager.onAudioTrackSelected = (itemId, index) {
     final series = seriesStreams('audio');
@@ -484,6 +521,12 @@ void registerPlaybackModule() {
     );
     if (pref.isEmpty) return;
     _getIt<UserPreferences>().setSeriesAudioPreference(series.seriesId, pref);
+    _rememberSeriesTrackOnServer(
+      manager.queueService.currentItem,
+      series.seriesId,
+      index,
+      subtitle: false,
+    );
   };
 
   manager.setBackend(initialBackend);

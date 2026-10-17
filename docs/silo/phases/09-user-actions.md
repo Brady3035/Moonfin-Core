@@ -13,7 +13,7 @@ Things a user changes on an item. One action per commit.
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | previous step |
+| ☑ Done | `62430a0` | previous step |
 
 **Silo v2 endpoints**
 
@@ -55,6 +55,7 @@ Things a user changes on an item. One action per commit.
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-16 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | favourites 4/4; `server_silo` 508/508; analyzer: no issues. Full app suite left to Brady |
+| 2026-10-17 | macOS | `bd9d59ea` | Pass | Brady: all five checks (Silo shows favourites, unfavourite, show and episode in Silo and Moonfin's rows, Silo's favourite shows in Moonfin, profiles separate) |
 | | | | | |
 
 ---
@@ -64,7 +65,7 @@ Things a user changes on an item. One action per commit.
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | previous step |
+| ☑ Done | `062e276` | previous step |
 
 **Goal.** Items, seasons and series.
 
@@ -103,6 +104,7 @@ Things a user changes on an item. One action per commit.
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-16 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | played state 3/3; `server_silo` 511/511; analyzer: no issues. Full app suite left to Brady |
+| 2026-10-17 | macOS | `bd9d59ea` | Pass | Brady: film watched/unwatched, a season and a show, next episode becomes Next Up |
 | | | | | |
 
 ---
@@ -112,7 +114,7 @@ Things a user changes on an item. One action per commit.
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | previous step |
+| ☑ Done | `8e59b73` | previous step |
 
 **Goal.** Like and numeric ratings mapped onto Silo's rating scale.
 
@@ -159,6 +161,7 @@ Silo's personal rating is whole stars, 1 to 5 (`RatingSet.rating`, server table 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-16 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | ratings 4/4; `server_silo` 515/515; analyzer: no issues. Full app suite left to Brady |
+| 2026-10-17 | macOS | `bd9d59ea` | Pass | Brady: all six checks (4 stars, 2½ saved as 3, clear, thumbs up/down as 5/1 stars, Silo's rating in Moonfin, per profile) |
 | | | | | |
 
 ---
@@ -168,7 +171,7 @@ Silo's personal rating is whole stars, 1 to 5 (`RatingSet.rating`, server table 
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | previous step |
+| ☑ Done | `e2bcbd0` | previous step |
 
 **Goal.** Publish a local user-data change so rows update without a reload.
 
@@ -211,6 +214,7 @@ Changes made on another device or in Silo's web app aren't seen this way; Jellyf
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-16 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | refresh scope 6/6; `user_data_sync_test.dart` 19/19; `server_silo` 521/521; `server_core` 94/94; analyzer: no issues. Full app suite left to Brady |
+| 2026-10-17 | macOS | `bd9d59ea` | Pass | Brady: all four checks (Continue Watching card gone after Home reloads, unwatched count, no stall in a scrolled grid, Silo's change after a reload) |
 | | | | | |
 
 ---
@@ -220,7 +224,7 @@ Changes made on another device or in Silo's web app aren't seen this way; Jellyf
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | previous step |
+| ☑ Done | `94df899` | previous step |
 
 **Silo v2 endpoints**
 
@@ -272,6 +276,7 @@ A new optional `server_core` interface, `EditableCollectionsApi`, lets the app a
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-16 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | collection editing 7/7; removal view model 7/7 and context action tests; `server_silo` 528/528; analyzer: no new issues. Full app suite left to Brady |
+| 2026-10-17 | macOS | `bd9d59ea` | Pass | Brady: all six checks (only own manual collections listed, add, create, remove, no removal on library or shared collections, per profile) |
 | | | | | |
 
 ---
@@ -281,7 +286,7 @@ A new optional `server_core` interface, `EditableCollectionsApi`, lets the app a
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ⏭ Skipped (Brady, 2026-10-17) | — | previous step |
+| ⏭ Skipped (Brady, 2026-10-17) | `c7bac23` (docs) | previous step |
 
 **Goal.** Silo's watchlist as a context action and row.
 
@@ -301,7 +306,7 @@ Decided by Brady after the phase 9 batch was built (D12). What already works wit
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | 8.1, 8.2 |
+| ◐ Ready for testing | `2100823`, fix — | 8.1, 8.2 |
 
 **Goal.** On Silo, Moonfin's "Hide from Continue Watching" context action (today a local, per-device list in `UserPreferences`) uses Silo's dismissals, so the card is hidden in Silo's web app and on other devices too. Silo drops a dismissed episode's or series' whole show from both Continue Watching and Next Up until the profile watches it again, and "show again" undoes it. Moonfin's local list already unhides when the item is played, so the behaviour lines up.
 
@@ -332,12 +337,14 @@ Silo's side (`SiloItemsApi`):
 
 Nothing in Moonfin shows hidden cards again, so `DELETE /home/dismissals` isn't used; Silo's web app can undo a hide.
 
+**Fix at 9.7: Home cards used the old hide** (commit `silo(9.7): Fix hiding on Silo`, found by Brady). The menu used Silo's hide only for a card of the signed-in server, checked as `currentUser.serverId == item.serverId`. Home rows, library grids and detail pages name a card's server by its address (`client.baseUrl`), not by the app's server id, so that never matched there: every hide took the device-list path, which also marks the item unwatched (its progress reset) and hides it in Moonfin only. The check now uses `isStoredServer` (already used for downloads): the app's server id, or the same server address. A card of another server (multi-server Home) still uses the device's list.
+
 ### Testing
 
 **Automated tests**
 
 - `packages/server_silo/test/silo_items_api_dismissals_test.dart` (new, 6 tests): a Continue Watching card sends its own `progress_updated_at`; the same episode from elsewhere gets the time from Silo's section; an item Silo has no resume point for throws without a write; a Next Up card sends its `series_id`; a film can't be hidden from Next Up; Continue Watching is read again after a hide.
-- `test/ui/widgets/focus/context_action_home_dismissals_test.dart` (new, 4 tests): with a server hide, Continue Watching and Next Up use it and keep nothing on the device or mark anything unwatched; a refused hide falls back to the device's list without marking unwatched; a server without one behaves as before (the device's list and marked unwatched). The existing context action tests still pass (46 in `test/ui/widgets/focus/`).
+- `test/ui/widgets/focus/context_action_home_dismissals_test.dart` (new, 4 tests; 6 after the fix, whose cards are named by address as on Home, plus one named by the user's server id and one of another server): with a server hide, Continue Watching and Next Up use it and keep nothing on the device or mark anything unwatched; a refused hide falls back to the device's list without marking unwatched; a server without one behaves as before (the device's list and marked unwatched). The existing context action tests still pass (46 in `test/ui/widgets/focus/`).
 - `server_silo` 534/534, `server_core` 94/94; analyzer: no issues in the changed files.
 
 **Manual test plan**
@@ -354,6 +361,8 @@ Nothing in Moonfin shows hidden cards again, so `DELETE /home/dismissals` isn't 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-16 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | dismissals 6/6; context action 4/4 (focus widgets 46/46); `server_silo` 534/534; `server_core` 94/94; analyzer: no issues. Full app suite left to Brady |
+| 2026-10-17 | macOS | `bd9d59ea` | Fail | Brady: hiding a film from Continue Watching hid it but reset its progress (b, e); *Hide from Next Up* hid it in Moonfin, not in Silo (c); a, d, f, g passed. The menu never used Silo's hide on Home or grid cards (server id check) |
+| 2026-10-17 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | fix: a card's server is matched by address too; context action 6/6 (focus widgets 48/48); analyzer: no issues. Full app suite left to Brady |
 | | | | | |
 
 ---

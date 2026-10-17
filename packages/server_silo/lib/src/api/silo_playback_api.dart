@@ -113,6 +113,40 @@ class SiloPlaybackApi implements PlaybackApi {
     return status == 408 || status == 429 || status >= 500;
   }
 
+  // --- progress (10.9) --------------------------------------------------------
+
+  /// `POST /api/v2/playback/{sessionId}/progress` with [body]
+  /// (`PlaybackProgressBody`: `installation_id`, `sequence`, `position`,
+  /// `is_paused`). Answers the receipt (`PlaybackMutation`): `outcome`
+  /// `applied`, `replayed` or `stale_sample`, and the latest `accepted`
+  /// sample.
+  Future<Map<String, dynamic>> reportProgress(
+    String sessionId,
+    Map<String, dynamic> body,
+  ) async {
+    final response = await _dio.post<dynamic>(
+      '/api/v2/playback/${Uri.encodeComponent(sessionId)}/progress',
+      data: body,
+    );
+    return asJsonMap(response.data) ?? const {};
+  }
+
+  /// Whether [error] says the session is over: `404` (it expired, was
+  /// stopped, or the server restarted) or `410 playback_session_ended` (an
+  /// administrator ended it). Reporting on it stops.
+  static bool isSessionGone(Object error) {
+    if (error is! DioException) return false;
+    final status = error.response?.statusCode;
+    return status == 404 || status == 410;
+  }
+
+  /// Whether [error] is `409 progress_conflict`: a sample with this
+  /// sequence and different contents was already applied.
+  static bool isProgressConflict(Object error) =>
+      error is DioException &&
+      error.response?.statusCode == 409 &&
+      SiloProblem.codeOf(error) == 'progress_conflict';
+
   /// Whether [error] is Silo's `409 installation_changed`: the request
   /// carried the installation id of a server that has since been reset or
   /// replaced. The capabilities are read again and a new attempt started.

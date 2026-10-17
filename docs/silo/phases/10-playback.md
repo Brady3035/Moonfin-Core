@@ -400,7 +400,7 @@ Silo's media routes always need the account and the viewer (Playback API, "Deliv
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | previous step |
+| ☑ Done | — | previous step |
 
 **Goal.** `adaptation_unavailable` → typed error showing Silo's message in the player.
 
@@ -450,7 +450,7 @@ Moonfin doesn't report the terminal back (`route-events`, optional diagnostics):
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | previous step |
 
 **Goal.** Sequenced progress samples; ignore `stale_sample`, bump on `409`, stop on `404`.
 
@@ -460,26 +460,46 @@ Moonfin doesn't report the terminal back (`route-events`, optional diagnostics):
 
 **Where in Moonfin**
 
-- `silo_play_session_service.dart`
+- `packages/playback_silo/lib/src/silo_play_session_service.dart`
+- `packages/playback_silo/lib/src/silo_playback_sessions.dart` (sequence, `ended`)
+- `packages/server_silo/lib/src/api/silo_playback_api.dart` (`reportProgress`, `isSessionGone`, `isProgressConflict`)
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+Silo keeps the resume point, the watch history and whether a session is still alive from progress samples (Playback API, "Progress and stop"; protocol §2.5). Each is `{installation_id, sequence, position, is_paused}` and Silo applies it with a compare-and-set on the sequence: a higher sequence wins even when the position goes backwards (a seek back), a lower one is `stale_sample`, the same one again `replayed`.
+
+`SiloPlaySessionService.onPlaybackProgress` sends one per call of Moonfin's progress timer (every 5 s; Silo asks for at least one every 10 s, and ends a session that sends nothing for 45 s, or 30 minutes after a paused sample):
+
+- **position** is the media position in seconds, to the millisecond. The manager reports positions on the media's timeline (10.1), so a remux cut at 9:53 reports 11:00 at eleven minutes, as Silo wants (`player + timeline_offset`).
+- **is_paused** is the viewer's pause (the manager's `isPaused`, not a stalled stream).
+- **sequence** is the session's next number (`SiloPlaybackSession.takeSequence`, from 1), so a sample is never sent twice under one number.
+- The installation id is the one the session was started under.
+
+Answers: `applied`, `replayed`, `stale_sample` need nothing. `409 progress_conflict` (Silo has another sample under that number) sends it once more under the next one. `404` (expired, stopped, or the server restarted), `410 playback_session_ended` (an administrator ended it) and `409 installation_changed` mark the session `ended`, and nothing more is sent for it. Any other failure (a network error, a `5xx`) reaches the manager, which already ignores a failed report; the next sample tries again with a higher number.
+
+A report for a stream a replan has since replaced (10.12–10.16) sends nothing: the session's current stream reports for it. `onPlaybackStart` sends nothing (the start opened the session). The client logs only one progress answer a minute (`SiloMediaServerClient`, since 2.2).
+
+Moonfin's own resume point for the item (`UserData`) still comes from Silo on the next read of the item; nothing local changes.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `packages/playback_silo/test/silo_progress_test.dart` (new, 8 tests): two samples carry the installation id, sequences 1 and 2, 660.25 s and 665 s, the pause, and pass `PlaybackProgressBody`; starting sends nothing; `stale_sample` and `replayed` are fine; a `progress_conflict` resends under sequence 2 and the next sample is 3; `404`, `410 playback_session_ended` and `409 installation_changed` end the session and stop the samples; a `503` reaches the caller and the next sample goes on (sequence 2); a stream replaced by a replan reports nothing.
+- `playback_silo` 47/47; analyzer: no issues.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+- Play a film for a minute, then look at Silo's web app (Continue Watching, or the film's page) while Moonfin keeps playing: the resume point follows within a few seconds.
+- Pause for over a minute, then play on: playback continues (a paused session stays alive; a remux that the server closed meanwhile is 10.12's).
+- Seek back a few minutes: Silo's resume point goes back too.
+- The network log shows a progress answer about once a minute (`← 200 POST …/progress`), not every 5 s.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-17 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | progress 8/8; `playback_silo` 47/47; analyzer: no issues |
 | | | | | |
 
 ---

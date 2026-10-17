@@ -63,4 +63,48 @@ void main() {
       );
     });
   });
+
+  group('played state (9.2)', () {
+    test('a film, a season and a show: once each, no retry', () async {
+      const season = 'season-imdb-tt1641384-1';
+      const show = 'series-imdb-tt1641384';
+      final server = FixtureServer({
+        '/api/v2/watched/$_film': _noContent,
+        '/api/v2/watched/$season': _noContent,
+        '/api/v2/watched/$show': _noContent,
+      });
+      final api = siloTestClient(server).userLibraryApi;
+      await api.markPlayed(_film);
+      await api.markPlayed(season);
+      await api.unmarkPlayed(show);
+      expect(
+        [for (final r in server.requests) '${r.method} ${r.uri.path}'],
+        [
+          'POST /api/v2/watched/$_film',
+          'POST /api/v2/watched/$season',
+          'DELETE /api/v2/watched/$show',
+        ],
+      );
+    });
+
+    test('a failure is not sent again', () async {
+      final server = FixtureServer({
+        '/api/v2/watched/$_film': (_) =>
+            FixtureServer.problem(503, 'unavailable', 'busy'),
+      });
+      await expectLater(
+        siloTestClient(server).userLibraryApi.markPlayed(_film),
+        throwsA(isA<DioException>()),
+      );
+      expect(server.requests, hasLength(1));
+    });
+
+    test('a collection has no played state', () {
+      final api = siloTestClient(FixtureServer({})).userLibraryApi;
+      expect(
+        () => api.markPlayed('silo-collection:c1'),
+        throwsA(isA<UnsupportedError>()),
+      );
+    });
+  });
 }

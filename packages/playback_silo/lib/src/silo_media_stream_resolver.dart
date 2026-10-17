@@ -168,7 +168,9 @@ class SiloMediaStreamResolver implements MediaStreamResolver, StreamReplanner {
   ///
   /// - `seek`: `seek_reanchor`, a remux reopened at the position (10.12);
   /// - `trackChange`: `track_change` (10.13, 10.14);
-  /// - `qualityChange`: `quality_change` (10.15);
+  /// - `qualityChange`: `quality_change` with the new ceiling, or none
+  ///   (10.15): Silo picks the rung that fits it (`quality_preference` stays
+  ///   `auto`, which a quality change must still name);
   /// - `failure`: `failure_recovery`, with the failed plan's attempt key
   ///   added to the keys Silo must not hand back.
   ///
@@ -201,6 +203,10 @@ class SiloMediaStreamResolver implements MediaStreamResolver, StreamReplanner {
       }
     }
     if (failure) session.recoveries++;
+    // A quality change is a new ceiling, or none (10.15).
+    if (request.reason == ReplanReason.qualityChange) {
+      session.bandwidthCapKbps = _kbps(request.maxStreamingBitrate);
+    }
     final start = session.startBody;
     final body = <String, dynamic>{
       'protocol_version': 3,
@@ -223,7 +229,7 @@ class SiloMediaStreamResolver implements MediaStreamResolver, StreamReplanner {
       'client_playback_context': start['client_playback_context'],
       'installation_id': session.installationId,
       if (failure) 'failure': const {'classification': 'playback_error'},
-      'bandwidth_cap_kbps': ?start['bandwidth_cap_kbps'],
+      'bandwidth_cap_kbps': ?session.bandwidthCapKbps,
     };
 
     final Map<String, dynamic> decision;

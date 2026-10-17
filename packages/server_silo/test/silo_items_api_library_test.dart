@@ -162,9 +162,9 @@ void main() {
   test('later steps name themselves', () async {
     final api = siloTestClient(FixtureServer({})).itemsApi;
     expect(
-      () => api.getThemeMedia('movie-1'),
+      () => api.searchRemoteSubtitles('movie-1', language: 'en'),
       throwsA(
-        isA<SiloNotImplementedError>().having((e) => e.step, 'step', '11.5'),
+        isA<SiloNotImplementedError>().having((e) => e.step, 'step', '10.14'),
       ),
     );
   });

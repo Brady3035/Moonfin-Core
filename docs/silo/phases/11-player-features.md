@@ -186,7 +186,7 @@ Chapter thumbnail URLs are signed like all Silo artwork (6.1); the image cache k
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | previous step |
+| ☑ Done | — | previous step |
 
 **Goal.** Queue from `getEpisodes`; Up Next card.
 
@@ -239,35 +239,58 @@ With *Autoplay Next Episode* on:
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | previous step |
+
+**Goal.** Moonfin's theme music on detail pages plays a title's local theme songs from Silo.
 
 **Silo v2 endpoints**
 
 - `GET /catalog/themes/capabilities`
-- `GET /catalog/items/{id}/themes/{theme_id}/audio`
+- `GET /catalog/items/{id}` (its `themes`)
+- `POST /catalog/items/{id}/themes/{theme_id}/playback` (a grant)
+- `GET /catalog/items/{id}/themes/{theme_id}/audio?token=` (what the grant's URL points to)
 
 **Where in Moonfin**
 
-- `lib/data/services/theme_music_service.dart`
+- `packages/server_core/lib/src/api/theme_song_stream_api.dart` (new): `ThemeSongStreamApi`, an optional `ItemsApi` extra
+- `packages/server_silo/lib/src/api/silo_themes.dart` (new): themes, capabilities and grants
+- `silo_items_api.dart`: `getThemeMedia`, `themeSongStreamUrl`; `silo_media_server_client.dart` passes the base URL
+- `lib/data/services/theme_music_service.dart`: asks the server for the song's link when it has `ThemeSongStreamApi`
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+Moonfin's `ThemeMusicService` plays a random theme song while a detail page is open (*Theme Music* in the detail page settings), fading it in and out. It lists songs with `getThemeMedia` (Jellyfin's `ThemeSongsResult`) and streams one from `/Audio/{id}/stream` with the account's token. Silo lists a title's local theme songs in its detail (`themes`: owner and songs) and plays each through a **grant**: a short-lived URL that carries its own credential, made per play, possibly on a proxy node.
+
+- **Listing.** `getThemeMedia(id)` first checks `GET /catalog/themes/capabilities` (kept 10 minutes; `state` must be `available` and `allowed` not false), then reads the title's detail and answers its songs in Jellyfin's shape (`Id` = Silo's theme id, `Name`, `Container`, `RunTimeTicks`, the owner as `OwnerId`). Silo has no theme videos or soundtracks. An episode's or season's page asks for its series, as on Jellyfin. Without the capability nothing is read.
+- **Playing.** A new optional interface, `ThemeSongStreamApi.themeSongStreamUrl(owner, song, accepts:)`, makes the link. `ThemeMusicService` uses it when the server has it, otherwise builds Jellyfin's or Emby's URL as before. Silo's side posts a grant naming the formats the theme player decodes: everything usual for libmpv (media_kit, on the Mac, Windows, Linux and Android), and MP3, AAC/ALAC in MP4 and WAV for AVPlayer on Apple TV. Silo then serves the original when it matches and otherwise converts to AAC in MP4. A relative URL is made absolute on the server's base URL; a proxy node's absolute URL is used as it is. A `404`, `406` or `503` plays nothing.
+- **One grant per play.** A grant lasts `grant_lifetime_seconds` (300 s here). Each detail page visit asks for a new one. With *Loop* on, libmpv replays the same URL; an original allows that while the grant lasts, but a converted song has no length or ranges and Silo says to fetch a new grant to replay it, so looping a converted song past its first play may stop. On the Mac every original is accepted, so this only matters on Apple TV (phase 12).
+
+`getThemeMedia` came off the not-implemented list; its check moves to `searchRemoteSubtitles` (10.14).
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `packages/server_silo/test/silo_items_api_themes_test.dart` (new, 6 tests): a title's theme song in Jellyfin's shape with its owner; a title without themes, with the capabilities read once for two pages; a server whose themes are disabled answers none without reading the detail; a play posts a grant with the accepted formats and gets an absolute URL; a proxy node's URL is used as it is; a `406` plays nothing.
+- `silo_items_api_library_test.dart`: the not-implemented check moves to `searchRemoteSubtitles`.
+- The app side has no unit test (the service needs a player and the audio arbiter); the manual test covers it.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+Setup: Silo finds a local theme as a file named `theme.<ext>` (`theme.mp3`) next to a title's file or in its folder, or files in a `theme-music` folder. Add one to a film's and a show's folder and rescan them in Silo; its web app then plays the theme on their pages. In Moonfin turn *Theme Music* on (detail page settings).
+
+- a. Open the film's detail page: the theme fades in; leave the page: it fades out. The network log shows `POST …/themes/<id>/playback` and the audio from the grant's URL.
+- b. Open the show, a season and an episode: each plays the show's theme.
+- c. Start playing the title: the theme stops before playback starts.
+- d. A title without a theme: nothing plays, no errors.
+- e. Volume and *Loop* settings apply.
+- f. Compare with Emby if the same title has a theme there.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-17 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | themes 6/6; `server_silo` 556/556; analyzer: no issues in the changed files |
 | | | | | |
 
 ---

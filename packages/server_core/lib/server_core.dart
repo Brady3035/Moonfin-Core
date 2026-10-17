@@ -30,6 +30,7 @@ export 'src/api/user_data_refresh_scope.dart';
 export 'src/api/playback_api.dart';
 export 'src/api/image_api.dart';
 export 'src/api/trickplay_api.dart';
+export 'src/api/theme_song_stream_api.dart';
 export 'src/api/trickplay_manifest_api.dart';
 export 'src/api/session_api.dart';
 export 'src/api/system_api.dart';

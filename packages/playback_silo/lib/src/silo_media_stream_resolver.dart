@@ -78,6 +78,12 @@ class SiloMediaStreamResolver implements MediaStreamResolver, StreamReplanner {
       capabilities: capabilities,
     );
 
+    final api = client.playbackApi;
+    final server = await _playable(api);
+    // A version the viewer picked plays as that version (10.16), on a
+    // server that can keep an attempt on one file.
+    final pinned = file.explicit && server.has('fixed_media_file_v1');
+
     Map<String, dynamic> body(String installationId) => {
       'protocol_version': 3,
       'client_features': capabilities.clientFeatures,
@@ -100,10 +106,10 @@ class SiloMediaStreamResolver implements MediaStreamResolver, StreamReplanner {
         subtitleStreamIndex,
       ),
       'bandwidth_cap_kbps': ?_kbps(maxStreamingBitrate),
+      if (pinned) 'allow_alternate_versions': false,
     };
 
-    final api = client.playbackApi;
-    var installation = await _installation(api);
+    var installation = server.installationId;
     var request = body(installation);
     Map<String, dynamic> decision;
     try {
@@ -112,7 +118,7 @@ class SiloMediaStreamResolver implements MediaStreamResolver, StreamReplanner {
       if (!SiloPlaybackApi.isInstallationChanged(error)) rethrow;
       // The server was reset or replaced since the capabilities were read:
       // read them again and start a new attempt under the new installation.
-      installation = await _installation(api, refresh: true);
+      installation = (await _playable(api, refresh: true)).installationId;
       request = body(installation);
       decision = await _startOrRefuse(api, request);
     }
@@ -176,7 +182,9 @@ class SiloMediaStreamResolver implements MediaStreamResolver, StreamReplanner {
   ///
   /// The request echoes the session's identity and the current plan
   /// (`failed_plan_id`, `plan_attempt_key`, `selected_tracks` exactly as the
-  /// plan has them) and resends the start's capabilities and context.
+  /// plan has them) and resends the start's capabilities and context. A
+  /// version the viewer picked stays picked: Silo keeps the start's
+  /// `allow_alternate_versions: false` for every replan (10.16).
   /// Interrupted requests are resent with the same id; a terminal answer is
   /// a [PlaybackRefusedException], as is a session an administrator ended
   /// (`410`), which must not be started again. Other refusals (`404`: the
@@ -406,7 +414,8 @@ class SiloMediaStreamResolver implements MediaStreamResolver, StreamReplanner {
 
   // --- the start request ------------------------------------------------------
 
-  Future<String> _installation(
+  /// The server's playback capabilities (10.5), when it plays.
+  Future<SiloPlaybackCapabilities> _playable(
     SiloPlaybackApi api, {
     bool refresh = false,
   }) async {
@@ -417,7 +426,7 @@ class SiloMediaStreamResolver implements MediaStreamResolver, StreamReplanner {
         reason: capabilities.state ?? 'unavailable',
       );
     }
-    return capabilities.installationId;
+    return capabilities;
   }
 
   /// [_start], with Silo's `426 client_upgrade_required` (a server that no
@@ -578,6 +587,12 @@ class _SiloFile {
   const _SiloFile(this.fileId, this.source, this.sources);
 
   final String fileId;
+
+  /// Whether the viewer picked this version: it isn't the item's default,
+  /// and the item has others (10.16). Moonfin passes the version it last
+  /// played on every re-resolve too, which is the default unless Silo or
+  /// the viewer moved off it.
+  bool get explicit => sources.length > 1 && '${sources.first['Id']}' != fileId;
 
   /// Its mapped `MediaSource`, when Moonfin has one.
   final Map<String, dynamic>? source;

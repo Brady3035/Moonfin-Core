@@ -13,7 +13,7 @@ Silo picks the route on the server from the client's codec evidence (`POST /play
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | previous step |
+| ☑ Done | — | previous step |
 
 **Goal.** Optional `timelineOffset` on `StreamResolutionResult` applied to progress, the seek bar and trickplay. Zero for Jellyfin and Emby.
 
@@ -62,33 +62,52 @@ The offset comes from the stream being played (`_currentResolution`, or the last
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | previous step |
 
 **Goal.** Optional `replan()` on `MediaStreamResolver` and a `PlaybackManager` hook; other servers keep re-resolving.
 
 **Where in Moonfin**
 
-- `packages/playback_core/lib/src/media_stream_resolver.dart`
-- `playback_manager.dart`
+- `packages/playback_core/lib/src/stream_replanner.dart` (new)
+- `packages/playback_core/lib/src/playback_manager.dart`
+- `lib/playback/local_first_media_stream_resolver.dart`
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+Moonfin changes a track, the quality or a failing stream by **re-resolving**: `_reResolveNow` stops the player, reports the session stopped (and, for a transcode, kills the server's job), then resolves the item again at the current position. On Jellyfin and Emby that is the only way, since a new `PlaybackInfo` is a new session. Silo can move a live session to a new plan instead (`POST /playback/{sid}/replan`, protocol v3 §6): the session, its progress sequence and its transcode slot carry on, and the server keeps the viewer's choices. Stopping and starting again would lose all that, and a remux far seek (10.12) can't be done any other way.
+
+A new optional interface in `playback_core`, **`StreamReplanner`** (`stream_replanner.dart`), lets a resolver offer that:
+
+- `canReplan(current)`: whether the stream's session can still be moved.
+- `replan(item, current, ReplanRequest)`: the new stream, in the same session. `ReplanRequest` carries the same choices a resolve takes (device profile, bitrate ceiling, audio and subtitle index, version, the direct-play flags), the media position to start at, and a `ReplanReason`: `trackChange`, `qualityChange`, `seek` (used from 10.12) or `failure`.
+
+`PlaybackManager` asks for it wherever it would re-resolve the item it is playing:
+
+- `_reResolveNow` (track changes, `changeBitrate`, the error recoveries): when the resolver can replan the current stream it still stops the player, but reports **no stop**, kills no transcode, and marks the retired progress generation `replanned` so a progress report still in flight can't report a stop late. It then plays the item with `replanFrom` set. The reason is `qualityChange` for `changeBitrate`, `failure` for an error recovery, else `trackChange`.
+- The re-resolves inside `_playCurrentItem` (a track the selectors want on a transcode, the client's own transcode reason, the startup retry when the stream never got ready) replan from the stream just resolved, the last two as a `failure`.
+- `_playCurrentItem`'s `resolve` replans from `replanFrom` (then from each stream a replan returns, should it resolve again); everything after it (track matching, opening the player, progress) is unchanged.
+- **A refused replan** (the server ended the session, say) is logged, the old stream is reported stopped as any re-resolve would, and the item resolves afresh.
+
+A local file never replans (`isLocalMedia`). `LocalFirstMediaStreamResolver`, which wraps every server's resolver in the app, implements the interface by asking the server resolver it wraps; Jellyfin's and Emby's don't implement it, so `canReplan` is false for them and they re-resolve exactly as before. Silo's resolver implements it from 10.12 on.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `test/playback/playback_manager_replan_test.dart` (new, 5 tests): with a resolver that replans, an audio change replans from the playing stream at its position (reason `trackChange`, the new index) and reports no stop and kills no transcode; a second change (subtitles) replans from the stream the first returned; `changeBitrate(8)` is a `qualityChange` with an 8 Mbit/s ceiling; a refused replan reports the old stream stopped and resolves a new session; a resolver that says it can't replan is stopped and resolved as before.
+- `test/playback/` (the existing re-resolve, track carry-over and live tests): still pass.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+- Emby: on a film that transcodes (or with a bitrate cap), switch the audio track, turn subtitles on and off and change the quality from the player menu; each switch restarts at the same position as before, and Emby's dashboard shows the old session ending and a new one starting, as before.
+- Emby: direct play a film and switch audio: it switches in place as before.
+- Silo: covered by 10.12–10.15.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-17 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | replan 5/5; `test/playback/` 846/846; analyzer: no new issues. Full app suite left to Brady |
 | | | | | |
 
 ---

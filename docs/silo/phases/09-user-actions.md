@@ -13,7 +13,7 @@ Things a user changes on an item. One action per commit.
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | previous step |
 
 **Silo v2 endpoints**
 
@@ -25,22 +25,36 @@ Things a user changes on an item. One action per commit.
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+`SiloUserLibraryApi.markFavorite` and `unmarkFavorite` send `PUT` and `DELETE /api/v2/favorites/{id}` as the profile the client acts for (`X-Profile-Id`), so each household profile keeps its own favourites, as in Silo's web app. The app's `ItemMutationRepository.setFavorite` already publishes the new `IsFavorite` to `userDataSync`, so the heart flips everywhere the item shows; Silo's favourites list (6.13) reads it back.
+
+- **Retries.** Both are `natural_idempotent` in the contract: adding a favourite twice or removing one that isn't there changes nothing. The Silo client never retries on its own (only a `401` replay after a token refresh, which Silo hadn't acted on), so nothing here depends on that.
+- **Only titles.** Silo keeps favourites on catalog titles: films, shows, seasons and episodes, whose Moonfin ids are Silo's content ids. Moonfin makes up ids for what isn't a title (`silo-genre:`, `silo-studio:`, `silo-collection:`, library and person numbers); those fail before any request with an `UnsupportedError` saying so, instead of a 404 from Silo. Moonfin offers the heart on a collection's menu too, so on Silo that entry shows the error (see the follow-up below).
+- The placeholder that answered `SiloNotImplementedError` for these two members is gone; played state (9.2) and ratings (9.3) still answer it.
+
+**Follow-up to raise:** the context menu offers *Add to favourites* on a collection (`BoxSet`); Silo has no favourite collections, so on Silo it fails with that message. Hiding it needs a capability the app can ask (left for Brady to decide).
 
 ### Testing
 
-**Automated tests**
+**Automated tests** (`packages/server_silo/test/silo_user_library_api_test.dart`, new, 4 tests)
 
-- _None planned; add any that were written._
+- Marking then unmarking sends `PUT` then `DELETE` to `/favorites/{id}` with `X-Profile-Id`.
+- A season and an episode id are titles too.
+- Genre, studio, personal and library collection, and library/person ids throw `UnsupportedError` without a request.
+- Silo's refusal (404) reaches the caller.
+- `silo_items_api_detail_test.dart`: the not-implemented check moves to `markPlayed` (9.2).
 
 **Manual test plan**
 
-- Toggle in Moonfin; check Silo web.
+- In Moonfin, favourite a film from its detail page; in Silo's web app (same profile) it shows as a favourite. Unfavourite it in Moonfin; Silo's web app shows it gone.
+- Favourite a show and an episode from the context menu; both appear in Silo's favourites and in Moonfin's Favourites row (Home) and library *Favorites* filter.
+- Switch to another household profile: its favourites are its own.
+- Favourite something in Silo's web app; reopen its detail page in Moonfin: the heart is filled.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-16 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | favourites 4/4; `server_silo` 508/508; analyzer: no issues. Full app suite left to Brady |
 | | | | | |
 
 ---

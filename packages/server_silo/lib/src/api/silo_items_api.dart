@@ -34,7 +34,11 @@ const siloDetailImageSize = 'large';
 /// or with an empty answer for what Silo doesn't have at all (music,
 /// playlists).
 class SiloItemsApi
-    implements ItemsApi, LetterPositionApi, ServerHomeSectionsApi {
+    implements
+        ItemsApi,
+        LetterPositionApi,
+        ServerHomeSectionsApi,
+        UserDataRefreshScope {
   SiloItemsApi(
     this._dio, {
     this.images,
@@ -1620,6 +1624,73 @@ class SiloItemsApi
 
   /// The sections of Silo's home and library pages, which the Continue
   /// Watching and Next Up rows read (8.1, 8.2).
+  // --- after a change (9.4) -------------------------------------------------
+
+  /// Called after every user-data write this client makes (favourite,
+  /// played, rating, collection membership, a hidden card). Forgets the reads
+  /// that may now be out of date, so the rows Moonfin reloads show the
+  /// change: Home's and the libraries' sections (Continue Watching, Next Up,
+  /// Silo's own rows, kept 5 s), the read-once lists (2 min), the runtime
+  /// counts and the pager's cursors and pages. It also remembers [itemId] for
+  /// [userDataMayHaveChanged].
+  void noteUserDataChanged([String? itemId]) {
+    homeSections.clear();
+    _filteredLists.clear();
+    _runtimeCounts.clear();
+    pager.clear();
+    if (itemId == null || itemId.isEmpty) return;
+    final now = _clock();
+    _changedItems.remove(itemId);
+    _changedItems[itemId] = now;
+    if (_seriesOfTitle(itemId) case final series?) {
+      _changedSeries.remove(series);
+      _changedSeries[series] = now;
+    }
+    for (final map in [_changedItems, _changedSeries]) {
+      while (map.length > _changedMax) {
+        map.remove(map.keys.first);
+      }
+    }
+  }
+
+  /// Of [itemIds], those whose user data may have changed: one this client
+  /// changed in the last [_changedTtl], or a season or episode of a show
+  /// that had something changed (marking an episode moves the season's and
+  /// the show's counts; marking a show marks every episode).
+  ///
+  /// Silo has no batch read, so `UserDataSync.refreshFromServer` would
+  /// otherwise read every card a screen holds one by one after any change: a
+  /// library grid of 300 titles was 300 detail reads. Changes made on another
+  /// device aren't seen here; Silo's live events bring those (phase 13), as
+  /// Jellyfin's socket does.
+  @override
+  List<String> userDataMayHaveChanged(Iterable<String> itemIds) {
+    final cutoff = _clock().subtract(_changedTtl);
+    _changedItems.removeWhere((_, at) => at.isBefore(cutoff));
+    _changedSeries.removeWhere((_, at) => at.isBefore(cutoff));
+    if (_changedItems.isEmpty) return const [];
+    return [
+      for (final id in itemIds)
+        if (_changedItems.containsKey(id) ||
+            _changedSeries.containsKey(_seriesOfTitle(id)))
+          id,
+    ];
+  }
+
+  /// The show a series, season or episode id belongs to; null for anything
+  /// else.
+  static String? _seriesOfTitle(String id) => switch (siloTypeOfId(id)) {
+    'series' => id,
+    'season' => parseSiloSeasonId(id)?.seriesId,
+    'episode' => parseSiloEpisodeId(id)?.seriesId,
+    _ => null,
+  };
+
+  static const _changedTtl = Duration(minutes: 10);
+  static const _changedMax = 200;
+  final LinkedHashMap<String, DateTime> _changedItems = LinkedHashMap();
+  final LinkedHashMap<String, DateTime> _changedSeries = LinkedHashMap();
+
   late final SiloHomeSections homeSections = SiloHomeSections(
     _dio,
     clock: _clock,

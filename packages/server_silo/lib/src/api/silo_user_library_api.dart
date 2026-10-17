@@ -29,13 +29,17 @@ class SiloUserLibraryApi implements UserLibraryApi {
   /// `PUT /favorites/{id}`. Adding a favourite twice changes nothing on
   /// Silo, so a repeated tap is harmless.
   @override
-  Future<void> markFavorite(String itemId) =>
-      _dio.put<void>('/api/v2/favorites/${_titleId(itemId, 'favourite')}');
+  Future<void> markFavorite(String itemId) => _changed(
+    itemId,
+    _dio.put<void>('/api/v2/favorites/${_titleId(itemId, 'favourite')}'),
+  );
 
   /// `DELETE /favorites/{id}`; removing one that isn't there succeeds.
   @override
-  Future<void> unmarkFavorite(String itemId) =>
-      _dio.delete<void>('/api/v2/favorites/${_titleId(itemId, 'favourite')}');
+  Future<void> unmarkFavorite(String itemId) => _changed(
+    itemId,
+    _dio.delete<void>('/api/v2/favorites/${_titleId(itemId, 'favourite')}'),
+  );
 
   // --- played state (9.2) -------------------------------------------------
 
@@ -46,15 +50,19 @@ class SiloUserLibraryApi implements UserLibraryApi {
   /// no automatic retry), and Moonfin's offline queue only replays it after
   /// the first attempt failed.
   @override
-  Future<void> markPlayed(String itemId) =>
-      _dio.post<void>('/api/v2/watched/${_titleId(itemId, 'played state')}');
+  Future<void> markPlayed(String itemId) => _changed(
+    itemId,
+    _dio.post<void>('/api/v2/watched/${_titleId(itemId, 'played state')}'),
+  );
 
   /// `DELETE /watched/{id}`: unwatched, and for a season or show every
   /// episode. Silo also hides the item's history up to now, as its web app's
   /// "Mark unwatched" does.
   @override
-  Future<void> unmarkPlayed(String itemId) =>
-      _dio.delete<void>('/api/v2/watched/${_titleId(itemId, 'played state')}');
+  Future<void> unmarkPlayed(String itemId) => _changed(
+    itemId,
+    _dio.delete<void>('/api/v2/watched/${_titleId(itemId, 'played state')}'),
+  );
 
   // --- ratings (9.3) -------------------------------------------------------
 
@@ -75,16 +83,29 @@ class SiloUserLibraryApi implements UserLibraryApi {
 
   /// `DELETE /ratings/{id}`; an item that wasn't rated succeeds.
   @override
-  Future<void> deleteUserRating(String itemId) =>
-      _dio.delete<void>('/api/v2/ratings/${_titleId(itemId, 'rating')}');
+  Future<void> deleteUserRating(String itemId) => _changed(
+    itemId,
+    _dio.delete<void>('/api/v2/ratings/${_titleId(itemId, 'rating')}'),
+  );
 
   /// `PUT /ratings/{id}` with `{"rating": stars}`, replacing any earlier
   /// rating. `non_retryable` in the contract (a repeat moves the rating
   /// time); sent once, as 9.2's writes.
-  Future<void> _setStars(String itemId, int stars) => _dio.put<void>(
-    '/api/v2/ratings/${_titleId(itemId, 'rating')}',
-    data: {'rating': stars},
+  Future<void> _setStars(String itemId, int stars) => _changed(
+    itemId,
+    _dio.put<void>(
+      '/api/v2/ratings/${_titleId(itemId, 'rating')}',
+      data: {'rating': stars},
+    ),
   );
+
+  /// Waits for [write], then tells the items API what changed (9.4), so the
+  /// rows Moonfin reloads read Silo again. A write that failed changed
+  /// nothing.
+  Future<void> _changed(String itemId, Future<void> write) async {
+    await write;
+    _items.noteUserDataChanged(itemId);
+  }
 
   /// [itemId] as the path segment of a per-title action. Silo keeps
   /// favourites (and played state and ratings) on catalog titles: films,

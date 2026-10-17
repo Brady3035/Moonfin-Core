@@ -112,7 +112,7 @@ Things a user changes on an item. One action per commit.
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | previous step |
+| ☑ Done | — | previous step |
 
 **Goal.** Like and numeric ratings mapped onto Silo's rating scale.
 
@@ -168,33 +168,49 @@ Silo's personal rating is whole stars, 1 to 5 (`RatingSet.rating`, server table 
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | previous step |
 
 **Goal.** Publish a local user-data change so rows update without a reload.
 
 **Where in Moonfin**
 
-- `silo_user_library_api.dart`
+- `silo_user_library_api.dart`, `silo_items_api.dart` (`noteUserDataChanged`, `userDataMayHaveChanged`)
 - `lib/data/services/user_data_sync.dart`
+- `packages/server_core/lib/src/api/user_data_refresh_scope.dart` (new)
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+The publishing half was already there for every server: `ItemMutationRepository` publishes each change to `userDataSync`, Home and the grids patch the cards they hold (the heart, the tick, the progress bar), and Home reloads its rows when it comes back into view. Two things kept that from working on Silo.
+
+**1. Silo-side caches.** The Silo client keeps a few reads so rows loading together don't each ask Silo: Home's and the libraries' sections (Continue Watching, Next Up and Silo's own rows) for 5 s, the read-once lists (series status, random, last played) for 2 min, the runtime counts, and the pager's cursors and pages. A row reloaded right after a change could come back from those unchanged (a film marked watched still in Continue Watching). Every write in `SiloUserLibraryApi` now calls `SiloItemsApi.noteUserDataChanged(id)` once Silo has accepted it, which forgets all of them. A failed write forgets nothing.
+
+**2. Refreshing user data one item at a time.** After a change, coming back to a grid or a detail page calls `userDataSync.refreshFromServer` with every item it holds, to pick up what the change did to parents (a show's unwatched count). Jellyfin and Emby answer that with one request per hundred ids. Silo has no batch read, so `getItems(ids:)` reads each item's detail: a library grid scrolled to 300 titles was 300 reads after any tap. A new optional `server_core` interface, `UserDataRefreshScope`, lets the items API narrow the list (`itemsApi is UserDataRefreshScope`, as with `LetterPositionApi`); servers without it get every id, as before. Silo's answer, `userDataMayHaveChanged`, keeps:
+
+- an item this client changed in the last 10 minutes;
+- every series, season and episode of a show that had anything changed (an episode's play moves its season's and show's counts; a show marked watched marks every episode).
+
+Changes made on another device or in Silo's web app aren't seen this way; Jellyfin learns those from its socket, and Silo's live events are phase 13. Until then they show when a screen reloads.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `packages/server_silo/test/silo_user_data_refresh_test.dart` (new, 6 tests): nothing changed → nothing to read again; an episode marked → its show, season and both its episodes, not another show's or a film; a favourite film → that film; a failed write → nothing; remembered 9 minutes, not 11; Continue Watching, read twice within 5 s, is read again after a change. `server_silo` 521/521.
+- `test/data/services/user_data_sync_test.dart` (1 more): a server that narrows the refresh is asked only about what it keeps, and not at all when it keeps nothing.
+- `server_core` 94/94.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+- From Home, mark a film in Continue Watching watched (context menu): the card shows watched at once; leave Home and come back (or pull to refresh): the card is gone, as on Silo's web app.
+- On a show's detail page, mark one episode watched; go back to the TV library grid: the show's unwatched count went down by one, without waiting.
+- Scroll a film library a few pages, open a film, favourite it, go back: the heart shows on that card, and the grid doesn't stall (it now reads one item, not every loaded one).
+- Favourite a film in Silo's web app: Moonfin shows it once the screen reloads (not live; phase 13).
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-16 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | refresh scope 6/6; `user_data_sync_test.dart` 19/19; `server_silo` 521/521; `server_core` 94/94; analyzer: no issues. Full app suite left to Brady |
 | | | | | |
 
 ---

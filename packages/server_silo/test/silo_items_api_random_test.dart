@@ -8,14 +8,14 @@ import 'silo_test_client.dart';
 
 const _catalogPath = '/api/v2/catalog';
 
-/// A catalog of 250 films in Silo's default order, answering any range.
-FixtureServer _server() => FixtureServer({
+/// A catalog of [total] films in Silo's default order, answering any range.
+FixtureServer _server({int total = 250}) => FixtureServer({
   _catalogPath: (RequestOptions o) {
     final q = o.uri.queryParameters;
     final limit = int.parse(q['limit'] ?? '50');
     final offset =
         int.tryParse(q['seek'] ?? '') ?? int.tryParse(q['cursor'] ?? '') ?? 0;
-    final end = (offset + limit).clamp(0, 250);
+    final end = (offset + limit).clamp(0, total);
     return FixtureServer.json(
       200,
       jsonEncode({
@@ -23,9 +23,12 @@ FixtureServer _server() => FixtureServer({
           for (var i = offset; i < end; i++)
             {'content_id': 'movie-$i', 'type': 'movie', 'title': 'T$i'},
         ],
-        'page': {'has_more': end < 250, if (end < 250) 'next_cursor': '$end'},
+        'page': {
+          'has_more': end < total,
+          if (end < total) 'next_cursor': '$end',
+        },
         'window_cursor': 'w',
-        'total': 250,
+        'total': total,
         'total_exact': true,
       }),
     );
@@ -33,27 +36,53 @@ FixtureServer _server() => FixtureServer({
 });
 
 void main() {
-  test('random: no sort sent, a few drawn from the first hundred', () async {
+  test('random: no sort sent, a few drawn from across the list', () async {
     final server = _server();
-    final page = await siloTestClient(server).itemsApi.getItems(
-      genreIds: ['silo-genre:Action'],
-      includeItemTypes: ['Movie', 'Series'],
-      sortBy: 'Random',
-      sortOrder: 'Ascending',
-      recursive: true,
-      limit: 10,
-    );
+    final api = siloTestClient(server).itemsApi;
+    Future<List<String>> draw() async {
+      final page = await api.getItems(
+        genreIds: ['silo-genre:Action'],
+        includeItemTypes: ['Movie', 'Series'],
+        sortBy: 'Random',
+        sortOrder: 'Ascending',
+        recursive: true,
+        limit: 10,
+      );
+      expect(page['TotalRecordCount'], 250);
+      return [
+        for (final i in (page['Items'] as List).cast<Map>()) i['Id'] as String,
+      ];
+    }
 
-    final q = server.requests.single.uri.queryParameters;
-    expect(q.containsKey('sort'), isFalse, reason: 'Silo refuses sort=random');
-    expect(q['limit'], '100');
-    final ids = [
-      for (final i in (page['Items'] as List).cast<Map>()) i['Id'] as String,
-    ];
+    final ids = await draw();
     expect(ids, hasLength(10));
     expect(ids.toSet(), hasLength(10));
-    expect(ids.every((id) => int.parse(id.split('-').last) < 100), isTrue);
-    expect(page['TotalRecordCount'], 250);
+    for (final r in server.requests) {
+      expect(
+        r.uri.queryParameters.containsKey('sort'),
+        isFalse,
+        reason: 'Silo refuses sort=random',
+      );
+      expect(r.uri.queryParameters['limit'], '100');
+    }
+    // 250 titles are 3 pages: all of them take part (Brady: the shuffle
+    // picker only ever offered titles from the start of the alphabet).
+    final seen = <int>{};
+    for (var i = 0; i < 20; i++) {
+      seen.addAll((await draw()).map((id) => int.parse(id.split('-').last)));
+    }
+    expect(seen.where((n) => n >= 200), isNotEmpty);
+    expect(seen.where((n) => n >= 100 && n < 200), isNotEmpty);
+  });
+
+  test('a large list: a few random pages, not every one', () async {
+    final server = _server(total: 2000);
+    final page = await siloTestClient(
+      server,
+    ).itemsApi.getItems(parentId: '1', sortBy: 'Random', limit: 12);
+    expect(page['Items'], hasLength(12));
+    // The first page (for the total) and at most four picked ones.
+    expect(server.requests.length, lessThanOrEqualTo(5));
   });
 
   test('a random grid is shuffled whole, every title once', () async {

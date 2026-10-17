@@ -479,6 +479,9 @@ int? _int(Object? value) => value is num ? value.toInt() : null;
 ///   `in_watchlist`, which Jellyfin has no field for);
 /// - `user_data` on series, seasons and watch answers: `position_seconds`,
 ///   `duration_seconds`, `is_in_progress`, `unplayed_count`, `played`;
+/// - `user_rating` on an item's detail: the profile's own rating in stars,
+///   1 to 5, as Jellyfin's `Rating` out of 10 (9.3). Silo has no likes;
+///   Moonfin reads 6.5 and up as liked;
 /// - `position_seconds` and `duration_seconds` on the card itself, on a
 ///   Continue Watching card (8.1);
 /// - the last watch as `progress_updated_at`, or `sort_metrics.viewed_at` on
@@ -512,6 +515,8 @@ Map<String, dynamic> _userData(SiloItemType type, Map<String, dynamic> item) {
     'Played': played,
     if (type.isFolder && unplayed is num) 'UnplayedItemCount': unplayed.toInt(),
     if (lastPlayed != null) 'LastPlayedDate': lastPlayed,
+    if (item['user_rating'] case final num stars when stars > 0)
+      'Rating': stars.toDouble() * 2,
   };
 }
 

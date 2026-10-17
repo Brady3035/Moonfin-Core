@@ -64,7 +64,7 @@ Things a user changes on an item. One action per commit.
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | previous step |
+| ☑ Done | — | previous step |
 
 **Goal.** Items, seasons and series.
 
@@ -112,37 +112,53 @@ Things a user changes on an item. One action per commit.
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | previous step |
 
 **Goal.** Like and numeric ratings mapped onto Silo's rating scale.
 
 **Silo v2 endpoints**
 
-- `GET /capabilities/ratings`
 - `PUT/DELETE /ratings/{id}`
+- The detail's `user_rating` (read back)
 
 **Where in Moonfin**
 
 - `silo_user_library_api.dart`
+- `silo_item_mapper.dart` (`UserData.Rating`)
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+Silo's personal rating is whole stars, 1 to 5 (`RatingSet.rating`, server table `user_ratings`), one per profile. Moonfin's is out of 10: the star style shows half stars (`rating / 2`), the numeric style the number, and the thumbs style reads `Likes`, or a `Rating` of 6.5 or more as liked (`AggregatedItem.likedRatingThreshold`).
+
+- **Writing.** `updateNumericUserRating` sends `PUT /api/v2/ratings/{id}` with `{"rating": stars}`, where stars is the rating halved and rounded, half a star up (`siloStarsFromRating`: 7 → 4, 8 → 4, 10 → 5), and at least 1 (Silo's lowest; Moonfin can send 0). `updateUserRating` (thumbs) sends 5 stars for up and 1 for down. `deleteUserRating` sends `DELETE`.
+- **Reading.** An item's detail carries `user_rating` (the acting profile's stars); the mapper turns it into `UserData.Rating` out of 10 (4 stars → 8). There is no `Likes`, so thumbs follow the rating: 4 and 5 stars show as liked, 1 to 3 as disliked. Cards in lists carry no rating, as with Emby, so the rating shows on the detail page.
+- **Half stars** aren't kept: 3½ stars is saved as 4 and shows as 4 after a reload. `supportsNumericUserRatings` stays true so the star and numeric styles remain on offer; Silo's own web app rates in whole stars.
+- **Not retried.** Both writes are `non_retryable` in the contract (a repeat moves the rating time and refreshes recommendations again); the client sends each once, as in 9.2.
+- `GET /capabilities/ratings` (listed in the plan) turned out to be about the external rating sources (IMDb, TMDB, Rotten Tomatoes) a title page shows, not personal ratings, so it isn't needed here.
+- The last `SiloNotImplementedError` placeholder in `SiloUserLibraryApi` is gone.
 
 ### Testing
 
-**Automated tests**
+**Automated tests** (`silo_user_library_api_test.dart`, 4 more)
 
-- _None planned; add any that were written._
+- Thumbs up sends `{"rating":5}`, down `{"rating":1}`.
+- 8 → 4 stars, 7 → 4 (half up); 10 → 5, 1 and 0 → 1, 12 → 5.
+- Clearing sends `DELETE`.
+- `user_rating: 4` maps to `Rating` 8.0; without it, no `Rating` and no `Likes`.
+- `silo_items_api_detail_test.dart`: the not-implemented check is gone (nothing in `UserLibraryApi` is pending now).
 
 **Manual test plan**
 
-- _Write the checks before testing._
+- Settings → personal rating style *Stars*: rate a film 4 stars on its detail page; Silo's web app shows 4 stars for that profile. Change it to 2½ stars: Silo shows 3; reopen the detail page in Moonfin: 3 stars. Clear the rating: Silo shows none.
+- Style *Thumbs*: thumbs up a film; Silo shows 5 stars and Moonfin keeps the thumbs up after a reload. Thumbs down: Silo shows 1 star.
+- Rate a film in Silo's web app; open it in Moonfin: the rating shows (stars, or a thumb).
+- Another profile sees its own rating, not this one.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-16 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | ratings 4/4; `server_silo` 515/515; analyzer: no issues. Full app suite left to Brady |
 | | | | | |
 
 ---

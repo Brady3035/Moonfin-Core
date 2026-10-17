@@ -774,7 +774,7 @@ Moonfin numbers every stream of a file in one index space (Jellyfin's `Index`); 
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | previous step |
+| ☑ Done | — | previous step |
 
 **Goal.** Via replan.
 
@@ -821,32 +821,42 @@ A quality change keeps the current route eligible (it is an intent, not a failur
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | previous step |
 
 **Goal.** Explicit version choice sets `allow_alternate_versions: false`.
 
 **Where in Moonfin**
 
-- `silo_media_stream_resolver.dart`
+- `packages/playback_silo/lib/src/silo_media_stream_resolver.dart` (`_SiloFile.explicit`, `_playable`)
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+Silo may play another version than the one asked for: with alternate versions allowed (the default), a start or replan that can't play the requested file (a 4K version the account may not transcode, an unreadable file, a bitrate limit) tries the item's other versions. When the viewer picked a version, that's the wrong answer: they asked for that file. Servers with `fixed_media_file_v1` (this one has it) take `allow_alternate_versions: false` on the start, which keeps the whole attempt on the requested file through every replan (quality, track, seek, recovery) and answers a refusal (10.8) instead of substituting a version with a different timeline (Playback API, "Start").
+
+- **When it is sent.** Moonfin passes a version (`mediaSourceId`) when the viewer picks one in the detail page's version picker, and also on every re-resolve (the version it last played). So the start pins the file only when it isn't the item's default (its first version) and the item has others: a picked 1080p version of The Salt Path is kept to 1080p, a plain Play (or a pick of the default) leaves Silo free to fall back. A single-version item is never pinned. On a server without `fixed_media_file_v1` nothing is sent and the file is only requested.
+- **Replans** need nothing more: Silo keeps the choice for the attempt and refuses to relax it.
+- The capabilities read once per start now answers both the installation id and the feature (`_playable`).
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `packages/playback_silo/test/silo_version_test.dart` (new, 5 tests), on The Salt Path (2160p `4603` first, 1080p `4602`): picking 1080p starts `4602` with `allow_alternate_versions: false` (passes the contract); no pick or a pick of the default starts `4603` without it; a server without `fixed_media_file_v1` gets the file but not the flag; a single-version film is never pinned.
+- `playback_silo` 83/83; analyzer: no issues.
 
 **Manual test plan**
 
 - The Salt Path: play each version.
+  - Pick the 1080p version in the detail page's version picker and play: the playback info shows the 1080p file; seek and change the quality: it stays on the 1080p file.
+  - Pick the 2160p version and play: the 2160p file (or Silo's refusal, if this account may not play it, rather than a silent switch to 1080p).
+  - Plain Play (no pick): Silo's default version, and Silo may fall back to the other one if it can't play it.
+- Silo's dashboard shows the file each session plays.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-17 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | versions 5/5; `playback_silo` 83/83; analyzer: no issues |
 | | | | | |
 
 ---

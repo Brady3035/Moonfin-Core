@@ -1,4 +1,8 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
+import 'package:server_silo/server_silo.dart';
+import 'package:server_core/server_core.dart';
 import 'package:test/test.dart';
 
 import 'fixture_server.dart';
@@ -105,6 +109,59 @@ void main() {
         () => api.markPlayed('silo-collection:c1'),
         throwsA(isA<UnsupportedError>()),
       );
+    });
+  });
+
+  group('ratings (9.3)', () {
+    Future<List<String>> sent(
+      Future<void> Function(UserLibraryApi api) act,
+    ) async {
+      final server = FixtureServer({'/api/v2/ratings/$_film': _noContent});
+      await act(siloTestClient(server).userLibraryApi);
+      return [
+        for (final r in server.requests)
+          '${r.method} ${r.data == null ? '' : jsonEncode(r.data)}'.trim(),
+      ];
+    }
+
+    test('thumbs: up is 5 stars, down is 1', () async {
+      expect(await sent((a) => a.updateUserRating(_film, likes: true)), [
+        'PUT {"rating":5}',
+      ]);
+      expect(await sent((a) => a.updateUserRating(_film, likes: false)), [
+        'PUT {"rating":1}',
+      ]);
+    });
+
+    test('out of 10 as whole stars, half a star up', () async {
+      expect(await sent((a) => a.updateNumericUserRating(_film, rating: 8)), [
+        'PUT {"rating":4}',
+      ]);
+      expect(await sent((a) => a.updateNumericUserRating(_film, rating: 7)), [
+        'PUT {"rating":4}',
+      ]);
+      expect(siloStarsFromRating(10), 5);
+      expect(siloStarsFromRating(1), 1);
+      expect(siloStarsFromRating(0), 1, reason: 'Silo\'s lowest is 1 star');
+      expect(siloStarsFromRating(12), 5);
+    });
+
+    test('clearing', () async {
+      expect(await sent((a) => a.deleteUserRating(_film)), ['DELETE']);
+    });
+
+    test('the profile\'s rating reads back out of 10', () {
+      Map userDataOf(Map<String, Object?> extra) =>
+          siloItemToBaseItemDto({
+                'content_id': _film,
+                'type': 'movie',
+                'title': 'Film',
+                ...extra,
+              })!['UserData']
+              as Map;
+      expect(userDataOf({'user_rating': 4})['Rating'], 8.0);
+      expect(userDataOf({}).containsKey('Rating'), isFalse);
+      expect(userDataOf({}).containsKey('Likes'), isFalse);
     });
   });
 }

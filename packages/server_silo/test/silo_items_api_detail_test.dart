@@ -1,4 +1,3 @@
-import 'package:server_silo/server_silo.dart';
 import 'package:test/test.dart';
 
 import 'fixture_server.dart';
@@ -97,12 +96,6 @@ void main() {
       });
       final client = siloTestClient(server);
       expect((await client.userLibraryApi.getItem(_xxx))['Name'], 'xXx');
-      expect(
-        () => client.userLibraryApi.deleteUserRating(_xxx),
-        throwsA(
-          isA<SiloNotImplementedError>().having((e) => e.step, 'step', '9.3'),
-        ),
-      );
     });
 
     test('an item listed in a library knows its ParentId', () async {

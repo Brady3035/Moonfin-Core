@@ -17,6 +17,7 @@ import '../silo_image_registry.dart';
 import '../silo_pager.dart';
 import 'silo_home_sections.dart';
 import 'silo_markers.dart';
+import 'silo_themes.dart';
 import 'silo_trickplay.dart';
 import 'silo_pending_api.dart';
 
@@ -43,18 +44,26 @@ class SiloItemsApi
         UserDataRefreshScope,
         EditableCollectionsApi,
         HomeDismissalsApi,
-        TrickplayManifestApi {
+        TrickplayManifestApi,
+        ThemeSongStreamApi {
   SiloItemsApi(
     this._dio, {
     this.images,
     SiloPager? pager,
     this.userViews,
     this.profileId,
+    this.baseUrl,
     DateTime Function()? clock,
   }) : pager = pager ?? SiloPager(),
        _clock = clock ?? DateTime.now;
 
   final Dio _dio;
+
+  /// The server's base URL, for links Silo answers relative to it (11.5).
+  final String Function()? baseUrl;
+
+  /// Theme music (11.5).
+  late final SiloThemes themes = SiloThemes(_dio, clock: _clock);
 
   /// Skip markers by file (11.1).
   late final SiloMarkers markers = SiloMarkers(_dio, clock: _clock);
@@ -2431,6 +2440,28 @@ class SiloItemsApi
     required String mediaSourceId,
   }) => trickplay.manifest(itemId, mediaSourceId);
 
+  /// [itemId]'s local theme songs (step 11.5), as Jellyfin's answer; Silo
+  /// lists a title's own (an episode's or season's caller asks for its
+  /// series, as on Jellyfin).
+  @override
+  Future<Map<String, dynamic>> getThemeMedia(
+    String itemId, {
+    bool inheritFromParent = true,
+  }) => themes.themeMedia(itemId);
+
+  /// A fresh grant for theme song [songId] of [ownerId] (11.5).
+  @override
+  Future<String?> themeSongStreamUrl(
+    String ownerId,
+    String songId, {
+    List<ThemeAudioFormat> accepts = const [],
+  }) => themes.streamUrl(
+    ownerId,
+    songId,
+    accepts,
+    baseUrl: baseUrl?.call() ?? '',
+  );
+
   /// Called by the Silo resolver when [itemId] starts playing [fileId], so
   /// the player's extras (markers…) come from that file.
   void notePlayingFile(String itemId, String fileId, {num? runTimeSeconds}) {
@@ -2441,7 +2472,6 @@ class SiloItemsApi
 
   /// The step that implements each method not implemented yet.
   static const _steps = {
-    'getThemeMedia': '11.5',
     'searchRemoteSubtitles': '10.14',
     'downloadRemoteSubtitle': '10.14',
   };

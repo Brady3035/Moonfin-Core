@@ -281,7 +281,7 @@ A new optional `server_core` interface, `EditableCollectionsApi`, lets the app a
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ⏭ Skipped (Brady, 2026-10-17) | — | previous step |
 
 **Goal.** Silo's watchlist as a context action and row.
 
@@ -290,25 +290,9 @@ A new optional `server_core` interface, `EditableCollectionsApi`, lets the app a
 - `PUT/DELETE /watchlist/{item_id}`
 - `GET /watchlist`
 
-### How it works
+### Why it was skipped
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
-
-### Testing
-
-**Automated tests**
-
-- _None planned; add any that were written._
-
-**Manual test plan**
-
-- _Write the checks before testing._
-
-**Results**
-
-| Date | Platform | Server build | Result | Notes |
-|---|---|---|---|---|
-| | | | | |
+Decided by Brady after the phase 9 batch was built (D12). What already works without it: Silo's watchlist is one of its Home section types (`watchlist`), so when Silo's Home layout includes it, 8.7's server rows offer it as a Home row in Moonfin. What it would have added is a way to put titles on the list and take them off: Moonfin's only watchlist button and row today are Seerr's (`DetailButton.seerrWatchlist`, `HomeSectionType.seerrWatchlist`), so it needs a new detail button or context action and new strings, more than a translation step. Each catalog card already says whether it is on the list (`user_state.in_watchlist`), and both writes are `natural_idempotent`, if it is picked up later.
 
 ---
 

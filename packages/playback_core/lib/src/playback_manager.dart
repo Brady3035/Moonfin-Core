@@ -7,6 +7,7 @@ import 'player_backend.dart';
 import 'player_service.dart';
 import 'player_state.dart';
 import 'queue_service.dart';
+import 'stream_replanner.dart';
 import 'stream_resolution_result.dart';
 import 'track_ordinal_mapper.dart';
 
@@ -21,6 +22,10 @@ class _ProgressGeneration {
   final StreamResolutionResult resolution;
   final PlayerService? service;
   bool ended = false;
+
+  /// Retired because its session moved to a new stream (a replan), so no
+  /// stop may ever be reported for it: the session goes on.
+  bool replanned = false;
   bool reporting = false;
   bool reportPending = false;
   Duration stopPosition = Duration.zero;
@@ -559,6 +564,16 @@ class PlaybackManager implements AudioOwnable {
     }
     final generation = _progressGeneration;
     if (reportImmediately && generation != null) _reportProgress(generation);
+  }
+
+  /// The resolver as a [StreamReplanner] when it can still move [current]'s
+  /// session to a new stream, else null. A local file never has one.
+  StreamReplanner? _replannerFor(StreamResolutionResult? current) {
+    final resolver = _resolver;
+    if (current == null || current.isLocalMedia) return null;
+    if (resolver is! StreamReplanner) return null;
+    final replanner = resolver as StreamReplanner;
+    return replanner.canReplan(current) ? replanner : null;
   }
 
   /// The current stream's [StreamResolutionResult.timelineOffset]: what the
@@ -2392,6 +2407,10 @@ class PlaybackManager implements AudioOwnable {
     bool allowStartupRecovery = true,
     bool autoPlay = true,
     bool withholdExternalPgs = false,
+    // A stream of this item whose session the resolver can move to the new
+    // one instead of starting another (see [StreamReplanner]), and why.
+    StreamResolutionResult? replanFrom,
+    ReplanReason replanReason = ReplanReason.trackChange,
   }) async {
     _deferredStartPosition = Duration.zero;
     _deferPlaybackToExternalPlayer = false;
@@ -2511,10 +2530,49 @@ class PlaybackManager implements AudioOwnable {
       }
     }
 
+    // The stream a replan moves from: the one asked for, then each one a
+    // replan here returns, since the server's session now plays that.
+    var replanBase = replanFrom;
     Future<StreamResolutionResult> resolve(
       int? cap, {
       bool originalFile = false,
     }) async {
+      final base = replanBase;
+      final replanner = _replannerFor(base);
+      if (base != null && replanner != null) {
+        try {
+          final replanned = await replanner.replan(
+            item,
+            base,
+            ReplanRequest(
+              reason: replanReason,
+              position: startPosition,
+              deviceProfile: profile,
+              maxStreamingBitrate: cap,
+              audioStreamIndex: _audioStreamIndex,
+              subtitleStreamIndex: _subtitleStreamIndex,
+              mediaSourceId: _mediaSourceId,
+              enableDirectPlay: enableDirectPlay,
+              enableDirectStream: enableDirectStream && !originalFile,
+              enableTranscoding: enableTranscoding && !originalFile,
+            ),
+          );
+          replanBase = replanned;
+          return replanned;
+        } catch (error) {
+          // The session can't move, so it ends here like any re-resolved
+          // one, and a new one starts below.
+          _diagnosticLogger?.call(
+            'Replan refused ($replanReason): $error; resolving afresh',
+          );
+          replanBase = null;
+          unawaited(
+            _service
+                ?.onPlaybackStop(item, base, startPosition)
+                .catchError((_) {}),
+          );
+        }
+      }
       try {
         return await _resolver!.resolve(
           item,
@@ -2665,6 +2723,8 @@ class PlaybackManager implements AudioOwnable {
             enableTranscoding: true,
             allowStartupRecovery: allowStartupRecovery,
             withholdExternalPgs: withholdExternalPgs,
+            replanFrom: resolution,
+            replanReason: ReplanReason.failure,
           );
         } finally {
           _closeLiveStreamOnce(resolution);
@@ -2768,6 +2828,7 @@ class PlaybackManager implements AudioOwnable {
           allowStartupRecovery: allowStartupRecovery,
           autoPlay: autoPlay,
           withholdExternalPgs: pickedEmbeddedPgs,
+          replanFrom: resolution,
         );
         return;
       } finally {
@@ -3046,6 +3107,8 @@ class PlaybackManager implements AudioOwnable {
           enableTranscoding: forceTranscodeFallback ? true : enableTranscoding,
           allowStartupRecovery: false,
           autoPlay: autoPlay,
+          replanFrom: resolution,
+          replanReason: ReplanReason.failure,
         );
         return;
       }
@@ -3254,7 +3317,7 @@ class PlaybackManager implements AudioOwnable {
 
   void _progressSettled(_ProgressGeneration generation) {
     generation.reporting = false;
-    if (generation.ended) {
+    if (generation.ended && !generation.replanned) {
       // The request may have reached the server after the original stop. A
       // second stop, scoped to this generation's old PlaySessionId, ensures
       // that no late progress report can be the server's final state.
@@ -4064,7 +4127,10 @@ class PlaybackManager implements AudioOwnable {
 
   Future<void> changeBitrate(int? mbps) async {
     _maxBitrateOverrideMbps = mbps;
-    await _reResolveAtCurrentPosition(forceTranscode: mbps != null);
+    await _reResolveAtCurrentPosition(
+      forceTranscode: mbps != null,
+      replanReason: ReplanReason.qualityChange,
+    );
   }
 
   /// Serializes re-resolves so rapid track switches can't tear down the same
@@ -4085,6 +4151,9 @@ class PlaybackManager implements AudioOwnable {
     // on a startup failure doubles an attempt into two and forces a re-encode
     // the budget deliberately leaves optional.
     bool allowStartupRecovery = true,
+    // Why, for a resolver that can replan (see [StreamReplanner]). Null is a
+    // track change, or a failure for an error recovery.
+    ReplanReason? replanReason,
   }) {
     final previous = _reResolveQueue;
 
@@ -4106,6 +4175,9 @@ class PlaybackManager implements AudioOwnable {
         autoPlayAfterResolve: autoPlayAfterResolve,
         reason: reason,
         allowStartupRecovery: allowStartupRecovery,
+        replanReason:
+            replanReason ??
+            (isErrorRecovery ? ReplanReason.failure : ReplanReason.trackChange),
       );
     }();
 
@@ -4120,6 +4192,7 @@ class PlaybackManager implements AudioOwnable {
     required bool autoPlayAfterResolve,
     required String reason,
     bool allowStartupRecovery = true,
+    ReplanReason replanReason = ReplanReason.trackChange,
   }) async {
     // A re-resolve stops the backend, reports the stop and kills the server
     // job, so it is one of the few things that can clear the player's
@@ -4152,6 +4225,16 @@ class PlaybackManager implements AudioOwnable {
       _retireProgressGeneration(progressGeneration, currentPos);
     }
     _currentResolution = null;
+    // A resolver that can move this session to the new stream keeps it: no
+    // stop is reported and no transcode killed, and the retired progress
+    // generation never reports one late either.
+    final replanFrom =
+        item != null && resolution != null && _replannerFor(resolution) != null
+        ? resolution
+        : null;
+    if (replanFrom != null && progressGeneration != null) {
+      progressGeneration.replanned = true;
+    }
 
     // Stop the backend before tearing down the server session so the old
     // player can't fetch segments of a killed transcode and surface a
@@ -4162,7 +4245,7 @@ class PlaybackManager implements AudioOwnable {
       await _backend?.stop();
     } catch (_) {}
 
-    if (item != null && resolution != null) {
+    if (item != null && resolution != null && replanFrom == null) {
       final stopReport = _service?.onPlaybackStop(
         item,
         resolution,
@@ -4199,6 +4282,8 @@ class PlaybackManager implements AudioOwnable {
         enableDirectStream: !forceTranscode,
         autoPlay: autoPlayAfterResolve,
         allowStartupRecovery: allowStartupRecovery,
+        replanFrom: replanFrom,
+        replanReason: replanReason,
       );
     } finally {
       _teardownForReResolve = false;

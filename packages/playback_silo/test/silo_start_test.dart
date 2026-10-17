@@ -124,7 +124,8 @@ void main() {
       ).resolve(item, deviceProfile: _profile, startTimeTicks: 6000000000);
       expect(
         result.streamUrl,
-        'https://silo.example/api/v2/stream/$_session?seek=593.4&st=c2lnbmVk',
+        'https://silo.example/api/v2/stream/$_session'
+        '?seek=593.4&st=c2lnbmVk&token=access-1',
       );
       expect(result.playMethod, StreamPlayMethod.directStream);
       expect(result.mediaSourceId, '4598');

@@ -1,6 +1,8 @@
 import 'package:playback_core/playback_core.dart';
 import 'package:server_silo/server_silo.dart';
 
+import 'silo_subtitles.dart';
+
 /// How Moonfin names each of Silo's deliveries.
 ///
 /// The original file is a direct play. A remux keeps the codecs and changes
@@ -144,6 +146,9 @@ const _warningReasons = {
 ///   file's video stream, else the recipe's.
 /// - `seeksThroughServer` when `timeline.can_seek_anywhere` is false (a
 ///   remux, 10.12), and `reopenAfterPause` for a progressive remux.
+/// - Subtitles from the plan's `subtitle` block ([siloPlanSubtitles],
+///   10.14): its sidecars as external subtitles, downloaded ones added to
+///   the streams, and the selected track.
 /// - With [auth] (10.7), a stream on the server's origin carries the
 ///   account's headers on every request, `stream.headers` on top, and an
 ///   `/api/v2/stream/` URL also carries `token=` ([siloAuthorizeUrl]).
@@ -179,6 +184,12 @@ StreamResolutionResult siloPlanToResolution({
       audio['index'] as int,
     );
   }
+  final subtitles = siloPlanSubtitles(
+    plan: plan,
+    source: mediaSource,
+    baseUrl: baseUrl,
+    accessToken: auth?.accessToken,
+  );
   final offset = timeline['timeline_offset_seconds'];
   final bitrate = source['bitrate_kbps'];
   final planUrl = siloPlanUrl(baseUrl, '${stream['url'] ?? ''}');
@@ -203,8 +214,10 @@ StreamResolutionResult siloPlanToResolution({
     normalizationGainDb: MediaStreamResolver.extractNormalizationGainDb(
       streams,
     ),
-    mediaStreams: streams,
+    mediaStreams: subtitles.mediaStreams,
+    externalSubtitles: subtitles.externalSubtitles,
     selectedAudioStreamIndex: selectedAudio,
+    selectedSubtitleStreamIndex: subtitles.selectedStreamIndex,
     transcodingReasons: siloTranscodeReasons(plan),
     serverOfferedDirectPlay: delivery == 'original_http',
     directPlayRequested: directPlayRequested,

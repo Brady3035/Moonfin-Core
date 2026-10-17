@@ -84,6 +84,13 @@ List<ItemContextAction> contextActionsFor(
       isAdminUser;
   final canRefreshMetadata =
       client.serverType == ServerType.jellyfin && isAdminUser;
+  // A server that hides Home cards itself (Silo, step 9.7) does it for this
+  // item's server only. Read when a hide is picked, not for every menu.
+  HomeDismissalsApi? dismissals() {
+    if (!isSameServerItem) return null;
+    final api = client.itemsApi;
+    return api is HomeDismissalsApi ? api as HomeDismissalsApi : null;
+  }
   final actions = <ItemContextAction>[];
   final type = item.type;
 
@@ -132,15 +139,26 @@ List<ItemContextAction> contextActionsFor(
         icon: Icons.visibility_off_outlined,
         label: l10n.contextMenuHideFromContinueWatching,
         onSelect: () async {
+          // The server's own hide holds on every device and keeps the
+          // resume point; this device's list is the fallback.
+          final server = dismissals();
+          if (await _hiddenByServer(
+            () => server?.hideFromContinueWatching(item.rawData),
+          )) {
+            onChanged?.call();
+            return;
+          }
           final prefs = GetIt.instance<UserPreferences>();
           if (item.seriesId != null && item.seriesId!.isNotEmpty) {
             await prefs.hideFromContinueWatching(item.seriesId!);
           } else {
             await prefs.hideFromContinueWatching(item.id);
           }
-          try {
-            await mutations.setPlayed(item.id, isPlayed: false);
-          } catch (_) {}
+          if (server == null) {
+            try {
+              await mutations.setPlayed(item.id, isPlayed: false);
+            } catch (_) {}
+          }
           onChanged?.call();
         },
       ));
@@ -153,12 +171,21 @@ List<ItemContextAction> contextActionsFor(
         icon: Icons.visibility_off_outlined,
         label: l10n.contextMenuHideFromNextUp,
         onSelect: () async {
+          final server = dismissals();
+          if (await _hiddenByServer(
+            () => server?.hideFromNextUp(item.rawData),
+          )) {
+            onChanged?.call();
+            return;
+          }
           final prefs = GetIt.instance<UserPreferences>();
           await prefs.hideFromNextUp(item.seriesId!);
           await prefs.hideFromContinueWatching(item.seriesId!);
-          try {
-            await mutations.setPlayed(item.id, isPlayed: false);
-          } catch (_) {}
+          if (server == null) {
+            try {
+              await mutations.setPlayed(item.id, isPlayed: false);
+            } catch (_) {}
+          }
           onChanged?.call();
         },
       ));
@@ -410,4 +437,22 @@ Future<void> _confirmAndRemoveFromCollection(
       ),
     );
   }
+}
+
+/// Runs a server's own hide of a Home card ([HomeDismissalsApi], step 9.7)
+/// and reloads Home, whose rows the server now answers without the card.
+/// False when the server has none ([hide] answers null) or it failed, so the
+/// caller falls back to this device's list. On that fallback the item is not
+/// marked unwatched, as it is on Jellyfin: on a server with dismissals that
+/// would also erase its watch history.
+Future<bool> _hiddenByServer(Future<void>? Function() hide) async {
+  try {
+    final hiding = hide();
+    if (hiding == null) return false;
+    await hiding;
+  } catch (_) {
+    return false;
+  }
+  refreshHomeRows();
+  return true;
 }

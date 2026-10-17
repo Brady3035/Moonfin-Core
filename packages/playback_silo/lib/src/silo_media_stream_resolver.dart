@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:dio/dio.dart';
 import 'package:playback_core/playback_core.dart';
 import 'package:server_core/server_core.dart';
 import 'package:server_silo/server_silo.dart';
@@ -101,14 +102,14 @@ class SiloMediaStreamResolver implements MediaStreamResolver {
     var request = body(installation);
     Map<String, dynamic> decision;
     try {
-      decision = await _start(api, request);
+      decision = await _startOrRefuse(api, request);
     } catch (error) {
       if (!SiloPlaybackApi.isInstallationChanged(error)) rethrow;
       // The server was reset or replaced since the capabilities were read:
       // read them again and start a new attempt under the new installation.
       installation = await _installation(api, refresh: true);
       request = body(installation);
-      decision = await _start(api, request);
+      decision = await _startOrRefuse(api, request);
     }
 
     final plan = (decision['playback_plan'] as Map?)?.cast<String, dynamic>();
@@ -116,12 +117,7 @@ class SiloMediaStreamResolver implements MediaStreamResolver {
     if (decision['outcome'] != 'playable' ||
         plan == null ||
         sessionId is! String) {
-      final terminal = (decision['terminal'] as Map?)?.cast<String, dynamic>();
-      throw StateError(
-        terminal?['message'] as String? ??
-            "Silo can't play this item "
-                '(${terminal?['reason'] ?? decision['outcome']})',
-      );
+      throw siloRefusal(decision);
     }
 
     final source = await _effectiveSource(file, plan, itemId);
@@ -180,12 +176,31 @@ class SiloMediaStreamResolver implements MediaStreamResolver {
   }) async {
     final capabilities = await api.capabilities(refresh: refresh);
     if (!capabilities.playable) {
-      throw UnsupportedError(
-        'Playback is not available on this Silo server '
-        '(${capabilities.state ?? 'unknown state'})',
+      throw PlaybackRefusedException(
+        siloPlaybackUnavailableMessage,
+        reason: capabilities.state ?? 'unavailable',
       );
     }
     return capabilities.installationId;
+  }
+
+  /// [_start], with Silo's `426 client_upgrade_required` (a server that no
+  /// longer speaks this protocol) as a refusal that says so.
+  Future<Map<String, dynamic>> _startOrRefuse(
+    SiloPlaybackApi api,
+    Map<String, dynamic> body,
+  ) async {
+    try {
+      return await _start(api, body);
+    } on DioException catch (error) {
+      if (error.response?.statusCode == 426) {
+        throw const PlaybackRefusedException(
+          siloUpgradeRequiredMessage,
+          reason: 'client_upgrade_required',
+        );
+      }
+      rethrow;
+    }
   }
 
   /// Sends [body] until Silo answers, resending it unchanged while the
@@ -334,3 +349,30 @@ class _SiloFile {
   /// Every version Moonfin knows of the item.
   final List<Map<String, dynamic>> sources;
 }
+
+/// What the player shows when Silo decides not to play (step 10.8): Silo's
+/// own `terminal.message` (for example *"This file can't be read. Replace
+/// it and scan the library again."* for `source_unreadable`), with its
+/// reason and whether trying again could help. A terminal without words
+/// names its reason.
+PlaybackRefusedException siloRefusal(Map<String, dynamic> decision) {
+  final terminal = (decision['terminal'] as Map?)?.cast<String, dynamic>();
+  final reason = terminal?['reason'] as String? ?? '${decision['outcome']}';
+  final message = (terminal?['message'] as String?)?.trim();
+  return PlaybackRefusedException(
+    message == null || message.isEmpty
+        ? "Silo can't play this item ($reason)."
+        : message,
+    reason: reason,
+    retryable: terminal?['retryable'] == true,
+  );
+}
+
+/// Shown when the server has playback switched off for this account.
+const siloPlaybackUnavailableMessage =
+    "Playback isn't available on this Silo server.";
+
+/// Shown when Silo answers `426`: it no longer speaks the playback protocol
+/// this build does.
+const siloUpgradeRequiredMessage =
+    'This Silo server needs a newer version of Moonfin to play.';

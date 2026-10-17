@@ -565,7 +565,7 @@ Audiobooks, which keep their own position (`progress_persistence: client` and `/
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | previous step |
+| ☑ Done | — | previous step |
 
 **Goal.** Send `start_position` whenever Moonfin passes one; omit it only when Moonfin has no opinion.
 
@@ -608,7 +608,7 @@ So `start_position` is now sent on every start (`siloStartPosition`): the positi
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | previous step |
 
 **Goal.** When `can_seek_anywhere` is false, replan on a far seek (needed for progressive remux).
 
@@ -618,26 +618,52 @@ So `start_position` is now sent on every start (`siloStartPosition`): the positi
 
 **Where in Moonfin**
 
-- `silo_media_stream_resolver.dart`
+- `packages/playback_silo/lib/src/silo_media_stream_resolver.dart` (`StreamReplanner`: `canReplan`, `replan`)
+- `packages/playback_silo/lib/src/silo_plan_mapper.dart`, `silo_playback_sessions.dart`
+- `packages/server_silo/lib/src/api/silo_playback_api.dart` (`replanPlayback`, `isRetryableReplanError`, `isEndedByServer`)
+- `packages/playback_core/lib/src/stream_resolution_result.dart` (`seeksThroughServer`, `reopenAfterPause`), `playback_manager.dart` (seek and resume)
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+A Silo remux is produced as it plays (protocol v3 §4–5). A progressive remux is one chunked response with no byte ranges; an HLS copy remux is FFmpeg's still-growing playlist. Both start at the keyframe before the asked position, so the plan says `can_seek_anywhere: false` and leaves the window's end open: the player has no bytes past what has been produced and nothing to seek in. Every seek goes back to Silo as a **`seek_reanchor` replan**, which answers a new plan for the same session starting there. Without it, a seek on a remux stalls or ends the stream (found in phase 0, §2.1 of the design notes).
+
+**`playback_core`.** `StreamResolutionResult` gains two flags, false/null for Jellyfin and Emby:
+
+- `seeksThroughServer`: the player can't seek this stream itself. `PlaybackManager.seekTo` then shows the target on the seek bar at once and replans at it (`_seekThroughServer`, reason `seek`, through 10.2's path: no stop, same session) instead of seeking the player. A scrub doesn't queue one replan per step: seeks made while one is being served only move its target, and the latest target is served next.
+- `reopenAfterPause`: how long the server keeps a paused stream. Silo closes a progressive remux that stops being read (a paused player's buffer fills), so `resume()` after a longer pause replans at the position (as a seek, playing once open) instead of resuming a closed stream, which would end in an error and a failure recovery that rules the remux out. Silo's web player does the same after a minute.
+- A replan the server refuses with a `PlaybackRefusedException` is no longer followed by a fresh start (10.2's fallback for other errors): the server answered, and starting again wouldn't change the answer.
+
+**Silo's resolver implements `StreamReplanner`:**
+
+- `canReplan`: the stream is the current one of a live session Moonfin started.
+- `replan` sends `POST /api/v2/playback/{sid}/replan` (`PlaybackReplanBody`, validated against the contract in the tests): the operation for the reason (`seek_reanchor`, `track_change`, `quality_change`, `failure_recovery`); the session's `playback_attempt_id` and installation id; the current plan's `plan_id` (as `failed_plan_id`, which Silo checks against the session's current plan) and `plan_attempt_key`; a `plan_attempt_id` the client mints for each plan it adopts; `selected_tracks` exactly as the plan has them (a seek is checked against them; an absent subtitle would mean "off"); the position; the start's capabilities, context, features, quality and ceiling; a fresh `replan_request_id`.
+- **Failure recovery** adds the failed plan's key to `attempted_plan_keys` (Silo's loop guard: it won't hand one back; at most 16), counts `attempt_count` (1–8) and sends `failure.classification: playback_error`. Intents (seek, track, quality) send `attempt_count` 1 and no failure, so the current route stays eligible.
+- Interrupted requests (no answer, `5xx` such as `replan_capacity_exhausted`, `409 replan_in_progress`) are resent with the same request id for 30 s; Silo replays the committed answer. `410 playback_session_ended` (an administrator ended it) is a refusal, *"Playback was ended on the Silo server."*, and the session isn't started again. `404` (expired, or the server restarted) and `installation_changed` mark the session ended and throw, and the manager starts a new session at the position. A terminal answer is a refusal (10.8).
+- The new plan becomes the session's current one, mapped as at start (a new timeline offset, a new URL with its token); a plan on another version reads that version's tracks.
+
+`siloPlanToResolution` sets `seeksThroughServer` from `can_seek_anywhere: false`, and `reopenAfterPause` (1 minute) for `server_remux_progressive`.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `packages/playback_silo/test/silo_replan_test.dart` (new, 8 tests): a remux seeks through Silo and reopens after a minute's pause, the original doesn't; only the live session's current stream can be replanned; a seek to 30:00 sends a `seek_reanchor` that passes `PlaybackReplanBody` and echoes the attempt, plan id, attempt key, installation, capabilities and the plan's tracks, and the answer's 29:57.5 offset, URL and plan become the session's; two failure recoveries send the failed keys (one, then two), attempt counts 1 and 2, the classification and a new plan attempt id each; a dropped request, `replan_in_progress` and `replan_capacity_exhausted` are resent with one request id; `410` refuses with its message and ends the session; `404` throws for a new start; a terminal refuses.
+- `test/playback/playback_manager_seek_replan_test.dart` (new, 6 tests): a seek on such a stream replans at 30:00 and opens the new stream 2 s in (30:00 on the film) without seeking the player or reporting a stop; a scrub of three seeks while the first is served makes two replans (the first and the last target); a stream that seeks itself is seeked by the player; a two-minute pause resumes by replanning at 10:01 and plays; a 30 s pause just resumes; a refused replan isn't followed by a new start and fails the bringup with its message.
+- `test/playback/` 856/856; `playback_silo` 63/63; analyzer: no new issues.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+- **Seek anywhere on a remux** (xXx on a stereo Mac is a progressive remux; check the playback info says direct stream): seek forward 30 minutes, back 10, and drag the seek bar a long way. Each seek lands where asked after a short load, and the seek bar shows the film's time throughout. The network log shows one `POST …/replan` per settled seek (not one per scrub step) and no new `…/start`.
+- Silo's dashboard shows one session for the whole film (it isn't stopped and started per seek).
+- **Pause a remux for two minutes**, then play: it continues where it was after a short load (a `…/replan`), no error.
+- **Direct play** (The Salt Path): seeking is instant and makes no request to Silo.
+- **HLS** (a 4 Mbit/s ceiling): seeking works too (an HLS transcode can seek by itself, an HLS copy remux goes through a replan).
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-17 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | replan 8/8; manager seek 6/6; `test/playback/` 856/856; `playback_silo` 63/63; analyzer: no new issues |
 | | | | | |
 
 ---

@@ -349,6 +349,16 @@ class PlaybackManager implements AudioOwnable {
   /// that reports no `playWhenReady`, this is what tells a pause from a stall.
   bool get viewerPaused => _viewerPaused;
 
+  /// When the viewer last paused, for a stream the server drops after a
+  /// long pause ([StreamResolutionResult.reopenAfterPause]).
+  DateTime? _viewerPausedAt;
+
+  /// The latest target of a seek the server has to serve (a replan), and
+  /// whether one is being served, so a scrub becomes one replan per
+  /// settled target instead of one per step.
+  Duration? _seekReplanTarget;
+  bool _seekReplanRunning = false;
+
   /// Whether a frame has rendered since the current live stream opened.
   /// Reset at each fresh open, set the first time `playing` reports true.
   bool _liveFrameSeenSinceOpen = false;
@@ -2560,6 +2570,10 @@ class PlaybackManager implements AudioOwnable {
           );
           replanBase = replanned;
           return replanned;
+        } on PlaybackRefusedException {
+          // The server answered, and its answer is no: starting again
+          // wouldn't change it (or it ended the session on purpose).
+          rethrow;
         } catch (error) {
           // The session can't move, so it ends here like any re-resolved
           // one, and a new one starts below.
@@ -3401,13 +3415,32 @@ class PlaybackManager implements AudioOwnable {
   }
 
   Future<void> resume() async {
+    final pausedAt = _viewerPausedAt;
     _viewerPaused = false;
+    _viewerPausedAt = null;
     if (await _maybeIntercept(TransportAction.resume)) return;
+    // A stream the server drops while paused is opened again where it was,
+    // in its session, instead of failing on the closed stream.
+    final current = _currentResolution;
+    final idle = current?.reopenAfterPause;
+    if (current != null &&
+        idle != null &&
+        pausedAt != null &&
+        clock().difference(pausedAt) >= idle &&
+        _replannerFor(current) != null) {
+      await _reResolveAtCurrentPosition(
+        reason: 'resume-after-long-pause',
+        replanReason: ReplanReason.seek,
+        autoPlay: true,
+      );
+      return;
+    }
     await _backend?.resume();
   }
 
   Future<void> pause() async {
     _viewerPaused = true;
+    _viewerPausedAt = clock();
     if (await _maybeIntercept(TransportAction.pause)) return;
     await _backend?.pause();
   }
@@ -3489,7 +3522,46 @@ class PlaybackManager implements AudioOwnable {
   Future<void> seekTo(Duration position) async {
     if (await _maybeIntercept(TransportAction.seek, position: position)) return;
     _lastKnownPosition = position;
+    // While one is being served the stream is being replaced, so a new seek
+    // only moves its target.
+    if (_seekReplanRunning) {
+      state.setPosition(position);
+      _seekReplanTarget = position;
+      return;
+    }
+    final current = _currentResolution;
+    if (current != null &&
+        current.seeksThroughServer &&
+        _replannerFor(current) != null) {
+      state.setPosition(position);
+      await _seekThroughServer(position);
+      return;
+    }
     await _backend?.seekTo(_playerPosition(position));
+  }
+
+  /// A seek the stream can't do itself: the resolver replans at [position]
+  /// and the player opens the new stream there. Seeks made while one is
+  /// being served only move its target; the latest one is served next.
+  Future<void> _seekThroughServer(Duration position) async {
+    _seekReplanTarget = position;
+    if (_seekReplanRunning) return;
+    _seekReplanRunning = true;
+    try {
+      Duration? served;
+      while (_seekReplanTarget != null && _seekReplanTarget != served) {
+        final target = _seekReplanTarget!;
+        await _reResolveAtCurrentPosition(
+          reason: 'seek',
+          replanReason: ReplanReason.seek,
+          atPosition: target,
+        );
+        served = target;
+      }
+    } finally {
+      _seekReplanRunning = false;
+      _seekReplanTarget = null;
+    }
   }
 
   /// A seek the player performed on its own, from a control the manager does
@@ -4172,6 +4244,10 @@ class PlaybackManager implements AudioOwnable {
     // Why, for a resolver that can replan (see [StreamReplanner]). Null is a
     // track change, or a failure for an error recovery.
     ReplanReason? replanReason,
+    // Where the new stream starts, when not where playback is (a seek).
+    Duration? atPosition,
+    // Whether it plays once open; null keeps what the player was doing.
+    bool? autoPlay,
   }) {
     final previous = _reResolveQueue;
 
@@ -4182,9 +4258,9 @@ class PlaybackManager implements AudioOwnable {
         } catch (_) {}
       }
 
-      final autoPlayAfterResolve = isErrorRecovery
-          ? true
-          : (_backend?.isPlaying ?? state.isPlaying);
+      final autoPlayAfterResolve =
+          autoPlay ??
+          (isErrorRecovery ? true : (_backend?.isPlaying ?? state.isPlaying));
 
       await _reResolveNow(
         forceTranscode: forceTranscode,
@@ -4196,6 +4272,7 @@ class PlaybackManager implements AudioOwnable {
         replanReason:
             replanReason ??
             (isErrorRecovery ? ReplanReason.failure : ReplanReason.trackChange),
+        atPosition: atPosition,
       );
     }();
 
@@ -4211,6 +4288,7 @@ class PlaybackManager implements AudioOwnable {
     required String reason,
     bool allowStartupRecovery = true,
     ReplanReason replanReason = ReplanReason.trackChange,
+    Duration? atPosition,
   }) async {
     // A re-resolve stops the backend, reports the stop and kills the server
     // job, so it is one of the few things that can clear the player's
@@ -4228,13 +4306,14 @@ class PlaybackManager implements AudioOwnable {
     // own end and it reports completion the moment it is ready.
     final currentPos = _currentItemIsLive
         ? Duration.zero
-        : Duration(
-            microseconds: [
-              backendPos.inMicroseconds,
-              state.position.inMicroseconds,
-              _lastKnownPosition.inMicroseconds,
-            ].reduce((a, b) => a > b ? a : b),
-          );
+        : atPosition ??
+              Duration(
+                microseconds: [
+                  backendPos.inMicroseconds,
+                  state.position.inMicroseconds,
+                  _lastKnownPosition.inMicroseconds,
+                ].reduce((a, b) => a > b ? a : b),
+              );
     _stopProgressTimer();
     final item = queueService.currentItem ?? _lastPlaybackItem;
     final resolution = _currentResolution ?? _lastPlaybackResolution;

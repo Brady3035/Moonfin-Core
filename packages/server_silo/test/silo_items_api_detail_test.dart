@@ -98,9 +98,9 @@ void main() {
       final client = siloTestClient(server);
       expect((await client.userLibraryApi.getItem(_xxx))['Name'], 'xXx');
       expect(
-        () => client.userLibraryApi.markFavorite(_xxx),
+        () => client.userLibraryApi.markPlayed(_xxx),
         throwsA(
-          isA<SiloNotImplementedError>().having((e) => e.step, 'step', '9.1'),
+          isA<SiloNotImplementedError>().having((e) => e.step, 'step', '9.2'),
         ),
       );
     });

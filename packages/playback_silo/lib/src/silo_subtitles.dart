@@ -3,6 +3,11 @@ import 'package:server_silo/server_silo.dart';
 
 import 'silo_plan_mapper.dart';
 
+// The combined order moved to server_silo with 11.6, which remembers a
+// series' subtitle by it; playback code keeps reaching it from here.
+export 'package:server_silo/server_silo.dart'
+    show siloSubtitleOrder, siloSubtitleCombinedIndex;
+
 /// Subtitles between Moonfin and a Silo plan (step 10.14).
 ///
 /// Silo numbers a file's subtitles in one **combined** space (protocol v3
@@ -16,34 +21,6 @@ import 'silo_plan_mapper.dart';
 /// is its place among the external ones, or the external count plus its
 /// place among the embedded ones. Downloaded subtitles exist only in a
 /// plan's inventory; Moonfin gives them indices after the file's own.
-
-/// Moonfin's subtitle stream indices of a mapped [source], in Silo's
-/// combined order.
-List<int> siloSubtitleOrder(Map<String, dynamic>? source) {
-  if (source == null) return const [];
-  final streams = [
-    for (final s in (source['MediaStreams'] as List?) ?? const [])
-      if (s is Map && s['Type'] == 'Subtitle' && s['Index'] is int)
-        s.cast<String, dynamic>(),
-  ];
-  int ordinal(Map<String, dynamic> s) =>
-      siloTrackForStreamIndex(source, s['Index'] as int)?.ordinal ?? 1 << 30;
-  streams.sort((a, b) => ordinal(a).compareTo(ordinal(b)));
-  return [
-    for (final s in streams)
-      if (s['IsExternal'] == true) s['Index'] as int,
-    for (final s in streams)
-      if (s['IsExternal'] != true) s['Index'] as int,
-  ];
-}
-
-/// Silo's combined index of Moonfin's subtitle stream [index], or null when
-/// it is none of [source]'s subtitles.
-int? siloSubtitleCombinedIndex(Map<String, dynamic>? source, int? index) {
-  if (index == null || index < 0) return null;
-  final at = siloSubtitleOrder(source).indexOf(index);
-  return at < 0 ? null : at;
-}
 
 /// Silo's identity for Moonfin's subtitle stream [index]
 /// (`{id: file:<file>:subtitle:<combined>, index: <combined>}`).

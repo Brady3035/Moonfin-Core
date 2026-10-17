@@ -18,6 +18,7 @@ import '../silo_pager.dart';
 import 'silo_home_sections.dart';
 import 'silo_markers.dart';
 import 'silo_themes.dart';
+import 'silo_track_preferences.dart';
 import 'silo_trickplay.dart';
 import 'silo_pending_api.dart';
 
@@ -45,7 +46,8 @@ class SiloItemsApi
         EditableCollectionsApi,
         HomeDismissalsApi,
         TrickplayManifestApi,
-        ThemeSongStreamApi {
+        ThemeSongStreamApi,
+        SeriesTrackPreferencesApi {
   SiloItemsApi(
     this._dio, {
     this.images,
@@ -64,6 +66,15 @@ class SiloItemsApi
 
   /// Theme music (11.5).
   late final SiloThemes themes = SiloThemes(_dio, clock: _clock);
+
+  /// The mapped media source each item plays, as the resolver noted it.
+  final _playingSources = <String, Map<String, dynamic>>{};
+
+  /// Series audio and subtitle choices (11.6).
+  late final SiloTrackPreferences trackPreferences = SiloTrackPreferences(
+    _dio,
+    (itemId) => _playingSources[itemId],
+  );
 
   /// Skip markers by file (11.1).
   late final SiloMarkers markers = SiloMarkers(_dio, clock: _clock);
@@ -2463,10 +2474,50 @@ class SiloItemsApi
   );
 
   /// Called by the Silo resolver when [itemId] starts playing [fileId], so
-  /// the player's extras (markers…) come from that file.
-  void notePlayingFile(String itemId, String fileId, {num? runTimeSeconds}) {
+  /// the player's extras (markers…) come from that file. [source] is the
+  /// file's mapped media source, whose track map a series' track choice is
+  /// written with (11.6).
+  void notePlayingFile(
+    String itemId,
+    String fileId, {
+    num? runTimeSeconds,
+    Map<String, dynamic>? source,
+  }) {
     markers.notePlayingFile(itemId, fileId, runTimeSeconds: runTimeSeconds);
+    if (source != null) _playingSources[itemId] = source;
   }
+
+  /// The series' remembered audio track (11.6).
+  @override
+  Future<SeriesTrackChoice?> getSeriesAudioChoice(String seriesId) =>
+      trackPreferences.audioChoice(seriesId);
+
+  /// The series' remembered subtitle choice (11.6).
+  @override
+  Future<SeriesTrackChoice?> getSeriesSubtitleChoice(String seriesId) =>
+      trackPreferences.subtitleChoice(seriesId);
+
+  @override
+  Future<void> setSeriesAudioChoice(
+    String seriesId, {
+    required String itemId,
+    required int streamIndex,
+  }) => trackPreferences.setAudio(
+    seriesId,
+    itemId: itemId,
+    streamIndex: streamIndex,
+  );
+
+  @override
+  Future<void> setSeriesSubtitleChoice(
+    String seriesId, {
+    required String itemId,
+    required int streamIndex,
+  }) => trackPreferences.setSubtitle(
+    seriesId,
+    itemId: itemId,
+    streamIndex: streamIndex,
+  );
 
   // --- the rest, by roadmap step ------------------------------------------
 

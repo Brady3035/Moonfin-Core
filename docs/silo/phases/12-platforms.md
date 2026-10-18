@@ -233,7 +233,7 @@ Casting needs the app on an Android or iOS device and a Chromecast (or a Google 
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | previous step |
+| ☑ Done | — | previous step |
 
 **Goal.** AirPlay from iOS to an Apple TV with Silo's stream, its token, and its session kept alive.
 
@@ -279,30 +279,41 @@ Needs an iPhone or iPad and an Apple TV, so it goes to the deferred platform che
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | previous step |
+
+**Goal.** Casting to a DLNA renderer with Silo's stream, its token, and its session kept alive.
 
 **Where in Moonfin**
 
-- `lib/data/services/cast/dlna_provider.dart`
+- `lib/data/services/cast/dlna_provider.dart`: the receiver's environment, the session to report
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+A DLNA renderer (a smart TV, an AV receiver) is handed the stream URL and fetches it itself, so it gets the receiver treatment of 12.4:
+
+- **The start** describes a receiver (`siloReceiverEnvironment('dlna')`): no headers, so `token=` on every media URL, and no progressive remux, since renderers seek by byte ranges.
+- **The session** is reported from the renderer's state events (`PLAYING`, `PAUSED_PLAYBACK` and its position, which the native DLNA controllers already send) through `CastSessionReporter`, and stopped when the cast ends.
+- **The profile.** DLNA has no receiver profile in Moonfin: the provider resolves with the phone's own (`DeviceProfileBuilder.build()`), for every server, as before. A renderer that can't play what the phone can (HEVC, MKV, HLS: many can't) fails on the TV. That isn't Silo-specific; a DLNA receiver profile would be an upstream change.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- No new test: the Silo branch uses the shared receiver traits, token handling and reporter (12.3, 12.4). The native DLNA channel can't run in a unit test.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+Needs an Android or iOS device and a DLNA renderer, so it goes to the deferred platform checks in 17.5 unless Brady has them at hand.
+
+- a. Cast an MP4 film (H.264/AAC) to a DLNA TV: it plays; the URL carries `token=`.
+- b. Pause, seek, resume from the phone; the session stays alive past a minute; stopping keeps the resume point.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-17 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | cast tests pass; analyzer: no issues in the changed files |
+| 2026-10-17 | DLNA | — | Deferred | checks a–b in 17.5 |
 | | | | | |
 
 ---

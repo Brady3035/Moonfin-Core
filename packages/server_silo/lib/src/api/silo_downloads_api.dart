@@ -1,6 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:server_core/server_core.dart';
 
+import '../mappers/silo_item_mapper.dart' show siloOriginalKey;
+import '../mappers/silo_media_source_mapper.dart';
 import '../silo_problem.dart';
 
 /// What Silo says about downloads for the acting profile
@@ -388,6 +390,7 @@ class SiloDownloadsApi implements ServerDownloadsApi {
     revision: entry.revision,
     sizeBytes: entry.fileSize > 0 ? entry.fileSize : null,
     container: entry.deliveryFormat == 'original' ? null : 'mp4',
+    mediaSourceId: entry.mediaFileId.isEmpty ? null : entry.mediaFileId,
   );
 
   /// This device's entry for the movie or episode [itemId], or null. Reads
@@ -507,6 +510,73 @@ class SiloDownloadsApi implements ServerDownloadsApi {
     return result;
   }
 
+  /// The manifest's `subtitles` that aren't in the downloaded file, each
+  /// matched to its stream in Moonfin's [mediaSource] (`subtitles/{ref}`,
+  /// served to this device and profile, timing corrections applied).
+  ///
+  /// Silo names them by reference: `external:{n}` is the file's n-th sidecar,
+  /// and Moonfin's media source lists the version's subtitle tracks with the
+  /// sidecars marked `external`, in the same order; `embedded:{n}` is the
+  /// file's n-th subtitle track, an ASS or PGS track that a converted MP4
+  /// can't hold (an original keeps its embedded tracks, so it gets none).
+  /// `downloaded:{id}` (subtitles fetched into Silo by its subtitle search)
+  /// has no stream in the media source and is left out.
+  @override
+  Future<List<ServerDownloadSubtitle>> downloadSubtitles(
+    ServerDownloadTicket ticket, {
+    required Map<String, dynamic> mediaSource,
+  }) async {
+    final manifest = await this.manifest(ticket);
+    final converted = (manifest['delivery_format'] ?? 'original') != 'original';
+    final tracks = [
+      for (final t
+          in asJsonMap(mediaSource[siloOriginalKey])?['subtitle_tracks']
+                  as List? ??
+              const [])
+        asJsonMap(t) ?? const <String, dynamic>{},
+    ];
+    final sidecarOrdinals = [
+      for (final (i, t) in tracks.indexed)
+        if (t['external'] == true) i,
+    ];
+    final result = <ServerDownloadSubtitle>[];
+    for (final raw in manifest['subtitles'] as List? ?? const []) {
+      final subtitle = asJsonMap(raw);
+      final url = subtitle?['fetch_url'] as String?;
+      final format = (subtitle?['format'] as String?)?.toLowerCase();
+      if (url == null || url.isEmpty || format == null || format.isEmpty) {
+        continue;
+      }
+      final ref = Uri.decodeComponent(url.split('/').last).split(':');
+      final n = ref.length == 2 ? int.tryParse(ref[1]) : null;
+      if (n == null || n < 0) continue;
+      final ordinal = switch (ref[0]) {
+        'external' when n < sidecarOrdinals.length => sidecarOrdinals[n],
+        'embedded'
+            when converted &&
+                n < tracks.length &&
+                tracks[n]['external'] != true =>
+          n,
+        _ => null,
+      };
+      if (ordinal == null) continue;
+      final index = siloStreamIndexForTrack(
+        mediaSource,
+        SiloTrackKind.subtitle,
+        ordinal,
+      );
+      if (index == null) continue;
+      result.add(
+        ServerDownloadSubtitle(
+          url: _absolute(url),
+          streamIndex: index,
+          format: format == 'ssa' ? 'ass' : format,
+        ),
+      );
+    }
+    return result;
+  }
+
   Uri _absolute(String path) => path.startsWith('http')
       ? Uri.parse(path)
       : Uri.parse('${_baseUrl()}$path');
@@ -543,6 +613,7 @@ class SiloDownloadEntry {
     required this.revision,
     required this.fileSize,
     required this.deliveryFormat,
+    this.mediaFileId = '',
     this.preparation,
   });
 
@@ -555,6 +626,7 @@ class SiloDownloadEntry {
         revision: (json['revision'] as num?)?.toInt() ?? 0,
         fileSize: (json['file_size'] as num?)?.toInt() ?? 0,
         deliveryFormat: json['delivery_format'] as String? ?? 'original',
+        mediaFileId: json['media_file_id']?.toString() ?? '',
         preparation: asJsonMap(json['preparation']),
       );
 
@@ -571,6 +643,9 @@ class SiloDownloadEntry {
 
   /// `original`, `remux` or `transcode`.
   final String deliveryFormat;
+
+  /// The file (version) the entry is of.
+  final String mediaFileId;
 
   /// Where a preparing file is in Silo's queue (listed entries only).
   final Map<String, dynamic>? preparation;

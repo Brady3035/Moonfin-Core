@@ -154,6 +154,7 @@ class _Registry implements ServerDownloadsApi {
       headers: const {'Authorization': 'Bearer access-1'},
       revision: 1,
       sizeBytes: 2048,
+      mediaSourceId: '4567',
     );
   }
 
@@ -171,6 +172,19 @@ class _Registry implements ServerDownloadsApi {
   Future<Map<ServerDownloadArtworkKind, Uri>> downloadArtwork(
     ServerDownloadTicket ticket,
   ) async => artwork;
+
+  /// The subtitle files the server answers.
+  List<ServerDownloadSubtitle> subtitles = const [];
+  final subtitleSources = <Map<String, dynamic>>[];
+
+  @override
+  Future<List<ServerDownloadSubtitle>> downloadSubtitles(
+    ServerDownloadTicket ticket, {
+    required Map<String, dynamic> mediaSource,
+  }) async {
+    subtitleSources.add(mediaSource);
+    return subtitles;
+  }
 
   @override
   Future<void> downloadsRemoved(Iterable<String> itemIds) async =>
@@ -269,6 +283,14 @@ void main() {
     fileServer = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
     fileServer.listen((request) {
       fileRequests.add(request);
+      if (request.uri.path.startsWith('/subs/')) {
+        request.response
+          ..statusCode = 200
+          ..headers.contentType = ContentType.text
+          ..write('1\n00:00:01,000 --> 00:00:02,000\nHello\n');
+        request.response.close();
+        return;
+      }
       if (request.uri.path.startsWith('/art/')) {
         request.response
           ..statusCode = 200
@@ -488,6 +510,41 @@ void main() {
       isTrue,
     );
     await _afterCompletionTasks();
+  });
+
+  test("subtitles are saved beside the file, named by their stream", () async {
+    registry.subtitles = [
+      ServerDownloadSubtitle(
+        url: Uri.parse('http://127.0.0.1:${fileServer.port}/subs/external:0'),
+        streamIndex: 4,
+        format: 'srt',
+      ),
+    ];
+
+    await service.downloadItem(item());
+    await _waitFor(
+      () => fileRequests.any((r) => r.uri.path.startsWith('/subs/')),
+    );
+    await _afterCompletionTasks();
+
+    // The version the file is of.
+    expect(registry.subtitleSources.single['Id'], '4567');
+    final saved = tempDir
+        .listSync(recursive: true)
+        .whereType<File>()
+        .where((f) => f.path.endsWith('_sub_4.srt'))
+        .toList();
+    expect(saved, hasLength(1));
+    expect(saved.single.readAsStringSync(), contains('Hello'));
+    final request = fileRequests.firstWhere(
+      (r) => r.uri.path.startsWith('/subs/'),
+    );
+    expect(request.headers.value('authorization'), 'Bearer access-1');
+    // No Jellyfin subtitle URL was tried.
+    expect(
+      fileRequests.where((r) => r.uri.path.startsWith('/Videos/')),
+      isEmpty,
+    );
   });
 
   test('deleting a download tells the server', () async {

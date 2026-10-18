@@ -34,13 +34,14 @@ class FeatureDetector {
   /// their own markers (11.1).
   bool get supportsSkipSegments => true;
 
-  bool get supportsQuickConnect => _isJellyfin;
+  /// Sign in with a code (Jellyfin's Quick Connect; on Silo its device
+  /// sign-in, 14.1) and approving another device's code (14.2).
+  bool get supportsQuickConnect => _isJellyfin || _isSilo;
 
   /// Whether jellyfin-web opens its Quick Connect page from a link with the
   /// code already filled in. That page arrived in 10.9, and older servers
   /// only have the page without the prefill.
-  bool get supportsQuickConnectWebLink =>
-      supportsQuickConnect && _versionAtLeast(10, 9);
+  bool get supportsQuickConnectWebLink => _isJellyfin && _versionAtLeast(10, 9);
 
   bool get supportsClientLog => _isJellyfin;
 

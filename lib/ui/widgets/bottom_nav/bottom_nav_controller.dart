@@ -57,6 +57,23 @@ class BottomNavController extends ChangeNotifier {
   static T? _maybe<T extends Object>() =>
       GetIt.instance.isRegistered<T>() ? GetIt.instance<T>() : null;
 
+  /// Whether the active server approves other devices' sign-in codes
+  /// (Jellyfin's Quick Connect, Silo's device sign-in). No hub tile without
+  /// a server.
+  static bool get _activeServerHasQuickConnect {
+    final client = _maybe<MediaServerClient>();
+    return client != null &&
+        FeatureDetector(
+          serverType: client.serverType,
+          serverVersion: '',
+        ).supportsQuickConnect;
+  }
+
+  /// Whether the active server is Silo, whose words for Quick Connect differ
+  /// ("Approve a sign-in").
+  static bool get activeServerIsSilo =>
+      _maybe<MediaServerClient>()?.serverType == ServerType.silo;
+
   StreamSubscription? _userSub;
   Timer? _librariesReloadDebounce;
   String _signature = '';
@@ -134,8 +151,7 @@ class BottomNavController extends ChangeNotifier {
           DownloadsNavSlot.isOffered() && DownloadsNavSlot.hasSavedMedia(),
       shuffle: _prefs.get(UserPreferences.showShuffleButton),
       syncPlay: syncPlay,
-      quickConnect:
-          _maybe<MediaServerClient>()?.serverType == ServerType.jellyfin,
+      quickConnect: _activeServerHasQuickConnect,
       remoteControl: activeServerSupports((f) => f.supportsRemoteControl),
       alsoOnBar: style == BottomNavbarStyle.split
           ? const {BottomNavTab.search}

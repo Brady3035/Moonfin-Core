@@ -227,7 +227,7 @@ Converted downloads must be on in Silo first (server settings: transcode to file
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | previous step |
+| ☑ Done | — | previous step |
 
 **Goal.** Store the translated item and the image bytes; offline images must not depend on the registry.
 
@@ -289,7 +289,7 @@ On the Mac, signed in to Silo:
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | previous step |
 
 **Goal.** Replay queued progress through bulk progress sync.
 
@@ -299,27 +299,43 @@ On the Mac, signed in to Silo:
 
 **Where in Moonfin**
 
-- `lib/data/services/offline_playback_tracker.dart`
-- `sync_service.dart`
+- `packages/server_core/lib/src/api/offline_progress_sync_api.dart` (new): `OfflineProgressSyncApi`, `OfflineProgressEntry`
+- `packages/server_silo/lib/src/api/silo_user_library_api.dart`: `SiloUserLibraryApi` implements it
+- `lib/data/services/sync_service.dart`: `syncPlaybackProgress` sends the pushes in bulk when the server takes them
+- (`lib/data/services/offline_playback_tracker.dart`, which the roadmap named: unchanged; it records offline progress the same way on every server.)
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+While offline, Moonfin's player records each downloaded item's position in the download's row (`OfflinePlaybackTracker`: every 10 seconds, and 0 once past 90%, meaning played) and marks it unsynced. When the server is reachable again, `SyncService.syncPlaybackProgress` reads the server's user data for those items in one request and settles each: a played item on the server, or a server position further along, is adopted locally; otherwise the local progress is pushed. On Jellyfin and Emby the push is a stop report (`reportPlaybackStopped`) or "mark played", one call per item.
+
+On Silo a stop report needs a playback session (10.10), which an offline play never had, so offline progress didn't reach Silo. Silo's guide has a route for exactly this: `POST /sync/progress` takes up to 100 queued writes in one request (`docs/downloads-api.md` §7.1). A new optional `server_core` interface, `OfflineProgressSyncApi`, carries it. Silo's user-library API provides it, and the sync service, finding it on the client's `userLibraryApi`, collects the pushes and sends them together after the comparison loop, in batches of the server's limit. Jellyfin and Emby don't provide it and are unchanged.
+
+**What is sent.** Per item: `media_item_id`, `position_ms`, `duration_ms` (from the stored item's runtime), `updated_at`, and a `client_ref` (its place in the batch). A played item is sent as having reached its end (`position_ms` = runtime); Silo's own watched threshold then marks it watched, and Silo never lets a later lower position unwatch it. A played item whose runtime isn't known can't be said that way and is marked played as before (`POST /watched/{id}`). `updated_at` is the time of the sync: the store keeps no time for offline progress, and the server's own newer progress was already preferred by the comparison. Silo answers per item with its `index`; each one taken is marked synced (and noted as changed for the Silo caches, 9.4), each refused one stays queued for the next sync, and a request that fails as a whole leaves its batch queued. The route is `non_retryable` and is sent once.
+
+**Known limit.** As on the other servers, the comparison favours whichever side got further: rewinding on another device while this one was offline is overridden by the offline position when it is further along.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `packages/server_silo/test/silo_offline_progress_test.dart` (new, 5 tests): the queued progress goes in one request as milliseconds, a played item at its end, and the body fits the contract (`ProgressSyncInputBody`); a refused item is false by its index; Silo's answer shapes fit the contract; a failed request is sent once; an empty queue sends nothing, batches of at most 100.
+- `test/offline/offline_progress_sync_test.dart` (6 new, 20/20): with a bulk-capable server, local progress (partial and played) goes in one request and no stop reports; a server ahead is adopted and nothing sent; batches follow the server's limit; a refused item stays queued; a failed request keeps everything queued; played without a runtime is marked played instead.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+On the Mac, with a Silo film and an episode downloaded (15.2):
+
+- a. Turn the network off (or stop Silo). Play the film for a few minutes and stop; play the episode to its end (past 90%).
+- b. Network back on (or Silo started): within the reconnect sync, the log shows one `POST …/api/v2/sync/progress` (`200`), and no `…/playback/…/stop`. In Silo's web app the film shows the resume point from offline, and the episode is watched.
+- c. Repeat a, but before reconnecting play the film further on Silo's web app: after the sync, Moonfin shows the web app's position (adopted), and no progress is sent for the film.
+- d. Regression on Emby: offline progress still syncs (as a stop report).
+- e. Full suite (`flutter test` at the repo root).
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-18 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | offline progress 5/5, progress sync 20/20, `server_silo` 664/664, `server_core` 100/100, `test/offline` + `test/data/services` 623/623; analyzer: no issues in the changed files |
 | | | | | |
 
 ---

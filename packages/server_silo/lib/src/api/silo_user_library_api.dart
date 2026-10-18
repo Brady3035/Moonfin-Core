@@ -10,7 +10,7 @@ import 'silo_items_api.dart';
 ///
 /// Every action acts for the profile the client acts as (`X-Profile-Id`),
 /// so each household profile keeps its own, as in Silo's web app.
-class SiloUserLibraryApi implements UserLibraryApi {
+class SiloUserLibraryApi implements UserLibraryApi, OfflineProgressSyncApi {
   SiloUserLibraryApi(this._items, this._dio);
 
   final SiloItemsApi _items;
@@ -98,6 +98,57 @@ class SiloUserLibraryApi implements UserLibraryApi {
       data: {'rating': stars},
     ),
   );
+
+  // --- offline progress (15.5) ---------------------------------------------
+
+  /// Silo's `ProgressSyncInputBody` takes at most 100 items.
+  @override
+  int get offlineProgressBatchLimit => 100;
+
+  /// `POST /sync/progress`: Silo's bulk write for progress queued offline
+  /// (`docs/downloads-api.md` §7.1). Positions and runtimes are integer
+  /// milliseconds; a played item is sent as having reached its end, and
+  /// Silo's own watched threshold marks it (a one-way latch: a later lower
+  /// position doesn't unwatch it). `updated_at` orders the writes
+  /// (last write wins per profile; Silo clamps it to now + 2 minutes).
+  ///
+  /// `non_retryable`: sent once. Each result carries its request `index`;
+  /// an item Silo refused (an unknown id, say) is false.
+  @override
+  Future<List<bool>> syncOfflineProgress(
+    List<OfflineProgressEntry> entries,
+  ) async {
+    if (entries.isEmpty) return const [];
+    final response = await _dio.post<dynamic>(
+      '/api/v2/sync/progress',
+      data: {
+        'items': [
+          for (final (i, entry) in entries.indexed)
+            {
+              'media_item_id': entry.itemId,
+              'position_ms': entry.played
+                  ? entry.runtime.inMilliseconds
+                  : entry.position.inMilliseconds,
+              'duration_ms': entry.runtime.inMilliseconds,
+              'updated_at': entry.recordedAt.toUtc().toIso8601String(),
+              'client_ref': '$i',
+            },
+        ],
+      },
+    );
+    final ok = List<bool>.filled(entries.length, false);
+    final results = asJsonMap(response.data)?['items'] as List? ?? const [];
+    for (final raw in results) {
+      final result = asJsonMap(raw);
+      final index = (result?['index'] as num?)?.toInt();
+      if (index == null || index < 0 || index >= ok.length) continue;
+      ok[index] = result?['status'] == 'success';
+    }
+    for (final (i, entry) in entries.indexed) {
+      if (ok[i]) _items.noteUserDataChanged(entry.itemId);
+    }
+    return ok;
+  }
 
   /// Waits for [write], then tells the items API what changed (9.4), so the
   /// rows Moonfin reloads read Silo again. A write that failed changed

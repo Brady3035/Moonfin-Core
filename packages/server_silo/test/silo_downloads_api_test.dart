@@ -443,24 +443,23 @@ void main() {
       );
     });
 
-    test('a file still being prepared is not handed out yet', () async {
+    test('a file Silo is still preparing is waited for (15.3)', () async {
       final server = silo(
+        entries: [
+          entry({'status': 'ready', 'delivery_format': 'remux'}),
+        ],
         create: _json(
           created({'status': 'preparing', 'delivery_format': 'remux'}),
           status: 202,
         ),
       );
 
-      await expectLater(
-        _client(server).downloadsApi.prepareDownload(movie),
-        throwsA(
-          isA<ServerDownloadRefused>().having(
-            (e) => e.reason,
-            'reason',
-            'preparing',
-          ),
-        ),
-      );
+      final ticket =
+          await (_client(server).downloadsApi
+                ..preparationPollInterval = Duration.zero)
+              .prepareDownload(movie);
+
+      expect(ticket.container, 'mp4');
     });
 
     test(
@@ -627,6 +626,243 @@ void main() {
         ),
         isNull,
       );
+    });
+  });
+
+  group('converted downloads (15.3)', () {
+    test('Moonfin qualities map onto the presets the account may use', () {
+      const all = ['original', '20mbps', '10mbps', '5mbps', '2mbps', '1mbps'];
+      // 1080p (4 Mbit/s), 720p (2), 480p (1), 360p (0.5).
+      expect(siloDownloadPreset(4000000, allowed: all), '5mbps');
+      expect(siloDownloadPreset(2000000, allowed: all), '2mbps');
+      expect(siloDownloadPreset(1000000, allowed: all), '1mbps');
+      expect(siloDownloadPreset(500000, allowed: all), '1mbps');
+      // Not allowed: the next lower one, never a higher one.
+      expect(
+        siloDownloadPreset(4000000, allowed: ['original', '10mbps', '2mbps']),
+        '2mbps',
+      );
+      expect(
+        siloDownloadPreset(2000000, allowed: ['original', '20mbps', '10mbps']),
+        isNull,
+      );
+      expect(siloDownloadPreset(4000000, allowed: ['original']), isNull);
+    });
+
+    Map<String, dynamic> entry(Map<String, dynamic> changes) => {
+      ...(_fixture('download_created.json')['items'] as List).first
+          as Map<String, dynamic>,
+      ...changes,
+    };
+
+    const capabilityAll = {
+      'transcode_enabled': true,
+      'quality_presets': [
+        'original',
+        '20mbps',
+        '10mbps',
+        '5mbps',
+        '2mbps',
+        '1mbps',
+      ],
+    };
+
+    const hd = ServerDownloadRequest(
+      itemId: 'movie-imdb-tt0295701',
+      mediaSourceId: '4567',
+      maxVideoBitrate: 4000000,
+      maxWidth: 1920,
+    );
+
+    /// A Silo that answers the create with [created] and then lists the
+    /// entry as each of [listed] in turn (the last one repeats).
+    FixtureServer preparing(
+      Map<String, dynamic> created,
+      List<Map<String, dynamic>> listed, {
+      Map<String, dynamic> capability = capabilityAll,
+      List<String>? paths,
+    }) {
+      var lists = 0;
+      return FixtureServer({
+        '/api/v2/capabilities/downloads': _json(_capability(capability)),
+        '/api/v2/downloads': (o) {
+          paths?.add('${o.method} ${o.uri.path}');
+          if (o.method == 'POST') {
+            return FixtureServer.json(
+              202,
+              jsonEncode({
+                'items': [created],
+                'skipped': <Object>[],
+                'page': {'has_more': false},
+              }),
+            );
+          }
+          // The first list is the scan before creating: nothing yet.
+          final page = lists == 0
+              ? <Map<String, dynamic>>[]
+              : [listed[(lists - 1).clamp(0, listed.length - 1)]];
+          lists++;
+          return FixtureServer.json(
+            200,
+            jsonEncode({
+              'items': page,
+              'page': {'has_more': false},
+            }),
+          );
+        },
+        '/api/v2/downloads/dl_01HSCRUBBED/prepare': (o) {
+          paths?.add('${o.method} ${o.uri.path}');
+          return FixtureServer.json(
+            200,
+            jsonEncode(entry({'status': 'preparing', 'revision': 1})),
+          );
+        },
+      });
+    }
+
+    SiloDownloadsApi api(FixtureServer server) =>
+        _client(server).downloadsApi..preparationPollInterval = Duration.zero;
+
+    test('waits while Silo makes the file, reporting its progress', () async {
+      final converted = {
+        'quality': '5mbps',
+        'effective_quality': '5mbps',
+        'delivery_format': 'transcode',
+        'target_bitrate_kbps': 5000,
+      };
+      final server = preparing(entry({...converted, 'status': 'preparing'}), [
+        entry({
+          ...converted,
+          'status': 'preparing',
+          'preparation': {'state': 'queued', 'queue_position': 2},
+        }),
+        entry({
+          ...converted,
+          'status': 'preparing',
+          'preparation': {
+            'state': 'running',
+            'progress': 0.4,
+            'remaining_seconds': 90,
+          },
+        }),
+        entry({...converted, 'status': 'ready', 'file_size': 900}),
+      ]);
+      final seen = <ServerDownloadPreparation>[];
+
+      final ticket = await api(
+        server,
+      ).prepareDownload(hd, onPreparing: seen.add);
+
+      final create = server.requests.firstWhere((r) => r.method == 'POST');
+      expect((create.data as Map)['quality'], '5mbps');
+      expect(siloSchemaErrors('DownloadCreateBody', create.data), isEmpty);
+      expect(seen.map((p) => p.queuePosition), [null, 2, null]);
+      expect(seen.last.progress, 0.4);
+      expect(seen.last.remainingSeconds, 90);
+      expect(ticket.sizeBytes, 900);
+      expect(ticket.container, 'mp4');
+    });
+
+    test('a failed preparation is refused', () async {
+      final server = preparing(entry({'status': 'preparing'}), [
+        entry({'status': 'failed'}),
+      ]);
+
+      await expectLater(
+        api(server).prepareDownload(hd),
+        throwsA(
+          isA<ServerDownloadRefused>().having((e) => e.reason, 'r', 'failed'),
+        ),
+      );
+    });
+
+    test('an entry that disappears while preparing is refused', () async {
+      var lists = 0;
+      final server = FixtureServer({
+        '/api/v2/capabilities/downloads': _json(_capability(capabilityAll)),
+        '/api/v2/downloads': (o) {
+          if (o.method == 'POST') {
+            return FixtureServer.json(
+              202,
+              jsonEncode({
+                'items': [
+                  entry({'status': 'preparing'}),
+                ],
+                'skipped': <Object>[],
+                'page': {'has_more': false},
+              }),
+            );
+          }
+          lists++;
+          return FixtureServer.json(
+            200,
+            jsonEncode({
+              'items': <Object>[],
+              'page': {'has_more': false},
+            }),
+          );
+        },
+      });
+
+      await expectLater(
+        api(server).prepareDownload(hd),
+        throwsA(
+          isA<ServerDownloadRefused>().having(
+            (e) => e.reason,
+            'r',
+            'not_found',
+          ),
+        ),
+      );
+      expect(lists, 2);
+    });
+
+    test('a cancelled download stops waiting', () async {
+      final server = preparing(entry({'status': 'preparing'}), [
+        entry({'status': 'preparing'}),
+      ]);
+
+      await expectLater(
+        api(server).prepareDownload(hd, isCancelled: () => true),
+        throwsA(isA<ServerDownloadCancelled>()),
+      );
+    });
+
+    test(
+      'a quality the account may not use is refused before creating',
+      () async {
+        final server = preparing(entry({}), [], capability: const {});
+
+        await expectLater(
+          api(server).prepareDownload(hd),
+          throwsA(
+            isA<ServerDownloadRefused>().having(
+              (e) => e.reason,
+              'r',
+              'quality_unavailable',
+            ),
+          ),
+        );
+        expect(server.requests.where((r) => r.method == 'POST'), isEmpty);
+      },
+    );
+
+    test('a converted file Silo cleaned up is prepared again', () async {
+      final paths = <String>[];
+      final converted = {'delivery_format': 'transcode', 'quality': '5mbps'};
+      final server = preparing(entry({...converted, 'status': 'completed'}), [
+        entry({...converted, 'status': 'ready'}),
+      ], paths: paths);
+
+      final ticket = await api(server).prepareDownload(hd);
+
+      expect(paths, [
+        'GET /api/v2/downloads',
+        'POST /api/v2/downloads',
+        'POST /api/v2/downloads/dl_01HSCRUBBED/prepare',
+        'GET /api/v2/downloads',
+      ]);
+      expect(ticket.id, 'dl_01HSCRUBBED');
     });
   });
 }

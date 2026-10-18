@@ -11,10 +11,19 @@ abstract interface class ServerDownloadsApi {
   /// Registers the download of [request]'s item with the server and answers
   /// the file to fetch once the server has it ready.
   ///
+  /// A converted file takes the server a while to make: until it is ready,
+  /// [onPreparing] hears how far along it is, and [isCancelled] is asked
+  /// between checks; once it answers true the wait ends with
+  /// [ServerDownloadCancelled].
+  ///
   /// Throws [ServerDownloadRefused] when the server won't provide this
   /// download (no file, a quality it can't make, downloads switched off),
   /// with its reason; other failures (network, server errors) as they come.
-  Future<ServerDownloadTicket> prepareDownload(ServerDownloadRequest request);
+  Future<ServerDownloadTicket> prepareDownload(
+    ServerDownloadRequest request, {
+    void Function(ServerDownloadPreparation preparation)? onPreparing,
+    bool Function()? isCancelled,
+  });
 
   /// A link a browser can open to download [request]'s item, for the web
   /// build, where downloads go through the browser and carry no headers.
@@ -109,4 +118,31 @@ class ServerDownloadRefused implements Exception {
 
   @override
   String toString() => message;
+}
+
+/// How far the server has got making a converted file.
+class ServerDownloadPreparation {
+  const ServerDownloadPreparation({
+    this.progress,
+    this.remainingSeconds,
+    this.queuePosition,
+  });
+
+  /// Fraction made, 0 to 1, while the server reports it.
+  final double? progress;
+
+  /// Estimated seconds left, while the server reports it.
+  final int? remainingSeconds;
+
+  /// Place in the server's queue while it waits to start.
+  final int? queuePosition;
+}
+
+/// The wait for a server-prepared file ended because the download was
+/// cancelled.
+class ServerDownloadCancelled implements Exception {
+  const ServerDownloadCancelled();
+
+  @override
+  String toString() => 'ServerDownloadCancelled';
 }

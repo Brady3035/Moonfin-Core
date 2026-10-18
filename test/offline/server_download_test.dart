@@ -8,6 +8,7 @@ import 'package:get_it/get_it.dart';
 import 'package:jellyfin_preference/jellyfin_preference.dart';
 import 'package:moonfin/data/database/offline_database.dart';
 import 'package:moonfin/data/models/aggregated_item.dart';
+import 'package:moonfin/data/models/download_quality.dart';
 import 'package:moonfin/data/repositories/offline_repository.dart';
 import 'package:moonfin/data/services/download_notification_service.dart';
 import 'package:moonfin/data/services/download_service.dart';
@@ -115,12 +116,29 @@ class _Registry implements ServerDownloadsApi {
   final removed = <List<String>>[];
   Object? refusal;
 
+  /// Preparation reports to send before answering, one per check.
+  List<ServerDownloadPreparation> preparing = const [];
+
+  /// Completes when the test lets a preparing file become ready.
+  Completer<void>? ready;
+
   @override
   Future<ServerDownloadTicket> prepareDownload(
-    ServerDownloadRequest request,
-  ) async {
+    ServerDownloadRequest request, {
+    void Function(ServerDownloadPreparation preparation)? onPreparing,
+    bool Function()? isCancelled,
+  }) async {
     requests.add(request);
     if (refusal case final error?) throw error;
+    for (final report in preparing) {
+      onPreparing?.call(report);
+    }
+    if (ready case final gate?) {
+      while (!gate.isCompleted) {
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+        if (isCancelled?.call() ?? false) throw const ServerDownloadCancelled();
+      }
+    }
     return ServerDownloadTicket(
       id: 'dl-1',
       itemId: request.itemId,
@@ -189,6 +207,7 @@ void main() {
   late _Repo repo;
   late HttpServer fileServer;
   late List<HttpRequest> fileRequests;
+  late List<int> fileBytes;
   late _Registry registry;
   late DownloadService service;
 
@@ -213,6 +232,9 @@ void main() {
     repo = _Repo(db);
 
     fileRequests = [];
+    // A Matroska file starts with the EBML magic; Moonfin checks it against
+    // the `.mkv` name.
+    fileBytes = [0x1A, 0x45, 0xDF, 0xA3, ...List.filled(2044, 7)];
     fileServer = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
     fileServer.listen((request) {
       fileRequests.add(request);
@@ -220,9 +242,7 @@ void main() {
         ..statusCode = 200
         ..headers.contentType = ContentType.binary
         ..headers.contentLength = 2048
-        // A Matroska file starts with the EBML magic; Moonfin checks it
-        // against the `.mkv` name.
-        ..add([0x1A, 0x45, 0xDF, 0xA3, ...List.filled(2044, 7)]);
+        ..add(fileBytes);
       request.response.close();
     });
     registry = _Registry(
@@ -318,6 +338,61 @@ void main() {
     expect(fileRequests, isEmpty);
     expect(registry.finished, isEmpty);
     await sub.cancel();
+  });
+
+  test('a converted quality: progress while the server makes it, then '
+      'an mp4', () async {
+    registry
+      ..preparing = const [
+        ServerDownloadPreparation(progress: 0.4, remainingSeconds: 90),
+      ]
+      ..ready = Completer<void>();
+
+    unawaited(service.downloadItem(item(), quality: DownloadQuality.high1080p));
+    await _waitFor(() => service.activeDownloads[item().id]?.etaSeconds == 90);
+    final preparing = service.activeDownloads[item().id]!;
+    expect(preparing.progress, 0.4);
+    expect(preparing.isQueued, isFalse);
+    expect(preparing.isTranscoded, isTrue);
+    expect(registry.requests.single.maxVideoBitrate, 4000000);
+    expect(registry.requests.single.original, isFalse);
+
+    // An mp4 now: the name follows the quality.
+    fileBytes = [
+      0,
+      0,
+      0,
+      0x20,
+      0x66,
+      0x74,
+      0x79,
+      0x70,
+      ...List.filled(2040, 7),
+    ];
+    registry.ready!.complete();
+    await _waitFor(
+      () =>
+          repo.statuses[item().id] == 2 ||
+          service.activeDownloads[item().id]?.error != null,
+    );
+    expect(service.activeDownloads[item().id]?.error, isNull);
+    expect(fileRequests.single.uri.path, '/api/v2/downloads/dl-1/file');
+    await _afterCompletionTasks();
+  });
+
+  test('cancelling while the server prepares tells it to forget', () async {
+    registry.ready = Completer<void>();
+
+    unawaited(
+      service.downloadItem(item(), quality: DownloadQuality.medium720p),
+    );
+    await _waitFor(() => registry.requests.isNotEmpty);
+    service.cancelDownload(item().id);
+
+    await _waitFor(() => registry.removed.isNotEmpty);
+    expect(registry.removed.single, ['movie-imdb-tt0295701']);
+    expect(fileRequests, isEmpty);
+    expect(service.activeDownloads[item().id], isNull);
   });
 
   test('deleting a download tells the server', () async {

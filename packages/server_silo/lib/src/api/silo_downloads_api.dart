@@ -87,6 +87,43 @@ class SiloDownloadQualityOption {
   final int? maxHeight;
 }
 
+/// Silo's converted-download presets, best first, with their video bitrate
+/// caps in kbit/s.
+const siloDownloadPresets = {
+  '20mbps': 20000,
+  '10mbps': 10000,
+  '5mbps': 5000,
+  '2mbps': 2000,
+  '1mbps': 1000,
+};
+
+/// The Silo preset for a converted download capped at [maxVideoBitrate]
+/// (bit/s), among the presets the account may use ([allowed]), or null when
+/// it may use none that fits.
+///
+/// The preset is the smallest whose cap reaches the bitrate asked for:
+/// Moonfin's 1080p (4 Mbit/s) is `5mbps` (up to 1080p), 720p (2 Mbit/s) is
+/// `2mbps` (720p), 480p (1 Mbit/s) and 360p (0.5 Mbit/s) are `1mbps` (480p).
+/// When that preset isn't allowed, the next lower one that is; never a
+/// higher one, which would be a bigger file than was asked for.
+String? siloDownloadPreset(
+  int maxVideoBitrate, {
+  required List<String> allowed,
+}) {
+  final ascending = siloDownloadPresets.entries.toList()
+    ..sort((a, b) => a.value.compareTo(b.value));
+  final ideal = ascending.firstWhere(
+    (p) => p.value * 1000 >= maxVideoBitrate,
+    orElse: () => ascending.last,
+  );
+  for (final preset in ascending.reversed) {
+    if (preset.value <= ideal.value && allowed.contains(preset.key)) {
+      return preset.key;
+    }
+  }
+  return null;
+}
+
 /// Silo's downloads (`/api/v2/downloads…`, `/capabilities/downloads`).
 ///
 /// Moonfin's Silo client sends `X-Silo-Device-Id` and `X-Profile-Id` on every
@@ -99,6 +136,7 @@ class SiloDownloadsApi implements ServerDownloadsApi {
     required String Function() baseUrl,
     required Map<String, String> Function() headers,
     DateTime Function()? clock,
+    this.preparationPollInterval = const Duration(seconds: 5),
   }) : _baseUrl = baseUrl,
        _headers = headers,
        _clock = clock ?? DateTime.now;
@@ -179,15 +217,16 @@ class SiloDownloadsApi implements ServerDownloadsApi {
   /// device's entries are read first ([existingEntry]); this is the
   /// reconciliation Silo's guide asks for before creating. Creation is
   /// `non_retryable` and is sent once.
+  ///
+  /// A converted quality (15.3) is one of Silo's presets
+  /// ([siloDownloadPreset]); Silo makes the file first, and this waits for it
+  /// ([_waitUntilServable]).
   @override
   Future<ServerDownloadTicket> prepareDownload(
-    ServerDownloadRequest request,
-  ) async {
-    if (!request.original) {
-      throw UnsupportedError(
-        'Converted Silo downloads are not implemented yet (roadmap step 15.3)',
-      );
-    }
+    ServerDownloadRequest request, {
+    void Function(ServerDownloadPreparation preparation)? onPreparing,
+    bool Function()? isCancelled,
+  }) async {
     final capability = await this.capability();
     if (!capability.permitsDownloads) {
       throw const ServerDownloadRefused(
@@ -195,19 +234,92 @@ class SiloDownloadsApi implements ServerDownloadsApi {
         reason: 'downloads_unavailable',
       );
     }
-    final existing = await existingEntry(request.itemId);
-    final entry = await _create(
-      request,
-      quality: 'original',
-      existing: existing,
-    );
-    if (!entry.servable) {
-      throw ServerDownloadRefused(
-        'Silo is still preparing this download (${entry.status}).',
-        reason: entry.status,
+    final quality = request.original
+        ? 'original'
+        : siloDownloadPreset(
+            request.maxVideoBitrate!,
+            allowed: capability.qualityPresets,
+          );
+    if (quality == null) {
+      throw const ServerDownloadRefused(
+        'This server offers only original-quality downloads to this account.',
+        reason: 'quality_unavailable',
       );
     }
+    final existing = await existingEntry(request.itemId);
+    var entry = await _create(request, quality: quality, existing: existing);
+    // A converted file Silo cleaned up after an earlier download of this item
+    // is made again on request; for anything else this changes nothing.
+    if (entry.status == 'completed' &&
+        entry.deliveryFormat != 'original' &&
+        capability.prepareAgain) {
+      entry = await _prepareAgain(entry);
+    }
+    entry = await _waitUntilServable(
+      entry,
+      onPreparing: onPreparing,
+      isCancelled: isCancelled,
+    );
     return _ticketFor(entry, request.itemId);
+  }
+
+  /// How often a file Silo is preparing is checked on. Silo refreshes the
+  /// preparation numbers at most every 5 seconds. Tests shorten it.
+  Duration preparationPollInterval;
+
+  /// `POST /downloads/{id}/prepare`: the entry back to `preparing` when its
+  /// converted file was cleaned up (`natural_idempotent`; unchanged when the
+  /// file is still there).
+  Future<SiloDownloadEntry> _prepareAgain(SiloDownloadEntry entry) async {
+    final response = await _dio.post<dynamic>(
+      '/api/v2/downloads/${Uri.encodeComponent(entry.id)}/prepare',
+    );
+    final json = asJsonMap(response.data);
+    return json == null ? entry : SiloDownloadEntry.fromJson(json);
+  }
+
+  /// Waits until [entry]'s file can be fetched, reading the device's entries
+  /// every [preparationPollInterval] (the listed entry carries Silo's
+  /// `preparation`: queue place, or encode progress and time left).
+  Future<SiloDownloadEntry> _waitUntilServable(
+    SiloDownloadEntry entry, {
+    void Function(ServerDownloadPreparation preparation)? onPreparing,
+    bool Function()? isCancelled,
+  }) async {
+    var current = entry;
+    while (!current.servable) {
+      switch (current.status) {
+        case 'failed':
+          throw const ServerDownloadRefused(
+            "Silo couldn't prepare this file.",
+            reason: 'failed',
+          );
+        case 'revoked' || 'cancelled' || 'canceled':
+          throw ServerDownloadRefused(
+            'Silo withdrew this download (${current.status}).',
+            reason: current.status,
+          );
+      }
+      onPreparing?.call(current.preparationProgress);
+      await Future<void>.delayed(preparationPollInterval);
+      if (isCancelled?.call() ?? false) throw const ServerDownloadCancelled();
+      final listed = await _entryById(current.id);
+      if (listed == null) {
+        throw const ServerDownloadRefused(
+          'Silo no longer has this download.',
+          reason: 'not_found',
+        );
+      }
+      current = listed;
+    }
+    return current;
+  }
+
+  Future<SiloDownloadEntry?> _entryById(String id) async {
+    await for (final entry in _entries()) {
+      if (entry.id == id) return entry;
+    }
+    return null;
   }
 
   /// Sends the create request and answers its entry; a refusal Silo lists in
@@ -408,6 +520,14 @@ class SiloDownloadEntry {
 
   /// The movie or episode the entry is for: Moonfin's item id.
   String get itemId => episodeId.isNotEmpty ? episodeId : contentId;
+
+  /// Silo's `preparation` as the shared shape.
+  ServerDownloadPreparation get preparationProgress =>
+      ServerDownloadPreparation(
+        progress: (preparation?['progress'] as num?)?.toDouble(),
+        remainingSeconds: (preparation?['remaining_seconds'] as num?)?.toInt(),
+        queuePosition: (preparation?['queue_position'] as num?)?.toInt(),
+      );
 
   /// Whether Silo serves its file now: `ready`, or `downloading` and
   /// `completed`, which a device reports on a ready file (an earlier

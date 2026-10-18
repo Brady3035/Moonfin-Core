@@ -2424,6 +2424,10 @@ class DownloadService extends ChangeNotifier implements AutoDownloadDownloader {
 
     String? savePath;
     ServerDownloadTicket? serverTicket;
+    // What the transfer engines see. A server-prepared file (Silo) is a whole
+    // file with a known size that resumes like an original, whatever quality
+    // was asked for, so the engines treat it as one.
+    var transferQuality = quality;
     // False until the destination is known; the native engine stages its
     // temp file on internal storage, so a removable destination stays on the
     // direct-writing legacy engine (see [StoragePathService.isOnRemovableStorage]).
@@ -2435,7 +2439,7 @@ class DownloadService extends ChangeNotifier implements AutoDownloadDownloader {
     bool pluginOwnsNotifications() =>
         !useTransmuxEngine &&
         _pluginNotificationsFor(
-          quality,
+          transferQuality,
           destinationOnRemovableStorage: destinationOnRemovableStorage,
         );
     Timer? activityHeartbeat;
@@ -2528,14 +2532,37 @@ class DownloadService extends ChangeNotifier implements AutoDownloadDownloader {
       // download and hands back the file to fetch, with its credentials.
       final serverDownloads = _serverDownloads;
       if (serverDownloads != null) {
-        serverTicket = await serverDownloads.prepareDownload(
-          _serverDownloadRequest(
-            fullItem,
-            quality,
-            mediaSourceId: mediaSourceId,
-          ),
-        );
-        if (preparationCancelled()) return;
+        try {
+          serverTicket = await serverDownloads.prepareDownload(
+            _serverDownloadRequest(
+              fullItem,
+              quality,
+              mediaSourceId: mediaSourceId,
+            ),
+            // A converted file is made on the server first; its progress
+            // shows like a server transcode's.
+            onPreparing: (preparation) {
+              _activeDownloads[item.id] = DownloadProgress(
+                itemId: item.id,
+                fileName: item.name,
+                progress: preparation.progress ?? -1,
+                etaSeconds: preparation.remainingSeconds,
+                quality: quality,
+              );
+              notifyListeners();
+            },
+            isCancelled: () => cancelToken.isCancelled,
+          );
+        } on ServerDownloadCancelled {
+          _forgetOnServer([item.id]);
+          preparationCancelled();
+          return;
+        }
+        if (preparationCancelled()) {
+          _forgetOnServer([item.id]);
+          return;
+        }
+        transferQuality = DownloadQuality.original;
       }
 
       await _offlineRepo.upsertItem(
@@ -2566,10 +2593,10 @@ class DownloadService extends ChangeNotifier implements AutoDownloadDownloader {
         );
       }
 
-      final initialProgress = _initialProgressForQuality(quality);
+      final initialProgress = _initialProgressForQuality(transferQuality);
       useTransmuxEngine = downloadUsesTransmuxEngine(
         isAndroid: PlatformDetection.isAndroid,
-        qualityTranscoded: quality.isTranscoded,
+        qualityTranscoded: transferQuality.isTranscoded,
         itemSupportsTranscodedDownload: _supportsTranscodedDownload(
           fullItem.type,
         ),
@@ -2657,7 +2684,7 @@ class DownloadService extends ChangeNotifier implements AutoDownloadDownloader {
           received: received,
           total: total,
           estimatedSize: estimatedSize,
-          quality: quality,
+          quality: transferQuality,
         );
         // The byte count of a transcoded stream says nothing about how far
         // along it is, but the server's own transcode percentage does.
@@ -2667,7 +2694,7 @@ class DownloadService extends ChangeNotifier implements AutoDownloadDownloader {
         final update = _transferProgress(
           itemId: item.id,
           fileName: fileName,
-          quality: quality,
+          quality: transferQuality,
           progress: rawProgress >= 1.0 ? 0.99 : rawProgress,
           received: received,
           total: total,
@@ -2701,7 +2728,7 @@ class DownloadService extends ChangeNotifier implements AutoDownloadDownloader {
       }
 
       var usePluginEngine = _pluginEngineFor(
-        quality,
+        transferQuality,
         destinationOnRemovableStorage: destinationOnRemovableStorage,
       );
 
@@ -2729,7 +2756,7 @@ class DownloadService extends ChangeNotifier implements AutoDownloadDownloader {
             return await _downloadWithPlugin(
               downloadUrl,
               item: fullItem,
-              quality: quality,
+              quality: transferQuality,
               savePath: savePath!,
               headers: headers,
               cancelToken: cancelToken,

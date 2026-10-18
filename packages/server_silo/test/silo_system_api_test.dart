@@ -136,6 +136,25 @@ void main() {
     test('false when it does not', () async {
       expect(await _client(FixtureServer({})).systemApi.ping(), isFalse);
     });
+
+    // The connectivity check reads a ping's answer the same way for every
+    // server type (13.1): a 401 heard from the server counts.
+    test('a 401 still counts as an answer', () async {
+      final server = FixtureServer({
+        '/api/v2/system/identity': (_) => FixtureServer.problem(
+          401,
+          'authentication_required',
+          'Sign in to continue.',
+        ),
+      });
+      expect(await _client(server).systemApi.ping(), isTrue);
+    });
+
+    test('waits no longer than the ping timeout', () async {
+      final server = FixtureServer(_publicRoutes());
+      await _client(server).systemApi.ping();
+      expect(server.requests.single.receiveTimeout, SystemApi.pingTimeout);
+    });
   });
 
   group('headers on the wire', () {

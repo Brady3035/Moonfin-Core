@@ -63,14 +63,25 @@ const _identifiableTypes = <String>{
 
 bool canIdentifyItemType(String? type) => _identifiableTypes.contains(type);
 
-/// Client-side Continue Watching hide, keyed by series for episodes, for
-/// servers that can't hide an item from resume themselves.
-Future<void> _hideFromContinueWatchingLocally(AggregatedItem item) {
-  final prefs = GetIt.instance<UserPreferences>();
-  final seriesId = item.seriesId;
-  return prefs.hideFromContinueWatching(
-    seriesId != null && seriesId.isNotEmpty ? seriesId : item.id,
-  );
+/// Takes [item] off the server's resume list and keeps its progress where the
+/// server can do that (Emby), or clears the progress that keeps it there where
+/// it can't. Audio always resets, because an audiobook library's Continue row
+/// falls back to an IsResumable query that ignores Emby's flag. A failed
+/// server call resets nothing.
+Future<void> _hideFromResumeOrReset(
+  ItemMutationRepository mutations,
+  AggregatedItem item,
+) async {
+  if (!item.isAudioLike) {
+    try {
+      if (await mutations.hideFromResume(item.id)) return;
+    } catch (_) {
+      return;
+    }
+  }
+  try {
+    await mutations.setPlayed(item.id, isPlayed: false);
+  } catch (_) {}
 }
 
 List<ItemContextAction> contextActionsFor(
@@ -139,26 +150,13 @@ List<ItemContextAction> contextActionsFor(
         icon: Icons.visibility_off_outlined,
         label: l10n.contextMenuHideFromContinueWatching,
         onSelect: () async {
-          // Emby can take the item off Continue Watching on the server and
-          // keep its resume point, so nothing is reset and every client
-          // agrees. Only a server without that flag falls back to hiding it
-          // here and clearing the progress that keeps it in the list.
-          final bool hiddenOnServer;
-          try {
-            hiddenOnServer = await mutations.hideFromResume(item.id);
-          } catch (_) {
-            // The server has the flag but the call failed. Hide it here so the
-            // gesture still works, but leave the progress alone.
-            await _hideFromContinueWatchingLocally(item);
-            onChanged?.call();
-            return;
+          final prefs = GetIt.instance<UserPreferences>();
+          if (item.seriesId != null && item.seriesId!.isNotEmpty) {
+            await prefs.hideFromContinueWatching(item.seriesId!);
+          } else {
+            await prefs.hideFromContinueWatching(item.id);
           }
-          if (!hiddenOnServer) {
-            await _hideFromContinueWatchingLocally(item);
-            try {
-              await mutations.setPlayed(item.id, isPlayed: false);
-            } catch (_) {}
-          }
+          await _hideFromResumeOrReset(mutations, item);
           onChanged?.call();
         },
       ));
@@ -174,19 +172,7 @@ List<ItemContextAction> contextActionsFor(
           final prefs = GetIt.instance<UserPreferences>();
           await prefs.hideFromNextUp(item.seriesId!);
           await prefs.hideFromContinueWatching(item.seriesId!);
-          // On Emby, flag the episode on the server instead of resetting it,
-          // so its progress survives and Emby's own merged Continue Watching
-          // row drops it too.
-          // A failed call leaves this false: Emby still gets no reset.
-          var resetProgress = false;
-          try {
-            resetProgress = !await mutations.hideFromResume(item.id);
-          } catch (_) {}
-          if (resetProgress) {
-            try {
-              await mutations.setPlayed(item.id, isPlayed: false);
-            } catch (_) {}
-          }
+          await _hideFromResumeOrReset(mutations, item);
           onChanged?.call();
         },
       ));

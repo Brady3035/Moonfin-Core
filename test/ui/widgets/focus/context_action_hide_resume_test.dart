@@ -30,6 +30,17 @@ AggregatedItem _episode() => AggregatedItem(
   },
 );
 
+AggregatedItem _audiobookChapter() => AggregatedItem(
+  id: 'chapter-1',
+  serverId: 'server-1',
+  rawData: {
+    'Id': 'chapter-1',
+    'Type': 'Audio',
+    'Name': 'Chapter 1',
+    'UserData': {'PlaybackPositionTicks': 6000000000, 'Played': false},
+  },
+);
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -69,7 +80,11 @@ void main() {
 
   tearDown(() => GetIt.instance.reset());
 
-  Future<ItemContextAction> action(WidgetTester tester, String label) async {
+  Future<ItemContextAction> action(
+    WidgetTester tester,
+    String label, {
+    AggregatedItem? item,
+  }) async {
     late List<ItemContextAction> actions;
     await tester.pumpWidget(
       MaterialApp(
@@ -77,7 +92,7 @@ void main() {
         supportedLocales: AppLocalizations.supportedLocales,
         home: Builder(
           builder: (context) {
-            actions = contextActionsFor(context, _episode());
+            actions = contextActionsFor(context, item ?? _episode());
             return const SizedBox.shrink();
           },
         ),
@@ -87,7 +102,7 @@ void main() {
   }
 
   group('Hide from Continue Watching', () {
-    testWidgets('on Emby hides it on the server and keeps the progress', (
+    testWidgets('on Emby hides it on the server too and keeps the progress', (
       tester,
     ) async {
       when(() => mutations.hideFromResume('ep-1')).thenAnswer((_) async => true);
@@ -98,11 +113,20 @@ void main() {
       verifyNever(
         () => mutations.setPlayed(any(), isPlayed: any(named: 'isPlayed')),
       );
-      expect(
-        prefs.getHiddenContinueWatchingItems(),
-        isEmpty,
-        reason: 'the server owns the hide, so nothing is kept on the client',
-      );
+      expect(prefs.getHiddenContinueWatchingItems().keys, ['series-1']);
+    });
+
+    testWidgets('on Emby audio still resets', (tester) async {
+      when(() => mutations.hideFromResume(any())).thenAnswer((_) async => true);
+
+      await (await action(
+        tester,
+        'Hide from Continue Watching',
+        item: _audiobookChapter(),
+      )).onSelect();
+
+      verifyNever(() => mutations.hideFromResume(any()));
+      verify(() => mutations.setPlayed('chapter-1', isPlayed: false)).called(1);
     });
 
     testWidgets('without server support hides locally and resets as before', (

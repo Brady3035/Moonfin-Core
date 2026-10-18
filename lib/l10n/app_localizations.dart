@@ -27170,6 +27170,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This account has a temporary password. Sign in with the password once to replace it.'**
   String get siloCodeSignInPasswordChangeRequired;
+
+  /// Title of the dialog where a signed-in Silo user types the code another device shows, to sign that device in (Silo's counterpart of authorizing a Quick Connect code)
+  ///
+  /// In en, this message translates to:
+  /// **'Approve a sign-in'**
+  String get siloApproveSignIn;
+
+  /// Hint in the Silo approve-a-sign-in dialog's code field
+  ///
+  /// In en, this message translates to:
+  /// **'Code shown on the other device'**
+  String get siloApproveSignInHint;
+
+  /// Button in the Silo approve-a-sign-in dialog that approves the typed code
+  ///
+  /// In en, this message translates to:
+  /// **'Approve'**
+  String get siloApproveSignInApprove;
+
+  /// Shown after a Silo sign-in code was approved
+  ///
+  /// In en, this message translates to:
+  /// **'Approved. The other device is signing in.'**
+  String get siloApproveSignInDone;
+
+  /// Shown when Silo has no pending sign-in for the typed code (unknown, expired, already used or declined)
+  ///
+  /// In en, this message translates to:
+  /// **'No sign-in is waiting with that code. Check it, or get a new code on the other device.'**
+  String get siloApproveSignInNoRequest;
 }
 
 class _AppLocalizationsDelegate

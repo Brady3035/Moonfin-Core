@@ -192,6 +192,7 @@ _Fill in when the step is built: what the code does, the main classes and why it
 | 12.7 c | Apple TV | The native scrubber's previews show on Silo and on Emby. |
 | 13.2 e | Android TV, iOS | Background Moonfin past the socket's idle grace and come back: the Silo events socket reconnects with a new ticket (`POST /events/ws-ticket` in the log). |
 | 14.1 j | Android TV, Apple TV | Silo's sign-in with a code: the code view fits the screen with the QR code beside the code; the remote reaches "Password", "Get a new code" and "Back"; scanning the TV's QR code with a phone opens Silo's approval page with the code filled in, and approving signs the TV in. |
+| 14.2 f | iPhone or Android phone | Signed in to Silo, approve another device's eight-digit code from the bottom-nav hub's "Approve a sign-in" (14.3): "Approved. The other device is signing in.", and the device signs in. |
 
 **Results**
 

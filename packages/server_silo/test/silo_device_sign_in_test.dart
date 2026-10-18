@@ -275,4 +275,94 @@ void main() {
       );
     });
   });
+
+  group('authorizeQuickConnect', () {
+    SiloMediaServerClient signedIn(FixtureServer server) => _client(server)
+      ..session.setTokens(
+        SiloTokens(
+          accessToken: 'access-1',
+          refreshToken: 'refresh-1',
+          expiresAt: _now.add(const Duration(hours: 1)),
+          lifetime: const Duration(hours: 1),
+        ),
+      )
+      ..profileId = 'main';
+
+    FixtureServer approving(ResponseBody Function(RequestOptions) answer) =>
+        FixtureServer({'/api/v2/auth/device/approve': answer});
+
+    test(
+      'approves the code as this login, and the body fits the contract',
+      () async {
+        final server = approving(_answer({'status': 'approved'}));
+
+        final approved = await signedIn(
+          server,
+        ).authApi.authorizeQuickConnect('4821-7730', userId: 'main');
+
+        expect(approved, isTrue);
+        final request = server.requests.single;
+        expect(request.method, 'POST');
+        expect(request.data, {'code': '48217730'});
+        expect(
+          siloSchemaErrors('DecideDeviceLoginInputBody', request.data),
+          isEmpty,
+        );
+        expect(
+          siloSchemaErrors('DeviceLoginDecision', {'status': 'approved'}),
+          isEmpty,
+        );
+        expect(request.headers['Authorization'], 'Bearer access-1');
+      },
+    );
+
+    test('a decision other than approved is false', () async {
+      final server = approving(_answer({'status': 'denied'}));
+
+      expect(
+        await signedIn(server).authApi.authorizeQuickConnect('48217730'),
+        isFalse,
+      );
+    });
+
+    for (final (status, code) in [
+      (404, 'not_found'),
+      (409, 'conflict'),
+      (410, 'device_login_expired'),
+    ]) {
+      test('$status $code: no request is waiting with that code', () async {
+        final server = approving(
+          (_) => FixtureServer.problem(status, code, 'No.'),
+        );
+
+        expect(
+          await signedIn(server).authApi.authorizeQuickConnect('48217730'),
+          isFalse,
+        );
+        expect(server.requests, hasLength(1));
+      });
+    }
+
+    for (final (status, code) in [
+      (403, 'permission_denied'),
+      (429, 'rate_limited'),
+    ]) {
+      test('$status $code reaches the caller', () async {
+        final server = approving(
+          (_) => FixtureServer.problem(status, code, 'No.'),
+        );
+
+        await expectLater(
+          signedIn(server).authApi.authorizeQuickConnect('48217730'),
+          throwsA(
+            isA<DioException>().having(
+              (e) => e.response?.statusCode,
+              'status',
+              status,
+            ),
+          ),
+        );
+      });
+    }
+  });
 }

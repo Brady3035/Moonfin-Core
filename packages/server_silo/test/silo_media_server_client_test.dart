@@ -90,13 +90,6 @@ void main() {
           ),
     );
 
-    test('approving another device', () {
-      expect(
-        () => client.authApi.authorizeQuickConnect('48217730'),
-        pending('AuthApi', 'authorizeQuickConnect', '14.2'),
-      );
-    });
-
     test('sessions', () {
       expect(
         () => client.sessionApi.getSessions(),

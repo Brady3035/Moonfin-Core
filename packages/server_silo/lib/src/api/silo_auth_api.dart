@@ -3,7 +3,6 @@ import 'package:server_core/server_core.dart';
 
 import '../mappers/silo_user_mapper.dart';
 import '../silo_session.dart';
-import 'silo_pending_api.dart';
 
 /// Sign-in against Silo's native auth routes, answered in the shapes
 /// Moonfin's auth flow reads.
@@ -252,9 +251,33 @@ class SiloAuthApi implements AuthApi {
     };
   }
 
+  /// Approves another device's sign-in request with the code it shows
+  /// (`POST /auth/device/approve`), as this login's account: the device then
+  /// signs in to the account and picks its own profile (Moonfin: the main
+  /// one). [userId] is not sent; Silo approves for the account.
+  ///
+  /// True when Silo answers `approved`. A code no request is waiting with
+  /// answers false: unknown (`404`), already used, declined or withdrawn
+  /// (`409`), or expired (`410`). Other refusals reach the caller: `403`
+  /// (this login can't approve: an API key or an impersonation session),
+  /// `429` (too many attempts).
+  ///
+  /// Through the main client: a token that is due is refreshed first, and a
+  /// `401` before Silo acted is refreshed and sent once more.
   @override
-  Future<bool> authorizeQuickConnect(String code, {String? userId}) =>
-      throw SiloNotImplementedError('AuthApi', 'authorizeQuickConnect', '14.2');
+  Future<bool> authorizeQuickConnect(String code, {String? userId}) async {
+    final digits = code.replaceAll(RegExp(r'[\s-]'), '');
+    try {
+      final response = await _dio.post<dynamic>(
+        '/api/v2/auth/device/approve',
+        data: {'code': digits},
+      );
+      return asJsonMap(response.data)?['status'] == 'approved';
+    } on DioException catch (e) {
+      if (const {404, 409, 410}.contains(e.response?.statusCode)) return false;
+      rethrow;
+    }
+  }
 
   /// Signs in with the token pair the approving poll collected, as
   /// [authenticateByName] does with a password.

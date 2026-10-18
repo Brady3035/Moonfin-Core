@@ -68,7 +68,7 @@ On the Mac, signed in to Silo:
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | previous step |
+| ☑ Done | — | previous step |
 
 **Goal.** Download the original file through Silo's download registry (managed downloads). *Changed from signed direct-download links (Brady, 2026-10-18): Silo's guide says apps use managed downloads for every quality and keeps direct links for browsers.*
 
@@ -150,39 +150,74 @@ On the Mac, signed in to Silo (the network log is in Moonfin's logs):
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | previous step |
 
-**Goal.** Server download jobs: create, prepare, manifest, file, subtitles, artwork, status.
+**Goal.** Server download jobs: create, prepare, wait, file. Moonfin's qualities map onto Silo's presets (Brady, 2026-10-18).
 
 **Silo v2 endpoints**
 
-- `POST /downloads`
-- `POST /downloads/{id}/prepare`
-- `GET /downloads/{id}/manifest`
+- `POST /downloads` with a bitrate `quality`
+- `GET /downloads` (the entry's `preparation` while Silo makes the file)
+- `POST /downloads/{id}/prepare` (a converted file Silo cleaned up)
 - `GET /downloads/{id}/file`
+
+(The roadmap also listed `GET /downloads/{id}/manifest`: that is 15.4's.)
 
 **Where in Moonfin**
 
-- `download_service.dart`
+- `packages/server_core/lib/src/api/server_downloads_api.dart`: `prepareDownload` takes `onPreparing` and `isCancelled`; `ServerDownloadPreparation`, `ServerDownloadCancelled`
+- `packages/server_silo/lib/src/api/silo_downloads_api.dart`: `siloDownloadPreset`, the wait (`_waitUntilServable`), prepare again
+- `lib/data/services/download_service.dart`: shows the preparation, honours Cancel during it, and treats the prepared file as a plain one for the engines
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+**Silo makes the file, then serves it.** Moonfin's own transcoded downloads (Jellyfin, Emby) stream a live transcode into the file as the server encodes it. Silo works differently: a converted download is a job on the server (`preparing`), which writes a finished MP4 (`ready`) that the device then fetches like any file, with ranges (`docs/downloads-api.md` §1, §5). So a Silo download with a converted quality has two phases: waiting while Silo prepares, then an ordinary transfer.
+
+**Qualities (`siloDownloadPreset`).** Moonfin offers Original, 1080p (4 Mbit/s), 720p (2), 480p (1) and 360p (0.5). Silo's presets are `20mbps`, `10mbps`, `5mbps` (all up to 1080p or 2160p, as the server allows), `2mbps` (720p) and `1mbps` (480p), and the capability (15.1) lists those the account may use now. Moonfin's quality picks the smallest preset whose cap reaches its bitrate: 1080p is `5mbps`, 720p `2mbps`, 480p and 360p `1mbps`. If the account may not use that preset, the next lower one it may; never a higher one, which would be a bigger file than asked for. When none fits (a server with converted downloads off offers only `original`), the download is refused: "This server offers only original-quality downloads to this account." Silo itself never enlarges the picture and never encodes above the source's bitrate; with no `caps` sent it makes H.264/AAC MP4, which every player plays.
+
+**Waiting.** The create answers the entry, `preparing` for a converted file. Moonfin then reads the device's entries every 5 seconds (Silo refreshes its numbers at most that often) and follows the entry until it is servable. The listed entry carries `preparation`: its place in Silo's queue, or once running the encoded fraction and the time left. The download's row shows these as a server transcode's (the time left, or "time remaining unavailable", and the fraction while Silo reports it). Ends of the wait:
+
+- `ready` (or `downloading`/`completed`): the ticket, as in 15.2; the file is an MP4 (`delivery_format` `transcode` or `remux`);
+- `failed` (Silo's job gave up), `revoked` or `cancelled`: refused with that reason;
+- the entry gone from the list: refused (`not_found`);
+- Cancel pressed: the wait stops at the next check (`ServerDownloadCancelled`), the download is dropped as if cancelled while queued, and the entry is deleted on Silo, so Silo stops preparing a file nobody wants.
+
+There is no time limit: a long film on a busy server can take a while, and the person can cancel.
+
+**A file Silo cleaned up.** Silo keeps a converted file only while some download needs it, plus a few days, then deletes its copy (the device's is the one that matters). Registering the item again can then answer a `completed` entry whose file is gone. For a converted entry in that state Moonfin asks `POST /downloads/{id}/prepare` (when the capability reports `prepare_again`), which returns it to `preparing` and the wait follows; for one whose file is still there it changes nothing.
+
+**The transfer.** Once Silo has the file, the download service treats it as an original: the native background engine (resumable, with notifications) where it would run an original, byte progress against the known size, no live-transcode handling (no transmux engine, no transcode status polling, no "activity" reports). The file is named `.mp4`, as Moonfin's transcoded downloads are, and is checked to be one.
+
+**Known limits.**
+
+- If Silo deletes the prepared file between the wait and the transfer (`409 prepared_file_expired` from the file route), the download fails; Retry registers it again and Silo prepares the file once more.
+- Moonfin's quality picker still describes its own presets ("MP4 • HEVC/AAC" and its size estimates); Silo's file is H.264, of the preset's size.
+- On Brady's server converted downloads are off (`transcode_enabled: false`, only `original` offered), so on it every converted quality is refused until that is switched on in Silo's settings.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `packages/server_silo/test/silo_downloads_api_test.dart` (7 new, 35/35): Moonfin's qualities map onto the allowed presets (next lower when not allowed, never higher, none when only `original`); the wait reports the queue place, then progress and time left, and ends with an `mp4` ticket; a failed preparation and an entry that disappears are refused; Cancel stops the wait; a quality the account may not use is refused before anything is created; a converted file Silo cleaned up is prepared again; a remux of an original is waited for too (replaces 15.2's "not handed out yet").
+- `test/offline/server_download_test.dart` (2 new, 7/7): a converted quality shows the server's progress and time left while it prepares, asks for its bitrate, then downloads the file; Cancel while it prepares tells the server to forget it and fetches nothing.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+Converted downloads must be on in Silo first (server settings: transcode to file; the capability then lists the bitrate presets). On the Mac, signed in to Silo:
+
+- a. Download a film at 720p. The log shows `POST …/api/v2/downloads` with `quality: 2mbps`, then `GET …/api/v2/downloads?limit=100` every 5 seconds. The Downloads screen shows the film with Silo's time left (or "unavailable" while it waits in Silo's queue). When Silo is done: `GET …/downloads/<id>/file`, then `PATCH` completed. The file is an `.mp4` and plays offline.
+- b. 1080p on a 4K or 1080p film: `quality: 5mbps`. 360p: `quality: 1mbps`.
+- c. Start a 720p download and cancel it while Silo prepares: `DELETE …/api/v2/downloads/<id>`, and Silo's admin shows no preparation left for it.
+- d. With converted downloads off on Silo (as now): a 720p download fails with "This server offers only original-quality downloads to this account." Original still works.
+- e. Delete a finished 720p download and download it again a few days later (or after Silo cleaned up its file): `POST …/downloads/<id>/prepare`, then the wait.
+- f. Regression on Emby: a 720p download still streams the transcode as before.
+- g. Full suite (`flutter test` at the repo root).
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-18 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | downloads API 35/35, server download 7/7, `server_silo` 655/655, `server_core` 100/100, `test/offline` + `test/data/services` 616/616; analyzer: no new issues in the changed files |
 | | | | | |
 
 ---

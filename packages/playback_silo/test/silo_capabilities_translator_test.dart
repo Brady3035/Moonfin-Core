@@ -253,6 +253,17 @@ void main() {
     _expectFitsContract(caps);
   });
 
+  test('the web: nothing beyond its profile, and no headers (12.3)', () {
+    const web = SiloPlayerTraits.web;
+    expect(web.sendsRequestHeaders, isFalse);
+    expect(web.selectsAnyAudioTrack, isFalse);
+    expect(web.rendersEmbeddedSubtitles, isFalse);
+    expect(web.managesDynamicRange, isFalse);
+    final caps = siloCapabilitiesFromDeviceProfile(_mpvProfile(), traits: web);
+    expect(caps.clientFeatures, ['playback_plan_v3']);
+    _expectFitsContract(caps);
+  });
+
   test('the validator refuses what Silo would', () {
     expect(
       siloSchemaErrors('DeliveryCapabilityV3', {'enabled': true, 'extra': 1}),

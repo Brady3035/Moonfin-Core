@@ -69,7 +69,7 @@ Brady has no Android device to test on (2026-10-17), so these go to the deferred
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | previous step |
+| ☑ Done | — | previous step |
 
 **Goal.** Silo playback on every Apple platform with the player's honest traits and the stream's headers.
 
@@ -119,32 +119,52 @@ The Mac was tested in phases 10 and 11. iOS and Apple TV go to the deferred plat
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | previous step |
 
 **Goal.** `isTypeSupported` evidence; query token because `<video>` can't send headers.
 
 **Where in Moonfin**
 
-- `lib/playback/html_video_backend_web.dart`
+- `packages/playback_silo/lib/src/silo_capabilities_translator.dart`: `SiloPlayerTraits.web`, the `sendsRequestHeaders` trait
+- `packages/playback_silo/lib/src/silo_plan_mapper.dart`: `siloAuthorizeUrl(…, allMedia:)`, `siloPlanToResolution(…, tokenInEveryUrl:)`
+- `packages/playback_silo/lib/src/silo_media_stream_resolver.dart`: asks for it when the player sends no headers
+- `lib/playback/silo_playback_environment.dart`: the web's traits
+- (`lib/playback/html_video_backend_web.dart`: unchanged)
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+On the web Moonfin plays through the browser's `<video>` element, with hls.js for HLS where the browser has no native HLS (`HtmlVideoBackend`). Its device profile already comes from the browser's own answers (`MediaSource.isTypeSupported`, `canPlayType`; `web_playback_capabilities.dart`). Silo calls that evidence tier `declared` (boolean support statements, flat codec lists), which is what the translator sends on every platform, so the profile needed no change.
+
+What it can't do is send headers: a media element sends only cookies, and hls.js is attached without a header hook (`MoonfinHlsBridge.attach(video, url)`). Until now only Silo's `/api/v2/stream/` URLs carried the account's token (10.7). An HLS stream (`/api/v2/playback/transcode/…`) went by headers alone, so on the web every transcode would have been refused.
+
+- **A new trait, `sendsRequestHeaders`** (true by default). `SiloPlayerTraits.web` has it false and claims nothing else: a browser picks no audio track of a file, draws no embedded subtitles (sidecars are loaded as text tracks) and maps no HDR.
+- **The token in every media URL.** For a player without headers, the resolver asks `siloPlanToResolution` for `tokenInEveryUrl`, and `siloAuthorizeUrl(…, allMedia: true)` adds `token=` to Silo's HLS routes too. Silo accepts it there ("media-element fallback for the account bearer token" on the manifest, segment and subtitle routes) and copies a manifest's query onto every playlist and segment URI, so each request carries it. It still goes only to the server's own origin and never onto artwork. Replans (seeks, track changes) do the same.
+- **The environment** sends the web's traits first, since a browser on a phone also reports the phone's platform; form factor and platform are `web` (10.4).
+- The headers are still set on the resolution: a backend that can send them (media_kit, if the web falls back to it) does.
+
+**Open:** the web app loads Silo from another origin, so Silo must allow Moonfin's origin (CORS) for the API and the media routes. Silo's web app is served from Silo itself, so this hasn't been exercised. If the browser's console shows CORS refusals, it's a Silo setting or a follow-up for Silo.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `packages/playback_silo/test/silo_stream_auth_test.dart` (2 new): a player without headers gets `token=` on an HLS manifest URL from a start; `siloAuthorizeUrl(…, allMedia:)` adds it to `/api/v2/playback/` routes and never to artwork or another origin.
+- `silo_capabilities_translator_test.dart` (1 new): the web's traits claim nothing beyond the profile, send no headers, and fit the contract. `playback_silo` 88/88.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+On the Mac, run Moonfin for the web (`flutter run -d chrome`, or Brady's usual web build) and sign in to Silo.
+
+- a. Play xXx (a remux: progressive with `token=`), an original MP4 (direct play), and something that transcodes (a high bitrate with *Max streaming bitrate* lowered): each starts and seeks. The network tab shows `token=` on the media URLs, on the HLS manifest and on its segments.
+- b. Subtitles: an external SRT sidecar shows.
+- c. The browser console: no CORS errors on Silo's API or media. If there are, note which requests.
+- d. Images (posters, backdrops) load; none carries a token.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-17 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | stream auth 2 new, translator 1 new; `playback_silo` 88/88; analyzer: no issues |
 | | | | | |
 
 ---

@@ -57,9 +57,11 @@ Map<String, dynamic>? siloDisplayHdr({
 
 /// The main player's traits: AetherEngine on macOS, iOS and tvOS (12.2),
 /// libmpv on Windows and Linux, and on Android the engine the viewer picked
-/// (Media3 by default, else libmpv; 12.1). The web gets its own in 12.3;
-/// until then it claims nothing beyond its device profile.
+/// (Media3 by default, else libmpv; 12.1), and a browser's media element on
+/// the web (12.3), which sends no headers.
 SiloPlayerTraits _traits() {
+  // First: a browser on a phone also reports that phone's platform.
+  if (PlatformDetection.isWeb) return SiloPlayerTraits.web;
   if (PlatformDetection.isAppleTV ||
       PlatformDetection.isMacOS ||
       PlatformDetection.isIOS) {

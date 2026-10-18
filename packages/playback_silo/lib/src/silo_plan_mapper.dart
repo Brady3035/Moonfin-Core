@@ -77,10 +77,22 @@ bool siloIsServerUrl(String url, String baseUrl) {
 /// receiver. Nothing else gets one: HLS goes by headers (Silo copies a
 /// manifest's query onto every segment), and artwork is signed on its own.
 /// The rest of the query is kept byte for byte.
-String siloAuthorizeUrl(String url, String baseUrl, String accessToken) {
+///
+/// With [allMedia] (a player that sends no headers at all, 12.3) Silo's HLS
+/// routes (`/api/v2/playback/`) get it too: Silo copies the manifest's query
+/// onto every playlist and segment URI, so the token reaches each request.
+String siloAuthorizeUrl(
+  String url,
+  String baseUrl,
+  String accessToken, {
+  bool allMedia = false,
+}) {
   if (accessToken.isEmpty || !siloIsServerUrl(url, baseUrl)) return url;
   final uri = Uri.parse(url);
-  if (!uri.path.contains('/api/v2/stream/')) return url;
+  final media =
+      uri.path.contains('/api/v2/stream/') ||
+      (allMedia && uri.path.contains('/api/v2/playback/'));
+  if (!media) return url;
   if (uri.queryParameters.containsKey('token')) return url;
   final token = 'token=${Uri.encodeQueryComponent(accessToken)}';
   final fragment = url.indexOf('#');
@@ -151,7 +163,9 @@ const _warningReasons = {
 ///   the streams, and the selected track.
 /// - With [auth] (10.7), a stream on the server's origin carries the
 ///   account's headers on every request, `stream.headers` on top, and an
-///   `/api/v2/stream/` URL also carries `token=` ([siloAuthorizeUrl]).
+///   `/api/v2/stream/` URL also carries `token=` ([siloAuthorizeUrl]). With
+///   [tokenInEveryUrl] (a player that sends no headers, 12.3) the HLS URL
+///   carries it too.
 StreamResolutionResult siloPlanToResolution({
   required Map<String, dynamic> plan,
   required String sessionId,
@@ -159,6 +173,7 @@ StreamResolutionResult siloPlanToResolution({
   Map<String, dynamic>? mediaSource,
   bool directPlayRequested = true,
   SiloStreamAuth? auth,
+  bool tokenInEveryUrl = false,
 }) {
   final stream = (plan['stream'] as Map?)?.cast<String, dynamic>() ?? const {};
   final timeline =
@@ -196,7 +211,12 @@ StreamResolutionResult siloPlanToResolution({
   final onServer = siloIsServerUrl(planUrl, baseUrl);
   final url = auth == null
       ? planUrl
-      : siloAuthorizeUrl(planUrl, baseUrl, auth.accessToken);
+      : siloAuthorizeUrl(
+          planUrl,
+          baseUrl,
+          auth.accessToken,
+          allMedia: tokenInEveryUrl,
+        );
 
   return StreamResolutionResult(
     streamUrl: url,

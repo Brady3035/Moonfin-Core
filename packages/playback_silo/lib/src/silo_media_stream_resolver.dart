@@ -139,6 +139,7 @@ class SiloMediaStreamResolver implements MediaStreamResolver, StreamReplanner {
       mediaSource: source,
       directPlayRequested: enableDirectPlay,
       auth: await _streamAuth(client),
+      tokenInEveryUrl: !environment.traits.sendsRequestHeaders,
     );
     _sessions.add(
       SiloPlaybackSession(
@@ -291,6 +292,7 @@ class SiloMediaStreamResolver implements MediaStreamResolver, StreamReplanner {
       mediaSource: source,
       directPlayRequested: request.enableDirectPlay,
       auth: await _streamAuth(client),
+      tokenInEveryUrl: !_environment().traits.sendsRequestHeaders,
     );
     session
       ..plan = next

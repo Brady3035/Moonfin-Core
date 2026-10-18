@@ -174,7 +174,7 @@ On the Mac, run Moonfin for the web (`flutter run -d chrome`, or Brady's usual w
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | previous step |
+| ☑ Done | — | previous step |
 
 **Goal.** Receiver-specific capabilities; token query on the stream URL; the Silo session kept alive while the receiver plays.
 
@@ -233,30 +233,43 @@ Casting needs the app on an Android or iOS device and a Chromecast (or a Google 
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | previous step |
+
+**Goal.** AirPlay from iOS to an Apple TV with Silo's stream, its token, and its session kept alive.
 
 **Where in Moonfin**
 
-- `lib/data/services/cast/airplay_provider.dart`
+- `lib/data/services/cast/airplay_provider.dart`: the receiver's environment, no second token for Silo, the session to report
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+Moonfin's AirPlay (iOS only) loads the stream into a phone-side AVPlayer and shows the system route picker; once an Apple TV is picked, the Apple TV fetches the stream itself. So it is a receiver like a Chromecast (12.4), and gets the same treatment:
+
+- **The receiver's start**: `siloReceiverEnvironment('airplay', manufacturer: 'Apple')` with the AirPlay device profile (`airPlayDeviceProfile`): no headers, so `token=` on every media URL, and no progressive remux (AVPlayer seeks by byte ranges).
+- **No second token.** The provider appends the account's token to the stream URL for Jellyfin and Emby. On Silo the resolver already did, only where Silo takes one and only on Silo's own origin, so the provider no longer appends it there. Before, a Silo URL got the token twice, and a proxy node's URL would have been handed the account's token.
+- **The session** is reported like a Chromecast's (`CastSessionReporter`, 12.4) from the AirPlay events the cast service already reads (state and position), and stopped when the AirPlay session ends.
+- AirPlay casts one item at a time already. The start is resolved from the beginning and the Apple TV seeks to the resume point itself (as before); on an original file that is a byte-range seek, and on HLS it is within what Silo has produced.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- No new test: the provider's Silo branch is covered by the shared pieces (receiver traits and token handling, 12.3 and 12.4; the reporter, 12.4). Its native channel can't run in a unit test.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+Needs an iPhone or iPad and an Apple TV, so it goes to the deferred platform checks in 17.5 unless Brady has them at hand.
+
+- a. On iOS, cast xXx to an Apple TV with AirPlay: it plays; the stream URL carries one `token=`.
+- b. Pause, seek, resume from the phone; Silo's web app keeps the session past a minute; stopping keeps the resume point.
+- c. Resume a film part way through over AirPlay: it starts at the resume point.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-17 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | analyzer: no issues in the changed files |
+| 2026-10-17 | iOS + Apple TV | — | Deferred | checks a–c in 17.5 |
 | | | | | |
 
 ---

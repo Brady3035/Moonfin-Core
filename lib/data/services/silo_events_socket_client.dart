@@ -16,7 +16,9 @@ part of 'socket_handler.dart';
 /// - A server that has the socket off (`GET /events/capabilities`) gets no
 ///   connection at all.
 ///
-/// Frames are read here; what they mean for the app comes in step 13.3.
+/// Event and snapshot frames are gathered for a moment and handed to
+/// [SiloEventsTranslator], which turns them into the `UserDataChanged` and
+/// `LibraryChanged` messages Jellyfin and Emby send (13.3).
 class SiloEventsSocketClient extends _ReconnectingWebSocketClient {
   SiloEventsSocketClient(
     MediaServerClient client, {
@@ -36,6 +38,15 @@ class SiloEventsSocketClient extends _ReconnectingWebSocketClient {
   /// Read once per client: whether the server has the socket on. Asked again
   /// after a failure or an answer of "off", on the next connect.
   SiloEventsCapabilities? _capabilities;
+
+  /// How long frames are gathered before they are translated. A change on
+  /// the web often arrives as several events at once (a season marked
+  /// watched is one per episode), and each item is read back once.
+  static const _batchWindow = Duration(milliseconds: 300);
+
+  final _pending = <SiloEventFrame>[];
+  Timer? _batchTimer;
+  SiloEventsTranslator? _translator;
 
   SiloMediaServerClient? get _silo => siloClientOf(client);
 
@@ -123,9 +134,23 @@ class SiloEventsSocketClient extends _ReconnectingWebSocketClient {
           'Silo events socket error',
           '${frame.code ?? 'unknown'}: ${frame.message ?? ''}',
         );
+      case 'event' || 'snapshot':
+        _pending.add(frame);
+        _batchTimer ??= Timer(_batchWindow, _flush);
       default:
-      // Snapshots and events are translated in step 13.3.
     }
+  }
+
+  Future<void> _flush() async {
+    _batchTimer = null;
+    final silo = _silo;
+    if (_pending.isEmpty || silo == null) return;
+    final frames = List.of(_pending);
+    _pending.clear();
+    final translator = _translator ??= SiloEventsTranslator(silo);
+    final messages = await translator.translate(frames);
+    if (_disposed) return;
+    messages.forEach(emit);
   }
 
   /// Silo takes nothing but a subscribe frame on this socket, and Jellyfin's
@@ -138,5 +163,15 @@ class SiloEventsSocketClient extends _ReconnectingWebSocketClient {
     _renewTimer?.cancel();
     _renewTimer = null;
     return super.disconnect();
+  }
+
+  /// Frames already received are still passed on when the socket is renewed
+  /// or drops; only a dispose (sign-out, another server) drops them.
+  @override
+  void dispose() {
+    _batchTimer?.cancel();
+    _batchTimer = null;
+    _pending.clear();
+    super.dispose();
   }
 }

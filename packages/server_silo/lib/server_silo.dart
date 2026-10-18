@@ -9,6 +9,7 @@ export 'src/api/silo_account_api.dart';
 export 'src/api/silo_auth_api.dart';
 export 'src/api/silo_display_preferences_api.dart';
 export 'src/api/silo_events_api.dart';
+export 'src/api/silo_events_translator.dart';
 export 'src/api/silo_home_sections.dart';
 export 'src/api/silo_image_api.dart';
 export 'src/api/silo_images_api.dart';

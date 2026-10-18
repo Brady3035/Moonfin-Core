@@ -1815,17 +1815,15 @@ class SiloItemsApi
   // --- after a change (9.4) -------------------------------------------------
 
   /// Called after every user-data write this client makes (favourite,
-  /// played, rating, collection membership, a hidden card). Forgets the reads
+  /// played, rating, collection membership, a hidden card), and for each
+  /// change Silo's events report from elsewhere (13.3). Forgets the reads
   /// that may now be out of date, so the rows Moonfin reloads show the
   /// change: Home's and the libraries' sections (Continue Watching, Next Up,
   /// Silo's own rows, kept 5 s), the read-once lists (2 min), the runtime
   /// counts and the pager's cursors and pages. It also remembers [itemId] for
   /// [userDataMayHaveChanged].
   void noteUserDataChanged([String? itemId]) {
-    homeSections.clear();
-    _filteredLists.clear();
-    _runtimeCounts.clear();
-    pager.clear();
+    noteCatalogChanged();
     if (itemId == null || itemId.isEmpty) return;
     final now = _clock();
     _changedItems.remove(itemId);
@@ -1841,6 +1839,17 @@ class SiloItemsApi
     }
   }
 
+  /// Called when Silo says a library's contents changed (an item's metadata,
+  /// a scan, 13.3), or that this client may have missed such a change (a
+  /// reconnect). Forgets the same reads [noteUserDataChanged] does, so the
+  /// lists Moonfin reloads show the change, and nothing about user data.
+  void noteCatalogChanged() {
+    homeSections.clear();
+    _filteredLists.clear();
+    _runtimeCounts.clear();
+    pager.clear();
+  }
+
   /// Of [itemIds], those whose user data may have changed: one this client
   /// changed in the last [_changedTtl], or a season or episode of a show
   /// that had something changed (marking an episode moves the season's and
@@ -1849,8 +1858,7 @@ class SiloItemsApi
   /// Silo has no batch read, so `UserDataSync.refreshFromServer` would
   /// otherwise read every card a screen holds one by one after any change: a
   /// library grid of 300 titles was 300 detail reads. Changes made on another
-  /// device aren't seen here; Silo's live events bring those (phase 13), as
-  /// Jellyfin's socket does.
+  /// device come in through Silo's events, which note them here too (13.3).
   @override
   List<String> userDataMayHaveChanged(Iterable<String> itemIds) {
     final cutoff = _clock().subtract(_changedTtl);

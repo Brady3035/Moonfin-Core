@@ -2242,10 +2242,10 @@ abstract class AppLocalizations {
   /// **'Comic'**
   String get bookFormatComic;
 
-  /// Placeholder when no books are found for an author
+  /// Title shown when a books library has no items
   ///
   /// In en, this message translates to:
-  /// **'No books found for this author.'**
+  /// **'No Books Found'**
   String get noBooksFound;
 
   /// Description shown when a books library has no items
@@ -27398,6 +27398,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Recording started, but couldn\'t request a future showing.'**
   String get unableToRequestLaterShowing;
+
+  /// Silo login screen: the toggle for signing in by approving a code from another device (Silo's name for what Jellyfin calls Quick Connect)
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with a code'**
+  String get siloCodeSignIn;
+
+  /// Silo login screen, sign in with a code: how to approve the code shown below
+  ///
+  /// In en, this message translates to:
+  /// **'Scan the QR code with your phone, or go to {address} on any signed-in device and enter this code:'**
+  String siloCodeSignInInstruction(String address);
+
+  /// Silo login screen, sign in with a code, when the server gave no page address
+  ///
+  /// In en, this message translates to:
+  /// **'Enter this code in Silo on a device where you\'re signed in:'**
+  String get siloCodeSignInInstructionNoLink;
+
+  /// Silo login screen, sign in with a code: someone has looked the code up and is about to approve it
+  ///
+  /// In en, this message translates to:
+  /// **'Code found. Approve the sign-in on your other device.'**
+  String get siloCodeSignInOpened;
+
+  /// Silo login screen, sign in with a code: the person approving refused the request
+  ///
+  /// In en, this message translates to:
+  /// **'This sign-in was declined.'**
+  String get siloCodeSignInDenied;
+
+  /// Silo login screen, sign in with a code: button that shows a new code after the last one ended
+  ///
+  /// In en, this message translates to:
+  /// **'Get a new code'**
+  String get siloCodeSignInNewCode;
+
+  /// Silo login screen: the server doesn't offer sign-in with a code
+  ///
+  /// In en, this message translates to:
+  /// **'Signing in with a code is turned off on this server.'**
+  String get siloCodeSignInOff;
+
+  /// Silo login screen: a code was approved for an account that must first replace its temporary password, which needs a password sign-in
+  ///
+  /// In en, this message translates to:
+  /// **'This account has a temporary password. Sign in with the password once to replace it.'**
+  String get siloCodeSignInPasswordChangeRequired;
 
   /// How many trailers the trailer picker lists, shown in its header
   ///

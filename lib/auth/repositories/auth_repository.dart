@@ -82,9 +82,20 @@ class AuthRepository {
     required String serverId,
     required String secret,
   }) async {
+    // A new attempt replaces a password change left unfinished.
+    await cancelRequiredSiloPasswordChange();
     _stateController.add(const Authenticating());
     try {
       final result = await client.authApi.authenticateWithQuickConnect(secret);
+      final silo = siloClientOf(client);
+      if (silo != null) {
+        return await _handleSiloCodeSignIn(
+          result: result,
+          client: client,
+          silo: silo,
+          serverId: serverId,
+        );
+      }
       return _handleAuthResult(
         result: result,
         client: client,
@@ -196,6 +207,41 @@ class AuthRepository {
           currentPassword: password,
         ),
       );
+    }
+    return _finishSiloSignIn(
+      result: result,
+      client: client,
+      silo: silo,
+      serverId: serverId,
+      accountId: accountId,
+    );
+  }
+
+  /// A Silo sign-in with a code (14.1) opens the account like a password
+  /// sign-in, and goes on the same way: the main profile, the stored pair.
+  ///
+  /// An account holding a temporary password can't continue here: replacing
+  /// it needs the password in use (3.6), which a code sign-in never had. The
+  /// login is ended, and the screen says to sign in with the password.
+  Future<LoginState> _handleSiloCodeSignIn({
+    required Map<String, dynamic> result,
+    required MediaServerClient client,
+    required SiloMediaServerClient silo,
+    required String serverId,
+  }) async {
+    final accountId =
+        (result['User'] as Map<String, dynamic>?)?[siloAccountIdKey] as String?;
+    if (accountId == null || silo.session.tokens == null) {
+      await _endSiloLogin(client);
+      const state = ApiClientError(error: 'Invalid auth response');
+      _stateController.add(state);
+      return state;
+    }
+    if (result[SiloAuthApi.siloPasswordChangeRequiredKey] == true) {
+      await _endSiloLogin(client);
+      const state = SiloCodeSignInPasswordChangeRequired();
+      _stateController.add(state);
+      return state;
     }
     return _finishSiloSignIn(
       result: result,

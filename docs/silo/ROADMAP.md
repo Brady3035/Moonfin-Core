@@ -200,7 +200,7 @@ Status key: ☐ not started · ◐ in progress · ☑ done and tested · ⊘ ski
 ## 14. [Sign in with a code (QuickConnect equivalent)](phases/14-device-signin.md)
 
 - [x] **14.1** [Sign in on a TV with a code](phases/14-device-signin.md#step-14-1)
-- [ ] **14.2** [Approve another device](phases/14-device-signin.md#step-14-2)
+- [x] **14.2** [Approve another device](phases/14-device-signin.md#step-14-2)
 - [x] **14.3** [Enable the entry points](phases/14-device-signin.md#step-14-3)
 
 ## 15. [Downloads and offline](phases/15-downloads.md)
@@ -211,7 +211,7 @@ Status key: ☐ not started · ◐ in progress · ☑ done and tested · ⊘ ski
 - [ ] **15.4** [Offline metadata and artwork](phases/15-downloads.md#step-15-4)
 - [ ] **15.5** [Offline progress sync](phases/15-downloads.md#step-15-5)
 - [ ] **15.6** [Offline subtitles and trickplay](phases/15-downloads.md#step-15-6)
-- [ ] **15.7** [Auto-download via subscriptions](phases/15-downloads.md#step-15-7) *(optional)*
+- [ ] **15.7** [Auto-download via subscriptions](phases/15-downloads.md#step-15-7) *(optional)* · moved to [Later](#later)
 
 ## 16. [Books and audiobooks (Silo beta)](phases/16-books.md)
 
@@ -239,3 +239,10 @@ Status key: ☐ not started · ◐ in progress · ☑ done and tested · ⊘ ski
 - [ ] **18.8** [Turn on `supportsProfiles` for Silo](phases/18-profiles.md#step-18-8) *(optional)*
 
 ↺ port = code for this step already exists on `silo-1-groundwork`, `silo-2-signin-api` or the `Add_silo` stash and gets re-reviewed and re-tested rather than written from scratch.
+
+## Later
+
+Features left out of the plan for now, which could be added after it (Brady's list).
+
+- **Auto-download via Silo's download subscriptions** (was 15.7; Brady, 2026-10-18). Moonfin's own auto-download keeps working on Silo through the ordinary downloads; Silo's series monitors (`/downloads/subscriptions`) would let the server register new episodes itself.
+- **Offline trickplay** (left out of 15.6; Brady, 2026-10-18). Moonfin stores no scrub previews with downloads on any server; offline previews would need the sheets downloaded with each file and the offline player taught to use them.

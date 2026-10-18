@@ -247,7 +247,7 @@ void main() {
       );
     });
 
-    test('sends both reads as the chosen profile', () async {
+    test('sends every read as the chosen profile', () async {
       final server = FixtureServer({
         '/api/v2/account/me': _account(),
         '/api/v2/profiles': _profiles(),
@@ -260,7 +260,12 @@ void main() {
           for (final r in server.requests)
             r.uri.path: r.headers['X-Profile-Id'],
         },
-        {'/api/v2/account/me': _mainId, '/api/v2/profiles': _mainId},
+        {
+          '/api/v2/account/me': _mainId,
+          '/api/v2/profiles': _mainId,
+          // The downloads capability (15.1).
+          '/api/v2/capabilities/downloads': _mainId,
+        },
       );
     });
   });

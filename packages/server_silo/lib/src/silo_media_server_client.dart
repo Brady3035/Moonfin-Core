@@ -9,6 +9,7 @@ import 'api/silo_live_tv_api.dart';
 import 'api/silo_auth_api.dart';
 import 'api/silo_image_api.dart';
 import 'api/silo_display_preferences_api.dart';
+import 'api/silo_downloads_api.dart';
 import 'api/silo_events_api.dart';
 import 'api/silo_images_api.dart';
 import 'api/silo_pending_api.dart';
@@ -252,6 +253,14 @@ class SiloMediaServerClient extends MediaServerClient
     () => _profileId,
     images: images,
     onConfigurationUpdated: () => userViewsApi.invalidateCache(),
+    downloads: downloadsApi,
+  );
+
+  /// Silo's downloads: the capability (15.1) and the device's managed
+  /// download entries.
+  late final SiloDownloadsApi downloadsApi = SiloDownloadsApi(
+    _dio,
+    clock: () => session.now,
   );
 
   /// The artwork URLs seen in Silo's answers, by item and image type (see

@@ -210,7 +210,7 @@ Status key: ☐ not started · ◐ in progress · ☑ done and tested · ⊘ ski
 - [ ] **15.3** [Transcoded downloads](phases/15-downloads.md#step-15-3)
 - [ ] **15.4** [Offline metadata and artwork](phases/15-downloads.md#step-15-4)
 - [ ] **15.5** [Offline progress sync](phases/15-downloads.md#step-15-5)
-- [ ] **15.6** [Offline subtitles and trickplay](phases/15-downloads.md#step-15-6)
+- [ ] **15.6** [Offline subtitles](phases/15-downloads.md#step-15-6) · trickplay moved to [Later](#later)
 - [ ] **15.7** [Auto-download via subscriptions](phases/15-downloads.md#step-15-7) *(optional)* · moved to [Later](#later)
 
 ## 16. [Books and audiobooks (Silo beta)](phases/16-books.md)

@@ -289,7 +289,7 @@ On the Mac, signed in to Silo:
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | previous step |
+| ☑ Done | — | previous step |
 
 **Goal.** Replay queued progress through bulk progress sync.
 
@@ -341,32 +341,69 @@ On the Mac, with a Silo film and an episode downloaded (15.2):
 ---
 
 <a id="step-15-6"></a>
-## 15.6 Offline subtitles and trickplay
+## 15.6 Offline subtitles
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | previous step |
 
-**Goal.** Download sheets and sidecars (signed URLs expire).
+**Goal.** Keep a download's subtitle sidecars beside it. *Trickplay left out (Brady, 2026-10-18): Moonfin stores no scrub previews with downloads on any server; it is on the roadmap's [Later](../ROADMAP.md#later) list.*
+
+**Silo v2 endpoints**
+
+- `GET /downloads/{id}/manifest` (`subtitles[]`)
+- `GET /downloads/{id}/subtitles/{ref}`
+
+**Where in Moonfin**
+
+- `packages/server_core/lib/src/api/server_downloads_api.dart`: `downloadSubtitles`, `ServerDownloadSubtitle`; `ServerDownloadTicket.mediaSourceId`
+- `packages/server_silo/lib/src/api/silo_downloads_api.dart`: `downloadSubtitles` (matches each manifest subtitle to its stream), `SiloDownloadEntry.mediaFileId`
+- `lib/data/services/download_service.dart`: `_downloadServerSubtitles`; `restoreMissingSubtitles` skips servers with their own registry
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+**How Moonfin keeps subtitles offline.** After a download's file, Moonfin saves each subtitle the file doesn't carry as a sidecar beside it, named `<file>_sub_<index>.<ext>`, where `<index>` is the subtitle stream's `Index` in the stored item. Offline, the player (`OfflineStreamResolver`) matches the sidecars to the item's subtitle streams by that index, so they show in the track menu with their language and title. On Jellyfin and Emby the sidecars come from `/Videos/{id}/{source}/Subtitles/{index}/0/Stream.{ext}`. On Silo those URLs don't exist, so a Silo download got none.
+
+**Silo's subtitles.** The manifest (15.4) lists the subtitle files a download needs beyond the file (`docs/downloads-api.md` §4.9, §6): `fetch_url` `/api/v2/downloads/{id}/subtitles/{ref}`, served to this device and profile with any timing correction applied, with its `format`. The `ref` says which subtitle it is (Silo's `internal/downloads/manifest.go`):
+
+- `external:{n}`: the file's n-th sidecar (`.srt`, `.ass`… next to the file on the server);
+- `embedded:{n}`: the file's n-th subtitle track, listed only for a converted MP4 and only for ASS/SSA and PGS tracks, which an MP4 can't hold (its text tracks are carried inside it). An original keeps all its embedded tracks;
+- `downloaded:{id}`: a subtitle fetched into Silo by its subtitle search.
+
+**Matching them to Moonfin's streams (`SiloDownloadsApi.downloadSubtitles`).** Moonfin's Silo media source (5.8) lists the version's `subtitle_tracks`, the embedded tracks first and the sidecars after them marked `external`, and keeps which stream index each track became (`siloStreamIndexForTrack`). So `external:{n}` is the n-th track marked external, and `embedded:{n}` is the track at place n when that one isn't external. Each becomes the stream's index and the format (`ssa` saved as `.ass`); the service fetches it with the ticket's headers into `<file>_sub_<index>.<format>`. Left out: `embedded` refs for an original (the file has them), refs whose place the version doesn't have, and `downloaded` subtitles, which have no stream in Moonfin's media source.
+
+The version is the ticket's (`media_file_id` of the entry, now on the ticket as `mediaSourceId`), else the item's first media source.
+
+**The repair.** `restoreMissingSubtitles` re-fetches sidecars a finished download should have when it is played (for downloads whose subtitle step never ran). It rebuilds Jellyfin's URLs, so it now skips servers with their own download registry.
+
+**Known limits.**
+
+- Subtitles fetched into Silo by its subtitle search (`downloaded:`) aren't kept offline.
+- A sidecar whose timing is corrected on Silo after the download keeps its old timing offline (the manifest's `revision` would tell; Moonfin doesn't refresh downloads' subtitles).
+- The embedded-track rule assumes Silo's file tracks and the version's `subtitle_tracks` list embedded tracks in the same order, as 10.14's subtitle order already does.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `packages/server_silo/test/silo_downloads_api_test.dart` (3 new, 42/42): an original gets its sidecar (`external:0` → the version's third subtitle track, stream 4); a converted file also gets its ASS track (`embedded:1` → stream 3); `downloaded:` and refs the version doesn't have are left out; the ticket carries the entry's version.
+- `test/offline/server_download_test.dart` (1 new, 9/9): a subtitle is saved beside the file as `<file>_sub_4.srt` with the ticket's credentials, for the version the file is of, and no Jellyfin subtitle URL is tried.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+On the Mac, signed in to Silo:
+
+- a. Download a film that has a sidecar subtitle on the server (xXx has two `.srt` sidecars). After the file: `GET …/downloads/<id>/subtitles/external:0` and `…/external:1` (`200`). In the download's folder: `<file>_sub_<n>.srt` files.
+- b. Offline, play the film: its subtitle menu lists the sidecars with their language, and one shows.
+- c. With converted downloads on: download at 720p a title with an embedded ASS (or PGS) track: `…/subtitles/embedded:<n>`, and offline the styled track shows.
+- d. Regression on Emby: a download's external subtitles still show offline.
+- e. Full suite (`flutter test` at the repo root).
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-18 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | downloads API 42/42, server download 9/9, `server_silo` 667/667, `server_core` 100/100, `test/offline` + `test/data/services` 624/624; analyzer: no new issues in the changed files |
 | | | | | |
 
 ---

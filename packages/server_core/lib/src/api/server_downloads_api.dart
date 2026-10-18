@@ -40,6 +40,15 @@ abstract interface class ServerDownloadsApi {
     ServerDownloadTicket ticket,
   );
 
+  /// The subtitle files to keep beside [ticket]'s file (with
+  /// [ServerDownloadTicket.headers]), each named by the stream of
+  /// [mediaSource] it stands for. Subtitles already inside the file are
+  /// left out.
+  Future<List<ServerDownloadSubtitle>> downloadSubtitles(
+    ServerDownloadTicket ticket, {
+    required Map<String, dynamic> mediaSource,
+  });
+
   /// The downloads of [itemIds] were deleted from the device (movies and
   /// episodes; a deleted season or series names each of its episodes).
   Future<void> downloadsRemoved(Iterable<String> itemIds);
@@ -89,6 +98,7 @@ class ServerDownloadTicket {
     this.revision,
     this.sizeBytes,
     this.container,
+    this.mediaSourceId,
   });
 
   /// The server's id of this download.
@@ -111,6 +121,27 @@ class ServerDownloadTicket {
 
   /// The file's container (`mp4`), when it isn't the source's own.
   final String? container;
+
+  /// The version (media source) the file is of, when the server says.
+  final String? mediaSourceId;
+}
+
+/// A subtitle file a server keeps for a download.
+class ServerDownloadSubtitle {
+  const ServerDownloadSubtitle({
+    required this.url,
+    required this.streamIndex,
+    required this.format,
+  });
+
+  /// Where to fetch it.
+  final Uri url;
+
+  /// The `Index` of the media source's subtitle stream it is.
+  final int streamIndex;
+
+  /// Its format, as a file extension (`srt`, `vtt`, `ass`, `sup`).
+  final String format;
 }
 
 /// The server won't provide a download.

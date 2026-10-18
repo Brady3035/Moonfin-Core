@@ -1254,7 +1254,9 @@ class DownloadService extends ChangeNotifier implements AutoDownloadDownloader {
     // Subtitles go first since iOS can suspend a backgrounded app before the
     // later steps get their turn.
     await runBestEffort(
-      _downloadExternalSubtitles(item, dir, fileNameBase),
+      serverTicket == null
+          ? _downloadExternalSubtitles(item, dir, fileNameBase)
+          : _downloadServerSubtitles(item, serverTicket, dir, fileNameBase),
       const Duration(seconds: 30),
     );
 
@@ -3817,6 +3819,45 @@ class DownloadService extends ChangeNotifier implements AutoDownloadDownloader {
     }
   }
 
+  /// The subtitle files the server keeps for a download (Silo: the
+  /// manifest's sidecars), fetched with the ticket's credentials and named
+  /// as [_downloadExternalSubtitles] names them, by the stream they are, so
+  /// the offline player finds them the same way.
+  Future<void> _downloadServerSubtitles(
+    AggregatedItem item,
+    ServerDownloadTicket ticket,
+    Directory dir,
+    String fileNameBase,
+  ) async {
+    final server = _serverDownloads;
+    if (server == null) return;
+    final sources = item.mediaSources;
+    final mediaSource =
+        sources
+            .where((s) => s['Id']?.toString() == ticket.mediaSourceId)
+            .firstOrNull ??
+        sources.firstOrNull;
+    if (mediaSource == null) return;
+    final subtitles = await server.downloadSubtitles(
+      ticket,
+      mediaSource: mediaSource,
+    );
+    final options = Options(headers: ticket.headers);
+    for (final subtitle in subtitles) {
+      final path =
+          '${dir.path}/${fileNameBase}_sub_${subtitle.streamIndex}.${subtitle.format}';
+      try {
+        await _downloadDio.download(
+          subtitle.url.toString(),
+          path,
+          options: options,
+        );
+      } catch (e) {
+        debugPrint('[Download] Subtitle ${subtitle.url} not saved: $e');
+      }
+    }
+  }
+
   /// Fetches the subtitle files a finished download should have but doesn't,
   /// which repairs downloads whose subtitle step never ran. Each item is
   /// checked once per run so a server that can't serve one isn't asked on
@@ -3825,6 +3866,9 @@ class DownloadService extends ChangeNotifier implements AutoDownloadDownloader {
     final row = await _offlineRepo.getItem(itemId);
     final path = row?.localFilePath;
     if (row == null || row.downloadStatus != 2 || path == null) return;
+    // The repair rebuilds Jellyfin's subtitle URLs; a server with its own
+    // download registry (Silo) delivered its sidecars with the file.
+    if (_serverDownloads != null) return;
     if (!_subtitleRepairsTried.add(itemId)) return;
     final file = File(path);
     if (!await file.exists()) return;

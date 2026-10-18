@@ -306,6 +306,7 @@ void main() {
       expect(ticket.revision, 1);
       expect(ticket.sizeBytes, 2048);
       expect(ticket.container, isNull);
+      expect(ticket.mediaSourceId, '4567');
     });
 
     test("an episode is its series' content with the episode named", () async {
@@ -943,6 +944,139 @@ void main() {
       await expectLater(api.downloadArtwork(ticket), throwsA(anything));
       fail = false;
       expect(await api.downloadArtwork(ticket), hasLength(4));
+    });
+  });
+
+  group('subtitles (15.6)', () {
+    // A version with two embedded ASS tracks and one sidecar, as Silo lists
+    // them: embedded first, sidecars after, marked external.
+    final version = {
+      'file_id': 4567,
+      'container': 'mkv',
+      'video_tracks': [
+        {'codec': 'h264', 'width': 1920, 'height': 1080},
+      ],
+      'audio_tracks': [
+        {'codec': 'aac', 'language': 'en', 'channels': 2},
+      ],
+      'subtitle_tracks': [
+        {'index': 2, 'codec': 'ass', 'language': 'en', 'external': false},
+        {'index': 3, 'codec': 'ass', 'language': 'es', 'external': false},
+        {'index': 4, 'codec': 'srt', 'language': 'en', 'external': true},
+      ],
+    };
+    final mediaSource = siloVersionToMediaSource(
+      version,
+      itemId: 'episode-imdb-tt1641384-1-1',
+    )!;
+
+    final ticket = ServerDownloadTicket(
+      id: 'dl_01HSCRUBBED',
+      itemId: 'episode-imdb-tt1641384-1-1',
+      url: Uri.parse(_fileUrl),
+      headers: const {},
+      mediaSourceId: '4567',
+    );
+
+    Map<String, dynamic> manifest({
+      String delivery = 'original',
+    }) => _fixture('download_manifest_episode.json')
+      ..['delivery_format'] = delivery
+      ..['subtitles'] = [
+        {
+          'language': 'en',
+          'format': 'srt',
+          'forced': false,
+          'hearing_impaired': false,
+          'external': true,
+          'fetch_url': '/api/v2/downloads/dl_01HSCRUBBED/subtitles/external:0',
+        },
+        {
+          'language': 'es',
+          'format': 'ass',
+          'forced': false,
+          'hearing_impaired': false,
+          'external': false,
+          'fetch_url': '/api/v2/downloads/dl_01HSCRUBBED/subtitles/embedded:1',
+        },
+        {
+          'language': 'fr',
+          'format': 'srt',
+          'forced': false,
+          'hearing_impaired': false,
+          'external': false,
+          'fetch_url':
+              '/api/v2/downloads/dl_01HSCRUBBED/subtitles/downloaded:77',
+        },
+      ];
+
+    Future<List<ServerDownloadSubtitle>> subtitles(
+      Map<String, dynamic> manifest,
+    ) {
+      expect(siloSchemaErrors('DownloadManifest', manifest), isEmpty);
+      final server = FixtureServer({
+        '/api/v2/downloads/dl_01HSCRUBBED/manifest': _json(manifest),
+      });
+      return _client(
+        server,
+      ).downloadsApi.downloadSubtitles(ticket, mediaSource: mediaSource);
+    }
+
+    int streamOf(int ordinal) =>
+        siloStreamIndexForTrack(mediaSource, SiloTrackKind.subtitle, ordinal)!;
+
+    test('an original gets its sidecars, named by their stream', () async {
+      final result = await subtitles(manifest());
+
+      expect(result, hasLength(1));
+      expect(
+        result.single.url.toString(),
+        'https://silo.example/api/v2/downloads/dl_01HSCRUBBED/subtitles/external:0',
+      );
+      // The sidecar is the version's third subtitle track.
+      expect(result.single.streamIndex, streamOf(2));
+      expect(result.single.streamIndex, 4);
+      expect(result.single.format, 'srt');
+    });
+
+    test(
+      'a converted file also gets its ASS and PGS tracks as sidecars',
+      () async {
+        final result = await subtitles(manifest(delivery: 'transcode'));
+
+        expect(result.map((s) => (s.streamIndex, s.format)), [
+          (4, 'srt'),
+          (streamOf(1), 'ass'),
+        ]);
+        expect(streamOf(1), 3);
+      },
+    );
+
+    test("a reference the version doesn't have is left out", () async {
+      final m = manifest(delivery: 'transcode')
+        ..['subtitles'] = [
+          {
+            'language': 'en',
+            'format': 'srt',
+            'forced': false,
+            'hearing_impaired': false,
+            'external': true,
+            'fetch_url':
+                '/api/v2/downloads/dl_01HSCRUBBED/subtitles/external:5',
+          },
+          {
+            'language': 'en',
+            'format': 'ass',
+            'forced': false,
+            'hearing_impaired': false,
+            'external': false,
+            // The sidecar's place: not an embedded track.
+            'fetch_url':
+                '/api/v2/downloads/dl_01HSCRUBBED/subtitles/embedded:2',
+          },
+        ];
+
+      expect(await subtitles(m), isEmpty);
     });
   });
 }

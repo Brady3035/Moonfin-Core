@@ -417,13 +417,17 @@ class SiloMediaStreamResolver implements MediaStreamResolver, StreamReplanner {
   ///
   /// The player can't change them once it has opened the stream, so a token
   /// past half its life is refreshed first: the stream then keeps working
-  /// for at least half a token lifetime (Silo's is an hour). A failed
-  /// refresh keeps the current token, which the start just used.
+  /// for at least half a token lifetime (Silo's is an hour). A player that
+  /// carries the token in its URLs (the web, a cast receiver, 12.3–12.6)
+  /// gets a nearly fresh one: anything past a tenth of its life is
+  /// refreshed. A failed refresh keeps the current token, which the start
+  /// just used.
   Future<SiloStreamAuth> _streamAuth(SiloMediaServerClient client) async {
     final tokens = client.session.tokens;
+    final keep = _environment().traits.sendsRequestHeaders ? 0.5 : 0.9;
     if (tokens != null && tokens.refreshToken.isNotEmpty) {
       final left = tokens.expiresAt.difference(client.session.now.toUtc());
-      if (left < tokens.lifetime * 0.5) {
+      if (left < tokens.lifetime * keep) {
         try {
           await client.refreshSession();
         } catch (_) {}

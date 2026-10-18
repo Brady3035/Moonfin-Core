@@ -264,6 +264,22 @@ void main() {
     _expectFitsContract(caps);
   });
 
+  test('a cast receiver: the original or HLS only, no headers (12.4)', () {
+    const receiver = SiloPlayerTraits.castReceiver;
+    expect(receiver.sendsRequestHeaders, isFalse);
+    final caps = siloCapabilitiesFromDeviceProfile(
+      _mpvProfile(),
+      traits: receiver,
+    );
+    expect(caps.deliveries['progressive']!['supported_on_device'], isFalse);
+    expect(
+      caps.deliveries['progressive']!['failure_reason'],
+      'player_has_no_progressive_remux',
+    );
+    expect(caps.deliveries['original_http']!['validated_claims'], isEmpty);
+    _expectFitsContract(caps);
+  });
+
   test('the validator refuses what Silo would', () {
     expect(
       siloSchemaErrors('DeliveryCapabilityV3', {'enabled': true, 'extra': 1}),

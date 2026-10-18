@@ -89,6 +89,16 @@ class SiloPlayerTraits {
   /// `isTypeSupported` answers.
   static const web = SiloPlayerTraits(sendsRequestHeaders: false);
 
+  /// A cast receiver (Chromecast 12.4, AirPlay 12.5, DLNA 12.6): it loads
+  /// the URL itself, so it sends none of the phone's headers, and its own
+  /// player seeks by byte ranges, which a chunked remux has none of, so it
+  /// takes the original file or HLS only. It picks no audio track and draws
+  /// no embedded subtitles.
+  static const castReceiver = SiloPlayerTraits(
+    sendsRequestHeaders: false,
+    playsProgressive: false,
+  );
+
   /// libmpv on Android (media_kit, the other engine there, 12.1): as on the
   /// desktop, except that it decodes through MediaCodec onto the surface,
   /// so it doesn't map HDR to an SDR screen.

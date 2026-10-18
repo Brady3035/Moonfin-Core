@@ -141,6 +141,40 @@ void main() {
     },
   );
 
+  test('a cast receiver gets a nearly fresh token (12.4)', () async {
+    Future<int> refreshesWith(Duration left, SiloPlayerTraits traits) async {
+      final server = _server(
+        SiloTestServer.file('decision_remux.json', status: 201),
+      );
+      final client = siloTestClient(server)
+        ..session.setTokens(
+          SiloTokens(
+            accessToken: 'access-1',
+            refreshToken: 'refresh-1',
+            expiresAt: siloTestNow.add(left),
+            lifetime: const Duration(hours: 1),
+          ),
+        )
+        ..profileId = 'p1';
+      await SiloPlugin(
+        client,
+        environment: () => SiloPlaybackEnvironment(traits: traits),
+      ).createStreamResolver().resolve(
+        siloTestItem('silo/watch_movie.json'),
+        deviceProfile: _profile,
+      );
+      return server.to('/api/v2/auth/refresh').length;
+    }
+
+    // 45 minutes left: kept for the phone, renewed for a receiver.
+    const left = Duration(minutes: 45);
+    expect(await refreshesWith(left, SiloPlayerTraits.aether), 0);
+    expect(await refreshesWith(left, SiloPlayerTraits.castReceiver), 1);
+    // 57 minutes left is fresh enough for both.
+    const fresh = Duration(minutes: 57);
+    expect(await refreshesWith(fresh, SiloPlayerTraits.castReceiver), 0);
+  });
+
   group('siloAuthorizeUrl', () {
     const base = 'https://silo.example';
 

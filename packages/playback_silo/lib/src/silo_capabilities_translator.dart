@@ -49,6 +49,8 @@ class SiloPlayerTraits {
     this.playsProgressive = true,
     this.playsHls = true,
     this.rendersEmbeddedSubtitles = false,
+    this.drawsAssStyling = true,
+    this.loadsFontAttachments = true,
   });
 
   /// The libmpv backend's traits (Windows, Linux): it decodes in software,
@@ -66,6 +68,27 @@ class SiloPlayerTraits {
   /// and plays every delivery.
   static const aether = mpv;
 
+  /// Media3's traits (Android, step 12.1): ExoPlayer picks any audio track
+  /// by its place among the file's (Moonfin hands it the ordinal) and draws
+  /// the embedded text and bitmap subtitles it extracts (SubRip, SSA, WebVTT,
+  /// PGS, VobSub), but draws ASS without its styling and loads no attached
+  /// fonts. It sends HDR and Dolby Vision to the display as they are and
+  /// maps nothing to an SDR screen itself.
+  static const media3 = SiloPlayerTraits(
+    selectsAnyAudioTrack: true,
+    rendersEmbeddedSubtitles: true,
+    drawsAssStyling: false,
+    loadsFontAttachments: false,
+  );
+
+  /// libmpv on Android (media_kit, the other engine there, 12.1): as on the
+  /// desktop, except that it decodes through MediaCodec onto the surface,
+  /// so it doesn't map HDR to an SDR screen.
+  static const mpvAndroid = SiloPlayerTraits(
+    selectsAnyAudioTrack: true,
+    rendersEmbeddedSubtitles: true,
+  );
+
   /// Maps an original file's HDR or Dolby Vision to the screen itself
   /// ([siloClaimManagedDynamicRange]).
   final bool managesDynamicRange;
@@ -81,6 +104,13 @@ class SiloPlayerTraits {
 
   /// Selects and draws an embedded subtitle track of a file played whole.
   final bool rendersEmbeddedSubtitles;
+
+  /// Draws ASS and SSA with their styling (positions, fonts, effects);
+  /// without it Silo may hand over a simplified rendering.
+  final bool drawsAssStyling;
+
+  /// Uses the fonts attached to a file for its embedded ASS subtitles.
+  final bool loadsFontAttachments;
 }
 
 /// The capability half of a Silo playback start: `client_capabilities`, the
@@ -197,10 +227,10 @@ SiloClientCapabilities siloCapabilitiesFromDeviceProfile(
   // A remux or HLS stream carries its subtitles as sidecars Moonfin loads
   // as external tracks; it can't fetch a sidecar's font bundle, and loads
   // no external bitmap subtitles, so those are burnt in.
-  const sidecarSubtitles = {
+  final sidecarSubtitles = {
     'embedded_text': false,
     'sidecar_text': true,
-    'ass_styling': true,
+    'ass_styling': traits.drawsAssStyling,
     'embedded_bitmap': false,
     'sidecar_bitmap': false,
     'font_attachments': false,
@@ -265,10 +295,11 @@ SiloClientCapabilities siloCapabilitiesFromDeviceProfile(
 Map<String, dynamic> _originalSubtitles(SiloPlayerTraits traits) => {
   'embedded_text': traits.rendersEmbeddedSubtitles,
   'sidecar_text': true,
-  'ass_styling': true,
+  'ass_styling': traits.drawsAssStyling,
   'embedded_bitmap': traits.rendersEmbeddedSubtitles,
   'sidecar_bitmap': false,
-  'font_attachments': traits.rendersEmbeddedSubtitles,
+  'font_attachments':
+      traits.rendersEmbeddedSubtitles && traits.loadsFontAttachments,
   if (traits.rendersEmbeddedSubtitles)
     'native_embedded': [
       for (final container in _nativeSubtitleContainers)
@@ -278,8 +309,8 @@ Map<String, dynamic> _originalSubtitles(SiloPlayerTraits traits) => {
           // Moonfin picks an embedded track by its probed stream index
           // (Silo's `subtitle_tracks[].index`, Moonfin's `Index`).
           'track_identity': 'ffmpeg_stream_index',
-          'ass_styling': true,
-          'font_attachments': true,
+          'ass_styling': traits.drawsAssStyling,
+          'font_attachments': traits.loadsFontAttachments,
         },
     ],
 };

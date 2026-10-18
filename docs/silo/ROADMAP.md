@@ -170,13 +170,13 @@ Status key: ☐ not started · ◐ in progress · ☑ done and tested · ⊘ ski
 
 ## 11. [Player features](phases/11-player-features.md)
 
-- [ ] **11.1** [Skip intro, credits and recap](phases/11-player-features.md#step-11-1)
-- [ ] **11.2** [Trickplay scrubbing](phases/11-player-features.md#step-11-2)
-- [ ] **11.3** [Chapters and chapter images](phases/11-player-features.md#step-11-3)
+- [x] **11.1** [Skip intro, credits and recap](phases/11-player-features.md#step-11-1)
+- [x] **11.2** [Trickplay scrubbing](phases/11-player-features.md#step-11-2)
+- [x] **11.3** [Chapters and chapter images](phases/11-player-features.md#step-11-3)
 - [ ] **11.4** [Next episode and autoplay](phases/11-player-features.md#step-11-4)
 - [ ] **11.5** [Theme music](phases/11-player-features.md#step-11-5)
-- [ ] **11.6** [Per-series audio and subtitle choice](phases/11-player-features.md#step-11-6) *(optional)*
-- [ ] **11.7** [Shuffle](phases/11-player-features.md#step-11-7) *(optional)*
+- [x] **11.6** [Per-series audio and subtitle choice](phases/11-player-features.md#step-11-6) *(optional)*
+- [x] **11.7** [Shuffle](phases/11-player-features.md#step-11-7) *(optional)*
 
 ## 12. [Other platforms and casting](phases/12-platforms.md)
 

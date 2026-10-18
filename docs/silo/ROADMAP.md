@@ -199,9 +199,9 @@ Status key: ☐ not started · ◐ in progress · ☑ done and tested · ⊘ ski
 
 ## 14. [Sign in with a code (QuickConnect equivalent)](phases/14-device-signin.md)
 
-- [ ] **14.1** [Sign in on a TV with a code](phases/14-device-signin.md#step-14-1)
+- [x] **14.1** [Sign in on a TV with a code](phases/14-device-signin.md#step-14-1)
 - [ ] **14.2** [Approve another device](phases/14-device-signin.md#step-14-2)
-- [ ] **14.3** [Enable the entry points](phases/14-device-signin.md#step-14-3)
+- [x] **14.3** [Enable the entry points](phases/14-device-signin.md#step-14-3)
 
 ## 15. [Downloads and offline](phases/15-downloads.md)
 

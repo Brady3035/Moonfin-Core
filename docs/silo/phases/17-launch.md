@@ -181,6 +181,9 @@ _Fill in when the step is built: what the code does, the main classes and why it
 | 12.1 c | Android TV | An MKV's PGS subtitles show on the original file without a transcode. |
 | 12.1 e | Fire TV | As 12.1 a. |
 | 12.1 f | Android phone | As 12.1 a. |
+| 12.2 a | iPhone / iPad | xXx, Young Justice 1x01 and an HDR film start, seek, resume and switch audio and subtitles as on the Mac. |
+| 12.2 b | Apple TV | As 12.2 a with the remote, plus skip intro, Next Up and scrub previews. |
+| 12.2 c | Apple TV + HDR TV | An HDR10 or Dolby Vision original direct plays. |
 
 **Results**
 

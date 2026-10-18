@@ -18,6 +18,15 @@ void main() {
     expect(environment.displayHdr, isNull);
   });
 
+  test('iOS: a phone playing through AetherEngine (12.2)', () {
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    final environment = siloPlaybackEnvironment();
+    expect(environment.platform, 'ios');
+    expect(environment.manufacturer, 'Apple');
+    expect(environment.traits, same(SiloPlayerTraits.aether));
+    expect(environment.displayHdr, isNull);
+  });
+
   test('Windows and Linux play through libmpv', () {
     for (final platform in [TargetPlatform.windows, TargetPlatform.linux]) {
       debugDefaultTargetPlatformOverride = platform;

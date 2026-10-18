@@ -13,7 +13,7 @@ One backend or cast target per commit; each declares its own honest codec eviden
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | previous step |
+| ☑ Done | — | previous step |
 
 **Goal.** Honest evidence and traits for Android's players, the display's HDR, and the stream's headers through the data source factory.
 
@@ -69,32 +69,47 @@ Brady has no Android device to test on (2026-10-17), so these go to the deferred
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | previous step |
+
+**Goal.** Silo playback on every Apple platform with the player's honest traits and the stream's headers.
 
 **Where in Moonfin**
 
-- `lib/playback/appletv_backend.dart`
-- `lib/playback/aether_backend.dart`
-- `lib/ui/screens/playback/appletv_player_host_screen.dart`
+- `lib/playback/silo_playback_environment.dart`: tvOS plays with AetherEngine's traits
+- `packages/playback_silo/lib/src/silo_capabilities_translator.dart`: the traits' notes
+- (`lib/playback/appletv_backend.dart`, `lib/playback/aether_backend.dart`, `tvos/Runner/Playback/AppleTvVideoChannel.swift`: unchanged; see below)
+- (`lib/ui/screens/playback/appletv_player_host_screen.dart`: its trickplay, segments and chapters came with 11.1–11.3; its tile headers are 12.7)
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+All three Apple platforms play through **AetherEngine**: the macOS and iOS backend (`AetherBackend`) and the tvOS one (`AppleTvBackend`, whose native view wraps the same engine, `AetherPlayerWrapper`). AVPlayer only plays trailers and previews.
+
+- **macOS and iOS** have had AetherEngine's traits since 10.4 (any audio track, embedded and bitmap subtitles with styling and fonts, HDR and Dolby Vision presented through the system, which maps them to an SDR screen). The Mac is what phase 10 and 11 were tested on.
+- **tvOS** claimed nothing beyond its profile until now. It now sends the same traits, since it is the same engine. Its form factor is `tv` and platform `tvos` (10.4).
+- **Headers.** Both backends hand the stream's headers to the engine at open (`SourceConfiguration.headers` → the engine's `httpHeaders`), which sends them on every request for that stream, HLS segments and sidecars included. Nothing changed there.
+- **Display HDR** stays unknown on Apple: nothing in Moonfin asks an Apple display what it shows yet (that would be a native call such as `AVPlayer.eligibleForHDRPlayback`). With HDR unknown, Silo makes no native HDR claim. An original HDR file still plays as it is, since the engine presents it through the system; a remux of one is tone-mapped by Silo. Raise later if Apple TV users see HDR remuxes come out SDR.
+- **Evidence** stays `declared`. Silo's `platform_attested` tier (VideoToolbox) needs per-codec decode entries, which Moonfin doesn't build; like Android's `exact` (12.1), that is a follow-up once it can be tested on the devices.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `test/playback/silo_playback_environment_test.dart` (5 tests, 1 new): iOS plays through AetherEngine's traits, as Apple, with no display HDR. tvOS is a build flag (`MOONFIN_TVOS`), so its branch can't be switched on in a test; it shares the macOS/iOS line.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+The Mac was tested in phases 10 and 11. iOS and Apple TV go to the deferred platform checks in 17.5 unless Brady has the devices at hand.
+
+- a. iPhone or iPad: xXx, Young Justice 1x01 and an HDR film start, seek, resume, switch audio and subtitles as on the Mac.
+- b. Apple TV: the same, with the remote; skip intro, Next Up and previews on the scrub bar (11.1, 11.2, 11.4).
+- c. Apple TV with an HDR TV: an HDR10 or Dolby Vision original direct plays.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-17 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | environment 5/5; analyzer: no issues in the changed files |
+| 2026-10-17 | iOS, tvOS | — | Deferred | checks a–c in 17.5 |
 | | | | | |
 
 ---

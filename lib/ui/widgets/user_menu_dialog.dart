@@ -463,13 +463,15 @@ class _AccountDialogState extends State<_AccountDialog> {
 
 Future<void> showQuickConnectCodeDialog(BuildContext context) async {
   final l10n = AppLocalizations.of(context);
-  final code = await _promptQuickConnectCode(context);
+  final client = GetIt.instance<MediaServerClient>();
+  // Silo calls it approving a sign-in, with the code another device shows.
+  final silo = client.serverType == ServerType.silo;
+  final code = await _promptQuickConnectCode(context, silo: silo);
   if (code == null || code.isEmpty || !context.mounted) return;
 
   final messenger = ScaffoldMessenger.of(context);
 
   try {
-    final client = GetIt.instance<MediaServerClient>();
     final userId = GetIt.instance<UserRepository>().currentUser?.id;
     final authorized = await client.authApi.authorizeQuickConnect(
       code,
@@ -480,11 +482,12 @@ Future<void> showQuickConnectCodeDialog(BuildContext context) async {
 
     messenger.showSnackBar(
       SnackBar(
-        content: Text(
-          authorized
-              ? l10n.quickConnectAuthorized
-              : l10n.quickConnectInvalidOrExpired,
-        ),
+        content: Text(switch ((authorized, silo)) {
+          (true, false) => l10n.quickConnectAuthorized,
+          (false, false) => l10n.quickConnectInvalidOrExpired,
+          (true, true) => l10n.siloApproveSignInDone,
+          (false, true) => l10n.siloApproveSignInNoRequest,
+        }),
       ),
     );
   } on UnsupportedError {
@@ -529,7 +532,10 @@ String _quickConnectErrorMessage(DioException e, AppLocalizations l10n) {
   return l10n.quickConnectAuthorizeFailed;
 }
 
-Future<String?> _promptQuickConnectCode(BuildContext context) async {
+Future<String?> _promptQuickConnectCode(
+  BuildContext context, {
+  bool silo = false,
+}) async {
   final l10n = AppLocalizations.of(context);
   final controller = TextEditingController();
 
@@ -541,7 +547,7 @@ Future<String?> _promptQuickConnectCode(BuildContext context) async {
     builder: (ctx) => AlertDialog.adaptive(
       backgroundColor: AppColorScheme.surface.withValues(alpha: 0.9),
       title: Text(
-        l10n.quickConnect,
+        silo ? l10n.siloApproveSignIn : l10n.quickConnect,
         style: TextStyle(color: AppColorScheme.onSurface),
       ),
       content: TextField(
@@ -554,7 +560,9 @@ Future<String?> _promptQuickConnectCode(BuildContext context) async {
         ],
         style: TextStyle(color: AppColorScheme.onSurface),
         decoration: InputDecoration(
-          hintText: l10n.quickConnectEnterCode,
+          hintText: silo
+              ? l10n.siloApproveSignInHint
+              : l10n.quickConnectEnterCode,
           hintStyle: TextStyle(
             color: AppColorScheme.onSurface.withValues(alpha: 0.5),
           ),
@@ -574,7 +582,9 @@ Future<String?> _promptQuickConnectCode(BuildContext context) async {
             final value = normalizedCode();
             if (value.isNotEmpty) Navigator.pop(ctx, value);
           },
-          child: Text(l10n.quickConnectAuthorize),
+          child: Text(
+            silo ? l10n.siloApproveSignInApprove : l10n.quickConnectAuthorize,
+          ),
         ),
       ],
     ),

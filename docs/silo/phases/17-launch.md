@@ -190,6 +190,7 @@ _Fill in when the step is built: what the code does, the main classes and why it
 | 12.5 a–c | iPhone/iPad + Apple TV | AirPlay xXx: it plays with one `token=`; pause, seek and resume from the phone; the session stays alive and stopping keeps the resume point; a resumed film starts at its resume point. |
 | 12.6 a–b | Phone + DLNA renderer | Cast an H.264/AAC MP4: it plays with `token=`; pause, seek and resume; the session stays alive and stopping keeps the resume point. |
 | 12.7 c | Apple TV | The native scrubber's previews show on Silo and on Emby. |
+| 13.2 e | Android TV, iOS | Background Moonfin past the socket's idle grace and come back: the Silo events socket reconnects with a new ticket (`POST /events/ws-ticket` in the log). |
 
 **Results**
 

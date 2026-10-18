@@ -33,6 +33,12 @@ class _FakeSilo {
 
   int get tickets => ticketAuthorizations.length;
 
+  /// Catalog item details by content id, for the read-back of a change.
+  final items = <String, Map<String, dynamic>>{};
+
+  /// Sends [frame] on the newest connection.
+  void push(Map<String, Object?> frame) => sockets.last.add(jsonEncode(frame));
+
   String get baseUrl => 'http://127.0.0.1:${_server.port}';
 
   Future<void> start() async {
@@ -86,6 +92,14 @@ class _FakeSilo {
           }),
         );
         socket.listen((frame) => received.add('$frame'));
+      case final path when path.startsWith('/api/v2/catalog/items/'):
+        final item = items[path.substring('/api/v2/catalog/items/'.length)];
+        if (item != null) {
+          _json(request, item);
+          return;
+        }
+        request.response.statusCode = HttpStatus.notFound;
+        await request.response.close();
       default:
         request.response.statusCode = HttpStatus.notFound;
         await request.response.close();
@@ -266,6 +280,58 @@ void main() {
 
     expect(silo.sockets, isEmpty);
     expect(connections, 0);
+  });
+
+  test('a change on the web comes out as UserDataChanged with what Silo '
+      'now holds', () async {
+    client.userId = 'profile';
+    silo.items['movie-1'] = {
+      'content_id': 'movie-1',
+      'type': 'movie',
+      'title': 'A film',
+      'user_state': {'played': true, 'is_favorite': false},
+      'versions': <Object>[],
+    };
+    final socket = socketFor();
+    final messages = <ServerWebSocketMessage>[];
+    final sub = socket.messages.listen(messages.add);
+    addTearDown(sub.cancel);
+
+    await socket.connect();
+    await _until(() => silo.sockets.length == 1);
+    for (final profile in ['other-profile', 'profile']) {
+      silo.push({
+        'type': 'event',
+        'channel': 'user_state',
+        'event': 'user_state.changed',
+        'event_id': 'e-$profile',
+        'timestamp': '2026-10-18T12:00:00Z',
+        'data': {
+          'profile_id': profile,
+          'content_id': 'movie-1',
+          'change': 'watched',
+          'played': true,
+        },
+      });
+    }
+    silo.push({
+      'type': 'event',
+      'channel': 'catalog',
+      'event': 'catalog.item.changed',
+      'event_id': 'c1',
+      'timestamp': '2026-10-18T12:00:00Z',
+      'data': {'library_id': 1, 'content_id': 'movie-2', 'change': 'x'},
+    });
+    await _until(() => messages.length == 2);
+
+    final userData = messages.whereType<UserDataChangedMessage>().single;
+    expect(userData.userId, 'profile');
+    expect(userData.userDataList.single['ItemId'], 'movie-1');
+    expect(userData.userDataList.single['Played'], isTrue);
+    expect(userData.userDataList.single['PlaybackPositionTicks'], 0);
+    expect(messages.whereType<LibraryChangedMessage>().single.itemsUpdated, [
+      'movie-2',
+    ]);
   });
 
   test('no login, no connection', () async {

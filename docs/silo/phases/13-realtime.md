@@ -73,7 +73,7 @@ On the Mac, with Silo signed in:
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | previous step |
+| ☑ Done | — | previous step |
 
 **Goal.** Ticket, subprotocols, reconnect before the 5-minute limit with a fresh ticket.
 
@@ -142,32 +142,59 @@ On the Mac, with Silo signed in. The network log is in Moonfin's logs (or the co
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | previous step |
 
 **Goal.** Translate Silo events into the existing `UserDataChanged`/`LibraryChanged` messages.
 
+**Silo v2 endpoints**
+
+- `GET /events/ws` channels `user_state` (`user_state.changed`) and `catalog` (`catalog.item.changed`, `catalog.library.changed`)
+- `GET /catalog/items/{id}` (to read back a changed item's user data)
+
 **Where in Moonfin**
 
-- `lib/data/services/websocket_message_parser.dart`
+- `packages/server_silo/lib/src/api/silo_events_translator.dart` (new): `SiloEventsTranslator`
+- `packages/server_silo/lib/src/api/silo_items_api.dart`: `noteCatalogChanged()`; `noteUserDataChanged` uses it
+- `lib/data/services/silo_events_socket_client.dart`: gathers event and snapshot frames for 300 ms and emits what the translator returns
+- (`lib/data/services/websocket_message_parser.dart`, which the roadmap named: unchanged. Silo's frames aren't Jellyfin's, so they are translated next to the Silo client, where the read-back and the caches are.)
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+On Jellyfin and Emby the socket sends `UserDataChanged` with each changed item's whole user data, and `UserDataSync` patches the cards every screen holds (Home, grids, details). `LibraryChanged` names the added, updated and removed items; the auto-download check and the admin screens follow it. Silo's events are different: they say *what* changed, not the new values. A `user_state.changed` event carries `profile_id`, `content_id`, `change` and only sometimes the new flag (`played`, `is_favorite`). Silo also sends it to every socket of the account, whichever profile changed.
+
+`SiloEventsTranslator.translate(frames)` turns a batch of frames into Moonfin's messages:
+
+- **`user_state.changed`** for the profile Moonfin acts as (others are dropped). Every change is noted on the Silo client (`noteUserDataChanged`): its home sections, lists and pages are read again on the next load, and the item counts as changed for the 9.4 refresh scope, so a screen's own refresh reads it. For `watched`, `favorite`, `progress` and `history`, the item is read back from Silo (`getItems(ids:)`, the item's detail) and its whole `UserData` (played, favourite, resume point, unplayed count for a show or season) goes out in one `UserDataChanged` for the signed-in user, as Jellyfin would send it. A read that fails passes on what the event said. A batch reads at most 25 items; the rest pass on the event's flags. `watchlist`, `home_dismissal` and `not_interested` change nothing a card shows in Moonfin, so they are only noted.
+- **`catalog.item.changed`** (an item's metadata): the Silo lists are read again, and `LibraryChanged` with the item in `itemsUpdated`.
+- **`catalog.library.changed`** (a scan): the Silo lists are read again. Silo names counts, not items, so there is no `LibraryChanged` to send. The legacy names Silo sends alongside (`library.changed`, `library.item_added`, `metadata.updated`) repeat these and are ignored.
+- **Snapshots**, sent for each channel on every connect: changes may have been missed while the socket was down or renewing, so the Silo lists are read again. Nothing is passed on.
+
+The socket client gathers frames for 300 ms before translating, so a burst (a season marked watched sends one event per episode) reads each item once.
+
+**Not implemented (Brady, 2026-10-18): live resume points from playback elsewhere.** Silo publishes no event when playback saves progress or stops (v2 `persistProgress` and `persistStopAndHistory`, and the Jellyfin-compat path); only the writes above do. So watching on Silo web doesn't move Moonfin's resume bars until a reload. Brady: not important. The fix would be on Silo's side (publish `user_state.changed` `progress` from those paths); this translator would pass it on unchanged.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `packages/server_silo/test/silo_events_translator_test.dart` (new, 9 tests): a change on the web passes on the item's user data as Silo holds it (resume point, favourite); two events for one item read it once; another profile's change is dropped; an unreadable item passes on the event's flag; `watchlist`, `home_dismissal` and `not_interested` only note the item (it is in the 9.4 scope); a burst reads back at most 25; `catalog.item.changed` gives `LibraryChanged` once despite the legacy duplicate; a scan and a snapshot pass nothing on.
+- `test/data/services/silo_events_socket_client_test.dart` (1 new, 9/9): events from the loopback socket come out as one `UserDataChanged` (only this profile's, read back) and one `LibraryChanged`.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+On the Mac, with Moonfin open on Home and Silo web open in a browser as the same main profile:
+
+- a. On the web, mark a film Moonfin shows on Home (or in a library grid) watched: within a couple of seconds its card in Moonfin shows the watched tick, without a reload. Mark it unwatched again: the tick goes.
+- b. On the web, favourite a film: Moonfin's detail page of that film (left open) shows it as a favourite within seconds.
+- c. Mark a whole season watched on the web while Moonfin shows that season's episodes: the episodes show watched (the read-backs show in the network log, one per episode up to 25).
+- d. A change from another profile on the web (if the account has one) changes nothing in Moonfin.
+- e. Known, not implemented: playing something on the web doesn't move its resume bar in Moonfin until a reload.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-18 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | translator 9/9, socket client 9/9; analyzer: no new issues in the changed files |
 | | | | | |
 
 ---

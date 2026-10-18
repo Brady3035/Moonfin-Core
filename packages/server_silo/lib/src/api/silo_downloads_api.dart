@@ -1,6 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:server_core/server_core.dart';
 
+import '../silo_problem.dart';
+
 /// What Silo says about downloads for the acting profile
 /// (`GET /capabilities/downloads`).
 class SiloDownloadCapability {
@@ -91,12 +93,28 @@ class SiloDownloadQualityOption {
 /// request, so every download it makes is a **managed** entry of this device
 /// and profile: Silo keeps a registry of what the device holds, serves a
 /// manifest for it, and can revoke it (Silo's `docs/downloads-api.md`).
-class SiloDownloadsApi {
-  SiloDownloadsApi(this._dio, {DateTime Function()? clock})
-    : _clock = clock ?? DateTime.now;
+class SiloDownloadsApi implements ServerDownloadsApi {
+  SiloDownloadsApi(
+    this._dio, {
+    required String Function() baseUrl,
+    required Map<String, String> Function() headers,
+    DateTime Function()? clock,
+  }) : _baseUrl = baseUrl,
+       _headers = headers,
+       _clock = clock ?? DateTime.now;
 
   final Dio _dio;
+  final String Function() _baseUrl;
+
+  /// The client's request headers (login, profile, device), for transfers
+  /// made outside this client.
+  final Map<String, String> Function() _headers;
   final DateTime Function() _clock;
+
+  /// Most entries read while looking for an item's existing entry: 10 pages
+  /// of Silo's largest page.
+  static const _entryScanPages = 10;
+  static const _entryPageSize = 100;
 
   /// How long a capability answer is reused. It changes when an admin
   /// changes the account's download permission or the server's download
@@ -146,4 +164,254 @@ class SiloDownloadsApi {
     _capability = null;
     _capabilityReadAt = null;
   }
+
+  /// Registers the download with Silo (`POST /downloads`) and answers the
+  /// file to fetch (`GET /downloads/{id}/file`, with the client's headers).
+  ///
+  /// A movie is `content_id`; an episode is its series as `content_id` and
+  /// itself as `episode_id`. The version is the request's media source (Silo
+  /// file ids are Moonfin's media source ids). The request carries this
+  /// device's `X-Silo-Device-Id`, so the entry is this device's own.
+  ///
+  /// Silo needs the entry's revision with a single managed request: `0` when
+  /// the device has none for the item, or the existing entry's id and
+  /// revision (Silo reuses it, revives it, or replaces its file). So the
+  /// device's entries are read first ([existingEntry]); this is the
+  /// reconciliation Silo's guide asks for before creating. Creation is
+  /// `non_retryable` and is sent once.
+  @override
+  Future<ServerDownloadTicket> prepareDownload(
+    ServerDownloadRequest request,
+  ) async {
+    if (!request.original) {
+      throw UnsupportedError(
+        'Converted Silo downloads are not implemented yet (roadmap step 15.3)',
+      );
+    }
+    final capability = await this.capability();
+    if (!capability.permitsDownloads) {
+      throw const ServerDownloadRefused(
+        'Downloads are switched off on this server.',
+        reason: 'downloads_unavailable',
+      );
+    }
+    final existing = await existingEntry(request.itemId);
+    final entry = await _create(
+      request,
+      quality: 'original',
+      existing: existing,
+    );
+    if (!entry.servable) {
+      throw ServerDownloadRefused(
+        'Silo is still preparing this download (${entry.status}).',
+        reason: entry.status,
+      );
+    }
+    return _ticketFor(entry, request.itemId);
+  }
+
+  /// Sends the create request and answers its entry; a refusal Silo lists in
+  /// `skipped` (`no_file`, `quality_unavailable`) becomes a
+  /// [ServerDownloadRefused].
+  Future<SiloDownloadEntry> _create(
+    ServerDownloadRequest request, {
+    required String quality,
+    required SiloDownloadEntry? existing,
+  }) async {
+    final isEpisode = request.seriesId != null && request.seriesId!.isNotEmpty;
+    final Response<dynamic> response;
+    try {
+      response = await _dio.post<dynamic>(
+        '/api/v2/downloads',
+        data: {
+          'content_id': isEpisode ? request.seriesId : request.itemId,
+          if (isEpisode) 'episode_id': request.itemId,
+          if (request.mediaSourceId case final id? when id.isNotEmpty)
+            'media_file_id': id,
+          'quality': quality,
+          'expected_revision': existing?.revision ?? 0,
+          if (existing != null) 'expected_download_id': existing.id,
+        },
+      );
+    } on DioException catch (e) {
+      final status = e.response?.statusCode;
+      if (status == 403 || status == 404 || status == 422) {
+        final problem = SiloProblem.of(e);
+        throw ServerDownloadRefused(
+          problem?.message ?? 'Silo refused this download.',
+          reason: problem?.code,
+        );
+      }
+      rethrow;
+    }
+    final body = asJsonMap(response.data);
+    final items = body?['items'] as List? ?? const [];
+    final entry = items.isEmpty ? null : asJsonMap(items.first);
+    if (entry == null) {
+      final skipped = (body?['skipped'] as List? ?? const [])
+          .map(asJsonMap)
+          .whereType<Map<String, dynamic>>()
+          .firstOrNull;
+      final reason = skipped?['reason'] as String?;
+      throw ServerDownloadRefused(switch (reason) {
+        'no_file' => 'Silo has no file for this title.',
+        'quality_unavailable' =>
+          "Silo can't prepare this title at that quality.",
+        _ => 'Silo registered no download for this title.',
+      }, reason: reason);
+    }
+    return SiloDownloadEntry.fromJson(entry);
+  }
+
+  ServerDownloadTicket _ticketFor(
+    SiloDownloadEntry entry,
+    String itemId,
+  ) => ServerDownloadTicket(
+    id: entry.id,
+    itemId: itemId,
+    url: Uri.parse(
+      '${_baseUrl()}/api/v2/downloads/${Uri.encodeComponent(entry.id)}/file',
+    ),
+    headers: {..._headers(), 'Accept': 'application/octet-stream'},
+    revision: entry.revision,
+    sizeBytes: entry.fileSize > 0 ? entry.fileSize : null,
+    container: entry.deliveryFormat == 'original' ? null : 'mp4',
+  );
+
+  /// This device's entry for the movie or episode [itemId], or null. Reads
+  /// the device's entries (`GET /downloads`, newest first) for at most
+  /// [_entryScanPages] pages.
+  Future<SiloDownloadEntry?> existingEntry(String itemId) async {
+    await for (final entry in _entries()) {
+      if (entry.itemId == itemId) return entry;
+    }
+    return null;
+  }
+
+  Stream<SiloDownloadEntry> _entries() async* {
+    String? cursor;
+    for (var page = 0; page < _entryScanPages; page++) {
+      final response = await _dio.get<dynamic>(
+        '/api/v2/downloads',
+        queryParameters: {
+          'limit': _entryPageSize,
+          if (cursor != null) 'cursor': cursor,
+        },
+      );
+      final body = asJsonMap(response.data);
+      for (final raw in body?['items'] as List? ?? const []) {
+        if (asJsonMap(raw) case final json?) {
+          yield SiloDownloadEntry.fromJson(json);
+        }
+      }
+      final pageInfo = asJsonMap(body?['page']);
+      cursor = pageInfo?['next_cursor'] as String?;
+      if (pageInfo?['has_more'] != true || cursor == null) return;
+    }
+  }
+
+  /// A short-lived link for a browser (`POST /direct-download/links`): it
+  /// carries its own credential (`dl`, five minutes), since a browser
+  /// download sends no headers. Original files only.
+  @override
+  Future<Uri?> browserDownloadUrl(ServerDownloadRequest request) async {
+    final fileId = request.mediaSourceId;
+    if (!request.original || fileId == null || fileId.isEmpty) return null;
+    final response = await _dio.post<dynamic>(
+      '/api/v2/direct-download/links',
+      data: {'file_id': fileId},
+    );
+    final url = asJsonMap(response.data)?['url'] as String?;
+    if (url == null || url.isEmpty) return null;
+    return Uri.parse('${_baseUrl()}$url');
+  }
+
+  /// Tells Silo the device holds the whole file (`PATCH /downloads/{id}`,
+  /// `completed` for the ticket's revision, timed now).
+  @override
+  Future<void> downloadFinished(ServerDownloadTicket ticket) async {
+    final revision = ticket.revision;
+    if (revision == null) return;
+    await _dio.patch<dynamic>(
+      '/api/v2/downloads/${Uri.encodeComponent(ticket.id)}',
+      data: {
+        'status': 'completed',
+        'updated_at': _clock().toUtc().toIso8601String(),
+        'revision': revision,
+      },
+    );
+  }
+
+  /// Deletes this device's entries for [itemIds] (`DELETE /downloads/{id}`),
+  /// found among the device's entries. One already gone (`404`) is fine.
+  @override
+  Future<void> downloadsRemoved(Iterable<String> itemIds) async {
+    final wanted = itemIds.toSet();
+    if (wanted.isEmpty) return;
+    final found = <SiloDownloadEntry>[];
+    await for (final entry in _entries()) {
+      if (wanted.contains(entry.itemId)) found.add(entry);
+    }
+    for (final entry in found) {
+      try {
+        await _dio.delete<dynamic>(
+          '/api/v2/downloads/${Uri.encodeComponent(entry.id)}',
+        );
+      } on DioException catch (e) {
+        if (e.response?.statusCode != 404) rethrow;
+      }
+    }
+  }
+}
+
+/// One entry of the device's download registry (`DownloadEntry`).
+class SiloDownloadEntry {
+  const SiloDownloadEntry({
+    required this.id,
+    required this.contentId,
+    required this.episodeId,
+    required this.status,
+    required this.revision,
+    required this.fileSize,
+    required this.deliveryFormat,
+    this.preparation,
+  });
+
+  factory SiloDownloadEntry.fromJson(Map<String, dynamic> json) =>
+      SiloDownloadEntry(
+        id: json['id']?.toString() ?? '',
+        contentId: json['content_id']?.toString() ?? '',
+        episodeId: json['episode_id']?.toString() ?? '',
+        status: json['status'] as String? ?? '',
+        revision: (json['revision'] as num?)?.toInt() ?? 0,
+        fileSize: (json['file_size'] as num?)?.toInt() ?? 0,
+        deliveryFormat: json['delivery_format'] as String? ?? 'original',
+        preparation: asJsonMap(json['preparation']),
+      );
+
+  final String id;
+  final String contentId;
+
+  /// The episode, or empty for a movie.
+  final String episodeId;
+
+  /// `ready`, `preparing`, `downloading`, `completed`, `failed`, `revoked`…
+  final String status;
+  final int revision;
+  final int fileSize;
+
+  /// `original`, `remux` or `transcode`.
+  final String deliveryFormat;
+
+  /// Where a preparing file is in Silo's queue (listed entries only).
+  final Map<String, dynamic>? preparation;
+
+  /// The movie or episode the entry is for: Moonfin's item id.
+  String get itemId => episodeId.isNotEmpty ? episodeId : contentId;
+
+  /// Whether Silo serves its file now: `ready`, or `downloading` and
+  /// `completed`, which a device reports on a ready file (an earlier
+  /// download of the same item that Silo hands back on registering).
+  bool get servable =>
+      status == 'ready' || status == 'downloading' || status == 'completed';
 }

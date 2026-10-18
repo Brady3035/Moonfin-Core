@@ -29,6 +29,7 @@ import '../database/offline_database.dart';
 import '../models/aggregated_item.dart';
 import '../models/download_quality.dart';
 import '../models/download_source.dart';
+import '../offline/connectivity_aware_media_server_client.dart';
 import 'auto_download_downloader.dart';
 import '../repositories/offline_repository.dart';
 import '../utils/next_up_enrichment.dart';
@@ -1851,6 +1852,45 @@ class DownloadService extends ChangeNotifier implements AutoDownloadDownloader {
     return !quality.isTranscoded;
   }
 
+  /// The server's own download registry, when its client has one (Silo:
+  /// [ServerDownloadsApi]). Downloads then ask the server for the file
+  /// instead of building Jellyfin's URLs.
+  ServerDownloadsApi? get _serverDownloads {
+    final client = _client;
+    final online = client is ConnectivityAwareMediaServerClient
+        ? client.onlineClient
+        : client;
+    return online is ServerDownloadsProvider
+        ? (online as ServerDownloadsProvider).serverDownloads
+        : null;
+  }
+
+  ServerDownloadRequest _serverDownloadRequest(
+    AggregatedItem item,
+    DownloadQuality quality, {
+    String? mediaSourceId,
+  }) => ServerDownloadRequest(
+    itemId: item.id,
+    seriesId: item.type == 'Episode' ? item.seriesId : null,
+    mediaSourceId: mediaSourceId ?? _primaryMediaSourceId(item),
+    maxVideoBitrate: quality.videoBitRate,
+    maxWidth: quality.maxWidth,
+  );
+
+  /// Tells the server the device no longer holds [itemIds]. Best effort: the
+  /// local files are already gone, and a server that can't be reached keeps
+  /// an entry the device doesn't need.
+  void _forgetOnServer(Iterable<String> itemIds) {
+    final server = _serverDownloads;
+    final ids = itemIds.toList();
+    if (server == null || ids.isEmpty) return;
+    unawaited(
+      server.downloadsRemoved(ids).catchError((Object e) {
+        debugPrint('[Download] Server could not forget $ids: $e');
+      }),
+    );
+  }
+
   String? _primaryMediaSourceId(AggregatedItem item) {
     final id = item.mediaSources.isNotEmpty
         ? item.mediaSources.first['Id']?.toString()
@@ -2308,6 +2348,26 @@ class DownloadService extends ChangeNotifier implements AutoDownloadDownloader {
           await _ensureFullItem(item),
           mediaSourceId,
         );
+        final serverDownloads = _serverDownloads;
+        if (serverDownloads != null) {
+          final link = await serverDownloads.browserDownloadUrl(
+            _serverDownloadRequest(
+              fullItem,
+              quality,
+              mediaSourceId: mediaSourceId,
+            ),
+          );
+          if (link == null) {
+            throw const ServerDownloadRefused(
+              'This server offers only the original file to a browser.',
+            );
+          }
+          triggerBrowserDownload(
+            link.toString(),
+            _buildFileName(fullItem, quality),
+          );
+          return;
+        }
         final url = _buildDownloadUrl(
           item.id,
           fullItem,
@@ -2363,6 +2423,7 @@ class DownloadService extends ChangeNotifier implements AutoDownloadDownloader {
     }
 
     String? savePath;
+    ServerDownloadTicket? serverTicket;
     // False until the destination is known; the native engine stages its
     // temp file on internal storage, so a removable destination stays on the
     // direct-writing legacy engine (see [StoragePathService.isOnRemovableStorage]).
@@ -2463,6 +2524,20 @@ class DownloadService extends ChangeNotifier implements AutoDownloadDownloader {
       );
       if (preparationCancelled()) return;
 
+      // A server with its own download registry (Silo) registers the
+      // download and hands back the file to fetch, with its credentials.
+      final serverDownloads = _serverDownloads;
+      if (serverDownloads != null) {
+        serverTicket = await serverDownloads.prepareDownload(
+          _serverDownloadRequest(
+            fullItem,
+            quality,
+            mediaSourceId: mediaSourceId,
+          ),
+        );
+        if (preparationCancelled()) return;
+      }
+
       await _offlineRepo.upsertItem(
         DownloadedItemsCompanion(
           itemId: Value(item.id),
@@ -2524,7 +2599,9 @@ class DownloadService extends ChangeNotifier implements AutoDownloadDownloader {
       // Every transcoded download carries a session id so the server's job
       // can be recognized again, whether or not it is reported as activity.
       String? transcodePlaySessionId;
-      if (quality.isTranscoded && _supportsTranscodedDownload(fullItem.type)) {
+      if (serverTicket == null &&
+          quality.isTranscoded &&
+          _supportsTranscodedDownload(fullItem.type)) {
         transcodePlaySessionId = const Uuid().v4();
       }
       final reportActivity =
@@ -2536,17 +2613,19 @@ class DownloadService extends ChangeNotifier implements AutoDownloadDownloader {
         activityResumeTicks = fullItem.playbackPositionTicks ?? 0;
       }
 
-      final url = _buildDownloadUrl(
-        item.id,
-        fullItem,
-        quality,
-        playSessionId: transcodePlaySessionId,
-        audioStreamIndex: audioStreamIndex,
-      );
+      final url =
+          serverTicket?.url.toString() ??
+          _buildDownloadUrl(
+            item.id,
+            fullItem,
+            quality,
+            playSessionId: transcodePlaySessionId,
+            audioStreamIndex: audioStreamIndex,
+          );
       if (transcodePlaySessionId != null) {
         _startTranscodeStatusPolling(item.id, transcodePlaySessionId);
       }
-      final headers = _buildDownloadRequestHeaders();
+      final headers = serverTicket?.headers ?? _buildDownloadRequestHeaders();
 
       if (activityPlaySessionId != null) {
         _reportDownloadActivity(
@@ -2705,7 +2784,10 @@ class DownloadService extends ChangeNotifier implements AutoDownloadDownloader {
       try {
         downloadResponse = await engineDownload(url);
       } on DioException catch (e) {
-        if (!_shouldRetryWithFallback(fullItem, quality, e)) {
+        // The fallbacks are Jellyfin's own URLs; a server-prepared file has
+        // no other address.
+        if (serverTicket != null ||
+            !_shouldRetryWithFallback(fullItem, quality, e)) {
           rethrow;
         }
 
@@ -2715,6 +2797,7 @@ class DownloadService extends ChangeNotifier implements AutoDownloadDownloader {
         }
         downloadResponse = fallbackResponse;
       } on TimeoutException {
+        if (serverTicket != null) rethrow;
         final fallbackResponse = await tryFallbackDownload();
         if (fallbackResponse == null) {
           rethrow;
@@ -2760,6 +2843,14 @@ class DownloadService extends ChangeNotifier implements AutoDownloadDownloader {
         fileSize: finalSize,
       );
       await _offlineRepo.updateDownloadStatus(item.id, 2);
+      if (serverTicket != null) {
+        final ticket = serverTicket;
+        unawaited(
+          _serverDownloads?.downloadFinished(ticket).catchError((Object e) {
+            debugPrint('[Download] Server not told ${item.id} finished: $e');
+          }),
+        );
+      }
 
       _activeDownloads[item.id] = DownloadProgress(
         itemId: item.id,
@@ -2789,6 +2880,7 @@ class DownloadService extends ChangeNotifier implements AutoDownloadDownloader {
         await _offlineRepo.deleteItem(item.id);
         await _cleanupEpisodeContainers(item, imageDir);
         await _notificationService.dismiss();
+        if (serverTicket != null) _forgetOnServer([item.id]);
       } else {
         final friendlyError = _friendlyDioError(e);
         if (savePath != null) {
@@ -3182,6 +3274,9 @@ class DownloadService extends ChangeNotifier implements AutoDownloadDownloader {
       if (item.type != 'Season' && item.type != 'Series') {
         await _deleteStoredFile(ownRow);
       }
+      if (_serverDownloads != null) {
+        _forgetOnServer(await _downloadedItemIdsUnder(item));
+      }
 
       switch (item.type) {
         case 'Movie':
@@ -3297,6 +3392,17 @@ class DownloadService extends ChangeNotifier implements AutoDownloadDownloader {
       }
     }
     return false;
+  }
+
+  /// The movies and episodes deleting [item] removes: itself, or a season's
+  /// or series' downloaded episodes.
+  Future<List<String>> _downloadedItemIdsUnder(AggregatedItem item) async {
+    final rows = switch (item.type) {
+      'Season' => await _offlineRepo.getSeasonEpisodes(item.id),
+      'Series' => await _offlineRepo.getSeriesEpisodes(item.id),
+      _ => null,
+    };
+    return rows == null ? [item.id] : [for (final row in rows) row.itemId];
   }
 
   Future<void> _deleteItemImages(String itemId, Directory imageDir) async {

@@ -42,7 +42,7 @@ import 'silo_session_interceptor.dart';
 /// roadmap step that replaces them. Live TV and Instant Mix are permanently
 /// empty: Silo has neither.
 class SiloMediaServerClient extends MediaServerClient
-    implements ProfileAwareClient {
+    implements ProfileAwareClient, ServerDownloadsProvider {
   final Dio _dio;
 
   /// Sends refreshes (and, from step 2.3, sign-in). It has the same headers,
@@ -260,8 +260,14 @@ class SiloMediaServerClient extends MediaServerClient
   /// download entries.
   late final SiloDownloadsApi downloadsApi = SiloDownloadsApi(
     _dio,
+    baseUrl: () => _baseUrl,
+    headers: () => requestHeaders,
     clock: () => session.now,
   );
+
+  /// Downloads go through Silo's registry (15.2).
+  @override
+  ServerDownloadsApi get serverDownloads => downloadsApi;
 
   /// The artwork URLs seen in Silo's answers, by item and image type (see
   /// [SiloImageRegistry]); [imageApi] answers from it.

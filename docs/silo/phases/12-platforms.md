@@ -279,7 +279,7 @@ Needs an iPhone or iPad and an Apple TV, so it goes to the deferred platform che
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | previous step |
+| ☑ Done | — | previous step |
 
 **Goal.** Casting to a DLNA renderer with Silo's stream, its token, and its session kept alive.
 
@@ -323,33 +323,47 @@ Needs an Android or iOS device and a DLNA renderer, so it goes to the deferred p
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | previous step |
 
 **Goal.** Replace the hand-built `MediaBrowser Token=` headers with `serverAuthHeaders()` (or none for signed URLs).
 
 **Where in Moonfin**
 
-- `lib/ui/screens/playback/video_player_screen.dart`
-- `appletv_player_host_screen.dart`
+- `lib/data/utils/trickplay_headers.dart` (new): `trickplayImageHeaders`
+- `lib/ui/screens/playback/video_player_screen.dart` (the sheet prefetch and the preview tile)
+- `lib/ui/screens/playback/appletv_player_host_screen.dart` (the sheets handed to the native scrubber)
+- `lib/ui/widgets/video_mini_player.dart` (the mini player's preview tile)
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+The players loaded seek-preview sheets and frames with a header written by hand, `Authorization: MediaBrowser Token="…"`, for every server. That is Jellyfin's legacy form. Emby's own scheme is `Emby`, and Silo's sheet URLs are signed and need nothing: a stray `MediaBrowser` authorization next to them was at best ignored, and it put the account's token beside signed artwork, which Moonfin otherwise never does (10.7).
+
+`trickplayImageHeaders(client)` now builds them in one place:
+
+- **Jellyfin and Emby** get the server's own authorization through `server_core`'s `serverAuthHeaders` (the right scheme with the device fields and the token, as every other request to them carries), plus the app's image User-Agent where the Flutter image loader sent it before.
+- **Silo** gets none beyond the User-Agent: the URL carries its signature (11.2).
+- The tvOS host hands the same headers to its native scrubber, without the User-Agent, as before.
+
+The four call sites are the only hand-built authorization headers left in the player screens.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `test/data/utils/trickplay_headers_test.dart` (new, 2 tests): Jellyfin's `MediaBrowser` and Emby's `Emby` authorization with the token, with or without the User-Agent; Silo's none.
+- The trickplay model and player tests pass.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+- a. On the Mac, scrub Young Justice 1x01 on Silo: previews still show (11.2).
+- b. Regression: on Emby, scrub an episode with previews (BIF, or trickplay if the server has it): previews still show.
+- c. Apple TV: the scrubber's previews on Silo and on Emby (deferred to 17.5 with 12.2).
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-17 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | trickplay headers 2/2; analyzer: no issues in the changed files |
 | | | | | |
 
 ---

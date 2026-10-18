@@ -24,6 +24,9 @@ class _FakeSilo {
   /// Holds the ticket's answer until completed.
   Completer<void>? ticketGate;
 
+  /// A problem code to refuse tickets with (403).
+  String? ticketRefusal;
+
   int capabilityReads = 0;
   final ticketAuthorizations = <String?>[];
   final offeredProtocols = <List<String>>[];
@@ -64,6 +67,20 @@ class _FakeSilo {
         );
         final number = tickets;
         await ticketGate?.future;
+        if (ticketRefusal case final code?) {
+          request.response
+            ..statusCode = HttpStatus.forbidden
+            ..headers.contentType = ContentType('application', 'problem+json')
+            ..write(
+              jsonEncode({
+                'type': 'https://siloserver.org/docs/api/v2/problems/$code',
+                'title': code,
+                'status': 403,
+              }),
+            );
+          await request.response.close();
+          return;
+        }
         _json(request, {
           'ticket': 'ticket$number',
           'expires_in': 30,
@@ -332,6 +349,83 @@ void main() {
     expect(messages.whereType<LibraryChangedMessage>().single.itemsUpdated, [
       'movie-2',
     ]);
+  });
+
+  test('an access change reaches the app and reconnects at once', () async {
+    final socket = socketFor();
+    final messages = <ServerWebSocketMessage>[];
+    final sub = socket.messages.listen(messages.add);
+    addTearDown(sub.cancel);
+
+    await socket.connect();
+    await _until(() => silo.sockets.length == 1);
+    silo.push({'type': 'access_changed'});
+    final closed = DateTime.now();
+    await silo.sockets.first.close(4001, 'access_changed');
+    await _until(() => silo.sockets.length == 2);
+
+    // The shared backoff waits at least a second; this doesn't.
+    expect(
+      DateTime.now().difference(closed),
+      lessThan(const Duration(milliseconds: 900)),
+    );
+    expect(silo.tickets, 2);
+    expect(
+      messages.whereType<ServerEventMessage>().single.type,
+      siloAccessChangedEvent,
+    );
+  });
+
+  test('the close code alone is enough', () async {
+    final socket = socketFor();
+    final messages = <ServerWebSocketMessage>[];
+    final sub = socket.messages.listen(messages.add);
+    addTearDown(sub.cancel);
+
+    await socket.connect();
+    await _until(() => silo.sockets.length == 1);
+    await silo.sockets.first.close(4001, 'access_changed');
+    await _until(() => messages.isNotEmpty);
+
+    expect(
+      (messages.single as ServerEventMessage).type,
+      siloAccessChangedEvent,
+    );
+  });
+
+  test('an ordinary close is not an access change', () async {
+    final socket = socketFor();
+    final messages = <ServerWebSocketMessage>[];
+    final sub = socket.messages.listen(messages.add);
+    addTearDown(sub.cancel);
+
+    await socket.connect();
+    await _until(() => silo.sockets.length == 1);
+    await silo.sockets.first.close(1000, 'lifetime');
+    await _until(() => silo.sockets.length == 2);
+
+    expect(messages, isEmpty);
+  });
+
+  test('a profile that needs its PIN again stops the socket', () async {
+    silo.ticketRefusal = 'profile_verification_required';
+    final socket = socketFor();
+
+    await socket.connect();
+    await Future<void>.delayed(const Duration(milliseconds: 2500));
+
+    expect(silo.tickets, 1, reason: 'no retries on the backoff');
+    expect(silo.sockets, isEmpty);
+  });
+
+  test('another refused ticket is retried', () async {
+    silo.ticketRefusal = 'permission_denied';
+    final socket = socketFor();
+
+    await socket.connect();
+    await _until(() => silo.tickets == 2);
+
+    expect(silo.tickets, 2);
   });
 
   test('no login, no connection', () async {

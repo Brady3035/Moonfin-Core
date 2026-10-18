@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:dio/dio.dart' show DioException;
 import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:get_it/get_it.dart';
 import 'package:logger/logger.dart';
@@ -106,6 +107,10 @@ abstract class _ReconnectingWebSocketClient implements ServerWebSocketClient {
   /// straight away rather than waiting to be told an interval.
   void onConnected() {}
 
+  /// Called when the server closes the socket, with its close code. True
+  /// reconnects at once instead of after the backoff (Silo's access change).
+  bool onServerClosed(int? closeCode) => false;
+
   @override
   Future<void> connect() async {
     if (_connecting) return;
@@ -137,8 +142,9 @@ abstract class _ReconnectingWebSocketClient implements ServerWebSocketClient {
           _dropAndReconnect();
         },
         onDone: () {
+          final atOnce = onServerClosed(socket.closeCode);
           logLifecycle('$label WebSocket closed, reconnecting');
-          _dropAndReconnect();
+          _dropAndReconnect(atOnce: atOnce);
         },
       );
     } catch (e) {
@@ -151,12 +157,18 @@ abstract class _ReconnectingWebSocketClient implements ServerWebSocketClient {
 
   /// Clearing the channel is what lets an immediate retry through, since a
   /// stale one left in place reads as a live connection.
-  void _dropAndReconnect() {
+  void _dropAndReconnect({bool atOnce = false}) {
     keepAliveTimer?.cancel();
     keepAliveTimer = null;
     final stale = channel;
     channel = null;
     unawaited(_closeQuietly(stale));
+    if (atOnce && !_disposed) {
+      _reconnectAttempt = 0;
+      _reconnectTimer?.cancel();
+      _reconnectTimer = Timer(Duration.zero, () => connect());
+      return;
+    }
     scheduleReconnect();
   }
 

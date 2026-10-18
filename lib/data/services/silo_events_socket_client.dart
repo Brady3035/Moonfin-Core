@@ -15,6 +15,10 @@ part of 'socket_handler.dart';
 ///   itself shortly before that with a fresh ticket.
 /// - A server that has the socket off (`GET /events/capabilities`) gets no
 ///   connection at all.
+/// - When Silo says the login's access changed (an `access_changed` frame,
+///   close code 4001), the Silo client forgets what the old access decided,
+///   the app hears [siloAccessChangedEvent], and the socket reconnects at
+///   once with a ticket under the new access (13.4).
 ///
 /// Event and snapshot frames are gathered for a moment and handed to
 /// [SiloEventsTranslator], which turns them into the `UserDataChanged` and
@@ -45,6 +49,9 @@ class SiloEventsSocketClient extends _ReconnectingWebSocketClient {
   static const _batchWindow = Duration(milliseconds: 300);
 
   final _pending = <SiloEventFrame>[];
+
+  /// Set by an `access_changed` frame until the close that follows it.
+  bool _accessChanged = false;
   Timer? _batchTimer;
   SiloEventsTranslator? _translator;
 
@@ -71,7 +78,19 @@ class SiloEventsSocketClient extends _ReconnectingWebSocketClient {
     }
 
     final opening = _disconnects;
-    final ticket = await events.createTicket();
+    final SiloEventsTicket ticket;
+    try {
+      ticket = await events.createTicket();
+    } on DioException catch (e) {
+      // The profile's PIN proof no longer verifies (a PIN set or changed on
+      // the main profile since sign-in). Every ticket would be refused the
+      // same way until the profile is unlocked again, so stop asking.
+      if (e.error case SiloProblem(code: 'profile_verification_required')) {
+        logFailure('Silo events socket stopped: the profile needs its PIN', e);
+        return null;
+      }
+      rethrow;
+    }
     // Called off while the ticket was on its way: open nothing.
     if (_disposed || opening != _disconnects) return null;
     _maxConnection = ticket.maxConnection;
@@ -129,6 +148,9 @@ class SiloEventsSocketClient extends _ReconnectingWebSocketClient {
             'Silo events socket refused channels: ${frame.rejected.join(', ')}',
           );
         }
+      case 'access_changed':
+        // Silo closes with 4001 right after; [onServerClosed] acts on either.
+        _accessChanged = true;
       case 'error':
         warn(
           'Silo events socket error',
@@ -151,6 +173,26 @@ class SiloEventsSocketClient extends _ReconnectingWebSocketClient {
     final messages = await translator.translate(frames);
     if (_disposed) return;
     messages.forEach(emit);
+  }
+
+  @override
+  bool onServerClosed(int? closeCode) {
+    final changed =
+        _accessChanged || closeCode == siloEventsAccessChangedCloseCode;
+    _accessChanged = false;
+    if (!changed) return false;
+    logLifecycle('Silo says this login\'s access changed');
+    final silo = _silo;
+    if (silo != null) {
+      silo.userViewsApi.invalidateCache();
+      silo.itemsApi.noteCatalogChanged();
+    }
+    if (!_disposed) {
+      emit(const ServerEventMessage(type: siloAccessChangedEvent));
+    }
+    // No backoff: Silo expects a new connection at once, and the new ticket
+    // carries the new access, so the socket doesn't close again for it.
+    return true;
   }
 
   /// Silo takes nothing but a subscribe frame on this socket, and Jellyfin's

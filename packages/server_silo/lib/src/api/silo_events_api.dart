@@ -89,6 +89,11 @@ class SiloEventsTicket {
 /// under changed (`access_changed`).
 const siloEventsAccessChangedCloseCode = 4001;
 
+/// The `ServerEventMessage` type the app's Silo socket passes on when Silo
+/// says the login's access changed (libraries, rating limits, permissions,
+/// role): what the account may see has to be read again (13.4).
+const siloAccessChangedEvent = 'SiloAccessChanged';
+
 /// One frame from the events socket. Silo sends `hello`, `subscribed`,
 /// `snapshot`, `event`, `error` and `access_changed`; anything else is
 /// [type] with nothing else filled in, and is ignored.

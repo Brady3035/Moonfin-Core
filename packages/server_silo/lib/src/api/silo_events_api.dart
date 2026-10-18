@@ -218,6 +218,10 @@ class SiloEventsApi {
   /// and `/api/v2/events/ws?channels=…`. Declaring the channels here spares
   /// the subscribe frame and its five-second grace period. No credential goes
   /// in the URL.
+  ///
+  /// The port is always written out. Dart's `Uri` knows default ports only
+  /// for `http` and `https`, so a `wss://host/…` without one reports port 0,
+  /// and `dart:io`'s WebSocket connects to exactly that (13.2 fix).
   Uri socketUri([Iterable<String> channels = followedChannels]) {
     final base = Uri.parse(_baseUrl());
     final path = base.path.endsWith('/')
@@ -225,6 +229,7 @@ class SiloEventsApi {
         : base.path;
     return base.replace(
       scheme: base.scheme == 'https' ? 'wss' : 'ws',
+      port: base.port,
       path: '$path/api/v2/events/ws',
       query: 'channels=${channels.join(',')}',
     );

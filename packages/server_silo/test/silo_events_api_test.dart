@@ -113,8 +113,21 @@ void main() {
       final uri = _client(FixtureServer({})).eventsApi.socketUri();
       expect(
         uri.toString(),
-        'wss://silo.example/api/v2/events/ws?channels=user_state,catalog',
+        'wss://silo.example:443/api/v2/events/ws?channels=user_state,catalog',
       );
+    });
+
+    // A wss URL without a port reports port 0, and dart:io's WebSocket used
+    // to connect to exactly that (Brady, macOS, 2026-10-18).
+    test('the port is written out, so the socket reaches 443 or 80', () {
+      final secure = _client(FixtureServer({})).eventsApi.socketUri();
+      expect(secure.port, 443);
+      expect(Uri.parse(secure.toString()).port, 443);
+      final plain = _client(
+        FixtureServer({}),
+        baseUrl: 'http://silo.example',
+      ).eventsApi.socketUri();
+      expect(Uri.parse(plain.toString()).port, 80);
     });
 
     test('ws for http, below a path prefix', () {

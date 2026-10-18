@@ -538,23 +538,53 @@ String _quickConnectErrorMessage(DioException e, AppLocalizations l10n) {
 Future<String?> _promptQuickConnectCode(
   BuildContext context, {
   bool silo = false,
-}) async {
-  final l10n = AppLocalizations.of(context);
-  final controller = TextEditingController();
+}) => showFocusRestoringDialog<String>(
+  context: context,
+  useRootNavigator: true,
+  builder: (_) => _QuickConnectCodeDialog(silo: silo),
+);
 
-  String normalizedCode() => controller.text.replaceAll(RegExp(r'\D'), '');
+/// Asks for the code another device shows. Owns its text controller, so the
+/// controller lives as long as the field: the dialog's closing animation
+/// still rebuilds the field after the code was returned, and a controller
+/// disposed by the caller at that point fails the build (a red error screen
+/// on approve and on a wrong code).
+class _QuickConnectCodeDialog extends StatefulWidget {
+  const _QuickConnectCodeDialog({required this.silo});
 
-  final code = await showFocusRestoringDialog<String>(
-    context: context,
-    useRootNavigator: true,
-    builder: (ctx) => AlertDialog.adaptive(
+  final bool silo;
+
+  @override
+  State<_QuickConnectCodeDialog> createState() =>
+      _QuickConnectCodeDialogState();
+}
+
+class _QuickConnectCodeDialogState extends State<_QuickConnectCodeDialog> {
+  final _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    final value = _controller.text.replaceAll(RegExp(r'\D'), '');
+    if (value.isNotEmpty) Navigator.pop(context, value);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final silo = widget.silo;
+    return AlertDialog.adaptive(
       backgroundColor: AppColorScheme.surface.withValues(alpha: 0.9),
       title: Text(
         silo ? l10n.siloApproveSignIn : l10n.quickConnect,
         style: TextStyle(color: AppColorScheme.onSurface),
       ),
       content: TextField(
-        controller: controller,
+        controller: _controller,
         autofocus: true,
         keyboardType: TextInputType.number,
         inputFormatters: [
@@ -570,31 +600,22 @@ Future<String?> _promptQuickConnectCode(
             color: AppColorScheme.onSurface.withValues(alpha: 0.5),
           ),
         ),
-        onSubmitted: (_) {
-          final value = normalizedCode();
-          if (value.isNotEmpty) Navigator.pop(ctx, value);
-        },
+        onSubmitted: (_) => _submit(),
       ),
       actions: [
         adaptiveDialogAction(
-          onPressed: () => Navigator.pop(ctx),
+          onPressed: () => Navigator.pop(context),
           child: Text(l10n.cancel),
         ),
         FilledButton(
-          onPressed: () {
-            final value = normalizedCode();
-            if (value.isNotEmpty) Navigator.pop(ctx, value);
-          },
+          onPressed: _submit,
           child: Text(
             silo ? l10n.siloApproveSignInApprove : l10n.quickConnectAuthorize,
           ),
         ),
       ],
-    ),
-  );
-
-  controller.dispose();
-  return code;
+    );
+  }
 }
 
 class _CircleActionButton extends StatefulWidget {

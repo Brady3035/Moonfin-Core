@@ -13,7 +13,7 @@ Silo's device sign-in maps onto Moonfin's QuickConnect calls.
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | previous step |
+| ☑ Done | `8e66277ee` | previous step |
 
 **Goal.** Start, poll (`poll_after`), sign in with the approved profile; show the verification URL and a QR code; Silo wording instead of "QuickConnect".
 
@@ -55,7 +55,7 @@ Moonfin's sign-in with a code is Jellyfin's Quick Connect: the login screen asks
 
 Before, a Quick Connect sign-in that didn't end in `Authenticated` left the screen without a word; it now shows the reason on every server.
 
-**Not done here** (raise with Brady): `POST /auth/device/cancel`. Silo lets a device withdraw its own request so an abandoned code can't be approved later; Moonfin just leaves it to expire (15 minutes, at most 30 if someone keeps looking it up). Jellyfin has no such call either.
+**Not done (Brady, 2026-10-18): `POST /auth/device/cancel`.** Silo lets a device withdraw its own request so an abandoned code can't be approved later; Moonfin leaves it to expire (15 minutes, at most 30 if someone keeps looking it up), which Brady finds fine. Jellyfin has no such call either. The temporary-password message above is as Brady wants it.
 
 ### Testing
 
@@ -89,7 +89,10 @@ On the Mac, signed out of Silo (or add the server again), with Silo web open on 
 |---|---|---|---|---|
 | 2026-10-18 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | device sign-in 18/18, client 12/12, `server_silo` 614/614, `server_core` 100/100, `test/auth` 138/138, `test/ui/screens/auth` 8/8; analyzer: no new issues in the changed files |
 | 2026-10-18 | Android TV, Apple TV | — | Deferred | check j in 17.5 |
+| 2026-10-18 | macOS | `bd9d59ea` | Pass | Brady: a–h "all good". Note: right after signing in, the artwork on Continue Watching and Next Up isn't right; it is on the next Home load. Open, see below |
 | | | | | |
+
+**Open (found testing 14.1):** the Continue Watching and Next Up artwork right after sign-in. Not diagnosed yet: whether it also happens after a password sign-in (then it isn't phase 14's), and what is wrong (blank, another title's art, another image kind).
 
 ---
 
@@ -98,7 +101,7 @@ On the Mac, signed out of Silo (or add the server again), with Silo web open on 
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | previous step |
+| ◐ Fix ready for testing | `fc2f623be`, fix — | previous step |
 
 **Goal.** From a signed-in phone.
 
@@ -121,10 +124,12 @@ Moonfin approves another device's Quick Connect code from the account menu (and,
 - **The answer.** `{"status": "approved"}` is true. No request waiting with that code is false, which the dialog shows as "No sign-in is waiting with that code. Check it, or get a new code on the other device.": an unknown code (`404`), one already used, declined or withdrawn by its device (`409`), or one that expired (`410`). Other refusals keep the dialog's existing messages: `403` "Your account cannot authorize this Quick Connect request", `429` (too many attempts; Silo's `device_lookup` budget, 60 a minute per address) the generic failure.
 - **Wording.** On Silo the dialog is "Approve a sign-in", its field "Code shown on the other device", its button "Approve", and a success says "Approved. The other device is signing in." Jellyfin's wording is unchanged.
 
-**Not done here** (raise with Brady):
+**Not done (Brady, 2026-10-18):**
 
-- **Jellyfin apps' six-digit codes.** A Jellyfin app using Silo's Jellyfin-compatible API (Swiftfin, Jellyfin for Android TV, Moonfin in Jellyfin mode) shows a six-digit Quick Connect code. Silo approves those only through `POST /auth/device/approve-handoff`, for the caller's verified profile (`X-Profile-Id`), and every lookup or decision spends the account's Quick Connect budget (20 per 15 minutes). `approve` answers `409` for them, so Moonfin says no sign-in is waiting. A follow-up could send six-digit codes to `approve-handoff` as the main profile.
-- **Seeing the request before approving it.** Silo's own approval page first looks the code up (`GET /auth/device?code=`) and shows the device's name, platform, address hint and the server's name, so a mistyped code or a stranger's device is visible before anyone approves. Moonfin's dialog approves straight away, as it does on Jellyfin. A follow-up could add that card (and a Deny button: `POST /auth/device/deny`).
+- **Jellyfin apps' six-digit codes.** A Jellyfin app using Silo's Jellyfin-compatible API (Swiftfin, Jellyfin for Android TV, Moonfin in Jellyfin mode) shows a six-digit Quick Connect code. Silo approves those only through `POST /auth/device/approve-handoff`, for the caller's verified profile. `approve` answers `409` for them, so Moonfin says no sign-in is waiting. Brady: Moonfin approves Silo's own codes only; not wanted.
+- **Seeing the request before approving it.** Silo's own approval page first looks the code up (`GET /auth/device?code=`) and shows the device and the server, with a Deny button. Brady: leave the dialog as it is, approving straight away as on Jellyfin.
+
+**Fix (2026-10-18): the dialog's closing.** Brady's first run on the Mac showed a red error screen (`'_dependents.isEmpty': is not true`) after Approve, and after a wrong code; the approval itself went through. The dialog's text controller was disposed by the code that opened it as soon as the dialog returned the code, while the dialog was still animating closed: the closing frames rebuild the field, which then used a disposed controller ("A TextEditingController was used after being disposed"), and the failed build left the tree in the state the assertion reports. The dialog is now its own widget (`_QuickConnectCodeDialog`) that owns the controller and disposes it when the dialog is gone. Upstream's dialog has the same bug on Jellyfin (the new test fails there too without the fix): an upstream candidate.
 
 ### Testing
 
@@ -132,6 +137,7 @@ Moonfin approves another device's Quick Connect code from the account menu (and,
 
 - `packages/server_silo/test/silo_device_sign_in_test.dart` (7 new, 25/25): the approval is a `POST` with the code's digits and this login's bearer token, and the body and answer fit the contract; a decision other than `approved` is false; `404`, `409` and `410` are false and sent once; `403` and `429` reach the caller.
 - `packages/server_silo/test/silo_media_server_client_test.dart`: no placeholder left in `AuthApi` (11/11).
+- `test/ui/widgets/quick_connect_code_dialog_test.dart` (new with the fix, 3 tests): approving on Silo, a code no sign-in waits with, and Jellyfin's approval each close the dialog without an error and show their message. All 3 fail without the fix.
 
 **Manual test plan**
 
@@ -150,6 +156,8 @@ On the Mac, signed in to Silo in Moonfin. You also need a second device that sho
 |---|---|---|---|---|
 | 2026-10-18 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | device sign-in 25/25, client 11/11, `server_silo` 620/620, `test/ui/widgets` 491/491; analyzer: no issues in the changed files |
 | 2026-10-18 | iOS, Android phone | — | Deferred | check f in 17.5 |
+| 2026-10-18 | macOS | `bd9d59ea` | Fail | Brady: Approve shows a red error screen (`'_dependents.isEmpty': is not true`), though the code is approved; the same after a wrong code |
+| 2026-10-18 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | fix: the dialog owns its controller; dialog 3/3 (new), `test/ui/widgets` 497/497; analyzer: no issues in the changed files |
 | | | | | |
 
 ---
@@ -159,7 +167,7 @@ On the Mac, signed in to Silo in Moonfin. You also need a second device that sho
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | previous step |
+| ☑ Done | `1f9a3d065` | previous step |
 
 **Goal.** Turn on `supportsQuickConnect` for Silo and the bottom-nav entry.
 
@@ -201,6 +209,7 @@ On the Mac:
 |---|---|---|---|---|
 | 2026-10-18 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | `server_core` 100/100, `test/ui/widgets/bottom_nav` 44/44; analyzer: no new issues in the changed files |
 | 2026-10-18 | iOS, Android phone | — | Deferred | check e in 17.5 |
+| 2026-10-18 | macOS | `bd9d59ea` | Pass | Brady: a–c "all good" |
 | | | | | |
 
 ---

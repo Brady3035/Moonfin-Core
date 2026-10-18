@@ -51,6 +51,7 @@ class SiloPlayerTraits {
     this.rendersEmbeddedSubtitles = false,
     this.drawsAssStyling = true,
     this.loadsFontAttachments = true,
+    this.sendsRequestHeaders = true,
   });
 
   /// The libmpv backend's traits (Windows, Linux): it decodes in software,
@@ -80,6 +81,13 @@ class SiloPlayerTraits {
     drawsAssStyling: false,
     loadsFontAttachments: false,
   );
+
+  /// A browser's `<video>` element (step 12.3), with hls.js for HLS: it
+  /// sends no headers of its own (neither does hls.js here), picks no audio
+  /// track of a file, and draws no embedded subtitles; sidecars are loaded
+  /// as text tracks. Its device profile comes from the browser's
+  /// `isTypeSupported` answers.
+  static const web = SiloPlayerTraits(sendsRequestHeaders: false);
 
   /// libmpv on Android (media_kit, the other engine there, 12.1): as on the
   /// desktop, except that it decodes through MediaCodec onto the surface,
@@ -111,6 +119,11 @@ class SiloPlayerTraits {
 
   /// Uses the fonts attached to a file for its embedded ASS subtitles.
   final bool loadsFontAttachments;
+
+  /// Sends the stream's headers with every request it makes for it. A player
+  /// that can't (a browser's media element, a cast receiver) gets the
+  /// account's token in every media URL instead (12.3).
+  final bool sendsRequestHeaders;
 }
 
 /// The capability half of a Silo playback start: `client_capabilities`, the

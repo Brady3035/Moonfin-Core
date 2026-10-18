@@ -76,6 +76,31 @@ void main() {
     expect(result.requestHeaders['Authorization'], 'Bearer access-1');
   });
 
+  test('a player without headers gets the token on HLS too (12.3)', () async {
+    final server = _server(
+      _decisionWithStream(
+        '/api/v2/playback/transcode/$_session/master.m3u8?st=c2lnbmVk',
+      ),
+    );
+    final result =
+        await SiloPlugin(
+          siloTestClient(server),
+          environment: () => const SiloPlaybackEnvironment(
+            formFactor: 'web',
+            platform: 'web',
+            traits: SiloPlayerTraits.web,
+          ),
+        ).createStreamResolver().resolve(
+          siloTestItem('silo/watch_movie.json'),
+          deviceProfile: _profile,
+        );
+    expect(
+      result.streamUrl,
+      'https://silo.example/api/v2/playback/transcode/$_session/master.m3u8'
+      '?st=c2lnbmVk&token=access-1',
+    );
+  });
+
   test('a proxy node gets no credentials', () async {
     const proxy = 'https://edge.example/stream/v3/$_session?st=c2lnbmVk';
     final server = _server(_decisionWithStream(proxy));
@@ -138,6 +163,28 @@ void main() {
         'https://edge.example/api/v2/stream/s?st=x',
       ]) {
         expect(siloAuthorizeUrl(url, base, 't'), url, reason: url);
+      }
+    });
+
+    test('every media route for a player without headers, never artwork', () {
+      expect(
+        siloAuthorizeUrl(
+          '$base/api/v2/playback/transcode/s/master.m3u8?st=x',
+          base,
+          't',
+          allMedia: true,
+        ),
+        '$base/api/v2/playback/transcode/s/master.m3u8?st=x&token=t',
+      );
+      for (final url in [
+        '$base/api/v2/artwork/tmdb/poster/1/w342.abc.webp?exp=1&sig=2',
+        'https://edge.example/api/v2/playback/transcode/s/master.m3u8',
+      ]) {
+        expect(
+          siloAuthorizeUrl(url, base, 't', allMedia: true),
+          url,
+          reason: url,
+        );
       }
     });
 

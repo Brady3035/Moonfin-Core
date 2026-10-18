@@ -187,6 +187,7 @@ _Fill in when the step is built: what the code does, the main classes and why it
 | 12.4 a–e | Android or iOS phone + Chromecast | Cast xXx (token in the URL, `tv` form factor), pause, seek and resume from the phone; the Silo session stays alive past a minute; stopping keeps the resume point; a transcode plays as HLS; an episode's queue casts the episode alone. |
 | 12.4 f | Phone + Chromecast | A cast longer than an hour: does the token's expiry stop it (open in 12.4)? |
 | 12.5 a–c | iPhone/iPad + Apple TV | AirPlay xXx: it plays with one `token=`; pause, seek and resume from the phone; the session stays alive and stopping keeps the resume point; a resumed film starts at its resume point. |
+| 12.6 a–b | Phone + DLNA renderer | Cast an H.264/AAC MP4: it plays with `token=`; pause, seek and resume; the session stays alive and stopping keeps the resume point. |
 
 **Results**
 

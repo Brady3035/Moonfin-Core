@@ -101,7 +101,7 @@ On the Mac, signed out of Silo (or add the server again), with Silo web open on 
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Fix ready for testing | `fc2f623be`, fix — | previous step |
+| ☑ Done | `fc2f623be`, fix `8cc18adc0` | previous step |
 
 **Goal.** From a signed-in phone.
 
@@ -158,6 +158,7 @@ On the Mac, signed in to Silo in Moonfin. You also need a second device that sho
 | 2026-10-18 | iOS, Android phone | — | Deferred | check f in 17.5 |
 | 2026-10-18 | macOS | `bd9d59ea` | Fail | Brady: Approve shows a red error screen (`'_dependents.isEmpty': is not true`), though the code is approved; the same after a wrong code |
 | 2026-10-18 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | fix: the dialog owns its controller; dialog 3/3 (new), `test/ui/widgets` 497/497; analyzer: no issues in the changed files |
+| 2026-10-18 | macOS | `bd9d59ea` | Pass | Brady, after the fix (`8cc18adc0`): "14.2 was good" |
 | | | | | |
 
 ---

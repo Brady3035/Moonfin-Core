@@ -4,6 +4,7 @@ import 'package:server_core/server_core.dart';
 import '../mappers/silo_settings_mapper.dart';
 import '../mappers/silo_user_mapper.dart';
 import '../silo_image_registry.dart';
+import 'silo_downloads_api.dart';
 import 'silo_profiles_api.dart';
 
 /// Moonfin's `UsersApi` over Silo's account and profiles.
@@ -17,7 +18,12 @@ class SiloUsersApi implements UsersApi {
     this._profileId, {
     this.images,
     this.onConfigurationUpdated,
+    this.downloads,
   });
+
+  /// Where the downloads capability is read, for the user's download
+  /// permission (15.1).
+  final SiloDownloadsApi? downloads;
 
   /// Called after settings were saved, so cached library lists are dropped.
   final void Function()? onConfigurationUpdated;
@@ -37,6 +43,13 @@ class SiloUsersApi implements UsersApi {
   /// chosen yet it describes the main profile, the one the client will act
   /// as. Throws a [StateError] when the chosen profile no longer exists (for
   /// example deleted on the web); that isn't a `401`, so it doesn't sign out.
+  ///
+  /// The policy's `EnableContentDownloading` is the account's
+  /// `download_allowed`, switched off when Silo's downloads capability says
+  /// downloads are off for this profile (15.1). The capability is read afresh
+  /// each time, alongside the account (this runs at sign-in, at start and
+  /// when Silo says access changed); a capability that can't be read leaves
+  /// the account's flag as it is.
   @override
   Future<ServerUser> getCurrentUser() async {
     // Both start at once. Awaiting them one by one (rather than a record's
@@ -47,6 +60,9 @@ class SiloUsersApi implements UsersApi {
     // If the account read fails first, the profile read's own failure is
     // dropped here instead of reported as unhandled.
     profilesFuture.ignore();
+    downloads?.invalidateCapability();
+    final downloadsFuture = downloads?.capability();
+    downloadsFuture?.ignore();
     final account = await accountFuture;
     final profiles = await profilesFuture;
     final accountJson = asJsonMap(account.data);
@@ -79,6 +95,20 @@ class SiloUsersApi implements UsersApi {
       profile.json['avatar_url'] as String?,
     );
     if (avatarTag != null) user['PrimaryImageTag'] = avatarTag;
+    if (downloadsFuture != null) {
+      try {
+        if (!(await downloadsFuture).permitsDownloads) {
+          (user['Policy'] as Map<String, dynamic>)['EnableContentDownloading'] =
+              false;
+        }
+      } catch (e) {
+        ServerLog.network(
+          'Silo downloads capability unreadable; keeping the account flag',
+          level: ServerLogLevel.warning,
+          error: e,
+        );
+      }
+    }
     return ServerUser.fromJson(user);
   }
 

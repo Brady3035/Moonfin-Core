@@ -1,0 +1,281 @@
+import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:flutter_test/flutter_test.dart';
+import 'package:moonfin/data/services/socket_handler.dart';
+import 'package:server_core/server_core.dart';
+import 'package:server_silo/server_silo.dart';
+
+/// Silo's events endpoints on the loopback: the capability, the ticket and
+/// the socket, recording what the client sent.
+class _FakeSilo {
+  late HttpServer _server;
+
+  Map<String, dynamic> capabilities = {
+    'state': 'available',
+    'allowed': true,
+    'declared_channels': true,
+    'channels': ['catalog', 'user_state'],
+  };
+  int maxConnectionSeconds = 300;
+  String requiredAction = 'none';
+
+  /// Holds the ticket's answer until completed.
+  Completer<void>? ticketGate;
+
+  int capabilityReads = 0;
+  final ticketAuthorizations = <String?>[];
+  final offeredProtocols = <List<String>>[];
+  final socketQueries = <String>[];
+  final sockets = <WebSocket>[];
+  final received = <String>[];
+
+  int get tickets => ticketAuthorizations.length;
+
+  String get baseUrl => 'http://127.0.0.1:${_server.port}';
+
+  Future<void> start() async {
+    _server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+    _server.listen(_handle);
+  }
+
+  Future<void> close() async {
+    for (final socket in sockets) {
+      await socket.close();
+    }
+    await _server.close(force: true);
+  }
+
+  Future<void> _handle(HttpRequest request) async {
+    switch (request.uri.path) {
+      case '/api/v2/events/capabilities':
+        capabilityReads++;
+        _json(request, capabilities);
+      case '/api/v2/events/ws-ticket':
+        ticketAuthorizations.add(
+          request.headers.value(HttpHeaders.authorizationHeader),
+        );
+        final number = tickets;
+        await ticketGate?.future;
+        _json(request, {
+          'ticket': 'ticket$number',
+          'expires_in': 30,
+          'max_connection_seconds': maxConnectionSeconds,
+          'protocol': 'silo.events.v2',
+        });
+      case '/api/v2/events/ws':
+        offeredProtocols.add([
+          for (final value
+              in request.headers['sec-websocket-protocol'] ?? const <String>[])
+            for (final protocol in value.split(',')) protocol.trim(),
+        ]);
+        socketQueries.add(request.uri.query);
+        final socket = await WebSocketTransformer.upgrade(
+          request,
+          protocolSelector: (_) => 'silo.events.v2',
+        );
+        sockets.add(socket);
+        socket.add(
+          jsonEncode({
+            'type': 'hello',
+            'schema_version': 1,
+            'connection_id': 'c${sockets.length}',
+            'available_channels': ['catalog', 'user_state'],
+            'required_action': requiredAction,
+          }),
+        );
+        socket.listen((frame) => received.add('$frame'));
+      default:
+        request.response.statusCode = HttpStatus.notFound;
+        await request.response.close();
+    }
+  }
+
+  void _json(HttpRequest request, Map<String, dynamic> body) {
+    request.response
+      ..headers.contentType = ContentType.json
+      ..write(jsonEncode(body));
+    unawaited(request.response.close());
+  }
+}
+
+Future<void> _until(
+  bool Function() done, {
+  Duration timeout = const Duration(seconds: 5),
+}) async {
+  final deadline = DateTime.now().add(timeout);
+  while (!done() && DateTime.now().isBefore(deadline)) {
+    await Future<void>.delayed(const Duration(milliseconds: 20));
+  }
+}
+
+void main() {
+  late _FakeSilo silo;
+  late SiloMediaServerClient client;
+
+  setUp(() async {
+    silo = _FakeSilo();
+    await silo.start();
+    client =
+        SiloMediaServerClient(
+            baseUrl: silo.baseUrl,
+            deviceInfo: const DeviceInfo(
+              id: 'device',
+              name: 'Device',
+              appName: 'Moonfin',
+              appVersion: '1.0.0',
+            ),
+          )
+          ..session.setTokens(
+            SiloTokens(
+              accessToken: 'access',
+              refreshToken: 'refresh',
+              expiresAt: DateTime.now().toUtc().add(const Duration(hours: 1)),
+              lifetime: const Duration(hours: 1),
+            ),
+          )
+          ..profileId = 'profile';
+  });
+
+  tearDown(() => silo.close());
+
+  SiloEventsSocketClient socketFor({
+    Duration renewMargin = const Duration(seconds: 15),
+  }) {
+    final socket = SiloEventsSocketClient(client, renewMargin: renewMargin);
+    addTearDown(socket.dispose);
+    return socket;
+  }
+
+  test('a Silo server gets the events socket', () {
+    final socket = ServerWebSocketClient.forServer(client);
+    addTearDown(socket.dispose);
+    expect(socket, isA<SiloEventsSocketClient>());
+  });
+
+  test(
+    'connects with a ticket in the subprotocols, never in the URL',
+    () async {
+      final socket = socketFor();
+      var connections = 0;
+      final sub = socket.connections.listen((_) => connections++);
+      addTearDown(sub.cancel);
+
+      await socket.connect();
+      await _until(() => connections == 1);
+
+      expect(silo.ticketAuthorizations, ['Bearer access']);
+      expect(silo.offeredProtocols.single, [
+        'silo.events.v2',
+        'silo.ticket.ticket1',
+      ]);
+      expect(silo.socketQueries.single, 'channels=user_state,catalog');
+      expect(connections, 1);
+    },
+  );
+
+  test(
+    "renews the connection before Silo's limit, with a fresh ticket",
+    () async {
+      silo.maxConnectionSeconds = 2;
+      // Due one second in (the shortest the client waits).
+      final socket = socketFor(renewMargin: const Duration(milliseconds: 1500));
+      var connections = 0;
+      final sub = socket.connections.listen((_) => connections++);
+      addTearDown(sub.cancel);
+
+      await socket.connect();
+      await _until(() => silo.sockets.length == 2);
+
+      expect(silo.tickets, 2);
+      expect(silo.offeredProtocols.last.last, 'silo.ticket.ticket2');
+      await _until(() => silo.sockets.first.closeCode != null);
+      expect(silo.sockets.first.closeCode, isNotNull);
+      expect(connections, 2);
+      // The capability is read once per client, not per connection.
+      expect(silo.capabilityReads, 1);
+    },
+  );
+
+  test('a connection Silo closes comes back with a fresh ticket', () async {
+    final socket = socketFor();
+    await socket.connect();
+    await _until(() => silo.sockets.length == 1);
+
+    await silo.sockets.first.close(1000, 'lifetime');
+    await _until(() => silo.sockets.length == 2);
+
+    expect(silo.tickets, 2);
+    expect(silo.offeredProtocols.last.last, 'silo.ticket.ticket2');
+  });
+
+  test('a server with the socket off gets no ticket and no connection, '
+      'until it turns it on', () async {
+    silo.capabilities = {
+      'state': 'not_configured',
+      'allowed': false,
+      'declared_channels': false,
+      'channels': <String>[],
+    };
+    final socket = socketFor();
+
+    await socket.connect();
+    await Future<void>.delayed(const Duration(milliseconds: 300));
+    expect(silo.tickets, 0);
+    expect(silo.sockets, isEmpty);
+
+    silo.capabilities = {
+      'state': 'available',
+      'allowed': true,
+      'declared_channels': true,
+      'channels': ['catalog', 'user_state'],
+    };
+    socket.retryNow();
+    await _until(() => silo.sockets.length == 1);
+    expect(silo.capabilityReads, 2);
+    expect(silo.sockets, hasLength(1));
+  });
+
+  test('a subscribe frame goes out when Silo still asks for one', () async {
+    silo.requiredAction = 'subscribe';
+    final socket = socketFor();
+
+    await socket.connect();
+    await _until(() => silo.received.isNotEmpty);
+
+    expect(jsonDecode(silo.received.single), {
+      'type': 'subscribe',
+      'channels': ['user_state', 'catalog'],
+    });
+  });
+
+  test('a disconnect while the ticket is on its way opens nothing', () async {
+    silo.ticketGate = Completer<void>();
+    final socket = socketFor();
+    var connections = 0;
+    final sub = socket.connections.listen((_) => connections++);
+    addTearDown(sub.cancel);
+
+    final connecting = socket.connect();
+    await _until(() => silo.tickets == 1);
+    await socket.disconnect();
+    silo.ticketGate!.complete();
+    await connecting;
+    await Future<void>.delayed(const Duration(milliseconds: 300));
+
+    expect(silo.sockets, isEmpty);
+    expect(connections, 0);
+  });
+
+  test('no login, no connection', () async {
+    client.session.clear();
+    final socket = socketFor();
+
+    await socket.connect();
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+
+    expect(silo.capabilityReads, 0);
+    expect(silo.sockets, isEmpty);
+  });
+}

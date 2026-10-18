@@ -9,6 +9,7 @@ import 'api/silo_live_tv_api.dart';
 import 'api/silo_auth_api.dart';
 import 'api/silo_image_api.dart';
 import 'api/silo_display_preferences_api.dart';
+import 'api/silo_events_api.dart';
 import 'api/silo_images_api.dart';
 import 'api/silo_pending_api.dart';
 import 'api/silo_playback_api.dart';
@@ -322,6 +323,13 @@ class SiloMediaServerClient extends MediaServerClient
   /// Silo's image endpoints: the size buckets (no Moonfin interface; see
   /// [SiloImagesApi]).
   late final SiloImagesApi imagesApi = SiloImagesApi(_dio);
+
+  /// Silo's realtime events socket: its capability and tickets (no Moonfin
+  /// interface; see [SiloEventsApi]).
+  late final SiloEventsApi eventsApi = SiloEventsApi(
+    _dio,
+    baseUrl: () => _baseUrl,
+  );
 
   /// Finds the account's main profile and acts as it from now on: every
   /// request carries its `X-Profile-Id` (decision D9). Silo keeps progress,

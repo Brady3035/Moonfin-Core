@@ -122,6 +122,22 @@ class _Silo implements HttpClientAdapter {
           ..._pair(),
           'user': {..._account, 'password_change_required': temporaryPassword},
         });
+      case '/api/v2/auth/device/poll':
+        return _json(200, {
+          'status': 'approved',
+          'poll_after': 3,
+          'opened': true,
+          'profile_id': '',
+          'profile_token': '',
+          'temporary': false,
+          'tokens': {
+            ..._pair(),
+            'user': {
+              ..._account,
+              'password_change_required': temporaryPassword,
+            },
+          },
+        });
       case '/api/v2/auth/refresh':
         if (refreshFails) return _problem(503, 'unavailable', 'Try again.');
         return _json(200, _pair());
@@ -327,6 +343,59 @@ void main() {
 
     expect(store.getUsers('s1'), hasLength(1));
     expect(store.getSiloAccountIds('s1'), ['9']);
+  });
+
+  group('sign in with a code (14.1)', () {
+    Future<LoginState> codeSignIn() async {
+      final check = await client.authApi.checkQuickConnect('dc_1');
+      expect(check['Authenticated'], isTrue);
+      return repo.authenticateWithQuickConnect(
+        client: client,
+        serverId: 's1',
+        secret: 'dc_1',
+      );
+    }
+
+    test('signs in as the main profile and stores the pair', () async {
+      final state = await codeSignIn();
+
+      expect(state, isA<Authenticated>());
+      expect((state as Authenticated).userId, _mainId);
+      final user = store.getUser('s1', _mainId)!;
+      expect(user.siloAccountId, '9');
+      expect(user.isAdministrator, isTrue);
+      expect(client.profileId, _mainId);
+      expect(
+        SiloTokenStorage(store).read('s1', '9')?.refreshToken,
+        'refresh-1',
+      );
+      expect(prefs.lastUserId, _mainId);
+    });
+
+    test(
+      'a temporary password ends the login and says to use the password',
+      () async {
+        silo.temporaryPassword = true;
+
+        final state = await codeSignIn();
+
+        expect(state, isA<SiloCodeSignInPasswordChangeRequired>());
+        expect(silo.paths.last, '/api/v2/auth/logout');
+        expect(client.session.tokens, isNull);
+        expect(store.getUsers('s1'), isEmpty);
+        expect(store.getSiloAccountIds('s1'), isEmpty);
+      },
+    );
+
+    test('a PIN-locked main profile says so and ends the login', () async {
+      silo.mainHasPin = true;
+
+      final state = await codeSignIn();
+
+      expect(state, isA<SiloMainProfileLocked>());
+      expect(silo.paths.last, '/api/v2/auth/logout');
+      expect(store.getUsers('s1'), isEmpty);
+    });
   });
 
   group('temporary password (3.6)', () {

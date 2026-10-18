@@ -190,12 +190,12 @@ Status key: ☐ not started · ◐ in progress · ☑ done and tested · ⊘ ski
 
 ## 13. [Realtime events and app services](phases/13-realtime.md)
 
-- [ ] **13.1** [Connectivity ping through the API](phases/13-realtime.md#step-13-1)
-- [ ] **13.2** [Events socket: connect and reconnect](phases/13-realtime.md#step-13-2)
-- [ ] **13.3** [Events → user data and library changes](phases/13-realtime.md#step-13-3)
-- [ ] **13.4** [Access changed](phases/13-realtime.md#step-13-4)
-- [ ] **13.5** [Client log upload](phases/13-realtime.md#step-13-5) *(optional)*
-- [ ] **13.6** [Household now playing](phases/13-realtime.md#step-13-6) *(optional)*
+- [x] **13.1** [Connectivity ping through the API](phases/13-realtime.md#step-13-1)
+- [x] **13.2** [Events socket: connect and reconnect](phases/13-realtime.md#step-13-2)
+- [x] **13.3** [Events → user data and library changes](phases/13-realtime.md#step-13-3)
+- [x] **13.4** [Access changed](phases/13-realtime.md#step-13-4)
+- [ ] **13.5** [Client log upload](phases/13-realtime.md#step-13-5) *(optional)* · ⊘ declined
+- [ ] **13.6** [Household now playing](phases/13-realtime.md#step-13-6) *(optional)* · ⊘ declined
 
 ## 14. [Sign in with a code (QuickConnect equivalent)](phases/14-device-signin.md)
 

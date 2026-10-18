@@ -14411,5 +14411,43 @@
   "playerTransportDocked": "Docked",
   "@playerTransportDocked": {
     "description": "Option that puts the play, skip and seek buttons in the bottom bar with the other player buttons"
+  },
+  "siloCodeSignIn": "Sign in with a code",
+  "@siloCodeSignIn": {
+    "description": "Silo login screen: the toggle for signing in by approving a code from another device (Silo's name for what Jellyfin calls Quick Connect)"
+  },
+  "siloCodeSignInInstruction": "Scan the QR code with your phone, or go to {address} on any signed-in device and enter this code:",
+  "@siloCodeSignInInstruction": {
+    "description": "Silo login screen, sign in with a code: how to approve the code shown below",
+    "placeholders": {
+      "address": {
+        "type": "String",
+        "example": "silo.example.com/activate"
+      }
+    }
+  },
+  "siloCodeSignInInstructionNoLink": "Enter this code in Silo on a device where you're signed in:",
+  "@siloCodeSignInInstructionNoLink": {
+    "description": "Silo login screen, sign in with a code, when the server gave no page address"
+  },
+  "siloCodeSignInOpened": "Code found. Approve the sign-in on your other device.",
+  "@siloCodeSignInOpened": {
+    "description": "Silo login screen, sign in with a code: someone has looked the code up and is about to approve it"
+  },
+  "siloCodeSignInDenied": "This sign-in was declined.",
+  "@siloCodeSignInDenied": {
+    "description": "Silo login screen, sign in with a code: the person approving refused the request"
+  },
+  "siloCodeSignInNewCode": "Get a new code",
+  "@siloCodeSignInNewCode": {
+    "description": "Silo login screen, sign in with a code: button that shows a new code after the last one ended"
+  },
+  "siloCodeSignInOff": "Signing in with a code is turned off on this server.",
+  "@siloCodeSignInOff": {
+    "description": "Silo login screen: the server doesn't offer sign-in with a code"
+  },
+  "siloCodeSignInPasswordChangeRequired": "This account has a temporary password. Sign in with the password once to replace it.",
+  "@siloCodeSignInPasswordChangeRequired": {
+    "description": "Silo login screen: a code was approved for an account that must first replace its temporary password, which needs a password sign-in"
   }
 }

@@ -83,6 +83,14 @@ class SiloPasswordChangeUnavailable extends LoginState {
   const SiloPasswordChangeUnavailable();
 }
 
+/// A sign-in with a code (14.1) was approved for an account holding a
+/// temporary password. Replacing it needs the password in use, which a code
+/// sign-in doesn't have, so the login has been ended: sign in with the
+/// password once to replace it.
+class SiloCodeSignInPasswordChangeRequired extends LoginState {
+  const SiloCodeSignInPasswordChangeRequired();
+}
+
 /// The new password was saved, but the login could not be renewed to lift
 /// the temporary restriction (no network, say). The login has been ended;
 /// signing in with the new password works.

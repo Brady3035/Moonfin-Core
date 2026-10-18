@@ -90,10 +90,10 @@ void main() {
           ),
     );
 
-    test('sign in with a code', () {
+    test('approving another device', () {
       expect(
-        () => client.authApi.initiateQuickConnect(),
-        pending('AuthApi', 'initiateQuickConnect', 'phase 14'),
+        () => client.authApi.authorizeQuickConnect('48217730'),
+        pending('AuthApi', 'authorizeQuickConnect', '14.2'),
       );
     });
 

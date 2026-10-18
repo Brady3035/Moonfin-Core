@@ -237,7 +237,13 @@ class SiloMediaServerClient extends MediaServerClient
   set userId(String? id) => _userId = id;
 
   @override
-  late final AuthApi authApi = SiloAuthApi(_dio, _authDio, session);
+  late final AuthApi authApi = SiloAuthApi(
+    _dio,
+    _authDio,
+    session,
+    deviceName: deviceInfo.name,
+    devicePlatform: platform,
+  );
 
   @override
   late final UsersApi usersApi = SiloUsersApi(

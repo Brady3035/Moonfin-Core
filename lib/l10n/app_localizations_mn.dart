@@ -15569,4 +15569,34 @@ class AppLocalizationsMn extends AppLocalizations {
 
   @override
   String get playerTransportDocked => 'Docked';
+
+  @override
+  String get siloCodeSignIn => 'Sign in with a code';
+
+  @override
+  String siloCodeSignInInstruction(String address) {
+    return 'Scan the QR code with your phone, or go to $address on any signed-in device and enter this code:';
+  }
+
+  @override
+  String get siloCodeSignInInstructionNoLink =>
+      'Enter this code in Silo on a device where you\'re signed in:';
+
+  @override
+  String get siloCodeSignInOpened =>
+      'Code found. Approve the sign-in on your other device.';
+
+  @override
+  String get siloCodeSignInDenied => 'This sign-in was declined.';
+
+  @override
+  String get siloCodeSignInNewCode => 'Get a new code';
+
+  @override
+  String get siloCodeSignInOff =>
+      'Signing in with a code is turned off on this server.';
+
+  @override
+  String get siloCodeSignInPasswordChangeRequired =>
+      'This account has a temporary password. Sign in with the password once to replace it.';
 }

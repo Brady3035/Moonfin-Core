@@ -64,6 +64,7 @@ On the Mac, with Silo signed in:
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-18 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | connectivity 8/8, offline progress sync 22/22, Emby ping 3/3, `server_silo` 575/575, `server_core` 100/100; analyzer: no new issues in the changed files |
+| 2026-10-18 | macOS | `bd9d59ea` | Pass | Brady: "the connectivity ping was good"; the full suite passes |
 | | | | | |
 
 ---
@@ -73,7 +74,7 @@ On the Mac, with Silo signed in:
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Fix ready for testing | `95c9cdd47`, fix — | previous step |
+| ☑ Done | `95c9cdd47`, fix `681e671b7` | previous step |
 
 **Goal.** Ticket, subprotocols, reconnect before the 5-minute limit with a fresh ticket.
 
@@ -137,6 +138,7 @@ On the Mac, with Silo signed in. The network log is in Moonfin's logs (or the co
 | 2026-10-18 | Android TV, iOS | — | Deferred | check e in 17.5 |
 | 2026-10-18 | macOS | `bd9d59ea` | Fail | Brady: every connect failed with `port = 0` (`errno = 49`, "Can't assign requested address"); the socket URL had no port |
 | 2026-10-18 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | fix: the port written out; events API 12/12 (1 new) |
+| 2026-10-18 | macOS | `bd9d59ea` | Pass | Brady, after the fix (`681e671b7`): passes; the full suite passes. Emby's socket had the same `port = 0` failure: fixed upstream instead (branch `fix-websocket-port`, a PR to Moonfin-Client), not on this branch |
 | | | | | |
 
 ---
@@ -199,6 +201,7 @@ On the Mac, with Moonfin open on Home and Silo web open in a browser as the same
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-18 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | translator 9/9, socket client 9/9; analyzer: no new issues in the changed files |
+| 2026-10-18 | macOS | `bd9d59ea` | Pass | Brady: "tests are good" |
 | | | | | |
 
 ---
@@ -208,7 +211,7 @@ On the Mac, with Moonfin open on Home and Silo web open in a browser as the same
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | `73418891f` | previous step |
+| ☑ Done | `73418891f` | previous step |
 
 **Goal.** Re-fetch the user and profile, or sign out, when Silo says access changed.
 
@@ -258,6 +261,7 @@ On the Mac, with Moonfin open on Home and Silo web open as the same account:
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-18 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | socket client 14/14, socket handler 11/11, `test/auth` 135/135, `server_silo` 595/595; analyzer: no new issues in the changed files |
+| 2026-10-18 | macOS | `bd9d59ea` | Pass | Brady: "works" |
 | | | | | |
 
 ---
@@ -267,7 +271,9 @@ On the Mac, with Moonfin open on Home and Silo web open as the same account:
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ⊘ Declined (Brady, 2026-10-18) | — | previous step |
+
+Not built: Brady declined it as not needed (2026-10-18).
 
 **Goal.** Send Moonfin's diagnostic log as a Silo diagnostics report.
 
@@ -307,7 +313,9 @@ _Fill in when the step is built: what the code does, the main classes and why it
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ⊘ Declined (Brady, 2026-10-18) | — | previous step |
+
+Not built: Brady declined it as not needed (2026-10-18).
 
 **Goal.** Read-only list of what other profiles are watching.
 

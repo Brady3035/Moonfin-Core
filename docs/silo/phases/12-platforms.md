@@ -119,7 +119,7 @@ The Mac was tested in phases 10 and 11. iOS and Apple TV go to the deferred plat
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | previous step |
+| ☑ Done | — | previous step |
 
 **Goal.** `isTypeSupported` evidence; query token because `<video>` can't send headers.
 
@@ -174,32 +174,56 @@ On the Mac, run Moonfin for the web (`flutter run -d chrome`, or Brady's usual w
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | previous step |
 
-**Goal.** Receiver-specific capabilities; token query on the stream URL.
+**Goal.** Receiver-specific capabilities; token query on the stream URL; the Silo session kept alive while the receiver plays.
 
 **Where in Moonfin**
 
-- `lib/data/services/cast/google_cast_provider.dart`
+- `packages/playback_silo/lib/src/silo_capabilities_translator.dart`: `SiloPlayerTraits.castReceiver`
+- `packages/playback_silo/lib/src/silo_media_stream_resolver.dart`: a nearly fresh token for a player that carries it in its URLs
+- `lib/playback/silo_playback_environment.dart`: `siloReceiverEnvironment`
+- `lib/data/services/cast/cast_session_reporter.dart` (new): `CastSessionReporter`, `CastServerPlayback`, `CastServerPlaybackSource`
+- `lib/data/services/cast/cast_service.dart`: reports a cast that needs it
+- `lib/data/services/cast/google_cast_provider.dart`: the receiver's environment, one item at a time on Silo, the session to report
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+Casting hands the receiver a URL: the receiver loads the stream itself, with its own player, and the phone only controls it. Moonfin resolves the stream on the phone with the receiver's device profile (`chromecastDeviceProfile`). For Silo four things needed changing:
+
+- **The receiver's start.** The cast resolver now describes the receiver, not the phone (`siloReceiverEnvironment('chromecast', manufacturer: 'Google')`): form factor `tv` and `SiloPlayerTraits.castReceiver`. That means no headers (12.3: `token=` on every media URL, HLS included), and **no progressive remux**: the receiver's player seeks by byte ranges, which a chunked remux has none of, so Silo plans the original file (ranges) or HLS. It picks no audio track and draws no embedded subtitles, so Silo burns or extracts them as needed. Before this, a Silo cast described the phone (`desktop`, no traits), and an HLS stream had no token, so the receiver would have been refused.
+- **Keeping the session alive.** A Silo session that hears no progress for 45 seconds is ended (10.9), and its stream stops being served. On the phone the playback manager reports; for a cast nothing did. `CastSessionReporter` now reports what the receiver does, every 10 s, through Silo's session service (`SiloPlaySessionService`): the receiver's position plus the stream's timeline offset (10.1), and paused or not, from the cast service's receiver state (its events and polling); before the receiver has said anything (still loading) it is kept alive at the start position. It stops the session, with the last position as Silo's resume point, when the cast ends, the receiver plays another item, or it goes idle after playing; a new cast stops the one before. The cast service starts it for a provider that hands over its last cast (`CastServerPlaybackSource.takeServerPlayback`), and only Silo's need it (`castNeedsSessionReports`). Jellyfin and Emby casts are as before.
+- **One item at a time on Silo.** The provider resolves every queued item before it starts the cast. On Silo each resolve opens a session, and every one but the playing one would end 45 seconds later, so the receiver's later items would be refused. On Silo the cast is the item alone; the rest of a queue isn't sent.
+- **The token's life.** The receiver's URLs carry the token they were made with, and Silo checks it on every request. A player that carries the token (the web, a receiver) now gets a nearly fresh one: anything past a tenth of its life is refreshed before the stream is described, so a cast works for close to the token's full life (an hour on this server).
+
+**Open:** a cast longer than the token's life (a film over an hour) will be refused once the token expires: the receiver keeps the URL it was given. Fixing that needs either a replan with a new URL before expiry (the receiver would have to load it, interrupting playback briefly) or Silo accepting the signed stream reference (`st`) alone for a live session. To raise with Brady and Silo after a test.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `test/data/services/cast/cast_session_reporter_test.dart` (new, 4 tests): the receiver's position on the film's timeline (a 9:53 remux offset), paused or not, the start position before the receiver says anything; a stop at the last position when the cast ends, nothing after; idle before playing keeps going, idle after playing or another item stops; a new cast stops the one before.
+- `packages/playback_silo/test/silo_capabilities_translator_test.dart` (1 new): a receiver has no progressive remux (`player_has_no_progressive_remux`), claims nothing on the original, and fits the contract.
+- `packages/playback_silo/test/silo_stream_auth_test.dart` (1 new): with 45 minutes left a phone keeps its token and a receiver gets a new one; 57 minutes is fresh enough. `playback_silo` 90/90.
+- `chromecast_device_profile_test.dart` and the player tests that build a cast service pass.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+Casting needs the app on an Android or iOS device and a Chromecast (or a Google TV), so this goes to the deferred platform checks in 17.5 unless Brady has them at hand.
+
+- a. Cast xXx from its detail page: it plays on the TV. The phone's log shows the cast URL with `token=` and a start with form factor `tv`.
+- b. Pause, seek, resume from the phone: the TV follows. Silo's web app (Activity/Sessions) shows the session staying alive past a minute.
+- c. Stop the cast at some point: Silo's web app shows the resume point there, and Moonfin's Continue Watching too.
+- d. Cast a film that transcodes (lower *Max streaming bitrate*): HLS plays on the TV.
+- e. Cast an episode with a queue: only that episode plays (on Silo).
+- f. Optional: a cast longer than an hour, to see whether the token's expiry stops it (open above).
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-17 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | reporter 4/4; translator, stream auth 1 new each (`playback_silo` 90/90); cast and player tests pass; analyzer: no issues in the changed files |
+| 2026-10-17 | Chromecast | — | Deferred | checks a–f in 17.5 |
 | | | | | |
 
 ---

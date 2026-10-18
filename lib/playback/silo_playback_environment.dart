@@ -33,6 +33,20 @@ SiloPlaybackEnvironment siloPlaybackEnvironment() {
   );
 }
 
+/// A cast receiver as a Silo start describes it (12.4–12.6): a TV, the
+/// receiver's [platform] (`chromecast`, `airplay`, `dlna`), and a player
+/// that loads the stream itself ([SiloPlayerTraits.castReceiver]). Its
+/// device profile is the receiver's (`receiver_device_profiles.dart`).
+SiloPlaybackEnvironment siloReceiverEnvironment(
+  String platform, {
+  String? manufacturer,
+}) => SiloPlaybackEnvironment(
+  formFactor: 'tv',
+  platform: platform,
+  manufacturer: manufacturer,
+  traits: SiloPlayerTraits.castReceiver,
+);
+
 /// The display's HDR formats (Android's `HDR10`, `HDR10_PLUS`, `HLG`,
 /// `DOLBY_VISION`, as the display probe records them) as Silo's HDR
 /// details, or null when the display was never read ([known] false).

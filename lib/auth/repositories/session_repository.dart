@@ -26,6 +26,7 @@ import 'package:volume_controller/volume_controller.dart';
 import 'package:logger/logger.dart';
 import 'package:playback_core/playback_core.dart';
 import 'package:server_core/server_core.dart';
+import 'package:server_silo/server_silo.dart' show siloAccessChangedEvent;
 
 import '../../data/models/aggregated_item.dart';
 import '../../data/services/carplay_service.dart';
@@ -123,6 +124,7 @@ class SessionRepository {
   StreamSubscription<ServerWebSocketMessage>? _remoteCommandSubscription;
   RemoteSearchSession? _remoteSearch;
   StreamSubscription<ServerWebSocketMessage>? _pluginEventSubscription;
+  StreamSubscription<ServerWebSocketMessage>? _accessChangedSubscription;
   StreamSubscription<void>? _socketConnectionSubscription;
   double _lastUnmutedVolume = 100;
   Future<void> _remoteVolumeFlight = Future.value();
@@ -343,6 +345,7 @@ class SessionRepository {
     _bindRemoteCommandHandling();
     _bindCapabilityReporting(client);
     _bindPluginEventHandling(client);
+    _bindAccessChanges(client);
     userDataSync.bindTo(_socketHandler.events, userId: userId);
     _refreshCarBrowseTree(signedIn: true);
 
@@ -411,46 +414,14 @@ class SessionRepository {
       unawaited(GetIt.instance<CrashReportService>().flushPending());
     } catch (_) {}
 
-    try {
-      final serverUser =
-          preFetchedServerUser ?? await client.usersApi.getCurrentUser();
-      final isAdmin = serverUser.policy?.isAdministrator ?? false;
-      final canDownload = serverUser.policy?.enableContentDownloading ?? false;
-      final canManageSubtitles =
-          serverUser.policy?.canFetchRemoteSubtitles ?? false;
-      final canManageCollections =
-          serverUser.policy?.enableCollectionManagement ?? false;
-
-      if (isAdmin != user.isAdministrator ||
-          canDownload != user.canDownload ||
-          canManageSubtitles != user.canManageSubtitles ||
-          canManageCollections != user.canManageCollections) {
-        final updatedUser = user.copyWith(
-          isAdministrator: isAdmin,
-          canDownload: canDownload,
-          canManageSubtitles: canManageSubtitles,
-          canManageCollections: canManageCollections,
-        );
-        await _authStore.putUser(updatedUser);
-        _userRepository.setCurrentUser(updatedUser);
-      }
-
-      // init language prefs if not already set
-      if (serverUser.configuration != null) {
-        GetIt.instance<UserPreferences>().initLanguagePrefs(
-          serverUser.configuration!,
-        );
-      }
-    } on DioException catch (e) {
-      if (e.response?.statusCode == 401) {
-        _logger.w('Access token expired or unauthorized. Logging out.');
-        await destroyCurrentSession(tokenKnownInvalid: true);
-        appRouter.go(
-          '${Destinations.login}?serverId=$serverId&username=${Uri.encodeComponent(user.name)}',
-        );
-        return;
-      }
-    } catch (_) {}
+    if (!await _refreshServerUser(
+      client,
+      user,
+      serverId,
+      preFetched: preFetchedServerUser,
+    )) {
+      return;
+    }
 
     // The settings entry and the friends button stay hidden until this
     // answers. It doesn't wait for the settings sync, which on a first
@@ -490,6 +461,75 @@ class SessionRepository {
     );
     if (seerrCameUp) {
       homeRefreshBus.requestNowOrAfterNavigation(newSectionsOnly: true);
+    }
+  }
+
+  /// Reads the signed-in user from the server and keeps the stored user's
+  /// permissions and the language preferences in step with it. Answers false
+  /// when the server turned the login down and the session was ended.
+  Future<bool> _refreshServerUser(
+    MediaServerClient client,
+    PrivateUser user,
+    String serverId, {
+    ServerUser? preFetched,
+  }) async {
+    try {
+      final serverUser = preFetched ?? await client.usersApi.getCurrentUser();
+      final isAdmin = serverUser.policy?.isAdministrator ?? false;
+      final canDownload = serverUser.policy?.enableContentDownloading ?? false;
+      final canManageSubtitles =
+          serverUser.policy?.canFetchRemoteSubtitles ?? false;
+      final canManageCollections =
+          serverUser.policy?.enableCollectionManagement ?? false;
+
+      if (isAdmin != user.isAdministrator ||
+          canDownload != user.canDownload ||
+          canManageSubtitles != user.canManageSubtitles ||
+          canManageCollections != user.canManageCollections) {
+        final updatedUser = user.copyWith(
+          isAdministrator: isAdmin,
+          canDownload: canDownload,
+          canManageSubtitles: canManageSubtitles,
+          canManageCollections: canManageCollections,
+        );
+        await _authStore.putUser(updatedUser);
+        _userRepository.setCurrentUser(updatedUser);
+      }
+
+      // init language prefs if not already set
+      if (serverUser.configuration != null) {
+        GetIt.instance<UserPreferences>().initLanguagePrefs(
+          serverUser.configuration!,
+        );
+      }
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 401) {
+        _logger.w('Access token expired or unauthorized. Logging out.');
+        await destroyCurrentSession(tokenKnownInvalid: true);
+        appRouter.go(
+          '${Destinations.login}?serverId=$serverId&username=${Uri.encodeComponent(user.name)}',
+        );
+        return false;
+      }
+    } catch (_) {}
+    return true;
+  }
+
+  /// Silo said the login's access changed (13.4): the libraries, rating
+  /// limits or permissions it decides may be different now. The Silo client
+  /// has already forgotten its reads; this reads the user again (a refused
+  /// login ends the session as at start) and reloads Home.
+  Future<void> _onSiloAccessChanged(MediaServerClient client) async {
+    final serverId = _activeServerId;
+    final userId = _activeUserId;
+    if (serverId == null || userId == null) return;
+    final user = _authStore
+        .getUsers(serverId)
+        .where((u) => u.id == userId)
+        .firstOrNull;
+    if (user == null) return;
+    if (await _refreshServerUser(client, user, serverId)) {
+      homeRefreshBus.requestNowOrAfterNavigation();
     }
   }
 
@@ -645,6 +685,8 @@ class SessionRepository {
     _remoteCommandSubscription = null;
     _pluginEventSubscription?.cancel();
     _pluginEventSubscription = null;
+    _accessChangedSubscription?.cancel();
+    _accessChangedSubscription = null;
     _socketConnectionSubscription?.cancel();
     _socketConnectionSubscription = null;
     userDataSync.reset();
@@ -742,6 +784,15 @@ class SessionRepository {
               .catchError((_) {}),
         );
       } catch (_) {}
+    });
+  }
+
+  void _bindAccessChanges(MediaServerClient client) {
+    _accessChangedSubscription?.cancel();
+    _accessChangedSubscription = _socketHandler.events.listen((event) {
+      if (event is ServerEventMessage && event.type == siloAccessChangedEvent) {
+        unawaited(_onSiloAccessChanged(client));
+      }
     });
   }
 
@@ -1269,6 +1320,7 @@ class SessionRepository {
     _remoteSearch?.close();
     _remoteCommandSubscription?.cancel();
     _pluginEventSubscription?.cancel();
+    _accessChangedSubscription?.cancel();
     _stateController.close();
   }
 }

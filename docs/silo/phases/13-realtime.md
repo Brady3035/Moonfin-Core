@@ -142,7 +142,7 @@ On the Mac, with Silo signed in. The network log is in Moonfin's logs (or the co
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | previous step |
+| ☑ Done | — | previous step |
 
 **Goal.** Translate Silo events into the existing `UserDataChanged`/`LibraryChanged` messages.
 
@@ -204,28 +204,56 @@ On the Mac, with Moonfin open on Home and Silo web open in a browser as the same
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | previous step |
 
 **Goal.** Re-fetch the user and profile, or sign out, when Silo says access changed.
 
+**Silo v2 endpoints**
+
+- `GET /events/ws`: the `access_changed` frame and close code `4001`
+- `POST /events/ws-ticket` (the reconnect; `403 profile_verification_required`)
+- `GET /account/me`, `GET /profiles` (the user, read again through `getCurrentUser`)
+
+**Where in Moonfin**
+
+- `lib/data/services/silo_events_socket_client.dart`: `onServerClosed`, the `access_changed` frame, the PIN refusal
+- `lib/data/services/socket_handler.dart`: the shared client's `onServerClosed(closeCode)` hook; true reconnects at once
+- `packages/server_silo/lib/src/api/silo_events_api.dart`: `siloEventsAccessChangedCloseCode`, `siloAccessChangedEvent`
+- `lib/auth/repositories/session_repository.dart`: `_onSiloAccessChanged`; the user refresh of `_postLoginSync` moved into `_refreshServerUser`, which both use
+
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+Silo rechecks every connection's login every 15 s. When the login is still good but what it may see has changed, it sends `{"type":"access_changed"}` and closes with `4001` (`access_changed`). That covers a change of the account's role or group, its libraries, rating or quality limits, the profile's hidden libraries or metadata language, and the server's unrated-content setting (Silo's `docs/realtime-api.md`, "Access changes"). A revoked login, a disabled account or a deleted one closes without the frame; the next request is refused and the session ends as before (3.5).
+
+On the frame or the close code (either is enough):
+
+1. **The Silo client forgets what the old access decided:** the library list (`userViewsApi.invalidateCache()`), and the home sections, lists and pages (`noteCatalogChanged()`).
+2. **The app is told:** the socket emits `ServerEventMessage(type: 'SiloAccessChanged')`. The session repository reads the user again (`getCurrentUser`: the account and the main profile, so `isAdministrator`, downloads, collections and the language preferences follow), stores what changed, and asks Home to reload. That is the code `_postLoginSync` already ran after sign-in, now in `_refreshServerUser`, so a `401` there ends the session and goes to sign-in, as at start. Screens opened later read the new access themselves; a screen already open keeps what it shows until it reloads.
+3. **The socket reconnects at once** with a new ticket, without the backoff (the shared client's new `onServerClosed` hook answers true). After a role change the old token was minted under the old role, so the ticket answers `401 token_refresh_required`; the session interceptor refreshes and sends the ticket again (2.2), and the new ticket carries the new access, so the socket doesn't close again for the same change.
+
+**A profile that needs its PIN again.** If the main profile gains a PIN (or its PIN changes) after sign-in, its PIN proof stops verifying, and the ticket answers `403 profile_verification_required`. Every ticket would be refused the same way, so the socket stops and logs it, rather than asking every 30 s. What the app should do then (sign out, or ask for the PIN) is the open 3.7 question, so it isn't decided here; the rest of the app meets the same refusal on its next request.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `test/data/services/silo_events_socket_client_test.dart` (5 new, 14/14): an `access_changed` frame with close `4001` reaches the app as `SiloAccessChanged` and reconnects in well under the backoff's second, with a second ticket; the close code alone is enough; an ordinary close is not an access change; a ticket refused with `profile_verification_required` isn't retried; another refused ticket is.
+- `test/data/services/socket_handler_test.dart` 11/11; `test/auth` 135/135 (the session repository's sign-in paths).
 
 **Manual test plan**
 
-- _Write the checks before testing._
+On the Mac, with Moonfin open on Home and Silo web open as the same account:
+
+- a. In Silo web, hide a library in the profile's settings (or change the profile's metadata language). Within about 15 s Moonfin's log shows "Silo says this login's access changed", a new `POST …/events/ws-ticket` follows at once, and Home reloads without the hidden library. Show it again: it comes back the same way.
+- b. As the admin, change the account's access in Silo's admin (another account, if Brady has a test user: remove a library from its group). That account's Moonfin drops the library within about 15 s.
+- c. Regression: a sign-in on Silo and on Emby still lands on Home with the right permissions (the settings show the admin entry for an admin).
+- d. Optional, if a spare profile setup allows: set a PIN on the main profile while Moonfin is open. The log shows "Silo events socket stopped: the profile needs its PIN" and no more ticket requests. (What Moonfin should do then is the open 3.7 question.)
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-18 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | socket client 14/14, socket handler 11/11, `test/auth` 135/135, `server_silo` 595/595; analyzer: no new issues in the changed files |
 | | | | | |
 
 ---

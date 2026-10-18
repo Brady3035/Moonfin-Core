@@ -14,6 +14,7 @@ import '../../../playback/subtitle_style.dart';
 import '../../../data/models/aggregated_item.dart';
 import '../../../data/utils/chapter_markers.dart';
 import '../../../data/utils/server_trickplay.dart';
+import '../../../data/utils/trickplay_headers.dart';
 import '../../../data/models/trickplay_info.dart';
 import '../../../data/services/log_service.dart';
 import '../../../data/services/media_segment_service.dart';
@@ -563,14 +564,10 @@ class _AppleTvPlayerHostScreenState extends State<AppleTvPlayerHostScreen> {
       );
       timestampsMs = const [];
     }
-    final token = client.accessToken;
     return {
       'urls': urls,
       if (timestampsMs.isNotEmpty) 'timestampsMs': timestampsMs,
-      'headers': {
-        if (token != null && token.isNotEmpty)
-          'Authorization': 'MediaBrowser Token="$token"',
-      },
+      'headers': trickplayImageHeaders(client, withUserAgent: false),
       'width': info.width,
       'height': info.height,
       'cols': info.tileWidth,

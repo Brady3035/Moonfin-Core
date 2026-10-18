@@ -20,6 +20,7 @@ import 'package:window_manager/window_manager.dart';
 
 import '../../../data/utils/chapter_markers.dart';
 import '../../../data/utils/server_trickplay.dart';
+import '../../../data/utils/trickplay_headers.dart';
 import '../../../playback/subtitle_style.dart';
 import '../../../playback/subtitle_view_config.dart';
 import '../../../playback/system_volume.dart';
@@ -2145,11 +2146,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
     final itemId = _itemIdForQueueItem(item);
     if (itemId == null || itemId.isEmpty) return;
     final client = _clientForQueueItem(item);
-    final token = client.accessToken;
-    final headers = <String, String>{
-      if (token != null && token.isNotEmpty)
-        'Authorization': 'MediaBrowser Token="$token"',
-    };
+    final headers = trickplayImageHeaders(client, withUserAgent: false);
     final generation = _trickplayLoadGeneration;
     for (final index in indexes) {
       if (!_prefetchedTrickplayIndexes.add(index)) continue;
@@ -5440,12 +5437,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
       resolution: resolution,
     );
     if (url == null) return null;
-    final token = trickplayClient.accessToken;
-    final headers = <String, String>{
-      ...serverImageHeaders,
-      if (token != null && token.isNotEmpty)
-        'Authorization': 'MediaBrowser Token="$token"',
-    };
+    final headers = trickplayImageHeaders(trickplayClient);
 
     return TrickplayTile(url: url, headers: headers, resolution: resolution);
   }

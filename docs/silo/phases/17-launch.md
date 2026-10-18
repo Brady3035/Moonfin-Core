@@ -188,6 +188,7 @@ _Fill in when the step is built: what the code does, the main classes and why it
 | 12.4 f | Phone + Chromecast | A cast longer than an hour: does the token's expiry stop it (open in 12.4)? |
 | 12.5 a–c | iPhone/iPad + Apple TV | AirPlay xXx: it plays with one `token=`; pause, seek and resume from the phone; the session stays alive and stopping keeps the resume point; a resumed film starts at its resume point. |
 | 12.6 a–b | Phone + DLNA renderer | Cast an H.264/AAC MP4: it plays with `token=`; pause, seek and resume; the session stays alive and stopping keeps the resume point. |
+| 12.7 c | Apple TV | The native scrubber's previews show on Silo and on Emby. |
 
 **Results**
 

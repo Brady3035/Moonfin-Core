@@ -13,7 +13,7 @@ The extras around playback.
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | previous step |
+| ☑ Done | `684ac0647` | previous step |
 
 **Goal.** Markers through `getMediaSegments`.
 
@@ -67,6 +67,7 @@ In Moonfin's settings, *Skipping & Autoplay*: set *Intro Segments* to *Prompt Us
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-17 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | markers 6/6; `playback_silo` 84/84; feature detector; analyzer: no new issues |
+| 2026-10-17 | macOS | `bd9d59ea` | Pass | Brady: skip intro, auto skip, the resumed remux and the credits Next Up all work |
 | | | | | |
 
 ---
@@ -76,7 +77,7 @@ In Moonfin's settings, *Skipping & Autoplay*: set *Intro Segments* to *Prompt Us
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | previous step |
+| ☑ Done | `51cc69428` | previous step |
 
 **Goal.** Fetch the trickplay manifest when `trickplay_available` is true; refresh after `expires_at`.
 
@@ -127,6 +128,7 @@ Moonfin's seek previews read Jellyfin's `Trickplay` item field (`TrickplayInfo.f
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-17 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | trickplay 5/5; merge 2/2; trickplay model tests 69/69; `server_silo` 549/549; `server_core` 95/95; analyzer: no issues in the changed files |
+| 2026-10-17 | macOS | `bd9d59ea` | Pass | Brady: previews on scrub, after a resume, none on xXx, in the mini player |
 | | | | | |
 
 ---
@@ -136,7 +138,7 @@ Moonfin's seek previews read Jellyfin's `Trickplay` item field (`TrickplayInfo.f
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | previous step |
+| ☑ Done | `6403ab9b3` | previous step |
 
 **Goal.** Chapters in the player (menu, seek bar marks, previous/next chapter) and chapter thumbnails on the detail page, for the version that plays.
 
@@ -177,6 +179,7 @@ Chapter thumbnail URLs are signed like all Silo artwork (6.1); the image cache k
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-17 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | chapters mapper 11/11; chapter markers 8/8; chapter steps/transport/OSD 18/18; `server_silo` 550/550; analyzer: no issues in the changed files |
+| 2026-10-17 | macOS | `bd9d59ea` | Pass | Brady: chapter row, list, seeking; the marks show once *Chapter Marks* is on (off by default); the 1080p/4K versions |
 | | | | | |
 
 ---
@@ -186,7 +189,7 @@ Chapter thumbnail URLs are signed like all Silo artwork (6.1); the image cache k
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | previous step |
+| ◐ Open (see Results) | `fd6067c03` | previous step |
 
 **Goal.** Queue from `getEpisodes`; Up Next card.
 
@@ -230,6 +233,7 @@ With *Autoplay Next Episode* on:
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-17 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | next episode 3/3 |
+| 2026-10-17 | macOS | `bd9d59ea` | Fail | Brady: a season finale of a show watched before moves on to the next season; on an unwatched show the player closes at the end of the season without Next Up. Not diagnosed yet; deferred by Brady to the end of the project (open) |
 | | | | | |
 
 ---
@@ -239,7 +243,7 @@ With *Autoplay Next Episode* on:
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | previous step |
+| ◐ Ready for testing | `1c87701f3` | previous step |
 
 **Goal.** Moonfin's theme music on detail pages plays a title's local theme songs from Silo.
 
@@ -291,6 +295,7 @@ Setup: Silo finds a local theme as a file named `theme.<ext>` (`theme.mp3`) next
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-17 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | themes 6/6; `server_silo` 556/556; analyzer: no issues in the changed files |
+| 2026-10-17 | macOS | `bd9d59ea` | Not tested | Brady: no title on the server has a theme yet; to test later |
 | | | | | |
 
 ---
@@ -300,7 +305,7 @@ Setup: Silo finds a local theme as a file named `theme.<ext>` (`theme.mp3`) next
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | previous step |
+| ☑ Done | `924bd780e` | previous step |
 
 **Goal.** Sync Moonfin's per-series track choice with Silo's.
 
@@ -355,6 +360,7 @@ Use a show with two audio languages or several subtitle tracks (an anime with Ja
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-17 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | track preferences 10/10; sync 4/4; `server_silo` 566/566; `playback_silo` 84/84; view models 76/76; analyzer: no new issues |
+| 2026-10-17 | macOS | `bd9d59ea` | Pass | Brady: Moonfin → Silo web, Silo web → Moonfin, subtitles off |
 | | | | | |
 
 ---
@@ -364,7 +370,7 @@ Use a show with two audio languages or several subtitle tracks (an anime with Ja
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | previous step |
+| ☑ Done | `c731063c5` | previous step |
 
 **Goal.** Silo's server-side shuffle for a series or library.
 
@@ -412,6 +418,7 @@ Moonfin's *Shuffle* button (on a show, season, collection or library page) loads
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-17 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | shuffles 6/6; shuffle queue 2/2; analyzer: no new issues |
+| 2026-10-17 | macOS | `bd9d59ea` | Pass | Brady: shuffling a show works. The nav bar's shuffle picker only offered the start of the alphabet: fixed under 5.13 (`36f999a42`) |
 | | | | | |
 
 ---

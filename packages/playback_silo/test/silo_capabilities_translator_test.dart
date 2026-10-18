@@ -232,6 +232,27 @@ void main() {
     _expectFitsContract(caps);
   });
 
+  test('Media3: embedded subtitles without ASS styling or fonts (12.1)', () {
+    final caps = siloCapabilitiesFromDeviceProfile(
+      _mpvProfile(),
+      traits: SiloPlayerTraits.media3,
+    );
+    expect(caps.clientFeatures, contains('embedded_subtitles_v1'));
+    final original = caps.deliveries['original_http']!;
+    expect(original['validated_claims'], ['client_selected_audio_track_v1']);
+    final subtitles = original['subtitles'] as Map;
+    expect(subtitles['embedded_text'], isTrue);
+    expect(subtitles['embedded_bitmap'], isTrue);
+    expect(subtitles['ass_styling'], isFalse);
+    expect(subtitles['font_attachments'], isFalse);
+    final native = (subtitles['native_embedded'] as List).cast<Map>();
+    expect(native.every((e) => e['ass_styling'] == false), isTrue);
+    expect(native.every((e) => e['font_attachments'] == false), isTrue);
+    final remux = caps.deliveries['progressive']!['subtitles'] as Map;
+    expect(remux['ass_styling'], isFalse);
+    _expectFitsContract(caps);
+  });
+
   test('the validator refuses what Silo would', () {
     expect(
       siloSchemaErrors('DeliveryCapabilityV3', {'enabled': true, 'extra': 1}),

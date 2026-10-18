@@ -176,6 +176,11 @@ _Fill in when the step is built: what the code does, the main classes and why it
 | 4.4 test 4 | iOS or Android phone | The bottom-nav hub has no Remote control tile with Silo active, and has it with Emby active. |
 | 4.3 note | Android Auto / car | With Silo as the active server, the car media browser (Home, Music, Playlists tabs: all music) shows empty lists and no errors. |
 | 6.11 | Android Auto / CarPlay | A Silo library's letter buckets in the car browser list the titles starting with that letter (`name_prefix`). |
+| 12.1 a, d | Android TV (Media3, then libmpv) | xXx, Young Justice 1x01 and an HDR film start, seek and resume like on Emby; playback info shows Silo's play method. |
+| 12.1 b | Android TV + HDR TV | An HDR10 or Dolby Vision original direct plays (no tone-mapping transcode). |
+| 12.1 c | Android TV | An MKV's PGS subtitles show on the original file without a transcode. |
+| 12.1 e | Fire TV | As 12.1 a. |
+| 12.1 f | Android phone | As 12.1 a. |
 
 **Results**
 

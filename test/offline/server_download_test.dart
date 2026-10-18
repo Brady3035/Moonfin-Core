@@ -23,6 +23,8 @@ class _Repo extends OfflineRepository {
 
   final statuses = <String, int>{};
   final episodesBySeason = <String, List<DownloadedItem>>{};
+  final imagePaths = <String, Map<String, String?>>{};
+  final rows = <String, DownloadedItem>{};
 
   @override
   Future<void> upsertItem(DownloadedItemsCompanion item) async {}
@@ -49,7 +51,13 @@ class _Repo extends OfflineRepository {
     String? backdrop,
     String? logo,
     String? thumb,
-  }) async {}
+  }) async {
+    final paths = imagePaths[itemId] ??= {};
+    if (poster != null) paths['poster'] = poster;
+    if (backdrop != null) paths['backdrop'] = backdrop;
+    if (logo != null) paths['logo'] = logo;
+    if (thumb != null) paths['thumb'] = thumb;
+  }
 
   @override
   Future<int> getTotalStorageUsed() async => 0;
@@ -61,7 +69,7 @@ class _Repo extends OfflineRepository {
   }) async => const [];
 
   @override
-  Future<DownloadedItem?> getItem(String itemId) async => null;
+  Future<DownloadedItem?> getItem(String itemId) async => rows[itemId];
 
   @override
   Future<void> deleteItem(String itemId) async {}
@@ -156,6 +164,14 @@ class _Registry implements ServerDownloadsApi {
   Future<void> downloadFinished(ServerDownloadTicket ticket) async =>
       finished.add(ticket);
 
+  /// The artwork links the server answers.
+  Map<ServerDownloadArtworkKind, Uri> artwork = const {};
+
+  @override
+  Future<Map<ServerDownloadArtworkKind, Uri>> downloadArtwork(
+    ServerDownloadTicket ticket,
+  ) async => artwork;
+
   @override
   Future<void> downloadsRemoved(Iterable<String> itemIds) async =>
       removed.add(itemIds.toList());
@@ -195,6 +211,21 @@ Future<void> _waitFor(bool Function() condition) async {
   }
   fail('Condition was not met in time.');
 }
+
+DownloadedItem _row(String id, {String type = 'Episode'}) => DownloadedItem(
+  itemId: id,
+  serverId: 's1',
+  type: type,
+  name: id,
+  metadataJson: '{}',
+  downloadStatus: 2,
+  downloadProgress: 1,
+  fileSizeBytes: 0,
+  playbackPositionTicks: 0,
+  progressSynced: true,
+  qualityPreset: 'original',
+  downloadSource: 'manual',
+);
 
 /// The finished download's best-effort tasks (subtitles, artwork,
 /// notification) run on after it; let them end before tearing down.
@@ -238,6 +269,14 @@ void main() {
     fileServer = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
     fileServer.listen((request) {
       fileRequests.add(request);
+      if (request.uri.path.startsWith('/art/')) {
+        request.response
+          ..statusCode = 200
+          ..headers.contentType = ContentType('image', 'jpeg')
+          ..write('art:${request.uri.pathSegments.last}');
+        request.response.close();
+        return;
+      }
       request.response
         ..statusCode = 200
         ..headers.contentType = ContentType.binary
@@ -395,6 +434,62 @@ void main() {
     expect(service.activeDownloads[item().id], isNull);
   });
 
+  test("artwork comes from the server's links, with the ticket's "
+      'credentials', () async {
+    Uri art(String kind) =>
+        Uri.parse('http://127.0.0.1:${fileServer.port}/art/$kind');
+    registry.artwork = {
+      ServerDownloadArtworkKind.poster: art('poster'),
+      ServerDownloadArtworkKind.backdrop: art('backdrop'),
+      ServerDownloadArtworkKind.seriesPoster: art('series_poster'),
+    };
+    movie
+      ..['Type'] = 'Episode'
+      ..['Id'] = 'episode-imdb-tt1641384-1-1'
+      ..['SeriesId'] = 'series-imdb-tt1641384'
+      ..['SeriesName'] = 'Young Justice'
+      ..['ParentIndexNumber'] = 1
+      ..['IndexNumber'] = 1;
+    // The series' row exists, without a poster of its own.
+    repo.rows['series-imdb-tt1641384'] = _row(
+      'series-imdb-tt1641384',
+      type: 'Series',
+    );
+
+    await service.downloadItem(item());
+    await _waitFor(
+      () => repo.imagePaths['series-imdb-tt1641384']?['poster'] != null,
+    );
+
+    final paths = repo.imagePaths['episode-imdb-tt1641384-1-1']!;
+    expect(paths['poster'], endsWith('/episode-imdb-tt1641384-1-1/poster.jpg'));
+    expect(
+      paths['backdrop'],
+      endsWith('/episode-imdb-tt1641384-1-1/backdrop.jpg'),
+    );
+    expect(paths.containsKey('logo'), isFalse);
+    expect(await File(paths['poster']!).readAsString(), 'art:poster');
+    expect(
+      repo.imagePaths['series-imdb-tt1641384']!['poster'],
+      endsWith('/series-imdb-tt1641384/series_poster.jpg'),
+    );
+    final artRequests = fileRequests.where(
+      (r) => r.uri.path.startsWith('/art/'),
+    );
+    expect(artRequests.map((r) => r.uri.path).toSet(), {
+      '/art/poster',
+      '/art/backdrop',
+      '/art/series_poster',
+    });
+    expect(
+      artRequests.every(
+        (r) => r.headers.value('authorization') == 'Bearer access-1',
+      ),
+      isTrue,
+    );
+    await _afterCompletionTasks();
+  });
+
   test('deleting a download tells the server', () async {
     expect(await service.deleteDownloadedFiles(item()), isTrue);
 
@@ -403,23 +498,9 @@ void main() {
   });
 
   test('deleting a season names each of its downloaded episodes', () async {
-    DownloadedItem row(String id) => DownloadedItem(
-      itemId: id,
-      serverId: 's1',
-      type: 'Episode',
-      name: id,
-      metadataJson: '{}',
-      downloadStatus: 2,
-      downloadProgress: 1,
-      fileSizeBytes: 0,
-      playbackPositionTicks: 0,
-      progressSynced: true,
-      qualityPreset: 'original',
-      downloadSource: 'manual',
-    );
     repo.episodesBySeason['season-imdb-tt1641384-1'] = [
-      row('episode-imdb-tt1641384-1-1'),
-      row('episode-imdb-tt1641384-1-2'),
+      _row('episode-imdb-tt1641384-1-1'),
+      _row('episode-imdb-tt1641384-1-2'),
     ];
 
     await service.deleteDownloadedFiles(

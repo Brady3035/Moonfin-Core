@@ -1212,12 +1212,21 @@ class DownloadService extends ChangeNotifier implements AutoDownloadDownloader {
     return newPath;
   }
 
-  Future<void> _populateOfflineAssets(AggregatedItem item) async {
-    await _downloadImages(item);
+  Future<void> _populateOfflineAssets(
+    AggregatedItem item, {
+    ServerDownloadTicket? serverTicket,
+  }) async {
+    final serverArtwork = serverTicket == null
+        ? null
+        : await _downloadServerArtwork(item, serverTicket);
+    if (serverTicket == null) await _downloadImages(item);
     if (_usesAudioDownloadEndpoint(item)) {
       await _downloadLyrics(item);
     }
     await _ensureParentContainers(item);
+    if (serverTicket != null && serverArtwork != null) {
+      await _saveServerSeriesPoster(item, serverTicket, serverArtwork);
+    }
   }
 
   Future<void> _runPostCompletionTasks({
@@ -1225,6 +1234,7 @@ class DownloadService extends ChangeNotifier implements AutoDownloadDownloader {
     required String savePath,
     required Directory dir,
     required String fileName,
+    ServerDownloadTicket? serverTicket,
   }) async {
     // Both engines finish here, so this is the one place a batch can be counted.
     _completedCount++;
@@ -1249,7 +1259,7 @@ class DownloadService extends ChangeNotifier implements AutoDownloadDownloader {
     );
 
     await runBestEffort(
-      _populateOfflineAssets(item),
+      _populateOfflineAssets(item, serverTicket: serverTicket),
       const Duration(seconds: 30),
     );
 
@@ -2894,6 +2904,7 @@ class DownloadService extends ChangeNotifier implements AutoDownloadDownloader {
           savePath: savePath,
           dir: dir,
           fileName: fileName,
+          serverTicket: serverTicket,
         ),
       );
     } on DioException catch (e) {
@@ -3576,6 +3587,89 @@ class DownloadService extends ChangeNotifier implements AutoDownloadDownloader {
         thumb: thumbPath,
       );
     } catch (_) {}
+  }
+
+  /// The artwork the server keeps for a download (Silo: the manifest's
+  /// artwork links), fetched with the ticket's credentials into the same
+  /// files [_downloadImages] writes. It doesn't go through the client's image
+  /// URLs, which on Silo only exist for items this session has read.
+  ///
+  /// A movie's poster is its poster; an episode's is its still, which is
+  /// what Moonfin shows as an episode's primary image. The backdrop is the
+  /// item's (an episode's: its series'). Answers the links, for
+  /// [_saveServerSeriesPoster].
+  Future<Map<ServerDownloadArtworkKind, Uri>> _downloadServerArtwork(
+    AggregatedItem item,
+    ServerDownloadTicket ticket,
+  ) async {
+    final server = _serverDownloads;
+    if (server == null) return const {};
+    final artwork = await server.downloadArtwork(ticket);
+    final imageDir = await _storagePath.getImageCacheDir();
+    final itemDir = '${imageDir.path}/${item.id}';
+    await _offlineRepo.setImagePaths(
+      item.id,
+      poster: await _fetchServerArtwork(
+        artwork[ServerDownloadArtworkKind.poster],
+        '$itemDir/poster.jpg',
+        ticket,
+      ),
+      backdrop: await _fetchServerArtwork(
+        artwork[ServerDownloadArtworkKind.backdrop],
+        '$itemDir/backdrop.jpg',
+        ticket,
+      ),
+      logo: await _fetchServerArtwork(
+        artwork[ServerDownloadArtworkKind.logo],
+        '$itemDir/logo.png',
+        ticket,
+      ),
+    );
+    return artwork;
+  }
+
+  /// An episode's series poster from its download, for the series' row when
+  /// that has none (its own artwork comes through the client's image URLs,
+  /// which can fail for a series this session never read). Kept in its own
+  /// file, so it never meets the series' own download of `poster.jpg`.
+  Future<void> _saveServerSeriesPoster(
+    AggregatedItem item,
+    ServerDownloadTicket ticket,
+    Map<ServerDownloadArtworkKind, Uri> artwork,
+  ) async {
+    final seriesId = item.type == 'Episode' ? item.seriesId : null;
+    final url = artwork[ServerDownloadArtworkKind.seriesPoster];
+    if (seriesId == null || url == null) return;
+    final series = await _offlineRepo.getItem(seriesId);
+    if (series == null || (series.posterPath?.isNotEmpty ?? false)) return;
+    final imageDir = await _storagePath.getImageCacheDir();
+    final saved = await _fetchServerArtwork(
+      url,
+      '${imageDir.path}/$seriesId/series_poster.jpg',
+      ticket,
+    );
+    if (saved != null) {
+      await _offlineRepo.setImagePaths(seriesId, poster: saved);
+    }
+  }
+
+  Future<String?> _fetchServerArtwork(
+    Uri? url,
+    String path,
+    ServerDownloadTicket ticket,
+  ) async {
+    if (url == null) return null;
+    try {
+      await File(path).parent.create(recursive: true);
+      await _downloadDio.download(
+        url.toString(),
+        path,
+        options: Options(headers: ticket.headers),
+      );
+      return path;
+    } catch (_) {
+      return null;
+    }
   }
 
   Future<void> _ensureParentContainers(AggregatedItem episode) async {

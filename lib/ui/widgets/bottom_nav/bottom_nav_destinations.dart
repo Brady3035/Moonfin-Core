@@ -31,15 +31,19 @@ String bottomNavTabLabel(AppLocalizations l10n, BottomNavTab tab) =>
       BottomNavTab.folders => l10n.folders,
     };
 
+/// [silo]: the active server is Silo, which calls approving another
+/// device's code "Approve a sign-in".
 String bottomNavHubActionLabel(
   AppLocalizations l10n,
-  BottomNavHubAction action,
-) =>
+  BottomNavHubAction action, {
+  bool silo = false,
+}) =>
     switch (action) {
       BottomNavHubAction.saved => l10n.savedMedia,
       BottomNavHubAction.shuffle => l10n.shuffle,
       BottomNavHubAction.syncPlay => l10n.syncPlay,
-      BottomNavHubAction.quickConnect => l10n.quickConnect,
+      BottomNavHubAction.quickConnect =>
+        silo ? l10n.siloApproveSignIn : l10n.quickConnect,
       BottomNavHubAction.remoteControl => l10n.remoteControl,
     };
 

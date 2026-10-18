@@ -98,7 +98,7 @@ On the Mac, signed out of Silo (or add the server again), with Silo web open on 
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | previous step |
+| ☑ Done | — | previous step |
 
 **Goal.** From a signed-in phone.
 
@@ -159,33 +159,48 @@ On the Mac, signed in to Silo in Moonfin. You also need a second device that sho
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | previous step |
 
 **Goal.** Turn on `supportsQuickConnect` for Silo and the bottom-nav entry.
 
 **Where in Moonfin**
 
-- `feature_detector.dart`
-- `lib/ui/widgets/bottom_nav/bottom_nav_controller.dart`
+- `packages/server_core/lib/src/feature/feature_detector.dart`: `supportsQuickConnect` is on for Jellyfin and Silo
+- `lib/ui/widgets/bottom_nav/bottom_nav_controller.dart`: the hub's tile follows `supportsQuickConnect` instead of "is Jellyfin"; `activeServerIsSilo` for its label
+- `lib/ui/widgets/bottom_nav/bottom_nav_destinations.dart`, `bottom_navbar_hub_sheet.dart`, `lib/ui/widgets/user_menu_dialog.dart`: the entries say "Approve a sign-in" on Silo
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+`FeatureDetector.supportsQuickConnect` gates the two sides of sign-in with a code:
+
+- **The login screen** (14.1) opens on the code view when the server supports it. On Silo it does now; a Silo server with device sign-in switched off falls back to the password form on its own (its capability isn't `available`).
+- **The bottom-nav hub** (phones with the bar at the bottom) lists the approve tile. It used to ask "is the active server Jellyfin?"; it now asks the active server's `supportsQuickConnect`, which answers the same for Jellyfin and Emby and turns it on for Silo. Without an active server there is still no tile.
+
+The account menu's button (desktop and tablets with the top bar) was already shown for every server; on Silo it reached the placeholder until 14.2. Its label, and the hub tile's, now say "Approve a sign-in" on Silo, the dialog's own title (14.2); Jellyfin keeps "Quick Connect". The menu button still shows on Emby, which has no Quick Connect (upstream's behaviour, unchanged).
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `packages/server_core/test/feature_detector_test.dart`: Silo supports Quick Connect (moved from the "not yet" list to the switched-on list). `server_core` 100/100.
+- `test/ui/widgets/bottom_nav/quick_connect_hub_test.dart` (new, 3 tests): the hub offers "Approve a sign-in" on Silo, "Quick Connect" on Jellyfin, neither on Emby. `test/ui/widgets/bottom_nav` 44/44.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+On the Mac:
+
+- a. Silo's sign-in opens on "Sign in with a code" (the checks are 14.1's).
+- b. Signed in to Silo, the account menu's button reads "Approve a sign-in" and opens 14.2's dialog. Switch to Emby: it reads "Quick Connect" again.
+- c. Regression on Emby: its sign-in still opens on the password form, with no code toggle.
+- d. Full suite (`flutter test` at the repo root).
+- e. Deferred to 17.5: on a phone with the bottom bar, the hub has "Approve a sign-in" with Silo active, "Quick Connect" with Jellyfin, nothing with Emby (with 14.2 f).
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-18 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | `server_core` 100/100, `test/ui/widgets/bottom_nav` 44/44; analyzer: no new issues in the changed files |
+| 2026-10-18 | iOS, Android phone | — | Deferred | check e in 17.5 |
 | | | | | |
 
 ---

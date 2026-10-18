@@ -267,8 +267,11 @@ class _AccountDialogState extends State<_AccountDialog> {
     final focusColor = Theme.of(context).colorScheme.primary;
     final activeIndex = _accounts.indexWhere(_isActive);
     final initialAccountFocusIndex = activeIndex >= 0 ? activeIndex : 0;
+    final activeIsSilo =
+        GetIt.instance.isRegistered<MediaServerClient>() &&
+        GetIt.instance<MediaServerClient>().serverType == ServerType.silo;
     final quickConnectButton = _ActionButton(
-      label: l10n.quickConnect,
+      label: activeIsSilo ? l10n.siloApproveSignIn : l10n.quickConnect,
       onPressed: _busy
           ? null
           : () => Navigator.of(context).pop(_AccountDialogAction.quickConnect),

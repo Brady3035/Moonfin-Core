@@ -13,7 +13,7 @@ Live updates and background services.
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | previous step |
+| ☑ Done | `dfe202ff1` | previous step |
 
 **Goal.** Replace the hard-coded `/System/Ping` with `systemApi.ping()`.
 
@@ -73,7 +73,7 @@ On the Mac, with Silo signed in:
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | previous step |
+| ◐ Fix ready for testing | `95c9cdd47`, fix — | previous step |
 
 **Goal.** Ticket, subprotocols, reconnect before the 5-minute limit with a fresh ticket.
 
@@ -107,13 +107,15 @@ Moonfin keeps one socket per signed-in server (`SocketHandler`, opened by the se
 
 Frames are parsed (`SiloEventFrame`) and the handshake ones handled (`hello`, `subscribed` refusals logged, `error` logged). What `event` and `snapshot` frames mean for the app is 13.3; `access_changed` is 13.4. `send()` drops everything: Jellyfin's and Emby's feeds (`SessionsStart`) mean nothing to Silo.
 
+**Fix (2026-10-18): the socket's port.** Brady's first run on the Mac failed every connect with `Connection failed (… errno = 49), address = silo.snowystreams.com, port = 0`. Dart's `Uri` knows default ports only for `http` and `https`, so `wss://silo.snowystreams.com/…` reports port 0, and `dart:io`'s WebSocket connects to exactly that. The loopback tests always had an explicit port, so they passed. `socketUri()` now writes the port out (`wss://…:443/…`, `ws://…:80/…`, or the server's own).
+
 **Open:** a renewal leaves the server without a connection for the time a ticket and a handshake take (well under a second on the test server). An event in that gap is missed; the snapshot frames of the new connection are how 13.3 catches up.
 
 ### Testing
 
 **Automated tests**
 
-- `packages/server_silo/test/silo_events_api_test.dart` (new, 11 tests): the captured capability document; a server without the service is not available; the ticket is a `POST` with the login and the profile, read from a fixture made from Silo's own contract fixture (`silo/events_ws_ticket.json`), offering the protocol first and the ticket second; a refusal reaches the caller; the socket URL (`wss` for `https`, a path prefix, the declared channels, no credential); frame parsing (`hello`, `subscribed` with a refusal, `event`, a null snapshot, not a frame).
+- `packages/server_silo/test/silo_events_api_test.dart` (new, 12 tests with the fix): the captured capability document; a server without the service is not available; the ticket is a `POST` with the login and the profile, read from a fixture made from Silo's own contract fixture (`silo/events_ws_ticket.json`), offering the protocol first and the ticket second; a refusal reaches the caller; the socket URL (`wss` for `https`, a path prefix, the declared channels, no credential); frame parsing (`hello`, `subscribed` with a refusal, `event`, a null snapshot, not a frame).
 - `test/data/services/silo_events_socket_client_test.dart` (replaces `silo_web_socket_client_test.dart`, 8 tests against a loopback Silo): Silo gets this client; it connects with the ticket in the subprotocols and the channels on the URL; it renews before the limit with a second ticket and closes the first socket (capability read once); a socket Silo closes comes back with a fresh ticket; a server with the socket off gets no ticket until it turns it on; a subscribe frame goes out when `hello` asks for one; a disconnect while the ticket is on its way opens nothing; no login, no request.
 - `test/data/services/socket_handler_test.dart` 11/11 (Jellyfin's real-socket cases go through the new hook).
 
@@ -133,6 +135,8 @@ On the Mac, with Silo signed in. The network log is in Moonfin's logs (or the co
 |---|---|---|---|---|
 | 2026-10-18 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | events API 11/11, socket client 8/8, socket handler 11/11, `server_silo` 586/586; analyzer: no new issues in the changed files |
 | 2026-10-18 | Android TV, iOS | — | Deferred | check e in 17.5 |
+| 2026-10-18 | macOS | `bd9d59ea` | Fail | Brady: every connect failed with `port = 0` (`errno = 49`, "Can't assign requested address"); the socket URL had no port |
+| 2026-10-18 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | fix: the port written out; events API 12/12 (1 new) |
 | | | | | |
 
 ---
@@ -142,7 +146,7 @@ On the Mac, with Silo signed in. The network log is in Moonfin's logs (or the co
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | previous step |
+| ☑ Done | `6a97dff79` | previous step |
 
 **Goal.** Translate Silo events into the existing `UserDataChanged`/`LibraryChanged` messages.
 
@@ -204,7 +208,7 @@ On the Mac, with Moonfin open on Home and Silo web open in a browser as the same
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | previous step |
+| ◐ Ready for testing | `73418891f` | previous step |
 
 **Goal.** Re-fetch the user and profile, or sign out, when Silo says access changed.
 

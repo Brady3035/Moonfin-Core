@@ -44,14 +44,21 @@ class SiloSystemApi implements SystemApi {
   }
 
   /// Silo has no ping route. `/system/identity` is public, tiny and answered
-  /// by every API node, so it stands in for one.
+  /// by every API node, so it stands in for one. The connectivity check asks
+  /// this rather than Jellyfin's `/System/Ping` (13.1).
   @override
   Future<bool> ping() async {
     try {
-      final response = await _dio.get<dynamic>('/api/v2/system/identity');
+      final response = await _dio.get<dynamic>(
+        '/api/v2/system/identity',
+        options: Options(receiveTimeout: SystemApi.pingTimeout),
+      );
       return response.statusCode == 200;
-    } catch (_) {
-      return false;
+    } catch (e) {
+      // The route is public and runs no sign-in check, so a 401 would only
+      // come from something in front of Silo; it still counts as an answer,
+      // as for every server type.
+      return pingAnsweredDespite(e);
     }
   }
 

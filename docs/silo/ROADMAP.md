@@ -186,7 +186,7 @@ Status key: ☐ not started · ◐ in progress · ☑ done and tested · ⊘ ski
 - [ ] **12.4** [Chromecast](phases/12-platforms.md#step-12-4)
 - [ ] **12.5** [AirPlay](phases/12-platforms.md#step-12-5)
 - [ ] **12.6** [DLNA](phases/12-platforms.md#step-12-6)
-- [ ] **12.7** [Trickplay and image headers in the player screens](phases/12-platforms.md#step-12-7)
+- [x] **12.7** [Trickplay and image headers in the player screens](phases/12-platforms.md#step-12-7)
 
 ## 13. [Realtime events and app services](phases/13-realtime.md)
 

@@ -184,6 +184,7 @@ _Fill in when the step is built: what the code does, the main classes and why it
 | 12.2 a | iPhone / iPad | xXx, Young Justice 1x01 and an HDR film start, seek, resume and switch audio and subtitles as on the Mac. |
 | 12.2 b | Apple TV | As 12.2 a with the remote, plus skip intro, Next Up and scrub previews. |
 | 12.2 c | Apple TV + HDR TV | An HDR10 or Dolby Vision original direct plays. |
+| 12.3 a–d | Web (Moonfin for the web on the Mac) | Deferred by Brady (2026-10-18): play a remux, an original MP4 and a transcode with `token=` on the media URLs and HLS segments; an SRT sidecar shows; no CORS errors on Silo's API or media; artwork carries no token. |
 | 12.4 a–e | Android or iOS phone + Chromecast | Cast xXx (token in the URL, `tv` form factor), pause, seek and resume from the phone; the Silo session stays alive past a minute; stopping keeps the resume point; a transcode plays as HLS; an episode's queue casts the episode alone. |
 | 12.4 f | Phone + Chromecast | A cast longer than an hour: does the token's expiry stop it (open in 12.4)? |
 | 12.5 a–c | iPhone/iPad + Apple TV | AirPlay xXx: it plays with one `token=`; pause, seek and resume from the phone; the session stays alive and stopping keeps the resume point; a resumed film starts at its resume point. |

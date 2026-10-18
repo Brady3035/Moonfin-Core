@@ -13,7 +13,7 @@ One backend or cast target per commit; each declares its own honest codec eviden
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | previous step |
+| ◐ Device checks in 17.5 | `0c0028bfe` | previous step |
 
 **Goal.** Honest evidence and traits for Android's players, the display's HDR, and the stream's headers through the data source factory.
 
@@ -69,7 +69,7 @@ Brady has no Android device to test on (2026-10-17), so these go to the deferred
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | previous step |
+| ◐ Device checks in 17.5 | `b5b653fe3` | previous step |
 
 **Goal.** Silo playback on every Apple platform with the player's honest traits and the stream's headers.
 
@@ -119,7 +119,7 @@ The Mac was tested in phases 10 and 11. iOS and Apple TV go to the deferred plat
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | previous step |
+| ◐ Deferred by Brady | `8e085e7e0` | previous step |
 
 **Goal.** `isTypeSupported` evidence; query token because `<video>` can't send headers.
 
@@ -165,6 +165,7 @@ On the Mac, run Moonfin for the web (`flutter run -d chrome`, or Brady's usual w
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-17 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | stream auth 2 new, translator 1 new; `playback_silo` 88/88; analyzer: no issues |
+| 2026-10-18 | macOS (web) | `bd9d59ea` | Deferred | Brady deferred the web build; checks a–d are in 17.5 |
 | | | | | |
 
 ---
@@ -174,7 +175,7 @@ On the Mac, run Moonfin for the web (`flutter run -d chrome`, or Brady's usual w
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | previous step |
+| ◐ Device checks in 17.5 | `952e75808` | previous step |
 
 **Goal.** Receiver-specific capabilities; token query on the stream URL; the Silo session kept alive while the receiver plays.
 
@@ -233,7 +234,7 @@ Casting needs the app on an Android or iOS device and a Chromecast (or a Google 
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | previous step |
+| ◐ Device checks in 17.5 | `aa84deebe` | previous step |
 
 **Goal.** AirPlay from iOS to an Apple TV with Silo's stream, its token, and its session kept alive.
 
@@ -279,7 +280,7 @@ Needs an iPhone or iPad and an Apple TV, so it goes to the deferred platform che
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | previous step |
+| ◐ Device checks in 17.5 | `35d853139` | previous step |
 
 **Goal.** Casting to a DLNA renderer with Silo's stream, its token, and its session kept alive.
 
@@ -323,7 +324,7 @@ Needs an Android or iOS device and a DLNA renderer, so it goes to the deferred p
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | previous step |
+| ☑ Done | `dfec537ab` | previous step |
 
 **Goal.** Replace the hand-built `MediaBrowser Token=` headers with `serverAuthHeaders()` (or none for signed URLs).
 
@@ -364,6 +365,7 @@ The four call sites are the only hand-built authorization headers left in the pl
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-17 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | trickplay headers 2/2; analyzer: no issues in the changed files |
+| 2026-10-18 | macOS | `bd9d59ea` | Pass | Brady: previews on the Mac pass ("previews work great") |
 | | | | | |
 
 ---

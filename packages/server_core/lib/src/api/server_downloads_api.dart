@@ -33,6 +33,13 @@ abstract interface class ServerDownloadsApi {
   /// The file of [ticket] is complete on the device.
   Future<void> downloadFinished(ServerDownloadTicket ticket);
 
+  /// Where to fetch [ticket]'s artwork, by kind, to keep it with the
+  /// download (with [ServerDownloadTicket.headers]). Kinds the item has no
+  /// artwork for are left out.
+  Future<Map<ServerDownloadArtworkKind, Uri>> downloadArtwork(
+    ServerDownloadTicket ticket,
+  );
+
   /// The downloads of [itemIds] were deleted from the device (movies and
   /// episodes; a deleted season or series names each of its episodes).
   Future<void> downloadsRemoved(Iterable<String> itemIds);
@@ -145,4 +152,18 @@ class ServerDownloadCancelled implements Exception {
 
   @override
   String toString() => 'ServerDownloadCancelled';
+}
+
+/// Artwork a server keeps for a download.
+enum ServerDownloadArtworkKind {
+  /// A movie's poster; an episode's still.
+  poster,
+
+  /// The backdrop (an episode's: its series').
+  backdrop,
+
+  logo,
+
+  /// An episode's series poster.
+  seriesPoster,
 }

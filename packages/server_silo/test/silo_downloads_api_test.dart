@@ -49,6 +49,8 @@ SiloMediaServerClient _client(FixtureServer server) =>
       )
       ..profileId = _mainId;
 
+const _fileUrl = 'https://silo.example/api/v2/downloads/dl_01HSCRUBBED/file';
+
 int _reads(FixtureServer server) => server.requests
     .where((r) => r.uri.path == '/api/v2/capabilities/downloads')
     .length;
@@ -863,6 +865,84 @@ void main() {
         'GET /api/v2/downloads',
       ]);
       expect(ticket.id, 'dl_01HSCRUBBED');
+    });
+  });
+
+  group('artwork (15.4)', () {
+    final ticket = ServerDownloadTicket(
+      id: 'dl_01HSCRUBBED',
+      itemId: 'episode-imdb-tt1641384-1-1',
+      url: Uri.parse(_fileUrl),
+      headers: const {},
+      revision: 1,
+    );
+
+    test('the episode manifest fixture fits the contract', () {
+      expect(
+        siloSchemaErrors(
+          'DownloadManifest',
+          _fixture('download_manifest_episode.json'),
+        ),
+        isEmpty,
+      );
+    });
+
+    test("the manifest's artwork links, made absolute, read once", () async {
+      final server = FixtureServer({
+        '/api/v2/downloads/dl_01HSCRUBBED/manifest': _json(
+          _fixture('download_manifest_episode.json'),
+        ),
+      });
+      final api = _client(server).downloadsApi;
+
+      final artwork = await api.downloadArtwork(ticket);
+      await api.downloadArtwork(ticket);
+
+      const base = 'https://silo.example/api/v2/downloads/dl_01HSCRUBBED';
+      expect(artwork, {
+        ServerDownloadArtworkKind.poster: Uri.parse('$base/artwork/poster'),
+        ServerDownloadArtworkKind.backdrop: Uri.parse('$base/artwork/backdrop'),
+        ServerDownloadArtworkKind.logo: Uri.parse('$base/artwork/logo'),
+        ServerDownloadArtworkKind.seriesPoster: Uri.parse(
+          '$base/artwork/series_poster',
+        ),
+      });
+      final read = server.requests.single;
+      expect(read.headers['X-Silo-Device-Id'], isNotEmpty);
+      expect(read.headers['X-Profile-Id'], _mainId);
+    });
+
+    test('kinds the item has no artwork for are left out', () async {
+      final manifest = _fixture('download_manifest_episode.json')
+        ..['artwork_urls'] = {
+          'poster': '/api/v2/downloads/dl_01HSCRUBBED/artwork/poster',
+        };
+      final server = FixtureServer({
+        '/api/v2/downloads/dl_01HSCRUBBED/manifest': _json(manifest),
+      });
+
+      final artwork = await _client(
+        server,
+      ).downloadsApi.downloadArtwork(ticket);
+
+      expect(artwork.keys, [ServerDownloadArtworkKind.poster]);
+    });
+
+    test('a manifest that failed is read again next time', () async {
+      var fail = true;
+      final server = FixtureServer({
+        '/api/v2/downloads/dl_01HSCRUBBED/manifest': (o) => fail
+            ? FixtureServer.problem(503, 'unavailable', 'Try again.')
+            : FixtureServer.json(
+                200,
+                jsonEncode(_fixture('download_manifest_episode.json')),
+              ),
+      });
+      final api = _client(server).downloadsApi;
+
+      await expectLater(api.downloadArtwork(ticket), throwsA(anything));
+      fail = false;
+      expect(await api.downloadArtwork(ticket), hasLength(4));
     });
   });
 }

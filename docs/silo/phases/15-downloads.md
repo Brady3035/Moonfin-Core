@@ -150,7 +150,7 @@ On the Mac, signed in to Silo (the network log is in Moonfin's logs):
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | previous step |
+| ☑ Done | — | previous step |
 
 **Goal.** Server download jobs: create, prepare, wait, file. Moonfin's qualities map onto Silo's presets (Brady, 2026-10-18).
 
@@ -227,32 +227,59 @@ Converted downloads must be on in Silo first (server settings: transcode to file
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | previous step |
 
 **Goal.** Store the translated item and the image bytes; offline images must not depend on the registry.
 
+**Silo v2 endpoints**
+
+- `GET /downloads/{id}/manifest`
+- `GET /downloads/{id}/artwork/{kind}` (`poster`, `backdrop`, `logo`, `series_poster`)
+
 **Where in Moonfin**
 
-- `lib/data/offline/*`
+- `packages/server_core/lib/src/api/server_downloads_api.dart`: `downloadArtwork`, `ServerDownloadArtworkKind`
+- `packages/server_silo/lib/src/api/silo_downloads_api.dart`: `manifest` (read once per download), `downloadArtwork`
+- `lib/data/services/download_service.dart`: `_downloadServerArtwork`, `_saveServerSeriesPoster`, `_fetchServerArtwork`
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+**The item.** Every download already stores the item as Moonfin reads it: the `BaseItemDto` map the Silo client translated (title, overview, people, runtime, user data, the playing version's media source and chapters), as the row's `metadataJson`. Offline screens read that, on every server. Nothing changes there.
+
+**The images.** Offline screens read images from files beside the download, by item id (`OfflineImageApi`), so offline they never touch the image registry. The weak point was fetching them: Moonfin downloads them through the client's image URLs, and on Silo an image URL only exists for an item this session has read (5.2, 6.3); for any other the URL is a stand-in that only Moonfin's image cache knows how to resolve, and a plain download of it fails. An automatic download in the background, or a series' poster for an episode downloaded from a list, could end up without art.
+
+Silo's manifest is the way it means apps to get them (`docs/downloads-api.md` §4.6, §4.8): for each download it names authenticated artwork links, `/api/v2/downloads/{id}/artwork/{kind}`, served to this device and profile with the same headers as the file, whether or not anything was read before. So for a server-registered download (`ServerDownloadsApi`), after the file:
+
+1. `downloadArtwork` reads the manifest (`GET /downloads/{id}/manifest`, once per download; it stays in memory for the subtitles, 15.6) and answers its `artwork_urls`, made absolute;
+2. the service fetches each with the ticket's headers into the files the other servers' downloads use: `poster.jpg`, `backdrop.jpg`, `logo.png` in the item's image folder. For an episode Silo's `poster` is the episode still, which is what Moonfin shows as an episode's primary image, and `backdrop` the series' backdrop;
+3. an episode's `series_poster` goes to the series' row when that row has none of its own (its own images still come through the client's URLs as before, which can fail for a series never read). It gets its own file name, `series_poster.jpg`, so it never collides with the series' own `poster.jpg` download running at the same time.
+
+A kind the item has no art for is absent and left out; a fetch that fails leaves that image out (best effort, as on the other servers). Jellyfin and Emby downloads still use `_downloadImages`.
+
+**Not used:** the manifest's thumbhashes (Moonfin draws no blurred placeholders), and its other fields (chapters, markers, audio tracks, codecs), which the stored item already has.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `packages/server_silo/test/silo_downloads_api_test.dart` (4 new, 39/39): the episode manifest fixture (`silo/download_manifest_episode.json`, hand-built) fits the contract; its artwork links come back absolute, read once, as the device and profile; kinds without art are left out; a manifest that failed is read again next time.
+- `test/offline/server_download_test.dart` (1 new, 8/8): an episode's artwork comes from the server's links with the ticket's credentials into `poster.jpg` and `backdrop.jpg`, and its series poster goes to the series' row as `series_poster.jpg`.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+On the Mac, signed in to Silo:
+
+- a. Download a film. After the file, the log shows `GET …/downloads/<id>/manifest` and `GET …/downloads/<id>/artwork/poster`, `…/backdrop` and `…/logo` (each `200`, or a `404` for art the film has none of).
+- b. Turn the network off (or stop Silo): the film's card in Downloads, its detail page and the player show the poster, backdrop and logo.
+- c. Download a single episode of a show you haven't opened since starting Moonfin (for example from Search, or straight from Next Up): offline, the episode shows its still and the show its poster in Downloads.
+- d. Regression on Emby: a download's artwork still shows offline.
+- e. Full suite (`flutter test` at the repo root).
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-18 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | downloads API 39/39, server download 8/8, `server_silo` 659/659, `server_core` 100/100, `test/offline` + `test/data/services` 617/617; analyzer: no new issues in the changed files |
 | | | | | |
 
 ---

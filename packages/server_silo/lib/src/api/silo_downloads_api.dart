@@ -454,6 +454,63 @@ class SiloDownloadsApi implements ServerDownloadsApi {
     );
   }
 
+  /// The download's manifest (`GET /downloads/{id}/manifest`): Silo's
+  /// offline description of it, with authenticated links to its artwork and
+  /// subtitles. Read once per download and kept for the other assets.
+  Future<Map<String, dynamic>> manifest(ServerDownloadTicket ticket) {
+    if (!_manifests.containsKey(ticket.id) && _manifests.length >= 8) {
+      _manifests.remove(_manifests.keys.first);
+    }
+    return _manifests[ticket.id] ??= () async {
+      try {
+        final response = await _dio.get<dynamic>(
+          '/api/v2/downloads/${Uri.encodeComponent(ticket.id)}/manifest',
+        );
+        final json = asJsonMap(response.data);
+        if (json == null) {
+          throw FormatException(
+            'Expected a download manifest from Silo, got '
+            '${response.data.runtimeType}',
+          );
+        }
+        return json;
+      } catch (_) {
+        _manifests.remove(ticket.id);
+        rethrow;
+      }
+    }();
+  }
+
+  // Manifests of the last few downloads; their assets are fetched right
+  // after the file.
+  final _manifests = <String, Future<Map<String, dynamic>>>{};
+
+  /// The manifest's `artwork_urls` (`/downloads/{id}/artwork/{kind}`, served
+  /// to this device and profile only), made absolute.
+  @override
+  Future<Map<ServerDownloadArtworkKind, Uri>> downloadArtwork(
+    ServerDownloadTicket ticket,
+  ) async {
+    final urls = asJsonMap((await manifest(ticket))['artwork_urls']);
+    final result = <ServerDownloadArtworkKind, Uri>{};
+    for (final (key, kind) in const [
+      ('poster', ServerDownloadArtworkKind.poster),
+      ('backdrop', ServerDownloadArtworkKind.backdrop),
+      ('logo', ServerDownloadArtworkKind.logo),
+      ('series_poster', ServerDownloadArtworkKind.seriesPoster),
+    ]) {
+      final path = urls?[key];
+      if (path is String && path.isNotEmpty) {
+        result[kind] = _absolute(path);
+      }
+    }
+    return result;
+  }
+
+  Uri _absolute(String path) => path.startsWith('http')
+      ? Uri.parse(path)
+      : Uri.parse('${_baseUrl()}$path');
+
   /// Deletes this device's entries for [itemIds] (`DELETE /downloads/{id}`),
   /// found among the device's entries. One already gone (`404`) is fine.
   @override

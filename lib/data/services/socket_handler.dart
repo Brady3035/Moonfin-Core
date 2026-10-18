@@ -233,6 +233,20 @@ abstract class _ReconnectingWebSocketClient implements ServerWebSocketClient {
   }
 }
 
+/// The socket address for a server at [baseUrl]: `ws` for `http`, `wss` for
+/// `https`, followed by [pathAndQuery].
+///
+/// The port is always written out. Dart's `Uri` knows default ports only for
+/// `http` and `https`, so `wss://server/socket` with no port reports port 0,
+/// and `dart:io`'s WebSocket connects to exactly that and fails with "Can't
+/// assign requested address". That hit every server reached on 443 or 80
+/// without a port in its address.
+Uri _socketUri(String baseUrl, String pathAndQuery) {
+  final base = Uri.parse(baseUrl);
+  final uri = Uri.parse('${baseUrl.replaceFirst('http', 'ws')}$pathAndQuery');
+  return uri.replace(port: base.port);
+}
+
 class JellyfinWebSocketClient extends _ReconnectingWebSocketClient {
   JellyfinWebSocketClient(MediaServerClient client, {Duration? connectTimeout})
     : super(client, 'Jellyfin', connectTimeout: connectTimeout);
@@ -241,9 +255,8 @@ class JellyfinWebSocketClient extends _ReconnectingWebSocketClient {
 
   @override
   Uri? buildUri() {
-    final wsUrl = client.baseUrl.replaceFirst('http', 'ws');
     final token = client.accessToken ?? '';
-    return Uri.parse('$wsUrl/socket?ApiKey=$token');
+    return _socketUri(client.baseUrl, '/socket?ApiKey=$token');
   }
 
   @override
@@ -274,9 +287,11 @@ class EmbyWebSocketClient extends _ReconnectingWebSocketClient {
   Uri? buildUri() {
     final token = client.accessToken;
     if (token == null) return null;
-    final wsUrl = client.baseUrl.replaceFirst('http', 'ws');
     final deviceId = Uri.encodeComponent(client.deviceInfo.id);
-    return Uri.parse('$wsUrl/embywebsocket?api_key=$token&deviceId=$deviceId');
+    return _socketUri(
+      client.baseUrl,
+      '/embywebsocket?api_key=$token&deviceId=$deviceId',
+    );
   }
 
   @override

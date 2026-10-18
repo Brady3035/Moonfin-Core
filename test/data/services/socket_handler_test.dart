@@ -19,6 +19,14 @@ class _FakeClient implements MediaServerClient {
   String? get accessToken => 'token';
 
   @override
+  DeviceInfo get deviceInfo => const DeviceInfo(
+    id: 'device 1',
+    name: 'Device',
+    appName: 'Moonfin',
+    appVersion: '1.0.0',
+  );
+
+  @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
@@ -217,6 +225,38 @@ void main() {
         greaterThan(beforeRetry),
         reason: 'a stale channel left behind reads as a live connection',
       );
+    });
+  });
+
+  // Dart's Uri has no default port for ws and wss, so `wss://server/socket`
+  // reported port 0, and dart:io connected to exactly that and failed with
+  // "Can't assign requested address" for every server without a port in its
+  // address.
+  group('the socket address carries the port', () {
+    test('Jellyfin', () {
+      Uri uri(String baseUrl) =>
+          JellyfinWebSocketClient(_FakeClient(baseUrl: baseUrl)).buildUri()!;
+
+      expect(
+        uri('https://jellyfin.example').toString(),
+        'wss://jellyfin.example:443/socket?ApiKey=token',
+      );
+      expect(uri('http://jellyfin.example').port, 80);
+      expect(uri('https://jellyfin.example:8920').port, 8920);
+      expect(uri('https://example.com/jellyfin').path, '/jellyfin/socket');
+    });
+
+    test('Emby', () {
+      Uri uri(String baseUrl) =>
+          EmbyWebSocketClient(_FakeClient(baseUrl: baseUrl)).buildUri()!;
+
+      final secure = uri('https://emby.example');
+      expect(
+        secure.toString(),
+        'wss://emby.example:443/embywebsocket?api_key=token&deviceId=device%201',
+      );
+      expect(Uri.parse(secure.toString()).port, 443);
+      expect(uri('http://emby.example:8096').port, 8096);
     });
   });
 }

@@ -62,10 +62,10 @@ class SiloPlayerTraits {
     rendersEmbeddedSubtitles: true,
   );
 
-  /// AetherEngine's traits (macOS, iOS): it demuxes the file itself and picks
-  /// any audio track, presents HDR and Dolby Vision through the system
-  /// (which maps them to an SDR screen), draws embedded and bitmap subtitles,
-  /// and plays every delivery.
+  /// AetherEngine's traits (macOS, iOS, and tvOS from 12.2): it demuxes the
+  /// file itself and picks any audio track, presents HDR and Dolby Vision
+  /// through the system (which maps them to an SDR screen), draws embedded
+  /// and bitmap subtitles, and plays every delivery.
   static const aether = mpv;
 
   /// Media3's traits (Android, step 12.1): ExoPlayer picks any audio track

@@ -55,13 +55,14 @@ Map<String, dynamic>? siloDisplayHdr({
   };
 }
 
-/// The main player's traits: AetherEngine on macOS and iOS, libmpv on
-/// Windows and Linux, and on Android the engine the viewer picked (Media3 by
-/// default, else libmpv; 12.1). tvOS and the web get theirs in 12.2 and
-/// 12.3; until then they claim nothing beyond their device profile.
+/// The main player's traits: AetherEngine on macOS, iOS and tvOS (12.2),
+/// libmpv on Windows and Linux, and on Android the engine the viewer picked
+/// (Media3 by default, else libmpv; 12.1). The web gets its own in 12.3;
+/// until then it claims nothing beyond its device profile.
 SiloPlayerTraits _traits() {
-  if (PlatformDetection.isAppleTV) return const SiloPlayerTraits();
-  if (PlatformDetection.isMacOS || PlatformDetection.isIOS) {
+  if (PlatformDetection.isAppleTV ||
+      PlatformDetection.isMacOS ||
+      PlatformDetection.isIOS) {
     return SiloPlayerTraits.aether;
   }
   if (PlatformDetection.isWindows || PlatformDetection.isLinux) {

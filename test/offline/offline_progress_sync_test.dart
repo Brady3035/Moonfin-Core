@@ -31,6 +31,28 @@ class _MockUserLibraryApi extends Mock implements UserLibraryApi {}
 
 class _MockConnectivity extends Mock implements Connectivity {}
 
+/// A user-library API that also takes offline progress in bulk (Silo, 15.5).
+class _BulkUserLibraryApi extends Mock
+    implements UserLibraryApi, OfflineProgressSyncApi {
+  final calls = <List<OfflineProgressEntry>>[];
+
+  /// Item ids the server refuses.
+  final refused = <String>{};
+  Object? failure;
+
+  @override
+  int get offlineProgressBatchLimit => 2;
+
+  @override
+  Future<List<bool>> syncOfflineProgress(
+    List<OfflineProgressEntry> entries,
+  ) async {
+    calls.add(entries);
+    if (failure case final error?) throw error;
+    return [for (final e in entries) !refused.contains(e.itemId)];
+  }
+}
+
 const _min = 60 * 10000000;
 const _runtime = 100 * _min;
 
@@ -270,6 +292,115 @@ void main() {
 
       expect(await localTicks('m'), 40 * _min);
       expect(await localSynced('m'), isFalse);
+    });
+  });
+
+  group('a server that takes offline progress in bulk (15.5)', () {
+    late _FakeServer server;
+    late _BulkUserLibraryApi bulk;
+
+    setUp(() {
+      server = _FakeServer('http://server-a.test');
+      bulk = _BulkUserLibraryApi();
+      when(() => server.client.userLibraryApi).thenReturn(bulk);
+    });
+
+    Future<SyncResult> push() =>
+        sync.syncPlaybackProgress(server.client, serverId: 'server-a');
+
+    test('local progress goes in one request, no stop reports', () async {
+      await watchedOffline(
+        'a',
+        server,
+        serverTicks: 10 * _min,
+        ticks: 40 * _min,
+      );
+      await watchedOffline('b', server, serverTicks: 20 * _min, ticks: 0);
+
+      final result = await push();
+
+      expect(result.synced, 2);
+      expect(server.stopReports, isEmpty);
+      expect(server.markedPlayed, isEmpty);
+      final entries = bulk.calls.single;
+      expect(entries.map((e) => e.itemId), ['a', 'b']);
+      expect(entries[0].position, const Duration(minutes: 40));
+      expect(entries[0].runtime, const Duration(minutes: 100));
+      expect(entries[0].played, isFalse);
+      // Finished offline: sent as played.
+      expect(entries[1].played, isTrue);
+      expect(await localSynced('a'), isTrue);
+      expect(await localSynced('b'), isTrue);
+    });
+
+    test('server ahead: adopted, nothing sent', () async {
+      await watchedOffline(
+        'm',
+        server,
+        serverTicks: 30 * _min,
+        ticks: 10 * _min,
+      );
+
+      await push();
+
+      expect(bulk.calls, isEmpty);
+      expect(await localTicks('m'), 30 * _min);
+    });
+
+    test('batches follow the server limit', () async {
+      for (final id in ['a', 'b', 'c']) {
+        await watchedOffline(id, server, serverTicks: 0, ticks: 5 * _min);
+      }
+
+      await push();
+
+      expect(bulk.calls.map((c) => c.length), [2, 1]);
+    });
+
+    test('an item the server refused stays queued', () async {
+      await watchedOffline('a', server, serverTicks: 0, ticks: 5 * _min);
+      await watchedOffline('b', server, serverTicks: 0, ticks: 6 * _min);
+      bulk.refused.add('b');
+
+      final result = await push();
+
+      expect(result.synced, 1);
+      expect(result.failed, 1);
+      expect(await localSynced('a'), isTrue);
+      expect(await localSynced('b'), isFalse);
+    });
+
+    test('a request that failed keeps everything queued', () async {
+      await watchedOffline('a', server, serverTicks: 0, ticks: 5 * _min);
+      bulk.failure = Exception('offline again');
+
+      final result = await push();
+
+      expect(result.failed, 1);
+      expect(await localSynced('a'), isFalse);
+      expect(await localTicks('a'), 5 * _min);
+    });
+
+    test('played without a known runtime is marked played instead', () async {
+      await repo.upsertItem(
+        DownloadedItemsCompanion(
+          itemId: const Value('m'),
+          serverId: const Value('server-a'),
+          type: const Value('Movie'),
+          name: const Value('m'),
+          metadataJson: Value(jsonEncode({'Id': 'm'})),
+          downloadStatus: const Value(2),
+        ),
+      );
+      server.set('m', ticks: 10 * _min);
+      when(() => bulk.markPlayed(any())).thenAnswer((_) async {});
+      await repo.updatePlaybackPosition('m', 0);
+
+      await push();
+
+      expect(bulk.calls, isEmpty);
+      verify(() => bulk.markPlayed('m')).called(1);
+      expect(await localSynced('m'), isTrue);
     });
   });
 

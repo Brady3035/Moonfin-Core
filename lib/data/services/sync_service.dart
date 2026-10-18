@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math' show min;
 
 import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart';
@@ -105,6 +106,14 @@ class SyncService extends ChangeNotifier {
 
     int synced = 0, failed = 0;
 
+    // A server that takes offline progress in one request (Silo) gets the
+    // pushes together after the loop, instead of one call per item.
+    final userLibrary = client.userLibraryApi;
+    final bulk = userLibrary is OfflineProgressSyncApi
+        ? userLibrary as OfflineProgressSyncApi
+        : null;
+    final bulkPushes = <(DownloadedItem, OfflineProgressEntry)>[];
+
     // Batch-fetch server progress for every unsynced item in one request
     // instead of a round-trip per item on reconnect.
     final serverUserData = await _fetchServerUserData(
@@ -146,6 +155,11 @@ class SyncService extends ChangeNotifier {
           }
         }
 
+        final entry = bulk == null ? null : _offlineProgressEntry(item);
+        if (entry != null) {
+          bulkPushes.add((item, entry));
+          continue;
+        }
         if (item.playbackPositionTicks == 0) {
           await client.userLibraryApi.markPlayed(item.itemId);
         } else {
@@ -165,6 +179,33 @@ class SyncService extends ChangeNotifier {
       }
     }
 
+    if (bulk != null && bulkPushes.isNotEmpty) {
+      final limit = bulk.offlineProgressBatchLimit;
+      for (var start = 0; start < bulkPushes.length; start += limit) {
+        final batch = bulkPushes.sublist(
+          start,
+          min(start + limit, bulkPushes.length),
+        );
+        try {
+          final taken = await bulk.syncOfflineProgress([
+            for (final (_, entry) in batch) entry,
+          ]);
+          for (final (i, (item, _)) in batch.indexed) {
+            if (i < taken.length && taken[i]) {
+              await _offlineRepo.markProgressSynced(item.itemId);
+              synced++;
+            } else {
+              debugPrint('[Sync] Server refused progress for ${item.itemId}');
+              failed++;
+            }
+          }
+        } catch (e) {
+          debugPrint('[Sync] Failed to sync a batch of progress: $e');
+          failed += batch.length;
+        }
+      }
+    }
+
     _setState(failed > 0 && synced == 0 ? SyncState.error : SyncState.done);
     _scheduleDoneReset();
     return SyncResult(synced: synced, failed: failed);
@@ -176,6 +217,29 @@ class SyncService extends ChangeNotifier {
     } catch (_) {
       return null;
     }
+  }
+
+  /// [item]'s offline progress for a bulk sync, or null when it can't be
+  /// expressed there: a played item needs its runtime (it is sent as having
+  /// reached the end), so one without falls back to marking it played.
+  ///
+  /// The store keeps no time for offline progress, so it is stamped now; the
+  /// server's own newer progress was already preferred above.
+  OfflineProgressEntry? _offlineProgressEntry(DownloadedItem item) {
+    var runtimeTicks = 0;
+    try {
+      final metadata = jsonDecode(item.metadataJson) as Map<String, dynamic>;
+      runtimeTicks = (metadata['RunTimeTicks'] as num?)?.toInt() ?? 0;
+    } catch (_) {}
+    final played = item.playbackPositionTicks == 0;
+    if (played && runtimeTicks <= 0) return null;
+    return OfflineProgressEntry(
+      itemId: item.itemId,
+      position: Duration(microseconds: item.playbackPositionTicks ~/ 10),
+      runtime: Duration(microseconds: runtimeTicks ~/ 10),
+      played: played,
+      recordedAt: DateTime.now(),
+    );
   }
 
   /// Returns [metadataJson] with its `UserData` replaced by the server's, so

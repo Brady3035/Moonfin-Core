@@ -766,6 +766,22 @@ class MediaKitPlayerBackend extends PlayerBackend
     );
   }
 
+  /// The [Media] to open for [url]: with the stream's headers from
+  /// [payload] (`headers`, the resolution's request headers), which mpv then
+  /// sends on every request for this file, HLS playlists and segments
+  /// included. media_kit sets them when the file loads and clears them when
+  /// it unloads, so they never reach another file.
+  @visibleForTesting
+  static Media mediaForPayload(String url, Map<dynamic, dynamic> payload) {
+    final raw = payload['headers'];
+    final headers = <String, String>{
+      if (raw is Map)
+        for (final e in raw.entries)
+          if (e.key != null && e.value != null) '${e.key}': '${e.value}',
+    };
+    return headers.isEmpty ? Media(url) : Media(url, httpHeaders: headers);
+  }
+
   @override
   Future<void> play(
     dynamic mediaItem, {
@@ -786,7 +802,7 @@ class MediaKitPlayerBackend extends PlayerBackend
       payload['selectedExternalSubtitleUrl'] as String?,
     );
     final subtitleGeneration = _subtitleSelectionGeneration;
-    final media = Media(url);
+    final media = mediaForPayload(url, payload);
     _currentUrl = media.uri;
     _isStale = true;
     _embeddedCaptionTracks = const [];

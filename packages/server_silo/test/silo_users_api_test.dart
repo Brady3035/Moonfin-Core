@@ -247,7 +247,7 @@ void main() {
       );
     });
 
-    test('sends every read as the chosen profile', () async {
+    test('sends every read but the listing as the chosen profile', () async {
       final server = FixtureServer({
         '/api/v2/account/me': _account(),
         '/api/v2/profiles': _profiles(),
@@ -262,7 +262,8 @@ void main() {
         },
         {
           '/api/v2/account/me': _mainId,
-          '/api/v2/profiles': _mainId,
+          // Listed as the account (18.1): a locked profile can't refuse it.
+          '/api/v2/profiles': null,
           // The downloads capability (15.1).
           '/api/v2/capabilities/downloads': _mainId,
         },

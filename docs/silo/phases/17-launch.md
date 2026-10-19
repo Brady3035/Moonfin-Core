@@ -360,7 +360,7 @@ Run each line on Silo, then the same on Emby (`emby.snowystreams.com`), with the
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Fix ready for testing | `30b197ffb`, fix — | previous step |
+| ◐ Fix ready for testing | `30b197ffb`, fix `af9f217ec` | previous step |
 
 **Goal.** Add Silo to Supported Servers with its minimum `api_major`, and list what isn't supported.
 

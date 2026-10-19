@@ -5,6 +5,7 @@ import 'package:server_core/server_core.dart';
 import 'package:server_silo/server_silo.dart';
 import 'package:test/test.dart';
 
+import '../../playback_silo/test/silo_contract.dart';
 import 'fixture_server.dart';
 
 final _now = DateTime.utc(2026, 10, 13, 12);
@@ -128,13 +129,13 @@ void main() {
       expect(client.profileId, 'main');
       expect(client.profileToken, isNull);
 
-      // From now on every request acts as the main profile.
-      await client.profilesApi.list();
+      // From now on every request acts as the main profile (the listing
+      // itself goes out as the account, 18.1).
       expect(
         server.requests.first.headers.containsKey('X-Profile-Id'),
         isFalse,
       );
-      expect(server.requests.last.headers['X-Profile-Id'], 'main');
+      expect(client.requestHeaders['X-Profile-Id'], 'main');
     });
 
     test('lists without a stale profile and drops an old PIN proof', () async {
@@ -207,6 +208,138 @@ void main() {
       await client.useMainProfile();
 
       expect(client.session.identity, isNot(before));
+    });
+  });
+
+  group('verifyPin (18.1)', () {
+    const path = '/api/v2/profiles/kid-1/verify-pin';
+
+    test('a matching PIN gives the profile token and its expiry', () async {
+      final answer = {
+        'valid': true,
+        'profile_token': 'pvt_5f3a9c1e7b2d4e8fa0c6',
+        'expires_at': '2026-10-13T13:00:00.000Z',
+      };
+      expect(siloSchemaErrors('ProfileVerification', answer), isEmpty);
+      final server = FixtureServer({
+        path: (_) => FixtureServer.json(200, jsonEncode(answer)),
+      });
+
+      final result = await _client(
+        server,
+      ).profilesApi.verifyPin('kid-1', '1234');
+
+      expect(result, isA<SiloPinAccepted>());
+      final accepted = result as SiloPinAccepted;
+      expect(accepted.profileToken, 'pvt_5f3a9c1e7b2d4e8fa0c6');
+      expect(accepted.expiresAt, DateTime.utc(2026, 10, 13, 13));
+      final request = server.requests.single;
+      expect(request.method, 'POST');
+      expect(request.data, {'pin': '1234'});
+      expect(siloSchemaErrors('ProfilePINCheck', request.data), isEmpty);
+      expect(request.headers['Authorization'], 'Bearer access-1');
+    });
+
+    test('a token without an expiry', () async {
+      final answer = {
+        'valid': true,
+        'profile_token': 'pvt_1',
+        'expires_at': null,
+      };
+      expect(siloSchemaErrors('ProfileVerification', answer), isEmpty);
+      final server = FixtureServer({
+        path: (_) => FixtureServer.json(200, jsonEncode(answer)),
+      });
+
+      final result = await _client(server).profilesApi.verifyPin('kid-1', '1');
+
+      expect((result as SiloPinAccepted).expiresAt, isNull);
+    });
+
+    test('a wrong PIN is rejected and sent once', () async {
+      final answer = {'valid': false, 'expires_at': null};
+      expect(siloSchemaErrors('ProfileVerification', answer), isEmpty);
+      final server = FixtureServer({
+        path: (_) => FixtureServer.json(200, jsonEncode(answer)),
+      });
+
+      final result = await _client(server).profilesApi.verifyPin('kid-1', '0');
+
+      expect(result, isA<SiloPinRejected>());
+      expect(server.requests, hasLength(1));
+    });
+
+    test('a lockout says how long, and is not retried', () async {
+      final server = FixtureServer({
+        path: (_) => ResponseBody.fromString(
+          jsonEncode({
+            'type': 'https://siloserver.org/docs/api/v2/problems/rate_limited',
+            'status': 429,
+            'detail': 'Too many PIN attempts.',
+          }),
+          429,
+          headers: {
+            Headers.contentTypeHeader: ['application/problem+json'],
+            'retry-after': ['287'],
+          },
+        ),
+      });
+
+      final result = await _client(server).profilesApi.verifyPin('kid-1', '1');
+
+      expect(result, isA<SiloPinLocked>());
+      expect(
+        (result as SiloPinLocked).retryAfter,
+        const Duration(seconds: 287),
+      );
+      expect(server.requests, hasLength(1));
+    });
+
+    test('other failures are thrown, once', () async {
+      final server = FixtureServer({
+        path: (_) => FixtureServer.problem(404, 'not_found', 'No profile.'),
+      });
+
+      await expectLater(
+        _client(server).profilesApi.verifyPin('kid-1', '1'),
+        throwsA(isA<DioException>()),
+      );
+      expect(server.requests, hasLength(1));
+    });
+
+    test('the check and the listing go out as the account', () async {
+      final server = FixtureServer({
+        path: (_) => FixtureServer.json(
+          200,
+          jsonEncode({'valid': false, 'expires_at': null}),
+        ),
+        '/api/v2/profiles': _profiles([_profile('main', primary: true)]),
+      });
+      final client = _client(server)
+        ..profileId = 'main'
+        ..profileToken = 'pvt_old';
+
+      await client.profilesApi.verifyPin('kid-1', '1');
+      await client.profilesApi.list();
+
+      for (final request in server.requests) {
+        expect(request.headers.containsKey('X-Profile-Id'), isFalse);
+        expect(request.headers.containsKey('X-Profile-Token'), isFalse);
+        expect(request.headers['Authorization'], 'Bearer access-1');
+      }
+    });
+
+    test('the profile id is escaped in the path', () async {
+      final server = FixtureServer({});
+
+      await expectLater(
+        _client(server).profilesApi.verifyPin('a/b', '1'),
+        throwsA(isA<DioException>()),
+      );
+      expect(
+        server.requests.single.uri.path,
+        '/api/v2/profiles/a%2Fb/verify-pin',
+      );
     });
   });
 }

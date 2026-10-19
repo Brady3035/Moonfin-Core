@@ -178,6 +178,11 @@ class SiloMediaServerClient extends MediaServerClient
       if (options.extra[siloNoAuthExtra] == true) {
         headers.remove('Authorization');
       }
+      if (options.extra[siloNoProfileExtra] == true) {
+        headers
+          ..remove('X-Profile-Id')
+          ..remove('X-Profile-Token');
+      }
       options.headers.addAll(headers);
       if (!_isProgressPing(options.uri)) {
         ServerLog.network('→ ${options.method} ${options.uri}');

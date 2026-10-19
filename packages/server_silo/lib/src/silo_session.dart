@@ -244,6 +244,13 @@ class SiloSession {
 /// Request `extra` flag: don't send the bearer token (sign-in, refresh).
 const siloNoAuthExtra = 'silo.noAuth';
 
+/// Request `extra` flag: don't send the household profile (`X-Profile-Id`,
+/// `X-Profile-Token`). For the account-wide profile routes (listing the
+/// profiles, checking a PIN): Silo refuses a request naming a PIN-locked
+/// profile without its proof, which is exactly the case when a profile is
+/// still to be unlocked.
+const siloNoProfileExtra = 'silo.noProfile';
+
 /// Request `extra` flag: never refresh-and-retry this request. Set on the
 /// operations Silo declares non-retryable (login, refresh, device sign-in
 /// start and poll, PIN checks) and on retries themselves (step 2.2).

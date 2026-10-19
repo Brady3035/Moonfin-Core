@@ -1850,6 +1850,17 @@ class SiloItemsApi
     pager.clear();
   }
 
+  /// Called when the client starts acting as another household profile
+  /// (18.5): what this client read belongs to the profile it was read as
+  /// (its rows, its libraries' lists, its "hide watched" setting, what it
+  /// changed), so all of it is forgotten. The catalog itself is the same.
+  void noteProfileChanged() {
+    noteCatalogChanged();
+    _hideWatched = null;
+    _changedItems.clear();
+    _changedSeries.clear();
+  }
+
   /// Of [itemIds], those whose user data may have changed: one this client
   /// changed in the last [_changedTtl], or a season or episode of a show
   /// that had something changed (marking an episode moves the season's and

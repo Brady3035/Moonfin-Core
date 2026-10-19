@@ -266,35 +266,50 @@ With the batch, Teen locked with a PIN on Silo's web app:
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | previous step |
 
 **Goal.** Same client and tokens; swap `X-Profile-Id` and reload user-scoped state.
 
 **Where in Moonfin**
 
-- `lib/auth/services/silo_account_service.dart`
-- `lib/ui/widgets/user_menu_dialog.dart`
+- `packages/server_silo/lib/src/silo_media_server_client.dart`: changing `profileId` forgets the previous profile's reads (`_forgetProfileReads`)
+- `packages/server_silo/lib/src/api/silo_items_api.dart`: `noteProfileChanged`
 
-**Earlier work to port:** stash
+The roadmap also listed a `silo_account_service.dart` and changes to `user_menu_dialog.dart`; neither turned out to be needed (below).
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+Most of this already works once the profiles are users (18.2). Switching to another stored user, from the account switcher or the server's grid, is `SessionRepository.switchCurrentSession`, the same as switching between two Jellyfin users of one server:
+
+- **Same client.** The client factory keeps one client per server, and `SiloTokenStorage.restore` leaves a client alone when it already holds the account's current pair, so the login, its tokens and its refresh timer carry on. No password, no `POST /auth/login`, no refresh.
+- **Another profile.** `restore` sets the profile's `X-Profile-Id` and, for a locked profile, its PIN proof (18.4); for an unlocked one, none.
+- **User-scoped state.** The session switch already resets the app's per-user singletons (`resetUserScopedSingletons`), reconnects the events socket (a new ticket, minted for the new profile, 13.2), re-binds user-data sync to the new user id and reloads Home.
+
+**What was missing: the Silo client's own reads.** The client keeps some answers for a while, and they belong to the profile they were read as: the libraries (5 min), Home's sections (1 min layout, 5 s cards), the read-once lists (2 min), the "hide watched items" setting (1 min), the items this profile changed recently (9.4), the downloads capability (1 min, 15.1) and the playback capabilities (1 min). Without forgetting them, a switch to Kid could show Brady's libraries and rows for a few minutes. Now setting a different `profileId` on a client that already acted as a profile forgets all of them (`_forgetProfileReads`; the item catalog itself, which is the same for every profile, is not touched beyond what `noteCatalogChanged` already clears). Picking a first profile (from none, after sign-in) has nothing to forget.
+
+A request held back when the profile changes (waiting for a token refresh, or about to be replayed) is refused rather than sent as the new profile: the session stamps each request with the identity it started under, and a profile change moves it (2.2).
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `packages/server_silo/test/silo_profile_switch_test.dart` (new, 3 tests): another profile reads its own libraries, as itself (the cached list isn't reused); the same login stays (same token pair, no sign-in or refresh), with the new profile's proof on the request; picking a first profile forgets nothing.
+- The switch itself (`switchCurrentSession`) has no new test: its success path needs the app's whole service graph. 18.4's tests cover what `restore` puts on the client.
 
 **Manual test plan**
 
-- Switch between two profiles; no password prompt; locked profile asks for PIN.
+With the batch:
+
+- a. As Brady, open the account switcher and pick Kid: Home reloads with Kid's rows (Kid's Continue Watching, Kid's libraries if they differ), no password.
+- b. Mark something watched as Kid; switch back to Brady: Brady's state is unchanged.
+- c. Switch to Teen: the PIN is asked the first time only (18.4).
+- d. Silo web's sessions page shows one Moonfin session throughout (no new sign-ins).
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-19 | Linux (Claude workspace, Flutter 3.47.7) | — | Pass | profile switch 3/3 (new), `server_silo` 680/680; analyzer: no issues |
 | | | | | |
 
 ---

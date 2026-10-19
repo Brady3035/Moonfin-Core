@@ -374,7 +374,15 @@ class SessionRepository {
     _activeServerId = serverId;
     _activeUserId = userId;
 
-    _userRepository.setCurrentUser(user);
+    // A Silo profile records when it was last used: the account switcher
+    // sorts by it, and another server's rows read the most recent one
+    // (18.7).
+    var activeUser = user;
+    if (user.isSiloProfile) {
+      activeUser = user.copyWith(lastUsed: DateTime.now());
+      await _authStore.putUser(activeUser);
+    }
+    _userRepository.setCurrentUser(activeUser);
     await _authPrefs.setLastServerId(serverId);
     await _authPrefs.setLastUserId(userId);
 

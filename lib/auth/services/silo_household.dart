@@ -2,6 +2,7 @@ import 'package:server_silo/server_silo.dart';
 
 import '../models/user.dart';
 import '../store/authentication_store.dart';
+import 'silo_token_storage.dart';
 
 /// Keeps a Silo account's household profiles stored as Moonfin users
 /// (phase 18, decision D1).
@@ -69,6 +70,23 @@ class SiloHousehold {
       if (!listed.contains(id)) await _store.removeUser(serverId, id);
     }
     return users;
+  }
+
+  /// The profile to read a Silo server as when it isn't the active one
+  /// (18.7): Home's and search's rows merge every signed-in server, one user
+  /// each. Of [users] (a server's stored users), the most recently used
+  /// profile that can act without asking for a PIN; null when every one is
+  /// locked. Profiles of one household are never merged: they are the same
+  /// library with different watch state and limits.
+  static PrivateUser? profileForOtherServer(
+    List<PrivateUser> users,
+    SiloTokenStorage storage,
+  ) {
+    final usable = [
+      for (final user in users)
+        if (!storage.needsPin(user)) user,
+    ]..sort((a, b) => b.lastUsed.compareTo(a.lastUsed));
+    return usable.firstOrNull;
   }
 
   /// The stored profiles of [accountId] on [serverId].

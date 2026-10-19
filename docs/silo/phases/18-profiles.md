@@ -373,34 +373,46 @@ With the batch, signed in as Brady with Kid and Teen stored:
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | previous step |
 
 **Goal.** In the multi-server repository, use the active profile for the active server and the most recent unlocked profile for other Silo servers.
 
 **Where in Moonfin**
 
-- `lib/data/repositories/multi_server_repository.dart`
+- `lib/data/repositories/multi_server_repository.dart`: `getLoggedInServers` picks another Silo server's profile with `SiloHousehold.profileForOtherServer`
+- `lib/auth/services/silo_household.dart`: `profileForOtherServer`
+- `lib/auth/repositories/session_repository.dart`: switching to a Silo profile records when it was used
 
-**Earlier work to port:** stash
+**Earlier work to port:** stash (gone: written fresh)
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+With more than one server signed in, Home, search and the library list can merge every server (`MultiServerRepository`): one `ServerUserSession` per server, read as one of its users. For the active server that is the active user, as before. For each other server Moonfin took the first stored user with a token, which on a Silo server with a household would be whichever profile happened to be stored first, possibly a child's or a locked one.
+
+Now, for another **Silo** server, it is the **most recently used profile that can act without asking for a PIN** (unlocked, or locked with a live proof, 18.4): the household member who last used Moonfin with that server. A server whose profiles are all locked without a proof is left out of the merged rows rather than read as a locked profile (whose every request Silo would refuse). Profiles of one household are never merged into one row: they are the same library with different watch state and limits (design note §4.2.1). Jellyfin and Emby servers are chosen as before.
+
+"Most recently used" needs the time to move: before, a user's `lastUsed` was only set at sign-in. Switching to a Silo profile now stamps it (Jellyfin and Emby users keep the old behaviour). The account switcher, which sorts by it, then also lists the household in the order it was used.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `test/auth/silo_household_test.dart` (new, 4 tests): the most recently used profile, not the first stored; a locked profile without its proof is skipped; a locked profile with a live proof counts; none when every profile is locked.
+- `test/ui/screens/settings/other_server_collections_test.dart`, `test/ui/screens/home/other_server_collection_row_test.dart` (the existing multi-server tests): pass.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+Needs two signed-in servers, one of them Silo with Brady and Kid (Emby as the second):
+
+- a. Use Kid on Silo, then switch to the Emby user. Home's merged rows (Continue Watching across servers, if the merged mode is on) show Silo items as Kid, not Brady.
+- b. Switch to Brady on Silo, then back to Emby: Silo's items now come as Brady.
+- c. With Teen (locked) the last used and its proof gone (sign the account in again), Silo's rows come from the most recent unlocked profile instead.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-19 | Linux (Claude workspace, Flutter 3.47.7) | — | Pass | household 4/4 (new), multi-server tests pass; analyzer: no new issues |
 | | | | | |
 
 ---

@@ -7,6 +7,7 @@ import 'package:server_core/server_core.dart';
 import '../../auth/models/server.dart';
 import '../../auth/repositories/session_repository.dart';
 import '../../auth/models/user.dart';
+import '../../auth/services/silo_household.dart';
 import '../../auth/services/silo_token_storage.dart';
 import '../../auth/store/authentication_store.dart';
 import '../../auth/store/credential_store.dart';
@@ -122,7 +123,17 @@ class MultiServerRepository {
 
         if (userId == null) {
           final token = await _credentialStore.getToken(server.id);
-          for (final user in users) {
+          // Another Silo server: its most recently used profile that needs
+          // no PIN now (18.7), not whichever profile was stored first.
+          final candidates = server.serverType == ServerType.silo
+              ? [
+                  ?SiloHousehold.profileForOtherServer(
+                    users,
+                    SiloTokenStorage(_authStore),
+                  ),
+                ]
+              : users;
+          for (final user in candidates) {
             final userToken = token ?? user.accessToken;
             if (userToken.isNotEmpty) {
               userId = user.id;

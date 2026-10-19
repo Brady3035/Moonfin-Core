@@ -284,6 +284,15 @@ class SessionRepository {
     }
     final user = users[userIndex];
 
+    // A PIN-locked Silo profile without a live proof can't act yet: whoever
+    // switches asks for the PIN first (18.4). At start-up this sends the
+    // person to the server's user grid, where tapping the profile asks.
+    if (SiloTokenStorage(_authStore).needsPin(user)) {
+      _logger.i('Silo profile $userId needs its PIN before it can be used');
+      _setState(SessionState.ready);
+      return false;
+    }
+
     final token = await _credentialStore.getToken(serverId);
     final accessToken = user.accessToken.isNotEmpty ? user.accessToken : token;
 

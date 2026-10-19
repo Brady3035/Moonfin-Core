@@ -32,9 +32,55 @@ class SiloTokenStorage {
   SiloTokens? read(String serverId, String accountId) =>
       SiloTokens.fromJson(_store.getSiloTokens(serverId, accountId));
 
-  /// Stores [tokens] for [accountId] on [serverId] (at sign-in).
-  Future<void> save(String serverId, String accountId, SiloTokens tokens) =>
-      _store.putSiloTokens(serverId, accountId, tokens.toJson());
+  /// Stores [tokens] for [accountId] on [serverId]. At sign-in
+  /// ([newLogin]) the profiles' PIN proofs of the earlier login go (18.4);
+  /// a refresh keeps them.
+  Future<void> save(
+    String serverId,
+    String accountId,
+    SiloTokens tokens, {
+    bool newLogin = false,
+  }) => _store.putSiloTokens(
+    serverId,
+    accountId,
+    tokens.toJson(),
+    newLogin: newLogin,
+  );
+
+  /// The stored PIN proof of Silo profile [user] (18.4), unless it has
+  /// expired; null for a profile without one and for Jellyfin and Emby
+  /// users. [now] is for tests.
+  String? profileToken(PrivateUser user, {DateTime? now}) {
+    final accountId = user.siloAccountId;
+    if (accountId == null) return null;
+    final proof = _store.getSiloProfileToken(user.serverId, accountId, user.id);
+    final token = proof?['token'];
+    if (token is! String || token.isEmpty) return null;
+    final expires = DateTime.tryParse(proof?['expiresAt'] as String? ?? '');
+    if (expires != null && !expires.isAfter(now ?? DateTime.now())) {
+      return null;
+    }
+    return token;
+  }
+
+  /// Whether switching to Silo profile [user] needs its PIN first: it is
+  /// locked and holds no live proof (18.4).
+  bool needsPin(PrivateUser user, {DateTime? now}) =>
+      user.siloHasPin && profileToken(user, now: now) == null;
+
+  /// Keeps the proof Silo gave for [user]'s PIN, under its account.
+  Future<void> saveProfileToken(
+    PrivateUser user,
+    String token, {
+    DateTime? expiresAt,
+  }) async {
+    final accountId = user.siloAccountId;
+    if (accountId == null) return;
+    await _store.putSiloProfileToken(user.serverId, accountId, user.id, {
+      'token': token,
+      if (expiresAt != null) 'expiresAt': expiresAt.toUtc().toIso8601String(),
+    });
+  }
 
   /// Saves every pair [client]'s session refreshes from now on, for
   /// [accountId] on [serverId]. Rebinding (another account on the same
@@ -75,8 +121,9 @@ class SiloTokenStorage {
   }
 
   /// Puts a stored Silo [user]'s login on [client]: the account's token pair
-  /// (so the session can refresh), the main profile as `X-Profile-Id`, and
-  /// the binding that saves later refreshes. Returns false for a Jellyfin or
+  /// (so the session can refresh), the user's profile as `X-Profile-Id`
+  /// with its stored PIN proof if it has one (18.4), and the binding that
+  /// saves later refreshes. Returns false for a Jellyfin or
   /// Emby user or client, which the caller sets up as before.
   ///
   /// Every place that hands a stored user's login to a client goes through
@@ -114,8 +161,10 @@ class SiloTokenStorage {
     } else if (current == null && user.accessToken.isNotEmpty) {
       silo.accessToken = user.accessToken;
     }
-    // The stored user is the account's main profile (decision D9).
+    // The stored user is one of the account's profiles (the main profile
+    // until phase 18, D9); a locked one sends its PIN proof (18.4).
     silo.profileId = user.id;
+    silo.profileToken = profileToken(user);
     silo.userId = user.id;
     final alreadyBound =
         _bindings[silo.session] == '${user.serverId}\u0000$accountId';

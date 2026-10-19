@@ -475,7 +475,7 @@ class AuthRepository {
     );
 
     client.userId = user.id;
-    await _siloTokens.save(serverId, accountId, tokens);
+    await _siloTokens.save(serverId, accountId, tokens, newLogin: true);
     _siloTokens.bind(client: silo, serverId: serverId, accountId: accountId);
     await _authStore.putUser(user);
     await _authPrefs.setLastServerId(serverId);
@@ -534,7 +534,7 @@ class AuthRepository {
       return state;
     }
 
-    await _siloTokens.save(serverId, accountId, tokens);
+    await _siloTokens.save(serverId, accountId, tokens, newLogin: true);
     _siloTokens.bind(client: silo, serverId: serverId, accountId: accountId);
     final users = await SiloHousehold(_authStore).store(
       serverId: serverId,

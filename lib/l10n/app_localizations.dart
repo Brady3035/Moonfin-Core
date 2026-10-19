@@ -27290,6 +27290,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Playback was ended on the Silo server.'**
   String get siloPlaybackEndedOnServer;
+
+  /// Title of the dialog asking for a Silo household profile's PIN; name is the profile's name
+  ///
+  /// In en, this message translates to:
+  /// **'PIN for {name}'**
+  String siloPinTitle(String name);
+
+  /// Field label in the Silo profile PIN dialog
+  ///
+  /// In en, this message translates to:
+  /// **'PIN'**
+  String get siloPinHint;
+
+  /// Button in the Silo profile PIN dialog that checks the PIN
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock'**
+  String get siloPinUnlock;
+
+  /// Shown in the Silo profile PIN dialog when the PIN doesn't match
+  ///
+  /// In en, this message translates to:
+  /// **'That PIN isn\'t right.'**
+  String get siloPinWrong;
+
+  /// Shown when Silo has locked the profile after too many wrong PINs, without saying for how long
+  ///
+  /// In en, this message translates to:
+  /// **'Too many wrong PINs. Try again later.'**
+  String get siloPinLocked;
+
+  /// Shown when Silo has locked the profile after too many wrong PINs; wait is siloWaitSeconds or siloWaitMinutes
+  ///
+  /// In en, this message translates to:
+  /// **'Too many wrong PINs. Try again in {wait}.'**
+  String siloPinLockedWait(String wait);
+
+  /// Shown in the Silo profile PIN dialog when the check failed (no network, server error)
+  ///
+  /// In en, this message translates to:
+  /// **'The PIN couldn\'t be checked. Try again.'**
+  String get siloPinFailed;
 }
 
 class _AppLocalizationsDelegate

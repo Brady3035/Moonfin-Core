@@ -187,18 +187,85 @@ class AuthenticationStore {
       _siloAccounts(serverId).keys.toList();
 
   /// Stores (or replaces) a Silo account's token pair.
+  ///
+  /// A refresh renews the same login, so the profiles' PIN proofs (18.4),
+  /// which are bound to that login, are kept. A new login ([newLogin], at
+  /// sign-in) drops them: Silo no longer accepts them.
   Future<void> putSiloTokens(
     String serverId,
     String accountId,
-    Map<String, dynamic> tokens,
-  ) async {
+    Map<String, dynamic> tokens, {
+    bool newLogin = false,
+  }) async {
     final servers = Map<String, dynamic>.from(_servers);
     final serverData =
         Map<String, dynamic>.from(servers[serverId] as Map? ?? {});
     final accounts = Map<String, dynamic>.from(
       serverData[_siloAccountsKey] as Map? ?? {},
     );
-    accounts[accountId] = {'tokens': tokens};
+    final previous = accounts[accountId];
+    final proofs = newLogin || previous is! Map
+        ? null
+        : previous[_profileTokensKey];
+    accounts[accountId] = {
+      'tokens': tokens,
+      if (proofs is Map && proofs.isNotEmpty) _profileTokensKey: proofs,
+    };
+    serverData[_siloAccountsKey] = accounts;
+    servers[serverId] = serverData;
+    _data['servers'] = servers;
+    await _save();
+  }
+
+  static const _profileTokensKey = 'profileTokens';
+
+  /// The stored PIN proof of a Silo profile (`{"token": …, "expiresAt": …}`,
+  /// 18.4), or null. It belongs to the account's current login.
+  Map<String, dynamic>? getSiloProfileToken(
+    String serverId,
+    String accountId,
+    String profileId,
+  ) {
+    final record = _siloAccounts(serverId)[accountId];
+    if (record is! Map) return null;
+    final proofs = record[_profileTokensKey];
+    if (proofs is! Map) return null;
+    final proof = proofs[profileId];
+    return proof is Map ? Map<String, dynamic>.from(proof) : null;
+  }
+
+  /// Stores (or, with null, forgets) a Silo profile's PIN proof under its
+  /// account. Does nothing when the account has no stored login.
+  Future<void> putSiloProfileToken(
+    String serverId,
+    String accountId,
+    String profileId,
+    Map<String, dynamic>? proof,
+  ) async {
+    final servers = Map<String, dynamic>.from(_servers);
+    final raw = servers[serverId];
+    if (raw is! Map) return;
+    final serverData = Map<String, dynamic>.from(raw);
+    final accounts = Map<String, dynamic>.from(
+      serverData[_siloAccountsKey] as Map? ?? {},
+    );
+    final record = accounts[accountId];
+    if (record is! Map) return;
+    final updated = Map<String, dynamic>.from(record);
+    final proofs = Map<String, dynamic>.from(
+      updated[_profileTokensKey] as Map? ?? {},
+    );
+    if (proof == null) {
+      if (proofs.remove(profileId) == null) return;
+    } else {
+      proofs[profileId] = proof;
+    }
+    if (proofs.isEmpty) {
+      updated.remove(_profileTokensKey);
+    } else {
+      updated[_profileTokensKey] = proofs;
+    }
+    accounts[accountId] = updated;
     serverData[_siloAccountsKey] = accounts;
     servers[serverId] = serverData;
     _data['servers'] = servers;

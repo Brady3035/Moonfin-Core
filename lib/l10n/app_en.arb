@@ -14557,5 +14557,43 @@
   "siloPlaybackEndedOnServer": "Playback was ended on the Silo server.",
   "@siloPlaybackEndedOnServer": {
     "description": "Player message: an administrator ended this playback session on the Silo server"
+  },
+  "siloPinTitle": "PIN for {name}",
+  "@siloPinTitle": {
+    "description": "Title of the dialog asking for a Silo household profile's PIN; name is the profile's name",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "siloPinHint": "PIN",
+  "@siloPinHint": {
+    "description": "Field label in the Silo profile PIN dialog"
+  },
+  "siloPinUnlock": "Unlock",
+  "@siloPinUnlock": {
+    "description": "Button in the Silo profile PIN dialog that checks the PIN"
+  },
+  "siloPinWrong": "That PIN isn't right.",
+  "@siloPinWrong": {
+    "description": "Shown in the Silo profile PIN dialog when the PIN doesn't match"
+  },
+  "siloPinLocked": "Too many wrong PINs. Try again later.",
+  "@siloPinLocked": {
+    "description": "Shown when Silo has locked the profile after too many wrong PINs, without saying for how long"
+  },
+  "siloPinLockedWait": "Too many wrong PINs. Try again in {wait}.",
+  "@siloPinLockedWait": {
+    "description": "Shown when Silo has locked the profile after too many wrong PINs; wait is siloWaitSeconds or siloWaitMinutes",
+    "placeholders": {
+      "wait": {
+        "type": "String"
+      }
+    }
+  },
+  "siloPinFailed": "The PIN couldn't be checked. Try again.",
+  "@siloPinFailed": {
+    "description": "Shown in the Silo profile PIN dialog when the check failed (no network, server error)"
   }
 }

@@ -296,6 +296,67 @@ void main() {
       expect(ended, 0);
     });
   });
+
+  group('PIN-locked profiles (18.4)', () {
+    PrivateUser teen() => _user().copyWith(id: 'teen', siloHasPin: true);
+
+    test('a locked profile needs its PIN until a proof is kept', () async {
+      await storage.save('s1', '9', _pair('1'));
+      expect(storage.needsPin(teen()), isTrue);
+      expect(storage.needsPin(_user()), isFalse);
+
+      await storage.saveProfileToken(teen(), 'pvt_1');
+
+      expect(storage.needsPin(teen()), isFalse);
+      expect(storage.profileToken(teen()), 'pvt_1');
+    });
+
+    test('an expired proof counts as none', () async {
+      await storage.save('s1', '9', _pair('1'));
+      await storage.saveProfileToken(
+        teen(),
+        'pvt_1',
+        expiresAt: _now.add(const Duration(minutes: 1)),
+      );
+
+      expect(storage.profileToken(teen(), now: _now), 'pvt_1');
+      expect(
+        storage.needsPin(teen(), now: _now.add(const Duration(minutes: 2))),
+        isTrue,
+      );
+    });
+
+    test('restore sends the profile and its proof', () async {
+      await storage.save('s1', '9', _pair('1'));
+      await storage.saveProfileToken(teen(), 'pvt_1');
+
+      storage.restore(client: client, user: teen());
+
+      expect(client.profileId, 'teen');
+      expect(client.profileToken, 'pvt_1');
+      expect(client.requestHeaders['X-Profile-Token'], 'pvt_1');
+    });
+
+    test('switching to a profile without a PIN drops the proof', () async {
+      await storage.save('s1', '9', _pair('1'));
+      await storage.saveProfileToken(teen(), 'pvt_1');
+      storage.restore(client: client, user: teen());
+
+      storage.restore(client: client, user: _user());
+
+      expect(client.profileId, 'main');
+      expect(client.profileToken, isNull);
+    });
+
+    test('a new sign-in drops the proofs of the old login', () async {
+      await storage.save('s1', '9', _pair('1'));
+      await storage.saveProfileToken(teen(), 'pvt_1');
+
+      await storage.save('s1', '9', _pair('2'), newLogin: true);
+
+      expect(storage.needsPin(teen()), isTrue);
+    });
+  });
 }
 
 /// Answers everything with a 503.

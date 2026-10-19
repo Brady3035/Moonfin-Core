@@ -27501,6 +27501,54 @@ abstract class AppLocalizations {
   /// **'Keep Jellyfin'**
   String get siloNativeOfferKeep;
 
+  /// Shown when a Silo server no longer speaks the API this version of Moonfin uses (its API is newer)
+  ///
+  /// In en, this message translates to:
+  /// **'This Silo server needs a newer version of Moonfin. Update Moonfin to use it.'**
+  String get siloAppUpdateRequired;
+
+  /// Shown when a Silo server's API is older than the one this version of Moonfin uses
+  ///
+  /// In en, this message translates to:
+  /// **'This Silo server is too old for this version of Moonfin. Update Silo to use it.'**
+  String get siloServerUpdateRequired;
+
+  /// Shown when Silo refuses a request because of too many attempts (HTTP 429) without saying how long to wait
+  ///
+  /// In en, this message translates to:
+  /// **'Too many attempts. Try again later.'**
+  String get siloTooManyAttempts;
+
+  /// Shown when Silo refuses a request because of too many attempts (HTTP 429); wait is siloWaitSeconds or siloWaitMinutes
+  ///
+  /// In en, this message translates to:
+  /// **'Too many attempts. Try again in {wait}.'**
+  String siloTooManyAttemptsWait(String wait);
+
+  /// Shown when Silo answers that it is temporarily unavailable (HTTP 503) without saying how long to wait
+  ///
+  /// In en, this message translates to:
+  /// **'The server is busy or still starting. Try again later.'**
+  String get siloServerBusy;
+
+  /// Shown when Silo answers that it is temporarily unavailable (HTTP 503); wait is siloWaitSeconds or siloWaitMinutes
+  ///
+  /// In en, this message translates to:
+  /// **'The server is busy or still starting. Try again in {wait}.'**
+  String siloServerBusyWait(String wait);
+
+  /// How long to wait before trying again, in seconds; fills {wait} in siloTooManyAttemptsWait and siloServerBusyWait
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 second} other{{count} seconds}}'**
+  String siloWaitSeconds(int count);
+
+  /// How long to wait before trying again, in minutes; fills {wait} in siloTooManyAttemptsWait and siloServerBusyWait
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 minute} other{{count} minutes}}'**
+  String siloWaitMinutes(int count);
+
   /// How many trailers the trailer picker lists, shown in its header
   ///
   /// In en, this message translates to:

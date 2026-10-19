@@ -340,4 +340,46 @@ void main() {
       expect(await probeSiloServer(dio, 'http://host:8096'), isNull);
     });
   });
+
+  group('a retired Silo API (17.3)', () {
+    test('the 410 tombstone throws SiloApiUnsupported', () async {
+      final dio = _dioWith((uri) {
+        if (uri.path == '/api/v2/system/info') {
+          return ResponseBody.fromString(
+            jsonEncode({
+              'type':
+                  'https://siloserver.org/docs/api/v2/problems/client_upgrade_required',
+              'status': 410,
+              'title': 'Client upgrade required',
+            }),
+            410,
+            headers: {
+              Headers.contentTypeHeader: ['application/problem+json'],
+            },
+          );
+        }
+        return _status(404);
+      });
+
+      await expectLater(
+        probeServerPublicInfo(dio, 'https://host'),
+        throwsA(
+          isA<SiloApiUnsupported>()
+              .having((e) => e.apiMajor, 'apiMajor', isNull)
+              .having((e) => e.serverIsNewer, 'serverIsNewer', isTrue),
+        ),
+      );
+    });
+
+    test('another 410 is not a tombstone', () {
+      expect(isSiloClientUpgradeRequired(410, {'type': '/x/gone'}), isFalse);
+      expect(isSiloClientUpgradeRequired(404, null), isFalse);
+      expect(isSiloClientUpgradeRequired(426, null), isTrue);
+    });
+
+    test('an api_major tells newer from older', () {
+      expect(const SiloApiUnsupported(apiMajor: 3).serverIsNewer, isTrue);
+      expect(const SiloApiUnsupported(apiMajor: 1).serverIsNewer, isFalse);
+    });
+  });
 }

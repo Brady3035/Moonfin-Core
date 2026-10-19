@@ -29,6 +29,7 @@ import '../../../util/focus/dpad_keys.dart';
 import '../../../util/pin_code_util.dart';
 import '../../../util/platform_detection.dart';
 import '../../../util/server_url.dart';
+import '../../../util/silo_failure_message.dart';
 import '../../../util/web_diagnostics_failure.dart';
 import '../../navigation/destinations.dart';
 import '../../widgets/allow_self_signed_dialog.dart';
@@ -469,6 +470,11 @@ class _LoginScreenState extends State<LoginScreen> {
         return;
       }
       final l10n = AppLocalizations.of(context);
+      final siloFailure = SiloFailure.of(e);
+      if (siloFailure != null) {
+        setState(() => _errorMessage = siloFailure.message(l10n));
+        return;
+      }
       final isQcDisabled = status == 401 ||
           detail.toLowerCase().contains('disabled') ||
           detail.toLowerCase().contains('quickconnect is disabled') ||
@@ -589,6 +595,7 @@ class _LoginScreenState extends State<LoginScreen> {
           SiloMainProfileLocked(:final profileName) =>
             l10n.siloMainProfileLocked(profileName),
           ServerUnavailable() => l10n.serverUnavailable,
+          SiloRequestRefused(:final failure) => failure.message(l10n),
           ApiClientError(:final error) => error,
           _ => l10n.loginFailed,
         };
@@ -885,6 +892,8 @@ class _LoginScreenState extends State<LoginScreen> {
           _finishLoginWithError(l10n.loginForbidden);
         case ServerUnavailable():
           _finishLoginWithError(l10n.serverUnavailable);
+        case SiloRequestRefused(:final failure):
+          _finishLoginWithError(failure.message(l10n));
         case UntrustedCertificate():
           _showUntrustedCertificate();
         case ClientCertificateRequired():

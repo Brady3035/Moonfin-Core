@@ -14732,6 +14732,58 @@
   "@siloNativeOfferKeep": {
     "description": "Button: add the address as a Jellyfin server, as entered"
   },
+  "siloAppUpdateRequired": "This Silo server needs a newer version of Moonfin. Update Moonfin to use it.",
+  "@siloAppUpdateRequired": {
+    "description": "Shown when a Silo server no longer speaks the API this version of Moonfin uses (its API is newer)"
+  },
+  "siloServerUpdateRequired": "This Silo server is too old for this version of Moonfin. Update Silo to use it.",
+  "@siloServerUpdateRequired": {
+    "description": "Shown when a Silo server's API is older than the one this version of Moonfin uses"
+  },
+  "siloTooManyAttempts": "Too many attempts. Try again later.",
+  "@siloTooManyAttempts": {
+    "description": "Shown when Silo refuses a request because of too many attempts (HTTP 429) without saying how long to wait"
+  },
+  "siloTooManyAttemptsWait": "Too many attempts. Try again in {wait}.",
+  "@siloTooManyAttemptsWait": {
+    "description": "Shown when Silo refuses a request because of too many attempts (HTTP 429); wait is siloWaitSeconds or siloWaitMinutes",
+    "placeholders": {
+      "wait": {
+        "type": "String"
+      }
+    }
+  },
+  "siloServerBusy": "The server is busy or still starting. Try again later.",
+  "@siloServerBusy": {
+    "description": "Shown when Silo answers that it is temporarily unavailable (HTTP 503) without saying how long to wait"
+  },
+  "siloServerBusyWait": "The server is busy or still starting. Try again in {wait}.",
+  "@siloServerBusyWait": {
+    "description": "Shown when Silo answers that it is temporarily unavailable (HTTP 503); wait is siloWaitSeconds or siloWaitMinutes",
+    "placeholders": {
+      "wait": {
+        "type": "String"
+      }
+    }
+  },
+  "siloWaitSeconds": "{count, plural, =1{1 second} other{{count} seconds}}",
+  "@siloWaitSeconds": {
+    "description": "How long to wait before trying again, in seconds; fills {wait} in siloTooManyAttemptsWait and siloServerBusyWait",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "siloWaitMinutes": "{count, plural, =1{1 minute} other{{count} minutes}}",
+  "@siloWaitMinutes": {
+    "description": "How long to wait before trying again, in minutes; fills {wait} in siloTooManyAttemptsWait and siloServerBusyWait",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "trailerCount": "{count, plural, =1{1 trailer} other{{count} trailers}}",
   "@trailerCount": {
     "description": "How many trailers the trailer picker lists, shown in its header",

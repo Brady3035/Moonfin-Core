@@ -457,8 +457,9 @@ class SiloMediaStreamResolver implements MediaStreamResolver, StreamReplanner {
     return capabilities;
   }
 
-  /// [_start], with Silo's `426 client_upgrade_required` (a server that no
-  /// longer speaks this protocol) as a refusal that says so.
+  /// [_start], with Silo's `client_upgrade_required` (a server that no
+  /// longer speaks this protocol: `426` from the playback start, or the
+  /// `410` tombstone of a retired API) as a refusal that says so.
   Future<Map<String, dynamic>> _startOrRefuse(
     SiloPlaybackApi api,
     Map<String, dynamic> body,
@@ -466,7 +467,10 @@ class SiloMediaStreamResolver implements MediaStreamResolver, StreamReplanner {
     try {
       return await _start(api, body);
     } on DioException catch (error) {
-      if (error.response?.statusCode == 426) {
+      if (isSiloClientUpgradeRequired(
+        error.response?.statusCode,
+        error.response?.data,
+      )) {
         throw const PlaybackRefusedException(
           siloUpgradeRequiredMessage,
           reason: 'client_upgrade_required',
@@ -688,7 +692,7 @@ const siloEndedOnServerMessage = 'Playback was ended on the Silo server.';
 const siloPlaybackUnavailableMessage =
     "Playback isn't available on this Silo server.";
 
-/// Shown when Silo answers `426`: it no longer speaks the playback protocol
-/// this build does.
+/// Shown when Silo answers `426` or `410 client_upgrade_required`: it no
+/// longer speaks the playback protocol or API this build does.
 const siloUpgradeRequiredMessage =
     'This Silo server needs a newer version of Moonfin to play.';

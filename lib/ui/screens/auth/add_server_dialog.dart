@@ -12,6 +12,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../../preference/user_preferences.dart';
 import '../../../util/focus/dpad_keys.dart';
 import '../../../util/platform_detection.dart';
+import '../../../util/silo_failure_message.dart';
 import '../../widgets/allow_self_signed_dialog.dart';
 import '../../widgets/client_certificate_dialog.dart';
 import '../../widgets/overlay_sheet.dart';
@@ -263,7 +264,7 @@ class _AddServerButtonState extends State<AddServerButton> {
 
 enum _Step { choose, address, found }
 
-enum _Failure { none, unreachable, untrusted, clientCert }
+enum _Failure { none, unreachable, untrusted, clientCert, siloUpdate }
 
 class AddServerDialog extends StatefulWidget {
   final AppLocalizations l10n;
@@ -297,6 +298,7 @@ class _AddServerDialogState extends State<AddServerDialog> {
   _Failure _failure = _Failure.none;
   String? _untrustedAddress;
   String? _clientCertAddress;
+  String? _siloUpdateMessage;
   Server? _found;
   bool _foundIsNew = false;
   bool _dismissed = false;
@@ -432,6 +434,14 @@ class _AddServerDialogState extends State<AddServerDialog> {
         return;
       }
       final failure = widget.serverRepo.lastFailure;
+      final unsupportedSilo = failure?.unsupportedSilo;
+      if (unsupportedSilo != null) {
+        _siloUpdateMessage = SiloUpdateRequired.of(
+          unsupportedSilo,
+        ).message(widget.l10n);
+        _fail(_Failure.siloUpdate);
+        return;
+      }
       final clientCert = failure?.clientCertCandidate;
       if (clientCert != null) {
         _clientCertAddress = clientCert;
@@ -802,6 +812,10 @@ class _AddServerDialogState extends State<AddServerDialog> {
             body: l10n.clientCertRequired,
             actions: [_clientCertButton(l10n)],
           ),
+        ],
+        if (_failure == _Failure.siloUpdate) ...[
+          const SizedBox(height: 14),
+          _Notice(warning: false, body: _siloUpdateMessage!),
         ],
       ],
     );

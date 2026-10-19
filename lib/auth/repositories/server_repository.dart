@@ -100,6 +100,7 @@ class ServerRepository {
     String? untrustedCandidate;
     String? clientCertCandidate;
     String? possibleClientCertCandidate;
+    SiloApiUnsupported? unsupportedSilo;
 
     for (final candidate in candidates) {
       try {
@@ -118,6 +119,12 @@ class ServerRepository {
                 ),
               )) {
             (info, serverType, resolvedUrl) = native;
+          }
+        }
+        if (serverType == ServerType.silo) {
+          final apiMajor = info['SiloApiMajor'];
+          if (apiMajor is num && apiMajor.toInt() != siloSupportedApiMajor) {
+            throw SiloApiUnsupported(apiMajor: apiMajor.toInt());
           }
         }
         final serverAddress = resolvedUrl.isNotEmpty ? resolvedUrl : candidate;
@@ -169,6 +176,14 @@ class ServerRepository {
         _servers.add(server);
         _stateController.add(ServerConnected(id: server.id, publicInfo: info));
         return server;
+      } on SiloApiUnsupported catch (e) {
+        // The server is found; trying other schemes and ports would only
+        // find it again, or something else at the same host.
+        lastCandidate = candidate;
+        lastErrorType = 'silo_api_unsupported';
+        lastErrorMessage = e.toString();
+        unsupportedSilo = e;
+        break;
       } on DioException catch (e) {
         final status = e.response?.statusCode;
         final detail =
@@ -199,6 +214,7 @@ class ServerRepository {
       untrustedCandidate: untrustedCandidate,
       clientCertCandidate: clientCertCandidate,
       possibleClientCertCandidate: possibleClientCertCandidate,
+      unsupportedSilo: unsupportedSilo,
     );
     _lastFailure = failure;
     _stateController.add(failure);

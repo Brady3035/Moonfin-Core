@@ -1,5 +1,39 @@
+import 'json_body.dart';
+
 /// Silo's public, unauthenticated system info endpoint (native API).
 const siloSystemInfoPath = '/api/v2/system/info';
+
+/// The Silo API major version this build speaks (`/api/v2`). A server
+/// reports its own as `api_major` in `/system/info` (folded into
+/// `SiloApiMajor`); any other major is refused when the server is added.
+const siloSupportedApiMajor = 2;
+
+/// Silo answered that this client's API is retired: `410 Gone` with the
+/// `client_upgrade_required` problem (how Silo tombstones a replaced API
+/// namespace), or a `/system/info` whose `api_major` isn't
+/// [siloSupportedApiMajor].
+class SiloApiUnsupported implements Exception {
+  /// The server's API major, when it said; null for a tombstone.
+  final int? apiMajor;
+
+  const SiloApiUnsupported({this.apiMajor});
+
+  /// Whether the server is newer than this build (update Moonfin), rather
+  /// than older (update Silo). A tombstone means newer.
+  bool get serverIsNewer => apiMajor == null || apiMajor! > siloSupportedApiMajor;
+
+  @override
+  String toString() =>
+      'Silo API ${apiMajor ?? 'retired'} (this build speaks $siloSupportedApiMajor)';
+}
+
+/// Whether [status] and [body] are Silo's `client_upgrade_required` answer.
+bool isSiloClientUpgradeRequired(int? status, Object? body) {
+  if (status != 410 && status != 426) return false;
+  final type = asJsonMap(body)?['type'];
+  return status == 426 ||
+      (type is String && type.endsWith('/client_upgrade_required'));
+}
 
 /// Whether [data] is the body of Silo's `GET /api/v2/system/info`.
 bool isSiloSystemInfo(Map<String, dynamic>? data) =>

@@ -367,6 +367,27 @@ void main() {
         ),
       );
     });
+
+    test('a retired API (410 client_upgrade_required) says so too', () async {
+      final server = _server(
+        start: SiloTestServer.problemRoute(
+          410,
+          'client_upgrade_required',
+          'Client upgrade required',
+        ),
+      );
+      await expectLater(
+        _resolver(server).resolve(
+          siloTestItem('silo/watch_movie.json'),
+          deviceProfile: _profile,
+        ),
+        throwsA(
+          isA<PlaybackRefusedException>()
+              .having((e) => e.message, 'message', siloUpgradeRequiredMessage)
+              .having((e) => e.reason, 'reason', 'client_upgrade_required'),
+        ),
+      );
+    });
   });
 
   group('resume or start over (10.11)', () {

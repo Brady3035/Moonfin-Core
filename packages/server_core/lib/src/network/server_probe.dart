@@ -47,7 +47,8 @@ const _hostLevelFailures = {
 /// `/System/Info/Public` with the web app's HTML, so checking for Silo first
 /// keeps a native Silo address from being taken for anything else. Then the
 /// Jellyfin/Emby public-info endpoint is tried at the root and under `/emby`.
-/// Returns null if no server answers.
+/// Returns null if no server answers. Throws [SiloApiUnsupported] when Silo
+/// answers that this build's API is retired.
 ///
 /// When the first attempt fails at the connection level (refused, timed out,
 /// certificate rejected) the host is unreachable on every path, so that error
@@ -106,10 +107,24 @@ Future<bool> looksLikeSiloJellyfinCompat(Dio dio, String baseUrl) async {
 }
 
 Future<ServerProbeResult?> _probeSilo(Dio dio, String baseUrl) async {
-  final (response, requestUrl) = await _getFollowingRedirects(
-    dio,
-    '$baseUrl$siloSystemInfoPath',
-  );
+  (Response<dynamic>, String) fetched;
+  try {
+    fetched = await _getFollowingRedirects(
+      dio,
+      '$baseUrl$siloSystemInfoPath',
+    );
+  } on DioException catch (e) {
+    // A Silo that has moved on to a newer API answers the old namespace
+    // with a tombstone: say so instead of trying the address as Jellyfin.
+    if (isSiloClientUpgradeRequired(
+      e.response?.statusCode,
+      e.response?.data,
+    )) {
+      throw const SiloApiUnsupported();
+    }
+    rethrow;
+  }
+  final (response, requestUrl) = fetched;
   if (!_isSuccess(response)) return null;
 
   final systemInfo = asJsonMap(response.data);

@@ -253,13 +253,11 @@ void main() {
     _expectFitsContract(caps);
   });
 
-  test('libmpv sends no headers (its media_kit backend opens the URL alone); '
-      'AetherEngine does', () {
-    expect(SiloPlayerTraits.mpv.sendsRequestHeaders, isFalse);
-    expect(SiloPlayerTraits.mpvAndroid.sendsRequestHeaders, isFalse);
+  test('libmpv and AetherEngine send the stream\'s headers', () {
+    expect(SiloPlayerTraits.mpv.sendsRequestHeaders, isTrue);
+    expect(SiloPlayerTraits.mpvAndroid.sendsRequestHeaders, isTrue);
     expect(SiloPlayerTraits.aether.sendsRequestHeaders, isTrue);
-    expect(SiloPlayerTraits.media3.sendsRequestHeaders, isTrue);
-    // Otherwise AetherEngine claims what libmpv does.
+    // AetherEngine claims what libmpv does.
     const aether = SiloPlayerTraits.aether;
     expect(aether.managesDynamicRange, isTrue);
     expect(aether.selectsAnyAudioTrack, isTrue);

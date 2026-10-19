@@ -15937,6 +15937,18 @@ class AppLocalizationsBg extends AppLocalizations {
   }
 
   @override
+  String get siloPlaybackUnavailable =>
+      'Playback isn\'t available on this Silo server.';
+
+  @override
+  String get siloPlaybackUpdateRequired =>
+      'This Silo server needs a newer version of Moonfin to play.';
+
+  @override
+  String get siloPlaybackEndedOnServer =>
+      'Playback was ended on the Silo server.';
+
+  @override
   String trailerCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

@@ -216,27 +216,42 @@ Silo's limits are hard to reach by hand; these are the ones that can be:
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | previous step |
 
 **Goal.** New strings in `app_en.arb` and `flutter gen-l10n`.
 
 **Where in Moonfin**
 
-- `lib/l10n/app_en.arb`
+- `lib/l10n/app_en.arb`: 3 strings (`siloPlayback…`); the audit below
+- `lib/ui/screens/playback/video_player_screen.dart`: the player shows Silo's fixed refusals in the person's language
+- `test/l10n/silo_strings_test.dart` (new)
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+**Who translates.** Moonfin's translations live in Weblate ([translate.moonfin.io](https://translate.moonfin.io/engage/moonfin-core/)); `CONTRIBUTING.md` asks contributors to add English strings to `app_en.arb` only and never edit the other `app_*.arb` files, which Weblate overwrites on its next sync. So this step doesn't translate anything itself: it makes sure every Silo string reaches Weblate in a shape a translator can work with, and that nothing a person reads is left out of `app_en.arb`. Until a language is translated, it shows the English text (`gen-l10n` falls back to the template). The generated `lib/l10n/app_localizations*.dart` files are committed with each step that adds strings, as before (rule 7).
+
+**The audit (2026-10-19).**
+
+- The branch adds 42 strings to `app_en.arb` (all named `silo…`; none of upstream's strings changed). Each has a description saying where it appears, and every placeholder is declared with its type; the counts use ICU plurals (`siloWaitSeconds`, `siloWaitMinutes`). A test keeps it that way.
+- Hard-coded English shown to a person, in the code this branch added: three fixed playback refusals from `playback_silo` ("Playback isn't available on this Silo server.", "This Silo server needs a newer version of Moonfin to play.", "Playback was ended on the Silo server."). The package has no access to the app's translations, so it keeps the English text, and the player, which already recognises the manager's own fixed errors (`liveStreamLostError`, `unsupportedVideoError`) and shows a translated string instead, now does the same for these three. A test checks the English strings and the package's texts stay identical.
+- Left in English, on purpose:
+  - **Silo's own words.** A Silo problem's `detail` and a playback refusal's `terminal.message` are the server's text (in the server's language, which Moonfin can't know). Where the code has its own sentence for a case (17.3, 14.x, 3.x), it uses that instead.
+  - **Download errors.** Silo's download refusals ("Downloads are switched off on this server.") go through `DownloadService`'s error stream, which carries plain English text for every server (upstream's "Download failed: …" too). Translating them belongs to that service as a whole, upstream.
+  - **"Silo can't play this item (reason)."**, the fallback when Silo refuses playback without a message; it names Silo's reason code, which is the useful part for a report.
+  - Log and diagnostic text, and `ApiClientError('Invalid auth response')` (the same as upstream's Jellyfin path).
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `test/l10n/silo_strings_test.dart` (new, 4 tests): there are Silo strings; each has a description; each placeholder a Silo string uses is declared; the player's three Silo refusals equal their English strings.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+- a. In Moonfin's settings switch the language to German (or any other), restart if asked: the Silo strings show in English (no translation yet), nothing is blank and no key name shows, e.g. on the add-server dialog and on Silo's code sign-in.
+- b. Switch back to English.
+- c. After the branch is merged upstream: the `silo…` strings appear in Weblate with their descriptions (Brady, later).
+- d. Full suite.
 
 **Results**
 

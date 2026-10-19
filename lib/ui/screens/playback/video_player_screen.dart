@@ -13,6 +13,11 @@ import 'package:moonfin_design/moonfin_design.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:moonfin_native_video/moonfin_native_video.dart';
 import 'package:playback_core/playback_core.dart';
+import 'package:playback_silo/playback_silo.dart'
+    show
+        siloEndedOnServerMessage,
+        siloPlaybackUnavailableMessage,
+        siloUpgradeRequiredMessage;
 import 'package:server_core/server_core.dart';
 import 'package:screen_brightness_platform_interface/screen_brightness_platform_interface.dart';
 import 'package:volume_controller/volume_controller.dart';
@@ -1247,7 +1252,15 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
       );
       return;
     }
-    _showThrottledPlaybackError(error);
+    // Silo's fixed refusals come from playback_silo in English (17.4).
+    final l10n = AppLocalizations.of(context);
+    final siloText = switch (error) {
+      siloPlaybackUnavailableMessage => l10n.siloPlaybackUnavailable,
+      siloUpgradeRequiredMessage => l10n.siloPlaybackUpdateRequired,
+      siloEndedOnServerMessage => l10n.siloPlaybackEndedOnServer,
+      _ => null,
+    };
+    _showThrottledPlaybackError(siloText ?? error);
   }
 
   Future<void> _refreshRemoteVolume() async {

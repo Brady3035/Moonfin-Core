@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:server_core/server_core.dart';
 import 'package:uuid/uuid.dart';
 
@@ -9,6 +10,7 @@ import '../../data/services/media_server_client_factory.dart';
 import '../../util/server_url.dart';
 import '../models/server.dart';
 import '../models/server_addition_state.dart';
+import '../models/silo_native_offer.dart';
 import '../store/authentication_store.dart';
 import '../store/client_certificate_store.dart';
 
@@ -31,6 +33,12 @@ class ServerRepository {
   ServerUnableToConnect? _lastFailure;
 
   static const _defaultPorts = [8096, 8920];
+
+  /// Where Silo's native API listens next to its Jellyfin-compatible service
+  /// (8096): 8090 is the port Silo's Docker Compose file publishes, 8080 the
+  /// listener's own default. Tried in this order.
+  @visibleForTesting
+  List<int> siloNativePorts = const [8090, 8080];
 
   Future<void> loadStoredServers() async {
     final stored = _authStore.getServers();
@@ -66,7 +74,16 @@ class ServerRepository {
     return index >= 0 ? _servers[index] : null;
   }
 
-  Future<Server?> addServer(String address) async {
+  /// Adds the server at [address].
+  ///
+  /// When the address turns out to be Silo's Jellyfin-compatible service and
+  /// Silo's native API answers on the same host, [offerSiloNative] is asked
+  /// whether to add the native server instead (17.1). Without it, or when it
+  /// answers false, the Jellyfin server is added as before.
+  Future<Server?> addServer(
+    String address, {
+    SiloNativeOfferHandler? offerSiloNative,
+  }) async {
     final enteredAddress = address;
     address = normalizeServerBaseUrl(address.trim());
     if (address.isEmpty) {
@@ -86,7 +103,23 @@ class ServerRepository {
 
     for (final candidate in candidates) {
       try {
-        final (info, serverType, resolvedUrl) = await _probeServer(candidate);
+        var (info, serverType, resolvedUrl) = await _probeServer(candidate);
+        if (serverType == ServerType.jellyfin && offerSiloNative != null) {
+          final jellyfinAddress = resolvedUrl.isNotEmpty
+              ? resolvedUrl
+              : candidate;
+          final native = await _findSiloNative(jellyfinAddress);
+          if (native != null &&
+              await offerSiloNative(
+                SiloNativeOffer(
+                  jellyfinAddress: jellyfinAddress,
+                  siloAddress: native.$3,
+                  serverName: native.$1['ServerName'] as String? ?? 'Silo',
+                ),
+              )) {
+            (info, serverType, resolvedUrl) = native;
+          }
+        }
         final serverAddress = resolvedUrl.isNotEmpty ? resolvedUrl : candidate;
 
         final existingIndex = _servers.indexWhere(
@@ -255,6 +288,62 @@ class ServerRepository {
     61, 50, 51, 65, 60, // macOS, iOS
     10061, 10050, 10051, 10065, 10060, 1225, 1231, 1232, // Windows
   };
+
+  /// The native Silo server behind Silo's Jellyfin-compatible service at
+  /// [jellyfinBaseUrl], or null. Only looked for when the compat service
+  /// identifies itself as Silo's (its branding disclaimer), so adding a real
+  /// Jellyfin server costs one extra request. The native ports are then
+  /// probed in parallel with a short timeout, on the compat address's scheme
+  /// first and plain HTTP after (Silo's own listener speaks HTTP).
+  Future<(Map<String, dynamic>, ServerType, String)?> _findSiloNative(
+    String jellyfinBaseUrl,
+  ) async {
+    final jellyfin = Uri.tryParse(jellyfinBaseUrl);
+    if (jellyfin == null || jellyfin.host.isEmpty) return null;
+
+    final dio = Dio(
+      BaseOptions(
+        connectTimeout: const Duration(seconds: 3),
+        receiveTimeout: const Duration(seconds: 5),
+        followRedirects: false,
+        validateStatus: (status) => status != null && status < 400,
+      ),
+    );
+    configureServerDio(dio);
+
+    try {
+      if (!await looksLikeSiloJellyfinCompat(dio, jellyfinBaseUrl)) {
+        return null;
+      }
+      final candidates = <String>{
+        for (final scheme in {jellyfin.scheme, 'http'})
+          for (final port in siloNativePorts)
+            if (!(scheme == jellyfin.scheme && port == jellyfin.port))
+              Uri(scheme: scheme, host: jellyfin.host, port: port).toString(),
+      }.toList();
+      final found = await Future.wait(
+        candidates.map((candidate) async {
+          try {
+            return await probeSiloServer(dio, candidate);
+          } catch (_) {
+            return null;
+          }
+        }),
+      );
+      for (final result in found) {
+        if (result != null) {
+          return (
+            result.info,
+            result.serverType,
+            normalizeServerBaseUrl(result.resolvedBaseUrl),
+          );
+        }
+      }
+      return null;
+    } finally {
+      dio.close();
+    }
+  }
 
   List<String> _buildCandidates(String address) {
     final candidates = <String>{};

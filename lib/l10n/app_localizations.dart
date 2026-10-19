@@ -27477,6 +27477,30 @@ abstract class AppLocalizations {
   /// **'No sign-in is waiting with that code. Check it, or get a new code on the other device.'**
   String get siloApproveSignInNoRequest;
 
+  /// Title of the dialog shown when the address being added is Silo's Jellyfin-compatible service and Silo's own API answers on another port of the same host
+  ///
+  /// In en, this message translates to:
+  /// **'Connect to Silo directly?'**
+  String get siloNativeOfferTitle;
+
+  /// Body of the dialog offering to add a Silo server natively instead of through its Jellyfin-compatible service
+  ///
+  /// In en, this message translates to:
+  /// **'This address is the Jellyfin-compatible service of the Silo server {serverName}. Moonfin can connect to Silo directly at {address}, with Silo\'s own features.'**
+  String siloNativeOfferMessage(String serverName, String address);
+
+  /// Button: add the Silo server through its native API
+  ///
+  /// In en, this message translates to:
+  /// **'Use Silo'**
+  String get siloNativeOfferUse;
+
+  /// Button: add the address as a Jellyfin server, as entered
+  ///
+  /// In en, this message translates to:
+  /// **'Keep Jellyfin'**
+  String get siloNativeOfferKeep;
+
   /// How many trailers the trailer picker lists, shown in its header
   ///
   /// In en, this message translates to:

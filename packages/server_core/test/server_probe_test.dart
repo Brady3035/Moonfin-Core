@@ -283,4 +283,61 @@ void main() {
       }
     });
   });
+
+  group('looksLikeSiloJellyfinCompat', () {
+    test('true when the branding disclaimer names Silo', () async {
+      final dio = _dioWith((uri) {
+        if (uri.path == '/Branding/Configuration') {
+          return _json({
+            'LoginDisclaimer':
+                'Silo provides Jellyfin-compatible app support. Silo is not '
+                'affiliated with or endorsed by the Jellyfin project.',
+            'SplashscreenEnabled': false,
+          });
+        }
+        return _status(404);
+      });
+
+      expect(await looksLikeSiloJellyfinCompat(dio, 'http://host:8096/'), isTrue);
+    });
+
+    test('false for a Jellyfin disclaimer, HTML or an error', () async {
+      final jellyfin = _dioWith(
+        (_) => _json({'LoginDisclaimer': 'Welcome!', 'CustomCss': ''}),
+      );
+      final html = _dioWith((_) => _html('<html>Silo</html>'));
+      final missing = _dioWith((_) => _status(404));
+
+      expect(await looksLikeSiloJellyfinCompat(jellyfin, 'http://h'), isFalse);
+      expect(await looksLikeSiloJellyfinCompat(html, 'http://h'), isFalse);
+      expect(await looksLikeSiloJellyfinCompat(missing, 'http://h'), isFalse);
+    });
+  });
+
+  group('probeSiloServer', () {
+    test('finds a native Silo host', () async {
+      final dio = _dioWith((uri) {
+        if (uri.path == '/api/v2/system/info') {
+          return _json({'server_version': 'bd9d59ea', 'api_major': 2});
+        }
+        return _status(404);
+      });
+
+      final result = await probeSiloServer(dio, 'http://host:8090/');
+
+      expect(result!.serverType, ServerType.silo);
+      expect(result.resolvedBaseUrl, 'http://host:8090');
+    });
+
+    test('null for a Jellyfin host', () async {
+      final dio = _dioWith((uri) {
+        if (uri.path == '/System/Info/Public') {
+          return _json({'ProductName': 'Jellyfin Server', 'Version': '10.11.0'});
+        }
+        return _html('<html></html>');
+      });
+
+      expect(await probeSiloServer(dio, 'http://host:8096'), isNull);
+    });
+  });
 }

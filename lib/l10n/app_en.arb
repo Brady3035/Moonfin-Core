@@ -14708,6 +14708,30 @@
   "@siloApproveSignInNoRequest": {
     "description": "Shown when Silo has no pending sign-in for the typed code (unknown, expired, already used or declined)"
   },
+  "siloNativeOfferTitle": "Connect to Silo directly?",
+  "@siloNativeOfferTitle": {
+    "description": "Title of the dialog shown when the address being added is Silo's Jellyfin-compatible service and Silo's own API answers on another port of the same host"
+  },
+  "siloNativeOfferMessage": "This address is the Jellyfin-compatible service of the Silo server {serverName}. Moonfin can connect to Silo directly at {address}, with Silo's own features.",
+  "@siloNativeOfferMessage": {
+    "description": "Body of the dialog offering to add a Silo server natively instead of through its Jellyfin-compatible service",
+    "placeholders": {
+      "serverName": {
+        "type": "String"
+      },
+      "address": {
+        "type": "String"
+      }
+    }
+  },
+  "siloNativeOfferUse": "Use Silo",
+  "@siloNativeOfferUse": {
+    "description": "Button: add the Silo server through its native API"
+  },
+  "siloNativeOfferKeep": "Keep Jellyfin",
+  "@siloNativeOfferKeep": {
+    "description": "Button: add the address as a Jellyfin server, as entered"
+  },
   "trailerCount": "{count, plural, =1{1 trailer} other{{count} trailers}}",
   "@trailerCount": {
     "description": "How many trailers the trailer picker lists, shown in its header",

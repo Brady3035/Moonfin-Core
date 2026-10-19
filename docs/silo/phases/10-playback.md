@@ -360,7 +360,7 @@ Starting plays from 10.7 on (the media requests need the account's token); test 
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Fix ready for testing | `5defdf4ad`, fix `863174834`, second fix — | previous step |
+| ◐ Second fix ready for testing | `5defdf4ad`, fix `863174834`, second fix `b089477d2` | previous step |
 
 **Goal.** Headers on every request (HLS segments and sidecars included); `token=` query only on `/api/v2/stream` URLs where headers can't be sent. Signed artwork never gets a token.
 

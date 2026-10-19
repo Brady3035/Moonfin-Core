@@ -15777,6 +15777,20 @@ class AppLocalizationsDa extends AppLocalizations {
       'No sign-in is waiting with that code. Check it, or get a new code on the other device.';
 
   @override
+  String get siloNativeOfferTitle => 'Connect to Silo directly?';
+
+  @override
+  String siloNativeOfferMessage(String serverName, String address) {
+    return 'This address is the Jellyfin-compatible service of the Silo server $serverName. Moonfin can connect to Silo directly at $address, with Silo\'s own features.';
+  }
+
+  @override
+  String get siloNativeOfferUse => 'Use Silo';
+
+  @override
+  String get siloNativeOfferKeep => 'Keep Jellyfin';
+
+  @override
   String trailerCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

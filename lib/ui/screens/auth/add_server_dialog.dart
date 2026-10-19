@@ -16,6 +16,7 @@ import '../../widgets/allow_self_signed_dialog.dart';
 import '../../widgets/client_certificate_dialog.dart';
 import '../../widgets/overlay_sheet.dart';
 import '../../widgets/server_type_icon.dart';
+import '../../widgets/silo_native_offer_dialog.dart';
 
 /// Where the server screen goes once [AddServerDialog] closes.
 sealed class AddServerOutcome {
@@ -404,7 +405,11 @@ class _AddServerDialogState extends State<AddServerDialog> {
     });
 
     try {
-      final server = await widget.serverRepo.addServer(address);
+      final server = await widget.serverRepo.addServer(
+        address,
+        offerSiloNative: (offer) async =>
+            mounted && await confirmSiloNativeServer(context, offer),
+      );
       if (!mounted) return;
       if (server != null) {
         setState(() {

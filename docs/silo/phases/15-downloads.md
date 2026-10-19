@@ -13,7 +13,7 @@ Read Silo's downloads design before step 15.3; it is a full server-managed downl
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | previous step |
+| ◐ Retest | `1d9bb732f` | previous step |
 
 **Goal.** Show download actions only when the account may download.
 
@@ -59,6 +59,7 @@ On the Mac, signed in to Silo:
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-18 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | downloads API 13/13, `server_silo` 633/633, `test/auth` 138/138; analyzer: no issues in the changed files |
+| 2026-10-18 | macOS | `bd9d59ea` | Not run as planned | Brady switched off his account's download permission without restarting Moonfin: the button stayed, and Download did nothing visible. The permission is read at start (and on Silo's access-changed signal, which this switch didn't send), so check b needs the restart; retest |
 | | | | | |
 
 ---
@@ -68,7 +69,7 @@ On the Mac, signed in to Silo:
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | previous step |
+| ◐ Fix ready for testing | `5bccb6036`, fix — | previous step |
 
 **Goal.** Download the original file through Silo's download registry (managed downloads). *Changed from signed direct-download links (Brady, 2026-10-18): Silo's guide says apps use managed downloads for every quality and keeps direct links for browsers.*
 
@@ -108,6 +109,8 @@ A refusal (`ServerDownloadRefused`) becomes the download's error, with the serve
 - **Deleted.** The device's entries are read and those for the deleted items get `DELETE /downloads/{id}`; one already gone (`404`) is fine.
 - **Web.** A browser download carries no headers, so the web build asks for a short-lived link instead (`POST /direct-download/links` with the file id): the link holds its own credential for five minutes. Original files only; it is what Silo's guide says browsers use.
 
+**Fix (2026-10-18): the completed report and the device's clock.** Brady's dashboard showed finished downloads as waiting: every `PATCH` was refused with `400 malformed_request: invalid download status event`. Silo refuses a status event timed after its own clock (`updated_at` "future timestamps are rejected"), and the Mac's clock was ahead of the server's. Moonfin can't know the server's clock in advance, but the refusal carries it (the HTTP `Date` header). So on a `400` with a `Date`, the report is sent once more, timed a second before it; the route is `domain_identity`, so a repeated completion changes nothing. Other refusals (`409` for another revision, say) still reach the caller, which logs them.
+
 **Known limits.**
 
 - The transfer's headers are fixed when it starts, and Silo checks the token when a request arrives, so a long transfer runs on. But a transfer that resumes after the access token expired (an hour; for example the native engine retrying after a dropped network) is refused with `401` and fails; Retry starts it again with a fresh token.
@@ -119,6 +122,7 @@ A refusal (`ServerDownloadRefused`) becomes the download's error, with the serve
 **Automated tests**
 
 - `packages/server_silo/test/silo_downloads_api_test.dart` (15 new, 28/28): the fixture (`silo/download_created.json`, hand-built) and every request body fit the contract (`DownloadCreated`, `DownloadCreateBody`, `DownloadStatusBody`, `DirectDownloadLinkBody`); a new download is registered after reading the device's entries, as the profile and device, and its ticket has the file URL, headers, revision and size; an episode is its series' content with the episode named; an existing entry is named with its revision and id; the entry scan follows the cursor; downloads switched off, no file, and a refused policy are refused with their reasons; a preparing file isn't handed out; an earlier, completed entry is served again; a server error is sent once; finished reports `completed`; deleted items delete their entries (`404` fine), others are kept; a browser gets a link for the original, and none without a file id or for a converted download.
+- With the fix (2 new, 44/44): a report refused because the device's clock is ahead is sent again on the server's clock; another refusal reaches the caller and is sent once.
 - `test/offline/server_download_test.dart` (new, 5 tests): the download service fetches the server's file with its headers (no `X-Emby-Token`) and reports it finished; an episode names its series; a refusal is the download's error and nothing is fetched; deleting tells the server; deleting a season names each downloaded episode.
 
 **Manual test plan**
@@ -141,6 +145,9 @@ On the Mac, signed in to Silo (the network log is in Moonfin's logs):
 |---|---|---|---|---|
 | 2026-10-18 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | downloads API 28/28, server download 5/5, `server_silo` 648/648, `server_core` 100/100, `test/offline` + `test/data/services` 614/614; analyzer: no new issues in the changed files |
 | 2026-10-18 | Web | — | Deferred | check i in 17.5 |
+| 2026-10-18 | macOS | `bd9d59ea` | Pass | Brady: a–e "all work" |
+| 2026-10-18 | macOS | `bd9d59ea` | Fail | Brady: Silo's dashboard shows a finished download as waiting. The log: `PATCH …/downloads/<id>` → `400 malformed_request: invalid download status event`. Silo refuses an event timed after its own clock (`internal/downloads/status_events.go`), and the Mac's clock was ahead of the server's |
+| 2026-10-18 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | fix: on that refusal the report is sent once more on the server's clock; downloads API 44/44 (2 new) |
 | | | | | |
 
 ---
@@ -150,7 +157,7 @@ On the Mac, signed in to Silo (the network log is in Moonfin's logs):
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | previous step |
+| ☑ Done | `dffec4418` | previous step |
 
 **Goal.** Server download jobs: create, prepare, wait, file. Moonfin's qualities map onto Silo's presets (Brady, 2026-10-18).
 
@@ -188,6 +195,8 @@ There is no time limit: a long film on a busy server can take a while, and the p
 
 **The transfer.** Once Silo has the file, the download service treats it as an original: the native background engine (resumable, with notifications) where it would run an original, byte progress against the known size, no live-transcode handling (no transmux engine, no transcode status polling, no "activity" reports). The file is named `.mp4`, as Moonfin's transcoded downloads are, and is checked to be one.
 
+**Audio tracks (found in Brady's test, 2026-10-18).** A converted download of a film with two audio tracks had only the first one, the wrong language. Moonfin can't choose it: Silo's create request has no audio track (`DownloadCreateBody`), and Silo prepares with its default track. Silo's current code keeps every audio track of the source in the MP4 (`docs/downloads-api.md` §1: "Prepared remux/transcode files keep every source audio track"; "Files prepared before this layout contain only the first audio track"), so a single-track file means Brady's Silo build (`bd9d59ea`) predates that layout, or the file was prepared before it. With a multi-track file, choosing the person's language offline is a Moonfin follow-up (the manifest names the file's tracks).
+
 **Known limits.**
 
 - If Silo deletes the prepared file between the wait and the transfer (`409 prepared_file_expired` from the file route), the download fails; Retry registers it again and Silo prepares the file once more.
@@ -218,6 +227,7 @@ Converted downloads must be on in Silo first (server settings: transcode to file
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-18 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | downloads API 35/35, server download 7/7, `server_silo` 655/655, `server_core` 100/100, `test/offline` + `test/data/services` 616/616; analyzer: no new issues in the changed files |
+| 2026-10-18 | macOS | `bd9d59ea` | Pass | Brady: works (after switching converted downloads on). Note: the file had only the first audio track, the wrong language; the source has two. See "Audio tracks" below |
 | | | | | |
 
 ---
@@ -227,7 +237,7 @@ Converted downloads must be on in Silo first (server settings: transcode to file
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | previous step |
+| ☑ Done | `1b7e6cec3` | previous step |
 
 **Goal.** Store the translated item and the image bytes; offline images must not depend on the registry.
 
@@ -280,6 +290,7 @@ On the Mac, signed in to Silo:
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-18 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | downloads API 39/39, server download 8/8, `server_silo` 659/659, `server_core` 100/100, `test/offline` + `test/data/services` 617/617; analyzer: no new issues in the changed files |
+| 2026-10-18 | macOS | `bd9d59ea` | Pass | Brady: works |
 | | | | | |
 
 ---
@@ -289,7 +300,7 @@ On the Mac, signed in to Silo:
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | — | previous step |
+| ◐ Ready for testing | `a6baebf04` | previous step |
 
 **Goal.** Replay queued progress through bulk progress sync.
 
@@ -345,7 +356,7 @@ On the Mac, with a Silo film and an episode downloaded (15.2):
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | previous step |
+| ☑ Done | `94f9701f1` | previous step |
 
 **Goal.** Keep a download's subtitle sidecars beside it. *Trickplay left out (Brady, 2026-10-18): Moonfin stores no scrub previews with downloads on any server; it is on the roadmap's [Later](../ROADMAP.md#later) list.*
 
@@ -404,6 +415,7 @@ On the Mac, signed in to Silo:
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-18 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | downloads API 42/42, server download 9/9, `server_silo` 667/667, `server_core` 100/100, `test/offline` + `test/data/services` 624/624; analyzer: no new issues in the changed files |
+| 2026-10-18 | macOS | `bd9d59ea` | Pass | Brady: works |
 | | | | | |
 
 ---

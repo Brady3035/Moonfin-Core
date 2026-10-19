@@ -443,18 +443,32 @@ class SiloDownloadsApi implements ServerDownloadsApi {
 
   /// Tells Silo the device holds the whole file (`PATCH /downloads/{id}`,
   /// `completed` for the ticket's revision, timed now).
+  ///
+  /// Silo refuses an event timed after its own clock (`400`, "invalid
+  /// download status event"), so a device whose clock runs ahead of the
+  /// server's would never get one accepted. On that refusal the event is sent
+  /// once more, timed a second before the server's clock in the refusal's
+  /// `Date` header. The route is `domain_identity`; repeating a completion
+  /// changes nothing.
   @override
   Future<void> downloadFinished(ServerDownloadTicket ticket) async {
     final revision = ticket.revision;
     if (revision == null) return;
-    await _dio.patch<dynamic>(
+    Future<void> report(DateTime at) => _dio.patch<dynamic>(
       '/api/v2/downloads/${Uri.encodeComponent(ticket.id)}',
       data: {
         'status': 'completed',
-        'updated_at': _clock().toUtc().toIso8601String(),
+        'updated_at': at.toUtc().toIso8601String(),
         'revision': revision,
       },
     );
+    try {
+      await report(_clock());
+    } on DioException catch (e) {
+      final serverNow = SiloProblem.serverDate(e);
+      if (e.response?.statusCode != 400 || serverNow == null) rethrow;
+      await report(serverNow.subtract(const Duration(seconds: 1)));
+    }
   }
 
   /// The download's manifest (`GET /downloads/{id}/manifest`): Silo's

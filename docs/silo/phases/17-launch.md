@@ -83,7 +83,7 @@ Brady's Silo serves the compat API on 8096 and the native API on 8090 on the sam
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Device checks in 17.5 | `653b75423` | previous step |
+| ◐ Device checks in 17.5 | `653b75423`, test fix — | previous step |
 
 **Goal.** mDNS `_silo._tcp`, verified with `/system/identity`.
 
@@ -143,6 +143,8 @@ On the Mac, on the same network as Brady's Silo (Silo logs "advertising Silo on 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-19 | Linux (Claude workspace) | — | Not run | this session's network refused pub.dev and storage.googleapis.com: no Flutter, so Claude neither compiled nor tested the batch; Brady ran the analyzer and tests |
+| 2026-10-19 | Linux (Claude workspace, Flutter 3.47.7) | — | Fail | `test/auth/silo_lan_discovery_test.dart` doesn't compile: it imported `server_discovery_service.dart`, whose conditional export resolves to the stub (no constructor parameters) when analysed; the analyzer also suggested an initializing formal for `udpBroadcast` |
+| 2026-10-19 | Linux (Claude workspace, Flutter 3.47.7) | — | Pass | fix: the test imports `server_discovery_service_io.dart` directly; `udpBroadcast` is `this._udpBroadcast`. 18/18; analyzer: no issues in the changed files |
 | 2026-10-19 | macOS | `bd9d59ea` | Deferred | Brady's Silo runs in Docker, so it can't advertise on the LAN unless the container uses host networking; a–e deferred to 17.5 (row 17.2 f) |
 | | | | | |
 

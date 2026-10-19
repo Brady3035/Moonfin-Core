@@ -16,7 +16,7 @@
 
 > **[← Back to main Moonfin project](https://github.com/Moonfin-Client)**
 
-Moonfin is a media client for Jellyfin and Emby servers, built with Flutter. One shared codebase powers phones and tablets, Windows, macOS, and Linux, Android TV, Fire TV, and Apple TV, and the browser. It's made for people who want a modern, customizable experience on every screen they own.
+Moonfin is a media client for Jellyfin, Emby and Silo servers, built with Flutter. One shared codebase powers phones and tablets, Windows, macOS, and Linux, Android TV, Fire TV, and Apple TV, and the browser. It's made for people who want a modern, customizable experience on every screen they own.
 
 ## Where to get it
 
@@ -36,6 +36,17 @@ Moonfin is a media client for Jellyfin and Emby servers, built with Flutter. One
 |--------|------------------|--------|
 | Jellyfin | 10.8.0+ | Full support |
 | Emby | 4.8.0.0+ | Full support |
+| [Silo](https://github.com/Silo-Server/silo-server) | API v2 (`api_major` 2) | Supported through Silo's native API; see below |
+
+### Silo
+
+Moonfin talks to Silo through its own API (`/api/v2`), not its Jellyfin-compatible service: add the server by its native address (usually port 8090 with Silo's Docker setup). If you enter the Jellyfin-compatible address (port 8096), Moonfin offers to switch to the native one, and Silo servers that advertise themselves on your local network show up under Discovered servers.
+
+What works: sign-in with a password or a code (and approving another device's code), Home, libraries, search, favourites, watched state, ratings and collections, playback with Silo's own direct play and transcoding decisions, skip intro and credits, trickplay, chapters, live updates, and downloads with offline progress sync.
+
+Not available on Silo, so hidden while a Silo server is active: Live TV and DVR, music, playlists, SyncPlay and remote control of other devices, the server admin panel (Silo's lives in its web app), Seerr, retro games, and the features that need the Moonfin server plugin (settings sync, server messages, themes, TMDB and MDBList extras, bookmarks and notes). Not yet supported: Silo's household profiles (Moonfin uses the account's main profile), books and audiobooks, and Silo's server-side download subscriptions.
+
+A Silo server with a newer API than this version of Moonfin is refused with a message asking to update Moonfin.
 
 ## Platform Support
 

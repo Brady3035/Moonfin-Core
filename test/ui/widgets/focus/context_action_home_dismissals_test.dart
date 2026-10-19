@@ -189,10 +189,14 @@ void main() {
   testWidgets('a server without its own hide: as before', (tester) async {
     when(() => client.itemsApi).thenReturn(_ItemsApi());
     when(() => client.serverType).thenReturn(ServerType.jellyfin);
+    // Jellyfin has no hide-from-resume call (upstream's Emby one answers
+    // true), so the progress is reset instead.
+    when(() => mutations.hideFromResume(any())).thenAnswer((_) async => false);
 
     await select(tester, (l) => l.contextMenuHideFromContinueWatching);
 
     expect(prefs.getHiddenContinueWatchingItems().keys, ['series-1']);
+    verify(() => mutations.hideFromResume('ep-1')).called(1);
     verify(() => mutations.setPlayed('ep-1', isPlayed: false)).called(1);
   });
 }

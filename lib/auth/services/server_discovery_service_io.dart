@@ -23,10 +23,9 @@ class ServerDiscoveryService {
   ServerDiscoveryService({
     Future<List<SiloLanAdvert>> Function()? siloBrowser,
     SiloLanProbe? siloProbe,
-    bool udpBroadcast = true,
+    this._udpBroadcast = true,
   }) : _siloBrowser = siloBrowser ?? const SiloLanBrowser().browse,
-       _siloProbe = siloProbe ?? _probeSiloOverLan,
-       _udpBroadcast = udpBroadcast;
+       _siloProbe = siloProbe ?? _probeSiloOverLan;
 
   final Future<List<SiloLanAdvert>> Function() _siloBrowser;
   final SiloLanProbe _siloProbe;

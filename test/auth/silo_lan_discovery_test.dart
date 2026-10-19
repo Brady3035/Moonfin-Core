@@ -3,7 +3,8 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:moonfin/auth/services/server_discovery_service.dart';
+import 'package:moonfin/auth/services/server_discovery_service_io.dart';
+import 'package:moonfin/auth/services/server_discovery_types.dart';
 import 'package:moonfin/auth/services/silo_lan_discovery.dart';
 import 'package:server_core/server_core.dart';
 

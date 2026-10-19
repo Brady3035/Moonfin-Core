@@ -27272,6 +27272,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{1 minute} other{{count} minutes}}'**
   String siloWaitMinutes(int count);
+
+  /// Player message: the Silo server has playback switched off for this account
+  ///
+  /// In en, this message translates to:
+  /// **'Playback isn\'t available on this Silo server.'**
+  String get siloPlaybackUnavailable;
+
+  /// Player message: the Silo server no longer speaks the playback protocol this version of Moonfin uses
+  ///
+  /// In en, this message translates to:
+  /// **'This Silo server needs a newer version of Moonfin to play.'**
+  String get siloPlaybackUpdateRequired;
+
+  /// Player message: an administrator ended this playback session on the Silo server
+  ///
+  /// In en, this message translates to:
+  /// **'Playback was ended on the Silo server.'**
+  String get siloPlaybackEndedOnServer;
 }
 
 class _AppLocalizationsDelegate

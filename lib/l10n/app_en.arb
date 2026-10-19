@@ -14545,5 +14545,17 @@
         "type": "int"
       }
     }
+  },
+  "siloPlaybackUnavailable": "Playback isn't available on this Silo server.",
+  "@siloPlaybackUnavailable": {
+    "description": "Player message: the Silo server has playback switched off for this account"
+  },
+  "siloPlaybackUpdateRequired": "This Silo server needs a newer version of Moonfin to play.",
+  "@siloPlaybackUpdateRequired": {
+    "description": "Player message: the Silo server no longer speaks the playback protocol this version of Moonfin uses"
+  },
+  "siloPlaybackEndedOnServer": "Playback was ended on the Silo server.",
+  "@siloPlaybackEndedOnServer": {
+    "description": "Player message: an administrator ended this playback session on the Silo server"
   }
 }

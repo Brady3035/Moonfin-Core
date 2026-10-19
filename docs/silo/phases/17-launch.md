@@ -266,23 +266,41 @@ Silo's limits are hard to reach by hand; these are the ones that can be:
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | previous step |
 
 **Goal.** Run the whole checklist on each platform against Silo and Emby; record results in each step.
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+No code: this step is the run itself. Each phase's own test plan was run on the Mac when the phase was built; this pass runs the whole app once more, on the finished branch, on **every platform at hand, against Silo and Emby side by side**, so a later step can't have quietly broken an earlier one, and so the device checks that had to wait (the table below) are finally run.
+
+**How to record.** One Results row per platform below, with the Silo build. A failure gets a row in the step it belongs to (as for any test) and a fix commit under that step; the row here links to it. A device check from the table is marked in its own step's Results too ("Pass in 17.5").
+
+**Platforms.** macOS (Brady's main machine), Windows, then whatever devices are at hand: Android TV or Fire TV, an Android phone, iPhone/iPad, Apple TV, Linux, web. Brady (2026-10-17): no Android, iOS, Apple TV or cast devices at hand for now; the run on those happens when they are.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- The full suite at the repo root (`flutter test`), plus the packages: `packages/server_core`, `server_silo`, `playback_silo` (`flutter test` in each). Brady runs them on the Mac (Claude's workspace can't run the app suite in reasonable time).
+- `flutter analyze`: no errors, no new warnings against upstream.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+Run each line on Silo, then the same on Emby (`emby.snowystreams.com`), with the same account where both have it. "Like Emby" means the same screens and behaviour minus what Silo doesn't have (phase 4).
+
+- R1. **Servers** (1, 17.1, 17.2): add Silo by its public address and by `host:8096` (offer to connect natively); discovered servers list Silo on the LAN; remove and re-add; Emby and a Jellyfin (if any) still add as before.
+- R2. **Sign-in** (3, 14, 17.3): password sign-in, restart and stay signed in; sign out; code sign-in with a QR code from a phone; approve another device's code; a wrong password; a temporary password change (3.6); sign out of Silo while Emby stays signed in, and switch between them.
+- R3. **Home** (8): Continue Watching, Next Up, Latest, Recently released, server-curated rows; hide an item from Continue Watching; the artwork right after sign-in (open from 14.1).
+- R4. **Browsing** (5, 6): each library; a full grid scrolled to the end with artwork; sort by each option, including Random (reshuffles) and letter jump; filters; a film, a series, its seasons and episodes; cast and crew; collections; genres; studios; extras and trailers (the local trailer button, open from 10.6).
+- R5. **Search** (7): titles, episodes and people.
+- R6. **User actions** (9): favourite, watched and unwatched (a whole season), rating, add to and remove from a collection; each shows the same in Silo's web app.
+- R7. **Playback** (10, 11): a remux, an MP4 and a transcode; pause, seek, resume, stop and the resume point in Silo afterwards; audio and subtitle switching, an ASS subtitle; change quality down and back (Windows: the 10.7 fix); a playback longer than 35 minutes with a seek near the end (token lifetime, 10.7); skip intro and credits; trickplay; chapters; up next at the end of an episode, and the end of a season on a show never watched (11.4, open); theme music when a title has one (11.5); shuffle.
+- R8. **Realtime** (13): mark an episode watched in Silo's web app: Moonfin's rows follow within seconds; restart Silo: Moonfin reconnects.
+- R9. **Downloads** (15): a film original and an episode, a converted quality (if converted downloads are on), play both offline (airplane mode), progress made offline reaches Silo; subtitles offline; delete a download; the dashboard shows the download completed (15.2, to confirm).
+- R10. **Errors and languages** (17.3, 17.4): too many wrong passwords says how long to wait; another app language shows the Silo strings in English, nothing blank.
+- R11. **Emby and Jellyfin unchanged:** the whole list above on Emby passes as on the release build; anything that differs is checked on upstream's build before it is called a regression.
+- R12. **Device checks:** every row of the table below, on its device.
 
 **Deferred platform checks.** Checks that need a device other than the Mac are collected here and run in this pass (Brady's rule, 2026-10-14). Each step's own Results row says which test was deferred.
 

@@ -347,27 +347,31 @@ Run each line on Silo, then the same on Emby (`emby.snowystreams.com`), with the
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | previous step |
 
 **Goal.** Add Silo to Supported Servers with its minimum `api_major`, and list what isn't supported.
 
 **Where in Moonfin**
 
-- `README.md`
+- `README.md`: the intro names Silo; Supported Servers has a Silo row (API v2, `api_major` 2) and a short Silo section (connecting, what works, what's hidden, what isn't supported yet, the update message)
+- `docs/silo/wiki/Silo.md` (new): a draft wiki page
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+**README.** Silo's "minimum version" is its API major, not a release number: Silo's version string is a git hash, and compatibility is `api_major` (17.3 refuses any other major). The row says "API v2 (`api_major` 2)". The section below the table says what a person needs before they find out the hard way: add the native address (and that Moonfin offers to switch from 8096), what works, what is hidden because Silo has no such thing (phase 4), what isn't supported yet (household profiles, books and audiobooks, server-side download subscriptions), and that a newer Silo API asks to update Moonfin. The headline under the logo ("Premium Jellyfin & Emby client…") is the project's tagline and is left for the maintainers to decide.
+
+**Wiki.** Moonfin's wiki is a separate GitHub wiki that only maintainers edit, and the README links its pages for the details. `docs/silo/wiki/Silo.md` is the page to copy there once the work is merged: connecting (native address, the 8096 offer, discovery and Docker), the main-profile rule, what differs from Jellyfin and Emby (codes, stars, hiding, downloads), the messages a person may see and what to do, and where the developer docs are. Linking it from the README's Documentation table, and touching the existing wiki pages (Getting Started's Quick Connect section, Downloads), is for when it is copied.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- None (documentation only).
 
 **Manual test plan**
 
-- _Write the checks before testing._
+- a. Read the README on GitHub (the fork's `Silo-Support` branch): the table renders with the Silo row and its link, and the Silo section reads correctly.
+- b. Read `docs/silo/wiki/Silo.md`: is anything wrong or missing for someone setting Moonfin up with Silo for the first time?
 
 **Results**
 

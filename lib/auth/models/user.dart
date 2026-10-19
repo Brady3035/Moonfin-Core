@@ -47,6 +47,11 @@ class PrivateUser extends User {
   /// Whether this is a Silo profile rather than a Jellyfin or Emby user.
   bool get isSiloProfile => siloAccountId != null;
 
+  /// On Silo, whether the profile is locked with a PIN: acting as it needs
+  /// the PIN entered in this login (phase 18). As Silo said when the
+  /// household was last read. False on Jellyfin and Emby.
+  final bool siloHasPin;
+
   const PrivateUser({
     required this.id,
     required this.name,
@@ -61,6 +66,7 @@ class PrivateUser extends User {
     this.canManageCollections = false,
     this.canManageLiveTv = false,
     this.siloAccountId,
+    this.siloHasPin = false,
   });
 
   Map<String, dynamic> toJson() => {
@@ -77,6 +83,7 @@ class PrivateUser extends User {
         // Only written for Silo users, so Jellyfin and Emby entries are
         // exactly what they were.
         if (siloAccountId != null) 'siloAccountId': siloAccountId,
+        if (siloHasPin) 'siloHasPin': true,
       };
 
   factory PrivateUser.fromJson(
@@ -99,6 +106,7 @@ class PrivateUser extends User {
       canManageCollections: json['canManageCollections'] as bool? ?? false,
       canManageLiveTv: json['canManageLiveTv'] as bool? ?? false,
       siloAccountId: _nonEmpty(json['siloAccountId']),
+      siloHasPin: json['siloHasPin'] == true,
     );
   }
 
@@ -119,6 +127,7 @@ class PrivateUser extends User {
     bool? canManageCollections,
     bool? canManageLiveTv,
     String? siloAccountId,
+    bool? siloHasPin,
   }) {
     return PrivateUser(
       id: id ?? this.id,
@@ -134,6 +143,7 @@ class PrivateUser extends User {
       canManageCollections: canManageCollections ?? this.canManageCollections,
       canManageLiveTv: canManageLiveTv ?? this.canManageLiveTv,
       siloAccountId: siloAccountId ?? this.siloAccountId,
+      siloHasPin: siloHasPin ?? this.siloHasPin,
     );
   }
 }

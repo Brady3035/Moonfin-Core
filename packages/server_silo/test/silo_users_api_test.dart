@@ -270,4 +270,48 @@ void main() {
       );
     });
   });
+
+  group('getHousehold (18.2)', () {
+    test('every profile of the account, each as a Moonfin user', () async {
+      final server = FixtureServer({
+        '/api/v2/account/me': _account(),
+        '/api/v2/profiles': _profiles([
+          {
+            ..._kid,
+            'has_pin': true,
+            'avatar_url': '/api/v2/profiles/kid/avatar?v=3',
+          },
+        ]),
+      });
+      final client = _client(server, profile: _mainId);
+
+      final household =
+          await (client.usersApi as SiloUsersApi).getHousehold();
+
+      expect(household.map((m) => m.profile.id), [_mainId, 'kid']);
+      final main = household.first;
+      expect(main.user.id, _mainId);
+      expect(main.profile.isPrimary, isTrue);
+      final kid = household.last;
+      expect(kid.user.id, 'kid');
+      expect(kid.user.name, 'Kid');
+      expect(kid.profile.hasPin, isTrue);
+      expect(kid.user.policy?.isAdministrator, isFalse);
+      // The avatar is recorded for the account switcher.
+      expect(kid.user.primaryImageTag, isNotNull);
+      expect(client.imageApi.getUserImageUrl('kid'), isNotEmpty);
+      // Read as the account; nothing about downloads (read per profile).
+      expect(
+        server.requests
+            .firstWhere((r) => r.uri.path == '/api/v2/profiles')
+            .headers
+            .containsKey('X-Profile-Id'),
+        isFalse,
+      );
+      expect(
+        server.requests.map((r) => r.uri.path),
+        isNot(contains('/api/v2/capabilities/downloads')),
+      );
+    });
+  });
 }

@@ -26,7 +26,8 @@ import 'package:volume_controller/volume_controller.dart';
 import 'package:logger/logger.dart';
 import 'package:playback_core/playback_core.dart';
 import 'package:server_core/server_core.dart';
-import 'package:server_silo/server_silo.dart' show siloAccessChangedEvent;
+import 'package:server_silo/server_silo.dart'
+    show SiloUsersApi, siloAccessChangedEvent;
 
 import '../../data/models/aggregated_item.dart';
 import '../../data/services/carplay_service.dart';
@@ -37,6 +38,7 @@ import '../../data/services/topshelf_service.dart';
 import '../../data/services/tv_channels_service.dart';
 import '../../data/services/watch_next_service.dart';
 import '../../data/services/media_server_client_factory.dart';
+import '../services/silo_household.dart';
 import '../services/silo_token_storage.dart';
 import '../../data/services/achievements_service.dart';
 import '../../data/services/plex_tv_service.dart';
@@ -147,7 +149,18 @@ class SessionRepository {
     this._userRepository,
     this._pluginSyncService, {
     GoRouter? router,
-  }) : _router = router ?? appRouter;
+    bool? siloProfiles,
+  }) : _router = router ?? appRouter,
+       _siloProfiles =
+           siloProfiles ??
+           const FeatureDetector(
+             serverType: ServerType.silo,
+             serverVersion: '',
+           ).supportsProfiles;
+
+  /// Whether Silo household profiles are Moonfin users (phase 18); follows
+  /// `FeatureDetector.supportsProfiles`, tests can choose.
+  final bool _siloProfiles;
 
   final GoRouter _router;
 
@@ -422,6 +435,7 @@ class SessionRepository {
     )) {
       return;
     }
+    unawaited(_syncSiloHousehold(client, user, serverId));
 
     // The settings entry and the friends button stay hidden until this
     // answers. It doesn't wait for the settings sync, which on a first
@@ -517,6 +531,33 @@ class SessionRepository {
       }
     } catch (_) {}
     return true;
+  }
+
+  /// Reads the active Silo account's household again and stores it (18.2),
+  /// so profiles added, renamed, deleted or locked with a PIN on the web
+  /// since sign-in show in the user grid and the switcher. A login from
+  /// before phase 18 (the main profile alone) gets its other profiles this
+  /// way. Best effort: the next start tries again.
+  Future<void> _syncSiloHousehold(
+    MediaServerClient client,
+    PrivateUser user,
+    String serverId,
+  ) async {
+    final accountId = user.siloAccountId;
+    final silo = siloClientOf(client);
+    if (!_siloProfiles || accountId == null || silo == null) return;
+    try {
+      final members = await (silo.usersApi as SiloUsersApi).getHousehold();
+      if (members.isEmpty) return;
+      await SiloHousehold(_authStore).store(
+        serverId: serverId,
+        accountId: accountId,
+        members: members,
+        accessToken: silo.session.accessToken ?? user.accessToken,
+      );
+    } catch (e) {
+      _logger.w('Reading the Silo household failed: $e');
+    }
   }
 
   /// Silo said the login's access changed (13.4): the libraries, rating

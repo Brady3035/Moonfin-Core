@@ -8,6 +8,7 @@ import 'package:moonfin/auth/models/user.dart';
 import 'package:moonfin/auth/repositories/auth_repository.dart';
 import 'package:moonfin/auth/repositories/session_repository.dart';
 import 'package:moonfin/auth/repositories/user_repository.dart';
+import 'package:moonfin/auth/services/silo_household.dart';
 import 'package:moonfin/auth/services/silo_token_storage.dart';
 import 'package:moonfin/auth/store/authentication_preferences.dart';
 import 'package:moonfin/auth/store/authentication_store.dart';
@@ -67,6 +68,9 @@ class _Silo implements HttpClientAdapter {
   bool rateLimited = false;
   bool mainHasPin = false;
   bool profilesFail = false;
+
+  /// Replaces the account's profiles (phase 18 tests).
+  List<Map<String, dynamic>>? household;
 
   /// The account holds a temporary password: logins it opens are restricted
   /// until it is changed and the login refreshed.
@@ -188,6 +192,7 @@ class _Silo implements HttpClientAdapter {
         return ResponseBody.fromString('', 204);
       case '/api/v2/profiles':
         if (profilesFail) return _problem(503, 'unavailable', 'Try again.');
+        if (household case final items?) return _json(200, {'items': items});
         return _json(200, {
           'items': [
             {
@@ -575,6 +580,153 @@ void main() {
       await signIn();
 
       expect(silo.paths.take(2), ['/api/v2/auth/logout', '/api/v2/auth/login']);
+    });
+  });
+
+  group('household profiles (18.2)', () {
+    late AuthRepository household;
+
+    Map<String, dynamic> profile(
+      String id,
+      String name, {
+      bool primary = false,
+      bool pin = false,
+    }) => {
+      'id': id,
+      'name': name,
+      'is_primary': primary,
+      'has_pin': pin,
+      'is_child': !primary,
+    };
+
+    setUp(() {
+      household = AuthRepository(
+        store,
+        prefs,
+        _Sessions(),
+        users,
+        siloProfiles: true,
+      );
+    });
+
+    Future<LoginState> householdSignIn() => household.authenticate(
+      client: client,
+      serverId: 's1',
+      username: 'brady',
+      password: 'secret',
+    );
+
+    test('a single profile without a PIN goes straight in', () async {
+      silo.household = [profile(_mainId, 'Brady', primary: true)];
+
+      final state = await householdSignIn();
+
+      expect(state, isA<Authenticated>());
+      expect((state as Authenticated).userId, _mainId);
+      expect(client.profileId, _mainId);
+      final user = store.getUser('s1', _mainId)!;
+      expect(user.siloAccountId, '9');
+      expect(user.siloHasPin, isFalse);
+      expect(prefs.lastUserId, _mainId);
+      expect((users.current as PrivateUser?)?.id, _mainId);
+      expect(store.getSiloTokens('s1', '9'), isNotNull);
+    });
+
+    test('several profiles: all stored, one to choose', () async {
+      silo.household = [
+        profile(_mainId, 'Brady', primary: true),
+        profile('kid', 'Kid'),
+        profile('teen', 'Teen', pin: true),
+      ];
+
+      final state = await householdSignIn();
+
+      expect(state, isA<SiloChooseProfile>());
+      expect((state as SiloChooseProfile).serverId, 's1');
+      final stored = {for (final u in store.getUsers('s1')) u.id: u};
+      expect(stored.keys, unorderedEquals([_mainId, 'kid', 'teen']));
+      expect(stored['teen']!.siloHasPin, isTrue);
+      expect(stored['kid']!.siloHasPin, isFalse);
+      expect(stored.values.map((u) => u.siloAccountId).toSet(), {'9'});
+      expect(stored[_mainId]!.isAdministrator, isTrue);
+      expect(stored['kid']!.isAdministrator, isFalse);
+      // The login is kept, once, for all of them; nobody is current yet.
+      expect(store.getSiloAccountIds('s1'), ['9']);
+      expect(users.current, isNull);
+      expect(prefs.lastUserId, isNull);
+      expect(prefs.lastServerId, 's1');
+      expect(client.profileId, isNull);
+      expect(silo.paths, isNot(contains('/api/v2/auth/logout')));
+    });
+
+    test('a single profile with a PIN is chosen too (its PIN)', () async {
+      silo.household = [profile(_mainId, 'Brady', primary: true, pin: true)];
+
+      final state = await householdSignIn();
+
+      expect(state, isA<SiloChooseProfile>());
+      expect(store.getUser('s1', _mainId)!.siloHasPin, isTrue);
+      expect(silo.paths, isNot(contains('/api/v2/auth/logout')));
+    });
+
+    test('the household is read as the account', () async {
+      silo.household = [profile(_mainId, 'Brady', primary: true)];
+
+      await householdSignIn();
+
+      final listing = silo.requests.firstWhere(
+        (r) => r.uri.path == '/api/v2/profiles',
+      );
+      expect(listing.headers.containsKey('X-Profile-Id'), isFalse);
+    });
+
+    test('signing in again forgets a deleted profile and keeps when each '
+        'was used', () async {
+      silo.household = [
+        profile(_mainId, 'Brady', primary: true),
+        profile('kid', 'Kid'),
+      ];
+      await householdSignIn();
+      final used = DateTime.utc(2026, 10, 1);
+      await store.putUser(store.getUser('s1', 'kid')!.copyWith(lastUsed: used));
+
+      silo.household = [profile('kid', 'Kiddo'), profile('new', 'New')];
+      await householdSignIn();
+
+      final stored = {for (final u in store.getUsers('s1')) u.id: u};
+      expect(stored.keys, unorderedEquals(['kid', 'new']));
+      expect(stored['kid']!.name, 'Kiddo');
+      expect(stored['kid']!.lastUsed, used);
+      expect(stored['new']!.lastUsed, SiloHousehold.neverUsed);
+      expect(store.getSiloAccountIds('s1'), ['9']);
+    });
+
+    test('a household that can\'t be read ends the new login', () async {
+      silo.profilesFail = true;
+
+      final state = await householdSignIn();
+
+      expect(state, isA<SiloRequestRefused>());
+      expect(silo.paths, contains('/api/v2/auth/logout'));
+      expect(store.getUsers('s1'), isEmpty);
+    });
+
+    test('a code sign-in stores the household the same way', () async {
+      silo.household = [
+        profile(_mainId, 'Brady', primary: true),
+        profile('kid', 'Kid'),
+      ];
+
+      final check = await client.authApi.checkQuickConnect('dc_1');
+      expect(check['Authenticated'], isTrue);
+      final state = await household.authenticateWithQuickConnect(
+        client: client,
+        serverId: 's1',
+        secret: 'dc_1',
+      );
+
+      expect(state, isA<SiloChooseProfile>());
+      expect(store.getUsers('s1'), hasLength(2));
     });
   });
 }

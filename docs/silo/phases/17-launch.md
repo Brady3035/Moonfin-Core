@@ -13,7 +13,7 @@ Finish the fork's Silo support and prepare it for the upstream proposal.
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | `dc0c3a060`, test fix — | previous step |
+| ☑ Done | `dc0c3a060`, test fix `2bf8a226d` | previous step |
 
 **Goal.** When a bare host answers as Jellyfin on 8096 but Silo's native API answers on 8090, offer "This looks like a Silo server, use native mode?".
 
@@ -83,7 +83,7 @@ Brady's Silo serves the compat API on 8096 and the native API on 8090 on the sam
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Device checks in 17.5 | `653b75423`, test fix — | previous step |
+| ◐ Device checks in 17.5 | `653b75423`, test fix `e0c4d2576` | previous step |
 
 **Goal.** mDNS `_silo._tcp`, verified with `/system/identity`.
 
@@ -362,7 +362,7 @@ Run each line on Silo, then the same on Emby (`emby.snowystreams.com`), with the
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Fix ready for testing | `30b197ffb`, fix `af9f217ec` | previous step |
+| ☑ Done | `30b197ffb`, fix `af9f217ec` | previous step |
 
 **Goal.** Add Silo to Supported Servers with its minimum `api_major`, and list what isn't supported.
 
@@ -396,6 +396,7 @@ Run each line on Silo, then the same on Emby (`emby.snowystreams.com`), with the
 |---|---|---|---|---|
 | 2026-10-19 | GitHub | — | Fail | Brady: the README reads right, but the tagline under the logo still says "Premium Jellyfin & Emby client…"; it should name Silo |
 | 2026-10-19 | — | — | Fix | tagline: "Premium Jellyfin, Emby & Silo client for mobile, tablet, desktop, TV, and web" |
+| 2026-10-19 | GitHub | — | Pass | Brady: the tagline fix is good |
 | | | | | |
 
 ---

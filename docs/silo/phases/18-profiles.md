@@ -13,7 +13,7 @@ Silo accounts can hold several household profiles, each with its own progress, f
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | previous step |
+| ☑ Done | `02a964d70` | previous step |
 
 **Goal.** `verify-pin` → profile token with expiry; 429 lockout with `Retry-After`, not retried automatically.
 
@@ -59,6 +59,7 @@ Nothing to see in the app yet: the PIN dialog arrives with 18.4 and is tested th
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-19 | Linux (Claude workspace, Flutter 3.47.7) | — | Pass | profiles API 15/15 (7 new); `server_silo` analyzer: no issues |
+| 2026-10-19 | macOS | `365e3d4` + Brady's patches | Pass | Brady: every check passes ("All tests are good") |
 | | | | | |
 
 ---
@@ -68,7 +69,7 @@ Nothing to see in the app yet: the PIN dialog arrives with 18.4 and is tested th
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | previous step |
+| ☑ Done | `a8944fed0` | previous step |
 
 **Goal.** After sign-in, save every profile as a user (the main profile is already one, 3.3), share the account's token record between them, and continue straight in when there is only one unlocked profile.
 
@@ -127,6 +128,7 @@ Visible only from 18.8 on, so tested with the batch. On Silo's web app, give the
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-19 | Linux (Claude workspace, Flutter 3.47.7) | — | Pass | users API 12/12 (1 new), `test/auth` all pass (8 new); analyzer: no new issues |
+| 2026-10-19 | macOS | `365e3d4` + Brady's patches | Pass | Brady: every check passes ("All tests are good") |
 | | | | | |
 
 ---
@@ -136,7 +138,7 @@ Visible only from 18.8 on, so tested with the batch. On Silo's web app, give the
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | previous step |
+| ☑ Done | `9a06f619f` | previous step |
 
 **Goal.** Route to the server screen's user grid when there is a choice to make.
 
@@ -180,6 +182,8 @@ With the batch (visible from 18.8), Brady's account with Brady, Kid and Teen (PI
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-19 | Linux (Claude workspace, Flutter 3.47.7) | — | Pass | analyzer: no issues in both screens; `test/auth` and `test/ui/screens/auth` pass |
+| 2026-10-19 | macOS | `365e3d4` + Brady's patches | Pass | Brady: every check passes ("All tests are good") |
+| 2026-10-19 | Android TV, Apple TV | — | Deferred | check d in 17.5's table |
 | | | | | |
 
 ---
@@ -189,7 +193,7 @@ With the batch (visible from 18.8), Brady's account with Brady, Kid and Teen (PI
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | previous step |
+| ☑ Done | `ff238ba40` | previous step |
 
 **Goal.** Free-text PIN dialog (Silo PINs are 1–72 characters), TV-focusable, showing the lockout time. Also lifts 3.7: a PIN-locked main profile can now be unlocked at sign-in.
 
@@ -257,6 +261,8 @@ With the batch, Teen locked with a PIN on Silo's web app:
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-19 | Linux (Claude workspace, Flutter 3.47.7) | — | Pass | PIN dialog 7/7, store 12/12 (4 new), restore 17/17 (5 new); `test/auth`, `test/ui/screens/auth`, `test/l10n` 202/202; analyzer: no new issues |
+| 2026-10-19 | macOS | `365e3d4` + Brady's patches | Pass | Brady: every check passes ("All tests are good") |
+| 2026-10-19 | Android TV, Apple TV | — | Deferred | check g in 17.5's table |
 | | | | | |
 
 ---
@@ -266,7 +272,7 @@ With the batch, Teen locked with a PIN on Silo's web app:
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | previous step |
+| ☑ Done | `ef0ba4e22` | previous step |
 
 **Goal.** Same client and tokens; swap `X-Profile-Id` and reload user-scoped state.
 
@@ -310,6 +316,7 @@ With the batch:
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-19 | Linux (Claude workspace, Flutter 3.47.7) | — | Pass | profile switch 3/3 (new), `server_silo` 680/680; analyzer: no issues |
+| 2026-10-19 | macOS | `365e3d4` + Brady's patches | Pass | Brady: every check passes ("All tests are good") |
 | | | | | |
 
 ---
@@ -319,7 +326,7 @@ With the batch:
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | previous step |
+| ☑ Done | `725e095f5` | previous step |
 
 **Goal.** Removing a profile only calls `logout` when it was the account's last profile on the device; add "Sign out of account" to remove all of them.
 
@@ -364,6 +371,7 @@ With the batch, signed in as Brady with Kid and Teen stored:
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-19 | Linux (Claude workspace, Flutter 3.47.7) | — | Pass | session profiles 5/5 (new); `test/auth` pass; analyzer: no new issues |
+| 2026-10-19 | macOS | `365e3d4` + Brady's patches | Pass | Brady: every check passes ("All tests are good") |
 | | | | | |
 
 ---
@@ -373,7 +381,7 @@ With the batch, signed in as Brady with Kid and Teen stored:
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | previous step |
+| ☑ Done | `81de90247` | previous step |
 
 **Goal.** In the multi-server repository, use the active profile for the active server and the most recent unlocked profile for other Silo servers.
 
@@ -413,6 +421,7 @@ Needs two signed-in servers, one of them Silo with Brady and Kid (Emby as the se
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-19 | Linux (Claude workspace, Flutter 3.47.7) | — | Pass | household 4/4 (new), multi-server tests pass; analyzer: no new issues |
+| 2026-10-19 | macOS | `365e3d4` + Brady's patches | Pass | Brady: every check passes ("All tests are good") |
 | | | | | |
 
 ---
@@ -421,7 +430,7 @@ Needs two signed-in servers, one of them Silo with Brady and Kid (Emby as the se
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | previous step |
+| ☑ Done | `6b3051d6c` | previous step |
 
 **Goal.** Flip the flag added in 1.2 so profile-only UI (avatars, the switcher entry) appears for Silo, and recheck every screen that reads it.
 
@@ -462,6 +471,7 @@ The whole phase, on the Mac, with Brady's account given a "Kid" profile and a "T
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-19 | Linux (Claude workspace, Flutter 3.47.7) | — | Pass | feature detector 107/107; `server_silo` 680/680; `test/auth`, `test/ui/screens/auth`, `test/ui/widgets`, `test/data`, `test/l10n`, `test/offline`, `test/util`, the add-server dialog and the multi-server tests 2442/2442; analyzer on every file the phase changed: no new issues (the 3 left are upstream's) |
+| 2026-10-19 | macOS | `365e3d4` + Brady's patches | Pass | Brady: the whole phase passes, including the upgrade check (c) and the full suite; the picker rule as built (the grid is skipped only for a single profile without a PIN) |
 | | | | | |
 
 ---

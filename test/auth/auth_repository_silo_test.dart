@@ -265,7 +265,15 @@ void main() {
       deviceInfo: _device,
       httpClientAdapter: silo,
     );
-    repo = AuthRepository(store, prefs, _Sessions(), users);
+    // The main-profile mode (D9): what a sign-in does with profiles off.
+    // Phase 18's household is tested below with them on.
+    repo = AuthRepository(
+      store,
+      prefs,
+      _Sessions(),
+      users,
+      siloProfiles: false,
+    );
   });
 
   Future<LoginState> signIn() => repo.authenticate(

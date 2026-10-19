@@ -13,7 +13,7 @@ Finish the fork's Silo support and prepare it for the upstream proposal.
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | `dc0c3a060` | previous step |
+| ☑ Done | `dc0c3a060`, test fix — | previous step |
 
 **Goal.** When a bare host answers as Jellyfin on 8096 but Silo's native API answers on 8090, offer "This looks like a Silo server, use native mode?".
 
@@ -70,6 +70,8 @@ Brady's Silo serves the compat API on 8096 and the native API on 8090 on the sam
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-19 | Linux (Claude workspace) | — | Not run | this session's network refused pub.dev and storage.googleapis.com: no Flutter, so Claude neither compiled nor tested the batch; Brady ran the analyzer and tests |
+| 2026-10-19 | Linux (Claude workspace, Flutter 3.47.7) | — | Fail | once Flutter could be installed: `test/add_server_dialog_test.dart` "an untrusted certificate offers to allow self-signed ones" fails. Its mock stubs `addServer(any())`, which doesn't match the new call with `offerSiloNative:`, so the dialog got no answer and showed "Unable to connect" |
+| 2026-10-19 | Linux (Claude workspace, Flutter 3.47.7) | — | Pass | fix: the mock and its `verify` match `offerSiloNative` too (3/3). With it: server repository 7/7, `server_core` 107/107, `test/auth` + `test/ui/screens/auth` + `test/ui/screens/playback` + `test/ui/widgets` pass; analyzer: no new issues |
 | 2026-10-19 | macOS | `bd9d59ea` | Pass | Brady: a–e pass, tests good |
 | 2026-10-19 | Android TV, Apple TV | — | Deferred | check f in the table below |
 | | | | | |

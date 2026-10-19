@@ -118,7 +118,12 @@ void main() {
     tester,
   ) async {
     final repo = _MockServerRepository();
-    when(() => repo.addServer(any())).thenAnswer((_) async => null);
+    when(
+      () => repo.addServer(
+        any(),
+        offerSiloNative: any(named: 'offerSiloNative'),
+      ),
+    ).thenAnswer((_) async => null);
     when(() => repo.lastFailure).thenReturn(
       const ServerUnableToConnect(
         candidatesTried: ['https://localhos', 'http://localhos'],
@@ -147,6 +152,11 @@ void main() {
       ),
       isTrue,
     );
-    verify(() => repo.addServer('https://localhos')).called(1);
+    verify(
+      () => repo.addServer(
+        'https://localhos',
+        offerSiloNative: any(named: 'offerSiloNative'),
+      ),
+    ).called(1);
   });
 }

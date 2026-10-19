@@ -110,8 +110,20 @@ class SiloMediaServerClient extends MediaServerClient
   @override
   set profileId(String? id) {
     if (id == _profileId) return;
+    final previous = _profileId;
     _profileId = id;
     session.identityChanged();
+    // Another profile of the same login (18.5): the reads kept for the
+    // previous one (its rows, libraries, settings, permissions) don't
+    // apply. Picking a first profile has nothing to forget.
+    if (previous != null) _forgetProfileReads();
+  }
+
+  void _forgetProfileReads() {
+    userViewsApi.invalidateCache();
+    itemsApi.noteProfileChanged();
+    downloadsApi.invalidateCapability();
+    playbackApi.forgetCapabilities();
   }
 
   /// Proof that a PIN-locked profile was unlocked (`X-Profile-Token`).

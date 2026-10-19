@@ -360,7 +360,7 @@ Starting plays from 10.7 on (the media requests need the account's token); test 
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Second fix ready for testing | `5defdf4ad`, fix `863174834`, second fix `b089477d2` | previous step |
+| ☑ Done | `5defdf4ad`, fix `863174834`, second fix `b089477d2` | previous step |
 
 **Goal.** Headers on every request (HLS segments and sidecars included); `token=` query only on `/api/v2/stream` URLs where headers can't be sent. Signed artwork never gets a token.
 
@@ -415,6 +415,7 @@ Silo's media routes always need the account and the viewer (Playback API, "Deliv
 | 2026-10-18 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | fix: libmpv gets the token in every media URL; `playback_silo` 92/92 (2 new), `test/playback/silo_playback_environment_test.dart` 5/5; analyzer: no issues |
 | 2026-10-18 | Windows | `bd9d59ea` | Fail | Brady: after the first fix (`863174834`) still black. Silo's log: `getPlaybackSegment` → `401 authentication_required`, `auth_class: anonymous`. The playlist was authorised by its `token=`, the segments were not: Silo's synthetic playlist names segments as `segment/seg_00000.ts?{$q}` with `#EXT-X-DEFINE` (HLS variable substitution) once the copied query is long, and mpv's HLS reader (FFmpeg) doesn't expand it, so the segment URLs carry no credentials |
 | 2026-10-18 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | second fix: the media_kit backend hands the stream's headers to mpv, and libmpv goes by headers again; `playback_silo` 92/92, media_kit headers 2/2 (new), `silo_playback_environment_test` + passthrough 15/15; analyzer: no issues in the changed files |
+| 2026-10-19 | Windows | `bd9d59ea` | Pass | Brady: after the second fix (`b089477d2`) lowering the quality during direct play transcodes and plays |
 | | | | | |
 
 ---

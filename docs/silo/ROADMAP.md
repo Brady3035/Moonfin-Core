@@ -157,7 +157,7 @@ Status key: ☐ not started · ◐ in progress · ☑ done and tested · ⊘ ski
 - [x] **10.4** [Playback context](phases/10-playback.md#step-10-4)
 - [x] **10.5** [Installation id](phases/10-playback.md#step-10-5)
 - [x] **10.6** [Start playback](phases/10-playback.md#step-10-6)
-- [ ] **10.7** [Stream authorisation](phases/10-playback.md#step-10-7)
+- [x] **10.7** [Stream authorisation](phases/10-playback.md#step-10-7)
 - [x] **10.8** [Unplayable media message](phases/10-playback.md#step-10-8)
 - [x] **10.9** [Progress reporting](phases/10-playback.md#step-10-9)
 - [x] **10.10** [Stop](phases/10-playback.md#step-10-10)
@@ -220,10 +220,10 @@ Status key: ☐ not started · ◐ in progress · ☑ done and tested · ⊘ ski
 
 ## 17. [Polish and launch](phases/17-launch.md)
 
-- [ ] **17.1** [Native port hint](phases/17-launch.md#step-17-1)
+- [x] **17.1** [Native port hint](phases/17-launch.md#step-17-1)
 - [ ] **17.2** [Local network discovery](phases/17-launch.md#step-17-2)
-- [ ] **17.3** [Error and update messages](phases/17-launch.md#step-17-3)
-- [ ] **17.4** [Translations](phases/17-launch.md#step-17-4)
+- [x] **17.3** [Error and update messages](phases/17-launch.md#step-17-3)
+- [x] **17.4** [Translations](phases/17-launch.md#step-17-4)
 - [ ] **17.5** [Full regression pass](phases/17-launch.md#step-17-5)
 - [ ] **17.6** [README and wiki](phases/17-launch.md#step-17-6)
 

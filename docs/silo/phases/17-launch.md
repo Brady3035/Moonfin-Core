@@ -13,7 +13,7 @@ Finish the fork's Silo support and prepare it for the upstream proposal.
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | previous step |
+| ☑ Done | `dc0c3a060` | previous step |
 
 **Goal.** When a bare host answers as Jellyfin on 8096 but Silo's native API answers on 8090, offer "This looks like a Silo server, use native mode?".
 
@@ -69,6 +69,9 @@ Brady's Silo serves the compat API on 8096 and the native API on 8090 on the sam
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-19 | Linux (Claude workspace) | — | Not run | this session's network refused pub.dev and storage.googleapis.com: no Flutter, so Claude neither compiled nor tested the batch; Brady ran the analyzer and tests |
+| 2026-10-19 | macOS | `bd9d59ea` | Pass | Brady: a–e pass, tests good |
+| 2026-10-19 | Android TV, Apple TV | — | Deferred | check f in the table below |
 | | | | | |
 
 ---
@@ -78,7 +81,7 @@ Brady's Silo serves the compat API on 8096 and the native API on 8090 on the sam
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | previous step |
+| ◐ Device checks in 17.5 | `653b75423` | previous step |
 
 **Goal.** mDNS `_silo._tcp`, verified with `/system/identity`.
 
@@ -110,8 +113,8 @@ The server list's "Discovered servers" comes from Jellyfin's UDP broadcast ("who
 
 **Not done here:**
 
-- The web build can't do mDNS. Its discovery probes ports 8096 and 8920 on nearby addresses; adding 8090 there would find Silo on the web too. Not in the step; worth a word with Brady.
-- A Silo saved under another address (Brady's public `https://silo.snowystreams.com`) also shows under Discovered with its LAN address, because the list hides saved servers by address only (as for Jellyfin). `Server` doesn't store the server id it was added with; storing it would let the list hide by id.
+- The web build can't do mDNS. Its discovery probes ports 8096 and 8920 on nearby addresses; adding 8090 there would find Silo on the web too. Brady (2026-10-19): no, leave it.
+- A Silo saved under another address (Brady's public `https://silo.snowystreams.com`) also shows under Discovered with its LAN address, because the list hides saved servers by address only (as for Jellyfin). `Server` doesn't store the server id it was added with; storing it would let the list hide by id. Brady (2026-10-19): leave it for now.
 - Overlay networks (Tailscale's `http://silo/`) don't carry multicast; Silo's guide describes a separate probe of the bare name. Not in the roadmap.
 
 ### Testing
@@ -137,6 +140,8 @@ On the Mac, on the same network as Brady's Silo (Silo logs "advertising Silo on 
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-19 | Linux (Claude workspace) | — | Not run | this session's network refused pub.dev and storage.googleapis.com: no Flutter, so Claude neither compiled nor tested the batch; Brady ran the analyzer and tests |
+| 2026-10-19 | macOS | `bd9d59ea` | Deferred | Brady's Silo runs in Docker, so it can't advertise on the LAN unless the container uses host networking; a–e deferred to 17.5 (row 17.2 f) |
 | | | | | |
 
 ---
@@ -146,7 +151,7 @@ On the Mac, on the same network as Brady's Silo (Silo logs "advertising Silo on 
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | previous step |
+| ☑ Done | `5a636ab6e` | previous step |
 
 **Goal.** `426` → "server or app update required"; Retry-After texts.
 
@@ -207,6 +212,8 @@ Silo's limits are hard to reach by hand; these are the ones that can be:
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-19 | Linux (Claude workspace) | — | Not run | this session's network refused pub.dev and storage.googleapis.com: no Flutter, so Claude neither compiled nor tested the batch; Brady ran the analyzer and tests |
+| 2026-10-19 | macOS | `bd9d59ea` | Pass | Brady: all good |
 | | | | | |
 
 ---
@@ -216,7 +223,7 @@ Silo's limits are hard to reach by hand; these are the ones that can be:
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | previous step |
+| ☑ Done | `c7f3b36ed` | previous step |
 
 **Goal.** New strings in `app_en.arb` and `flutter gen-l10n`.
 
@@ -257,6 +264,8 @@ Silo's limits are hard to reach by hand; these are the ones that can be:
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-19 | Linux (Claude workspace) | — | Not run | this session's network refused pub.dev and storage.googleapis.com: no Flutter, so Claude neither compiled nor tested the batch; Brady ran the analyzer and tests |
+| 2026-10-19 | macOS | `bd9d59ea` | Pass | Brady: good |
 | | | | | |
 
 ---
@@ -266,7 +275,7 @@ Silo's limits are hard to reach by hand; these are the ones that can be:
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | previous step |
+| ◐ Run pending | `c8a5213b3` | previous step |
 
 **Goal.** Run the whole checklist on each platform against Silo and Emby; record results in each step.
 
@@ -332,7 +341,7 @@ Run each line on Silo, then the same on Emby (`emby.snowystreams.com`), with the
 | 14.3 e | iPhone or Android phone | With the bottom bar, the hub shows "Approve a sign-in" with Silo active, "Quick Connect" with Jellyfin, neither with Emby. |
 | 15.2 i | Web (Moonfin for the web on the Mac) | Download a Silo film: the browser downloads the original through a `…/api/v2/direct-download?dl=…` link (no token in the URL). |
 | 17.1 f | Android TV, Apple TV | Add `http://<silo host>:8096`: "Connect to Silo directly?" opens with Use Silo focused; select adds the Silo server, back keeps the Jellyfin address. |
-| 17.2 f | Android TV, Android phone (Wi-Fi), iPhone, Windows, Linux | With Silo on the same network, the server list's Discovered servers shows Silo by its branding name and LAN address; choosing it opens Silo's sign-in. On iPhone the local-network prompt names Silo. |
+| 17.2 a–e, f | macOS, Android TV, Android phone (Wi-Fi), iPhone, Windows, Linux | With a Silo that advertises on the LAN (Docker with host networking, or Silo outside Docker) on the same network, the server list's Discovered servers shows Silo by its branding name and LAN address; choosing it opens Silo's sign-in. On iPhone the local-network prompt names Silo. |
 
 **Results**
 
@@ -347,7 +356,7 @@ Run each line on Silo, then the same on Emby (`emby.snowystreams.com`), with the
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | — | previous step |
+| ◐ Fix ready for testing | `30b197ffb`, fix — | previous step |
 
 **Goal.** Add Silo to Supported Servers with its minimum `api_major`, and list what isn't supported.
 
@@ -358,7 +367,9 @@ Run each line on Silo, then the same on Emby (`emby.snowystreams.com`), with the
 
 ### How it works
 
-**README.** Silo's "minimum version" is its API major, not a release number: Silo's version string is a git hash, and compatibility is `api_major` (17.3 refuses any other major). The row says "API v2 (`api_major` 2)". The section below the table says what a person needs before they find out the hard way: add the native address (and that Moonfin offers to switch from 8096), what works, what is hidden because Silo has no such thing (phase 4), what isn't supported yet (household profiles, books and audiobooks, server-side download subscriptions), and that a newer Silo API asks to update Moonfin. The headline under the logo ("Premium Jellyfin & Emby client…") is the project's tagline and is left for the maintainers to decide.
+**README.** Silo's "minimum version" is its API major, not a release number: Silo's version string is a git hash, and compatibility is `api_major` (17.3 refuses any other major). The row says "API v2 (`api_major` 2)". The section below the table says what a person needs before they find out the hard way: add the native address (and that Moonfin offers to switch from 8096), what works, what is hidden because Silo has no such thing (phase 4), what isn't supported yet (household profiles, books and audiobooks, server-side download subscriptions), and that a newer Silo API asks to update Moonfin. The tagline under the logo names Silo too ("Premium Jellyfin, Emby & Silo client…"; the fix below).
+
+**Fix (2026-10-19): the tagline.** Brady's review: the README read right, but the tagline under the logo still said "Premium Jellyfin & Emby client for mobile, tablet, desktop, TV, and web". It now says "Premium Jellyfin, Emby & Silo client for mobile, tablet, desktop, TV, and web". The footer ("not affiliated with the Jellyfin or Emby projects") is left as it is.
 
 **Wiki.** Moonfin's wiki is a separate GitHub wiki that only maintainers edit, and the README links its pages for the details. `docs/silo/wiki/Silo.md` is the page to copy there once the work is merged: connecting (native address, the 8096 offer, discovery and Docker), the main-profile rule, what differs from Jellyfin and Emby (codes, stars, hiding, downloads), the messages a person may see and what to do, and where the developer docs are. Linking it from the README's Documentation table, and touching the existing wiki pages (Getting Started's Quick Connect section, Downloads), is for when it is copied.
 
@@ -377,6 +388,8 @@ Run each line on Silo, then the same on Emby (`emby.snowystreams.com`), with the
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-19 | GitHub | — | Fail | Brady: the README reads right, but the tagline under the logo still says "Premium Jellyfin & Emby client…"; it should name Silo |
+| 2026-10-19 | — | — | Fix | tagline: "Premium Jellyfin, Emby & Silo client for mobile, tablet, desktop, TV, and web" |
 | | | | | |
 
 ---

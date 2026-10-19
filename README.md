@@ -1,5 +1,5 @@
 <h1 align="center">Moonfin</h1>
-<h3 align="center">Premium Jellyfin & Emby client for mobile, tablet, desktop, TV, and web</h3>
+<h3 align="center">Premium Jellyfin, Emby & Silo client for mobile, tablet, desktop, TV, and web</h3>
 
 ---
 <p align="center">

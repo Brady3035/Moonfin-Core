@@ -75,6 +75,7 @@ class _ServerScreenState extends State<ServerScreen> {
           imageTag: u.imageTag,
           hasToken: true,
           hasPassword: true,
+          siloHasPin: u.siloHasPin,
         );
       }
       for (final u in publicUsers) {
@@ -503,11 +504,20 @@ class _ServerScreenState extends State<ServerScreen> {
     );
   }
 
-  /// Plex keeps every account's avatar on plex.tv, under its uuid.
   String? _userImageUrl(_MergedUser user) {
     final server = _server!;
+    // Plex keeps every account's avatar on plex.tv, under its uuid.
     if (server.serverType == ServerType.plex) {
       return 'https://plex.tv/users/${user.id}/avatar';
+    }
+    if (!server.serverType.hasJellyfinUserImagePath) {
+      // Silo: a profile's avatar URL came with the household (18.2); only
+      // the server's client knows it, and only once it has read it.
+      final url = _clientFactory
+          .getClientIfExists(server.id)
+          ?.imageApi
+          .getUserImageUrl(user.id);
+      return url == null || url.isEmpty ? null : url;
     }
     if (user.imageTag == null) return null;
     return '${server.address}/Users/${user.id}/Images/Primary?tag=${user.imageTag}';
@@ -579,6 +589,14 @@ class _ServerScreenState extends State<ServerScreen> {
                           ),
                         ),
                         const SizedBox(height: 8),
+                        if (user.siloHasPin)
+                          // A Silo profile locked with a PIN (18.4 asks
+                          // for it).
+                          Icon(
+                            Icons.lock_outline,
+                            size: 14,
+                            color: Colors.white.withValues(alpha: 0.6),
+                          ),
                         Text(
                           user.name,
                           maxLines: 1,
@@ -619,11 +637,15 @@ class _MergedUser {
   final bool hasToken;
   final bool hasPassword;
 
+  /// A Silo household profile locked with a PIN (phase 18).
+  final bool siloHasPin;
+
   const _MergedUser({
     required this.id,
     required this.name,
     this.imageTag,
     required this.hasToken,
     required this.hasPassword,
+    this.siloHasPin = false,
   });
 }

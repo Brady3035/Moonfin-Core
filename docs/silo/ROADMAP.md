@@ -225,18 +225,18 @@ Status key: ☐ not started · ◐ in progress · ☑ done and tested · ⊘ ski
 - [x] **17.3** [Error and update messages](phases/17-launch.md#step-17-3)
 - [x] **17.4** [Translations](phases/17-launch.md#step-17-4)
 - [ ] **17.5** [Full regression pass](phases/17-launch.md#step-17-5)
-- [ ] **17.6** [README and wiki](phases/17-launch.md#step-17-6)
+- [x] **17.6** [README and wiki](phases/17-launch.md#step-17-6)
 
 ## 18. [Household profiles (optional)](phases/18-profiles.md)
 
-- [ ] **18.1** [Profile PIN check](phases/18-profiles.md#step-18-1) *(optional)* · ↺ port
-- [ ] **18.2** [Store the household as users](phases/18-profiles.md#step-18-2) *(optional)* · ↺ port
-- [ ] **18.3** ["Who's watching" picker](phases/18-profiles.md#step-18-3) *(optional)* · ↺ port
-- [ ] **18.4** [PIN entry for locked profiles](phases/18-profiles.md#step-18-4) *(optional)* · ↺ port
-- [ ] **18.5** [Switch profile without signing in again](phases/18-profiles.md#step-18-5) *(optional)* · ↺ port
-- [ ] **18.6** [Sign out of one profile vs the account](phases/18-profiles.md#step-18-6) *(optional)* · ↺ port
-- [ ] **18.7** [Which profile feeds cross-server rows](phases/18-profiles.md#step-18-7) *(optional)* · ↺ port
-- [ ] **18.8** [Turn on `supportsProfiles` for Silo](phases/18-profiles.md#step-18-8) *(optional)*
+- [x] **18.1** [Profile PIN check](phases/18-profiles.md#step-18-1) *(optional)* · ↺ port
+- [x] **18.2** [Store the household as users](phases/18-profiles.md#step-18-2) *(optional)* · ↺ port
+- [x] **18.3** ["Who's watching" picker](phases/18-profiles.md#step-18-3) *(optional)* · ↺ port
+- [x] **18.4** [PIN entry for locked profiles](phases/18-profiles.md#step-18-4) *(optional)* · ↺ port
+- [x] **18.5** [Switch profile without signing in again](phases/18-profiles.md#step-18-5) *(optional)* · ↺ port
+- [x] **18.6** [Sign out of one profile vs the account](phases/18-profiles.md#step-18-6) *(optional)* · ↺ port
+- [x] **18.7** [Which profile feeds cross-server rows](phases/18-profiles.md#step-18-7) *(optional)* · ↺ port
+- [x] **18.8** [Turn on `supportsProfiles` for Silo](phases/18-profiles.md#step-18-8) *(optional)*
 
 ↺ port = code for this step already exists on `silo-1-groundwork`, `silo-2-signin-api` or the `Add_silo` stash and gets re-reviewed and re-tested rather than written from scratch.
 

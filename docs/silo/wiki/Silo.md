@@ -10,8 +10,9 @@ Moonfin supports [Silo Media Server](https://github.com/Silo-Server/silo-server)
 2. If you enter the address you use for Jellyfin apps (Silo's Jellyfin-compatible service, usually port 8096), Moonfin asks **"Connect to Silo directly?"**. Choose **Use Silo**. **Keep Jellyfin** adds it as a Jellyfin server, which works but without Silo's own features.
 3. On your local network, Silo servers that advertise themselves appear under **Discovered servers**. Silo advertises when it listens on all of the machine's addresses and `server.lan_discovery` is on (the default). A Silo in Docker on a bridge network can't be discovered: add it by address.
 4. Sign in with a code (shown with a QR code: scan it with a phone signed in to Silo and approve), or with your password.
+5. If your account has several household profiles, pick one ("who's watching"). A profile locked with a PIN asks for it once; Moonfin remembers it until you sign out of the account.
 
-Moonfin signs in as your account's main profile. Household profiles (picking another profile, profile PINs) aren't supported yet; if the main profile is locked with a PIN, Moonfin can't sign in until the PIN is removed in Silo's web app.
+Each profile is its own user in Moonfin, with its own progress, favourites and limits. Switch between them from the account menu without signing in again. **Sign out** removes the current profile from this device; **Sign out of the Silo account** removes all of the account's profiles and ends the sign-in.
 
 ## What's different from Jellyfin and Emby
 
@@ -21,6 +22,7 @@ Moonfin signs in as your account's main profile. Household profiles (picking ano
 - **Hiding from Continue Watching** hides the title on Silo itself, so it is hidden in Silo's web app too.
 - **Downloads** go through Silo's managed downloads and show on Silo's dashboard. Converted qualities need transcode-to-file switched on in Silo.
 - Books, audiobooks and Silo's server-side download subscriptions aren't supported yet.
+- With several servers signed in, the rows that combine them read another Silo server as the profile last used there.
 
 ## Messages you may see
 

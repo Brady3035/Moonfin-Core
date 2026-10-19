@@ -421,33 +421,47 @@ Needs two signed-in servers, one of them Silo with Brady and Kid (Emby as the se
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | previous step |
 
 **Goal.** Flip the flag added in 1.2 so profile-only UI (avatars, the switcher entry) appears for Silo, and recheck every screen that reads it.
 
 **Where in Moonfin**
 
-- `packages/server_core/lib/src/feature_detector.dart`
+- `packages/server_core/lib/src/feature/feature_detector.dart`: `supportsProfiles` is true for Silo
+- `README.md`, `docs/silo/wiki/Silo.md`: profiles are supported; `docs/silo/DECISIONS.md`: D1 and D9 say what was built
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+Phase 18's sign-in, start-up and session code ask `FeatureDetector.supportsProfiles` whether a Silo account's profiles are users (`AuthRepository` and `SessionRepository` read it when they are made; their tests choose with `siloProfiles:`). It was false, so 18.2–18.7 changed nothing for a person until now; this step turns it on for Silo (`_isSilo`). Jellyfin and Emby stay false: their users are their own logins.
+
+**Which screens read it.** When 1.2 added the flag it was meant for profile-only UI, but no screen ever read it: the account switcher, the server's user grid and the avatars already work for any stored users, and phase 18 reused them rather than adding profile-only screens. So the flag decides exactly what phase 18 added: storing the household at sign-in and at start (18.2), and through that everything after it (the grid as picker, PIN entry, switching, the account sign-out, the cross-server choice). With it off, Silo is back to the main profile alone (D9): that path stays and keeps its tests.
+
+**Moving from the main profile.** Nothing to migrate: the main profile's user id was already its profile id (D9), so it stays the same user, with its settings and downloads. Its siblings appear at the next start (`_syncSiloHousehold`, 18.2).
+
+**Docs.** The README's Silo section and the wiki draft (17.6) said profiles weren't supported; they now say how picking, PINs, switching and the two sign-outs work. D1 and D9 note that phase 18 was built.
 
 ### Testing
 
 **Automated tests**
 
-- feature detector table updated
+- `packages/server_core/test/feature_detector_test.dart`: `supportsProfiles` true for Silo (with the steps' other flags), still false for Jellyfin and Emby; `supportsClientLog`'s test now says 13.5 was declined rather than "not implemented yet" (HANDOFF's small item 8). 107/107.
+- `test/auth/auth_repository_silo_test.dart`: the main-profile tests now ask for profiles off explicitly.
+- The phase's app suites: `test/auth`, `test/ui/screens/auth`, `test/ui/widgets`, `test/data`, `test/l10n`, the multi-server tests: pass.
 
 **Manual test plan**
 
-- Profile switcher visible on Silo, unchanged on Emby.
+The whole phase, on the Mac, with Brady's account given a "Kid" profile and a "Teen" profile with a PIN on Silo's web app (tests 18.2 a–c, 18.3 a–c, 18.4 a–f, 18.5 a–d, 18.6 a–d, 18.7 a–c), then:
+
+- a. Emby: sign in, the switcher and the grid look as before; nothing asks for a Silo PIN.
+- b. A Silo account with only one profile: sign-in goes straight Home, the account menu has no "Sign out of the Silo account".
+- c. Upgrading: with the current build signed in as Brady (main profile only), install this build and start: Brady is still signed in; Kid and Teen appear in the switcher.
+- d. Full suite (`flutter test` at the repo root).
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-19 | Linux (Claude workspace, Flutter 3.47.7) | — | Pass | feature detector 107/107; `server_silo` 680/680; `test/auth`, `test/ui/screens/auth`, `test/ui/widgets`, `test/data`, `test/l10n`, `test/offline`, `test/util`, the add-server dialog and the multi-server tests 2442/2442; analyzer on every file the phase changed: no new issues (the 3 left are upstream's) |
 | | | | | |
 
 ---
-

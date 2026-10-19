@@ -95,11 +95,9 @@ void main() {
     expect(f.supportsLatestItemsExcludes, isFalse);
   });
 
-  test('Silo features Moonfin does not implement yet are off', () {
-    // Each of these is switched on by the roadmap step that implements it.
-    final f = _for(ServerType.silo);
-    expect(f.supportsClientLog, isFalse); // 13.5
-    expect(f.supportsProfiles, isFalse); // phase 3
+  test('Silo features left out stay off', () {
+    // 13.5 (Silo's client log) was declined by Brady (2026-10-18).
+    expect(_for(ServerType.silo).supportsClientLog, isFalse);
   });
 
   test('Silo features switched on by their steps', () {
@@ -108,6 +106,7 @@ void main() {
     expect(f.supportsMediaSegments, isTrue); // 11.1
     expect(f.supportsSkipSegments, isTrue); // 11.1
     expect(f.supportsTrickplay, isTrue); // 11.2
+    expect(f.supportsProfiles, isTrue); // 18.8
   });
 
   test('Seerr goes through the Moonfin plugin, so Silo has none', () {

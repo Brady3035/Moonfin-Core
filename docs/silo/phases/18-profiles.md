@@ -319,35 +319,51 @@ With the batch:
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | previous step |
 
 **Goal.** Removing a profile only calls `logout` when it was the account's last profile on the device; add "Sign out of account" to remove all of them.
 
+**Silo v2 endpoints**
+
+- `POST /auth/logout`
+
 **Where in Moonfin**
 
-- `lib/auth/repositories/session_repository.dart`
-- `lib/ui/widgets/user_menu_dialog.dart`
+- `lib/auth/repositories/session_repository.dart`: `destroyCurrentSession` keeps the login while other profiles of the account are stored; `signOutSiloAccount`; `activeUserHasSiloSiblings`; a refused refresh removes all the account's profiles
+- `lib/ui/widgets/user_menu_dialog.dart`: "Sign out of the Silo account"
+- `lib/l10n/app_en.arb`: 1 string (`siloSignOutAccount`)
 
-**Earlier work to port:** stash (account sign-out was a known gap)
+**Earlier work to port:** stash (account sign-out was a known gap; written fresh)
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+`POST /auth/logout` ends the **login**, and on Silo the login is the account's, shared by every profile stored from it (18.2). Before, "Sign out" always called it: signing Kid out would have signed Brady and Teen out with it, while Moonfin still listed them.
+
+- **Sign out** (the account menu's existing button) now signs out the **profile**: the user is removed from this device; `logout` is called, and the account's tokens forgotten, only when no other profile of the account is stored. The tokens already went with the account's last user (`AuthenticationStore.removeUser`); the logout now follows the same rule. Jellyfin and Emby users have no `siloAccountId` and sign out exactly as before.
+- **Sign out of the Silo account** (new, in the account menu, shown only when the active user is a Silo profile with other profiles of its account stored): removes every profile of the account, then signs out as above, which is now the last profile, so the login ends on Silo. Other accounts on the same server and other servers are untouched (the existing "Sign out all users" still removes everything).
+- **A login that ends on its own** (Silo refuses the refresh: revoked on Silo's sessions page, or expired, 3.5) ended for every profile, so all of the account's profiles are removed with it, not only the active one, and the sign-in screen opens as before.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `test/auth/session_silo_profiles_test.dart` (new, 5 tests, with a real `AuthenticationStore`): signing out one profile keeps its siblings, the account's tokens and the login (no `logout`); the last profile ends the login and the tokens go; signing out of the account removes every profile of it, ends the login once, and leaves another account's profile and tokens; another account on the server is not a sibling. Also 18.4's guard: a locked profile without its PIN isn't switched to (nothing acts as it).
+- Not unit-tested: the refused-refresh path removing siblings (it needs a live Silo session in the session repository).
 
 **Manual test plan**
 
-- Remove one profile: siblings still work. Remove the last: the server session ends.
+With the batch, signed in as Brady with Kid and Teen stored:
+
+- a. The account menu shows "Sign out of the Silo account" under Sign out; it doesn't for an Emby user, nor for a Silo account with one profile.
+- b. As Kid, Sign out: back to the server list; Brady and Teen are still in the server's grid and open without a password. Silo web's sessions page still shows Moonfin's session.
+- c. As Brady, "Sign out of the Silo account": the server's grid has no Silo profiles left (sign-in screen), and Moonfin's session is gone from Silo web's sessions page.
+- d. Revoke Moonfin's session on Silo web while signed in as Kid: once the token is due (at most an hour, or restart), Moonfin goes to sign-in, and none of the account's profiles stays in the grid.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-19 | Linux (Claude workspace, Flutter 3.47.7) | — | Pass | session profiles 5/5 (new); `test/auth` pass; analyzer: no new issues |
 | | | | | |
 
 ---

@@ -14595,5 +14595,9 @@
   "siloPinFailed": "The PIN couldn't be checked. Try again.",
   "@siloPinFailed": {
     "description": "Shown in the Silo profile PIN dialog when the check failed (no network, server error)"
+  },
+  "siloSignOutAccount": "Sign out of the Silo account",
+  "@siloSignOutAccount": {
+    "description": "Account menu button shown for a Silo household profile when other profiles of the same Silo account are stored on this device: signs all of them out and ends the login (Sign out alone removes only the current profile)"
   }
 }

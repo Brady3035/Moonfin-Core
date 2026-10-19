@@ -15810,6 +15810,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get siloPinFailed => 'The PIN couldn\'t be checked. Try again.';
+
+  @override
+  String get siloSignOutAccount => 'Sign out of the Silo account';
 }
 
 /// The translations for Spanish Castilian, as used in Latin America and the Caribbean (`es_419`).

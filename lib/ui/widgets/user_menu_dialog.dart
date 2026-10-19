@@ -23,6 +23,7 @@ import '../../util/signed_in_server_features.dart';
 import '../../util/silo_failure_message.dart';
 import '../navigation/destinations.dart';
 import 'adaptive/adaptive_dialog.dart';
+import '../screens/auth/silo_profile_unlock.dart';
 import '../screens/settings/settings_side_panel.dart';
 import 'navigation_layout.dart';
 import 'overlay_sheet.dart';
@@ -172,6 +173,17 @@ class _AccountDialogState extends State<_AccountDialog> {
         },
       );
       if (!verified) return;
+    }
+
+    // A Silo profile locked with a PIN asks for it first (18.4).
+    if (account.user.siloHasPin) {
+      if (!mounted) return;
+      final unlocked = await unlockSiloProfileIfNeeded(
+        context,
+        server: account.server,
+        user: account.user,
+      );
+      if (!unlocked || !mounted) return;
     }
 
     final ok = await _sessionRepo.switchCurrentSession(

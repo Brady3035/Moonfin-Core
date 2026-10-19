@@ -21,6 +21,7 @@ import '../../../util/platform_detection.dart';
 import '../../navigation/destinations.dart';
 import '../../widgets/login_scaffold.dart';
 import '../../widgets/pin_entry_dialog.dart';
+import 'silo_profile_unlock.dart';
 
 class ServerScreen extends StatefulWidget {
   final String serverId;
@@ -192,6 +193,23 @@ class _ServerScreenState extends State<ServerScreen> {
 
     final alwaysAuthenticate =
         GetIt.instance<AuthenticationPreferences>().shouldAlwaysAuthenticate;
+
+    // A Silo profile locked with a PIN asks for it first (18.4).
+    final stored = _userRepo
+        .getStoredServerUsers(server.id)
+        .where((u) => u.id == user.id)
+        .firstOrNull;
+    if (stored != null && stored.siloHasPin && !alwaysAuthenticate) {
+      if (!mounted) return;
+      if (!await unlockSiloProfileIfNeeded(
+        context,
+        server: server,
+        user: stored,
+      )) {
+        return;
+      }
+      if (!mounted) return;
+    }
 
     if (user.hasToken && !alwaysAuthenticate) {
       final success = await _trySwitchSession(server.id, user.id);

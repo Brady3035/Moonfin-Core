@@ -134,4 +134,59 @@ void main() {
     expect(store.getSiloTokens('s1', '9'), isNull);
     expect(store.getUsers('s1').single.siloAccountId, '9');
   });
+
+  group('profile PIN proofs (18.4)', () {
+    const proof = {'token': 'pvt_1', 'expiresAt': '2026-10-13T14:00:00.000Z'};
+
+    test('stored per profile under the account', () async {
+      final store = await _store();
+      await store.putSiloTokens('s1', '9', _tokens('a'));
+
+      await store.putSiloProfileToken('s1', '9', 'teen', proof);
+
+      expect(store.getSiloProfileToken('s1', '9', 'teen'), proof);
+      expect(store.getSiloProfileToken('s1', '9', 'kid'), isNull);
+      expect(store.getSiloProfileToken('s1', '10', 'teen'), isNull);
+    });
+
+    test('a refresh keeps them; a new login drops them', () async {
+      final store = await _store();
+      await store.putSiloTokens('s1', '9', _tokens('a'));
+      await store.putSiloProfileToken('s1', '9', 'teen', proof);
+
+      await store.putSiloTokens('s1', '9', _tokens('b'));
+      expect(store.getSiloProfileToken('s1', '9', 'teen'), proof);
+      expect(store.getSiloTokens('s1', '9')?['access_token'], 'b');
+
+      await store.putSiloTokens('s1', '9', _tokens('c'), newLogin: true);
+      expect(store.getSiloProfileToken('s1', '9', 'teen'), isNull);
+    });
+
+    test('null forgets one; nothing is stored without a login', () async {
+      final store = await _store();
+      await store.putSiloTokens('s1', '9', _tokens('a'));
+      await store.putSiloProfileToken('s1', '9', 'teen', proof);
+      await store.putSiloProfileToken('s1', '9', 'kid', proof);
+
+      await store.putSiloProfileToken('s1', '9', 'teen', null);
+      await store.putSiloProfileToken('s1', '10', 'x', proof);
+
+      expect(store.getSiloProfileToken('s1', '9', 'teen'), isNull);
+      expect(store.getSiloProfileToken('s1', '9', 'kid'), proof);
+      expect(store.getSiloProfileToken('s1', '10', 'x'), isNull);
+      expect(store.getSiloAccountIds('s1'), ['9']);
+    });
+
+    test('they go with the account', () async {
+      final store = await _store();
+      await store.putUser(_user('teen', account: '9'));
+      await store.putSiloTokens('s1', '9', _tokens('a'));
+      await store.putSiloProfileToken('s1', '9', 'teen', proof);
+
+      await store.removeUser('s1', 'teen');
+      await store.putSiloTokens('s1', '9', _tokens('b'));
+
+      expect(store.getSiloProfileToken('s1', '9', 'teen'), isNull);
+    });
+  });
 }

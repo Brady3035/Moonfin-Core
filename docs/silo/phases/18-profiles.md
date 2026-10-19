@@ -189,34 +189,74 @@ With the batch (visible from 18.8), Brady's account with Brady, Kid and Teen (PI
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | previous step |
 
 **Goal.** Free-text PIN dialog (Silo PINs are 1–72 characters), TV-focusable, showing the lockout time. Also lifts 3.7: a PIN-locked main profile can now be unlocked at sign-in.
 
+**Silo v2 endpoints**
+
+- `POST /profiles/{id}/verify-pin` (18.1)
+
 **Where in Moonfin**
 
-- `lib/ui/screens/auth/silo_profile_unlock.dart`
+- `lib/ui/screens/auth/silo_profile_unlock.dart` (new): `unlockSiloProfileIfNeeded`, `SiloPinDialog`
+- `lib/auth/store/authentication_store.dart`: the PIN proofs under the account (`getSiloProfileToken`, `putSiloProfileToken`; `putSiloTokens(newLogin:)`)
+- `lib/auth/services/silo_token_storage.dart`: `profileToken`, `needsPin`, `saveProfileToken`; `restore` sends the proof; `save(newLogin:)`
+- `lib/auth/repositories/session_repository.dart`: a locked profile without a proof isn't switched to; `auth_repository.dart`: sign-in saves as a new login
+- `lib/ui/screens/auth/server_screen.dart` (the grid), `lib/ui/widgets/user_menu_dialog.dart` (the switcher): ask before switching
+- `lib/l10n/app_en.arb`: 7 strings (`siloPin…`)
 
-**Earlier work to port:** stash
+**Earlier work to port:** stash (gone: written fresh)
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+**When it asks.** Before switching to a Silo profile that is locked (`siloHasPin`, from Silo's household, 18.2) and has no live proof, the grid (18.3) and the account switcher call `unlockSiloProfileIfNeeded`. Nothing else changes in those screens: Moonfin's own app PIN (`PinCodeUtil`, a device lock on any user) still comes first when it is set; the Silo PIN is the server's lock on the profile.
+
+**The dialog** (`SiloPinDialog`): "PIN for Teen", one obscured text field (Silo PINs are any text of 1–72 bytes, so not Moonfin's digit pad), Cancel and Unlock. Each Unlock sends the PIN once (18.1):
+
+- right: the dialog closes, the proof is kept, and the switch goes on;
+- wrong: "That PIN isn't right.", the field is emptied and keeps focus;
+- locked (five wrong): "Too many wrong PINs. Try again in 5 minutes." (`Retry-After`, worded as in 17.3), or "… Try again later." without it;
+- failed (no network, server error): "The PIN couldn't be checked. Try again." (or 17.3's texts for `429`/`503`);
+- empty: nothing is sent; longer than 72 bytes: "That PIN isn't right." without spending an attempt.
+
+On a TV the field works as in the temporary-password dialog (3.6): select opens the keyboard, down reaches Unlock.
+
+**The proof.** Silo's `profile_token` is bound to the login (session) and the profile's PIN; it survives token refreshes and has no other expiry in the current build. It is stored next to the account's pair, under the profile (`siloAccounts[account].profileTokens[profile]`), so a restart and later switches don't ask again, as Silo's own apps do while a login lasts. A refresh keeps the proofs (`putSiloTokens` merges); a new sign-in (`save(newLogin: true)`) drops them, since Silo no longer accepts them; they go with the account's last user. `restore` puts the profile's proof on the client (`X-Profile-Token`) along with its id, and none for an unlocked profile, so switching from Teen to Kid doesn't carry Teen's proof along. An `expiresAt`, if Silo ever sends one, is honoured.
+
+**Which login checks the PIN.** The check goes through the server's client as the account (no profile headers, 18.1). If that client holds no login (the grid after a restart) or another account's, the account's stored login is put on it first.
+
+**No proof, no switch.** `switchCurrentSession` refuses a locked profile without a live proof (the caller asks first). At start-up that is what happens for "last user" or auto-login on a locked profile whose proof is gone (a new sign-in elsewhere ended it): the start-up screen sends the person to the server's grid, where tapping the profile asks for the PIN, instead of opening Home and having every request refused.
+
+**3.7 is lifted.** With profiles, a sign-in never stops at "the main profile is locked" (`SiloMainProfileLocked`): the household is stored and the grid lets the person enter the main profile's PIN like any other. The old message stays for the main-profile-only mode (profiles off).
+
+**Not done here:** a PIN added or changed on the web while Moonfin acts as that profile. Silo then refuses the old proof (`403 profile_verification_required`) on every request until the profile is chosen again; the household read at the next start marks it locked, and the grid asks. Handling it mid-session (ending the session and asking) is the open 3.7 question; Brady's call.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `test/ui/screens/auth/silo_pin_dialog_test.dart` (new, 7 tests): the title names the profile and the right PIN closes it unlocked; a wrong PIN stays open, says so and clears the field; a lockout says how long (287 s → "5 minutes"), or "later"; a failed check says so, and an empty PIN sends nothing; a PIN over 72 bytes is wrong without a check; Cancel closes it locked.
+- `test/auth/authentication_store_silo_test.dart` (4 new): proofs are stored per profile under the account; a refresh keeps them and a new login drops them; null forgets one, and nothing is stored without a login; they go with the account.
+- `test/auth/silo_session_restore_test.dart` (5 new): a locked profile needs its PIN until a proof is kept; an expired proof counts as none; restore sends the profile and its proof; switching to an unlocked profile drops the proof; a new sign-in drops the old login's proofs.
 
 **Manual test plan**
 
-- Correct PIN, wrong PIN, lockout message.
+With the batch, Teen locked with a PIN on Silo's web app:
+
+- a. In the grid (or the switcher), pick Teen: "PIN for Teen". A wrong PIN: "That PIN isn't right."; the right one opens Teen's Home.
+- b. Restart Moonfin (last user is Teen): Home opens as Teen without asking again.
+- c. Switch to Kid and back to Teen: no PIN asked the second time.
+- d. Sign out of the account and sign in again: Teen asks again (new login).
+- e. Lockout: enter five wrong PINs: "Too many wrong PINs. Try again in 5 minutes."; even the right PIN is refused until then.
+- f. Lock the main profile (Brady) with a PIN on the web, sign out, sign in: the grid opens and Brady asks for the PIN (3.7 lifted).
+- g. TV (deferred to 17.5): select opens the keyboard on the PIN field, down reaches Unlock, back closes the dialog.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-19 | Linux (Claude workspace, Flutter 3.47.7) | — | Pass | PIN dialog 7/7, store 12/12 (4 new), restore 17/17 (5 new); `test/auth`, `test/ui/screens/auth`, `test/l10n` 202/202; analyzer: no new issues |
 | | | | | |
 
 ---

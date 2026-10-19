@@ -78,27 +78,60 @@ Brady's Silo serves the compat API on 8096 and the native API on 8090 on the sam
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | previous step |
 
 **Goal.** mDNS `_silo._tcp`, verified with `/system/identity`.
 
+**Silo v2 endpoints**
+
+- DNS-SD over multicast DNS: `_silo._tcp.local` (PTR, SRV, TXT `v`/`id`, A/AAAA), Silo's `internal/landiscovery`, described in its `docs/architecture/server-discovery.md`
+- `GET /api/v2/system/info`, `GET /api/v2/system/identity`, `GET /api/v2/theme/branding` (through `probeSiloServer`, 17.1)
+
 **Where in Moonfin**
 
-- `lib/auth/services/server_discovery_service_io.dart`
+- `lib/auth/services/silo_lan_discovery.dart` (new): `buildSiloBrowseQuery`, `SiloMdnsRecords` (a small DNS message reader), `SiloLanAdvert`, `SiloLanBrowser`
+- `lib/auth/services/server_discovery_service_io.dart`: the Silo browse runs next to the Jellyfin/Emby UDP broadcast; `_discoverSilo`, `_confirmSilo`
+- `android/app/src/main/kotlin/org/moonfin/androidtv/MainActivity.kt`: `acquireMulticastLock` / `releaseMulticastLock` on the platform channel
+- `ios/Runner/Info.plist`, `macos/Runner/Info.plist`: `_silo._tcp` in `NSBonjourServices`; the local-network text names Silo
+- `test/fixtures/silo_mdns.json` (new): packets made by Silo's own record builder
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+The server list's "Discovered servers" comes from Jellyfin's UDP broadcast ("who is JellyfinServer?" on 7359), which Jellyfin and Emby answer. Silo doesn't answer it on purpose (its compat id is the same on every install, so every Silo would look like one server); instead every Silo API process advertises itself with DNS-SD over multicast DNS, as `_silo._tcp.local`. The instance name is the server's name, SRV gives its host and port (plain HTTP), A/AAAA its addresses, and TXT `id=` the server id that `GET /api/v2/system/identity` answers.
+
+**No new dependency.** Brady's choice (2026-10-19): rather than `multicast_dns` or `bonsoir`, a small browser of our own, as Silo wrote its own small responder. It needs to read five record types and send one question, about 300 lines with the socket code.
+
+- **The question.** `buildSiloBrowseQuery`: one PTR question for `_silo._tcp.local`, id 0, asking for multicast answers. Silo answers on the link by multicast, never to the sender, and **only answers queries sent from port 5353** (so its listener can't be used to reflect traffic). `SiloLanBrowser` therefore binds UDP 5353 with address and port reuse (shared with the system's mDNSResponder or avahi; `reusePort` isn't available on Windows), joins `224.0.0.251` on every IPv4 interface, and sends the question out of each interface (`IP_MULTICAST_IF`), twice, a second apart. It listens for 2.5 s, as the UDP broadcast does.
+- **The answers.** `SiloMdnsRecords` reads every packet heard: queries (its own looping back, other browsers') are skipped; PTR names the instance, SRV its port and host, TXT its `id`, A and AAAA the host's addresses. Names may be compressed; a pointer loop or a truncated packet stops the read of that packet only. A record with TTL 0 is a goodbye and removes what it names. Link-local IPv6 is skipped (a URL can't carry its scope; Silo doesn't send it anyway). An instance name can contain dots ("Brady's Silo v2.0" is one label), which is why instances are recognised by the suffix `._silo._tcp.local`.
+- **Trust.** An advert is a hint: anyone on the network can send one. Adverts are grouped by `id` (one deployment is heard once per API process and per interface), and for each, Moonfin probes `http://<address>:<port>` (IPv4 first, IPv6 in brackets) with `probeSiloServer`; the server is listed only when the identity's `server_id` equals the advertised `id`, under the address that answered, named from Silo's branding (as Silo's guide asks: instance names aren't unique, "Silo (2)"). An advert without an `id` is ignored. Choosing it is then the same as typing that address.
+- **Android** drops multicast on Wi-Fi unless the app holds a multicast lock (the manifest already has `CHANGE_WIFI_MULTICAST_STATE`, used by DLNA discovery). The browse asks the platform channel for one and releases it as soon as listening ends.
+- **Apple:** iOS already has the multicast entitlement (`com.apple.developer.networking.multicast`) that raw mDNS needs; `_silo._tcp` is added to `NSBonjourServices` next to `_jellyfin._tcp` and `_emby._tcp`. macOS's sandbox already allows a listening socket.
+- **Both at once.** `discoverLocalServers` runs the Silo browse alongside the broadcast and closes the list when both are done (the Silo side can take a little longer, for its identity checks). A failed Silo browse (port 5353 refused, say) is logged and leaves the broadcast's results; a failed broadcast no longer hides Silo's.
+
+**Not done here:**
+
+- The web build can't do mDNS. Its discovery probes ports 8096 and 8920 on nearby addresses; adding 8090 there would find Silo on the web too. Not in the step; worth a word with Brady.
+- A Silo saved under another address (Brady's public `https://silo.snowystreams.com`) also shows under Discovered with its LAN address, because the list hides saved servers by address only (as for Jellyfin). `Server` doesn't store the server id it was added with; storing it would let the list hide by id.
+- Overlay networks (Tailscale's `http://silo/`) don't carry multicast; Silo's guide describes a separate probe of the bare name. Not in the roadmap.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `test/auth/silo_lan_discovery_test.dart` (new, 18 tests). The packets in `test/fixtures/silo_mdns.json` were made by Silo's own record builder (`internal/landiscovery/records.go` at `365e3d4`, run in Claude's workspace): its reply to Moonfin's exact query bytes (which its `asksAbout` accepted), its start announcement and its goodbye, each also with name compression. The query's bytes; Silo's answer read with name, id, port and addresses (IPv4 first, no link-local), plain and compressed; the announcement; a goodbye withdraws the server; a dotted instance name stays whole; two servers; queries ignored; a truncated packet keeps what came before it; a pointer loop is dropped. The discovery service with a fake browser and probe: a matching identity is listed under the address that answered and named from branding; another identity isn't; a dead address moves on to the next; one deployment heard twice is listed once; an advert without an id is ignored; a failed browse ends the list quietly.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+On the Mac, on the same network as Brady's Silo (Silo logs "advertising Silo on the local network" at start; `server.lan_discovery` is on by default):
+
+- a. Optional: `dns-sd -B _silo._tcp` in Terminal lists the server.
+- b. Open the server list (sign out of Silo, or Add server): Discovered servers shows the Silo server with Silo's icon, named as in Silo's branding, with its LAN address (`http://<ip>:8080`, or the port Silo listens on: inside Docker the advert carries the container's port, see below). Jellyfin/Emby servers on the network still show.
+- c. Choose it: the add goes straight to Silo's sign-in.
+- d. Rename the server in Silo's admin settings, wait 30 s, search again: the new name shows.
+- e. Stop Silo (or turn off `server.lan_discovery`): within a search it is gone.
+- f. Deferred to 17.5: Android TV and an Android phone on Wi-Fi (the multicast lock), iPhone (the local-network permission prompt names Silo), Windows and Linux.
+
+**Docker:** Silo advertises the port its process listens on, not the one Docker publishes (`8090:8080`), and only on networks the container is attached to. With the default bridge network nothing reaches the LAN, so discovery finds nothing; with `network_mode: host` it advertises 8080. Silo's guide covers this with `server.local_url`, which needs a signed-in client. Worth checking how Brady's server runs before testing.
 
 **Results**
 
@@ -227,6 +260,7 @@ _Fill in when the step is built: what the code does, the main classes and why it
 | 14.3 e | iPhone or Android phone | With the bottom bar, the hub shows "Approve a sign-in" with Silo active, "Quick Connect" with Jellyfin, neither with Emby. |
 | 15.2 i | Web (Moonfin for the web on the Mac) | Download a Silo film: the browser downloads the original through a `…/api/v2/direct-download?dl=…` link (no token in the URL). |
 | 17.1 f | Android TV, Apple TV | Add `http://<silo host>:8096`: "Connect to Silo directly?" opens with Use Silo focused; select adds the Silo server, back keeps the Jellyfin address. |
+| 17.2 f | Android TV, Android phone (Wi-Fi), iPhone, Windows, Linux | With Silo on the same network, the server list's Discovered servers shows Silo by its branding name and LAN address; choosing it opens Silo's sign-in. On iPhone the local-network prompt names Silo. |
 
 **Results**
 

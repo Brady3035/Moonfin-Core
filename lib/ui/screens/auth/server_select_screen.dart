@@ -34,6 +34,7 @@ import '../../widgets/client_certificate_dialog.dart';
 import '../../widgets/login_scaffold.dart';
 import '../../widgets/overlay_sheet.dart';
 import '../../widgets/server_type_icon.dart';
+import '../../widgets/silo_native_offer_dialog.dart';
 
 final _kAccent = AppColorScheme.accent;
 
@@ -999,7 +1000,11 @@ class _AddServerDialogState extends State<AddServerDialog> {
     });
 
     try {
-      final server = await widget.serverRepo.addServer(address);
+      final server = await widget.serverRepo.addServer(
+        address,
+        offerSiloNative: (offer) async =>
+            mounted && await confirmSiloNativeServer(context, offer),
+      );
       if (!mounted) return;
       if (server != null) {
         _dismissDialog();

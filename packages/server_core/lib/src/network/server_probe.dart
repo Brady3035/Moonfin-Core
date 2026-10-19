@@ -81,6 +81,30 @@ Future<ServerProbeResult?> probeServerPublicInfo(Dio dio, String baseUrl) async 
   return null;
 }
 
+/// Probes [baseUrl] for Silo's native API only (`/api/v2/system/info`, then
+/// the identity, branding and setup extras). Returns null when the address
+/// answers but isn't a native Silo host; connection failures are thrown.
+Future<ServerProbeResult?> probeSiloServer(Dio dio, String baseUrl) {
+  final base = baseUrl.endsWith('/')
+      ? baseUrl.substring(0, baseUrl.length - 1)
+      : baseUrl;
+  return _probeSilo(dio, base);
+}
+
+/// Whether the Jellyfin server at [baseUrl] is Silo's Jellyfin-compatible
+/// service. Silo's compat listener answers `/System/Info/Public` as
+/// "Jellyfin Server", but its `/Branding/Configuration` disclaimer names Silo
+/// ("Silo provides Jellyfin-compatible app support. ..."). A hint only: the
+/// caller confirms a native Silo host before offering it. Never throws.
+Future<bool> looksLikeSiloJellyfinCompat(Dio dio, String baseUrl) async {
+  final base = baseUrl.endsWith('/')
+      ? baseUrl.substring(0, baseUrl.length - 1)
+      : baseUrl;
+  final branding = await _tryGetJson(dio, '$base/Branding/Configuration');
+  final disclaimer = branding?['LoginDisclaimer'];
+  return disclaimer is String && disclaimer.toLowerCase().contains('silo');
+}
+
 Future<ServerProbeResult?> _probeSilo(Dio dio, String baseUrl) async {
   final (response, requestUrl) = await _getFollowingRedirects(
     dio,

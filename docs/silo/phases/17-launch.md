@@ -13,27 +13,57 @@ Finish the fork's Silo support and prepare it for the upstream proposal.
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | previous step |
 
-**Goal.** When a bare host answers as Jellyfin on 8096 but `/api/v2/system/identity` answers on 8090, offer "This looks like a Silo server, use native mode?".
+**Goal.** When a bare host answers as Jellyfin on 8096 but Silo's native API answers on 8090, offer "This looks like a Silo server, use native mode?".
+
+**Silo v2 endpoints**
+
+- `GET /api/v2/system/info` (and the identity, branding and setup reads the probe already makes)
+- Silo's Jellyfin-compatible `GET /Branding/Configuration` (not v2: the fingerprint)
 
 **Where in Moonfin**
 
-- `lib/auth/repositories/server_repository.dart`
+- `packages/server_core/lib/src/network/server_probe.dart`: `probeSiloServer` (the native half of `probeServerPublicInfo`, now public) and `looksLikeSiloJellyfinCompat`
+- `lib/auth/repositories/server_repository.dart`: `addServer(…, offerSiloNative:)`, `_findSiloNative`, `siloNativePorts`
+- `lib/auth/models/silo_native_offer.dart` (new): `SiloNativeOffer`, `SiloNativeOfferHandler`
+- `lib/ui/widgets/silo_native_offer_dialog.dart` (new): `confirmSiloNativeServer`; `lib/ui/screens/auth/server_select_screen.dart`: the add-server dialog passes it
+- `lib/l10n/app_en.arb`: 4 strings (`siloNativeOffer…`)
+
+**Also in this commit:** the 10.7 second fix hash `b089477d2` in 10.7's status cell (still ◐ until Brady's Windows retest).
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+Silo serves two APIs: its own (`/api/v2`) and a Jellyfin-compatible one for Jellyfin apps, normally on separate ports of the same host. Someone who already uses Silo with Jellyfin apps is likely to type the address they know, which is the compat one, and Moonfin then adds the server as Jellyfin: everything works, but through Jellyfin's API, without the Silo-only features of this branch.
+
+**Recognising the compat service.** It answers `/System/Info/Public` as `"ProductName": "Jellyfin Server"`, like a real Jellyfin, and its id defaults to one fixed value on every install, so neither tells them apart. What does is `/Branding/Configuration`: Silo's disclaimer always reads "Silo provides Jellyfin-compatible app support. Silo is not affiliated with or endorsed by the Jellyfin project." (`internal/jellycompat/handlers_system.go`). `looksLikeSiloJellyfinCompat` checks that the disclaimer names Silo. It is only a hint, and never throws; a real Jellyfin costs this one extra request when it is added, nothing more.
+
+**Finding the native API.** Only after the hint, `_findSiloNative` probes the same host on Silo's native ports, all at once with a 3-second connect timeout: 8090 (what Silo's `docker-compose.yml` publishes, `${PORT:-8090}:8080`) and 8080 (the listener's own default, `PORT`), on the compat address's scheme first and plain `http` after (Silo's listener speaks HTTP; HTTPS normally comes from a proxy in front). Each candidate goes through `probeSiloServer`, the same check that recognises a Silo address typed directly (`/api/v2/system/info` with `api_major` and `server_version`, then identity, branding and setup), so what is offered is a server Moonfin would add anyway. The first port in that order that answers wins.
+
+**Offering it.** `addServer` takes an optional `offerSiloNative` handler. The add-server dialog passes one that asks: "Connect to Silo directly?", "This address is the Jellyfin-compatible service of the Silo server *Snowy Streams*. Moonfin can connect to Silo directly at *http://192.168.1.20:8090*, with Silo's own features." with **Use Silo** (focused, so a remote's select takes it) and **Keep Jellyfin**. Use Silo adds the native server (named and versioned from Silo's branding and system info, as a typed Silo address would be); Keep Jellyfin, or closing the dialog, adds the address as entered, as before. Nothing is remembered: adding the same compat address again asks again.
+
+The other callers of `addServer` pass no handler and behave exactly as before: the web build's configured address, a discovered server (Jellyfin's UDP discovery; Silo doesn't answer it) and the self-signed retry.
+
+**Why not on every Jellyfin address:** without the fingerprint, every Jellyfin server added would wait for probes on two more ports, up to the timeout on a firewalled host. With it, only Silo's compat service pays for them.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `packages/server_core/test/server_probe_test.dart` (4 new): the disclaimer that names Silo is recognised; a Jellyfin disclaimer, an HTML page and a `404` aren't; `probeSiloServer` finds a native host and answers null for a Jellyfin one.
+- `test/auth/server_repository_silo_test.dart` (5 new, real local servers for the compat and the native API): Silo's compat service offers the native server with its address and name, and yes adds it as Silo; no adds the compat address as Jellyfin; a real Jellyfin offers nothing; nothing is offered when no native Silo answers; without a handler the compat address is added as before.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+Brady's Silo serves the compat API on 8096 and the native API on 8090 on the same machine (adjust the host to his LAN address).
+
+- a. Add server `http://<silo host>:8096`: "Connect to Silo directly?" names the server and `http://<silo host>:8090`. Use Silo: the server is added with Silo's icon, and signing in goes to Silo's sign-in (code view).
+- b. Remove it, add `http://<silo host>:8096` again, Keep Jellyfin: added as a Jellyfin server, as before this step.
+- c. Add `<silo host>` with no scheme or port: Moonfin tries its usual candidates; if it lands on 8096 (compat), the same question appears.
+- d. Add the public `https://silo.snowystreams.com`: it is the native address already, so no question, added as Silo.
+- e. Add Emby (`https://emby.snowystreams.com`): no question, no delay.
+- f. On a TV (deferred to the 17.5 table): the remote's select takes Use Silo, back keeps Jellyfin.
+- g. Full suite (`flutter test` at the repo root).
 
 **Results**
 
@@ -196,6 +226,7 @@ _Fill in when the step is built: what the code does, the main classes and why it
 | 14.2 f | iPhone or Android phone | Signed in to Silo, approve another device's eight-digit code from the bottom-nav hub's "Approve a sign-in" (14.3): "Approved. The other device is signing in.", and the device signs in. |
 | 14.3 e | iPhone or Android phone | With the bottom bar, the hub shows "Approve a sign-in" with Silo active, "Quick Connect" with Jellyfin, neither with Emby. |
 | 15.2 i | Web (Moonfin for the web on the Mac) | Download a Silo film: the browser downloads the original through a `…/api/v2/direct-download?dl=…` link (no token in the URL). |
+| 17.1 f | Android TV, Apple TV | Add `http://<silo host>:8096`: "Connect to Silo directly?" opens with Use Silo focused; select adds the Silo server, back keeps the Jellyfin address. |
 
 **Results**
 

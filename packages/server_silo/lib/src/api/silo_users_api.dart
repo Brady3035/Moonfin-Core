@@ -7,6 +7,19 @@ import '../silo_image_registry.dart';
 import 'silo_downloads_api.dart';
 import 'silo_profiles_api.dart';
 
+/// One household profile of the signed-in account, as Silo lists it and as
+/// the Moonfin user it becomes (phase 18).
+class SiloHouseholdMember {
+  const SiloHouseholdMember({required this.profile, required this.user});
+
+  final SiloProfile profile;
+
+  /// The profile as a Moonfin user: the same mapping [SiloUsersApi.getCurrentUser]
+  /// uses, without the per-profile downloads capability (read when the
+  /// profile is used).
+  final ServerUser user;
+}
+
 /// Moonfin's `UsersApi` over Silo's account and profiles.
 ///
 /// The Moonfin user is the profile the client acts as (`X-Profile-Id`): the
@@ -82,19 +95,7 @@ class SiloUsersApi implements UsersApi {
             : 'Silo profile $wanted no longer exists on this account',
       );
     }
-    final user = siloProfileToUserDto(
-      profile: profile.json,
-      account: accountJson,
-    );
-    // The avatar, when the profile has one to fetch (`avatar_url`: a preset
-    // or an upload), under the profile id, which is the Moonfin user id.
-    images?.note(profile.id);
-    final avatarTag = images?.register(
-      profile.id,
-      SiloImageType.primary,
-      profile.json['avatar_url'] as String?,
-    );
-    if (avatarTag != null) user['PrimaryImageTag'] = avatarTag;
+    final user = _userDto(profile, accountJson);
     if (downloadsFuture != null) {
       try {
         if (!(await downloadsFuture).permitsDownloads) {
@@ -110,6 +111,48 @@ class SiloUsersApi implements UsersApi {
       }
     }
     return ServerUser.fromJson(user);
+  }
+
+  /// Every profile on the signed-in account, each with its Moonfin user, in
+  /// Silo's order (phase 18: each profile is a Moonfin user, decision D1).
+  /// Reads `GET /account/me` and `GET /profiles`, the latter as the account.
+  Future<List<SiloHouseholdMember>> getHousehold() async {
+    final accountFuture = _dio.get<dynamic>('/api/v2/account/me');
+    final profilesFuture = _profiles.list();
+    profilesFuture.ignore();
+    final account = await accountFuture;
+    final profiles = await profilesFuture;
+    final accountJson = asJsonMap(account.data);
+    if (accountJson == null) {
+      throw FormatException(
+        'Expected an account from Silo, got ${account.data.runtimeType}',
+      );
+    }
+    return [
+      for (final profile in profiles)
+        SiloHouseholdMember(
+          profile: profile,
+          user: ServerUser.fromJson(_userDto(profile, accountJson)),
+        ),
+    ];
+  }
+
+  /// [profile] as a Moonfin user DTO, its avatar recorded.
+  Map<String, dynamic> _userDto(
+    SiloProfile profile,
+    Map<String, dynamic> account,
+  ) {
+    final user = siloProfileToUserDto(profile: profile.json, account: account);
+    // The avatar, when the profile has one to fetch (`avatar_url`: a preset
+    // or an upload), under the profile id, which is the Moonfin user id.
+    images?.note(profile.id);
+    final avatarTag = images?.register(
+      profile.id,
+      SiloImageType.primary,
+      profile.json['avatar_url'] as String?,
+    );
+    if (avatarTag != null) user['PrimaryImageTag'] = avatarTag;
+    return user;
   }
 
   /// The settings Moonfin reads from a `UserConfiguration`, resolved by Silo

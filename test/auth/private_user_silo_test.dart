@@ -77,4 +77,21 @@ void main() {
     expect(user.copyWith(isAdministrator: false).siloAccountId, '9');
     expect(user.copyWith(siloAccountId: '10').siloAccountId, '10');
   });
+
+  test('a PIN-locked profile round-trips; others write nothing (18.2)', () {
+    final locked = _user(siloAccountId: '9').copyWith(siloHasPin: true);
+
+    final json = locked.toJson();
+    expect(json['siloHasPin'], isTrue);
+    expect(PrivateUser.fromJson('u1', 's1', json).siloHasPin, isTrue);
+    expect(
+      _user(siloAccountId: '9').toJson().containsKey('siloHasPin'),
+      isFalse,
+    );
+    expect(
+      PrivateUser.fromJson('u1', 's1', _user().toJson()).siloHasPin,
+      isFalse,
+    );
+    expect(locked.copyWith(name: 'x').siloHasPin, isTrue);
+  });
 }

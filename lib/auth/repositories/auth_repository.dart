@@ -8,6 +8,7 @@ import 'package:server_silo/server_silo.dart';
 import '../../util/network_errors.dart';
 import '../models/login_state.dart';
 import '../models/user.dart';
+import '../services/silo_household.dart';
 import '../services/silo_token_storage.dart';
 import '../store/authentication_store.dart';
 import '../store/authentication_preferences.dart';
@@ -29,12 +30,23 @@ class AuthRepository {
   /// A Silo login waiting for its temporary password to be replaced (3.6).
   _PendingSiloPasswordChange? _pendingPasswordChange;
 
+  /// Whether a Silo sign-in stores the account's household profiles as
+  /// users (phase 18) or acts as the main profile (decision D9). Follows
+  /// `FeatureDetector.supportsProfiles`; tests can choose.
+  final bool _siloProfiles;
+
   AuthRepository(
     this._authStore,
     this._authPrefs,
     this._sessionRepository,
-    this._userRepository,
-  );
+    this._userRepository, {
+    bool? siloProfiles,
+  }) : _siloProfiles =
+           siloProfiles ??
+           const FeatureDetector(
+             serverType: ServerType.silo,
+             serverVersion: '',
+           ).supportsProfiles;
 
   Stream<LoginState> get stateStream => _stateController.stream;
 
@@ -402,6 +414,14 @@ class AuthRepository {
     required String serverId,
     required String accountId,
   }) async {
+    if (_siloProfiles) {
+      return _finishSiloHouseholdSignIn(
+        client: client,
+        silo: silo,
+        serverId: serverId,
+        accountId: accountId,
+      );
+    }
     final ServerUser profileUser;
     try {
       await silo.useMainProfile();
@@ -459,6 +479,92 @@ class AuthRepository {
     _siloTokens.bind(client: silo, serverId: serverId, accountId: accountId);
     await _authStore.putUser(user);
     await _authPrefs.setLastServerId(serverId);
+    await _authPrefs.setLastUserId(user.id);
+    _userRepository.setCurrentUser(user);
+
+    final state = Authenticated(userId: user.id, serverId: serverId);
+    _stateController.add(state);
+    return state;
+  }
+
+  /// The rest of a Silo sign-in with household profiles (18.2): every
+  /// profile of the account is stored as a user, all sharing the account's
+  /// token pair, which is stored and bound as for the main profile.
+  ///
+  /// An account with a single profile, without a PIN, goes straight in as
+  /// it. Any other household (several profiles, or a PIN to enter) answers
+  /// [SiloChooseProfile]: the login screen then opens the server's user grid
+  /// (18.3), where a locked profile asks for its PIN (18.4). Nobody is the
+  /// current user until then.
+  ///
+  /// As with the main profile, a failure after the password ends the new
+  /// login on Silo too.
+  Future<LoginState> _finishSiloHouseholdSignIn({
+    required MediaServerClient client,
+    required SiloMediaServerClient silo,
+    required String serverId,
+    required String accountId,
+  }) async {
+    final List<SiloHouseholdMember> members;
+    try {
+      // No profile until one is chosen; the household is read as the account.
+      silo.profileId = null;
+      silo.profileToken = null;
+      members = await (silo.usersApi as SiloUsersApi).getHousehold();
+      if (members.isEmpty) {
+        throw StateError('Silo listed no profiles for this account');
+      }
+    } catch (e) {
+      _logger.e('Silo sign-in could not read the household', error: e);
+      try {
+        await client.authApi.logout();
+      } catch (_) {}
+      final state = e is DioException
+          ? _handleDioError(e)
+          : ApiClientError(error: e.toString(), errorType: 'exception');
+      if (e is! DioException) _stateController.add(state);
+      return state;
+    }
+
+    final tokens = silo.session.tokens;
+    if (tokens == null) {
+      // Signed out while the household was read.
+      const state = RequireSignIn();
+      _stateController.add(state);
+      return state;
+    }
+
+    await _siloTokens.save(serverId, accountId, tokens);
+    _siloTokens.bind(client: silo, serverId: serverId, accountId: accountId);
+    final users = await SiloHousehold(_authStore).store(
+      serverId: serverId,
+      accountId: accountId,
+      members: members,
+      accessToken: tokens.accessToken,
+    );
+    await _authPrefs.setLastServerId(serverId);
+
+    if (users.length != 1 || users.single.siloHasPin) {
+      final state = SiloChooseProfile(serverId: serverId);
+      _stateController.add(state);
+      return state;
+    }
+
+    var user = users.single.copyWith(lastUsed: DateTime.now());
+    silo.profileId = user.id;
+    client.userId = user.id;
+    try {
+      // Silo decides downloads per profile (15.1); the household listing
+      // only has the account's flag.
+      final current = await client.usersApi.getCurrentUser();
+      user = user.copyWith(
+        canDownload:
+            current.policy?.enableContentDownloading ?? user.canDownload,
+      );
+    } catch (e) {
+      _logger.w('Silo profile could not be read after sign-in', error: e);
+    }
+    await _authStore.putUser(user);
     await _authPrefs.setLastUserId(user.id);
     _userRepository.setCurrentUser(user);
 

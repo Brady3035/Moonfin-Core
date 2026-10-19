@@ -45,6 +45,15 @@ class ApiClientError extends LoginState {
   const ApiClientError({required this.error, this.errorType, this.statusCode});
 }
 
+/// A Silo sign-in stored the account's household profiles (18.2), and one
+/// has to be chosen: there are several, or the only one has a PIN. The
+/// login is open and stored; nobody is the current user yet. The login
+/// screen opens [serverId]'s user grid (18.3).
+class SiloChooseProfile extends LoginState {
+  final String serverId;
+  const SiloChooseProfile({required this.serverId});
+}
+
 /// Silo refused the sign-in for a reason a person can act on (17.3): wait
 /// and try again, or update Moonfin or Silo. [failure] has the text.
 class SiloRequestRefused extends LoginState {

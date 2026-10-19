@@ -105,6 +105,13 @@ class SiloProblem {
     return wait.isNegative ? Duration.zero : wait;
   }
 
+  /// The server's clock when it answered (the `Date` header), to the
+  /// second. Null when absent or unreadable.
+  static DateTime? serverDate(DioException error) {
+    final raw = error.response?.headers.value('date')?.trim();
+    return raw == null || raw.isEmpty ? null : _parseHttpDate(raw);
+  }
+
   @override
   String toString() {
     final buffer = StringBuffer('Silo ${status ?? '-'} ${code ?? '?'}');

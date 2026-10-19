@@ -536,6 +536,73 @@ void main() {
       expect(siloSchemaErrors('DownloadStatusBody', patch.data), isEmpty);
     });
 
+    test('a clock ahead of the server is retried on the server\'s clock '
+        '(15.2 fix)', () async {
+      final sent = <String>[];
+      final server = FixtureServer({
+        '/api/v2/downloads/dl_1': (o) {
+          final at = (o.data as Map)['updated_at'] as String;
+          sent.add(at);
+          if (sent.length == 1) {
+            return ResponseBody.fromString(
+              jsonEncode({
+                'type':
+                    'https://siloserver.org/docs/api/v2/problems/malformed_request',
+                'title': 'Bad Request',
+                'status': 400,
+                'detail': 'invalid download status event',
+              }),
+              400,
+              headers: {
+                Headers.contentTypeHeader: ['application/problem+json'],
+                // The server's clock: 19:59:40, 20 s behind the device.
+                'date': ['Sun, 18 Oct 2026 19:59:40 GMT'],
+              },
+            );
+          }
+          return FixtureServer.json(
+            200,
+            jsonEncode(
+              (_fixture('download_created.json')['items'] as List).first,
+            ),
+          );
+        },
+      });
+
+      await _client(server).downloadsApi.downloadFinished(
+        ServerDownloadTicket(
+          id: 'dl_1',
+          itemId: 'movie-1',
+          url: Uri.parse('https://silo.example/api/v2/downloads/dl_1/file'),
+          headers: const {},
+          revision: 1,
+        ),
+      );
+
+      expect(sent, ['2026-10-18T20:00:00.000Z', '2026-10-18T19:59:39.000Z']);
+    });
+
+    test('another refusal of the report reaches the caller', () async {
+      final server = FixtureServer({
+        '/api/v2/downloads/dl_1': (_) =>
+            FixtureServer.problem(409, 'conflict', 'Another revision.'),
+      });
+
+      await expectLater(
+        _client(server).downloadsApi.downloadFinished(
+          ServerDownloadTicket(
+            id: 'dl_1',
+            itemId: 'movie-1',
+            url: Uri.parse('https://silo.example/api/v2/downloads/dl_1/file'),
+            headers: const {},
+            revision: 1,
+          ),
+        ),
+        throwsA(isA<DioException>()),
+      );
+      expect(server.requests, hasLength(1));
+    });
+
     test("deleted items remove the device's entries for them", () async {
       final deleted = <String>[];
       final server = FixtureServer({

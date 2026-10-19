@@ -13,7 +13,7 @@ Silo accounts can hold several household profiles, each with its own progress, f
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | previous step |
 
 **Goal.** `verify-pin` → profile token with expiry; 429 lockout with `Retry-After`, not retried automatically.
 
@@ -23,34 +23,48 @@ Silo accounts can hold several household profiles, each with its own progress, f
 
 **Where in Moonfin**
 
-- `packages/server_silo/lib/src/api/silo_profiles_api.dart`
+- `packages/server_silo/lib/src/api/silo_profiles_api.dart`: `verifyPin`, `SiloPinResult` (`SiloPinAccepted`, `SiloPinRejected`, `SiloPinLocked`); `list` asks as the account
+- `packages/server_silo/lib/src/silo_session.dart`, `silo_media_server_client.dart`: `siloNoProfileExtra` (a request without `X-Profile-Id` and `X-Profile-Token`)
 
-**Earlier work to port:** silo-2
+**Earlier work to port:** silo-2 (`origin/silo-2-signin-api`: the same three answers; ported, now reading `Retry-After` through `SiloProblem.retryAfter`, and with the session's normal handling instead of `siloNoRefreshExtra`)
+
+**Also in this commit:** the 17.6 fix hash `af9f217ec`; this file's second "18.3" section is 18.2 ("Store the household as users"), as the roadmap has it.
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+A Silo profile can be locked with a PIN (1–72 characters, any text). Requests acting as a locked profile need, next to its `X-Profile-Id`, an `X-Profile-Token` proving the PIN was entered. `verifyPin(profileId, pin)` asks for one: `POST /profiles/{id}/verify-pin` with `{"pin": …}`, as the signed-in account (bearer token). The answer is one of:
+
+- **`SiloPinAccepted(profileToken, expiresAt)`**: `valid: true` with a `profile_token`. The token is bound to this login session and to the profile's current PIN (Silo's `profile-verification-tokens.md`): it keeps working across token refreshes and stops when the login ends or the PIN is changed or cleared. `expires_at` is null when it has no other expiry (Silo's current build sends null).
+- **`SiloPinRejected`**: `valid: false`. Silo counted the attempt.
+- **`SiloPinLocked(retryAfter)`**: `429 rate_limited`. Five wrong PINs lock the profile for five minutes, during which every check is refused, the right PIN included; `Retry-After` gives the seconds left.
+
+Anything else (no network, `404` for a profile deleted meanwhile) is thrown, for the dialog (18.4) to show.
+
+**As the account.** Checking a PIN and listing the profiles are account-wide routes (`ProfileOptional` in Silo's registry): they don't need a profile, and a profile header naming a locked profile without its proof would get them refused, which is exactly the situation when a profile is about to be unlocked (or after a PIN was added on the web). The new request flag `siloNoProfileExtra` leaves both profile headers off; `verifyPin` and `list` always use it. (`useMainProfile` cleared the profile before listing for the same reason; that is now done by the flag.)
+
+**Never sent twice.** Every check counts towards the lockout, so a PIN goes out only when the person entered it. The earlier branch marked the request `siloNoRefreshExtra`, which also skipped refreshing a due token first and could then fail with a `401`. Here the request goes through the session like any other: a token that is due is refreshed before it is sent, and the one replay the session makes is after a `401`, which Silo answers before it looks at the PIN (authentication comes first), so that attempt was never counted. No other retry exists in the Silo client.
 
 ### Testing
 
 **Automated tests**
 
-- correct PIN; wrong PIN; lockout
+- `packages/server_silo/test/silo_profiles_api_test.dart` (7 new, 15/15): a matching PIN gives the token and its expiry, and the request is a `POST` with `{"pin": …}` and the bearer token, fitting the pinned contract (`ProfilePINCheck`, `ProfileVerification`); a token without an expiry; a wrong PIN is rejected and sent once; a lockout gives `Retry-After` (287 s) and isn't retried; other failures are thrown, once; the profile id is escaped in the path; the check and the listing go out without the profile headers even while a profile and an old proof are set. `silo_users_api_test.dart`: `getCurrentUser`'s listing now goes out as the account (1 changed); `useMainProfile`'s test checks the selected profile in the client's headers instead of on a second listing (1 changed).
 
 **Manual test plan**
 
-- _Write the checks before testing._
+Nothing to see in the app yet: the PIN dialog arrives with 18.4 and is tested there (correct PIN, wrong PIN, lockout message).
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-19 | Linux (Claude workspace, Flutter 3.47.7) | — | Pass | profiles API 15/15 (7 new); `server_silo` analyzer: no issues |
 | | | | | |
 
 ---
 
-<a id="step-18-3"></a>
-## 18.3 "Who's watching" picker
+<a id="step-18-2"></a>
+## 18.2 Store the household as users
 
 | Status | Commit | Depends on |
 |---|---|---|

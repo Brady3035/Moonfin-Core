@@ -253,6 +253,19 @@ void main() {
     _expectFitsContract(caps);
   });
 
+  test('libmpv sends no headers (its media_kit backend opens the URL alone); '
+      'AetherEngine does', () {
+    expect(SiloPlayerTraits.mpv.sendsRequestHeaders, isFalse);
+    expect(SiloPlayerTraits.mpvAndroid.sendsRequestHeaders, isFalse);
+    expect(SiloPlayerTraits.aether.sendsRequestHeaders, isTrue);
+    expect(SiloPlayerTraits.media3.sendsRequestHeaders, isTrue);
+    // Otherwise AetherEngine claims what libmpv does.
+    const aether = SiloPlayerTraits.aether;
+    expect(aether.managesDynamicRange, isTrue);
+    expect(aether.selectsAnyAudioTrack, isTrue);
+    expect(aether.rendersEmbeddedSubtitles, isTrue);
+  });
+
   test('the web: nothing beyond its profile, and no headers (12.3)', () {
     const web = SiloPlayerTraits.web;
     expect(web.sendsRequestHeaders, isFalse);

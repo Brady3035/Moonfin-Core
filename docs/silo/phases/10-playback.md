@@ -54,6 +54,8 @@ The offset comes from the stream being played (`_currentResolution`, or the last
 |---|---|---|---|---|
 | 2026-10-17 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | timeline offset 5/5; `test/playback/` 841/841; analyzer: no new issues (upstream infos only). Full app suite left to Brady |
 | 2026-10-17 | macOS | `bd9d59ea` | Pass | Brady: the phase 10 test list passed |
+| 2026-10-18 | Windows | `bd9d59ea` | Fail | Brady: direct play works; after turning the quality down the picture goes black and buffers without end (Mac fine). The log: replan `200`, "transcode (ContainerBitrateExceedsLimit) — H264/EAC3 HLS @ 2000000bps", then `waitingForReady` until stopped. The media_kit backend opens the HLS URL without the stream's headers |
+| 2026-10-18 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | fix: libmpv gets the token in every media URL; `playback_silo` 92/92 (2 new), `test/playback/silo_playback_environment_test.dart` 5/5; analyzer: no issues |
 | | | | | |
 
 ---
@@ -360,7 +362,7 @@ Starting plays from 10.7 on (the media requests need the account's token); test 
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | `5defdf4ad` | previous step |
+| ◐ Fix ready for testing | `5defdf4ad`, fix — | previous step |
 
 **Goal.** Headers on every request (HLS segments and sidecars included); `token=` query only on `/api/v2/stream` URLs where headers can't be sent. Signed artwork never gets a token.
 
@@ -376,11 +378,13 @@ Silo's media routes always need the account and the viewer (Playback API, "Deliv
 
 `siloPlanToResolution` takes the credentials (`SiloStreamAuth`: access token, profile id, PIN proof) and, for a stream on the server's own origin:
 
-- `requestHeaders` are `Authorization: Bearer …`, `X-Profile-Id` (and `X-Profile-Token` for a PIN-unlocked profile), with `stream.headers` on top. Moonfin's backends send a stream's headers on every request they make for it, HLS playlists and segments included (AetherEngine and media_kit both take them at open).
+- `requestHeaders` are `Authorization: Bearer …`, `X-Profile-Id` (and `X-Profile-Token` for a PIN-unlocked profile), with `stream.headers` on top. AetherEngine (and Media3, from 12.1) sends a stream's headers on every request it makes for it, HLS playlists and segments included. Moonfin's media_kit backend (libmpv: Windows, Linux, and Android's second engine) does not: it opens the URL alone, so those players get the token in every media URL instead (see the fix below).
 - **`token=`** is added only to Silo's `/api/v2/stream/` routes (`siloAuthorizeUrl`): the original file, a progressive remux, and (from 10.14) subtitle sidecars and font bundles. Those are the URLs fetched by something that may not send the player's headers (a subtitle loader, a cast receiver). HLS (`/api/v2/playback/transcode/…`) goes by headers only: Silo copies a playlist's query onto every segment URI, so a token there would ride on each segment for no gain. The rest of the query (`st`, `seek`, a sidecar's identity pins) stays byte for byte, and a URL that already has a `token` keeps it.
 - **A URL on another origin** (a proxy node, absolute in the plan) gets neither: the account's credentials never leave the server it signed in to. Moonfin doesn't opt into `authorized_media_origins_v1` (10.3), so Silo signs such URLs itself. **Artwork** never gets a token: its URLs are signed and cached by path (6.2).
 
 **How long it works.** The player can't change a stream's headers or URL once it has opened it. So before the stream is described the resolver refreshes an access token that is past half its life (`_streamAuth`): the stream then works for at least half a token lifetime, 30 minutes on this server (tokens last an hour). The start itself went through the session interceptor, which refreshes only in the last fifth of the life. A failed refresh keeps the current token.
+
+**Fix (2026-10-18): HLS on libmpv.** On Windows a transcode (a lower quality picked during direct play) stayed black and buffered without end; the Mac played it. Silo's replan answered `200` with an HLS plan, then nothing: `MediaKitPlayerBackend.play` opens `Media(url)` without `payload['headers']` (only the Aether, Media3 and Apple TV backends read them), so mpv fetched the HLS playlist without credentials and Silo refused it. Direct play worked because `/api/v2/stream/` URLs already carry `token=`. `SiloPlayerTraits.mpv` and `.mpvAndroid` now say `sendsRequestHeaders: false`, so the resolver puts the token in every media URL for them, HLS included, as it does for the web (12.3; Silo copies the manifest's query onto every playlist and segment URI), and refreshes a token past a tenth of its life before the stream opens. `SiloPlayerTraits.aether` is its own constant now (it was `mpv`), with headers. Teaching the media_kit backend to send headers (`Media(url, httpHeaders: …)`) would have changed Jellyfin and Emby playback too, so it is left for upstream.
 
 **Open (raise with Brady):** a stream that is still playing when its token expires: an HLS segment or a seek on a direct play fetched after that would be refused (`401`), since Silo checks the token on every media request. A film longer than the token's remaining life could stop there. Brady's test plan checks it below; if it fails, the fix is a follow-up step (replan to a fresh stream shortly before the token expires, which reopens it at the same position, or Silo accepting the `st` reference alone for a live session).
 
@@ -391,11 +395,13 @@ Silo's media routes always need the account and the viewer (Playback API, "Deliv
 - `packages/playback_silo/test/silo_stream_auth_test.dart` (new, 6 tests): a remux on the server gets the bearer and profile headers and `token=` after its `seek` and `st`; HLS gets the headers and no token; a proxy node's URL gets neither; a token with 20 of its 60 minutes left is refreshed once before the stream is described and the new one is used; `siloAuthorizeUrl` adds the token only to `/api/v2/stream/` on the server's origin (not artwork, HLS or a proxy), keeps a token already there, encodes it.
 - `silo_start_test.dart`: the remux URL now ends with the token.
 - `playback_silo` 37/37; analyzer: no issues.
+- Fix: `silo_quality_test.dart` (1 new): on libmpv a quality change's HLS URL carries `token=`; `silo_capabilities_translator_test.dart` (1 new): libmpv (desktop and Android) sends no headers, AetherEngine and Media3 do, and AetherEngine otherwise claims what libmpv does.
 
 **Manual test plan**
 
 - Play xXx (a remux on a stereo Mac: DTS → AAC) and The Salt Path (direct play): both play, seek and resume. The network log shows no `401` for `/api/v2/stream/…`.
 - Force a transcode (set a 4 Mbit/s ceiling in Moonfin's playback settings) and play a film: HLS plays past the first minutes (every segment is authorised).
+- **Fix (Windows):** play The Simpsons 29x02 (direct play), then pick a lower quality (2 Mbit/s): within a few seconds the transcode plays at the same position, and picking the original again goes back to direct play. Linux and Android's libmpv engine are deferred (17.5, 10.7 f).
 - **Token lifetime:** play something for more than 35 minutes (direct play, then once with the 4 Mbit/s ceiling for HLS), then seek. Note whether playback continues or fails with a `401` in the log: that decides the open item above.
 
 **Results**

@@ -88,6 +88,25 @@ void main() {
     expect(server.bodies(_replanPath).last['bandwidth_cap_kbps'], 4000);
   });
 
+  test('on libmpv (Windows, Linux) the transcode carries the token: the '
+      'media_kit backend sends no headers', () async {
+    resolver = SiloMediaStreamResolver(
+      siloTestClient(server),
+      environment: () => const SiloPlaybackEnvironment(
+        formFactor: 'desktop',
+        platform: 'windows',
+        traits: SiloPlayerTraits.mpv,
+      ),
+    );
+    final stream = await resolver.resolve(item, deviceProfile: _profile);
+    final next = await resolver.replan(item, stream, quality(2000000));
+    expect(
+      next.streamUrl,
+      'https://silo.example/api/v2/playback/transcode/$_session/master.m3u8'
+      '?st=x&token=access-1',
+    );
+  });
+
   test('no ceiling lifts it', () async {
     var stream = await resolver.resolve(
       item,

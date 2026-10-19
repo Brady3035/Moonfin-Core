@@ -13,7 +13,7 @@ Read Silo's downloads design before step 15.3; it is a full server-managed downl
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Retest | `1d9bb732f` | previous step |
+| ☑ Done | `1d9bb732f` | previous step |
 
 **Goal.** Show download actions only when the account may download.
 
@@ -60,6 +60,7 @@ On the Mac, signed in to Silo:
 |---|---|---|---|---|
 | 2026-10-18 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | downloads API 13/13, `server_silo` 633/633, `test/auth` 138/138; analyzer: no issues in the changed files |
 | 2026-10-18 | macOS | `bd9d59ea` | Not run as planned | Brady switched off his account's download permission without restarting Moonfin: the button stayed, and Download did nothing visible. The permission is read at start (and on Silo's access-changed signal, which this switch didn't send), so check b needs the restart; retest |
+| 2026-10-18 | macOS | `bd9d59ea` | Pass | Brady: after a restart, "15.1 is good to go" |
 | | | | | |
 
 ---
@@ -69,7 +70,7 @@ On the Mac, signed in to Silo:
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Fix ready for testing | `5bccb6036`, fix — | previous step |
+| ◐ Fix ready for testing | `5bccb6036`, fix `28e8cf3c1` | previous step |
 
 **Goal.** Download the original file through Silo's download registry (managed downloads). *Changed from signed direct-download links (Brady, 2026-10-18): Silo's guide says apps use managed downloads for every quality and keeps direct links for browsers.*
 
@@ -195,7 +196,7 @@ There is no time limit: a long film on a busy server can take a while, and the p
 
 **The transfer.** Once Silo has the file, the download service treats it as an original: the native background engine (resumable, with notifications) where it would run an original, byte progress against the known size, no live-transcode handling (no transmux engine, no transcode status polling, no "activity" reports). The file is named `.mp4`, as Moonfin's transcoded downloads are, and is checked to be one.
 
-**Audio tracks (found in Brady's test, 2026-10-18).** A converted download of a film with two audio tracks had only the first one, the wrong language. Moonfin can't choose it: Silo's create request has no audio track (`DownloadCreateBody`), and Silo prepares with its default track. Silo's current code keeps every audio track of the source in the MP4 (`docs/downloads-api.md` §1: "Prepared remux/transcode files keep every source audio track"; "Files prepared before this layout contain only the first audio track"), so a single-track file means Brady's Silo build (`bd9d59ea`) predates that layout, or the file was prepared before it. With a multi-track file, choosing the person's language offline is a Moonfin follow-up (the manifest names the file's tracks).
+**Audio tracks (found in Brady's test, 2026-10-18).** A converted download of a film with two audio tracks had only the first one, the wrong language. Moonfin can't choose it: Silo's create request has no audio track (`DownloadCreateBody`), and Silo prepares with its default track. Silo's current code keeps every audio track of the source in the MP4 (`docs/downloads-api.md` §1: "Prepared remux/transcode files keep every source audio track"; "Files prepared before this layout contain only the first audio track"), so a single-track file means Brady's Silo build (`bd9d59ea`) predates that layout, or the file was prepared before it. With a multi-track file, choosing the person's language offline is a Moonfin follow-up (the manifest names the file's tracks). Brady (2026-10-18): he runs a recent Silo build; marked for later review ([Later](../ROADMAP.md#later)).
 
 **Known limits.**
 
@@ -300,7 +301,7 @@ On the Mac, signed in to Silo:
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ◐ Ready for testing | `a6baebf04` | previous step |
+| ☑ Done | `a6baebf04` | previous step |
 
 **Goal.** Replay queued progress through bulk progress sync.
 
@@ -347,6 +348,7 @@ On the Mac, with a Silo film and an episode downloaded (15.2):
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-18 | Linux (Claude workspace, Flutter 3.47.2) | — | Pass | offline progress 5/5, progress sync 20/20, `server_silo` 664/664, `server_core` 100/100, `test/offline` + `test/data/services` 623/623; analyzer: no issues in the changed files |
+| 2026-10-18 | macOS | `bd9d59ea` | Pass | Brady: "took a moment to sync but worked fine" |
 | | | | | |
 
 ---

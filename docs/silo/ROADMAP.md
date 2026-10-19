@@ -157,7 +157,7 @@ Status key: ☐ not started · ◐ in progress · ☑ done and tested · ⊘ ski
 - [x] **10.4** [Playback context](phases/10-playback.md#step-10-4)
 - [x] **10.5** [Installation id](phases/10-playback.md#step-10-5)
 - [x] **10.6** [Start playback](phases/10-playback.md#step-10-6)
-- [x] **10.7** [Stream authorisation](phases/10-playback.md#step-10-7)
+- [ ] **10.7** [Stream authorisation](phases/10-playback.md#step-10-7)
 - [x] **10.8** [Unplayable media message](phases/10-playback.md#step-10-8)
 - [x] **10.9** [Progress reporting](phases/10-playback.md#step-10-9)
 - [x] **10.10** [Stop](phases/10-playback.md#step-10-10)
@@ -205,11 +205,11 @@ Status key: ☐ not started · ◐ in progress · ☑ done and tested · ⊘ ski
 
 ## 15. [Downloads and offline](phases/15-downloads.md)
 
-- [ ] **15.1** [Download permission and capability](phases/15-downloads.md#step-15-1)
+- [x] **15.1** [Download permission and capability](phases/15-downloads.md#step-15-1)
 - [ ] **15.2** [Original-file downloads](phases/15-downloads.md#step-15-2)
-- [x] **15.3** [Transcoded downloads](phases/15-downloads.md#step-15-3)
+- [x] **15.3** [Transcoded downloads](phases/15-downloads.md#step-15-3) · the audio-track question moved to [Later](#later)
 - [x] **15.4** [Offline metadata and artwork](phases/15-downloads.md#step-15-4)
-- [ ] **15.5** [Offline progress sync](phases/15-downloads.md#step-15-5)
+- [x] **15.5** [Offline progress sync](phases/15-downloads.md#step-15-5)
 - [x] **15.6** [Offline subtitles](phases/15-downloads.md#step-15-6) · trickplay moved to [Later](#later)
 - [ ] **15.7** [Auto-download via subscriptions](phases/15-downloads.md#step-15-7) *(optional)* · moved to [Later](#later)
 
@@ -245,4 +245,5 @@ Status key: ☐ not started · ◐ in progress · ☑ done and tested · ⊘ ski
 Features left out of the plan for now, which could be added after it (Brady's list).
 
 - **Auto-download via Silo's download subscriptions** (was 15.7; Brady, 2026-10-18). Moonfin's own auto-download keeps working on Silo through the ordinary downloads; Silo's series monitors (`/downloads/subscriptions`) would let the server register new episodes itself.
+- **The audio track of a converted download** (found in 15.3; Brady, 2026-10-18). Brady's converted download had only the first audio track, the wrong language, though his Silo build is recent and Silo's documentation says prepared files keep every source track. To review: why Silo's file had one track, and, with a multi-track file, choosing the person's language when it plays offline.
 - **Offline trickplay** (left out of 15.6; Brady, 2026-10-18). Moonfin stores no scrub previews with downloads on any server; offline previews would need the sheets downloaded with each file and the offline player taught to use them.

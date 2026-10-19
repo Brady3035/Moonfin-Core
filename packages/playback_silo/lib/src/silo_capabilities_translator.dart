@@ -56,18 +56,26 @@ class SiloPlayerTraits {
 
   /// The libmpv backend's traits (Windows, Linux): it decodes in software,
   /// picks any audio track, tone-maps HDR and Dolby Vision itself, draws
-  /// embedded subtitles, and plays every delivery.
+  /// embedded subtitles, and plays every delivery. Moonfin's media_kit
+  /// backend opens a URL without the stream's headers, so the token rides in
+  /// every media URL, HLS included.
   static const mpv = SiloPlayerTraits(
     managesDynamicRange: true,
     selectsAnyAudioTrack: true,
     rendersEmbeddedSubtitles: true,
+    sendsRequestHeaders: false,
   );
 
   /// AetherEngine's traits (macOS, iOS, and tvOS from 12.2): it demuxes the
   /// file itself and picks any audio track, presents HDR and Dolby Vision
   /// through the system (which maps them to an SDR screen), draws embedded
-  /// and bitmap subtitles, and plays every delivery.
-  static const aether = mpv;
+  /// and bitmap subtitles, and plays every delivery. It sends the stream's
+  /// headers on every request.
+  static const aether = SiloPlayerTraits(
+    managesDynamicRange: true,
+    selectsAnyAudioTrack: true,
+    rendersEmbeddedSubtitles: true,
+  );
 
   /// Media3's traits (Android, step 12.1): ExoPlayer picks any audio track
   /// by its place among the file's (Moonfin hands it the ordinal) and draws
@@ -105,6 +113,7 @@ class SiloPlayerTraits {
   static const mpvAndroid = SiloPlayerTraits(
     selectsAnyAudioTrack: true,
     rendersEmbeddedSubtitles: true,
+    sendsRequestHeaders: false,
   );
 
   /// Maps an original file's HDR or Dolby Vision to the screen itself
@@ -131,8 +140,8 @@ class SiloPlayerTraits {
   final bool loadsFontAttachments;
 
   /// Sends the stream's headers with every request it makes for it. A player
-  /// that can't (a browser's media element, a cast receiver) gets the
-  /// account's token in every media URL instead (12.3).
+  /// that can't (a browser's media element, a cast receiver, the media_kit
+  /// backend) gets the account's token in every media URL instead (12.3).
   final bool sendsRequestHeaders;
 }
 

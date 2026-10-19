@@ -679,11 +679,57 @@ class SessionRepository {
     if (_activeServerId != serverId || _activeUserId != userId) return;
     _logger.w('Silo refused to renew the login. Signing out.');
     unawaited(() async {
+      // The login was the whole account's: its other profiles can't act
+      // without it either (18.6).
+      await _removeSiloSiblings(serverId, userId);
       await destroyCurrentSession(tokenKnownInvalid: true);
       _router.go(
         '${Destinations.login}?serverId=$serverId&username=${Uri.encodeComponent(name)}',
       );
     }());
+  }
+
+  /// The other stored profiles of [userId]'s Silo account on [serverId]
+  /// (18.6); empty for Jellyfin and Emby users and for a lone profile.
+  List<PrivateUser> _siloSiblings(String serverId, String? userId) {
+    final users = _authStore.getUsers(serverId);
+    final accountId = users
+        .where((u) => u.id == userId)
+        .firstOrNull
+        ?.siloAccountId;
+    if (accountId == null) return const [];
+    return [
+      for (final u in users)
+        if (u.siloAccountId == accountId && u.id != userId) u,
+    ];
+  }
+
+  Future<void> _removeSiloSiblings(String serverId, String userId) async {
+    for (final sibling in _siloSiblings(serverId, userId)) {
+      await _authStore.removeUser(serverId, sibling.id);
+    }
+  }
+
+  /// Whether the active user is a Silo profile with other profiles of its
+  /// account stored here, so "Sign out of the account" means more than
+  /// "Sign out" (18.6).
+  bool get activeUserHasSiloSiblings {
+    final serverId = _activeServerId;
+    return serverId != null &&
+        _siloSiblings(serverId, _activeUserId).isNotEmpty;
+  }
+
+  /// Signs the whole Silo account out on this device (18.6): every stored
+  /// profile of the active user's account goes, the login is ended on Silo
+  /// and its tokens are forgotten. For any other user it is the same as
+  /// [destroyCurrentSession].
+  Future<void> signOutSiloAccount() async {
+    final serverId = _activeServerId;
+    final userId = _activeUserId;
+    if (serverId != null && userId != null) {
+      await _removeSiloSiblings(serverId, userId);
+    }
+    await destroyCurrentSession();
   }
 
   /// [tokenKnownInvalid] is set when the server has already rejected the
@@ -728,7 +774,13 @@ class SessionRepository {
       GetIt.instance<ServerMessagesService>().clear();
     }
 
-    if (serverId != null && !tokenKnownInvalid) {
+    // A Silo login belongs to the account, not the profile: signing out of
+    // one profile keeps it for the account's other stored profiles, and
+    // only the last one ends it on Silo (18.6). The tokens go with that
+    // last profile too (AuthenticationStore.removeUser).
+    final keepsSiloLogin =
+        serverId != null && _siloSiblings(serverId, userId).isNotEmpty;
+    if (serverId != null && !tokenKnownInvalid && !keepsSiloLogin) {
       try {
         final client = _clientFactory.getClientIfExists(serverId);
         await client?.authApi.logout();
@@ -894,6 +946,14 @@ class SessionRepository {
 
   /// Lets a test drive a command straight in, so every name a control surface
   /// sends can be checked against what the receiver does with it.
+  /// Marks [userId] on [serverId] as the active session without starting
+  /// it, for tests of what happens to an active session (sign-out, 18.6).
+  @visibleForTesting
+  void setActiveSessionForTest(String serverId, String userId) {
+    _activeServerId = serverId;
+    _activeUserId = userId;
+  }
+
   @visibleForTesting
   Future<void> handleRemoteCommandForTest(ServerWebSocketMessage event) =>
       _handleRemoteCommand(event);

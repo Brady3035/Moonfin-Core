@@ -15982,6 +15982,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get siloPinFailed => 'The PIN couldn\'t be checked. Try again.';
 
   @override
+  String get siloSignOutAccount => 'Sign out of the Silo account';
+
+  @override
   String trailerCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

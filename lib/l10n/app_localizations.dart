@@ -27609,6 +27609,12 @@ abstract class AppLocalizations {
   /// **'The PIN couldn\'t be checked. Try again.'**
   String get siloPinFailed;
 
+  /// Account menu button shown for a Silo household profile when other profiles of the same Silo account are stored on this device: signs all of them out and ends the login (Sign out alone removes only the current profile)
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out of the Silo account'**
+  String get siloSignOutAccount;
+
   /// How many trailers the trailer picker lists, shown in its header
   ///
   /// In en, this message translates to:

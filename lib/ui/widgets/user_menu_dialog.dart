@@ -215,6 +215,18 @@ class _AccountDialogState extends State<_AccountDialog> {
     context.go(Destinations.serverSelect);
   }
 
+  /// Signs every stored profile of the active Silo account out and ends
+  /// its login (18.6); "Sign out" leaves the account's other profiles.
+  Future<void> _signOutSiloAccount() async {
+    if (_busy) return;
+    setState(() => _busy = true);
+    await _sessionRepo.signOutSiloAccount();
+
+    if (!mounted) return;
+    Navigator.of(context).pop();
+    context.go(Destinations.serverSelect);
+  }
+
   Future<void> _signOutAll() async {
     if (_busy) return;
     setState(() => _busy = true);
@@ -406,6 +418,20 @@ class _AccountDialogState extends State<_AccountDialog> {
                         ),
                       ),
               ),
+              if (_sessionRepo.activeUserHasSiloSiblings) ...[
+                const SizedBox(height: 8),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: _ActionButton(
+                      label: l10n.siloSignOutAccount,
+                      onPressed: _busy ? null : _signOutSiloAccount,
+                      focusColor: focusColor,
+                    ),
+                  ),
+                ),
+              ],
               if (_accounts.length > 1) ...[
                 const SizedBox(height: 8),
                 Padding(

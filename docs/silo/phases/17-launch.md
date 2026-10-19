@@ -146,23 +146,62 @@ On the Mac, on the same network as Brady's Silo (Silo logs "advertising Silo on 
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | previous step |
 
 **Goal.** `426` → "server or app update required"; Retry-After texts.
 
+**Silo v2 endpoints**
+
+- `GET /api/v2/system/info` (`api_major`)
+- Any route: `410 client_upgrade_required` (a retired API), `426 client_upgrade_required` (playback start), `429 rate_limited` and `503` with `Retry-After`
+
+**Where in Moonfin**
+
+- `packages/server_core/lib/src/network/silo_public_info.dart`: `siloSupportedApiMajor` (2), `SiloApiUnsupported`, `isSiloClientUpgradeRequired`; `server_probe.dart`: the probe reports the tombstone
+- `lib/util/silo_failure_message.dart` (new): `SiloFailure` (`SiloUpdateRequired`, `SiloTryAgainLater`) and its texts
+- `lib/auth/repositories/server_repository.dart`, `lib/auth/models/server_addition_state.dart` (`unsupportedSilo`), `lib/ui/screens/auth/server_select_screen.dart`: adding a server
+- `lib/auth/repositories/auth_repository.dart`, `lib/auth/models/login_state.dart` (`SiloRequestRefused`), `lib/ui/screens/auth/login_screen.dart`: signing in, with a password or a code
+- `lib/ui/widgets/user_menu_dialog.dart`: approving a code (14.2)
+- `packages/playback_silo/lib/src/silo_media_stream_resolver.dart`: the start's refusal also on `410`
+- `lib/l10n/app_en.arb`: 8 strings
+
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+**"426" is really "410".** The roadmap was written against Silo's v1 notes. Silo's v2 contract keeps `426 Upgrade Required` for one case only, a playback start in an older protocol body (RFC 9110 reserves 426 for protocol upgrades); a retired API namespace answers **`410 Gone` with the `client_upgrade_required` problem** (Silo's `docs/architecture/api-contract.md`: that is how `/api/v1` was retired at 1.0, and how `/api/v2` will be when a v3 replaces it). Both mean the same thing to the person: this Moonfin is too old for the server. Version compatibility is decided by `api_major` (the server's version string is a git hash, never compared).
+
+**Adding a server.** The probe reads `api_major`. A Silo whose major isn't the one this build speaks (`siloSupportedApiMajor`, 2) is not added: newer says "This Silo server needs a newer version of Moonfin. Update Moonfin to use it.", older "This Silo server is too old for this version of Moonfin. Update Silo to use it." A server whose `/api/v2/system/info` is the `410` tombstone (it has moved on to v3) gets the first message too, instead of the probe going on to try the address as Jellyfin and ending in "Unable to connect". Once a Silo answers, no other scheme or port is tried.
+
+**Waiting.** Silo answers `429 rate_limited` when an address or account makes too many attempts (sign-in, codes, approvals have their own budgets) and `503` when it is starting or a service it needs is down, and sends `Retry-After` with both (seconds, or an HTTP date; `SiloProblem.retryAfter` already read both). The texts: "Too many attempts. Try again in 42 seconds." and "The server is busy or still starting. Try again in 2 minutes." (seconds up to a minute and a half, whole minutes after), or "… Try again later." without a header.
+
+**`SiloFailure`.** One place turns a failed request into one of those: `SiloFailure.of(DioException)` answers `SiloUpdateRequired` or `SiloTryAgainLater` (with the wait), or null for anything else, and `.message(l10n)` gives the sentence. Only answers carrying Silo's problem body count (Silo sends one with every error), so a Jellyfin or Emby `429` keeps the handling it had; a `426` counts on its own (only Silo's playback start sends one). It is used where the person is waiting on the answer:
+
+- **Sign-in** (password and code): `AuthRepository` turns it into the new `LoginState` `SiloRequestRefused`, which the login screen shows. Before, a `429` read "Connection failed (badResponse): HTTP 429". A `503` while opening the profile after the password, which used to read "Connection failed …: HTTP 503", now says the server is busy (that test changed with it).
+- **Getting a code** on the login screen (`initiateQuickConnect`): before, "Quick Connect unavailable (429, badResponse): …".
+- **Approving a code** (14.2's dialog): `429` used to give the generic failure.
+- **Playback** already refused a `426` start with "This Silo server needs a newer version of Moonfin to play."; a `410 client_upgrade_required` start does the same now. That text stays in `playback_silo`, untranslated, like the player's other Silo refusals (17.4).
+
+**Not done here:** requests after sign-in (Home, browsing, downloads) keep their own error handling. A server that retires `/api/v2` while Moonfin is signed in would show failing screens until the person signs out and adds it again, which then says what to do. A message there needs a central place for "the server is gone" that Moonfin doesn't have for any server; not in this step.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- `test/util/silo_failure_message_test.dart` (new, 10 tests): a `429` with `Retry-After: 42`, and as an HTTP date (5 minutes); a `503` with and without the header (1 second, later); `410`/`426 client_upgrade_required` and a bare `426`; a `429` without Silo's body is left alone; `401`, a `410 session_expired` and a `500` are left to their callers; an older Silo asks to update Silo; the wait's wording.
+- `packages/server_core/test/server_probe_test.dart` (3 new): the `410` tombstone throws `SiloApiUnsupported` (newer); another `410` isn't one; newer and older by `api_major`.
+- `test/auth/server_repository_silo_test.dart` (1 new): a Silo with `api_major` 3 isn't added, and nothing more is tried.
+- `test/auth/auth_repository_silo_test.dart` (1 new, 1 changed): a sign-in refused with `429` and `Retry-After: 42` is `SiloRequestRefused` with the wait; a `503` after the password is "busy" now.
+- `packages/playback_silo/test/silo_start_test.dart` (1 new): a `410 client_upgrade_required` start is refused with the update message.
 
 **Manual test plan**
 
-- _Write the checks before testing._
+Silo's limits are hard to reach by hand; these are the ones that can be:
+
+- a. Sign-in limit: on the Mac, sign out of Silo and enter a wrong password repeatedly (Silo's login budget is per address and account; it may take a dozen or more tries). Once Silo refuses, Moonfin says "Too many attempts. Try again in N seconds." (or minutes) instead of "Connection failed … HTTP 429". After the wait, the right password signs in.
+- b. Approval limit (optional, 60 lookups a minute per address): approving wrong codes quickly from the hub until refused shows the same sentence.
+- c. Busy: restart Silo and sign in while it is starting (if it answers `503` then): "The server is busy or still starting…".
+- d. Wrong passwords before the limit still say "Invalid username or password"; Emby sign-in errors are unchanged.
+- e. Update required can't be produced against a real server yet; the unit tests cover it.
+- f. Full suite.
 
 **Results**
 

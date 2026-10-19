@@ -73,6 +73,22 @@ void main() {
     expect(added.setupCompleted, isTrue);
   });
 
+  test('a Silo with another API major is not added (17.3)', () async {
+    routes = {
+      '/api/v2/system/info': {'server_version': 'f00dfeed', 'api_major': 3},
+    };
+    final repository = repo();
+
+    final added = await repository.addServer(address());
+
+    expect(added, isNull);
+    final unsupported = repository.lastFailure!.unsupportedSilo!;
+    expect(unsupported.apiMajor, 3);
+    expect(unsupported.serverIsNewer, isTrue);
+    // Found once: no other scheme or port is tried after it.
+    expect(repository.lastFailure!.lastCandidate, address());
+  });
+
   group('native port hint (17.1)', () {
     late HttpServer native;
     late Map<String, Object> nativeRoutes;

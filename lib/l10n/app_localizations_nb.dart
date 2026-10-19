@@ -15604,4 +15604,51 @@ class AppLocalizationsNb extends AppLocalizations {
 
   @override
   String get siloNativeOfferKeep => 'Keep Jellyfin';
+
+  @override
+  String get siloAppUpdateRequired =>
+      'This Silo server needs a newer version of Moonfin. Update Moonfin to use it.';
+
+  @override
+  String get siloServerUpdateRequired =>
+      'This Silo server is too old for this version of Moonfin. Update Silo to use it.';
+
+  @override
+  String get siloTooManyAttempts => 'Too many attempts. Try again later.';
+
+  @override
+  String siloTooManyAttemptsWait(String wait) {
+    return 'Too many attempts. Try again in $wait.';
+  }
+
+  @override
+  String get siloServerBusy =>
+      'The server is busy or still starting. Try again later.';
+
+  @override
+  String siloServerBusyWait(String wait) {
+    return 'The server is busy or still starting. Try again in $wait.';
+  }
+
+  @override
+  String siloWaitSeconds(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count seconds',
+      one: '1 second',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String siloWaitMinutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count minutes',
+      one: '1 minute',
+    );
+    return '$_temp0';
+  }
 }

@@ -20,6 +20,7 @@ import '../../data/services/pin_guard.dart';
 import '../../data/services/server_pin_service.dart';
 import '../../util/platform_detection.dart';
 import '../../util/signed_in_server_features.dart';
+import '../../util/silo_failure_message.dart';
 import '../navigation/destinations.dart';
 import 'adaptive/adaptive_dialog.dart';
 import '../screens/settings/settings_side_panel.dart';
@@ -508,6 +509,8 @@ Future<void> showQuickConnectCodeDialog(BuildContext context) async {
 }
 
 String _quickConnectErrorMessage(DioException e, AppLocalizations l10n) {
+  final siloFailure = SiloFailure.of(e);
+  if (siloFailure != null) return siloFailure.message(l10n);
   final status = e.response?.statusCode;
   final data = e.response?.data;
   final serverMessage = data is String

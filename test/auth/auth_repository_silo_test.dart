@@ -11,6 +11,7 @@ import 'package:moonfin/auth/repositories/user_repository.dart';
 import 'package:moonfin/auth/services/silo_token_storage.dart';
 import 'package:moonfin/auth/store/authentication_preferences.dart';
 import 'package:moonfin/auth/store/authentication_store.dart';
+import 'package:moonfin/util/silo_failure_message.dart';
 import 'package:server_core/server_core.dart';
 import 'package:server_silo/server_silo.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -63,6 +64,7 @@ const _passwordChangeRoutes = {
 /// temporary-password flow (3.6).
 class _Silo implements HttpClientAdapter {
   bool wrongPassword = false;
+  bool rateLimited = false;
   bool mainHasPin = false;
   bool profilesFail = false;
 
@@ -111,6 +113,20 @@ class _Silo implements HttpClientAdapter {
     }
     switch (path) {
       case '/api/v2/auth/login':
+        if (rateLimited) {
+          return ResponseBody.fromString(
+            jsonEncode({
+              'type': 'https://siloserver.org/docs/api/v2/problems/rate_limited',
+              'status': 429,
+              'detail': 'Too many requests.',
+            }),
+            429,
+            headers: {
+              Headers.contentTypeHeader: ['application/problem+json'],
+              'retry-after': ['42'],
+            },
+          );
+        }
         if (wrongPassword) {
           return _problem(
             401,
@@ -313,6 +329,19 @@ void main() {
     expect(store.getSiloAccountIds('s1'), isEmpty);
   });
 
+  test('too many attempts says how long to wait (17.3)', () async {
+    silo.rateLimited = true;
+
+    final state = await signIn();
+
+    expect(state, isA<SiloRequestRefused>());
+    final failure = (state as SiloRequestRefused).failure;
+    expect(failure, isA<SiloTryAgainLater>());
+    expect((failure as SiloTryAgainLater).busy, isFalse);
+    expect(failure.wait, const Duration(seconds: 42));
+    expect(store.getUsers('s1'), isEmpty);
+  });
+
   test('a PIN-locked main profile says so and ends the new login', () async {
     silo.mainHasPin = true;
 
@@ -331,8 +360,11 @@ void main() {
 
     final state = await signIn();
 
-    expect(state, isA<ApiClientError>());
-    expect((state as ApiClientError).statusCode, 503);
+    // Silo's 503 reads "busy or still starting" (17.3).
+    expect(state, isA<SiloRequestRefused>());
+    final failure = (state as SiloRequestRefused).failure;
+    expect(failure, isA<SiloTryAgainLater>());
+    expect((failure as SiloTryAgainLater).busy, isTrue);
     expect(silo.paths, contains('/api/v2/auth/logout'));
     expect(store.getUsers('s1'), isEmpty);
   });

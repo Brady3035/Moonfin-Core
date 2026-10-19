@@ -11,6 +11,7 @@ import '../models/user.dart';
 import '../services/silo_token_storage.dart';
 import '../store/authentication_store.dart';
 import '../store/authentication_preferences.dart';
+import '../../util/silo_failure_message.dart';
 import 'session_repository.dart';
 import 'user_repository.dart';
 
@@ -479,6 +480,13 @@ class AuthRepository {
     }
     if (isSignInForbidden(e)) {
       const state = SignInForbidden();
+      _stateController.add(state);
+      return state;
+    }
+    // Silo's "not now" and "not with this version" answers (17.3).
+    final siloFailure = SiloFailure.of(e);
+    if (siloFailure != null) {
+      final state = SiloRequestRefused(siloFailure);
       _stateController.add(state);
       return state;
     }

@@ -26,6 +26,7 @@ import '../../../util/app_beta.dart';
 import '../../../util/focus/dpad_keys.dart';
 import '../../../util/platform_detection.dart';
 import '../../../util/server_url.dart';
+import '../../../util/silo_failure_message.dart';
 import '../../../util/web_diagnostics_failure.dart';
 import '../../navigation/destinations.dart';
 import '../../widgets/adaptive/adaptive_dialog.dart';
@@ -367,6 +368,7 @@ class _ServerSelectScreenState extends State<ServerSelectScreen> {
         :final lastStatusCode,
         :final lastErrorMessage,
         :final untrustedCandidate,
+        :final unsupportedSilo,
       ):
         if (!shouldHandleAdditionState) return;
         final targetUrl = (lastCandidate != null && lastCandidate.isNotEmpty)
@@ -376,7 +378,9 @@ class _ServerSelectScreenState extends State<ServerSelectScreen> {
         setState(() {
           _isConnecting = false;
           _untrustedAddress = untrustedCandidate;
-          _errorMessage = untrustedCandidate != null
+          _errorMessage = unsupportedSilo != null
+              ? SiloUpdateRequired.of(unsupportedSilo).message(l10n)
+              : untrustedCandidate != null
               ? l10n.untrustedServerCertificate
               : l10n.unableToConnectToServer;
         });
@@ -1028,6 +1032,11 @@ class _AddServerDialogState extends State<AddServerDialog> {
         return;
       }
       final failure = widget.serverRepo.lastFailure;
+      final unsupportedSilo = failure?.unsupportedSilo;
+      if (unsupportedSilo != null) {
+        _showError(SiloUpdateRequired.of(unsupportedSilo).message(widget.l10n));
+        return;
+      }
       final clientCert = failure?.clientCertCandidate;
       if (clientCert != null) {
         _clientCertAddress = clientCert;

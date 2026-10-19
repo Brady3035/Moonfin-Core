@@ -1,3 +1,4 @@
+import '../../util/silo_failure_message.dart';
 import 'server.dart';
 
 sealed class LoginState {
@@ -42,6 +43,13 @@ class ApiClientError extends LoginState {
   final int? statusCode;
 
   const ApiClientError({required this.error, this.errorType, this.statusCode});
+}
+
+/// Silo refused the sign-in for a reason a person can act on (17.3): wait
+/// and try again, or update Moonfin or Silo. [failure] has the text.
+class SiloRequestRefused extends LoginState {
+  final SiloFailure failure;
+  const SiloRequestRefused(this.failure);
 }
 
 class Authenticated extends LoginState {

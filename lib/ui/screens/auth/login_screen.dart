@@ -584,6 +584,10 @@ class _LoginScreenState extends State<LoginScreen> {
       secret: secret,
     );
     if (!mounted) return;
+    if (authResult case SiloChooseProfile(:final serverId)) {
+      _openProfileChoice(serverId);
+      return;
+    }
     if (authResult is! Authenticated) {
       final l10n = AppLocalizations.of(context);
       setState(() {
@@ -795,6 +799,14 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  /// A Silo account with several household profiles (or a PIN-locked one)
+  /// signed in (18.2): its profiles are stored as the server's users, so the
+  /// server's user grid is the "who's watching" picker (18.3).
+  void _openProfileChoice(String serverId) {
+    setState(() => _isLoading = false);
+    context.go('${Destinations.server}?serverId=$serverId');
+  }
+
   Future<void> _login() async {
     // The sign in button goes dead once this is running, but the flag only
     // reaches it on the next build, and the password field submits straight
@@ -894,6 +906,8 @@ class _LoginScreenState extends State<LoginScreen> {
           _finishLoginWithError(l10n.serverUnavailable);
         case SiloRequestRefused(:final failure):
           _finishLoginWithError(failure.message(l10n));
+        case SiloChooseProfile(:final serverId):
+          _openProfileChoice(serverId);
         case UntrustedCertificate():
           _showUntrustedCertificate();
         case ClientCertificateRequired():

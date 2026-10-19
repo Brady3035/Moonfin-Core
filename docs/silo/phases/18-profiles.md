@@ -136,34 +136,50 @@ Visible only from 18.8 on, so tested with the batch. On Silo's web app, give the
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☐ Not started | — | previous step |
+| ◐ Ready for testing | — | previous step |
 
 **Goal.** Route to the server screen's user grid when there is a choice to make.
 
 **Where in Moonfin**
 
-- `lib/ui/screens/auth/server_screen.dart`
+- `lib/ui/screens/auth/login_screen.dart`: `SiloChooseProfile` opens the server screen (`_openProfileChoice`), after a password or a code sign-in
+- `lib/ui/screens/auth/server_screen.dart`: Silo avatars from the server's client; a lock under a PIN-locked profile
 
-**Earlier work to port:** stash
+**Earlier work to port:** stash (gone: written fresh)
 
 ### How it works
 
-_Fill in when the step is built: what the code does, the main classes and why it is shaped this way, so a Moonfin maintainer can review it without reading the Silo docs._
+Moonfin already has a "who's watching" screen: the server screen's user grid, which lists a server's stored users (and Jellyfin's public ones) and switches to the one picked. Since 18.2 stores every profile of a Silo account as a user of that server, the grid lists the household, and picking a profile switches to it with the stored login, no password (the same `switchCurrentSession` as any stored user: the account's pair and the profile's `X-Profile-Id`).
+
+So the picker needs no new screen: when a Silo sign-in answers `SiloChooseProfile`, the login screen goes to `/server?serverId=…` instead of Home. That covers the password sign-in, the code sign-in (14.1) and the end of a temporary-password change (3.6). Phone, desktop and TV get the grid as they already lay it out (horizontal row, D-pad focus, arrows).
+
+Two Silo details on the grid:
+
+- **Avatars.** The grid built Jellyfin's `/Users/{id}/Images/Primary` for every server, which Silo doesn't have. A Silo profile's avatar comes from the server's client, which recorded the profile's `avatar_url` when it read the household (as the account switcher already does); without one the tile shows the person icon.
+- **A lock** under the name of a profile with a PIN, so it is clear before choosing that it will ask (18.4).
+
+**Not done here:** with two Silo accounts stored on the same server, their profiles appear side by side without saying which account each belongs to. The design note (reference §4.2.1) suggests the account name as a subtitle in that case; it's rare enough to leave until someone has it.
 
 ### Testing
 
 **Automated tests**
 
-- _None planned; add any that were written._
+- None new: the change is the routing of one state and the tile's image and lock. `flutter analyze` on both screens: no issues. The state itself is covered by 18.2's tests.
 
 **Manual test plan**
 
-- Phone, desktop and TV (D-pad focus) layouts.
+With the batch (visible from 18.8), Brady's account with Brady, Kid and Teen (PIN):
+
+- a. Sign out of Silo, sign in with the password: the grid opens with the three profiles, their avatars (or the person icon), and a lock under Teen.
+- b. Pick Kid: Home loads as Kid (Kid's Continue Watching), no password asked.
+- c. Sign in with a code instead (from another device): the grid opens the same way.
+- d. TV (deferred to 17.5): D-pad moves across the profiles; select opens one.
 
 **Results**
 
 | Date | Platform | Server build | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-19 | Linux (Claude workspace, Flutter 3.47.7) | — | Pass | analyzer: no issues in both screens; `test/auth` and `test/ui/screens/auth` pass |
 | | | | | |
 
 ---

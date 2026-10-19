@@ -346,6 +346,7 @@ Run each line on Silo, then the same on Emby (`emby.snowystreams.com`), with the
 | 15.2 i | Web (Moonfin for the web on the Mac) | Download a Silo film: the browser downloads the original through a `…/api/v2/direct-download?dl=…` link (no token in the URL). |
 | 17.1 f | Android TV, Apple TV | Add `http://<silo host>:8096`: "Connect to Silo directly?" opens with Use Silo focused; select adds the Silo server, back keeps the Jellyfin address. |
 | 17.2 a–e, f | macOS, Android TV, Android phone (Wi-Fi), iPhone, Windows, Linux | With a Silo that advertises on the LAN (Docker with host networking, or Silo outside Docker) on the same network, the server list's Discovered servers shows Silo by its branding name and LAN address; choosing it opens Silo's sign-in. On iPhone the local-network prompt names Silo. |
+| 18.3 d | Android TV, Apple TV | The Silo profile grid after sign-in: the D-pad moves across the profiles; select opens one (a locked one asks for its PIN, 18.4). |
 
 **Results**
 

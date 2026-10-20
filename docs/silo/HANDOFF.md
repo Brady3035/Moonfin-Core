@@ -34,6 +34,22 @@ Brady contributes to Moonfin (Flutter Jellyfin/Emby client) and Silo Media Serve
 - `scripts/silo_probe.sh` refreshes fixtures and the contract from the live server (Brady runs it). Fixtures live in `packages/server_silo/test/fixtures/` (`openapi-bd9d59ea.json.gz`, `silo/*.json`, `emby/*.json`). For quick live measurements Claude can drop a Python script in Brady's gitignored `build/` (as with `build/silo_jump_timing.py`): it prompts for his password itself and must send a normal `User-Agent` (the proxy answers Python's default with 403).
 - Silo's own source answers what the contract can't: `git clone --depth 1 --filter=blob:none --sparse https://github.com/Silo-Server/silo-server.git` (Go). Useful: `internal/apiv2/catalog_items.go` (catalog handler, cursor scope), `internal/catalog/query_definition.go` (rule fields and sort fields), `internal/titleutil/sort_title.go`, `contracts/settings/v1/manifest.json` (settings keys).
 
+## Where things stand (2026-10-19 late, similar items fixed)
+
+- **6.16a, "More like this" on Silo (Brady's report: wrong list, Silo web right):** the detail page never asked Silo. Its source is Settings › Details › Recommendation System, default Moonfin Recommends, a genre match on the device. `similarItemsSource` now reads that default as Silo's engine on Silo (TMDb stays TMDb, kids mode stays local, Jellyfin and Emby unchanged). `getSimilarItems` itself was right: Silo web calls the same `/recommendations/similar/{content_id}`, and Moonfin's item `Id` is the `content_id`. Manual check pending (06-browsing.md, 6.16 test plan). Commit `silo(6.16a): Ask Silo for a title's similar items`.
+
+## Where things stand (2026-10-19 evening, upstream merged)
+
+- **Upstream merged (Brady asked, 2026-10-19):** `upstream/main` `b173cb421` (35 commits past `b97ed9a7a`) into `582b68af0`. Claude's merge tree: given in the chat (it includes this file). Brady runs `git fetch upstream && git merge upstream/main` (stops on 11 conflicts), Claude copies the 12 resolved files into his folder, Brady checks `git write-tree` equals Claude's tree, then `git add -A && git commit --no-edit`.
+- What the merge needed beyond taking both sides:
+  - **Quick Connect QR:** upstream added a QR to Jellyfin's Quick Connect screen (approve in jellyfin-web, tappable on phones, beside the code on TVs and landscape tablets). Silo's 14.1 QR now uses upstream's: `_quickConnectApprovalUrl` returns Silo's `verification_uri_complete` first, so one QR implementation serves both; Silo's own `_buildQuickConnectQr` is gone. `FeatureDetector.supportsQuickConnectWebLink` is Jellyfin-only (Silo sends its link), with a test.
+  - **Sign-in refusals:** upstream's `SignInForbidden` (403 → its own message) sits after Silo's `SiloFailure` check in `_handleDioError`; the code sign-in's error switch shows it too.
+  - **Hide from Continue Watching / Next Up:** upstream's `_hideFromResumeOrReset` (Emby's `HideFromResume`, else reset) runs only when no server-side dismissal took it (`server == null`), as before for the reset.
+  - **Downloads delete:** upstream's `_ownRow` / `_deleteStoredFile` and Silo's `_forgetOnServer` both run.
+  - **Access schedules:** upstream's new abstract `UsersApi.getAccessSchedules`; `SiloUsersApi` answers empty (Silo has none), like Emby.
+  - **Stale l10n (ca, fi, ko):** upstream's files plus the Silo members inserted; `gen-l10n` otherwise reproduces every generated file.
+- Claude's checks after the merge: `server_core` 133/133, `server_silo` 680/680, `playback_silo` 93/93, `server_emby`, `server_jellyfin` pass; app tests: Brady runs the full suite (Claude's targeted run was still going when the files were handed over); analyzer: no errors, no new warnings in lib (133 issues vs upstream's own).
+
 ## Where things stand (2026-10-19 afternoon, phase 18 passed)
 
 - **Brady committed phase 18 and the two 17.x test fixes** (tree `f9bca7f3e`, equal to Claude's): `2bf8a226d` 17.1 fix (test mock), `e0c4d2576` 17.2 fix (test import), `02a964d70` 18.1, `a8944fed0` 18.2, `9a06f619f` 18.3, `ff238ba40` 18.4, `ef0ba4e22` 18.5, `725e095f5` 18.6, `81de90247` 18.7, `6b3051d6c` 18.8.

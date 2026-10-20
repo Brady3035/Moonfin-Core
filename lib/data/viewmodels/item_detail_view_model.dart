@@ -215,6 +215,28 @@ List<AggregatedItem> seerrMissingCollectionItems({
   return missing;
 }
 
+/// Which engine fills a detail page's "More like this" row.
+///
+/// The setting's default, Moonfin Recommends, matches genres across the
+/// library on the device. On Silo (6.16) the server's own engine
+/// (`/recommendations/similar`, embeddings blended with co-watching) is what
+/// Silo's apps show and what the profile's access already shapes, so Moonfin
+/// Recommends means Silo's engine there. TMDb Similarity stays TMDb, and kids
+/// mode keeps the local algorithm and its parental-rating cap.
+@visibleForTesting
+RecommendationSystemSource similarItemsSource({
+  required RecommendationSystemSource setting,
+  required bool kidsMode,
+  required ServerType serverType,
+}) {
+  if (kidsMode) return RecommendationSystemSource.local;
+  if (serverType == ServerType.silo &&
+      setting == RecommendationSystemSource.local) {
+    return RecommendationSystemSource.server;
+  }
+  return setting;
+}
+
 class ItemDetailViewModel extends ChangeNotifier {
   static const _episodeOverviewFields = 'Overview,RunTimeTicks,UserData';
 
@@ -2414,7 +2436,11 @@ class ItemDetailViewModel extends ChangeNotifier {
       if (item != null && (item.type == 'Movie' || item.type == 'Series')) {
         try {
           final prefs = GetIt.instance<UserPreferences>();
-          final sourceSetting = prefs.effectiveRecommendationSystemSource;
+          final sourceSetting = similarItemsSource(
+            setting: prefs.get(UserPreferences.recommendationSystemSource),
+            kidsMode: prefs.get(UserPreferences.kidsModeEnabled),
+            serverType: _client.serverType,
+          );
 
           if (sourceSetting == RecommendationSystemSource.server) {
             final data = await _client.itemsApi.getSimilarItems(

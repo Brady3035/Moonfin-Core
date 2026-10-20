@@ -65,10 +65,14 @@ class SiloTrackPreferences {
     if (index is! int || index < 0) return null;
     final signature = asJsonMap(row['track_signature']);
     final language =
-        _text(row['audio_language']) ?? _text(signature?['language']) ?? '';
+        jsonText(row['audio_language']) ??
+        jsonText(signature?['language']) ??
+        '';
     // As Moonfin names a track: its own title, else the shown one.
     final title =
-        _text(signature?['embedded_title']) ?? _text(signature?['title']) ?? '';
+        jsonText(signature?['embedded_title']) ??
+        jsonText(signature?['title']) ??
+        '';
     if (language.isEmpty && title.isEmpty) return null;
     return SeriesTrackChoice(language: language, title: title);
   }
@@ -81,21 +85,21 @@ class SiloTrackPreferences {
     final signature = asJsonMap(row?['track_signature']);
     final mode = settings.containsKey(subtitleModeKey)
         ? settings[subtitleModeKey]
-        : _text(row?['subtitle_mode']);
+        : jsonText(row?['subtitle_mode']);
     final index = row?['subtitle_track_index'];
     if (mode == 'off' || (row != null && index == -1)) {
       return const SeriesTrackChoice(off: true);
     }
     final language = settings.containsKey(subtitleLanguageKey)
-        ? _text(settings[subtitleLanguageKey]) ?? ''
-        : _text(row?['subtitle_language']) ??
-              _text(signature?['language']) ??
+        ? jsonText(settings[subtitleLanguageKey]) ?? ''
+        : jsonText(row?['subtitle_language']) ??
+              jsonText(signature?['language']) ??
               '';
-    final labelLanguage = _text(signature?['language']);
+    final labelLanguage = jsonText(signature?['language']);
     // The label belongs to the row's track; a newer language from the
     // settings may name another one.
     final title = labelLanguage == null || labelLanguage == language
-        ? _text(signature?['label']) ?? ''
+        ? jsonText(signature?['label']) ?? ''
         : '';
     if (language.isEmpty && title.isEmpty) return null;
     return SeriesTrackChoice(language: language, title: title);
@@ -135,7 +139,7 @@ class SiloTrackPreferences {
     if (track == null || track.kind != SiloTrackKind.audio || stream == null) {
       return;
     }
-    final language = _text(stream['Language']) ?? '';
+    final language = jsonText(stream['Language']) ?? '';
     await _dio.put<dynamic>(
       _audioPath(seriesId),
       data: {
@@ -143,11 +147,11 @@ class SiloTrackPreferences {
         'audio_track_index': track.ordinal,
         'track_signature': {
           if (language.isNotEmpty) 'language': language,
-          'codec': ?_text(stream['Codec']),
+          'codec': ?jsonText(stream['Codec']),
           if (stream['Channels'] case final int channels) 'channels': channels,
-          'layout': ?_text(stream['ChannelLayout']),
-          'title': ?_text(stream['DisplayTitle']),
-          'embedded_title': ?_text(stream['Title']),
+          'layout': ?jsonText(stream['ChannelLayout']),
+          'title': ?jsonText(stream['DisplayTitle']),
+          'embedded_title': ?jsonText(stream['Title']),
           'default': stream['IsDefault'] == true,
         },
       },
@@ -179,7 +183,7 @@ class SiloTrackPreferences {
     final combined = siloSubtitleCombinedIndex(source, streamIndex);
     final stream = _stream(source, streamIndex);
     if (combined == null || stream == null) return;
-    final language = _text(stream['Language']) ?? '';
+    final language = jsonText(stream['Language']) ?? '';
     await (
       _dio.put<dynamic>(
         _subtitlePath(seriesId),
@@ -190,8 +194,10 @@ class SiloTrackPreferences {
           'track_signature': {
             'source': stream['IsExternal'] == true ? 'external' : 'embedded',
             if (language.isNotEmpty) 'language': language,
-            'codec': ?_text(stream['Codec']),
-            'label': ?(_text(stream['DisplayTitle']) ?? _text(stream['Title'])),
+            'codec': ?jsonText(stream['Codec']),
+            'label':
+                ?(jsonText(stream['DisplayTitle']) ??
+                jsonText(stream['Title'])),
             'forced': stream['IsForced'] == true,
             'hearing_impaired': stream['IsHearingImpaired'] == true,
           },
@@ -219,7 +225,4 @@ class SiloTrackPreferences {
     }
     return null;
   }
-
-  static String? _text(Object? value) =>
-      value is String && value.trim().isNotEmpty ? value.trim() : null;
 }

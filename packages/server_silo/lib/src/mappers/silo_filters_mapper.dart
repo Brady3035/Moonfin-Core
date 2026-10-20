@@ -12,8 +12,7 @@ import 'silo_languages.dart';
 QueryFilterValues siloFiltersToQueryFilterValues(Map<String, dynamic> json) {
   List<String> strings(Object? raw) => [
     if (raw is List)
-      for (final v in raw)
-        if (v is String && v.trim().isNotEmpty) v.trim(),
+      for (final v in raw) ?jsonText(v),
   ];
   List<NamedFilterValue> languages(Object? raw) => [
     for (final code in strings(raw))

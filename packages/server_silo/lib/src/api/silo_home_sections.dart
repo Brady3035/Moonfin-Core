@@ -1,6 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:server_core/server_core.dart';
 
+import '../silo_kept_reads.dart';
+import 'silo_items_api.dart' show siloListImageSize;
+
 /// One section of a Silo home or library page, as its layout lists it.
 class SiloSectionEntry {
   const SiloSectionEntry({
@@ -55,10 +58,10 @@ class SiloSectionEntry {
 /// on its way is shared. A failed read is not kept.
 class SiloHomeSections {
   SiloHomeSections(this._dio, {DateTime Function()? clock})
-    : _clock = clock ?? DateTime.now;
+    : _layouts = SiloKeptReads(lifetime: layoutTtl, clock: clock),
+      _items = SiloKeptReads(lifetime: itemsTtl, clock: clock);
 
   final Dio _dio;
-  final DateTime Function() _clock;
 
   /// How long a page's layout is reused. Layouts change when the profile
   /// rearranges its home in Silo's web app, rarely.
@@ -69,29 +72,21 @@ class SiloHomeSections {
   /// reads them again.
   static const itemsTtl = Duration(seconds: 5);
 
-  final Map<String, ({DateTime at, Future<List<SiloSectionEntry>> read})>
-  _layouts = {};
-  final Map<String, ({DateTime at, Future<List<Map<String, dynamic>>> read})>
-  _items = {};
+  final SiloKeptReads<String, List<SiloSectionEntry>> _layouts;
+  final SiloKeptReads<String, List<Map<String, dynamic>>> _items;
 
   /// The sections of the home page, or of library [libraryId]'s page, in
   /// display order.
-  Future<List<SiloSectionEntry>> layout({String? libraryId}) => _cached(
-    _layouts,
-    _pageKey(libraryId),
-    layoutTtl,
-    () => _readLayout(libraryId),
-  );
+  Future<List<SiloSectionEntry>> layout({String? libraryId}) =>
+      _layouts.get(_pageKey(libraryId), () => _readLayout(libraryId));
 
   /// The raw cards (`CatalogItem`s) of [section] on the home page, or on
   /// library [libraryId]'s page.
   Future<List<Map<String, dynamic>>> items(
     SiloSectionEntry section, {
     String? libraryId,
-  }) => _cached(
-    _items,
+  }) => _items.get(
     '${_pageKey(libraryId)}#${section.id}',
-    itemsTtl,
     () => _readItems(section, libraryId),
   );
 
@@ -123,32 +118,12 @@ class SiloHomeSections {
 
   /// Forgets what was read, so the next rows read Silo again.
   void clear() {
-    _layouts.clear();
-    _items.clear();
+    _layouts.forget();
+    _items.forget();
   }
 
   static String _pageKey(String? libraryId) =>
       libraryId == null ? 'home' : 'library:$libraryId';
-
-  Future<T> _cached<T>(
-    Map<String, ({DateTime at, Future<T> read})> cache,
-    String key,
-    Duration ttl,
-    Future<T> Function() read,
-  ) async {
-    final now = _clock();
-    var entry = cache[key];
-    if (entry == null || now.difference(entry.at) > ttl) {
-      entry = (at: now, read: read());
-      cache[key] = entry;
-    }
-    try {
-      return await entry.read;
-    } catch (_) {
-      if (identical(cache[key], entry)) cache.remove(key);
-      rethrow;
-    }
-  }
 
   Future<List<SiloSectionEntry>> _readLayout(String? libraryId) async {
     final path = libraryId == null
@@ -178,7 +153,7 @@ class SiloHomeSections {
         : '/api/v2/library/${Uri.encodeComponent(libraryId)}/sections/$id/items';
     final response = await _dio.get<dynamic>(
       path,
-      queryParameters: const {'image_size': 'medium'},
+      queryParameters: const {'image_size': siloListImageSize},
     );
     final raw = asJsonMap(response.data)?['items'];
     if (raw is! List) {

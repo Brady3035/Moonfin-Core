@@ -106,14 +106,9 @@ void main() {
     ]);
   });
 
-  test('the rest of playback names phase 10', () {
+  test("Jellyfin's playback reporting is not Silo's", () {
     final api = siloTestClient(FixtureServer({})).playbackApi;
-    expect(
-      () => api.reportPlaybackStart({}),
-      throwsA(
-        isA<SiloNotImplementedError>().having((e) => e.step, 'step', '10.6'),
-      ),
-    );
+    expect(() => api.reportPlaybackStart({}), throwsUnsupportedError);
   });
 }
 

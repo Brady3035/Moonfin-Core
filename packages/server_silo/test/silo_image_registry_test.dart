@@ -29,40 +29,40 @@ void main() {
     });
   });
 
-  group('resolveSiloImageUrl', () {
+  group('resolveSiloUrl', () {
     const base = 'https://silo.example';
 
     test('a server path gets the base URL', () {
       expect(
-        resolveSiloImageUrl('$_poster?exp=1&sig=2', base),
+        resolveSiloUrl('$_poster?exp=1&sig=2', base),
         'https://silo.example$_poster?exp=1&sig=2',
       );
-      expect(resolveSiloImageUrl(_poster, '$base/'), '$base$_poster');
+      expect(resolveSiloUrl(_poster, '$base/'), '$base$_poster');
     });
 
     test('a reverse-proxy sub-path is kept', () {
       expect(
-        resolveSiloImageUrl(_poster, 'https://host.example/silo'),
+        resolveSiloUrl(_poster, 'https://host.example/silo'),
         'https://host.example/silo$_poster',
       );
     });
 
     test('absolute URLs pass through untouched, with no token', () {
       const tmdb = 'https://image.tmdb.org/t/p/w500/abc.jpg';
-      expect(resolveSiloImageUrl(tmdb, base), tmdb);
+      expect(resolveSiloUrl(tmdb, base), tmdb);
       expect(
-        resolveSiloImageUrl('//cdn.example/a.webp', base),
+        resolveSiloUrl('//cdn.example/a.webp', base),
         'https://cdn.example/a.webp',
       );
       expect(
-        resolveSiloImageUrl('//cdn.example/a.webp', 'http://lan:8090'),
+        resolveSiloUrl('//cdn.example/a.webp', 'http://lan:8090'),
         'http://cdn.example/a.webp',
       );
     });
 
     test('nothing gives null', () {
-      expect(resolveSiloImageUrl(null, base), isNull);
-      expect(resolveSiloImageUrl('  ', base), isNull);
+      expect(resolveSiloUrl(null, base), isNull);
+      expect(resolveSiloUrl('  ', base), isNull);
     });
   });
 

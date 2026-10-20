@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:server_core/server_core.dart';
 
 import '../mappers/silo_marker_mapper.dart';
+import '../silo_kept_reads.dart';
 
 /// Silo's skip markers (intro, credits, recap, preview) as Moonfin's media
 /// segments (step 11.1).
@@ -19,18 +20,18 @@ import '../mappers/silo_marker_mapper.dart';
 /// shows on the next play after that.
 class SiloMarkers {
   SiloMarkers(this._dio, {DateTime Function()? clock})
-    : _clock = clock ?? DateTime.now;
+    : _segments = SiloKeptReads(lifetime: ttl, clock: clock);
 
   final Dio _dio;
-  final DateTime Function() _clock;
 
   static const ttl = Duration(minutes: 5);
 
   /// The file each item plays (or last played) in this session.
   final _playing = <String, ({String fileId, num? runTimeSeconds})>{};
 
-  final _cache =
-      <String, ({DateTime at, Future<List<Map<String, dynamic>>> segments})>{};
+  /// Segments by file (`file:<id>`), or by item before one is noted
+  /// (`item:<id>`). A failed read is not kept: the next play asks again.
+  final SiloKeptReads<String, List<Map<String, dynamic>>> _segments;
 
   /// Called by the resolver when [itemId] starts playing [fileId] (the
   /// plan's effective file), with its length when known, which a credits
@@ -43,23 +44,24 @@ class SiloMarkers {
   /// without markers, or one Silo doesn't know, has none.
   Future<List<Map<String, dynamic>>> segmentsOf(String itemId) {
     final playing = _playing[itemId];
-    final key = playing == null ? 'item:$itemId' : 'file:${playing.fileId}';
-    final now = _clock();
-    final cached = _cache[key];
-    if (cached != null && now.difference(cached.at) < ttl) {
-      return cached.segments;
+    if (playing == null) {
+      return _segments.get(
+        'item:$itemId',
+        () => _read(
+          '/api/v2/markers/items/${Uri.encodeComponent(itemId)}',
+          itemId,
+          null,
+        ),
+      );
     }
-    final path = playing == null
-        ? '/api/v2/markers/items/${Uri.encodeComponent(itemId)}'
-        : '/api/v2/markers/files/${Uri.encodeComponent(playing.fileId)}';
-    final segments = _read(path, itemId, playing?.runTimeSeconds);
-    _cache[key] = (at: now, segments: segments);
-    // A failed read is not kept: the next play asks again.
-    segments.catchError((Object _) {
-      if (identical(_cache[key]?.segments, segments)) _cache.remove(key);
-      return const <Map<String, dynamic>>[];
-    });
-    return segments;
+    return _segments.get(
+      'file:${playing.fileId}',
+      () => _read(
+        '/api/v2/markers/files/${Uri.encodeComponent(playing.fileId)}',
+        itemId,
+        playing.runTimeSeconds,
+      ),
+    );
   }
 
   Future<List<Map<String, dynamic>>> _read(

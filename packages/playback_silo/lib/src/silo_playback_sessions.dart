@@ -118,3 +118,28 @@ String siloNewUuid() {
       '${hex.sublist(6, 8).join()}-${hex.sublist(8, 10).join()}-'
       '${hex.sublist(10).join()}';
 }
+
+/// Calls [send] until it answers. While [retryable] says a failure is
+/// transient, it is sent again after 1, 2, 4, then every 8 seconds, for at
+/// most [budget]; the last failure is rethrown. Silo keys its playback
+/// mutations on ids in the body, so sending the same one again is safe.
+Future<T> siloSendWithRetries<T>(
+  Future<T> Function() send, {
+  required Duration budget,
+  required bool Function(Object error) retryable,
+  required Future<void> Function(Duration) sleep,
+}) async {
+  final deadline = DateTime.now().add(budget);
+  var wait = const Duration(seconds: 1);
+  while (true) {
+    try {
+      return await send();
+    } catch (error) {
+      if (!retryable(error) || deadline.difference(DateTime.now()) <= wait) {
+        rethrow;
+      }
+      await sleep(wait);
+      if (wait < const Duration(seconds: 8)) wait *= 2;
+    }
+  }
+}

@@ -1,5 +1,6 @@
 import 'package:server_silo/server_silo.dart';
 
+import '../../data/services/media_server_client_factory.dart';
 import '../models/user.dart';
 import '../store/authentication_store.dart';
 import 'silo_token_storage.dart';
@@ -94,4 +95,20 @@ class SiloHousehold {
     for (final user in _store.getUsers(serverId))
       if (user.siloAccountId == accountId) user,
   ];
+}
+
+/// A stored Silo profile's avatar URL, or null when it has none or the
+/// server's client hasn't read the household yet. Silo has no
+/// `/Users/{id}/Images/Primary`: the URL came with the profile (18.2), and
+/// only that server's client knows it.
+String? siloProfileImageUrl(
+  MediaServerClientFactory clients, {
+  required String serverId,
+  required String userId,
+}) {
+  final url = clients
+      .getClientIfExists(serverId)
+      ?.imageApi
+      .getUserImageUrl(userId);
+  return url == null || url.isEmpty ? null : url;
 }

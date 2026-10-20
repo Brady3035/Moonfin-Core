@@ -4,6 +4,7 @@ import 'package:server_core/server_core.dart';
 import '../mappers/silo_ids.dart';
 import '../mappers/silo_item_mapper.dart';
 import '../silo_image_registry.dart';
+import '../silo_kept_reads.dart';
 import 'silo_items_api.dart' show siloListImageSize;
 
 /// Silo's shuffles (step 11.7).
@@ -22,43 +23,34 @@ import 'silo_items_api.dart' show siloListImageSize;
 /// named.
 class SiloShuffles {
   SiloShuffles(this._dio, {this.images, DateTime Function()? clock})
-    : _clock = clock ?? DateTime.now;
+    : _scopeKinds = SiloKeptReads(lifetime: capabilitiesTtl, clock: clock);
 
   final Dio _dio;
   final SiloImageRegistry? images;
-  final DateTime Function() _clock;
 
   static const capabilitiesTtl = Duration(minutes: 10);
 
-  ({DateTime at, Future<Set<String>> kinds})? _capabilities;
+  final SiloKeptReads<String, Set<String>> _scopeKinds;
 
-  /// The scope kinds Silo shuffles; none when shuffles aren't available.
-  Future<Set<String>> scopeKinds() {
-    final now = _clock();
-    final cached = _capabilities;
-    if (cached != null && now.difference(cached.at) < capabilitiesTtl) {
-      return cached.kinds;
-    }
-    final read = _readCapabilities();
-    _capabilities = (at: now, kinds: read);
-    return read;
-  }
+  /// The scope kinds Silo shuffles; none when shuffles aren't available. A
+  /// failed read counts as none and is asked again next time.
+  Future<Set<String>> scopeKinds() => _scopeKinds
+      .get('capabilities', _readScopeKinds)
+      .catchError(
+        (Object _) => const <String>{},
+        test: (error) => error is DioException,
+      );
 
-  Future<Set<String>> _readCapabilities() async {
-    try {
-      final response = await _dio.get<dynamic>('/api/v2/shuffles/capabilities');
-      final json = asJsonMap(response.data);
-      if (json?['state'] != 'available' || json?['allowed'] == false) {
-        return const {};
-      }
-      return {
-        for (final k in (json?['scope_kinds'] as List?) ?? const [])
-          if (k is String) k,
-      };
-    } on DioException {
-      _capabilities = null;
+  Future<Set<String>> _readScopeKinds() async {
+    final response = await _dio.get<dynamic>('/api/v2/shuffles/capabilities');
+    final json = asJsonMap(response.data);
+    if (json?['state'] != 'available' || json?['allowed'] == false) {
       return const {};
     }
+    return {
+      for (final k in (json?['scope_kinds'] as List?) ?? const [])
+        if (k is String) k,
+    };
   }
 
   /// Silo's scope for a Jellyfin-shaped [item], or null for one Silo can't

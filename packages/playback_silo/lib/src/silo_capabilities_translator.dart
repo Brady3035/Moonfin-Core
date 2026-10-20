@@ -16,6 +16,8 @@
 /// (Media3's `MediaCodecList`, phase 12) can claim `exact` later.
 library;
 
+import 'dart:math';
+
 /// The delivery classes a client negotiates in (protocol §4). Silo folds
 /// its four deliveries into these: `original_http`, `server_remux_progressive`
 /// → `progressive`, and both HLS deliveries → `hls`.
@@ -369,8 +371,6 @@ List<Map<String, dynamic>> _profiles(Object? list) => [
       if (p is Map) p.cast<String, dynamic>(),
 ];
 
-List<Map<String, dynamic>> _conditions(Object? list) => _profiles(list);
-
 List<String> _csv(Object? value) => [
   if (value is String)
     for (final v in value.split(','))
@@ -404,10 +404,10 @@ List<String> _withAliases(List<String> containers) {
 Set<String> _excludedVideoCodecs(List<Map<String, dynamic>> codecProfiles) {
   final out = <String>{};
   for (final p in codecProfiles) {
-    if (p['Type'] != 'Video' || _conditions(p['ApplyConditions']).isNotEmpty) {
+    if (p['Type'] != 'Video' || _profiles(p['ApplyConditions']).isNotEmpty) {
       continue;
     }
-    final never = _conditions(p['Conditions']).any(
+    final never = _profiles(p['Conditions']).any(
       (c) =>
           c['Condition'] == 'Equals' &&
           c['Property'] == 'VideoProfile' &&
@@ -427,7 +427,7 @@ Set<String> _unsupportedRanges(
   final out = <String>{};
   for (final p in codecProfiles) {
     if (p['Type'] != 'Video' || !_csv(p['Codec']).contains(codec)) continue;
-    for (final c in _conditions(p['Conditions'])) {
+    for (final c in _profiles(p['Conditions'])) {
       if (c['Property'] != 'VideoRangeType' || c['Condition'] != 'NotEquals') {
         continue;
       }
@@ -473,25 +473,33 @@ Map<String, dynamic> _hdrDetails(
   };
 }
 
+/// The `LessThanEqual` limits on [property] in the [type] codec profiles
+/// that always apply (no `ApplyConditions`).
+Iterable<int> _limits(
+  List<Map<String, dynamic>> codecProfiles,
+  String type,
+  String property,
+) sync* {
+  for (final p in codecProfiles) {
+    if (p['Type'] != type || _profiles(p['ApplyConditions']).isNotEmpty) {
+      continue;
+    }
+    for (final c in _profiles(p['Conditions'])) {
+      if (c['Property'] != property || c['Condition'] != 'LessThanEqual') {
+        continue;
+      }
+      final limit = int.tryParse('${c['Value']}');
+      if (limit != null && limit > 0) yield limit;
+    }
+  }
+}
+
 /// The widest unconditional `Width` limit on a video codec, as Silo's
 /// resolution class; null when nothing limits it.
 String? _maxResolution(List<Map<String, dynamic>> codecProfiles) {
-  int? widest;
-  for (final p in codecProfiles) {
-    if (p['Type'] != 'Video' || _conditions(p['ApplyConditions']).isNotEmpty) {
-      continue;
-    }
-    for (final c in _conditions(p['Conditions'])) {
-      if (c['Property'] != 'Width' || c['Condition'] != 'LessThanEqual') {
-        continue;
-      }
-      final width = int.tryParse('${c['Value']}');
-      if (width != null && width > 0 && (widest == null || width > widest)) {
-        widest = width;
-      }
-    }
-  }
-  if (widest == null) return null;
+  final widths = _limits(codecProfiles, 'Video', 'Width');
+  if (widths.isEmpty) return null;
+  final widest = widths.reduce(max);
   if (widest <= 854) return '480p';
   if (widest <= 1280) return '720p';
   if (widest <= 2560) return '1080p';
@@ -503,24 +511,8 @@ String? _maxResolution(List<Map<String, dynamic>> codecProfiles) {
 /// per-delivery `max_channels`; null for none, which is what a player that
 /// downmixes on its own advertises (eight channels).
 int? _maxChannels(List<Map<String, dynamic>> codecProfiles) {
-  int? lowest;
-  for (final p in codecProfiles) {
-    if (p['Type'] != 'VideoAudio' ||
-        _conditions(p['ApplyConditions']).isNotEmpty) {
-      continue;
-    }
-    for (final c in _conditions(p['Conditions'])) {
-      if (c['Property'] != 'AudioChannels' ||
-          c['Condition'] != 'LessThanEqual') {
-        continue;
-      }
-      final channels = int.tryParse('${c['Value']}');
-      if (channels != null &&
-          channels > 0 &&
-          (lowest == null || channels < lowest)) {
-        lowest = channels;
-      }
-    }
-  }
-  return lowest != null && lowest < 6 ? lowest : null;
+  final limits = _limits(codecProfiles, 'VideoAudio', 'AudioChannels');
+  if (limits.isEmpty) return null;
+  final lowest = limits.reduce(min);
+  return lowest < 6 ? lowest : null;
 }

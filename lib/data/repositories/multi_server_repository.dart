@@ -100,6 +100,7 @@ class MultiServerRepository {
     final activeServerId = _sessionRepo.activeServerId;
 
     final sessions = <ServerUserSession>[];
+    final siloTokens = SiloTokenStorage(_authStore);
 
     for (final server in servers) {
       try {
@@ -127,10 +128,7 @@ class MultiServerRepository {
           // no PIN now (18.7), not whichever profile was stored first.
           final candidates = server.serverType == ServerType.silo
               ? [
-                  ?SiloHousehold.profileForOtherServer(
-                    users,
-                    SiloTokenStorage(_authStore),
-                  ),
+                  ?SiloHousehold.profileForOtherServer(users, siloTokens),
                 ]
               : users;
           for (final user in candidates) {
@@ -144,7 +142,10 @@ class MultiServerRepository {
           }
         }
 
-        if (userId == null || accessToken == null || accessToken.isEmpty) {
+        if (userId == null ||
+            chosenUser == null ||
+            accessToken == null ||
+            accessToken.isEmpty) {
           continue;
         }
 
@@ -155,12 +156,11 @@ class MultiServerRepository {
         );
         // A Silo profile restores its account's pair and profile; setting the
         // stored access token would drop the active session's refresh token.
-        final restored =
-            chosenUser != null &&
-            SiloTokenStorage(
-              _authStore,
-            ).restore(client: client, user: chosenUser);
-        if (!restored) client.accessToken = accessToken;
+        siloTokens.putLogin(
+          client: client,
+          user: chosenUser,
+          accessToken: accessToken,
+        );
         client.userId = userId;
 
         sessions.add(

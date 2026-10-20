@@ -20,3 +20,11 @@ Map<String, dynamic>? asJsonMap(Object? data) {
   }
   return null;
 }
+
+/// [value] trimmed when it is a non-blank string, else null: how a JSON text
+/// field that may be missing, null, blank or of another type is read.
+String? jsonText(Object? value) {
+  if (value is! String) return null;
+  final trimmed = value.trim();
+  return trimmed.isEmpty ? null : trimmed;
+}

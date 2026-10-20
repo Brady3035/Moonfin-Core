@@ -13,6 +13,7 @@ import '../../auth/models/user.dart';
 import '../../auth/repositories/server_repository.dart';
 import '../../auth/repositories/session_repository.dart';
 import '../../auth/repositories/user_repository.dart';
+import '../../auth/services/silo_household.dart';
 import '../../auth/store/authentication_store.dart';
 import '../../data/services/media_server_client_factory.dart';
 import '../../l10n/app_localizations.dart';
@@ -108,16 +109,12 @@ class _AccountDialogState extends State<_AccountDialog> {
     if (apiKey.isEmpty) return null;
 
     if (!account.server.serverType.hasJellyfinUserImagePath) {
-      // Silo: the avatar URL came with the profile; only that server's
-      // client knows it, and only once it has read the user.
-      final factory = GetIt.instance.isRegistered<MediaServerClientFactory>()
-          ? GetIt.instance<MediaServerClientFactory>()
-          : null;
-      final url = factory
-          ?.getClientIfExists(account.server.id)
-          ?.imageApi
-          .getUserImageUrl(account.user.id);
-      return url == null || url.isEmpty ? null : url;
+      if (!GetIt.instance.isRegistered<MediaServerClientFactory>()) return null;
+      return siloProfileImageUrl(
+        GetIt.instance<MediaServerClientFactory>(),
+        serverId: account.server.id,
+        userId: account.user.id,
+      );
     }
 
     final base =

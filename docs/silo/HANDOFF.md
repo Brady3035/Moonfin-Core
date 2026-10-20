@@ -34,6 +34,19 @@ Brady contributes to Moonfin (Flutter Jellyfin/Emby client) and Silo Media Serve
 - `scripts/silo_probe.sh` refreshes fixtures and the contract from the live server (Brady runs it). Fixtures live in `packages/server_silo/test/fixtures/` (`openapi-bd9d59ea.json.gz`, `silo/*.json`, `emby/*.json`). For quick live measurements Claude can drop a Python script in Brady's gitignored `build/` (as with `build/silo_jump_timing.py`): it prompts for his password itself and must send a normal `User-Agent` (the proxy answers Python's default with 403).
 - Silo's own source answers what the contract can't: `git clone --depth 1 --filter=blob:none --sparse https://github.com/Silo-Server/silo-server.git` (Go). Useful: `internal/apiv2/catalog_items.go` (catalog handler, cursor scope), `internal/catalog/query_definition.go` (rule fields and sort fields), `internal/titleutil/sort_title.go`, `contracts/settings/v1/manifest.json` (settings keys).
 
+## Where things stand (2026-10-20 afternoon, code review)
+
+Brady asked for a pass over everything the fork added: logical, concise, readable, and no duplicated code. Behaviour is unchanged; one commit, `silo: Review pass, shared helpers instead of copies`. What changed:
+
+- **`SiloKeptReads`** (`server_silo/lib/src/silo_kept_reads.dart`, with tests): one "read once, keep for a while, share the read on its way, don't keep failures" cache. It replaces nine hand-rolled copies: playback, downloads, search, shuffle and theme capabilities, skip markers, the home layouts and section cards, the runtime counts and the "hide watched" setting.
+- **`jsonText`** (`server_core` `json_body.dart`): "a non-blank trimmed string or null", replacing seven local `text`/`_text`/`_language` helpers and four inline copies across the Silo mappers.
+- **`resolveSiloUrl`** (was `resolveSiloImageUrl`): turns a server-relative URL into a full one for artwork, theme songs, playback plans and the image placeholders; four hand-written joins removed.
+- **`siloUnsupported` / `SiloSessionApi`** replace `SiloNotImplementedError`, the `_Pending` placeholders and the per-method step tables. Every phase they pointed to is done, so "not implemented yet (step 10.14)" was wrong: what's left is what Silo doesn't have, and it says so (`UnsupportedError`).
+- **`siloSendWithRetries`** (`playback_silo`): the start, replan and stop retry loops were three copies of the same backoff; `_sourceOfPlan` replaces two near-identical "which source does this plan play" methods; the capability translator's width and channel limits share `_limits`.
+- **App side:** `SiloSecretField` is the password/PIN field the password-change and PIN dialogs each built (about 70 lines each); `SiloTokenStorage.putLogin` replaces three copies of "restore the Silo login, else set the token"; `siloProfileImageUrl` replaces two copies of the profile avatar lookup; `AuthRepository._emit` / `_failed` shorten the Silo sign-in paths; a misplaced doc comment in `SessionRepository` fixed.
+
+**Left for Brady to decide:** the pre-phase-18 "main profile only" sign-in (`siloProfiles: false`, `useMainProfile`, `SiloMainProfileLocked`, its l10n string) is dead in the app since 18.8 turned profiles on for every Silo server; only tests reach it. Removing it is about 150 lines plus rewriting the auth tests built on it.
+
 ## Where things stand (2026-10-20 morning)
 
 - **13.3a, a finished episode stayed unwatched in the season list (Brady):** Silo's events socket says nothing when a playback session stops, so Moonfin's own playback never reached `UserDataSync`. The stop now notes the item on the Silo client, and the events socket client passes it on as the `user_state.changed` Silo would have sent (read back, `UserDataChanged`). Manual check 13.3 f pending. Commit `silo(13.3a): Show this client's finished playback in the lists`.

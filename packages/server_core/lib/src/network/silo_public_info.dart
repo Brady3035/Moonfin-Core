@@ -20,7 +20,8 @@ class SiloApiUnsupported implements Exception {
 
   /// Whether the server is newer than this build (update Moonfin), rather
   /// than older (update Silo). A tombstone means newer.
-  bool get serverIsNewer => apiMajor == null || apiMajor! > siloSupportedApiMajor;
+  bool get serverIsNewer =>
+      apiMajor == null || apiMajor! > siloSupportedApiMajor;
 
   @override
   String toString() =>
@@ -62,18 +63,12 @@ Map<String, dynamic> siloPublicInfoToJellyfinShape({
   Map<String, dynamic>? branding,
   Map<String, dynamic>? setup,
 }) {
-  String? text(Object? v) {
-    if (v is! String) return null;
-    final t = v.trim();
-    return t.isEmpty ? null : t;
-  }
-
   final wizardCompleted = setup?['wizard_completed'];
   final needsSetup = setup?['needs_setup'];
-  final loginSubtitle = text(branding?['login_subtitle']);
+  final loginSubtitle = jsonText(branding?['login_subtitle']);
   return {
-    'Id': text(identity?['server_id']),
-    'ServerName': text(branding?['server_name']) ?? 'Silo',
+    'Id': jsonText(identity?['server_id']),
+    'ServerName': jsonText(branding?['server_name']) ?? 'Silo',
     // A git short hash such as "4b2e921c+dirty", not a semantic version.
     // Display it, never parse it; compatibility is decided by SiloApiMajor.
     'Version': systemInfo['server_version'],

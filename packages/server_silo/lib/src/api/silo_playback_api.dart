@@ -2,29 +2,30 @@ import 'package:dio/dio.dart';
 import 'package:server_core/server_core.dart';
 
 import '../mappers/silo_media_source_mapper.dart';
+import '../silo_kept_reads.dart';
 import '../silo_problem.dart';
 import 'silo_items_api.dart';
-import 'silo_pending_api.dart';
+import 'silo_unsupported.dart';
 
 /// Moonfin's `PlaybackApi` on Silo: the detail screen's media info (step
 /// 6.18), and the wire calls of Silo's playback protocol for
 /// `playback_silo`, which owns the protocol itself (phase 10).
 class SiloPlaybackApi implements PlaybackApi {
   SiloPlaybackApi(this._items, this._dio, {DateTime Function()? clock})
-    : _now = clock ?? DateTime.now;
+    : _capabilities = SiloKeptReads(
+        lifetime: capabilitiesLifetime,
+        clock: clock,
+      );
 
   final SiloItemsApi _items;
   final Dio _dio;
-  final DateTime Function() _now;
 
   // --- capabilities (10.5) ----------------------------------------------------
 
   /// How long [capabilities] reuses an answer, as Silo's web player does.
   static const capabilitiesLifetime = Duration(minutes: 1);
 
-  SiloPlaybackCapabilities? _capabilities;
-  DateTime? _capabilitiesAt;
-  Future<SiloPlaybackCapabilities>? _capabilitiesRead;
+  final SiloKeptReads<String, SiloPlaybackCapabilities> _capabilities;
 
   /// `GET /api/v2/playback/capabilities` (step 10.5): whether this server
   /// plays, its installation id, its features and deliveries.
@@ -33,21 +34,8 @@ class SiloPlaybackApi implements PlaybackApi {
   /// read here, so it is kept for [capabilitiesLifetime] and reads made
   /// meanwhile share one request. [refresh] reads it again now, which is
   /// what a `409 installation_changed` calls for ([isInstallationChanged]).
-  Future<SiloPlaybackCapabilities> capabilities({bool refresh = false}) {
-    final at = _capabilitiesAt;
-    final kept = _capabilities;
-    if (!refresh &&
-        kept != null &&
-        at != null &&
-        _now().difference(at) < capabilitiesLifetime) {
-      return Future.value(kept);
-    }
-    final pending = _capabilitiesRead;
-    if (pending != null) return pending;
-    final read = _readCapabilities();
-    _capabilitiesRead = read;
-    return read.whenComplete(() => _capabilitiesRead = null);
-  }
+  Future<SiloPlaybackCapabilities> capabilities({bool refresh = false}) =>
+      _capabilities.get('capabilities', _readCapabilities, refresh: refresh);
 
   Future<SiloPlaybackCapabilities> _readCapabilities() async {
     final response = await _dio.get<dynamic>('/api/v2/playback/capabilities');
@@ -58,17 +46,11 @@ class SiloPlaybackApi implements PlaybackApi {
         '${response.data.runtimeType}',
       );
     }
-    final capabilities = SiloPlaybackCapabilities.fromJson(json);
-    _capabilities = capabilities;
-    _capabilitiesAt = _now();
-    return capabilities;
+    return SiloPlaybackCapabilities.fromJson(json);
   }
 
   /// Forgets the kept capabilities, so the next [capabilities] asks Silo.
-  void forgetCapabilities() {
-    _capabilities = null;
-    _capabilitiesAt = null;
-  }
+  void forgetCapabilities() => _capabilities.forget();
 
   // --- start (10.6) -----------------------------------------------------------
 
@@ -265,23 +247,11 @@ class SiloPlaybackApi implements PlaybackApi {
     return {'MediaSources': sources, 'PlaySessionId': null};
   }
 
-  static const _steps = {
-    'reportPlaybackStart': '10.6',
-    'reportPlaybackProgress': '10.9',
-    'reportPlaybackStopped': '10.10',
-    'getStreamUrl': '10.6',
-    'stopActiveEncodings': '10.10',
-    'closeLiveStream': '10.10',
-  };
-
+  /// Jellyfin's playback reporting and stream URLs: Silo's playback
+  /// protocol is `playback_silo`'s (phase 10), not this interface.
   @override
-  dynamic noSuchMethod(Invocation invocation) {
-    final name = invocation.memberName
-        .toString()
-        .replaceFirst('Symbol("', '')
-        .replaceFirst('")', '');
-    throw SiloNotImplementedError('PlaybackApi', name, _steps[name] ?? '10.x');
-  }
+  dynamic noSuchMethod(Invocation invocation) =>
+      siloUnsupported('PlaybackApi', invocation);
 }
 
 /// Why [source] can't play directly under [deviceProfile]'s direct-play

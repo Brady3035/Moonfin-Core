@@ -14,7 +14,7 @@ import 'api/silo_display_preferences_api.dart';
 import 'api/silo_downloads_api.dart';
 import 'api/silo_events_api.dart';
 import 'api/silo_images_api.dart';
-import 'api/silo_pending_api.dart';
+import 'api/silo_unsupported.dart';
 import 'api/silo_playback_api.dart';
 import 'api/silo_profiles_api.dart';
 import 'api/silo_system_api.dart';
@@ -40,9 +40,8 @@ import 'silo_session_interceptor.dart';
 /// [profileId] normally hold the same id; they are kept apart because
 /// signing in happens before a profile is chosen.
 ///
-/// Most APIs are placeholders that throw [SiloNotImplementedError] naming the
-/// roadmap step that replaces them. Live TV and Instant Mix are permanently
-/// empty: Silo has neither.
+/// Live TV and Instant Mix are permanently empty, and the session API throws
+/// [UnsupportedError]: Silo has none of them.
 class SiloMediaServerClient extends MediaServerClient
     implements ProfileAwareClient, ServerDownloadsProvider {
   final Dio _dio;
@@ -312,7 +311,7 @@ class SiloMediaServerClient extends MediaServerClient
     if (siloTypeOfId(id) != null) {
       final response = await _dio.get<dynamic>(
         '/api/v2/catalog/items/${Uri.encodeComponent(id)}',
-        queryParameters: {'image_size': 'large'},
+        queryParameters: {'image_size': siloDetailImageSize},
       );
       final item = asJsonMap(response.data);
       if (item != null) siloItemToBaseItemDto(item, images: images);
@@ -420,7 +419,7 @@ class SiloMediaServerClient extends MediaServerClient
   );
 
   @override
-  final SessionApi sessionApi = const SiloPendingSessionApi();
+  final SessionApi sessionApi = const SiloSessionApi();
 
   @override
   late final ImageApi imageApi = SiloImageApi(

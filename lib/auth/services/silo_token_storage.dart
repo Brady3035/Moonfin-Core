@@ -178,4 +178,18 @@ class SiloTokenStorage {
     }
     return true;
   }
+
+  /// Puts [user]'s login on [client]: [restore] for a Silo profile, and for
+  /// a Jellyfin or Emby user, or a Silo one with nothing stored, the bare
+  /// [accessToken].
+  void putLogin({
+    required MediaServerClient client,
+    required PrivateUser user,
+    required String accessToken,
+    void Function()? onEnded,
+  }) {
+    if (!restore(client: client, user: user, onEnded: onEnded)) {
+      client.accessToken = accessToken;
+    }
+  }
 }

@@ -235,7 +235,7 @@ Map<String, dynamic>? siloVersionToMediaSource(
   streams.sort((a, b) => (a['Index'] as int).compareTo(b['Index'] as int));
 
   final duration = version['duration'] ?? version['duration_seconds'];
-  final container = _text(version['container']);
+  final container = jsonText(version['container']);
   return {
     'Id': fileId,
     'ItemId': itemId,
@@ -243,7 +243,7 @@ Map<String, dynamic>? siloVersionToMediaSource(
     'Protocol': 'File',
     'Type': 'Default',
     'Container': ?container,
-    if (_text(version['file_path']) case final path?) 'Path': path,
+    if (jsonText(version['file_path']) case final path?) 'Path': path,
     if (version['file_size'] case final num size) 'Size': size.toInt(),
     'Bitrate': ?fileBitrate,
     if (duration is num && duration > 0)
@@ -274,7 +274,7 @@ Map<String, dynamic>? siloFileToMediaSource(
   final fileId = siloIdOf(file['file_id']);
   if (fileId == null) return null;
   final height = _nominalHeight(file['resolution']);
-  final codec = _text(file['codec_video']);
+  final codec = jsonText(file['codec_video']);
   final hdr = file['hdr'] == true;
   final channels = file['audio_channels'];
   final video = <String, dynamic>{
@@ -291,7 +291,7 @@ Map<String, dynamic>? siloFileToMediaSource(
     'IsDefault': true,
   };
   video['DisplayTitle'] = _videoTitle(video);
-  final container = _text(file['container']);
+  final container = jsonText(file['container']);
   return {
     'Id': fileId,
     'ItemId': itemId,
@@ -332,20 +332,20 @@ Map<String, dynamic> _videoStream(
   final stream = <String, dynamic>{
     'Type': 'Video',
     'Index': index,
-    'Codec': ?_text(t['codec']),
-    'Profile': ?_text(t['profile']),
+    'Codec': ?jsonText(t['codec']),
+    'Profile': ?jsonText(t['profile']),
     if (t['level'] case final num level) 'Level': level,
     if (t['width'] case final num w) 'Width': w.toInt(),
     if (t['height'] case final num h) 'Height': h.toInt(),
-    'AspectRatio': ?_text(t['aspect_ratio']),
+    'AspectRatio': ?jsonText(t['aspect_ratio']),
     'IsInterlaced': t['interlaced'] == true,
     'RealFrameRate': ?frameRate,
     'AverageFrameRate': ?frameRate,
     if (t['bit_depth'] case final num depth) 'BitDepth': depth.toInt(),
-    'PixelFormat': ?_text(t['pixel_format']),
-    'ColorTransfer': ?_text(t['color_transfer']),
-    'ColorPrimaries': ?_text(t['color_primaries']),
-    'ColorSpace': ?_text(t['color_space']),
+    'PixelFormat': ?jsonText(t['pixel_format']),
+    'ColorTransfer': ?jsonText(t['color_transfer']),
+    'ColorPrimaries': ?jsonText(t['color_primaries']),
+    'ColorSpace': ?jsonText(t['color_space']),
     'VideoRange': range.range,
     'VideoRangeType': range.type,
     if (t['dv_profile'] case final num p) 'DvProfile': p.toInt(),
@@ -353,7 +353,7 @@ Map<String, dynamic> _videoStream(
     if (t['dv_bl_compat_id'] case final num c)
       'DvBlSignalCompatibilityId': c.toInt(),
     'BitRate': ?(_kbps(t['bitrate']) ?? fileBitrate),
-    'Title': ?_text(t['embedded_title']),
+    'Title': ?jsonText(t['embedded_title']),
     'IsDefault': first,
     'IsExternal': false,
   };
@@ -367,16 +367,16 @@ Map<String, dynamic> _audioStream(
   required bool isDefault,
 }) {
   final channels = t['channels'] is num ? (t['channels'] as num).toInt() : null;
-  final layout = _channelLayout(_text(t['layout']), channels);
-  final language = _text(t['language']);
-  final codec = _text(t['codec']);
+  final layout = _channelLayout(jsonText(t['layout']), channels);
+  final language = jsonText(t['language']);
+  final codec = jsonText(t['codec']);
   return {
     'Type': 'Audio',
     'Index': index,
     'Codec': ?codec,
-    'Profile': ?_text(t['profile']),
+    'Profile': ?jsonText(t['profile']),
     'Language': ?language,
-    'Title': ?_text(t['embedded_title']),
+    'Title': ?jsonText(t['embedded_title']),
     'DisplayTitle': [
       ?siloLanguageName(language),
       ?codec?.toUpperCase(),
@@ -394,9 +394,9 @@ Map<String, dynamic> _audioStream(
 }
 
 Map<String, dynamic> _subtitleStream(Map<String, dynamic> t, int index) {
-  final language = _text(t['language']);
-  final codec = _text(t['codec']);
-  final title = _text(t['embedded_title']);
+  final language = jsonText(t['language']);
+  final codec = jsonText(t['codec']);
+  final title = jsonText(t['embedded_title']);
   final forced = t['forced'] == true;
   final hearingImpaired = t['hearing_impaired'] == true;
   final isDefault = t['default'] == true;
@@ -487,7 +487,7 @@ const _rangeTypes = {
 /// does: Dolby Vision from its profile and base-layer compatibility, then
 /// HDR10+, then the transfer function (PQ is HDR10, HLG is HLG), else SDR.
 ({String range, String type}) _videoRange(Map<String, dynamic> t) {
-  final said = _text(t['video_range_type']);
+  final said = jsonText(t['video_range_type']);
   final type = said == null
       ? _derivedRangeType(t)
       : _rangeTypes[said
@@ -496,14 +496,15 @@ const _rangeTypes = {
                 .replaceAll(RegExp('[^a-z0-9]'), '')] ??
             said;
   final range =
-      _text(t['video_range'])?.toUpperCase() ?? (type == 'SDR' ? 'SDR' : 'HDR');
+      jsonText(t['video_range'])?.toUpperCase() ??
+      (type == 'SDR' ? 'SDR' : 'HDR');
   return (range: range, type: type);
 }
 
 String _derivedRangeType(Map<String, dynamic> t) {
   final dolbyVision =
       t['dv_profile'] is num ||
-      (_text(t['dolby_vision']) ?? 'none').toLowerCase() != 'none';
+      (jsonText(t['dolby_vision']) ?? 'none').toLowerCase() != 'none';
   final hdr10Plus = t['hdr10_plus'] == true;
   if (dolbyVision) {
     final compat = t['dv_bl_compat_id'];
@@ -515,7 +516,7 @@ String _derivedRangeType(Map<String, dynamic> t) {
     };
   }
   if (hdr10Plus) return 'HDR10Plus';
-  return switch (_text(t['color_transfer'])?.toLowerCase()) {
+  return switch (jsonText(t['color_transfer'])?.toLowerCase()) {
     'smpte2084' => 'HDR10',
     'arib-std-b67' => 'HLG',
     _ => 'SDR',
@@ -558,18 +559,18 @@ String? _resolutionLabel(int? width, int? height, {bool interlaced = false}) {
 /// extension, as Jellyfin and Emby show it; for a viewer Silo shows no file
 /// name to, its edition and quality ("Extended 2160p HEVC HDR").
 String _sourceName(Map<String, dynamic> version, Map<String, dynamic>? video) {
-  final fileName = _text(version['file_name']);
+  final fileName = jsonText(version['file_name']);
   if (fileName != null) {
     final dot = fileName.lastIndexOf('.');
     return dot > 0 ? fileName.substring(0, dot) : fileName;
   }
   final edition =
-      _text(version['edition_raw']) ?? _text(version['edition_key']);
-  final resolution = _text(version['resolution']);
+      jsonText(version['edition_raw']) ?? jsonText(version['edition_key']);
+  final resolution = jsonText(version['resolution']);
   return [
     ?edition,
     ?resolution,
-    ?_text(version['codec_video'])?.toUpperCase(),
+    ?jsonText(version['codec_video'])?.toUpperCase(),
     if (version['hdr'] == true) video == null ? 'HDR' : _videoRange(video).type,
   ].join(' ');
 }
@@ -639,9 +640,3 @@ List<Map<String, dynamic>> _maps(Object? list) => list is List
           if (asJsonMap(e) case final map?) map,
       ]
     : const [];
-
-String? _text(Object? value) {
-  if (value is! String) return null;
-  final t = value.trim();
-  return t.isEmpty ? null : t;
-}

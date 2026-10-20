@@ -2,6 +2,8 @@ import 'package:dio/dio.dart';
 import 'package:server_core/server_core.dart';
 
 import '../mappers/silo_ticks.dart';
+import '../silo_image_registry.dart' show resolveSiloUrl;
+import '../silo_kept_reads.dart';
 import 'silo_items_api.dart' show siloListImageSize;
 
 /// Silo's theme music (step 11.5).
@@ -22,34 +24,23 @@ import 'silo_items_api.dart' show siloListImageSize;
 ///   asks for a new grant on every play.
 class SiloThemes {
   SiloThemes(this._dio, {DateTime Function()? clock})
-    : _clock = clock ?? DateTime.now;
+    : _available = SiloKeptReads(
+        lifetime: capabilitiesTtl,
+        keep: (available) => available,
+        clock: clock,
+      );
 
   final Dio _dio;
-  final DateTime Function() _clock;
 
   static const capabilitiesTtl = Duration(minutes: 10);
 
-  ({DateTime at, Future<bool> available})? _capabilities;
+  final SiloKeptReads<String, bool> _available;
 
-  /// Whether Silo serves theme music to this login (cached; a failed read
-  /// counts as no and is asked again next time).
-  Future<bool> available() {
-    final now = _clock();
-    final cached = _capabilities;
-    if (cached != null && now.difference(cached.at) < capabilitiesTtl) {
-      return cached.available;
-    }
-    final read = _readCapabilities();
-    _capabilities = (at: now, available: read);
-    read.then((ok) {
-      if (!ok && identical(_capabilities?.available, read)) {
-        _capabilities = null;
-      }
-    }, onError: (_) => _capabilities = null);
-    return read;
-  }
+  /// Whether Silo serves theme music to this login (kept; a no, or a failed
+  /// read, is asked again next time).
+  Future<bool> available() => _available.get('capabilities', _readAvailable);
 
-  Future<bool> _readCapabilities() async {
+  Future<bool> _readAvailable() async {
     try {
       final response = await _dio.get<dynamic>(
         '/api/v2/catalog/themes/capabilities',
@@ -119,12 +110,7 @@ class SiloThemes {
         },
       );
       final url = asJsonMap(response.data)?['url'];
-      if (url is! String || url.isEmpty) return null;
-      if (url.startsWith('http://') || url.startsWith('https://')) return url;
-      final base = baseUrl.endsWith('/')
-          ? baseUrl.substring(0, baseUrl.length - 1)
-          : baseUrl;
-      return '$base${url.startsWith('/') ? '' : '/'}$url';
+      return resolveSiloUrl(url is String ? url : null, baseUrl);
     } on DioException catch (error) {
       final status = error.response?.statusCode;
       // Gone, not acceptable, or no route: nothing to play.

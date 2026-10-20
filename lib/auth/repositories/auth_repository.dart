@@ -204,9 +204,7 @@ class AuthRepository {
     final accountId =
         (result['User'] as Map<String, dynamic>?)?[siloAccountIdKey] as String?;
     if (tokens == null || accountId == null) {
-      const state = ApiClientError(error: 'Invalid auth response');
-      _stateController.add(state);
-      return state;
+      return _emit(const ApiClientError(error: 'Invalid auth response'));
     }
 
     if (result[SiloAuthApi.siloPasswordChangeRequiredKey] == true) {
@@ -246,15 +244,11 @@ class AuthRepository {
         (result['User'] as Map<String, dynamic>?)?[siloAccountIdKey] as String?;
     if (accountId == null || silo.session.tokens == null) {
       await _endSiloLogin(client);
-      const state = ApiClientError(error: 'Invalid auth response');
-      _stateController.add(state);
-      return state;
+      return _emit(const ApiClientError(error: 'Invalid auth response'));
     }
     if (result[SiloAuthApi.siloPasswordChangeRequiredKey] == true) {
       await _endSiloLogin(client);
-      const state = SiloCodeSignInPasswordChangeRequired();
-      _stateController.add(state);
-      return state;
+      return _emit(const SiloCodeSignInPasswordChangeRequired());
     }
     return _finishSiloSignIn(
       result: result,
@@ -282,27 +276,21 @@ class AuthRepository {
     } catch (e) {
       _logger.e('Silo password capability could not be read', error: e);
       await _endSiloLogin(pending.client);
-      final state = e is DioException
-          ? _handleDioError(e)
-          : ApiClientError(error: e.toString(), errorType: 'exception');
-      if (e is! DioException) _stateController.add(state);
-      return state;
+      return _failed(e);
     }
 
     if (!capability.canChange) {
       await _endSiloLogin(pending.client);
-      const state = SiloPasswordChangeUnavailable();
-      _stateController.add(state);
-      return state;
+      return _emit(const SiloPasswordChangeUnavailable());
     }
 
     _pendingPasswordChange = pending;
-    final state = SiloPasswordChangeRequired(
-      minimumLength: capability.minimumLength,
-      maximumBytes: capability.maximumBytes,
+    return _emit(
+      SiloPasswordChangeRequired(
+        minimumLength: capability.minimumLength,
+        maximumBytes: capability.maximumBytes,
+      ),
     );
-    _stateController.add(state);
-    return state;
   }
 
   /// Replaces the temporary password of the login [authenticate] left open
@@ -324,9 +312,7 @@ class AuthRepository {
   Future<LoginState> changeRequiredSiloPassword(String newPassword) async {
     final pending = _pendingPasswordChange;
     if (pending == null) {
-      const state = RequireSignIn();
-      _stateController.add(state);
-      return state;
+      return _emit(const RequireSignIn());
     }
 
     _stateController.add(const Authenticating());
@@ -337,9 +323,7 @@ class AuthRepository {
       );
     } on SiloPasswordRejectedError catch (e) {
       if (e.field == 'new_password') {
-        final state = SiloPasswordChangeRejected(detail: e.detail);
-        _stateController.add(state);
-        return state;
+        return _emit(SiloPasswordChangeRejected(detail: e.detail));
       }
       // The sign-in password no longer matches: it was changed elsewhere in
       // the meantime. Start over.
@@ -352,9 +336,7 @@ class AuthRepository {
         return _abandonPasswordChange(pending);
       }
       _logger.w('Silo password change failed', error: e);
-      const state = SiloPasswordChangeRejected();
-      _stateController.add(state);
-      return state;
+      return _emit(const SiloPasswordChangeRejected());
     }
 
     _pendingPasswordChange = null;
@@ -365,9 +347,7 @@ class AuthRepository {
     );
     if (!renewed) {
       await _endSiloLogin(pending.client);
-      const state = SiloPasswordChangedSignInAgain();
-      _stateController.add(state);
-      return state;
+      return _emit(const SiloPasswordChangedSignInAgain());
     }
     return _finishSiloSignIn(
       result: pending.result,
@@ -392,9 +372,7 @@ class AuthRepository {
   ) async {
     _pendingPasswordChange = null;
     await _endSiloLogin(pending.client);
-    const state = RequireSignIn();
-    _stateController.add(state);
-    return state;
+    return _emit(const RequireSignIn());
   }
 
   /// Ends a Silo login on the server and the client, ignoring failures: the
@@ -431,30 +409,18 @@ class AuthRepository {
     } on SiloMainProfileLockedError catch (e) {
       // Not a failure to log: the account is set up this way. The login is
       // useless without the PIN, so it is ended.
-      try {
-        await client.authApi.logout();
-      } catch (_) {}
-      final state = SiloMainProfileLocked(profileName: e.profile.name);
-      _stateController.add(state);
-      return state;
+      await _endSiloLogin(client);
+      return _emit(SiloMainProfileLocked(profileName: e.profile.name));
     } catch (e) {
       _logger.e('Silo sign-in could not use the main profile', error: e);
-      try {
-        await client.authApi.logout();
-      } catch (_) {}
-      final state = e is DioException
-          ? _handleDioError(e)
-          : ApiClientError(error: e.toString(), errorType: 'exception');
-      if (e is! DioException) _stateController.add(state);
-      return state;
+      await _endSiloLogin(client);
+      return _failed(e);
     }
 
     final tokens = silo.session.tokens;
     if (tokens == null) {
       // Signed out while the profile was read.
-      const state = RequireSignIn();
-      _stateController.add(state);
-      return state;
+      return _emit(const RequireSignIn());
     }
 
     final policy = profileUser.policy;
@@ -484,9 +450,7 @@ class AuthRepository {
     await _authPrefs.setLastUserId(user.id);
     _userRepository.setCurrentUser(user);
 
-    final state = Authenticated(userId: user.id, serverId: serverId);
-    _stateController.add(state);
-    return state;
+    return _emit(Authenticated(userId: user.id, serverId: serverId));
   }
 
   /// The rest of a Silo sign-in with household profiles (18.2): every
@@ -518,22 +482,14 @@ class AuthRepository {
       }
     } catch (e) {
       _logger.e('Silo sign-in could not read the household', error: e);
-      try {
-        await client.authApi.logout();
-      } catch (_) {}
-      final state = e is DioException
-          ? _handleDioError(e)
-          : ApiClientError(error: e.toString(), errorType: 'exception');
-      if (e is! DioException) _stateController.add(state);
-      return state;
+      await _endSiloLogin(client);
+      return _failed(e);
     }
 
     final tokens = silo.session.tokens;
     if (tokens == null) {
       // Signed out while the household was read.
-      const state = RequireSignIn();
-      _stateController.add(state);
-      return state;
+      return _emit(const RequireSignIn());
     }
 
     await _siloTokens.save(serverId, accountId, tokens, newLogin: true);
@@ -547,9 +503,7 @@ class AuthRepository {
     await _authPrefs.setLastServerId(serverId);
 
     if (users.length != 1 || users.single.siloHasPin) {
-      final state = SiloChooseProfile(serverId: serverId);
-      _stateController.add(state);
-      return state;
+      return _emit(SiloChooseProfile(serverId: serverId));
     }
 
     var user = users.single.copyWith(lastUsed: DateTime.now());
@@ -570,10 +524,19 @@ class AuthRepository {
     await _authPrefs.setLastUserId(user.id);
     _userRepository.setCurrentUser(user);
 
-    final state = Authenticated(userId: user.id, serverId: serverId);
+    return _emit(Authenticated(userId: user.id, serverId: serverId));
+  }
+
+  /// Announces [state] and answers it.
+  LoginState _emit(LoginState state) {
     _stateController.add(state);
     return state;
   }
+
+  /// The state for a sign-in step that failed with [error].
+  LoginState _failed(Object error) => error is DioException
+      ? _handleDioError(error)
+      : _emit(ApiClientError(error: error.toString(), errorType: 'exception'));
 
   LoginState _handleDioError(DioException e) {
     if (isClientCertificateRejected(e)) {

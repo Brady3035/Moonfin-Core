@@ -3,6 +3,7 @@ import 'package:server_core/server_core.dart';
 
 import '../mappers/silo_item_mapper.dart' show siloOriginalKey;
 import '../mappers/silo_media_source_mapper.dart';
+import '../silo_kept_reads.dart';
 import '../silo_problem.dart';
 
 /// What Silo says about downloads for the acting profile
@@ -161,49 +162,32 @@ class SiloDownloadsApi implements ServerDownloadsApi {
   /// settings; the 13.4 access-change path clears it at once.
   static const capabilityTtl = Duration(minutes: 1);
 
-  SiloDownloadCapability? _capability;
-  DateTime? _capabilityReadAt;
-  Future<SiloDownloadCapability>? _capabilityRead;
+  late final _capability = SiloKeptReads<String, SiloDownloadCapability>(
+    lifetime: capabilityTtl,
+    clock: _clock,
+  );
 
   /// The downloads capability for the acting profile, read at most once a
   /// minute (concurrent callers share one read). Throws when it can't be
   /// read.
-  Future<SiloDownloadCapability> capability() {
-    final cached = _capability;
-    final readAt = _capabilityReadAt;
-    if (cached != null &&
-        readAt != null &&
-        _clock().difference(readAt) < capabilityTtl) {
-      return Future.value(cached);
+  Future<SiloDownloadCapability> capability() =>
+      _capability.get('downloads', _readCapability);
+
+  Future<SiloDownloadCapability> _readCapability() async {
+    final response = await _dio.get<dynamic>('/api/v2/capabilities/downloads');
+    final json = asJsonMap(response.data);
+    if (json == null) {
+      throw FormatException(
+        'Expected a download capability from Silo, got '
+        '${response.data.runtimeType}',
+      );
     }
-    return _capabilityRead ??= () async {
-      try {
-        final response = await _dio.get<dynamic>(
-          '/api/v2/capabilities/downloads',
-        );
-        final json = asJsonMap(response.data);
-        if (json == null) {
-          throw FormatException(
-            'Expected a download capability from Silo, got '
-            '${response.data.runtimeType}',
-          );
-        }
-        final capability = SiloDownloadCapability.fromJson(json);
-        _capability = capability;
-        _capabilityReadAt = _clock();
-        return capability;
-      } finally {
-        _capabilityRead = null;
-      }
-    }();
+    return SiloDownloadCapability.fromJson(json);
   }
 
   /// Forgets the capability, so the next read asks Silo (the account's
   /// access changed, or the login did).
-  void invalidateCapability() {
-    _capability = null;
-    _capabilityReadAt = null;
-  }
+  void invalidateCapability() => _capability.forget();
 
   /// Registers the download with Silo (`POST /downloads`) and answers the
   /// file to fetch (`GET /downloads/{id}/file`, with the client's headers).

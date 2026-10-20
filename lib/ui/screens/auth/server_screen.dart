@@ -11,6 +11,7 @@ import '../../../auth/repositories/plex_repository.dart';
 import '../../../auth/repositories/server_repository.dart';
 import '../../../auth/repositories/server_user_repository.dart';
 import '../../../auth/repositories/session_repository.dart';
+import '../../../auth/services/silo_household.dart';
 import '../../../auth/store/authentication_preferences.dart';
 import '../../../data/services/media_server_client_factory.dart';
 import '../../../data/services/pin_guard.dart';
@@ -529,13 +530,11 @@ class _ServerScreenState extends State<ServerScreen> {
       return 'https://plex.tv/users/${user.id}/avatar';
     }
     if (!server.serverType.hasJellyfinUserImagePath) {
-      // Silo: a profile's avatar URL came with the household (18.2); only
-      // the server's client knows it, and only once it has read it.
-      final url = _clientFactory
-          .getClientIfExists(server.id)
-          ?.imageApi
-          .getUserImageUrl(user.id);
-      return url == null || url.isEmpty ? null : url;
+      return siloProfileImageUrl(
+        _clientFactory,
+        serverId: server.id,
+        userId: user.id,
+      );
     }
     if (user.imageTag == null) return null;
     return '${server.address}/Users/${user.id}/Images/Primary?tag=${user.imageTag}';

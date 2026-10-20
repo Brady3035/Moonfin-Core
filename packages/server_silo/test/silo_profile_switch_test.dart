@@ -1,4 +1,3 @@
-import 'package:server_silo/server_silo.dart';
 import 'package:test/test.dart';
 
 import 'fixture_server.dart';

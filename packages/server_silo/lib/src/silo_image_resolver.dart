@@ -15,9 +15,6 @@ String siloImagePlaceholderUrl(
   SiloImageType type, {
   int index = 0,
 }) {
-  final base = baseUrl.endsWith('/')
-      ? baseUrl.substring(0, baseUrl.length - 1)
-      : baseUrl;
   final query = Uri(
     queryParameters: {
       'item': itemId,
@@ -25,7 +22,7 @@ String siloImagePlaceholderUrl(
       if (index != 0) 'index': '$index',
     },
   ).query;
-  return '$base$siloImagePlaceholderPath?$query';
+  return '${resolveSiloUrl(siloImagePlaceholderPath, baseUrl)}?$query';
 }
 
 /// What a placeholder URL asks for.
@@ -82,13 +79,8 @@ class SiloImageResolver {
   final Map<String, DateTime> _failedAt = {};
 
   /// Whether [url] is one of this client's placeholders.
-  bool owns(String url) {
-    final base = baseUrl();
-    final trimmed = base.endsWith('/')
-        ? base.substring(0, base.length - 1)
-        : base;
-    return url.startsWith('$trimmed$siloImagePlaceholderPath?');
-  }
+  bool owns(String url) =>
+      url.startsWith('${resolveSiloUrl(siloImagePlaceholderPath, baseUrl())}?');
 
   /// The artwork URL for placeholder [url], or null when Silo has none.
   Future<String?> resolve(String url) async {

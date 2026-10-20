@@ -75,27 +75,17 @@ void main() {
     });
   });
 
-  group('placeholders name the step that replaces them', () {
-    final client = newClient();
-
-    Matcher pending(String api, String member, String step) => throwsA(
-      isA<SiloNotImplementedError>()
-          .having((e) => e.api, 'api', api)
-          .having((e) => e.member, 'member', member)
-          .having((e) => e.step, 'step', step)
-          .having(
-            (e) => e.message,
-            'message',
-            'Silo $api.$member is not implemented yet (roadmap step $step)',
-          ),
+  test('sessions are not supported, and say so', () {
+    expect(
+      () => newClient().sessionApi.getSessions(),
+      throwsA(
+        isA<UnsupportedError>().having(
+          (e) => e.message,
+          'message',
+          'SessionApi.getSessions is not supported on Silo',
+        ),
+      ),
     );
-
-    test('sessions', () {
-      expect(
-        () => client.sessionApi.getSessions(),
-        pending('SessionApi', 'getSessions', 'phase 3 and 13.6'),
-      );
-    });
   });
 
   test('an image of an unseen item is a placeholder its client resolves', () {

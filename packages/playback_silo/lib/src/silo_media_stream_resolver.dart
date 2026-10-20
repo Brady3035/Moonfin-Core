@@ -131,7 +131,13 @@ class SiloMediaStreamResolver implements MediaStreamResolver, StreamReplanner {
       throw siloRefusal(decision);
     }
 
-    final source = await _effectiveSource(file, plan, itemId);
+    final source = await _sourceOfPlan(
+      plan,
+      itemId: itemId,
+      knownId: file.fileId,
+      known: file.source,
+      sources: file.sources,
+    );
     final resolution = siloPlanToResolution(
       plan: plan,
       sessionId: sessionId,
@@ -171,7 +177,7 @@ class SiloMediaStreamResolver implements MediaStreamResolver, StreamReplanner {
     client.itemsApi.notePlayingFile(
       itemId,
       fileId,
-      runTimeSeconds: ticks is num && ticks > 0 ? ticks / 10000000 : null,
+      runTimeSeconds: ticks is int && ticks > 0 ? ticksToSeconds(ticks) : null,
       source: source,
     );
   }
@@ -284,7 +290,12 @@ class SiloMediaStreamResolver implements MediaStreamResolver, StreamReplanner {
     if (decision['outcome'] != 'playable' || next == null) {
       throw siloRefusal(decision);
     }
-    final source = await _replannedSource(session, next);
+    final source = await _sourceOfPlan(
+      next,
+      itemId: session.itemId,
+      knownId: siloIdOf(session.mediaSource?['Id']),
+      known: session.mediaSource,
+    );
     final resolution = siloPlanToResolution(
       plan: next,
       sessionId: session.sessionId,
@@ -372,44 +383,12 @@ class SiloMediaStreamResolver implements MediaStreamResolver, StreamReplanner {
     SiloPlaybackApi api,
     String sessionId,
     Map<String, dynamic> body,
-  ) async {
-    final deadline = DateTime.now().add(replanRetryBudget);
-    var wait = const Duration(seconds: 1);
-    while (true) {
-      try {
-        return await api.replanPlayback(sessionId, body);
-      } catch (error) {
-        final left = deadline.difference(DateTime.now());
-        if (!SiloPlaybackApi.isRetryableReplanError(error) || left <= wait) {
-          rethrow;
-        }
-        await _sleep(wait);
-        wait = wait * 2 > const Duration(seconds: 8)
-            ? const Duration(seconds: 8)
-            : wait * 2;
-      }
-    }
-  }
-
-  /// The mapped source of the file a replanned plan plays: the session's,
-  /// unless Silo moved to another version.
-  Future<Map<String, dynamic>?> _replannedSource(
-    SiloPlaybackSession session,
-    Map<String, dynamic> plan,
-  ) async {
-    final known = session.mediaSource;
-    final effective = siloIdOf(plan['effective_media_file_id']);
-    if (effective == null || effective == '${known?['Id']}') return known;
-    try {
-      final detail = await _silo.itemsApi.getItem(
-        session.itemId,
-        mediaSourceId: effective,
-      );
-      return _pick(_sourcesOf(detail), effective) ?? known;
-    } catch (_) {
-      return known;
-    }
-  }
+  ) => siloSendWithRetries(
+    () => api.replanPlayback(sessionId, body),
+    budget: replanRetryBudget,
+    retryable: SiloPlaybackApi.isRetryableReplanError,
+    sleep: _sleep,
+  );
 
   // --- stream authorisation (10.7) -------------------------------------------
 
@@ -487,24 +466,12 @@ class SiloMediaStreamResolver implements MediaStreamResolver, StreamReplanner {
   Future<Map<String, dynamic>> _start(
     SiloPlaybackApi api,
     Map<String, dynamic> body,
-  ) async {
-    final deadline = DateTime.now().add(startRetryBudget);
-    var wait = const Duration(seconds: 1);
-    while (true) {
-      try {
-        return await api.startPlayback(body);
-      } catch (error) {
-        final left = deadline.difference(DateTime.now());
-        if (!SiloPlaybackApi.isRetryableStartError(error) || left <= wait) {
-          rethrow;
-        }
-        await _sleep(wait);
-        wait = wait * 2 > const Duration(seconds: 8)
-            ? const Duration(seconds: 8)
-            : wait * 2;
-      }
-    }
-  }
+  ) => siloSendWithRetries(
+    () => api.startPlayback(body),
+    budget: startRetryBudget,
+    retryable: SiloPlaybackApi.isRetryableStartError,
+    sleep: _sleep,
+  );
 
   // --- which file -------------------------------------------------------------
 
@@ -545,25 +512,28 @@ class SiloMediaStreamResolver implements MediaStreamResolver, StreamReplanner {
     throw StateError('Silo item $itemId has no file to play');
   }
 
-  /// The mapped source of the file the plan plays, which can be another
-  /// version than the one asked for when Silo fell back to it.
-  Future<Map<String, dynamic>?> _effectiveSource(
-    _SiloFile file,
-    Map<String, dynamic> plan,
-    String itemId,
-  ) async {
+  /// The mapped source of the file [plan] plays. That is [known] (file
+  /// [knownId]) unless Silo fell back to another version: then one of
+  /// [sources] when it carries its tracks, else read from the item's detail.
+  Future<Map<String, dynamic>?> _sourceOfPlan(
+    Map<String, dynamic> plan, {
+    required String itemId,
+    required String? knownId,
+    required Map<String, dynamic>? known,
+    List<Map<String, dynamic>> sources = const [],
+  }) async {
     final effective = siloIdOf(plan['effective_media_file_id']);
-    if (effective == null || effective == file.fileId) return file.source;
-    final known = _pick(file.sources, effective);
-    if (known != null && _hasTracks(known)) return known;
+    if (effective == null || effective == knownId) return known;
+    final listed = _pick(sources, effective);
+    if (listed != null && _hasTracks(listed)) return listed;
     try {
       final detail = await _silo.itemsApi.getItem(
         itemId,
         mediaSourceId: effective,
       );
-      return _pick(_sourcesOf(detail), effective);
+      return _pick(_sourcesOf(detail), effective) ?? listed ?? known;
     } catch (_) {
-      return known;
+      return listed ?? known;
     }
   }
 

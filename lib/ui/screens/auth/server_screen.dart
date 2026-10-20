@@ -3,7 +3,6 @@ import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:moonfin_design/moonfin_design.dart';
 import 'package:jellyfin_preference/jellyfin_preference.dart';
-import 'package:server_core/server_core.dart';
 
 import '../../../auth/models/login_state.dart';
 import '../../../auth/models/server.dart';
@@ -21,6 +20,7 @@ import '../../../util/platform_detection.dart';
 import '../../navigation/destinations.dart';
 import '../../widgets/login_scaffold.dart';
 import '../../widgets/pin_entry_dialog.dart';
+import '../../widgets/user_avatar_image.dart';
 import 'silo_profile_unlock.dart';
 
 class ServerScreen extends StatefulWidget {
@@ -588,22 +588,23 @@ class _ServerScreenState extends State<ServerScreen> {
                                   )
                                 : null,
                           ),
+                          // UserAvatarImage, not a NetworkImage: Silo's
+                          // preset avatars are SVG, which an image codec
+                          // can't decode (18.3a).
                           child: CircleAvatar(
                             radius: 36,
                             backgroundColor: Colors.white.withValues(alpha: 0.1),
-                            backgroundImage: imageUrl != null
-                                ? NetworkImage(
-                                    imageUrl,
-                                    headers: serverImageHeaders,
-                                  )
-                                : null,
-                            child: imageUrl == null
-                                ? Icon(
-                                    Icons.person,
-                                    size: 32,
-                                    color: Colors.white.withValues(alpha: 0.6),
-                                  )
-                                : null,
+                            child: ClipOval(
+                              child: UserAvatarImage(
+                                url: imageUrl,
+                                size: 72,
+                                fallback: Icon(
+                                  Icons.person,
+                                  size: 32,
+                                  color: Colors.white.withValues(alpha: 0.6),
+                                ),
+                              ),
+                            ),
                           ),
                         ),
                         const SizedBox(height: 8),

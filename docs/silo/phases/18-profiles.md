@@ -138,7 +138,7 @@ Visible only from 18.8 on, so tested with the batch. On Silo's web app, give the
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | `9a06f619f` | previous step |
+| ☑ Done | `9a06f619f`, fix 18.3a | previous step |
 
 **Goal.** Route to the server screen's user grid when there is a choice to make.
 
@@ -160,6 +160,8 @@ Two Silo details on the grid:
 - **Avatars.** The grid built Jellyfin's `/Users/{id}/Images/Primary` for every server, which Silo doesn't have. A Silo profile's avatar comes from the server's client, which recorded the profile's `avatar_url` when it read the household (as the account switcher already does); without one the tile shows the person icon.
 - **A lock** under the name of a profile with a PIN, so it is clear before choosing that it will ask (18.4).
 
+**Fix 18.3a, SVG avatars (Brady's report).** The tile painted its avatar as a `CircleAvatar` `NetworkImage`, which only decodes bitmaps, so a JPEG avatar showed and Silo's preset (SVG) avatars didn't. The tile now uses `UserAvatarImage`, as the account switcher, sidebar and toolbar do since 6.3: SVG through `flutter_svg`, anything else as a bitmap, the person icon while loading or on failure.
+
 **Not done here:** with two Silo accounts stored on the same server, their profiles appear side by side without saying which account each belongs to. The design note (reference §4.2.1) suggests the account name as a subtitle in that case; it's rare enough to leave until someone has it.
 
 ### Testing
@@ -176,6 +178,7 @@ With the batch (visible from 18.8), Brady's account with Brady, Kid and Teen (PI
 - b. Pick Kid: Home loads as Kid (Kid's Continue Watching), no password asked.
 - c. Sign in with a code instead (from another device): the grid opens the same way.
 - d. TV (deferred to 17.5): D-pad moves across the profiles; select opens one.
+- e. (18.3a) A profile with a preset (SVG) avatar shows it on the grid right after adding the server, as one with an uploaded JPEG does.
 
 **Results**
 

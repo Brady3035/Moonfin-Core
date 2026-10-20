@@ -272,6 +272,25 @@ void main() {
       expect(siloSchemaErrors('DownloadCreated', created()), isEmpty);
     });
 
+    test('a season queued at once lists the device\'s entries once', () async {
+      final server = silo();
+      final downloads = _client(server).downloadsApi;
+
+      for (var e = 1; e <= 3; e++) {
+        await downloads.prepareDownload(
+          ServerDownloadRequest(
+            itemId: 'episode-imdb-tt1641384-1-$e',
+            seriesId: 'series-imdb-tt1641384',
+          ),
+        );
+      }
+
+      final lists = server.requests.where(
+        (r) => r.uri.path == '/api/v2/downloads' && r.method == 'GET',
+      );
+      expect(lists, hasLength(1));
+    });
+
     test('registers a new download and answers its file', () async {
       final server = silo();
 

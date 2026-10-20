@@ -4,6 +4,7 @@ import 'package:server_core/server_core.dart';
 import '../mappers/silo_settings_mapper.dart';
 import '../mappers/silo_user_mapper.dart';
 import '../silo_image_registry.dart';
+import '../silo_kept_reads.dart';
 import 'silo_downloads_api.dart';
 import 'silo_profiles_api.dart';
 
@@ -22,8 +23,8 @@ class SiloHouseholdMember {
 
 /// Moonfin's `UsersApi` over Silo's account and profiles.
 ///
-/// The Moonfin user is the profile the client acts as (`X-Profile-Id`): the
-/// account's main profile until the optional profiles phase (decision D9).
+/// The Moonfin user is the household profile the client acts as
+/// (`X-Profile-Id`, phase 18).
 class SiloUsersApi implements UsersApi {
   SiloUsersApi(
     this._dio,
@@ -50,6 +51,40 @@ class SiloUsersApi implements UsersApi {
   /// The profile the client currently acts as, or null before one is chosen.
   final String? Function() _profileId;
 
+  /// The account and its profiles, read together and kept a moment: a
+  /// session start asks for the current user and then the household, which
+  /// need the same two reads.
+  final _account =
+      SiloKeptReads<
+        String,
+        ({Map<String, dynamic> account, List<SiloProfile> profiles})
+      >(lifetime: const Duration(seconds: 5));
+
+  /// Forgets the account read, so the next one asks Silo (its access
+  /// changed).
+  void forgetAccount() => _account.forget();
+
+  Future<({Map<String, dynamic> account, List<SiloProfile> profiles})>
+  _accountAndProfiles() => _account.get('me', () async {
+    // Both start at once. Awaiting them one by one (rather than a record's
+    // `.wait`, which wraps failures in a ParallelWaitError) keeps a 401 a
+    // plain DioException, which is what the app signs out on.
+    final accountFuture = _dio.get<dynamic>('/api/v2/account/me');
+    final profilesFuture = _profiles.list();
+    // If the account read fails first, the profile read's own failure is
+    // dropped here instead of reported as unhandled.
+    profilesFuture.ignore();
+    final account = await accountFuture;
+    final profiles = await profilesFuture;
+    final accountJson = asJsonMap(account.data);
+    if (accountJson == null) {
+      throw FormatException(
+        'Expected an account from Silo, got ${account.data.runtimeType}',
+      );
+    }
+    return (account: accountJson, profiles: profiles);
+  });
+
   /// The signed-in account and the profile the client acts as.
   ///
   /// Reads `GET /account/me` and `GET /profiles` together. With no profile
@@ -65,25 +100,10 @@ class SiloUsersApi implements UsersApi {
   /// the account's flag as it is.
   @override
   Future<ServerUser> getCurrentUser() async {
-    // Both start at once. Awaiting them one by one (rather than a record's
-    // `.wait`, which wraps failures in a ParallelWaitError) keeps a 401 a
-    // plain DioException, which is what the app signs out on.
-    final accountFuture = _dio.get<dynamic>('/api/v2/account/me');
-    final profilesFuture = _profiles.list();
-    // If the account read fails first, the profile read's own failure is
-    // dropped here instead of reported as unhandled.
-    profilesFuture.ignore();
     downloads?.invalidateCapability();
     final downloadsFuture = downloads?.capability();
     downloadsFuture?.ignore();
-    final account = await accountFuture;
-    final profiles = await profilesFuture;
-    final accountJson = asJsonMap(account.data);
-    if (accountJson == null) {
-      throw FormatException(
-        'Expected an account from Silo, got ${account.data.runtimeType}',
-      );
-    }
+    final (:account, :profiles) = await _accountAndProfiles();
     final wanted = _profileId();
     final profile = wanted == null
         ? profiles.where((p) => p.isPrimary).firstOrNull
@@ -95,7 +115,7 @@ class SiloUsersApi implements UsersApi {
             : 'Silo profile $wanted no longer exists on this account',
       );
     }
-    final user = _userDto(profile, accountJson);
+    final user = _userDto(profile, account);
     if (downloadsFuture != null) {
       try {
         if (!(await downloadsFuture).permitsDownloads) {
@@ -117,22 +137,12 @@ class SiloUsersApi implements UsersApi {
   /// Silo's order (phase 18: each profile is a Moonfin user, decision D1).
   /// Reads `GET /account/me` and `GET /profiles`, the latter as the account.
   Future<List<SiloHouseholdMember>> getHousehold() async {
-    final accountFuture = _dio.get<dynamic>('/api/v2/account/me');
-    final profilesFuture = _profiles.list();
-    profilesFuture.ignore();
-    final account = await accountFuture;
-    final profiles = await profilesFuture;
-    final accountJson = asJsonMap(account.data);
-    if (accountJson == null) {
-      throw FormatException(
-        'Expected an account from Silo, got ${account.data.runtimeType}',
-      );
-    }
+    final (:account, :profiles) = await _accountAndProfiles();
     return [
       for (final profile in profiles)
         SiloHouseholdMember(
           profile: profile,
-          user: ServerUser.fromJson(_userDto(profile, accountJson)),
+          user: ServerUser.fromJson(_userDto(profile, account)),
         ),
     ];
   }
@@ -245,7 +255,7 @@ class SiloUsersApi implements UsersApi {
   String _requireProfile(String member) =>
       _profileId() ??
       (throw StateError(
-        'Silo UsersApi.$member needs a profile; call useMainProfile() first',
+        'Silo UsersApi.$member needs a profile; set profileId first',
       ));
 
   static Map<String, Object?> _toSilo(

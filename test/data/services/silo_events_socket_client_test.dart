@@ -38,6 +38,7 @@ class _FakeSilo {
 
   /// Catalog item details by content id, for the read-back of a change.
   final items = <String, Map<String, dynamic>>{};
+  int itemReads = 0;
 
   /// Sends [frame] on the newest connection.
   void push(Map<String, Object?> frame) => sockets.last.add(jsonEncode(frame));
@@ -110,6 +111,7 @@ class _FakeSilo {
         );
         socket.listen((frame) => received.add('$frame'));
       case final path when path.startsWith('/api/v2/catalog/items/'):
+        itemReads++;
         final item = items[path.substring('/api/v2/catalog/items/'.length)];
         if (item != null) {
           _json(request, item);
@@ -228,6 +230,55 @@ void main() {
       expect(silo.capabilityReads, 1);
     },
   );
+
+  group('snapshots', () {
+    final snapshot = {
+      'type': 'snapshot',
+      'channel': 'catalog',
+      'timestamp': '2026-10-20T12:00:00Z',
+      'data': null,
+    };
+
+    setUp(() {
+      silo.items['movie-1'] = {
+        'content_id': 'movie-1',
+        'type': 'movie',
+        'title': 'A film',
+        'versions': <Object>[],
+      };
+    });
+
+    test('after a renewal on schedule, what was read is kept', () async {
+      silo.maxConnectionSeconds = 2;
+      final socket = socketFor(renewMargin: const Duration(milliseconds: 1500));
+
+      await socket.connect();
+      await _until(() => silo.sockets.length == 1);
+      await client.itemsApi.getItem('movie-1');
+      await _until(() => silo.sockets.length == 2);
+      silo.push(snapshot);
+      await Future<void>.delayed(const Duration(milliseconds: 600));
+      await client.itemsApi.getItem('movie-1');
+
+      expect(silo.itemReads, 1);
+      expect(silo.tickets, 2, reason: 'the renewal fetched its ticket once');
+    });
+
+    test('after a dropped connection, it is read again', () async {
+      final socket = socketFor();
+
+      await socket.connect();
+      await _until(() => silo.sockets.length == 1);
+      await client.itemsApi.getItem('movie-1');
+      await silo.sockets.first.close(1000, 'gone');
+      await _until(() => silo.sockets.length == 2);
+      silo.push(snapshot);
+      await Future<void>.delayed(const Duration(milliseconds: 600));
+      await client.itemsApi.getItem('movie-1');
+
+      expect(silo.itemReads, 2);
+    });
+  });
 
   test('a connection Silo closes comes back with a fresh ticket', () async {
     final socket = socketFor();

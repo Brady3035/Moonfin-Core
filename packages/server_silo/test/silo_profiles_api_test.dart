@@ -113,102 +113,14 @@ void main() {
     });
   });
 
-  group('useMainProfile', () {
-    test('picks the primary profile even when it is not first', () async {
-      final server = FixtureServer({
-        '/api/v2/profiles': _profiles([
-          _profile('kid', child: true),
-          _profile('main', primary: true),
-        ]),
-      });
-      final client = _client(server);
+  test('choosing a profile is an identity change', () {
+    final client = _client(FixtureServer({}));
+    final before = client.session.identity;
 
-      final main = await client.useMainProfile();
+    client.profileId = 'main';
 
-      expect(main.id, 'main');
-      expect(client.profileId, 'main');
-      expect(client.profileToken, isNull);
-
-      // From now on every request acts as the main profile (the listing
-      // itself goes out as the account, 18.1).
-      expect(
-        server.requests.first.headers.containsKey('X-Profile-Id'),
-        isFalse,
-      );
-      expect(client.requestHeaders['X-Profile-Id'], 'main');
-    });
-
-    test('lists without a stale profile and drops an old PIN proof', () async {
-      final server = FixtureServer({
-        '/api/v2/profiles': _profiles([_profile('main', primary: true)]),
-      });
-      final client = _client(server)
-        ..profileId = 'deleted'
-        ..profileToken = 'old-proof';
-
-      await client.useMainProfile();
-
-      final listing = server.requests.single;
-      expect(listing.headers.containsKey('X-Profile-Id'), isFalse);
-      expect(listing.headers.containsKey('X-Profile-Token'), isFalse);
-      expect(client.profileId, 'main');
-      expect(client.profileToken, isNull);
-    });
-
-    test(
-      'a main profile with a PIN is a typed error and selects nothing',
-      () async {
-        final server = FixtureServer({
-          '/api/v2/profiles': _profiles([
-            _profile('main', primary: true, pin: true),
-          ]),
-        });
-        final client = _client(server);
-
-        await expectLater(
-          client.useMainProfile(),
-          throwsA(
-            isA<SiloMainProfileLockedError>()
-                .having((e) => e.profile.id, 'profile', 'main')
-                .having(
-                  (e) => e.toString(),
-                  'text',
-                  contains('locked with a PIN'),
-                ),
-          ),
-        );
-        expect(client.profileId, isNull);
-      },
-    );
-
-    test('no primary profile is a readable error', () async {
-      final server = FixtureServer({
-        '/api/v2/profiles': _profiles([_profile('a'), _profile('b')]),
-      });
-
-      await expectLater(
-        _client(server).useMainProfile(),
-        throwsA(
-          isA<StateError>().having(
-            (e) => e.message,
-            'message',
-            contains('none is marked primary'),
-          ),
-        ),
-      );
-    });
-
-    test('changing to the main profile is an identity change', () async {
-      final server = FixtureServer({
-        '/api/v2/profiles': _profiles([_profile('main', primary: true)]),
-      });
-      final client = _client(server);
-      final before = client.session.identity;
-
-      await client.useMainProfile();
-
-      expect(client.session.identity, isNot(before));
-    });
+    expect(client.session.identity, isNot(before));
+    expect(client.requestHeaders['X-Profile-Id'], 'main');
   });
 
   group('verifyPin (18.1)', () {

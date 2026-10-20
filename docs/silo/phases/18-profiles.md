@@ -104,7 +104,7 @@ Until now a Silo sign-in stored one Moonfin user, the account's main profile (D9
 
 **Afterwards.** Profiles change on the web (a new profile, a PIN added, a rename). At every session start, after the user is read, the household is read again and stored the same way (`_syncSiloHousehold`, best effort). That is also how a login from before this phase, holding only the main profile, gets the other profiles without signing in again.
 
-**Gated.** All of this runs only when `FeatureDetector.supportsProfiles` is on for Silo, which 18.8 does. Until then nothing changes; the tests turn it on through `AuthRepository(siloProfiles: true)`.
+**Gated.** All of this runs only when `FeatureDetector.supportsProfiles` is on for Silo, which 18.8 does. Until then nothing changes; the tests turn it on through `AuthRepository(siloProfiles: true)`. *(2026-10-20: the gate and the main-profile-only sign-in it kept are gone; household sign-in is the only path. See HANDOFF.)*
 
 ### Testing
 

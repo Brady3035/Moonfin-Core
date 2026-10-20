@@ -187,7 +187,10 @@ class SiloDownloadsApi implements ServerDownloadsApi {
 
   /// Forgets the capability, so the next read asks Silo (the account's
   /// access changed, or the login did).
-  void invalidateCapability() => _capability.forget();
+  void invalidateCapability() {
+    _capability.forget();
+    _entriesByItem.forget();
+  }
 
   /// Registers the download with Silo (`POST /downloads`) and answers the
   /// file to fetch (`GET /downloads/{id}/file`, with the client's headers).
@@ -234,6 +237,7 @@ class SiloDownloadsApi implements ServerDownloadsApi {
     }
     final existing = await existingEntry(request.itemId);
     var entry = await _create(request, quality: quality, existing: existing);
+    (await _entryIndex())[request.itemId] = entry;
     // A converted file Silo cleaned up after an earlier download of this item
     // is made again on request; for anything else this changes nothing.
     if (entry.status == 'completed' &&
@@ -377,15 +381,28 @@ class SiloDownloadsApi implements ServerDownloadsApi {
     mediaSourceId: entry.mediaFileId.isEmpty ? null : entry.mediaFileId,
   );
 
-  /// This device's entry for the movie or episode [itemId], or null. Reads
-  /// the device's entries (`GET /downloads`, newest first) for at most
-  /// [_entryScanPages] pages.
-  Future<SiloDownloadEntry?> existingEntry(String itemId) async {
-    await for (final entry in _entries()) {
-      if (entry.itemId == itemId) return entry;
-    }
-    return null;
-  }
+  /// This device's entry for the movie or episode [itemId], or null.
+  Future<SiloDownloadEntry?> existingEntry(String itemId) async =>
+      (await _entryIndex())[itemId];
+
+  /// This device's entries by item, newest first winning: the device's
+  /// entries (`GET /downloads`, newest first) for at most [_entryScanPages]
+  /// pages. Kept a few seconds, so a season queued at once lists them once
+  /// rather than once per episode; an entry this client creates is put in.
+  Future<Map<String, SiloDownloadEntry>> _entryIndex() =>
+      _entriesByItem.get('device', () async {
+        final byItem = <String, SiloDownloadEntry>{};
+        await for (final entry in _entries()) {
+          byItem.putIfAbsent(entry.itemId, () => entry);
+        }
+        return byItem;
+      });
+
+  late final _entriesByItem =
+      SiloKeptReads<String, Map<String, SiloDownloadEntry>>(
+        lifetime: const Duration(seconds: 10),
+        clock: _clock,
+      );
 
   Stream<SiloDownloadEntry> _entries() async* {
     String? cursor;
@@ -589,6 +606,7 @@ class SiloDownloadsApi implements ServerDownloadsApi {
     await for (final entry in _entries()) {
       if (wanted.contains(entry.itemId)) found.add(entry);
     }
+    _entriesByItem.forget();
     for (final entry in found) {
       try {
         await _dio.delete<dynamic>(

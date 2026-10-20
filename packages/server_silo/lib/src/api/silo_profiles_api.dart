@@ -44,19 +44,6 @@ class SiloProfile {
   final Map<String, dynamic> json;
 }
 
-/// The account's main profile is PIN-locked, and PIN entry only arrives with
-/// the optional profiles phase (step 18.4). The app explains it (step 3.7).
-class SiloMainProfileLockedError implements Exception {
-  const SiloMainProfileLockedError(this.profile);
-
-  final SiloProfile profile;
-
-  @override
-  String toString() =>
-      'The main Silo profile "${profile.name}" is locked with a PIN, which '
-      'Moonfin does not support yet';
-}
-
 /// The answer to a profile PIN check ([SiloProfilesApi.verifyPin]).
 sealed class SiloPinResult {
   const SiloPinResult();
@@ -149,23 +136,5 @@ class SiloProfilesApi {
       }
       rethrow;
     }
-  }
-
-  /// The account's primary profile.
-  ///
-  /// Throws [SiloMainProfileLockedError] when it has a PIN, and a
-  /// [StateError] when Silo lists no primary profile (every account has one,
-  /// so that means a broken server answer).
-  Future<SiloProfile> mainProfile() async {
-    final profiles = await list();
-    final main = profiles.where((p) => p.isPrimary).firstOrNull;
-    if (main == null) {
-      throw StateError(
-        'Silo listed ${profiles.length} profile(s) for this account but none '
-        'is marked primary',
-      );
-    }
-    if (main.hasPin) throw SiloMainProfileLockedError(main);
-    return main;
   }
 }

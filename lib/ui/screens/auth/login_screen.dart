@@ -596,8 +596,6 @@ class _LoginScreenState extends State<LoginScreen> {
           SignInForbidden() => l10n.loginForbidden,
           SiloCodeSignInPasswordChangeRequired() =>
             l10n.siloCodeSignInPasswordChangeRequired,
-          SiloMainProfileLocked(:final profileName) =>
-            l10n.siloMainProfileLocked(profileName),
           ServerUnavailable() => l10n.serverUnavailable,
           SiloRequestRefused(:final failure) => failure.message(l10n),
           ApiClientError(:final error) => error,
@@ -916,8 +914,6 @@ class _LoginScreenState extends State<LoginScreen> {
           _finishLoginWithError(l10n.siloPasswordChangeUnavailable);
         case SiloPasswordChangedSignInAgain():
           _finishLoginWithError(l10n.siloPasswordChangedSignInAgain);
-        case SiloMainProfileLocked(:final profileName):
-          _finishLoginWithError(l10n.siloMainProfileLocked(profileName));
         default:
           _finishLoginWithError(l10n.loginFailed);
       }

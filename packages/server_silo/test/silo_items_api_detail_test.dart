@@ -137,4 +137,47 @@ void main() {
       ]);
     });
   });
+
+  group('one page, one read (perf)', () {
+    FixtureServer movie() => FixtureServer({
+      '/api/v2/catalog/items/$_xxx': FixtureServer.file(
+        'silo/catalog_item_movie.json',
+      ),
+    });
+
+    test('the page, its extras and its media info share the detail', () async {
+      final server = movie();
+      final client = siloTestClient(server);
+
+      await Future.wait([
+        client.itemsApi.getItem(_xxx),
+        client.itemsApi.getSpecialFeatures(_xxx),
+        client.playbackApi.getPlaybackInfo(_xxx),
+      ]);
+      await client.itemsApi.getItem(_xxx);
+
+      expect(server.requests, hasLength(1));
+    });
+
+    test('each caller gets its own copy', () async {
+      final client = siloTestClient(movie());
+
+      final first = await client.itemsApi.getItem(_xxx);
+      (first['MediaSources'] as List).clear();
+      final second = await client.itemsApi.getItem(_xxx);
+
+      expect(second['MediaSources'], hasLength(1));
+    });
+
+    test('a change to user data reads it again', () async {
+      final server = movie();
+      final client = siloTestClient(server);
+
+      await client.itemsApi.getItem(_xxx);
+      client.itemsApi.noteUserDataChanged(_xxx);
+      await client.itemsApi.getItem(_xxx);
+
+      expect(server.requests, hasLength(2));
+    });
+  });
 }

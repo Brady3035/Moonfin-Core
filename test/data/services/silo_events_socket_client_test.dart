@@ -438,4 +438,42 @@ void main() {
     expect(silo.capabilityReads, 0);
     expect(silo.sockets, isEmpty);
   });
+
+  test('this client\'s own finished playback comes out as UserDataChanged, '
+      'connected or not (fix 13.3a)', () async {
+    client.userId = 'profile';
+    silo.items['episode-1'] = {
+      'content_id': 'episode-1',
+      'type': 'episode',
+      'title': 'Pilot',
+      'user_state': {'played': true, 'is_favorite': false},
+      'versions': <Object>[],
+    };
+    final socket = socketFor();
+    final messages = <ServerWebSocketMessage>[];
+    final sub = socket.messages.listen(messages.add);
+    addTearDown(sub.cancel);
+
+    // Silo says nothing on its socket when a session stops.
+    client.notePlaybackEnded('episode-1');
+    await _until(() => messages.isNotEmpty);
+
+    final userData = messages.whereType<UserDataChangedMessage>().single;
+    expect(userData.userId, 'profile');
+    expect(userData.userDataList.single['ItemId'], 'episode-1');
+    expect(userData.userDataList.single['Played'], isTrue);
+    expect(silo.sockets, isEmpty);
+  });
+
+  test('a disposed socket passes on nothing more', () async {
+    final socket = SiloEventsSocketClient(client);
+    final messages = <ServerWebSocketMessage>[];
+    socket.messages.listen(messages.add);
+    socket.dispose();
+
+    client.notePlaybackEnded('episode-1');
+    await Future<void>.delayed(const Duration(milliseconds: 500));
+
+    expect(messages, isEmpty);
+  });
 }

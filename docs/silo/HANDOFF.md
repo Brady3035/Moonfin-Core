@@ -34,6 +34,11 @@ Brady contributes to Moonfin (Flutter Jellyfin/Emby client) and Silo Media Serve
 - `scripts/silo_probe.sh` refreshes fixtures and the contract from the live server (Brady runs it). Fixtures live in `packages/server_silo/test/fixtures/` (`openapi-bd9d59ea.json.gz`, `silo/*.json`, `emby/*.json`). For quick live measurements Claude can drop a Python script in Brady's gitignored `build/` (as with `build/silo_jump_timing.py`): it prompts for his password itself and must send a normal `User-Agent` (the proxy answers Python's default with 403).
 - Silo's own source answers what the contract can't: `git clone --depth 1 --filter=blob:none --sparse https://github.com/Silo-Server/silo-server.git` (Go). Useful: `internal/apiv2/catalog_items.go` (catalog handler, cursor scope), `internal/catalog/query_definition.go` (rule fields and sort fields), `internal/titleutil/sort_title.go`, `contracts/settings/v1/manifest.json` (settings keys).
 
+## Where things stand (2026-10-20 morning)
+
+- **13.3a, a finished episode stayed unwatched in the season list (Brady):** Silo's events socket says nothing when a playback session stops, so Moonfin's own playback never reached `UserDataSync`. The stop now notes the item on the Silo client, and the events socket client passes it on as the `user_state.changed` Silo would have sent (read back, `UserDataChanged`). Manual check 13.3 f pending. Commit `silo(13.3a): Show this client's finished playback in the lists`.
+- **Trickplay on Windows (Brady: no previews on any episode):** under investigation; waiting on a Windows network log.
+
 ## Where things stand (2026-10-19 late, similar items fixed)
 
 - **6.16a, "More like this" on Silo (Brady's report: wrong list, Silo web right):** the detail page never asked Silo. Its source is Settings › Details › Recommendation System, default Moonfin Recommends, a genre match on the device. `similarItemsSource` now reads that default as Silo's engine on Silo (TMDb stays TMDb, kids mode stays local, Jellyfin and Emby unchanged). `getSimilarItems` itself was right: Silo web calls the same `/recommendations/similar/{content_id}`, and Moonfin's item `Id` is the `content_id`. Manual check pending (06-browsing.md, 6.16 test plan). Commit `silo(6.16a): Ask Silo for a title's similar items`.

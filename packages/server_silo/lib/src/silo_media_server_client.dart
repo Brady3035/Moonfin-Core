@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:server_core/server_core.dart';
 
@@ -471,8 +473,27 @@ class SiloMediaServerClient extends MediaServerClient
   @override
   AdminItemsApi get adminItemsApi => _noAdmin();
 
+  final _ownUserDataChanges = StreamController<String>.broadcast();
+
+  /// Items whose user data this client's own playback changed. Silo's
+  /// events socket says nothing when a playback session stops (only the
+  /// `/progress` and mark-watched routes publish `user_state.changed`), so
+  /// the app's events socket turns these into the `UserDataChanged` Silo
+  /// would have caused, and the lists showing the item pick up its new
+  /// watched state and resume point.
+  Stream<String> get ownUserDataChanges => _ownUserDataChanges.stream;
+
+  /// Called when a playback session of [itemId] has stopped: its resume
+  /// point, and its watched state if it was finished, are now Silo's.
+  void notePlaybackEnded(String itemId) {
+    if (itemId.isEmpty) return;
+    itemsApi.noteUserDataChanged(itemId);
+    if (!_ownUserDataChanges.isClosed) _ownUserDataChanges.add(itemId);
+  }
+
   @override
   void dispose() {
+    unawaited(_ownUserDataChanges.close());
     SiloImageResolution.unregister(imageResolver);
     _dio.close();
     _authDio.close();

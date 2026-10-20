@@ -37,7 +37,8 @@ Brady contributes to Moonfin (Flutter Jellyfin/Emby client) and Silo Media Serve
 ## Where things stand (2026-10-20 morning)
 
 - **13.3a, a finished episode stayed unwatched in the season list (Brady):** Silo's events socket says nothing when a playback session stops, so Moonfin's own playback never reached `UserDataSync`. The stop now notes the item on the Silo client, and the events socket client passes it on as the `user_state.changed` Silo would have sent (read back, `UserDataChanged`). Manual check 13.3 f pending. Commit `silo(13.3a): Show this client's finished playback in the lists`.
-- **Trickplay on Windows (Brady: no previews on any episode):** under investigation; waiting on a Windows network log.
+- **Trickplay on Windows (Brady: no previews on any episode):** closed, not a bug. Previews were switched off in that install's settings; the default is on (single) everywhere, and the old on/off switch's "off" carries over by design.
+- **Intermittent: player stuck black after Back (macOS, Silo, direct play):** logged under "Intermittent issues" below; not reproduced.
 
 ## Where things stand (2026-10-19 late, similar items fixed)
 
@@ -372,6 +373,12 @@ Without the `SILO_MOVIE/SERIES/EPISODE` ids (or Emby settings) it skips the titl
   - `SiloTokenStorage` (`lib/auth/services/silo_token_storage.dart`): `bind` saves every refresh; `restore` puts pair, profile and binding on a client. **Every place that hands a stored login to a client must use `restore`, never `client.accessToken = user.accessToken`**, which would drop a live refresh token;
   - a refused refresh forgets the pair and returns to sign-in.
 - **User configuration (2.7):** library order and hidden libraries map to Silo settings `ui.library_order` and `ui.disabled_library_ids`. Changed keys only, written at profile scope. "Hide from Latest" has no Silo setting; the switch is hidden for Silo (D11, 8.3).
+
+## Intermittent issues (seen once, not reproduced)
+
+Waiting for a second sighting with logs. Add the date, platform, what was playing and what happened; move an entry into a step once it has a cause.
+
+- **Player stays black after the back arrow (2026-10-20, macOS, Silo, direct play, ~20 min into an episode).** Playback stopped but the player screen didn't close; it stayed black. Never seen on Emby. Brady couldn't reproduce it the same day. What the code rules out: `_exitPlayback` closes the route before the stop (`_manager.stop` runs unawaited after the pop is scheduled), and it pops anything stacked above the player first, so a slow or failed Silo stop can't hold the screen. The two ways the pop is skipped: `runAfterBackKeyUp` thinks a back key (Escape) is still down and waits for its key up, or `_popPlayerRoute` finds the player isn't the current route. Also possible: the route did close and AetherEngine's video layer stayed over the details screen. Next time, capture: whether the cursor reacts over the details screen's buttons, whether resizing the window or leaving full screen brings it back, how far into the episode (near the end means the Next Up and outro overlays), and the log from about a minute before Back (the `AetherEngine` / `AVIOReader` lines, the `DELETE …/api/v2/playback/…` and its answer, and any Flutter exception).
 
 ## Open items and notes
 

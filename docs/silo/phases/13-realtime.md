@@ -148,7 +148,7 @@ On the Mac, with Silo signed in. The network log is in Moonfin's logs (or the co
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | `6a97dff79` | previous step |
+| ☑ Done | `6a97dff79`, fix 13.3a | previous step |
 
 **Goal.** Translate Silo events into the existing `UserDataChanged`/`LibraryChanged` messages.
 
@@ -179,10 +179,13 @@ The socket client gathers frames for 300 ms before translating, so a burst (a se
 
 **Not implemented (Brady, 2026-10-18): live resume points from playback elsewhere.** Silo publishes no event when playback saves progress or stops (v2 `persistProgress` and `persistStopAndHistory`, and the Jellyfin-compat path); only the writes above do. So watching on Silo web doesn't move Moonfin's resume bars until a reload. Brady: not important. The fix would be on Silo's side (publish `user_state.changed` `progress` from those paths); this translator would pass it on unchanged.
 
+**Fix 13.3a, this client's own playback (Brady, 2026-10-20: a finished episode stayed unwatched in the season list).** The same gap covers Moonfin's own playback: Silo publishes nothing when a session stops, and the Jellyfin and Emby path relies on their socket's `UserDataChanged` after a stop, so no screen heard the episode was finished. Now `SiloPlaySessionService` calls `SiloMediaServerClient.notePlaybackEnded(itemId)` once Silo has the stop (or had already ended the session). That notes the item for the 9.4 scope and adds it to `ownUserDataChanges`; the events socket client passes each one to the translator as the `user_state.changed` `progress` Silo would have sent, so the item is read back and goes out as `UserDataChanged`, connected or not. The season list then shows the tick, and the series and season pages refresh their counts on return (`syncUserDataIfStale`). A refused stop notes nothing. Playback on other devices is still the known gap above.
+
 ### Testing
 
 **Automated tests**
 
+- (13.3a) `packages/playback_silo/test/silo_stop_test.dart` (3 new, 9/9): the client hears the item changed once Silo has the stop, and when the session had already ended; not when the stop was refused. `test/data/services/silo_events_socket_client_test.dart` (2 new, 16/16): an own finished playback comes out as `UserDataChanged` with what Silo holds, with no socket connected; a disposed socket passes nothing on.
 - `packages/server_silo/test/silo_events_translator_test.dart` (new, 9 tests): a change on the web passes on the item's user data as Silo holds it (resume point, favourite); two events for one item read it once; another profile's change is dropped; an unreadable item passes on the event's flag; `watchlist`, `home_dismissal` and `not_interested` only note the item (it is in the 9.4 scope); a burst reads back at most 25; `catalog.item.changed` gives `LibraryChanged` once despite the legacy duplicate; a scan and a snapshot pass nothing on.
 - `test/data/services/silo_events_socket_client_test.dart` (1 new, 9/9): events from the loopback socket come out as one `UserDataChanged` (only this profile's, read back) and one `LibraryChanged`.
 
@@ -195,6 +198,7 @@ On the Mac, with Moonfin open on Home and Silo web open in a browser as the same
 - c. Mark a whole season watched on the web while Moonfin shows that season's episodes: the episodes show watched (the read-backs show in the network log, one per episode up to 25).
 - d. A change from another profile on the web (if the account has one) changes nothing in Moonfin.
 - e. Known, not implemented: playing something on the web doesn't move its resume bar in Moonfin until a reload.
+- f. (13.3a) Open a season, play an episode in Moonfin to the end (or past the watched threshold) and go back: the episode shows watched in the season list, and the season's and the show's unwatched counts drop. Stop another one part way: its resume bar shows.
 
 **Results**
 

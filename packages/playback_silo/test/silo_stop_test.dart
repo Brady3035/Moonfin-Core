@@ -152,4 +152,52 @@ void main() {
     );
     expect(s.server.to(_sessionPath), isEmpty);
   });
+
+  group('the client hears the item changed (fix 13.3a)', () {
+    test('once Silo has the stop', () async {
+      final s = await _started(_stopped);
+      final heard = <String>[];
+      s.client.ownUserDataChanges.listen(heard.add);
+      await s.service.onPlaybackStop(
+        _item,
+        s.stream,
+        const Duration(minutes: 10),
+      );
+      await Future<void>.delayed(Duration.zero);
+      expect(heard, ['movie-imdb-tt0295701']);
+      expect(
+        s.client.itemsApi.userDataMayHaveChanged(['movie-imdb-tt0295701']),
+        ['movie-imdb-tt0295701'],
+      );
+    });
+
+    test('when the session had already ended', () async {
+      final s = await _started(
+        SiloTestServer.problemRoute(404, 'playback_session_not_found', 'Gone'),
+      );
+      final heard = <String>[];
+      s.client.ownUserDataChanges.listen(heard.add);
+      await s.service.onPlaybackStop(
+        _item,
+        s.stream,
+        const Duration(minutes: 10),
+      );
+      await Future<void>.delayed(Duration.zero);
+      expect(heard, ['movie-imdb-tt0295701']);
+    });
+
+    test('not when the stop was refused', () async {
+      final s = await _started(
+        SiloTestServer.problemRoute(422, 'validation_failed', 'No'),
+      );
+      final heard = <String>[];
+      s.client.ownUserDataChanges.listen(heard.add);
+      await expectLater(
+        s.service.onPlaybackStop(_item, s.stream, const Duration(minutes: 10)),
+        throwsA(anything),
+      );
+      await Future<void>.delayed(Duration.zero);
+      expect(heard, isEmpty);
+    });
+  });
 }

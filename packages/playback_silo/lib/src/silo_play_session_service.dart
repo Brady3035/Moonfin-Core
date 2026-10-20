@@ -119,7 +119,9 @@ class SiloPlaySessionService implements PlayerService {
   /// (the identical body, backing off 1, 2, 4, 8 s) for up to 30 s. Silo
   /// keeps the first stop and replays its receipt for any later one, so a
   /// retry after a lost answer is safe. `404` or `410` mean the session had
-  /// already ended. Afterwards the session is forgotten.
+  /// already ended. Afterwards the session is forgotten, and once Silo has
+  /// it, the client hears the item's user data changed
+  /// ([SiloMediaServerClient.notePlaybackEnded]).
   ///
   /// A stream a replan replaced has nothing to stop (its session goes on),
   /// and a second stop for the session waits for the first.
@@ -173,9 +175,15 @@ class SiloPlaySessionService implements PlayerService {
       while (true) {
         try {
           await api.stopPlayback(session.sessionId, body);
+          _noteEnded(session);
           return;
         } catch (error) {
-          if (SiloPlaybackApi.isSessionGone(error)) return;
+          if (SiloPlaybackApi.isSessionGone(error)) {
+            // Ended by Silo (it heard nothing for a while), which kept the
+            // last sample it had.
+            _noteEnded(session);
+            return;
+          }
           final left = deadline.difference(DateTime.now());
           if (!SiloPlaybackApi.isRetryableStopError(error) || left <= wait) {
             rethrow;
@@ -190,6 +198,16 @@ class SiloPlaySessionService implements PlayerService {
       // Ended either way: a stop Silo never got lets the session expire.
       session.ended = true;
       _sessions.remove(session.sessionId);
+    }
+  }
+
+  /// Tells the client [session]'s item changed (fix 13.3a): Silo's events
+  /// socket is silent about a stopped session, so without this a season's
+  /// list kept an episode just finished unwatched.
+  void _noteEnded(SiloPlaybackSession session) {
+    final client = _client;
+    if (client is SiloMediaServerClient) {
+      client.notePlaybackEnded(session.itemId);
     }
   }
 

@@ -28,7 +28,36 @@ class SiloEventsSocketClient extends _ReconnectingWebSocketClient {
     MediaServerClient client, {
     super.connectTimeout,
     @visibleForTesting this.renewMargin = const Duration(seconds: 15),
-  }) : super(client, 'Silo');
+  }) : super(client, 'Silo') {
+    _ownChanges = siloClientOf(client)?.ownUserDataChanges.listen(
+      _onOwnChange,
+    );
+  }
+
+  /// This client's own stopped playback (fix 13.3a), which Silo's socket
+  /// doesn't announce.
+  StreamSubscription<String>? _ownChanges;
+
+  /// Passed on as the `user_state.changed` Silo would have sent, so the
+  /// item is read back and the lists holding it repaint, as for a change
+  /// made on the web. Works whether or not the socket is connected.
+  void _onOwnChange(String itemId) {
+    final silo = _silo;
+    if (_disposed || silo == null) return;
+    _pending.add(
+      SiloEventFrame(
+        type: 'event',
+        channel: 'user_state',
+        event: 'user_state.changed',
+        data: {
+          'profile_id': silo.profileId,
+          'content_id': itemId,
+          'change': 'progress',
+        },
+      ),
+    );
+    _batchTimer ??= Timer(_batchWindow, _flush);
+  }
 
   /// How long before Silo's limit the connection is renewed: enough for a
   /// ticket and a handshake, so the old socket is replaced before Silo closes
@@ -211,6 +240,8 @@ class SiloEventsSocketClient extends _ReconnectingWebSocketClient {
   /// or drops; only a dispose (sign-out, another server) drops them.
   @override
   void dispose() {
+    unawaited(_ownChanges?.cancel());
+    _ownChanges = null;
     _batchTimer?.cancel();
     _batchTimer = null;
     _pending.clear();

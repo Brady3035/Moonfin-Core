@@ -37,6 +37,7 @@ Brady contributes to Moonfin (Flutter Jellyfin/Emby client) and Silo Media Serve
 ## Where things stand (2026-10-19 late, similar items fixed)
 
 - **6.16a, "More like this" on Silo (Brady's report: wrong list, Silo web right):** the detail page never asked Silo. Its source is Settings › Details › Recommendation System, default Moonfin Recommends, a genre match on the device. `similarItemsSource` now reads that default as Silo's engine on Silo (TMDb stays TMDb, kids mode stays local, Jellyfin and Emby unchanged). `getSimilarItems` itself was right: Silo web calls the same `/recommendations/similar/{content_id}`, and Moonfin's item `Id` is the `content_id`. Manual check pending (06-browsing.md, 6.16 test plan). Commit `silo(6.16a): Ask Silo for a title's similar items`.
+- **18.3a, SVG avatars on the profile picker (Brady's report):** the server screen's user grid used a `NetworkImage`, which can't decode Silo's SVG preset avatars; it now uses `UserAvatarImage`. Manual check 18.3 e pending. Commit `silo(18.3a): Draw SVG avatars on the profile picker`.
 
 ## Where things stand (2026-10-19 evening, upstream merged)
 

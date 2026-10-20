@@ -1022,7 +1022,7 @@ Creating and changing personal collections is 9.5.
 
 | Status | Commit | Depends on |
 |---|---|---|
-| ☑ Done | `a3551a5` | 6.15 |
+| ☑ Done | `a3551a5`, fix 6.16a | 6.15 |
 
 **Goal.** "More like this".
 
@@ -1038,17 +1038,21 @@ Creating and changing personal collections is 9.5.
 
 `getSimilarItems(id, limit:)` reads `GET /recommendations/similar/{id}?limit=…`, Silo's own recommendations for the title. Items are mapped like a grid's: artwork registered, series titles remembered. Types Moonfin can't open yet (audiobooks, ebooks) are left out. Moonfin's `bypass` (a cache-buster for Jellyfin's similar cache) has nothing to bypass on Silo.
 
+**Which engine the detail page asks.** The detail page picks its "More like this" source from Settings › Details › Recommendation System, whose default, Moonfin Recommends, is a genre match over the library done on the device; it never called Silo, so the row didn't match Silo's apps (fix 6.16a). `similarItemsSource` in `item_detail_view_model.dart` now reads Moonfin Recommends as Silo's engine on a Silo server, since Silo's list is what its apps show and is already shaped by the profile's access. TMDb Similarity stays TMDb, kids mode keeps the local algorithm and its parental-rating cap, and Jellyfin and Emby keep the setting as chosen. The home screen's "Since you watched" rows have their own source setting and are unchanged.
+
 ### Testing
 
 **Automated tests**
 
 - `packages/server_silo/test/silo_items_api_similar_test.dart` (new, 2 tests): xXx's recommendations (first: xXx: State of the Union) with `limit` sent and artwork registered; unopenable types left out.
 - `server_silo`: 405/405.
+- `test/data/viewmodels/similar_items_source_test.dart` (new, 4 tests, fix 6.16a): Moonfin Recommends asks Silo's engine on Silo; Jellyfin and Emby keep every setting; TMDb stays TMDb on Silo; kids mode stays local everywhere.
 
 **Manual test plan**
 
 - A Silo film's and a series' detail page shows a "More like this" row with posters. **Compare with Emby:** similar titles (they come from different engines, so not the same list).
 - Opening one from the row opens its detail page.
+- (6.16a) With Recommendation System left at Moonfin Recommends, a Silo film's and a series' "More like this" row matches Silo web's for the same title (Silo web shows 12, Moonfin up to its own limit, same order). TMDb Similarity still shows TMDb's list; kids mode still shows the local list.
 
 **Results**
 

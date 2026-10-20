@@ -59,7 +59,7 @@ Map<String, dynamic> _chapter(
   final start = chapter['start_seconds'] as num;
   return {
     'StartPositionTicks': secondsToTicks(start < 0 ? 0 : start),
-    if (title is String && title.trim().isNotEmpty) 'Name': title.trim(),
+    'Name': ?jsonText(title),
     'ImageTag': ?tag,
     'MarkerType': 'Chapter',
     'ChapterIndex': position,

@@ -2,15 +2,12 @@ import 'dart:convert';
 
 import 'package:custom_tv_text_field/custom_tv_text_field.dart';
 import 'package:flutter/material.dart';
-import 'package:get_it/get_it.dart';
 import 'package:moonfin_design/moonfin_design.dart';
 
 import '../../../auth/models/login_state.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../../preference/user_preferences.dart';
-import '../../../util/focus/dpad_keys.dart';
-import '../../../util/platform_detection.dart';
 import '../../widgets/overlay_sheet.dart';
+import 'silo_secret_field.dart';
 
 /// Why a new Silo password can't be sent as typed.
 enum SiloNewPasswordIssue { tooShort, tooLong, mismatch, sameAsTemporary }
@@ -223,22 +220,26 @@ class _SiloPasswordChangeDialogState extends State<SiloPasswordChangeDialog> {
                     style: TextStyle(color: onSurface.withValues(alpha: 0.7)),
                   ),
                   const SizedBox(height: 16),
-                  _field(
+                  SiloSecretField(
                     controller: _newController,
                     focusNode: _newFocus,
                     tvKey: _newTvKey,
                     label: l10n.siloPasswordChangeNew,
                     autofocus: true,
-                    up: null,
+                    enabled: !_busy,
+                    autofillHints: const [AutofillHints.newPassword],
                     down: _confirmFocus,
+                    last: false,
                     onSubmitted: (_) => _confirmFocus.requestFocus(),
                   ),
                   const SizedBox(height: 12),
-                  _field(
+                  SiloSecretField(
                     controller: _confirmController,
                     focusNode: _confirmFocus,
                     tvKey: _confirmTvKey,
                     label: l10n.siloPasswordChangeConfirm,
+                    enabled: !_busy,
+                    autofillHints: const [AutofillHints.newPassword],
                     up: _newFocus,
                     down: _submitFocus,
                     onSubmitted: (_) => _submit(),
@@ -285,89 +286,6 @@ class _SiloPasswordChangeDialogState extends State<SiloPasswordChangeDialog> {
               ),
             ),
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _field({
-    required TextEditingController controller,
-    required FocusNode focusNode,
-    required GlobalKey<CustomTVTextFieldState> tvKey,
-    required String label,
-    required FocusNode? up,
-    required FocusNode down,
-    required ValueChanged<String> onSubmitted,
-    bool autofocus = false,
-  }) {
-    final onSurface = AppColorScheme.onSurface;
-    final fillColor = onSurface.withValues(alpha: 0.08);
-    final hintStyle = TextStyle(color: onSurface.withValues(alpha: 0.4));
-
-    if (PlatformDetection.isTV) {
-      return Focus(
-        focusNode: focusNode,
-        autofocus: autofocus,
-        onKeyEvent: (_, event) {
-          if (!event.isActionable) return KeyEventResult.ignored;
-          final key = event.logicalKey;
-          if (key.isSelectKey) {
-            tvKey.currentState?.openKeyboard();
-            return KeyEventResult.handled;
-          }
-          if (key.isDownKey) {
-            down.requestFocus();
-            return KeyEventResult.handled;
-          }
-          if (key.isUpKey && up != null) {
-            up.requestFocus();
-            return KeyEventResult.handled;
-          }
-          return KeyEventResult.ignored;
-        },
-        child: ListenableBuilder(
-          listenable: focusNode,
-          builder: (_, _) => CustomTVTextField(
-            key: tvKey,
-            controller: controller,
-            isFocused: focusNode.hasFocus,
-            inputPurpose: InputPurpose.password,
-            textFieldType: TextFieldType.password,
-            preferSystemIme: GetIt.instance<UserPreferences>().get(
-              UserPreferences.preferSystemImeKeyboard,
-            ),
-            hint: label,
-            filled: true,
-            fillColor: fillColor,
-            hintStyle: hintStyle,
-            textStyle: TextStyle(color: onSurface),
-            popParentOnKeyboardClose: false,
-            onFieldSubmitted: onSubmitted,
-          ),
-        ),
-      );
-    }
-
-    return TextField(
-      controller: controller,
-      focusNode: focusNode,
-      autofocus: autofocus,
-      obscureText: true,
-      enabled: !_busy,
-      autofillHints: const [AutofillHints.newPassword],
-      textInputAction: identical(down, _submitFocus)
-          ? TextInputAction.done
-          : TextInputAction.next,
-      onSubmitted: onSubmitted,
-      style: TextStyle(color: onSurface),
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: hintStyle,
-        filled: true,
-        fillColor: fillColor,
-        border: OutlineInputBorder(
-          borderRadius: AppRadius.circular(8),
-          borderSide: BorderSide.none,
         ),
       ),
     );

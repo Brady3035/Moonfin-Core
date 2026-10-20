@@ -1,3 +1,4 @@
+import 'package:server_core/server_core.dart';
 import 'silo_ids.dart';
 import 'silo_ticks.dart';
 
@@ -41,7 +42,7 @@ Map<String, dynamic>? siloExtraToBaseItemDto(
   final extraType = siloExtraTypes[kind] ?? 'Unknown';
   return {
     'Id': id,
-    'Name': title is String && title.trim().isNotEmpty ? title.trim() : id,
+    'Name': jsonText(title) ?? id,
     'Type': extraType == 'Trailer' ? 'Trailer' : 'Video',
     'ExtraType': extraType,
     'MediaType': 'Video',

@@ -26,7 +26,6 @@ export 'src/api/silo_shuffles.dart';
 export 'src/api/silo_themes.dart';
 export 'src/api/silo_track_preferences.dart';
 export 'src/api/silo_trickplay.dart';
-export 'src/api/silo_pending_api.dart' show SiloNotImplementedError;
 export 'src/api/silo_playback_api.dart';
 export 'src/api/silo_profiles_api.dart';
 export 'src/silo_image_cache_key.dart';

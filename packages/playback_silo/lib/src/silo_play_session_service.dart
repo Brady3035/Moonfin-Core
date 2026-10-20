@@ -24,10 +24,12 @@ class SiloPlaySessionService implements PlayerService {
 
   SiloPlaybackSessions get _sessions => SiloPlaybackSessions.of(_client);
 
-  SiloPlaybackApi? get _api {
+  SiloMediaServerClient? get _silo {
     final client = _client;
-    return client is SiloMediaServerClient ? client.playbackApi : null;
+    return client is SiloMediaServerClient ? client : null;
   }
+
+  SiloPlaybackApi? get _api => _silo?.playbackApi;
 
   /// The session [resolution] is the current stream of, while it is live.
   /// A stream a replan has replaced reports nothing: its session goes on
@@ -169,31 +171,19 @@ class SiloPlaySessionService implements PlayerService {
         'is_paused': false,
       },
     };
-    final deadline = DateTime.now().add(stopRetryBudget);
-    var wait = const Duration(seconds: 1);
     try {
-      while (true) {
-        try {
-          await api.stopPlayback(session.sessionId, body);
-          _noteEnded(session);
-          return;
-        } catch (error) {
-          if (SiloPlaybackApi.isSessionGone(error)) {
-            // Ended by Silo (it heard nothing for a while), which kept the
-            // last sample it had.
-            _noteEnded(session);
-            return;
-          }
-          final left = deadline.difference(DateTime.now());
-          if (!SiloPlaybackApi.isRetryableStopError(error) || left <= wait) {
-            rethrow;
-          }
-          await _sleep(wait);
-          wait = wait * 2 > const Duration(seconds: 8)
-              ? const Duration(seconds: 8)
-              : wait * 2;
-        }
-      }
+      await siloSendWithRetries(
+        () => api.stopPlayback(session.sessionId, body),
+        budget: stopRetryBudget,
+        retryable: SiloPlaybackApi.isRetryableStopError,
+        sleep: _sleep,
+      );
+      _noteEnded(session);
+    } catch (error) {
+      // Gone means Silo had already ended it (it heard nothing for a while)
+      // and kept the last sample it had.
+      if (!SiloPlaybackApi.isSessionGone(error)) rethrow;
+      _noteEnded(session);
     } finally {
       // Ended either way: a stop Silo never got lets the session expire.
       session.ended = true;
@@ -204,12 +194,8 @@ class SiloPlaySessionService implements PlayerService {
   /// Tells the client [session]'s item changed (fix 13.3a): Silo's events
   /// socket is silent about a stopped session, so without this a season's
   /// list kept an episode just finished unwatched.
-  void _noteEnded(SiloPlaybackSession session) {
-    final client = _client;
-    if (client is SiloMediaServerClient) {
-      client.notePlaybackEnded(session.itemId);
-    }
-  }
+  void _noteEnded(SiloPlaybackSession session) =>
+      _silo?.notePlaybackEnded(session.itemId);
 
   /// Silo has no live TV.
   @override

@@ -13,11 +13,9 @@ import '../../../auth/services/silo_token_storage.dart';
 import '../../../auth/store/authentication_store.dart';
 import '../../../data/services/media_server_client_factory.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../../preference/user_preferences.dart';
-import '../../../util/focus/dpad_keys.dart';
-import '../../../util/platform_detection.dart';
 import '../../../util/silo_failure_message.dart';
 import '../../widgets/overlay_sheet.dart';
+import 'silo_secret_field.dart';
 
 /// Before switching to Silo profile [user] on [server]: asks for its PIN
 /// when it is locked and has no live proof (18.4), and keeps the proof Silo
@@ -207,7 +205,16 @@ class _SiloPinDialogState extends State<SiloPinDialog> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  _field(l10n.siloPinHint),
+                  SiloSecretField(
+                    controller: _controller,
+                    focusNode: _fieldFocus,
+                    tvKey: _tvKey,
+                    label: l10n.siloPinHint,
+                    autofocus: true,
+                    enabled: !_busy,
+                    down: _submitFocus,
+                    onSubmitted: (_) => _submit(),
+                  ),
                   if (_error != null) ...[
                     const SizedBox(height: 12),
                     Text(
@@ -250,75 +257,6 @@ class _SiloPinDialogState extends State<SiloPinDialog> {
               ),
             ),
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _field(String label) {
-    final onSurface = AppColorScheme.onSurface;
-    final fillColor = onSurface.withValues(alpha: 0.08);
-    final hintStyle = TextStyle(color: onSurface.withValues(alpha: 0.4));
-
-    if (PlatformDetection.isTV) {
-      // A remote has no way out of a plain text field: select opens the
-      // keyboard, down goes to Unlock.
-      return Focus(
-        focusNode: _fieldFocus,
-        autofocus: true,
-        onKeyEvent: (_, event) {
-          if (!event.isActionable) return KeyEventResult.ignored;
-          final key = event.logicalKey;
-          if (key.isSelectKey) {
-            _tvKey.currentState?.openKeyboard();
-            return KeyEventResult.handled;
-          }
-          if (key.isDownKey) {
-            _submitFocus.requestFocus();
-            return KeyEventResult.handled;
-          }
-          return KeyEventResult.ignored;
-        },
-        child: ListenableBuilder(
-          listenable: _fieldFocus,
-          builder: (_, _) => CustomTVTextField(
-            key: _tvKey,
-            controller: _controller,
-            isFocused: _fieldFocus.hasFocus,
-            inputPurpose: InputPurpose.password,
-            textFieldType: TextFieldType.password,
-            preferSystemIme: GetIt.instance<UserPreferences>().get(
-              UserPreferences.preferSystemImeKeyboard,
-            ),
-            hint: label,
-            filled: true,
-            fillColor: fillColor,
-            hintStyle: hintStyle,
-            textStyle: TextStyle(color: onSurface),
-            popParentOnKeyboardClose: false,
-            onFieldSubmitted: (_) => _submit(),
-          ),
-        ),
-      );
-    }
-
-    return TextField(
-      controller: _controller,
-      focusNode: _fieldFocus,
-      autofocus: true,
-      obscureText: true,
-      enabled: !_busy,
-      textInputAction: TextInputAction.done,
-      onSubmitted: (_) => _submit(),
-      style: TextStyle(color: onSurface),
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: hintStyle,
-        filled: true,
-        fillColor: fillColor,
-        border: OutlineInputBorder(
-          borderRadius: AppRadius.circular(8),
-          borderSide: BorderSide.none,
         ),
       ),
     );

@@ -55,17 +55,18 @@ String siloImageTag(String url) {
       .substring(0, 16);
 }
 
-/// Turns a Silo artwork URL into one Moonfin can load.
+/// Turns a URL from a Silo answer (artwork, a theme song's stream, a
+/// playback plan's media) into one Moonfin can load.
 ///
-/// Silo sends most artwork as a path on the server (`/api/v2/artwork/…`);
-/// that gets [baseUrl] in front (keeping any sub-path a reverse proxy adds).
+/// Silo sends most as a path on the server (`/api/v2/artwork/…`); that gets
+/// [baseUrl] in front (keeping any sub-path a reverse proxy adds).
 /// Absolute URLs (TMDB, TVDB, an S3 bucket) pass through, and a
 /// scheme-relative `//host/…` takes [baseUrl]'s scheme. **No token is ever
 /// appended**: the URLs are already signed, and a token in an image URL would
 /// leak the session into caches and logs.
 ///
 /// Null or blank gives null.
-String? resolveSiloImageUrl(String? url, String baseUrl) {
+String? resolveSiloUrl(String? url, String baseUrl) {
   final trimmed = url?.trim();
   if (trimmed == null || trimmed.isEmpty) return null;
   final lower = trimmed.toLowerCase();
@@ -120,7 +121,7 @@ class SiloImageRegistry {
     String? url, {
     int index = 0,
   }) {
-    final resolved = resolveSiloImageUrl(url, _baseUrl());
+    final resolved = resolveSiloUrl(url, _baseUrl());
     if (resolved == null) return null;
     // Tagged as Silo sent it, before the base URL goes in front: the same
     // picture reached at a LAN and a public address keeps one tag.

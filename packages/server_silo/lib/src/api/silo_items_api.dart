@@ -14,6 +14,7 @@ import '../mappers/silo_item_types.dart';
 import '../mappers/silo_person_mapper.dart';
 import '../mappers/silo_sort_map.dart';
 import '../silo_image_registry.dart';
+import '../silo_kept_reads.dart';
 import '../silo_pager.dart';
 import 'silo_home_sections.dart';
 import 'silo_markers.dart';
@@ -21,7 +22,7 @@ import 'silo_shuffles.dart';
 import 'silo_themes.dart';
 import 'silo_track_preferences.dart';
 import 'silo_trickplay.dart';
-import 'silo_pending_api.dart';
+import 'silo_unsupported.dart';
 
 /// The artwork size Silo is asked for in lists (grids, rows): posters at
 /// 500 px, backdrops at 1920 (`images/capabilities`).
@@ -34,10 +35,8 @@ const siloDetailImageSize = 'large';
 ///
 /// Every answer is translated into Jellyfin's shapes by the phase 5 mappers,
 /// and every artwork URL is recorded in the client's image registry on the
-/// way. Methods are filled in by the phase 6 steps; the rest still answer
-/// with [SiloNotImplementedError] naming their step (see [noSuchMethod]),
-/// or with an empty answer for what Silo doesn't have at all (music,
-/// playlists).
+/// way. What Silo doesn't have at all answers empty (music, playlists) or
+/// throws [UnsupportedError] (see [noSuchMethod]).
 class SiloItemsApi
     implements
         ItemsApi,
@@ -115,8 +114,8 @@ class SiloItemsApi
   /// A library grid, or the whole catalog (step 6.5).
   ///
   /// - `parentId` a library id → `library_id`; no `parentId` → the whole
-  ///   catalog. Other parents (series, seasons, genres, collections) come
-  ///   with their own steps.
+  ///   catalog. A series, season, genre, studio or collection parent reads
+  ///   that list instead (6.7–6.15).
   /// - `includeItemTypes` → Silo's `type` scope (5.1). Types Silo can't serve
   ///   (`BoxSet`, `Playlist`, music…) are dropped from the request; a query
   ///   for **only** such types answers empty without a request.
@@ -232,10 +231,8 @@ class SiloItemsApi
         genreParent == null &&
         studioParent == null &&
         collection == null) {
-      throw SiloNotImplementedError(
-        'ItemsApi',
-        'getItems(parentId: $parentId)',
-        '6.7–6.15',
+      throw UnsupportedError(
+        'ItemsApi.getItems(parentId: $parentId) is not supported on Silo',
       );
     }
 
@@ -491,28 +488,17 @@ class SiloItemsApi
           ],
         },
       ]);
-    final key = siloPageSignature(_catalogPath, countParams);
-    final now = DateTime.now();
-    final cached = _runtimeCounts[key];
-    if (cached != null && now.difference(cached.at) <= _filteredListTtl) {
-      return cached.count;
-    }
-    final count = _fetch(countParams, 0, 1).then(
-      (r) => r.totalRecordCount,
-      onError: (Object e, StackTrace s) {
-        _runtimeCounts.remove(key);
-        Error.throwWithStackTrace(e, s);
-      },
+    return _runtimeCounts.get(
+      siloPageSignature(_catalogPath, countParams),
+      () => _fetch(countParams, 0, 1).then((r) => r.totalRecordCount),
     );
-    _runtimeCounts[key] = (at: now, count: count);
-    while (_runtimeCounts.length > _filteredListMax) {
-      _runtimeCounts.remove(_runtimeCounts.keys.first);
-    }
-    return count;
   }
 
-  final LinkedHashMap<String, ({DateTime at, Future<int> count})>
-  _runtimeCounts = LinkedHashMap();
+  late final _runtimeCounts = SiloKeptReads<String, int>(
+    lifetime: _filteredListTtl,
+    maxKeys: _filteredListMax,
+    clock: _clock,
+  );
 
   /// A few titles in random order (`sortBy: Random` with a small `limit`
   /// and no `startIndex`: a genre card's artwork, a row of random titles,
@@ -650,7 +636,7 @@ class SiloItemsApi
     Future<List<Map<String, dynamic>>> Function()? read,
   }) async {
     final key = '${siloPageSignature(_catalogPath, params)}#$filter';
-    final now = DateTime.now();
+    final now = _clock();
     var entry = _filteredLists.remove(key);
     if (entry == null || now.difference(entry.at) > _filteredListTtl) {
       final list = read?.call() ?? _readAll(params, keep, libraryId);
@@ -1383,8 +1369,7 @@ class SiloItemsApi
     final names = [
       for (final key in const ['networks', 'studios'])
         if (json[key] case final List list)
-          for (final n in list)
-            if (n is String && n.trim().isNotEmpty) n.trim(),
+          for (final n in list) ?jsonText(n),
     ];
     return _namedList(
       names,
@@ -1770,7 +1755,11 @@ class SiloItemsApi
   }
 
   static const _searchCapabilitiesTtl = Duration(minutes: 10);
-  ({DateTime at, Future<SiloSearchCapabilities> read})? _searchCapabilities;
+  late final _searchCapabilities =
+      SiloKeptReads<String, SiloSearchCapabilities>(
+        lifetime: _searchCapabilitiesTtl,
+        clock: _clock,
+      );
 
   /// What Silo says about search for this profile
   /// (`GET /catalog/search/capabilities`, step 7.1), read once and kept for
@@ -1779,20 +1768,9 @@ class SiloItemsApi
   /// When the document can't be read (an error, an older server), searches
   /// go ahead without the optional scopes ([SiloSearchCapabilities.unknown])
   /// and it is read again next time.
-  Future<SiloSearchCapabilities> searchCapabilities() async {
-    final now = DateTime.now();
-    var entry = _searchCapabilities;
-    if (entry == null || now.difference(entry.at) > _searchCapabilitiesTtl) {
-      entry = (at: now, read: _readSearchCapabilities());
-      _searchCapabilities = entry;
-    }
-    try {
-      return await entry.read;
-    } catch (_) {
-      if (identical(_searchCapabilities, entry)) _searchCapabilities = null;
-      return SiloSearchCapabilities.unknown;
-    }
-  }
+  Future<SiloSearchCapabilities> searchCapabilities() => _searchCapabilities
+      .get('capabilities', _readSearchCapabilities)
+      .catchError((Object _) => SiloSearchCapabilities.unknown);
 
   Future<SiloSearchCapabilities> _readSearchCapabilities() async {
     final response = await _dio.get<dynamic>(
@@ -1846,7 +1824,7 @@ class SiloItemsApi
   void noteCatalogChanged() {
     homeSections.clear();
     _filteredLists.clear();
-    _runtimeCounts.clear();
+    _runtimeCounts.forget();
     pager.clear();
   }
 
@@ -1856,7 +1834,7 @@ class SiloItemsApi
   /// changed), so all of it is forgotten. The catalog itself is the same.
   void noteProfileChanged() {
     noteCatalogChanged();
-    _hideWatched = null;
+    _hideWatched.forget();
     _changedItems.clear();
     _changedSeries.clear();
   }
@@ -2294,24 +2272,15 @@ class SiloItemsApi
   /// Read from the effective settings once a minute. A setting that can't
   /// be read counts as off, as Silo itself fails open, so nothing disappears
   /// because of an error.
-  Future<bool> _hidesWatchedOnHome() async {
-    final now = _clock();
-    var entry = _hideWatched;
-    if (entry == null || now.difference(entry.at) > _hideWatchedTtl) {
-      entry = (at: now, read: _readHideWatched());
-      _hideWatched = entry;
-    }
-    try {
-      return await entry.read;
-    } catch (_) {
-      if (identical(_hideWatched, entry)) _hideWatched = null;
-      return false;
-    }
-  }
+  Future<bool> _hidesWatchedOnHome() => _hideWatched
+      .get(_hideWatchedKey, _readHideWatched)
+      .catchError((Object _) => false);
 
   static const _hideWatchedKey = 'home.hide_watched_items';
-  static const _hideWatchedTtl = Duration(minutes: 1);
-  ({DateTime at, Future<bool> read})? _hideWatched;
+  late final _hideWatched = SiloKeptReads<String, bool>(
+    lifetime: const Duration(minutes: 1),
+    clock: _clock,
+  );
 
   Future<bool> _readHideWatched() async {
     final response = await _dio.get<dynamic>(
@@ -2587,27 +2556,19 @@ class SiloItemsApi
     streamIndex: streamIndex,
   );
 
-  // --- the rest, by roadmap step ------------------------------------------
-
-  /// The step that implements each method not implemented yet.
-  static const _steps = {
-    'searchRemoteSubtitles': '10.14',
-    'downloadRemoteSubtitle': '10.14',
-  };
-
-  /// Methods not implemented yet throw [SiloNotImplementedError] with their
-  /// step; playlist changes and deleting items are refused, since Silo has
-  /// no playlists and Moonfin doesn't delete media on Silo.
+  /// A film split across files (DVD1, DVD2) is one Silo title whose files
+  /// are versions, not parts, so there are none.
   @override
-  dynamic noSuchMethod(Invocation invocation) {
-    final name = invocation.memberName
-        .toString()
-        .replaceFirst('Symbol("', '')
-        .replaceFirst('")', '');
-    final step = _steps[name];
-    if (step != null) throw SiloNotImplementedError('ItemsApi', name, step);
-    throw UnsupportedError('ItemsApi.$name is not supported on Silo');
-  }
+  Future<List<Map<String, dynamic>>> getAdditionalParts(String itemId) async =>
+      const [];
+
+  // --- the rest -------------------------------------------------------------
+
+  /// What Silo has no counterpart for: remote subtitle search, playlist
+  /// changes, deleting items.
+  @override
+  dynamic noSuchMethod(Invocation invocation) =>
+      siloUnsupported('ItemsApi', invocation);
 }
 
 /// Silo's letter index for a title-ordered list ([SiloItemsApi.letters]).

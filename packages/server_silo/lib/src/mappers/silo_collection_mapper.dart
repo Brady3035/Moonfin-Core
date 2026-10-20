@@ -1,3 +1,4 @@
+import 'package:server_core/server_core.dart';
 import '../silo_image_registry.dart';
 import 'silo_ids.dart';
 
@@ -18,9 +19,8 @@ Map<String, dynamic>? siloCollectionToBoxSet(
   final id = libraryId == null
       ? siloCollectionId(raw)
       : siloLibraryCollectionId(libraryId, raw);
-  String? text(Object? v) =>
-      v is String && v.trim().isNotEmpty ? v.trim() : null;
-  final name = text(collection['title']) ?? text(collection['name']) ?? '';
+  final name =
+      jsonText(collection['title']) ?? jsonText(collection['name']) ?? '';
   images?.note(id);
   final poster = images?.register(
     id,
@@ -40,7 +40,7 @@ Map<String, dynamic>? siloCollectionToBoxSet(
     'Type': 'BoxSet',
     'IsFolder': true,
     'CollectionType': 'boxsets',
-    'Overview': ?text(collection['description']),
+    'Overview': ?jsonText(collection['description']),
     if (count is num) 'ChildCount': count.toInt(),
     'ParentId': ?libraryId,
     'ImageTags': {'Primary': ?poster},

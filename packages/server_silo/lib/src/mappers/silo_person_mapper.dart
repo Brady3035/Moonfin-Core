@@ -1,3 +1,4 @@
+import 'package:server_core/server_core.dart';
 import '../silo_image_registry.dart';
 import 'silo_ids.dart';
 
@@ -17,8 +18,6 @@ Map<String, dynamic> siloPersonToBaseItemDto(
   Map<String, dynamic> person, {
   SiloImageRegistry? images,
 }) {
-  String? text(Object? v) =>
-      v is String && v.trim().isNotEmpty ? v.trim() : null;
   String? date(Object? v) {
     final parsed = v is String ? DateTime.tryParse(v) : null;
     if (parsed == null) return null;
@@ -27,32 +26,32 @@ Map<String, dynamic> siloPersonToBaseItemDto(
   }
 
   final id = siloIdOf(person['id']) ?? '';
-  final name = text(person['name']) ?? '';
+  final name = jsonText(person['name']) ?? '';
   images?.note(id);
   final photo = images?.register(
     id,
     SiloImageType.primary,
     person['photo_url'] as String?,
   );
-  final birthplace = text(person['birthplace']);
+  final birthplace = jsonText(person['birthplace']);
   return {
     'Id': id,
     'Name': name,
     'SortName': name,
     'Type': 'Person',
     'IsFolder': false,
-    'Overview': ?text(person['bio']),
+    'Overview': ?jsonText(person['bio']),
     'PremiereDate': ?date(person['birth_date']),
     'EndDate': ?date(person['death_date']),
     'ProductionLocations': [?birthplace],
     'ProviderIds': {
-      'Imdb': ?text(person['imdb_id']),
-      'Tmdb': ?text(person['tmdb_id']),
-      'Tvdb': ?text(person['tvdb_id']),
+      'Imdb': ?jsonText(person['imdb_id']),
+      'Tmdb': ?jsonText(person['tmdb_id']),
+      'Tvdb': ?jsonText(person['tvdb_id']),
     },
     'ImageTags': {'Primary': ?photo},
     'BackdropImageTags': const <String>[],
-    if (text(person['homepage']) case final home?)
+    if (jsonText(person['homepage']) case final home?)
       'ExternalUrls': [
         {'Name': 'Website', 'Url': home},
       ],

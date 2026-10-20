@@ -2,6 +2,8 @@
 /// `UserConfiguration`, for the keys Moonfin reads from it.
 library;
 
+import 'package:server_core/server_core.dart';
+
 /// The Silo settings `UserConfiguration` is built from, all stored at
 /// `profile` scope.
 const siloUserConfigurationKeys = [
@@ -44,8 +46,8 @@ Map<String, dynamic> siloSettingsToUserConfiguration(
     'OrderedViews': _libraryIds(values[siloLibraryOrderKey]),
     'MyMediaExcludes': _libraryIds(values[siloDisabledLibrariesKey]),
     'EnableNextEpisodeAutoPlay': values[siloAutoPlayNextKey] as bool? ?? true,
-    'AudioLanguagePreference': ?_language(values[siloAudioLanguageKey]),
-    'SubtitleLanguagePreference': ?_language(values[siloSubtitleLanguageKey]),
+    'AudioLanguagePreference': ?jsonText(values[siloAudioLanguageKey]),
+    'SubtitleLanguagePreference': ?jsonText(values[siloSubtitleLanguageKey]),
     'SubtitleMode': siloSubtitleModeToJellyfin(mode, showForced: showForced),
   };
 }
@@ -71,8 +73,8 @@ Map<String, Object?> userConfigurationToSiloSettings({
   return {
     siloLibraryOrderKey: _toIntIds(orderedViews),
     siloDisabledLibrariesKey: _toIntIds(myMediaExcludes),
-    siloAudioLanguageKey: _language(audioLanguagePreference),
-    siloSubtitleLanguageKey: _language(subtitleLanguagePreference),
+    siloAudioLanguageKey: jsonText(audioLanguagePreference),
+    siloSubtitleLanguageKey: jsonText(subtitleLanguagePreference),
     siloSubtitleModeKey: subtitles.mode,
     siloShowForcedSubtitlesKey: subtitles.showForced,
     siloAutoPlayNextKey: enableNextEpisodeAutoPlay,
@@ -119,6 +121,3 @@ List<int>? _toIntIds(List<String> ids) {
   }
   return out.isEmpty ? null : out;
 }
-
-String? _language(Object? value) =>
-    value is String && value.trim().isNotEmpty ? value.trim() : null;

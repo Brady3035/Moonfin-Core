@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:server_silo/server_silo.dart';
 import 'package:test/test.dart';
 
 import 'fixture_server.dart';
@@ -159,12 +158,16 @@ void main() {
     expect((page['Items'] as List).map((i) => (i as Map)['Name']), ['A']);
   });
 
-  test('later steps name themselves', () async {
+  test('what Silo lacks names itself', () async {
     final api = siloTestClient(FixtureServer({})).itemsApi;
     expect(
       () => api.searchRemoteSubtitles('movie-1', language: 'en'),
       throwsA(
-        isA<SiloNotImplementedError>().having((e) => e.step, 'step', '10.14'),
+        isA<UnsupportedError>().having(
+          (e) => e.message,
+          'message',
+          'ItemsApi.searchRemoteSubtitles is not supported on Silo',
+        ),
       ),
     );
   });

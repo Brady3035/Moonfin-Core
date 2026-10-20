@@ -162,6 +162,8 @@ class SessionRepository {
   /// `FeatureDetector.supportsProfiles`, tests can choose.
   final bool _siloProfiles;
 
+  late final _siloTokens = SiloTokenStorage(_authStore);
+
   final GoRouter _router;
 
   String get _remoteRoutePath =>
@@ -287,7 +289,7 @@ class SessionRepository {
     // A PIN-locked Silo profile without a live proof can't act yet: whoever
     // switches asks for the PIN first (18.4). At start-up this sends the
     // person to the server's user grid, where tapping the profile asks.
-    if (SiloTokenStorage(_authStore).needsPin(user)) {
+    if (_siloTokens.needsPin(user)) {
       _logger.i('Silo profile $userId needs its PIN before it can be used');
       _setState(SessionState.ready);
       return false;
@@ -319,13 +321,12 @@ class SessionRepository {
 
     // A Silo profile restores its account's token pair and profile; the
     // stored access token alone can't refresh (3.4).
-    if (!SiloTokenStorage(_authStore).restore(
+    _siloTokens.putLogin(
       client: client,
       user: user,
+      accessToken: accessToken,
       onEnded: () => _onSiloLoginEnded(serverId, userId, user.name),
-    )) {
-      client.accessToken = accessToken;
-    }
+    );
     client.userId = userId;
 
     // A stored token can be long dead, and everything past this point fires
@@ -948,8 +949,6 @@ class SessionRepository {
     }
   }
 
-  /// Lets a test drive a command straight in, so every name a control surface
-  /// sends can be checked against what the receiver does with it.
   /// Marks [userId] on [serverId] as the active session without starting
   /// it, for tests of what happens to an active session (sign-out, 18.6).
   @visibleForTesting
@@ -958,6 +957,8 @@ class SessionRepository {
     _activeUserId = userId;
   }
 
+  /// Lets a test drive a command straight in, so every name a control surface
+  /// sends can be checked against what the receiver does with it.
   @visibleForTesting
   Future<void> handleRemoteCommandForTest(ServerWebSocketMessage event) =>
       _handleRemoteCommand(event);

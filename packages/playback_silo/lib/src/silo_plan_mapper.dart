@@ -23,15 +23,11 @@ StreamPlayMethod siloPlayMethod(String? delivery) => switch (delivery) {
 /// without it, which the web player maps the same way. The query (the signed
 /// `st` reference, `seek`, a subtitle's identity pins) is kept byte for byte.
 String siloPlanUrl(String baseUrl, String url) {
-  if (url.startsWith('http://') || url.startsWith('https://')) return url;
   final legacy = RegExp(
     r'^(?:/api/v1)?/(?=stream/|playback/transcode/)',
   ).firstMatch(url);
   final path = legacy == null ? url : '/api/v2/${url.substring(legacy.end)}';
-  final base = baseUrl.endsWith('/')
-      ? baseUrl.substring(0, baseUrl.length - 1)
-      : baseUrl;
-  return '$base${path.startsWith('/') ? '' : '/'}$path';
+  return resolveSiloUrl(path, baseUrl)!;
 }
 
 /// How long a paused progressive remux is kept by Silo before it closes the

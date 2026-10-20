@@ -49,7 +49,7 @@ Map<String, dynamic>? siloItemToBaseItemDto(
   final itemType = siloItemTypeOf(item['type'] ?? type ?? siloTypeOfId(id));
   if (itemType == null) return null;
 
-  final name = _text(item['title']) ?? '';
+  final name = jsonText(item['title']) ?? '';
   final premiere = _calendarDate(
     item['release_date'] ?? item['first_air_date'] ?? item['air_date'],
   );
@@ -59,7 +59,7 @@ Map<String, dynamic>? siloItemToBaseItemDto(
   final genres = _strings(item['genres']);
   final studios = _studioNames(item);
   final status = _seriesStatus(item['show_status']);
-  final tagline = _text(item['tagline']);
+  final tagline = jsonText(item['tagline']);
 
   final dto = <String, dynamic>{
     'Id': id,
@@ -67,13 +67,14 @@ Map<String, dynamic>? siloItemToBaseItemDto(
     // Silo orders titles by their sort title, which only the detail carries;
     // cards get the default Silo derives (6.11), so the alphabet bar files
     // "The Hobbit" under H, where Silo's list puts it.
-    'SortName': _text(item['sort_title']) ?? siloDefaultSortTitle(name) ?? name,
-    if (_text(item['original_title']) case final original?)
+    'SortName':
+        jsonText(item['sort_title']) ?? siloDefaultSortTitle(name) ?? name,
+    if (jsonText(item['original_title']) case final original?)
       'OriginalTitle': original,
     'Type': itemType.jellyfinType,
     if (itemType.mediaType != null) 'MediaType': itemType.mediaType,
     'IsFolder': itemType.isFolder,
-    if (_text(item['overview']) case final overview?) 'Overview': overview,
+    if (jsonText(item['overview']) case final overview?) 'Overview': overview,
     'Taglines': [?tagline],
     // Remote trailers and the local extras' counts (6.17).
     'RemoteTrailers': siloRemoteTrailers(item['videos']),
@@ -99,7 +100,7 @@ Map<String, dynamic>? siloItemToBaseItemDto(
     if (status == 'Ended')
       if (_calendarDate(item['last_air_date']) case final end?)
         'EndDate': _jellyfinDate(end),
-    if (_text(item['content_rating']) case final rating?)
+    if (jsonText(item['content_rating']) case final rating?)
       'OfficialRating': rating,
     if (_communityRating(item) case final community?)
       'CommunityRating': community,
@@ -160,16 +161,10 @@ class SiloSeriesRef {
 
 // --- text and lists --------------------------------------------------------
 
-String? _text(Object? value) {
-  if (value is! String) return null;
-  final trimmed = value.trim();
-  return trimmed.isEmpty ? null : trimmed;
-}
-
 List<String> _strings(Object? value) => value is List
     ? [
         for (final v in value)
-          if (_text(v) case final s?) s,
+          if (jsonText(v) case final s?) s,
       ]
     : const [];
 
@@ -190,7 +185,7 @@ List<String> _studioNames(Map<String, dynamic> item) {
 
 /// A Silo calendar date (`YYYY-MM-DD`, or a full timestamp) as a UTC date.
 DateTime? _calendarDate(Object? value) {
-  final text = _text(value);
+  final text = jsonText(value);
   if (text == null) return null;
   final parsed = DateTime.tryParse(text);
   if (parsed == null) return null;
@@ -227,7 +222,7 @@ String? _dateAdded(Object? versions) {
 /// `Status`, which has only `Continuing` and `Ended`. Anything else is left
 /// out, as Emby does when it doesn't know.
 String? _seriesStatus(Object? value) {
-  final text = _text(value)?.toLowerCase();
+  final text = jsonText(value)?.toLowerCase();
   if (text == null) return null;
   if (text == 'ended' || text.startsWith('cancel')) return 'Ended';
   if (text.contains('returning') ||
@@ -279,7 +274,7 @@ int? _runTimeTicks(Map<String, dynamic> item) {
 }
 
 Map<String, String> _providerIds(Map<String, dynamic> item) => {
-  if (_text(item['imdb_id']) case final imdb?) 'Imdb': imdb,
+  if (jsonText(item['imdb_id']) case final imdb?) 'Imdb': imdb,
   if (siloIdOf(item['tmdb_id']) case final tmdb?) 'Tmdb': tmdb,
   if (siloIdOf(item['tvdb_id']) case final tvdb?) 'Tvdb': tvdb,
 };
@@ -313,8 +308,8 @@ Map<String, dynamic> _imageFields(
 
   String? primaryUrl;
   if (isEpisode) {
-    primaryUrl = _text(item['still_url']);
-    final poster = _text(item['poster_url']);
+    primaryUrl = jsonText(item['still_url']);
+    final poster = jsonText(item['poster_url']);
     if (primaryUrl == null && poster != null) {
       if (item['poster_is_episode_still'] != false) {
         primaryUrl = poster;
@@ -323,13 +318,13 @@ Map<String, dynamic> _imageFields(
       }
     }
   } else {
-    primaryUrl = _text(item['poster_url']);
+    primaryUrl = jsonText(item['poster_url']);
   }
 
   final backdropUrls = _strings(item['backdrop_urls']);
   var backdrops = backdropUrls.isNotEmpty
       ? backdropUrls
-      : [?_text(item['backdrop_url'])];
+      : [?jsonText(item['backdrop_url'])];
   if (isEpisode && item['backdrop_is_episode_still'] != true) {
     // The series' backdrop, sent along with the episode.
     if (seriesId != null && backdrops.isNotEmpty) {
@@ -352,7 +347,7 @@ Map<String, dynamic> _imageFields(
       SiloImageType.logo.jellyfinName: tag,
   };
   if (type == 'movie' || type == 'series') {
-    final thumb = _text(item['thumb_url']) ?? backdrops.firstOrNull;
+    final thumb = jsonText(item['thumb_url']) ?? backdrops.firstOrNull;
     if (images.register(id, SiloImageType.thumb, thumb) case final tag?) {
       tags[SiloImageType.thumb.jellyfinName] = tag;
     }
@@ -415,7 +410,7 @@ Map<String, dynamic> _seriesFields(
         if (seriesId != null) ...{
           'SeriesId': seriesId,
           'ParentId': seriesId,
-          if (_text(item['series_title']) ?? series?.name case final name?)
+          if (jsonText(item['series_title']) ?? series?.name case final name?)
             'SeriesName': name,
           ..._parentArtwork(seriesId, images),
         },
@@ -436,7 +431,7 @@ Map<String, dynamic> _seriesFields(
         if (seasonId != null) ...{'SeasonId': seasonId, 'ParentId': seasonId},
         if (seriesId != null) ...{
           'SeriesId': seriesId,
-          if (_text(item['series_title']) ?? series?.name case final name?)
+          if (jsonText(item['series_title']) ?? series?.name case final name?)
             'SeriesName': name,
           ..._parentArtwork(seriesId, images),
         },
@@ -626,7 +621,7 @@ List<Map<String, dynamic>> _people(
     String kind,
     String? role,
   ) {
-    final name = _text(credit['name']);
+    final name = jsonText(credit['name']);
     if (name == null) return null;
     final id = siloIdOf(credit['person_id']);
     if (!seen.add('${id ?? name}|$kind')) return null;
@@ -655,7 +650,8 @@ List<Map<String, dynamic>> _people(
       return byOrder != 0 ? byOrder : a.$1.compareTo(b.$1);
     });
   for (final (_, c) in cast) {
-    if (entry(c, 'Actor', _text(c['character'])) case final p?) people.add(p);
+    if (entry(c, 'Actor', jsonText(c['character'])) case final p?)
+      people.add(p);
   }
 
   final crew = [
@@ -664,7 +660,7 @@ List<Map<String, dynamic>> _people(
   ];
   for (final kind in _crewKinds.keys) {
     for (final c in crew) {
-      final job = _text(c['job']);
+      final job = jsonText(c['job']);
       if (job == null || _crewKind(job) != kind) continue;
       final role = job.toLowerCase() == kind.toLowerCase() ? null : job;
       if (entry(c, kind, role) case final p?) people.add(p);

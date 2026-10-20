@@ -131,10 +131,9 @@ class HeadlessSessionBootstrap {
       serverType: server.serverType,
       baseUrl: server.address,
     );
-    final store = GetIt.instance<AuthenticationStore>();
-    if (!SiloTokenStorage(store).restore(client: client, user: user)) {
-      client.accessToken = accessToken;
-    }
+    SiloTokenStorage(
+      GetIt.instance<AuthenticationStore>(),
+    ).putLogin(client: client, user: user, accessToken: accessToken);
     client.userId = userId;
     return client;
   }

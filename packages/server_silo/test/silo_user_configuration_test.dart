@@ -110,7 +110,7 @@ void main() {
           isA<StateError>().having(
             (e) => e.message,
             'message',
-            contains('useMainProfile'),
+            contains('set profileId first'),
           ),
         ),
       );

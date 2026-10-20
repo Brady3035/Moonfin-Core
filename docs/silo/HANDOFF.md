@@ -34,6 +34,18 @@ Brady contributes to Moonfin (Flutter Jellyfin/Emby client) and Silo Media Serve
 - `scripts/silo_probe.sh` refreshes fixtures and the contract from the live server (Brady runs it). Fixtures live in `packages/server_silo/test/fixtures/` (`openapi-bd9d59ea.json.gz`, `silo/*.json`, `emby/*.json`). For quick live measurements Claude can drop a Python script in Brady's gitignored `build/` (as with `build/silo_jump_timing.py`): it prompts for his password itself and must send a normal `User-Agent` (the proxy answers Python's default with 403).
 - Silo's own source answers what the contract can't: `git clone --depth 1 --filter=blob:none --sparse https://github.com/Silo-Server/silo-server.git` (Go). Useful: `internal/apiv2/catalog_items.go` (catalog handler, cursor scope), `internal/catalog/query_definition.go` (rule fields and sort fields), `internal/titleutil/sort_title.go`, `contracts/settings/v1/manifest.json` (settings keys).
 
+## Where things stand (2026-10-20 evening, performance pass)
+
+Brady asked for a pass over the fork's code for redundant network calls and slow paths, keeping behaviour. Commit `silo: Remove the main-profile sign-in; performance pass`. What changed:
+
+- **A title's page reads its detail once.** The page, its trailers, its extras, its theme songs and the media info each read `GET /catalog/items/{id}` (four or five identical reads per page). `SiloItemsApi.detailJson` keeps the detail 10 s and shares it; seasons lists and season episode lists are kept the same way. Each caller gets its own copy. Anything that changes the catalog or user data forgets them (`noteCatalogChanged`, which `noteUserDataChanged` calls).
+- **Refreshing watched state reads lists, not one detail per episode.** `getItems(ids:, fields: 'UserData')` (the 9.4 refresh on returning to a page, the 13.3 read-back) takes two or more episodes of a season from the season's list and seasons from their series' list. Returning to a season after watching an episode was one detail read per episode on the page; it is now one list read.
+- **The events socket renews without throwing the caches away.** Silo ends each connection after five minutes, and the snapshot frames of every new connection cleared every kept list. A renewal on schedule now fetches its ticket while the old connection still delivers and drops the new connection's snapshots; a real reconnect still clears.
+- **Session start reads the account once.** `getCurrentUser` and `getHousehold` share the `account/me` + `profiles` read (kept 5 s, forgotten when the login or its access changes).
+- **Artwork for unseen items** goes through `getItem` (sharing the detail read) and the cached library list instead of raw reads; the library list cache is a `SiloKeptReads` now.
+- **A season queued for download** lists the device's entries once instead of once per episode (kept 10 s, new entries put in, forgotten on removal and on a login change).
+- **Storing the household at every start** no longer rewrites the whole auth store once per unchanged profile.
+
 ## Where things stand (2026-10-20 afternoon, code review)
 
 Brady asked for a pass over everything the fork added: logical, concise, readable, and no duplicated code. Behaviour is unchanged; one commit, `silo: Review pass, shared helpers instead of copies`. What changed:
@@ -45,7 +57,7 @@ Brady asked for a pass over everything the fork added: logical, concise, readabl
 - **`siloSendWithRetries`** (`playback_silo`): the start, replan and stop retry loops were three copies of the same backoff; `_sourceOfPlan` replaces two near-identical "which source does this plan play" methods; the capability translator's width and channel limits share `_limits`.
 - **App side:** `SiloSecretField` is the password/PIN field the password-change and PIN dialogs each built (about 70 lines each); `SiloTokenStorage.putLogin` replaces three copies of "restore the Silo login, else set the token"; `siloProfileImageUrl` replaces two copies of the profile avatar lookup; `AuthRepository._emit` / `_failed` shorten the Silo sign-in paths; a misplaced doc comment in `SessionRepository` fixed.
 
-**Left for Brady to decide:** the pre-phase-18 "main profile only" sign-in (`siloProfiles: false`, `useMainProfile`, `SiloMainProfileLocked`, its l10n string) is dead in the app since 18.8 turned profiles on for every Silo server; only tests reach it. Removing it is about 150 lines plus rewriting the auth tests built on it.
+**Main-profile sign-in removed (Brady: "go ahead and remove that, now that we have profiles enabled"):** the pre-phase-18 path that signed in as the main profile alone (`siloProfiles: false`, `SiloMediaServerClient.useMainProfile`, `SiloProfilesApi.mainProfile`, `SiloMainProfileLockedError`, the `SiloMainProfileLocked` state and its `siloMainProfileLocked` string, `FeatureDetector.supportsProfiles`) is gone. Every Silo sign-in stores the household; a single profile without a PIN still goes straight in, anything else opens the user grid. The auth tests now run on that path (a PIN-locked profile goes to the grid with the login kept, where it used to end the login).
 
 ## Where things stand (2026-10-20 morning)
 

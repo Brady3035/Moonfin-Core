@@ -147,7 +147,7 @@ void main() {
       final client = siloTestClient(server)..userId = 'p1';
       final ids = [
         for (var e = 1; e <= SiloEventsTranslator.maxReadBacks + 5; e++)
-          'episode-imdb-tt1641384-1-$e',
+          'movie-$e',
       ];
 
       final messages = await SiloEventsTranslator(client).translate([
@@ -159,6 +159,44 @@ void main() {
         hasLength(ids.length),
       );
       expect(server.requests, hasLength(SiloEventsTranslator.maxReadBacks));
+    });
+
+    test('a season\'s episodes are read back from its list, once', () async {
+      final season = 'season-imdb-tt1641384-1';
+      final server = FixtureServer({
+        '/api/v2/catalog/items/$season/episodes': siloJson({
+          'items': [
+            for (var e = 1; e <= 30; e++)
+              {
+                'content_id': 'episode-imdb-tt1641384-1-$e',
+                'season_number': 1,
+                'episode_number': e,
+                'title': 'Episode $e',
+                'user_state': {'played': true},
+              },
+          ],
+        }),
+      });
+      final client = siloTestClient(server)..userId = 'p1';
+      final ids = [
+        for (var e = 1; e <= SiloEventsTranslator.maxReadBacks + 5; e++)
+          'episode-imdb-tt1641384-1-$e',
+      ];
+
+      final messages = await SiloEventsTranslator(client).translate([
+        for (final id in ids) _userState(id, 'watched', played: true),
+      ]);
+
+      expect(
+        (messages.single as UserDataChangedMessage).userDataList,
+        hasLength(ids.length),
+      );
+      expect(server.requests, hasLength(1));
+      final read = (messages.single as UserDataChangedMessage).userDataList;
+      expect(
+        read.take(SiloEventsTranslator.maxReadBacks).map((e) => e['Played']),
+        everyElement(isTrue),
+      );
     });
   });
 

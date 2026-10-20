@@ -30,23 +30,12 @@ class AuthRepository {
   /// A Silo login waiting for its temporary password to be replaced (3.6).
   _PendingSiloPasswordChange? _pendingPasswordChange;
 
-  /// Whether a Silo sign-in stores the account's household profiles as
-  /// users (phase 18) or acts as the main profile (decision D9). Follows
-  /// `FeatureDetector.supportsProfiles`; tests can choose.
-  final bool _siloProfiles;
-
   AuthRepository(
     this._authStore,
     this._authPrefs,
     this._sessionRepository,
-    this._userRepository, {
-    bool? siloProfiles,
-  }) : _siloProfiles =
-           siloProfiles ??
-           const FeatureDetector(
-             serverType: ServerType.silo,
-             serverVersion: '',
-           ).supportsProfiles;
+    this._userRepository,
+  );
 
   Stream<LoginState> get stateStream => _stateController.stream;
 
@@ -178,14 +167,9 @@ class AuthRepository {
     return state;
   }
 
-  /// A Silo sign-in opens the **account**; the Moonfin user is the account's
-  /// main profile (decision D9). So after the password is accepted this
-  /// picks the main profile, describes it as the user, stores the account's
-  /// token pair (3.2) and keeps saving it on every refresh.
-  ///
-  /// If anything after the password fails (the main profile is PIN-locked,
-  /// the network drops), the new login is ended on Silo too, so no session
-  /// is left open that the app no longer knows about.
+  /// A Silo sign-in opens the **account**; Moonfin's users are its
+  /// household profiles. After the password is accepted,
+  /// [_finishSiloSignIn] stores them and the account's token pair (3.2).
   ///
   /// A temporary password stops here instead: see
   /// [_startRequiredPasswordChange].
@@ -208,7 +192,6 @@ class AuthRepository {
     if (result[SiloAuthApi.siloPasswordChangeRequiredKey] == true) {
       return _startRequiredPasswordChange(
         _PendingSiloPasswordChange(
-          result: result,
           client: client,
           silo: silo,
           serverId: serverId,
@@ -218,7 +201,6 @@ class AuthRepository {
       );
     }
     return _finishSiloSignIn(
-      result: result,
       client: client,
       silo: silo,
       serverId: serverId,
@@ -227,7 +209,7 @@ class AuthRepository {
   }
 
   /// A Silo sign-in with a code (14.1) opens the account like a password
-  /// sign-in, and goes on the same way: the main profile, the stored pair.
+  /// sign-in, and goes on the same way ([_finishSiloSignIn]).
   ///
   /// An account holding a temporary password can't continue here: replacing
   /// it needs the password in use (3.6), which a code sign-in never had. The
@@ -249,7 +231,6 @@ class AuthRepository {
       return _emit(const SiloCodeSignInPasswordChangeRequired());
     }
     return _finishSiloSignIn(
-      result: result,
       client: client,
       silo: silo,
       serverId: serverId,
@@ -259,7 +240,7 @@ class AuthRepository {
 
   /// The account holds a temporary password. Until it is replaced, Silo lets
   /// this login read the account, change the password and sign out, and
-  /// answers everything else (picking the main profile included) with
+  /// answers everything else (listing the profiles included) with
   /// `403 password_change_required`.
   ///
   /// So the login is kept open, unsaved, and the screen asks for a new
@@ -348,7 +329,6 @@ class AuthRepository {
       return _emit(const SiloPasswordChangedSignInAgain());
     }
     return _finishSiloSignIn(
-      result: pending.result,
       client: pending.client,
       silo: pending.silo,
       serverId: pending.serverId,
@@ -381,79 +361,11 @@ class AuthRepository {
     } catch (_) {}
   }
 
-  /// Picks the main profile, stores the user and the session's token pair,
-  /// and keeps saving the pair on every refresh. Reads the pair from the
-  /// session rather than the sign-in answer: after a password change (3.6)
-  /// it has been refreshed since.
-  Future<LoginState> _finishSiloSignIn({
-    required Map<String, dynamic> result,
-    required MediaServerClient client,
-    required SiloMediaServerClient silo,
-    required String serverId,
-    required String accountId,
-  }) async {
-    if (_siloProfiles) {
-      return _finishSiloHouseholdSignIn(
-        client: client,
-        silo: silo,
-        serverId: serverId,
-        accountId: accountId,
-      );
-    }
-    final ServerUser profileUser;
-    try {
-      await silo.useMainProfile();
-      profileUser = await client.usersApi.getCurrentUser();
-    } on SiloMainProfileLockedError catch (e) {
-      // Not a failure to log: the account is set up this way. The login is
-      // useless without the PIN, so it is ended.
-      await _endSiloLogin(client);
-      return _emit(SiloMainProfileLocked(profileName: e.profile.name));
-    } catch (e) {
-      _logger.e('Silo sign-in could not use the main profile', error: e);
-      await _endSiloLogin(client);
-      return _failed(e);
-    }
-
-    final tokens = silo.session.tokens;
-    if (tokens == null) {
-      // Signed out while the profile was read.
-      return _emit(const RequireSignIn());
-    }
-
-    final policy = profileUser.policy;
-    final user = PrivateUser(
-      id: profileUser.id,
-      name: (profileUser.name ?? '').trim().isNotEmpty
-          ? profileUser.name!.trim()
-          : (result['User'] as Map<String, dynamic>?)?['Name'] as String? ?? '',
-      serverId: serverId,
-      // Kept for the code that checks a stored user has a token; the session
-      // itself restores from the stored pair (3.4).
-      accessToken: tokens.accessToken,
-      lastUsed: DateTime.now(),
-      imageTag: profileUser.primaryImageTag,
-      isAdministrator: policy?.isAdministrator ?? false,
-      canDownload: policy?.enableContentDownloading ?? false,
-      canManageSubtitles: policy?.canFetchRemoteSubtitles ?? false,
-      canManageCollections: policy?.enableCollectionManagement ?? false,
-      siloAccountId: accountId,
-    );
-
-    client.userId = user.id;
-    await _siloTokens.save(serverId, accountId, tokens, newLogin: true);
-    _siloTokens.bind(client: silo, serverId: serverId, accountId: accountId);
-    await _authStore.putUser(user);
-    await _authPrefs.setLastServerId(serverId);
-    await _authPrefs.setLastUserId(user.id);
-    _userRepository.setCurrentUser(user);
-
-    return _emit(Authenticated(userId: user.id, serverId: serverId));
-  }
-
-  /// The rest of a Silo sign-in with household profiles (18.2): every
-  /// profile of the account is stored as a user, all sharing the account's
-  /// token pair, which is stored and bound as for the main profile.
+  /// The rest of a Silo sign-in (18.2): every household profile of the
+  /// account is stored as a user, all sharing the account's token pair,
+  /// which is stored and kept saved on every refresh. Reads the pair from
+  /// the session rather than the sign-in answer: after a password change
+  /// (3.6) it has been refreshed since.
   ///
   /// An account with a single profile, without a PIN, goes straight in as
   /// it. Any other household (several profiles, or a PIN to enter) answers
@@ -461,9 +373,9 @@ class AuthRepository {
   /// (18.3), where a locked profile asks for its PIN (18.4). Nobody is the
   /// current user until then.
   ///
-  /// As with the main profile, a failure after the password ends the new
-  /// login on Silo too.
-  Future<LoginState> _finishSiloHouseholdSignIn({
+  /// A failure after the password ends the new login on Silo too, so no
+  /// session is left open that the app no longer knows about.
+  Future<LoginState> _finishSiloSignIn({
     required MediaServerClient client,
     required SiloMediaServerClient silo,
     required String serverId,
@@ -623,7 +535,6 @@ class AuthRepository {
 /// unsaved) until the password is replaced or the change is cancelled.
 class _PendingSiloPasswordChange {
   _PendingSiloPasswordChange({
-    required this.result,
     required this.client,
     required this.silo,
     required this.serverId,
@@ -631,7 +542,6 @@ class _PendingSiloPasswordChange {
     required this.currentPassword,
   });
 
-  final Map<String, dynamic> result;
   final MediaServerClient client;
   final SiloMediaServerClient silo;
   final String serverId;

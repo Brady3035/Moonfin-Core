@@ -73,7 +73,11 @@ class SiloItemsApi
   );
 
   /// Theme music (11.5).
-  late final SiloThemes themes = SiloThemes(_dio, clock: _clock);
+  late final SiloThemes themes = SiloThemes(
+    _dio,
+    detail: detailJson,
+    clock: _clock,
+  );
 
   /// The mapped media source each item plays, as the resolver noted it.
   final _playingSources = <String, Map<String, dynamic>>{};
@@ -179,7 +183,14 @@ class SiloItemsApi
     bool? is4K,
     bool? is3D,
   }) async {
-    if (ids != null) return _byIds(ids, startIndex: startIndex, limit: limit);
+    if (ids != null) {
+      return _byIds(
+        ids,
+        startIndex: startIndex,
+        limit: limit,
+        userDataOnly: fields?.trim() == 'UserData',
+      );
+    }
     final libraryId = _libraryIdOf(parentId);
     // A genre page (6.12): its synthetic id names the genre.
     final genreParent = parentId == null ? null : siloGenreNameOf(parentId);
@@ -814,6 +825,36 @@ class SiloItemsApi
     }
     if (parseSiloCollectionId(itemId) != null) return _collection(itemId);
 
+    final json = await detailJson(itemId, mediaSourceId: mediaSourceId);
+    final item = siloItemToBaseItemDto(json, images: images);
+    if (item == null) {
+      throw StateError('Silo item $itemId has a type Moonfin cannot show');
+    }
+    _rememberSeries(item);
+    return _withKnownLibrary(item);
+  }
+
+  /// [itemId]'s detail as Silo answers it (`GET /catalog/items/{id}`, its
+  /// versions merged in), a copy of its own to change.
+  ///
+  /// A detail page asks for the same title several times as it loads (the
+  /// page, its trailers, its extras, its theme songs, the media info), so a
+  /// read is kept for [_listReadLifetime] and shared, until anything about
+  /// the catalog or the profile's user data changes ([noteCatalogChanged]).
+  Future<Map<String, dynamic>> detailJson(
+    String itemId, {
+    String? mediaSourceId,
+  }) async => _copyJson(
+    await _details.get(
+      '$itemId#${mediaSourceId ?? ''}',
+      () => _readDetail(itemId, mediaSourceId),
+    ),
+  );
+
+  Future<Map<String, dynamic>> _readDetail(
+    String itemId,
+    String? mediaSourceId,
+  ) async {
     final path = '/api/v2/catalog/items/${Uri.encodeComponent(itemId)}';
     final query = {
       'image_size': siloDetailImageSize,
@@ -835,12 +876,52 @@ class SiloItemsApi
       final list = asJsonMap(versions.data)?['items'];
       if (list is List) json['versions'] = list;
     }
-    final item = siloItemToBaseItemDto(json, images: images);
-    if (item == null) {
-      throw StateError('Silo item $itemId has a type Moonfin cannot show');
-    }
-    _rememberSeries(item);
-    return _withKnownLibrary(item);
+    return json;
+  }
+
+  /// How long a title's detail, a series' seasons and a season's episodes
+  /// are reused: long enough for one page's requests to share a read, short
+  /// enough that a change elsewhere shows on the next visit.
+  static const _listReadLifetime = Duration(seconds: 10);
+
+  late final _details = SiloKeptReads<String, Map<String, dynamic>>(
+    lifetime: _listReadLifetime,
+    maxKeys: 32,
+    clock: _clock,
+  );
+  late final _seasonLists = SiloKeptReads<String, List<Map<String, dynamic>>>(
+    lifetime: _listReadLifetime,
+    maxKeys: 16,
+    clock: _clock,
+  );
+  late final _episodeLists = SiloKeptReads<String, List<Map<String, dynamic>>>(
+    lifetime: _listReadLifetime,
+    maxKeys: 32,
+    clock: _clock,
+  );
+
+  /// A copy of a kept JSON object, so a caller never changes what is kept.
+  static Map<String, dynamic> _copyJson(Map<String, dynamic> json) =>
+      json.map((key, value) => MapEntry(key, _copyValue(value)));
+
+  static List<Map<String, dynamic>> _copyList(
+    List<Map<String, dynamic>> list,
+  ) => [for (final json in list) _copyJson(json)];
+
+  static Object? _copyValue(Object? value) => switch (value) {
+    final Map map => _copyJson(map.cast<String, dynamic>()),
+    final List list => [for (final v in list) _copyValue(v)],
+    _ => value,
+  };
+
+  /// A list answer's `items`, each a JSON object; none when there are none.
+  static List<Map<String, dynamic>> _itemsOf(Response<dynamic> response) {
+    final raw = asJsonMap(response.data)?['items'];
+    return [
+      if (raw is List)
+        for (final entry in raw)
+          if (asJsonMap(entry) case final json?) json,
+    ];
   }
 
   Future<Map<String, dynamic>> _library(String libraryId) async {
@@ -854,32 +935,83 @@ class SiloItemsApi
     throw StateError('Silo library $libraryId is not visible to this profile');
   }
 
-  /// Several items by id, in the order asked, six at a time. Silo has no
-  /// "these ids" list query; ids it doesn't know are left out.
+  /// Several items by id, in the order asked. Silo has no "these ids"
+  /// list query, so each is its own detail read, six at a time; ids it
+  /// doesn't know are left out.
+  ///
+  /// When only user data is asked for ([userDataOnly]: the refresh after a
+  /// change, 9.4, 13.3), a season's episodes come from one read of the
+  /// season's list and seasons from their series' list, which carry the
+  /// same watched state, instead of a detail read each.
   Future<Map<String, dynamic>> _byIds(
     List<String> ids, {
     int? startIndex,
     int? limit,
+    bool userDataOnly = false,
   }) async {
     final start = startIndex ?? 0;
     final wanted = ids.skip(start).take(limit ?? ids.length).toList();
-    final found = <Map<String, dynamic>?>[];
-    for (var i = 0; i < wanted.length; i += 6) {
-      found.addAll(
-        await Future.wait([
-          for (final id in wanted.skip(i).take(6))
-            getItem(id).then<Map<String, dynamic>?>(
-              (item) => item,
-              onError: (Object _) => null,
-            ),
-        ]),
-      );
+    final found = userDataOnly
+        ? await _fromLists(wanted)
+        : <String, Map<String, dynamic>>{};
+    final rest = [
+      for (final id in wanted)
+        if (!found.containsKey(id)) id,
+    ];
+    for (var i = 0; i < rest.length; i += 6) {
+      await Future.wait([
+        for (final id in rest.skip(i).take(6))
+          () async {
+            try {
+              found[id] = await getItem(id);
+            } catch (_) {
+              // Unknown to Silo, or not visible to this profile: left out.
+            }
+          }(),
+      ]);
     }
-    final items = found.whereType<Map<String, dynamic>>().toList();
     return {
-      'Items': items,
+      'Items': [for (final id in wanted) ?found[id]],
       'TotalRecordCount': ids.length,
       'StartIndex': start,
+    };
+  }
+
+  /// Of [ids], the episodes (two or more of a season) and seasons that their
+  /// season's or series' list answers, by id.
+  Future<Map<String, Map<String, dynamic>>> _fromLists(List<String> ids) async {
+    final episodesBySeason = <String, int>{};
+    final seriesOfSeasons = <String>{};
+    for (final id in ids) {
+      if (parseSiloEpisodeId(id) case final e?) {
+        final season = siloSeasonId(e.seriesId, e.seasonNumber);
+        if (season != null) {
+          episodesBySeason[season] = (episodesBySeason[season] ?? 0) + 1;
+        }
+      } else if (parseSiloSeasonId(id) case final season?) {
+        seriesOfSeasons.add(season.seriesId);
+      }
+    }
+    final lists = await Future.wait([
+      for (final MapEntry(key: season, value: count)
+          in episodesBySeason.entries)
+        if (count > 1)
+          getEpisodes(season, seasonId: season).then(
+            (page) => page['Items'] as List,
+            onError: (Object _) => const [],
+          ),
+      for (final series in seriesOfSeasons)
+        getSeasons(series).then(
+          (page) => page['Items'] as List,
+          onError: (Object _) => const [],
+        ),
+    ]);
+    final wanted = ids.toSet();
+    return {
+      for (final list in lists)
+        for (final item in list.cast<Map<String, dynamic>>())
+          if (item['Id'] case final String id when wanted.contains(id))
+            id: item,
     };
   }
 
@@ -933,27 +1065,31 @@ class SiloItemsApi
     String seriesId, {
     String? fields,
   }) async {
-    final response = await _dio.get<dynamic>(
-      '/api/v2/catalog/series/${Uri.encodeComponent(seriesId)}/seasons',
-      queryParameters: {
-        'image_size': siloListImageSize,
-        'include_artwork': true,
-      },
+    final raw = _copyList(
+      await _seasonLists.get(
+        seriesId,
+        () async => _itemsOf(
+          await _dio.get<dynamic>(
+            '/api/v2/catalog/series/${Uri.encodeComponent(seriesId)}/seasons',
+            queryParameters: {
+              'image_size': siloListImageSize,
+              'include_artwork': true,
+            },
+          ),
+        ),
+      ),
     );
-    final raw = asJsonMap(response.data)?['items'];
     final series = _seriesRef(seriesId);
     final seasons = <Map<String, dynamic>>[
-      if (raw is List)
-        for (final entry in raw)
-          if (asJsonMap(entry) case final season?)
-            if (siloItemToBaseItemDto(
-                  season,
-                  images: images,
-                  type: 'season',
-                  series: series,
-                )
-                case final mapped?)
-              mapped,
+      for (final season in raw)
+        if (siloItemToBaseItemDto(
+              season,
+              images: images,
+              type: 'season',
+              series: series,
+            )
+            case final mapped?)
+          mapped,
     ];
     return {
       'Items': seasons,
@@ -1058,23 +1194,27 @@ class SiloItemsApi
     String seasonId,
     SiloSeriesRef series,
   ) async {
-    final response = await _dio.get<dynamic>(
-      '/api/v2/catalog/items/${Uri.encodeComponent(seasonId)}/episodes',
-      queryParameters: {'image_size': siloListImageSize},
+    final raw = _copyList(
+      await _episodeLists.get(
+        seasonId,
+        () async => _itemsOf(
+          await _dio.get<dynamic>(
+            '/api/v2/catalog/items/${Uri.encodeComponent(seasonId)}/episodes',
+            queryParameters: {'image_size': siloListImageSize},
+          ),
+        ),
+      ),
     );
-    final raw = asJsonMap(response.data)?['items'];
     return [
-      if (raw is List)
-        for (final entry in raw)
-          if (asJsonMap(entry) case final episode?)
-            if (siloItemToBaseItemDto(
-                  episode,
-                  images: images,
-                  type: 'episode',
-                  series: series,
-                )
-                case final mapped?)
-              mapped,
+      for (final episode in raw)
+        if (siloItemToBaseItemDto(
+              episode,
+              images: images,
+              type: 'episode',
+              series: series,
+            )
+            case final mapped?)
+          mapped,
     ];
   }
 
@@ -1823,6 +1963,9 @@ class SiloItemsApi
   /// lists Moonfin reloads show the change, and nothing about user data.
   void noteCatalogChanged() {
     homeSections.clear();
+    _details.forget();
+    _seasonLists.forget();
+    _episodeLists.forget();
     _filteredLists.clear();
     _runtimeCounts.forget();
     pager.clear();

@@ -4,7 +4,6 @@ import 'package:server_core/server_core.dart';
 import '../mappers/silo_ticks.dart';
 import '../silo_image_registry.dart' show resolveSiloUrl;
 import '../silo_kept_reads.dart';
-import 'silo_items_api.dart' show siloListImageSize;
 
 /// Silo's theme music (step 11.5).
 ///
@@ -23,14 +22,21 @@ import 'silo_items_api.dart' show siloListImageSize;
 ///   matches, else AAC in MP4 when the player accepts that. [streamUrl]
 ///   asks for a new grant on every play.
 class SiloThemes {
-  SiloThemes(this._dio, {DateTime Function()? clock})
-    : _available = SiloKeptReads(
+  SiloThemes(
+    this._dio, {
+    required Future<Map<String, dynamic>> Function(String itemId) detail,
+    DateTime Function()? clock,
+  }) : _detail = detail,
+       _available = SiloKeptReads(
         lifetime: capabilitiesTtl,
         keep: (available) => available,
         clock: clock,
       );
 
   final Dio _dio;
+
+  /// A title's detail, shared with the page that shows it.
+  final Future<Map<String, dynamic>> Function(String itemId) _detail;
 
   static const capabilitiesTtl = Duration(minutes: 10);
 
@@ -56,11 +62,7 @@ class SiloThemes {
   /// no theme videos or soundtracks, so those lists are empty.
   Future<Map<String, dynamic>> themeMedia(String itemId) async {
     if (!await available()) return _empty(itemId);
-    final response = await _dio.get<dynamic>(
-      '/api/v2/catalog/items/${Uri.encodeComponent(itemId)}',
-      queryParameters: {'image_size': siloListImageSize},
-    );
-    final themes = asJsonMap(asJsonMap(response.data)?['themes']);
+    final themes = asJsonMap((await _detail(itemId))['themes']);
     final owner = themes?['owner_id'] is String
         ? themes!['owner_id'] as String
         : itemId;

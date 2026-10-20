@@ -3,6 +3,7 @@ import 'package:server_core/server_core.dart';
 
 import '../mappers/silo_library_mapper.dart';
 import '../silo_image_registry.dart';
+import '../silo_kept_reads.dart';
 
 /// Moonfin's `UserViewsApi` over Silo's `GET /user/libraries`: the libraries
 /// the acting profile can see, as Jellyfin `CollectionFolder` views (5.7).
@@ -30,31 +31,22 @@ class SiloUserViewsApi implements UserViewsApi {
     required this.usersApi,
     this.images,
     DateTime Function()? clock,
-  }) : _clock = clock ?? DateTime.now;
+  }) : _views = SiloKeptReads(lifetime: cacheDuration, clock: clock);
 
   final Dio _dio;
   final UsersApi Function() usersApi;
   final SiloImageRegistry? images;
-  final DateTime Function() _clock;
 
   static const cacheDuration = Duration(minutes: 5);
-  final Map<bool, ({Map<String, dynamic> views, DateTime at})> _cache = {};
-  final Map<bool, Future<Map<String, dynamic>>> _inFlight = {};
+  final SiloKeptReads<bool, Map<String, dynamic>> _views;
 
   @override
-  Future<Map<String, dynamic>> getUserViews({bool includeHidden = false}) {
-    final cached = _cache[includeHidden];
-    if (cached != null && _clock().difference(cached.at) < cacheDuration) {
-      return Future.value(cached.views);
-    }
-    return _inFlight[includeHidden] ??= _load(includeHidden).whenComplete(() {
-      _inFlight.remove(includeHidden);
-    });
-  }
+  Future<Map<String, dynamic>> getUserViews({bool includeHidden = false}) =>
+      _views.get(includeHidden, () => _load(includeHidden));
 
   /// Forgets the cached lists, after the library order or hidden list
   /// changed.
-  void invalidateCache() => _cache.clear();
+  void invalidateCache() => _views.forget();
 
   Future<Map<String, dynamic>> _load(bool includeHidden) async {
     final configFuture = _configuration();
@@ -78,13 +70,7 @@ class SiloUserViewsApi implements UserViewsApi {
       }
       views = _inOrder(views, config.orderedViews);
     }
-    final result = <String, dynamic>{
-      'Items': views,
-      'TotalRecordCount': views.length,
-      'StartIndex': 0,
-    };
-    _cache[includeHidden] = (views: result, at: _clock());
-    return result;
+    return {'Items': views, 'TotalRecordCount': views.length, 'StartIndex': 0};
   }
 
   Future<UserConfiguration?> _configuration() async {

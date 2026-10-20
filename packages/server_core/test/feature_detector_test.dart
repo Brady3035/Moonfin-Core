@@ -67,7 +67,6 @@ void main() {
       expect(f.supportsMoonfinPlugin, isTrue, reason: '$type');
       expect(f.supportsRemoteControl, isTrue, reason: '$type');
       expect(f.supportsLatestItemsExcludes, isTrue, reason: '$type');
-      expect(f.supportsProfiles, isFalse, reason: '$type');
     }
   });
 
@@ -106,7 +105,6 @@ void main() {
     expect(f.supportsMediaSegments, isTrue); // 11.1
     expect(f.supportsSkipSegments, isTrue); // 11.1
     expect(f.supportsTrickplay, isTrue); // 11.2
-    expect(f.supportsProfiles, isTrue); // 18.8
   });
 
   test('Seerr goes through the Moonfin plugin, so Silo has none', () {

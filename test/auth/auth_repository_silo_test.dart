@@ -196,13 +196,6 @@ class _Silo implements HttpClientAdapter {
         return _json(200, {
           'items': [
             {
-              'id': 'kid',
-              'name': 'Kid',
-              'is_primary': false,
-              'has_pin': false,
-              'is_child': true,
-            },
-            {
               'id': _mainId,
               'name': 'Brady',
               'is_primary': true,
@@ -265,15 +258,9 @@ void main() {
       deviceInfo: _device,
       httpClientAdapter: silo,
     );
-    // The main-profile mode (D9): what a sign-in does with profiles off.
-    // Phase 18's household is tested below with them on.
-    repo = AuthRepository(
-      store,
-      prefs,
-      _Sessions(),
-      users,
-      siloProfiles: false,
-    );
+    // An account with one profile, no PIN: it signs straight in (18.2).
+    // Households with more, or a PIN, are tested below.
+    repo = AuthRepository(store, prefs, _Sessions(), users);
   });
 
   Future<LoginState> signIn() => repo.authenticate(
@@ -355,19 +342,6 @@ void main() {
     expect(store.getUsers('s1'), isEmpty);
   });
 
-  test('a PIN-locked main profile says so and ends the new login', () async {
-    silo.mainHasPin = true;
-
-    final state = await signIn();
-
-    expect(state, isA<SiloMainProfileLocked>());
-    expect((state as SiloMainProfileLocked).profileName, 'Brady');
-    expect(silo.paths.last, '/api/v2/auth/logout');
-    expect(client.session.tokens, isNull);
-    expect(store.getUsers('s1'), isEmpty);
-    expect(store.getSiloAccountIds('s1'), isEmpty);
-  });
-
   test('a server error after the password ends the new login too', () async {
     silo.profilesFail = true;
 
@@ -432,14 +406,14 @@ void main() {
       },
     );
 
-    test('a PIN-locked main profile says so and ends the login', () async {
+    test('a PIN-locked profile is chosen in the grid, login kept', () async {
       silo.mainHasPin = true;
 
       final state = await codeSignIn();
 
-      expect(state, isA<SiloMainProfileLocked>());
-      expect(silo.paths.last, '/api/v2/auth/logout');
-      expect(store.getUsers('s1'), isEmpty);
+      expect(state, isA<SiloChooseProfile>());
+      expect(silo.paths, isNot(contains('/api/v2/auth/logout')));
+      expect(store.getUser('s1', _mainId)!.siloHasPin, isTrue);
     });
   });
 
@@ -570,15 +544,14 @@ void main() {
       },
     );
 
-    test('a PIN-locked main profile after the change says so too', () async {
+    test('a PIN-locked profile after the change is chosen too', () async {
       silo.mainHasPin = true;
       await signIn();
 
       final state = await repo.changeRequiredSiloPassword('brand new pass');
 
-      expect(state, isA<SiloMainProfileLocked>());
-      expect(silo.paths.last, '/api/v2/auth/logout');
-      expect(store.getUsers('s1'), isEmpty);
+      expect(state, isA<SiloChooseProfile>());
+      expect(silo.paths, isNot(contains('/api/v2/auth/logout')));
     });
 
     test('a new sign-in ends a change left waiting', () async {
@@ -592,7 +565,6 @@ void main() {
   });
 
   group('household profiles (18.2)', () {
-    late AuthRepository household;
 
     Map<String, dynamic> profile(
       String id,
@@ -607,17 +579,7 @@ void main() {
       'is_child': !primary,
     };
 
-    setUp(() {
-      household = AuthRepository(
-        store,
-        prefs,
-        _Sessions(),
-        users,
-        siloProfiles: true,
-      );
-    });
-
-    Future<LoginState> householdSignIn() => household.authenticate(
+    Future<LoginState> householdSignIn() => repo.authenticate(
       client: client,
       serverId: 's1',
       username: 'brady',
@@ -727,7 +689,7 @@ void main() {
 
       final check = await client.authApi.checkQuickConnect('dc_1');
       expect(check['Authenticated'], isTrue);
-      final state = await household.authenticateWithQuickConnect(
+      final state = await repo.authenticateWithQuickConnect(
         client: client,
         serverId: 's1',
         secret: 'dc_1',

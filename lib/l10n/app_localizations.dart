@@ -26603,12 +26603,6 @@ abstract class AppLocalizations {
   /// **'Your password was changed. Sign in with the new password.'**
   String get siloPasswordChangedSignInAgain;
 
-  /// Sign-in error for a Silo account whose main profile has a PIN. Moonfin signs in as the main profile and has no PIN entry for Silo profiles yet.
-  ///
-  /// In en, this message translates to:
-  /// **'The main profile \"{name}\" on this Silo account is locked with a PIN, and Moonfin can\'t open PIN-locked profiles yet. To sign in here, remove the PIN in Silo\'s web app.'**
-  String siloMainProfileLocked(String name);
-
   /// Subtitle of a Home row the media server curates itself (a Silo home section), on Home and in Home settings
   ///
   /// In en, this message translates to:

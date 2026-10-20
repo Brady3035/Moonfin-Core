@@ -149,18 +149,7 @@ class SessionRepository {
     this._userRepository,
     this._pluginSyncService, {
     GoRouter? router,
-    bool? siloProfiles,
-  }) : _router = router ?? appRouter,
-       _siloProfiles =
-           siloProfiles ??
-           const FeatureDetector(
-             serverType: ServerType.silo,
-             serverVersion: '',
-           ).supportsProfiles;
-
-  /// Whether Silo household profiles are Moonfin users (phase 18); follows
-  /// `FeatureDetector.supportsProfiles`, tests can choose.
-  final bool _siloProfiles;
+  }) : _router = router ?? appRouter;
 
   late final _siloTokens = SiloTokenStorage(_authStore);
 
@@ -559,7 +548,7 @@ class SessionRepository {
   ) async {
     final accountId = user.siloAccountId;
     final silo = siloClientOf(client);
-    if (!_siloProfiles || accountId == null || silo == null) return;
+    if (accountId == null || silo == null) return;
     try {
       final members = await (silo.usersApi as SiloUsersApi).getHousehold();
       if (members.isEmpty) return;

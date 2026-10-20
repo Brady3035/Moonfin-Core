@@ -114,14 +114,3 @@ class SiloCodeSignInPasswordChangeRequired extends LoginState {
 class SiloPasswordChangedSignInAgain extends LoginState {
   const SiloPasswordChangedSignInAgain();
 }
-
-/// The Silo password was accepted, but the account's main profile, the one
-/// Moonfin signs in as (decision D9), is locked with a PIN. PIN entry comes
-/// with the optional profiles phase (step 18.4); until then the login is
-/// ended and the screen explains why (step 3.7).
-class SiloMainProfileLocked extends LoginState {
-  /// The main profile's name, as Silo shows it.
-  final String profileName;
-
-  const SiloMainProfileLocked({required this.profileName});
-}

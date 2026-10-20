@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:server_silo/server_silo.dart';
 
 import '../../data/services/media_server_client_factory.dart';
@@ -61,7 +63,12 @@ class SiloHousehold {
         siloAccountId: accountId,
         siloHasPin: member.profile.hasPin,
       );
-      await _store.putUser(user);
+      // Each save rewrites the whole store, and this runs at every start:
+      // a profile that hasn't changed isn't written again.
+      if (existing == null ||
+          jsonEncode(existing.toJson()) != jsonEncode(user.toJson())) {
+        await _store.putUser(user);
+      }
       users.add(user);
     }
     // After the new ones are in, so the account's tokens (which go with its

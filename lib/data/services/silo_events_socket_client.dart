@@ -109,7 +109,8 @@ class SiloEventsSocketClient extends _ReconnectingWebSocketClient {
     final opening = _disconnects;
     final SiloEventsTicket ticket;
     try {
-      ticket = await events.createTicket();
+      ticket = _renewalTicket ?? await events.createTicket();
+      _renewalTicket = null;
     } on DioException catch (e) {
       // The profile's PIN proof no longer verifies (a PIN set or changed on
       // the main profile since sign-in). Every ticket would be refused the
@@ -131,6 +132,7 @@ class SiloEventsSocketClient extends _ReconnectingWebSocketClient {
 
   @override
   void onConnected() {
+    _renewalSnapshots = _renewing;
     _renewTimer?.cancel();
     final limit = _maxConnection;
     if (limit == null) return;
@@ -144,8 +146,29 @@ class SiloEventsSocketClient extends _ReconnectingWebSocketClient {
   void _renew() {
     _renewTimer = null;
     _renewing = true;
-    unawaited(connect().whenComplete(() => _renewing = false));
+    unawaited(() async {
+      try {
+        // The ticket first, while the old connection still delivers: the
+        // switch-over is then only the new handshake.
+        _renewalTicket = await _silo?.eventsApi.createTicket();
+      } catch (_) {
+        // The connect asks again, and reports a failure as usual.
+      }
+      await connect();
+    }().whenComplete(() {
+      _renewing = false;
+      _renewalTicket = null;
+    }));
   }
+
+  /// A ticket fetched before a renewal closes the old connection.
+  SiloEventsTicket? _renewalTicket;
+
+  /// Set on a connection that replaced the previous one on schedule. Its
+  /// snapshots are dropped: the old connection was live until a moment
+  /// before, so nothing was missed, and passing them on would make every
+  /// list the Silo client keeps be read again every five minutes.
+  bool _renewalSnapshots = false;
 
   /// A renewal every five minutes would fill the network log with
   /// "connected" lines; only failures are logged while renewing.
@@ -185,6 +208,8 @@ class SiloEventsSocketClient extends _ReconnectingWebSocketClient {
           'Silo events socket error',
           '${frame.code ?? 'unknown'}: ${frame.message ?? ''}',
         );
+      case 'snapshot' when _renewalSnapshots:
+        return;
       case 'event' || 'snapshot':
         _pending.add(frame);
         _batchTimer ??= Timer(_batchWindow, _flush);
@@ -214,6 +239,7 @@ class SiloEventsSocketClient extends _ReconnectingWebSocketClient {
     final silo = _silo;
     if (silo != null) {
       silo.userViewsApi.invalidateCache();
+      (silo.usersApi as SiloUsersApi).forgetAccount();
       silo.itemsApi.noteCatalogChanged();
     }
     if (!_disposed) {

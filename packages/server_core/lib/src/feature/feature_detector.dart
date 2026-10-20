@@ -96,9 +96,4 @@ class FeatureDetector {
   /// would not stick there; every Silo library gets a Latest row.
   bool get supportsLatestItemsExcludes => !_isSilo;
 
-  /// Household profiles chosen per request (Silo's `X-Profile-Id`): every
-  /// profile of a signed-in account is a Moonfin user, picked from the
-  /// server's user grid, with PIN entry for locked ones (phase 18, on since
-  /// 18.8). Jellyfin and Emby users are their own logins.
-  bool get supportsProfiles => _isSilo;
 }

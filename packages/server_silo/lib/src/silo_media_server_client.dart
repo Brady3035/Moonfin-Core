@@ -21,8 +21,6 @@ import 'api/silo_system_api.dart';
 import 'api/silo_user_views_api.dart';
 import 'api/silo_users_api.dart';
 import 'mappers/silo_ids.dart';
-import 'mappers/silo_item_mapper.dart';
-import 'mappers/silo_library_mapper.dart';
 import 'silo_image_registry.dart';
 import 'silo_image_resolver.dart';
 import 'silo_problem.dart';
@@ -79,6 +77,7 @@ class SiloMediaServerClient extends MediaServerClient
     session.addAccountChangedListener(() {
       _profileId = null;
       _profileToken = null;
+      (usersApi as SiloUsersApi).forgetAccount();
     });
     for (final dio in [_dio, _authDio]) {
       configureServerDio(dio);
@@ -303,29 +302,15 @@ class SiloMediaServerClient extends MediaServerClient
   /// item by its content id; otherwise a library, a profile (avatars) or a
   /// person, which have plain ids.
   Future<void> _loadArtwork(String id) async {
-    if (parseSiloCollectionId(id) != null) {
-      // A collection's artwork comes with its list (6.15).
+    if (parseSiloCollectionId(id) != null || siloTypeOfId(id) != null) {
+      // Reading the item registers its artwork: a title's detail (shared
+      // with its page, if that is loading too), a season from its series'
+      // list, a collection with its list (6.15).
       await itemsApi.getItem(id);
       return;
     }
-    if (siloTypeOfId(id) != null) {
-      final response = await _dio.get<dynamic>(
-        '/api/v2/catalog/items/${Uri.encodeComponent(id)}',
-        queryParameters: {'image_size': siloDetailImageSize},
-      );
-      final item = asJsonMap(response.data);
-      if (item != null) siloItemToBaseItemDto(item, images: images);
-      return;
-    }
-    final libraries = await _dio.get<dynamic>('/api/v2/user/libraries');
-    final libraryItems = asJsonMap(libraries.data)?['items'];
-    if (libraryItems is List) {
-      siloLibrariesToUserViews(
-        libraryItems,
-        images: images,
-        supported: siloCollectionTypes.keys.toSet(),
-      );
-    }
+    // Library posters register as the list is read (kept five minutes).
+    await userViewsApi.getUserViews(includeHidden: true);
     if (images.knows(id)) return;
     if (id.contains('-')) {
       // Profile ids are UUIDs; person and library ids are numbers.
@@ -369,23 +354,6 @@ class SiloMediaServerClient extends MediaServerClient
     _dio,
     baseUrl: () => _baseUrl,
   );
-
-  /// Finds the account's main profile and acts as it from now on: every
-  /// request carries its `X-Profile-Id` (decision D9). Silo keeps progress,
-  /// favourites and home rows per profile, and refuses some requests without
-  /// the header once a profile on the account has a PIN or restrictions.
-  ///
-  /// Throws [SiloMainProfileLockedError] when the main profile has a PIN; the
-  /// client is then left without a profile.
-  Future<SiloProfile> useMainProfile() async {
-    // List without a profile: a stale id (say, a profile deleted on the web)
-    // would get the listing itself refused.
-    profileId = null;
-    profileToken = null;
-    final main = await profilesApi.mainProfile();
-    profileId = main.id;
-    return main;
-  }
 
   @override
   late final SiloItemsApi itemsApi = SiloItemsApi(

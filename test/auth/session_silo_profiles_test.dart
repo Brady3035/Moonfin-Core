@@ -147,7 +147,6 @@ void main() {
       _Servers(_server),
       _Users(),
       _PluginSync(),
-      siloProfiles: true,
     );
     await store.putSiloTokens('s1', '9', _pair);
   });

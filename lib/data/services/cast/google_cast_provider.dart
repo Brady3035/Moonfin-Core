@@ -35,7 +35,7 @@ class GoogleCastProvider
 
   GoogleCastProvider(this._native, this._clientFactory);
 
-  /// The last cast's Silo session, for the cast service to report (12.4).
+  /// The last cast's Silo session, for the cast service to report.
   CastServerPlayback? _serverPlayback;
 
   @override
@@ -60,7 +60,7 @@ class GoogleCastProvider
       ServerType.jellyfin => JellyfinPlugin(client).createStreamResolver(),
       ServerType.emby => EmbyPlugin(client).createStreamResolver(),
       ServerType.plex => PlexMediaStreamResolver(client),
-      // The receiver loads the stream itself (12.4).
+      // The receiver loads the stream itself.
       ServerType.silo => siloPluginFor(
         client,
         environment: () =>
@@ -183,8 +183,8 @@ class GoogleCastProvider
     );
     final streamUrl = resolution.streamUrl;
     // Every queued item is resolved up front, and on Silo each resolve opens
-    // a session that ends after 45 s without reports: only the item itself
-    // is cast there (12.4).
+    // a session that ends after 45 s without reports, so only the item itself
+    // is cast there.
     final effectiveQueueItems =
         (queueItems == null ||
             queueItems.isEmpty ||

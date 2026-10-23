@@ -94,7 +94,7 @@ abstract class _ReconnectingWebSocketClient implements ServerWebSocketClient {
   Uri? buildUri();
 
   /// Opens the socket, or answers null when there is nothing to connect with.
-  /// Jellyfin and Emby open [buildUri]; Silo first asks for a ticket.
+  /// Jellyfin and Emby open [buildUri]. Silo first asks for a ticket.
   Future<WebSocketChannel?> openChannel() async {
     final uri = buildUri();
     return uri == null ? null : WebSocketChannel.connect(uri);

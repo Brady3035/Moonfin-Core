@@ -71,7 +71,7 @@ bool quickConnectQrBeside({required bool isTV, required Size screen}) =>
     isTV || (screen.shortestSide >= 600 && screen.width > screen.height);
 
 /// A sign-in code as people read it: Jellyfin's six digits as 3+3, Silo's
-/// eight as 4+4 (Silo sends `4821-7730`; the dash is dropped).
+/// eight as 4+4 (Silo sends `4821-7730` and the dash is dropped).
 @visibleForTesting
 String formatQuickConnectCode(String code) {
   final digits = code.replaceAll(RegExp(r'[\s-]'), '');
@@ -159,10 +159,10 @@ class _LoginScreenState extends State<LoginScreen> {
   String? _quickConnectCode;
   String? _quickConnectSecret;
 
-  /// Optional extras a server sends with the code ([QuickConnectKeys]; Silo
-  /// does, Jellyfin doesn't): the page to enter it on, the same with the code
-  /// filled in for the QR code, when the code runs out, whether someone has
-  /// opened it.
+  /// Optional extras a server sends with the code ([QuickConnectKeys], which
+  /// Silo sends and Jellyfin doesn't): the page to enter it on, the same with
+  /// the code filled in for the QR code, when the code runs out, and whether
+  /// someone has opened it.
   String? _quickConnectUri;
   String? _quickConnectUriComplete;
   DateTime? _quickConnectDeadline;
@@ -524,7 +524,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (client == null || secret == null) return;
     if (generation != _quickConnectGeneration) return;
 
-    // A code past its time can't be approved any more: show a new one.
+    // A code past its time can't be approved anymore, so show a new one.
     final deadline = _quickConnectDeadline;
     if (deadline != null && DateTime.now().isAfter(deadline)) {
       unawaited(_startQuickConnect());
@@ -798,8 +798,8 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   /// A Silo account with several household profiles (or a PIN-locked one)
-  /// signed in (18.2): its profiles are stored as the server's users, so the
-  /// server's user grid is the "who's watching" picker (18.3).
+  /// signed in: its profiles are stored as the server's users, so the
+  /// server's user grid is the "who's watching" picker.
   void _openProfileChoice(String serverId) {
     setState(() => _isLoading = false);
     context.go('${Destinations.server}?serverId=$serverId');
@@ -844,7 +844,7 @@ class _LoginScreenState extends State<LoginScreen> {
         );
         if (!mounted) return;
         if (outcome == null) {
-          // Cancelled: the login was ended; back to the form.
+          // Canceling ended the login, so go back to the form.
           setState(() => _isLoading = false);
           return;
         }

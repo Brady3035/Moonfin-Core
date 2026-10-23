@@ -2,7 +2,7 @@ import 'package:server_core/server_core.dart';
 import 'silo_ids.dart';
 import 'silo_ticks.dart';
 
-/// Silo's extra kinds → Jellyfin `ExtraType`. Silo's vocabulary is
+/// Silo's extra kinds as Jellyfin's `ExtraType`. Silo's vocabulary is
 /// `trailer`, `teaser`, `featurette`, `clip`, `behind_the_scenes`,
 /// `bloopers`, `deleted_scene` and `other`.
 const Map<String, String> siloExtraTypes = {
@@ -17,10 +17,10 @@ const Map<String, String> siloExtraTypes = {
 };
 
 /// Whether Moonfin can play Silo's local extras. They play like any title,
-/// by their `file_id` (step 10.6). Before that a title's local trailers were
-/// left out (`LocalTrailerCount` 0, no `getLocalTrailers`), because
-/// Moonfin's trailer button plays a local trailer before a YouTube one and
-/// would have opened a player that plays nothing (found testing 6.17).
+/// by their `file_id`. When false, a title's local trailers are left out
+/// (`LocalTrailerCount` 0, no `getLocalTrailers`), because Moonfin's trailer
+/// button plays a local trailer before a YouTube one and would open a player
+/// that plays nothing.
 const bool siloLocalTrailersPlayable = true;
 
 /// Whether a Silo extra kind is a trailer (`trailer`, `teaser`).
@@ -28,8 +28,8 @@ bool isSiloTrailerKind(Object? kind) => kind == 'trailer' || kind == 'teaser';
 
 /// A local extra (`ItemExtraInfo`: `content_id`, `kind`, `title`,
 /// `duration_seconds`, `file_id`) as a Jellyfin video item with its
-/// `ExtraType`. Its `content_id` plays through Silo's usual watch flow
-/// (phase 10). Null without an id.
+/// `ExtraType`. Its `content_id` plays through Silo's usual watch flow.
+/// Null without an id.
 Map<String, dynamic>? siloExtraToBaseItemDto(
   Map<String, dynamic> extra, {
   String? ownerId,

@@ -11,11 +11,11 @@ import 'silo_playback_context.dart';
 import 'silo_playback_sessions.dart';
 import 'silo_subtitles.dart';
 
-/// Resolves a Silo item to a playable stream (step 10.6).
+/// Resolves a Silo item to a playable stream.
 ///
 /// Silo has no `PlaybackInfo` negotiation: the client posts what it can play
-/// (10.3, 10.4) to `POST /api/v2/playback/start` and receives one plan, which
-/// opens a session. The plan is the whole instruction: which delivery, the
+/// to `POST /api/v2/playback/start` and receives one plan, which opens a
+/// session. The plan is the whole instruction: which delivery, the
 /// stream URL, the timeline, the tracks.
 class SiloMediaStreamResolver implements MediaStreamResolver, StreamReplanner {
   SiloMediaStreamResolver(
@@ -27,14 +27,14 @@ class SiloMediaStreamResolver implements MediaStreamResolver, StreamReplanner {
 
   final MediaServerClient _client;
 
-  /// The device and its player, asked at each start (10.4).
+  /// The device and its player, asked at each start.
   final SiloPlaybackEnvironment Function() _environment;
 
-  /// Waits between start retries; tests pass one that returns at once.
+  /// Waits between start retries. Tests pass one that returns at once.
   final Future<void> Function(Duration) _sleep;
 
   /// How long an interrupted start is retried with the identical body, as
-  /// Silo's web player does; each request may take
+  /// Silo's web player does. Each request may take
   /// [SiloPlaybackApi.startTimeout] of it.
   static const startRetryBudget = Duration(seconds: 60);
 
@@ -80,8 +80,8 @@ class SiloMediaStreamResolver implements MediaStreamResolver, StreamReplanner {
 
     final api = client.playbackApi;
     final server = await _playable(api);
-    // A version the viewer picked plays as that version (10.16), on a
-    // server that can keep an attempt on one file.
+    // A version the viewer picked plays as that version, on a server that
+    // can keep an attempt on one file.
     final pinned = file.explicit && server.has('fixed_media_file_v1');
 
     Map<String, dynamic> body(String installationId) => {
@@ -92,15 +92,15 @@ class SiloMediaStreamResolver implements MediaStreamResolver, StreamReplanner {
       'playback_attempt_id': siloNewUuid(),
       'installation_id': installationId,
       'quality_preference': 'auto',
-      // Moonfin draws ASS itself but can't fetch a sidecar's fonts (10.3),
-      // so a simplified rendering is acceptable.
+      // Moonfin draws ASS itself but can't fetch a sidecar's fonts, so a
+      // simplified rendering is acceptable.
       'subtitle_fidelity_preference': 'compatible',
       'metered': false,
       'client_capabilities': capabilities.clientCapabilities,
       'client_playback_context': context,
       'start_position': siloStartPosition(startTimeTicks),
       'audio_track_index': ?_audioOrdinal(file.source, audioStreamIndex),
-      // Off (-1) or no choice sends none, which plays without (10.14).
+      // Off (-1) or no choice sends none, which plays without.
       'subtitle_track_index': ?siloSubtitleCombinedIndex(
         file.source,
         subtitleStreamIndex,
@@ -163,8 +163,8 @@ class SiloMediaStreamResolver implements MediaStreamResolver, StreamReplanner {
   }
 
   /// Tells the items API which file [itemId] plays, so the player's extras
-  /// (skip markers, 11.1) come from that file, and a series' track choice
-  /// is remembered with its track map (11.6).
+  /// (skip markers) come from that file, and a series' track choice is
+  /// remembered with its track map.
   static void _notePlaying(
     SiloMediaServerClient client,
     String itemId,
@@ -182,8 +182,6 @@ class SiloMediaStreamResolver implements MediaStreamResolver, StreamReplanner {
     );
   }
 
-  // --- replan (10.12) ---------------------------------------------------------
-
   /// How long an interrupted replan is retried with the same request id.
   static const replanRetryBudget = Duration(seconds: 30);
 
@@ -197,14 +195,14 @@ class SiloMediaStreamResolver implements MediaStreamResolver, StreamReplanner {
         identical(session.resolution, current);
   }
 
-  /// A new plan for [current]'s session (`POST /playback/{sid}/replan`,
-  /// protocol v3 §6), for the [ReplanRequest.reason]:
+  /// A new plan for [current]'s session (`POST /playback/{sid}/replan`),
+  /// for the [ReplanRequest.reason]:
   ///
-  /// - `seek`: `seek_reanchor`, a remux reopened at the position (10.12);
-  /// - `trackChange`: `track_change` (10.13, 10.14);
-  /// - `qualityChange`: `quality_change` with the new ceiling, or none
-  ///   (10.15): Silo picks the rung that fits it (`quality_preference` stays
-  ///   `auto`, which a quality change must still name);
+  /// - `seek`: `seek_reanchor`, a remux reopened at the position.
+  /// - `trackChange`: `track_change`.
+  /// - `qualityChange`: `quality_change` with the new ceiling, or none. Silo
+  ///   picks the rung that fits it (`quality_preference` stays `auto`, which
+  ///   a quality change must still name).
   /// - `failure`: `failure_recovery`, with the failed plan's attempt key
   ///   added to the keys Silo must not hand back.
   ///
@@ -212,8 +210,8 @@ class SiloMediaStreamResolver implements MediaStreamResolver, StreamReplanner {
   /// (`failed_plan_id`, `plan_attempt_key`, `selected_tracks` exactly as the
   /// plan has them) and resends the start's capabilities and context. A
   /// version the viewer picked stays picked: Silo keeps the start's
-  /// `allow_alternate_versions: false` for every replan (10.16).
-  /// Interrupted requests are resent with the same id; a terminal answer is
+  /// `allow_alternate_versions: false` for every replan.
+  /// Interrupted requests are resent with the same id. A terminal answer is
   /// a [PlaybackRefusedException], as is a session an administrator ended
   /// (`410`), which must not be started again. Other refusals (`404`: the
   /// session expired or the server restarted) throw, and the manager starts
@@ -239,7 +237,6 @@ class SiloMediaStreamResolver implements MediaStreamResolver, StreamReplanner {
       }
     }
     if (failure) session.recoveries++;
-    // A quality change is a new ceiling, or none (10.15).
     if (request.reason == ReplanReason.qualityChange) {
       session.bandwidthCapKbps = _kbps(request.maxStreamingBitrate);
     }
@@ -322,14 +319,14 @@ class SiloMediaStreamResolver implements MediaStreamResolver, StreamReplanner {
   };
 
   /// The tracks a replan asks for: the plan's, and for a track change the
-  /// audio (step 10.13) and subtitle (10.14) Moonfin picked.
+  /// audio and subtitle Moonfin picked.
   ///
   /// Moonfin's stream index becomes Silo's identity through the version's
-  /// track map (5.8): `file:<file id>:audio:<ordinal>` and the ordinal as
+  /// track map: `file:<file id>:audio:<ordinal>` and the ordinal as
   /// `index`, which Silo checks agree. An index that is no audio track of
   /// the file keeps the plan's. On the original file the player changes
   /// track itself (the plan claims `client_selected_audio_track_v1`), so the
-  /// new plan is the same route; a remux or transcode carries only the
+  /// new plan is the same route. A remux or transcode carries only the
   /// chosen track, so Silo makes a new stream with the new one.
   Map<String, dynamic> _replanTracks(
     SiloPlaybackSession session,
@@ -345,10 +342,9 @@ class SiloMediaStreamResolver implements MediaStreamResolver, StreamReplanner {
       fileId: fileId,
     );
     if (audio != null) tracks['audio'] = audio;
-    // Subtitles (10.14): -1 is off, which a track change says by leaving
-    // the subtitle out; an index Silo knows (the file's own, or a
-    // downloaded one from the plan) is named; anything else keeps the
-    // plan's.
+    // -1 is off, which a track change says by leaving the subtitle out. An
+    // index Silo knows (the file's own, or a downloaded one from the plan)
+    // is named, and anything else keeps the plan's.
     final subtitle = request.subtitleStreamIndex;
     if (subtitle == -1) {
       tracks.remove('subtitle');
@@ -390,15 +386,13 @@ class SiloMediaStreamResolver implements MediaStreamResolver, StreamReplanner {
     sleep: _sleep,
   );
 
-  // --- stream authorisation (10.7) -------------------------------------------
-
   /// The credentials a stream opened now carries for as long as it plays.
   ///
   /// The player can't change them once it has opened the stream, so a token
   /// past half its life is refreshed first: the stream then keeps working
   /// for at least half a token lifetime (Silo's is an hour). A player that
-  /// carries the token in its URLs (the web, a cast receiver, 12.3–12.6)
-  /// gets a nearly fresh one: anything past a tenth of its life is
+  /// carries the token in its URLs (the web, a cast receiver) gets a nearly
+  /// fresh one: anything past a tenth of its life is
   /// refreshed. A failed refresh keeps the current token, which the start
   /// just used.
   Future<SiloStreamAuth> _streamAuth(SiloMediaServerClient client) async {
@@ -419,9 +413,7 @@ class SiloMediaStreamResolver implements MediaStreamResolver, StreamReplanner {
     );
   }
 
-  // --- the start request ------------------------------------------------------
-
-  /// The server's playback capabilities (10.5), when it plays.
+  /// The server's playback capabilities, when it plays.
   Future<SiloPlaybackCapabilities> _playable(
     SiloPlaybackApi api, {
     bool refresh = false,
@@ -473,12 +465,10 @@ class SiloMediaStreamResolver implements MediaStreamResolver, StreamReplanner {
     sleep: _sleep,
   );
 
-  // --- which file -------------------------------------------------------------
-
   /// The file to play: the version Moonfin names ([mediaSourceId]), else the
   /// item's default (its first `MediaSource`), with its track map. An item
   /// that arrived without full versions (a season list's episode) is read
-  /// again; a local extra plays the `file_id` it carries.
+  /// again, and a local extra plays the `file_id` it carries.
   Future<_SiloFile> _file(
     dynamic mediaItem,
     String itemId,
@@ -502,7 +492,7 @@ class SiloMediaStreamResolver implements MediaStreamResolver, StreamReplanner {
       final pick = _pick(full, wanted);
       if (pick != null) return _SiloFile('${pick['Id']}', pick, full);
     } catch (_) {
-      // An extra has no catalog page of its own; its file id is enough.
+      // An extra has no catalog page of its own, and its file id is enough.
     }
     if (source != null) return _SiloFile('${source['Id']}', source, sources);
     if (wanted != null) return _SiloFile(wanted, null, sources);
@@ -566,10 +556,8 @@ class SiloMediaStreamResolver implements MediaStreamResolver, StreamReplanner {
   static bool _hasTracks(Map<String, dynamic> source) =>
       (source[siloTracksKey] as List?)?.isNotEmpty ?? false;
 
-  // --- choices ----------------------------------------------------------------
-
   /// Silo's audio ordinal for Moonfin's stream [index], when Moonfin picked
-  /// one; null leaves the choice to Silo (the series' or profile's
+  /// one. Null leaves the choice to Silo (the series' or profile's
   /// preferred language).
   static int? _audioOrdinal(Map<String, dynamic>? source, int? index) {
     if (source == null || index == null || index < 0) return null;
@@ -591,7 +579,7 @@ class _SiloFile {
   final String fileId;
 
   /// Whether the viewer picked this version: it isn't the item's default,
-  /// and the item has others (10.16). Moonfin passes the version it last
+  /// and the item has others. Moonfin passes the version it last
   /// played on every re-resolve too, which is the default unless Silo or
   /// the viewer moved off it.
   bool get explicit => sources.length > 1 && '${sources.first['Id']}' != fileId;
@@ -621,12 +609,12 @@ Map<String, dynamic>? siloTrackIdentity(
   };
 }
 
-/// Where Silo should start (step 10.11), in seconds: always said.
+/// Where Silo should start, in seconds.
 ///
 /// Omitting `start_position` asks Silo to pick (its resume point for the
 /// item), but Moonfin always knows: its resume prompt, the Resume and Play
 /// buttons and the resume setting pass a position, and no position means
-/// the start (Play from the beginning, the next episode). So it is sent
+/// the start (Play from the beginning, the next episode). So it's sent
 /// every time, `0` for the start, as the contract's "start over". A
 /// re-resolve passes the current position. Clamped to the contract's
 /// bounds (0 to a year).
@@ -636,7 +624,7 @@ double siloStartPosition(int? startTimeTicks) {
   return seconds > 31536000 ? 31536000 : seconds;
 }
 
-/// What the player shows when Silo decides not to play (step 10.8): Silo's
+/// What the player shows when Silo decides not to play: Silo's
 /// own `terminal.message` (for example *"This file can't be read. Replace
 /// it and scan the library again."* for `source_unreadable`), with its
 /// reason and whether trying again could help. A terminal without words

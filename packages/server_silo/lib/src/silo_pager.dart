@@ -45,7 +45,7 @@ class SiloPage {
 
   final List<Map<String, dynamic>> items;
 
-  /// Cursor for the page after this one; null on the last page.
+  /// Cursor for the page after this one, or null on the last page.
   final String? nextCursor;
 
   /// Seed for jumping anywhere in the same result with `seek`.
@@ -58,8 +58,9 @@ class SiloPage {
   final bool totalExact;
 }
 
-/// Fetches one page: no [cursor] for the first page; [cursor] alone for the
-/// next one; [cursor] (the window cursor) with [seek] to jump to an offset.
+/// Fetches one page: no [cursor] for the first page, [cursor] alone for the
+/// next one, and [cursor] (the window cursor) with [seek] to jump to an
+/// offset.
 /// [limit] is at most [siloMaxPageSize].
 typedef SiloPageFetch =
     Future<SiloPage> Function({String? cursor, int? seek, required int limit});
@@ -85,18 +86,18 @@ class SiloPagedResult {
 /// pages of every size (75 first, 48 per scroll, hundreds for a jump), so
 /// the pager never passes those on. It asks Silo for pages of one fixed size,
 /// [pageSize], and serves Moonfin's ranges from what it fetched, keeping the
-/// pages it fetched last (found testing 6.11: requests that changed `limit`
-/// were refused as `invalid_cursor`).
+/// pages it fetched last (requests that changed `limit` were refused as
+/// `invalid_cursor`).
 ///
 /// Per query [signature] it remembers the window cursor, the next cursor and
 /// where it points, and the last pages, and picks the cheapest request:
 ///
-/// - offset 0: a plain first request;
-/// - one page from where the last page ended: `cursor=next_cursor`;
+/// - offset 0: a plain first request
+/// - one page from where the last page ended: `cursor=next_cursor`
 /// - anywhere else, or more than one page: `cursor=window_cursor&seek=`,
-///   up to [parallelRequests] pages at once. With no
-///   window cursor yet, the first page is fetched to get one; with none at
-///   all, next cursors are followed from the start.
+///   up to [parallelRequests] pages at once. With no window cursor yet, the
+///   first page is fetched to get one, and with none at all, next cursors
+///   are followed from the start.
 ///
 /// An offset at or past an exact total answers empty without a request.
 /// When Silo rejects a cursor (it expired, or the server restarted) the
@@ -112,7 +113,7 @@ class SiloPager {
   }) : assert(pageSize > 0 && pageSize <= siloMaxPageSize),
        _isInvalidCursor = isInvalidCursor ?? isSiloInvalidCursorError;
 
-  /// How many query signatures are remembered; the least recently used is
+  /// How many query signatures are remembered. The least recently used is
   /// forgotten first.
   final int maxEntries;
 
@@ -220,7 +221,7 @@ class SiloPager {
     return SiloPagedResult(items, state.totalFor(start + items.length));
   }
 
-  /// Fetches the pages from [pos] towards [end] by `seek`, a few at once.
+  /// Fetches the pages from [pos] toward [end] by `seek`, a few at once.
   Future<void> _seek(
     _PagerState state,
     String window,
@@ -306,9 +307,9 @@ class _PagerState {
     return const [];
   }
 
-  /// The total for Moonfin: Silo's exact total; else where the result was
-  /// seen to end; else Silo's estimate, never less than what was seen; with
-  /// nothing at all, what was seen plus one while there is more.
+  /// The total for Moonfin: Silo's exact total, else where the result was
+  /// seen to end, else Silo's estimate (never less than what was seen). With
+  /// nothing at all, it's what was seen plus one while there is more.
   int totalFor(int seenEnd) {
     if (total != null && totalExact) return total!;
     if (knownEnd != null) return knownEnd!;

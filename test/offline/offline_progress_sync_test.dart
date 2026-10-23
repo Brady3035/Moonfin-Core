@@ -31,7 +31,7 @@ class _MockUserLibraryApi extends Mock implements UserLibraryApi {}
 
 class _MockConnectivity extends Mock implements Connectivity {}
 
-/// A user-library API that also takes offline progress in bulk (Silo, 15.5).
+/// A user-library API that also takes offline progress in bulk (Silo).
 class _BulkUserLibraryApi extends Mock
     implements UserLibraryApi, OfflineProgressSyncApi {
   final calls = <List<OfflineProgressEntry>>[];
@@ -89,7 +89,7 @@ class _FakeServer {
     final library = _MockUserLibraryApi();
     when(() => client.baseUrl).thenReturn(baseUrl);
     when(() => client.serverType).thenReturn(ServerType.jellyfin);
-    // The connectivity probe pings through the client (13.1).
+    // The connectivity probe pings through the client.
     when(() => client.systemApi)
         .thenReturn(EmbySystemApi(Dio(BaseOptions(baseUrl: baseUrl))));
     when(() => client.itemsApi).thenReturn(items);
@@ -295,7 +295,7 @@ void main() {
     });
   });
 
-  group('a server that takes offline progress in bulk (15.5)', () {
+  group('a server that takes offline progress in bulk', () {
     late _FakeServer server;
     late _BulkUserLibraryApi bulk;
 

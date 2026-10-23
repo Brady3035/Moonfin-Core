@@ -14,8 +14,8 @@ void main() {
   setUp(() => images = SiloImageRegistry(() => 'https://silo.example'));
 
   group('the episode sample', () {
-    // Written from the schema until a real capture replaces it (see the
-    // fixtures README); every expectation is read from the file itself.
+    // Written from the schema, not captured from a server. Every
+    // expectation is read from the file itself.
     late Map<String, dynamic> silo;
     late Map<String, dynamic> mapped;
 
@@ -62,7 +62,7 @@ void main() {
     });
 
     test('Jellyfin\'s tile arithmetic finds the right sheet', () {
-      // TrickplayInfo: tile = ms ~/ Interval; sheet = tile ~/ (cols × rows).
+      // TrickplayInfo: tile = ms ~/ Interval, sheet = tile ~/ (cols × rows).
       final entry = (mapped[silo['file_id']] as Map).values.single as Map;
       final perSheet =
           (entry['TileWidth'] as int) * (entry['TileHeight'] as int);

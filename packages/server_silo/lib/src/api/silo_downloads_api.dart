@@ -59,7 +59,7 @@ class SiloDownloadCapability {
   final bool downloadAllowed;
 
   /// The qualities this account may ask for now, best first (`original`,
-  /// `20mbps` … `1mbps`). Empty when downloads are off for it.
+  /// `20mbps` down to `1mbps`). Empty when downloads are off for it.
   final List<String> qualityPresets;
 
   /// One entry per preset, in the same order: its video bitrate cap and the
@@ -107,7 +107,7 @@ const siloDownloadPresets = {
 /// The preset is the smallest whose cap reaches the bitrate asked for:
 /// Moonfin's 1080p (4 Mbit/s) is `5mbps` (up to 1080p), 720p (2 Mbit/s) is
 /// `2mbps` (720p), 480p (1 Mbit/s) and 360p (0.5 Mbit/s) are `1mbps` (480p).
-/// When that preset isn't allowed, the next lower one that is; never a
+/// When that preset isn't allowed, it's the next lower one that is, never a
 /// higher one, which would be a bigger file than was asked for.
 String? siloDownloadPreset(
   int maxVideoBitrate, {
@@ -132,7 +132,7 @@ String? siloDownloadPreset(
 /// Moonfin's Silo client sends `X-Silo-Device-Id` and `X-Profile-Id` on every
 /// request, so every download it makes is a **managed** entry of this device
 /// and profile: Silo keeps a registry of what the device holds, serves a
-/// manifest for it, and can revoke it (Silo's `docs/downloads-api.md`).
+/// manifest for it, and can revoke it.
 class SiloDownloadsApi implements ServerDownloadsApi {
   SiloDownloadsApi(
     this._dio, {
@@ -159,7 +159,7 @@ class SiloDownloadsApi implements ServerDownloadsApi {
 
   /// How long a capability answer is reused. It changes when an admin
   /// changes the account's download permission or the server's download
-  /// settings; the 13.4 access-change path clears it at once.
+  /// settings, and the access-change path clears it at once.
   static const capabilityTtl = Duration(minutes: 1);
 
   late final _capability = SiloKeptReads<String, SiloDownloadCapability>(
@@ -192,10 +192,10 @@ class SiloDownloadsApi implements ServerDownloadsApi {
     _entriesByItem.forget();
   }
 
-  /// Registers the download with Silo (`POST /downloads`) and answers the
+  /// Registers the download with Silo (`POST /downloads`) and returns the
   /// file to fetch (`GET /downloads/{id}/file`, with the client's headers).
   ///
-  /// A movie is `content_id`; an episode is its series as `content_id` and
+  /// A movie is `content_id`. An episode is its series as `content_id` and
   /// itself as `episode_id`. The version is the request's media source (Silo
   /// file ids are Moonfin's media source ids). The request carries this
   /// device's `X-Silo-Device-Id`, so the entry is this device's own.
@@ -203,13 +203,12 @@ class SiloDownloadsApi implements ServerDownloadsApi {
   /// Silo needs the entry's revision with a single managed request: `0` when
   /// the device has none for the item, or the existing entry's id and
   /// revision (Silo reuses it, revives it, or replaces its file). So the
-  /// device's entries are read first ([existingEntry]); this is the
+  /// device's entries are read first ([existingEntry]), which is the
   /// reconciliation Silo's guide asks for before creating. Creation is
   /// `non_retryable` and is sent once.
   ///
-  /// A converted quality (15.3) is one of Silo's presets
-  /// ([siloDownloadPreset]); Silo makes the file first, and this waits for it
-  /// ([_waitUntilServable]).
+  /// A converted quality is one of Silo's presets ([siloDownloadPreset]).
+  /// Silo makes the file first, and this waits for it ([_waitUntilServable]).
   @override
   Future<ServerDownloadTicket> prepareDownload(
     ServerDownloadRequest request, {
@@ -239,7 +238,7 @@ class SiloDownloadsApi implements ServerDownloadsApi {
     var entry = await _create(request, quality: quality, existing: existing);
     (await _entryIndex())[request.itemId] = entry;
     // A converted file Silo cleaned up after an earlier download of this item
-    // is made again on request; for anything else this changes nothing.
+    // is made again on request. For anything else this changes nothing.
     if (entry.status == 'completed' &&
         entry.deliveryFormat != 'original' &&
         capability.prepareAgain) {
@@ -258,8 +257,8 @@ class SiloDownloadsApi implements ServerDownloadsApi {
   Duration preparationPollInterval;
 
   /// `POST /downloads/{id}/prepare`: the entry back to `preparing` when its
-  /// converted file was cleaned up (`natural_idempotent`; unchanged when the
-  /// file is still there).
+  /// converted file was cleaned up (`natural_idempotent`, and unchanged when
+  /// the file is still there).
   Future<SiloDownloadEntry> _prepareAgain(SiloDownloadEntry entry) async {
     final response = await _dio.post<dynamic>(
       '/api/v2/downloads/${Uri.encodeComponent(entry.id)}/prepare',
@@ -312,7 +311,7 @@ class SiloDownloadsApi implements ServerDownloadsApi {
     return null;
   }
 
-  /// Sends the create request and answers its entry; a refusal Silo lists in
+  /// Sends the create request and returns its entry. A refusal Silo lists in
   /// `skipped` (`no_file`, `quality_unavailable`) becomes a
   /// [ServerDownloadRefused].
   Future<SiloDownloadEntry> _create(
@@ -388,7 +387,7 @@ class SiloDownloadsApi implements ServerDownloadsApi {
   /// This device's entries by item, newest first winning: the device's
   /// entries (`GET /downloads`, newest first) for at most [_entryScanPages]
   /// pages. Kept a few seconds, so a season queued at once lists them once
-  /// rather than once per episode; an entry this client creates is put in.
+  /// rather than once per episode. An entry this client creates is put in.
   Future<Map<String, SiloDownloadEntry>> _entryIndex() =>
       _entriesByItem.get('device', () async {
         final byItem = <String, SiloDownloadEntry>{};
@@ -449,7 +448,7 @@ class SiloDownloadsApi implements ServerDownloadsApi {
   /// download status event"), so a device whose clock runs ahead of the
   /// server's would never get one accepted. On that refusal the event is sent
   /// once more, timed a second before the server's clock in the refusal's
-  /// `Date` header. The route is `domain_identity`; repeating a completion
+  /// `Date` header. The route is `domain_identity`, so repeating a completion
   /// changes nothing.
   @override
   Future<void> downloadFinished(ServerDownloadTicket ticket) async {
@@ -499,7 +498,7 @@ class SiloDownloadsApi implements ServerDownloadsApi {
     }();
   }
 
-  // Manifests of the last few downloads; their assets are fetched right
+  // Manifests of the last few downloads. Their assets are fetched right
   // after the file.
   final _manifests = <String, Future<Map<String, dynamic>>>{};
 
@@ -531,7 +530,7 @@ class SiloDownloadsApi implements ServerDownloadsApi {
   ///
   /// Silo names them by reference: `external:{n}` is the file's n-th sidecar,
   /// and Moonfin's media source lists the version's subtitle tracks with the
-  /// sidecars marked `external`, in the same order; `embedded:{n}` is the
+  /// sidecars marked `external`, in the same order. `embedded:{n}` is the
   /// file's n-th subtitle track, an ASS or PGS track that a converted MP4
   /// can't hold (an original keeps its embedded tracks, so it gets none).
   /// `downloaded:{id}` (subtitles fetched into Silo by its subtitle search)

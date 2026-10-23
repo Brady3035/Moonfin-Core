@@ -27,7 +27,7 @@ class AirPlayProvider
 
   AirPlayProvider(this._native, this._nativeAirPlay, this._clientFactory);
 
-  /// The last cast's Silo session, for the cast service to report (12.5).
+  /// The last cast's Silo session, for the cast service to report.
   CastServerPlayback? _serverPlayback;
 
   @override
@@ -42,7 +42,7 @@ class AirPlayProvider
       ServerType.jellyfin => JellyfinPlugin(client).createStreamResolver(),
       ServerType.emby => EmbyPlugin(client).createStreamResolver(),
       ServerType.plex => PlexMediaStreamResolver(client),
-      // The Apple TV loads the stream itself (12.5).
+      // The Apple TV loads the stream itself.
       ServerType.silo => siloPluginFor(
         client,
         environment: () =>
@@ -114,8 +114,8 @@ class AirPlayProvider
     var streamUrl = resolution.streamUrl;
     final token = client.accessToken;
     // Silo's resolver puts the token in the URLs that take one, and only on
-    // its own origin (10.7, 12.3); appending it here would repeat it, or hand
-    // it to a proxy node (12.5).
+    // its own origin. Appending it here would repeat it, or hand it to a
+    // proxy node.
     if (!castNeedsSessionReports(client) &&
         token != null &&
         token.isNotEmpty &&

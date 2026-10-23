@@ -74,8 +74,8 @@ void main() {
     });
 
     test('drops characters Silo refuses with a 422', () {
-      // Live check against Silo 4b2e921c: "tv box/01 {x}" and "Brady’s-tv"
-      // both answer 422 validation_failed on header.x-silo-device-id.
+      // Silo refuses the first two as they are with 422 validation_failed
+      // on header.x-silo-device-id.
       expect(siloDeviceId('tv box/01 {x}'), 'tvbox01x');
       expect(siloDeviceId('Brady’s-tv'), 'Bradys-tv');
       expect(siloDeviceId('a.b_c:d-e'), 'a.b_c:d-e');

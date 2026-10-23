@@ -38,7 +38,7 @@ void main() {
     );
   });
 
-  test('Silo placeholders are resolved; other URLs load directly (6.3)', () {
+  test('Silo placeholders are resolved and other URLs load directly', () {
     installSiloImageHooks();
     final resolve = CachedNetworkImageProvider.urlResolver!;
     expect(resolve('https://emby.example/a.jpg'), isNull);

@@ -2,8 +2,8 @@
 /// the stream titles Moonfin shows in its track pickers ("English DTS 5.1").
 ///
 /// Silo tags tracks with ISO 639-1 codes (`en`) and sometimes ISO 639-2
-/// (`eng`, `ger`/`deu`); both are listed. A code not listed shows as itself in
-/// upper case, which is also what Moonfin's pickers fall back to.
+/// (`eng`, `ger`/`deu`), and both are listed. A code not listed shows as
+/// itself in upper case, which is also what Moonfin's pickers fall back to.
 library;
 
 const Map<String, String> _names = {

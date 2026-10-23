@@ -38,7 +38,7 @@ PrivateUser _user({String? account = '9', String token = 'access-old'}) =>
       siloAccountId: account,
     );
 
-/// Refresh hands out pair "new"; `/account/me` answers any bearer token.
+/// Refresh hands out pair "new", and `/account/me` answers any bearer token.
 class _Silo implements HttpClientAdapter {
   final requests = <RequestOptions>[];
   bool refuseRefresh = false;
@@ -164,7 +164,7 @@ void main() {
       await client.refreshSession();
       await pumpEventQueue();
 
-      // The stored user still carries the sign-in token; restoring again must
+      // The stored user still carries the sign-in token. Restoring again must
       // keep the refreshed pair rather than fall back to it.
       storage.restore(
         client: client,
@@ -213,7 +213,7 @@ void main() {
     expect(client.accessToken, isNull);
   });
 
-  group('a refused refresh (3.5)', () {
+  group('a refused refresh', () {
     test('forgets the dead pair and reports the end', () async {
       await storage.save('s1', '9', _pair('1'));
       var ended = 0;
@@ -297,7 +297,7 @@ void main() {
     });
   });
 
-  group('PIN-locked profiles (18.4)', () {
+  group('PIN-locked profiles', () {
     PrivateUser teen() => _user().copyWith(id: 'teen', siloHasPin: true);
 
     test('a locked profile needs its PIN until a proof is kept', () async {

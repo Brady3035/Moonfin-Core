@@ -129,7 +129,7 @@ void main() {
     test(
       'one index space: subtitles keep 2 and 3, video and audio fill 0, 1',
       () {
-        // Emby numbers in container order (audio 0, video 1); Silo sends no
+        // Emby numbers in container order (audio 0, video 1). Silo sends no
         // index for video and audio, so video takes the first free one.
         expect(_streams(silo).map((s) => '${s['Type']}${s['Index']}'), [
           'Video0',
@@ -197,7 +197,7 @@ void main() {
     });
 
     test('each version matches the same file on Emby', () {
-      // Emby's library has a third (WEB-DL) file Silo doesn't; the two shared
+      // Emby's library has a third (WEB-DL) file Silo doesn't. The two shared
       // files are compared by path.
       for (final s in silo) {
         final e = embyByPath(s['Path']);

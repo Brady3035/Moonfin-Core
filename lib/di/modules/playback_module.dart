@@ -243,7 +243,7 @@ Future<List<dynamic>> _nextSeasonItemsProvider(
   int _,
 ) async {
   if (completedItem is! AggregatedItem) return const <dynamic>[];
-  // A server's shuffle (11.7) grows by the item it picks next.
+  // A server's shuffle grows by the item it picks next.
   final shuffled = await ServerShuffleQueue.instance.extend(completedItem);
   if (shuffled != null) return shuffled;
   if (!_isEpisodeQueueItem(completedItem)) return const <dynamic>[];
@@ -329,7 +329,7 @@ Future<List<dynamic>> _nextSeasonItemsProvider(
 }
 
 /// Writes a series' track choice through to a server that keeps one
-/// ([SeriesTrackPreferencesApi], Silo, step 11.6). Best effort: the device's
+/// ([SeriesTrackPreferencesApi], Silo). Best effort: the device's
 /// own choice is already saved.
 void _rememberSeriesTrackOnServer(
   dynamic item,

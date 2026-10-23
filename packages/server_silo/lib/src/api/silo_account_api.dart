@@ -42,7 +42,6 @@ class SiloPasswordCapability {
   /// Most UTF-8 bytes a new password may have (bcrypt's limit).
   final int maximumBytes;
 
-  /// Whether a change can be made here at all.
   bool get canChange => allowed && state == 'available';
 }
 
@@ -62,7 +61,7 @@ class SiloPasswordRejectedError implements Exception {
 
 /// The signed-in Silo account's own password. Not a Moonfin interface:
 /// Jellyfin and Emby change passwords through their own user APIs, so only
-/// the app's Silo sign-in uses it (step 3.6).
+/// the app's Silo sign-in uses it.
 ///
 /// Both routes are among the few a session holding a temporary password may
 /// call, along with `GET /account/me` and `POST /auth/logout`.
@@ -89,11 +88,11 @@ class SiloAccountApi {
   /// Replaces the account password (`POST /account/password`, `204`).
   ///
   /// When the account held a temporary password, Silo also revokes every
-  /// other session of the account; this one keeps going, and its next
+  /// other session of the account. This one keeps going, and its next
   /// refresh drops the restriction.
   ///
   /// Throws [SiloPasswordRejectedError] when Silo refuses one of the two
-  /// passwords (`422 validation_failed` naming the member); any other failure
+  /// passwords (`422 validation_failed` naming the member). Any other failure
   /// is the [DioException] as is.
   Future<void> changePassword({
     required String currentPassword,

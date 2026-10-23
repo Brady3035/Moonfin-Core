@@ -9,21 +9,20 @@ import 'silo_media_source_mapper.dart';
 import 'silo_ticks.dart';
 
 /// Key under which a mapped item keeps the Silo item it came from, so later
-/// steps (and debugging) can reach fields the Jellyfin shape has no room for.
+/// code (and debugging) can reach fields the Jellyfin shape has no room for.
 const siloOriginalKey = '_silo';
 
 /// A Silo catalog item (`CatalogItem`: a movie, series, season or episode, as
 /// a list entry or a detail answer) in the Jellyfin `BaseItemDto` shape
 /// Moonfin reads.
 ///
-/// It maps the **core fields** (5.3): identity, names, text, genres and
-/// studios, dates, ratings, run time, provider ids, date added, status and
-/// the item's own artwork; the **series links** (5.4): series, season and
-/// index fields, child counts and the parent artwork fields; and the
-/// **user data** (5.5); **people** (5.6); and the **media sources** (5.8):
-/// one `MediaSource` per file version, default first, with the default's
-/// streams also as the item's `MediaStreams` and its chapters as `Chapters`
-/// (5.9), the way Jellyfin sends them.
+/// It maps the core fields (identity, names, text, genres and studios,
+/// dates, ratings, run time, provider ids, date added, status and the item's
+/// own artwork), the series links (series, season and index fields, child
+/// counts and the parent artwork fields), the user data, people and the
+/// media sources: one `MediaSource` per file version, default first, with
+/// the default's streams also as the item's `MediaStreams` and its chapters
+/// as `Chapters`, the way Jellyfin sends them.
 ///
 /// Artwork URLs are recorded in [images] (`SiloImageRegistry`), and their
 /// tags go in `ImageTags` and `BackdropImageTags`, the way Jellyfin reports
@@ -64,8 +63,8 @@ Map<String, dynamic>? siloItemToBaseItemDto(
   final dto = <String, dynamic>{
     'Id': id,
     'Name': name,
-    // Silo orders titles by their sort title, which only the detail carries;
-    // cards get the default Silo derives (6.11), so the alphabet bar files
+    // Silo orders titles by their sort title, which only the detail carries.
+    // Cards get the default Silo derives, so the alphabet bar files
     // "The Hobbit" under H, where Silo's list puts it.
     'SortName':
         jsonText(item['sort_title']) ?? siloDefaultSortTitle(name) ?? name,
@@ -76,10 +75,9 @@ Map<String, dynamic>? siloItemToBaseItemDto(
     'IsFolder': itemType.isFolder,
     if (jsonText(item['overview']) case final overview?) 'Overview': overview,
     'Taglines': [?tagline],
-    // Remote trailers and the local extras' counts (6.17).
     'RemoteTrailers': siloRemoteTrailers(item['videos']),
     if (item['extras'] case final List extras) ...{
-      // Local trailers were hidden until Moonfin could play them (10.6).
+      // Counted only while Moonfin can play local trailers.
       'LocalTrailerCount': siloLocalTrailersPlayable
           ? extras.where((e) => e is Map && isSiloTrailerKind(e['kind'])).length
           : 0,
@@ -121,11 +119,11 @@ Map<String, dynamic>? siloItemToBaseItemDto(
       dto['MediaSources'] = sources;
       dto['MediaStreams'] = sources.first['MediaStreams'];
       // The default version's chapters, as Jellyfin sends them. Season list
-      // files are not versions and say nothing about chapters, so the field
+      // files aren't versions and say nothing about chapters, so the field
       // is left out there rather than claim the episode has none.
       if (item['versions'] is List) {
         // Each version also carries its own on its media source, so the
-        // player can show the chapters of the version that plays (11.3).
+        // player can show the chapters of the version that plays.
         // The default's are registered last: its thumbnails are the ones an
         // untagged lookup by index finds.
         for (final source in sources.reversed) {
@@ -155,11 +153,8 @@ class SiloSeriesRef {
   /// The series' `content_id` (`series-…`).
   final String id;
 
-  /// The series' title.
   final String? name;
 }
-
-// --- text and lists --------------------------------------------------------
 
 List<String> _strings(Object? value) => value is List
     ? [
@@ -180,8 +175,6 @@ List<String> _studioNames(Map<String, dynamic> item) {
       if (seen.add(name.toLowerCase())) name,
   ];
 }
-
-// --- dates -----------------------------------------------------------------
 
 /// A Silo calendar date (`YYYY-MM-DD`, or a full timestamp) as a UTC date.
 DateTime? _calendarDate(Object? value) {
@@ -216,8 +209,6 @@ String? _dateAdded(Object? versions) {
   return earliest == null ? null : _jellyfinDate(earliest);
 }
 
-// --- status and ratings ----------------------------------------------------
-
 /// Silo's `show_status` (`ended`, `returning series`…) as Jellyfin's series
 /// `Status`, which has only `Continuing` and `Ended`. Anything else is left
 /// out, as Emby does when it doesn't know.
@@ -245,7 +236,8 @@ double? _communityRating(Map<String, dynamic> item) {
 }
 
 /// Jellyfin's critic rating is a Rotten Tomatoes-style percentage. Silo lists
-/// it among `ratings` when a metadata plugin provides it (`rt_critic`, 0–100).
+/// it among `ratings` when a metadata plugin provides it (`rt_critic`, 0 to
+/// 100).
 int? _criticRating(Object? ratings) {
   if (ratings is! List) return null;
   for (final r in ratings) {
@@ -259,8 +251,6 @@ int? _criticRating(Object? ratings) {
   }
   return null;
 }
-
-// --- run time and ids ------------------------------------------------------
 
 /// The first file's exact `duration` (seconds) when there is one, else the
 /// item's `runtime` (minutes). Emby reports the file's length too.
@@ -279,13 +269,11 @@ Map<String, String> _providerIds(Map<String, dynamic> item) => {
   if (siloIdOf(item['tvdb_id']) case final tvdb?) 'Tvdb': tvdb,
 };
 
-// --- artwork ---------------------------------------------------------------
-
 /// `ImageTags` and `BackdropImageTags` for the item's own artwork.
 ///
-/// - **Primary:** a movie's, series' or season's `poster_url`; an episode's
-///   still (`still_url` in a season list, or `poster_url` when
-///   `poster_is_episode_still` says it is one). When an episode's poster is
+/// - **Primary:** a movie's, series' or season's `poster_url`, or an
+///   episode's still (`still_url` in a season list, or `poster_url` when
+///   `poster_is_episode_still` says it's one). When an episode's poster is
 ///   its **series'** poster, it goes to the series, never to the episode.
 /// - **Backdrops:** every `backdrop_urls` entry (older answers only have
 ///   `backdrop_url`). An episode's backdrop is usually the series' backdrop
@@ -385,8 +373,6 @@ void _registerIfMissing(
   }
 }
 
-// --- series, seasons and episodes ------------------------------------------
-
 /// The links between a series, its seasons and its episodes, and the parent
 /// artwork Jellyfin repeats on each child.
 Map<String, dynamic> _seriesFields(
@@ -476,24 +462,22 @@ Map<String, dynamic> _parentArtwork(
 
 int? _int(Object? value) => value is num ? value.toInt() : null;
 
-// --- user data -------------------------------------------------------------
-
-/// Jellyfin's `UserData` from Silo's two places for it:
+/// Jellyfin's `UserData` from the places Silo keeps it:
 ///
 /// - `user_state` on every catalog item: `played`, `is_favorite` (and
-///   `in_watchlist`, which Jellyfin has no field for);
+///   `in_watchlist`, which Jellyfin has no field for).
 /// - `user_data` on series, seasons and watch answers: `position_seconds`,
-///   `duration_seconds`, `is_in_progress`, `unplayed_count`, `played`;
+///   `duration_seconds`, `is_in_progress`, `unplayed_count`, `played`.
 /// - `user_rating` on an item's detail: the profile's own rating in stars,
-///   1 to 5, as Jellyfin's `Rating` out of 10 (9.3). Silo has no likes;
-///   Moonfin reads 6.5 and up as liked;
+///   1 to 5, as Jellyfin's `Rating` out of 10. Silo has no likes, so
+///   Moonfin reads 6.5 and up as liked.
 /// - `position_seconds` and `duration_seconds` on the card itself, on a
-///   Continue Watching card (8.1);
+///   Continue Watching card.
 /// - the last watch as `progress_updated_at`, or `sort_metrics.viewed_at` on
 ///   a card from a list sorted by watch date.
 ///
-/// Either may be missing; what neither says means unplayed at position 0, the
-/// way Emby reports an untouched item. `UnplayedItemCount` is only for
+/// Any of these may be missing. What none says means unplayed at position 0,
+/// the way Emby reports an untouched item. `UnplayedItemCount` is only for
 /// series and seasons, as on Emby.
 Map<String, dynamic> _userData(SiloItemType type, Map<String, dynamic> item) {
   final state = asJsonMap(item['user_state']) ?? const <String, dynamic>{};
@@ -506,7 +490,7 @@ Map<String, dynamic> _userData(SiloItemType type, Map<String, dynamic> item) {
   final duration = data['duration_seconds'] ?? item['duration_seconds'];
   final unplayed = data['unplayed_count'];
   // A card in a list sorted by watch date (`date_viewed`) carries the date in
-  // its `sort_metrics` (5.13 follow-up).
+  // its `sort_metrics`.
   final lastPlayed =
       _timestamp(item['progress_updated_at']) ??
       _timestamp(asJsonMap(item['sort_metrics'])?['viewed_at']);
@@ -514,7 +498,7 @@ Map<String, dynamic> _userData(SiloItemType type, Map<String, dynamic> item) {
     'PlaybackPositionTicks': secondsToTicks(positionSeconds),
     if (_playedPercentage(positionSeconds, duration) case final pct?)
       'PlayedPercentage': pct,
-    // Jellyfin counts plays; Silo only knows whether it was watched.
+    // Jellyfin counts plays, but Silo only knows whether it was watched.
     'PlayCount': played ? 1 : 0,
     'IsFavorite': state['is_favorite'] == true,
     'Played': played,
@@ -527,8 +511,8 @@ Map<String, dynamic> _userData(SiloItemType type, Map<String, dynamic> item) {
 
 /// Jellyfin's `UserData` for one entry of Silo's progress list
 /// (`ProgressEntry`: `position_seconds`, `duration_seconds`, `completed`,
-/// `updated_at`), which the Continue watching rows (phase 8) merge into the
-/// items they show.
+/// `updated_at`), which the Continue watching rows merge into the items they
+/// show.
 Map<String, dynamic> siloProgressToUserData(Map<String, dynamic> entry) {
   final completed = entry['completed'] == true;
   final position = entry['position_seconds'];
@@ -547,7 +531,7 @@ Map<String, dynamic> siloProgressToUserData(Map<String, dynamic> entry) {
   };
 }
 
-/// How far into the item [position] is, 0–100, or null when there is no
+/// How far into the item [position] is, 0 to 100, or null when there's no
 /// position or no length to measure against.
 double? _playedPercentage(num position, Object? duration) {
   if (position <= 0 || duration is! num || duration <= 0) return null;
@@ -561,12 +545,10 @@ String? _timestamp(Object? value) {
   return parsed == null ? null : _jellyfinDate(parsed.toUtc());
 }
 
-// --- people ----------------------------------------------------------------
-
-/// Crew jobs → the person types Moonfin knows (Jellyfin's `PersonKind`), in
-/// the order crew is listed after the cast. Matched on lower-cased jobs;
-/// jobs that fit none (gaffer, casting…) are left out rather than shown under
-/// a type Moonfin can't name.
+/// Maps crew jobs to the person types Moonfin knows (Jellyfin's
+/// `PersonKind`), in the order crew is listed after the cast. Matched on
+/// lowercased jobs, and jobs that fit none (gaffer, casting…) are left out
+/// rather than shown under a type Moonfin can't name.
 const _crewKinds = <String, List<String>>{
   'Creator': ['creator'],
   'Director': ['director', 'co-director'],
@@ -605,7 +587,7 @@ String? _crewKind(String job) {
 ///
 /// Each person's photo is recorded in [images] under the person's id, and
 /// its tag is the entry's `PrimaryImageTag`, so `ImageApi` can show it and
-/// the person page (phase 6) finds it too. A person listed twice with the
+/// the person page finds it too. A person listed twice with the
 /// same kind (a producer credited as producer and executive producer)
 /// appears once. Silo marks no guest stars: an episode's cast is the series
 /// regulars, all `Actor`s.
@@ -669,7 +651,7 @@ List<Map<String, dynamic>> _people(
   return people;
 }
 
-/// Billing order; credits without one go last, in the order Silo sent them.
+/// Billing order. Credits without one go last, in the order Silo sent them.
 int _order(Map<String, dynamic> credit) {
   final order = credit['order'];
   return order is num ? order.toInt() : 1 << 30;

@@ -110,7 +110,7 @@ void main() {
       );
     });
 
-    test('a profile avatar is registered for ImageApi (6.1)', () async {
+    test('a profile avatar is registered for ImageApi', () async {
       final server = FixtureServer({
         '/api/v2/account/me': _account(),
         '/api/v2/profiles': _profiles([
@@ -262,16 +262,15 @@ void main() {
         },
         {
           '/api/v2/account/me': _mainId,
-          // Listed as the account (18.1): a locked profile can't refuse it.
+          // Listed as the account, so a locked profile can't refuse it.
           '/api/v2/profiles': null,
-          // The downloads capability (15.1).
           '/api/v2/capabilities/downloads': _mainId,
         },
       );
     });
   });
 
-  group('getHousehold (18.2)', () {
+  group('getHousehold', () {
     test('every profile of the account, each as a Moonfin user', () async {
       final server = FixtureServer({
         '/api/v2/account/me': _account(),
@@ -300,7 +299,7 @@ void main() {
       // The avatar is recorded for the account switcher.
       expect(kid.user.primaryImageTag, isNotNull);
       expect(client.imageApi.getUserImageUrl('kid'), isNotEmpty);
-      // Read as the account; nothing about downloads (read per profile).
+      // Read as the account, with nothing about downloads (read per profile).
       expect(
         server.requests
             .firstWhere((r) => r.uri.path == '/api/v2/profiles')

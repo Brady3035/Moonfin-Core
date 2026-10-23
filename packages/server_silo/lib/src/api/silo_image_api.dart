@@ -12,17 +12,17 @@ import '../silo_image_resolver.dart';
 ///
 /// - with a `tag` (what an item's `ImageTags` carry), exactly the URL
 ///   registered with that tag, so a grid and a detail page each get the size
-///   their request asked for;
+///   their request asked for.
 /// - otherwise the latest URL registered for the item, type and index.
 ///
 /// `maxWidth`/`maxHeight` are ignored: Silo picks sizes per request with
 /// `image_size` (the items API asks for `medium` in lists and `large` on
 /// detail pages), and a signed URL can't be resized afterwards.
 ///
-/// When nothing is registered (step 6.3, decision D2):
+/// When nothing is registered:
 ///
 /// - for an item whose artwork was read, the image doesn't exist, and the
-///   answer is an empty URL, which Moonfin shows as its placeholder;
+///   answer is an empty URL, which Moonfin shows as its placeholder.
 /// - for an item never read this session (rows restored at startup, a deep
 ///   link), a placeholder URL ([siloImagePlaceholderUrl]) that the image
 ///   cache resolves by loading the item (`SiloImageResolver`).
@@ -32,10 +32,10 @@ class SiloImageApi implements ImageApi {
   final SiloImageRegistry registry;
 
   /// Told the file id whenever a trickplay sheet URL is handed out, so
-  /// previews whose URLs are about to expire are read again (11.2).
+  /// previews whose URLs are about to expire are read again.
   final void Function(String fileId)? onTrickplaySheet;
 
-  /// The server's base URL for placeholder URLs; without it a miss is
+  /// The server's base URL for placeholder URLs. Without it a miss is
   /// always an empty URL.
   final String Function()? baseUrl;
 
@@ -106,8 +106,8 @@ class SiloImageApi implements ImageApi {
   String getUserImageUrl(String userId) =>
       _lookup(userId, SiloImageType.primary);
 
-  /// A seek-preview sheet, registered under the file id (5.11) when the
-  /// player read the file's previews (11.2).
+  /// A seek-preview sheet, registered under the file id when the player read
+  /// the file's previews.
   @override
   String getTrickplayTileImageUrl(
     String itemId, {

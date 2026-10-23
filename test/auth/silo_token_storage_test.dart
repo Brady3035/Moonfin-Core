@@ -147,7 +147,7 @@ void main() {
     await client.refreshSession();
     await pumpEventQueue();
 
-    // Silo refused it, so nothing should ever restore it again (3.5).
+    // Silo refused it, so nothing should ever restore it again.
     expect(storage.read('s1', '9'), isNull);
   });
 

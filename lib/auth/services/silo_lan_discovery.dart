@@ -3,14 +3,14 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-/// Finding Silo servers on the local network (17.2).
+/// Finding Silo servers on the local network.
 ///
 /// Silo advertises each API process with DNS-SD over multicast DNS as
 /// `_silo._tcp.local` (its `internal/landiscovery`): the instance name is the
 /// server's name, SRV gives the host and the plain-HTTP port, A/AAAA the
 /// addresses, and TXT carries `v=1` and `id=<server id>`. This file has a
 /// small DNS message codec ([buildSiloBrowseQuery], [SiloMdnsRecords]) and a
-/// one-shot browser ([SiloLanBrowser]); nothing found here is trusted until
+/// one-shot browser ([SiloLanBrowser]). Nothing found here is trusted until
 /// the caller has confirmed it with `GET /api/v2/system/identity`.
 
 /// The DNS-SD service Silo advertises.
@@ -77,9 +77,9 @@ class SiloLanAdvert {
 
 /// The records collected from mDNS responses. Feed every packet to [add],
 /// then read [adverts]. Names are matched without regard to case, as DNS
-/// does; a record with TTL 0 (a goodbye) removes what it names.
+/// does. A record with TTL 0 (a goodbye) removes what it names.
 class SiloMdnsRecords {
-  final _instances = <String, String>{}; // lowercased full name -> label
+  final _instances = <String, String>{}; // Labels by lowercased full name.
   final _srv = <String, ({String target, int port})>{};
   final _txt = <String, Map<String, String>>{};
   final _addresses = <String, Set<String>>{};
@@ -124,7 +124,8 @@ class SiloMdnsRecords {
   void _parse(Uint8List packet) {
     final data = ByteData.sublistView(packet);
     final flags = data.getUint16(2);
-    if (flags & 0x8000 == 0) return; // A query (ours looping back, or another browser's).
+    // A query, our own looping back or another browser's.
+    if (flags & 0x8000 == 0) return;
     final questions = data.getUint16(4);
     final records =
         data.getUint16(6) + data.getUint16(8) + data.getUint16(10);
@@ -204,7 +205,7 @@ class SiloMdnsRecords {
         _address(key, packet.sublist(start, end).join('.'), ttl);
       case _typeAaaa when end - start == 16:
         // Link-local addresses (fe80::/10) need a scope id a URL can't
-        // carry; Silo never advertises them.
+        // carry, and Silo never advertises them.
         if (data.getUint16(start) & 0xFFC0 == 0xFE80) return;
         final groups = [
           for (var i = start; i < end; i += 2)

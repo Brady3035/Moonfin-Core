@@ -4,7 +4,7 @@ import 'package:server_core/server_core.dart';
 import '../mappers/silo_media_source_mapper.dart';
 import '../mappers/silo_subtitle_order.dart';
 
-/// A series' remembered audio and subtitle choice on Silo (step 11.6).
+/// A series' remembered audio and subtitle choice on Silo.
 ///
 /// Silo keeps, per profile and series:
 ///
@@ -14,7 +14,7 @@ import '../mappers/silo_subtitle_order.dart';
 ///   and uses it when a start names none.
 /// - **Subtitles:** `GET/PUT /subtitle-prefs/{series}`: the chosen track
 ///   (Silo's combined subtitle index, or -1 for off), language, mode and
-///   signature; plus the settings `playback.subtitle_language` and
+///   signature, plus the settings `playback.subtitle_language` and
 ///   `playback.subtitle_mode` at `profile_series` scope, which Silo's web
 ///   player writes alongside and which outrank the row's language and mode.
 ///   Moonfin writes both, as the web player does.
@@ -56,8 +56,6 @@ class SiloTrackPreferences {
     }
   }
 
-  // --- reading -----------------------------------------------------------
-
   Future<SeriesTrackChoice?> audioChoice(String seriesId) async {
     final row = await _getOrNull(_audioPath(seriesId));
     if (row == null) return null;
@@ -96,7 +94,7 @@ class SiloTrackPreferences {
               jsonText(signature?['language']) ??
               '';
     final labelLanguage = jsonText(signature?['language']);
-    // The label belongs to the row's track; a newer language from the
+    // The label belongs to the row's track, and a newer language from the
     // settings may name another one.
     final title = labelLanguage == null || labelLanguage == language
         ? jsonText(signature?['label']) ?? ''
@@ -106,7 +104,7 @@ class SiloTrackPreferences {
   }
 
   /// The subtitle settings stored for [seriesId] itself (scope
-  /// `profile_series`), by key; a value from another scope isn't a choice
+  /// `profile_series`), by key. A value from another scope isn't a choice
   /// for this series.
   Future<Map<String, Object?>> _seriesSettings(String seriesId) async {
     final json = await _getOrNull(
@@ -124,8 +122,6 @@ class SiloTrackPreferences {
           item['key'] as String: item['value'],
     };
   }
-
-  // --- writing -----------------------------------------------------------
 
   Future<void> setAudio(
     String seriesId, {

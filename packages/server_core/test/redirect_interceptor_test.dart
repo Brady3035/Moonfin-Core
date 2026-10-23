@@ -103,7 +103,7 @@ void main() {
       expect(requested, hasLength(1));
     });
 
-    test('unrestricted, the old behaviour follows anywhere', () async {
+    test('unrestricted, the old behavior follows anywhere', () async {
       final dio = dioFor('https://other.example/next', sameOriginOnly: false);
       expect(await send(dio), 200);
       expect(requested.last.host, 'other.example');

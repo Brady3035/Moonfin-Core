@@ -17,14 +17,14 @@ import '../../../util/silo_failure_message.dart';
 import '../../widgets/overlay_sheet.dart';
 import 'silo_secret_field.dart';
 
-/// Before switching to Silo profile [user] on [server]: asks for its PIN
-/// when it is locked and has no live proof (18.4), and keeps the proof Silo
-/// gives. True when the profile can be used now (no PIN needed, or the
-/// right one entered); false when the dialog was closed.
+/// Before switching to Silo profile [user] on [server], asks for its PIN
+/// when it's locked and has no live proof, and keeps the proof Silo gives.
+/// True when the profile can be used now (no PIN needed, or the right one
+/// entered), false when the dialog was closed.
 ///
-/// The check goes through the server's client as the account (18.1). If
-/// that client holds another login, or none (the picker after a restart),
-/// the account's stored login is put on it first.
+/// The check goes through the server's client as the account. If that
+/// client holds another login, or none (the picker after a restart), the
+/// account's stored login is put on it first.
 Future<bool> unlockSiloProfileIfNeeded(
   BuildContext context, {
   required Server server,
@@ -67,13 +67,13 @@ Future<bool> unlockSiloProfileIfNeeded(
   return unlocked;
 }
 
-/// Asks for a Silo profile's PIN (18.4).
+/// Asks for a Silo profile's PIN.
 ///
-/// Silo PINs are 1–72 characters of any text, so the field is a plain
+/// Silo PINs are 1 to 72 characters of any text, so the field is a plain
 /// obscured text field, not the digit pad of Moonfin's own app PIN. A wrong
-/// PIN keeps the dialog open; after five Silo locks the profile for five
+/// PIN keeps the dialog open. After five, Silo locks the profile for five
 /// minutes, and the dialog says how long is left. [onSubmit] checks the PIN
-/// (`SiloProfilesApi.verifyPin`); it is called only when the person submits.
+/// (`SiloProfilesApi.verifyPin`) and is only called when the person submits.
 class SiloPinDialog extends StatefulWidget {
   const SiloPinDialog({
     super.key,

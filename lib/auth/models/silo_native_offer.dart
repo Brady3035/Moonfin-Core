@@ -1,6 +1,6 @@
 /// A native Silo server found behind the Jellyfin-compatible address the user
-/// entered (17.1): Silo serves Jellyfin apps on 8096 and its own API on
-/// another port of the same host.
+/// entered. Silo serves Jellyfin apps on 8096 and its own API on another
+/// port of the same host.
 class SiloNativeOffer {
   /// The address that answered as Jellyfin (Silo's compat service).
   final String jellyfinAddress;

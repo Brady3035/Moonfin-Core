@@ -164,7 +164,7 @@ void main() {
       });
     });
 
-    test('types Silo lacks answer empty (4.2, 4.3)', () {
+    test('types Silo lacks answer empty', () {
       for (final types in [
         ['MusicArtist'],
         ['MusicAlbum'],
@@ -209,7 +209,7 @@ void main() {
       );
     });
 
-    test('books open up once supported (phase 16)', () {
+    test('books open up once supported', () {
       const withBooks = {...siloSupportedTypes, 'audiobook', 'ebook'};
       expect(siloTypesForQuery(mediaTypes: 'Audio', supported: withBooks), {
         'audiobook',

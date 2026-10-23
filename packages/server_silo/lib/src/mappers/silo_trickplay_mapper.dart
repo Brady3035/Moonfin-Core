@@ -20,7 +20,7 @@ const siloTrickplayExpiresKey = 'SiloExpiresAt';
 /// Each sheet URL is recorded in [images] under the **file id** as a
 /// [SiloImageType.trickplay] at its sheet index, so
 /// `getTrickplayTileImageUrl(itemId, mediaSourceId: fileId, index:)` can
-/// answer from the registry (11.2). Sheet URLs carry their own authorization
+/// answer from the registry. Sheet URLs carry their own authorization
 /// and stop working at `expires_at`, kept in the entry under
 /// [siloTrickplayExpiresKey], after which the previews are read again.
 ///
@@ -72,7 +72,7 @@ Map<String, dynamic>? siloTrickplayToJellyfin(
         'TileHeight': rows,
         'ThumbnailCount': count ?? sheets.length * columns * rows,
         'Interval': interval,
-        // Jellyfin's estimate for streaming the sheets; Silo gives none.
+        // Jellyfin's estimate for streaming the sheets. Silo gives none.
         'Bandwidth': 0,
         if (expires is String) siloTrickplayExpiresKey: expires,
       },

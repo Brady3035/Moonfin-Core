@@ -62,7 +62,7 @@ SiloMediaServerClient _client(_Silo server) =>
       ..profileId = 'p1';
 
 void main() {
-  test('a Silo file\'s previews become the item\'s Trickplay (11.2)', () async {
+  test('a Silo file\'s previews become the item\'s Trickplay', () async {
     final server = _Silo();
     final client = _client(server);
     final raw = <String, dynamic>{'Id': _episode};

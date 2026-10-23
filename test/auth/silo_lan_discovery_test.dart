@@ -23,7 +23,7 @@ void main() {
 
   group('buildSiloBrowseQuery', () {
     test('is one PTR question for _silo._tcp.local, id 0, QM', () {
-      // Silo's responder recognised exactly these bytes as a question it
+      // Silo's responder recognized exactly these bytes as a question it
       // answers when the fixtures were made.
       expect(buildSiloBrowseQuery(), [
         0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, //
@@ -43,7 +43,7 @@ void main() {
         expect(advert.instanceName, 'Snowy Streams');
         expect(advert.serverId, _snowyId);
         expect(advert.port, 8080);
-        // IPv4 first; fe80::1 was never advertised.
+        // IPv4 first, and fe80::1 was never advertised.
         expect(advert.addresses, ['192.168.1.20', 'fd00:0:0:0:0:0:0:20']);
         expect(advert.baseUrls, [
           'http://192.168.1.20:8080',

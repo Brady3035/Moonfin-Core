@@ -13,7 +13,7 @@ const _device = DeviceInfo(
 );
 
 void main() {
-  test('Jellyfin and Emby: their own authorization (12.7)', () {
+  test('Jellyfin and Emby: their own authorization', () {
     final jellyfin = JellyfinMediaServerClient(
       baseUrl: 'https://jf.example',
       deviceInfo: _device,

@@ -7,10 +7,10 @@ import '../silo_session.dart';
 /// Sign-in against Silo's native auth routes, answered in the shapes
 /// Moonfin's auth flow reads.
 ///
-/// A Silo sign-in opens a session for the **account**; Moonfin then acts as
-/// the account's main profile (step 2.5, decision D9). So [authenticateByName]
-/// answers with the account as `User` and puts the new token pair on the
-/// client's [SiloSession].
+/// A Silo sign-in opens a session for the **account**, whose household
+/// profiles are Moonfin's users. So [authenticateByName] answers with the
+/// account as `User` and puts the new token pair on the client's
+/// [SiloSession].
 class SiloAuthApi implements AuthApi {
   SiloAuthApi(
     this._dio,
@@ -29,7 +29,7 @@ class SiloAuthApi implements AuthApi {
   final SiloSession _session;
 
   /// This device's name and platform, shown to the person approving a
-  /// sign-in with a code (step 14.1).
+  /// sign-in with a code.
   final String? deviceName;
   final String? devicePlatform;
 
@@ -46,13 +46,13 @@ class SiloAuthApi implements AuthApi {
   );
 
   /// Key in an authentication result holding the [SiloTokens] as JSON
-  /// ([SiloTokens.toJson]), for the app to store (step 3.2).
+  /// ([SiloTokens.toJson]), for the app to store.
   static const siloTokensKey = 'SiloTokens';
 
   /// Key in an authentication result that is `true` when the account holds a
-  /// temporary password. Until it is changed, Silo only lets the session read
-  /// the account, change the password and sign out; everything else answers
-  /// `403 password_change_required`. The app acts on it in step 3.6.
+  /// temporary password. Until it's changed, Silo only lets the session read
+  /// the account, change the password and sign out, and everything else
+  /// answers `403 password_change_required`.
   static const siloPasswordChangeRequiredKey = 'SiloPasswordChangeRequired';
 
   @override
@@ -113,14 +113,14 @@ class SiloAuthApi implements AuthApi {
   /// Ends the login on Silo and on this client.
   ///
   /// `POST /auth/logout` revokes the session server-side, which also kills
-  /// its refresh token; only dropping the tokens locally would leave that
+  /// its refresh token. Only dropping the tokens locally would leave that
   /// refresh token valid on the server until it expires. The request goes
   /// through the main Dio, so an access token that has expired is refreshed
   /// first and the logout replayed once: Silo marks logout as naturally
   /// idempotent, so a replay is safe.
   ///
   /// The client is signed out locally whatever the server answers. A `401`
-  /// means the session is already gone and counts as success; any other
+  /// means the session is already gone and counts as success. Any other
   /// failure (no network, `503`) is rethrown after the local sign-out so the
   /// caller can log it.
   @override
@@ -142,7 +142,7 @@ class SiloAuthApi implements AuthApi {
   /// checking that the server offers it (`GET /auth/device/capability`).
   ///
   /// `Code` is Silo's user code without its separator (eight digits, shown
-  /// 4+4); `Secret` is the device code. Also answers the verification page,
+  /// 4+4), and `Secret` is the device code. Also answers the verification page,
   /// the same with the code filled in (for the QR code), the expiry and the
   /// poll interval ([QuickConnectKeys]).
   @override
@@ -253,8 +253,8 @@ class SiloAuthApi implements AuthApi {
 
   /// Approves another device's sign-in request with the code it shows
   /// (`POST /auth/device/approve`), as this login's account: the device then
-  /// signs in to the account and picks its own profile (Moonfin: the main
-  /// one). [userId] is not sent; Silo approves for the account.
+  /// signs in to the account and picks its own profile. [userId] isn't sent,
+  /// since Silo approves for the account.
   ///
   /// True when Silo answers `approved`. A code no request is waiting with
   /// answers false: unknown (`404`), already used, declined or withdrawn

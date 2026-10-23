@@ -5,8 +5,8 @@ import 'package:dio/dio.dart';
 import 'package:server_silo/server_silo.dart';
 import 'package:test/test.dart';
 
-// Captured from Silo 4b2e921c on 2026-10-13 (sign-in for a user that doesn't
-// exist, and a device id with a space).
+// Captured from Silo (sign-in for a user that doesn't exist, and a device id
+// with a space).
 const _invalidCredentials = {
   'type': 'https://siloserver.org/docs/api/v2/problems/invalid_token',
   'title': 'Invalid token',

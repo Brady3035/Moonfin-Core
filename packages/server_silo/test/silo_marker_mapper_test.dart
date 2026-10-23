@@ -26,7 +26,7 @@ void main() {
           'EndTicks': 2683290000,
         },
       ]);
-      // Emby marks the same intro with chapter markers; its detector lands
+      // Emby marks the same intro with chapter markers, and its detector lands
       // within two seconds of Silo's.
       final emby = (_json('emby/item_episode.json')['Chapters'] as List)
           .cast<Map<String, dynamic>>();

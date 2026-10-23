@@ -106,7 +106,7 @@ class UserDataSync extends ChangeNotifier {
         if (id.isNotEmpty) id,
     }.toList();
     // A server that reads items one at a time narrows the list to what may
-    // have changed (Silo, step 9.4).
+    // have changed (Silo).
     final api = client.itemsApi;
     final ids = api is UserDataRefreshScope
         ? (api as UserDataRefreshScope).userDataMayHaveChanged(all)

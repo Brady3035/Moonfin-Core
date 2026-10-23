@@ -35,27 +35,26 @@ class SiloPlaybackSession {
   Map<String, dynamic> plan;
 
   /// The mapped `MediaSource` of the plan's effective file, with its track
-  /// map (5.8), when Moonfin has it.
+  /// map, when Moonfin has it.
   Map<String, dynamic>? mediaSource;
 
-  /// The stream Moonfin made of [plan]; a stop or progress report for an
-  /// older one of this session is not this session's latest.
+  /// The stream Moonfin made of [plan]. A stop or progress report for an
+  /// older one of this session isn't this session's latest.
   StreamResolutionResult? resolution;
 
-  /// The last progress `sequence` used (10.9). Silo applies a sample only
-  /// when its sequence is higher than the last one it applied, so each
-  /// sample takes the next one.
+  /// The last progress `sequence` used. Silo applies a sample only when its
+  /// sequence is higher than the last one it applied, so each sample takes
+  /// the next one.
   int lastSequence = 0;
 
-  /// The next sequence for a sample.
   int takeSequence() => ++lastSequence;
 
   /// Over on Silo's side (stopped, expired, ended by an administrator, or
   /// under another installation): nothing more is reported on it.
   bool ended = false;
 
-  /// The `stop_id` of this session's stop (10.10), minted once and sent on
-  /// every retry.
+  /// The `stop_id` of this session's stop, minted once and sent on every
+  /// retry.
   late final String stopId = siloNewUuid();
 
   /// The stop on its way, so a second stop (the manager also asks to end a
@@ -63,7 +62,7 @@ class SiloPlaybackSession {
   Future<void>? stopping;
 
   /// The client's id for the plan it is playing (`plan_attempt_id`), new
-  /// for each plan it adopts (10.12).
+  /// for each plan it adopts.
   String planAttemptId = siloNewUuid();
 
   /// Every `plan_attempt_key` that failed on this device, Silo's loop
@@ -74,8 +73,8 @@ class SiloPlaybackSession {
   int recoveries = 0;
 
   /// The viewer's bitrate ceiling for this session, in kbps
-  /// (`bandwidth_cap_kbps`), sent on every replan so a seek keeps it; a
-  /// quality change replaces it (10.15). Null for none.
+  /// (`bandwidth_cap_kbps`), sent on every replan so a seek keeps it. A
+  /// quality change replaces it. Null for none.
   late int? bandwidthCapKbps = startBody['bandwidth_cap_kbps'] as int?;
 }
 
@@ -86,7 +85,6 @@ class SiloPlaybackSessions {
 
   static final _byClient = Expando<SiloPlaybackSessions>('siloSessions');
 
-  /// The sessions of [client].
   static SiloPlaybackSessions of(MediaServerClient client) =>
       _byClient[client] ??= SiloPlaybackSessions._();
 
@@ -121,7 +119,7 @@ String siloNewUuid() {
 
 /// Calls [send] until it answers. While [retryable] says a failure is
 /// transient, it is sent again after 1, 2, 4, then every 8 seconds, for at
-/// most [budget]; the last failure is rethrown. Silo keys its playback
+/// most [budget], and the last failure is rethrown. Silo keys its playback
 /// mutations on ids in the body, so sending the same one again is safe.
 Future<T> siloSendWithRetries<T>(
   Future<T> Function() send, {

@@ -58,7 +58,7 @@ void main() {
     expect(_scope(client, _all), [_show, _season, _episode, _sibling]);
   });
 
-  test('a film favourited: the film alone', () async {
+  test('a film favorited: the film alone', () async {
     final server = FixtureServer({'/api/v2/favorites/$_film': _noContent});
     final client = siloTestClient(server);
     await client.userLibraryApi.markFavorite(_film);

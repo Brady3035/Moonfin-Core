@@ -51,11 +51,11 @@ class SiloSectionEntry {
 /// exist on Silo as sections: Silo assembles them per profile (resume points,
 /// the next episode of each show, the cards the profile dismissed), and no
 /// catalog query gives the same list. So those rows read the cards of the
-/// matching sections (steps 8.1 and 8.2).
+/// matching sections.
 ///
 /// Both rows load together and need the same sections, so a layout is kept
 /// for [layoutTtl] and a section's cards for [itemsTtl], and a read already
-/// on its way is shared. A failed read is not kept.
+/// on its way is shared. A failed read isn't kept.
 class SiloHomeSections {
   SiloHomeSections(this._dio, {DateTime Function()? clock})
     : _layouts = SiloKeptReads(lifetime: layoutTtl, clock: clock),

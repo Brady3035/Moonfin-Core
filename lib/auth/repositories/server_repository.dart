@@ -78,7 +78,7 @@ class ServerRepository {
   ///
   /// When the address turns out to be Silo's Jellyfin-compatible service and
   /// Silo's native API answers on the same host, [offerSiloNative] is asked
-  /// whether to add the native server instead (17.1). Without it, or when it
+  /// whether to add the native server instead. Without it, or when it
   /// answers false, the Jellyfin server is added as before.
   Future<Server?> addServer(
     String address, {
@@ -177,7 +177,7 @@ class ServerRepository {
         _stateController.add(ServerConnected(id: server.id, publicInfo: info));
         return server;
       } on SiloApiUnsupported catch (e) {
-        // The server is found; trying other schemes and ports would only
+        // The server is found. Trying other schemes and ports would only
         // find it again, or something else at the same host.
         lastCandidate = candidate;
         lastErrorType = 'silo_api_unsupported';

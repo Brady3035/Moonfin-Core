@@ -55,8 +55,8 @@ void main() {
     );
 
     // Silo's default (`ui.next_up_mode` combined) puts them in Continue
-    // Watching as next_up cards; the started film and episode stay in 8.1's
-    // row.
+    // Watching as next_up cards. The started film and episode stay in the
+    // Continue Watching row.
     expect(_paths(server), [_layoutPath, _cwPath]);
     final items = _items(page);
     expect(items.map((i) => i['Id']), [
@@ -162,8 +162,8 @@ void main() {
     final api = siloTestClient(server).itemsApi;
     final page = await api.getNextUp(parentId: '7');
     expect(_items(page), hasLength(2));
-    // An episode's parent stays its season; the library is remembered for
-    // the ancestors (6.9).
+    // An episode's parent stays its season, and the library is remembered
+    // for the ancestors.
     expect(_items(page).first['ParentId'], 'season-imdb-tt0472954-17');
     expect(api.libraryOf('episode-imdb-tt0472954-17-1'), '7');
     expect(_paths(server), [libLayout, libCw]);

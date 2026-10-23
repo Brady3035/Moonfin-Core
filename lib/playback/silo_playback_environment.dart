@@ -5,12 +5,12 @@ import '../preference/preference_constants.dart';
 import '../preference/user_preferences.dart';
 import '../util/platform_detection.dart';
 
-/// This device as a Silo playback start describes it (step 10.4): form
-/// factor, platform, OS version and model, the display's HDR formats when
-/// they are known, and the player's traits.
+/// This device as a Silo playback start describes it: form factor,
+/// platform, OS version and model, the display's HDR formats when they're
+/// known, and the player's traits.
 ///
 /// The display's HDR formats are only known on Android TV, which asks its
-/// display (`DisplayHdrProbe`, 12.1). Elsewhere they are left unknown, and
+/// display (`DisplayHdrProbe`). Elsewhere they're left unknown, and
 /// Silo then claims no native HDR output, which costs nothing for an
 /// original file where the player maps HDR to the screen itself (see
 /// [SiloPlayerTraits.managesDynamicRange]).
@@ -33,10 +33,10 @@ SiloPlaybackEnvironment siloPlaybackEnvironment() {
   );
 }
 
-/// A cast receiver as a Silo start describes it (12.4–12.6): a TV, the
-/// receiver's [platform] (`chromecast`, `airplay`, `dlna`), and a player
-/// that loads the stream itself ([SiloPlayerTraits.castReceiver]). Its
-/// device profile is the receiver's (`receiver_device_profiles.dart`).
+/// A cast receiver as a Silo start describes it: a TV, the receiver's
+/// [platform] (`chromecast`, `airplay`, `dlna`), and a player that loads the
+/// stream itself ([SiloPlayerTraits.castReceiver]). Its device profile is
+/// the receiver's (`receiver_device_profiles.dart`).
 SiloPlaybackEnvironment siloReceiverEnvironment(
   String platform, {
   String? manufacturer,
@@ -52,7 +52,7 @@ SiloPlaybackEnvironment siloReceiverEnvironment(
 /// details, or null when the display was never read ([known] false).
 ///
 /// A display names Dolby Vision without a profile, so it gets every profile
-/// Silo knows (5, 7, 8); Silo intersects that with the decoder's.
+/// Silo knows (5, 7, 8). Silo intersects that with the decoder's.
 Map<String, dynamic>? siloDisplayHdr({
   required bool known,
   required List<String> types,
@@ -69,12 +69,12 @@ Map<String, dynamic>? siloDisplayHdr({
   };
 }
 
-/// The main player's traits: AetherEngine on macOS, iOS and tvOS (12.2),
-/// libmpv on Windows and Linux, and on Android the engine the viewer picked
-/// (Media3 by default, else libmpv; 12.1), and a browser's media element on
-/// the web (12.3), which sends no headers.
+/// The main player's traits: AetherEngine on macOS, iOS and tvOS, libmpv
+/// on Windows and Linux, the engine the viewer picked on Android (Media3 by
+/// default, else libmpv), and a browser's media element on the web, which
+/// sends no headers.
 SiloPlayerTraits _traits() {
-  // First: a browser on a phone also reports that phone's platform.
+  // Web goes first, since a browser on a phone also reports its platform.
   if (PlatformDetection.isWeb) return SiloPlayerTraits.web;
   if (PlatformDetection.isAppleTV ||
       PlatformDetection.isMacOS ||
@@ -90,7 +90,6 @@ SiloPlayerTraits _traits() {
   return const SiloPlayerTraits();
 }
 
-/// The traits of the Android engine [engine] (12.1).
 SiloPlayerTraits siloAndroidTraits(PlaybackEnginePreference engine) =>
     switch (engine) {
       PlaybackEnginePreference.media3 => SiloPlayerTraits.media3,

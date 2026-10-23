@@ -37,7 +37,7 @@ void main() {
       'media_scope': 'video_with_episodes',
     });
     // Silo matches word starts and lists them by name, so "vin" brings
-    // Vincents before Vin Diesel (raised with Silo, 7.2).
+    // Vincents before Vin Diesel.
     final people = (page['Items'] as List).cast<Map<String, dynamic>>();
     expect(page['TotalRecordCount'], 5);
     expect(people.map((p) => p['Name']), [

@@ -33,7 +33,7 @@ const siloDetailImageSize = 'large';
 
 /// Moonfin's `ItemsApi` over Silo's catalog.
 ///
-/// Every answer is translated into Jellyfin's shapes by the phase 5 mappers,
+/// Every answer is translated into Jellyfin's shapes by the mappers,
 /// and every artwork URL is recorded in the client's image registry on the
 /// way. What Silo doesn't have at all answers empty (music, playlists) or
 /// throws [UnsupportedError] (see [noSuchMethod]).
@@ -62,17 +62,16 @@ class SiloItemsApi
 
   final Dio _dio;
 
-  /// The server's base URL, for links Silo answers relative to it (11.5).
+  /// The server's base URL, for links Silo answers relative to it.
   final String Function()? baseUrl;
 
-  /// Shuffles (11.7).
   late final SiloShuffles shuffles = SiloShuffles(
     _dio,
     images: images,
     clock: _clock,
   );
 
-  /// Theme music (11.5).
+  /// Theme music.
   late final SiloThemes themes = SiloThemes(
     _dio,
     detail: detailJson,
@@ -82,23 +81,23 @@ class SiloItemsApi
   /// The mapped media source each item plays, as the resolver noted it.
   final _playingSources = <String, Map<String, dynamic>>{};
 
-  /// Series audio and subtitle choices (11.6).
+  /// Series audio and subtitle choices.
   late final SiloTrackPreferences trackPreferences = SiloTrackPreferences(
     _dio,
     (itemId) => _playingSources[itemId],
   );
 
-  /// Skip markers by file (11.1).
+  /// Skip markers by file.
   late final SiloMarkers markers = SiloMarkers(_dio, clock: _clock);
 
-  /// Seek previews by file (11.2).
+  /// Seek previews by file.
   late final SiloTrickplay trickplay = SiloTrickplay(
     _dio,
     images: images,
     clock: _clock,
   );
 
-  /// The time, for date-bounded rows (8.4); tests move it.
+  /// The time, for date-bounded rows. Tests move it.
   final DateTime Function() _clock;
   final SiloImageRegistry? images;
 
@@ -106,33 +105,33 @@ class SiloItemsApi
   final UserViewsApi Function()? userViews;
 
   /// The profile requests act for, to tell its own collections from shared
-  /// ones (9.5).
+  /// ones.
   final String? Function()? profileId;
 
   /// Remembers list cursors per query, so Moonfin's offset paging maps onto
-  /// Silo's cursors (5.12).
+  /// Silo's cursors.
   final SiloPager pager;
 
   static const _catalogPath = '/api/v2/catalog';
 
-  /// A library grid, or the whole catalog (step 6.5).
+  /// A library grid, or the whole catalog.
   ///
-  /// - `parentId` a library id → `library_id`; no `parentId` → the whole
-  ///   catalog. A series, season, genre, studio or collection parent reads
-  ///   that list instead (6.7–6.15).
-  /// - `includeItemTypes` → Silo's `type` scope (5.1). Types Silo can't serve
-  ///   (`BoxSet`, `Playlist`, music…) are dropped from the request; a query
-  ///   for **only** such types answers empty without a request.
+  /// - A library `parentId` is sent as `library_id`, and no `parentId` reads
+  ///   the whole catalog. A series, season, genre, studio or collection
+  ///   parent reads that list instead.
+  /// - `includeItemTypes` is sent as Silo's `type` scope. Types Silo can't
+  ///   serve (`BoxSet`, `Playlist`, music…) are dropped from the request, and
+  ///   a query for **only** such types answers empty without a request.
   ///   `excludeItemTypes` is applied to what comes back.
-  /// - `sortBy`/`sortOrder` → `sort` (5.13).
-  /// - `startIndex`/`limit` → cursors through the pager (5.12).
+  /// - `sortBy`/`sortOrder` are sent as `sort`.
+  /// - `startIndex`/`limit` become cursors through the pager.
   ///
-  /// - Filters (genres, years, ratings, played state, favourites, 4K/HD,
-  ///   languages) → Silo rule `groups` (6.10, `siloRuleGroups`). Silo has no
-  ///   rule for the series status, so that filter reads the whole list once
-  ///   and pages it here (`_clientFiltered`).
-  /// - `searchTerm` → `q` (7.1), ranked by Silo's relevance unless a sort is
-  ///   asked for. A search first reads [searchCapabilities]: none is sent
+  /// - Filters (genres, years, ratings, played state, favorites, 4K/HD,
+  ///   languages) are sent as Silo rule `groups` (`siloRuleGroups`). Silo has
+  ///   no rule for the series status, so that filter reads the whole list
+  ///   once and pages it here (`_clientFiltered`).
+  /// - `searchTerm` is sent as `q`, ranked by Silo's relevance unless a sort
+  ///   is asked for. A search first reads [searchCapabilities]: none is sent
   ///   when Silo says search isn't available to this profile, and the
   ///   movies-series-episodes scope is used only when Silo offers it
   ///   ([siloSearchScopeFor]).
@@ -192,16 +191,16 @@ class SiloItemsApi
       );
     }
     final libraryId = _libraryIdOf(parentId);
-    // A genre page (6.12): its synthetic id names the genre.
+    // A genre page: its synthetic id names the genre.
     final genreParent = parentId == null ? null : siloGenreNameOf(parentId);
-    // And a studio or network page (6.13).
+    // And a studio or network page.
     final studioParent = parentId == null ? null : siloStudioNameOf(parentId);
-    // A collection's titles (6.15).
+    // A collection's titles.
     final collection = parentId == null
         ? null
         : parseSiloCollectionId(parentId);
-    // The collections themselves, asked for as BoxSets (6.15). Silo's
-    // favourites are titles only, so favourite collections are none (8.5).
+    // The collections themselves, asked for as BoxSets. Silo's favorites are
+    // titles only, so there are no favorite collections.
     if (_asksForCollections(includeItemTypes)) {
       final favorites =
           isFavorite == true ||
@@ -215,9 +214,9 @@ class SiloItemsApi
         limit: limit,
       );
     }
-    // A series' children are its seasons, as on Jellyfin; asked for its
+    // A series' children are its seasons, as on Jellyfin. Asked for its
     // episodes (Rewatch's first episode, its "anything unwatched?" check),
-    // they are the episodes (8.6 fix).
+    // they're the episodes.
     if (parentId != null && siloTypeOfId(parentId) == 'series') {
       final types = siloTypesForQuery(includeItemTypes: includeItemTypes);
       if (types != null &&
@@ -250,7 +249,7 @@ class SiloItemsApi
     final types = siloTypesForQuery(includeItemTypes: includeItemTypes);
     if (types != null && types.isEmpty) return _empty(startIndex);
 
-    // A search (7.1): only when Silo lets this profile search, and with the
+    // A search: only when Silo lets this profile search, and with the
     // scopes it says it has.
     final searchText = _searchTextOf(searchTerm);
     SiloSearchCapabilities? search;
@@ -281,7 +280,7 @@ class SiloItemsApi
       audioLanguages: audioLanguages,
       subtitleLanguages: subtitleLanguages,
     );
-    // A person's titles (6.14): Silo pages one person at a time.
+    // A person's titles: Silo pages one person at a time.
     final personId = personIds == null || personIds.isEmpty
         ? null
         : personIds.first;
@@ -334,7 +333,7 @@ class SiloItemsApi
     );
     final random = siloWantsRandom(sortBy);
     final filtered = seriesStatus != null && seriesStatus.isNotEmpty;
-    // Shows by last played: Silo has no date for a show (5.13 TV review).
+    // Shows by last played: Silo has no date for a show.
     final sort = params['sort'] as String?;
     if (scope == 'series' &&
         (sort == 'date_viewed' || sort == '-date_viewed') &&
@@ -364,8 +363,8 @@ class SiloItemsApi
     }
     // A random grid is shuffled whole (a few random titles come from the
     // first hundred instead, [_shuffledPage]). A grid always sends
-    // `startIndex` (its first page is 75, under a hundred); rows and genre
-    // cards don't.
+    // `startIndex` (its first page is 75, under a hundred), and rows and
+    // genre cards don't.
     final smallRandom =
         random &&
         startIndex == null &&
@@ -414,13 +413,13 @@ class SiloItemsApi
     );
   }
 
-  /// Shortest first, with the titles that have no runtime last (5.13 TV
-  /// review). Silo's ascending `runtime` sort lists the titles without one
-  /// first (most shows on a server have none), so the grid opened on them.
-  /// Silo counts the titles with a runtime (`runtime gt 0`); the order is
-  /// rotated by the rest: Moonfin's index `i` is Silo's `nulls + i` for the
-  /// titles with a runtime, and `i - withRuntime` for those without. A count
-  /// Silo can't give leaves Silo's order.
+  /// Shortest first, with the titles that have no runtime last. Silo's
+  /// ascending `runtime` sort lists the titles without one first (most shows
+  /// on a server have none), so the grid would open on them. Silo counts the
+  /// titles with a runtime (`runtime gt 0`) and the order is rotated by the
+  /// rest: Moonfin's index `i` is Silo's `nulls + i` for the titles with a
+  /// runtime, and `i - withRuntime` for those without. A count Silo can't
+  /// give leaves Silo's order.
   Future<Map<String, dynamic>> _runtimeAscending(
     Map<String, Object?> params, {
     required List<Map<String, Object?>> groups,
@@ -518,7 +517,7 @@ class SiloItemsApi
   /// whole list (in Silo's default order): one page per five titles asked
   /// for, at most [_randomPages], so a genre card's ten titles cost three
   /// reads and the shuffle picker's few more. The first page is read for the
-  /// total either way; it joins the draw only when picked.
+  /// total either way, and it joins the draw only when picked.
   /// A random grid is shuffled whole instead ([_clientFiltered] with
   /// `shuffle`).
   Future<Map<String, dynamic>> _shuffledPage(
@@ -559,13 +558,13 @@ class SiloItemsApi
     return {...first, 'Items': items.take(limit ?? items.length).toList()};
   }
 
-  /// A show grid by last played (5.13 TV review). Silo keeps watches per
-  /// episode, so its `date_viewed` sort leaves every show undated. Its watch
-  /// history (`source=history`) does list shows, most recently watched
-  /// first, so: the shows of the query (read whole, in Silo's default order,
-  /// filters applied) ranked by their place in the history, watched shows
-  /// first and the rest after them. Ascending is the reverse: never watched
-  /// first, then the longest ago.
+  /// A show grid by last played. Silo keeps watches per episode, so its
+  /// `date_viewed` sort leaves every show undated. Its watch history
+  /// (`source=history`) does list shows, most recently watched first, so:
+  /// the shows of the query (read whole, in Silo's default order, filters
+  /// applied) ranked by their place in the history, watched shows first and
+  /// the rest after them. Ascending is the reverse: never watched first,
+  /// then the longest ago.
   Future<List<Map<String, dynamic>>> _showsByLastPlayed(
     Map<String, Object?> params, {
     required bool Function(Map<String, dynamic> item) keep,
@@ -627,15 +626,14 @@ class SiloItemsApi
   /// are read whole once, filtered here, and paged from memory, so the grid
   /// gets full pages and an exact total. Filtering each page instead would
   /// hand back short pages counted against the unfiltered total, and the
-  /// grid would lose its place (found testing 6.10).
+  /// grid would lose its place.
   ///
   /// The filtered list is kept for [_filteredListTtl], for the grid's next
-  /// pages; [filter] names the client-side filter in the cache key.
+  /// pages, and [filter] names the client-side filter in the cache key.
   ///
   /// The same read-once list serves orders Silo can't give: [shuffle]
-  /// shuffles it (a random grid, 5.13; again whenever the grid reloads from
-  /// the top), and [read] replaces the plain read (a show grid by last
-  /// played, 5.13).
+  /// shuffles it (a random grid, again whenever the grid reloads from the
+  /// top), and [read] replaces the plain read (a show grid by last played).
   Future<Map<String, dynamic>> _clientFiltered(
     Map<String, Object?> params, {
     required String filter,
@@ -657,8 +655,8 @@ class SiloItemsApi
       );
     } else if (shuffle && (startIndex ?? 0) == 0) {
       // A random grid loading from the top (Random picked again, which
-      // flips the direction and reloads; a refresh) gets a new order, as
-      // Jellyfin reshuffles every request. The list isn't read again; its
+      // flips the direction and reloads, or a refresh) gets a new order, as
+      // Jellyfin reshuffles every request. The list isn't read again, and its
       // later pages follow the new order.
       final previous = entry.items;
       entry = (
@@ -786,9 +784,7 @@ class SiloItemsApi
     return RegExp(r'^\d+$').hasMatch(id) ? id : null;
   }
 
-  // --- single items (6.6) -------------------------------------------------
-
-  /// One item's page (step 6.6): `GET /catalog/items/{id}` at the detail
+  /// One item's page: `GET /catalog/items/{id}` at the detail
   /// artwork size, with its file versions.
   ///
   /// Silo's detail answer embeds `versions` for playable items. When it
@@ -809,7 +805,7 @@ class SiloItemsApi
     final library = _libraryIdOf(itemId);
     if (library != null) {
       // Library and person ids are both numbers: a library the profile can
-      // see, else a person (6.14).
+      // see, else a person.
       try {
         return await _library(library);
       } on StateError {
@@ -914,7 +910,7 @@ class SiloItemsApi
     _ => value,
   };
 
-  /// A list answer's `items`, each a JSON object; none when there are none.
+  /// A list answer's `items`, each a JSON object.
   static List<Map<String, dynamic>> _itemsOf(Response<dynamic> response) {
     final raw = asJsonMap(response.data)?['items'];
     return [
@@ -936,11 +932,11 @@ class SiloItemsApi
   }
 
   /// Several items by id, in the order asked. Silo has no "these ids"
-  /// list query, so each is its own detail read, six at a time; ids it
+  /// list query, so each is its own detail read, six at a time, and ids it
   /// doesn't know are left out.
   ///
-  /// When only user data is asked for ([userDataOnly]: the refresh after a
-  /// change, 9.4, 13.3), a season's episodes come from one read of the
+  /// When only user data is asked for ([userDataOnly], the refresh after a
+  /// change), a season's episodes come from one read of the
   /// season's list and seasons from their series' list, which carry the
   /// same watched state, instead of a detail read each.
   Future<Map<String, dynamic>> _byIds(
@@ -1017,7 +1013,7 @@ class SiloItemsApi
 
   /// Which library each item was last listed in. Silo's item answers don't
   /// name their library, so the grid's `parentId` is remembered here for
-  /// `ParentId` and the ancestors (6.9).
+  /// `ParentId` and the ancestors.
   final Map<String, String> _libraryOfItem = {};
 
   void _rememberLibrary(String itemId, String libraryId) {
@@ -1038,8 +1034,6 @@ class SiloItemsApi
     return item;
   }
 
-  // --- series and seasons (6.7) -------------------------------------------
-
   /// Series titles seen in item answers, for the season and episode list
   /// entries that don't repeat them (`SeriesName`).
   final Map<String, String> _seriesNames = {};
@@ -1053,13 +1047,13 @@ class SiloItemsApi
   SiloSeriesRef _seriesRef(String seriesId) =>
       SiloSeriesRef(id: seriesId, name: _seriesNames[seriesId]);
 
-  /// A series' seasons (step 6.7): `GET /catalog/series/{id}/seasons`, with
+  /// A series' seasons: `GET /catalog/series/{id}/seasons`, with
   /// their posters (`include_artwork`), in Silo's order (specials first when
   /// the series has them, as on Emby).
   ///
-  /// Season entries carry no type and no series fields; they are mapped as
-  /// seasons of [seriesId], and the series' artwork fills their parent
-  /// fields once the series itself has been read (5.4).
+  /// Season entries carry no type and no series fields, so they're mapped as
+  /// seasons of [seriesId]. The series' artwork fills their parent fields
+  /// once the series itself has been read.
   @override
   Future<Map<String, dynamic>> getSeasons(
     String seriesId, {
@@ -1112,16 +1106,14 @@ class SiloItemsApi
     throw StateError('Silo has no season $seasonId');
   }
 
-  // --- episodes (6.8) ------------------------------------------------------
-
-  /// A season's episodes, or every episode of the series (step 6.8).
+  /// A season's episodes, or every episode of the series.
   ///
   /// With a `seasonId`: `GET /catalog/items/{season_id}/episodes`, the call
   /// Silo's own web app uses. Without one: every season's episodes in season
   /// order, read four seasons at a time. Episode entries carry no type and
-  /// no series fields, so they are mapped as episodes of [seriesId]; each
+  /// no series fields, so they're mapped as episodes of [seriesId]. Each
   /// carries a lightweight `MediaSources` entry from its `files` for the
-  /// quality badges (5.8).
+  /// quality badges.
   @override
   Future<Map<String, dynamic>> getEpisodes(
     String seriesId, {
@@ -1218,17 +1210,15 @@ class SiloItemsApi
     ];
   }
 
-  // --- ancestors (6.9) -----------------------------------------------------
-
   /// An item's parents, nearest first, as Jellyfin lists them: an episode's
-  /// season, series and library; a season's series and library; a film's or
-  /// series' library (step 6.9).
+  /// season, series and library, a season's series and library, and a
+  /// film's or series' library.
   ///
   /// Silo has no ancestors call, and needs none: the parents are in the ids
-  /// (`episode-<key>-<s>-<e>` → `season-<key>-<s>` → `series-<key>`, 5.4).
-  /// Names come from what this session has read (series titles, 6.7);
+  /// (`episode-<key>-<s>-<e>`, `season-<key>-<s>`, `series-<key>`).
+  /// Names come from what this session has read (series titles), and
   /// a season is named "Season <n>" ("Specials" for 0). The library is the
-  /// one the item, or its series, was listed in (6.6), and is left out when
+  /// one the item, or its series, was listed in, and is left out when
   /// unknown. No request is made.
   @override
   Future<List<Map<String, dynamic>>> getAncestors(String itemId) async {
@@ -1264,7 +1254,7 @@ class SiloItemsApi
         'IsFolder': true,
       });
     }
-    // The personal collections holding the item (6.15), which is what
+    // The personal collections holding the item, which is what
     // Moonfin's detail page looks for among the ancestors.
     try {
       ancestors.addAll(await _personalCollections(containing: itemId));
@@ -1294,9 +1284,7 @@ class SiloItemsApi
     }
   }
 
-  // --- filters (6.10) ------------------------------------------------------
-
-  /// The filter values a library holds (step 6.10): `GET /catalog/filters`
+  /// The filter values a library holds: `GET /catalog/filters`
   /// with its `library_id` and type scope.
   @override
   Future<QueryFilterValues> getQueryFilters({
@@ -1317,9 +1305,7 @@ class SiloItemsApi
         : siloFiltersToQueryFilterValues(json);
   }
 
-  // --- alphabet (6.11) -----------------------------------------------------
-
-  /// Jellyfin's `NameStartsWith` as Silo's `name_prefix` (step 6.11). Both
+  /// Jellyfin's `NameStartsWith` as Silo's `name_prefix`. Both
   /// match the start of the sort title. Moonfin's `#` bucket (titles not
   /// starting with a letter) has no prefix equivalent and is left out.
   static String? _namePrefix(String? nameStartsWith) {
@@ -1362,11 +1348,11 @@ class SiloItemsApi
     );
   }
 
-  /// Where [letter]'s titles start in the list last read for [parentId]
-  /// (step 6.11), from Silo's letter index for the same library, scope and
-  /// filters. Null when that list wasn't sorted by name, or Silo files no
-  /// title under the letter. Positions count Silo's whole result, so the
-  /// app loads up to it and then finds the letter among what it has.
+  /// Where [letter]'s titles start in the list last read for [parentId],
+  /// from Silo's letter index for the same library, scope and filters. Null
+  /// when that list wasn't sorted by name, or Silo files no title under the
+  /// letter. Positions count Silo's whole result, so the app loads up to it
+  /// and then finds the letter among what it has.
   @override
   Future<int?> letterPosition(String letter, {required String parentId}) async {
     final query = _titleQueries[parentId];
@@ -1383,7 +1369,7 @@ class SiloItemsApi
   /// Silo's letter index for a title-ordered list (`POST /catalog/letters`):
   /// which letters have titles, how many, and where each starts. A position
   /// sent as `seek` with the list's window cursor loads that letter's
-  /// window directly (5.12).
+  /// window directly.
   ///
   /// Moonfin's jump bar asks [letterPosition], which reads this for the
   /// list on screen.
@@ -1424,10 +1410,8 @@ class SiloItemsApi
     );
   }
 
-  // --- genres (6.12) -------------------------------------------------------
-
   /// The genres of a library, or of the whole catalog, as Jellyfin `Genre`
-  /// items with synthetic ids (step 6.12), from `GET /catalog/filters`.
+  /// items with synthetic ids, from `GET /catalog/filters`.
   /// Silo lists genre names only: no counts and no artwork, so Moonfin
   /// keeps every genre and builds its cards from the genre's titles.
   /// `startIndex`/`limit` slice the list.
@@ -1475,10 +1459,8 @@ class SiloItemsApi
     };
   }
 
-  // --- studios and networks (6.13) ----------------------------------------
-
   /// The studios of a library, or of the whole catalog, as Jellyfin `Studio`
-  /// items with synthetic ids (step 6.13): Silo's studios and networks
+  /// items with synthetic ids: Silo's studios and networks
   /// together, as Moonfin shows a series' network as its studio. Same shape
   /// and rules as [getGenres].
   @override
@@ -1520,9 +1502,7 @@ class SiloItemsApi
     );
   }
 
-  // --- people (6.14) -------------------------------------------------------
-
-  /// A person's page (step 6.14): `GET /catalog/people/{id}` as a Jellyfin
+  /// A person's page: `GET /catalog/people/{id}` as a Jellyfin
   /// `Person` item, its photo registered. Their titles are
   /// `getItems(personIds: [id])`, which pages Silo's `source=person`.
   Future<Map<String, dynamic>> _person(String personId) async {
@@ -1538,8 +1518,8 @@ class SiloItemsApi
     return siloPersonToBaseItemDto(json, images: images);
   }
 
-  /// People by name (step 7.2): `GET /catalog/people?q=`, Silo's people
-  /// search (each word must start a word of the name; exact matches first),
+  /// People by name: `GET /catalog/people?q=`, Silo's people
+  /// search (each word must start a word of the name, exact matches first),
   /// as Jellyfin `Person` items with their photos registered.
   ///
   /// - Credits are limited to what Moonfin shows (`media_scope`): films,
@@ -1547,7 +1527,7 @@ class SiloItemsApi
   ///   capabilities offer that scope, else films and series (`video`), and
   ///   none when Silo takes no scope.
   /// - Nothing is asked when the capabilities say search isn't available.
-  /// - `limit` is capped at Silo's 100; none asks Silo's default (20).
+  /// - `limit` is capped at Silo's 100, and none asks for Silo's default (20).
   /// - A blank `searchTerm` lists the first people, as on Jellyfin.
   /// - `fields` and `enableImageTypes` are ignored: a person always comes
   ///   whole, photo included.
@@ -1586,8 +1566,6 @@ class SiloItemsApi
     };
   }
 
-  // --- collections (6.15) -------------------------------------------------
-
   /// Whether a query asks for collections only: `BoxSet` and nothing else
   /// Silo can list (a library grid that groups collections asks for
   /// `Movie, BoxSet` and gets the films).
@@ -1600,13 +1578,13 @@ class SiloItemsApi
   }
 
   /// Collections as Jellyfin `BoxSet`s: a library's curated collections
-  /// (`GET /library/{id}/collections`) when [libraryId] is given; else every
-  /// collection the profile can see (8.6), its personal ones
+  /// (`GET /library/{id}/collections`) when [libraryId] is given, else every
+  /// collection the profile can see: its personal ones
   /// (`GET /collections`) and those of each library it shows, as Emby lists
   /// every collection for Home's Collections row.
   ///
-  /// Silo returns each list in its own order; a name sort is applied here
-  /// (the rows' usual `SortName`), any other sort keeps that order.
+  /// Silo returns each list in its own order. A name sort is applied here
+  /// (the rows' usual `SortName`), and any other sort keeps that order.
   Future<Map<String, dynamic>> _collections({
     String? libraryId,
     String? sortBy,
@@ -1654,7 +1632,7 @@ class SiloItemsApi
   }
 
   /// The curated collections of every library the profile shows (hidden
-  /// libraries left out, 6.4), read together. A library whose list can't be
+  /// libraries left out), read together. A library whose list can't be
   /// read is skipped, and so is the lot when the library list can't be.
   Future<List<Map<String, dynamic>>> _everyLibraryCollections() async {
     Map<String, dynamic>? views;
@@ -1698,11 +1676,9 @@ class SiloItemsApi
     ];
   }
 
-  // --- editing personal collections (9.5) ----------------------------------
-
   /// The profile's own manual collections, by name: the ones Silo lets it
   /// add to and remove from (`GET /collections`, kept by
-  /// [canEditCollection]). As Silo's web app, nothing is listed while the
+  /// [canEditCollection]). Like Silo's web app, nothing is listed while the
   /// acting profile isn't known.
   @override
   Future<List<Map<String, dynamic>>> getEditableCollections() async {
@@ -1825,9 +1801,7 @@ class SiloItemsApi
     throw StateError('Silo has no collection $collectionId for this profile');
   }
 
-  // --- similar (6.16) ------------------------------------------------------
-
-  /// "More like this" (step 6.16): `GET /recommendations/similar/{id}`,
+  /// "More like this": `GET /recommendations/similar/{id}`,
   /// Silo's own recommendations for the title, mapped like a grid.
   /// `bypass` (Moonfin's cache-buster) has nothing to bypass on Silo.
   @override
@@ -1854,12 +1828,10 @@ class SiloItemsApi
     return {'Items': items, 'TotalRecordCount': items.length, 'StartIndex': 0};
   }
 
-  // --- trailers and extras (6.17) -----------------------------------------
-
-  /// The title's local trailers and teasers (step 6.17), from its detail's
+  /// The title's local trailers and teasers, from its detail's
   /// `extras`. Remote (YouTube) trailers are the item's `RemoteTrailers`.
-  /// None while Moonfin can't play them ([siloLocalTrailersPlayable], true
-  /// since 10.6), so the trailer button opens the YouTube trailer instead.
+  /// None while Moonfin can't play them ([siloLocalTrailersPlayable]), so
+  /// the trailer button opens the YouTube trailer instead.
   @override
   Future<List<Map<String, dynamic>>> getLocalTrailers(String itemId) async {
     if (!siloLocalTrailersPlayable) return const [];
@@ -1886,8 +1858,6 @@ class SiloItemsApi
     return siloExtrasOf(detail, trailers: trailers, ownerId: itemId);
   }
 
-  // --- search (7.1) -------------------------------------------------------
-
   /// The search text of a `searchTerm`, or null for none (blank).
   static String? _searchTextOf(String? searchTerm) {
     final text = searchTerm?.trim();
@@ -1902,7 +1872,7 @@ class SiloItemsApi
       );
 
   /// What Silo says about search for this profile
-  /// (`GET /catalog/search/capabilities`, step 7.1), read once and kept for
+  /// (`GET /catalog/search/capabilities`), read once and kept for
   /// [_searchCapabilitiesTtl].
   ///
   /// When the document can't be read (an error, an older server), searches
@@ -1926,15 +1896,9 @@ class SiloItemsApi
     return SiloSearchCapabilities.fromJson(json);
   }
 
-  // --- home rows (phase 8) -------------------------------------------------
-
-  /// The sections of Silo's home and library pages, which the Continue
-  /// Watching and Next Up rows read (8.1, 8.2).
-  // --- after a change (9.4) -------------------------------------------------
-
-  /// Called after every user-data write this client makes (favourite,
+  /// Called after every user-data write this client makes (favorite,
   /// played, rating, collection membership, a hidden card), and for each
-  /// change Silo's events report from elsewhere (13.3). Forgets the reads
+  /// change Silo's events report from elsewhere. Forgets the reads
   /// that may now be out of date, so the rows Moonfin reloads show the
   /// change: Home's and the libraries' sections (Continue Watching, Next Up,
   /// Silo's own rows, kept 5 s), the read-once lists (2 min), the runtime
@@ -1958,7 +1922,7 @@ class SiloItemsApi
   }
 
   /// Called when Silo says a library's contents changed (an item's metadata,
-  /// a scan, 13.3), or that this client may have missed such a change (a
+  /// a scan), or that this client may have missed such a change (a
   /// reconnect). Forgets the same reads [noteUserDataChanged] does, so the
   /// lists Moonfin reloads show the change, and nothing about user data.
   void noteCatalogChanged() {
@@ -1971,8 +1935,8 @@ class SiloItemsApi
     pager.clear();
   }
 
-  /// Called when the client starts acting as another household profile
-  /// (18.5): what this client read belongs to the profile it was read as
+  /// Called when the client starts acting as another household profile:
+  /// what this client read belongs to the profile it was read as
   /// (its rows, its libraries' lists, its "hide watched" setting, what it
   /// changed), so all of it is forgotten. The catalog itself is the same.
   void noteProfileChanged() {
@@ -1985,12 +1949,12 @@ class SiloItemsApi
   /// Of [itemIds], those whose user data may have changed: one this client
   /// changed in the last [_changedTtl], or a season or episode of a show
   /// that had something changed (marking an episode moves the season's and
-  /// the show's counts; marking a show marks every episode).
+  /// the show's counts, and marking a show marks every episode).
   ///
   /// Silo has no batch read, so `UserDataSync.refreshFromServer` would
   /// otherwise read every card a screen holds one by one after any change: a
-  /// library grid of 300 titles was 300 detail reads. Changes made on another
-  /// device come in through Silo's events, which note them here too (13.3).
+  /// library grid of 300 titles would be 300 detail reads. Changes made on
+  /// another device come in through Silo's events, which note them here too.
   @override
   List<String> userDataMayHaveChanged(Iterable<String> itemIds) {
     final cutoff = _clock().subtract(_changedTtl);
@@ -2005,8 +1969,8 @@ class SiloItemsApi
     ];
   }
 
-  /// The show a series, season or episode id belongs to; null for anything
-  /// else.
+  /// The show a series, season or episode id belongs to, or null for
+  /// anything else.
   static String? _seriesOfTitle(String id) => switch (siloTypeOfId(id)) {
     'series' => id,
     'season' => parseSiloSeasonId(id)?.seriesId,
@@ -2019,14 +1983,12 @@ class SiloItemsApi
   final LinkedHashMap<String, DateTime> _changedItems = LinkedHashMap();
   final LinkedHashMap<String, DateTime> _changedSeries = LinkedHashMap();
 
-  // --- hiding Home cards (9.7) ----------------------------------------------
-
   /// `PUT /home/dismissals/continue_watching/{id}` with the card's
   /// `progress_updated_at`, which Silo requires: the dismissal holds until
   /// the item is played again. An episode drops its whole show from
   /// Continue Watching and Next Up until any episode of it is played.
   ///
-  /// A card from Continue Watching carries the time; one from elsewhere (a
+  /// A card from Continue Watching carries the time, and one from elsewhere (a
   /// library grid offers the action on anything part way through) is looked
   /// up in Silo's Continue Watching. Throws [StateError] when Silo has no
   /// resume point for it.
@@ -2046,7 +2008,7 @@ class SiloItemsApi
   }
 
   /// `PUT /home/dismissals/next_up/{id}` with the episode's `series_id`,
-  /// which Silo requires; the show leaves Next Up and Continue Watching
+  /// which Silo requires. The show leaves Next Up and Continue Watching
   /// until one of its episodes is played.
   @override
   Future<void> hideFromNextUp(Map<String, dynamic> item) async {
@@ -2071,7 +2033,7 @@ class SiloItemsApi
     return id;
   }
 
-  /// The card's own `progress_updated_at` (a Continue Watching card, 8.1),
+  /// The card's own `progress_updated_at` (a Continue Watching card),
   /// as Silo sent it: Silo compares it to the second.
   static String? _progressUpdatedAt(Map<String, dynamic> item) {
     final stamp = asJsonMap(item[siloOriginalKey])?['progress_updated_at'];
@@ -2089,16 +2051,18 @@ class SiloItemsApi
     return null;
   }
 
+  /// The sections of Silo's home and library pages, which the Continue
+  /// Watching and Next Up rows read.
   late final SiloHomeSections homeSections = SiloHomeSections(
     _dio,
     clock: _clock,
   );
 
   /// What Continue Watching can hold: films and episodes. Audiobooks resume
-  /// too on Silo, but Moonfin doesn't show them yet (phase 16).
+  /// too on Silo, but Moonfin doesn't show them yet.
   static const _resumableTypes = {'movie', 'episode'};
 
-  /// Continue Watching (step 8.1): what the profile is part way through,
+  /// Continue Watching: what the profile is part way through,
   /// most recent first.
   ///
   /// Silo assembles this per profile as the `continue_watching` section of
@@ -2106,8 +2070,8 @@ class SiloItemsApi
   /// the cards come from there: they carry the resume point
   /// (`position_seconds`, `duration_seconds`), skip what the profile
   /// dismissed from the row, and are in Silo's order. By default Silo also
-  /// puts each show's next episode in that section (`item_source: next_up`);
-  /// those are left for Next Up (8.2).
+  /// puts each show's next episode in that section (`item_source: next_up`),
+  /// and those are left for Next Up.
   ///
   /// A page without the section (the profile removed it in Silo's web app)
   /// falls back to the resume points themselves, `GET /progress?status=
@@ -2115,8 +2079,8 @@ class SiloItemsApi
   /// about dismissals.
   ///
   /// `includeItemTypes`/`mediaTypes` narrow the row (Audio finds nothing,
-  /// with no request); `startIndex`/`limit` slice it; `fields` and the image
-  /// options are ignored, as Silo's cards are always whole.
+  /// with no request) and `startIndex`/`limit` slice it. `fields` and the
+  /// image options are ignored, as Silo's cards are always whole.
   @override
   Future<Map<String, dynamic>> getResumeItems({
     String? parentId,
@@ -2163,15 +2127,15 @@ class SiloItemsApi
     return _slice(items, startIndex: startIndex, limit: limit);
   }
 
-  /// Next Up (step 8.2): the next episode of each show the profile is
+  /// Next Up: the next episode of each show the profile is
   /// watching, or of one series.
   ///
   /// - **The row** (no `seriesId`): Silo works these out per profile and, by
   ///   default, puts them in its Continue Watching section as
   ///   `item_source: next_up` cards (its `ui.next_up_mode` setting
-  ///   `combined`); with the setting `separate` they come as a `next_up`
-  ///   section instead. Both are read from the page (8.1's sections, shared
-  ///   with that row), so either setting works, and a page with neither
+  ///   `combined`). With the setting `separate` they come as a `next_up`
+  ///   section instead. Both are read from the page (the sections Continue
+  ///   Watching reads), so either setting works, and a page with neither
   ///   answers empty. A library `parentId` reads the library's page.
   /// - **One series** (`seriesId`, the series page's "next up"): the series'
   ///   `play_content_id`, the episode Silo's own Play button starts, when it
@@ -2239,11 +2203,11 @@ class SiloItemsApi
     return getItem(next);
   }
 
-  /// Silo's own home rows (step 8.7): the sections of the profile's Silo
+  /// Silo's own home rows: the sections of the profile's Silo
   /// home page (`GET /home/layout`), for Moonfin to offer as extra rows.
   ///
   /// Continue Watching and Next Up are left out, as Moonfin builds those
-  /// rows itself from the same sections (8.1, 8.2). Errors reach the caller,
+  /// rows itself from the same sections. Errors reach the caller,
   /// so a failed read isn't taken for a home with no rows.
   @override
   Future<List<ServerHomeSection>> getServerHomeSections() async {
@@ -2262,11 +2226,11 @@ class SiloItemsApi
   /// Section types Moonfin builds its own rows from.
   static const _moonfinOwnSections = {'continue_watching', 'next_up'};
 
-  /// One of Silo's home rows (8.7): the section's cards
+  /// One of Silo's home rows: the section's cards
   /// (`GET /home/sections/{id}/items`) as Jellyfin items, in Silo's order,
   /// types Moonfin can't show left out. A section no longer in the layout
   /// answers empty. Silo caps a section at its `item_limit`, so the whole
-  /// row comes at once; `startIndex`/`limit` slice it.
+  /// row comes at once and `startIndex`/`limit` slice it.
   @override
   Future<Map<String, dynamic>> getServerHomeSectionItems(
     String sectionId, {
@@ -2289,16 +2253,16 @@ class SiloItemsApi
     return _slice(items, startIndex: startIndex, limit: limit);
   }
 
-  /// Latest (step 8.3): the newest arrivals in a library, or across the
+  /// Latest: the newest arrivals in a library, or across the
   /// server for the asked types, as Jellyfin's `/Items/Latest`.
   ///
-  /// One catalog page through the pager (5.12), newest first:
+  /// One catalog page through the pager, newest first:
   ///
-  /// - films by `added_at`, when the file arrived;
+  /// - films by `added_at`, when the file arrived.
   /// - series by `latest_episode_added`, when their newest episode arrived,
   ///   so a show with a new episode comes back to the front. Jellyfin groups
   ///   a show's new episodes into the show the same way, and Moonfin turns a
-  ///   TV library's Latest into series cards anyway;
+  ///   TV library's Latest into series cards anyway.
   /// - a mixed library's films and series together by `added_at` (a series
   ///   by when it was first added: Silo has one sort for both).
   ///
@@ -2306,8 +2270,9 @@ class SiloItemsApi
   /// their series), else from the library's `CollectionType`. Watched titles
   /// stay unless the profile hides them from Silo's Home
   /// ([_hidesWatchedOnHome]), as Silo's own Recently Added does. A
-  /// `parentId` that isn't a library answers empty. `limit` defaults to Jellyfin's 20; like Jellyfin, the answer is
-  /// one list, with no total beyond its length.
+  /// `parentId` that isn't a library answers empty. `limit` defaults to
+  /// Jellyfin's 20, and like Jellyfin, the answer is one list, with no total
+  /// beyond its length.
   @override
   Future<Map<String, dynamic>> getLatestItems({
     String? parentId,
@@ -2342,16 +2307,16 @@ class SiloItemsApi
     return {'Items': items, 'TotalRecordCount': items.length, 'StartIndex': 0};
   }
 
-  /// Recently released (step 8.4): titles by release date, newest first,
+  /// Recently released: titles by release date, newest first,
   /// released by today, as Moonfin's `/Users/{id}/Items` query with
   /// `SortBy=PremiereDate`, `MaxPremiereDate=now` does on Jellyfin and Emby.
   ///
   /// One catalog page through the pager, `sort=-release_date` with the rule
-  /// `release_date lt <tomorrow>` (Silo compares calendar dates; its
+  /// `release_date lt <tomorrow>` (Silo compares calendar dates, and its
   /// `release_date` is a film's release, a series' first air date, an
   /// episode's air date). The kind comes from `includeItemTypes` (an episode
-  /// stays an episode here; a season, which the catalog doesn't list, counts
-  /// as its series), else from the library, as in Latest. Watched titles
+  /// stays an episode here, and a season, which the catalog doesn't list,
+  /// counts as its series), else from the library, as in Latest. Watched titles
   /// stay unless the profile hides them from Silo's Home
   /// ([_hidesWatchedOnHome]), as Silo's own Recently Released does.
   /// `recursive` changes nothing: the catalog always lists a library's
@@ -2443,13 +2408,13 @@ class SiloItemsApi
     return false;
   }
 
-  /// The catalog `type` scope for a row of the newest titles (Latest 8.3,
-  /// Recently released 8.4): from [includeItemTypes] when given, else from
-  /// the library's kind (`movies` → `movie`, `tvshows` → `series`, mixed or
-  /// unknown → `video`). Null when the types are all ones Silo can't list.
+  /// The catalog `type` scope for a row of the newest titles (Latest,
+  /// Recently released): from [includeItemTypes] when given, else from the
+  /// library's kind (`movie` for `movies`, `series` for `tvshows`, `video`
+  /// for mixed or unknown). Null when the types are all ones Silo can't list.
   ///
   /// A season always counts as its series (the catalog doesn't list
-  /// seasons); an episode too when [episodesAsSeries].
+  /// seasons), and an episode does too when [episodesAsSeries].
   Future<String?> _newestRowScope({
     required String? libraryId,
     required List<String>? includeItemTypes,
@@ -2518,7 +2483,7 @@ class SiloItemsApi
   }
 
   /// Notes the series and, for a library's row, the library of a row's
-  /// items, as a grid page does (6.6, 6.9).
+  /// items, as a grid page does.
   void _rememberRow(List<Map<String, dynamic>> items, String? libraryId) {
     for (final item in items) {
       _rememberSeries(item);
@@ -2547,15 +2512,13 @@ class SiloItemsApi
     };
   }
 
-  // --- what Silo doesn't have ---------------------------------------------
-
   static const _emptyList = <String, dynamic>{
     'Items': <Map<String, dynamic>>[],
     'TotalRecordCount': 0,
     'StartIndex': 0,
   };
 
-  /// Silo has no playlists or music (phase 4 hides them); these answer
+  /// Silo has no playlists or music (the app hides them). These answer
   /// empty, like Live TV, so a shared row renders nothing.
   @override
   Future<Map<String, dynamic>> getPlaylists() async => _emptyList;
@@ -2600,15 +2563,13 @@ class SiloItemsApi
   @override
   Future<Map<String, dynamic>> getLyrics(String itemId) async => const {};
 
-  // --- player features (phase 11) -----------------------------------------
-
-  /// The skip segments of [itemId] (step 11.1): Silo's markers of the file
+  /// The skip segments of [itemId]: Silo's markers of the file
   /// that plays, as Jellyfin's `MediaSegmentDto`s (see [SiloMarkers]).
   @override
   Future<List<Map<String, dynamic>>> getMediaSegments(String itemId) =>
       markers.segmentsOf(itemId);
 
-  /// The seek previews of file [mediaSourceId] of [itemId] (step 11.2), as
+  /// The seek previews of file [mediaSourceId] of [itemId], as
   /// Jellyfin's `Trickplay` field (see [SiloTrickplay]).
   @override
   Future<Map<String, dynamic>?> getTrickplayManifest(
@@ -2616,16 +2577,16 @@ class SiloItemsApi
     required String mediaSourceId,
   }) => trickplay.manifest(itemId, mediaSourceId);
 
-  /// [itemId]'s local theme songs (step 11.5), as Jellyfin's answer; Silo
-  /// lists a title's own (an episode's or season's caller asks for its
-  /// series, as on Jellyfin).
+  /// [itemId]'s local theme songs, as Jellyfin's answer. Silo lists a
+  /// title's own (an episode's or season's caller asks for its series, as on
+  /// Jellyfin).
   @override
   Future<Map<String, dynamic>> getThemeMedia(
     String itemId, {
     bool inheritFromParent = true,
   }) => themes.themeMedia(itemId);
 
-  /// A fresh grant for theme song [songId] of [ownerId] (11.5).
+  /// A fresh grant for theme song [songId] of [ownerId].
   @override
   Future<String?> themeSongStreamUrl(
     String ownerId,
@@ -2641,7 +2602,7 @@ class SiloItemsApi
   /// Called by the Silo resolver when [itemId] starts playing [fileId], so
   /// the player's extras (markers…) come from that file. [source] is the
   /// file's mapped media source, whose track map a series' track choice is
-  /// written with (11.6).
+  /// written with.
   void notePlayingFile(
     String itemId,
     String fileId, {
@@ -2652,7 +2613,6 @@ class SiloItemsApi
     if (source != null) _playingSources[itemId] = source;
   }
 
-  /// Whether Silo shuffles [item] itself (11.7).
   @override
   Future<bool> canShuffle(Map<String, dynamic> item) =>
       shuffles.canShuffle(item);
@@ -2667,12 +2627,10 @@ class SiloItemsApi
     required String fromItemId,
   }) => shuffles.advance(shuffleId, fromItemId);
 
-  /// The series' remembered audio track (11.6).
   @override
   Future<SeriesTrackChoice?> getSeriesAudioChoice(String seriesId) =>
       trackPreferences.audioChoice(seriesId);
 
-  /// The series' remembered subtitle choice (11.6).
   @override
   Future<SeriesTrackChoice?> getSeriesSubtitleChoice(String seriesId) =>
       trackPreferences.subtitleChoice(seriesId);
@@ -2704,8 +2662,6 @@ class SiloItemsApi
   @override
   Future<List<Map<String, dynamic>>> getAdditionalParts(String itemId) async =>
       const [];
-
-  // --- the rest -------------------------------------------------------------
 
   /// What Silo has no counterpart for: remote subtitle search, playlist
   /// changes, deleting items.
@@ -2753,7 +2709,7 @@ class SiloLetterIndex {
   }
 }
 
-/// What Silo's `GET /catalog/search/capabilities` says (step 7.1).
+/// What Silo's `GET /catalog/search/capabilities` says.
 class SiloSearchCapabilities {
   const SiloSearchCapabilities({
     required this.state,
@@ -2795,13 +2751,13 @@ class SiloSearchCapabilities {
   /// `media_scope`.
   final bool videoWithEpisodes;
 
-  /// People search takes `media_scope` ([SiloItemsApi.getPersons], 7.2).
+  /// People search takes `media_scope` ([SiloItemsApi.getPersons]).
   final bool peopleMediaScope;
 
   /// `postgres` or `meilisearch`.
   final String? provider;
 
-  /// How far a Meilisearch result can be paged; null for PostgreSQL.
+  /// How far a Meilisearch result can be paged, or null for PostgreSQL.
   final int? resultWindowLimit;
 
   /// Whether to send searches at all.

@@ -3,24 +3,24 @@ import 'package:server_silo/server_silo.dart';
 
 import 'silo_plan_mapper.dart';
 
-// The combined order moved to server_silo with 11.6, which remembers a
-// series' subtitle by it; playback code keeps reaching it from here.
+// The combined order lives in server_silo, which remembers a series'
+// subtitle by it. Playback code keeps reaching it from here.
 export 'package:server_silo/server_silo.dart'
     show siloSubtitleOrder, siloSubtitleCombinedIndex;
 
-/// Subtitles between Moonfin and a Silo plan (step 10.14).
+/// Subtitles between Moonfin and a Silo plan.
 ///
-/// Silo numbers a file's subtitles in one **combined** space (protocol v3
-/// §8): its external sidecar files first, then the tracks embedded in the
-/// container, then downloaded subtitles, densely from 0, and names a track
+/// Silo numbers a file's subtitles in one **combined** space: its external
+/// sidecar files first, then the tracks embedded in the container, then
+/// downloaded subtitles, densely from 0, and names a track
 /// `file:<file id>:subtitle:<combined index>`. Moonfin numbers them as
-/// Jellyfin does, inside the file's single stream index space (5.8: an
-/// embedded track keeps its container index, a sidecar takes a free one).
+/// Jellyfin does, inside the file's single stream index space (an embedded
+/// track keeps its container index, a sidecar takes a free one).
 /// Silo's version answer lists the embedded tracks first and the sidecars
 /// after them (`external: true`), so the combined index of a Moonfin stream
 /// is its place among the external ones, or the external count plus its
 /// place among the embedded ones. Downloaded subtitles exist only in a
-/// plan's inventory; Moonfin gives them indices after the file's own.
+/// plan's inventory, and Moonfin gives them indices after the file's own.
 
 /// Silo's identity for Moonfin's subtitle stream [index]
 /// (`{id: file:<file>:subtitle:<combined>, index: <combined>}`).
@@ -34,9 +34,9 @@ Map<String, dynamic>? siloSubtitleIdentity(
   return {'id': 'file:$fileId:subtitle:$combined', 'index': combined};
 }
 
-/// Silo's combined subtitle index → Moonfin's stream index, for the file
-/// [source] a [plan] plays: the file's own subtitles in combined order,
-/// then the plan's downloaded ones on indices after the file's highest.
+/// Silo's combined subtitle indices mapped to Moonfin's stream indices, for
+/// the file [source] a [plan] plays: the file's own subtitles in combined
+/// order, then the plan's downloaded ones on indices after the file's highest.
 Map<int, int> siloSubtitleIndexByCombined(
   Map<String, dynamic> plan,
   Map<String, dynamic>? source,
@@ -77,7 +77,7 @@ class SiloPlanSubtitles {
   /// Every sidecar the plan publishes, as Moonfin's external subtitles.
   final List<ExternalSubtitle> externalSubtitles;
 
-  /// The track Silo selected, as Moonfin's index; -1 for subtitles off.
+  /// The track Silo selected, as Moonfin's index, or -1 for subtitles off.
   final int? selectedStreamIndex;
 }
 
@@ -86,16 +86,16 @@ class SiloPlanSubtitles {
 ///
 /// - **Sidecars.** Each inventory entry Silo publishes a URL for becomes an
 ///   [ExternalSubtitle] on Moonfin's stream index, the URL on the server
-///   with the account's token (10.7): sidecar files and downloaded
-///   subtitles, and the embedded tracks Silo extracts. The playback manager
-///   loads the embedded ones only when the stream doesn't carry them (a
-///   remux or transcode); on the original file the player shows them from
-///   the file. Bitmap sidecars (`.sup`) are left out: Moonfin loads none, so
-///   a bitmap on a remux is burnt in by Silo, as told (10.3).
+///   with the account's token: sidecar files and downloaded subtitles, and
+///   the embedded tracks Silo extracts. The playback manager loads the
+///   embedded ones only when the stream doesn't carry them (a remux or
+///   transcode). On the original file the player shows them from the file.
+///   Bitmap sidecars (`.sup`) are left out: Moonfin loads none, so a bitmap
+///   on a remux is burned in by Silo, as told.
 /// - **Downloaded subtitles** (beyond the file's own) get Moonfin indices
 ///   after the highest stream index, as external text streams.
 /// - **The selection:** `subtitle.track_id` back to Moonfin's index, or -1
-///   when the mode is `off`. A burnt-in track is marked `DeliveryMethod:
+///   when the mode is `off`. A burned-in track is marked `DeliveryMethod:
 ///   Encode` (on this stream's copy), so Moonfin doesn't draw a second copy
 ///   over the one in the picture.
 SiloPlanSubtitles siloPlanSubtitles({
@@ -188,7 +188,7 @@ SiloPlanSubtitles siloPlanSubtitles({
   );
 }
 
-/// `file:4598:subtitle:3` → 3.
+/// `file:4598:subtitle:3` gives 3.
 int? _combinedOf(Object? trackId) {
   if (trackId is! String) return null;
   final match = RegExp(r':subtitle:(\d+)$').firstMatch(trackId);
@@ -196,7 +196,7 @@ int? _combinedOf(Object? trackId) {
 }
 
 /// The sidecar's format from its URL's suffix, which is part of Silo's
-/// contract (§8): `.vtt` WebVTT, `.ass` ASS/SSA, `.srt` SubRip. A bitmap
+/// contract: `.vtt` WebVTT, `.ass` ASS/SSA, `.srt` SubRip. A bitmap
 /// (`.sup`) answers null.
 String? _sidecarFormat(String url) {
   final path = Uri.tryParse(url)?.path.toLowerCase() ?? url.toLowerCase();

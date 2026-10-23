@@ -42,7 +42,7 @@ void main() {
     });
 
     test('random: no Silo sort, the caller shuffles', () {
-      // Silo's catalog refuses sort=random (found at 8.6).
+      // Silo's catalog refuses sort=random.
       expect(siloSortFor(sortBy: 'Random', sortOrder: 'Descending'), isNull);
       expect(siloWantsRandom('Random'), isTrue);
       expect(siloWantsRandom('random,SortName'), isTrue);

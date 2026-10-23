@@ -33,8 +33,8 @@ class SiloTokenStorage {
       SiloTokens.fromJson(_store.getSiloTokens(serverId, accountId));
 
   /// Stores [tokens] for [accountId] on [serverId]. At sign-in
-  /// ([newLogin]) the profiles' PIN proofs of the earlier login go (18.4);
-  /// a refresh keeps them.
+  /// ([newLogin]) the profiles' PIN proofs of the earlier login go, and a
+  /// refresh keeps them.
   Future<void> save(
     String serverId,
     String accountId,
@@ -47,9 +47,9 @@ class SiloTokenStorage {
     newLogin: newLogin,
   );
 
-  /// The stored PIN proof of Silo profile [user] (18.4), unless it has
-  /// expired; null for a profile without one and for Jellyfin and Emby
-  /// users. [now] is for tests.
+  /// The stored PIN proof of Silo profile [user], unless it has expired.
+  /// Null for a profile without one and for Jellyfin and Emby users. [now]
+  /// is for tests.
   String? profileToken(PrivateUser user, {DateTime? now}) {
     final accountId = user.siloAccountId;
     if (accountId == null) return null;
@@ -63,8 +63,8 @@ class SiloTokenStorage {
     return token;
   }
 
-  /// Whether switching to Silo profile [user] needs its PIN first: it is
-  /// locked and holds no live proof (18.4).
+  /// Whether switching to Silo profile [user] needs its PIN first: it's
+  /// locked and holds no live proof.
   bool needsPin(PrivateUser user, {DateTime? now}) =>
       user.siloHasPin && profileToken(user, now: now) == null;
 
@@ -87,12 +87,12 @@ class SiloTokenStorage {
   /// client) replaces the earlier binding.
   ///
   /// A failed save is swallowed: the session in memory is already renewed,
-  /// and the worst case is a sign-in on the next start (2.1).
+  /// and the worst case is a sign-in on the next start.
   ///
   /// When Silo refuses the refresh token (the login was revoked or has
   /// expired), the dead pair is forgotten so nothing restores it again, and
   /// [onEnded] runs: the session repository uses it to send the person back
-  /// to sign-in (3.5).
+  /// to sign-in.
   void bind({
     required SiloMediaServerClient client,
     required String serverId,
@@ -122,23 +122,23 @@ class SiloTokenStorage {
 
   /// Puts a stored Silo [user]'s login on [client]: the account's token pair
   /// (so the session can refresh), the user's profile as `X-Profile-Id`
-  /// with its stored PIN proof if it has one (18.4), and the binding that
+  /// with its stored PIN proof if it has one, and the binding that
   /// saves later refreshes. Returns false for a Jellyfin or
   /// Emby user or client, which the caller sets up as before.
   ///
   /// Every place that hands a stored user's login to a client goes through
   /// here instead of `client.accessToken = user.accessToken`. That setter
   /// with the stored access token would replace a live pair with a bare,
-  /// possibly expired token and drop the refresh token (2.1).
+  /// possibly expired token and drop the refresh token.
   ///
   /// A client already holding this account's current pair is left alone, so
   /// calling this again (multi-server rows reuse the active client) doesn't
   /// count as a new login. Bound sessions save each refresh before anything
-  /// else runs, so the stored pair is the current one. With no stored pair
-  /// (a user signed in before 3.2), it falls back to the stored access token.
+  /// else runs, so the stored pair is the current one. With no stored pair,
+  /// it falls back to the stored access token.
   ///
-  /// An expired access token is fine: the session interceptor (2.2) refreshes
-  /// it before the first request.
+  /// An expired access token is fine: the session interceptor refreshes it
+  /// before the first request.
   ///
   /// [onEnded] is passed to [bind]. Without it, a client already bound to
   /// this account keeps its binding, so the multi-server rows restoring the
@@ -161,8 +161,8 @@ class SiloTokenStorage {
     } else if (current == null && user.accessToken.isNotEmpty) {
       silo.accessToken = user.accessToken;
     }
-    // The stored user is one of the account's profiles (the main profile
-    // until phase 18, D9); a locked one sends its PIN proof (18.4).
+    // The stored user is one of the account's profiles, and a locked one
+    // sends its PIN proof.
     silo.profileId = user.id;
     silo.profileToken = profileToken(user);
     silo.userId = user.id;

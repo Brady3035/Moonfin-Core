@@ -45,7 +45,7 @@ SiloEventFrame _catalog(String event, Map<String, Object?> data) => _frame({
 });
 
 /// xXx's detail as Silo answers it once the web watched half of it and
-/// favourited it.
+/// favorited it.
 Map<String, dynamic> _xxxInProgress() => siloFixture('catalog_item_movie.json')
   ..['user_state'] = {
     'played': false,
@@ -138,7 +138,7 @@ void main() {
 
       expect(messages, isEmpty);
       expect(server.requests, isEmpty);
-      // Remembered as changed, so a screen's refresh reads it again (9.4).
+      // Remembered as changed, so a screen's refresh reads it again.
       expect(client.itemsApi.userDataMayHaveChanged([_xxx, _episode]), [_xxx]);
     });
 

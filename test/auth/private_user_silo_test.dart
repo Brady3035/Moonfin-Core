@@ -78,7 +78,7 @@ void main() {
     expect(user.copyWith(siloAccountId: '10').siloAccountId, '10');
   });
 
-  test('a PIN-locked profile round-trips; others write nothing (18.2)', () {
+  test('a PIN-locked profile round-trips and others write nothing', () {
     final locked = _user(siloAccountId: '9').copyWith(siloHasPin: true);
 
     final json = locked.toJson();

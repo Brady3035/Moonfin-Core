@@ -53,7 +53,7 @@ const _account = {
 };
 
 /// The routes a login holding a temporary password may call (Silo's
-/// `passwordChangeRoutes`); the others answer `403 password_change_required`.
+/// `passwordChangeRoutes`). The others answer `403 password_change_required`.
 const _passwordChangeRoutes = {
   '/api/v2/account/me',
   '/api/v2/account/password/capability',
@@ -62,18 +62,18 @@ const _passwordChangeRoutes = {
 };
 
 /// A small Silo: sign-in, profiles, account and sign-out, plus the
-/// temporary-password flow (3.6).
+/// temporary-password flow.
 class _Silo implements HttpClientAdapter {
   bool wrongPassword = false;
   bool rateLimited = false;
   bool mainHasPin = false;
   bool profilesFail = false;
 
-  /// Replaces the account's profiles (phase 18 tests).
+  /// Replaces the account's profiles, for the household tests.
   List<Map<String, dynamic>>? household;
 
   /// The account holds a temporary password: logins it opens are restricted
-  /// until it is changed and the login refreshed.
+  /// until it's changed and the login refreshed.
   bool temporaryPassword = false;
   bool passwordChangesOff = false;
   bool changeFails = false;
@@ -258,7 +258,7 @@ void main() {
       deviceInfo: _device,
       httpClientAdapter: silo,
     );
-    // An account with one profile, no PIN: it signs straight in (18.2).
+    // An account with one profile, no PIN: it signs straight in.
     // Households with more, or a PIN, are tested below.
     repo = AuthRepository(store, prefs, _Sessions(), users);
   });
@@ -305,7 +305,7 @@ void main() {
     final storage = SiloTokenStorage(store);
     expect(storage.read('s1', '9')?.refreshToken, 'refresh-1');
 
-    // A refresh rotates the pair; the stored copy follows.
+    // A refresh rotates the pair, and the stored copy follows.
     client.session.onTokensChanged!(
       SiloTokens(
         accessToken: 'access-2',
@@ -329,7 +329,7 @@ void main() {
     expect(store.getSiloAccountIds('s1'), isEmpty);
   });
 
-  test('too many attempts says how long to wait (17.3)', () async {
+  test('too many attempts says how long to wait', () async {
     silo.rateLimited = true;
 
     final state = await signIn();
@@ -347,7 +347,7 @@ void main() {
 
     final state = await signIn();
 
-    // Silo's 503 reads "busy or still starting" (17.3).
+    // Silo's 503 reads "busy or still starting".
     expect(state, isA<SiloRequestRefused>());
     final failure = (state as SiloRequestRefused).failure;
     expect(failure, isA<SiloTryAgainLater>());
@@ -364,7 +364,7 @@ void main() {
     expect(store.getSiloAccountIds('s1'), ['9']);
   });
 
-  group('sign in with a code (14.1)', () {
+  group('sign in with a code', () {
     Future<LoginState> codeSignIn() async {
       final check = await client.authApi.checkQuickConnect('dc_1');
       expect(check['Authenticated'], isTrue);
@@ -417,7 +417,7 @@ void main() {
     });
   });
 
-  group('temporary password (3.6)', () {
+  group('temporary password', () {
     setUp(() => silo.temporaryPassword = true);
 
     test('asks for a new password and keeps the login open, unsaved', () async {
@@ -564,7 +564,7 @@ void main() {
     });
   });
 
-  group('household profiles (18.2)', () {
+  group('household profiles', () {
 
     Map<String, dynamic> profile(
       String id,
@@ -620,7 +620,7 @@ void main() {
       expect(stored.values.map((u) => u.siloAccountId).toSet(), {'9'});
       expect(stored[_mainId]!.isAdministrator, isTrue);
       expect(stored['kid']!.isAdministrator, isFalse);
-      // The login is kept, once, for all of them; nobody is current yet.
+      // The login is kept, once, for all of them, and nobody is current yet.
       expect(store.getSiloAccountIds('s1'), ['9']);
       expect(users.current, isNull);
       expect(prefs.lastUserId, isNull);

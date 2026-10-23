@@ -157,11 +157,10 @@ class AuthenticationStore {
     await _save();
   }
 
-  // Silo accounts. A Silo login belongs to an account; the Moonfin user is one
-  // of its profiles (the main profile, decision D9; every profile with the
-  // optional phase 18). The account's token pair is stored once per
+  // Silo accounts. A Silo login belongs to an account, and the Moonfin user is
+  // one of its profiles. The account's token pair is stored once per
   // (server, account), so its profiles share it and a refresh replaces it in
-  // one place. Stored like every other Moonfin access token: in this store's
+  // one place. Stored like every other Moonfin access token, in this store's
   // shared preferences.
 
   static const _siloAccountsKey = 'siloAccounts';
@@ -188,9 +187,9 @@ class AuthenticationStore {
 
   /// Stores (or replaces) a Silo account's token pair.
   ///
-  /// A refresh renews the same login, so the profiles' PIN proofs (18.4),
-  /// which are bound to that login, are kept. A new login ([newLogin], at
-  /// sign-in) drops them: Silo no longer accepts them.
+  /// A refresh renews the same login, so the profiles' PIN proofs, which are
+  /// bound to that login, are kept. A new login ([newLogin], at sign-in)
+  /// drops them because Silo no longer accepts them.
   Future<void> putSiloTokens(
     String serverId,
     String accountId,
@@ -219,8 +218,8 @@ class AuthenticationStore {
 
   static const _profileTokensKey = 'profileTokens';
 
-  /// The stored PIN proof of a Silo profile (`{"token": …, "expiresAt": …}`,
-  /// 18.4), or null. It belongs to the account's current login.
+  /// The stored PIN proof of a Silo profile (`{"token": …, "expiresAt": …}`),
+  /// or null. It belongs to the account's current login.
   Map<String, dynamic>? getSiloProfileToken(
     String serverId,
     String accountId,

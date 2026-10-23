@@ -135,7 +135,7 @@ void main() {
     expect(store.getUsers('s1').single.siloAccountId, '9');
   });
 
-  group('profile PIN proofs (18.4)', () {
+  group('profile PIN proofs', () {
     const proof = {'token': 'pvt_1', 'expiresAt': '2026-10-13T14:00:00.000Z'};
 
     test('stored per profile under the account', () async {

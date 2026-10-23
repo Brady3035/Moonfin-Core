@@ -6,11 +6,11 @@ import 'package:server_core/server_core.dart';
 import '../mappers/silo_trickplay_mapper.dart';
 import '../silo_image_registry.dart';
 
-/// Silo's seek previews for the file that plays (step 11.2).
+/// Silo's seek previews for the file that plays.
 ///
 /// `GET /watch/{id}/trickplay?file_id=` answers one file's sprite sheets
-/// (`WatchTrickplay`), mapped to Jellyfin's `Trickplay` field by 5.11
-/// (`siloTrickplayToJellyfin`), which also records each sheet's URL in the
+/// (`WatchTrickplay`), mapped to Jellyfin's `Trickplay` field by
+/// `siloTrickplayToJellyfin`, which also records each sheet's URL in the
 /// image registry under the file id. `ImageApi.getTrickplayTileImageUrl`
 /// answers from there.
 ///
@@ -20,8 +20,7 @@ import '../silo_image_registry.dart';
 /// the grid it read (it doesn't change), so the URLs are refreshed when it
 /// asks for a sheet: [touch] reads the previews again in the background once
 /// the file's are due, and the registry then hands out the new URLs. Sheets
-/// already loaded stay in the image cache, which keys signed artwork by path
-/// (6.2).
+/// already loaded stay in the image cache, which keys signed artwork by path.
 ///
 /// A file without previews (404) is remembered as such for [missTtl], so a
 /// queue of episodes doesn't ask again on every return to one.

@@ -6,24 +6,24 @@ import '../silo_image_registry.dart';
 import '../silo_kept_reads.dart';
 
 /// Moonfin's `UserViewsApi` over Silo's `GET /user/libraries`: the libraries
-/// the acting profile can see, as Jellyfin `CollectionFolder` views (5.7).
+/// the acting profile can see, as Jellyfin `CollectionFolder` views.
 ///
 /// Silo returns libraries in the server's own order (`sort_order`) and, for
 /// a profile without library restrictions, **includes** the ones the profile
-/// hid itself: its contract says "navigation should filter by the setting".
+/// hid itself. Its contract says "navigation should filter by the setting".
 /// Jellyfin and Emby apply the user's order and hidden list on the server, so
-/// Moonfin expects that. This class does it with the profile's settings
-/// (step 2.7), read through `UsersApi.getUserConfiguration`:
+/// Moonfin expects that. This class does it with the profile's settings,
+/// read through `UsersApi.getUserConfiguration`:
 ///
-/// - `ui.library_order` (`OrderedViews`) orders the list; libraries it
-///   doesn't name follow in Silo's order;
+/// - `ui.library_order` (`OrderedViews`) orders the list. Libraries it
+///   doesn't name follow in Silo's order.
 /// - `ui.disabled_library_ids` (`MyMediaExcludes`) is left out unless
 ///   [getUserViews]'s `includeHidden` is set. Silo is also asked with
 ///   `include_hidden=true` then, so a restricted profile gets its hidden
 ///   libraries back too.
 ///
 /// If the settings can't be read, the list is returned in Silo's order,
-/// unfiltered. Answers are cached for five minutes; [invalidateCache] drops
+/// unfiltered. Answers are cached for five minutes. [invalidateCache] drops
 /// them (the users API calls it after saving the settings).
 class SiloUserViewsApi implements UserViewsApi {
   SiloUserViewsApi(
@@ -81,7 +81,7 @@ class SiloUserViewsApi implements UserViewsApi {
     }
   }
 
-  /// [views] in [order] (library ids); the rest keep their place after them.
+  /// [views] in [order] (library ids). The rest keep their place after them.
   static List<Map<String, dynamic>> _inOrder(
     List<Map<String, dynamic>> views,
     List<String> order,

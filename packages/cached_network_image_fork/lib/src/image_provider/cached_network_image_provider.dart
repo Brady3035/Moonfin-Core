@@ -47,7 +47,7 @@ class CachedNetworkImageProvider
   /// Moonfin: turns a placeholder [url] into the URL to download, or returns
   /// null (not a future) for an ordinary URL, which loads as it is. A server
   /// that can only name an image after loading its item (Silo) hands out a
-  /// placeholder URL and resolves it here; a null result from the future
+  /// placeholder URL and resolves it here. A null result from the future
   /// fails the load like a missing image, without a request.
   static Future<String?>? Function(String url)? urlResolver;
 

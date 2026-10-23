@@ -32,7 +32,7 @@ const siloShowForcedSubtitlesKey = 'playback.show_forced_subtitles';
 const siloAutoPlayNextKey = 'playback.auto_play_next';
 
 /// Jellyfin `UserConfiguration` JSON for Silo's effective setting [values]
-/// (key → value). Missing keys read as Silo's contract defaults.
+/// (key to value). Missing keys read as Silo's contract defaults.
 ///
 /// Keys with no Silo equivalent are left out and read as the model's
 /// defaults: `LatestItemsExcludes` and `GroupedFolders` empty, the remember
@@ -55,7 +55,7 @@ Map<String, dynamic> siloSettingsToUserConfiguration(
 /// Silo's values for a Jellyfin configuration, ready to compare with what
 /// was read and write back key by key.
 ///
-/// [current] is what Silo last answered; it fills in what Jellyfin's model
+/// [current] is what Silo last answered. It fills in what Jellyfin's model
 /// can't say (`Default` subtitle mode keeps the current show-forced switch).
 Map<String, Object?> userConfigurationToSiloSettings({
   required List<String> orderedViews,
@@ -104,7 +104,7 @@ String siloSubtitleModeToJellyfin(String? mode, {bool showForced = true}) =>
   _ => (mode: 'auto', showForced: currentShowForced),
 };
 
-/// Silo library ids are positive integers; Moonfin's are strings.
+/// Silo library ids are positive integers, and Moonfin's are strings.
 List<String> _libraryIds(Object? value) => [
   if (value is List)
     for (final id in value)

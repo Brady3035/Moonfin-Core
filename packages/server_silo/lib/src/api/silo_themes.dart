@@ -5,7 +5,7 @@ import '../mappers/silo_ticks.dart';
 import '../silo_image_registry.dart' show resolveSiloUrl;
 import '../silo_kept_reads.dart';
 
-/// Silo's theme music (step 11.5).
+/// Silo's theme music.
 ///
 /// - **What a title has.** An item's detail lists its local theme songs
 ///   (`themes`: `owner_id` and `items` of `ThemeSong`: `id`, `title`,
@@ -18,8 +18,8 @@ import '../silo_kept_reads.dart';
 ///   (`POST /catalog/items/{owner}/themes/{id}/playback`, lasting
 ///   `grant_lifetime_seconds`, 300 on this server) whose `url` carries its
 ///   own credential, relative to the server or on a proxy node. The request
-///   names the formats the player decodes; Silo picks the original when one
-///   matches, else AAC in MP4 when the player accepts that. [streamUrl]
+///   names the formats the player decodes, and Silo picks the original when
+///   one matches, else AAC in MP4 when the player accepts that. [streamUrl]
 ///   asks for a new grant on every play.
 class SiloThemes {
   SiloThemes(
@@ -42,8 +42,8 @@ class SiloThemes {
 
   final SiloKeptReads<String, bool> _available;
 
-  /// Whether Silo serves theme music to this login (kept; a no, or a failed
-  /// read, is asked again next time).
+  /// Whether Silo serves theme music to this login. A yes is kept, and a no
+  /// or a failed read is asked again next time.
   Future<bool> available() => _available.get('capabilities', _readAvailable);
 
   Future<bool> _readAvailable() async {

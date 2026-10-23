@@ -20,20 +20,19 @@ typedef CastReceiverState = ({
   int positionTicks,
 });
 
-/// Reports a cast's playback to its server session (steps 12.4–12.6).
+/// Reports a cast's playback to its server session.
 ///
 /// A Silo session lives on progress reports: one that hears nothing for 45
-/// seconds is ended, and its stream stops being served (10.9). When the
-/// phone plays, the playback manager reports; when a receiver plays, nothing
-/// did. So for a cast whose stream came from a server session, [begin]
-/// starts reporting what the receiver does, every [interval], through the
-/// server's own session service ([PlayerService]): the receiver's position
-/// (plus the stream's timeline offset, 10.1) and whether it is paused. The
-/// session is stopped (with the last position, which Silo keeps as the
-/// resume point) when the cast ends, moves to another item, or the receiver
-/// goes idle after playing.
+/// seconds is ended, and its stream stops being served. The playback manager
+/// reports when the phone plays, but nothing reports for a receiver. So for
+/// a cast whose stream came from a server session, [begin] starts reporting
+/// what the receiver does, every [interval], through the server's own
+/// session service ([PlayerService]): the receiver's position (plus the
+/// stream's timeline offset) and whether it's paused. The session is stopped
+/// (with the last position, which Silo keeps as the resume point) when the
+/// cast ends, moves to another item, or the receiver goes idle after playing.
 ///
-/// Jellyfin and Emby casts aren't reported, as before: their streams don't
+/// Jellyfin and Emby casts aren't reported because their streams don't
 /// depend on it.
 class CastSessionReporter {
   CastSessionReporter({
@@ -146,7 +145,7 @@ class CastServerPlayback {
 /// A cast provider whose last cast may need [CastSessionReporter]. The cast
 /// service takes it after each cast it starts.
 abstract interface class CastServerPlaybackSource {
-  /// The last cast's server playback, once; null when it needs no reports.
+  /// The last cast's server playback, once, or null when it needs no reports.
   CastServerPlayback? takeServerPlayback();
 }
 

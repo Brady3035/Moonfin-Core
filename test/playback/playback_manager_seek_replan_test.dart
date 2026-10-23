@@ -247,7 +247,7 @@ void main() {
     await manager.seekTo(const Duration(minutes: 30));
     expect(resolver.requests.single.reason, ReplanReason.seek);
     expect(resolver.requests.single.position, const Duration(minutes: 30));
-    // The player never seeks a stream it can't; it opens the new one 2 s
+    // The player never seeks a stream it can't. It opens the new one 2 s
     // in, which is 30:00 on the film.
     expect(backend.seeks, isEmpty);
     expect(backend.playStarts.last, const Duration(seconds: 2));

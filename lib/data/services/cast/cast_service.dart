@@ -28,8 +28,7 @@ class CastService {
   final ValueNotifier<double?> remoteVolumeNotifier = ValueNotifier(null);
   Timer? _remotePollTimer;
 
-  /// Reports a cast to its server session where the server needs it (Silo,
-  /// 12.4–12.6).
+  /// Reports a cast to its server session where the server needs it (Silo).
   late final CastSessionReporter sessionReporter = CastSessionReporter(
     read: () => (
       active: activeKindNotifier.value != null,

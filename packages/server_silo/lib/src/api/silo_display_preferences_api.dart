@@ -1,7 +1,6 @@
 import 'package:server_core/server_core.dart';
 
-/// Moonfin's `DisplayPreferencesApi` on Silo: kept on this device (decision
-/// D3, step 6.19).
+/// Moonfin's `DisplayPreferencesApi` on Silo, kept on this device.
 ///
 /// Jellyfin and Emby store per-library view settings on the server. Silo's
 /// only comparable setting, `ui.library_page_state`, is its web app's own

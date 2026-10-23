@@ -382,7 +382,7 @@ class _SettingsSidePanelState extends ConsumerState<SettingsSidePanel> {
                 onTap: () =>
                     context.pushSettingsScreen(const DownloadSettingsScreen()),
               ),
-            // Seerr and achievements both come from the Moonfin plugin; with
+            // Seerr and achievements both come from the Moonfin plugin. With
             // neither on offer (only Silo signed in) the screen would be empty.
             if (_integrationsOffered)
               _PanelEntry(

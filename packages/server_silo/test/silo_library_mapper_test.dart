@@ -130,7 +130,7 @@ void main() {
       );
     });
 
-    test('books show once supported (phase 16)', () {
+    test('books show once supported', () {
       final views = siloLibrariesToUserViews(
         [
           {'id': '2', 'name': 'Books', 'type': 'ebooks'},

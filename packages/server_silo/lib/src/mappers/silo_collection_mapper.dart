@@ -2,7 +2,7 @@ import 'package:server_core/server_core.dart';
 import '../silo_image_registry.dart';
 import 'silo_ids.dart';
 
-/// A Silo collection as a Jellyfin `BoxSet` (step 6.15): a personal one
+/// A Silo collection as a Jellyfin `BoxSet`: a personal one
 /// (`PersonalCollection`: `name`, `description`, `item_count`, `poster_url`)
 /// when [libraryId] is null, else one of that library's curated collections
 /// (`CuratedCollection` / `LibraryCollectionCard`: `title`, `poster_url`,

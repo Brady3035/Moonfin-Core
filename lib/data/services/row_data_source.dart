@@ -2358,8 +2358,8 @@ class RowDataSource {
           );
         }
 
-      // A row the server curates itself (Silo's home sections, step 8.7).
-      // The server sends the whole row at once.
+      // A row the server curates itself (Silo's home sections). The server
+      // sends the whole row at once.
       case HomeSectionPluginSource.server:
         final api = _client.itemsApi;
         if (api is! ServerHomeSectionsApi) {

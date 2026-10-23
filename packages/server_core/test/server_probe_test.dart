@@ -341,7 +341,7 @@ void main() {
     });
   });
 
-  group('a retired Silo API (17.3)', () {
+  group('a retired Silo API', () {
     test('the 410 tombstone throws SiloApiUnsupported', () async {
       final dio = _dioWith((uri) {
         if (uri.path == '/api/v2/system/info') {

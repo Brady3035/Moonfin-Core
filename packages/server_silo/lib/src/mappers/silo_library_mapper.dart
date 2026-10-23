@@ -4,8 +4,8 @@ import '../silo_image_registry.dart';
 import 'silo_ids.dart';
 import 'silo_item_mapper.dart' show siloOriginalKey;
 
-/// Silo library `type` → Jellyfin `CollectionType`, which Moonfin uses to
-/// pick the screen a library opens in and its icon.
+/// Maps a Silo library `type` to the Jellyfin `CollectionType` Moonfin uses
+/// to pick the screen a library opens in and its icon.
 ///
 /// Silo's types are `movies`, `series`, `mixed`, `audiobooks`, `ebooks`,
 /// `podcasts` and `manga`. A `mixed` library has no collection type, as on
@@ -21,10 +21,9 @@ const Map<String, String?> siloCollectionTypes = {
   'ebooks': 'books',
 };
 
-/// The library types Moonfin shows today. Book libraries join when the
-/// optional books phase (16) can open their items, the same rule as
-/// `siloSupportedTypes`: a library that opened onto an empty grid would look
-/// broken.
+/// The library types Moonfin shows today. Book libraries join once Moonfin
+/// can open their items, the same rule as `siloSupportedTypes`: a library
+/// that opened onto an empty grid would look broken.
 const Set<String> siloSupportedLibraryTypes = {'movies', 'series', 'mixed'};
 
 /// One of Silo's user libraries (`UserLibrary`: `id`, `name`, `type`,
@@ -32,7 +31,7 @@ const Set<String> siloSupportedLibraryTypes = {'movies', 'series', 'mixed'};
 /// reads from `getUserViews`.
 ///
 /// The `Id` is Silo's library id unchanged, because Moonfin's library order
-/// and hidden libraries are stored in Silo's own settings by that id (2.7).
+/// and hidden libraries are stored in Silo's own settings by that id.
 /// The poster is recorded in [images] under the library id as `Primary`.
 ///
 /// Returns null for a library without an id or with a type that has no
@@ -63,7 +62,7 @@ Map<String, dynamic>? siloLibraryToCollectionFolder(
     'CollectionType': ?collectionType,
     'ImageTags': {'Primary': ?posterTag},
     'BackdropImageTags': const <String>[],
-    // A library has no watch state; Emby sends this same empty UserData.
+    // A library has no watch state. Emby sends this same empty UserData.
     'UserData': const {
       'PlaybackPositionTicks': 0,
       'IsFavorite': false,

@@ -3,7 +3,7 @@
 /// item.
 abstract interface class OfflineProgressSyncApi {
   /// Applies [entries], in order. Answers, per entry and in the same order,
-  /// whether the server took it; a request that fails as a whole throws.
+  /// whether the server took it. A request that fails as a whole throws.
   Future<List<bool>> syncOfflineProgress(List<OfflineProgressEntry> entries);
 
   /// Most entries one call takes.

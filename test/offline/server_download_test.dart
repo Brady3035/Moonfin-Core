@@ -242,7 +242,7 @@ DownloadedItem _row(String id, {String type = 'Episode'}) => DownloadedItem(
 );
 
 /// The finished download's best-effort tasks (subtitles, artwork,
-/// notification) run on after it; let them end before tearing down.
+/// notification) run on after it. Let them end before tearing down.
 Future<void> _afterCompletionTasks() =>
     Future<void>.delayed(const Duration(milliseconds: 500));
 
@@ -284,8 +284,8 @@ void main() {
     repo = _Repo(db);
 
     fileRequests = [];
-    // A Matroska file starts with the EBML magic; Moonfin checks it against
-    // the `.mkv` name.
+    // A Matroska file starts with the EBML magic, and Moonfin checks it
+    // against the `.mkv` name.
     fileBytes = [0x1A, 0x45, 0xDF, 0xA3, ...List.filled(2044, 7)];
     fileServer = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
     fileServer.listen((request) {

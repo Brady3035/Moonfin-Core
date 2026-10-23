@@ -138,7 +138,7 @@ void main() {
     });
 
     // The connectivity check reads a ping's answer the same way for every
-    // server type (13.1): a 401 heard from the server counts.
+    // server type: a 401 heard from the server counts.
     test('a 401 still counts as an answer', () async {
       final server = FixtureServer({
         '/api/v2/system/identity': (_) => FixtureServer.problem(

@@ -65,8 +65,8 @@ void main() {
       );
       expect(r.uri.queryParameters['limit'], '100');
     }
-    // 250 titles are 3 pages: all of them take part (Brady: the shuffle
-    // picker only ever offered titles from the start of the alphabet).
+    // 250 titles are 3 pages and all of them take part, so the shuffle
+    // picker doesn't offer only titles from the start of the alphabet.
     final seen = <int>{};
     for (var i = 0; i < 20; i++) {
       seen.addAll((await draw()).map((id) => int.parse(id.split('-').last)));
@@ -89,8 +89,8 @@ void main() {
     final api = siloTestClient(_server()).itemsApi;
     final seen = <String>[];
     // As the library grid pages: 75 first, then 48 at a time. Its first
-    // page is under a hundred but is still the grid's (found by Brady: only
-    // the first screen was random).
+    // page is under a hundred but is still the grid's, so more than the
+    // first screen is random.
     for (var start = 0; start < 250; start += start == 0 ? 75 : 48) {
       final page = await api.getItems(
         parentId: '1',

@@ -22,7 +22,7 @@ class SeriesTrackChoice {
 
 /// Optional extra for an `ItemsApi` whose server remembers each series'
 /// audio and subtitle choice per profile (Silo's audio and subtitle
-/// preferences, step 11.6).
+/// preferences).
 ///
 /// Moonfin remembers a series' choice on the device (`UserPreferences`'
 /// series track preferences). With this interface

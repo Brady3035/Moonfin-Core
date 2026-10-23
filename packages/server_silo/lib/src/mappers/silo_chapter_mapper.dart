@@ -9,13 +9,13 @@ import 'silo_ticks.dart';
 ///
 /// Each thumbnail is recorded in [images] under [itemId] as a
 /// [SiloImageType.chapter] at the chapter's place in the list, which is the
-/// `index` Moonfin passes to `getChapterImageUrl`; its tag is the chapter's
+/// `index` Moonfin passes to `getChapterImageUrl`. Its tag is the chapter's
 /// `ImageTag`. Without a thumbnail or a registry a chapter has no tag, and
 /// Moonfin shows its usual placeholder.
 ///
 /// Emby also lists intro and credit markers as chapters (`IntroStart`…).
 /// Silo keeps those apart as marker segments, which Moonfin reads as media
-/// segments (5.10), so only real chapters are listed here.
+/// segments, so only real chapters are listed here.
 List<Map<String, dynamic>> siloChaptersToJellyfin(
   Map<String, dynamic> version, {
   required String itemId,

@@ -137,7 +137,7 @@ void main() {
 }
 
 void capabilitiesTests() {
-  group('capabilities (10.5)', () {
+  group('capabilities', () {
     FixtureServer server() => FixtureServer({
       '/api/v2/playback/capabilities': FixtureServer.file(
         'silo/playback_capabilities.json',

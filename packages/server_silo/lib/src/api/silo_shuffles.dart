@@ -7,7 +7,7 @@ import '../silo_image_registry.dart';
 import '../silo_kept_reads.dart';
 import 'silo_items_api.dart' show siloListImageSize;
 
-/// Silo's shuffles (step 11.7).
+/// Silo's shuffles.
 ///
 /// `POST /shuffles` starts one over a scope (`library`, `series`, `season`,
 /// `library_collection`, `user_collection`) and answers the item to play now
@@ -18,8 +18,8 @@ import 'silo_items_api.dart' show siloListImageSize;
 /// server takes come from `GET /shuffles/capabilities` (kept
 /// [capabilitiesTtl]).
 ///
-/// Starting is not retry-safe (a repeat starts a second shuffle, which Silo
-/// cleans up later); advancing is, since it only moves on from the item
+/// Starting isn't retry-safe (a repeat starts a second shuffle, which Silo
+/// cleans up later). Advancing is, since it only moves on from the item
 /// named.
 class SiloShuffles {
   SiloShuffles(this._dio, {this.images, DateTime Function()? clock})
@@ -32,7 +32,7 @@ class SiloShuffles {
 
   final SiloKeptReads<String, Set<String>> _scopeKinds;
 
-  /// The scope kinds Silo shuffles; none when shuffles aren't available. A
+  /// The scope kinds Silo shuffles, or none when shuffles aren't available. A
   /// failed read counts as none and is asked again next time.
   Future<Set<String>> scopeKinds() => _scopeKinds
       .get('capabilities', _readScopeKinds)
@@ -71,7 +71,7 @@ class SiloShuffles {
     return switch (siloTypeOfId(id)) {
       'series' => (kind: 'series', id: id),
       'season' => (kind: 'season', id: id),
-      // A library's view (6.4); person ids are numbers too.
+      // A library's view. Person ids are numbers too.
       _
           when int.tryParse(id) != null &&
               (type == 'CollectionFolder' ||

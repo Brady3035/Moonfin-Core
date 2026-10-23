@@ -79,7 +79,7 @@ void main() {
         }),
         (kind: 'library_collection', id: '40'),
       );
-      // A person's id is a number too; a film has nothing to shuffle.
+      // A person's id is a number too, and a film has nothing to shuffle.
       expect(SiloShuffles.scopeOf({'Id': '77', 'Type': 'Person'}), isNull);
       expect(
         SiloShuffles.scopeOf({'Id': 'movie-imdb-tt0295701', 'Type': 'Movie'}),

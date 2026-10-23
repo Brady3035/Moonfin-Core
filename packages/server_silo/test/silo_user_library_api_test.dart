@@ -13,7 +13,7 @@ const _film = 'movie-imdb-tt0295701';
 ResponseBody _noContent(RequestOptions _) => ResponseBody.fromString('', 204);
 
 void main() {
-  group('favourites (9.1)', () {
+  group('favorites', () {
     test('marking and unmarking', () async {
       final server = FixtureServer({'/api/v2/favorites/$_film': _noContent});
       final api = siloTestClient(server).userLibraryApi;
@@ -68,7 +68,7 @@ void main() {
     });
   });
 
-  group('played state (9.2)', () {
+  group('played state', () {
     test('a film, a season and a show: once each, no retry', () async {
       const season = 'season-imdb-tt1641384-1';
       const show = 'series-imdb-tt1641384';
@@ -112,7 +112,7 @@ void main() {
     });
   });
 
-  group('ratings (9.3)', () {
+  group('ratings', () {
     Future<List<String>> sent(
       Future<void> Function(UserLibraryApi api) act,
     ) async {

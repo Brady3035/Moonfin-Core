@@ -125,7 +125,7 @@ class MultiServerRepository {
         if (userId == null) {
           final token = await _credentialStore.getToken(server.id);
           // Another Silo server: its most recently used profile that needs
-          // no PIN now (18.7), not whichever profile was stored first.
+          // no PIN now, not whichever profile was stored first.
           final candidates = server.serverType == ServerType.silo
               ? [
                   ?SiloHousehold.profileForOtherServer(users, siloTokens),
@@ -154,7 +154,7 @@ class MultiServerRepository {
           serverType: server.serverType,
           baseUrl: server.address,
         );
-        // A Silo profile restores its account's pair and profile; setting the
+        // A Silo profile restores its account's pair and profile. Setting the
         // stored access token would drop the active session's refresh token.
         siloTokens.putLogin(
           client: client,

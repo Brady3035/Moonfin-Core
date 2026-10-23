@@ -13,8 +13,8 @@ Never siloUnsupported(String api, Invocation invocation) {
   throw UnsupportedError('$api.$name is not supported on Silo');
 }
 
-/// Other devices' sessions and remote control: Silo has no counterpart
-/// (household "now playing", 13.6, was declined).
+/// Other devices' sessions and remote control, which Silo has no
+/// counterpart for.
 class SiloSessionApi implements SessionApi {
   const SiloSessionApi();
 

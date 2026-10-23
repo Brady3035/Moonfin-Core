@@ -7,9 +7,9 @@ import 'package:dio/dio.dart';
 /// The redirected request is sent again with its headers and body. With
 /// [sameOriginOnly] a redirect is only followed when it stays on the same
 /// origin, or upgrades `http` to `https` on the same host (see
-/// [isSameOriginRedirect]); anything else is returned to the caller as the
+/// [isSameOriginRedirect]). Anything else is returned to the caller as the
 /// original error, so a bearer token or a password in the body never reaches
-/// another site. Off by default, which keeps the Jellyfin and Emby behaviour.
+/// another site. Off by default, which keeps the Jellyfin and Emby behavior.
 Interceptor redirectInterceptor(Dio dio, {bool sameOriginOnly = false}) {
   return InterceptorsWrapper(
     onError: (error, handler) async {
@@ -58,7 +58,7 @@ Interceptor redirectInterceptor(Dio dio, {bool sameOriginOnly = false}) {
 /// host, scheme and port, or an upgrade from `http` to `https` on the same
 /// host. An upgrade may come from any port (a server on `:8080` sending people
 /// to its HTTPS address is normal) but must land on the default HTTPS port or
-/// on the port it came from; any other port on the host could be a different
+/// on the port it came from. Any other port on the host could be a different
 /// service.
 bool isSameOriginRedirect(Uri from, Uri to) {
   if (from.host.toLowerCase() != to.host.toLowerCase()) return false;

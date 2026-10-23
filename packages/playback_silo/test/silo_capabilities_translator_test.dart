@@ -175,7 +175,7 @@ void main() {
       ]);
     });
 
-    test('remuxes and HLS carry subtitles as sidecars, bitmaps burnt in', () {
+    test('remuxes and HLS carry subtitles as sidecars, bitmaps burned in', () {
       for (final name in ['progressive', 'hls']) {
         final subtitles = caps.deliveries[name]!['subtitles'] as Map;
         expect(subtitles['sidecar_text'], isTrue, reason: name);
@@ -232,7 +232,7 @@ void main() {
     _expectFitsContract(caps);
   });
 
-  test('Media3: embedded subtitles without ASS styling or fonts (12.1)', () {
+  test('Media3: embedded subtitles without ASS styling or fonts', () {
     final caps = siloCapabilitiesFromDeviceProfile(
       _mpvProfile(),
       traits: SiloPlayerTraits.media3,
@@ -264,7 +264,7 @@ void main() {
     expect(aether.rendersEmbeddedSubtitles, isTrue);
   });
 
-  test('the web: nothing beyond its profile, and no headers (12.3)', () {
+  test('the web: nothing beyond its profile, and no headers', () {
     const web = SiloPlayerTraits.web;
     expect(web.sendsRequestHeaders, isFalse);
     expect(web.selectsAnyAudioTrack, isFalse);
@@ -275,7 +275,7 @@ void main() {
     _expectFitsContract(caps);
   });
 
-  test('a cast receiver: the original or HLS only, no headers (12.4)', () {
+  test('a cast receiver: the original or HLS only, no headers', () {
     const receiver = SiloPlayerTraits.castReceiver;
     expect(receiver.sendsRequestHeaders, isFalse);
     final caps = siloCapabilitiesFromDeviceProfile(

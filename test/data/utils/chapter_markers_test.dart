@@ -47,7 +47,7 @@ void main() {
     );
   });
 
-  group('the version that plays (11.3)', () {
+  group('the version that plays', () {
     Map<String, dynamic> chapter(String name, int seconds) => {
       'Name': name,
       'StartPositionTicks': seconds * 10000000,

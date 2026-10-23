@@ -89,7 +89,7 @@ void main() {
     await db.close();
   });
 
-  test('plays through the app\'s wrapped Silo client (10.6)', () async {
+  test('plays through the app\'s wrapped Silo client', () async {
     final server = _Silo();
     final now = DateTime.now().toUtc();
     final silo =

@@ -10,12 +10,12 @@ import 'package:moonfin/util/season_queue_context.dart';
 import 'package:server_core/server_core.dart';
 import 'package:server_silo/server_silo.dart';
 
-/// Step 11.4: the episode queue Moonfin builds, and the next season it moves
-/// on to, from Silo's answers as the app reads them.
+/// The episode queue Moonfin builds, and the next season it moves on to,
+/// from Silo's answers as the app reads them.
 ///
 /// The queue logic is Moonfin's own (`season_queue_context.dart`,
 /// `episode_playability.dart`, the next-season provider in the playback
-/// module); these tests check that Silo's mapped seasons and episodes give
+/// module). These tests check that Silo's mapped seasons and episodes give
 /// it what it relies on: season ids that match, numbers, runtimes, media
 /// sources and air dates.
 

@@ -10,7 +10,7 @@ enum ServerType {
   /// it. Silo accepts the bearer token as `token` on media requests that can't
   /// carry headers (its stream and subtitle URLs). Most Silo URLs (artwork,
   /// playback plan URLs) are already signed and must not get a token appended
-  /// at all; callers that build Silo URLs decide that per URL.
+  /// at all, so callers that build Silo URLs decide that per URL.
   String get tokenQueryParam => switch (this) {
     ServerType.jellyfin => 'ApiKey',
     ServerType.emby => 'api_key',
@@ -26,7 +26,6 @@ enum ServerType {
   /// for through the client's `ImageApi` instead.
   bool get hasJellyfinUserImagePath => this != ServerType.silo;
 
-  /// Display name of the server product.
   String get productName => switch (this) {
     ServerType.jellyfin => 'Jellyfin',
     ServerType.emby => 'Emby',
@@ -37,7 +36,7 @@ enum ServerType {
   /// Classifies a server from its product name, then its version.
   ///
   /// Silo's native API reports itself through `/api/v2/system/info`, which the
-  /// server probe reads separately; this method still recognises a "Silo"
+  /// server probe reads separately. This method still recognizes a "Silo"
   /// product name (for example a discovery hint). Silo's Jellyfin-compatible
   /// listener calls itself "Jellyfin Server" and is classified as Jellyfin.
   static ServerType detect(String? productName, String? version) {

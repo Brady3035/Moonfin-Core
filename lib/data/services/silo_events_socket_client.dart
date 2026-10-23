@@ -10,7 +10,7 @@ part of 'socket_handler.dart';
 ///   it carries the login and profile and can refresh a token that is due),
 ///   then offers the subprotocols `silo.events.v2` and `silo.ticket.<ticket>`.
 /// - The channels are declared on the URL (`?channels=user_state,catalog`),
-///   so no subscribe frame is owed; a server that still asks for one gets it.
+///   so no subscribe frame is owed. A server that still asks for one gets it.
 /// - Silo ends every connection after five minutes, so the socket renews
 ///   itself shortly before that with a fresh ticket.
 /// - A server that has the socket off (`GET /events/capabilities`) gets no
@@ -18,11 +18,11 @@ part of 'socket_handler.dart';
 /// - When Silo says the login's access changed (an `access_changed` frame,
 ///   close code 4001), the Silo client forgets what the old access decided,
 ///   the app hears [siloAccessChangedEvent], and the socket reconnects at
-///   once with a ticket under the new access (13.4).
+///   once with a ticket under the new access.
 ///
 /// Event and snapshot frames are gathered for a moment and handed to
 /// [SiloEventsTranslator], which turns them into the `UserDataChanged` and
-/// `LibraryChanged` messages Jellyfin and Emby send (13.3).
+/// `LibraryChanged` messages Jellyfin and Emby send.
 class SiloEventsSocketClient extends _ReconnectingWebSocketClient {
   SiloEventsSocketClient(
     MediaServerClient client, {
@@ -34,8 +34,8 @@ class SiloEventsSocketClient extends _ReconnectingWebSocketClient {
     );
   }
 
-  /// This client's own stopped playback (fix 13.3a), which Silo's socket
-  /// doesn't announce.
+  /// This client's own stopped playback, which Silo's socket doesn't
+  /// announce.
   StreamSubscription<String>? _ownChanges;
 
   /// Passed on as the `user_state.changed` Silo would have sent, so the
@@ -86,7 +86,7 @@ class SiloEventsSocketClient extends _ReconnectingWebSocketClient {
 
   SiloMediaServerClient? get _silo => siloClientOf(client);
 
-  /// Silo connects through [openChannel]; there is no plain URL.
+  /// Silo connects through [openChannel], so there's no plain URL.
   @override
   Uri? buildUri() => null;
 
@@ -113,7 +113,7 @@ class SiloEventsSocketClient extends _ReconnectingWebSocketClient {
       _renewalTicket = null;
     } on DioException catch (e) {
       // The profile's PIN proof no longer verifies (a PIN set or changed on
-      // the main profile since sign-in). Every ticket would be refused the
+      // the profile since sign-in). Every ticket would be refused the
       // same way until the profile is unlocked again, so stop asking.
       if (e.error case SiloProblem(code: 'profile_verification_required')) {
         logFailure('Silo events socket stopped: the profile needs its PIN', e);
@@ -171,7 +171,7 @@ class SiloEventsSocketClient extends _ReconnectingWebSocketClient {
   bool _renewalSnapshots = false;
 
   /// A renewal every five minutes would fill the network log with
-  /// "connected" lines; only failures are logged while renewing.
+  /// "connected" lines, so only failures are logged while renewing.
   @override
   void logLifecycle(String message) {
     if (_renewing) return;
@@ -201,7 +201,7 @@ class SiloEventsSocketClient extends _ReconnectingWebSocketClient {
           );
         }
       case 'access_changed':
-        // Silo closes with 4001 right after; [onServerClosed] acts on either.
+        // Silo closes with 4001 right after. [onServerClosed] acts on either.
         _accessChanged = true;
       case 'error':
         warn(
@@ -263,7 +263,7 @@ class SiloEventsSocketClient extends _ReconnectingWebSocketClient {
   }
 
   /// Frames already received are still passed on when the socket is renewed
-  /// or drops; only a dispose (sign-out, another server) drops them.
+  /// or drops. Only a dispose (sign-out, another server) drops them.
   @override
   void dispose() {
     unawaited(_ownChanges?.cancel());

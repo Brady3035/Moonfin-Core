@@ -18,12 +18,12 @@ class SiloEventsTranslator {
   final SiloMediaServerClient _client;
 
   /// Items read back per batch. A batch mutation on the web (a whole season
-  /// marked watched) sends one event per episode; past this many, the rest
+  /// marked watched) sends one event per episode. Past this many, the rest
   /// pass on what the events themselves say.
   static const maxReadBacks = 25;
 
   /// The `user_state` changes that move what a card shows (watched,
-  /// favourite, resume point), and are read back.
+  /// favorite, resume point), and are read back.
   static const _readBackChanges = {
     'watched',
     'favorite',
@@ -82,8 +82,8 @@ class SiloEventsTranslator {
               itemsUpdated.add(id);
             }
           } else if (event == 'catalog.library.changed') {
-            // A scan names its counts, not its items, so there is nothing to
-            // pass on; the lists are read again.
+            // A scan names its counts, not its items, so there's nothing to
+            // pass on and the lists are read again.
             items.noteCatalogChanged();
           }
         default:

@@ -223,7 +223,7 @@ class SyncService extends ChangeNotifier {
   /// expressed there: a played item needs its runtime (it is sent as having
   /// reached the end), so one without falls back to marking it played.
   ///
-  /// The store keeps no time for offline progress, so it is stamped now; the
+  /// The store keeps no time for offline progress, so it is stamped now. The
   /// server's own newer progress was already preferred above.
   OfflineProgressEntry? _offlineProgressEntry(DownloadedItem item) {
     var runtimeTicks = 0;

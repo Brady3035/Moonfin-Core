@@ -3,7 +3,7 @@ import 'package:test/test.dart';
 import 'fixture_server.dart';
 import 'silo_test_client.dart';
 
-/// Switching household profiles on one client (18.5).
+/// Switching household profiles on one client.
 void main() {
   FixtureServer server() => FixtureServer({
     '/api/v2/user/libraries': siloJson({

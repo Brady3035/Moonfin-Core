@@ -1,9 +1,9 @@
 import 'package:server_core/server_core.dart';
 
-/// Silo does not serve Live TV, guides or recordings, and never will: it is a
-/// permanent product boundary of the server. Reads answer with empty results so
-/// shared rows render nothing; writes are unsupported. The UI hides Live TV
-/// entry points through `FeatureDetector.supportsLiveTv`.
+/// Silo doesn't serve Live TV, guides or recordings, and never will. Reads
+/// answer with empty results so shared rows render nothing, and writes are
+/// unsupported. The UI hides Live TV entry points through
+/// `FeatureDetector.supportsLiveTv`.
 class SiloLiveTvApi implements LiveTvApi {
   const SiloLiveTvApi();
 

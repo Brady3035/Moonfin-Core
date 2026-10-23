@@ -95,16 +95,15 @@ void main() {
   });
 
   test('Silo features left out stay off', () {
-    // 13.5 (Silo's client log) was declined by Brady (2026-10-18).
     expect(_for(ServerType.silo).supportsClientLog, isFalse);
   });
 
   test('Silo features switched on by their steps', () {
     final f = _for(ServerType.silo);
-    expect(f.supportsQuickConnect, isTrue); // 14.3
-    expect(f.supportsMediaSegments, isTrue); // 11.1
-    expect(f.supportsSkipSegments, isTrue); // 11.1
-    expect(f.supportsTrickplay, isTrue); // 11.2
+    expect(f.supportsQuickConnect, isTrue);
+    expect(f.supportsMediaSegments, isTrue);
+    expect(f.supportsSkipSegments, isTrue);
+    expect(f.supportsTrickplay, isTrue);
   });
 
   test('Seerr goes through the Moonfin plugin, so Silo has none', () {

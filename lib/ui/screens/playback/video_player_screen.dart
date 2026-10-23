@@ -198,7 +198,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
   /// reparse them on every position tick.
   List<Map<String, dynamic>> _chapters = const [];
 
-  /// The file [_chapters] were taken from (11.3).
+  /// The file [_chapters] were taken from.
   String? _chaptersMediaSourceId;
 
   /// The raw chapters of the version that plays.
@@ -1252,7 +1252,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
       );
       return;
     }
-    // Silo's fixed refusals come from playback_silo in English (17.4).
+    // Silo's fixed refusals come from playback_silo in English.
     final l10n = AppLocalizations.of(context);
     final siloText = switch (error) {
       siloPlaybackUnavailableMessage => l10n.siloPlaybackUnavailable,
@@ -2052,7 +2052,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
   }
 
   /// A replan or a version change can play another file than the one the
-  /// chapters were taken from (11.3): take that file's.
+  /// chapters were taken from, so take that file's.
   void _refreshChaptersIfNeeded() {
     final sourceId = _manager.currentResolution?.mediaSourceId;
     if (sourceId == null || sourceId == _chaptersMediaSourceId) return;

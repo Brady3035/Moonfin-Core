@@ -30,12 +30,12 @@ import 'silo_session_interceptor.dart';
 /// Moonfin's client for a Silo server, speaking Silo's native `/api/v2`.
 ///
 /// [baseUrl] is the server origin (plus any reverse-proxy prefix) without
-/// `/api/v2`; each API class adds the full path itself.
+/// `/api/v2`. Each API class adds the full path itself.
 ///
 /// Every request carries Silo's headers (see [buildSiloRequestHeaders]): the
 /// bearer token once signed in, the household profile, and this device and
 /// app. On Silo, Moonfin's user is a household profile, so [userId] and
-/// [profileId] normally hold the same id; they are kept apart because
+/// [profileId] normally hold the same id. They're kept apart because
 /// signing in happens before a profile is chosen.
 ///
 /// Live TV and Instant Mix are permanently empty, and the session API throws
@@ -44,7 +44,7 @@ class SiloMediaServerClient extends MediaServerClient
     implements ProfileAwareClient, ServerDownloadsProvider {
   final Dio _dio;
 
-  /// Sends refreshes (and, from step 2.3, sign-in). It has the same headers,
+  /// Sends refreshes and sign-in. It has the same headers,
   /// error parsing and redirect rule as [_dio] but no session interceptor, so
   /// a refresh never re-enters the request pipeline it is repairing.
   final Dio _authDio;
@@ -59,7 +59,7 @@ class SiloMediaServerClient extends MediaServerClient
   /// Sign-in state: the account's token pair (see [SiloSession]).
   final SiloSession session;
 
-  /// [httpClientAdapter] replaces the network transport; tests use it to
+  /// [httpClientAdapter] replaces the network transport, and tests use it to
   /// answer from captured server responses. [clock] lets tests move time.
   SiloMediaServerClient({
     required String baseUrl,
@@ -113,7 +113,7 @@ class SiloMediaServerClient extends MediaServerClient
     final previous = _profileId;
     _profileId = id;
     session.identityChanged();
-    // Another profile of the same login (18.5): the reads kept for the
+    // Another profile of the same login: the reads kept for the
     // previous one (its rows, libraries, settings, permissions) don't
     // apply. Picking a first profile has nothing to forget.
     if (previous != null) _forgetProfileReads();
@@ -222,8 +222,8 @@ class SiloMediaServerClient extends MediaServerClient
   );
 
   /// Refreshes the session's tokens now, through the refresh client. The
-  /// interceptor does this on its own; this is for the app (phase 3) when it
-  /// restores a session whose access token has already expired.
+  /// interceptor does this on its own. This is for the app when it restores
+  /// a session whose access token has already expired.
   Future<bool> refreshSession() => session.refresh(_authDio);
 
   @override
@@ -241,7 +241,7 @@ class SiloMediaServerClient extends MediaServerClient
 
   /// The account's current access token. Setting it from outside (the
   /// generic sign-in path) keeps the refresh token when the value matches the
-  /// session's pair; restore a full pair with [SiloSession.setTokens].
+  /// session's pair. Restore a full pair with [SiloSession.setTokens].
   @override
   String? get accessToken => session.accessToken;
 
@@ -273,7 +273,7 @@ class SiloMediaServerClient extends MediaServerClient
     downloads: downloadsApi,
   );
 
-  /// Silo's downloads: the capability (15.1) and the device's managed
+  /// Silo's downloads: the capability and the device's managed
   /// download entries.
   late final SiloDownloadsApi downloadsApi = SiloDownloadsApi(
     _dio,
@@ -282,16 +282,16 @@ class SiloMediaServerClient extends MediaServerClient
     clock: () => session.now,
   );
 
-  /// Downloads go through Silo's registry (15.2).
+  /// Downloads go through Silo's registry.
   @override
   ServerDownloadsApi get serverDownloads => downloadsApi;
 
   /// The artwork URLs seen in Silo's answers, by item and image type (see
-  /// [SiloImageRegistry]); [imageApi] answers from it.
+  /// [SiloImageRegistry]), which [imageApi] answers from.
   late final SiloImageRegistry images = SiloImageRegistry(() => _baseUrl);
 
   /// Resolves the placeholder URLs [imageApi] hands out for items not read
-  /// yet, by loading them (step 6.3).
+  /// yet, by loading them.
   late final SiloImageResolver imageResolver = SiloImageResolver(
     registry: images,
     baseUrl: () => _baseUrl,
@@ -299,13 +299,13 @@ class SiloMediaServerClient extends MediaServerClient
   );
 
   /// Reads what Silo has on [id] so its artwork is registered: a catalog
-  /// item by its content id; otherwise a library, a profile (avatars) or a
+  /// item by its content id, otherwise a library, a profile (avatars) or a
   /// person, which have plain ids.
   Future<void> _loadArtwork(String id) async {
     if (parseSiloCollectionId(id) != null || siloTypeOfId(id) != null) {
       // Reading the item registers its artwork: a title's detail (shared
       // with its page, if that is loading too), a season from its series'
-      // list, a collection with its list (6.15).
+      // list, a collection with its list.
       await itemsApi.getItem(id);
       return;
     }
@@ -313,7 +313,7 @@ class SiloMediaServerClient extends MediaServerClient
     await userViewsApi.getUserViews(includeHidden: true);
     if (images.knows(id)) return;
     if (id.contains('-')) {
-      // Profile ids are UUIDs; person and library ids are numbers.
+      // Profile ids are UUIDs, and person and library ids are numbers.
       for (final profile in await profilesApi.list()) {
         images.note(profile.id);
         images.register(
@@ -337,19 +337,19 @@ class SiloMediaServerClient extends MediaServerClient
   @override
   late final SystemApi systemApi = SiloSystemApi(_dio);
 
-  /// Silo's household profiles (no Moonfin interface; see [SiloProfilesApi]).
+  /// Silo's household profiles (no Moonfin interface, see [SiloProfilesApi]).
   late final SiloProfilesApi profilesApi = SiloProfilesApi(_dio);
 
-  /// The signed-in account's own password (no Moonfin interface; see
+  /// The signed-in account's own password (no Moonfin interface, see
   /// [SiloAccountApi]).
   late final SiloAccountApi accountApi = SiloAccountApi(_dio);
 
-  /// Silo's image endpoints: the size buckets (no Moonfin interface; see
+  /// Silo's image endpoints: the size buckets (no Moonfin interface, see
   /// [SiloImagesApi]).
   late final SiloImagesApi imagesApi = SiloImagesApi(_dio);
 
   /// Silo's realtime events socket: its capability and tickets (no Moonfin
-  /// interface; see [SiloEventsApi]).
+  /// interface, see [SiloEventsApi]).
   late final SiloEventsApi eventsApi = SiloEventsApi(
     _dio,
     baseUrl: () => _baseUrl,
@@ -402,7 +402,7 @@ class SiloMediaServerClient extends MediaServerClient
   @override
   final InstantMixApi instantMixApi = const SiloInstantMixApi();
 
-  // Silo's admin API is unrelated to Jellyfin's; Silo is administered from
+  // Silo's admin API is unrelated to Jellyfin's. Silo is administered from
   // its own web app, and FeatureDetector.supportsAdmin hides Moonfin's panel.
   static Never _noAdmin() =>
       throw UnsupportedError('Admin is not supported on Silo');

@@ -6,8 +6,8 @@ import 'package:server_silo/server_silo.dart';
 
 import 'fixture_server.dart';
 
-/// Shared setup for the phase 6 API tests: a signed-in client acting as a
-/// profile, answering from a [FixtureServer].
+/// Shared setup for the API tests: a signed-in client acting as a profile,
+/// answering from a [FixtureServer].
 
 final siloTestNow = DateTime.utc(2026, 10, 14, 12);
 

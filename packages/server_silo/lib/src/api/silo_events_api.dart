@@ -29,7 +29,7 @@ class SiloEventsCapabilities {
   /// Whether this login may use the socket at all.
   final bool allowed;
 
-  /// Every client channel the server knows, whatever the caller's role; the
+  /// Every client channel the server knows, whatever the caller's role. The
   /// hello frame says which this connection may actually follow.
   final List<String> channels;
 
@@ -91,11 +91,11 @@ const siloEventsAccessChangedCloseCode = 4001;
 
 /// The `ServerEventMessage` type the app's Silo socket passes on when Silo
 /// says the login's access changed (libraries, rating limits, permissions,
-/// role): what the account may see has to be read again (13.4).
+/// role): what the account may see has to be read again.
 const siloAccessChangedEvent = 'SiloAccessChanged';
 
 /// One frame from the events socket. Silo sends `hello`, `subscribed`,
-/// `snapshot`, `event`, `error` and `access_changed`; anything else is
+/// `snapshot`, `event`, `error` and `access_changed`. Anything else is
 /// [type] with nothing else filled in, and is ignored.
 class SiloEventFrame {
   const SiloEventFrame({
@@ -161,7 +161,7 @@ class SiloEventFrame {
   /// when the connection still owes a subscribe frame.
   final String? requiredAction;
 
-  /// `hello`: the channels this connection may follow; `subscribed`: the
+  /// `hello`: the channels this connection may follow. `subscribed`: the
   /// channels it now follows.
   final List<String> channels;
 
@@ -186,7 +186,7 @@ class SiloEventsApi {
   final Dio _dio;
   final String Function() _baseUrl;
 
-  /// The channels Moonfin follows: the profile's watched state, favourites
+  /// The channels Moonfin follows: the profile's watched state, favorites
   /// and progress (`user_state`) and the libraries' contents (`catalog`).
   static const followedChannels = ['user_state', 'catalog'];
 
@@ -221,7 +221,7 @@ class SiloEventsApi {
   ///
   /// The port is always written out. Dart's `Uri` knows default ports only
   /// for `http` and `https`, so a `wss://host/…` without one reports port 0,
-  /// and `dart:io`'s WebSocket connects to exactly that (13.2 fix).
+  /// and `dart:io`'s WebSocket connects to exactly that.
   Uri socketUri([Iterable<String> channels = followedChannels]) {
     final base = Uri.parse(_baseUrl());
     final path = base.path.endsWith('/')

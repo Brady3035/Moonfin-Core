@@ -225,7 +225,7 @@ void main() {
     );
   });
 
-  group('prepareDownload (15.2)', () {
+  group('prepareDownload', () {
     Map<String, dynamic> created([Map<String, dynamic> changes = const {}]) {
       final body = _fixture('download_created.json');
       final entry = (body['items'] as List).first as Map<String, dynamic>;
@@ -465,7 +465,7 @@ void main() {
       );
     });
 
-    test('a file Silo is still preparing is waited for (15.3)', () async {
+    test('a file Silo is still preparing is waited for', () async {
       final server = silo(
         entries: [
           entry({'status': 'ready', 'delivery_format': 'remux'}),
@@ -524,7 +524,7 @@ void main() {
     });
   });
 
-  group('after the transfer (15.2)', () {
+  group('after the transfer', () {
     test('a finished file is reported completed for its revision', () async {
       final server = FixtureServer({
         '/api/v2/downloads/dl_1': (o) => FixtureServer.json(
@@ -718,7 +718,7 @@ void main() {
     });
   });
 
-  group('converted downloads (15.3)', () {
+  group('converted downloads', () {
     test('Moonfin qualities map onto the presets the account may use', () {
       const all = ['original', '20mbps', '10mbps', '5mbps', '2mbps', '1mbps'];
       // 1080p (4 Mbit/s), 720p (2), 480p (1), 360p (0.5).
@@ -955,7 +955,7 @@ void main() {
     });
   });
 
-  group('artwork (15.4)', () {
+  group('artwork', () {
     final ticket = ServerDownloadTicket(
       id: 'dl_01HSCRUBBED',
       itemId: 'episode-imdb-tt1641384-1-1',
@@ -1033,7 +1033,7 @@ void main() {
     });
   });
 
-  group('subtitles (15.6)', () {
+  group('subtitles', () {
     // A version with two embedded ASS tracks and one sidecar, as Silo lists
     // them: embedded first, sidecars after, marked external.
     final version = {

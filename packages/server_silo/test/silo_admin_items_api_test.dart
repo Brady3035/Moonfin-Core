@@ -103,7 +103,7 @@ void main() {
         '$_admin/match/apply': _json({'content_id': _film, 'updated': true}),
       });
       final api = siloTestClient(server).adminItemsApi;
-      await api.applyRemoteSearchResult(_film, {
+      final movedTo = await api.applyRemoteSearchResult(_film, {
         'Name': 'xXx',
         'ProviderIds': {'Tmdb': '7451'},
         SiloAdminItemsApi.siloProviderIdsKey: {'tmdb': '7451'},
@@ -113,6 +113,22 @@ void main() {
         'provider_ids': {'tmdb': '7451'},
       });
       expect(siloSchemaErrors('AdminMatchApplyInputBody', body), isEmpty);
+      expect(movedTo, isNull);
+    });
+
+    test('matching an unmatched item answers its new id', () async {
+      const local = 'local-3863beba4de487e814739e8fa8e2';
+      final server = FixtureServer({
+        '/api/v2/admin/items/$local/match/apply': _json({
+          'content_id': 'movie-tmdb-812',
+          'updated': true,
+        }),
+      });
+      final api = siloTestClient(server).adminItemsApi;
+      final movedTo = await api.applyRemoteSearchResult(local, {
+        SiloAdminItemsApi.siloProviderIdsKey: {'tmdb': '812'},
+      });
+      expect(movedTo, 'movie-tmdb-812');
     });
 
     test('the id fields are the ones Silo searches by', () async {

@@ -6,6 +6,7 @@ library;
 
 export 'src/silo_media_server_client.dart';
 export 'src/api/silo_account_api.dart';
+export 'src/api/silo_admin_items_api.dart';
 export 'src/api/silo_auth_api.dart';
 export 'src/api/silo_display_preferences_api.dart';
 export 'src/api/silo_downloads_api.dart';
@@ -28,6 +29,7 @@ export 'src/api/silo_track_preferences.dart';
 export 'src/api/silo_trickplay.dart';
 export 'src/api/silo_playback_api.dart';
 export 'src/api/silo_profiles_api.dart';
+export 'src/api/silo_remote_subtitles.dart';
 export 'src/silo_image_cache_key.dart';
 export 'src/silo_image_registry.dart';
 export 'src/silo_image_resolver.dart';

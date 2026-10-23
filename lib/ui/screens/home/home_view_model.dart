@@ -1018,6 +1018,16 @@ class HomeViewModel extends ChangeNotifier {
     // A full load already covers these rows, so don't compete with it.
     if (_isLoading) return;
 
+    // A row that came back empty was dropped, so there's no row to refresh in
+    // place. Loading it as a new section brings it back once it has items.
+    if (const ['resume', 'nextUp', 'resumeAudio'].any(
+      (id) => _emptySectionIds.contains(id) && !_rows.any((r) => r.id == id),
+    )) {
+      await load(preserveExisting: true, newSectionsOnly: true);
+      // That load refreshes the merged row too.
+      if (_prefs.effectiveMergeContinueWatchingNextUp) return;
+    }
+
     if (_prefs.effectiveMergeContinueWatchingNextUp) {
       await _loadResumeAndNextUpInBackground();
       return;

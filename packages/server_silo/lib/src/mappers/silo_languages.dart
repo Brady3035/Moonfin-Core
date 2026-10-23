@@ -133,3 +133,15 @@ String? siloLanguageName(String? code) {
   if (base == 'und' || base == 'zxx' || base == 'mis') return null;
   return _names[base] ?? trimmed.toUpperCase();
 }
+
+/// [code] as the ISO 639-1 code Silo tags tracks with (`eng` gives `en`),
+/// or as given when no two-letter code shares its name here.
+String siloLanguageCode(String code) {
+  final lower = code.trim().toLowerCase();
+  final name = _names[lower];
+  if (lower.length == 2 || name == null) return lower;
+  for (final e in _names.entries) {
+    if (e.key.length == 2 && e.value == name) return e.key;
+  }
+  return lower;
+}

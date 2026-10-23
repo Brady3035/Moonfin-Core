@@ -98,7 +98,7 @@ void main() {
     expect(_for(ServerType.silo).supportsClientLog, isFalse);
   });
 
-  test('Silo features switched on by their steps', () {
+  test('Silo features Moonfin supports', () {
     final f = _for(ServerType.silo);
     expect(f.supportsQuickConnect, isTrue);
     expect(f.supportsMediaSegments, isTrue);

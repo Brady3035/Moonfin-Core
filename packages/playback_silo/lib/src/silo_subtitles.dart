@@ -1,6 +1,7 @@
 import 'package:playback_core/playback_core.dart';
 import 'package:server_silo/server_silo.dart';
 
+import 'silo_capabilities_translator.dart' show siloDeliveryOriginal;
 import 'silo_plan_mapper.dart';
 
 // The combined order lives in server_silo, which remembers a series'
@@ -92,6 +93,11 @@ class SiloPlanSubtitles {
 ///   transcode). On the original file the player shows them from the file.
 ///   Bitmap sidecars (`.sup`) are left out: Moonfin loads none, so a bitmap
 ///   on a remux is burned in by Silo, as told.
+/// - **On a remux or transcode** only the embedded track Silo selected and
+///   the one the player asked for ([requestedStreamIndex]) are handed out.
+///   Silo reads the whole file to extract one the first time (minutes on a
+///   large file), and the player loads every sidecar before it shows any.
+///   Picking another track asks Silo for a new plan.
 /// - **Downloaded subtitles** (beyond the file's own) get Moonfin indices
 ///   after the highest stream index, as external text streams.
 /// - **The selection:** `subtitle.track_id` back to Moonfin's index, or -1
@@ -103,6 +109,7 @@ SiloPlanSubtitles siloPlanSubtitles({
   required Map<String, dynamic>? source,
   required String baseUrl,
   String? accessToken,
+  int? requestedStreamIndex,
 }) {
   final subtitle = (plan['subtitle'] as Map?)?.cast<String, dynamic>() ?? {};
   final inventory = [
@@ -140,6 +147,23 @@ SiloPlanSubtitles siloPlanSubtitles({
     });
   }
 
+  int? selected;
+  final mode = subtitle['mode'];
+  if (mode == 'off') {
+    selected = -1;
+  } else {
+    final combined = _combinedOf(subtitle['track_id']);
+    selected = combined == null ? null : byCombined[combined];
+    if (mode == 'burn_in' && selected != null) {
+      for (final s in streams) {
+        if (s['Type'] == 'Subtitle' && s['Index'] == selected) {
+          s['DeliveryMethod'] = 'Encode';
+        }
+      }
+    }
+  }
+
+  final original = plan['delivery'] == siloDeliveryOriginal;
   final external = <ExternalSubtitle>[];
   for (final entry in inventory) {
     final url = entry['url'];
@@ -147,6 +171,12 @@ SiloPlanSubtitles siloPlanSubtitles({
     final index = combined is int ? byCombined[combined] : null;
     if (url is! String || url.isEmpty || index == null) continue;
     if (entry['delivery'] != 'sidecar') continue;
+    if (!original &&
+        entry['source'] == 'embedded' &&
+        index != selected &&
+        index != requestedStreamIndex) {
+      continue;
+    }
     final codec = _sidecarFormat(url);
     if (codec == null) continue;
     final absolute = siloPlanUrl(baseUrl, url);
@@ -163,22 +193,6 @@ SiloPlanSubtitles siloPlanSubtitles({
         streamIndex: index,
       ),
     );
-  }
-
-  int? selected;
-  final mode = subtitle['mode'];
-  if (mode == 'off') {
-    selected = -1;
-  } else {
-    final combined = _combinedOf(subtitle['track_id']);
-    selected = combined == null ? null : byCombined[combined];
-    if (mode == 'burn_in' && selected != null) {
-      for (final s in streams) {
-        if (s['Type'] == 'Subtitle' && s['Index'] == selected) {
-          s['DeliveryMethod'] = 'Encode';
-        }
-      }
-    }
   }
 
   return SiloPlanSubtitles(

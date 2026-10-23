@@ -161,12 +161,12 @@ void main() {
   test('what Silo lacks names itself', () async {
     final api = siloTestClient(FixtureServer({})).itemsApi;
     expect(
-      () => api.searchRemoteSubtitles('movie-1', language: 'en'),
+      () => api.deleteItem('movie-1'),
       throwsA(
         isA<UnsupportedError>().having(
           (e) => e.message,
           'message',
-          'ItemsApi.searchRemoteSubtitles is not supported on Silo',
+          'ItemsApi.deleteItem is not supported on Silo',
         ),
       ),
     );

@@ -171,6 +171,7 @@ StreamResolutionResult siloPlanToResolution({
   bool directPlayRequested = true,
   SiloStreamAuth? auth,
   bool tokenInEveryUrl = false,
+  int? requestedSubtitleStreamIndex,
 }) {
   final stream = (plan['stream'] as Map?)?.cast<String, dynamic>() ?? const {};
   final timeline =
@@ -201,6 +202,7 @@ StreamResolutionResult siloPlanToResolution({
     source: mediaSource,
     baseUrl: baseUrl,
     accessToken: auth?.accessToken,
+    requestedStreamIndex: requestedSubtitleStreamIndex,
   );
   final offset = timeline['timeline_offset_seconds'];
   final bitrate = source['bitrate_kbps'];

@@ -137,7 +137,7 @@ void main() {
   group('the plan', () {
     test('every text sidecar, with the token, on Moonfin\'s index', () {
       final subtitles = siloPlanSubtitles(
-        plan: _plan({'mode': 'off'}),
+        plan: _plan({'mode': 'off'})..['delivery'] = 'original_http',
         source: source,
         baseUrl: _base,
         accessToken: 'access-1',
@@ -163,6 +163,29 @@ void main() {
       expect(
         subtitles.mediaStreams.take(source['MediaStreams'].length),
         source['MediaStreams'],
+      );
+    });
+
+    test('a remux hands out only the selected or requested embedded track', () {
+      List<int?> handedOut(
+        Map<String, dynamic> subtitle, {
+        int? requested,
+      }) => siloPlanSubtitles(
+        plan: _plan(subtitle),
+        source: source,
+        baseUrl: _base,
+        requestedStreamIndex: requested,
+      ).externalSubtitles.map((s) => s.streamIndex).toList();
+
+      expect(handedOut({'mode': 'off'}), [4, 5]);
+      expect(handedOut({'mode': 'off'}, requested: 2), [4, 2, 5]);
+      expect(
+        handedOut({'mode': 'render', 'track_id': 'file:4598:subtitle:1'}),
+        [4, 2, 5],
+      );
+      expect(
+        handedOut({'mode': 'render', 'track_id': 'file:4598:subtitle:0'}),
+        [4, 5],
       );
     });
 

@@ -14464,7 +14464,7 @@
   "@siloNativeOfferTitle": {
     "description": "Title of the dialog shown when the address being added is Silo's Jellyfin-compatible service and Silo's own API answers on another port of the same host"
   },
-  "siloNativeOfferMessage": "This address is the Jellyfin-compatible service of the Silo server {serverName}. Moonfin can connect to Silo directly at {address}, with Silo's own features.",
+  "siloNativeOfferMessage": "This address is the Jellyfin-compatible service of {serverName}. Moonfin can connect to Silo directly at {address}, with Silo's own features.",
   "@siloNativeOfferMessage": {
     "description": "Body of the dialog offering to add a Silo server natively instead of through its Jellyfin-compatible service",
     "placeholders": {

@@ -27204,7 +27204,7 @@ abstract class AppLocalizations {
   /// Body of the dialog offering to add a Silo server natively instead of through its Jellyfin-compatible service
   ///
   /// In en, this message translates to:
-  /// **'This address is the Jellyfin-compatible service of the Silo server {serverName}. Moonfin can connect to Silo directly at {address}, with Silo\'s own features.'**
+  /// **'This address is the Jellyfin-compatible service of {serverName}. Moonfin can connect to Silo directly at {address}, with Silo\'s own features.'**
   String siloNativeOfferMessage(String serverName, String address);
 
   /// Button: add the Silo server through its native API

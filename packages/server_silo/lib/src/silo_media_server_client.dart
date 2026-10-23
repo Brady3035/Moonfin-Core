@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:server_core/server_core.dart';
 
 import 'api/silo_account_api.dart';
+import 'api/silo_admin_items_api.dart';
 import 'api/silo_instant_mix_api.dart';
 import 'api/silo_items_api.dart';
 import 'api/silo_user_library_api.dart';
@@ -402,8 +403,9 @@ class SiloMediaServerClient extends MediaServerClient
   @override
   final InstantMixApi instantMixApi = const SiloInstantMixApi();
 
-  // Silo's admin API is unrelated to Jellyfin's. Silo is administered from
-  // its own web app, and FeatureDetector.supportsAdmin hides Moonfin's panel.
+  // Silo's admin API is unrelated to Jellyfin's, and Silo is administered
+  // from its own web app (FeatureDetector.supportsAdmin hides Moonfin's
+  // panel). Only an item's identify, refresh and artwork are mapped.
   static Never _noAdmin() =>
       throw UnsupportedError('Admin is not supported on Silo');
 
@@ -438,7 +440,7 @@ class SiloMediaServerClient extends MediaServerClient
   AdminLiveTvApi get adminLiveTvApi => _noAdmin();
 
   @override
-  AdminItemsApi get adminItemsApi => _noAdmin();
+  late final AdminItemsApi adminItemsApi = SiloAdminItemsApi(_dio, itemsApi);
 
   final _ownUserDataChanges = StreamController<String>.broadcast();
 

@@ -18,6 +18,7 @@ import '../silo_kept_reads.dart';
 import '../silo_pager.dart';
 import 'silo_home_sections.dart';
 import 'silo_markers.dart';
+import 'silo_remote_subtitles.dart';
 import 'silo_shuffles.dart';
 import 'silo_themes.dart';
 import 'silo_track_preferences.dart';
@@ -89,6 +90,9 @@ class SiloItemsApi
 
   /// Skip markers by file.
   late final SiloMarkers markers = SiloMarkers(_dio, clock: _clock);
+
+  /// Subtitle search through the server's providers.
+  late final SiloRemoteSubtitles remoteSubtitles = SiloRemoteSubtitles(_dio);
 
   /// Seek previews by file.
   late final SiloTrickplay trickplay = SiloTrickplay(
@@ -2663,8 +2667,33 @@ class SiloItemsApi
   Future<List<Map<String, dynamic>>> getAdditionalParts(String itemId) async =>
       const [];
 
-  /// What Silo has no counterpart for: remote subtitle search, playlist
-  /// changes, deleting items.
+  /// Searches the file [itemId] plays, or its default version when it isn't
+  /// playing. Silo has nothing like [isPerfectMatch].
+  @override
+  Future<List<Map<String, dynamic>>> searchRemoteSubtitles(
+    String itemId, {
+    required String language,
+    bool? isPerfectMatch,
+  }) async {
+    var fileId = siloIdOf(_playingSources[itemId]?['Id']);
+    if (fileId == null) {
+      final sources = (await getItem(itemId))['MediaSources'] as List?;
+      fileId = siloIdOf((sources?.firstOrNull as Map?)?['Id']);
+    }
+    if (fileId == null) {
+      throw StateError('Silo item $itemId has no file to find subtitles for');
+    }
+    return remoteSubtitles.search(fileId, language);
+  }
+
+  /// Saves the subtitle on the server for the file it was found for.
+  @override
+  Future<void> downloadRemoteSubtitle(String itemId, String subtitleId) async {
+    await remoteSubtitles.download(subtitleId);
+    noteCatalogChanged();
+  }
+
+  /// What Silo has no counterpart for: playlist changes, deleting items.
   @override
   dynamic noSuchMethod(Invocation invocation) =>
       siloUnsupported('ItemsApi', invocation);

@@ -165,6 +165,12 @@ class SiloUsersApi implements UsersApi {
     return user;
   }
 
+  /// Silo has no access schedules (Jellyfin's allowed hours per user), so
+  /// there is never one to enforce.
+  @override
+  Future<List<AccessSchedule>?> getAccessSchedules(String userId) async =>
+      const [];
+
   /// The settings Moonfin reads from a `UserConfiguration`, resolved by Silo
   /// for the acting profile on this device (`GET /settings/values/effective`).
   ///

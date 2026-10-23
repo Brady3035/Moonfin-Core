@@ -72,7 +72,20 @@ class SiloLiveTvApi implements LiveTvApi {
   Future<void> createTimer(String programId) => _unsupported();
 
   @override
-  Future<void> createSeriesTimer(String programId) => _unsupported();
+  Future<void> createSeriesTimer(
+    String programId, {
+    Map<String, dynamic>? settings,
+  }) => _unsupported();
+
+  @override
+  Future<Map<String, dynamic>> getSeriesTimer(String seriesTimerId) =>
+      _unsupported();
+
+  @override
+  Future<void> updateSeriesTimer(
+    String seriesTimerId,
+    Map<String, dynamic> seriesTimer,
+  ) => _unsupported();
 
   @override
   Future<void> cancelTimer(String timerId) => _unsupported();

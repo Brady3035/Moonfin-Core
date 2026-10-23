@@ -64,6 +64,17 @@ class SiloUserLibraryApi implements UserLibraryApi, OfflineProgressSyncApi {
     _dio.delete<void>('/api/v2/watched/${_titleId(itemId, 'played state')}'),
   );
 
+  /// A resume point saved outside a playback session (Moonfin's book
+  /// reader). Silo keeps video positions only through its playback sessions,
+  /// and Moonfin doesn't read Silo's books yet.
+  @override
+  Future<void> updatePlayedPosition(
+    String itemId, {
+    required int positionTicks,
+  }) async => throw UnsupportedError(
+    'Silo saves positions only during playback, not for $itemId',
+  );
+
   // --- ratings (9.3) -------------------------------------------------------
 
   /// A thumbs rating as stars: up is 5, down is 1. Silo has no likes, only

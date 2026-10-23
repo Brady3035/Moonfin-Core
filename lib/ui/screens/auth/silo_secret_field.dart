@@ -7,12 +7,11 @@ import '../../../preference/user_preferences.dart';
 import '../../../util/focus/dpad_keys.dart';
 import '../../../util/platform_detection.dart';
 
-/// A hidden-text field for Silo's dialogs: a new password (3.6) or a profile
-/// PIN (18.4).
+/// A hidden-text field for Silo's dialogs: a new password or a profile PIN.
 ///
 /// On TV a remote has no way out of a plain text field, so the field is a
 /// focusable box: select opens the keyboard, down moves to [down] and up to
-/// [up]. Elsewhere it is an ordinary [TextField] whose keyboard action is
+/// [up]. Elsewhere it's an ordinary [TextField] whose keyboard action is
 /// "done" when [down] is the dialog's button ([last]) and "next" otherwise.
 class SiloSecretField extends StatelessWidget {
   const SiloSecretField({

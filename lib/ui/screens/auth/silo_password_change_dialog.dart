@@ -47,12 +47,11 @@ class SiloPasswordChangeOutcome {
   final String newPassword;
 }
 
-/// Asks for a new password after a Silo sign-in with a temporary one
-/// (step 3.6).
+/// Asks for a new password after a Silo sign-in with a temporary one.
 ///
 /// [onSubmit] sends the change (`AuthRepository.changeRequiredSiloPassword`).
 /// A refused password ([SiloPasswordChangeRejected]) keeps the dialog open
-/// with the reason; any other answer closes it with that answer. Closing it
+/// with the reason. Any other answer closes it with that answer. Closing it
 /// without a change (Cancel, Back) calls [onCancel], which ends the login.
 class SiloPasswordChangeDialog extends StatefulWidget {
   const SiloPasswordChangeDialog({

@@ -5,8 +5,8 @@ import 'package:crypto/crypto.dart';
 /// The Jellyfin image types Moonfin asks for, and the Silo artwork each one
 /// comes from.
 enum SiloImageType {
-  /// `poster_url` for movies, series and seasons; `still_url` for episodes;
-  /// `photo_url` for people.
+  /// `poster_url` for movies, series and seasons, `still_url` for episodes
+  /// and `photo_url` for people.
   primary('Primary'),
   backdrop('Backdrop'),
   logo('Logo'),
@@ -58,7 +58,7 @@ String siloImageTag(String url) {
 /// Turns a URL from a Silo answer (artwork, a theme song's stream, a
 /// playback plan's media) into one Moonfin can load.
 ///
-/// Silo sends most as a path on the server (`/api/v2/artwork/…`); that gets
+/// Silo sends most as a path on the server (`/api/v2/artwork/…`), which gets
 /// [baseUrl] in front (keeping any sub-path a reverse proxy adds).
 /// Absolute URLs (TMDB, TVDB, an S3 bucket) pass through, and a
 /// scheme-relative `//host/…` takes [baseUrl]'s scheme. **No token is ever
@@ -86,14 +86,14 @@ String? resolveSiloUrl(String? url, String baseUrl) {
 /// Where the Silo client keeps the artwork URLs it saw while mapping items,
 /// so `ImageApi`, which asks by item id and image type only, can answer.
 ///
-/// Jellyfin builds image URLs from an item id; Silo hands out ready, signed
-/// URLs inside each item. The mappers (phase 5) call [register] for every
-/// artwork URL they meet and put the returned tag in the item's `ImageTags`;
-/// `ImageApi` (step 6.1) calls [urlFor]. A newer URL for the same image
-/// replaces the older one, which keeps the signature fresh.
+/// Jellyfin builds image URLs from an item id, but Silo hands out ready,
+/// signed URLs inside each item. The mappers call [register] for every
+/// artwork URL they meet and put the returned tag in the item's `ImageTags`,
+/// and `ImageApi` calls [urlFor]. A newer URL for the same image replaces
+/// the older one, which keeps the signature fresh.
 ///
 /// An id never seen (cold start from cached rows, a deep link) is resolved
-/// by loading the item (step 6.3, `SiloImageResolver`).
+/// by loading the item (`SiloImageResolver`).
 class SiloImageRegistry {
   SiloImageRegistry(this._baseUrl);
 
@@ -142,7 +142,7 @@ class SiloImageRegistry {
 
   /// Records that [itemId]'s artwork fields were read, whether or not it had
   /// any: an image missing for a known item is absent, not merely unseen, so
-  /// `ImageApi` answers with no URL instead of resolving it (step 6.3).
+  /// `ImageApi` answers with no URL instead of resolving it.
   void note(String itemId) => _known.add(itemId);
 
   /// Whether [note] was called for [itemId].

@@ -18,8 +18,8 @@ enum SiloTrackKind { video, audio, subtitle }
 /// (what `effective_audio_track_index` and the playback request's
 /// `audio_track_index` count), and subtitles by their place in
 /// `subtitle_tracks` (the playback plan's `file:<id>:subtitle:<n>`). Jellyfin
-/// gives every stream of a file one shared `Index`. The resolver (phase 7)
-/// uses this to turn the index Moonfin picked back into Silo's terms.
+/// gives every stream of a file one shared `Index`. The resolver uses this to
+/// turn the index Moonfin picked back into Silo's terms.
 class SiloTrackRef {
   const SiloTrackRef({
     required this.kind,
@@ -102,13 +102,13 @@ Iterable<Map<String, dynamic>> _trackEntries(Map<String, dynamic> source) {
 }
 
 /// The `MediaSources` of a Silo item (`CatalogItem` detail, `/watch` answer
-/// or season list entry), default version first; empty when it has no files
+/// or season list entry), default version first. Empty when it has no files
 /// (a series).
 ///
-/// Detail and watch answers carry full `versions`; season list entries carry
-/// lightweight `files` (see [siloFileToMediaSource]). The default version is
-/// the first playback variant's `default_file_id`, as Silo's own player
-/// picks it.
+/// Detail and watch answers carry full `versions`, and season list entries
+/// carry lightweight `files` (see [siloFileToMediaSource]). The default
+/// version is the first playback variant's `default_file_id`, as Silo's own
+/// player picks it.
 List<Map<String, dynamic>> siloItemMediaSources(
   Map<String, dynamic> item, {
   required String itemId,
@@ -159,7 +159,7 @@ String? _defaultFileId(Map<String, dynamic> item) {
 /// The map from index to Silo track is kept under [siloTracksKey].
 ///
 /// Every delivery is marked possible: Silo decides how to deliver when
-/// playback starts (phase 7), not Moonfin from these flags.
+/// playback starts, not Moonfin from these flags.
 ///
 /// Null for a version without a `file_id`.
 Map<String, dynamic>? siloVersionToMediaSource(
@@ -173,7 +173,7 @@ Map<String, dynamic>? siloVersionToMediaSource(
   final audios = _maps(version['audio_tracks']);
   final subtitles = _maps(version['subtitle_tracks']);
 
-  // Subtitles keep Silo's container index; the rest fill the gaps.
+  // Subtitles keep Silo's container index, and the rest fill the gaps.
   final used = <int>{};
   final subtitleIndex = <int?>[];
   for (final s in subtitles) {
@@ -265,8 +265,8 @@ Map<String, dynamic>? siloVersionToMediaSource(
 ///
 /// It carries enough for the quality badges on episode cards: a video stream
 /// at the resolution's nominal 16:9 size and an audio stream with its channel
-/// count. Its track map is empty, so playback (phase 7) loads the full
-/// version before choosing tracks.
+/// count. Its track map is empty, so playback loads the full version before
+/// choosing tracks.
 Map<String, dynamic>? siloFileToMediaSource(
   Map<String, dynamic> file, {
   required String itemId,
@@ -318,8 +318,6 @@ Map<String, dynamic>? siloFileToMediaSource(
     siloOriginalKey: file,
   };
 }
-
-// --- streams ----------------------------------------------------------------
 
 Map<String, dynamic> _videoStream(
   Map<String, dynamic> t,
@@ -438,7 +436,7 @@ Map<String, dynamic> _subtitleStream(Map<String, dynamic> t, int index) {
   };
 }
 
-/// Image subtitle codecs (bitmaps, burnt in or drawn by the player); every
+/// Image subtitle codecs (bitmaps, burned in or drawn by the player). Every
 /// other subtitle codec is text.
 const _imageSubtitleCodecs = {
   'hdmv_pgs_subtitle',
@@ -460,8 +458,6 @@ String? _subtitleCodecLabel(String? codec) => switch (codec) {
   _ => codec.toUpperCase(),
 };
 
-// --- video range ------------------------------------------------------------
-
 /// Jellyfin's `VideoRangeType` names, by their spelling without case or
 /// separators, so `hdr10plus`, `HDR10+` and `HDR10_PLUS` all match.
 const _rangeTypes = {
@@ -482,7 +478,7 @@ const _rangeTypes = {
 
 /// `VideoRange` (`SDR`/`HDR`) and `VideoRangeType` of a video track.
 ///
-/// Silo usually says the type (`video_range_type`); it is matched to
+/// Silo usually says the type (`video_range_type`), which is matched to
 /// Jellyfin's spelling. Without it the type is worked out the way Jellyfin
 /// does: Dolby Vision from its profile and base-layer compatibility, then
 /// HDR10+, then the transfer function (PQ is HDR10, HLG is HLG), else SDR.
@@ -523,8 +519,6 @@ String _derivedRangeType(Map<String, dynamic> t) {
   };
 }
 
-// --- labels -----------------------------------------------------------------
-
 /// "4K HDR10 HEVC", "1080p HEVC": the label Jellyfin shows for a video
 /// stream.
 String _videoTitle(Map<String, dynamic> stream) {
@@ -556,7 +550,7 @@ String? _resolutionLabel(int? width, int? height, {bool interlaced = false}) {
 }
 
 /// The version's name in Moonfin's version picker: the file name without its
-/// extension, as Jellyfin and Emby show it; for a viewer Silo shows no file
+/// extension, as Jellyfin and Emby show it. For a viewer Silo shows no file
 /// name to, its edition and quality ("Extended 2160p HEVC HDR").
 String _sourceName(Map<String, dynamic> version, Map<String, dynamic>? video) {
   final fileName = jsonText(version['file_name']);
@@ -575,7 +569,7 @@ String _sourceName(Map<String, dynamic> version, Map<String, dynamic>? video) {
   ].join(' ');
 }
 
-/// "5.1(side)" → "5.1", "stereo" → "Stereo"; from the channel count when
+/// "5.1(side)" as "5.1", "stereo" as "Stereo", or from the channel count when
 /// Silo sends no layout.
 String? _channelLayout(String? layout, int? channels) {
   if (layout != null) {
@@ -591,8 +585,6 @@ String? _channelLayout(String? layout, int? channels) {
     _ => null,
   };
 }
-
-// --- small readers ----------------------------------------------------------
 
 int? _defaultAudioOrdinal(
   Map<String, dynamic> version,
@@ -624,7 +616,7 @@ double? _frameRate(Object? value) {
   return rate != null && rate > 0 ? rate : null;
 }
 
-/// "1080p", "2160p", "720i", "4K" → the frame height.
+/// The frame height of "1080p", "2160p", "720i" or "4K".
 int? _nominalHeight(Object? resolution) {
   if (resolution is! String) return null;
   final r = resolution.trim().toLowerCase();

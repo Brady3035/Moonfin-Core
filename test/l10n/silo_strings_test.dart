@@ -6,7 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:moonfin/l10n/app_localizations.dart';
 import 'package:playback_silo/playback_silo.dart';
 
-/// The Silo strings are written for translators (17.4): Weblate shows each
+/// The Silo strings are written for translators: Weblate shows each
 /// string's description and placeholders, and translates from app_en.arb.
 void main() {
   final arb =
@@ -49,8 +49,8 @@ void main() {
   });
 
   test("the player's Silo refusals match their English strings", () {
-    // The player recognises playback_silo's fixed texts and shows the
-    // translated string instead; both must stay the same in English.
+    // The player recognizes playback_silo's fixed texts and shows the
+    // translated string instead, so both must stay the same in English.
     final en = lookupAppLocalizations(const Locale('en'));
     expect(en.siloPlaybackUnavailable, siloPlaybackUnavailableMessage);
     expect(en.siloPlaybackUpdateRequired, siloUpgradeRequiredMessage);

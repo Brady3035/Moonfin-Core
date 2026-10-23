@@ -14,17 +14,12 @@ class SiloItemType {
     required this.isFolder,
   });
 
-  /// Silo's `type`.
   final String siloType;
-
-  /// Jellyfin's `Type`.
   final String jellyfinType;
 
-  /// Jellyfin's `MediaType`; null for containers (series, season), as Emby
+  /// Jellyfin's `MediaType`, or null for containers (series, season), as Emby
   /// sends it.
   final String? mediaType;
-
-  /// Jellyfin's `IsFolder`.
   final bool isFolder;
 }
 
@@ -32,8 +27,7 @@ class SiloItemType {
 /// what Emby sends for the same kind of item (see the Emby fixtures).
 ///
 /// `podcast` and `podcast_episode` are left out: Jellyfin has no such type
-/// and no Moonfin screen shows them, so they don't map (see the open item in
-/// `docs/silo/HANDOFF.md`).
+/// and no Moonfin screen shows them, so they don't map.
 const Map<String, SiloItemType> siloItemTypes = {
   'movie': SiloItemType(
     siloType: 'movie',
@@ -78,18 +72,17 @@ const Map<String, SiloItemType> siloItemTypes = {
 SiloItemType? siloItemTypeOf(Object? type) =>
     type is String ? siloItemTypes[type.trim().toLowerCase()] : null;
 
-/// The Silo types Moonfin handles today: video. Audiobooks and ebooks join
-/// when the optional books phase (16) implements them, the same rule as
-/// `FeatureDetector`: a type is on only once Moonfin can open it.
+/// The Silo types Moonfin handles, which is video only. As in
+/// `FeatureDetector`, a type is only on once Moonfin can open it.
 const Set<String> siloSupportedTypes = {'movie', 'series', 'season', 'episode'};
 
-/// Jellyfin `Type` (lowercased) → Silo type, for the types that have one.
+/// Silo's type for each lowercased Jellyfin `Type` that has one.
 final Map<String, String> _siloTypeByJellyfin = {
   for (final t in siloItemTypes.values)
     t.jellyfinType.toLowerCase(): t.siloType,
 };
 
-/// Jellyfin `MediaType` (lowercased) → the Silo types carrying it.
+/// The Silo types carrying each lowercased Jellyfin `MediaType`.
 final Map<String, Set<String>> _siloTypesByMediaType = () {
   final map = <String, Set<String>>{};
   for (final t in siloItemTypes.values) {
@@ -104,14 +97,14 @@ final Map<String, Set<String>> _siloTypesByMediaType = () {
 ///
 /// [includeItemTypes] (`Movie`, `Episode`…) and [mediaTypes] (`Video`,
 /// `Audio`…, comma-separated) narrow the query together, as on Jellyfin.
-/// Names are matched case-insensitively; Jellyfin types Silo doesn't have
+/// Names are matched case-insensitively. Jellyfin types Silo doesn't have
 /// (`MusicAlbum`, `Playlist`, `TvChannel`…) match nothing. The answer is then
 /// limited to [supported].
 ///
 /// - **null**: the query names no type, so it isn't narrowed by type.
 /// - **empty**: it names only types Silo can't serve here. The caller answers
 ///   with an empty result and sends **no request**: dropping the filter would
-///   return films for a "Continue listening" or "Albums" row (steps 4.2, 4.3).
+///   return films for a "Continue listening" or "Albums" row.
 /// - otherwise the Silo types to ask for.
 Set<String>? siloTypesForQuery({
   Iterable<String>? includeItemTypes,
@@ -167,14 +160,14 @@ String? siloCatalogScopeFor(Set<String> types) {
 /// `video_with_episodes` scope covers.
 const Set<String> _siloVideoWithEpisodes = {'movie', 'series', 'episode'};
 
-/// The `type` scope of a catalog **search** (`q`) for [types] (step 7.1).
+/// The `type` scope of a catalog **search** (`q`) for [types].
 ///
-/// Silo lists episodes apart from films and series; only a text search can
+/// Silo lists episodes apart from films and series. Only a text search can
 /// mix them, through the `video_with_episodes` scope. That scope is used
 /// when [withEpisodes] (the server's `video_with_episodes_scope`
 /// capability) and the search asks for episodes along with films or series,
 /// or for any type ([types] null) while Moonfin shows only video. Otherwise
-/// the scope is the browse one ([siloCatalogScopeFor]); with no type the
+/// the scope is the browse one ([siloCatalogScopeFor]). With no type the
 /// search is unscoped and the caller keeps what it can show.
 String? siloSearchScopeFor(Set<String>? types, {required bool withEpisodes}) {
   final wanted = types ?? siloSupportedTypes.difference({'season'});

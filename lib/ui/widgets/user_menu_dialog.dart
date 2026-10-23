@@ -172,7 +172,7 @@ class _AccountDialogState extends State<_AccountDialog> {
       if (!verified) return;
     }
 
-    // A Silo profile locked with a PIN asks for it first (18.4).
+    // A Silo profile locked with a PIN asks for it first.
     if (account.user.siloHasPin) {
       if (!mounted) return;
       final unlocked = await unlockSiloProfileIfNeeded(
@@ -213,7 +213,7 @@ class _AccountDialogState extends State<_AccountDialog> {
   }
 
   /// Signs every stored profile of the active Silo account out and ends
-  /// its login (18.6); "Sign out" leaves the account's other profiles.
+  /// its login. "Sign out" leaves the account's other profiles.
   Future<void> _signOutSiloAccount() async {
     if (_busy) return;
     setState(() => _busy = true);
@@ -470,8 +470,8 @@ class _AccountDialogState extends State<_AccountDialog> {
                 const SizedBox(height: 8),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
-                  // Remote control drives the active server's other sessions;
-                  // without them (Silo) Quick Connect takes the whole row.
+                  // Remote control drives the active server's other sessions.
+                  // Without them (Silo), Quick Connect takes the whole row.
                   child: activeServerSupports((f) => f.supportsRemoteControl)
                       ? _buildPairedActionButtons(
                           first: quickConnectButton,

@@ -15,7 +15,7 @@ PrivateUser _profile(String id, int day, {bool pin = false}) => PrivateUser(
   siloHasPin: pin,
 );
 
-/// Which profile another Silo server's rows are read as (18.7).
+/// Which profile another Silo server's rows are read as.
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 

@@ -2,7 +2,7 @@
 ///
 /// A resolver throws it when the server's answer is a decision rather than
 /// a failure: the request was fine, but this item can't be played this way
-/// (Silo's terminal reasons, step 10.8). The playback manager reports it as
+/// (Silo's terminal reasons). The playback manager reports it as
 /// a failed bringup with [message] as the error, which the player shows,
 /// and the launcher closes the player without treating it as a crash.
 class PlaybackRefusedException implements Exception {

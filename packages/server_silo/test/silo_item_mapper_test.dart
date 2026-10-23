@@ -71,7 +71,7 @@ void main() {
       expect(silo['ProductionYear'], emby['ProductionYear']);
       expect(_day(silo['PremiereDate']), _day(emby['PremiereDate']));
       expect(silo['PremiereDate'], '2002-08-09T00:00:00.0000000Z');
-      // Added to each server on its own day; the shape is what matters.
+      // Added to each server on its own day, so the shape is what matters.
       expect(silo['DateCreated'], '2026-10-08T00:26:31.0000000Z');
     });
 
@@ -80,7 +80,7 @@ void main() {
         silo['CommunityRating'],
         closeTo(emby['CommunityRating'] as num, 0.2),
       );
-      // Silo has no critic score for this film; Emby got one elsewhere.
+      // Silo has no critic score for this film. Emby got one elsewhere.
       expect(silo.containsKey('CriticRating'), isFalse);
       expect(
         (silo['RunTimeTicks'] as int) - (emby['RunTimeTicks'] as int),
@@ -250,7 +250,7 @@ void main() {
     });
   });
 
-  group('series links: golden against Young Justice on Emby (5.4)', () {
+  group('series links: golden against Young Justice on Emby', () {
     late Map<String, dynamic> series;
 
     // The series is mapped first, as Moonfin opens it before its seasons, so
@@ -338,7 +338,7 @@ void main() {
       ]) {
         expect(silo.containsKey(key), emby.containsKey(key), reason: key);
       }
-      // Its own image is the still; its backdrop is the series' and stays
+      // Its own image is the still. Its backdrop is the series' and stays
       // with the series, as on Emby.
       expect(silo['ImageTags'], contains('Primary'));
       expect(silo['BackdropImageTags'], emby['BackdropImageTags']);
@@ -458,7 +458,7 @@ void main() {
     });
   });
 
-  group('user data: golden against Emby (5.5)', () {
+  group('user data: golden against Emby', () {
     test('movie, series and episode match Emby exactly', () {
       for (final (silo, emby) in [
         ('silo/catalog_item_movie.json', 'emby/item_movie.json'),
@@ -528,7 +528,7 @@ void main() {
       );
     });
 
-    test('favourite and played from user_state', () {
+    test('favorite and played from user_state', () {
       final ud = userData({
         'user_state': {
           'played': true,
@@ -606,7 +606,7 @@ void main() {
     });
   });
 
-  group('people: golden against Emby (5.6)', () {
+  group('people: golden against Emby', () {
     List<Map<String, dynamic>> people(Map<String, dynamic> dto) =>
         (dto['People'] as List).cast<Map<String, dynamic>>();
 

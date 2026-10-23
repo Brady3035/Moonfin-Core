@@ -3,7 +3,7 @@
 typedef ThemeAudioFormat = ({String container, String? codec});
 
 /// Optional extra for an `ItemsApi` whose server hands out theme music as a
-/// short-lived link per play (Silo's theme grants, step 11.5).
+/// short-lived link per play (Silo's theme grants).
 ///
 /// Jellyfin and Emby stream a theme song from `/Audio/{id}/stream` with the
 /// account's token, which Moonfin builds itself. With this interface

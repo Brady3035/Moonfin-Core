@@ -41,7 +41,7 @@ void main() {
     expect(server.requests.last.uri.queryParameters, {'image_size': 'medium'});
 
     // The section also holds each show's next episode (item_source
-    // next_up); those are Next Up's (8.2).
+    // next_up), and those belong to Next Up.
     final items = _items(page);
     expect(items.map((i) => i['Id']), [
       'movie-imdb-tt2518788',
@@ -140,8 +140,7 @@ void main() {
       },
     );
     final page = await siloTestClient(server).itemsApi.getResumeItems();
-    // The audiobook is left out (phase 16), and the repeated film shows
-    // once.
+    // The audiobook is left out, and the repeated film shows once.
     expect(_items(page).map((i) => i['Name']), ['One', 'Two']);
     expect(
       _paths(server),

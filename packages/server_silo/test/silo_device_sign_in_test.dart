@@ -238,7 +238,7 @@ void main() {
         _now.add(const Duration(hours: 1)),
       );
 
-      // Silo issues the pair once; it isn't kept for a second sign-in.
+      // Silo issues the pair once, and it isn't kept for a second sign-in.
       await expectLater(
         client.authApi.authenticateWithQuickConnect('dc_1'),
         throwsStateError,

@@ -27,7 +27,7 @@ class AuthRepository {
 
   late final SiloTokenStorage _siloTokens = SiloTokenStorage(_authStore);
 
-  /// A Silo login waiting for its temporary password to be replaced (3.6).
+  /// A Silo login waiting for its temporary password to be replaced.
   _PendingSiloPasswordChange? _pendingPasswordChange;
 
   AuthRepository(
@@ -167,11 +167,11 @@ class AuthRepository {
     return state;
   }
 
-  /// A Silo sign-in opens the **account**; Moonfin's users are its
+  /// A Silo sign-in opens the **account**, and Moonfin's users are its
   /// household profiles. After the password is accepted,
-  /// [_finishSiloSignIn] stores them and the account's token pair (3.2).
+  /// [_finishSiloSignIn] stores them and the account's token pair.
   ///
-  /// A temporary password stops here instead: see
+  /// A temporary password stops here instead, see
   /// [_startRequiredPasswordChange].
   Future<LoginState> _handleSiloSignIn({
     required Map<String, dynamic> result,
@@ -208,11 +208,11 @@ class AuthRepository {
     );
   }
 
-  /// A Silo sign-in with a code (14.1) opens the account like a password
-  /// sign-in, and goes on the same way ([_finishSiloSignIn]).
+  /// A Silo sign-in with a code opens the account like a password sign-in,
+  /// and goes on the same way ([_finishSiloSignIn]).
   ///
   /// An account holding a temporary password can't continue here: replacing
-  /// it needs the password in use (3.6), which a code sign-in never had. The
+  /// it needs the password in use, which a code sign-in never had. The
   /// login is ended, and the screen says to sign in with the password.
   Future<LoginState> _handleSiloCodeSignIn({
     required Map<String, dynamic> result,
@@ -275,13 +275,13 @@ class AuthRepository {
   /// Replaces the temporary password of the login [authenticate] left open
   /// with [SiloPasswordChangeRequired], then finishes signing in.
   ///
-  /// Silo needs the password in use with every change; that is the one the
+  /// Silo needs the password in use with every change. That's the one the
   /// person just signed in with, so they only type the new one.
   ///
   /// - [SiloPasswordChangeRejected]: the new password was refused, or the
   ///   request failed (no network, `503`). The login stays open: try again.
   /// - [SiloPasswordChangedSignInAgain]: the password changed but the login
-  ///   could not be renewed; it is ended.
+  ///   couldn't be renewed, so it's ended.
   /// - otherwise what a normal sign-in returns ([Authenticated], or the
   ///   error that ended the login).
   ///
@@ -319,7 +319,7 @@ class AuthRepository {
     }
 
     _pendingPasswordChange = null;
-    // The access token still carries the restriction; a refresh reissues it
+    // The access token still carries the restriction. A refresh reissues it
     // from the account, which no longer holds a temporary password.
     final renewed = await pending.silo.refreshSession().catchError(
       (_) => false,
@@ -336,7 +336,7 @@ class AuthRepository {
     );
   }
 
-  /// Ends a login left open for a password change (the person cancelled the
+  /// Ends a login left open for a password change (the person canceled the
   /// dialog). Does nothing when none is waiting.
   Future<void> cancelRequiredSiloPasswordChange() async {
     final pending = _pendingPasswordChange;
@@ -361,17 +361,16 @@ class AuthRepository {
     } catch (_) {}
   }
 
-  /// The rest of a Silo sign-in (18.2): every household profile of the
-  /// account is stored as a user, all sharing the account's token pair,
-  /// which is stored and kept saved on every refresh. Reads the pair from
-  /// the session rather than the sign-in answer: after a password change
-  /// (3.6) it has been refreshed since.
+  /// The rest of a Silo sign-in: every household profile of the account is
+  /// stored as a user, all sharing the account's token pair, which is stored
+  /// and kept saved on every refresh. Reads the pair from the session rather
+  /// than the sign-in answer, because a password change refreshes it.
   ///
   /// An account with a single profile, without a PIN, goes straight in as
   /// it. Any other household (several profiles, or a PIN to enter) answers
-  /// [SiloChooseProfile]: the login screen then opens the server's user grid
-  /// (18.3), where a locked profile asks for its PIN (18.4). Nobody is the
-  /// current user until then.
+  /// [SiloChooseProfile]: the login screen then opens the server's user grid,
+  /// where a locked profile asks for its PIN. Nobody is the current user
+  /// until then.
   ///
   /// A failure after the password ends the new login on Silo too, so no
   /// session is left open that the app no longer knows about.
@@ -383,7 +382,8 @@ class AuthRepository {
   }) async {
     final List<SiloHouseholdMember> members;
     try {
-      // No profile until one is chosen; the household is read as the account.
+      // No profile until one is chosen, so the household is read as the
+      // account.
       silo.profileId = null;
       silo.profileToken = null;
       members = await (silo.usersApi as SiloUsersApi).getHousehold();
@@ -420,8 +420,8 @@ class AuthRepository {
     silo.profileId = user.id;
     client.userId = user.id;
     try {
-      // Silo decides downloads per profile (15.1); the household listing
-      // only has the account's flag.
+      // Silo decides downloads per profile, and the household listing only
+      // has the account's flag.
       final current = await client.usersApi.getCurrentUser();
       user = user.copyWith(
         canDownload:
@@ -437,7 +437,6 @@ class AuthRepository {
     return _emit(Authenticated(userId: user.id, serverId: serverId));
   }
 
-  /// Announces [state] and answers it.
   LoginState _emit(LoginState state) {
     _stateController.add(state);
     return state;
@@ -464,7 +463,7 @@ class AuthRepository {
       _stateController.add(state);
       return state;
     }
-    // Silo's "not now" and "not with this version" answers (17.3).
+    // Silo's "not now" and "not with this version" answers.
     final siloFailure = SiloFailure.of(e);
     if (siloFailure != null) {
       final state = SiloRequestRefused(siloFailure);
@@ -532,7 +531,7 @@ class AuthRepository {
 }
 
 /// A Silo login that signed in with a temporary password, kept open (and
-/// unsaved) until the password is replaced or the change is cancelled.
+/// unsaved) until the password is replaced or the change is canceled.
 class _PendingSiloPasswordChange {
   _PendingSiloPasswordChange({
     required this.client,

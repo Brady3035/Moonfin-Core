@@ -51,7 +51,7 @@ final _film = AggregatedItem(
   rawData: const {'Id': 'movie-imdb-tt0295701', 'Type': 'Movie'},
 );
 
-/// A remux cut at 9:53 for a resume (10.1).
+/// A remux cut at 9:53 for a resume.
 const _resolution = StreamResolutionResult(
   streamUrl: 'https://silo.example/api/v2/stream/s?token=t',
   mediaSourceId: '4598',
@@ -77,8 +77,8 @@ void main() {
   Future<void> begin() =>
       reporter.begin(service: service, item: _film, resolution: _resolution);
 
-  test('the receiver\'s position on the film\'s timeline, paused or not '
-      '(12.4)', () async {
+  test('the receiver\'s position on the film\'s timeline, paused or not',
+      () async {
     await begin();
     // Nothing heard from the receiver yet: kept alive at the start.
     await reporter.tick();

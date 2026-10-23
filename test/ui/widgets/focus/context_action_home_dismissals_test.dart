@@ -20,7 +20,7 @@ class _MockMutations extends Mock implements ItemMutationRepository {}
 
 class _ItemsApi extends Mock implements ItemsApi {}
 
-/// A server that hides Home cards itself (Silo, 9.7).
+/// A server that hides Home cards itself (Silo).
 class _DismissingItemsApi extends _ItemsApi implements HomeDismissalsApi {
   final hidden = <String>[];
   bool fails = false;
@@ -91,7 +91,7 @@ void main() {
 
   tearDown(() => GetIt.instance.reset());
 
-  /// Picks the menu entry labelled by [label] for the episode.
+  /// Picks the menu entry labeled by [label] for the episode.
   Future<void> select(
     WidgetTester tester,
     String Function(AppLocalizations l10n) label, {

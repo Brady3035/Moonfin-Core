@@ -22,7 +22,7 @@ List<Map<String, dynamic>> _items(Map<String, dynamic> page) =>
     (page['Items'] as List).cast<Map<String, dynamic>>();
 
 void main() {
-  group('getSeasons (6.7)', () {
+  group('getSeasons', () {
     test('the captured seasons, as Emby lists them', () async {
       final server = _server();
       final client = siloTestClient(server);
@@ -75,7 +75,7 @@ void main() {
     });
   });
 
-  group('getEpisodes (6.8)', () {
+  group('getEpisodes', () {
     test('a season\'s episodes, as Emby lists them', () async {
       final server = _server();
       final client = siloTestClient(server);

@@ -6,8 +6,8 @@ import '../silo_session.dart';
 
 /// One Silo household profile, as `GET /profiles` lists it.
 ///
-/// Only the fields Moonfin decides on are typed; [json] keeps the whole
-/// profile for the user and settings mappers (steps 2.6 and 2.7).
+/// Only the fields Moonfin decides on are typed. [json] keeps the whole
+/// profile for the user and settings mappers.
 class SiloProfile {
   const SiloProfile({
     required this.id,
@@ -30,12 +30,11 @@ class SiloProfile {
   final String id;
   final String name;
 
-  /// The account's main profile: created with the account, and the one
-  /// Moonfin acts as until the optional profiles phase (decision D9).
+  /// The account's main profile, created with the account.
   final bool isPrimary;
 
   /// Locked with a PIN: requests acting as it need an `X-Profile-Token`
-  /// from `verify-pin` (phase 18).
+  /// from `verify-pin`.
   final bool hasPin;
 
   final bool isChild;
@@ -72,7 +71,7 @@ class SiloPinRejected extends SiloPinResult {
 class SiloPinLocked extends SiloPinResult {
   const SiloPinLocked(this.retryAfter);
 
-  /// From Silo's `Retry-After`; null when it sent none.
+  /// From Silo's `Retry-After`, null when it sent none.
   final Duration? retryAfter;
 }
 
@@ -105,7 +104,7 @@ class SiloProfilesApi {
 
   /// Checks [pin] for [profileId] (`POST /profiles/{id}/verify-pin`).
   ///
-  /// Every check counts towards Silo's lockout (five wrong PINs lock the
+  /// Every check counts toward Silo's lockout (five wrong PINs lock the
   /// profile for five minutes), so a PIN is only ever sent when the person
   /// entered it: nothing here tries again on its own. The session's only
   /// replay, after a `401` (an expired token), happens before Silo looked at

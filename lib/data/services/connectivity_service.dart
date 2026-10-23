@@ -276,7 +276,7 @@ class ConnectivityService extends ChangeNotifier {
       try {
         reachable = await client.systemApi.ping();
       } catch (_) {
-        // ping never throws; a client that does still means no answer.
+        // Ping shouldn't throw, but a client that does still means no answer.
       }
     }
     _serverReachable = reachable;

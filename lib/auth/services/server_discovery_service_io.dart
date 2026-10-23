@@ -17,9 +17,9 @@ import 'silo_lan_discovery.dart';
 typedef SiloLanProbe = Future<ServerProbeResult?> Function(String baseUrl);
 
 class ServerDiscoveryService {
-  /// Jellyfin and Emby answer a UDP broadcast on 7359; Silo advertises
-  /// `_silo._tcp` over mDNS instead (17.2). Both run at once and feed one
-  /// list. [siloBrowser] and [siloProbe] are replaceable for tests.
+  /// Jellyfin and Emby answer a UDP broadcast on 7359, and Silo advertises
+  /// `_silo._tcp` over mDNS instead. Both run at once and feed one list.
+  /// [siloBrowser] and [siloProbe] are replaceable for tests.
   ServerDiscoveryService({
     Future<List<SiloLanAdvert>> Function()? siloBrowser,
     SiloLanProbe? siloProbe,

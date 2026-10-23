@@ -35,7 +35,7 @@ void main() {
         emby.map((c) => c['ChapterIndex']),
       );
       expect(silo.every((c) => c['MarkerType'] == 'Chapter'), isTrue);
-      // The file's own chapter names ("01"); Emby makes up "Chapter 1".
+      // The file's own chapter names ("01"), while Emby makes up "Chapter 1".
       expect(silo.first['Name'], '01');
     });
 
@@ -151,7 +151,7 @@ void main() {
       expect(item['Chapters'], isEmpty);
     });
 
-    test('each version carries its own on its media source (11.3)', () {
+    test('each version carries its own on its media source', () {
       final item = siloItemToBaseItemDto(
         _json('silo/catalog_item_movie_multi.json'),
         images: images,

@@ -14,7 +14,7 @@ import 'package:server_core/server_core.dart';
 ///              "detail": "X-Silo-Device-Id must be a single device identifier: ..."}]}
 /// ```
 ///
-/// Silo's stable identifier is the last segment of [type] ([code]); code that
+/// Silo's stable identifier is the last segment of [type] ([code]). Code that
 /// reacts to an error checks [code], never [title] or [detail], which are
 /// human text. [instance] identifies the request in Silo's logs.
 class SiloProblem {
@@ -34,8 +34,8 @@ class SiloProblem {
     this.errors = const [],
   });
 
-  /// The problem identifier, the last path segment of [type]:
-  /// `.../problems/token_refresh_required` → `token_refresh_required`.
+  /// The problem identifier, the last path segment of [type]. For
+  /// `.../problems/token_refresh_required` it's `token_refresh_required`.
   String? get code {
     final t = type;
     if (t == null || t.isEmpty) return null;
@@ -88,12 +88,11 @@ class SiloProblem {
     return fromJson(error.response?.data);
   }
 
-  /// The problem code of a failed Silo request, if any.
   static String? codeOf(DioException error) => of(error)?.code;
 
   /// How long a `Retry-After` header asks the client to wait (Silo sends it
   /// with `429` and `503`), as seconds or an HTTP date. Null when absent or
-  /// unreadable; never negative.
+  /// unreadable, and never negative.
   static Duration? retryAfter(DioException error, {DateTime? now}) {
     final raw = error.response?.headers.value('retry-after')?.trim();
     if (raw == null || raw.isEmpty) return null;

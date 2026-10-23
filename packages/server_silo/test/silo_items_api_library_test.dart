@@ -67,7 +67,7 @@ void main() {
     expect(q['sort'], 'title');
     expect(q['image_size'], 'medium');
     // Silo binds cursors to the limit, so the pager always asks for its
-    // fixed page size and trims (5.12).
+    // fixed page size and trims.
     expect(q['limit'], '100');
     // Artwork is ready for the grid.
     final id = items.first['Id'] as String;
@@ -122,7 +122,7 @@ void main() {
     expect(_catalog(server).last.uri.queryParameters['seek'], '250');
   });
 
-  // BoxSet alone lists collections (6.15), so it isn't among these.
+  // BoxSet alone lists collections, so it isn't among these.
   test('only types Silo can\'t serve: empty, no request', () async {
     final server = FixtureServer({'/api/v2/catalog': _library(3)});
     final api = siloTestClient(server).itemsApi;

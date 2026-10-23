@@ -40,7 +40,7 @@ Map<String, dynamic> _source(Map<String, dynamic> item) =>
 
 /// A plan for the mixed file whose inventory has, in Silo's combined
 /// order: the sidecar, the two embedded tracks, and a downloaded Spanish
-/// track; [subtitle] is its `subtitle` decision on top.
+/// track, with [subtitle] as its `subtitle` decision on top.
 Map<String, dynamic> _plan(Map<String, dynamic> subtitle) {
   final plan = (fixtureJson('decision_remux.json')['playback_plan'] as Map)
       .cast<String, dynamic>();
@@ -154,7 +154,7 @@ void main() {
       expect(external[1].isDefault, isTrue);
       // Off.
       expect(subtitles.selectedStreamIndex, -1);
-      // The downloaded track is a stream now; the file's are as they were.
+      // The downloaded track is a stream now, and the file's are as they were.
       final downloaded = subtitles.mediaStreams.last;
       expect(downloaded['Index'], 5);
       expect(downloaded['Language'], 'es');

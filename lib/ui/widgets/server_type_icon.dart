@@ -164,7 +164,7 @@ class _SiloGlyphPainter extends CustomPainter {
       ..color = color
       ..style = PaintingStyle.fill;
     // Clears the bands out of the body, so they show whatever is behind the
-    // icon instead of a fixed background colour.
+    // icon instead of a fixed background color.
     final cut = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.4

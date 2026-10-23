@@ -2621,7 +2621,7 @@ class PlaybackManager implements AudioOwnable {
     try {
       resolution = await resolve(maxBitrate);
     } on PlaybackRefusedException catch (refusal) {
-      // The server's own words, which the player shows (step 10.8).
+      // The server's own words, which the player shows.
       if (sessionToken == _playbackSessionToken) {
         _setBringupState(
           PlaybackBringupState(
@@ -3523,7 +3523,7 @@ class PlaybackManager implements AudioOwnable {
 
   /// A seek the stream can't do itself: the resolver replans at [position]
   /// and the player opens the new stream there. Seeks made while one is
-  /// being served only move its target; the latest one is served next.
+  /// being served only move its target. The latest one is served next.
   Future<void> _seekThroughServer(Duration position) async {
     _seekReplanTarget = position;
     if (_seekReplanRunning) return;
@@ -4212,7 +4212,7 @@ class PlaybackManager implements AudioOwnable {
     ReplanReason? replanReason,
     // Where the new stream starts, when not where playback is (a seek).
     Duration? atPosition,
-    // Whether it plays once open; null keeps what the player was doing.
+    // Whether it plays once open. Null keeps what the player was doing.
     bool? autoPlay,
   }) {
     final previous = _reResolveQueue;

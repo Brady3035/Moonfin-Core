@@ -16,9 +16,9 @@ StreamPlayMethod siloPlayMethod(String? delivery) => switch (delivery) {
 };
 
 /// A URL from a plan as one the player can open: absolute URLs (a proxy
-/// node's) as they are; a path on the API origin under [baseUrl].
+/// node's) as they are, and a path on the API origin under [baseUrl].
 ///
-/// Silo's v2 plans name local media under `/api/v2/...`; an older server or
+/// Silo's v2 plans name local media under `/api/v2/...`. An older server or
 /// a realtime event may still send `/stream/...` or `/playback/transcode/...`
 /// without it, which the web player maps the same way. The query (the signed
 /// `st` reference, `seek`, a subtitle's identity pins) is kept byte for byte.
@@ -31,11 +31,11 @@ String siloPlanUrl(String baseUrl, String url) {
 }
 
 /// How long a paused progressive remux is kept by Silo before it closes the
-/// response (its stream stall window); a longer pause is resumed with a
+/// response (its stream stall window). A longer pause is resumed with a
 /// replan at the position, as Silo's web player does after a minute.
 const siloProgressiveIdleWindow = Duration(minutes: 1);
 
-/// The account credentials a Silo media request needs (step 10.7).
+/// The account credentials a Silo media request needs.
 class SiloStreamAuth {
   const SiloStreamAuth({
     required this.accessToken,
@@ -74,7 +74,7 @@ bool siloIsServerUrl(String url, String baseUrl) {
 /// manifest's query onto every segment), and artwork is signed on its own.
 /// The rest of the query is kept byte for byte.
 ///
-/// With [allMedia] (a player that sends no headers at all, 12.3) Silo's HLS
+/// With [allMedia] (a player that sends no headers at all) Silo's HLS
 /// routes (`/api/v2/playback/`) get it too: Silo copies the manifest's query
 /// onto every playlist and segment URI, so the token reaches each request.
 String siloAuthorizeUrl(
@@ -99,7 +99,7 @@ String siloAuthorizeUrl(
 
 /// Silo's reasons for a plan that isn't the original, as Jellyfin's
 /// transcode reasons, which Moonfin's playback info shows. Silo's own text
-/// is informational (protocol §7.1–7.2); only the ones that say why are
+/// is informational. Only the ones that say why are
 /// mapped, and unknown ones are left out.
 List<String> siloTranscodeReasons(Map<String, dynamic> plan) {
   if (plan['delivery'] == 'original_http') return const [];
@@ -140,28 +140,29 @@ const _warningReasons = {
 };
 
 /// The parts of a plan Moonfin's stream description takes from it, around
-/// the [mediaSource] (the effective file, mapped by 5.8) it plays.
+/// the mapped [mediaSource] (the effective file) it plays.
 ///
-/// - `streamUrl`: `stream.url` ([siloPlanUrl]); `container`: `stream.container`.
+/// - `streamUrl`: `stream.url` ([siloPlanUrl]), `container`:
+///   `stream.container`.
 /// - `playMethod` from `delivery` ([siloPlayMethod]).
 /// - `mediaSourceId`: `effective_media_file_id` (Silo may play another
-///   version than the one asked for); `playSessionId`: the session.
-/// - `timelineOffset`: `timeline.timeline_offset_seconds` (10.1).
-/// - `mediaStreams`: the file's streams, Moonfin's indices; the audio track
-///   Silo chose (`selected_tracks.audio.index`, an audio ordinal) back as
-///   Moonfin's index through the track map.
-/// - `sourceBitrate` from `source.bitrate_kbps`; the video range from the
-///   file's video stream, else the recipe's.
+///   version than the one asked for), `playSessionId`: the session.
+/// - `timelineOffset`: `timeline.timeline_offset_seconds`.
+/// - `mediaStreams`: the file's streams, Moonfin's indices, with the audio
+///   track Silo chose (`selected_tracks.audio.index`, an audio ordinal) back
+///   as Moonfin's index through the track map.
+/// - `sourceBitrate` from `source.bitrate_kbps`, and the video range from
+///   the file's video stream, else the recipe's.
 /// - `seeksThroughServer` when `timeline.can_seek_anywhere` is false (a
-///   remux, 10.12), and `reopenAfterPause` for a progressive remux.
-/// - Subtitles from the plan's `subtitle` block ([siloPlanSubtitles],
-///   10.14): its sidecars as external subtitles, downloaded ones added to
-///   the streams, and the selected track.
-/// - With [auth] (10.7), a stream on the server's origin carries the
-///   account's headers on every request, `stream.headers` on top, and an
+///   remux), and `reopenAfterPause` for a progressive remux.
+/// - Subtitles from the plan's `subtitle` block ([siloPlanSubtitles]): its
+///   sidecars as external subtitles, downloaded ones added to the streams,
+///   and the selected track.
+/// - With [auth], a stream on the server's origin carries the account's
+///   headers on every request, `stream.headers` on top, and an
 ///   `/api/v2/stream/` URL also carries `token=` ([siloAuthorizeUrl]). With
-///   [tokenInEveryUrl] (a player that sends no headers, 12.3) the HLS URL
-///   carries it too.
+///   [tokenInEveryUrl] (a player that sends no headers) the HLS URL carries
+///   it too.
 StreamResolutionResult siloPlanToResolution({
   required Map<String, dynamic> plan,
   required String sessionId,
@@ -243,7 +244,7 @@ StreamResolutionResult siloPlanToResolution({
     timelineOffset: offset is num && offset > 0
         ? Duration(microseconds: (offset * 1000000).round())
         : Duration.zero,
-    // A remux is produced as it plays: every seek goes back to Silo (10.12).
+    // A remux is produced as it plays, so every seek goes back to Silo.
     seeksThroughServer: timeline['can_seek_anywhere'] == false,
     // Silo closes a progressive remux that stops being read (a paused
     // player's buffer fills), as its web player allows for after a minute.

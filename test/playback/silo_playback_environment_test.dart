@@ -18,7 +18,7 @@ void main() {
     expect(environment.displayHdr, isNull);
   });
 
-  test('iOS: a phone playing through AetherEngine (12.2)', () {
+  test('iOS: a phone playing through AetherEngine', () {
     debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
     final environment = siloPlaybackEnvironment();
     expect(environment.platform, 'ios');
@@ -42,7 +42,7 @@ void main() {
     }
   });
 
-  test('Android: the engine the viewer picked (12.1)', () {
+  test('Android: the engine the viewer picked', () {
     debugDefaultTargetPlatformOverride = TargetPlatform.android;
     // No preferences registered: Media3, Android's default engine.
     final environment = siloPlaybackEnvironment();

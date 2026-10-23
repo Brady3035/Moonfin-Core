@@ -44,8 +44,7 @@ SiloImageRequest? parseSiloImagePlaceholder(String url) {
 /// records its artwork in the registry, so a placeholder can be resolved.
 typedef SiloArtworkLoader = Future<void> Function(String itemId);
 
-/// Turns placeholder URLs into real artwork URLs for one Silo client
-/// (decision D2, step 6.3).
+/// Turns placeholder URLs into real artwork URLs for one Silo client.
 ///
 /// Silo has no image URL that can be built from an item id: artwork comes
 /// signed, inside the item. When Moonfin asks for an image of an item this

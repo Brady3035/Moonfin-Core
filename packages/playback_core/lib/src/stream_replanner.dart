@@ -63,7 +63,7 @@ abstract interface class StreamReplanner {
   bool canReplan(StreamResolutionResult current);
 
   /// A new stream for [mediaItem] in place of [current], in the same
-  /// session. Throws when the server refuses; the player then stops
+  /// session. Throws when the server refuses, and the player then stops
   /// [current] and resolves afresh.
   Future<StreamResolutionResult> replan(
     dynamic mediaItem,

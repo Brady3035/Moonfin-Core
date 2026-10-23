@@ -6,17 +6,17 @@ import 'silo_playback_sessions.dart';
 
 /// Reports playback to Silo.
 ///
-/// Silo opens the session when `playback/start` answers (10.6), so starting
+/// Silo opens the session when `playback/start` answers, so starting
 /// reports nothing. Progress goes to `POST /api/v2/playback/{session}/progress`
-/// as sequenced samples (10.9); the stop is `DELETE /api/v2/playback/{session}`
-/// with a stop id it keeps for every retry (10.10).
+/// as sequenced samples, and the stop is `DELETE /api/v2/playback/{session}`
+/// with a stop id it keeps for every retry.
 class SiloPlaySessionService implements PlayerService {
   SiloPlaySessionService(this._client, {Future<void> Function(Duration)? sleep})
     : _sleep = sleep ?? Future<void>.delayed;
 
   final MediaServerClient _client;
 
-  /// Waits between stop retries; tests pass one that returns at once.
+  /// Waits between stop retries. Tests pass one that returns at once.
   final Future<void> Function(Duration) _sleep;
 
   /// How long a stop is retried, as Silo's web player does.
@@ -52,19 +52,19 @@ class SiloPlaySessionService implements PlayerService {
     int? subtitleStreamIndex,
   }) async {}
 
-  /// One progress sample (step 10.9): the media position in seconds (the
-  /// player's plus the stream's timeline offset, which the playback manager
-  /// already reports, 10.1), whether the viewer paused, and the session's
-  /// next sequence. Silo keeps the resume point and the "still watching"
-  /// clock from these: a session that hears nothing for 45 seconds (30
-  /// minutes while paused) is ended.
+  /// One progress sample: the media position in seconds (the player's plus
+  /// the stream's timeline offset, which the playback manager already
+  /// reports), whether the viewer paused, and the session's next sequence.
+  /// Silo keeps the resume point and the "still watching" clock from these:
+  /// a session that hears nothing for 45 seconds (30 minutes while paused)
+  /// is ended.
   ///
   /// - `applied`, `replayed`, `stale_sample`: nothing more to do (a stale
   ///   one was overtaken by a newer sample).
   /// - `409 progress_conflict`: Silo has another sample under this
   ///   sequence, so the sample goes once more under the next one.
   /// - `404`, `410 playback_session_ended`, `409 installation_changed`: the
-  ///   session is over; nothing more is reported on it.
+  ///   session is over, and nothing more is reported on it.
   @override
   Future<void> onPlaybackProgress(
     dynamic mediaItem,
@@ -111,7 +111,7 @@ class SiloPlaySessionService implements PlayerService {
     return false;
   }
 
-  /// Ends the session (step 10.10): `DELETE /api/v2/playback/{session}`
+  /// Ends the session: `DELETE /api/v2/playback/{session}`
   /// with the session's `stop_id` and the final sample (the next sequence,
   /// the media position), so Silo stores the resume point and the history
   /// entry, and frees its remux or transcode at once instead of when the
@@ -191,9 +191,9 @@ class SiloPlaySessionService implements PlayerService {
     }
   }
 
-  /// Tells the client [session]'s item changed (fix 13.3a): Silo's events
-  /// socket is silent about a stopped session, so without this a season's
-  /// list kept an episode just finished unwatched.
+  /// Tells the client [session]'s item changed. Silo's events socket is
+  /// silent about a stopped session, so without this a season's list kept
+  /// an episode just finished unwatched.
   void _noteEnded(SiloPlaybackSession session) =>
       _silo?.notePlaybackEnded(session.itemId);
 
@@ -201,7 +201,7 @@ class SiloPlaySessionService implements PlayerService {
   @override
   Future<void> closeLiveStream(String liveStreamId) async {}
 
-  /// The stop ends a remux or transcode too; this only makes sure one went
+  /// The stop ends a remux or transcode too. This only makes sure one went
   /// out (the manager asks for both on a re-resolve).
   @override
   Future<void> stopTranscoding(StreamResolutionResult resolution) async {

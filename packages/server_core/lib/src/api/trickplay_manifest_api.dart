@@ -1,6 +1,6 @@
 /// Optional extra for an `ItemsApi` whose server reads seek previews per
 /// file when a player wants them, rather than sending them on the item
-/// (Silo's `/watch/{id}/trickplay`, step 11.2).
+/// (Silo's `/watch/{id}/trickplay`).
 ///
 /// Jellyfin sends an item's previews as its `Trickplay` field, which the
 /// player reads (`TrickplayInfo.fromItemData`). With this interface

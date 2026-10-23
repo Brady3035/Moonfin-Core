@@ -27,7 +27,6 @@ void main() {
   // A ping body labelled json. Empty means no body, as in every other case.
   var pingBody = '';
 
-  // The paths the probe asked for.
   var paths = <String>[];
 
   setUp(() async {
@@ -55,8 +54,8 @@ void main() {
       await request.response.close();
     });
 
-    // The probe asks the client's own ping (13.1); Emby's is the one that
-    // meets a 401 from a remote server and a plain text body.
+    // The probe asks the client's own ping. Emby's is the one that meets a
+    // 401 from a remote server and a plain text body.
     final baseUrl = 'http://${server.address.address}:${server.port}';
     final client = _MockMediaServerClient();
     when(() => client.serverType).thenReturn(ServerType.jellyfin);
@@ -177,7 +176,7 @@ void main() {
     await service.recheckNow();
     expect(paths, ['/System/Ping']);
 
-    // Silo has no /System/Ping; its public identity read stands in.
+    // Silo has no /System/Ping, so its public identity read stands in.
     final silo = SiloMediaServerClient(
       baseUrl: 'http://${server.address.address}:${server.port}',
       deviceInfo: const DeviceInfo(

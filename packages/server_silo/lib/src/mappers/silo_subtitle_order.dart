@@ -1,11 +1,10 @@
 import 'silo_media_source_mapper.dart';
 
-// Silo numbers a file's subtitles in one **combined** space (protocol v3
-// §8): its external sidecar files first, then the tracks embedded in the
-// container, then downloaded subtitles, densely from 0. Moonfin numbers
-// them inside the file's stream index space (5.8). These two map one to
-// the other for the file's own subtitles (10.14; moved here at 11.6, which
-// remembers a series' subtitle by its combined index).
+// Silo numbers a file's subtitles in one **combined** space: its external
+// sidecar files first, then the tracks embedded in the container, then
+// downloaded subtitles, densely from 0. Moonfin numbers them inside the
+// file's stream index space. These two map one to the other for the file's
+// own subtitles.
 
 /// Moonfin's subtitle stream indices of a mapped [source], in Silo's
 /// combined order.

@@ -343,7 +343,7 @@ void main() {
         final server = FixtureServer({
           '/api/v2/auth/logout': (_) =>
               FixtureServer.problem(401, 'session_expired', 'Session ended.'),
-          // The interceptor tries a refresh first; Silo refuses it too.
+          // The interceptor tries a refresh first, and Silo refuses it too.
           '/api/v2/auth/refresh': (_) =>
               FixtureServer.problem(401, 'invalid_token', 'Refresh refused.'),
         });

@@ -86,7 +86,7 @@ void main() {
         server,
       ).resolve(siloTestItem('silo/watch_movie.json'), deviceProfile: _profile);
       final body = server.bodies(startPath).single;
-      // From the start, said as such (10.11).
+      // From the start, said as such.
       expect(body['start_position'], 0);
       expect(body, isNot(contains('audio_track_index')));
       expect(body, isNot(contains('bandwidth_cap_kbps')));
@@ -141,7 +141,7 @@ void main() {
       expect(result.sourceBitrate, 7355000);
       expect(result.videoRangeType, 'SDR');
       expect(result.transcodingReasons, ['AudioCodecNotSupported']);
-      // The file's streams in Moonfin's numbering; Silo's audio track 0 is
+      // The file's streams in Moonfin's numbering. Silo's audio track 0 is
       // Moonfin's stream 1.
       final sources = (item['MediaSources'] as List).cast<Map>();
       expect(result.mediaStreams, sources.first['MediaStreams']);
@@ -176,7 +176,7 @@ void main() {
       expect(session.plan['plan_id'], startsWith('plan:'));
     });
 
-    test('the playing file is noted for its markers (11.1)', () async {
+    test('the playing file is noted for its markers', () async {
       final server = SiloTestServer({
         capabilitiesPath: SiloTestServer.file(
           'silo/playback_capabilities.json',
@@ -278,7 +278,7 @@ void main() {
     });
 
     test(
-      'Silo\'s refusal to play reaches the player with its words (10.8)',
+      'Silo\'s refusal to play reaches the player with its words',
       () async {
         final server = _server(
           start: SiloTestServer.file('decision_terminal.json', status: 201),
@@ -390,7 +390,7 @@ void main() {
     });
   });
 
-  group('resume or start over (10.11)', () {
+  group('resume or start over', () {
     test('the position Moonfin passes, or the start', () {
       expect(siloStartPosition(null), 0);
       expect(siloStartPosition(0), 0);

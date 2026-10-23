@@ -11,8 +11,8 @@ class _MockClient extends Mock implements MediaServerClient {}
 
 class _MockItemsApi extends Mock implements ItemsApi {}
 
-/// An items API that reads one item at a time and narrows a refresh (Silo,
-/// 9.4): only `changed` is worth asking about again.
+/// An items API that reads one item at a time and narrows a refresh (Silo):
+/// only `changed` is worth asking about again.
 class _ScopedItemsApi extends Mock implements ItemsApi, UserDataRefreshScope {
   @override
   List<String> userDataMayHaveChanged(Iterable<String> itemIds) => [

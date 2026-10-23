@@ -95,7 +95,7 @@ class _AddToCollectionDialogState extends State<AddToCollectionDialog> {
   Future<void> _loadCollections() async {
     try {
       // A server that lets the user edit only some collections lists just
-      // those (Silo: the profile's own manual ones, step 9.5).
+      // those (Silo: the profile's own manual ones).
       final api = _client.itemsApi;
       final List<dynamic> items;
       if (api is EditableCollectionsApi) {

@@ -1,7 +1,7 @@
 /// Answers read from Silo, kept per key for [lifetime].
 ///
 /// Everyone asking for a key while its read is on the way shares that read.
-/// A read that fails is not kept, nor an answer [keep] turns down, so the
+/// A read that fails isn't kept, nor an answer [keep] turns down, so the
 /// next ask reads again. With [maxKeys], the oldest answers make room for
 /// new ones.
 class SiloKeptReads<K, T> {
@@ -14,10 +14,10 @@ class SiloKeptReads<K, T> {
 
   final Duration lifetime;
 
-  /// Whether an answer is worth keeping; all are when null.
+  /// Whether an answer is worth keeping. All are when null.
   final bool Function(T value)? keep;
 
-  /// How many answers are kept at most; no limit when null.
+  /// How many answers are kept at most, or no limit when null.
   final int? maxKeys;
 
   final DateTime Function() _clock;

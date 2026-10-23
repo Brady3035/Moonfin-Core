@@ -208,8 +208,8 @@ class ThemeMusicService implements AudioOwnable {
   }
 
   /// The song's stream: a link the server makes for this play when it hands
-  /// out theme music that way (Silo's grants, step 11.5), else Jellyfin's
-  /// and Emby's audio stream with the account's token.
+  /// out theme music that way (Silo's grants), else Jellyfin's and Emby's
+  /// audio stream with the account's token.
   Future<String?> _audioUrl(String ownerId, String songId) async {
     final Object items = _client.itemsApi;
     if (items is ThemeSongStreamApi) {
@@ -236,7 +236,7 @@ class ThemeMusicService implements AudioOwnable {
     (container: 'wav', codec: null),
   ];
 
-  /// What AVPlayer plays; anything else Silo converts to AAC in MP4.
+  /// What AVPlayer plays. Silo converts anything else to AAC in MP4.
   static const List<ThemeAudioFormat> _appleThemeFormats = [
     (container: 'mp3', codec: 'mp3'),
     (container: 'mp4', codec: 'aac'),

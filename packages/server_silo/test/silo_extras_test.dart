@@ -47,7 +47,7 @@ void main() {
     final api = siloTestClient(server).itemsApi;
 
     final item = await api.getItem(_id);
-    // They play since 10.6, so the trailer button offers them.
+    // Moonfin plays them, so the trailer button offers them.
     expect(siloLocalTrailersPlayable, isTrue);
     expect(item['LocalTrailerCount'], 2);
     expect(item['SpecialFeatureCount'], 3);

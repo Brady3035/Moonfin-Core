@@ -80,7 +80,7 @@ void main() {
       expect(ticket.protocol, 'silo.events.v2');
       expect(ticket.maxConnection, const Duration(minutes: 5));
       expect(ticket.expiresIn, const Duration(seconds: 30));
-      // The protocol first, then the credential; Silo selects only the first.
+      // The protocol first, then the credential. Silo selects only the first.
       expect(ticket.offeredProtocols, [
         'silo.events.v2',
         'silo.ticket.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
@@ -118,7 +118,7 @@ void main() {
     });
 
     // A wss URL without a port reports port 0, and dart:io's WebSocket used
-    // to connect to exactly that (Brady, macOS, 2026-10-18).
+    // to connect to exactly that on macOS.
     test('the port is written out, so the socket reaches 443 or 80', () {
       final secure = _client(FixtureServer({})).eventsApi.socketUri();
       expect(secure.port, 443);

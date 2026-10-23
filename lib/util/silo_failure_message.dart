@@ -5,8 +5,7 @@ import 'package:server_silo/server_silo.dart';
 import '../l10n/app_localizations.dart';
 
 /// Silo refusals that mean "not now" or "not with this version", which any
-/// screen can meet and which deserve a sentence rather than an HTTP code
-/// (17.3).
+/// screen can meet and which deserve a sentence rather than an HTTP code.
 sealed class SiloFailure {
   const SiloFailure();
 

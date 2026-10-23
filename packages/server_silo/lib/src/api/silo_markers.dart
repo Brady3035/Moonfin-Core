@@ -5,7 +5,7 @@ import '../mappers/silo_marker_mapper.dart';
 import '../silo_kept_reads.dart';
 
 /// Silo's skip markers (intro, credits, recap, preview) as Moonfin's media
-/// segments (step 11.1).
+/// segments.
 ///
 /// Silo keeps markers per **file**: `GET /markers/files/{file_id}` answers
 /// one file, `GET /markers/items/{item_id}` the first file of an item the
@@ -16,7 +16,7 @@ import '../silo_kept_reads.dart';
 /// its id.
 ///
 /// Answers are kept for [ttl] per file, since the player asks again for
-/// each item of a queue and on each return to it; an edit in Silo's web app
+/// each item of a queue and on each return to it. An edit in Silo's web app
 /// shows on the next play after that.
 class SiloMarkers {
   SiloMarkers(this._dio, {DateTime Function()? clock})
@@ -30,7 +30,7 @@ class SiloMarkers {
   final _playing = <String, ({String fileId, num? runTimeSeconds})>{};
 
   /// Segments by file (`file:<id>`), or by item before one is noted
-  /// (`item:<id>`). A failed read is not kept: the next play asks again.
+  /// (`item:<id>`). A failed read isn't kept, so the next play asks again.
   final SiloKeptReads<String, List<Map<String, dynamic>>> _segments;
 
   /// Called by the resolver when [itemId] starts playing [fileId] (the

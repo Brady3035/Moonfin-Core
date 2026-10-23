@@ -1,5 +1,5 @@
 /// Optional extra for an `ItemsApi` whose server can hide a card from its
-/// Continue Watching and Next Up rows itself (Silo's dismissals, step 9.7).
+/// Continue Watching and Next Up rows itself (Silo's dismissals).
 ///
 /// Moonfin otherwise hides those cards in a list kept on this device
 /// (`UserPreferences.hideFromContinueWatching`, `hideFromNextUp`). With this

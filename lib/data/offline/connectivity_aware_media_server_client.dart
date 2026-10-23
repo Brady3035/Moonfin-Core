@@ -111,7 +111,7 @@ class ConnectivityAwareMediaServerClient
   @override
   set userId(String? id) => _online.userId = id;
 
-  // Profile members forward to the wrapped client; on servers without
+  // Profile members forward to the wrapped client. On servers without
   // household profiles they read null and ignore writes.
   @override
   String? get profileId => clientProfileId(_online);

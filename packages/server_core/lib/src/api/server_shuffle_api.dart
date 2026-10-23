@@ -12,7 +12,7 @@ class ServerShuffle {
 
 /// Optional extra for an `ItemsApi` whose server shuffles a series, season,
 /// library or collection itself, with no repeats until everything has played
-/// (Silo's shuffles, step 11.7).
+/// (Silo's shuffles).
 ///
 /// Moonfin otherwise loads every item and shuffles them on the device. With
 /// this interface (`itemsApi is ServerShuffleApi`) a shuffle is the server's:
@@ -23,11 +23,10 @@ abstract interface class ServerShuffleApi {
   /// season, library or collection).
   Future<bool> canShuffle(Map<String, dynamic> item);
 
-  /// Starts a shuffle of [item].
   Future<ServerShuffle> startShuffle(Map<String, dynamic> item);
 
   /// Moves shuffle [shuffleId] on from [fromItemId], the item that was
-  /// current; a repeat after a lost answer changes nothing. Null when the
+  /// current. A repeat after a lost answer changes nothing. Null when the
   /// shuffle is gone.
   Future<ServerShuffle?> advanceShuffle(
     String shuffleId, {

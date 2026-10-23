@@ -78,7 +78,7 @@ class SiloImageCapabilities {
 
 /// Silo's image endpoints. Not a Moonfin interface: Moonfin asks for images
 /// through `ImageApi`, which the Silo client answers from the URLs items carry
-/// (`SiloImageRegistry`, wired in step 6.1).
+/// (`SiloImageRegistry`).
 class SiloImagesApi {
   SiloImagesApi(this._dio);
 

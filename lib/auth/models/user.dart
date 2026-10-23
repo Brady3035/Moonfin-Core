@@ -36,17 +36,15 @@ class PrivateUser extends User {
   final bool canManageCollections;
 
   /// On Silo, the account this user belongs to. A Silo login belongs to an
-  /// account, and the Moonfin user is one of its household profiles (the main
-  /// profile until the optional profiles phase; decision D9). Step 3.2 keys
-  /// the stored tokens by it. Null on Jellyfin and Emby.
+  /// account, and the Moonfin user is one of its household profiles. The
+  /// stored tokens are keyed by it. Null on Jellyfin and Emby.
   final String? siloAccountId;
 
-  /// Whether this is a Silo profile rather than a Jellyfin or Emby user.
   bool get isSiloProfile => siloAccountId != null;
 
-  /// On Silo, whether the profile is locked with a PIN: acting as it needs
-  /// the PIN entered in this login (phase 18). As Silo said when the
-  /// household was last read. False on Jellyfin and Emby.
+  /// On Silo, whether the profile is locked with a PIN, so acting as it needs
+  /// the PIN entered in this login. As Silo said when the household was last
+  /// read. False on Jellyfin and Emby.
   final bool siloHasPin;
 
   const PrivateUser({

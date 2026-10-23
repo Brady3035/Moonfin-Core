@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-/// Silo's pinned v2 contract (`server_silo`'s fixture, step 0.2).
+/// Silo's pinned v2 contract (`server_silo`'s fixture).
 final Map<String, dynamic> siloContract =
     jsonDecode(
           utf8.decode(
@@ -17,8 +17,8 @@ final Map<String, dynamic> siloContract =
 Map<String, dynamic> get _schemas =>
     (siloContract['components'] as Map)['schemas'] as Map<String, dynamic>;
 
-/// What is wrong with [value] as the contract's schema [name], as paths
-/// (`client_capabilities.video_evidence: required`); empty when it fits.
+/// What's wrong with [value] as the contract's schema [name], as paths
+/// (`client_capabilities.video_evidence: required`), or empty when it fits.
 ///
 /// A small validator for the parts of JSON Schema the contract's playback
 /// bodies use: `$ref`, `type` (one or a list), `required`, `properties`,

@@ -217,7 +217,7 @@ List<AggregatedItem> seerrMissingCollectionItems({
 /// Which engine fills a detail page's "More like this" row.
 ///
 /// The setting's default, Moonfin Recommends, matches genres across the
-/// library on the device. On Silo (6.16) the server's own engine
+/// library on the device. On Silo the server's own engine
 /// (`/recommendations/similar`, embeddings blended with co-watching) is what
 /// Silo's apps show and what the profile's access already shapes, so Moonfin
 /// Recommends means Silo's engine there. TMDb Similarity stays TMDb, and kids
@@ -492,7 +492,7 @@ class ItemDetailViewModel extends ChangeNotifier {
 
   /// Whether this collection's cards offer "Remove from collection". A
   /// server can limit editing to some collections (Silo: the profile's own
-  /// manual ones, step 9.5); otherwise any collection page offers it.
+  /// manual ones). Otherwise any collection page offers it.
   bool get canRemoveFromCollection {
     final collection = _item;
     if (collection == null || collection.type != 'BoxSet') return false;
@@ -1033,8 +1033,8 @@ class ItemDetailViewModel extends ChangeNotifier {
     } catch (_) {}
   }
 
-  /// A series' track choice kept by the server (Silo, 11.6) into the
-  /// device's, before anything here plays.
+  /// Copies the series' audio and subtitle choice that Silo keeps into this
+  /// device's settings before anything plays.
   Future<void> _syncSeriesTrackChoices() async {
     final item = _item;
     if (item == null) return;

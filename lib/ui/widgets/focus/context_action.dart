@@ -116,11 +116,11 @@ List<ItemContextAction> contextActionsFor(
       !requiresCollectionPermission ||
       currentUser?.canManageCollections == true ||
       isAdminUser;
-  // A server that hides Home cards itself (Silo, step 9.7) does it for this
-  // item's server only. Read when a hide is picked, not for every menu.
+  // A server that hides Home cards itself (Silo) does it for this item's
+  // server only. Read when a hide is picked, not for every menu.
   // Cards name their server by its address (Home rows, grids, detail pages)
-  // or by the app's server id, so either counts (found testing 9.7: Home
-  // cards never matched the user's server id).
+  // or by the app's server id, so either counts. Home cards never match the
+  // user's server id.
   HomeDismissalsApi? dismissals() {
     final ofThisServer = isStoredServer(
       item.serverId,
@@ -219,7 +219,7 @@ List<ItemContextAction> contextActionsFor(
         label: l10n.contextMenuHideFromContinueWatching,
         onSelect: () async {
           // The server's own hide holds on every device and keeps the
-          // resume point; this device's list is the fallback.
+          // resume point. This device's list is the fallback.
           final server = dismissals();
           if (await _hiddenByServer(
             () => server?.hideFromContinueWatching(item.rawData),
@@ -509,12 +509,12 @@ Future<void> _confirmAndRemoveFromCollection(
   }
 }
 
-/// Runs a server's own hide of a Home card ([HomeDismissalsApi], step 9.7)
-/// and reloads Home, whose rows the server now answers without the card.
+/// Runs a server's own hide of a Home card ([HomeDismissalsApi]) and
+/// reloads Home, whose rows the server now answers without the card.
 /// False when the server has none ([hide] answers null) or it failed, so the
-/// caller falls back to this device's list. On that fallback the item is not
-/// marked unwatched, as it is on Jellyfin: on a server with dismissals that
-/// would also erase its watch history.
+/// caller falls back to this device's list. On that fallback the item isn't
+/// marked unwatched as it is on Jellyfin, because on a server with
+/// dismissals that would also erase its watch history.
 Future<bool> _hiddenByServer(Future<void>? Function() hide) async {
   try {
     final hiding = hide();

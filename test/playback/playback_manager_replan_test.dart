@@ -115,7 +115,8 @@ class _TestBackend extends Fake implements PlayerBackend {
   void dispose() {}
 }
 
-/// Resolves session-1, session-2…; replans when [replans] allows it.
+/// Resolves session-1, session-2 and so on, and replans when [replans]
+/// allows it.
 class _ReplanningResolver extends MediaStreamResolver
     implements StreamReplanner {
   bool replans = true;

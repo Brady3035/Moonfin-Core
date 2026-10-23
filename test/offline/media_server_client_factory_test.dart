@@ -46,7 +46,7 @@ void main() {
     expect(client.serverType, ServerType.silo);
     expect(client.baseUrl, 'https://silo.example');
     final silo = client as SiloMediaServerClient;
-    // The test host is Linux; the platform header is always filled in.
+    // The test host is Linux, and the platform header is always filled in.
     expect(silo.platform, isNotEmpty);
     expect(silo.requestHeaders['X-Silo-Device-Platform'], silo.platform);
     expect(silo.requestHeaders['X-Silo-Device-Id'], 'device');

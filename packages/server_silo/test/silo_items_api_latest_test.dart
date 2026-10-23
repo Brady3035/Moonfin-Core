@@ -12,7 +12,7 @@ const _settingsPath = '/api/v2/settings/values/effective';
 
 /// A catalog answering [count] titles of [type], the libraries list (Movies
 /// is `1`, TV Shows `3`) and the profile's "hide watched items from Home"
-/// setting ([hideWatched]; null: the setting can't be read).
+/// setting ([hideWatched], or null when the setting can't be read).
 FixtureServer _server({
   String type = 'movie',
   int count = 30,

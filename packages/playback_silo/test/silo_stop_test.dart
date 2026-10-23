@@ -153,7 +153,7 @@ void main() {
     expect(s.server.to(_sessionPath), isEmpty);
   });
 
-  group('the client hears the item changed (fix 13.3a)', () {
+  group('the client hears the item changed', () {
     test('once Silo has the stop', () async {
       final s = await _started(_stopped);
       final heard = <String>[];

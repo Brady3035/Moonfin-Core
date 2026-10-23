@@ -7,15 +7,14 @@ import '../models/user.dart';
 import '../store/authentication_store.dart';
 import 'silo_token_storage.dart';
 
-/// Keeps a Silo account's household profiles stored as Moonfin users
-/// (phase 18, decision D1).
+/// Keeps a Silo account's household profiles stored as Moonfin users.
 ///
 /// A Silo login belongs to an account, and each of the account's profiles
-/// (each with its own progress, favourites and limits) becomes one Moonfin
+/// (each with its own progress, favorites and limits) becomes one Moonfin
 /// user, so the server's user grid, the account switcher and everything
 /// Moonfin keeps per user work per household member. All of them share the
 /// account's one token pair, stored once under (server, account)
-/// ([SiloTokenStorage]); a user carries only its profile.
+/// ([SiloTokenStorage]), and a user carries only its profile.
 class SiloHousehold {
   SiloHousehold(this._store);
 
@@ -30,8 +29,8 @@ class SiloHousehold {
   ///
   /// A profile already stored keeps when it was last used, and its download
   /// permission (Silo decides that per profile, and it is read again when the
-  /// profile is used); a new one is sorted last. [accessToken] is kept on
-  /// each user for the code that checks a stored user has a token; the
+  /// profile is used). A new one is sorted last. [accessToken] is kept on
+  /// each user for the code that checks a stored user has a token, but the
   /// session restores from the account's pair.
   Future<List<PrivateUser>> store({
     required String serverId,
@@ -63,7 +62,7 @@ class SiloHousehold {
         siloAccountId: accountId,
         siloHasPin: member.profile.hasPin,
       );
-      // Each save rewrites the whole store, and this runs at every start:
+      // Each save rewrites the whole store, and this runs at every start, so
       // a profile that hasn't changed isn't written again.
       if (existing == null ||
           jsonEncode(existing.toJson()) != jsonEncode(user.toJson())) {
@@ -80,11 +79,11 @@ class SiloHousehold {
     return users;
   }
 
-  /// The profile to read a Silo server as when it isn't the active one
-  /// (18.7): Home's and search's rows merge every signed-in server, one user
+  /// The profile to read a Silo server as when it isn't the active one,
+  /// since Home's and search's rows merge every signed-in server, one user
   /// each. Of [users] (a server's stored users), the most recently used
-  /// profile that can act without asking for a PIN; null when every one is
-  /// locked. Profiles of one household are never merged: they are the same
+  /// profile that can act without asking for a PIN, or null when every one
+  /// is locked. Profiles of one household are never merged: they are the same
   /// library with different watch state and limits.
   static PrivateUser? profileForOtherServer(
     List<PrivateUser> users,
@@ -106,7 +105,7 @@ class SiloHousehold {
 
 /// A stored Silo profile's avatar URL, or null when it has none or the
 /// server's client hasn't read the household yet. Silo has no
-/// `/Users/{id}/Images/Primary`: the URL came with the profile (18.2), and
+/// `/Users/{id}/Images/Primary`. The URL came with the profile, and
 /// only that server's client knows it.
 String? siloProfileImageUrl(
   MediaServerClientFactory clients, {

@@ -4,10 +4,9 @@ library;
 
 /// Key on a translated user carrying the owning Silo account's id.
 ///
-/// Moonfin's user is a profile of the account: the main profile (decision D9),
-/// or any profile with the optional phase 18. This ties it back to the account
-/// that owns the login. (Right after sign-in, before a profile is chosen, the
-/// user is the account itself; see [siloAccountToUserDto].)
+/// Moonfin's user is a profile of the account, and this ties it back to the
+/// account that owns the login. (Right after sign-in, before a profile is
+/// chosen, the user is the account itself. See [siloAccountToUserDto].)
 const siloAccountIdKey = 'SiloAccountId';
 
 /// Key on a translated user carrying the untranslated Silo `Account`.
@@ -16,7 +15,7 @@ const siloAccountKey = 'SiloAccount';
 /// A Jellyfin `UserDto` for a Silo `Account`, before a profile is chosen.
 ///
 /// Silo has no per-user policy object. Its account carries a server-wide
-/// `role` (`admin` or `user`) and `download_allowed`; the rest of Jellyfin's
+/// `role` (`admin` or `user`) and `download_allowed`. The rest of Jellyfin's
 /// policy flags are left out and read as their defaults.
 Map<String, dynamic> siloAccountToUserDto(Map<String, dynamic> account) {
   final id = account['id']?.toString();
@@ -41,8 +40,7 @@ const siloProfileKey = 'SiloProfile';
 
 /// A Jellyfin `UserDto` for a Silo [profile] of [account]: the Moonfin user.
 ///
-/// The id is the profile's, so each profile can be its own Moonfin user
-/// (phase 18) and the main profile keeps its id when that arrives.
+/// The id is the profile's, so each profile can be its own Moonfin user.
 ///
 /// Silo has no per-user policy object. What Moonfin reads is derived:
 /// - `IsAdministrator`: an `admin` account acting as its **primary** profile.
@@ -51,8 +49,8 @@ const siloProfileKey = 'SiloProfile';
 /// - `EnableCollectionManagement`, `EnableSubtitleDownloading`: true. Personal
 ///   collections and subtitle search are open to every profile on Silo.
 /// - `EnableAllFolders`: always true. Silo enforces a profile's library
-///   restrictions itself, and its library ids aren't Moonfin's view ids until
-///   phase 6, so passing them on could hide libraries the profile may see.
+///   restrictions itself, and its library ids aren't Moonfin's view ids, so
+///   passing them on could hide libraries the profile may see.
 /// - `EnableLiveTvAccess`: false, Silo has no Live TV.
 Map<String, dynamic> siloProfileToUserDto({
   required Map<String, dynamic> profile,

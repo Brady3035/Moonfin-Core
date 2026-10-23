@@ -48,7 +48,7 @@ ResponseBody _redirect(String location) => ResponseBody.fromString(
   },
 );
 
-/// The public system endpoints plus [routes]; `/account/me` answers only the
+/// The public system endpoints plus [routes]. `/account/me` answers only the
 /// bearer token in [goodToken] unless overridden.
 Map<String, ResponseBody Function(RequestOptions)> _routes({
   String goodToken = 'new-access',
@@ -314,8 +314,8 @@ void main() {
   });
 
   group('requests that are never refreshed for', () {
-    // Sign-in, refresh, device sign-in and PIN checks set these flags
-    // (from step 2.3 on); exercised here on a bare Dio with the interceptor.
+    // Sign-in, refresh, device sign-in and PIN checks set these flags. They're
+    // exercised here on a bare Dio with the interceptor.
     Future<void> send(Map<String, Object> extra, FixtureServer server) async {
       final session = SiloSession(clock: () => _now)
         ..setTokens(_tokens('old-access'));

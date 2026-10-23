@@ -115,7 +115,7 @@ void main() {
   setUp(queue.reset);
 
   test(
-    'a show\'s shuffle queues two, then grows one at a time (11.7)',
+    'a show\'s shuffle queues two, then grows one at a time',
     () async {
       final server = _Silo([(2, 4), (1, 9), (3, 2), (1, 1)]);
       final first = await queue.start(_client(server), _show);

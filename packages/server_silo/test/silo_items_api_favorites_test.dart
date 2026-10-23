@@ -7,7 +7,7 @@ import 'silo_test_client.dart';
 
 const _catalogPath = '/api/v2/catalog';
 
-/// The catalog answering the captured favourites (catalog cards), as one
+/// The catalog answering the captured favorites (catalog cards), as one
 /// whole page.
 FixtureServer _server() => FixtureServer({
   _catalogPath: siloJson({
@@ -30,7 +30,7 @@ final _favorited = jsonEncode([
   },
 ]);
 
-/// What Home's favourite rows ask (`RowDataSource.loadFavorites`).
+/// What Home's favorite rows ask (`RowDataSource.loadFavorites`).
 Future<Map<String, dynamic>> _row(
   FixtureServer server,
   List<String> types, {
@@ -47,7 +47,7 @@ Future<Map<String, dynamic>> _row(
 );
 
 void main() {
-  test('favourite films: the favorited rule on the catalog', () async {
+  test('favorite films: the favorited rule on the catalog', () async {
     final server = _server();
     final page = await _row(server, ['Movie']);
     final q = _query(server);
@@ -57,7 +57,7 @@ void main() {
     expect(q.containsKey('source'), isFalse);
     expect(q.containsKey('library_id'), isFalse);
 
-    // The scope asked for films; the captured list also has a series,
+    // The scope asked for films. The captured list also has a series,
     // which a films row leaves out.
     final items = (page['Items'] as List).cast<Map<String, dynamic>>();
     expect(items.map((i) => i['Name']), [
@@ -72,7 +72,7 @@ void main() {
     );
   });
 
-  test('favourite series and episodes', () async {
+  test('favorite series and episodes', () async {
     for (final (types, scope) in [
       (['Series'], 'series'),
       (['Episode'], 'episode'),
@@ -92,12 +92,12 @@ void main() {
     expect(_query(server)['library_id'], '1');
   });
 
-  test('favourite people and collections: Silo has none', () async {
+  test('favorite people and collections: Silo has none', () async {
     final server = _server();
     final people = await _row(server, ['Person']);
     expect(people['Items'], isEmpty);
-    // Silo's favourites are titles; without this the row would list every
-    // collection (6.15).
+    // Silo's favorites are titles. Without this the row would list every
+    // collection.
     final collections = await _row(server, ['BoxSet']);
     expect(collections['Items'], isEmpty);
     expect(server.requests, isEmpty);

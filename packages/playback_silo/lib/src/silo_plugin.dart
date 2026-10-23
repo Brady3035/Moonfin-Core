@@ -7,8 +7,8 @@ import 'silo_playback_context.dart';
 /// Builds Silo's stream resolver and session reporter for a client, like
 /// `JellyfinPlugin` and `EmbyPlugin` do for theirs.
 ///
-/// [environment] tells the resolver about the device and its player (10.4);
-/// it is asked at every playback start, so a changed display or setting is
+/// [environment] tells the resolver about the device and its player. It's
+/// asked at every playback start, so a changed display or setting is
 /// picked up. Without it the resolver knows only the app version and sends
 /// conservative defaults.
 class SiloPlugin {

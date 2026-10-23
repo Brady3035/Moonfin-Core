@@ -657,7 +657,7 @@ class LibraryBrowseViewModel extends ChangeNotifier {
     try {
       // A server with a letter index says where the letter starts, so
       // everything up to it loads in one request instead of a walk of
-      // pages (Silo, step 6.11). The walk below still finishes the job.
+      // pages (Silo). The walk below still finishes the job.
       final position = await _letterPosition(letter);
       if (!stillWanted()) return false;
       if (position != null && position >= _fetchedCount && hasMore) {
@@ -691,7 +691,7 @@ class LibraryBrowseViewModel extends ChangeNotifier {
   }
 
   /// Where [letter]'s titles start in this list, from a server that keeps
-  /// a letter index ([LetterPositionApi]); null for any other server or
+  /// a letter index ([LetterPositionApi]), or null for any other server or
   /// when it can't say.
   Future<int?> _letterPosition(String letter) async {
     final api = _client.itemsApi;

@@ -52,15 +52,12 @@ bool liveTvOnAnySignedInServer({AuthenticationStore? store}) =>
 bool musicOnAnySignedInServer({AuthenticationStore? store}) =>
     anySignedInServerSupports((f) => f.supportsMusic, store: store);
 
-/// Playlists ([FeatureDetector.supportsPlaylists]).
 bool playlistsOnAnySignedInServer({AuthenticationStore? store}) =>
     anySignedInServerSupports((f) => f.supportsPlaylists, store: store);
 
-/// The Moonfin server plugin ([FeatureDetector.supportsMoonfinPlugin]).
 bool moonfinPluginOnAnySignedInServer({AuthenticationStore? store}) =>
     anySignedInServerSupports((f) => f.supportsMoonfinPlugin, store: store);
 
-/// Seerr ([FeatureDetector.supportsJellyseerr]).
 bool seerrOnAnySignedInServer({AuthenticationStore? store}) =>
     anySignedInServerSupports((f) => f.supportsJellyseerr, store: store);
 

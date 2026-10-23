@@ -1,5 +1,5 @@
 /// Translates the device profile Moonfin builds for Jellyfin and Emby into
-/// the codec evidence Silo's playback protocol v3 asks for (step 10.3).
+/// the codec evidence Silo's playback protocol v3 asks for.
 ///
 /// Jellyfin decides a route from a `DeviceProfile` (direct-play profiles,
 /// codec conditions, transcoding profiles). Silo decides it on the server
@@ -10,17 +10,18 @@
 /// than keeping a second description of every backend.
 ///
 /// **Evidence tier.** A profile is a declaration, not a probe of the
-/// device's decoders, so both tiers are `declared` (protocol §3): Silo then
+/// device's decoders, so both tiers are `declared`: Silo then
 /// matches the flat codec lists and never walks `video_decode[]`, which is
 /// left out rather than invented. A backend that enumerates its decoders
-/// (Media3's `MediaCodecList`, phase 12) can claim `exact` later.
+/// (Media3's `MediaCodecList`) could claim `exact`.
 library;
 
 import 'dart:math';
 
-/// The delivery classes a client negotiates in (protocol §4). Silo folds
-/// its four deliveries into these: `original_http`, `server_remux_progressive`
-/// → `progressive`, and both HLS deliveries → `hls`.
+/// The delivery classes a client negotiates in. Silo folds
+/// its four deliveries into these: `original_http` stays as it is,
+/// `server_remux_progressive` becomes `progressive`, and both HLS deliveries
+/// become `hls`.
 const siloDeliveryOriginal = 'original_http';
 const siloDeliveryProgressive = 'progressive';
 const siloDeliveryHls = 'hls';
@@ -28,7 +29,7 @@ const siloDeliveryHls = 'hls';
 /// Client features Moonfin always sends: the v3 contract itself, and native
 /// selection of embedded subtitles in a file played whole (so an embedded
 /// PGS or text track plays from the file instead of being extracted or
-/// burnt in).
+/// burned in).
 const siloBaseClientFeatures = ['playback_plan_v3', 'embedded_subtitles_v1'];
 
 /// `original_http` claim: the player picks any audio track of the whole
@@ -66,7 +67,7 @@ class SiloPlayerTraits {
     rendersEmbeddedSubtitles: true,
   );
 
-  /// AetherEngine's traits (macOS, iOS, and tvOS from 12.2): it demuxes the
+  /// AetherEngine's traits (macOS, iOS and tvOS): it demuxes the
   /// file itself and picks any audio track, presents HDR and Dolby Vision
   /// through the system (which maps them to an SDR screen), draws embedded
   /// and bitmap subtitles, and plays every delivery. It sends the stream's
@@ -77,7 +78,7 @@ class SiloPlayerTraits {
     rendersEmbeddedSubtitles: true,
   );
 
-  /// Media3's traits (Android, step 12.1): ExoPlayer picks any audio track
+  /// Media3's traits (Android): ExoPlayer picks any audio track
   /// by its place among the file's (Moonfin hands it the ordinal) and draws
   /// the embedded text and bitmap subtitles it extracts (SubRip, SSA, WebVTT,
   /// PGS, VobSub), but draws ASS without its styling and loads no attached
@@ -90,14 +91,13 @@ class SiloPlayerTraits {
     loadsFontAttachments: false,
   );
 
-  /// A browser's `<video>` element (step 12.3), with hls.js for HLS: it
-  /// sends no headers of its own (neither does hls.js here), picks no audio
-  /// track of a file, and draws no embedded subtitles; sidecars are loaded
-  /// as text tracks. Its device profile comes from the browser's
-  /// `isTypeSupported` answers.
+  /// A browser's `<video>` element, with hls.js for HLS: it sends no headers
+  /// of its own (neither does hls.js here), picks no audio track of a file,
+  /// and draws no embedded subtitles. Sidecars are loaded as text tracks. Its
+  /// device profile comes from the browser's `isTypeSupported` answers.
   static const web = SiloPlayerTraits(sendsRequestHeaders: false);
 
-  /// A cast receiver (Chromecast 12.4, AirPlay 12.5, DLNA 12.6): it loads
+  /// A cast receiver (Chromecast, AirPlay, DLNA): it loads
   /// the URL itself, so it sends none of the phone's headers, and its own
   /// player seeks by byte ranges, which a chunked remux has none of, so it
   /// takes the original file or HLS only. It picks no audio track and draws
@@ -107,7 +107,7 @@ class SiloPlayerTraits {
     playsProgressive: false,
   );
 
-  /// libmpv on Android (media_kit, the other engine there, 12.1): as on the
+  /// libmpv on Android (media_kit, the other engine there): as on the
   /// desktop, except that it decodes through MediaCodec onto the surface,
   /// so it doesn't map HDR to an SDR screen.
   static const mpvAndroid = SiloPlayerTraits(
@@ -131,8 +131,8 @@ class SiloPlayerTraits {
   /// Selects and draws an embedded subtitle track of a file played whole.
   final bool rendersEmbeddedSubtitles;
 
-  /// Draws ASS and SSA with their styling (positions, fonts, effects);
-  /// without it Silo may hand over a simplified rendering.
+  /// Draws ASS and SSA with their styling (positions, fonts, effects).
+  /// Without it, Silo may hand over a simplified rendering.
   final bool drawsAssStyling;
 
   /// Uses the fonts attached to a file for its embedded ASS subtitles.
@@ -140,7 +140,7 @@ class SiloPlayerTraits {
 
   /// Sends the stream's headers with every request it makes for it. A player
   /// that can't (a browser's media element, a cast receiver) gets the
-  /// account's token in every media URL instead (12.3).
+  /// account's token in every media URL instead.
   final bool sendsRequestHeaders;
 }
 
@@ -177,14 +177,14 @@ class SiloClientCapabilities {
 ///   HEVC and AV1 range types the codec profiles don't rule out: HDR10, HLG,
 ///   HDR10+, and Dolby Vision profiles 5, 7 and 8 from their range types.
 /// - **`max_resolution`** is the widest `Width` limit on the video codecs,
-///   as a resolution class; no limit leaves it out (unconstrained).
+///   as a resolution class. No limit leaves it out (unconstrained).
 /// - **Deliveries:** `original_http` takes the direct-play containers and
-///   codecs; `progressive` the same codecs in Silo's remux containers; `hls`
-///   the decodable codecs among H.264, HEVC and the HLS transcoding
-///   profiles' video codecs, and those profiles' audio codecs. A profile without HLS transcoding has no
-///   `hls`. A channel limit below 6 on the
-///   audio codec profiles becomes `max_channels`; a player that downmixes on
-///   its own has none.
+///   codecs, and `progressive` the same codecs in Silo's remux containers.
+///   `hls` takes the decodable codecs among H.264, HEVC and the HLS
+///   transcoding profiles' video codecs, and those profiles' audio codecs.
+///   A profile without HLS transcoding has no `hls`. A channel limit below 6
+///   on the audio codec profiles becomes `max_channels`, and a player that
+///   downmixes on its own has none.
 SiloClientCapabilities siloCapabilitiesFromDeviceProfile(
   Map<String, dynamic> deviceProfile, {
   SiloPlayerTraits traits = const SiloPlayerTraits(),
@@ -244,7 +244,7 @@ SiloClientCapabilities siloCapabilitiesFromDeviceProfile(
     'containers': containers,
     'video_codecs': video,
     'audio_decode_codecs': audio,
-    // Passthrough is only ever honoured under `exact` evidence (§3).
+    // Silo honors passthrough only under `exact` evidence.
     'audio_passthrough_codecs': const <String>[],
     'max_channels': ?maxChannels,
     'subtitles': subtitles,
@@ -256,8 +256,8 @@ SiloClientCapabilities siloCapabilitiesFromDeviceProfile(
   };
 
   // A remux or HLS stream carries its subtitles as sidecars Moonfin loads
-  // as external tracks; it can't fetch a sidecar's font bundle, and loads
-  // no external bitmap subtitles, so those are burnt in.
+  // as external tracks. It can't fetch a sidecar's font bundle and loads
+  // no external bitmap subtitles, so those are burned in.
   final sidecarSubtitles = {
     'embedded_text': false,
     'sidecar_text': true,
@@ -322,7 +322,7 @@ SiloClientCapabilities siloCapabilitiesFromDeviceProfile(
 
 /// The subtitles of a file played whole: embedded tracks are drawn from the
 /// file (text, ASS with its attached fonts, bitmaps), sidecars are loaded as
-/// external tracks; an external bitmap file is not loaded.
+/// external tracks, and an external bitmap file isn't loaded.
 Map<String, dynamic> _originalSubtitles(SiloPlayerTraits traits) => {
   'embedded_text': traits.rendersEmbeddedSubtitles,
   'sidecar_text': true,
@@ -363,8 +363,6 @@ const _nativeSubtitleCodecs = [
   'dvb_subtitle',
 ];
 
-// --- reading the profile -----------------------------------------------------
-
 List<Map<String, dynamic>> _profiles(Object? list) => [
   if (list is List)
     for (final p in list)
@@ -386,7 +384,7 @@ List<String> _union(Iterable<List<String>> lists) {
   ];
 }
 
-/// Silo names a Matroska file's container `mkv`; Moonfin's profiles use
+/// Silo names a Matroska file's container `mkv`, and Moonfin's profiles use
 /// either spelling. Both go in, so each matches.
 List<String> _withAliases(List<String> containers) {
   final out = [...containers];
@@ -439,7 +437,7 @@ Set<String> _unsupportedRanges(
   return out;
 }
 
-/// `DOVIWithHDR10` and `DOVI_WITH_HDR10` → `DOVIWITHHDR10`.
+/// `DOVIWithHDR10` and `DOVI_WITH_HDR10` both become `DOVIWITHHDR10`.
 String _rangeKey(String value) =>
     value.trim().toUpperCase().replaceAll('_', '');
 
@@ -495,7 +493,7 @@ Iterable<int> _limits(
 }
 
 /// The widest unconditional `Width` limit on a video codec, as Silo's
-/// resolution class; null when nothing limits it.
+/// resolution class, or null when nothing limits it.
 String? _maxResolution(List<Map<String, dynamic>> codecProfiles) {
   final widths = _limits(codecProfiles, 'Video', 'Width');
   if (widths.isEmpty) return null;
@@ -508,7 +506,7 @@ String? _maxResolution(List<Map<String, dynamic>> codecProfiles) {
 }
 
 /// A channel limit below six on the audio codec profiles, as Silo's
-/// per-delivery `max_channels`; null for none, which is what a player that
+/// per-delivery `max_channels`. Null means none, which is what a player that
 /// downmixes on its own advertises (eight channels).
 int? _maxChannels(List<Map<String, dynamic>> codecProfiles) {
   final limits = _limits(codecProfiles, 'VideoAudio', 'AudioChannels');

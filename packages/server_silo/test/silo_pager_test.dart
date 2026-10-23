@@ -182,7 +182,7 @@ void main() {
       await page(list, 0, 75);
       final r = await page(list, 75, 3500);
       expect(_ids(r), _range(75, 3575));
-      // Page 0 is kept; the rest are seeks of 100, four at a time.
+      // Page 0 is kept, and the rest are seeks of 100, four at a time.
       final seeks = list.calls.where((c) => c.contains('seek=')).toList();
       expect(seeks.first, 'cursor=window:1:100&seek=100&limit=100');
       expect(seeks, hasLength(35));
@@ -225,7 +225,8 @@ void main() {
     test('a rejected cursor starts over once', () async {
       final list = _FakeList(1000);
       await page(list, 0, 100);
-      list.generation = 2; // The server restarted; old cursors are refused.
+      // The server restarted, so old cursors are refused.
+      list.generation = 2;
       final r = await page(list, 100, 50);
       expect(_ids(r), _range(100, 150));
       expect(list.calls.sublist(1), [

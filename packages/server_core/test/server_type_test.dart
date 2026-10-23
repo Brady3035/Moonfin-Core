@@ -3,7 +3,7 @@ import 'package:test/test.dart';
 
 void main() {
   group('ServerType.detect', () {
-    test('recognises a Silo product name', () {
+    test('recognizes a Silo product name', () {
       expect(ServerType.detect('Silo', null), ServerType.silo);
       expect(ServerType.detect('silo media server', '4b2e921c'), ServerType.silo);
     });

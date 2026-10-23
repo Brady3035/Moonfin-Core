@@ -9,7 +9,7 @@ class _MockClient extends Mock implements MediaServerClient {}
 
 class _MockItemsApi extends Mock implements ItemsApi {}
 
-/// An `ItemsApi` whose server curates rows of its own (Silo, step 8.7).
+/// An `ItemsApi` whose server curates rows of its own (Silo).
 class _MockSectionsItemsApi extends Mock
     implements ItemsApi, ServerHomeSectionsApi {}
 

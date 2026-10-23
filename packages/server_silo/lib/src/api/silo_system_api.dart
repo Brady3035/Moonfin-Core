@@ -8,7 +8,7 @@ class SiloSystemApi implements SystemApi {
 
   SiloSystemApi(this._dio);
 
-  /// `/system/info` decides success; identity, branding and setup are fetched
+  /// `/system/info` decides success. Identity, branding and setup are fetched
   /// alongside it and left out if they fail, since they only add the id, name
   /// and setup state to a server already known to be Silo.
   @override
@@ -45,7 +45,7 @@ class SiloSystemApi implements SystemApi {
 
   /// Silo has no ping route. `/system/identity` is public, tiny and answered
   /// by every API node, so it stands in for one. The connectivity check asks
-  /// this rather than Jellyfin's `/System/Ping` (13.1).
+  /// this rather than Jellyfin's `/System/Ping`.
   @override
   Future<bool> ping() async {
     try {
@@ -56,7 +56,7 @@ class SiloSystemApi implements SystemApi {
       return response.statusCode == 200;
     } catch (e) {
       // The route is public and runs no sign-in check, so a 401 would only
-      // come from something in front of Silo; it still counts as an answer,
+      // come from something in front of Silo. It still counts as an answer,
       // as for every server type.
       return pingAnsweredDespite(e);
     }

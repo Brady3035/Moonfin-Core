@@ -27,8 +27,8 @@ abstract class AuthApi {
 
 /// Optional members a server may add to the answers of
 /// [AuthApi.initiateQuickConnect] and [AuthApi.checkQuickConnect], for a
-/// sign-in screen that shows more than the code. Jellyfin sends none of them;
-/// a screen that finds none behaves as for Jellyfin.
+/// sign-in screen that shows more than the code. Jellyfin sends none of
+/// them, and a screen that finds none behaves as it does for Jellyfin.
 abstract final class QuickConnectKeys {
   /// Page where the person enters the code (initiate).
   static const verificationUri = 'VerificationUri';
@@ -36,7 +36,7 @@ abstract final class QuickConnectKeys {
   /// [verificationUri] with the code filled in, for a QR code (initiate).
   static const verificationUriComplete = 'VerificationUriComplete';
 
-  /// When the request expires, ISO 8601 (initiate; check may move it later).
+  /// When the request expires, ISO 8601 (initiate, and check may move it).
   static const expiresAt = 'ExpiresAt';
 
   /// Seconds to wait before the next check (initiate and check).
@@ -55,7 +55,7 @@ abstract final class QuickConnectKeys {
   /// The code outlived its time, or the server no longer knows it.
   static const statusExpired = 'expired';
 
-  /// The request was collected or withdrawn already; a new code is needed.
+  /// The request was collected or withdrawn already. A new code is needed.
   static const statusUsed = 'used';
 }
 

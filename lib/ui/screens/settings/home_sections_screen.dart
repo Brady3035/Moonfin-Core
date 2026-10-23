@@ -454,7 +454,7 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen>
         type == HomeSectionType.audioPlaylists;
   }
 
-  /// Every music section, the audio rows and the music favourites alike.
+  /// Every music section, the audio rows and the music favorites alike.
   static bool _isMusicSectionType(HomeSectionType type) => const {
     HomeSectionType.resumeAudio,
     HomeSectionType.audioArtists,
@@ -732,7 +732,6 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen>
     final hiddenByMusic =
         _isMusicSectionType(section.type) && !_musicOnAnyServer;
 
-    // And playlists.
     final hiddenByPlaylistSupport =
         section.type == HomeSectionType.playlists && !_playlistsOnAnyServer;
 
@@ -1400,12 +1399,9 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen>
     return changed;
   }
 
-  /// Every slider on Seerr's discover page. Null when Seerr can't be reached,
-  /// so a failed read leaves the rows in place instead of reading as every
-  /// slider having been deleted.
-  /// The rows the active server curates itself (Silo's home sections, step
-  /// 8.7), or null when it has none to offer or they couldn't be read, in
-  /// which case the rows already listed are left as they are.
+  /// The rows the active server curates itself (Silo's home sections), or
+  /// null when it has none to offer or they couldn't be read, in which case
+  /// the rows already listed are left as they are.
   Future<List<ServerHomeSection>?> _fetchServerSectionsForHomeSections() async {
     try {
       final api = GetIt.instance<MediaServerClient>().itemsApi;
@@ -1461,6 +1457,9 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen>
     return changed;
   }
 
+  /// Every slider on Seerr's discover page. Null when Seerr can't be reached,
+  /// so a failed read leaves the rows in place instead of reading as every
+  /// slider having been deleted.
   Future<List<SeerrDiscoverSlider>?> _fetchSeerrSlidersForHomeSections() async {
     if (!GetIt.instance<PluginSyncService>().seerrAvailable) return null;
     try {

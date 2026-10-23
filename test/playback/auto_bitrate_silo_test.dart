@@ -69,7 +69,7 @@ void main() {
 
   test('Jellyfin still probes the server', () async {
     // The fake server refuses the probe (the service then falls back to its
-    // default ceiling); what matters is that the request reached it.
+    // default ceiling). What matters is that the request reached it.
     await measureFor(ServerType.jellyfin);
     expect(requests, greaterThan(0));
   });

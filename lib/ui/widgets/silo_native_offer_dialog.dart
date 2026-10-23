@@ -6,7 +6,7 @@ import 'adaptive/adaptive_dialog.dart';
 import 'overlay_sheet.dart';
 
 /// Asks whether to add Silo's native server instead of its
-/// Jellyfin-compatible service (17.1). True adds the native server; closing
+/// Jellyfin-compatible service. True adds the native server, and closing
 /// the dialog keeps the Jellyfin address.
 Future<bool> confirmSiloNativeServer(
   BuildContext context,

@@ -42,7 +42,7 @@ void main() {
       expect(sent.single.receiveTimeout, SystemApi.pingTimeout);
     });
 
-    // Emby turns down a remote ping without a valid token; it still answered.
+    // Emby turns down a remote ping without a valid token, but it answered.
     test('a 401 counts as an answer', () async {
       final api = EmbySystemApi(_answering(401, []));
       expect(await api.ping(), isTrue);

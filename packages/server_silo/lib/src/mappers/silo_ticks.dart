@@ -5,11 +5,11 @@
 /// Silo uses plain units, and not the same one everywhere:
 ///
 /// - **seconds** for most fields (`versions[].duration`, marker
-///   `start_seconds`, playback `position_seconds`);
-/// - **minutes** for an item's `runtime`;
-/// - **milliseconds** for a few (`position_ms` in progress sync).
+///   `start_seconds`, playback `position_seconds`)
+/// - **minutes** for an item's `runtime`
+/// - **milliseconds** for a few (`position_ms` in progress sync)
 ///
-/// So each conversion names its unit; there is no "Silo time" helper that
+/// So each conversion names its unit, and there's no "Silo time" helper that
 /// guesses.
 library;
 

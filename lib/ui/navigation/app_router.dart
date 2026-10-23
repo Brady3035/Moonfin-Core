@@ -179,8 +179,8 @@ final appRouter = GoRouter(
 
     if (path.startsWith('/admin')) {
       final user = getIt<UserRepository>().currentUser;
-      // Silo is administered from its own web app; a deep link to Moonfin's
-      // admin screens (Jellyfin/Emby admin APIs) would only fail there.
+      // Silo is administered from its own web app, so a deep link to
+      // Moonfin's admin screens (Jellyfin/Emby admin APIs) would only fail.
       if (user == null ||
           !user.isAdministrator ||
           !_adminAvailable() ||

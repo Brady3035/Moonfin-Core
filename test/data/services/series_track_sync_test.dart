@@ -81,7 +81,7 @@ void main() {
 
   setUp(() async => prefs = await testPrefs());
 
-  test('Silo\'s choices fill in a device that has none (11.6)', () async {
+  test('Silo\'s choices fill in a device that has none', () async {
     final server = _Silo(
       audio: _audioRow('ja', 'Japanese'),
       subtitle: {

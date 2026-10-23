@@ -415,7 +415,7 @@ void main() {
     await silo.sockets.first.close(4001, 'access_changed');
     await _until(() => silo.sockets.length == 2);
 
-    // The shared backoff waits at least a second; this doesn't.
+    // The shared backoff waits at least a second, and this doesn't.
     expect(
       DateTime.now().difference(closed),
       lessThan(const Duration(milliseconds: 900)),

@@ -7,9 +7,9 @@ import '../silo_problem.dart';
 import 'silo_items_api.dart';
 import 'silo_unsupported.dart';
 
-/// Moonfin's `PlaybackApi` on Silo: the detail screen's media info (step
-/// 6.18), and the wire calls of Silo's playback protocol for
-/// `playback_silo`, which owns the protocol itself (phase 10).
+/// Moonfin's `PlaybackApi` on Silo: the detail screen's media info, and the
+/// wire calls of Silo's playback protocol for `playback_silo`, which owns the
+/// protocol itself.
 class SiloPlaybackApi implements PlaybackApi {
   SiloPlaybackApi(this._items, this._dio, {DateTime Function()? clock})
     : _capabilities = SiloKeptReads(
@@ -20,20 +20,19 @@ class SiloPlaybackApi implements PlaybackApi {
   final SiloItemsApi _items;
   final Dio _dio;
 
-  // --- capabilities (10.5) ----------------------------------------------------
-
   /// How long [capabilities] reuses an answer, as Silo's web player does.
   static const capabilitiesLifetime = Duration(minutes: 1);
 
   final SiloKeptReads<String, SiloPlaybackCapabilities> _capabilities;
 
-  /// `GET /api/v2/playback/capabilities` (step 10.5): whether this server
-  /// plays, its installation id, its features and deliveries.
+  /// `GET /api/v2/playback/capabilities`: whether this server plays, its
+  /// installation id, its features and deliveries.
   ///
-  /// Every playback mutation carries the [SiloPlaybackCapabilities.installationId]
-  /// read here, so it is kept for [capabilitiesLifetime] and reads made
-  /// meanwhile share one request. [refresh] reads it again now, which is
-  /// what a `409 installation_changed` calls for ([isInstallationChanged]).
+  /// Every playback mutation carries the
+  /// [SiloPlaybackCapabilities.installationId] read here, so it is kept for
+  /// [capabilitiesLifetime] and reads made meanwhile share one request.
+  /// [refresh] reads it again now, which is what a `409 installation_changed`
+  /// calls for ([isInstallationChanged]).
   Future<SiloPlaybackCapabilities> capabilities({bool refresh = false}) =>
       _capabilities.get('capabilities', _readCapabilities, refresh: refresh);
 
@@ -52,8 +51,6 @@ class SiloPlaybackApi implements PlaybackApi {
   /// Forgets the kept capabilities, so the next [capabilities] asks Silo.
   void forgetCapabilities() => _capabilities.forget();
 
-  // --- start (10.6) -----------------------------------------------------------
-
   /// How long one start request may take: Silo may start a remux or a
   /// transcode before it answers (its web player allows 45 s too).
   static const startTimeout = Duration(seconds: 45);
@@ -61,8 +58,8 @@ class SiloPlaybackApi implements PlaybackApi {
   /// `POST /api/v2/playback/start` with [body] (`PlaybackStartBody`), once.
   /// Answers Silo's decision (`PlaybackDecision`): a plan, or a terminal
   /// refusal, both as `201`. The caller retries an interrupted start with
-  /// the identical body ([isRetryableStartError]); Silo replays the stored
-  /// decision for a repeated `playback_attempt_id` and body.
+  /// the identical body ([isRetryableStartError]), and Silo replays the
+  /// stored decision for a repeated `playback_attempt_id` and body.
   Future<Map<String, dynamic>> startPlayback(Map<String, dynamic> body) async {
     final response = await _dio.post<dynamic>(
       '/api/v2/playback/start',
@@ -95,8 +92,6 @@ class SiloPlaybackApi implements PlaybackApi {
     return status == 408 || status == 429 || status >= 500;
   }
 
-  // --- progress (10.9) --------------------------------------------------------
-
   /// `POST /api/v2/playback/{sessionId}/progress` with [body]
   /// (`PlaybackProgressBody`: `installation_id`, `sequence`, `position`,
   /// `is_paused`). Answers the receipt (`PlaybackMutation`): `outcome`
@@ -113,12 +108,10 @@ class SiloPlaybackApi implements PlaybackApi {
     return asJsonMap(response.data) ?? const {};
   }
 
-  // --- stop (10.10) -----------------------------------------------------------
-
   /// `DELETE /api/v2/playback/{sessionId}` with [body] (`PlaybackStopBody`:
   /// `installation_id`, a `stop_id` the client keeps for every retry, and
   /// the final sample's `sequence`, `position`, `is_paused`). The first stop
-  /// wins; every later one, with any stop id, replays its receipt
+  /// wins, and every later one, with any stop id, replays its receipt
   /// (`outcome: replayed`), so a retry is always safe.
   Future<Map<String, dynamic>> stopPlayback(
     String sessionId,
@@ -136,8 +129,6 @@ class SiloPlaybackApi implements PlaybackApi {
   /// ([isRetryableStartError]).
   static bool isRetryableStopError(Object error) =>
       isRetryableStartError(error);
-
-  // --- replan (10.12) ---------------------------------------------------------
 
   /// `POST /api/v2/playback/{sessionId}/replan` with [body]
   /// (`PlaybackReplanBody`), once. Answers a decision like a start: a new
@@ -159,8 +150,8 @@ class SiloPlaybackApi implements PlaybackApi {
   /// Whether a failed replan may be sent again unchanged: no answer, `408`,
   /// `429`, `5xx` (Silo's `503 replan_capacity_exhausted` among them, which
   /// it answers before touching the session), or `409 replan_in_progress`
-  /// (the same request still holds the session's lease; once it finishes,
-  /// the same id replays its answer).
+  /// (the same request still holds the session's lease, and once it
+  /// finishes, the same id replays its answer).
   static bool isRetryableReplanError(Object error) =>
       isRetryableStartError(error) ||
       (error is DioException &&
@@ -197,20 +188,20 @@ class SiloPlaybackApi implements PlaybackApi {
       SiloProblem.codeOf(error) == 'installation_changed';
 
   /// What the detail screen shows about how a version would play, **without
-  /// starting playback** (step 6.18).
+  /// starting playback**.
   ///
-  /// Jellyfin's `PlaybackInfo` is a dry run; Silo has none. Its only
+  /// Jellyfin's `PlaybackInfo` is a dry run, and Silo has none. Its only
   /// decision is `POST /playback/start`, which opens a session (and may start
   /// a transcode), so it must never be called to fill a detail page. The
-  /// answer is built from the item's versions instead (5.8): its
-  /// `MediaSources`, the one asked for (`MediaSourceId`) first.
+  /// answer is built from the item's versions instead: its `MediaSources`,
+  /// the one asked for (`MediaSourceId`) first.
   ///
   /// `SupportsDirectPlay` is an **estimate** from the device profile the
   /// detail screen sends: a version can play directly when a direct-play
   /// profile takes its container, video codec and the chosen audio track's
   /// codec. Otherwise it says why (`ContainerNotSupported`,
   /// `VideoCodecNotSupported`, `AudioCodecNotSupported`), as Jellyfin does.
-  /// Silo makes the real decision when playback starts (phase 10).
+  /// Silo makes the real decision when playback starts.
   @override
   Future<Map<String, dynamic>> getPlaybackInfo(
     String itemId, {
@@ -248,14 +239,14 @@ class SiloPlaybackApi implements PlaybackApi {
   }
 
   /// Jellyfin's playback reporting and stream URLs: Silo's playback
-  /// protocol is `playback_silo`'s (phase 10), not this interface.
+  /// protocol is `playback_silo`'s, not this interface.
   @override
   dynamic noSuchMethod(Invocation invocation) =>
       siloUnsupported('PlaybackApi', invocation);
 }
 
 /// Why [source] can't play directly under [deviceProfile]'s direct-play
-/// profiles, as Jellyfin's transcode reasons; empty when one profile takes
+/// profiles, as Jellyfin's transcode reasons. Empty when one profile takes
 /// its container, video codec and the audio track [audioStreamIndex] (or
 /// the default one).
 List<String> siloDirectPlayReasons(
@@ -348,7 +339,7 @@ class SiloPlaybackCapabilities {
   /// The server instance's UUID, which every playback mutation must carry.
   final String installationId;
 
-  /// A digest of the rest; it changes when anything else here does.
+  /// A digest of the rest, which changes when anything else here does.
   final String? revision;
 
   /// `available`, or `not_configured` on a server without playback.

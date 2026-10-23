@@ -1,7 +1,7 @@
 /// Optional extra for an `ItemsApi` whose server lets the user edit only
-/// some of the collections they can see (Silo, step 9.5: a profile adds to
-/// and removes from its own manual collections; a library's collections are
-/// the administrator's, and another profile's shared ones are read-only).
+/// some of the collections they can see. On Silo a profile adds to and
+/// removes from its own manual collections, while a library's collections
+/// are the administrator's and another profile's shared ones are read-only.
 ///
 /// Jellyfin and Emby let a user with collection rights edit every
 /// collection, so the app lists every `BoxSet` in "Add to collection" and

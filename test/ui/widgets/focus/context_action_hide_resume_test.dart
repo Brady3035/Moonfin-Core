@@ -18,7 +18,7 @@ class _MockClient extends Mock implements MediaServerClient {}
 
 class _MockMutations extends Mock implements ItemMutationRepository {}
 
-/// An ItemsApi without Silo's server-side Home hides (9.7).
+/// An ItemsApi without Silo's server-side Home hides.
 class _ItemsApi extends Mock implements ItemsApi {}
 
 AggregatedItem _episode() => AggregatedItem(
@@ -59,7 +59,7 @@ void main() {
     final client = _MockClient();
     when(() => client.serverType).thenReturn(ServerType.emby);
     // The menu asks the item's server whether it hides Home cards itself
-    // (Silo, 9.7); Emby doesn't.
+    // (Silo), and Emby doesn't.
     when(() => client.baseUrl).thenReturn('https://emby.example');
     when(() => client.itemsApi).thenReturn(_ItemsApi());
 

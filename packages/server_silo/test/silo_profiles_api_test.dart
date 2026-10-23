@@ -123,7 +123,7 @@ void main() {
     expect(client.requestHeaders['X-Profile-Id'], 'main');
   });
 
-  group('verifyPin (18.1)', () {
+  group('verifyPin', () {
     const path = '/api/v2/profiles/kid-1/verify-pin';
 
     test('a matching PIN gives the profile token and its expiry', () async {

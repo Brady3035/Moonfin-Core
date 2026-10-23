@@ -8,13 +8,11 @@
 /// studio page by id. Silo names them only, so Moonfin makes a synthetic id
 /// from the name: `silo-genre:<name>` and `silo-studio:<name>`, with the name
 /// percent-encoded so any character survives the round trip. The Silo client
-/// recognises these ids and turns them back into a name filter.
+/// recognizes these ids and turns them back into a name filter.
 library;
 
-/// Prefix of a synthetic genre id.
 const siloGenreIdPrefix = 'silo-genre:';
 
-/// Prefix of a synthetic studio id.
 const siloStudioIdPrefix = 'silo-studio:';
 
 /// A Silo id as Moonfin's string id: numbers become their decimal text,
@@ -25,11 +23,9 @@ String? siloIdOf(Object? raw) {
   return text.isEmpty ? null : text;
 }
 
-/// The synthetic id of the genre [name].
 String siloGenreId(String name) =>
     '$siloGenreIdPrefix${Uri.encodeComponent(name)}';
 
-/// The synthetic id of the studio [name].
 String siloStudioId(String name) =>
     '$siloStudioIdPrefix${Uri.encodeComponent(name)}';
 
@@ -39,7 +35,6 @@ String? siloGenreNameOf(String id) => _nameAfter(siloGenreIdPrefix, id);
 /// The studio name in a synthetic studio id, or null when [id] isn't one.
 String? siloStudioNameOf(String id) => _nameAfter(siloStudioIdPrefix, id);
 
-/// Whether [id] is one of the synthetic genre or studio ids.
 bool isSyntheticSiloId(String id) =>
     id.startsWith(siloGenreIdPrefix) || id.startsWith(siloStudioIdPrefix);
 
@@ -50,7 +45,7 @@ String? _nameAfter(String prefix, String id) {
   try {
     return Uri.decodeComponent(encoded);
   } on ArgumentError {
-    // Not percent-encoded by us; take it as written.
+    // Not percent-encoded by us, so take it as written.
     return encoded;
   }
 }
@@ -114,10 +109,10 @@ String? siloTypeOfId(String id) {
   );
 }
 
-/// Prefix of a personal collection's id in Moonfin (6.15).
+/// Prefix of a personal collection's id in Moonfin.
 const siloCollectionIdPrefix = 'silo-collection:';
 
-/// Prefix of a library collection's id in Moonfin (6.15).
+/// Prefix of a library collection's id in Moonfin.
 const siloLibraryCollectionIdPrefix = 'silo-libcollection:';
 
 /// Moonfin's id for Silo's personal collection [id]. Silo's collection ids
@@ -125,13 +120,13 @@ const siloLibraryCollectionIdPrefix = 'silo-libcollection:';
 /// prefix that tells them apart from titles, people and libraries.
 String siloCollectionId(String id) => '$siloCollectionIdPrefix$id';
 
-/// Moonfin's id for collection [id] of library [libraryId]; a library
+/// Moonfin's id for collection [id] of library [libraryId]. A library
 /// collection is read and paged through its library.
 String siloLibraryCollectionId(String libraryId, String id) =>
     '$siloLibraryCollectionIdPrefix$libraryId:$id';
 
 /// What a collection id names: a personal collection (no library) or a
-/// library's collection; null when [id] isn't a collection id.
+/// library's collection. Null when [id] isn't a collection id.
 ({String id, String? libraryId})? parseSiloCollectionId(String id) {
   if (id.startsWith(siloCollectionIdPrefix)) {
     final rest = id.substring(siloCollectionIdPrefix.length);

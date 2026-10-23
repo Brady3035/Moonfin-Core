@@ -15,8 +15,8 @@ import 'package:server_core/server_core.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // Household profiles in the session repository: a locked profile isn't
-// switched to without its PIN (18.4), and signing out of a profile keeps the
-// account's login for its other profiles (18.6).
+// switched to without its PIN, and signing out of a profile keeps the
+// account's login for its other profiles.
 
 class _AuthApi extends Fake implements AuthApi {
   int logouts = 0;
@@ -151,7 +151,7 @@ void main() {
     await store.putSiloTokens('s1', '9', _pair);
   });
 
-  test('a locked profile without its PIN is not switched to (18.4)', () async {
+  test('a locked profile without its PIN is not switched to', () async {
     await store.putUser(_profile('teen', pin: true));
 
     final ok = await repo.switchCurrentSession(serverId: 's1', userId: 'teen');
@@ -161,7 +161,7 @@ void main() {
     expect(repo.activeUserId, isNull);
   });
 
-  group('signing out (18.6)', () {
+  group('signing out', () {
     test('one profile: its siblings and the login stay', () async {
       await store.putUser(_profile('brady'));
       await store.putUser(_profile('kid'));

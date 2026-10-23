@@ -9870,8 +9870,8 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
       // the start is still wanted. Without one the context is all there is.
       bool launchGone() =>
           session == null ? !context.mounted : !session.isActive;
-      // A server that shuffles itself (Silo, 11.7) hands out the order;
-      // otherwise every item is loaded and shuffled here.
+      // A server that shuffles itself (Silo) hands out the order. Otherwise
+      // every item is loaded and shuffled here.
       final serverShuffled = await _serverShuffleQueue(item);
       if (launchGone()) return null;
       final List<AggregatedItem> shuffled;

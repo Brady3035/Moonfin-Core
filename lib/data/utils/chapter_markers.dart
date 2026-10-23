@@ -9,7 +9,7 @@ import '../models/aggregated_item.dart';
 /// to ask the server for one.
 ///
 /// [mediaSourceId] names the version that plays: a server that sends each
-/// version's own chapters on its media source (Silo, step 11.3) gets that
+/// version's own chapters on its media source (Silo) gets that
 /// version's, others the item's.
 List<Map<String, dynamic>> chaptersForItem(
   dynamic item,

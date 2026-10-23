@@ -27,7 +27,7 @@ class DlnaProvider
 
   DlnaProvider(this._native, this._clientFactory);
 
-  /// The last cast's Silo session, for the cast service to report (12.6).
+  /// The last cast's Silo session, for the cast service to report.
   CastServerPlayback? _serverPlayback;
 
   @override
@@ -42,7 +42,7 @@ class DlnaProvider
       ServerType.jellyfin => JellyfinPlugin(client).createStreamResolver(),
       ServerType.emby => EmbyPlugin(client).createStreamResolver(),
       ServerType.plex => PlexMediaStreamResolver(client),
-      // The renderer loads the stream itself (12.6).
+      // The renderer loads the stream itself.
       ServerType.silo => siloPluginFor(
         client,
         environment: () => siloReceiverEnvironment('dlna'),

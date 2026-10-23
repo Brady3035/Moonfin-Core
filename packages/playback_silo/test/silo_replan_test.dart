@@ -167,7 +167,6 @@ void main() {
       'v3:0000000000000002',
     ]);
     expect(bodies.map((b) => b['attempt_count']), [1, 2]);
-    // Each adopted plan has its own attempt id.
     expect(bodies[1]['plan_attempt_id'], isNot(bodies[0]['plan_attempt_id']));
     for (final body in bodies) {
       expect(siloSchemaErrors('PlaybackReplanBody', body), isEmpty);

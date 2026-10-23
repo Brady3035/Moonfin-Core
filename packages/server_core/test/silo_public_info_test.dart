@@ -21,7 +21,7 @@ void main() {
     expect(isSiloSystemInfo(null), isFalse);
     expect(isSiloSystemInfo({'server_version': 'x'}), isFalse);
     expect(isSiloSystemInfo({'api_major': 2, 'server_version': 4}), isFalse);
-    // Jellyfin's public info is not Silo's.
+    // Jellyfin's public info isn't Silo's.
     expect(
       isSiloSystemInfo({'ProductName': 'Jellyfin Server', 'Version': '10.10'}),
       isFalse,

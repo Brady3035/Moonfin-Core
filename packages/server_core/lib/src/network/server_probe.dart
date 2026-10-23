@@ -84,7 +84,7 @@ Future<ServerProbeResult?> probeServerPublicInfo(Dio dio, String baseUrl) async 
 
 /// Probes [baseUrl] for Silo's native API only (`/api/v2/system/info`, then
 /// the identity, branding and setup extras). Returns null when the address
-/// answers but isn't a native Silo host; connection failures are thrown.
+/// answers but isn't a native Silo host. Connection failures are thrown.
 Future<ServerProbeResult?> probeSiloServer(Dio dio, String baseUrl) {
   final base = baseUrl.endsWith('/')
       ? baseUrl.substring(0, baseUrl.length - 1)

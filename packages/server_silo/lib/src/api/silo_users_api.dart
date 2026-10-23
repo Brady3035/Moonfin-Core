@@ -9,22 +9,22 @@ import 'silo_downloads_api.dart';
 import 'silo_profiles_api.dart';
 
 /// One household profile of the signed-in account, as Silo lists it and as
-/// the Moonfin user it becomes (phase 18).
+/// the Moonfin user it becomes.
 class SiloHouseholdMember {
   const SiloHouseholdMember({required this.profile, required this.user});
 
   final SiloProfile profile;
 
-  /// The profile as a Moonfin user: the same mapping [SiloUsersApi.getCurrentUser]
-  /// uses, without the per-profile downloads capability (read when the
-  /// profile is used).
+  /// The profile as a Moonfin user: the same mapping
+  /// [SiloUsersApi.getCurrentUser] uses, without the per-profile downloads
+  /// capability (read when the profile is used).
   final ServerUser user;
 }
 
 /// Moonfin's `UsersApi` over Silo's account and profiles.
 ///
 /// The Moonfin user is the household profile the client acts as
-/// (`X-Profile-Id`, phase 18).
+/// (`X-Profile-Id`).
 class SiloUsersApi implements UsersApi {
   SiloUsersApi(
     this._dio,
@@ -36,7 +36,7 @@ class SiloUsersApi implements UsersApi {
   });
 
   /// Where the downloads capability is read, for the user's download
-  /// permission (15.1).
+  /// permission.
   final SiloDownloadsApi? downloads;
 
   /// Called after settings were saved, so cached library lists are dropped.
@@ -90,14 +90,14 @@ class SiloUsersApi implements UsersApi {
   /// Reads `GET /account/me` and `GET /profiles` together. With no profile
   /// chosen yet it describes the main profile, the one the client will act
   /// as. Throws a [StateError] when the chosen profile no longer exists (for
-  /// example deleted on the web); that isn't a `401`, so it doesn't sign out.
+  /// example deleted on the web). That isn't a `401`, so it doesn't sign out.
   ///
   /// The policy's `EnableContentDownloading` is the account's
   /// `download_allowed`, switched off when Silo's downloads capability says
-  /// downloads are off for this profile (15.1). The capability is read afresh
-  /// each time, alongside the account (this runs at sign-in, at start and
-  /// when Silo says access changed); a capability that can't be read leaves
-  /// the account's flag as it is.
+  /// downloads are off for this profile. The capability is read afresh each
+  /// time, alongside the account (this runs at sign-in, at start and when
+  /// Silo says access changed). A capability that can't be read leaves the
+  /// account's flag as it is.
   @override
   Future<ServerUser> getCurrentUser() async {
     downloads?.invalidateCapability();
@@ -134,8 +134,8 @@ class SiloUsersApi implements UsersApi {
   }
 
   /// Every profile on the signed-in account, each with its Moonfin user, in
-  /// Silo's order (phase 18: each profile is a Moonfin user, decision D1).
-  /// Reads `GET /account/me` and `GET /profiles`, the latter as the account.
+  /// Silo's order. Reads `GET /account/me` and `GET /profiles`, the latter
+  /// as the account.
   Future<List<SiloHouseholdMember>> getHousehold() async {
     final (:account, :profiles) = await _accountAndProfiles();
     return [
@@ -175,8 +175,8 @@ class SiloUsersApi implements UsersApi {
   /// for the acting profile on this device (`GET /settings/values/effective`).
   ///
   /// What Moonfin uses today is the library order and the libraries hidden
-  /// from My Media (Silo's `ui.library_order` and `ui.disabled_library_ids`);
-  /// the playback keys come along in the same request. See
+  /// from My Media (Silo's `ui.library_order` and `ui.disabled_library_ids`).
+  /// The playback keys come along in the same request. See
   /// `silo_settings_mapper.dart` for the mapping.
   @override
   Future<UserConfiguration> getUserConfiguration() async {
@@ -196,7 +196,7 @@ class SiloUsersApi implements UsersApi {
   /// whole configuration back after changing one list, and rewriting the
   /// others would turn Silo's defaults into stored values. Keys with no Silo
   /// equivalent (`LatestItemsExcludes`, `GroupedFolders`, the remember
-  /// switches) are not saved.
+  /// switches) aren't saved.
   @override
   Future<void> updateUserConfiguration(UserConfiguration config) async {
     final profileId = _requireProfile('updateUserConfiguration');
@@ -256,7 +256,7 @@ class SiloUsersApi implements UsersApi {
     });
   }
 
-  /// The settings routes require `X-Profile-Id`; without one Silo answers
+  /// The settings routes require `X-Profile-Id`. Without one Silo answers
   /// 422, so say why instead.
   String _requireProfile(String member) =>
       _profileId() ??

@@ -7,16 +7,16 @@ import 'image_source.dart';
 import 'paced_network_image.dart';
 
 /// A user's avatar from [url], painted [size] points square, or [fallback]
-/// when there is none or it fails to load.
+/// when there's none or it fails to load.
 ///
 /// Two things plain image widgets can't do:
 ///
 /// - **Placeholder URLs.** A server can hand out a URL to be resolved first
-///   (`CachedNetworkImageProvider.urlResolver`; a Silo client does this for
-///   a profile it hasn't read yet). It is resolved here before loading.
+///   (`CachedNetworkImageProvider.urlResolver`, which a Silo client does for
+///   a profile it hasn't read yet). It's resolved here before loading.
 /// - **SVG avatars.** Silo's preset avatars are SVG (its bundled set, or
-///   DiceBear). Those are drawn with `flutter_svg`; anything else loads as a
-///   bitmap, decoded at the painted size.
+///   DiceBear). Those are drawn with `flutter_svg`, and anything else loads
+///   as a bitmap, decoded at the painted size.
 class UserAvatarImage extends StatefulWidget {
   const UserAvatarImage({
     super.key,

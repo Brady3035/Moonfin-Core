@@ -1,11 +1,11 @@
 /// Optional extra for an `ItemsApi` whose server curates Home rows of its own
 /// (Silo's home sections: trending, hidden gems, seasonal picks and the
-/// like, step 8.7).
+/// like).
 ///
 /// Moonfin builds its Home from its own row types. A server with rows of its
 /// own offers them as extra rows the user can switch on in Home settings,
 /// next to collection and genre rows. The app checks for it with
-/// `itemsApi is ServerHomeSectionsApi`; servers without one need nothing.
+/// `itemsApi is ServerHomeSectionsApi`, and servers without one need nothing.
 abstract interface class ServerHomeSectionsApi {
   /// The server's own Home rows for the signed-in user, in the server's
   /// order. Rows Moonfin already builds itself are left out. Throws when

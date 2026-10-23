@@ -8,8 +8,7 @@ import '../../util/signed_in_server_features.dart';
 /// is not installed, which callers treat as the sort being unavailable.
 Future<Map<String, double>?> fetchMyUserRatings(MediaServerClient client) async {
   final token = client.accessToken;
-  // The store is the Moonfin plugin's, which Silo never has (Silo's own
-  // ratings arrive in step 9.3).
+  // The store is the Moonfin plugin's, which Silo never has.
   if (token == null || token.isEmpty || !serverHasMoonfinPlugin(client)) {
     return null;
   }

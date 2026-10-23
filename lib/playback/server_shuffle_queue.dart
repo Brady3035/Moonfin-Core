@@ -2,11 +2,11 @@ import 'package:server_core/server_core.dart';
 
 import '../data/models/aggregated_item.dart';
 
-/// A shuffle the server runs ([ServerShuffleApi], Silo, step 11.7), as a
-/// playback queue that grows one item at a time.
+/// A shuffle the server runs ([ServerShuffleApi] on Silo), as a playback
+/// queue that grows one item at a time.
 ///
 /// The server hands out the item to play now and the one after it. Moonfin
-/// queues both; when the second becomes the queue's last item, the playback
+/// queues both. When the second becomes the queue's last item, the playback
 /// module's queue extension asks [extend], which moves the server's shuffle
 /// on from the first and queues the item it picks next. So the server's
 /// current item is the one Moonfin plays, and its order carries on in the
@@ -21,7 +21,7 @@ class ServerShuffleQueue {
 
   _Active? _active;
 
-  /// Starts the server's shuffle of [item] and answers its first items, or
+  /// Starts the server's shuffle of [item] and returns its first items, or
   /// null when the server doesn't shuffle [item] itself.
   Future<List<AggregatedItem>?> start(
     MediaServerClient client,

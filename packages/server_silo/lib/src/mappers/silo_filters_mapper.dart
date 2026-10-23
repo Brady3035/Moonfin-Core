@@ -7,8 +7,8 @@ import 'silo_languages.dart';
 /// facet values, so the filter picker only offers what the library holds.
 ///
 /// Silo lists genres, content ratings and (under `technical`) the audio and
-/// subtitle languages of the files; languages come with their English names
-/// (5.8). It has no year list and no tags, so those sections stay hidden.
+/// subtitle languages of the files. Languages come with their English names.
+/// It has no year list and no tags, so those sections stay hidden.
 QueryFilterValues siloFiltersToQueryFilterValues(Map<String, dynamic> json) {
   List<String> strings(Object? raw) => [
     if (raw is List)
@@ -44,8 +44,8 @@ Map<String, Object?>? _any(List<Map<String, Object?>> rules) =>
 ///
 /// | Moonfin | Silo rule |
 /// |---|---|
-/// | `genres`, genre ids (`silo-genre:`, 6.12) | `genre is` |
-/// | `studios`, studio ids (`silo-studio:`, 6.13) | `studio is` or `network is` |
+/// | `genres`, genre ids (`silo-genre:`) | `genre is` |
+/// | `studios`, studio ids (`silo-studio:`) | `studio is` or `network is` |
 /// | `years` | `year is` |
 /// | `officialRatings` | `content_rating is` |
 /// | `filters`: `IsPlayed` / `IsUnplayed` | `watched is true` / `false` |
@@ -75,7 +75,7 @@ List<Map<String, Object?>> siloRuleGroups({
     ...?genres,
     for (final id in genreIds ?? const <String>[]) siloGenreNameOf(id) ?? id,
   };
-  // Moonfin's studio is a studio for films and a network for series; Silo
+  // Moonfin's studio is a studio for films and a network for series. Silo
   // keeps the two apart, so either matches.
   final studioNames = {
     ...?studios,
@@ -124,7 +124,7 @@ List<Map<String, Object?>> siloRuleGroups({
 }
 
 /// Jellyfin series status (`Continuing`, `Ended`) of a mapped item, for the
-/// series-status filter Silo has no rule for; it is applied to each page.
+/// series-status filter Silo has no rule for. It's applied to each page.
 bool siloMatchesSeriesStatus(Map<String, dynamic> item, List<String> wanted) {
   if (wanted.isEmpty || item['Type'] != 'Series') return true;
   final status = item['Status'] as String?;
@@ -132,7 +132,7 @@ bool siloMatchesSeriesStatus(Map<String, dynamic> item, List<String> wanted) {
 }
 
 /// A genre, studio or network name as a Jellyfin item (`Genre` or `Studio`)
-/// with its synthetic id (5.1): Silo names them but gives them no id or
+/// with its synthetic id. Silo names them but gives them no id or
 /// artwork, so Moonfin's genre and studio cards fall back to artwork from
 /// their titles.
 Map<String, dynamic> siloNamedItem(String name, {required bool studio}) => {

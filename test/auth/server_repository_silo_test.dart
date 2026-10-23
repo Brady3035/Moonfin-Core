@@ -73,7 +73,7 @@ void main() {
     expect(added.setupCompleted, isTrue);
   });
 
-  test('a Silo with another API major is not added (17.3)', () async {
+  test('a Silo with another API major is not added', () async {
     routes = {
       '/api/v2/system/info': {'server_version': 'f00dfeed', 'api_major': 3},
     };
@@ -89,7 +89,7 @@ void main() {
     expect(repository.lastFailure!.lastCandidate, address());
   });
 
-  group('native port hint (17.1)', () {
+  group('native port hint', () {
     late HttpServer native;
     late Map<String, Object> nativeRoutes;
 

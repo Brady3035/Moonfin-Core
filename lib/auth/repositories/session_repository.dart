@@ -276,7 +276,7 @@ class SessionRepository {
     final user = users[userIndex];
 
     // A PIN-locked Silo profile without a live proof can't act yet: whoever
-    // switches asks for the PIN first (18.4). At start-up this sends the
+    // switches asks for the PIN first. At start-up this sends the
     // person to the server's user grid, where tapping the profile asks.
     if (_siloTokens.needsPin(user)) {
       _logger.i('Silo profile $userId needs its PIN before it can be used');
@@ -308,8 +308,8 @@ class SessionRepository {
     // A client kept from an earlier session still has the old address.
     if (address != server.address) client.baseUrl = address;
 
-    // A Silo profile restores its account's token pair and profile; the
-    // stored access token alone can't refresh (3.4).
+    // A Silo profile restores its account's token pair and profile, because
+    // the stored access token alone can't refresh.
     _siloTokens.putLogin(
       client: client,
       user: user,
@@ -365,8 +365,7 @@ class SessionRepository {
     _activeUserId = userId;
 
     // A Silo profile records when it was last used: the account switcher
-    // sorts by it, and another server's rows read the most recent one
-    // (18.7).
+    // sorts by it, and another server's rows read the most recent one.
     var activeUser = user;
     if (user.isSiloProfile) {
       activeUser = user.copyWith(lastUsed: DateTime.now());
@@ -536,11 +535,11 @@ class SessionRepository {
     return true;
   }
 
-  /// Reads the active Silo account's household again and stores it (18.2),
-  /// so profiles added, renamed, deleted or locked with a PIN on the web
-  /// since sign-in show in the user grid and the switcher. A login from
-  /// before phase 18 (the main profile alone) gets its other profiles this
-  /// way. Best effort: the next start tries again.
+  /// Reads the active Silo account's household again and stores it, so
+  /// profiles added, renamed, deleted or locked with a PIN on the web since
+  /// sign-in show in the user grid and the switcher. A login stored with the
+  /// main profile alone gets its other profiles this way. Best effort: the
+  /// next start tries again.
   Future<void> _syncSiloHousehold(
     MediaServerClient client,
     PrivateUser user,
@@ -563,10 +562,10 @@ class SessionRepository {
     }
   }
 
-  /// Silo said the login's access changed (13.4): the libraries, rating
-  /// limits or permissions it decides may be different now. The Silo client
-  /// has already forgotten its reads; this reads the user again (a refused
-  /// login ends the session as at start) and reloads Home.
+  /// Silo said the login's access changed: the libraries, rating limits or
+  /// permissions it decides may be different now. The Silo client has
+  /// already forgotten its reads. This reads the user again (a refused login
+  /// ends the session as at start) and reloads Home.
   Future<void> _onSiloAccessChanged(MediaServerClient client) async {
     final serverId = _activeServerId;
     final userId = _activeUserId;
@@ -667,14 +666,14 @@ class SessionRepository {
   /// is still the active session, sign out the way a rejected token at
   /// start-up does, and open the login screen with the name filled in.
   ///
-  /// Jellyfin and Emby have no equivalent signal mid-session; Silo's refused
-  /// refresh is unambiguous (2.1: only a 401 on the refresh ends a session).
+  /// Jellyfin and Emby have no equivalent signal mid-session. Silo's refused
+  /// refresh is unambiguous, since only a 401 on the refresh ends a session.
   void _onSiloLoginEnded(String serverId, String userId, String name) {
     if (_activeServerId != serverId || _activeUserId != userId) return;
     _logger.w('Silo refused to renew the login. Signing out.');
     unawaited(() async {
       // The login was the whole account's: its other profiles can't act
-      // without it either (18.6).
+      // without it either.
       await _removeSiloSiblings(serverId, userId);
       await destroyCurrentSession(tokenKnownInvalid: true);
       _router.go(
@@ -683,8 +682,8 @@ class SessionRepository {
     }());
   }
 
-  /// The other stored profiles of [userId]'s Silo account on [serverId]
-  /// (18.6); empty for Jellyfin and Emby users and for a lone profile.
+  /// The other stored profiles of [userId]'s Silo account on [serverId].
+  /// Empty for Jellyfin and Emby users and for a lone profile.
   List<PrivateUser> _siloSiblings(String serverId, String? userId) {
     final users = _authStore.getUsers(serverId);
     final accountId = users
@@ -706,14 +705,14 @@ class SessionRepository {
 
   /// Whether the active user is a Silo profile with other profiles of its
   /// account stored here, so "Sign out of the account" means more than
-  /// "Sign out" (18.6).
+  /// "Sign out".
   bool get activeUserHasSiloSiblings {
     final serverId = _activeServerId;
     return serverId != null &&
         _siloSiblings(serverId, _activeUserId).isNotEmpty;
   }
 
-  /// Signs the whole Silo account out on this device (18.6): every stored
+  /// Signs the whole Silo account out on this device: every stored
   /// profile of the active user's account goes, the login is ended on Silo
   /// and its tokens are forgotten. For any other user it is the same as
   /// [destroyCurrentSession].
@@ -770,7 +769,7 @@ class SessionRepository {
 
     // A Silo login belongs to the account, not the profile: signing out of
     // one profile keeps it for the account's other stored profiles, and
-    // only the last one ends it on Silo (18.6). The tokens go with that
+    // only the last one ends it on Silo. The tokens go with that
     // last profile too (AuthenticationStore.removeUser).
     final keepsSiloLogin =
         serverId != null && _siloSiblings(serverId, userId).isNotEmpty;
@@ -939,7 +938,7 @@ class SessionRepository {
   }
 
   /// Marks [userId] on [serverId] as the active session without starting
-  /// it, for tests of what happens to an active session (sign-out, 18.6).
+  /// it, for tests of what happens to an active session, such as sign-out.
   @visibleForTesting
   void setActiveSessionForTest(String serverId, String userId) {
     _activeServerId = serverId;

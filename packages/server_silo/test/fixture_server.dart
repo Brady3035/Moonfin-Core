@@ -8,7 +8,7 @@ import 'package:dio/dio.dart';
 String fixture(String name) => File('test/fixtures/$name').readAsStringSync();
 
 /// A fake Silo server for tests: answers each request path from [routes]
-/// (path → response) and records every request so tests can check the
+/// (a response for each path) and records every request so tests can check the
 /// headers the client sent. Unknown paths get a Silo-style 404 problem.
 class FixtureServer implements HttpClientAdapter {
   FixtureServer(this.routes);

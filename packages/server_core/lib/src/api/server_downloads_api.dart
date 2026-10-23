@@ -11,14 +11,14 @@ abstract interface class ServerDownloadsApi {
   /// Registers the download of [request]'s item with the server and answers
   /// the file to fetch once the server has it ready.
   ///
-  /// A converted file takes the server a while to make: until it is ready,
+  /// A converted file takes the server a while to make: until it's ready,
   /// [onPreparing] hears how far along it is, and [isCancelled] is asked
-  /// between checks; once it answers true the wait ends with
+  /// between checks. Once it answers true the wait ends with
   /// [ServerDownloadCancelled].
   ///
   /// Throws [ServerDownloadRefused] when the server won't provide this
   /// download (no file, a quality it can't make, downloads switched off),
-  /// with its reason; other failures (network, server errors) as they come.
+  /// with its reason. Other failures (network, server errors) pass through.
   Future<ServerDownloadTicket> prepareDownload(
     ServerDownloadRequest request, {
     void Function(ServerDownloadPreparation preparation)? onPreparing,
@@ -50,7 +50,7 @@ abstract interface class ServerDownloadsApi {
   });
 
   /// The downloads of [itemIds] were deleted from the device (movies and
-  /// episodes; a deleted season or series names each of its episodes).
+  /// episodes, so a deleted season or series names each of its episodes).
   Future<void> downloadsRemoved(Iterable<String> itemIds);
 }
 
@@ -72,16 +72,16 @@ class ServerDownloadRequest {
   /// The movie or episode.
   final String itemId;
 
-  /// The series of an episode.
   final String? seriesId;
 
-  /// The version (media source) to download; null lets the server choose.
+  /// The version (media source) to download, or null to let the server
+  /// choose.
   final String? mediaSourceId;
 
-  /// Video bitrate cap in bits per second; null for the original file.
+  /// Video bitrate cap in bits per second, or null for the original file.
   final int? maxVideoBitrate;
 
-  /// Width cap in pixels; null for the original file.
+  /// Width cap in pixels, or null for the original file.
   final int? maxWidth;
 
   /// Whether this asks for the original file rather than a converted one.
@@ -107,7 +107,7 @@ class ServerDownloadTicket {
   /// The movie or episode it is for.
   final String itemId;
 
-  /// Where to fetch the file; supports ranged requests.
+  /// Where to fetch the file. It supports ranged requests.
   final Uri url;
 
   /// Headers every request for [url] needs (credentials).
@@ -134,7 +134,6 @@ class ServerDownloadSubtitle {
     required this.format,
   });
 
-  /// Where to fetch it.
   final Uri url;
 
   /// The `Index` of the media source's subtitle stream it is.
@@ -177,7 +176,7 @@ class ServerDownloadPreparation {
 }
 
 /// The wait for a server-prepared file ended because the download was
-/// cancelled.
+/// canceled.
 class ServerDownloadCancelled implements Exception {
   const ServerDownloadCancelled();
 
@@ -187,7 +186,7 @@ class ServerDownloadCancelled implements Exception {
 
 /// Artwork a server keeps for a download.
 enum ServerDownloadArtworkKind {
-  /// A movie's poster; an episode's still.
+  /// A movie's poster, or an episode's still.
   poster,
 
   /// The backdrop (an episode's: its series').

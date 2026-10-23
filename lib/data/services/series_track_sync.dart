@@ -5,7 +5,7 @@ import '../../util/language_matching.dart';
 import '../models/series_track_preference.dart';
 
 /// Brings a series' audio and subtitle choice kept by the server into the
-/// device's series track preferences (step 11.6), for a server that keeps
+/// device's series track preferences, for a server that keeps
 /// them ([SeriesTrackPreferencesApi], Silo).
 ///
 /// The server's choice wins when it names another language, or turns

@@ -2,9 +2,9 @@ import 'silo_capabilities_translator.dart';
 
 /// Where Moonfin is playing, as far as a Silo playback start needs to know:
 /// the device, its display, and what its player does beyond its device
-/// profile (step 10.4).
+/// profile.
 ///
-/// The app supplies this (it knows the platform); the package only shapes
+/// The app supplies this (it knows the platform), and the package only shapes
 /// it into Silo's `client_playback_context`. Every field is optional except
 /// the form factor, and an unknown value is left out rather than guessed.
 class SiloPlaybackEnvironment {
@@ -43,9 +43,9 @@ class SiloPlaybackEnvironment {
   final SiloPlayerTraits traits;
 }
 
-/// Silo's `client_playback_context` for a start or a replan (protocol v3
-/// §3–4): the app and device, the output, and per delivery class what the
-/// player accepts ([capabilities] from its device profile, 10.3).
+/// Silo's `client_playback_context` for a start or a replan: the app and
+/// device, the output, and per delivery class what the player accepts
+/// ([capabilities] from its device profile).
 ///
 /// **Output.** `output.hdr_details` is what can be shown natively: the
 /// decoder's HDR formats that the display also has. With no display answer
@@ -117,7 +117,7 @@ Map<String, dynamic> _intersection(
   };
 }
 
-/// [value] trimmed and cut to Silo's [max] characters; null when empty.
+/// [value] trimmed and cut to Silo's [max] characters, or null when empty.
 String? _bounded(String? value, int max) {
   final trimmed = value?.trim();
   if (trimmed == null || trimmed.isEmpty) return null;

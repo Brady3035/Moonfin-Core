@@ -94,7 +94,7 @@ void main() {
     expect(_catalogRequests(server), hasLength(2));
   });
 
-  test('suggestions: movies and series only (people come in 7.2)', () async {
+  test('suggestions: movies and series only', () async {
     final server = _server();
     final page = await siloTestClient(server).itemsApi.getItems(
       searchTerm: 'jus',

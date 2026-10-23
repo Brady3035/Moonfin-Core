@@ -17,7 +17,7 @@ class _Client extends Mock implements MediaServerClient {}
 
 class _ItemsApi extends Mock implements ItemsApi {}
 
-/// A server that lets the user edit only some collections (Silo, 9.5).
+/// A server that lets the user edit only some collections (Silo).
 class _EditableItemsApi extends _ItemsApi implements EditableCollectionsApi {
   bool editable = false;
   Map<String, dynamic>? asked;

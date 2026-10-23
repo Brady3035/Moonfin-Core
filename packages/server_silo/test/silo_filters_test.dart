@@ -78,7 +78,7 @@ void main() {
       ]);
     });
 
-    test('played state, favourites, quality, languages', () {
+    test('played state, favorites, quality, languages', () {
       Iterable<String> rules(List<Map<String, Object?>> g) => [
         for (final group in g)
           for (final r in (group['rules'] as List).cast<Map>())
@@ -155,7 +155,7 @@ void main() {
     });
 
     test('series status pages the whole filtered list', () async {
-      // 450 series, every third still airing; Silo pages by cursor.
+      // 450 series, every third still airing. Silo pages by cursor.
       final server = FixtureServer({
         '/api/v2/catalog': (RequestOptions o) {
           final q = o.queryParameters;

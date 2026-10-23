@@ -76,7 +76,7 @@ void main() {
     expect(result.requestHeaders['Authorization'], 'Bearer access-1');
   });
 
-  test('a player without headers gets the token on HLS too (12.3)', () async {
+  test('a player without headers gets the token on HLS too', () async {
     final server = _server(
       _decisionWithStream(
         '/api/v2/playback/transcode/$_session/master.m3u8?st=c2lnbmVk',
@@ -141,7 +141,7 @@ void main() {
     },
   );
 
-  test('a cast receiver gets a nearly fresh token (12.4)', () async {
+  test('a cast receiver gets a nearly fresh token', () async {
     Future<int> refreshesWith(Duration left, SiloPlayerTraits traits) async {
       final server = _server(
         SiloTestServer.file('decision_remux.json', status: 201),

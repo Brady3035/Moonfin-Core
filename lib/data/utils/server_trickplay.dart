@@ -2,7 +2,7 @@ import 'package:server_core/server_core.dart';
 
 /// Merges the server's seek previews for file [mediaSourceId] into the
 /// item's `Trickplay` field, for a server that reads them per file
-/// ([TrickplayManifestApi], Silo, step 11.2). The player then reads them
+/// ([TrickplayManifestApi], Silo). The player then reads them
 /// with `TrickplayInfo.fromItemData` as it reads Jellyfin's.
 ///
 /// Does nothing when the server has no such API, the item already carries

@@ -2551,7 +2551,7 @@ class DownloadService extends ChangeNotifier implements AutoDownloadDownloader {
               quality,
               mediaSourceId: mediaSourceId,
             ),
-            // A converted file is made on the server first; its progress
+            // A converted file is made on the server first, and its progress
             // shows like a server transcode's.
             onPreparing: (preparation) {
               _activeDownloads[item.id] = DownloadProgress(
@@ -2823,7 +2823,7 @@ class DownloadService extends ChangeNotifier implements AutoDownloadDownloader {
       try {
         downloadResponse = await engineDownload(url);
       } on DioException catch (e) {
-        // The fallbacks are Jellyfin's own URLs; a server-prepared file has
+        // The fallbacks are Jellyfin's own URLs. A server-prepared file has
         // no other address.
         if (serverTicket != null ||
             !_shouldRetryWithFallback(fullItem, quality, e)) {
@@ -3596,9 +3596,9 @@ class DownloadService extends ChangeNotifier implements AutoDownloadDownloader {
   /// files [_downloadImages] writes. It doesn't go through the client's image
   /// URLs, which on Silo only exist for items this session has read.
   ///
-  /// A movie's poster is its poster; an episode's is its still, which is
+  /// A movie's poster is its poster. An episode's is its still, which is
   /// what Moonfin shows as an episode's primary image. The backdrop is the
-  /// item's (an episode's: its series'). Answers the links, for
+  /// item's, or for an episode its series'. Returns the links for
   /// [_saveServerSeriesPoster].
   Future<Map<ServerDownloadArtworkKind, Uri>> _downloadServerArtwork(
     AggregatedItem item,
@@ -3866,7 +3866,7 @@ class DownloadService extends ChangeNotifier implements AutoDownloadDownloader {
     final row = await _offlineRepo.getItem(itemId);
     final path = row?.localFilePath;
     if (row == null || row.downloadStatus != 2 || path == null) return;
-    // The repair rebuilds Jellyfin's subtitle URLs; a server with its own
+    // The repair rebuilds Jellyfin's subtitle URLs. A server with its own
     // download registry (Silo) delivered its sidecars with the file.
     if (_serverDownloads != null) return;
     if (!_subtitleRepairsTried.add(itemId)) return;

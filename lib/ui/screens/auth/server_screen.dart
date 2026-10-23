@@ -196,7 +196,7 @@ class _ServerScreenState extends State<ServerScreen> {
     final alwaysAuthenticate =
         GetIt.instance<AuthenticationPreferences>().shouldAlwaysAuthenticate;
 
-    // A Silo profile locked with a PIN asks for it first (18.4).
+    // A Silo profile locked with a PIN asks for it first.
     final stored = _userRepo
         .getStoredServerUsers(server.id)
         .where((u) => u.id == user.id)
@@ -590,7 +590,7 @@ class _ServerScreenState extends State<ServerScreen> {
                           ),
                           // UserAvatarImage, not a NetworkImage: Silo's
                           // preset avatars are SVG, which an image codec
-                          // can't decode (18.3a).
+                          // can't decode.
                           child: CircleAvatar(
                             radius: 36,
                             backgroundColor: Colors.white.withValues(alpha: 0.1),
@@ -609,8 +609,6 @@ class _ServerScreenState extends State<ServerScreen> {
                         ),
                         const SizedBox(height: 8),
                         if (user.siloHasPin)
-                          // A Silo profile locked with a PIN (18.4 asks
-                          // for it).
                           Icon(
                             Icons.lock_outline,
                             size: 14,
@@ -656,7 +654,7 @@ class _MergedUser {
   final bool hasToken;
   final bool hasPassword;
 
-  /// A Silo household profile locked with a PIN (phase 18).
+  /// A Silo household profile locked with a PIN.
   final bool siloHasPin;
 
   const _MergedUser({

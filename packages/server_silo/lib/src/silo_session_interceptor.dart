@@ -51,7 +51,7 @@ class SiloSessionInterceptor extends Interceptor {
         options.extra[siloNoAuthExtra] == true;
     if (!skip && _session.needsRefresh) {
       await _session.refresh(_authDio);
-      // The login or profile may have changed while this request waited;
+      // The login or profile may have changed while this request waited, and
       // sending it now would act as whoever took over.
       if (!_isCurrent(options)) {
         return handler.reject(_identityChanged(options));

@@ -2,7 +2,7 @@ import 'package:server_core/server_core.dart';
 
 import 'silo_ticks.dart';
 
-/// Silo marker kinds → Jellyfin `MediaSegmentType`, which Moonfin's skip
+/// Silo marker kinds as Jellyfin `MediaSegmentType`, which Moonfin's skip
 /// prompts and segment actions read. Credits are Jellyfin's `Outro`.
 const Map<String, String> siloSegmentTypes = {
   'intro': 'Intro',
@@ -22,8 +22,8 @@ const Map<String, String> siloSegmentTypes = {
 /// an intro and a second intro after a cold open), so it is used when Silo
 /// sends it. Older answers and catalog versions only carry one segment per
 /// kind (`intro`, `credits`, `recap`, `preview`), as `MarkerSegment`
-/// (`start_seconds`/`end_seconds`) or `Marker` (`start`/`end`); those are
-/// the fallback.
+/// (`start_seconds`/`end_seconds`) or `Marker` (`start`/`end`), and those
+/// are the fallback.
 ///
 /// A segment without an end runs to [runTimeSeconds] when it is given (Silo
 /// defaults credits and previews to the end of the file), and is dropped

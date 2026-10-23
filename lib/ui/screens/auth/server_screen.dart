@@ -3,6 +3,7 @@ import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:moonfin_design/moonfin_design.dart';
 import 'package:jellyfin_preference/jellyfin_preference.dart';
+import 'package:server_core/server_core.dart';
 
 import '../../../auth/models/login_state.dart';
 import '../../../auth/models/server.dart';

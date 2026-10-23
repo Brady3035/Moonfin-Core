@@ -50,12 +50,15 @@ void main() {
   });
 
   Future<int?> measureFor(ServerType type) {
-    final factory = MediaServerClientFactory(deviceInfo: _device)
-      ..getClient(
+    final factory = MediaServerClientFactory(deviceInfo: _device);
+    // The service measures the signed in server's client.
+    GetIt.instance.registerSingleton<MediaServerClient>(
+      factory.getClient(
         serverId: 'server',
         serverType: type,
         baseUrl: 'http://127.0.0.1:${server.port}',
-      );
+      ),
+    );
     return AutoBitrateService(factory).measuredBpsForActiveServer();
   }
 

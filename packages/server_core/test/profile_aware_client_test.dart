@@ -55,6 +55,12 @@ void main() {
       expect(headers['Authorization'], contains('Token="tok"'));
     });
 
+    test('Plex gets its token header', () {
+      expect(serverAuthHeaders(_PlainClient(ServerType.plex)), {
+        'X-Plex-Token': 'tok',
+      });
+    });
+
     test('a profile-aware client supplies its own headers', () {
       expect(serverAuthHeaders(_ProfileClient()), {
         'Authorization': 'Bearer tok',

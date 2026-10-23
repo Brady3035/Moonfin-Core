@@ -263,7 +263,14 @@ void main() {
     'Name': 'xXx',
     'ProductionYear': 2002,
     'MediaSources': [
-      {'Id': '4567', 'Container': 'mkv', 'Size': 2048},
+      {
+        'Id': '4567',
+        'Container': 'mkv',
+        'Size': 2048,
+        'MediaStreams': [
+          {'Type': 'Video', 'Index': 0, 'Codec': 'h264'},
+        ],
+      },
     ],
   };
 

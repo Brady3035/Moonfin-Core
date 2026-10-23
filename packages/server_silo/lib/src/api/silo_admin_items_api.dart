@@ -155,20 +155,23 @@ class SiloAdminItemsApi implements AdminItemsApi {
     Map<String, dynamic> query,
   ) async => const [];
 
-  /// `POST .../match/apply` with the match's provider ids. Silo has no
-  /// counterpart to [replaceAllImages].
+  /// `POST .../match/apply` with the match's provider ids. Matching an
+  /// unmatched item gives it a new id (`local-...` becomes `movie-tmdb-812`),
+  /// which is answered. Silo has no counterpart to [replaceAllImages].
   @override
-  Future<void> applyRemoteSearchResult(
+  Future<String?> applyRemoteSearchResult(
     String itemId,
     Map<String, dynamic> result, {
     bool replaceAllImages = true,
   }) async {
-    await _dio.post<dynamic>(
+    final response = await _dio.post<dynamic>(
       '${_path(itemId)}/match/apply',
       data: {'provider_ids': result[siloProviderIdsKey]},
     );
     _imageChoices.forget(itemId);
     _items.noteCatalogChanged();
+    final id = asJsonMap(response.data)?['content_id'];
+    return id is String && id.isNotEmpty && id != itemId ? id : null;
   }
 
   /// One kind of artwork from the item's choices (`GET .../images`). Each

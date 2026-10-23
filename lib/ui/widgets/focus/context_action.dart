@@ -395,14 +395,14 @@ List<ItemContextAction> contextActionsFor(
                 ? (item.seriesName ?? item.name)
                 : item.name;
 
-            final applied = await IdentifyDialog.show(
+            final identified = await IdentifyDialog.show(
               context,
               itemId: targetItemId,
               itemType: targetItemType,
               itemName: targetItemName,
               itemYear: isTVChild ? null : item.productionYear,
             );
-            if (applied == true) {
+            if (identified != null) {
               onChanged?.call();
             }
           },

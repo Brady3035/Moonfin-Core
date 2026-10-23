@@ -8014,6 +8014,18 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
         adminPanel: adminServerSupported(),
       );
 
+  void _afterIdentify(String? identified, AggregatedItem item) {
+    if (identified == null || !mounted) return;
+    if (identified == item.id) {
+      viewModel.load();
+    } else {
+      // The match gave the item a new id, and the old one is gone.
+      context.pushReplacement(
+        Destinations.item(identified, serverId: item.serverId),
+      );
+    }
+  }
+
   void _showAdminDialog(BuildContext context, AggregatedItem item) {
     final l10n = AppLocalizations.of(context);
     final actions = _adminActionsFor(item);
@@ -8043,11 +8055,7 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
                         itemType: item.type,
                         itemName: item.name,
                         itemYear: item.productionYear,
-                      ).then((applied) {
-                        if (applied == true) {
-                          viewModel.load();
-                        }
-                      });
+                      ).then((identified) => _afterIdentify(identified, item));
                       return KeyEventResult.handled;
                     }
                     return KeyEventResult.ignored;
@@ -8058,16 +8066,14 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
                       return InkWell(
                         onTap: () async {
                           Navigator.of(dialogCtx).pop();
-                          final applied = await IdentifyDialog.show(
+                          final identified = await IdentifyDialog.show(
                             context,
                             itemId: item.id,
                             itemType: item.type,
                             itemName: item.name,
                             itemYear: item.productionYear,
                           );
-                          if (applied == true) {
-                            viewModel.load();
-                          }
+                          _afterIdentify(identified, item);
                         },
                         child: Container(
                           padding: const EdgeInsets.symmetric(

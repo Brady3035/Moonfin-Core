@@ -11718,9 +11718,13 @@ class _DownloadButtonState extends State<_DownloadButton> {
       );
       return;
     }
+    final qualities = await GetIt.instance<DownloadService>()
+        .offeredQualities();
+    if (!context.mounted) return;
     final quality = await _pickQuality(
       context,
       item,
+      qualities: qualities,
       title: l10n.autoDownloadQualityTitle,
       note: l10n.autoDownloadTranscodedForegroundNote,
     );
@@ -11895,7 +11899,9 @@ class _DownloadButtonState extends State<_DownloadButton> {
     int? audioStreamIndex,
   }) async {
     final isMulti = _isBatchType(item.type);
-    if (!service.canDownloadTranscoded ||
+    final qualities = await service.offeredQualities();
+    if (!context.mounted) return;
+    if (qualities.length < 2 ||
         (!isMulti && !_supportsTranscoding(item.type))) {
       _startDownload(
         context,
@@ -11913,6 +11919,7 @@ class _DownloadButtonState extends State<_DownloadButton> {
     final quality = await _pickQuality(
       context,
       item,
+      qualities: qualities,
       title: isMulti
           ? AppLocalizations.of(context).downloadAllQuality
           : AppLocalizations.of(context).downloadQuality,
@@ -11936,13 +11943,15 @@ class _DownloadButtonState extends State<_DownloadButton> {
       type == 'MusicVideo' ||
       type == 'Video';
 
-  /// Lets the user pick a quality for [widget.item]; size estimates cover
-  /// [items] for batches. Null when the sheet is dismissed.
+  /// Lets the user pick a quality for [widget.item] among the server's
+  /// [qualities]. Size estimates cover [items] for batches. Null when the
+  /// sheet is dismissed.
   /// [note] is shown once under the title, for callers where the choice has
   /// a consequence worth stating.
   static Future<DownloadQuality?> _pickQuality(
     BuildContext context,
     AggregatedItem item, {
+    required List<DownloadQuality> qualities,
     required String title,
     List<AggregatedItem> items = const [],
     String? note,
@@ -11965,7 +11974,7 @@ class _DownloadButtonState extends State<_DownloadButton> {
             return maxWidth;
           })()
         : item.sourceVideoWidth;
-    final availableQualities = DownloadQuality.values.where((q) {
+    final availableQualities = qualities.where((q) {
       if (q.maxWidth == null) return true;
       if (sourceWidth == null) return true;
       return q.maxWidth! <= sourceWidth;

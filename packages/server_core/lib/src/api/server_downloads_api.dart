@@ -25,6 +25,10 @@ abstract interface class ServerDownloadsApi {
     bool Function()? isCancelled,
   });
 
+  /// Whether the server makes converted downloads capped at [maxVideoBitrate]
+  /// (bit/s) for this account.
+  Future<bool> convertsDownloadsAt(int maxVideoBitrate);
+
   /// A link a browser can open to download [request]'s item, for the web
   /// build, where downloads go through the browser and carry no headers.
   /// Null when the server has none for this request.
@@ -132,6 +136,7 @@ class ServerDownloadSubtitle {
     required this.url,
     required this.streamIndex,
     required this.format,
+    this.stream,
   });
 
   final Uri url;
@@ -141,6 +146,10 @@ class ServerDownloadSubtitle {
 
   /// Its format, as a file extension (`srt`, `vtt`, `ass`, `sup`).
   final String format;
+
+  /// The stream to add to the download's media source, for a subtitle the
+  /// server keeps beside the file, which the media source doesn't list.
+  final Map<String, dynamic>? stream;
 }
 
 /// The server won't provide a download.

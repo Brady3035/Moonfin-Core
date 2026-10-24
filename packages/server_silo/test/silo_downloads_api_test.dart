@@ -812,6 +812,36 @@ void main() {
     SiloDownloadsApi api(FixtureServer server) =>
         _client(server).downloadsApi..preparationPollInterval = Duration.zero;
 
+    test('converts only where an allowed preset fits', () async {
+      Future<List<bool>> converts(Map<String, dynamic> capability) async {
+        final downloads = api(
+          FixtureServer({
+            '/api/v2/capabilities/downloads': _json(_capability(capability)),
+          }),
+        );
+        return [
+          for (final bitrate in [4000000, 2000000, 500000])
+            await downloads.convertsDownloadsAt(bitrate),
+        ];
+      }
+
+      expect(await converts(capabilityAll), [true, true, true]);
+      expect(
+        await converts({
+          'transcode_enabled': true,
+          'quality_presets': ['original', '20mbps', '10mbps'],
+        }),
+        [false, false, false],
+      );
+      expect(
+        await converts({
+          'transcode_enabled': false,
+          'quality_presets': ['original'],
+        }),
+        [false, false, false],
+      );
+    });
+
     test('waits while Silo makes the file, reporting its progress', () async {
       final converted = {
         'quality': '5mbps',
@@ -1114,15 +1144,42 @@ void main() {
     test('an original gets its sidecars, named by their stream', () async {
       final result = await subtitles(manifest());
 
-      expect(result, hasLength(1));
+      expect(result, hasLength(2));
+      final sidecar = result.first;
       expect(
-        result.single.url.toString(),
+        sidecar.url.toString(),
         'https://silo.example/api/v2/downloads/dl_01HSCRUBBED/subtitles/external:0',
       );
       // The sidecar is the version's third subtitle track.
-      expect(result.single.streamIndex, streamOf(2));
-      expect(result.single.streamIndex, 4);
-      expect(result.single.format, 'srt');
+      expect(sidecar.streamIndex, streamOf(2));
+      expect(sidecar.streamIndex, 4);
+      expect(sidecar.format, 'srt');
+      expect(sidecar.stream, isNull);
+    });
+
+    test('a downloaded subtitle gets a stream after the file\'s own', () async {
+      final downloaded = (await subtitles(manifest())).last;
+
+      expect(
+        downloaded.url.toString(),
+        'https://silo.example/api/v2/downloads/dl_01HSCRUBBED/subtitles/downloaded:77',
+      );
+      expect(downloaded.streamIndex, siloNextStreamIndex(mediaSource));
+      expect(downloaded.streamIndex, 5);
+      expect(downloaded.format, 'srt');
+      expect(downloaded.stream, {
+        'Type': 'Subtitle',
+        'Index': 5,
+        'Codec': 'srt',
+        'Language': 'fr',
+        'DisplayTitle': 'French',
+        'IsForced': false,
+        'IsHearingImpaired': false,
+        'IsDefault': false,
+        'IsExternal': true,
+        'IsTextSubtitleStream': true,
+        'SupportsExternalStream': true,
+      });
     });
 
     test(
@@ -1133,6 +1190,7 @@ void main() {
         expect(result.map((s) => (s.streamIndex, s.format)), [
           (4, 'srt'),
           (streamOf(1), 'ass'),
+          (5, 'srt'),
         ]);
         expect(streamOf(1), 3);
       },

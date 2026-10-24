@@ -295,6 +295,18 @@ void main() {
     });
   });
 
+  test('the refresh keeps subtitle streams the server item lacks', () async {
+    final server = _FakeServer('http://server-a.test')..set('m');
+    const subtitle = {'Type': 'Subtitle', 'Index': 5, 'IsExternal': true};
+    await download('m');
+    await repo.addMediaStreams('m', [subtitle]);
+
+    await sync.refreshMetadata(server.client, serverId: 'server-a');
+
+    final stored = jsonDecode((await repo.getItem('m'))!.metadataJson) as Map;
+    expect(stored['MediaStreams'], [subtitle]);
+  });
+
   group('a server that takes offline progress in bulk', () {
     late _FakeServer server;
     late _BulkUserLibraryApi bulk;

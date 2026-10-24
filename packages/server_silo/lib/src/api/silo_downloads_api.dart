@@ -252,6 +252,18 @@ class SiloDownloadsApi implements ServerDownloadsApi {
     return _ticketFor(entry, request.itemId);
   }
 
+  /// Whether [prepareDownload] finds an allowed preset for [maxVideoBitrate].
+  @override
+  Future<bool> convertsDownloadsAt(int maxVideoBitrate) async {
+    final capability = await this.capability();
+    return capability.permitsDownloads &&
+        siloDownloadPreset(
+              maxVideoBitrate,
+              allowed: capability.qualityPresets,
+            ) !=
+            null;
+  }
+
   /// How often a file Silo is preparing is checked on. Silo refreshes the
   /// preparation numbers at most every 5 seconds. Tests shorten it.
   Duration preparationPollInterval;
@@ -534,7 +546,8 @@ class SiloDownloadsApi implements ServerDownloadsApi {
   /// file's n-th subtitle track, an ASS or PGS track that a converted MP4
   /// can't hold (an original keeps its embedded tracks, so it gets none).
   /// `downloaded:{id}` (subtitles fetched into Silo by its subtitle search)
-  /// has no stream in the media source and is left out.
+  /// has no stream in the media source, so each gets one after the file's
+  /// own, as streaming numbers them.
   @override
   Future<List<ServerDownloadSubtitle>> downloadSubtitles(
     ServerDownloadTicket ticket, {
@@ -553,15 +566,36 @@ class SiloDownloadsApi implements ServerDownloadsApi {
       for (final (i, t) in tracks.indexed)
         if (t['external'] == true) i,
     ];
+    var nextIndex = siloNextStreamIndex(mediaSource);
     final result = <ServerDownloadSubtitle>[];
     for (final raw in manifest['subtitles'] as List? ?? const []) {
       final subtitle = asJsonMap(raw);
-      final url = subtitle?['fetch_url'] as String?;
-      final format = (subtitle?['format'] as String?)?.toLowerCase();
+      if (subtitle == null) continue;
+      final url = subtitle['fetch_url'] as String?;
+      final format = (subtitle['format'] as String?)?.toLowerCase();
       if (url == null || url.isEmpty || format == null || format.isEmpty) {
         continue;
       }
       final ref = Uri.decodeComponent(url.split('/').last).split(':');
+      final extension = format == 'ssa' ? 'ass' : format;
+      if (ref.length == 2 && ref[0] == 'downloaded' && ref[1].isNotEmpty) {
+        final index = nextIndex++;
+        result.add(
+          ServerDownloadSubtitle(
+            url: _absolute(url),
+            streamIndex: index,
+            format: extension,
+            stream: siloAddedSubtitleStream(
+              index: index,
+              codec: extension,
+              language: subtitle['language'] as String?,
+              forced: subtitle['forced'] == true,
+              hearingImpaired: subtitle['hearing_impaired'] == true,
+            ),
+          ),
+        );
+        continue;
+      }
       final n = ref.length == 2 ? int.tryParse(ref[1]) : null;
       if (n == null || n < 0) continue;
       final ordinal = switch (ref[0]) {
@@ -584,7 +618,7 @@ class SiloDownloadsApi implements ServerDownloadsApi {
         ServerDownloadSubtitle(
           url: _absolute(url),
           streamIndex: index,
-          format: format == 'ssa' ? 'ass' : format,
+          format: extension,
         ),
       );
     }

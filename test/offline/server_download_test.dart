@@ -80,6 +80,14 @@ class _Repo extends OfflineRepository {
   @override
   Future<List<DownloadedItem>> getSeasonEpisodes(String seasonId) async =>
       episodesBySeason[seasonId] ?? const [];
+
+  final addedStreams = <String, List<Map<String, dynamic>>>{};
+
+  @override
+  Future<void> addMediaStreams(
+    String itemId,
+    List<Map<String, dynamic>> streams,
+  ) async => (addedStreams[itemId] ??= []).addAll(streams);
 }
 
 class _Storage extends StoragePathService {
@@ -157,6 +165,13 @@ class _Registry implements ServerDownloadsApi {
       mediaSourceId: '4567',
     );
   }
+
+  /// The highest video bitrate the server converts to, or null for none.
+  int? convertsUpTo = 4000000;
+
+  @override
+  Future<bool> convertsDownloadsAt(int maxVideoBitrate) async =>
+      maxVideoBitrate <= (convertsUpTo ?? -1);
 
   @override
   Future<Uri?> browserDownloadUrl(ServerDownloadRequest request) async => null;
@@ -552,6 +567,52 @@ void main() {
       fileRequests.where((r) => r.uri.path.startsWith('/Videos/')),
       isEmpty,
     );
+  });
+
+  test('a subtitle the server keeps beside the file is saved with its '
+      'stream', () async {
+    const stream = {
+      'Type': 'Subtitle',
+      'Index': 5,
+      'Codec': 'srt',
+      'Language': 'en',
+      'IsExternal': true,
+    };
+    registry.subtitles = [
+      ServerDownloadSubtitle(
+        url: Uri.parse(
+          'http://127.0.0.1:${fileServer.port}/subs/downloaded:1',
+        ),
+        streamIndex: 5,
+        format: 'srt',
+        stream: stream,
+      ),
+    ];
+
+    await service.downloadItem(item());
+    await _waitFor(() => repo.addedStreams.isNotEmpty);
+    await _afterCompletionTasks();
+
+    expect(repo.addedStreams[item().id], [stream]);
+    final saved = tempDir
+        .listSync(recursive: true)
+        .whereType<File>()
+        .where((f) => f.path.endsWith('_sub_5.srt'));
+    expect(saved, hasLength(1));
+  });
+
+  test('only the qualities the server converts to are offered', () async {
+    expect(await service.offeredQualities(), DownloadQuality.values);
+
+    registry.convertsUpTo = 1000000;
+    expect(await service.offeredQualities(), [
+      DownloadQuality.original,
+      DownloadQuality.low480p,
+      DownloadQuality.mobile360p,
+    ]);
+
+    registry.convertsUpTo = null;
+    expect(await service.offeredQualities(), [DownloadQuality.original]);
   });
 
   test('deleting a download tells the server', () async {

@@ -46,12 +46,7 @@ Map<int, int> siloSubtitleIndexByCombined(
   for (final (i, index) in siloSubtitleOrder(source).indexed) {
     byCombined[i] = index;
   }
-  var next =
-      [
-        for (final s in (source?['MediaStreams'] as List?) ?? const [])
-          if (s is Map && s['Index'] is int) s['Index'] as int,
-      ].fold<int>(-1, (a, b) => b > a ? b : a) +
-      1;
+  var next = siloNextStreamIndex(source);
   final subtitle = plan['subtitle'];
   final inventory = subtitle is Map ? subtitle['inventory'] : null;
   for (final e in inventory is List ? inventory : const []) {
@@ -126,25 +121,16 @@ SiloPlanSubtitles siloPlanSubtitles({
     final combined = entry['combined_index'];
     final index = combined is int ? byCombined[combined] : null;
     if (index == null || own.contains(index)) continue;
-    final language = entry['language'] as String?;
-    final label = entry['label'] as String?;
-    streams.add({
-      'Type': 'Subtitle',
-      'Index': index,
-      'Codec': ?entry['codec'],
-      'Language': ?language,
-      'Title': ?label,
-      'DisplayTitle': [
-        ?siloLanguageName(language),
-        if (label != null && label != language) label,
-      ].join(' - '),
-      'IsForced': entry['forced'] == true,
-      'IsHearingImpaired': entry['hearing_impaired'] == true,
-      'IsDefault': false,
-      'IsExternal': true,
-      'IsTextSubtitleStream': true,
-      'SupportsExternalStream': true,
-    });
+    streams.add(
+      siloAddedSubtitleStream(
+        index: index,
+        codec: entry['codec'] as String?,
+        language: entry['language'] as String?,
+        label: entry['label'] as String?,
+        forced: entry['forced'] == true,
+        hearingImpaired: entry['hearing_impaired'] == true,
+      ),
+    );
   }
 
   int? selected;

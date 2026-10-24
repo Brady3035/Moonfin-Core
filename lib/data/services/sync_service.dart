@@ -339,6 +339,13 @@ class SyncService extends ChangeNotifier {
             playbackPositionTicks: shouldUpdateTicks ? Value(serverTicks) : Value(localItem.playbackPositionTicks),
           ),
         );
+        // Silo's item doesn't list the subtitles saved beside its download,
+        // so their streams are carried over.
+        final stored = jsonDecode(localItem.metadataJson) as Map<String, dynamic>;
+        await _offlineRepo.addMediaStreams(localItem.itemId, [
+          for (final s in stored['MediaStreams'] as List? ?? const [])
+            if (s is Map<String, dynamic> && s['Type'] == 'Subtitle') s,
+        ]);
       } catch (e) {
         debugPrint('[Sync] Failed to refresh metadata for ${item.itemId}: $e');
       }

@@ -96,7 +96,11 @@ class _Users extends Fake implements UserRepository {
 
 class _PluginSync extends Fake implements PluginSyncService {
   @override
-  void resetState({bool notify = true, bool stopStream = true}) {}
+  void resetState({
+    bool notify = true,
+    bool stopStream = true,
+    bool keepIncompleteRecordings = false,
+  }) {}
 }
 
 final _server = Server(

@@ -41,6 +41,7 @@ void main() {
       'canDownload',
       'canManageSubtitles',
       'canManageCollections',
+      'canManageLiveTv',
     });
     expect(_user().isSiloProfile, isFalse);
   });

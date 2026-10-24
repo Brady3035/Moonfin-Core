@@ -2277,6 +2277,25 @@ class DownloadService extends ChangeNotifier implements AutoDownloadDownloader {
   /// downloads originals.
   bool get canDownloadTranscoded => _client.serverType != ServerType.plex;
 
+  /// The qualities the server makes for this account, Original first.
+  Future<List<DownloadQuality>> offeredQualities() async {
+    if (!canDownloadTranscoded) return const [DownloadQuality.original];
+    final server = _serverDownloads;
+    if (server == null) return DownloadQuality.values;
+    try {
+      return [
+        for (final quality in DownloadQuality.values)
+          if (!quality.isTranscoded ||
+              await server.convertsDownloadsAt(quality.videoBitRate!))
+            quality,
+      ];
+    } catch (_) {
+      // The download asks the server again when it starts and explains a
+      // refusal.
+      return DownloadQuality.values;
+    }
+  }
+
   /// [mediaSourceId] picks one version of a multi-version item, the server's
   /// default when null. [audioStreamIndex] picks the audio track a transcode
   /// keeps, the audio language settings' choice when null.
@@ -3843,6 +3862,7 @@ class DownloadService extends ChangeNotifier implements AutoDownloadDownloader {
       mediaSource: mediaSource,
     );
     final options = Options(headers: ticket.headers);
+    final addedStreams = <Map<String, dynamic>>[];
     for (final subtitle in subtitles) {
       final path =
           '${dir.path}/${fileNameBase}_sub_${subtitle.streamIndex}.${subtitle.format}';
@@ -3852,10 +3872,13 @@ class DownloadService extends ChangeNotifier implements AutoDownloadDownloader {
           path,
           options: options,
         );
+        if (subtitle.stream case final stream?) addedStreams.add(stream);
       } catch (e) {
         debugPrint('[Download] Subtitle ${subtitle.url} not saved: $e');
       }
     }
+    // The offline player only shows a subtitle file whose stream it knows.
+    await _offlineRepo.addMediaStreams(item.id, addedStreams);
   }
 
   /// Fetches the subtitle files a finished download should have but doesn't,

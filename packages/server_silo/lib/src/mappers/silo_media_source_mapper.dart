@@ -95,6 +95,42 @@ int? siloStreamIndexForTrack(
   return null;
 }
 
+/// The stream index after every stream of [source], where subtitles Silo
+/// keeps beside the file (ones its subtitle search fetched) are numbered.
+int siloNextStreamIndex(Map<String, dynamic>? source) =>
+    [
+      for (final s in (source?['MediaStreams'] as List?) ?? const [])
+        if (s is Map && s['Index'] is int) s['Index'] as int,
+    ].fold<int>(-1, (a, b) => b > a ? b : a) +
+    1;
+
+/// Moonfin's stream for a subtitle Silo keeps beside the file rather than in
+/// it, on stream [index].
+Map<String, dynamic> siloAddedSubtitleStream({
+  required int index,
+  String? codec,
+  String? language,
+  String? label,
+  bool forced = false,
+  bool hearingImpaired = false,
+}) => {
+  'Type': 'Subtitle',
+  'Index': index,
+  'Codec': ?codec,
+  'Language': ?language,
+  'Title': ?label,
+  'DisplayTitle': [
+    ?siloLanguageName(language),
+    if (label != null && label != language) label,
+  ].join(' - '),
+  'IsForced': forced,
+  'IsHearingImpaired': hearingImpaired,
+  'IsDefault': false,
+  'IsExternal': true,
+  'IsTextSubtitleStream': true,
+  'SupportsExternalStream': true,
+};
+
 Iterable<Map<String, dynamic>> _trackEntries(Map<String, dynamic> source) {
   final tracks = source[siloTracksKey];
   if (tracks is! List) return const [];

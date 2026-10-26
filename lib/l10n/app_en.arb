@@ -14953,7 +14953,7 @@
   "@addServerChooseHow": {
     "description": "Subtitle of the first step of the Add Server dialog"
   },
-  "addServerAddressChoice": "Jellyfin or Emby on your network or online",
+  "addServerAddressChoice": "Jellyfin, Emby or Silo on your network or online",
   "@addServerAddressChoice": {
     "description": "Add Server dialog: what the Server Address option is for"
   },
@@ -14965,7 +14965,7 @@
   "@addServerAddressHelp": {
     "description": "Add Server dialog: help under the Connect to Server title"
   },
-  "addServerDetectNote": "Works with Jellyfin and Emby. A Plex address opens the Plex sign-in.",
+  "addServerDetectNote": "Works with Jellyfin, Emby and Silo. A Plex address opens the Plex sign-in.",
   "@addServerDetectNote": {
     "description": "Add Server dialog: note under the address field"
   },

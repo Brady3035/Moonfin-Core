@@ -27762,7 +27762,7 @@ abstract class AppLocalizations {
   /// Add Server dialog: what the Server Address option is for
   ///
   /// In en, this message translates to:
-  /// **'Jellyfin or Emby on your network or online'**
+  /// **'Jellyfin, Emby or Silo on your network or online'**
   String get addServerAddressChoice;
 
   /// Add Server dialog: what the Sign in with Plex option does
@@ -27780,7 +27780,7 @@ abstract class AppLocalizations {
   /// Add Server dialog: note under the address field
   ///
   /// In en, this message translates to:
-  /// **'Works with Jellyfin and Emby. A Plex address opens the Plex sign-in.'**
+  /// **'Works with Jellyfin, Emby and Silo. A Plex address opens the Plex sign-in.'**
   String get addServerDetectNote;
 
   /// Add Server dialog: shown under the field while the typed address is being tried

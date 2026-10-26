@@ -86,12 +86,17 @@ const _warningText = Color(0xFFFFD27A);
     tile: const Color(0x24E5A00D),
     glyph: const Color(0xFFF2BC45),
   ),
+  ServerType.silo => (
+    tile: const Color(0x245EC7BC),
+    glyph: const Color(0xFF5EC7BC),
+  ),
 };
 
 String _brand(ServerType type) => switch (type) {
   ServerType.jellyfin => 'Jellyfin',
   ServerType.emby => 'Emby',
   ServerType.plex => 'Plex',
+  ServerType.silo => 'Silo',
 };
 
 ButtonStyle _primaryStyle({bool compact = false}) {
@@ -423,8 +428,8 @@ class _AddServerDialogState extends State<AddServerDialog> {
         _focusLater(_continueFocus);
         return;
       }
-      // Only Jellyfin and Emby answer that probe, so a Plex server goes to its
-      // plex.tv sign-in.
+      // Only Jellyfin, Emby and Silo answer that probe, so a Plex server goes
+      // to its plex.tv sign-in.
       final plexUri = GetIt.instance.isRegistered<PlexTvService>()
           ? await GetIt.instance<PlexTvService>().findServerAt(address)
           : null;

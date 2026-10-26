@@ -76,8 +76,8 @@ class SiloSecretField extends StatelessWidget {
             isFocused: focusNode.hasFocus,
             inputPurpose: InputPurpose.password,
             textFieldType: TextFieldType.password,
-            preferSystemIme: GetIt.instance<UserPreferences>().get(
-              UserPreferences.preferSystemImeKeyboard,
+            keyboardStyle: GetIt.instance<UserPreferences>().get(
+              UserPreferences.keyboardStyle,
             ),
             hint: label,
             filled: true,

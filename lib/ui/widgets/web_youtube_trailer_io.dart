@@ -6,6 +6,8 @@ import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
 
+import '../../util/platform_detection.dart';
+
 enum _EmbeddedPlayerMode {
   manualIframe,
   unsupported,
@@ -230,7 +232,9 @@ class _WebYouTubeTrailerState extends State<WebYouTubeTrailer> {
         await platform.setMediaPlaybackRequiresUserGesture(false);
       }
 
-      await controller.setBackgroundColor(const Color(0x00000000));
+      if (!PlatformDetection.isMacOS) {
+        await controller.setBackgroundColor(const Color(0x00000000));
+      }
       _controller = controller;
 
       await _loadHtml(controller);

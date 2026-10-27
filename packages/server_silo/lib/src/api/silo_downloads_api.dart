@@ -530,7 +530,7 @@ class SiloDownloadsApi implements ServerDownloadsApi {
     ]) {
       final path = urls?[key];
       if (path is String && path.isNotEmpty) {
-        result[kind] = _absolute(path);
+        if (_absolute(path) case final url?) result[kind] = url;
       }
     }
     return result;
@@ -576,13 +576,15 @@ class SiloDownloadsApi implements ServerDownloadsApi {
       if (url == null || url.isEmpty || format == null || format.isEmpty) {
         continue;
       }
+      final absolute = _absolute(url);
+      if (absolute == null) continue;
       final ref = Uri.decodeComponent(url.split('/').last).split(':');
       final extension = format == 'ssa' ? 'ass' : format;
       if (ref.length == 2 && ref[0] == 'downloaded' && ref[1].isNotEmpty) {
         final index = nextIndex++;
         result.add(
           ServerDownloadSubtitle(
-            url: _absolute(url),
+            url: absolute,
             streamIndex: index,
             format: extension,
             stream: siloAddedSubtitleStream(
@@ -616,7 +618,7 @@ class SiloDownloadsApi implements ServerDownloadsApi {
       if (index == null) continue;
       result.add(
         ServerDownloadSubtitle(
-          url: _absolute(url),
+          url: absolute,
           streamIndex: index,
           format: extension,
         ),
@@ -625,9 +627,21 @@ class SiloDownloadsApi implements ServerDownloadsApi {
     return result;
   }
 
-  Uri _absolute(String path) => path.startsWith('http')
-      ? Uri.parse(path)
-      : Uri.parse('${_baseUrl()}$path');
+  /// [path] made absolute, or null when it isn't on the server's origin: the
+  /// download's headers carry the account's credentials.
+  Uri? _absolute(String path) {
+    final uri = Uri.tryParse(
+      path.startsWith('http') ? path : '${_baseUrl()}$path',
+    );
+    final base = Uri.parse(_baseUrl());
+    if (uri == null ||
+        uri.scheme != base.scheme ||
+        uri.host != base.host ||
+        uri.port != base.port) {
+      return null;
+    }
+    return uri;
+  }
 
   /// Deletes this device's entries for [itemIds] (`DELETE /downloads/{id}`),
   /// found among the device's entries. One already gone (`404`) is fine.

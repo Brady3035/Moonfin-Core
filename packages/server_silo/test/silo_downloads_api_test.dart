@@ -1045,6 +1045,24 @@ void main() {
       expect(artwork.keys, [ServerDownloadArtworkKind.poster]);
     });
 
+    test('links off the server are left out', () async {
+      final manifest = _fixture('download_manifest_episode.json')
+        ..['artwork_urls'] = {
+          'poster': 'https://elsewhere.example/poster',
+          'backdrop': '@elsewhere.example/backdrop',
+          'logo': '/api/v2/downloads/dl_01HSCRUBBED/artwork/logo',
+        };
+      final server = FixtureServer({
+        '/api/v2/downloads/dl_01HSCRUBBED/manifest': _json(manifest),
+      });
+
+      final artwork = await _client(
+        server,
+      ).downloadsApi.downloadArtwork(ticket);
+
+      expect(artwork.keys, [ServerDownloadArtworkKind.logo]);
+    });
+
     test('a manifest that failed is read again next time', () async {
       var fail = true;
       final server = FixtureServer({

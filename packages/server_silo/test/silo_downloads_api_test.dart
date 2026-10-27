@@ -328,6 +328,22 @@ void main() {
       expect(ticket.mediaSourceId, '4567');
     });
 
+    test("a ticket sends the login's current token", () async {
+      final client = _client(silo());
+      final ticket = await client.downloadsApi.prepareDownload(movie);
+
+      client.session.setTokens(
+        SiloTokens(
+          accessToken: 'access-2',
+          refreshToken: 'refresh-2',
+          expiresAt: _now.add(const Duration(hours: 1)),
+          lifetime: const Duration(hours: 1),
+        ),
+      );
+
+      expect(ticket.headers['Authorization'], 'Bearer access-2');
+    });
+
     test("an episode is its series' content with the episode named", () async {
       final server = silo(
         create: _json(
@@ -540,7 +556,7 @@ void main() {
           id: 'dl_1',
           itemId: 'movie-1',
           url: Uri.parse('https://silo.example/api/v2/downloads/dl_1/file'),
-          headers: const {},
+          headers: () => const {},
           revision: 2,
         ),
       );
@@ -593,7 +609,7 @@ void main() {
           id: 'dl_1',
           itemId: 'movie-1',
           url: Uri.parse('https://silo.example/api/v2/downloads/dl_1/file'),
-          headers: const {},
+          headers: () => const {},
           revision: 1,
         ),
       );
@@ -613,7 +629,7 @@ void main() {
             id: 'dl_1',
             itemId: 'movie-1',
             url: Uri.parse('https://silo.example/api/v2/downloads/dl_1/file'),
-            headers: const {},
+            headers: () => const {},
             revision: 1,
           ),
         ),
@@ -990,7 +1006,7 @@ void main() {
       id: 'dl_01HSCRUBBED',
       itemId: 'episode-imdb-tt1641384-1-1',
       url: Uri.parse(_fileUrl),
-      headers: const {},
+      headers: () => const {},
       revision: 1,
     );
 
@@ -1108,7 +1124,7 @@ void main() {
       id: 'dl_01HSCRUBBED',
       itemId: 'episode-imdb-tt1641384-1-1',
       url: Uri.parse(_fileUrl),
-      headers: const {},
+      headers: () => const {},
       mediaSourceId: '4567',
     );
 

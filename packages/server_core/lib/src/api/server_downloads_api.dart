@@ -98,12 +98,12 @@ class ServerDownloadTicket {
     required this.id,
     required this.itemId,
     required this.url,
-    required this.headers,
+    required Map<String, String> Function() headers,
     this.revision,
     this.sizeBytes,
     this.container,
     this.mediaSourceId,
-  });
+  }) : _headers = headers;
 
   /// The server's id of this download.
   final String id;
@@ -114,8 +114,10 @@ class ServerDownloadTicket {
   /// Where to fetch the file. It supports ranged requests.
   final Uri url;
 
-  /// Headers every request for [url] needs (credentials).
-  final Map<String, String> headers;
+  /// Headers every request for [url] needs (credentials), read when used:
+  /// the login may have been refreshed since the ticket was made.
+  Map<String, String> get headers => _headers();
+  final Map<String, String> Function() _headers;
 
   /// The server's revision of the download entry, when it keeps one.
   final int? revision;

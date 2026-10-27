@@ -385,7 +385,7 @@ class SiloDownloadsApi implements ServerDownloadsApi {
     url: Uri.parse(
       '${_baseUrl()}/api/v2/downloads/${Uri.encodeComponent(entry.id)}/file',
     ),
-    headers: {..._headers(), 'Accept': 'application/octet-stream'},
+    headers: () => {..._headers(), 'Accept': 'application/octet-stream'},
     revision: entry.revision,
     sizeBytes: entry.fileSize > 0 ? entry.fileSize : null,
     container: entry.deliveryFormat == 'original' ? null : 'mp4',

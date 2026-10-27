@@ -159,7 +159,7 @@ class _Registry implements ServerDownloadsApi {
       id: 'dl-1',
       itemId: request.itemId,
       url: fileUrl,
-      headers: const {'Authorization': 'Bearer access-1'},
+      headers: () => const {'Authorization': 'Bearer access-1'},
       revision: 1,
       sizeBytes: 2048,
       mediaSourceId: '4567',

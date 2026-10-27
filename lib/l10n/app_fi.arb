@@ -5721,7 +5721,7 @@
     "adminMetadataDetails": "Yksityiskohdat",
     "adminMetadataExternalIds": "Ulkoiset tunnukset",
     "adminMetadataImages": "Kuvat",
-    "adminMetadataFieldTitle": "Nimi",
+    "adminMetadataFieldTitle": "Nimike",
     "adminMetadataFieldSortTitle": "Lajittele otsikko",
     "adminMetadataFieldOriginalTitle": "Alkuperäinen otsikko",
     "adminMetadataFieldPremiereDate": "Ensiesityspäivä (VVVV-KK-PP)",
@@ -9412,7 +9412,7 @@
     "@personalRatingClear": {
         "description": "Action that removes the personal rating from the media item."
     },
-    "personalRatingRated": "Arvosana",
+    "personalRatingRated": "Arvostelu",
     "@personalRatingRated": {
         "description": "Tooltip for a media item that has a numeric personal rating."
     },
@@ -9563,7 +9563,7 @@
     "adminMetadataPersonKindConductor": "Kapellimestari",
     "adminMetadataPersonKindLyricist": "Sanoittaja",
     "adminMetadataPersonKindArranger": "Järjestä",
-    "adminMetadataPersonKindMixer": "Sekoita",
+    "adminMetadataPersonKindMixer": "Sekoitin",
     "adminMetadataPersonKindRemixer": "Remixaaja",
     "adminMetadataPersonKindCreator": "Luoja",
     "adminMetadataPersonKindArtist": "Artisti",
@@ -13095,7 +13095,7 @@
     "@detailSectionsScreenDescription": {
         "description": "Explanatory text at the top of the Details screen sections list"
     },
-    "detailSectionGroupHeader": "Otsikko",
+    "detailSectionGroupHeader": "Header",
     "@detailSectionGroupHeader": {
         "description": "Group heading for the title area of the Details screen"
     },
@@ -15808,5 +15808,16 @@
     "imdbRowsSorting": "IMDb:n rivien lajittelu",
     "imdbRowsSortingDescription": "Lajittele IMDb-rivit nimen, julkaisupäivän, arvosanan ja muiden kriteerien mukaan.",
     "imdbRowsSortOrderDescription": "Lajittele IMDb-rivit nousevaan tai laskevaan järjestykseen.",
-    "tmdbRowsSorting": "TMDB:n rivien lajittelu"
+    "tmdbRowsSorting": "TMDB:n rivien lajittelu",
+    "tmdbRowsSortingDescription": "Lajittele TMDB-rivit nimen, julkaisupäivän, arvosanan ja muiden kriteerien mukaan.",
+    "tmdbRowsSortOrderDescription": "Lajittele TMDB-rivit nousevaan tai laskevaan järjestykseen.",
+    "seerrRowsSorting": "Seerr-rivilajittelu",
+    "seerrRowsSortingDescription": "Lajittele Seerr-rivit nimen, julkaisupäivän, arvosanan ja muiden kriteerien mukaan.",
+    "seerrRowsSortOrderDescription": "Lajittele Seerr-rivit nousevaan tai laskevaan järjestykseen.",
+    "externalRowSortDefault": "Oletus (luettelon järjestys)",
+    "externalRowSortName": "Nimi",
+    "externalRowSortReleaseDate": "Julkaisupäivä",
+    "externalRowSortRating": "Arvostelu",
+    "externalRowSortPopularity": "Suosio",
+    "externalRowSortShuffle": "Sekoita"
 }

@@ -775,6 +775,19 @@ enum SortDirection {
   final String apiValue;
 }
 
+enum ExternalRowSortBy {
+  none('Default (List Order)'),
+  name('Name'),
+  releaseDate('Release Date'),
+  rating('Rating'),
+  popularity('Popularity'),
+  shuffle('Shuffle');
+
+  const ExternalRowSortBy(this.displayName);
+
+  final String displayName;
+}
+
 enum PlayedStatusFilter {
   all,
   watched,

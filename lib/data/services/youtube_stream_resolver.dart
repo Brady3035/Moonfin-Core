@@ -258,12 +258,13 @@ class YouTubeStreamResolver {
     final platform = player.platform;
     if (platform is NativePlayer) {
       try {
-        await platform.setProperty('hls-bitrate', youTube ? '5000000' : 'max');
+        final dynamic mpv = platform;
+        await mpv.setProperty('hls-bitrate', youTube ? '5000000' : 'max');
         // A path list splits on colons, so a URL goes in through change-list.
-        await platform.command(['change-list', 'audio-files', 'clr', '']);
+        await mpv.command(['change-list', 'audio-files', 'clr', '']);
         final audio = variant?.audio;
         if (audio != null) {
-          await platform.command([
+          await mpv.command([
             'change-list',
             'audio-files',
             'append',

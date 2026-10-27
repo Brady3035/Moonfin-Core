@@ -19,6 +19,7 @@ class _HomeScreenCategoryScreenState extends State<_HomeScreenCategoryScreen> {
   void initState() {
     super.initState();
     unawaited(_prefs.reconcileMediaPreviewMode());
+    unawaited(_prefs.reconcileHomeBackdropStyle());
     // The calendars come from Seerr's Radarr and Sonarr servers, so there is
     // nothing to ask when Seerr isn't set up.
     if (GetIt.instance<PluginSyncService>().seerrAvailable) {
@@ -55,6 +56,15 @@ class _HomeScreenCategoryScreenState extends State<_HomeScreenCategoryScreen> {
       UserPreferences.episodePreviewEnabled,
       _prefs.get(UserPreferences.mediaPreviewMode) !=
           UserPreferences.mediaPreviewOff,
+    );
+    _pushPersonalizationSync();
+  }
+
+  Future<void> _onHomeBackdropStyleChanged() async {
+    await _prefs.set(
+      UserPreferences.homeBackdropEnabled,
+      _prefs.get(UserPreferences.homeBackdropStyle) !=
+          UserPreferences.homeBackdropOff,
     );
     _pushPersonalizationSync();
   }
@@ -340,12 +350,27 @@ class _HomeScreenCategoryScreenState extends State<_HomeScreenCategoryScreen> {
                     setState(() {});
                   },
                 ),
-              SwitchPreferenceTile(
-                preference: UserPreferences.homeBackdropEnabled,
-                title: l10n.homeScreenBackdrop,
-                icon: Icons.photo,
-                onChanged: _pushPersonalizationSync,
-              ),
+              if (isMobileUi)
+                SwitchPreferenceTile(
+                  preference: UserPreferences.homeBackdropEnabled,
+                  title: l10n.homeScreenBackdrop,
+                  icon: Icons.photo,
+                  onChanged: _pushPersonalizationSync,
+                )
+              else
+                StringPickerPreferenceTile(
+                  preference: UserPreferences.homeBackdropStyle,
+                  title: l10n.homeScreenBackdrop,
+                  icon: Icons.photo,
+                  options: {
+                    UserPreferences.homeBackdropOff: l10n.off,
+                    UserPreferences.homeBackdropFullScreen:
+                        l10n.homeScreenBackdropFullScreen,
+                    UserPreferences.homeBackdropCorner:
+                        l10n.homeScreenBackdropCorner,
+                  },
+                  onChanged: _onHomeBackdropStyleChanged,
+                ),
               SwitchPreferenceTile(
                 preference: UserPreferences.hideHomeMediaDescription,
                 title: l10n.hideHomeMediaDescription,

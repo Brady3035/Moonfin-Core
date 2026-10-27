@@ -100,6 +100,10 @@ const _kHomeStartThreshold = 20.0;
 /// Room for the title, subtitle and gaps that sit under classic card artwork.
 const _classicCardMetadataHeight = 50.0;
 
+/// Room above a row's title. Classic rows on mobile keep a wider gap.
+double _rowHeaderPaddingTop(bool isRowsV2) =>
+    isRowsV2 || !PlatformDetection.useMobileUi ? 6.0 : 16.0;
+
 /// How far a focused card grows past the top of its row. The scale is anchored
 /// at the bottom of the artwork, so all of the growth goes upward.
 double _focusHeadroom(double imageHeight, bool cardExpansion) =>
@@ -526,7 +530,7 @@ class _HomeShellState extends State<_HomeShell>
 
   @override
   Widget build(BuildContext context) {
-    final backdropEnabled = _userPrefs.get(UserPreferences.homeBackdropEnabled);
+    final backdropStyle = _userPrefs.resolveHomeBackdropStyle();
     final blurAmount = _userPrefs
         .get(UserPreferences.browsingBackgroundBlurAmount)
         .toDouble();
@@ -556,7 +560,7 @@ class _HomeShellState extends State<_HomeShell>
             child: Stack(
               fit: StackFit.expand,
               children: [
-                if (backdropEnabled)
+                if (backdropStyle != UserPreferences.homeBackdropOff)
                   ValueListenableBuilder<String?>(
                     valueListenable: _backdropUrlNotifier,
                     builder: (context, url, _) {
@@ -564,6 +568,9 @@ class _HomeShellState extends State<_HomeShell>
                         url: url,
                         blurAmount: blurAmount,
                         useMakdBackdropFx: useMakdBackdropFx,
+                        inCorner:
+                            backdropStyle == UserPreferences.homeBackdropCorner &&
+                            !PlatformDetection.useMobileUi,
                       );
                     },
                   ),
@@ -644,52 +651,97 @@ class _Backdrop extends StatelessWidget {
   final double blurAmount;
   final bool useMakdBackdropFx;
 
+  /// Draws it in the top right corner, fading into the background toward the
+  /// left and the bottom, the way the Google TV home screen does.
+  final bool inCorner;
+
   const _Backdrop({
     this.url,
     required this.blurAmount,
     this.useMakdBackdropFx = false,
+    this.inCorner = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    return RepaintBoundary(
-      child: FullscreenBackdropSwitcher(
-        imageUrl: url,
-        duration: BackgroundService.transitionDuration,
-        imageBuilder: (imageUrl) {
-          final image = _blurredImage(context, imageUrl, blurAmount);
-          if (!useMakdBackdropFx) {
-            return image;
-          }
+    final switcher = FullscreenBackdropSwitcher(
+      imageUrl: url,
+      duration: BackgroundService.transitionDuration,
+      imageBuilder: (imageUrl) {
+        final image = _blurredImage(context, imageUrl, blurAmount);
+        if (!useMakdBackdropFx) {
+          return image;
+        }
 
-          return ClipRect(
-            child: TweenAnimationBuilder<double>(
-              key: ValueKey('makd_home_backdrop_$imageUrl'),
-              tween: Tween(begin: 1.0, end: 1.08),
-              duration: const Duration(seconds: 10),
-              curve: Curves.easeOut,
-              builder: (context, scale, child) {
-                return Transform.scale(
-                  scale: scale,
-                  alignment: Alignment.center,
-                  child: child,
-                );
-              },
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  image,
-                  DecoratedBox(
-                    decoration: BoxDecoration(
-                      color: AppColorScheme.scrim.withValues(alpha: 0.26),
-                    ),
-                    child: const SizedBox.expand(),
+        return ClipRect(
+          child: TweenAnimationBuilder<double>(
+            key: ValueKey('makd_home_backdrop_$imageUrl'),
+            tween: Tween(begin: 1.0, end: 1.08),
+            duration: const Duration(seconds: 10),
+            curve: Curves.easeOut,
+            builder: (context, scale, child) {
+              return Transform.scale(
+                scale: scale,
+                alignment: Alignment.center,
+                child: child,
+              );
+            },
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                image,
+                DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: AppColorScheme.scrim.withValues(alpha: 0.26),
                   ),
-                ],
+                  child: const SizedBox.expand(),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+    return RepaintBoundary(child: inCorner ? _corner(switcher) : switcher);
+  }
+
+  Widget _corner(Widget backdrop) {
+    final fade = _homeBackground;
+    // Eased stops, so the image melts into the background rather than ending
+    // on a visible line.
+    LinearGradient fadeFrom(Alignment start, Alignment end) => LinearGradient(
+      begin: start,
+      end: end,
+      colors: [
+        fade,
+        fade.withValues(alpha: 0.85),
+        fade.withValues(alpha: 0.5),
+        fade.withValues(alpha: 0.15),
+        fade.withValues(alpha: 0),
+      ],
+      stops: const [0, 0.12, 0.3, 0.48, 0.6],
+    );
+    return Align(
+      alignment: Alignment.topRight,
+      child: FractionallySizedBox(
+        widthFactor: 0.7,
+        heightFactor: 0.75,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            backdrop,
+            DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: fadeFrom(Alignment.centerLeft, Alignment.centerRight),
               ),
             ),
-          );
-        },
+            DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: fadeFrom(Alignment.bottomCenter, Alignment.topCenter),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -3182,7 +3234,7 @@ class _ContentRowsState extends State<_ContentRows>
     final hasSubtitle = subtitle != null &&
         (row.rowType != HomeRowType.liveTv &&
             row.rowType != HomeRowType.libraryTilesSmall);
-    final headerPaddingTop = isRowsV2 ? 6.0 : 16.0;
+    final headerPaddingTop = _rowHeaderPaddingTop(isRowsV2);
     final headerPaddingBottom = isRowsV2 ? 1.0 : 8.0;
     final titleHeight = 20.0 * metadataScale;
     final subtitleHeight = hasSubtitle ? (18.0 * metadataScale) : 0.0;
@@ -4301,9 +4353,15 @@ class _ContentRowsState extends State<_ContentRows>
 
   /// Extra room the classic rows setting asks for. Library rows are left out,
   /// since their grid sizes itself and padding there overlaps the next row.
+  /// TV and desktop count it from the slider's lowest step, so their rows sit
+  /// a little closer at every setting.
   double _classicRowPadding(HomeRow row, UserPreferences prefs) {
     if (_fullScreenRowsEnabled(prefs) || _isLibraryRow(row)) return 0.0;
-    return prefs.get(UserPreferences.classicHomeRowsPadding).toDouble();
+    final padding = prefs
+        .get(UserPreferences.classicHomeRowsPadding)
+        .toDouble();
+    if (PlatformDetection.useMobileUi) return padding;
+    return (padding - 10).clamp(0.0, double.infinity);
   }
 
   Widget _buildShiftedRow({
@@ -5838,7 +5896,7 @@ class _ContentRowsState extends State<_ContentRows>
           Padding(
             padding: EdgeInsets.fromLTRB(
               _kHomeRowLabelInset,
-              isRowsV2 ? 6 : 16,
+              _rowHeaderPaddingTop(isRowsV2),
               8,
               isRowsV2 ? 1 : 8,
             ),

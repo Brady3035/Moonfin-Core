@@ -11,7 +11,7 @@ import '../../screensaver/screensaver_controller.dart';
 import '../focus/locked_focus_row.dart';
 import '../left_sidebar.dart';
 import '../top_toolbar.dart';
-import 'halloween_planchette.dart';
+import 'seasonal_follower.dart';
 import 'seasonal_simulation.dart';
 import 'seasonal_sprite_atlas.dart';
 
@@ -39,7 +39,8 @@ class SeasonalEffectsHost extends StatelessWidget {
   /// Run at about 30 fps, for devices on the reduced performance tier.
   final bool reducedFrameRate;
 
-  /// Lets the Halloween planchette follow focus. Home turns it on for TV.
+  /// Lets the effect's followers, like Halloween's planchette, follow focus. Home turns
+  /// them on for TV.
   final bool followFocus;
 
   @override
@@ -102,17 +103,18 @@ class _SeasonalEffectsLayerState extends State<SeasonalEffectsLayer>
   late final Float32List _rects = Float32List(_sim.outputCapacity * 4);
   late final Int32List _colors = Int32List(_sim.outputCapacity);
   final _frame = _FrameSignal();
-  late final _planchette =
-      widget.followFocus && widget.effect == SeasonalEffect.halloween
-      ? HalloweenPlanchette()
-      : null;
+  late final _followers = [
+    if (widget.followFocus)
+      for (final style in FollowerStyle.forEffect(widget.effect))
+        SeasonalFollower(style),
+  ];
 
   // What focus resolves to, worked out again only when the focused node changes.
   ModalRoute<Object?>? _route;
   FocusNode? _primary;
   LockedFocusRowState? _row;
   RenderBox? _sidebar;
-  var _landing = PlanchetteLanding.card;
+  var _landing = FollowerLanding.card;
   var _focusOnRoute = false;
   RenderObject? _focusedRoot;
   RenderObject? _focused;
@@ -145,10 +147,12 @@ class _SeasonalEffectsLayerState extends State<SeasonalEffectsLayer>
     if (pixelRatio != _atlasPixelRatio) {
       _atlas?.dispose();
       _atlas = SeasonalSpriteAtlas.build(pixelRatio);
-      _planchette?.rasterize(pixelRatio);
+      for (final follower in _followers) {
+        follower.rasterize(pixelRatio);
+      }
       _atlasPixelRatio = pixelRatio;
     }
-    if (_planchette != null) {
+    if (_followers.isNotEmpty) {
       final route = ModalRoute.of(context);
       if (route != _route) {
         _route = route;
@@ -173,7 +177,9 @@ class _SeasonalEffectsLayerState extends State<SeasonalEffectsLayer>
     _timer?.cancel();
     _tickerMode?.removeListener(_syncTimer);
     _atlas?.dispose();
-    _planchette?.dispose();
+    for (final follower in _followers) {
+      follower.dispose();
+    }
     _frame.dispose();
     super.dispose();
   }
@@ -207,7 +213,7 @@ class _SeasonalEffectsLayerState extends State<SeasonalEffectsLayer>
 
   void _advance(double dt) {
     _sim.step(dt);
-    if (_planchette case final planchette?) {
+    if (_followers.isNotEmpty) {
       final overlay = context.findRenderObject();
       if (overlay is RenderBox && overlay.hasSize && overlay.attached) {
         final primary = FocusManager.instance.primaryFocus;
@@ -230,18 +236,23 @@ class _SeasonalEffectsLayerState extends State<SeasonalEffectsLayer>
         }
         final focused = _focused;
         final sidebar = _sidebar;
-        planchette.step(
-          dt,
-          focused is RenderBox && focused.attached && focused.hasSize
-              ? _boundsIn(overlay, focused)
-              : null,
-          overlay.size,
-          landing: _landing,
-          navigationBounds:
-              sidebar != null && sidebar.attached && sidebar.hasSize
-              ? _boundsIn(overlay, sidebar)
-              : null,
-        );
+        final target =
+            focused is RenderBox && focused.attached && focused.hasSize
+            ? _boundsIn(overlay, focused)
+            : null;
+        final navigationBounds =
+            sidebar != null && sidebar.attached && sidebar.hasSize
+            ? _boundsIn(overlay, sidebar)
+            : null;
+        for (final follower in _followers) {
+          follower.step(
+            dt,
+            target,
+            overlay.size,
+            landing: _landing,
+            navigationBounds: navigationBounds,
+          );
+        }
       }
     }
     _frame.tick();
@@ -251,7 +262,7 @@ class _SeasonalEffectsLayerState extends State<SeasonalEffectsLayer>
     _primary = primary;
     _row = null;
     _sidebar = null;
-    _landing = PlanchetteLanding.card;
+    _landing = FollowerLanding.card;
     final subtree = _route?.subtreeContext;
     _focusOnRoute = _route == null;
     primary?.context?.visitAncestorElements((element) {
@@ -261,10 +272,10 @@ class _SeasonalEffectsLayerState extends State<SeasonalEffectsLayer>
           element.state is LockedFocusRowState) {
         _row = element.state as LockedFocusRowState;
       }
-      if (_landing == PlanchetteLanding.card) {
-        if (widget is TopToolbar) _landing = PlanchetteLanding.below;
+      if (_landing == FollowerLanding.card) {
+        if (widget is TopToolbar) _landing = FollowerLanding.below;
         if (widget is LeftSidebar) {
-          _landing = PlanchetteLanding.right;
+          _landing = FollowerLanding.right;
           final box = element.findRenderObject();
           if (box is RenderBox) _sidebar = box;
         }
@@ -311,7 +322,7 @@ class _SeasonalEffectsLayerState extends State<SeasonalEffectsLayer>
                 size: constraints.biggest,
                 painter: _SeasonalPainter(
                   sim: _sim,
-                  planchette: _planchette,
+                  followers: _followers,
                   atlas: atlas,
                   transforms: _transforms,
                   rects: _rects,
@@ -334,7 +345,7 @@ class _FrameSignal extends ChangeNotifier {
 class _SeasonalPainter extends CustomPainter {
   _SeasonalPainter({
     required this.sim,
-    required this.planchette,
+    required this.followers,
     required this.atlas,
     required this.transforms,
     required this.rects,
@@ -346,7 +357,7 @@ class _SeasonalPainter extends CustomPainter {
   static final _tinted = Paint()..filterQuality = FilterQuality.low;
 
   final SeasonalSimulation sim;
-  final HalloweenPlanchette? planchette;
+  final List<SeasonalFollower> followers;
   final SeasonalSpriteAtlas atlas;
   final Float32List transforms;
   final Float32List rects;
@@ -366,12 +377,14 @@ class _SeasonalPainter extends CustomPainter {
         _tinted,
       );
     }
-    planchette?.paint(canvas);
+    for (final follower in followers) {
+      follower.paint(canvas);
+    }
   }
 
   @override
   bool shouldRepaint(_SeasonalPainter oldDelegate) =>
       oldDelegate.sim != sim ||
       oldDelegate.atlas != atlas ||
-      oldDelegate.planchette != planchette;
+      oldDelegate.followers != followers;
 }

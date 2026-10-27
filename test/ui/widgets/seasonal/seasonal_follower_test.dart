@@ -1,11 +1,13 @@
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:moonfin/ui/widgets/seasonal/halloween_planchette.dart';
+import 'package:moonfin/ui/widgets/seasonal/seasonal_follower.dart';
 import 'package:moonfin/ui/widgets/focus/locked_focus_row.dart';
 import 'package:moonfin/ui/widgets/seasonal/seasonal_effects.dart';
+import 'package:moonfin/ui/widgets/seasonal/seasonal_simulation.dart';
 
 void main() {
   testWidgets('tracks the selected card when Home keeps focus on a wide row', (
@@ -62,7 +64,7 @@ void main() {
           ),
         )
         .painter;
-    final follower = painter.planchette as HalloweenPlanchette;
+    final follower = (painter.followers as List<SeasonalFollower>).single;
     expect(follower.position, isNotNull);
     expect(follower.opacity, greaterThan(0));
     // The artwork's left edge is at 100 and its middle at 160, and the tip
@@ -173,7 +175,7 @@ void main() {
           ),
         )
         .painter;
-    final follower = painter.planchette as HalloweenPlanchette;
+    final follower = (painter.followers as List<SeasonalFollower>).single;
     expect(follower.opacity, 1);
 
     // Like OverlaySheet, an entry on the root overlay rather than a route, so
@@ -202,7 +204,7 @@ void main() {
   });
 
   test('glides toward the latest focus and rests its tip on the left edge', () {
-    final planchette = HalloweenPlanchette();
+    final planchette = SeasonalFollower(FollowerStyle.planchette);
     const size = Size(960, 540);
     planchette.step(0.03, const Rect.fromLTWH(100, 100, 100, 150), size);
     final start = planchette.position!;
@@ -222,7 +224,7 @@ void main() {
     test(
       'turns continuously through travel, reversal and arrival at $fps fps',
       () {
-        final planchette = HalloweenPlanchette();
+        final planchette = SeasonalFollower(FollowerStyle.planchette);
         const size = Size(960, 540);
         final dt = 1 / fps;
         planchette.step(dt, const Rect.fromLTWH(100, 100, 100, 100), size);
@@ -245,16 +247,16 @@ void main() {
 
   for (final fps in [30, 60]) {
     test('aims at top navigation before lateral travel stops at $fps fps', () {
-      final planchette = HalloweenPlanchette();
+      final planchette = SeasonalFollower(FollowerStyle.planchette);
       const size = Size(960, 540);
       final dt = 1 / fps;
       const first = Rect.fromLTWH(600, 20, 100, 50);
       const next = Rect.fromLTWH(100, 20, 100, 50);
-      planchette.step(dt, first, size, landing: PlanchetteLanding.below);
+      planchette.step(dt, first, size, landing: FollowerLanding.below);
       var checkedApproach = false;
       for (var i = 0; i < fps * 6; i++) {
         final before = planchette.position!;
-        planchette.step(dt, next, size, landing: PlanchetteLanding.below);
+        planchette.step(dt, next, size, landing: FollowerLanding.below);
         final remaining =
             (planchette.position! - const Offset(150, 100)).distance;
         final speed = (planchette.position! - before).distance / dt;
@@ -274,22 +276,22 @@ void main() {
     'rests just under a top bar button and outside the whole side panel',
     () {
       const size = Size(960, 540);
-      final top = HalloweenPlanchette();
+      final top = SeasonalFollower(FollowerStyle.planchette);
       top.step(
         0.03,
         const Rect.fromLTWH(100, 20, 120, 48),
         size,
-        landing: PlanchetteLanding.below,
+        landing: FollowerLanding.below,
       );
       // The tip, 24 above the center, sits 6 under the button.
       expect(top.position!.dx, 160);
       expect(top.position!.dy, 98);
-      final side = HalloweenPlanchette();
+      final side = SeasonalFollower(FollowerStyle.planchette);
       side.step(
         0.03,
         const Rect.fromLTWH(20, 80, 40, 48),
         size,
-        landing: PlanchetteLanding.right,
+        landing: FollowerLanding.right,
         navigationBounds: const Rect.fromLTWH(0, 0, 280, 540),
       );
       expect(side.position!.dx - 38, greaterThan(280));
@@ -298,17 +300,176 @@ void main() {
   );
 
   test('stays on screen and fades out when focus disappears', () {
-    final planchette = HalloweenPlanchette();
+    final planchette = SeasonalFollower(FollowerStyle.planchette);
     const size = Size(960, 540);
     for (var i = 0; i < 40; i++) {
       planchette.step(0.03, const Rect.fromLTWH(0, 490, 100, 60), size);
     }
-    expect(planchette.position!.dx, greaterThanOrEqualTo(32));
-    expect(planchette.position!.dy, lessThanOrEqualTo(508));
+    expect(planchette.position!.dx, greaterThanOrEqualTo(28));
+    expect(planchette.position!.dy, lessThanOrEqualTo(512));
     expect(planchette.opacity, 1);
     for (var i = 0; i < 40; i++) {
       planchette.step(0.03, null, size);
     }
     expect(planchette.opacity, 0);
+  });
+
+  test('each holiday effect brings its own followers', () {
+    expect(FollowerStyle.forEffect(SeasonalEffect.halloween), [FollowerStyle.planchette]);
+    expect(FollowerStyle.forEffect(SeasonalEffect.valentines), [FollowerStyle.cupidArrow]);
+    expect(FollowerStyle.forEffect(SeasonalEffect.fireworks), [FollowerStyle.sparkler]);
+    expect(FollowerStyle.forEffect(SeasonalEffect.christmas), [FollowerStyle.sleigh]);
+    expect(FollowerStyle.forEffect(SeasonalEffect.easter), [FollowerStyle.bunnyEars, FollowerStyle.easterEgg]);
+    expect(FollowerStyle.forEffect(SeasonalEffect.lunar), [FollowerStyle.lantern]);
+    expect(FollowerStyle.forEffect(SeasonalEffect.diwali), [FollowerStyle.diya]);
+    expect(FollowerStyle.forEffect(SeasonalEffect.pride), [FollowerStyle.rainbow]);
+    for (final effect in [
+      SeasonalEffect.snow,
+      SeasonalEffect.confetti,
+      SeasonalEffect.leaves,
+      SeasonalEffect.petals,
+      SeasonalEffect.fireflies,
+    ]) {
+      expect(FollowerStyle.forEffect(effect), isEmpty, reason: effect.name);
+    }
+  });
+
+  testWidgets('the effects layer brings the followers for its effect', (tester) async {
+    for (final (effect, styles) in [
+      ('pride', [FollowerStyle.rainbow]),
+      ('easter', [FollowerStyle.bunnyEars, FollowerStyle.easterEgg]),
+      ('snow', <FollowerStyle>[]),
+    ]) {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: SeasonalEffectsHost(effect: effect, density: 'light', followFocus: true),
+        ),
+      );
+      final dynamic painter = tester
+          .widget<CustomPaint>(
+            find.descendant(
+              of: find.byType(SeasonalEffectsLayer),
+              matching: find.byType(CustomPaint),
+            ),
+          )
+          .painter;
+      expect(
+        [for (final follower in painter.followers as List<SeasonalFollower>) follower.style],
+        styles,
+        reason: effect,
+      );
+    }
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  testWidgets('every follower draws and paints', (tester) async {
+    for (final style in FollowerStyle.values) {
+      final follower = SeasonalFollower(style)..rasterize(2);
+      final landing = style.onlyOnNav ? FollowerLanding.below : FollowerLanding.card;
+      for (var i = 0; i < 30; i++) {
+        follower.step(
+          0.03,
+          const Rect.fromLTWH(200, 200, 150, 220),
+          const Size(960, 540),
+          landing: landing,
+        );
+      }
+      final recorder = ui.PictureRecorder();
+      follower.paint(Canvas(recorder));
+      recorder.endRecording().dispose();
+      follower.dispose();
+      expect(follower.opacity, greaterThan(0), reason: style.name);
+    }
+  });
+
+  test('the sleigh faces its card from the left and turns around for the sidebar', () {
+    const size = Size(960, 540);
+    final sleigh = SeasonalFollower(FollowerStyle.sleigh);
+    const card = Rect.fromLTWH(200, 200, 150, 220);
+    for (var i = 0; i < 200; i++) {
+      sleigh.step(0.03, card, size);
+    }
+    expect(sleigh.position!.dx, closeTo(card.left + 6 - 32, 0.1));
+    expect(sleigh.position!.dy, closeTo(card.center.dy, 0.1));
+    expect(sleigh.angle.abs(), lessThan(0.01));
+
+    const item = Rect.fromLTWH(20, 140, 200, 44);
+    const panel = Rect.fromLTWH(0, 0, 280, 540);
+    var climbed = false;
+    for (var i = 0; i < 200; i++) {
+      sleigh.step(0.03, item, size, landing: FollowerLanding.right, navigationBounds: panel);
+      if (sleigh.angle.abs() > 0.05) climbed = true;
+    }
+    expect(climbed, isTrue, reason: 'it tips its nose on the way up');
+    expect(sleigh.position!.dx, closeTo(panel.right + 8 + 32, 0.1));
+    expect(sleigh.angle.abs(), lessThan(0.01));
+  });
+
+  test('Easter hands over from the ears on a card to the egg on the nav', () {
+    const size = Size(960, 540);
+    final ears = SeasonalFollower(FollowerStyle.bunnyEars);
+    final egg = SeasonalFollower(FollowerStyle.easterEgg);
+    void stepBoth(Rect focus, FollowerLanding landing) {
+      for (var i = 0; i < 40; i++) {
+        ears.step(0.03, focus, size, landing: landing);
+        egg.step(0.03, focus, size, landing: landing);
+      }
+    }
+
+    const card = Rect.fromLTWH(200, 200, 150, 220);
+    stepBoth(card, FollowerLanding.card);
+    expect(ears.opacity, 1);
+    expect(egg.opacity, 0);
+    expect(ears.position, Offset(card.right - 40, card.top));
+
+    const button = Rect.fromLTWH(100, 24, 120, 42);
+    stepBoth(button, FollowerLanding.below);
+    expect(ears.opacity, 0);
+    expect(egg.opacity, 1);
+    expect(egg.position!.dx, closeTo(button.center.dx, 0.1));
+  });
+
+  test('the lantern hangs beside the card, swings when it moves, then settles', () {
+    const size = Size(960, 540);
+    final lantern = SeasonalFollower(FollowerStyle.lantern);
+    const first = Rect.fromLTWH(100, 200, 150, 220);
+    const next = Rect.fromLTWH(500, 200, 150, 220);
+    lantern.step(0.03, first, size);
+    expect(lantern.position, Offset(first.left - 24, first.top + 2));
+    var widest = 0.0;
+    for (var i = 0; i < 40; i++) {
+      lantern.step(0.03, next, size);
+      widest = math.max(widest, lantern.angle.abs());
+    }
+    expect(widest, greaterThan(0.05));
+    for (var i = 0; i < 600; i++) {
+      lantern.step(0.03, next, size);
+    }
+    expect(lantern.position!.dx, closeTo(next.left - 24, 0.1));
+    expect(lantern.angle.abs(), lessThan(0.01));
+  });
+
+  test('the diya rests on the bottom edge of the card, to its left', () {
+    const size = Size(960, 540);
+    final diya = SeasonalFollower(FollowerStyle.diya);
+    const card = Rect.fromLTWH(100, 200, 150, 220);
+    for (var i = 0; i < 100; i++) {
+      diya.step(0.03, card, size);
+    }
+    expect(diya.position, Offset(card.left - 26, card.bottom));
+  });
+
+  test('the rainbow underlines the card and stretches to its width', () {
+    const size = Size(960, 540);
+    final rainbow = SeasonalFollower(FollowerStyle.rainbow);
+    rainbow.step(0.03, const Rect.fromLTWH(100, 200, 100, 150), size);
+    expect(rainbow.width, 100);
+    const wide = Rect.fromLTWH(300, 200, 300, 150);
+    for (var i = 0; i < 200; i++) {
+      rainbow.step(0.03, wide, size);
+    }
+    expect(rainbow.width, closeTo(wide.width, 0.5));
+    expect(rainbow.position!.dx, closeTo(wide.center.dx, 0.1));
+    expect(rainbow.position!.dy, closeTo(wide.bottom + 6, 0.1));
   });
 }

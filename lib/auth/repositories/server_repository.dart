@@ -310,7 +310,8 @@ class ServerRepository {
   /// identifies itself as Silo's (its branding disclaimer), so adding a real
   /// Jellyfin server costs one extra request. The native ports are then
   /// probed in parallel with a short timeout, on the compat address's scheme
-  /// first and plain HTTP after (Silo's own listener speaks HTTP).
+  /// only: an HTTPS address is never swapped for plain HTTP, which would send
+  /// the password in the clear.
   Future<(Map<String, dynamic>, ServerType, String)?> _findSiloNative(
     String jellyfinBaseUrl,
   ) async {
@@ -331,12 +332,15 @@ class ServerRepository {
       if (!await looksLikeSiloJellyfinCompat(dio, jellyfinBaseUrl)) {
         return null;
       }
-      final candidates = <String>{
-        for (final scheme in {jellyfin.scheme, 'http'})
-          for (final port in siloNativePorts)
-            if (!(scheme == jellyfin.scheme && port == jellyfin.port))
-              Uri(scheme: scheme, host: jellyfin.host, port: port).toString(),
-      }.toList();
+      final candidates = [
+        for (final port in siloNativePorts)
+          if (port != jellyfin.port)
+            Uri(
+              scheme: jellyfin.scheme,
+              host: jellyfin.host,
+              port: port,
+            ).toString(),
+      ];
       final found = await Future.wait(
         candidates.map((candidate) async {
           try {

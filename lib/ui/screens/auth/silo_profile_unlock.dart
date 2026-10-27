@@ -23,8 +23,8 @@ import 'silo_secret_field.dart';
 /// entered), false when the dialog was closed.
 ///
 /// The check goes through the server's client as the account. If that
-/// client holds another login, or none (the picker after a restart), the
-/// account's stored login is put on it first.
+/// client holds another login, or none (the picker after a restart), a
+/// separate client with the account's stored login does it.
 Future<bool> unlockSiloProfileIfNeeded(
   BuildContext context, {
   required Server server,
@@ -43,28 +43,43 @@ Future<bool> unlockSiloProfileIfNeeded(
   final accountId = user.siloAccountId;
   if (silo == null || accountId == null) return true;
   final stored = storage.read(server.id, accountId);
+  // Another login (or none) on the server's client: check on a client of
+  // its own, so closing the dialog leaves the current session as it was.
+  SiloMediaServerClient? own;
   if (stored != null &&
       silo.session.tokens?.refreshToken != stored.refreshToken) {
-    storage.restore(client: client, user: user);
+    own = SiloMediaServerClient(
+      baseUrl: silo.baseUrl,
+      deviceInfo: silo.deviceInfo,
+      platform: silo.platform,
+    );
+    storage.restore(client: own, user: user);
   }
+  final checker = own ?? silo;
 
-  if (!context.mounted) return false;
-  final unlocked = await SiloPinDialog.show(
-    context,
-    profileName: user.name,
-    onSubmit: (pin) async {
-      final result = await silo.profilesApi.verifyPin(user.id, pin);
-      if (result case SiloPinAccepted(:final profileToken, :final expiresAt)) {
-        await storage.saveProfileToken(
-          user,
-          profileToken,
-          expiresAt: expiresAt,
-        );
-      }
-      return result;
-    },
-  );
-  return unlocked;
+  try {
+    if (!context.mounted) return false;
+    return await SiloPinDialog.show(
+      context,
+      profileName: user.name,
+      onSubmit: (pin) async {
+        final result = await checker.profilesApi.verifyPin(user.id, pin);
+        if (result case SiloPinAccepted(
+          :final profileToken,
+          :final expiresAt,
+        )) {
+          await storage.saveProfileToken(
+            user,
+            profileToken,
+            expiresAt: expiresAt,
+          );
+        }
+        return result;
+      },
+    );
+  } finally {
+    own?.dispose();
+  }
 }
 
 /// Asks for a Silo profile's PIN.

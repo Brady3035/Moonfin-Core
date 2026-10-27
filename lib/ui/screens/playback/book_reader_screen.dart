@@ -39,6 +39,8 @@ import '../../util/error_message.dart';
 import '../../../l10n/current_app_localizations.dart';
 import '../../../util/system_ui.dart';
 import '../../widgets/adaptive/sf_symbol.dart';
+import '../../widgets/focus/focusable_wrapper.dart';
+import '../../widgets/overlay_sheet.dart';
 import '../../widgets/reader/epub_js_view.dart';
 import '../../widgets/reader/reader_chrome_bar.dart';
 import '../../widgets/reader/reader_contents_hub.dart';
@@ -107,6 +109,9 @@ class _BookReaderScreenState extends State<BookReaderScreen>
   Timer? _overlayHideTimer;
   bool _overlayHovered = false;
   final FocusNode _comicFocusNode = FocusNode(debugLabel: 'comic reader');
+  final Map<_ComicLayout, FocusNode> _comicLayoutFocusNodes = {
+    for (final layout in _ComicLayout.values) layout: FocusNode(),
+  };
   Uint8List? _pdfBytes;
   int _currentPdfPage = 1;
   int _pdfPageCount = 0;
@@ -377,6 +382,9 @@ class _BookReaderScreenState extends State<BookReaderScreen>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     HardwareKeyboard.instance.addHandler(_onAnyKey);
+    if (PlatformDetection.isTV) {
+      InlineBackInterceptor.push(_hideOverlayFromBack);
+    }
     unawaited(_loadDisplayPreferences());
     _loadAndPrepare();
   }
@@ -385,11 +393,15 @@ class _BookReaderScreenState extends State<BookReaderScreen>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     HardwareKeyboard.instance.removeHandler(_onAnyKey);
+    InlineBackInterceptor.remove(_hideOverlayFromBack);
     if (_epubSaveDebounce != null) _saveEpubPlace();
     _comicStateSaveDebounce?.cancel();
     _pdfPageSaveDebounce?.cancel();
     _overlayHideTimer?.cancel();
     _comicFocusNode.dispose();
+    for (final node in _comicLayoutFocusNodes.values) {
+      node.dispose();
+    }
     _pageController.dispose();
     _comicTransformController.dispose();
     _comicVerticalController.dispose();
@@ -1172,6 +1184,9 @@ class _BookReaderScreenState extends State<BookReaderScreen>
     setImmersive(!visible);
     if (visible) {
       _scheduleOverlayHide();
+      if (PlatformDetection.isTV && _mode == _ReaderMode.comic) {
+        _focusComicBars();
+      }
       return;
     }
     _overlayHideTimer?.cancel();
@@ -1238,15 +1253,41 @@ class _BookReaderScreenState extends State<BookReaderScreen>
     return false;
   }
 
+  /// On TV, Back hides the comic reader's bars, whether or not they'd hide by
+  /// themselves, and only leaves the reader once they're hidden or fading.
+  /// Back pops this route before the focus tree sees the key, so the bars
+  /// claim it through the interceptor while they're up.
+  bool _hideOverlayFromBack() {
+    if (_mode != _ReaderMode.comic ||
+        _loading ||
+        _loadingContent ||
+        _comicEntries.isEmpty ||
+        !_overlayVisible ||
+        ModalRoute.of(context)?.isCurrent == false) {
+      return false;
+    }
+    _setOverlayVisible(false);
+    return true;
+  }
+
+  /// Puts the remote on the current layout's button, where a stray OK
+  /// changes nothing. The D-pad can't find the bars from the page, which
+  /// covers the whole screen.
+  void _focusComicBars() {
+    _comicLayoutFocusNodes[_comicLayout]!.requestFocus();
+  }
+
   /// On TV, while the comic reader's bars are hidden, the D-pad turns the page
   /// and any other button brings the bars back. Back still leaves the reader.
-  KeyEventResult _onComicTvKey(FocusNode _, KeyEvent event) {
+  KeyEventResult _onComicTvKey(FocusNode node, KeyEvent event) {
     final key = event.logicalKey;
-    if (!PlatformDetection.isTV ||
-        _overlayVisible ||
-        !event.isActionable ||
-        key.isBackKey) {
+    if (!PlatformDetection.isTV || !event.isActionable || key.isBackKey) {
       return KeyEventResult.ignored;
+    }
+    if (_overlayVisible) {
+      if (!node.hasPrimaryFocus) return KeyEventResult.ignored;
+      _focusComicBars();
+      return KeyEventResult.handled;
     }
     final rtl = _comicDirection == _ComicDirection.rtl;
     final vertical = _comicLayout == _ComicLayout.vertical;
@@ -2498,6 +2539,7 @@ class _BookReaderScreenState extends State<BookReaderScreen>
   Widget _buildComicFullscreen() {
     return Focus(
       focusNode: _comicFocusNode,
+      autofocus: PlatformDetection.isTV,
       skipTraversal: true,
       onKeyEvent: _onComicTvKey,
       child: Listener(
@@ -2623,7 +2665,10 @@ class _BookReaderScreenState extends State<BookReaderScreen>
 
   Widget _buildComicPaged(AppLocalizations l10n) {
     return Focus(
-      autofocus: true,
+      // On TV focus starts on [_comicFocusNode] instead, and the D-pad must
+      // never land here, where it couldn't find its way back to the bars.
+      autofocus: !PlatformDetection.isTV,
+      skipTraversal: PlatformDetection.isTV,
       onKeyEvent: _onComicKey,
       child: Listener(
         onPointerSignal: _handleComicPointerSignal,
@@ -2832,12 +2877,27 @@ class _BookReaderScreenState extends State<BookReaderScreen>
     final accent = _readerAccent;
     const double controlHeight = 36;
 
-    Widget pill(String label, bool selected, VoidCallback onTap) {
+    // On TV the remote reaches these through focus, and OK presses them.
+    Widget pressable(VoidCallback onTap, Widget child, {FocusNode? focusNode}) {
+      if (!PlatformDetection.isTV) {
+        return GestureDetector(onTap: onTap, child: child);
+      }
+      return FocusableWrapper(
+        onSelect: onTap,
+        focusNode: focusNode,
+        borderRadius: controlHeight / 2,
+        disableScale: true,
+        child: child,
+      );
+    }
+
+    Widget pill(String label, _ComicLayout layout) {
+      final selected = _comicLayout == layout;
       return Padding(
         padding: const EdgeInsets.only(right: 6),
-        child: GestureDetector(
-          onTap: onTap,
-          child: Container(
+        child: pressable(
+          () => _setComicLayout(layout),
+          Container(
             height: controlHeight,
             alignment: Alignment.center,
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -2854,6 +2914,7 @@ class _BookReaderScreenState extends State<BookReaderScreen>
               ),
             ),
           ),
+          focusNode: _comicLayoutFocusNodes[layout],
         ),
       );
     }
@@ -2866,21 +2927,23 @@ class _BookReaderScreenState extends State<BookReaderScreen>
     ) {
       return Tooltip(
         message: tooltip,
-        child: GestureDetector(
-          onTap: onTap,
-          child: Container(
-            margin: const EdgeInsets.only(left: 6),
-            width: controlHeight,
-            height: controlHeight,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: active ? accent : Colors.white.withValues(alpha: 0.14),
-              shape: BoxShape.circle,
-            ),
-            child: AdaptiveIcon(
-              icon,
-              size: 18,
-              color: active ? Colors.white : Colors.white70,
+        child: Padding(
+          padding: const EdgeInsets.only(left: 6),
+          child: pressable(
+            onTap,
+            Container(
+              width: controlHeight,
+              height: controlHeight,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: active ? accent : Colors.white.withValues(alpha: 0.14),
+                shape: BoxShape.circle,
+              ),
+              child: AdaptiveIcon(
+                icon,
+                size: 18,
+                color: active ? Colors.white : Colors.white70,
+              ),
             ),
           ),
         ),
@@ -2898,21 +2961,9 @@ class _BookReaderScreenState extends State<BookReaderScreen>
               scrollDirection: Axis.horizontal,
               child: Row(
                 children: [
-                  pill(
-                    'Single',
-                    _comicLayout == _ComicLayout.single,
-                    () => _setComicLayout(_ComicLayout.single),
-                  ),
-                  pill(
-                    'Two-page',
-                    _comicLayout == _ComicLayout.double,
-                    () => _setComicLayout(_ComicLayout.double),
-                  ),
-                  pill(
-                    'Vertical',
-                    _comicLayout == _ComicLayout.vertical,
-                    () => _setComicLayout(_ComicLayout.vertical),
-                  ),
+                  pill('Single', _ComicLayout.single),
+                  pill('Two-page', _ComicLayout.double),
+                  pill('Vertical', _ComicLayout.vertical),
                 ],
               ),
             ),

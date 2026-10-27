@@ -79,6 +79,7 @@ class SiloMediaServerClient extends MediaServerClient
       _profileId = null;
       _profileToken = null;
       (usersApi as SiloUsersApi).forgetAccount();
+      _forgetProfileReads();
     });
     for (final dio in [_dio, _authDio]) {
       configureServerDio(dio);

@@ -1,3 +1,4 @@
+import 'package:server_silo/server_silo.dart';
 import 'package:test/test.dart';
 
 import 'fixture_server.dart';
@@ -61,5 +62,24 @@ void main() {
     await client.userViewsApi.getUserViews();
 
     expect(libraryReads(s), 1);
+  });
+
+  test("another login doesn't read the previous one's libraries", () async {
+    final s = server();
+    final client = siloTestClient(s);
+    await client.userViewsApi.getUserViews();
+
+    client.session.setTokens(
+      SiloTokens(
+        accessToken: 'other_access',
+        refreshToken: 'other_refresh',
+        expiresAt: DateTime.utc(2100),
+        lifetime: const Duration(hours: 1),
+      ),
+    );
+    client.profileId = 'p1';
+    await client.userViewsApi.getUserViews();
+
+    expect(libraryReads(s), 2);
   });
 }

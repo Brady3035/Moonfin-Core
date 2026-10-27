@@ -1240,5 +1240,25 @@ void main() {
 
       expect(await subtitles(m), isEmpty);
     });
+
+    test("a format that isn't a plain extension is left out", () async {
+      final m = manifest()
+        ..['subtitles'] = [
+          {
+            'format': 'srt/../../evil',
+            'fetch_url':
+                '/api/v2/downloads/dl_01HSCRUBBED/subtitles/external:0',
+          },
+        ];
+      final server = FixtureServer({
+        '/api/v2/downloads/dl_01HSCRUBBED/manifest': _json(m),
+      });
+
+      final result = await _client(
+        server,
+      ).downloadsApi.downloadSubtitles(ticket, mediaSource: mediaSource);
+
+      expect(result, isEmpty);
+    });
   });
 }

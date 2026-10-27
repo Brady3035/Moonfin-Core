@@ -573,7 +573,11 @@ class SiloDownloadsApi implements ServerDownloadsApi {
       if (subtitle == null) continue;
       final url = subtitle['fetch_url'] as String?;
       final format = (subtitle['format'] as String?)?.toLowerCase();
-      if (url == null || url.isEmpty || format == null || format.isEmpty) {
+      // The format becomes the saved file's extension.
+      if (url == null ||
+          url.isEmpty ||
+          format == null ||
+          !RegExp(r'^[a-z0-9]+$').hasMatch(format)) {
         continue;
       }
       final absolute = _absolute(url);

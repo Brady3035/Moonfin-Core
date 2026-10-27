@@ -11,6 +11,7 @@ class _FakeController extends PlatformWebViewController {
   final loadedPages = <({String html, String? baseUrl})>[];
   final backgroundColors = <Color>[];
   bool failLoad = false;
+  JavaScriptChannelParams? channel;
 
   @override
   Future<void> setBackgroundColor(Color color) {
@@ -27,7 +28,9 @@ class _FakeController extends PlatformWebViewController {
   @override
   Future<void> addJavaScriptChannel(
     JavaScriptChannelParams javaScriptChannelParams,
-  ) async {}
+  ) async {
+    channel = javaScriptChannelParams;
+  }
 
   @override
   Future<void> loadHtmlString(String html, {String? baseUrl}) async {
@@ -93,6 +96,9 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  double maskOpacity(WidgetTester tester) =>
+      tester.widget<AnimatedOpacity>(find.byType(AnimatedOpacity)).opacity;
+
   testWidgets('loads the player page on macOS', (tester) async {
     await pumpTrailer(tester);
 
@@ -103,6 +109,22 @@ void main() {
     expect(unavailableReports, 0);
   }, variant: TargetPlatformVariant.only(TargetPlatform.macOS));
 
+  testWidgets('masks the WebView on macOS until playback starts', (
+    tester,
+  ) async {
+    await pumpTrailer(tester);
+    expect(maskOpacity(tester), 1);
+
+    platform.controller!.channel!.onMessageReceived(
+      const JavaScriptMessage(
+        message: '{"event":"StateChange","data":1,"videoId":"Way9Dexny3w"}',
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 700));
+
+    expect(maskOpacity(tester), 0);
+  }, variant: TargetPlatformVariant.only(TargetPlatform.macOS));
+
   testWidgets('clears the background before loading on iOS and Android', (
     tester,
   ) async {
@@ -111,6 +133,7 @@ void main() {
     expect(platform.controller!.backgroundColors, [const Color(0x00000000)]);
     expect(platform.controller!.loadedPages, hasLength(1));
     expect(unavailableReports, 0);
+    expect(maskOpacity(tester), 0);
   }, variant: TargetPlatformVariant(
     <TargetPlatform>{TargetPlatform.iOS, TargetPlatform.android},
   ));

@@ -6,8 +6,6 @@ import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
 
-import '../../util/platform_detection.dart';
-
 enum _EmbeddedPlayerMode {
   manualIframe,
   unsupported,
@@ -232,8 +230,12 @@ class _WebYouTubeTrailerState extends State<WebYouTubeTrailer> {
         await platform.setMediaPlaybackRequiresUserGesture(false);
       }
 
-      if (!PlatformDetection.isMacOS) {
+      // macOS can't clear the WebView background, so it shows white until the
+      // page paints. The black mask covers it there until playback starts.
+      try {
         await controller.setBackgroundColor(const Color(0x00000000));
+      } on UnimplementedError {
+        _startupChromeMaskVisible = !widget.ignorePointer;
       }
       _controller = controller;
 

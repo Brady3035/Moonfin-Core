@@ -161,11 +161,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
   /// Optional extras a server sends with the code ([QuickConnectKeys], which
   /// Silo sends and Jellyfin doesn't): the page to enter it on, the same with
-  /// the code filled in for the QR code, when the code runs out, and whether
-  /// someone has opened it.
+  /// the code filled in for the QR code, and whether someone has opened it.
   String? _quickConnectUri;
   String? _quickConnectUriComplete;
-  DateTime? _quickConnectDeadline;
   bool _quickConnectOpened = false;
 
   /// The code was declined: polling stopped, and the screen offers a new one.
@@ -426,9 +424,6 @@ class _LoginScreenState extends State<LoginScreen> {
               result[QuickConnectKeys.verificationUri] as String?;
           _quickConnectUriComplete =
               result[QuickConnectKeys.verificationUriComplete] as String?;
-          _quickConnectDeadline = DateTime.tryParse(
-            result[QuickConnectKeys.expiresAt] as String? ?? '',
-          );
           _quickConnectOpened = false;
           _quickConnectEnded = false;
           _errorMessage = null;
@@ -524,13 +519,6 @@ class _LoginScreenState extends State<LoginScreen> {
     if (client == null || secret == null) return;
     if (generation != _quickConnectGeneration) return;
 
-    // A code past its time can't be approved anymore, so show a new one.
-    final deadline = _quickConnectDeadline;
-    if (deadline != null && DateTime.now().isAfter(deadline)) {
-      unawaited(_startQuickConnect());
-      return;
-    }
-
     Map<String, dynamic> result;
     try {
       result = await client.authApi.checkQuickConnect(secret);
@@ -562,14 +550,8 @@ class _LoginScreenState extends State<LoginScreen> {
     }
 
     final opened = result[QuickConnectKeys.opened] == true;
-    final moved = DateTime.tryParse(
-      result[QuickConnectKeys.expiresAt] as String? ?? '',
-    );
-    if (opened != _quickConnectOpened || moved != null) {
-      setState(() {
-        _quickConnectOpened = opened;
-        if (moved != null) _quickConnectDeadline = moved;
-      });
+    if (opened != _quickConnectOpened) {
+      setState(() => _quickConnectOpened = opened);
     }
     _scheduleQuickConnectPoll(generation, result);
   }
@@ -634,7 +616,6 @@ class _LoginScreenState extends State<LoginScreen> {
         _quickConnectSecret = null;
         _quickConnectUri = null;
         _quickConnectUriComplete = null;
-        _quickConnectDeadline = null;
         _quickConnectOpened = false;
         _quickConnectEnded = false;
       });

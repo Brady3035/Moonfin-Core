@@ -15803,5 +15803,10 @@
     "detailsBackdropFit": "Sovita",
     "@detailsBackdropFit": {
         "description": "Backdrop Size option that shows the whole backdrop across the top of the details screen, fading into the page below it"
-    }
+    },
+    "sorting": "Lajittelu",
+    "imdbRowsSorting": "IMDb:n rivien lajittelu",
+    "imdbRowsSortingDescription": "Lajittele IMDb-rivit nimen, julkaisupäivän, arvosanan ja muiden kriteerien mukaan.",
+    "imdbRowsSortOrderDescription": "Lajittele IMDb-rivit nousevaan tai laskevaan järjestykseen.",
+    "tmdbRowsSorting": "TMDB:n rivien lajittelu"
 }

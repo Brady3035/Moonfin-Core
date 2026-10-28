@@ -1882,7 +1882,9 @@ class MediaKitPlayerBackend extends PlayerBackend
       final properties = passthroughMpvPropertiesFromSet(
         _prefs.resolvedPassthroughCodecs(),
         downmixToStereo: _prefs.get(UserPreferences.downmixToStereo),
-        includeAudioExclusive: PlatformDetection.isDesktop,
+        // Windows needs exclusive mode to bitstream. PipeWire can't link an
+        // exclusive stream while anything else plays, so Linux goes silent.
+        includeAudioExclusive: PlatformDetection.isWindows,
       );
 
       if (mapEquals(_appliedAudioPassthroughProperties, properties)) {

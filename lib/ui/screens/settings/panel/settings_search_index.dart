@@ -1536,6 +1536,13 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
         subtitle: l10n.hevcSoftwareDirectPlaySubtitle,
         keywords: ['hevc', 'h265', 'x265', 'software decode'],
       ),
+    if (PlatformDetection.offersAv1SoftwareUhd)
+      quality.leaf(
+        'av1_software_uhd_direct_play',
+        l10n.av1SoftwareUhdDirectPlay,
+        subtitle: l10n.av1SoftwareUhdDirectPlaySubtitle,
+        keywords: ['av1', '4k', 'uhd', 'software decode'],
+      ),
     if (PlatformDetection.isAndroid && PlatformDetection.isTV) ...[
       quality.leaf(
         'exoplayer_prefer_ffmpeg',

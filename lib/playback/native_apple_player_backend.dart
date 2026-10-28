@@ -518,6 +518,9 @@ class NativeApplePlayerBackend
     final maxResolution = _prefs.get(UserPreferences.maxVideoResolution);
     final audioCapabilityProfile = _prefs.detectedAudioCapabilities;
     final softwareHevc = decodesHevcOnlyFromOriginalFile;
+    final softwareAv1Uhd =
+        PlatformDetection.offersAv1SoftwareUhd &&
+        _prefs.get(UserPreferences.av1SoftwareUhdDirectPlay);
 
     return DeviceProfileBuilder.build(
       maxBitrateMbps: maxBitrate,
@@ -559,7 +562,9 @@ class NativeApplePlayerBackend
       supportsAv1: PlatformDetection.supportsAv1,
       supportsAv1Main10: PlatformDetection.supportsAv1Main10,
       supportsAv1DolbyVision: PlatformDetection.supportsAv1DolbyVision,
-      supportsAv1Hdr10: PlatformDetection.supportsAv1Hdr10,
+      supportsAv1Hdr10:
+          PlatformDetection.supportsAv1Hdr10 ||
+          (softwareAv1Uhd && PlatformDetection.supportsHevcHdr10),
       supportsAv1Hdr10Plus: PlatformDetection.supportsAv1Hdr10Plus,
       rendersAv1DoviViaHdr10BaseLayer: true,
       supportsVc1: PlatformDetection.supportsVc1,
@@ -567,8 +572,12 @@ class NativeApplePlayerBackend
       maxResolutionAvcHeight: PlatformDetection.maxResolutionAvcHeight,
       maxResolutionHevcWidth: PlatformDetection.maxResolutionHevcWidth,
       maxResolutionHevcHeight: PlatformDetection.maxResolutionHevcHeight,
-      maxResolutionAv1Width: PlatformDetection.maxResolutionAv1Width,
-      maxResolutionAv1Height: PlatformDetection.maxResolutionAv1Height,
+      maxResolutionAv1Width: softwareAv1Uhd
+          ? 3840
+          : PlatformDetection.maxResolutionAv1Width,
+      maxResolutionAv1Height: softwareAv1Uhd
+          ? 2160
+          : PlatformDetection.maxResolutionAv1Height,
       maxResolutionVc1Width: PlatformDetection.maxResolutionVc1Width,
       maxResolutionVc1Height: PlatformDetection.maxResolutionVc1Height,
       supportsDvProfile5: PlatformDetection.supportsDoViProfile5,

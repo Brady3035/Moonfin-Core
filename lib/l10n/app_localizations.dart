@@ -21910,6 +21910,18 @@ abstract class AppLocalizations {
   /// **'Play HEVC up to 1080p from the original file instead of asking the server to transcode it. This Apple TV decodes it in software, so heavy 10-bit or high bitrate files may stutter.'**
   String get hevcSoftwareDirectPlaySubtitle;
 
+  /// No description provided for @av1SoftwareUhdDirectPlay.
+  ///
+  /// In en, this message translates to:
+  /// **'Direct Play 4K AV1 (Software Decode)'**
+  String get av1SoftwareUhdDirectPlay;
+
+  /// No description provided for @av1SoftwareUhdDirectPlaySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Play AV1 above 1080p, including HDR10, from the original file instead of asking the server to transcode it. This device decodes AV1 in software, so heavy 4K or high bitrate files may stutter.'**
+  String get av1SoftwareUhdDirectPlaySubtitle;
+
   /// No description provided for @useExternalPlayer.
   ///
   /// In en, this message translates to:

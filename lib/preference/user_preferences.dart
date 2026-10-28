@@ -2314,6 +2314,11 @@ class UserPreferences extends ChangeNotifier {
     defaultValue: false,
   );
 
+  static final av1SoftwareUhdDirectPlay = Preference(
+    key: 'av1_software_uhd_direct_play',
+    defaultValue: false,
+  );
+
   static final media3SkipSilence = Preference(
     key: 'media3_skip_silence',
     defaultValue: false,

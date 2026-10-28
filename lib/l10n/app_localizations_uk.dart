@@ -15686,7 +15686,7 @@ class AppLocalizationsUk extends AppLocalizations {
 
   @override
   String get settingsApplePlayerUiDescription =>
-      'The native Apple style player has no casting, swipe gestures, orientation lock, audio delay or PiP button';
+      'The native Apple style player has no casting, audio delay or PiP button, and its rotation lock is only in Live TV';
 
   @override
   String get settingsApplePlayerUiStandard => 'Standard';

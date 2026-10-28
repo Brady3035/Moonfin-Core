@@ -3678,7 +3678,7 @@ class AppLocalizationsFi extends AppLocalizations {
       'Luettelossa näkyvät vain ne osiot, jotka nykyisessä ”Tiedot”-näytön tyylissä voidaan näyttää. Yhden osion piilottaminen piilottaa sen kaikissa tyyleissä, joissa se esiintyy.';
 
   @override
-  String get detailSectionGroupHeader => 'Otsikko';
+  String get detailSectionGroupHeader => 'Header';
 
   @override
   String get detailSectionGroupSections => 'Osat';
@@ -4876,11 +4876,11 @@ class AppLocalizationsFi extends AppLocalizations {
       'Valitse eri mediapalkkityylien välillä tai poista mediapalkki käytöstä';
 
   @override
-  String get peekHomeRows => 'Peek Home Rows';
+  String get peekHomeRows => 'Peek Kotirivit';
 
   @override
   String get peekHomeRowsDescription =>
-      'Show the top half of the first row along the bottom of the media bar';
+      'Näytä ensimmäisen rivin yläpuoli mediapalkin alareunassa';
 
   @override
   String get mediaBarModeMoonfin => 'Moonfin';
@@ -9643,7 +9643,7 @@ class AppLocalizationsFi extends AppLocalizations {
   String get adminMetadataImages => 'Kuvat';
 
   @override
-  String get adminMetadataFieldTitle => 'Nimi';
+  String get adminMetadataFieldTitle => 'Nimike';
 
   @override
   String get adminMetadataFieldSortTitle => 'Lajittele otsikko';
@@ -9770,7 +9770,7 @@ class AppLocalizationsFi extends AppLocalizations {
   String get adminMetadataPersonKindEngineer => 'Insinööri';
 
   @override
-  String get adminMetadataPersonKindMixer => 'Sekoita';
+  String get adminMetadataPersonKindMixer => 'Sekoitin';
 
   @override
   String get adminMetadataPersonKindRemixer => 'Remixaaja';
@@ -12368,58 +12368,58 @@ class AppLocalizationsFi extends AppLocalizations {
       'Lajittele ääni-rivit nousevaan tai laskevaan järjestykseen.';
 
   @override
-  String get sorting => 'Sorting';
+  String get sorting => 'Lajittelu';
 
   @override
-  String get imdbRowsSorting => 'IMDb Row Sorting';
+  String get imdbRowsSorting => 'IMDb:n rivien lajittelu';
 
   @override
   String get imdbRowsSortingDescription =>
-      'Sort IMDb rows by name, release date, rating, and more.';
+      'Lajittele IMDb-rivit nimen, julkaisupäivän, arvosanan ja muiden kriteerien mukaan.';
 
   @override
   String get imdbRowsSortOrderDescription =>
-      'Sort IMDb rows in ascending or descending order.';
+      'Lajittele IMDb-rivit nousevaan tai laskevaan järjestykseen.';
 
   @override
-  String get tmdbRowsSorting => 'TMDB Row Sorting';
+  String get tmdbRowsSorting => 'TMDB:n rivien lajittelu';
 
   @override
   String get tmdbRowsSortingDescription =>
-      'Sort TMDB rows by name, release date, rating, and more.';
+      'Lajittele TMDB-rivit nimen, julkaisupäivän, arvosanan ja muiden kriteerien mukaan.';
 
   @override
   String get tmdbRowsSortOrderDescription =>
-      'Sort TMDB rows in ascending or descending order.';
+      'Lajittele TMDB-rivit nousevaan tai laskevaan järjestykseen.';
 
   @override
-  String get seerrRowsSorting => 'Seerr Row Sorting';
+  String get seerrRowsSorting => 'Seerr-rivilajittelu';
 
   @override
   String get seerrRowsSortingDescription =>
-      'Sort Seerr rows by name, release date, rating, and more.';
+      'Lajittele Seerr-rivit nimen, julkaisupäivän, arvosanan ja muiden kriteerien mukaan.';
 
   @override
   String get seerrRowsSortOrderDescription =>
-      'Sort Seerr rows in ascending or descending order.';
+      'Lajittele Seerr-rivit nousevaan tai laskevaan järjestykseen.';
 
   @override
-  String get externalRowSortDefault => 'Default (List Order)';
+  String get externalRowSortDefault => 'Oletus (luettelon järjestys)';
 
   @override
-  String get externalRowSortName => 'Name';
+  String get externalRowSortName => 'Nimi';
 
   @override
-  String get externalRowSortReleaseDate => 'Release Date';
+  String get externalRowSortReleaseDate => 'Julkaisupäivä';
 
   @override
-  String get externalRowSortRating => 'Rating';
+  String get externalRowSortRating => 'Arvostelu';
 
   @override
-  String get externalRowSortPopularity => 'Popularity';
+  String get externalRowSortPopularity => 'Suosio';
 
   @override
-  String get externalRowSortShuffle => 'Shuffle';
+  String get externalRowSortShuffle => 'Sekoita';
 
   @override
   String get audioPlaylists => 'Äänisoittolistat';
@@ -14578,7 +14578,7 @@ class AppLocalizationsFi extends AppLocalizations {
   String get personalRatingClear => 'Arvostelun tyhjentäminen';
 
   @override
-  String get personalRatingRated => 'Arvosana';
+  String get personalRatingRated => 'Arvostelu';
 
   @override
   String get personalRatingMine => 'Arvosteluni';
@@ -15467,22 +15467,22 @@ class AppLocalizationsFi extends AppLocalizations {
   String get homeScreenBackdrop => 'Aloitusnäytön taustakuva';
 
   @override
-  String get homeScreenBackdropFullScreen => 'Full Screen';
+  String get homeScreenBackdropFullScreen => 'Koko näyttö';
 
   @override
-  String get homeScreenBackdropCorner => 'Corner';
+  String get homeScreenBackdropCorner => 'Kulma';
 
   @override
   String get detailsScreenBackdrop => 'Tietonäytön taustakuva';
 
   @override
-  String get detailsBackdropSize => 'Backdrop Size';
+  String get detailsBackdropSize => 'Taustakuvan koko';
 
   @override
-  String get detailsBackdropFullScreen => 'Full Screen';
+  String get detailsBackdropFullScreen => 'Koko näyttö';
 
   @override
-  String get detailsBackdropFit => 'Fit';
+  String get detailsBackdropFit => 'Sovita';
 
   @override
   String get libraryBackdrops => 'Kirjaston taustakuvat';

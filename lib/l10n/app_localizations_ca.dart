@@ -34,13 +34,13 @@ class AppLocalizationsCa extends AppLocalizations {
   String get animeMarkerSubbedAndDubbed => 'Sub/Dub';
 
   @override
-  String get animeMarkerSubbedShort => 'Sub';
+  String get animeMarkerSubbedShort => 'SUB';
 
   @override
-  String get animeMarkerDubbedShort => 'Dub';
+  String get animeMarkerDubbedShort => 'DUB';
 
   @override
-  String get animeMarkerSubbedAndDubbedShort => 'Sub/Dub';
+  String get animeMarkerSubbedAndDubbedShort => 'SUB/DUB';
 
   @override
   String get animeMarkerPending => 'Pendent';
@@ -580,32 +580,32 @@ class AppLocalizationsCa extends AppLocalizations {
       'Els temes personalitzats modifiquen els elements visuals de tot Moonfin. Tria una d\'aquestes opcions segons el teu estil.';
 
   @override
-  String get keyboardStyle => 'Keyboard Style';
+  String get keyboardStyle => 'Estil del teclat';
 
   @override
   String get keyboardStyleDescription =>
-      'Native uses your TV\'s own keyboard. Classic is the original Moonfin keyboard. Glass is a frosted panel with larger keys. Docked fills the bottom of the screen and shows what you type above the keys.';
+      '«Natiu» fa servir el teclat de la teva TV. «Clàssic» és el teclat original de Moonfin. «Glass» és un panell esmerilat amb tecles més grans. «Acoblat» ocupa la part inferior de la pantalla i mostra el que escrius a sobre de les tecles.';
 
   @override
-  String get keyboardStyleNative => 'Native';
+  String get keyboardStyleNative => 'Natiu';
 
   @override
-  String get keyboardStyleClassic => 'Classic';
+  String get keyboardStyleClassic => 'Clàssic';
 
   @override
   String get keyboardStyleGlass => 'Glass';
 
   @override
-  String get keyboardStyleDocked => 'Docked';
+  String get keyboardStyleDocked => 'Acoblat';
 
   @override
-  String get keyboardSpace => 'space';
+  String get keyboardSpace => 'Espai';
 
   @override
-  String get keyboardHoldForAccents => 'hold for accents';
+  String get keyboardHoldForAccents => 'mantén premut per als accents';
 
   @override
-  String get keyboardClose => 'close';
+  String get keyboardClose => 'Tanca';
 
   @override
   String get controller => 'Controlador';
@@ -678,26 +678,28 @@ class AppLocalizationsCa extends AppLocalizations {
       'Error de xarxa en contactar amb Emby Connect o amb el servidor seleccionat';
 
   @override
-  String get signInWithPlex => 'Sign in with Plex';
+  String get signInWithPlex => 'Inicia la sessió amb Plex';
 
   @override
   String get plexLinkInstructions =>
-      'Go to plex.tv/link on any device and enter this code';
+      'Ves a plex.tv/link des de qualsevol dispositiu i introdueix aquest codi';
 
   @override
-  String get plexOpenLink => 'Open plex.tv/link';
+  String get plexOpenLink => 'Obre plex.tv/link';
 
   @override
-  String get plexWaitingForApproval => 'Waiting for you to approve the code...';
+  String get plexWaitingForApproval =>
+      'S\'està esperant que aprovis el codi...';
 
   @override
-  String get plexSignInWithPassword => 'Sign in with a password';
+  String get plexSignInWithPassword => 'Inicia la sessió amb una contrasenya';
 
   @override
-  String get plexVerificationCode => 'Verification code';
+  String get plexVerificationCode => 'Codi de verificació';
 
   @override
-  String get plexNoServers => 'No Plex servers found on this account';
+  String get plexNoServers =>
+      'No s\'ha trobat cap servidor Plex en aquest compte';
 
   @override
   String get loadingLinkedServers =>
@@ -1689,8 +1691,7 @@ class AppLocalizationsCa extends AppLocalizations {
   String get downloadSubtitlesLabel => 'Baixa els subtítols...';
 
   @override
-  String get searchOpenSubtitlesPlugin =>
-      'Cerca amb el connector OpenSubtitles';
+  String get searchOpenSubtitlesPlugin => 'Cerca amb OpenSubtitles';
 
   @override
   String get downloadSubtitles => 'Baixa els subtítols';
@@ -2616,43 +2617,44 @@ class AppLocalizationsCa extends AppLocalizations {
 
   @override
   String get seriesRecordingSkipsShowing =>
-      'The series recording will skip this showing';
+      'L\'enregistrament de la sèrie ometrà aquesta emissió';
 
   @override
   String get seriesRecordingEpisodesQuestion =>
-      'Which episodes should be recorded?';
+      'Quins episodis s\'han d\'enregistrar?';
 
   @override
-  String get seriesRecordingAllEpisodes => 'All Episodes';
+  String get seriesRecordingAllEpisodes => 'Tots els episodis';
 
   @override
   String get seriesRecordingAllEpisodesDescription =>
-      'Every showing, including repeats';
+      'Totes les emissions, incloses les reposicions';
 
   @override
   String get seriesRecordingNotRecordedEpisodes =>
-      'Episodes Not Already Recorded';
+      'Episodis encara no enregistrats';
 
   @override
   String get seriesRecordingNotRecordedEpisodesDescription =>
-      'Skips episodes already in your library and records each episode once';
+      'Omet els episodis que ja són a la teva biblioteca i enregistra cada episodi una sola vegada';
 
   @override
-  String get seriesRecordingNewEpisodesOnly => 'New Episodes Only';
+  String get seriesRecordingNewEpisodesOnly => 'Només episodis nous';
 
   @override
   String get seriesRecordingNewEpisodesOnlyDescription =>
-      'First airings only, no repeats';
+      'Només primeres emissions, sense reposicions';
 
   @override
-  String get seriesRecordingSettings => 'Series Settings';
+  String get seriesRecordingSettings => 'Configuració de la sèrie';
 
   @override
-  String get seriesRecordingUpdated => 'Series recording updated';
+  String get seriesRecordingUpdated =>
+      'S\'ha actualitzat l\'enregistrament de la sèrie';
 
   @override
   String get failedToUpdateSeriesRecording =>
-      'Unable to update series recording';
+      'No s\'ha pogut actualitzar l\'enregistrament de la sèrie';
 
   @override
   String get recordCurrentEpisode => 'Enregistra aquest episodi';
@@ -3591,17 +3593,17 @@ class AppLocalizationsCa extends AppLocalizations {
       'Desplaça el controlador cap amunt o cap avall per canviar la brillantor a l\'esquerra i el volum a la dreta';
 
   @override
-  String get invertGestureIndicators => 'Invert Gesture Indicators';
+  String get invertGestureIndicators => 'Inverteix els indicadors de gestos';
 
   @override
   String get invertGestureIndicatorsDescription =>
-      'Place brightness and volume visual indicators on same or opposite side of screen from swipe';
+      'Col·loca els indicadors visuals de brillantor i volum al mateix costat de la pantalla que el lliscament o al costat oposat';
 
   @override
-  String get gestureIndicatorSame => 'Same';
+  String get gestureIndicatorSame => 'Mateix costat';
 
   @override
-  String get gestureIndicatorInverted => 'Inverted';
+  String get gestureIndicatorInverted => 'Costat oposat';
 
   @override
   String get osdButtons => 'Botons del reproductor';
@@ -3780,10 +3782,10 @@ class AppLocalizationsCa extends AppLocalizations {
   String get detailSectionSeerrStats => 'Estadístiques';
 
   @override
-  String get detailSectionSeerrStreaming => 'Streaming services';
+  String get detailSectionSeerrStreaming => 'Serveis de streaming';
 
   @override
-  String get seerrStreamingOn => 'Streaming on';
+  String get seerrStreamingOn => 'Disponible a';
 
   @override
   String get detailSectionSeerrRecommendations => 'Recomanacions';
@@ -3810,10 +3812,10 @@ class AppLocalizationsCa extends AppLocalizations {
   String get detailSectionBirthplace => 'Lloc de naixement';
 
   @override
-  String get detailSectionPersonLinks => 'Links';
+  String get detailSectionPersonLinks => 'Enllaços';
 
   @override
-  String get detailSectionPersonLinksSubtitle => 'IMDb, TMDB and social media';
+  String get detailSectionPersonLinksSubtitle => 'IMDb, TMDB i xarxes socials';
 
   @override
   String get detailSectionGuestAppearances => 'Aparicions de convidats';
@@ -4899,11 +4901,11 @@ class AppLocalizationsCa extends AppLocalizations {
       'Trieu entre Moonfin, MakD o desactiva la barra multimèdia';
 
   @override
-  String get peekHomeRows => 'Peek Home Rows';
+  String get peekHomeRows => 'Avançament de les files d\'inici';
 
   @override
   String get peekHomeRowsDescription =>
-      'Show the top half of the first row along the bottom of the media bar';
+      'Mostra la meitat superior de la primera fila a la part inferior de la barra multimèdia';
 
   @override
   String get mediaBarModeMoonfin => 'Moonfin';
@@ -4996,7 +4998,7 @@ class AppLocalizationsCa extends AppLocalizations {
 
   @override
   String get trailerCaptionsDescription =>
-      'Mostra els subtítols dels tràilers de YouTube a la barra de mitjans';
+      'Mostra els subtítols als tràilers de YouTube';
 
   @override
   String get episodePreview => 'Vista prèvia de l\'episodi';
@@ -5086,17 +5088,17 @@ class AppLocalizationsCa extends AppLocalizations {
       'Combina les dues files en una sola secció d\'inici';
 
   @override
-  String get continueWatchingDefaultAction => 'Default Action';
+  String get continueWatchingDefaultAction => 'Acció predeterminada';
 
   @override
   String get continueWatchingDefaultActionDescription =>
-      'What selecting a Continue Watching or Next Up item does';
+      'Què passa quan selecciones un element de «Continuar mirant» o «Següent»';
 
   @override
-  String get goToDetailsScreen => 'Go to Details';
+  String get goToDetailsScreen => 'Ves als detalls';
 
   @override
-  String get playImmediately => 'Play immediately';
+  String get playImmediately => 'Reprodueix immediatament';
 
   @override
   String get nextUpMaxDays => 'Màxim de dies a \"A continuació\"';
@@ -12493,58 +12495,58 @@ class AppLocalizationsCa extends AppLocalizations {
       'Ordena les files d\'àudio en ordre ascendent o descendent.';
 
   @override
-  String get sorting => 'Sorting';
+  String get sorting => 'Ordenació';
 
   @override
-  String get imdbRowsSorting => 'IMDb Row Sorting';
+  String get imdbRowsSorting => 'Ordenació de les files d\'IMDb';
 
   @override
   String get imdbRowsSortingDescription =>
-      'Sort IMDb rows by name, release date, rating, and more.';
+      'Ordena les files d\'IMDb per nom, data d\'estrena, valoració i més.';
 
   @override
   String get imdbRowsSortOrderDescription =>
-      'Sort IMDb rows in ascending or descending order.';
+      'Ordena les files d\'IMDb en ordre ascendent o descendent.';
 
   @override
-  String get tmdbRowsSorting => 'TMDB Row Sorting';
+  String get tmdbRowsSorting => 'Ordenació de les files de TMDB';
 
   @override
   String get tmdbRowsSortingDescription =>
-      'Sort TMDB rows by name, release date, rating, and more.';
+      'Ordena les files de TMDB per nom, data d\'estrena, valoració i més.';
 
   @override
   String get tmdbRowsSortOrderDescription =>
-      'Sort TMDB rows in ascending or descending order.';
+      'Ordena les files de TMDB en ordre ascendent o descendent.';
 
   @override
-  String get seerrRowsSorting => 'Seerr Row Sorting';
+  String get seerrRowsSorting => 'Ordenació de les files de Seerr';
 
   @override
   String get seerrRowsSortingDescription =>
-      'Sort Seerr rows by name, release date, rating, and more.';
+      'Ordena les files de Seerr per nom, data d\'estrena, valoració i més.';
 
   @override
   String get seerrRowsSortOrderDescription =>
-      'Sort Seerr rows in ascending or descending order.';
+      'Ordena les files de Seerr en ordre ascendent o descendent.';
 
   @override
-  String get externalRowSortDefault => 'Default (List Order)';
+  String get externalRowSortDefault => 'Predeterminat (ordre de la llista)';
 
   @override
-  String get externalRowSortName => 'Name';
+  String get externalRowSortName => 'Nom';
 
   @override
-  String get externalRowSortReleaseDate => 'Release Date';
+  String get externalRowSortReleaseDate => 'Data d\'estrena';
 
   @override
-  String get externalRowSortRating => 'Rating';
+  String get externalRowSortRating => 'Valoració';
 
   @override
-  String get externalRowSortPopularity => 'Popularity';
+  String get externalRowSortPopularity => 'Popularitat';
 
   @override
-  String get externalRowSortShuffle => 'Shuffle';
+  String get externalRowSortShuffle => 'Aleatori';
 
   @override
   String get audioPlaylists => 'Llistes de reproducció d\'àudio';
@@ -12637,11 +12639,12 @@ class AppLocalizationsCa extends AppLocalizations {
       'Utilitzeu FFmpeg (àudio) i libgav1 (AV1) abans dels descodificadors de maquinari. Desactiveu-lo si es trenca el pas d\'àudio HDMI.';
 
   @override
-  String get hevcSoftwareDirectPlay => 'Direct Play HEVC (Software Decode)';
+  String get hevcSoftwareDirectPlay =>
+      'Reproducció nativa d\'HEVC (descodificació per programari)';
 
   @override
   String get hevcSoftwareDirectPlaySubtitle =>
-      'Play HEVC up to 1080p from the original file instead of asking the server to transcode it. This Apple TV decodes it in software, so heavy 10-bit or high bitrate files may stutter.';
+      'Reprodueix HEVC fins a 1080p des del fitxer original en lloc de demanar al servidor que el transcodifiqui. Aquest Apple TV el descodifica per programari, així que els fitxers exigents de 10 bits o amb una taxa de bits alta poden anar a batzegades.';
 
   @override
   String get useExternalPlayer => 'Utilitza sempre un reproductor extern';
@@ -12874,7 +12877,7 @@ class AppLocalizationsCa extends AppLocalizations {
   String get crewContributionsSeerr => 'Contribucions de l\'equip (Seerr)';
 
   @override
-  String get personWebsite => 'Official website';
+  String get personWebsite => 'Lloc web oficial';
 
   @override
   String get watchWithGroup => 'Veure amb grup';
@@ -14449,7 +14452,7 @@ class AppLocalizationsCa extends AppLocalizations {
 
   @override
   String sortCurrent(String option) {
-    return 'Sort: $option';
+    return 'Ordenació: $option';
   }
 
   @override
@@ -15611,22 +15614,22 @@ class AppLocalizationsCa extends AppLocalizations {
   String get homeScreenBackdrop => 'Teló de fons de la pantalla d\'inici';
 
   @override
-  String get homeScreenBackdropFullScreen => 'Full Screen';
+  String get homeScreenBackdropFullScreen => 'Pantalla completa';
 
   @override
-  String get homeScreenBackdropCorner => 'Corner';
+  String get homeScreenBackdropCorner => 'Cantonada';
 
   @override
   String get detailsScreenBackdrop => 'Teló de fons de la pantalla de detalls';
 
   @override
-  String get detailsBackdropSize => 'Backdrop Size';
+  String get detailsBackdropSize => 'Mida del teló de fons';
 
   @override
-  String get detailsBackdropFullScreen => 'Full Screen';
+  String get detailsBackdropFullScreen => 'Pantalla completa';
 
   @override
-  String get detailsBackdropFit => 'Fit';
+  String get detailsBackdropFit => 'Ajustar';
 
   @override
   String get libraryBackdrops => 'Telons de fons de les biblioteques';
@@ -15848,67 +15851,67 @@ class AppLocalizationsCa extends AppLocalizations {
   String get playbackInfoDroppedFrames => 'Fotogrames perduts';
 
   @override
-  String get playFromServer => 'Play from Server';
+  String get playFromServer => 'Reprodueix des del servidor';
 
   @override
-  String get settingsApplePlayerUi => 'Video player';
+  String get settingsApplePlayerUi => 'Reproductor de vídeo';
 
   @override
   String get settingsApplePlayerUiDescription =>
-      'The native Apple style player has no casting, swipe gestures, orientation lock, audio delay or PiP button';
+      'El reproductor natiu d\'estil Apple no té enviament a altres dispositius, gestos de lliscament, bloqueig de l\'orientació, retard d\'àudio ni botó de PiP';
 
   @override
-  String get settingsApplePlayerUiStandard => 'Standard';
+  String get settingsApplePlayerUiStandard => 'Estàndard';
 
   @override
-  String get settingsApplePlayerUiNative => 'Native Apple style';
+  String get settingsApplePlayerUiNative => 'Natiu d\'estil Apple';
 
   @override
-  String get playerTransportPosition => 'Play buttons';
+  String get playerTransportPosition => 'Botons de reproducció';
 
   @override
   String get playerTransportPositionDescription =>
-      'Show play, skip and seek in the middle of the video or docked in the bottom bar';
+      'Mostra els botons de reproduir, saltar i desplaçar-se al mig del vídeo o acoblats a la barra inferior';
 
   @override
-  String get playerTransportOnScreen => 'On screen';
+  String get playerTransportOnScreen => 'A la pantalla';
 
   @override
-  String get playerTransportDocked => 'Docked';
+  String get playerTransportDocked => 'Acoblat';
 
   @override
-  String get incompleteRecording => 'Incomplete';
+  String get incompleteRecording => 'Incomplet';
 
   @override
   String incompleteRecordingMinutes(int recorded, int expected) {
-    return '$recorded of $expected min';
+    return '$recorded de $expected min';
   }
 
   @override
   String completeShowingScheduled(String dateTime) {
-    return 'Complete showing scheduled $dateTime';
+    return 'Emissió completa programada: $dateTime';
   }
 
   @override
   String completeCopyRecorded(String dateTime) {
-    return 'Complete copy recorded $dateTime';
+    return 'Còpia completa enregistrada: $dateTime';
   }
 
   @override
-  String get noCompleteShowingFound => 'No complete showing found';
+  String get noCompleteShowingFound => 'No s\'ha trobat cap emissió completa';
 
   @override
-  String get keepAsComplete => 'Keep as Complete';
+  String get keepAsComplete => 'Mantén com a complet';
 
   @override
-  String get keptAsComplete => 'Marked as complete';
+  String get keptAsComplete => 'Marcat com a complet';
 
   @override
-  String get unableToKeepAsComplete => 'Unable to mark as complete';
+  String get unableToKeepAsComplete => 'No s\'ha pogut marcar com a complet';
 
   @override
   String recordPromptTitle(String name) {
-    return 'Record $name';
+    return 'Enregistra $name';
   }
 
   @override
@@ -15917,227 +15920,230 @@ class AppLocalizationsCa extends AppLocalizations {
       minutes,
       locale: localeName,
       other:
-          'This showing started $minutes minutes ago, so the recording will miss the start.',
-      one: 'This showing started 1 minute ago, so the recording will miss the start.',
+          'Aquesta emissió ha començat fa $minutes minuts, així que l\'enregistrament no en tindrà l\'inici.',
+      one: 'Aquesta emissió ha començat fa 1 minut, així que l\'enregistrament no en tindrà l\'inici.',
     );
     return '$_temp0';
   }
 
   @override
   String get recordPromptAlsoRecordLater =>
-      'Also record the future showing to get a complete recording?';
+      'Vols enregistrar també l\'emissió futura per tenir un enregistrament complet?';
 
   @override
   String get recordPromptSearchLater =>
-      'Also record a future showing automatically once one is found, to get a complete recording?';
+      'Vols enregistrar automàticament una emissió futura quan se\'n trobi una, per tenir un enregistrament complet?';
 
   @override
-  String get recordPromptNow => 'Now';
+  String get recordPromptNow => 'Ara';
 
   @override
-  String get recordPromptLater => 'Future showing';
+  String get recordPromptLater => 'Emissió futura';
 
   @override
   String recordPromptAired(int minutes) {
     String _temp0 = intl.Intl.pluralLogic(
       minutes,
       locale: localeName,
-      other: '$minutes min already aired',
-      one: '1 min already aired',
+      other: 'Ja s\'han emès $minutes min',
+      one: 'Ja s\'ha emès 1 min',
     );
     return '$_temp0';
   }
 
   @override
   String get recordPromptUncertainMatch =>
-      'Matched by title and description only. Check it\'s the same program.';
+      'Coincidència només pel títol i la descripció. Comprova que sigui el mateix programa.';
 
   @override
   String get recordPromptDescriptionsDiffer =>
-      'The descriptions differ, so this may be a different program.';
+      'Les descripcions són diferents; pot ser un altre programa.';
 
   @override
   String recordPromptSameEpisode(int season, int episode) {
-    return 'Same episode (S${season}E$episode)';
+    return 'Mateix episodi (T${season}E$episode)';
   }
 
   @override
-  String get recordPromptAlreadyScheduled => 'Already set to record';
+  String get recordPromptAlreadyScheduled =>
+      'Ja està programat per enregistrar';
 
   @override
-  String get recordPromptTomorrow => 'Tomorrow';
+  String get recordPromptTomorrow => 'Demà';
 
   @override
-  String get recordNowOnly => 'Record Now Only';
+  String get recordNowOnly => 'Enregistra només ara';
 
   @override
   String recordNowAnd(String when) {
-    return 'Record Now and $when';
+    return 'Enregistra ara i $when';
   }
 
   @override
-  String get recordNowAndLater => 'Record Now and Future Showing';
+  String get recordNowAndLater => 'Enregistra ara i l\'emissió futura';
 
   @override
   String recordOnlyLater(String when) {
-    return 'Record $when Only';
+    return 'Enregistra només $when';
   }
 
   @override
-  String get recordLaterShowingOnly => 'Record Future Showing Only';
+  String get recordLaterShowingOnly => 'Enregistra només l\'emissió futura';
 
   @override
-  String get laterShowingOnlyRequested =>
-      'The future showing will be recorded.';
+  String get laterShowingOnlyRequested => 'S\'enregistrarà l\'emissió futura.';
 
   @override
   String get unableToRequestLaterShowingOnly =>
-      'Couldn\'t request the future showing, so nothing will be recorded.';
+      'No s\'ha pogut sol·licitar l\'emissió futura, així que no s\'enregistrarà res.';
 
   @override
   String get laterShowingRequested =>
-      'Recording started. A future showing will be recorded too.';
+      'S\'ha començat a enregistrar. També s\'enregistrarà una emissió posterior.';
 
   @override
   String get unableToRequestLaterShowing =>
-      'Recording started, but couldn\'t request a future showing.';
+      'S\'ha començat a enregistrar, però no s\'ha pogut sol·licitar una emissió posterior.';
 
   @override
   String trailerCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count trailers',
-      one: '1 trailer',
+      other: '$count tràilers',
+      one: '1 tràiler',
     );
     return '$_temp0';
   }
 
   @override
   String trailerNumber(int number) {
-    return 'Trailer $number';
+    return 'Tràiler $number';
   }
 
   @override
-  String get subtitled => 'Subtitled';
+  String get subtitled => 'Subtitulat';
 
   @override
-  String get rommAccount => 'RomM account';
+  String get rommAccount => 'Compte de RomM';
 
   @override
   String get rommAccountIntro =>
-      'Link your RomM account to play from your own RomM library and keep your saves in RomM.';
+      'Enllaça el teu compte de RomM per jugar des de la teva biblioteca de RomM i conservar les partides desades a RomM.';
 
   @override
-  String get rommLinkAccount => 'Link RomM account';
+  String get rommLinkAccount => 'Enllaça el compte de RomM';
 
   @override
   String get rommLinkInstructions =>
-      'Sign in to RomM and enter this code to link your account.';
+      'Inicia la sessió a RomM i introdueix aquest codi per enllaçar el teu compte.';
 
   @override
   String rommLinkScanOrVisit(String url) {
-    return 'Scan the QR code with your phone, or go to $url';
+    return 'Escaneja el codi QR amb el telèfon o ves a $url';
   }
 
   @override
-  String get rommOpen => 'Open RomM';
+  String get rommOpen => 'Obre RomM';
 
   @override
   String get rommWaitingForApproval =>
-      'Waiting for you to approve the code in RomM...';
+      'S\'està esperant que aprovis el codi a RomM...';
 
   @override
   String rommLinkedAs(String username) {
-    return 'Linked as $username';
+    return 'Enllaçat com a $username';
   }
 
   @override
-  String get rommLinked => 'Your RomM account is linked.';
+  String get rommLinked => 'El teu compte de RomM està enllaçat.';
 
   @override
   String get rommUnlinkNote =>
-      'Unlinking stops Moonfin from using your RomM key. The key stays in RomM until you remove it from your API tokens there.';
+      'En desenllaçar-lo, Moonfin deixa de fer servir la teva clau de RomM. La clau es manté a RomM fins que l\'eliminis dels testimonis de l\'API de RomM.';
 
   @override
-  String get rommUnlink => 'Unlink';
+  String get rommUnlink => 'Desenllaça';
 
   @override
   String get rommLinkExpired =>
-      'The code expired before it was approved. Link again to get a new one.';
+      'El codi ha caducat abans de ser aprovat. Torna a enllaçar per obtenir-ne un de nou.';
 
   @override
-  String get rommLinkDenied => 'The link was turned down in RomM.';
+  String get rommLinkDenied => 'S\'ha rebutjat l\'enllaç a RomM.';
 
   @override
   String get rommUnreachable =>
-      'Moonfin couldn\'t reach RomM. Try again in a moment.';
+      'Moonfin no ha pogut connectar amb RomM. Torna-ho a provar d\'aquí a un moment.';
 
   @override
-  String get rommNotAvailable => 'This server has no RomM library.';
+  String get rommNotAvailable =>
+      'Aquest servidor no té cap biblioteca de RomM.';
 
   @override
-  String get rommAccountLoadFailed => 'Couldn\'t load your RomM account.';
+  String get rommAccountLoadFailed =>
+      'No s\'ha pogut carregar el teu compte de RomM.';
 
   @override
-  String get reviews => 'Reviews';
+  String get reviews => 'Ressenyes';
 
   @override
-  String get detailSectionReviews => 'Reviews';
+  String get detailSectionReviews => 'Ressenyes';
 
   @override
   String spotlightReviewsCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count reviews',
-      one: '1 review',
+      other: '$count ressenyes',
+      one: '1 ressenya',
     );
     return '$_temp0';
   }
 
   @override
-  String get readOnTmdb => 'Read on TMDB';
+  String get readOnTmdb => 'Llegeix-la a TMDB';
 
   @override
   String get addServerButtonSubtitle =>
-      'By address, or with a Plex or Emby Connect account';
+      'Per adreça, o amb un compte de Plex o d\'Emby Connect';
 
   @override
-  String get addServerChooseHow => 'Choose how you\'d like to connect.';
+  String get addServerChooseHow => 'Tria com et vols connectar.';
 
   @override
   String get addServerAddressChoice =>
-      'Jellyfin or Emby on your network or online';
+      'Jellyfin o Emby a la teva xarxa o en línia';
 
   @override
-  String get addServerPlexChoice => 'Use your Plex account to find its servers';
+  String get addServerPlexChoice =>
+      'Fes servir el teu compte de Plex per trobar-ne els servidors';
 
   @override
   String get addServerAddressHelp =>
-      'The same address you\'d open in a browser, including the port.';
+      'La mateixa adreça que obriries en un navegador, inclòs el port.';
 
   @override
   String get addServerDetectNote =>
-      'Works with Jellyfin and Emby. A Plex address opens the Plex sign-in.';
+      'Funciona amb Jellyfin i Emby. Una adreça de Plex obre l\'inici de sessió de Plex.';
 
   @override
   String addServerChecking(String address) {
-    return 'Checking $address';
+    return 'S\'està comprovant $address';
   }
 
   @override
   String get addServerUnreachableDetail =>
-      'Check the address and port, and that the server is running.';
+      'Comprova l\'adreça i el port, i que el servidor estigui en funcionament.';
 
   @override
-  String get addServerFound => 'Server found';
+  String get addServerFound => 'S\'ha trobat el servidor';
 
   @override
-  String get addServerFoundNote => 'Continue to choose who\'s signing in.';
+  String get addServerFoundNote => 'Continua per triar qui inicia la sessió.';
 
   @override
-  String get addServerUseDifferentAddress => 'Use a different address';
+  String get addServerUseDifferentAddress => 'Fes servir una altra adreça';
 
   @override
   String musicArtistCount(int count) {

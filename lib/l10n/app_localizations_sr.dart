@@ -34,13 +34,13 @@ class AppLocalizationsSr extends AppLocalizations {
   String get animeMarkerSubbedAndDubbed => 'С титловима/синхронизовано';
 
   @override
-  String get animeMarkerSubbedShort => 'Sub';
+  String get animeMarkerSubbedShort => 'Саб';
 
   @override
-  String get animeMarkerDubbedShort => 'Dub';
+  String get animeMarkerDubbedShort => 'Даб';
 
   @override
-  String get animeMarkerSubbedAndDubbedShort => 'Sub/Dub';
+  String get animeMarkerSubbedAndDubbedShort => 'Саб/Даб';
 
   @override
   String get animeMarkerPending => 'На чекању';
@@ -83,31 +83,31 @@ class AppLocalizationsSr extends AppLocalizations {
 
   @override
   String get quickConnectScanHint =>
-      'Or scan this with a phone that\'s signed in to your server';
+      'Или скенирајте ово телефоном који је пријављен на ваш сервер';
 
   @override
   String get quickConnectTapOrScanHint =>
-      'Tap to approve in your browser, or scan this with another device';
+      'Додирните да бисте одобрили у прегледачу или скенирајте ово другим уређајем';
 
   @override
-  String get timesUpTitle => 'Time\'s up';
+  String get timesUpTitle => 'Време је истекло';
 
   @override
-  String get timesUpMessage => 'This account isn\'t available right now.';
+  String get timesUpMessage => 'Овај налог тренутно није доступан.';
 
   @override
   String timesUpResumesToday(String time) {
-    return 'You can use it again today at $time.';
+    return 'Биће вам поново доступан за коришћење данас у $time.';
   }
 
   @override
   String timesUpResumesTomorrow(String time) {
-    return 'You can use it again tomorrow at $time.';
+    return 'Биће вам поново доступан за коришћење сутра у $time.';
   }
 
   @override
   String timesUpResumesOn(String day, String time) {
-    return 'You can use it again on $day at $time.';
+    return 'Биће вам поново доступно за коришћење $day у $time.';
   }
 
   @override
@@ -124,7 +124,7 @@ class AppLocalizationsSr extends AppLocalizations {
 
   @override
   String get loginForbidden =>
-      'This account can\'t sign in right now. It may be outside its allowed hours, locked or disabled. Try again later or ask an administrator.';
+      'Овим налогом тренутно не можете да се пријавите. Могуће је да пријављивање није дозвољено у ово време, да је налог закључан или да је онемогућен. Покушајте поново касније или затражите помоћ од администратора.';
 
   @override
   String quickConnectUnavailable(String detail) {
@@ -567,17 +567,17 @@ class AppLocalizationsSr extends AppLocalizations {
   String get performanceModeReduced => 'Смањено';
 
   @override
-  String get rendererMode => 'Renderer';
+  String get rendererMode => 'Рендерер';
 
   @override
   String get rendererModeSubtitle =>
-      'Auto uses Impeller on boxes whose graphics run it smoothly and Skia everywhere else. Pick Skia if animations or video look wrong. Takes effect on the next launch.';
+      'Аутоматски режим користи Импелер на боксовима чија графика омогућава да ради глатко, а Скију свуда другде. Изаберите Скију ако анимације или видео не изгледају исправно. Промена ступа на снагу при следећем покретању.';
 
   @override
-  String get rendererModeAuto => 'Auto';
+  String get rendererModeAuto => 'Аутоматски';
 
   @override
-  String get rendererModeSkia => 'Skia';
+  String get rendererModeSkia => 'Скиа';
 
   @override
   String get trailerPreviewHeldBack =>
@@ -595,32 +595,32 @@ class AppLocalizationsSr extends AppLocalizations {
       'Прилагођене теме мењају изглед елемената широм апликације Мунфин (Moonfin). Изаберите једну од понуђених опција према свом укусу.';
 
   @override
-  String get keyboardStyle => 'Keyboard Style';
+  String get keyboardStyle => 'Стил тастатуре';
 
   @override
   String get keyboardStyleDescription =>
-      'Native uses your TV\'s own keyboard. Classic is the original Moonfin keyboard. Glass is a frosted panel with larger keys. Docked fills the bottom of the screen and shows what you type above the keys.';
+      'Нативна користи тастатуру вашег телевизора. Класична је оригинална Мунфин тастатура. Стаклена је панел од мат стакла са већим тастерима. Усидрена испуњава доњи део екрана и приказује оно што куцате изнад тастера.';
 
   @override
-  String get keyboardStyleNative => 'Native';
+  String get keyboardStyleNative => 'Нативна';
 
   @override
-  String get keyboardStyleClassic => 'Classic';
+  String get keyboardStyleClassic => 'Класична';
 
   @override
-  String get keyboardStyleGlass => 'Glass';
+  String get keyboardStyleGlass => 'Стаклена';
 
   @override
-  String get keyboardStyleDocked => 'Docked';
+  String get keyboardStyleDocked => 'Усидрена';
 
   @override
-  String get keyboardSpace => 'space';
+  String get keyboardSpace => 'размак';
 
   @override
-  String get keyboardHoldForAccents => 'hold for accents';
+  String get keyboardHoldForAccents => 'држи за акценте';
 
   @override
-  String get keyboardClose => 'close';
+  String get keyboardClose => 'затвори';
 
   @override
   String get controller => 'Контролер';
@@ -694,26 +694,26 @@ class AppLocalizationsSr extends AppLocalizations {
       'Мрежна грешка при повезивању са Емби конектом или изабраним сервером';
 
   @override
-  String get signInWithPlex => 'Sign in with Plex';
+  String get signInWithPlex => 'Пријави се на Плекс';
 
   @override
   String get plexLinkInstructions =>
-      'Go to plex.tv/link on any device and enter this code';
+      'На било ком уређају отворите plex.tv/link и унесите овај код';
 
   @override
-  String get plexOpenLink => 'Open plex.tv/link';
+  String get plexOpenLink => 'Отвори plex.tv/link';
 
   @override
-  String get plexWaitingForApproval => 'Waiting for you to approve the code...';
+  String get plexWaitingForApproval => 'Чекам да одобриш код...';
 
   @override
-  String get plexSignInWithPassword => 'Sign in with a password';
+  String get plexSignInWithPassword => 'Пријавите се лозинком';
 
   @override
-  String get plexVerificationCode => 'Verification code';
+  String get plexVerificationCode => 'Верификациони код';
 
   @override
-  String get plexNoServers => 'No Plex servers found on this account';
+  String get plexNoServers => 'На овом налогу нису пронађени Плекс сервери';
 
   @override
   String get loadingLinkedServers => 'Учитавање повезаних сервера...';
@@ -761,17 +761,17 @@ class AppLocalizationsSr extends AppLocalizations {
   String get gameFastForward => 'Премотавање унапред';
 
   @override
-  String get gameOrientation => 'Game orientation';
+  String get gameOrientation => 'Оријентација игре';
 
   @override
   String get gameOrientationSubtitle =>
-      'Screen orientation while playing games';
+      'Оријентација екрана током играња игара';
 
   @override
-  String get landscape => 'Landscape';
+  String get landscape => 'Водоравно';
 
   @override
-  String get portrait => 'Portrait';
+  String get portrait => 'Вертикално';
 
   @override
   String get gameEmulatorSettings => 'Подешавања емулатора';
@@ -783,20 +783,20 @@ class AppLocalizationsSr extends AppLocalizations {
   String get gameHoldToOpenMenu => 'Држите притиснуто да бисте отворили мени';
 
   @override
-  String get gameKeepPlaying => 'Keep playing';
+  String get gameKeepPlaying => 'Настави са игром';
 
   @override
-  String get gameSaveAndExit => 'Save & exit';
+  String get gameSaveAndExit => 'Сачувај и изађи';
 
   @override
-  String get gameExitGame => 'Exit game';
+  String get gameExitGame => 'Изађи из игре';
 
   @override
-  String get gameSavingBeforeExit => 'Saving…';
+  String get gameSavingBeforeExit => 'Чувам…';
 
   @override
   String get gameSaveFailedStillPlaying =>
-      'Could not save state. Still playing.';
+      'Стање није могло да се сачува. Игра и даље траје.';
 
   @override
   String get gamePlaybackUnsupported =>
@@ -1481,7 +1481,7 @@ class AppLocalizationsSr extends AppLocalizations {
   String get extras => 'Додаци';
 
   @override
-  String get additionalParts => 'Additional Parts';
+  String get additionalParts => 'Додатни делови';
 
   @override
   String get behindTheScenes => 'Иза кулиса';
@@ -1702,7 +1702,7 @@ class AppLocalizationsSr extends AppLocalizations {
 
   @override
   String get searchOpenSubtitlesPlugin =>
-      'Претражи помоћу додатка Опенсабтајтлс (OpenSubtitles)';
+      'Претражи помоћу Опенсабтајтлс (OpenSubtitles)';
 
   @override
   String get downloadSubtitles => 'Преузми титлове';
@@ -1711,7 +1711,7 @@ class AppLocalizationsSr extends AppLocalizations {
   String get searchingSubtitles => 'Претрага титлова у току…';
 
   @override
-  String get fetchingSubtitles => 'Fetching subtitles';
+  String get fetchingSubtitles => 'Преузимање титлова';
 
   @override
   String get downloadingSubtitle => 'Преузимање титла у току…';
@@ -2168,7 +2168,7 @@ class AppLocalizationsSr extends AppLocalizations {
   String get keyNameBackspace => 'Бекспејс';
 
   @override
-  String get keyNameDelete => 'Delete';
+  String get keyNameDelete => 'Обриши';
 
   @override
   String get keyNamePageUp => 'Страница нагоре';
@@ -2257,7 +2257,7 @@ class AppLocalizationsSr extends AppLocalizations {
       'Изађи из приказа преко целог екрана или заустави репродукцију ако тај приказ није активан';
 
   @override
-  String get shortcutHideControls => 'Hide controls';
+  String get shortcutHideControls => 'Сакриј контроле';
 
   @override
   String get shortcutStopPlayback => 'Заустави репродукцију';
@@ -2269,7 +2269,8 @@ class AppLocalizationsSr extends AppLocalizations {
   String get shortcutPreviousItem => 'Претходна ставка';
 
   @override
-  String get shortcutSkipSegment => 'Skip intro or credits when offered';
+  String get shortcutSkipSegment =>
+      'Прескочите уводну или одјавну шпицу када вам се понуди та могућност';
 
   @override
   String get shortcutShowShortcuts => 'Прикажи овај списак';
@@ -2332,20 +2333,20 @@ class AppLocalizationsSr extends AppLocalizations {
   String get hdr => 'ХДР (HDR)';
 
   @override
-  String get videoRenderer => 'Video Renderer';
+  String get videoRenderer => 'Видео рендерер';
 
   @override
   String get videoRendererDescription =>
-      'Native window gives the smoothest motion and sends HDR to the display untouched. Try another option if video misbehaves.';
+      'Изворни прозор омогућава најглаткији приказ покрета и прослеђује ХДР екрану без измена. Ако се видео не приказује исправно, покушајте са другом опцијом.';
 
   @override
-  String get videoRendererNativeWindow => 'Native window (recommended)';
+  String get videoRendererNativeWindow => 'Нативни прозор (препоручено)';
 
   @override
-  String get videoRendererNativeHdrOnly => 'Native window for HDR only';
+  String get videoRendererNativeHdrOnly => 'Нативни прозор само за ХДР';
 
   @override
-  String get videoRendererInApp => 'In-app (legacy)';
+  String get videoRendererInApp => 'У апликацији (застарело)';
 
   @override
   String get track => 'Нумера';
@@ -2377,7 +2378,8 @@ class AppLocalizationsSr extends AppLocalizations {
       'Приказивање ЕПУБ (EPUB) књига у апликацији још није доступно на овој платформи.';
 
   @override
-  String get bookReadingUnavailableTitle => 'Books can\'t be read on Apple TV';
+  String get bookReadingUnavailableTitle =>
+      'Књиге не могу да се читају на Епл ТВ-у';
 
   @override
   String get bookReadingUnavailableMessage =>
@@ -15738,7 +15740,7 @@ class AppLocalizationsSr extends AppLocalizations {
 
   @override
   String get settingsApplePlayerUiDescription =>
-      'The native Apple style player has no casting, swipe gestures, orientation lock, audio delay or PiP button';
+      'The native Apple style player has no casting, audio delay or PiP button, and its rotation lock is only in Live TV';
 
   @override
   String get settingsApplePlayerUiStandard => 'Standard';

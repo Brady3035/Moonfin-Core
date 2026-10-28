@@ -13,16 +13,20 @@ class AppLocalizationsEs extends AppLocalizations {
   String get appTitle => 'Moonfin';
 
   @override
-  String get animeMarkerFiller => 'Filler';
+  String get animeMarkerFiller =>
+      'Insignia en un episodio de anime que es de relleno, lo que significa que no está adaptada del manga original';
 
   @override
-  String get animeMarkerMixed => 'Mixed';
+  String get animeMarkerMixed =>
+      'Insignia en un episodio de anime que mezcla material original con relleno, por lo que aún contiene historia';
 
   @override
-  String get animeMarkerAnimeCanon => 'Anime Canon';
+  String get animeMarkerAnimeCanon =>
+      'Insignia en un episodio de anime que no está en el manga original pero que es parte de la propia continuidad del anime';
 
   @override
-  String get animeMarkerMangaCanon => 'Manga Canon';
+  String get animeMarkerMangaCanon =>
+      'Insignia en un episodio de anime adaptado del manga original';
 
   @override
   String get animeMarkerSubbed => 'Subbed';
@@ -15717,7 +15721,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settingsApplePlayerUiDescription =>
-      'The native Apple style player has no casting, swipe gestures, orientation lock, audio delay or PiP button';
+      'The native Apple style player has no casting, audio delay or PiP button, and its rotation lock is only in Live TV';
 
   @override
   String get settingsApplePlayerUiStandard => 'Standard';

@@ -4256,13 +4256,13 @@ class AppLocalizationsPt extends AppLocalizations {
   String get subtitleSize => 'Tamanho da Legenda';
 
   @override
-  String get primarySubtitleSlot => 'Legenda principal';
+  String get primarySubtitleSlot => 'Primary Track';
 
   @override
-  String get secondarySubtitleSlot => 'Legenda secundária';
+  String get secondarySubtitleSlot => 'Secondary Track';
 
   @override
-  String get secondarySubtitleTrack => 'Faixa de legenda secundária';
+  String get secondarySubtitleTrack => 'Secondary Subtitles';
 
   @override
   String get secondaryDelayAdjustment => 'Secondary Delay Adjustment';
@@ -15685,7 +15685,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settingsApplePlayerUiDescription =>
-      'The native Apple style player has no casting, swipe gestures, orientation lock, audio delay or PiP button';
+      'The native Apple style player has no casting, audio delay or PiP button, and its rotation lock is only in Live TV';
 
   @override
   String get settingsApplePlayerUiStandard => 'Standard';

@@ -1217,10 +1217,6 @@
   "@discoverySubjects": {
     "description": "Title for the book discovery subject picker panel"
   },
-  "pickDiscoverySubjects": "Pick which subject feeds to show in Discover.",
-  "@pickDiscoverySubjects": {
-    "description": "Instruction text in discovery subject picker"
-  },
   "apply": "Apply",
   "@apply": {
     "description": "Button label to apply selected options"
@@ -1236,27 +1232,6 @@
   "audiobookGenres": "Audiobook Genres",
   "@audiobookGenres": {
     "description": "Title for audiobook genre picker panel"
-  },
-  "pickAudiobookGenres": "Pick which genres to show in Audiobook Discover.",
-  "@pickAudiobookGenres": {
-    "description": "Instruction text in audiobook genre picker"
-  },
-  "discoverAudiobooks": "Discover Audiobooks",
-  "@discoverAudiobooks": {
-    "description": "Section title for audiobook discovery"
-  },
-  "librivoxDescription": "Popular public domain titles from LibriVox.",
-  "@librivoxDescription": {
-    "description": "Subtitle for audiobook discovery section"
-  },
-  "titlesCount": "{count} titles",
-  "@titlesCount": {
-    "description": "Label showing number of titles",
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
   },
   "scrollLeft": "Scroll left",
   "@scrollLeft": {
@@ -1437,10 +1412,6 @@
   "discover": "Discover",
   "@discover": {
     "description": "Section title for book discovery"
-  },
-  "trendingTitlesOpenLibrary": "Trending titles by subject from Open Library.",
-  "@trendingTitlesOpenLibrary": {
-    "description": "Subtitle for book discovery section"
   },
   "noBookmarkedItems": "No bookmarked items yet",
   "@noBookmarkedItems": {
@@ -12368,7 +12339,6 @@
   "failedToExtractCbrArchive": "Failed to extract .cbr archive.",
   "cb7ExtractionUnavailable": "CB7 extraction is not available on this platform.",
   "cb7ExtractionPluginUnavailable": "CB7 extraction plugin is not available on this platform.",
-  "closeGenrePanel": "Close genre panel",
   "loadingShuffle": "Loading shuffle...",
   "libraryShuffleLabel": "LIBRARY SHUFFLE",
   "randomShuffleLabel": "RANDOM SHUFFLE",
@@ -14902,5 +14872,70 @@
   "musicSortMostAlbums": "Most Albums",
   "@musicSortMostAlbums": {
     "description": "Genres screen order: the genres with the most albums first"
+  },
+  "bookSeriesPosition": "Book {index} of {total}",
+  "@bookSeriesPosition": {
+    "description": "Series screen: where the reader is in a series, the next unread book's number and how many books it has",
+    "placeholders": {
+      "index": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "bookFavoriteCount": "{count, plural, =1{1 favorite} other{{count} favorites}}",
+  "@bookFavoriteCount": {
+    "description": "Book library Favorites screen header count",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "bookSortZToA": "Z to A",
+  "@bookSortZToA": {
+    "description": "Authors screen order, from Z back to A"
+  },
+  "bookSortMostTitles": "Most Titles",
+  "@bookSortMostTitles": {
+    "description": "Book genres screen order: the genres with the most titles first"
+  },
+  "bookSurpriseMe": "Surprise Me",
+  "@bookSurpriseMe": {
+    "description": "Button on a book genre that opens a random unread title from it"
+  },
+  "bookShuffleAudiobooks": "Shuffle Audiobooks",
+  "@bookShuffleAudiobooks": {
+    "description": "Button on an author that plays one of their audiobooks at random"
+  },
+  "bookStartReading": "Start Reading",
+  "@bookStartReading": {
+    "description": "Button on an author that opens their first unread book"
+  },
+  "bookOtherBooks": "Other Books",
+  "@bookOtherBooks": {
+    "description": "Heading over an author's books that aren't part of a series"
+  },
+  "bookDiscoverSearchBooks": "Search Open Library",
+  "@bookDiscoverSearchBooks": {
+    "description": "Placeholder in the Discover search field for books"
+  },
+  "bookDiscoverSearchAudiobooks": "Search LibriVox",
+  "@bookDiscoverSearchAudiobooks": {
+    "description": "Placeholder in the Discover search field for audiobooks"
+  },
+  "bookDiscoverFeatured": "Featured",
+  "@bookDiscoverFeatured": {
+    "description": "Label over the highlighted title at the top of Discover"
+  },
+  "bookReaderControlsAutoHide": "Controls hide automatically",
+  "@bookReaderControlsAutoHide": {
+    "description": "Comic reader toggle while its bars fade out on their own"
+  },
+  "bookReaderControlsStayVisible": "Controls stay visible",
+  "@bookReaderControlsStayVisible": {
+    "description": "Comic reader toggle while its bars stay on screen"
   }
 }

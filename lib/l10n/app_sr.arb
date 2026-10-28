@@ -528,10 +528,6 @@
     "@discoverySubjects": {
         "description": "Title for the book discovery subject picker panel"
     },
-    "pickDiscoverySubjects": "Изаберите које ће се тематске категорије приказивати у одељку „Откриј“.",
-    "@pickDiscoverySubjects": {
-        "description": "Instruction text in discovery subject picker"
-    },
     "apply": "Примени",
     "@apply": {
         "description": "Button label to apply selected options"
@@ -547,27 +543,6 @@
     "audiobookGenres": "Жанрови аудио-књига",
     "@audiobookGenres": {
         "description": "Title for audiobook genre picker panel"
-    },
-    "pickAudiobookGenres": "Изаберите жанрове који ће се приказивати у одељку „Откриј аудио-књиге“.",
-    "@pickAudiobookGenres": {
-        "description": "Instruction text in audiobook genre picker"
-    },
-    "discoverAudiobooks": "Откриј аудио-књиге",
-    "@discoverAudiobooks": {
-        "description": "Section title for audiobook discovery"
-    },
-    "librivoxDescription": "Популарни наслови из јавног домена са Либривокса (LibriVox).",
-    "@librivoxDescription": {
-        "description": "Subtitle for audiobook discovery section"
-    },
-    "titlesCount": "{count} наслова",
-    "@titlesCount": {
-        "description": "Label showing number of titles",
-        "placeholders": {
-            "count": {
-                "type": "int"
-            }
-        }
     },
     "scrollLeft": "Помери улево",
     "@scrollLeft": {
@@ -744,10 +719,6 @@
     "discover": "Откријте",
     "@discover": {
         "description": "Section title for book discovery"
-    },
-    "trendingTitlesOpenLibrary": "Популарни наслови по темама са Отворене библиотеке (Open Library).",
-    "@trendingTitlesOpenLibrary": {
-        "description": "Subtitle for book discovery section"
     },
     "noBookmarkedItems": "Још нема обележених ставки",
     "@noBookmarkedItems": {
@@ -7288,7 +7259,6 @@
     "failedToExtractCbrArchive": "Распаковање архиве .cbr није успело.",
     "cb7ExtractionUnavailable": "Распаковање ЦБ7-а (CB7) није доступно на овој платформи.",
     "cb7ExtractionPluginUnavailable": "Додатак за распакивање ЦБ7-а (CB7) није доступан на овој платформи.",
-    "closeGenrePanel": "Затвори панел жанрова",
     "loadingShuffle": "Учитавање насумичног избора...",
     "libraryShuffleLabel": "НАСУМИЧНИ ИЗБОР ИЗ МЕДИЈАТЕКЕ",
     "randomShuffleLabel": "НАСУМИЧНИ ИЗБОР",

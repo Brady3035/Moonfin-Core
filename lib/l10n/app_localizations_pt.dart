@@ -994,10 +994,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get discoverySubjects => 'Assuntos para Descobrir';
 
   @override
-  String get pickDiscoverySubjects =>
-      'Escolha quais feeds de assunto exibir em Descobrir.';
-
-  @override
   String get apply => 'Aplicar';
 
   @override
@@ -1008,22 +1004,6 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get audiobookGenres => 'Gêneros de Audiolivros';
-
-  @override
-  String get pickAudiobookGenres =>
-      'Escolha quais gêneros exibir em Descobrir Audiolivros.';
-
-  @override
-  String get discoverAudiobooks => 'Descobrir Audiolivros';
-
-  @override
-  String get librivoxDescription =>
-      'Títulos populares de domínio público do LibriVox.';
-
-  @override
-  String titlesCount(int count) {
-    return '$count títulos';
-  }
 
   @override
   String get scrollLeft => 'Rolar para a esquerda';
@@ -1159,10 +1139,6 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get discover => 'Descobrir';
-
-  @override
-  String get trendingTitlesOpenLibrary =>
-      'Títulos em alta por assunto do Open Library.';
 
   @override
   String get noBookmarkedItems => 'Nenhum item marcado ainda';
@@ -13722,9 +13698,6 @@ class AppLocalizationsPt extends AppLocalizations {
       'O plugin de extração CB7 não está disponível nesta plataforma.';
 
   @override
-  String get closeGenrePanel => 'Fechar painel de gênero';
-
-  @override
   String get loadingShuffle => 'Carregando ordem aleatória...';
 
   @override
@@ -16074,6 +16047,55 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get musicSortMostAlbums => 'Most Albums';
+
+  @override
+  String bookSeriesPosition(int index, int total) {
+    return 'Book $index of $total';
+  }
+
+  @override
+  String bookFavoriteCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count favorites',
+      one: '1 favorite',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get bookSortZToA => 'Z to A';
+
+  @override
+  String get bookSortMostTitles => 'Most Titles';
+
+  @override
+  String get bookSurpriseMe => 'Surprise Me';
+
+  @override
+  String get bookShuffleAudiobooks => 'Shuffle Audiobooks';
+
+  @override
+  String get bookStartReading => 'Start Reading';
+
+  @override
+  String get bookOtherBooks => 'Other Books';
+
+  @override
+  String get bookDiscoverSearchBooks => 'Search Open Library';
+
+  @override
+  String get bookDiscoverSearchAudiobooks => 'Search LibriVox';
+
+  @override
+  String get bookDiscoverFeatured => 'Featured';
+
+  @override
+  String get bookReaderControlsAutoHide => 'Controls hide automatically';
+
+  @override
+  String get bookReaderControlsStayVisible => 'Controls stay visible';
 }
 
 /// The translations for Portuguese, as used in Brazil (`pt_BR`).
@@ -16979,10 +17001,6 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
   String get discoverySubjects => 'Assuntos de descoberta';
 
   @override
-  String get pickDiscoverySubjects =>
-      'Escolha quais feeds de assuntos serão exibidos no Discover.';
-
-  @override
   String get apply => 'Aplicar';
 
   @override
@@ -16993,22 +17011,6 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
 
   @override
   String get audiobookGenres => 'Gêneros de audiolivros';
-
-  @override
-  String get pickAudiobookGenres =>
-      'Escolha quais gêneros mostrar no Audiobook Discover.';
-
-  @override
-  String get discoverAudiobooks => 'Descubra audiolivros';
-
-  @override
-  String get librivoxDescription =>
-      'Títulos populares de domínio público do LibriVox.';
-
-  @override
-  String titlesCount(int count) {
-    return '$count títulos';
-  }
 
   @override
   String get scrollLeft => 'Role para a esquerda';
@@ -17145,10 +17147,6 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
 
   @override
   String get discover => 'Descobrir';
-
-  @override
-  String get trendingTitlesOpenLibrary =>
-      'Títulos populares por assunto da Open Library.';
 
   @override
   String get noBookmarkedItems => 'Ainda não há itens marcados como favoritos';
@@ -29442,9 +29440,6 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
       'O plug-in de extração de CB7 não está disponível nesta plataforma.';
 
   @override
-  String get closeGenrePanel => 'Fechar o painel de gêneros';
-
-  @override
   String get loadingShuffle => 'Carregando modo aleatório...';
 
   @override
@@ -31974,10 +31969,6 @@ class AppLocalizationsPtPt extends AppLocalizationsPt {
   String get discoverySubjects => 'Temas de descoberta';
 
   @override
-  String get pickDiscoverySubjects =>
-      'Escolhe os temas a apresentar em Descobrir.';
-
-  @override
   String get apply => 'Aplicar';
 
   @override
@@ -31988,22 +31979,6 @@ class AppLocalizationsPtPt extends AppLocalizationsPt {
 
   @override
   String get audiobookGenres => 'Géneros de audiolivros';
-
-  @override
-  String get pickAudiobookGenres =>
-      'Escolhe os géneros a apresentar em Descobrir audiolivros.';
-
-  @override
-  String get discoverAudiobooks => 'Descobrir audiolivros';
-
-  @override
-  String get librivoxDescription =>
-      'Títulos populares de domínio público do LibriVox.';
-
-  @override
-  String titlesCount(int count) {
-    return '$count títulos';
-  }
 
   @override
   String get scrollLeft => 'Deslocar para a esquerda';
@@ -32140,10 +32115,6 @@ class AppLocalizationsPtPt extends AppLocalizationsPt {
 
   @override
   String get discover => 'Descobrir';
-
-  @override
-  String get trendingTitlesOpenLibrary =>
-      'Títulos populares por assunto da Open Library.';
 
   @override
   String get noBookmarkedItems => 'Ainda não há itens com marcadores';
@@ -42842,9 +42813,6 @@ class AppLocalizationsPtPt extends AppLocalizationsPt {
   @override
   String get cb7ExtractionPluginUnavailable =>
       'O plugin de extração CB7 não está disponível nesta plataforma.';
-
-  @override
-  String get closeGenrePanel => 'Fechar painel de género';
 
   @override
   String get loadingShuffle => 'A carregar ordem aleatória...';

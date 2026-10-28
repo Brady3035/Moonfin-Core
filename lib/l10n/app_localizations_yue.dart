@@ -974,9 +974,6 @@ class AppLocalizationsYue extends AppLocalizations {
   String get discoverySubjects => '發現主題';
 
   @override
-  String get pickDiscoverySubjects => '選擇要在「發現」中顯示的主題來源。';
-
-  @override
   String get apply => '套用';
 
   @override
@@ -987,20 +984,6 @@ class AppLocalizationsYue extends AppLocalizations {
 
   @override
   String get audiobookGenres => '有聲書流派';
-
-  @override
-  String get pickAudiobookGenres => '選擇要在有聲書探索中顯示的流派。';
-
-  @override
-  String get discoverAudiobooks => '發現有聲書';
-
-  @override
-  String get librivoxDescription => '來自 LibriVox 的熱門公共領域標題。';
-
-  @override
-  String titlesCount(int count) {
-    return '$count 部作品';
-  }
 
   @override
   String get scrollLeft => '向左滾動';
@@ -1129,9 +1112,6 @@ class AppLocalizationsYue extends AppLocalizations {
 
   @override
   String get discover => '發現';
-
-  @override
-  String get trendingTitlesOpenLibrary => 'Open Library 中按主題劃分的熱門標題。';
 
   @override
   String get noBookmarkedItems => '還沒有加書籤的項目';
@@ -13299,9 +13279,6 @@ class AppLocalizationsYue extends AppLocalizations {
   String get cb7ExtractionPluginUnavailable => '呢個平台冇 CB7 解壓縮外掛程式。';
 
   @override
-  String get closeGenrePanel => '關閉類型面板';
-
-  @override
   String get loadingShuffle => '載入緊隨機播放...';
 
   @override
@@ -15627,6 +15604,55 @@ class AppLocalizationsYue extends AppLocalizations {
 
   @override
   String get musicSortMostAlbums => 'Most Albums';
+
+  @override
+  String bookSeriesPosition(int index, int total) {
+    return 'Book $index of $total';
+  }
+
+  @override
+  String bookFavoriteCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count favorites',
+      one: '1 favorite',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get bookSortZToA => 'Z to A';
+
+  @override
+  String get bookSortMostTitles => 'Most Titles';
+
+  @override
+  String get bookSurpriseMe => 'Surprise Me';
+
+  @override
+  String get bookShuffleAudiobooks => 'Shuffle Audiobooks';
+
+  @override
+  String get bookStartReading => 'Start Reading';
+
+  @override
+  String get bookOtherBooks => 'Other Books';
+
+  @override
+  String get bookDiscoverSearchBooks => 'Search Open Library';
+
+  @override
+  String get bookDiscoverSearchAudiobooks => 'Search LibriVox';
+
+  @override
+  String get bookDiscoverFeatured => 'Featured';
+
+  @override
+  String get bookReaderControlsAutoHide => 'Controls hide automatically';
+
+  @override
+  String get bookReaderControlsStayVisible => 'Controls stay visible';
 }
 
 /// The translations for Yue Chinese Cantonese, as used in China (`yue_CN`).
@@ -16007,9 +16033,6 @@ class AppLocalizationsYueCn extends AppLocalizationsYue {
   String get discoverySubjects => '发现主题';
 
   @override
-  String get pickDiscoverySubjects => '选择要在“发现”中显示的主题源。';
-
-  @override
   String get apply => '申请';
 
   @override
@@ -16020,20 +16043,6 @@ class AppLocalizationsYueCn extends AppLocalizationsYue {
 
   @override
   String get audiobookGenres => '有声读物流派';
-
-  @override
-  String get pickAudiobookGenres => '选择要在有声读物探索中显示的流派。';
-
-  @override
-  String get discoverAudiobooks => '发现有声读物';
-
-  @override
-  String get librivoxDescription => '来自 LibriVox 的热门公共领域标题。';
-
-  @override
-  String titlesCount(int count) {
-    return '$count 标题';
-  }
 
   @override
   String get scrollLeft => '向左滚动';
@@ -16159,9 +16168,6 @@ class AppLocalizationsYueCn extends AppLocalizationsYue {
 
   @override
   String get discover => '发现';
-
-  @override
-  String get trendingTitlesOpenLibrary => 'Open Library 中按主题划分的热门标题。';
 
   @override
   String get noBookmarkedItems => '还没有添加书签的项目';
@@ -22512,9 +22518,6 @@ class AppLocalizationsYueCn extends AppLocalizationsYue {
       'CB7 extraction plugin is not available on this platform.';
 
   @override
-  String get closeGenrePanel => 'Close genre panel';
-
-  @override
   String get loadingShuffle => 'Loading shuffle...';
 
   @override
@@ -22918,9 +22921,6 @@ class AppLocalizationsYueHk extends AppLocalizationsYue {
   String get discoverySubjects => '發現主題';
 
   @override
-  String get pickDiscoverySubjects => '選擇要在「發現」中顯示的主題來源。';
-
-  @override
   String get apply => '申請';
 
   @override
@@ -22931,20 +22931,6 @@ class AppLocalizationsYueHk extends AppLocalizationsYue {
 
   @override
   String get audiobookGenres => '有聲書流派';
-
-  @override
-  String get pickAudiobookGenres => '選擇要在有聲書探索中顯示的流派。';
-
-  @override
-  String get discoverAudiobooks => '發現有聲書';
-
-  @override
-  String get librivoxDescription => '來自 LibriVox 的熱門公共領域標題。';
-
-  @override
-  String titlesCount(int count) {
-    return '$count titles';
-  }
 
   @override
   String get scrollLeft => '向左滾動';
@@ -23070,9 +23056,6 @@ class AppLocalizationsYueHk extends AppLocalizationsYue {
 
   @override
   String get discover => '發現';
-
-  @override
-  String get trendingTitlesOpenLibrary => 'Open Library 中按主題劃分的熱門標題。';
 
   @override
   String get noBookmarkedItems => '還沒有加書籤的項目';
@@ -29420,9 +29403,6 @@ class AppLocalizationsYueHk extends AppLocalizationsYue {
   @override
   String get cb7ExtractionPluginUnavailable =>
       'CB7 extraction plugin is not available on this platform.';
-
-  @override
-  String get closeGenrePanel => 'Close genre panel';
 
   @override
   String get loadingShuffle => 'Loading shuffle...';

@@ -1236,10 +1236,11 @@ class _BookReaderScreenState extends State<BookReaderScreen>
     await prefs.setBool(_comicAutoHidePrefKey, value);
   }
 
-  /// Moving the mouse brings the bars up, so a click on the page only toggles
-  /// them for touch.
+  /// While the bars hide by themselves, moving the mouse brings them up, so a
+  /// click on the page only toggles them for touch. With hiding turned off, a
+  /// click toggles them too.
   void _toggleOverlayFromTap(PointerDeviceKind kind) {
-    if (kind != PointerDeviceKind.mouse) {
+    if (kind != PointerDeviceKind.mouse || !_overlayAutoHide) {
       _toggleOverlay();
     }
   }
@@ -1278,15 +1279,24 @@ class _BookReaderScreenState extends State<BookReaderScreen>
   }
 
   /// On TV, while the comic reader's bars are hidden, the D-pad turns the page
-  /// and any other button brings the bars back. Back still leaves the reader.
+  /// and Select or the rest of the D-pad brings the bars back. While they're
+  /// up the remote moves through them. Back is handled by
+  /// [_hideOverlayFromBack], and other buttons like volume are left for the
+  /// system.
   KeyEventResult _onComicTvKey(FocusNode node, KeyEvent event) {
     final key = event.logicalKey;
-    if (!PlatformDetection.isTV || !event.isActionable || key.isBackKey) {
+    if (!PlatformDetection.isTV ||
+        !event.isActionable ||
+        !(key.isSelectKey ||
+            key.isUpKey ||
+            key.isDownKey ||
+            key.isLeftKey ||
+            key.isRightKey)) {
       return KeyEventResult.ignored;
     }
     if (_overlayVisible) {
       if (!node.hasPrimaryFocus) return KeyEventResult.ignored;
-      _focusComicBars();
+      if (event is KeyDownEvent) _focusComicBars();
       return KeyEventResult.handled;
     }
     final rtl = _comicDirection == _ComicDirection.rtl;
@@ -1299,11 +1309,13 @@ class _BookReaderScreenState extends State<BookReaderScreen>
         : (rtl ? key.isRightKey : key.isLeftKey);
     if (forward) {
       _nextComicPage();
-    } else if (back) {
-      _previousComicPage();
-    } else if (event is KeyDownEvent) {
-      _setOverlayVisible(true);
+      return KeyEventResult.handled;
     }
+    if (back) {
+      _previousComicPage();
+      return KeyEventResult.handled;
+    }
+    if (event is KeyDownEvent) _setOverlayVisible(true);
     return KeyEventResult.handled;
   }
 
@@ -2050,13 +2062,19 @@ class _BookReaderScreenState extends State<BookReaderScreen>
     }
 
     final key = event.logicalKey;
-    if (key == LogicalKeyboardKey.arrowRight ||
+    // The arrows follow the reading direction, like the tap zones do.
+    final rtl = _comicDirection == _ComicDirection.rtl;
+    final forwardArrow =
+        rtl ? LogicalKeyboardKey.arrowLeft : LogicalKeyboardKey.arrowRight;
+    final backArrow =
+        rtl ? LogicalKeyboardKey.arrowRight : LogicalKeyboardKey.arrowLeft;
+    if (key == forwardArrow ||
         key == LogicalKeyboardKey.pageDown ||
         key == LogicalKeyboardKey.space) {
       _nextComicPage();
       return KeyEventResult.handled;
     }
-    if (key == LogicalKeyboardKey.arrowLeft ||
+    if (key == backArrow ||
         key == LogicalKeyboardKey.pageUp) {
       _previousComicPage();
       return KeyEventResult.handled;
@@ -2534,8 +2552,8 @@ class _BookReaderScreenState extends State<BookReaderScreen>
     );
   }
 
-  /// Moving the mouse brings the comic reader's bars back, and so does a
-  /// remote button on TV.
+  /// Moving the mouse brings the comic reader's bars back while they hide by
+  /// themselves, and the remote works the page and the bars on TV.
   Widget _buildComicFullscreen() {
     return Focus(
       focusNode: _comicFocusNode,
@@ -2543,7 +2561,9 @@ class _BookReaderScreenState extends State<BookReaderScreen>
       skipTraversal: true,
       onKeyEvent: _onComicTvKey,
       child: Listener(
-        onPointerHover: (_) => _revealOverlay(),
+        onPointerHover: (_) {
+          if (_overlayAutoHide) _revealOverlay();
+        },
         child: _buildComicScaffold(),
       ),
     );
@@ -2874,8 +2894,10 @@ class _BookReaderScreenState extends State<BookReaderScreen>
   }
 
   Widget _buildComicControlsBar() {
+    final l10n = AppLocalizations.of(context);
     final accent = _readerAccent;
     const double controlHeight = 36;
+    final paged = _comicLayout != _ComicLayout.vertical;
 
     // On TV the remote reaches these through focus, and OK presses them.
     Widget pressable(VoidCallback onTap, Widget child, {FocusNode? focusNode}) {
@@ -2886,7 +2908,9 @@ class _BookReaderScreenState extends State<BookReaderScreen>
         onSelect: onTap,
         focusNode: focusNode,
         borderRadius: controlHeight / 2,
+        autoScroll: true,
         disableScale: true,
+        focusColor: Colors.white,
         child: child,
       );
     }
@@ -2925,10 +2949,10 @@ class _BookReaderScreenState extends State<BookReaderScreen>
       String tooltip,
       VoidCallback onTap,
     ) {
-      return Tooltip(
-        message: tooltip,
-        child: Padding(
-          padding: const EdgeInsets.only(left: 6),
+      return Padding(
+        padding: const EdgeInsets.only(left: 6),
+        child: Tooltip(
+          message: tooltip,
           child: pressable(
             onTap,
             Container(
@@ -2950,7 +2974,6 @@ class _BookReaderScreenState extends State<BookReaderScreen>
       );
     }
 
-    final paged = _comicLayout != _ComicLayout.vertical;
     return Container(
       color: Colors.black.withValues(alpha: 0.55),
       padding: const EdgeInsets.fromLTRB(12, 8, 12, 6),
@@ -2999,8 +3022,8 @@ class _BookReaderScreenState extends State<BookReaderScreen>
             _overlayAutoHide ? Icons.visibility_off : Icons.visibility,
             _overlayAutoHide,
             _overlayAutoHide
-                ? 'Controls hide automatically'
-                : 'Controls stay visible',
+                ? l10n.bookReaderControlsAutoHide
+                : l10n.bookReaderControlsStayVisible,
             () => _setOverlayAutoHide(!_overlayAutoHide),
           ),
         ],

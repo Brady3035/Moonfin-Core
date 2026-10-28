@@ -528,10 +528,6 @@
     "@discoverySubjects": {
         "description": "Title for the book discovery subject picker panel"
     },
-    "pickDiscoverySubjects": "Trieu quins feeds de temes voleu mostrar a Discover.",
-    "@pickDiscoverySubjects": {
-        "description": "Instruction text in discovery subject picker"
-    },
     "apply": "Aplica",
     "@apply": {
         "description": "Button label to apply selected options"
@@ -547,27 +543,6 @@
     "audiobookGenres": "Gèneres d'audiollibres",
     "@audiobookGenres": {
         "description": "Title for audiobook genre picker panel"
-    },
-    "pickAudiobookGenres": "Trieu quins gèneres voleu mostrar a Audiobook Discover.",
-    "@pickAudiobookGenres": {
-        "description": "Instruction text in audiobook genre picker"
-    },
-    "discoverAudiobooks": "Descobreix Audiollibres",
-    "@discoverAudiobooks": {
-        "description": "Section title for audiobook discovery"
-    },
-    "librivoxDescription": "Títols de domini públic populars de LibriVox.",
-    "@librivoxDescription": {
-        "description": "Subtitle for audiobook discovery section"
-    },
-    "titlesCount": "{count} títols",
-    "@titlesCount": {
-        "description": "Label showing number of titles",
-        "placeholders": {
-            "count": {
-                "type": "int"
-            }
-        }
     },
     "scrollLeft": "Desplaça't cap a l'esquerra",
     "@scrollLeft": {
@@ -744,10 +719,6 @@
     "discover": "Descobreix",
     "@discover": {
         "description": "Section title for book discovery"
-    },
-    "trendingTitlesOpenLibrary": "Títols de tendència per assignatura d'Open Library.",
-    "@trendingTitlesOpenLibrary": {
-        "description": "Subtitle for book discovery section"
     },
     "noBookmarkedItems": "Encara no hi ha cap element marcat",
     "@noBookmarkedItems": {
@@ -7288,7 +7259,6 @@
     "failedToExtractCbrArchive": "No s'ha pogut extreure l'arxiu .cbr.",
     "cb7ExtractionUnavailable": "L'extracció CB7 no està disponible en aquesta plataforma.",
     "cb7ExtractionPluginUnavailable": "El connector d'extracció CB7 no està disponible en aquesta plataforma.",
-    "closeGenrePanel": "Tanca el tauler de gènere",
     "loadingShuffle": "S'està carregant la reproducció aleatòria...",
     "libraryShuffleLabel": "BARREJA DE LA BIBLIOTECA",
     "randomShuffleLabel": "BARREJA ALEATÒRIA",

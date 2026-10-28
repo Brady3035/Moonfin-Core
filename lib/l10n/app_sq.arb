@@ -528,10 +528,6 @@
     "@discoverySubjects": {
         "description": "Title for the book discovery subject picker panel"
     },
-    "pickDiscoverySubjects": "Zgjidh se cili subjekt ushqehet për të shfaqur në \"Zbulo\".",
-    "@pickDiscoverySubjects": {
-        "description": "Instruction text in discovery subject picker"
-    },
     "apply": "Zbato",
     "@apply": {
         "description": "Button label to apply selected options"
@@ -547,27 +543,6 @@
     "audiobookGenres": "Zhanret e librave audio",
     "@audiobookGenres": {
         "description": "Title for audiobook genre picker panel"
-    },
-    "pickAudiobookGenres": "Zgjidh se cilat zhanre do të shfaqen në Audiobook Discover.",
-    "@pickAudiobookGenres": {
-        "description": "Instruction text in audiobook genre picker"
-    },
-    "discoverAudiobooks": "Zbuloni libra audio",
-    "@discoverAudiobooks": {
-        "description": "Section title for audiobook discovery"
-    },
-    "librivoxDescription": "Titujt e domenit publik të njohur nga LibriVox.",
-    "@librivoxDescription": {
-        "description": "Subtitle for audiobook discovery section"
-    },
-    "titlesCount": "{count} tituj",
-    "@titlesCount": {
-        "description": "Label showing number of titles",
-        "placeholders": {
-            "count": {
-                "type": "int"
-            }
-        }
     },
     "scrollLeft": "Lëviz majtas",
     "@scrollLeft": {
@@ -744,10 +719,6 @@
     "discover": "Zbuloni",
     "@discover": {
         "description": "Section title for book discovery"
-    },
-    "trendingTitlesOpenLibrary": "Titujt në tendencë sipas subjektit nga Open Library.",
-    "@trendingTitlesOpenLibrary": {
-        "description": "Subtitle for book discovery section"
     },
     "noBookmarkedItems": "Nuk ka ende artikuj të shënuar",
     "@noBookmarkedItems": {
@@ -7288,7 +7259,6 @@
     "failedToExtractCbrArchive": "Nxjerrja e arkivit .cbr dështoi.",
     "cb7ExtractionUnavailable": "Nxjerrja CB7 nuk ofrohet në këtë platformë.",
     "cb7ExtractionPluginUnavailable": "Shtojca e nxjerrjes CB7 nuk ofrohet në këtë platformë.",
-    "closeGenrePanel": "Mbyll panelin e zhanreve",
     "loadingShuffle": "Po ngarkohet luajtja rastësore...",
     "libraryShuffleLabel": "LUAJTJE RASTËSORE E BIBLIOTEKËS",
     "randomShuffleLabel": "LUAJTJE RASTËSORE",

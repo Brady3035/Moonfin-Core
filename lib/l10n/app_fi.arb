@@ -528,10 +528,6 @@
     "@discoverySubjects": {
         "description": "Title for the book discovery subject picker panel"
     },
-    "pickDiscoverySubjects": "Valitse Discoverissa näytettävät aihesyötteet.",
-    "@pickDiscoverySubjects": {
-        "description": "Instruction text in discovery subject picker"
-    },
     "apply": "Käytä",
     "@apply": {
         "description": "Button label to apply selected options"
@@ -547,27 +543,6 @@
     "audiobookGenres": "Äänikirjan Genret",
     "@audiobookGenres": {
         "description": "Title for audiobook genre picker panel"
-    },
-    "pickAudiobookGenres": "Valitse, mitkä genret haluat näyttää Audiobook Discover -osiossa.",
-    "@pickAudiobookGenres": {
-        "description": "Instruction text in audiobook genre picker"
-    },
-    "discoverAudiobooks": "Tutustu Äänikirjoihin",
-    "@discoverAudiobooks": {
-        "description": "Section title for audiobook discovery"
-    },
-    "librivoxDescription": "LibriVoxin suosittuja julkisia nimikkeitä.",
-    "@librivoxDescription": {
-        "description": "Subtitle for audiobook discovery section"
-    },
-    "titlesCount": "{count} nimikkeet",
-    "@titlesCount": {
-        "description": "Label showing number of titles",
-        "placeholders": {
-            "count": {
-                "type": "int"
-            }
-        }
     },
     "scrollLeft": "Vieritä vasen",
     "@scrollLeft": {
@@ -744,10 +719,6 @@
     "discover": "Tutustu",
     "@discover": {
         "description": "Section title for book discovery"
-    },
-    "trendingTitlesOpenLibrary": "Open Libraryn suosittuja teoksia aiheittain.",
-    "@trendingTitlesOpenLibrary": {
-        "description": "Subtitle for book discovery section"
     },
     "noBookmarkedItems": "Ei vielä merkittyjä kohteita",
     "@noBookmarkedItems": {
@@ -7287,7 +7258,6 @@
     "failedToExtractCbrArchive": ".cbr-arkiston purkaminen epäonnistui.",
     "cb7ExtractionUnavailable": "CB7-poisto ei ole käytettävissä tällä alustalla.",
     "cb7ExtractionPluginUnavailable": "CB7-poistolaajennus ei ole saatavilla tällä alustalla.",
-    "closeGenrePanel": "Sulje genre-paneeli",
     "loadingShuffle": "Ladataan satunnaistoistoa...",
     "libraryShuffleLabel": "KIRJASTON SEKOITUS",
     "randomShuffleLabel": "SATUNNAINEN SEKOITUS",

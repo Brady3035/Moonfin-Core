@@ -4247,6 +4247,10 @@ class AppLocalizationsMl extends AppLocalizations {
       'Preferred Secondary Subtitle Language';
 
   @override
+  String get secondarySubtitlesEnabledSubtitle =>
+      'Show a second subtitle track at the same time. The subtitle menu then asks for the primary or secondary track first';
+
+  @override
   String get defaultToNoSubtitles =>
       'സബ്‌ടൈറ്റിലുകൾ ഇല്ല എന്നതിലേക്ക് ഡിഫോൾട്ട്';
 

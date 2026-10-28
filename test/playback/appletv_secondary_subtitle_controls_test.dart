@@ -6,8 +6,14 @@ import 'package:playback_core/playback_core.dart';
 import '../util/media_segment_fakes.dart' show testPrefs;
 
 class _TrackManager extends PlaybackManager {
+  _TrackManager({this.secondaryIndex});
+
+  final int? secondaryIndex;
+
   @override
   int? get subtitleStreamIndex => 2;
+  @override
+  int? get secondarySubtitleStreamIndex => secondaryIndex;
   @override
   bool canUseAsSecondarySubtitle(int index) => {2, 3, 5, 6, 7}.contains(index);
 }
@@ -19,6 +25,7 @@ void main() {
     final manager = _TrackManager();
     addTearDown(prefs.dispose);
     addTearDown(manager.dispose);
+    await prefs.set(UserPreferences.secondarySubtitlesEnabled, true);
     await prefs.set(UserPreferences.preferredSecondarySubtitleLanguage, 'jpn');
     await prefs.set(UserPreferences.subtitlesOffsetPosition, 0.50);
     const languages = {3: 'eng', 5: 'fra', 6: 'ja', 7: 'jpn', 2: 'eng', 4: 'ja'};
@@ -55,6 +62,23 @@ void main() {
         tracks: tracks, sourceStreams: source,
       )['showPrimaryAppearance'], visible);
     }
+  });
+
+  test('with the setting off the native menu offers no secondary tracks', () async {
+    final prefs = await testPrefs();
+    addTearDown(prefs.dispose);
+    final tracks = [for (final index in [2, 3, 5]) {'index': index, 'label': 'Track $index'}];
+    List<Object?> offered(PlaybackManager manager) => (appleTvSubtitleMetadata(
+      manager: manager, prefs: prefs, l10n: AppLocalizationsEn(), tracks: tracks,
+    )['tracks'] as List).map((track) => (track as Map)['index']).toList();
+
+    final idle = _TrackManager();
+    addTearDown(idle.dispose);
+    expect(offered(idle), isEmpty);
+
+    final showing = _TrackManager(secondaryIndex: 3);
+    addTearDown(showing.dispose);
+    expect(offered(showing), [3, 5]);
   });
 
   test('native secondary spacing clamps to Default and +6%', () async {

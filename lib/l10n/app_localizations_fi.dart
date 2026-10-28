@@ -4252,6 +4252,10 @@ class AppLocalizationsFi extends AppLocalizations {
       'Toissijainen tekstityskieli';
 
   @override
+  String get secondarySubtitlesEnabledSubtitle =>
+      'Show a second subtitle track at the same time. The subtitle menu then asks for the primary or secondary track first';
+
+  @override
   String get defaultToNoSubtitles => 'Oletuksena Ei tekstityksiä';
 
   @override

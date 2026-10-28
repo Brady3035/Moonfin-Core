@@ -99,13 +99,16 @@ abstract final class TrackPicker {
         !secondary &&
         chooseSubtitleSlot &&
         manager.backend is SecondarySubtitleBackend &&
+        // A secondary track that's already showing keeps the step so it can
+        // still be turned off.
         (manager.secondarySubtitleStreamIndex != null ||
-            streams.any((stream) {
-              final index = stream['Index'];
-              return index is int &&
-                  index != manager.subtitleStreamIndex &&
-                  manager.canUseAsSecondarySubtitle(index);
-            }));
+            (prefs.get(UserPreferences.secondarySubtitlesEnabled) &&
+                streams.any((stream) {
+                  final index = stream['Index'];
+                  return index is int &&
+                      index != manager.subtitleStreamIndex &&
+                      manager.canUseAsSecondarySubtitle(index);
+                })));
     final showControls = audio || secondary || chooseSubtitleSlot;
     String trackLabel(int? index) {
       if (index == null || index < 0) return l10n.off;

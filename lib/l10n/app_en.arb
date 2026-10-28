@@ -5598,6 +5598,10 @@
   "@preferredSecondarySubtitleLanguage": {
     "description": "Preferred language used to sort secondary subtitle tracks in the picker. It doesn't turn subtitles on."
   },
+  "secondarySubtitlesEnabledSubtitle": "Show a second subtitle track at the same time. The subtitle menu then asks for the primary or secondary track first",
+  "@secondarySubtitlesEnabledSubtitle": {
+    "description": "Subtitle of the setting that turns secondary subtitles on, explaining the extra step it adds to the subtitle menu"
+  },
   "defaultToNoSubtitles": "Default to No Subtitles",
   "@defaultToNoSubtitles": {
     "description": "Setting for defaulting to no subtitles"

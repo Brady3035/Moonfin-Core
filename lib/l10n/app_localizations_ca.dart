@@ -4272,6 +4272,10 @@ class AppLocalizationsCa extends AppLocalizations {
       'Idioma preferit dels subtítols secundaris';
 
   @override
+  String get secondarySubtitlesEnabledSubtitle =>
+      'Show a second subtitle track at the same time. The subtitle menu then asks for the primary or secondary track first';
+
+  @override
   String get defaultToNoSubtitles => 'Per defecte, Sense subtítols';
 
   @override

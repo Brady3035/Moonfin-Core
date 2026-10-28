@@ -7474,6 +7474,12 @@ abstract class AppLocalizations {
   /// **'Preferred Secondary Subtitle Language'**
   String get preferredSecondarySubtitleLanguage;
 
+  /// Subtitle of the setting that turns secondary subtitles on, explaining the extra step it adds to the subtitle menu
+  ///
+  /// In en, this message translates to:
+  /// **'Show a second subtitle track at the same time. The subtitle menu then asks for the primary or secondary track first'**
+  String get secondarySubtitlesEnabledSubtitle;
+
   /// Setting for defaulting to no subtitles
   ///
   /// In en, this message translates to:

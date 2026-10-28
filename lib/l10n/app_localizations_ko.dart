@@ -4150,6 +4150,10 @@ class AppLocalizationsKo extends AppLocalizations {
   String get preferredSecondarySubtitleLanguage => '선호하는 보조 자막 언어';
 
   @override
+  String get secondarySubtitlesEnabledSubtitle =>
+      'Show a second subtitle track at the same time. The subtitle menu then asks for the primary or secondary track first';
+
+  @override
   String get defaultToNoSubtitles => '기본으로 자막 끄기';
 
   @override

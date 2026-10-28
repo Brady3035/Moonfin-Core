@@ -246,6 +246,36 @@ void main() {
     expect(find.textContaining(l10n.streamTypeFallback('Subtitle', 1)), findsOneWidget);
   });
 
+  testWidgets('the primary and secondary step waits for the setting', (tester) async {
+    final manager = _Manager(
+      _Backend(secondaryStyle: true),
+      primaryIndex: 2,
+      resolution: StreamResolutionResult(
+        streamUrl: 'https://host/stream',
+        mediaSourceId: 'source',
+        playMethod: StreamPlayMethod.directPlay,
+        mediaStreams: [
+          {'Type': 'Subtitle', 'Index': 2, 'Codec': 'subrip'},
+          {'Type': 'Subtitle', 'Index': 3, 'Codec': 'subrip'},
+        ],
+      ),
+    );
+    addTearDown(manager.dispose);
+    await openPicker(tester, manager, audio: false);
+    expect(find.text(l10n.secondarySubtitleSlot), findsNothing);
+    expect(find.textContaining(l10n.streamTypeFallback('Subtitle', 2)), findsOneWidget);
+    Navigator.of(tester.element(find.byType(Dialog))).pop();
+    await tester.pumpAndSettle();
+
+    await GetIt.instance<UserPreferences>().set(
+      UserPreferences.secondarySubtitlesEnabled,
+      true,
+    );
+    await openPicker(tester, manager, audio: false);
+    expect(find.text(l10n.primarySubtitleSlot), findsOneWidget);
+    expect(find.text(l10n.secondarySubtitleSlot), findsOneWidget);
+  });
+
   testWidgets('appearance follows available text tracks, while delay stays visible', (tester) async {
     for (final (codecs, showAppearance) in [
       (<String>[], false), (['pgssub'], false), (['pgs', 'dvdsub'], false),

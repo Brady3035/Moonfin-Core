@@ -1681,6 +1681,12 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
       keywords: ['download', 'opensubtitles'],
     ),
     subtitles.leaf(
+      'pref_secondary_subtitles_enabled',
+      l10n.secondarySubtitleTrack,
+      subtitle: l10n.secondarySubtitlesEnabledSubtitle,
+      keywords: ['dual subtitles', 'two subtitles'],
+    ),
+    subtitles.leaf(
       'pref_secondary_subtitle_language',
       l10n.preferredSecondarySubtitleLanguage,
     ),

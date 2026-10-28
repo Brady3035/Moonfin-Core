@@ -4410,6 +4410,10 @@ class AppLocalizationsPl extends AppLocalizations {
       'Preferowany język dodatkowych napisów';
 
   @override
+  String get secondarySubtitlesEnabledSubtitle =>
+      'Show a second subtitle track at the same time. The subtitle menu then asks for the primary or secondary track first';
+
+  @override
   String get defaultToNoSubtitles => 'Domyślnie brak napisów';
 
   @override

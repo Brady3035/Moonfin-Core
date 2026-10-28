@@ -17,9 +17,15 @@ Map<String, dynamic> appleTvSubtitleMetadata({
   List<Map<String, dynamic>>? sourceStreams,
 }) {
   final style = SubtitleStyle.forResolution(prefs, manager.currentResolution);
+  // With no secondary tracks offered the native menu stays a single list. One
+  // that's already showing keeps the step so it can still be turned off.
+  final offerSecondary =
+      prefs.get(UserPreferences.secondarySubtitlesEnabled) ||
+      manager.secondarySubtitleStreamIndex != null;
   final eligible = tracks.where((track) {
     final index = track['index'];
-    return index is int &&
+    return offerSecondary &&
+        index is int &&
         index != manager.subtitleStreamIndex &&
         manager.canUseAsSecondarySubtitle(index);
   });

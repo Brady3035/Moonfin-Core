@@ -449,7 +449,10 @@ void registerPlaybackModule() {
     );
   };
   manager.secondarySubtitleTrackSelector = (itemId, streams) {
-    if (itemId.isEmpty) return null;
+    if (itemId.isEmpty ||
+        !prefs.get(UserPreferences.secondarySubtitlesEnabled)) {
+      return null;
+    }
     return restoreSecondarySubtitleTrack(
       prefs.getItemSecondarySubtitleSelection(itemId),
       streams,

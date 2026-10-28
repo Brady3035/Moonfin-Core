@@ -2619,6 +2619,12 @@ class UserPreferences extends ChangeNotifier {
     key: 'pref_subtitle_language',
     defaultValue: '',
   );
+  /// Off keeps the single subtitle list, without the step that picks a
+  /// primary or secondary track.
+  static final secondarySubtitlesEnabled = Preference<bool>(
+    key: 'pref_secondary_subtitles_enabled',
+    defaultValue: false,
+  );
   static final preferredSecondarySubtitleLanguage = Preference<String>(
     key: 'pref_secondary_subtitle_language',
     defaultValue: '',

@@ -4258,6 +4258,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Előnyben részesített másodlagos feliratnyelv';
 
   @override
+  String get secondarySubtitlesEnabledSubtitle =>
+      'Show a second subtitle track at the same time. The subtitle menu then asks for the primary or secondary track first';
+
+  @override
   String get defaultToNoSubtitles => 'Alapértelmezés szerint nincs felirat';
 
   @override

@@ -4,6 +4,7 @@ import UIKit
 
 #if os(iOS)
 import AVKit
+import MediaPlayer
 #endif
 
 // Localized prompt text pushed from Dart. The literals are the English
@@ -69,6 +70,8 @@ final class NativeApplePlayerViewController: UIViewController {
     var onSetBitrate: ((Int) -> Void)?
     var onSelectChannel: ((String) -> Void)?
     var onOpenGuide: (() -> Void)?
+    var onRecord: (() -> Void)?
+    var onToggleOrientation: (() -> Void)?
     var onToggleFavorite: (() -> Void)?
     var onStillWatchingContinue: (() -> Void)?
     var onStillWatchingStop: (() -> Void)?
@@ -94,6 +97,13 @@ final class NativeApplePlayerViewController: UIViewController {
     var onEpisodesClosed: (() -> Void)?
     var baseSubtitlePos = 92
     private var didAttachSurface = false
+    /// Set while the channel takes the player off screen for Flutter UI, so
+    /// leaving the window doesn't stop playback or count as the user exiting.
+    var keepsPlayingWhileHidden = false
+    private var isOnScreen = false
+    /// A message that arrived while the player was on its way onto the screen,
+    /// which UIKit won't present over yet.
+    private var pendingMessage: (() -> Void)?
     private var updateTimer: Timer?
     private var lastShowAt: TimeInterval = 0
     private var osdDismissed = false
@@ -192,9 +202,16 @@ final class NativeApplePlayerViewController: UIViewController {
     private var isLive = false
     private var liveProgram:
         (
-            name: String, episodeTitle: String, startMs: Int, endMs: Int, hasTimer: Bool,
-            hasSeriesTimer: Bool
+            name: String, episodeTitle: String, episodeLine: String, startMs: Int, endMs: Int,
+            hasTimer: Bool, hasSeriesTimer: Bool
         )?
+    /// Set while the airing on now can be recorded. It says whether a series
+    /// rule covers it and whether it has a timer of its own, which means it's
+    /// recording.
+    private var liveRecord: (series: Bool, timer: Bool)?
+    /// The rotation lock a live player on a phone or tablet carries, true
+    /// while it holds landscape. Nil leaves its button out.
+    private var orientationLock: Bool?
     private var liveChannelNumber = ""
     private var channelList: [ChannelCarouselEntry] = []
     private var selectedChannelIndex = 0
@@ -237,7 +254,7 @@ final class NativeApplePlayerViewController: UIViewController {
     private enum ControlId {
         case prev, skipBack, playPause, skipForward, next
         case speed, chapters, episodes, subtitles, audio, cast, quality, zoom, info
-        case channels, favorite, guide, syncplay, goLive
+        case channels, favorite, guide, syncplay, goLive, record, orientation
     }
     private var focusedZone: Zone = .buttons
     private var focusedControlIndex = 0
@@ -275,10 +292,26 @@ final class NativeApplePlayerViewController: UIViewController {
     /// way the Flutter player draws it on a touch screen.
     private var transportDocked = true
     private let centerTransport = UIStackView()
+    private var builtCenterControls: [ControlId] = []
     private static let transportIds: Set<ControlId> = [
         .prev, .skipBack, .playPause, .skipForward, .next,
     ]
+    /// Set from Dart: the volume and brightness swipes setting, and whether
+    /// their indicators sit on the side opposite the swipe.
+    private var swipeGesturesEnabled = false
+    private var gestureIndicatorsInverted = false
+    private var panDirectionDecided = false
+    private var panStartInWindow = CGPoint.zero
+    private var verticalSwipe: (isVolume: Bool, startValue: Float)?
+    private let brightnessIndicator = GestureIndicatorView()
+    private let volumeIndicator = GestureIndicatorView()
+    /// Kept in the view because UIKit raises its own volume HUD over the
+    /// player otherwise, and its slider is the only way to set the volume.
+    private let volumeView = MPVolumeView(frame: CGRect(x: -400, y: -400, width: 200, height: 40))
     #endif
+    private let reconnectView = UIStackView()
+    private let reconnectSpinner = UIActivityIndicatorView(style: .large)
+    private let reconnectLabel = UILabel()
     private let tooltipView = UIView()
     private let tooltipLabel = UILabel()
 
@@ -636,9 +669,47 @@ final class NativeApplePlayerViewController: UIViewController {
         setupNextUpCard()
         setupPauseOverlay()
         setupLiveOverlays()
+        setupReconnectOverlay()
         setupSkipSegment()
         setupSubtitleLoadingPill()
         setupLoadingOverlay()
+    }
+
+    private func setupReconnectOverlay() {
+        reconnectView.translatesAutoresizingMaskIntoConstraints = false
+        reconnectView.axis = .vertical
+        reconnectView.alignment = .center
+        reconnectView.spacing = 32
+        reconnectView.isHidden = true
+        reconnectView.isUserInteractionEnabled = false
+        reconnectSpinner.color = themeAccent
+        reconnectSpinner.hidesWhenStopped = true
+        reconnectLabel.font = .systemFont(ofSize: 32, weight: .semibold)
+        reconnectLabel.textColor = .white
+        reconnectView.addArrangedSubview(reconnectSpinner)
+        reconnectView.addArrangedSubview(reconnectLabel)
+        view.insertSubview(reconnectView, belowSubview: osdScrim)
+        #if os(iOS)
+        // Clear of the play button a touch screen draws in the middle.
+        let below: CGFloat = 260
+        #else
+        let below: CGFloat = 0
+        #endif
+        NSLayoutConstraint.activate([
+            reconnectView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            reconnectView.centerYAnchor.constraint(equalTo: view.centerYAnchor, constant: below),
+        ])
+    }
+
+    func setReconnecting(_ label: String?) {
+        let text = label ?? ""
+        reconnectLabel.text = text
+        reconnectView.isHidden = text.isEmpty
+        if text.isEmpty {
+            reconnectSpinner.stopAnimating()
+        } else {
+            reconnectSpinner.startAnimating()
+        }
     }
 
     private func setupLoadingOverlay() {
@@ -1205,7 +1276,17 @@ final class NativeApplePlayerViewController: UIViewController {
         case .favorite: return isFavorite ? "heart.fill" : "heart"
         case .syncplay: return "person.2.wave.2"
         case .goLive: return "dot.radiowaves.left.and.right"
+        case .record: return liveRecord?.series == true ? "smallcircle.filled.circle" : "circle.fill"
+        case .orientation: return orientationLock == false ? "rotate.right" : "lock.rotation"
         }
+    }
+
+    /// The record button keeps the Flutter player's colors. It's red while the
+    /// airing records and grey when a series rule skips it.
+    private var recordTint: UIColor {
+        guard let record = liveRecord else { return UIColor(white: 1, alpha: 0.85) }
+        if record.timer { return .systemRed }
+        return record.series ? RecordingMarkView.skippedColor : UIColor(white: 1, alpha: 0.85)
     }
 
     private func makeControl(_ id: ControlId, side: CGFloat? = nil) -> UIView {
@@ -1255,7 +1336,9 @@ final class NativeApplePlayerViewController: UIViewController {
         case .info: return "info"
         case .favorite: return "favorite"
         case .syncplay: return "syncPlay"
-        case .prev, .skipBack, .playPause, .skipForward, .next, .channels, .guide, .goLive:
+        case .orientation: return "orientation"
+        case .prev, .skipBack, .playPause, .skipForward, .next, .channels, .guide, .goLive,
+            .record:
             return nil
         }
     }
@@ -1278,13 +1361,6 @@ final class NativeApplePlayerViewController: UIViewController {
     }
 
     private func rebuildControls() {
-        controlStack.arrangedSubviews.forEach {
-            controlStack.removeArrangedSubview($0)
-            $0.removeFromSuperview()
-        }
-        controlViews.removeAll()
-        controlIcons.removeAll()
-
         var ids: [ControlId] = []
         controlsBuiltWithRewind = rewindRange != nil
         if isLive {
@@ -1295,7 +1371,11 @@ final class NativeApplePlayerViewController: UIViewController {
             }
             if !channelList.isEmpty { ids.append(.channels) }
             ids.append(.guide)
+            if orientationLock != nil, osdShows(.orientation) { ids.append(.orientation) }
+            if audioTracks.count > 1, osdShows(.audio) { ids.append(.audio) }
             if !subtitleTracks.isEmpty, osdShows(.subtitles) { ids.append(.subtitles) }
+            if osdShows(.quality) { ids.append(.quality) }
+            if liveRecord != nil { ids.append(.record) }
             if !streamInfoSections.isEmpty, osdShows(.info) { ids.append(.info) }
         } else {
             // Both always present, because they step chapters before they
@@ -1326,6 +1406,29 @@ final class NativeApplePlayerViewController: UIViewController {
         #if os(iOS)
         let centered = transportDocked ? [] : ids.filter { Self.transportIds.contains($0) }
         ids.removeAll { centered.contains($0) }
+        let sameButtons = ids == controls && centered == builtCenterControls
+        #else
+        let sameButtons = ids == controls
+        #endif
+        // Metadata arrives often, so the same buttons keep their views and only
+        // redraw icons. That way a tap that's landing isn't lost to a new set.
+        if sameButtons, !controlViews.isEmpty {
+            for (id, icon) in controlIcons {
+                icon.image = UIImage(
+                    systemName: iconName(for: id), withConfiguration: icon.image?.symbolConfiguration)
+            }
+            updateFocusHighlight()
+            return
+        }
+        controlStack.arrangedSubviews.forEach {
+            controlStack.removeArrangedSubview($0)
+            $0.removeFromSuperview()
+        }
+        controlViews.removeAll()
+        controlIcons.removeAll()
+
+        #if os(iOS)
+        builtCenterControls = centered
         centerTransport.arrangedSubviews.forEach { $0.removeFromSuperview() }
         for id in centered {
             let side: CGFloat = id == .playPause ? 200 : (id == .prev || id == .next ? 130 : 160)
@@ -1358,6 +1461,9 @@ final class NativeApplePlayerViewController: UIViewController {
         topGradientLayer.frame = topContainer.bounds
         layoutChapters()
         updateTooltip()
+        #if os(iOS)
+        layoutGestureIndicators()
+        #endif
     }
 
     func applyUiMetadata(_ args: [String: Any]) {
@@ -1396,6 +1502,8 @@ final class NativeApplePlayerViewController: UIViewController {
         if let docked = args["transportDocked"] as? Bool {
             transportDocked = docked
         }
+        swipeGesturesEnabled = (args["swipeGestures"] as? Bool) ?? false
+        gestureIndicatorsInverted = (args["gestureIndicatorsInverted"] as? Bool) ?? false
         #endif
         if let sync = args["syncPlay"] as? [String: Any] {
             syncPlayEnabled = true
@@ -1455,6 +1563,7 @@ final class NativeApplePlayerViewController: UIViewController {
             liveProgram = (
                 name: name,
                 episodeTitle: (dict["episodeTitle"] as? String) ?? "",
+                episodeLine: (dict["episodeLine"] as? String) ?? "",
                 startMs: (dict["startMs"] as? NSNumber)?.intValue ?? 0,
                 endMs: (dict["endMs"] as? NSNumber)?.intValue ?? 0,
                 hasTimer: (dict["hasTimer"] as? Bool) ?? false,
@@ -1463,6 +1572,21 @@ final class NativeApplePlayerViewController: UIViewController {
         } else {
             liveProgram = nil
         }
+        if let record = args["liveRecord"] as? [String: Any] {
+            liveRecord = (
+                series: (record["series"] as? Bool) ?? false,
+                timer: (record["timer"] as? Bool) ?? false
+            )
+        } else {
+            liveRecord = nil
+        }
+        orientationLock = args["orientationLocked"] as? Bool
+        #if os(iOS)
+        if IosNativePlayerHostController.orientationLock != orientationLock {
+            IosNativePlayerHostController.orientationLock = orientationLock
+            (parent as? IosNativePlayerHostController)?.refreshOrientation()
+        }
+        #endif
 
         let accent = themeAccent
         let rawChannels = (args["channelList"] as? [[String: Any]]) ?? []
@@ -1713,6 +1837,7 @@ final class NativeApplePlayerViewController: UIViewController {
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        isOnScreen = true
         player.notifySurfaceReady()
         focusedZone = .buttons
         focusedControlIndex = controls.firstIndex(of: .playPause) ?? 0
@@ -1722,16 +1847,22 @@ final class NativeApplePlayerViewController: UIViewController {
             [weak self] _ in
             Task { @MainActor in self?.updateOsd() }
         }
+        if let pending = pendingMessage {
+            pendingMessage = nil
+            pending()
+        }
     }
 
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
+        isOnScreen = false
         updateTimer?.invalidate()
         updateTimer = nil
         scrubConvergeTimer?.invalidate()
         scrubConvergeTimer = nil
         scrubHoldTimer?.invalidate()
         scrubHoldTimer = nil
+        guard !keepsPlayingWhileHidden else { return }
         player.stop()
         onExit?()
     }
@@ -1846,7 +1977,9 @@ final class NativeApplePlayerViewController: UIViewController {
         default:
             break
         }
-        guard presentedViewController == nil, !nextUpVisible, !isLive, !cinemaSkipActive else { return }
+        guard presentedViewController == nil, !nextUpVisible, !isLive || canPanScrubLive,
+            !cinemaSkipActive
+        else { return }
         switch recognizer.state {
         case .began:
             panScrubEngaged = false
@@ -1872,10 +2005,16 @@ final class NativeApplePlayerViewController: UIViewController {
             let dx = t.x - panScrubLastTranslationX
             panScrubLastTranslationX = t.x
             let width = max(1, view.bounds.width)
-            let durationMs = max(1, Int(player.duration * 1000))
-            // A full-width sweep covers the larger of 90s or 1/12 of the runtime,
-            // so short clips stay fine-grained and long movies still move quickly.
-            let sweepMs = max(90_000, durationMs / 12)
+            let sweepMs: Int
+            if isLive, let range = rewindRange {
+                // A full-width sweep covers the window, like the Flutter slider.
+                sweepMs = Int((range.upperBound - range.lowerBound) * 1000)
+            } else {
+                let durationMs = max(1, Int(player.duration * 1000))
+                // A full-width sweep covers the larger of 90s or 1/12 of the runtime,
+                // so short clips stay fine-grained and long movies still move quickly.
+                sweepMs = max(90_000, durationMs / 12)
+            }
             let boost = 1 + min(3, abs(recognizer.velocity(in: view).x) / 1500)
             let deltaMs = Int(dx / width * CGFloat(sweepMs) * boost)
             if deltaMs != 0 {
@@ -1884,6 +2023,16 @@ final class NativeApplePlayerViewController: UIViewController {
         default:
             break
         }
+    }
+
+    /// A touch screen drags through a live window the way the Flutter
+    /// player's slider does. The remote keeps live seeking on its arrows.
+    private var canPanScrubLive: Bool {
+        #if os(iOS)
+        return rewindRange != nil
+        #else
+        return false
+        #endif
     }
 
     private func finishPanScrub(commit: Bool = true) {
@@ -2241,6 +2390,10 @@ final class NativeApplePlayerViewController: UIViewController {
             presentChannelCarousel()
         case .guide:
             onOpenGuide?()
+        case .record:
+            onRecord?()
+        case .orientation:
+            onToggleOrientation?()
         case .favorite:
             onToggleFavorite?()
         case .syncplay:
@@ -2365,7 +2518,8 @@ final class NativeApplePlayerViewController: UIViewController {
             #endif
             container.backgroundColor =
                 isFocused ? .white : UIColor(white: 1, alpha: 0)
-            controlIcons[id]?.tintColor = isFocused ? .black : UIColor(white: 1, alpha: 0.85)
+            controlIcons[id]?.tintColor =
+                isFocused ? .black : (id == .record ? recordTint : UIColor(white: 1, alpha: 0.85))
             container.transform =
                 isFocused ? CGAffineTransform(scaleX: 1.12, y: 1.12) : .identity
         }
@@ -2398,6 +2552,8 @@ final class NativeApplePlayerViewController: UIViewController {
         case .favorite: return isFavorite ? "Remove from Favorites" : "Add to Favorites"
         case .syncplay: return "SyncPlay"
         case .goLive: return "Jump to Live"
+        case .record: return liveRecord?.timer == true ? "Cancel Recording" : "Record"
+        case .orientation: return orientationLock == true ? "Unlock Orientation" : "Lock Landscape"
         }
     }
 
@@ -2479,15 +2635,21 @@ final class NativeApplePlayerViewController: UIViewController {
 
     // Moves the frozen target only. The one real seek happens in commitScrub.
     private func adjustScrub(byMs deltaMs: Int) {
-        guard !isLive else { return }
-        let durationMs = Int(player.duration * 1000)
-        guard durationMs > 0 else { return }
+        let bounds: ClosedRange<Int>
+        if isLive {
+            guard let range = rewindRange else { return }
+            bounds = Int(range.lowerBound * 1000)...Int(range.upperBound * 1000)
+        } else {
+            let durationMs = Int(player.duration * 1000)
+            guard durationMs > 0 else { return }
+            bounds = 0...durationMs
+        }
         // A quick press after a release lands while the last commit is still
         // converging, when the player still reads the old position.
         let base = scrubTargetMs ?? scrubFrozenMs ?? Int(player.currentTime * 1000)
         if scrubTargetMs == nil { beginScrub() }
-        scrubTargetMs = min(durationMs, max(0, base + deltaMs))
-        prefetchTrickplay(aroundMs: base, forward: deltaMs > 0, sheetsAhead: 2)
+        scrubTargetMs = min(bounds.upperBound, max(bounds.lowerBound, base + deltaMs))
+        if !isLive { prefetchTrickplay(aroundMs: base, forward: deltaMs > 0, sheetsAhead: 2) }
         renderProgress()
         updateTrickplay()
     }
@@ -3119,6 +3281,27 @@ final class NativeApplePlayerViewController: UIViewController {
         }
     }
 
+    /// A message from Dart, such as how a recording change went or a channel
+    /// that failed to tune. An action label adds a button that calls onAction.
+    /// It goes over whatever is already up, like the channel strip.
+    func presentMessage(
+        _ message: String, actionLabel: String?, closeLabel: String,
+        onAction: @escaping () -> Void
+    ) {
+        let alert = makePlayerMenu(title: message, message: nil, preferredStyle: .alert)
+        if let actionLabel, !actionLabel.isEmpty {
+            alert.addAction(makePlayerAction(title: actionLabel, style: .default) { _ in onAction() })
+        }
+        alert.addAction(makePlayerAction(title: closeLabel, style: .cancel))
+        let show = { [weak self] in
+            guard let self else { return }
+            var top: UIViewController = self
+            while let next = top.presentedViewController, !next.isBeingDismissed { top = next }
+            top.present(alert, animated: true)
+        }
+        if isOnScreen { show() } else { pendingMessage = show }
+    }
+
     /// Dismissal is asynchronous, so whatever comes next has to wait for the
     /// completion rather than be presented on top of an alert on its way out.
     private func dismissSubtitleProgress(then next: @escaping () -> Void) {
@@ -3441,15 +3624,19 @@ final class NativeApplePlayerViewController: UIViewController {
     }
 
     /// Live has no runtime to lay out, so the program bounds take the outer
-    /// slots of the lower row and everything else stays clear.
+    /// slots of the lower row. The episode sits above the timeline on the
+    /// left, where the Flutter player puts it, and everything else stays clear.
     private func renderLiveProgress() {
-        for label in [aboveLeftLabel, aboveCenterLabel, aboveRightLabel, belowCenterLabel] {
+        for label in [aboveCenterLabel, aboveRightLabel, belowCenterLabel] {
             label.text = ""
         }
+        aboveLeftLabel.text = liveProgram?.episodeLine ?? ""
         if let range = rewindRange {
             let span = range.upperBound - range.lowerBound
-            let behind = max(0, range.upperBound - player.currentTime)
-            scrubber.progress = Float(min(1, max(0, (player.currentTime - range.lowerBound) / span)))
+            let current =
+                (scrubTargetMs ?? scrubFrozenMs).map { Double($0) / 1000.0 } ?? player.currentTime
+            let behind = max(0, range.upperBound - current)
+            scrubber.progress = Float(min(1, max(0, (current - range.lowerBound) / span)))
             belowLeftLabel.text = clockFormatter.string(from: Date().addingTimeInterval(-behind))
             belowRightLabel.text =
                 behind > Self.liveEdgeSlackSeconds ? "-\(formatTime(behind))" : "LIVE"
@@ -3570,9 +3757,14 @@ extension NativeApplePlayerViewController {
         tap.require(toFail: doubleTap)
         view.addGestureRecognizer(tap)
 
-        // A drag across the screen scrubs the way the remote's touch surface does.
         view.addGestureRecognizer(
-            UIPanGestureRecognizer(target: self, action: #selector(handleScrubPan(_:))))
+            UIPanGestureRecognizer(target: self, action: #selector(handleTouchPan(_:))))
+        volumeView.alpha = 0.01
+        view.addSubview(volumeView)
+        for indicator in [brightnessIndicator, volumeIndicator] {
+            indicator.alpha = 0
+            view.insertSubview(indicator, belowSubview: osdScrim)
+        }
 
         nextUpPlayButton.addGestureRecognizer(
             UITapGestureRecognizer(target: self, action: #selector(handleNextUpPlayTap)))
@@ -3636,6 +3828,90 @@ extension NativeApplePlayerViewController {
             airPlay.widthAnchor.constraint(equalToConstant: 96),
             airPlay.heightAnchor.constraint(equalToConstant: 96),
         ])
+    }
+
+    /// A drag sideways scrubs the way the remote's touch surface does. Up or
+    /// down changes brightness on the left half and volume on the right, the
+    /// same as the Flutter player, while that setting is on.
+    @objc private func handleTouchPan(_ recognizer: UIPanGestureRecognizer) {
+        switch recognizer.state {
+        case .began:
+            panDirectionDecided = false
+            verticalSwipe = nil
+            panStartInWindow = recognizer.location(in: nil)
+        case .changed:
+            if !panDirectionDecided {
+                let t = recognizer.translation(in: nil)
+                if abs(t.y) > 24, abs(t.y) > abs(t.x) {
+                    panDirectionDecided = true
+                    beginVerticalSwipe()
+                } else if abs(t.x) > 24 {
+                    panDirectionDecided = true
+                }
+            }
+            if verticalSwipe != nil {
+                updateVerticalSwipe(recognizer)
+                return
+            }
+        case .ended, .cancelled, .failed:
+            if verticalSwipe != nil {
+                verticalSwipe = nil
+                return
+            }
+        default:
+            break
+        }
+        handleScrubPan(recognizer)
+    }
+
+    private func beginVerticalSwipe() {
+        guard swipeGesturesEnabled, presentedViewController == nil, !nextUpVisible,
+            let window = view.window
+        else { return }
+        // The top and bottom edges belong to the system's own swipes.
+        let top = max(window.safeAreaInsets.top, 48)
+        let bottom = max(window.safeAreaInsets.bottom, 48)
+        guard panStartInWindow.y > top, panStartInWindow.y < window.bounds.height - bottom
+        else { return }
+        let isVolume = panStartInWindow.x > window.bounds.width / 2
+        let start =
+            isVolume
+            ? AVAudioSession.sharedInstance().outputVolume
+            : Float(window.windowScene?.screen.brightness ?? 0.5)
+        verticalSwipe = (isVolume, start)
+    }
+
+    private func updateVerticalSwipe(_ recognizer: UIPanGestureRecognizer) {
+        guard let swipe = verticalSwipe, let window = view.window else { return }
+        let delta = Float(-recognizer.translation(in: nil).y / (window.bounds.height * 0.7))
+        let value = min(1, max(0, swipe.startValue + delta))
+        let percent = "\(Int((value * 100).rounded()))%"
+        if swipe.isVolume {
+            volumeView.subviews.lazy.compactMap { $0 as? UISlider }.first?.value = value
+            volumeIndicator.flash(
+                symbol: value <= 0
+                    ? "speaker.slash.fill" : (value < 0.5 ? "speaker.wave.1.fill" : "speaker.wave.3.fill"),
+                value: value, label: percent)
+        } else {
+            window.windowScene?.screen.brightness = CGFloat(value)
+            brightnessIndicator.flash(
+                symbol: value <= 0.25 ? "sun.min" : (value >= 0.75 ? "sun.max.fill" : "sun.max"),
+                value: value, label: percent)
+        }
+    }
+
+    /// Placed the way the Flutter player aligns them, 85% of the way to a side.
+    private func layoutGestureIndicators() {
+        let size = GestureIndicatorView.size
+        let bounds = view.bounds
+        func frame(alignX: CGFloat) -> CGRect {
+            CGRect(
+                x: (bounds.width - size.width) * (alignX + 1) / 2,
+                y: (bounds.height - size.height) / 2,
+                width: size.width, height: size.height)
+        }
+        brightnessIndicator.frame = frame(alignX: gestureIndicatorsInverted ? 0.85 : -0.85)
+        volumeIndicator.frame = frame(alignX: gestureIndicatorsInverted ? -0.85 : 0.85)
     }
 
     @objc private func handleTouchTap() {
@@ -4749,3 +5025,75 @@ private final class RemotePlayerMenu: UITableViewController, RemotePlayerNavigab
         super.pressesBegan(presses, with: event)
     }
 }
+
+#if os(iOS)
+/// The Flutter player's brightness and volume indicator, drawn at the doubled
+/// scale the rest of the player uses.
+private final class GestureIndicatorView: UIView {
+    static let size = CGSize(width: 232, height: 424)
+    private static let barHeight: CGFloat = 240
+    private let iconView = UIImageView()
+    private let track = UIView()
+    private let fill = UIView()
+    private let label = UILabel()
+    private var value: CGFloat = 0
+    private var hideTimer: Timer?
+
+    init() {
+        super.init(frame: CGRect(origin: .zero, size: Self.size))
+        backgroundColor = UIColor(white: 0, alpha: 0.6)
+        layer.cornerRadius = 28
+        isUserInteractionEnabled = false
+        iconView.tintColor = .white
+        iconView.contentMode = .scaleAspectFit
+        track.backgroundColor = UIColor(white: 1, alpha: 0.24)
+        track.layer.cornerRadius = 4
+        track.clipsToBounds = true
+        fill.backgroundColor = .white
+        track.addSubview(fill)
+        label.font = .systemFont(ofSize: 26, weight: .semibold)
+        label.textColor = .white
+        label.textAlignment = .center
+        for subview in [iconView, track, label] { addSubview(subview) }
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        let width = bounds.width
+        iconView.frame = CGRect(x: (width - 48) / 2, y: 32, width: 48, height: 48)
+        track.frame = CGRect(
+            x: (width - 8) / 2, y: iconView.frame.maxY + 20, width: 8, height: Self.barHeight)
+        label.frame = CGRect(x: 28, y: track.frame.maxY + 20, width: width - 56, height: 32)
+        layoutFill()
+    }
+
+    private func layoutFill() {
+        let height = Self.barHeight * value
+        fill.frame = CGRect(x: 0, y: Self.barHeight - height, width: 8, height: height)
+    }
+
+    /// Fades out shortly after the last change, the way the Flutter one does.
+    func flash(symbol: String, value: Float, label text: String) {
+        iconView.image = UIImage(
+            systemName: symbol,
+            withConfiguration: UIImage.SymbolConfiguration(pointSize: 40, weight: .medium))
+        self.value = CGFloat(min(1, max(0, value)))
+        layoutFill()
+        label.text = text
+        if alpha < 1 {
+            UIView.animate(withDuration: 0.2) { self.alpha = 1 }
+        }
+        hideTimer?.invalidate()
+        hideTimer = Timer.scheduledTimer(withTimeInterval: 0.8, repeats: false) { [weak self] _ in
+            Task { @MainActor in
+                guard let self else { return }
+                UIView.animate(withDuration: 0.2) { self.alpha = 0 }
+            }
+        }
+    }
+}
+#endif

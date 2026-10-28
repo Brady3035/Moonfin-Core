@@ -65,6 +65,7 @@ class AppDelegate: FlutterAppDelegate {
 
         nativeApplePlayerChannel = NativeApplePlayerChannel(
             messenger: flutterViewController.binaryMessenger,
+            textures: flutterViewController,
             rootProvider: { [weak flutterViewController] in flutterViewController })
         topShelfChannel = TopShelfChannel(
             messenger: flutterViewController.binaryMessenger)

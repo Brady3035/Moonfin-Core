@@ -127,6 +127,30 @@ class NativeApplePlayerBackend
 
   Future<void> dismissPlayer() => _dismissPlayer();
 
+  /// Takes the player off screen without stopping it, so Flutter can draw
+  /// over the live picture. Answers with a texture showing that picture, or
+  /// null when the engine has no frames to share.
+  Future<int?> suspendPlayer() => _invoke<int>('suspend');
+
+  /// Puts a suspended player back on screen, still on the same stream.
+  Future<void> resumePlayer() => _invoke<void>('resume');
+
+  /// The live recovery's "Reconnecting" line, or null to take it down.
+  Future<void> setReconnecting(String? label) =>
+      _invoke<void>('setReconnecting', {'label': label});
+
+  /// An alert over the player. [actionLabel] adds a button that answers with
+  /// a `messageAction` event.
+  Future<void> showMessage(
+    String message, {
+    String? actionLabel,
+    required String closeLabel,
+  }) => _invoke<void>('showMessage', {
+    'message': message,
+    'actionLabel': ?actionLabel,
+    'closeLabel': closeLabel,
+  });
+
   bool get isPlayerPresented => _playerPresented && !_audioOnly;
 
   Future<void> sendRemoteNavigation(String command) =>
@@ -183,6 +207,9 @@ class NativeApplePlayerBackend
       case 'setBitrate':
       case 'selectChannel':
       case 'openGuide':
+      case 'record':
+      case 'messageAction':
+      case 'toggleOrientation':
       case 'toggleFavorite':
       case 'stillWatchingContinue':
       case 'stillWatchingStop':
@@ -594,6 +621,8 @@ class NativeApplePlayerBackend
     Map<String, dynamic>? syncPlay,
     bool isLive = false,
     Map<String, dynamic>? liveProgram,
+    Map<String, dynamic>? liveRecord,
+    bool? orientationLocked,
     String liveChannelNumber = '',
     List<Map<String, dynamic>> channelList = const [],
     List<Map<String, dynamic>> streamStats = const [],
@@ -628,6 +657,9 @@ class NativeApplePlayerBackend
       'syncPlay': ?syncPlay,
       'isLive': isLive,
       'liveProgram': ?liveProgram,
+      'liveRecord': ?liveRecord,
+      // Left out where the player carries no rotation lock.
+      'orientationLocked': ?orientationLocked,
       'liveChannelNumber': liveChannelNumber,
       'channelList': channelList,
       'streamStats': streamStats,
@@ -638,6 +670,11 @@ class NativeApplePlayerBackend
       'canBrowseEpisodes': canBrowseEpisodes,
       // Only iOS reads it. The television always docks the transport.
       'transportDocked': ?transportDocked,
+      // Only iOS reads these, the touch screen's volume and brightness swipes.
+      'swipeGestures': _prefs.get(UserPreferences.playerSwipeGestures),
+      'gestureIndicatorsInverted':
+          _prefs.get(UserPreferences.gestureIndicatorPlacement) ==
+          GestureIndicatorPlacement.inverted,
     });
   }
 

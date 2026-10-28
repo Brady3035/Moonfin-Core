@@ -501,6 +501,9 @@ final class NativeApplePlayerChannel: NSObject, FlutterStreamHandler {
             if wasSuspended {
                 // Already off screen, so there's nothing for UIKit to dismiss.
                 vc.onExit = nil
+                #if os(iOS)
+                vc.restoreBrightness()
+                #endif
                 send(["event": "dismissed"])
             } else if let presenter = top.presentingViewController {
                 // Still Watching answers "continue" when it leaves unanswered,

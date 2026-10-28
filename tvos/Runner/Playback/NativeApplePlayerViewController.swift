@@ -303,6 +303,9 @@ final class NativeApplePlayerViewController: UIViewController {
     private var panDirectionDecided = false
     private var panStartInWindow = CGPoint.zero
     private var verticalSwipe: (isVolume: Bool, startValue: Float)?
+    /// The brightness before the first swipe changed it, put back when the
+    /// player closes or the app goes to the background.
+    private var brightnessBeforeSwipe: (screen: UIScreen, value: CGFloat)?
     private let brightnessIndicator = GestureIndicatorView()
     private let volumeIndicator = GestureIndicatorView()
     /// Kept in the view because UIKit raises its own volume HUD over the
@@ -1863,6 +1866,9 @@ final class NativeApplePlayerViewController: UIViewController {
         scrubHoldTimer?.invalidate()
         scrubHoldTimer = nil
         guard !keepsPlayingWhileHidden else { return }
+        #if os(iOS)
+        restoreBrightness()
+        #endif
         player.stop()
         onExit?()
     }
@@ -3761,6 +3767,9 @@ extension NativeApplePlayerViewController {
             UIPanGestureRecognizer(target: self, action: #selector(handleTouchPan(_:))))
         volumeView.alpha = 0.01
         view.addSubview(volumeView)
+        NotificationCenter.default.addObserver(
+            self, selector: #selector(restoreBrightness),
+            name: UIApplication.didEnterBackgroundNotification, object: nil)
         for indicator in [brightnessIndicator, volumeIndicator] {
             indicator.alpha = 0
             view.insertSubview(indicator, belowSubview: osdScrim)
@@ -3874,11 +3883,20 @@ extension NativeApplePlayerViewController {
         guard panStartInWindow.y > top, panStartInWindow.y < window.bounds.height - bottom
         else { return }
         let isVolume = panStartInWindow.x > window.bounds.width / 2
+        if !isVolume, brightnessBeforeSwipe == nil, let screen = window.windowScene?.screen {
+            brightnessBeforeSwipe = (screen, screen.brightness)
+        }
         let start =
             isVolume
             ? AVAudioSession.sharedInstance().outputVolume
             : Float(window.windowScene?.screen.brightness ?? 0.5)
         verticalSwipe = (isVolume, start)
+    }
+
+    @objc func restoreBrightness() {
+        guard let saved = brightnessBeforeSwipe else { return }
+        brightnessBeforeSwipe = nil
+        saved.screen.brightness = saved.value
     }
 
     private func updateVerticalSwipe(_ recognizer: UIPanGestureRecognizer) {

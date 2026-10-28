@@ -551,9 +551,7 @@ final appRouter = GoRouter(
             final startIndex = extra['startIndex'] as int? ?? 0;
             // Decided before branching so the channel loader below reads the
             // same answer this route latched.
-            final useNativePlayer =
-                PlatformDetection.isAppleTV ||
-                useNativeApplePlayerForRoute(state.pageKey);
+            final useNativePlayer = useNativeApplePlayerForRoute(state.pageKey);
             final Widget child;
             if (channels != null) {
               child = useNativePlayer
@@ -583,9 +581,7 @@ final appRouter = GoRouter(
       path: Destinations.videoPlayer,
       pageBuilder: (context, state) => _opaqueFullScreenPage<void>(
         state: state,
-        child:
-            PlatformDetection.isAppleTV ||
-                useNativeApplePlayerForRoute(state.pageKey)
+        child: useNativeApplePlayerForRoute(state.pageKey)
             ? const AppleTvPlayerHostScreen()
             : const VideoPlayerScreen(),
       ),

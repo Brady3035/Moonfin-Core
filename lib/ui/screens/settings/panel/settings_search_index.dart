@@ -1349,11 +1349,13 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
         l10n.settingsPlaybackEngineAndroidTv,
         keywords: ['exoplayer', 'mpv', 'media3', 'engine'],
       ),
-    if (PlatformDetection.isIOS)
+    if (offersApplePlayerChoice)
       video.leaf(
         'pref_apple_player_ui',
         l10n.settingsApplePlayerUi,
-        subtitle: l10n.settingsApplePlayerUiDescription,
+        subtitle: PlatformDetection.isAppleTV
+            ? null
+            : l10n.settingsApplePlayerUiDescription,
         keywords: ['native player', 'apple tv player', 'player'],
       ),
     video.leaf(

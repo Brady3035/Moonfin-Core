@@ -2564,11 +2564,14 @@ class UserPreferences extends ChangeNotifier {
     values: PlaybackEnginePreference.values,
   );
 
-  /// Which player iOS video plays through. Belongs to the device rather than
-  /// the account, so it isn't synced.
+  /// Which player video plays through on iOS and Apple TV. Belongs to the
+  /// device rather than the account, so it isn't synced. Apple TV keeps the
+  /// native player it always had unless the viewer switches.
   static final applePlayerUi = EnumPreference(
     key: 'pref_apple_player_ui',
-    defaultValue: ApplePlayerUi.flutter,
+    defaultValue: PlatformDetection.isAppleTV
+        ? ApplePlayerUi.native
+        : ApplePlayerUi.flutter,
     values: ApplePlayerUi.values,
   );
 

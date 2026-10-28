@@ -27225,7 +27225,7 @@ abstract class AppLocalizations {
   /// **'Play from Server'**
   String get playFromServer;
 
-  /// Settings label on iPhone and iPad for choosing which player plays video
+  /// Settings label on iPhone, iPad and Apple TV for choosing which player plays video
   ///
   /// In en, this message translates to:
   /// **'Video player'**

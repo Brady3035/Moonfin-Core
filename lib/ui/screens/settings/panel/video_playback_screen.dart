@@ -35,11 +35,15 @@ class _VideoPlaybackScreen extends StatelessWidget {
                       l10n.settingsPlaybackEngineMpvLegacy,
                   },
                 ),
-              if (PlatformDetection.isIOS)
+              if (offersApplePlayerChoice)
                 EnumPreferenceTile<ApplePlayerUi>(
                   preference: UserPreferences.applePlayerUi,
                   title: l10n.settingsApplePlayerUi,
-                  description: l10n.settingsApplePlayerUiDescription,
+                  // The description lists what the native player lacks on a
+                  // phone or tablet, which doesn't hold on a television.
+                  description: PlatformDetection.isAppleTV
+                      ? null
+                      : l10n.settingsApplePlayerUiDescription,
                   icon: Icons.smart_display_outlined,
                   labelOf: (v) => switch (v) {
                     ApplePlayerUi.flutter => l10n.settingsApplePlayerUiStandard,

@@ -336,6 +336,9 @@ void registerPlaybackModule() {
   if (PlatformDetection.isAppleTV) {
     nativeApplePlayerBackend = NativeApplePlayerBackend(prefs);
     _getIt.registerSingleton<NativeApplePlayerBackend>(nativeApplePlayerBackend);
+    // Backs the Flutter player option. It sits idle until a video picks it.
+    iosBackend = AetherBackend(prefs);
+    _getIt.registerSingleton<AetherBackend>(iosBackend);
   } else if (PlatformDetection.isIOS || PlatformDetection.isMacOS) {
     // AetherEngine serves main playback on iOS and macOS: video, live TV,
     // music, audiobooks and offline. The media_kit backend isn't constructed,
@@ -487,8 +490,15 @@ void registerPlaybackModule() {
   manager.setBackend(initialBackend);
   manager.setBackendSelector((resolution, currentBackend) {
     if (PlatformDetection.isAppleTV) {
-      if (currentBackend is NativeApplePlayerBackend) return currentBackend;
-      return _getIt<NativeApplePlayerBackend>();
+      // Music and audiobooks keep the native player whichever video player
+      // is picked.
+      final isAudio = resolution.mediaType.toLowerCase().contains('audio');
+      if (isAudio || useNativeApplePlayer()) {
+        if (currentBackend is NativeApplePlayerBackend) return currentBackend;
+        return _getIt<NativeApplePlayerBackend>();
+      }
+      if (currentBackend is AetherBackend) return currentBackend;
+      return _getIt<AetherBackend>();
     }
 
     if (PlatformDetection.isIOS || PlatformDetection.isMacOS) {

@@ -1,8 +1,3 @@
-// tvOS drives playback through NativeApplePlayerChannel and its native player UI,
-// so this channel is only built for the two platforms where Flutter owns the
-// OSD and the video arrives through a platform view.
-#if os(iOS) || os(macOS)
-
 import AVFoundation
 import AetherEngine
 import VideoToolbox
@@ -17,7 +12,8 @@ import UIKit
 import AppKit
 #endif
 
-/// Playback channel driving the shared AetherPlayerWrapper on iOS and macOS.
+/// Playback channel driving the shared AetherPlayerWrapper for the Flutter
+/// player on iOS, macOS and tvOS.
 /// One wrapper lives for the app's lifetime while video surfaces attach and
 /// detach around it, so background audio and PiP survive a route pop.
 @MainActor
@@ -61,7 +57,13 @@ final class AetherVideoChannel: NSObject, FlutterStreamHandler {
         super.init()
         control.setMethodCallHandler { [weak self] call, result in
             if call.method == "getCapabilities" {
+                #if os(tvOS)
+                // An Apple TV can be plugged into any screen, so this asks the
+                // display rather than assuming HDR the way a phone can.
+                result(VideoCapabilityDetector.deviceProfileCapabilities())
+                #else
                 result(AetherVideoCapabilities.deviceProfileCapabilities())
+                #endif
                 return
             }
             result(nil)
@@ -394,5 +396,3 @@ enum AetherVideoCapabilities {
         ]
     }
 }
-
-#endif

@@ -3500,14 +3500,6 @@
     "@showLibrariesFromAllServers": {
         "description": "Description for multi-server libraries"
     },
-    "enableFolderView": "Paganahin ang Folder View",
-    "@enableFolderView": {
-        "description": "Setting for enabling folder view"
-    },
-    "showFolderBrowsingOption": "Ipakita ang opsyon sa pagba-browse ng folder",
-    "@showFolderBrowsingOption": {
-        "description": "Description for folder view"
-    },
     "libraryVisibility": "Visibility ng Library",
     "@libraryVisibility": {
         "description": "Section title for library visibility"
@@ -4230,10 +4222,6 @@
     "featuredContentAppearance": "Itinatampok na nilalaman, hitsura",
     "@featuredContentAppearance": {
         "description": "Media bar settings subtitle"
-    },
-    "posterSizeImageTypeFolderView": "Laki ng poster, uri ng larawan, view ng folder",
-    "@posterSizeImageTypeFolderView": {
-        "description": "Library display settings subtitle"
     },
     "mdbListTmdbRatingSources": "MDBList, TMDB, at mga mapagkukunan ng rating",
     "@mdbListTmdbRatingSources": {

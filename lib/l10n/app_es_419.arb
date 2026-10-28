@@ -3479,14 +3479,6 @@
     "@showLibrariesFromAllServers": {
         "description": "Description for multi-server libraries"
     },
-    "enableFolderView": "Habilitar vista de carpetas",
-    "@enableFolderView": {
-        "description": "Setting for enabling folder view"
-    },
-    "showFolderBrowsingOption": "Mostrar opción de exploración de carpetas",
-    "@showFolderBrowsingOption": {
-        "description": "Description for folder view"
-    },
     "libraryVisibility": "Visibilidad de la biblioteca",
     "@libraryVisibility": {
         "description": "Section title for library visibility"
@@ -4193,10 +4185,6 @@
     "featuredContentAppearance": "Contenido destacado, apariencia.",
     "@featuredContentAppearance": {
         "description": "Media bar settings subtitle"
-    },
-    "posterSizeImageTypeFolderView": "Tamaño del póster, tipo de imagen, vista de carpeta",
-    "@posterSizeImageTypeFolderView": {
-        "description": "Library display settings subtitle"
     },
     "mdbListTmdbRatingSources": "MDBList, TMDB y fuentes de calificación",
     "@mdbListTmdbRatingSources": {

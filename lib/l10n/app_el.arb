@@ -3500,14 +3500,6 @@
     "@showLibrariesFromAllServers": {
         "description": "Description for multi-server libraries"
     },
-    "enableFolderView": "Ενεργοποίηση Προβολή φακέλου",
-    "@enableFolderView": {
-        "description": "Setting for enabling folder view"
-    },
-    "showFolderBrowsingOption": "Εμφάνιση επιλογής περιήγησης φακέλου",
-    "@showFolderBrowsingOption": {
-        "description": "Description for folder view"
-    },
     "libraryVisibility": "Βιβλιοθήκη Ορατότητα",
     "@libraryVisibility": {
         "description": "Section title for library visibility"
@@ -4230,10 +4222,6 @@
     "featuredContentAppearance": "Επιλεγμένο περιεχόμενο, εμφάνιση",
     "@featuredContentAppearance": {
         "description": "Media bar settings subtitle"
-    },
-    "posterSizeImageTypeFolderView": "Μέγεθος αφίσας, τύπος εικόνας, προβολή φακέλου",
-    "@posterSizeImageTypeFolderView": {
-        "description": "Library display settings subtitle"
     },
     "mdbListTmdbRatingSources": "MDBList, TMDB και πηγές αξιολόγησης",
     "@mdbListTmdbRatingSources": {

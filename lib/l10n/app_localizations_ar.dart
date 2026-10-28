@@ -4777,12 +4777,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get libraryJumpToLetter => 'Jump to letter';
 
   @override
-  String get enableFolderView => 'تمكين عرض المجلد';
-
-  @override
-  String get showFolderBrowsingOption => 'إظهار خيار تصفح المجلد';
-
-  @override
   String get groupItemsIntoCollections => 'تجميع العناصر في مجموعات';
 
   @override
@@ -5606,10 +5600,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get featuredContentAppearance => 'المحتوى المميز والمظهر';
-
-  @override
-  String get posterSizeImageTypeFolderView =>
-      'حجم الملصق، نوع الصورة، عرض المجلد';
 
   @override
   String gbValue(String value) {
@@ -11975,6 +11965,13 @@ class AppLocalizationsAr extends AppLocalizations {
       'إظهار تفاصيل العنصر المحدد في أعلى صفحات المكتبة.';
 
   @override
+  String get libraryCardTitles => 'Titles Under Posters';
+
+  @override
+  String get libraryCardTitlesDescription =>
+      'Show each item\'s title and details below its artwork in library grids.';
+
+  @override
   String get useDetailedSubHeadings => 'استخدم العناوين الفرعية التفصيلية';
 
   @override
@@ -14434,6 +14431,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get showAlphabeticalFilters => 'Show Alphabet';
+
+  @override
+  String get libraryFolderView => 'Folder View';
 
   @override
   String get personalRatingStyle => 'Personal Rating Style';

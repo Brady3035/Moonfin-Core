@@ -4776,12 +4776,6 @@ class AppLocalizationsKk extends AppLocalizations {
   String get libraryJumpToLetter => 'Jump to letter';
 
   @override
-  String get enableFolderView => 'Қалта көрінісін қосыңыз';
-
-  @override
-  String get showFolderBrowsingOption => 'Қалтаны шолу опциясын көрсету';
-
-  @override
   String get groupItemsIntoCollections => 'Элементтерді жинақтарға топтау';
 
   @override
@@ -5620,10 +5614,6 @@ class AppLocalizationsKk extends AppLocalizations {
 
   @override
   String get featuredContentAppearance => 'Таңдаулы мазмұн, сыртқы түрі';
-
-  @override
-  String get posterSizeImageTypeFolderView =>
-      'Постер өлшемі, сурет түрі, қалта көрінісі';
 
   @override
   String gbValue(String value) {
@@ -12037,6 +12027,13 @@ class AppLocalizationsKk extends AppLocalizations {
       'Таңдалған элементтің мәліметтерін кітапхана беттерінің жоғарғы жағында көрсету.';
 
   @override
+  String get libraryCardTitles => 'Titles Under Posters';
+
+  @override
+  String get libraryCardTitlesDescription =>
+      'Show each item\'s title and details below its artwork in library grids.';
+
+  @override
   String get useDetailedSubHeadings => 'Толық ішкі тақырыптарды пайдалану';
 
   @override
@@ -14497,6 +14494,9 @@ class AppLocalizationsKk extends AppLocalizations {
 
   @override
   String get showAlphabeticalFilters => 'Show Alphabet';
+
+  @override
+  String get libraryFolderView => 'Folder View';
 
   @override
   String get personalRatingStyle => 'Personal Rating Style';

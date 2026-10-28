@@ -4772,12 +4772,6 @@ class AppLocalizationsTr extends AppLocalizations {
   String get libraryJumpToLetter => 'Jump to letter';
 
   @override
-  String get enableFolderView => 'Klasör Görünümünü Etkinleştir';
-
-  @override
-  String get showFolderBrowsingOption => 'Klasöre göz atma seçeneğini göster';
-
-  @override
   String get groupItemsIntoCollections =>
       'Ögeleri Koleksiyonlar Halinde Grupla';
 
@@ -5616,10 +5610,6 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get featuredContentAppearance => 'Öne çıkan içerik, görünüm';
-
-  @override
-  String get posterSizeImageTypeFolderView =>
-      'Poster boyutu, resim türü, klasör görünümü';
 
   @override
   String gbValue(String value) {
@@ -12007,6 +11997,13 @@ class AppLocalizationsTr extends AppLocalizations {
       'Kütüphane sayfalarında, seçilen ögenin detaylarını üst kısımda göster.';
 
   @override
+  String get libraryCardTitles => 'Titles Under Posters';
+
+  @override
+  String get libraryCardTitlesDescription =>
+      'Show each item\'s title and details below its artwork in library grids.';
+
+  @override
   String get useDetailedSubHeadings => 'Detaylı alt başlıklar kullan';
 
   @override
@@ -14466,6 +14463,9 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get showAlphabeticalFilters => 'Alfabeyi Göster';
+
+  @override
+  String get libraryFolderView => 'Folder View';
 
   @override
   String get personalRatingStyle => 'Kişisel derecelendirme tarzı';

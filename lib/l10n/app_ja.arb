@@ -3500,14 +3500,6 @@
     "@showLibrariesFromAllServers": {
         "description": "Description for multi-server libraries"
     },
-    "enableFolderView": "フォルダービューを有効にする",
-    "@enableFolderView": {
-        "description": "Setting for enabling folder view"
-    },
-    "showFolderBrowsingOption": "フォルダー参照オプションを表示する",
-    "@showFolderBrowsingOption": {
-        "description": "Description for folder view"
-    },
     "libraryVisibility": "ライブラリの可視性",
     "@libraryVisibility": {
         "description": "Section title for library visibility"
@@ -4230,10 +4222,6 @@
     "featuredContentAppearance": "注目の内容・外観",
     "@featuredContentAppearance": {
         "description": "Media bar settings subtitle"
-    },
-    "posterSizeImageTypeFolderView": "ポスターサイズ、画像タイプ、フォルダービュー",
-    "@posterSizeImageTypeFolderView": {
-        "description": "Library display settings subtitle"
     },
     "mdbListTmdbRatingSources": "MDBList、TMDB、および評価ソース",
     "@mdbListTmdbRatingSources": {

@@ -4789,13 +4789,6 @@ class AppLocalizationsSq extends AppLocalizations {
   String get libraryJumpToLetter => 'Jump to letter';
 
   @override
-  String get enableFolderView => 'Aktivizo pamjen e dosjeve';
-
-  @override
-  String get showFolderBrowsingOption =>
-      'Shfaq opsionin e shfletimit të dosjeve';
-
-  @override
   String get groupItemsIntoCollections => 'Grupo artikujt në koleksione';
 
   @override
@@ -5635,10 +5628,6 @@ class AppLocalizationsSq extends AppLocalizations {
 
   @override
   String get featuredContentAppearance => 'Përmbajtja e veçuar, pamja';
-
-  @override
-  String get posterSizeImageTypeFolderView =>
-      'Madhësia e posterit, lloji i imazhit, pamja e dosjes';
 
   @override
   String gbValue(String value) {
@@ -12072,6 +12061,13 @@ class AppLocalizationsSq extends AppLocalizations {
       'Shfaq detajet e artikullit të zgjedhur në krye të faqeve të Bibliotekës.';
 
   @override
+  String get libraryCardTitles => 'Titles Under Posters';
+
+  @override
+  String get libraryCardTitlesDescription =>
+      'Show each item\'s title and details below its artwork in library grids.';
+
+  @override
   String get useDetailedSubHeadings => 'Përdor nëntituj të detajuar';
 
   @override
@@ -14543,6 +14539,9 @@ class AppLocalizationsSq extends AppLocalizations {
 
   @override
   String get showAlphabeticalFilters => 'Show Alphabet';
+
+  @override
+  String get libraryFolderView => 'Folder View';
 
   @override
   String get personalRatingStyle => 'Personal Rating Style';

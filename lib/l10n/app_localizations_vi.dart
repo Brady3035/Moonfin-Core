@@ -4766,12 +4766,6 @@ class AppLocalizationsVi extends AppLocalizations {
   String get libraryJumpToLetter => 'Jump to letter';
 
   @override
-  String get enableFolderView => 'Bật chế độ xem thư mục';
-
-  @override
-  String get showFolderBrowsingOption => 'Hiển thị tùy chọn duyệt thư mục';
-
-  @override
   String get groupItemsIntoCollections => 'Nhóm các mục thành bộ sưu tập';
 
   @override
@@ -5606,10 +5600,6 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get featuredContentAppearance => 'Nội dung, hình thức nổi bật';
-
-  @override
-  String get posterSizeImageTypeFolderView =>
-      'Kích thước áp phích, loại hình ảnh, chế độ xem thư mục';
 
   @override
   String gbValue(String value) {
@@ -11994,6 +11984,13 @@ class AppLocalizationsVi extends AppLocalizations {
       'Hiển thị chi tiết của mục đang chọn ở đầu trang Thư viện.';
 
   @override
+  String get libraryCardTitles => 'Titles Under Posters';
+
+  @override
+  String get libraryCardTitlesDescription =>
+      'Show each item\'s title and details below its artwork in library grids.';
+
+  @override
   String get useDetailedSubHeadings => 'Sử dụng các tiêu đề phụ chi tiết';
 
   @override
@@ -14460,6 +14457,9 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get showAlphabeticalFilters => 'Show Alphabet';
+
+  @override
+  String get libraryFolderView => 'Folder View';
 
   @override
   String get personalRatingStyle => 'Personal Rating Style';

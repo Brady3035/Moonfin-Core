@@ -4705,12 +4705,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get libraryJumpToLetter => 'Jump to letter';
 
   @override
-  String get enableFolderView => 'フォルダービューを有効にする';
-
-  @override
-  String get showFolderBrowsingOption => 'フォルダー参照オプションを表示する';
-
-  @override
   String get groupItemsIntoCollections => 'アイテムをコレクションにまとめる';
 
   @override
@@ -5513,9 +5507,6 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get featuredContentAppearance => '注目の内容・外観';
-
-  @override
-  String get posterSizeImageTypeFolderView => 'ポスターサイズ、画像タイプ、フォルダービュー';
 
   @override
   String gbValue(String value) {
@@ -11752,6 +11743,13 @@ class AppLocalizationsJa extends AppLocalizations {
       'ライブラリページの上部に、選択中のアイテムの詳細を表示します。';
 
   @override
+  String get libraryCardTitles => 'Titles Under Posters';
+
+  @override
+  String get libraryCardTitlesDescription =>
+      'Show each item\'s title and details below its artwork in library grids.';
+
+  @override
   String get useDetailedSubHeadings => '詳細な小見出しを使用';
 
   @override
@@ -14167,6 +14165,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get showAlphabeticalFilters => 'Show Alphabet';
+
+  @override
+  String get libraryFolderView => 'Folder View';
 
   @override
   String get personalRatingStyle => 'Personal Rating Style';

@@ -4792,12 +4792,6 @@ class AppLocalizationsCy extends AppLocalizations {
   String get libraryJumpToLetter => 'Jump to letter';
 
   @override
-  String get enableFolderView => 'Galluogi Gweld Ffolder';
-
-  @override
-  String get showFolderBrowsingOption => 'Dangos opsiwn pori ffolder';
-
-  @override
   String get groupItemsIntoCollections => 'Grwpio Eitemau\'n Gasgliadau';
 
   @override
@@ -5630,10 +5624,6 @@ class AppLocalizationsCy extends AppLocalizations {
 
   @override
   String get featuredContentAppearance => 'Cynnwys dan sylw, ymddangosiad';
-
-  @override
-  String get posterSizeImageTypeFolderView =>
-      'Maint poster, math o ddelwedd, golwg ffolder';
 
   @override
   String gbValue(String value) {
@@ -12044,6 +12034,13 @@ class AppLocalizationsCy extends AppLocalizations {
       'Dangos manylion yr eitem a ddewiswyd ar frig tudalennau\'r Llyfrgell.';
 
   @override
+  String get libraryCardTitles => 'Titles Under Posters';
+
+  @override
+  String get libraryCardTitlesDescription =>
+      'Show each item\'s title and details below its artwork in library grids.';
+
+  @override
   String get useDetailedSubHeadings => 'Defnyddiwch Is-benawdau Manwl';
 
   @override
@@ -14511,6 +14508,9 @@ class AppLocalizationsCy extends AppLocalizations {
 
   @override
   String get showAlphabeticalFilters => 'Show Alphabet';
+
+  @override
+  String get libraryFolderView => 'Folder View';
 
   @override
   String get personalRatingStyle => 'Personal Rating Style';

@@ -3500,14 +3500,6 @@
     "@showLibrariesFromAllServers": {
         "description": "Description for multi-server libraries"
     },
-    "enableFolderView": "ഫോൾഡർ കാഴ്ച പ്രവർത്തനക്ഷമമാക്കുക",
-    "@enableFolderView": {
-        "description": "Setting for enabling folder view"
-    },
-    "showFolderBrowsingOption": "ഫോൾഡർ ബ്രൗസിംഗ് ഓപ്ഷൻ കാണിക്കുക",
-    "@showFolderBrowsingOption": {
-        "description": "Description for folder view"
-    },
     "libraryVisibility": "ലൈബ്രറി ദൃശ്യപരത",
     "@libraryVisibility": {
         "description": "Section title for library visibility"
@@ -4230,10 +4222,6 @@
     "featuredContentAppearance": "ഫീച്ചർ ചെയ്ത ഉള്ളടക്കം, രൂപം",
     "@featuredContentAppearance": {
         "description": "Media bar settings subtitle"
-    },
-    "posterSizeImageTypeFolderView": "പോസ്റ്റർ വലുപ്പം, ചിത്രത്തിൻ്റെ തരം, ഫോൾഡർ കാഴ്ച",
-    "@posterSizeImageTypeFolderView": {
-        "description": "Library display settings subtitle"
     },
     "mdbListTmdbRatingSources": "MDBList, TMDB, റേറ്റിംഗ് ഉറവിടങ്ങൾ",
     "@mdbListTmdbRatingSources": {

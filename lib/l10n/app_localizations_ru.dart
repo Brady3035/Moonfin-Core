@@ -4793,12 +4793,6 @@ class AppLocalizationsRu extends AppLocalizations {
   String get libraryJumpToLetter => 'Jump to letter';
 
   @override
-  String get enableFolderView => 'Включить просмотр папок';
-
-  @override
-  String get showFolderBrowsingOption => 'Показать опцию просмотра папок';
-
-  @override
   String get groupItemsIntoCollections => 'Группировать элементы в коллекции';
 
   @override
@@ -5633,10 +5627,6 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get featuredContentAppearance => 'Рекомендуемый контент, внешний вид';
-
-  @override
-  String get posterSizeImageTypeFolderView =>
-      'Размер плаката, тип изображения, вид папки';
 
   @override
   String gbValue(String value) {
@@ -12065,6 +12055,13 @@ class AppLocalizationsRu extends AppLocalizations {
       'Показывать сведения о выбранном элементе вверху страниц библиотеки.';
 
   @override
+  String get libraryCardTitles => 'Titles Under Posters';
+
+  @override
+  String get libraryCardTitlesDescription =>
+      'Show each item\'s title and details below its artwork in library grids.';
+
+  @override
   String get useDetailedSubHeadings => 'Подробные подзаголовки';
 
   @override
@@ -14524,6 +14521,9 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get showAlphabeticalFilters => 'Show Alphabet';
+
+  @override
+  String get libraryFolderView => 'Folder View';
 
   @override
   String get personalRatingStyle => 'Personal Rating Style';

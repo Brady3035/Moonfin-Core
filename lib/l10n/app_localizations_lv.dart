@@ -4783,12 +4783,6 @@ class AppLocalizationsLv extends AppLocalizations {
   String get libraryJumpToLetter => 'Jump to letter';
 
   @override
-  String get enableFolderView => 'Iespējot mapju skatu';
-
-  @override
-  String get showFolderBrowsingOption => 'Rādīt mapju pārlūkošanas opciju';
-
-  @override
   String get groupItemsIntoCollections => 'Grupēt vienumus kolekcijās';
 
   @override
@@ -5624,10 +5618,6 @@ class AppLocalizationsLv extends AppLocalizations {
 
   @override
   String get featuredContentAppearance => 'Piedāvātais saturs, izskats';
-
-  @override
-  String get posterSizeImageTypeFolderView =>
-      'Plakāta izmērs, attēla veids, mapes skats';
 
   @override
   String gbValue(String value) {
@@ -12041,6 +12031,13 @@ class AppLocalizationsLv extends AppLocalizations {
       'Rādīt izvēlētā vienuma informāciju bibliotēkas lapu augšdaļā.';
 
   @override
+  String get libraryCardTitles => 'Titles Under Posters';
+
+  @override
+  String get libraryCardTitlesDescription =>
+      'Show each item\'s title and details below its artwork in library grids.';
+
+  @override
   String get useDetailedSubHeadings =>
       'Izmantojiet detalizētus apakšvirsrakstus';
 
@@ -14512,6 +14509,9 @@ class AppLocalizationsLv extends AppLocalizations {
 
   @override
   String get showAlphabeticalFilters => 'Show Alphabet';
+
+  @override
+  String get libraryFolderView => 'Folder View';
 
   @override
   String get personalRatingStyle => 'Personal Rating Style';

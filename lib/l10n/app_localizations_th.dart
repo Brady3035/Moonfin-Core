@@ -4744,12 +4744,6 @@ class AppLocalizationsTh extends AppLocalizations {
   String get libraryJumpToLetter => 'Jump to letter';
 
   @override
-  String get enableFolderView => 'เปิดใช้งานมุมมองโฟลเดอร์';
-
-  @override
-  String get showFolderBrowsingOption => 'แสดงตัวเลือกการเรียกดูโฟลเดอร์';
-
-  @override
   String get groupItemsIntoCollections => 'จัดกลุ่มรายการเป็นคอลเลกชัน';
 
   @override
@@ -5572,10 +5566,6 @@ class AppLocalizationsTh extends AppLocalizations {
 
   @override
   String get featuredContentAppearance => 'เนื้อหาเด่น รูปลักษณ์ภายนอก';
-
-  @override
-  String get posterSizeImageTypeFolderView =>
-      'ขนาดโปสเตอร์ ประเภทรูปภาพ มุมมองโฟลเดอร์';
 
   @override
   String gbValue(String value) {
@@ -11927,6 +11917,13 @@ class AppLocalizationsTh extends AppLocalizations {
       'แสดงรายละเอียดของรายการที่เลือกไว้ด้านบนของหน้าคลังสื่อ';
 
   @override
+  String get libraryCardTitles => 'Titles Under Posters';
+
+  @override
+  String get libraryCardTitlesDescription =>
+      'Show each item\'s title and details below its artwork in library grids.';
+
+  @override
   String get useDetailedSubHeadings => 'ใช้หัวข้อย่อยโดยละเอียด';
 
   @override
@@ -14379,6 +14376,9 @@ class AppLocalizationsTh extends AppLocalizations {
 
   @override
   String get showAlphabeticalFilters => 'Show Alphabet';
+
+  @override
+  String get libraryFolderView => 'Folder View';
 
   @override
   String get personalRatingStyle => 'Personal Rating Style';

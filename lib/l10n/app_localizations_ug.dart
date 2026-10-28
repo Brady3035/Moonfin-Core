@@ -4768,13 +4768,6 @@ class AppLocalizationsUg extends AppLocalizations {
   String get libraryJumpToLetter => 'Jump to letter';
 
   @override
-  String get enableFolderView => 'ھۆججەت قىسقۇچنى قوزغىتىش';
-
-  @override
-  String get showFolderBrowsingOption =>
-      'ھۆججەت قىسقۇچنى كۆرۈش تاللانمىسىنى كۆرسەت';
-
-  @override
   String get groupItemsIntoCollections => 'تۈرلەرنى توپلاملارغا گۇرۇپپىلاش';
 
   @override
@@ -5610,10 +5603,6 @@ class AppLocalizationsUg extends AppLocalizations {
 
   @override
   String get featuredContentAppearance => 'ئالاھىدە مەزمۇن ، كۆرۈنۈش';
-
-  @override
-  String get posterSizeImageTypeFolderView =>
-      'ئېلاننىڭ چوڭلۇقى ، رەسىم تىپى ، ھۆججەت قىسقۇچ كۆرۈنۈشى';
 
   @override
   String gbValue(String value) {
@@ -12022,6 +12011,13 @@ class AppLocalizationsUg extends AppLocalizations {
       'ئامبار بەتلىرىنىڭ ئۈستىدە تاللانغان تۈرنىڭ تەپسىلاتلىرىنى كۆرسىتىدۇ.';
 
   @override
+  String get libraryCardTitles => 'Titles Under Posters';
+
+  @override
+  String get libraryCardTitlesDescription =>
+      'Show each item\'s title and details below its artwork in library grids.';
+
+  @override
   String get useDetailedSubHeadings => 'تەپسىلىي تارماق ماۋزۇلارنى ئىشلىتىش';
 
   @override
@@ -14483,6 +14479,9 @@ class AppLocalizationsUg extends AppLocalizations {
 
   @override
   String get showAlphabeticalFilters => 'Show Alphabet';
+
+  @override
+  String get libraryFolderView => 'Folder View';
 
   @override
   String get personalRatingStyle => 'Personal Rating Style';

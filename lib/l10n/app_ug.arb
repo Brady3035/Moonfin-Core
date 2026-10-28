@@ -3500,14 +3500,6 @@
     "@showLibrariesFromAllServers": {
         "description": "Description for multi-server libraries"
     },
-    "enableFolderView": "ھۆججەت قىسقۇچنى قوزغىتىش",
-    "@enableFolderView": {
-        "description": "Setting for enabling folder view"
-    },
-    "showFolderBrowsingOption": "ھۆججەت قىسقۇچنى كۆرۈش تاللانمىسىنى كۆرسەت",
-    "@showFolderBrowsingOption": {
-        "description": "Description for folder view"
-    },
     "libraryVisibility": "كۈتۈپخانىنىڭ كۆرۈنۈشچانلىقى",
     "@libraryVisibility": {
         "description": "Section title for library visibility"
@@ -4230,10 +4222,6 @@
     "featuredContentAppearance": "ئالاھىدە مەزمۇن ، كۆرۈنۈش",
     "@featuredContentAppearance": {
         "description": "Media bar settings subtitle"
-    },
-    "posterSizeImageTypeFolderView": "ئېلاننىڭ چوڭلۇقى ، رەسىم تىپى ، ھۆججەت قىسقۇچ كۆرۈنۈشى",
-    "@posterSizeImageTypeFolderView": {
-        "description": "Library display settings subtitle"
     },
     "mdbListTmdbRatingSources": "MDBList ، TMDB ۋە باھالاش مەنبەسى",
     "@mdbListTmdbRatingSources": {

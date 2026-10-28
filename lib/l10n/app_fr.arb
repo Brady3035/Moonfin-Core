@@ -3446,14 +3446,6 @@
     "@showLibrariesFromAllServers": {
         "description": "Description for multi-server libraries"
     },
-    "enableFolderView": "Activer la vue dossiers",
-    "@enableFolderView": {
-        "description": "Setting for enabling folder view"
-    },
-    "showFolderBrowsingOption": "Afficher l’option de navigation par dossiers",
-    "@showFolderBrowsingOption": {
-        "description": "Description for folder view"
-    },
     "libraryVisibility": "Visibilité des bibliothèques",
     "@libraryVisibility": {
         "description": "Section title for library visibility"
@@ -4143,10 +4135,6 @@
     "featuredContentAppearance": "Contenu à la une, apparence",
     "@featuredContentAppearance": {
         "description": "Media bar settings subtitle"
-    },
-    "posterSizeImageTypeFolderView": "Taille des affiches, type d’image, vue des dossiers",
-    "@posterSizeImageTypeFolderView": {
-        "description": "Library display settings subtitle"
     },
     "mdbListTmdbRatingSources": "MDBList, TMDB et sources des notes",
     "@mdbListTmdbRatingSources": {

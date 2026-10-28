@@ -4782,12 +4782,6 @@ class AppLocalizationsKn extends AppLocalizations {
   String get libraryJumpToLetter => 'Jump to letter';
 
   @override
-  String get enableFolderView => 'ಫೋಲ್ಡರ್ ವೀಕ್ಷಣೆಯನ್ನು ಸಕ್ರಿಯಗೊಳಿಸಿ';
-
-  @override
-  String get showFolderBrowsingOption => 'ಫೋಲ್ಡರ್ ಬ್ರೌಸಿಂಗ್ ಆಯ್ಕೆಯನ್ನು ತೋರಿಸಿ';
-
-  @override
   String get groupItemsIntoCollections => 'ಐಟಂಗಳನ್ನು ಸಂಗ್ರಹಣೆಗಳಾಗಿ ಗುಂಪು ಮಾಡಿ';
 
   @override
@@ -5626,10 +5620,6 @@ class AppLocalizationsKn extends AppLocalizations {
 
   @override
   String get featuredContentAppearance => 'ವೈಶಿಷ್ಟ್ಯಗೊಳಿಸಿದ ವಿಷಯ, ನೋಟ';
-
-  @override
-  String get posterSizeImageTypeFolderView =>
-      'ಪೋಸ್ಟರ್ ಗಾತ್ರ, ಚಿತ್ರದ ಪ್ರಕಾರ, ಫೋಲ್ಡರ್ ವೀಕ್ಷಣೆ';
 
   @override
   String gbValue(String value) {
@@ -12054,6 +12044,13 @@ class AppLocalizationsKn extends AppLocalizations {
       'ಲೈಬ್ರರಿ ಪುಟಗಳ ಮೇಲ್ಭಾಗದಲ್ಲಿ ಆಯ್ಕೆಮಾಡಿದ ಐಟಂನ ವಿವರಗಳನ್ನು ತೋರಿಸಿ.';
 
   @override
+  String get libraryCardTitles => 'Titles Under Posters';
+
+  @override
+  String get libraryCardTitlesDescription =>
+      'Show each item\'s title and details below its artwork in library grids.';
+
+  @override
   String get useDetailedSubHeadings => 'ವಿವರವಾದ ಉಪ-ಶೀರ್ಷಿಕೆಗಳನ್ನು ಬಳಸಿ';
 
   @override
@@ -14519,6 +14516,9 @@ class AppLocalizationsKn extends AppLocalizations {
 
   @override
   String get showAlphabeticalFilters => 'Show Alphabet';
+
+  @override
+  String get libraryFolderView => 'Folder View';
 
   @override
   String get personalRatingStyle => 'Personal Rating Style';

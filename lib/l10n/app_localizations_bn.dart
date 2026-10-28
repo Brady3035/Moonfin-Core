@@ -4759,12 +4759,6 @@ class AppLocalizationsBn extends AppLocalizations {
   String get libraryJumpToLetter => 'Jump to letter';
 
   @override
-  String get enableFolderView => 'ফোল্ডার ভিউ সক্ষম করুন';
-
-  @override
-  String get showFolderBrowsingOption => 'ফোল্ডার ব্রাউজিং অপশন দেখান';
-
-  @override
   String get groupItemsIntoCollections => 'আইটেমগুলো কালেকশনে গোষ্ঠীবদ্ধ করুন';
 
   @override
@@ -5598,10 +5592,6 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get featuredContentAppearance => 'বৈশিষ্ট্যযুক্ত বিষয়বস্তু, চেহারা';
-
-  @override
-  String get posterSizeImageTypeFolderView =>
-      'পোস্টারের আকার, ছবির ধরন, ফোল্ডার ভিউ';
 
   @override
   String gbValue(String value) {
@@ -11984,6 +11974,13 @@ class AppLocalizationsBn extends AppLocalizations {
       'লাইব্রেরি পেজের উপরে নির্বাচিত আইটেমের বিস্তারিত দেখান।';
 
   @override
+  String get libraryCardTitles => 'Titles Under Posters';
+
+  @override
+  String get libraryCardTitlesDescription =>
+      'Show each item\'s title and details below its artwork in library grids.';
+
+  @override
   String get useDetailedSubHeadings => 'বিস্তারিত উপ-শিরোনাম ব্যবহার করুন';
 
   @override
@@ -14438,6 +14435,9 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get showAlphabeticalFilters => 'Show Alphabet';
+
+  @override
+  String get libraryFolderView => 'Folder View';
 
   @override
   String get personalRatingStyle => 'Personal Rating Style';

@@ -4795,12 +4795,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get libraryJumpToLetter => 'Jump to letter';
 
   @override
-  String get enableFolderView => 'Mappanézet engedélyezése';
-
-  @override
-  String get showFolderBrowsingOption => 'Mappaböngészési opció megjelenítése';
-
-  @override
   String get groupItemsIntoCollections =>
       'Elemek csoportosítása gyűjteményekbe';
 
@@ -5644,10 +5638,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get featuredContentAppearance => 'Kiemelt tartalom, megjelenés';
-
-  @override
-  String get posterSizeImageTypeFolderView =>
-      'Poszter mérete, képtípus, mappanézet';
 
   @override
   String gbValue(String value) {
@@ -12092,6 +12082,13 @@ class AppLocalizationsHu extends AppLocalizations {
       'A kijelölt elem részleteinek megjelenítése a könyvtároldalak tetején.';
 
   @override
+  String get libraryCardTitles => 'Titles Under Posters';
+
+  @override
+  String get libraryCardTitlesDescription =>
+      'Show each item\'s title and details below its artwork in library grids.';
+
+  @override
   String get useDetailedSubHeadings => 'Részletes alcímek használata';
 
   @override
@@ -14558,6 +14555,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get showAlphabeticalFilters => 'Show Alphabet';
+
+  @override
+  String get libraryFolderView => 'Folder View';
 
   @override
   String get personalRatingStyle => 'Personal Rating Style';

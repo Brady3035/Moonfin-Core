@@ -4680,12 +4680,6 @@ class AppLocalizationsYue extends AppLocalizations {
   String get libraryJumpToLetter => 'Jump to letter';
 
   @override
-  String get enableFolderView => '啟用資料夾視圖';
-
-  @override
-  String get showFolderBrowsingOption => '顯示資料夾瀏覽選項';
-
-  @override
   String get groupItemsIntoCollections => '將項目歸入合輯';
 
   @override
@@ -5482,9 +5476,6 @@ class AppLocalizationsYue extends AppLocalizations {
 
   @override
   String get featuredContentAppearance => '特色內容、外觀';
-
-  @override
-  String get posterSizeImageTypeFolderView => '海報尺寸、圖像類型、資料夾視圖';
 
   @override
   String gbValue(String value) {
@@ -11690,6 +11681,13 @@ class AppLocalizationsYue extends AppLocalizations {
   String get showMediaDetailsOnLibraryPageDescription => '喺媒體庫頁面頂部顯示已揀項目嘅詳情。';
 
   @override
+  String get libraryCardTitles => 'Titles Under Posters';
+
+  @override
+  String get libraryCardTitlesDescription =>
+      'Show each item\'s title and details below its artwork in library grids.';
+
+  @override
   String get useDetailedSubHeadings => '用詳細副標題';
 
   @override
@@ -14087,6 +14085,9 @@ class AppLocalizationsYue extends AppLocalizations {
 
   @override
   String get showAlphabeticalFilters => 'Show Alphabet';
+
+  @override
+  String get libraryFolderView => 'Folder View';
 
   @override
   String get personalRatingStyle => 'Personal Rating Style';
@@ -18028,12 +18029,6 @@ class AppLocalizationsYueCn extends AppLocalizationsYue {
   String get showLibrariesFromAllServers => '显示所有连接服务器的库';
 
   @override
-  String get enableFolderView => '启用文件夹视图';
-
-  @override
-  String get showFolderBrowsingOption => '显示文件夹浏览选项';
-
-  @override
   String get libraryVisibility => '图书馆可见性';
 
   @override
@@ -18493,9 +18488,6 @@ class AppLocalizationsYueCn extends AppLocalizationsYue {
 
   @override
   String get featuredContentAppearance => '特色内容、外观';
-
-  @override
-  String get posterSizeImageTypeFolderView => '海报尺寸、图像类型、文件夹视图';
 
   @override
   String gbValue(String value) {
@@ -24948,12 +24940,6 @@ class AppLocalizationsYueHk extends AppLocalizationsYue {
   String get showLibrariesFromAllServers => '顯示所有連接伺服器的庫';
 
   @override
-  String get enableFolderView => '啟用資料夾視圖';
-
-  @override
-  String get showFolderBrowsingOption => '顯示資料夾瀏覽選項';
-
-  @override
   String get libraryVisibility => '圖書館可見性';
 
   @override
@@ -25413,9 +25399,6 @@ class AppLocalizationsYueHk extends AppLocalizationsYue {
 
   @override
   String get featuredContentAppearance => '特色內容、外觀';
-
-  @override
-  String get posterSizeImageTypeFolderView => '海報尺寸、圖像類型、資料夾視圖';
 
   @override
   String gbValue(String value) {

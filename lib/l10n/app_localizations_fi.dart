@@ -4789,12 +4789,6 @@ class AppLocalizationsFi extends AppLocalizations {
   String get libraryJumpToLetter => 'Siirry kirjaimeen';
 
   @override
-  String get enableFolderView => 'Ota käyttöön kansionäkymä';
-
-  @override
-  String get showFolderBrowsingOption => 'Näytä kansion selausvaihtoehto';
-
-  @override
   String get groupItemsIntoCollections => 'Ryhmittele kohteet kokoelmiin';
 
   @override
@@ -5634,10 +5628,6 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get featuredContentAppearance => 'Suositeltu sisältö, ulkonäkö';
-
-  @override
-  String get posterSizeImageTypeFolderView =>
-      'Julisteen koko, kuvatyyppi, kansionäkymä';
 
   @override
   String gbValue(String value) {
@@ -12082,6 +12072,13 @@ class AppLocalizationsFi extends AppLocalizations {
       'Näytä valitun kohteen tiedot kirjastosivujen yläosassa.';
 
   @override
+  String get libraryCardTitles => 'Titles Under Posters';
+
+  @override
+  String get libraryCardTitlesDescription =>
+      'Show each item\'s title and details below its artwork in library grids.';
+
+  @override
   String get useDetailedSubHeadings => 'Käytä yksityiskohtaisia alaotsikoita';
 
   @override
@@ -14548,6 +14545,9 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get showAlphabeticalFilters => 'Näytä aakkosittain';
+
+  @override
+  String get libraryFolderView => 'Folder View';
 
   @override
   String get personalRatingStyle => 'Oma arviointyyli';

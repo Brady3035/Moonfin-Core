@@ -4772,12 +4772,6 @@ class AppLocalizationsEt extends AppLocalizations {
   String get libraryJumpToLetter => 'Jump to letter';
 
   @override
-  String get enableFolderView => 'Luba kaustavaade';
-
-  @override
-  String get showFolderBrowsingOption => 'Kuva kaustade sirvimise valik';
-
-  @override
   String get groupItemsIntoCollections => 'Rühmita üksused kollektsioonidesse';
 
   @override
@@ -5606,10 +5600,6 @@ class AppLocalizationsEt extends AppLocalizations {
 
   @override
   String get featuredContentAppearance => 'Esiletõstetud sisu, välimus';
-
-  @override
-  String get posterSizeImageTypeFolderView =>
-      'Plakati suurus, pildi tüüp, kausta vaade';
 
   @override
   String gbValue(String value) {
@@ -12004,6 +11994,13 @@ class AppLocalizationsEt extends AppLocalizations {
       'Näita valitud üksuse üksikasju kogulehtede ülaosas.';
 
   @override
+  String get libraryCardTitles => 'Titles Under Posters';
+
+  @override
+  String get libraryCardTitlesDescription =>
+      'Show each item\'s title and details below its artwork in library grids.';
+
+  @override
   String get useDetailedSubHeadings => 'Kasutage üksikasjalikke alapealkirju';
 
   @override
@@ -14461,6 +14458,9 @@ class AppLocalizationsEt extends AppLocalizations {
 
   @override
   String get showAlphabeticalFilters => 'Show Alphabet';
+
+  @override
+  String get libraryFolderView => 'Folder View';
 
   @override
   String get personalRatingStyle => 'Personal Rating Style';

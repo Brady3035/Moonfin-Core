@@ -4785,12 +4785,6 @@ class AppLocalizationsTa extends AppLocalizations {
   String get libraryJumpToLetter => 'Jump to letter';
 
   @override
-  String get enableFolderView => 'கோப்புறைக் காட்சியை இயக்கு';
-
-  @override
-  String get showFolderBrowsingOption => 'கோப்புறை உலாவல் விருப்பத்தைக் காட்டு';
-
-  @override
   String get groupItemsIntoCollections =>
       'உருப்படிகளைத் தொகுப்புகளாகக் குழுவாக்கு';
 
@@ -5635,10 +5629,6 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get featuredContentAppearance => 'சிறப்பு உள்ளடக்கம், தோற்றம்';
-
-  @override
-  String get posterSizeImageTypeFolderView =>
-      'சுவரொட்டி அளவு, படத்தின் வகை, கோப்புறை காட்சி';
 
   @override
   String gbValue(String value) {
@@ -12061,6 +12051,13 @@ class AppLocalizationsTa extends AppLocalizations {
       'நூலகப் பக்கங்களின் மேலே தேர்ந்தெடுக்கப்பட்ட உருப்படியின் விவரங்களைக் காட்டும்.';
 
   @override
+  String get libraryCardTitles => 'Titles Under Posters';
+
+  @override
+  String get libraryCardTitlesDescription =>
+      'Show each item\'s title and details below its artwork in library grids.';
+
+  @override
   String get useDetailedSubHeadings =>
       'விரிவான துணைத் தலைப்புகளைப் பயன்படுத்து';
 
@@ -14530,6 +14527,9 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get showAlphabeticalFilters => 'Show Alphabet';
+
+  @override
+  String get libraryFolderView => 'Folder View';
 
   @override
   String get personalRatingStyle => 'Personal Rating Style';

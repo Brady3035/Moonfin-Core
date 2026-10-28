@@ -4812,13 +4812,6 @@ class AppLocalizationsCa extends AppLocalizations {
   String get libraryJumpToLetter => 'Salta a la lletra';
 
   @override
-  String get enableFolderView => 'Activa la vista de carpetes';
-
-  @override
-  String get showFolderBrowsingOption =>
-      'Mostra l\'opció de navegació de carpetes';
-
-  @override
   String get groupItemsIntoCollections => 'Agrupa els elements en col·leccions';
 
   @override
@@ -5669,10 +5662,6 @@ class AppLocalizationsCa extends AppLocalizations {
 
   @override
   String get featuredContentAppearance => 'Contingut destacat, aparença';
-
-  @override
-  String get posterSizeImageTypeFolderView =>
-      'Mida del pòster, tipus d\'imatge, vista de carpeta';
 
   @override
   String gbValue(String value) {
@@ -12203,6 +12192,13 @@ class AppLocalizationsCa extends AppLocalizations {
       'Mostra els detalls de l\'item seleccionat a dalt la pàgina de Biblioteca.';
 
   @override
+  String get libraryCardTitles => 'Titles Under Posters';
+
+  @override
+  String get libraryCardTitlesDescription =>
+      'Show each item\'s title and details below its artwork in library grids.';
+
+  @override
   String get useDetailedSubHeadings => 'Utilitzeu subtítols detallats';
 
   @override
@@ -14689,6 +14685,9 @@ class AppLocalizationsCa extends AppLocalizations {
 
   @override
   String get showAlphabeticalFilters => 'Mostra l\'alfabet';
+
+  @override
+  String get libraryFolderView => 'Folder View';
 
   @override
   String get personalRatingStyle => 'Estil de puntuació personal';

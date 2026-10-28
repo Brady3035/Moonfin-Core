@@ -4763,12 +4763,6 @@ class AppLocalizationsNb extends AppLocalizations {
   String get libraryJumpToLetter => 'Jump to letter';
 
   @override
-  String get enableFolderView => 'Aktiver mappevisning';
-
-  @override
-  String get showFolderBrowsingOption => 'Vis alternativ for mappelesing';
-
-  @override
   String get groupItemsIntoCollections => 'Grupper elementer i samlinger';
 
   @override
@@ -5600,10 +5594,6 @@ class AppLocalizationsNb extends AppLocalizations {
 
   @override
   String get featuredContentAppearance => 'Fremhevet innhold, utseende';
-
-  @override
-  String get posterSizeImageTypeFolderView =>
-      'Plakatstørrelse, bildetype, mappevisning';
 
   @override
   String gbValue(String value) {
@@ -11990,6 +11980,13 @@ class AppLocalizationsNb extends AppLocalizations {
       'Vis detaljer om det valgte elementet øverst på bibliotekssidene.';
 
   @override
+  String get libraryCardTitles => 'Titles Under Posters';
+
+  @override
+  String get libraryCardTitlesDescription =>
+      'Show each item\'s title and details below its artwork in library grids.';
+
+  @override
   String get useDetailedSubHeadings => 'Bruk detaljerte underoverskrifter';
 
   @override
@@ -14447,6 +14444,9 @@ class AppLocalizationsNb extends AppLocalizations {
 
   @override
   String get showAlphabeticalFilters => 'Show Alphabet';
+
+  @override
+  String get libraryFolderView => 'Folder View';
 
   @override
   String get personalRatingStyle => 'Personal Rating Style';

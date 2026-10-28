@@ -4749,12 +4749,6 @@ class AppLocalizationsFa extends AppLocalizations {
   String get libraryJumpToLetter => 'Jump to letter';
 
   @override
-  String get enableFolderView => 'نمای پوشه را فعال کنید';
-
-  @override
-  String get showFolderBrowsingOption => 'نمایش گزینه مرور پوشه';
-
-  @override
   String get groupItemsIntoCollections => 'گروه‌بندی موارد در مجموعه‌ها';
 
   @override
@@ -5587,10 +5581,6 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get featuredContentAppearance => 'محتوای ویژه، ظاهر';
-
-  @override
-  String get posterSizeImageTypeFolderView =>
-      'اندازه پوستر، نوع تصویر، نمای پوشه';
 
   @override
   String gbValue(String value) {
@@ -11941,6 +11931,13 @@ class AppLocalizationsFa extends AppLocalizations {
       'نمایش جزئیات مورد انتخاب‌شده در بالای صفحات کتابخانه.';
 
   @override
+  String get libraryCardTitles => 'Titles Under Posters';
+
+  @override
+  String get libraryCardTitlesDescription =>
+      'Show each item\'s title and details below its artwork in library grids.';
+
+  @override
   String get useDetailedSubHeadings => 'از عناوین فرعی تفصیلی استفاده کنید';
 
   @override
@@ -14396,6 +14393,9 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get showAlphabeticalFilters => 'Show Alphabet';
+
+  @override
+  String get libraryFolderView => 'Folder View';
 
   @override
   String get personalRatingStyle => 'Personal Rating Style';

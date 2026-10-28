@@ -579,6 +579,7 @@ class UserPreferences extends ChangeNotifier {
     'pref_show_friends_button',
     'pref_show_book_discover_tab',
     'pref_show_media_details_on_library_page',
+    'pref_library_card_titles',
     'pref_use_detailed_sub_headings',
     'pref_hide_backdrops_in_libraries',
     'pref_show_clock',
@@ -660,7 +661,6 @@ class UserPreferences extends ChangeNotifier {
     'pref_next_up_max_days',
     'enable_multi_server_libraries',
     'pref_merge_recent_rows_by_type',
-    'enable_folder_view',
     'seasonal_surprise',
     'seasonal_density',
     'seasonal_row_enabled',
@@ -2068,11 +2068,6 @@ class UserPreferences extends ChangeNotifier {
     defaultValue: true,
   );
 
-  static final enableFolderView = Preference(
-    key: 'enable_folder_view',
-    defaultValue: false,
-  );
-
   static final groupItemsIntoCollections = Preference(
     key: 'pref_group_items_into_collections',
     defaultValue: false,
@@ -2107,6 +2102,11 @@ class UserPreferences extends ChangeNotifier {
 
   static final showMediaDetailsOnLibraryPage = Preference(
     key: 'pref_show_media_details_on_library_page',
+    defaultValue: true,
+  );
+
+  static final libraryCardTitles = Preference(
+    key: 'pref_library_card_titles',
     defaultValue: true,
   );
 
@@ -3789,6 +3789,11 @@ class UserPreferences extends ChangeNotifier {
     defaultValue: LibraryGroupBy.none,
     values: LibraryGroupBy.values,
   );
+
+  /// Only written once someone picks it, since the default depends on the
+  /// library's type.
+  static Preference<bool> libraryFolderView(String libraryId) =>
+      Preference(key: 'library_folder_view_$libraryId', defaultValue: false);
 
   static final allGenresImageType = EnumPreference(
     key: 'all_genres_image_type',

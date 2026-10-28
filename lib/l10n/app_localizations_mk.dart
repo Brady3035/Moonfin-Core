@@ -4783,13 +4783,6 @@ class AppLocalizationsMk extends AppLocalizations {
   String get libraryJumpToLetter => 'Jump to letter';
 
   @override
-  String get enableFolderView => 'Овозможи Преглед на папка';
-
-  @override
-  String get showFolderBrowsingOption =>
-      'Прикажи ја опцијата за прелистување папки';
-
-  @override
   String get groupItemsIntoCollections => 'Групирај ги ставките во колекции';
 
   @override
@@ -5624,10 +5617,6 @@ class AppLocalizationsMk extends AppLocalizations {
 
   @override
   String get featuredContentAppearance => 'Избрана содржина, изглед';
-
-  @override
-  String get posterSizeImageTypeFolderView =>
-      'Големина на постер, тип на слика, приказ на папка';
 
   @override
   String gbValue(String value) {
@@ -12062,6 +12051,13 @@ class AppLocalizationsMk extends AppLocalizations {
       'Прикажувај детали за избраната ставка на врвот на страниците со библиотеки.';
 
   @override
+  String get libraryCardTitles => 'Titles Under Posters';
+
+  @override
+  String get libraryCardTitlesDescription =>
+      'Show each item\'s title and details below its artwork in library grids.';
+
+  @override
   String get useDetailedSubHeadings => 'Користи детални поднаслови';
 
   @override
@@ -14526,6 +14522,9 @@ class AppLocalizationsMk extends AppLocalizations {
 
   @override
   String get showAlphabeticalFilters => 'Show Alphabet';
+
+  @override
+  String get libraryFolderView => 'Folder View';
 
   @override
   String get personalRatingStyle => 'Personal Rating Style';

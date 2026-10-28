@@ -3779,14 +3779,6 @@
     "@showLibrariesFromAllServers": {
         "description": "Description for multi-server libraries"
     },
-    "enableFolderView": "Ativar visualização de pasta",
-    "@enableFolderView": {
-        "description": "Setting for enabling folder view"
-    },
-    "showFolderBrowsingOption": "Mostrar opção de navegação em pastas",
-    "@showFolderBrowsingOption": {
-        "description": "Description for folder view"
-    },
     "libraryVisibility": "Visibilidade das bibliotecas",
     "@libraryVisibility": {
         "description": "Section title for library visibility"
@@ -4553,10 +4545,6 @@
     "featuredContentAppearance": "Conteúdo em destaque, aparência",
     "@featuredContentAppearance": {
         "description": "Media bar settings subtitle"
-    },
-    "posterSizeImageTypeFolderView": "Tamanho do cartaz, tipo de imagem, vista de pastas",
-    "@posterSizeImageTypeFolderView": {
-        "description": "Library display settings subtitle"
     },
     "mdbListTmdbRatingSources": "MDBList, TMDB e fontes de classificação",
     "@mdbListTmdbRatingSources": {

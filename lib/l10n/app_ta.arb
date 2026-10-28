@@ -3500,14 +3500,6 @@
     "@showLibrariesFromAllServers": {
         "description": "Description for multi-server libraries"
     },
-    "enableFolderView": "கோப்புறைக் காட்சியை இயக்கு",
-    "@enableFolderView": {
-        "description": "Setting for enabling folder view"
-    },
-    "showFolderBrowsingOption": "கோப்புறை உலாவல் விருப்பத்தைக் காட்டு",
-    "@showFolderBrowsingOption": {
-        "description": "Description for folder view"
-    },
     "libraryVisibility": "நூலகத் தெரிவுநிலை",
     "@libraryVisibility": {
         "description": "Section title for library visibility"
@@ -4230,10 +4222,6 @@
     "featuredContentAppearance": "சிறப்பு உள்ளடக்கம், தோற்றம்",
     "@featuredContentAppearance": {
         "description": "Media bar settings subtitle"
-    },
-    "posterSizeImageTypeFolderView": "சுவரொட்டி அளவு, படத்தின் வகை, கோப்புறை காட்சி",
-    "@posterSizeImageTypeFolderView": {
-        "description": "Library display settings subtitle"
     },
     "mdbListTmdbRatingSources": "MDBList, TMDB மற்றும் மதிப்பீட்டு ஆதாரங்கள்",
     "@mdbListTmdbRatingSources": {

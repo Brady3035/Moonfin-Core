@@ -4780,12 +4780,6 @@ class AppLocalizationsCs extends AppLocalizations {
   String get libraryJumpToLetter => 'Jump to letter';
 
   @override
-  String get enableFolderView => 'Povolit zobrazení složek';
-
-  @override
-  String get showFolderBrowsingOption => 'Zobrazit možnost procházení složek';
-
-  @override
   String get groupItemsIntoCollections => 'Seskupovat položky do kolekcí';
 
   @override
@@ -5616,10 +5610,6 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get featuredContentAppearance => 'Doporučený obsah, vzhled';
-
-  @override
-  String get posterSizeImageTypeFolderView =>
-      'Velikost plakátu, typ obrázku, zobrazení složky';
 
   @override
   String gbValue(String value) {
@@ -12024,6 +12014,13 @@ class AppLocalizationsCs extends AppLocalizations {
       'Zobrazovat detaily vybrané položky v horní části stránek knihovny.';
 
   @override
+  String get libraryCardTitles => 'Titles Under Posters';
+
+  @override
+  String get libraryCardTitlesDescription =>
+      'Show each item\'s title and details below its artwork in library grids.';
+
+  @override
   String get useDetailedSubHeadings => 'Použijte podrobné podnadpisy';
 
   @override
@@ -14493,6 +14490,9 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get showAlphabeticalFilters => 'Show Alphabet';
+
+  @override
+  String get libraryFolderView => 'Folder View';
 
   @override
   String get personalRatingStyle => 'Personal Rating Style';

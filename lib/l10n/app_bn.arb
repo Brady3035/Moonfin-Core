@@ -3500,14 +3500,6 @@
     "@showLibrariesFromAllServers": {
         "description": "Description for multi-server libraries"
     },
-    "enableFolderView": "ফোল্ডার ভিউ সক্ষম করুন",
-    "@enableFolderView": {
-        "description": "Setting for enabling folder view"
-    },
-    "showFolderBrowsingOption": "ফোল্ডার ব্রাউজিং অপশন দেখান",
-    "@showFolderBrowsingOption": {
-        "description": "Description for folder view"
-    },
     "libraryVisibility": "লাইব্রেরি দৃশ্যমানতা",
     "@libraryVisibility": {
         "description": "Section title for library visibility"
@@ -4230,10 +4222,6 @@
     "featuredContentAppearance": "বৈশিষ্ট্যযুক্ত বিষয়বস্তু, চেহারা",
     "@featuredContentAppearance": {
         "description": "Media bar settings subtitle"
-    },
-    "posterSizeImageTypeFolderView": "পোস্টারের আকার, ছবির ধরন, ফোল্ডার ভিউ",
-    "@posterSizeImageTypeFolderView": {
-        "description": "Library display settings subtitle"
     },
     "mdbListTmdbRatingSources": "MDBList, TMDB, এবং রেটিং সোর্স",
     "@mdbListTmdbRatingSources": {

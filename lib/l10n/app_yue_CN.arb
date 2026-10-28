@@ -3492,14 +3492,6 @@
     "@showLibrariesFromAllServers": {
         "description": "Description for multi-server libraries"
     },
-    "enableFolderView": "启用文件夹视图",
-    "@enableFolderView": {
-        "description": "Setting for enabling folder view"
-    },
-    "showFolderBrowsingOption": "显示文件夹浏览选项",
-    "@showFolderBrowsingOption": {
-        "description": "Description for folder view"
-    },
     "libraryVisibility": "图书馆可见性",
     "@libraryVisibility": {
         "description": "Section title for library visibility"
@@ -4166,10 +4158,6 @@
     "featuredContentAppearance": "特色内容、外观",
     "@featuredContentAppearance": {
         "description": "Media bar settings subtitle"
-    },
-    "posterSizeImageTypeFolderView": "海报尺寸、图像类型、文件夹视图",
-    "@posterSizeImageTypeFolderView": {
-        "description": "Library display settings subtitle"
     },
     "mdbListTmdbRatingSources": "MDBList、TMDB 和评级源",
     "@mdbListTmdbRatingSources": {

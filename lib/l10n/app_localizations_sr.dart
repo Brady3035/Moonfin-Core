@@ -4820,12 +4820,6 @@ class AppLocalizationsSr extends AppLocalizations {
   String get libraryJumpToLetter => 'Jump to letter';
 
   @override
-  String get enableFolderView => 'Омогући приказ фасцикли';
-
-  @override
-  String get showFolderBrowsingOption => 'Прикажи опцију прегледања фасцикли';
-
-  @override
   String get groupItemsIntoCollections => 'Групиши ставке у колекције';
 
   @override
@@ -5667,10 +5661,6 @@ class AppLocalizationsSr extends AppLocalizations {
 
   @override
   String get featuredContentAppearance => 'Истакнути садржај, изглед';
-
-  @override
-  String get posterSizeImageTypeFolderView =>
-      'Величина постера, тип слике, приказ фасцикли';
 
   @override
   String gbValue(String value) {
@@ -12112,6 +12102,13 @@ class AppLocalizationsSr extends AppLocalizations {
       'Прикажи детаље о изабраној ставци на врху страница библиотеке.';
 
   @override
+  String get libraryCardTitles => 'Titles Under Posters';
+
+  @override
+  String get libraryCardTitlesDescription =>
+      'Show each item\'s title and details below its artwork in library grids.';
+
+  @override
   String get useDetailedSubHeadings => 'Користи детаљније поднаслове';
 
   @override
@@ -14581,6 +14578,9 @@ class AppLocalizationsSr extends AppLocalizations {
 
   @override
   String get showAlphabeticalFilters => 'Прикажи абецеду';
+
+  @override
+  String get libraryFolderView => 'Folder View';
 
   @override
   String get personalRatingStyle => 'Стил личне оцене';

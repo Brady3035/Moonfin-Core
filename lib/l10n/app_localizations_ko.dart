@@ -4672,12 +4672,6 @@ class AppLocalizationsKo extends AppLocalizations {
   String get libraryJumpToLetter => '글자로 이동';
 
   @override
-  String get enableFolderView => '폴더 보기 활성화';
-
-  @override
-  String get showFolderBrowsingOption => '폴더 탐색 옵션 표시';
-
-  @override
   String get groupItemsIntoCollections => '항목을 컬렉션으로 묶기';
 
   @override
@@ -5476,9 +5470,6 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get featuredContentAppearance => '추천 콘텐츠, 모양';
-
-  @override
-  String get posterSizeImageTypeFolderView => '포스터 크기, 이미지 유형, 폴더 보기';
 
   @override
   String gbValue(String value) {
@@ -11633,6 +11624,13 @@ class AppLocalizationsKo extends AppLocalizations {
       '라이브러리 페이지 상단에 선택한 항목의 정보를 표시합니다.';
 
   @override
+  String get libraryCardTitles => 'Titles Under Posters';
+
+  @override
+  String get libraryCardTitlesDescription =>
+      'Show each item\'s title and details below its artwork in library grids.';
+
+  @override
   String get useDetailedSubHeadings => '상세 소제목 사용';
 
   @override
@@ -14014,6 +14012,9 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get showAlphabeticalFilters => '알파벳 표시';
+
+  @override
+  String get libraryFolderView => 'Folder View';
 
   @override
   String get personalRatingStyle => '내 평가 방식';

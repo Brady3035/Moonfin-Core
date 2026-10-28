@@ -4883,12 +4883,6 @@ class AppLocalizationsHr extends AppLocalizations {
   String get libraryJumpToLetter => 'Jump to letter';
 
   @override
-  String get enableFolderView => 'Omogući prikaz mape';
-
-  @override
-  String get showFolderBrowsingOption => 'Prikaži opciju pregledavanja mape';
-
-  @override
   String get groupItemsIntoCollections => 'Grupiraj stavke u kolekcije';
 
   @override
@@ -5724,10 +5718,6 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String get featuredContentAppearance => 'Istaknuti sadržaj, izgled';
-
-  @override
-  String get posterSizeImageTypeFolderView =>
-      'Veličina postera, vrsta slike, prikaz mape';
 
   @override
   String gbValue(String value) {
@@ -12203,6 +12193,13 @@ class AppLocalizationsHr extends AppLocalizations {
       'Prikaži detalje odabrane stavke na vrhu stranica biblioteke.';
 
   @override
+  String get libraryCardTitles => 'Titles Under Posters';
+
+  @override
+  String get libraryCardTitlesDescription =>
+      'Show each item\'s title and details below its artwork in library grids.';
+
+  @override
   String get useDetailedSubHeadings => 'Koristi detaljne podnaslove';
 
   @override
@@ -14668,6 +14665,9 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String get showAlphabeticalFilters => 'Show Alphabet';
+
+  @override
+  String get libraryFolderView => 'Folder View';
 
   @override
   String get personalRatingStyle => 'Personal Rating Style';

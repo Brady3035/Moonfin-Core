@@ -942,7 +942,6 @@ class _LeftSidebarState extends State<LeftSidebar> with RouteAware {
     final navLibraries = _navLibraries;
     final showLibraries =
         !kidsMode && _prefs.get(UserPreferences.showLibrariesInToolbar);
-    final showFolders = _prefs.get(UserPreferences.enableFolderView);
     final showSyncPlay =
         !kidsMode &&
         _prefs.get(UserPreferences.syncPlayEnabled) &&
@@ -1081,23 +1080,6 @@ class _LeftSidebarState extends State<LeftSidebar> with RouteAware {
                       }
                       _markNavigationAwayFromSidebar();
                       context.navigateTopLevel(Destinations.liveTvGuide);
-                    },
-                  ),
-                if (showFolders)
-                  _SidebarItem(
-                    key: const ValueKey('sidebar-folders'),
-                    icon: Icons.folder_rounded,
-                    label: l10n.folders,
-                    baseColor: nextMainSidebarColor(),
-                    showLabel: _showLabels,
-                    onPressed: () {
-                      _onNavigate();
-                      if (_isActive(Destinations.folderView)) {
-                        _exitSidebarToContent();
-                        return;
-                      }
-                      _markNavigationAwayFromSidebar();
-                      context.navigateTopLevel(Destinations.folderView);
                     },
                   ),
                 if (showSyncPlay)

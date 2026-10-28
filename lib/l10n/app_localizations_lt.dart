@@ -4782,12 +4782,6 @@ class AppLocalizationsLt extends AppLocalizations {
   String get libraryJumpToLetter => 'Jump to letter';
 
   @override
-  String get enableFolderView => 'Įgalinti aplanko rodinį';
-
-  @override
-  String get showFolderBrowsingOption => 'Rodyti aplanko naršymo parinktį';
-
-  @override
   String get groupItemsIntoCollections => 'Grupuoti elementus į rinkinius';
 
   @override
@@ -5624,10 +5618,6 @@ class AppLocalizationsLt extends AppLocalizations {
 
   @override
   String get featuredContentAppearance => 'Teminis turinys, išvaizda';
-
-  @override
-  String get posterSizeImageTypeFolderView =>
-      'Plakato dydis, vaizdo tipas, aplanko vaizdas';
 
   @override
   String gbValue(String value) {
@@ -12046,6 +12036,13 @@ class AppLocalizationsLt extends AppLocalizations {
       'Rodyti pasirinkto elemento informaciją bibliotekos puslapių viršuje.';
 
   @override
+  String get libraryCardTitles => 'Titles Under Posters';
+
+  @override
+  String get libraryCardTitlesDescription =>
+      'Show each item\'s title and details below its artwork in library grids.';
+
+  @override
   String get useDetailedSubHeadings => 'Naudokite išsamias antraštes';
 
   @override
@@ -14510,6 +14507,9 @@ class AppLocalizationsLt extends AppLocalizations {
 
   @override
   String get showAlphabeticalFilters => 'Show Alphabet';
+
+  @override
+  String get libraryFolderView => 'Folder View';
 
   @override
   String get personalRatingStyle => 'Personal Rating Style';

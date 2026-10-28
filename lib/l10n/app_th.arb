@@ -3500,14 +3500,6 @@
     "@showLibrariesFromAllServers": {
         "description": "Description for multi-server libraries"
     },
-    "enableFolderView": "เปิดใช้งานมุมมองโฟลเดอร์",
-    "@enableFolderView": {
-        "description": "Setting for enabling folder view"
-    },
-    "showFolderBrowsingOption": "แสดงตัวเลือกการเรียกดูโฟลเดอร์",
-    "@showFolderBrowsingOption": {
-        "description": "Description for folder view"
-    },
     "libraryVisibility": "การมองเห็นห้องสมุด",
     "@libraryVisibility": {
         "description": "Section title for library visibility"
@@ -4230,10 +4222,6 @@
     "featuredContentAppearance": "เนื้อหาเด่น รูปลักษณ์ภายนอก",
     "@featuredContentAppearance": {
         "description": "Media bar settings subtitle"
-    },
-    "posterSizeImageTypeFolderView": "ขนาดโปสเตอร์ ประเภทรูปภาพ มุมมองโฟลเดอร์",
-    "@posterSizeImageTypeFolderView": {
-        "description": "Library display settings subtitle"
     },
     "mdbListTmdbRatingSources": "MDBList, TMDB และแหล่งที่มาของการจัดอันดับ",
     "@mdbListTmdbRatingSources": {

@@ -4786,13 +4786,6 @@ class AppLocalizationsSw extends AppLocalizations {
   String get libraryJumpToLetter => 'Jump to letter';
 
   @override
-  String get enableFolderView => 'Washa Mwonekano wa Folda';
-
-  @override
-  String get showFolderBrowsingOption =>
-      'Onyesha chaguo la kuvinjari kwenye folda';
-
-  @override
   String get groupItemsIntoCollections => 'Panga Vipengee katika Makusanyo';
 
   @override
@@ -5630,10 +5623,6 @@ class AppLocalizationsSw extends AppLocalizations {
 
   @override
   String get featuredContentAppearance => 'Maudhui yaliyoangaziwa, mwonekano';
-
-  @override
-  String get posterSizeImageTypeFolderView =>
-      'Saizi ya bango, aina ya picha, mwonekano wa folda';
 
   @override
   String gbValue(String value) {
@@ -12060,6 +12049,13 @@ class AppLocalizationsSw extends AppLocalizations {
       'Onyesha maelezo ya kipengee kilichochaguliwa juu ya kurasa za Maktaba.';
 
   @override
+  String get libraryCardTitles => 'Titles Under Posters';
+
+  @override
+  String get libraryCardTitlesDescription =>
+      'Show each item\'s title and details below its artwork in library grids.';
+
+  @override
   String get useDetailedSubHeadings => 'Tumia Vichwa Vidogo vya Kina';
 
   @override
@@ -14528,6 +14524,9 @@ class AppLocalizationsSw extends AppLocalizations {
 
   @override
   String get showAlphabeticalFilters => 'Show Alphabet';
+
+  @override
+  String get libraryFolderView => 'Folder View';
 
   @override
   String get personalRatingStyle => 'Personal Rating Style';

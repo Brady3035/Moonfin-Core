@@ -4816,13 +4816,6 @@ class AppLocalizationsRo extends AppLocalizations {
   String get libraryJumpToLetter => 'Jump to letter';
 
   @override
-  String get enableFolderView => 'Activează vizualizarea pe foldere';
-
-  @override
-  String get showFolderBrowsingOption =>
-      'Afișează opțiunea de navigare pe foldere';
-
-  @override
   String get groupItemsIntoCollections => 'Grupează elementele în colecții';
 
   @override
@@ -5668,10 +5661,6 @@ class AppLocalizationsRo extends AppLocalizations {
 
   @override
   String get featuredContentAppearance => 'Conținut recomandat, aspect';
-
-  @override
-  String get posterSizeImageTypeFolderView =>
-      'Dimensiunea posterelor, tipul de imagine, vizualizarea pe foldere';
 
   @override
   String gbValue(String value) {
@@ -12112,6 +12101,13 @@ class AppLocalizationsRo extends AppLocalizations {
       'Afișează detaliile elementului selectat în partea de sus a paginilor de bibliotecă.';
 
   @override
+  String get libraryCardTitles => 'Titles Under Posters';
+
+  @override
+  String get libraryCardTitlesDescription =>
+      'Show each item\'s title and details below its artwork in library grids.';
+
+  @override
   String get useDetailedSubHeadings => 'Folosește subtitluri detaliate';
 
   @override
@@ -14593,6 +14589,9 @@ class AppLocalizationsRo extends AppLocalizations {
 
   @override
   String get showAlphabeticalFilters => 'Arată alfabetul';
+
+  @override
+  String get libraryFolderView => 'Folder View';
 
   @override
   String get personalRatingStyle => 'Stilul evaluării personale';

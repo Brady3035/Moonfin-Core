@@ -3500,14 +3500,6 @@
     "@showLibrariesFromAllServers": {
         "description": "Description for multi-server libraries"
     },
-    "enableFolderView": "ਫੋਲਡਰ ਦ੍ਰਿਸ਼ ਨੂੰ ਸਮਰੱਥ ਬਣਾਓ",
-    "@enableFolderView": {
-        "description": "Setting for enabling folder view"
-    },
-    "showFolderBrowsingOption": "ਫੋਲਡਰ ਬ੍ਰਾਊਜ਼ਿੰਗ ਵਿਕਲਪ ਦਿਖਾਓ",
-    "@showFolderBrowsingOption": {
-        "description": "Description for folder view"
-    },
     "libraryVisibility": "ਲਾਇਬ੍ਰੇਰੀ ਦਰਿਸ਼ਗੋਚਰਤਾ",
     "@libraryVisibility": {
         "description": "Section title for library visibility"
@@ -4230,10 +4222,6 @@
     "featuredContentAppearance": "ਵਿਸ਼ੇਸ਼ ਸਮੱਗਰੀ, ਦਿੱਖ",
     "@featuredContentAppearance": {
         "description": "Media bar settings subtitle"
-    },
-    "posterSizeImageTypeFolderView": "ਪੋਸਟਰ ਦਾ ਆਕਾਰ, ਚਿੱਤਰ ਦੀ ਕਿਸਮ, ਫੋਲਡਰ ਦ੍ਰਿਸ਼",
-    "@posterSizeImageTypeFolderView": {
-        "description": "Library display settings subtitle"
     },
     "mdbListTmdbRatingSources": "MDBList, TMDB, ਅਤੇ ਰੇਟਿੰਗ ਸਰੋਤ",
     "@mdbListTmdbRatingSources": {

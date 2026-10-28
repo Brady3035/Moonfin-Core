@@ -4801,13 +4801,6 @@ class AppLocalizationsGl extends AppLocalizations {
   String get libraryJumpToLetter => 'Jump to letter';
 
   @override
-  String get enableFolderView => 'Activar a vista de cartafoles';
-
-  @override
-  String get showFolderBrowsingOption =>
-      'Mostrar a opción de navegación por cartafoles';
-
-  @override
   String get groupItemsIntoCollections => 'Agrupar os elementos en coleccións';
 
   @override
@@ -5650,10 +5643,6 @@ class AppLocalizationsGl extends AppLocalizations {
 
   @override
   String get featuredContentAppearance => 'Contido destacado, aparencia';
-
-  @override
-  String get posterSizeImageTypeFolderView =>
-      'Tamaño do póster, tipo de imaxe, vista do cartafol';
 
   @override
   String gbValue(String value) {
@@ -12116,6 +12105,13 @@ class AppLocalizationsGl extends AppLocalizations {
       'Mostra os detalles do elemento seleccionado na parte superior das páxinas de Biblioteca.';
 
   @override
+  String get libraryCardTitles => 'Titles Under Posters';
+
+  @override
+  String get libraryCardTitlesDescription =>
+      'Show each item\'s title and details below its artwork in library grids.';
+
+  @override
   String get useDetailedSubHeadings => 'Usar subcabeceiras detalladas';
 
   @override
@@ -14590,6 +14586,9 @@ class AppLocalizationsGl extends AppLocalizations {
 
   @override
   String get showAlphabeticalFilters => 'Show Alphabet';
+
+  @override
+  String get libraryFolderView => 'Folder View';
 
   @override
   String get personalRatingStyle => 'Personal Rating Style';

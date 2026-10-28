@@ -3500,14 +3500,6 @@
     "@showLibrariesFromAllServers": {
         "description": "Description for multi-server libraries"
     },
-    "enableFolderView": "ෆෝල්ඩර දර්ශනය සබල කරන්න",
-    "@enableFolderView": {
-        "description": "Setting for enabling folder view"
-    },
-    "showFolderBrowsingOption": "ෆෝල්ඩර බ්‍රවුසින් විකල්පය පෙන්වන්න",
-    "@showFolderBrowsingOption": {
-        "description": "Description for folder view"
-    },
     "libraryVisibility": "පුස්තකාල දෘශ්‍යතාව",
     "@libraryVisibility": {
         "description": "Section title for library visibility"
@@ -4230,10 +4222,6 @@
     "featuredContentAppearance": "විශේෂාංග අන්තර්ගතය, පෙනුම",
     "@featuredContentAppearance": {
         "description": "Media bar settings subtitle"
-    },
-    "posterSizeImageTypeFolderView": "පෝස්ටර් ප්‍රමාණය, රූප වර්ගය, ෆෝල්ඩර දර්ශනය",
-    "@posterSizeImageTypeFolderView": {
-        "description": "Library display settings subtitle"
     },
     "mdbListTmdbRatingSources": "MDBList, TMDB, සහ ශ්‍රේණිගත කිරීමේ මූලාශ්‍ර",
     "@mdbListTmdbRatingSources": {

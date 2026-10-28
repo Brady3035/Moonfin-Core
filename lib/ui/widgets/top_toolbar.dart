@@ -997,7 +997,6 @@ class _TopToolbarState extends State<TopToolbar> with RouteAware {
     final showLibraries =
         !kidsMode && _prefs.get(UserPreferences.showLibrariesInToolbar);
     final alwaysExpanded = _prefs.get(UserPreferences.navbarAlwaysExpanded);
-    final showFolders = _prefs.get(UserPreferences.enableFolderView);
     final showSyncPlay =
         !kidsMode &&
         _prefs.get(UserPreferences.syncPlayEnabled) &&
@@ -1136,23 +1135,6 @@ class _TopToolbarState extends State<TopToolbar> with RouteAware {
                     onPressed: () {
                       if (_isActive(Destinations.liveTvGuide)) return;
                       context.navigateTopLevel(Destinations.liveTvGuide);
-                    },
-                  ),
-                ),
-              ],
-              if (showFolders) ...[
-                _gap(),
-                _orderButton(
-                  order: (order++).toDouble(),
-                  child: ExpandableIconButton(
-                    key: const ValueKey('toolbar_folders'),
-                    forceExpanded: alwaysExpanded,
-                    icon: Icons.folder_rounded,
-                    label: l10n.folders,
-                    baseColor: nextNavColor(),
-                    onPressed: () {
-                      if (_isActive(Destinations.folderView)) return;
-                      context.navigateTopLevel(Destinations.folderView);
                     },
                   ),
                 ),

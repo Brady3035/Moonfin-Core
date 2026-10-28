@@ -4750,12 +4750,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get libraryJumpToLetter => 'Jump to letter';
 
   @override
-  String get enableFolderView => 'Enable Folder View';
-
-  @override
-  String get showFolderBrowsingOption => 'Show folder browsing option';
-
-  @override
   String get groupItemsIntoCollections => 'Group Items into Collections';
 
   @override
@@ -5583,10 +5577,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get featuredContentAppearance => 'Featured content, appearance';
-
-  @override
-  String get posterSizeImageTypeFolderView =>
-      'Poster size, image type, folder view';
 
   @override
   String gbValue(String value) {
@@ -11922,6 +11912,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Show details of the selected item at the top of Library pages.';
 
   @override
+  String get libraryCardTitles => 'Titles Under Posters';
+
+  @override
+  String get libraryCardTitlesDescription =>
+      'Show each item\'s title and details below its artwork in library grids.';
+
+  @override
   String get useDetailedSubHeadings => 'Use Detailed Sub-Headings';
 
   @override
@@ -14374,6 +14371,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get showAlphabeticalFilters => 'Show Alphabet';
+
+  @override
+  String get libraryFolderView => 'Folder View';
 
   @override
   String get personalRatingStyle => 'Personal Rating Style';
@@ -19893,12 +19893,6 @@ class AppLocalizationsEnGb extends AppLocalizationsEn {
   String get libraryView => 'Library View';
 
   @override
-  String get enableFolderView => 'Enable Folder View';
-
-  @override
-  String get showFolderBrowsingOption => 'Show folder browsing option';
-
-  @override
   String get groupItemsIntoCollections => 'Group Items into Collections';
 
   @override
@@ -20619,10 +20613,6 @@ class AppLocalizationsEnGb extends AppLocalizationsEn {
 
   @override
   String get featuredContentAppearance => 'Featured content, appearance';
-
-  @override
-  String get posterSizeImageTypeFolderView =>
-      'Poster size, image type, folder view';
 
   @override
   String gbValue(String value) {

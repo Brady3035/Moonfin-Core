@@ -4764,12 +4764,6 @@ class AppLocalizationsEo extends AppLocalizations {
   String get libraryJumpToLetter => 'Jump to letter';
 
   @override
-  String get enableFolderView => 'Ebligu Dosierujon';
-
-  @override
-  String get showFolderBrowsingOption => 'Montru dosierujan foliumadan opcion';
-
-  @override
   String get groupItemsIntoCollections => 'Grupigi erojn en kolektojn';
 
   @override
@@ -5602,10 +5596,6 @@ class AppLocalizationsEo extends AppLocalizations {
 
   @override
   String get featuredContentAppearance => 'Elstara enhavo, aspekto';
-
-  @override
-  String get posterSizeImageTypeFolderView =>
-      'Afiŝo grandeco, bildtipo, dosierujo vido';
 
   @override
   String gbValue(String value) {
@@ -11985,6 +11975,13 @@ class AppLocalizationsEo extends AppLocalizations {
       'Montri detalojn de la elektita ero ĉe la supro de bibliotekaj paĝoj.';
 
   @override
+  String get libraryCardTitles => 'Titles Under Posters';
+
+  @override
+  String get libraryCardTitlesDescription =>
+      'Show each item\'s title and details below its artwork in library grids.';
+
+  @override
   String get useDetailedSubHeadings => 'Uzu Detalaj Sub-Titoloj';
 
   @override
@@ -14448,6 +14445,9 @@ class AppLocalizationsEo extends AppLocalizations {
 
   @override
   String get showAlphabeticalFilters => 'Show Alphabet';
+
+  @override
+  String get libraryFolderView => 'Folder View';
 
   @override
   String get personalRatingStyle => 'Personal Rating Style';

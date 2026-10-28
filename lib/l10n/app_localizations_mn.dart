@@ -4767,12 +4767,6 @@ class AppLocalizationsMn extends AppLocalizations {
   String get libraryJumpToLetter => 'Jump to letter';
 
   @override
-  String get enableFolderView => 'Фолдер харахыг идэвхжүүлэх';
-
-  @override
-  String get showFolderBrowsingOption => 'Фолдер үзэх сонголтыг харуулах';
-
-  @override
   String get groupItemsIntoCollections => 'Зүйлсийг цуглуулгад бүлэглэх';
 
   @override
@@ -5612,10 +5606,6 @@ class AppLocalizationsMn extends AppLocalizations {
 
   @override
   String get featuredContentAppearance => 'Онцлох агуулга, гадаад төрх';
-
-  @override
-  String get posterSizeImageTypeFolderView =>
-      'Зурагт хуудасны хэмжээ, зургийн төрөл, хавтас харах';
 
   @override
   String gbValue(String value) {
@@ -12015,6 +12005,13 @@ class AppLocalizationsMn extends AppLocalizations {
       'Сангийн хуудасны дээд хэсэгт сонгосон зүйлийн дэлгэрэнгүйг харуулна.';
 
   @override
+  String get libraryCardTitles => 'Titles Under Posters';
+
+  @override
+  String get libraryCardTitlesDescription =>
+      'Show each item\'s title and details below its artwork in library grids.';
+
+  @override
   String get useDetailedSubHeadings => 'Нарийвчилсан дэд гарчгийг ашиглана уу';
 
   @override
@@ -14472,6 +14469,9 @@ class AppLocalizationsMn extends AppLocalizations {
 
   @override
   String get showAlphabeticalFilters => 'Show Alphabet';
+
+  @override
+  String get libraryFolderView => 'Folder View';
 
   @override
   String get personalRatingStyle => 'Personal Rating Style';

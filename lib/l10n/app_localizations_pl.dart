@@ -4946,12 +4946,6 @@ class AppLocalizationsPl extends AppLocalizations {
   String get libraryJumpToLetter => 'Jump to letter';
 
   @override
-  String get enableFolderView => 'Włącz widok folderów';
-
-  @override
-  String get showFolderBrowsingOption => 'Pokaż opcję przeglądania folderów';
-
-  @override
   String get groupItemsIntoCollections => 'Grupuj pozycje w kolekcje';
 
   @override
@@ -5793,10 +5787,6 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get featuredContentAppearance => 'Polecane treści, wygląd';
-
-  @override
-  String get posterSizeImageTypeFolderView =>
-      'Rozmiar plakatu, typ obrazu, widok folderów';
 
   @override
   String gbValue(String value) {
@@ -12305,6 +12295,13 @@ class AppLocalizationsPl extends AppLocalizations {
       'Pokazuj szczegóły wybranej pozycji u góry stron biblioteki.';
 
   @override
+  String get libraryCardTitles => 'Titles Under Posters';
+
+  @override
+  String get libraryCardTitlesDescription =>
+      'Show each item\'s title and details below its artwork in library grids.';
+
+  @override
   String get useDetailedSubHeadings =>
       'Używaj szczegółowych informacji pomocniczych';
 
@@ -14810,6 +14807,9 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get showAlphabeticalFilters => 'Pokaż alfabet';
+
+  @override
+  String get libraryFolderView => 'Folder View';
 
   @override
   String get personalRatingStyle => 'Styl ocen użytkownika';

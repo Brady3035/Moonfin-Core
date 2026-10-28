@@ -129,6 +129,10 @@ class MediaCard extends StatefulWidget {
   /// card guess from [aspectRatio].
   final bool isBanner;
 
+  /// Off hides the title and subtitle under the artwork. The title still
+  /// labels a card that has no artwork.
+  final bool showLabel;
+
   /// The item behind the subbed/dubbed pill. Set only for standalone items such as
   /// movies, which have no series to inherit a verdict from.
   final String? animeMarkerItemId;
@@ -183,6 +187,7 @@ class MediaCard extends StatefulWidget {
     this.overlayOccupiesTopLeft = false,
     this.isGenreFallback = false,
     this.isBanner = false,
+    this.showLabel = true,
     this.animeMarkerItemId,
     this.recordingItemId,
   });
@@ -411,7 +416,7 @@ class _MediaCardState extends State<MediaCard> with FocusStateMixin {
                     curve: PlatformDetection.isAppleTV
                         ? Curves.easeOutCubic
                         : Curves.linear,
-                    alignment: widget.title != null
+                    alignment: widget.showLabel && widget.title != null
                         ? Alignment.bottomCenter
                         : Alignment.center,
                     child: _CardImage(
@@ -440,7 +445,7 @@ class _MediaCardState extends State<MediaCard> with FocusStateMixin {
                     ),
                   ),
                 ),
-                if (widget.isBanner) ...[
+                if (widget.showLabel && widget.isBanner) ...[
                   if (widget.title != null) ...[
                     const SizedBox(height: MediaCard._labelGap),
                     SizedBox(
@@ -457,7 +462,7 @@ class _MediaCardState extends State<MediaCard> with FocusStateMixin {
                     SizedBox(height: widget.title != null ? 2 : 6),
                     widget.subtitleWidget!,
                   ],
-                ] else ...[
+                ] else if (widget.showLabel) ...[
                   if (widget.title != null) ...[
                     const SizedBox(height: MediaCard._labelGap),
                     SizedBox(

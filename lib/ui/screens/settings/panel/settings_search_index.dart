@@ -869,12 +869,6 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
       subtitle: l10n.settingsAlwaysExpandNavbarLabels,
       keywords: ['labels'],
     ),
-    navigation.leaf(
-      'enable_folder_view',
-      l10n.enableFolderView,
-      subtitle: l10n.showFolderBrowsingOption,
-      keywords: ['directories'],
-    ),
     if (seerrAvailable)
       navigation.leaf(
         'pref_show_seerr_button',
@@ -1231,6 +1225,12 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
       'pref_show_media_details_on_library_page',
       l10n.showMediaDetailsOnLibraryPage,
       subtitle: l10n.showMediaDetailsOnLibraryPageDescription,
+    ),
+    libraries.leaf(
+      'pref_library_card_titles',
+      l10n.libraryCardTitles,
+      subtitle: l10n.libraryCardTitlesDescription,
+      keywords: ['card text', 'names'],
     ),
     libraries.leaf(
       'pref_hide_backdrops_in_libraries',

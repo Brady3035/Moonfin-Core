@@ -3500,14 +3500,6 @@
     "@showLibrariesFromAllServers": {
         "description": "Description for multi-server libraries"
     },
-    "enableFolderView": "ಫೋಲ್ಡರ್ ವೀಕ್ಷಣೆಯನ್ನು ಸಕ್ರಿಯಗೊಳಿಸಿ",
-    "@enableFolderView": {
-        "description": "Setting for enabling folder view"
-    },
-    "showFolderBrowsingOption": "ಫೋಲ್ಡರ್ ಬ್ರೌಸಿಂಗ್ ಆಯ್ಕೆಯನ್ನು ತೋರಿಸಿ",
-    "@showFolderBrowsingOption": {
-        "description": "Description for folder view"
-    },
     "libraryVisibility": "ಲೈಬ್ರರಿ ಗೋಚರತೆ",
     "@libraryVisibility": {
         "description": "Section title for library visibility"
@@ -4230,10 +4222,6 @@
     "featuredContentAppearance": "ವೈಶಿಷ್ಟ್ಯಗೊಳಿಸಿದ ವಿಷಯ, ನೋಟ",
     "@featuredContentAppearance": {
         "description": "Media bar settings subtitle"
-    },
-    "posterSizeImageTypeFolderView": "ಪೋಸ್ಟರ್ ಗಾತ್ರ, ಚಿತ್ರದ ಪ್ರಕಾರ, ಫೋಲ್ಡರ್ ವೀಕ್ಷಣೆ",
-    "@posterSizeImageTypeFolderView": {
-        "description": "Library display settings subtitle"
     },
     "mdbListTmdbRatingSources": "MDBList, TMDB, ಮತ್ತು ರೇಟಿಂಗ್ ಮೂಲಗಳು",
     "@mdbListTmdbRatingSources": {

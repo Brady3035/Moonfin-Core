@@ -4655,12 +4655,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get libraryJumpToLetter => 'Jump to letter';
 
   @override
-  String get enableFolderView => '启用文件夹视图';
-
-  @override
-  String get showFolderBrowsingOption => '显示文件夹浏览选项';
-
-  @override
   String get groupItemsIntoCollections => '将影片归类至系列合集';
 
   @override
@@ -5454,9 +5448,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get featuredContentAppearance => '特色内容、外观';
-
-  @override
-  String get posterSizeImageTypeFolderView => '海报尺寸、图片类型、文件夹视图';
 
   @override
   String gbValue(String value) {
@@ -11649,6 +11640,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get showMediaDetailsOnLibraryPageDescription => '在媒体库页面顶部显示所选媒体项的详情。';
 
   @override
+  String get libraryCardTitles => 'Titles Under Posters';
+
+  @override
+  String get libraryCardTitlesDescription =>
+      'Show each item\'s title and details below its artwork in library grids.';
+
+  @override
   String get useDetailedSubHeadings => '使用详细的副标题';
 
   @override
@@ -14032,6 +14030,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get showAlphabeticalFilters => '显示字母表';
+
+  @override
+  String get libraryFolderView => 'Folder View';
 
   @override
   String get personalRatingStyle => '个人评分样式';
@@ -18370,12 +18371,6 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
       '合併相同類型的媒體庫，並顯示於首頁的「最近新增」和「最近發行」。';
 
   @override
-  String get enableFolderView => '啟用資料夾視圖';
-
-  @override
-  String get showFolderBrowsingOption => '顯示資料夾瀏覽選項';
-
-  @override
   String get groupItemsIntoCollections => '將影片歸類至系列合輯';
 
   @override
@@ -18950,9 +18945,6 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get featuredContentAppearance => '特色內容、外觀';
-
-  @override
-  String get posterSizeImageTypeFolderView => '海報尺寸、圖像類型、資料夾視圖';
 
   @override
   String gbValue(String value) {

@@ -4768,12 +4768,6 @@ class AppLocalizationsAf extends AppLocalizations {
   String get libraryJumpToLetter => 'Jump to letter';
 
   @override
-  String get enableFolderView => 'Aktiveer gidsaansig';
-
-  @override
-  String get showFolderBrowsingOption => 'Wys gidsblaai-opsie';
-
-  @override
   String get groupItemsIntoCollections => 'Groepeer items in versamelings';
 
   @override
@@ -5608,10 +5602,6 @@ class AppLocalizationsAf extends AppLocalizations {
 
   @override
   String get featuredContentAppearance => 'Uitgestalte inhoud, voorkoms';
-
-  @override
-  String get posterSizeImageTypeFolderView =>
-      'Plakkaatgrootte, beeldtipe, voueraansig';
 
   @override
   String gbValue(String value) {
@@ -11995,6 +11985,13 @@ class AppLocalizationsAf extends AppLocalizations {
       'Wys besonderhede van die gekose item boaan biblioteekbladsye.';
 
   @override
+  String get libraryCardTitles => 'Titles Under Posters';
+
+  @override
+  String get libraryCardTitlesDescription =>
+      'Show each item\'s title and details below its artwork in library grids.';
+
+  @override
   String get useDetailedSubHeadings => 'Gebruik gedetailleerde subopskrifte';
 
   @override
@@ -14457,6 +14454,9 @@ class AppLocalizationsAf extends AppLocalizations {
 
   @override
   String get showAlphabeticalFilters => 'Show Alphabet';
+
+  @override
+  String get libraryFolderView => 'Folder View';
 
   @override
   String get personalRatingStyle => 'Personal Rating Style';

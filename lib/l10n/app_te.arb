@@ -3500,14 +3500,6 @@
     "@showLibrariesFromAllServers": {
         "description": "Description for multi-server libraries"
     },
-    "enableFolderView": "ఫోల్డర్ వీక్షణను ప్రారంభించండి",
-    "@enableFolderView": {
-        "description": "Setting for enabling folder view"
-    },
-    "showFolderBrowsingOption": "ఫోల్డర్ బ్రౌజింగ్ ఎంపికను చూపు",
-    "@showFolderBrowsingOption": {
-        "description": "Description for folder view"
-    },
     "libraryVisibility": "లైబ్రరీ దృశ్యమానత",
     "@libraryVisibility": {
         "description": "Section title for library visibility"
@@ -4230,10 +4222,6 @@
     "featuredContentAppearance": "ఫీచర్ చేయబడిన కంటెంట్, ప్రదర్శన",
     "@featuredContentAppearance": {
         "description": "Media bar settings subtitle"
-    },
-    "posterSizeImageTypeFolderView": "పోస్టర్ పరిమాణం, చిత్రం రకం, ఫోల్డర్ వీక్షణ",
-    "@posterSizeImageTypeFolderView": {
-        "description": "Library display settings subtitle"
     },
     "mdbListTmdbRatingSources": "MDBList, TMDB మరియు రేటింగ్ మూలాలు",
     "@mdbListTmdbRatingSources": {

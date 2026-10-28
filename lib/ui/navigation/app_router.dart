@@ -163,6 +163,8 @@ final appRouter = GoRouter(
   redirect: (context, state) {
     final path = state.uri.path;
     if (_authRoutes.contains(path)) return null;
+    // The old Folders screen, for a bookmark or a link from an older app.
+    if (path == '/folders') return Destinations.home;
 
     final session = GetIt.instance<SessionRepository>();
     if (session.activeUserId == null) {
@@ -340,10 +342,6 @@ final appRouter = GoRouter(
     GoRoute(
       path: Destinations.allFavorites,
       builder: (context, state) => const FavoritesScreen(),
-    ),
-    GoRoute(
-      path: Destinations.folderView,
-      builder: (context, state) => const FolderBrowseScreen(folderId: 'root'),
     ),
     GoRoute(
       path: Destinations.folderBrowse,

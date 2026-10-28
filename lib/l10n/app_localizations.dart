@@ -8416,18 +8416,6 @@ abstract class AppLocalizations {
   /// **'Jump to letter'**
   String get libraryJumpToLetter;
 
-  /// Setting for enabling folder view
-  ///
-  /// In en, this message translates to:
-  /// **'Enable Folder View'**
-  String get enableFolderView;
-
-  /// Description for folder view
-  ///
-  /// In en, this message translates to:
-  /// **'Show folder browsing option'**
-  String get showFolderBrowsingOption;
-
   /// Setting for grouping items into collections
   ///
   /// In en, this message translates to:
@@ -9951,12 +9939,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Featured content, appearance'**
   String get featuredContentAppearance;
-
-  /// Library display settings subtitle
-  ///
-  /// In en, this message translates to:
-  /// **'Poster size, image type, folder view'**
-  String get posterSizeImageTypeFolderView;
 
   /// Gigabyte value display
   ///
@@ -21148,6 +21130,18 @@ abstract class AppLocalizations {
   /// **'Show details of the selected item at the top of Library pages.'**
   String get showMediaDetailsOnLibraryPageDescription;
 
+  /// Setting that shows or hides the title and details under each card in library grids
+  ///
+  /// In en, this message translates to:
+  /// **'Titles Under Posters'**
+  String get libraryCardTitles;
+
+  /// Description of the Titles Under Posters setting
+  ///
+  /// In en, this message translates to:
+  /// **'Show each item\'s title and details below its artwork in library grids.'**
+  String get libraryCardTitlesDescription;
+
   /// Label for setting to toggle detailed or minimal subrow on library pages
   ///
   /// In en, this message translates to:
@@ -25356,6 +25350,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Show Alphabet'**
   String get showAlphabeticalFilters;
+
+  /// Checkbox in a library's Sort and Filter options that lists the library one folder at a time instead of all its items at once
+  ///
+  /// In en, this message translates to:
+  /// **'Folder View'**
+  String get libraryFolderView;
 
   /// Selects how personal ratings are displayed and entered on media details.
   ///

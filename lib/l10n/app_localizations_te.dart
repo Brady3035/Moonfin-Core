@@ -4782,12 +4782,6 @@ class AppLocalizationsTe extends AppLocalizations {
   String get libraryJumpToLetter => 'Jump to letter';
 
   @override
-  String get enableFolderView => 'ఫోల్డర్ వీక్షణను ప్రారంభించండి';
-
-  @override
-  String get showFolderBrowsingOption => 'ఫోల్డర్ బ్రౌజింగ్ ఎంపికను చూపు';
-
-  @override
   String get groupItemsIntoCollections => 'అంశాలను సేకరణలుగా సమూహపరచండి';
 
   @override
@@ -5625,10 +5619,6 @@ class AppLocalizationsTe extends AppLocalizations {
 
   @override
   String get featuredContentAppearance => 'ఫీచర్ చేయబడిన కంటెంట్, ప్రదర్శన';
-
-  @override
-  String get posterSizeImageTypeFolderView =>
-      'పోస్టర్ పరిమాణం, చిత్రం రకం, ఫోల్డర్ వీక్షణ';
 
   @override
   String gbValue(String value) {
@@ -12059,6 +12049,13 @@ class AppLocalizationsTe extends AppLocalizations {
       'లైబ్రరీ పేజీల ఎగువన ఎంచుకున్న అంశం వివరాలను చూపుతుంది.';
 
   @override
+  String get libraryCardTitles => 'Titles Under Posters';
+
+  @override
+  String get libraryCardTitlesDescription =>
+      'Show each item\'s title and details below its artwork in library grids.';
+
+  @override
   String get useDetailedSubHeadings => 'వివరణాత్మక ఉపశీర్షికలను ఉపయోగించండి';
 
   @override
@@ -14520,6 +14517,9 @@ class AppLocalizationsTe extends AppLocalizations {
 
   @override
   String get showAlphabeticalFilters => 'Show Alphabet';
+
+  @override
+  String get libraryFolderView => 'Folder View';
 
   @override
   String get personalRatingStyle => 'Personal Rating Style';

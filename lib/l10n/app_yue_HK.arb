@@ -3492,14 +3492,6 @@
     "@showLibrariesFromAllServers": {
         "description": "Description for multi-server libraries"
     },
-    "enableFolderView": "啟用資料夾視圖",
-    "@enableFolderView": {
-        "description": "Setting for enabling folder view"
-    },
-    "showFolderBrowsingOption": "顯示資料夾瀏覽選項",
-    "@showFolderBrowsingOption": {
-        "description": "Description for folder view"
-    },
     "libraryVisibility": "圖書館可見性",
     "@libraryVisibility": {
         "description": "Section title for library visibility"
@@ -4166,10 +4158,6 @@
     "featuredContentAppearance": "特色內容、外觀",
     "@featuredContentAppearance": {
         "description": "Media bar settings subtitle"
-    },
-    "posterSizeImageTypeFolderView": "海報尺寸、圖像類型、資料夾視圖",
-    "@posterSizeImageTypeFolderView": {
-        "description": "Library display settings subtitle"
     },
     "mdbListTmdbRatingSources": "MDBList、TMDB 和評級來源",
     "@mdbListTmdbRatingSources": {

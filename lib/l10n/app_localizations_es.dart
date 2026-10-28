@@ -4786,13 +4786,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get libraryJumpToLetter => 'Jump to letter';
 
   @override
-  String get enableFolderView => 'Habilitar vista de carpetas';
-
-  @override
-  String get showFolderBrowsingOption =>
-      'Mostrar opción de exploración por carpetas';
-
-  @override
   String get groupItemsIntoCollections => 'Agrupar elementos en colecciones';
 
   @override
@@ -5636,10 +5629,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get featuredContentAppearance => 'Contenido destacado, apariencia';
-
-  @override
-  String get posterSizeImageTypeFolderView =>
-      'Tamaño de póster, tipo de imagen, vista de carpetas';
 
   @override
   String gbValue(String value) {
@@ -12094,6 +12083,13 @@ class AppLocalizationsEs extends AppLocalizations {
       'Mostrar los detalles del elemento seleccionado en la parte superior de las páginas de biblioteca.';
 
   @override
+  String get libraryCardTitles => 'Titles Under Posters';
+
+  @override
+  String get libraryCardTitlesDescription =>
+      'Show each item\'s title and details below its artwork in library grids.';
+
+  @override
   String get useDetailedSubHeadings => 'Utilice subtítulos detallados';
 
   @override
@@ -14568,6 +14564,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get showAlphabeticalFilters => 'Show Alphabet';
+
+  @override
+  String get libraryFolderView => 'Folder View';
 
   @override
   String get personalRatingStyle => 'Personal Rating Style';
@@ -18757,13 +18756,6 @@ class AppLocalizationsEs419 extends AppLocalizationsEs {
       'Mostrar bibliotecas de todos los servidores conectados';
 
   @override
-  String get enableFolderView => 'Habilitar vista de carpetas';
-
-  @override
-  String get showFolderBrowsingOption =>
-      'Mostrar opción de exploración de carpetas';
-
-  @override
   String get libraryVisibility => 'Visibilidad de la biblioteca';
 
   @override
@@ -19286,10 +19278,6 @@ class AppLocalizationsEs419 extends AppLocalizationsEs {
 
   @override
   String get featuredContentAppearance => 'Contenido destacado, apariencia.';
-
-  @override
-  String get posterSizeImageTypeFolderView =>
-      'Tamaño del póster, tipo de imagen, vista de carpeta';
 
   @override
   String gbValue(String value) {
@@ -26002,13 +25990,6 @@ class AppLocalizationsEsAr extends AppLocalizationsEs {
       'Mostrar bibliotecas de todos los servidores conectados';
 
   @override
-  String get enableFolderView => 'Habilitar vista de carpetas';
-
-  @override
-  String get showFolderBrowsingOption =>
-      'Mostrar opción de exploración de carpetas';
-
-  @override
   String get libraryVisibility => 'Visibilidad de la biblioteca';
 
   @override
@@ -26515,10 +26496,6 @@ class AppLocalizationsEsAr extends AppLocalizationsEs {
 
   @override
   String get featuredContentAppearance => 'Contenido destacado, apariencia.';
-
-  @override
-  String get posterSizeImageTypeFolderView =>
-      'Tamaño del póster, tipo de imagen, vista de carpeta';
 
   @override
   String gbValue(String value) {
@@ -33228,13 +33205,6 @@ class AppLocalizationsEsDo extends AppLocalizationsEs {
       'Mostrar bibliotecas de todos los servidores conectados';
 
   @override
-  String get enableFolderView => 'Habilitar vista de carpetas';
-
-  @override
-  String get showFolderBrowsingOption =>
-      'Mostrar opción de exploración de carpetas';
-
-  @override
   String get libraryVisibility => 'Visibilidad de la biblioteca';
 
   @override
@@ -33741,10 +33711,6 @@ class AppLocalizationsEsDo extends AppLocalizationsEs {
 
   @override
   String get featuredContentAppearance => 'Contenido destacado, apariencia.';
-
-  @override
-  String get posterSizeImageTypeFolderView =>
-      'Tamaño del póster, tipo de imagen, vista de carpeta';
 
   @override
   String gbValue(String value) {
@@ -40504,13 +40470,6 @@ class AppLocalizationsEsMx extends AppLocalizationsEs {
       'Mostrar bibliotecas de todos los servidores conectados';
 
   @override
-  String get enableFolderView => 'Habilitar vista de carpetas';
-
-  @override
-  String get showFolderBrowsingOption =>
-      'Mostrar opción de exploración de carpetas';
-
-  @override
   String get libraryVisibility => 'Visibilidad de la biblioteca';
 
   @override
@@ -41017,10 +40976,6 @@ class AppLocalizationsEsMx extends AppLocalizationsEs {
 
   @override
   String get featuredContentAppearance => 'Contenido destacado, apariencia.';
-
-  @override
-  String get posterSizeImageTypeFolderView =>
-      'Tamaño del póster, tipo de imagen, vista de carpeta';
 
   @override
   String gbValue(String value) {

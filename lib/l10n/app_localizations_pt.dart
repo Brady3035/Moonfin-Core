@@ -4780,13 +4780,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get libraryJumpToLetter => 'Jump to letter';
 
   @override
-  String get enableFolderView => 'Habilitar Visualização de Pastas';
-
-  @override
-  String get showFolderBrowsingOption =>
-      'Mostrar opção de navegação por pastas';
-
-  @override
   String get groupItemsIntoCollections => 'Agrupar Itens em Coleções';
 
   @override
@@ -5629,10 +5622,6 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get featuredContentAppearance => 'Conteúdo em destaque, aparência';
-
-  @override
-  String get posterSizeImageTypeFolderView =>
-      'Tamanho do pôster, tipo de imagem, visualização de pastas';
 
   @override
   String gbValue(String value) {
@@ -12064,6 +12053,13 @@ class AppLocalizationsPt extends AppLocalizations {
       'Mostrar os detalhes do item selecionado no topo das páginas da Biblioteca.';
 
   @override
+  String get libraryCardTitles => 'Titles Under Posters';
+
+  @override
+  String get libraryCardTitlesDescription =>
+      'Show each item\'s title and details below its artwork in library grids.';
+
+  @override
   String get useDetailedSubHeadings => 'Use subtítulos detalhados';
 
   @override
@@ -14536,6 +14532,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get showAlphabeticalFilters => 'Show Alphabet';
+
+  @override
+  String get libraryFolderView => 'Folder View';
 
   @override
   String get personalRatingStyle => 'Personal Rating Style';
@@ -20548,12 +20547,6 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
   String get libraryJumpToLetter => 'Ir para a letra';
 
   @override
-  String get enableFolderView => 'Ativar visualização de pasta';
-
-  @override
-  String get showFolderBrowsingOption => 'Mostrar opção de navegação em pastas';
-
-  @override
   String get groupItemsIntoCollections => 'Agrupar itens em coleções';
 
   @override
@@ -21360,10 +21353,6 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
 
   @override
   String get featuredContentAppearance => 'Conteúdo em destaque, aparência';
-
-  @override
-  String get posterSizeImageTypeFolderView =>
-      'Tamanho do pôster, tipo de imagem, visualização de pasta';
 
   @override
   String gbValue(String value) {
@@ -35422,12 +35411,6 @@ class AppLocalizationsPtPt extends AppLocalizationsPt {
   String get libraryView => 'Visualização da biblioteca';
 
   @override
-  String get enableFolderView => 'Ativar visualização de pasta';
-
-  @override
-  String get showFolderBrowsingOption => 'Mostrar opção de navegação em pastas';
-
-  @override
   String get groupItemsIntoCollections => 'Agrupar itens em coleções';
 
   @override
@@ -36229,10 +36212,6 @@ class AppLocalizationsPtPt extends AppLocalizationsPt {
 
   @override
   String get featuredContentAppearance => 'Conteúdo em destaque, aparência';
-
-  @override
-  String get posterSizeImageTypeFolderView =>
-      'Tamanho do cartaz, tipo de imagem, vista de pastas';
 
   @override
   String gbValue(String value) {

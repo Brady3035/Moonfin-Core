@@ -3446,14 +3446,6 @@
     "@showLibrariesFromAllServers": {
         "description": "Description for multi-server libraries"
     },
-    "enableFolderView": "Aktivera mappvy",
-    "@enableFolderView": {
-        "description": "Setting for enabling folder view"
-    },
-    "showFolderBrowsingOption": "Visa mappsökningsalternativ",
-    "@showFolderBrowsingOption": {
-        "description": "Description for folder view"
-    },
     "libraryVisibility": "Bibliotekets synlighet",
     "@libraryVisibility": {
         "description": "Section title for library visibility"
@@ -4143,10 +4135,6 @@
     "featuredContentAppearance": "Utvalt innehåll, utseende",
     "@featuredContentAppearance": {
         "description": "Media bar settings subtitle"
-    },
-    "posterSizeImageTypeFolderView": "Affischstorlek, bildtyp, mappvy",
-    "@posterSizeImageTypeFolderView": {
-        "description": "Library display settings subtitle"
     },
     "mdbListTmdbRatingSources": "MDBList, TMDB och betygskällor",
     "@mdbListTmdbRatingSources": {

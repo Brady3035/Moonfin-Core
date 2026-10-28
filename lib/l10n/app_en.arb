@@ -6274,14 +6274,6 @@
   "@libraryJumpToLetter": {
     "description": "Label of the alphabet in a library, which scrolls to the first item starting with the chosen letter"
   },
-  "enableFolderView": "Enable Folder View",
-  "@enableFolderView": {
-    "description": "Setting for enabling folder view"
-  },
-  "showFolderBrowsingOption": "Show folder browsing option",
-  "@showFolderBrowsingOption": {
-    "description": "Description for folder view"
-  },
   "groupItemsIntoCollections": "Group Items into Collections",
   "@groupItemsIntoCollections": {
     "description": "Setting for grouping items into collections"
@@ -7345,10 +7337,6 @@
   "featuredContentAppearance": "Featured content, appearance",
   "@featuredContentAppearance": {
     "description": "Media bar settings subtitle"
-  },
-  "posterSizeImageTypeFolderView": "Poster size, image type, folder view",
-  "@posterSizeImageTypeFolderView": {
-    "description": "Library display settings subtitle"
   },
   "gbValue": "{value} GB",
   "@gbValue": {
@@ -10936,6 +10924,14 @@
   "@showMediaDetailsOnLibraryPageDescription": {
     "description": "Setting description to show/hide focused media details at the top of the library page"
   },
+  "libraryCardTitles": "Titles Under Posters",
+  "@libraryCardTitles": {
+    "description": "Setting that shows or hides the title and details under each card in library grids"
+  },
+  "libraryCardTitlesDescription": "Show each item's title and details below its artwork in library grids.",
+  "@libraryCardTitlesDescription": {
+    "description": "Description of the Titles Under Posters setting"
+  },
   "useDetailedSubHeadings": "Use Detailed Sub-Headings",
   "@useDetailedSubHeadings": {
     "description": "Label for setting to toggle detailed or minimal subrow on library pages"
@@ -12939,6 +12935,10 @@
   "showAlphabeticalFilters": "Show Alphabet",
   "@showAlphabeticalFilters": {
     "description": "Checkbox label for toggling alphabetical picker visibility in Sort and Filter options"
+  },
+  "libraryFolderView": "Folder View",
+  "@libraryFolderView": {
+    "description": "Checkbox in a library's Sort and Filter options that lists the library one folder at a time instead of all its items at once"
   },
   "personalRatingStyle": "Personal Rating Style",
   "@personalRatingStyle": {

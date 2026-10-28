@@ -4765,12 +4765,6 @@ class AppLocalizationsId extends AppLocalizations {
   String get libraryJumpToLetter => 'Jump to letter';
 
   @override
-  String get enableFolderView => 'Aktifkan Tampilan Folder';
-
-  @override
-  String get showFolderBrowsingOption => 'Tampilkan opsi penelusuran folder';
-
-  @override
   String get groupItemsIntoCollections => 'Kelompokkan Item ke dalam Koleksi';
 
   @override
@@ -5605,10 +5599,6 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get featuredContentAppearance => 'Konten unggulan, tampilan';
-
-  @override
-  String get posterSizeImageTypeFolderView =>
-      'Ukuran poster, tipe gambar, tampilan folder';
 
   @override
   String gbValue(String value) {
@@ -11992,6 +11982,13 @@ class AppLocalizationsId extends AppLocalizations {
       'Tampilkan detail item yang dipilih di bagian atas halaman Pustaka.';
 
   @override
+  String get libraryCardTitles => 'Titles Under Posters';
+
+  @override
+  String get libraryCardTitlesDescription =>
+      'Show each item\'s title and details below its artwork in library grids.';
+
+  @override
   String get useDetailedSubHeadings => 'Gunakan Subjudul Terperinci';
 
   @override
@@ -14450,6 +14447,9 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get showAlphabeticalFilters => 'Show Alphabet';
+
+  @override
+  String get libraryFolderView => 'Folder View';
 
   @override
   String get personalRatingStyle => 'Personal Rating Style';

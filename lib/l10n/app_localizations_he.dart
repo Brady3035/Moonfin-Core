@@ -4742,12 +4742,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get libraryJumpToLetter => 'Jump to letter';
 
   @override
-  String get enableFolderView => 'הפעל תצוגת תיקיות';
-
-  @override
-  String get showFolderBrowsingOption => 'הצג אפשרות גלישה בתיקייה';
-
-  @override
   String get groupItemsIntoCollections => 'קבץ פריטים לאוספים';
 
   @override
@@ -5563,10 +5557,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get featuredContentAppearance => 'תוכן מומלץ, מראה';
-
-  @override
-  String get posterSizeImageTypeFolderView =>
-      'גודל פוסטר, סוג תמונה, תצוגת תיקייה';
 
   @override
   String gbValue(String value) {
@@ -11876,6 +11866,13 @@ class AppLocalizationsHe extends AppLocalizations {
       'הצג את פרטי הפריט הנבחר בראש דפי הספרייה.';
 
   @override
+  String get libraryCardTitles => 'Titles Under Posters';
+
+  @override
+  String get libraryCardTitlesDescription =>
+      'Show each item\'s title and details below its artwork in library grids.';
+
+  @override
   String get useDetailedSubHeadings => 'השתמש בכותרות משנה מפורטות';
 
   @override
@@ -14321,6 +14318,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get showAlphabeticalFilters => 'Show Alphabet';
+
+  @override
+  String get libraryFolderView => 'Folder View';
 
   @override
   String get personalRatingStyle => 'Personal Rating Style';

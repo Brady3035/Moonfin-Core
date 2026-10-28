@@ -4788,12 +4788,6 @@ class AppLocalizationsUk extends AppLocalizations {
   String get libraryJumpToLetter => 'Jump to letter';
 
   @override
-  String get enableFolderView => 'Увімкнути перегляд папок';
-
-  @override
-  String get showFolderBrowsingOption => 'Показати опцію перегляду папок';
-
-  @override
   String get groupItemsIntoCollections => 'Групувати елементи в колекції';
 
   @override
@@ -5628,10 +5622,6 @@ class AppLocalizationsUk extends AppLocalizations {
   @override
   String get featuredContentAppearance =>
       'Рекомендований вміст, зовнішній вигляд';
-
-  @override
-  String get posterSizeImageTypeFolderView =>
-      'Розмір плаката, тип зображення, вид папки';
 
   @override
   String gbValue(String value) {
@@ -12068,6 +12058,13 @@ class AppLocalizationsUk extends AppLocalizations {
       'Показувати деталі вибраного елемента вгорі сторінок бібліотеки.';
 
   @override
+  String get libraryCardTitles => 'Titles Under Posters';
+
+  @override
+  String get libraryCardTitlesDescription =>
+      'Show each item\'s title and details below its artwork in library grids.';
+
+  @override
   String get useDetailedSubHeadings => 'Використовуйте детальні підзаголовки';
 
   @override
@@ -14536,6 +14533,9 @@ class AppLocalizationsUk extends AppLocalizations {
 
   @override
   String get showAlphabeticalFilters => 'Show Alphabet';
+
+  @override
+  String get libraryFolderView => 'Folder View';
 
   @override
   String get personalRatingStyle => 'Personal Rating Style';

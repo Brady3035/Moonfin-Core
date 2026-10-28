@@ -4801,12 +4801,6 @@ class AppLocalizationsEl extends AppLocalizations {
   String get libraryJumpToLetter => 'Jump to letter';
 
   @override
-  String get enableFolderView => 'Ενεργοποίηση Προβολή φακέλου';
-
-  @override
-  String get showFolderBrowsingOption => 'Εμφάνιση επιλογής περιήγησης φακέλου';
-
-  @override
   String get groupItemsIntoCollections => 'Ομαδοποίηση στοιχείων σε συλλογές';
 
   @override
@@ -5651,10 +5645,6 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get featuredContentAppearance => 'Επιλεγμένο περιεχόμενο, εμφάνιση';
-
-  @override
-  String get posterSizeImageTypeFolderView =>
-      'Μέγεθος αφίσας, τύπος εικόνας, προβολή φακέλου';
 
   @override
   String gbValue(String value) {
@@ -12131,6 +12121,13 @@ class AppLocalizationsEl extends AppLocalizations {
       'Εμφάνιση των λεπτομερειών του επιλεγμένου στοιχείου στο επάνω μέρος των σελίδων της Βιβλιοθήκης.';
 
   @override
+  String get libraryCardTitles => 'Titles Under Posters';
+
+  @override
+  String get libraryCardTitlesDescription =>
+      'Show each item\'s title and details below its artwork in library grids.';
+
+  @override
   String get useDetailedSubHeadings =>
       'Χρησιμοποιήστε λεπτομερείς υποεπικεφαλίδες';
 
@@ -14612,6 +14609,9 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get showAlphabeticalFilters => 'Show Alphabet';
+
+  @override
+  String get libraryFolderView => 'Folder View';
 
   @override
   String get personalRatingStyle => 'Personal Rating Style';

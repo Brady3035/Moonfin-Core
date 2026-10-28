@@ -111,7 +111,7 @@ void main() {
     expect(f.supportsTrickplay, isTrue);
   });
 
-  test('Seerr goes through the Moonfin plugin, so Silo has none', () {
-    expect(_for(ServerType.silo).supportsJellyseerr, isFalse);
+  test('Silo offers the request screens through its own requests', () {
+    expect(_for(ServerType.silo).supportsJellyseerr, isTrue);
   });
 }

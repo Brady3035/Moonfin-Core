@@ -108,11 +108,8 @@ void main() {
       expect(fullPlugin(), isTrue);
     });
 
-    test('Seerr follows the same rule', () async {
+    test('Seerr is offered on Silo, through its own requests', () async {
       await addServer('silo', ServerType.silo);
-      expect(seerrOnAnySignedInServer(store: store), isFalse);
-
-      await addServer('jellyfin', ServerType.jellyfin);
       expect(seerrOnAnySignedInServer(store: store), isTrue);
     });
 

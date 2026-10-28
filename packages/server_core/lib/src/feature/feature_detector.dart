@@ -45,10 +45,10 @@ class FeatureDetector {
 
   bool get supportsBifTrickplay => _isEmby;
 
-  /// Seerr requests and discovery. Moonfin reaches Seerr only through the
-  /// Moonfin plugin's proxy (`/Moonfin/Seerr/*`), which Silo never has, so
-  /// there is no Seerr on Silo.
-  bool get supportsJellyseerr => !_isSilo;
+  /// Seerr requests and discovery. Moonfin reaches Seerr through the Moonfin
+  /// plugin's proxy (`/Moonfin/Seerr/*`) on Jellyfin and Emby. On Silo the
+  /// same screens use Silo's own requests (`/api/v2/requests`).
+  bool get supportsJellyseerr => true;
 
   /// A version that doesn't parse counts as recent enough, since the
   /// alternative is hiding a feature on every server that reports something

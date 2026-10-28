@@ -164,6 +164,12 @@ class SiloMediaServerClient extends MediaServerClient
     profileToken: _profileToken,
   );
 
+  /// This client's HTTP stack, for app code that calls Silo routes no API
+  /// class covers (Moonfin's request screens). Requests get the session's
+  /// headers and token refresh, and errors carry Silo's problem. Paths start
+  /// at `/api/v2`.
+  Dio get dio => _dio;
+
   /// The same headers as [requestHeaders], for requests made outside this
   /// client's own HTTP stack (see [serverAuthHeaders]).
   @override

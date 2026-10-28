@@ -80,7 +80,12 @@ class PluginSyncService extends ChangeNotifier {
   bool _seerrEnabled = false;
   bool get seerrEnabled => _seerrEnabled;
   bool get seerrAvailable =>
-      _pluginAvailable && _seerrEnabled && _prefs.get(UserPreferences.seerrEnabled);
+      (_siloRequestsAvailable || (_pluginAvailable && _seerrEnabled)) &&
+      _prefs.get(UserPreferences.seerrEnabled);
+
+  /// Silo's own requests, which the request screens use there in place of
+  /// Seerr. Set by [configureSeerr], and not tied to the plugin.
+  bool _siloRequestsAvailable = false;
   bool _seerrInfoAvailable = false;
   bool get seerrInfoAvailable => _seerrInfoAvailable;
 
@@ -245,11 +250,19 @@ class PluginSyncService extends ChangeNotifier {
     if (!keepIncompleteRecordings) _incompleteRecordings?.setSupported(false);
     _activeThemeCacheServerId = null;
     if (notify) {
+      _siloRequestsAvailable = false;
       _setLocalSeerrEnabled(false);
     }
     if (notify) {
       notifyListeners();
     }
+  }
+
+  /// The plugin's word on Seerr, which doesn't apply to Silo, whose requests
+  /// don't go through the plugin.
+  void _setPluginSeerrEnabled(MediaServerClient client, bool enabled) {
+    if (client.serverType == ServerType.silo) return;
+    _setLocalSeerrEnabled(enabled);
   }
 
   void _setLocalSeerrEnabled(bool enabled) {
@@ -287,7 +300,7 @@ class PluginSyncService extends ChangeNotifier {
     if (!features.supportsMoonfinPlugin) {
       _stopSettingsStream();
       _messages?.setSupported(false);
-      _setLocalSeerrEnabled(false);
+      _setPluginSeerrEnabled(client, false);
       notifyListeners();
       return _PluginAvailabilityStatus.unavailable;
     }
@@ -298,7 +311,7 @@ class PluginSyncService extends ChangeNotifier {
         _incompleteRecordings?.setSupported(false);
         _stopSettingsStream();
         _messages?.setSupported(false);
-        _setLocalSeerrEnabled(false);
+        _setPluginSeerrEnabled(client, false);
         notifyListeners();
         return _PluginAvailabilityStatus.unavailable;
       }
@@ -313,7 +326,7 @@ class PluginSyncService extends ChangeNotifier {
       if (installed != null && !installed) {
         _incompleteRecordings?.setSupported(false);
         _stopSettingsStream();
-        _setLocalSeerrEnabled(false);
+        _setPluginSeerrEnabled(client, false);
         notifyListeners();
         return _PluginAvailabilityStatus.unavailable;
       }
@@ -322,7 +335,7 @@ class PluginSyncService extends ChangeNotifier {
       if (syncEnabled != null && !syncEnabled) {
         _incompleteRecordings?.setSupported(false);
         _stopSettingsStream();
-        _setLocalSeerrEnabled(false);
+        _setPluginSeerrEnabled(client, false);
         notifyListeners();
         return _PluginAvailabilityStatus.unavailable;
       }
@@ -354,7 +367,11 @@ class PluginSyncService extends ChangeNotifier {
         extended: _readBool(pingResult, 'extendedCompleteShowingsSupported') ?? false,
       );
 
-      final seerrConfig = await _fetchSeerrConfig(client);
+      // On Silo, requests are Silo's own (see configureSeerr), and Moonbase
+      // for Silo always reports its Seerr proxy off.
+      final seerrConfig = client.serverType == ServerType.silo
+          ? null
+          : await _fetchSeerrConfig(client);
       if (seerrConfig != null) {
         _seerrInfoAvailable = true;
         _seerrUrl = _readString(seerrConfig, 'url') ?? _seerrUrl;
@@ -364,7 +381,7 @@ class PluginSyncService extends ChangeNotifier {
         _seerrEnabled = enabled ?? _seerrEnabled;
 
         if (userEnabled != null) {
-          _setLocalSeerrEnabled(userEnabled);
+          _setPluginSeerrEnabled(client, userEnabled);
         }
 
         final variant = _readString(seerrConfig, 'variant');
@@ -377,7 +394,7 @@ class PluginSyncService extends ChangeNotifier {
           await _seerrPrefs.setMoonfinDisplayName(displayName);
         }
       } else {
-        _setLocalSeerrEnabled(_seerrEnabled);
+        _setPluginSeerrEnabled(client, _seerrEnabled);
       }
 
       notifyListeners();
@@ -750,6 +767,18 @@ class PluginSyncService extends ChangeNotifier {
     if (token == null || token.isEmpty) return false;
 
     final seerrRepo = await GetIt.instance.getAsync<SeerrRepository>();
+
+    // Silo's requests need no plugin and no Seerr sign-in: the Silo session
+    // is enough.
+    if (client.serverType == ServerType.silo) {
+      final wasAvailable = _siloRequestsAvailable;
+      await seerrRepo.ensureInitialized(force: true);
+      _siloRequestsAvailable = seerrRepo.isAvailable;
+      if (_siloRequestsAvailable) await _enableSeerrOnceSignedIn(client);
+      notifyListeners();
+      return _siloRequestsAvailable && !wasAvailable;
+    }
+    _siloRequestsAvailable = false;
 
     // A session the plugin kept from an earlier sign in is already live, and
     // the home loads its rows with it. Signing in again would swap the Seerr

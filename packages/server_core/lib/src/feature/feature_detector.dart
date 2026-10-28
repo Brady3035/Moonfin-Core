@@ -78,10 +78,16 @@ class FeatureDetector {
   /// Silo is administered from its own web app.
   bool get supportsAdmin => _isJellyfin || _isEmby;
 
-  /// The Moonfin server plugin (`/Moonfin/*`: settings sync, Seerr proxy,
-  /// TMDB and MDBList proxies, bookmarks, anime markers...). It exists for
-  /// Jellyfin and Emby only.
-  bool get supportsMoonfinPlugin => _isJellyfin || _isEmby;
+  /// The Moonfin server plugin, Moonbase. Jellyfin and Emby serve it at the
+  /// server root. Silo serves it under the plugin's installation id, and
+  /// Moonbase for Silo has settings sync, server messages and the TMDB and
+  /// MDBList proxies only.
+  bool get supportsMoonfinPlugin => _isJellyfin || _isEmby || _isSilo;
+
+  /// The rest of the Moonfin plugin's routes (`/Moonfin/*` at the server
+  /// root: Seerr proxy, games, anime markers, custom rows, bookmarks...),
+  /// which only the Jellyfin and Emby plugins have.
+  bool get supportsFullMoonfinPlugin => _isJellyfin || _isEmby;
 
   /// Remote control: listing the account's other sessions and sending them
   /// play, pause and navigation commands (the Jellyfin/Emby Sessions API).

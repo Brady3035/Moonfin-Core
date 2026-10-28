@@ -13,6 +13,7 @@ import 'package:server_core/server_core.dart';
 import '../../data/repositories/seerr_repository.dart';
 import 'seerr/seerr_discover_sliders.dart';
 import 'incomplete_recordings_service.dart';
+import 'moonbase_endpoint.dart';
 import 'server_messages_service.dart';
 import 'settings_stream_transport.dart';
 import 'storage_path_service.dart';
@@ -191,19 +192,6 @@ class PluginSyncService extends ChangeNotifier {
   String _snapshotKey(MediaServerClient client, String profile) =>
       '${_serverSyncKey(client)}/$profile';
 
-  Map<String, String>? _authHeaders(MediaServerClient client) {
-    final token = client.accessToken;
-    if (token == null || token.isEmpty) return null;
-
-    return {
-      'Authorization': buildServerAuthorizationHeader(
-        scheme: 'MediaBrowser',
-        deviceInfo: client.deviceInfo,
-        accessToken: token,
-      ),
-    };
-  }
-
   dynamic _readValue(Map<String, dynamic> data, String key) {
     if (data.containsKey(key)) {
       return data[key];
@@ -287,11 +275,11 @@ class PluginSyncService extends ChangeNotifier {
       keepIncompleteRecordings: true,
     );
 
-    // Silo never has the Moonfin plugin, so there is nothing to ping. Every
-    // caller then takes the path it takes for a server without the plugin:
-    // default home rows, no Seerr proxy, no plugin push enrollment. The
-    // messages flag is cleared too, since only a ping would otherwise reset
-    // it after a session on a server that had the plugin.
+    // A server that can't have the plugin has nothing to ping. Every caller
+    // then takes the path it takes for a server without the plugin: default
+    // home rows, no Seerr proxy, no plugin push enrollment. The messages flag
+    // is cleared too, since only a ping would otherwise reset it after a
+    // session on a server that had the plugin.
     final features = FeatureDetector(
       serverType: client.serverType,
       serverVersion: '',
@@ -306,6 +294,14 @@ class PluginSyncService extends ChangeNotifier {
 
     try {
       final pingResult = await _ping(client);
+      if (pingResult == null && moonbaseKnownMissing(client)) {
+        _incompleteRecordings?.setSupported(false);
+        _stopSettingsStream();
+        _messages?.setSupported(false);
+        _setLocalSeerrEnabled(false);
+        notifyListeners();
+        return _PluginAvailabilityStatus.unavailable;
+      }
       if (pingResult == null) {
         _incompleteRecordings?.setSupported(false);
         _stopSettingsStream();
@@ -666,8 +662,11 @@ class PluginSyncService extends ChangeNotifier {
   /// on its own.
   Future<void> _startSettingsStream(MediaServerClient client) async {
     // Emby servers have no SSE endpoint, so plugin events arrive over the
-    // session websocket instead. Don't loop on 501 reconnects here.
-    if (client.serverType == ServerType.emby) {
+    // session websocket instead. Silo can't stream a plugin's response, so
+    // settings arrive at sign-in and on a manual sync. Don't loop on 501
+    // reconnects here.
+    if (client.serverType == ServerType.emby ||
+        client.serverType == ServerType.silo) {
       return;
     }
 
@@ -675,10 +674,11 @@ class PluginSyncService extends ChangeNotifier {
       return;
     }
 
-    final headers = _authHeaders(client);
-    if (headers == null) {
+    final ep = await moonbaseEndpoint(client, _dio);
+    if (ep == null) {
       return;
     }
+    final headers = ep.headers;
 
     _stopSettingsStream();
 
@@ -688,7 +688,7 @@ class PluginSyncService extends ChangeNotifier {
     try {
       final body = await openSettingsStream(
         _dio,
-        '${client.baseUrl}/Moonfin/Settings/Stream',
+        '${ep.base}/Moonfin/Settings/Stream',
         headers: headers,
         cancelToken: cancelToken,
       ).timeout(_settingsStreamIdleTimeout);
@@ -832,8 +832,9 @@ class PluginSyncService extends ChangeNotifier {
 
     try {
       final payloadProfile = _buildProfileFromLocal();
-      final headers = _authHeaders(client);
-      if (headers == null) return;
+      final ep = await moonbaseEndpoint(client, _dio);
+      if (ep == null) return;
+      final headers = ep.headers;
 
       // Pushing a payload the server already has makes the plugin broadcast a
       // settingsUpdated event straight back at this device, and the resulting
@@ -845,7 +846,7 @@ class PluginSyncService extends ChangeNotifier {
       }
 
       await _dio.post(
-        '${client.baseUrl}/Moonfin/Settings/Profile/$profile',
+        '${ep.base}/Moonfin/Settings/Profile/$profile',
         data: {'profile': payloadProfile, 'clientId': 'moonfin-flutter'},
         options: Options(
           headers: {...headers, 'Content-Type': 'application/json'},
@@ -863,14 +864,15 @@ class PluginSyncService extends ChangeNotifier {
     }
 
     try {
-      final headers = _authHeaders(client);
-      if (headers == null) {
+      final ep = await moonbaseEndpoint(client, _dio);
+      if (ep == null) {
         debugPrint('PluginSync: skip pushNotificationPrefs, no auth headers');
         return;
       }
+      final headers = ep.headers;
 
       await _dio.post(
-        '${client.baseUrl}/Moonfin/Notifications/Prefs',
+        '${ep.base}/Moonfin/Notifications/Prefs',
         data: {
           'notifyOnNewRequests': _seerrPrefs.notifyOnNewRequests,
           'notifyOnLibraryAdded': _seerrPrefs.notifyOnLibraryAdded,
@@ -899,14 +901,15 @@ class PluginSyncService extends ChangeNotifier {
     }
 
     try {
-      final headers = _authHeaders(client);
-      if (headers == null) {
+      final ep = await moonbaseEndpoint(client, _dio);
+      if (ep == null) {
         debugPrint('PluginSync: skip registerPushDevice, no auth headers');
         return false;
       }
+      final headers = ep.headers;
 
       await _dio.post(
-        '${client.baseUrl}/Moonfin/Notifications/Register',
+        '${ep.base}/Moonfin/Notifications/Register',
         data: {
           'token': token,
           'platform': platform,
@@ -929,11 +932,12 @@ class PluginSyncService extends ChangeNotifier {
     if (!_pluginAvailable) return;
 
     try {
-      final headers = _authHeaders(client);
-      if (headers == null) return;
+      final ep = await moonbaseEndpoint(client, _dio);
+      if (ep == null) return;
+      final headers = ep.headers;
 
       await _dio.delete(
-        '${client.baseUrl}/Moonfin/Notifications/Register',
+        '${ep.base}/Moonfin/Notifications/Register',
         data: {'deviceId': deviceId},
         options: Options(
           headers: {...headers, 'Content-Type': 'application/json'},
@@ -951,12 +955,13 @@ class PluginSyncService extends ChangeNotifier {
     bool requireAvailable = true,
   }) async {
     if (requireAvailable && !_pluginAvailable) return null;
-    final headers = _authHeaders(client);
-    if (headers == null) return null;
+    final ep = await moonbaseEndpoint(client, _dio);
+    if (ep == null) return null;
+    final headers = ep.headers;
 
     try {
       final response = await _dio.get(
-        '${client.baseUrl}/Moonfin/Collections/$collectionId/Order',
+        '${ep.base}/Moonfin/Collections/$collectionId/Order',
         options: Options(headers: headers),
       );
       if (response.statusCode == 200 && response.data is List) {
@@ -972,12 +977,13 @@ class PluginSyncService extends ChangeNotifier {
     List<String> itemIds,
   ) async {
     if (!_pluginAvailable) return false;
-    final headers = _authHeaders(client);
-    if (headers == null) return false;
+    final ep = await moonbaseEndpoint(client, _dio);
+    if (ep == null) return false;
+    final headers = ep.headers;
 
     try {
       final response = await _dio.post(
-        '${client.baseUrl}/Moonfin/Collections/$collectionId/Order',
+        '${ep.base}/Moonfin/Collections/$collectionId/Order',
         data: itemIds,
         options: Options(
           headers: {...headers, 'Content-Type': 'application/json'},
@@ -1023,8 +1029,9 @@ class PluginSyncService extends ChangeNotifier {
     if (!_prefs.get(UserPreferences.pluginSyncEnabled)) return false;
     if (!supportedProfiles.contains(profile)) return false;
 
-    final headers = _authHeaders(client);
-    if (headers == null) return false;
+    final ep = await moonbaseEndpoint(client, _dio);
+    if (ep == null) return false;
+    final headers = ep.headers;
 
     // A push queued by an earlier edit would put the old settings back moments
     // after the delete, so drop it before anything is removed.
@@ -1033,8 +1040,8 @@ class PluginSyncService extends ChangeNotifier {
     try {
       await _dio.delete(
         profile == 'global'
-            ? '${client.baseUrl}/Moonfin/Settings'
-            : '${client.baseUrl}/Moonfin/Settings/Profile/$profile',
+            ? '${ep.base}/Moonfin/Settings'
+            : '${ep.base}/Moonfin/Settings/Profile/$profile',
         options: Options(headers: headers),
       );
     } catch (_) {
@@ -1108,17 +1115,22 @@ class PluginSyncService extends ChangeNotifier {
   }
 
   Future<Map<String, dynamic>?> _ping(MediaServerClient client) async {
-    final headers = _authHeaders(client);
-    if (headers == null) return null;
+    final ep = await moonbaseEndpoint(client, _dio);
+    if (ep == null) return null;
+    final headers = ep.headers;
 
     try {
       final response = await _dio.get(
-        '${client.baseUrl}/Moonfin/Ping',
+        '${ep.base}/Moonfin/Ping',
         options: Options(headers: headers),
       );
       if (response.data is Map<String, dynamic>) {
         return response.data as Map<String, dynamic>;
       }
+    } on DioException catch (e) {
+      // On Silo a 404 can mean Moonbase was removed or reinstalled under a
+      // new installation id, so look it up again next time.
+      if (e.response?.statusCode == 404) forgetMoonbaseEndpoint(client);
     } catch (_) {}
     return null;
   }
@@ -1126,12 +1138,13 @@ class PluginSyncService extends ChangeNotifier {
   Future<Map<String, dynamic>?> _fetchSeerrConfig(
     MediaServerClient client,
   ) async {
-    final headers = _authHeaders(client);
-    if (headers == null) return null;
+    final ep = await moonbaseEndpoint(client, _dio);
+    if (ep == null) return null;
+    final headers = ep.headers;
 
     try {
       final response = await _dio.get(
-        '${client.baseUrl}/Moonfin/Seerr/Config',
+        '${ep.base}/Moonfin/Seerr/Config',
         options: Options(headers: headers),
       );
       if (response.data is Map<String, dynamic>) {
@@ -1145,12 +1158,13 @@ class PluginSyncService extends ChangeNotifier {
     MediaServerClient client,
     String profile,
   ) async {
-    final headers = _authHeaders(client);
-    if (headers == null) return null;
+    final ep = await moonbaseEndpoint(client, _dio);
+    if (ep == null) return null;
+    final headers = ep.headers;
 
     try {
       final response = await _dio.get(
-        '${client.baseUrl}/Moonfin/Settings/Resolved/$profile',
+        '${ep.base}/Moonfin/Settings/Resolved/$profile',
         options: Options(headers: headers),
       );
       if (response.data is Map<String, dynamic>) {
@@ -1165,15 +1179,16 @@ class PluginSyncService extends ChangeNotifier {
     String itemId, {
     int limit = 100,
   }) async {
-    final headers = _authHeaders(client);
-    if (headers == null) return null;
+    final ep = await moonbaseEndpoint(client, _dio);
+    if (ep == null) return null;
+    final headers = ep.headers;
 
     try {
       // Moonbase needs the user to work out which libraries the caller may see, and it
       // answers with nothing at all when it can't resolve one.
       final userId = client.userId;
       final response = await _dio.get(
-        '${client.baseUrl}/Moonfin/Items/$itemId/Similar',
+        '${ep.base}/Moonfin/Items/$itemId/Similar',
         queryParameters: {
           'limit': limit,
           if (userId != null && userId.isNotEmpty) 'userId': userId,
@@ -1196,12 +1211,13 @@ class PluginSyncService extends ChangeNotifier {
     MediaServerClient client, {
     String? country,
   }) async {
-    final headers = _authHeaders(client);
-    if (headers == null) return null;
+    final ep = await moonbaseEndpoint(client, _dio);
+    if (ep == null) return null;
+    final headers = ep.headers;
 
     try {
       final response = await _dio.get(
-        '${client.baseUrl}/Moonfin/Seasonal/Row',
+        '${ep.base}/Moonfin/Seasonal/Row',
         queryParameters: {'country': ?country},
         options: Options(headers: headers),
       );
@@ -1215,12 +1231,13 @@ class PluginSyncService extends ChangeNotifier {
   }
 
   Future<dynamic> _fetchThemesPayload(MediaServerClient client) async {
-    final headers = _authHeaders(client);
-    if (headers == null) return null;
+    final ep = await moonbaseEndpoint(client, _dio);
+    if (ep == null) return null;
+    final headers = ep.headers;
 
     try {
       final response = await _dio.get(
-        '${client.baseUrl}/Moonfin/Themes',
+        '${ep.base}/Moonfin/Themes',
         options: Options(headers: headers),
       );
       return response.data;

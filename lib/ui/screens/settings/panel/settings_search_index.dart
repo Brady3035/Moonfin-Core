@@ -124,7 +124,9 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
   final moonfinPluginOnAnyServer = moonfinPluginOnAnySignedInServer();
   final seerrOnAnyServer = seerrOnAnySignedInServer();
   // Retro games come from the Moonfin plugin's game libraries.
-  final gamesOnAnyServer = moonfinPluginOnAnySignedInServer();
+  final gamesOnAnyServer = anySignedInServerSupports(
+    (f) => f.supportsFullMoonfinPlugin,
+  );
   final friendsAvailable =
       GetIt.instance<AchievementsService>().socialAvailable;
 

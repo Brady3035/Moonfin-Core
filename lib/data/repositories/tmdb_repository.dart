@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:server_core/server_core.dart';
 
 import '../../util/signed_in_server_features.dart';
+import '../services/moonbase_endpoint.dart';
 
 /// A studio for the details screen: its name and, when the plugin has a cached
 /// logo, an authenticated URL to that logo image.
@@ -69,8 +70,8 @@ class TmdbRepository {
 
   TmdbRepository(this._client);
 
-  /// The TMDB proxy is part of the Moonfin plugin, which Silo never has: no
-  /// request, no URL.
+  /// The plugin's image URLs carry the token in the query, which only the
+  /// Jellyfin and Emby plugins take. Silo's plugin routes need its headers.
   bool get _hasPlugin => serverHasMoonfinPlugin(_client);
 
   /// Fetches the item's studios (TMDB production companies) from the Moonfin
@@ -351,15 +352,13 @@ class TmdbRepository {
     String path,
     Map<String, dynamic> query,
   ) async {
-    final token = _client.accessToken;
-    if (token == null || !_hasPlugin) return null;
+    final ep = await moonbaseEndpoint(_client, _dio);
+    if (ep == null) return null;
 
     final response = await _dio.get(
-      '${_client.baseUrl}$path',
+      '${ep.base}$path',
       queryParameters: query,
-      options: Options(headers: {
-        'Authorization': 'MediaBrowser Token="$token"',
-      }),
+      options: Options(headers: ep.headers),
     );
 
     final data = response.data;

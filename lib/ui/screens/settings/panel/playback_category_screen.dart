@@ -162,4 +162,5 @@ class _PlaybackCategoryScreen extends StatelessWidget {
 /// Retro games come from the Moonfin plugin's game libraries, so the emulator
 /// switch and cores aren't offered when no signed-in server could have it
 /// (all Silo, say). Downloaded games stay manageable either way.
-bool get _gamesOnAnyServer => moonfinPluginOnAnySignedInServer();
+bool get _gamesOnAnyServer =>
+    anySignedInServerSupports((f) => f.supportsFullMoonfinPlugin);

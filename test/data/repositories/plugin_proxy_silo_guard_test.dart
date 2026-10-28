@@ -21,10 +21,11 @@ class _Sync extends Mock implements PluginSyncService {}
 class _Factory extends Mock implements MediaServerClientFactory {}
 
 /// The TMDB, MDBList and anime-marker proxies and the personal ratings,
-/// audiobook bookmarks and notes stores live in the Moonfin plugin, which
-/// Silo never has. Against a Silo server they must send nothing. The same
-/// calls against Emby reach the server, which shows the test would notice a
-/// request.
+/// audiobook bookmarks and notes stores live in the Moonfin plugin at the
+/// server root, which Silo never has. Against a Silo server (here one whose
+/// Moonbase installation can't be looked up) they must send nothing to its
+/// root. The same calls against Emby reach the server, which shows the test
+/// would notice a request.
 void main() {
   late HttpServer server;
   late List<String> hits;

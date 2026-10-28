@@ -94,12 +94,18 @@ void main() {
       expect(musicOnAnySignedInServer(store: store), isTrue);
     });
 
-    test('the Moonfin plugin follows the same rule', () async {
+    test('Silo has Moonbase, and the full plugin follows the same rule',
+        () async {
+      bool fullPlugin() => anySignedInServerSupports(
+        (f) => f.supportsFullMoonfinPlugin,
+        store: store,
+      );
       await addServer('silo', ServerType.silo);
-      expect(moonfinPluginOnAnySignedInServer(store: store), isFalse);
+      expect(moonfinPluginOnAnySignedInServer(store: store), isTrue);
+      expect(fullPlugin(), isFalse);
 
       await addServer('emby', ServerType.emby);
-      expect(moonfinPluginOnAnySignedInServer(store: store), isTrue);
+      expect(fullPlugin(), isTrue);
     });
 
     test('Seerr follows the same rule', () async {

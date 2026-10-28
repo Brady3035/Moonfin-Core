@@ -89,11 +89,12 @@ bool itemServerSupports(
 bool activeServerSupports(bool Function(FeatureDetector features) feature) =>
     itemServerSupports(null, feature);
 
-/// Whether [client]'s server can have the Moonfin plugin
-/// ([FeatureDetector.supportsMoonfinPlugin]). Services that call `/Moonfin/*`
-/// directly check it before sending anything, so nothing is asked of a
-/// server that can never answer (Silo).
+/// Whether [client]'s server can have the full Moonfin plugin at its root
+/// ([FeatureDetector.supportsFullMoonfinPlugin]). Services that call
+/// `${baseUrl}/Moonfin/*` directly check it before sending anything, so
+/// nothing is asked of a server that can never answer (Silo, whose Moonbase
+/// is reached through `moonbaseEndpoint`).
 bool serverHasMoonfinPlugin(MediaServerClient client) => FeatureDetector(
   serverType: client.serverType,
   serverVersion: '',
-).supportsMoonfinPlugin;
+).supportsFullMoonfinPlugin;

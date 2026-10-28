@@ -674,8 +674,6 @@ class _BookBrowseScreenState extends State<BookBrowseScreen>
                 ..._buildPaneSlivers(
                   l10n,
                   wide: true,
-                  // Room for a focused card to grow without covering the
-                  // toolbar.
                   padding: const EdgeInsets.fromLTRB(24, 20, 48, 0),
                 ),
               ],
@@ -864,6 +862,7 @@ class _BookBrowseScreenState extends State<BookBrowseScreen>
       _ => 2 / 3,
     };
     final hasSubtitle = pane != BookPane.genres && pane != BookPane.authors;
+    final expansion = _prefs.get(UserPreferences.cardFocusExpansion);
     return [
       SliverPadding(
         padding: padding,
@@ -889,20 +888,28 @@ class _BookBrowseScreenState extends State<BookBrowseScreen>
               aspectRatio: aspectRatio,
               hasSubtitle: hasSubtitle,
             );
-            return SliverGrid.builder(
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: columns,
-                crossAxisSpacing: spacing,
-                mainAxisSpacing: wide ? 26 : 18,
-                childAspectRatio: cellWidth / cellHeight,
-              ),
-              itemCount: items.length,
-              itemBuilder: (_, index) => _buildGridItem(
-                items[index],
-                index,
-                columns: columns,
-                aspectRatio: aspectRatio,
-                wide: wide,
+            final headroom = MediaCard.focusHeadroom(
+              cellWidth / aspectRatio,
+              expansion: expansion,
+            );
+            return SliverPadding(
+              padding: EdgeInsets.only(top: headroom),
+              sliver: SliverGrid.builder(
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: columns,
+                  crossAxisSpacing: spacing,
+                  mainAxisSpacing: (wide ? 26 : 18) + headroom,
+                  childAspectRatio: cellWidth / cellHeight,
+                ),
+                itemCount: items.length,
+                itemBuilder: (_, index) => _buildGridItem(
+                  items[index],
+                  index,
+                  columns: columns,
+                  aspectRatio: aspectRatio,
+                  wide: wide,
+                  expansion: expansion,
+                ),
               ),
             );
           },
@@ -918,6 +925,7 @@ class _BookBrowseScreenState extends State<BookBrowseScreen>
     required int columns,
     required double aspectRatio,
     required bool wide,
+    required bool expansion,
   }) {
     final node = _gridNode(index);
     final onKey = wide
@@ -934,6 +942,7 @@ class _BookBrowseScreenState extends State<BookBrowseScreen>
         imageUrl: _vm.bookImageUrl(item),
         remaining: isAudio ? _vm.remainingFor(item) : null,
         showComicBadge: _vm.isComicItem(item) && _vm.isMixedLibrary,
+        cardFocusExpansion: expansion,
         focusNode: node,
         onFocus: onFocus,
         onKeyEvent: onKey,
@@ -954,6 +963,7 @@ class _BookBrowseScreenState extends State<BookBrowseScreen>
       // Authors come back as artists, and only a person is drawn round.
       itemType: pane == BookPane.authors ? 'Person' : item.type,
       isFavorite: item.isFavorite,
+      cardFocusExpansion: expansion,
       focusNode: node,
       onFocus: onFocus,
       onKeyEvent: onKey,

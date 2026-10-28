@@ -47,6 +47,9 @@ class MusicShelf extends StatelessWidget {
   final double height;
   final double leadingInset;
   final bool large;
+
+  /// Room above the cards for a focused one to grow into.
+  final double headroom;
   final LockedFocusItemBuilder<AggregatedItem> itemBuilder;
   final void Function(AggregatedItem item) onSelect;
   final bool Function(bool isUp)? onVerticalNavigation;
@@ -70,6 +73,7 @@ class MusicShelf extends StatelessWidget {
     this.seeAllFocusNode,
     this.leadingInset = 16,
     this.large = false,
+    this.headroom = 0,
     this.onVerticalNavigation,
     this.onLeftEdge,
     this.onIndexChanged,
@@ -101,11 +105,11 @@ class MusicShelf extends StatelessWidget {
             hubKey: hubKey,
             itemKey: (item, _) => item.id,
             controller: controller,
-            height: height,
+            height: height + headroom,
             itemExtent: itemExtent,
             itemSpacing: large ? 20 : 14,
             clipBehavior: Clip.none,
-            padding: EdgeInsets.fromLTRB(leadingInset, 5, 20, 5),
+            padding: EdgeInsets.fromLTRB(leadingInset, 5 + headroom, 20, 5),
             onVerticalNavigation: (isUp) {
               final seeAll = seeAllFocusNode;
               if (isUp && onSeeAll != null && seeAll != null) {
@@ -180,6 +184,9 @@ class MusicSection extends StatelessWidget {
 class MusicGrid extends StatelessWidget {
   final int columns;
   final double spacing;
+
+  /// Room above each row for a focused card to grow into.
+  final double headroom;
   final List<Widget> children;
 
   const MusicGrid({
@@ -187,6 +194,7 @@ class MusicGrid extends StatelessWidget {
     required this.columns,
     required this.children,
     this.spacing = 10,
+    this.headroom = 0,
   });
 
   @override
@@ -196,6 +204,7 @@ class MusicGrid extends StatelessWidget {
         for (var start = 0; start < children.length; start += columns)
           Padding(
             padding: EdgeInsets.only(
+              top: headroom,
               bottom: start + columns < children.length ? spacing : 0,
             ),
             child: Row(

@@ -526,9 +526,15 @@ class _ImmersiveMusicScreenState
     if (featured != null) {
       hero = LayoutBuilder(
         builder: (context, constraints) {
+          final available = constraints.maxWidth - inset - 48;
           // The album's songs need room beside the art and the title.
-          final showTracks =
-              tracks.isNotEmpty && constraints.maxWidth - inset - 48 >= 1000;
+          final showTracks = tracks.isNotEmpty && available >= 1000;
+          // On a narrower screen the art and the songs each shrink by up to 80,
+          // so Play, Shuffle and Favorite keep at least 360 between them.
+          final fit = showTracks
+              ? ((available - 1000) / 160).clamp(0.0, 1.0)
+              : 1.0;
+          final artSize = 220 + 80 * fit;
           final shown = tracks.take(6).toList();
           return Padding(
             key: sectionKey('hero'),
@@ -539,8 +545,8 @@ class _ImmersiveMusicScreenState
                 GestureDetector(
                   onTap: _openAlbum,
                   child: Container(
-                    width: 300,
-                    height: 300,
+                    width: artSize,
+                    height: artSize,
                     clipBehavior: Clip.antiAlias,
                     decoration: BoxDecoration(
                       borderRadius: AppRadius.circular(16),
@@ -611,7 +617,7 @@ class _ImmersiveMusicScreenState
                 if (showTracks) ...[
                   const SizedBox(width: 40),
                   SizedBox(
-                    width: 420,
+                    width: 340 + 80 * fit,
                     child: _buildAlbumTracks(l10n, featured, shown, heroIndex),
                   ),
                 ],
@@ -734,6 +740,11 @@ class _ImmersiveMusicScreenState
           final available = constraints.maxWidth - inset - 48;
           final columns = ((available + spacing) / 200).floor().clamp(3, 8);
           final items = row.items.take(columns * 2).toList();
+          final expansion = _prefs.get(UserPreferences.cardFocusExpansion);
+          final headroom = MediaCard.focusHeadroom(
+            (available - spacing * (columns - 1)) / columns,
+            expansion: expansion,
+          );
           return MusicSection(
             title: localizeHomeRowTitle(row: row, l10n: l10n),
             large: true,
@@ -741,6 +752,7 @@ class _ImmersiveMusicScreenState
             child: MusicGrid(
               columns: columns,
               spacing: spacing,
+              headroom: headroom,
               children: [
                 for (var i = 0; i < items.length; i++)
                   MusicGridCard(
@@ -764,6 +776,7 @@ class _ImmersiveMusicScreenState
                         itemType: items[i].type,
                         isFavorite: items[i].isFavorite,
                         externalIsFocused: focused,
+                        cardFocusExpansion: expansion,
                         onTap: () => openItem(items[i]),
                       ),
                     ),

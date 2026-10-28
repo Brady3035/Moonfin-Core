@@ -264,6 +264,9 @@ abstract class MusicLibraryState<T extends StatefulWidget> extends State<T> {
     final l10n = AppLocalizations.of(context);
     final round = _isArtistRow(row);
     final width = wide ? 168.0 : 140.0;
+    final expansion = GetIt.instance<UserPreferences>().get(
+      UserPreferences.cardFocusExpansion,
+    );
     final seeAll = musicSeeAllRoute(libraryId, row.id);
     final rowIndex = vm.rows.indexOf(row);
     return MusicShelf(
@@ -278,6 +281,7 @@ abstract class MusicLibraryState<T extends StatefulWidget> extends State<T> {
       height: width + 64,
       leadingInset: inset,
       large: wide,
+      headroom: MediaCard.focusHeadroom(width, expansion: expansion),
       onSelect: openItem,
       onVerticalNavigation: (isUp) => move(entryIndex, isUp),
       onLeftEdge: onLeftEdge,
@@ -296,6 +300,7 @@ abstract class MusicLibraryState<T extends StatefulWidget> extends State<T> {
           itemType: round ? 'Person' : item.type,
           isFavorite: item.isFavorite,
           externalIsFocused: focused,
+          cardFocusExpansion: expansion,
           onTap: () => openItem(item),
         ),
       ),

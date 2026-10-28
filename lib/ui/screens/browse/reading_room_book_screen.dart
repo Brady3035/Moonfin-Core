@@ -31,6 +31,7 @@ import '../../widgets/focus/focusable_wrapper.dart';
 import '../../widgets/focus/locked_focus_row.dart';
 import '../../widgets/focus/request_initial_focus.dart';
 import '../../widgets/left_sidebar.dart';
+import '../../widgets/media_card.dart';
 import '../../widgets/navigation_layout.dart';
 import '../../widgets/offline_aware_image.dart';
 import '../../widgets/skeleton/skeleton_library_grid.dart';
@@ -556,6 +557,7 @@ class _ReadingRoomBookScreenState extends State<ReadingRoomBookScreen> {
     int entryIndex,
   ) {
     final cardWidth = _wide ? 160.0 : 120.0;
+    final expansion = _prefs.get(UserPreferences.cardFocusExpansion);
     return ReadingRoomShelf(
       title: l10n.recentlyAdded,
       onSeeAll: _browseAll,
@@ -568,6 +570,7 @@ class _ReadingRoomBookScreenState extends State<ReadingRoomBookScreen> {
       height: cardWidth * 1.5 + 60,
       leadingInset: inset,
       large: _wide,
+      headroom: MediaCard.focusHeadroom(cardWidth * 1.5, expansion: expansion),
       onSelect: _openItem,
       onLongPress: _onItemLongPress,
       onVerticalNavigation: (isUp) => _move(entryIndex, isUp),
@@ -587,6 +590,7 @@ class _ReadingRoomBookScreenState extends State<ReadingRoomBookScreen> {
             remainingIsTotal: (item.playedPercentage ?? 0) <= 0,
             showFormatBadge: _vm.isMixedLibrary,
             externalIsFocused: focused,
+            cardFocusExpansion: expansion,
             onTap: () => _openItem(item),
             onLongPress: () => _onItemLongPress(item),
           ),

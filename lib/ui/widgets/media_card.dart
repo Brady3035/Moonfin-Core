@@ -42,6 +42,13 @@ class MediaCard extends StatefulWidget {
   static double focusGap(double extent, {double minimum = 12.0}) =>
       minimum + (extent * (focusScale - 1) / 2);
 
+  /// How far a focused card with a title grows above artwork [imageHeight]
+  /// tall, which is the room a row or grid leaves over its cards.
+  static double focusHeadroom(double imageHeight, {required bool expansion}) =>
+      expansion && !PlatformDetection.useMobileUi
+      ? imageHeight * (focusScale - 1)
+      : 0;
+
   /// The widest decode a card of this shape ever holds, in physical pixels.
   ///
   /// Public so a prefetch of a card's image uses the same cap the card does.

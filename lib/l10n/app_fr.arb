@@ -14804,5 +14804,13 @@
     "autoDownloadDeleteFollowedSubtitle": "Quand supprimer les épisodes téléchargés pour les séries que vous suivez, après les avoir vus",
     "@autoDownloadDeleteFollowedSubtitle": {
         "description": "Explains the delete-after-watching setting"
+    },
+    "animeMarkerSubbedShort": "Sub",
+    "@animeMarkerSubbedShort": {
+        "description": "Short form of the Subbed badge"
+    },
+    "animeMarkerDubbedShort": "Dub",
+    "@animeMarkerDubbedShort": {
+        "description": "Short form of the Dubbed badge"
     }
 }

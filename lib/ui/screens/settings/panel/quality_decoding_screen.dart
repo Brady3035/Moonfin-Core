@@ -57,38 +57,6 @@ class _QualityDecodingScreen extends StatelessWidget {
           const _SectionHeader('Decoding & Rendering'),
           adaptiveListSection(
             children: [
-              if (PlatformDetection.isAndroid)
-                EnumPreferenceTile<PlaybackEnginePreference>(
-                  preference: UserPreferences.playbackEnginePreference,
-                  title: PlatformDetection.isTV
-                      ? l10n.settingsPlaybackEngineAndroidTv
-                      : l10n.settingsPlaybackEngineAndroidTv.replaceAll(
-                          'Android TV',
-                          'Android',
-                        ),
-                  description: PlatformDetection.isTV
-                      ? l10n.settingsPlaybackEngineAndroidTvDescription
-                      : l10n.settingsPlaybackEngineAndroidTvDescription
-                            .replaceAll('Android TV', 'Android'),
-                  icon: Icons.video_settings,
-                  labelOf: (v) => switch (v) {
-                    PlaybackEnginePreference.media3 =>
-                      l10n.settingsPlaybackEngineMedia3Recommended,
-                    PlaybackEnginePreference.mpv =>
-                      l10n.settingsPlaybackEngineMpvLegacy,
-                  },
-                ),
-              if (PlatformDetection.isIOS)
-                EnumPreferenceTile<ApplePlayerUi>(
-                  preference: UserPreferences.applePlayerUi,
-                  title: l10n.settingsApplePlayerUi,
-                  description: l10n.settingsApplePlayerUiDescription,
-                  icon: Icons.smart_display_outlined,
-                  labelOf: (v) => switch (v) {
-                    ApplePlayerUi.flutter => l10n.settingsApplePlayerUiStandard,
-                    ApplePlayerUi.native => l10n.settingsApplePlayerUiNative,
-                  },
-                ),
               // Hidden on Apple TV: AetherEngine always uses VideoToolbox for
               // hardware-capable codecs and software decode otherwise, so there
               // is no user-facing toggle to honor.

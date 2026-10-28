@@ -14424,7 +14424,7 @@
   "@settingsApplePlayerUi": {
     "description": "Settings label on iPhone and iPad for choosing which player plays video"
   },
-  "settingsApplePlayerUiDescription": "The native Apple style player has no casting, swipe gestures, orientation lock, audio delay or PiP button",
+  "settingsApplePlayerUiDescription": "The native Apple style player has no casting, audio delay or PiP button, and its rotation lock is only in Live TV",
   "@settingsApplePlayerUiDescription": {
     "description": "Settings description for the video player choice, listing what the native Apple style player lacks"
   },

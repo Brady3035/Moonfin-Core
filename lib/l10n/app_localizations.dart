@@ -27234,7 +27234,7 @@ abstract class AppLocalizations {
   /// Settings description for the video player choice, listing what the native Apple style player lacks
   ///
   /// In en, this message translates to:
-  /// **'The native Apple style player has no casting, swipe gestures, orientation lock, audio delay or PiP button'**
+  /// **'The native Apple style player has no casting, audio delay or PiP button, and its rotation lock is only in Live TV'**
   String get settingsApplePlayerUiDescription;
 
   /// Option for the regular Moonfin video player on iPhone and iPad

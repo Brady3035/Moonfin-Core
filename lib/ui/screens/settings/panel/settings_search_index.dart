@@ -1343,6 +1343,19 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
 
     playback.screen(keywords: ['video', 'audio', 'subtitles', 'player']),
     video.screen(keywords: ['player', 'playback']),
+    if (PlatformDetection.isAndroid)
+      video.leaf(
+        'playback_engine_preference',
+        l10n.settingsPlaybackEngineAndroidTv,
+        keywords: ['exoplayer', 'mpv', 'media3', 'engine'],
+      ),
+    if (PlatformDetection.isIOS)
+      video.leaf(
+        'pref_apple_player_ui',
+        l10n.settingsApplePlayerUi,
+        subtitle: l10n.settingsApplePlayerUiDescription,
+        keywords: ['native player', 'apple tv player', 'player'],
+      ),
     video.leaf(
       'showDescriptionOnPause',
       l10n.showDescriptionOnPause,
@@ -1507,19 +1520,6 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
       subtitle: l10n.settingsLiveTvDirectSubtitle,
       keywords: ['live tv'],
     ),
-    if (PlatformDetection.isAndroid)
-      quality.leaf(
-        'playback_engine_preference',
-        l10n.settingsPlaybackEngineAndroidTv,
-        keywords: ['exoplayer', 'mpv', 'media3', 'engine'],
-      ),
-    if (PlatformDetection.isIOS)
-      quality.leaf(
-        'pref_apple_player_ui',
-        l10n.settingsApplePlayerUi,
-        subtitle: l10n.settingsApplePlayerUiDescription,
-        keywords: ['native player', 'apple tv player', 'player'],
-      ),
     if (!PlatformDetection.isWeb && !PlatformDetection.isAppleTV)
       quality.leaf(
         'hardware_decoding',

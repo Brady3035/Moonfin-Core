@@ -528,10 +528,6 @@
     "@discoverySubjects": {
         "description": "Title for the book discovery subject picker panel"
     },
-    "pickDiscoverySubjects": "Выберите, какие тематические каналы показывать в Discover.",
-    "@pickDiscoverySubjects": {
-        "description": "Instruction text in discovery subject picker"
-    },
     "apply": "Применить",
     "@apply": {
         "description": "Button label to apply selected options"
@@ -547,27 +543,6 @@
     "audiobookGenres": "Жанры аудиокниг",
     "@audiobookGenres": {
         "description": "Title for audiobook genre picker panel"
-    },
-    "pickAudiobookGenres": "Выберите, какие жанры показывать в Audiobook Discover.",
-    "@pickAudiobookGenres": {
-        "description": "Instruction text in audiobook genre picker"
-    },
-    "discoverAudiobooks": "Откройте для себя аудиокниги",
-    "@discoverAudiobooks": {
-        "description": "Section title for audiobook discovery"
-    },
-    "librivoxDescription": "Популярные общедоступные игры от LibriVox.",
-    "@librivoxDescription": {
-        "description": "Subtitle for audiobook discovery section"
-    },
-    "titlesCount": "Наименований: {count}",
-    "@titlesCount": {
-        "description": "Label showing number of titles",
-        "placeholders": {
-            "count": {
-                "type": "int"
-            }
-        }
     },
     "scrollLeft": "Прокрутить влево",
     "@scrollLeft": {
@@ -744,10 +719,6 @@
     "discover": "Обнаружить",
     "@discover": {
         "description": "Section title for book discovery"
-    },
-    "trendingTitlesOpenLibrary": "Популярные заголовки по темам из Open Library.",
-    "@trendingTitlesOpenLibrary": {
-        "description": "Subtitle for book discovery section"
     },
     "noBookmarkedItems": "В закладках пока нет товаров",
     "@noBookmarkedItems": {
@@ -7288,7 +7259,6 @@
     "failedToExtractCbrArchive": "Не удалось распаковать архив .cbr.",
     "cb7ExtractionUnavailable": "Распаковка CB7 недоступна на этой платформе.",
     "cb7ExtractionPluginUnavailable": "Плагин распаковки CB7 недоступен на этой платформе.",
-    "closeGenrePanel": "Закрыть панель жанров",
     "loadingShuffle": "Подготовка перемешивания...",
     "libraryShuffleLabel": "ПЕРЕМЕШАТЬ БИБЛИОТЕКУ",
     "randomShuffleLabel": "СЛУЧАЙНОЕ ПЕРЕМЕШИВАНИЕ",

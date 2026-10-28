@@ -524,10 +524,6 @@
     "@discoverySubjects": {
         "description": "Title for the book discovery subject picker panel"
     },
-    "pickDiscoverySubjects": "選擇要在「發現」中顯示的主題來源。",
-    "@pickDiscoverySubjects": {
-        "description": "Instruction text in discovery subject picker"
-    },
     "apply": "申請",
     "@apply": {
         "description": "Button label to apply selected options"
@@ -543,27 +539,6 @@
     "audiobookGenres": "有聲書流派",
     "@audiobookGenres": {
         "description": "Title for audiobook genre picker panel"
-    },
-    "pickAudiobookGenres": "選擇要在有聲書探索中顯示的流派。",
-    "@pickAudiobookGenres": {
-        "description": "Instruction text in audiobook genre picker"
-    },
-    "discoverAudiobooks": "發現有聲書",
-    "@discoverAudiobooks": {
-        "description": "Section title for audiobook discovery"
-    },
-    "librivoxDescription": "來自 LibriVox 的熱門公共領域標題。",
-    "@librivoxDescription": {
-        "description": "Subtitle for audiobook discovery section"
-    },
-    "titlesCount": "{count} titles",
-    "@titlesCount": {
-        "description": "Label showing number of titles",
-        "placeholders": {
-            "count": {
-                "type": "int"
-            }
-        }
     },
     "scrollLeft": "向左滾動",
     "@scrollLeft": {
@@ -740,10 +715,6 @@
     "discover": "發現",
     "@discover": {
         "description": "Section title for book discovery"
-    },
-    "trendingTitlesOpenLibrary": "Open Library 中按主題劃分的熱門標題。",
-    "@trendingTitlesOpenLibrary": {
-        "description": "Subtitle for book discovery section"
     },
     "noBookmarkedItems": "還沒有加書籤的項目",
     "@noBookmarkedItems": {
@@ -7202,7 +7173,6 @@
     "failedToExtractCbrArchive": "Failed to extract .cbr archive.",
     "cb7ExtractionUnavailable": "CB7 extraction is not available on this platform.",
     "cb7ExtractionPluginUnavailable": "CB7 extraction plugin is not available on this platform.",
-    "closeGenrePanel": "Close genre panel",
     "loadingShuffle": "Loading shuffle...",
     "libraryShuffleLabel": "LIBRARY SHUFFLE",
     "randomShuffleLabel": "RANDOM SHUFFLE",

@@ -977,9 +977,6 @@ class AppLocalizationsKo extends AppLocalizations {
   String get discoverySubjects => '둘러보기 주제';
 
   @override
-  String get pickDiscoverySubjects => '둘러보기에 표시할 주제 피드를 선택하세요.';
-
-  @override
   String get apply => '적용';
 
   @override
@@ -990,20 +987,6 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get audiobookGenres => '오디오북 장르';
-
-  @override
-  String get pickAudiobookGenres => '오디오북 둘러보기에 표시할 장르를 선택하세요.';
-
-  @override
-  String get discoverAudiobooks => '오디오북 둘러보기';
-
-  @override
-  String get librivoxDescription => 'LibriVox의 인기 공개 도메인 타이틀.';
-
-  @override
-  String titlesCount(int count) {
-    return '$count개 작품';
-  }
 
   @override
   String get scrollLeft => '왼쪽으로 스크롤';
@@ -1132,9 +1115,6 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get discover => '둘러보기';
-
-  @override
-  String get trendingTitlesOpenLibrary => 'Open Library의 주제별 인기 도서.';
 
   @override
   String get noBookmarkedItems => '아직 북마크한 항목이 없습니다';
@@ -13229,9 +13209,6 @@ class AppLocalizationsKo extends AppLocalizations {
       '이 플랫폼에서는 CB7 압축 해제 플러그인을 사용할 수 없습니다.';
 
   @override
-  String get closeGenrePanel => '장르 패널 닫기';
-
-  @override
   String get loadingShuffle => '셔플을 불러오는 중...';
 
   @override
@@ -15525,4 +15502,47 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get musicSortMostAlbums => 'Most Albums';
+
+  @override
+  String bookSeriesPosition(int index, int total) {
+    return 'Book $index of $total';
+  }
+
+  @override
+  String bookFavoriteCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count favorites',
+      one: '1 favorite',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get bookSortZToA => 'Z to A';
+
+  @override
+  String get bookSortMostTitles => 'Most Titles';
+
+  @override
+  String get bookSurpriseMe => 'Surprise Me';
+
+  @override
+  String get bookShuffleAudiobooks => 'Shuffle Audiobooks';
+
+  @override
+  String get bookStartReading => 'Start Reading';
+
+  @override
+  String get bookOtherBooks => 'Other Books';
+
+  @override
+  String get bookDiscoverSearchBooks => 'Search Open Library';
+
+  @override
+  String get bookDiscoverSearchAudiobooks => 'Search LibriVox';
+
+  @override
+  String get bookDiscoverFeatured => 'Featured';
 }

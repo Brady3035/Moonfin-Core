@@ -995,10 +995,6 @@ class AppLocalizationsTa extends AppLocalizations {
   String get discoverySubjects => 'கண்டுபிடிப்பு பாடங்கள்';
 
   @override
-  String get pickDiscoverySubjects =>
-      'டிஸ்கவரில் காட்ட வேண்டிய சப்ஜெக்ட் ஃபீட்களைத் தேர்ந்தெடுக்கவும்.';
-
-  @override
   String get apply => 'பயன்படுத்து';
 
   @override
@@ -1009,22 +1005,6 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get audiobookGenres => 'ஆடியோபுக் வகைகள்';
-
-  @override
-  String get pickAudiobookGenres =>
-      'ஆடியோபுக் டிஸ்கவரில் எந்த வகைகளைக் காட்ட வேண்டும் என்பதைத் தேர்ந்தெடுக்கவும்.';
-
-  @override
-  String get discoverAudiobooks => 'ஆடியோ புத்தகங்களைக் கண்டறியுங்கள்';
-
-  @override
-  String get librivoxDescription =>
-      'LibriVox இலிருந்து பிரபலமான பொது டொமைன் தலைப்புகள்.';
-
-  @override
-  String titlesCount(int count) {
-    return '$count தலைப்புகள்';
-  }
 
   @override
   String get scrollLeft => 'இடதுபுறமாக உருட்டவும்';
@@ -1161,10 +1141,6 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get discover => 'கண்டறியவும்';
-
-  @override
-  String get trendingTitlesOpenLibrary =>
-      'Open Library இலிருந்து பாடத்தின் அடிப்படையில் பிரபலமான தலைப்புகள்.';
 
   @override
   String get noBookmarkedItems =>
@@ -13720,9 +13696,6 @@ class AppLocalizationsTa extends AppLocalizations {
       'இந்தத் தளத்தில் CB7 பிரித்தெடுத்தல் செருகுநிரல் கிடைக்கவில்லை.';
 
   @override
-  String get closeGenrePanel => 'வகைப் பலகத்தை மூடு';
-
-  @override
   String get loadingShuffle => 'கலைத்தல் ஏற்றப்படுகிறது...';
 
   @override
@@ -16069,4 +16042,47 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get musicSortMostAlbums => 'Most Albums';
+
+  @override
+  String bookSeriesPosition(int index, int total) {
+    return 'Book $index of $total';
+  }
+
+  @override
+  String bookFavoriteCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count favorites',
+      one: '1 favorite',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get bookSortZToA => 'Z to A';
+
+  @override
+  String get bookSortMostTitles => 'Most Titles';
+
+  @override
+  String get bookSurpriseMe => 'Surprise Me';
+
+  @override
+  String get bookShuffleAudiobooks => 'Shuffle Audiobooks';
+
+  @override
+  String get bookStartReading => 'Start Reading';
+
+  @override
+  String get bookOtherBooks => 'Other Books';
+
+  @override
+  String get bookDiscoverSearchBooks => 'Search Open Library';
+
+  @override
+  String get bookDiscoverSearchAudiobooks => 'Search LibriVox';
+
+  @override
+  String get bookDiscoverFeatured => 'Featured';
 }

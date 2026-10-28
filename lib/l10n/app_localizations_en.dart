@@ -992,10 +992,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get discoverySubjects => 'Discovery Subjects';
 
   @override
-  String get pickDiscoverySubjects =>
-      'Pick which subject feeds to show in Discover.';
-
-  @override
   String get apply => 'Apply';
 
   @override
@@ -1006,22 +1002,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get audiobookGenres => 'Audiobook Genres';
-
-  @override
-  String get pickAudiobookGenres =>
-      'Pick which genres to show in Audiobook Discover.';
-
-  @override
-  String get discoverAudiobooks => 'Discover Audiobooks';
-
-  @override
-  String get librivoxDescription =>
-      'Popular public domain titles from LibriVox.';
-
-  @override
-  String titlesCount(int count) {
-    return '$count titles';
-  }
 
   @override
   String get scrollLeft => 'Scroll left';
@@ -1155,10 +1135,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get discover => 'Discover';
-
-  @override
-  String get trendingTitlesOpenLibrary =>
-      'Trending titles by subject from Open Library.';
 
   @override
   String get noBookmarkedItems => 'No bookmarked items yet';
@@ -13570,9 +13546,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'CB7 extraction plugin is not available on this platform.';
 
   @override
-  String get closeGenrePanel => 'Close genre panel';
-
-  @override
   String get loadingShuffle => 'Loading shuffle...';
 
   @override
@@ -15913,6 +15886,49 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get musicSortMostAlbums => 'Most Albums';
+
+  @override
+  String bookSeriesPosition(int index, int total) {
+    return 'Book $index of $total';
+  }
+
+  @override
+  String bookFavoriteCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count favorites',
+      one: '1 favorite',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get bookSortZToA => 'Z to A';
+
+  @override
+  String get bookSortMostTitles => 'Most Titles';
+
+  @override
+  String get bookSurpriseMe => 'Surprise Me';
+
+  @override
+  String get bookShuffleAudiobooks => 'Shuffle Audiobooks';
+
+  @override
+  String get bookStartReading => 'Start Reading';
+
+  @override
+  String get bookOtherBooks => 'Other Books';
+
+  @override
+  String get bookDiscoverSearchBooks => 'Search Open Library';
+
+  @override
+  String get bookDiscoverSearchAudiobooks => 'Search LibriVox';
+
+  @override
+  String get bookDiscoverFeatured => 'Featured';
 }
 
 /// The translations for English, as used in the United Kingdom (`en_GB`).
@@ -16762,10 +16778,6 @@ class AppLocalizationsEnGb extends AppLocalizationsEn {
   String get discoverySubjects => 'Discovery Subjects';
 
   @override
-  String get pickDiscoverySubjects =>
-      'Pick which subject feeds to show in Discover.';
-
-  @override
   String get apply => 'Apply';
 
   @override
@@ -16776,22 +16788,6 @@ class AppLocalizationsEnGb extends AppLocalizationsEn {
 
   @override
   String get audiobookGenres => 'Audiobook Genres';
-
-  @override
-  String get pickAudiobookGenres =>
-      'Pick which genres to show in Audiobook Discover.';
-
-  @override
-  String get discoverAudiobooks => 'Discover Audiobooks';
-
-  @override
-  String get librivoxDescription =>
-      'Popular public domain titles from LibriVox.';
-
-  @override
-  String titlesCount(int count) {
-    return '$count titles';
-  }
 
   @override
   String get scrollLeft => 'Scroll left';
@@ -16925,10 +16921,6 @@ class AppLocalizationsEnGb extends AppLocalizationsEn {
 
   @override
   String get discover => 'Discover';
-
-  @override
-  String get trendingTitlesOpenLibrary =>
-      'Trending titles by subject from Open Library.';
 
   @override
   String get noBookmarkedItems => 'No bookmarked items yet';
@@ -26725,9 +26717,6 @@ class AppLocalizationsEnGb extends AppLocalizationsEn {
   @override
   String get cb7ExtractionPluginUnavailable =>
       'CB7 extraction plugin is not available on this platform.';
-
-  @override
-  String get closeGenrePanel => 'Close genre panel';
 
   @override
   String get loadingShuffle => 'Loading shuffle…';

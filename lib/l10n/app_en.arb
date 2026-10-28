@@ -14929,5 +14929,13 @@
   "bookDiscoverFeatured": "Featured",
   "@bookDiscoverFeatured": {
     "description": "Label over the highlighted title at the top of Discover"
+  },
+  "bookReaderControlsAutoHide": "Controls hide automatically",
+  "@bookReaderControlsAutoHide": {
+    "description": "Comic reader toggle while its bars fade out on their own"
+  },
+  "bookReaderControlsStayVisible": "Controls stay visible",
+  "@bookReaderControlsStayVisible": {
+    "description": "Comic reader toggle while its bars stay on screen"
   }
 }

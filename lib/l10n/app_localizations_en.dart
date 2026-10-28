@@ -15929,6 +15929,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get bookDiscoverFeatured => 'Featured';
+
+  @override
+  String get bookReaderControlsAutoHide => 'Controls hide automatically';
+
+  @override
+  String get bookReaderControlsStayVisible => 'Controls stay visible';
 }
 
 /// The translations for English, as used in the United Kingdom (`en_GB`).

@@ -16025,4 +16025,10 @@ class AppLocalizationsSv extends AppLocalizations {
 
   @override
   String get bookDiscoverFeatured => 'Featured';
+
+  @override
+  String get bookReaderControlsAutoHide => 'Controls hide automatically';
+
+  @override
+  String get bookReaderControlsStayVisible => 'Controls stay visible';
 }

@@ -27656,6 +27656,138 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Use a different address'**
   String get addServerUseDifferentAddress;
+
+  /// Count next to the title of a music library's Artists screen
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 artist} other{{count} artists}}'**
+  String musicArtistCount(int count);
+
+  /// Count of songs, next to the Songs screen title and under a playlist
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 song} other{{count} songs}}'**
+  String musicSongCount(int count);
+
+  /// Count next to the title of a music library's Playlists screen
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 playlist} other{{count} playlists}}'**
+  String musicPlaylistCount(int count);
+
+  /// How many times a song was played, at the end of a Most Played row
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 play} other{{count} plays}}'**
+  String musicPlayCount(int count);
+
+  /// Artists screen switch: every artist, not only those credited on albums
+  ///
+  /// In en, this message translates to:
+  /// **'All Artists'**
+  String get allArtists;
+
+  /// Sort order from Z to A
+  ///
+  /// In en, this message translates to:
+  /// **'Z to A'**
+  String get libraryZToA;
+
+  /// Albums screen sort: by release year, newest first
+  ///
+  /// In en, this message translates to:
+  /// **'Year'**
+  String get musicSortYear;
+
+  /// Albums screen button that opens the genre filter
+  ///
+  /// In en, this message translates to:
+  /// **'Filter'**
+  String get musicFilter;
+
+  /// Title of the genre list the Albums screen's Filter button opens
+  ///
+  /// In en, this message translates to:
+  /// **'Filter by Genre'**
+  String get musicGenreFilterTitle;
+
+  /// Button that opens an album's details screen
+  ///
+  /// In en, this message translates to:
+  /// **'Open Album'**
+  String get openAlbum;
+
+  /// Button that opens a playlist's details screen, where its order can be changed
+  ///
+  /// In en, this message translates to:
+  /// **'Open Playlist'**
+  String get openPlaylist;
+
+  /// Songs screen button that opens the full list of songs by name
+  ///
+  /// In en, this message translates to:
+  /// **'All Songs A to Z'**
+  String get allSongsAToZ;
+
+  /// Small label over a music mix card, as in a playlist the app put together
+  ///
+  /// In en, this message translates to:
+  /// **'Mix'**
+  String get musicMix;
+
+  /// Songs screen mix card that shuffles the whole library
+  ///
+  /// In en, this message translates to:
+  /// **'Everything'**
+  String get musicMixEverything;
+
+  /// Line under the Everything mix card
+  ///
+  /// In en, this message translates to:
+  /// **'300 songs at random'**
+  String get musicMixEverythingSubtitle;
+
+  /// Songs screen mix card and list of the songs played most
+  ///
+  /// In en, this message translates to:
+  /// **'Most Played'**
+  String get mostPlayed;
+
+  /// Line under the Most Played mix card
+  ///
+  /// In en, this message translates to:
+  /// **'Your top 100'**
+  String get musicMixMostPlayedSubtitle;
+
+  /// Songs screen mix card of the newest songs in the library
+  ///
+  /// In en, this message translates to:
+  /// **'Fresh Arrivals'**
+  String get musicMixFreshArrivals;
+
+  /// Line under the Fresh Arrivals mix card
+  ///
+  /// In en, this message translates to:
+  /// **'The newest 100 songs'**
+  String get musicMixFreshArrivalsSubtitle;
+
+  /// Songs screen mix card of favorite songs that haven't been played in a while
+  ///
+  /// In en, this message translates to:
+  /// **'Rediscover'**
+  String get musicMixRediscover;
+
+  /// Line under the Rediscover mix card
+  ///
+  /// In en, this message translates to:
+  /// **'Favorites you haven\'t played lately'**
+  String get musicMixRediscoverSubtitle;
+
+  /// Genres screen order: the genres with the most albums first
+  ///
+  /// In en, this message translates to:
+  /// **'Most Albums'**
+  String get musicSortMostAlbums;
 }
 
 class _AppLocalizationsDelegate

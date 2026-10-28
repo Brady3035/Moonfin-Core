@@ -34,13 +34,15 @@ import '../../widgets/skeleton/skeleton_music_browse.dart';
 import '../../widgets/top_toolbar.dart';
 import 'music_browse_screen.dart';
 
-/// What the Quick Access and Immersive music libraries share: the view
-/// model, the D-pad stops and the shelf each row is drawn as.
-abstract class MusicLibraryState<T extends StatefulWidget> extends State<T> {
+/// What every music page shares: the D-pad stops, the sections they sit in
+/// and the app's chrome around them.
+abstract class MusicPageState<T extends StatefulWidget> extends State<T> {
   String get libraryId;
 
-  late final MusicBrowseViewModel vm;
+  bool get isLoading;
+
   final coordinator = RowFocusCoordinator();
+  final scrollController = ScrollController();
 
   // Never attached. As the initial focus target it keeps RequestInitialFocus
   // from parking focus in the sidebar before the content loads, and
@@ -78,13 +80,6 @@ abstract class MusicLibraryState<T extends StatefulWidget> extends State<T> {
   @override
   void initState() {
     super.initState();
-    vm = MusicBrowseViewModel(
-      libraryId: libraryId,
-      dataSource: GetIt.instance<RowDataSource>(),
-      client: GetIt.instance<MediaServerClient>(),
-    );
-    vm.addListener(_onChanged);
-    reload();
     _queueSub = GetIt.instance<PlaybackManager>()
         .queueService
         .queueChangedStream
@@ -99,8 +94,7 @@ abstract class MusicLibraryState<T extends StatefulWidget> extends State<T> {
   @override
   void dispose() {
     _queueSub?.cancel();
-    vm.removeListener(_onChanged);
-    vm.dispose();
+    scrollController.dispose();
     initialFocusNode.dispose();
     for (final node in _nodes.values) {
       node.dispose();
@@ -108,21 +102,14 @@ abstract class MusicLibraryState<T extends StatefulWidget> extends State<T> {
     super.dispose();
   }
 
-  Future<void> reload() async {
-    await vm.load();
-    if (mounted) onLoaded();
-  }
-
-  /// Runs after every load, for what a style loads on top of the rows.
-  void onLoaded() {}
-
-  void _onChanged() {
+  /// Rebuilds for new content, and lands focus on it once it first shows.
+  void contentChanged() {
     if (!mounted) return;
     setState(() {});
-    if (!wide || vm.isLoading) return;
+    if (!wide || isLoading) return;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted ||
-          vm.isLoading ||
+          isLoading ||
           !canClaimInitialFocus(context) ||
           LeftSidebar.isFocusedNotifier.value ||
           TopToolbar.isFocusedNotifier.value) {
@@ -155,6 +142,102 @@ abstract class MusicLibraryState<T extends StatefulWidget> extends State<T> {
   bool move(int fromIndex, bool isUp) =>
       moveBookFocus(coordinator, fromIndex, isUp);
 
+  /// The page in the app's chrome, [loading] until its content arrives.
+  /// Without [loading] the content draws its own loading state.
+  Widget buildPage(
+    Widget Function() content, {
+    Widget? loading = const SkeletonMusicBrowse(),
+  }) => RequestInitialFocus(
+    targetNode: initialFocusNode,
+    child: Scaffold(
+      backgroundColor: AppColorScheme.background,
+      body: NavigationLayout(
+        activeRoute: '/music/$libraryId',
+        showBackButton: true,
+        child: isLoading && loading != null ? loading : content(),
+      ),
+    ),
+  );
+
+  /// The sections [addSections] adds, in a list that pulls to refresh. A
+  /// [header] stays above the list, and adds its stops before the list's.
+  /// [body] places the list beside anything else the page shows, which
+  /// keeps [bottom] clear for the bottom navbar too.
+  Widget buildSections(
+    VoidCallback addSections, {
+    required Future<void> Function() onRefresh,
+    Widget Function()? header,
+    Widget Function(Widget list, double bottom)? body,
+  }) => BottomNavPadded(
+    fallback: 120,
+    builder: (_, bottom) {
+      _entries = [];
+      _sections = [];
+      final top = header?.call();
+      addSections();
+      coordinator.entries = _entries;
+      Widget list = RefreshIndicator(
+        onRefresh: onRefresh,
+        child: ListView(
+          controller: scrollController,
+          padding: EdgeInsets.only(bottom: bottom + 24),
+          children: _sections,
+        ),
+      );
+      if (body != null) list = body(list, bottom);
+      if (top == null) return list;
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [top, Expanded(child: list)],
+      );
+    },
+  );
+
+  /// Adds a D-pad stop to the page and returns its coordinator index.
+  int addStop(RowFocusEntry entry) {
+    _entries.add(entry);
+    return _entries.length - 1;
+  }
+
+  void addSection(Widget section) => _sections.add(section);
+}
+
+/// What the Quick Access and Immersive music libraries share: the view
+/// model, the D-pad stops and the shelf each row is drawn as.
+abstract class MusicLibraryState<T extends StatefulWidget>
+    extends MusicPageState<T> {
+  late final MusicBrowseViewModel vm;
+
+  @override
+  bool get isLoading => vm.isLoading;
+
+  @override
+  void initState() {
+    super.initState();
+    vm = MusicBrowseViewModel(
+      libraryId: libraryId,
+      dataSource: GetIt.instance<RowDataSource>(),
+      client: GetIt.instance<MediaServerClient>(),
+    );
+    vm.addListener(contentChanged);
+    reload();
+  }
+
+  @override
+  void dispose() {
+    vm.removeListener(contentChanged);
+    vm.dispose();
+    super.dispose();
+  }
+
+  Future<void> reload() async {
+    await vm.load();
+    if (mounted) onLoaded();
+  }
+
+  /// Runs after every load, for what a style loads on top of the rows.
+  void onLoaded() {}
+
   void openItem(AggregatedItem item) => openMusicItem(context, item);
 
   void search() => context.push(Destinations.searchInLibrary(libraryId));
@@ -175,44 +258,9 @@ abstract class MusicLibraryState<T extends StatefulWidget> extends State<T> {
     return null;
   }
 
-  /// The page in the app's chrome, a skeleton until the rows load.
-  Widget buildPage(Widget Function() content) => RequestInitialFocus(
-    targetNode: initialFocusNode,
-    child: Scaffold(
-      backgroundColor: AppColorScheme.background,
-      body: NavigationLayout(
-        activeRoute: '/music/$libraryId',
-        showBackButton: true,
-        child: vm.isLoading ? const SkeletonMusicBrowse() : content(),
-      ),
-    ),
-  );
-
   /// The sections [addSections] adds, in a list that pulls to refresh.
-  Widget buildSectionList(VoidCallback addSections) => RefreshIndicator(
-    onRefresh: reload,
-    child: BottomNavPadded(
-      fallback: 120,
-      builder: (_, bottom) {
-        _entries = [];
-        _sections = [];
-        addSections();
-        coordinator.entries = _entries;
-        return ListView(
-          padding: EdgeInsets.only(bottom: bottom + 24),
-          children: _sections,
-        );
-      },
-    ),
-  );
-
-  /// Adds a D-pad stop to the page and returns its coordinator index.
-  int addStop(RowFocusEntry entry) {
-    _entries.add(entry);
-    return _entries.length - 1;
-  }
-
-  void addSection(Widget section) => _sections.add(section);
+  Widget buildSectionList(VoidCallback addSections) =>
+      buildSections(addSections, onRefresh: reload);
 
   void addShelf(
     HomeRow? row, {
@@ -362,10 +410,6 @@ abstract class MusicLibraryState<T extends StatefulWidget> extends State<T> {
   }
 
   /// A song's artist and album, or the view model's subtitle for the rest.
-  String _songSubtitle(AggregatedItem item) {
-    final subtitle = vm.getMusicSubtitle(item);
-    final album = item.album;
-    if (item.type != 'Audio' || album == null || album.isEmpty) return subtitle;
-    return subtitle.isEmpty ? album : '$subtitle · $album';
-  }
+  String _songSubtitle(AggregatedItem item) =>
+      item.type == 'Audio' ? musicSongLine(item) : vm.getMusicSubtitle(item);
 }

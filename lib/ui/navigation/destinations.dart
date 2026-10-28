@@ -79,6 +79,7 @@ class Destinations {
   static const collectionBrowse = '/collection/:collectionId';
   static const libraryViewRoute = '/library-view/:libraryId';
   static const musicBrowse = '/music/:libraryId';
+  static const musicCategoryBrowse = '/music/:libraryId/:category';
   static const bookBrowse = '/books/:libraryId';
   static const genreBrowse = '/genre/:genreName';
   static const studioBrowse = '/studio/:studioName';
@@ -286,6 +287,17 @@ class Destinations {
 
   static String collection(String collectionId) => '/collection/$collectionId';
   static String musicLibrary(String libraryId) => '/music/$libraryId';
+
+  /// One of a music library's category screens. [show] picks what it opens
+  /// on, such as `all` for every artist or a favorites tab.
+  static String musicCategory(
+    String libraryId,
+    String category, {
+    String? show,
+  }) {
+    final base = '/music/$libraryId/$category';
+    return show == null ? base : '$base?show=${Uri.encodeQueryComponent(show)}';
+  }
   static String bookLibrary(String libraryId, {String? collectionType}) {
     final base = '/books/$libraryId';
     return collectionType != null && collectionType.isNotEmpty

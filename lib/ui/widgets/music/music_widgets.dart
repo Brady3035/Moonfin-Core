@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:moonfin_design/moonfin_design.dart';
 
@@ -10,6 +12,27 @@ import '../focus/locked_focus_row.dart';
 import '../horizontal_scroll_section.dart';
 import '../offline_aware_image.dart';
 import '../settings/preference_tiles.dart';
+import '../sliding_pill_tabs.dart';
+
+/// Genre and mix tiles cycle through these, dark enough for white labels.
+const kMusicTileColors = [
+  Color(0xFF7A2E22),
+  Color(0xFF3B2D5C),
+  Color(0xFF6B2F4A),
+  Color(0xFF4D3B72),
+  Color(0xFFB4472F),
+  Color(0xFF1F3A5F),
+  Color(0xFF8A5A1E),
+  Color(0xFF14505C),
+];
+
+/// The small capitals over a music hero or panel title, in the accent.
+TextStyle musicEyebrowStyle() => TextStyle(
+  fontSize: 12,
+  fontWeight: FontWeight.w700,
+  letterSpacing: 1.4,
+  color: AppColorScheme.accent,
+);
 
 TextStyle musicSectionTitleStyle({required bool large}) => TextStyle(
   fontSize: large ? 22 : 20,
@@ -231,8 +254,9 @@ class MusicGridEdges {
   final VoidCallback? up;
   final VoidCallback? down;
   final VoidCallback? left;
+  final VoidCallback? right;
 
-  const MusicGridEdges({this.up, this.down, this.left});
+  const MusicGridEdges({this.up, this.down, this.left, this.right});
 
   factory MusicGridEdges.of(
     int index, {
@@ -241,10 +265,14 @@ class MusicGridEdges {
     required VoidCallback onLeaveUp,
     required VoidCallback onLeaveDown,
     VoidCallback? onLeaveLeft,
+    VoidCallback? onLeaveRight,
   }) => MusicGridEdges(
     up: index < columns ? onLeaveUp : null,
     down: index + columns >= count ? onLeaveDown : null,
     left: index % columns == 0 ? onLeaveLeft : null,
+    right: index % columns == columns - 1 || index == count - 1
+        ? onLeaveRight
+        : null,
   );
 }
 
@@ -264,6 +292,7 @@ class MusicGridCard extends StatefulWidget {
   final VoidCallback onTap;
   final MusicGridEdges edges;
   final Widget Function(bool focused) builder;
+  final VoidCallback? onFocus;
 
   const MusicGridCard({
     super.key,
@@ -271,6 +300,7 @@ class MusicGridCard extends StatefulWidget {
     required this.onTap,
     required this.builder,
     this.edges = const MusicGridEdges(),
+    this.onFocus,
   });
 
   @override
@@ -293,6 +323,8 @@ class _MusicGridCardState extends State<MusicGridCard> {
         ? widget.edges.down
         : key.isLeftKey
         ? widget.edges.left
+        : key.isRightKey
+        ? widget.edges.right
         : null;
     if (edge == null) return KeyEventResult.ignored;
     edge();
@@ -307,6 +339,7 @@ class _MusicGridCardState extends State<MusicGridCard> {
       onFocusChange: (focused) {
         setState(() => _focused = focused);
         if (focused) {
+          widget.onFocus?.call();
           Scrollable.ensureVisible(
             context,
             alignment: 0.5,
@@ -330,6 +363,9 @@ class MusicTrackTile extends StatefulWidget {
   /// Art at the start. Without it [leadingLabel] (a track number) shows.
   final String? imageUrl;
   final String? leadingLabel;
+
+  /// A place in a chart, in the accent ahead of the art.
+  final String? rank;
   final String? trailing;
 
   /// The song played last on this album.
@@ -338,6 +374,7 @@ class MusicTrackTile extends StatefulWidget {
   final VoidCallback onTap;
   final MusicGridEdges edges;
   final VoidCallback? onNavigateRight;
+  final VoidCallback? onFocus;
 
   const MusicTrackTile({
     super.key,
@@ -346,11 +383,13 @@ class MusicTrackTile extends StatefulWidget {
     required this.onTap,
     this.imageUrl,
     this.leadingLabel,
+    this.rank,
     this.trailing,
     this.highlighted = false,
     this.focusNode,
     this.edges = const MusicGridEdges(),
     this.onNavigateRight,
+    this.onFocus,
   });
 
   @override
@@ -382,7 +421,10 @@ class _MusicTrackTileState extends State<MusicTrackTile> {
       disableScale: true,
       autoScroll: true,
       suppressFocusGlow: true,
-      onFocusChange: (focused) => setState(() => _focused = focused),
+      onFocusChange: (focused) {
+        setState(() => _focused = focused);
+        if (focused) widget.onFocus?.call();
+      },
       onSelect: widget.onTap,
       onNavigateUp: widget.edges.up,
       onNavigateDown: widget.edges.down,
@@ -397,6 +439,18 @@ class _MusicTrackTileState extends State<MusicTrackTile> {
         ),
         child: Row(
           children: [
+            if (widget.rank != null)
+              SizedBox(
+                width: 30,
+                child: Text(
+                  widget.rank!,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    color: invert ? text : accent,
+                  ),
+                ),
+              ),
             if (widget.imageUrl != null || widget.leadingLabel == null)
               ClipRRect(
                 borderRadius: AppRadius.circular(6),
@@ -578,6 +632,273 @@ class MusicTile extends StatelessWidget {
                 fontSize: color != null ? 18 : 14,
                 fontWeight: color != null ? FontWeight.w800 : FontWeight.w700,
                 color: color != null ? Colors.white : onSurface,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// A music action, a pill with [label] or a circle without one. Focus fills
+/// it with the button focus color, so it shows on the accent Play button too.
+class MusicPillButton extends StatefulWidget {
+  final FocusNode focusNode;
+  final IconData icon;
+  final String? label;
+  final String? semanticLabel;
+  final Color? iconColor;
+  final bool primary;
+  final double height;
+  final VoidCallback onTap;
+  final VoidCallback? onNavigateUp;
+  final VoidCallback? onNavigateDown;
+  final VoidCallback? onNavigateLeft;
+  final VoidCallback? onNavigateRight;
+
+  const MusicPillButton({
+    super.key,
+    required this.focusNode,
+    required this.icon,
+    required this.onTap,
+    this.height = 44,
+    this.onNavigateUp,
+    this.onNavigateDown,
+    this.label,
+    this.semanticLabel,
+    this.iconColor,
+    this.primary = false,
+    this.onNavigateLeft,
+    this.onNavigateRight,
+  });
+
+  @override
+  State<MusicPillButton> createState() => _MusicPillButtonState();
+}
+
+class _MusicPillButtonState extends State<MusicPillButton> {
+  bool _focused = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final onSurface = AppColorScheme.onSurface;
+    final background = _focused
+        ? AppColorScheme.buttonFocused
+        : (widget.primary
+              ? AppColorScheme.accent
+              : onSurface.withValues(alpha: 0.14));
+    final foreground = _focused
+        ? AppColorScheme.onButtonFocused
+        : (widget.primary ? AppColorScheme.onAccent : onSurface);
+    final label = widget.label;
+    final height = widget.height;
+    return FocusableWrapper(
+      highlightOnHover: true,
+      focusNode: widget.focusNode,
+      borderRadius: height / 2,
+      disableScale: true,
+      semanticLabel: widget.semanticLabel,
+      onFocusChange: (focused) => setState(() => _focused = focused),
+      onSelect: widget.onTap,
+      onNavigateUp: widget.onNavigateUp,
+      onNavigateDown: widget.onNavigateDown,
+      onNavigateLeft: widget.onNavigateLeft,
+      onNavigateRight: widget.onNavigateRight,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 90),
+        width: label == null ? height : null,
+        height: height,
+        padding: label == null
+            ? null
+            : const EdgeInsets.symmetric(horizontal: 24),
+        decoration: BoxDecoration(
+          color: background,
+          borderRadius: AppRadius.circular(height / 2),
+        ),
+        child: label == null
+            ? Icon(
+                widget.icon,
+                size: 22,
+                color: _focused ? foreground : (widget.iconColor ?? foreground),
+              )
+            : Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(widget.icon, size: 22, color: foreground),
+                  const SizedBox(width: 8),
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: widget.primary
+                          ? FontWeight.w800
+                          : FontWeight.w700,
+                      color: foreground,
+                    ),
+                  ),
+                ],
+              ),
+      ),
+    );
+  }
+}
+
+/// A music library's categories as pill tabs, with [current] picked. The
+/// D-pad moves a highlight along them and Select opens the highlighted one,
+/// since the pills pick on every arrow press. A tap opens one at once, and
+/// leaving the tabs puts the highlight back on [current].
+class MusicCategoryTabs extends StatefulWidget {
+  final List<String> labels;
+  final int current;
+  final ValueChanged<int> onOpen;
+  final FocusNode focusNode;
+  final bool Function(bool isUp)? onVerticalNavigation;
+  final VoidCallback? onExitLeft;
+  final VoidCallback? onExitRight;
+
+  const MusicCategoryTabs({
+    super.key,
+    required this.labels,
+    required this.current,
+    required this.onOpen,
+    required this.focusNode,
+    this.onVerticalNavigation,
+    this.onExitLeft,
+    this.onExitRight,
+  });
+
+  @override
+  State<MusicCategoryTabs> createState() => _MusicCategoryTabsState();
+}
+
+class _MusicCategoryTabsState extends State<MusicCategoryTabs> {
+  late int _highlight = widget.current;
+  bool _pointerDown = false;
+
+  @override
+  void didUpdateWidget(MusicCategoryTabs old) {
+    super.didUpdateWidget(old);
+    if (old.current != widget.current) _highlight = widget.current;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Focus(
+      canRequestFocus: false,
+      skipTraversal: true,
+      onFocusChange: (has) {
+        if (!has && _highlight != widget.current) {
+          setState(() => _highlight = widget.current);
+        }
+      },
+      onKeyEvent: (_, event) {
+        if (!isActivateKey(event) || _highlight == widget.current) {
+          return KeyEventResult.ignored;
+        }
+        widget.onOpen(_highlight);
+        return KeyEventResult.handled;
+      },
+      child: Listener(
+        onPointerDown: (_) => _pointerDown = true,
+        onPointerUp: (_) => scheduleMicrotask(() => _pointerDown = false),
+        onPointerCancel: (_) => _pointerDown = false,
+        child: SlidingPillTabs(
+          labels: widget.labels,
+          selectedIndex: _highlight,
+          onChanged: (index) {
+            if (_pointerDown) {
+              if (index != widget.current) widget.onOpen(index);
+              return;
+            }
+            setState(() => _highlight = index);
+          },
+          focusNode: widget.focusNode,
+          onVerticalNavigation: widget.onVerticalNavigation,
+          onExitLeft: widget.onExitLeft,
+          onExitRight: widget.onExitRight,
+        ),
+      ),
+    );
+  }
+}
+
+/// One stop in a music library's side rail: an icon or a playlist's art,
+/// and its label, tinted with the accent while [selected].
+class MusicRailItem extends StatelessWidget {
+  final String label;
+  final IconData? icon;
+  final String? imageUrl;
+  final bool selected;
+  final FocusNode focusNode;
+  final VoidCallback onTap;
+  final VoidCallback? onNavigateUp;
+  final VoidCallback? onNavigateDown;
+  final VoidCallback onNavigateLeft;
+  final VoidCallback onNavigateRight;
+
+  const MusicRailItem({
+    super.key,
+    required this.label,
+    required this.selected,
+    required this.focusNode,
+    required this.onTap,
+    required this.onNavigateLeft,
+    required this.onNavigateRight,
+    this.icon,
+    this.imageUrl,
+    this.onNavigateUp,
+    this.onNavigateDown,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = AppColorScheme.accent;
+    final color = selected
+        ? accent
+        : AppColorScheme.onSurface.withValues(alpha: 0.86);
+    return FocusableWrapper(
+      highlightOnHover: true,
+      focusNode: focusNode,
+      borderRadius: 10,
+      disableScale: true,
+      autoScroll: true,
+      onSelect: onTap,
+      onNavigateUp: onNavigateUp,
+      onNavigateDown: onNavigateDown,
+      onNavigateLeft: onNavigateLeft,
+      onNavigateRight: onNavigateRight,
+      child: Container(
+        height: icon != null ? 44 : 48,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        decoration: BoxDecoration(
+          color: selected ? accent.withValues(alpha: 0.16) : null,
+          borderRadius: AppRadius.circular(10),
+        ),
+        child: Row(
+          children: [
+            if (icon != null)
+              Icon(icon, size: 20, color: color)
+            else
+              ClipRRect(
+                borderRadius: AppRadius.circular(6),
+                child: SizedBox.square(
+                  dimension: 32,
+                  child: musicArt(imageUrl, icon: Icons.queue_music),
+                ),
+              ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: icon != null ? 15 : 14,
+                  fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
+                  color: color,
+                ),
               ),
             ),
           ],

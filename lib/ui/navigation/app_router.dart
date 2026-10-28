@@ -36,7 +36,9 @@ import '../screens/browse/library_genres_screen.dart';
 import '../screens/browse/library_letters_screen.dart';
 import '../screens/browse/library_suggestions_screen.dart';
 import '../screens/browse/book_library_screen.dart';
+import '../screens/browse/music_category_screen.dart';
 import '../screens/browse/music_library_screen.dart';
+import '../widgets/music/music_navigation.dart';
 import '../../data/models/tmdb_item_ref.dart';
 import '../screens/detail/item_detail_screen.dart';
 import '../screens/games/game_library_screen.dart';
@@ -364,6 +366,18 @@ final appRouter = GoRouter(
         final libraryId = state.pathParameters['libraryId']!;
         return MusicLibraryScreen(libraryId: libraryId);
       },
+    ),
+    GoRoute(
+      path: Destinations.musicCategoryBrowse,
+      redirect: (context, state) =>
+          MusicCategoryKind.parse(state.pathParameters['category']) == null
+          ? Destinations.musicLibrary(state.pathParameters['libraryId']!)
+          : null,
+      builder: (context, state) => MusicCategoryScreen(
+        libraryId: state.pathParameters['libraryId']!,
+        kind: MusicCategoryKind.parse(state.pathParameters['category'])!,
+        show: state.uri.queryParameters['show'],
+      ),
     ),
     GoRoute(
       path: Destinations.bookBrowse,

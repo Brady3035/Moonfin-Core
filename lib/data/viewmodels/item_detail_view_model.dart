@@ -1546,7 +1546,7 @@ class ItemDetailViewModel extends ChangeNotifier {
     try {
       final syncService = GetIt.instance<PluginSyncService>();
       final order = _customOrderIds;
-      if (syncService.pluginAvailable && order != null) {
+      if (syncService.collectionOrderSupported(_client) && order != null) {
         // The whole order goes up, otherwise the server forgets where the items
         // that haven't been paged in yet belong.
         await syncService.saveCustomCollectionOrder(_client, itemId, order);
@@ -1625,7 +1625,7 @@ class ItemDetailViewModel extends ChangeNotifier {
       await _client.itemsApi.removeFromCollection(itemId, [item.id]);
       final syncService = GetIt.instance<PluginSyncService>();
       final order = _customOrderIds;
-      if (syncService.pluginAvailable && order != null) {
+      if (syncService.collectionOrderSupported(_client) && order != null) {
         await syncService.saveCustomCollectionOrder(_client, itemId, order);
       }
     } catch (_) {
@@ -1840,7 +1840,7 @@ class ItemDetailViewModel extends ChangeNotifier {
       // A saved order still needs the scan to find members added since it was
       // saved. They go on the end in release order so they aren't lost.
       final syncService = GetIt.instance<PluginSyncService>();
-      if (syncService.pluginAvailable) {
+      if (syncService.collectionOrderSupported(_client)) {
         try {
           final customOrder = await syncService.fetchCustomCollectionOrder(
             _client,

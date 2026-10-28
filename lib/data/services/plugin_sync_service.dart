@@ -9,7 +9,9 @@ import 'package:get_it/get_it.dart';
 import 'package:moonfin_design/moonfin_design.dart';
 import 'package:jellyfin_preference/jellyfin_preference.dart';
 import 'package:server_core/server_core.dart';
+import 'package:server_silo/server_silo.dart';
 
+import '../../auth/services/silo_token_storage.dart';
 import '../../data/repositories/seerr_repository.dart';
 import 'seerr/seerr_discover_sliders.dart';
 import 'incomplete_recordings_service.dart';
@@ -975,6 +977,12 @@ class PluginSyncService extends ChangeNotifier {
     } catch (_) {}
   }
 
+  /// Whether a collection's custom order can be read and saved for
+  /// [client]'s server: through the plugin, or on Silo through its own
+  /// personal collection order.
+  bool collectionOrderSupported(MediaServerClient client) =>
+      _pluginAvailable || siloClientOf(client) != null;
+
   /// Pass `requireAvailable: false` from callers that run before the plugin
   /// ping has resolved, such as the home rows. The request is then attempted
   /// regardless and a missing plugin simply comes back null.
@@ -983,6 +991,8 @@ class PluginSyncService extends ChangeNotifier {
     String collectionId, {
     bool requireAvailable = true,
   }) async {
+    final silo = siloClientOf(client);
+    if (silo != null) return _siloCollectionOrder(silo, collectionId);
     if (requireAvailable && !_pluginAvailable) return null;
     final ep = await moonbaseEndpoint(client, _dio);
     if (ep == null) return null;
@@ -1000,11 +1010,55 @@ class PluginSyncService extends ChangeNotifier {
     return null;
   }
 
+  /// A Silo personal collection's own manual order. Silo keeps it, so it
+  /// needs no plugin. Null for a collection Silo doesn't let this profile
+  /// order (a library collection, or another profile's).
+  Future<List<String>?> _siloCollectionOrder(
+    SiloMediaServerClient silo,
+    String collectionId,
+  ) async {
+    try {
+      final response = await silo.dio.get<dynamic>(
+        '/api/v2/collections/${Uri.encodeComponent(collectionId)}/items/order',
+      );
+      final ids = (response.data as Map?)?['ordered_ids'];
+      return ids is List ? [for (final id in ids) '$id'] : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Replaces a Silo personal collection's manual order. Silo takes it only
+  /// against the order's current ETag, so that is read first.
+  Future<bool> _saveSiloCollectionOrder(
+    SiloMediaServerClient silo,
+    String collectionId,
+    List<String> itemIds,
+  ) async {
+    final path =
+        '/api/v2/collections/${Uri.encodeComponent(collectionId)}/items/order';
+    try {
+      final current = await silo.dio.get<dynamic>(path);
+      final etag = current.headers.value('etag');
+      if (etag == null) return false;
+      await silo.dio.put<dynamic>(
+        path,
+        data: {'ordered_ids': itemIds},
+        options: Options(headers: {'If-Match': etag}),
+      );
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
   Future<bool> saveCustomCollectionOrder(
     MediaServerClient client,
     String collectionId,
     List<String> itemIds,
   ) async {
+    final silo = siloClientOf(client);
+    if (silo != null) return _saveSiloCollectionOrder(silo, collectionId, itemIds);
     if (!_pluginAvailable) return false;
     final ep = await moonbaseEndpoint(client, _dio);
     if (ep == null) return false;

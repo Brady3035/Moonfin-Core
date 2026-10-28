@@ -32,6 +32,7 @@ class _EditableItemsApi extends _ItemsApi implements EditableCollectionsApi {
 class _PluginSyncService extends Mock implements PluginSyncService {}
 
 void main() {
+  setUpAll(() => registerFallbackValue(_Client()));
   TestWidgetsFlutterBinding.ensureInitialized();
 
   late _Client client;
@@ -82,6 +83,7 @@ void main() {
     final pluginSync = _PluginSyncService();
     when(() => pluginSync.seerrAvailable).thenReturn(false);
     when(() => pluginSync.pluginAvailable).thenReturn(false);
+    when(() => pluginSync.collectionOrderSupported(any())).thenReturn(false);
     GetIt.instance.registerSingleton<PluginSyncService>(pluginSync);
 
     client = _Client();

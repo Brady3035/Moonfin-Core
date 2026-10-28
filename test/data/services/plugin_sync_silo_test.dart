@@ -72,6 +72,42 @@ _MockClient _client(ServerType type, String baseUrl) {
   return client;
 }
 
+/// Answers a Silo personal collection's item order.
+class _SiloCollections implements HttpClientAdapter {
+  String? putIfMatch;
+  Object? putBody;
+
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<void>? cancelFuture,
+  ) async {
+    if (options.uri.path != '/api/v2/collections/c1/items/order') {
+      return ResponseBody.fromString('', 404);
+    }
+    if (options.method == 'PUT') {
+      putIfMatch = options.headers['If-Match'] as String?;
+      final bytes = await requestStream!.expand((b) => b).toList();
+      putBody = jsonDecode(utf8.decode(bytes));
+    }
+    return ResponseBody.fromString(
+      jsonEncode({
+        'ordered_ids': ['movie-a', 'movie-b'],
+        'has_more': false,
+      }),
+      200,
+      headers: {
+        Headers.contentTypeHeader: [Headers.jsonContentType],
+        'etag': ['"rev-1"'],
+      },
+    );
+  }
+
+  @override
+  void close({bool force = false}) {}
+}
+
 SiloMediaServerClient _silo(String baseUrl) {
   final now = DateTime.now().toUtc();
   return SiloMediaServerClient(
@@ -162,6 +198,39 @@ void main() {
       isEmpty,
       reason: 'this Silo has no Moonbase',
     );
+  });
+
+  test('a Silo collection keeps its own order, saved against its ETag',
+      () async {
+    final silo = _SiloCollections();
+    final client = SiloMediaServerClient(
+      baseUrl: 'https://silo-order.example',
+      deviceInfo: const DeviceInfo(
+        id: 'dev1',
+        name: 'test',
+        appName: 'moonfin',
+        appVersion: '0.0.0',
+      ),
+      httpClientAdapter: silo,
+    );
+
+    expect(service.collectionOrderSupported(client), isTrue);
+    expect(
+      await service.fetchCustomCollectionOrder(client, 'c1'),
+      ['movie-a', 'movie-b'],
+    );
+    expect(
+      await service.saveCustomCollectionOrder(client, 'c1', [
+        'movie-b',
+        'movie-a',
+      ]),
+      isTrue,
+    );
+    expect(silo.putIfMatch, '"rev-1"');
+    expect(silo.putBody, {
+      'ordered_ids': ['movie-b', 'movie-a'],
+    });
+    expect(adapter.requests, isEmpty, reason: 'no plugin is involved');
   });
 
   test('Jellyfin still pings the plugin', () async {

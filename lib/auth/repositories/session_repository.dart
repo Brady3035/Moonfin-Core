@@ -797,7 +797,9 @@ class SessionRepository {
 
     if (serverId != null) {
       await _credentialStore.deleteToken(serverId);
-      if (userId != null) {
+      // A profile whose account stays signed in stays listed, so the user
+      // grid still offers every profile of the account.
+      if (userId != null && !keepsSiloLogin) {
         await _authStore.removeUser(serverId, userId);
       }
       _clientFactory.removeClient(serverId);

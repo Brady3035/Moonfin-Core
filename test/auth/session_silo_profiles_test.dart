@@ -166,7 +166,8 @@ void main() {
   });
 
   group('signing out', () {
-    test('one profile: its siblings and the login stay', () async {
+    test('one profile: it stays listed with its siblings, and the login '
+        'stays', () async {
       await store.putUser(_profile('brady'));
       await store.putUser(_profile('kid'));
       repo.setActiveSessionForTest('s1', 'brady');
@@ -175,7 +176,7 @@ void main() {
       await repo.destroyCurrentSession();
 
       expect(factory.client.authApiFake.logouts, 0);
-      expect(store.getUsers('s1').map((u) => u.id), ['kid']);
+      expect(store.getUsers('s1').map((u) => u.id), ['brady', 'kid']);
       expect(store.getSiloTokens('s1', '9'), isNotNull);
     });
 

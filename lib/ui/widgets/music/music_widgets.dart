@@ -907,3 +907,65 @@ class MusicRailItem extends StatelessWidget {
     );
   }
 }
+
+/// One of Quick Access's category chips on phones, filled with the accent
+/// when [selected].
+class MusicChip extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final FocusNode focusNode;
+  final VoidCallback onTap;
+  final VoidCallback? onNavigateUp;
+  final VoidCallback? onNavigateDown;
+  final VoidCallback? onNavigateLeft;
+  final VoidCallback? onNavigateRight;
+
+  const MusicChip({
+    super.key,
+    required this.label,
+    required this.selected,
+    required this.focusNode,
+    required this.onTap,
+    this.onNavigateUp,
+    this.onNavigateDown,
+    this.onNavigateLeft,
+    this.onNavigateRight,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return FocusableWrapper(
+      highlightOnHover: true,
+      focusNode: focusNode,
+      borderRadius: 18,
+      disableScale: true,
+      autoScroll: true,
+      onSelect: onTap,
+      onNavigateUp: onNavigateUp,
+      onNavigateDown: onNavigateDown,
+      onNavigateLeft: onNavigateLeft,
+      onNavigateRight: onNavigateRight,
+      child: Container(
+        height: 36,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: selected
+              ? AppColorScheme.accent
+              : AppColorScheme.onSurface.withValues(alpha: 0.08),
+          borderRadius: AppRadius.circular(18),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
+            color: selected
+                ? AppColorScheme.onAccent
+                : AppColorScheme.onSurface.withValues(alpha: 0.9),
+          ),
+        ),
+      ),
+    );
+  }
+}

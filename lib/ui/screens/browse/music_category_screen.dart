@@ -91,7 +91,7 @@ class _MusicCategoryScreenState extends State<MusicCategoryScreen> {
 }
 
 /// How a category screen shows the other categories.
-enum _MusicNav { strip, quickRail, classicRail, classicBar }
+enum _MusicNav { strip, quickRail, quickChips, classicRail, classicBar }
 
 /// Which category is showing, and how the screen swaps to another.
 class MusicCategoryScope extends InheritedWidget {
@@ -134,14 +134,16 @@ abstract class MusicCategoryState<T extends StatefulWidget>
   Timer? _reloadTimer;
 
   /// The categories show the way the library's style shows them on its
-  /// overview: Immersive's strip, Quick Access's rail on wide layouts, and
-  /// Classic's rail on desktop or its chips everywhere else.
+  /// overview: Immersive's strip, Quick Access's rail on wide layouts or its
+  /// chips on phones, and Classic's rail on desktop or its chips everywhere
+  /// else.
   _MusicNav get _nav {
     final style = GetIt.instance<UserPreferences>().get(
       UserPreferences.musicLibraryStyle,
     );
     return switch (style) {
-      MusicLibraryStyle.quickAccess when wide => _MusicNav.quickRail,
+      MusicLibraryStyle.quickAccess =>
+        wide ? _MusicNav.quickRail : _MusicNav.quickChips,
       MusicLibraryStyle.classic => PlatformDetection.useDesktopUi
           ? _MusicNav.classicRail
           : _MusicNav.classicBar,
@@ -159,10 +161,11 @@ abstract class MusicCategoryState<T extends StatefulWidget>
       context.getInheritedWidgetOfExactType<MusicCategoryScope>()!;
 
   /// Where the category navigation takes focus: the current category in a
-  /// rail or Classic's chips, or the strip.
+  /// rail or a style's chips, or the strip.
   FocusNode get _navNode => switch (_nav) {
     _MusicNav.strip => node('strip'),
     _MusicNav.quickRail => node('rail:${_scope.kind.name}'),
+    _MusicNav.quickChips => node('chip:${_scope.kind.name}'),
     _MusicNav.classicRail || _MusicNav.classicBar => node(
       'classic:${_scope.kind.name}',
     ),
@@ -189,7 +192,10 @@ abstract class MusicCategoryState<T extends StatefulWidget>
     // A screen the strip or rail switched to keeps focus there while it
     // loads, so the viewer can keep moving through the categories.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted && wide && _scope.switched) _navNode.requestFocus();
+      if (!mounted) return;
+      if (wide && _scope.switched) _navNode.requestFocus();
+      final chip = _nav == _MusicNav.quickChips ? _navNode.context : null;
+      if (chip != null) Scrollable.ensureVisible(chip, alignment: 0.5);
     });
   }
 
@@ -400,7 +406,47 @@ abstract class MusicCategoryState<T extends StatefulWidget>
     );
   }
 
-  /// The category strip or Classic's chips, unless a rail is up, over
+  /// Quick Access's chips on phones: All for the overview, then the
+  /// categories, the current one filled.
+  Widget _buildChips(int stripIndex) {
+    final l10n = AppLocalizations.of(context);
+    final scope = MusicCategoryScope.of(context);
+    final categories = musicCategories(context, libraryId);
+    final kinds = MusicCategoryKind.values;
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      clipBehavior: Clip.none,
+      child: Row(
+        children: [
+          MusicChip(
+            label: l10n.all,
+            selected: false,
+            focusNode: node('chip:overview'),
+            onTap: _openOverview,
+            onNavigateUp: () => move(stripIndex, true),
+            onNavigateDown: () => move(stripIndex, false),
+            onNavigateLeft: leaveLeft,
+          ),
+          for (var i = 0; i < categories.length; i++) ...[
+            const SizedBox(width: 8),
+            MusicChip(
+              label: categories[i].label,
+              selected: kinds[i] == scope.kind,
+              focusNode: node('chip:${kinds[i].name}'),
+              onTap: () => kinds[i] == scope.kind
+                  ? _focusBody()
+                  : scope.switchTo(kinds[i]),
+              onNavigateUp: () => move(stripIndex, true),
+              onNavigateDown: () => move(stripIndex, false),
+              onNavigateRight: i == categories.length - 1 ? () {} : null,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  /// The category strip or a style's chips, unless a rail is up, over
   /// [title] and its [count]. Wide screens put [tabs] and [actions] at the end of the
   /// title's line, phones under it. The header's own stop is [firstNode],
   /// under the strip's.
@@ -509,6 +555,9 @@ abstract class MusicCategoryState<T extends StatefulWidget>
               onNavigateLeft: leaveLeft,
             ),
             SizedBox(height: wide ? 14 : 8),
+          ] else if (_nav == _MusicNav.quickChips) ...[
+            _buildChips(stripIndex),
+            const SizedBox(height: 16),
           ] else if (strip) ...[
             _buildStrip(stripIndex),
             SizedBox(height: wide ? 22 : 16),

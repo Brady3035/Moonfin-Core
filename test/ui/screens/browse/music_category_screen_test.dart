@@ -559,15 +559,65 @@ void main() {
       expect(focused(), 'music:album:0');
     });
 
-    testWidgets('Quick Access phones keep the strip', (tester) async {
+    testWidgets('Quick Access phones show its chips with the category in '
+        'view, and the chips switch in place', (tester) async {
       await prefs.set(
         UserPreferences.musicLibraryStyle,
         MusicLibraryStyle.quickAccess,
       );
-      await pumpCategory(tester, MusicCategoryKind.songs);
+      tester.view.physicalSize = const Size(360, 780);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      await pumpCategory(tester, MusicCategoryKind.favorites);
 
-      expect(find.byType(MusicCategoryTabs), findsOneWidget);
+      MusicChip picked() => tester
+          .widgetList<MusicChip>(find.byType(MusicChip))
+          .singleWhere((chip) => chip.selected);
+      expect(find.byType(MusicCategoryTabs), findsNothing);
       expect(find.text('Search Music'), findsNothing);
+      expect(
+        tester.widgetList<MusicChip>(find.byType(MusicChip)).first.label,
+        'All',
+      );
+      expect(picked().label, 'Favorites');
+      expect(
+        tester.getRect(find.widgetWithText(MusicChip, 'Favorites')).right,
+        lessThanOrEqualTo(360),
+      );
+
+      await tester.tap(find.widgetWithText(MusicChip, 'Genres'));
+      await tester.pumpAndSettle();
+      expect(picked().label, 'Genres');
+
+      await tester.ensureVisible(find.widgetWithText(MusicChip, 'All'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(MusicChip, 'All'));
+      await tester.pumpAndSettle();
+      expect(find.text('/music/lib-1'), findsOneWidget);
+    });
+
+    testWidgets('the D-pad reaches the Quick Access chips and moves along '
+        'them', (tester) async {
+      await prefs.set(
+        UserPreferences.musicLibraryStyle,
+        MusicLibraryStyle.quickAccess,
+      );
+      await pumpCategory(tester, MusicCategoryKind.artists);
+      FocusManager.instance.rootScope.descendants
+          .firstWhere((node) => node.debugLabel == 'music:artist:0')
+          .requestFocus();
+      await tester.pumpAndSettle();
+
+      await press(tester, LogicalKeyboardKey.arrowUp);
+      expect(focused(), 'music:tabs');
+      await press(tester, LogicalKeyboardKey.arrowUp);
+      expect(focused(), 'music:chip:artists');
+      await press(tester, LogicalKeyboardKey.arrowLeft);
+      expect(focused(), 'music:chip:overview');
+      await press(tester, LogicalKeyboardKey.arrowRight);
+      expect(focused(), 'music:chip:artists');
+      await press(tester, LogicalKeyboardKey.arrowDown);
+      expect(focused(), 'music:tabs');
     });
   });
 

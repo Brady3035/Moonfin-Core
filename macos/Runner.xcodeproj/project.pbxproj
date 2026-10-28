@@ -901,7 +901,7 @@
 			repositoryURL = "https://github.com/RadicalMuffinMan/AetherEngine";
 			requirement = {
 				kind = revision;
-				revision = 77446cc229151ef5f1f9886ed56b58fafd5d1b33;
+				revision = 8f8fc7f83d6fe65f955f4bdf30486ce2bc514ebf;
 			};
 		};
 		755057A94BFFB3D132856F38 /* XCRemoteSwiftPackageReference "libass-build" */ = {

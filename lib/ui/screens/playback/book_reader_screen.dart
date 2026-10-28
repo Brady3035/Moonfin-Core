@@ -1287,11 +1287,7 @@ class _BookReaderScreenState extends State<BookReaderScreen>
     final key = event.logicalKey;
     if (!PlatformDetection.isTV ||
         !event.isActionable ||
-        !(key.isSelectKey ||
-            key.isUpKey ||
-            key.isDownKey ||
-            key.isLeftKey ||
-            key.isRightKey)) {
+        !(key.isSelectKey || key.isDirectional)) {
       return KeyEventResult.ignored;
     }
     if (_overlayVisible) {
@@ -2865,31 +2861,56 @@ class _BookReaderScreenState extends State<BookReaderScreen>
         itemBuilder: (context, index) {
           final selected = index == _currentComicPage;
           final bytes = _comicEntries[index].content;
-          return GestureDetector(
-            onTap: () => _goToComicPage(index),
-            child: Container(
-              width: 54,
-              margin: const EdgeInsets.symmetric(horizontal: 3),
-              decoration: BoxDecoration(
-                border: Border.all(
-                  color: selected ? _readerAccent : Colors.white24,
-                  width: selected ? 2 : 1,
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 3),
+            child: _comicPressable(
+              () => _goToComicPage(index),
+              Container(
+                width: 54,
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: selected ? _readerAccent : Colors.white24,
+                    width: selected ? 2 : 1,
+                  ),
+                  borderRadius: AppRadius.circular(4),
                 ),
-                borderRadius: AppRadius.circular(4),
+                clipBehavior: Clip.antiAlias,
+                child: Image.memory(
+                  bytes,
+                  fit: BoxFit.cover,
+                  cacheWidth: 110,
+                  gaplessPlayback: true,
+                  errorBuilder: (context, error, stack) =>
+                      const ColoredBox(color: Colors.white10),
+                ),
               ),
-              clipBehavior: Clip.antiAlias,
-              child: Image.memory(
-                bytes,
-                fit: BoxFit.cover,
-                cacheWidth: 110,
-                gaplessPlayback: true,
-                errorBuilder: (context, error, stack) =>
-                    const ColoredBox(color: Colors.white10),
-              ),
+              radius: 4,
             ),
           );
         },
       ),
+    );
+  }
+
+  /// On TV the remote reaches the comic's controls and thumbnails through
+  /// focus, and OK presses them.
+  Widget _comicPressable(
+    VoidCallback onTap,
+    Widget child, {
+    required double radius,
+    FocusNode? focusNode,
+  }) {
+    if (!PlatformDetection.isTV) {
+      return GestureDetector(onTap: onTap, child: child);
+    }
+    return FocusableWrapper(
+      onSelect: onTap,
+      focusNode: focusNode,
+      borderRadius: radius,
+      autoScroll: true,
+      disableScale: true,
+      focusColor: Colors.white,
+      child: child,
     );
   }
 
@@ -2899,27 +2920,11 @@ class _BookReaderScreenState extends State<BookReaderScreen>
     const double controlHeight = 36;
     final paged = _comicLayout != _ComicLayout.vertical;
 
-    // On TV the remote reaches these through focus, and OK presses them.
-    Widget pressable(VoidCallback onTap, Widget child, {FocusNode? focusNode}) {
-      if (!PlatformDetection.isTV) {
-        return GestureDetector(onTap: onTap, child: child);
-      }
-      return FocusableWrapper(
-        onSelect: onTap,
-        focusNode: focusNode,
-        borderRadius: controlHeight / 2,
-        autoScroll: true,
-        disableScale: true,
-        focusColor: Colors.white,
-        child: child,
-      );
-    }
-
     Widget pill(String label, _ComicLayout layout) {
       final selected = _comicLayout == layout;
       return Padding(
         padding: const EdgeInsets.only(right: 6),
-        child: pressable(
+        child: _comicPressable(
           () => _setComicLayout(layout),
           Container(
             height: controlHeight,
@@ -2938,6 +2943,7 @@ class _BookReaderScreenState extends State<BookReaderScreen>
               ),
             ),
           ),
+          radius: controlHeight / 2,
           focusNode: _comicLayoutFocusNodes[layout],
         ),
       );
@@ -2953,7 +2959,7 @@ class _BookReaderScreenState extends State<BookReaderScreen>
         padding: const EdgeInsets.only(left: 6),
         child: Tooltip(
           message: tooltip,
-          child: pressable(
+          child: _comicPressable(
             onTap,
             Container(
               width: controlHeight,
@@ -2969,6 +2975,7 @@ class _BookReaderScreenState extends State<BookReaderScreen>
                 color: active ? Colors.white : Colors.white70,
               ),
             ),
+            radius: controlHeight / 2,
           ),
         ),
       );

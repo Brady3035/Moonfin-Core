@@ -448,8 +448,9 @@ class HomeViewModel extends ChangeNotifier {
       final sinceYouWatchedNum = _prefs.get(UserPreferences.sinceYouWatchedNumRows).value;
       final showRewatch = _prefs.get(UserPreferences.displayRewatchRow);
       final showStudiosRows = _prefs.get(UserPreferences.displayStudiosRows);
-      final showSeasonal = GetIt.instance<PluginSyncService>().pluginAvailable &&
-          _prefs.get(UserPreferences.seasonalRowEnabled);
+      final showSeasonal = _prefs.get(UserPreferences.seasonalRowEnabled) &&
+          (GetIt.instance<PluginSyncService>().pluginAvailable ||
+              _client.itemsApi is ServerHomeSectionsApi);
 
       final offline = _isOffline;
       final visibleConfigsRaw = configs
@@ -3356,6 +3357,10 @@ class HomeViewModel extends ChangeNotifier {
     bool forceRefresh = false,
   }) async {
     try {
+      final api = _client.itemsApi;
+      if (api is ServerHomeSectionsApi) {
+        return await _loadServerSeasonalRow(api as ServerHomeSectionsApi);
+      }
       if (forceRefresh) _seasonalMemo = null;
       final sync = GetIt.instance<PluginSyncService>();
       var body = _seasonalMemo;
@@ -3398,6 +3403,29 @@ class HomeViewModel extends ChangeNotifier {
       debugPrint('[SeasonalRow] Failed to load the seasonal row: $e');
       return const [];
     }
+  }
+
+  /// A server that curates its own seasonal row (Silo's Seasonal Picks)
+  /// picks the holiday and titles itself, so Moonbase isn't asked.
+  Future<List<HomeRow>> _loadServerSeasonalRow(ServerHomeSectionsApi api) async {
+    final section = (await api.getServerHomeSections())
+        .firstWhereOrNull((s) => s.kind == 'seasonal_themed');
+    if (section == null) return const [];
+    final response = await api.getServerHomeSectionItems(section.id);
+    final items = withoutBlockedItems([
+      for (final raw in (response['Items'] as List? ?? const []))
+        if (raw is Map<String, dynamic> && raw['Id'] != null)
+          AggregatedItem(id: raw['Id'].toString(), serverId: _serverId, rawData: raw),
+    ]);
+    if (items.isEmpty) return const [];
+    return [
+      HomeRow(
+        id: 'seasonal',
+        title: section.title,
+        rowType: HomeRowType.pluginDynamic,
+        items: items,
+      ),
+    ];
   }
 
   /// The parts of a seasonal answer Home can show, or null when the viewer hid

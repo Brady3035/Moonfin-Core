@@ -1000,9 +1000,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get discoverySubjects => 'Temas de descubrimiento';
 
   @override
-  String get pickDiscoverySubjects => 'Elige qué temas mostrar en Descubrir.';
-
-  @override
   String get apply => 'Aplicar';
 
   @override
@@ -1013,22 +1010,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get audiobookGenres => 'Géneros de audiolibros';
-
-  @override
-  String get pickAudiobookGenres =>
-      'Elige qué géneros mostrar en Descubrir audiolibros.';
-
-  @override
-  String get discoverAudiobooks => 'Descubrir audiolibros';
-
-  @override
-  String get librivoxDescription =>
-      'Títulos populares de dominio público de LibriVox.';
-
-  @override
-  String titlesCount(int count) {
-    return '$count títulos';
-  }
 
   @override
   String get scrollLeft => 'Desplazar a la izquierda';
@@ -1165,10 +1146,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get discover => 'Descubrir';
-
-  @override
-  String get trendingTitlesOpenLibrary =>
-      'Títulos en tendencia por tema de Open Library.';
 
   @override
   String get noBookmarkedItems => 'Aún no hay elementos marcados';
@@ -13757,9 +13734,6 @@ class AppLocalizationsEs extends AppLocalizations {
       'El complemento de extracción CB7 no está disponible en esta plataforma.';
 
   @override
-  String get closeGenrePanel => 'Cerrar panel de género';
-
-  @override
   String get loadingShuffle => 'Cargando reproducción aleatoria...';
 
   @override
@@ -16112,6 +16086,49 @@ class AppLocalizationsEs extends AppLocalizations {
   String get musicSortMostAlbums => 'Most Albums';
 
   @override
+  String bookSeriesPosition(int index, int total) {
+    return 'Book $index of $total';
+  }
+
+  @override
+  String bookFavoriteCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count favorites',
+      one: '1 favorite',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get bookSortZToA => 'Z to A';
+
+  @override
+  String get bookSortMostTitles => 'Most Titles';
+
+  @override
+  String get bookSurpriseMe => 'Surprise Me';
+
+  @override
+  String get bookShuffleAudiobooks => 'Shuffle Audiobooks';
+
+  @override
+  String get bookStartReading => 'Start Reading';
+
+  @override
+  String get bookOtherBooks => 'Other Books';
+
+  @override
+  String get bookDiscoverSearchBooks => 'Search Open Library';
+
+  @override
+  String get bookDiscoverSearchAudiobooks => 'Search LibriVox';
+
+  @override
+  String get bookDiscoverFeatured => 'Featured';
+
+  @override
   String get bookReaderControlsAutoHide => 'Controls hide automatically';
 
   @override
@@ -16572,10 +16589,6 @@ class AppLocalizationsEs419 extends AppLocalizationsEs {
   String get discoverySubjects => 'Sujetos de descubrimiento';
 
   @override
-  String get pickDiscoverySubjects =>
-      'Elija qué feeds temáticos mostrar en Discover.';
-
-  @override
   String get apply => 'Aplicar';
 
   @override
@@ -16586,22 +16599,6 @@ class AppLocalizationsEs419 extends AppLocalizationsEs {
 
   @override
   String get audiobookGenres => 'Géneros de audiolibros';
-
-  @override
-  String get pickAudiobookGenres =>
-      'Elija qué géneros mostrar en Audiobook Discover.';
-
-  @override
-  String get discoverAudiobooks => 'Descubra audiolibros';
-
-  @override
-  String get librivoxDescription =>
-      'Títulos populares de dominio público de LibriVox.';
-
-  @override
-  String titlesCount(int count) {
-    return '$count títulos';
-  }
 
   @override
   String get scrollLeft => 'Desplazarse hacia la izquierda';
@@ -16735,10 +16732,6 @@ class AppLocalizationsEs419 extends AppLocalizationsEs {
 
   @override
   String get discover => 'Descubrir';
-
-  @override
-  String get trendingTitlesOpenLibrary =>
-      'Títulos de tendencia por tema de Open Library.';
 
   @override
   String get noBookmarkedItems =>
@@ -23489,9 +23482,6 @@ class AppLocalizationsEs419 extends AppLocalizationsEs {
       'El complemento de extracción CB7 no está disponible en esta plataforma.';
 
   @override
-  String get closeGenrePanel => 'Cerrar panel de género';
-
-  @override
   String get loadingShuffle => 'Cargando reproducción aleatoria...';
 
   @override
@@ -23900,10 +23890,6 @@ class AppLocalizationsEsAr extends AppLocalizationsEs {
   String get discoverySubjects => 'Sujetos de descubrimiento';
 
   @override
-  String get pickDiscoverySubjects =>
-      'Elija qué feeds temáticos mostrar en Discover.';
-
-  @override
   String get apply => 'Aplicar';
 
   @override
@@ -23914,22 +23900,6 @@ class AppLocalizationsEsAr extends AppLocalizationsEs {
 
   @override
   String get audiobookGenres => 'Géneros de audiolibros';
-
-  @override
-  String get pickAudiobookGenres =>
-      'Elija qué géneros mostrar en Audiobook Discover.';
-
-  @override
-  String get discoverAudiobooks => 'Descubra audiolibros';
-
-  @override
-  String get librivoxDescription =>
-      'Títulos populares de dominio público de LibriVox.';
-
-  @override
-  String titlesCount(int count) {
-    return '$count títulos';
-  }
 
   @override
   String get scrollLeft => 'Desplazarse hacia la izquierda';
@@ -24063,10 +24033,6 @@ class AppLocalizationsEsAr extends AppLocalizationsEs {
 
   @override
   String get discover => 'Descubrir';
-
-  @override
-  String get trendingTitlesOpenLibrary =>
-      'Títulos de tendencia por tema de Open Library.';
 
   @override
   String get noBookmarkedItems =>
@@ -30702,9 +30668,6 @@ class AppLocalizationsEsAr extends AppLocalizationsEs {
   @override
   String get cb7ExtractionPluginUnavailable =>
       'El complemento de extracción CB7 no está disponible en esta plataforma.';
-
-  @override
-  String get closeGenrePanel => 'Cerrar panel de género';
 
   @override
   String get loadingShuffle => 'Cargando reproducción aleatoria...';
@@ -31115,10 +31078,6 @@ class AppLocalizationsEsDo extends AppLocalizationsEs {
   String get discoverySubjects => 'Sujetos de descubrimiento';
 
   @override
-  String get pickDiscoverySubjects =>
-      'Elija qué feeds temáticos mostrar en Discover.';
-
-  @override
   String get apply => 'Aplicar';
 
   @override
@@ -31129,22 +31088,6 @@ class AppLocalizationsEsDo extends AppLocalizationsEs {
 
   @override
   String get audiobookGenres => 'Géneros de audiolibros';
-
-  @override
-  String get pickAudiobookGenres =>
-      'Elija qué géneros mostrar en Audiobook Discover.';
-
-  @override
-  String get discoverAudiobooks => 'Descubra audiolibros';
-
-  @override
-  String get librivoxDescription =>
-      'Títulos populares de dominio público de LibriVox.';
-
-  @override
-  String titlesCount(int count) {
-    return '$count títulos';
-  }
 
   @override
   String get scrollLeft => 'Desplazarse hacia la izquierda';
@@ -31278,10 +31221,6 @@ class AppLocalizationsEsDo extends AppLocalizationsEs {
 
   @override
   String get discover => 'Descubrir';
-
-  @override
-  String get trendingTitlesOpenLibrary =>
-      'Títulos de tendencia por tema de Open Library.';
 
   @override
   String get noBookmarkedItems =>
@@ -37917,9 +37856,6 @@ class AppLocalizationsEsDo extends AppLocalizationsEs {
   @override
   String get cb7ExtractionPluginUnavailable =>
       'El complemento de extracción CB7 no está disponible en esta plataforma.';
-
-  @override
-  String get closeGenrePanel => 'Cerrar panel de género';
 
   @override
   String get loadingShuffle => 'Cargando reproducción aleatoria...';
@@ -38380,10 +38316,6 @@ class AppLocalizationsEsMx extends AppLocalizationsEs {
   String get discoverySubjects => 'Sujetos de descubrimiento';
 
   @override
-  String get pickDiscoverySubjects =>
-      'Elija qué feeds temáticos mostrar en Discover.';
-
-  @override
   String get apply => 'Aplicar';
 
   @override
@@ -38394,22 +38326,6 @@ class AppLocalizationsEsMx extends AppLocalizationsEs {
 
   @override
   String get audiobookGenres => 'Géneros de audiolibros';
-
-  @override
-  String get pickAudiobookGenres =>
-      'Elija qué géneros mostrar en Audiobook Discover.';
-
-  @override
-  String get discoverAudiobooks => 'Descubra audiolibros';
-
-  @override
-  String get librivoxDescription =>
-      'Títulos populares de dominio público de LibriVox.';
-
-  @override
-  String titlesCount(int count) {
-    return '$count títulos';
-  }
 
   @override
   String get scrollLeft => 'Desplazarse hacia la izquierda';
@@ -38543,10 +38459,6 @@ class AppLocalizationsEsMx extends AppLocalizationsEs {
 
   @override
   String get discover => 'Descubrir';
-
-  @override
-  String get trendingTitlesOpenLibrary =>
-      'Títulos de tendencia por tema de Open Library.';
 
   @override
   String get noBookmarkedItems =>
@@ -45182,9 +45094,6 @@ class AppLocalizationsEsMx extends AppLocalizationsEs {
   @override
   String get cb7ExtractionPluginUnavailable =>
       'El complemento de extracción CB7 no está disponible en esta plataforma.';
-
-  @override
-  String get closeGenrePanel => 'Cerrar panel de género';
 
   @override
   String get loadingShuffle => 'Cargando reproducción aleatoria...';

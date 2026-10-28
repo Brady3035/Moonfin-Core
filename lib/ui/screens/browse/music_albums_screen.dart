@@ -449,31 +449,11 @@ class _MusicAlbumsScreenState extends MusicCategoryState<MusicAlbumsScreen> {
             left: caretCenter - inset - 9,
             child: CustomPaint(
               size: const Size(18, 9),
-              painter: _CaretPainter(fill),
+              painter: PanelCaretPainter(fill),
             ),
           ),
         ],
       ),
     );
   }
-}
-
-/// The notch on the album panel pointing up at its album.
-class _CaretPainter extends CustomPainter {
-  final Color color;
-
-  const _CaretPainter(this.color);
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final path = Path()
-      ..moveTo(0, size.height)
-      ..lineTo(size.width / 2, 0)
-      ..lineTo(size.width, size.height)
-      ..close();
-    canvas.drawPath(path, Paint()..color = color);
-  }
-
-  @override
-  bool shouldRepaint(_CaretPainter old) => old.color != color;
 }

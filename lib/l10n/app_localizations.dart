@@ -1804,12 +1804,6 @@ abstract class AppLocalizations {
   /// **'Discovery Subjects'**
   String get discoverySubjects;
 
-  /// Instruction text in discovery subject picker
-  ///
-  /// In en, this message translates to:
-  /// **'Pick which subject feeds to show in Discover.'**
-  String get pickDiscoverySubjects;
-
   /// Button label to apply selected options
   ///
   /// In en, this message translates to:
@@ -1833,30 +1827,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Audiobook Genres'**
   String get audiobookGenres;
-
-  /// Instruction text in audiobook genre picker
-  ///
-  /// In en, this message translates to:
-  /// **'Pick which genres to show in Audiobook Discover.'**
-  String get pickAudiobookGenres;
-
-  /// Section title for audiobook discovery
-  ///
-  /// In en, this message translates to:
-  /// **'Discover Audiobooks'**
-  String get discoverAudiobooks;
-
-  /// Subtitle for audiobook discovery section
-  ///
-  /// In en, this message translates to:
-  /// **'Popular public domain titles from LibriVox.'**
-  String get librivoxDescription;
-
-  /// Label showing number of titles
-  ///
-  /// In en, this message translates to:
-  /// **'{count} titles'**
-  String titlesCount(int count);
 
   /// Tooltip for scroll left button
   ///
@@ -2097,12 +2067,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Discover'**
   String get discover;
-
-  /// Subtitle for book discovery section
-  ///
-  /// In en, this message translates to:
-  /// **'Trending titles by subject from Open Library.'**
-  String get trendingTitlesOpenLibrary;
 
   /// Empty state for bookmarks grid
   ///
@@ -23956,12 +23920,6 @@ abstract class AppLocalizations {
   /// **'CB7 extraction plugin is not available on this platform.'**
   String get cb7ExtractionPluginUnavailable;
 
-  /// No description provided for @closeGenrePanel.
-  ///
-  /// In en, this message translates to:
-  /// **'Close genre panel'**
-  String get closeGenrePanel;
-
   /// No description provided for @loadingShuffle.
   ///
   /// In en, this message translates to:
@@ -27800,6 +27758,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Most Albums'**
   String get musicSortMostAlbums;
+
+  /// Series screen: where the reader is in a series, the next unread book's number and how many books it has
+  ///
+  /// In en, this message translates to:
+  /// **'Book {index} of {total}'**
+  String bookSeriesPosition(int index, int total);
+
+  /// Book library Favorites screen header count
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 favorite} other{{count} favorites}}'**
+  String bookFavoriteCount(int count);
+
+  /// Authors screen order, from Z back to A
+  ///
+  /// In en, this message translates to:
+  /// **'Z to A'**
+  String get bookSortZToA;
+
+  /// Book genres screen order: the genres with the most titles first
+  ///
+  /// In en, this message translates to:
+  /// **'Most Titles'**
+  String get bookSortMostTitles;
+
+  /// Button on a book genre that opens a random unread title from it
+  ///
+  /// In en, this message translates to:
+  /// **'Surprise Me'**
+  String get bookSurpriseMe;
+
+  /// Button on an author that plays one of their audiobooks at random
+  ///
+  /// In en, this message translates to:
+  /// **'Shuffle Audiobooks'**
+  String get bookShuffleAudiobooks;
+
+  /// Button on an author that opens their first unread book
+  ///
+  /// In en, this message translates to:
+  /// **'Start Reading'**
+  String get bookStartReading;
+
+  /// Heading over an author's books that aren't part of a series
+  ///
+  /// In en, this message translates to:
+  /// **'Other Books'**
+  String get bookOtherBooks;
+
+  /// Placeholder in the Discover search field for books
+  ///
+  /// In en, this message translates to:
+  /// **'Search Open Library'**
+  String get bookDiscoverSearchBooks;
+
+  /// Placeholder in the Discover search field for audiobooks
+  ///
+  /// In en, this message translates to:
+  /// **'Search LibriVox'**
+  String get bookDiscoverSearchAudiobooks;
+
+  /// Label over the highlighted title at the top of Discover
+  ///
+  /// In en, this message translates to:
+  /// **'Featured'**
+  String get bookDiscoverFeatured;
 
   /// Comic reader toggle while its bars fade out on their own
   ///

@@ -528,10 +528,6 @@
     "@discoverySubjects": {
         "description": "Title for the book discovery subject picker panel"
     },
-    "pickDiscoverySubjects": "Alege ce fluxuri de subiecte să apară în Discover.",
-    "@pickDiscoverySubjects": {
-        "description": "Instruction text in discovery subject picker"
-    },
     "apply": "Aplică",
     "@apply": {
         "description": "Button label to apply selected options"
@@ -547,27 +543,6 @@
     "audiobookGenres": "Genuri de cărți audio",
     "@audiobookGenres": {
         "description": "Title for audiobook genre picker panel"
-    },
-    "pickAudiobookGenres": "Alege ce genuri să apară în Audiobook Discover.",
-    "@pickAudiobookGenres": {
-        "description": "Instruction text in audiobook genre picker"
-    },
-    "discoverAudiobooks": "Descoperă cărți audio",
-    "@discoverAudiobooks": {
-        "description": "Section title for audiobook discovery"
-    },
-    "librivoxDescription": "Titluri populare din domeniul public, de pe LibriVox.",
-    "@librivoxDescription": {
-        "description": "Subtitle for audiobook discovery section"
-    },
-    "titlesCount": "{count} titluri",
-    "@titlesCount": {
-        "description": "Label showing number of titles",
-        "placeholders": {
-            "count": {
-                "type": "int"
-            }
-        }
     },
     "scrollLeft": "Derulează la stânga",
     "@scrollLeft": {
@@ -744,10 +719,6 @@
     "discover": "Descoperă",
     "@discover": {
         "description": "Section title for book discovery"
-    },
-    "trendingTitlesOpenLibrary": "Titluri populare pe subiecte din Open Library.",
-    "@trendingTitlesOpenLibrary": {
-        "description": "Subtitle for book discovery section"
     },
     "noBookmarkedItems": "Niciun element marcat încă",
     "@noBookmarkedItems": {
@@ -7288,7 +7259,6 @@
     "failedToExtractCbrArchive": "Extragerea arhivei .cbr a eșuat.",
     "cb7ExtractionUnavailable": "Extragerea CB7 nu este disponibilă pe această platformă.",
     "cb7ExtractionPluginUnavailable": "Pluginul de extragere CB7 nu este disponibil pe această platformă.",
-    "closeGenrePanel": "Închide panoul cu genuri",
     "loadingShuffle": "Se încarcă amestecarea...",
     "libraryShuffleLabel": "AMESTECARE DIN BIBLIOTECĂ",
     "randomShuffleLabel": "AMESTECARE ALEATORIE",

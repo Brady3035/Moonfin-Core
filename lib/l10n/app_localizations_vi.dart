@@ -998,10 +998,6 @@ class AppLocalizationsVi extends AppLocalizations {
   String get discoverySubjects => 'Đối tượng khám phá';
 
   @override
-  String get pickDiscoverySubjects =>
-      'Chọn nguồn cấp dữ liệu chủ đề để hiển thị trong Khám phá.';
-
-  @override
   String get apply => 'Áp dụng';
 
   @override
@@ -1012,22 +1008,6 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get audiobookGenres => 'Thể loại sách nói';
-
-  @override
-  String get pickAudiobookGenres =>
-      'Chọn thể loại sẽ hiển thị trong Audiobook Discover.';
-
-  @override
-  String get discoverAudiobooks => 'Khám phá sách nói';
-
-  @override
-  String get librivoxDescription =>
-      'Tiêu đề miền công cộng phổ biến từ LibriVox.';
-
-  @override
-  String titlesCount(int count) {
-    return 'tiêu đề $count';
-  }
 
   @override
   String get scrollLeft => 'Cuộn sang trái';
@@ -1163,10 +1143,6 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get discover => 'Phát hiện';
-
-  @override
-  String get trendingTitlesOpenLibrary =>
-      'Tiêu đề thịnh hành theo chủ đề từ Open Library.';
 
   @override
   String get noBookmarkedItems => 'Chưa có mục nào được đánh dấu';
@@ -13651,9 +13627,6 @@ class AppLocalizationsVi extends AppLocalizations {
       'Plugin trích xuất CB7 không có sẵn trên nền tảng này.';
 
   @override
-  String get closeGenrePanel => 'Đóng bảng thể loại';
-
-  @override
   String get loadingShuffle => 'Đang tải ngẫu nhiên...';
 
   @override
@@ -15999,6 +15972,49 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get musicSortMostAlbums => 'Most Albums';
+
+  @override
+  String bookSeriesPosition(int index, int total) {
+    return 'Book $index of $total';
+  }
+
+  @override
+  String bookFavoriteCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count favorites',
+      one: '1 favorite',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get bookSortZToA => 'Z to A';
+
+  @override
+  String get bookSortMostTitles => 'Most Titles';
+
+  @override
+  String get bookSurpriseMe => 'Surprise Me';
+
+  @override
+  String get bookShuffleAudiobooks => 'Shuffle Audiobooks';
+
+  @override
+  String get bookStartReading => 'Start Reading';
+
+  @override
+  String get bookOtherBooks => 'Other Books';
+
+  @override
+  String get bookDiscoverSearchBooks => 'Search Open Library';
+
+  @override
+  String get bookDiscoverSearchAudiobooks => 'Search LibriVox';
+
+  @override
+  String get bookDiscoverFeatured => 'Featured';
 
   @override
   String get bookReaderControlsAutoHide => 'Controls hide automatically';

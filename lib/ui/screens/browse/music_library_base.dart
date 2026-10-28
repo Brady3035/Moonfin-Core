@@ -3,8 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
-import 'package:moonfin_design/moonfin_design.dart';
-import 'package:playback_core/playback_core.dart';
 import 'package:server_core/server_core.dart';
 
 import '../../../data/models/aggregated_item.dart';
@@ -12,201 +10,33 @@ import '../../../data/models/home_row.dart';
 import '../../../data/services/row_data_source.dart';
 import '../../../data/viewmodels/music_browse_view_model.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../../preference/preference_constants.dart';
 import '../../../preference/user_preferences.dart';
 import '../../../util/focus/row_focus_coordinator.dart';
-import '../../../util/platform_detection.dart';
 import '../../navigation/destinations.dart';
 import '../../util/home_row_title_localizer.dart';
-import '../../widgets/book/book_navigation.dart';
 import '../../widgets/book/book_see_all_button.dart';
-import '../../widgets/bottom_nav/bottom_navbar.dart';
-import '../../widgets/focus/can_claim_initial_focus.dart';
-import '../../widgets/focus/locked_focus_row.dart';
-import '../../widgets/focus/request_initial_focus.dart';
-import '../../widgets/left_sidebar.dart';
 import '../../widgets/media_card.dart';
 import '../../widgets/music/music_navigation.dart';
 import '../../widgets/music/music_widgets.dart';
-import '../../widgets/navigation_layout.dart';
 import '../../widgets/overlay_sheet.dart';
 import '../../widgets/skeleton/skeleton_music_browse.dart';
-import '../../widgets/top_toolbar.dart';
+import 'library_page_state.dart';
 import 'music_browse_screen.dart';
-
-/// What every music page shares: the D-pad stops, the sections they sit in
-/// and the app's chrome around them.
-abstract class MusicPageState<T extends StatefulWidget> extends State<T> {
-  String get libraryId;
-
-  bool get isLoading;
-
-  final coordinator = RowFocusCoordinator();
-  final scrollController = ScrollController();
-
-  // Never attached. As the initial focus target it keeps RequestInitialFocus
-  // from parking focus in the sidebar before the content loads, and
-  // _onChanged lands focus on the content once it does.
-  final initialFocusNode = FocusNode(debugLabel: 'musicInitialContent');
-  bool _landedOnContent = false;
-
-  /// The coordinator index of the header. Focus first lands on the stop
-  /// under it.
-  int headerIndex = -1;
-
-  final _nodes = <String, FocusNode>{};
-  List<RowFocusEntry> _entries = [];
-  List<Widget> _sections = [];
-  final _rowKeys = <String, GlobalKey<LockedFocusRowState>>{};
-  final _sectionKeys = <String, GlobalKey>{};
-  StreamSubscription<void>? _queueSub;
-  double _musicBarHeight = TopToolbar.musicBarExtraHeight();
-
-  bool get wide => !PlatformDetection.useMobileUi;
-
-  /// Where the page's own header starts, below the top navbar and the music
-  /// pill under it while music plays.
-  double get topReserve =>
-      MediaQuery.paddingOf(context).top +
-      (NavigationLayout.sanitizeNavbarPosition(
-                GetIt.instance<UserPreferences>().get(
-                  UserPreferences.navbarPosition,
-                ),
-              ) ==
-              NavbarPosition.top
-          ? TopToolbar.heightFor(context)
-          : 56);
-
-  @override
-  void initState() {
-    super.initState();
-    _queueSub = GetIt.instance<PlaybackManager>()
-        .queueService
-        .queueChangedStream
-        .listen((_) {
-          final height = TopToolbar.musicBarExtraHeight();
-          if (height != _musicBarHeight && mounted) {
-            setState(() => _musicBarHeight = height);
-          }
-        });
-  }
-
-  @override
-  void dispose() {
-    _queueSub?.cancel();
-    scrollController.dispose();
-    initialFocusNode.dispose();
-    for (final node in _nodes.values) {
-      node.dispose();
-    }
-    super.dispose();
-  }
-
-  /// Rebuilds for new content, and lands focus on it once it first shows.
-  void contentChanged() {
-    if (!mounted) return;
-    setState(() {});
-    if (!wide || isLoading) return;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted ||
-          isLoading ||
-          !canClaimInitialFocus(context) ||
-          LeftSidebar.isFocusedNotifier.value ||
-          TopToolbar.isFocusedNotifier.value) {
-        return;
-      }
-      // The first load lands under the header. After that, an update only
-      // steps in when a rebuild took the focused stop away, never while the
-      // viewer is somewhere on the page.
-      if (_landedOnContent && !bookFocusIsLost) return;
-      _landedOnContent = true;
-      focusContent();
-    });
-  }
-
-  /// Focuses the first stop under the header.
-  void focusContent() {
-    if (!coordinator.moveVertical(fromIndex: headerIndex, isUp: false)) {
-      coordinator.focusFirst();
-    }
-  }
-
-  FocusNode node(String id) =>
-      _nodes.putIfAbsent(id, () => FocusNode(debugLabel: 'music:$id'));
-
-  GlobalKey<LockedFocusRowState> rowKey(String id) =>
-      _rowKeys.putIfAbsent(id, GlobalKey<LockedFocusRowState>.new);
-
-  GlobalKey sectionKey(String id) => _sectionKeys.putIfAbsent(id, GlobalKey.new);
-
-  bool move(int fromIndex, bool isUp) =>
-      moveBookFocus(coordinator, fromIndex, isUp);
-
-  /// The page in the app's chrome, [loading] until its content arrives.
-  /// Without [loading] the content draws its own loading state.
-  Widget buildPage(
-    Widget Function() content, {
-    Widget? loading = const SkeletonMusicBrowse(),
-  }) => RequestInitialFocus(
-    targetNode: initialFocusNode,
-    child: Scaffold(
-      backgroundColor: AppColorScheme.background,
-      body: NavigationLayout(
-        activeRoute: '/music/$libraryId',
-        showBackButton: true,
-        child: isLoading && loading != null ? loading : content(),
-      ),
-    ),
-  );
-
-  /// The sections [addSections] adds, in a list that pulls to refresh. A
-  /// [header] stays above the list, and adds its stops before the list's.
-  /// [body] places the list beside anything else the page shows, which
-  /// keeps [bottom] clear for the bottom navbar too.
-  Widget buildSections(
-    VoidCallback addSections, {
-    required Future<void> Function() onRefresh,
-    Widget Function()? header,
-    Widget Function(Widget list, double bottom)? body,
-  }) => BottomNavPadded(
-    fallback: 120,
-    builder: (_, bottom) {
-      _entries = [];
-      _sections = [];
-      final top = header?.call();
-      addSections();
-      coordinator.entries = _entries;
-      Widget list = RefreshIndicator(
-        onRefresh: onRefresh,
-        child: ListView(
-          controller: scrollController,
-          padding: EdgeInsets.only(bottom: bottom + 24),
-          children: _sections,
-        ),
-      );
-      if (body != null) list = body(list, bottom);
-      if (top == null) return list;
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [top, Expanded(child: list)],
-      );
-    },
-  );
-
-  /// Adds a D-pad stop to the page and returns its coordinator index.
-  int addStop(RowFocusEntry entry) {
-    _entries.add(entry);
-    return _entries.length - 1;
-  }
-
-  void addSection(Widget section) => _sections.add(section);
-}
 
 /// What the Quick Access and Immersive music libraries share: the view
 /// model, the D-pad stops and the shelf each row is drawn as.
 abstract class MusicLibraryState<T extends StatefulWidget>
-    extends MusicPageState<T> {
+    extends LibraryPageState<T> {
   late final MusicBrowseViewModel vm;
+
+  @override
+  String get focusLabel => 'music';
+
+  @override
+  String get activeRoute => '/music/$libraryId';
+
+  @override
+  Widget get loadingPlaceholder => const SkeletonMusicBrowse();
 
   @override
   bool get isLoading => vm.isLoading;

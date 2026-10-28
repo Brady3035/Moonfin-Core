@@ -20,12 +20,12 @@ import '../../widgets/media_card.dart';
 import '../../widgets/music/music_navigation.dart';
 import '../../widgets/music/music_widgets.dart';
 import '../../widgets/navigation_layout.dart';
+import 'library_page_state.dart';
 import 'music_albums_screen.dart';
 import 'music_artists_screen.dart';
 import 'music_browse_screen.dart';
 import 'music_favorites_screen.dart';
 import 'music_genres_screen.dart';
-import 'music_library_base.dart';
 import 'music_playlists_screen.dart';
 import 'music_songs_screen.dart';
 
@@ -122,11 +122,17 @@ class MusicCategoryScope extends InheritedWidget {
 /// category strip, rail or chips around the screen, and grids of cards that
 /// build a row at a time.
 abstract class MusicCategoryState<T extends StatefulWidget>
-    extends MusicPageState<T> {
+    extends LibraryPageState<T> {
   late final MusicLibraryQueries queries = MusicLibraryQueries(
     libraryId: libraryId,
     client: GetIt.instance<MediaServerClient>(),
   );
+
+  @override
+  String get focusLabel => 'music';
+
+  @override
+  String get activeRoute => '/music/$libraryId';
 
   static const _railWidth = 248.0;
 
@@ -267,7 +273,6 @@ abstract class MusicCategoryState<T extends StatefulWidget>
             ],
           )
         : content(),
-    loading: null,
   );
 
   void addLoadingSection() => addSection(

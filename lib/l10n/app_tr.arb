@@ -528,10 +528,6 @@
     "@discoverySubjects": {
         "description": "Title for the book discovery subject picker panel"
     },
-    "pickDiscoverySubjects": "Keşfet bölümünde hangi konu akışlarının gösterileceğini seçin.",
-    "@pickDiscoverySubjects": {
-        "description": "Instruction text in discovery subject picker"
-    },
     "apply": "Uygula",
     "@apply": {
         "description": "Button label to apply selected options"
@@ -539,27 +535,6 @@
     "audiobookGenres": "Sesli Kitap Türleri",
     "@audiobookGenres": {
         "description": "Title for audiobook genre picker panel"
-    },
-    "pickAudiobookGenres": "Sesli Kitap Keşfet'te hangi türlerin gösterileceğini seçin.",
-    "@pickAudiobookGenres": {
-        "description": "Instruction text in audiobook genre picker"
-    },
-    "discoverAudiobooks": "Sesli Kitapları Keşfedin",
-    "@discoverAudiobooks": {
-        "description": "Section title for audiobook discovery"
-    },
-    "librivoxDescription": "LibriVox adresinden popüler kamu alanı başlıkları.",
-    "@librivoxDescription": {
-        "description": "Subtitle for audiobook discovery section"
-    },
-    "titlesCount": "{count} başlıklar",
-    "@titlesCount": {
-        "description": "Label showing number of titles",
-        "placeholders": {
-            "count": {
-                "type": "int"
-            }
-        }
     },
     "scrollLeft": "Sola kaydır",
     "@scrollLeft": {
@@ -736,10 +711,6 @@
     "discover": "Keşfet",
     "@discover": {
         "description": "Section title for book discovery"
-    },
-    "trendingTitlesOpenLibrary": "Open Library'den konularına göre popüler kitaplar.",
-    "@trendingTitlesOpenLibrary": {
-        "description": "Subtitle for book discovery section"
     },
     "noBookmarkedItems": "Henüz favorilere eklenmiş öğe yok",
     "@noBookmarkedItems": {
@@ -7288,7 +7259,6 @@
     "failedToExtractCbrArchive": ".cbr arşivi çıkarılamadı.",
     "cb7ExtractionUnavailable": "CB7 çıkarma işlemi bu platformda mevcut değil.",
     "cb7ExtractionPluginUnavailable": "CB7 çıkarma eklentisi bu platformda mevcut değil.",
-    "closeGenrePanel": "Tür panelini kapat",
     "loadingShuffle": "Karışık liste yükleniyor…",
     "libraryShuffleLabel": "KÜTÜPHANEYİ KARIŞTIR",
     "randomShuffleLabel": "RASTGELE KARIŞTIR",

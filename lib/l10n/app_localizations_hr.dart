@@ -1007,10 +1007,6 @@ class AppLocalizationsHr extends AppLocalizations {
   String get discoverySubjects => 'Predmeti otkrića';
 
   @override
-  String get pickDiscoverySubjects =>
-      'Odaberite koji će se feedovi tema prikazati u Discoveru.';
-
-  @override
   String get apply => 'Primijeni';
 
   @override
@@ -1021,29 +1017,6 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String get audiobookGenres => 'Žanrovi audio knjiga';
-
-  @override
-  String get pickAudiobookGenres =>
-      'Odaberite žanrove za prikaz u Discoveru audioknjiga.';
-
-  @override
-  String get discoverAudiobooks => 'Otkrijte audio knjige';
-
-  @override
-  String get librivoxDescription =>
-      'Popularni naslovi javne domene iz LibriVox.';
-
-  @override
-  String titlesCount(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count naslova',
-      few: '$count naslova',
-      one: '$count naslov',
-    );
-    return '$_temp0';
-  }
 
   @override
   String get scrollLeft => 'Pomaknite se lijevo';
@@ -1202,10 +1175,6 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String get discover => 'Otkriti';
-
-  @override
-  String get trendingTitlesOpenLibrary =>
-      'Naslovi u trendu po predmetu iz Open Library.';
 
   @override
   String get noBookmarkedItems => 'Još nema označenih stavki';
@@ -13863,9 +13832,6 @@ class AppLocalizationsHr extends AppLocalizations {
       'Dodatak za izdvajanje CB7-a nije dostupan na ovoj platformi.';
 
   @override
-  String get closeGenrePanel => 'Zatvori ploču žanrova';
-
-  @override
   String get loadingShuffle => 'Učitavanje nasumične reprodukcije...';
 
   @override
@@ -16207,6 +16173,49 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String get musicSortMostAlbums => 'Most Albums';
+
+  @override
+  String bookSeriesPosition(int index, int total) {
+    return 'Book $index of $total';
+  }
+
+  @override
+  String bookFavoriteCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count favorites',
+      one: '1 favorite',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get bookSortZToA => 'Z to A';
+
+  @override
+  String get bookSortMostTitles => 'Most Titles';
+
+  @override
+  String get bookSurpriseMe => 'Surprise Me';
+
+  @override
+  String get bookShuffleAudiobooks => 'Shuffle Audiobooks';
+
+  @override
+  String get bookStartReading => 'Start Reading';
+
+  @override
+  String get bookOtherBooks => 'Other Books';
+
+  @override
+  String get bookDiscoverSearchBooks => 'Search Open Library';
+
+  @override
+  String get bookDiscoverSearchAudiobooks => 'Search LibriVox';
+
+  @override
+  String get bookDiscoverFeatured => 'Featured';
 
   @override
   String get bookReaderControlsAutoHide => 'Controls hide automatically';

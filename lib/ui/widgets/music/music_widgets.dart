@@ -969,3 +969,23 @@ class MusicChip extends StatelessWidget {
     );
   }
 }
+
+/// The notch on a panel that opens under a card, pointing up at the card.
+class PanelCaretPainter extends CustomPainter {
+  final Color color;
+
+  const PanelCaretPainter(this.color);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final path = Path()
+      ..moveTo(0, size.height)
+      ..lineTo(size.width / 2, 0)
+      ..lineTo(size.width, size.height)
+      ..close();
+    canvas.drawPath(path, Paint()..color = color);
+  }
+
+  @override
+  bool shouldRepaint(PanelCaretPainter old) => old.color != color;
+}

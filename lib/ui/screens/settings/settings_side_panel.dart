@@ -55,6 +55,7 @@ import '../../../playback/audio_capability_profile.dart';
 import '../../../playback/audio_capability_probe.dart';
 import '../../../playback/device_profile_builder.dart';
 import '../../../playback/external_player_service.dart';
+import '../../../playback/known_defects.dart';
 import '../../../playback/letterbox_croppers.dart';
 import '../../../preference/bottom_nav_tabs.dart';
 import '../../../preference/preference_constants.dart';

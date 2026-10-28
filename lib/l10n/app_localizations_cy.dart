@@ -11991,6 +11991,14 @@ class AppLocalizationsCy extends AppLocalizations {
       'Chwarae Dolby Vision proffil 7 ffrwd fel HDR10-compatible HEVC ar ddyfeisiau nad ydynt yn DV.';
 
   @override
+  String get stripDolbyVisionHdr10PlusTitle =>
+      'Play Dolby Vision with HDR10+ as HDR10+';
+
+  @override
+  String get stripDolbyVisionHdr10PlusSubtitle =>
+      'Drop the Dolby Vision layer from videos that also have HDR10+. Turn this on if those videos play with sound but a black screen.';
+
+  @override
   String get subtitlesUseEmbeddedStyles =>
       'Defnyddiwch arddulliau is-deitl wedi\'u mewnosod';
 

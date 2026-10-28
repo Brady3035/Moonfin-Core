@@ -10873,6 +10873,14 @@
   "@mapDolbyVisionP7Subtitle": {
     "description": "Setting subtitle for forcing the DV P7 strip path"
   },
+  "stripDolbyVisionHdr10PlusTitle": "Play Dolby Vision with HDR10+ as HDR10+",
+  "@stripDolbyVisionHdr10PlusTitle": {
+    "description": "Setting title: drop the Dolby Vision layer from videos that carry both Dolby Vision and HDR10+"
+  },
+  "stripDolbyVisionHdr10PlusSubtitle": "Drop the Dolby Vision layer from videos that also have HDR10+. Turn this on if those videos play with sound but a black screen.",
+  "@stripDolbyVisionHdr10PlusSubtitle": {
+    "description": "Setting subtitle for dropping Dolby Vision from Dolby Vision plus HDR10+ videos"
+  },
 
   "subtitlesUseEmbeddedStyles": "Use Embedded Subtitle Styles",
   "@subtitlesUseEmbeddedStyles": {

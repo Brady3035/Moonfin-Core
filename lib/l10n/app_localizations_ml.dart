@@ -12050,6 +12050,14 @@ class AppLocalizationsMl extends AppLocalizations {
       'ഡിവി ഇതര ഉപകരണങ്ങളിൽ Dolby Vision പ്രൊഫൈൽ 7 സ്ട്രീമുകൾ HDR10-അനുയോജ്യമായ HEVC ആയി പ്ലേ ചെയ്യുക.';
 
   @override
+  String get stripDolbyVisionHdr10PlusTitle =>
+      'Play Dolby Vision with HDR10+ as HDR10+';
+
+  @override
+  String get stripDolbyVisionHdr10PlusSubtitle =>
+      'Drop the Dolby Vision layer from videos that also have HDR10+. Turn this on if those videos play with sound but a black screen.';
+
+  @override
   String get subtitlesUseEmbeddedStyles =>
       'ഉൾച്ചേർത്ത സബ്ടൈറ്റിൽ ശൈലികൾ ഉപയോഗിക്കുക';
 

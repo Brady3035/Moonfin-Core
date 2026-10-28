@@ -883,6 +883,8 @@ class Media3VideoView(
     private var preferFfmpegDecoder = Media3Bridge.preferFfmpegDecoderEnabled()
     @Volatile
     private var doviCompatMode = DoviCompatMode.fromWire(Media3Bridge.doviCompatMode())
+    @Volatile
+    private var stripDolbyVision = false
     private var allowExternalAudioEffects = Media3Bridge.allowExternalAudioEffectsEnabled()
     private var frameRateSwitchingBehavior = Media3Bridge.frameRateSwitchingBehavior()
     private var passthroughMode = Media3Bridge.passthroughMode()
@@ -2038,6 +2040,7 @@ class Media3VideoView(
                     assParserFactory,
                 ),
                 mode = { doviCompatMode },
+                stripDolbyVision = { stripDolbyVision },
                 convertNal62 = DoviRpu::convertP7NalToP8,
                 onReport = ::onDoviCompatReport,
             ),
@@ -2721,6 +2724,7 @@ class Media3VideoView(
             ?.lowercase()
             ?.takeIf { it.isNotEmpty() }
         currentIsLive = args["isLive"] as? Boolean ?: false
+        stripDolbyVision = args["stripDolbyVision"] as? Boolean ?: false
         currentIsPreview = isPreview
         audioOffloadRetryAttemptedForCurrentSource = false
         stereoDownmixRetryAttemptedForCurrentSource = false

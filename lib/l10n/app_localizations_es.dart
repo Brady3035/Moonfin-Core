@@ -12045,6 +12045,14 @@ class AppLocalizationsEs extends AppLocalizations {
       'Reproduzca transmisiones de perfil 7 de Dolby Vision como HEVC compatible con HDR10 en dispositivos que no sean DV.';
 
   @override
+  String get stripDolbyVisionHdr10PlusTitle =>
+      'Play Dolby Vision with HDR10+ as HDR10+';
+
+  @override
+  String get stripDolbyVisionHdr10PlusSubtitle =>
+      'Drop the Dolby Vision layer from videos that also have HDR10+. Turn this on if those videos play with sound but a black screen.';
+
+  @override
   String get subtitlesUseEmbeddedStyles =>
       'Utilice estilos de subtítulos incrustados';
 

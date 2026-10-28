@@ -11951,6 +11951,14 @@ class AppLocalizationsEt extends AppLocalizations {
       'Esitage Dolby Vision profiili 7 voogusid HDR10-ühilduva HEVC-na mitte-DV-seadmetes.';
 
   @override
+  String get stripDolbyVisionHdr10PlusTitle =>
+      'Play Dolby Vision with HDR10+ as HDR10+';
+
+  @override
+  String get stripDolbyVisionHdr10PlusSubtitle =>
+      'Drop the Dolby Vision layer from videos that also have HDR10+. Turn this on if those videos play with sound but a black screen.';
+
+  @override
   String get subtitlesUseEmbeddedStyles =>
       'Kasutage manustatud subtiitrite stiile';
 

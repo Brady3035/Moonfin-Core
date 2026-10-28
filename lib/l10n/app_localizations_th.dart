@@ -11877,6 +11877,14 @@ class AppLocalizationsTh extends AppLocalizations {
       'เล่น Dolby Vision โปรไฟล์ 7 สตรีมเป็น HDR10-เข้ากันได้กับ HEVC บนอุปกรณ์ที่ไม่ใช่ DV';
 
   @override
+  String get stripDolbyVisionHdr10PlusTitle =>
+      'Play Dolby Vision with HDR10+ as HDR10+';
+
+  @override
+  String get stripDolbyVisionHdr10PlusSubtitle =>
+      'Drop the Dolby Vision layer from videos that also have HDR10+. Turn this on if those videos play with sound but a black screen.';
+
+  @override
   String get subtitlesUseEmbeddedStyles => 'ใช้รูปแบบคำบรรยายแบบฝัง';
 
   @override

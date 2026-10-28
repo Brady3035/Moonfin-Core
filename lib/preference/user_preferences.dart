@@ -2334,6 +2334,11 @@ class UserPreferences extends ChangeNotifier {
     defaultValue: false,
   );
 
+  static final media3StripDolbyVisionWithHdr10Plus = Preference(
+    key: 'media3_strip_dolby_vision_with_hdr10_plus',
+    defaultValue: false,
+  );
+
   static final media3AllowExternalAudioEffects = Preference(
     key: 'media3_allow_external_audio_effects',
     defaultValue: true,

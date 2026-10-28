@@ -12246,6 +12246,14 @@ class AppLocalizationsPl extends AppLocalizations {
       'Pomiń konwersję do profilu 8 i odtwarzaj Dolby Vision Profile 7 jako HEVC zgodny z HDR10. Użyj tej opcji, jeśli obraz po konwersji wygląda nieprawidłowo.';
 
   @override
+  String get stripDolbyVisionHdr10PlusTitle =>
+      'Play Dolby Vision with HDR10+ as HDR10+';
+
+  @override
+  String get stripDolbyVisionHdr10PlusSubtitle =>
+      'Drop the Dolby Vision layer from videos that also have HDR10+. Turn this on if those videos play with sound but a black screen.';
+
+  @override
   String get subtitlesUseEmbeddedStyles => 'Używaj osadzonych stylów napisów';
 
   @override

@@ -11995,6 +11995,14 @@ class AppLocalizationsSk extends AppLocalizations {
       'Prehrávať streamy Dolby Vision profil 7 ako HEVC kompatibilné s HDR10 na zariadeniach bez podpory Dolby Vision.';
 
   @override
+  String get stripDolbyVisionHdr10PlusTitle =>
+      'Play Dolby Vision with HDR10+ as HDR10+';
+
+  @override
+  String get stripDolbyVisionHdr10PlusSubtitle =>
+      'Drop the Dolby Vision layer from videos that also have HDR10+. Turn this on if those videos play with sound but a black screen.';
+
+  @override
   String get subtitlesUseEmbeddedStyles => 'Použiť vložené štýly titulkov';
 
   @override

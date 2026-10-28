@@ -11587,6 +11587,14 @@ class AppLocalizationsKo extends AppLocalizations {
       '프로필 8 변환을 건너뛰고 Dolby Vision 프로필 7 스트림을 HDR10 호환 HEVC로 변환합니다. 변환된 스트림이 이상하게 보일 때 사용하세요.';
 
   @override
+  String get stripDolbyVisionHdr10PlusTitle =>
+      'Play Dolby Vision with HDR10+ as HDR10+';
+
+  @override
+  String get stripDolbyVisionHdr10PlusSubtitle =>
+      'Drop the Dolby Vision layer from videos that also have HDR10+. Turn this on if those videos play with sound but a black screen.';
+
+  @override
   String get subtitlesUseEmbeddedStyles => '내장 자막 스타일 사용';
 
   @override

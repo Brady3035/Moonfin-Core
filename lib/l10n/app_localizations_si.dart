@@ -11932,6 +11932,14 @@ class AppLocalizationsSi extends AppLocalizations {
       'DV නොවන උපාංගවල Dolby Vision පැතිකඩ 7 ප්‍රවාහ HDR10-ගැළපෙන HEVC ලෙස වාදනය කරන්න.';
 
   @override
+  String get stripDolbyVisionHdr10PlusTitle =>
+      'Play Dolby Vision with HDR10+ as HDR10+';
+
+  @override
+  String get stripDolbyVisionHdr10PlusSubtitle =>
+      'Drop the Dolby Vision layer from videos that also have HDR10+. Turn this on if those videos play with sound but a black screen.';
+
+  @override
   String get subtitlesUseEmbeddedStyles =>
       'කාවැද්දූ උපසිරැසි විලාස භාවිත කරන්න';
 

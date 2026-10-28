@@ -2889,6 +2889,7 @@ class _BookReaderScreenState extends State<BookReaderScreen>
       return FocusableWrapper(
         focusNode: _comicControlFocusNodes[id],
         borderRadius: controlHeight / 2,
+        autoScroll: true,
         disableScale: true,
         focusColor: Colors.white,
         onSelect: onTap,

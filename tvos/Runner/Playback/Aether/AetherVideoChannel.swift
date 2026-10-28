@@ -349,11 +349,15 @@ enum AetherVideoCapabilities {
         #endif
     }
 
-    // Even an M1 decodes heavy 4K HDR10 AV1 at about 2.9x real time, so only
-    // Intel Macs and iOS devices without AV1 hardware keep the 1080p SDR cap.
+    // Even an M1 decodes heavy 4K HDR10 AV1 at about 2.9x real time, so Apple
+    // Silicon Macs and M1 or M2 iPads lift the 1080p SDR cap. Those iPads are
+    // the only iOS devices with 8 GB or more and no AV1 hardware. iOS reports a
+    // little under the real size, which is why the check is 7 GB.
     private static var softwareAv1HandlesUhd: Bool {
         #if os(macOS) && arch(arm64)
             return true
+        #elseif os(iOS)
+            return ProcessInfo.processInfo.physicalMemory >= 7 << 30
         #else
             return false
         #endif

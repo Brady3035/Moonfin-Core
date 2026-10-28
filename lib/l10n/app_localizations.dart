@@ -27800,6 +27800,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Most Albums'**
   String get musicSortMostAlbums;
+
+  /// Comic reader toggle while its bars fade out on their own
+  ///
+  /// In en, this message translates to:
+  /// **'Controls hide automatically'**
+  String get bookReaderControlsAutoHide;
+
+  /// Comic reader toggle while its bars stay on screen
+  ///
+  /// In en, this message translates to:
+  /// **'Controls stay visible'**
+  String get bookReaderControlsStayVisible;
 }
 
 class _AppLocalizationsDelegate

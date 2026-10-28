@@ -39,6 +39,7 @@ import '../../util/error_message.dart';
 import '../../../l10n/current_app_localizations.dart';
 import '../../../util/system_ui.dart';
 import '../../widgets/adaptive/sf_symbol.dart';
+import '../../widgets/focus/focusable_wrapper.dart';
 import '../../widgets/reader/epub_js_view.dart';
 import '../../widgets/reader/reader_chrome_bar.dart';
 import '../../widgets/reader/reader_contents_hub.dart';
@@ -107,6 +108,14 @@ class _BookReaderScreenState extends State<BookReaderScreen>
   Timer? _overlayHideTimer;
   bool _overlayHovered = false;
   final FocusNode _comicFocusNode = FocusNode(debugLabel: 'comic reader');
+  final FocusNode _comicControlsFocusNode = FocusNode(
+    debugLabel: 'comic controls',
+    skipTraversal: true,
+  );
+  final List<FocusNode> _comicControlFocusNodes = List.generate(
+    7,
+    (i) => FocusNode(debugLabel: 'comic control $i'),
+  );
   Uint8List? _pdfBytes;
   int _currentPdfPage = 1;
   int _pdfPageCount = 0;
@@ -390,6 +399,10 @@ class _BookReaderScreenState extends State<BookReaderScreen>
     _pdfPageSaveDebounce?.cancel();
     _overlayHideTimer?.cancel();
     _comicFocusNode.dispose();
+    _comicControlsFocusNode.dispose();
+    for (final node in _comicControlFocusNodes) {
+      node.dispose();
+    }
     _pageController.dispose();
     _comicTransformController.dispose();
     _comicVerticalController.dispose();
@@ -1221,10 +1234,11 @@ class _BookReaderScreenState extends State<BookReaderScreen>
     await prefs.setBool(_comicAutoHidePrefKey, value);
   }
 
-  /// Moving the mouse brings the bars up, so a click on the page only toggles
-  /// them for touch.
+  /// While the bars hide by themselves, moving the mouse brings them up, so a
+  /// click on the page only toggles them for touch. With hiding turned off, a
+  /// click toggles them too.
   void _toggleOverlayFromTap(PointerDeviceKind kind) {
-    if (kind != PointerDeviceKind.mouse) {
+    if (kind != PointerDeviceKind.mouse || !_overlayAutoHide) {
       _toggleOverlay();
     }
   }
@@ -1238,14 +1252,15 @@ class _BookReaderScreenState extends State<BookReaderScreen>
     return false;
   }
 
-  /// On TV, while the comic reader's bars are hidden, the D-pad turns the page
-  /// and any other button brings the bars back. Back still leaves the reader.
+  /// On TV the D-pad turns the comic's pages and Select shows or hides the
+  /// bars. The rest of the D-pad brings the bars back, or steps into the
+  /// controls bar while they're showing. Back still leaves the reader, and
+  /// other buttons like volume are left for the system.
   KeyEventResult _onComicTvKey(FocusNode _, KeyEvent event) {
     final key = event.logicalKey;
     if (!PlatformDetection.isTV ||
-        _overlayVisible ||
         !event.isActionable ||
-        key.isBackKey) {
+        _comicControlsFocusNode.hasFocus) {
       return KeyEventResult.ignored;
     }
     final rtl = _comicDirection == _ComicDirection.rtl;
@@ -1258,10 +1273,25 @@ class _BookReaderScreenState extends State<BookReaderScreen>
         : (rtl ? key.isRightKey : key.isLeftKey);
     if (forward) {
       _nextComicPage();
-    } else if (back) {
+      return KeyEventResult.handled;
+    }
+    if (back) {
       _previousComicPage();
-    } else if (event is KeyDownEvent) {
-      _setOverlayVisible(true);
+      return KeyEventResult.handled;
+    }
+    if (key.isSelectKey) {
+      if (event is KeyDownEvent) _setOverlayVisible(!_overlayVisible);
+      return KeyEventResult.handled;
+    }
+    if (!key.isUpKey && !key.isDownKey && !key.isLeftKey && !key.isRightKey) {
+      return KeyEventResult.ignored;
+    }
+    if (event is KeyDownEvent) {
+      if (_overlayVisible) {
+        _comicControlFocusNodes.first.requestFocus();
+      } else {
+        _setOverlayVisible(true);
+      }
     }
     return KeyEventResult.handled;
   }
@@ -2493,15 +2523,17 @@ class _BookReaderScreenState extends State<BookReaderScreen>
     );
   }
 
-  /// Moving the mouse brings the comic reader's bars back, and so does a
-  /// remote button on TV.
+  /// Moving the mouse brings the comic reader's bars back while they hide by
+  /// themselves, and the remote works the page and the bars on TV.
   Widget _buildComicFullscreen() {
     return Focus(
       focusNode: _comicFocusNode,
       skipTraversal: true,
       onKeyEvent: _onComicTvKey,
       child: Listener(
-        onPointerHover: (_) => _revealOverlay(),
+        onPointerHover: (_) {
+          if (_overlayAutoHide) _revealOverlay();
+        },
         child: _buildComicScaffold(),
       ),
     );
@@ -2829,15 +2861,45 @@ class _BookReaderScreenState extends State<BookReaderScreen>
   }
 
   Widget _buildComicControlsBar() {
+    final l10n = AppLocalizations.of(context);
     final accent = _readerAccent;
     const double controlHeight = 36;
+    final paged = _comicLayout != _ComicLayout.vertical;
 
-    Widget pill(String label, bool selected, VoidCallback onTap) {
+    // The controls only take focus on TV. Left and Right step through them in
+    // this order, since the page behind the bar would otherwise catch a step,
+    // and Up and Down go back to the page.
+    final order = [0, 1, 2, if (paged) 3, 4, 5, 6];
+    VoidCallback step(int id, int by) {
+      final next = order.indexOf(id) + by;
+      if (next < 0 || next >= order.length) return () {};
+      return _comicControlFocusNodes[order[next]].requestFocus;
+    }
+
+    Widget control(int id, Widget child, VoidCallback onTap) {
+      if (!PlatformDetection.isTV) {
+        return GestureDetector(onTap: onTap, child: child);
+      }
+      return FocusableWrapper(
+        focusNode: _comicControlFocusNodes[id],
+        borderRadius: controlHeight / 2,
+        disableScale: true,
+        focusColor: Colors.white,
+        onSelect: onTap,
+        onNavigateUp: _comicFocusNode.requestFocus,
+        onNavigateDown: _comicFocusNode.requestFocus,
+        onNavigateLeft: step(id, -1),
+        onNavigateRight: step(id, 1),
+        child: child,
+      );
+    }
+
+    Widget pill(int id, String label, bool selected, VoidCallback onTap) {
       return Padding(
         padding: const EdgeInsets.only(right: 6),
-        child: GestureDetector(
-          onTap: onTap,
-          child: Container(
+        child: control(
+          id,
+          Container(
             height: controlHeight,
             alignment: Alignment.center,
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -2854,105 +2916,119 @@ class _BookReaderScreenState extends State<BookReaderScreen>
               ),
             ),
           ),
+          onTap,
         ),
       );
     }
 
     Widget iconToggle(
+      int id,
       IconData icon,
       bool active,
       String tooltip,
       VoidCallback onTap,
     ) {
-      return Tooltip(
-        message: tooltip,
-        child: GestureDetector(
-          onTap: onTap,
-          child: Container(
-            margin: const EdgeInsets.only(left: 6),
-            width: controlHeight,
-            height: controlHeight,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: active ? accent : Colors.white.withValues(alpha: 0.14),
-              shape: BoxShape.circle,
+      return Padding(
+        padding: const EdgeInsets.only(left: 6),
+        child: Tooltip(
+          message: tooltip,
+          child: control(
+            id,
+            Container(
+              width: controlHeight,
+              height: controlHeight,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: active ? accent : Colors.white.withValues(alpha: 0.14),
+                shape: BoxShape.circle,
+              ),
+              child: AdaptiveIcon(
+                icon,
+                size: 18,
+                color: active ? Colors.white : Colors.white70,
+              ),
             ),
-            child: AdaptiveIcon(
-              icon,
-              size: 18,
-              color: active ? Colors.white : Colors.white70,
-            ),
+            onTap,
           ),
         ),
       );
     }
 
-    final paged = _comicLayout != _ComicLayout.vertical;
     return Container(
       color: Colors.black.withValues(alpha: 0.55),
       padding: const EdgeInsets.fromLTRB(12, 8, 12, 6),
-      child: Row(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  pill(
-                    'Single',
-                    _comicLayout == _ComicLayout.single,
-                    () => _setComicLayout(_ComicLayout.single),
-                  ),
-                  pill(
-                    'Two-page',
-                    _comicLayout == _ComicLayout.double,
-                    () => _setComicLayout(_ComicLayout.double),
-                  ),
-                  pill(
-                    'Vertical',
-                    _comicLayout == _ComicLayout.vertical,
-                    () => _setComicLayout(_ComicLayout.vertical),
-                  ),
-                ],
+      child: Focus(
+        focusNode: _comicControlsFocusNode,
+        child: Row(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    pill(
+                      0,
+                      'Single',
+                      _comicLayout == _ComicLayout.single,
+                      () => _setComicLayout(_ComicLayout.single),
+                    ),
+                    pill(
+                      1,
+                      'Two-page',
+                      _comicLayout == _ComicLayout.double,
+                      () => _setComicLayout(_ComicLayout.double),
+                    ),
+                    pill(
+                      2,
+                      'Vertical',
+                      _comicLayout == _ComicLayout.vertical,
+                      () => _setComicLayout(_ComicLayout.vertical),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-          if (paged)
-            iconToggle(
-              _comicDirection == _ComicDirection.rtl
-                  ? Icons.format_textdirection_r_to_l
-                  : Icons.format_textdirection_l_to_r,
-              _comicDirection == _ComicDirection.rtl,
-              _comicDirection == _ComicDirection.rtl
-                  ? 'Right to left (manga)'
-                  : 'Left to right',
-              () => _setComicDirection(
+            if (paged)
+              iconToggle(
+                3,
                 _comicDirection == _ComicDirection.rtl
-                    ? _ComicDirection.ltr
-                    : _ComicDirection.rtl,
+                    ? Icons.format_textdirection_r_to_l
+                    : Icons.format_textdirection_l_to_r,
+                _comicDirection == _ComicDirection.rtl,
+                _comicDirection == _ComicDirection.rtl
+                    ? 'Right to left (manga)'
+                    : 'Left to right',
+                () => _setComicDirection(
+                  _comicDirection == _ComicDirection.rtl
+                      ? _ComicDirection.ltr
+                      : _ComicDirection.rtl,
+                ),
               ),
+            iconToggle(
+              4,
+              Icons.view_carousel_outlined,
+              _filmstripVisible,
+              'Thumbnails',
+              () => setState(() => _filmstripVisible = !_filmstripVisible),
             ),
-          iconToggle(
-            Icons.view_carousel_outlined,
-            _filmstripVisible,
-            'Thumbnails',
-            () => setState(() => _filmstripVisible = !_filmstripVisible),
-          ),
-          iconToggle(
-            Icons.invert_colors,
-            _invertFixedLayout,
-            'Invert colors',
-            () => _setFixedLayoutInvert(!_invertFixedLayout),
-          ),
-          iconToggle(
-            _overlayAutoHide ? Icons.visibility_off : Icons.visibility,
-            _overlayAutoHide,
-            _overlayAutoHide
-                ? 'Controls hide automatically'
-                : 'Controls stay visible',
-            () => _setOverlayAutoHide(!_overlayAutoHide),
-          ),
-        ],
+            iconToggle(
+              5,
+              Icons.invert_colors,
+              _invertFixedLayout,
+              'Invert colors',
+              () => _setFixedLayoutInvert(!_invertFixedLayout),
+            ),
+            iconToggle(
+              6,
+              _overlayAutoHide ? Icons.visibility_off : Icons.visibility,
+              _overlayAutoHide,
+              _overlayAutoHide
+                  ? l10n.bookReaderControlsAutoHide
+                  : l10n.bookReaderControlsStayVisible,
+              () => _setOverlayAutoHide(!_overlayAutoHide),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -14902,5 +14902,13 @@
   "musicSortMostAlbums": "Most Albums",
   "@musicSortMostAlbums": {
     "description": "Genres screen order: the genres with the most albums first"
+  },
+  "bookReaderControlsAutoHide": "Controls hide automatically",
+  "@bookReaderControlsAutoHide": {
+    "description": "Comic reader toggle while its bars fade out on their own"
+  },
+  "bookReaderControlsStayVisible": "Controls stay visible",
+  "@bookReaderControlsStayVisible": {
+    "description": "Comic reader toggle while its bars stay on screen"
   }
 }

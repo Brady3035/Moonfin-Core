@@ -13698,15 +13698,15 @@
     "@preferredSecondarySubtitleLanguage": {
         "description": "Preferred language used to sort secondary subtitle tracks in the picker. It doesn't turn subtitles on."
     },
-    "primarySubtitleSlot": "Ensisijainen",
+    "primarySubtitleSlot": "Ensisijainen raita",
     "@primarySubtitleSlot": {
         "description": "Label for the primary subtitle selection slot"
     },
-    "secondarySubtitleSlot": "Toissijainen",
+    "secondarySubtitleSlot": "Toissijainen raita",
     "@secondarySubtitleSlot": {
         "description": "Label for the secondary subtitle selection slot"
     },
-    "secondarySubtitleTrack": "Toissijainen tekstitysraita",
+    "secondarySubtitleTrack": "Toissijainen tekstitys",
     "@secondarySubtitleTrack": {
         "description": "Title of the picker for the secondary subtitle track"
     },
@@ -15298,7 +15298,7 @@
     "@settingsApplePlayerUi": {
         "description": "Settings label on iPhone and iPad for choosing which player plays video"
     },
-    "settingsApplePlayerUiDescription": "Applen omassa soittimessa ei ole suoratoistotoimintoa, pyyhkäisyeleitä, suuntalukitusta, äänen viivettä eikä PiP-painiketta",
+    "settingsApplePlayerUiDescription": "Applen omassa soittimessa ei ole suoratoistotoimintoa, äänen viivettä eikä PiP-painiketta, ja sen kiertolukitus toimii vain Live TV -tilassa",
     "@settingsApplePlayerUiDescription": {
         "description": "Settings description for the video player choice, listing what the native Apple style player lacks"
     },
@@ -15777,5 +15777,135 @@
     "externalRowSortReleaseDate": "Julkaisupäivä",
     "externalRowSortRating": "Arvostelu",
     "externalRowSortPopularity": "Suosio",
-    "externalRowSortShuffle": "Sekoita"
+    "externalRowSortShuffle": "Sekoita",
+    "secondarySubtitlesEnabledSubtitle": "Näytä toinen tekstitysraita samanaikaisesti. Tekstitysvalikossa kysytään tällöin ensin, kumman raidan haluat ensisijaiseksi ja kumman toissijaiseksi.",
+    "@secondarySubtitlesEnabledSubtitle": {
+        "description": "Subtitle of the setting that turns secondary subtitles on, explaining the extra step it adds to the subtitle menu"
+    },
+    "secondaryDelayAdjustment": "Toissijaisen viiveen säätö",
+    "@secondaryDelayAdjustment": {
+        "description": "Title of the secondary subtitle delay menu. This adjustment is added to the primary subtitle delay."
+    },
+    "libraryCardTitles": "Julisteiden alla olevat otsikot",
+    "@libraryCardTitles": {
+        "description": "Setting that shows or hides the title and details under each card in library grids"
+    },
+    "libraryCardTitlesDescription": "Näytä kunkin teoksen nimi ja tiedot kuvan alla kirjaston ruudukossa.",
+    "@libraryCardTitlesDescription": {
+        "description": "Description of the Titles Under Posters setting"
+    },
+    "av1SoftwareUhdDirectPlay": "Suora 4K AV1 -toisto (ohjelmistopohjainen dekoodaus)",
+    "av1SoftwareUhdDirectPlaySubtitle": "Toista AV1-tiedostoja yli 1080p-tarkkuudella, mukaan lukien HDR10, suoraan alkuperäisestä tiedostosta sen sijaan, että pyydät palvelinta koodaamaan sen uudelleen. Tämä laite purkaa AV1-tiedostoja ohjelmistolla, joten raskaat 4K-tiedostot tai tiedostot, joiden bittinopeus on suuri, saattavat pätkiä.",
+    "libraryFolderView": "Kansionäkymä",
+    "@libraryFolderView": {
+        "description": "Checkbox in a library's Sort and Filter options that lists the library one folder at a time instead of all its items at once"
+    },
+    "musicArtistCount": "{count, plural, =1{1 artist} other{{count} artists}}",
+    "@musicArtistCount": {
+        "description": "Count next to the title of a music library's Artists screen",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "musicSongCount": "{count, plural, =1{1 song} other{{count} songs}}",
+    "@musicSongCount": {
+        "description": "Count of songs, next to the Songs screen title and under a playlist",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "musicPlaylistCount": "{count, plural, =1{1 playlist} other{{count} playlists}}",
+    "@musicPlaylistCount": {
+        "description": "Count next to the title of a music library's Playlists screen",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "musicPlayCount": "{count, plural, =1{1 play} other{{count} plays}}",
+    "@musicPlayCount": {
+        "description": "How many times a song was played, at the end of a Most Played row",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "allArtists": "Kaikki Artistit",
+    "@allArtists": {
+        "description": "Artists screen switch: every artist, not only those credited on albums"
+    },
+    "libraryZToA": "Z:sta A:han",
+    "@libraryZToA": {
+        "description": "Sort order from Z to A"
+    },
+    "musicSortYear": "Vuosi",
+    "@musicSortYear": {
+        "description": "Albums screen sort: by release year, newest first"
+    },
+    "musicFilter": "Suodatin",
+    "@musicFilter": {
+        "description": "Albums screen button that opens the genre filter"
+    },
+    "musicGenreFilterTitle": "Suodata genren mukaan",
+    "@musicGenreFilterTitle": {
+        "description": "Title of the genre list the Albums screen's Filter button opens"
+    },
+    "openAlbum": "Avaa albumi",
+    "@openAlbum": {
+        "description": "Button that opens an album's details screen"
+    },
+    "openPlaylist": "Avaa soittolista",
+    "@openPlaylist": {
+        "description": "Button that opens a playlist's details screen, where its order can be changed"
+    },
+    "allSongsAToZ": "Kaikki kappaleet A:sta Z:aan",
+    "@allSongsAToZ": {
+        "description": "Songs screen button that opens the full list of songs by name"
+    },
+    "musicMix": "Mix",
+    "@musicMix": {
+        "description": "Small label over a music mix card, as in a playlist the app put together"
+    },
+    "musicMixEverything": "Kaikki",
+    "@musicMixEverything": {
+        "description": "Songs screen mix card that shuffles the whole library"
+    },
+    "musicMixEverythingSubtitle": "300 kappaletta satunnaisjärjestyksessä",
+    "@musicMixEverythingSubtitle": {
+        "description": "Line under the Everything mix card"
+    },
+    "mostPlayed": "Eniten soitetut",
+    "@mostPlayed": {
+        "description": "Songs screen mix card and list of the songs played most"
+    },
+    "musicMixMostPlayedSubtitle": "Oma top 100",
+    "@musicMixMostPlayedSubtitle": {
+        "description": "Line under the Most Played mix card"
+    },
+    "musicMixFreshArrivals": "Uutuudet",
+    "@musicMixFreshArrivals": {
+        "description": "Songs screen mix card of the newest songs in the library"
+    },
+    "musicMixFreshArrivalsSubtitle": "100 uusinta kappaletta",
+    "@musicMixFreshArrivalsSubtitle": {
+        "description": "Line under the Fresh Arrivals mix card"
+    },
+    "musicMixRediscover": "Löydä uudelleen",
+    "@musicMixRediscover": {
+        "description": "Songs screen mix card of favorite songs that haven't been played in a while"
+    },
+    "musicMixRediscoverSubtitle": "Suosikit, joita et ole pelannut viime aikoina",
+    "@musicMixRediscoverSubtitle": {
+        "description": "Line under the Rediscover mix card"
+    },
+    "musicSortMostAlbums": "Eniten albumeita",
+    "@musicSortMostAlbums": {
+        "description": "Genres screen order: the genres with the most albums first"
+    }
 }

@@ -308,6 +308,10 @@ final class NativeApplePlayerViewController: UIViewController {
     private var brightnessBeforeSwipe: (screen: UIScreen, value: CGFloat)?
     private let brightnessIndicator = GestureIndicatorView()
     private let volumeIndicator = GestureIndicatorView()
+    private let speedHold = UILongPressGestureRecognizer()
+    /// The speed to go back to when a hold for 2x ends.
+    private var speedBeforeHold: Double?
+    private let speedHoldIndicator = UILabel()
     /// Kept in the view because UIKit raises its own volume HUD over the
     /// player otherwise, and its slider is the only way to set the volume.
     private let volumeView = MPVolumeView(frame: CGRect(x: -400, y: -400, width: 200, height: 40))
@@ -3732,11 +3736,21 @@ final class NativeApplePlayerViewController: UIViewController {
 
 extension NativeApplePlayerViewController: UIGestureRecognizerDelegate {
     func gestureRecognizer(
-        _: UIGestureRecognizer,
+        _ gestureRecognizer: UIGestureRecognizer,
         shouldRecognizeSimultaneouslyWith _: UIGestureRecognizer
     ) -> Bool {
-        true
+        #if os(iOS)
+        // Once the hold wins, a swipe or tap can't start under it.
+        if gestureRecognizer === speedHold { return false }
+        #endif
+        return true
     }
+
+    #if os(iOS)
+    func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+        gestureRecognizer !== speedHold || canHoldForSpeed
+    }
+    #endif
 }
 
 /// Roboto only ships in the Flutter assets, so it's registered with Core Text
@@ -3765,6 +3779,10 @@ extension NativeApplePlayerViewController {
 
         view.addGestureRecognizer(
             UIPanGestureRecognizer(target: self, action: #selector(handleTouchPan(_:))))
+        speedHold.addTarget(self, action: #selector(handleSpeedHold(_:)))
+        speedHold.delegate = self
+        view.addGestureRecognizer(speedHold)
+        setupSpeedHoldIndicator()
         volumeView.alpha = 0.01
         view.addSubview(volumeView)
         NotificationCenter.default.addObserver(
@@ -3916,6 +3934,57 @@ extension NativeApplePlayerViewController {
                 symbol: value <= 0.25 ? "sun.min" : (value >= 0.75 ? "sun.max.fill" : "sun.max"),
                 value: value, label: percent)
         }
+    }
+
+    /// Only with the controls down, so a slow press on a button isn't taken
+    /// for a hold. Live can't run ahead of the broadcast.
+    private var canHoldForSpeed: Bool {
+        presentedViewController == nil && !nextUpVisible && !cinemaSkipActive && !isLive
+            && !isOsdOnScreen && scrubTargetMs == nil && player.state == .playing
+    }
+
+    @objc private func handleSpeedHold(_ recognizer: UILongPressGestureRecognizer) {
+        switch recognizer.state {
+        case .began:
+            speedBeforeHold = Double(player.rate)
+            onSetSpeed?(2)
+            UIView.animate(withDuration: 0.2) { self.speedHoldIndicator.alpha = 1 }
+        case .ended, .cancelled:
+            guard let speed = speedBeforeHold else { return }
+            speedBeforeHold = nil
+            onSetSpeed?(speed)
+            UIView.animate(withDuration: 0.2) { self.speedHoldIndicator.alpha = 0 }
+        default:
+            break
+        }
+    }
+
+    /// The Flutter player's 2x pill, at the doubled scale.
+    private func setupSpeedHoldIndicator() {
+        let text = NSMutableAttributedString(string: "2x ")
+        let symbol = NSTextAttachment()
+        symbol.image = UIImage(
+            systemName: "forward.fill",
+            withConfiguration: UIImage.SymbolConfiguration(pointSize: 30, weight: .semibold)
+        )?.withTintColor(.white, renderingMode: .alwaysOriginal)
+        text.append(NSAttributedString(attachment: symbol))
+        speedHoldIndicator.attributedText = text
+        speedHoldIndicator.font = .systemFont(ofSize: 32, weight: .semibold)
+        speedHoldIndicator.textColor = .white
+        speedHoldIndicator.textAlignment = .center
+        speedHoldIndicator.backgroundColor = UIColor(white: 0, alpha: 0.6)
+        speedHoldIndicator.layer.cornerRadius = 28
+        speedHoldIndicator.clipsToBounds = true
+        speedHoldIndicator.alpha = 0
+        speedHoldIndicator.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(speedHoldIndicator)
+        NSLayoutConstraint.activate([
+            speedHoldIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            speedHoldIndicator.topAnchor.constraint(
+                equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 48),
+            speedHoldIndicator.widthAnchor.constraint(equalToConstant: 168),
+            speedHoldIndicator.heightAnchor.constraint(equalToConstant: 72),
+        ])
     }
 
     /// Placed the way the Flutter player aligns them, 85% of the way to a side.

@@ -15907,5 +15907,86 @@
     "musicSortMostAlbums": "Eniten albumeita",
     "@musicSortMostAlbums": {
         "description": "Genres screen order: the genres with the most albums first"
+    },
+    "showLibrariesIndividually": "Näytä kirjastot erikseen",
+    "@showLibrariesIndividually": {
+        "description": "Setting that puts each library in the navigation bar as its own button instead of grouping them under the Libraries menu"
+    },
+    "showLibrariesIndividuallySubtitle": "Näytä kukin kirjasto omana painikkeenaan navigointipalkissa sen sijaan, että se näkyisi Kirjastot-valikossa",
+    "@showLibrariesIndividuallySubtitle": {
+        "description": "Subtitle for the Show Libraries Individually setting"
+    },
+    "stripDolbyVisionHdr10PlusTitle": "Toista Dolby Vision ja HDR10+ HDR10+ -muodossa",
+    "@stripDolbyVisionHdr10PlusTitle": {
+        "description": "Setting title: drop the Dolby Vision layer from videos that carry both Dolby Vision and HDR10+"
+    },
+    "stripDolbyVisionHdr10PlusSubtitle": "Poista Dolby Vision -kerros videoista, joissa on myös HDR10+. Ota tämä käyttöön, jos kyseiset videot toistuvat äänellä, mutta näytöllä näkyy vain musta kuva.",
+    "@stripDolbyVisionHdr10PlusSubtitle": {
+        "description": "Setting subtitle for dropping Dolby Vision from Dolby Vision plus HDR10+ videos"
+    },
+    "bookSeriesPosition": "Kirja {index} / {total}",
+    "@bookSeriesPosition": {
+        "description": "Series screen: where the reader is in a series, the next unread book's number and how many books it has",
+        "placeholders": {
+            "index": {
+                "type": "int"
+            },
+            "total": {
+                "type": "int"
+            }
+        }
+    },
+    "bookFavoriteCount": "{count, plural, =1{1 favorite} other{{count} favorites}}",
+    "@bookFavoriteCount": {
+        "description": "Book library Favorites screen header count",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "bookSortZToA": "Z:sta A:han",
+    "@bookSortZToA": {
+        "description": "Authors screen order, from Z back to A"
+    },
+    "bookSortMostTitles": "Eniten nimikkeitä",
+    "@bookSortMostTitles": {
+        "description": "Book genres screen order: the genres with the most titles first"
+    },
+    "bookSurpriseMe": "Yllätä minut",
+    "@bookSurpriseMe": {
+        "description": "Button on a book genre that opens a random unread title from it"
+    },
+    "bookShuffleAudiobooks": "Äänikirjojen satunnainen toisto",
+    "@bookShuffleAudiobooks": {
+        "description": "Button on an author that plays one of their audiobooks at random"
+    },
+    "bookStartReading": "Aloita lukeminen",
+    "@bookStartReading": {
+        "description": "Button on an author that opens their first unread book"
+    },
+    "bookOtherBooks": "Muita kirjoja",
+    "@bookOtherBooks": {
+        "description": "Heading over an author's books that aren't part of a series"
+    },
+    "bookDiscoverSearchBooks": "Hae Open Librarysta",
+    "@bookDiscoverSearchBooks": {
+        "description": "Placeholder in the Discover search field for books"
+    },
+    "bookDiscoverSearchAudiobooks": "Hae LibriVoxista",
+    "@bookDiscoverSearchAudiobooks": {
+        "description": "Placeholder in the Discover search field for audiobooks"
+    },
+    "bookDiscoverFeatured": "Esittelyssä",
+    "@bookDiscoverFeatured": {
+        "description": "Label over the highlighted title at the top of Discover"
+    },
+    "bookReaderControlsAutoHide": "Ohjaimet piiloutuvat automaattisesti",
+    "@bookReaderControlsAutoHide": {
+        "description": "Comic reader toggle while its bars fade out on their own"
+    },
+    "bookReaderControlsStayVisible": "Ohjaimet pysyvät näkyvissä",
+    "@bookReaderControlsStayVisible": {
+        "description": "Comic reader toggle while its bars stay on screen"
     }
 }

@@ -4563,6 +4563,13 @@ class AppLocalizationsAf extends AppLocalizations {
   String get showLibrariesInToolbar => 'Wys biblioteke in Toolbar';
 
   @override
+  String get showLibrariesIndividually => 'Show Libraries Individually';
+
+  @override
+  String get showLibrariesIndividuallySubtitle =>
+      'Show each library as its own button in the navigation bar instead of in the Libraries menu';
+
+  @override
   String get navbarAlwaysExpanded => 'Wys navigasie-etikette altyd';
 
   @override

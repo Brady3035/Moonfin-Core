@@ -4616,6 +4616,13 @@ class AppLocalizationsSr extends AppLocalizations {
       'Прикажи библиотеке на траци са алаткама';
 
   @override
+  String get showLibrariesIndividually => 'Show Libraries Individually';
+
+  @override
+  String get showLibrariesIndividuallySubtitle =>
+      'Show each library as its own button in the navigation bar instead of in the Libraries menu';
+
+  @override
   String get navbarAlwaysExpanded => 'Увек прикажи ознаке навигационе траке';
 
   @override

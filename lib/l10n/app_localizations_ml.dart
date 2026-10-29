@@ -4581,6 +4581,13 @@ class AppLocalizationsMl extends AppLocalizations {
   String get showLibrariesInToolbar => 'ടൂൾബാറിൽ ലൈബ്രറികൾ കാണിക്കുക';
 
   @override
+  String get showLibrariesIndividually => 'Show Libraries Individually';
+
+  @override
+  String get showLibrariesIndividuallySubtitle =>
+      'Show each library as its own button in the navigation bar instead of in the Libraries menu';
+
+  @override
   String get navbarAlwaysExpanded => 'നാവ്ബാർ ലേബലുകൾ എപ്പോഴും വിപുലീകരിക്കുക';
 
   @override

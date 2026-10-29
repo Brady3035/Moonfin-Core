@@ -4541,6 +4541,13 @@ class AppLocalizationsHe extends AppLocalizations {
   String get showLibrariesInToolbar => 'הצג ספריות בסרגל הכלים';
 
   @override
+  String get showLibrariesIndividually => 'Show Libraries Individually';
+
+  @override
+  String get showLibrariesIndividuallySubtitle =>
+      'Show each library as its own button in the navigation bar instead of in the Libraries menu';
+
+  @override
   String get navbarAlwaysExpanded => 'הצג תמיד את תוויות סרגל הניווט';
 
   @override

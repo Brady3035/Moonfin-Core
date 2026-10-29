@@ -4562,6 +4562,13 @@ class AppLocalizationsMn extends AppLocalizations {
   String get showLibrariesInToolbar => 'Хэрэгслийн самбарт номын санг харуулах';
 
   @override
+  String get showLibrariesIndividually => 'Show Libraries Individually';
+
+  @override
+  String get showLibrariesIndividuallySubtitle =>
+      'Show each library as its own button in the navigation bar instead of in the Libraries menu';
+
+  @override
   String get navbarAlwaysExpanded => 'Навигацийн самбарын шошгыг үргэлж дэлгэх';
 
   @override

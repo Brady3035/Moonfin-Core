@@ -155,6 +155,7 @@ final List<SyncedField> syncedFields = <SyncedField>[
   SyncedField('showDownloadsButton', UserPreferences.showDownloadsButton, SyncCodec.boolean),
   SyncedField('showFriendsButton', UserPreferences.showFriendsButton, SyncCodec.boolean),
   SyncedField('showLibrariesInToolbar', UserPreferences.showLibrariesInToolbar, SyncCodec.boolean),
+  SyncedField('showLibrariesIndividually', UserPreferences.showLibrariesIndividually, SyncCodec.boolean),
   SyncedField('shuffleContentType', UserPreferences.shuffleContentType, SyncCodec.text),
   SyncedField('mergeContinueWatchingNextUp', UserPreferences.mergeContinueWatchingNextUp, SyncCodec.boolean),
   SyncedField('continueWatchingDefaultAction', UserPreferences.continueWatchingDefaultAction, SyncCodec.enumName, enumValues: prefs.ContinueWatchingDefaultAction.values),

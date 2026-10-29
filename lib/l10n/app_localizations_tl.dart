@@ -4582,6 +4582,13 @@ class AppLocalizationsTl extends AppLocalizations {
   String get showLibrariesInToolbar => 'Ipakita ang Mga Aklatan sa Toolbar';
 
   @override
+  String get showLibrariesIndividually => 'Show Libraries Individually';
+
+  @override
+  String get showLibrariesIndividuallySubtitle =>
+      'Show each library as its own button in the navigation bar instead of in the Libraries menu';
+
+  @override
   String get navbarAlwaysExpanded =>
       'Palaging I-expand ang Mga Label ng Navbar';
 

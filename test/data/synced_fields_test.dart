@@ -260,6 +260,7 @@ void main() {
     'showFavoritesButton',
     'showFriendsButton',
     'showGenresButton',
+    'showLibrariesIndividually',
     'showLibrariesInToolbar',
     'showLiveTvButton',
     'showLoadingAnimationText',

@@ -4580,6 +4580,13 @@ class AppLocalizationsTa extends AppLocalizations {
   String get showLibrariesInToolbar => 'கருவிப்பட்டியில் நூலகங்களைக் காட்டு';
 
   @override
+  String get showLibrariesIndividually => 'Show Libraries Individually';
+
+  @override
+  String get showLibrariesIndividuallySubtitle =>
+      'Show each library as its own button in the navigation bar instead of in the Libraries menu';
+
+  @override
   String get navbarAlwaysExpanded => 'நேவ்பார் லேபிள்களை எப்போதும் விரிவாக்கு';
 
   @override

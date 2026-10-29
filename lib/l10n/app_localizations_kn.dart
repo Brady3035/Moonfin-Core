@@ -4576,6 +4576,13 @@ class AppLocalizationsKn extends AppLocalizations {
   String get showLibrariesInToolbar => 'ಟೂಲ್‌ಬಾರ್‌ನಲ್ಲಿ ಲೈಬ್ರರಿಗಳನ್ನು ತೋರಿಸಿ';
 
   @override
+  String get showLibrariesIndividually => 'Show Libraries Individually';
+
+  @override
+  String get showLibrariesIndividuallySubtitle =>
+      'Show each library as its own button in the navigation bar instead of in the Libraries menu';
+
+  @override
   String get navbarAlwaysExpanded =>
       'ನ್ಯಾವ್‌ಬಾರ್ ಲೇಬಲ್‌ಗಳನ್ನು ಯಾವಾಗಲೂ ವಿಸ್ತರಿಸಿ';
 

@@ -4584,6 +4584,13 @@ class AppLocalizationsSq extends AppLocalizations {
       'Shfaq bibliotekat në shiritin e veglave';
 
   @override
+  String get showLibrariesIndividually => 'Show Libraries Individually';
+
+  @override
+  String get showLibrariesIndividuallySubtitle =>
+      'Show each library as its own button in the navigation bar instead of in the Libraries menu';
+
+  @override
   String get navbarAlwaysExpanded =>
       'Shfaq gjithmonë etiketat e shiritit të navigimit';
 

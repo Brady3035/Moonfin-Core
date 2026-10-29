@@ -4578,6 +4578,13 @@ class AppLocalizationsMk extends AppLocalizations {
       'Прикажи библиотеки во лентата со алатки';
 
   @override
+  String get showLibrariesIndividually => 'Show Libraries Individually';
+
+  @override
+  String get showLibrariesIndividuallySubtitle =>
+      'Show each library as its own button in the navigation bar instead of in the Libraries menu';
+
+  @override
   String get navbarAlwaysExpanded =>
       'Секогаш прошируј ги ознаките во навигацијата';
 

@@ -6028,6 +6028,14 @@
   "@showLibrariesInToolbar": {
     "description": "Setting for showing libraries in toolbar"
   },
+  "showLibrariesIndividually": "Show Libraries Individually",
+  "@showLibrariesIndividually": {
+    "description": "Setting that puts each library in the navigation bar as its own button instead of grouping them under the Libraries menu"
+  },
+  "showLibrariesIndividuallySubtitle": "Show each library as its own button in the navigation bar instead of in the Libraries menu",
+  "@showLibrariesIndividuallySubtitle": {
+    "description": "Subtitle for the Show Libraries Individually setting"
+  },
   "navbarAlwaysExpanded": "Always Expand Navbar Labels",
   "@navbarAlwaysExpanded": {
     "description": "Setting to keep every top navbar heading's text label visible at all times, tvOS-style"

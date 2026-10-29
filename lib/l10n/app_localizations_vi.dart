@@ -4562,6 +4562,13 @@ class AppLocalizationsVi extends AppLocalizations {
   String get showLibrariesInToolbar => 'Hiển thị Thư viện trong Thanh công cụ';
 
   @override
+  String get showLibrariesIndividually => 'Show Libraries Individually';
+
+  @override
+  String get showLibrariesIndividuallySubtitle =>
+      'Show each library as its own button in the navigation bar instead of in the Libraries menu';
+
+  @override
   String get navbarAlwaysExpanded => 'Luôn hiển thị nhãn thanh điều hướng';
 
   @override

@@ -4583,6 +4583,13 @@ class AppLocalizationsUk extends AppLocalizations {
       'Показати бібліотеки на панелі інструментів';
 
   @override
+  String get showLibrariesIndividually => 'Show Libraries Individually';
+
+  @override
+  String get showLibrariesIndividuallySubtitle =>
+      'Show each library as its own button in the navigation bar instead of in the Libraries menu';
+
+  @override
   String get navbarAlwaysExpanded => 'Завжди показувати підписи в навігації';
 
   @override

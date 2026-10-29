@@ -4457,6 +4457,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get showLibrariesInToolbar => '在工具栏中显示媒体库';
 
   @override
+  String get showLibrariesIndividually => 'Show Libraries Individually';
+
+  @override
+  String get showLibrariesIndividuallySubtitle =>
+      'Show each library as its own button in the navigation bar instead of in the Libraries menu';
+
+  @override
   String get navbarAlwaysExpanded => '始终展开导航栏标签';
 
   @override

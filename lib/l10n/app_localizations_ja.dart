@@ -4507,6 +4507,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get showLibrariesInToolbar => 'ツールバーにライブラリを表示';
 
   @override
+  String get showLibrariesIndividually => 'Show Libraries Individually';
+
+  @override
+  String get showLibrariesIndividuallySubtitle =>
+      'Show each library as its own button in the navigation bar instead of in the Libraries menu';
+
+  @override
   String get navbarAlwaysExpanded => 'ナビゲーションバーのラベルを常に表示';
 
   @override

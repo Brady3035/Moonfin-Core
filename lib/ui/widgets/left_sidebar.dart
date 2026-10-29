@@ -442,6 +442,19 @@ class _LeftSidebarState extends State<LeftSidebar> with RouteAware {
     LeftSidebar.isFocusedNotifier.value = hasFocus;
   }
 
+  void _openLibrary(AggregatedLibrary lib) {
+    _onNavigate();
+    _markNavigationAwayFromSidebar();
+    context.navigateTopLevel(
+      libraryRoute(
+        lib.id,
+        lib.collectionType,
+        lib.name,
+        serverId: lib.serverId,
+      ),
+    );
+  }
+
   void _markNavigationAwayFromSidebar() {
     if (PlatformDetection.isTV || (PlatformDetection.isDesktop || (PlatformDetection.isWeb && !PlatformDetection.useMobileUi))) {
       _openedRouteFromRail = true;
@@ -942,6 +955,8 @@ class _LeftSidebarState extends State<LeftSidebar> with RouteAware {
     final navLibraries = _navLibraries;
     final showLibraries =
         !kidsMode && _prefs.get(UserPreferences.showLibrariesInToolbar);
+    final showLibrariesIndividually =
+        _prefs.get(UserPreferences.showLibrariesIndividually);
     final showSyncPlay =
         !kidsMode &&
         _prefs.get(UserPreferences.syncPlayEnabled) &&
@@ -1120,7 +1135,19 @@ class _LeftSidebarState extends State<LeftSidebar> with RouteAware {
                       context.navigateTopLevel(Destinations.seerrDiscover);
                     },
                   ),
-                if (showLibraries && navLibraries.isNotEmpty) ...[
+                if (showLibraries && showLibrariesIndividually)
+                  for (final lib in navLibraries)
+                    _SidebarItem(
+                      // Two servers can share a library id, so the key is the
+                      // library itself.
+                      key: ObjectKey(lib),
+                      icon: libraryIcon(lib),
+                      label: lib.name,
+                      baseColor: nextMainSidebarColor(),
+                      showLabel: _showLabels,
+                      onPressed: () => _openLibrary(lib),
+                    )
+                else if (showLibraries && navLibraries.isNotEmpty) ...[
                   _SidebarItem(
                     key: const ValueKey('sidebar-libraries'),
                     baseColor: nextMainSidebarColor(),
@@ -1165,18 +1192,7 @@ class _LeftSidebarState extends State<LeftSidebar> with RouteAware {
                                     label: lib.name,
                                     baseColor: nextLibrarySidebarColor(),
                                     showLabel: _showLabels,
-                                    onPressed: () {
-                                      _onNavigate();
-                                      _markNavigationAwayFromSidebar();
-                                      context.navigateTopLevel(
-                                        libraryRoute(
-                                          lib.id,
-                                          lib.collectionType,
-                                          lib.name,
-                                          serverId: lib.serverId,
-                                        ),
-                                      );
-                                    },
+                                    onPressed: () => _openLibrary(lib),
                                   ),
                                 )
                                 .toList(),

@@ -655,6 +655,7 @@ class UserPreferences extends ChangeNotifier {
     'pref_show_syncplay_button',
     'pref_show_downloads_button',
     'pref_show_libraries_in_toolbar',
+    'pref_show_libraries_individually',
     'pref_navbar_always_expanded',
     'pref_shuffle_content_type',
     'pref_merge_continue_watching_next_up',
@@ -1966,6 +1967,11 @@ class UserPreferences extends ChangeNotifier {
   static final showLibrariesInToolbar = Preference(
     key: 'pref_show_libraries_in_toolbar',
     defaultValue: true,
+  );
+
+  static final showLibrariesIndividually = Preference(
+    key: 'pref_show_libraries_individually',
+    defaultValue: false,
   );
 
   static final navbarAlwaysExpanded = Preference(

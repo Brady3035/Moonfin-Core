@@ -4584,6 +4584,13 @@ class AppLocalizationsSl extends AppLocalizations {
   String get showLibrariesInToolbar => 'Prikaži knjižnice v orodni vrstici';
 
   @override
+  String get showLibrariesIndividually => 'Show Libraries Individually';
+
+  @override
+  String get showLibrariesIndividuallySubtitle =>
+      'Show each library as its own button in the navigation bar instead of in the Libraries menu';
+
+  @override
   String get navbarAlwaysExpanded =>
       'Vedno prikaži oznake v navigacijski vrstici';
 

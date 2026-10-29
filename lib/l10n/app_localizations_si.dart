@@ -4557,6 +4557,13 @@ class AppLocalizationsSi extends AppLocalizations {
   String get showLibrariesInToolbar => 'මෙවලම් තීරුවේ පුස්තකාල පෙන්වන්න';
 
   @override
+  String get showLibrariesIndividually => 'Show Libraries Individually';
+
+  @override
+  String get showLibrariesIndividuallySubtitle =>
+      'Show each library as its own button in the navigation bar instead of in the Libraries menu';
+
+  @override
   String get navbarAlwaysExpanded => 'සංචාලන තීරුවේ ලේබල සැමවිටම විදහන්න';
 
   @override

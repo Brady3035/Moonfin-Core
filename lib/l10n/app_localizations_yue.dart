@@ -4482,6 +4482,13 @@ class AppLocalizationsYue extends AppLocalizations {
   String get showLibrariesInToolbar => '在工具列中顯示庫';
 
   @override
+  String get showLibrariesIndividually => 'Show Libraries Individually';
+
+  @override
+  String get showLibrariesIndividuallySubtitle =>
+      'Show each library as its own button in the navigation bar instead of in the Libraries menu';
+
+  @override
   String get navbarAlwaysExpanded => '永遠展開導覽列標籤';
 
   @override

@@ -4589,6 +4589,13 @@ class AppLocalizationsHu extends AppLocalizations {
       'Könyvtárak megjelenítése az eszköztárban';
 
   @override
+  String get showLibrariesIndividually => 'Show Libraries Individually';
+
+  @override
+  String get showLibrariesIndividuallySubtitle =>
+      'Show each library as its own button in the navigation bar instead of in the Libraries menu';
+
+  @override
   String get navbarAlwaysExpanded =>
       'Navigációs sáv címkéinek folyamatos kibontása';
 

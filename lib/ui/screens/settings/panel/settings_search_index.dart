@@ -859,6 +859,11 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
       subtitle: l10n.settingsShowLibrariesButtonInNavigation,
     ),
     navigation.leaf(
+      'pref_show_libraries_individually',
+      l10n.showLibrariesIndividually,
+      subtitle: l10n.showLibrariesIndividuallySubtitle,
+    ),
+    navigation.leaf(
       'pref_show_syncplay_button',
       l10n.settingsSyncplayButton,
       subtitle: l10n.settingsSyncplayButtonSubtitle,

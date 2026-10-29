@@ -4611,6 +4611,13 @@ class AppLocalizationsRo extends AppLocalizations {
       'Afișează bibliotecile în bara de instrumente';
 
   @override
+  String get showLibrariesIndividually => 'Show Libraries Individually';
+
+  @override
+  String get showLibrariesIndividuallySubtitle =>
+      'Show each library as its own button in the navigation bar instead of in the Libraries menu';
+
+  @override
   String get navbarAlwaysExpanded =>
       'Afișează mereu etichetele barei de navigare';
 

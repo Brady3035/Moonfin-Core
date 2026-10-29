@@ -4570,6 +4570,13 @@ class AppLocalizationsKk extends AppLocalizations {
       'Құралдар тақтасында кітапханаларды көрсету';
 
   @override
+  String get showLibrariesIndividually => 'Show Libraries Individually';
+
+  @override
+  String get showLibrariesIndividuallySubtitle =>
+      'Show each library as its own button in the navigation bar instead of in the Libraries menu';
+
+  @override
   String get navbarAlwaysExpanded =>
       'Навигация жолағының белгілері әрқашан жайылсын';
 

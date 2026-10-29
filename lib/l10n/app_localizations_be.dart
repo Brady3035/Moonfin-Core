@@ -4578,6 +4578,13 @@ class AppLocalizationsBe extends AppLocalizations {
       'Паказаць бібліятэкі на панэлі інструментаў';
 
   @override
+  String get showLibrariesIndividually => 'Show Libraries Individually';
+
+  @override
+  String get showLibrariesIndividuallySubtitle =>
+      'Show each library as its own button in the navigation bar instead of in the Libraries menu';
+
+  @override
   String get navbarAlwaysExpanded =>
       'Заўсёды паказваць подпісы панэлі навігацыі';
 

@@ -220,6 +220,17 @@ class _NavigationCategoryScreenState extends State<_NavigationCategoryScreen> {
                       icon: Icons.video_library,
                       onChanged: _pushPersonalizationSync,
                     ),
+                  // The bottom navbar keeps its Libraries sheet, so this only
+                  // applies to the top bar and the sidebar.
+                  if (!NavigationLayout.usesBottomNavbar &&
+                      prefs.get(UserPreferences.showLibrariesInToolbar))
+                    SwitchPreferenceTile(
+                      preference: UserPreferences.showLibrariesIndividually,
+                      title: l10n.showLibrariesIndividually,
+                      subtitle: l10n.showLibrariesIndividuallySubtitle,
+                      icon: Icons.video_library,
+                      onChanged: _pushPersonalizationSync,
+                    ),
                   SwitchPreferenceTile(
                     preference: UserPreferences.showSyncPlayButton,
                     title: l10n.settingsSyncplayButton,

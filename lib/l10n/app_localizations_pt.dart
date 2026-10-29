@@ -4574,6 +4574,13 @@ class AppLocalizationsPt extends AppLocalizations {
       'Mostrar Bibliotecas na Barra de Ferramentas';
 
   @override
+  String get showLibrariesIndividually => 'Show Libraries Individually';
+
+  @override
+  String get showLibrariesIndividuallySubtitle =>
+      'Show each library as its own button in the navigation bar instead of in the Libraries menu';
+
+  @override
   String get navbarAlwaysExpanded =>
       'Sempre Expandir Rótulos da Barra de Navegação';
 

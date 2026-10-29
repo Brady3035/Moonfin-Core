@@ -4474,6 +4474,13 @@ class AppLocalizationsKo extends AppLocalizations {
   String get showLibrariesInToolbar => '툴바에 라이브러리 표시';
 
   @override
+  String get showLibrariesIndividually => 'Show Libraries Individually';
+
+  @override
+  String get showLibrariesIndividuallySubtitle =>
+      'Show each library as its own button in the navigation bar instead of in the Libraries menu';
+
+  @override
   String get navbarAlwaysExpanded => '탐색 바 라벨 항상 표시';
 
   @override

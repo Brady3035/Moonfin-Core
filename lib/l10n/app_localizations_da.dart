@@ -4561,6 +4561,13 @@ class AppLocalizationsDa extends AppLocalizations {
   String get showLibrariesInToolbar => 'Vis biblioteker i værktøjslinjen';
 
   @override
+  String get showLibrariesIndividually => 'Show Libraries Individually';
+
+  @override
+  String get showLibrariesIndividuallySubtitle =>
+      'Show each library as its own button in the navigation bar instead of in the Libraries menu';
+
+  @override
   String get navbarAlwaysExpanded => 'Udvid altid navigationslinjens etiketter';
 
   @override

@@ -8068,6 +8068,18 @@ abstract class AppLocalizations {
   /// **'Show Libraries in Toolbar'**
   String get showLibrariesInToolbar;
 
+  /// Setting that puts each library in the navigation bar as its own button instead of grouping them under the Libraries menu
+  ///
+  /// In en, this message translates to:
+  /// **'Show Libraries Individually'**
+  String get showLibrariesIndividually;
+
+  /// Subtitle for the Show Libraries Individually setting
+  ///
+  /// In en, this message translates to:
+  /// **'Show each library as its own button in the navigation bar instead of in the Libraries menu'**
+  String get showLibrariesIndividuallySubtitle;
+
   /// Setting to keep every top navbar heading's text label visible at all times, tvOS-style
   ///
   /// In en, this message translates to:

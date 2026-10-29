@@ -398,4 +398,101 @@ void main() {
     );
     expect(pending.results.map((r) => r.media!.tmdbId), [2, 4]);
   });
+
+  test('the arr calendars read Silo\'s calendar, with TMDB and TVDB ids '
+      'from the catalog', () async {
+    final silo = _Silo({
+      'GET /api/v2/calendar': (
+        200,
+        {
+          'events': [
+            {
+              'date': '2026-11-02',
+              'items': [
+                {
+                  'content_id': 'episode-s-1-2',
+                  'type': 'episode',
+                  'title': 'Severance',
+                  'episode_title': 'Goodbye',
+                  'series_id': 'series-s',
+                  'season_number': 1,
+                  'episode_number': 2,
+                  'air_date': '2026-11-02',
+                  'air_at': '2026-11-03T02:00:00Z',
+                  'poster_url': '/api/v2/artwork/s.webp?sig=x',
+                },
+                {
+                  'content_id': 'movie-heat',
+                  'type': 'movie',
+                  'title': 'Heat',
+                  'air_date': '2026-11-02',
+                },
+                {
+                  'content_id': 'episode-u-1-1',
+                  'type': 'episode',
+                  'title': 'No ids',
+                  'series_id': 'series-u',
+                  'air_date': '2026-11-02',
+                },
+              ],
+            },
+          ],
+        },
+      ),
+      'GET /api/v2/catalog/items/series-s': (
+        200,
+        {'tvdb_id': '371980', 'tmdb_id': '95396', 'overview': 'Work.'},
+      ),
+      'GET /api/v2/catalog/items/movie-heat': (
+        200,
+        {'tmdb_id': '949', 'year': 1995},
+      ),
+      'GET /api/v2/catalog/items/series-u': (200, {'tmdb_id': '1'}),
+    });
+    final client = _client(silo);
+
+    final shows = await client.getSonarrCalendar(
+      start: '2026-11-01',
+      end: '2026-11-20',
+    );
+    expect(shows, hasLength(1), reason: 'Sonarr rows need a TVDB id');
+    final ep = shows.single as Map;
+    expect(ep['series'], containsPair('tvdbId', 371980));
+    expect(ep['series'], containsPair('tmdbId', 95396));
+    expect(ep['airDateUtc'], '2026-11-03T02:00:00.000Z');
+    expect(ep['seasonNumber'], 1);
+    expect(ep['episodeNumber'], 2);
+    expect((ep['series'] as Map)['images'], [
+      {
+        'coverType': 'poster',
+        'remoteUrl': 'https://silo.example/api/v2/artwork/s.webp?sig=x',
+      },
+    ]);
+
+    final movies = await client.getRadarrCalendar(
+      start: '2026-11-01',
+      end: '2026-11-20',
+    );
+    expect(movies, hasLength(1));
+    expect(movies.single, containsPair('tmdbId', 949));
+    expect(
+      DateTime.parse((movies.single as Map)['digitalRelease'] as String)
+          .toLocal(),
+      DateTime(2026, 11, 2),
+      reason: 'a release without a time is the start of the viewer\'s day',
+    );
+
+    silo.calls.clear();
+    await client.getRadarrCalendar(start: '2026-11-01', end: '2027-01-29');
+    final windows = silo.calls
+        .where((c) => c.startsWith('GET /api/v2/calendar'))
+        .map((c) => Uri.parse('x:${c.split(' ').last}').queryParameters)
+        .map((q) => '${q['start']}..${q['end']}')
+        .toList();
+    expect(windows, [
+      '2026-11-01..2026-12-01',
+      '2026-12-02..2027-01-01',
+      '2027-01-02..2027-01-29',
+    ], reason: 'Silo answers at most 31 days at a time');
+  });
 }

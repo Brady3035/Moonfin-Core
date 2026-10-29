@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:dio/dio.dart';
 import 'package:server_silo/server_silo.dart';
 
+import '../../utils/bounded_concurrency.dart';
 import 'seerr_api_models.dart';
 import 'seerr_discover_sliders.dart';
 import 'seerr_error.dart';
@@ -1030,13 +1031,138 @@ class SiloSeerrHttpClient extends SeerrHttpClient {
   @override
   Future<List<dynamic>> getSonarrSettings() async => const [];
 
-  @override
-  Future<List<dynamic>> getRadarrCalendar({String? start, String? end}) async =>
-      const [];
+  // Calendar. Radarr's and Sonarr's are both read from Silo's own calendar
+  // (`GET /calendar`), which lists the airings and releases of what the
+  // server holds.
 
+  /// Movie releases, as Radarr's calendar lists them.
   @override
-  Future<List<dynamic>> getSonarrCalendar({String? start, String? end}) async =>
-      const [];
+  Future<List<dynamic>> getRadarrCalendar({String? start, String? end}) async {
+    final events = await _calendar(start, end, 'movie');
+    final titles = await _calendarTitles(events, (e) => e['content_id']);
+    return [
+      for (final e in events)
+        if (titles[e['content_id']] case final t?)
+          if (_intOf(t['tmdb_id']) case final tmdbId?)
+            {
+              'tmdbId': tmdbId,
+              'title': e['title'],
+              'overview': t['overview'],
+              'year': t['year'],
+              'digitalRelease': _calendarInstant(e),
+              'images': _calendarImages(e['poster_url'], t['backdrop_url']),
+            },
+    ];
+  }
+
+  /// Episode airings, as Sonarr's calendar lists them.
+  @override
+  Future<List<dynamic>> getSonarrCalendar({String? start, String? end}) async {
+    final events = await _calendar(start, end, 'episode');
+    final shows = await _calendarTitles(events, (e) => e['series_id']);
+    return [
+      for (final e in events)
+        if (shows[e['series_id']] case final s?)
+          if (_intOf(s['tvdb_id']) case final tvdbId?)
+            {
+              'series': {
+                'tvdbId': tvdbId,
+                'tmdbId': ?_intOf(s['tmdb_id']),
+                'title': e['title'],
+                'overview': s['overview'],
+                'images': _calendarImages(e['poster_url'], s['backdrop_url']),
+              },
+              'title': e['episode_title'],
+              'seasonNumber': e['season_number'],
+              'episodeNumber': e['episode_number'],
+              'airDateUtc': _calendarInstant(e),
+            },
+    ];
+  }
+
+  /// The calendar's events of [type] from [start] to [end] (`YYYY-MM-DD`).
+  /// Silo answers at most 31 days at a time, so a longer window is asked in
+  /// parts.
+  Future<List<Map<String, dynamic>>> _calendar(
+    String? start,
+    String? end,
+    String type,
+  ) async {
+    // Days are counted in UTC, where every day is 24 hours long.
+    DateTime? day(String? d) => switch (DateTime.tryParse(d ?? '')) {
+      final t? => DateTime.utc(t.year, t.month, t.day),
+      null => null,
+    };
+    final now = DateTime.now();
+    var from = day(start) ?? DateTime.utc(now.year, now.month, now.day);
+    final last = day(end) ?? from.add(const Duration(days: 30));
+    final events = <Map<String, dynamic>>[];
+    while (!from.isAfter(last)) {
+      var to = from.add(const Duration(days: 30));
+      if (to.isAfter(last)) to = last;
+      final body = await _get('/calendar', {
+        'start': _day(from),
+        'end': _day(to),
+      });
+      for (final day in body['events'] as List? ?? const []) {
+        for (final e in (day as Map)['items'] as List? ?? const []) {
+          if (e is Map && e['type'] == type) {
+            events.add(Map<String, dynamic>.from(e));
+          }
+        }
+      }
+      from = to.add(const Duration(days: 1));
+    }
+    return events;
+  }
+
+  static String _day(DateTime d) => d.toIso8601String().substring(0, 10);
+
+  /// The catalog entries the events point at through [idOf], for their TMDB
+  /// and TVDB ids, overview and backdrop. Each is read once.
+  Future<Map<String, Map<String, dynamic>>> _calendarTitles(
+    List<Map<String, dynamic>> events,
+    Object? Function(Map<String, dynamic>) idOf,
+  ) async {
+    final ids = {
+      for (final e in events)
+        if (idOf(e) case final String id) id,
+    }.toList();
+    final found = await mapBounded(ids, 5, (id) async {
+      try {
+        return await _get('/catalog/items/${Uri.encodeComponent(id)}');
+      } on DioException {
+        return null;
+      }
+    });
+    return {for (var i = 0; i < ids.length; i++) ids[i]: ?found[i]};
+  }
+
+  static int? _intOf(Object? v) => v is int ? v : int.tryParse('${v ?? ''}');
+
+  /// When the event airs, in UTC. Silo gives the instant when it knows the
+  /// network's time, else only the day, read as the start of the viewer's
+  /// day.
+  static String? _calendarInstant(Map<String, dynamic> e) {
+    final at = DateTime.tryParse('${e['air_at'] ?? ''}');
+    if (at != null) return at.toUtc().toIso8601String();
+    return DateTime.tryParse('${e['air_date'] ?? ''}')
+        ?.toUtc()
+        .toIso8601String();
+  }
+
+  /// Poster and backdrop as an arr's `images`. Silo's artwork links are
+  /// signed, so they load without the session.
+  List<Map<String, String>> _calendarImages(Object? poster, Object? backdrop) =>
+      [
+        if (poster case final String p when p.isNotEmpty)
+          {'coverType': 'poster', 'remoteUrl': _absolute(p)},
+        if (backdrop case final String b when b.isNotEmpty)
+          {'coverType': 'fanart', 'remoteUrl': _absolute(b)},
+      ];
+
+  String _absolute(String url) =>
+      url.startsWith('http') ? url : '${_silo.baseUrl}$url';
 
   /// Signing in to Seerr has no meaning on Silo: the Silo session is the
   /// requests session.

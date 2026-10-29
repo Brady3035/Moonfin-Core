@@ -7475,16 +7475,23 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
       _episodeBrowser = browser;
     }
     browser.open(item);
+    final logoUrl = _logoUrlForQueueItem(item);
+    final sidePanel = PlatformDetection.useMobileUi;
     unawaited(() async {
       final picked = await showStyledPlayerDialog<AggregatedItem>(
         context,
         title: item.seriesName ?? AppLocalizations.of(context).episodes,
+        titleImage: logoUrl == null
+            ? null
+            : offlineAwareImageProvider(logoUrl, headers: serverImageHeaders),
         maxWidth: 760,
+        sidePanel: sidePanel,
         builder: (dialogCtx) {
           _episodeBrowserRoute = ModalRoute.of(dialogCtx);
           return EpisodeBrowserPanel(
             controller: browser,
             imageApi: client.imageApi,
+            fillHeight: sidePanel,
             onSelect: (episode) {
               _episodeBrowserRoute = null;
               Navigator.of(dialogCtx).pop(episode);

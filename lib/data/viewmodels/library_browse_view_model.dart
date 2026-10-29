@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 import 'package:jellyfin_preference/jellyfin_preference.dart';
 import 'package:server_core/server_core.dart' hide ImageType;
+import 'package:server_silo/server_silo.dart' show SiloMediaServerClient;
 
 import '../../preference/preference_constants.dart';
 import '../../preference/user_preferences.dart';
@@ -162,8 +163,9 @@ class LibraryBrowseViewModel extends ChangeNotifier {
   LikedStatusFilter get likedFilter => _likedFilter;
 
   /// Whether the My Rating sort can actually be served, which needs the
-  /// Moonfin plugin on the server.
+  /// Moonfin plugin on the server, or Silo, which keeps ratings itself.
   bool get supportsMyRatingSort =>
+      _client is SiloMediaServerClient ||
       GetIt.instance.isRegistered<PluginSyncService>() &&
       GetIt.instance<PluginSyncService>().pluginAvailable;
 

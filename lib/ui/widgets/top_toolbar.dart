@@ -38,7 +38,7 @@ import 'navigation_layout.dart';
 import 'settings/settings_panel.dart';
 import '../screens/downloads/downloads_panel.dart';
 import '../screens/settings/settings_side_panel.dart';
-import '../screens/syncplay/syncplay_screen.dart';
+import '../screens/watch_party/watch_together_route.dart';
 import 'seerr_icons.dart';
 import 'server_messages_dialog.dart';
 import 'server_messages_nav_slot.dart';
@@ -1140,7 +1140,7 @@ class _TopToolbarState extends State<TopToolbar> with RouteAware {
                     baseColor: nextNavColor(),
                     onPressed: () => Navigator.of(context).push(
                       MaterialPageRoute<void>(
-                        builder: (_) => const SyncPlayScreen(),
+                        builder: (_) => watchTogetherScreen(),
                       ),
                     ),
                   ),

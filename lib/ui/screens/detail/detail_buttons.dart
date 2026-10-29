@@ -7,6 +7,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../../preference/button_layout.dart';
 import '../../../preference/user_preferences.dart';
 import '../../../syncplay/syncplay_manager.dart';
+import '../../../watch_party/silo_watch_party_manager.dart';
 import '../../../util/platform_detection.dart';
 import '../../../util/signed_in_server_features.dart';
 
@@ -130,7 +131,12 @@ enum DetailButton {
   static bool get _syncPlayAvailable {
     try {
       if (GetIt.instance.isRegistered<SyncPlayManager>()) {
-        return GetIt.instance<SyncPlayManager>().syncPlayEnabled;
+        final syncPlay = GetIt.instance<SyncPlayManager>();
+        // Silo has its own Watch Party, under the same Watch Together switch.
+        return syncPlay.syncPlayEnabled ||
+            (syncPlay.syncPlayConfigured &&
+                GetIt.instance<SiloWatchPartyManager>().activeSiloClient !=
+                    null);
       }
       return GetIt.instance<UserPreferences>().get(UserPreferences.syncPlayEnabled);
     } catch (_) {

@@ -19,6 +19,7 @@ export 'src/api/silo_system_api.dart';
 export 'src/api/silo_user_views_api.dart';
 export 'src/api/silo_user_library_api.dart';
 export 'src/api/silo_users_api.dart';
+export 'src/api/silo_watch_party_api.dart';
 export 'src/api/silo_live_tv_api.dart';
 export 'src/api/silo_instant_mix_api.dart';
 export 'src/api/silo_items_api.dart';

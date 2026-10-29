@@ -14,6 +14,7 @@ import 'api/silo_image_api.dart';
 import 'api/silo_display_preferences_api.dart';
 import 'api/silo_downloads_api.dart';
 import 'api/silo_events_api.dart';
+import 'api/silo_watch_party_api.dart';
 import 'api/silo_images_api.dart';
 import 'api/silo_unsupported.dart';
 import 'api/silo_playback_api.dart';
@@ -359,6 +360,13 @@ class SiloMediaServerClient extends MediaServerClient
   /// Silo's realtime events socket: its capability and tickets (no Moonfin
   /// interface, see [SiloEventsApi]).
   late final SiloEventsApi eventsApi = SiloEventsApi(
+    _dio,
+    baseUrl: () => _baseUrl,
+  );
+
+  /// Silo's Watch Party rooms (no Moonfin interface, see
+  /// [SiloWatchPartyApi]).
+  late final SiloWatchPartyApi watchPartyApi = SiloWatchPartyApi(
     _dio,
     baseUrl: () => _baseUrl,
   );

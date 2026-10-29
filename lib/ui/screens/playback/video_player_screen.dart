@@ -96,6 +96,7 @@ import '../../widgets/keyboard_shortcuts/keyboard_shortcut_reference.dart';
 import '../../../playback/player_key_bindings.dart';
 import '../../widgets/syncplay/syncplay_player_button.dart';
 import '../../../syncplay/syncplay_manager.dart';
+import '../../../watch_party/silo_watch_party_manager.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../util/error_message.dart';
 import '../../../playback/media3_player_backend.dart';
@@ -188,6 +189,10 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
   final _lifecycleHandler = GetIt.instance<PlaybackLifecycleHandler>();
   final _themeMusicService = GetIt.instance<ThemeMusicService>();
   final _screensaverController = GetIt.instance<ScreensaverController>();
+  final SiloWatchPartyManager? _watchParty =
+      GetIt.instance.isRegistered<SiloWatchPartyManager>()
+      ? GetIt.instance<SiloWatchPartyManager>()
+      : null;
   final SyncPlayManager? _syncPlayManager =
       GetIt.instance.isRegistered<SyncPlayManager>()
       ? GetIt.instance<SyncPlayManager>()
@@ -3177,6 +3182,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
     if (_isOsdLocked) return false;
     if (!_state.isPlaying) return false;
     if (_syncPlayManager?.state.enabled == true) return false;
+    if (_watchParty?.controlsPlayback == true) return false;
     return true;
   }
 
@@ -7492,7 +7498,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
   bool _canBrowseEpisodes(dynamic item) => canBrowseEpisodes(
     item,
     offline: _manager.isOfflinePlayback,
-    inSyncPlay: _syncPlayManager?.state.enabled == true,
+    inSyncPlay:
+        _syncPlayManager?.state.enabled == true ||
+        _watchParty?.controlsPlayback == true,
   );
 
   void _showEpisodes() {

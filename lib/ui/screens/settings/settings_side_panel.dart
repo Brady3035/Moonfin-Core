@@ -115,7 +115,7 @@ import '../../../preference/detail_section_layout.dart';
 import '../detail/detail_buttons.dart';
 import '../detail/playlist_sort_filter_bar.dart';
 import '../playback/osd_buttons.dart';
-import '../syncplay/syncplay_screen.dart';
+import '../watch_party/watch_together_route.dart';
 
 part 'panel/settings_panel_infra.dart';
 part 'panel/settings_search_field.dart';

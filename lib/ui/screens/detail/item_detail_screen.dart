@@ -123,6 +123,8 @@ import '../../../playback/hdr_stream_capability.dart';
 import '../../../playback/known_defects.dart';
 import '../../../playback/server_shuffle_queue.dart';
 import '../../../syncplay/syncplay_manager.dart';
+import '../../../watch_party/silo_watch_party_manager.dart';
+import '../watch_party/silo_watch_party_screen.dart';
 import '../../../util/audio_labels.dart';
 import '../../../util/detail_trailer.dart';
 import '../../../util/download_utils.dart';
@@ -7103,12 +7105,14 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
         ),
       if (!isBook &&
           !isPhoto &&
-          _isInSyncPlayGroup() &&
+          (_isInSyncPlayGroup() || _canPickForWatchParty()) &&
           shows(DetailButton.watchWithGroup))
         DetailButton.watchWithGroup: _DetailActionButton(
           label: l10n.watchWithGroup,
           icon: Icons.groups_rounded,
-          onPressed: () => _watchWithGroup(context, item),
+          onPressed: () => _isInSyncPlayGroup()
+              ? _watchWithGroup(context, item)
+              : _pickForWatchParty(context, item),
           isActive: true,
           activeColor: AppColorScheme.accent,
         ),
@@ -8411,6 +8415,42 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
       queue,
       mediaSourceId: mediaSourceId ?? widget.selectedMediaSourceId,
     );
+  }
+
+  /// On Silo the host picks what a Watch Party watches; anyone else can open
+  /// a party by picking.
+  bool _canPickForWatchParty() {
+    try {
+      final party = GetIt.instance<SiloWatchPartyManager>();
+      if (party.activeSiloClient == null) return false;
+      return party.room?.isHost ?? true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<void> _pickForWatchParty(
+    BuildContext context,
+    AggregatedItem item,
+  ) async {
+    final party = GetIt.instance<SiloWatchPartyManager>();
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+    final picked = await party.stage(item.id);
+    if (!mounted) return;
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(picked ? l10n.watchPartyStaged : party.error ?? ''),
+      ),
+    );
+    if (picked) {
+      unawaited(
+        navigator.push(
+          MaterialPageRoute<void>(builder: (_) => const SiloWatchPartyScreen()),
+        ),
+      );
+    }
   }
 
   void _watchWithGroup(BuildContext context, AggregatedItem item) {

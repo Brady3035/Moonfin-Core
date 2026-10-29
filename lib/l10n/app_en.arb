@@ -11207,6 +11207,75 @@
     "description": "Tooltip for the button on a person page that opens their own website"
   },
   "watchWithGroup": "Watch with group",
+  "watchParty": "Watch Party",
+  "@watchParty": {
+    "description": "Title of Silo's Watch Party screen"
+  },
+  "watchPartyUnavailable": "This server doesn't offer Watch Party.",
+  "@watchPartyUnavailable": {
+    "description": "Shown when the Silo server has no Watch Party rooms"
+  },
+  "watchPartyRoomCode": "Room code",
+  "@watchPartyRoomCode": {
+    "description": "Label for a Watch Party room's join code"
+  },
+  "watchPartyStart": "Start a Watch Party",
+  "@watchPartyStart": {
+    "description": "Button that opens a new Watch Party room"
+  },
+  "watchPartyPickTitle": "Open a title and choose Watch with group to pick what everyone watches.",
+  "@watchPartyPickTitle": {
+    "description": "How a Watch Party host picks what to watch"
+  },
+  "watchPartyWaitingForHost": "Waiting for the host to pick something.",
+  "@watchPartyWaitingForHost": {
+    "description": "Shown to Watch Party guests before anything is picked"
+  },
+  "watchPartyShareCode": "Others join with this code from their Watch Party screen.",
+  "@watchPartyShareCode": {
+    "description": "Under a Watch Party room's code"
+  },
+  "watchPartyReconnecting": "Reconnecting...",
+  "@watchPartyReconnecting": {
+    "description": "Watch Party connection status while the room socket reconnects"
+  },
+  "watchPartyOffline": "offline",
+  "@watchPartyOffline": {
+    "description": "After a Watch Party member's name when they are not connected"
+  },
+  "watchPartyStartForEveryone": "Start for everyone",
+  "@watchPartyStartForEveryone": {
+    "description": "Host button that starts the staged item for the whole Watch Party"
+  },
+  "watchPartyBackToLobby": "Back to the lobby",
+  "@watchPartyBackToLobby": {
+    "description": "Host button that stops Watch Party playback"
+  },
+  "watchPartyGuestsCanPause": "Guests can play and pause",
+  "@watchPartyGuestsCanPause": {
+    "description": "Host switch for guest transport control in a Watch Party"
+  },
+  "watchPartyEnd": "End Watch Party",
+  "@watchPartyEnd": {
+    "description": "Host button that closes the Watch Party room for everyone"
+  },
+  "watchPartyEnded": "The Watch Party has ended.",
+  "@watchPartyEnded": {
+    "description": "Shown when the Watch Party room was closed"
+  },
+  "watchPartyStaged": "Picked for the Watch Party",
+  "@watchPartyStaged": {
+    "description": "Snackbar after the host picks an item for the Watch Party"
+  },
+  "watchPartyUpNext": "Up next: {title}",
+  "@watchPartyUpNext": {
+    "description": "The item a Watch Party host has staged",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
   "disk": "Disk",
   "openInBrowser": "Open in Browser",
   "achievementBadges": "Achievement Badges",

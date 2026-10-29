@@ -22342,6 +22342,102 @@ abstract class AppLocalizations {
   /// **'Watch with group'**
   String get watchWithGroup;
 
+  /// Title of Silo's Watch Party screen
+  ///
+  /// In en, this message translates to:
+  /// **'Watch Party'**
+  String get watchParty;
+
+  /// Shown when the Silo server has no Watch Party rooms
+  ///
+  /// In en, this message translates to:
+  /// **'This server doesn't offer Watch Party.'**
+  String get watchPartyUnavailable;
+
+  /// Label for a Watch Party room's join code
+  ///
+  /// In en, this message translates to:
+  /// **'Room code'**
+  String get watchPartyRoomCode;
+
+  /// Button that opens a new Watch Party room
+  ///
+  /// In en, this message translates to:
+  /// **'Start a Watch Party'**
+  String get watchPartyStart;
+
+  /// How a Watch Party host picks what to watch
+  ///
+  /// In en, this message translates to:
+  /// **'Open a title and choose Watch with group to pick what everyone watches.'**
+  String get watchPartyPickTitle;
+
+  /// Shown to Watch Party guests before anything is picked
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for the host to pick something.'**
+  String get watchPartyWaitingForHost;
+
+  /// Under a Watch Party room's code
+  ///
+  /// In en, this message translates to:
+  /// **'Others join with this code from their Watch Party screen.'**
+  String get watchPartyShareCode;
+
+  /// Watch Party connection status while the room socket reconnects
+  ///
+  /// In en, this message translates to:
+  /// **'Reconnecting...'**
+  String get watchPartyReconnecting;
+
+  /// After a Watch Party member's name when they are not connected
+  ///
+  /// In en, this message translates to:
+  /// **'offline'**
+  String get watchPartyOffline;
+
+  /// Host button that starts the staged item for the whole Watch Party
+  ///
+  /// In en, this message translates to:
+  /// **'Start for everyone'**
+  String get watchPartyStartForEveryone;
+
+  /// Host button that stops Watch Party playback
+  ///
+  /// In en, this message translates to:
+  /// **'Back to the lobby'**
+  String get watchPartyBackToLobby;
+
+  /// Host switch for guest transport control in a Watch Party
+  ///
+  /// In en, this message translates to:
+  /// **'Guests can play and pause'**
+  String get watchPartyGuestsCanPause;
+
+  /// Host button that closes the Watch Party room for everyone
+  ///
+  /// In en, this message translates to:
+  /// **'End Watch Party'**
+  String get watchPartyEnd;
+
+  /// Shown when the Watch Party room was closed
+  ///
+  /// In en, this message translates to:
+  /// **'The Watch Party has ended.'**
+  String get watchPartyEnded;
+
+  /// Snackbar after the host picks an item for the Watch Party
+  ///
+  /// In en, this message translates to:
+  /// **'Picked for the Watch Party'**
+  String get watchPartyStaged;
+
+  /// The item a Watch Party host has staged
+  ///
+  /// In en, this message translates to:
+  /// **'Up next: {title}'**
+  String watchPartyUpNext(String title);
+
   /// No description provided for @disk.
   ///
   /// In en, this message translates to:

@@ -9,7 +9,7 @@ import '../../../preference/seerr_preferences.dart';
 import '../../navigation/destinations.dart';
 import '../../navigation/home_refresh_bus.dart';
 import '../../screens/downloads/downloads_panel.dart';
-import '../../screens/syncplay/syncplay_screen.dart';
+import '../../screens/watch_party/watch_together_route.dart';
 import '../adaptive/sf_symbol.dart';
 import '../remote_control_dialog.dart';
 import '../seerr_icons.dart';
@@ -177,7 +177,7 @@ void runBottomNavHubAction(BuildContext context, BottomNavHubAction action) {
       showShuffleOverlay(context);
     case BottomNavHubAction.syncPlay:
       Navigator.of(context).push(
-        MaterialPageRoute<void>(builder: (_) => const SyncPlayScreen()),
+        MaterialPageRoute<void>(builder: (_) => watchTogetherScreen()),
       );
     case BottomNavHubAction.quickConnect:
       showQuickConnectCodeDialog(context);

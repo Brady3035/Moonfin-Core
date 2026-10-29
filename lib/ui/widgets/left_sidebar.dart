@@ -36,7 +36,7 @@ import 'settings/settings_panel.dart';
 import '../screens/downloads/downloads_panel.dart';
 import 'downloads_nav_slot.dart';
 import 'friends_nav_slot.dart';
-import '../screens/syncplay/syncplay_screen.dart';
+import '../screens/watch_party/watch_together_route.dart';
 import '../screens/settings/settings_side_panel.dart';
 import 'seerr_icons.dart';
 import 'server_messages_dialog.dart';
@@ -1109,7 +1109,7 @@ class _LeftSidebarState extends State<LeftSidebar> with RouteAware {
                       _markNavigationAwayFromSidebar();
                       Navigator.of(context).push(
                         MaterialPageRoute<void>(
-                          builder: (_) => const SyncPlayScreen(),
+                          builder: (_) => watchTogetherScreen(),
                         ),
                       );
                     },

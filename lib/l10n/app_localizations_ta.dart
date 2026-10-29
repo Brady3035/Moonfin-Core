@@ -15441,6 +15441,9 @@ class AppLocalizationsTa extends AppLocalizations {
   String get homeScreenBackdropCorner => 'Corner';
 
   @override
+  String get homeScreenBackdropTop => 'Top';
+
+  @override
   String get detailsScreenBackdrop => 'Details Screen Backdrop';
 
   @override

@@ -15615,6 +15615,9 @@ class AppLocalizationsCa extends AppLocalizations {
   String get homeScreenBackdropCorner => 'Cantonada';
 
   @override
+  String get homeScreenBackdropTop => 'Top';
+
+  @override
   String get detailsScreenBackdrop => 'Teló de fons de la pantalla de detalls';
 
   @override

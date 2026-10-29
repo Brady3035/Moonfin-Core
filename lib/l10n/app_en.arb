@@ -14064,6 +14064,10 @@
   "@homeScreenBackdropCorner": {
     "description": "Home Screen Backdrop option that shows the focused item's backdrop in the top right corner, fading into the background like the Google TV home screen"
   },
+  "homeScreenBackdropTop": "Top",
+  "@homeScreenBackdropTop": {
+    "description": "Home Screen Backdrop option that shows the focused item's backdrop across the top half of the screen, fading into the background toward the bottom"
+  },
   "detailsScreenBackdrop": "Details Screen Backdrop",
   "@detailsScreenBackdrop": {
     "description": "Setting to show or hide the backdrop image behind the item details screen"

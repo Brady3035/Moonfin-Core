@@ -144,6 +144,10 @@ class HomeScreen extends StatelessWidget {
   static ImageType homeRowImageTypeForRow(HomeRow row, UserPreferences prefs) =>
       _ContentRowsState._homeRowImageTypeForRow(row, prefs);
 
+  @visibleForTesting
+  static Widget topBackdrop(Widget backdrop) =>
+      const _Backdrop(blurAmount: 0)._top(backdrop);
+
   @override
   Widget build(BuildContext context) {
     return const ResponsiveLayout(
@@ -568,9 +572,9 @@ class _HomeShellState extends State<_HomeShell>
                         url: url,
                         blurAmount: blurAmount,
                         useMakdBackdropFx: useMakdBackdropFx,
-                        inCorner:
-                            backdropStyle == UserPreferences.homeBackdropCorner &&
-                            !PlatformDetection.useMobileUi,
+                        style: PlatformDetection.useMobileUi
+                            ? UserPreferences.homeBackdropFullScreen
+                            : backdropStyle,
                       );
                     },
                   ),
@@ -651,15 +655,16 @@ class _Backdrop extends StatelessWidget {
   final double blurAmount;
   final bool useMakdBackdropFx;
 
-  /// Draws it in the top right corner, fading into the background toward the
-  /// left and the bottom, the way the Google TV home screen does.
-  final bool inCorner;
+  /// Where it goes: behind the whole screen, in the top right corner fading
+  /// into the background toward the left and the bottom the way the Google TV
+  /// home screen does, or only its top half fading out toward the middle.
+  final String style;
 
   const _Backdrop({
     this.url,
     required this.blurAmount,
     this.useMakdBackdropFx = false,
-    this.inCorner = false,
+    this.style = UserPreferences.homeBackdropFullScreen,
   });
 
   @override
@@ -702,14 +707,20 @@ class _Backdrop extends StatelessWidget {
         );
       },
     );
-    return RepaintBoundary(child: inCorner ? _corner(switcher) : switcher);
+    return RepaintBoundary(
+      child: switch (style) {
+        UserPreferences.homeBackdropCorner => _corner(switcher),
+        UserPreferences.homeBackdropTop => _top(switcher),
+        _ => switcher,
+      },
+    );
   }
 
-  Widget _corner(Widget backdrop) {
+  // Eased stops, so the image melts into the background rather than ending
+  // on a visible line.
+  LinearGradient _fade(Alignment start, Alignment end) {
     final fade = _homeBackground;
-    // Eased stops, so the image melts into the background rather than ending
-    // on a visible line.
-    LinearGradient fadeFrom(Alignment start, Alignment end) => LinearGradient(
+    return LinearGradient(
       begin: start,
       end: end,
       colors: [
@@ -721,6 +732,9 @@ class _Backdrop extends StatelessWidget {
       ],
       stops: const [0, 0.12, 0.3, 0.48, 0.6],
     );
+  }
+
+  Widget _corner(Widget backdrop) {
     return Align(
       alignment: Alignment.topRight,
       child: FractionallySizedBox(
@@ -732,17 +746,41 @@ class _Backdrop extends StatelessWidget {
             backdrop,
             DecoratedBox(
               decoration: BoxDecoration(
-                gradient: fadeFrom(Alignment.centerLeft, Alignment.centerRight),
+                gradient: _fade(Alignment.centerLeft, Alignment.centerRight),
               ),
             ),
             DecoratedBox(
               decoration: BoxDecoration(
-                gradient: fadeFrom(Alignment.bottomCenter, Alignment.topCenter),
+                gradient: _fade(Alignment.bottomCenter, Alignment.topCenter),
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  /// Leaves the picture where the full screen one sits, fades it out toward
+  /// the middle and hides the bottom half.
+  Widget _top(Widget backdrop) {
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        backdrop,
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: _fade(Alignment.bottomCenter, Alignment.topCenter),
+                ),
+              ),
+            ),
+            Expanded(child: ColoredBox(color: _homeBackground)),
+          ],
+        ),
+      ],
     );
   }
 

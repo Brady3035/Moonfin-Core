@@ -134,6 +134,7 @@ class UserPreferences extends ChangeNotifier {
   static const homeBackdropOff = 'off';
   static const homeBackdropFullScreen = 'fullScreen';
   static const homeBackdropCorner = 'corner';
+  static const homeBackdropTop = 'top';
 
   // How a phone sizes the details backdrop: zoomed to fill the screen, or the
   // whole picture across the top.
@@ -1297,9 +1298,11 @@ class UserPreferences extends ChangeNotifier {
   /// How the home screen draws the backdrop, off when the switch is off.
   String resolveHomeBackdropStyle() {
     if (!get(homeBackdropEnabled)) return homeBackdropOff;
-    return get(homeBackdropStyle) == homeBackdropCorner
-        ? homeBackdropCorner
-        : homeBackdropFullScreen;
+    return switch (get(homeBackdropStyle)) {
+      homeBackdropCorner => homeBackdropCorner,
+      homeBackdropTop => homeBackdropTop,
+      _ => homeBackdropFullScreen,
+    };
   }
 
   /// Brings the stored style in line with the switch, so the picker shows what

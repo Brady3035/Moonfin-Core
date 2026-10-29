@@ -26873,6 +26873,12 @@ abstract class AppLocalizations {
   /// **'Corner'**
   String get homeScreenBackdropCorner;
 
+  /// Home Screen Backdrop option that shows the focused item's backdrop across the top half of the screen, fading into the background toward the bottom
+  ///
+  /// In en, this message translates to:
+  /// **'Top'**
+  String get homeScreenBackdropTop;
+
   /// Setting to show or hide the backdrop image behind the item details screen
   ///
   /// In en, this message translates to:

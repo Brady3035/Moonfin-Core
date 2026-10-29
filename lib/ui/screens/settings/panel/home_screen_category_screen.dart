@@ -368,6 +368,7 @@ class _HomeScreenCategoryScreenState extends State<_HomeScreenCategoryScreen> {
                         l10n.homeScreenBackdropFullScreen,
                     UserPreferences.homeBackdropCorner:
                         l10n.homeScreenBackdropCorner,
+                    UserPreferences.homeBackdropTop: l10n.homeScreenBackdropTop,
                   },
                   onChanged: _onHomeBackdropStyleChanged,
                 ),

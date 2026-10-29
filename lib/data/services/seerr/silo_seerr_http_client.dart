@@ -1,7 +1,10 @@
+import 'dart:math';
+
 import 'package:dio/dio.dart';
 import 'package:server_silo/server_silo.dart';
 
 import 'seerr_api_models.dart';
+import 'seerr_discover_sliders.dart';
 import 'seerr_error.dart';
 import 'seerr_http_client.dart';
 import 'seerr_models.dart';
@@ -12,8 +15,9 @@ import 'seerr_models.dart';
 /// The screens are written against Seerr's API, so every answer here is
 /// Silo's reply rewritten into the JSON Seerr would have sent. What Silo has
 /// no counterpart for (issues, people, collections, quotas, Radarr and Sonarr
-/// server choices, custom sliders) answers empty, and those parts of the
-/// screens stay hidden or show their empty state.
+/// server choices) answers empty, and those parts of the screens stay
+/// hidden or show their empty state. The Discover rows an admin adds on
+/// Silo come through as sliders.
 ///
 /// Seerr's ids are integers. Silo's request ids are 64-bit numbers sent as
 /// text, which a web build can't hold exactly, and its genres and cast have
@@ -40,6 +44,12 @@ class SiloSeerrHttpClient extends SeerrHttpClient {
 
   bool? _admin;
   int? _userId;
+
+  final Random _random = Random();
+
+  /// Pages skipped at the start of a row on this visit, by row key, so the
+  /// trending and popular rows don't open on the same titles every time.
+  final Map<String, int> _pageShift = {};
 
   static const _api = '/api/v2';
 
@@ -256,11 +266,17 @@ class SiloSeerrHttpClient extends SeerrHttpClient {
     };
   }
 
-  Map<String, dynamic> _page(Map body) {
+  /// [shift] is how many pages the row was moved on by (see [_row]).
+  Map<String, dynamic> _page(Map body, {int shift = 0}) {
     final results = body['results'] is List ? body['results'] as List : [];
+    final page = body['page'] is int ? body['page'] as int : 1;
+    // Silo names the page to read next when page+1 would repeat titles, and
+    // the screens ask for page+1, so report the one before it.
+    final next = body['next_page'];
+    final total = body['total_pages'] is int ? body['total_pages'] as int : 1;
     return {
-      'page': body['page'] ?? 1,
-      'totalPages': body['total_pages'] ?? 1,
+      'page': (next is int ? next - 1 : page) - shift,
+      'totalPages': max(total - shift, 1),
       'totalResults': body['total_results'] ?? results.length,
       'results': [for (final r in results.whereType<Map>()) _discoverItem(r)],
     };
@@ -272,19 +288,67 @@ class SiloSeerrHttpClient extends SeerrHttpClient {
   Future<Map<String, dynamic>> _section(String key, int page) async =>
       _page(await _get('/requests/discover/$key', {'page': page}));
 
-  @override
-  Future<Map<String, dynamic>> getTrending({int limit = 20, int offset = 0}) =>
-      _section('trending_movies', _pageOf(limit, offset));
+  /// One page of a Discover row, from [path]. A [shuffled] row opens a
+  /// random one of its first three pages, in a random order, so it's
+  /// different on each visit; later pages carry on from there.
+  Future<Map<String, dynamic>> _row(
+    String key,
+    String path,
+    int page, {
+    bool shuffled = false,
+  }) async {
+    if (shuffled && page == 1) _pageShift[key] = _random.nextInt(3);
+    var shift = shuffled ? _pageShift[key] ?? 0 : 0;
+    var body = await _get(path, {'page': page + shift});
+    if (shift > 0 && body['results'] is List && (body['results'] as List).isEmpty) {
+      // A row shorter than the skip opens on its first page after all.
+      _pageShift[key] = shift = 0;
+      body = await _get(path, {'page': page});
+    }
+    final out = _page(body, shift: shift);
+    if (shuffled) (out['results'] as List).shuffle(_random);
+    return out;
+  }
 
+  Future<Map<String, dynamic>> _builtIn(String key, int page) => _row(
+    key,
+    '/requests/discover/$key',
+    page,
+    shuffled: true,
+  );
+
+  /// Trending films and series together, as Seerr's trending row has them.
+  @override
+  Future<Map<String, dynamic>> getTrending({
+    int limit = 20,
+    int offset = 0,
+  }) async {
+    final page = _pageOf(limit, offset);
+    final pages = await Future.wait([
+      _builtIn('trending_movies', page),
+      _builtIn('trending_series', page),
+    ]);
+    final results = [
+      for (final p in pages) ...p['results'] as List,
+    ]..shuffle(_random);
+    return {
+      'page': pages.map((p) => p['page'] as int).reduce(min),
+      'totalPages': pages.map((p) => p['totalPages'] as int).reduce(min),
+      'totalResults': results.length,
+      'results': results,
+    };
+  }
+
+  // Seerr's "trending" movie and series calls read its popular lists.
   @override
   Future<Map<String, dynamic>> getTrendingMovies({
     int limit = 20,
     int offset = 0,
-  }) => _section('trending_movies', _pageOf(limit, offset));
+  }) => _builtIn('popular_movies', _pageOf(limit, offset));
 
   @override
   Future<Map<String, dynamic>> getTrendingTv({int limit = 20, int offset = 0}) =>
-      _section('trending_series', _pageOf(limit, offset));
+      _builtIn('popular_series', _pageOf(limit, offset));
 
   @override
   Future<Map<String, dynamic>> getTopMovies({int limit = 20, int offset = 0}) =>
@@ -302,31 +366,101 @@ class SiloSeerrHttpClient extends SeerrHttpClient {
   Future<Map<String, dynamic>> getUpcomingTv({int page = 1}) =>
       _section('on_air_series', page);
 
+  /// Titles already in the library are left out: search lists them under
+  /// the library's own results, and opening one here led back there anyway.
   @override
   Future<Map<String, dynamic>> search(
     String query, {
     String? mediaType,
     int limit = 20,
     int offset = 0,
-  }) async => _page(
-    await _get('/requests/search', {
+  }) async {
+    final body = await _get('/requests/search', {
       'q': query,
       'media_type': mediaType == null ? 'all' : _siloType(mediaType),
       'page': _pageOf(limit, offset),
-    }),
-  );
+    });
+    final results = body['results'];
+    return _page({
+      ...body,
+      if (results is List)
+        'results': [
+          for (final r in results.whereType<Map>())
+            if (r['library_content_id'] == null) r,
+        ],
+    });
+  }
 
-  /// Silo's admin-made discover rows aren't Seerr sliders. Moonfin's own
-  /// trending, popular and upcoming rows still show.
+  /// Silo's six built-in rows are Moonfin's own trending, popular and
+  /// upcoming rows.
+  static const _builtInRows = {
+    'trending_movies',
+    'trending_series',
+    'popular_movies',
+    'popular_series',
+    'upcoming_movies',
+    'on_air_series',
+  };
+
+  /// Title row types Silo serves through getDiscoverRow.
+  static const _titleRowTypes = {
+    'tmdb_chart',
+    'tmdb_discover',
+    'tmdb_list',
+    'mdblist',
+  };
+
+  /// What a slider made from a Silo row carries in its data: a search
+  /// slider's query, which Seerr never sends with this prefix.
+  static const _rowPrefix = 'silo-row:';
+
+  /// The rows an admin added to Silo's Discover page, as search sliders
+  /// whose query names the row. Their ids come from the row key, so a home
+  /// row made from one keeps finding it.
   @override
-  Future<List<dynamic>> getDiscoverSliders() async => const [];
+  Future<List<dynamic>> getDiscoverSliders() async {
+    final body = await _get('/requests/discover');
+    final order = body['row_order'] is List ? body['row_order'] as List : [];
+    return [
+      for (final row in order.whereType<Map>())
+        if (row['key'] case final String key
+            when !_builtInRows.contains(key) &&
+                _titleRowTypes.contains(row['type']))
+          {
+            'id': _stableId(key),
+            'type': SeerrSliderType.search,
+            'title': row['title']?.toString() ?? '',
+            'data': '$_rowPrefix$key',
+          },
+    ];
+  }
+
+  /// A 31-bit FNV-1a hash, the same on every platform and run, unlike
+  /// String.hashCode.
+  static int _stableId(String key) {
+    var h = 0x811c9dc5;
+    for (final unit in key.codeUnits) {
+      h = ((h ^ unit) * 0x01000193) & 0xffffffff;
+    }
+    return h & 0x7fffffff;
+  }
 
   @override
   Future<Map<String, dynamic>> getSliderPage(
     String path,
     Map<String, String> params, {
     int page = 1,
-  }) async => _emptyPage;
+  }) async {
+    final query = params['query'] ?? '';
+    if (path != 'search' || !query.startsWith(_rowPrefix)) return _emptyPage;
+    final key = query.substring(_rowPrefix.length);
+    return _row(
+      key,
+      '/requests/discover/rows/${Uri.encodeComponent(key)}',
+      page,
+      shuffled: true,
+    );
+  }
 
   static const Map<String, dynamic> _emptyPage = {
     'page': 1,

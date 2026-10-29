@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:moonfin/data/services/seerr/seerr_api_models.dart';
+import 'package:moonfin/data/services/seerr/seerr_discover_sliders.dart';
 import 'package:moonfin/data/services/seerr/seerr_error.dart';
 import 'package:moonfin/data/services/seerr/silo_seerr_http_client.dart';
 import 'package:server_core/server_core.dart';
@@ -171,15 +172,89 @@ void main() {
     );
 
     expect(silo.calls.last, contains('media_type=series'));
-    final heat = page.results.first;
-    expect(heat.mediaType, 'movie');
-    expect(heat.mediaInfo!.status, 5);
-    expect(heat.mediaInfo!.jellyfinMediaId, 'movie-imdb-tt0113277');
-    final severance = page.results.last;
+    expect(
+      page.results.map((r) => r.id),
+      [95396],
+      reason: 'a title already in the library shows only with the library',
+    );
+    final severance = page.results.single;
     expect(severance.mediaType, 'tv');
     expect(severance.name, 'Severance');
     expect(severance.mediaInfo!.status, 2);
     expect(severance.mediaInfo!.requests!.single.requestedBy!.id, 7);
+  });
+
+  test('an admin row on Silo is a slider that reads that row', () async {
+    final silo = _Silo({
+      ..._base(),
+      'GET /api/v2/requests/discover': (
+        200,
+        {
+          'items': [],
+          'row_order': [
+            {'key': 'trending_movies', 'type': 'tmdb_chart', 'title': 'Trending Movies'},
+            {'key': 'r_cozy', 'type': 'mdblist', 'title': 'Cozy Picks'},
+            {'key': 'studios', 'type': 'studios', 'title': 'Studios'},
+          ],
+        },
+      ),
+      'GET /api/v2/requests/discover/rows/r_cozy': (
+        200,
+        {'key': 'r_cozy', 'page': 1, 'total_pages': 1, 'results': [_heat, _severance]},
+      ),
+    });
+    final client = _client(silo);
+    final sliders = await client.getDiscoverSliders();
+    expect(sliders, hasLength(1));
+    final slider = SeerrDiscoverSlider.tryFromJson(sliders.single)!;
+    expect(slider.title, 'Cozy Picks');
+    expect(slider.isSupported, isTrue);
+    expect(
+      SeerrDiscoverSlider.tryFromJson((await client.getDiscoverSliders()).single)!.id,
+      slider.id,
+      reason: 'a home row made from it finds it again',
+    );
+
+    final query = slider.query!;
+    final page = SeerrDiscoverPage.fromJson(
+      await client.getSliderPage(query.path, query.params),
+    );
+    expect(page.results.map((r) => r.id).toSet(), {949, 95396});
+  });
+
+  test('trending mixes films and series, popular reads the popular rows, '
+      'and load more follows next_page', () async {
+    final silo = _Silo({
+      ..._base(),
+      'GET /api/v2/requests/discover/trending_movies': (
+        200,
+        {'page': 1, 'total_pages': 1, 'results': [_heat]},
+      ),
+      'GET /api/v2/requests/discover/trending_series': (
+        200,
+        {'page': 1, 'total_pages': 1, 'results': [_severance]},
+      ),
+      'GET /api/v2/requests/discover/popular_movies': (
+        200,
+        {'page': 1, 'total_pages': 9, 'next_page': 3, 'results': [_heat]},
+      ),
+    });
+    final client = _client(silo);
+    final trending = SeerrDiscoverPage.fromJson(await client.getTrending());
+    expect(trending.results.map((r) => r.mediaType).toSet(), {'movie', 'tv'});
+
+    silo.routes['GET /api/v2/requests/discover/popular_movies'] = (
+      200,
+      {'page': 1, 'total_pages': 9, 'next_page': 3, 'results': [_heat]},
+    );
+    final popular = await client.getTrendingMovies();
+    expect(silo.calls.last, contains('/popular_movies'));
+    final asked = int.parse(Uri.parse('x:${silo.calls.last.split(' ').last}').queryParameters['page']!);
+    expect(
+      popular['page'],
+      2 - (asked - 1),
+      reason: 'the screens ask for page+1, which must be Silo\'s next_page',
+    );
   });
 
   test('a series detail reads as Seerr detail with its seasons', () async {

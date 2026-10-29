@@ -395,6 +395,27 @@ void main() {
       );
     });
 
+    test('the series poster is series_poster_url, not the season poster', () {
+      final dto = siloItemToBaseItemDto({
+        'type': 'episode',
+        'content_id': 'episode-w-2-1',
+        'series_id': 'series-w',
+        'season_number': 2,
+        'episode_number': 1,
+        'poster_url': '/season-poster.webp',
+        'poster_is_episode_still': false,
+        'series_poster_url': '/series-poster.webp',
+      }, images: images)!;
+      expect(
+        images.urlFor('series-w', SiloImageType.primary),
+        'https://silo.example/series-poster.webp',
+      );
+      expect(
+        dto['SeriesPrimaryImageTag'],
+        images.tagFor('series-w', SiloImageType.primary),
+      );
+    });
+
     test('borrowed artwork never replaces the series own', () {
       siloItemToBaseItemDto({
         'type': 'series',

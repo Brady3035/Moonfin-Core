@@ -298,6 +298,13 @@ Map<String, dynamic> _imageFields(
   if (isEpisode) {
     primaryUrl = jsonText(item['still_url']);
     final poster = jsonText(item['poster_url']);
+    // A poster that isn't the still is usually the season's, so the series
+    // takes series_poster_url when Silo sends it. Otherwise a Home card would
+    // show the season poster until the series' own page replaced it.
+    final seriesPoster = jsonText(item['series_poster_url']);
+    if (seriesId != null && seriesPoster != null) {
+      _registerIfMissing(images, seriesId, SiloImageType.primary, seriesPoster);
+    }
     if (primaryUrl == null && poster != null) {
       if (item['poster_is_episode_still'] != false) {
         primaryUrl = poster;

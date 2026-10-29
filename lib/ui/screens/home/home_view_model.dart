@@ -3017,7 +3017,7 @@ class HomeViewModel extends ChangeNotifier {
     Map<SeerrShortcut, String> backdrops = const {},
   }) => _seerrRow(
     'seerr_shortcuts',
-    l10n.seerrShortcutsRow,
+    seerrBrand(l10n.seerrShortcutsRow),
     [
       for (final shortcut in SeerrShortcut.values)
         AggregatedItem(
@@ -3412,11 +3412,14 @@ class HomeViewModel extends ChangeNotifier {
         .firstWhereOrNull((s) => s.kind == 'seasonal_themed');
     if (section == null) return const [];
     final response = await api.getServerHomeSectionItems(section.id);
-    final items = withoutBlockedItems([
-      for (final raw in (response['Items'] as List? ?? const []))
-        if (raw is Map<String, dynamic> && raw['Id'] != null)
-          AggregatedItem(id: raw['Id'].toString(), serverId: _serverId, rawData: raw),
-    ]);
+    // A new order on each load, so the same picks don't always lead.
+    final items = [
+      ...withoutBlockedItems([
+        for (final raw in (response['Items'] as List? ?? const []))
+          if (raw is Map<String, dynamic> && raw['Id'] != null)
+            AggregatedItem(id: raw['Id'].toString(), serverId: _serverId, rawData: raw),
+      ]),
+    ]..shuffle();
     if (items.isEmpty) return const [];
     return [
       HomeRow(

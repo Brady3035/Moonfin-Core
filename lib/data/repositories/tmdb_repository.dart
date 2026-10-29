@@ -110,7 +110,11 @@ class TmdbRepository {
         final id = (entry['id'] as num?)?.toInt();
         final name = entry['name']?.toString() ?? '';
         if (id == null || name.isEmpty) continue;
-        final imageUrl = entry['hasLogo'] == true ? _studioImageUrl(id) : null;
+        // Moonbase on Silo links the logo on TMDB, since an image URL can't
+        // carry Silo's headers.
+        final imageUrl = entry['hasLogo'] == true
+            ? _studioImageUrl(id) ?? entry['logoUrl'] as String?
+            : null;
         companies.add((name: name, imageUrl: imageUrl));
       }
 
@@ -164,20 +168,18 @@ class TmdbRepository {
     String? tmdbId,
     String? imdbId,
   }) async {
-    final token = _client.accessToken;
-    if (token == null) return null;
     final hasTmdb = tmdbId != null && tmdbId.isNotEmpty;
     if (!hasTmdb && (imdbId == null || imdbId.isEmpty)) return null;
     try {
+      final ep = await moonbaseEndpoint(_client, _dio);
+      if (ep == null) return null;
       final response = await _dio.get(
-        '${_client.baseUrl}/Moonfin/Tmdb/Details',
+        '${ep.base}/Moonfin/Tmdb/Details',
         queryParameters: {
           'type': type,
           if (hasTmdb) 'tmdbId': tmdbId else 'imdbId': imdbId,
         },
-        options: Options(headers: {
-          'Authorization': 'MediaBrowser Token="$token"',
-        }),
+        options: Options(headers: ep.headers),
       );
       final data = response.data;
       return data is Map<String, dynamic> ? data : null;

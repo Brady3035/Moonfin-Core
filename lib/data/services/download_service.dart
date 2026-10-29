@@ -29,6 +29,7 @@ import '../database/offline_database.dart';
 import '../models/aggregated_item.dart';
 import '../models/download_quality.dart';
 import '../models/download_source.dart';
+import '../offline/offline_media_segments.dart';
 import 'auto_download_downloader.dart';
 import '../repositories/offline_repository.dart';
 import '../utils/next_up_enrichment.dart';
@@ -2462,6 +2463,12 @@ class DownloadService extends ChangeNotifier implements AutoDownloadDownloader {
         savePath,
       );
       if (preparationCancelled()) return;
+      final metadata = await withMediaSegments(
+        _client.itemsApi,
+        item.id,
+        fullItem.rawData,
+      );
+      if (preparationCancelled()) return;
 
       await _offlineRepo.upsertItem(
         DownloadedItemsCompanion(
@@ -2469,7 +2476,7 @@ class DownloadService extends ChangeNotifier implements AutoDownloadDownloader {
           serverId: Value(item.serverId),
           type: Value(item.type ?? 'Unknown'),
           name: Value(item.name),
-          metadataJson: Value(jsonEncode(fullItem.rawData)),
+          metadataJson: Value(jsonEncode(metadata)),
           downloadStatus: const Value(1),
           qualityPreset: Value(quality.name),
           downloadSource: Value(source.name),

@@ -7239,8 +7239,7 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
           onPressed: () =>
               showSeerrManageRequestsSheet(context: context, vm: seerr),
         ),
-      if (canManageLiveTv() &&
-          incompleteRecordingFor(item.id) != null &&
+      if (incompleteRecordingFor(item.id) != null &&
           shows(DetailButton.keepAsComplete))
         DetailButton.keepAsComplete: _DetailActionButton(
           label: l10n.keepAsComplete,

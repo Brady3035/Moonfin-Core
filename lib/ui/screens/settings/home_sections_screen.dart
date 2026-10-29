@@ -781,7 +781,7 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen>
     3 => l10n.favorites,
     4 => l10n.homeRowsGenresAndStudios,
     5 => l10n.playlists,
-    6 => l10n.seerr,
+    6 => seerrBrand(l10n.seerr),
     7 => l10n.homeRowsExternalLists,
     _ => l10n.general,
   };
@@ -3390,7 +3390,7 @@ String homeSectionTypeLabel(HomeSectionType type, AppLocalizations l10n) =>
       HomeSectionType.studios => l10n.studios,
       HomeSectionType.liveTv => l10n.liveTV,
       HomeSectionType.onNow => l10n.onNow,
-      HomeSectionType.seerrShortcuts => l10n.seerrShortcutsRow,
+      HomeSectionType.seerrShortcuts => seerrBrand(l10n.seerrShortcutsRow),
       HomeSectionType.seerrRecentRequests => l10n.recentRequests,
       HomeSectionType.seerrWatchlist => l10n.yourWatchlist,
       HomeSectionType.seerrRecentlyAdded => l10n.recentlyAdded,

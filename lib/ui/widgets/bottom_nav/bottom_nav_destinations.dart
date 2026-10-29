@@ -27,7 +27,7 @@ String bottomNavTabLabel(AppLocalizations l10n, BottomNavTab tab) =>
       BottomNavTab.liveTv => l10n.liveTv,
       BottomNavTab.discover => GetIt.instance.isRegistered<SeerrPreferences>()
           ? GetIt.instance<SeerrPreferences>().labelOrDefault(l10n.seerr)
-          : l10n.seerr,
+          : seerrBrand(l10n.seerr),
       BottomNavTab.folders => l10n.folders,
     };
 

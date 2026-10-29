@@ -388,7 +388,7 @@ class _SettingsSidePanelState extends ConsumerState<SettingsSidePanel> {
               _PanelEntry(
                 icon: Icons.hub,
                 title: l10n.integrations,
-                subtitle: l10n.settingsServicesSubtitle,
+                subtitle: seerrBrand(l10n.settingsServicesSubtitle),
                 onTap: () =>
                     context.pushSettingsScreen(const _ServicesScreen()),
               ),

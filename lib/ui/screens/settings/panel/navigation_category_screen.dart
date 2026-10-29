@@ -243,8 +243,8 @@ class _NavigationCategoryScreenState extends State<_NavigationCategoryScreen> {
                     SwitchPreferenceTile(
                       key: const ValueKey(BottomNavTab.discover),
                       preference: UserPreferences.showSeerrButton,
-                      title: l10n.showSeerrButton,
-                      subtitle: l10n.settingsShowSeerrButtonInNavigation,
+                      title: seerrBrand(l10n.showSeerrButton),
+                      subtitle: seerrBrand(l10n.settingsShowSeerrButtonInNavigation),
                       iconBuilder: (size, color) => Image.asset(
                         'assets/icons/seerr.png',
                         width: size,

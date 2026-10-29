@@ -2863,7 +2863,7 @@ class _DetailContentState extends State<_DetailContent> {
         _SectionSpec(
           focusNode: seerrCrewCreditsFocusNode,
           build: (links) => HorizontalScrollSection(
-            title: l10n.crewContributionsSeerr,
+            title: seerrBrand(l10n.crewContributionsSeerr),
             builder: (_, ctrl) => SeerrCrewCreditsRow(
               items: seerrCrewCredits,
               prefs: prefs,
@@ -2884,7 +2884,7 @@ class _DetailContentState extends State<_DetailContent> {
         _SectionSpec(
           focusNode: seerrAppearancesFocusNode,
           build: (links) => HorizontalScrollSection(
-            title: l10n.appearancesSeerr,
+            title: seerrBrand(l10n.appearancesSeerr),
             builder: (_, ctrl) => SeerrAppearancesRow(
               items: seerrAppearances,
               prefs: prefs,

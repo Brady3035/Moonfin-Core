@@ -426,7 +426,7 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
   );
   final seerr = _SearchSection(
     slug: 'seerr',
-    path: [l10n.integrations, l10n.seerr],
+    path: [l10n.integrations, seerrBrand(l10n.seerr)],
     icon: Icons.movie_filter,
     open: () => push(const SeerrConfigScreen()),
   );
@@ -888,8 +888,8 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
     if (seerrAvailable)
       navigation.leaf(
         'pref_show_seerr_button',
-        l10n.showSeerrButton,
-        subtitle: l10n.settingsShowSeerrButtonInNavigation,
+        seerrBrand(l10n.showSeerrButton),
+        subtitle: seerrBrand(l10n.settingsShowSeerrButtonInNavigation),
         keywords: ['requests'],
       ),
     if (friendsAvailable)
@@ -1080,7 +1080,7 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
     rowImages.screen(keywords: ['poster', 'thumbnail', 'banner']),
     if (pluginAvailable) ...[
       seasonalRow.screen(keywords: ['holiday', 'christmas', 'halloween', 'seasonal']),
-      seasonalRow.leaf('seasonal_row_enabled', l10n.seasonalRow, subtitle: l10n.seasonalRowDescription),
+      seasonalRow.leaf('seasonal_row_enabled', l10n.seasonalRow, subtitle: seerrBrand(l10n.seasonalRowDescription)),
       seasonalRow.leaf('seasonal_row_country', l10n.seasonalRowCountry),
       seasonalRow.leaf('seasonal_row_hidden_holidays', l10n.seasonalRowHolidays),
     ],
@@ -1183,7 +1183,7 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
           header: 'Sonarr',
         ),
         seerrLists.screen(keywords: ['discovery rows', 'watchlist', 'trending']),
-        seerrLists.leaf('seerr_rows_sort_by', l10n.seerrRowsSorting),
+        seerrLists.leaf('seerr_rows_sort_by', seerrBrand(l10n.seerrRowsSorting)),
         seerrLists.leaf('seerr_rows_sort_order', l10n.sortOrder),
       ],
       customRows.screen(keywords: ['letterboxd', 'mdblist', 'tmdb', 'custom']),

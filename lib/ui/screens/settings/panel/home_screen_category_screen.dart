@@ -441,7 +441,7 @@ class _HomeScreenCategoryScreenState extends State<_HomeScreenCategoryScreen> {
                 _TvSettingsListTile(
                   leading: const Icon(Icons.celebration_outlined),
                   title: Text(l10n.seasonalRow),
-                  subtitle: Text(l10n.seasonalRowDescription),
+                  subtitle: Text(seerrBrand(l10n.seasonalRowDescription)),
                   onTap: () =>
                       context.pushSettingsScreen(const _SeasonalRowScreen()),
                 ),

@@ -22,6 +22,7 @@ import 'storage_path_service.dart';
 import 'synced_fields.dart';
 import '../../ui/widgets/navigation_layout.dart';
 import '../../preference/home_section_config.dart';
+import '../../l10n/current_app_localizations.dart';
 import '../../preference/preference_constants.dart' as prefs;
 import '../../preference/seerr_preferences.dart';
 import '../../preference/seerr_row_config.dart';
@@ -776,7 +777,14 @@ class PluginSyncService extends ChangeNotifier {
       final wasAvailable = _siloRequestsAvailable;
       await seerrRepo.ensureInitialized(force: true);
       _siloRequestsAvailable = seerrRepo.isAvailable;
-      if (_siloRequestsAvailable) await _enableSeerrOnceSignedIn(client);
+      if (_siloRequestsAvailable) {
+        // These are Silo's own requests, so the screens call them that
+        // rather than Seerr.
+        await _seerrPrefs.setMoonfinDisplayName(
+          currentAppLocalizations().seerrRequestsTitle,
+        );
+        await _enableSeerrOnceSignedIn(client);
+      }
       notifyListeners();
       return _siloRequestsAvailable && !wasAvailable;
     }

@@ -16,6 +16,7 @@ import '../../widgets/settings/preference_tiles.dart';
 import '../../../util/signed_in_server_features.dart';
 import 'settings_app_bar.dart';
 import '../../widgets/focus/request_initial_focus.dart';
+import '../../../preference/seerr_preferences.dart';
 
 class HomeRowsImageTypeScreen extends StatefulWidget {
   const HomeRowsImageTypeScreen({super.key});
@@ -102,7 +103,7 @@ class _HomeRowsImageTypeScreenState extends State<HomeRowsImageTypeScreen> {
         HomeSectionType.studios => l10n.studios,
         HomeSectionType.liveTv => l10n.liveTV,
         HomeSectionType.onNow => l10n.onNow,
-        HomeSectionType.seerrShortcuts => l10n.seerrShortcutsRow,
+        HomeSectionType.seerrShortcuts => seerrBrand(l10n.seerrShortcutsRow),
         HomeSectionType.seerrRecentRequests => l10n.recentRequests,
         HomeSectionType.seerrWatchlist => l10n.yourWatchlist,
         HomeSectionType.seerrRecentlyAdded => l10n.recentlyAdded,

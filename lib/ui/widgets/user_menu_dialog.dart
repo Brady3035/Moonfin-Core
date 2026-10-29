@@ -862,90 +862,86 @@ class _AccountCardState extends State<_AccountCard> {
                   _focusNode.requestFocus();
                   widget.onTap!();
                 },
-          child: AnimatedScale(
-            duration: const Duration(milliseconds: 120),
-            scale: _focused ? 1.06 : 1,
-            child: SizedBox(
-              width: 140,
-              child: Column(
-                children: [
-                  Container(
-                    width: 130,
-                    height: 130,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(color: borderColor, width: 3),
-                      color: AppColorScheme.surfaceVariant,
-                    ),
-                    child: ClipOval(
-                      child: _avatarFailed || widget.avatarUrl == null
-                          ? Icon(
-                              Icons.person,
-                              color: AppColorScheme.onSurface.withValues(alpha: 0.55),
-                              size: 68,
-                            )
-                          : Image.network(
-                              widget.avatarUrl!,
-                              headers: serverImageHeaders,
-                              fit: BoxFit.cover,
-                              cacheWidth: ArtworkDecode.widthFor(
-                                130,
-                                MediaQuery.devicePixelRatioOf(context),
-                              ),
-                              errorBuilder: (_, _, _) {
-                                if (!_avatarFailed) {
-                                  WidgetsBinding.instance
-                                      .addPostFrameCallback((_) {
-                                        if (mounted) {
-                                          setState(() => _avatarFailed = true);
-                                        }
-                                      });
-                                }
-                                return Icon(
-                                  Icons.person,
-                                  color: AppColorScheme.onSurface.withValues(alpha: 0.55),
-                                  size: 68,
-                                );
-                              },
+          child: SizedBox(
+            width: 140,
+            child: Column(
+              children: [
+                Container(
+                  width: 130,
+                  height: 130,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: borderColor, width: 3),
+                    color: AppColorScheme.surfaceVariant,
+                  ),
+                  child: ClipOval(
+                    child: _avatarFailed || widget.avatarUrl == null
+                        ? Icon(
+                            Icons.person,
+                            color: AppColorScheme.onSurface.withValues(alpha: 0.55),
+                            size: 68,
+                          )
+                        : Image.network(
+                            widget.avatarUrl!,
+                            headers: serverImageHeaders,
+                            fit: BoxFit.cover,
+                            cacheWidth: ArtworkDecode.widthFor(
+                              130,
+                              MediaQuery.devicePixelRatioOf(context),
                             ),
-                    ),
+                            errorBuilder: (_, _, _) {
+                              if (!_avatarFailed) {
+                                WidgetsBinding.instance
+                                    .addPostFrameCallback((_) {
+                                      if (mounted) {
+                                        setState(() => _avatarFailed = true);
+                                      }
+                                    });
+                              }
+                              return Icon(
+                                Icons.person,
+                                color: AppColorScheme.onSurface.withValues(alpha: 0.55),
+                                size: 68,
+                              );
+                            },
+                          ),
                   ),
-                  const SizedBox(height: 12),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  widget.username,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w500,
+                    color: AppColorScheme.onSurface,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  widget.serverName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: AppColorScheme.onSurface.withValues(alpha: 0.45),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                if (widget.active)
                   Text(
-                    widget.username,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.center,
+                    'ACTIVE',
                     style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w500,
-                      color: AppColorScheme.onSurface,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.5,
+                      color: AppColorScheme.accent,
                     ),
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    widget.serverName,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: AppColorScheme.onSurface.withValues(alpha: 0.45),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  if (widget.active)
-                    Text(
-                      'ACTIVE',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0.5,
-                        color: AppColorScheme.accent,
-                      ),
-                    ),
-                ],
-              ),
+              ],
             ),
           ),
         ),
@@ -1026,43 +1022,39 @@ class _AddUserCardState extends State<_AddUserCard> {
                   _focusNode.requestFocus();
                   widget.onTap!();
                 },
-          child: AnimatedScale(
-            duration: const Duration(milliseconds: 120),
-            scale: _focused ? 1.06 : 1,
-            child: SizedBox(
-              width: 140,
-              child: Column(
-                children: [
-                  Container(
-                    width: 130,
-                    height: 130,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: bg,
-                      border: Border.all(color: borderColor, width: 3),
-                    ),
-                    child: Icon(
-                      Icons.add,
-                      size: 48,
-                      color: _focused
-                          ? widget.focusColor
-                          : AppColorScheme.onSurface.withValues(alpha: 0.54),
-                    ),
+          child: SizedBox(
+            width: 140,
+            child: Column(
+              children: [
+                Container(
+                  width: 130,
+                  height: 130,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: bg,
+                    border: Border.all(color: borderColor, width: 3),
                   ),
-                  const SizedBox(height: 12),
-                  Text(
-                    widget.label,
-                    textAlign: TextAlign.center,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w500,
-                      color: AppColorScheme.onSurface,
-                    ),
+                  child: Icon(
+                    Icons.add,
+                    size: 48,
+                    color: _focused
+                        ? widget.focusColor
+                        : AppColorScheme.onSurface.withValues(alpha: 0.54),
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  widget.label,
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w500,
+                    color: AppColorScheme.onSurface,
+                  ),
+                ),
+              ],
             ),
           ),
         ),

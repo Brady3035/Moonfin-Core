@@ -25837,6 +25837,84 @@ abstract class AppLocalizations {
   /// **'And plenty more'**
   String get setupTourBulletMore;
 
+  /// Progress label at the top of each setup wizard step
+  ///
+  /// In en, this message translates to:
+  /// **'Step {current} of {total}'**
+  String setupStepOf(int current, int total);
+
+  /// Tag beside the option that is chosen right now in a setup wizard list
+  ///
+  /// In en, this message translates to:
+  /// **'Current'**
+  String get setupCurrent;
+
+  /// Remote control hint at the bottom of the setup wizard on TVs
+  ///
+  /// In en, this message translates to:
+  /// **'Up and down to preview · OK to choose · Back twice to skip'**
+  String get setupTvHint;
+
+  /// What the Top Bar navigation position gives you
+  ///
+  /// In en, this message translates to:
+  /// **'Tabs across the top of the screen.'**
+  String get setupNavbarTopHint;
+
+  /// What the Left Sidebar navigation position gives you
+  ///
+  /// In en, this message translates to:
+  /// **'A slim rail of icons down the left side.'**
+  String get setupNavbarLeftHint;
+
+  /// What the Bottom Bar navigation position gives you on phones
+  ///
+  /// In en, this message translates to:
+  /// **'Tabs along the bottom edge, in easy reach of your thumb.'**
+  String get setupNavbarBottomHint;
+
+  /// What the Moonfin media bar style looks like
+  ///
+  /// In en, this message translates to:
+  /// **'Large artwork with the title, details and overview laid over it.'**
+  String get setupMediaBarMoonfinHint;
+
+  /// What the MakD media bar style looks like
+  ///
+  /// In en, this message translates to:
+  /// **'Large artwork led by a big title logo.'**
+  String get setupMediaBarMakdHint;
+
+  /// What the Bookshelf media bar style looks like
+  ///
+  /// In en, this message translates to:
+  /// **'Titles shelved as book spines, with the featured one face out.'**
+  String get setupMediaBarBookshelfHint;
+
+  /// What the Gallery media bar style looks like
+  ///
+  /// In en, this message translates to:
+  /// **'The featured title opened up, with the next few lined up beside it.'**
+  String get setupMediaBarGalleryHint;
+
+  /// What the Banner media bar style looks like
+  ///
+  /// In en, this message translates to:
+  /// **'A shorter banner above your rows, so more of them fit on screen.'**
+  String get setupMediaBarBannerHint;
+
+  /// What the Aya media bar style looks like
+  ///
+  /// In en, this message translates to:
+  /// **'Artwork first in a framed panel, with your rows right underneath.'**
+  String get setupMediaBarAyaHint;
+
+  /// What turning the media bar off does to the Home screen
+  ///
+  /// In en, this message translates to:
+  /// **'No featured area. Home opens straight onto your rows.'**
+  String get setupMediaBarOffHint;
+
   /// Starts the first-run setup wizard again from settings
   ///
   /// In en, this message translates to:

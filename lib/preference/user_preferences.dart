@@ -665,6 +665,7 @@ class UserPreferences extends ChangeNotifier {
     'pref_merge_recent_rows_by_type',
     'seasonal_surprise',
     'seasonal_density',
+    'seasonal_follower',
     'seasonal_row_enabled',
     'seasonal_row_country',
     'seasonal_row_hidden_holidays',
@@ -3694,6 +3695,11 @@ class UserPreferences extends ChangeNotifier {
   static final seasonalDensity = Preference(
     key: 'seasonal_density',
     defaultValue: seasonalDensityNormal,
+  );
+
+  static final seasonalFollower = Preference(
+    key: 'seasonal_follower',
+    defaultValue: true,
   );
 
   static final seasonalRowEnabled = Preference(

@@ -164,6 +164,7 @@ final List<SyncedField> syncedFields = <SyncedField>[
   SyncedField('enableMultiServerLibraries', UserPreferences.enableMultiServerLibraries, SyncCodec.boolean),
   SyncedField('seasonalSurprise', UserPreferences.seasonalSurprise, SyncCodec.text, normalize: UserPreferences.parseSeasonalSurprise),
   SyncedField('seasonalDensity', UserPreferences.seasonalDensity, SyncCodec.text, normalize: UserPreferences.parseSeasonalDensity),
+  SyncedField('seasonalFollower', UserPreferences.seasonalFollower, SyncCodec.boolean),
   SyncedField('seasonalRowEnabled', UserPreferences.seasonalRowEnabled, SyncCodec.boolean),
   SyncedField('seasonalRowCountry', UserPreferences.seasonalRowCountry, SyncCodec.text, normalize: UserPreferences.parseSeasonalRowCountry),
   SyncedField('seasonalRowHiddenHolidays', UserPreferences.seasonalRowHiddenHolidays, SyncCodec.csvList),

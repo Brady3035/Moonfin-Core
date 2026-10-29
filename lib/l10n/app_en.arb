@@ -4436,6 +4436,18 @@
   "@seasonalDensityHeavy": {
     "description": "Seasonal effect density: most particles"
   },
+  "seasonalFollower": "Focus Follower",
+  "@seasonalFollower": {
+    "description": "Setting title: shows the holiday piece, like Halloween's planchette, that follows the selected item on Home"
+  },
+  "seasonalFollowerDescription": "A holiday piece, like Halloween's planchette, follows what you select on Home",
+  "@seasonalFollowerDescription": {
+    "description": "Subtitle for the Focus Follower setting in the TV layout"
+  },
+  "seasonalFollowerPointerDescription": "A holiday piece, like Halloween's planchette, replaces the mouse pointer on Home",
+  "@seasonalFollowerPointerDescription": {
+    "description": "Subtitle for the Focus Follower setting in the desktop layout, where the piece takes the place of the mouse pointer"
+  },
   "seasonalRow": "Seasonal Row",
   "@seasonalRow": {
     "description": "Name of the Home row that shows holiday movies"

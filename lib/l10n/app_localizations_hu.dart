@@ -3302,6 +3302,17 @@ class AppLocalizationsHu extends AppLocalizations {
   String get seasonalDensityHeavy => 'Sok';
 
   @override
+  String get seasonalFollower => 'Focus Follower';
+
+  @override
+  String get seasonalFollowerDescription =>
+      'A holiday piece, like Halloween\'s planchette, follows what you select on Home';
+
+  @override
+  String get seasonalFollowerPointerDescription =>
+      'A holiday piece, like Halloween\'s planchette, replaces the mouse pointer on Home';
+
+  @override
   String get seasonalRow => 'Ünnepi sor';
 
   @override

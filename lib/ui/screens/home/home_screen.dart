@@ -541,6 +541,7 @@ class _HomeShellState extends State<_HomeShell>
     final seasonalEffect = UserPreferences.normalizeSeasonalSurprise(
       _userPrefs.get(UserPreferences.seasonalSurprise),
     );
+    final seasonalFollower = _userPrefs.get(UserPreferences.seasonalFollower);
     final mediaBarMode = UserPreferences.normalizeMediaBarMode(
       _userPrefs.get(UserPreferences.mediaBarMode),
     );
@@ -556,58 +557,65 @@ class _HomeShellState extends State<_HomeShell>
       },
       child: Scaffold(
         backgroundColor: _homeBackground,
-        body: NavigationLayout(
-          activeRoute: Destinations.home,
-          child: QuickReturnWrapper(
-            isAtStart: _isScrolledToTopNotifier,
-            onReturn: () => _contentRowsKey.currentState?.returnToTop(),
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                if (backdropStyle != UserPreferences.homeBackdropOff)
-                  ValueListenableBuilder<String?>(
-                    valueListenable: _backdropUrlNotifier,
-                    builder: (context, url, _) {
-                      return _Backdrop(
-                        url: url,
-                        blurAmount: blurAmount,
-                        useMakdBackdropFx: useMakdBackdropFx,
-                        style: PlatformDetection.useMobileUi
-                            ? UserPreferences.homeBackdropFullScreen
-                            : backdropStyle,
-                      );
-                    },
-                  ),
-                const _GradientScrim(),
-                Positioned.fill(
-                  child: _ContentRows(
-                    key: _contentRowsKey,
-                    viewModel: _viewModel,
-                    mediaBarViewModel: _viewModel.mediaBarViewModel,
-                    prefs: _userPrefs,
-                    selectedItemNotifier: _selectedItemNotifier,
-                    onItemSelected: onItemSelected,
-                    isHoverPausedNotifier: _isHoverPausedNotifier,
-                    isScrolledToTopNotifier: _isScrolledToTopNotifier,
-                    onScrolledToTopChanged: (atTop) {
-                      if (atTop != _isScrolledToTopNotifier.value) {
-                        _isScrolledToTopNotifier.value = atTop;
-                      }
-                    },
-                  ),
-                ),
-                if (seasonalEffect != UserPreferences.seasonalNone)
+        body: SeasonalPointer(
+          effect: seasonalEffect,
+          enabled:
+              seasonalFollower &&
+              PlatformDetection.isDesktop &&
+              !PlatformDetection.isTV,
+          child: NavigationLayout(
+            activeRoute: Destinations.home,
+            child: QuickReturnWrapper(
+              isAtStart: _isScrolledToTopNotifier,
+              onReturn: () => _contentRowsKey.currentState?.returnToTop(),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  if (backdropStyle != UserPreferences.homeBackdropOff)
+                    ValueListenableBuilder<String?>(
+                      valueListenable: _backdropUrlNotifier,
+                      builder: (context, url, _) {
+                        return _Backdrop(
+                          url: url,
+                          blurAmount: blurAmount,
+                          useMakdBackdropFx: useMakdBackdropFx,
+                          style: PlatformDetection.useMobileUi
+                              ? UserPreferences.homeBackdropFullScreen
+                              : backdropStyle,
+                        );
+                      },
+                    ),
+                  const _GradientScrim(),
                   Positioned.fill(
-                    child: SeasonalEffectsHost(
-                      followFocus: PlatformDetection.isTV,
-                      effect: seasonalEffect,
-                      density: _userPrefs.get(UserPreferences.seasonalDensity),
-                      reducedFrameRate:
-                          _userPrefs.resolveDevicePerformanceTier() ==
-                          DevicePerformanceTier.reduced,
+                    child: _ContentRows(
+                      key: _contentRowsKey,
+                      viewModel: _viewModel,
+                      mediaBarViewModel: _viewModel.mediaBarViewModel,
+                      prefs: _userPrefs,
+                      selectedItemNotifier: _selectedItemNotifier,
+                      onItemSelected: onItemSelected,
+                      isHoverPausedNotifier: _isHoverPausedNotifier,
+                      isScrolledToTopNotifier: _isScrolledToTopNotifier,
+                      onScrolledToTopChanged: (atTop) {
+                        if (atTop != _isScrolledToTopNotifier.value) {
+                          _isScrolledToTopNotifier.value = atTop;
+                        }
+                      },
                     ),
                   ),
-              ],
+                  if (seasonalEffect != UserPreferences.seasonalNone)
+                    Positioned.fill(
+                      child: SeasonalEffectsHost(
+                        followFocus: PlatformDetection.isTV && seasonalFollower,
+                        effect: seasonalEffect,
+                        density: _userPrefs.get(UserPreferences.seasonalDensity),
+                        reducedFrameRate:
+                            _userPrefs.resolveDevicePerformanceTier() ==
+                            DevicePerformanceTier.reduced,
+                      ),
+                    ),
+                ],
+              ),
             ),
           ),
         ),

@@ -980,9 +980,6 @@ class AppLocalizationsKo extends AppLocalizations {
   String get discoverySubjects => '둘러보기 주제';
 
   @override
-  String get pickDiscoverySubjects => '둘러보기에 표시할 주제 피드를 선택하세요.';
-
-  @override
   String get apply => '적용';
 
   @override
@@ -993,20 +990,6 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get audiobookGenres => '오디오북 장르';
-
-  @override
-  String get pickAudiobookGenres => '오디오북 둘러보기에 표시할 장르를 선택하세요.';
-
-  @override
-  String get discoverAudiobooks => '오디오북 둘러보기';
-
-  @override
-  String get librivoxDescription => 'LibriVox의 인기 공개 도메인 타이틀.';
-
-  @override
-  String titlesCount(int count) {
-    return '$count개 작품';
-  }
 
   @override
   String get scrollLeft => '왼쪽으로 스크롤';
@@ -1135,9 +1118,6 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get discover => '둘러보기';
-
-  @override
-  String get trendingTitlesOpenLibrary => 'Open Library의 주제별 인기 도서.';
 
   @override
   String get noBookmarkedItems => '아직 북마크한 항목이 없습니다';
@@ -3256,6 +3236,17 @@ class AppLocalizationsKo extends AppLocalizations {
   String get seasonalDensityHeavy => '많이';
 
   @override
+  String get seasonalFollower => 'Focus Follower';
+
+  @override
+  String get seasonalFollowerDescription =>
+      'A holiday piece, like Halloween\'s planchette, follows what you select on Home';
+
+  @override
+  String get seasonalFollowerPointerDescription =>
+      'A holiday piece, like Halloween\'s planchette, replaces the mouse pointer on Home';
+
+  @override
   String get seasonalRow => '시즌 테마 행';
 
   @override
@@ -4153,6 +4144,10 @@ class AppLocalizationsKo extends AppLocalizations {
   String get preferredSecondarySubtitleLanguage => '선호하는 보조 자막 언어';
 
   @override
+  String get secondarySubtitlesEnabledSubtitle =>
+      'Show a second subtitle track at the same time. The subtitle menu then asks for the primary or secondary track first';
+
+  @override
   String get defaultToNoSubtitles => '기본으로 자막 끄기';
 
   @override
@@ -4169,6 +4164,9 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get secondarySubtitleTrack => '보조 자막 트랙';
+
+  @override
+  String get secondaryDelayAdjustment => 'Secondary Delay Adjustment';
 
   @override
   String decreaseValue(String setting) {
@@ -4490,6 +4488,13 @@ class AppLocalizationsKo extends AppLocalizations {
   String get showLibrariesInToolbar => '툴바에 라이브러리 표시';
 
   @override
+  String get showLibrariesIndividually => 'Show Libraries Individually';
+
+  @override
+  String get showLibrariesIndividuallySubtitle =>
+      'Show each library as its own button in the navigation bar instead of in the Libraries menu';
+
+  @override
   String get navbarAlwaysExpanded => '탐색 바 라벨 항상 표시';
 
   @override
@@ -4670,12 +4675,6 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get libraryJumpToLetter => '글자로 이동';
-
-  @override
-  String get enableFolderView => '폴더 보기 활성화';
-
-  @override
-  String get showFolderBrowsingOption => '폴더 탐색 옵션 표시';
 
   @override
   String get groupItemsIntoCollections => '항목을 컬렉션으로 묶기';
@@ -5476,9 +5475,6 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get featuredContentAppearance => '추천 콘텐츠, 모양';
-
-  @override
-  String get posterSizeImageTypeFolderView => '포스터 크기, 이미지 유형, 폴더 보기';
 
   @override
   String gbValue(String value) {
@@ -11612,6 +11608,14 @@ class AppLocalizationsKo extends AppLocalizations {
       '프로필 8 변환을 건너뛰고 Dolby Vision 프로필 7 스트림을 HDR10 호환 HEVC로 변환합니다. 변환된 스트림이 이상하게 보일 때 사용하세요.';
 
   @override
+  String get stripDolbyVisionHdr10PlusTitle =>
+      'Play Dolby Vision with HDR10+ as HDR10+';
+
+  @override
+  String get stripDolbyVisionHdr10PlusSubtitle =>
+      'Drop the Dolby Vision layer from videos that also have HDR10+. Turn this on if those videos play with sound but a black screen.';
+
+  @override
   String get subtitlesUseEmbeddedStyles => '내장 자막 스타일 사용';
 
   @override
@@ -11631,6 +11635,13 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get showMediaDetailsOnLibraryPageDescription =>
       '라이브러리 페이지 상단에 선택한 항목의 정보를 표시합니다.';
+
+  @override
+  String get libraryCardTitles => 'Titles Under Posters';
+
+  @override
+  String get libraryCardTitlesDescription =>
+      'Show each item\'s title and details below its artwork in library grids.';
 
   @override
   String get useDetailedSubHeadings => '상세 소제목 사용';
@@ -12047,6 +12058,13 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get hevcSoftwareDirectPlaySubtitle =>
       'Play HEVC up to 1080p from the original file instead of asking the server to transcode it. This Apple TV decodes it in software, so heavy 10-bit or high bitrate files may stutter.';
+
+  @override
+  String get av1SoftwareUhdDirectPlay => 'Direct Play 4K AV1 (Software Decode)';
+
+  @override
+  String get av1SoftwareUhdDirectPlaySubtitle =>
+      'Play AV1 above 1080p, including HDR10, from the original file instead of asking the server to transcode it. This device decodes AV1 in software, so heavy 4K or high bitrate files may stutter.';
 
   @override
   String get useExternalPlayer => '항상 외부 플레이어 사용';
@@ -13220,9 +13238,6 @@ class AppLocalizationsKo extends AppLocalizations {
       '이 플랫폼에서는 CB7 압축 해제 플러그인을 사용할 수 없습니다.';
 
   @override
-  String get closeGenrePanel => '장르 패널 닫기';
-
-  @override
   String get loadingShuffle => '셔플을 불러오는 중...';
 
   @override
@@ -14014,6 +14029,9 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get showAlphabeticalFilters => '알파벳 표시';
+
+  @override
+  String get libraryFolderView => 'Folder View';
 
   @override
   String get personalRatingStyle => '내 평가 방식';
@@ -14949,6 +14967,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get homeScreenBackdropCorner => 'Corner';
 
   @override
+  String get homeScreenBackdropTop => 'Top';
+
+  @override
   String get detailsScreenBackdrop => 'Details Screen Backdrop';
 
   @override
@@ -15183,7 +15204,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get settingsApplePlayerUiDescription =>
-      'The native Apple style player has no casting, swipe gestures, orientation lock, audio delay or PiP button';
+      'The native Apple style player has no casting, audio delay or PiP button, and its rotation lock is only in Live TV';
 
   @override
   String get settingsApplePlayerUiStandard => 'Standard';
@@ -15614,4 +15635,152 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get addServerUseDifferentAddress => 'Use a different address';
+
+  @override
+  String musicArtistCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count artists',
+      one: '1 artist',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String musicSongCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count songs',
+      one: '1 song',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String musicPlaylistCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count playlists',
+      one: '1 playlist',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String musicPlayCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count plays',
+      one: '1 play',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get allArtists => 'All Artists';
+
+  @override
+  String get libraryZToA => 'Z to A';
+
+  @override
+  String get musicSortYear => 'Year';
+
+  @override
+  String get musicFilter => 'Filter';
+
+  @override
+  String get musicGenreFilterTitle => 'Filter by Genre';
+
+  @override
+  String get openAlbum => 'Open Album';
+
+  @override
+  String get openPlaylist => 'Open Playlist';
+
+  @override
+  String get allSongsAToZ => 'All Songs A to Z';
+
+  @override
+  String get musicMix => 'Mix';
+
+  @override
+  String get musicMixEverything => 'Everything';
+
+  @override
+  String get musicMixEverythingSubtitle => '300 songs at random';
+
+  @override
+  String get mostPlayed => 'Most Played';
+
+  @override
+  String get musicMixMostPlayedSubtitle => 'Your top 100';
+
+  @override
+  String get musicMixFreshArrivals => 'Fresh Arrivals';
+
+  @override
+  String get musicMixFreshArrivalsSubtitle => 'The newest 100 songs';
+
+  @override
+  String get musicMixRediscover => 'Rediscover';
+
+  @override
+  String get musicMixRediscoverSubtitle =>
+      'Favorites you haven\'t played lately';
+
+  @override
+  String get musicSortMostAlbums => 'Most Albums';
+
+  @override
+  String bookSeriesPosition(int index, int total) {
+    return 'Book $index of $total';
+  }
+
+  @override
+  String bookFavoriteCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count favorites',
+      one: '1 favorite',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get bookSortZToA => 'Z to A';
+
+  @override
+  String get bookSortMostTitles => 'Most Titles';
+
+  @override
+  String get bookSurpriseMe => 'Surprise Me';
+
+  @override
+  String get bookShuffleAudiobooks => 'Shuffle Audiobooks';
+
+  @override
+  String get bookStartReading => 'Start Reading';
+
+  @override
+  String get bookOtherBooks => 'Other Books';
+
+  @override
+  String get bookDiscoverSearchBooks => 'Search Open Library';
+
+  @override
+  String get bookDiscoverSearchAudiobooks => 'Search LibriVox';
+
+  @override
+  String get bookDiscoverFeatured => 'Featured';
+
+  @override
+  String get bookReaderControlsAutoHide => 'Controls hide automatically';
+
+  @override
+  String get bookReaderControlsStayVisible => 'Controls stay visible';
 }

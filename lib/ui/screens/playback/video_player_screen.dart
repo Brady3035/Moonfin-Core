@@ -161,7 +161,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
 
   /// How long away counts as having moved on rather than stepped out.
   static const _staleSuspendExit = Duration(minutes: 30);
-  static const _tvTemporarySpeed = 2.0;
+  static const _temporarySpeed = 2.0;
   static const _tvTemporarySpeedHoldDelay = Duration(milliseconds: 420);
   static const _seekPromptSuppressionDuration = Duration(milliseconds: 1200);
   static const _seekDragPromptSuppressionDuration = Duration(seconds: 4);
@@ -351,8 +351,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
   DateTime? _suppressSeekPromptsUntil;
   bool _wasPlayingBeforeScreenLock = false;
   LogicalKeyboardKey? _tvTemporarySpeedHoldKey;
-  bool _tvTemporarySpeedHoldActive = false;
-  double? _tvTemporarySpeedRestoreSpeed;
+  bool _temporarySpeedActive = false;
+  double? _temporarySpeedRestore;
 
   MediaSegment? _skipSegment;
   Duration? _skipTo;
@@ -786,23 +786,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
     _themeMusicService.setExternalAudioActive(true);
     _segmentService = _createSegmentService();
     _zoomMode = _prefs.get(UserPreferences.playerZoomMode);
-    final savedSecondaryFontSize = _prefs.get(
-      UserPreferences.secondarySubtitleTextSize,
-    );
-    unawaited(
-      _manager.configureSecondarySubtitleStyle(
-        fontSize: savedSecondaryFontSize > 0 ? savedSecondaryFontSize : null,
-        verticalOffset: _prefs.get(
-          UserPreferences.secondarySubtitleOffsetPosition,
-        ),
-        textColor: switch (_prefs.get(
-          UserPreferences.secondarySubtitleTextColor,
-        )) {
-          -1 => null,
-          final color => color,
-        },
-      ),
-    );
+    unawaited(syncSecondarySubtitleStyle(_manager, _prefs));
     // Media3 only takes the zoom mode from this call, and the backend change it
     // listens for never fires when it was already the one playing.
     unawaited(_syncMedia3ZoomMode());
@@ -1039,7 +1023,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
     if (PlatformDetection.isDesktop) {
       windowManager.removeListener(this);
     }
-    _cancelTvTemporarySpeedHold();
+    _cancelTemporarySpeed();
     _hideTimer?.cancel();
     _skipSegmentAutoHideTimer?.cancel();
     _cinemaSkipDurationSub?.cancel();
@@ -1420,7 +1404,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
   @override
   void didChangeAppLifecycleState(AppLifecycleState lifecycleState) {
     if (lifecycleState != AppLifecycleState.resumed) {
-      _cancelTvTemporarySpeedHold();
+      _cancelTemporarySpeed();
     }
     switch (lifecycleState) {
       case AppLifecycleState.inactive:
@@ -2649,7 +2633,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
     setState(() {
       _isStopping = true;
     });
-    _cancelTvTemporarySpeedHold();
+    _cancelTemporarySpeed();
     if (!PlatformDetection.isTV) _pipService.enableAutoPiP(false);
     if (_wasAlwaysOnTopOnEntry == false && _isAlwaysOnTop) {
       await _setAlwaysOnTop(false);
@@ -3184,8 +3168,10 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
     return key == LogicalKeyboardKey.mediaPause;
   }
 
-  bool _canUseTvTemporarySpeedHold() {
-    if (!PlatformDetection.isTV) return false;
+  bool _canUseTvTemporarySpeedHold() =>
+      PlatformDetection.isTV && _canUseTemporarySpeed();
+
+  bool _canUseTemporarySpeed() {
     if (_castService.activeKind != null) return false;
     if (_isCurrentPreroll) return false;
     if (_isOsdLocked) return false;
@@ -3210,8 +3196,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
 
     _tvTemporarySpeedHoldTimer?.cancel();
     _tvTemporarySpeedHoldKey = key;
-    _tvTemporarySpeedHoldActive = false;
-    _tvTemporarySpeedRestoreSpeed = null;
+    _temporarySpeedActive = false;
+    _temporarySpeedRestore = null;
     _tvTemporarySpeedHoldTimer = Timer(_tvTemporarySpeedHoldDelay, () {
       unawaited(_activateTvTemporarySpeedHold(key));
     });
@@ -3224,13 +3210,13 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
       return KeyEventResult.ignored;
     }
 
-    final didTriggerHold = _tvTemporarySpeedHoldActive;
+    final didTriggerHold = _temporarySpeedActive;
     _tvTemporarySpeedHoldTimer?.cancel();
     _tvTemporarySpeedHoldTimer = null;
     _tvTemporarySpeedHoldKey = null;
 
     if (didTriggerHold) {
-      _cancelTvTemporarySpeedHold();
+      _cancelTemporarySpeed();
       return KeyEventResult.handled;
     }
 
@@ -3247,38 +3233,41 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
   Future<void> _activateTvTemporarySpeedHold(LogicalKeyboardKey key) async {
     if (!mounted || _tvTemporarySpeedHoldKey != key) return;
     if (!_canUseTvTemporarySpeedHold()) return;
+    await _startTemporarySpeed();
+  }
 
-    _tvTemporarySpeedHoldActive = true;
-    _tvTemporarySpeedRestoreSpeed ??= _state.playbackSpeed;
+  Future<void> _startTemporarySpeed() async {
+    setState(() => _temporarySpeedActive = true);
+    _temporarySpeedRestore ??= _state.playbackSpeed;
 
-    if ((_state.playbackSpeed - _tvTemporarySpeed).abs() < 0.001) {
+    if ((_state.playbackSpeed - _temporarySpeed).abs() < 0.001) {
       return;
     }
 
     try {
-      await _manager.setPlaybackSpeed(_tvTemporarySpeed);
+      await _manager.setPlaybackSpeed(_temporarySpeed);
     } catch (_) {}
   }
 
-  Future<void> _restoreTvTemporarySpeed(double speed) async {
+  Future<void> _restoreTemporarySpeed(double speed) async {
     try {
       await _manager.setPlaybackSpeed(speed);
     } catch (_) {}
   }
 
-  void _cancelTvTemporarySpeedHold() {
+  void _cancelTemporarySpeed() {
     _tvTemporarySpeedHoldTimer?.cancel();
     _tvTemporarySpeedHoldTimer = null;
     _tvTemporarySpeedHoldKey = null;
 
-    final shouldRestore = _tvTemporarySpeedHoldActive;
-    final restoreSpeed = _tvTemporarySpeedRestoreSpeed;
+    final shouldRestore = _temporarySpeedActive;
+    final restoreSpeed = _temporarySpeedRestore;
 
-    _tvTemporarySpeedHoldActive = false;
-    _tvTemporarySpeedRestoreSpeed = null;
+    _temporarySpeedActive = false;
+    _temporarySpeedRestore = null;
 
     if (shouldRestore && restoreSpeed != null) {
-      unawaited(_restoreTvTemporarySpeed(restoreSpeed));
+      unawaited(_restoreTemporarySpeed(restoreSpeed));
     }
   }
 
@@ -3356,6 +3345,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
         ),
       );
     } else {
+      // MediaKit caches the primary font size synchronously before its first
+      // native await. Start the primary update first so the relative secondary
+      // scale is calculated against the new size rather than the previous one.
       unawaited(
         backend.configureSubtitleStyle(
           textColor: style.textColor,
@@ -3367,6 +3359,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
         ),
       );
     }
+    unawaited(syncSecondarySubtitleStyle(_manager, _prefs));
   }
 
   KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
@@ -3836,6 +3829,13 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
         PlatformDetection.useMobileUi &&
         !_isOsdLocked &&
         _prefs.get(UserPreferences.playerSwipeGestures);
+    // Only with the controls down, so a slow press on a button isn't taken
+    // for a hold. It stays on while held, or the release would never arrive.
+    final holdForSpeed =
+        _temporarySpeedActive ||
+        (PlatformDetection.useMobileUi &&
+            !_controlsVisible &&
+            _canUseTemporarySpeed());
     if (_isInPiP) {
       return Scaffold(
         backgroundColor: Colors.black,
@@ -3876,6 +3876,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
             onVerticalDragUpdate: swipeGestures ? _onVerticalDragUpdate : null,
             onVerticalDragEnd: swipeGestures ? _onVerticalDragEnd : null,
             onVerticalDragCancel: swipeGestures ? _onVerticalDragCancel : null,
+            onLongPressStart: holdForSpeed ? _onSurfaceLongPressStart : null,
+            onLongPressEnd: holdForSpeed ? (_) => _onSurfaceLongPressEnd() : null,
+            onLongPressCancel: holdForSpeed ? _onSurfaceLongPressEnd : null,
             behavior: HitTestBehavior.opaque,
             child: Listener(
               onPointerDown: PlatformDetection.useMobileUi
@@ -3999,6 +4002,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
                       if (PlatformDetection.useMobileUi)
                         _buildBrightnessOverlay(),
                       _buildSkipIndicatorOverlay(),
+                      if (_temporarySpeedActive && !PlatformDetection.isTV)
+                        _buildTemporarySpeedOverlay(),
                       if (_isOsdLocked && !hideOsdForPreroll)
                         _buildLockedOverlay(),
                       if (_isSkipSegmentButtonVisible)
@@ -4155,7 +4160,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
       _prefs.get(UserPreferences.keepVideoClearOfDynamicIsland);
 
   Widget _buildVideoSurface() {
-    if (PlatformDetection.isIOS || PlatformDetection.isMacOS) {
+    if (PlatformDetection.isApple || PlatformDetection.isAppleTV) {
       return Positioned.fill(
         child: AetherVideoView(
           key: _videoSurfaceKey,
@@ -6419,6 +6424,18 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
     _doubleTapSkip(forward: localPosition.dx >= screenWidth / 2);
   }
 
+  void _onSurfaceLongPressStart(LongPressStartDetails _) {
+    if (!_canUseTemporarySpeed()) return;
+    _surfaceTaps.cancel();
+    unawaited(_startTemporarySpeed());
+  }
+
+  // Also called for every press that never became a hold.
+  void _onSurfaceLongPressEnd() {
+    if (!_temporarySpeedActive) return;
+    setState(_cancelTemporarySpeed);
+  }
+
   void _doubleTapSkip({required bool forward}) {
     final ms = _prefs.get(
       forward
@@ -6613,6 +6630,43 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
                   : Icons.brightness_medium_rounded,
               value: _brightnessValue,
               label: '${(_brightnessValue * 100).round()}%',
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTemporarySpeedOverlay() {
+    return Positioned(
+      top: MediaQuery.paddingOf(context).top + AppSpacing.spaceLg,
+      left: 0,
+      right: 0,
+      child: IgnorePointer(
+        child: Center(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.6),
+              borderRadius: AppRadius.circular(14),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  '${_temporarySpeed.toStringAsFixed(0)}x',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                const AdaptiveIcon(
+                  Icons.fast_forward_rounded,
+                  color: Colors.white,
+                  size: 20,
+                ),
+              ],
             ),
           ),
         ),
@@ -7203,86 +7257,10 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
     );
   }
 
-  void _showSubtitleSlotSelector() {
-    final l10n = AppLocalizations.of(context);
-    final resolution = _manager.currentResolution;
-    final streams =
-        (resolution?.mediaStreams ??
-                (_manager.currentOfflineMetadata?['MediaStreams'] as List?)
-                    ?.cast<Map<String, dynamic>>() ??
-                const <Map<String, dynamic>>[])
-            .where((stream) => stream['Type'] == 'Subtitle')
-            .toList();
-
-    String trackLabel(int? index) {
-      if (index == null || index < 0) return l10n.off;
-      final stream = streams
-          .where((entry) => entry['Index'] == index)
-          .firstOrNull;
-      if (stream == null) return l10n.off;
-      final displayTitle = (stream['DisplayTitle'] as String?)?.trim();
-      if (displayTitle != null && displayTitle.isNotEmpty) return displayTitle;
-      final title = (stream['Title'] as String?)?.trim();
-      if (title != null && title.isNotEmpty) return title;
-      final language = (stream['Language'] as String?)?.trim();
-      if (language != null && language.isNotEmpty) return language;
-      return l10n.streamTypeFallback('Subtitle', streams.indexOf(stream) + 1);
-    }
-
-    unawaited(() async {
-      final result = await TrackSelectorDialog.show(
-        context,
-        title: l10n.subtitles,
-        options: [
-          TrackOption(
-            label: l10n.primarySubtitleSlot,
-            subtitle: trackLabel(_manager.subtitleStreamIndex),
-          ),
-          TrackOption(
-            label: l10n.secondarySubtitleSlot,
-            subtitle: trackLabel(_manager.secondarySubtitleStreamIndex),
-          ),
-        ],
-        useRootNavigator: false,
-      );
-      if (result == null || !mounted) return;
-      _showTrackSelector(
-        audio: false,
-        secondary: result == 1,
-        chooseSubtitleSlot: false,
-      );
-    }());
-    _showControls();
-  }
-
-  /// Only Media3 draws a secondary track, and only from an SRT or WebVTT file
-  /// other than the primary, so the subtitle button skips the slot question
-  /// when there is nothing to put in the second slot.
-  bool get _offersSecondarySubtitles {
-    if (_activeBackend is! Media3PlayerBackend) return false;
-    if (_manager.secondarySubtitleStreamIndex != null) return true;
-    final primary = _manager.subtitleStreamIndex;
-    final streams =
-        _manager.currentResolution?.mediaStreams ??
-        const <Map<String, dynamic>>[];
-    return streams.any((stream) {
-      final index = stream['Index'];
-      return stream['Type'] == 'Subtitle' &&
-          index is int &&
-          index != primary &&
-          _manager.canUseAsSecondarySubtitle(index);
-    });
-  }
-
   void _showTrackSelector({
     required bool audio,
     bool secondary = false,
-    bool chooseSubtitleSlot = true,
   }) {
-    if (!audio && chooseSubtitleSlot && _offersSecondarySubtitles) {
-      _showSubtitleSlotSelector();
-      return;
-    }
     unawaited(
       TrackPicker.show(
         context,
@@ -7530,16 +7508,23 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
       _episodeBrowser = browser;
     }
     browser.open(item);
+    final logoUrl = _logoUrlForQueueItem(item);
+    final sidePanel = PlatformDetection.useMobileUi;
     unawaited(() async {
       final picked = await showStyledPlayerDialog<AggregatedItem>(
         context,
         title: item.seriesName ?? AppLocalizations.of(context).episodes,
+        titleImage: logoUrl == null
+            ? null
+            : offlineAwareImageProvider(logoUrl, headers: serverImageHeaders),
         maxWidth: 760,
+        sidePanel: sidePanel,
         builder: (dialogCtx) {
           _episodeBrowserRoute = ModalRoute.of(dialogCtx);
           return EpisodeBrowserPanel(
             controller: browser,
             imageApi: client.imageApi,
+            fillHeight: sidePanel,
             onSelect: (episode) {
               _episodeBrowserRoute = null;
               Navigator.of(dialogCtx).pop(episode);

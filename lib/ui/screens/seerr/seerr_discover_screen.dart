@@ -841,7 +841,8 @@ class _SeerrDiscoverScreenState extends State<SeerrDiscoverScreen> {
         : sizes.focusedWidth;
     final rowPadding = 5.0 * desktopScale;
     final rowHeight = sizes.imageHeight +
-        modernMetadataBudget(_prefs) * desktopScale +
+        modernMetadataBudget(_prefs, UserPreferences.detailsRatings) *
+            desktopScale +
         2 * rowPadding;
     final scrollController = _getRowScroll(rowIndex);
 
@@ -943,6 +944,7 @@ class _SeerrDiscoverScreenState extends State<SeerrDiscoverScreen> {
                           valueListenable: _modernRatings,
                           builder: (context, ratings, _) => ModernCardDetails(
                             prefs: _prefs,
+                            ratingSettings: UserPreferences.detailsRatings,
                             cardWidth: width,
                             detailsWidth: modernDetailsWidth(
                               controller: scrollController,

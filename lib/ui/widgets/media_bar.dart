@@ -2166,16 +2166,16 @@ class _MediaBarState extends State<MediaBar>
                                   currentItem.itemId,
                                 ),
                                 enableAdditionalRatings: widget.prefs.get(
-                                  UserPreferences.enableAdditionalRatings,
+                                  UserPreferences.mediaBarEnableAdditionalRatings,
                                 ),
                                 enabledRatings: widget.prefs.get(
-                                  UserPreferences.enabledRatings,
+                                  UserPreferences.mediaBarEnabledRatings,
                                 ),
                                 showLabels: widget.prefs.get(
-                                  UserPreferences.showRatingLabels,
+                                  UserPreferences.mediaBarShowRatingLabels,
                                 ),
                                 showBadges: widget.prefs.get(
-                                  UserPreferences.showRatingBadges,
+                                  UserPreferences.mediaBarShowRatingBadges,
                                 ),
                                 compact: _isTrailerPlaying,
                                 overlayColor: overlayColor,
@@ -2443,16 +2443,16 @@ class _MediaBarState extends State<MediaBar>
                                   item: currentItem,
                                   ratings: currentRatings,
                                   enableAdditionalRatings: widget.prefs.get(
-                                    UserPreferences.enableAdditionalRatings,
+                                    UserPreferences.mediaBarEnableAdditionalRatings,
                                   ),
                                   enabledRatings: widget.prefs.get(
-                                    UserPreferences.enabledRatings,
+                                    UserPreferences.mediaBarEnabledRatings,
                                   ),
                                   showLabels: widget.prefs.get(
-                                    UserPreferences.showRatingLabels,
+                                    UserPreferences.mediaBarShowRatingLabels,
                                   ),
                                   showBadges: widget.prefs.get(
-                                    UserPreferences.showRatingBadges,
+                                    UserPreferences.mediaBarShowRatingBadges,
                                   ),
                                   isMobile: isMobile,
                                   onPlay: () =>
@@ -2603,10 +2603,14 @@ class _MediaBarState extends State<MediaBar>
             communityRating: activeItem.communityRating,
             criticRating: activeItem.criticRating,
             enableAdditionalRatings: widget.prefs.get(
-              UserPreferences.enableAdditionalRatings,
+              UserPreferences.mediaBarEnableAdditionalRatings,
             ),
-            enabledRatings: widget.prefs.get(UserPreferences.enabledRatings),
-            showLabels: widget.prefs.get(UserPreferences.showRatingLabels),
+            enabledRatings: widget.prefs.get(
+              UserPreferences.mediaBarEnabledRatings,
+            ),
+            showLabels: widget.prefs.get(
+              UserPreferences.mediaBarShowRatingLabels,
+            ),
             showBadges: false,
           )
         : null;

@@ -4639,8 +4639,7 @@ class DetailActionButtons extends StatefulWidget {
   final bool nouveauStyle;
 
   /// In modern style, render the primary Play as a full-width pill (portrait).
-  /// When false the pill is content-width and sits inline with the secondary
-  /// circular buttons (landscape).
+  /// When false Play sits inline with the other buttons (landscape).
   final bool fullWidthPrimary;
 
   /// Spotlight mode: the overflow button is an ellipsis that opens a popup
@@ -12489,9 +12488,9 @@ class _DetailActionButtonState extends State<_DetailActionButton>
     super.dispose();
   }
 
-  /// Modern detail style: primary Play renders as a high-contrast light pill,
-  /// secondary actions as circular outline icon buttons (icon only in landscape,
-  /// icon + label in portrait).
+  /// Modern detail style. Phones show every button as a circle with its label
+  /// underneath, except portrait Play, which spans the width as a pill. Larger
+  /// screens show circles that grow their label while focused or hovered.
   Widget _buildModernChild(
     BuildContext context, {
     required bool isMobile,
@@ -12564,74 +12563,6 @@ class _DetailActionButtonState extends State<_DetailActionButton>
       return SizedBox(width: double.infinity, child: pillInner);
     }
 
-    if (isMobile && !widget.isPrimary) {
-      // Vertical tile: circular icon with its label always shown underneath.
-      final iconWidget = widget.iconBuilder != null
-          ? widget.iconBuilder!(36, iconColor)
-          : AdaptiveIcon(
-              widget.icon!,
-              color: (widget.icon == Icons.favorite && widget.isActive)
-                  ? const Color(0xFFE50914)
-                  : iconColor,
-              size: 24,
-            );
-      return SizedBox(
-        width: 66,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: height,
-              height: height,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: showHighlight
-                    ? AppColorScheme.buttonFocused
-                    : (widget.isActive
-                          ? (widget.activeColor ?? AppColorScheme.accent)
-                                .withValues(alpha: 0.18)
-                          : Colors.white.withValues(alpha: 0.06)),
-                border: Border.all(
-                  color: showHighlight
-                      ? focusColor
-                      : AppColorScheme.onSurface.withValues(alpha: 0.35),
-                  width: showHighlight ? 2.5 : 1.5,
-                ),
-              ),
-              child: Center(child: iconWidget),
-            ),
-            const SizedBox(height: 6),
-            // Shrink long labels (e.g. "Unwatched") to fit the tile on one line
-            // instead of wrapping a lone letter into the row below.
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Text(
-                widget.label,
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: labelColor,
-                  fontWeight: FontWeight.w600,
-                  height: 1.1,
-                ),
-                textAlign: TextAlign.center,
-                maxLines: 1,
-                softWrap: false,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    final double minWidth = height;
-    final double maxWidth = isExpanded ? 200.0 * scale : height;
-    final double maxLabelWidth =
-        (maxWidth -
-                (isExpanded ? 22.0 * scale : 0.0) -
-                (showHighlight ? 5.0 : 3.0) -
-                (height - 4) -
-                6.0 * scale)
-            .clamp(0.0, maxWidth);
-
     // Only a compact layout keeps Play filled with the accent. Everywhere else
     // it looks like the buttons beside it until it has focus.
     final accentPrimary = widget.isPrimary && isMobile;
@@ -12672,9 +12603,57 @@ class _DetailActionButtonState extends State<_DetailActionButton>
                   size: 24 * scale,
                 ));
 
-    final effectiveLabelColor = accentPrimary && !showHighlight
-        ? AppColorScheme.onAccent
-        : labelColor;
+    if (isMobile) {
+      // Vertical tile: circular icon with its label always shown underneath.
+      return SizedBox(
+        width: 66,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: height,
+              height: height,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: containerColor,
+                border: Border.all(
+                  color: borderColor,
+                  width: showHighlight ? 2.5 : 1.5,
+                ),
+              ),
+              child: Center(child: iconWidget),
+            ),
+            const SizedBox(height: 6),
+            // Shrink long labels (e.g. "Unwatched") to fit the tile on one line
+            // instead of wrapping a lone letter into the row below.
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                widget.label,
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: labelColor,
+                  fontWeight: FontWeight.w600,
+                  height: 1.1,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                softWrap: false,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final double minWidth = height;
+    final double maxWidth = isExpanded ? 200.0 * scale : height;
+    final double maxLabelWidth =
+        (maxWidth -
+                (isExpanded ? 22.0 * scale : 0.0) -
+                (showHighlight ? 5.0 : 3.0) -
+                (height - 4) -
+                6.0 * scale)
+            .clamp(0.0, maxWidth);
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 150),
@@ -12715,13 +12694,13 @@ class _DetailActionButtonState extends State<_DetailActionButton>
                     text: widget.label,
                     style:
                         Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: effectiveLabelColor,
+                          color: labelColor,
                           fontWeight: FontWeight.bold,
                           fontSize: 13,
                           height: 1.1,
                         ) ??
                         TextStyle(
-                          color: effectiveLabelColor,
+                          color: labelColor,
                           fontWeight: FontWeight.bold,
                           fontSize: 13,
                           height: 1.1,
@@ -12835,7 +12814,7 @@ class _DetailActionButtonState extends State<_DetailActionButton>
               ? (widget.activeColor ??
                     (isNeon ? neonAccent : AppColorScheme.onButtonNormal))
               : (isNeon ? neonAccent : AppColorScheme.onButtonNormal));
-    final showLabelInside = modern && (widget.isPrimary || !isMobile);
+    final showLabelInside = modern && !isMobile;
     final labelColor = (showHighlight && showLabelInside)
         ? AppColorScheme.onButtonFocused
         : (isNeon ? neonAccent : AppColorScheme.onButtonNormal);

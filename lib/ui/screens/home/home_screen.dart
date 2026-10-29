@@ -145,6 +145,10 @@ class HomeScreen extends StatelessWidget {
   static ImageType homeRowImageTypeForRow(HomeRow row, UserPreferences prefs) =>
       _ContentRowsState._homeRowImageTypeForRow(row, prefs);
 
+  @visibleForTesting
+  static Widget topBackdrop(Widget backdrop) =>
+      const _Backdrop(blurAmount: 0)._top(backdrop);
+
   @override
   Widget build(BuildContext context) {
     return const ResponsiveLayout(
@@ -538,6 +542,7 @@ class _HomeShellState extends State<_HomeShell>
     final seasonalEffect = UserPreferences.normalizeSeasonalSurprise(
       _userPrefs.get(UserPreferences.seasonalSurprise),
     );
+    final seasonalFollower = _userPrefs.get(UserPreferences.seasonalFollower);
     final mediaBarMode = UserPreferences.normalizeMediaBarMode(
       _userPrefs.get(UserPreferences.mediaBarMode),
     );
@@ -553,58 +558,65 @@ class _HomeShellState extends State<_HomeShell>
       },
       child: Scaffold(
         backgroundColor: _homeBackground,
-        body: NavigationLayout(
-          activeRoute: Destinations.home,
-          child: QuickReturnWrapper(
-            isAtStart: _isScrolledToTopNotifier,
-            onReturn: () => _contentRowsKey.currentState?.returnToTop(),
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                if (backdropStyle != UserPreferences.homeBackdropOff)
-                  ValueListenableBuilder<String?>(
-                    valueListenable: _backdropUrlNotifier,
-                    builder: (context, url, _) {
-                      return _Backdrop(
-                        url: url,
-                        blurAmount: blurAmount,
-                        useMakdBackdropFx: useMakdBackdropFx,
-                        inCorner:
-                            backdropStyle == UserPreferences.homeBackdropCorner &&
-                            !PlatformDetection.useMobileUi,
-                      );
-                    },
-                  ),
-                const _GradientScrim(),
-                Positioned.fill(
-                  child: _ContentRows(
-                    key: _contentRowsKey,
-                    viewModel: _viewModel,
-                    mediaBarViewModel: _viewModel.mediaBarViewModel,
-                    prefs: _userPrefs,
-                    selectedItemNotifier: _selectedItemNotifier,
-                    onItemSelected: onItemSelected,
-                    isHoverPausedNotifier: _isHoverPausedNotifier,
-                    isScrolledToTopNotifier: _isScrolledToTopNotifier,
-                    onScrolledToTopChanged: (atTop) {
-                      if (atTop != _isScrolledToTopNotifier.value) {
-                        _isScrolledToTopNotifier.value = atTop;
-                      }
-                    },
-                  ),
-                ),
-                if (seasonalEffect != UserPreferences.seasonalNone)
+        body: SeasonalPointer(
+          effect: seasonalEffect,
+          enabled:
+              seasonalFollower &&
+              PlatformDetection.isDesktop &&
+              !PlatformDetection.isTV,
+          child: NavigationLayout(
+            activeRoute: Destinations.home,
+            child: QuickReturnWrapper(
+              isAtStart: _isScrolledToTopNotifier,
+              onReturn: () => _contentRowsKey.currentState?.returnToTop(),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  if (backdropStyle != UserPreferences.homeBackdropOff)
+                    ValueListenableBuilder<String?>(
+                      valueListenable: _backdropUrlNotifier,
+                      builder: (context, url, _) {
+                        return _Backdrop(
+                          url: url,
+                          blurAmount: blurAmount,
+                          useMakdBackdropFx: useMakdBackdropFx,
+                          style: PlatformDetection.useMobileUi
+                              ? UserPreferences.homeBackdropFullScreen
+                              : backdropStyle,
+                        );
+                      },
+                    ),
+                  const _GradientScrim(),
                   Positioned.fill(
-                    child: SeasonalEffectsHost(
-                      followFocus: PlatformDetection.isTV,
-                      effect: seasonalEffect,
-                      density: _userPrefs.get(UserPreferences.seasonalDensity),
-                      reducedFrameRate:
-                          _userPrefs.resolveDevicePerformanceTier() ==
-                          DevicePerformanceTier.reduced,
+                    child: _ContentRows(
+                      key: _contentRowsKey,
+                      viewModel: _viewModel,
+                      mediaBarViewModel: _viewModel.mediaBarViewModel,
+                      prefs: _userPrefs,
+                      selectedItemNotifier: _selectedItemNotifier,
+                      onItemSelected: onItemSelected,
+                      isHoverPausedNotifier: _isHoverPausedNotifier,
+                      isScrolledToTopNotifier: _isScrolledToTopNotifier,
+                      onScrolledToTopChanged: (atTop) {
+                        if (atTop != _isScrolledToTopNotifier.value) {
+                          _isScrolledToTopNotifier.value = atTop;
+                        }
+                      },
                     ),
                   ),
-              ],
+                  if (seasonalEffect != UserPreferences.seasonalNone)
+                    Positioned.fill(
+                      child: SeasonalEffectsHost(
+                        followFocus: PlatformDetection.isTV && seasonalFollower,
+                        effect: seasonalEffect,
+                        density: _userPrefs.get(UserPreferences.seasonalDensity),
+                        reducedFrameRate:
+                            _userPrefs.resolveDevicePerformanceTier() ==
+                            DevicePerformanceTier.reduced,
+                      ),
+                    ),
+                ],
+              ),
             ),
           ),
         ),
@@ -652,15 +664,16 @@ class _Backdrop extends StatelessWidget {
   final double blurAmount;
   final bool useMakdBackdropFx;
 
-  /// Draws it in the top right corner, fading into the background toward the
-  /// left and the bottom, the way the Google TV home screen does.
-  final bool inCorner;
+  /// Where it goes: behind the whole screen, in the top right corner fading
+  /// into the background toward the left and the bottom the way the Google TV
+  /// home screen does, or only its top half fading out toward the middle.
+  final String style;
 
   const _Backdrop({
     this.url,
     required this.blurAmount,
     this.useMakdBackdropFx = false,
-    this.inCorner = false,
+    this.style = UserPreferences.homeBackdropFullScreen,
   });
 
   @override
@@ -703,14 +716,20 @@ class _Backdrop extends StatelessWidget {
         );
       },
     );
-    return RepaintBoundary(child: inCorner ? _corner(switcher) : switcher);
+    return RepaintBoundary(
+      child: switch (style) {
+        UserPreferences.homeBackdropCorner => _corner(switcher),
+        UserPreferences.homeBackdropTop => _top(switcher),
+        _ => switcher,
+      },
+    );
   }
 
-  Widget _corner(Widget backdrop) {
+  // Eased stops, so the image melts into the background rather than ending
+  // on a visible line.
+  LinearGradient _fade(Alignment start, Alignment end) {
     final fade = _homeBackground;
-    // Eased stops, so the image melts into the background rather than ending
-    // on a visible line.
-    LinearGradient fadeFrom(Alignment start, Alignment end) => LinearGradient(
+    return LinearGradient(
       begin: start,
       end: end,
       colors: [
@@ -722,6 +741,9 @@ class _Backdrop extends StatelessWidget {
       ],
       stops: const [0, 0.12, 0.3, 0.48, 0.6],
     );
+  }
+
+  Widget _corner(Widget backdrop) {
     return Align(
       alignment: Alignment.topRight,
       child: FractionallySizedBox(
@@ -733,17 +755,41 @@ class _Backdrop extends StatelessWidget {
             backdrop,
             DecoratedBox(
               decoration: BoxDecoration(
-                gradient: fadeFrom(Alignment.centerLeft, Alignment.centerRight),
+                gradient: _fade(Alignment.centerLeft, Alignment.centerRight),
               ),
             ),
             DecoratedBox(
               decoration: BoxDecoration(
-                gradient: fadeFrom(Alignment.bottomCenter, Alignment.topCenter),
+                gradient: _fade(Alignment.bottomCenter, Alignment.topCenter),
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  /// Leaves the picture where the full screen one sits, fades it out toward
+  /// the middle and hides the bottom half.
+  Widget _top(Widget backdrop) {
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        backdrop,
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: _fade(Alignment.bottomCenter, Alignment.topCenter),
+                ),
+              ),
+            ),
+            Expanded(child: ColoredBox(color: _homeBackground)),
+          ],
+        ),
+      ],
     );
   }
 
@@ -2557,7 +2603,7 @@ class _ContentRowsState extends State<_ContentRows>
   }
 
   void _primeV2FocusedRatings(AggregatedItem item) {
-    if (!widget.prefs.get(UserPreferences.enableAdditionalRatings)) {
+    if (!widget.prefs.get(UserPreferences.homeRowsEnableAdditionalRatings)) {
       return;
     }
 
@@ -2587,7 +2633,9 @@ class _ContentRowsState extends State<_ContentRows>
     final result = await GetIt.instance<MdbListRepository>().getRatingsForItem(
       item,
       resolveClient: resolveClient,
-      episodeRatingsEnabled: widget.prefs.canFetchEpisodeRatings,
+      episodeRatingsEnabled: widget.prefs.canFetchEpisodeRatingsFor(
+        UserPreferences.homeRowsRatings,
+      ),
     );
     if (!mounted || result == null || result.isEmpty) {
       return;
@@ -3279,9 +3327,9 @@ class _ContentRowsState extends State<_ContentRows>
       final desktopScale = widget.prefs
           .get(UserPreferences.desktopUiScale)
           .scaleFactor;
-      final ratingsEnabled =
-          widget.prefs.get(UserPreferences.enableAdditionalRatings) as bool? ??
-          false;
+      final ratingsEnabled = widget.prefs.get(
+        UserPreferences.homeRowsEnableAdditionalRatings,
+      );
       final extraHeight = ratingsEnabled ? (32.0 * desktopScale) : 0.0;
       final rowHeight = _staticRowHeight(rowIndex) + extraHeight;
 
@@ -4350,7 +4398,7 @@ class _ContentRowsState extends State<_ContentRows>
   double _v2MetadataBudgetFor(HomeRow row, UserPreferences prefs) =>
       row.rowType == HomeRowType.libraryTiles
       ? _libraryTilesMetadataBudget
-      : modernMetadataBudget(prefs);
+      : modernMetadataBudget(prefs, UserPreferences.homeRowsRatings);
 
   /// Extra room the classic rows setting asks for. Library rows are left out,
   /// since their grid sizes itself and padding there overlaps the next row.
@@ -5657,6 +5705,7 @@ class _ContentRowsState extends State<_ContentRows>
                     // this same constant and audio and Seerr filter rows
                     // already get a different ratio.
                     isBanner: ar == kBannerAspectRatio,
+                    classicHomeLabel: !isRowsV2,
                     isFavorite: item.isFavorite,
                     isPlayed: item.isPlayed,
                     unplayedCount: item.unplayedItemCount,
@@ -5804,6 +5853,7 @@ class _ContentRowsState extends State<_ContentRows>
       valueListenable: _v2AdditionalRatingsNotifier,
       builder: (context, ratingsByKey, _) => ModernCardDetails(
         prefs: widget.prefs,
+        ratingSettings: UserPreferences.homeRowsRatings,
         cardWidth: cardWidth,
         detailsWidth: detailsWidth,
         overview: isAudioRow ? null : item.overview,

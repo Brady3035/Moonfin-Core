@@ -1002,10 +1002,6 @@ class AppLocalizationsSw extends AppLocalizations {
   String get discoverySubjects => 'Masomo ya Ugunduzi';
 
   @override
-  String get pickDiscoverySubjects =>
-      'Chagua milisho ya mada ya kuonyesha katika Dokezo.';
-
-  @override
   String get apply => 'Tumia';
 
   @override
@@ -1016,22 +1012,6 @@ class AppLocalizationsSw extends AppLocalizations {
 
   @override
   String get audiobookGenres => 'Aina za vitabu vya sauti';
-
-  @override
-  String get pickAudiobookGenres =>
-      'Chagua aina za muziki za kuonyesha katika Gundua Kitabu cha Sauti.';
-
-  @override
-  String get discoverAudiobooks => 'Gundua Vitabu vya Sauti';
-
-  @override
-  String get librivoxDescription =>
-      'Majina maarufu ya kikoa cha umma kutoka LibriVox.';
-
-  @override
-  String titlesCount(int count) {
-    return 'vichwa $count';
-  }
 
   @override
   String get scrollLeft => 'Sogeza kushoto';
@@ -1168,10 +1148,6 @@ class AppLocalizationsSw extends AppLocalizations {
 
   @override
   String get discover => 'Gundua';
-
-  @override
-  String get trendingTitlesOpenLibrary =>
-      'Vichwa vinavyovuma kulingana na mada kutoka Open Library.';
 
   @override
   String get noBookmarkedItems => 'Bado hakuna vipengee vilivyoalamishwa';
@@ -3327,6 +3303,17 @@ class AppLocalizationsSw extends AppLocalizations {
   String get seasonalDensityHeavy => 'Heavy';
 
   @override
+  String get seasonalFollower => 'Focus Follower';
+
+  @override
+  String get seasonalFollowerDescription =>
+      'A holiday piece, like Halloween\'s planchette, follows what you select on Home';
+
+  @override
+  String get seasonalFollowerPointerDescription =>
+      'A holiday piece, like Halloween\'s planchette, replaces the mouse pointer on Home';
+
+  @override
   String get seasonalRow => 'Seasonal Row';
 
   @override
@@ -4252,6 +4239,10 @@ class AppLocalizationsSw extends AppLocalizations {
       'Preferred Secondary Subtitle Language';
 
   @override
+  String get secondarySubtitlesEnabledSubtitle =>
+      'Show a second subtitle track at the same time. The subtitle menu then asks for the primary or secondary track first';
+
+  @override
   String get defaultToNoSubtitles => 'Chaguomsingi kwa Hakuna Manukuu';
 
   @override
@@ -4261,13 +4252,16 @@ class AppLocalizationsSw extends AppLocalizations {
   String get subtitleSize => 'Ukubwa wa Manukuu';
 
   @override
-  String get primarySubtitleSlot => 'Primary';
+  String get primarySubtitleSlot => 'Primary Track';
 
   @override
-  String get secondarySubtitleSlot => 'Secondary';
+  String get secondarySubtitleSlot => 'Secondary Track';
 
   @override
-  String get secondarySubtitleTrack => 'Secondary Subtitle Track';
+  String get secondarySubtitleTrack => 'Secondary Subtitles';
+
+  @override
+  String get secondaryDelayAdjustment => 'Secondary Delay Adjustment';
 
   @override
   String decreaseValue(String setting) {
@@ -4600,6 +4594,13 @@ class AppLocalizationsSw extends AppLocalizations {
   String get showLibrariesInToolbar => 'Onyesha Maktaba kwenye Upauzana';
 
   @override
+  String get showLibrariesIndividually => 'Show Libraries Individually';
+
+  @override
+  String get showLibrariesIndividuallySubtitle =>
+      'Show each library as its own button in the navigation bar instead of in the Libraries menu';
+
+  @override
   String get navbarAlwaysExpanded =>
       'Panua Lebo za Upau wa Urambazaji Kila Wakati';
 
@@ -4784,13 +4785,6 @@ class AppLocalizationsSw extends AppLocalizations {
 
   @override
   String get libraryJumpToLetter => 'Jump to letter';
-
-  @override
-  String get enableFolderView => 'Washa Mwonekano wa Folda';
-
-  @override
-  String get showFolderBrowsingOption =>
-      'Onyesha chaguo la kuvinjari kwenye folda';
 
   @override
   String get groupItemsIntoCollections => 'Panga Vipengee katika Makusanyo';
@@ -5630,10 +5624,6 @@ class AppLocalizationsSw extends AppLocalizations {
 
   @override
   String get featuredContentAppearance => 'Maudhui yaliyoangaziwa, mwonekano';
-
-  @override
-  String get posterSizeImageTypeFolderView =>
-      'Saizi ya bango, aina ya picha, mwonekano wa folda';
 
   @override
   String gbValue(String value) {
@@ -12037,6 +12027,14 @@ class AppLocalizationsSw extends AppLocalizations {
       'Cheza mitiririko ya Dolby Vision wasifu 7 kama HEVC inayooana na HDR10 kwenye vifaa visivyo vya DV.';
 
   @override
+  String get stripDolbyVisionHdr10PlusTitle =>
+      'Play Dolby Vision with HDR10+ as HDR10+';
+
+  @override
+  String get stripDolbyVisionHdr10PlusSubtitle =>
+      'Drop the Dolby Vision layer from videos that also have HDR10+. Turn this on if those videos play with sound but a black screen.';
+
+  @override
   String get subtitlesUseEmbeddedStyles =>
       'Tumia mitindo ya manukuu iliyopachikwa';
 
@@ -12058,6 +12056,13 @@ class AppLocalizationsSw extends AppLocalizations {
   @override
   String get showMediaDetailsOnLibraryPageDescription =>
       'Onyesha maelezo ya kipengee kilichochaguliwa juu ya kurasa za Maktaba.';
+
+  @override
+  String get libraryCardTitles => 'Titles Under Posters';
+
+  @override
+  String get libraryCardTitlesDescription =>
+      'Show each item\'s title and details below its artwork in library grids.';
 
   @override
   String get useDetailedSubHeadings => 'Tumia Vichwa Vidogo vya Kina';
@@ -12491,6 +12496,13 @@ class AppLocalizationsSw extends AppLocalizations {
   @override
   String get hevcSoftwareDirectPlaySubtitle =>
       'Play HEVC up to 1080p from the original file instead of asking the server to transcode it. This Apple TV decodes it in software, so heavy 10-bit or high bitrate files may stutter.';
+
+  @override
+  String get av1SoftwareUhdDirectPlay => 'Direct Play 4K AV1 (Software Decode)';
+
+  @override
+  String get av1SoftwareUhdDirectPlaySubtitle =>
+      'Play AV1 above 1080p, including HDR10, from the original file instead of asking the server to transcode it. This device decodes AV1 in software, so heavy 4K or high bitrate files may stutter.';
 
   @override
   String get useExternalPlayer => 'Use external player';
@@ -13709,9 +13721,6 @@ class AppLocalizationsSw extends AppLocalizations {
       'Programu-jalizi ya kutoa CB7 haipatikani kwenye jukwaa hili.';
 
   @override
-  String get closeGenrePanel => 'Funga paneli ya aina';
-
-  @override
   String get loadingShuffle => 'Inapakia mchanganyiko...';
 
   @override
@@ -14528,6 +14537,9 @@ class AppLocalizationsSw extends AppLocalizations {
 
   @override
   String get showAlphabeticalFilters => 'Show Alphabet';
+
+  @override
+  String get libraryFolderView => 'Folder View';
 
   @override
   String get personalRatingStyle => 'Personal Rating Style';
@@ -15492,6 +15504,9 @@ class AppLocalizationsSw extends AppLocalizations {
   String get homeScreenBackdropCorner => 'Corner';
 
   @override
+  String get homeScreenBackdropTop => 'Top';
+
+  @override
   String get detailsScreenBackdrop => 'Details Screen Backdrop';
 
   @override
@@ -15726,7 +15741,7 @@ class AppLocalizationsSw extends AppLocalizations {
 
   @override
   String get settingsApplePlayerUiDescription =>
-      'The native Apple style player has no casting, swipe gestures, orientation lock, audio delay or PiP button';
+      'The native Apple style player has no casting, audio delay or PiP button, and its rotation lock is only in Live TV';
 
   @override
   String get settingsApplePlayerUiStandard => 'Standard';
@@ -16157,4 +16172,152 @@ class AppLocalizationsSw extends AppLocalizations {
 
   @override
   String get addServerUseDifferentAddress => 'Use a different address';
+
+  @override
+  String musicArtistCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count artists',
+      one: '1 artist',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String musicSongCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count songs',
+      one: '1 song',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String musicPlaylistCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count playlists',
+      one: '1 playlist',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String musicPlayCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count plays',
+      one: '1 play',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get allArtists => 'All Artists';
+
+  @override
+  String get libraryZToA => 'Z to A';
+
+  @override
+  String get musicSortYear => 'Year';
+
+  @override
+  String get musicFilter => 'Filter';
+
+  @override
+  String get musicGenreFilterTitle => 'Filter by Genre';
+
+  @override
+  String get openAlbum => 'Open Album';
+
+  @override
+  String get openPlaylist => 'Open Playlist';
+
+  @override
+  String get allSongsAToZ => 'All Songs A to Z';
+
+  @override
+  String get musicMix => 'Mix';
+
+  @override
+  String get musicMixEverything => 'Everything';
+
+  @override
+  String get musicMixEverythingSubtitle => '300 songs at random';
+
+  @override
+  String get mostPlayed => 'Most Played';
+
+  @override
+  String get musicMixMostPlayedSubtitle => 'Your top 100';
+
+  @override
+  String get musicMixFreshArrivals => 'Fresh Arrivals';
+
+  @override
+  String get musicMixFreshArrivalsSubtitle => 'The newest 100 songs';
+
+  @override
+  String get musicMixRediscover => 'Rediscover';
+
+  @override
+  String get musicMixRediscoverSubtitle =>
+      'Favorites you haven\'t played lately';
+
+  @override
+  String get musicSortMostAlbums => 'Most Albums';
+
+  @override
+  String bookSeriesPosition(int index, int total) {
+    return 'Book $index of $total';
+  }
+
+  @override
+  String bookFavoriteCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count favorites',
+      one: '1 favorite',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get bookSortZToA => 'Z to A';
+
+  @override
+  String get bookSortMostTitles => 'Most Titles';
+
+  @override
+  String get bookSurpriseMe => 'Surprise Me';
+
+  @override
+  String get bookShuffleAudiobooks => 'Shuffle Audiobooks';
+
+  @override
+  String get bookStartReading => 'Start Reading';
+
+  @override
+  String get bookOtherBooks => 'Other Books';
+
+  @override
+  String get bookDiscoverSearchBooks => 'Search Open Library';
+
+  @override
+  String get bookDiscoverSearchAudiobooks => 'Search LibriVox';
+
+  @override
+  String get bookDiscoverFeatured => 'Featured';
+
+  @override
+  String get bookReaderControlsAutoHide => 'Controls hide automatically';
+
+  @override
+  String get bookReaderControlsStayVisible => 'Controls stay visible';
 }

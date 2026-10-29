@@ -1221,10 +1221,6 @@
   "@discoverySubjects": {
     "description": "Title for the book discovery subject picker panel"
   },
-  "pickDiscoverySubjects": "Pick which subject feeds to show in Discover.",
-  "@pickDiscoverySubjects": {
-    "description": "Instruction text in discovery subject picker"
-  },
   "apply": "Apply",
   "@apply": {
     "description": "Button label to apply selected options"
@@ -1240,27 +1236,6 @@
   "audiobookGenres": "Audiobook Genres",
   "@audiobookGenres": {
     "description": "Title for audiobook genre picker panel"
-  },
-  "pickAudiobookGenres": "Pick which genres to show in Audiobook Discover.",
-  "@pickAudiobookGenres": {
-    "description": "Instruction text in audiobook genre picker"
-  },
-  "discoverAudiobooks": "Discover Audiobooks",
-  "@discoverAudiobooks": {
-    "description": "Section title for audiobook discovery"
-  },
-  "librivoxDescription": "Popular public domain titles from LibriVox.",
-  "@librivoxDescription": {
-    "description": "Subtitle for audiobook discovery section"
-  },
-  "titlesCount": "{count} titles",
-  "@titlesCount": {
-    "description": "Label showing number of titles",
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
   },
   "scrollLeft": "Scroll left",
   "@scrollLeft": {
@@ -1441,10 +1416,6 @@
   "discover": "Discover",
   "@discover": {
     "description": "Section title for book discovery"
-  },
-  "trendingTitlesOpenLibrary": "Trending titles by subject from Open Library.",
-  "@trendingTitlesOpenLibrary": {
-    "description": "Subtitle for book discovery section"
   },
   "noBookmarkedItems": "No bookmarked items yet",
   "@noBookmarkedItems": {
@@ -4469,6 +4440,18 @@
   "@seasonalDensityHeavy": {
     "description": "Seasonal effect density: most particles"
   },
+  "seasonalFollower": "Focus Follower",
+  "@seasonalFollower": {
+    "description": "Setting title: shows the holiday piece, like Halloween's planchette, that follows the selected item on Home"
+  },
+  "seasonalFollowerDescription": "A holiday piece, like Halloween's planchette, follows what you select on Home",
+  "@seasonalFollowerDescription": {
+    "description": "Subtitle for the Focus Follower setting in the TV layout"
+  },
+  "seasonalFollowerPointerDescription": "A holiday piece, like Halloween's planchette, replaces the mouse pointer on Home",
+  "@seasonalFollowerPointerDescription": {
+    "description": "Subtitle for the Focus Follower setting in the desktop layout, where the piece takes the place of the mouse pointer"
+  },
   "seasonalRow": "Seasonal Row",
   "@seasonalRow": {
     "description": "Name of the Home row that shows holiday movies"
@@ -5602,6 +5585,10 @@
   "@preferredSecondarySubtitleLanguage": {
     "description": "Preferred language used to sort secondary subtitle tracks in the picker. It doesn't turn subtitles on."
   },
+  "secondarySubtitlesEnabledSubtitle": "Show a second subtitle track at the same time. The subtitle menu then asks for the primary or secondary track first",
+  "@secondarySubtitlesEnabledSubtitle": {
+    "description": "Subtitle of the setting that turns secondary subtitles on, explaining the extra step it adds to the subtitle menu"
+  },
   "defaultToNoSubtitles": "Default to No Subtitles",
   "@defaultToNoSubtitles": {
     "description": "Setting for defaulting to no subtitles"
@@ -5614,15 +5601,19 @@
   "@subtitleSize": {
     "description": "Setting for subtitle size"
   },
-  "primarySubtitleSlot": "Primary",
+  "primarySubtitleSlot": "Primary Track",
   "@primarySubtitleSlot": {
     "description": "Label for the primary subtitle selection slot"
   },
-  "secondarySubtitleSlot": "Secondary",
+  "secondarySubtitleSlot": "Secondary Track",
   "@secondarySubtitleSlot": {
     "description": "Label for the secondary subtitle selection slot"
   },
-  "secondarySubtitleTrack": "Secondary Subtitle Track",
+  "secondarySubtitleTrack": "Secondary Subtitles",
+  "secondaryDelayAdjustment": "Secondary Delay Adjustment",
+  "@secondaryDelayAdjustment": {
+    "description": "Title of the secondary subtitle delay menu. This adjustment is added to the primary subtitle delay."
+  },
   "@secondarySubtitleTrack": {
     "description": "Title of the picker for the secondary subtitle track"
   },
@@ -6053,6 +6044,14 @@
   "@showLibrariesInToolbar": {
     "description": "Setting for showing libraries in toolbar"
   },
+  "showLibrariesIndividually": "Show Libraries Individually",
+  "@showLibrariesIndividually": {
+    "description": "Setting that puts each library in the navigation bar as its own button instead of grouping them under the Libraries menu"
+  },
+  "showLibrariesIndividuallySubtitle": "Show each library as its own button in the navigation bar instead of in the Libraries menu",
+  "@showLibrariesIndividuallySubtitle": {
+    "description": "Subtitle for the Show Libraries Individually setting"
+  },
   "navbarAlwaysExpanded": "Always Expand Navbar Labels",
   "@navbarAlwaysExpanded": {
     "description": "Setting to keep every top navbar heading's text label visible at all times, tvOS-style"
@@ -6273,14 +6272,6 @@
   "libraryJumpToLetter": "Jump to letter",
   "@libraryJumpToLetter": {
     "description": "Label of the alphabet in a library, which scrolls to the first item starting with the chosen letter"
-  },
-  "enableFolderView": "Enable Folder View",
-  "@enableFolderView": {
-    "description": "Setting for enabling folder view"
-  },
-  "showFolderBrowsingOption": "Show folder browsing option",
-  "@showFolderBrowsingOption": {
-    "description": "Description for folder view"
   },
   "groupItemsIntoCollections": "Group Items into Collections",
   "@groupItemsIntoCollections": {
@@ -7345,10 +7336,6 @@
   "featuredContentAppearance": "Featured content, appearance",
   "@featuredContentAppearance": {
     "description": "Media bar settings subtitle"
-  },
-  "posterSizeImageTypeFolderView": "Poster size, image type, folder view",
-  "@posterSizeImageTypeFolderView": {
-    "description": "Library display settings subtitle"
   },
   "gbValue": "{value} GB",
   "@gbValue": {
@@ -10910,6 +10897,14 @@
   "@mapDolbyVisionP7Subtitle": {
     "description": "Setting subtitle for forcing the DV P7 strip path"
   },
+  "stripDolbyVisionHdr10PlusTitle": "Play Dolby Vision with HDR10+ as HDR10+",
+  "@stripDolbyVisionHdr10PlusTitle": {
+    "description": "Setting title: drop the Dolby Vision layer from videos that carry both Dolby Vision and HDR10+"
+  },
+  "stripDolbyVisionHdr10PlusSubtitle": "Drop the Dolby Vision layer from videos that also have HDR10+. Turn this on if those videos play with sound but a black screen.",
+  "@stripDolbyVisionHdr10PlusSubtitle": {
+    "description": "Setting subtitle for dropping Dolby Vision from Dolby Vision plus HDR10+ videos"
+  },
 
   "subtitlesUseEmbeddedStyles": "Use Embedded Subtitle Styles",
   "@subtitlesUseEmbeddedStyles": {
@@ -10935,6 +10930,14 @@
   "showMediaDetailsOnLibraryPageDescription": "Show details of the selected item at the top of Library pages.",
   "@showMediaDetailsOnLibraryPageDescription": {
     "description": "Setting description to show/hide focused media details at the top of the library page"
+  },
+  "libraryCardTitles": "Titles Under Posters",
+  "@libraryCardTitles": {
+    "description": "Setting that shows or hides the title and details under each card in library grids"
+  },
+  "libraryCardTitlesDescription": "Show each item's title and details below its artwork in library grids.",
+  "@libraryCardTitlesDescription": {
+    "description": "Description of the Titles Under Posters setting"
   },
   "useDetailedSubHeadings": "Use Detailed Sub-Headings",
   "@useDetailedSubHeadings": {
@@ -11109,6 +11112,8 @@
   "preferSoftwareDecodersSubtitle": "Use FFmpeg (audio) and libgav1 (AV1) before hardware decoders. Disable if HDMI audio passthrough breaks.",
   "hevcSoftwareDirectPlay": "Direct Play HEVC (Software Decode)",
   "hevcSoftwareDirectPlaySubtitle": "Play HEVC up to 1080p from the original file instead of asking the server to transcode it. This Apple TV decodes it in software, so heavy 10-bit or high bitrate files may stutter.",
+  "av1SoftwareUhdDirectPlay": "Direct Play 4K AV1 (Software Decode)",
+  "av1SoftwareUhdDirectPlaySubtitle": "Play AV1 above 1080p, including HDR10, from the original file instead of asking the server to transcode it. This device decodes AV1 in software, so heavy 4K or high bitrate files may stutter.",
   "useExternalPlayer": "Always Use External Player",
   "useExternalPlayerSubtitle": "Open video playback in your selected external app on Android TV.",
   "externalPlayerLiveTvOnly": "Live TV Only",
@@ -12366,7 +12371,6 @@
   "failedToExtractCbrArchive": "Failed to extract .cbr archive.",
   "cb7ExtractionUnavailable": "CB7 extraction is not available on this platform.",
   "cb7ExtractionPluginUnavailable": "CB7 extraction plugin is not available on this platform.",
-  "closeGenrePanel": "Close genre panel",
   "loadingShuffle": "Loading shuffle...",
   "libraryShuffleLabel": "LIBRARY SHUFFLE",
   "randomShuffleLabel": "RANDOM SHUFFLE",
@@ -12939,6 +12943,10 @@
   "showAlphabeticalFilters": "Show Alphabet",
   "@showAlphabeticalFilters": {
     "description": "Checkbox label for toggling alphabetical picker visibility in Sort and Filter options"
+  },
+  "libraryFolderView": "Folder View",
+  "@libraryFolderView": {
+    "description": "Checkbox in a library's Sort and Filter options that lists the library one folder at a time instead of all its items at once"
   },
   "personalRatingStyle": "Personal Rating Style",
   "@personalRatingStyle": {
@@ -14129,6 +14137,10 @@
   "@homeScreenBackdropCorner": {
     "description": "Home Screen Backdrop option that shows the focused item's backdrop in the top right corner, fading into the background like the Google TV home screen"
   },
+  "homeScreenBackdropTop": "Top",
+  "@homeScreenBackdropTop": {
+    "description": "Home Screen Backdrop option that shows the focused item's backdrop across the top half of the screen, fading into the background toward the bottom"
+  },
   "detailsScreenBackdrop": "Details Screen Backdrop",
   "@detailsScreenBackdrop": {
     "description": "Setting to show or hide the backdrop image behind the item details screen"
@@ -14479,9 +14491,9 @@
   },
   "settingsApplePlayerUi": "Video player",
   "@settingsApplePlayerUi": {
-    "description": "Settings label on iPhone and iPad for choosing which player plays video"
+    "description": "Settings label on iPhone, iPad and Apple TV for choosing which player plays video"
   },
-  "settingsApplePlayerUiDescription": "The native Apple style player has no casting, swipe gestures, orientation lock, audio delay or PiP button",
+  "settingsApplePlayerUiDescription": "The native Apple style player has no casting, audio delay or PiP button, and its rotation lock is only in Live TV",
   "@settingsApplePlayerUiDescription": {
     "description": "Settings description for the video player choice, listing what the native Apple style player lacks"
   },
@@ -15033,5 +15045,178 @@
   "addServerUseDifferentAddress": "Use a different address",
   "@addServerUseDifferentAddress": {
     "description": "Add Server dialog: goes back to the address field instead of keeping the server that was found"
+  },
+  "musicArtistCount": "{count, plural, =1{1 artist} other{{count} artists}}",
+  "@musicArtistCount": {
+    "description": "Count next to the title of a music library's Artists screen",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "musicSongCount": "{count, plural, =1{1 song} other{{count} songs}}",
+  "@musicSongCount": {
+    "description": "Count of songs, next to the Songs screen title and under a playlist",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "musicPlaylistCount": "{count, plural, =1{1 playlist} other{{count} playlists}}",
+  "@musicPlaylistCount": {
+    "description": "Count next to the title of a music library's Playlists screen",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "musicPlayCount": "{count, plural, =1{1 play} other{{count} plays}}",
+  "@musicPlayCount": {
+    "description": "How many times a song was played, at the end of a Most Played row",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "allArtists": "All Artists",
+  "@allArtists": {
+    "description": "Artists screen switch: every artist, not only those credited on albums"
+  },
+  "libraryZToA": "Z to A",
+  "@libraryZToA": {
+    "description": "Sort order from Z to A"
+  },
+  "musicSortYear": "Year",
+  "@musicSortYear": {
+    "description": "Albums screen sort: by release year, newest first"
+  },
+  "musicFilter": "Filter",
+  "@musicFilter": {
+    "description": "Albums screen button that opens the genre filter"
+  },
+  "musicGenreFilterTitle": "Filter by Genre",
+  "@musicGenreFilterTitle": {
+    "description": "Title of the genre list the Albums screen's Filter button opens"
+  },
+  "openAlbum": "Open Album",
+  "@openAlbum": {
+    "description": "Button that opens an album's details screen"
+  },
+  "openPlaylist": "Open Playlist",
+  "@openPlaylist": {
+    "description": "Button that opens a playlist's details screen, where its order can be changed"
+  },
+  "allSongsAToZ": "All Songs A to Z",
+  "@allSongsAToZ": {
+    "description": "Songs screen button that opens the full list of songs by name"
+  },
+  "musicMix": "Mix",
+  "@musicMix": {
+    "description": "Small label over a music mix card, as in a playlist the app put together"
+  },
+  "musicMixEverything": "Everything",
+  "@musicMixEverything": {
+    "description": "Songs screen mix card that shuffles the whole library"
+  },
+  "musicMixEverythingSubtitle": "300 songs at random",
+  "@musicMixEverythingSubtitle": {
+    "description": "Line under the Everything mix card"
+  },
+  "mostPlayed": "Most Played",
+  "@mostPlayed": {
+    "description": "Songs screen mix card and list of the songs played most"
+  },
+  "musicMixMostPlayedSubtitle": "Your top 100",
+  "@musicMixMostPlayedSubtitle": {
+    "description": "Line under the Most Played mix card"
+  },
+  "musicMixFreshArrivals": "Fresh Arrivals",
+  "@musicMixFreshArrivals": {
+    "description": "Songs screen mix card of the newest songs in the library"
+  },
+  "musicMixFreshArrivalsSubtitle": "The newest 100 songs",
+  "@musicMixFreshArrivalsSubtitle": {
+    "description": "Line under the Fresh Arrivals mix card"
+  },
+  "musicMixRediscover": "Rediscover",
+  "@musicMixRediscover": {
+    "description": "Songs screen mix card of favorite songs that haven't been played in a while"
+  },
+  "musicMixRediscoverSubtitle": "Favorites you haven't played lately",
+  "@musicMixRediscoverSubtitle": {
+    "description": "Line under the Rediscover mix card"
+  },
+  "musicSortMostAlbums": "Most Albums",
+  "@musicSortMostAlbums": {
+    "description": "Genres screen order: the genres with the most albums first"
+  },
+  "bookSeriesPosition": "Book {index} of {total}",
+  "@bookSeriesPosition": {
+    "description": "Series screen: where the reader is in a series, the next unread book's number and how many books it has",
+    "placeholders": {
+      "index": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "bookFavoriteCount": "{count, plural, =1{1 favorite} other{{count} favorites}}",
+  "@bookFavoriteCount": {
+    "description": "Book library Favorites screen header count",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "bookSortZToA": "Z to A",
+  "@bookSortZToA": {
+    "description": "Authors screen order, from Z back to A"
+  },
+  "bookSortMostTitles": "Most Titles",
+  "@bookSortMostTitles": {
+    "description": "Book genres screen order: the genres with the most titles first"
+  },
+  "bookSurpriseMe": "Surprise Me",
+  "@bookSurpriseMe": {
+    "description": "Button on a book genre that opens a random unread title from it"
+  },
+  "bookShuffleAudiobooks": "Shuffle Audiobooks",
+  "@bookShuffleAudiobooks": {
+    "description": "Button on an author that plays one of their audiobooks at random"
+  },
+  "bookStartReading": "Start Reading",
+  "@bookStartReading": {
+    "description": "Button on an author that opens their first unread book"
+  },
+  "bookOtherBooks": "Other Books",
+  "@bookOtherBooks": {
+    "description": "Heading over an author's books that aren't part of a series"
+  },
+  "bookDiscoverSearchBooks": "Search Open Library",
+  "@bookDiscoverSearchBooks": {
+    "description": "Placeholder in the Discover search field for books"
+  },
+  "bookDiscoverSearchAudiobooks": "Search LibriVox",
+  "@bookDiscoverSearchAudiobooks": {
+    "description": "Placeholder in the Discover search field for audiobooks"
+  },
+  "bookDiscoverFeatured": "Featured",
+  "@bookDiscoverFeatured": {
+    "description": "Label over the highlighted title at the top of Discover"
+  },
+  "bookReaderControlsAutoHide": "Controls hide automatically",
+  "@bookReaderControlsAutoHide": {
+    "description": "Comic reader toggle while its bars fade out on their own"
+  },
+  "bookReaderControlsStayVisible": "Controls stay visible",
+  "@bookReaderControlsStayVisible": {
+    "description": "Comic reader toggle while its bars stay on screen"
   }
 }

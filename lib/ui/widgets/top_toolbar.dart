@@ -982,8 +982,9 @@ class _TopToolbarState extends State<TopToolbar> with RouteAware {
     final navLibraries = _navLibraries;
     final showLibraries =
         !kidsMode && _prefs.get(UserPreferences.showLibrariesInToolbar);
+    final showLibrariesIndividually =
+        _prefs.get(UserPreferences.showLibrariesIndividually);
     final alwaysExpanded = _prefs.get(UserPreferences.navbarAlwaysExpanded);
-    final showFolders = _prefs.get(UserPreferences.enableFolderView);
     final showSyncPlay =
         !kidsMode &&
         _prefs.get(UserPreferences.syncPlayEnabled) &&
@@ -998,6 +999,7 @@ class _TopToolbarState extends State<TopToolbar> with RouteAware {
     // Desktop/macOS keeps the dropdown; inline fan-out is only used where
     // horizontal scroll is natural (TV d-pad or touch).
     final useInlineLibraries =
+        !showLibrariesIndividually &&
         _prefs.get(UserPreferences.navbarPosition) == NavbarPosition.top &&
         ((alwaysExpanded &&
                 (PlatformDetection.isTV || PlatformDetection.useMobileUi)) ||
@@ -1126,23 +1128,6 @@ class _TopToolbarState extends State<TopToolbar> with RouteAware {
                   ),
                 ),
               ],
-              if (showFolders) ...[
-                _gap(),
-                _orderButton(
-                  order: (order++).toDouble(),
-                  child: ExpandableIconButton(
-                    key: const ValueKey('toolbar_folders'),
-                    forceExpanded: alwaysExpanded,
-                    icon: Icons.folder_rounded,
-                    label: l10n.folders,
-                    baseColor: nextNavColor(),
-                    onPressed: () {
-                      if (_isActive(Destinations.folderView)) return;
-                      context.navigateTopLevel(Destinations.folderView);
-                    },
-                  ),
-                ),
-              ],
               if (showSyncPlay) ...[
                 _gap(),
                 _orderButton(
@@ -1180,7 +1165,24 @@ class _TopToolbarState extends State<TopToolbar> with RouteAware {
                   ),
                 ),
               ],
-              if (showLibraries && navLibraries.isNotEmpty) ...[
+              if (showLibraries && showLibrariesIndividually)
+                for (final lib in navLibraries) ...[
+                  _gap(),
+                  _orderButton(
+                    order: (order++).toDouble(),
+                    child: ExpandableIconButton(
+                      // Two servers can share a library id, so the key is the
+                      // library itself.
+                      key: ObjectKey(lib),
+                      forceExpanded: alwaysExpanded,
+                      icon: libraryIcon(lib),
+                      label: lib.name,
+                      baseColor: nextNavColor(),
+                      onPressed: () => _openLibrary(lib),
+                    ),
+                  ),
+                ]
+              else if (showLibraries && navLibraries.isNotEmpty) ...[
                 _gap(),
                 _orderButton(
                   order: (order++).toDouble(),
@@ -1320,6 +1322,17 @@ class _TopToolbarState extends State<TopToolbar> with RouteAware {
     );
   }
 
+  void _openLibrary(AggregatedLibrary lib) {
+    context.navigateTopLevel(
+      libraryRoute(
+        lib.id,
+        lib.collectionType,
+        lib.name,
+        serverId: lib.serverId,
+      ),
+    );
+  }
+
   Widget _buildLibrariesButton({
     Color? iconColor,
     bool alwaysExpanded = false,
@@ -1331,16 +1344,7 @@ class _TopToolbarState extends State<TopToolbar> with RouteAware {
       surfaceColor: _toolbarSurfaceColor(),
       iconColor: iconColor,
       alwaysExpanded: alwaysExpanded,
-      onLibraryTap: (lib) {
-        context.navigateTopLevel(
-          libraryRoute(
-            lib.id,
-            lib.collectionType,
-            lib.name,
-            serverId: lib.serverId,
-          ),
-        );
-      },
+      onLibraryTap: _openLibrary,
     );
   }
 
@@ -1358,16 +1362,7 @@ class _TopToolbarState extends State<TopToolbar> with RouteAware {
       alwaysExpanded: alwaysExpanded,
       triggerFocusNode: _inlineLibrariesTriggerFocus,
       onExitForward: _focusAfterInlineLibraries,
-      onLibraryTap: (lib) {
-        context.navigateTopLevel(
-          libraryRoute(
-            lib.id,
-            lib.collectionType,
-            lib.name,
-            serverId: lib.serverId,
-          ),
-        );
-      },
+      onLibraryTap: _openLibrary,
     );
   }
 

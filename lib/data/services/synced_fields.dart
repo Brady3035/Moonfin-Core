@@ -88,9 +88,9 @@ class SyncedField {
 /// bespoke code in PluginSyncService: mediaBarMode (falls back to a legacy bool and writes
 /// two preferences), mediaBarContentType (values outside the known set have to be rejected),
 /// sinceYouWatchedNumRows (an int on the wire against an enum locally), mdblistRatingSources
-/// (rating names are translated in both directions), homeSections and seerrRows (nested
-/// structures), and homeRowImageTypes (one preference per row, see
-/// [encodeHomeRowImageTypes]).
+/// and its homeRows and mediaBar copies (rating names are translated in both directions),
+/// homeSections and seerrRows (nested structures), and homeRowImageTypes (one preference
+/// per row, see [encodeHomeRowImageTypes]).
 final List<SyncedField> syncedFields = <SyncedField>[
   SyncedField('hiddenContinueWatchingItems', UserPreferences.hiddenContinueWatchingItems, SyncCodec.text),
   SyncedField('hiddenNextUpSeries', UserPreferences.hiddenNextUpSeries, SyncCodec.text),
@@ -155,15 +155,16 @@ final List<SyncedField> syncedFields = <SyncedField>[
   SyncedField('showDownloadsButton', UserPreferences.showDownloadsButton, SyncCodec.boolean),
   SyncedField('showFriendsButton', UserPreferences.showFriendsButton, SyncCodec.boolean),
   SyncedField('showLibrariesInToolbar', UserPreferences.showLibrariesInToolbar, SyncCodec.boolean),
+  SyncedField('showLibrariesIndividually', UserPreferences.showLibrariesIndividually, SyncCodec.boolean),
   SyncedField('shuffleContentType', UserPreferences.shuffleContentType, SyncCodec.text),
   SyncedField('mergeContinueWatchingNextUp', UserPreferences.mergeContinueWatchingNextUp, SyncCodec.boolean),
   SyncedField('continueWatchingDefaultAction', UserPreferences.continueWatchingDefaultAction, SyncCodec.enumName, enumValues: prefs.ContinueWatchingDefaultAction.values),
   SyncedField('mergeRecentRowsByType', UserPreferences.mergeRecentRowsByType, SyncCodec.boolean),
   SyncedField('nextUpMaxDays', UserPreferences.nextUpMaxDays, SyncCodec.integer),
   SyncedField('enableMultiServerLibraries', UserPreferences.enableMultiServerLibraries, SyncCodec.boolean),
-  SyncedField('enableFolderView', UserPreferences.enableFolderView, SyncCodec.boolean),
   SyncedField('seasonalSurprise', UserPreferences.seasonalSurprise, SyncCodec.text, normalize: UserPreferences.parseSeasonalSurprise),
   SyncedField('seasonalDensity', UserPreferences.seasonalDensity, SyncCodec.text, normalize: UserPreferences.parseSeasonalDensity),
+  SyncedField('seasonalFollower', UserPreferences.seasonalFollower, SyncCodec.boolean),
   SyncedField('seasonalRowEnabled', UserPreferences.seasonalRowEnabled, SyncCodec.boolean),
   SyncedField('seasonalRowCountry', UserPreferences.seasonalRowCountry, SyncCodec.text, normalize: UserPreferences.parseSeasonalRowCountry),
   SyncedField('seasonalRowHiddenHolidays', UserPreferences.seasonalRowHiddenHolidays, SyncCodec.csvList),
@@ -208,6 +209,13 @@ final List<SyncedField> syncedFields = <SyncedField>[
   SyncedField('mdblistShowRatingNames', UserPreferences.showRatingLabels, SyncCodec.boolean),
   SyncedField('mdblistShowRatingBadges', UserPreferences.showRatingBadges, SyncCodec.boolean),
   SyncedField('tmdbEpisodeRatingsEnabled', UserPreferences.enableEpisodeRatings, SyncCodec.boolean),
+  SyncedField('homeRowsMdblistEnabled', UserPreferences.homeRowsEnableAdditionalRatings, SyncCodec.boolean),
+  SyncedField('homeRowsMdblistShowRatingNames', UserPreferences.homeRowsShowRatingLabels, SyncCodec.boolean),
+  SyncedField('homeRowsMdblistShowRatingBadges', UserPreferences.homeRowsShowRatingBadges, SyncCodec.boolean),
+  SyncedField('homeRowsTmdbEpisodeRatingsEnabled', UserPreferences.homeRowsEnableEpisodeRatings, SyncCodec.boolean),
+  SyncedField('mediaBarMdblistEnabled', UserPreferences.mediaBarEnableAdditionalRatings, SyncCodec.boolean),
+  SyncedField('mediaBarMdblistShowRatingNames', UserPreferences.mediaBarShowRatingLabels, SyncCodec.boolean),
+  SyncedField('mediaBarMdblistShowRatingBadges', UserPreferences.mediaBarShowRatingBadges, SyncCodec.boolean),
   SyncedField('tmdbApiKey', UserPreferences.tmdbApiKey, SyncCodec.text, receiveOnly: true),
   SyncedField('seerrEnabled', UserPreferences.seerrEnabled, SyncCodec.boolean),
   SyncedField('seerrBlockNsfw', UserPreferences.seerrBlockNsfw, SyncCodec.boolean),
@@ -364,6 +372,7 @@ final List<SyncedField> syncedFields = <SyncedField>[
   SyncedField('showDescriptionOnPause', UserPreferences.showDescriptionOnPause, SyncCodec.boolean),
   SyncedField('showLoadingAnimationText', UserPreferences.showLoadingAnimationText, SyncCodec.boolean),
   SyncedField('showMediaDetailsOnLibraryPage', UserPreferences.showMediaDetailsOnLibraryPage, SyncCodec.boolean),
+  SyncedField('libraryCardTitles', UserPreferences.libraryCardTitles, SyncCodec.boolean),
   SyncedField('showSeerrAvailabilityBadges', UserPreferences.showSeerrAvailabilityBadges, SyncCodec.boolean),
   SyncedField('showSeerrButton', UserPreferences.showSeerrButton, SyncCodec.boolean),
   SyncedField('showServerMessagesButton', UserPreferences.showServerMessagesButton, SyncCodec.boolean),

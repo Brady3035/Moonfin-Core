@@ -368,6 +368,7 @@ class _HomeScreenCategoryScreenState extends State<_HomeScreenCategoryScreen> {
                         l10n.homeScreenBackdropFullScreen,
                     UserPreferences.homeBackdropCorner:
                         l10n.homeScreenBackdropCorner,
+                    UserPreferences.homeBackdropTop: l10n.homeScreenBackdropTop,
                   },
                   onChanged: _onHomeBackdropStyleChanged,
                 ),
@@ -409,6 +410,15 @@ class _HomeScreenCategoryScreenState extends State<_HomeScreenCategoryScreen> {
                 onChangeEnd: _pushPersonalizationSync,
               ),
             ],
+          ),
+
+          _SectionHeader(l10n.ratings),
+          adaptiveListSection(
+            children: _ratingsSettingsTiles(
+              context,
+              l10n,
+              UserPreferences.homeRowsRatings,
+            ),
           ),
 
           // Every source here needs the Moonbase plugin. Seerr's rows and the

@@ -1810,12 +1810,6 @@ abstract class AppLocalizations {
   /// **'Discovery Subjects'**
   String get discoverySubjects;
 
-  /// Instruction text in discovery subject picker
-  ///
-  /// In en, this message translates to:
-  /// **'Pick which subject feeds to show in Discover.'**
-  String get pickDiscoverySubjects;
-
   /// Button label to apply selected options
   ///
   /// In en, this message translates to:
@@ -1839,30 +1833,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Audiobook Genres'**
   String get audiobookGenres;
-
-  /// Instruction text in audiobook genre picker
-  ///
-  /// In en, this message translates to:
-  /// **'Pick which genres to show in Audiobook Discover.'**
-  String get pickAudiobookGenres;
-
-  /// Section title for audiobook discovery
-  ///
-  /// In en, this message translates to:
-  /// **'Discover Audiobooks'**
-  String get discoverAudiobooks;
-
-  /// Subtitle for audiobook discovery section
-  ///
-  /// In en, this message translates to:
-  /// **'Popular public domain titles from LibriVox.'**
-  String get librivoxDescription;
-
-  /// Label showing number of titles
-  ///
-  /// In en, this message translates to:
-  /// **'{count} titles'**
-  String titlesCount(int count);
 
   /// Tooltip for scroll left button
   ///
@@ -2103,12 +2073,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Discover'**
   String get discover;
-
-  /// Subtitle for book discovery section
-  ///
-  /// In en, this message translates to:
-  /// **'Trending titles by subject from Open Library.'**
-  String get trendingTitlesOpenLibrary;
 
   /// Empty state for bookmarks grid
   ///
@@ -5776,6 +5740,24 @@ abstract class AppLocalizations {
   /// **'Heavy'**
   String get seasonalDensityHeavy;
 
+  /// Setting title: shows the holiday piece, like Halloween's planchette, that follows the selected item on Home
+  ///
+  /// In en, this message translates to:
+  /// **'Focus Follower'**
+  String get seasonalFollower;
+
+  /// Subtitle for the Focus Follower setting in the TV layout
+  ///
+  /// In en, this message translates to:
+  /// **'A holiday piece, like Halloween\'s planchette, follows what you select on Home'**
+  String get seasonalFollowerDescription;
+
+  /// Subtitle for the Focus Follower setting in the desktop layout, where the piece takes the place of the mouse pointer
+  ///
+  /// In en, this message translates to:
+  /// **'A holiday piece, like Halloween\'s planchette, replaces the mouse pointer on Home'**
+  String get seasonalFollowerPointerDescription;
+
   /// Name of the Home row that shows holiday movies
   ///
   /// In en, this message translates to:
@@ -7480,6 +7462,12 @@ abstract class AppLocalizations {
   /// **'Preferred Secondary Subtitle Language'**
   String get preferredSecondarySubtitleLanguage;
 
+  /// Subtitle of the setting that turns secondary subtitles on, explaining the extra step it adds to the subtitle menu
+  ///
+  /// In en, this message translates to:
+  /// **'Show a second subtitle track at the same time. The subtitle menu then asks for the primary or secondary track first'**
+  String get secondarySubtitlesEnabledSubtitle;
+
   /// Setting for defaulting to no subtitles
   ///
   /// In en, this message translates to:
@@ -7501,20 +7489,26 @@ abstract class AppLocalizations {
   /// Label for the primary subtitle selection slot
   ///
   /// In en, this message translates to:
-  /// **'Primary'**
+  /// **'Primary Track'**
   String get primarySubtitleSlot;
 
   /// Label for the secondary subtitle selection slot
   ///
   /// In en, this message translates to:
-  /// **'Secondary'**
+  /// **'Secondary Track'**
   String get secondarySubtitleSlot;
 
   /// Title of the picker for the secondary subtitle track
   ///
   /// In en, this message translates to:
-  /// **'Secondary Subtitle Track'**
+  /// **'Secondary Subtitles'**
   String get secondarySubtitleTrack;
+
+  /// Title of the secondary subtitle delay menu. This adjustment is added to the primary subtitle delay.
+  ///
+  /// In en, this message translates to:
+  /// **'Secondary Delay Adjustment'**
+  String get secondaryDelayAdjustment;
 
   /// Tooltip for the button that lowers a setting's value
   ///
@@ -8098,6 +8092,18 @@ abstract class AppLocalizations {
   /// **'Show Libraries in Toolbar'**
   String get showLibrariesInToolbar;
 
+  /// Setting that puts each library in the navigation bar as its own button instead of grouping them under the Libraries menu
+  ///
+  /// In en, this message translates to:
+  /// **'Show Libraries Individually'**
+  String get showLibrariesIndividually;
+
+  /// Subtitle for the Show Libraries Individually setting
+  ///
+  /// In en, this message translates to:
+  /// **'Show each library as its own button in the navigation bar instead of in the Libraries menu'**
+  String get showLibrariesIndividuallySubtitle;
+
   /// Setting to keep every top navbar heading's text label visible at all times, tvOS-style
   ///
   /// In en, this message translates to:
@@ -8415,18 +8421,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Jump to letter'**
   String get libraryJumpToLetter;
-
-  /// Setting for enabling folder view
-  ///
-  /// In en, this message translates to:
-  /// **'Enable Folder View'**
-  String get enableFolderView;
-
-  /// Description for folder view
-  ///
-  /// In en, this message translates to:
-  /// **'Show folder browsing option'**
-  String get showFolderBrowsingOption;
 
   /// Setting for grouping items into collections
   ///
@@ -9951,12 +9945,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Featured content, appearance'**
   String get featuredContentAppearance;
-
-  /// Library display settings subtitle
-  ///
-  /// In en, this message translates to:
-  /// **'Poster size, image type, folder view'**
-  String get posterSizeImageTypeFolderView;
 
   /// Gigabyte value display
   ///
@@ -21112,6 +21100,18 @@ abstract class AppLocalizations {
   /// **'Skip the profile 8 conversion and strip Dolby Vision profile 7 streams to HDR10-compatible HEVC. Use this if converted streams look wrong.'**
   String get mapDolbyVisionP7Subtitle;
 
+  /// Setting title: drop the Dolby Vision layer from videos that carry both Dolby Vision and HDR10+
+  ///
+  /// In en, this message translates to:
+  /// **'Play Dolby Vision with HDR10+ as HDR10+'**
+  String get stripDolbyVisionHdr10PlusTitle;
+
+  /// Setting subtitle for dropping Dolby Vision from Dolby Vision plus HDR10+ videos
+  ///
+  /// In en, this message translates to:
+  /// **'Drop the Dolby Vision layer from videos that also have HDR10+. Turn this on if those videos play with sound but a black screen.'**
+  String get stripDolbyVisionHdr10PlusSubtitle;
+
   /// Setting title: apply colours/positioning from the subtitle track
   ///
   /// In en, this message translates to:
@@ -21147,6 +21147,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Show details of the selected item at the top of Library pages.'**
   String get showMediaDetailsOnLibraryPageDescription;
+
+  /// Setting that shows or hides the title and details under each card in library grids
+  ///
+  /// In en, this message translates to:
+  /// **'Titles Under Posters'**
+  String get libraryCardTitles;
+
+  /// Description of the Titles Under Posters setting
+  ///
+  /// In en, this message translates to:
+  /// **'Show each item\'s title and details below its artwork in library grids.'**
+  String get libraryCardTitlesDescription;
 
   /// Label for setting to toggle detailed or minimal subrow on library pages
   ///
@@ -21909,6 +21921,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Play HEVC up to 1080p from the original file instead of asking the server to transcode it. This Apple TV decodes it in software, so heavy 10-bit or high bitrate files may stutter.'**
   String get hevcSoftwareDirectPlaySubtitle;
+
+  /// No description provided for @av1SoftwareUhdDirectPlay.
+  ///
+  /// In en, this message translates to:
+  /// **'Direct Play 4K AV1 (Software Decode)'**
+  String get av1SoftwareUhdDirectPlay;
+
+  /// No description provided for @av1SoftwareUhdDirectPlaySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Play AV1 above 1080p, including HDR10, from the original file instead of asking the server to transcode it. This device decodes AV1 in software, so heavy 4K or high bitrate files may stutter.'**
+  String get av1SoftwareUhdDirectPlaySubtitle;
 
   /// No description provided for @useExternalPlayer.
   ///
@@ -23944,12 +23968,6 @@ abstract class AppLocalizations {
   /// **'CB7 extraction plugin is not available on this platform.'**
   String get cb7ExtractionPluginUnavailable;
 
-  /// No description provided for @closeGenrePanel.
-  ///
-  /// In en, this message translates to:
-  /// **'Close genre panel'**
-  String get closeGenrePanel;
-
   /// No description provided for @loadingShuffle.
   ///
   /// In en, this message translates to:
@@ -25356,6 +25374,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Show Alphabet'**
   String get showAlphabeticalFilters;
+
+  /// Checkbox in a library's Sort and Filter options that lists the library one folder at a time instead of all its items at once
+  ///
+  /// In en, this message translates to:
+  /// **'Folder View'**
+  String get libraryFolderView;
 
   /// Selects how personal ratings are displayed and entered on media details.
   ///
@@ -26951,6 +26975,12 @@ abstract class AppLocalizations {
   /// **'Corner'**
   String get homeScreenBackdropCorner;
 
+  /// Home Screen Backdrop option that shows the focused item's backdrop across the top half of the screen, fading into the background toward the bottom
+  ///
+  /// In en, this message translates to:
+  /// **'Top'**
+  String get homeScreenBackdropTop;
+
   /// Setting to show or hide the backdrop image behind the item details screen
   ///
   /// In en, this message translates to:
@@ -27303,7 +27333,7 @@ abstract class AppLocalizations {
   /// **'Play from Server'**
   String get playFromServer;
 
-  /// Settings label on iPhone and iPad for choosing which player plays video
+  /// Settings label on iPhone, iPad and Apple TV for choosing which player plays video
   ///
   /// In en, this message translates to:
   /// **'Video player'**
@@ -27312,7 +27342,7 @@ abstract class AppLocalizations {
   /// Settings description for the video player choice, listing what the native Apple style player lacks
   ///
   /// In en, this message translates to:
-  /// **'The native Apple style player has no casting, swipe gestures, orientation lock, audio delay or PiP button'**
+  /// **'The native Apple style player has no casting, audio delay or PiP button, and its rotation lock is only in Live TV'**
   String get settingsApplePlayerUiDescription;
 
   /// Option for the regular Moonfin video player on iPhone and iPad
@@ -27944,6 +27974,216 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Use a different address'**
   String get addServerUseDifferentAddress;
+
+  /// Count next to the title of a music library's Artists screen
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 artist} other{{count} artists}}'**
+  String musicArtistCount(int count);
+
+  /// Count of songs, next to the Songs screen title and under a playlist
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 song} other{{count} songs}}'**
+  String musicSongCount(int count);
+
+  /// Count next to the title of a music library's Playlists screen
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 playlist} other{{count} playlists}}'**
+  String musicPlaylistCount(int count);
+
+  /// How many times a song was played, at the end of a Most Played row
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 play} other{{count} plays}}'**
+  String musicPlayCount(int count);
+
+  /// Artists screen switch: every artist, not only those credited on albums
+  ///
+  /// In en, this message translates to:
+  /// **'All Artists'**
+  String get allArtists;
+
+  /// Sort order from Z to A
+  ///
+  /// In en, this message translates to:
+  /// **'Z to A'**
+  String get libraryZToA;
+
+  /// Albums screen sort: by release year, newest first
+  ///
+  /// In en, this message translates to:
+  /// **'Year'**
+  String get musicSortYear;
+
+  /// Albums screen button that opens the genre filter
+  ///
+  /// In en, this message translates to:
+  /// **'Filter'**
+  String get musicFilter;
+
+  /// Title of the genre list the Albums screen's Filter button opens
+  ///
+  /// In en, this message translates to:
+  /// **'Filter by Genre'**
+  String get musicGenreFilterTitle;
+
+  /// Button that opens an album's details screen
+  ///
+  /// In en, this message translates to:
+  /// **'Open Album'**
+  String get openAlbum;
+
+  /// Button that opens a playlist's details screen, where its order can be changed
+  ///
+  /// In en, this message translates to:
+  /// **'Open Playlist'**
+  String get openPlaylist;
+
+  /// Songs screen button that opens the full list of songs by name
+  ///
+  /// In en, this message translates to:
+  /// **'All Songs A to Z'**
+  String get allSongsAToZ;
+
+  /// Small label over a music mix card, as in a playlist the app put together
+  ///
+  /// In en, this message translates to:
+  /// **'Mix'**
+  String get musicMix;
+
+  /// Songs screen mix card that shuffles the whole library
+  ///
+  /// In en, this message translates to:
+  /// **'Everything'**
+  String get musicMixEverything;
+
+  /// Line under the Everything mix card
+  ///
+  /// In en, this message translates to:
+  /// **'300 songs at random'**
+  String get musicMixEverythingSubtitle;
+
+  /// Songs screen mix card and list of the songs played most
+  ///
+  /// In en, this message translates to:
+  /// **'Most Played'**
+  String get mostPlayed;
+
+  /// Line under the Most Played mix card
+  ///
+  /// In en, this message translates to:
+  /// **'Your top 100'**
+  String get musicMixMostPlayedSubtitle;
+
+  /// Songs screen mix card of the newest songs in the library
+  ///
+  /// In en, this message translates to:
+  /// **'Fresh Arrivals'**
+  String get musicMixFreshArrivals;
+
+  /// Line under the Fresh Arrivals mix card
+  ///
+  /// In en, this message translates to:
+  /// **'The newest 100 songs'**
+  String get musicMixFreshArrivalsSubtitle;
+
+  /// Songs screen mix card of favorite songs that haven't been played in a while
+  ///
+  /// In en, this message translates to:
+  /// **'Rediscover'**
+  String get musicMixRediscover;
+
+  /// Line under the Rediscover mix card
+  ///
+  /// In en, this message translates to:
+  /// **'Favorites you haven\'t played lately'**
+  String get musicMixRediscoverSubtitle;
+
+  /// Genres screen order: the genres with the most albums first
+  ///
+  /// In en, this message translates to:
+  /// **'Most Albums'**
+  String get musicSortMostAlbums;
+
+  /// Series screen: where the reader is in a series, the next unread book's number and how many books it has
+  ///
+  /// In en, this message translates to:
+  /// **'Book {index} of {total}'**
+  String bookSeriesPosition(int index, int total);
+
+  /// Book library Favorites screen header count
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 favorite} other{{count} favorites}}'**
+  String bookFavoriteCount(int count);
+
+  /// Authors screen order, from Z back to A
+  ///
+  /// In en, this message translates to:
+  /// **'Z to A'**
+  String get bookSortZToA;
+
+  /// Book genres screen order: the genres with the most titles first
+  ///
+  /// In en, this message translates to:
+  /// **'Most Titles'**
+  String get bookSortMostTitles;
+
+  /// Button on a book genre that opens a random unread title from it
+  ///
+  /// In en, this message translates to:
+  /// **'Surprise Me'**
+  String get bookSurpriseMe;
+
+  /// Button on an author that plays one of their audiobooks at random
+  ///
+  /// In en, this message translates to:
+  /// **'Shuffle Audiobooks'**
+  String get bookShuffleAudiobooks;
+
+  /// Button on an author that opens their first unread book
+  ///
+  /// In en, this message translates to:
+  /// **'Start Reading'**
+  String get bookStartReading;
+
+  /// Heading over an author's books that aren't part of a series
+  ///
+  /// In en, this message translates to:
+  /// **'Other Books'**
+  String get bookOtherBooks;
+
+  /// Placeholder in the Discover search field for books
+  ///
+  /// In en, this message translates to:
+  /// **'Search Open Library'**
+  String get bookDiscoverSearchBooks;
+
+  /// Placeholder in the Discover search field for audiobooks
+  ///
+  /// In en, this message translates to:
+  /// **'Search LibriVox'**
+  String get bookDiscoverSearchAudiobooks;
+
+  /// Label over the highlighted title at the top of Discover
+  ///
+  /// In en, this message translates to:
+  /// **'Featured'**
+  String get bookDiscoverFeatured;
+
+  /// Comic reader toggle while its bars fade out on their own
+  ///
+  /// In en, this message translates to:
+  /// **'Controls hide automatically'**
+  String get bookReaderControlsAutoHide;
+
+  /// Comic reader toggle while its bars stay on screen
+  ///
+  /// In en, this message translates to:
+  /// **'Controls stay visible'**
+  String get bookReaderControlsStayVisible;
 }
 
 class _AppLocalizationsDelegate

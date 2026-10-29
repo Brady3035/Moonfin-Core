@@ -869,6 +869,11 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
       subtitle: l10n.settingsShowLibrariesButtonInNavigation,
     ),
     navigation.leaf(
+      'pref_show_libraries_individually',
+      l10n.showLibrariesIndividually,
+      subtitle: l10n.showLibrariesIndividuallySubtitle,
+    ),
+    navigation.leaf(
       'pref_show_syncplay_button',
       l10n.settingsSyncplayButton,
       subtitle: l10n.settingsSyncplayButtonSubtitle,
@@ -878,12 +883,6 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
       l10n.navbarAlwaysExpanded,
       subtitle: l10n.settingsAlwaysExpandNavbarLabels,
       keywords: ['labels'],
-    ),
-    navigation.leaf(
-      'enable_folder_view',
-      l10n.enableFolderView,
-      subtitle: l10n.showFolderBrowsingOption,
-      keywords: ['directories'],
     ),
     if (seerrAvailable)
       navigation.leaf(
@@ -989,6 +988,37 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
       'gap',
     ]),
     home.leaf('poster_size', l10n.cardSize, keywords: ['poster size']),
+    home.leaf(
+      'homeRowsEnableAdditionalRatings',
+      l10n.additionalRatings,
+      subtitle: l10n.showMdbListAndTmdbRatings,
+      keywords: ['imdb', 'rotten tomatoes'],
+      header: l10n.ratings,
+    ),
+    home.leaf(
+      'homeRowsEnabledRatings',
+      l10n.ratingSources,
+      subtitle: l10n.ratingSourcesDescription,
+      header: l10n.ratings,
+    ),
+    home.leaf(
+      'homeRowsEnableEpisodeRatings',
+      l10n.episodeRatings,
+      subtitle: l10n.showRatingsOnEpisodes,
+      header: l10n.ratings,
+    ),
+    home.leaf(
+      'homeRowsShowRatingLabels',
+      l10n.ratingLabels,
+      subtitle: l10n.showLabelsNextToIcons,
+      header: l10n.ratings,
+    ),
+    home.leaf(
+      'homeRowsShowRatingBadges',
+      l10n.ratingBadges,
+      subtitle: l10n.showDecorativeBadges,
+      header: l10n.ratings,
+    ),
     if (PlatformDetection.isAppleTV)
       home.leaf(
         'pref_top_shelf_content',
@@ -1245,6 +1275,12 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
       subtitle: l10n.showMediaDetailsOnLibraryPageDescription,
     ),
     libraries.leaf(
+      'pref_library_card_titles',
+      l10n.libraryCardTitles,
+      subtitle: l10n.libraryCardTitlesDescription,
+      keywords: ['card text', 'names'],
+    ),
+    libraries.leaf(
       'pref_hide_backdrops_in_libraries',
       l10n.libraryBackdrops,
       keywords: ['background images', 'browsing'],
@@ -1275,6 +1311,31 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
         keywords: ['peek', 'first row'],
       ),
     mediaBar.leaf('mediaBarItemCount', l10n.itemCount),
+    mediaBar.leaf(
+      'mediaBarEnableAdditionalRatings',
+      l10n.additionalRatings,
+      subtitle: l10n.showMdbListAndTmdbRatings,
+      keywords: ['imdb', 'rotten tomatoes'],
+      header: l10n.ratings,
+    ),
+    mediaBar.leaf(
+      'mediaBarEnabledRatings',
+      l10n.ratingSources,
+      subtitle: l10n.ratingSourcesDescription,
+      header: l10n.ratings,
+    ),
+    mediaBar.leaf(
+      'mediaBarShowRatingLabels',
+      l10n.ratingLabels,
+      subtitle: l10n.showLabelsNextToIcons,
+      header: l10n.ratings,
+    ),
+    mediaBar.leaf(
+      'mediaBarShowRatingBadges',
+      l10n.ratingBadges,
+      subtitle: l10n.showDecorativeBadges,
+      header: l10n.ratings,
+    ),
     mediaBar.leaf('mediaBarLibraryIds', l10n.sourceLibraries),
     mediaBar.leaf('mediaBarCollectionIds', l10n.sourceCollections),
     mediaBar.leaf('mediaBarExcludedGenres', l10n.excludedGenres),
@@ -1331,6 +1392,15 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
       l10n.seasonalDensity,
       keywords: ['particles', 'amount', 'light', 'heavy'],
     ),
+    if (PlatformDetection.isTV || PlatformDetection.isDesktop)
+      seasonal.leaf(
+        'seasonalFollower',
+        l10n.seasonalFollower,
+        subtitle: PlatformDetection.isTV
+            ? l10n.seasonalFollowerDescription
+            : l10n.seasonalFollowerPointerDescription,
+        keywords: ['planchette', 'cursor', 'pointer', 'mouse'],
+      ),
     loadingAnimation.screen(keywords: ['spinner', 'runner', 'moon', 'logo', 'loading']),
     loadingAnimation.leaf(
       'loadingAnimationImage',
@@ -1355,6 +1425,21 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
 
     playback.screen(keywords: ['video', 'audio', 'subtitles', 'player']),
     video.screen(keywords: ['player', 'playback']),
+    if (PlatformDetection.isAndroid)
+      video.leaf(
+        'playback_engine_preference',
+        l10n.settingsPlaybackEngineAndroidTv,
+        keywords: ['exoplayer', 'mpv', 'media3', 'engine'],
+      ),
+    if (offersApplePlayerChoice)
+      video.leaf(
+        'pref_apple_player_ui',
+        l10n.settingsApplePlayerUi,
+        subtitle: PlatformDetection.isAppleTV
+            ? null
+            : l10n.settingsApplePlayerUiDescription,
+        keywords: ['native player', 'apple tv player', 'player'],
+      ),
     video.leaf(
       'showDescriptionOnPause',
       l10n.showDescriptionOnPause,
@@ -1520,19 +1605,6 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
         subtitle: l10n.settingsLiveTvDirectSubtitle,
         keywords: ['live tv'],
       ),
-    if (PlatformDetection.isAndroid)
-      quality.leaf(
-        'playback_engine_preference',
-        l10n.settingsPlaybackEngineAndroidTv,
-        keywords: ['exoplayer', 'mpv', 'media3', 'engine'],
-      ),
-    if (PlatformDetection.isIOS)
-      quality.leaf(
-        'pref_apple_player_ui',
-        l10n.settingsApplePlayerUi,
-        subtitle: l10n.settingsApplePlayerUiDescription,
-        keywords: ['native player', 'apple tv player', 'player'],
-      ),
     if (!PlatformDetection.isWeb && !PlatformDetection.isAppleTV)
       quality.leaf(
         'hardware_decoding',
@@ -1546,6 +1618,13 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
         l10n.hevcSoftwareDirectPlay,
         subtitle: l10n.hevcSoftwareDirectPlaySubtitle,
         keywords: ['hevc', 'h265', 'x265', 'software decode'],
+      ),
+    if (PlatformDetection.offersAv1SoftwareUhd)
+      quality.leaf(
+        'av1_software_uhd_direct_play',
+        l10n.av1SoftwareUhdDirectPlay,
+        subtitle: l10n.av1SoftwareUhdDirectPlaySubtitle,
+        keywords: ['av1', '4k', 'uhd', 'software decode'],
       ),
     if (PlatformDetection.isAndroid && PlatformDetection.isTV) ...[
       quality.leaf(
@@ -1691,11 +1770,16 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
       l10n.subtitleDownloadLanguages,
       keywords: ['download', 'opensubtitles'],
     ),
-    if (PlatformDetection.isAndroid)
-      subtitles.leaf(
-        'pref_secondary_subtitle_language',
-        l10n.preferredSecondarySubtitleLanguage,
-      ),
+    subtitles.leaf(
+      'pref_secondary_subtitles_enabled',
+      l10n.secondarySubtitleTrack,
+      subtitle: l10n.secondarySubtitlesEnabledSubtitle,
+      keywords: ['dual subtitles', 'two subtitles'],
+    ),
+    subtitles.leaf(
+      'pref_secondary_subtitle_language',
+      l10n.preferredSecondarySubtitleLanguage,
+    ),
     subtitles.leaf(
       'pref_fallback_subtitle_language',
       l10n.fallbackSubtitleLanguage,

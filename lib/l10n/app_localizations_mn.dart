@@ -58,6 +58,9 @@ class AppLocalizationsMn extends AppLocalizations {
   String get signIn => 'Нэвтрэх';
 
   @override
+  String get signingIn => 'Signing in...';
+
+  @override
   String get empty => 'Хоосон';
 
   @override

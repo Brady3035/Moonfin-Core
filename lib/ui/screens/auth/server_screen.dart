@@ -151,6 +151,19 @@ class _ServerScreenState extends State<ServerScreen> {
   /// dialog takes long enough that Select gets pressed again.
   bool _handlingUserTap = false;
 
+  /// Set while a tapped user's session starts. The first sign-in on a server
+  /// waits for the plugin sync, so the screen says it's working.
+  bool _signingIn = false;
+
+  Future<T> _whileSigningIn<T>(Future<T> Function() run) async {
+    setState(() => _signingIn = true);
+    try {
+      return await run();
+    } finally {
+      if (mounted) setState(() => _signingIn = false);
+    }
+  }
+
   Future<void> _onUserTap(_MergedUser user) async {
     if (_handlingUserTap) return;
     _handlingUserTap = true;
@@ -214,7 +227,9 @@ class _ServerScreenState extends State<ServerScreen> {
     }
 
     if (user.hasToken && !alwaysAuthenticate) {
-      final success = await _trySwitchSession(server.id, user.id);
+      final success = await _whileSigningIn(
+        () => _trySwitchSession(server.id, user.id),
+      );
       if (success && mounted) {
         context.go(Destinations.home);
         return;
@@ -231,11 +246,15 @@ class _ServerScreenState extends State<ServerScreen> {
     }
 
     if (!user.hasPassword && !alwaysAuthenticate) {
-      final result = await _tryPasswordlessAuth(server, user);
+      final result = await _whileSigningIn(
+        () => _tryPasswordlessAuth(server, user),
+      );
       if (result is Authenticated && mounted) {
-        final switched = await _sessionRepo.switchCurrentSession(
-          serverId: server.id,
-          userId: result.userId,
+        final switched = await _whileSigningIn(
+          () => _sessionRepo.switchCurrentSession(
+            serverId: server.id,
+            userId: result.userId,
+          ),
         );
         if (switched && mounted) {
           context.go(Destinations.home);
@@ -386,7 +405,26 @@ class _ServerScreenState extends State<ServerScreen> {
           ],
           const SizedBox(height: 24),
           _buildUserRow(),
-          if (_errorMessage != null) ...[
+          if (_signingIn) ...[
+            const SizedBox(height: 12),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  l10n.signingIn,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Colors.white.withValues(alpha: 0.7),
+                  ),
+                ),
+              ],
+            ),
+          ] else if (_errorMessage != null) ...[
             const SizedBox(height: 12),
             Text(
               _errorMessage!,

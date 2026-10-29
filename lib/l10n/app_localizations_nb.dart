@@ -58,6 +58,9 @@ class AppLocalizationsNb extends AppLocalizations {
   String get signIn => 'Logg på';
 
   @override
+  String get signingIn => 'Signing in...';
+
+  @override
   String get empty => 'Tom';
 
   @override

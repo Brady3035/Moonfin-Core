@@ -58,6 +58,9 @@ class AppLocalizationsBg extends AppLocalizations {
   String get signIn => 'Вход';
 
   @override
+  String get signingIn => 'Signing in...';
+
+  @override
   String get empty => 'Празно';
 
   @override

@@ -58,6 +58,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get signIn => 'Войти';
 
   @override
+  String get signingIn => 'Signing in...';
+
+  @override
   String get empty => 'Пусто';
 
   @override

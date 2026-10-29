@@ -58,6 +58,9 @@ class AppLocalizationsTr extends AppLocalizations {
   String get signIn => 'Giriş yap';
 
   @override
+  String get signingIn => 'Signing in...';
+
+  @override
   String get empty => 'Boş';
 
   @override

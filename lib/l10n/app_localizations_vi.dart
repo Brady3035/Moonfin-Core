@@ -58,6 +58,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get signIn => 'Đăng nhập';
 
   @override
+  String get signingIn => 'Signing in...';
+
+  @override
   String get empty => 'Trống';
 
   @override

@@ -58,6 +58,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get signIn => 'Accedi';
 
   @override
+  String get signingIn => 'Signing in...';
+
+  @override
   String get empty => 'Vuoto';
 
   @override

@@ -58,6 +58,9 @@ class AppLocalizationsMl extends AppLocalizations {
   String get signIn => 'സൈൻ ഇൻ';
 
   @override
+  String get signingIn => 'Signing in...';
+
+  @override
   String get empty => 'ശൂന്യം';
 
   @override

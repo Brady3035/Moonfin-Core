@@ -58,6 +58,9 @@ class AppLocalizationsTl extends AppLocalizations {
   String get signIn => 'Mag-sign In';
 
   @override
+  String get signingIn => 'Signing in...';
+
+  @override
   String get empty => 'Walang laman';
 
   @override

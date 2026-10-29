@@ -58,6 +58,9 @@ class AppLocalizationsEl extends AppLocalizations {
   String get signIn => 'Είσοδος';
 
   @override
+  String get signingIn => 'Signing in...';
+
+  @override
   String get empty => 'Κενό';
 
   @override

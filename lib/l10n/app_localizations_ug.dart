@@ -58,6 +58,9 @@ class AppLocalizationsUg extends AppLocalizations {
   String get signIn => 'تىزىملىتىڭ';
 
   @override
+  String get signingIn => 'Signing in...';
+
+  @override
   String get empty => 'قۇرۇق';
 
   @override

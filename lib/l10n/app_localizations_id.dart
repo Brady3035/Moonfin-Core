@@ -58,6 +58,9 @@ class AppLocalizationsId extends AppLocalizations {
   String get signIn => 'Masuk';
 
   @override
+  String get signingIn => 'Signing in...';
+
+  @override
   String get empty => 'Kosong';
 
   @override

@@ -58,6 +58,9 @@ class AppLocalizationsHi extends AppLocalizations {
   String get signIn => 'दाखिल करना';
 
   @override
+  String get signingIn => 'Signing in...';
+
+  @override
   String get empty => 'खाली';
 
   @override

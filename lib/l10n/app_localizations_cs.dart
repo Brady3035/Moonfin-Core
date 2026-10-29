@@ -58,6 +58,9 @@ class AppLocalizationsCs extends AppLocalizations {
   String get signIn => 'Přihlaste se';
 
   @override
+  String get signingIn => 'Signing in...';
+
+  @override
   String get empty => 'Prázdné';
 
   @override

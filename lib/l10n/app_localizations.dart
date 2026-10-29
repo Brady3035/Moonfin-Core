@@ -316,6 +316,12 @@ abstract class AppLocalizations {
   /// **'Sign In'**
   String get signIn;
 
+  /// Shown under the user list while a tapped user is being signed in
+  ///
+  /// In en, this message translates to:
+  /// **'Signing in...'**
+  String get signingIn;
+
   /// Label indicating a section or category is empty
   ///
   /// In en, this message translates to:

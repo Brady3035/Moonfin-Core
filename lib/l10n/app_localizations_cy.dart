@@ -58,6 +58,9 @@ class AppLocalizationsCy extends AppLocalizations {
   String get signIn => 'Mewngofnodwch';
 
   @override
+  String get signingIn => 'Signing in...';
+
+  @override
   String get empty => 'Gwag';
 
   @override

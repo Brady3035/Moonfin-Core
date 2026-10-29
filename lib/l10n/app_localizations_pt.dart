@@ -58,6 +58,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get signIn => 'Entrar';
 
   @override
+  String get signingIn => 'Signing in...';
+
+  @override
   String get empty => 'Vazio';
 
   @override

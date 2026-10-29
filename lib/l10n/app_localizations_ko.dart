@@ -58,6 +58,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get signIn => '로그인';
 
   @override
+  String get signingIn => 'Signing in...';
+
+  @override
   String get empty => '비어 있음';
 
   @override

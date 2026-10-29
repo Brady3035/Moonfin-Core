@@ -58,6 +58,9 @@ class AppLocalizationsCa extends AppLocalizations {
   String get signIn => 'Iniciar sessió';
 
   @override
+  String get signingIn => 'Signing in...';
+
+  @override
   String get empty => 'Buit';
 
   @override

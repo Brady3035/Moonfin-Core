@@ -58,6 +58,9 @@ class AppLocalizationsUk extends AppLocalizations {
   String get signIn => 'Увійти';
 
   @override
+  String get signingIn => 'Signing in...';
+
+  @override
   String get empty => 'Порожньо';
 
   @override

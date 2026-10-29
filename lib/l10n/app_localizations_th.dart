@@ -58,6 +58,9 @@ class AppLocalizationsTh extends AppLocalizations {
   String get signIn => 'เข้าสู่ระบบ';
 
   @override
+  String get signingIn => 'Signing in...';
+
+  @override
   String get empty => 'ว่างเปล่า';
 
   @override

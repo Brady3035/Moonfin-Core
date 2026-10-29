@@ -58,6 +58,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get signIn => 'Bejelentkezés';
 
   @override
+  String get signingIn => 'Signing in...';
+
+  @override
   String get empty => 'Üres';
 
   @override

@@ -58,6 +58,9 @@ class AppLocalizationsTe extends AppLocalizations {
   String get signIn => 'సైన్ ఇన్ చేయండి';
 
   @override
+  String get signingIn => 'Signing in...';
+
+  @override
   String get empty => 'ఖాళీ';
 
   @override

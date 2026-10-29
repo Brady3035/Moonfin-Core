@@ -58,6 +58,9 @@ class AppLocalizationsTa extends AppLocalizations {
   String get signIn => 'உள்நுழையவும்';
 
   @override
+  String get signingIn => 'Signing in...';
+
+  @override
   String get empty => 'காலி';
 
   @override

@@ -58,6 +58,9 @@ class AppLocalizationsSk extends AppLocalizations {
   String get signIn => 'Prihlásiť sa';
 
   @override
+  String get signingIn => 'Signing in...';
+
+  @override
   String get empty => 'Prázdne';
 
   @override

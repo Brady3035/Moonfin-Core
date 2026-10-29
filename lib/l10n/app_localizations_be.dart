@@ -58,6 +58,9 @@ class AppLocalizationsBe extends AppLocalizations {
   String get signIn => 'Увайдзіце';
 
   @override
+  String get signingIn => 'Signing in...';
+
+  @override
   String get empty => 'Пуста';
 
   @override

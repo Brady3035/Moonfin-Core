@@ -58,6 +58,9 @@ class AppLocalizationsKn extends AppLocalizations {
   String get signIn => 'ಸೈನ್ ಇನ್ ಮಾಡಿ';
 
   @override
+  String get signingIn => 'Signing in...';
+
+  @override
   String get empty => 'ಖಾಲಿ';
 
   @override

@@ -58,6 +58,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get signIn => 'サインイン';
 
   @override
+  String get signingIn => 'Signing in...';
+
+  @override
   String get empty => '空';
 
   @override

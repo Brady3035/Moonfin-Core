@@ -58,6 +58,9 @@ class AppLocalizationsMk extends AppLocalizations {
   String get signIn => 'Пријавете се';
 
   @override
+  String get signingIn => 'Signing in...';
+
+  @override
   String get empty => 'Празно';
 
   @override

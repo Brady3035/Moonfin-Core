@@ -64,6 +64,10 @@
   "@signIn": {
     "description": "Sign in heading and button label"
   },
+  "signingIn": "Signing in...",
+  "@signingIn": {
+    "description": "Shown under the user list while a tapped user is being signed in"
+  },
   "empty": "Empty",
   "@empty": {
     "description": "Label indicating a section or category is empty"

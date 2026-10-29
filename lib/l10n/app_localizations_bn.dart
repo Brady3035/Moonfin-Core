@@ -58,6 +58,9 @@ class AppLocalizationsBn extends AppLocalizations {
   String get signIn => 'সাইন ইন করুন';
 
   @override
+  String get signingIn => 'Signing in...';
+
+  @override
   String get empty => 'খালি';
 
   @override

@@ -58,6 +58,9 @@ class AppLocalizationsSw extends AppLocalizations {
   String get signIn => 'Ingia';
 
   @override
+  String get signingIn => 'Signing in...';
+
+  @override
   String get empty => 'Tupu';
 
   @override

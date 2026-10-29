@@ -58,6 +58,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get signIn => '登录';
 
   @override
+  String get signingIn => 'Signing in...';
+
+  @override
   String get empty => '空';
 
   @override

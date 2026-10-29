@@ -58,6 +58,9 @@ class AppLocalizationsFa extends AppLocalizations {
   String get signIn => 'وارد شوید';
 
   @override
+  String get signingIn => 'Signing in...';
+
+  @override
   String get empty => 'خالی';
 
   @override

@@ -58,6 +58,9 @@ class AppLocalizationsSr extends AppLocalizations {
   String get signIn => 'Пријава';
 
   @override
+  String get signingIn => 'Signing in...';
+
+  @override
   String get empty => 'Празно';
 
   @override

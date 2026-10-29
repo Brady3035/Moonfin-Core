@@ -58,6 +58,9 @@ class AppLocalizationsSq extends AppLocalizations {
   String get signIn => 'Hyni';
 
   @override
+  String get signingIn => 'Signing in...';
+
+  @override
   String get empty => 'Bosh';
 
   @override

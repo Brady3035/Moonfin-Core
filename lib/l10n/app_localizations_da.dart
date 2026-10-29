@@ -58,6 +58,9 @@ class AppLocalizationsDa extends AppLocalizations {
   String get signIn => 'Log ind';
 
   @override
+  String get signingIn => 'Signing in...';
+
+  @override
   String get empty => 'Tom';
 
   @override

@@ -58,6 +58,9 @@ class AppLocalizationsEo extends AppLocalizations {
   String get signIn => 'Ensalutu';
 
   @override
+  String get signingIn => 'Signing in...';
+
+  @override
   String get empty => 'Malplena';
 
   @override

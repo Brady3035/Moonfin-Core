@@ -58,6 +58,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get signIn => 'تسجيل الدخول';
 
   @override
+  String get signingIn => 'Signing in...';
+
+  @override
   String get empty => 'فارغ';
 
   @override

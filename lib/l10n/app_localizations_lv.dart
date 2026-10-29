@@ -58,6 +58,9 @@ class AppLocalizationsLv extends AppLocalizations {
   String get signIn => 'Pierakstīties';
 
   @override
+  String get signingIn => 'Signing in...';
+
+  @override
   String get empty => 'Tukšs';
 
   @override

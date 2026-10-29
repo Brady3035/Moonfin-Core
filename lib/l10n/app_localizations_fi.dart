@@ -58,6 +58,9 @@ class AppLocalizationsFi extends AppLocalizations {
   String get signIn => 'Kirjaudu Sisään';
 
   @override
+  String get signingIn => 'Signing in...';
+
+  @override
   String get empty => 'Tyhjä';
 
   @override

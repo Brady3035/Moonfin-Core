@@ -58,6 +58,9 @@ class AppLocalizationsPa extends AppLocalizations {
   String get signIn => 'ਸਾਈਨ - ਇਨ';
 
   @override
+  String get signingIn => 'Signing in...';
+
+  @override
   String get empty => 'ਖਾਲੀ';
 
   @override

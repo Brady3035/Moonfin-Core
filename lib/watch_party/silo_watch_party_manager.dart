@@ -7,10 +7,12 @@ import 'package:flutter/foundation.dart';
 import 'package:get_it/get_it.dart';
 import 'package:logger/logger.dart';
 import 'package:playback_core/playback_core.dart';
+import 'package:server_core/server_core.dart';
 import 'package:server_silo/server_silo.dart';
 import 'package:uuid/uuid.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
+import '../auth/services/silo_token_storage.dart';
 import '../data/models/aggregated_item.dart';
 import '../data/services/media_server_client_factory.dart';
 import '../ui/navigation/app_router.dart';
@@ -90,10 +92,13 @@ class SiloWatchPartyManager extends ChangeNotifier {
 
   /// The active client when it is a Silo server, else null.
   SiloMediaServerClient? get activeSiloClient {
+    final client = _activeClient;
+    return client == null ? null : siloClientOf(client);
+  }
+
+  MediaServerClient? get _activeClient {
     try {
-      final client = GetIt.instance<MediaServerClientFactory>()
-          .getActiveClient();
-      return client is SiloMediaServerClient ? client : null;
+      return GetIt.instance<MediaServerClientFactory>().getActiveClient();
     } catch (_) {
       return null;
     }
@@ -159,8 +164,9 @@ class SiloWatchPartyManager extends ChangeNotifier {
   Future<bool> _enter(
     Future<SiloRoomAccess> Function(SiloWatchPartyApi api) request,
   ) async {
-    final client = activeSiloClient;
-    if (client == null) return false;
+    final active = _activeClient;
+    final client = active == null ? null : siloClientOf(active);
+    if (active == null || client == null) return false;
     _busy = true;
     _error = null;
     _endedReason = null;
@@ -169,7 +175,7 @@ class SiloWatchPartyManager extends ChangeNotifier {
       final access = await request(client.watchPartyApi);
       if (_room != null) _leaveRoom(null);
       _client = client;
-      _serverId = _serverIdOf(client);
+      _serverId = _serverIdOf(active);
       _room = access.room;
       _roomToken = access.token;
       _clockSamples.clear();
@@ -215,7 +221,8 @@ class SiloWatchPartyManager extends ChangeNotifier {
     return e.toString();
   }
 
-  String? _serverIdOf(SiloMediaServerClient client) {
+  /// [client] as the factory holds it (wrapped for offline use).
+  String? _serverIdOf(MediaServerClient client) {
     try {
       for (final entry
           in GetIt.instance<MediaServerClientFactory>().clients.entries) {

@@ -49,7 +49,7 @@ Moonfin is a media client for Jellyfin, Emby, and Plex servers, built with Flutt
 | **Apple TV (tvOS)** | 18.0 | Full support |
 | **macOS** | 15.0 (Sequoia) | Full support |
 | **Windows** | 10 (x64 and ARM64) | Full support |
-| **Linux** | GTK 3+, CMake 3.13+ | Full support (Wayland only) |
+| **Linux** | GTK 3+, CMake 3.13+ | Full support (Wayland and X11) |
 | **Web** | Modern browsers (installable PWA) | Full support |
 
 > Android TV, Fire TV, and Apple TV ship from this same codebase with a TV-tuned interface and D-pad navigation. Fire TV runs the same native backend as Android TV. Web runs as an installable PWA through the Moonbase server plugin.

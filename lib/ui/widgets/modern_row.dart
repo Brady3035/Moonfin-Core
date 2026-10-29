@@ -18,10 +18,9 @@ double modernImageHeight(PosterSize posterSize, double platformScale) =>
 
 /// Room under a Modern poster for the title, the metadata line, the ratings
 /// and three lines of overview. Phones only show the title and one line.
-double modernMetadataBudget(UserPreferences prefs) {
+double modernMetadataBudget(UserPreferences prefs, RatingSettings ratings) {
   if (PlatformDetection.useMobileUi) return 50.0;
-  final ratingsPadding =
-      prefs.get(UserPreferences.enableAdditionalRatings) ? 8.0 : 0.0;
+  final ratingsPadding = prefs.get(ratings.additionalRatings) ? 8.0 : 0.0;
   return 175.0 + ratingsPadding;
 }
 
@@ -201,6 +200,7 @@ class ModernCardDetails extends StatelessWidget {
   const ModernCardDetails({
     super.key,
     required this.prefs,
+    required this.ratingSettings,
     required this.cardWidth,
     required this.detailsWidth,
     this.overview,
@@ -211,6 +211,9 @@ class ModernCardDetails extends StatelessWidget {
   });
 
   final UserPreferences prefs;
+
+  /// Home rows read their own ratings settings, other Modern rows the global set.
+  final RatingSettings ratingSettings;
   final double cardWidth;
   final double detailsWidth;
   final String? overview;
@@ -250,11 +253,10 @@ class ModernCardDetails extends StatelessWidget {
             communityRating: communityRating,
             criticRating: criticRating,
             personalRating: personalRating,
-            enableAdditionalRatings:
-                prefs.get(UserPreferences.enableAdditionalRatings),
-            enabledRatings: prefs.get(UserPreferences.enabledRatings),
-            showLabels: prefs.get(UserPreferences.showRatingLabels),
-            showBadges: prefs.get(UserPreferences.showRatingBadges),
+            enableAdditionalRatings: prefs.get(ratingSettings.additionalRatings),
+            enabledRatings: prefs.get(ratingSettings.sources),
+            showLabels: prefs.get(ratingSettings.labels),
+            showBadges: prefs.get(ratingSettings.badges),
             singleLine: !PlatformDetection.useMobileUi,
           ),
         if (overview.isNotEmpty &&

@@ -136,7 +136,7 @@ class _InfoAreaContentState extends State<_InfoAreaContent> {
   }
 
   Future<void> _loadRatings() async {
-    if (!_prefs.get(UserPreferences.enableAdditionalRatings)) return;
+    if (!_prefs.get(UserPreferences.homeRowsEnableAdditionalRatings)) return;
 
     final clientFactory = GetIt.instance<MediaServerClientFactory>();
     final resolveClient =
@@ -146,7 +146,9 @@ class _InfoAreaContentState extends State<_InfoAreaContent> {
     final result = await GetIt.instance<MdbListRepository>().getRatingsForItem(
       widget.item,
       resolveClient: resolveClient,
-      episodeRatingsEnabled: _prefs.canFetchEpisodeRatings,
+      episodeRatingsEnabled: _prefs.canFetchEpisodeRatingsFor(
+        UserPreferences.homeRowsRatings,
+      ),
     );
     if (mounted && result != null && result.isNotEmpty) {
       setState(() => _ratings = result);
@@ -589,11 +591,11 @@ class _InfoAreaContentState extends State<_InfoAreaContent> {
               communityRating: item.communityRating,
               criticRating: item.criticRating,
               enableAdditionalRatings: _prefs.get(
-                UserPreferences.enableAdditionalRatings,
+                UserPreferences.homeRowsEnableAdditionalRatings,
               ),
-              enabledRatings: _prefs.get(UserPreferences.enabledRatings),
-              showLabels: _prefs.get(UserPreferences.showRatingLabels),
-              showBadges: _prefs.get(UserPreferences.showRatingBadges),
+              enabledRatings: _prefs.get(UserPreferences.homeRowsEnabledRatings),
+              showLabels: _prefs.get(UserPreferences.homeRowsShowRatingLabels),
+              showBadges: _prefs.get(UserPreferences.homeRowsShowRatingBadges),
             ),
           if (!_prefs.get(UserPreferences.hideHomeMediaDescription)) ...[
             SizedBox(height: overviewTopSpacing),

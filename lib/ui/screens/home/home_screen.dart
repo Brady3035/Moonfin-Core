@@ -2594,7 +2594,7 @@ class _ContentRowsState extends State<_ContentRows>
   }
 
   void _primeV2FocusedRatings(AggregatedItem item) {
-    if (!widget.prefs.get(UserPreferences.enableAdditionalRatings)) {
+    if (!widget.prefs.get(UserPreferences.homeRowsEnableAdditionalRatings)) {
       return;
     }
 
@@ -2624,7 +2624,9 @@ class _ContentRowsState extends State<_ContentRows>
     final result = await GetIt.instance<MdbListRepository>().getRatingsForItem(
       item,
       resolveClient: resolveClient,
-      episodeRatingsEnabled: widget.prefs.canFetchEpisodeRatings,
+      episodeRatingsEnabled: widget.prefs.canFetchEpisodeRatingsFor(
+        UserPreferences.homeRowsRatings,
+      ),
     );
     if (!mounted || result == null || result.isEmpty) {
       return;
@@ -3316,9 +3318,9 @@ class _ContentRowsState extends State<_ContentRows>
       final desktopScale = widget.prefs
           .get(UserPreferences.desktopUiScale)
           .scaleFactor;
-      final ratingsEnabled =
-          widget.prefs.get(UserPreferences.enableAdditionalRatings) as bool? ??
-          false;
+      final ratingsEnabled = widget.prefs.get(
+        UserPreferences.homeRowsEnableAdditionalRatings,
+      );
       final extraHeight = ratingsEnabled ? (32.0 * desktopScale) : 0.0;
       final rowHeight = _staticRowHeight(rowIndex) + extraHeight;
 
@@ -4387,7 +4389,7 @@ class _ContentRowsState extends State<_ContentRows>
   double _v2MetadataBudgetFor(HomeRow row, UserPreferences prefs) =>
       row.rowType == HomeRowType.libraryTiles
       ? _libraryTilesMetadataBudget
-      : modernMetadataBudget(prefs);
+      : modernMetadataBudget(prefs, UserPreferences.homeRowsRatings);
 
   /// Extra room the classic rows setting asks for. Library rows are left out,
   /// since their grid sizes itself and padding there overlaps the next row.
@@ -5836,6 +5838,7 @@ class _ContentRowsState extends State<_ContentRows>
       valueListenable: _v2AdditionalRatingsNotifier,
       builder: (context, ratingsByKey, _) => ModernCardDetails(
         prefs: widget.prefs,
+        ratingSettings: UserPreferences.homeRowsRatings,
         cardWidth: cardWidth,
         detailsWidth: detailsWidth,
         overview: isAudioRow ? null : item.overview,

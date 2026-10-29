@@ -412,6 +412,15 @@ class _HomeScreenCategoryScreenState extends State<_HomeScreenCategoryScreen> {
             ],
           ),
 
+          _SectionHeader(l10n.ratings),
+          adaptiveListSection(
+            children: _ratingsSettingsTiles(
+              context,
+              l10n,
+              UserPreferences.homeRowsRatings,
+            ),
+          ),
+
           // Every source here needs the Moonbase plugin. Seerr's rows and the
           // Radarr and Sonarr calendars also need Seerr.
           if (pluginAvailable) ...[

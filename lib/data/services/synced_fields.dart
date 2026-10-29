@@ -88,9 +88,9 @@ class SyncedField {
 /// bespoke code in PluginSyncService: mediaBarMode (falls back to a legacy bool and writes
 /// two preferences), mediaBarContentType (values outside the known set have to be rejected),
 /// sinceYouWatchedNumRows (an int on the wire against an enum locally), mdblistRatingSources
-/// (rating names are translated in both directions), homeSections and seerrRows (nested
-/// structures), and homeRowImageTypes (one preference per row, see
-/// [encodeHomeRowImageTypes]).
+/// and its homeRows and mediaBar copies (rating names are translated in both directions),
+/// homeSections and seerrRows (nested structures), and homeRowImageTypes (one preference
+/// per row, see [encodeHomeRowImageTypes]).
 final List<SyncedField> syncedFields = <SyncedField>[
   SyncedField('hiddenContinueWatchingItems', UserPreferences.hiddenContinueWatchingItems, SyncCodec.text),
   SyncedField('hiddenNextUpSeries', UserPreferences.hiddenNextUpSeries, SyncCodec.text),
@@ -208,6 +208,13 @@ final List<SyncedField> syncedFields = <SyncedField>[
   SyncedField('mdblistShowRatingNames', UserPreferences.showRatingLabels, SyncCodec.boolean),
   SyncedField('mdblistShowRatingBadges', UserPreferences.showRatingBadges, SyncCodec.boolean),
   SyncedField('tmdbEpisodeRatingsEnabled', UserPreferences.enableEpisodeRatings, SyncCodec.boolean),
+  SyncedField('homeRowsMdblistEnabled', UserPreferences.homeRowsEnableAdditionalRatings, SyncCodec.boolean),
+  SyncedField('homeRowsMdblistShowRatingNames', UserPreferences.homeRowsShowRatingLabels, SyncCodec.boolean),
+  SyncedField('homeRowsMdblistShowRatingBadges', UserPreferences.homeRowsShowRatingBadges, SyncCodec.boolean),
+  SyncedField('homeRowsTmdbEpisodeRatingsEnabled', UserPreferences.homeRowsEnableEpisodeRatings, SyncCodec.boolean),
+  SyncedField('mediaBarMdblistEnabled', UserPreferences.mediaBarEnableAdditionalRatings, SyncCodec.boolean),
+  SyncedField('mediaBarMdblistShowRatingNames', UserPreferences.mediaBarShowRatingLabels, SyncCodec.boolean),
+  SyncedField('mediaBarMdblistShowRatingBadges', UserPreferences.mediaBarShowRatingBadges, SyncCodec.boolean),
   SyncedField('tmdbApiKey', UserPreferences.tmdbApiKey, SyncCodec.text, receiveOnly: true),
   SyncedField('seerrEnabled', UserPreferences.seerrEnabled, SyncCodec.boolean),
   SyncedField('seerrBlockNsfw', UserPreferences.seerrBlockNsfw, SyncCodec.boolean),

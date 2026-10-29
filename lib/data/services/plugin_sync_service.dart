@@ -1075,6 +1075,8 @@ class PluginSyncService extends ChangeNotifier {
       UserPreferences.mediaBarEnabled,
       UserPreferences.mediaBarContentType,
       UserPreferences.enabledRatings,
+      UserPreferences.homeRowsEnabledRatings,
+      UserPreferences.mediaBarEnabledRatings,
       UserPreferences.homeSectionsJson,
     ]) {
       await _prefs.removePreference(pref);
@@ -1461,16 +1463,22 @@ class PluginSyncService extends ChangeNotifier {
     _applyMediaBarMode(resolved);
     _applyMediaBarContentType(resolved);
     _applyHomeRowImageTypes(resolved);
-    if (resolved['mdblistRatingSources'] is List) {
-      final sources = (resolved['mdblistRatingSources'] as List)
-          .cast<String>()
-          .map((s) => _serverToClientRatingSource[s] ?? s)
-          .join(',');
-      _store.set(
-        _prefs.getEffectivePreference(UserPreferences.enabledRatings),
-        sources,
-      );
-    }
+    _applyRatingSources(
+      resolved,
+      'mdblistRatingSources',
+      UserPreferences.enabledRatings,
+      emptyKeepsLocal: false,
+    );
+    _applyRatingSources(
+      resolved,
+      'homeRowsMdblistRatingSources',
+      UserPreferences.homeRowsEnabledRatings,
+    );
+    _applyRatingSources(
+      resolved,
+      'mediaBarMdblistRatingSources',
+      UserPreferences.mediaBarEnabledRatings,
+    );
 
     // Prefer the full homeSections layout when present which unlike homeRowOrder it
     // carries dynamic and disabled rows. home_sections_config is per-server
@@ -2057,6 +2065,26 @@ class PluginSyncService extends ChangeNotifier {
     return _prefs.get(pref).split(',').where((s) => s.isNotEmpty).toList();
   }
 
+  List<String> _ratingSourcesForServer(Preference<String> pref) =>
+      _csvToList(pref).map((s) => _clientToServerRatingSource[s] ?? s).toList();
+
+  /// [emptyKeepsLocal] treats an empty list as unset. A user with no settings
+  /// file gets the raw admin defaults, where an unset list arrives as [].
+  void _applyRatingSources(
+    Map<String, dynamic> resolved,
+    String serverKey,
+    Preference<String> pref, {
+    bool emptyKeepsLocal = true,
+  }) {
+    final raw = resolved[serverKey];
+    if (raw is! List || (emptyKeepsLocal && raw.isEmpty)) return;
+    final sources = raw
+        .cast<String>()
+        .map((s) => _serverToClientRatingSource[s] ?? s)
+        .join(',');
+    _store.set(_prefs.getEffectivePreference(pref), sources);
+  }
+
   Map<String, dynamic> _buildProfileFromLocal() {
     final mediaBarMode = UserPreferences.normalizeMediaBarMode(
       _prefs.get(UserPreferences.mediaBarMode),
@@ -2073,9 +2101,15 @@ class PluginSyncService extends ChangeNotifier {
       'mediaBarContentType': UserPreferences.normalizeMediaBarContentType(
         _prefs.get(UserPreferences.mediaBarContentType),
       ),
-      'mdblistRatingSources': _csvToList(UserPreferences.enabledRatings)
-          .map((s) => _clientToServerRatingSource[s] ?? s)
-          .toList(),
+      'mdblistRatingSources': _ratingSourcesForServer(
+        UserPreferences.enabledRatings,
+      ),
+      'homeRowsMdblistRatingSources': _ratingSourcesForServer(
+        UserPreferences.homeRowsEnabledRatings,
+      ),
+      'mediaBarMdblistRatingSources': _ratingSourcesForServer(
+        UserPreferences.mediaBarEnabledRatings,
+      ),
       'homeRowOrder': _prefs.homeSectionsConfig
           .where((c) => c.enabled)
           .map((c) => c.type.serializedName)

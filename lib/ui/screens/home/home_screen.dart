@@ -51,6 +51,7 @@ import '../../../util/app_exit.dart';
 import '../../../util/global_shortcut_focus.dart';
 import '../../widgets/focus/context_menu_sheet.dart';
 import '../../widgets/focus/locked_focus_row.dart';
+import '../../widgets/focus/row_glide.dart';
 import '../../../util/focus/dpad_keys.dart';
 import '../../../util/focus/input_mode_tracker.dart';
 import '../../../util/focus/scroll_utils.dart';
@@ -871,6 +872,7 @@ class _ContentRowsState extends State<_ContentRows>
   final Map<String, GlobalKey> _rowKeys = {};
   final Map<String, GlobalKey> _rowContainerKeys = {};
   final Map<String, ScrollController> _rowHorizontalControllers = {};
+  final Map<String, RowGlide> _rowGlides = {};
   final Map<String, double> _rowHorizontalOffsetsById = {};
   List<HomeRow>? _cachedExtentRows;
   PosterSize? _cachedExtentPosterSize;
@@ -1560,6 +1562,10 @@ class _ContentRowsState extends State<_ContentRows>
       controller.dispose();
     }
     _rowHorizontalControllers.clear();
+    for (final glide in _rowGlides.values) {
+      glide.dispose();
+    }
+    _rowGlides.clear();
     _disposeSharedPreview();
     super.dispose();
   }
@@ -3129,6 +3135,11 @@ class _ContentRowsState extends State<_ContentRows>
       return controller;
     });
   }
+
+  RowGlide _rowGlide(int rowIndex) => _rowGlides.putIfAbsent(
+        _rowIdForIndex(rowIndex),
+        () => RowGlide(widget.prefs),
+      );
 
   static const double _loadMoreTriggerDistance = 600.0;
 
@@ -5386,6 +5397,14 @@ class _ContentRowsState extends State<_ContentRows>
     }
 
     final itemSpacing = _rowItemSpacing(firstCardWidth, cardExpansion);
+    // A tap grows a card on touch screens, so the glide is for remotes and
+    // keyboards only.
+    final glide = isRowsV2 &&
+            !row.isAudio &&
+            !isModernMyMediaStatic &&
+            !PlatformDetection.useMobileUi
+        ? (_rowGlide(rowIndex)..growth = v2FocusedWidth - v2PortraitWidth)
+        : null;
 
     return _buildTitledRow(
       key: _rowContainerKey(rowIndex),
@@ -5404,6 +5423,7 @@ class _ContentRowsState extends State<_ContentRows>
           itemExtent: firstCardWidth,
           itemSpacing: itemSpacing,
           leadingPadding: isRowsV2 ? _kHomeRowLabelInset : 0,
+          glide: glide,
           clipBehavior: (isRowsV2 || cardExpansion) ? Clip.none : Clip.hardEdge,
           padding: EdgeInsets.fromLTRB(
             _kHomeRowLabelInset,
@@ -5495,23 +5515,16 @@ class _ContentRowsState extends State<_ContentRows>
               InputModeTracker.of(ctx) == InputMode.pointer;
           final delayExpansion =
               prefs.get(UserPreferences.delayCardExpansionOnRapidScroll);
-          return SelectorBuilder<bool>(
-            listenable: _v2Expansion.listenable,
-            select: () => isRowsV2
-                ? _v2Expansion.isExpanded(
-                    previewKey,
-                    isFocused: isFocused,
-                    isTouch: isV2MobileTouch,
-                    delayExpansion:
-                        delayExpansion && !PlatformDetection.useMobileUi,
-                  )
-                : isFocused,
-            builder: (ctx, effectiveV2Focused) {
+          // How far the card has grown, from 0 to 1, and whether it shows as
+          // focused. Without a glide a card is only ever all or nothing.
+          Widget buildCard(BuildContext ctx, double v2Open, bool v2Highlighted) {
+          final effectiveV2Focused = v2Open >= 0.5;
           late final double ar;
           late final double width;
           late final String? imageUrl;
+          String? v2PosterUrl;
           final canUseExpandedV2Card =
-              isRowsV2 && effectiveV2Focused && !row.isAudio && !isModernMyMediaStatic;
+              isRowsV2 && v2Open > 0 && !row.isAudio && !isModernMyMediaStatic;
 
           if (isRowsV2) {
             if (isModernMyMediaStatic) {
@@ -5527,11 +5540,15 @@ class _ContentRowsState extends State<_ContentRows>
                 isMyMediaRow: true,
               );
             } else {
-              ar = canUseExpandedV2Card ? v2FocusedAspect : v2PortraitAspect;
               width = canUseExpandedV2Card
-                  ? v2FocusedWidthForCurrentViewport
+                  ? v2PortraitWidth * (1 - v2Open) +
+                      v2FocusedWidthForCurrentViewport * v2Open
                   : v2PortraitWidth;
-              final posterUrl = _cachedRowImageUrl(
+              // A growing card keeps its height while it widens.
+              ar = !canUseExpandedV2Card
+                  ? v2PortraitAspect
+                  : (glide == null ? v2FocusedAspect : width / v2ImageHeight);
+              final posterUrl = v2PosterUrl = _cachedRowImageUrl(
                 item,
                 imageApi,
                 v2ImageHeight,
@@ -5670,6 +5687,7 @@ class _ContentRowsState extends State<_ContentRows>
               cardSubtitle = userRating;
             } else {
               cardSubtitle = (canUseExpandedV2Card &&
+                      effectiveV2Focused &&
                       row.id != 'radarr_calendar' &&
                       row.id != 'sonarr_calendar' &&
                       row.id != 'merged_calendar')
@@ -5690,6 +5708,33 @@ class _ContentRowsState extends State<_ContentRows>
                     imageOverlays: isSeerrGenreCard
                         ? [Positioned.fill(child: SeerrGenreLabel(name: item.name))]
                         : const <Widget>[],
+                    imageUnderlays: [
+                      if (glide != null &&
+                          canUseExpandedV2Card &&
+                          v2PosterUrl != null &&
+                          v2PosterUrl != imageUrl &&
+                          modernPosterOpacity(v2Open) > 0)
+                        Positioned(
+                          left: 0,
+                          top: 0,
+                          bottom: 0,
+                          width: v2PortraitWidth,
+                          child: Opacity(
+                            opacity: modernPosterOpacity(v2Open),
+                            child: BoundedNetworkImage(
+                              imageUrl: v2PosterUrl,
+                              fit: BoxFit.cover,
+                              fadeInDuration: Duration.zero,
+                              maxWidth: MediaCard.decodeMaxWidthFor(
+                                v2PortraitAspect,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                    imageSourceAspectRatio: glide != null && canUseExpandedV2Card
+                        ? v2FocusedAspect
+                        : null,
                     subtitle: cardSubtitle,
                     subtitleWidget: cardSubtitleWidget,
                     imageUrl: imageUrl,
@@ -5717,7 +5762,7 @@ class _ContentRowsState extends State<_ContentRows>
                         ? ThemeRegistry.active.borders.focusBorder.color
                         : focusColor,
                     cardFocusExpansion: _isHomeRowsStyleV2() ? false : cardExpansion && !showPreviewVideo,
-                    externalIsFocused: effectiveV2Focused,
+                    externalIsFocused: v2Highlighted,
                     suppressImageFocusBorder: showPreviewVideo,
                     suppressFocusGlow: suppressFocusGlow,
                     onHoverStart: () {
@@ -5793,7 +5838,8 @@ class _ContentRowsState extends State<_ContentRows>
                     return ModernExpandingCard(
                       card: previewWrappedCard,
                       prefs: prefs,
-                      details: effectiveV2Focused
+                      open: glide != null ? v2Open : null,
+                      details: v2Open >= modernDetailsStart
                           ? ModernHoverBuilder(
                               expansion: _v2Expansion,
                               cardKey: previewKey,
@@ -5811,7 +5857,11 @@ class _ContentRowsState extends State<_ContentRows>
                                   itemCount: row.items.length,
                                   itemExtent: firstCardWidth,
                                   itemSpacing: itemSpacing,
-                                  focusedWidth: width,
+                                  // A gliding card is still growing here, so
+                                  // the details are sized for the full card.
+                                  focusedWidth: glide != null
+                                      ? v2FocusedWidthForCurrentViewport
+                                      : width,
                                   maxWidth: v2ExtendedWidth,
                                   leadingInset: _kHomeRowLabelInset,
                                   trailingInset: _kHomeRowTrailingInset,
@@ -5829,7 +5879,32 @@ class _ContentRowsState extends State<_ContentRows>
               );
             },
           );
-            },
+          }
+
+          if (glide != null) {
+            return ModernGlideBuilder(
+              glide: glide,
+              expansion: _v2Expansion,
+              cardKey: previewKey,
+              index: idx,
+              prefs: prefs,
+              builder: (ctx, open, hovered) =>
+                  buildCard(ctx, open, isFocused || hovered),
+            );
+          }
+          return SelectorBuilder<bool>(
+            listenable: _v2Expansion.listenable,
+            select: () => isRowsV2
+                ? _v2Expansion.isExpanded(
+                    previewKey,
+                    isFocused: isFocused,
+                    isTouch: isV2MobileTouch,
+                    delayExpansion:
+                        delayExpansion && !PlatformDetection.useMobileUi,
+                  )
+                : isFocused,
+            builder: (ctx, effectiveV2Focused) =>
+                buildCard(ctx, effectiveV2Focused ? 1 : 0, effectiveV2Focused),
           );
         },
       ),

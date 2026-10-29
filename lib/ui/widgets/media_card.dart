@@ -155,6 +155,15 @@ class MediaCard extends StatefulWidget {
   /// format badges. Position each with [Positioned].
   final List<Widget> imageOverlays;
 
+  /// Like [imageOverlays], but drawn under the badges.
+  final List<Widget> imageUnderlays;
+
+  /// The image's own aspect ratio, for a card that changes width while it
+  /// keeps the same image. The image then decodes at the size it fills at
+  /// that ratio, so its cache key holds still instead of stepping with the
+  /// width, which would blank it while each new size decoded.
+  final double? imageSourceAspectRatio;
+
   /// Set when an [imageOverlays] entry occupies the top-left corner so the
   /// favorite heart shifts down, like it does for the Seerr badge.
   final bool overlayOccupiesTopLeft;
@@ -194,6 +203,8 @@ class MediaCard extends StatefulWidget {
     this.titleColor,
     this.subtitleColor,
     this.imageOverlays = const [],
+    this.imageUnderlays = const [],
+    this.imageSourceAspectRatio,
     this.overlayOccupiesTopLeft = false,
     this.isGenreFallback = false,
     this.isBanner = false,
@@ -463,6 +474,8 @@ class _MediaCardState extends State<MediaCard> with FocusStateMixin {
                       seerrMediaType: widget.seerrMediaType,
                       seerrStatus: widget.seerrStatus,
                       imageOverlays: widget.imageOverlays,
+                      imageUnderlays: widget.imageUnderlays,
+                      imageSourceAspectRatio: widget.imageSourceAspectRatio,
                       overlayOccupiesTopLeft: widget.overlayOccupiesTopLeft,
                       animeMarkerItemId: widget.animeMarkerItemId,
                       recordingItemId: widget.recordingItemId,
@@ -718,6 +731,8 @@ class _CardImage extends StatelessWidget {
   final String? seerrMediaType;
   final int? seerrStatus;
   final List<Widget> imageOverlays;
+  final List<Widget> imageUnderlays;
+  final double? imageSourceAspectRatio;
   final bool overlayOccupiesTopLeft;
   final bool isGenreFallback;
   final String? animeMarkerItemId;
@@ -742,6 +757,8 @@ class _CardImage extends StatelessWidget {
     this.seerrMediaType,
     this.seerrStatus,
     this.imageOverlays = const [],
+    this.imageUnderlays = const [],
+    this.imageSourceAspectRatio,
     this.overlayOccupiesTopLeft = false,
     this.isGenreFallback = false,
     this.animeMarkerItemId,
@@ -823,13 +840,15 @@ class _CardImage extends StatelessWidget {
                                   : BoxFit.cover,
                               fadeInDuration: Duration.zero,
                               maxWidth: MediaCard.decodeMaxWidthFor(
-                                aspectRatio,
+                                imageSourceAspectRatio ?? aspectRatio,
                               ),
+                              sourceAspectRatio: imageSourceAspectRatio,
                               errorBuilder: (_, _, _) => _PlaceholderIcon(
                                 itemType: itemType,
                                 title: title,
                               ),
                             ),
+                            ...imageUnderlays,
                             if (isGenreFallback) ...[
                               Container(
                                 color: Colors.black.withValues(alpha: 0.45),

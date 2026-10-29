@@ -4229,7 +4229,7 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get secondarySubtitlesEnabledSubtitle =>
-      'Show a second subtitle track at the same time. The subtitle menu then asks for the primary or secondary track first';
+      'Näytä toinen tekstitysraita samanaikaisesti. Tekstitysvalikossa kysytään tällöin ensin, kumman raidan haluat ensisijaiseksi ja kumman toissijaiseksi.';
 
   @override
   String get defaultToNoSubtitles => 'Oletuksena Ei tekstityksiä';
@@ -4242,16 +4242,16 @@ class AppLocalizationsFi extends AppLocalizations {
   String get subtitleSize => 'Tekstityksen koko';
 
   @override
-  String get primarySubtitleSlot => 'Ensisijainen';
+  String get primarySubtitleSlot => 'Ensisijainen raita';
 
   @override
-  String get secondarySubtitleSlot => 'Toissijainen';
+  String get secondarySubtitleSlot => 'Toissijainen raita';
 
   @override
-  String get secondarySubtitleTrack => 'Toissijainen tekstitysraita';
+  String get secondarySubtitleTrack => 'Toissijainen tekstitys';
 
   @override
-  String get secondaryDelayAdjustment => 'Secondary Delay Adjustment';
+  String get secondaryDelayAdjustment => 'Toissijaisen viiveen säätö';
 
   @override
   String decreaseValue(String setting) {
@@ -4584,11 +4584,11 @@ class AppLocalizationsFi extends AppLocalizations {
   String get showLibrariesInToolbar => 'Näytä Kirjastot Työkalupalkissa';
 
   @override
-  String get showLibrariesIndividually => 'Show Libraries Individually';
+  String get showLibrariesIndividually => 'Näytä kirjastot erikseen';
 
   @override
   String get showLibrariesIndividuallySubtitle =>
-      'Show each library as its own button in the navigation bar instead of in the Libraries menu';
+      'Näytä kukin kirjasto omana painikkeenaan navigointipalkissa sen sijaan, että se näkyisi Kirjastot-valikossa';
 
   @override
   String get navbarAlwaysExpanded => 'Näytä Navigointipalkin tekstit aina';
@@ -12038,11 +12038,11 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get stripDolbyVisionHdr10PlusTitle =>
-      'Play Dolby Vision with HDR10+ as HDR10+';
+      'Toista Dolby Vision ja HDR10+ HDR10+ -muodossa';
 
   @override
   String get stripDolbyVisionHdr10PlusSubtitle =>
-      'Drop the Dolby Vision layer from videos that also have HDR10+. Turn this on if those videos play with sound but a black screen.';
+      'Poista Dolby Vision -kerros videoista, joissa on myös HDR10+. Ota tämä käyttöön, jos kyseiset videot toistuvat äänellä, mutta näytöllä näkyy vain musta kuva.';
 
   @override
   String get subtitlesUseEmbeddedStyles => 'Käytä upotettuja tekstitystyyppejä';
@@ -12067,11 +12067,11 @@ class AppLocalizationsFi extends AppLocalizations {
       'Näytä valitun kohteen tiedot kirjastosivujen yläosassa.';
 
   @override
-  String get libraryCardTitles => 'Titles Under Posters';
+  String get libraryCardTitles => 'Julisteiden alla olevat otsikot';
 
   @override
   String get libraryCardTitlesDescription =>
-      'Show each item\'s title and details below its artwork in library grids.';
+      'Näytä kunkin teoksen nimi ja tiedot kuvan alla kirjaston ruudukossa.';
 
   @override
   String get useDetailedSubHeadings => 'Käytä yksityiskohtaisia alaotsikoita';
@@ -12508,11 +12508,12 @@ class AppLocalizationsFi extends AppLocalizations {
       'Toista HEVC-tiedostoja jopa 1080p-tarkkuudella suoraan alkuperäisestä tiedostosta sen sijaan, että pyytäisit palvelinta koodaamaan sen uudelleen. Tämä Apple TV purkaa tiedoston ohjelmistollisesti, joten raskaat 10-bittiset tai korkean bittinopeuden tiedostot saattavat pätkiä.';
 
   @override
-  String get av1SoftwareUhdDirectPlay => 'Direct Play 4K AV1 (Software Decode)';
+  String get av1SoftwareUhdDirectPlay =>
+      'Suora 4K AV1 -toisto (ohjelmistopohjainen dekoodaus)';
 
   @override
   String get av1SoftwareUhdDirectPlaySubtitle =>
-      'Play AV1 above 1080p, including HDR10, from the original file instead of asking the server to transcode it. This device decodes AV1 in software, so heavy 4K or high bitrate files may stutter.';
+      'Toista AV1-tiedostoja yli 1080p-tarkkuudella, mukaan lukien HDR10, suoraan alkuperäisestä tiedostosta sen sijaan, että pyydät palvelinta koodaamaan sen uudelleen. Tämä laite purkaa AV1-tiedostoja ohjelmistolla, joten raskaat 4K-tiedostot tai tiedostot, joiden bittinopeus on suuri, saattavat pätkiä.';
 
   @override
   String get useExternalPlayer => 'Käytä aina ulkoista soitinta';
@@ -14546,7 +14547,7 @@ class AppLocalizationsFi extends AppLocalizations {
   String get showAlphabeticalFilters => 'Näytä aakkosittain';
 
   @override
-  String get libraryFolderView => 'Folder View';
+  String get libraryFolderView => 'Kansionäkymä';
 
   @override
   String get personalRatingStyle => 'Oma arviointyyli';
@@ -15703,7 +15704,7 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get settingsApplePlayerUiDescription =>
-      'Applen omassa soittimessa ei ole suoratoistotoimintoa, pyyhkäisyeleitä, suuntalukitusta, äänen viivettä eikä PiP-painiketta';
+      'Applen omassa soittimessa ei ole suoratoistotoimintoa, äänen viivettä eikä PiP-painiketta, ja sen kiertolukitus toimii vain Live TV -tilassa';
 
   @override
   String get settingsApplePlayerUiStandard => 'Standardi';
@@ -16031,63 +16032,64 @@ class AppLocalizationsFi extends AppLocalizations {
   }
 
   @override
-  String get allArtists => 'All Artists';
+  String get allArtists => 'Kaikki Artistit';
 
   @override
-  String get libraryZToA => 'Z to A';
+  String get libraryZToA => 'Z:sta A:han';
 
   @override
-  String get musicSortYear => 'Year';
+  String get musicSortYear => 'Vuosi';
 
   @override
-  String get musicFilter => 'Filter';
+  String get musicFilter => 'Suodatin';
 
   @override
-  String get musicGenreFilterTitle => 'Filter by Genre';
+  String get musicGenreFilterTitle => 'Suodata genren mukaan';
 
   @override
-  String get openAlbum => 'Open Album';
+  String get openAlbum => 'Avaa albumi';
 
   @override
-  String get openPlaylist => 'Open Playlist';
+  String get openPlaylist => 'Avaa soittolista';
 
   @override
-  String get allSongsAToZ => 'All Songs A to Z';
+  String get allSongsAToZ => 'Kaikki kappaleet A:sta Z:aan';
 
   @override
   String get musicMix => 'Mix';
 
   @override
-  String get musicMixEverything => 'Everything';
+  String get musicMixEverything => 'Kaikki';
 
   @override
-  String get musicMixEverythingSubtitle => '300 songs at random';
+  String get musicMixEverythingSubtitle =>
+      '300 kappaletta satunnaisjärjestyksessä';
 
   @override
-  String get mostPlayed => 'Most Played';
+  String get mostPlayed => 'Eniten soitetut';
 
   @override
-  String get musicMixMostPlayedSubtitle => 'Your top 100';
+  String get musicMixMostPlayedSubtitle => 'Oma top 100';
 
   @override
-  String get musicMixFreshArrivals => 'Fresh Arrivals';
+  String get musicMixFreshArrivals => 'Uutuudet';
 
   @override
-  String get musicMixFreshArrivalsSubtitle => 'The newest 100 songs';
+  String get musicMixFreshArrivalsSubtitle => '100 uusinta kappaletta';
 
   @override
-  String get musicMixRediscover => 'Rediscover';
+  String get musicMixRediscover => 'Löydä uudelleen';
 
   @override
   String get musicMixRediscoverSubtitle =>
-      'Favorites you haven\'t played lately';
+      'Suosikit, joita et ole pelannut viime aikoina';
 
   @override
-  String get musicSortMostAlbums => 'Most Albums';
+  String get musicSortMostAlbums => 'Eniten albumeita';
 
   @override
   String bookSeriesPosition(int index, int total) {
-    return 'Book $index of $total';
+    return 'Kirja $index / $total';
   }
 
   @override
@@ -16102,35 +16104,36 @@ class AppLocalizationsFi extends AppLocalizations {
   }
 
   @override
-  String get bookSortZToA => 'Z to A';
+  String get bookSortZToA => 'Z:sta A:han';
 
   @override
-  String get bookSortMostTitles => 'Most Titles';
+  String get bookSortMostTitles => 'Eniten nimikkeitä';
 
   @override
-  String get bookSurpriseMe => 'Surprise Me';
+  String get bookSurpriseMe => 'Yllätä minut';
 
   @override
-  String get bookShuffleAudiobooks => 'Shuffle Audiobooks';
+  String get bookShuffleAudiobooks => 'Äänikirjojen satunnainen toisto';
 
   @override
-  String get bookStartReading => 'Start Reading';
+  String get bookStartReading => 'Aloita lukeminen';
 
   @override
-  String get bookOtherBooks => 'Other Books';
+  String get bookOtherBooks => 'Muita kirjoja';
 
   @override
-  String get bookDiscoverSearchBooks => 'Search Open Library';
+  String get bookDiscoverSearchBooks => 'Hae Open Librarysta';
 
   @override
-  String get bookDiscoverSearchAudiobooks => 'Search LibriVox';
+  String get bookDiscoverSearchAudiobooks => 'Hae LibriVoxista';
 
   @override
-  String get bookDiscoverFeatured => 'Featured';
+  String get bookDiscoverFeatured => 'Esittelyssä';
 
   @override
-  String get bookReaderControlsAutoHide => 'Controls hide automatically';
+  String get bookReaderControlsAutoHide =>
+      'Ohjaimet piiloutuvat automaattisesti';
 
   @override
-  String get bookReaderControlsStayVisible => 'Controls stay visible';
+  String get bookReaderControlsStayVisible => 'Ohjaimet pysyvät näkyvissä';
 }

@@ -7,6 +7,7 @@ import 'package:moonfin_design/moonfin_design.dart';
 import 'seerr/seerr_media_type_badge.dart';
 import '../../preference/preference_constants.dart';
 import '../../util/platform_detection.dart';
+import '../../util/tv_ui_scale.dart';
 import '../../util/focus/dpad_keys.dart';
 import '../../util/focus/key_event_utils.dart';
 import '../../util/item_watch_state.dart';
@@ -139,6 +140,9 @@ class MediaCard extends StatefulWidget {
   /// labels a card that has no artwork.
   final bool showLabel;
 
+  /// Gives the label the classic home rows' larger type and spacing.
+  final bool classicHomeLabel;
+
   /// The item behind the subbed/dubbed pill. Set only for standalone items such as
   /// movies, which have no series to inherit a verdict from.
   final String? animeMarkerItemId;
@@ -194,6 +198,7 @@ class MediaCard extends StatefulWidget {
     this.isGenreFallback = false,
     this.isBanner = false,
     this.showLabel = true,
+    this.classicHomeLabel = false,
     this.animeMarkerItemId,
     this.recordingItemId,
   });
@@ -361,27 +366,41 @@ class _MediaCardState extends State<MediaCard> with FocusStateMixin {
   @override
   Widget build(BuildContext context) {
     final isNeon = ThemeRegistry.active.id == ThemeRegistry.neonPulseId;
+    final classic = widget.classicHomeLabel;
     final baseTextStyle = MediaCard._labelBaseStyle(context);
     final subtitleColor =
         widget.subtitleColor ??
         (isNeon
             ? AppColorScheme.onSurface
+            : classic
+            ? Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.65)
             : Theme.of(context).colorScheme.onSurface.withAlpha(153));
     final titleStyle = baseTextStyle.copyWith(
       color:
           widget.titleColor ??
           (isNeon ? AppColorScheme.accent : AppColorScheme.onSurface),
-      fontWeight: FontWeight.bold,
-      fontSize: MediaCard._titleFontSize(baseTextStyle),
+      fontWeight: classic ? FontWeight.w600 : FontWeight.bold,
+      fontSize: classic
+          ? tvPx(22)
+          : MediaCard._titleFontSize(baseTextStyle),
+      height: classic ? 30 / 22 : null,
       shadows: const [Shadow(blurRadius: 4, color: Colors.black54)],
     );
     final subtitleStyle = baseTextStyle.copyWith(
       color: subtitleColor,
+      fontSize: classic ? tvPx(20) : null,
+      fontWeight: classic ? FontWeight.w400 : null,
+      height: classic ? 28 / 20 : null,
       shadows: const [Shadow(blurRadius: 4, color: Colors.black54)],
     );
     final textScaler = MediaQuery.textScalerOf(context);
-    final titleLineHeight = MediaCard._lineHeight(textScaler, titleStyle);
-    final subtitleLineHeight = MediaCard._lineHeight(textScaler, subtitleStyle);
+    // The classic home label takes its line heights straight from the canvas.
+    double lineHeight(TextStyle style) => classic
+        ? textScaler.scale(style.fontSize!) * style.height!
+        : MediaCard._lineHeight(textScaler, style);
+    final titleLineHeight = lineHeight(titleStyle);
+    final subtitleLineHeight = lineHeight(subtitleStyle);
+    final labelGap = classic ? tvPx(16) : MediaCard._labelGap;
     final externallyDriven = widget.externalIsFocused != null;
     final hasNodeFocus = widget.focusNode?.hasFocus ?? false;
     final effectiveFocused = externallyDriven
@@ -453,7 +472,7 @@ class _MediaCardState extends State<MediaCard> with FocusStateMixin {
                 ),
                 if (widget.showLabel && widget.isBanner) ...[
                   if (widget.title != null) ...[
-                    const SizedBox(height: MediaCard._labelGap),
+                    SizedBox(height: labelGap),
                     SizedBox(
                       height: titleLineHeight,
                       width: cardWidth,
@@ -470,7 +489,7 @@ class _MediaCardState extends State<MediaCard> with FocusStateMixin {
                   ],
                 ] else if (widget.showLabel) ...[
                   if (widget.title != null) ...[
-                    const SizedBox(height: MediaCard._labelGap),
+                    SizedBox(height: labelGap),
                     SizedBox(
                       height: titleLineHeight,
                       width: cardWidth,

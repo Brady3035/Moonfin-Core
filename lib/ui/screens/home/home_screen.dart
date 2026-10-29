@@ -5691,6 +5691,7 @@ class _ContentRowsState extends State<_ContentRows>
                     // this same constant and audio and Seerr filter rows
                     // already get a different ratio.
                     isBanner: ar == kBannerAspectRatio,
+                    classicHomeLabel: !isRowsV2,
                     isFavorite: item.isFavorite,
                     isPlayed: item.isPlayed,
                     unplayedCount: item.unplayedItemCount,

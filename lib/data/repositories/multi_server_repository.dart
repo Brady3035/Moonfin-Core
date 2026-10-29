@@ -55,7 +55,7 @@ class MultiServerRepository {
       'ParentThumbImageTag,SeriesId,SeriesPrimaryImageTag,'
       'ParentLogoItemId,ParentLogoImageTag,PrimaryImageTag,PrimaryImageAspectRatio';
   // Cap image tags to one per type (server returns all by default)
-  static const _imageTypes = 'Primary,Backdrop,Thumb,Banner';
+  static const _imageTypes = 'Primary,Backdrop,Thumb,Banner,Logo';
   static const _imageTypeLimit = 1;
   static const _defaultLimit = 15;
   static const _maxItems = 100;

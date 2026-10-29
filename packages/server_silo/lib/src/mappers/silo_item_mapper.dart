@@ -442,13 +442,17 @@ Map<String, dynamic> _parentArtwork(
   if (images == null) return const {};
   final primary = images.tagFor(seriesId, SiloImageType.primary);
   final logo = images.tagFor(seriesId, SiloImageType.logo);
-  final thumb = images.tagFor(seriesId, SiloImageType.thumb);
   final backdrops = <String>[];
   for (var i = 0; ; i++) {
     final tag = images.tagFor(seriesId, SiloImageType.backdrop, index: i);
     if (tag == null) break;
     backdrops.add(tag);
   }
+  // The series' thumb_url only comes with its detail, never on a card, so
+  // the series backdrop stands in. Otherwise an episode card would switch to
+  // the thumb once the series had been opened.
+  final thumb =
+      backdrops.firstOrNull ?? images.tagFor(seriesId, SiloImageType.thumb);
   return {
     if (primary != null) 'SeriesPrimaryImageTag': primary,
     if (logo != null) ...{

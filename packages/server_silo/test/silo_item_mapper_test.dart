@@ -416,6 +416,34 @@ void main() {
       );
     });
 
+    test('an episode card keeps its series thumb after the series is read', () {
+      final card = {
+        'type': 'episode',
+        'content_id': 'episode-v-1-2',
+        'series_id': 'series-v',
+        'season_number': 1,
+        'episode_number': 2,
+        'backdrop_url': '/medium/series-backdrop.webp',
+        'backdrop_is_episode_still': false,
+      };
+      final before = siloItemToBaseItemDto(card, images: images)!;
+      // The series' detail, as opening the episode reads it.
+      siloItemToBaseItemDto({
+        'type': 'series',
+        'content_id': 'series-v',
+        'backdrop_urls': ['/large/series-backdrop.webp'],
+        'thumb_url': '/large/series-thumb-with-title.webp',
+      }, images: images);
+      final after = siloItemToBaseItemDto(card, images: images)!;
+      final api = SiloImageApi(images);
+      String thumbOf(Map<String, dynamic> dto) => api.getThumbImageUrl(
+        dto['ParentThumbItemId'] as String,
+        tag: dto['ParentThumbImageTag'] as String,
+      );
+      expect(thumbOf(before), contains('series-backdrop'));
+      expect(thumbOf(after), contains('series-backdrop'));
+    });
+
     test('borrowed artwork never replaces the series own', () {
       siloItemToBaseItemDto({
         'type': 'series',

@@ -5355,6 +5355,9 @@ class AppLocalizationsSq extends AppLocalizations {
       'Shtojca e serverit nuk është zbuluar aktualisht. Cilësimet lokale përdorin ende vlerat e tyre të ruajtura ose parazgjedhjet e integruara.';
 
   @override
+  String get moonbaseAddress => 'Moonbase Address';
+
+  @override
   String get pluginConnected => 'Connected';
 
   @override

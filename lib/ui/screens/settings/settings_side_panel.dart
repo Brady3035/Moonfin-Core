@@ -16,6 +16,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../data/services/achievements_service.dart';
 import '../../../data/services/auto_download_service.dart';
+import '../../../data/services/moonbase_endpoint.dart';
 import '../../../data/services/plugin_sync_service.dart';
 import '../../../data/services/custom_external_lists_service.dart';
 import '../../../data/services/topshelf_service.dart';

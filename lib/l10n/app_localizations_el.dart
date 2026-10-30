@@ -5371,6 +5371,9 @@ class AppLocalizationsEl extends AppLocalizations {
       'Η προσθήκη διακομιστή δεν έχει εντοπιστεί αυτήν τη στιγμή. Οι τοπικές ρυθμίσεις εξακολουθούν να χρησιμοποιούν τις αποθηκευμένες τιμές ή τις ενσωματωμένες προεπιλογές τους.';
 
   @override
+  String get moonbaseAddress => 'Moonbase Address';
+
+  @override
   String get pluginConnected => 'Connected';
 
   @override

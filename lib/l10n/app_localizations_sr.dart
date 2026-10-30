@@ -5388,6 +5388,9 @@ class AppLocalizationsSr extends AppLocalizations {
       'Додатак на серверу тренутно није откривен. Локална подешавања и даље користе сачуване вредности или уграђене подразумеване вредности.';
 
   @override
+  String get moonbaseAddress => 'Moonbase Address';
+
+  @override
   String get pluginConnected => 'Connected';
 
   @override

@@ -9460,6 +9460,12 @@ abstract class AppLocalizations {
   /// **'Server plugin is not currently detected. Local settings still use their saved values or built-in defaults.'**
   String get pluginNotDetectedDescription;
 
+  /// Settings Sync screen on a Plex server: where the Moonbase companion service runs, since Plex can't run plugins. Left empty, the app looks next to the Plex server.
+  ///
+  /// In en, this message translates to:
+  /// **'Moonbase Address'**
+  String get moonbaseAddress;
+
   /// Status line on the Settings Sync screen when the server plugin answers
   ///
   /// In en, this message translates to:

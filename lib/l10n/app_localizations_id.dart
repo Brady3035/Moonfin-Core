@@ -5328,6 +5328,9 @@ class AppLocalizationsId extends AppLocalizations {
       'Plugin server saat ini tidak terdeteksi. Pengaturan lokal tetap menggunakan nilai tersimpan atau default bawaan.';
 
   @override
+  String get moonbaseAddress => 'Moonbase Address';
+
+  @override
   String get pluginConnected => 'Connected';
 
   @override

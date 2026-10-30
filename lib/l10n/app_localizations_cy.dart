@@ -5351,6 +5351,9 @@ class AppLocalizationsCy extends AppLocalizations {
       'Nid yw ategyn gweinydd wedi\'i ganfod ar hyn o bryd. Mae gosodiadau lleol yn dal i ddefnyddio eu gwerthoedd sydd wedi\'u cadw neu eu rhagosodiadau adeiledig.';
 
   @override
+  String get moonbaseAddress => 'Moonbase Address';
+
+  @override
   String get pluginConnected => 'Connected';
 
   @override

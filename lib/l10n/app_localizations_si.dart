@@ -5325,6 +5325,9 @@ class AppLocalizationsSi extends AppLocalizations {
       'සේවාදායක ප්ලගිනය දැනට අනාවරණය කර නොමැත. ස්ථානීය සැකසීම් තවමත් ඒවායේ සුරැකි අගයන් හෝ බිල්ට් පෙරනිමි භාවිතා කරයි.';
 
   @override
+  String get moonbaseAddress => 'Moonbase Address';
+
+  @override
   String get pluginConnected => 'Connected';
 
   @override

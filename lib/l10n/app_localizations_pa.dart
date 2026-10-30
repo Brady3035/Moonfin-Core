@@ -5320,6 +5320,9 @@ class AppLocalizationsPa extends AppLocalizations {
       'ਸਰਵਰ ਪਲੱਗਇਨ ਇਸ ਵੇਲੇ ਖੋਜਿਆ ਨਹੀਂ ਗਿਆ ਹੈ। ਸਥਾਨਕ ਸੈਟਿੰਗਾਂ ਅਜੇ ਵੀ ਉਹਨਾਂ ਦੇ ਸੁਰੱਖਿਅਤ ਕੀਤੇ ਮੁੱਲ ਜਾਂ ਬਿਲਟ-ਇਨ ਡਿਫੌਲਟ ਵਰਤਦੀਆਂ ਹਨ।';
 
   @override
+  String get moonbaseAddress => 'Moonbase Address';
+
+  @override
   String get pluginConnected => 'Connected';
 
   @override

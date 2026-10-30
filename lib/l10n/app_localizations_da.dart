@@ -5325,6 +5325,9 @@ class AppLocalizationsDa extends AppLocalizations {
       'Server-plugin er ikke fundet i øjeblikket. Lokale indstillinger bruger stadig deres gemte værdier eller indbyggede standarder.';
 
   @override
+  String get moonbaseAddress => 'Moonbase Address';
+
+  @override
   String get pluginConnected => 'Connected';
 
   @override

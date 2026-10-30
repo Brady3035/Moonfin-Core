@@ -400,7 +400,8 @@ void main() {
   });
 
   test('an admin sees who made each request', () async {
-    Map<String, Object> req(int n, int by) => {
+    // Silo sends its ids as strings.
+    Map<String, Object> req(int n, String by) => {
       'id': 'r-$n',
       'media_type': 'movie',
       'tmdb_id': n,
@@ -416,15 +417,15 @@ void main() {
       'GET /api/v2/admin/requests': (
         200,
         {
-          'items': [req(1, 9), req(2, 7)],
+          'items': [req(1, '9'), req(2, '7')],
         },
       ),
       'GET /api/v2/admin/users': (
         200,
         {
           'items': [
-            {'id': 9, 'username': 'sam'},
-            {'id': 7, 'username': 'pat'},
+            {'id': '9', 'username': 'sam'},
+            {'id': '7', 'username': 'pat'},
           ],
         },
       ),

@@ -168,9 +168,10 @@ class SiloSeerrHttpClient extends SeerrHttpClient {
             'cursor': ?cursor,
           });
           for (final u in (body['items'] as List? ?? const []).whereType<Map>()) {
-            final id = u['id'];
+            // Silo's ids are strings.
+            final id = int.tryParse('${u['id'] ?? ''}');
             final name = u['username'];
-            if (id is int && name is String) _accountNames[id] = name;
+            if (id != null && name is String) _accountNames[id] = name;
           }
           final page = body['page'];
           cursor = page is Map ? page['next_cursor'] as String? : null;

@@ -35,7 +35,8 @@ class ServerHomeSection {
   /// The row's title as the server shows it.
   final String title;
 
-  /// What kind of row it is on the server (`trending_on_server`…), for
-  /// display and diagnostics only.
+  /// What kind of row it is on the server (`trending_on_server`…). Moonbase's
+  /// admin defaults name a row by it (`type:<kind>`), so it has to stay the
+  /// server's own value, never a translated one.
   final String kind;
 }

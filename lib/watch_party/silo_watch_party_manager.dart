@@ -165,8 +165,20 @@ class SiloWatchPartyManager extends ChangeNotifier {
         return suggestMovie(item.rawData);
       }
       if (!await setVoting(false)) return false;
+      return _stageOrVoteAgain(item.id);
     }
     return stage(item.id);
+  }
+
+  /// Stages [contentId] after voting was switched off for it. If that fails
+  /// the vote comes back, so the room isn't left with neither.
+  Future<bool> _stageOrVoteAgain(String contentId) async {
+    if (await stage(contentId)) return true;
+    final error = _error;
+    await setVoting(true);
+    _error = error;
+    notifyListeners();
+    return false;
   }
 
   /// Host: when an episode finishes, stages the series' next one, so the
@@ -286,7 +298,7 @@ class SiloWatchPartyManager extends ChangeNotifier {
   /// for it stay in the room if voting is turned back on.
   Future<bool> pickSuggestion(SiloRoomSuggestion suggestion) async {
     if (!await setVoting(false)) return false;
-    return stage(suggestion.contentId);
+    return _stageOrVoteAgain(suggestion.contentId);
   }
 
   Future<void> _loadSuggestions() async {
@@ -953,7 +965,10 @@ class SiloWatchPartyManager extends ChangeNotifier {
   /// A host left alone in their room for ten minutes ends it, so a party
   /// nobody joined doesn't stay open.
   void _checkAlone() {
-    bool alone() => _room?.isHost == true && _room!.members.length <= 1;
+    // Silo keeps a member who dropped without leaving, marked disconnected.
+    bool alone() =>
+        _room?.isHost == true &&
+        _room!.members.where((m) => m.connected).length <= 1;
     if (!alone()) {
       _aloneTimer?.cancel();
       _aloneTimer = null;

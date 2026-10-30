@@ -232,6 +232,7 @@ class PluginSyncService extends ChangeNotifier {
     bool keepIncompleteRecordings = false,
   }) {
     _syncRetryTimer?.cancel();
+    _signInSettingsRead.clear();
     if (stopStream) {
       _stopSettingsStream();
     }
@@ -476,13 +477,15 @@ class PluginSyncService extends ChangeNotifier {
 
   // Retries the plugin check a few times after login so a slow cellular link has
   // time to come up.
-  void _scheduleSyncRetry(MediaServerClient client, {String? serverId}) {
-    if (_syncRetryCount >= 3) return;
+  /// False once the retries are used up.
+  bool _scheduleSyncRetry(MediaServerClient client, {String? serverId}) {
+    if (_syncRetryCount >= 3) return false;
     _syncRetryCount++;
     _syncRetryTimer?.cancel();
     _syncRetryTimer = Timer(const Duration(seconds: 5), () {
       syncOnLogin(client, serverId: serverId);
     });
+    return true;
   }
 
   Future<void> syncOnLogin(MediaServerClient client, {String? serverId}) async {
@@ -521,15 +524,13 @@ class PluginSyncService extends ChangeNotifier {
         }
 
         if (availability == _PluginAvailabilityStatus.unknown) {
-          retrying = true;
-          _scheduleSyncRetry(client, serverId: serverId);
+          retrying = _scheduleSyncRetry(client, serverId: serverId);
         }
         return;
       }
 
       if (availability == _PluginAvailabilityStatus.unknown) {
-        retrying = true;
-        _scheduleSyncRetry(client, serverId: serverId);
+        retrying = _scheduleSyncRetry(client, serverId: serverId);
         return;
       }
 

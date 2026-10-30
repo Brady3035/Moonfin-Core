@@ -627,9 +627,11 @@ class _FavoritesScreenState extends State<FavoritesScreen>
   }) {
     final item = items[index];
     final itemAspectRatio = _itemAspectRatio(item);
+    // A Watchlist request card's id is a TMDB id, not one of the server's.
+    final serverItemId = item.serverId == 'seerr' ? null : item.id;
     return MediaCard(
-      animeMarkerItemId: item.id,
-      recordingItemId: item.id,
+      animeMarkerItemId: serverItemId,
+      recordingItemId: serverItemId,
       title: item.name,
       subtitle: _cardSubtitle(item),
       imageUrl: _imageUrl(

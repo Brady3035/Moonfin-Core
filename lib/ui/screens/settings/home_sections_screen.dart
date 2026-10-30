@@ -1427,11 +1427,13 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen>
     // A row Moonbase's admin defaults added by type ("type:<kind>") already
     // stands for this server's first row of that kind, so only that one
     // isn't listed again.
+    bool isType(HomeSectionConfig s) =>
+        s.isPluginDynamic &&
+        s.pluginSource == HomeSectionPluginSource.server &&
+        (s.pluginSection ?? '').startsWith('type:');
     final byType = {
       for (final s in _sections)
-        if (s.isPluginDynamic &&
-            s.pluginSource == HomeSectionPluginSource.server &&
-            (s.pluginSection ?? '').startsWith('type:'))
+        if (isType(s) && ((s.serverId ?? '').isEmpty || s.serverId == serverId))
           s.pluginSection,
     };
 
@@ -1463,7 +1465,9 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen>
     }
 
     final before = _sections.length;
-    _sections.removeWhere((s) => isOwn(s) && !freshIds.contains(s.stableId));
+    _sections.removeWhere(
+      (s) => isOwn(s) && !isType(s) && !freshIds.contains(s.stableId),
+    );
     if (_sections.length != before) changed = true;
 
     return changed;

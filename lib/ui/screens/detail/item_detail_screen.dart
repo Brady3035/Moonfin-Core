@@ -8496,23 +8496,38 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
   /// Next Up for a series, else its first unwatched episode (specials left
   /// out); a season's first unwatched episode. Other items are themselves.
   Future<AggregatedItem?> _watchPartyEpisodeFor(AggregatedItem item) async {
-    final List<AggregatedItem> episodes;
+    Future<List<AggregatedItem>?> load(
+      String seriesId, {
+      String? seasonId,
+    }) async {
+      try {
+        final data = await _clientForItem(
+          item,
+        ).itemsApi.getEpisodes(seriesId, seasonId: seasonId);
+        return _mapRawItemsForServer(data['Items'], item.serverId);
+      } catch (_) {
+        return null;
+      }
+    }
+
+    final List<AggregatedItem>? episodes;
     switch (item.type) {
       case 'Series':
         if (viewModel.nextUp != null) return viewModel.nextUp;
-        try {
-          final data = await _clientForItem(item).itemsApi.getEpisodes(item.id);
-          episodes = _mapRawItemsForServer(data['Items'], item.serverId)
-              .where((e) => (e.parentIndexNumber ?? 0) > 0)
-              .toList();
-        } catch (_) {
-          return null;
-        }
+        // Episodes with no season number aren't specials.
+        episodes = (await load(
+          item.id,
+        ))?.where((e) => e.parentIndexNumber != 0).toList();
       case 'Season':
-        episodes = viewModel.episodes;
+        // The page's own list may not have loaded yet.
+        final seriesId = item.seriesId;
+        episodes = viewModel.episodes.isNotEmpty || seriesId == null
+            ? viewModel.episodes
+            : await load(seriesId, seasonId: item.id);
       default:
         return item;
     }
+    if (episodes == null) return null;
     final playable = episodes.where(isEligibleNextEpisodeCandidate);
     return playable.where((e) => !e.isPlayed).firstOrNull ??
         playable.firstOrNull;

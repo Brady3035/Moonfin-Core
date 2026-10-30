@@ -25,6 +25,9 @@ class _EditableStringPreferenceTile extends StatefulWidget {
 class _EditableStringPreferenceTileState
     extends State<_EditableStringPreferenceTile> {
   late final PreferenceBinding<String> _binding;
+  // Kept for the tile's life, since a closing dialog still draws its field
+  // after showDialog returns.
+  final _controller = TextEditingController();
 
   @override
   void initState() {
@@ -37,6 +40,7 @@ class _EditableStringPreferenceTileState
 
   @override
   void dispose() {
+    _controller.dispose();
     _binding.dispose();
     super.dispose();
   }
@@ -62,7 +66,7 @@ class _EditableStringPreferenceTileState
 
   Future<void> _showEditor(BuildContext context, String current) async {
     final l10n = AppLocalizations.of(context);
-    final controller = TextEditingController(text: current);
+    final controller = _controller..text = current;
     final next = await showFocusRestoringDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog.adaptive(
@@ -102,7 +106,6 @@ class _EditableStringPreferenceTileState
       ),
     );
 
-    controller.dispose();
     if (next == null) return;
     _binding.value = next;
     widget.onChanged?.call(next);

@@ -45,7 +45,9 @@ Moonfin talks to Silo through its native API (`/api/v2`), not its Jellyfin-compa
 
 Sign-in with a password or a code, Home, libraries, search, favorites, watched state, ratings, collections, playback, skip intro and credits, trickplay, household profiles with their PINs, and downloads with offline progress sync all work.
 
-Live TV and DVR, music, playlists, SyncPlay, remote control of other devices, the server admin panel (Silo's is in its web app), Seerr, retro games and the features that need the Moonfin server plugin aren't available on Silo, so Moonfin hides them while a Silo server is active. Books, audiobooks and Silo's server-side download subscriptions aren't supported yet.
+Requests use Silo's own requests feature in place of Seerr, and Watch Together uses Silo's Watch Party in place of SyncPlay. Settings sync, admin defaults, server messages, custom themes and MDBList and TMDB ratings need the [Moonbase plugin](https://github.com/Moonfin-Client/Plugin) installed in Silo.
+
+Live TV and DVR, music, playlists, remote control of other devices, the server admin panel (Silo's is in its web app) and retro games aren't available on Silo, so Moonfin hides them while a Silo server is active. Books, audiobooks, 4K requests and Silo's server-side download subscriptions aren't supported yet.
 
 If a Silo server has a newer API than your version of Moonfin, Moonfin won't connect to it and asks you to update Moonfin.
 

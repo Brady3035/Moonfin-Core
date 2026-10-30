@@ -399,6 +399,48 @@ void main() {
     expect(pending.results.map((r) => r.media!.tmdbId), [2, 4]);
   });
 
+  test('an admin sees who made each request', () async {
+    Map<String, Object> req(int n, int by) => {
+      'id': 'r-$n',
+      'media_type': 'movie',
+      'tmdb_id': n,
+      'title': 'Movie $n',
+      'state': 'pending',
+      'seasons': [],
+      'requested_by_user_id': by,
+      'created_at': '2026-01-02T03:04:05.000Z',
+      'updated_at': '2026-01-02T03:04:05.000Z',
+    };
+    final silo = _Silo({
+      ..._base(admin: true),
+      'GET /api/v2/admin/requests': (
+        200,
+        {
+          'items': [req(1, 9), req(2, 7)],
+        },
+      ),
+      'GET /api/v2/admin/users': (
+        200,
+        {
+          'items': [
+            {'id': 9, 'username': 'sam'},
+            {'id': 7, 'username': 'pat'},
+          ],
+        },
+      ),
+    });
+    final client = _client(silo);
+    await client.getMoonfinStatus();
+
+    final list = SeerrRequestListResponse.fromJson(
+      await client.getRequests(requestedBy: 9),
+    );
+    expect(list.results.map((r) => r.requestedBy?.bestName), ['sam', 'pat']);
+    // The names are read once, not on every page.
+    await client.getRequests(requestedBy: 9);
+    expect(silo.calls.where((c) => c.startsWith('GET /api/v2/admin/users')).length, 1);
+  });
+
   test('the arr calendars read Silo\'s calendar, with TMDB and TVDB ids '
       'from the catalog', () async {
     final silo = _Silo({

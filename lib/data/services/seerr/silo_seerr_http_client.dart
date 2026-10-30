@@ -137,6 +137,56 @@ class SiloSeerrHttpClient extends SeerrHttpClient {
 
   int get _me => _userId ?? 0;
 
+  // Silo's requests name their requester by account id only.
+  String? _myName;
+  final Map<int, String> _accountNames = {};
+  DateTime? _accountNamesReadAt;
+
+  String? _accountName(int id) =>
+      _accountNames[id] ?? (id == _userId ? _myName : null);
+
+  /// Puts the requester's name on [requests]. An admin, who sees everyone's,
+  /// reads the account names when one isn't known yet, at most once a minute.
+  Future<void> _addRequesterNames(List<Map<String, dynamic>> requests) async {
+    int? idOf(Map<String, dynamic> r) =>
+        (r['requestedBy'] as Map?)?['id'] as int?;
+    final unknown = requests.any((r) {
+      final id = idOf(r);
+      return id != null && _accountName(id) == null;
+    });
+    final readAt = _accountNamesReadAt;
+    if (unknown &&
+        (readAt == null ||
+            DateTime.now().difference(readAt) > const Duration(minutes: 1)) &&
+        await _isAdmin()) {
+      _accountNamesReadAt = DateTime.now();
+      try {
+        String? cursor;
+        do {
+          final body = await _get('/admin/users', {
+            'limit': 100,
+            'cursor': ?cursor,
+          });
+          for (final u in (body['items'] as List? ?? const []).whereType<Map>()) {
+            final id = u['id'];
+            final name = u['username'];
+            if (id is int && name is String) _accountNames[id] = name;
+          }
+          final page = body['page'];
+          cursor = page is Map ? page['next_cursor'] as String? : null;
+        } while (cursor != null && cursor.isNotEmpty);
+      } catch (_) {
+        // The requests still list, as by an unknown requester.
+      }
+    }
+    for (final r in requests) {
+      final by = r['requestedBy'];
+      final id = idOf(r);
+      final name = id == null ? null : _accountName(id);
+      if (by is Map && name != null) by['displayName'] = name;
+    }
+  }
+
   // Status and the signed-in user.
 
   @override
@@ -176,6 +226,7 @@ class SiloSeerrHttpClient extends SeerrHttpClient {
     // profile, so the account's id is the requests user's.
     final account = await _get('/account/me');
     _userId = int.tryParse('${account['id'] ?? ''}');
+    _myName = account['username']?.toString();
     var permissions =
         SeerrPermission.request |
         SeerrPermission.requestMovie |
@@ -759,7 +810,7 @@ class SiloSeerrHttpClient extends SeerrHttpClient {
         'overview': r['overview'],
         'jellyfinMediaId': r['library_content_id'],
       },
-      if (requestedBy != null) 'requestedBy': {'id': requestedBy},
+      if (requestedBy != null) 'requestedBy': <String, Object?>{'id': requestedBy},
       'seasonCount': requested.length,
       'seasons': [
         for (final n in requested.whereType<num>())
@@ -852,6 +903,7 @@ class SiloSeerrHttpClient extends SeerrHttpClient {
             (r) => _matches(r, filter),
           );
     final pageItems = requests.skip(offset).take(limit).toList();
+    await _addRequesterNames(pageItems);
     final known = requests.length + (more ? 1 : 0);
     return {
       'pageInfo': {
@@ -867,7 +919,9 @@ class SiloSeerrHttpClient extends SeerrHttpClient {
   @override
   Future<Map<String, dynamic>> getRequest(int requestId) async {
     final id = Uri.encodeComponent(_requestId(requestId));
-    return _request(await _get('/requests/$id'));
+    final request = _request(await _get('/requests/$id'));
+    await _addRequesterNames([request]);
+    return request;
   }
 
   /// The badge on the requests screen counts what an admin has to approve.

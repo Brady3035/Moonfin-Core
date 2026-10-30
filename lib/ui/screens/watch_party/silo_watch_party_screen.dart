@@ -14,6 +14,7 @@ import '../../../util/focus/dpad_keys.dart';
 import '../../../util/platform_detection.dart';
 import '../../../watch_party/silo_watch_party_manager.dart';
 import '../../widgets/bounded_network_image.dart';
+import '../../widgets/user_avatar_image.dart';
 import '../../widgets/focus/request_initial_focus.dart';
 import '../../widgets/settings/clean_settings_typography.dart';
 
@@ -463,18 +464,24 @@ class _MemberAvatar extends StatelessWidget {
     final avatar = Stack(
       clipBehavior: Clip.none,
       children: [
-        CircleAvatar(
-          radius: 24,
-          backgroundColor: member.isSelf
-              ? scheme.primaryContainer
-              : scheme.surfaceContainerHighest,
-          foregroundColor: member.isSelf
-              ? scheme.onPrimaryContainer
-              : scheme.onSurface,
-          child: Text(
-            initial,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w700,
+        ClipOval(
+          child: UserAvatarImage(
+            url: memberAvatarUrl(member),
+            size: 48,
+            fallback: CircleAvatar(
+              radius: 24,
+              backgroundColor: member.isSelf
+                  ? scheme.primaryContainer
+                  : scheme.surfaceContainerHighest,
+              foregroundColor: member.isSelf
+                  ? scheme.onPrimaryContainer
+                  : scheme.onSurface,
+              child: Text(
+                initial,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
             ),
           ),
         ),
@@ -524,6 +531,16 @@ class _MemberAvatar extends StatelessWidget {
       ),
     );
   }
+}
+
+/// A member's profile avatar, for [UserAvatarImage]. Silo resolves the
+/// profiles of the signed-in account (presets are SVG, uploads bitmaps);
+/// rooms don't share other accounts' avatars, which fall back to initials.
+String? memberAvatarUrl(SiloRoomMember member) {
+  if (member.profileId.isEmpty) return null;
+  final url = GetIt.instance<SiloWatchPartyManager>().activeSiloClient?.imageApi
+      .getUserImageUrl(member.profileId);
+  return url == null || url.isEmpty ? null : url;
 }
 
 /// Nothing picked yet.
@@ -668,7 +685,11 @@ class _ItemHeroState extends State<_ItemHero> {
               label: Text(l10n.watchPartyBackToLobby),
             ),
           if (item != null)
-            _SubtitleButton(item: item, fileId: room.selectedFileId),
+            _SubtitleButton(
+              item: item,
+              fileId: room.selectedFileId,
+              isHost: room.isHost,
+            ),
         ];
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -754,6 +775,8 @@ class _VotePanelState extends State<_VotePanel> {
       if (_search.text == _lastSearch) return;
       _lastSearch = _search.text;
       _onSearchChanged(_search.text);
+      // Typing switches between the results and the list.
+      setState(() {});
     });
   }
 
@@ -790,6 +813,7 @@ class _VotePanelState extends State<_VotePanel> {
     final isHost = widget.room.isHost;
     final suggestions = manager.suggestions;
     final suggested = {for (final s in suggestions) s.contentId};
+    final searching = isHost && _search.text.trim().isNotEmpty;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -797,77 +821,19 @@ class _VotePanelState extends State<_VotePanel> {
           isHost ? l10n.watchPartyVoteHelp : l10n.watchPartyGuestVoteHelp,
           style: theme.textTheme.bodySmall,
         ),
-        const SizedBox(height: 8),
-        if (suggestions.isEmpty)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Text(l10n.watchPartyNoSuggestions),
-          ),
-        for (final (index, suggestion) in suggestions.indexed)
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            leading: _Poster(contentId: suggestion.contentId, width: 40),
-            // The one ahead, once anyone has voted.
-            title: Row(
-              children: [
-                if (index == 0 && suggestion.voteCount > 0) ...[
-                  Icon(
-                    Icons.emoji_events_rounded,
-                    size: 18,
-                    color: theme.colorScheme.primary,
-                  ),
-                  const SizedBox(width: 6),
-                ],
-                Flexible(child: Text(suggestion.title)),
-              ],
-            ),
-            subtitle: Text(
-              [
-                if (suggestion.subtitle.isNotEmpty) suggestion.subtitle,
-                l10n.watchPartyVoteCount(suggestion.voteCount),
-              ].join(' · '),
-            ),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  tooltip: l10n.watchPartyVoteCount(1),
-                  icon: Icon(
-                    suggestion.votedByMe
-                        ? Icons.thumb_up_alt
-                        : Icons.thumb_up_alt_outlined,
-                  ),
-                  color: suggestion.votedByMe
-                      ? theme.colorScheme.primary
-                      : null,
-                  onPressed: () =>
-                      manager.vote(suggestion, !suggestion.votedByMe),
-                ),
-                if (isHost) ...[
-                  IconButton(
-                    tooltip: l10n.play,
-                    icon: const Icon(Icons.play_arrow_rounded),
-                    onPressed: manager.busy
-                        ? null
-                        : () => manager.playSuggestion(suggestion),
-                  ),
-                  IconButton(
-                    tooltip: l10n.remove,
-                    icon: const Icon(Icons.close),
-                    onPressed: () => manager.removeSuggestion(suggestion),
-                  ),
-                ],
-              ],
-            ),
-          ),
+        const SizedBox(height: 12),
+        // The search stays on top; its results stand in for the list until
+        // a movie is added or the search is cleared.
         if (isHost) ...[
-          const SizedBox(height: 8),
           _TvAwareField(
             controller: _search,
             focusNode: _searchFocus,
             hint: l10n.watchPartySearchMovies,
             icon: Icons.search,
           ),
+          const SizedBox(height: 8),
+        ],
+        if (searching) ...[
           for (final movie in _results)
             if (!suggested.contains(movie['Id']))
               ListTile(
@@ -880,12 +846,83 @@ class _VotePanelState extends State<_VotePanel> {
                 trailing: TextButton.icon(
                   icon: const Icon(Icons.add),
                   label: Text(l10n.add),
-                  onPressed: () => manager.suggestMovie(movie),
+                  onPressed: () => _add(movie),
                 ),
               ),
+        ] else ...[
+          if (suggestions.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Text(l10n.watchPartyNoSuggestions),
+            ),
+          for (final (index, suggestion) in suggestions.indexed)
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: _Poster(contentId: suggestion.contentId, width: 40),
+              // The one ahead, once anyone has voted.
+              title: Row(
+                children: [
+                  if (index == 0 && suggestion.voteCount > 0) ...[
+                    Icon(
+                      Icons.emoji_events_rounded,
+                      size: 18,
+                      color: theme.colorScheme.primary,
+                    ),
+                    const SizedBox(width: 6),
+                  ],
+                  Flexible(child: Text(suggestion.title)),
+                ],
+              ),
+              subtitle: Text(
+                [
+                  if (suggestion.subtitle.isNotEmpty) suggestion.subtitle,
+                  l10n.watchPartyVoteCount(suggestion.voteCount),
+                ].join(' · '),
+              ),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    tooltip: l10n.watchPartyVoteCount(1),
+                    icon: Icon(
+                      suggestion.votedByMe
+                          ? Icons.thumb_up_alt
+                          : Icons.thumb_up_alt_outlined,
+                    ),
+                    color: suggestion.votedByMe
+                        ? theme.colorScheme.primary
+                        : null,
+                    onPressed: () =>
+                        manager.vote(suggestion, !suggestion.votedByMe),
+                  ),
+                  if (isHost) ...[
+                    IconButton(
+                      tooltip: l10n.play,
+                      icon: const Icon(Icons.play_arrow_rounded),
+                      onPressed: manager.busy
+                          ? null
+                          : () => manager.playSuggestion(suggestion),
+                    ),
+                    IconButton(
+                      tooltip: l10n.remove,
+                      icon: const Icon(Icons.close),
+                      onPressed: () => manager.removeSuggestion(suggestion),
+                    ),
+                  ],
+                ],
+              ),
+            ),
         ],
       ],
     );
+  }
+
+  /// Adds [movie] to the vote, then leaves the search for the list.
+  Future<void> _add(Map<String, dynamic> movie) async {
+    if (!await widget.manager.suggestMovie(movie)) return;
+    _search.clear();
+    _results = const [];
+    if (mounted) setState(() {});
   }
 }
 
@@ -998,14 +1035,20 @@ class _TvAwareFieldState extends State<_TvAwareField> {
   }
 }
 
-/// Each member's own subtitles for the room's item, as a button that
-/// shows the current choice. Audio isn't offered: everyone hears the
-/// file's default track.
+/// The host's subtitles for everyone, as a button showing the choice; a
+/// member sees the choice. Members can still turn their own on or off in
+/// the player. Absent without Moonbase to keep the choice. Audio isn't
+/// offered: everyone hears the file's default track.
 class _SubtitleButton extends StatelessWidget {
-  const _SubtitleButton({required this.item, required this.fileId});
+  const _SubtitleButton({
+    required this.item,
+    required this.fileId,
+    required this.isHost,
+  });
 
   final Map<String, dynamic> item;
   final String? fileId;
+  final bool isHost;
 
   String _label(Map<String, dynamic> stream) =>
       stream['DisplayTitle'] as String? ??
@@ -1016,32 +1059,43 @@ class _SubtitleButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final manager = GetIt.instance<SiloWatchPartyManager>();
-    final tracks = SiloWatchPartyManager.streamsOf(
-      SiloWatchPartyManager.partySource(item, fileId),
-      'Subtitle',
-    );
-    if (tracks.isEmpty) return const SizedBox.shrink();
-    final current = manager.subtitleStreamIndex;
+    if (!manager.groupSubtitlesSupported) return const SizedBox.shrink();
+    final source = SiloWatchPartyManager.partySource(item, fileId);
+    final tracks = SiloWatchPartyManager.streamsOf(source, 'Subtitle');
+    final choice = manager.groupSubtitle;
+    final current = SiloWatchPartyManager.subtitleIndexFor(choice, source);
     final currentLabel = switch (current) {
-      null => l10n.defaultLabel,
+      null => l10n.watchPartyOwnSubtitles,
       -1 => l10n.off,
       _ =>
         tracks.where((t) => t['Index'] == current).map(_label).firstOrNull ??
-            l10n.defaultLabel,
+            l10n.watchPartyOwnSubtitles,
     };
+    final label = '${l10n.watchPartyGroupSubtitles}: $currentLabel';
+    if (!isHost) {
+      if (choice == null) return const SizedBox.shrink();
+      return Chip(
+        avatar: const Icon(Icons.subtitles_outlined, size: 18),
+        label: Text(label),
+      );
+    }
+    if (tracks.isEmpty) return const SizedBox.shrink();
     return OutlinedButton.icon(
       icon: const Icon(Icons.subtitles_outlined),
-      label: Text('${l10n.subtitles}: $currentLabel'),
+      label: Text(label),
       onPressed: () async {
-        final options = <(int?, String)>[
-          (null, l10n.defaultLabel),
-          (-1, l10n.off),
-          for (final t in tracks) (t['Index'] as int, _label(t)),
+        // (track, off, label)
+        final options = <(Map<String, dynamic>?, bool, String)>[
+          (null, false, l10n.watchPartyOwnSubtitles),
+          (null, true, l10n.off),
+          for (final t in tracks) (t, false, _label(t)),
         ];
-        final picked = await showDialog<(int?, String)>(
+        bool selected((Map<String, dynamic>?, bool, String) o) =>
+            o.$2 ? current == -1 : (o.$1?['Index'] as int?) == current;
+        final picked = await showDialog<(Map<String, dynamic>?, bool, String)>(
           context: context,
           builder: (context) => SimpleDialog(
-            title: Text(l10n.subtitles),
+            title: Text(l10n.watchPartyGroupSubtitles),
             children: [
               for (final option in options)
                 SimpleDialogOption(
@@ -1049,20 +1103,22 @@ class _SubtitleButton extends StatelessWidget {
                   child: Row(
                     children: [
                       Icon(
-                        option.$1 == current
+                        selected(option)
                             ? Icons.radio_button_checked
                             : Icons.radio_button_unchecked,
                         size: 20,
                       ),
                       const SizedBox(width: 12),
-                      Expanded(child: Text(option.$2)),
+                      Expanded(child: Text(option.$3)),
                     ],
                   ),
                 ),
             ],
           ),
         );
-        if (picked != null) await manager.setSubtitleStreamIndex(picked.$1);
+        if (picked != null) {
+          await manager.setGroupSubtitle(picked.$1, off: picked.$2);
+        }
       },
     );
   }

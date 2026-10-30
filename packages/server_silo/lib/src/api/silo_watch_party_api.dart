@@ -4,6 +4,7 @@ import 'package:server_core/server_core.dart';
 /// One member of a Watch Party room, as the room socket lists them.
 class SiloRoomMember {
   const SiloRoomMember({
+    required this.profileId,
     required this.displayName,
     required this.isHost,
     required this.isSelf,
@@ -11,12 +12,15 @@ class SiloRoomMember {
   });
 
   factory SiloRoomMember.fromJson(Map<String, dynamic> json) => SiloRoomMember(
+    profileId: json['profile_id'] as String? ?? '',
     displayName: json['display_name'] as String? ?? '',
     isHost: json['is_host'] == true,
     isSelf: json['is_self'] == true,
     connected: json['connected'] == true,
   );
 
+  /// Silo's profile id, which is Moonfin's user id for the profile.
+  final String profileId;
   final String displayName;
   final bool isHost;
   final bool isSelf;

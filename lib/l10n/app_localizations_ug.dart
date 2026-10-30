@@ -12705,6 +12705,12 @@ class AppLocalizationsUg extends AppLocalizations {
   String get watchWithGroup => 'گۇرۇپپا بىلەن كۆرۈش';
 
   @override
+  String get watchPartyGroupSubtitles => 'Subtitles for everyone';
+
+  @override
+  String get watchPartyOwnSubtitles => 'Each person\'s choice';
+
+  @override
   String get watchPartyLobby => 'In the lobby';
 
   @override

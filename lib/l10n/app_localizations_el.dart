@@ -12826,6 +12826,12 @@ class AppLocalizationsEl extends AppLocalizations {
   String get watchWithGroup => 'Παρακολουθήστε με ομάδα';
 
   @override
+  String get watchPartyGroupSubtitles => 'Subtitles for everyone';
+
+  @override
+  String get watchPartyOwnSubtitles => 'Each person\'s choice';
+
+  @override
   String get watchPartyLobby => 'In the lobby';
 
   @override

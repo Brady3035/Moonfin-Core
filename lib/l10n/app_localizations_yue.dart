@@ -12344,6 +12344,12 @@ class AppLocalizationsYue extends AppLocalizations {
   String get watchWithGroup => '同群組一齊睇';
 
   @override
+  String get watchPartyGroupSubtitles => 'Subtitles for everyone';
+
+  @override
+  String get watchPartyOwnSubtitles => 'Each person\'s choice';
+
+  @override
   String get watchPartyLobby => 'In the lobby';
 
   @override

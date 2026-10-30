@@ -11211,6 +11211,14 @@
     "description": "Tooltip for the button on a person page that opens their own website"
   },
   "watchWithGroup": "Watch with group",
+  "watchPartyGroupSubtitles": "Subtitles for everyone",
+  "@watchPartyGroupSubtitles": {
+    "description": "The Watch Party host's subtitle choice for the whole group"
+  },
+  "watchPartyOwnSubtitles": "Each person's choice",
+  "@watchPartyOwnSubtitles": {
+    "description": "Watch Party subtitle option that leaves subtitles to each member"
+  },
   "watchPartyLobby": "In the lobby",
   "@watchPartyLobby": {
     "description": "Watch Party status while nothing plays"

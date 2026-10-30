@@ -51,6 +51,24 @@ void main() {
     expect(SiloWatchPartyManager.partySource(_item, '404')?['Id'], '5');
   });
 
+  test('the host\'s subtitles map onto each member\'s file', () {
+    final source = {
+      'MediaStreams': [
+        {'Type': 'Subtitle', 'Index': 3, 'Language': 'eng'},
+        {'Type': 'Subtitle', 'Index': 4, 'Language': 'spa'},
+      ],
+    };
+    int? pick(Map<String, dynamic>? choice) =>
+        SiloWatchPartyManager.subtitleIndexFor(choice, source);
+    expect(pick(null), isNull);
+    expect(pick({'off': true}), -1);
+    expect(pick({'index': 3, 'language': 'eng'}), 3);
+    // Another file of the title numbers its tracks differently.
+    expect(pick({'index': 9, 'language': 'spa'}), 4);
+    expect(pick({'index': 3, 'language': 'spa'}), 4);
+    expect(pick({'index': 9, 'language': 'fre'}), isNull);
+  });
+
   test('closes drift by a small rate, slower when ahead', () {
     // Ahead by half a second: 0.5/25 is 2 percent, slowed.
     expect(SiloWatchPartyManager.rateFor(0.5), closeTo(0.98, 1e-9));

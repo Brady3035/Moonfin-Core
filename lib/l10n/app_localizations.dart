@@ -22348,6 +22348,18 @@ abstract class AppLocalizations {
   /// **'Watch with group'**
   String get watchWithGroup;
 
+  /// The Watch Party host's subtitle choice for the whole group
+  ///
+  /// In en, this message translates to:
+  /// **'Subtitles for everyone'**
+  String get watchPartyGroupSubtitles;
+
+  /// Watch Party subtitle option that leaves subtitles to each member
+  ///
+  /// In en, this message translates to:
+  /// **'Each person\'s choice'**
+  String get watchPartyOwnSubtitles;
+
   /// Watch Party status while nothing plays
   ///
   /// In en, this message translates to:

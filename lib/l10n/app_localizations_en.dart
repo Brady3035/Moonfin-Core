@@ -12600,6 +12600,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get watchWithGroup => 'Watch with group';
 
   @override
+  String get watchPartyGroupSubtitles => 'Subtitles for everyone';
+
+  @override
+  String get watchPartyOwnSubtitles => 'Each person\'s choice';
+
+  @override
   String get watchPartyLobby => 'In the lobby';
 
   @override

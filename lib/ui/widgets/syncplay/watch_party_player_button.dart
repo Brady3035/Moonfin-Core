@@ -4,7 +4,10 @@ import 'package:moonfin_design/moonfin_design.dart';
 
 import '../../../l10n/app_localizations.dart';
 import '../../../watch_party/silo_watch_party_manager.dart';
+import '../../screens/watch_party/silo_watch_party_screen.dart'
+    show memberAvatarUrl;
 import '../overlay_sheet.dart';
+import '../user_avatar_image.dart';
 
 /// The Watch Party's in-player control, in SyncPlay's place on Silo: a sheet
 /// with the room's code and status, who is watching, and the host's way
@@ -94,15 +97,26 @@ class WatchPartyPlayerButton extends StatelessWidget {
                         children: [
                           for (final m in connected)
                             Chip(
-                              avatar: m.isHost
-                                  ? Icon(
-                                      Icons.star_rounded,
-                                      size: 16,
-                                      color: AppColorScheme.accent,
-                                    )
-                                  : null,
+                              avatar: ClipOval(
+                                child: UserAvatarImage(
+                                  url: memberAvatarUrl(m),
+                                  size: 24,
+                                  fallback: CircleAvatar(
+                                    radius: 12,
+                                    backgroundColor: AppColorScheme.accent,
+                                    foregroundColor: AppColorScheme.onAccent,
+                                    child: Text(
+                                      m.displayName.isEmpty
+                                          ? '?'
+                                          : m.displayName.characters.first
+                                                .toUpperCase(),
+                                      style: const TextStyle(fontSize: 12),
+                                    ),
+                                  ),
+                                ),
+                              ),
                               label: Text(
-                                m.displayName,
+                                m.isHost ? '${m.displayName} ★' : m.displayName,
                                 style: TextStyle(color: onSurface),
                               ),
                               backgroundColor:

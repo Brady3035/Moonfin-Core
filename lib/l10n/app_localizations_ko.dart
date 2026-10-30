@@ -12293,6 +12293,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String get watchWithGroup => '그룹과 함께 보기';
 
   @override
+  String get watchPartyGroupSubtitles => 'Subtitles for everyone';
+
+  @override
+  String get watchPartyOwnSubtitles => 'Each person\'s choice';
+
+  @override
   String get watchPartyLobby => 'In the lobby';
 
   @override

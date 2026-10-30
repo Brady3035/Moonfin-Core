@@ -16,6 +16,8 @@ import '../auth/repositories/session_repository.dart';
 import '../auth/services/silo_token_storage.dart';
 import '../data/models/aggregated_item.dart';
 import '../data/services/media_server_client_factory.dart';
+import '../data/services/moonbase_endpoint.dart';
+import '../data/services/plugin_sync_service.dart' show pluginRequestOptions;
 import '../ui/navigation/app_router.dart';
 import '../ui/navigation/destinations.dart';
 import '../ui/widgets/video_mini_player.dart';
@@ -48,7 +50,14 @@ class SiloWatchPartyManager extends ChangeNotifier {
   String? _error;
   bool _busy = false;
   int _roomScreens = 0;
-  int? _subtitleIndex;
+  // The host's subtitles for the room, kept by Moonbase: null leaves them
+  // to each member, else {"index", "language"} or {"off": true}.
+  Map<String, dynamic>? _groupSubtitle;
+  bool _groupSubtitleKnown = false;
+  bool _groupSubtitlesSupported = false;
+  String? _groupSubtitleApplied;
+  Timer? _groupSubtitlePoll;
+  final Dio _dio = Dio(pluginRequestOptions());
   List<SiloRoomSuggestion> _suggestions = const [];
   String? _itemId;
   Future<Map<String, dynamic>?>? _item;
@@ -368,22 +377,123 @@ class SiloWatchPartyManager extends ChangeNotifier {
   void roomScreenOpened() => _roomScreens++;
   void roomScreenClosed() => _roomScreens--;
 
-  /// The subtitle track this viewer picked for the room's item: null for
-  /// their usual choice, -1 for off.
-  int? get subtitleStreamIndex => _subtitleIndex;
+  /// The host's subtitles for everyone: null leaves them to each member,
+  /// else `{"index", "language"}` for a track or `{"off": true}`. Members
+  /// can still change their own in the player.
+  Map<String, dynamic>? get groupSubtitle => _groupSubtitle;
 
-  Future<void> setSubtitleStreamIndex(int? index) async {
-    _subtitleIndex = index;
+  /// Whether Moonbase is there to keep the host's choice. Without it each
+  /// member picks their own.
+  bool get groupSubtitlesSupported => _groupSubtitlesSupported;
+
+  /// Host: subtitles for everyone. [track] is a Moonfin subtitle stream, or
+  /// null with [off] false to leave them to each member.
+  Future<bool> setGroupSubtitle(
+    Map<String, dynamic>? track, {
+    bool off = false,
+  }) async {
+    final room = _room;
+    final client = _client;
+    if (room == null || client == null || !room.isHost) return false;
+    final choice = off
+        ? <String, dynamic>{'off': true}
+        : track == null
+        ? null
+        : <String, dynamic>{
+            'index': track['Index'],
+            'language': ?track['Language'],
+          };
+    try {
+      final ep = await moonbaseEndpoint(client, _dio);
+      if (ep == null) return false;
+      await _dio.put<dynamic>(
+        '${ep.base}/Moonfin/WatchParty/${room.roomId}',
+        data: {'subtitle': choice},
+        options: Options(headers: ep.headers),
+      );
+    } catch (e) {
+      _error = _describe(e);
+      notifyListeners();
+      return false;
+    }
+    _groupSubtitle = choice;
     notifyListeners();
+    await _applyGroupSubtitle();
+    return true;
+  }
+
+  Future<void> _loadGroupSubtitle() async {
+    final room = _room;
+    final client = _client;
+    if (room == null || client == null) return;
+    try {
+      final ep = await moonbaseEndpoint(client, _dio);
+      if (ep == null) return;
+      final response = await _dio.get<dynamic>(
+        '${ep.base}/Moonfin/WatchParty/${room.roomId}',
+        options: Options(headers: ep.headers),
+      );
+      if (_room?.roomId != room.roomId) return;
+      final data = response.data;
+      _groupSubtitlesSupported = true;
+      _groupSubtitleKnown = true;
+      final subtitle = data is Map ? data['subtitle'] : null;
+      _groupSubtitle = subtitle is Map
+          ? Map<String, dynamic>.from(subtitle)
+          : null;
+      notifyListeners();
+      await _applyGroupSubtitle();
+    } catch (_) {
+      // An older Moonbase, or none: members pick their own.
+      _groupSubtitleKnown = true;
+    }
+  }
+
+  /// The stream index the host's choice means in [source]: the same index
+  /// when that stream has the same language, else the first in the
+  /// language; -1 for off; null to leave it to the member.
+  static int? subtitleIndexFor(
+    Map<String, dynamic>? choice,
+    Map<String, dynamic>? source,
+  ) {
+    if (choice == null) return null;
+    if (choice['off'] == true) return -1;
+    final tracks = streamsOf(source, 'Subtitle');
+    final index = choice['index'];
+    final language = choice['language'];
+    final same = tracks.where((t) => t['Index'] == index).firstOrNull;
+    if (same != null && (language == null || same['Language'] == language)) {
+      return index as int;
+    }
+    if (language != null) {
+      final byLanguage = tracks
+          .where((t) => t['Language'] == language)
+          .firstOrNull;
+      if (byLanguage != null) return byLanguage['Index'] as int;
+    }
+    return null;
+  }
+
+  /// Puts the host's choice on the playing item, once per change of it:
+  /// a member who then picks their own in the player keeps it.
+  Future<void> _applyGroupSubtitle() async {
     final room = _room;
     final current = _playbackManager.queueService.currentItem;
-    if (index == null ||
-        room == null ||
+    final key = jsonEncode(_groupSubtitle);
+    if (room == null ||
         !room.isPlaying ||
         current is! AggregatedItem ||
-        current.id != room.selectedContentId) {
+        current.id != room.selectedContentId ||
+        key == _groupSubtitleApplied) {
       return;
     }
+    _groupSubtitleApplied = key;
+    final raw = await selectedItem();
+    final index = subtitleIndexFor(
+      _groupSubtitle,
+      raw == null ? null : partySource(raw, room.selectedFileId),
+    );
+    if (index == null) return;
     if (index < 0) {
       await _playbackManager.disableSubtitles();
     } else {
@@ -475,6 +585,7 @@ class SiloWatchPartyManager extends ChangeNotifier {
       _clockSamples.clear();
       unawaited(_connect());
       unawaited(_loadSuggestions());
+      unawaited(_loadGroupSubtitle());
       return true;
     } catch (e) {
       _error = _describe(e);
@@ -734,7 +845,7 @@ class SiloWatchPartyManager extends ChangeNotifier {
     }
     _room = next;
     if (next.selectedContentId != previous.selectedContentId) {
-      _subtitleIndex = null;
+      _groupSubtitleApplied = null;
     }
     if (next.isVoting != previous.isVoting) unawaited(_loadSuggestions());
     if (next.isPlaying && next.selectedContentId != null) {
@@ -783,8 +894,12 @@ class SiloWatchPartyManager extends ChangeNotifier {
       serverId: serverId,
       rawData: raw,
     );
-    final audio = defaultAudioIndex(partySource(raw, room.selectedFileId));
-    final subtitles = _subtitleIndex;
+    final source = partySource(raw, room.selectedFileId);
+    final audio = defaultAudioIndex(source);
+    // The host's pick as the item starts; a member can change theirs after.
+    if (!_groupSubtitleKnown || !room.isHost) await _loadGroupSubtitle();
+    final subtitles = subtitleIndexFor(_groupSubtitle, source);
+    _groupSubtitleApplied = jsonEncode(_groupSubtitle);
     if (_room?.selectionRevision != room.selectionRevision) return;
     _applying = true;
     try {
@@ -832,7 +947,10 @@ class SiloWatchPartyManager extends ChangeNotifier {
     _room = null;
     _roomToken = null;
     _client = null;
-    _subtitleIndex = null;
+    _groupSubtitle = null;
+    _groupSubtitleKnown = false;
+    _groupSubtitlesSupported = false;
+    _groupSubtitleApplied = null;
     _suggestions = const [];
     _item = null;
     _itemId = null;
@@ -855,6 +973,12 @@ class SiloWatchPartyManager extends ChangeNotifier {
       const Duration(milliseconds: 500),
       (_) => _correctDrift(),
     );
+    // A host's change mid-item reaches members within a few seconds.
+    _groupSubtitlePoll ??= Timer.periodic(const Duration(seconds: 10), (_) {
+      if (_room?.isHost == false && _groupSubtitlesSupported) {
+        unawaited(_loadGroupSubtitle());
+      }
+    });
   }
 
   void _stopFollowing() {
@@ -878,6 +1002,8 @@ class SiloWatchPartyManager extends ChangeNotifier {
     _attachSentFor = null;
     _driftTimer?.cancel();
     _driftTimer = null;
+    _groupSubtitlePoll?.cancel();
+    _groupSubtitlePoll = null;
     _restoreRate();
   }
 
@@ -950,7 +1076,20 @@ class SiloWatchPartyManager extends ChangeNotifier {
     _restoreRate();
     _applying = true;
     try {
-      final tolerance = command.action == 'seek' ? 0.25 : _maxDriftSeconds;
+      // A correction that finds this player already playing is closed by
+      // playback rate from the new reference rather than a seek: on a
+      // slower connection each seek rebuffers and falls behind again.
+      // Explicit seeks, a start from paused, and drift past 5 s still seek.
+      final byRate =
+          command.action != 'seek' &&
+          playing &&
+          _playbackManager.state.isPlaying &&
+          _correctsByRate;
+      final tolerance = command.action == 'seek'
+          ? 0.25
+          : byRate
+          ? 5.0
+          : _maxDriftSeconds;
       if ((_positionSeconds - target).abs() > tolerance) {
         await _playbackManager.seekTo(
           Duration(milliseconds: (target * 1000).round()),

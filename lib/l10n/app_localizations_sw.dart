@@ -12743,6 +12743,12 @@ class AppLocalizationsSw extends AppLocalizations {
   String get watchWithGroup => 'Tazama na kikundi';
 
   @override
+  String get watchPartyGroupSubtitles => 'Subtitles for everyone';
+
+  @override
+  String get watchPartyOwnSubtitles => 'Each person\'s choice';
+
+  @override
   String get watchPartyLobby => 'In the lobby';
 
   @override

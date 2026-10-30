@@ -12640,6 +12640,12 @@ class AppLocalizationsPa extends AppLocalizations {
   String get watchWithGroup => 'ਸਮੂਹ ਨਾਲ ਦੇਖੋ';
 
   @override
+  String get watchPartyGroupSubtitles => 'Subtitles for everyone';
+
+  @override
+  String get watchPartyOwnSubtitles => 'Each person\'s choice';
+
+  @override
   String get watchPartyLobby => 'In the lobby';
 
   @override

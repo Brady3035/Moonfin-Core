@@ -95,6 +95,8 @@ class _SearchScreenState extends State<SearchScreen>
   static const _tmdbPosterBase = 'https://image.tmdb.org/t/p/w342';
   int _selectedTab = 0;
   String? _tabSelectionQuery;
+  // Whether the user picked a tab for the current query.
+  bool _tabPicked = false;
   // The tabs as of the last results, so the selection stays on its tab when a
   // group arrives late.
   List<String> _shownTabKeys = const [];
@@ -189,9 +191,15 @@ class _SearchScreenState extends State<SearchScreen>
     final keptTab = _selectedTab < _shownTabKeys.length
         ? tabKeys.indexOf(_shownTabKeys[_selectedTab])
         : -1;
+    final requestsArrived =
+        _hasSeerr && !_shownTabKeys.contains('seerr');
     _shownTabKeys = tabKeys;
     if (_tabCount > 0 && query != _tabSelectionQuery) {
       _tabSelectionQuery = query;
+      _tabPicked = false;
+      _selectedTab = _defaultTab;
+    } else if (widget.preferRequests && requestsArrived && !_tabPicked) {
+      // The request results came after the library's.
       _selectedTab = _defaultTab;
     } else if (keptTab >= 0) {
       _selectedTab = keptTab;
@@ -391,6 +399,7 @@ class _SearchScreenState extends State<SearchScreen>
 
   void _selectTab(int index) {
     if (index == _selectedTab) return;
+    _tabPicked = true;
     setState(() => _selectedTab = index);
     cleanupGridFocusNodes(_currentTabItemCount());
     _lastGridCount = -1;

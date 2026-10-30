@@ -924,7 +924,7 @@ void _openRequestsForPerson(BuildContext context, AggregatedItem item) {
       GetIt.instance<MediaServerClient>();
   context.push(
     client.serverType == ServerType.silo
-        ? Destinations.searchWith(item.name)
+        ? Destinations.searchRequestsWith(item.name)
         : Destinations.seerrPerson(item.tmdbId!),
   );
 }

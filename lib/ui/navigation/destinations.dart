@@ -373,6 +373,8 @@ class Destinations {
   static const searchRequests = '/search?tab=requests';
   static String searchWith(String query) =>
       '/search?query=${Uri.encodeComponent(query)}';
+  static String searchRequestsWith(String query) =>
+      '$searchRequests&query=${Uri.encodeComponent(query)}';
   static String searchInLibrary(String libraryId, {String? query}) {
     final params = <String, String>{'libraryId': libraryId};
     if (query != null && query.trim().isNotEmpty) {

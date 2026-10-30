@@ -683,13 +683,10 @@ class PluginSyncService extends ChangeNotifier {
   /// on its own.
   Future<void> _startSettingsStream(MediaServerClient client) async {
     // Emby servers have no SSE endpoint, so plugin events arrive over the
-    // session websocket instead. Silo can't stream a plugin's response, so
+    // session websocket instead. Moonbase for Silo and Plex can't stream, so
     // settings arrive at sign-in and on a manual sync. Don't loop on 501
     // reconnects here.
-    if (client.serverType == ServerType.emby ||
-        client.serverType == ServerType.silo) {
-      return;
-    }
+    if (client.serverType != ServerType.jellyfin) return;
 
     if (!_pluginAvailable || !_prefs.get(UserPreferences.pluginSyncEnabled)) {
       return;

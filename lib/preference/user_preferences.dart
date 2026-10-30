@@ -3654,6 +3654,11 @@ class UserPreferences extends ChangeNotifier {
     defaultValue: '',
   );
 
+  /// Where Moonbase runs for a Plex server, as the user typed it. Empty means
+  /// next to the Plex server (`plexMoonbaseDefault`).
+  static Preference<String> moonbaseUrlForServer(String serverId) =>
+      Preference(key: 'pref_moonbase_url_$serverId', defaultValue: '');
+
   static Preference<bool> pluginSyncInitializedForServer(String serverKey) =>
       Preference(
         key: 'pref_plugin_sync_initialized_$serverKey',

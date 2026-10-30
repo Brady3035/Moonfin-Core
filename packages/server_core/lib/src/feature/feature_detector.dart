@@ -17,6 +17,7 @@ class FeatureDetector {
   bool get _isJellyfin => serverType == ServerType.jellyfin;
   bool get _isEmby => serverType == ServerType.emby;
   bool get _isSilo => serverType == ServerType.silo;
+  bool get _isPlex => serverType == ServerType.plex;
 
   bool get supportsSyncPlay => _isJellyfin;
   /// Sprite-sheet seek previews (Jellyfin's `Trickplay`). Silo's are read
@@ -79,10 +80,11 @@ class FeatureDetector {
   bool get supportsAdmin => _isJellyfin || _isEmby;
 
   /// The Moonfin server plugin, Moonbase. Jellyfin and Emby serve it at the
-  /// server root. Silo serves it under the plugin's installation id, and
-  /// Moonbase for Silo has settings sync, server messages and the TMDB and
-  /// MDBList proxies only.
-  bool get supportsMoonfinPlugin => _isJellyfin || _isEmby || _isSilo;
+  /// server root. Silo serves it under the plugin's installation id, and Plex,
+  /// which can't run plugins, through a companion service. Those two only have
+  /// part of it, see [supportsFullMoonfinPlugin].
+  bool get supportsMoonfinPlugin =>
+      _isJellyfin || _isEmby || _isSilo || _isPlex;
 
   /// The rest of the Moonfin plugin's routes (`/Moonfin/*` at the server
   /// root: Seerr proxy, games, anime markers, custom rows, bookmarks...),

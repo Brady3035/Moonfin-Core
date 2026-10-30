@@ -71,13 +71,14 @@ void main() {
     }
   });
 
-  test('Plex has its own markers but no admin panel or Moonfin plugin', () {
+  test('Plex has its own markers, Moonbase for Plex and no admin panel', () {
     final f = _for(ServerType.plex);
     expect(f.supportsSkipSegments, isTrue);
     expect(f.supportsLiveTv, isTrue);
     expect(f.supportsMusic, isTrue);
     expect(f.supportsAdmin, isFalse);
-    expect(f.supportsMoonfinPlugin, isFalse);
+    expect(f.supportsMoonfinPlugin, isTrue);
+    expect(f.supportsFullMoonfinPlugin, isFalse);
   });
 
   test('Silo has Moonbase for Silo, not the full plugin', () {

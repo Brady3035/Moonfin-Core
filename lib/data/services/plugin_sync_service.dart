@@ -429,6 +429,20 @@ class PluginSyncService extends ChangeNotifier {
     return supportedProfiles.contains(saved) ? saved : _profileName;
   }
 
+  /// Server and user pairs whose settings this launch has finished reading
+  /// at sign-in, or found there was nothing to read. Kept per user because
+  /// the initialized flag is per server: a second profile signing in on a
+  /// device that already synced the first one has its settings still on the
+  /// way.
+  final Set<String> _signInSettingsRead = {};
+
+  String _userSyncKey(MediaServerClient client, {String? serverId}) =>
+      '${_serverSyncKey(client, serverId: serverId)}/${client.userId ?? ''}';
+
+  /// Whether this sign-in's settings for [client]'s user have been read.
+  bool hasReadSignInSettings(MediaServerClient client, {String? serverId}) =>
+      _signInSettingsRead.contains(_userSyncKey(client, serverId: serverId));
+
   bool isSyncInitializedForServer(
     MediaServerClient client, {
     String? serverId,
@@ -473,6 +487,9 @@ class PluginSyncService extends ChangeNotifier {
 
   Future<void> syncOnLogin(MediaServerClient client, {String? serverId}) async {
     _readingProfileOnSignIn = true;
+    final userKey = _userSyncKey(client, serverId: serverId);
+    _signInSettingsRead.remove(userKey);
+    var retrying = false;
     try {
       _activeThemeCacheServerId = serverId;
       await _hydrateCachedThemes(client, serverId: serverId);
@@ -504,12 +521,14 @@ class PluginSyncService extends ChangeNotifier {
         }
 
         if (availability == _PluginAvailabilityStatus.unknown) {
+          retrying = true;
           _scheduleSyncRetry(client, serverId: serverId);
         }
         return;
       }
 
       if (availability == _PluginAvailabilityStatus.unknown) {
+        retrying = true;
         _scheduleSyncRetry(client, serverId: serverId);
         return;
       }
@@ -537,6 +556,8 @@ class PluginSyncService extends ChangeNotifier {
       resetState();
     } finally {
       _readingProfileOnSignIn = false;
+      // A retry reads them later, so the wait isn't over yet.
+      if (!retrying) _signInSettingsRead.add(userKey);
     }
   }
 

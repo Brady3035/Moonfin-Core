@@ -442,6 +442,22 @@ void main() {
     expect(silo.calls.where((c) => c.startsWith('GET /api/v2/admin/users')).length, 1);
   });
 
+  test('the badge counts what waits for approval without reading the queue',
+      () async {
+    final silo = _Silo({
+      ..._base(admin: true),
+      'GET /api/v2/admin/requests/counts': (
+        200,
+        {'needs_approval': 120, 'in_progress': 3, 'failed': 0, 'done': 9},
+      ),
+    });
+    final counts = SeerrRequestCounts.fromJson(
+      await _client(silo).getRequestCount(),
+    );
+    expect(counts.pending, 120);
+    expect(silo.calls.where((c) => c.startsWith('GET /api/v2/admin/requests?')), isEmpty);
+  });
+
   test('the arr calendars read Silo\'s calendar, with TMDB and TVDB ids '
       'from the catalog', () async {
     final silo = _Silo({

@@ -39,6 +39,7 @@ class SiloSeerrHttpClient extends SeerrHttpClient {
 
   /// Silo request id by the integer the screens were given.
   final Map<int, String> _requestIds = {};
+  final Map<String, int> _requestKeys = {};
 
   /// Genre slug by the integer the screens were given.
   final Map<int, String> _genreSlugs = {};
@@ -70,9 +71,11 @@ class SiloSeerrHttpClient extends SeerrHttpClient {
 
   int _intId(String id) {
     final n = int.tryParse(id);
-    // A number past 2^53 loses its last digits on the web, but stays one
-    // integer per id, which is all the table needs.
-    final key = n ?? (id.hashCode & 0x3fffffff);
+    // Silo's ids are 64-bit. On the web one past 2^53 loses its last digits,
+    // so two requests could share a number; those get a key of their own.
+    final key = n != null && '$n' == id
+        ? n
+        : _requestKeys[id] ??= (1 << 40) + _requestKeys.length;
     _requestIds[key] = id;
     return key;
   }
@@ -493,7 +496,9 @@ class SiloSeerrHttpClient extends SeerrHttpClient {
   static int _stableId(String key) {
     var h = 0x811c9dc5;
     for (final unit in key.codeUnits) {
-      h = ((h ^ unit) * 0x01000193) & 0xffffffff;
+      h ^= unit;
+      // h * 0x01000193 in two parts, so on the web no product passes 2^53.
+      h = ((h & 0xff) * 0x1000000 + h * 0x193) & 0xffffffff;
     }
     return h & 0x7fffffff;
   }
@@ -929,19 +934,9 @@ class SiloSeerrHttpClient extends SeerrHttpClient {
   @override
   Future<Map<String, dynamic>> getRequestCount() async {
     if (!await _isAdmin()) return const {};
-    final (pending, _) = await _readRequests(
-      '/admin/requests',
-      const {'view': 'needs_approval'},
-      1 << 30,
-      (_) => true,
-    );
-    final tv = pending.where((r) => r['type'] == 'tv').length;
-    return {
-      'total': pending.length,
-      'movie': pending.length - tv,
-      'tv': tv,
-      'pending': pending.length,
-    };
+    final counts = await _get('/admin/requests/counts');
+    final pending = _intOf(counts['needs_approval']) ?? 0;
+    return {'total': pending, 'pending': pending};
   }
 
   /// Silo's create takes the title and artwork, which Seerr looks up itself,

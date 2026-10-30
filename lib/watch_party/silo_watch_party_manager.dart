@@ -12,6 +12,7 @@ import 'package:server_silo/server_silo.dart';
 import 'package:uuid/uuid.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
+import '../auth/repositories/session_repository.dart';
 import '../auth/services/silo_token_storage.dart';
 import '../data/models/aggregated_item.dart';
 import '../data/services/media_server_client_factory.dart';
@@ -101,12 +102,13 @@ class SiloWatchPartyManager extends ChangeNotifier {
     return client == null ? null : siloClientOf(client);
   }
 
+  /// The signed-in user's server. Not the factory's newest client, which
+  /// can belong to another account signed in alongside.
   MediaServerClient? get _activeClient {
-    try {
-      return GetIt.instance<MediaServerClientFactory>().getActiveClient();
-    } catch (_) {
-      return null;
-    }
+    final getIt = GetIt.instance;
+    return getIt.isRegistered<MediaServerClient>()
+        ? getIt<MediaServerClient>()
+        : null;
   }
 
   Future<bool> serverSupportsRooms() async {
@@ -433,12 +435,20 @@ class SiloWatchPartyManager extends ChangeNotifier {
     return e.toString();
   }
 
-  /// [client] as the factory holds it (wrapped for offline use).
+  /// The signed-in session's server id, else the factory's id for
+  /// [client]'s server (the factory and the active registration wrap the
+  /// same Silo client in different wrappers).
   String? _serverIdOf(MediaServerClient client) {
+    final getIt = GetIt.instance;
+    if (getIt.isRegistered<SessionRepository>()) {
+      final id = getIt<SessionRepository>().activeServerId;
+      if (id != null) return id;
+    }
+    final silo = siloClientOf(client);
+    if (silo == null) return null;
     try {
-      for (final entry
-          in GetIt.instance<MediaServerClientFactory>().clients.entries) {
-        if (identical(entry.value, client)) return entry.key;
+      for (final entry in getIt<MediaServerClientFactory>().clients.entries) {
+        if (identical(siloClientOf(entry.value), silo)) return entry.key;
       }
     } catch (_) {}
     return null;

@@ -903,11 +903,11 @@ class _VotePanelState extends State<_VotePanel> {
                   ),
                   if (isHost) ...[
                     IconButton(
-                      tooltip: l10n.play,
+                      tooltip: l10n.select,
                       icon: const Icon(Icons.play_arrow_rounded),
                       onPressed: manager.busy
                           ? null
-                          : () => manager.playSuggestion(suggestion),
+                          : () => manager.pickSuggestion(suggestion),
                     ),
                     IconButton(
                       tooltip: l10n.remove,

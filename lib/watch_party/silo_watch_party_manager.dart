@@ -279,9 +279,14 @@ class SiloWatchPartyManager extends ChangeNotifier {
         await _loadSuggestions();
       });
 
-  /// Host: plays [suggestion] for everyone, whatever the tally.
-  Future<bool> playSuggestion(SiloRoomSuggestion suggestion) =>
-      _hostAction((api, id) => api.promote(id, _roomToken!, suggestion.id));
+  /// Host: picks [suggestion] for everyone, whatever the tally, and stages
+  /// it so the host starts it from the room like any other pick. Silo
+  /// stages only in host-pick rooms, so this ends the vote; the movies up
+  /// for it stay in the room if voting is turned back on.
+  Future<bool> pickSuggestion(SiloRoomSuggestion suggestion) async {
+    if (!await setVoting(false)) return false;
+    return stage(suggestion.contentId);
+  }
 
   Future<void> _loadSuggestions() async {
     final room = _room;

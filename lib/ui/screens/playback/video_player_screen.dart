@@ -13,12 +13,19 @@ import 'package:moonfin_design/moonfin_design.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:moonfin_native_video/moonfin_native_video.dart';
 import 'package:playback_core/playback_core.dart';
+import 'package:playback_silo/playback_silo.dart'
+    show
+        siloEndedOnServerMessage,
+        siloPlaybackUnavailableMessage,
+        siloUpgradeRequiredMessage;
 import 'package:server_core/server_core.dart';
 import 'package:screen_brightness_platform_interface/screen_brightness_platform_interface.dart';
 import 'package:volume_controller/volume_controller.dart';
 import 'package:window_manager/window_manager.dart';
 
 import '../../../data/utils/chapter_markers.dart';
+import '../../../data/utils/server_trickplay.dart';
+import '../../../data/utils/trickplay_headers.dart';
 import '../../../playback/subtitle_style.dart';
 import '../../../playback/subtitle_view_config.dart';
 import '../../../playback/system_volume.dart';
@@ -88,7 +95,10 @@ import '../../widgets/playback/stream_info_dialog.dart';
 import '../../widgets/keyboard_shortcuts/keyboard_shortcut_reference.dart';
 import '../../../playback/player_key_bindings.dart';
 import '../../widgets/syncplay/syncplay_player_button.dart';
+import '../../widgets/syncplay/watch_party_player_button.dart';
 import '../../../syncplay/syncplay_manager.dart';
+import '../../../watch_party/silo_watch_party_manager.dart';
+import '../watch_party/silo_watch_party_screen.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../util/error_message.dart';
 import '../../../playback/media3_player_backend.dart';
@@ -181,6 +191,10 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
   final _lifecycleHandler = GetIt.instance<PlaybackLifecycleHandler>();
   final _themeMusicService = GetIt.instance<ThemeMusicService>();
   final _screensaverController = GetIt.instance<ScreensaverController>();
+  final SiloWatchPartyManager? _watchParty =
+      GetIt.instance.isRegistered<SiloWatchPartyManager>()
+      ? GetIt.instance<SiloWatchPartyManager>()
+      : null;
   final SyncPlayManager? _syncPlayManager =
       GetIt.instance.isRegistered<SyncPlayManager>()
       ? GetIt.instance<SyncPlayManager>()
@@ -190,6 +204,13 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
   /// Parsed chapters for the current item, held so the seek bar doesn't
   /// reparse them on every position tick.
   List<Map<String, dynamic>> _chapters = const [];
+
+  /// The file [_chapters] were taken from.
+  String? _chaptersMediaSourceId;
+
+  /// The raw chapters of the version that plays.
+  List<Map<String, dynamic>> _playingChapters(AggregatedItem item) =>
+      itemChaptersForSource(item, _manager.currentResolution?.mediaSourceId);
   final _chaptersFetchedItemIds = <String>{};
 
   PlayerBackend? get _activeBackend => _manager.backend;
@@ -793,6 +814,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
       _syncCinemaSkip();
     });
     _syncPlayManager?.addListener(_onSyncPlayChanged);
+    _followingWatchParty = _watchParty?.controlsPlayback == true;
+    _watchParty?.addListener(_onWatchPartyChanged);
     _prefs.addListener(_onPlaybackPrefsChanged);
     _castChanges.addListener(_onCastChanged);
     _syncMediaQueuingPreference();
@@ -1000,6 +1023,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
     if (!_isMinimizing) _screensaverController.setPlaybackActive(false);
     _prefs.removeListener(_onPlaybackPrefsChanged);
     _syncPlayManager?.removeListener(_onSyncPlayChanged);
+    _watchParty?.removeListener(_onWatchPartyChanged);
     _castChanges.removeListener(_onCastChanged);
     if (_castOwnsTransport) _manager.setTransportInterceptor(null);
     // A minimized video keeps the autoplay setting this screen applied; the
@@ -1222,7 +1246,15 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
       );
       return;
     }
-    _showThrottledPlaybackError(error);
+    // Silo's fixed refusals come from playback_silo in English.
+    final l10n = AppLocalizations.of(context);
+    final siloText = switch (error) {
+      siloPlaybackUnavailableMessage => l10n.siloPlaybackUnavailable,
+      siloUpgradeRequiredMessage => l10n.siloPlaybackUpdateRequired,
+      siloEndedOnServerMessage => l10n.siloPlaybackEndedOnServer,
+      _ => null,
+    };
+    _showThrottledPlaybackError(siloText ?? error);
   }
 
   Future<void> _refreshRemoteVolume() async {
@@ -1626,9 +1658,11 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
   /// manager, which steps previous and next through them before it steps
   /// through the queue. Runs per item, so one with none clears the last.
   void _applyChapters() {
+    _chaptersMediaSourceId = _manager.currentResolution?.mediaSourceId;
     _chapters = chaptersForItem(
       _queue.currentItem,
       _manager.currentOfflineMetadata,
+      mediaSourceId: _chaptersMediaSourceId,
     );
     _manager.setChapterStarts([
       for (final ms in chapterStartsMs(_chapters)) Duration(milliseconds: ms),
@@ -1957,6 +1991,14 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
       });
     }
 
+    if (rawData != null && itemId != null) {
+      await mergeServerTrickplay(
+        _clientForQueueItem(item),
+        itemId,
+        rawData,
+        mediaSourceId,
+      );
+    }
     var info = rawData == null
         ? null
         : TrickplayInfo.fromItemData(rawData, mediaSourceId: mediaSourceId);
@@ -2001,6 +2043,14 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
         _prefetchTrickplayDirectional(_state.position, forward: true);
       });
     }
+  }
+
+  /// A replan or a version change can play another file than the one the
+  /// chapters were taken from, so take that file's.
+  void _refreshChaptersIfNeeded() {
+    final sourceId = _manager.currentResolution?.mediaSourceId;
+    if (sourceId == null || sourceId == _chaptersMediaSourceId) return;
+    setState(_applyChapters);
   }
 
   void _refreshTrickplayIfNeeded() {
@@ -2103,11 +2153,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
     final itemId = _itemIdForQueueItem(item);
     if (itemId == null || itemId.isEmpty) return;
     final client = _clientForQueueItem(item);
-    final token = client.accessToken;
-    final headers = <String, String>{
-      if (token != null && token.isNotEmpty)
-        'Authorization': 'MediaBrowser Token="$token"',
-    };
+    final headers = trickplayImageHeaders(client, withUserAgent: false);
     final generation = _trickplayLoadGeneration;
     for (final index in indexes) {
       if (!_prefetchedTrickplayIndexes.add(index)) continue;
@@ -2145,6 +2191,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
       _syncSubtitleActive();
     }
     _refreshTrickplayIfNeeded();
+    _refreshChaptersIfNeeded();
     _refreshCastPeopleIfNeeded();
     _handleTrickplayAmbientPrefetch(position);
     _syncAirPlayPlaybackState(position: position);
@@ -2205,6 +2252,37 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
 
   void _onSyncPlayChanged() {
     if (mounted) setState(() {});
+  }
+
+  bool _followingWatchParty = false;
+
+  /// A Watch Party that leaves playing (the host went back to the lobby, the
+  /// item finished, the party ended) takes its members back to the room
+  /// instead of leaving them on a stopped player.
+  void _onWatchPartyChanged() {
+    final party = _watchParty;
+    if (party == null || !mounted) return;
+    if (party.controlsPlayback) {
+      if (!_followingWatchParty) setState(() => _followingWatchParty = true);
+      return;
+    }
+    if (!_followingWatchParty) return;
+    setState(() => _followingWatchParty = false);
+    final navigator = Navigator.of(context, rootNavigator: true);
+    unawaited(
+      _exitPlayback().then((_) async {
+        // Once the player's route is gone: is a room screen underneath?
+        await Future<void>.delayed(const Duration(milliseconds: 600));
+        if (party.roomScreensOpen > 0 || !navigator.mounted) return;
+        unawaited(
+          navigator.push(
+            MaterialPageRoute<void>(
+              builder: (_) => const SiloWatchPartyScreen(),
+            ),
+          ),
+        );
+      }),
+    );
   }
 
   void _suppressSeekPrompts({
@@ -3140,6 +3218,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
     if (_isOsdLocked) return false;
     if (!_state.isPlaying) return false;
     if (_syncPlayManager?.state.enabled == true) return false;
+    if (_watchParty?.controlsPlayback == true) return false;
     return true;
   }
 
@@ -5423,12 +5502,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
       resolution: resolution,
     );
     if (url == null) return null;
-    final token = trickplayClient.accessToken;
-    final headers = <String, String>{
-      ...serverImageHeaders,
-      if (token != null && token.isNotEmpty)
-        'Authorization': 'MediaBrowser Token="$token"',
-    };
+    final headers = trickplayImageHeaders(trickplayClient);
 
     return TrickplayTile(url: url, headers: headers, resolution: resolution);
   }
@@ -5658,7 +5732,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
             !_isPrerollQueueItem(item) &&
             ((_itemIdForQueueItem(item)?.isNotEmpty) ?? false);
         final isFavorite = canFavorite && _queueItemIsFavorite(item);
-        final hasChapters = item is AggregatedItem && item.chapters.isNotEmpty;
+        final hasChapters =
+            item is AggregatedItem && _playingChapters(item).isNotEmpty;
         final canBrowse = _canBrowseEpisodes(item);
         final hasCast = _hasCastCrew(item);
         final playbackStreams = _currentPlaybackMediaStreams();
@@ -5673,7 +5748,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
             !hasSubtitleStreams && canDownloadRemoteSubtitles
             ? Icons.download_rounded
             : Icons.subtitles_outlined;
-        final showAudioButton = true;
+        // Everyone in a Watch Party hears the same track.
+        final showAudioButton = _watchParty?.controlsPlayback != true;
         final hidden = osdButtonLayout.hidden(_prefs);
         bool shows(OsdButton button) => !hidden.contains(button.id);
 
@@ -5717,6 +5793,12 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
           if (shows(OsdButton.syncPlay) &&
               _syncPlayManager?.state.enabled == true)
             OsdButton.syncPlay: SyncPlayPlayerButton(
+              size: secondaryIconSize,
+              extent: secondaryExtent,
+            )
+          else if (shows(OsdButton.syncPlay) &&
+              _watchParty?.controlsPlayback == true)
+            OsdButton.syncPlay: WatchPartyPlayerButton(
               size: secondaryIconSize,
               extent: secondaryExtent,
             ),
@@ -7430,7 +7512,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
     final l10n = AppLocalizations.of(context);
     final item = _queue.currentItem;
     if (item is! AggregatedItem) return;
-    final chapters = item.chapters;
+    final chapters = _playingChapters(item);
     if (chapters.isEmpty) return;
     final options = List.generate(chapters.length, (i) {
       final ch = chapters[i];
@@ -7459,7 +7541,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
   bool _canBrowseEpisodes(dynamic item) => canBrowseEpisodes(
     item,
     offline: _manager.isOfflinePlayback,
-    inSyncPlay: _syncPlayManager?.state.enabled == true,
+    inSyncPlay:
+        _syncPlayManager?.state.enabled == true ||
+        _watchParty?.controlsPlayback == true,
   );
 
   void _showEpisodes() {

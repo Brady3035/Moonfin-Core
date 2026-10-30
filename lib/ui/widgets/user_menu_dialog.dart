@@ -13,20 +13,25 @@ import '../../auth/models/user.dart';
 import '../../auth/repositories/server_repository.dart';
 import '../../auth/repositories/session_repository.dart';
 import '../../auth/repositories/user_repository.dart';
+import '../../auth/services/silo_household.dart';
 import '../../auth/store/authentication_store.dart';
+import '../../data/services/media_server_client_factory.dart';
 import '../../l10n/app_localizations.dart';
 import '../../data/services/pin_guard.dart';
 import '../../data/services/server_pin_service.dart';
 import '../../util/platform_detection.dart';
+import '../../util/signed_in_server_features.dart';
+import '../../util/silo_failure_message.dart';
 import '../navigation/destinations.dart';
 import 'adaptive/adaptive_dialog.dart';
+import '../screens/auth/silo_profile_unlock.dart';
 import '../screens/settings/settings_side_panel.dart';
 import 'navigation_layout.dart';
 import 'overlay_sheet.dart';
 import 'pin_entry_dialog.dart';
 import 'remote_control_dialog.dart';
 import 'settings/settings_panel.dart';
-import 'image_source.dart';
+import 'user_avatar_image.dart';
 
 enum _AccountDialogAction { quickConnect }
 
@@ -103,6 +108,15 @@ class _AccountDialogState extends State<_AccountDialog> {
     final apiKey = account.user.accessToken;
     if (apiKey.isEmpty) return null;
 
+    if (!account.server.serverType.hasJellyfinUserImagePath) {
+      if (!GetIt.instance.isRegistered<MediaServerClientFactory>()) return null;
+      return siloProfileImageUrl(
+        GetIt.instance<MediaServerClientFactory>(),
+        serverId: account.server.id,
+        userId: account.user.id,
+      );
+    }
+
     final base =
         '${account.server.address}/Users/${account.user.id}/Images/Primary?quality=90&maxHeight=180&${account.server.serverType.tokenQueryParam}=$apiKey';
     final tag = account.user.imageTag;
@@ -158,6 +172,17 @@ class _AccountDialogState extends State<_AccountDialog> {
       if (!verified) return;
     }
 
+    // A Silo profile locked with a PIN asks for it first.
+    if (account.user.siloHasPin) {
+      if (!mounted) return;
+      final unlocked = await unlockSiloProfileIfNeeded(
+        context,
+        server: account.server,
+        user: account.user,
+      );
+      if (!unlocked || !mounted) return;
+    }
+
     final ok = await _sessionRepo.switchCurrentSession(
       serverId: account.server.id,
       userId: account.user.id,
@@ -181,6 +206,18 @@ class _AccountDialogState extends State<_AccountDialog> {
     if (_busy) return;
     setState(() => _busy = true);
     await _sessionRepo.destroyCurrentSession();
+
+    if (!mounted) return;
+    Navigator.of(context).pop();
+    context.go(Destinations.serverSelect);
+  }
+
+  /// Signs every stored profile of the active Silo account out and ends
+  /// its login. "Sign out" leaves the account's other profiles.
+  Future<void> _signOutSiloAccount() async {
+    if (_busy) return;
+    setState(() => _busy = true);
+    await _sessionRepo.signOutSiloAccount();
 
     if (!mounted) return;
     Navigator.of(context).pop();
@@ -252,6 +289,16 @@ class _AccountDialogState extends State<_AccountDialog> {
     final focusColor = Theme.of(context).colorScheme.primary;
     final activeIndex = _accounts.indexWhere(_isActive);
     final initialAccountFocusIndex = activeIndex >= 0 ? activeIndex : 0;
+    final activeIsSilo =
+        GetIt.instance.isRegistered<MediaServerClient>() &&
+        GetIt.instance<MediaServerClient>().serverType == ServerType.silo;
+    final quickConnectButton = _ActionButton(
+      label: activeIsSilo ? l10n.siloApproveSignIn : l10n.quickConnect,
+      onPressed: _busy
+          ? null
+          : () => Navigator.of(context).pop(_AccountDialogAction.quickConnect),
+      focusColor: focusColor,
+    );
 
     return Dialog(
       backgroundColor: Colors.transparent,
@@ -368,6 +415,20 @@ class _AccountDialogState extends State<_AccountDialog> {
                         ),
                       ),
               ),
+              if (_sessionRepo.activeUserHasSiloSiblings) ...[
+                const SizedBox(height: 8),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: _ActionButton(
+                      label: l10n.siloSignOutAccount,
+                      onPressed: _busy ? null : _signOutSiloAccount,
+                      focusColor: focusColor,
+                    ),
+                  ),
+                ),
+              ],
               if (_accounts.length > 1) ...[
                 const SizedBox(height: 8),
                 Padding(
@@ -409,27 +470,26 @@ class _AccountDialogState extends State<_AccountDialog> {
                 const SizedBox(height: 8),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: _buildPairedActionButtons(
-                    first: _ActionButton(
-                      label: l10n.quickConnect,
-                      onPressed: _busy
-                          ? null
-                          : () => Navigator.of(
-                              context,
-                            ).pop(_AccountDialogAction.quickConnect),
-                      focusColor: focusColor,
-                    ),
-                    second: _ActionButton(
-                      label: l10n.remoteControl,
-                      onPressed: _busy
-                          ? null
-                          : () {
-                              Navigator.of(context).pop();
-                              showRemoteControlDialog(context);
-                            },
-                      focusColor: focusColor,
-                    ),
-                  ),
+                  // Remote control drives the active server's other sessions.
+                  // Without them (Silo), Quick Connect takes the whole row.
+                  child: activeServerSupports((f) => f.supportsRemoteControl)
+                      ? _buildPairedActionButtons(
+                          first: quickConnectButton,
+                          second: _ActionButton(
+                            label: l10n.remoteControl,
+                            onPressed: _busy
+                                ? null
+                                : () {
+                                    Navigator.of(context).pop();
+                                    showRemoteControlDialog(context);
+                                  },
+                            focusColor: focusColor,
+                          ),
+                        )
+                      : SizedBox(
+                          width: double.infinity,
+                          child: quickConnectButton,
+                        ),
                 ),
               ],
             ],
@@ -442,13 +502,15 @@ class _AccountDialogState extends State<_AccountDialog> {
 
 Future<void> showQuickConnectCodeDialog(BuildContext context) async {
   final l10n = AppLocalizations.of(context);
-  final code = await _promptQuickConnectCode(context);
+  final client = GetIt.instance<MediaServerClient>();
+  // Silo calls it approving a sign-in, with the code another device shows.
+  final silo = client.serverType == ServerType.silo;
+  final code = await _promptQuickConnectCode(context, silo: silo);
   if (code == null || code.isEmpty || !context.mounted) return;
 
   final messenger = ScaffoldMessenger.of(context);
 
   try {
-    final client = GetIt.instance<MediaServerClient>();
     final userId = GetIt.instance<UserRepository>().currentUser?.id;
     final authorized = await client.authApi.authorizeQuickConnect(
       code,
@@ -459,11 +521,12 @@ Future<void> showQuickConnectCodeDialog(BuildContext context) async {
 
     messenger.showSnackBar(
       SnackBar(
-        content: Text(
-          authorized
-              ? l10n.quickConnectAuthorized
-              : l10n.quickConnectInvalidOrExpired,
-        ),
+        content: Text(switch ((authorized, silo)) {
+          (true, false) => l10n.quickConnectAuthorized,
+          (false, false) => l10n.quickConnectInvalidOrExpired,
+          (true, true) => l10n.siloApproveSignInDone,
+          (false, true) => l10n.siloApproveSignInNoRequest,
+        }),
       ),
     );
   } on UnsupportedError {
@@ -481,6 +544,8 @@ Future<void> showQuickConnectCodeDialog(BuildContext context) async {
 }
 
 String _quickConnectErrorMessage(DioException e, AppLocalizations l10n) {
+  final siloFailure = SiloFailure.of(e);
+  if (siloFailure != null) return siloFailure.message(l10n);
   final status = e.response?.statusCode;
   final data = e.response?.data;
   final serverMessage = data is String
@@ -508,23 +573,56 @@ String _quickConnectErrorMessage(DioException e, AppLocalizations l10n) {
   return l10n.quickConnectAuthorizeFailed;
 }
 
-Future<String?> _promptQuickConnectCode(BuildContext context) async {
-  final l10n = AppLocalizations.of(context);
-  final controller = TextEditingController();
+Future<String?> _promptQuickConnectCode(
+  BuildContext context, {
+  bool silo = false,
+}) => showFocusRestoringDialog<String>(
+  context: context,
+  useRootNavigator: true,
+  builder: (_) => _QuickConnectCodeDialog(silo: silo),
+);
 
-  String normalizedCode() => controller.text.replaceAll(RegExp(r'\D'), '');
+/// Asks for the code another device shows. Owns its text controller, so the
+/// controller lives as long as the field: the dialog's closing animation
+/// still rebuilds the field after the code was returned, and a controller
+/// disposed by the caller at that point fails the build (a red error screen
+/// on approve and on a wrong code).
+class _QuickConnectCodeDialog extends StatefulWidget {
+  const _QuickConnectCodeDialog({required this.silo});
 
-  final code = await showFocusRestoringDialog<String>(
-    context: context,
-    useRootNavigator: true,
-    builder: (ctx) => AlertDialog.adaptive(
+  final bool silo;
+
+  @override
+  State<_QuickConnectCodeDialog> createState() =>
+      _QuickConnectCodeDialogState();
+}
+
+class _QuickConnectCodeDialogState extends State<_QuickConnectCodeDialog> {
+  final _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    final value = _controller.text.replaceAll(RegExp(r'\D'), '');
+    if (value.isNotEmpty) Navigator.pop(context, value);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final silo = widget.silo;
+    return AlertDialog.adaptive(
       backgroundColor: AppColorScheme.surface.withValues(alpha: 0.9),
       title: Text(
-        l10n.quickConnect,
+        silo ? l10n.siloApproveSignIn : l10n.quickConnect,
         style: TextStyle(color: AppColorScheme.onSurface),
       ),
       content: TextField(
-        controller: controller,
+        controller: _controller,
         autofocus: true,
         keyboardType: TextInputType.number,
         inputFormatters: [
@@ -533,34 +631,29 @@ Future<String?> _promptQuickConnectCode(BuildContext context) async {
         ],
         style: TextStyle(color: AppColorScheme.onSurface),
         decoration: InputDecoration(
-          hintText: l10n.quickConnectEnterCode,
+          hintText: silo
+              ? l10n.siloApproveSignInHint
+              : l10n.quickConnectEnterCode,
           hintStyle: TextStyle(
             color: AppColorScheme.onSurface.withValues(alpha: 0.5),
           ),
         ),
-        onSubmitted: (_) {
-          final value = normalizedCode();
-          if (value.isNotEmpty) Navigator.pop(ctx, value);
-        },
+        onSubmitted: (_) => _submit(),
       ),
       actions: [
         adaptiveDialogAction(
-          onPressed: () => Navigator.pop(ctx),
+          onPressed: () => Navigator.pop(context),
           child: Text(l10n.cancel),
         ),
         FilledButton(
-          onPressed: () {
-            final value = normalizedCode();
-            if (value.isNotEmpty) Navigator.pop(ctx, value);
-          },
-          child: Text(l10n.quickConnectAuthorize),
+          onPressed: _submit,
+          child: Text(
+            silo ? l10n.siloApproveSignInApprove : l10n.quickConnectAuthorize,
+          ),
         ),
       ],
-    ),
-  );
-
-  controller.dispose();
-  return code;
+    );
+  }
 }
 
 class _CircleActionButton extends StatefulWidget {
@@ -804,7 +897,6 @@ class _AccountCard extends StatefulWidget {
 class _AccountCardState extends State<_AccountCard> {
   final _focusNode = FocusNode();
   bool _focused = false;
-  bool _avatarFailed = false;
 
   @override
   void initState() {
@@ -812,14 +904,6 @@ class _AccountCardState extends State<_AccountCard> {
     _focusNode.addListener(() {
       if (mounted) setState(() => _focused = _focusNode.hasFocus);
     });
-  }
-
-  @override
-  void didUpdateWidget(covariant _AccountCard oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.avatarUrl != widget.avatarUrl) {
-      _avatarFailed = false;
-    }
   }
 
   @override
@@ -875,36 +959,15 @@ class _AccountCardState extends State<_AccountCard> {
                     color: AppColorScheme.surfaceVariant,
                   ),
                   child: ClipOval(
-                    child: _avatarFailed || widget.avatarUrl == null
-                        ? Icon(
-                            Icons.person,
-                            color: AppColorScheme.onSurface.withValues(alpha: 0.55),
-                            size: 68,
-                          )
-                        : Image.network(
-                            widget.avatarUrl!,
-                            headers: serverImageHeaders,
-                            fit: BoxFit.cover,
-                            cacheWidth: ArtworkDecode.widthFor(
-                              130,
-                              MediaQuery.devicePixelRatioOf(context),
-                            ),
-                            errorBuilder: (_, _, _) {
-                              if (!_avatarFailed) {
-                                WidgetsBinding.instance
-                                    .addPostFrameCallback((_) {
-                                      if (mounted) {
-                                        setState(() => _avatarFailed = true);
-                                      }
-                                    });
-                              }
-                              return Icon(
-                                Icons.person,
-                                color: AppColorScheme.onSurface.withValues(alpha: 0.55),
-                                size: 68,
-                              );
-                            },
-                          ),
+                    child: UserAvatarImage(
+                      url: widget.avatarUrl,
+                      size: 130,
+                      fallback: Icon(
+                        Icons.person,
+                        color: AppColorScheme.onSurface.withValues(alpha: 0.55),
+                        size: 68,
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 12),

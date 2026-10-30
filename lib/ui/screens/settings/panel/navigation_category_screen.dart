@@ -50,6 +50,7 @@ class _NavigationCategoryScreenState extends State<_NavigationCategoryScreen> {
     final seerrEnabledOnAccount = GetIt.instance<SeerrPreferences>().enabled;
     final availableNavbarPositions = NavigationLayout.availableNavbarPositions;
     final prefs = GetIt.instance<UserPreferences>();
+    final liveTvOnAnyServer = liveTvOnAnySignedInServer();
     final currentNavbarPosition = prefs.get(UserPreferences.navbarPosition);
     if (!NavigationLayout.allowBottomNavbar &&
         currentNavbarPosition == NavbarPosition.bottom &&
@@ -202,7 +203,7 @@ class _NavigationCategoryScreenState extends State<_NavigationCategoryScreen> {
                       icon: Icons.favorite,
                       onChanged: _pushPersonalizationSync,
                     ),
-                  if (!onBar.contains(BottomNavTab.liveTv))
+                  if (liveTvOnAnyServer && !onBar.contains(BottomNavTab.liveTv))
                     SwitchPreferenceTile(
                       key: const ValueKey(BottomNavTab.liveTv),
                       preference: UserPreferences.showLiveTvButton,
@@ -244,8 +245,8 @@ class _NavigationCategoryScreenState extends State<_NavigationCategoryScreen> {
                     SwitchPreferenceTile(
                       key: const ValueKey(BottomNavTab.discover),
                       preference: UserPreferences.showSeerrButton,
-                      title: l10n.showSeerrButton,
-                      subtitle: l10n.settingsShowSeerrButtonInNavigation,
+                      title: seerrBrand(l10n.showSeerrButton),
+                      subtitle: seerrBrand(l10n.settingsShowSeerrButtonInNavigation),
                       iconBuilder: (size, color) => Image.asset(
                         'assets/icons/seerr.png',
                         width: size,
@@ -261,13 +262,15 @@ class _NavigationCategoryScreenState extends State<_NavigationCategoryScreen> {
                       icon: Icons.download_for_offline,
                       onChanged: _pushPersonalizationSync,
                     ),
-                  SwitchPreferenceTile(
-                    preference: UserPreferences.showServerMessagesButton,
-                    title: l10n.serverMessagesShowButton,
-                    subtitle: l10n.serverMessagesShowButtonSubtitle,
-                    icon: Icons.info_outline_rounded,
-                    onChanged: _pushPersonalizationSync,
-                  ),
+                  // Server messages come from the Moonfin plugin.
+                  if (moonfinPluginOnAnySignedInServer())
+                    SwitchPreferenceTile(
+                      preference: UserPreferences.showServerMessagesButton,
+                      title: l10n.serverMessagesShowButton,
+                      subtitle: l10n.serverMessagesShowButtonSubtitle,
+                      icon: Icons.info_outline_rounded,
+                      onChanged: _pushPersonalizationSync,
+                    ),
                   // Only where the plugin has friends on, so nobody is offered
                   // a button that would never show.
                   if (GetIt.instance<AchievementsService>().socialAvailable)

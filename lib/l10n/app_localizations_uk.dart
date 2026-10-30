@@ -58,6 +58,9 @@ class AppLocalizationsUk extends AppLocalizations {
   String get signIn => 'Увійти';
 
   @override
+  String get signingIn => 'Signing in...';
+
+  @override
   String get empty => 'Порожньо';
 
   @override
@@ -5344,6 +5347,9 @@ class AppLocalizationsUk extends AppLocalizations {
   @override
   String get pluginNotDetectedDescription =>
       'Плагін сервера наразі не виявлено. Локальні налаштування все ще використовують свої збережені значення або вбудовані параметри за замовчуванням.';
+
+  @override
+  String get moonbaseAddress => 'Moonbase Address';
 
   @override
   String get pluginConnected => 'Connected';
@@ -12749,6 +12755,114 @@ class AppLocalizationsUk extends AppLocalizations {
   String get watchWithGroup => 'Дивіться з групою';
 
   @override
+  String get watchPartyGroupSubtitles => 'Subtitles for everyone';
+
+  @override
+  String get watchPartyOwnSubtitles => 'Each person\'s choice';
+
+  @override
+  String get watchPartyLobby => 'In the lobby';
+
+  @override
+  String get watchPartyUpNextLabel => 'Up next';
+
+  @override
+  String get watchPartyRoomSettings => 'Room settings';
+
+  @override
+  String get watchPartyCodeOrLink => 'Room code or invite link';
+
+  @override
+  String get watchPartyCopyInvite => 'Copy invite link';
+
+  @override
+  String get watchPartyInviteCopied => 'Invite link copied';
+
+  @override
+  String get watchPartyLetEveryoneVote => 'Let everyone vote on movies';
+
+  @override
+  String get watchPartyVoteHelp =>
+      'Add movies for everyone to vote on, then play the one you want. TV episodes are still your pick.';
+
+  @override
+  String get watchPartyGuestVoteHelp =>
+      'Vote for what you want to watch. The host plays one.';
+
+  @override
+  String get watchPartySearchMovies => 'Search movies';
+
+  @override
+  String get watchPartyNoSuggestions => 'No movies to vote on yet.';
+
+  @override
+  String get watchPartySuggested => 'Added to the Watch Party vote';
+
+  @override
+  String watchPartyVoteCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count votes',
+      one: '$count vote',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get watchParty => 'Watch Party';
+
+  @override
+  String get watchPartyUnavailable => 'This server doesn\'t offer Watch Party.';
+
+  @override
+  String get watchPartyRoomCode => 'Room code';
+
+  @override
+  String get watchPartyStart => 'Start a Watch Party';
+
+  @override
+  String get watchPartyPickTitle =>
+      'Open a title and choose Watch with group to pick what everyone watches.';
+
+  @override
+  String get watchPartyWaitingForHost =>
+      'Waiting for the host to pick something.';
+
+  @override
+  String get watchPartyShareCode =>
+      'Others join with this code from their Watch Party screen.';
+
+  @override
+  String get watchPartyReconnecting => 'Reconnecting...';
+
+  @override
+  String get watchPartyOffline => 'offline';
+
+  @override
+  String get watchPartyStartForEveryone => 'Start for everyone';
+
+  @override
+  String get watchPartyBackToLobby => 'Back to the lobby';
+
+  @override
+  String get watchPartyGuestsCanPause => 'Guests can play and pause';
+
+  @override
+  String get watchPartyEnd => 'End Watch Party';
+
+  @override
+  String get watchPartyEnded => 'The Watch Party has ended.';
+
+  @override
+  String get watchPartyStaged => 'Picked for the Watch Party';
+
+  @override
+  String watchPartyUpNext(String title) {
+    return 'Up next: $title';
+  }
+
+  @override
   String get disk => 'диск';
 
   @override
@@ -15430,6 +15544,58 @@ class AppLocalizationsUk extends AppLocalizations {
       'Controls, seeking, player buttons, and trick play';
 
   @override
+  String get siloPasswordChangeTitle => 'Choose a new password';
+
+  @override
+  String get siloPasswordChangeMessage =>
+      'This account has a temporary password. Choose a new one to finish signing in.';
+
+  @override
+  String get siloPasswordChangeNew => 'New password';
+
+  @override
+  String get siloPasswordChangeConfirm => 'Confirm new password';
+
+  @override
+  String get siloPasswordChangeSubmit => 'Change password';
+
+  @override
+  String siloPasswordChangeTooShort(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Use at least $count characters',
+      one: 'Use at least 1 character',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get siloPasswordChangeTooLong => 'That password is too long';
+
+  @override
+  String get siloPasswordChangeMismatch => 'The passwords don\'t match';
+
+  @override
+  String get siloPasswordChangeSameAsTemporary =>
+      'Choose a password different from the temporary one';
+
+  @override
+  String get siloPasswordChangeFailed =>
+      'Couldn\'t change the password. Try again.';
+
+  @override
+  String get siloPasswordChangeUnavailable =>
+      'This account has a temporary password, and this server doesn\'t allow changing it here. Change it in Silo\'s web app, then sign in again.';
+
+  @override
+  String get siloPasswordChangedSignInAgain =>
+      'Your password was changed. Sign in with the new password.';
+
+  @override
+  String get siloServerRowSubtitle => 'From your server';
+
+  @override
   String get playlistSortReleaseDate => 'Release Date';
 
   @override
@@ -15892,6 +16058,154 @@ class AppLocalizationsUk extends AppLocalizations {
       'Recording started, but couldn\'t request a future showing.';
 
   @override
+  String get siloCodeSignIn => 'Sign in with a code';
+
+  @override
+  String siloCodeSignInInstruction(String address) {
+    return 'Scan the QR code with your phone, or go to $address on any signed-in device and enter this code:';
+  }
+
+  @override
+  String get siloCodeSignInInstructionNoLink =>
+      'Enter this code in Silo on a device where you\'re signed in:';
+
+  @override
+  String get siloCodeSignInOpened =>
+      'Code found. Approve the sign-in on your other device.';
+
+  @override
+  String get siloCodeSignInDenied => 'This sign-in was declined.';
+
+  @override
+  String get siloCodeSignInNewCode => 'Get a new code';
+
+  @override
+  String get siloCodeSignInOff =>
+      'Signing in with a code is turned off on this server.';
+
+  @override
+  String get siloCodeSignInPasswordChangeRequired =>
+      'This account has a temporary password. Sign in with the password once to replace it.';
+
+  @override
+  String get siloApproveSignIn => 'Approve a sign-in';
+
+  @override
+  String get siloApproveSignInHint => 'Code shown on the other device';
+
+  @override
+  String get siloApproveSignInApprove => 'Approve';
+
+  @override
+  String get siloApproveSignInDone =>
+      'Approved. The other device is signing in.';
+
+  @override
+  String get siloApproveSignInNoRequest =>
+      'No sign-in is waiting with that code. Check it, or get a new code on the other device.';
+
+  @override
+  String get siloNativeOfferTitle => 'Connect to Silo directly?';
+
+  @override
+  String siloNativeOfferMessage(String serverName, String address) {
+    return 'This address is the Jellyfin-compatible service of $serverName. Moonfin can connect to Silo directly at $address, with Silo\'s own features.';
+  }
+
+  @override
+  String get siloNativeOfferUse => 'Use Silo';
+
+  @override
+  String get siloNativeOfferKeep => 'Keep Jellyfin';
+
+  @override
+  String get siloAppUpdateRequired =>
+      'This Silo server needs a newer version of Moonfin. Update Moonfin to use it.';
+
+  @override
+  String get siloServerUpdateRequired =>
+      'This Silo server is too old for this version of Moonfin. Update Silo to use it.';
+
+  @override
+  String get siloTooManyAttempts => 'Too many attempts. Try again later.';
+
+  @override
+  String siloTooManyAttemptsWait(String wait) {
+    return 'Too many attempts. Try again in $wait.';
+  }
+
+  @override
+  String get siloServerBusy =>
+      'The server is busy or still starting. Try again later.';
+
+  @override
+  String siloServerBusyWait(String wait) {
+    return 'The server is busy or still starting. Try again in $wait.';
+  }
+
+  @override
+  String siloWaitSeconds(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count seconds',
+      one: '1 second',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String siloWaitMinutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count minutes',
+      one: '1 minute',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get siloPlaybackUnavailable =>
+      'Playback isn\'t available on this Silo server.';
+
+  @override
+  String get siloPlaybackUpdateRequired =>
+      'This Silo server needs a newer version of Moonfin to play.';
+
+  @override
+  String get siloPlaybackEndedOnServer =>
+      'Playback was ended on the Silo server.';
+
+  @override
+  String siloPinTitle(String name) {
+    return 'PIN for $name';
+  }
+
+  @override
+  String get siloPinHint => 'PIN';
+
+  @override
+  String get siloPinUnlock => 'Unlock';
+
+  @override
+  String get siloPinWrong => 'That PIN isn\'t right.';
+
+  @override
+  String get siloPinLocked => 'Too many wrong PINs. Try again later.';
+
+  @override
+  String siloPinLockedWait(String wait) {
+    return 'Too many wrong PINs. Try again in $wait.';
+  }
+
+  @override
+  String get siloPinFailed => 'The PIN couldn\'t be checked. Try again.';
+
+  @override
+  String get siloSignOutAccount => 'Sign out of the Silo account';
+
+  @override
   String trailerCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -15997,7 +16311,7 @@ class AppLocalizationsUk extends AppLocalizations {
 
   @override
   String get addServerAddressChoice =>
-      'Jellyfin or Emby on your network or online';
+      'Jellyfin, Emby or Silo on your network or online';
 
   @override
   String get addServerPlexChoice => 'Use your Plex account to find its servers';
@@ -16008,7 +16322,7 @@ class AppLocalizationsUk extends AppLocalizations {
 
   @override
   String get addServerDetectNote =>
-      'Works with Jellyfin and Emby. A Plex address opens the Plex sign-in.';
+      'Works with Jellyfin, Emby and Silo. A Plex address opens the Plex sign-in.';
 
   @override
   String addServerChecking(String address) {

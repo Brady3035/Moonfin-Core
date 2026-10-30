@@ -19,6 +19,7 @@ import '../../util/game_cores.dart';
 import '../../util/platform_detection.dart';
 import '../screens/admin/admin_nav.dart';
 import '../screens/admin/admin_routes.dart';
+import '../../util/signed_in_server_features.dart';
 import '../screens/auth/emby_connect_screen.dart';
 import '../screens/auth/plex_sign_in_screen.dart';
 import '../screens/auth/login_screen.dart';
@@ -186,7 +187,12 @@ final appRouter = GoRouter(
 
     if (path.startsWith('/admin')) {
       final user = getIt<UserRepository>().currentUser;
-      if (user == null || !user.isAdministrator || !_adminAvailable()) {
+      // Silo is administered from its own web app, so a deep link to
+      // Moonfin's admin screens (Jellyfin/Emby admin APIs) would only fail.
+      if (user == null ||
+          !user.isAdministrator ||
+          !_adminAvailable() ||
+          !activeServerSupports((f) => f.supportsAdmin)) {
         return Destinations.home;
       }
     }
@@ -296,6 +302,7 @@ final appRouter = GoRouter(
             : null,
         initialQuery: state.uri.queryParameters['query'],
         scopedLibraryId: state.uri.queryParameters['libraryId'],
+        preferRequests: state.uri.queryParameters['tab'] == 'requests',
       ),
     ),
 

@@ -1,5 +1,5 @@
 <h1 align="center">Moonfin</h1>
-<h3 align="center">Premium Jellyfin, Emby & Plex client for mobile, tablet, desktop, TV, and web</h3>
+<h3 align="center">Premium Jellyfin, Emby, Plex & Silo client for mobile, tablet, desktop, TV, and web</h3>
 
 ---
 <p align="center">
@@ -16,7 +16,7 @@
 
 > **[← Back to main Moonfin project](https://github.com/Moonfin-Client)**
 
-Moonfin is a media client for Jellyfin, Emby, and Plex servers, built with Flutter. One shared codebase powers phones and tablets, Windows, macOS, and Linux, Android TV, Fire TV, and Apple TV, and the browser. It's made for people who want a modern, customizable experience on every screen they own.
+Moonfin is a media client for Jellyfin, Emby, Plex and Silo servers, built with Flutter. One shared codebase powers phones and tablets, Windows, macOS, and Linux, Android TV, Fire TV, and Apple TV, and the browser. It's made for people who want a modern, customizable experience on every screen they own.
 
 ## Where to get it
 
@@ -37,6 +37,19 @@ Moonfin is a media client for Jellyfin, Emby, and Plex servers, built with Flutt
 | Jellyfin | 10.8.0+ | Full support |
 | Emby | 4.8.0.0+ | Full support (the admin panel needs 4.9+) |
 | Plex | Plex Media Server 1.43+ | Supported, without the features that need the Moonbase plugin |
+| [Silo](https://github.com/Silo-Server/silo-server) | API v2 (`api_major` 2) | Supported through Silo's native API, see below |
+
+### Silo
+
+Moonfin talks to Silo through its native API (`/api/v2`), not its Jellyfin-compatible service. Add the server by its native address, which is usually port 8090 with Silo's Docker setup. If you enter the Jellyfin-compatible address on port 8096, Moonfin offers to switch to the native one. Silo servers on your local network also show up under Discovered Servers.
+
+Sign-in with a password or a code, Home, libraries, search, favorites, watched state, ratings, collections, playback, skip intro and credits, trickplay, household profiles with their PINs, and downloads with offline progress sync all work.
+
+Requests use Silo's own requests feature in place of Seerr, and Watch Together uses Silo's Watch Party in place of SyncPlay. Settings sync, admin defaults, server messages, custom themes and MDBList and TMDB ratings need the [Moonbase plugin](https://github.com/Moonfin-Client/Plugin) installed in Silo.
+
+Live TV and DVR, music, playlists, remote control of other devices, the server admin panel (Silo's is in its web app) and retro games aren't available on Silo, so Moonfin hides them while a Silo server is active. Books, audiobooks, 4K requests and Silo's server-side download subscriptions aren't supported yet.
+
+If a Silo server has a newer API than your version of Moonfin, Moonfin won't connect to it and asks you to update Moonfin.
 
 ## Platform Support
 

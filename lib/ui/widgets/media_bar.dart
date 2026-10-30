@@ -44,6 +44,7 @@ import '../../playback/html_video_backend_profile.dart';
 import '../../playback/inline_preview_engine.dart';
 import '../../playback/media3_player_backend.dart';
 import '../../playback/mpv_client_certificate.dart';
+import '../../playback/silo_plugin_for.dart';
 import 'bounded_network_image.dart';
 import 'fullscreen_backdrop_switcher.dart';
 import 'navigation_layout.dart';
@@ -1846,6 +1847,7 @@ class _MediaBarState extends State<MediaBar>
       ServerType.jellyfin => JellyfinPlugin(client).createStreamResolver(),
       ServerType.emby => EmbyPlugin(client).createStreamResolver(),
       ServerType.plex => PlexMediaStreamResolver(client),
+      ServerType.silo => siloPluginFor(client).createStreamResolver(),
     };
   }
 

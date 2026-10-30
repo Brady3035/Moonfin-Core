@@ -16,6 +16,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../data/services/achievements_service.dart';
 import '../../../data/services/auto_download_service.dart';
+import '../../../data/services/moonbase_endpoint.dart';
 import '../../../data/services/plugin_sync_service.dart';
 import '../../../data/services/custom_external_lists_service.dart';
 import '../../../data/services/topshelf_service.dart';
@@ -42,6 +43,7 @@ import '../../../util/playback_time_label.dart';
 import '../../../util/app_beta.dart';
 import '../../../util/app_distribution.dart';
 import '../../../util/pin_code_util.dart';
+import '../../../util/signed_in_server_features.dart';
 import '../../widgets/pin_entry_dialog.dart';
 import '../../widgets/app_update_dialog.dart';
 
@@ -116,7 +118,7 @@ import '../../../preference/detail_section_layout.dart';
 import '../detail/detail_buttons.dart';
 import '../detail/playlist_sort_filter_bar.dart';
 import '../playback/osd_buttons.dart';
-import '../syncplay/syncplay_screen.dart';
+import '../watch_party/watch_together_route.dart';
 
 part 'panel/settings_panel_infra.dart';
 part 'panel/settings_search_field.dart';
@@ -152,6 +154,14 @@ part 'panel/settings_panel_tiles.dart';
 
 bool get _showThemeEditorEntry =>
     PlatformDetection.isWeb && webRuntimeConfig.pluginMode;
+
+/// Whether Integrations has anything to show: Seerr, which a signed-in server
+/// with the Moonfin plugin could offer, or achievements, which the active
+/// server's plugin answered for.
+bool get _integrationsOffered =>
+    seerrOnAnySignedInServer() ||
+    (GetIt.instance.isRegistered<AchievementsService>() &&
+        GetIt.instance<AchievementsService>().available);
 
 Uri _resolveThemeEditorUri() {
   final base = Uri.base;
@@ -306,11 +316,13 @@ class _SettingsSidePanelState extends ConsumerState<SettingsSidePanel> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final kidsMode = ref.watch(kidsModeProvider);
+    // Not for a server Moonfin can't administer (Silo has its own web app).
     final showAdmin =
         !kidsMode &&
         !PlatformDetection.isTV &&
         ref.watch(isAdminProvider) &&
-        adminServerSupported();
+        adminServerSupported() &&
+        activeServerSupports((f) => f.supportsAdmin);
     final enablePanelAutofocus = !PlatformDetection.useMobileUi;
 
     // Kids Mode leaves one entry standing. Hiding settings outright would
@@ -375,12 +387,16 @@ class _SettingsSidePanelState extends ConsumerState<SettingsSidePanel> {
                 onTap: () =>
                     context.pushSettingsScreen(const DownloadSettingsScreen()),
               ),
-            _PanelEntry(
-              icon: Icons.hub,
-              title: l10n.integrations,
-              subtitle: l10n.settingsServicesSubtitle,
-              onTap: () => context.pushSettingsScreen(const _ServicesScreen()),
-            ),
+            // Seerr and achievements both come from the Moonfin plugin. With
+            // neither on offer (only Silo signed in) the screen would be empty.
+            if (_integrationsOffered)
+              _PanelEntry(
+                icon: Icons.hub,
+                title: l10n.integrations,
+                subtitle: seerrBrand(l10n.settingsServicesSubtitle),
+                onTap: () =>
+                    context.pushSettingsScreen(const _ServicesScreen()),
+              ),
             _PanelEntry(
               icon: Icons.info_outline,
               title: l10n.aboutTitle,

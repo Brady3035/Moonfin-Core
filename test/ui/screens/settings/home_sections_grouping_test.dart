@@ -166,6 +166,9 @@ void main() {
       (call) =>
           call.positionalArguments.first == HomeSectionType.seerrShortcuts,
     );
+    when(() => seerrPrefs.brand(any())).thenAnswer(
+      (i) => i.positionalArguments.first as String,
+    );
     GetIt.instance.registerSingleton<SeerrPreferences>(seerrPrefs);
     await pump(tester, InterfaceLayout.phone);
 

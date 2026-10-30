@@ -369,8 +369,12 @@ class Destinations {
   static String nextUpFor(String itemId) => '/player/next-up/$itemId';
   static String stillWatchingFor(String itemId) =>
       '/player/still-watching/$itemId';
+  /// Search from the request screens, landing on the Requests tab.
+  static const searchRequests = '/search?tab=requests';
   static String searchWith(String query) =>
       '/search?query=${Uri.encodeComponent(query)}';
+  static String searchRequestsWith(String query) =>
+      '$searchRequests&query=${Uri.encodeComponent(query)}';
   static String searchInLibrary(String libraryId, {String? query}) {
     final params = <String, String>{'libraryId': libraryId};
     if (query != null && query.trim().isNotEmpty) {

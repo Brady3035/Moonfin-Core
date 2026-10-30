@@ -53,6 +53,15 @@ void main() {
     expect(page['TotalRecordCount'], items.length);
   });
 
+  test('a row named by its type is that type\'s row', () async {
+    final server = _server();
+    final page = await siloTestClient(
+      server,
+    ).itemsApi.getServerHomeSectionItems('type:trending_on_server');
+    expect(server.requests.last.uri.path, _trendingPath);
+    expect(page['Items'], isNotEmpty);
+  });
+
   test('a row Silo no longer has is empty', () async {
     final server = _server();
     final page = await siloTestClient(

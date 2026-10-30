@@ -2242,9 +2242,14 @@ class SiloItemsApi
     int? limit,
   }) async {
     final layout = await homeSections.layout();
+    // Moonbase's admin defaults can't know this server's section ids, so
+    // they name a row by its type ("type:hidden_gems"): the first such row.
     SiloSectionEntry? section;
     for (final s in layout) {
-      if (s.id == sectionId) section = s;
+      if (s.id == sectionId || 'type:${s.sectionType}' == sectionId) {
+        section = s;
+        break;
+      }
     }
     if (section == null) return _empty(startIndex);
     final cards = await homeSections.items(section);

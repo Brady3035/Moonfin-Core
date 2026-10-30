@@ -1424,6 +1424,16 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen>
         s.pluginSource == HomeSectionPluginSource.server &&
         s.serverId == serverId;
 
+    // Rows Moonbase's admin defaults added by type ("type:<kind>") already
+    // stand for this server's row of that kind.
+    final byType = {
+      for (final s in _sections)
+        if (s.isPluginDynamic &&
+            s.pluginSource == HomeSectionPluginSource.server &&
+            (s.pluginSection ?? '').startsWith('type:'))
+          s.pluginSection,
+    };
+
     final freshIds = <String>{};
     var nextOrder = _sections.length;
     for (final section in discovered) {
@@ -1444,7 +1454,7 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen>
           );
           changed = true;
         }
-      } else {
+      } else if (!byType.contains('type:${section.kind}')) {
         _addSection(cfg);
         changed = true;
       }

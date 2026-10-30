@@ -533,13 +533,19 @@ class _MemberAvatar extends StatelessWidget {
   }
 }
 
-/// A member's profile avatar, for [UserAvatarImage]. Silo resolves the
-/// profiles of the signed-in account (presets are SVG, uploads bitmaps);
-/// rooms don't share other accounts' avatars, which fall back to initials.
+/// A member's profile avatar, for [UserAvatarImage] (presets are SVG,
+/// uploads bitmaps). A member whose app hasn't shared one, through a
+/// Moonbase that can keep it, shows their initials.
 String? memberAvatarUrl(SiloRoomMember member) {
   if (member.profileId.isEmpty) return null;
-  final url = GetIt.instance<SiloWatchPartyManager>().activeSiloClient?.imageApi
-      .getUserImageUrl(member.profileId);
+  final manager = GetIt.instance<SiloWatchPartyManager>();
+  // The link each member's app shares through Moonbase, else what the
+  // signed-in account can resolve itself (its own profiles).
+  final shared = manager.avatarUrlFor(member.profileId);
+  if (shared != null) return shared;
+  final url = manager.activeSiloClient?.imageApi.getUserImageUrl(
+    member.profileId,
+  );
   return url == null || url.isEmpty ? null : url;
 }
 

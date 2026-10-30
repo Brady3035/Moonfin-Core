@@ -56,7 +56,17 @@ class SiloWatchPartyManager extends ChangeNotifier {
   bool _groupSubtitleKnown = false;
   bool _groupSubtitlesSupported = false;
   String? _groupSubtitleApplied;
-  Timer? _groupSubtitlePoll;
+  Timer? _partyPoll;
+  Timer? _avatarTimer;
+  Map<String, String> _avatars = const {};
+  // The player's last position sample and when it came, to estimate where
+  // it is between samples (some players report once a second).
+  int? _sampleMs;
+  int _sampleAt = 0;
+  StreamSubscription<Duration>? _positionSub;
+  int _driftStrikes = 0;
+  int _nudgeStartedMs = 0;
+  int _nudgeBlockedUntilMs = 0;
   final Dio _dio = Dio(pluginRequestOptions());
   List<SiloRoomSuggestion> _suggestions = const [];
   String? _itemId;
@@ -437,6 +447,13 @@ class SiloWatchPartyManager extends ChangeNotifier {
       final data = response.data;
       _groupSubtitlesSupported = true;
       _groupSubtitleKnown = true;
+      final avatars = data is Map ? data['avatars'] : null;
+      _avatars = {
+        if (avatars is Map)
+          for (final e in avatars.entries)
+            if (e.key is String && e.value is String)
+              e.key as String: e.value as String,
+      };
       final subtitle = data is Map ? data['subtitle'] : null;
       _groupSubtitle = subtitle is Map
           ? Map<String, dynamic>.from(subtitle)
@@ -446,6 +463,39 @@ class SiloWatchPartyManager extends ChangeNotifier {
     } catch (_) {
       // An older Moonbase, or none: members pick their own.
       _groupSubtitleKnown = true;
+    }
+  }
+
+  /// A member's avatar link as they posted it to Moonbase, made absolute,
+  /// or null.
+  String? avatarUrlFor(String profileId) {
+    final link = _avatars[profileId];
+    final client = _client;
+    if (link == null || client == null) return null;
+    return Uri.parse(client.baseUrl).resolve(link).toString();
+  }
+
+  /// Posts this profile's avatar link for the room, so members on other
+  /// accounts can show it. An upload's link is signed for 15 minutes, so
+  /// it goes again every ten.
+  Future<void> _publishAvatar() async {
+    final room = _room;
+    final client = _client;
+    if (room == null || client == null) return;
+    try {
+      final profiles = await client.profilesApi.list();
+      final mine = profiles.where((p) => p.id == client.profileId).firstOrNull;
+      final link = mine?.json['avatar_url'];
+      if (link is! String || link.isEmpty) return;
+      final ep = await moonbaseEndpoint(client, _dio);
+      if (ep == null) return;
+      await _dio.put<dynamic>(
+        '${ep.base}/Moonfin/WatchParty/${room.roomId}/Avatar',
+        data: {'url': link},
+        options: Options(headers: ep.headers),
+      );
+    } catch (_) {
+      // No Moonbase, or an older one: members see initials.
     }
   }
 
@@ -586,6 +636,19 @@ class SiloWatchPartyManager extends ChangeNotifier {
       unawaited(_connect());
       unawaited(_loadSuggestions());
       unawaited(_loadGroupSubtitle());
+      unawaited(_publishAvatar());
+      _partyPoll?.cancel();
+      // Avatars of members who join, and a host's subtitle change, arrive
+      // within this.
+      _partyPoll = Timer.periodic(
+        const Duration(seconds: 15),
+        (_) => unawaited(_loadGroupSubtitle()),
+      );
+      _avatarTimer?.cancel();
+      _avatarTimer = Timer.periodic(
+        const Duration(minutes: 10),
+        (_) => unawaited(_publishAvatar()),
+      );
       return true;
     } catch (e) {
       _error = _describe(e);
@@ -947,6 +1010,11 @@ class SiloWatchPartyManager extends ChangeNotifier {
     _room = null;
     _roomToken = null;
     _client = null;
+    _partyPoll?.cancel();
+    _partyPoll = null;
+    _avatarTimer?.cancel();
+    _avatarTimer = null;
+    _avatars = const {};
     _groupSubtitle = null;
     _groupSubtitleKnown = false;
     _groupSubtitlesSupported = false;
@@ -973,11 +1041,9 @@ class SiloWatchPartyManager extends ChangeNotifier {
       const Duration(milliseconds: 500),
       (_) => _correctDrift(),
     );
-    // A host's change mid-item reaches members within a few seconds.
-    _groupSubtitlePoll ??= Timer.periodic(const Duration(seconds: 10), (_) {
-      if (_room?.isHost == false && _groupSubtitlesSupported) {
-        unawaited(_loadGroupSubtitle());
-      }
+    _positionSub ??= _playbackManager.state.positionStream.listen((p) {
+      _sampleMs = p.inMilliseconds;
+      _sampleAt = DateTime.now().millisecondsSinceEpoch;
     });
   }
 
@@ -1002,15 +1068,35 @@ class SiloWatchPartyManager extends ChangeNotifier {
     _attachSentFor = null;
     _driftTimer?.cancel();
     _driftTimer = null;
-    _groupSubtitlePoll?.cancel();
-    _groupSubtitlePoll = null;
+    _positionSub?.cancel();
+    _positionSub = null;
+    _sampleMs = null;
+    _driftStrikes = 0;
     _restoreRate();
   }
 
   String? get _sessionId => _playbackManager.currentResolution?.playSessionId;
 
-  double get _positionSeconds =>
-      _playbackManager.state.position.inMilliseconds / 1000;
+  /// Where the player is now: its last position sample moved on by the time
+  /// since, at its rate, while it plays. Players sample as seldom as once a
+  /// second, and a raw sample read against the clock looks up to a second
+  /// behind.
+  double get _positionSeconds {
+    final state = _playbackManager.state;
+    final reported = state.position.inMilliseconds;
+    final sample = _sampleMs;
+    if (sample == null ||
+        sample != reported ||
+        !state.isPlaying ||
+        state.isBuffering) {
+      return reported / 1000;
+    }
+    final since = math.min(
+      DateTime.now().millisecondsSinceEpoch - _sampleAt,
+      1500,
+    );
+    return (reported + since * state.playbackSpeed) / 1000;
+  }
 
   bool get _attached {
     final session = _sessionId;
@@ -1106,11 +1192,21 @@ class SiloWatchPartyManager extends ChangeNotifier {
       _applying = false;
     }
     _appliedCommandId = command.commandId;
-    _reference = (
-      positionSeconds: target,
-      localMs: DateTime.now().millisecondsSinceEpoch,
-      playing: playing,
-    );
+    // The room's timeline runs from the command's own time, not from when
+    // this player got through applying it: a slow seek or start would
+    // otherwise shift where this player thinks the room is.
+    _reference = playing
+        ? (
+            positionSeconds: command.positionSeconds,
+            localMs: localAtMs,
+            playing: true,
+          )
+        : (
+            positionSeconds: target,
+            localMs: DateTime.now().millisecondsSinceEpoch,
+            playing: false,
+          );
+    _driftStrikes = 0;
     _driftBackoffMs = 1000;
     _bufferingReported = false;
     _scheduleReports();
@@ -1232,10 +1328,24 @@ class SiloWatchPartyManager extends ChangeNotifier {
     final drift = _positionSeconds - expected;
     final size = drift.abs();
     if (_correctsByRate && size <= 5) {
-      if (_nudgedRate != null && size <= 0.1) {
-        _restoreRate();
-      } else if (_nudgedRate != null || size > 0.4) {
-        _setRate(rateFor(drift));
+      if (_nudgedRate != null) {
+        // Close enough, or a nudge that has run a minute without closing
+        // the gap: back to 1x, and the room's own correction takes over.
+        if (size <= 0.15 || now - _nudgeStartedMs > 60000) {
+          if (size > 0.15) _nudgeBlockedUntilMs = now + 30000;
+          _restoreRate();
+          _driftStrikes = 0;
+        } else {
+          _nudge(drift);
+        }
+        return;
+      }
+      // Two checks in a row past half a second, so one late sample or a
+      // passing hiccup doesn't start a nudge.
+      _driftStrikes = size > 0.5 ? _driftStrikes + 1 : 0;
+      if (_driftStrikes >= 2 && now >= _nudgeBlockedUntilMs) {
+        _nudgeStartedMs = now;
+        _nudge(drift);
       }
       return;
     }
@@ -1268,6 +1378,21 @@ class SiloWatchPartyManager extends ChangeNotifier {
     final step = (driftSeconds.abs() / 25).clamp(0.01, 0.04);
     final rounded = (step / 0.005).round() * 0.005;
     return driftSeconds > 0 ? 1 - rounded : 1 + rounded;
+  }
+
+  /// Nudges toward the room, except that a player behind with little
+  /// buffered isn't sped up: it would only drain its buffer and stall, the
+  /// skip this is meant to avoid. The room's correction handles that one.
+  void _nudge(double drift) {
+    final state = _playbackManager.state;
+    final ahead = state.buffer - state.position;
+    if (drift < 0 &&
+        state.buffer > Duration.zero &&
+        ahead < const Duration(seconds: 8)) {
+      _restoreRate();
+      return;
+    }
+    _setRate(rateFor(drift));
   }
 
   void _setRate(double rate) {

@@ -28,6 +28,7 @@ import '../../preference/seerr_preferences.dart';
 import '../../preference/seerr_row_config.dart';
 import '../../preference/user_preferences.dart';
 import '../../util/platform_detection.dart';
+import '../../util/signed_in_server_features.dart';
 
 enum _PluginAvailabilityStatus { available, unavailable, unknown }
 
@@ -897,7 +898,7 @@ class PluginSyncService extends ChangeNotifier {
   }
 
   Future<void> pushNotificationPrefs(MediaServerClient client) async {
-    if (!_pluginAvailable) {
+    if (!_pluginAvailable || !serverHasMoonfinPlugin(client)) {
       debugPrint('PluginSync: skip pushNotificationPrefs, plugin unavailable');
       return;
     }
@@ -934,7 +935,7 @@ class PluginSyncService extends ChangeNotifier {
     required String platform,
     required String deviceId,
   }) async {
-    if (!_pluginAvailable) {
+    if (!_pluginAvailable || !serverHasMoonfinPlugin(client)) {
       debugPrint('PluginSync: skip registerPushDevice, plugin unavailable');
       return false;
     }
@@ -968,7 +969,7 @@ class PluginSyncService extends ChangeNotifier {
     MediaServerClient client, {
     required String deviceId,
   }) async {
-    if (!_pluginAvailable) return;
+    if (!_pluginAvailable || !serverHasMoonfinPlugin(client)) return;
 
     try {
       final ep = await moonbaseEndpoint(client, _dio);

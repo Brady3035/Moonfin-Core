@@ -399,7 +399,8 @@ class _SeerrDiscoverScreenState extends State<SeerrDiscoverScreen> {
                       focusNode: _searchEntryFocusNode,
                       icon: Icons.search,
                       label: AppLocalizations.of(context).search,
-                      onTap: () => context.navigateTopLevel(Destinations.search),
+                      onTap: () =>
+                          context.navigateTopLevel(Destinations.searchRequests),
                       onDown: () => _initialFocusNode.requestFocus(),
                       onUp: _focusNavbarFromEntry,
                     ),

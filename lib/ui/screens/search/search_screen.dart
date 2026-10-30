@@ -49,11 +49,16 @@ class SearchScreen extends StatefulWidget {
   final String? scopedLibraryId;
   final RemoteSearchSession? remoteSearch;
 
+  /// Opened from the request screens: a search lands on the Requests tab
+  /// when it has request results.
+  final bool preferRequests;
+
   const SearchScreen({
     super.key,
     this.initialQuery,
     this.scopedLibraryId,
     this.remoteSearch,
+    this.preferRequests = false,
   });
 
   @override
@@ -187,15 +192,15 @@ class _SearchScreenState extends State<SearchScreen>
     _shownTabKeys = tabKeys;
     if (_tabCount > 0 && query != _tabSelectionQuery) {
       _tabSelectionQuery = query;
-      _selectedTab = _leadingTabCount;
+      _selectedTab = _defaultTab;
     } else if (keptTab >= 0) {
       _selectedTab = keptTab;
     } else if (_selectedTab >= _tabCount) {
-      _selectedTab = _tabCount == 0 ? 0 : _leadingTabCount;
+      _selectedTab = _tabCount == 0 ? 0 : _defaultTab;
     }
     if (_focusTabsAfterResults && _tabCount > 0) {
       _focusTabsAfterResults = false;
-      _selectedTab = _leadingTabCount;
+      _selectedTab = _defaultTab;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted && _tabsFocusNode.canRequestFocus) {
           _tabsFocusNode.requestFocus();
@@ -376,6 +381,10 @@ class _SearchScreenState extends State<SearchScreen>
   bool _tabIsGames(int index) => _hasGames && index == (_hasSeerr ? 1 : 0);
 
   bool _tabIsAll(int index) => index == _leadingTabCount;
+
+  /// The tab a new search lands on: All, or Requests when asked for.
+  int get _defaultTab =>
+      widget.preferRequests && _hasSeerr ? 0 : _leadingTabCount;
 
   // The _vm.results index for a group tab, which follow the All tab.
   int _groupIndex(int tab) => tab - _leadingTabCount - 1;

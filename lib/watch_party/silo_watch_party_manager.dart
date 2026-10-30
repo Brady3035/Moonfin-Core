@@ -105,6 +105,7 @@ class SiloWatchPartyManager extends ChangeNotifier {
   StreamSubscription<bool>? _bufferingSub;
   Timer? _bufferingTimer;
   bool _bufferingReported = false;
+  Timer? _aloneTimer;
 
   SiloRoom? get room => _room;
   bool get inRoom => _room != null;
@@ -638,6 +639,7 @@ class SiloWatchPartyManager extends ChangeNotifier {
       _room = access.room;
       _roomToken = access.token;
       _clockSamples.clear();
+      _checkAlone();
       unawaited(_connect());
       unawaited(_loadSuggestions());
       unawaited(_loadGroupSubtitle());
@@ -943,8 +945,24 @@ class SiloWatchPartyManager extends ChangeNotifier {
             .whenComplete(() => _applying = false),
       );
     }
+    _checkAlone();
     _scheduleReports();
     notifyListeners();
+  }
+
+  /// A host left alone in their room for ten minutes ends it, so a party
+  /// nobody joined doesn't stay open.
+  void _checkAlone() {
+    bool alone() => _room?.isHost == true && _room!.members.length <= 1;
+    if (!alone()) {
+      _aloneTimer?.cancel();
+      _aloneTimer = null;
+      return;
+    }
+    _aloneTimer ??= Timer(const Duration(minutes: 10), () {
+      _aloneTimer = null;
+      if (alone()) unawaited(end());
+    });
   }
 
   Future<void> _openSelection(SiloRoom room) async {
@@ -1019,6 +1037,8 @@ class SiloWatchPartyManager extends ChangeNotifier {
     _partyPoll = null;
     _avatarTimer?.cancel();
     _avatarTimer = null;
+    _aloneTimer?.cancel();
+    _aloneTimer = null;
     _avatars = const {};
     _groupSubtitle = null;
     _groupSubtitleKnown = false;

@@ -72,10 +72,11 @@ class SiloSeerrHttpClient extends SeerrHttpClient {
   int _intId(String id) {
     final n = int.tryParse(id);
     // Silo's ids are 64-bit. On the web one past 2^53 loses its last digits,
-    // so two requests could share a number; those get a key of their own.
+    // so two requests could share a number. Those get a key of their own from
+    // 2^40 up, written out because a shift on the web is only 32 bits.
     final key = n != null && '$n' == id
         ? n
-        : _requestKeys[id] ??= (1 << 40) + _requestKeys.length;
+        : _requestKeys[id] ??= 0x10000000000 + _requestKeys.length;
     _requestIds[key] = id;
     return key;
   }

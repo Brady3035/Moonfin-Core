@@ -10511,8 +10511,8 @@ class AppLocalizationsJa extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '# 人が参加中',
-      one: '# 人が参加中',
+      other: '$count 人が参加中',
+      one: '$count 人が参加中',
     );
     return '$_temp0';
   }
@@ -12414,6 +12414,15 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get watchWithGroup => 'グループで視聴';
+
+  @override
+  String get watchPartyLobby => 'In the lobby';
+
+  @override
+  String get watchPartyUpNextLabel => 'Up next';
+
+  @override
+  String get watchPartyRoomSettings => 'Room settings';
 
   @override
   String get watchPartyCodeOrLink => 'Room code or invite link';

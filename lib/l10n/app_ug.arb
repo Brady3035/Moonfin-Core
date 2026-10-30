@@ -6129,7 +6129,7 @@
     "syncPlayServerUnsupportedMessage": "SyncPlay Jellyfin مۇلازىمېتىرىنى تەلەپ قىلىدۇ. نۆۋەتتىكى مۇلازىمېتىر ئۇنى قوللىمايدۇ.",
     "syncPlayGroupFallbackName": "SyncPlay گۇرۇپپىسى",
     "syncPlayGroupTooltip": "SyncPlay گۇرۇپپىسى",
-    "syncPlayParticipantCount": "{count, plural, one {# قاتناشقۇچى} other {# قاتناشقۇچى}}",
+    "syncPlayParticipantCount": "{count, plural, one {{count} قاتناشقۇچى} other {{count} قاتناشقۇچى}}",
     "@syncPlayParticipantCount": {
         "description": "Participant count label shown in SyncPlay UI",
         "placeholders": {

@@ -6129,7 +6129,7 @@
     "syncPlayServerUnsupportedMessage": "SyncPlay ir nepieciešams Jellyfin serveris. Pašreizējais serveris to neatbalsta.",
     "syncPlayGroupFallbackName": "SyncPlay grupa",
     "syncPlayGroupTooltip": "SyncPlay grupa",
-    "syncPlayParticipantCount": "{count, plural, zero {# dalībnieku} one {# dalībnieks} other {# dalībnieki}}",
+    "syncPlayParticipantCount": "{count, plural, zero {{count} dalībnieku} one {{count} dalībnieks} other {{count} dalībnieki}}",
     "@syncPlayParticipantCount": {
         "description": "Participant count label shown in SyncPlay UI",
         "placeholders": {

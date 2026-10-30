@@ -10427,8 +10427,8 @@ class AppLocalizationsZh extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '# 位参与者',
-      one: '# 位参与者',
+      other: '$count 位参与者',
+      one: '$count 位参与者',
     );
     return '$_temp0';
   }
@@ -12290,6 +12290,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get watchWithGroup => '与播放组一起观看';
+
+  @override
+  String get watchPartyLobby => 'In the lobby';
+
+  @override
+  String get watchPartyUpNextLabel => 'Up next';
+
+  @override
+  String get watchPartyRoomSettings => 'Room settings';
 
   @override
   String get watchPartyCodeOrLink => 'Room code or invite link';
@@ -22766,8 +22775,8 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '# 位參與者',
-      one: '# 位參與者',
+      other: '$count 位參與者',
+      one: '$count 位參與者',
     );
     return '$_temp0';
   }

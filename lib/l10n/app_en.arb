@@ -10053,7 +10053,7 @@
   "syncPlayServerUnsupportedMessage": "SyncPlay requires a Jellyfin server. The current server does not support it.",
   "syncPlayGroupFallbackName": "SyncPlay Group",
   "syncPlayGroupTooltip": "SyncPlay group",
-  "syncPlayParticipantCount": "{count, plural, one {# participant} other {# participants}}",
+  "syncPlayParticipantCount": "{count, plural, one {{count} participant} other {{count} participants}}",
   "@syncPlayParticipantCount": {
     "description": "Participant count label shown in SyncPlay UI",
     "placeholders": {
@@ -11211,6 +11211,18 @@
     "description": "Tooltip for the button on a person page that opens their own website"
   },
   "watchWithGroup": "Watch with group",
+  "watchPartyLobby": "In the lobby",
+  "@watchPartyLobby": {
+    "description": "Watch Party status while nothing plays"
+  },
+  "watchPartyUpNextLabel": "Up next",
+  "@watchPartyUpNextLabel": {
+    "description": "Label over the title a Watch Party host has staged"
+  },
+  "watchPartyRoomSettings": "Room settings",
+  "@watchPartyRoomSettings": {
+    "description": "Heading over a Watch Party host's room switches"
+  },
   "watchPartyCodeOrLink": "Room code or invite link",
   "@watchPartyCodeOrLink": {
     "description": "Join box on the Watch Party screen"

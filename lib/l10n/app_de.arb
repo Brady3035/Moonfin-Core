@@ -6384,7 +6384,7 @@
     "syncPlayServerUnsupportedMessage": "SyncPlay erfordert einen Jellyfin-Server. Der aktuelle Server unterstützt dies nicht.",
     "syncPlayGroupFallbackName": "SyncPlay-Gruppe",
     "syncPlayGroupTooltip": "SyncPlay-Gruppe",
-    "syncPlayParticipantCount": "{count, plural, one {# Teilnehmer} other {# Teilnehmer}}",
+    "syncPlayParticipantCount": "{count, plural, one {{count} Teilnehmer} other {{count} Teilnehmer}}",
     "@syncPlayParticipantCount": {
         "description": "Participant count label shown in SyncPlay UI",
         "placeholders": {

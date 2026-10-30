@@ -6129,7 +6129,7 @@
     "syncPlayServerUnsupportedMessage": "SyncPlay ต้องใช้เซิร์ฟเวอร์ Jellyfin เซิร์ฟเวอร์ปัจจุบันไม่รองรับ",
     "syncPlayGroupFallbackName": "SyncPlay กลุ่ม",
     "syncPlayGroupTooltip": "SyncPlay กลุ่ม",
-    "syncPlayParticipantCount": "{count, plural, one {ผู้เข้าร่วม # คน} other {ผู้เข้าร่วม # คน}}",
+    "syncPlayParticipantCount": "{count, plural, one {ผู้เข้าร่วม {count} คน} other {ผู้เข้าร่วม {count} คน}}",
     "@syncPlayParticipantCount": {
         "description": "Participant count label shown in SyncPlay UI",
         "placeholders": {

@@ -18913,7 +18913,7 @@ abstract class AppLocalizations {
   /// Participant count label shown in SyncPlay UI
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, one {# participant} other {# participants}}'**
+  /// **'{count, plural, one {{count} participant} other {{count} participants}}'**
   String syncPlayParticipantCount(int count);
 
   /// No description provided for @syncPlayIgnoreWait.
@@ -22347,6 +22347,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Watch with group'**
   String get watchWithGroup;
+
+  /// Watch Party status while nothing plays
+  ///
+  /// In en, this message translates to:
+  /// **'In the lobby'**
+  String get watchPartyLobby;
+
+  /// Label over the title a Watch Party host has staged
+  ///
+  /// In en, this message translates to:
+  /// **'Up next'**
+  String get watchPartyUpNextLabel;
+
+  /// Heading over a Watch Party host's room switches
+  ///
+  /// In en, this message translates to:
+  /// **'Room settings'**
+  String get watchPartyRoomSettings;
 
   /// Join box on the Watch Party screen
   ///

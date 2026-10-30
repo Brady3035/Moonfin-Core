@@ -10684,12 +10684,12 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '# مشارك',
-      many: '# مشاركًا',
-      few: '# مشاركين',
-      two: '# مشاركان',
-      one: '# مشارك',
-      zero: '# مشاركين',
+      other: '$count مشارك',
+      many: '$count مشاركًا',
+      few: '$count مشاركين',
+      two: '$count مشاركان',
+      one: '$count مشارك',
+      zero: '$count مشاركين',
     );
     return '$_temp0';
   }
@@ -12652,6 +12652,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get watchWithGroup => 'شاهد مع المجموعة';
+
+  @override
+  String get watchPartyLobby => 'In the lobby';
+
+  @override
+  String get watchPartyUpNextLabel => 'Up next';
+
+  @override
+  String get watchPartyRoomSettings => 'Room settings';
 
   @override
   String get watchPartyCodeOrLink => 'Room code or invite link';

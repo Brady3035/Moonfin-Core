@@ -10462,8 +10462,8 @@ class AppLocalizationsYue extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '# 位參與者',
-      one: '# 位參與者',
+      other: '$count 位參與者',
+      one: '$count 位參與者',
     );
     return '$_temp0';
   }
@@ -12342,6 +12342,15 @@ class AppLocalizationsYue extends AppLocalizations {
 
   @override
   String get watchWithGroup => '同群組一齊睇';
+
+  @override
+  String get watchPartyLobby => 'In the lobby';
+
+  @override
+  String get watchPartyUpNextLabel => 'Up next';
+
+  @override
+  String get watchPartyRoomSettings => 'Room settings';
 
   @override
   String get watchPartyCodeOrLink => 'Room code or invite link';
@@ -21421,8 +21430,8 @@ class AppLocalizationsYueCn extends AppLocalizationsYue {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '# participants',
-      one: '# participant',
+      other: '$count participants',
+      one: '$count participant',
     );
     return '$_temp0';
   }
@@ -28309,8 +28318,8 @@ class AppLocalizationsYueHk extends AppLocalizationsYue {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '# participants',
-      one: '# participant',
+      other: '$count participants',
+      one: '$count participant',
     );
     return '$_temp0';
   }

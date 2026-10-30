@@ -6129,7 +6129,7 @@
     "syncPlayServerUnsupportedMessage": "A SyncPlay Jellyfin-szervert igényel. A jelenlegi szerver nem támogatja.",
     "syncPlayGroupFallbackName": "SyncPlay-csoport",
     "syncPlayGroupTooltip": "SyncPlay-csoport",
-    "syncPlayParticipantCount": "{count, plural, one {# résztvevő} other {# résztvevő}}",
+    "syncPlayParticipantCount": "{count, plural, one {{count} résztvevő} other {{count} résztvevő}}",
     "@syncPlayParticipantCount": {
         "description": "Participant count label shown in SyncPlay UI",
         "placeholders": {

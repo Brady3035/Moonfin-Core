@@ -6129,7 +6129,7 @@
     "syncPlayServerUnsupportedMessage": "SyncPlay postulas Jellyfin-servilon. La nuna servilo ne subtenas ĝin.",
     "syncPlayGroupFallbackName": "SyncPlay Grupo",
     "syncPlayGroupTooltip": "SyncPlay grupo",
-    "syncPlayParticipantCount": "{count, plural, one {# partoprenanto} other {# partoprenantoj}}",
+    "syncPlayParticipantCount": "{count, plural, one {{count} partoprenanto} other {{count} partoprenantoj}}",
     "@syncPlayParticipantCount": {
         "description": "Participant count label shown in SyncPlay UI",
         "placeholders": {

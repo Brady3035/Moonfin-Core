@@ -10890,9 +10890,9 @@ class AppLocalizationsHr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '# sudionika',
-      few: '# sudionika',
-      one: '# sudionik',
+      other: '$count sudionika',
+      few: '$count sudionika',
+      one: '$count sudionik',
     );
     return '$_temp0';
   }
@@ -12880,6 +12880,15 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String get watchWithGroup => 'Gledaj s grupom';
+
+  @override
+  String get watchPartyLobby => 'In the lobby';
+
+  @override
+  String get watchPartyUpNextLabel => 'Up next';
+
+  @override
+  String get watchPartyRoomSettings => 'Room settings';
 
   @override
   String get watchPartyCodeOrLink => 'Room code or invite link';

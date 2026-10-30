@@ -6129,7 +6129,7 @@
     "syncPlayServerUnsupportedMessage": "SyncPlay vyžaduje server Jellyfin. Aktuálny server to nepodporuje.",
     "syncPlayGroupFallbackName": "Skupina SyncPlay",
     "syncPlayGroupTooltip": "skupina SyncPlay",
-    "syncPlayParticipantCount": "{count, plural, one {# účastník} few {# účastníci} many {# účastníka} other {# účastníkov}}",
+    "syncPlayParticipantCount": "{count, plural, one {{count} účastník} few {{count} účastníci} many {{count} účastníka} other {{count} účastníkov}}",
     "@syncPlayParticipantCount": {
         "description": "Participant count label shown in SyncPlay UI",
         "placeholders": {

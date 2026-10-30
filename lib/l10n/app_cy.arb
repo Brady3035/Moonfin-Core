@@ -6129,7 +6129,7 @@
     "syncPlayServerUnsupportedMessage": "Mae angen gweinydd Jellyfin ar SyncPlay. Nid yw'r gweinydd presennol yn ei gefnogi.",
     "syncPlayGroupFallbackName": "Grŵp SyncPlay",
     "syncPlayGroupTooltip": "Grŵp SyncPlay",
-    "syncPlayParticipantCount": "{count, plural, one {# cyfranogwr} zero {# o gyfranogwyr} two {# gyfranogwr} few {# chyfranogwr} many {# chyfranogwr} other {# cyfranogwr}}",
+    "syncPlayParticipantCount": "{count, plural, one {{count} cyfranogwr} zero {{count} o gyfranogwyr} two {{count} gyfranogwr} few {{count} chyfranogwr} many {{count} chyfranogwr} other {{count} cyfranogwr}}",
     "@syncPlayParticipantCount": {
         "description": "Participant count label shown in SyncPlay UI",
         "placeholders": {

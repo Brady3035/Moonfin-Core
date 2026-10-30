@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:custom_tv_text_field/custom_tv_text_field.dart';
 import 'package:flutter/material.dart';
@@ -12,6 +13,7 @@ import '../../../preference/user_preferences.dart';
 import '../../../util/focus/dpad_keys.dart';
 import '../../../util/platform_detection.dart';
 import '../../../watch_party/silo_watch_party_manager.dart';
+import '../../widgets/bounded_network_image.dart';
 import '../../widgets/focus/request_initial_focus.dart';
 import '../../widgets/settings/clean_settings_typography.dart';
 
@@ -83,58 +85,91 @@ class _SiloWatchPartyScreenState extends State<SiloWatchPartyScreen> {
     final room = _manager.room;
     return RequestInitialFocus(
       targetNode: PlatformDetection.isTV && room == null ? _codeFocus : null,
-      child: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          if (_manager.error case final error?) _Banner(message: error),
-          if (room == null && _manager.endedReason != null)
-            _Banner(
-              message: _manager.endedReason == 'closed'
-                  ? l10n.watchPartyEnded
-                  : _manager.endedReason!,
-            ),
-          if (room == null) ..._buildEntry(context, l10n),
-          if (room != null) ..._buildRoom(context, l10n, room),
-        ],
+      child: LayoutBuilder(
+        builder: (context, constraints) => ListView(
+          // A column, not a stretch across a TV or desktop window.
+          padding: EdgeInsets.symmetric(
+            horizontal: math.max(16, (constraints.maxWidth - _maxWidth) / 2),
+            vertical: 16,
+          ),
+          children: [
+            if (_manager.error case final error?) _Banner(message: error),
+            if (room == null && _manager.endedReason != null)
+              _Banner(
+                message: _manager.endedReason == 'closed'
+                    ? l10n.watchPartyEnded
+                    : _manager.endedReason!,
+              ),
+            if (room == null) ..._buildEntry(context, l10n),
+            if (room != null) ..._buildRoom(context, l10n, room),
+          ],
+        ),
       ),
     );
   }
 
+  static const double _maxWidth = 720;
+
   List<Widget> _buildEntry(BuildContext context, AppLocalizations l10n) {
+    final theme = Theme.of(context);
     final busy = _manager.busy;
     return [
-      Card(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                l10n.watchPartyRoomCode,
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              const SizedBox(height: 12),
-              _buildCodeField(context, l10n),
-              const SizedBox(height: 12),
-              Align(
-                alignment: Alignment.centerRight,
-                child: FilledButton.icon(
-                  onPressed: busy ? null : _join,
-                  icon: const Icon(Icons.login),
-                  label: Text(l10n.syncPlayJoin),
+      _Section(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                CircleAvatar(
+                  radius: 24,
+                  backgroundColor: theme.colorScheme.primaryContainer,
+                  foregroundColor: theme.colorScheme.onPrimaryContainer,
+                  child: const Icon(Icons.groups_rounded),
                 ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Text(
+                    l10n.watchParty,
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              l10n.watchPartyPickTitle,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
               ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 16),
+            FilledButton.icon(
+              style: _primaryButton,
+              onPressed: busy ? null : () => _manager.create(),
+              icon: const Icon(Icons.add_rounded),
+              label: Text(l10n.watchPartyStart),
+            ),
+          ],
         ),
       ),
-      const SizedBox(height: 16),
-      Card(
-        child: ListTile(
-          leading: const Icon(Icons.groups_rounded),
-          title: Text(l10n.watchPartyStart),
-          subtitle: Text(l10n.watchPartyPickTitle),
-          onTap: busy ? null : () => _manager.create(),
+      _Section(
+        title: l10n.syncPlayJoin,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _buildCodeField(context, l10n),
+            const SizedBox(height: 12),
+            Align(
+              alignment: Alignment.centerRight,
+              child: FilledButton.tonalIcon(
+                onPressed: busy ? null : _join,
+                icon: const Icon(Icons.login_rounded),
+                label: Text(l10n.syncPlayJoin),
+              ),
+            ),
+          ],
         ),
       ),
     ];
@@ -156,216 +191,536 @@ class _SiloWatchPartyScreenState extends State<SiloWatchPartyScreen> {
   ) {
     final theme = Theme.of(context);
     final busy = _manager.busy;
+    final connectedCount = room.members.where((m) => m.connected).length;
     return [
-      Card(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      l10n.watchPartyRoomCode,
-                      style: theme.textTheme.titleMedium,
+      _Section(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    l10n.watchPartyRoomCode,
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
-                  Chip(
-                    label: Text(
-                      _manager.connected
-                          ? _stateLabel(l10n, room)
-                          : l10n.watchPartyReconnecting,
+                ),
+                _StatusPill(room: room, connected: _manager.connected),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                Flexible(
+                  child: SelectableText(
+                    room.code,
+                    style: theme.textTheme.displaySmall?.copyWith(
+                      letterSpacing: 6,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
-                ],
-              ),
-              SelectableText(
-                room.code,
-                style: theme.textTheme.displaySmall?.copyWith(
-                  letterSpacing: 4,
-                  fontWeight: FontWeight.w600,
                 ),
-              ),
-              const SizedBox(height: 8),
-              Text(l10n.watchPartyShareCode),
-              if (_manager.inviteUri case final invite?)
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: TextButton.icon(
-                    icon: const Icon(Icons.link),
-                    label: Text(l10n.watchPartyCopyInvite),
-                    onPressed: () async {
-                      final messenger = ScaffoldMessenger.of(context);
-                      await Clipboard.setData(
-                        ClipboardData(text: invite.toString()),
-                      );
-                      messenger.showSnackBar(
-                        SnackBar(content: Text(l10n.watchPartyInviteCopied)),
-                      );
-                    },
-                  ),
-                ),
-              const Divider(height: 24),
-              Text(
-                l10n.syncPlayParticipantCount(
-                  room.members.where((m) => m.connected).length,
-                ),
-                style: theme.textTheme.bodySmall,
-              ),
-              const SizedBox(height: 4),
-              Wrap(
-                spacing: 8,
-                runSpacing: 4,
-                children: [
-                  for (final member in room.members)
-                    Chip(
-                      avatar: member.isHost
-                          ? const Icon(Icons.star_rounded, size: 18)
-                          : null,
-                      label: Text(
-                        member.connected
-                            ? member.displayName
-                            : '${member.displayName} (${l10n.watchPartyOffline})',
-                      ),
-                    ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-      const SizedBox(height: 16),
-      Card(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (room.selectedContentId case final id?) ...[
-                _ItemTitle(contentId: id, playing: room.isPlaying),
-                _SubtitlePicker(contentId: id, fileId: room.selectedFileId),
-              ] else if (!room.isVoting)
-                Text(
-                  room.isHost
-                      ? l10n.watchPartyPickTitle
-                      : l10n.watchPartyWaitingForHost,
-                ),
-              if (room.isPlaying) ...[
-                const SizedBox(height: 12),
-                FilledButton.tonalIcon(
-                  onPressed: _manager.openPlayer,
-                  icon: const Icon(Icons.play_circle_outline),
-                  label: Text(l10n.syncPlayPlayNow),
+                IconButton(
+                  tooltip: l10n.copy,
+                  icon: const Icon(Icons.copy_rounded),
+                  onPressed: () =>
+                      Clipboard.setData(ClipboardData(text: room.code)),
                 ),
               ],
-              if (room.isHost) ...[
-                const SizedBox(height: 12),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    if (room.isStaged)
-                      FilledButton.icon(
-                        onPressed: busy ? null : _manager.startPlayback,
-                        icon: const Icon(Icons.play_arrow_rounded),
-                        label: Text(l10n.watchPartyStartForEveryone),
-                      ),
-                    if (room.isPlaying)
-                      OutlinedButton.icon(
-                        onPressed: busy ? null : _manager.stopPlayback,
-                        icon: const Icon(Icons.stop_rounded),
-                        label: Text(l10n.watchPartyBackToLobby),
-                      ),
-                  ],
+            ),
+            Text(
+              l10n.watchPartyShareCode,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            if (_manager.inviteUri case final invite?)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: OutlinedButton.icon(
+                  icon: const Icon(Icons.link_rounded),
+                  label: Text(l10n.watchPartyCopyInvite),
+                  onPressed: () async {
+                    final messenger = ScaffoldMessenger.of(context);
+                    await Clipboard.setData(
+                      ClipboardData(text: invite.toString()),
+                    );
+                    messenger.showSnackBar(
+                      SnackBar(content: Text(l10n.watchPartyInviteCopied)),
+                    );
+                  },
                 ),
+              ),
+            const SizedBox(height: 20),
+            Text(
+              l10n.syncPlayParticipantCount(connectedCount),
+              style: theme.textTheme.labelLarge?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 16,
+              runSpacing: 12,
+              children: [
+                for (final member in room.members)
+                  _MemberAvatar(
+                    member: member,
+                    offlineLabel: l10n.watchPartyOffline,
+                  ),
+              ],
+            ),
+          ],
+        ),
+      ),
+      _Section(
+        child: room.selectedContentId != null
+            ? _ItemHero(room: room, busy: busy, manager: _manager)
+            : room.isVoting && !room.isPlaying
+            ? _VotePanel(manager: _manager, room: room)
+            : _EmptyStage(
+                message: room.isHost
+                    ? l10n.watchPartyPickTitle
+                    : l10n.watchPartyWaitingForHost,
+              ),
+      ),
+      if (room.isVoting && !room.isPlaying && room.selectedContentId != null)
+        _Section(
+          child: _VotePanel(manager: _manager, room: room),
+        ),
+      if (room.isHost)
+        _Section(
+          title: l10n.watchPartyRoomSettings,
+          child: Column(
+            children: [
+              SwitchListTile.adaptive(
+                contentPadding: EdgeInsets.zero,
+                secondary: const Icon(Icons.play_circle_outline_rounded),
+                title: Text(l10n.watchPartyGuestsCanPause),
+                value: room.guestControlPolicy == 'guest_play_pause',
+                onChanged: busy ? null : _manager.setGuestsCanPause,
+              ),
+              // Silo switches modes only in the lobby.
+              if (!room.isPlaying)
                 SwitchListTile.adaptive(
                   contentPadding: EdgeInsets.zero,
-                  title: Text(l10n.watchPartyGuestsCanPause),
-                  value: room.guestControlPolicy == 'guest_play_pause',
-                  onChanged: busy ? null : _manager.setGuestsCanPause,
+                  secondary: const Icon(Icons.how_to_vote_outlined),
+                  title: Text(l10n.watchPartyLetEveryoneVote),
+                  value: room.isVoting,
+                  onChanged: busy ? null : _manager.setVoting,
                 ),
-                // Silo switches modes only in the lobby.
-                if (!room.isPlaying)
-                  SwitchListTile.adaptive(
-                    contentPadding: EdgeInsets.zero,
-                    title: Text(l10n.watchPartyLetEveryoneVote),
-                    value: room.isVoting,
-                    onChanged: busy ? null : _manager.setVoting,
-                  ),
-              ],
-              if (room.isVoting && !room.isPlaying)
-                _VotePanel(manager: _manager, room: room),
             ],
           ),
         ),
-      ),
-      const SizedBox(height: 16),
-      Align(
-        alignment: Alignment.centerRight,
-        child: room.isHost
-            ? TextButton.icon(
-                onPressed: busy ? null : _manager.end,
-                icon: const Icon(Icons.close),
-                label: Text(l10n.watchPartyEnd),
-              )
-            : TextButton.icon(
-                onPressed: _manager.leave,
-                icon: const Icon(Icons.logout),
-                label: Text(l10n.syncPlayLeaveGroup),
-              ),
+      Padding(
+        padding: const EdgeInsets.only(top: 8),
+        child: Center(
+          child: room.isHost
+              ? OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: theme.colorScheme.error,
+                    side: BorderSide(
+                      color: theme.colorScheme.error.withValues(alpha: 0.5),
+                    ),
+                  ),
+                  onPressed: busy ? null : _manager.end,
+                  icon: const Icon(Icons.close_rounded),
+                  label: Text(l10n.watchPartyEnd),
+                )
+              : OutlinedButton.icon(
+                  onPressed: _manager.leave,
+                  icon: const Icon(Icons.logout_rounded),
+                  label: Text(l10n.syncPlayLeaveGroup),
+                ),
+        ),
       ),
     ];
   }
+}
 
-  String _stateLabel(AppLocalizations l10n, SiloRoom room) {
-    if (!room.isPlaying) return l10n.syncPlayStateIdle;
-    return switch (room.playbackState) {
-      'waiting' => l10n.syncPlayStateWaiting,
-      'paused' => l10n.syncPlayStatePaused,
-      _ => l10n.syncPlayStatePlaying,
-    };
+/// The accent fill the details page gives its Play button, for the one
+/// action each state of the room leads with.
+/// A getter, so a theme change reaches it.
+ButtonStyle get _primaryButton => FilledButton.styleFrom(
+  backgroundColor: AppColorScheme.accent,
+  foregroundColor: AppColorScheme.onAccent,
+);
+
+/// A rounded surface with an optional heading, the room screen's building
+/// block.
+class _Section extends StatelessWidget {
+  const _Section({required this.child, this.title});
+
+  final Widget child;
+  final String? title;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Card(
+        margin: EdgeInsets.zero,
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (title case final title?) ...[
+                Text(
+                  title,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    color: theme.colorScheme.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 8),
+              ],
+              child,
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 
-/// The staged or playing item's name, read from the server.
-class _ItemTitle extends StatefulWidget {
-  const _ItemTitle({required this.contentId, required this.playing});
+/// Where the room is: in the lobby, waiting, paused or playing, or
+/// reconnecting.
+class _StatusPill extends StatelessWidget {
+  const _StatusPill({required this.room, required this.connected});
+
+  final SiloRoom room;
+  final bool connected;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final scheme = Theme.of(context).colorScheme;
+    final (label, color, icon) = !connected
+        ? (l10n.watchPartyReconnecting, scheme.error, Icons.sync_rounded)
+        : !room.isPlaying
+        ? (
+            l10n.watchPartyLobby,
+            scheme.onSurfaceVariant,
+            Icons.weekend_outlined,
+          )
+        : switch (room.playbackState) {
+            'waiting' => (
+              l10n.syncPlayStateWaiting,
+              scheme.tertiary,
+              Icons.hourglass_top_rounded,
+            ),
+            'paused' => (
+              l10n.syncPlayStatePaused,
+              scheme.secondary,
+              Icons.pause_rounded,
+            ),
+            _ => (
+              l10n.syncPlayStatePlaying,
+              scheme.primary,
+              Icons.play_arrow_rounded,
+            ),
+          };
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.14),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: color),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: Theme.of(context).textTheme.labelMedium
+                ?.copyWith(color: color, fontWeight: FontWeight.w600),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// A member as an initial in a circle, with a dot for whether they're
+/// connected and a star for the host.
+class _MemberAvatar extends StatelessWidget {
+  const _MemberAvatar({required this.member, required this.offlineLabel});
+
+  final SiloRoomMember member;
+  final String offlineLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final name = member.displayName.trim();
+    final initial = name.isEmpty ? '?' : name.characters.first.toUpperCase();
+    final avatar = Stack(
+      clipBehavior: Clip.none,
+      children: [
+        CircleAvatar(
+          radius: 24,
+          backgroundColor: member.isSelf
+              ? scheme.primaryContainer
+              : scheme.surfaceContainerHighest,
+          foregroundColor: member.isSelf
+              ? scheme.onPrimaryContainer
+              : scheme.onSurface,
+          child: Text(
+            initial,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+        Positioned(
+          right: -1,
+          bottom: -1,
+          child: Container(
+            width: 14,
+            height: 14,
+            decoration: BoxDecoration(
+              color: member.connected
+                  ? const Color(0xFF3DDC84)
+                  : scheme.outline,
+              shape: BoxShape.circle,
+              border: Border.all(color: theme.cardColor, width: 2),
+            ),
+          ),
+        ),
+        if (member.isHost)
+          Positioned(
+            right: -4,
+            top: -4,
+            child: Icon(Icons.star_rounded, size: 18, color: scheme.primary),
+          ),
+      ],
+    );
+    return Opacity(
+      opacity: member.connected ? 1 : 0.55,
+      child: Tooltip(
+        message: member.connected ? name : '$name ($offlineLabel)',
+        child: SizedBox(
+          width: 64,
+          child: Column(
+            children: [
+              avatar,
+              const SizedBox(height: 6),
+              Text(
+                name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodySmall,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Nothing picked yet.
+class _EmptyStage extends StatelessWidget {
+  const _EmptyStage({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Row(
+        children: [
+          Icon(
+            Icons.movie_filter_outlined,
+            size: 36,
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Text(
+              message,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// A title's poster from the server, or a placeholder.
+class _Poster extends StatelessWidget {
+  const _Poster({required this.contentId, required this.width});
 
   final String contentId;
-  final bool playing;
+  final double width;
 
   @override
-  State<_ItemTitle> createState() => _ItemTitleState();
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final placeholder = ColoredBox(
+      color: scheme.surfaceContainerHighest,
+      child: Icon(
+        Icons.movie_outlined,
+        color: scheme.onSurfaceVariant,
+        size: width / 2.5,
+      ),
+    );
+    final url = GetIt.instance<SiloWatchPartyManager>()
+        .activeSiloClient
+        ?.imageApi
+        .getPrimaryImageUrl(contentId, maxHeight: (width * 4.5).round());
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(width > 60 ? 10 : 6),
+      child: SizedBox(
+        width: width,
+        height: width * 1.5,
+        child: url == null
+            ? placeholder
+            : BoundedNetworkImage(
+                imageUrl: url,
+                fit: BoxFit.cover,
+                errorBuilder: (_, _, _) => placeholder,
+              ),
+      ),
+    );
+  }
 }
 
-class _ItemTitleState extends State<_ItemTitle> {
-  late Future<String?> _title = _load();
+/// The staged or playing title: poster, name, the member's subtitles, and
+/// the play controls this member has.
+class _ItemHero extends StatefulWidget {
+  const _ItemHero({
+    required this.room,
+    required this.busy,
+    required this.manager,
+  });
+
+  final SiloRoom room;
+  final bool busy;
+  final SiloWatchPartyManager manager;
 
   @override
-  void didUpdateWidget(_ItemTitle old) {
-    super.didUpdateWidget(old);
-    if (old.contentId != widget.contentId) _title = _load();
-  }
+  State<_ItemHero> createState() => _ItemHeroState();
+}
 
-  Future<String?> _load() async {
-    final item = await GetIt.instance<SiloWatchPartyManager>().selectedItem();
-    final series = item?['SeriesName'];
-    final name = item?['Name'];
-    if (name is! String) return null;
-    return series is String && series.isNotEmpty ? '$series: $name' : name;
+class _ItemHeroState extends State<_ItemHero> {
+  late Future<Map<String, dynamic>?> _item = widget.manager.selectedItem();
+
+  @override
+  void didUpdateWidget(_ItemHero old) {
+    super.didUpdateWidget(old);
+    if (old.room.selectedContentId != widget.room.selectedContentId) {
+      _item = widget.manager.selectedItem();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    return FutureBuilder<String?>(
-      future: _title,
-      builder: (context, title) {
-        final name = title.data ?? '';
-        return Text(
-          widget.playing ? name : l10n.watchPartyUpNext(name),
-          style: Theme.of(context).textTheme.titleMedium,
+    final theme = Theme.of(context);
+    final room = widget.room;
+    final manager = widget.manager;
+    final busy = widget.busy;
+    return FutureBuilder<Map<String, dynamic>?>(
+      future: _item,
+      builder: (context, snapshot) {
+        final item = snapshot.data;
+        final series = item?['SeriesName'];
+        final name = item?['Name'] as String? ?? '';
+        final hasSeries = series is String && series.isNotEmpty;
+        final detail = [
+          if (item?['ParentIndexNumber'] case final int season when hasSeries)
+            if (item?['IndexNumber'] case final int episode)
+              'S$season:E$episode',
+          if (item?['ProductionYear'] case final int year) '$year',
+        ].join(' · ');
+        final actions = <Widget>[
+          if (room.isPlaying)
+            FilledButton.icon(
+              style: _primaryButton,
+              onPressed: manager.openPlayer,
+              icon: const Icon(Icons.play_arrow_rounded),
+              label: Text(l10n.syncPlayPlayNow),
+            ),
+          if (room.isHost && room.isStaged)
+            FilledButton.icon(
+              style: _primaryButton,
+              onPressed: busy ? null : manager.startPlayback,
+              icon: const Icon(Icons.play_arrow_rounded),
+              label: Text(l10n.watchPartyStartForEveryone),
+            ),
+          if (room.isHost && room.isPlaying)
+            OutlinedButton.icon(
+              onPressed: busy ? null : manager.stopPlayback,
+              icon: const Icon(Icons.stop_rounded),
+              label: Text(l10n.watchPartyBackToLobby),
+            ),
+          if (item != null)
+            _SubtitleButton(item: item, fileId: room.selectedFileId),
+        ];
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _Poster(contentId: room.selectedContentId!, width: 96),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        room.isPlaying
+                            ? l10n.syncPlayStatePlaying
+                            : l10n.watchPartyUpNextLabel,
+                        style: theme.textTheme.labelLarge?.copyWith(
+                          color: theme.colorScheme.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        hasSeries ? series : name,
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      if (hasSeries) ...[
+                        const SizedBox(height: 2),
+                        Text(name, style: theme.textTheme.titleSmall),
+                      ],
+                      if (detail.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          detail,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            if (actions.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              Wrap(spacing: 8, runSpacing: 8, children: actions),
+            ],
+          ],
         );
       },
     );
@@ -438,7 +793,6 @@ class _VotePanelState extends State<_VotePanel> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Divider(height: 24),
         Text(
           isHost ? l10n.watchPartyVoteHelp : l10n.watchPartyGuestVoteHelp,
           style: theme.textTheme.bodySmall,
@@ -449,10 +803,24 @@ class _VotePanelState extends State<_VotePanel> {
             padding: const EdgeInsets.symmetric(vertical: 8),
             child: Text(l10n.watchPartyNoSuggestions),
           ),
-        for (final suggestion in suggestions)
+        for (final (index, suggestion) in suggestions.indexed)
           ListTile(
             contentPadding: EdgeInsets.zero,
-            title: Text(suggestion.title),
+            leading: _Poster(contentId: suggestion.contentId, width: 40),
+            // The one ahead, once anyone has voted.
+            title: Row(
+              children: [
+                if (index == 0 && suggestion.voteCount > 0) ...[
+                  Icon(
+                    Icons.emoji_events_rounded,
+                    size: 18,
+                    color: theme.colorScheme.primary,
+                  ),
+                  const SizedBox(width: 6),
+                ],
+                Flexible(child: Text(suggestion.title)),
+              ],
+            ),
             subtitle: Text(
               [
                 if (suggestion.subtitle.isNotEmpty) suggestion.subtitle,
@@ -504,6 +872,7 @@ class _VotePanelState extends State<_VotePanel> {
             if (!suggested.contains(movie['Id']))
               ListTile(
                 contentPadding: EdgeInsets.zero,
+                leading: _Poster(contentId: movie['Id'] as String, width: 40),
                 title: Text(movie['Name'] as String? ?? ''),
                 subtitle: movie['ProductionYear'] == null
                     ? null
@@ -629,102 +998,71 @@ class _TvAwareFieldState extends State<_TvAwareField> {
   }
 }
 
-/// Each member's own subtitles for the room's item. Audio isn't offered:
-/// everyone hears the file's default track.
-class _SubtitlePicker extends StatefulWidget {
-  const _SubtitlePicker({required this.contentId, required this.fileId});
+/// Each member's own subtitles for the room's item, as a button that
+/// shows the current choice. Audio isn't offered: everyone hears the
+/// file's default track.
+class _SubtitleButton extends StatelessWidget {
+  const _SubtitleButton({required this.item, required this.fileId});
 
-  final String contentId;
+  final Map<String, dynamic> item;
   final String? fileId;
-
-  @override
-  State<_SubtitlePicker> createState() => _SubtitlePickerState();
-}
-
-class _SubtitlePickerState extends State<_SubtitlePicker> {
-  final _manager = GetIt.instance<SiloWatchPartyManager>();
-  late Future<Map<String, dynamic>?> _item = _manager.selectedItem();
-
-  @override
-  void didUpdateWidget(_SubtitlePicker old) {
-    super.didUpdateWidget(old);
-    if (old.contentId != widget.contentId) _item = _manager.selectedItem();
-  }
 
   String _label(Map<String, dynamic> stream) =>
       stream['DisplayTitle'] as String? ??
       stream['Language'] as String? ??
       '#${stream['Index']}';
 
-  Future<void> _pick(
-    BuildContext context,
-    List<Map<String, dynamic>> tracks,
-  ) async {
-    final l10n = AppLocalizations.of(context);
-    final current = _manager.subtitleStreamIndex;
-    final options = <(int?, String)>[
-      (null, l10n.defaultLabel),
-      (-1, l10n.off),
-      for (final t in tracks) (t['Index'] as int, _label(t)),
-    ];
-    final picked = await showDialog<(int?, String)>(
-      context: context,
-      builder: (context) => SimpleDialog(
-        title: Text(l10n.subtitles),
-        children: [
-          for (final option in options)
-            SimpleDialogOption(
-              onPressed: () => Navigator.of(context).pop(option),
-              child: Row(
-                children: [
-                  Icon(
-                    option.$1 == current
-                        ? Icons.radio_button_checked
-                        : Icons.radio_button_unchecked,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(child: Text(option.$2)),
-                ],
-              ),
-            ),
-        ],
-      ),
-    );
-    if (picked != null) await _manager.setSubtitleStreamIndex(picked.$1);
-  }
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    return FutureBuilder<Map<String, dynamic>?>(
-      future: _item,
-      builder: (context, item) {
-        final data = item.data;
-        if (data == null) return const SizedBox.shrink();
-        final tracks = SiloWatchPartyManager.streamsOf(
-          SiloWatchPartyManager.partySource(data, widget.fileId),
-          'Subtitle',
+    final manager = GetIt.instance<SiloWatchPartyManager>();
+    final tracks = SiloWatchPartyManager.streamsOf(
+      SiloWatchPartyManager.partySource(item, fileId),
+      'Subtitle',
+    );
+    if (tracks.isEmpty) return const SizedBox.shrink();
+    final current = manager.subtitleStreamIndex;
+    final currentLabel = switch (current) {
+      null => l10n.defaultLabel,
+      -1 => l10n.off,
+      _ =>
+        tracks.where((t) => t['Index'] == current).map(_label).firstOrNull ??
+            l10n.defaultLabel,
+    };
+    return OutlinedButton.icon(
+      icon: const Icon(Icons.subtitles_outlined),
+      label: Text('${l10n.subtitles}: $currentLabel'),
+      onPressed: () async {
+        final options = <(int?, String)>[
+          (null, l10n.defaultLabel),
+          (-1, l10n.off),
+          for (final t in tracks) (t['Index'] as int, _label(t)),
+        ];
+        final picked = await showDialog<(int?, String)>(
+          context: context,
+          builder: (context) => SimpleDialog(
+            title: Text(l10n.subtitles),
+            children: [
+              for (final option in options)
+                SimpleDialogOption(
+                  onPressed: () => Navigator.of(context).pop(option),
+                  child: Row(
+                    children: [
+                      Icon(
+                        option.$1 == current
+                            ? Icons.radio_button_checked
+                            : Icons.radio_button_unchecked,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(child: Text(option.$2)),
+                    ],
+                  ),
+                ),
+            ],
+          ),
         );
-        if (tracks.isEmpty) return const SizedBox.shrink();
-        final current = _manager.subtitleStreamIndex;
-        final currentLabel = switch (current) {
-          null => l10n.defaultLabel,
-          -1 => l10n.off,
-          _ =>
-            tracks
-                    .where((t) => t['Index'] == current)
-                    .map(_label)
-                    .firstOrNull ??
-                l10n.defaultLabel,
-        };
-        return ListTile(
-          contentPadding: EdgeInsets.zero,
-          leading: const Icon(Icons.subtitles_outlined),
-          title: Text(l10n.subtitles),
-          subtitle: Text(currentLabel),
-          onTap: () => _pick(context, tracks),
-        );
+        if (picked != null) await manager.setSubtitleStreamIndex(picked.$1);
       },
     );
   }

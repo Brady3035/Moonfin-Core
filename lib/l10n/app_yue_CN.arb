@@ -6054,7 +6054,7 @@
     "syncPlayServerUnsupportedMessage": "SyncPlay 需要 Jellyfin 服务器。目前的服务器不支持。",
     "syncPlayGroupFallbackName": "SyncPlay 组",
     "syncPlayGroupTooltip": "SyncPlay 组",
-    "syncPlayParticipantCount": "{count, plural, one {# participant} other {# participants}}",
+    "syncPlayParticipantCount": "{count, plural, one {{count} participant} other {{count} participants}}",
     "@syncPlayParticipantCount": {
         "description": "Participant count label shown in SyncPlay UI",
         "placeholders": {

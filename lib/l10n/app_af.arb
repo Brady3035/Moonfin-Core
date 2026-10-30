@@ -6129,7 +6129,7 @@
     "syncPlayServerUnsupportedMessage": "SyncPlay vereis 'n Jellyfin-bediener. Die huidige bediener ondersteun dit nie.",
     "syncPlayGroupFallbackName": "SyncPlay Groep",
     "syncPlayGroupTooltip": "SyncPlay-groep",
-    "syncPlayParticipantCount": "{count, plural, one {# deelnemer} other {# deelnemers}}",
+    "syncPlayParticipantCount": "{count, plural, one {{count} deelnemer} other {{count} deelnemers}}",
     "@syncPlayParticipantCount": {
         "description": "Participant count label shown in SyncPlay UI",
         "placeholders": {

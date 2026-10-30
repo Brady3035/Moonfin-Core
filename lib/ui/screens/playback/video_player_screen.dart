@@ -95,6 +95,7 @@ import '../../widgets/playback/stream_info_dialog.dart';
 import '../../widgets/keyboard_shortcuts/keyboard_shortcut_reference.dart';
 import '../../../playback/player_key_bindings.dart';
 import '../../widgets/syncplay/syncplay_player_button.dart';
+import '../../widgets/syncplay/watch_party_player_button.dart';
 import '../../../syncplay/syncplay_manager.dart';
 import '../../../watch_party/silo_watch_party_manager.dart';
 import '../watch_party/silo_watch_party_screen.dart';
@@ -5792,6 +5793,12 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
           if (shows(OsdButton.syncPlay) &&
               _syncPlayManager?.state.enabled == true)
             OsdButton.syncPlay: SyncPlayPlayerButton(
+              size: secondaryIconSize,
+              extent: secondaryExtent,
+            )
+          else if (shows(OsdButton.syncPlay) &&
+              _watchParty?.controlsPlayback == true)
+            OsdButton.syncPlay: WatchPartyPlayerButton(
               size: secondaryIconSize,
               extent: secondaryExtent,
             ),

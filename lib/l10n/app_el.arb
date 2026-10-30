@@ -6129,7 +6129,7 @@
     "syncPlayServerUnsupportedMessage": "Το SyncPlay απαιτεί διακομιστή Jellyfin. Ο τρέχων διακομιστής δεν το υποστηρίζει.",
     "syncPlayGroupFallbackName": "SyncPlay Ομάδα",
     "syncPlayGroupTooltip": "SyncPlay ομάδα",
-    "syncPlayParticipantCount": "{count, plural, one {# συμμετέχων} other {# συμμετέχοντες}}",
+    "syncPlayParticipantCount": "{count, plural, one {{count} συμμετέχων} other {{count} συμμετέχοντες}}",
     "@syncPlayParticipantCount": {
         "description": "Participant count label shown in SyncPlay UI",
         "placeholders": {

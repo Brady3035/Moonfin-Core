@@ -10,6 +10,7 @@ import '../../../syncplay/syncplay_manager.dart';
 import '../../../watch_party/silo_watch_party_manager.dart';
 import '../../../util/platform_detection.dart';
 import '../../../util/signed_in_server_features.dart';
+import '../../widgets/live_tv/incomplete_recording.dart';
 
 /// The details screen action buttons a user can arrange. Play is absent on
 /// purpose, it always leads the row because it renders as the primary button
@@ -80,7 +81,8 @@ enum DetailButton {
       DetailButton.seerrManage =>
         GetIt.instance<PluginSyncService>().seerrAvailable,
       DetailButton.watchWithGroup => _syncPlayAvailable,
-      DetailButton.keepAsComplete => _incompleteRecordingsSupported,
+      DetailButton.keepAsComplete =>
+        _incompleteRecordingsSupported && canManageLiveTv(),
       // Not when no signed-in server has playlists (all Silo, say).
       DetailButton.playlist => playlistsOnAnySignedInServer(),
       _ => true,

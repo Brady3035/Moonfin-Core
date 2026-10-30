@@ -4670,6 +4670,9 @@ class DetailActionButtons extends StatefulWidget {
   /// button is included in the actions row.
   final VoidCallback? onExtrasPressed;
 
+  /// Adds a Collections button to the row when set.
+  final VoidCallback? onCollectionsPressed;
+
   const DetailActionButtons({
     super.key,
     required this.viewModel,
@@ -4695,6 +4698,7 @@ class DetailActionButtons extends StatefulWidget {
     this.onActionsExpandedChanged,
     this.playlistTracksOverride,
     this.onExtrasPressed,
+    this.onCollectionsPressed,
   });
 
   @override
@@ -7245,8 +7249,7 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
           onPressed: () =>
               showSeerrManageRequestsSheet(context: context, vm: seerr),
         ),
-      if (canManageLiveTv() &&
-          incompleteRecordingFor(item.id) != null &&
+      if (incompleteRecordingFor(item.id) != null &&
           shows(DetailButton.keepAsComplete))
         DetailButton.keepAsComplete: _DetailActionButton(
           label: l10n.keepAsComplete,
@@ -7343,10 +7346,18 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
             onPressed: widget.onExtrasPressed!,
           )
         : null;
+    final collectionsButton = widget.onCollectionsPressed != null
+        ? _DetailActionButton(
+            label: l10n.detailSectionCollections,
+            icon: Icons.collections_bookmark_outlined,
+            onPressed: widget.onCollectionsPressed!,
+          )
+        : null;
 
     var allButtons = <Widget>[
       ?primaryAction,
       ?extrasButton,
+      ?collectionsButton,
       for (final button in _orderedButtons(prefs)) ...[
         ?byButton[button],
         ?cancelByButton[button],

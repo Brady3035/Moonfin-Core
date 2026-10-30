@@ -13362,6 +13362,66 @@
   "@setupTourBulletMore": {
     "description": "Closing bullet on the setup screen settings list"
   },
+  "setupStepOf": "Step {current} of {total}",
+  "@setupStepOf": {
+    "description": "Progress label at the top of each setup wizard step",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "setupCurrent": "Current",
+  "@setupCurrent": {
+    "description": "Tag beside the option that is chosen right now in a setup wizard list"
+  },
+  "setupTvHint": "Up and down to preview · OK to choose · Back twice to skip",
+  "@setupTvHint": {
+    "description": "Remote control hint at the bottom of the setup wizard on TVs"
+  },
+  "setupNavbarTopHint": "Tabs across the top of the screen.",
+  "@setupNavbarTopHint": {
+    "description": "What the Top Bar navigation position gives you"
+  },
+  "setupNavbarLeftHint": "A slim rail of icons down the left side.",
+  "@setupNavbarLeftHint": {
+    "description": "What the Left Sidebar navigation position gives you"
+  },
+  "setupNavbarBottomHint": "Tabs along the bottom edge, in easy reach of your thumb.",
+  "@setupNavbarBottomHint": {
+    "description": "What the Bottom Bar navigation position gives you on phones"
+  },
+  "setupMediaBarMoonfinHint": "Large artwork with the title, details and overview laid over it.",
+  "@setupMediaBarMoonfinHint": {
+    "description": "What the Moonfin media bar style looks like"
+  },
+  "setupMediaBarMakdHint": "Large artwork led by a big title logo.",
+  "@setupMediaBarMakdHint": {
+    "description": "What the MakD media bar style looks like"
+  },
+  "setupMediaBarBookshelfHint": "Titles shelved as book spines, with the featured one face out.",
+  "@setupMediaBarBookshelfHint": {
+    "description": "What the Bookshelf media bar style looks like"
+  },
+  "setupMediaBarGalleryHint": "The featured title opened up, with the next few lined up beside it.",
+  "@setupMediaBarGalleryHint": {
+    "description": "What the Gallery media bar style looks like"
+  },
+  "setupMediaBarBannerHint": "A shorter banner above your rows, so more of them fit on screen.",
+  "@setupMediaBarBannerHint": {
+    "description": "What the Banner media bar style looks like"
+  },
+  "setupMediaBarAyaHint": "Artwork first in a framed panel, with your rows right underneath.",
+  "@setupMediaBarAyaHint": {
+    "description": "What the Aya media bar style looks like"
+  },
+  "setupMediaBarOffHint": "No featured area. Home opens straight onto your rows.",
+  "@setupMediaBarOffHint": {
+    "description": "What turning the media bar off does to the Home screen"
+  },
   "runSetupAgain": "Run setup again",
   "@runSetupAgain": {
     "description": "Starts the first-run setup wizard again from settings"

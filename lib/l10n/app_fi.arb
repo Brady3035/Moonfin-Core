@@ -15988,5 +15988,9 @@
     "bookReaderControlsStayVisible": "Ohjaimet pysyvät näkyvissä",
     "@bookReaderControlsStayVisible": {
         "description": "Comic reader toggle while its bars stay on screen"
+    },
+    "homeScreenBackdropTop": "Yläosa",
+    "@homeScreenBackdropTop": {
+        "description": "Home Screen Backdrop option that shows the focused item's backdrop across the top half of the screen, fading into the background toward the bottom"
     }
 }

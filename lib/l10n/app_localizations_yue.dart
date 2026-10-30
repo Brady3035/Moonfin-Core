@@ -12344,6 +12344,15 @@ class AppLocalizationsYue extends AppLocalizations {
   String get watchWithGroup => '同群組一齊睇';
 
   @override
+  String get watchPartyCodeOrLink => 'Room code or invite link';
+
+  @override
+  String get watchPartyCopyInvite => 'Copy invite link';
+
+  @override
+  String get watchPartyInviteCopied => 'Invite link copied';
+
+  @override
   String get watchPartyLetEveryoneVote => 'Let everyone vote on movies';
 
   @override

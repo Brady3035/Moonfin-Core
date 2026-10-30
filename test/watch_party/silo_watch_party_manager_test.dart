@@ -51,6 +51,35 @@ void main() {
     expect(SiloWatchPartyManager.partySource(_item, '404')?['Id'], '5');
   });
 
+  test('closes drift by a small rate, slower when ahead', () {
+    // Ahead by half a second: 0.5/25 is 2 percent, slowed.
+    expect(SiloWatchPartyManager.rateFor(0.5), closeTo(0.98, 1e-9));
+    // Nearly closed (a nudge runs on to 0.1 s): the 1 percent floor.
+    expect(SiloWatchPartyManager.rateFor(0.15), closeTo(0.99, 1e-9));
+    // Behind by two seconds: 2/25 is past the 4 percent cap.
+    expect(SiloWatchPartyManager.rateFor(-2), closeTo(1.04, 1e-9));
+    // In between, half-percent steps: 0.6/25 = 2.4 percent rounds to 2.5.
+    expect(SiloWatchPartyManager.rateFor(-0.6), closeTo(1.025, 1e-9));
+  });
+
+  test('the next episode follows season and episode order', () {
+    Map<String, dynamic> ep(String id, int season, int number) => {
+      'Id': id,
+      'ParentIndexNumber': season,
+      'IndexNumber': number,
+    };
+    final episodes = [
+      ep('s2e1', 2, 1),
+      ep('special', 0, 1),
+      ep('s1e2', 1, 2),
+      ep('s1e1', 1, 1),
+    ];
+    expect(SiloWatchPartyManager.nextEpisodeId(episodes, 's1e1'), 's1e2');
+    expect(SiloWatchPartyManager.nextEpisodeId(episodes, 's1e2'), 's2e1');
+    expect(SiloWatchPartyManager.nextEpisodeId(episodes, 's2e1'), isNull);
+    expect(SiloWatchPartyManager.nextEpisodeId(episodes, 'special'), isNull);
+  });
+
   test('follows the signed-in server, not the newest connection', () async {
     final getIt = GetIt.instance;
     addTearDown(getIt.reset);

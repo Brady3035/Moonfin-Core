@@ -12623,6 +12623,15 @@ class AppLocalizationsFa extends AppLocalizations {
   String get watchWithGroup => 'با گروه تماشا کنید';
 
   @override
+  String get watchPartyCodeOrLink => 'Room code or invite link';
+
+  @override
+  String get watchPartyCopyInvite => 'Copy invite link';
+
+  @override
+  String get watchPartyInviteCopied => 'Invite link copied';
+
+  @override
   String get watchPartyLetEveryoneVote => 'Let everyone vote on movies';
 
   @override

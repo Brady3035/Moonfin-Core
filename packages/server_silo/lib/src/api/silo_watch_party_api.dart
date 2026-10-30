@@ -42,6 +42,7 @@ class SiloRoom {
     required this.isHost,
     required this.canControlTransport,
     required this.attachedSessionId,
+    required this.invitePath,
     required this.members,
   });
 
@@ -73,6 +74,10 @@ class SiloRoom {
       attachedSessionId: attached is String && attached.isNotEmpty
           ? attached
           : null,
+      invitePath: switch (json['invite_path']) {
+        final String path when path.isNotEmpty => path,
+        _ => null,
+      },
       members: [
         for (final m in json['members'] as List? ?? const [])
           if (asJsonMap(m) case final member?) SiloRoomMember.fromJson(member),
@@ -116,6 +121,9 @@ class SiloRoom {
 
   /// The playback session the server has attached for this viewer.
   final String? attachedSessionId;
+
+  /// `/rooms/join?token=…`, sent to the host only.
+  final String? invitePath;
 
   /// Host first.
   final List<SiloRoomMember> members;
@@ -271,12 +279,27 @@ class SiloWatchPartyApi {
     ),
   );
 
-  Future<SiloRoomAccess> join(String code) => _access(
-    _dio.post<dynamic>(
-      '/api/v2/watch-together/join',
-      data: {'code': code.trim().toUpperCase()},
-    ),
-  );
+  /// Joins with what a member typed or pasted: a room code, or an invite
+  /// link or its token.
+  Future<SiloRoomAccess> join(String input) {
+    final text = input.trim();
+    final token =
+        Uri.tryParse(text)?.queryParameters['token'] ??
+        // Codes are eight characters; invite tokens are longer.
+        (text.length > 12 ? text : null);
+    return _access(
+      _dio.post<dynamic>(
+        '/api/v2/watch-together/join',
+        data: token != null
+            ? {'join_token': token}
+            : {'code': text.toUpperCase()},
+      ),
+    );
+  }
+
+  /// The full invite link for a room's `invite_path` (hosts only get one).
+  /// It opens the room in Silo's web app; Moonfin takes it in the join box.
+  Uri inviteUri(String invitePath) => Uri.parse(_baseUrl()).resolve(invitePath);
 
   /// Host only: stage [contentId] in the lobby without starting it.
   Future<SiloRoom> stage(String roomId, String contentId) => _room(

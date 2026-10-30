@@ -242,4 +242,39 @@ void main() {
     await api.vote('r1', 'proof', 's1', false);
     expect(server.requests.map((r) => r.method), ['POST', 'DELETE']);
   });
+
+  test('joins with a code, an invite link or its token', () async {
+    final server = FixtureServer({
+      '/api/v2/watch-together/join': (_) => FixtureServer.json(
+        200,
+        jsonEncode({'room': _snapshot, 'room_access_token': 'proof'}),
+      ),
+    });
+    final api = _client(server).watchPartyApi;
+    await api.join(' l2nvbpne ');
+    await api.join(
+      'https://silo.example/rooms/join?token=WSNKCQ47AFFJYGXRUF39NQE3',
+    );
+    await api.join('WSNKCQ47AFFJYGXRUF39NQE3');
+    expect(server.requests.map((r) => r.data), [
+      {'code': 'L2NVBPNE'},
+      {'join_token': 'WSNKCQ47AFFJYGXRUF39NQE3'},
+      {'join_token': 'WSNKCQ47AFFJYGXRUF39NQE3'},
+    ]);
+  });
+
+  test('the invite link is the server address and the room\'s path', () {
+    final api = _client(
+      FixtureServer({}),
+      baseUrl: 'https://silo.example/silo/',
+    ).watchPartyApi;
+    expect(
+      api.inviteUri('/rooms/join?token=T').toString(),
+      'https://silo.example/rooms/join?token=T',
+    );
+    expect(
+      SiloRoom.fromJson(_snapshot).invitePath,
+      '/rooms/join?token=WSNKCQ47AFFJYGXRUF39NQE3',
+    );
+  });
 }

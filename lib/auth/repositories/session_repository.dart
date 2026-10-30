@@ -69,6 +69,7 @@ import '../models/server.dart';
 import '../models/user.dart';
 import 'server_repository.dart';
 import 'user_repository.dart';
+import '../../watch_party/silo_watch_party_manager.dart';
 
 enum SessionState { ready, restoring, switching }
 
@@ -764,6 +765,11 @@ class SessionRepository {
     }
 
     _pluginSyncService.resetState();
+    if (GetIt.instance.isRegistered<SiloWatchPartyManager>()) {
+      GetIt.instance<SiloWatchPartyManager>().onSessionChanged(
+        signedOut: true,
+      );
+    }
     if (GetIt.instance.isRegistered<AchievementsService>()) {
       GetIt.instance<AchievementsService>().reset();
     }

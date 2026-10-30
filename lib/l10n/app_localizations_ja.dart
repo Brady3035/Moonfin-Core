@@ -12416,6 +12416,15 @@ class AppLocalizationsJa extends AppLocalizations {
   String get watchWithGroup => 'グループで視聴';
 
   @override
+  String get watchPartyCodeOrLink => 'Room code or invite link';
+
+  @override
+  String get watchPartyCopyInvite => 'Copy invite link';
+
+  @override
+  String get watchPartyInviteCopied => 'Invite link copied';
+
+  @override
   String get watchPartyLetEveryoneVote => 'Let everyone vote on movies';
 
   @override

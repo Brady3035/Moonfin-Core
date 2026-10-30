@@ -11211,6 +11211,18 @@
     "description": "Tooltip for the button on a person page that opens their own website"
   },
   "watchWithGroup": "Watch with group",
+  "watchPartyCodeOrLink": "Room code or invite link",
+  "@watchPartyCodeOrLink": {
+    "description": "Join box on the Watch Party screen"
+  },
+  "watchPartyCopyInvite": "Copy invite link",
+  "@watchPartyCopyInvite": {
+    "description": "Host button that copies a Watch Party invite link"
+  },
+  "watchPartyInviteCopied": "Invite link copied",
+  "@watchPartyInviteCopied": {
+    "description": "Snackbar after copying a Watch Party invite link"
+  },
   "watchPartyLetEveryoneVote": "Let everyone vote on movies",
   "@watchPartyLetEveryoneVote": {
     "description": "Host switch that turns a Watch Party into a vote on movies"

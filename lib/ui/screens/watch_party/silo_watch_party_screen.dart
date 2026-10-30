@@ -29,7 +29,6 @@ class _SiloWatchPartyScreenState extends State<SiloWatchPartyScreen> {
   final _manager = GetIt.instance<SiloWatchPartyManager>();
   final _codeController = TextEditingController();
   final _codeFocus = FocusNode(debugLabel: 'watch_party_code');
-  final _tvFieldKey = GlobalKey<CustomTVTextFieldState>();
   late final Future<bool> _supported = _manager.inRoom
       ? Future.value(true)
       : _manager.serverSupportsRooms();
@@ -38,7 +37,6 @@ class _SiloWatchPartyScreenState extends State<SiloWatchPartyScreen> {
   void initState() {
     super.initState();
     _manager.roomScreenOpened();
-    _codeFocus.onKeyEvent = _onCodeKey;
   }
 
   @override
@@ -47,25 +45,6 @@ class _SiloWatchPartyScreenState extends State<SiloWatchPartyScreen> {
     _codeController.dispose();
     _codeFocus.dispose();
     super.dispose();
-  }
-
-  KeyEventResult _onCodeKey(FocusNode node, KeyEvent event) {
-    if (!PlatformDetection.isTV) return KeyEventResult.ignored;
-    if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
-      return KeyEventResult.ignored;
-    }
-    if (event.logicalKey.isBackKey &&
-        (_tvFieldKey.currentState?.isKeyboardVisible ?? false)) {
-      _tvFieldKey.currentState?.closeKeyboard();
-      node.requestFocus();
-      return KeyEventResult.handled;
-    }
-    if (event.logicalKey == LogicalKeyboardKey.enter ||
-        event.logicalKey == LogicalKeyboardKey.select) {
-      _tvFieldKey.currentState?.openKeyboard();
-      return KeyEventResult.handled;
-    }
-    return KeyEventResult.ignored;
   }
 
   Future<void> _join() async {
@@ -161,57 +140,14 @@ class _SiloWatchPartyScreenState extends State<SiloWatchPartyScreen> {
     ];
   }
 
-  Widget _buildCodeField(BuildContext context, AppLocalizations l10n) {
-    if (!PlatformDetection.isTV) {
-      return TextField(
+  Widget _buildCodeField(BuildContext context, AppLocalizations l10n) =>
+      _TvAwareField(
         controller: _codeController,
-        textCapitalization: TextCapitalization.characters,
-        decoration: InputDecoration(
-          labelText: l10n.watchPartyRoomCode,
-          border: const OutlineInputBorder(),
-        ),
-        onSubmitted: (_) => _join(),
+        focusNode: _codeFocus,
+        hint: l10n.watchPartyCodeOrLink,
+        capitalize: true,
+        onSubmitted: _join,
       );
-    }
-    final colorScheme = Theme.of(context).colorScheme;
-    return Focus(
-      focusNode: _codeFocus,
-      child: ListenableBuilder(
-        listenable: _codeFocus,
-        builder: (_, _) {
-          final focused = _codeFocus.hasFocus;
-          return CustomTVTextField(
-            key: _tvFieldKey,
-            controller: _codeController,
-            isFocused: focused,
-            inputPurpose: InputPurpose.text,
-            keyboardStyle: GetIt.instance<UserPreferences>().get(
-              UserPreferences.keyboardStyle,
-            ),
-            hint: l10n.watchPartyRoomCode,
-            textFieldType: TextFieldType.other,
-            keyboardType: KeyboardType.alphabetic,
-            filled: true,
-            fillColor: focused
-                ? colorScheme.primaryContainer
-                : colorScheme.surfaceContainerHighest.scaleAlpha(0.6),
-            borderColor: colorScheme.outline,
-            focusedBorderColor: colorScheme.primary,
-            hintStyle: TextStyle(
-              fontFamily: kCleanSettingsFontFamily,
-              color: colorScheme.onSurface.withValues(alpha: 0.65),
-            ),
-            textStyle: TextStyle(
-              fontFamily: kCleanSettingsFontFamily,
-              color: colorScheme.onSurface,
-            ),
-            popParentOnKeyboardClose: false,
-            onFieldSubmitted: (_) => _join(),
-          );
-        },
-      ),
-    );
-  }
 
   List<Widget> _buildRoom(
     BuildContext context,
@@ -253,6 +189,23 @@ class _SiloWatchPartyScreenState extends State<SiloWatchPartyScreen> {
               ),
               const SizedBox(height: 8),
               Text(l10n.watchPartyShareCode),
+              if (_manager.inviteUri case final invite?)
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: TextButton.icon(
+                    icon: const Icon(Icons.link),
+                    label: Text(l10n.watchPartyCopyInvite),
+                    onPressed: () async {
+                      final messenger = ScaffoldMessenger.of(context);
+                      await Clipboard.setData(
+                        ClipboardData(text: invite.toString()),
+                      );
+                      messenger.showSnackBar(
+                        SnackBar(content: Text(l10n.watchPartyInviteCopied)),
+                      );
+                    },
+                  ),
+                ),
               const Divider(height: 24),
               Text(
                 l10n.syncPlayParticipantCount(
@@ -434,7 +387,21 @@ class _VotePanel extends StatefulWidget {
 
 class _VotePanelState extends State<_VotePanel> {
   final _search = TextEditingController();
+  final _searchFocus = FocusNode(debugLabel: 'watch_party_search');
+  String _lastSearch = '';
   Timer? _debounce;
+
+  @override
+  void initState() {
+    super.initState();
+    // The TV keyboard has no change callback; the controller covers both.
+    _search.addListener(() {
+      if (_search.text == _lastSearch) return;
+      _lastSearch = _search.text;
+      _onSearchChanged(_search.text);
+    });
+  }
+
   List<Map<String, dynamic>> _results = const [];
   int _query = 0;
 
@@ -442,6 +409,7 @@ class _VotePanelState extends State<_VotePanel> {
   void dispose() {
     _debounce?.cancel();
     _search.dispose();
+    _searchFocus.dispose();
     super.dispose();
   }
 
@@ -526,14 +494,11 @@ class _VotePanelState extends State<_VotePanel> {
           ),
         if (isHost) ...[
           const SizedBox(height: 8),
-          TextField(
+          _TvAwareField(
             controller: _search,
-            decoration: InputDecoration(
-              prefixIcon: const Icon(Icons.search),
-              hintText: l10n.watchPartySearchMovies,
-              border: const OutlineInputBorder(),
-            ),
-            onChanged: _onSearchChanged,
+            focusNode: _searchFocus,
+            hint: l10n.watchPartySearchMovies,
+            icon: Icons.search,
           ),
           for (final movie in _results)
             if (!suggested.contains(movie['Id']))
@@ -551,6 +516,115 @@ class _VotePanelState extends State<_VotePanel> {
               ),
         ],
       ],
+    );
+  }
+}
+
+/// A text field that takes Moonfin's TV keyboard on TV (opened with
+/// select, closed with back) and a plain field elsewhere.
+class _TvAwareField extends StatefulWidget {
+  const _TvAwareField({
+    required this.controller,
+    required this.focusNode,
+    required this.hint,
+    this.icon,
+    this.capitalize = false,
+    this.onSubmitted,
+  });
+
+  final TextEditingController controller;
+  final FocusNode focusNode;
+  final String hint;
+  final IconData? icon;
+  final bool capitalize;
+  final VoidCallback? onSubmitted;
+
+  @override
+  State<_TvAwareField> createState() => _TvAwareFieldState();
+}
+
+class _TvAwareFieldState extends State<_TvAwareField> {
+  final _tvKey = GlobalKey<CustomTVTextFieldState>();
+
+  @override
+  void initState() {
+    super.initState();
+    widget.focusNode.onKeyEvent = _onKey;
+  }
+
+  KeyEventResult _onKey(FocusNode node, KeyEvent event) {
+    if (!PlatformDetection.isTV) return KeyEventResult.ignored;
+    if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
+      return KeyEventResult.ignored;
+    }
+    final keyboard = _tvKey.currentState;
+    if (event.logicalKey.isBackKey && (keyboard?.isKeyboardVisible ?? false)) {
+      keyboard?.closeKeyboard();
+      node.requestFocus();
+      return KeyEventResult.handled;
+    }
+    if (event.logicalKey == LogicalKeyboardKey.enter ||
+        event.logicalKey == LogicalKeyboardKey.select) {
+      keyboard?.openKeyboard();
+      return KeyEventResult.handled;
+    }
+    return KeyEventResult.ignored;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!PlatformDetection.isTV) {
+      return TextField(
+        controller: widget.controller,
+        focusNode: widget.focusNode,
+        textCapitalization: widget.capitalize
+            ? TextCapitalization.characters
+            : TextCapitalization.none,
+        decoration: InputDecoration(
+          prefixIcon: widget.icon == null ? null : Icon(widget.icon),
+          labelText: widget.hint,
+          border: const OutlineInputBorder(),
+        ),
+        onSubmitted: (_) => widget.onSubmitted?.call(),
+      );
+    }
+    final colorScheme = Theme.of(context).colorScheme;
+    return Focus(
+      focusNode: widget.focusNode,
+      child: ListenableBuilder(
+        listenable: widget.focusNode,
+        builder: (_, _) {
+          final focused = widget.focusNode.hasFocus;
+          return CustomTVTextField(
+            key: _tvKey,
+            controller: widget.controller,
+            isFocused: focused,
+            inputPurpose: InputPurpose.text,
+            keyboardStyle: GetIt.instance<UserPreferences>().get(
+              UserPreferences.keyboardStyle,
+            ),
+            hint: widget.hint,
+            textFieldType: TextFieldType.other,
+            keyboardType: KeyboardType.alphabetic,
+            filled: true,
+            fillColor: focused
+                ? colorScheme.primaryContainer
+                : colorScheme.surfaceContainerHighest.scaleAlpha(0.6),
+            borderColor: colorScheme.outline,
+            focusedBorderColor: colorScheme.primary,
+            hintStyle: TextStyle(
+              fontFamily: kCleanSettingsFontFamily,
+              color: colorScheme.onSurface.withValues(alpha: 0.65),
+            ),
+            textStyle: TextStyle(
+              fontFamily: kCleanSettingsFontFamily,
+              color: colorScheme.onSurface,
+            ),
+            popParentOnKeyboardClose: false,
+            onFieldSubmitted: (_) => widget.onSubmitted?.call(),
+          );
+        },
+      ),
     );
   }
 }

@@ -22348,6 +22348,24 @@ abstract class AppLocalizations {
   /// **'Watch with group'**
   String get watchWithGroup;
 
+  /// Join box on the Watch Party screen
+  ///
+  /// In en, this message translates to:
+  /// **'Room code or invite link'**
+  String get watchPartyCodeOrLink;
+
+  /// Host button that copies a Watch Party invite link
+  ///
+  /// In en, this message translates to:
+  /// **'Copy invite link'**
+  String get watchPartyCopyInvite;
+
+  /// Snackbar after copying a Watch Party invite link
+  ///
+  /// In en, this message translates to:
+  /// **'Invite link copied'**
+  String get watchPartyInviteCopied;
+
   /// Host switch that turns a Watch Party into a vote on movies
   ///
   /// In en, this message translates to:

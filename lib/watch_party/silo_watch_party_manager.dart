@@ -19,6 +19,7 @@ import '../data/services/media_server_client_factory.dart';
 import '../ui/navigation/app_router.dart';
 import '../ui/navigation/destinations.dart';
 import '../ui/widgets/video_mini_player.dart';
+import '../util/platform_detection.dart';
 
 /// Silo's Watch Party: rooms joined with a code, kept in step over the room
 /// socket (`silo.room.v2`). Jellyfin servers use [SyncPlayManager] instead.
@@ -74,6 +75,9 @@ class SiloWatchPartyManager extends ChangeNotifier {
   // is now, for drift checks.
   ({double positionSeconds, int localMs, bool playing})? _reference;
   int _driftBackoffMs = 1000;
+  Timer? _driftTimer;
+  double? _nudgedRate;
+  bool _hostStopping = false;
   int _lastDriftSeekMs = 0;
   bool _applying = false;
   bool _interceptorInstalled = false;
@@ -143,6 +147,62 @@ class SiloWatchPartyManager extends ChangeNotifier {
       if (!await setVoting(false)) return false;
     }
     return stage(item.id);
+  }
+
+  /// Host: when an episode finishes, stages the series' next one, so the
+  /// host only has to start it.
+  Future<void> _stageNextEpisode(String? contentId) async {
+    final client = _client;
+    if (contentId == null || client == null) return;
+    try {
+      final item = await selectedItem();
+      final seriesId = item?['SeriesId'];
+      if (item?['Type'] != 'Episode' || seriesId is! String) return;
+      final episodes = [
+        for (final e
+            in (await client.itemsApi.getEpisodes(seriesId))['Items']
+                    as List? ??
+                const [])
+          if (e is Map<String, dynamic> && e['Id'] is String) e,
+      ];
+      final next = nextEpisodeId(episodes, contentId);
+      if (next == null) return;
+      final room = _room;
+      // Only while the lobby still holds the finished episode.
+      if (room == null ||
+          room.isPlaying ||
+          room.selectedContentId != contentId) {
+        return;
+      }
+      await stage(next);
+    } catch (e) {
+      _logger.w('Watch Party: staging the next episode failed', error: e);
+    }
+  }
+
+  /// The episode after [currentId] in season and episode order, specials
+  /// left out.
+  @visibleForTesting
+  static String? nextEpisodeId(
+    List<Map<String, dynamic>> episodes,
+    String currentId,
+  ) {
+    int number(Map<String, dynamic> e, String key) =>
+        (e[key] as num?)?.toInt() ?? 0;
+    final ordered =
+        episodes.where((e) => number(e, 'ParentIndexNumber') > 0).toList()
+          ..sort((a, b) {
+            final season = number(
+              a,
+              'ParentIndexNumber',
+            ).compareTo(number(b, 'ParentIndexNumber'));
+            return season != 0
+                ? season
+                : number(a, 'IndexNumber').compareTo(number(b, 'IndexNumber'));
+          });
+    final at = ordered.indexWhere((e) => e['Id'] == currentId);
+    if (at < 0 || at + 1 >= ordered.length) return null;
+    return ordered[at + 1]['Id'] as String;
   }
 
   /// The vote room's titles, most votes first.
@@ -259,7 +319,28 @@ class SiloWatchPartyManager extends ChangeNotifier {
 
   Future<bool> startPlayback() => _hostAction((api, id) => api.start(id));
 
-  Future<bool> stopPlayback() => _hostAction((api, id) => api.stop(id));
+  Future<bool> stopPlayback() async {
+    // A stop of the host's own doesn't move on to the next episode.
+    _hostStopping = true;
+    final done = await _hostAction((api, id) => api.stop(id));
+    if (!done) _hostStopping = false;
+    return done;
+  }
+
+  /// The invite link for the room, for its host.
+  Uri? get inviteUri {
+    final path = _room?.invitePath;
+    final client = _client;
+    if (path == null || client == null) return null;
+    return client.watchPartyApi.inviteUri(path);
+  }
+
+  /// After a user or server switch, or a sign-out: leaves a room that
+  /// belongs to another session.
+  void onSessionChanged({bool signedOut = false}) {
+    if (_room == null) return;
+    if (signedOut || !identical(activeSiloClient, _client)) leave();
+  }
 
   Future<bool> setGuestsCanPause(bool allowed) =>
       _hostAction((api, id) => api.setGuestsCanPause(id, allowed));
@@ -666,6 +747,14 @@ class SiloWatchPartyManager extends ChangeNotifier {
       }
     } else if (previous.isPlaying) {
       // Back in the lobby: the host stopped, or the item finished.
+      final finished = !_hostStopping;
+      _hostStopping = false;
+      if (finished &&
+          next.isHost &&
+          !next.isVoting &&
+          next.selectedContentId == previous.selectedContentId) {
+        unawaited(_stageNextEpisode(previous.selectedContentId));
+      }
       _openedRevision = null;
       _stopFollowing();
       _applying = true;
@@ -762,6 +851,10 @@ class SiloWatchPartyManager extends ChangeNotifier {
     _bufferingSub ??= _playbackManager.state.bufferingStream.listen(
       _onBuffering,
     );
+    _driftTimer ??= Timer.periodic(
+      const Duration(milliseconds: 500),
+      (_) => _correctDrift(),
+    );
   }
 
   void _stopFollowing() {
@@ -783,6 +876,9 @@ class SiloWatchPartyManager extends ChangeNotifier {
     _appliedCommandId = null;
     _reference = null;
     _attachSentFor = null;
+    _driftTimer?.cancel();
+    _driftTimer = null;
+    _restoreRate();
   }
 
   String? get _sessionId => _playbackManager.currentResolution?.playSessionId;
@@ -850,6 +946,8 @@ class SiloWatchPartyManager extends ChangeNotifier {
     final lateSeconds =
         math.max(0, DateTime.now().millisecondsSinceEpoch - localAtMs) / 1000;
     final target = command.positionSeconds + (playing ? lateSeconds : 0);
+    // Rate and play state change when a command runs.
+    _restoreRate();
     _applying = true;
     try {
       final tolerance = command.action == 'seek' ? 0.25 : _maxDriftSeconds;
@@ -966,7 +1064,6 @@ class SiloWatchPartyManager extends ChangeNotifier {
     }
     // A stalled player reports where it stopped, not a decision.
     if (buffering) return;
-    _correctDrift();
     _send({
       'type': 'state_report',
       'session_id': session,
@@ -976,21 +1073,35 @@ class SiloWatchPartyManager extends ChangeNotifier {
     });
   }
 
-  /// Seeks back to the room when this player has drifted more than a second
-  /// from it, waiting longer after each seek that didn't settle it.
+  /// Brings this player back to the room: by a small change of playback
+  /// rate for drift up to 5 s, by a seek past that, or for any drift over a
+  /// second on a player that doesn't correct by rate. Runs about twice a
+  /// second while the room plays.
   void _correctDrift() {
     final reference = _reference;
     if (reference == null ||
         !reference.playing ||
         _room?.playbackState != 'playing' ||
-        !_playbackManager.state.isPlaying) {
+        !_playbackManager.state.isPlaying ||
+        _playbackManager.state.isBuffering) {
+      _restoreRate();
       return;
     }
     final now = DateTime.now().millisecondsSinceEpoch;
     final expected =
         reference.positionSeconds + (now - reference.localMs) / 1000;
     final drift = _positionSeconds - expected;
-    if (drift.abs() <= _maxDriftSeconds) {
+    final size = drift.abs();
+    if (_correctsByRate && size <= 5) {
+      if (_nudgedRate != null && size <= 0.1) {
+        _restoreRate();
+      } else if (_nudgedRate != null || size > 0.4) {
+        _setRate(rateFor(drift));
+      }
+      return;
+    }
+    _restoreRate();
+    if (size <= _maxDriftSeconds) {
       _driftBackoffMs = 1000;
       return;
     }
@@ -1003,6 +1114,35 @@ class SiloWatchPartyManager extends ChangeNotifier {
           .seekTo(Duration(milliseconds: (expected * 1000).round()))
           .whenComplete(() => _applying = false),
     );
+  }
+
+  /// TVs don't correct by rate: with the display matched to the title's
+  /// frame rate, a rate even 1 percent off drops or repeats frames, and
+  /// Android TV's tunneled playback ignores it.
+  bool get _correctsByRate => !PlatformDetection.isTV;
+
+  /// The pitch-kept rate that closes [driftSeconds] (positive is ahead):
+  /// `1 ± clamp(drift / 25, 0.01, 0.04)` in half-percent steps, as Silo's
+  /// own clients do.
+  @visibleForTesting
+  static double rateFor(double driftSeconds) {
+    final step = (driftSeconds.abs() / 25).clamp(0.01, 0.04);
+    final rounded = (step / 0.005).round() * 0.005;
+    return driftSeconds > 0 ? 1 - rounded : 1 + rounded;
+  }
+
+  void _setRate(double rate) {
+    if (_nudgedRate == rate) return;
+    _nudgedRate = rate;
+    unawaited(_playbackManager.setPlaybackSpeed(rate));
+  }
+
+  /// Only undoes a nudge: a rate write is play intent on some players, so
+  /// writing 1x when nothing was nudged could resume a paused one.
+  void _restoreRate() {
+    if (_nudgedRate == null) return;
+    _nudgedRate = null;
+    unawaited(_playbackManager.setPlaybackSpeed(1.0));
   }
 
   @override

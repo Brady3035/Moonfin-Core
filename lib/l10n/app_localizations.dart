@@ -22399,7 +22399,7 @@ abstract class AppLocalizations {
   /// Shown when the Silo server has no Watch Party rooms
   ///
   /// In en, this message translates to:
-  /// **'This server doesn't offer Watch Party.'**
+  /// **'This server doesn\'t offer Watch Party.'**
   String get watchPartyUnavailable;
 
   /// Label for a Watch Party room's join code

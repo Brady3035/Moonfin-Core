@@ -12860,8 +12860,7 @@ class AppLocalizationsEl extends AppLocalizations {
   String get watchParty => 'Watch Party';
 
   @override
-  String get watchPartyUnavailable =>
-      'This server doesn\'t offer Watch Party.';
+  String get watchPartyUnavailable => 'This server doesn\'t offer Watch Party.';
 
   @override
   String get watchPartyRoomCode => 'Room code';

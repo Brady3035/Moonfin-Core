@@ -518,8 +518,11 @@ class ItemDetailViewModel extends ChangeNotifier {
   /// Plex has no likes, and its own rating already stands in for favorites.
   bool get supportsPersonalRating => _client.serverType != ServerType.plex;
 
-  /// Plex can only favorite media, never people.
-  bool get supportsPersonFavorites => _client.serverType != ServerType.plex;
+  /// Plex can only favorite media, never people, and Silo keeps no person
+  /// favorites.
+  bool get supportsPersonFavorites =>
+      _client.serverType != ServerType.plex &&
+      _client.serverType != ServerType.silo;
 
   /// Plex keeps no YouTube links, so a trailer it doesn't have is searched
   /// for on YouTube instead.

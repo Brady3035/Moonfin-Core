@@ -914,6 +914,21 @@ Widget classicDetailContentForTesting({
   initialFocusNode: initialFocusNode,
 );
 
+/// Silo's requests have no people, so there the person's name is searched
+/// instead.
+void _openRequestsForPerson(BuildContext context, AggregatedItem item) {
+  final client =
+      GetIt.instance<MediaServerClientFactory>().getClientIfExists(
+        item.serverId,
+      ) ??
+      GetIt.instance<MediaServerClient>();
+  context.push(
+    client.serverType == ServerType.silo
+        ? Destinations.searchWith(item.name)
+        : Destinations.seerrPerson(item.tmdbId!),
+  );
+}
+
 class _DetailContent extends StatefulWidget {
   final ItemDetailViewModel viewModel;
   final UserPreferences prefs;
@@ -3001,7 +3016,7 @@ class _DetailContentState extends State<_DetailContent> {
                 iconBuilder: (size, color) =>
                     SeerrIcon(size: size, color: color),
                 onPressed: () {
-                  context.push(Destinations.seerrPerson(item.tmdbId!));
+                  _openRequestsForPerson(context, item);
                 },
                 isActive: false,
                 focusNode: seerrFocusNode,
@@ -6809,7 +6824,7 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
             iconBuilder: (size, color) => SeerrIcon(size: size, color: color),
             focusNode: _primaryFocusNode(2),
             onPressed: () {
-              context.push(Destinations.seerrPerson(item.tmdbId!));
+              _openRequestsForPerson(context, item);
             },
             onArrowUp:
                 NavigationLayout.focusNavbarNotifier.value != null ||

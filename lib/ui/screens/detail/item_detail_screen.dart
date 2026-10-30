@@ -8464,7 +8464,14 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
     final messenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);
     final suggested = party.room?.isVoting == true && item.type == 'Movie';
-    final picked = await party.pick(item);
+    // A room plays files, so a series or season stands for its next episode.
+    final episode = await _watchPartyEpisodeFor(item);
+    if (!mounted) return;
+    if (episode == null) {
+      messenger.showSnackBar(SnackBar(content: Text(l10n.noEpisodesLoaded)));
+      return;
+    }
+    final picked = await party.pick(episode);
     if (!mounted) return;
     messenger.showSnackBar(
       SnackBar(
@@ -8484,6 +8491,31 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
         ),
       );
     }
+  }
+
+  /// Next Up for a series, else its first unwatched episode (specials left
+  /// out); a season's first unwatched episode. Other items are themselves.
+  Future<AggregatedItem?> _watchPartyEpisodeFor(AggregatedItem item) async {
+    final List<AggregatedItem> episodes;
+    switch (item.type) {
+      case 'Series':
+        if (viewModel.nextUp != null) return viewModel.nextUp;
+        try {
+          final data = await _clientForItem(item).itemsApi.getEpisodes(item.id);
+          episodes = _mapRawItemsForServer(data['Items'], item.serverId)
+              .where((e) => (e.parentIndexNumber ?? 0) > 0)
+              .toList();
+        } catch (_) {
+          return null;
+        }
+      case 'Season':
+        episodes = viewModel.episodes;
+      default:
+        return item;
+    }
+    final playable = episodes.where(isEligibleNextEpisodeCandidate);
+    return playable.where((e) => !e.isPlayed).firstOrNull ??
+        playable.firstOrNull;
   }
 
   void _watchWithGroup(BuildContext context, AggregatedItem item) {

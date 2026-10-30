@@ -10740,12 +10740,12 @@ class AppLocalizationsCy extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count cyfranogwr',
-      many: '$count chyfranogwr',
-      few: '$count chyfranogwr',
-      two: '$count gyfranogwr',
-      zero: '$count o gyfranogwyr',
-      one: '$count cyfranogwr',
+      other: '# cyfranogwr',
+      many: '# chyfranogwr',
+      few: '# chyfranogwr',
+      two: '# gyfranogwr',
+      zero: '# o gyfranogwyr',
+      one: '# cyfranogwr',
     );
     return '$_temp0';
   }

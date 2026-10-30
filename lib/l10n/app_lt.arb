@@ -6129,7 +6129,7 @@
     "syncPlayServerUnsupportedMessage": "SyncPlay reikalingas Jellyfin serveris. Dabartinis serveris jo nepalaiko.",
     "syncPlayGroupFallbackName": "„SyncPlay“ grupė",
     "syncPlayGroupTooltip": "„SyncPlay“ grupė",
-    "syncPlayParticipantCount": "{count, plural, one {{count} dalyvis} few {{count} dalyviai} many {{count} dalyvio} other {{count} dalyvių}}",
+    "syncPlayParticipantCount": "{count, plural, one {# dalyvis} few {# dalyviai} many {# dalyvio} other {# dalyvių}}",
     "@syncPlayParticipantCount": {
         "description": "Participant count label shown in SyncPlay UI",
         "placeholders": {

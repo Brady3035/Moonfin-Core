@@ -6129,7 +6129,7 @@
     "syncPlayServerUnsupportedMessage": "SyncPlay zahtijeva Jellyfin poslužitelj. Trenutačni poslužitelj to ne podržava.",
     "syncPlayGroupFallbackName": "SyncPlay Grupa",
     "syncPlayGroupTooltip": "SyncPlay grupa",
-    "syncPlayParticipantCount": "{count, plural, one {{count} sudionik} few {{count} sudionika} other {{count} sudionika}}",
+    "syncPlayParticipantCount": "{count, plural, one {# sudionik} few {# sudionika} other {# sudionika}}",
     "@syncPlayParticipantCount": {
         "description": "Participant count label shown in SyncPlay UI",
         "placeholders": {

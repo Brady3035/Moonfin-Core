@@ -6129,7 +6129,7 @@
     "syncPlayServerUnsupportedMessage": "SyncPlay yêu cầu máy chủ Jellyfin. Máy chủ hiện tại không hỗ trợ nó.",
     "syncPlayGroupFallbackName": "Nhóm SyncPlay",
     "syncPlayGroupTooltip": "Nhóm SyncPlay",
-    "syncPlayParticipantCount": "{count, plural, one {{count} người tham gia} other {{count} người tham gia}}",
+    "syncPlayParticipantCount": "{count, plural, one {# người tham gia} other {# người tham gia}}",
     "@syncPlayParticipantCount": {
         "description": "Participant count label shown in SyncPlay UI",
         "placeholders": {

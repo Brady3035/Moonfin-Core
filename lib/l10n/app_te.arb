@@ -6129,7 +6129,7 @@
     "syncPlayServerUnsupportedMessage": "SyncPlayకి Jellyfin సర్వర్ అవసరం. ప్రస్తుత సర్వర్ దీనికి మద్దతు ఇవ్వదు.",
     "syncPlayGroupFallbackName": "SyncPlay గ్రూప్",
     "syncPlayGroupTooltip": "SyncPlay సమూహం",
-    "syncPlayParticipantCount": "{count, plural, one {{count} పాల్గొనేవారు} other {{count} పాల్గొనేవారు}}",
+    "syncPlayParticipantCount": "{count, plural, one {# పాల్గొనేవారు} other {# పాల్గొనేవారు}}",
     "@syncPlayParticipantCount": {
         "description": "Participant count label shown in SyncPlay UI",
         "placeholders": {

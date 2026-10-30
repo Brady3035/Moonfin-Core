@@ -6128,7 +6128,7 @@
     "syncPlayServerUnsupportedMessage": "SyncPlay vaatii Jellyfin-palvelimen. Nykyinen palvelin ei tue sitä.",
     "syncPlayGroupFallbackName": "SyncPlay Ryhmä",
     "syncPlayGroupTooltip": "SyncPlay-ryhmä",
-    "syncPlayParticipantCount": "{count, plural, one {{count} osallistuja} other {{count} osallistujaa}}",
+    "syncPlayParticipantCount": "{count, plural, one {# osallistuja} other {# osallistujaa}}",
     "@syncPlayParticipantCount": {
         "description": "Participant count label shown in SyncPlay UI",
         "placeholders": {

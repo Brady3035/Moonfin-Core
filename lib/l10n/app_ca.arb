@@ -6129,7 +6129,7 @@
     "syncPlayServerUnsupportedMessage": "SyncPlay requereix un servidor Jellyfin. El servidor actual no ho admet.",
     "syncPlayGroupFallbackName": "Grup SyncPlay",
     "syncPlayGroupTooltip": "Grup SyncPlay",
-    "syncPlayParticipantCount": "{count, plural, one {{count} participant} other {{count} participants}}",
+    "syncPlayParticipantCount": "{count, plural, one {# participant} other {# participants}}",
     "@syncPlayParticipantCount": {
         "description": "Participant count label shown in SyncPlay UI",
         "placeholders": {

@@ -10703,8 +10703,8 @@ class AppLocalizationsEt extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count osalejat',
-      one: '$count osaleja',
+      other: '# osalejat',
+      one: '# osaleja',
     );
     return '$_temp0';
   }

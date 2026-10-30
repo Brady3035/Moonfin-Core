@@ -6129,7 +6129,7 @@
     "syncPlayServerUnsupportedMessage": "SyncPlay inahitaji seva ya Jellyfin. Seva ya sasa haiauni.",
     "syncPlayGroupFallbackName": "SyncPlay Kikundi",
     "syncPlayGroupTooltip": "SyncPlay kikundi",
-    "syncPlayParticipantCount": "{count, plural, one {mshiriki {count}} other {washiriki {count}}}",
+    "syncPlayParticipantCount": "{count, plural, one {mshiriki #} other {washiriki #}}",
     "@syncPlayParticipantCount": {
         "description": "Participant count label shown in SyncPlay UI",
         "placeholders": {

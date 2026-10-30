@@ -10723,8 +10723,8 @@ class AppLocalizationsUg extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count قاتناشقۇچى',
-      one: '$count قاتناشقۇچى',
+      other: '# قاتناشقۇچى',
+      one: '# قاتناشقۇچى',
     );
     return '$_temp0';
   }

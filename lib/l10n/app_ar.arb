@@ -6129,7 +6129,7 @@
     "syncPlayServerUnsupportedMessage": "SyncPlay يتطلب خادم Jellyfin. الخادم الحالي لا يدعمه.",
     "syncPlayGroupFallbackName": "SyncPlay المجموعة",
     "syncPlayGroupTooltip": "SyncPlay المجموعة",
-    "syncPlayParticipantCount": "{count, plural, zero {{count} مشاركين} one {{count} مشارك} two {{count} مشاركان} few {{count} مشاركين} many {{count} مشاركًا} other {{count} مشارك}}",
+    "syncPlayParticipantCount": "{count, plural, zero {# مشاركين} one {# مشارك} two {# مشاركان} few {# مشاركين} many {# مشاركًا} other {# مشارك}}",
     "@syncPlayParticipantCount": {
         "description": "Participant count label shown in SyncPlay UI",
         "placeholders": {

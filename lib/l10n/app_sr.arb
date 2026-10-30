@@ -6129,7 +6129,7 @@
     "syncPlayServerUnsupportedMessage": "За синхронизовану репродукцију је потребан Џелифин сервер (Jellyfin). Тренутни сервер је не подржава.",
     "syncPlayGroupFallbackName": "Група за синхронизовану репродукцију",
     "syncPlayGroupTooltip": "Група за синхронизовану репродукцију",
-    "syncPlayParticipantCount": "{count, plural, one {{count} учесник} few {{count} учесника} other {{count} учесника}}",
+    "syncPlayParticipantCount": "{count, plural, one {# учесник} few {# учесника} other {# учесника}}",
     "@syncPlayParticipantCount": {
         "description": "Participant count label shown in SyncPlay UI",
         "placeholders": {

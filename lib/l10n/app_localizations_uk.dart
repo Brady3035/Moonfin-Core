@@ -10756,10 +10756,10 @@ class AppLocalizationsUk extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count учасника',
-      many: '$count учасників',
-      few: '$count учасники',
-      one: '$count учасник',
+      other: '# учасника',
+      many: '# учасників',
+      few: '# учасники',
+      one: '# учасник',
     );
     return '$_temp0';
   }

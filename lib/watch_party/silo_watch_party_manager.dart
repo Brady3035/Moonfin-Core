@@ -47,6 +47,7 @@ class SiloWatchPartyManager extends ChangeNotifier {
   bool _busy = false;
   int _roomScreens = 0;
   int? _subtitleIndex;
+  List<SiloRoomSuggestion> _suggestions = const [];
   String? _itemId;
   Future<Map<String, dynamic>?>? _item;
 
@@ -126,6 +127,132 @@ class SiloWatchPartyManager extends ChangeNotifier {
   Future<bool> stage(String contentId) async {
     if (_room == null && !await create()) return false;
     return _hostAction((api, id) => api.stage(id, contentId));
+  }
+
+  /// Host, from a title's page: a movie goes up for the vote in a voting
+  /// room; anything else is the host's pick, so voting is switched off for
+  /// it. Opens a room first when there is none.
+  Future<bool> pick(AggregatedItem item) async {
+    final room = _room;
+    if (room != null && room.isVoting) {
+      if (item.type == 'Movie') {
+        return suggestMovie(item.rawData);
+      }
+      if (!await setVoting(false)) return false;
+    }
+    return stage(item.id);
+  }
+
+  /// The vote room's titles, most votes first.
+  List<SiloRoomSuggestion> get suggestions => _suggestions;
+
+  /// Host, in the lobby: let members vote on movies, or go back to picking.
+  Future<bool> setVoting(bool voting) async {
+    final done = await _hostAction((api, id) => api.setVoting(id, voting));
+    if (done) await _loadSuggestions();
+    return done;
+  }
+
+  /// Movies in the library matching [query], for the host to put up.
+  Future<List<Map<String, dynamic>>> searchMovies(String query) async {
+    final client = _client;
+    if (client == null || query.trim().isEmpty) return const [];
+    final response = await client.itemsApi.getItems(
+      searchTerm: query.trim(),
+      includeItemTypes: const ['Movie'],
+      recursive: true,
+      limit: 20,
+      fields: 'ProductionYear',
+    );
+    return [
+      for (final item in response['Items'] as List? ?? const [])
+        if (item is Map<String, dynamic> && item['Id'] is String) item,
+    ];
+  }
+
+  /// Host: puts a movie (a Moonfin item map) up for the vote.
+  Future<bool> suggestMovie(Map<String, dynamic> movie) =>
+      _roomCall((api, id, token) async {
+        final year = movie['ProductionYear'];
+        await api.suggest(
+          id,
+          token,
+          suggestionId: const Uuid().v4(),
+          contentId: movie['Id'] as String,
+          title: movie['Name'] as String? ?? '',
+          subtitle: year == null ? null : '$year',
+        );
+        await _loadSuggestions();
+      });
+
+  Future<bool> vote(SiloRoomSuggestion suggestion, bool voted) =>
+      _roomCall((api, id, token) async {
+        await api.vote(id, token, suggestion.id, voted);
+        await _loadSuggestions();
+      });
+
+  /// Host.
+  Future<bool> removeSuggestion(SiloRoomSuggestion suggestion) =>
+      _roomCall((api, id, token) async {
+        await api.removeSuggestion(id, token, suggestion.id);
+        await _loadSuggestions();
+      });
+
+  /// Host: plays [suggestion] for everyone, whatever the tally.
+  Future<bool> playSuggestion(SiloRoomSuggestion suggestion) =>
+      _hostAction((api, id) => api.promote(id, _roomToken!, suggestion.id));
+
+  Future<void> _loadSuggestions() async {
+    final room = _room;
+    final token = _roomToken;
+    final client = _client;
+    if (room == null || token == null || client == null) return;
+    if (!room.isVoting) {
+      _suggestions = const [];
+      notifyListeners();
+      return;
+    }
+    try {
+      _suggestions = await client.watchPartyApi.suggestions(room.roomId, token);
+      notifyListeners();
+    } catch (e) {
+      _logger.w('Watch Party: loading suggestions failed', error: e);
+    }
+  }
+
+  /// A socket broadcast of the list. It always says nobody voted, so this
+  /// viewer's own votes carry over from what they had.
+  void _onSuggestions(List<dynamic> rows) {
+    final mine = {
+      for (final s in _suggestions)
+        if (s.votedByMe) s.id,
+    };
+    _suggestions = [
+      for (final row in rows)
+        if (row is Map<String, dynamic>)
+          if (SiloRoomSuggestion.fromJson(row) case final s?)
+            s.withVote(mine.contains(s.id)),
+    ]..sort(SiloRoomSuggestion.compare);
+    notifyListeners();
+  }
+
+  Future<bool> _roomCall(
+    Future<void> Function(SiloWatchPartyApi api, String roomId, String token)
+    request,
+  ) async {
+    final room = _room;
+    final token = _roomToken;
+    final client = _client;
+    if (room == null || token == null || client == null) return false;
+    _error = null;
+    try {
+      await request(client.watchPartyApi, room.roomId, token);
+      return true;
+    } catch (e) {
+      _error = _describe(e);
+      notifyListeners();
+      return false;
+    }
   }
 
   Future<bool> startPlayback() => _hostAction((api, id) => api.start(id));
@@ -264,6 +391,7 @@ class SiloWatchPartyManager extends ChangeNotifier {
       _roomToken = access.token;
       _clockSamples.clear();
       unawaited(_connect());
+      unawaited(_loadSuggestions());
       return true;
     } catch (e) {
       _error = _describe(e);
@@ -348,6 +476,8 @@ class SiloWatchPartyManager extends ChangeNotifier {
         onError: (_) => _onSocketClosed(generation),
       );
       _sendPing();
+      // Broadcasts sent while the socket was down are gone.
+      unawaited(_loadSuggestions());
       notifyListeners();
     } on DioException catch (e) {
       if (generation != _socketGeneration) return;
@@ -426,6 +556,10 @@ class SiloWatchPartyManager extends ChangeNotifier {
         }
       case 'pong':
         _onPong(message);
+      case 'suggestions_update':
+        if (message['suggestions'] case final List<dynamic> rows) {
+          _onSuggestions(rows);
+        }
       case 'room_closed':
         _leaveRoom('closed');
       case 'connection_replaced':
@@ -511,6 +645,7 @@ class SiloWatchPartyManager extends ChangeNotifier {
     if (next.selectedContentId != previous.selectedContentId) {
       _subtitleIndex = null;
     }
+    if (next.isVoting != previous.isVoting) unawaited(_loadSuggestions());
     if (next.isPlaying && next.selectedContentId != null) {
       _startFollowing();
       if (_openedRevision != next.selectionRevision) {
@@ -599,6 +734,7 @@ class SiloWatchPartyManager extends ChangeNotifier {
     _roomToken = null;
     _client = null;
     _subtitleIndex = null;
+    _suggestions = const [];
     _item = null;
     _itemId = null;
     _openedRevision = null;

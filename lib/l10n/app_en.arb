@@ -11207,6 +11207,37 @@
     "description": "Tooltip for the button on a person page that opens their own website"
   },
   "watchWithGroup": "Watch with group",
+  "watchPartyLetEveryoneVote": "Let everyone vote on movies",
+  "@watchPartyLetEveryoneVote": {
+    "description": "Host switch that turns a Watch Party into a vote on movies"
+  },
+  "watchPartyVoteHelp": "Add movies for everyone to vote on, then play the one you want. TV episodes are still your pick.",
+  "@watchPartyVoteHelp": {
+    "description": "Under the host's vote list in a Watch Party"
+  },
+  "watchPartyGuestVoteHelp": "Vote for what you want to watch. The host plays one.",
+  "@watchPartyGuestVoteHelp": {
+    "description": "Under a guest's vote list in a Watch Party"
+  },
+  "watchPartySearchMovies": "Search movies",
+  "@watchPartySearchMovies": {
+    "description": "Hint in the host's movie search in a Watch Party vote"
+  },
+  "watchPartyNoSuggestions": "No movies to vote on yet.",
+  "@watchPartyNoSuggestions": {
+    "description": "Shown when a Watch Party vote has no movies"
+  },
+  "watchPartySuggested": "Added to the Watch Party vote",
+  "@watchPartySuggested": {
+    "description": "Snackbar after the host adds a movie to the Watch Party vote"
+  },
+  "watchPartyVoteCount": "{count, plural, one {{count} vote} other {{count} votes}}",
+  "@watchPartyVoteCount": {
+    "description": "How many votes a movie has in a Watch Party vote",
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
   "watchParty": "Watch Party",
   "@watchParty": {
     "description": "Title of Silo's Watch Party screen"

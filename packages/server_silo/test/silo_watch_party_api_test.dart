@@ -189,4 +189,57 @@ void main() {
       'ws://10.0.0.2:8090/silo/api/v2/watch-together/rooms/r1/ws',
     );
   });
+
+  test('reads the vote list across pages, most votes first', () async {
+    const path = '/api/v2/watch-together/rooms/r1/suggestions';
+    Map<String, Object?> row(String id, int votes, String at) => {
+      'id': id,
+      'room_id': 'r1',
+      'suggester_user_id': '2',
+      'suggester_profile_id': 'p1',
+      'content_id': 'movie-$id',
+      'content_type': 'movie',
+      'title': 'Title $id',
+      'subtitle': '2014',
+      'poster_url': '',
+      'note': '',
+      'vote_count': votes,
+      'voted_by_me': id == 'b',
+      'created_at': at,
+    };
+    final server = FixtureServer({
+      path: (options) => FixtureServer.json(
+        200,
+        jsonEncode(
+          options.uri.queryParameters['cursor'] == null
+              ? {
+                  'items': [row('a', 0, '2026-10-29T23:00:00Z')],
+                  'page': {'has_more': true, 'next_cursor': 'c2'},
+                }
+              : {
+                  'items': [
+                    row('b', 2, '2026-10-29T23:01:00Z'),
+                    row('c', 0, '2026-10-29T22:59:00Z'),
+                  ],
+                  'page': {'has_more': false},
+                },
+        ),
+      ),
+    });
+    final list = await _client(server).watchPartyApi.suggestions('r1', 'proof');
+    expect(list.map((s) => s.id), ['b', 'c', 'a']);
+    expect(list.first.votedByMe, isTrue);
+    expect(list.first.withVote(false).votedByMe, isFalse);
+    expect(server.requests.last.uri.queryParameters['cursor'], 'c2');
+    expect(server.requests.first.headers['X-Room-Token'], 'proof');
+  });
+
+  test('a vote is a POST and taking it back a DELETE', () async {
+    const path = '/api/v2/watch-together/rooms/r1/suggestions/s1/vote';
+    final server = FixtureServer({path: (_) => FixtureServer.json(204, '')});
+    final api = _client(server).watchPartyApi;
+    await api.vote('r1', 'proof', 's1', true);
+    await api.vote('r1', 'proof', 's1', false);
+    expect(server.requests.map((r) => r.method), ['POST', 'DELETE']);
+  });
 }

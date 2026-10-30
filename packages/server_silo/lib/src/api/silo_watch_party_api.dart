@@ -121,6 +121,7 @@ class SiloRoom {
   final List<SiloRoomMember> members;
 
   bool get isPlaying => phase == 'playing';
+  bool get isVoting => selectionMode == 'vote';
   bool get isStaged => phase == 'lobby' && selectedContentId != null;
 }
 
@@ -169,6 +170,64 @@ class SiloRoomCommand {
 
   /// The room's playback state once the command has run.
   final String playbackState;
+}
+
+/// A title put up for a vote in a vote room.
+class SiloRoomSuggestion {
+  const SiloRoomSuggestion({
+    required this.id,
+    required this.contentId,
+    required this.title,
+    required this.subtitle,
+    required this.voteCount,
+    required this.votedByMe,
+    required this.createdAt,
+  });
+
+  static SiloRoomSuggestion? fromJson(Map<String, dynamic> json) {
+    final id = json['id'];
+    final contentId = json['content_id'];
+    if (id is! String || contentId is! String) return null;
+    return SiloRoomSuggestion(
+      id: id,
+      contentId: contentId,
+      title: json['title'] as String? ?? '',
+      subtitle: json['subtitle'] as String? ?? '',
+      voteCount: (json['vote_count'] as num?)?.toInt() ?? 0,
+      votedByMe: json['voted_by_me'] == true,
+      createdAt:
+          DateTime.tryParse(json['created_at'] as String? ?? '') ??
+          DateTime.fromMillisecondsSinceEpoch(0),
+    );
+  }
+
+  final String id;
+  final String contentId;
+  final String title;
+  final String subtitle;
+  final int voteCount;
+
+  /// Only an HTTP read says this; socket broadcasts always send false.
+  final bool votedByMe;
+  final DateTime createdAt;
+
+  SiloRoomSuggestion withVote(bool voted) => SiloRoomSuggestion(
+    id: id,
+    contentId: contentId,
+    title: title,
+    subtitle: subtitle,
+    voteCount: voteCount,
+    votedByMe: voted,
+    createdAt: createdAt,
+  );
+
+  /// The room's order: most votes first, then oldest.
+  static int compare(SiloRoomSuggestion a, SiloRoomSuggestion b) {
+    final votes = b.voteCount.compareTo(a.voteCount);
+    if (votes != 0) return votes;
+    final age = a.createdAt.compareTo(b.createdAt);
+    return age != 0 ? age : a.id.compareTo(b.id);
+  }
 }
 
 /// A room and the proof of membership its routes and socket ticket ask for
@@ -244,6 +303,100 @@ class SiloWatchPartyApi {
       data: {
         'guest_control_policy': allowed ? 'guest_play_pause' : 'host_only',
       },
+    ),
+  );
+
+  /// Host only, in the lobby: whether members vote on what to watch
+  /// (`vote`) or the host picks (`host_pick`). Drops anything staged.
+  Future<SiloRoom> setVoting(String roomId, bool voting) => _room(
+    _dio.patch<dynamic>(
+      '/api/v2/watch-together/rooms/$roomId/selection-mode',
+      data: {'selection_mode': voting ? 'vote' : 'host_pick'},
+    ),
+  );
+
+  /// Every suggestion in the room, in the room's order.
+  Future<List<SiloRoomSuggestion>> suggestions(
+    String roomId,
+    String roomToken,
+  ) async {
+    final out = <SiloRoomSuggestion>[];
+    String? cursor;
+    // At most 200 suggestions in a room, so two pages of 100.
+    for (var page = 0; page < 5; page++) {
+      final response = await _dio.get<dynamic>(
+        '/api/v2/watch-together/rooms/$roomId/suggestions',
+        queryParameters: {'limit': 100, 'cursor': ?cursor},
+        options: Options(headers: {'X-Room-Token': roomToken}),
+      );
+      final json = asJsonMap(response.data);
+      for (final row in json?['items'] as List? ?? const []) {
+        if (asJsonMap(row) case final map?) {
+          if (SiloRoomSuggestion.fromJson(map) case final s?) out.add(s);
+        }
+      }
+      final next = asJsonMap(json?['page']);
+      if (next?['has_more'] != true) break;
+      cursor = next?['next_cursor'] as String?;
+      if (cursor == null) break;
+    }
+    return out..sort(SiloRoomSuggestion.compare);
+  }
+
+  /// Puts a movie up for the vote. [suggestionId] is a UUID the caller
+  /// picks, so a retry is recognised.
+  Future<void> suggest(
+    String roomId,
+    String roomToken, {
+    required String suggestionId,
+    required String contentId,
+    required String title,
+    String? subtitle,
+  }) => _dio.post<dynamic>(
+    '/api/v2/watch-together/rooms/$roomId/suggestions',
+    data: {
+      'suggestion_id': suggestionId,
+      'content_id': contentId,
+      'content_type': 'movie',
+      'title': title,
+      if (subtitle != null && subtitle.isNotEmpty) 'subtitle': subtitle,
+    },
+    options: Options(headers: {'X-Room-Token': roomToken}),
+  );
+
+  Future<void> vote(
+    String roomId,
+    String roomToken,
+    String suggestionId,
+    bool voted,
+  ) {
+    final path =
+        '/api/v2/watch-together/rooms/$roomId/suggestions/$suggestionId/vote';
+    final options = Options(headers: {'X-Room-Token': roomToken});
+    return voted
+        ? _dio.post<dynamic>(path, options: options)
+        : _dio.delete<dynamic>(path, options: options);
+  }
+
+  Future<void> removeSuggestion(
+    String roomId,
+    String roomToken,
+    String suggestionId,
+  ) => _dio.delete<dynamic>(
+    '/api/v2/watch-together/rooms/$roomId/suggestions/$suggestionId',
+    options: Options(headers: {'X-Room-Token': roomToken}),
+  );
+
+  /// Host only: plays [suggestionId] for everyone, whatever the tally.
+  Future<SiloRoom> promote(
+    String roomId,
+    String roomToken,
+    String suggestionId,
+  ) => _room(
+    _dio.post<dynamic>(
+      '/api/v2/watch-together/rooms/$roomId/suggestions/promote',
+      data: {'suggestion_id': suggestionId},
+      options: Options(headers: {'X-Room-Token': roomToken}),
     ),
   );
 

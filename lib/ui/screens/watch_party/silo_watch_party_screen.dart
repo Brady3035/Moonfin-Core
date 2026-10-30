@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:custom_tv_text_field/custom_tv_text_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -290,7 +292,7 @@ class _SiloWatchPartyScreenState extends State<SiloWatchPartyScreen> {
               if (room.selectedContentId case final id?) ...[
                 _ItemTitle(contentId: id, playing: room.isPlaying),
                 _SubtitlePicker(contentId: id, fileId: room.selectedFileId),
-              ] else
+              ] else if (!room.isVoting)
                 Text(
                   room.isHost
                       ? l10n.watchPartyPickTitle
@@ -330,7 +332,17 @@ class _SiloWatchPartyScreenState extends State<SiloWatchPartyScreen> {
                   value: room.guestControlPolicy == 'guest_play_pause',
                   onChanged: busy ? null : _manager.setGuestsCanPause,
                 ),
+                // Silo switches modes only in the lobby.
+                if (!room.isPlaying)
+                  SwitchListTile.adaptive(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(l10n.watchPartyLetEveryoneVote),
+                    value: room.isVoting,
+                    onChanged: busy ? null : _manager.setVoting,
+                  ),
               ],
+              if (room.isVoting && !room.isPlaying)
+                _VotePanel(manager: _manager, room: room),
             ],
           ),
         ),
@@ -403,6 +415,142 @@ class _ItemTitleState extends State<_ItemTitle> {
           style: Theme.of(context).textTheme.titleMedium,
         );
       },
+    );
+  }
+}
+
+/// The vote: the movies up for it with their tallies, a vote toggle for
+/// everyone, and for the host a movie search to add more and a play
+/// button on each.
+class _VotePanel extends StatefulWidget {
+  const _VotePanel({required this.manager, required this.room});
+
+  final SiloWatchPartyManager manager;
+  final SiloRoom room;
+
+  @override
+  State<_VotePanel> createState() => _VotePanelState();
+}
+
+class _VotePanelState extends State<_VotePanel> {
+  final _search = TextEditingController();
+  Timer? _debounce;
+  List<Map<String, dynamic>> _results = const [];
+  int _query = 0;
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    _search.dispose();
+    super.dispose();
+  }
+
+  void _onSearchChanged(String text) {
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 350), () async {
+      final query = ++_query;
+      List<Map<String, dynamic>> results;
+      try {
+        results = await widget.manager.searchMovies(text);
+      } catch (_) {
+        results = const [];
+      }
+      if (mounted && query == _query) setState(() => _results = results);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final manager = widget.manager;
+    final isHost = widget.room.isHost;
+    final suggestions = manager.suggestions;
+    final suggested = {for (final s in suggestions) s.contentId};
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Divider(height: 24),
+        Text(
+          isHost ? l10n.watchPartyVoteHelp : l10n.watchPartyGuestVoteHelp,
+          style: theme.textTheme.bodySmall,
+        ),
+        const SizedBox(height: 8),
+        if (suggestions.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Text(l10n.watchPartyNoSuggestions),
+          ),
+        for (final suggestion in suggestions)
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            title: Text(suggestion.title),
+            subtitle: Text(
+              [
+                if (suggestion.subtitle.isNotEmpty) suggestion.subtitle,
+                l10n.watchPartyVoteCount(suggestion.voteCount),
+              ].join(' · '),
+            ),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  tooltip: l10n.watchPartyVoteCount(1),
+                  icon: Icon(
+                    suggestion.votedByMe
+                        ? Icons.thumb_up_alt
+                        : Icons.thumb_up_alt_outlined,
+                  ),
+                  color: suggestion.votedByMe
+                      ? theme.colorScheme.primary
+                      : null,
+                  onPressed: () =>
+                      manager.vote(suggestion, !suggestion.votedByMe),
+                ),
+                if (isHost) ...[
+                  IconButton(
+                    tooltip: l10n.play,
+                    icon: const Icon(Icons.play_arrow_rounded),
+                    onPressed: manager.busy
+                        ? null
+                        : () => manager.playSuggestion(suggestion),
+                  ),
+                  IconButton(
+                    tooltip: l10n.remove,
+                    icon: const Icon(Icons.close),
+                    onPressed: () => manager.removeSuggestion(suggestion),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        if (isHost) ...[
+          const SizedBox(height: 8),
+          TextField(
+            controller: _search,
+            decoration: InputDecoration(
+              prefixIcon: const Icon(Icons.search),
+              hintText: l10n.watchPartySearchMovies,
+              border: const OutlineInputBorder(),
+            ),
+            onChanged: _onSearchChanged,
+          ),
+          for (final movie in _results)
+            if (!suggested.contains(movie['Id']))
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(movie['Name'] as String? ?? ''),
+                subtitle: movie['ProductionYear'] == null
+                    ? null
+                    : Text('${movie['ProductionYear']}'),
+                trailing: TextButton.icon(
+                  icon: const Icon(Icons.add),
+                  label: Text(l10n.add),
+                  onPressed: () => manager.suggestMovie(movie),
+                ),
+              ),
+        ],
+      ],
     );
   }
 }

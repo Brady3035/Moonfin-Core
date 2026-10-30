@@ -8437,11 +8437,18 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
     final l10n = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);
-    final picked = await party.stage(item.id);
+    final suggested = party.room?.isVoting == true && item.type == 'Movie';
+    final picked = await party.pick(item);
     if (!mounted) return;
     messenger.showSnackBar(
       SnackBar(
-        content: Text(picked ? l10n.watchPartyStaged : party.error ?? ''),
+        content: Text(
+          !picked
+              ? party.error ?? ''
+              : suggested
+              ? l10n.watchPartySuggested
+              : l10n.watchPartyStaged,
+        ),
       ),
     );
     if (picked) {

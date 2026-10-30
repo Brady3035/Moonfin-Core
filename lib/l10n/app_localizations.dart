@@ -22342,6 +22342,48 @@ abstract class AppLocalizations {
   /// **'Watch with group'**
   String get watchWithGroup;
 
+  /// Host switch that turns a Watch Party into a vote on movies
+  ///
+  /// In en, this message translates to:
+  /// **'Let everyone vote on movies'**
+  String get watchPartyLetEveryoneVote;
+
+  /// Under the host's vote list in a Watch Party
+  ///
+  /// In en, this message translates to:
+  /// **'Add movies for everyone to vote on, then play the one you want. TV episodes are still your pick.'**
+  String get watchPartyVoteHelp;
+
+  /// Under a guest's vote list in a Watch Party
+  ///
+  /// In en, this message translates to:
+  /// **'Vote for what you want to watch. The host plays one.'**
+  String get watchPartyGuestVoteHelp;
+
+  /// Hint in the host's movie search in a Watch Party vote
+  ///
+  /// In en, this message translates to:
+  /// **'Search movies'**
+  String get watchPartySearchMovies;
+
+  /// Shown when a Watch Party vote has no movies
+  ///
+  /// In en, this message translates to:
+  /// **'No movies to vote on yet.'**
+  String get watchPartyNoSuggestions;
+
+  /// Snackbar after the host adds a movie to the Watch Party vote
+  ///
+  /// In en, this message translates to:
+  /// **'Added to the Watch Party vote'**
+  String get watchPartySuggested;
+
+  /// How many votes a movie has in a Watch Party vote
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one {{count} vote} other {{count} votes}}'**
+  String watchPartyVoteCount(int count);
+
   /// Title of Silo's Watch Party screen
   ///
   /// In en, this message translates to:

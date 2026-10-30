@@ -582,11 +582,13 @@ class _EmptyStage extends StatelessWidget {
   }
 }
 
-/// A title's poster from the server, or a placeholder.
+/// A title's poster from the server, or a placeholder. [fallbackId]'s
+/// poster stands in when [contentId] has none.
 class _Poster extends StatelessWidget {
-  const _Poster({required this.contentId, required this.width});
+  const _Poster({required this.contentId, required this.width, this.fallbackId});
 
-  final String contentId;
+  final String? contentId;
+  final String? fallbackId;
   final double width;
 
   @override
@@ -600,10 +602,14 @@ class _Poster extends StatelessWidget {
         size: width / 2.5,
       ),
     );
-    final url = GetIt.instance<SiloWatchPartyManager>()
-        .activeSiloClient
-        ?.imageApi
-        .getPrimaryImageUrl(contentId, maxHeight: (width * 4.5).round());
+    final id = contentId;
+    final url = id == null
+        ? null
+        : GetIt.instance<SiloWatchPartyManager>()
+            .activeSiloClient
+            ?.imageApi
+            .getPrimaryImageUrl(id, maxHeight: (width * 4.5).round());
+    final fallback = fallbackId;
     return ClipRRect(
       borderRadius: BorderRadius.circular(width > 60 ? 10 : 6),
       child: SizedBox(
@@ -614,7 +620,9 @@ class _Poster extends StatelessWidget {
             : BoundedNetworkImage(
                 imageUrl: url,
                 fit: BoxFit.cover,
-                errorBuilder: (_, _, _) => placeholder,
+                errorBuilder: (_, _, _) => fallback == null
+                    ? placeholder
+                    : _Poster(contentId: fallback, width: width),
               ),
       ),
     );
@@ -663,6 +671,18 @@ class _ItemHeroState extends State<_ItemHero> {
         final series = item?['SeriesName'];
         final name = item?['Name'] as String? ?? '';
         final hasSeries = series is String && series.isNotEmpty;
+        // An episode's still is landscape; its season's poster fits the
+        // portrait slot, then its series'. Nothing until the item is known,
+        // so the still never shows first.
+        final isEpisode = item?['Type'] == 'Episode';
+        final posterId = item == null
+            ? null
+            : isEpisode
+            ? (item['SeasonId'] ?? item['SeriesId']) as String?
+            : room.selectedContentId;
+        final posterFallback = isEpisode
+            ? (item?['SeriesId'] as String?)
+            : null;
         final detail = [
           if (item?['ParentIndexNumber'] case final int season when hasSeries)
             if (item?['IndexNumber'] case final int episode)
@@ -703,7 +723,11 @@ class _ItemHeroState extends State<_ItemHero> {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _Poster(contentId: room.selectedContentId!, width: 96),
+                _Poster(
+                  contentId: posterId,
+                  fallbackId: posterFallback == posterId ? null : posterFallback,
+                  width: 96,
+                ),
                 const SizedBox(width: 16),
                 Expanded(
                   child: Column(

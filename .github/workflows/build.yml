@@ -841,7 +841,8 @@ jobs:
             (cd "packages/$pkg" && flutter test --reporter json > "/tmp/test-results/pkg-$pkg.jsonl") || status=1
           done
 
-          (cd android && ./gradlew --continue :app:testAndroidTvDebugUnitTest :moonfin_native_video:testDebugUnitTest) || status=1
+          # gradlew is gitignored, and only a Flutter build writes it.
+          (flutter build apk --config-only && cd android && ./gradlew --continue :app:testAndroidTvDebugUnitTest :moonfin_native_video:testDebugUnitTest) || status=1
 
           echo "$status" > /tmp/test-results/run-status
 

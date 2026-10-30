@@ -97,6 +97,7 @@ import '../../../playback/player_key_bindings.dart';
 import '../../widgets/syncplay/syncplay_player_button.dart';
 import '../../../syncplay/syncplay_manager.dart';
 import '../../../watch_party/silo_watch_party_manager.dart';
+import '../watch_party/silo_watch_party_screen.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../util/error_message.dart';
 import '../../../playback/media3_player_backend.dart';
@@ -812,6 +813,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
       _syncCinemaSkip();
     });
     _syncPlayManager?.addListener(_onSyncPlayChanged);
+    _followingWatchParty = _watchParty?.controlsPlayback == true;
+    _watchParty?.addListener(_onWatchPartyChanged);
     _prefs.addListener(_onPlaybackPrefsChanged);
     _castChanges.addListener(_onCastChanged);
     _syncMediaQueuingPreference();
@@ -1019,6 +1022,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
     if (!_isMinimizing) _screensaverController.setPlaybackActive(false);
     _prefs.removeListener(_onPlaybackPrefsChanged);
     _syncPlayManager?.removeListener(_onSyncPlayChanged);
+    _watchParty?.removeListener(_onWatchPartyChanged);
     _castChanges.removeListener(_onCastChanged);
     if (_castOwnsTransport) _manager.setTransportInterceptor(null);
     // A minimized video keeps the autoplay setting this screen applied; the
@@ -2247,6 +2251,37 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
 
   void _onSyncPlayChanged() {
     if (mounted) setState(() {});
+  }
+
+  bool _followingWatchParty = false;
+
+  /// A Watch Party that leaves playing (the host went back to the lobby, the
+  /// item finished, the party ended) takes its members back to the room
+  /// instead of leaving them on a stopped player.
+  void _onWatchPartyChanged() {
+    final party = _watchParty;
+    if (party == null || !mounted) return;
+    if (party.controlsPlayback) {
+      if (!_followingWatchParty) setState(() => _followingWatchParty = true);
+      return;
+    }
+    if (!_followingWatchParty) return;
+    setState(() => _followingWatchParty = false);
+    final navigator = Navigator.of(context, rootNavigator: true);
+    unawaited(
+      _exitPlayback().then((_) async {
+        // Once the player's route is gone: is a room screen underneath?
+        await Future<void>.delayed(const Duration(milliseconds: 600));
+        if (party.roomScreensOpen > 0 || !navigator.mounted) return;
+        unawaited(
+          navigator.push(
+            MaterialPageRoute<void>(
+              builder: (_) => const SiloWatchPartyScreen(),
+            ),
+          ),
+        );
+      }),
+    );
   }
 
   void _suppressSeekPrompts({
@@ -5712,7 +5747,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
             !hasSubtitleStreams && canDownloadRemoteSubtitles
             ? Icons.download_rounded
             : Icons.subtitles_outlined;
-        final showAudioButton = true;
+        // Everyone in a Watch Party hears the same track.
+        final showAudioButton = _watchParty?.controlsPlayback != true;
         final hidden = osdButtonLayout.hidden(_prefs);
         bool shows(OsdButton button) => !hidden.contains(button.id);
 

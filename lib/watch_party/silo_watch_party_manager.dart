@@ -45,6 +45,10 @@ class SiloWatchPartyManager extends ChangeNotifier {
   String? _endedReason;
   String? _error;
   bool _busy = false;
+  int _roomScreens = 0;
+  int? _subtitleIndex;
+  String? _itemId;
+  Future<Map<String, dynamic>?>? _item;
 
   WebSocketChannel? _channel;
   StreamSubscription<dynamic>? _channelSub;
@@ -147,6 +151,86 @@ class SiloWatchPartyManager extends ChangeNotifier {
   /// Leaves without ending the room. A host's room closes on its own two
   /// minutes later unless they come back.
   void leave() => _leaveRoom(null);
+
+  /// How many room screens are open, so the player knows whether leaving it
+  /// lands on one.
+  int get roomScreensOpen => _roomScreens;
+  void roomScreenOpened() => _roomScreens++;
+  void roomScreenClosed() => _roomScreens--;
+
+  /// The subtitle track this viewer picked for the room's item: null for
+  /// their usual choice, -1 for off.
+  int? get subtitleStreamIndex => _subtitleIndex;
+
+  Future<void> setSubtitleStreamIndex(int? index) async {
+    _subtitleIndex = index;
+    notifyListeners();
+    final room = _room;
+    final current = _playbackManager.queueService.currentItem;
+    if (index == null ||
+        room == null ||
+        !room.isPlaying ||
+        current is! AggregatedItem ||
+        current.id != room.selectedContentId) {
+      return;
+    }
+    if (index < 0) {
+      await _playbackManager.disableSubtitles();
+    } else {
+      await _playbackManager.changeSubtitleTrack(index);
+    }
+  }
+
+  /// The room's item as Moonfin reads it, fetched once per selection.
+  Future<Map<String, dynamic>?> selectedItem() {
+    final id = _room?.selectedContentId;
+    final client = _client;
+    if (id == null || client == null) return Future.value(null);
+    if (id != _itemId || _item == null) {
+      _itemId = id;
+      _item = client.itemsApi
+          .getItem(id)
+          .then<Map<String, dynamic>?>((raw) => raw, onError: (_) => null);
+    }
+    return _item!;
+  }
+
+  /// The media source the room plays: its pinned file, else the first.
+  static Map<String, dynamic>? partySource(
+    Map<String, dynamic> item,
+    String? fileId,
+  ) {
+    final sources = [
+      for (final s in item['MediaSources'] as List? ?? const [])
+        if (s is Map<String, dynamic>) s,
+    ];
+    if (sources.isEmpty) return null;
+    return sources.firstWhere(
+      (s) => fileId != null && '${s['Id']}' == fileId,
+      orElse: () => sources.first,
+    );
+  }
+
+  static List<Map<String, dynamic>> streamsOf(
+    Map<String, dynamic>? source,
+    String type,
+  ) => [
+    for (final s in source?['MediaStreams'] as List? ?? const [])
+      if (s is Map<String, dynamic> && s['Type'] == type && s['Index'] is int)
+        s,
+  ];
+
+  /// The file's default audio track, so every member hears the same one
+  /// whatever their own language preferences.
+  static int? defaultAudioIndex(Map<String, dynamic>? source) {
+    final audio = streamsOf(source, 'Audio');
+    if (audio.isEmpty) return null;
+    final chosen = audio.firstWhere(
+      (s) => s['IsDefault'] == true,
+      orElse: () => audio.first,
+    );
+    return chosen['Index'] as int;
+  }
 
   /// Opens the playing item again for a viewer who left the player. The
   /// room syncs the new session to where everyone is once it attaches.
@@ -424,6 +508,9 @@ class SiloWatchPartyManager extends ChangeNotifier {
       return;
     }
     _room = next;
+    if (next.selectedContentId != previous.selectedContentId) {
+      _subtitleIndex = null;
+    }
     if (next.isPlaying && next.selectedContentId != null) {
       _startFollowing();
       if (_openedRevision != next.selectionRevision) {
@@ -452,14 +539,18 @@ class SiloWatchPartyManager extends ChangeNotifier {
     final serverId = _serverId;
     final contentId = room.selectedContentId;
     if (client == null || serverId == null || contentId == null) return;
-    final AggregatedItem item;
-    try {
-      final raw = await client.itemsApi.getItem(contentId);
-      item = AggregatedItem(id: contentId, serverId: serverId, rawData: raw);
-    } catch (e) {
-      _logger.w('Watch Party: loading the room\'s item failed', error: e);
+    final raw = await selectedItem();
+    if (raw == null) {
+      _logger.w('Watch Party: loading the room\'s item failed');
       return;
     }
+    final item = AggregatedItem(
+      id: contentId,
+      serverId: serverId,
+      rawData: raw,
+    );
+    final audio = defaultAudioIndex(partySource(raw, room.selectedFileId));
+    final subtitles = _subtitleIndex;
     if (_room?.selectionRevision != room.selectionRevision) return;
     _applying = true;
     try {
@@ -470,6 +561,10 @@ class SiloWatchPartyManager extends ChangeNotifier {
           milliseconds: (room.anchorPositionSeconds * 1000).round(),
         ),
         mediaSourceId: room.selectedFileId,
+        audioStreamIndex: audio,
+        audioSelectionExplicit: audio != null,
+        subtitleStreamIndex: subtitles,
+        subtitleSelectionExplicit: subtitles != null,
         autoPlay: false,
       );
       if (_playbackManager.state.isPlaying) await _playbackManager.pause();
@@ -503,6 +598,9 @@ class SiloWatchPartyManager extends ChangeNotifier {
     _room = null;
     _roomToken = null;
     _client = null;
+    _subtitleIndex = null;
+    _item = null;
+    _itemId = null;
     _openedRevision = null;
     _endedReason = reason;
     notifyListeners();

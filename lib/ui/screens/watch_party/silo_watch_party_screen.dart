@@ -35,11 +35,13 @@ class _SiloWatchPartyScreenState extends State<SiloWatchPartyScreen> {
   @override
   void initState() {
     super.initState();
+    _manager.roomScreenOpened();
     _codeFocus.onKeyEvent = _onCodeKey;
   }
 
   @override
   void dispose() {
+    _manager.roomScreenClosed();
     _codeController.dispose();
     _codeFocus.dispose();
     super.dispose();
@@ -285,9 +287,10 @@ class _SiloWatchPartyScreenState extends State<SiloWatchPartyScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (room.selectedContentId case final id?)
-                _ItemTitle(contentId: id, playing: room.isPlaying)
-              else
+              if (room.selectedContentId case final id?) ...[
+                _ItemTitle(contentId: id, playing: room.isPlaying),
+                _SubtitlePicker(contentId: id, fileId: room.selectedFileId),
+              ] else
                 Text(
                   room.isHost
                       ? l10n.watchPartyPickTitle
@@ -381,16 +384,11 @@ class _ItemTitleState extends State<_ItemTitle> {
   }
 
   Future<String?> _load() async {
-    final client = GetIt.instance<SiloWatchPartyManager>().activeSiloClient;
-    try {
-      final item = await client?.itemsApi.getItem(widget.contentId);
-      final series = item?['SeriesName'];
-      final name = item?['Name'];
-      if (name is! String) return null;
-      return series is String && series.isNotEmpty ? '$series: $name' : name;
-    } catch (_) {
-      return null;
-    }
+    final item = await GetIt.instance<SiloWatchPartyManager>().selectedItem();
+    final series = item?['SeriesName'];
+    final name = item?['Name'];
+    if (name is! String) return null;
+    return series is String && series.isNotEmpty ? '$series: $name' : name;
   }
 
   @override
@@ -403,6 +401,107 @@ class _ItemTitleState extends State<_ItemTitle> {
         return Text(
           widget.playing ? name : l10n.watchPartyUpNext(name),
           style: Theme.of(context).textTheme.titleMedium,
+        );
+      },
+    );
+  }
+}
+
+/// Each member's own subtitles for the room's item. Audio isn't offered:
+/// everyone hears the file's default track.
+class _SubtitlePicker extends StatefulWidget {
+  const _SubtitlePicker({required this.contentId, required this.fileId});
+
+  final String contentId;
+  final String? fileId;
+
+  @override
+  State<_SubtitlePicker> createState() => _SubtitlePickerState();
+}
+
+class _SubtitlePickerState extends State<_SubtitlePicker> {
+  final _manager = GetIt.instance<SiloWatchPartyManager>();
+  late Future<Map<String, dynamic>?> _item = _manager.selectedItem();
+
+  @override
+  void didUpdateWidget(_SubtitlePicker old) {
+    super.didUpdateWidget(old);
+    if (old.contentId != widget.contentId) _item = _manager.selectedItem();
+  }
+
+  String _label(Map<String, dynamic> stream) =>
+      stream['DisplayTitle'] as String? ??
+      stream['Language'] as String? ??
+      '#${stream['Index']}';
+
+  Future<void> _pick(
+    BuildContext context,
+    List<Map<String, dynamic>> tracks,
+  ) async {
+    final l10n = AppLocalizations.of(context);
+    final current = _manager.subtitleStreamIndex;
+    final options = <(int?, String)>[
+      (null, l10n.defaultLabel),
+      (-1, l10n.off),
+      for (final t in tracks) (t['Index'] as int, _label(t)),
+    ];
+    final picked = await showDialog<(int?, String)>(
+      context: context,
+      builder: (context) => SimpleDialog(
+        title: Text(l10n.subtitles),
+        children: [
+          for (final option in options)
+            SimpleDialogOption(
+              onPressed: () => Navigator.of(context).pop(option),
+              child: Row(
+                children: [
+                  Icon(
+                    option.$1 == current
+                        ? Icons.radio_button_checked
+                        : Icons.radio_button_unchecked,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(child: Text(option.$2)),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+    if (picked != null) await _manager.setSubtitleStreamIndex(picked.$1);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return FutureBuilder<Map<String, dynamic>?>(
+      future: _item,
+      builder: (context, item) {
+        final data = item.data;
+        if (data == null) return const SizedBox.shrink();
+        final tracks = SiloWatchPartyManager.streamsOf(
+          SiloWatchPartyManager.partySource(data, widget.fileId),
+          'Subtitle',
+        );
+        if (tracks.isEmpty) return const SizedBox.shrink();
+        final current = _manager.subtitleStreamIndex;
+        final currentLabel = switch (current) {
+          null => l10n.defaultLabel,
+          -1 => l10n.off,
+          _ =>
+            tracks
+                    .where((t) => t['Index'] == current)
+                    .map(_label)
+                    .firstOrNull ??
+                l10n.defaultLabel,
+        };
+        return ListTile(
+          contentPadding: EdgeInsets.zero,
+          leading: const Icon(Icons.subtitles_outlined),
+          title: Text(l10n.subtitles),
+          subtitle: Text(currentLabel),
+          onTap: () => _pick(context, tracks),
         );
       },
     );

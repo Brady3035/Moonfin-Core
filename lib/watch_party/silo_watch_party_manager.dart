@@ -962,12 +962,14 @@ class SiloWatchPartyManager extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// A host left alone in their room for ten minutes ends it, so a party
-  /// nobody joined doesn't stay open.
+  /// A host left alone in their room's lobby for ten minutes ends it, so a
+  /// party nobody joined doesn't stay open. Not while something plays: a
+  /// guest whose phone locked shows as disconnected and comes back.
   void _checkAlone() {
     // Silo keeps a member who dropped without leaving, marked disconnected.
     bool alone() =>
         _room?.isHost == true &&
+        !_room!.isPlaying &&
         _room!.members.where((m) => m.connected).length <= 1;
     if (!alone()) {
       _aloneTimer?.cancel();

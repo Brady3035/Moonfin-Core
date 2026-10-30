@@ -5351,6 +5351,9 @@ class AppLocalizationsSl extends AppLocalizations {
       'Strežniški vtičnik trenutno ni zaznan. Lokalne nastavitve še vedno uporabljajo svoje shranjene vrednosti ali vgrajene privzete nastavitve.';
 
   @override
+  String get moonbaseAddress => 'Moonbase Address';
+
+  @override
   String get pluginConnected => 'Connected';
 
   @override

@@ -5253,6 +5253,9 @@ class AppLocalizationsJa extends AppLocalizations {
       'サーバープラグインは現在検出されません。ローカル設定では、保存された値または組み込みのデフォルトが引き続き使用されます。';
 
   @override
+  String get moonbaseAddress => 'Moonbase Address';
+
+  @override
   String get pluginConnected => 'Connected';
 
   @override

@@ -5320,6 +5320,9 @@ class AppLocalizationsHi extends AppLocalizations {
       'सर्वर प्लगइन फिलहाल पता नहीं चला है. स्थानीय सेटिंग्स अभी भी अपने सहेजे गए मानों या अंतर्निहित डिफ़ॉल्ट का उपयोग करती हैं।';
 
   @override
+  String get moonbaseAddress => 'Moonbase Address';
+
+  @override
   String get pluginConnected => 'Connected';
 
   @override

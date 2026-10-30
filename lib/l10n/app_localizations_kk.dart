@@ -5342,6 +5342,9 @@ class AppLocalizationsKk extends AppLocalizations {
       'Сервер плагині қазір анықталмаған. Жергілікті параметрлер әлі де өздерінің сақталған мәндерін немесе кірістірілген әдепкі параметрлерді пайдаланады.';
 
   @override
+  String get moonbaseAddress => 'Moonbase Address';
+
+  @override
   String get pluginConnected => 'Connected';
 
   @override

@@ -5506,6 +5506,9 @@ class AppLocalizationsPl extends AppLocalizations {
       'Wtyczka serwera nie jest obecnie wykrywana. Ustawienia lokalne nadal korzystają z zapisanych wartości lub ustawień domyślnych aplikacji.';
 
   @override
+  String get moonbaseAddress => 'Moonbase Address';
+
+  @override
   String get pluginConnected => 'Połączono';
 
   @override

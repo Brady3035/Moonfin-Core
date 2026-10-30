@@ -5345,6 +5345,9 @@ class AppLocalizationsMk extends AppLocalizations {
       'Приклучокот за серверот во моментов не е откриен. Локалните поставки сè уште ги користат нивните зачувани вредности или вградените стандардни поставки.';
 
   @override
+  String get moonbaseAddress => 'Moonbase Address';
+
+  @override
   String get pluginConnected => 'Connected';
 
   @override

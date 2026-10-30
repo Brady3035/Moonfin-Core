@@ -5325,6 +5325,9 @@ class AppLocalizationsEo extends AppLocalizations {
       'Servila kromaĵo ne estas nuntempe detektita. Lokaj agordoj ankoraŭ uzas siajn konservitajn valorojn aŭ enkonstruitajn defaŭltojn.';
 
   @override
+  String get moonbaseAddress => 'Moonbase Address';
+
+  @override
   String get pluginConnected => 'Connected';
 
   @override

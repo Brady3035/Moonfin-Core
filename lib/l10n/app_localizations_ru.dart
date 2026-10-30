@@ -5354,6 +5354,9 @@ class AppLocalizationsRu extends AppLocalizations {
       'Плагин сервера в настоящее время не обнаружен. Локальные настройки по-прежнему используют сохраненные значения или встроенные значения по умолчанию.';
 
   @override
+  String get moonbaseAddress => 'Moonbase Address';
+
+  @override
   String get pluginConnected => 'Connected';
 
   @override

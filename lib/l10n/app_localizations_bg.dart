@@ -5343,6 +5343,9 @@ class AppLocalizationsBg extends AppLocalizations {
       'Сървърният плъгин в момента не е открит. Локалните настройки все още използват своите запазени стойности или вградени настройки по подразбиране.';
 
   @override
+  String get moonbaseAddress => 'Moonbase Address';
+
+  @override
   String get pluginConnected => 'Connected';
 
   @override

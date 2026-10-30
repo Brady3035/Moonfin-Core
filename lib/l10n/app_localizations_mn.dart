@@ -5333,6 +5333,9 @@ class AppLocalizationsMn extends AppLocalizations {
       'Серверийн залгаас одоогоор илрээгүй байна. Орон нутгийн тохиргоонууд хадгалсан утгууд эсвэл суулгасан өгөгдмөлүүдийг ашигладаг хэвээр байна.';
 
   @override
+  String get moonbaseAddress => 'Moonbase Address';
+
+  @override
   String get pluginConnected => 'Connected';
 
   @override

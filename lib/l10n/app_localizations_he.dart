@@ -5294,6 +5294,9 @@ class AppLocalizationsHe extends AppLocalizations {
       'תוסף שרת אינו מזוהה כעת. הגדרות מקומיות עדיין משתמשות בערכים השמורים או בברירות המחדל המובנות שלהן.';
 
   @override
+  String get moonbaseAddress => 'Moonbase Address';
+
+  @override
   String get pluginConnected => 'Connected';
 
   @override

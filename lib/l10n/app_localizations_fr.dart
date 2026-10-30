@@ -5385,6 +5385,9 @@ class AppLocalizationsFr extends AppLocalizations {
       'Le plugin serveur n’est pas détecté actuellement. Les paramètres locaux utilisent toujours leurs valeurs enregistrées ou les valeurs par défaut intégrées.';
 
   @override
+  String get moonbaseAddress => 'Moonbase Address';
+
+  @override
   String get pluginConnected => 'Connecté';
 
   @override

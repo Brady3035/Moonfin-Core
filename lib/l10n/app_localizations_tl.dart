@@ -5356,6 +5356,9 @@ class AppLocalizationsTl extends AppLocalizations {
       'Kasalukuyang hindi natukoy ang plugin ng server. Ginagamit pa rin ng mga lokal na setting ang kanilang mga naka-save na halaga o mga built-in na default.';
 
   @override
+  String get moonbaseAddress => 'Moonbase Address';
+
+  @override
   String get pluginConnected => 'Connected';
 
   @override

@@ -6983,6 +6983,10 @@
   "@pluginNotDetectedDescription": {
     "description": "Description when plugin is not detected"
   },
+  "moonbaseAddress": "Moonbase Address",
+  "@moonbaseAddress": {
+    "description": "Settings Sync screen on a Plex server: where the Moonbase companion service runs, since Plex can't run plugins. Left empty, the app looks next to the Plex server."
+  },
   "pluginConnected": "Connected",
   "@pluginConnected": {
     "description": "Status line on the Settings Sync screen when the server plugin answers"

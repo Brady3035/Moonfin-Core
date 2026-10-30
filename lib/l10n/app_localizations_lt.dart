@@ -5343,6 +5343,9 @@ class AppLocalizationsLt extends AppLocalizations {
       'Serverio papildinys šiuo metu neaptiktas. Vietiniai nustatymai vis tiek naudoja išsaugotas vertes arba įtaisytuosius numatytuosius nustatymus.';
 
   @override
+  String get moonbaseAddress => 'Moonbase Address';
+
+  @override
   String get pluginConnected => 'Connected';
 
   @override

@@ -5440,6 +5440,9 @@ class AppLocalizationsHr extends AppLocalizations {
       'Dodatak poslužitelja trenutno nije otkriven. Lokalne postavke i dalje koriste svoje spremljene vrijednosti ili ugrađene zadane postavke.';
 
   @override
+  String get moonbaseAddress => 'Moonbase Address';
+
+  @override
   String get pluginConnected => 'Connected';
 
   @override

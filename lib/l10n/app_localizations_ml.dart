@@ -5352,6 +5352,9 @@ class AppLocalizationsMl extends AppLocalizations {
       'സെർവർ പ്ലഗിൻ നിലവിൽ കണ്ടെത്തിയിട്ടില്ല. പ്രാദേശിക ക്രമീകരണങ്ങൾ ഇപ്പോഴും അവയുടെ സംരക്ഷിച്ച മൂല്യങ്ങളോ ബിൽറ്റ്-ഇൻ ഡിഫോൾട്ടുകളോ ഉപയോഗിക്കുന്നു.';
 
   @override
+  String get moonbaseAddress => 'Moonbase Address';
+
+  @override
   String get pluginConnected => 'Connected';
 
   @override

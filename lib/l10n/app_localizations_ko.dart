@@ -5218,6 +5218,9 @@ class AppLocalizationsKo extends AppLocalizations {
       '서버 플러그인이 현재 감지되지 않습니다. 로컬 설정은 저장된 값이나 기본값을 계속 사용합니다.';
 
   @override
+  String get moonbaseAddress => 'Moonbase Address';
+
+  @override
   String get pluginConnected => '연결됨';
 
   @override

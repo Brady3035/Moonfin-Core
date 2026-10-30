@@ -5363,6 +5363,9 @@ class AppLocalizationsHu extends AppLocalizations {
       'A szerver beépülő modul jelenleg nem észlelhető. A helyi beállítások továbbra is a mentett értékeket vagy a beépített alapértelmezett értékeket használják.';
 
   @override
+  String get moonbaseAddress => 'Moonbase Address';
+
+  @override
   String get pluginConnected => 'Connected';
 
   @override

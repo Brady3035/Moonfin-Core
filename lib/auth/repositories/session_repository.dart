@@ -455,11 +455,11 @@ class SessionRepository {
       );
     }
 
-    // Plugin sync, push enrollment and Seerr all need the Moonbase plugin,
-    // which only runs on Jellyfin and Emby.
-    if (client.serverType == ServerType.plex) return;
-
     await _pluginSyncService.syncOnLogin(client, serverId: serverId);
+
+    // Moonbase for Plex has no push or Seerr proxy, and unlike Silo, Plex has
+    // no requests of its own to set up.
+    if (client.serverType == ServerType.plex) return;
 
     // Register the FCM token now that a session exists, and push the current
     // notification prefs so defaults reach the plugin. Startup registration

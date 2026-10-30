@@ -5301,6 +5301,9 @@ class AppLocalizationsTh extends AppLocalizations {
       'ตรวจไม่พบปลั๊กอินของเซิร์ฟเวอร์ในขณะนี้ การตั้งค่าในเครื่องยังคงใช้ค่าที่บันทึกไว้หรือค่าเริ่มต้นในตัว';
 
   @override
+  String get moonbaseAddress => 'Moonbase Address';
+
+  @override
   String get pluginConnected => 'Connected';
 
   @override

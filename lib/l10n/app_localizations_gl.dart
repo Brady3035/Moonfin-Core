@@ -5368,6 +5368,9 @@ class AppLocalizationsGl extends AppLocalizations {
       'Actualmente non se detecta o complemento do servidor. A configuración local aínda usa os seus valores gardados ou os valores predeterminados integrados.';
 
   @override
+  String get moonbaseAddress => 'Moonbase Address';
+
+  @override
   String get pluginConnected => 'Connected';
 
   @override

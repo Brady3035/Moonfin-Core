@@ -5347,6 +5347,9 @@ class AppLocalizationsSk extends AppLocalizations {
       'Serverový plugin momentálne nie je zistený. Miestne nastavenia stále používajú svoje uložené hodnoty alebo vstavané predvolené hodnoty.';
 
   @override
+  String get moonbaseAddress => 'Moonbase Address';
+
+  @override
   String get pluginConnected => 'Connected';
 
   @override

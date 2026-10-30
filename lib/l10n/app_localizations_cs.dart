@@ -5337,6 +5337,9 @@ class AppLocalizationsCs extends AppLocalizations {
       'Serverový plugin není aktuálně detekován. Místní nastavení stále používají své uložené hodnoty nebo vestavěné výchozí hodnoty.';
 
   @override
+  String get moonbaseAddress => 'Moonbase Address';
+
+  @override
   String get pluginConnected => 'Connected';
 
   @override

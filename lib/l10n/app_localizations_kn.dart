@@ -5347,6 +5347,9 @@ class AppLocalizationsKn extends AppLocalizations {
       'ಸರ್ವರ್ ಪ್ಲಗಿನ್ ಪ್ರಸ್ತುತ ಪತ್ತೆಯಾಗಿಲ್ಲ. ಸ್ಥಳೀಯ ಸೆಟ್ಟಿಂಗ್‌ಗಳು ಇನ್ನೂ ತಮ್ಮ ಉಳಿಸಿದ ಮೌಲ್ಯಗಳನ್ನು ಅಥವಾ ಅಂತರ್ನಿರ್ಮಿತ ಡೀಫಾಲ್ಟ್‌ಗಳನ್ನು ಬಳಸುತ್ತವೆ.';
 
   @override
+  String get moonbaseAddress => 'Moonbase Address';
+
+  @override
   String get pluginConnected => 'Connected';
 
   @override

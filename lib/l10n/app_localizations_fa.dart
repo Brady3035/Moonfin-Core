@@ -5310,6 +5310,9 @@ class AppLocalizationsFa extends AppLocalizations {
       'افزونه سرور در حال حاضر شناسایی نشده است. تنظیمات محلی همچنان از مقادیر ذخیره شده یا پیش فرض های داخلی خود استفاده می کنند.';
 
   @override
+  String get moonbaseAddress => 'Moonbase Address';
+
+  @override
   String get pluginConnected => 'Connected';
 
   @override

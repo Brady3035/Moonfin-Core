@@ -5355,6 +5355,9 @@ class AppLocalizationsFi extends AppLocalizations {
       'Palvelinlaajennusta ei tällä hetkellä havaita. Paikalliset asetukset käyttävät edelleen tallennettuja arvojaan tai sisäänrakennettuja oletusasetuksia.';
 
   @override
+  String get moonbaseAddress => 'Moonbase Address';
+
+  @override
   String get pluginConnected => 'Yhdistetty';
 
   @override

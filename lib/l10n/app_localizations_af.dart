@@ -5331,6 +5331,9 @@ class AppLocalizationsAf extends AppLocalizations {
       'Bedienerinprop word nie tans bespeur nie. Plaaslike instellings gebruik steeds hul gestoorde waardes of ingeboude verstekke.';
 
   @override
+  String get moonbaseAddress => 'Moonbase Address';
+
+  @override
   String get pluginConnected => 'Connected';
 
   @override

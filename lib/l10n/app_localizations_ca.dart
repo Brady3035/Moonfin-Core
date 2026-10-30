@@ -5385,6 +5385,9 @@ class AppLocalizationsCa extends AppLocalizations {
       'Actualment no s\'ha detectat el connector del servidor. La configuració local encara utilitza els seus valors desats o els valors predeterminats integrats.';
 
   @override
+  String get moonbaseAddress => 'Moonbase Address';
+
+  @override
   String get pluginConnected => 'Connectat';
 
   @override

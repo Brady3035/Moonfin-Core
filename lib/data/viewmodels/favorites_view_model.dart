@@ -271,19 +271,48 @@ class FavoritesViewModel extends ChangeNotifier {
     }
   }
 
-  /// The next page of the requests watchlist (Seerr's, or Silo's own). Its
-  /// titles may not be in the library, so they are request cards.
+  /// The next page of the watchlist. Silo's first page leads with the
+  /// titles the library has; the rest come from the requests watchlist
+  /// (Seerr's, or Silo's titles the library lacks) as request cards.
   Future<(List<AggregatedItem>, int)> _fetchWatchlist() async {
+    final type = FavoriteTypeFilter.watchlist;
+    final library = <AggregatedItem>[];
+    if (_client.serverType == ServerType.silo && _watchlistPages == 0) {
+      try {
+        // shortcut: the first 200 library titles only, page them if a
+        // watchlist ever grows past that.
+        final response = await _client.itemsApi.getItems(
+          recursive: true,
+          filters: const ['IsInWatchlist'],
+          includeItemTypes: const ['Movie', 'Series'],
+          limit: 200,
+          fields: _browseFields,
+        );
+        library.addAll(
+          withoutBlockedItems([
+            for (final raw
+                in (response['Items'] as List? ?? const [])
+                    .cast<Map<String, dynamic>>())
+              AggregatedItem(
+                id: raw['Id']?.toString() ?? '',
+                serverId: _client.baseUrl,
+                rawData: raw,
+              ),
+          ]),
+        );
+      } catch (_) {}
+      _rowFetchedCounts[type] = library.length;
+    }
     try {
       final repo = await GetIt.instance.getAsync<SeerrRepository>();
       await repo.ensureInitialized();
-      if (!repo.isAvailable) return (const <AggregatedItem>[], 0);
+      if (!repo.isAvailable) return (library, library.length);
       final page = await repo.getWatchlist(page: _watchlistPages + 1);
       _watchlistPages = page.page;
-      final type = FavoriteTypeFilter.watchlist;
       final fetched = (_rowFetchedCounts[type] ?? 0) + page.results.length;
       _rowFetchedCounts[type] = fetched;
       final items = [
+        ...library,
         for (final item in page.results)
           AggregatedItem(
             id: item.id.toString(),
@@ -299,7 +328,7 @@ class FavoritesViewModel extends ChangeNotifier {
       ];
       return (items, page.page < page.totalPages ? fetched + 1 : fetched);
     } catch (_) {
-      return (const <AggregatedItem>[], 0);
+      return (library, library.length);
     }
   }
 

@@ -51,6 +51,7 @@ Map<String, Object?>? _any(List<Map<String, Object?>> rules) =>
 /// | `filters`: `IsPlayed` / `IsUnplayed` | `watched is true` / `false` |
 /// | `filters`: `IsResumable` | `in_progress is true` |
 /// | `filters`: `IsFavorite`, `isFavorite` | `favorited is true` |
+/// | `filters`: `IsInWatchlist` (Silo only) | `in_watchlist is true` |
 /// | `is4K` | `resolution is 2160p` (or `is_not`) |
 /// | `isHd` | `resolution is 1080p/720p` (false: neither, nor 4K) |
 /// | `audioLanguages`, `subtitleLanguages` | `audio_language` / `subtitle_language is` |
@@ -101,6 +102,8 @@ List<Map<String, Object?>> siloRuleGroups({
     if (flags.contains('isresumable')) _any([_rule('in_progress', 'is', true)]),
     if (isFavorite == true || flags.contains('isfavorite'))
       _any([_rule('favorited', 'is', true)]),
+    if (flags.contains('isinwatchlist'))
+      _any([_rule('in_watchlist', 'is', true)]),
     if (is4K != null)
       _any([_rule('resolution', is4K ? 'is' : 'is_not', '2160p')]),
     if (isHd == true)

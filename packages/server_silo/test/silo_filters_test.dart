@@ -92,6 +92,9 @@ void main() {
         'in_progress is true',
       ]);
       expect(rules(siloRuleGroups(isFavorite: true)), ['favorited is true']);
+      expect(rules(siloRuleGroups(filters: ['IsInWatchlist'])), [
+        'in_watchlist is true',
+      ]);
       expect(rules(siloRuleGroups(is4K: true)), ['resolution is 2160p']);
       expect(rules(siloRuleGroups(isHd: true)), [
         'resolution is 1080p',

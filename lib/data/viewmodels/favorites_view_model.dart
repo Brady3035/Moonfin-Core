@@ -279,27 +279,31 @@ class FavoritesViewModel extends ChangeNotifier {
     final library = <AggregatedItem>[];
     if (_client.serverType == ServerType.silo && _watchlistPages == 0) {
       try {
-        // shortcut: the first 200 library titles only, page them if a
-        // watchlist ever grows past that.
-        final response = await _client.itemsApi.getItems(
-          recursive: true,
-          filters: const ['IsInWatchlist'],
-          includeItemTypes: const ['Movie', 'Series'],
-          limit: 200,
-          fields: _browseFields,
-        );
-        library.addAll(
-          withoutBlockedItems([
-            for (final raw
-                in (response['Items'] as List? ?? const [])
-                    .cast<Map<String, dynamic>>())
-              AggregatedItem(
-                id: raw['Id']?.toString() ?? '',
-                serverId: _client.baseUrl,
-                rawData: raw,
-              ),
-          ]),
-        );
+        // Every library title, 200 at a time.
+        const pageSize = 200;
+        for (var start = 0; ; start += pageSize) {
+          final response = await _client.itemsApi.getItems(
+            recursive: true,
+            filters: const ['IsInWatchlist'],
+            includeItemTypes: const ['Movie', 'Series'],
+            startIndex: start,
+            limit: pageSize,
+            fields: _browseFields,
+          );
+          final raws = (response['Items'] as List? ?? const [])
+              .cast<Map<String, dynamic>>();
+          library.addAll(
+            withoutBlockedItems([
+              for (final raw in raws)
+                AggregatedItem(
+                  id: raw['Id']?.toString() ?? '',
+                  serverId: _client.baseUrl,
+                  rawData: raw,
+                ),
+            ]),
+          );
+          if (raws.length < pageSize) break;
+        }
       } catch (_) {}
       _rowFetchedCounts[type] = library.length;
     }

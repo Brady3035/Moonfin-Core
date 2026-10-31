@@ -13266,6 +13266,22 @@
   "@hideHomeMediaDescriptionSubtitle": {
     "description": "Description for setting to hide media description on home screen"
   },
+  "hideHomeWatchProgress": "Hide Watch Progress",
+  "@hideHomeWatchProgress": {
+    "description": "Setting title to hide the playback progress bar on home screen posters"
+  },
+  "hideHomeWatchProgressSubtitle": "Hide the progress bar on posters you've started watching.",
+  "@hideHomeWatchProgressSubtitle": {
+    "description": "Description for setting to hide the playback progress bar on home screen posters"
+  },
+  "hideHomeUnwatchedCount": "Hide Unwatched Count",
+  "@hideHomeUnwatchedCount": {
+    "description": "Setting title to hide the unwatched episode count badge on home screen posters"
+  },
+  "hideHomeUnwatchedCountSubtitle": "Hide the badge showing how many episodes are left to watch.",
+  "@hideHomeUnwatchedCountSubtitle": {
+    "description": "Description for setting to hide the unwatched episode count badge on home screen posters"
+  },
   "continueWatchingAndNextUpHeader": "Continue Watching and Next Up",
   "@continueWatchingAndNextUpHeader": {
     "description": "Header for settings section containing Continue Watching and Next Up options"

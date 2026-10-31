@@ -14867,6 +14867,20 @@ class AppLocalizationsRo extends AppLocalizations {
       'Ascunde textul descriptiv al filmului sau episodului.';
 
   @override
+  String get hideHomeWatchProgress => 'Hide Watch Progress';
+
+  @override
+  String get hideHomeWatchProgressSubtitle =>
+      'Hide the progress bar on posters you\'ve started watching.';
+
+  @override
+  String get hideHomeUnwatchedCount => 'Hide Unwatched Count';
+
+  @override
+  String get hideHomeUnwatchedCountSubtitle =>
+      'Hide the badge showing how many episodes are left to watch.';
+
+  @override
   String get continueWatchingAndNextUpHeader =>
       'Continuă vizionarea și Următorul episod';
 

@@ -116,6 +116,8 @@ final List<SyncedField> syncedFields = <SyncedField>[
   SyncedField('hideDetailsMediaDescription', UserPreferences.hideDetailsMediaDescription, SyncCodec.boolean),
   SyncedField('detailUseSeriesThumbnails', UserPreferences.detailUseSeriesThumbnails, SyncCodec.boolean),
   SyncedField('hideHomeMediaDescription', UserPreferences.hideHomeMediaDescription, SyncCodec.boolean),
+  SyncedField('hideHomeWatchProgress', UserPreferences.hideHomeWatchProgress, SyncCodec.boolean),
+  SyncedField('hideHomeUnwatchedCount', UserPreferences.hideHomeUnwatchedCount, SyncCodec.boolean),
   SyncedField('fullScreenRows', UserPreferences.fullScreenRows, SyncCodec.boolean),
   SyncedField('homeImageTypeContinueWatching', UserPreferences.homeRowImageType(prefs.HomeSectionType.resume), SyncCodec.enumName, enumValues: prefs.ImageType.values),
   SyncedField('posterSize', UserPreferences.posterSize, SyncCodec.enumName, enumValues: prefs.PosterSize.values),

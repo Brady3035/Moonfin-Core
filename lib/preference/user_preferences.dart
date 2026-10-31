@@ -539,6 +539,8 @@ class UserPreferences extends ChangeNotifier {
     'pref_hide_details_media_description',
     'pref_detail_use_series_thumbnails',
     'pref_hide_home_media_description',
+    'pref_hide_home_watch_progress',
+    'pref_hide_home_unwatched_count',
     'pref_display_audio_rows',
     'pref_display_since_you_watched_rows',
     'pref_since_you_watched_source',
@@ -1842,6 +1844,16 @@ class UserPreferences extends ChangeNotifier {
   /// When on, media description paragraph on the Home screen is hidden.
   static final hideHomeMediaDescription = Preference(
     key: 'pref_hide_home_media_description',
+    defaultValue: false,
+  );
+
+  static final hideHomeWatchProgress = Preference(
+    key: 'pref_hide_home_watch_progress',
+    defaultValue: false,
+  );
+
+  static final hideHomeUnwatchedCount = Preference(
+    key: 'pref_hide_home_unwatched_count',
     defaultValue: false,
   );
 

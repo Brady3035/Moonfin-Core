@@ -25843,6 +25843,30 @@ abstract class AppLocalizations {
   /// **'Hide the movie or episode descriptive text.'**
   String get hideHomeMediaDescriptionSubtitle;
 
+  /// Setting title to hide the playback progress bar on home screen posters
+  ///
+  /// In en, this message translates to:
+  /// **'Hide Watch Progress'**
+  String get hideHomeWatchProgress;
+
+  /// Description for setting to hide the playback progress bar on home screen posters
+  ///
+  /// In en, this message translates to:
+  /// **'Hide the progress bar on posters you\'ve started watching.'**
+  String get hideHomeWatchProgressSubtitle;
+
+  /// Setting title to hide the unwatched episode count badge on home screen posters
+  ///
+  /// In en, this message translates to:
+  /// **'Hide Unwatched Count'**
+  String get hideHomeUnwatchedCount;
+
+  /// Description for setting to hide the unwatched episode count badge on home screen posters
+  ///
+  /// In en, this message translates to:
+  /// **'Hide the badge showing how many episodes are left to watch.'**
+  String get hideHomeUnwatchedCountSubtitle;
+
   /// Header for settings section containing Continue Watching and Next Up options
   ///
   /// In en, this message translates to:

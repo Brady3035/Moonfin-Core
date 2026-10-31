@@ -14302,6 +14302,20 @@ class AppLocalizationsZh extends AppLocalizations {
   String get hideHomeMediaDescriptionSubtitle => '隐藏电影或剧集的描述文字。';
 
   @override
+  String get hideHomeWatchProgress => 'Hide Watch Progress';
+
+  @override
+  String get hideHomeWatchProgressSubtitle =>
+      'Hide the progress bar on posters you\'ve started watching.';
+
+  @override
+  String get hideHomeUnwatchedCount => 'Hide Unwatched Count';
+
+  @override
+  String get hideHomeUnwatchedCountSubtitle =>
+      'Hide the badge showing how many episodes are left to watch.';
+
+  @override
   String get continueWatchingAndNextUpHeader => '继续观看与下个播放';
 
   @override

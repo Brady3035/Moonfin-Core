@@ -111,6 +111,8 @@ void main() {
     'hideBackdropsInLibraries',
     'hideDetailsMediaDescription',
     'hideHomeMediaDescription',
+    'hideHomeUnwatchedCount',
+    'hideHomeWatchProgress',
     'homeBackdropEnabled',
     'homeBackdropStyle',
     'homeImageTypeContinueWatching',

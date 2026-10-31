@@ -14898,6 +14898,20 @@ class AppLocalizationsDe extends AppLocalizations {
       'Blendet die Beschreibung des Films oder der Episode auf der Startseite aus.';
 
   @override
+  String get hideHomeWatchProgress => 'Hide Watch Progress';
+
+  @override
+  String get hideHomeWatchProgressSubtitle =>
+      'Hide the progress bar on posters you\'ve started watching.';
+
+  @override
+  String get hideHomeUnwatchedCount => 'Hide Unwatched Count';
+
+  @override
+  String get hideHomeUnwatchedCountSubtitle =>
+      'Hide the badge showing how many episodes are left to watch.';
+
+  @override
   String get continueWatchingAndNextUpHeader =>
       'Weiterschauen und Als Nächstes';
 

@@ -379,6 +379,20 @@ class _HomeScreenCategoryScreenState extends State<_HomeScreenCategoryScreen> {
                 icon: Icons.description_outlined,
                 onChanged: _pushPersonalizationSync,
               ),
+              SwitchPreferenceTile(
+                preference: UserPreferences.hideHomeWatchProgress,
+                title: l10n.hideHomeWatchProgress,
+                subtitle: l10n.hideHomeWatchProgressSubtitle,
+                icon: Icons.linear_scale,
+                onChanged: _pushPersonalizationSync,
+              ),
+              SwitchPreferenceTile(
+                preference: UserPreferences.hideHomeUnwatchedCount,
+                title: l10n.hideHomeUnwatchedCount,
+                subtitle: l10n.hideHomeUnwatchedCountSubtitle,
+                icon: Icons.filter_9_plus_outlined,
+                onChanged: _pushPersonalizationSync,
+              ),
               StringPickerPreferenceTile(
                 preference: UserPreferences.mediaPreviewMode,
                 title: l10n.mediaPreview,

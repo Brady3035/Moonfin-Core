@@ -966,6 +966,18 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
       keywords: ['spoiler', 'description', 'overview'],
     ),
     home.leaf(
+      'pref_hide_home_watch_progress',
+      l10n.hideHomeWatchProgress,
+      subtitle: l10n.hideHomeWatchProgressSubtitle,
+      keywords: ['resume', 'played'],
+    ),
+    home.leaf(
+      'pref_hide_home_unwatched_count',
+      l10n.hideHomeUnwatchedCount,
+      subtitle: l10n.hideHomeUnwatchedCountSubtitle,
+      keywords: ['unplayed'],
+    ),
+    home.leaf(
       'mediaPreviewMode',
       l10n.mediaPreview,
       subtitle: l10n.mediaPreviewDescription,

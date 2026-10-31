@@ -5278,6 +5278,8 @@ class _ContentRowsState extends State<_ContentRows>
     required AppLocalizations l10n,
   }) {
     final suppressFocusGlow = ThemeRegistry.active.borders.focusGlow.isNotEmpty;
+    final hideWatchProgress = prefs.get(UserPreferences.hideHomeWatchProgress);
+    final hideUnwatchedCount = prefs.get(UserPreferences.hideHomeUnwatchedCount);
     final showMediaTypeBadges = showsMediaTypeBadges(
       prefs.get(UserPreferences.mediaTypeBadgeBehavior),
       row.items,
@@ -5753,8 +5755,8 @@ class _ContentRowsState extends State<_ContentRows>
                     classicHomeLabel: !isRowsV2,
                     isFavorite: item.isFavorite,
                     isPlayed: item.isPlayed,
-                    unplayedCount: item.unplayedItemCount,
-                    playedPercentage: item.playedPercentage,
+                    unplayedCount: hideUnwatchedCount ? null : item.unplayedItemCount,
+                    playedPercentage: hideWatchProgress ? null : item.playedPercentage,
                     watchedBehavior: watchedBehavior,
                     itemType: item.type,
                     seerrMediaType: showMediaTypeBadges ? item.seerrMediaType : null,

@@ -103,3 +103,133 @@ final class AppleTvSystemChannel: NSObject, UITextFieldDelegate {
         completion?(value)
     }
 }
+
+/// Lets the Remote app on an iPhone type into the keyboards Flutter draws.
+///
+/// tvOS only offers the phone keyboard while a native text field is first
+/// responder, so this keeps a hidden one active for as long as a drawn
+/// keyboard is open and mirrors its text both ways. An empty input view takes
+/// the place of the system keyboard, so the TV still shows only the drawn one.
+@MainActor
+final class AppleTvRemoteTextChannel: NSObject, UITextFieldDelegate {
+    private let channel: FlutterMethodChannel
+    private weak var flutterViewController: FlutterViewController?
+    private let textField = RemoteTextField(frame: .zero)
+    private var isActive = false
+
+    init(messenger: FlutterBinaryMessenger, flutterViewController: FlutterViewController) {
+        channel = FlutterMethodChannel(
+            name: "moonfin/appletv_remote_text", binaryMessenger: messenger)
+        self.flutterViewController = flutterViewController
+        super.init()
+        textField.delegate = self
+        textField.returnKeyType = .done
+        textField.enablesReturnKeyAutomatically = false
+        textField.autocorrectionType = .no
+        textField.inputView = UIView(frame: .zero)
+        textField.pressTarget = flutterViewController
+        textField.addTarget(self, action: #selector(textDidChange), for: .editingChanged)
+        channel.setMethodCallHandler { [weak self] call, result in
+            self?.handle(call, result: result)
+        }
+    }
+
+    private func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let arguments = call.arguments as? [String: Any] ?? [:]
+        switch call.method {
+        case "start":
+            stop()
+            guard let host = flutterViewController?.view else {
+                result(false)
+                return
+            }
+            textField.text = arguments["text"] as? String ?? ""
+            textField.placeholder = arguments["hint"] as? String
+            textField.isSecureTextEntry = arguments["obscureText"] as? Bool ?? false
+            textField.keyboardType = keyboardType(for: arguments["purpose"] as? String)
+            // Inside the Flutter view, so presses the field passes on still
+            // travel the responder chain Flutter expects.
+            host.addSubview(textField)
+            isActive = true
+            if !textField.becomeFirstResponder() {
+                stop()
+                result(false)
+                return
+            }
+            result(true)
+        case "update":
+            let text = arguments["text"] as? String ?? ""
+            if isActive && textField.text != text {
+                textField.text = text
+            }
+            result(nil)
+        case "stop":
+            stop()
+            result(nil)
+        default:
+            result(FlutterMethodNotImplemented)
+        }
+    }
+
+    private func keyboardType(for purpose: String?) -> UIKeyboardType {
+        switch purpose {
+        case "url":
+            return .URL
+        case "email":
+            return .emailAddress
+        case "numeric":
+            return .numberPad
+        default:
+            return .default
+        }
+    }
+
+    @objc private func textDidChange() {
+        guard isActive else { return }
+        channel.invokeMethod("changed", arguments: textField.text ?? "")
+    }
+
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        guard isActive else { return true }
+        // Dart closes the drawn keyboard, and that stops this field.
+        channel.invokeMethod("submitted", arguments: textField.text ?? "")
+        return false
+    }
+
+    func textFieldDidEndEditing(_ textField: UITextField) {
+        // Something else took first responder, such as the native keyboard.
+        // The drawn keyboard stays up, it just loses the phone.
+        guard isActive else { return }
+        isActive = false
+        textField.removeFromSuperview()
+    }
+
+    private func stop() {
+        guard isActive else { return }
+        isActive = false
+        textField.resignFirstResponder()
+        textField.removeFromSuperview()
+    }
+}
+
+/// Hands every press to Flutter, so the Siri Remote keeps driving the drawn
+/// keyboard while this field holds first responder.
+private final class RemoteTextField: UITextField {
+    weak var pressTarget: UIResponder?
+
+    override func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
+        pressTarget?.pressesBegan(presses, with: event)
+    }
+
+    override func pressesChanged(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
+        pressTarget?.pressesChanged(presses, with: event)
+    }
+
+    override func pressesEnded(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
+        pressTarget?.pressesEnded(presses, with: event)
+    }
+
+    override func pressesCancelled(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
+        pressTarget?.pressesCancelled(presses, with: event)
+    }
+}

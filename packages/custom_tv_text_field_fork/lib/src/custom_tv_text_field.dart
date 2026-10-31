@@ -14,6 +14,45 @@ const MethodChannel _appleTvSystemChannel = MethodChannel(
 /// rather than waiting on a call that can only fail.
 const bool _hasAppleTvSystemChannel = bool.fromEnvironment('MOONFIN_TVOS');
 
+/// The tvOS runner keeps a hidden native field behind the drawn keyboards on
+/// this channel, so the Remote app on an iPhone can type into them.
+const MethodChannel _appleTvRemoteTextChannel = MethodChannel(
+  'moonfin/appletv_remote_text',
+);
+
+/// Routes the runner's phone edits to the one field whose keyboard is open.
+class _AppleTvRemoteText {
+  static CustomTVTextFieldState? _owner;
+  static bool _listening = false;
+
+  static void claim(CustomTVTextFieldState field) {
+    // The runner holds one hidden field, so a field that loses it must not
+    // stop it later on the new owner's behalf.
+    final previous = _owner;
+    if (previous != null && !identical(previous, field)) {
+      previous._remoteTextActive = false;
+    }
+    _owner = field;
+    if (_listening) return;
+    _listening = true;
+    _appleTvRemoteTextChannel.setMethodCallHandler(_handle);
+  }
+
+  static void release(CustomTVTextFieldState field) {
+    if (identical(_owner, field)) _owner = null;
+  }
+
+  static Future<void> _handle(MethodCall call) async {
+    final text = call.arguments as String? ?? '';
+    switch (call.method) {
+      case 'changed':
+        _owner?._applyRemoteText(text, submit: false);
+      case 'submitted':
+        _owner?._applyRemoteText(text, submit: true);
+    }
+  }
+}
+
 enum TextFieldType {
   email,
   password,
@@ -27,6 +66,11 @@ enum TextFieldType {
 
 class CustomTVTextField extends StatefulWidget {
   static final ValueNotifier<bool> isKeyboardVisibleNotifier = ValueNotifier<bool>(false);
+
+  /// Lets tests drive the phone typing path, which otherwise only the tvOS
+  /// build turns on.
+  @visibleForTesting
+  static bool debugOffersRemoteText = false;
 
   /// Close handles for fields whose on-screen keyboard is open, most recent
   /// last, so a global back handler can dismiss the keyboard instead of
@@ -142,6 +186,14 @@ class CustomTVTextFieldState extends State<CustomTVTextField>
   bool _useSystemImeSession = false;
   bool _nativeSystemImePending = false;
 
+  /// Set while the runner's hidden field mirrors the drawn keyboard, with
+  /// the text it last holds, so an edit is never echoed back to it.
+  bool _remoteTextActive = false;
+  String _remoteText = '';
+
+  bool get _offersRemoteText =>
+      _hasAppleTvSystemChannel || CustomTVTextField.debugOffersRemoteText;
+
   bool get _isSystemImeActive => _useSystemImeSession;
 
   bool get isKeyboardVisible =>
@@ -255,7 +307,10 @@ class CustomTVTextFieldState extends State<CustomTVTextField>
   void _initController() {
     _keyboardController = KeyboardController()..style = widget.keyboardStyle;
     _keyboardController.setText(widget.controller.text);
-    _keyboardController.onTextChanged = (text) => widget.controller.text = text;
+    _keyboardController.onTextChanged = (text) {
+      widget.controller.text = text;
+      _syncRemoteText(text);
+    };
     _keyboardController.onKeyboardClosed = (shouldPop) {
       if (shouldPop) {
         widget.onFieldSubmitted?.call(widget.controller.text);
@@ -287,6 +342,7 @@ class CustomTVTextFieldState extends State<CustomTVTextField>
     // A caret move on its own changes no text, but the view still needs
     // to follow it.
     _scrollToCursor();
+    if (!_keyboardController.isVisible) _stopRemoteText();
     if (!_keyboardController.isVisible && _isOverlayOpen.value) {
       _isOverlayOpen.value = false;
       if (widget.popParentOnKeyboardClose &&
@@ -388,6 +444,7 @@ class CustomTVTextFieldState extends State<CustomTVTextField>
 
     _keyboardController.setText(widget.controller.text);
     _keyboardController.show();
+    _startRemoteText();
     _keyboardFocusNode.requestFocus();
     Scrollable.ensureVisible(
       context,
@@ -523,6 +580,51 @@ class CustomTVTextFieldState extends State<CustomTVTextField>
     });
   }
 
+  void _startRemoteText() {
+    if (!_offersRemoteText || _remoteTextActive) return;
+    _remoteTextActive = true;
+    _remoteText = widget.controller.text;
+    _AppleTvRemoteText.claim(this);
+    unawaited(
+      _invokeRemoteText('start', <String, Object>{
+        'text': _remoteText,
+        'hint': widget.hint,
+        'purpose': widget.inputPurpose.name,
+        'obscureText': widget.obscureText,
+      }),
+    );
+  }
+
+  void _syncRemoteText(String text) {
+    if (!_remoteTextActive || text == _remoteText) return;
+    _remoteText = text;
+    unawaited(_invokeRemoteText('update', <String, Object>{'text': text}));
+  }
+
+  void _stopRemoteText() {
+    if (!_remoteTextActive) return;
+    _remoteTextActive = false;
+    _AppleTvRemoteText.release(this);
+    unawaited(_invokeRemoteText('stop'));
+  }
+
+  /// Phone typing is extra, so a runner without the channel or a field it
+  /// cannot present leaves the drawn keyboard working as it was.
+  Future<void> _invokeRemoteText(String method, [Object? arguments]) async {
+    try {
+      await _appleTvRemoteTextChannel.invokeMethod<Object?>(method, arguments);
+    } catch (_) {}
+  }
+
+  void _applyRemoteText(String text, {required bool submit}) {
+    if (!mounted || !_remoteTextActive || !_keyboardController.isVisible) {
+      return;
+    }
+    _remoteText = text;
+    if (text != _keyboardController.text) _keyboardController.setText(text);
+    if (submit) _keyboardController.hide(true);
+  }
+
   void _submitSystemIme(String value) {
     if (!_useSystemImeSession) return;
     _deactivateSystemIme();
@@ -582,6 +684,7 @@ class CustomTVTextFieldState extends State<CustomTVTextField>
 
   @override
   void dispose() {
+    _stopRemoteText();
     if (_nativeSystemImePending) {
       _nativeSystemImePending = false;
       unawaited(_hideNativeSystemIme());

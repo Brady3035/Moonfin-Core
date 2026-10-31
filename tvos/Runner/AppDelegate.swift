@@ -42,6 +42,7 @@ class AppDelegate: FlutterAppDelegate {
     private var topShelfChannel: TopShelfChannel?
     private var previewChannel: AppleTvPreviewChannel?
     private var systemChannel: AppleTvSystemChannel?
+    private var remoteTextChannel: AppleTvRemoteTextChannel?
     private var audioChannel: AppleTvAudioChannel?
     private var themeMusicChannel: AppleTvThemeMusicChannel?
     private var sfSymbolChannel: AppleTvSfSymbolChannel?
@@ -86,6 +87,9 @@ class AppDelegate: FlutterAppDelegate {
         systemChannel = AppleTvSystemChannel(
             messenger: flutterViewController.binaryMessenger,
             gamepadHost: gamepadHost)
+        remoteTextChannel = AppleTvRemoteTextChannel(
+            messenger: flutterViewController.binaryMessenger,
+            flutterViewController: flutterViewController)
         audioChannel = AppleTvAudioChannel(
             messenger: flutterViewController.binaryMessenger)
         themeMusicChannel = AppleTvThemeMusicChannel(

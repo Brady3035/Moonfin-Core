@@ -15709,7 +15709,7 @@ class AppLocalizationsFi extends AppLocalizations {
   String get homeScreenBackdropCorner => 'Kulma';
 
   @override
-  String get homeScreenBackdropTop => 'Top';
+  String get homeScreenBackdropTop => 'Yläosa';
 
   @override
   String get detailsScreenBackdrop => 'Tietonäytön taustakuva';

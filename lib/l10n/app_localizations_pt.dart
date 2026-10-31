@@ -27020,8 +27020,8 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count participantes',
-      one: '$count participante',
+      other: '# participantes',
+      one: '# participante',
     );
     return '$_temp0';
   }
@@ -40433,8 +40433,8 @@ class AppLocalizationsPtPt extends AppLocalizationsPt {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count participantes',
-      one: '$count participante',
+      other: '# participantes',
+      one: '# participante',
     );
     return '$_temp0';
   }

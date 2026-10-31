@@ -22809,8 +22809,8 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count 位參與者',
-      one: '$count 位參與者',
+      other: '# 位參與者',
+      one: '# 位參與者',
     );
     return '$_temp0';
   }

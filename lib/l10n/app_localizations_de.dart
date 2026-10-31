@@ -25,13 +25,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get animeMarkerMangaCanon => 'Manga Canon';
 
   @override
-  String get animeMarkerSubbed => 'Subbed';
+  String get animeMarkerSubbed => 'Untertitelt';
 
   @override
-  String get animeMarkerDubbed => 'Dubbed';
+  String get animeMarkerDubbed => 'Synchronisiert';
 
   @override
-  String get animeMarkerSubbedAndDubbed => 'Subbed/Dubbed';
+  String get animeMarkerSubbedAndDubbed => 'Untertitelt/Synchronisiert';
 
   @override
   String get animeMarkerSubbedShort => 'Sub';
@@ -43,7 +43,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get animeMarkerSubbedAndDubbedShort => 'Sub/Dub';
 
   @override
-  String get animeMarkerPending => 'Pending';
+  String get animeMarkerPending => 'Ausstehend';
 
   @override
   String get animeMarkerRecap => 'Rückblick';
@@ -96,7 +96,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get timesUpTitle => 'Time\'s up';
 
   @override
-  String get timesUpMessage => 'This account isn\'t available right now.';
+  String get timesUpMessage => 'Dieses Konto ist derzeit nicht verfügbar.';
 
   @override
   String timesUpResumesToday(String time) {

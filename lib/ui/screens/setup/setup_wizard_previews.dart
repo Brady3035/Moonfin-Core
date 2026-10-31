@@ -13,6 +13,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../../preference/bottom_nav_tabs.dart';
 import '../../../preference/preference_constants.dart';
 import '../../../preference/user_preferences.dart';
+import '../../../util/clock_format.dart';
 import '../../../util/overlay_color_palette.dart';
 import '../../../util/platform_detection.dart';
 import '../../widgets/bottom_nav/bottom_nav_destinations.dart';
@@ -25,6 +26,7 @@ import '../../widgets/bottom_nav/split_bar.dart';
 import '../../widgets/bottom_nav/strip_bar.dart';
 import '../../widgets/bounded_network_image.dart';
 import '../../widgets/mediabar/gallery_glow.dart';
+import '../../widgets/settings/settings_preview_scope.dart';
 
 /// The artwork behind every preview, shared with the home screen.
 ///
@@ -1636,6 +1638,37 @@ Widget navbarPreview(NavbarPosition position) => _liveOrFallback(
   fallback: _fallbackNavbar(position),
 );
 
+/// Home as the settings live preview draws it: the navbar where it's set, with
+/// its buttons, labels and clock, over the rows in their set style and size.
+/// Values a settings picker is trying stand in for the saved ones.
+Widget settingsHomePreview() {
+  final position = GetIt.instance.isRegistered<UserPreferences>()
+      ? GetIt.instance<UserPreferences>().get(UserPreferences.navbarPosition)
+      : NavbarPosition.top;
+  return _liveOrFallback(
+    live: (context, items) {
+      final modern =
+          previewValue(context, UserPreferences.homeRowsStyle) ==
+          HomeRowsStyle.v2;
+      return switch (previewValue(context, UserPreferences.navbarPosition)) {
+        NavbarPosition.top => _topNavbarPreview(context, items, modern: modern),
+        NavbarPosition.left => _leftNavbarPreview(
+          context,
+          items,
+          modern: modern,
+        ),
+        NavbarPosition.bottom => _bottomNavbarPreview(
+          context,
+          items,
+          previewValue(context, UserPreferences.bottomNavbarStyle),
+          modern: modern,
+        ),
+      };
+    },
+    fallback: _fallbackNavbar(position),
+  );
+}
+
 /// The default button set: home, search, shuffle, favorites, libraries and
 /// settings, which is what the chrome shows before anyone touches a toggle.
 const _navIcons = [
@@ -1646,6 +1679,51 @@ const _navIcons = [
   Icons.video_library_rounded,
   Icons.settings_rounded,
 ];
+
+/// The navbar buttons with the shuffle and favorites toggles applied, each
+/// with the label the expanded navbar prints beside it.
+List<(IconData, String)> _navButtonsFor(
+  BuildContext context,
+  List<IconData> icons,
+) {
+  final l10n = AppLocalizations.of(context);
+  final showShuffle = previewValue(context, UserPreferences.showShuffleButton);
+  final showFavorites = previewValue(
+    context,
+    UserPreferences.showFavoritesButton,
+  );
+  return [
+    for (final icon in icons)
+      if ((icon != Icons.shuffle_rounded || showShuffle) &&
+          (icon != Icons.favorite_rounded || showFavorites))
+        (
+          icon,
+          icon == Icons.home_rounded
+              ? l10n.home
+              : icon == Icons.search_rounded
+              ? l10n.search
+              : icon == Icons.shuffle_rounded
+              ? l10n.shuffle
+              : icon == Icons.favorite_rounded
+              ? l10n.favorites
+              : icon == Icons.video_library_rounded
+              ? l10n.libraries
+              : l10n.settings,
+        ),
+  ];
+}
+
+/// The toolbar clock as the clock settings have it, or null when it's off.
+String? _previewClock(BuildContext context) {
+  if (previewValue(context, UserPreferences.clockBehavior) ==
+      ClockBehavior.never) {
+    return null;
+  }
+  return formatClockTime(
+    DateTime.now(),
+    use24Hour: previewValue(context, UserPreferences.use24HourClock),
+  );
+}
 
 /// The nav slot colour when the theme cycles one, the resting grey otherwise,
 /// exactly as the real buttons resolve it.
@@ -1696,6 +1774,7 @@ Widget _navbarRows(
   BuildContext context,
   List<MediaBarSlideItem> items, {
   double topInset = 12,
+  bool? modern,
 }) {
   return Padding(
     padding: EdgeInsets.only(top: topInset),
@@ -1706,7 +1785,7 @@ Widget _navbarRows(
         child: _homeRowsColumn(
           context,
           items,
-          modern: !_phone,
+          modern: modern ?? !_phone,
           rowGapOverride: 24,
         ),
       ),
@@ -1717,7 +1796,11 @@ Widget _navbarRows(
 /// The toolbar draws no band of its own. An avatar sits on the left, the
 /// buttons live in one translucent pill in the middle, and the clock keeps
 /// the right, all floating straight over the content.
-Widget _topNavbarPreview(BuildContext context, List<MediaBarSlideItem> items) {
+Widget _topNavbarPreview(
+  BuildContext context,
+  List<MediaBarSlideItem> items, {
+  bool? modern,
+}) {
   final toolbarHeight = _tv ? 95.0 : (_phone ? 60.0 : 80.0);
   final hPad = _tv ? 48.0 : (_phone ? 12.0 : 32.0);
   final vPad = _tv ? 27.0 : (_phone ? 8.0 : 10.0);
@@ -1732,10 +1815,10 @@ Widget _topNavbarPreview(BuildContext context, List<MediaBarSlideItem> items) {
           Icons.settings_rounded,
         ]
       : _navIcons;
-  final now = DateTime.now();
-  final clock =
-      '${now.hour.toString().padLeft(2, '0')}:'
-      '${now.minute.toString().padLeft(2, '0')}';
+  final buttons = _navButtonsFor(context, icons);
+  final expanded =
+      !_phone && previewValue(context, UserPreferences.navbarAlwaysExpanded);
+  final clock = _previewClock(context);
 
   final pill = Container(
     decoration: BoxDecoration(
@@ -1745,12 +1828,39 @@ Widget _topNavbarPreview(BuildContext context, List<MediaBarSlideItem> items) {
     child: Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        for (var i = 0; i < icons.length; i++)
-          SizedBox(
-            width: buttonWidth,
-            height: buttonWidth,
-            child: Icon(icons[i], size: iconSize, color: _navIconColor(i)),
-          ),
+        for (var i = 0; i < buttons.length; i++)
+          if (expanded)
+            SizedBox(
+              height: buttonWidth,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(buttons[i].$1, size: iconSize, color: _navIconColor(i)),
+                    const SizedBox(width: 8),
+                    Text(
+                      buttons[i].$2,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppColorScheme.onSurface.withValues(alpha: 0.8),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else
+            SizedBox(
+              width: buttonWidth,
+              height: buttonWidth,
+              child: Icon(
+                buttons[i].$1,
+                size: iconSize,
+                color: _navIconColor(i),
+              ),
+            ),
       ],
     ),
   );
@@ -1765,8 +1875,9 @@ Widget _topNavbarPreview(BuildContext context, List<MediaBarSlideItem> items) {
             alignment: Alignment.center,
             children: [
               Align(alignment: Alignment.centerLeft, child: _navAvatar()),
-              pill,
-              if (!_phone)
+              // Labels can outgrow the bar, so the pill shrinks to fit it.
+              expanded ? FittedBox(fit: BoxFit.scaleDown, child: pill) : pill,
+              if (!_phone && clock != null)
                 Align(
                   alignment: Alignment.centerRight,
                   child: Text(
@@ -1782,37 +1893,73 @@ Widget _topNavbarPreview(BuildContext context, List<MediaBarSlideItem> items) {
           ),
         ),
       ),
-      Expanded(child: _navbarRows(context, items)),
+      Expanded(child: _navbarRows(context, items, modern: modern)),
     ],
   );
 }
 
 /// The collapsed rail is a bare 72 wide gutter of icons with no backdrop, so
 /// the preview keeps it transparent too and just moves the rows over.
-Widget _leftNavbarPreview(BuildContext context, List<MediaBarSlideItem> items) {
+Widget _leftNavbarPreview(
+  BuildContext context,
+  List<MediaBarSlideItem> items, {
+  bool? modern,
+}) {
   final iconSize = _tv ? 24.0 : 28.0;
   final itemHeight = _tv ? 40.0 : 44.0;
+  final buttons = _navButtonsFor(context, _navIcons);
+  final expanded = previewValue(context, UserPreferences.navbarAlwaysExpanded);
   return Row(
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
       SizedBox(
-        width: 72,
+        width: expanded ? 200 : 72,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: expanded
+              ? CrossAxisAlignment.start
+              : CrossAxisAlignment.center,
           children: [
-            for (var i = 0; i < _navIcons.length; i++)
+            for (var i = 0; i < buttons.length; i++)
               SizedBox(
                 height: itemHeight,
-                child: Icon(
-                  _navIcons[i],
-                  size: iconSize,
-                  color: _navIconColor(i),
+                child: Padding(
+                  padding: EdgeInsets.only(left: expanded ? 24 : 0),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        buttons[i].$1,
+                        size: iconSize,
+                        color: _navIconColor(i),
+                      ),
+                      if (expanded) ...[
+                        const SizedBox(width: 12),
+                        Flexible(
+                          child: Text(
+                            buttons[i].$2,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: AppColorScheme.onSurface.withValues(
+                                alpha: 0.8,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
               ),
           ],
         ),
       ),
-      Expanded(child: _navbarRows(context, items, topInset: 24)),
+      Expanded(
+        child: _navbarRows(context, items, topInset: 24, modern: modern),
+      ),
     ],
   );
 }
@@ -1825,8 +1972,9 @@ Widget _leftNavbarPreview(BuildContext context, List<MediaBarSlideItem> items) {
 Widget _bottomNavbarPreview(
   BuildContext context,
   List<MediaBarSlideItem> items,
-  BottomNavbarStyle style,
-) {
+  BottomNavbarStyle style, {
+  bool? modern,
+}) {
   final l10n = AppLocalizations.of(context);
   final theme = BottomNavTheme.resolve(context, preview: true);
   var name = '';
@@ -1877,7 +2025,9 @@ Widget _bottomNavbarPreview(
 
   return Stack(
     children: [
-      Positioned.fill(child: _navbarRows(context, items, topInset: 24)),
+      Positioned.fill(
+        child: _navbarRows(context, items, topInset: 24, modern: modern),
+      ),
       Align(
         alignment: Alignment.bottomCenter,
         child: IgnorePointer(child: ExcludeSemantics(child: bar)),
@@ -2178,8 +2328,15 @@ Widget _homeRowsColumn(
     ),
   );
 
-  final posterHeight = modern ? 240.0 * scale : 150.0 * scale;
-  final thumbHeight = 110.0 * scale;
+  final posterSize = previewValue(context, UserPreferences.posterSize);
+  final posterScale =
+      posterSize.portraitHeight / PosterSize.medium.portraitHeight;
+  final posterHeight = (modern ? 240.0 : 150.0) * scale * posterScale;
+  final thumbHeight =
+      110.0 *
+      scale *
+      posterSize.landscapeHeight /
+      PosterSize.medium.landscapeHeight;
   final rowGap = rowGapOverride ?? (modern ? (_phone ? 40.0 : 60.0) : 18.0);
 
   // The focused modern card: same height, morphed to 16:9 on the thumb image,
@@ -2371,12 +2528,18 @@ Widget _homeRowsColumn(
 // ---------------------------------------------------------------------------
 
 Widget detailStylePreview(DetailScreenStyle style) => _liveOrFallback(
-  live: (context, items) => switch (style) {
-    DetailScreenStyle.classic => _classicDetail(context, items),
-    DetailScreenStyle.modern => _modernDetail(context, items.first),
-    DetailScreenStyle.spotlight => _spotlightDetail(context, items.first),
-    DetailScreenStyle.nouveau => _nouveauDetail(context, items),
-    DetailScreenStyle.minimalist => _minimalistDetail(context, items.first),
+  live: (context, shown) {
+    final items =
+        previewValue(context, UserPreferences.hideDetailsMediaDescription)
+        ? [for (final item in shown) item.withoutOverview()]
+        : shown;
+    return switch (style) {
+      DetailScreenStyle.classic => _classicDetail(context, items),
+      DetailScreenStyle.modern => _modernDetail(context, items.first),
+      DetailScreenStyle.spotlight => _spotlightDetail(context, items.first),
+      DetailScreenStyle.nouveau => _nouveauDetail(context, items),
+      DetailScreenStyle.minimalist => _minimalistDetail(context, items.first),
+    };
   },
   fallback: _fallbackDetail(style),
 );

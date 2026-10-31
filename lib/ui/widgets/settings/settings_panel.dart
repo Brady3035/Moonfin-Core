@@ -11,6 +11,10 @@ import '../../../util/platform_detection.dart';
 import '../../../util/focus/dpad_keys.dart';
 import 'preference_tiles.dart';
 
+/// Content that lays itself out across the whole window rather than in the
+/// side panel, the way the settings live preview does.
+mixin FullScreenSettingsContent on Widget {}
+
 class SettingsPanel extends StatelessWidget {
   final Widget child;
 
@@ -25,6 +29,10 @@ class SettingsPanel extends StatelessWidget {
   final bool wide;
 
   static final isOpenNotifier = ValueNotifier<bool>(false);
+
+  /// Content with a navigator of its own registers here to take Back before
+  /// the panel pops its root. A handler returns true when it used the press.
+  static final backHandlers = <bool Function()>[];
 
   const SettingsPanel({
     super.key,
@@ -71,10 +79,11 @@ class SettingsPanel extends StatelessWidget {
     final screenWidth = MediaQuery.sizeOf(context).width;
     final appleTv = AppUiIdiomResolver.appleTvStyle;
     final isMobile = PlatformDetection.useMobileUi;
+    final fullScreen = child is FullScreenSettingsContent;
     // A wide panel takes the whole window when there isn't enough of it to
     // leave a useful strip of the app showing behind.
-    final fullWidth = isMobile || (wide && screenWidth < 720);
-    final panelWidth = PlatformDetection.isAppleTV
+    final fullWidth = isMobile || fullScreen || (wide && screenWidth < 720);
+    final panelWidth = PlatformDetection.isAppleTV && !fullScreen
         ? (screenWidth * 0.42).clamp(560.0, screenWidth)
         : fullWidth
         ? screenWidth
@@ -177,6 +186,9 @@ class _SettingsNavigatorState extends State<_SettingsNavigator> {
     // An open TV keyboard owns back, so close it instead of popping the panel
     // out from underneath it.
     if (CustomTVTextField.closeTopKeyboard()) return;
+    for (final handler in SettingsPanel.backHandlers.reversed.toList()) {
+      if (handler()) return;
+    }
     final navigator = _navKey.currentState;
     if (navigator != null && navigator.canPop()) {
       navigator.pop();

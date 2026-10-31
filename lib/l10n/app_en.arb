@@ -15430,5 +15430,27 @@
   "bookReaderControlsStayVisible": "Controls stay visible",
   "@bookReaderControlsStayVisible": {
     "description": "Comic reader toggle while its bars stay on screen"
+  },
+  "settingsLivePreview": "Live preview",
+  "@settingsLivePreview": {
+    "description": "Label over the preview in Settings that redraws a screen of the app as settings change"
+  },
+  "settingsPreviewShowsOn": "Shows on the {screen} preview",
+  "@settingsPreviewShowsOn": {
+    "description": "Under the Settings live preview, says the focused setting changes the named preview screen",
+    "placeholders": {
+      "screen": {
+        "type": "String",
+        "example": "Home"
+      }
+    }
+  },
+  "settingsPreviewNotShown": "Not shown in the preview",
+  "@settingsPreviewNotShown": {
+    "description": "Under the Settings live preview, says the focused setting has no visible effect in the preview"
+  },
+  "settingsPreviewSaved": "Saved",
+  "@settingsPreviewSaved": {
+    "description": "Tag on the option that is saved while another option is being tried in the Settings live preview"
   }
 }

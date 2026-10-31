@@ -28478,6 +28478,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Controls stay visible'**
   String get bookReaderControlsStayVisible;
+
+  /// Label over the preview in Settings that redraws a screen of the app as settings change
+  ///
+  /// In en, this message translates to:
+  /// **'Live preview'**
+  String get settingsLivePreview;
+
+  /// Under the Settings live preview, says the focused setting changes the named preview screen
+  ///
+  /// In en, this message translates to:
+  /// **'Shows on the {screen} preview'**
+  String settingsPreviewShowsOn(String screen);
+
+  /// Under the Settings live preview, says the focused setting has no visible effect in the preview
+  ///
+  /// In en, this message translates to:
+  /// **'Not shown in the preview'**
+  String get settingsPreviewNotShown;
+
+  /// Tag on the option that is saved while another option is being tried in the Settings live preview
+  ///
+  /// In en, this message translates to:
+  /// **'Saved'**
+  String get settingsPreviewSaved;
 }
 
 class _AppLocalizationsDelegate

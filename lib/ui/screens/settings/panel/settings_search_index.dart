@@ -414,7 +414,7 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
   );
   final downloads = _SearchSection(
     slug: 'storage',
-    path: [l10n.storageAndDownloads],
+    path: [l10n.storage],
     icon: Icons.download_for_offline,
     open: () => push(const DownloadSettingsScreen()),
   );

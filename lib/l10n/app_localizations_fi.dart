@@ -16524,4 +16524,18 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get bookReaderControlsStayVisible => 'Ohjaimet pysyvät näkyvissä';
+
+  @override
+  String get settingsLivePreview => 'Live preview';
+
+  @override
+  String settingsPreviewShowsOn(String screen) {
+    return 'Shows on the $screen preview';
+  }
+
+  @override
+  String get settingsPreviewNotShown => 'Not shown in the preview';
+
+  @override
+  String get settingsPreviewSaved => 'Saved';
 }

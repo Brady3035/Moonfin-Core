@@ -16398,4 +16398,18 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get bookReaderControlsStayVisible => 'Controls stay visible';
+
+  @override
+  String get settingsLivePreview => 'Live preview';
+
+  @override
+  String settingsPreviewShowsOn(String screen) {
+    return 'Shows on the $screen preview';
+  }
+
+  @override
+  String get settingsPreviewNotShown => 'Not shown in the preview';
+
+  @override
+  String get settingsPreviewSaved => 'Saved';
 }
